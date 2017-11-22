@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/05/23 12:54:17.000.355,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\MJGame\MJServer\ManagerServer\ManagerServerFrm.dfm</Transaction>
+    <Transaction>2017/05/23 12:54:20.000.683,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\MJGame\MJServer\ManagerServer\ManagerServer.dproj</Transaction>
+    <Transaction>2017/05/26 09:55:12.000.103,C:\MJGame\MJServer\ManagerServer\ConnectManagerServerFrm.dfm=C:\MJGame\MJServer\ManagerServer\Unit2.dfm</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.993,C:\TextGame\core\GeometryLib.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.990,C:\TextGame\core\DataFrameEngine.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.992,C:\TextGame\core\Geometry2DUnit.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.989,C:\TextGame\core\CoreClasses.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.995,C:\TextGame\core\MemoryStream64.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.998,C:\TextGame\core\TextTable.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.991,C:\TextGame\core\DoStatusIO.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.997,C:\TextGame\core\TextDataEngine.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.994,C:\TextGame\core\ListEngine.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.981,C:\TextGame\core\Cadencer.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.998,C:\TextGame\core\UnicodeMixedLib.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.992,C:\TextGame\core\Geometry3DUnit.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.994,C:\TextGame\core\GeometryRotationUnit.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.997,C:\TextGame\core\TextParsing.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.996,C:\TextGame\core\PascalStrings.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.995,C:\TextGame\core\NotifyObjectBase.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:39.000.408,C:\TextGame\core\server\CommunicationFrameworkIO.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:39.000.403,C:\TextGame\core\server\CommunicationFramework.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:39.000.406,C:\TextGame\core\server\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:39.000.405,C:\TextGame\core\server\CommunicationFrameworkDoubleTunnelIO.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:43.000.317,C:\TextGame\core\server\ICS\CommunicationFramework_Server_ICSCustomSocket.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:43.000.314,C:\TextGame\core\server\ICS\CommunicationFramework_Client_ICS.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:43.000.316,C:\TextGame\core\server\ICS\CommunicationFramework_Server_ICS.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:47.000.454,C:\TextGame\core\ObjectData\ObjectData.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:47.000.455,C:\TextGame\core\ObjectData\StreamList.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:47.000.455,C:\TextGame\core\ObjectData\ObjectDataManager.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:47.000.451,C:\TextGame\core\ObjectData\ItemStream.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:47.000.450,C:\TextGame\core\ObjectData\DBCompressPackageForFile.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:47.000.452,C:\TextGame\core\ObjectData\LibraryManager.pas=</Transaction>
+    <Transaction>2017/11/17 21:47:45.000.871,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
+    <Transaction>2017/11/17 21:47:45.000.930,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="ae373968"/>
+		<Pmini iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="..\..\..\..\ZServer4D"/>
+    <File Path="..\..\..\Source"/>
+    <File Path="..\..\..\Source\CrossSocket"/>
+    <File Path="..\..\..\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas"/>
+    <File Path="..\..\..\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas"/>
+    <File Path="..\..\..\Source\ICS"/>
+    <File Path="..\..\..\Source\ICS\CommunicationFramework_Client_ICS.pas"/>
+    <File Path="..\..\..\Source\ICS\CommunicationFramework_Server_ICS.pas"/>
+    <File Path="..\..\..\Source\ICS\CommunicationFramework_Server_ICSCustomSocket.pas"/>
+    <File Path="..\..\..\Source\Indy"/>
+    <File Path="..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas"/>
+    <File Path="..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas"/>
+    <File Path="..\..\..\Source\Cadencer.pas"/>
+    <File Path="..\..\..\Source\CommunicationFramework.pas"/>
+    <File Path="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas"/>
+    <File Path="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas"/>
+    <File Path="..\..\..\Source\CommunicationFrameworkIO.pas"/>
+    <File Path="..\..\..\Source\CoreClasses.pas"/>
+    <File Path="..\..\..\Source\DataFrameEngine.pas"/>
+    <File Path="..\..\..\Source\DBCompressPackageForFile.pas"/>
+    <File Path="..\..\..\Source\DoStatusIO.pas"/>
+    <File Path="..\..\..\Source\Geometry2DUnit.pas"/>
+    <File Path="..\..\..\Source\Geometry3DUnit.pas"/>
+    <File Path="..\..\..\Source\GeometryLib.pas"/>
+    <File Path="..\..\..\Source\GeometryRotationUnit.pas"/>
+    <File Path="..\..\..\Source\ItemStream.pas"/>
+    <File Path="..\..\..\Source\JsonDataObjects.pas"/>
+    <File Path="..\..\..\Source\LibraryManager.pas"/>
+    <File Path="..\..\..\Source\ListDBEngine.pas"/>
+    <File Path="..\..\..\Source\ListEngine.pas"/>
+    <File Path="..\..\..\Source\MemoryStream64.pas"/>
+    <File Path="..\..\..\Source\NotifyObjectBase.pas"/>
+    <File Path="..\..\..\Source\ObjectData.pas"/>
+    <File Path="..\..\..\Source\ObjectDataManager.pas"/>
+    <File Path="..\..\..\Source\PascalStrings.pas"/>
+    <File Path="..\..\..\Source\StreamList.pas"/>
+    <File Path="..\..\..\Source\TextDataEngine.pas"/>
+    <File Path="..\..\..\Source\TextParsing.pas"/>
+    <File Path="..\..\..\Source\TextTable.pas"/>
+    <File Path="..\..\..\Source\UnicodeMixedLib.pas"/>
+    <File Path="..\..\..\Source\CoreCipher.pas"/>
+    <File Path="..\..\..\Source\PasMP.pas"/>
+    <File Path="ConnectManagerServerFrm.pas"/>
+    <File Path="ConnectManagerServerFrm.dfm"/>
+    <File Path="ManagerServerFrm.pas"/>
+    <File Path="ManagerServerFrm.dfm"/>
+    <File Path="ManagerServer_ClientIntf.pas"/>
+  </ProjectSortOrder>
+</BorlandProject>

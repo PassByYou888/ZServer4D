@@ -1,0 +1,101 @@
+object FMXCloudClientForm: TFMXCloudClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx cloud client...'
+  ClientHeight = 418
+  ClientWidth = 698
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'ZServer4D'#26159#19968#27454#26381#21153#22120#20013#38388#20214
+      #27492'Demo'#28436#31034#20102#26080#38480#20113#37096#32626#30340#26381#21153#22120#31995#32479#26426#21046#65292#35814#35265#38468#38543#25216#26415#25991#26723)
+    Align = Client
+    Margins.Left = 130.000000000000000000
+    Size.Width = 568.000000000000000000
+    Size.Height = 418.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 564.000000000000000000
+    Viewport.Height = 414.000000000000000000
+  end
+  object QueryButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 80.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = '1 - query'
+    OnClick = QueryButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 4
+    Text = '192.168.2.77'
+    Position.X = 8.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+    object Label1: TLabel
+      Position.Y = -20.000000000000000000
+      Text = 'Manager server'
+    end
+  end
+  object Timer1: TTimer
+    Interval = 20
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+  object UserIDEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Position.X = 8.000000000000000000
+    Position.Y = 200.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'user name'
+  end
+  object PasswdEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 2
+    Position.X = 8.000000000000000000
+    Position.Y = 240.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'password'
+  end
+  object RegGuestUserButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 6
+    Text = '2 - reg guest'
+    OnClick = RegGuestUserButtonClick
+  end
+  object LoginButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 280.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 7
+    Text = '3 - Login'
+    OnClick = LoginButtonClick
+  end
+end

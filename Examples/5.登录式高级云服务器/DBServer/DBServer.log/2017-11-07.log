@@ -1,0 +1,2 @@
+13:52:57:918 TIocpCrossSocket Io线程ID 1404, 异常 EAccessViolation, Access violation at address 006B0056 in module 'DBServer.exe'. Write of address 3C24D925
+13:52:57:918 TIocpCrossSocket Io线程ID 3792, 异常 EAccessViolation, Access violation at address 006B0056 in module 'DBServer.exe'. Write of address 3C24D925

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/11/06 16:58:38.000.579,C:\git\ZServer4D\Examples\双向交互服务器框架\DServer.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
+  </Transactions>
+	<Default.Personality>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj"/>
+	</Default.Personality>
+</BorlandProject>
