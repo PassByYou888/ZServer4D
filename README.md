@@ -14,23 +14,24 @@ ZServer4D 是一套从商业项目剥离而出的云服务器中间件，可以�
 
 
 
-支持的网络SDK接口
+通讯接口支持
 
 indy(open source) http://www.indyproject.org/
-已在ZServer4D内部集成
+
+id是阻塞模式的通讯组件，已在ZServer4D内部集成
 
 CrossSocket(open source) https://github.com/winddriver/Delphi-Cross-Socket
-已在ZServer4D内部集成
+
+异步式通讯组件，已在ZServer4D内部集成
 
 ICS(open source) www.overbyte.be
 
-已在ZServer4D内部集成
-.
-.
-.
+异步式通讯组件，已在ZServer4D内部集成
 
+ 
+ 
 qq群490269542
-
-
+  
+ 
 作者qq600585（不接受加人）
 
