@@ -398,11 +398,7 @@ begin
 
       UserID := Format('guest%.5d', [Sender.SerialNo]);
       te := TSectionTextData.Create;
-      te.Hit['UserInfo', 'Alias'] := Format('游客%.5d', [Sender.SerialNo]);
-      // 金币模式
-      te.Hit['Score', 'Current'] := 1000;
-      // 房卡
-      te.Hit['HomeCard', 'Current'] := 8;
+      te.Hit['UserInfo', 'Alias'] := Format('别名%.5d', [Sender.SerialNo]);
 
       if RegUser(UserID, UserID, te) then
         begin

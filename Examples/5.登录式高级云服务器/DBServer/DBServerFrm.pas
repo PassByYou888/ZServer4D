@@ -43,9 +43,7 @@ type
 
   TDBDoubleTunnelService = class(TCommunicationFramework_DoubleTunnelService_NoAuth)
   private
-    ReplayFilesInfo       : TSectionTextData;
     UserCheckStates       : TSectionTextData;
-    NeedSaveReplayFileInfo: Boolean;
   protected
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
@@ -60,9 +58,6 @@ type
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     destructor Destroy; override;
-
-    procedure SaveReplayFilesInfo;
-    procedure LoadReplayFilesInfo;
 
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
@@ -86,7 +81,6 @@ type
     Bevel2: TBevel;
     StatusCheckBox: TCheckBox;
     AppEvents: TApplicationEvents;
-    SaveReplayTimer: TTimer;
     OptTabSheet: TTabSheet;
     BindIPEdit: TLabeledEdit;
     RecvPortEdit: TLabeledEdit;
@@ -98,7 +92,6 @@ type
     procedure ProgressTimerTimer(Sender: TObject);
     procedure AntiIDLETimerTimer(Sender: TObject);
     procedure AppEventsException(Sender: TObject; E: Exception);
-    procedure SaveReplayTimerTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
@@ -252,34 +245,13 @@ begin
   inherited Create(ARecvTunnel, ASendTunnel);
   FRecvTunnel.PeerClientUserDefineClass := TPerUserLoginRecvTunnel;
   FSendTunnel.PeerClientUserDefineClass := TPerUserLoginSendTunnel;
-  ReplayFilesInfo := TSectionTextData.Create(64);
   UserCheckStates := TSectionTextData.Create(64);
-  LoadReplayFilesInfo;
-  NeedSaveReplayFileInfo := False;
 end;
 
 destructor TDBDoubleTunnelService.Destroy;
 begin
-  disposeObject(ReplayFilesInfo);
   disposeObject(UserCheckStates);
   inherited Destroy;
-end;
-
-procedure TDBDoubleTunnelService.SaveReplayFilesInfo;
-var
-  fn: string;
-begin
-  fn := umlCombineFileName(FileReceiveDirectory, 'ReplayInfo.txt');
-  ReplayFilesInfo.SaveToFile(fn);
-end;
-
-procedure TDBDoubleTunnelService.LoadReplayFilesInfo;
-var
-  fn: string;
-begin
-  fn := umlCombineFileName(FileReceiveDirectory, 'ReplayInfo.txt');
-  if umlFileExists(fn) then
-      ReplayFilesInfo.LoadFromFile(fn);
 end;
 
 procedure TDBDoubleTunnelService.RegisterCommand;
@@ -817,15 +789,6 @@ begin
 
   DeleteDoStatusHook(Self);
   inherited Destroy;
-end;
-
-procedure TDBServerForm.SaveReplayTimerTimer(Sender: TObject);
-begin
-  if FDBService.NeedSaveReplayFileInfo then
-    begin
-      FDBService.SaveReplayFilesInfo;
-      FDBService.NeedSaveReplayFileInfo := False;
-    end;
 end;
 
 procedure TDBServerForm.StartService;

@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/05/23 12:54:17.000.355,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\MJGame\MJServer\ManagerServer\ManagerServerFrm.dfm</Transaction>
-    <Transaction>2017/05/23 12:54:20.000.683,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\MJGame\MJServer\ManagerServer\ManagerServer.dproj</Transaction>
-    <Transaction>2017/05/26 09:55:12.000.103,C:\MJGame\MJServer\ManagerServer\ConnectManagerServerFrm.dfm=C:\MJGame\MJServer\ManagerServer\Unit2.dfm</Transaction>
-    <Transaction>2017/11/07 13:12:29.000.993,C:\TextGame\core\GeometryLib.pas=</Transaction>
-    <Transaction>2017/11/07 13:12:29.000.990,C:\TextGame\core\DataFrameEngine.pas=</Transaction>
-    <Transaction>2017/11/07 13:12:29.000.992,C:\TextGame\core\Geometry2DUnit.pas=</Transaction>
+    <Transaction>2017/05/23 12:54:17.000.355,C:\MJGame\MJServer\ManagerServer\ManagerServerFrm.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2017/05/23 12:54:20.000.683,C:\MJGame\MJServer\ManagerServer\ManagerServer.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2017/05/26 09:55:12.000.103,C:\MJGame\MJServer\ManagerServer\Unit2.dfm=C:\MJGame\MJServer\ManagerServer\ConnectManagerServerFrm.dfm</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.994,C:\TextGame\core\GeometryRotationUnit.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.989,C:\TextGame\core\CoreClasses.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.992,C:\TextGame\core\Geometry2DUnit.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.993,C:\TextGame\core\GeometryLib.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.995,C:\TextGame\core\MemoryStream64.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.998,C:\TextGame\core\TextTable.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.991,C:\TextGame\core\DoStatusIO.pas=</Transaction>
@@ -16,17 +16,17 @@
     <Transaction>2017/11/07 13:12:29.000.981,C:\TextGame\core\Cadencer.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.998,C:\TextGame\core\UnicodeMixedLib.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.992,C:\TextGame\core\Geometry3DUnit.pas=</Transaction>
-    <Transaction>2017/11/07 13:12:29.000.994,C:\TextGame\core\GeometryRotationUnit.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.990,C:\TextGame\core\DataFrameEngine.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.997,C:\TextGame\core\TextParsing.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.996,C:\TextGame\core\PascalStrings.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.995,C:\TextGame\core\NotifyObjectBase.pas=</Transaction>
-    <Transaction>2017/11/07 13:12:39.000.408,C:\TextGame\core\server\CommunicationFrameworkIO.pas=</Transaction>
-    <Transaction>2017/11/07 13:12:39.000.403,C:\TextGame\core\server\CommunicationFramework.pas=</Transaction>
     <Transaction>2017/11/07 13:12:39.000.406,C:\TextGame\core\server\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:39.000.403,C:\TextGame\core\server\CommunicationFramework.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:39.000.408,C:\TextGame\core\server\CommunicationFrameworkIO.pas=</Transaction>
     <Transaction>2017/11/07 13:12:39.000.405,C:\TextGame\core\server\CommunicationFrameworkDoubleTunnelIO.pas=</Transaction>
     <Transaction>2017/11/07 13:12:43.000.317,C:\TextGame\core\server\ICS\CommunicationFramework_Server_ICSCustomSocket.pas=</Transaction>
-    <Transaction>2017/11/07 13:12:43.000.314,C:\TextGame\core\server\ICS\CommunicationFramework_Client_ICS.pas=</Transaction>
     <Transaction>2017/11/07 13:12:43.000.316,C:\TextGame\core\server\ICS\CommunicationFramework_Server_ICS.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:43.000.314,C:\TextGame\core\server\ICS\CommunicationFramework_Client_ICS.pas=</Transaction>
     <Transaction>2017/11/07 13:12:47.000.454,C:\TextGame\core\ObjectData\ObjectData.pas=</Transaction>
     <Transaction>2017/11/07 13:12:47.000.455,C:\TextGame\core\ObjectData\StreamList.pas=</Transaction>
     <Transaction>2017/11/07 13:12:47.000.455,C:\TextGame\core\ObjectData\ObjectDataManager.pas=</Transaction>
@@ -58,6 +58,7 @@
     <File Path="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas"/>
     <File Path="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas"/>
     <File Path="..\..\..\Source\CommunicationFrameworkIO.pas"/>
+    <File Path="..\..\..\Source\CoreCipher.pas"/>
     <File Path="..\..\..\Source\CoreClasses.pas"/>
     <File Path="..\..\..\Source\DataFrameEngine.pas"/>
     <File Path="..\..\..\Source\DBCompressPackageForFile.pas"/>
@@ -69,20 +70,18 @@
     <File Path="..\..\..\Source\ItemStream.pas"/>
     <File Path="..\..\..\Source\JsonDataObjects.pas"/>
     <File Path="..\..\..\Source\LibraryManager.pas"/>
-    <File Path="..\..\..\Source\ListDBEngine.pas"/>
     <File Path="..\..\..\Source\ListEngine.pas"/>
     <File Path="..\..\..\Source\MemoryStream64.pas"/>
     <File Path="..\..\..\Source\NotifyObjectBase.pas"/>
     <File Path="..\..\..\Source\ObjectData.pas"/>
     <File Path="..\..\..\Source\ObjectDataManager.pas"/>
     <File Path="..\..\..\Source\PascalStrings.pas"/>
+    <File Path="..\..\..\Source\PasMP.pas"/>
     <File Path="..\..\..\Source\StreamList.pas"/>
     <File Path="..\..\..\Source\TextDataEngine.pas"/>
     <File Path="..\..\..\Source\TextParsing.pas"/>
     <File Path="..\..\..\Source\TextTable.pas"/>
     <File Path="..\..\..\Source\UnicodeMixedLib.pas"/>
-    <File Path="..\..\..\Source\CoreCipher.pas"/>
-    <File Path="..\..\..\Source\PasMP.pas"/>
     <File Path="ConnectManagerServerFrm.pas"/>
     <File Path="ConnectManagerServerFrm.dfm"/>
     <File Path="ManagerServerFrm.pas"/>

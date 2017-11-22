@@ -45,8 +45,6 @@ type
     procedure UserIsLock(userID: string; OnResult: TStreamMethod);
     procedure UserLock(userID: string);
     procedure UserUnLock(userID: string);
-
-    procedure GetReplayInfo(userID: string; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
   end;
 
   TDBFileInfoList = class;
@@ -307,18 +305,6 @@ begin
   sendDE.WriteString(userID);
 
   SendTunnel.SendDirectStreamCmd('UserUnLock', sendDE);
-
-  DisposeObject(sendDE);
-end;
-
-procedure TDB_DoubleTunnelClient.GetReplayInfo(userID: string; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
-var
-  sendDE: TDataFrameEngine;
-begin
-  sendDE := TDataFrameEngine.Create;
-  sendDE.WriteString(userID);
-
-  SendTunnel.SendStreamCmd('GetReplayInfo', sendDE, Param1, Param2, OnResult);
 
   DisposeObject(sendDE);
 end;

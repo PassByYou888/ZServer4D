@@ -112,7 +112,7 @@ object CoreLogicServerForm: TCoreLogicServerForm
     Top = 41
     Width = 584
     Height = 171
-    ActivePage = OptTabSheet
+    ActivePage = StatusTabSheet
     Align = alClient
     TabOrder = 1
     object StatusTabSheet: TTabSheet
