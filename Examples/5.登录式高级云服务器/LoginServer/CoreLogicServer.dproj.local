@@ -66,7 +66,6 @@
     <File Path="..\..\..\Source\ItemStream.pas"/>
     <File Path="..\..\..\Source\JsonDataObjects.pas"/>
     <File Path="..\..\..\Source\LibraryManager.pas"/>
-    <File Path="..\..\..\Source\ListDBEngine.pas"/>
     <File Path="..\..\..\Source\ListEngine.pas"/>
     <File Path="..\..\..\Source\MemoryStream64.pas"/>
     <File Path="..\..\..\Source\NotifyObjectBase.pas"/>
