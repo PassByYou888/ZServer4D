@@ -8,8 +8,8 @@ uses
   CommunicationFramework,
   DoStatusIO, CoreClasses,
   CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Client_ICS, CommunicationFramework_Client_Indy,
-  Cadencer, DataFrameEngine;
+  CommunicationFramework_Client_ICS,
+  Cadencer, DataFrameEngine, UnicodeMixedLib;
 
 type
   TEZClientForm = class(TForm)
@@ -18,11 +18,13 @@ type
     HostEdit: TLabeledEdit;
     Timer1: TTimer;
     HelloWorldBtn: TButton;
+    sendMiniStreamButton: TButton;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure HelloWorldBtnClick(Sender: TObject);
+    procedure sendMiniStreamButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -102,6 +104,32 @@ begin
       DoStatus('server response:%s', [ResultDE.Reader.ReadString]);
   DisposeObject([SendDe, ResultDE]);
 
+end;
+
+procedure TEZClientForm.sendMiniStreamButtonClick(Sender: TObject);
+var
+  ms    : TMemoryStream;
+  SendDe: TDataFrameEngine;
+  p     : PInt64;
+  i     : Integer;
+begin
+  ms := TMemoryStream.Create;
+  ms.SetSize(512 * 1024);
+
+  p := ms.Memory;
+  for i := 1 to ms.Size div SizeOf(Int64) do
+    begin
+      p^ := Random(MaxInt);
+      inc(p);
+    end;
+
+  DoStatus(umlMD5Char(ms.Memory, ms.Size).Text);
+
+  // 往服务器发送一条direct stream形式的指令
+  SendDe := TDataFrameEngine.Create;
+  SendDe.WriteStream(ms);
+  client.SendDirectStreamCmd('TestMiniStream', SendDe);
+  DisposeObject([SendDe, ms]);
 end;
 
 procedure TEZClientForm.Timer1Timer(Sender: TObject);

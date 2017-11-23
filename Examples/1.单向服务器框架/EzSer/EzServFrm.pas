@@ -9,7 +9,7 @@ uses
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
   CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
-  DataFrameEngine;
+  DataFrameEngine, UnicodeMixedLib;
 
 type
   TEZServerForm = class(TForm)
@@ -27,6 +27,8 @@ type
     procedure cmd_helloWorld_Console(Sender: TPeerClient; InData: string);
     procedure cmd_helloWorld_Stream(Sender: TPeerClient; InData: TDataFrameEngine);
     procedure cmd_helloWorld_Stream_Result(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+
+    procedure cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);
   public
     { Public declarations }
     server: TCommunicationFramework_Server_CrossSocket;
@@ -55,6 +57,18 @@ begin
   OutData.WriteString('result 654321');
 end;
 
+procedure TEZServerForm.cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);
+var
+  ms: TMemoryStream;
+begin
+  ms := TMemoryStream.Create;
+  InData.Reader.ReadStream(ms);
+
+  DoStatus(umlMD5Char(ms.Memory, ms.Size).Text);
+
+  DisposeObject(ms);
+end;
+
 procedure TEZServerForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
@@ -68,6 +82,8 @@ begin
   server.RegisterDirectConsole('helloWorld_Console').OnExecute := cmd_helloWorld_Console;
   server.RegisterDirectStream('helloWorld_Stream').OnExecute := cmd_helloWorld_Stream;
   server.RegisterStream('helloWorld_Stream_Result').OnExecute := cmd_helloWorld_Stream_Result;
+
+  server.RegisterDirectStream('TestMiniStream').OnExecute := cmd_TestMiniStream;
 end;
 
 procedure TEZServerForm.FormDestroy(Sender: TObject);

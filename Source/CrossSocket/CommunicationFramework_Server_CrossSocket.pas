@@ -111,13 +111,15 @@ begin
       m: TMemoryStream64;
     begin
       try
-        if ASuccess and Connected then
+        if Connected then
           begin
             if SendBuffQueue.Count > 0 then
               begin
                 m := TMemoryStream64(SendBuffQueue[0]);
-                // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，懒得优化
+                // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
+                // 感谢ak47 qq512757165 的测试汇报
                 Context.SendBuf(m.Memory, m.size, SendBuffResult);
+
                 // 释放内存
                 disposeObject(m);
                 // 释放队列
@@ -151,6 +153,7 @@ begin
       exit;
 
   LastActiveTime := GetTimeTickCount;
+
   // 避免大量零碎数据消耗系统资源，这里需要做个碎片收集
   // 在flush中实现精确异步发送和校验
   CurrentBuff.Write(Pointer(buff)^, size);
@@ -182,6 +185,8 @@ begin
     end
   else
     begin
+      // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
+      // 感谢ak47 qq512757165 的测试汇报
       Sending := True;
       Context.SendBuf(CurrentBuff.Memory, CurrentBuff.size, SendBuffResult);
     end;

@@ -1111,11 +1111,29 @@ begin
 end;
 
 procedure TPeerClient.InternalSendByteBuffer(buff: PByte; Size: Integer);
+const
+  FlushBuffSize = 8 * 1024; // flush size = 8k
 begin
-  SendByteBuffer(buff, Size);
   FLastCommunicationTimeTickCount := GetTimeTickCount;
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
+  if Size < 1 then
+      exit;
+
+  // fill fragment
+  while Size > FlushBuffSize do
+    begin
+      SendByteBuffer(buff, FlushBuffSize);
+      inc(buff, FlushBuffSize);
+      inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], FlushBuffSize);
+      WriteBufferFlush;
+      dec(Size, FlushBuffSize);
+    end;
+
+  if Size > 0 then
+    begin
+      SendByteBuffer(buff, Size);
+      inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
+    end;
 end;
 
 procedure TPeerClient.SendInteger(v: Integer);

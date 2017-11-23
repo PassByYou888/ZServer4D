@@ -28,9 +28,9 @@ object EZClientForm: TEZClientForm
     TabOrder = 0
   end
   object ConnectButton: TButton
-    Left = 32
+    Left = 8
     Top = 38
-    Width = 89
+    Width = 113
     Height = 35
     Caption = 'connect'
     TabOrder = 1
@@ -49,13 +49,22 @@ object EZClientForm: TEZClientForm
     Text = '127.0.0.1'
   end
   object HelloWorldBtn: TButton
-    Left = 32
+    Left = 8
     Top = 95
-    Width = 89
+    Width = 113
     Height = 34
     Caption = 'hello world'
     TabOrder = 3
     OnClick = HelloWorldBtnClick
+  end
+  object sendMiniStreamButton: TButton
+    Left = 8
+    Top = 152
+    Width = 113
+    Height = 33
+    Caption = 'sned mini Stream'
+    TabOrder = 4
+    OnClick = sendMiniStreamButtonClick
   end
   object Timer1: TTimer
     Interval = 100
