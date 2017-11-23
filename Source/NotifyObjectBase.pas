@@ -370,6 +370,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 function TNProgressPost.PostExecute(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
 begin
   Result := PostExecute(DataEng);
@@ -449,11 +450,12 @@ begin
       end;
       FBusy := False;
 
+      FCurrentExecute.FOwner := nil;
+
       try
           DisposeObject(FCurrentExecute);
       except
       end;
-      FCurrentExecute := nil;
 
       Inc(i);
       if FBreakProgress then
