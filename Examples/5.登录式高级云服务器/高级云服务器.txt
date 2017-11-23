@@ -6,9 +6,11 @@
 managerServer必须首先启动服务，每个操作系统只能启动一台，可以部署多台ManagerServer在多台云服务器中
 DBServer,LoginServer可以不用按顺序启动，但是启动后必须要向ManagerServer注册才能生效
 
-我们可以部署无数台DBServer+LoginServer来达到云负载需求，而客户端登录，只需要知道其中一台ManagerServer的IP地址 or 域名，这对动态组网
+我们可以部署无数台DBServer+LoginServer来达到云负载需求，而客户端登录，只需要知道其中一台ManagerServer的IP地址 or 域名，这对动态组网有巨大的帮助
 云服务器技术体系，对防止僵尸网络DDos，CC攻击有天然的抗性
 因为一个月的DDos防御成本高达20万以上，必须使用BGP+云堤，其中云堤一个IP的租金就会破10万
+
+在使用时，应该使用全命令行的批处理方式来启动各个不同的服务器，以节省时间开销
 
 登录式高级云服务器，属于商业服务器框架，建议大家多花时间研究这里的实现环节，有不清楚，可以到QQ群给我留言
 
