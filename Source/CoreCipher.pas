@@ -3181,35 +3181,6 @@ var
   bigBuff: TMemoryStream64;
 
 begin
-  {$IFDEF WIN64}
-  {$IFDEF DEBUG}
-  // alloc 3GB memory
-
-  bigBuff := TMemoryStream64.Create;
-
-  SetLength(buffer, 1024 * 1024 * 1024);
-  // SetLength(buffer, 1024 * 1024+3 );
-  FillByte(buffer[0], length(buffer), $7F);
-
-  // alloc 5GB memory
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-
-  bigBuff.Position := 0;
-  DoStatus(umlStreamMD5Char(bigBuff).Text);
-
-  DoStatus(umlMD5Char(bigBuff.Memory, bigBuff.Size).Text);
-
-  TCipher.GenerateMD5HashString(bigBuff.Memory, bigBuff.Size, Output);
-  DoStatus(Output.Text);
-  DisposeObject(bigBuff);
-  SetLength(buffer, 0);
-  exit;
-  {$ENDIF}
-  {$ENDIF}
   IDEOutput := True;
 
   DoStatus('Generate and verify password test');
