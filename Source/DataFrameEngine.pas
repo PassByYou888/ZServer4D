@@ -1,9 +1,9 @@
-{******************************************************************************}
-{* Data Struct Engine library                                                 *}
-{* written by QQ 600585@qq.com                                                *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * Data Struct Engine library                                                 * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit DataFrameEngine;
 
@@ -3283,7 +3283,7 @@ begin
   if FastMode then
       md5 := NullMD5
   else
-      md5 := umlStreamMD5(StoreStream);
+      md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
   nStream.Clear;
   nStream.Write(editionFlag, umlByteLength);
@@ -3346,7 +3346,7 @@ begin
   if FastMode then
       md5 := NullMD5
   else
-      md5 := umlStreamMD5(StoreStream);
+      md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
   compStream := TMemoryStream64.Create;
   ZCompStream := TCompressionStream.Create(compStream);
@@ -3412,7 +3412,7 @@ function TDataFrameEngine.DecodeFrom(source: TCoreClassStream; const FastMode: B
 var
   i, cnt       : Integer;
   id           : Byte;
-  StoreStream  : TCoreClassStream;
+  StoreStream  : TMemoryStream64;
   ZDecompStream: TDecompressionStream;
   b            : TDataFrameBase;
 
@@ -3444,7 +3444,7 @@ begin
 
           StoreStream.Position := 0;
           if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
-            if not umlMD5Compare(umlStreamMD5(StoreStream), md5) then
+            if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('dataframe md5 error!');
                 DisposeObject(StoreStream);
@@ -3455,11 +3455,14 @@ begin
         begin
           source.Read(md5[0], 16);
 
-          StoreStream.CopyFrom(source, sizeInfo);
+          if source is TMemoryStream64 then
+              StoreStream.SetPointerWithProtectedMode(TMemoryStream64(source).PositionAsPtr(source.Position), sizeInfo)
+          else
+              StoreStream.CopyFrom(source, sizeInfo);
 
           StoreStream.Position := 0;
           if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
-            if not umlMD5Compare(umlStreamMD5(StoreStream), md5) then
+            if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('dataframe md5 error!');
                 DisposeObject(StoreStream);

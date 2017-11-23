@@ -1,8 +1,8 @@
 { ****************************************************************************** }
 { * hash List Library,Wrten by QQ 600585@qq.com                                * }
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit ListEngine;
 
@@ -548,16 +548,26 @@ type
     property Items[id: Variant]: TCoreClassObject read GetItems write SetItems; default;
   end;
 
-  TBackcallList       = class;
-  TBackcallNotifyProc = procedure(Sender: TBackcallList; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant) of object;
-  PBackcallData       = ^TBackcallData;
+  TBackcalls            = class;
+  TBackcallNotifyCall   = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
+  TBackcallNotifyMethod = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant) of object;
+
+  {$IFNDEF FPC}
+  TBackcallNotifyProc = reference to procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
+  {$ENDIF}
+  PBackcallData = ^TBackcallData;
 
   TBackcallData = record
     FlagObject: TCoreClassObject;
+    NotifyCall: TBackcallNotifyCall;
+    NotifyMethod: TBackcallNotifyMethod;
+    {$IFNDEF FPC}
     NotifyProc: TBackcallNotifyProc;
+    {$ENDIF}
+    procedure Init;
   end;
 
-  TBackcallList = class(TCoreClassObject)
+  TBackcalls = class(TCoreClassObject)
   private
     FList       : TCoreClassList;
     FVariantList: THashVariantList;
@@ -571,7 +581,11 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyProc: TBackcallNotifyProc);
+    procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyCall: TBackcallNotifyCall); overload;
+    procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyMethod: TBackcallNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyProc: TBackcallNotifyProc); overload;
+    {$ENDIF}
     procedure UnRegisterBackcall(AFlagObject: TCoreClassObject);
 
     procedure Clear;
@@ -3383,21 +3397,31 @@ begin
   DisposeObject(_To);
 end;
 
-function TBackcallList.GetVariantList: THashVariantList;
+procedure TBackcallData.Init;
+begin
+  FlagObject := nil;
+  NotifyCall := nil;
+  NotifyMethod := nil;
+  {$IFNDEF FPC}
+  NotifyProc := nil;
+  {$ENDIF}
+end;
+
+function TBackcalls.GetVariantList: THashVariantList;
 begin
   if FVariantList = nil then
       FVariantList := THashVariantList.Create;
   Result := FVariantList;
 end;
 
-function TBackcallList.GetObjectList: THashObjectList;
+function TBackcalls.GetObjectList: THashObjectList;
 begin
   if FObjectList = nil then
       FObjectList := THashObjectList.Create(False);
   Result := FObjectList;
 end;
 
-constructor TBackcallList.Create;
+constructor TBackcalls.Create;
 begin
   inherited Create;
   FList := TCoreClassList.Create;
@@ -3406,7 +3430,7 @@ begin
   FOwner := nil;
 end;
 
-destructor TBackcallList.Destroy;
+destructor TBackcalls.Destroy;
 begin
   if FVariantList <> nil then
       DisposeObject(FVariantList);
@@ -3417,7 +3441,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TBackcallList.RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyProc: TBackcallNotifyProc);
+procedure TBackcalls.RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyCall: TBackcallNotifyCall);
 var
   p: PBackcallData;
   i: Integer;
@@ -3427,12 +3451,50 @@ begin
         Exit;
 
   New(p);
+  p^.Init;
+  p^.FlagObject := AFlagObject;
+  p^.NotifyCall := ANotifyCall;
+  FList.Add(p);
+end;
+
+procedure TBackcalls.RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyMethod: TBackcallNotifyMethod);
+var
+  p: PBackcallData;
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+    if PBackcallData(FList[i])^.FlagObject = AFlagObject then
+        Exit;
+
+  New(p);
+  p^.Init;
+  p^.FlagObject := AFlagObject;
+  p^.NotifyMethod := ANotifyMethod;
+  FList.Add(p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TBackcalls.RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyProc: TBackcallNotifyProc);
+var
+  p: PBackcallData;
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+    if PBackcallData(FList[i])^.FlagObject = AFlagObject then
+        Exit;
+
+  New(p);
+  p^.Init;
   p^.FlagObject := AFlagObject;
   p^.NotifyProc := ANotifyProc;
   FList.Add(p);
 end;
+{$ENDIF}
 
-procedure TBackcallList.UnRegisterBackcall(AFlagObject: TCoreClassObject);
+
+procedure TBackcalls.UnRegisterBackcall(AFlagObject: TCoreClassObject);
 var
   i: Integer;
 begin
@@ -3449,7 +3511,7 @@ begin
     end;
 end;
 
-procedure TBackcallList.Clear;
+procedure TBackcalls.Clear;
 var
   i: Integer;
 begin
@@ -3458,7 +3520,7 @@ begin
   FList.Clear;
 end;
 
-procedure TBackcallList.ExecuteBackcall(TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
+procedure TBackcalls.ExecuteBackcall(TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
 var
   i: Integer;
   p: PBackcallData;
@@ -3467,6 +3529,21 @@ begin
   while i < FList.Count do
     begin
       p := FList[i];
+      if Assigned(p^.NotifyCall) then
+        begin
+          try
+              p^.NotifyCall(Self, TriggerObject, Param1, Param2, Param3);
+          except
+          end;
+        end;
+      if Assigned(p^.NotifyMethod) then
+        begin
+          try
+              p^.NotifyMethod(Self, TriggerObject, Param1, Param2, Param3);
+          except
+          end;
+        end;
+      {$IFNDEF FPC}
       if Assigned(p^.NotifyProc) then
         begin
           try
@@ -3474,6 +3551,7 @@ begin
           except
           end;
         end;
+      {$ENDIF}
       if (i >= 0) and (i < FList.Count) and (FList[i] = p) then
           Inc(i);
     end;

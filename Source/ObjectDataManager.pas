@@ -1,9 +1,8 @@
-{******************************************************************************}
-{* ObjectDBManager                                                            *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
-
+{ ****************************************************************************** }
+{ * ObjectDBManager                                                            * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit ObjectDataManager;
 
@@ -14,12 +13,15 @@ interface
 uses CoreClasses, ObjectData, UnicodeMixedLib, PascalStrings;
 
 type
-  TItemHandle = TTMDBItemHandle;
-  PItemHandle = ^TItemHandle;
-
+  TItemHandle          = TTMDBItemHandle;
+  PItemHandle          = ^TItemHandle;
+  PFieldHandle         = ^TFieldHandle;
   TFieldHandle         = TField;
+  PItemSearch          = ^TItemSearch;
   TItemSearch          = TTMDBSearchItem;
+  PFieldSearch         = ^TFieldSearch;
   TFieldSearch         = TTMDBSearchField;
+  PItemRecursionSearch = ^TItemRecursionSearch;
   TItemRecursionSearch = TTMDBRecursionSearch;
 
   TObjectDataManager = class(TCoreClassObject)
@@ -28,7 +30,7 @@ type
     ObjectDataHandle                                        : TTMDB;
     FNeedCreateNew, FOverWriteItem, FSameItemName, FOnlyRead: Boolean;
     FObjectName                                             : string;
-    FDefaultItemID                                          : Int64;
+    FDefaultItemID                                          : Byte;
     FIsOpened                                               : Boolean;
     FData                                                   : Pointer;
 
@@ -41,12 +43,12 @@ type
     procedure SetOverWriteItem(Value: Boolean);
     procedure SetSameItemName(Value: Boolean);
   public
-    constructor Create(const aObjectName: string; const aID: Int64; aOnlyRead: Boolean);
-    constructor CreateNew(const aObjectName: string; const aID: Int64);
-    constructor CreateAsStream(aStream: TCoreClassStream; const aObjectName: string; const aID: Int64; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
+    constructor Create(const aObjectName: string; const aID: Byte; aOnlyRead: Boolean);
+    constructor CreateNew(const aObjectName: string; const aID: Byte);
+    constructor CreateAsStream(aStream: TCoreClassStream; const aObjectName: string; const aID: Byte; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
     destructor Destroy; override;
     function Open: Boolean;
-    function NewHandle(aStream: TCoreClassStream; const aObjectName: string; const aID: Int64; aOnlyRead, aIsNew: Boolean): Boolean;
+    function NewHandle(aStream: TCoreClassStream; const aObjectName: string; const aID: Byte; aOnlyRead, aIsNew: Boolean): Boolean;
     function CopyTo(DestDB: TObjectDataManager): Boolean;
     function CopyToPath(DestDB: TObjectDataManager; DestPath: string): Boolean;
     function CopyFieldToPath(FieldPos: Int64; DestDB: TObjectDataManager; DestPath: string): Boolean;
@@ -58,7 +60,7 @@ type
     function ErrorNo: Int64;
     function Modify: Boolean;
     function Size: Int64;
-    procedure SetID(const ID: Int64);
+    procedure SetID(const ID: Byte);
     procedure Update;
 
     function CreateDir(const DirName, DirDescription: string): Boolean;
@@ -100,6 +102,7 @@ type
     function ItemCreate(const dbPath, DBItem, DBItemDescription: string; var ItemHnd: TItemHandle): Boolean;
     function ItemDelete(const dbPath, DBItem: string): Boolean;
     function ItemExists(const dbPath, DBItem: string): Boolean;
+    function ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItem, DBItemDescription: string; var ItemHnd: TItemHandle): Boolean;
     function ItemFastCreate(const aPos: Int64; const DBItem, DBItemDescription: string; var ItemHnd: TItemHandle): Boolean;
     function ItemFastExists(const FieldPos: Int64; const DBItem: string): Boolean;
     function ItemFastFindFirst(const FieldPos: Int64; const DBItem: string; var ItemSearchHandle: TItemSearch): Boolean;
@@ -146,7 +149,7 @@ type
     property IsOnlyRead: Boolean read FOnlyRead;
     property NeedCreateNew: Boolean read FNeedCreateNew;
     property ObjectName: string read FObjectName;
-    property DefaultItemID: Int64 read FDefaultItemID;
+    property DefaultItemID: Byte read FDefaultItemID;
     property StreamEngine: TCoreClassStream read FStreamEngine;
     property Time: TDateTime read GetDBTime;
 
@@ -158,14 +161,14 @@ type
 
   TObjectDataMarshal = class(TCoreClassObject)
   private
-    FID         : Int64;
+    FID         : Byte;
     FLibList    : TCoreClassStrings;
     FUseWildcard: Boolean;
     function GetItems(aIndex: Integer): TObjectDataManager;
     function GetNames(AName: string): TObjectDataManager;
     procedure SetItems(aIndex: Integer; const Value: TObjectDataManager);
   public
-    constructor Create(aID: Int64);
+    constructor Create(aID: Byte);
     destructor Destroy; override;
     function GetAbsoluteFileName(aFileName: string): string;
     function NewDB(aFile: string; aOnlyRead: Boolean): TObjectDataManager;
@@ -183,7 +186,7 @@ type
     property Items[aIndex: Integer]: TObjectDataManager read GetItems write SetItems;
     property Names[AName: string]: TObjectDataManager read GetNames; default;
     property UseWildcard: Boolean read FUseWildcard write FUseWildcard;
-    property ID: Int64 read FID write FID;
+    property ID: Byte read FID write FID;
   end;
 
 function ObjectDataMarshal: TObjectDataMarshal;
@@ -247,19 +250,19 @@ begin
   FSameItemName := Value;
 end;
 
-constructor TObjectDataManager.Create(const aObjectName: string; const aID: Int64; aOnlyRead: Boolean);
+constructor TObjectDataManager.Create(const aObjectName: string; const aID: Byte; aOnlyRead: Boolean);
 begin
   inherited Create;
   NewHandle(nil, aObjectName, aID, aOnlyRead, False);
 end;
 
-constructor TObjectDataManager.CreateNew(const aObjectName: string; const aID: Int64);
+constructor TObjectDataManager.CreateNew(const aObjectName: string; const aID: Byte);
 begin
   inherited Create;
   NewHandle(nil, aObjectName, aID, False, True);
 end;
 
-constructor TObjectDataManager.CreateAsStream(aStream: TCoreClassStream; const aObjectName: string; const aID: Int64; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
+constructor TObjectDataManager.CreateAsStream(aStream: TCoreClassStream; const aObjectName: string; const aID: Byte; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
 begin
   inherited Create;
   NewHandle(aStream, aObjectName, aID, aOnlyRead, aIsNewData);
@@ -326,7 +329,7 @@ begin
   Result := True;
 end;
 
-function TObjectDataManager.NewHandle(aStream: TCoreClassStream; const aObjectName: string; const aID: Int64; aOnlyRead, aIsNew: Boolean): Boolean;
+function TObjectDataManager.NewHandle(aStream: TCoreClassStream; const aObjectName: string; const aID: Byte; aOnlyRead, aIsNew: Boolean): Boolean;
 begin
   Close;
   InitTTMDB(ObjectDataHandle);
@@ -465,7 +468,7 @@ begin
   Result := ObjectDataHandle.RecFile.Size;
 end;
 
-procedure TObjectDataManager.SetID(const ID: Int64);
+procedure TObjectDataManager.SetID(const ID: Byte);
 begin
   FDefaultItemID := ID;
 end;
@@ -534,7 +537,7 @@ begin
       InitTField(FieldHnd);
       if dbField_ReadRec(FieldPos, ObjectDataHandle.RecFile, FieldHnd) then
         begin
-          if (not FastFieldExists(FieldHnd.HigherFieldPOS, NewFieldName)) and (FieldHnd.RHeader.CurrentHeader <> ObjectDataHandle.DefaultFieldPOS) then
+          if (not FastFieldExists(FieldHnd.UpLevelFieldPOS, NewFieldName)) and (FieldHnd.RHeader.CurrentHeader <> ObjectDataHandle.DefaultFieldPOS) then
             begin
               FieldHnd.RHeader.Name := NewFieldName;
               FieldHnd.Description := NewFieldDescription;
@@ -618,7 +621,7 @@ end;
 
 function TObjectDataManager.GetFieldPath(const FieldPos: Int64): string;
 var
-  ReturnPath: string;
+  ReturnPath: umlString;
 begin
   if dbPack_GetPath(FieldPos, ObjectDataHandle.DefaultFieldPOS, ObjectDataHandle, ReturnPath) then
       Result := ReturnPath
@@ -884,6 +887,12 @@ begin
   Result := dbPack_FindFirstItem(dbPath, DBItem, FDefaultItemID, ItemSearchHnd, ObjectDataHandle);
 end;
 
+function TObjectDataManager.ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItem, DBItemDescription: string; var ItemHnd: TItemHandle): Boolean;
+begin
+  InitTTMDBItemHandle(ItemHnd);
+  Result := dbPack_ItemFastInsertNew(DBItem, DBItemDescription, FieldPos, InsertHeaderPos, FDefaultItemID, ItemHnd, ObjectDataHandle);
+end;
+
 function TObjectDataManager.ItemFastCreate(const aPos: Int64; const DBItem, DBItemDescription: string; var ItemHnd: TItemHandle): Boolean;
 begin
   InitTTMDBItemHandle(ItemHnd);
@@ -1080,7 +1089,7 @@ end;
 
 function TObjectDataManager.ItemReadReturnStr(var ItemHnd: TItemHandle; const DefaultValue: string): string;
 var
-  TempStr: string;
+  TempStr: umlString;
 begin
   TempStr := DefaultValue;
   if dbPack_ItemReadStr(TempStr, ItemHnd, ObjectDataHandle) then
@@ -1090,8 +1099,12 @@ begin
 end;
 
 function TObjectDataManager.ItemReadStr(var ItemHnd: TItemHandle; var Value: string): Boolean;
+var
+  TempStr: umlString;
 begin
-  Result := dbPack_ItemReadStr(Value, ItemHnd, ObjectDataHandle);
+  Result := dbPack_ItemReadStr(TempStr, ItemHnd, ObjectDataHandle);
+  if Result then
+      Value := TempStr;
 end;
 
 function TObjectDataManager.ItemReadTime(var ItemHnd: TItemHandle; var Value: TDateTime): Boolean;
@@ -1321,7 +1334,7 @@ begin
     end;
 end;
 
-constructor TObjectDataMarshal.Create(aID: Int64);
+constructor TObjectDataMarshal.Create(aID: Byte);
 begin
   inherited Create;
   FID := aID;

@@ -35,6 +35,9 @@ const
   fmShareDenyNone  = SysUtils.fmShareDenyNone;
 
 type
+  TTimeTickValue = Cardinal;
+  TTimeTick      = TTimeTickValue;
+
   TSeekOrigin = Classes.TSeekOrigin;
   TNotify     = Classes.TNotifyEvent;
 
@@ -152,22 +155,24 @@ const
 procedure EmptyProc;
 procedure Empty;
 
-procedure DisposeObject(const obj: TObject); overload;
+procedure DisposeObject(const obj: TObject); overload; inline;
 procedure DisposeObject(const objs: array of TObject); overload;
-procedure FreeObject(const obj: TObject); overload;
+procedure FreeObject(const obj: TObject); overload; inline;
 procedure FreeObject(const objs: array of TObject); overload;
 
 procedure LockObject(obj:TObject); inline;
 procedure UnLockObject(obj:TObject); inline;
 
-procedure FillByte(var Dest; Count: NativeUInt; const Value: Byte);
-function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean;
+procedure FillByte(var Dest; Count: NativeUInt; const Value: Byte); inline;
+function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; inline;
 
 procedure RaiseInfo(n: string); overload;
 procedure RaiseInfo(n: string; const Args: array of const); overload;
 
 function IsMobile: Boolean;
 
+function GetTimeTickCount: TTimeTickValue; inline;
+function GetTimeTick: TTimeTickValue; inline;
 
 implementation
 
@@ -298,6 +303,17 @@ begin
     else Result := False;
   end;
 end;
+
+function GetTimeTickCount: TTimeTickValue;
+begin
+  Result := TCoreClassThread.GetTickCount;
+end;
+
+function GetTimeTick: TTimeTickValue;
+begin
+  Result := TCoreClassThread.GetTickCount;
+end;
+
 
 {$IFDEF FPC}
 

@@ -1,9 +1,8 @@
-{******************************************************************************}
-{* Delay trigger Engine, support,                                             *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
-
+{ ****************************************************************************** }
+{ * Delay trigger Engine, support,                                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit NotifyObjectBase;
 
@@ -36,24 +35,34 @@ type
   TNProgressPost = class;
   TNPostExecute  = class;
 
-  TNPostExecuteProc = procedure(Sender: TNPostExecute) of object;
+  TNPostExecuteCall   = procedure(Sender: TNPostExecute);
+  TNPostExecuteMethod = procedure(Sender: TNPostExecute) of object;
 
-  TNPostExecute = class(TNotifyBase)
+  {$IFNDEF FPC}
+  TNPostExecuteProc = reference to procedure(Sender: TNPostExecute);
+  {$ENDIF}
+
+  TNPostExecute = class(TCoreClassInterfacedObject)
   private
     FOwner       : TNProgressPost;
     FDataEng     : TDataFrameEngine;
     ProcessedTime: Double;
   public
-    Data1           : TCoreClassObject;
-    Data2           : TCoreClassObject;
-    Data3           : Variant;
-    Data4           : Variant;
-    Delay           : Double;
-    OnExecute       : TNPostExecuteProc;
+    Data1: TCoreClassObject;
+    Data2: TCoreClassObject;
+    Data3: Variant;
+    Data4: Variant;
+    Delay: Double;
+
+    OnExecuteCall  : TNPostExecuteCall;
+    OnExecuteMethod: TNPostExecuteMethod;
+    {$IFNDEF FPC}
+    OnExecuteProc: TNPostExecuteProc;
+    {$ENDIF}
     property DataEng: TDataFrameEngine read FDataEng;
     property Owner  : TNProgressPost read FOwner;
 
-    constructor Create; override;
+    constructor Create; virtual;
     destructor Destroy; override;
     procedure Execute; virtual;
   end;
@@ -76,13 +85,24 @@ type
     procedure ResetPost;
 
     function PostExecute: TNPostExecute; overload;
+
     function PostExecute(DataEng: TDataFrameEngine): TNPostExecute; overload;
-    function PostExecute(DataEng: TDataFrameEngine; OnProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecute(Delay: Double): TNPostExecute; overload;
     function PostExecute(Delay: Double; DataEng: TDataFrameEngine): TNPostExecute; overload;
-    function PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnProc: TNPostExecuteProc): TNPostExecute; overload;
-    function PostExecute(Delay: Double; OnProc: TNPostExecuteProc): TNPostExecute; overload;
 
+    function PostExecute(DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
+    function PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
+    function PostExecute(Delay: Double; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
+
+    function PostExecute(DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
+    function PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
+    function PostExecute(Delay: Double; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
+
+    {$IFNDEF FPC}
+    function PostExecute(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
+    function PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
+    function PostExecute(Delay: Double; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
+    {$ENDIF}
     procedure Delete(p: TNPostExecute); overload; virtual;
 
     procedure Progress(deltaTime: Double); virtual;
@@ -186,7 +206,12 @@ begin
   Data3 := NULL;
   Data4 := NULL;
   Delay := 0;
-  OnExecute := nil;
+
+  OnExecuteCall := nil;
+  OnExecuteMethod := nil;
+  {$IFNDEF FPC}
+  OnExecuteProc := nil;
+  {$ENDIF}
 end;
 
 destructor TNPostExecute.Destroy;
@@ -214,14 +239,34 @@ end;
 
 procedure TNPostExecute.Execute;
 begin
-  if Assigned(OnExecute) then
+  if Assigned(OnExecuteCall) then
     begin
       FDataEng.Reader.index := 0;
       try
-          OnExecute(Self);
+          OnExecuteCall(Self);
       except
       end;
     end;
+
+  if Assigned(OnExecuteMethod) then
+    begin
+      FDataEng.Reader.index := 0;
+      try
+          OnExecuteMethod(Self);
+      except
+      end;
+    end;
+
+  {$IFNDEF FPC}
+  if Assigned(OnExecuteProc) then
+    begin
+      FDataEng.Reader.index := 0;
+      try
+          OnExecuteProc(Self);
+      except
+      end;
+    end;
+  {$ENDIF}
 end;
 
 constructor TNProgressPost.Create;
@@ -274,12 +319,6 @@ begin
       Result.FDataEng.Assign(DataEng);
 end;
 
-function TNProgressPost.PostExecute(DataEng: TDataFrameEngine; OnProc: TNPostExecuteProc): TNPostExecute;
-begin
-  Result := PostExecute(DataEng);
-  Result.OnExecute := OnProc;
-end;
-
 function TNProgressPost.PostExecute(Delay: Double): TNPostExecute;
 begin
   Result := PostExecute;
@@ -293,17 +332,63 @@ begin
       Result.FDataEng.Assign(DataEng);
 end;
 
-function TNProgressPost.PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnProc: TNPostExecuteProc): TNPostExecute;
+function TNProgressPost.PostExecute(DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
 begin
-  Result := PostExecute(Delay, DataEng);
-  Result.OnExecute := OnProc;
+  Result := PostExecute(DataEng);
+  Result.OnExecuteCall := OnExecuteCall;
 end;
 
-function TNProgressPost.PostExecute(Delay: Double; OnProc: TNPostExecuteProc): TNPostExecute;
+function TNProgressPost.PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
+begin
+  Result := PostExecute(Delay, DataEng);
+  Result.OnExecuteCall := OnExecuteCall;
+end;
+
+function TNProgressPost.PostExecute(Delay: Double; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
 begin
   Result := PostExecute(Delay);
-  Result.OnExecute := OnProc;
+  Result.OnExecuteCall := OnExecuteCall;
 end;
+
+function TNProgressPost.PostExecute(DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
+begin
+  Result := PostExecute(DataEng);
+  Result.OnExecuteMethod := OnExecuteMethod;
+end;
+
+function TNProgressPost.PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
+begin
+  Result := PostExecute(Delay, DataEng);
+  Result.OnExecuteMethod := OnExecuteMethod;
+end;
+
+function TNProgressPost.PostExecute(Delay: Double; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
+begin
+  Result := PostExecute(Delay);
+  Result.OnExecuteMethod := OnExecuteMethod;
+end;
+
+{$IFNDEF FPC}
+
+function TNProgressPost.PostExecute(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
+begin
+  Result := PostExecute(DataEng);
+  Result.OnExecuteProc := OnExecuteProc;
+end;
+
+function TNProgressPost.PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
+begin
+  Result := PostExecute(Delay, DataEng);
+  Result.OnExecuteProc := OnExecuteProc;
+end;
+
+function TNProgressPost.PostExecute(Delay: Double; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
+begin
+  Result := PostExecute(Delay);
+  Result.OnExecuteProc := OnExecuteProc;
+end;
+{$ENDIF}
+
 
 procedure TNProgressPost.Delete(p: TNPostExecute);
 var
@@ -363,7 +448,6 @@ begin
       except
       end;
       FBusy := False;
-      FCurrentExecute := nil;
 
       try
           DisposeObject(FCurrentExecute);

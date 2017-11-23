@@ -1,10 +1,9 @@
-{******************************************************************************}
-{* DB Package Compress                                                        *}
-{* written by QQ 600585@qq.com                                                *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
-
+{ ****************************************************************************** }
+{ * DB Package Compress                                                        * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit DBCompressPackageForFile;
 
@@ -113,7 +112,7 @@ begin
         PackStream(stream, itmStream);
 
         DoStatus('%s %s ->  %s compressed:%d%%',
-          [itmHnd.Name,
+          [itmHnd.Name.Text,
           umlSizeToStr(stream.Size).Text,
           umlSizeToStr(itmStream.Size).Text,
           Round(itmStream.Size / stream.Size * 100)]
@@ -202,7 +201,7 @@ procedure BatchImportPathToDB(InitDir, Filter: string; dbEng: TObjectDataManager
                   PackStream(fs, itmStream);
 
                   DoStatus('%s %s ->  %s compressed:%d%%',
-                    [itmHnd.Name,
+                    [itmHnd.Name.Text,
                     umlSizeToStr(fs.Size).Text,
                     umlSizeToStr(itmStream.Size).Text,
                     Round(itmStream.Size / fs.Size * 100)]
@@ -466,7 +465,7 @@ var
                   md5 := umlStreamMD5Char(ms).Text;
                   if not SameText(md5List[itmHnd.Name], md5) then
                     begin
-                      DoStatus('%s verify failed!', [itmHnd.Name]);
+                      DoStatus('%s verify failed!', [itmHnd.Name.Text]);
                       Inc(MD5Failed);
                     end
                   else

@@ -163,12 +163,15 @@ type
 
     function TotalLinkCount: Integer;
 
+    property LoginUserList: THashVariantList read FLoginUserList;
+
     property CanRegisterNewUser: Boolean read FCanRegisterNewUser write FCanRegisterNewUser;
-    property RootPath: string read FRootPath write FRootPath;
-    property PublicPath: string read FPublicPath write FPublicPath;
     property CanSaveUserInfo: Boolean read FCanSaveUserInfo write FCanSaveUserInfo;
     property CanStatus: Boolean read FCanStatus write FCanStatus;
-    property LoginUserList: THashVariantList read FLoginUserList;
+
+    property RootPath: string read FRootPath write FRootPath;
+    property PublicPath: string read FPublicPath write FPublicPath;
+
     property CadencerEngine: TCadencer read FCadencerEngine;
     property ProgressEngine: TNProgressPost read FProgressEngine;
 
@@ -242,6 +245,7 @@ type
     procedure UserLogin(UserID, Passwd: string; OnProc: TStateProc); overload; virtual;
     procedure RegisterUser(UserID, Passwd: string; OnProc: TStateProc); overload; virtual;
     procedure TunnelLink(OnProc: TStateProc); overload; virtual;
+
     procedure SyncCadencer; virtual;
 
     // Block mode

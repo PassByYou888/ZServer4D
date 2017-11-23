@@ -1,8 +1,8 @@
-{******************************************************************************}
-{* communication framework written by QQ 600585@qq.com                        *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * communication framework written by QQ 600585@qq.com                        * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit CommunicationFramework;
 
@@ -16,9 +16,6 @@ uses Classes, SysUtils, Variants, TypInfo,
   DataFrameEngine, MemoryStream64, PascalStrings, CoreCipher;
 
 type
-  TTimeTickValue = Cardinal;
-  TTimeTick      = TTimeTickValue;
-
   TPeerClient = class;
 
   TConsoleMethod     = procedure(Sender: TPeerClient; ResultData: string) of object;
@@ -167,6 +164,17 @@ type
 
   TPeerClientUserDefineClass = class of TPeerClientUserDefine;
 
+  TPeerClientUserSpecial = class(TCoreClassInterfacedObject)
+  protected
+    FOwner: TPeerClient;
+  public
+    constructor Create(AOwner: TPeerClient); virtual;
+
+    property Owner: TPeerClient read FOwner;
+  end;
+
+  TPeerClientUserSpecialClass = class of TPeerClientUserSpecial;
+
   TPeerClient = class(TCoreClassInterfacedObject, IMemoryStream64WriteTrigger)
   private
     FOwnerFramework                     : TCommunicationFramework;
@@ -193,7 +201,7 @@ type
     FCipherKey                          : TCipherKeyBuffer;
     FRemoteExecutedForConnectInit       : Boolean;
     FPrintStatus                        : Boolean;
-    inCmd                               : string;
+    FInCmd                              : string;
     FInText, FOutText                   : string;
     FInDataFrame, FOutDataFrame         : TDataFrameEngine;
     ResultText                          : string;
@@ -207,12 +215,13 @@ type
     FUserObjects        : THashObjectList;
     FUserAutoFreeObjects: THashObjectList;
     FUserDefine         : TPeerClientUserDefine;
+    FUserSpecial        : TPeerClientUserSpecial;
 
     function GetUserVariants: THashVariantList;
     function GetUserObjects: THashObjectList;
     function GetUserAutoFreeObjects: THashObjectList;
   private
-    function TriggerWrite64(const Buffer; Count: Int64): Int64;
+    procedure TriggerWrite64(Count: Int64);
   private
     procedure InternalSendByteBuffer(buff: PByte; Size: Integer);
 
@@ -274,37 +283,51 @@ type
     procedure PauseResultSend; virtual;
     procedure ContinueResultSend; virtual;
 
+    property CurrentBigStreamCommand: string read FBigStreamCmd;
+    property CurrentCommand: string read FInCmd;
+
+    // ContinueResultSend use it
     property InText: string read FInText;
     property OutText: string read FOutText write FOutText;
     property InDataFrame: TDataFrameEngine read FInDataFrame;
     property OutDataFrame: TDataFrameEngine read FOutDataFrame;
     function ResultSendIsPaused: Boolean;
 
+    // state
     property WaitOnResult: Boolean read FWaitOnResult;
     property AllSendProcessing: Boolean read FAllSendProcessing;
     property BigStreamProcessing: Boolean read FBigStreamProcessing;
 
+    // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
     property ClientIntf: TCoreClassObject read FClientIntf write FClientIntf;
     property ID: Cardinal read FID;
     property CipherKey: TCipherKeyBuffer read FCipherKey;
+    function CipherKeyPtr: PCipherKeyBuffer;
     property SendCipherStyle: TCipherStyle read FSendDataCipherStyle write FSendDataCipherStyle;
     property RemoteExecutedForConnectInit: Boolean read FRemoteExecutedForConnectInit;
     property PrintStatus: Boolean read FPrintStatus write FPrintStatus;
 
+    // user define
     property UserVariants: THashVariantList read GetUserVariants;
     property UserObjects: THashObjectList read GetUserObjects;
     property UserAutoFreeObjects: THashObjectList read GetUserAutoFreeObjects;
     property UserData: Pointer read FUserData write FUserData;
     property UserValue: Variant read FUserValue write FUserValue;
     property UserDefine: TPeerClientUserDefine read FUserDefine;
+    property UserSpecial: TPeerClientUserSpecial read FUserSpecial;
 
+    // hash code
     procedure GenerateHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
     function VerifyHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var code: TBytes): Boolean;
+    // encrypt
     procedure Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; Enc: Boolean);
 
+    // timeout
     function StopCommunicationTime: TTimeTickValue;
     procedure SetLastCommunicationTimeAsCurrent;
+
+    // queue data
     property CurrentQueueData: PQueueData read FCurrentQueueData;
 
     // send cmd and method return
@@ -369,21 +392,25 @@ type
 
   TCommunicationFramework = class(TCoreClassInterfacedObject)
   private
-    FCommandList              : THashObjectList;
-    FRegistedClients          : TCoreClassListForObj;
-    FProgressBackgroundIsRun  : Boolean;
-    FPostExecuteList          : TCoreClassListForObj;
-    FIDCounter                : Cardinal;
-    FOnConnected              : TPeerClientNotify;
-    FOnDisconnect             : TPeerClientNotify;
-    FOnExecuteCommand         : TPeerClientCMDNotify;
-    FOnSendCommand            : TPeerClientCMDNotify;
-    FPeerClientUserDefineClass: TPeerClientUserDefineClass;
-    FIdleTimeout              : TTimeTickValue;
-    FSendDataCompressed       : Boolean;
-    FCipherStyle              : TCipherStyle;
-    FHashStyle                : THashStyle;
-    FPrintParams              : THashVariantList;
+    FCommandList               : THashObjectList;
+    FRegistedClients           : TCoreClassListForObj;
+    FProgressBackgroundIsRun   : Boolean;
+    FPostExecuteList           : TCoreClassListForObj;
+    FIDCounter                 : Cardinal;
+    FOnConnected               : TPeerClientNotify;
+    FOnDisconnect              : TPeerClientNotify;
+    FOnExecuteCommand          : TPeerClientCMDNotify;
+    FOnSendCommand             : TPeerClientCMDNotify;
+    FPeerClientUserDefineClass : TPeerClientUserDefineClass;
+    FPeerClientUserSpecialClass: TPeerClientUserSpecialClass;
+    FIdleTimeout               : TTimeTickValue;
+    FSendDataCompressed        : Boolean;
+    FCipherStyle               : TCipherStyle;
+    FHashStyle                 : THashStyle;
+    FPrintParams               : THashVariantList;
+
+    FOnPeerClientCreateNotify : TBackcalls;
+    FOnPeerClientDestroyNotify: TBackcalls;
   protected
     procedure DoPrint(const v: string); virtual;
   protected
@@ -427,22 +454,26 @@ type
     function RegisterDirectConsole(Cmd: string): TCommandDirectConsoleMode;
     function RegisterBigStream(Cmd: string): TCommandBigStreamMode;
 
-    function ExecuteConsole(Sender: TPeerClient; Cmd: string; const InData: string; var OutData: string): Boolean;
-    function ExecuteStream(Sender: TPeerClient; Cmd: string; InData, OutData: TDataFrameEngine): Boolean;
-    function ExecuteDirectStream(Sender: TPeerClient; Cmd: string; InData: TDataFrameEngine): Boolean;
-    function ExecuteDirectConsole(Sender: TPeerClient; Cmd: string; const InData: string): Boolean;
-    function ExecuteBigStream(Sender: TPeerClient; Cmd: string; InData: TCoreClassStream; FBigStreamTotal, BigStreamCompleteSize: Int64): Boolean;
+    function ExecuteConsole(Sender: TPeerClient; Cmd: string; const InData: string; var OutData: string): Boolean; virtual;
+    function ExecuteStream(Sender: TPeerClient; Cmd: string; InData, OutData: TDataFrameEngine): Boolean; virtual;
+    function ExecuteDirectStream(Sender: TPeerClient; Cmd: string; InData: TDataFrameEngine): Boolean; virtual;
+    function ExecuteDirectConsole(Sender: TPeerClient; Cmd: string; const InData: string): Boolean; virtual;
+    function ExecuteBigStream(Sender: TPeerClient; Cmd: string; InData: TCoreClassStream; FBigStreamTotal, BigStreamCompleteSize: Int64): Boolean; virtual;
 
     property OnConnected: TPeerClientNotify read FOnConnected write FOnConnected;
     property OnDisconnect: TPeerClientNotify read FOnDisconnect write FOnDisconnect;
     property OnExecuteCommand: TPeerClientCMDNotify read FOnExecuteCommand write FOnExecuteCommand;
     property OnSendCommand: TPeerClientCMDNotify read FOnSendCommand write FOnSendCommand;
 
+    property OnPeerClientCreateNotify: TBackcalls read FOnPeerClientCreateNotify;
+    property OnPeerClientDestroyNotify: TBackcalls read FOnPeerClientDestroyNotify;
+
     property CipherStyle: TCipherStyle read FCipherStyle;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
     property SendDataCompressed: Boolean read FSendDataCompressed;
     property HashStyle: THashStyle read FHashStyle;
     property PeerClientUserDefineClass: TPeerClientUserDefineClass read FPeerClientUserDefineClass write FPeerClientUserDefineClass;
+    property PeerClientUserSpecialClass: TPeerClientUserSpecialClass read FPeerClientUserSpecialClass write FPeerClientUserSpecialClass;
 
     property IDCounter: Cardinal read FIDCounter write FIDCounter;
     property PrintParams: THashVariantList read FPrintParams;
@@ -554,6 +585,7 @@ type
     constructor Create;
 
     procedure TriggerDoDisconnect;
+
     function Connected: Boolean; virtual; abstract;
     function ClientIO: TPeerClient; virtual; abstract;
     procedure TriggerQueueData(v: PQueueData); virtual; abstract;
@@ -610,16 +642,13 @@ const
 var
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
 
-procedure DisposeQueueData(v: PQueueData);
-procedure InitQueueData(var v: TQueueData);
-function NewQueueData: PQueueData;
+procedure DisposeQueueData(v: PQueueData); inline;
+procedure InitQueueData(var v: TQueueData); inline;
+function NewQueueData: PQueueData; inline;
 
-function GetTimeTickCount: TTimeTickValue;
-function GetTimeTick: TTimeTickValue;
+function TranslateBindAddr(const Addr: string): string; inline;
 
-function TranslateBindAddr(const Addr: string): string;
-
-procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod); inline;
 
 {$IFNDEF FPC}
 function WaitSendConsoleCmdInThread(th: TCoreClassThread; cf: TCommunicationFrameworkClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
@@ -674,16 +703,6 @@ function NewQueueData: PQueueData;
 begin
   New(Result);
   InitQueueData(Result^);
-end;
-
-function GetTimeTickCount: TTimeTickValue;
-begin
-  Result := TCoreClassThread.GetTickCount;
-end;
-
-function GetTimeTick: TTimeTickValue;
-begin
-  Result := TCoreClassThread.GetTickCount;
 end;
 
 function TranslateBindAddr(const Addr: string): string;
@@ -1056,6 +1075,12 @@ begin
   FWorkPlatform := TExecutePlatform.epUnknow;
 end;
 
+constructor TPeerClientUserSpecial.Create(AOwner: TPeerClient);
+begin
+  inherited Create;
+  FOwner := AOwner;
+end;
+
 function TPeerClient.GetUserVariants: THashVariantList;
 begin
   if FUserVariants = nil then
@@ -1080,7 +1105,7 @@ begin
   Result := FUserAutoFreeObjects;
 end;
 
-function TPeerClient.TriggerWrite64(const Buffer; Count: Int64): Int64;
+procedure TPeerClient.TriggerWrite64(Count: Int64);
 begin
   inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveSize], Count);
 end;
@@ -1090,7 +1115,7 @@ begin
   SendByteBuffer(buff, Size);
   FLastCommunicationTimeTickCount := GetTimeTickCount;
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize]);
+  inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
 end;
 
 procedure TPeerClient.SendInteger(v: Integer);
@@ -1211,9 +1236,9 @@ var
   buff            : TBytes;
 begin
   WriteBufferOpen;
-  SendByte(Byte(FHeadFlag));
-  SendByte(Byte(cdtBigStream));
-  SendInt64(Int64(stream.Size));
+  SendByte(FHeadFlag);
+  SendByte(cdtBigStream);
+  SendInt64(stream.Size);
   buff := TPascalString(Cmd).Bytes;
   SendCardinal(Cardinal(Length(buff)));
   InternalSendByteBuffer(@buff[0], Length(buff));
@@ -1408,56 +1433,56 @@ procedure TPeerClient.Sync_ExecuteConsole;
 var
   d: TTimeTickValue;
 begin
-  PrintParam('execute console cmd:%s', inCmd);
+  PrintParam('execute console cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
-  FOwnerFramework.ExecuteConsole(Self, inCmd, FInText, FOutText);
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(inCmd, GetTimeTickCount - d);
+  FOwnerFramework.ExecuteConsole(Self, FInCmd, FInText, FOutText);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecConsole]);
-  FOwnerFramework.CmdRecvStatistics.IncValue(inCmd, 1);
+  FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
 procedure TPeerClient.Sync_ExecuteStream;
 var
   d: TTimeTickValue;
 begin
-  PrintParam('execute stream cmd:%s', inCmd);
+  PrintParam('execute stream cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
-  FOwnerFramework.ExecuteStream(Self, inCmd, FInDataFrame, FOutDataFrame);
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(inCmd, GetTimeTickCount - d);
+  FOwnerFramework.ExecuteStream(Self, FInCmd, FInDataFrame, FOutDataFrame);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecStream]);
-  FOwnerFramework.CmdRecvStatistics.IncValue(inCmd, 1);
+  FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
 procedure TPeerClient.Sync_ExecuteDirectConsole;
 var
   d: TTimeTickValue;
 begin
-  PrintParam('execute direct console cmd:%s', inCmd);
+  PrintParam('execute direct console cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
-  FOwnerFramework.ExecuteDirectConsole(Self, inCmd, FInText);
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(inCmd, GetTimeTickCount - d);
+  FOwnerFramework.ExecuteDirectConsole(Self, FInCmd, FInText);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestConsole]);
-  FOwnerFramework.CmdRecvStatistics.IncValue(inCmd, 1);
+  FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
 procedure TPeerClient.Sync_ExecuteDirectStream;
 var
   d: TTimeTickValue;
 begin
-  PrintParam('execute direct stream cmd:%s', inCmd);
+  PrintParam('execute direct stream cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
-  FOwnerFramework.ExecuteDirectStream(Self, inCmd, FInDataFrame);
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(inCmd, GetTimeTickCount - d);
+  FOwnerFramework.ExecuteDirectStream(Self, FInCmd, FInDataFrame);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestStream]);
-  FOwnerFramework.CmdRecvStatistics.IncValue(inCmd, 1);
+  FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
 procedure TPeerClient.ExecuteDataFrame(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean; CommDataType: Byte; dataFrame: TDataFrameEngine);
@@ -1465,7 +1490,7 @@ var
   m64 : TMemoryStream64;
   buff: TBytes;
 begin
-  inCmd := dataFrame.Reader.ReadString;
+  FInCmd := dataFrame.Reader.ReadString;
 
   case CommDataType of
     cdtConsole:
@@ -1590,9 +1615,10 @@ procedure TPeerClient.Sync_ExecuteBigStream;
 var
   d: TTimeTickValue;
 begin
+  PrintParam('execute Big Stream cmd:%s', FBigStreamCmd);
   d := GetTimeTickCount;
   FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FBigStreamExecuteData, FBigStreamTotal, FBigStreamCompleted);
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(inCmd, GetTimeTickCount - d);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   FOwnerFramework.CmdRecvStatistics.IncValue(FBigStreamCmd, 1);
 end;
@@ -1913,7 +1939,7 @@ begin
 
   FAllSendProcessing := False;
 
-  inCmd := '';
+  FInCmd := '';
   FInText := '';
   FOutText := '';
   FInDataFrame := TDataFrameEngine.Create;
@@ -1928,18 +1954,23 @@ begin
   FUserObjects := nil;
   FUserAutoFreeObjects := nil;
   FUserDefine := FOwnerFramework.FPeerClientUserDefineClass.Create(Self);
+  FUserSpecial := FOwnerFramework.FPeerClientUserSpecialClass.Create(Self);
 
   LockObject(FOwnerFramework.FRegistedClients);
   FOwnerFramework.FRegistedClients.Add(Self);
   UnLockObject(FOwnerFramework.FRegistedClients);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stConnest]);
+
+  FOwnerFramework.FOnPeerClientCreateNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
 end;
 
 destructor TPeerClient.Destroy;
 var
   i: Integer;
 begin
+  FOwnerFramework.FOnPeerClientDestroyNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
+
   inc(FOwnerFramework.Statistics[TStatisticsType.stDisconnest]);
 
   LockObject(FOwnerFramework.FRegistedClients);
@@ -1962,7 +1993,7 @@ begin
   FQueueList.Clear;
   UnLockObject(FQueueList);
 
-  DisposeObject(FUserDefine);
+  DisposeObject([FUserDefine, FUserSpecial]);
 
   DisposeObject(FQueueList);
   DisposeObject(FReceivedBuffer);
@@ -2146,17 +2177,17 @@ begin
           end;
         cdtBigStream:
           begin
-            // 2:int64
+            // 2:stream size
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlInt64Length) then
                 break;
             FReceivedBuffer.Read(Total, umlInt64Length);
 
-            // 3:string len
+            // 3:command len
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
                 break;
             FReceivedBuffer.Read(dSize, umlCardinalLength);
 
-            // 4:string
+            // 4:command text
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize) then
                 break;
             SetLength(buff, dSize);
@@ -2379,10 +2410,12 @@ begin
         flag := FHeadFlag;
         len := buff.Size;
 
+        // generate hash source
         GenerateHashCode(FOwnerFramework.FHashStyle, buff.Memory, buff.Size, code);
         headBuff[0] := Byte(FOwnerFramework.FHashStyle);
         PWord(@headBuff[1])^ := Length(code);
 
+        // generate encrypt data body
         bCipherStyle := Byte(FReceiveDataCipherStyle);
         Encrypt(FReceiveDataCipherStyle, buff.Memory, buff.Size, FCipherKey, True);
 
@@ -2409,6 +2442,11 @@ end;
 function TPeerClient.ResultSendIsPaused: Boolean;
 begin
   Result := FPauseResultSend;
+end;
+
+function TPeerClient.CipherKeyPtr: PCipherKeyBuffer;
+begin
+  Result := @FCipherKey;
 end;
 
 procedure TPeerClient.GenerateHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
@@ -2667,7 +2705,7 @@ var
   st: TStatisticsType;
 begin
   inherited Create;
-  FCommandList := THashObjectList.Create(True);
+  FCommandList := THashObjectList.Create(True, 1024);
   FIDCounter := 1;
   FRegistedClients := TCoreClassListForObj.Create;
   FProgressBackgroundIsRun := False;
@@ -2681,8 +2719,13 @@ begin
   FSendDataCompressed := True;
   FHashStyle := THashStyle.hsNone;
   FPeerClientUserDefineClass := TPeerClientUserDefine;
+  FPeerClientUserSpecialClass := TPeerClientUserSpecial;
+
   FPrintParams := THashVariantList.Create(1024);
   FPrintParams.AutoUpdateDefaultValue := True;
+
+  FOnPeerClientCreateNotify := TBackcalls.Create;
+  FOnPeerClientDestroyNotify := TBackcalls.Create;
 
   for st := low(TStatisticsType) to high(TStatisticsType) do
       Statistics[st] := 0;
@@ -2709,6 +2752,7 @@ begin
   DisposeObject(FRegistedClients);
   DisposeObject(FPostExecuteList);
   DisposeObject(FPrintParams);
+  DisposeObject([FOnPeerClientCreateNotify, FOnPeerClientDestroyNotify]);
   DisposeObject([CmdRecvStatistics, CmdSendStatistics, CmdMaxExecuteConsumeStatistics]);
   inherited Destroy;
 end;
@@ -3664,7 +3708,6 @@ end;
 procedure TCommunicationFrameworkClient.StreamResult_ConnectedInit(Sender: TPeerClient; ResultData: TDataFrameEngine);
 var
   arr: TDataFrameArrayByte;
-  n  : TPascalString;
 begin
   if ResultData.Count > 0 then
     begin
@@ -3677,9 +3720,6 @@ begin
       arr := ResultData.Reader.ReadArrayByte;
       SetLength(Sender.FCipherKey, arr.Count);
       arr.GetBuff(@Sender.FCipherKey[0]);
-
-      TCipher.HashToString(Sender.FCipherKey, n);
-      Sender.Print(n.Text);
 
       Sender.FRemoteExecutedForConnectInit := True;
     end;

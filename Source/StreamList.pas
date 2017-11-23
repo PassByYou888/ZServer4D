@@ -171,7 +171,7 @@ var
     if FDBEngine.ItemFastOpen(_ItemPos, ItemHnd) then
       if umlGetLength(ItemHnd.Name) > 0 then
         begin
-          lName := LowerCase(ItemHnd.Name);
+          lName := ItemHnd.Name.LowerText;
           NewHash := MakeHash(lName);
           idxLst := GetListTable(NewHash, True);
           New(p);

@@ -1,8 +1,8 @@
-{ *****************************************************************************}
-{ * string support,writen by QQ 600585@qq.com                                 *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ***************************************************************************** }
+{ * string support,writen by QQ 600585@qq.com                                 * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit PascalStrings;
 
@@ -15,12 +15,15 @@ uses SysUtils;
 type
   SystemString = string;
 
-  SystemChar    = char;
+  {$IFDEF FPC}
+  SystemChar = UnicodeChar;
+  {$ELSE}
+  SystemChar = char;
+  {$ENDIF}
   THash         = Cardinal;
   THash64       = UInt64;
   PSystemString = ^SystemString;
 
-type
   PPascalString = ^TPascalString;
 
   TPascalString = packed record
@@ -39,6 +42,7 @@ type
     procedure SetFirst(const Value: SystemChar);
   public
     Buff: array of SystemChar;
+
     {$IFDEF DELPHI}
     class operator Equal(const Lhs, Rhs: TPascalString): Boolean;
     class operator NotEqual(const Lhs, Rhs: TPascalString): Boolean;
@@ -77,26 +81,28 @@ type
     property Last: SystemChar read GetLast write SetLast;
     property First: SystemChar read GetFirst write SetFirst;
 
-    procedure DeleteLast;
-    procedure DeleteFirst;
-    procedure Delete(idx, cnt: Integer);
+    procedure DeleteLast; inline;
+    procedure DeleteFirst; inline;
+    procedure Delete(idx, cnt: Integer); inline;
+    procedure Clear; inline;
 
     procedure Append(t: TPascalString); inline;
-    function GetString(bPos, ePos: Integer): TPascalString;
-    procedure Insert(AText: SystemString; idx: Integer);
+    function GetString(bPos, ePos: Integer): TPascalString; inline;
+    procedure Insert(AText: SystemString; idx: Integer); inline;
 
-    procedure AsText(var Output: SystemString);
+    procedure AsText(var Output: SystemString); inline;
+    procedure FastGetBytes(var Output: TBytes); inline;
 
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
     function UpperText: SystemString;
-    property Len: Integer read GetLen write SetLen;
+    property len: Integer read GetLen write SetLen;
     property Items[index: Integer]: SystemChar read GetItems write SetItems; default;
     property Bytes: TBytes read GetBytes write SetBytes;
     function BOMBytes: TBytes;
   end;
 
-  TOrdChar  = (c0to9, c1to9, c0to32, c0to32no10, cLoAtoF, cHiAtoF, cLoAtoZ, cHiAtoZ);
+  TOrdChar  = (c0to9, c1to9, c0to32, c0to32no10, cLoAtoF, cHiAtoF, cLoAtoZ, cHiAtoZ, cHex, cAtoF, cAtoZ);
   TOrdChars = set of TOrdChar;
 
 function CharIn(c: SystemChar; const SomeChars: array of SystemChar): Boolean; overload;
@@ -105,8 +111,8 @@ function CharIn(c: SystemChar; const SomeCharsets: TOrdChars): Boolean; overload
 function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload;
 
-function BytesOfPascalString(var s: TPascalString): TBytes; overload;
-function PascalStringOfBytes(var s: TBytes): TPascalString; overload;
+function BytesOfPascalString(var s: TPascalString): TBytes; overload; inline;
+function PascalStringOfBytes(var s: TBytes): TPascalString; overload; inline;
 
 function FastHashSystemString(s: PSystemString): THash; overload; inline;
 function FastHash64SystemString(s: PSystemString): THash64; overload; inline;
@@ -161,7 +167,7 @@ function CharIn(c: SystemChar; const SomeChars: TPascalString): Boolean;
 var
   i: Integer;
 begin
-  for i := 1 to SomeChars.Len do
+  for i := 1 to SomeChars.len do
     if SomeChars[i] = c then
         Exit(True);
   Result := False;
@@ -192,43 +198,21 @@ begin
     cHiAtoF: Result := (v >= ordHA) and (v <= ordHF);
     cLoAtoZ: Result := (v >= ordLA) and (v <= ordLZ);
     cHiAtoZ: Result := (v >= ordHA) and (v <= ordHZ);
+    cHex: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF)) or ((v >= ord0) and (v <= ord9));
+    cAtoF: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF));
+    cAtoZ: Result := ((v >= ordLA) and (v <= ordLZ)) or ((v >= ordHA) and (v <= ordHZ));
     else Result := False;
   end;
 end;
 
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars): Boolean;
-const
-  ord0  = ord('0');
-  ord1  = ord('1');
-  ord9  = ord('9');
-  ordLA = ord('a');
-  ordHA = ord('A');
-  ordLF = ord('f');
-  ordHF = ord('F');
-  ordLZ = ord('z');
-  ordHZ = ord('Z');
-
 var
   i: TOrdChar;
-  v: NativeInt;
 begin
-  v := ord(c);
   Result := False;
   for i in SomeCharsets do
-    begin
-      case i of
-        c0to9: Result := (v >= ord0) and (v <= ord9);
-        c1to9: Result := (v >= ord1) and (v <= ord9);
-        c0to32: Result := ((v >= 0) and (v <= 32));
-        c0to32no10: Result := ((v >= 0) and (v <= 32) and (v <> 10));
-        cLoAtoF: Result := (v >= ordLA) and (v <= ordLF);
-        cHiAtoF: Result := (v >= ordHA) and (v <= ordHF);
-        cLoAtoZ: Result := (v >= ordLA) and (v <= ordLZ);
-        cHiAtoZ: Result := (v >= ordHA) and (v <= ordHZ);
-      end;
-      if Result then
-          Exit;
-    end;
+    if CharIn(c, i) then
+        Exit(True);
 end;
 
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean;
@@ -315,7 +299,7 @@ var
 begin
   Result := 0;
 
-  for i := 1 to s^.Len do
+  for i := 1 to s^.len do
     begin
       c := ord(s^[i]);
       if (c >= A) and (c <= Z) then
@@ -334,7 +318,7 @@ var
 begin
   Result := 0;
 
-  for i := 1 to s^.Len do
+  for i := 1 to s^.len do
     begin
       c := ord(s^[i]);
       if (c >= A) and (c <= Z) then
@@ -443,8 +427,8 @@ function TPascalString.GetText: SystemString;
 var
   i: Integer;
 begin
-  SetLength(Result, Len);
-  for i := 0 to Len - 1 do
+  SetLength(Result, len);
+  for i := 0 to len - 1 do
     begin
       {$IFDEF FirstCharInZero}
       Result[i] := Buff[i];
@@ -496,36 +480,23 @@ begin
 end;
 
 procedure TPascalString.SetBytes(const Value: TBytes);
-{$IFDEF FPC}
 var
-  n: string;
+  i: Integer;
 begin
-  n := SysUtils.TEncoding.Default.ClassName;
-
-  Text := StringOf(SysUtils.TEncoding.Convert(SysUtils.TEncoding.UTF8, SysUtils.TEncoding.Default, Value));
+  SetLength(Buff, 0);
+  try
+      Text := StringOf(SysUtils.TEncoding.Convert(SysUtils.TEncoding.UTF8, SysUtils.TEncoding.Default, Value));
+  except
+    SetLength(Buff, Length(Value));
+    for i := 0 to Length(Value) - 1 do
+        Buff[i] := char(Value[i]);
+  end;
 end;
-{$ELSE}
-
-
-begin
-  Text := StringOf(SysUtils.TEncoding.Convert(SysUtils.TEncoding.UTF8, SysUtils.TEncoding.Default, Value));
-end;
-{$ENDIF}
-
 
 function TPascalString.GetBytes: TBytes;
-{$IFDEF FPC}
 begin
-  Result := SysUtils.TEncoding.UTF8.GetBytes(Text);
+  Result := SysUtils.TEncoding.UTF8.GetBytes(Buff);
 end;
-{$ELSE}
-
-
-begin
-  Result := SysUtils.TEncoding.UTF8.GetBytes(Text);
-end;
-{$ENDIF}
-
 
 function TPascalString.GetLast: SystemChar;
 begin
@@ -552,7 +523,7 @@ end;
 
 class operator TPascalString.Equal(const Lhs, Rhs: TPascalString): Boolean;
 begin
-  Result := (Lhs.Len = Rhs.Len) and (Lhs.Text = Rhs.Text);
+  Result := (Lhs.len = Rhs.len) and (Lhs.Text = Rhs.Text);
 end;
 
 class operator TPascalString.NotEqual(const Lhs, Rhs: TPascalString): Boolean;
@@ -617,7 +588,7 @@ end;
 
 class operator TPascalString.Implicit(Value: SystemChar): TPascalString;
 begin
-  Result.Len := 1;
+  Result.len := 1;
   Result.Buff[0] := Value;
 end;
 
@@ -653,7 +624,7 @@ end;
 
 class operator TPascalString.Explicit(Value: SystemChar): TPascalString;
 begin
-  Result.Len := 1;
+  Result.len := 1;
   Result.Buff[0] := Value;
 end;
 
@@ -670,10 +641,10 @@ var
   i   : Integer;
   s, d: SystemChar;
 begin
-  Result := (t.Len = Len);
+  Result := (t.len = len);
   if not Result then
       Exit;
-  for i := 0 to Len - 1 do
+  for i := 0 to len - 1 do
     begin
       s := Buff[i];
       if (s >= 'A') and (s <= 'Z') then
@@ -691,10 +662,10 @@ var
   i   : Integer;
   s, d: SystemChar;
 begin
-  Result := (t.Len = Len);
+  Result := (t.len = len);
   if not Result then
       Exit;
-  for i := 0 to Len - 1 do
+  for i := 0 to len - 1 do
     begin
 
       s := Buff[i];
@@ -719,8 +690,8 @@ var
 begin
   Result := False;
   i := 1;
-  l := t^.Len;
-  if (Offset + l - 1) > Len then
+  l := t^.len;
+  if (Offset + l - 1) > len then
       Exit;
   while i <= l do
     begin
@@ -746,8 +717,8 @@ var
 begin
   Result := False;
   i := 1;
-  l := t.Len;
-  if (Offset + l) > Len then
+  l := t.len;
+  if (Offset + l) > len then
       Exit;
   while i <= l do
     begin
@@ -771,8 +742,8 @@ var
   i: Integer;
 begin
   Result := 0;
-  if SubStr.Len > 0 then
-    for i := Offset to Len - SubStr.Len + 1 do
+  if SubStr.len > 0 then
+    for i := Offset to len - SubStr.len + 1 do
       if ComparePos(i, @SubStr) then
           Exit(i);
 end;
@@ -789,22 +760,27 @@ end;
 
 procedure TPascalString.DeleteLast;
 begin
-  if Len > 0 then
-      Buff := System.copy(Buff, 0, Len - 1);
+  if len > 0 then
+      Buff := System.copy(Buff, 0, len - 1);
 end;
 
 procedure TPascalString.DeleteFirst;
 begin
-  if Len > 0 then
-      Buff := System.copy(Buff, 1, Len);
+  if len > 0 then
+      Buff := System.copy(Buff, 1, len);
 end;
 
 procedure TPascalString.Delete(idx, cnt: Integer);
 begin
-  if (idx + cnt <= Len) then
-      Text := GetString(1, idx) + GetString(idx + cnt, Len)
+  if (idx + cnt <= len) then
+      Text := GetString(1, idx) + GetString(idx + cnt, len)
   else
       Text := GetString(1, idx);
+end;
+
+procedure TPascalString.Clear;
+begin
+  SetLength(Buff, 0);
 end;
 
 procedure TPascalString.Append(t: TPascalString);
@@ -823,15 +799,15 @@ end;
 
 procedure TPascalString.Insert(AText: SystemString; idx: Integer);
 begin
-  Text := GetString(1, idx) + AText + GetString(idx + 1, Len);
+  Text := GetString(1, idx) + AText + GetString(idx + 1, len);
 end;
 
 procedure TPascalString.AsText(var Output: SystemString);
 var
   i: Integer;
 begin
-  SetLength(Output, Len);
-  for i := 0 to Len - 1 do
+  SetLength(Output, len);
+  for i := 0 to len - 1 do
     begin
       {$IFDEF FirstCharInZero}
       Output[i] := Buff[i];
@@ -839,6 +815,11 @@ begin
       Output[i + 1] := Buff[i];
       {$ENDIF}
     end;
+end;
+
+procedure TPascalString.FastGetBytes(var Output: TBytes);
+begin
+  Output := SysUtils.TEncoding.UTF8.GetBytes(Buff);
 end;
 
 function TPascalString.LowerText: SystemString;

@@ -1,8 +1,8 @@
-{******************************************************************************}
-{* cadencer imp library  written by QQ 600585@qq.com                          *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * cadencer imp library  written by QQ 600585@qq.com                          * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit Cadencer;
 
@@ -17,6 +17,10 @@ type
     deltaTime is the time delta since last progress and newTime is the new
     time after the progress event is completed. }
   TCadencerProgressEvent = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
+
+  ICadencerProgressInterface = interface
+    procedure CadencerProgress(const deltaTime, newTime: Double);
+  end;
 
   // TCadencer
 
@@ -40,6 +44,7 @@ type
     FMaxDeltaTime, FMinDeltaTime, FFixedDeltaTime: Double;
     FOnProgress                                  : TCadencerProgressEvent;
     FProgressing                                 : Integer;
+    FProgressIntf                                : ICadencerProgressInterface;
   protected
     { Protected Declarations }
     function StoreTimeMultiplier: Boolean;
@@ -113,6 +118,8 @@ type
     property SleepLength: Integer read FSleepLength write FSleepLength default -1;
 
     property OnProgress: TCadencerProgressEvent read FOnProgress write FOnProgress;
+
+    property ProgressIntf: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
 
 implementation
@@ -180,7 +187,7 @@ end;
 
 function TCadencer.GetRawReferenceTime: Double;
 begin
-  Result := TCoreClassThread.GetTickCount * 0.001;
+  Result := GetTimeTick * 0.001;
 end;
 
 // ------------------
@@ -197,6 +204,8 @@ begin
   FTimeMultiplier := 1;
   FSleepLength := -1;
   Enabled := True;
+  FOnProgress := nil;
+  FProgressIntf := nil;
 end;
 
 // Destroy
@@ -243,8 +252,14 @@ begin
                     deltaTime := FixedDeltaTime;
                 while totalDelta >= deltaTime do begin
                     lastTime := lastTime + deltaTime;
-                    if Assigned(FOnProgress) then
-                        FOnProgress(Self, deltaTime, newTime);
+                    try
+                      if Assigned(FOnProgress) then
+                          FOnProgress(Self, deltaTime, newTime);
+                      if Assigned(FProgressIntf) then
+                          FProgressIntf.CadencerProgress(deltaTime, newTime);
+                    except
+                    end;
+
                     if deltaTime <= 0 then
                         Break;
                     totalDelta := totalDelta - deltaTime;

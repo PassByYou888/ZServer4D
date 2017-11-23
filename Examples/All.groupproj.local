@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/11/09 10:56:52.000.914,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Examples\All.groupproj</Transaction>
+    <Transaction>2017/11/09 10:56:52.000.914,C:\git\ZServer4D\Examples\All.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
   </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\5.登录式高级云服务器\DBServer\DBServer.dproj"/>
 	</Default.Personality>
 </BorlandProject>

@@ -116,10 +116,6 @@ object ManagerServerForm: TManagerServerForm
     TabOrder = 1
     object StatusTabSheet: TTabSheet
       Caption = 'Log Status'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo: TMemo
         Left = 0
         Top = 0

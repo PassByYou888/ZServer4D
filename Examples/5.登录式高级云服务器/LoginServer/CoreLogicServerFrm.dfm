@@ -117,6 +117,10 @@ object CoreLogicServerForm: TCoreLogicServerForm
     TabOrder = 1
     object StatusTabSheet: TTabSheet
       Caption = 'Log Status'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Memo: TMemo
         Left = 0
         Top = 0
@@ -141,6 +145,10 @@ object CoreLogicServerForm: TCoreLogicServerForm
     object OptTabSheet: TTabSheet
       Caption = 'Options'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object BindIPEdit: TLabeledEdit
         Left = 136
         Top = 11
@@ -181,6 +189,10 @@ object CoreLogicServerForm: TCoreLogicServerForm
     object ConnectTreeTabSheet: TTabSheet
       Caption = 'connect tree'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object TreeView: TTreeView
         Left = 0
         Top = 0

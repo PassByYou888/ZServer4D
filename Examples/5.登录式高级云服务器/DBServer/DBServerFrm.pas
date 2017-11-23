@@ -763,7 +763,7 @@ begin
   if delayStartService then
     begin
       with FDBService.ProgressEngine.PostExecute(delayStartServiceTime) do
-          OnExecute := PostExecute_DelayStartService;
+          OnExecuteMethod := PostExecute_DelayStartService;
     end;
 
   if delayReg then
@@ -772,7 +772,7 @@ begin
         begin
           Data3 := ManServAddr;
           Data4 := RegAddr;
-          OnExecute := PostExecute_DelayRegService;
+          OnExecuteMethod := PostExecute_DelayRegService;
         end;
     end;
 

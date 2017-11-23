@@ -259,6 +259,9 @@ type
 
     class function NameToHashStyle(n: string; var hash: THashStyle): Boolean;
 
+    class function BuffToString(buff: Pointer; Size: nativeInt): TPascalString; overload;
+    class function StringToBuff(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean; overload;
+
     class procedure HashToString(hash: Pointer; Size: nativeInt; var Output: TPascalString); overload;
     class procedure HashToString(hash: TSHA1Digest; var Output: TPascalString); overload;
     class procedure HashToString(hash: TMD5Digest; var Output: TPascalString); overload;
@@ -403,6 +406,8 @@ type
     function EncryptBufferCBC(cs: TCipherStyle; sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
   end;
 
+procedure InitSysCBC(rand: Int64);
+
 function SequEncryptWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
@@ -489,10 +494,10 @@ type
   public
     class procedure FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
     class procedure GenerateMD5Key(var key: TKey128; const ABytes: TBytes);
-    class procedure HashMD5(var Digest: TMD5Digest; const Buf; BufSize: Integer);
+    class procedure HashMD5(var Digest: TMD5Digest; const Buf; BufSize: nativeInt);
     class procedure InitMD5(var Context: TMD5Context);
     class procedure ByteBuffHashMD5(var Digest: TMD5Digest; const ABytes: TBytes);
-    class procedure UpdateMD5(var Context: TMD5Context; const Buf; BufSize: Integer);
+    class procedure UpdateMD5(var Context: TMD5Context; const Buf; BufSize: nativeInt);
   end;
 
   { Cipher message digest }
@@ -1080,6 +1085,16 @@ begin
       end;
 end;
 
+class function TCipher.BuffToString(buff: Pointer; Size: nativeInt): TPascalString;
+begin
+  HashToString(buff, Size, Result);
+end;
+
+class function TCipher.StringToBuff(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean;
+begin
+  Result := HexToBuffer(Hex, Buf, BufSize);
+end;
+
 class procedure TCipher.HashToString(hash: Pointer; Size: nativeInt; var Output: TPascalString);
 const
   HexArr: array [0 .. 15] of umlChar = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f');
@@ -1182,7 +1197,7 @@ begin
     hsFastMD5:
       begin
         SetLength(Output, 16);
-        PMD5(@Output[0])^ := umlMD5(PByte(sour), Size);
+        PMD5(@Output[0])^ := umlMD5(PByte(sour), DWord(Size));
       end;
     hsMD5, hs16:
       begin
@@ -1271,12 +1286,8 @@ begin
 end;
 
 class function TCipher.BufferToHex(const Buf; BufSize: Cardinal): TPascalString;
-var
-  i: Integer;
 begin
-  Result := '';
-  for i := 0 to BufSize - 1 do
-      Result.Append(IntToHex(TByteArray(Buf)[i], 2)); { !!.01 }
+  Result := BuffToString(@Buf, BufSize);
 end;
 
 class function TCipher.HexToBuffer(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean;
@@ -2759,13 +2770,13 @@ begin
     end;
 end;
 
-procedure InitSysCBC;
+procedure InitSysCBC(rand: Int64);
 var
   i   : Integer;
   Seed: TInt64;
 begin
-  SetLength(SystemCBC, 128);
-  Seed.i := 0;
+  SetLength(SystemCBC, 2048);
+  Seed.i := rand;
   for i := low(SystemCBC) to high(SystemCBC) do
       SystemCBC[i] := TMISC.Random64(Seed);
 end;
@@ -3165,8 +3176,40 @@ var
 
   ps: TCoreClassStrings;
 
-  s: TPascalString;
+  s, Output: TPascalString;
+
+  bigBuff: TMemoryStream64;
+
 begin
+  {$IFDEF WIN64}
+  {$IFDEF DEBUG}
+  // alloc 3GB memory
+
+  bigBuff := TMemoryStream64.Create;
+
+  SetLength(buffer, 1024 * 1024 * 1024);
+  // SetLength(buffer, 1024 * 1024+3 );
+  FillByte(buffer[0], length(buffer), $7F);
+
+  // alloc 5GB memory
+  bigBuff.WritePtr(@buffer[0], length(buffer));
+  bigBuff.WritePtr(@buffer[0], length(buffer));
+  bigBuff.WritePtr(@buffer[0], length(buffer));
+  bigBuff.WritePtr(@buffer[0], length(buffer));
+  bigBuff.WritePtr(@buffer[0], length(buffer));
+
+  bigBuff.Position := 0;
+  DoStatus(umlStreamMD5Char(bigBuff).Text);
+
+  DoStatus(umlMD5Char(bigBuff.Memory, bigBuff.Size).Text);
+
+  TCipher.GenerateMD5HashString(bigBuff.Memory, bigBuff.Size, Output);
+  DoStatus(Output.Text);
+  DisposeObject(bigBuff);
+  SetLength(buffer, 0);
+  exit;
+  {$ENDIF}
+  {$ENDIF}
   IDEOutput := True;
 
   DoStatus('Generate and verify password test');
@@ -3180,6 +3223,8 @@ begin
 
   DoStatus('verify long password');
   s := GeneratePasswordHash(TCipher.CAllHash, 'hello world 123456');
+  umlDecodeLineBASE64(s, Output);
+  DoStatus(Output.Text);
   if not ComparePasswordHash('hello world 123456', s) then
       DoStatus('PasswordHash failed!');
   if ComparePasswordHash('111 hello world 123456', s) then
@@ -3256,13 +3301,13 @@ begin
       sour.Position := 0;
       dest.Position := 0;
 
-      d := TCoreClassThread.GetTickCount;
+      d := GetTimeTick;
 
       if not Parallel.EncryptBufferCBC(cs, dest.Memory, dest.Size, @k, True, True) then
           DoStatus('%s: parallel encode failed', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs))]);
       if not Parallel.EncryptBufferCBC(cs, dest.Memory, dest.Size, @k, False, True) then
           DoStatus('%s: parallel decode failed', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs))]);
-      DoStatus('%s - parallel performance:%dms', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs)), TCoreClassThread.GetTickCount - d]);
+      DoStatus('%s - parallel performance:%dms', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs)), GetTimeTick - d]);
 
       if not TCipher.CompareHash(TCipher.GenerateSha1Hash(dest.Memory, dest.Size), sourHash) then
           DoStatus('%s parallel hash error!', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs))]);
@@ -3282,12 +3327,12 @@ begin
       sour.Position := 0;
       dest.Position := 0;
 
-      d := TCoreClassThread.GetTickCount;
+      d := GetTimeTick;
       if not TCipher.EncryptBufferCBC(cs, dest.Memory, dest.Size, @k, True, True) then
           DoStatus('%s: encode failed', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs))]);
       if not TCipher.EncryptBufferCBC(cs, dest.Memory, dest.Size, @k, False, True) then
           DoStatus('%s: decode failed', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs))]);
-      DoStatus('%s - normal performance:%dms', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs)), TCoreClassThread.GetTickCount - d]);
+      DoStatus('%s - normal performance:%dms', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs)), GetTimeTick - d]);
       if not TCipher.CompareHash(TCipher.GenerateSha1Hash(dest.Memory, dest.Size), sourHash) then
           DoStatus('%s hash error!', [GetEnumName(TypeInfo(TCipherStyle), Integer(cs))]);
     end;
@@ -3302,9 +3347,9 @@ begin
 
   for hs := low(THashStyle) to high(THashStyle) do
     begin
-      d := TCoreClassThread.GetTickCount;
+      d := GetTimeTick;
       TCipher.GenerateHashByte(hs, dest.Memory, dest.Size, hByte);
-      DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashStyle), Integer(hs)), Round((TCoreClassThread.GetTickCount - d))]);
+      DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashStyle), Integer(hs)), Round((GetTimeTick - d))]);
     end;
 
   DoStatus(#13#10'all test done!');
@@ -4214,7 +4259,7 @@ begin
   HashMD5(d, ABytes[0], length(ABytes));
 end;
 
-class procedure TMD5Class.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: Integer);
+class procedure TMD5Class.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: nativeInt);
 var
   Context: TMD5Context;
 begin
@@ -4241,22 +4286,23 @@ begin
   HashMD5(Digest, ABytes[0], length(ABytes));
 end;
 
-class procedure TMD5Class.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: Integer);
+class procedure TMD5Class.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: nativeInt);
 var
   InBuf : TTransformInput;
-  BufOfs: Integer;
-  MDI   : Word;
-  i     : Word;
-  II    : Word;
+  BufOfs: nativeInt;
+  MDI   : DWord;
+  i     : DWord;
+  II    : DWord;
 begin
-  { compute number of bytes mod 64 }
+  // { compute number of bytes mod 64 }
   MDI := (Context.Count[0] shr 3) and $3F;
 
-  { update number of bits }
-  if ((Context.Count[0] + (DWord(BufSize) shl 3)) < Context.Count[0]) then
-      inc(Context.Count[1]);
+  // { update number of bits }
   inc(Context.Count[0], BufSize shl 3);
-  inc(Context.Count[1], BufSize shr 29);
+  if Context.Count[0] < (BufSize shl 3) then
+      inc(Context.Count[1]);
+
+  inc(Context.Count[1], BufSize shr (SizeOf(BufSize) * 8 - 3));
 
   { add new byte acters to buffer }
   BufOfs := 0;
@@ -5399,7 +5445,7 @@ end;
 
 initialization
 
-InitSysCBC;
+InitSysCBC(0);
 DCP_towfish_Precomp;
 TPasMP.CreateGlobalInstance;
 

@@ -968,7 +968,7 @@ begin
   if delayStartService then
     begin
       with ManagerService.ProgressEngine.PostExecute(delayStartServiceTime) do
-          OnExecute := PostExecute_DelayStartService;
+          OnExecuteMethod := PostExecute_DelayStartService;
     end;
 
   DoStatus('');
