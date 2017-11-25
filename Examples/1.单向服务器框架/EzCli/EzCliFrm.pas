@@ -19,12 +19,14 @@ type
     Timer1: TTimer;
     HelloWorldBtn: TButton;
     sendMiniStreamButton: TButton;
+    SendBigStreamButton: TButton;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure HelloWorldBtnClick(Sender: TObject);
     procedure sendMiniStreamButtonClick(Sender: TObject);
+    procedure SendBigStreamButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -103,7 +105,31 @@ begin
   if ResultDE.Count > 0 then
       DoStatus('server response:%s', [ResultDE.Reader.ReadString]);
   DisposeObject([SendDe, ResultDE]);
+end;
 
+procedure TEZClientForm.SendBigStreamButtonClick(Sender: TObject);
+var
+  ms: TMemoryStream;
+  p : PInt64;
+  i : Integer;
+begin
+  // 在ms中包含了128M大型数据，在服务器端相当于执行了1条普通命令
+  ms := TMemoryStream.Create;
+  ms.SetSize(128 * 1024 * 1024);
+
+  DoStatus('创建128M临时大数据流');
+  p := ms.Memory;
+  for i := 1 to ms.Size div SizeOf(Int64) do
+    begin
+      p^ := Random(MaxInt);
+      inc(p);
+    end;
+
+  DoStatus('计算临时大数据流md5');
+  DoStatus('md5:' + umlMD5Char(ms.Memory, ms.Size).Text);
+
+  // 往服务器发送一条Big Stream形式的指令
+  client.SendBigStream('Test128MBigStream', ms, True);
 end;
 
 procedure TEZClientForm.sendMiniStreamButtonClick(Sender: TObject);
@@ -113,6 +139,7 @@ var
   p     : PInt64;
   i     : Integer;
 begin
+  // 在SendDE中包含了512k大型数据，在服务器端相当于执行了512条普通命令
   ms := TMemoryStream.Create;
   ms.SetSize(512 * 1024);
 

@@ -1,15 +1,16 @@
-{******************************************************************************}
-{* single tunnel IO framework(incl auth service)                              *}
-{* written by QQ 600585@qq.com                                                *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * single tunnel IO framework(incl auth service)                              * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit CommunicationFrameworkIO;
 
 interface
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
+
 
 uses CoreClasses, ListEngine, UnicodeMixedLib,
   DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
@@ -91,10 +92,15 @@ type
 implementation
 
 {$IFDEF FPC}
+
+
 uses SysUtils;
 {$ELSE}
+
+
 uses SysUtils, IOUtils;
 {$ENDIF}
+
 
 constructor TPeerClientUserDefineForIO.Create(AOwner: TPeerClient);
 begin
@@ -162,7 +168,7 @@ begin
     end;
   UnLockObject(FLoginUserList);
 
-  if not SameText(UserPasswd, FUserDB.GetDefaultValue(UserID, 'password', '')) then
+  if not ComparePassword(TCipherStyle.csDES64, UserPasswd, string(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('password error', []));
@@ -235,7 +241,7 @@ begin
   umlCreateDirectory(UserDefineIO.UserPath);
   UserDefineIO.UserDBIntf := FUserDB.VariantList[UserID];
   UserDefineIO.UserDBIntf['UserFlag'] := UserDefineIO.UserFlag;
-  UserDefineIO.UserDBIntf['password'] := UserPasswd;
+  UserDefineIO.UserDBIntf['password'] := GeneratePassword(TCipherStyle.csDES64, UserPasswd).Text;
   UserDefineIO.UserAuthService := Self;
   UserDefineIO.LoginSuccessed := True;
 

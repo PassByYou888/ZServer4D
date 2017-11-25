@@ -10,7 +10,7 @@ unit NotifyObjectBase;
 
 interface
 
-uses Variants, CoreClasses, DataFrameEngine;
+uses Variants, CoreClasses, DataFrameEngine, Cadencer;
 
 type
   TNotifyBase = class(TCoreClassInterfacedObject)
@@ -69,7 +69,7 @@ type
 
   TNPostExecuteClass = class of TNPostExecute;
 
-  TNProgressPost = class(TNotifyBase)
+  TNProgressPost = class(TCoreClassInterfacedObject)
   protected
     FPostProcessIsRun: Boolean;
     FPostExecuteList : TCoreClassListForObj;
@@ -79,7 +79,7 @@ type
     FBreakProgress   : Boolean;
     FPaused          : Boolean;
   public
-    constructor Create; override;
+    constructor Create;
     destructor Destroy; override;
 
     procedure ResetPost;
@@ -114,6 +114,19 @@ type
     property CurrentExecute: TNPostExecute read FCurrentExecute;
     property PostClass: TNPostExecuteClass read FPostClass write FPostClass;
     property IsPause: Boolean read FPaused;
+  end;
+
+  TNProgressPostWithCadencer = class(TNProgressPost, ICadencerProgressInterface)
+  protected
+    FCadencerEng: TCadencer;
+    procedure CadencerProgress(const deltaTime, newTime: Double);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Progress;
+
+    property CadencerEng: TCadencer read FCadencerEng;
   end;
 
 implementation
@@ -475,6 +488,29 @@ end;
 procedure TNProgressPost.ContinueProgress;
 begin
   FPaused := False;
+end;
+
+procedure TNProgressPostWithCadencer.CadencerProgress(const deltaTime, newTime: Double);
+begin
+  inherited Progress(deltaTime);
+end;
+
+constructor TNProgressPostWithCadencer.Create;
+begin
+  inherited Create;
+  FCadencerEng := TCadencer.Create;
+  FCadencerEng.ProgressIntf := Self;
+end;
+
+destructor TNProgressPostWithCadencer.Destroy;
+begin
+  DisposeObject(FCadencerEng);
+  inherited Destroy;
+end;
+
+procedure TNProgressPostWithCadencer.Progress;
+begin
+  FCadencerEng.Progress;
 end;
 
 end.

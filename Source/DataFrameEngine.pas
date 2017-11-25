@@ -3289,7 +3289,7 @@ begin
   nStream.Write(editionFlag, umlByteLength);
   nStream.Write(sizeInfo, umlIntegerLength);
   nStream.Write(compFlag, umlBoolLength);
-  nStream.Write(md5[0], 16);
+  nStream.Write(md5[0], umlMD5Length);
 
   // write header
   nStream.Position := 0;
@@ -3364,7 +3364,7 @@ begin
   nStream.Write(sizeInfo, umlIntegerLength);
   nStream.Write(compFlag, umlBoolLength);
   nStream.Write(compSizeInfo, umlIntegerLength);
-  nStream.Write(md5[0], 16);
+  nStream.Write(md5[0], umlMD5Length);
 
   // write header
   nStream.Position := 0;

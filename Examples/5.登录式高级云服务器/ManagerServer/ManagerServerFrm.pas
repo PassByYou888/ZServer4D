@@ -48,11 +48,11 @@ type
   protected
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
-    procedure PostExecute_ServerOffline(Sender: TPostExecute);
-    procedure PostExecute_RegServer(Sender: TPostExecute);
+    procedure PostExecute_ServerOffline(Sender: TNPostExecute);
+    procedure PostExecute_RegServer(Sender: TNPostExecute);
   protected
     procedure Command_EnabledServer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure PostExecute_Disconnect(Sender: TPostExecute);
+    procedure PostExecute_Disconnect(Sender: TNPostExecute);
     procedure Command_AntiIdle(Sender: TPeerClient; InData: TDataFrameEngine);
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
@@ -203,11 +203,12 @@ begin
       FManagerWindow.ServerConfig.Delete(cli.MakeRegName);
 
       // 通知全网客户端，这台服务器离线
-      with SendTunnel.PostExecute do
+
+      with SendTunnel.ProgressPost.PostExecute do
         begin
           DataEng.WriteString(cli.RegAddr);
           DataEng.WriteString(cli.ServerType);
-          OnExecute := PostExecute_ServerOffline;
+          OnExecuteMethod := PostExecute_ServerOffline;
         end;
 
       // 如果管理服务器离线，矫正本地配置表
@@ -226,19 +227,19 @@ begin
           DisposeObject(ns);
 
           // 同步所有客户端
-          SendTunnel.PostExecute(nil, PostExecute_RegServer);
+          SendTunnel.ProgressPost.PostExecute(nil, PostExecute_RegServer);
         end;
     end;
 
   inherited UserOut(UserDefineIO);
 end;
 
-procedure TManagerServer_DoubleTunnelService.PostExecute_ServerOffline(Sender: TPostExecute);
+procedure TManagerServer_DoubleTunnelService.PostExecute_ServerOffline(Sender: TNPostExecute);
 begin
   SendTunnel.BroadcastSendDirectStreamCmd('Offline', Sender.DataEng);
 end;
 
-procedure TManagerServer_DoubleTunnelService.PostExecute_RegServer(Sender: TPostExecute);
+procedure TManagerServer_DoubleTunnelService.PostExecute_RegServer(Sender: TNPostExecute);
 var
   i     : Integer;
   SendDE: TDataFrameEngine;
@@ -305,7 +306,7 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('%s same server configure!!', [cli.MakeRegName]));
-      with Sender.OwnerFramework.PostExecute(InData, PostExecute_Disconnect) do
+      with Sender.OwnerFramework.ProgressPost.PostExecute(InData, PostExecute_Disconnect) do
         begin
           Data1 := Sender;
           Data2 := cli;
@@ -326,7 +327,7 @@ begin
   Sender.Print('%s [n:%s][addr:%s][r:%d][s:%d][w:%d] registed', [serverType2Str(cli.ServerType), cli.RegName, cli.RegAddr, cli.RegRecvPort, cli.RegSendPort, cli.WorkLoad]);
 end;
 
-procedure TManagerServer_DoubleTunnelService.PostExecute_Disconnect(Sender: TPostExecute);
+procedure TManagerServer_DoubleTunnelService.PostExecute_Disconnect(Sender: TNPostExecute);
 var
   c: TPeerClient;
 begin

@@ -7,7 +7,7 @@ uses System.IOUtils, SysUtils,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine,
   CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Client_ICS;
+  CommunicationFramework_Client_ICS, NotifyObjectBase;
 
 type
   TManagerClients = class;
@@ -20,10 +20,10 @@ type
 
   TManagerClient = class(TCommunicationFramework_DoubleTunnelClient_NoAuth)
   protected
-    procedure PostExecute_RegServer(Sender: TPostExecute);
+    procedure PostExecute_RegServer(Sender: TNPostExecute);
     procedure Command_RegServer(Sender: TPeerClient; InData: TDataFrameEngine);
 
-    procedure PostExecute_Offline(Sender: TPostExecute);
+    procedure PostExecute_Offline(Sender: TNPostExecute);
     procedure Command_Offline(Sender: TPeerClient; InData: TDataFrameEngine);
   public
     Owner                               : TManagerClients;
@@ -99,7 +99,7 @@ begin
   end;
 end;
 
-procedure TManagerClient.PostExecute_RegServer(Sender: TPostExecute);
+procedure TManagerClient.PostExecute_RegServer(Sender: TNPostExecute);
 var
   te: TSectionTextData;
 begin
@@ -116,15 +116,15 @@ begin
   te := TSectionTextData.Create;
   InData.Reader.ReadSectionText(te);
   Owner.ServerConfig.Merge(te);
-  with Sender.OwnerFramework.PostExecute(nil) do
+  with Sender.OwnerFramework.ProgressPost.PostExecute(nil) do
     begin
       Data1 := Sender;
       Data2 := te;
-      OnExecute := PostExecute_RegServer;
+      OnExecuteMethod := PostExecute_RegServer;
     end;
 end;
 
-procedure TManagerClient.PostExecute_Offline(Sender: TPostExecute);
+procedure TManagerClient.PostExecute_Offline(Sender: TNPostExecute);
 var
   RegAddr   : string;
   ServerType: Byte;
@@ -157,7 +157,7 @@ end;
 
 procedure TManagerClient.Command_Offline(Sender: TPeerClient; InData: TDataFrameEngine);
 begin
-  Sender.OwnerFramework.PostExecute(InData, PostExecute_Offline);
+  Sender.OwnerFramework.ProgressPost.PostExecute(InData, PostExecute_Offline);
 end;
 
 constructor TManagerClient.Create(AOwner: TManagerClients);

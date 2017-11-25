@@ -62,9 +62,18 @@ object EZClientForm: TEZClientForm
     Top = 152
     Width = 113
     Height = 33
-    Caption = 'sned mini Stream'
+    Caption = 'send mini Stream'
     TabOrder = 4
     OnClick = sendMiniStreamButtonClick
+  end
+  object SendBigStreamButton: TButton
+    Left = 8
+    Top = 200
+    Width = 113
+    Height = 33
+    Caption = 'send Big Stream'
+    TabOrder = 5
+    OnClick = SendBigStreamButtonClick
   end
   object Timer1: TTimer
     Interval = 100

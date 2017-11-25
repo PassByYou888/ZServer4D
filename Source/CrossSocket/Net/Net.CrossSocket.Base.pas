@@ -178,10 +178,14 @@ type
 
     procedure SetConnectStatus(const Value: TConnectStatus);
 
+    /// <summary>
+    ///   外部接口
+    /// </summary>
     function GetUserObject: TObject;
     procedure SetUserObject(const value: TObject);
     function ConnectionIntf: TObject;
     property UserObject: TObject read GetUserObject write SetUserObject;
+
     /// <summary>
     ///   优雅关闭
     /// </summary>
@@ -550,7 +554,7 @@ type
     property OnSent: TCrossDataEvent read GetOnSent write SetOnSent;
   end;
 
-  TCrossData = class abstract(TCoreClassInterfacedObject, ICrossData)
+  TCrossData = class abstract(TInterfacedObject, ICrossData)
   private
     class var FCrossUID: UInt64;
   private
@@ -673,7 +677,7 @@ type
     constructor Create(ACrossSocket: ICrossSocket); reintroduce;
   end;
 
-  TAbstractCrossSocket = class abstract(TCoreClassInterfacedObject, ICrossSocket)
+  TAbstractCrossSocket = class abstract(TInterfacedObject, ICrossSocket)
   protected const
     RCV_BUF_SIZE = 32768;
   protected class threadvar

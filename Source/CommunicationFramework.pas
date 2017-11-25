@@ -8,12 +8,12 @@ unit CommunicationFramework;
 
 interface
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 
 uses Classes, SysUtils, Variants, TypInfo,
   CoreClasses, ListEngine, UnicodeMixedLib, DoStatusIO,
-  DataFrameEngine, MemoryStream64, PascalStrings, CoreCipher;
+  DataFrameEngine, MemoryStream64, PascalStrings, CoreCipher, NotifyObjectBase, Cadencer;
 
 type
   TPeerClient = class;
@@ -182,10 +182,13 @@ type
     FID                                 : Cardinal;
     FHeadFlag                           : Byte;
     FReceivedBuffer                     : TMemoryStream64OfWriteTrigger;
-    FBigStreamProcessing                : Boolean;
+    FBigStreamReceiveProcessing         : Boolean;
     FBigStreamTotal, FBigStreamCompleted: Int64;
     FBigStreamCmd                       : string;
-    FBigStreamExecuteData               : TCoreClassStream;
+    FBigStreamReceive                   : TCoreClassStream;
+    FBigStreamSending                   : TCoreClassStream;
+    FBigStreamSendState                 : Int64; // stream current position
+    FBigStreamSendDoneTimeFree          : Boolean;
     FCurrentQueueData                   : PQueueData;
     FWaitOnResult                       : Boolean;
     FCurrentPauseResultSend_CommDataType: Byte;
@@ -207,6 +210,7 @@ type
     ResultText                          : string;
     ResultDataFrame                     : TDataFrameEngine;
     FSyncPick                           : PQueueData;
+
   private
     // user
     FUserData           : Pointer;
@@ -223,22 +227,23 @@ type
   private
     procedure TriggerWrite64(Count: Int64);
   private
-    procedure InternalSendByteBuffer(buff: PByte; Size: Integer);
+    procedure InternalSendByteBuffer(buff: PByte; Size: Integer); inline;
 
-    procedure SendInteger(v: Integer);
-    procedure SendCardinal(v: Cardinal);
-    procedure SendInt64(v: Int64);
-    procedure SendByte(v: Byte);
-    procedure SendWord(v: Word);
-    procedure SendVerifyCode(buff: Pointer; siz: Integer);
-    procedure SendBuffer(buff: PByte; Size: Integer; cs: TCipherStyle); overload;
-    procedure SendMemoryStream(stream: TMemoryStream64; cs: TCipherStyle);
+    procedure SendInteger(v: Integer); inline;
+    procedure SendCardinal(v: Cardinal); inline;
+    procedure SendInt64(v: Int64); inline;
+    procedure SendByte(v: Byte); inline;
+    procedure SendWord(v: Word); inline;
+    procedure SendVerifyCode(buff: Pointer; siz: Integer); inline;
+    procedure SendEncryptBuffer(buff: PByte; Size: Integer; cs: TCipherStyle); inline;
+    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle); inline;
 
     procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
     procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
     procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
     procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendBigStreamBuff(Cmd: string; stream: TCoreClassStream);
+    procedure InternalSendBigStreamHeader(Cmd: string; streamSiz: Int64);
+    procedure InternalSendBigStreamBuff(var Queue: TQueueData);
 
     procedure Sync_InternalSendResultData;
     procedure Sync_InternalSendConsoleCmd;
@@ -268,12 +273,16 @@ type
     procedure WriteBufferClose; virtual; abstract;
     function GetPeerIP: string; virtual; abstract;
   public
+    function WriteBufferEmpty: Boolean; virtual;
+  public
     constructor Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject); virtual;
     destructor Destroy; override;
 
     procedure Print(v: string); overload;
     procedure Print(v: string; const Args: array of const); overload;
     procedure PrintParam(v: string; Args: string);
+
+    procedure Progress; virtual;
 
     property ReceivedBuffer: TMemoryStream64OfWriteTrigger read FReceivedBuffer;
     procedure FillRecvBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
@@ -296,7 +305,7 @@ type
     // state
     property WaitOnResult: Boolean read FWaitOnResult;
     property AllSendProcessing: Boolean read FAllSendProcessing;
-    property BigStreamProcessing: Boolean read FBigStreamProcessing;
+    property BigStreamProcessing: Boolean read FBigStreamReceiveProcessing;
 
     // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
@@ -360,24 +369,6 @@ type
   TPeerClientNotify    = procedure(Sender: TPeerClient) of object;
   TPeerClientCMDNotify = procedure(Sender: TPeerClient; Cmd: string; var Allow: Boolean) of object;
 
-  TPostExecute = class;
-
-  TPostExecuteProc = procedure(Sender: TPostExecute) of object;
-
-  TPostExecute = class(TCoreClassObject)
-  private
-    FDataEng: TDataFrameEngine;
-  public
-    Data1           : TCoreClassObject;
-    Data2           : TCoreClassObject;
-    OnExecute       : TPostExecuteProc;
-    property DataEng: TDataFrameEngine read FDataEng;
-
-    constructor Create;
-    destructor Destroy; override;
-    procedure Execute;
-  end;
-
   TStatisticsType = (
     stReceiveSize, stSendSize,
     stRequest, stResponse,
@@ -394,8 +385,6 @@ type
   private
     FCommandList               : THashObjectList;
     FRegistedClients           : TCoreClassListForObj;
-    FProgressBackgroundIsRun   : Boolean;
-    FPostExecuteList           : TCoreClassListForObj;
     FIDCounter                 : Cardinal;
     FOnConnected               : TPeerClientNotify;
     FOnDisconnect              : TPeerClientNotify;
@@ -405,9 +394,11 @@ type
     FPeerClientUserSpecialClass: TPeerClientUserSpecialClass;
     FIdleTimeout               : TTimeTickValue;
     FSendDataCompressed        : Boolean;
+    FAllowParallelEncrypt      : Boolean;
     FCipherStyle               : TCipherStyle;
     FHashStyle                 : THashStyle;
     FPrintParams               : THashVariantList;
+    FProgressPost              : TNProgressPostWithCadencer;
 
     FOnPeerClientCreateNotify : TBackcalls;
     FOnPeerClientDestroyNotify: TBackcalls;
@@ -439,10 +430,7 @@ type
     procedure LockClients;
     procedure UnLockClients;
 
-    function PostExecute: TPostExecute; overload;
-    function PostExecute(DataEng: TDataFrameEngine): TPostExecute; overload;
-    function PostExecute(DataEng: TDataFrameEngine; OnProc: TPostExecuteProc): TPostExecute; overload;
-
+    property ProgressPost: TNProgressPostWithCadencer read FProgressPost;
     procedure ProgressBackground; virtual;
 
     function DeleteRegistedCMD(Cmd: string): Boolean;
@@ -468,10 +456,12 @@ type
     property OnPeerClientCreateNotify: TBackcalls read FOnPeerClientCreateNotify;
     property OnPeerClientDestroyNotify: TBackcalls read FOnPeerClientDestroyNotify;
 
+    property AllowParallelEncrypt: Boolean read FAllowParallelEncrypt write FAllowParallelEncrypt;
     property CipherStyle: TCipherStyle read FCipherStyle;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
     property SendDataCompressed: Boolean read FSendDataCompressed;
     property HashStyle: THashStyle read FHashStyle;
+
     property PeerClientUserDefineClass: TPeerClientUserDefineClass read FPeerClientUserDefineClass write FPeerClientUserDefineClass;
     property PeerClientUserSpecialClass: TPeerClientUserSpecialClass read FPeerClientUserSpecialClass write FPeerClientUserSpecialClass;
 
@@ -1112,7 +1102,7 @@ end;
 
 procedure TPeerClient.InternalSendByteBuffer(buff: PByte; Size: Integer);
 const
-  FlushBuffSize = 8 * 1024; // flush size = 8k
+  FlushBuffSize = 16 * 1024; // flush size = 16k byte
 begin
   FLastCommunicationTimeTickCount := GetTimeTickCount;
 
@@ -1174,16 +1164,16 @@ begin
   InternalSendByteBuffer(@code[0], Length(code));
 end;
 
-procedure TPeerClient.SendBuffer(buff: PByte; Size: Integer; cs: TCipherStyle);
+procedure TPeerClient.SendEncryptBuffer(buff: PByte; Size: Integer; cs: TCipherStyle);
 begin
   SendByte(Byte(cs));
   Encrypt(cs, buff, Size, FCipherKey, True);
   InternalSendByteBuffer(buff, Size);
 end;
 
-procedure TPeerClient.SendMemoryStream(stream: TMemoryStream64; cs: TCipherStyle);
+procedure TPeerClient.SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle);
 begin
-  SendBuffer(stream.Memory, stream.Size, cs);
+  SendEncryptBuffer(stream.Memory, stream.Size, cs);
 end;
 
 procedure TPeerClient.InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
@@ -1194,7 +1184,7 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, cs);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1208,7 +1198,7 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, cs);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1222,7 +1212,7 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, cs);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1236,37 +1226,48 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, cs);
 
   WriteBufferFlush;
   WriteBufferClose;
 end;
 
-procedure TPeerClient.InternalSendBigStreamBuff(Cmd: string; stream: TCoreClassStream);
+procedure TPeerClient.InternalSendBigStreamHeader(Cmd: string; streamSiz: Int64);
+var
+  buff: TBytes;
+begin
+  WriteBufferOpen;
+
+  SendByte(FHeadFlag);
+  SendByte(cdtBigStream);
+  SendInt64(streamSiz);
+  buff := TPascalString(Cmd).Bytes;
+  SendCardinal(Cardinal(Length(buff)));
+  InternalSendByteBuffer(@buff[0], Length(buff));
+  try
+    WriteBufferFlush;
+    WriteBufferClose;
+  except
+  end;
+end;
+
+procedure TPeerClient.InternalSendBigStreamBuff(var Queue: TQueueData);
 const
   ChunkSize = 64 * 1024;
 var
   StartPos, EndPos: Int64;
   tmpPos          : Int64;
-  j               : Integer;
-  Num             : Integer;
-  Rest            : Integer;
+  j               : Int64;
+  Num             : Int64;
+  Rest            : Int64;
   buff            : TBytes;
 begin
+  InternalSendBigStreamHeader(Queue.Cmd, Queue.BigStream.Size);
+
   WriteBufferOpen;
-  SendByte(FHeadFlag);
-  SendByte(cdtBigStream);
-  SendInt64(stream.Size);
-  buff := TPascalString(Cmd).Bytes;
-  SendCardinal(Cardinal(Length(buff)));
-  InternalSendByteBuffer(@buff[0], Length(buff));
-  try
-      WriteBufferFlush;
-  except
-  end;
 
   StartPos := 0;
-  EndPos := stream.Size;
+  EndPos := Queue.BigStream.Size;
   tmpPos := StartPos;
   { Calculate number of full chunks that will fit into the buffer }
   Num := EndPos div ChunkSize;
@@ -1280,14 +1281,14 @@ begin
       if not Connected then
           exit;
 
-      LockObject(stream);
+      LockObject(Queue.BigStream);
       try
-        stream.Position := tmpPos;
-        stream.Read(buff[0], ChunkSize);
+        Queue.BigStream.Position := tmpPos;
+        Queue.BigStream.Read(buff[0], ChunkSize);
         tmpPos := tmpPos + ChunkSize;
       except
       end;
-      UnLockObject(stream);
+      UnLockObject(Queue.BigStream);
 
       try
           InternalSendByteBuffer(@buff[0], ChunkSize);
@@ -1298,18 +1299,33 @@ begin
           WriteBufferFlush;
       except
       end;
+
+      if Queue.BigStream.Size - tmpPos > ChunkSize * 8 then
+        begin
+          try
+              WriteBufferClose;
+          except
+          end;
+
+          FBigStreamSending := Queue.BigStream;
+          FBigStreamSendState := tmpPos;
+          FBigStreamSendDoneTimeFree := Queue.DoneFreeStream;
+          Queue.BigStream := nil;
+          exit;
+        end;
     end;
+
   { Process remaining bytes }
   if Rest > 0 then
     begin
-      LockObject(stream);
+      LockObject(Queue.BigStream);
       try
-        stream.Position := tmpPos;
-        stream.Read(buff[0], Rest);
+        Queue.BigStream.Position := tmpPos;
+        Queue.BigStream.Read(buff[0], Rest);
         tmpPos := tmpPos + Rest;
       except
       end;
-      UnLockObject(stream);
+      UnLockObject(Queue.BigStream);
 
       try
           InternalSendByteBuffer(@buff[0], Rest);
@@ -1443,7 +1459,7 @@ end;
 procedure TPeerClient.Sync_InternalSendBigStreamCmd;
 begin
   FSyncPick^.BigStream.Position := 0;
-  InternalSendBigStreamBuff(FSyncPick^.Cmd, FSyncPick^.BigStream);
+  InternalSendBigStreamBuff(FSyncPick^);
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
 end;
 
@@ -1544,7 +1560,7 @@ begin
 
         SendVerifyCode(@buff[0], Length(buff));
 
-        SendBuffer(@buff[0], Length(buff), FReceiveDataCipherStyle);
+        SendEncryptBuffer(@buff[0], Length(buff), FReceiveDataCipherStyle);
 
         WriteBufferFlush;
         WriteBufferClose;
@@ -1587,7 +1603,7 @@ begin
 
         SendVerifyCode(m64.Memory, m64.Size);
 
-        SendBuffer(m64.Memory, m64.Size, FReceiveDataCipherStyle);
+        SendEncryptBuffer(m64.Memory, m64.Size, FReceiveDataCipherStyle);
         DisposeObject(m64);
 
         WriteBufferFlush;
@@ -1633,9 +1649,8 @@ procedure TPeerClient.Sync_ExecuteBigStream;
 var
   d: TTimeTickValue;
 begin
-  PrintParam('execute Big Stream cmd:%s', FBigStreamCmd);
   d := GetTimeTickCount;
-  FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FBigStreamExecuteData, FBigStreamTotal, FBigStreamCompleted);
+  FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FBigStreamReceive, FBigStreamTotal, FBigStreamCompleted);
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   FOwnerFramework.CmdRecvStatistics.IncValue(FBigStreamCmd, 1);
@@ -1651,7 +1666,7 @@ begin
     begin
       FReceivedBuffer.Position := 0;
       FBigStreamCompleted := FBigStreamCompleted + FReceivedBuffer.Size;
-      FBigStreamExecuteData := FReceivedBuffer;
+      FBigStreamReceive := FReceivedBuffer;
 
       {$IFDEF FPC}
       SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteBigStream);
@@ -1668,13 +1683,15 @@ begin
       tmpStream.CopyFrom(FReceivedBuffer, leftSize);
       tmpStream.Position := 0;
       FBigStreamCompleted := FBigStreamTotal;
-      FBigStreamExecuteData := tmpStream;
+      FBigStreamReceive := tmpStream;
 
       {$IFDEF FPC}
       SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteBigStream);
       {$ELSE}
       SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteBigStream);
       {$ENDIF}
+      PrintParam('execute Big Stream cmd:%s', FBigStreamCmd);
+
       tmpStream.Clear;
       if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
           tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
@@ -1686,11 +1703,11 @@ begin
       FBigStreamTotal := 0;
       FBigStreamCompleted := 0;
       FBigStreamCmd := '';
-      FBigStreamProcessing := False;
+      FBigStreamReceiveProcessing := False;
 
       FReceivedBuffer.Position := 0;
     end;
-  FBigStreamExecuteData := nil;
+  FBigStreamReceive := nil;
 end;
 
 procedure TPeerClient.Sync_ExecuteResult;
@@ -1914,6 +1931,11 @@ begin
   Result := True;
 end;
 
+function TPeerClient.WriteBufferEmpty: Boolean;
+begin
+  Result := True;
+end;
+
 constructor TPeerClient.Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject);
 var
   i   : Integer;
@@ -1931,11 +1953,14 @@ begin
   FHeadFlag := c_DataHeadFlag;
 
   FReceivedBuffer := TMemoryStream64OfWriteTrigger.Create(Self);
-  FBigStreamProcessing := False;
+  FBigStreamReceiveProcessing := False;
   FBigStreamTotal := 0;
   FBigStreamCompleted := 0;
   FBigStreamCmd := '';
-  FBigStreamExecuteData := nil;
+  FBigStreamReceive := nil;
+  FBigStreamSending := nil;
+  FBigStreamSendState := -1;
+  FBigStreamSendDoneTimeFree := False;
 
   FCurrentQueueData := nil;
   FWaitOnResult := False;
@@ -1987,6 +2012,12 @@ destructor TPeerClient.Destroy;
 var
   i: Integer;
 begin
+  if (FBigStreamSending <> nil) and (FBigStreamSendDoneTimeFree) then
+    begin
+      DisposeObject(FBigStreamSending);
+      FBigStreamSending := nil;
+    end;
+
   FOwnerFramework.FOnPeerClientDestroyNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stDisconnest]);
@@ -2055,6 +2086,61 @@ begin
   end;
 end;
 
+procedure TPeerClient.Progress;
+var
+  SendBufferSize: Integer;
+  buff          : TBytes;
+  SendDone      : Boolean;
+begin
+  if (FBigStreamSending <> nil) and (WriteBufferEmpty) then
+    begin
+      SendBufferSize := 1 * 1024 * 1024; // cycle send size 1M
+
+      LockObject(FBigStreamSending);
+
+      try
+        SendDone := FBigStreamSending.Size - FBigStreamSendState <= SendBufferSize;
+
+        if SendDone then
+            SendBufferSize := FBigStreamSending.Size - FBigStreamSendState;
+
+        SetLength(buff, SendBufferSize);
+        FBigStreamSending.Position := FBigStreamSendState;
+        FBigStreamSending.Read(buff[0], SendBufferSize);
+
+        inc(FBigStreamSendState, SendBufferSize);
+
+      except
+        UnLockObject(FBigStreamSending);
+        Disconnect;
+        exit;
+      end;
+
+      UnLockObject(FBigStreamSending);
+
+      try
+        WriteBufferOpen;
+        InternalSendByteBuffer(@buff[0], SendBufferSize);
+        WriteBufferFlush;
+        WriteBufferClose;
+      except
+        Disconnect;
+        exit;
+      end;
+
+      if SendDone then
+        begin
+          if FBigStreamSendDoneTimeFree then
+              DisposeObject(FBigStreamSending);
+          FBigStreamSending := nil;
+          FBigStreamSendState := -1;
+          FBigStreamSendDoneTimeFree := False;
+          ProcessAllSendCmd(nil, False, False);
+          FillRecvBuffer(nil, False, False);
+        end;
+    end;
+end;
+
 procedure TPeerClient.FillRecvBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
 var
   dFlag, dID  : Byte;
@@ -2076,6 +2162,8 @@ begin
       exit;
   if FRunReceiveTrigger then
       exit;
+  if FBigStreamSending <> nil then
+      exit;
 
   while (FReceivedBuffer.Size > 0) and (Connected) do
     begin
@@ -2092,7 +2180,7 @@ begin
               break;
         end;
 
-      if FBigStreamProcessing then
+      if FBigStreamReceiveProcessing then
         begin
           if FillBigStreamBuffer(ACurrentActiveThread, RecvSync) then
               Continue
@@ -2213,7 +2301,7 @@ begin
             FBigStreamTotal := Total;
             FBigStreamCompleted := 0;
             FBigStreamCmd := PascalStringOfBytes(buff).Text;
-            FBigStreamProcessing := True;
+            FBigStreamReceiveProcessing := True;
             SetLength(buff, 0);
 
             // stripped stream
@@ -2257,8 +2345,12 @@ begin
       exit;
   if FWaitOnResult then
       exit;
-  if FBigStreamProcessing then
+  if FBigStreamReceiveProcessing then
       exit;
+  if FBigStreamSending <> nil then
+    begin
+      exit;
+    end;
 
   if FResultDataBuffer.Size > 0 then
     begin
@@ -2281,7 +2373,7 @@ begin
         if not Connected then
             break;
         if FWaitOnResult then
-            exit;
+            break;
         p := FQueueList[0];
         FCurrentQueueData := p;
         case p^.State of
@@ -2370,6 +2462,9 @@ begin
               DisposeQueueData(p);
               FQueueList.Delete(0);
               inc(Result);
+
+              if FBigStreamSending <> nil then
+                  break;
             end;
         end;
       end;
@@ -2487,7 +2582,11 @@ end;
 
 procedure TPeerClient.Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; Enc: Boolean);
 begin
-  SequEncryptCBC(cs, DataPtr, Size, k, Enc, True);
+  if FOwnerFramework.FAllowParallelEncrypt then
+      SequEncryptCBC(cs, DataPtr, Size, k, Enc, True)
+  else
+      SequEncryptCBCWithDirect(cs, DataPtr, Size, k, Enc, True);
+
   if cs <> TCipherStyle.csNone then
       inc(FOwnerFramework.Statistics[TStatisticsType.stEncrypt]);
 end;
@@ -2629,33 +2728,6 @@ begin
       TCommunicationFrameworkClient(FOwnerFramework).SendBigStream(Cmd, BigStream, DoneFreeStream);
 end;
 
-constructor TPostExecute.Create;
-begin
-  inherited Create;
-  Data1 := nil;
-  Data2 := nil;
-  FDataEng := TDataFrameEngine.Create;
-  OnExecute := nil;
-end;
-
-destructor TPostExecute.Destroy;
-begin
-  DisposeObject(FDataEng);
-  inherited Destroy;
-end;
-
-procedure TPostExecute.Execute;
-begin
-  if Assigned(OnExecute) then
-    begin
-      FDataEng.Reader.index := 0;
-      try
-          OnExecute(Self);
-      except
-      end;
-    end;
-end;
-
 procedure TCommunicationFramework.DoPrint(const v: string);
 begin
   DoStatus(v);
@@ -2726,13 +2798,12 @@ begin
   FCommandList := THashObjectList.Create(True, 1024);
   FIDCounter := 1;
   FRegistedClients := TCoreClassListForObj.Create;
-  FProgressBackgroundIsRun := False;
-  FPostExecuteList := TCoreClassListForObj.Create;
   FOnConnected := nil;
   FOnDisconnect := nil;
   FOnExecuteCommand := nil;
   FOnSendCommand := nil;
   FIdleTimeout := 0;
+  FAllowParallelEncrypt := True;
   FCipherStyle := TCipherStyle.csNone;
   FSendDataCompressed := True;
   FHashStyle := THashStyle.hsNone;
@@ -2741,6 +2812,8 @@ begin
 
   FPrintParams := THashVariantList.Create(1024);
   FPrintParams.AutoUpdateDefaultValue := True;
+
+  FProgressPost := TNProgressPostWithCadencer.Create;
 
   FOnPeerClientCreateNotify := TBackcalls.Create;
   FOnPeerClientDestroyNotify := TBackcalls.Create;
@@ -2755,21 +2828,11 @@ begin
 end;
 
 destructor TCommunicationFramework.Destroy;
-var
-  i: Integer;
 begin
-  try
-    for i := 0 to FPostExecuteList.Count - 1 do
-        DisposeObject(FPostExecuteList[i]);
-
-    FPostExecuteList.Clear;
-  except
-  end;
-
   DisposeObject(FCommandList);
   DisposeObject(FRegistedClients);
-  DisposeObject(FPostExecuteList);
   DisposeObject(FPrintParams);
+  DisposeObject(FProgressPost);
   DisposeObject([FOnPeerClientCreateNotify, FOnPeerClientDestroyNotify]);
   DisposeObject([CmdRecvStatistics, CmdSendStatistics, CmdMaxExecuteConsumeStatistics]);
   inherited Destroy;
@@ -2777,6 +2840,7 @@ end;
 
 procedure TCommunicationFramework.SwitchMaxPerformance;
 begin
+  FAllowParallelEncrypt := False;
   FHashStyle := THashStyle.hsNone;
   FSendDataCompressed := False;
   FCipherStyle := TCipherStyle.csNone;
@@ -2784,6 +2848,7 @@ end;
 
 procedure TCommunicationFramework.SwitchMaxSafe;
 begin
+  FAllowParallelEncrypt := True;
   FHashStyle := THashStyle.hsSHA1;
   FSendDataCompressed := True;
   FCipherStyle := TCipherStyle.csDES192;
@@ -2791,6 +2856,7 @@ end;
 
 procedure TCommunicationFramework.SwitchDefaultPerformance;
 begin
+  FAllowParallelEncrypt := True;
   FHashStyle := THashStyle.hsFastMD5;
   FSendDataCompressed := True;
   FCipherStyle := TCipherStyle.csBlowfish;
@@ -2808,31 +2874,9 @@ begin
   inc(Statistics[TStatisticsType.stUnLock]);
 end;
 
-function TCommunicationFramework.PostExecute: TPostExecute;
-begin
-  Result := TPostExecute.Create;
-  LockObject(FPostExecuteList);
-  FPostExecuteList.Add(Result);
-  UnLockObject(FPostExecuteList);
-end;
-
-function TCommunicationFramework.PostExecute(DataEng: TDataFrameEngine): TPostExecute;
-begin
-  Result := PostExecute;
-  if DataEng <> nil then
-      Result.FDataEng.Assign(DataEng);
-end;
-
-function TCommunicationFramework.PostExecute(DataEng: TDataFrameEngine; OnProc: TPostExecuteProc): TPostExecute;
-begin
-  Result := PostExecute(DataEng);
-  Result.OnExecute := OnProc;
-end;
-
 procedure TCommunicationFramework.ProgressBackground;
 var
   i: Integer;
-  l: TCoreClassListForObj;
 begin
   try
     if Assigned(ProgressBackgroundProc) then
@@ -2840,37 +2884,15 @@ begin
   except
   end;
 
-  if FProgressBackgroundIsRun then
-      exit;
-  FProgressBackgroundIsRun := True;
-
-  LockObject(FPostExecuteList);
+  i := 0;
   try
-    l := TCoreClassListForObj.Create;
-    for i := 0 to FPostExecuteList.Count - 1 do
-        l.Add(FPostExecuteList[i]);
-    FPostExecuteList.Clear;
-
-    try
-      for i := 0 to l.Count - 1 do
-        begin
-          try
-              TPostExecute(l[i]).Execute;
-          except
-          end;
-        end;
-
-      for i := 0 to l.Count - 1 do
-          DisposeObject(l[i]);
-
-    except
-    end;
-    DisposeObject(l);
+    while i < FRegistedClients.Count do
+      begin
+        TPeerClient(FRegistedClients[i]).Progress;
+        inc(i);
+      end;
   except
   end;
-  UnLockObject(FPostExecuteList);
-
-  FProgressBackgroundIsRun := False;
 
   Statistics[TStatisticsType.stIDCounter] := FIDCounter;
 end;
@@ -3773,15 +3795,21 @@ begin
   Sender.FID := 0;
   Sender.FRemoteExecutedForConnectInit := False;
 
-  inherited DoDisconnect(Sender);
+  try
+      inherited DoDisconnect(Sender);
+  except
+  end;
 
-  if FNotyifyInterface <> nil then
-    begin
-      try
-          FNotyifyInterface.ClientDisconnect(Self);
-      except
+  try
+    if FNotyifyInterface <> nil then
+      begin
+        try
+            FNotyifyInterface.ClientDisconnect(Self);
+        except
+        end;
       end;
-    end;
+  except
+  end;
 end;
 
 function TCommunicationFrameworkClient.CanExecuteCommand(Sender: TPeerClient; Cmd: string): Boolean;

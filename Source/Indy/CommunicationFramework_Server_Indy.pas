@@ -19,7 +19,15 @@ type
 
   TContextIntfForServer = class(TPeerClient)
   public
+    RealSend    : Boolean;
+    RealSendBuff: TMemoryStream64;
+
+    constructor Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject); override;
+    destructor Destroy; override;
+
     function Context: TCommunicationFramework_Server_Context;
+    procedure ProcesRealSendBuff;
+
     function Connected: Boolean; override;
     procedure Disconnect; override;
     procedure SendByteBuffer(buff: PByte; size: Integer); override;
@@ -48,15 +56,20 @@ type
     destructor Destroy; override;
 
     procedure ProgressBackground; override;
+
     procedure TriggerQueueData(v: PQueueData); override;
+
     property Port: Word read GetPort write SetPort;
     procedure StartListening;
     procedure StopListening;
+    function StartService(Host: string; Port: Word): Boolean;
 
     procedure Indy_Connect(AContext: TIdContext);
     procedure Indy_ContextCreated(AContext: TIdContext);
     procedure Indy_Disconnect(AContext: TIdContext);
     procedure Indy_Exception(AContext: TIdContext; AException: Exception);
+
+    procedure ProgressClient(c: TCommunicationFramework_Server_Context);
     procedure Indy_Execute(AContext: TIdContext);
 
     property Driver: TIdTCPServer read FDriver;
@@ -78,9 +91,38 @@ begin
     end;
 end;
 
+constructor TContextIntfForServer.Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject);
+begin
+  inherited Create(AOwnerFramework, AClientIntf);
+  RealSend := False;
+  RealSendBuff := TMemoryStream64.Create;
+end;
+
+destructor TContextIntfForServer.Destroy;
+begin
+  DisposeObject(RealSendBuff);
+  inherited Destroy;
+end;
+
 function TContextIntfForServer.Context: TCommunicationFramework_Server_Context;
 begin
   Result := ClientIntf as TCommunicationFramework_Server_Context;
+end;
+
+procedure TContextIntfForServer.ProcesRealSendBuff;
+begin
+  if (RealSend) and (RealSendBuff.size > 0) then
+    begin
+      try
+        Context.Connection.IOHandler.WriteBufferOpen;
+        Context.Connection.IOHandler.Write(ToIDBytes(RealSendBuff.Memory, RealSendBuff.size));
+        Context.Connection.IOHandler.WriteBufferFlush;
+        Context.Connection.IOHandler.WriteBufferClose;
+      except
+      end;
+
+      RealSendBuff.Clear;
+    end;
 end;
 
 function TContextIntfForServer.Connected: Boolean;
@@ -100,24 +142,39 @@ procedure TContextIntfForServer.SendByteBuffer(buff: PByte; size: Integer);
 begin
   if size > 0 then
     begin
-      Context.Connection.IOHandler.Write(ToIDBytes(buff, size));
-      Context.LastTimeTick := GetTimeTickCount;
+      if RealSend then
+        begin
+          Context.Connection.IOHandler.Write(ToIDBytes(buff, size));
+          Context.LastTimeTick := GetTimeTickCount;
+        end
+      else
+        begin
+          try
+            if RealSendBuff.size > 0 then
+                RealSendBuff.Position := RealSendBuff.size;
+            RealSendBuff.WritePtr(buff, size);
+          except
+          end;
+        end;
     end;
 end;
 
 procedure TContextIntfForServer.WriteBufferOpen;
 begin
-  Context.Connection.IOHandler.WriteBufferOpen;
+  if RealSend then
+      Context.Connection.IOHandler.WriteBufferOpen;
 end;
 
 procedure TContextIntfForServer.WriteBufferFlush;
 begin
-  Context.Connection.IOHandler.WriteBufferFlush;
+  if RealSend then
+      Context.Connection.IOHandler.WriteBufferFlush;
 end;
 
 procedure TContextIntfForServer.WriteBufferClose;
 begin
-  Context.Connection.IOHandler.WriteBufferClose;
+  if RealSend then
+      Context.Connection.IOHandler.WriteBufferClose;
 end;
 
 function TContextIntfForServer.GetPeerIP: string;
@@ -162,7 +219,7 @@ begin
   inherited Create;
   FDriver := TIdTCPServer.Create(nil);
   FDriver.UseNagle := False;
-  FDriver.MaxConnections := 200;
+  FDriver.MaxConnections := 20;
   FDriver.ContextClass := TCommunicationFramework_Server_Context;
   FDriver.TerminateWaitTime := IdleTimeout;
 
@@ -175,6 +232,13 @@ end;
 
 destructor TCommunicationFramework_Server_Indy.Destroy;
 begin
+  try
+    if FDriver.Active then
+        FDriver.StopListening;
+    CheckSynchronize;
+  except
+  end;
+
   DisposeObject(FDriver);
   inherited Destroy;
 end;
@@ -182,6 +246,7 @@ end;
 procedure TCommunicationFramework_Server_Indy.ProgressBackground;
 begin
   inherited ProgressBackground;
+  CheckSynchronize;
 end;
 
 procedure TCommunicationFramework_Server_Indy.TriggerQueueData(v: PQueueData);
@@ -204,8 +269,28 @@ procedure TCommunicationFramework_Server_Indy.StopListening;
 begin
   if FDriver.Active then
     begin
-      FDriver.Active := False;
+      try
+          FDriver.Active := False;
+      except
+      end;
+
+      CheckSynchronize;
     end;
+end;
+
+function TCommunicationFramework_Server_Indy.StartService(Host: string; Port: Word): Boolean;
+begin
+  FDriver.DefaultPort := Port;
+  Result := False;
+  try
+    if not FDriver.Active then
+      begin
+        FDriver.Active := True;
+        Result := True;
+      end;
+  except
+      Result := False;
+  end;
 end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Connect(AContext: TIdContext);
@@ -249,14 +334,13 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_Server_Indy.Indy_Execute(AContext: TIdContext);
+procedure TCommunicationFramework_Server_Indy.ProgressClient(c: TCommunicationFramework_Server_Context);
 var
-  c: TCommunicationFramework_Server_Context;
   t: TTimeTickValue;
 begin
-  c := TCommunicationFramework_Server_Context(AContext);
-  if c.ClientIntf = nil then
-      Exit;
+  c.ClientIntf.RealSend := True;
+
+  c.ClientIntf.ProcesRealSendBuff;
 
   try
     c.Connection.IOHandler.CheckForDataOnSource(1);
@@ -266,8 +350,8 @@ begin
         c.ClientIntf.ReceivedBuffer.Position := c.ClientIntf.ReceivedBuffer.size;
         c.Connection.IOHandler.InputBuffer.ExtractToStream(c.ClientIntf.ReceivedBuffer);
         try
-          c.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, False);
-          c.Connection.IOHandler.CheckForDataOnSource(0);
+          c.ClientIntf.FillRecvBuffer(nil, False, False);
+          c.Connection.IOHandler.CheckForDataOnSource(1);
         except
           if c.ClientIntf <> nil then
             begin
@@ -281,11 +365,11 @@ begin
         Exit;
 
     try
-      c.ClientIntf.ProcessAllSendCmd(TIdYarnOfThread(AContext.Yarn).Thread, True, False);
+      c.ClientIntf.ProcessAllSendCmd(nil, False, False);
       t := GetTimeTickCount + 15000;
       while (c.ClientIntf <> nil) and (c.Connection.Connected) and (c.ClientIntf.WaitOnResult) do
         begin
-          c.Connection.IOHandler.CheckForDataOnSource(0);
+          c.Connection.IOHandler.CheckForDataOnSource(1);
           if c.Connection.IOHandler.InputBuffer.size > 0 then
             begin
               t := GetTimeTickCount + 15000;
@@ -293,7 +377,7 @@ begin
               c.ClientIntf.ReceivedBuffer.Position := c.ClientIntf.ReceivedBuffer.size;
               c.Connection.IOHandler.InputBuffer.ExtractToStream(c.ClientIntf.ReceivedBuffer);
               try
-                  c.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, False);
+                  c.ClientIntf.FillRecvBuffer(nil, False, False);
               except
                 if c.ClientIntf <> nil then
                   begin
@@ -330,6 +414,8 @@ begin
   if c.ClientIntf = nil then
       Exit;
 
+  c.ClientIntf.RealSend := False;
+
   if IdleTimeout > 0 then
     begin
       if GetTimeTickCount - c.LastTimeTick > IdleTimeout then
@@ -341,6 +427,15 @@ begin
             end;
         end;
     end;
+end;
+
+procedure TCommunicationFramework_Server_Indy.Indy_Execute(AContext: TIdContext);
+begin
+  TThread.Synchronize(TIdYarnOfThread(AContext.Yarn).Thread,
+    procedure
+    begin
+      ProgressClient(TCommunicationFramework_Server_Context(AContext));
+    end);
 end;
 
 end.

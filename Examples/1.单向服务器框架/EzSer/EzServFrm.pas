@@ -9,7 +9,7 @@ uses
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
   CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
-  DataFrameEngine, UnicodeMixedLib;
+  DataFrameEngine, UnicodeMixedLib, MemoryStream64;
 
 type
   TEZServerForm = class(TForm)
@@ -22,6 +22,8 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
+    tempStream: TMemoryStream64;
+
     procedure DoStatusNear(AText: string; const ID: Integer);
 
     procedure cmd_helloWorld_Console(Sender: TPeerClient; InData: string);
@@ -29,6 +31,8 @@ type
     procedure cmd_helloWorld_Stream_Result(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 
     procedure cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);
+
+    procedure cmd_Test128MBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
   public
     { Public declarations }
     server: TCommunicationFramework_Server_CrossSocket;
@@ -69,6 +73,19 @@ begin
   DisposeObject(ms);
 end;
 
+procedure TEZServerForm.cmd_Test128MBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+begin
+  tempStream.CopyFrom(InData, InData.Size);
+
+  // bigstream complete
+  if tempStream.Size = BigStreamTotal then
+    begin
+      Sender.Print('bigsteram finish');
+      Sender.Print('bigsteram md5:' + umlMD5Char(tempStream.Memory, tempStream.Size).Text);
+      tempStream.Clear;
+    end;
+end;
+
 procedure TEZServerForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
@@ -84,10 +101,14 @@ begin
   server.RegisterStream('helloWorld_Stream_Result').OnExecute := cmd_helloWorld_Stream_Result;
 
   server.RegisterDirectStream('TestMiniStream').OnExecute := cmd_TestMiniStream;
+  server.RegisterBigStream('Test128MBigStream').OnExecute := cmd_Test128MBigStream;
+
+  tempStream := TMemoryStream64.Create;
 end;
 
 procedure TEZServerForm.FormDestroy(Sender: TObject);
 begin
+  DisposeObject(tempStream);
   DisposeObject(server);
   DeleteDoStatusHook(self);
 end;

@@ -26,6 +26,7 @@ type
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
     function GetPeerIP: string; override;
+    function WriteBufferEmpty: Boolean; override;
   end;
 
   TDriverEngine = TCrossSocket;
@@ -111,13 +112,15 @@ begin
       m: TMemoryStream64;
     begin
       try
-        if Connected then
+        if (ASuccess and Connected) then
           begin
             if SendBuffQueue.Count > 0 then
               begin
                 m := TMemoryStream64(SendBuffQueue[0]);
+
                 // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
-                // 感谢ak47 qq512757165 的测试汇报
+                // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
+                // 感谢ak47 qq512757165 的测试报告
                 Context.SendBuf(m.Memory, m.size, SendBuffResult);
 
                 // 释放内存
@@ -126,7 +129,9 @@ begin
                 SendBuffQueue.Delete(0);
               end
             else
+              begin
                 Sending := False;
+              end;
           end
         else
           begin
@@ -156,7 +161,8 @@ begin
 
   // 避免大量零碎数据消耗系统资源，这里需要做个碎片收集
   // 在flush中实现精确异步发送和校验
-  CurrentBuff.Write(Pointer(buff)^, size);
+  if size > 0 then
+      CurrentBuff.Write(Pointer(buff)^, size);
 end;
 
 procedure TContextIntfForServer.WriteBufferOpen;
@@ -177,16 +183,20 @@ begin
 
   if Sending then
     begin
-      ms := TMemoryStream64.Create;
-      CurrentBuff.Position := 0;
-      ms.CopyFrom(CurrentBuff, CurrentBuff.size);
-      ms.Position := 0;
-      SendBuffQueue.Add(ms);
+      if CurrentBuff.size > 0 then
+        begin
+          ms := TMemoryStream64.Create;
+          CurrentBuff.Position := 0;
+          ms.CopyFrom(CurrentBuff, CurrentBuff.size);
+          ms.Position := 0;
+          SendBuffQueue.Add(ms);
+        end;
     end
   else
     begin
       // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
-      // 感谢ak47 qq512757165 的测试汇报
+      // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
+      // 感谢ak47 qq512757165 的测试报告
       Sending := True;
       Context.SendBuf(CurrentBuff.Memory, CurrentBuff.size, SendBuffResult);
     end;
@@ -206,6 +216,11 @@ begin
       Result := Context.PeerAddr
   else
       Result := '';
+end;
+
+function TContextIntfForServer.WriteBufferEmpty: Boolean;
+begin
+  Result := not Sending;
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);

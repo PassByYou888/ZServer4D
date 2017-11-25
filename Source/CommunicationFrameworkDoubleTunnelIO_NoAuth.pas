@@ -1,15 +1,15 @@
-{******************************************************************************}
-{* double tunnel IO framework(incl File service)                              *}
-{* written by QQ 600585@qq.com                                                *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * double tunnel IO framework(incl File service)                              * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit CommunicationFrameworkDoubleTunnelIO_NoAuth;
 
 interface
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 
 uses CoreClasses,
@@ -124,6 +124,7 @@ type
     FCurrentReceiveStreamFileName: string;
 
     FCadencerEngine: TCadencer;
+    FProgressEngine: TNProgressPost;
 
     FLastCadencerTime: Double;
     FServerDelay     : Double;
@@ -149,6 +150,7 @@ type
     procedure SwitchServiceAsDefaultPerformance;
 
     procedure Progress; virtual;
+    procedure CadencerProgress(Sender: TObject; const deltaTime, newTime: Double); virtual;
 
     // block mode TunnelLink
     function TunnelLink: Boolean; overload; virtual;
@@ -178,6 +180,7 @@ type
     property WaitCommandTimeout: Cardinal read FWaitCommandTimeout write FWaitCommandTimeout;
 
     property CadencerEngine: TCadencer read FCadencerEngine;
+    property ProgressEngine: TNProgressPost read FProgressEngine;
     property ServerDelay: Double read FServerDelay;
 
     function RemoteInited: Boolean;
@@ -714,6 +717,12 @@ begin
   FCurrentReceiveStreamFileName := '';
 
   FCadencerEngine := TCadencer.Create;
+  {$IFDEF FPC}
+  FCadencerEngine.OnProgress := @CadencerProgress;
+  {$ELSE}
+  FCadencerEngine.OnProgress := CadencerProgress;
+  {$ENDIF}
+  FProgressEngine := TNProgressPost.Create;
 
   FLastCadencerTime := 0;
   FServerDelay := 0;
@@ -723,7 +732,7 @@ end;
 
 destructor TCommunicationFramework_DoubleTunnelClient_NoAuth.Destroy;
 begin
-  DisposeObject(FCadencerEngine);
+  DisposeObject([FCadencerEngine, FProgressEngine]);
 
   inherited Destroy;
 end;
@@ -757,10 +766,11 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Progress;
 begin
+  FCadencerEngine.Progress;
+
   try
     if Connected then
       begin
-        FCadencerEngine.Progress;
         FRecvTunnel.ProgressBackground;
         FSendTunnel.ProgressBackground;
       end
@@ -770,6 +780,11 @@ begin
       end;
   except
   end;
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
+begin
+  FProgressEngine.Progress(deltaTime);
 end;
 
 function TCommunicationFramework_DoubleTunnelClient_NoAuth.TunnelLink: Boolean;
@@ -813,6 +828,7 @@ begin
 end;
 
 {$IFNDEF FPC}
+
 
 procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.TunnelLink(OnProc: TStateProc);
 var
