@@ -116,7 +116,7 @@ begin
   te := TSectionTextData.Create;
   InData.Reader.ReadSectionText(te);
   Owner.ServerConfig.Merge(te);
-  with Sender.OwnerFramework.ProgressPost.PostExecute(nil) do
+  with ProgressEngine.PostExecute(nil) do
     begin
       Data1 := Sender;
       Data2 := te;
@@ -157,7 +157,7 @@ end;
 
 procedure TManagerClient.Command_Offline(Sender: TPeerClient; InData: TDataFrameEngine);
 begin
-  Sender.OwnerFramework.ProgressPost.PostExecute(InData, PostExecute_Offline);
+  ProgressEngine.PostExecute(InData, PostExecute_Offline);
 end;
 
 constructor TManagerClient.Create(AOwner: TManagerClients);

@@ -1,0 +1,54 @@
+object FMXClientForm: TFMXClientForm
+  Left = 0
+  Top = 0
+  Caption = 'EZ fmx client...'
+  ClientHeight = 315
+  ClientWidth = 612
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      #21333#21521#26381#21153#22120#26694#26550#28436#31034
+      ''
+      #21333#21521
+      ''
+      #22312#25163#26426#20351#29992'Indy'#20570#26381#21153#22120#30340'Demo'
+      ''
+      ''
+      'by.600585'
+      '2017-11-25')
+    Align = Client
+    Margins.Left = 140.000000000000000000
+    Size.Width = 472.000000000000000000
+    Size.Height = 315.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 468.000000000000000000
+    Viewport.Height = 311.000000000000000000
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+  object StartServiceButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 24.000000000000000000
+    Size.Width = 121.000000000000000000
+    Size.Height = 65.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'Start Service'
+    OnClick = StartServiceButtonClick
+  end
+end

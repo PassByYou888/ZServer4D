@@ -9,7 +9,7 @@
         <Projects Include="DBServer\DBServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="LoginServer\CoreLogicServer.dproj">
+        <Projects Include="LogicServer\CoreLogicServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="FMXClient\FMXCloudClient.dproj">
@@ -42,13 +42,13 @@
         <MSBuild Projects="DBServer\DBServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="CoreLogicServer">
-        <MSBuild Projects="LoginServer\CoreLogicServer.dproj"/>
+        <MSBuild Projects="LogicServer\CoreLogicServer.dproj"/>
     </Target>
     <Target Name="CoreLogicServer:Clean">
-        <MSBuild Projects="LoginServer\CoreLogicServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="LogicServer\CoreLogicServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="CoreLogicServer:Make">
-        <MSBuild Projects="LoginServer\CoreLogicServer.dproj" Targets="Make"/>
+        <MSBuild Projects="LogicServer\CoreLogicServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="FMXCloudClient">
         <MSBuild Projects="FMXClient\FMXCloudClient.dproj"/>

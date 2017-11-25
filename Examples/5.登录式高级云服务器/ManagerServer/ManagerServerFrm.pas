@@ -204,7 +204,7 @@ begin
 
       // 通知全网客户端，这台服务器离线
 
-      with SendTunnel.ProgressPost.PostExecute do
+      with ProgressEngine.PostExecute do
         begin
           DataEng.WriteString(cli.RegAddr);
           DataEng.WriteString(cli.ServerType);
@@ -227,7 +227,7 @@ begin
           DisposeObject(ns);
 
           // 同步所有客户端
-          SendTunnel.ProgressPost.PostExecute(nil, PostExecute_RegServer);
+          ProgressEngine.PostExecute(nil, PostExecute_RegServer);
         end;
     end;
 
@@ -306,7 +306,7 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('%s same server configure!!', [cli.MakeRegName]));
-      with Sender.OwnerFramework.ProgressPost.PostExecute(InData, PostExecute_Disconnect) do
+      with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
         begin
           Data1 := Sender;
           Data2 := cli;
