@@ -3,6 +3,16 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { ****************************************************************************** }
 
+(*
+  update history
+  2017-11-26
+  fixed fastMD5,THashMD5 calculate x64 and x86,ARM platform more than 4G memory Support QQ600585
+  change name TMD5Class as TCipherMD5
+  Added global DefaultParallelDepth
+*)
+
+{.$define parallel}
+
 unit CoreCipher;
 
 { core cipher engine. create by qq600585 }
@@ -10,11 +20,16 @@ unit CoreCipher;
 {$I zDefine.inc}
 { -private key encryption/decryption primitives }
 
+  {$ifdef parallel}
+  {$endif}
+
 interface
 
 uses
   Types, SysUtils, Math, TypInfo,
+  {$ifdef parallel}
   PasMP,
+  {$endif}
   CoreClasses, UnicodeMixedLib, MemoryStream64, PascalStrings, ListEngine,
   DoStatusIO;
 
@@ -206,10 +221,6 @@ type
     sdBuf: array [0 .. 63] of Byte;
   end;
 
-var
-  { system default cbc refrence }
-  SystemCBC: TBytes;
-
 type
   { key style and auto Encrypt }
   TCipherStyle = (csNone,
@@ -352,6 +363,7 @@ type
     class function EncryptBufferCBC(cs: TCipherStyle; sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
   end;
 
+  {$ifdef parallel}
   TParallelCipherFunc = procedure(Job, buff, key: Pointer; Size: nativeInt) of object;
 
   PParallelCipherJobData = ^TParallelCipherJobData;
@@ -406,19 +418,34 @@ type
     function EncryptBufferCBC(cs: TCipherStyle; sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
   end;
 
+  {$endif}
+
+var
+  { system default cbc refrence }
+  SystemCBC: TBytes;
+  {$ifdef parallel}
+  { system default parallel depth }
+  DefaultParallelDepth: Integer = 16;
+  {$endif}
+
 procedure InitSysCBC(rand: Int64);
 
 function SequEncryptWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+  {$ifdef parallel}
 function SequEncryptWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithParallel(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+  {$endif}
+
 function SequEncrypt(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncrypt(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 function SequEncryptCBCWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBCWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+  {$ifdef parallel}
 function SequEncryptCBCWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBCWithParallel(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+  {$endif}
 function SequEncryptCBC(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBC(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
@@ -490,7 +517,7 @@ type
   end;
 
   { MD5 Cipher }
-  TMD5Class = class(TCoreClassObject)
+  TCipherMD5 = class(TCoreClassObject)
   public
     class procedure FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
     class procedure GenerateMD5Key(var key: TKey128; const ABytes: TBytes);
@@ -1164,7 +1191,7 @@ end;
 
 class function TCipher.GenerateMD5Hash(sour: Pointer; Size: nativeInt): TMD5Digest;
 begin
-  TMD5Class.HashMD5(Result, sour^, Size);
+  TCipherMD5.HashMD5(Result, sour^, Size);
 end;
 
 class procedure TCipher.GenerateHash(sour: Pointer; Size: nativeInt; OutHash: Pointer; HashSize: nativeInt);
@@ -1202,7 +1229,7 @@ begin
     hsMD5, hs16:
       begin
         SetLength(Output, 16);
-        TMD5Class.HashMD5(PMD5Digest(@Output[0])^, sour^, Size);
+        TCipherMD5.HashMD5(PMD5Digest(@Output[0])^, sour^, Size);
       end;
     hsSHA1:
       begin
@@ -2044,6 +2071,7 @@ begin
     end;
 end;
 
+  {$ifdef parallel}
 procedure TParallelCipher.DES64_Parallel(Job, buff, key: Pointer; Size: nativeInt);
 var
   p: nativeUInt;
@@ -2217,7 +2245,7 @@ begin
   inherited Create;
   FakeAtomicOperationMutex := TPasMPMutex.Create;
   ParallelGranularity := 1024;
-  ParallelDepth := 16;
+  ParallelDepth := DefaultParallelDepth;
 end;
 
 destructor TParallelCipher.Destroy;
@@ -2770,6 +2798,9 @@ begin
     end;
 end;
 
+  {$endif}
+
+
 procedure InitSysCBC(rand: Int64);
 var
   i   : Integer;
@@ -2807,6 +2838,7 @@ begin
     end;
 end;
 
+  {$ifdef parallel}
 function SequEncryptWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k       : TCipherKeyBuffer;
@@ -2816,7 +2848,7 @@ begin
 
   Parallel := TParallelCipher.Create;
   Parallel.ParallelGranularity := Size div 64;
-  Parallel.ParallelDepth := 32;
+  Parallel.ParallelDepth := DefaultParallelDepth;
   Result := Parallel.EncryptBuffer(cs, sour, Size, @k, Encrypt, ProcessTail);
   DisposeObject(Parallel);
 end;
@@ -2838,20 +2870,25 @@ begin
           Result := Result and SequEncryptWithParallel(ca[i], sour, Size, key, Encrypt, ProcessTail);
     end;
 end;
+  {$endif}
 
 function SequEncrypt(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
+  {$ifdef parallel}
   if Size > 1024 then
       Result := SequEncryptWithParallel(ca, sour, Size, key, Encrypt, ProcessTail)
   else
+  {$endif}
       Result := SequEncryptWithDirect(ca, sour, Size, key, Encrypt, ProcessTail);
 end;
 
 function SequEncrypt(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
+  {$ifdef parallel}
   if Size > 1024 then
       Result := SequEncryptWithParallel(cs, sour, Size, key, Encrypt, ProcessTail)
   else
+  {$endif}
       Result := SequEncryptWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
 end;
 
@@ -2881,6 +2918,7 @@ begin
     end;
 end;
 
+  {$ifdef parallel}
 function SequEncryptCBCWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k       : TCipherKeyBuffer;
@@ -2890,7 +2928,7 @@ begin
 
   Parallel := TParallelCipher.Create;
   Parallel.ParallelGranularity := Size div 64;
-  Parallel.ParallelDepth := 32;
+  Parallel.ParallelDepth := DefaultParallelDepth;
   Result := Parallel.EncryptBufferCBC(cs, sour, Size, @k, Encrypt, ProcessTail);
   DisposeObject(Parallel);
 end;
@@ -2912,20 +2950,25 @@ begin
           Result := Result and SequEncryptCBCWithParallel(ca[i], sour, Size, key, Encrypt, ProcessTail);
     end;
 end;
+  {$endif}
 
 function SequEncryptCBC(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
+  {$ifdef parallel}
   if Size > 1024 then
       Result := SequEncryptCBCWithParallel(ca, sour, Size, key, Encrypt, ProcessTail)
   else
+  {$endif}
       Result := SequEncryptCBCWithDirect(ca, sour, Size, key, Encrypt, ProcessTail);
 end;
 
 function SequEncryptCBC(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
+  {$ifdef parallel}
   if Size > 1024 then
       Result := SequEncryptCBCWithParallel(cs, sour, Size, key, Encrypt, ProcessTail)
   else
+  {$endif}
       Result := SequEncryptCBCWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
 end;
 
@@ -3172,44 +3215,24 @@ var
   hs   : THashStyle;
   hByte: TBytes;
 
+  {$ifdef parallel}
   Parallel: TParallelCipher;
+  {$endif}
 
   ps: TCoreClassStrings;
 
-  s, Output: TPascalString;
-
-  bigBuff: TMemoryStream64;
-
+  s: TPascalString;
 begin
-  {$IFDEF WIN64}
-  {$IFDEF DEBUG}
-  // alloc 3GB memory
+  sour:=TMemoryStream64.Create;
+  sour.Size:=Int64(1024*1024+9);
 
-  bigBuff := TMemoryStream64.Create;
+  FillByte(sour.Memory^, sour.Size, $7f);
+  DoStatus(umlStreamMD5Char(sour).Text);
+  DoStatus(umlMD5Char(sour.Memory, sour.Size).Text);
 
-  SetLength(buffer, 1024 * 1024 * 1024);
-  // SetLength(buffer, 1024 * 1024+3 );
-  FillByte(buffer[0], length(buffer), $7F);
+  DisposeObject(sour);
 
-  // alloc 5GB memory
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
-  bigBuff.WritePtr(@buffer[0], length(buffer));
 
-  bigBuff.Position := 0;
-  DoStatus(umlStreamMD5Char(bigBuff).Text);
-
-  DoStatus(umlMD5Char(bigBuff.Memory, bigBuff.Size).Text);
-
-  TCipher.GenerateMD5HashString(bigBuff.Memory, bigBuff.Size, Output);
-  DoStatus(Output.Text);
-  DisposeObject(bigBuff);
-  SetLength(buffer, 0);
-  exit;
-  {$ENDIF}
-  {$ENDIF}
   IDEOutput := True;
 
   DoStatus('Generate and verify password test');
@@ -3223,8 +3246,6 @@ begin
 
   DoStatus('verify long password');
   s := GeneratePasswordHash(TCipher.CAllHash, 'hello world 123456');
-  umlDecodeLineBASE64(s, Output);
-  DoStatus(Output.Text);
   if not ComparePasswordHash('hello world 123456', s) then
       DoStatus('PasswordHash failed!');
   if ComparePasswordHash('111 hello world 123456', s) then
@@ -3287,6 +3308,7 @@ begin
 
   sourHash := TCipher.GenerateSha1Hash(sour.Memory, sour.Size);
 
+  {$ifdef parallel}
   DoStatus(#13#10'Parallel cipher performance test');
 
   for cs in TCipher.AllCipher do
@@ -3314,6 +3336,7 @@ begin
 
       DisposeObject(Parallel);
     end;
+  {$endif}
 
   DoStatus(#13#10'normal cipher performance test');
 
@@ -4200,9 +4223,9 @@ begin
     end;
 end;
 
-{ TMD5Class }
+{ TCipherMD5 }
 
-class procedure TMD5Class.FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
+class procedure TCipherMD5.FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
 const
   Padding: array [0 .. 63] of Byte = (
     $80, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,
@@ -4252,14 +4275,14 @@ begin
     end;
 end;
 
-class procedure TMD5Class.GenerateMD5Key(var key: TKey128; const ABytes: TBytes);
+class procedure TCipherMD5.GenerateMD5Key(var key: TKey128; const ABytes: TBytes);
 var
   d: TMD5Digest;
 begin
   HashMD5(d, ABytes[0], length(ABytes));
 end;
 
-class procedure TMD5Class.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: nativeInt);
+class procedure TCipherMD5.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: nativeInt);
 var
   Context: TMD5Context;
 begin
@@ -4269,7 +4292,7 @@ begin
   FinalizeMD5(Context, Digest);
 end;
 
-class procedure TMD5Class.InitMD5(var Context: TMD5Context);
+class procedure TCipherMD5.InitMD5(var Context: TMD5Context);
 begin
   Context.Count[0] := 0;
   Context.Count[1] := 0;
@@ -4281,12 +4304,12 @@ begin
   Context.State[3] := $10325476;
 end;
 
-class procedure TMD5Class.ByteBuffHashMD5(var Digest: TMD5Digest; const ABytes: TBytes);
+class procedure TCipherMD5.ByteBuffHashMD5(var Digest: TMD5Digest; const ABytes: TBytes);
 begin
   HashMD5(Digest, ABytes[0], length(ABytes));
 end;
 
-class procedure TMD5Class.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: nativeInt);
+class procedure TCipherMD5.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: nativeInt);
 var
   InBuf : TTransformInput;
   BufOfs: nativeInt;
@@ -5447,6 +5470,8 @@ initialization
 
 InitSysCBC(0);
 DCP_towfish_Precomp;
+  {$ifdef parallel}
 TPasMP.CreateGlobalInstance;
+  {$endif}
 
 end.

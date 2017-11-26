@@ -52,7 +52,7 @@ begin
       PrepareResultDataFrame.WriteInteger(i);
 
   PrepareBigStream := TMemoryStream64.Create;
-  for i := 0 to 64 * 1024 do
+  for i := 0 to 1024 * 1024 * 8 do
     begin
       PrepareBigStream.WriteData(Random(i));
     end;
@@ -66,6 +66,7 @@ begin
   DisposeObject(PrepareSendDataFrame);
   DisposeObject(PrepareResultDataFrame);
   DisposeObject(PrepareBigStream);
+  DisposeObject(TempStream);
   inherited;
 end;
 

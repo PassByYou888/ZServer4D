@@ -210,7 +210,7 @@ type
     ResultText                          : string;
     ResultDataFrame                     : TDataFrameEngine;
     FSyncPick                           : PQueueData;
-
+    FWaitSendBusy                       : Boolean;
   private
     // user
     FUserData           : Pointer;
@@ -306,6 +306,7 @@ type
     property WaitOnResult: Boolean read FWaitOnResult;
     property AllSendProcessing: Boolean read FAllSendProcessing;
     property BigStreamProcessing: Boolean read FBigStreamReceiveProcessing;
+    property WaitSendBusy: Boolean read FWaitSendBusy;
 
     // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
@@ -432,6 +433,7 @@ type
 
     property ProgressPost: TNProgressPostWithCadencer read FProgressPost;
     procedure ProgressBackground; virtual;
+    procedure ProgressWaitSendOfClient(Client: TPeerClient); virtual;
 
     function DeleteRegistedCMD(Cmd: string): Boolean;
     function UnRegisted(Cmd: string): Boolean;
@@ -505,8 +507,8 @@ type
     procedure SendDirectStreamCmd(Client: TPeerClient; Cmd: string); overload;
 
     // wait send
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload; virtual;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; virtual;
 
     // send bitstream
     procedure SendBigStream(Client: TPeerClient; Cmd: string; BigStream: TCoreClassStream; DoneFreeStream: Boolean); overload;
@@ -602,8 +604,8 @@ type
     procedure SendDirectStreamCmd(Cmd: string); overload;
 
     // wait send
-    function WaitSendConsoleCmd(Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
-    procedure WaitSendStreamCmd(Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+    function WaitSendConsoleCmd(Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; virtual;
+    procedure WaitSendStreamCmd(Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); virtual;
 
     // send bitstream
     procedure SendBigStream(Cmd: string; BigStream: TCoreClassStream; DoneFreeStream: Boolean);
@@ -1991,6 +1993,8 @@ begin
   ResultDataFrame := TDataFrameEngine.Create;
   FSyncPick := nil;
 
+  FWaitSendBusy := False;
+
   FUserData := nil;
   FUserValue := NULL;
   FUserVariants := nil;
@@ -2349,6 +2353,7 @@ begin
       exit;
   if FBigStreamSending <> nil then
     begin
+      Progress;
       exit;
     end;
 
@@ -2895,6 +2900,11 @@ begin
   end;
 
   Statistics[TStatisticsType.stIDCounter] := FIDCounter;
+end;
+
+procedure TCommunicationFramework.ProgressWaitSendOfClient(Client: TPeerClient);
+begin
+  ProgressBackground;
 end;
 
 function TCommunicationFramework.DeleteRegistedCMD(Cmd: string): Boolean;
@@ -3477,17 +3487,20 @@ begin
   Client.PrintParam('Begin Wait Console cmd: %s', Cmd);
 
   timetick := GetTimeTickCount + TimeOut;
-  if Client.WaitOnResult then
+
+  while Client.WaitOnResult or Client.BigStreamProcessing or Client.FWaitSendBusy do
     begin
-      while Client.WaitOnResult or Client.BigStreamProcessing do
-        begin
-          ProgressBackground;
-          if not Exists(Client) then
-              exit;
-          if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-              exit('');
-        end;
+      ProgressWaitSendOfClient(Client);
+      if not Exists(Client) then
+          exit;
+      if (TimeOut > 0) and (GetTimeTickCount > timetick) then
+          exit('');
     end;
+
+  if not Exists(Client) then
+      exit('');
+
+  Client.FWaitSendBusy := True;
 
   try
     waitIntf := TWaitSendConsoleCmdIntf.Create;
@@ -3500,7 +3513,7 @@ begin
     {$ENDIF}
     while not waitIntf.Done do
       begin
-        ProgressBackground;
+        ProgressWaitSendOfClient(Client);
         if not Exists(Client) then
             break;
         if (TimeOut > 0) and (GetTimeTickCount > timetick) then
@@ -3513,6 +3526,9 @@ begin
   except
       Result := '';
   end;
+
+  if Exists(Client) then
+      Client.FWaitSendBusy := False;
 end;
 
 procedure TCommunicationFrameworkServer.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
@@ -3528,17 +3544,20 @@ begin
   Client.PrintParam('Begin Wait Stream cmd: %s', Cmd);
 
   timetick := GetTimeTickCount + TimeOut;
-  if Client.WaitOnResult then
+
+  while Client.WaitOnResult or Client.BigStreamProcessing or Client.FWaitSendBusy do
     begin
-      while Client.WaitOnResult or Client.BigStreamProcessing do
-        begin
-          ProgressBackground;
-          if not Exists(Client) then
-              exit;
-          if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-              exit;
-        end;
+      ProgressWaitSendOfClient(Client);
+      if not Exists(Client) then
+          exit;
+      if (TimeOut > 0) and (GetTimeTickCount > timetick) then
+          exit;
     end;
+
+  if not Exists(Client) then
+      exit;
+
+  Client.FWaitSendBusy := True;
 
   try
     waitIntf := TWaitSendStreamCmdIntf.Create;
@@ -3550,7 +3569,7 @@ begin
     {$ENDIF}
     while not waitIntf.Done do
       begin
-        ProgressBackground;
+        ProgressWaitSendOfClient(Client);
         if not Exists(Client) then
             break;
         if (TimeOut > 0) and (GetTimeTickCount > timetick) then
@@ -3564,6 +3583,9 @@ begin
     Client.PrintParam('End Wait Stream cmd: %s', Cmd);
   except
   end;
+
+  if Exists(Client) then
+      Client.FWaitSendBusy := False;
 end;
 
 procedure TCommunicationFrameworkServer.SendBigStream(Client: TPeerClient; Cmd: string; BigStream: TCoreClassStream; DoneFreeStream: Boolean);
@@ -4136,14 +4158,20 @@ begin
   ClientIO.PrintParam('Begin Wait console cmd: %s', Cmd);
 
   timetick := GetTimeTickCount + TimeOut;
-  while ClientIO.WaitOnResult or ClientIO.BigStreamProcessing do
+
+  while ClientIO.WaitOnResult or ClientIO.BigStreamProcessing or ClientIO.FWaitSendBusy do
     begin
-      ProgressBackground;
+      ProgressWaitSendOfClient(ClientIO);
       if not Connected then
           exit;
       if (TimeOut > 0) and (GetTimeTickCount > timetick) then
           exit;
     end;
+
+  if not Connected then
+      exit('');
+
+  ClientIO.FWaitSendBusy := True;
 
   try
     waitIntf := TWaitSendConsoleCmdIntf.Create;
@@ -4156,7 +4184,7 @@ begin
     {$ENDIF}
     while not waitIntf.Done do
       begin
-        ProgressBackground;
+        ProgressWaitSendOfClient(ClientIO);
         if not Connected then
             break;
         if (TimeOut > 0) and (GetTimeTickCount > timetick) then
@@ -4169,6 +4197,9 @@ begin
   except
       Result := '';
   end;
+
+  if Connected then
+      ClientIO.FWaitSendBusy := False;
 end;
 
 procedure TCommunicationFrameworkClient.WaitSendStreamCmd(Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
@@ -4187,17 +4218,20 @@ begin
 
   timetick := GetTimeTickCount + TimeOut;
 
-  if ClientIO.WaitOnResult then
+  while ClientIO.WaitOnResult or ClientIO.BigStreamProcessing or ClientIO.FWaitSendBusy do
     begin
-      while ClientIO.WaitOnResult or ClientIO.BigStreamProcessing do
-        begin
-          ProgressBackground;
-          if not Connected then
-              exit;
-          if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-              exit;
-        end;
+      ProgressWaitSendOfClient(ClientIO);
+      if not Connected then
+          exit;
+      if (TimeOut > 0) and (GetTimeTickCount > timetick) then
+          exit;
     end;
+
+  if not Connected then
+      exit;
+
+  ClientIO.FWaitSendBusy := True;
+
   try
     waitIntf := TWaitSendStreamCmdIntf.Create;
     waitIntf.Done := False;
@@ -4208,7 +4242,7 @@ begin
     {$ENDIF}
     while not waitIntf.Done do
       begin
-        ProgressBackground;
+        ProgressWaitSendOfClient(ClientIO);
         if not Connected then
             break;
         if (TimeOut > 0) and (GetTimeTickCount > timetick) then
@@ -4222,6 +4256,9 @@ begin
     ClientIO.PrintParam('End Wait Stream cmd: %s', Cmd);
   except
   end;
+
+  if Connected then
+      ClientIO.FWaitSendBusy := False;
 end;
 
 procedure TCommunicationFrameworkClient.SendBigStream(Cmd: string; BigStream: TCoreClassStream; DoneFreeStream: Boolean);

@@ -29,11 +29,11 @@
     <Transaction>2017/11/07 02:39:00.000.395,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRClient.dproj=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXClient.dproj</Transaction>
     <Transaction>2017/11/07 02:39:33.000.698,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRCliFrm.fmx=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXCliFrm.fmx</Transaction>
     <Transaction>2017/11/07 02:39:33.000.698,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRCliFrm.pas=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXCliFrm.pas</Transaction>
-    <Transaction>2017/11/17 21:37:57.000.290,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
     <Transaction>2017/11/17 21:37:57.000.321,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
+    <Transaction>2017/11/17 21:37:57.000.290,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
-		<Pmini iOSSimulator="iPhone5"/>
+		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice32="_iosdevice_64a3b1b446e7f6e5162d62452b28676831af21c1" iOSDevice64="_iosdevice_64a3b1b446e7f6e5162d62452b28676831af21c1"/>
 	</ActiveMobileDevice>
 </BorlandProject>

@@ -40,8 +40,7 @@ uses
   ManagerServer_ClientIntf in '..\ManagerServer\ManagerServer_ClientIntf.pas',
   ConnectManagerServerFrm in '..\ManagerServer\ConnectManagerServerFrm.pas' {ConnectManagerServerForm},
   DBClientIntf in 'DBClientIntf.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas',
-  PasMP in '..\..\..\Source\PasMP.pas';
+  CoreCipher in '..\..\..\Source\CoreCipher.pas';
 
 {$R *.res}
 

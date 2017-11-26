@@ -12,6 +12,11 @@
   *
   **************************************************************** }
 
+(*
+  update history
+  2017-11-26 fixed UmlMD5Stream and umlMD5 calculate x64 and x86,ARM platform more than 4G memory Support QQ600585
+*)
+
 unit UnicodeMixedLib;
 
 {$I zDefine.inc}
@@ -3226,7 +3231,7 @@ var
 
   procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); inline;
   var
-    i, j: Integer;
+    i, j: NativeUInt;
   begin
     i := 0;
     j := 0;
@@ -3242,7 +3247,7 @@ var
   end;
   procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); inline;
   var
-    i, j: Integer;
+    i, j: NativeUInt;
   begin
     j := 0;
     i := 0;
@@ -3462,305 +3467,348 @@ begin
 end;
 
 function umlStreamMD5(Stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5;
+type
+  TDWordArray = array [0 .. MaxInt div SizeOf(DWORD) - 1] of DWORD;
+  PDWordArray = ^TDWordArray;
 
 const
-  MaxBufSize = 8192;
+  S11 = 7;
+  S12 = 12;
+  S13 = 17;
+  S14 = 22;
 
-type
-  TMD5State      = array [0 .. 3] of DWORD;
-  TMD5DWORDArray = array [0 .. 15] of DWORD;
+  S21 = 5;
+  S22 = 9;
+  S23 = 14;
+  S24 = 20;
 
-  TMD5Context = record
-    State: TMD5State;
-    Count: array [0 .. 1] of DWORD;
-    case Integer of
-      0: (BufChar: array [0 .. 63] of Byte);
-      1: (BufLong: TMD5DWORDArray);
-  end;
+  S31 = 4;
+  S32 = 11;
+  S33 = 16;
+  S34 = 23;
 
-  PMD5Buffer = ^TMD5Buffer;
-  TMD5Buffer = array [0 .. (MaxBufSize - 1)] of Char;
+  S41 = 6;
+  S42 = 10;
+  S43 = 15;
+  S44 = 21;
 
-  procedure MD5ContextClear(var MD5Context: TMD5Context);
-  begin
-    FillChar(MD5Context, SizeOf(TMD5Context), #0);
-  end;
+var
+  ContextCount : array [0 .. 1] of DWORD;
+  ContextState : array [0 .. 4] of DWORD;
+  ContextBuffer: array [0 .. 63] of Byte;
+  Padding      : array [0 .. 63] of Byte;
 
-  procedure MD5DigestInit(var MD5Digest: TMD5);
+  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); inline;
   var
-    i: Integer;
+    i, j: NativeUInt;
   begin
-    for i := 0 to 15 do
-        MD5Digest[i] := i + 1;
-  end;
-
-  procedure MD5Init(var MD5Context: TMD5Context);
-  begin
-    MD5ContextClear(MD5Context);
-    with MD5Context do
+    i := 0;
+    j := 0;
+    while (j < Count) do
       begin
-        { Load magic initialization constants. }
-        State[0] := DWORD($67452301);
-        State[1] := DWORD($EFCDAB89);
-        State[2] := DWORD($98BADCFE);
-        State[3] := DWORD($10325476);
-      end
+        Dst^[j] := Src^[i] and $FF;
+        Dst^[j + 1] := (Src^[i] shr 8) and $FF;
+        Dst^[j + 2] := (Src^[i] shr 16) and $FF;
+        Dst^[j + 3] := (Src^[i] shr 24) and $FF;
+        Inc(j, 4);
+        Inc(i);
+      end;
+  end;
+  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); inline;
+  var
+    i, j: NativeUInt;
+  begin
+    j := 0;
+    i := 0;
+    while (j < Count) do
+      begin
+        Dst^[i] := (
+          (Src^[j + Shift] and $FF) or
+          ((Src^[j + Shift + 1] and $FF) shl 8) or
+          ((Src^[j + Shift + 2] and $FF) shl 16) or
+          ((Src^[j + Shift + 3] and $FF) shl 24)
+          );
+        Inc(j, 4);
+        Inc(i);
+      end;
   end;
 
-  procedure MD5Transform(var Buf: TMD5State; var data: TMD5DWORDArray);
+  procedure Transform(const Block: PByteArray; const Shift: NativeUInt);
+    function f(const x, y, z: DWORD): DWORD; inline;
+    begin
+      Result := (x and y) or ((not x) and z);
+    end;
+    function G(const x, y, z: DWORD): DWORD; inline;
+    begin
+      Result := (x and z) or (y and (not z));
+    end;
+    function H(const x, y, z: DWORD): DWORD; inline;
+    begin
+      Result := x xor y xor z;
+    end;
+    function i(const x, y, z: DWORD): DWORD; inline;
+    begin
+      Result := y xor (x or (not z));
+    end;
+    procedure RL(var x: DWORD; const n: Byte); inline;
+    begin
+      x := (x shl n) or (x shr (32 - n));
+    end;
+    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    begin
+      Inc(a, f(B, c, d) + x + ac);
+      RL(a, S);
+      Inc(a, B);
+    end;
+    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    begin
+      Inc(a, G(B, c, d) + x + ac);
+      RL(a, S);
+      Inc(a, B);
+    end;
+    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    begin
+      Inc(a, H(B, c, d) + x + ac);
+      RL(a, S);
+      Inc(a, B);
+    end;
+    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    begin
+      Inc(a, i(B, c, d) + x + ac);
+      RL(a, S);
+      Inc(a, B);
+    end;
+
   var
     a, B, c, d: DWORD;
-
-    procedure Round1(var W: DWORD; x, y, z, data: DWORD; S: Byte); inline;
-    begin
-      Inc(W, (z xor (x and (y xor z))) + data);
-      W := (W shl S) or (W shr (32 - S));
-      Inc(W, x)
-    end;
-
-    procedure Round2(var W: DWORD; x, y, z, data: DWORD; S: Byte); inline;
-    begin
-      Inc(W, (y xor (z and (x xor y))) + data);
-      W := (W shl S) or (W shr (32 - S));
-      Inc(W, x)
-    end;
-
-    procedure Round3(var W: DWORD; x, y, z, data: DWORD; S: Byte); inline;
-    begin
-      Inc(W, (x xor y xor z) + data);
-      W := (W shl S) or (W shr (32 - S));
-      Inc(W, x)
-    end;
-
-    procedure Round4(var W: DWORD; x, y, z, data: DWORD; S: Byte); inline;
-    begin
-      Inc(W, (y xor (x or not z)) + data);
-      W := (W shl S) or (W shr (32 - S));
-      Inc(W, x)
-    end;
-
+  var
+    x: array [0 .. 15] of DWORD;
   begin
-    a := Buf[0];
-    B := Buf[1];
-    c := Buf[2];
-    d := Buf[3];
+    a := ContextState[0];
+    B := ContextState[1];
+    c := ContextState[2];
+    d := ContextState[3];
+    Decode(@x[0], Block, 64, Shift);
+    // Round 1
+    FF(a, B, c, d, x[0], S11, $D76AA478);  { 1 }
+    FF(d, a, B, c, x[1], S12, $E8C7B756);  { 2 }
+    FF(c, d, a, B, x[2], S13, $242070DB);  { 3 }
+    FF(B, c, d, a, x[3], S14, $C1BDCEEE);  { 4 }
+    FF(a, B, c, d, x[4], S11, $F57C0FAF);  { 5 }
+    FF(d, a, B, c, x[5], S12, $4787C62A);  { 6 }
+    FF(c, d, a, B, x[6], S13, $A8304613);  { 7 }
+    FF(B, c, d, a, x[7], S14, $FD469501);  { 8 }
+    FF(a, B, c, d, x[8], S11, $698098D8);  { 9 }
+    FF(d, a, B, c, x[9], S12, $8B44F7AF);  { 10 }
+    FF(c, d, a, B, x[10], S13, $FFFF5BB1); { 11 }
+    FF(B, c, d, a, x[11], S14, $895CD7BE); { 12 }
+    FF(a, B, c, d, x[12], S11, $6B901122); { 13 }
+    FF(d, a, B, c, x[13], S12, $FD987193); { 14 }
+    FF(c, d, a, B, x[14], S13, $A679438E); { 15 }
+    FF(B, c, d, a, x[15], S14, $49B40821); { 16 }
+    // Round 2
+    GG(a, B, c, d, x[1], S21, $F61E2562);  { 17 }
+    GG(d, a, B, c, x[6], S22, $C040B340);  { 18 }
+    GG(c, d, a, B, x[11], S23, $265E5A51); { 19 }
+    GG(B, c, d, a, x[0], S24, $E9B6C7AA);  { 20 }
+    GG(a, B, c, d, x[5], S21, $D62F105D);  { 21 }
+    GG(d, a, B, c, x[10], S22, $2441453);  { 22 }
+    GG(c, d, a, B, x[15], S23, $D8A1E681); { 23 }
+    GG(B, c, d, a, x[4], S24, $E7D3FBC8);  { 24 }
+    GG(a, B, c, d, x[9], S21, $21E1CDE6);  { 25 }
+    GG(d, a, B, c, x[14], S22, $C33707D6); { 26 }
+    GG(c, d, a, B, x[3], S23, $F4D50D87);  { 27 }
+    GG(B, c, d, a, x[8], S24, $455A14ED);  { 28 }
+    GG(a, B, c, d, x[13], S21, $A9E3E905); { 29 }
+    GG(d, a, B, c, x[2], S22, $FCEFA3F8);  { 30 }
+    GG(c, d, a, B, x[7], S23, $676F02D9);  { 31 }
+    GG(B, c, d, a, x[12], S24, $8D2A4C8A); { 32 }
+    // Round 3
+    HH(a, B, c, d, x[5], S31, $FFFA3942);  { 33 }
+    HH(d, a, B, c, x[8], S32, $8771F681);  { 34 }
+    HH(c, d, a, B, x[11], S33, $6D9D6122); { 35 }
+    HH(B, c, d, a, x[14], S34, $FDE5380C); { 36 }
+    HH(a, B, c, d, x[1], S31, $A4BEEA44);  { 37 }
+    HH(d, a, B, c, x[4], S32, $4BDECFA9);  { 38 }
+    HH(c, d, a, B, x[7], S33, $F6BB4B60);  { 39 }
+    HH(B, c, d, a, x[10], S34, $BEBFBC70); { 40 }
+    HH(a, B, c, d, x[13], S31, $289B7EC6); { 41 }
+    HH(d, a, B, c, x[0], S32, $EAA127FA);  { 42 }
+    HH(c, d, a, B, x[3], S33, $D4EF3085);  { 43 }
+    HH(B, c, d, a, x[6], S34, $4881D05);   { 44 }
+    HH(a, B, c, d, x[9], S31, $D9D4D039);  { 45 }
+    HH(d, a, B, c, x[12], S32, $E6DB99E5); { 46 }
+    HH(c, d, a, B, x[15], S33, $1FA27CF8); { 47 }
+    HH(B, c, d, a, x[2], S34, $C4AC5665);  { 48 }
+    // Round 4
+    II(a, B, c, d, x[0], S41, $F4292244);  { 49 }
+    II(d, a, B, c, x[7], S42, $432AFF97);  { 50 }
+    II(c, d, a, B, x[14], S43, $AB9423A7); { 51 }
+    II(B, c, d, a, x[5], S44, $FC93A039);  { 52 }
+    II(a, B, c, d, x[12], S41, $655B59C3); { 53 }
+    II(d, a, B, c, x[3], S42, $8F0CCC92);  { 54 }
+    II(c, d, a, B, x[10], S43, $FFEFF47D); { 55 }
+    II(B, c, d, a, x[1], S44, $85845DD1);  { 56 }
+    II(a, B, c, d, x[8], S41, $6FA87E4F);  { 57 }
+    II(d, a, B, c, x[15], S42, $FE2CE6E0); { 58 }
+    II(c, d, a, B, x[6], S43, $A3014314);  { 59 }
+    II(B, c, d, a, x[13], S44, $4E0811A1); { 60 }
+    II(a, B, c, d, x[4], S41, $F7537E82);  { 61 }
+    II(d, a, B, c, x[11], S42, $BD3AF235); { 62 }
+    II(c, d, a, B, x[2], S43, $2AD7D2BB);  { 63 }
+    II(B, c, d, a, x[9], S44, $EB86D391);  { 64 }
 
-    Round1(a, B, c, d, data[0] + DWORD($D76AA478), 7);
-    Round1(d, a, B, c, data[1] + DWORD($E8C7B756), 12);
-    Round1(c, d, a, B, data[2] + DWORD($242070DB), 17);
-    Round1(B, c, d, a, data[3] + DWORD($C1BDCEEE), 22);
-    Round1(a, B, c, d, data[4] + DWORD($F57C0FAF), 7);
-    Round1(d, a, B, c, data[5] + DWORD($4787C62A), 12);
-    Round1(c, d, a, B, data[6] + DWORD($A8304613), 17);
-    Round1(B, c, d, a, data[7] + DWORD($FD469501), 22);
-    Round1(a, B, c, d, data[8] + DWORD($698098D8), 7);
-    Round1(d, a, B, c, data[9] + DWORD($8B44F7AF), 12);
-    Round1(c, d, a, B, data[10] + DWORD($FFFF5BB1), 17);
-    Round1(B, c, d, a, data[11] + DWORD($895CD7BE), 22);
-    Round1(a, B, c, d, data[12] + DWORD($6B901122), 7);
-    Round1(d, a, B, c, data[13] + DWORD($FD987193), 12);
-    Round1(c, d, a, B, data[14] + DWORD($A679438E), 17);
-    Round1(B, c, d, a, data[15] + DWORD($49B40821), 22);
-
-    Round2(a, B, c, d, data[1] + DWORD($F61E2562), 5);
-    Round2(d, a, B, c, data[6] + DWORD($C040B340), 9);
-    Round2(c, d, a, B, data[11] + DWORD($265E5A51), 14);
-    Round2(B, c, d, a, data[0] + DWORD($E9B6C7AA), 20);
-    Round2(a, B, c, d, data[5] + DWORD($D62F105D), 5);
-    Round2(d, a, B, c, data[10] + DWORD($02441453), 9);
-    Round2(c, d, a, B, data[15] + DWORD($D8A1E681), 14);
-    Round2(B, c, d, a, data[4] + DWORD($E7D3FBC8), 20);
-    Round2(a, B, c, d, data[9] + DWORD($21E1CDE6), 5);
-    Round2(d, a, B, c, data[14] + DWORD($C33707D6), 9);
-    Round2(c, d, a, B, data[3] + DWORD($F4D50D87), 14);
-    Round2(B, c, d, a, data[8] + DWORD($455A14ED), 20);
-    Round2(a, B, c, d, data[13] + DWORD($A9E3E905), 5);
-    Round2(d, a, B, c, data[2] + DWORD($FCEFA3F8), 9);
-    Round2(c, d, a, B, data[7] + DWORD($676F02D9), 14);
-    Round2(B, c, d, a, data[12] + DWORD($8D2A4C8A), 20);
-
-    Round3(a, B, c, d, data[5] + DWORD($FFFA3942), 4);
-    Round3(d, a, B, c, data[8] + DWORD($8771F681), 11);
-    Round3(c, d, a, B, data[11] + DWORD($6D9D6122), 16);
-    Round3(B, c, d, a, data[14] + DWORD($FDE5380C), 23);
-    Round3(a, B, c, d, data[1] + DWORD($A4BEEA44), 4);
-    Round3(d, a, B, c, data[4] + DWORD($4BDECFA9), 11);
-    Round3(c, d, a, B, data[7] + DWORD($F6BB4B60), 16);
-    Round3(B, c, d, a, data[10] + DWORD($BEBFBC70), 23);
-    Round3(a, B, c, d, data[13] + DWORD($289B7EC6), 4);
-    Round3(d, a, B, c, data[0] + DWORD($EAA127FA), 11);
-    Round3(c, d, a, B, data[3] + DWORD($D4EF3085), 16);
-    Round3(B, c, d, a, data[6] + DWORD($04881D05), 23);
-    Round3(a, B, c, d, data[9] + DWORD($D9D4D039), 4);
-    Round3(d, a, B, c, data[12] + DWORD($E6DB99E5), 11);
-    Round3(c, d, a, B, data[15] + DWORD($1FA27CF8), 16);
-    Round3(B, c, d, a, data[2] + DWORD($C4AC5665), 23);
-
-    Round4(a, B, c, d, data[0] + DWORD($F4292244), 6);
-    Round4(d, a, B, c, data[7] + DWORD($432AFF97), 10);
-    Round4(c, d, a, B, data[14] + DWORD($AB9423A7), 15);
-    Round4(B, c, d, a, data[5] + DWORD($FC93A039), 21);
-    Round4(a, B, c, d, data[12] + DWORD($655B59C3), 6);
-    Round4(d, a, B, c, data[3] + DWORD($8F0CCC92), 10);
-    Round4(c, d, a, B, data[10] + DWORD($FFEFF47D), 15);
-    Round4(B, c, d, a, data[1] + DWORD($85845DD1), 21);
-    Round4(a, B, c, d, data[8] + DWORD($6FA87E4F), 6);
-    Round4(d, a, B, c, data[15] + DWORD($FE2CE6E0), 10);
-    Round4(c, d, a, B, data[6] + DWORD($A3014314), 15);
-    Round4(B, c, d, a, data[13] + DWORD($4E0811A1), 21);
-    Round4(a, B, c, d, data[4] + DWORD($F7537E82), 6);
-    Round4(d, a, B, c, data[11] + DWORD($BD3AF235), 10);
-    Round4(c, d, a, B, data[2] + DWORD($2AD7D2BB), 15);
-    Round4(B, c, d, a, data[9] + DWORD($EB86D391), 21);
-
-    Inc(Buf[0], a);
-    Inc(Buf[1], B);
-    Inc(Buf[2], c);
-    Inc(Buf[3], d);
+    Inc(ContextState[0], a);
+    Inc(ContextState[1], B);
+    Inc(ContextState[2], c);
+    Inc(ContextState[3], d);
   end;
 
-  procedure MD5Update(var MD5Context: TMD5Context; const data: Pointer; len, TotalSize: NativeUInt);
-  type
-    TByteArray = array [0 .. 0] of Byte;
+  procedure Update(const Value: PBYTE; const Count: NativeUInt);
   var
-    Index: DWORD;
-    t    : DWORD;
+    i, Index, PartLen, Start: NativeUInt;
+    pb                      : PByteArray;
   begin
-    with MD5Context do
+    pb := PByteArray(Value);
+    index := (ContextCount[0] shr 3) and $3F;
+
+    Inc(ContextCount[0], Count shl 3);
+    if ContextCount[0] < (Count shl 3) then
+        Inc(ContextCount[1]);
+
+    Inc(ContextCount[1], Count shr (SizeOf(Count) * 8 - 3));
+
+    PartLen := 64 - index;
+    if Count >= PartLen then
       begin
-        t := (Count[0] shr 3) and $3F;
-        Inc(Count[0], len shl 3);
-        if Count[0] < (len shl 3) then
-            Inc(Count[1]);
+        for i := 0 to PartLen - 1 do
+            ContextBuffer[i + index] := pb^[i];
 
-        Inc(Count[1], len shr (SizeOf(TotalSize) * 8 - 3));
-
+        Transform(@ContextBuffer, 0);
+        i := PartLen;
+        while (i + 63) < Count do
+          begin
+            Transform(pb, i);
+            Inc(i, 64);
+          end;
         index := 0;
-        if t <> 0 then
-          begin
-            index := t;
-            t := 64 - t;
-            if len < t then
-              begin
-                move(data^, BufChar[index], len);
-                Exit;
-              end;
-            move(data^, BufChar[index], t);
-            MD5Transform(State, BufLong);
-            Dec(len, t);
-            index := t;
-          end;
-        while len >= 64 do
-          begin
-            move(TByteArray(data^)[index], BufChar, 64);
-            MD5Transform(State, BufLong);
-            Inc(index, 64);
-            Dec(len, 64);
-          end;
-        move(TByteArray(data^)[index], BufChar, len);
       end
-  end;
-
-  procedure MD5UpdateBuffer(var MD5Context: TMD5Context; Buffer: Pointer; BufSize: Cardinal);
-  var
-    BufPtr: PBYTE;
-    Bytes : DWORD;
-  begin
-    BufPtr := Buffer;
-    repeat
-      if BufSize > MaxBufSize then
-          Bytes := MaxBufSize
-      else
-          Bytes := BufSize;
-
-      if Bytes > 0 then
-          MD5Update(MD5Context, BufPtr, Bytes, Stream.Size);
-
-      Inc(BufPtr, Bytes);
-      Dec(BufSize, Bytes);
-
-    until Bytes < MaxBufSize;
-  end;
-
-  procedure StreamMD5Context(var MD5Context: TMD5Context);
-  const
-    ChunkSize: Cardinal = 1024 * 1024;
-  var
-    j    : Int64;
-    Num  : Int64;
-    Rest : Int64;
-    Buf  : TBytes;
-    FSize: Int64;
-  begin
-
-    { Allocate buffer to read file }
-    SetLength(Buf, ChunkSize);
-
-    FSize := Stream.Size;
-    if (StartPos >= FSize) then
-        StartPos := 0;
-    if (EndPos > FSize) or (EndPos = 0) then
-        EndPos := FSize;
-
-    { Calculate number of full chunks that will fit into the buffer }
-    Num := EndPos div ChunkSize;
-    { Calculate remaining bytes }
-    Rest := EndPos mod ChunkSize;
-
-    { Set the stream to the beginning of the file }
-    Stream.Position := StartPos;
-
-    { Process full chunks }
-    for j := 0 to Num - 1 do
+    else
+        i := 0;
+    if (i < Count) then
       begin
-        Stream.Read(Buf[0], ChunkSize);
-        MD5UpdateBuffer(MD5Context, @Buf[0], ChunkSize);
-      end;
-
-    { Process remaining bytes }
-    if Rest > 0 then
-      begin
-        Stream.Read(Buf[0], Rest);
-        MD5UpdateBuffer(MD5Context, @Buf[0], Rest);
-      end;
-
-  end;
-
-  procedure MD5Final(var Digest: TMD5; var MD5Context: TMD5Context);
-  var
-    cnt: DWORD;
-    p  : DWORD;
-  begin
-    with MD5Context do
-      begin
-        cnt := (Count[0] shr 3) and $3F;
-        p := cnt;
-        BufChar[p] := $80;
-        Inc(p);
-        cnt := 64 - 1 - cnt;
-        if cnt < 8 then
+        Start := i;
+        while (i < Count) do
           begin
-            FillChar(BufChar[p], cnt, #0);
-            MD5Transform(State, BufLong);
-            FillChar(BufChar, 56, #0);
-          end
-        else
-            FillChar(BufChar[p], cnt - 8, #0);
-        BufLong[14] := Count[0];
-        BufLong[15] := Count[1];
-        MD5Transform(State, BufLong);
-        move(State, Digest, 16)
+            ContextBuffer[index + i - Start] := pb^[i];
+            Inc(i);
+          end;
       end;
-    MD5ContextClear(MD5Context);
+  end;
+
+  procedure UpdateStreamBuffer();
+  var
+    i, Index, PartLen, Start      : Int64;
+    StreamSize, buffSiz, BuffStart: Int64;
+    buff                          : TBytes;
+  begin
+    StreamSize := EndPos - StartPos;
+
+    index := (ContextCount[0] shr 3) and $3F;
+
+    Inc(ContextCount[0], StreamSize shl 3);
+    if ContextCount[0] < (StreamSize shl 3) then
+        Inc(ContextCount[1]);
+
+    Inc(ContextCount[1], StreamSize shr 61);
+
+    // default size = 1M;
+    buffSiz := 1024 * 1024;
+
+    if StreamSize < buffSiz then
+        buffSiz := StreamSize;
+
+    SetLength(buff, buffSiz);
+
+    Stream.Position := StartPos;
+    Stream.Read(buff[0], buffSiz);
+
+    PartLen := 64 - index;
+    BuffStart := 0;
+
+    if StreamSize >= PartLen then
+      begin
+        for i := 0 to PartLen - 1 do
+            ContextBuffer[i + index] := buff[i];
+
+        Transform(@ContextBuffer, 0);
+        i := PartLen;
+        while (i + 63) < StreamSize do
+          begin
+            if BuffStart + 64 > buffSiz then
+              begin
+                Stream.Position := StartPos + i;
+                if Stream.Position + buffSiz > EndPos then
+                  begin
+                    FillByte(buff[0], buffSiz, 0);
+                    Stream.Read(buff[0], EndPos - Stream.Position);
+                  end
+                else
+                    Stream.Read(buff[0], buffSiz);
+                BuffStart := 0;
+              end;
+
+            Transform(@buff[0], BuffStart);
+            Inc(i, 64);
+            Inc(BuffStart, 64);
+          end;
+        index := 0;
+      end
+    else
+        i := 0;
+
+    if (i < StreamSize) then
+      begin
+        if BuffStart + (StreamSize - i) > buffSiz then
+          begin
+            Stream.Position := StartPos + i;
+            Stream.Read(buff[0], (StreamSize - i));
+            BuffStart := 0;
+          end;
+
+        Start := i;
+        while (i < StreamSize) do
+          begin
+            ContextBuffer[index + i - Start] := buff[BuffStart];
+            Inc(i);
+            Inc(BuffStart);
+          end;
+      end;
   end;
 
 var
-  MD5Context: TMD5Context;
+  Bits         : array [0 .. 7] of Byte;
+  Index, PadLen: NativeUInt;
 begin
-  MD5DigestInit(Result);
-  MD5Init(MD5Context);
-  StreamMD5Context(MD5Context);
-  MD5Final(Result, MD5Context);
+  FillByte(Padding, 64, 0);
+  Padding[0] := $80;
+  ContextCount[0] := 0;
+  ContextCount[1] := 0;
+  ContextState[0] := $67452301;
+  ContextState[1] := $EFCDAB89;
+  ContextState[2] := $98BADCFE;
+  ContextState[3] := $10325476;
+  UpdateStreamBuffer;
+  // Update(BuffPtr, BuffSize);
+  Encode(@Bits, @ContextCount, 8);
+  index := (ContextCount[0] shr 3) and $3F;
+  if index < 56 then
+      PadLen := 56 - index
+  else
+      PadLen := 120 - index;
+  Update(@Padding, PadLen);
+  Update(@Bits, 8);
+  Encode(@Result, @ContextState, 16);
 end;
 
 function umlStreamMD5(Stream: TCoreClassStream): TMD5;

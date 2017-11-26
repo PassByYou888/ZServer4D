@@ -4,6 +4,12 @@
 (* https://github.com/PassByYou888/ZServer4D *)
 { ****************************************************************************** }
 
+(*
+  update history
+  2017-11-26
+  fixed UnicodeString in FPC
+*)
+
 unit PascalStrings;
 
 {$I ZDefine.inc}
@@ -13,11 +19,11 @@ interface
 uses SysUtils;
 
 type
-  SystemString = string;
-
   {$IFDEF FPC}
   SystemChar = UnicodeChar;
+  SystemString = Unicodestring;
   {$ELSE}
+  SystemString = string;
   SystemChar = char;
   {$ENDIF}
   THash         = Cardinal;
@@ -129,12 +135,14 @@ operator := (const s: Variant)r: TPascalString;
 
 operator := (const s: AnsiString)r: TPascalString;
 operator := (const s: UnicodeString)r: TPascalString;
+operator := (const s: WideString)r: TPascalString;
 operator := (const s: ShortString)r: TPascalString;
 
 operator := (const c: SystemChar)r: TPascalString;
 
 operator := (const s: TPascalString)r: AnsiString;
 operator := (const s: TPascalString)r: UnicodeString;
+operator := (const s: TPascalString)r: WideString;
 operator := (const s: TPascalString)r: ShortString;
 operator := (const s: TPascalString)r: Variant;
 
@@ -345,6 +353,11 @@ begin
   r.Text := s;
 end;
 
+operator := (const s: WideString)r: TPascalString;
+begin
+  r.Text := s;
+end;
+
 operator := (const s: ShortString)r: TPascalString;
 begin
   r.Text := s;
@@ -361,6 +374,11 @@ begin
 end;
 
 operator := (const s: TPascalString)r: UnicodeString;
+begin
+  r := s.Text;
+end;
+
+operator := (const s: TPascalString)r: WideString;
 begin
   r := s.Text;
 end;

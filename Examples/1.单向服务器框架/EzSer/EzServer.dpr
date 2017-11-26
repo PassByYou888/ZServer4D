@@ -37,8 +37,7 @@ uses
   CommunicationFramework_Server_CrossSocket in '..\..\..\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas',
   Cadencer in '..\..\..\Source\Cadencer.pas',
   CommunicationFramework in '..\..\..\Source\CommunicationFramework.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas',
-  PasMP in '..\..\..\Source\PasMP.pas';
+  CoreCipher in '..\..\..\Source\CoreCipher.pas';
 
 {$R *.res}
 
