@@ -71,6 +71,18 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 -----------------------------------------
 ## 更新日志
 
+2017-11-27
+
+修复indy接口的服务器，新版的Zserver4D在IndyServer将不再支持WaitSend阻塞化模式，必须使用异步，在CrossSocket，ICS在服务器仍然可以使用WaitSend，Indy,ics,CorossSocket的客户端支持保持不变
+
+因为某些低版本的Windows不支持精确计时器，CoreCipher取消了并行化编码库支持，改为定义，在没有定义使用异步编码时，将不会使用PasMP
+
+修复了MD5支持算法，在x86,x64,arm下现在超过4G的md5计算均能一致
+
+针对freepascal编译器改动：将ListEngine的string定义全部更新成了SystemString，完全兼容UnicodeString
+
+
+
 2017-11-25
 
 测底修复了BitStream的内存拷贝问题，现在收发大型Stream均不会拷贝内存，能做到以最低开销承载1000个用户同时下载2G以上的文件
