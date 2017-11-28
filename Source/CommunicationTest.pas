@@ -2,8 +2,10 @@ unit CommunicationTest;
 
 interface
 
+{$I zDefine.inc}
+
 uses SysUtils, CommunicationFramework, DataFrameEngine,
-  UnicodeMixedLib, CoreClasses, DoStatusIO, MemoryStream64,
+  UnicodeMixedLib, CoreClasses, DoStatusIO, MemoryStream64, PascalStrings,
   CommunicationFrameworkIO;
 
 type
@@ -52,7 +54,7 @@ begin
       PrepareResultDataFrame.WriteInteger(i);
 
   PrepareBigStream := TMemoryStream64.Create;
-  PrepareBigStream.SetSize(1024*1024);
+  PrepareBigStream.SetSize(1024 * 1024);
   FillByte(PrepareBigStream.Memory^, PrepareBigStream.Size, $99);
 
   TempStream := TMemoryStream64.Create;
@@ -126,6 +128,15 @@ end;
 
 procedure TCommunicationTestIntf.RegCmd(intf: TCommunicationFramework);
 begin
+  {$IFDEF FPC}
+  intf.RegisterStream('TestStream').OnExecute := @Cmd_TestStream;
+  intf.RegisterConsole('TestConsole').OnExecute := @Cmd_TestConsole;
+  intf.RegisterDirectStream('TestDirectStream').OnExecute := @Cmd_TestDirectStream;
+  intf.RegisterDirectConsole('TestDirectConsole').OnExecute := @Cmd_TestDirectConsole;
+  intf.RegisterBigStream('TestBigStream').OnExecute := @Cmd_TestBigStream;
+  intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := @Cmd_BigStreamPostInfo;
+  intf.RegisterDirectConsole('RemoteInfo').OnExecute := @Cmd_RemoteInfo;
+  {$ELSE}
   intf.RegisterStream('TestStream').OnExecute := Cmd_TestStream;
   intf.RegisterConsole('TestConsole').OnExecute := Cmd_TestConsole;
   intf.RegisterDirectStream('TestDirectStream').OnExecute := Cmd_TestDirectStream;
@@ -133,14 +144,20 @@ begin
   intf.RegisterBigStream('TestBigStream').OnExecute := Cmd_TestBigStream;
   intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := Cmd_BigStreamPostInfo;
   intf.RegisterDirectConsole('RemoteInfo').OnExecute := Cmd_RemoteInfo;
+  {$ENDIF}
 end;
 
 procedure TCommunicationTestIntf.ExecuteTest(intf: TPeerClient);
 var
   tmpdf: TDataFrameEngine;
 begin
+  {$IFDEF FPC}
+  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, @CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, @CmdResult_TestStream);
+  {$ELSE}
   intf.SendConsoleCmd('TestConsole', PrepareSendConsole, CmdResult_TestConsole);
   intf.SendStreamCmd('TestStream', PrepareSendDataFrame, CmdResult_TestStream);
+  {$ENDIF}
   intf.SendDirectConsoleCmd('TestDirectConsole', PrepareSendConsole);
   intf.SendDirectStreamCmd('TestDirectStream', PrepareSendDataFrame);
   intf.SendBigStream('TestBigStream', PrepareBigStream, False);

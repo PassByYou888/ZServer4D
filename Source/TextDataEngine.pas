@@ -12,7 +12,7 @@ interface
 
 uses SysUtils, Variants,
   // Hash
-  ListEngine, CoreClasses, MemoryStream64;
+  ListEngine, CoreClasses, MemoryStream64, PascalStrings;
 
 type
   TSectionTextData = class;
@@ -26,14 +26,14 @@ type
     FAutoUpdateDefaultValue              : Boolean;
     FMaxHashBlock                        : Integer;
 
-    function GetNames(aName: string): TCoreClassStrings;
-    procedure SetNames(aName: string; const Value: TCoreClassStrings);
-    function GetHit(aSectionName, _VariantName: string): Variant;
-    procedure SetHit(aSectionName, _VariantName: string; const Value: Variant);
-    function GetVariantList(aName: string): THashVariantList;
-    procedure SetVariantList(aName: string; const Value: THashVariantList);
+    function GetNames(aName: SystemString): TCoreClassStrings;
+    procedure SetNames(aName: SystemString; const Value: TCoreClassStrings);
+    function GetHit(aSectionName, _VariantName: SystemString): Variant;
+    procedure SetHit(aSectionName, _VariantName: SystemString; const Value: Variant);
+    function GetVariantList(aName: SystemString): THashVariantList;
+    procedure SetVariantList(aName: SystemString; const Value: THashVariantList);
     // return override state
-    procedure AddDataSection(aSection: string; TextList: TCoreClassStrings);
+    procedure AddDataSection(aSection: SystemString; TextList: TCoreClassStrings);
   public
     constructor Create; overload;
     constructor Create(AHashBlock: Integer); overload;
@@ -41,12 +41,12 @@ type
 
     procedure ReBuildList;
     procedure Clear;
-    procedure Delete(aName: string);
+    procedure Delete(aName: SystemString);
 
-    function Exists(aName: string): Boolean;
+    function Exists(aName: SystemString): Boolean;
 
-    function GetDefaultValue(const SectionName, KeyName: string; const DefaultValue: Variant): Variant;
-    procedure SetDefaultValue(const SectionName, KeyName: string; const Value: Variant);
+    function GetDefaultValue(const SectionName, KeyName: SystemString; const DefaultValue: Variant): Variant;
+    procedure SetDefaultValue(const SectionName, KeyName: SystemString; const Value: Variant);
 
     // import section
     function DataImport(TextList: TCoreClassStrings): Boolean;
@@ -61,63 +61,63 @@ type
     procedure LoadFromStream(Stream: TCoreClassStream);
     procedure SaveToStream(Stream: TCoreClassStream);
 
-    procedure LoadFromFile(FileName: string);
-    procedure SaveToFile(FileName: string);
+    procedure LoadFromFile(FileName: SystemString);
+    procedure SaveToFile(FileName: SystemString);
 
-    function GetAsText: string;
-    procedure SetAsText(const Value: string);
-    property AsText: string read GetAsText write SetAsText;
+    function GetAsText: SystemString;
+    procedure SetAsText(const Value: SystemString);
+    property AsText: SystemString read GetAsText write SetAsText;
 
     procedure GetSectionList(Dest: TCoreClassStrings); overload;
     procedure GetSectionList(Dest: TListString); overload;
     procedure GetSectionList(Dest: TListPascalString); overload;
-    function GetSectionObjectName(_Obj: THashVariantList): string;
+    function GetSectionObjectName(_Obj: THashVariantList): SystemString;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
     property Comment: TCoreClassStrings read FComment write FComment;
-    property Hit[aSectionName, _VariantName: string]: Variant read GetHit write SetHit; default;
-    property Names[aName: string]: TCoreClassStrings read GetNames write SetNames;
-    property Texts[aName: string]: TCoreClassStrings read GetNames write SetNames;
-    property Strings[aName: string]: TCoreClassStrings read GetNames write SetNames;
-    property VariantList[aName: string]: THashVariantList read GetVariantList write SetVariantList;
+    property Hit[aSectionName, _VariantName: SystemString]: Variant read GetHit write SetHit; default;
+    property Names[aName: SystemString]: TCoreClassStrings read GetNames write SetNames;
+    property Texts[aName: SystemString]: TCoreClassStrings read GetNames write SetNames;
+    property Strings[aName: SystemString]: TCoreClassStrings read GetNames write SetNames;
+    property VariantList[aName: SystemString]: THashVariantList read GetVariantList write SetVariantList;
   end;
 
   THashVariantTextStream = class(TCoreClassObject)
   private
     FVariantList: THashVariantList;
 
-    function GetNames(aName: string): Variant;
-    procedure SetNames(aName: string; const Value: Variant);
+    function GetNames(aName: SystemString): Variant;
+    procedure SetNames(aName: SystemString; const Value: Variant);
   public
     constructor Create(_VList: THashVariantList);
     destructor Destroy; override;
     procedure Clear;
 
-    class function VToStr(v: Variant): string; inline;
-    class function StrToV(s: string): Variant; inline;
+    class function VToStr(v: Variant): SystemString; inline;
+    class function StrToV(s: SystemString): Variant; inline;
 
     procedure DataImport(TextList: TCoreClassStrings);
     procedure DataExport(TextList: TCoreClassStrings);
     procedure LoadFromStream(Stream: TCoreClassStream);
     procedure SaveToStream(Stream: TCoreClassStream);
-    procedure LoadFromFile(FileName: string);
-    procedure SaveToFile(FileName: string);
-    procedure LoadFromText(aText: string);
+    procedure LoadFromFile(FileName: SystemString);
+    procedure SaveToFile(FileName: SystemString);
+    procedure LoadFromText(aText: SystemString);
 
-    procedure SaveToText(var aText: string); overload;
-    function Text: string;
+    procedure SaveToText(var aText: SystemString); overload;
+    function Text: SystemString;
 
-    function GetValue(aName: string; v: Variant): Variant;
+    function GetValue(aName: SystemString; v: Variant): Variant;
 
-    property Names[aName: string]: Variant read GetNames write SetNames; default;
+    property Names[aName: SystemString]: Variant read GetNames write SetNames; default;
     property VariantList: THashVariantList read FVariantList write FVariantList;
   end;
 
 implementation
 
-uses UnicodeMixedLib, PascalStrings;
+uses UnicodeMixedLib;
 
-function TSectionTextData.GetNames(aName: string): TCoreClassStrings;
+function TSectionTextData.GetNames(aName: SystemString): TCoreClassStrings;
 var
   h: THashVariantTextStream;
 begin
@@ -137,7 +137,7 @@ begin
   Result := TCoreClassStrings(FSectionTextList[aName]);
 end;
 
-procedure TSectionTextData.SetNames(aName: string; const Value: TCoreClassStrings);
+procedure TSectionTextData.SetNames(aName: SystemString; const Value: TCoreClassStrings);
 var
   ns: TCoreClassStrings;
 begin
@@ -147,7 +147,7 @@ begin
   FSectionVariantList.Delete(aName);
 end;
 
-function TSectionTextData.GetHit(aSectionName, _VariantName: string): Variant;
+function TSectionTextData.GetHit(aSectionName, _VariantName: SystemString): Variant;
 var
   nsl: TCoreClassStrings;
   vl : THashVariantList;
@@ -174,7 +174,7 @@ begin
   Result := vl[_VariantName];
 end;
 
-procedure TSectionTextData.SetHit(aSectionName, _VariantName: string; const Value: Variant);
+procedure TSectionTextData.SetHit(aSectionName, _VariantName: SystemString; const Value: Variant);
 var
   nsl: TCoreClassStrings;
   vl : THashVariantList;
@@ -198,7 +198,7 @@ begin
   vl[_VariantName] := Value;
 end;
 
-function TSectionTextData.GetVariantList(aName: string): THashVariantList;
+function TSectionTextData.GetVariantList(aName: SystemString): THashVariantList;
 var
   nsl: TCoreClassStrings;
   vt : THashVariantTextStream;
@@ -220,7 +220,7 @@ begin
     end;
 end;
 
-procedure TSectionTextData.SetVariantList(aName: string; const Value: THashVariantList);
+procedure TSectionTextData.SetVariantList(aName: SystemString; const Value: THashVariantList);
 var
   h: THashVariantTextStream;
 begin
@@ -233,7 +233,7 @@ begin
   DisposeObject(h);
 end;
 
-procedure TSectionTextData.AddDataSection(aSection: string; TextList: TCoreClassStrings);
+procedure TSectionTextData.AddDataSection(aSection: SystemString; TextList: TCoreClassStrings);
 begin
   while (TextList.Count > 0) and (TextList[0] = '') do
       TextList.Delete(0);
@@ -303,23 +303,23 @@ begin
   FComment.Clear;
 end;
 
-procedure TSectionTextData.Delete(aName: string);
+procedure TSectionTextData.Delete(aName: SystemString);
 begin
   FSectionTextList.Delete(aName);
   FSectionVariantList.Delete(aName);
 end;
 
-function TSectionTextData.Exists(aName: string): Boolean;
+function TSectionTextData.Exists(aName: SystemString): Boolean;
 begin
   Result := FSectionTextList.Exists(aName) or FSectionVariantList.Exists(aName);
 end;
 
-function TSectionTextData.GetDefaultValue(const SectionName, KeyName: string; const DefaultValue: Variant): Variant;
+function TSectionTextData.GetDefaultValue(const SectionName, KeyName: SystemString; const DefaultValue: Variant): Variant;
 begin
   Result := VariantList[SectionName].GetDefaultValue(KeyName, DefaultValue);
 end;
 
-procedure TSectionTextData.SetDefaultValue(const SectionName, KeyName: string; const Value: Variant);
+procedure TSectionTextData.SetDefaultValue(const SectionName, KeyName: SystemString; const Value: Variant);
 begin
   Hit[SectionName, KeyName] := Value;
 end;
@@ -327,7 +327,7 @@ end;
 function TSectionTextData.DataImport(TextList: TCoreClassStrings): Boolean;
 var
   i    : Integer;
-  nsect: string;
+  nsect: SystemString;
   ntLst: TCoreClassStrings;
 
   tmpSecLst: TCoreClassStrings;
@@ -464,7 +464,7 @@ function TSectionTextData.Same(sour: TSectionTextData): Boolean;
 var
   i : Integer;
   ns: TCoreClassStringList;
-  n : string;
+  n : SystemString;
 begin
   Result := False;
   ReBuildList;
@@ -531,7 +531,7 @@ begin
   DisposeObject(n);
 end;
 
-procedure TSectionTextData.LoadFromFile(FileName: string);
+procedure TSectionTextData.LoadFromFile(FileName: SystemString);
 var
   ns: TMemoryStream64;
 begin
@@ -550,7 +550,7 @@ begin
   end;
 end;
 
-procedure TSectionTextData.SaveToFile(FileName: string);
+procedure TSectionTextData.SaveToFile(FileName: SystemString);
 var
   ns: TMemoryStream64;
 begin
@@ -563,7 +563,7 @@ begin
   end;
 end;
 
-function TSectionTextData.GetAsText: string;
+function TSectionTextData.GetAsText: SystemString;
 var
   ns: TCoreClassStringList;
 begin
@@ -573,7 +573,7 @@ begin
   DisposeObject(ns);
 end;
 
-procedure TSectionTextData.SetAsText(const Value: string);
+procedure TSectionTextData.SetAsText(const Value: SystemString);
 var
   ns: TCoreClassStringList;
 begin
@@ -654,12 +654,12 @@ begin
   FSectionTextList.GetNameList(Dest);
 end;
 
-function TSectionTextData.GetSectionObjectName(_Obj: THashVariantList): string;
+function TSectionTextData.GetSectionObjectName(_Obj: THashVariantList): SystemString;
 begin
   Result := FSectionVariantList.GetObjAsName(_Obj);
 end;
 
-function THashVariantTextStream.GetNames(aName: string): Variant;
+function THashVariantTextStream.GetNames(aName: SystemString): Variant;
 begin
   if FVariantList <> nil then
       Result := FVariantList[aName]
@@ -667,7 +667,7 @@ begin
       Result := NULL;
 end;
 
-procedure THashVariantTextStream.SetNames(aName: string; const Value: Variant);
+procedure THashVariantTextStream.SetNames(aName: SystemString; const Value: Variant);
 begin
   if FVariantList <> nil then
       FVariantList[aName] := Value;
@@ -690,7 +690,7 @@ begin
       FVariantList.Clear;
 end;
 
-class function THashVariantTextStream.VToStr(v: Variant): string;
+class function THashVariantTextStream.VToStr(v: Variant): SystemString;
 var
   n, b64: umlString;
 begin
@@ -744,7 +744,7 @@ begin
   end;
 end;
 
-class function THashVariantTextStream.StrToV(s: string): Variant;
+class function THashVariantTextStream.StrToV(s: SystemString): Variant;
 var
   n,b64: umlString;
 begin
@@ -818,7 +818,7 @@ procedure THashVariantTextStream.DataExport(TextList: TCoreClassStrings);
 var
   i        : Integer;
   vl       : TCoreClassList;
-  TextValue: string;
+  TextValue: SystemString;
 begin
   if FVariantList = nil then
       Exit;
@@ -869,7 +869,7 @@ begin
   DisposeObject(n);
 end;
 
-procedure THashVariantTextStream.LoadFromFile(FileName: string);
+procedure THashVariantTextStream.LoadFromFile(FileName: SystemString);
 var
   ns: TCoreClassStream;
 begin
@@ -881,7 +881,7 @@ begin
   end;
 end;
 
-procedure THashVariantTextStream.SaveToFile(FileName: string);
+procedure THashVariantTextStream.SaveToFile(FileName: SystemString);
 var
   ns: TCoreClassStream;
 begin
@@ -893,7 +893,7 @@ begin
   end;
 end;
 
-procedure THashVariantTextStream.LoadFromText(aText: string);
+procedure THashVariantTextStream.LoadFromText(aText: SystemString);
 var
   n: TCoreClassStrings;
 begin
@@ -905,7 +905,7 @@ begin
   DisposeObject(n);
 end;
 
-procedure THashVariantTextStream.SaveToText(var aText: string);
+procedure THashVariantTextStream.SaveToText(var aText: SystemString);
 var
   n: TCoreClassStrings;
 begin
@@ -917,12 +917,12 @@ begin
   DisposeObject(n);
 end;
 
-function THashVariantTextStream.Text: string;
+function THashVariantTextStream.Text: SystemString;
 begin
   SaveToText(Result);
 end;
 
-function THashVariantTextStream.GetValue(aName: string; v: Variant): Variant;
+function THashVariantTextStream.GetValue(aName: SystemString; v: Variant): Variant;
 begin
   Result := Names[aName];
   if VarIsNull(Result) then

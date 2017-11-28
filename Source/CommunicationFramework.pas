@@ -403,7 +403,7 @@ type
     FPeerClientUserSpecialClass: TPeerClientUserSpecialClass;
     FIdleTimeout               : TTimeTickValue;
     FSendDataCompressed        : Boolean;
-    FAllowParallelEncrypt      : Boolean;
+    FUsedParallelEncrypt       : Boolean;
     FSyncOnResult              : Boolean;
     FCipherStyle               : TCipherStyle;
     FHashStyle                 : THashStyle;
@@ -471,7 +471,7 @@ type
     property OnPeerClientCreateNotify: TBackcalls read FOnPeerClientCreateNotify;
     property OnPeerClientDestroyNotify: TBackcalls read FOnPeerClientDestroyNotify;
 
-    property AllowParallelEncrypt: Boolean read FAllowParallelEncrypt write FAllowParallelEncrypt;
+    property UsedParallelEncrypt: Boolean read FUsedParallelEncrypt write FUsedParallelEncrypt;
     property SyncOnResult: Boolean read FSyncOnResult write FSyncOnResult;
     property CipherStyle: TCipherStyle read FCipherStyle;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
@@ -1846,7 +1846,11 @@ begin
           Data1 := Self;
           Data5 := nQueue;
           Data3 := ResultText;
+          {$IFDEF FPC}
+          OnExecuteMethod := @FOwnerFramework.DelayExecuteOnResultState;
+          {$ELSE}
           OnExecuteMethod := FOwnerFramework.DelayExecuteOnResultState;
+          {$ENDIF}
         end;
     end;
 end;
@@ -2649,7 +2653,7 @@ end;
 
 procedure TPeerClient.Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; Enc: Boolean);
 begin
-  if FOwnerFramework.FAllowParallelEncrypt then
+  if FOwnerFramework.FUsedParallelEncrypt then
       SequEncryptCBC(cs, DataPtr, Size, k, Enc, True)
   else
       SequEncryptCBCWithDirect(cs, DataPtr, Size, k, Enc, True);
@@ -2892,7 +2896,7 @@ begin
   FOnExecuteCommand := nil;
   FOnSendCommand := nil;
   FIdleTimeout := 0;
-  FAllowParallelEncrypt := True;
+  FUsedParallelEncrypt := True;
   FSyncOnResult := False;
   FCipherStyle := TCipherStyle.csNone;
   FSendDataCompressed := True;
@@ -2930,7 +2934,7 @@ end;
 
 procedure TCommunicationFramework.SwitchMaxPerformance;
 begin
-  FAllowParallelEncrypt := False;
+  FUsedParallelEncrypt := False;
   FHashStyle := THashStyle.hsNone;
   FSendDataCompressed := False;
   FCipherStyle := TCipherStyle.csNone;
@@ -2938,7 +2942,7 @@ end;
 
 procedure TCommunicationFramework.SwitchMaxSafe;
 begin
-  FAllowParallelEncrypt := True;
+  FUsedParallelEncrypt := True;
   FHashStyle := THashStyle.hsSHA1;
   FSendDataCompressed := True;
   FCipherStyle := TCipherStyle.csDES192;
@@ -2946,7 +2950,7 @@ end;
 
 procedure TCommunicationFramework.SwitchDefaultPerformance;
 begin
-  FAllowParallelEncrypt := True;
+  FUsedParallelEncrypt := True;
   FHashStyle := THashStyle.hsFastMD5;
   FSendDataCompressed := True;
   FCipherStyle := TCipherStyle.csBlowfish;

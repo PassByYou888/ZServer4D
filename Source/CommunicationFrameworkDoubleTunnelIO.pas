@@ -1,9 +1,9 @@
-{******************************************************************************}
-{* double tunnel IO framework(incl Auth and File service)                     *}
-{* written by QQ 600585@qq.com                                                *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * double tunnel IO framework(incl Auth and File service)                     * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit CommunicationFrameworkDoubleTunnelIO;
 
@@ -16,7 +16,7 @@ uses CoreClasses,
   ListEngine, UnicodeMixedLib,
   DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
   DoStatusIO, Cadencer, NotifyObjectBase, DBCompressPackageForFile,
-  ObjectDataManager, CoreCipher;
+  ObjectDataManager, CoreCipher, PascalStrings;
 
 type
   TCommunicationFramework_DoubleTunnelService = class;
@@ -242,10 +242,11 @@ type
     function TunnelLink: Boolean; overload; virtual;
 
     // unblock mode
+    {$IFNDEF FPC}
     procedure UserLogin(UserID, Passwd: string; OnProc: TStateProc); overload; virtual;
     procedure RegisterUser(UserID, Passwd: string; OnProc: TStateProc); overload; virtual;
     procedure TunnelLink(OnProc: TStateProc); overload; virtual;
-
+    {$ENDIF}
     procedure SyncCadencer; virtual;
 
     // Block mode
@@ -1069,7 +1070,7 @@ begin
   if umlDirectoryExists(umlCombinePath(UserDefineIO.UserPath, dn)) then
       flst := umlGetFileListWithFullPath(umlCombinePath(UserDefineIO.UserPath, dn))
   else
-      flst := [];
+      SetLength(flst, 0);
 
   PostFileOfBatchSendDE := TDataFrameEngine.Create;
   PostFileOfBatchSendDE.WriteUInt64(RemoteBackcallAddr);
@@ -1196,7 +1197,7 @@ begin
   if umlDirectoryExists(umlCombinePath(GetUserPath(UserID), dn)) then
       flst := umlGetFileListWithFullPath(umlCombinePath(GetUserPath(UserID), dn))
   else
-      flst := [];
+      SetLength(flst, 0);
 
   PostFileOfBatchSendDE := TDataFrameEngine.Create;
   PostFileOfBatchSendDE.WriteUInt64(RemoteBackcallAddr);
@@ -1408,7 +1409,11 @@ begin
   FLoginUserDefineIOList := THashObjectList.Create(False, 8192);
 
   FCadencerEngine := TCadencer.Create;
+  {$IFDEF FPC}
+  FCadencerEngine.OnProgress := @CadencerProgress;
+  {$ELSE}
   FCadencerEngine.OnProgress := CadencerProgress;
+  {$ENDIF}
   FProgressEngine := TNProgressPost.Create;
 
   SwitchServiceAsDefaultPerformance;
@@ -1718,38 +1723,54 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService.RegisterCommand;
 begin
+  {$IFDEF FPC}
+  FRecvTunnel.RegisterStream('UserLogin').OnExecute := @Command_UserLogin;
+  FRecvTunnel.RegisterStream('RegisterUser').OnExecute := @Command_RegisterUser;
+  FRecvTunnel.RegisterStream('TunnelLink').OnExecute := @Command_TunnelLink;
+  FRecvTunnel.RegisterStream('ChangePasswd').OnExecute := @Command_ChangePasswd;
+  FRecvTunnel.RegisterStream('CustomNewUser').OnExecute := @Command_CustomNewUser;
+  FRecvTunnel.RegisterDirectStream('ProcessStoreQueueCMD').OnExecute := @Command_ProcessStoreQueueCMD;
+  FRecvTunnel.RegisterStream('GetPublicFileList').OnExecute := @Command_GetPublicFileList;
+  FRecvTunnel.RegisterStream('GetPrivateFileList').OnExecute := @Command_GetPrivateFileList;
+  FRecvTunnel.RegisterStream('GetPrivateDirectoryList').OnExecute := @Command_GetPrivateDirectoryList;
+  FRecvTunnel.RegisterStream('GetUserPrivateFileList').OnExecute := @Command_GetUserPrivateFileList;
+  FRecvTunnel.RegisterStream('GetUserPrivateDirectoryList').OnExecute := @Command_GetUserPrivateDirectoryList;
+  FRecvTunnel.RegisterStream('CreatePrivateDirectory').OnExecute := @Command_CreatePrivateDirectory;
+  FRecvTunnel.RegisterStream('GetPublicFile').OnExecute := @Command_GetPublicFile;
+  FRecvTunnel.RegisterStream('GetPrivateFile').OnExecute := @Command_GetPrivateFile;
+  FRecvTunnel.RegisterDirectStream('GetPrivateFileOfBatch').OnExecute := @Command_GetPrivateFileOfBatch;
+  FRecvTunnel.RegisterStream('GetUserPrivateFile').OnExecute := @Command_GetUserPrivateFile;
+  FRecvTunnel.RegisterDirectStream('GetUserPrivateFileOfBatch').OnExecute := @Command_GetUserPrivateFileOfBatch;
+  FRecvTunnel.RegisterDirectStream('PostPublicFileInfo').OnExecute := @Command_PostPublicFileInfo;
+  FRecvTunnel.RegisterDirectStream('PostPrivateFileInfo').OnExecute := @Command_PostPrivateFileInfo;
+  FRecvTunnel.RegisterBigStream('PostFile').OnExecute := @Command_PostFile;
+  FRecvTunnel.RegisterDirectStream('PostFileOver').OnExecute := @Command_PostFileOver;
+  FRecvTunnel.RegisterStream('GetCurrentCadencer').OnExecute := @Command_GetCurrentCadencer;
+
+  {$ELSE}
   FRecvTunnel.RegisterStream('UserLogin').OnExecute := Command_UserLogin;
   FRecvTunnel.RegisterStream('RegisterUser').OnExecute := Command_RegisterUser;
   FRecvTunnel.RegisterStream('TunnelLink').OnExecute := Command_TunnelLink;
-
   FRecvTunnel.RegisterStream('ChangePasswd').OnExecute := Command_ChangePasswd;
   FRecvTunnel.RegisterStream('CustomNewUser').OnExecute := Command_CustomNewUser;
-
   FRecvTunnel.RegisterDirectStream('ProcessStoreQueueCMD').OnExecute := Command_ProcessStoreQueueCMD;
-
   FRecvTunnel.RegisterStream('GetPublicFileList').OnExecute := Command_GetPublicFileList;
-
   FRecvTunnel.RegisterStream('GetPrivateFileList').OnExecute := Command_GetPrivateFileList;
   FRecvTunnel.RegisterStream('GetPrivateDirectoryList').OnExecute := Command_GetPrivateDirectoryList;
-
   FRecvTunnel.RegisterStream('GetUserPrivateFileList').OnExecute := Command_GetUserPrivateFileList;
   FRecvTunnel.RegisterStream('GetUserPrivateDirectoryList').OnExecute := Command_GetUserPrivateDirectoryList;
-
   FRecvTunnel.RegisterStream('CreatePrivateDirectory').OnExecute := Command_CreatePrivateDirectory;
-
   FRecvTunnel.RegisterStream('GetPublicFile').OnExecute := Command_GetPublicFile;
   FRecvTunnel.RegisterStream('GetPrivateFile').OnExecute := Command_GetPrivateFile;
   FRecvTunnel.RegisterDirectStream('GetPrivateFileOfBatch').OnExecute := Command_GetPrivateFileOfBatch;
-
   FRecvTunnel.RegisterStream('GetUserPrivateFile').OnExecute := Command_GetUserPrivateFile;
   FRecvTunnel.RegisterDirectStream('GetUserPrivateFileOfBatch').OnExecute := Command_GetUserPrivateFileOfBatch;
-
   FRecvTunnel.RegisterDirectStream('PostPublicFileInfo').OnExecute := Command_PostPublicFileInfo;
   FRecvTunnel.RegisterDirectStream('PostPrivateFileInfo').OnExecute := Command_PostPrivateFileInfo;
   FRecvTunnel.RegisterBigStream('PostFile').OnExecute := Command_PostFile;
   FRecvTunnel.RegisterDirectStream('PostFileOver').OnExecute := Command_PostFileOver;
-
   FRecvTunnel.RegisterStream('GetCurrentCadencer').OnExecute := Command_GetCurrentCadencer;
+  {$ENDIF}
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService.UnRegisterCommand;
@@ -2038,7 +2059,11 @@ begin
   FRecvFileName := '';
 
   FCadencerEngine := TCadencer.Create;
+  {$IFDEF FPC}
+  FCadencerEngine.OnProgress := @CadencerProgress;
+  {$ELSE}
   FCadencerEngine.OnProgress := CadencerProgress;
+  {$ENDIF}
   FLastCadencerTime := 0;
   FServerDelay := 0;
 
@@ -2200,6 +2225,8 @@ begin
   DisposeObject(resDE);
 end;
 
+{$IFNDEF FPC}
+
 procedure TCommunicationFramework_DoubleTunnelClient.UserLogin(UserID, Passwd: string; OnProc: TStateProc);
 var
   sendDE: TDataFrameEngine;
@@ -2306,6 +2333,8 @@ begin
 
   DisposeObject(sendDE);
 end;
+{$ENDIF}
+
 
 procedure TCommunicationFramework_DoubleTunnelClient.SyncCadencer;
 var
@@ -2317,8 +2346,11 @@ begin
   FLastCadencerTime := FCadencerEngine.CurrentTime;
   FServerDelay := 0;
   sendDE.WriteDouble(FLastCadencerTime);
+  {$IFDEF FPC}
+  FSendTunnel.SendStreamCmd('GetCurrentCadencer', sendDE, @GetCurrentCadencer_StreamResult);
+  {$ELSE}
   FSendTunnel.SendStreamCmd('GetCurrentCadencer', sendDE, GetCurrentCadencer_StreamResult);
-
+  {$ENDIF}
   DisposeObject(sendDE);
 end;
 
@@ -2604,8 +2636,11 @@ begin
   p^.OnComplete := OnComplete;
   sendDE.WriteUInt64(UInt64(Pointer(p)));
 
+  {$IFDEF FPC}
+  FSendTunnel.SendStreamCmd('GetPublicFile', sendDE, p, nil, @GetFile_StreamParamResult);
+  {$ELSE}
   FSendTunnel.SendStreamCmd('GetPublicFile', sendDE, p, nil, GetFile_StreamParamResult);
-
+  {$ENDIF}
   DisposeObject(sendDE);
 end;
 
@@ -2671,8 +2706,11 @@ begin
   p^.OnComplete := OnComplete;
   sendDE.WriteUInt64(UInt64(Pointer(p)));
 
+  {$IFDEF FPC}
+  FSendTunnel.SendStreamCmd('GetPrivateFile', sendDE, p, nil, @GetPrivateFile_StreamParamResult);
+  {$ELSE}
   FSendTunnel.SendStreamCmd('GetPrivateFile', sendDE, p, nil, GetPrivateFile_StreamParamResult);
-
+  {$ENDIF}
   DisposeObject(sendDE);
 end;
 
@@ -2790,8 +2828,11 @@ begin
   p^.OnComplete := OnComplete;
   sendDE.WriteUInt64(UInt64(Pointer(p)));
 
+  {$IFDEF FPC}
+  FSendTunnel.SendStreamCmd('GetUserPrivateFile', sendDE, p, nil, @GetUserPrivateFile_StreamParamResult);
+  {$ELSE}
   FSendTunnel.SendStreamCmd('GetUserPrivateFile', sendDE, p, nil, GetUserPrivateFile_StreamParamResult);
-
+  {$ENDIF}
   DisposeObject(sendDE);
 end;
 
@@ -2955,10 +2996,17 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelClient.RegisterCommand;
 begin
+  {$IFDEF FPC}
+  FRecvTunnel.RegisterDirectStream('FileInfo').OnExecute := @Command_FileInfo;
+  FRecvTunnel.RegisterBigStream('PostFile').OnExecute := @Command_PostFile;
+  FRecvTunnel.RegisterDirectStream('PostFileOver').OnExecute := @Command_PostFileOver;
+  FRecvTunnel.RegisterDirectStream('PostFileOfBatchOver').OnExecute := @Command_PostFileOfBatchOver;
+  {$ELSE}
   FRecvTunnel.RegisterDirectStream('FileInfo').OnExecute := Command_FileInfo;
   FRecvTunnel.RegisterBigStream('PostFile').OnExecute := Command_PostFile;
   FRecvTunnel.RegisterDirectStream('PostFileOver').OnExecute := Command_PostFileOver;
   FRecvTunnel.RegisterDirectStream('PostFileOfBatchOver').OnExecute := Command_PostFileOfBatchOver;
+  {$ENDIF}
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient.UnRegisterCommand;

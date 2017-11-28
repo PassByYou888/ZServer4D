@@ -26,8 +26,8 @@
     <Transaction>2017/11/06 15:16:59.000.085,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXCliFrm.fmx</Transaction>
     <Transaction>2017/11/06 15:16:59.000.085,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXCliFrm.pas</Transaction>
     <Transaction>2017/11/06 15:17:03.000.090,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXClient.dproj</Transaction>
-    <Transaction>2017/11/17 21:33:00.000.867,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
     <Transaction>2017/11/17 21:33:00.000.887,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
+    <Transaction>2017/11/17 21:33:00.000.867,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
