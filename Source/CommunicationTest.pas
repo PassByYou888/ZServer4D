@@ -52,10 +52,8 @@ begin
       PrepareResultDataFrame.WriteInteger(i);
 
   PrepareBigStream := TMemoryStream64.Create;
-  for i := 0 to 1024 * 1024 * 8 do
-    begin
-      PrepareBigStream.WriteData(Random(i));
-    end;
+  PrepareBigStream.SetSize(1024*1024);
+  FillByte(PrepareBigStream.Memory^, PrepareBigStream.Size, $99);
 
   TempStream := TMemoryStream64.Create;
 

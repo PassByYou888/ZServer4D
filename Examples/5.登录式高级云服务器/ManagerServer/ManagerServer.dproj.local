@@ -35,7 +35,7 @@
     <Transaction>2017/11/07 13:12:47.000.455,C:\TextGame\core\ObjectData\StreamList.pas=</Transaction>
     <Transaction>2017/11/17 21:47:45.000.871,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
     <Transaction>2017/11/17 21:47:45.000.930,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
-    <Transaction>2017/11/27 00:57:44.116,=C:\git\ZServer4D\Source\CommunicationTest.pas</Transaction>
+    <Transaction>2017/11/27 00:57:44.000.116,=C:\git\ZServer4D\Source\CommunicationTest.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="ae373968"/>

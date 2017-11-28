@@ -31,6 +31,6 @@
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
-		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice32="_iosdevice_64a3b1b446e7f6e5162d62452b28676831af21c1" iOSDevice64="_iosdevice_64a3b1b446e7f6e5162d62452b28676831af21c1"/>
+		<Pmini iOSSimulator="iPhone5" iOSDevice32="_iosdevice_64a3b1b446e7f6e5162d62452b28676831af21c1" iOSDevice64="_iosdevice_64a3b1b446e7f6e5162d62452b28676831af21c1"/>
 	</ActiveMobileDevice>
 </BorlandProject>

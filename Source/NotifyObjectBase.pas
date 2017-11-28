@@ -52,6 +52,7 @@ type
     Data2: TCoreClassObject;
     Data3: Variant;
     Data4: Variant;
+    Data5: Pointer;
     Delay: Double;
 
     OnExecuteCall  : TNPostExecuteCall;
@@ -218,6 +219,7 @@ begin
   Data2 := nil;
   Data3 := NULL;
   Data4 := NULL;
+  Data5 := nil;
   Delay := 0;
 
   OnExecuteCall := nil;

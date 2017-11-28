@@ -1,12 +1,18 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{5D89AFE7-C3D1-445A-875E-22D6E5AEFEF1}</ProjectGuid>
+        <ProjectGuid>{5377FDB1-4D23-4C5D-8A63-B845E8EB8FF1}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
         <Projects Include="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj">
@@ -34,6 +40,9 @@
             <Dependencies/>
         </Projects>
         <Projects Include="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\1.单向服务器框架\FMXCli\FMXClient.dproj">
@@ -82,6 +91,24 @@
     </Target>
     <Target Name="ADServer:Make">
         <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRClient">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj"/>
+    </Target>
+    <Target Name="AFDRClient:Clean">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRClient:Make">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRServer">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj"/>
+    </Target>
+    <Target Name="AFDRServer:Clean">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRServer:Make">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="CoreLogicServer">
         <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj"/>
@@ -164,6 +191,15 @@
     <Target Name="FMXADClient:Make">
         <MSBuild Projects="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj" Targets="Make"/>
     </Target>
+    <Target Name="FMXAFDRClient">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Clean">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Make">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj" Targets="Make"/>
+    </Target>
     <Target Name="FMXClient">
         <MSBuild Projects="..\1.单向服务器框架\FMXCli\FMXClient.dproj"/>
     </Target>
@@ -228,13 +264,13 @@
         <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="ADClient;ADServer;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer"/>
+        <CallTarget Targets="ADClient;ADServer;AFDRClient;AFDRServer;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ADClient:Clean;ADServer:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean"/>
+        <CallTarget Targets="ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ADClient:Make;ADServer:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make"/>
+        <CallTarget Targets="ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

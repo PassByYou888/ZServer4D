@@ -472,12 +472,12 @@ end;
 function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
 begin
   Result := '';
-  RaiseInfo('no Suppport IndyServer');
+  RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
 procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
-  RaiseInfo('no Suppport IndyServer');
+  RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
 end.

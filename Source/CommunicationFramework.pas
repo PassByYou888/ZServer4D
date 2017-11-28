@@ -3,6 +3,10 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 (* https://github.com/PassByYou888/ZServer4D *)
 { ****************************************************************************** }
+(*
+  update history
+  2017-11-28  support anonymous function byQQ600585
+*)
 
 unit CommunicationFramework;
 
@@ -211,6 +215,8 @@ type
     ResultDataFrame                     : TDataFrameEngine;
     FSyncPick                           : PQueueData;
     FWaitSendBusy                       : Boolean;
+    FReceiveCommandRuning               : Boolean;
+    FReceiveResultRuning                : Boolean;
   private
     // user
     FUserData           : Pointer;
@@ -307,6 +313,8 @@ type
     property AllSendProcessing: Boolean read FAllSendProcessing;
     property BigStreamProcessing: Boolean read FBigStreamReceiveProcessing;
     property WaitSendBusy: Boolean read FWaitSendBusy;
+    property ReceiveCommandRuning: Boolean read FReceiveCommandRuning;
+    property ReceiveResultRuning: Boolean read FReceiveResultRuning;
 
     // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
@@ -396,6 +404,7 @@ type
     FIdleTimeout               : TTimeTickValue;
     FSendDataCompressed        : Boolean;
     FAllowParallelEncrypt      : Boolean;
+    FSyncOnResult              : Boolean;
     FCipherStyle               : TCipherStyle;
     FHashStyle                 : THashStyle;
     FPrintParams               : THashVariantList;
@@ -415,6 +424,8 @@ type
     function CanExecuteCommand(Sender: TPeerClient; Cmd: string): Boolean; virtual;
     function CanSendCommand(Sender: TPeerClient; Cmd: string): Boolean; virtual;
     function CanRegCommand(Sender: TCommunicationFramework; Cmd: string): Boolean; virtual;
+
+    procedure DelayExecuteOnResultState(Sender: TNPostExecute);
   public
     Statistics                    : array [TStatisticsType] of Int64;
     CmdRecvStatistics             : THashVariantList;
@@ -432,7 +443,9 @@ type
     procedure UnLockClients;
 
     property ProgressPost: TNProgressPostWithCadencer read FProgressPost;
+
     procedure ProgressBackground; virtual;
+
     procedure ProgressWaitSendOfClient(Client: TPeerClient); virtual;
 
     function DeleteRegistedCMD(Cmd: string): Boolean;
@@ -459,6 +472,7 @@ type
     property OnPeerClientDestroyNotify: TBackcalls read FOnPeerClientDestroyNotify;
 
     property AllowParallelEncrypt: Boolean read FAllowParallelEncrypt write FAllowParallelEncrypt;
+    property SyncOnResult: Boolean read FSyncOnResult write FSyncOnResult;
     property CipherStyle: TCipherStyle read FCipherStyle;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
     property SendDataCompressed: Boolean read FSendDataCompressed;
@@ -631,6 +645,8 @@ const
   cdtDirectStream  = 46;
   cdtBigStream     = 75;
 
+  c_DefaultPrintID = $FFFFFFFF;
+
 var
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
 
@@ -641,6 +657,7 @@ function NewQueueData: PQueueData; inline;
 function TranslateBindAddr(const Addr: string): string; inline;
 
 procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod); inline;
+procedure DoExecuteResult(c: TPeerClient; QueuePtr: PQueueData; AResultText: string; AResultDF: TDataFrameEngine); inline;
 
 {$IFNDEF FPC}
 function WaitSendConsoleCmdInThread(th: TCoreClassThread; cf: TCommunicationFrameworkClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
@@ -726,6 +743,85 @@ begin
       except
       end;
     end;
+end;
+
+procedure DoExecuteResult(c: TPeerClient; QueuePtr: PQueueData; AResultText: string; AResultDF: TDataFrameEngine);
+var
+  AInData: TDataFrameEngine;
+begin
+  if QueuePtr = nil then
+      exit;
+
+  c.FReceiveResultRuning := True;
+
+  try
+    if Assigned(QueuePtr^.OnConsoleMethod) then
+      begin
+        c.PrintParam('execute console on result cmd: %s', QueuePtr^.Cmd);
+        try
+            QueuePtr^.OnConsoleMethod(c, AResultText);
+        except
+        end;
+      end;
+    {$IFNDEF FPC}
+    if Assigned(QueuePtr^.OnConsoleProc) then
+      begin
+        c.PrintParam('execute console on proc cmd: %s', QueuePtr^.Cmd);
+        try
+            QueuePtr^.OnConsoleProc(c, AResultText);
+        except
+        end;
+      end;
+    {$ENDIF}
+    if Assigned(QueuePtr^.OnStreamMethod) then
+      begin
+        c.PrintParam('execute stream on result cmd: %s', QueuePtr^.Cmd);
+        try
+          AResultDF.Reader.index := 0;
+          QueuePtr^.OnStreamMethod(c, AResultDF);
+        except
+        end;
+      end;
+    if Assigned(QueuePtr^.OnStreamParamMethod) then
+      begin
+        c.PrintParam('execute stream on param result cmd: %s', QueuePtr^.Cmd);
+        try
+          AResultDF.Reader.index := 0;
+          AInData := TDataFrameEngine.Create;
+          QueuePtr^.StreamData.Position := 0;
+          AInData.DecodeFrom(QueuePtr^.StreamData, True);
+          QueuePtr^.OnStreamParamMethod(c, QueuePtr^.Param1, QueuePtr^.Param2, AInData, AResultDF);
+          DisposeObject(AInData);
+        except
+        end;
+      end;
+    {$IFNDEF FPC}
+    if Assigned(QueuePtr^.OnStreamProc) then
+      begin
+        c.PrintParam('execute stream on proc cmd: %s', QueuePtr^.Cmd);
+        try
+          AResultDF.Reader.index := 0;
+          QueuePtr^.OnStreamProc(c, AResultDF);
+        except
+        end;
+      end;
+    if Assigned(QueuePtr^.OnStreamParamProc) then
+      begin
+        c.PrintParam('execute stream on param proc cmd: %s', QueuePtr^.Cmd);
+        try
+          AResultDF.Reader.index := 0;
+          AInData := TDataFrameEngine.Create;
+          QueuePtr^.StreamData.Position := 0;
+          AInData.DecodeFrom(QueuePtr^.StreamData, True);
+          QueuePtr^.OnStreamParamProc(c, QueuePtr^.Param1, QueuePtr^.Param2, AInData, AResultDF);
+          DisposeObject(AInData);
+        except
+        end;
+      end;
+    {$ENDIF}
+  finally
+      c.FReceiveResultRuning := False;
+  end;
 end;
 
 type
@@ -1469,10 +1565,13 @@ procedure TPeerClient.Sync_ExecuteConsole;
 var
   d: TTimeTickValue;
 begin
+  FReceiveCommandRuning := True;
   PrintParam('execute console cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
   FOwnerFramework.ExecuteConsole(Self, FInCmd, FInText, FOutText);
+  FReceiveCommandRuning := False;
+
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecConsole]);
@@ -1483,10 +1582,13 @@ procedure TPeerClient.Sync_ExecuteStream;
 var
   d: TTimeTickValue;
 begin
+  FReceiveCommandRuning := True;
   PrintParam('execute stream cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
   FOwnerFramework.ExecuteStream(Self, FInCmd, FInDataFrame, FOutDataFrame);
+  FReceiveCommandRuning := False;
+
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecStream]);
@@ -1497,10 +1599,13 @@ procedure TPeerClient.Sync_ExecuteDirectConsole;
 var
   d: TTimeTickValue;
 begin
+  FReceiveCommandRuning := True;
   PrintParam('execute direct console cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
   FOwnerFramework.ExecuteDirectConsole(Self, FInCmd, FInText);
+  FReceiveCommandRuning := False;
+
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestConsole]);
@@ -1511,10 +1616,13 @@ procedure TPeerClient.Sync_ExecuteDirectStream;
 var
   d: TTimeTickValue;
 begin
+  FReceiveCommandRuning := True;
   PrintParam('execute direct stream cmd:%s', FInCmd);
 
   d := GetTimeTickCount;
   FOwnerFramework.ExecuteDirectStream(Self, FInCmd, FInDataFrame);
+  FReceiveCommandRuning := False;
+
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestStream]);
@@ -1651,8 +1759,10 @@ procedure TPeerClient.Sync_ExecuteBigStream;
 var
   d: TTimeTickValue;
 begin
+  FReceiveCommandRuning := True;
   d := GetTimeTickCount;
   FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FBigStreamReceive, FBigStreamTotal, FBigStreamCompleted);
+  FReceiveCommandRuning := False;
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
   FOwnerFramework.CmdRecvStatistics.IncValue(FBigStreamCmd, 1);
@@ -1715,73 +1825,29 @@ end;
 procedure TPeerClient.Sync_ExecuteResult;
 var
   AInData: TDataFrameEngine;
+  nQueue : PQueueData;
 begin
-  if FCurrentQueueData <> nil then
+  if FCurrentQueueData = nil then
+      exit;
+
+  if FOwnerFramework.FSyncOnResult then
     begin
-      if Assigned(FCurrentQueueData^.OnConsoleMethod) then
+      DoExecuteResult(Self, FCurrentQueueData, ResultText, ResultDataFrame);
+    end
+  else
+    begin
+      New(nQueue);
+      nQueue^ := FCurrentQueueData^;
+      InitQueueData(FCurrentQueueData^);
+
+      with FOwnerFramework.ProgressPost.PostExecute do
         begin
-          PrintParam('execute console on result cmd: %s', FCurrentQueueData^.Cmd);
-          try
-              FCurrentQueueData^.OnConsoleMethod(Self, ResultText);
-          except
-          end;
+          DataEng.Assign(ResultDataFrame);
+          Data1 := Self;
+          Data5 := nQueue;
+          Data3 := ResultText;
+          OnExecuteMethod := FOwnerFramework.DelayExecuteOnResultState;
         end;
-      {$IFNDEF FPC}
-      if Assigned(FCurrentQueueData^.OnConsoleProc) then
-        begin
-          PrintParam('execute console on proc cmd: %s', FCurrentQueueData^.Cmd);
-          try
-              FCurrentQueueData^.OnConsoleProc(Self, ResultText);
-          except
-          end;
-        end;
-      {$ENDIF}
-      if Assigned(FCurrentQueueData^.OnStreamMethod) then
-        begin
-          PrintParam('execute stream on result cmd: %s', FCurrentQueueData^.Cmd);
-          try
-            ResultDataFrame.Reader.index := 0;
-            FCurrentQueueData^.OnStreamMethod(Self, ResultDataFrame);
-          except
-          end;
-        end;
-      if Assigned(FCurrentQueueData^.OnStreamParamMethod) then
-        begin
-          PrintParam('execute stream on param result cmd: %s', FCurrentQueueData^.Cmd);
-          try
-            ResultDataFrame.Reader.index := 0;
-            AInData := TDataFrameEngine.Create;
-            FCurrentQueueData^.StreamData.Position := 0;
-            AInData.DecodeFrom(FCurrentQueueData^.StreamData, True);
-            FCurrentQueueData^.OnStreamParamMethod(Self, FCurrentQueueData^.Param1, FCurrentQueueData^.Param2, AInData, ResultDataFrame);
-            DisposeObject(AInData);
-          except
-          end;
-        end;
-      {$IFNDEF FPC}
-      if Assigned(FCurrentQueueData^.OnStreamProc) then
-        begin
-          PrintParam('execute stream on proc cmd: %s', FCurrentQueueData^.Cmd);
-          try
-            ResultDataFrame.Reader.index := 0;
-            FCurrentQueueData^.OnStreamProc(Self, ResultDataFrame);
-          except
-          end;
-        end;
-      if Assigned(FCurrentQueueData^.OnStreamParamProc) then
-        begin
-          PrintParam('execute stream on param proc cmd: %s', FCurrentQueueData^.Cmd);
-          try
-            ResultDataFrame.Reader.index := 0;
-            AInData := TDataFrameEngine.Create;
-            FCurrentQueueData^.StreamData.Position := 0;
-            AInData.DecodeFrom(FCurrentQueueData^.StreamData, True);
-            FCurrentQueueData^.OnStreamParamProc(Self, FCurrentQueueData^.Param1, FCurrentQueueData^.Param2, AInData, ResultDataFrame);
-            DisposeObject(AInData);
-          except
-          end;
-        end;
-      {$ENDIF}
     end;
 end;
 
@@ -1994,6 +2060,8 @@ begin
   FSyncPick := nil;
 
   FWaitSendBusy := False;
+  FReceiveCommandRuning := False;
+  FReceiveResultRuning := False;
 
   FUserData := nil;
   FUserValue := NULL;
@@ -2500,15 +2568,9 @@ var
   bCipherStyle: Byte;
 begin
   if not FPauseResultSend then
-    begin
-      Disconnect;
       exit;
-    end;
   if FResultDataBuffer.Size > 0 then
-    begin
-      Disconnect;
       exit;
-    end;
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stContinue]);
 
@@ -2735,7 +2797,7 @@ end;
 
 procedure TCommunicationFramework.DoPrint(const v: string);
 begin
-  DoStatus(v);
+  DoStatus(v, c_DefaultPrintID);
   inc(Statistics[TStatisticsType.stPrint]);
 end;
 
@@ -2795,6 +2857,28 @@ begin
   inc(Statistics[TStatisticsType.stTotalCommandReg]);
 end;
 
+procedure TCommunicationFramework.DelayExecuteOnResultState(Sender: TNPostExecute);
+var
+  cli   : TPeerClient;
+  nQueue: PQueueData;
+  i     : Integer;
+
+  ExistsCli: Boolean;
+begin
+  cli := TPeerClient(Sender.Data1);
+  nQueue := PQueueData(Sender.Data5);
+
+  ExistsCli := False;
+  for i := 0 to FRegistedClients.Count - 1 do
+    if FRegistedClients[i] = cli then
+        ExistsCli := True;
+
+  if ExistsCli then
+      DoExecuteResult(cli, nQueue, Sender.Data3, Sender.DataEng);
+
+  DisposeQueueData(nQueue);
+end;
+
 constructor TCommunicationFramework.Create;
 var
   st: TStatisticsType;
@@ -2809,6 +2893,7 @@ begin
   FOnSendCommand := nil;
   FIdleTimeout := 0;
   FAllowParallelEncrypt := True;
+  FSyncOnResult := False;
   FCipherStyle := TCipherStyle.csNone;
   FSendDataCompressed := True;
   FHashStyle := THashStyle.hsNone;
@@ -2896,6 +2981,11 @@ begin
         TPeerClient(FRegistedClients[i]).Progress;
         inc(i);
       end;
+  except
+  end;
+
+  try
+      ProgressPost.Progress;
   except
   end;
 

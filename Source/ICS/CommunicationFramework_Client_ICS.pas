@@ -222,6 +222,8 @@ begin
     end;
 
   FClient.PostQueueData(v);
+  FClient.ProcessAllSendCmd(nil, False, False);
+  inherited ProgressBackground;
 end;
 
 procedure TCommunicationFramework_Client_ICS.ProgressBackground;

@@ -8,7 +8,7 @@ interface
 uses Windows, SysUtils, Classes, Messages,
   OverByteIcsWSocket,
   CommunicationFramework_Server_ICSCustomSocket,
-  CommunicationFramework, CoreClasses, DoStatusIO;
+  CommunicationFramework, CoreClasses, DoStatusIO, DataFrameEngine;
 
 type
   TCommunicationFramework_Server_ICS = class;
@@ -89,6 +89,9 @@ type
 
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
+
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TCustomICSSocketServer read FDriver;
@@ -635,6 +638,17 @@ begin
       FDriver.ProcessMessages;
   except
   end;
+end;
+
+function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
+begin
+  Result := '';
+  RaiseInfo('WaitSend no Suppport ICSServer');
+end;
+
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+begin
+  RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
 initialization

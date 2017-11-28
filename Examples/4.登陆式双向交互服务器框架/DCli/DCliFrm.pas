@@ -156,9 +156,17 @@ begin
 
   if client.Connected then
     begin
-      if client.UserLogin(UserEdit.Text, PasswdEdit.Text) then
-        if client.TunnelLink then
-            DoStatus('double tunnel link success!');
+      // 嵌套式匿名函数支持
+      client.UserLogin(UserEdit.Text, PasswdEdit.Text,
+        procedure(const State: Boolean)
+        begin
+          if State then
+              client.TunnelLink(
+              procedure(const State: Boolean)
+              begin
+                DoStatus('double tunnel link success!');
+              end)
+        end);
     end;
 end;
 

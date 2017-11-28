@@ -4,7 +4,8 @@ interface
 
 uses SysUtils, Classes,
   Net.CrossSocket, Net.SocketAPI, Net.CrossSocket.Base, Net.CrossServer,
-  CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64;
+  CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64,
+  DataFrameEngine;
 
 type
   TContextIntfForServer = class(TPeerClient)
@@ -51,6 +52,9 @@ type
 
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
+
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TDriverEngine read FDriver;
@@ -410,6 +414,17 @@ begin
   inherited ProgressBackground;
 
   CheckSynchronize;
+end;
+
+function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
+begin
+  Result := '';
+  RaiseInfo('WaitSend no Suppport CrossSocket');
+end;
+
+procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+begin
+  RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
 initialization
