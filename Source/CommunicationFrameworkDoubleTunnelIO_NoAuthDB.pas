@@ -2,7 +2,7 @@ unit CommunicationFrameworkDoubleTunnelIO_NoAuthDB;
 
 interface
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 
 uses Classes,

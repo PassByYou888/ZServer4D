@@ -32,7 +32,7 @@ type
   end;
 
 const
-  MaxConn = 2000;
+  MaxConn = 1000;
 
 var
   EZClientForm: TEZClientForm;
@@ -100,10 +100,9 @@ procedure TEZClientForm.ConnectButtonClick(Sender: TObject);
 var
   i: Integer;
 begin
+  ConnectButton.Visible := False;
   for i := low(client) to high(client) do
       client[i].Connect(HostEdit.Text, 9818);
-
-  ConnectButton.Visible := False;
 end;
 
 end.

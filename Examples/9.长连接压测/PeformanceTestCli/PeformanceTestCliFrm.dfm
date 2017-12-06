@@ -20,7 +20,7 @@ object EZClientForm: TEZClientForm
     Top = 46
     Width = 113
     Height = 35
-    Caption = 'build 2000 connect'
+    Caption = 'build 1000 connect'
     TabOrder = 0
     OnClick = ConnectButtonClick
   end
