@@ -1,0 +1,165 @@
+Fastcode MM Challenge Benchmark Results: 29 nov 2010 11:00
+
+Benchmark: Address space creep (larger blocks) (Global Weight =   1,11 %)
+  D2010       : Speed Score =  95,7, Memory Score = 100,0, Combined Score =  97,9
+  ScaleMem    : Speed Score = 100,0, Memory Score =  81,9, Combined Score =  90,9
+
+Benchmark: Address space creep benchmark (Global Weight =   1,11 %)
+  D2010       : Speed Score =  99,6, Memory Score = 100,0, Combined Score =  99,8
+  ScaleMem    : Speed Score = 100,0, Memory Score =  63,4, Combined Score =  81,7
+
+Benchmark: Array Upsize 1 thread (Global Weight =   1,14 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  72,5, Memory Score =  55,0, Combined Score =  63,7
+
+Benchmark: Block downsize (Global Weight =   1,14 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  92,0, Memory Score =  64,3, Combined Score =  69,9
+
+Benchmark: Block size spread benchmark (Global Weight =   1,11 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  72,9, Memory Score =  49,7, Combined Score =  61,3
+
+Benchmark: Double Variables Access 18 arrays at a time (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  94,5, Memory Score =  29,1, Combined Score =  87,9
+
+Benchmark: Double Variables Access 3 arrays at a time (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  99,5, Memory Score =  29,1, Combined Score =  92,4
+
+Benchmark: Double Variables Access 6 arrays at a time (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  99,1, Memory Score =  29,8, Combined Score =  92,2
+
+Benchmark: FillCharMultiThread (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  90,8, Memory Score =  31,0, Combined Score =  60,9
+
+Benchmark: Fragmentation Test (Global Weight =   1,14 %)
+  D2010       : Speed Score =  97,1, Memory Score = 100,0, Combined Score =  99,4
+  ScaleMem    : Speed Score = 100,0, Memory Score =  95,4, Combined Score =  96,3
+
+Benchmark: Large block spread benchmark (Global Weight =   1,11 %)
+  D2010       : Speed Score =  98,4, Memory Score = 100,0, Combined Score =  99,2
+  ScaleMem    : Speed Score = 100,0, Memory Score =  79,3, Combined Score =  89,6
+
+Benchmark: Linked-list container benchmark (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  84,9, Memory Score =  53,5, Combined Score =  78,6
+
+Benchmark: ManyShortLivedThreads (Global Weight =   2,20 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  72,6, Memory Score =  14,6, Combined Score =  61,0
+
+Benchmark: MemFree1 (Global Weight =   1,11 %)
+  D2010       : Speed Score =  99,4, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score = 100,0, Memory Score =  27,2, Combined Score =  27,2
+
+Benchmark: MemFree2 (Global Weight =   1,11 %)
+  D2010       : Speed Score =  99,4, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score = 100,0, Memory Score =  28,1, Combined Score =  28,1
+
+Benchmark: Move Benchmark1 2 arrays at a time (Global Weight =   0,67 %)
+  D2010       : Speed Score =  97,3, Memory Score = 100,0, Combined Score =  97,5
+  ScaleMem    : Speed Score = 100,0, Memory Score =  34,1, Combined Score =  93,4
+
+Benchmark: Move Benchmark2 4 arrays at a time (Global Weight =   0,67 %)
+  D2010       : Speed Score =  98,0, Memory Score = 100,0, Combined Score =  98,2
+  ScaleMem    : Speed Score = 100,0, Memory Score =  34,1, Combined Score =  93,4
+
+Benchmark: Multi-threaded allocate, use and free (Global Weight =   4,67 %)
+  D2010       : Speed Score =  58,2, Memory Score = 100,0, Combined Score =  74,9
+  ScaleMem    : Speed Score = 100,0, Memory Score =  39,2, Combined Score =  75,7
+
+Benchmark: Multi-threaded reallocate and use (Global Weight =   2,20 %)
+  D2010       : Speed Score =  77,5, Memory Score = 100,0, Combined Score =  86,5
+  ScaleMem    : Speed Score = 100,0, Memory Score =  45,3, Combined Score =  78,1
+
+Benchmark: NexusDB with 1 thread(s) (Global Weight =   1,10 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  94,2, Memory Score =  32,1, Combined Score =  63,2
+
+Benchmark: NexusDB with 2 thread(s) (Global Weight =   1,10 %)
+  D2010       : Speed Score =  60,2, Memory Score = 100,0, Combined Score =  80,1
+  ScaleMem    : Speed Score = 100,0, Memory Score =  36,9, Combined Score =  68,4
+
+Benchmark: NexusDB with 4 thread(s) (Global Weight =   1,10 %)
+  D2010       : Speed Score =  35,7, Memory Score = 100,0, Combined Score =  67,8
+  ScaleMem    : Speed Score = 100,0, Memory Score =  43,0, Combined Score =  71,5
+
+Benchmark: NexusDB with 8 thread(s) (Global Weight =   1,10 %)
+  D2010       : Speed Score =  41,8, Memory Score = 100,0, Combined Score =  70,9
+  ScaleMem    : Speed Score = 100,0, Memory Score =  51,3, Combined Score =  75,6
+
+Benchmark: QuickSortExtendedArrayBenchmark (Global Weight =   0,67 %)
+  D2010       : Speed Score =  89,9, Memory Score = 100,0, Combined Score =  92,4
+  ScaleMem    : Speed Score = 100,0, Memory Score =  26,7, Combined Score =  81,7
+
+Benchmark: QuickSortIntegerArrayBenchmark (Global Weight =   0,67 %)
+  D2010       : Speed Score =  97,4, Memory Score = 100,0, Combined Score =  98,1
+  ScaleMem    : Speed Score = 100,0, Memory Score =  27,7, Combined Score =  81,9
+
+Benchmark: Raw Performance 1 thread (Global Weight =   1,11 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  95,2, Memory Score =  66,7, Combined Score =  80,9
+
+Benchmark: Raw Performance 8 threads (Global Weight =   4,67 %)
+  D2010       : Speed Score =  81,5, Memory Score = 100,0, Combined Score =  90,7
+  ScaleMem    : Speed Score = 100,0, Memory Score =  49,9, Combined Score =  74,9
+
+Benchmark: ReallocMem benchmark (Global Weight =   1,14 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  80,4, Memory Score =  90,0, Combined Score =  85,2
+
+Benchmark: Single Variables Access 6 arrays at a time (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  99,7, Memory Score =  28,5, Combined Score =  92,6
+
+Benchmark: Single-threaded allocate, use and free (Global Weight =   1,11 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  99,4, Memory Score =  59,5, Combined Score =  83,5
+
+Benchmark: Single-threaded AllocMem (Global Weight =   1,11 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  99,0, Memory Score =  54,3, Combined Score =  76,7
+
+Benchmark: Single-threaded reallocate and use (Global Weight =   1,14 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  97,1, Memory Score =  75,4, Combined Score =  88,4
+
+Benchmark: Small downsize benchmark (Global Weight =   1,14 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  70,5, Memory Score =  75,6, Combined Score =  74,5
+
+Benchmark: Small upsize benchmark (Global Weight =   1,14 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  88,8, Memory Score =  70,4, Combined Score =  74,1
+
+Benchmark: SortExtendedArrayBenchmark (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =  99,2, Memory Score =  29,5, Combined Score =  81,8
+
+Benchmark: SortIntegerArrayBenchmark (Global Weight =   0,67 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score = 100,0, Memory Score =  28,4, Combined Score =  82,1
+
+Benchmark: StringThreadTest (Global Weight =   2,20 %)
+  D2010       : Speed Score = 100,0, Memory Score = 100,0, Combined Score = 100,0
+  ScaleMem    : Speed Score =   8,2, Memory Score =  14,1, Combined Score =   9,3
+
+Benchmark: Transient threaded objects (Global Weight =   4,67 %)
+  D2010       : Speed Score =  10,7, Memory Score = 100,0, Combined Score =  55,3
+  ScaleMem    : Speed Score = 100,0, Memory Score =  55,3, Combined Score =  77,6
+
+Average Total Performance: (Scaled so that the winner = 100%)
+  D2010       :  100,0
+  ScaleMem    :   80,4
+
+Average Speed Performance: (Scaled so that the winner = 100%)
+  D2010       :   89,1
+  ScaleMem    :  100,0
+
+Average Memory Performance: (Scaled so that the winner = 100%)
+  D2010       :  100,0
+  ScaleMem    :   47,8

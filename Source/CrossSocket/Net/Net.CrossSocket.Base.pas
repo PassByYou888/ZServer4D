@@ -677,7 +677,7 @@ type
     constructor Create(ACrossSocket: ICrossSocket); reintroduce;
   end;
 
-  TAbstractCrossSocket = class abstract(TInterfacedObject, ICrossSocket)
+  TAbstractCrossSocket = class abstract(TCoreClassInterfacedObject, ICrossSocket)
   protected const
     RCV_BUF_SIZE = 32768;
   protected class threadvar

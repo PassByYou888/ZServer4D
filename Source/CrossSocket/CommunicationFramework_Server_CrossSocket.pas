@@ -1,3 +1,12 @@
+{ ****************************************************************************** }
+{ * CrossSocket support                                                        * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Server_CrossSocket;
 
 interface
@@ -44,11 +53,11 @@ type
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
 
-    function StartService(Host: string; Port: Word): Boolean;
-    function StopService: Boolean;
+    function StartService(Host: string; Port: Word): Boolean; override;
+    procedure StopService; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
@@ -267,6 +276,9 @@ procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject;
 var
   cli: TContextIntfForServer;
 begin
+  if ALen <= 0 then
+      exit;
+
   if AConnection.UserObject = nil then
       exit;
 
@@ -274,11 +286,11 @@ begin
   if cli.ClientIntf = nil then
       exit;
 
-  cli.LastActiveTime := GetTimeTickCount;
   TThread.Synchronize(nil,
     procedure
     begin
       try
+        cli.LastActiveTime := GetTimeTickCount;
         cli.ReceivedBuffer.Position := cli.ReceivedBuffer.size;
         cli.ReceivedBuffer.Write(ABuf^, ALen);
         cli.FillRecvBuffer(nil, False, False);
@@ -353,17 +365,15 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_CrossSocket.StopService: Boolean;
+procedure TCommunicationFramework_Server_CrossSocket.StopService;
 begin
   try
     try
         ICrossSocket(FDriver).CloseAll;
     except
     end;
-    Result := True;
     FStartedService := False;
   except
-      Result := False;
   end;
 end;
 

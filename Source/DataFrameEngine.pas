@@ -4,6 +4,11 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 (* https://github.com/PassByYou888/ZServer4D *)
 { ****************************************************************************** }
+(*
+  update history
+  2017-12-6
+  added supported pointer
+*)
 
 unit DataFrameEngine;
 
@@ -423,6 +428,7 @@ type
     function Read2DPoint: T2DPoint;
     function ReadVec2: TVec2;
     function Read2DRect: T2DRect;
+    function ReadPointer: UInt64;
 
     // auto read buff from stream data
     procedure Read(var aBuf; aCount: Cardinal);
@@ -497,6 +503,8 @@ type
     procedure Write2DPoint(v: T2DPoint);
     procedure WriteVec2(v: TVec2);
     procedure Write2DRect(v: T2DRect);
+    procedure WritePointer(v: Pointer); overload;
+    procedure WritePointer(v: UInt64); overload;
 
     // auto append new stream and write
     procedure Write(const aBuf; aCount: Int64);
@@ -546,6 +554,7 @@ type
     function Read2DPoint(idx: Integer): T2DPoint; overload;
     function ReadVec2(idx: Integer): TVec2; overload;
     function Read2DRect(idx: Integer): T2DRect; overload;
+    function ReadPointer(idx: Integer): UInt64; overload;
 
     // auto read buff from stream data
     procedure Read(idx: Integer; var aBuf; aCount: Int64);
@@ -629,6 +638,7 @@ type
     procedure Write2DPoint(v: T2DPoint); virtual;
     procedure WriteVec2(v: TVec2); virtual;
     procedure Write2DRect(v: T2DRect); virtual;
+    procedure WritePointer(v: Pointer); virtual;
     procedure Write(const aBuf; aCount: Cardinal); virtual;
   end;
 
@@ -680,6 +690,7 @@ type
     function Read2DPoint: T2DPoint; virtual;
     function ReadVec2: TVec2; virtual;
     function Read2DRect: T2DRect; virtual;
+    function ReadPointer: UInt64; virtual;
     procedure Read(var aBuf; aCount: Cardinal); virtual;
   end;
 
@@ -1971,6 +1982,12 @@ begin
   inc(FIndex);
 end;
 
+function TDataFrameEngineReader.ReadPointer: UInt64;
+begin
+  Result := FOwner.ReadPointer(FIndex);
+  inc(FIndex);
+end;
+
 procedure TDataFrameEngineReader.Read(var aBuf; aCount: Cardinal);
 begin
   FOwner.Read(FIndex, aBuf, aCount);
@@ -2533,6 +2550,16 @@ begin
       WriteArray(v[0]);
       WriteArray(v[1]);
     end;
+end;
+
+procedure TDataFrameEngine.WritePointer(v: Pointer);
+begin
+  WriteUInt64(UInt64(v));
+end;
+
+procedure TDataFrameEngine.WritePointer(v: UInt64);
+begin
+  WriteUInt64(v);
 end;
 
 // append new stream and write
@@ -3225,6 +3252,11 @@ begin
     end;
 end;
 
+function TDataFrameEngine.ReadPointer(idx: Integer): UInt64;
+begin
+  Result := ReadUInt64(idx);
+end;
+
 procedure TDataFrameEngine.Read(idx: Integer; var aBuf; aCount: Int64);
 var
   s: TMemoryStream64;
@@ -3818,6 +3850,11 @@ begin
   FEngine.Write2DRect(v);
 end;
 
+procedure TDataWriter.WritePointer(v: Pointer);
+begin
+  FEngine.WritePointer(v);
+end;
+
 procedure TDataWriter.Write(const aBuf; aCount: Cardinal);
 begin
   FEngine.Write(aBuf, aCount);
@@ -4089,6 +4126,11 @@ end;
 function TDataReader.Read2DRect: T2DRect;
 begin
   Result := FEngine.Reader.Read2DRect;
+end;
+
+function TDataReader.ReadPointer: UInt64;
+begin
+  Result := FEngine.Reader.ReadPointer;
 end;
 
 procedure TDataReader.Read(var aBuf; aCount: Cardinal);

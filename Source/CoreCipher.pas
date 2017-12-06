@@ -9,9 +9,12 @@
   fixed fastMD5,THashMD5 calculate x64 and x86,ARM platform more than 4G memory Support QQ600585
   change name TMD5Class as TCipherMD5
   Added global DefaultParallelDepth
+
+  2017-12-6
+  added supported hash elf64
 *)
 
-{.$define parallel}
+{ .$define parallel }
 
 unit CoreCipher;
 
@@ -20,16 +23,16 @@ unit CoreCipher;
 {$I zDefine.inc}
 { -private key encryption/decryption primitives }
 
-  {$ifdef parallel}
-  {$endif}
+{$ifdef parallel}
+{$endif}
 
 interface
 
 uses
   Types, SysUtils, Math, TypInfo,
-  {$ifdef parallel}
+  {$IFDEF parallel}
   PasMP,
-  {$endif}
+  {$ENDIF}
   CoreClasses, UnicodeMixedLib, MemoryStream64, PascalStrings, ListEngine,
   DoStatusIO;
 
@@ -233,15 +236,15 @@ type
   TCipherKeyStyle   = (cksNone, cksKey64, cks3Key64, cksKey128, cksKey256, cks2IntKey, cksIntKey, ckyDynamicKey);
   PCipherKeyBuffer  = ^TCipherKeyBuffer;
   TCipherKeyBuffer  = TBytes;
-  THashStyle        = (hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsMix128, hsCRC16, hsCRC32);
+  THashStyle        = (hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsELF64, hsMix128, hsCRC16, hsCRC32);
   THashStyles       = set of THashStyle;
 
 type
   TCipher = class(TCoreClassObject)
   public
     const
-    CAllHash: THashStyles                   = [hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsMix128, hsCRC16, hsCRC32];
-    CHashName: array [THashStyle] of string = ('None', 'FastMD5', 'MD5', 'SHA1', '256', '128', '64', '32', '16', 'ELF', 'Mix128', 'CRC16', 'CRC32');
+    CAllHash: THashStyles                   = [hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsELF64, hsMix128, hsCRC16, hsCRC32];
+    CHashName: array [THashStyle] of string = ('None', 'FastMD5', 'MD5', 'SHA1', '256', '128', '64', '32', '16', 'ELF', 'ELF64', 'Mix128', 'CRC16', 'CRC32');
 
     CCipherStyleName: array [TCipherStyle] of string =
       ('None',
@@ -363,7 +366,8 @@ type
     class function EncryptBufferCBC(cs: TCipherStyle; sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
   end;
 
-  {$ifdef parallel}
+  {$IFDEF parallel}
+
   TParallelCipherFunc = procedure(Job, buff, key: Pointer; Size: nativeInt) of object;
 
   PParallelCipherJobData = ^TParallelCipherJobData;
@@ -418,34 +422,35 @@ type
     function EncryptBufferCBC(cs: TCipherStyle; sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
   end;
 
-  {$endif}
+  {$ENDIF}
+
 
 var
   { system default cbc refrence }
   SystemCBC: TBytes;
-  {$ifdef parallel}
+  {$IFDEF parallel}
   { system default parallel depth }
   DefaultParallelDepth: Integer = 16;
-  {$endif}
+  {$ENDIF}
 
 procedure InitSysCBC(rand: Int64);
 
 function SequEncryptWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-  {$ifdef parallel}
+{$IFDEF parallel}
 function SequEncryptWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithParallel(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-  {$endif}
+{$ENDIF}
 
 function SequEncrypt(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncrypt(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 function SequEncryptCBCWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBCWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-  {$ifdef parallel}
+{$IFDEF parallel}
 function SequEncryptCBCWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBCWithParallel(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-  {$endif}
+{$ENDIF}
 function SequEncryptCBC(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBC(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
@@ -566,6 +571,7 @@ type
   public
     class procedure GenerateRandomKey(var key; KeySize: Integer); static; inline;
     class procedure HashELF(var Digest: Integer; const Buf; BufSize: nativeUInt); static; inline;
+    class procedure HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt); static; inline;
     class procedure HashMix128(var Digest: Integer; const Buf; BufSize: nativeUInt); static; inline;
     class function Ran01(var Seed: Integer): Integer; static; inline;
     class function Ran02(var Seed: Integer): Integer; static; inline;
@@ -1260,6 +1266,11 @@ begin
       begin
         SetLength(Output, 4);
         TMISC.HashELF(PInteger(@Output[0])^, sour^, Size);
+      end;
+    hsELF64:
+      begin
+        SetLength(Output, 8);
+        TMISC.HashELF64(PInt64(@Output[0])^, sour^, Size);
       end;
     hsMix128:
       begin
@@ -2071,7 +2082,9 @@ begin
     end;
 end;
 
-  {$ifdef parallel}
+{$IFDEF parallel}
+
+
 procedure TParallelCipher.DES64_Parallel(Job, buff, key: Pointer; Size: nativeInt);
 var
   p: nativeUInt;
@@ -2798,7 +2811,7 @@ begin
     end;
 end;
 
-  {$endif}
+{$ENDIF}
 
 
 procedure InitSysCBC(rand: Int64);
@@ -2838,7 +2851,9 @@ begin
     end;
 end;
 
-  {$ifdef parallel}
+{$IFDEF parallel}
+
+
 function SequEncryptWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k       : TCipherKeyBuffer;
@@ -2870,25 +2885,26 @@ begin
           Result := Result and SequEncryptWithParallel(ca[i], sour, Size, key, Encrypt, ProcessTail);
     end;
 end;
-  {$endif}
+{$ENDIF}
+
 
 function SequEncrypt(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
-  {$ifdef parallel}
+  {$IFDEF parallel}
   if Size > 1024 then
       Result := SequEncryptWithParallel(ca, sour, Size, key, Encrypt, ProcessTail)
   else
-  {$endif}
+    {$ENDIF}
       Result := SequEncryptWithDirect(ca, sour, Size, key, Encrypt, ProcessTail);
 end;
 
 function SequEncrypt(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
-  {$ifdef parallel}
+  {$IFDEF parallel}
   if Size > 1024 then
       Result := SequEncryptWithParallel(cs, sour, Size, key, Encrypt, ProcessTail)
   else
-  {$endif}
+    {$ENDIF}
       Result := SequEncryptWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
 end;
 
@@ -2918,7 +2934,9 @@ begin
     end;
 end;
 
-  {$ifdef parallel}
+{$IFDEF parallel}
+
+
 function SequEncryptCBCWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k       : TCipherKeyBuffer;
@@ -2950,25 +2968,26 @@ begin
           Result := Result and SequEncryptCBCWithParallel(ca[i], sour, Size, key, Encrypt, ProcessTail);
     end;
 end;
-  {$endif}
+{$ENDIF}
+
 
 function SequEncryptCBC(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
-  {$ifdef parallel}
+  {$IFDEF parallel}
   if Size > 1024 then
       Result := SequEncryptCBCWithParallel(ca, sour, Size, key, Encrypt, ProcessTail)
   else
-  {$endif}
+    {$ENDIF}
       Result := SequEncryptCBCWithDirect(ca, sour, Size, key, Encrypt, ProcessTail);
 end;
 
 function SequEncryptCBC(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 begin
-  {$ifdef parallel}
+  {$IFDEF parallel}
   if Size > 1024 then
       Result := SequEncryptCBCWithParallel(cs, sour, Size, key, Encrypt, ProcessTail)
   else
-  {$endif}
+    {$ENDIF}
       Result := SequEncryptCBCWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
 end;
 
@@ -3215,23 +3234,21 @@ var
   hs   : THashStyle;
   hByte: TBytes;
 
-  {$ifdef parallel}
+  {$IFDEF parallel}
   Parallel: TParallelCipher;
-  {$endif}
-
+  {$ENDIF}
   ps: TCoreClassStrings;
 
   s: TPascalString;
 begin
-  sour:=TMemoryStream64.Create;
-  sour.Size:=Int64(1024*1024+9);
+  sour := TMemoryStream64.Create;
+  sour.Size := Int64(1024 * 1024 + 9);
 
-  FillByte(sour.Memory^, sour.Size, $7f);
+  FillByte(sour.Memory^, sour.Size, $7F);
   DoStatus(umlStreamMD5Char(sour).Text);
   DoStatus(umlMD5Char(sour.Memory, sour.Size).Text);
 
   DisposeObject(sour);
-
 
   IDEOutput := True;
 
@@ -3308,7 +3325,7 @@ begin
 
   sourHash := TCipher.GenerateSha1Hash(sour.Memory, sour.Size);
 
-  {$ifdef parallel}
+  {$IFDEF parallel}
   DoStatus(#13#10'Parallel cipher performance test');
 
   for cs in TCipher.AllCipher do
@@ -3336,8 +3353,7 @@ begin
 
       DisposeObject(Parallel);
     end;
-  {$endif}
-
+  {$ENDIF}
   DoStatus(#13#10'normal cipher performance test');
 
   for cs in TCipher.AllCipher do
@@ -4572,6 +4588,21 @@ begin
     end;
 end;
 
+class procedure TMISC.HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt);
+var
+  i: nativeUInt;
+  X: Int64;
+begin
+  Digest := 0;
+  for i := 0 to BufSize - 1 do begin
+      Digest := (Digest shl 4) + TByteArray(Buf)[i]; { !!.01 }
+      X := Digest and Int64($F000000000000000);
+      if (X <> 0) then
+          Digest := Digest xor (X shr 56);
+      Digest := Digest and (not X);
+    end;
+end;
+
 class procedure TMISC.HashMix128(var Digest: Integer; const Buf; BufSize: nativeUInt);
 type
   T128BitArray = array [0 .. 0] of T128Bit;
@@ -5470,8 +5501,8 @@ initialization
 
 InitSysCBC(0);
 DCP_towfish_Precomp;
-  {$ifdef parallel}
+{$IFDEF parallel}
 TPasMP.CreateGlobalInstance;
-  {$endif}
+{$ENDIF}
 
 end.

@@ -1,4 +1,16 @@
+{ ****************************************************************************** }
+{ * IndyInterface                                                              * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Server_Indy;
+(*
+  update history
+*)
 
 {$WARNINGS OFF}
 {$HINTS OFF}
@@ -52,7 +64,7 @@ type
     procedure SetPort(const Value: Word);
     procedure SetIdleTimeout(const Value: TTimeTickValue); override;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
 
     procedure ProgressBackground; override;
@@ -60,9 +72,9 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
 
     property Port: Word read GetPort write SetPort;
-    procedure StartListening;
-    procedure StopListening;
-    function StartService(Host: string; Port: Word): Boolean;
+
+    procedure StopService; override;
+    function StartService(Host: string; Port: Word): Boolean; override;
 
     procedure Indy_Connect(AContext: TIdContext);
     procedure Indy_ContextCreated(AContext: TIdContext);
@@ -267,15 +279,7 @@ begin
   v^.Client.PostQueueData(v);
 end;
 
-procedure TCommunicationFramework_Server_Indy.StartListening;
-begin
-  if not FDriver.Active then
-    begin
-      FDriver.Active := True;
-    end;
-end;
-
-procedure TCommunicationFramework_Server_Indy.StopListening;
+procedure TCommunicationFramework_Server_Indy.StopService;
 begin
   if FDriver.Active then
     begin

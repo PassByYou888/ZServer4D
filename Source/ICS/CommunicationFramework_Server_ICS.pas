@@ -1,3 +1,12 @@
+{ ****************************************************************************** }
+{ * ics support                                                                * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Server_ICS;
 
 {$WARNINGS OFF}
@@ -81,11 +90,11 @@ type
     procedure ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
     procedure ClientDisconnectEvent(Sender: TObject; Client: TCustomICSContext; Error: Word);
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
 
-    function StartService(Host: string; Port: Word): Boolean;
-    function StopService: Boolean;
+    procedure StopService; override;
+    function StartService(Host: string; Port: Word): Boolean; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
@@ -587,7 +596,7 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_ICS.StopService: Boolean;
+procedure TCommunicationFramework_Server_ICS.StopService;
 var
   i: Integer;
 begin
@@ -597,10 +606,8 @@ begin
   UnLockClients;
   try
     FDriver.Close;
-    Result := True;
     FStartedService := False;
   except
-      Result := False;
   end;
   FBindHost := '';
   FBindPort := 0;

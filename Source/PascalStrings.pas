@@ -20,11 +20,11 @@ uses SysUtils;
 
 type
   {$IFDEF FPC}
-  SystemChar = UnicodeChar;
+  SystemChar   = UnicodeChar;
   SystemString = Unicodestring;
   {$ELSE}
   SystemString = string;
-  SystemChar = char;
+  SystemChar   = char;
   {$ENDIF}
   THash         = Cardinal;
   THash64       = UInt64;
@@ -83,6 +83,7 @@ type
     function ComparePos(Offset: Integer; const t: TPascalString): Boolean; overload; inline;
     function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; inline;
     function Exists(c: SystemChar): Boolean; overload;
+    function Exists(c: array of SystemChar): Boolean; overload;
 
     property Last: SystemChar read GetLast write SetLast;
     property First: SystemChar read GetFirst write SetFirst;
@@ -134,14 +135,14 @@ function FastHash64PascalString(s: PPascalString): THash64; inline;
 operator := (const s: Variant)r: TPascalString;
 
 operator := (const s: AnsiString)r: TPascalString;
-operator := (const s: UnicodeString)r: TPascalString;
+operator := (const s: Unicodestring)r: TPascalString;
 operator := (const s: WideString)r: TPascalString;
 operator := (const s: ShortString)r: TPascalString;
 
 operator := (const c: SystemChar)r: TPascalString;
 
 operator := (const s: TPascalString)r: AnsiString;
-operator := (const s: TPascalString)r: UnicodeString;
+operator := (const s: TPascalString)r: Unicodestring;
 operator := (const s: TPascalString)r: WideString;
 operator := (const s: TPascalString)r: ShortString;
 operator := (const s: TPascalString)r: Variant;
@@ -283,7 +284,7 @@ begin
       c := ord(s^[i]);
       if (c >= A) and (c <= Z) then
           c := c + $20;
-      Result := ((Result shl 7) or (Result shr 25)) + c;
+      Result := ((Result shl 7) or (Result shr 57)) + c;
     end;
 end;
 
@@ -331,7 +332,7 @@ begin
       c := ord(s^[i]);
       if (c >= A) and (c <= Z) then
           c := c + $20;
-      Result := ((Result shl 7) or (Result shr 25)) + c;
+      Result := ((Result shl 7) or (Result shr 57)) + c;
     end;
 end;
 
@@ -348,7 +349,7 @@ begin
   r.Text := s;
 end;
 
-operator := (const s: UnicodeString)r: TPascalString;
+operator := (const s: Unicodestring)r: TPascalString;
 begin
   r.Text := s;
 end;
@@ -373,7 +374,7 @@ begin
   r := s.Text;
 end;
 
-operator := (const s: TPascalString)r: UnicodeString;
+operator := (const s: TPascalString)r: Unicodestring;
 begin
   r := s.Text;
 end;
@@ -717,13 +718,13 @@ begin
       destChar := t^[i];
 
       if CharIn(sourChar, cLoAtoZ) then
-          Dec(sourChar, 32);
+          dec(sourChar, 32);
       if CharIn(destChar, cLoAtoZ) then
-          Dec(destChar, 32);
+          dec(destChar, 32);
 
       if sourChar <> destChar then
           Exit;
-      Inc(i);
+      inc(i);
     end;
   Result := True;
 end;
@@ -744,13 +745,13 @@ begin
       destChar := t[i];
 
       if CharIn(sourChar, cLoAtoZ) then
-          Dec(sourChar, 32);
+          dec(sourChar, 32);
       if CharIn(destChar, cLoAtoZ) then
-          Dec(destChar, 32);
+          dec(destChar, 32);
 
       if sourChar <> destChar then
           Exit;
-      Inc(i);
+      inc(i);
     end;
   Result := True;
 end;
@@ -772,6 +773,16 @@ var
 begin
   for i := low(Buff) to high(Buff) do
     if Buff[i] = c then
+        Exit(True);
+  Result := False;
+end;
+
+function TPascalString.Exists(c: array of SystemChar): Boolean;
+var
+  i: Integer;
+begin
+  for i := low(Buff) to high(Buff) do
+    if CharIn(Buff[i], c) then
         Exit(True);
   Result := False;
 end;

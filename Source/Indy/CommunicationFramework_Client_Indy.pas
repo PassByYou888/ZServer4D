@@ -1,3 +1,12 @@
+{ ****************************************************************************** }
+{ * IndyInterface                                                              * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Client_Indy;
 
 {$WARNINGS OFF}
@@ -36,7 +45,7 @@ type
     FProgressing: Boolean;
     LastTimtTick: Cardinal;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
 
     function Connected: Boolean; override;
@@ -44,24 +53,24 @@ type
     procedure ProgressBackground; override;
     procedure TriggerQueueData(v: PQueueData); override;
 
-    procedure Connect(host: string; Port: Word);
-    procedure Disconnect;
+    function Connect(Addr: string; port: Word): Boolean; override;
+    procedure Disconnect; override;
   end;
 
-procedure CheckIPV6(hostName: string; Port: Word);
+procedure CheckIPV6(hostName: string; port: Word);
 
 var
   DefaultIPVersion: TIdIPVersion;
 
 implementation
 
-procedure CheckIPV6(hostName: string; Port: Word);
+procedure CheckIPV6(hostName: string; port: Word);
 var
   cli: TIdTCPClient;
 begin
   cli := TIdTCPClient.Create(nil);
   cli.host := hostName;
-  cli.Port := Port;
+  cli.port := port;
   cli.BoundIP := '';
   cli.BoundPort := 0;
   cli.IPVersion := TIdIPVersion.Id_IPv6;
@@ -158,8 +167,8 @@ begin
   end;
 
   try
-    disposeObject(FDriver);
-    FDriver := nil;
+    // disposeObject(FDriver);
+      FDriver := nil;
   except
   end;
 
@@ -282,10 +291,12 @@ begin
       DisposeQueueData(v);
 end;
 
-procedure TCommunicationFramework_Client_Indy.Connect(host: string; Port: Word);
+function TCommunicationFramework_Client_Indy.Connect(Addr: string; port: Word): Boolean;
 var
   t: TTimeTickValue;
 begin
+  Result := False;
+
   Disconnect;
 
   disposeObject(ClientIntf);
@@ -298,8 +309,8 @@ begin
   // DefaultIPVersion := TIdIPVersion.Id_IPv4;
   // host := '169.45.214.146';
 
-  FDriver.host := host;
-  FDriver.Port := Port;
+  FDriver.host := Addr;
+  FDriver.port := port;
   FDriver.BoundIP := '';
   FDriver.BoundPort := 0;
   FDriver.IPVersion := DefaultIPVersion;
@@ -327,13 +338,21 @@ begin
 
     while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount - t < 2000) do
         ProgressBackground;
+
+    Result := (RemoteInited) and (FDriver.Connected);
   except
+    Result := False;
+
     if DefaultIPVersion = TIdIPVersion.Id_IPv4 then
         DefaultIPVersion := TIdIPVersion.Id_IPv6
     else
         DefaultIPVersion := TIdIPVersion.Id_IPv4;
 
     FDriver := TIdTCPClient.Create(nil);
+    FDriver.host := Addr;
+    FDriver.port := port;
+    FDriver.BoundIP := '';
+    FDriver.BoundPort := 0;
     FDriver.IPVersion := DefaultIPVersion;
     FDriver.ConnectTimeout := 0;
     FDriver.ReadTimeout := -1;
@@ -362,6 +381,7 @@ begin
 
       while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount - t < 2000) do
           ProgressBackground;
+      Result := (RemoteInited) and (FDriver.Connected);
     except
       if DefaultIPVersion = TIdIPVersion.Id_IPv4 then
           DefaultIPVersion := TIdIPVersion.Id_IPv6

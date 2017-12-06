@@ -1,8 +1,11 @@
 {******************************************************************************}
-{* fast File query in Package support,                                        *}
+{* fast File query in Package                                                 *}
 {* https://github.com/PassByYou888/CoreCipher                                 *}
 (* https://github.com/PassByYou888/ZServer4D                                  *)
 {******************************************************************************}
+(*
+  update history
+*)
 
 
 unit LibraryManager;
@@ -252,7 +255,7 @@ begin
   Result := nil;
   if not umlMultipleMatch(True, aName, Root.Name) then
     begin
-      if FDBEngine.CreateDir((FRootDir + '/' + aName), aDescription) then
+      if FDBEngine.CreateField((FRootDir + '/' + aName), aDescription) then
         begin
           if FDBEngine.FieldFindFirst(FRootDir, aName, fSearchHnd) then
             begin

@@ -1,0 +1,51 @@
+
+QIU Memory Manager 1.0 for Delphi
+
+Description:
+	a simple and compact MM for Delphi/XE
+
+Homepage:
+  https://code.google.com/p/qiumm/
+  by qiusonglin (qiusonglin.hex@gmail.com)
+
+Usage:
+ - place this unit as the very first unit under the "uses" section in your
+   project's .dpr file.
+
+Other:
+ - important: test only by D7,D2010
+ - without professional software testing, please use caution
+ - support multithread, allocate memory for each thread manager.
+ - don't support between DLL and APP shared memory device (next version will...)
+ -
+
+Support:
+ If you have trouble using QMM, you are welcome to drop me an e-mail at the
+ address above.
+
+License:
+  Released under Mozilla Public License 1.1
+
+  If you find QMM useful or you would like to support further development,
+  a donation would be much appreciated.
+  My PayPal account is: qiusonglin.hex@gmail.com
+
+
+This archive contains:
+----------------------
+QMM.pas - The replacement memory manager (to speed up your applications)
+
+
+QMM Optional Features (QMM.Inc):
+--------------------------------
+fastcode - The use of fastcode code, instead of the system function: fillchar and move.
+tls_mode - Use the API: tlsAlloc and related function, processing thread local variables
+					 If not defined, then use the keyword "threadvar" processing
+
+debug release  - with application config
+
+NOTE: when System.ReportMemoryLeaksOnShutdown is true, and DEBUG mode£¬
+		  QMM will report leak on app shut down. RELEASE mode is ignore leak.
+		  
+
+

@@ -1,3 +1,12 @@
+{ ****************************************************************************** }
+{ * ics support                                                                * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Client_ICS;
 
 {$WARNINGS OFF}
@@ -40,12 +49,13 @@ type
     procedure SessionClosed(Sender: TObject; ErrCode: Word);
     procedure SessionConnected(Sender: TObject; ErrCode: Word);
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
 
     function Connect(Host, Port: string; AWaitTimeOut: TTimeTickValue): Boolean; overload;
     function Connect(Host, Port: string): Boolean; overload;
-    procedure Disconnect;
+    function Connect(Addr: string; Port: Word): Boolean; overload; override;
+    procedure Disconnect; override;
     function Connected: Boolean; override;
     function ClientIO: TPeerClient; override;
 
@@ -150,7 +160,7 @@ end;
 destructor TCommunicationFramework_Client_ICS.Destroy;
 begin
   Disconnect;
-  DisposeObject(FDriver);
+  // DisposeObject(FDriver);
   inherited Destroy;
 end;
 
@@ -193,7 +203,12 @@ end;
 
 function TCommunicationFramework_Client_ICS.Connect(Host, Port: string): Boolean;
 begin
-  Result := Connect(Host, Port, 3000);
+  Result := Connect(Host, Port, 5000);
+end;
+
+function TCommunicationFramework_Client_ICS.Connect(Addr: string; Port: Word): Boolean;
+begin
+  Result := Connect(Addr, IntToStr(Port), 5000);
 end;
 
 procedure TCommunicationFramework_Client_ICS.Disconnect;

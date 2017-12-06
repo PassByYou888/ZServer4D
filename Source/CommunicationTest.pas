@@ -2,7 +2,8 @@ unit CommunicationTest;
 
 interface
 
-{$I zDefine.inc}
+{$I ..\..\zDefine.inc}
+
 
 uses SysUtils, CommunicationFramework, DataFrameEngine,
   UnicodeMixedLib, CoreClasses, DoStatusIO, MemoryStream64, PascalStrings,
@@ -13,7 +14,6 @@ type
   private
     PrepareSendConsole, PrepareResultConsole    : string;
     PrepareSendDataFrame, PrepareResultDataFrame: TDataFrameEngine;
-    PrepareBigStream                            : TMemoryStream64;
     TempStream                                  : TMemoryStream64;
   public
     constructor Create;
@@ -34,9 +34,13 @@ type
 
     procedure RegCmd(intf: TCommunicationFramework);
     procedure ExecuteTest(intf: TPeerClient);
+    procedure ExecuteAsyncTest(intf: TPeerClient);
   end;
 
 implementation
+
+var
+  TestStreamData: TMemoryStream64 = nil;
 
 constructor TCommunicationTestIntf.Create;
 var
@@ -46,16 +50,12 @@ begin
   PrepareSendConsole := 'console test';
   PrepareResultConsole := 'console result';
   PrepareSendDataFrame := TDataFrameEngine.Create;
-  for i := 0 to 2048 do
-      PrepareSendDataFrame.WriteInteger(i);
-
   PrepareResultDataFrame := TDataFrameEngine.Create;
-  for i := 0 to 2048 do
+  for i := 1 to 10 do
+    begin
+      PrepareSendDataFrame.WriteInteger(i);
       PrepareResultDataFrame.WriteInteger(i);
-
-  PrepareBigStream := TMemoryStream64.Create;
-  PrepareBigStream.SetSize(1024 * 1024);
-  FillByte(PrepareBigStream.Memory^, PrepareBigStream.Size, $99);
+    end;
 
   TempStream := TMemoryStream64.Create;
 
@@ -65,7 +65,6 @@ destructor TCommunicationTestIntf.Destroy;
 begin
   DisposeObject(PrepareSendDataFrame);
   DisposeObject(PrepareResultDataFrame);
-  DisposeObject(PrepareBigStream);
   DisposeObject(TempStream);
   inherited;
 end;
@@ -160,19 +159,50 @@ begin
   {$ENDIF}
   intf.SendDirectConsoleCmd('TestDirectConsole', PrepareSendConsole);
   intf.SendDirectStreamCmd('TestDirectStream', PrepareSendDataFrame);
-  intf.SendBigStream('TestBigStream', PrepareBigStream, False);
-  intf.SendDirectConsoleCmd('BigStreamPostInfo', umlStreamMD5Char(PrepareBigStream).Text);
+  intf.SendBigStream('TestBigStream', TestStreamData, False);
+  intf.SendDirectConsoleCmd('BigStreamPostInfo', umlStreamMD5Char(TestStreamData).Text);
 
-  if intf.WaitSendConsoleCmd('TestConsole', PrepareSendConsole, 0) <> PrepareResultConsole then
-      DoStatus('wait Mode:TestResultConsole Data failed!');
+  if intf.OwnerFramework is TCommunicationFrameworkClient then
+    begin
+      if intf.WaitSendConsoleCmd('TestConsole', PrepareSendConsole, 0) <> PrepareResultConsole then
+          DoStatus('wait Mode:TestResultConsole Data failed!');
 
-  tmpdf := TDataFrameEngine.Create;
-  intf.WaitSendStreamCmd('TestStream', PrepareSendDataFrame, tmpdf, 0);
-  if not tmpdf.Compare(PrepareResultDataFrame) then
-      DoStatus('wait Mode:TestResultStream Data failed!');
-  DisposeObject(tmpdf);
+      tmpdf := TDataFrameEngine.Create;
+      intf.WaitSendStreamCmd('TestStream', PrepareSendDataFrame, tmpdf, 0);
+      if not tmpdf.Compare(PrepareResultDataFrame) then
+          DoStatus('wait Mode:TestResultStream Data failed!');
+      DisposeObject(tmpdf);
+    end;
 
-  intf.SendDirectConsoleCmd('RemoteInfo', 'test over!');
+  intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
 end;
+
+procedure TCommunicationTestIntf.ExecuteAsyncTest(intf: TPeerClient);
+var
+  tmpdf: TDataFrameEngine;
+begin
+  {$IFDEF FPC}
+  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, @CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, @CmdResult_TestStream);
+  {$ELSE}
+  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, CmdResult_TestStream);
+  {$ENDIF}
+  intf.SendDirectConsoleCmd('TestDirectConsole', PrepareSendConsole);
+  intf.SendDirectStreamCmd('TestDirectStream', PrepareSendDataFrame);
+
+  intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
+end;
+
+initialization
+
+TestStreamData := TMemoryStream64.Create;
+TestStreamData.SetSize(1024 * 1024);
+FillByte(TestStreamData.Memory^, TestStreamData.Size, $99);
+
+finalization
+
+DisposeObject(TestStreamData);
+TestStreamData := nil;
 
 end.

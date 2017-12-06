@@ -1,0 +1,56 @@
+BETA Version 1.1.4.1 (2014.10.07):
+  - fix: leaks: when a thread exits, MM not to do check whether there is leakage.
+
+BETA Version 1.1.4 (2014.07.22):
+  - fix: share MM on DLL&APP
+  
+BETA Version 1.1.3.1 (2014.07.22):
+  - add: cmp_mem on win64
+  - fix: on win64 error: init_cmp_datas&debug_set_mem_last_tag
+  - fix: report leak:
+    report_mem_items_block
+    use: item_count := item_buf.used_count;
+    not: item_count := item_buf.item_count; 
+BETA Version 1.1.3 (2014.07.21):
+  - add: QMMErrorUtils.pas
+         1: a simple tool unit for check memory of out bound
+         2: a demo for this unit.
+  - add: cmp.inc (from D2010.SysUtils.CompareMem) for compare mem(debug)
+  - add: constant: suffix_mem_check for memory check(out bound)
+  - fix: report(mprint) on win64
+  - add: if call virtual_free failed, it will raise.
+  - fix: free TMemManager.uninitialize.used_mem_block
+  - optimize: small memory
+  - add: large memory leak after app quit
+  - add: medium_realloc:: if next.flag = FLAG_USED and next memory is idle, then merge.
+BETA Version 1.1.2 (2014.01.05):
+  - add: functions.inc for qmm API function/consts(for D2007up)
+  - modified: assert, for win64
+  - optimize: TMemItems.move_upsize(move32/move64/move) just for move
+  - optimize: medium_get_idle
+  - optimize: TMemManager.mem_mgr array to double link
+  - fixed: in TThreadMemory.mem_item_free, error: free_index = item_count to free
+    the reason make some memory not released.
+  - modified: report leak for release, not just debug.
+  - add: D2007_move.inc(system.move) for D2007 or earlier
+  
+Version 1.1.1 (2013.12.26):
+  - redesign the data structure. because, it does not pass the fastcode mm benchmark test
+    Add: share mm on DLL <-> APP
+    ADD: The new public interface: qmm_memory_alloc/realloc/free, let it not directly access MM.
+    Del: internal "REG LEAK"
+    Mod: large_alloc/realloc/free
+    Mod: BUG: multithread conflict, use criticalsection to replace API: interlockedXX
+Version 1.0.1 (2013.11.26):
+  - 1. modify leak working mode, make it like link
+    2. add option: report_thread_running, if true, it will report thread
+       when application exit
+    3. add callback: on_thread_abnormal_proc
+       The callback when the thread execution after the withdrawal, collapse,
+       for thread running condition monitoring
+    4. modify memory_free by other thread, it was report leak
+       add FLAG: FLAG_WAITFORFREE, for that.
+    5. add share MM, code from FastMM4
+    6. fixed BUG: large_realloc will av.
+Version 1.0 (2013.11.18):
+  - first version

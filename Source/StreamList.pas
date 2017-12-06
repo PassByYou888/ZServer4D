@@ -3,6 +3,9 @@
 {* https://github.com/PassByYou888/CoreCipher                                *}
 (* https://github.com/PassByYou888/ZServer4D                                 *)
 {*****************************************************************************}
+(*
+  update history
+*)
 
 unit StreamList;
 
@@ -165,7 +168,7 @@ var
     NewHash: THash;
     p      : PHashStreamListData;
     idxLst : TCoreClassList;
-    lName  : string;
+    lName  : SystemString;
     ItemHnd: TItemHandle;
   begin
     if FDBEngine.ItemFastOpen(_ItemPos, ItemHnd) then
@@ -406,7 +409,7 @@ var
   NewHash: THash;
   i      : Integer;
   idxLst : TCoreClassList;
-  lName  : string;
+  lName  : SystemString;
 begin
   Result := False;
   if umlGetLength(aName) > 0 then
@@ -437,7 +440,7 @@ var
   NewHash: THash;
   i      : Integer;
   idxLst : TCoreClassList;
-  lName  : string;
+  lName  : SystemString;
 begin
   Result := nil;
   if umlGetLength(aName) > 0 then

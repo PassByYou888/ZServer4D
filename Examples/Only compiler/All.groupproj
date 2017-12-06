@@ -1,27 +1,12 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{5377FDB1-4D23-4C5D-8A63-B845E8EB8FF1}</ProjectGuid>
+        <ProjectGuid>{5B7E2F76-08E2-4909-B895-C68173DF716E}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\5.登录式高级云服务器\DBServer\DBServer.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\3.双向交互服务器框架\DCli\DClient.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\2.延时响应服务器\EzCli\DRClient.dproj">
@@ -30,13 +15,40 @@
         <Projects Include="..\2.延时响应服务器\EzSer\DRServer.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\1.单向服务器框架\EzSer\EzServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\DBServer\DBServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\3.双向交互服务器框架\DCli\DClient.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\3.双向交互服务器框架\DSer\DServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\1.单向服务器框架\EzCli\EzClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\1.单向服务器框架\EzSer\EzServer.dproj">
+        <Projects Include="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\8.单机数据库\ZDBLocal.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj">
@@ -63,9 +75,6 @@
         <Projects Include="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj">
-            <Dependencies/>
-        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -74,24 +83,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="ADClient">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj"/>
-    </Target>
-    <Target Name="ADClient:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ADClient:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ADServer">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj"/>
-    </Target>
-    <Target Name="ADServer:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ADServer:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Make"/>
-    </Target>
     <Target Name="AFDRClient">
         <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj"/>
     </Target>
@@ -109,33 +100,6 @@
     </Target>
     <Target Name="AFDRServer:Make">
         <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="CoreLogicServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj"/>
-    </Target>
-    <Target Name="CoreLogicServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="CoreLogicServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="DBServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj"/>
-    </Target>
-    <Target Name="DBServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="DBServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="DClient">
-        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj"/>
-    </Target>
-    <Target Name="DClient:Clean">
-        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="DClient:Make">
-        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="DRClient">
         <MSBuild Projects="..\2.延时响应服务器\EzCli\DRClient.dproj"/>
@@ -155,6 +119,42 @@
     <Target Name="DRServer:Make">
         <MSBuild Projects="..\2.延时响应服务器\EzSer\DRServer.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ManagerServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
+    </Target>
+    <Target Name="ManagerServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ManagerServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="EzServer">
+        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj"/>
+    </Target>
+    <Target Name="EzServer:Clean">
+        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EzServer:Make">
+        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DBServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj"/>
+    </Target>
+    <Target Name="DBServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DBServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DClient">
+        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj"/>
+    </Target>
+    <Target Name="DClient:Clean">
+        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DClient:Make">
+        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Make"/>
+    </Target>
     <Target Name="DServer">
         <MSBuild Projects="..\3.双向交互服务器框架\DSer\DServer.dproj"/>
     </Target>
@@ -173,14 +173,59 @@
     <Target Name="EzClient:Make">
         <MSBuild Projects="..\1.单向服务器框架\EzCli\EzClient.dproj" Targets="Make"/>
     </Target>
-    <Target Name="EzServer">
-        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj"/>
+    <Target Name="ADClient">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj"/>
     </Target>
-    <Target Name="EzServer:Clean">
-        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj" Targets="Clean"/>
+    <Target Name="ADClient:Clean">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="EzServer:Make">
-        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj" Targets="Make"/>
+    <Target Name="ADClient:Make">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADServer">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj"/>
+    </Target>
+    <Target Name="ADServer:Clean">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADServer:Make">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CoreLogicServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj"/>
+    </Target>
+    <Target Name="CoreLogicServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CoreLogicServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="performaceTestServer">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj"/>
+    </Target>
+    <Target Name="performaceTestServer:Clean">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="performaceTestServer:Make">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PeformanceTestClient">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Clean">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Make">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBLocal">
+        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj"/>
+    </Target>
+    <Target Name="ZDBLocal:Clean">
+        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBLocal:Make">
+        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Make"/>
     </Target>
     <Target Name="FMXADClient">
         <MSBuild Projects="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj"/>
@@ -254,23 +299,14 @@
     <Target Name="FMXServer:Make">
         <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Make"/>
     </Target>
-    <Target Name="ManagerServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
-    </Target>
-    <Target Name="ManagerServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ManagerServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ADClient;ADServer;AFDRClient;AFDRServer;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer"/>
+        <CallTarget Targets="AFDRClient;AFDRServer;DRClient;DRServer;ManagerServer;EzServer;DBServer;DClient;DServer;EzClient;ADClient;ADServer;CoreLogicServer;performaceTestServer;PeformanceTestClient;ZDBLocal;FMXADClient;FMXAFDRClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean"/>
+        <CallTarget Targets="AFDRClient:Clean;AFDRServer:Clean;DRClient:Clean;DRServer:Clean;ManagerServer:Clean;EzServer:Clean;DBServer:Clean;DClient:Clean;DServer:Clean;EzClient:Clean;ADClient:Clean;ADServer:Clean;CoreLogicServer:Clean;performaceTestServer:Clean;PeformanceTestClient:Clean;ZDBLocal:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make"/>
+        <CallTarget Targets="AFDRClient:Make;AFDRServer:Make;DRClient:Make;DRServer:Make;ManagerServer:Make;EzServer:Make;DBServer:Make;DClient:Make;DServer:Make;EzClient:Make;ADClient:Make;ADServer:Make;CoreLogicServer:Make;performaceTestServer:Make;PeformanceTestClient:Make;ZDBLocal:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

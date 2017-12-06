@@ -1,8 +1,13 @@
-{*****************************************************************************}
-{* section text library,writen by QQ 600585@qq.com                           *}
-{* https://github.com/PassByYou888/CoreCipher                                *}
-(* https://github.com/PassByYou888/ZServer4D                                 *)
-{*****************************************************************************}
+{ ***************************************************************************** }
+{ * section text library,writen by QQ 600585@qq.com                           * }
+{ * https://github.com/PassByYou888/CoreCipher                                * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ***************************************************************************** }
+(*
+  update history
+  2017-12-6
+  performance optimization
+*)
 
 unit TextDataEngine;
 
@@ -80,37 +85,6 @@ type
     property Texts[aName: SystemString]: TCoreClassStrings read GetNames write SetNames;
     property Strings[aName: SystemString]: TCoreClassStrings read GetNames write SetNames;
     property VariantList[aName: SystemString]: THashVariantList read GetVariantList write SetVariantList;
-  end;
-
-  THashVariantTextStream = class(TCoreClassObject)
-  private
-    FVariantList: THashVariantList;
-
-    function GetNames(aName: SystemString): Variant;
-    procedure SetNames(aName: SystemString; const Value: Variant);
-  public
-    constructor Create(_VList: THashVariantList);
-    destructor Destroy; override;
-    procedure Clear;
-
-    class function VToStr(v: Variant): SystemString; inline;
-    class function StrToV(s: SystemString): Variant; inline;
-
-    procedure DataImport(TextList: TCoreClassStrings);
-    procedure DataExport(TextList: TCoreClassStrings);
-    procedure LoadFromStream(Stream: TCoreClassStream);
-    procedure SaveToStream(Stream: TCoreClassStream);
-    procedure LoadFromFile(FileName: SystemString);
-    procedure SaveToFile(FileName: SystemString);
-    procedure LoadFromText(aText: SystemString);
-
-    procedure SaveToText(var aText: SystemString); overload;
-    function Text: SystemString;
-
-    function GetValue(aName: SystemString; v: Variant): Variant;
-
-    property Names[aName: SystemString]: Variant read GetNames write SetNames; default;
-    property VariantList: THashVariantList read FVariantList write FVariantList;
   end;
 
 implementation
@@ -326,10 +300,10 @@ end;
 
 function TSectionTextData.DataImport(TextList: TCoreClassStrings): Boolean;
 var
-  i    : Integer;
-  nsect: SystemString;
-  ntLst: TCoreClassStrings;
-
+  i        : Integer;
+  ln       : umlString;
+  nsect    : SystemString;
+  ntLst    : TCoreClassStrings;
   tmpSecLst: TCoreClassStrings;
   nsl      : TCoreClassStrings;
   vt       : THashVariantTextStream;
@@ -359,22 +333,23 @@ begin
           i := 0;
           while i < TextList.Count do
             begin
-              if umlMultipleMatch(False, '[*]', umlTrimChar(TextList[i], ' ')) then
+              ln := umlTrimChar(TextList[i], ' ');
+              if (ln.len > 0) and (ln.First = '[') and (ln.Last = ']') then
                 begin
                   if Result then
                       AddDataSection(nsect, ntLst);
                   ntLst := TCoreClassStringList.Create;
-                  nsect := umlGetFirstStr(TextList[i], '[]').Text;
+                  nsect := umlGetFirstStr(ln, '[]').Text;
                   Result := True;
                 end
               else if Result then
                 begin
-                  ntLst.Append(TextList[i]);
+                  ntLst.Append(ln);
                 end
               else
                 begin
-                  if TextList[i] <> '' then
-                      FComment.Append(TextList[i]);
+                  if ln.len > 0 then
+                      FComment.Append(ln);
                 end;
               Inc(i);
             end;
@@ -657,279 +632,6 @@ end;
 function TSectionTextData.GetSectionObjectName(_Obj: THashVariantList): SystemString;
 begin
   Result := FSectionVariantList.GetObjAsName(_Obj);
-end;
-
-function THashVariantTextStream.GetNames(aName: SystemString): Variant;
-begin
-  if FVariantList <> nil then
-      Result := FVariantList[aName]
-  else
-      Result := NULL;
-end;
-
-procedure THashVariantTextStream.SetNames(aName: SystemString; const Value: Variant);
-begin
-  if FVariantList <> nil then
-      FVariantList[aName] := Value;
-end;
-
-constructor THashVariantTextStream.Create(_VList: THashVariantList);
-begin
-  inherited Create;
-  FVariantList := _VList;
-end;
-
-destructor THashVariantTextStream.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure THashVariantTextStream.Clear;
-begin
-  if FVariantList <> nil then
-      FVariantList.Clear;
-end;
-
-class function THashVariantTextStream.VToStr(v: Variant): SystemString;
-var
-  n, b64: umlString;
-begin
-  try
-    case VarType(v) of
-      varSmallint, varInteger, varShortInt, varByte, varWord, varLongWord:
-        begin
-          Result := IntToStr(v);
-        end;
-      varInt64:
-        begin
-          Result := IntToStr(int64(v));
-        end;
-      varUInt64:
-        begin
-          {$IFDEF FPC}
-          Result := IntToStr(UInt64(v));
-          {$ELSE}
-          Result := UIntToStr(UInt64(v));
-          {$ENDIF}
-        end;
-      varSingle, varDouble, varCurrency, varDate:
-        begin
-          Result := FloatToStr(v);
-        end;
-      varOleStr, varString, varUString:
-        begin
-          n.Text := VarToStr(v);
-
-          if umlExistsLimitChar(n, #10#13#9#8#0) then
-            begin
-              umlEncodeLineBASE64(n, b64);
-              Result := '___base64:' + b64.Text;
-            end
-          else
-              Result := n.Text;
-        end;
-      varBoolean:
-        begin
-          Result := BoolToStr(v, True);
-        end;
-      else
-        Result := VarToStr(v);
-    end;
-  except
-    try
-        Result := VarToStr(v);
-    except
-        Result := '';
-    end;
-  end;
-end;
-
-class function THashVariantTextStream.StrToV(s: SystemString): Variant;
-var
-  n,b64: umlString;
-begin
-  n := umlTrimSpace(s);
-  try
-    if n.ComparePos(1, '___base64:') then
-      begin
-        n := umlDeleteFirstStr(n, ':').Text;
-        umlDecodeLineBASE64(n, b64);
-        Result := b64.Text;
-      end
-    else
-      begin
-        case umlGetNumTextType(n) of
-          ntBool: Result := StrToBool(n.Text);
-          ntInt: Result := StrToInt(n.Text);
-          ntInt64: Result := StrToInt64(n.Text);
-          {$IFDEF FPC}
-          ntUInt64: Result := StrToQWord(n.Text);
-          {$ELSE}
-          ntUInt64: Result := StrToUInt64(n.Text);
-          {$ENDIF}
-          ntWord: Result := StrToInt(n.Text);
-          ntByte: Result := StrToInt(n.Text);
-          ntSmallInt: Result := StrToInt(n.Text);
-          ntShortInt: Result := StrToInt(n.Text);
-          ntUInt: Result := StrToInt(n.Text);
-          ntSingle: Result := StrToFloat(n.Text);
-          ntDouble: Result := StrToFloat(n.Text);
-          ntCurrency: Result := StrToFloat(n.Text);
-          else Result := n.Text;
-        end;
-      end;
-  except
-      Result := n.Text;
-  end;
-end;
-
-procedure THashVariantTextStream.DataImport(TextList: TCoreClassStrings);
-var
-  i                  : Integer;
-  n                  : TPascalString;
-  TextName, TextValue: TPascalString;
-begin
-  if FVariantList = nil then
-      Exit;
-  if TextList.Count > 0 then
-    for i := 0 to TextList.Count - 1 do
-      begin
-        n := umlTrimSpace(TextList[i]);
-
-        if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
-          begin
-            TextName := umlGetFirstStr_M(n, ':=');
-            if TextName.Len > 0 then
-              begin
-                TextValue := umlDeleteFirstStr_M(n, ':=');
-                FVariantList[TextName.Text] := StrToV(TextValue.Text);
-              end
-            else
-                FVariantList[n.Text] := '';
-          end
-        else
-          begin
-            FVariantList[n.Text] := '';
-          end;
-      end;
-end;
-
-procedure THashVariantTextStream.DataExport(TextList: TCoreClassStrings);
-var
-  i        : Integer;
-  vl       : TCoreClassList;
-  TextValue: SystemString;
-begin
-  if FVariantList = nil then
-      Exit;
-  vl := TCoreClassList.Create;
-  FVariantList.HashList.GetListData(vl);
-  if vl.Count > 0 then
-    for i := 0 to vl.Count - 1 do
-      begin
-        TextValue := VToStr(PHashVariantListData(PHashListData(vl[i])^.Data)^.v);
-
-        if TextValue <> '' then
-            TextList.Add((PHashListData(vl[i])^.OriginName + '=' + TextValue))
-        else
-            TextList.Add(PHashListData(vl[i])^.OriginName);
-      end;
-  DisposeObject(vl);
-end;
-
-procedure THashVariantTextStream.LoadFromStream(Stream: TCoreClassStream);
-var
-  n: TCoreClassStrings;
-begin
-  if FVariantList = nil then
-      Exit;
-  n := TCoreClassStringList.Create;
-  {$IFDEF FPC}
-  n.LoadFromStream(Stream);
-  {$ELSE}
-  n.LoadFromStream(Stream, TEncoding.UTF8);
-  {$ENDIF}
-  DataImport(n);
-  DisposeObject(n);
-end;
-
-procedure THashVariantTextStream.SaveToStream(Stream: TCoreClassStream);
-var
-  n: TCoreClassStrings;
-begin
-  if FVariantList = nil then
-      Exit;
-  n := TCoreClassStringList.Create;
-  DataExport(n);
-  {$IFDEF FPC}
-  n.SaveToStream(Stream);
-  {$ELSE}
-  n.SaveToStream(Stream, TEncoding.UTF8);
-  {$ENDIF}
-  DisposeObject(n);
-end;
-
-procedure THashVariantTextStream.LoadFromFile(FileName: SystemString);
-var
-  ns: TCoreClassStream;
-begin
-  ns := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
-  try
-      LoadFromStream(ns);
-  finally
-      DisposeObject(ns);
-  end;
-end;
-
-procedure THashVariantTextStream.SaveToFile(FileName: SystemString);
-var
-  ns: TCoreClassStream;
-begin
-  ns := TCoreClassFileStream.Create(FileName, fmCreate);
-  try
-      SaveToStream(ns);
-  finally
-      DisposeObject(ns);
-  end;
-end;
-
-procedure THashVariantTextStream.LoadFromText(aText: SystemString);
-var
-  n: TCoreClassStrings;
-begin
-  if FVariantList = nil then
-      Exit;
-  n := TCoreClassStringList.Create;
-  n.Text := aText;
-  DataImport(n);
-  DisposeObject(n);
-end;
-
-procedure THashVariantTextStream.SaveToText(var aText: SystemString);
-var
-  n: TCoreClassStrings;
-begin
-  if FVariantList = nil then
-      Exit;
-  n := TCoreClassStringList.Create;
-  DataExport(n);
-  aText := n.Text;
-  DisposeObject(n);
-end;
-
-function THashVariantTextStream.Text: SystemString;
-begin
-  SaveToText(Result);
-end;
-
-function THashVariantTextStream.GetValue(aName: SystemString; v: Variant): Variant;
-begin
-  Result := Names[aName];
-  if VarIsNull(Result) then
-    begin
-      Names[aName] := v;
-      Result := v;
-    end;
 end;
 
 end.

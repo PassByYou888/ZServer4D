@@ -1,3 +1,12 @@
+{ ****************************************************************************** }
+{ * CrossSocket support                                                        * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Client_CrossSocket;
 
 interface
@@ -8,7 +17,8 @@ uses SysUtils, Classes,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64;
 
 type
-  TContextIntfForClient = TContextIntfForServer;
+  TContextIntfForClient = class(TContextIntfForServer)
+  end;
 
   TCommunicationFramework_Client_CrossSocket = class(TCommunicationFrameworkClient)
   private
@@ -20,7 +30,7 @@ type
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
 
     function Connected: Boolean; override;
@@ -28,9 +38,9 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function Connect(host: string; Port: Word): Boolean; overload;
-    function Connect(host: string; Port: string): Boolean; overload;
-    procedure Disconnect;
+    function Connect(Addr: string; port: Word): Boolean; overload; override;
+    function Connect(host: string; port: string): Boolean; overload;
+    procedure Disconnect; override;
 
     property Driver: TDriverEngine read FDriver;
   end;
@@ -75,6 +85,9 @@ procedure TCommunicationFramework_Client_CrossSocket.DoReceived(Sender: TObject;
 var
   cli: TContextIntfForClient;
 begin
+  if ALen <= 0 then
+      exit;
+
   cli := AConnection.UserObject as TContextIntfForClient;
   if cli = nil then
       exit;
@@ -92,7 +105,7 @@ begin
         cli.LastActiveTime := GetTimeTickCount;
         cli.ReceivedBuffer.Position := cli.ReceivedBuffer.size;
         cli.ReceivedBuffer.Write(ABuf^, ALen);
-        // cli.FillRecvBuffer(nil, False, False);
+        cli.FillRecvBuffer(nil, False, False);
       except
       end;
     end);
@@ -127,10 +140,10 @@ end;
 destructor TCommunicationFramework_Client_CrossSocket.Destroy;
 begin
   Disconnect;
-  // try
-  // DisposeObject(FDriver);
-  // except
-  // end;
+  try
+    // DisposeObject(FDriver);
+  except
+  end;
   inherited Destroy;
 end;
 
@@ -195,13 +208,13 @@ begin
   CheckSynchronize;
 end;
 
-function TCommunicationFramework_Client_CrossSocket.Connect(host: string; Port: Word): Boolean;
+function TCommunicationFramework_Client_CrossSocket.Connect(Addr: string; port: Word): Boolean;
 var
   completed, r: Boolean;
 begin
   completed := False;
   r := False;
-  ICrossSocket(FDriver).Connect(host, Port,
+  ICrossSocket(FDriver).Connect(Addr, port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
     begin
       completed := True;
@@ -223,9 +236,9 @@ begin
   Result := r;
 end;
 
-function TCommunicationFramework_Client_CrossSocket.Connect(host: string; Port: string): Boolean;
+function TCommunicationFramework_Client_CrossSocket.Connect(host: string; port: string): Boolean;
 begin
-  Result := Connect(host, umlStrToInt(Port, 0));
+  Result := Connect(host, umlStrToInt(port, 0));
 end;
 
 procedure TCommunicationFramework_Client_CrossSocket.Disconnect;
