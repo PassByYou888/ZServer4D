@@ -37,18 +37,19 @@ id是阻塞模式的通讯组件，已在ZServer4D内部集成
 3.ICS(open source) www.overbyte.be
 异步式通讯组件，已在ZServer4D内部集成
  
- 
-qq群490269542
-  
- 
-作者qq600585（不接受加人）
-
 
 ## 注意
 
 REST,BAAS等等单项式的HTTP服务请自行在服务器开发和集成，ZServer4D不提供外部http支持
 
 如果你在使用ZServer4D，并且对开发有疑问，请加群去寻找答案（请不要直接联系作者，因为作者一般不在线）
+
+
+qq群490269542
+ 
+ 
+作者qq600585（不接受加人）
+
 
 
 ## 关于内存泄漏
@@ -60,26 +61,27 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 在ZServer4D中所捆绑的类，包括编解码，链表，数据库，均无内存泄漏
 
 
+
 ## 关于切入和使用
 
 使用ZServer4D前，请仔细阅读本项目所提供的Demo，做到对基于ZServer4D的开发范式非常了解
 
+多读代码!
 
 
 
 ## 更新日志
 
+
 2017-12-8
 
-新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明
+新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明 [Demo说明](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/10.ZDB%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E5%99%A8)
 
 在ZDB中新增压缩，拷贝，替换等等底层功能
 
 将ZDB的退火系统改成了自动化功能，只需要设置几个参数即可
 
 新增带有验证机制的ZDB服务模型
-
-[ZDB说明](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/10.ZDB%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E5%99%A8)
 
 
 
@@ -89,7 +91,7 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 新增单机数据库Demo
 
-新增20k链接压力测试，服务器光速响应，并且无内存泄漏
+新增20k链接压力测试，服务器光速响应，并且无内存泄漏 [20k长连接测试](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/9.%E9%95%BF%E8%BF%9E%E6%8E%A5%E5%8E%8B%E6%B5%8B)
 
 通讯内核新增批次化BigStream支持
 
