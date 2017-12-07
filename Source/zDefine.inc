@@ -24,14 +24,5 @@
 {$R-} {range check}
 {$A+} {Word Align Data}
 
-(*
-{$IFDEF FPC}
-{$ELSE}
-{$ENDIF}
-
-{$IFNDEF FPC}
-{$ENDIF}
-*)
-
 {.$define parallel}
 
