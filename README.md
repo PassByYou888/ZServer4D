@@ -79,6 +79,8 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 新增带有验证机制的ZDB服务模型
 
+https://github.com/PassByYou888/ZServer4D/tree/master/Examples/10.ZDB%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E5%99%A8
+
 
 
 2017-12-6

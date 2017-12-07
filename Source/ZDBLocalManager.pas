@@ -12,6 +12,7 @@ unit ZDBLocalManager;
 
 interface
 
+uses Variants,
   CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, TextDataEngine,
   {$IFNDEF FPC}
   JsonDataObjects,
