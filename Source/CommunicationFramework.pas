@@ -173,6 +173,8 @@ type
     DBStorePos: Int64;
 
     procedure Init; inline;
+    procedure Encode(d: TDataFrameEngine); inline;
+    procedure Decode(d: TDataFrameEngine); inline;
   end;
 
   TBigStreamBatchList = class(TCoreClassInterfacedObject)
@@ -203,6 +205,8 @@ type
   public
     constructor Create(AOwner: TPeerClient); virtual;
     destructor Destroy; override;
+
+    procedure Progress; virtual;
 
     property Owner: TPeerClient read FOwner;
     property WorkPlatform: TExecutePlatform read FWorkPlatform;
@@ -695,15 +699,15 @@ type
   TProgressBackgroundProc = procedure();
 
 const
+  // header verify flag
   c_DataHeadFlag = $F0;
-
-  // cdt=communication data type
+  // communication data type
   cdtConsole       = 11;
   cdtStream        = 22;
   cdtDirectConsole = 37;
   cdtDirectStream  = 46;
   cdtBigStream     = 75;
-
+  // dostatus print id
   c_DefaultPrintID = $FFFFFFFF;
 
 var
@@ -1217,12 +1221,30 @@ end;
 
 procedure TBigStreamBatchPostData.Init;
 begin
-  Source := TMemoryStream64.Create;
+  Source := nil;
   CompletedBackcallPtr := 0;
   RemoteMD5 := NullMD5;
   SourceMD5 := NullMD5;
   index := -1;
   DBStorePos := 0;
+end;
+
+procedure TBigStreamBatchPostData.Encode(d: TDataFrameEngine);
+begin
+  d.WriteMD5(RemoteMD5);
+  d.WriteMD5(SourceMD5);
+  d.WriteInteger(index);
+  d.WriteInt64(DBStorePos);
+end;
+
+procedure TBigStreamBatchPostData.Decode(d: TDataFrameEngine);
+begin
+  Source := nil;
+  CompletedBackcallPtr := 0;
+  RemoteMD5 := d.Reader.ReadMD5;
+  SourceMD5 := d.Reader.ReadMD5;
+  index := d.Reader.ReadInteger;
+  DBStorePos := d.Reader.ReadInt64;
 end;
 
 function TBigStreamBatchList.GetItems(const Index: Integer): PBigStreamBatchPostData;
@@ -1268,6 +1290,7 @@ function TBigStreamBatchList.NewPostData: PBigStreamBatchPostData;
 begin
   New(Result);
   Result^.Init;
+  Result^.Source := TMemoryStream64.Create;
   Result^.Index := FList.Add(Result);
 end;
 
@@ -1323,6 +1346,10 @@ destructor TPeerClientUserDefine.Destroy;
 begin
   inherited Destroy;
   DisposeObject(FBigStreamBatchList);
+end;
+
+procedure TPeerClientUserDefine.Progress;
+begin
 end;
 
 constructor TPeerClientUserSpecial.Create(AOwner: TPeerClient);
@@ -2341,10 +2368,16 @@ var
   buff          : TBytes;
   SendDone      : Boolean;
 begin
+  try
+      FUserDefine.Progress;
+  except
+  end;
+
   if FAllSendProcessing then
       exit;
   if FReceiveProcessing then
       exit;
+
   if (FBigStreamSending <> nil) and (WriteBufferEmpty) then
     begin
       SendBufferSize := 1 * 1024 * 1024; // cycle send size 1M

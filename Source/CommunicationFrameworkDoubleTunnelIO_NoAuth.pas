@@ -673,10 +673,7 @@ begin
     begin
       p := rt.BigStreamBatchList[i];
       de := TDataFrameEngine.Create;
-      de.WriteMD5(p^.RemoteMD5);
-      de.WriteMD5(p^.SourceMD5);
-      de.WriteInteger(p^.Index);
-      de.WriteInt64(p^.DBStorePos);
+      p^.Encode(de);
       OutData.WriteDataFrame(de);
       DisposeObject(de);
     end;
@@ -1182,10 +1179,7 @@ begin
     begin
       p := rt.BigStreamBatchList[i];
       de := TDataFrameEngine.Create;
-      de.WriteMD5(p^.RemoteMD5);
-      de.WriteMD5(p^.SourceMD5);
-      de.WriteInteger(p^.Index);
-      de.WriteInt64(p^.DBStorePos);
+      p^.Encode(de);
       OutData.WriteDataFrame(de);
       DisposeObject(de);
     end;

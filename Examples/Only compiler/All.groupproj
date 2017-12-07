@@ -1,8 +1,20 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{5B7E2F76-08E2-4909-B895-C68173DF716E}</ProjectGuid>
+        <ProjectGuid>{0C6BA2C4-D120-4A7A-B533-CF504248171F}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
+        <Projects Include="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\8.单机数据库\ZDBLocal.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
             <Dependencies/>
         </Projects>
@@ -42,13 +54,19 @@
         <Projects Include="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj">
+        <Projects Include="..\10.ZDB数据服务器\ZDBClient\ZDBClientDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj">
+        <Projects Include="..\10.ZDB数据服务器\ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\8.单机数据库\ZDBLocal.dproj">
+        <Projects Include="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj">
@@ -63,18 +81,6 @@
         <Projects Include="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj">
-            <Dependencies/>
-        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -83,6 +89,42 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
+    <Target Name="FMXCloudClient">
+        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj"/>
+    </Target>
+    <Target Name="FMXCloudClient:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXCloudClient:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PeformanceTestClient">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Clean">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Make">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="performaceTestServer">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj"/>
+    </Target>
+    <Target Name="performaceTestServer:Clean">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="performaceTestServer:Make">
+        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBLocal">
+        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj"/>
+    </Target>
+    <Target Name="ZDBLocal:Clean">
+        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBLocal:Make">
+        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Make"/>
+    </Target>
     <Target Name="AFDRClient">
         <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj"/>
     </Target>
@@ -200,32 +242,50 @@
     <Target Name="CoreLogicServer:Make">
         <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Make"/>
     </Target>
-    <Target Name="performaceTestServer">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj"/>
+    <Target Name="ZDBClientDemo">
+        <MSBuild Projects="..\10.ZDB数据服务器\ZDBClient\ZDBClientDemo.dproj"/>
     </Target>
-    <Target Name="performaceTestServer:Clean">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
+    <Target Name="ZDBClientDemo:Clean">
+        <MSBuild Projects="..\10.ZDB数据服务器\ZDBClient\ZDBClientDemo.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="performaceTestServer:Make">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
+    <Target Name="ZDBClientDemo:Make">
+        <MSBuild Projects="..\10.ZDB数据服务器\ZDBClient\ZDBClientDemo.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PeformanceTestClient">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
+    <Target Name="ZDBServiceDemo">
+        <MSBuild Projects="..\10.ZDB数据服务器\ZDBService\ZDBServiceDemo.dproj"/>
     </Target>
-    <Target Name="PeformanceTestClient:Clean">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
+    <Target Name="ZDBServiceDemo:Clean">
+        <MSBuild Projects="..\10.ZDB数据服务器\ZDBService\ZDBServiceDemo.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="PeformanceTestClient:Make">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
+    <Target Name="ZDBServiceDemo:Make">
+        <MSBuild Projects="..\10.ZDB数据服务器\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
-    <Target Name="ZDBLocal">
-        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj"/>
+    <Target Name="FMXDClient">
+        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj"/>
     </Target>
-    <Target Name="ZDBLocal:Clean">
-        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Clean"/>
+    <Target Name="FMXDClient:Clean">
+        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="ZDBLocal:Make">
-        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Make"/>
+    <Target Name="FMXDClient:Make">
+        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXDRClient">
+        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXDRClient:Clean">
+        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXDRClient:Make">
+        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXServer">
+        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj"/>
+    </Target>
+    <Target Name="FMXServer:Clean">
+        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXServer:Make">
+        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="FMXADClient">
         <MSBuild Projects="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj"/>
@@ -263,50 +323,14 @@
     <Target Name="FMXClient2:Make">
         <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj" Targets="Make"/>
     </Target>
-    <Target Name="FMXCloudClient">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj"/>
-    </Target>
-    <Target Name="FMXCloudClient:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXCloudClient:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXDClient">
-        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj"/>
-    </Target>
-    <Target Name="FMXDClient:Clean">
-        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXDClient:Make">
-        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXDRClient">
-        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj"/>
-    </Target>
-    <Target Name="FMXDRClient:Clean">
-        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXDRClient:Make">
-        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXServer">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj"/>
-    </Target>
-    <Target Name="FMXServer:Clean">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXServer:Make">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="AFDRClient;AFDRServer;DRClient;DRServer;ManagerServer;EzServer;DBServer;DClient;DServer;EzClient;ADClient;ADServer;CoreLogicServer;performaceTestServer;PeformanceTestClient;ZDBLocal;FMXADClient;FMXAFDRClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer"/>
+        <CallTarget Targets="FMXCloudClient;PeformanceTestClient;performaceTestServer;ZDBLocal;AFDRClient;AFDRServer;DRClient;DRServer;ManagerServer;EzServer;DBServer;DClient;DServer;EzClient;ADClient;ADServer;CoreLogicServer;ZDBClientDemo;ZDBServiceDemo;FMXDClient;FMXDRClient;FMXServer;FMXADClient;FMXAFDRClient;FMXClient;FMXClient2"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AFDRClient:Clean;AFDRServer:Clean;DRClient:Clean;DRServer:Clean;ManagerServer:Clean;EzServer:Clean;DBServer:Clean;DClient:Clean;DServer:Clean;EzClient:Clean;ADClient:Clean;ADServer:Clean;CoreLogicServer:Clean;performaceTestServer:Clean;PeformanceTestClient:Clean;ZDBLocal:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean"/>
+        <CallTarget Targets="FMXCloudClient:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;ZDBLocal:Clean;AFDRClient:Clean;AFDRServer:Clean;DRClient:Clean;DRServer:Clean;ManagerServer:Clean;EzServer:Clean;DBServer:Clean;DClient:Clean;DServer:Clean;EzClient:Clean;ADClient:Clean;ADServer:Clean;CoreLogicServer:Clean;ZDBClientDemo:Clean;ZDBServiceDemo:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient:Clean;FMXClient2:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AFDRClient:Make;AFDRServer:Make;DRClient:Make;DRServer:Make;ManagerServer:Make;EzServer:Make;DBServer:Make;DClient:Make;DServer:Make;EzClient:Make;ADClient:Make;ADServer:Make;CoreLogicServer:Make;performaceTestServer:Make;PeformanceTestClient:Make;ZDBLocal:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make"/>
+        <CallTarget Targets="FMXCloudClient:Make;PeformanceTestClient:Make;performaceTestServer:Make;ZDBLocal:Make;AFDRClient:Make;AFDRServer:Make;DRClient:Make;DRServer:Make;ManagerServer:Make;EzServer:Make;DBServer:Make;DClient:Make;DServer:Make;EzClient:Make;ADClient:Make;ADServer:Make;CoreLogicServer:Make;ZDBClientDemo:Make;ZDBServiceDemo:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient:Make;FMXClient2:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

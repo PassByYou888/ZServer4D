@@ -12,16 +12,19 @@ uses
 type
   TZDBmanagerForm = class(TForm, IZDBLocalManagerNotify)
     buildTempDataButton: TButton;
-    Memo1: TMemo;
     QueryButton: TButton;
     Timer1: TTimer;
     InsertButton: TButton;
     DeleteButton: TButton;
     ModifyButton: TButton;
     CompressButton: TButton;
-    RecacheButton: TButton;
-    ListBox1: TListBox;
+    StopButton: TButton;
     Timer2: TTimer;
+    Panel1: TPanel;
+    Memo1: TMemo;
+    ListBox1: TListBox;
+    Splitter1: TSplitter;
+    PrintButton: TButton;
     procedure buildTempDataButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -31,8 +34,9 @@ type
     procedure DeleteButtonClick(Sender: TObject);
     procedure ModifyButtonClick(Sender: TObject);
     procedure CompressButtonClick(Sender: TObject);
-    procedure RecacheButtonClick(Sender: TObject);
+    procedure StopButtonClick(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
+    procedure PrintButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure CreateQuery(pipe: TZDBPipeline);
@@ -47,7 +51,7 @@ type
   public
     { Public declarations }
     zdb: TZDBLocalManager;
-    procedure DoStatusNear(AText: string; const ID: Integer);
+    procedure DoStatusNear(AText: SystemString; const ID: Integer);
   end;
 
 var
@@ -76,11 +80,11 @@ begin
 
   enabled := False;
 
-  for i := 1 to 500000 do
+  for i := 1 to 100000 do
     begin
       df := TDBEngineDF.Create;
       for j := 1 to RandomRange(10, 25) do
-          df.WriteDouble(umlRandomRangeD(-2000.0, 2000));
+          df.WriteDouble(umlRandomRangeD(-2000.0, 2000.0));
       for j := 1 to RandomRange(10, 25) do
         begin
           n.Len := umlRandomRange(5, 40);
@@ -91,7 +95,7 @@ begin
       zdb.PostData('Test', df);
       inc(tc, df.Count);
       DisposeObject(df);
-      Caption := Format('total:%s complete:%s', [umlSizeToStr(500000).Text, umlSizeToStr(i).Text]);
+      Caption := Format('total:%s complete:%s data:%s', [umlSizeToStr(100000).Text, umlSizeToStr(i).Text, umlSizeToStr(tc).Text]);
       application.ProcessMessages;
     end;
 
@@ -105,6 +109,7 @@ begin
   zdb := TZDBLocalManager.Create;
   zdb.NotifyIntf := Self;
   zdb.InitDB('Test', False);
+  zdb.LoadDB(False);
   AddDoStatusHook(Self, DoStatusNear);
 end;
 
@@ -117,7 +122,7 @@ procedure TZDBmanagerForm.QueryButtonClick(Sender: TObject);
 var
   p: TZDBPipeline;
 begin
-  p := zdb.QueryDB(True, False, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p := zdb.QueryDB(True, True, False, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     var
       c: Integer;
@@ -125,7 +130,7 @@ begin
     begin
       c := qState.DBEng.GetDF(qState).Count;
       d := qState.DBEng.GetDF(qState).ReadDouble(0);
-      Allowed := InRange(d, 0.0, 100);
+      Allowed := InRange(d, -100, 100);
     end;
 end;
 
@@ -150,7 +155,7 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       db := TZDBStoreEngine(lst[i]);
-      ListBox1.Items.Add(Format('db: %s total items:%d', [db.name, db.Count]));
+      ListBox1.Items.Add(Format('db: %s total items:%d %s', [db.name, db.Count, db.CacheAnnealingState]));
     end;
 
   lst.Clear;
@@ -181,9 +186,14 @@ begin
     end);
 end;
 
-procedure TZDBmanagerForm.RecacheButtonClick(Sender: TObject);
+procedure TZDBmanagerForm.StopButtonClick(Sender: TObject);
+var
+  i: Integer;
 begin
-  zdb.Recache;
+  for i := 0 to zdb.QueryPipelineList.Count - 1 do
+    begin
+      TZDBPipeline(zdb.QueryPipelineList[i]).Stop;
+    end;
 end;
 
 procedure TZDBmanagerForm.QueryDone(pipe: TZDBPipeline);
@@ -205,10 +215,17 @@ procedure TZDBmanagerForm.CompressButtonClick(Sender: TObject);
 var
   DBEng: TDBStoreBase;
 begin
-  DBEng := zdb.DBName['testdb'];
-  doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
-  DBEng.Compress;
-  doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
+  if zdb.ExistsDB('testdb') then
+    begin
+      DBEng := zdb.DBName['testdb'];
+      doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
+      DBEng.Compress;
+      doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
+    end;
+
+  zdb.CompressDB('Test');
+  // zdb.CopyDB('Test', 'NewTest');
+  // zdb.ReplaceDB('Test', 'NewTest');
 end;
 
 procedure TZDBmanagerForm.InsertButtonClick(Sender: TObject);
@@ -268,7 +285,9 @@ procedure TZDBmanagerForm.ModifyButtonClick(Sender: TObject);
 var
   p: TZDBPipeline;
 begin
-  p := zdb.QueryDB(True, False, 'testDB', 'testoutput', True, 1.0, 1.0, 0, 0, 0);
+  p := zdb.QueryDB(False, True, False, 'testDB', 'testoutput', True, 1.0, 1.0, 0, 0, 0);
+  if p = nil then
+      exit;
 
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
@@ -292,6 +311,27 @@ end;
 procedure TZDBmanagerForm.ModifyData(Sender: TZDBStoreEngine; const StorePos: Int64; buff: TCoreClassStream);
 begin
 
+end;
+
+procedure TZDBmanagerForm.PrintButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(False, True, False, 'testDB', 'testoutput', True, 1.0, 1.0, 0, 0, 0);
+  if p = nil then
+      exit;
+
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      doStatus('%d:%s', [dPipe.QueryCounter, qState.DBEng.GetString(qState.StorePos).Text]);
+    end;
+  p.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
+    begin
+    end;
+
+  doStatus('');
+  doStatus('');
+  doStatus('');
 end;
 
 procedure TZDBmanagerForm.DeleteButtonClick(Sender: TObject);
@@ -326,7 +366,7 @@ begin
 
 end;
 
-procedure TZDBmanagerForm.DoStatusNear(AText: string; const ID: Integer);
+procedure TZDBmanagerForm.DoStatusNear(AText: SystemString; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
 end;

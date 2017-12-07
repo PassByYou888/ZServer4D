@@ -10,7 +10,7 @@
   "String" define change as "SystemString"
 
   2017-12-5
-  added support int64 hash object : TInt64HashList
+  added support int64 hash object : TInt64HashObjectList
 *)
 
 unit ListEngine;
@@ -87,7 +87,7 @@ type
     property OnDataFreeProc: TDataFreeProc read FOnDataFreeProc write FOnDataFreeProc;
   end;
 
-  TInt64HashListData = record
+  TInt64HashListObjectStruct = record
     qHash: THash;
     i64: Int64;
     Data: TCoreClassObject;
@@ -95,16 +95,14 @@ type
     OwnerList: TCoreClassList;
   end;
 
-  PInt64HashListData = ^TInt64HashListData;
+  PInt64HashListObjectStruct = ^TInt64HashListObjectStruct;
 
-  TInt64HashList = class(TCoreClassObject)
+  TInt64HashObjectList = class(TCoreClassObject)
   private
     FListBuffer        : TListBuffer;
     FAutoFreeData      : Boolean;
     FCount             : Integer;
     FIDCounter         : TCounter;
-    FMaxCache          : TCounter;
-    FMinCache          : TCounter;
     FAccessOptimization: Boolean;
 
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -119,16 +117,14 @@ type
     procedure GetListData(OutputList: TCoreClassList);
     procedure FastGetListData(OutputList: TCoreClassList);
     procedure Delete(i64: Int64); inline;
-    function Add(i64: Int64; _CustomData: TCoreClassObject; overwrite: Boolean = True): PInt64HashListData; inline;
+    function Add(i64: Int64; _CustomData: TCoreClassObject; overwrite: Boolean = True): PInt64HashListObjectStruct; inline;
     function Find(i64: Int64): TCoreClassObject; inline;
     function Exists(i64: Int64): Boolean; inline;
     procedure SetHashBlockCount(cnt: Integer);
-    function First: PInt64HashListData; inline;
-    function Last: PInt64HashListData; inline;
+    function First: PInt64HashListObjectStruct; inline;
+    function Last: PInt64HashListObjectStruct; inline;
     procedure DeleteFirst(c: Integer);
     procedure DeleteLast(c: Integer);
-
-    procedure Recache;
 
     function ListBuffer: PListBuffer; inline;
 
@@ -137,9 +133,58 @@ type
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
     property Count: Integer read FCount write FCount;
     property i64s[i64: Int64]: TCoreClassObject read Geti64s; default;
-    property MaxCache: TCounter read FMaxCache write FMaxCache;
-    property MinCache: TCounter read FMinCache write FMinCache;
     property AccessOptimization: Boolean read FAccessOptimization write FAccessOptimization;
+  end;
+
+  TInt64HashListPointerStruct = record
+    qHash: THash;
+    i64: Int64;
+    Data: Pointer;
+    id: TCounter;
+    OwnerList: TCoreClassList;
+  end;
+
+  PInt64HashListPointerStruct = ^TInt64HashListPointerStruct;
+
+  TInt64HashPointerList = class(TCoreClassObject)
+  private
+    FListBuffer        : TListBuffer;
+    FAutoFreeData      : Boolean;
+    FCount             : Integer;
+    FIDCounter         : TCounter;
+    FAccessOptimization: Boolean;
+    FOnDataFreeProc    : TDataFreeProc;
+
+    function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
+    function Geti64s(i64: Int64): Pointer;
+
+    procedure DoDataFreeProc(p: Pointer); virtual;
+  public
+    constructor Create; overload;
+    constructor Create(hashBlockCount: Integer); overload;
+    destructor Destroy; override;
+    procedure Clear;
+    procedure GetListData(OutputList: TCoreClassList);
+    procedure FastGetListData(OutputList: TCoreClassList);
+    procedure Delete(i64: Int64); inline;
+    function Add(i64: Int64; _CustomData: Pointer; overwrite: Boolean = True): PInt64HashListPointerStruct; inline;
+    function Find(i64: Int64): Pointer; inline;
+    function Exists(i64: Int64): Boolean; inline;
+    procedure SetHashBlockCount(cnt: Integer);
+    function First: PInt64HashListPointerStruct; inline;
+    function Last: PInt64HashListPointerStruct; inline;
+    procedure DeleteFirst(c: Integer);
+    procedure DeleteLast(c: Integer);
+
+    function ListBuffer: PListBuffer; inline;
+
+    procedure PrintHashReport;
+
+    property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
+    property Count: Integer read FCount write FCount;
+    property i64s[i64: Int64]: Pointer read Geti64s; default;
+    property AccessOptimization: Boolean read FAccessOptimization write FAccessOptimization;
+    property OnDataFreeProc: TDataFreeProc read FOnDataFreeProc write FOnDataFreeProc;
   end;
 
   TListString       = class;
@@ -171,6 +216,9 @@ type
     function GetOnChange(Name: SystemString): THashObjectChangeEvent;
     procedure SetOnChange(Name: SystemString; const aValue: THashObjectChangeEvent);
 
+    function GetAccessOptimization: Boolean;
+    procedure SetAccessOptimization(const Value: Boolean);
+
     procedure DefaultDataFreeProc(p: Pointer);
   protected
   public
@@ -195,6 +243,7 @@ type
     function MakeName: SystemString;
     function MakeRefName(RefrenceName: SystemString): SystemString;
 
+    property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
     property IgnoreCase: Boolean read GetIgnoreCase write SetIgnoreCase;
     property AutoFreeObject: Boolean read FAutoFreeObject write FAutoFreeObject;
     property Count: Integer read GetCount;
@@ -230,6 +279,9 @@ type
     function GetOnChange(Name: SystemString): THashVariantChangeEvent;
     procedure SetOnChange(Name: SystemString; const aValue: THashVariantChangeEvent);
 
+    function GetAccessOptimization: Boolean;
+    procedure SetAccessOptimization(const Value: Boolean);
+
     procedure DefaultDataFreeProc(p: Pointer);
   protected
   public
@@ -264,6 +316,7 @@ type
     function ReplaceMacro(const AText, HeadFlag, TailFlag: SystemString; var Output: SystemString): Boolean;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
+    property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
     property IgnoreCase: Boolean read GetIgnoreCase write SetIgnoreCase;
     property Count: Integer read GetCount;
     property Names[name: SystemString]: Variant read GetNames write SetNames; default;
@@ -370,6 +423,7 @@ type
     procedure LoadFromStream(Stream: TCoreClassStream);
 
     property Items[Idx: Integer]: Int64 read GetItems write SetItems; default;
+    property List: TCoreClassList read FList;
   end;
 
   TListNativeIntData = record
@@ -926,7 +980,7 @@ begin
   FOnDataFreeProc := DefaultDataFreeProc;
   {$ENDIF}
   SetLength(FListBuffer, 0);
-  SetHashBlockCount(10);
+  SetHashBlockCount(64);
 end;
 
 constructor THashList.Create(hashBlockCount: Integer);
@@ -1094,6 +1148,8 @@ var
   lst      : TCoreClassList;
   _ItemData: PHashListData;
 begin
+  if FCount = 0 then
+      Exit;
   if FIgnoreCase then
       lName := LowerCase(name)
   else
@@ -1247,6 +1303,8 @@ var
   lName  : SystemString;
 begin
   Result := False;
+  if FCount = 0 then
+      Exit;
   if FIgnoreCase then
       lName := LowerCase(name)
   else
@@ -1406,7 +1464,7 @@ begin
   DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
 end;
 
-function TInt64HashList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
+function TInt64HashObjectList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
 var
   i: Integer;
 begin
@@ -1417,12 +1475,12 @@ begin
   Result := FListBuffer[i];
 end;
 
-function TInt64HashList.Geti64s(i64: Int64): TCoreClassObject;
+function TInt64HashObjectList.Geti64s(i64: Int64): TCoreClassObject;
 var
   newhash: THash;
   i, j   : Integer;
   lst, nl: TCoreClassList;
-  pData  : PInt64HashListData;
+  pData  : PInt64HashListObjectStruct;
 begin
   Result := nil;
   newhash := MakeHash(i64);
@@ -1430,7 +1488,7 @@ begin
   if (lst <> nil) and (lst.Count > 0) then
     for i := lst.Count - 1 downto 0 do
       begin
-        pData := PInt64HashListData(lst[i]);
+        pData := PInt64HashListObjectStruct(lst[i]);
         if (newhash = pData^.qHash) and (i64 = pData^.i64) then
           begin
             Result := pData^.Data;
@@ -1450,7 +1508,7 @@ begin
                     nl := TCoreClassList.Create;
                     GetListData(nl);
                     for j := 0 to nl.Count - 1 do
-                        PInt64HashListData(nl[j])^.id := j + 1;
+                        PInt64HashListObjectStruct(nl[j])^.id := j + 1;
                     FIDCounter := nl.Count + 1;
                     DisposeObject(nl);
                   end
@@ -1463,49 +1521,45 @@ begin
       end;
 end;
 
-procedure TInt64HashList.DoDataFreeProc(obj: TCoreClassObject);
+procedure TInt64HashObjectList.DoDataFreeProc(obj: TCoreClassObject);
 begin
   DisposeObject(obj);
 end;
 
-constructor TInt64HashList.Create;
+constructor TInt64HashObjectList.Create;
 begin
   inherited Create;
   FCount := 0;
   FIDCounter := 0;
-  FMaxCache := 10000;
-  FMinCache := 1000;
   FAccessOptimization := False;
   FAutoFreeData := False;
   SetLength(FListBuffer, 0);
-  SetHashBlockCount(128);
+  SetHashBlockCount(256);
 end;
 
-constructor TInt64HashList.Create(hashBlockCount: Integer);
+constructor TInt64HashObjectList.Create(hashBlockCount: Integer);
 begin
   inherited Create;
   FCount := 0;
   FIDCounter := 0;
-  FMaxCache := 10000;
-  FMinCache := 1000;
   FAccessOptimization := False;
   FAutoFreeData := False;
   SetLength(FListBuffer, 0);
   SetHashBlockCount(hashBlockCount);
 end;
 
-destructor TInt64HashList.Destroy;
+destructor TInt64HashObjectList.Destroy;
 begin
   Clear;
   inherited Destroy;
 end;
 
-procedure TInt64HashList.Clear;
+procedure TInt64HashObjectList.Clear;
 var
   i    : Integer;
   j    : Integer;
   lst  : TCoreClassList;
-  pData: PInt64HashListData;
+  pData: PInt64HashListObjectStruct;
 begin
   FCount := 0;
   FIDCounter := 0;
@@ -1536,7 +1590,7 @@ begin
     end;
 end;
 
-procedure TInt64HashList.GetListData(OutputList: TCoreClassList);
+procedure TInt64HashObjectList.GetListData(OutputList: TCoreClassList);
 
   function Comp(const A, B: TCounter): ShortInt; inline;
   begin
@@ -1550,7 +1604,7 @@ procedure TInt64HashList.GetListData(OutputList: TCoreClassList);
 
   function SortCompare(Item1, Item2: Pointer): ShortInt; inline;
   begin
-    Result := Comp(PInt64HashListData(Item1)^.id, PInt64HashListData(Item2)^.id);
+    Result := Comp(PInt64HashListObjectStruct(Item1)^.id, PInt64HashListObjectStruct(Item2)^.id);
   end;
 
   procedure QuickSortList(var SortList: TCoreClassPointerList; L, r: Integer);
@@ -1608,7 +1662,7 @@ begin
     end;
 end;
 
-procedure TInt64HashList.FastGetListData(OutputList: TCoreClassList);
+procedure TInt64HashObjectList.FastGetListData(OutputList: TCoreClassList);
 var
   i  : Integer;
   j  : Integer;
@@ -1629,13 +1683,15 @@ begin
     end;
 end;
 
-procedure TInt64HashList.Delete(i64: Int64);
+procedure TInt64HashObjectList.Delete(i64: Int64);
 var
   newhash  : THash;
   i        : Integer;
   lst      : TCoreClassList;
-  _ItemData: PInt64HashListData;
+  _ItemData: PInt64HashListObjectStruct;
 begin
+  if FCount = 0 then
+      Exit;
   newhash := MakeHash(i64);
   lst := GetListTable(newhash, False);
   if lst <> nil then
@@ -1664,12 +1720,12 @@ begin
     end;
 end;
 
-function TInt64HashList.Add(i64: Int64; _CustomData: TCoreClassObject; overwrite: Boolean = True): PInt64HashListData;
+function TInt64HashObjectList.Add(i64: Int64; _CustomData: TCoreClassObject; overwrite: Boolean = True): PInt64HashListObjectStruct;
 var
   newhash: THash;
   lst, nl: TCoreClassList;
   i, j   : Integer;
-  pData  : PInt64HashListData;
+  pData  : PInt64HashListObjectStruct;
 begin
   newhash := MakeHash(i64);
 
@@ -1678,7 +1734,7 @@ begin
     begin
       for i := lst.Count - 1 downto 0 do
         begin
-          pData := PInt64HashListData(lst.Items[i]);
+          pData := PInt64HashListObjectStruct(lst.Items[i]);
           if (newhash = pData^.qHash) and (i64 = pData^.i64) then
             begin
               if (FAutoFreeData) and (pData^.Data <> nil) and (pData^.Data <> _CustomData) then
@@ -1706,7 +1762,7 @@ begin
                       nl := TCoreClassList.Create;
                       GetListData(nl);
                       for j := 0 to nl.Count - 1 do
-                          PInt64HashListData(nl[j])^.id := j + 1;
+                          PInt64HashListObjectStruct(nl[j])^.id := j + 1;
                       FIDCounter := nl.Count + 1;
                       DisposeObject(nl);
                     end
@@ -1736,7 +1792,7 @@ begin
       nl := TCoreClassList.Create;
       GetListData(nl);
       for j := 0 to nl.Count - 1 do
-          PInt64HashListData(nl[j])^.id := j + 1;
+          PInt64HashListObjectStruct(nl[j])^.id := j + 1;
       FIDCounter := nl.Count + 1;
       DisposeObject(nl);
     end
@@ -1744,12 +1800,12 @@ begin
       Inc(FIDCounter);
 end;
 
-function TInt64HashList.Find(i64: Int64): TCoreClassObject;
+function TInt64HashObjectList.Find(i64: Int64): TCoreClassObject;
 var
   i    : Integer;
   j    : Integer;
   lst  : TCoreClassList;
-  pData: PInt64HashListData;
+  pData: PInt64HashListObjectStruct;
 begin
   Result := nil;
   for i := low(FListBuffer) to high(FListBuffer) do
@@ -1761,7 +1817,7 @@ begin
             begin
               for j := lst.Count - 1 downto 0 do
                 begin
-                  pData := PInt64HashListData(lst.Items[j]);
+                  pData := PInt64HashListObjectStruct(lst.Items[j]);
                   if i64 = pData^.i64 then
                     begin
                       Result := pData^.Data;
@@ -1773,14 +1829,16 @@ begin
     end;
 end;
 
-function TInt64HashList.Exists(i64: Int64): Boolean;
+function TInt64HashObjectList.Exists(i64: Int64): Boolean;
 var
   newhash: THash;
   i      : Integer;
   lst    : TCoreClassList;
-  pData  : PInt64HashListData;
+  pData  : PInt64HashListObjectStruct;
 begin
   Result := False;
+  if FCount = 0 then
+      Exit;
   newhash := MakeHash(i64);
   lst := GetListTable(newhash, False);
   if lst <> nil then
@@ -1788,14 +1846,14 @@ begin
       if lst.Count > 0 then
         for i := lst.Count - 1 downto 0 do
           begin
-            pData := PInt64HashListData(lst.Items[i]);
+            pData := PInt64HashListObjectStruct(lst.Items[i]);
             if (newhash = pData^.qHash) and (i64 = pData^.i64) then
                 Exit(True);
           end;
     end;
 end;
 
-procedure TInt64HashList.SetHashBlockCount(cnt: Integer);
+procedure TInt64HashObjectList.SetHashBlockCount(cnt: Integer);
 var
   i: Integer;
 begin
@@ -1805,7 +1863,7 @@ begin
       FListBuffer[i] := nil;
 end;
 
-function TInt64HashList.First: PInt64HashListData;
+function TInt64HashObjectList.First: PInt64HashListObjectStruct;
 var
   i  : Integer;
   mv : TCounter;
@@ -1817,7 +1875,7 @@ begin
     begin
       lst := FListBuffer[i];
       if (lst <> nil) and (lst.Count > 0) then
-        if PInt64HashListData(lst[0])^.id <= mv then
+        if PInt64HashListObjectStruct(lst[0])^.id <= mv then
           begin
             Result := lst[0];
             mv := Result^.id;
@@ -1825,7 +1883,7 @@ begin
     end;
 end;
 
-function TInt64HashList.Last: PInt64HashListData;
+function TInt64HashObjectList.Last: PInt64HashListObjectStruct;
 var
   i  : Integer;
   mv : TCounter;
@@ -1837,7 +1895,7 @@ begin
     begin
       lst := FListBuffer[i];
       if (lst <> nil) and (lst.Count > 0) then
-        if PInt64HashListData(lst[lst.Count - 1])^.id >= mv then
+        if PInt64HashListObjectStruct(lst[lst.Count - 1])^.id >= mv then
           begin
             Result := lst[0];
             mv := Result^.id;
@@ -1845,9 +1903,9 @@ begin
     end;
 end;
 
-procedure TInt64HashList.DeleteFirst(c: Integer);
+procedure TInt64HashObjectList.DeleteFirst(c: Integer);
 var
-  p: PInt64HashListData;
+  p: PInt64HashListObjectStruct;
 begin
   while c > 0 do
     begin
@@ -1871,9 +1929,9 @@ begin
     end;
 end;
 
-procedure TInt64HashList.DeleteLast(c: Integer);
+procedure TInt64HashObjectList.DeleteLast(c: Integer);
 var
-  p: PInt64HashListData;
+  p: PInt64HashListObjectStruct;
 begin
   while c > 0 do
     begin
@@ -1897,18 +1955,554 @@ begin
     end;
 end;
 
-procedure TInt64HashList.Recache;
-begin
-  if FCount > FMaxCache then
-      Clear;
-end;
-
-function TInt64HashList.ListBuffer: PListBuffer;
+function TInt64HashObjectList.ListBuffer: PListBuffer;
 begin
   Result := @FListBuffer;
 end;
 
-procedure TInt64HashList.PrintHashReport;
+procedure TInt64HashObjectList.PrintHashReport;
+var
+  i                 : NativeInt;
+  L                 : TCoreClassList;
+  total             : NativeInt;
+  usaged, aMax, aMin: NativeInt;
+  inited            : Boolean;
+begin
+  inited := False;
+  usaged := 0;
+  aMax := 0;
+  aMin := 0;
+  total := 0;
+  for i := low(FListBuffer) to high(FListBuffer) do
+    begin
+      L := FListBuffer[i];
+      if L <> nil then
+        begin
+          Inc(usaged);
+          total := total + L.Count;
+          if inited then
+            begin
+              if L.Count > aMax then
+                  aMax := L.Count;
+              if aMin > L.Count then
+                  aMin := L.Count;
+            end
+          else
+            begin
+              aMax := L.Count;
+              aMin := L.Count;
+              inited := True;
+            end;
+        end;
+    end;
+  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
+end;
+
+function TInt64HashPointerList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
+var
+  i: Integer;
+begin
+  i := Hash mod Length(FListBuffer);
+
+  if (AutoCreate) and (FListBuffer[i] = nil) then
+      FListBuffer[i] := TCoreClassList.Create;
+  Result := FListBuffer[i];
+end;
+
+function TInt64HashPointerList.Geti64s(i64: Int64): Pointer;
+var
+  newhash: THash;
+  i, j   : Integer;
+  lst, nl: TCoreClassList;
+  pData  : PInt64HashListPointerStruct;
+begin
+  Result := nil;
+  newhash := MakeHash(i64);
+  lst := GetListTable(newhash, False);
+  if (lst <> nil) and (lst.Count > 0) then
+    for i := lst.Count - 1 downto 0 do
+      begin
+        pData := PInt64HashListPointerStruct(lst[i]);
+        if (newhash = pData^.qHash) and (i64 = pData^.i64) then
+          begin
+            Result := pData^.Data;
+
+            if (FAccessOptimization) and (pData^.id < FIDCounter - 1) then
+              begin
+                if i < lst.Count - 1 then
+                  begin
+                    lst.Delete(i);
+                    lst.Add(pData);
+                  end;
+                pData^.id := FIDCounter;
+
+                if FIDCounter > FIDCounter + 1 then
+                  begin
+                    // rebuild idcounter
+                    nl := TCoreClassList.Create;
+                    GetListData(nl);
+                    for j := 0 to nl.Count - 1 do
+                        PInt64HashListPointerStruct(nl[j])^.id := j + 1;
+                    FIDCounter := nl.Count + 1;
+                    DisposeObject(nl);
+                  end
+                else
+                    Inc(FIDCounter);
+              end;
+
+            Exit;
+          end;
+      end;
+end;
+
+procedure TInt64HashPointerList.DoDataFreeProc(p: Pointer);
+begin
+  if Assigned(FOnDataFreeProc) then
+      FOnDataFreeProc(p)
+  else
+      {$IFDEF FPC}
+      {$ELSE}
+      Dispose(p);
+      {$ENDIF}
+end;
+
+constructor TInt64HashPointerList.Create;
+begin
+  inherited Create;
+  FCount := 0;
+  FIDCounter := 0;
+  FAccessOptimization := False;
+  FAutoFreeData := False;
+  SetLength(FListBuffer, 0);
+  SetHashBlockCount(256);
+  FOnDataFreeProc := nil;
+end;
+
+constructor TInt64HashPointerList.Create(hashBlockCount: Integer);
+begin
+  inherited Create;
+  FCount := 0;
+  FIDCounter := 0;
+  FAccessOptimization := False;
+  FAutoFreeData := False;
+  SetLength(FListBuffer, 0);
+  SetHashBlockCount(hashBlockCount);
+  FOnDataFreeProc := nil;
+end;
+
+destructor TInt64HashPointerList.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+procedure TInt64HashPointerList.Clear;
+var
+  i    : Integer;
+  j    : Integer;
+  lst  : TCoreClassList;
+  pData: PInt64HashListPointerStruct;
+begin
+  FCount := 0;
+  FIDCounter := 0;
+  if Length(FListBuffer) = 0 then
+      Exit;
+
+  for i := low(FListBuffer) to high(FListBuffer) do
+    begin
+      if FListBuffer[i] <> nil then
+        begin
+          lst := FListBuffer[i];
+          if lst.Count > 0 then
+            begin
+              for j := lst.Count - 1 downto 0 do
+                begin
+                  pData := lst.Items[j];
+                  try
+                    if (FAutoFreeData) and (pData^.Data <> nil) then
+                        DoDataFreeProc(pData^.Data);
+                    Dispose(pData);
+                  except
+                  end;
+                end;
+            end;
+          DisposeObject(lst);
+          FListBuffer[i] := nil;
+        end;
+    end;
+end;
+
+procedure TInt64HashPointerList.GetListData(OutputList: TCoreClassList);
+
+  function Comp(const A, B: TCounter): ShortInt; inline;
+  begin
+    if A = B then
+        Result := 0
+    else if A < B then
+        Result := -1
+    else
+        Result := 1;
+  end;
+
+  function SortCompare(Item1, Item2: Pointer): ShortInt; inline;
+  begin
+    Result := Comp(PInt64HashListPointerStruct(Item1)^.id, PInt64HashListPointerStruct(Item2)^.id);
+  end;
+
+  procedure QuickSortList(var SortList: TCoreClassPointerList; L, r: Integer);
+  var
+    i, j: Integer;
+    p, t: Pointer;
+  begin
+    repeat
+      i := L;
+      j := r;
+      p := SortList[(L + r) shr 1];
+      repeat
+        while SortCompare(SortList[i], p) < 0 do
+            Inc(i);
+        while SortCompare(SortList[j], p) > 0 do
+            Dec(j);
+        if i <= j then
+          begin
+            if i <> j then
+              begin
+                t := SortList[i];
+                SortList[i] := SortList[j];
+                SortList[j] := t;
+              end;
+            Inc(i);
+            Dec(j);
+          end;
+      until i > j;
+      if L < j then
+          QuickSortList(SortList, L, j);
+      L := i;
+    until i >= r;
+  end;
+
+var
+  i  : Integer;
+  j  : Integer;
+  lst: TCoreClassList;
+begin
+  OutputList.Clear;
+  if FCount > 0 then
+    begin
+      OutputList.Capacity := Count;
+      for i := low(FListBuffer) to high(FListBuffer) do
+        if FListBuffer[i] <> nil then
+          begin
+            lst := FListBuffer[i];
+            if lst.Count > 0 then
+              for j := lst.Count - 1 downto 0 do
+                  OutputList.Add(lst.Items[j]);
+          end;
+
+      if OutputList.Count > 1 then
+          QuickSortList(OutputList.ListData^, 0, OutputList.Count - 1);
+    end;
+end;
+
+procedure TInt64HashPointerList.FastGetListData(OutputList: TCoreClassList);
+var
+  i  : Integer;
+  j  : Integer;
+  lst: TCoreClassList;
+begin
+  OutputList.Clear;
+  if FCount > 0 then
+    begin
+      OutputList.Capacity := Count;
+      for i := low(FListBuffer) to high(FListBuffer) do
+        if FListBuffer[i] <> nil then
+          begin
+            lst := FListBuffer[i];
+            if lst.Count > 0 then
+              for j := lst.Count - 1 downto 0 do
+                  OutputList.Add(lst.Items[j]);
+          end;
+    end;
+end;
+
+procedure TInt64HashPointerList.Delete(i64: Int64);
+var
+  newhash  : THash;
+  i        : Integer;
+  lst      : TCoreClassList;
+  _ItemData: PInt64HashListPointerStruct;
+begin
+  if FCount = 0 then
+      Exit;
+  newhash := MakeHash(i64);
+  lst := GetListTable(newhash, False);
+  if lst <> nil then
+    begin
+      i := 0;
+      while i < lst.Count do
+        begin
+          _ItemData := lst.Items[i];
+          if (newhash = _ItemData^.qHash) and (i64 = _ItemData^.i64) then
+            begin
+              if (FAutoFreeData) and (_ItemData^.Data <> nil) then
+                begin
+                  try
+                    DoDataFreeProc(_ItemData^.Data);
+                    _ItemData^.Data := nil;
+                  except
+                  end;
+                end;
+              Dispose(_ItemData);
+              lst.Delete(i);
+              Dec(FCount);
+            end
+          else
+              Inc(i);
+        end;
+    end;
+end;
+
+function TInt64HashPointerList.Add(i64: Int64; _CustomData: Pointer; overwrite: Boolean = True): PInt64HashListPointerStruct;
+var
+  newhash: THash;
+  lst, nl: TCoreClassList;
+  i, j   : Integer;
+  pData  : PInt64HashListPointerStruct;
+begin
+  newhash := MakeHash(i64);
+
+  lst := GetListTable(newhash, True);
+  if (lst.Count > 0) and (overwrite) then
+    begin
+      for i := lst.Count - 1 downto 0 do
+        begin
+          pData := PInt64HashListPointerStruct(lst.Items[i]);
+          if (newhash = pData^.qHash) and (i64 = pData^.i64) then
+            begin
+              if (FAutoFreeData) and (pData^.Data <> nil) and (pData^.Data <> _CustomData) then
+                begin
+                  try
+                      DoDataFreeProc(pData^.Data);
+                  except
+                  end;
+                end;
+              pData^.Data := _CustomData;
+              Result := pData;
+
+              if (pData^.id < FIDCounter - 1) then
+                begin
+                  if i < lst.Count - 1 then
+                    begin
+                      lst.Delete(i);
+                      lst.Add(pData);
+                    end;
+                  pData^.id := FIDCounter;
+
+                  if FIDCounter > FIDCounter + 1 then
+                    begin
+                      // rebuild idcounter
+                      nl := TCoreClassList.Create;
+                      GetListData(nl);
+                      for j := 0 to nl.Count - 1 do
+                          PInt64HashListPointerStruct(nl[j])^.id := j + 1;
+                      FIDCounter := nl.Count + 1;
+                      DisposeObject(nl);
+                    end
+                  else
+                      Inc(FIDCounter);
+                end;
+
+              Exit;
+            end;
+        end;
+    end;
+
+  New(pData);
+  pData^.qHash := newhash;
+  pData^.i64 := i64;
+  pData^.Data := _CustomData;
+  pData^.id := FIDCounter;
+  pData^.OwnerList := lst;
+
+  lst.Add(pData);
+  Result := pData;
+  Inc(FCount);
+
+  if FIDCounter > FIDCounter + 1 then
+    begin
+      // rebuild idcounter
+      nl := TCoreClassList.Create;
+      GetListData(nl);
+      for j := 0 to nl.Count - 1 do
+          PInt64HashListPointerStruct(nl[j])^.id := j + 1;
+      FIDCounter := nl.Count + 1;
+      DisposeObject(nl);
+    end
+  else
+      Inc(FIDCounter);
+end;
+
+function TInt64HashPointerList.Find(i64: Int64): Pointer;
+var
+  i    : Integer;
+  j    : Integer;
+  lst  : TCoreClassList;
+  pData: PInt64HashListPointerStruct;
+begin
+  Result := nil;
+  for i := low(FListBuffer) to high(FListBuffer) do
+    begin
+      if FListBuffer[i] <> nil then
+        begin
+          lst := FListBuffer[i];
+          if lst.Count > 0 then
+            begin
+              for j := lst.Count - 1 downto 0 do
+                begin
+                  pData := PInt64HashListPointerStruct(lst.Items[j]);
+                  if i64 = pData^.i64 then
+                    begin
+                      Result := pData^.Data;
+                      Exit;
+                    end;
+                end;
+            end;
+        end;
+    end;
+end;
+
+function TInt64HashPointerList.Exists(i64: Int64): Boolean;
+var
+  newhash: THash;
+  i      : Integer;
+  lst    : TCoreClassList;
+  pData  : PInt64HashListPointerStruct;
+begin
+  Result := False;
+  if FCount = 0 then
+      Exit;
+  newhash := MakeHash(i64);
+  lst := GetListTable(newhash, False);
+  if lst <> nil then
+    begin
+      if lst.Count > 0 then
+        for i := lst.Count - 1 downto 0 do
+          begin
+            pData := PInt64HashListPointerStruct(lst.Items[i]);
+            if (newhash = pData^.qHash) and (i64 = pData^.i64) then
+                Exit(True);
+          end;
+    end;
+end;
+
+procedure TInt64HashPointerList.SetHashBlockCount(cnt: Integer);
+var
+  i: Integer;
+begin
+  Clear;
+  SetLength(FListBuffer, cnt);
+  for i := low(FListBuffer) to high(FListBuffer) do
+      FListBuffer[i] := nil;
+end;
+
+function TInt64HashPointerList.First: PInt64HashListPointerStruct;
+var
+  i  : Integer;
+  mv : TCounter;
+  lst: TCoreClassList;
+begin
+  mv := FIDCounter;
+  Result := nil;
+  for i := 0 to Length(FListBuffer) - 1 do
+    begin
+      lst := FListBuffer[i];
+      if (lst <> nil) and (lst.Count > 0) then
+        if PInt64HashListPointerStruct(lst[0])^.id <= mv then
+          begin
+            Result := lst[0];
+            mv := Result^.id;
+          end;
+    end;
+end;
+
+function TInt64HashPointerList.Last: PInt64HashListPointerStruct;
+var
+  i  : Integer;
+  mv : TCounter;
+  lst: TCoreClassList;
+begin
+  mv := 0;
+  Result := nil;
+  for i := 0 to Length(FListBuffer) - 1 do
+    begin
+      lst := FListBuffer[i];
+      if (lst <> nil) and (lst.Count > 0) then
+        if PInt64HashListPointerStruct(lst[lst.Count - 1])^.id >= mv then
+          begin
+            Result := lst[0];
+            mv := Result^.id;
+          end;
+    end;
+end;
+
+procedure TInt64HashPointerList.DeleteFirst(c: Integer);
+var
+  p: PInt64HashListPointerStruct;
+begin
+  while c > 0 do
+    begin
+      p := First;
+
+      if (p <> nil) and (p^.OwnerList[0] = p) then
+        begin
+          p^.OwnerList.Delete(0);
+          if (FAutoFreeData) and (p^.Data <> nil) then
+            begin
+              try
+                DoDataFreeProc(p^.Data);
+                p^.Data := nil;
+              except
+              end;
+            end;
+          Dispose(p);
+          Dec(FCount);
+        end;
+      Dec(c);
+    end;
+end;
+
+procedure TInt64HashPointerList.DeleteLast(c: Integer);
+var
+  p: PInt64HashListPointerStruct;
+begin
+  while c > 0 do
+    begin
+      p := Last;
+
+      if (p <> nil) and (p^.OwnerList[p^.OwnerList.Count - 1] = p) then
+        begin
+          p^.OwnerList.Delete(p^.OwnerList.Count - 1);
+          if (FAutoFreeData) and (p^.Data <> nil) then
+            begin
+              try
+                DoDataFreeProc(p^.Data);
+                p^.Data := nil;
+              except
+              end;
+            end;
+          Dispose(p);
+          Dec(FCount);
+        end;
+      Dec(c);
+    end;
+end;
+
+function TInt64HashPointerList.ListBuffer: PListBuffer;
+begin
+  Result := @FListBuffer;
+end;
+
+procedure TInt64HashPointerList.PrintHashReport;
 var
   i                 : NativeInt;
   L                 : TCoreClassList;
@@ -2007,6 +2601,16 @@ begin
     end
   else
       pObjData^.OnChnage := aValue;
+end;
+
+function THashObjectList.GetAccessOptimization: Boolean;
+begin
+  Result := FHashList.AccessOptimization;
+end;
+
+procedure THashObjectList.SetAccessOptimization(const Value: Boolean);
+begin
+  FHashList.AccessOptimization := Value;
 end;
 
 procedure THashObjectList.DefaultDataFreeProc(p: Pointer);
@@ -2474,6 +3078,16 @@ begin
     end
   else
       pVarData^.OnChnage := aValue;
+end;
+
+function THashVariantList.GetAccessOptimization: Boolean;
+begin
+  Result := FHashList.AccessOptimization;
+end;
+
+procedure THashVariantList.SetAccessOptimization(const Value: Boolean);
+begin
+  FHashList.AccessOptimization := Value;
 end;
 
 procedure THashVariantList.DefaultDataFreeProc(p: Pointer);

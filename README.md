@@ -64,25 +64,22 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 使用ZServer4D前，请仔细阅读本项目所提供的Demo，做到对基于ZServer4D的开发范式非常了解
 
-技术调研包括
-
-了解大型FileStream的和大型MemoryStream的收发，并且了解服务器在这方面的处理机制，如何使用这些功能
-
-了解带有反馈机制的SendStream和SendConsole，了解反馈接口的使用
-
-了解WaitSendStream,WaitSendConsole的使用范式
-
-了解DirectSendStream，DirectSendConsole的使用范式
-
-了解服务器延迟响应模式的使用范式
-
-了解如何使用不同的网络接口做服务器和客户端，网络接口包括Indy，ICS，CrossSocket
-
-以上只是我个人建议，如果有时间把ZServer的核心读一次最好
 
 
 
 ## 更新日志
+
+2017-12-8
+
+新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明
+
+在ZDB中新增压缩，拷贝，替换等等底层功能
+
+将ZDB的退火系统改成了自动化功能，只需要设置几个参数即可
+
+新增带有验证机制的ZDB服务模型
+
+
 
 2017-12-6
 

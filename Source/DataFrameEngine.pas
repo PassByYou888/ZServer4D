@@ -373,7 +373,7 @@ type
 
   TDataFrameEngine = class;
 
-  TDataFrameEngineReader = class(TCoreClassObject)
+  TDataFrameEngineReader = class sealed(TCoreClassObject)
   private
     FOwner: TDataFrameEngine;
     FIndex: Integer;

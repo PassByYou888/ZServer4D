@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-  <Transactions/>
+  <Transactions>
+    <Transaction>2017/12/08 04:50:57.883,C:\git\ZServer4D\Examples\Only compiler\All.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
+  </Transactions>
   <Default.Personality>
-    <Projects ActiveProject="C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj"/>
+    <Projects ActiveProject="C:\git\ZServer4D\Examples\10.ZDB数据服务器\ZDBService\ZDBServiceDemo.dproj"/>
   </Default.Personality>
 </BorlandProject>

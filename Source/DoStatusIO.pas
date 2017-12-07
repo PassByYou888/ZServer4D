@@ -16,13 +16,13 @@ uses
   {$ELSE}
   FMX.Types,
   {$ENDIF}
-  Sysutils, CoreClasses, MemoryStream64;
+  Sysutils, PascalStrings, CoreClasses, MemoryStream64;
 
 type
-  TDoStatusNear = procedure(AText: string; const ID: Integer) of object;
-  TDoStatusFar  = procedure(AText: string; const ID: Integer);
+  TDoStatusNear = procedure(AText: SystemString; const ID: Integer) of object;
+  TDoStatusFar  = procedure(AText: SystemString; const ID: Integer);
 
-procedure DoStatus(Text: string; ID: Integer); overload;
+procedure DoStatus(Text: SystemString; ID: Integer); overload;
 procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusNear); overload;
 procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusFar); overload;
 procedure DeleteDoStatusHook(FlagObj: TCoreClassObject);
@@ -35,12 +35,12 @@ procedure DoStatus(v: Integer); overload;
 procedure DoStatus(v: Single); overload;
 procedure DoStatus(v: Double); overload;
 procedure DoStatus(v: Pointer); overload;
-procedure DoStatus(v: string; const Args: array of const); overload;
-procedure DoError(v: string; const Args: array of const); overload;
-procedure DoStatus(v: string); overload;
+procedure DoStatus(v: SystemString; const Args: array of const); overload;
+procedure DoError(v: SystemString; const Args: array of const); overload;
+procedure DoStatus(v: SystemString); overload;
 
 var
-  LastDoStatus : string;
+  LastDoStatus : SystemString;
   IDEOutput    : Boolean;
   ConsoleOutput: Boolean;
 
@@ -50,7 +50,7 @@ procedure DoStatus(v: TMemoryStream64);
 var
   p: PByte;
   i: Integer;
-  n: string;
+  n: SystemString;
 begin
   p := v.Memory;
   for i := 0 to v.size - 1 do
@@ -92,17 +92,17 @@ begin
   DoStatus(Format('0x%p', [v]));
 end;
 
-procedure DoStatus(v: string; const Args: array of const);
+procedure DoStatus(v: SystemString; const Args: array of const);
 begin
   DoStatus(Format(v, Args));
 end;
 
-procedure DoError(v: string; const Args: array of const);
+procedure DoError(v: SystemString; const Args: array of const);
 begin
   DoStatus(Format(v, Args), 2);
 end;
 
-procedure DoStatus(v: string);
+procedure DoStatus(v: SystemString);
 begin
   DoStatus(v, 0);
 end;
@@ -120,7 +120,7 @@ var
   HookDoSatus : TCoreClassList = nil;
   StatusActive: Boolean        = True;
 
-procedure DoStatus(Text: string; ID: Integer);
+procedure DoStatus(Text: SystemString; ID: Integer);
 var
   Rep_Int: Integer;
   p      : PDoStatusData;

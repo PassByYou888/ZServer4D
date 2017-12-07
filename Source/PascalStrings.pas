@@ -506,9 +506,7 @@ begin
   try
       Text := StringOf(SysUtils.TEncoding.Convert(SysUtils.TEncoding.UTF8, SysUtils.TEncoding.Default, Value));
   except
-    SetLength(Buff, Length(Value));
-    for i := 0 to Length(Value) - 1 do
-        Buff[i] := char(Value[i]);
+    SetLength(Buff, 0);
   end;
 end;
 

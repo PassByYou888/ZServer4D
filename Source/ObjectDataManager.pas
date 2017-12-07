@@ -90,6 +90,7 @@ type
     function GetFieldPath(const FieldPos: Int64): SystemString;
     function GetPathField(const dbPath: SystemString; var Dest: Int64): Boolean;
     function GetPathFieldPos(const dbPath: SystemString): Int64;
+    function GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
 
     function AddFile(const dbPath, DBItem, DBItemDescription, FileName: SystemString): Boolean;
     function PutToFile(const dbPath, DBItem, FileName: SystemString): Boolean;
@@ -151,7 +152,7 @@ type
     property AutoFreeHandle: Boolean read GetAutoFreeHandle write SetAutoFreeHandle;
     property IsOnlyRead: Boolean read FOnlyRead;
     property NeedCreateNew: Boolean read FNeedCreateNew;
-    property ObjectName: SystemString read FObjectName;
+    property ObjectName: SystemString read FObjectName write FObjectName;
     property DefaultItemID: Byte read FDefaultItemID;
     property StreamEngine: TCoreClassStream read FStreamEngine;
     property Time: TDateTime read GetDBTime;
@@ -645,6 +646,16 @@ function TObjectDataManager.GetPathFieldPos(const dbPath: SystemString): Int64;
 begin
   if not GetPathField(dbPath, Result) then
       Result := 0;
+end;
+
+function TObjectDataManager.GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
+var
+  h: THeader;
+begin
+  if dbHeader_ReadRec(hPos, ObjectDataHandle.RecFile, h) then
+      Result := h.LastModifyTime
+  else
+      Result := umlDefaultTime;
 end;
 
 function TObjectDataManager.AddFile(const dbPath, DBItem, DBItemDescription, FileName: SystemString): Boolean;

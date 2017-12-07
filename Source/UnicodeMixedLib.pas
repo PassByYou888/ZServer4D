@@ -66,7 +66,7 @@ const
   FixedLengthStringSize       = 64;
   FixedLengthStringHeaderSize = 1;
 
-  PrepareReadCacheSize = 4096;
+  PrepareReadCacheSize = 512;
 
 type
   umlSystemString   = SystemString;
@@ -1396,13 +1396,17 @@ function umlFileReadStr(var RecFile: TRecFile; var Value: umlString): Boolean;
 var
   buff: FixedLengthString;
 begin
-  if umlFileRead(RecFile, FixedLengthStringSize + FixedLengthStringHeaderSize, buff) = False then
-    begin
-      RecFile.Return := umlFileReadError;
-      Result := False;
-      Exit;
-    end;
-  Value := FixedLengthString2Pascal(buff);
+  try
+    if umlFileRead(RecFile, FixedLengthStringSize + FixedLengthStringHeaderSize, buff) = False then
+      begin
+        RecFile.Return := umlFileReadError;
+        Result := False;
+        Exit;
+      end;
+    Value := FixedLengthString2Pascal(buff);
+  except
+      Value.Text := '';
+  end;
 
   RecFile.Return := umlNotError;
   Result := True;

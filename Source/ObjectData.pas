@@ -72,6 +72,8 @@ type
     Return: Integer;
   end;
 
+  PHeader = ^THeader;
+
   TItemBlock = record
     IDFlags: Byte;
     CurrentBlockPOS, NextBlockPOS, PrevBlockPOS, DataBlockPOS: Int64;
@@ -217,7 +219,7 @@ function dbItem_OnlyReadItemRec(const fPos: Int64; var RecFile: TRecFile; var Se
 function dbField_OnlyWriteFieldRec(const fPos: Int64; var RecFile: TRecFile; var SenderField: TField): Boolean; inline;
 function dbField_OnlyReadFieldRec(const fPos: Int64; var RecFile: TRecFile; var SenderField: TField): Boolean; inline;
 
-function dbHeader_MultipleMatch(const SourStr, DestStr: umlString): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbMultipleMatch(const SourStr, DestStr: umlString): Boolean; inline;
 
 function dbHeader_FindNext(const Name: umlString; const FirstHeaderPOS, LastHeaderPOS: Int64; var RecFile: TRecFile; var SenderHeader: THeader): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function dbHeader_FindPrev(const Name: umlString; const LastHeaderPOS, FirstHeaderPOS: Int64; var RecFile: TRecFile; var SenderHeader: THeader): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -525,11 +527,6 @@ begin
   Result := umlGetLastStr(PathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_MatchStr(const SourStr, DestStr: umlString): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-begin
-  Result := umlMultipleMatch(True, SourStr, DestStr, TreeMDBHeaderNameMultipleString, TreeMDBHeaderNameMultipleCharacter);
-end;
-
 procedure InitTHeader(var SenderHeader: THeader);
 begin
   SenderHeader.CurrentHeader := 0;
@@ -682,15 +679,15 @@ end;
 
 procedure InitTTMDBRecursionSearch(var SenderTMDBRecursionSearch: TTMDBRecursionSearch);
 var
-  Rep_Int: Integer;
+  i: Integer;
 begin
   InitTHeader(SenderTMDBRecursionSearch.ReturnHeader);
   InitTField(SenderTMDBRecursionSearch.CurrentField);
   SenderTMDBRecursionSearch.InitPath := '';
   SenderTMDBRecursionSearch.FilterName := '';
   SenderTMDBRecursionSearch.SearchBuffGo := 0;
-  for Rep_Int := 0 to MaxSecursionLevel do
-      InitTFieldSearch(SenderTMDBRecursionSearch.SearchBuff[Rep_Int]);
+  for i := 0 to MaxSecursionLevel do
+      InitTFieldSearch(SenderTMDBRecursionSearch.SearchBuff[i]);
 end;
 
 function dbHeader_WriteRec(const fPos: Int64; var RecFile: TRecFile; var SenderHeader: THeader): Boolean;
@@ -1473,9 +1470,14 @@ begin
   Result := True;
 end;
 
-function dbHeader_MultipleMatch(const SourStr, DestStr: umlString): Boolean;
+function dbMultipleMatch(const SourStr, DestStr: umlString): Boolean;
 begin
-  Result := dbPack_MatchStr(SourStr, DestStr);
+  if SourStr.len = 0 then
+      Result := True
+  else if DestStr.len = 0 then
+      Result := False
+  else
+      Result := umlMultipleMatch(True, SourStr, DestStr, TreeMDBHeaderNameMultipleString, TreeMDBHeaderNameMultipleCharacter);
 end;
 
 function dbHeader_FindNext(const Name: umlString; const FirstHeaderPOS, LastHeaderPOS: Int64; var RecFile: TRecFile; var SenderHeader: THeader): Boolean;
@@ -1485,7 +1487,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_MultipleMatch(name, SenderHeader.Name) then
+  if dbMultipleMatch(name, SenderHeader.Name) then
     begin
       Result := True;
       Exit;
@@ -1498,7 +1500,7 @@ begin
     end;
   while dbHeader_ReadRec(SenderHeader.NextHeader, RecFile, SenderHeader) do
     begin
-      if dbHeader_MultipleMatch(name, SenderHeader.Name) then
+      if dbMultipleMatch(name, SenderHeader.Name) then
         begin
           Result := True;
           Exit;
@@ -1521,7 +1523,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_MultipleMatch(name, SenderHeader.Name) then
+  if dbMultipleMatch(name, SenderHeader.Name) then
     begin
       Result := True;
       Exit;
@@ -1534,7 +1536,7 @@ begin
     end;
   while dbHeader_ReadRec(SenderHeader.PrevHeader, RecFile, SenderHeader) do
     begin
-      if dbHeader_MultipleMatch(name, SenderHeader.Name) then
+      if dbMultipleMatch(name, SenderHeader.Name) then
         begin
           Result := True;
           Exit;
@@ -2631,21 +2633,21 @@ end;
 
 function dbField_FindFirstItem(const Name: umlString; const ItemExtID: Byte; const fPos: Int64; var RecFile: TRecFile; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
   if dbField_FindFirst(name, db_Header_ItemID, fPos, RecFile, SenderFieldSearch) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, _Item) = False then
+  if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, itm) = False then
     begin
-      SenderFieldSearch.Return := _Item.Return;
+      SenderFieldSearch.Return := itm.Return;
       Result := False;
       Exit;
     end;
 
-  if _Item.ExtID = ItemExtID then
+  if itm.ExtID = ItemExtID then
     begin
       Result := True;
       Exit;
@@ -2653,13 +2655,13 @@ begin
 
   while dbField_FindNext(RecFile, SenderFieldSearch) do
     begin
-      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, _Item) = False then
+      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, itm) = False then
         begin
-          SenderFieldSearch.Return := _Item.Return;
+          SenderFieldSearch.Return := itm.Return;
           Result := False;
           Exit;
         end;
-      if _Item.ExtID = ItemExtID then
+      if itm.ExtID = ItemExtID then
         begin
           Result := True;
           Exit;
@@ -2670,17 +2672,17 @@ end;
 
 function dbField_FindNextItem(const ItemExtID: Byte; var RecFile: TRecFile; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
   while dbField_FindNext(RecFile, SenderFieldSearch) do
     begin
-      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, _Item) = False then
+      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, itm) = False then
         begin
-          SenderFieldSearch.Return := _Item.Return;
+          SenderFieldSearch.Return := itm.Return;
           Result := False;
           Exit;
         end;
-      if _Item.ExtID = ItemExtID then
+      if itm.ExtID = ItemExtID then
         begin
           Result := True;
           Exit;
@@ -2691,21 +2693,21 @@ end;
 
 function dbField_FindLastItem(const Name: umlString; const ItemExtID: Byte; const fPos: Int64; var RecFile: TRecFile; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
   if dbField_FindLast(name, db_Header_ItemID, fPos, RecFile, SenderFieldSearch) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, _Item) = False then
+  if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, itm) = False then
     begin
-      SenderFieldSearch.Return := _Item.Return;
+      SenderFieldSearch.Return := itm.Return;
       Result := False;
       Exit;
     end;
 
-  if _Item.ExtID = ItemExtID then
+  if itm.ExtID = ItemExtID then
     begin
       Result := True;
       Exit;
@@ -2713,13 +2715,13 @@ begin
 
   while dbField_FindPrev(RecFile, SenderFieldSearch) do
     begin
-      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, _Item) = False then
+      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, itm) = False then
         begin
-          SenderFieldSearch.Return := _Item.Return;
+          SenderFieldSearch.Return := itm.Return;
           Result := False;
           Exit;
         end;
-      if _Item.ExtID = ItemExtID then
+      if itm.ExtID = ItemExtID then
         begin
           Result := True;
           Exit;
@@ -2730,17 +2732,17 @@ end;
 
 function dbField_FindPrevItem(const ItemExtID: Byte; var RecFile: TRecFile; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
   while dbField_FindPrev(RecFile, SenderFieldSearch) do
     begin
-      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, _Item) = False then
+      if dbItem_ReadRec(SenderFieldSearch.RHeader.CurrentHeader, RecFile, itm) = False then
         begin
-          SenderFieldSearch.Return := _Item.Return;
+          SenderFieldSearch.Return := itm.Return;
           Result := False;
           Exit;
         end;
-      if _Item.ExtID = ItemExtID then
+      if itm.ExtID = ItemExtID then
         begin
           Result := True;
           Exit;
@@ -2751,16 +2753,16 @@ end;
 
 function dbField_ExistItem(const Name: umlString; const ItemExtID: Byte; const fPos: Int64; var RecFile: TRecFile): Boolean;
 var
-  _FieldSearch: TFieldSearch;
+  fs: TFieldSearch;
 begin
-  Result := dbField_FindFirstItem(name, ItemExtID, fPos, RecFile, _FieldSearch);
+  Result := dbField_FindFirstItem(name, ItemExtID, fPos, RecFile, fs);
 end;
 
 function dbField_ExistHeader(const Name: umlString; const ID: Byte; const fPos: Int64; var RecFile: TRecFile): Boolean;
 var
-  _FieldSearch: TFieldSearch;
+  fs: TFieldSearch;
 begin
-  Result := dbField_FindFirst(name, ID, fPos, RecFile, _FieldSearch);
+  Result := dbField_FindFirst(name, ID, fPos, RecFile, fs);
 end;
 
 function dbField_CreateHeader(const Name: umlString; const ID: Byte; const fPos: Int64; var RecFile: TRecFile; var SenderHeader: THeader): Boolean;
@@ -3800,7 +3802,7 @@ end;
 
 function dbField_CopyItem(var SenderItem: TItem; var RecFile: TRecFile; const DestFieldPos: Int64; var DestRecFile: TRecFile): Boolean;
 var
-  Rep_Int   : Integer;
+  i         : Integer;
   NewItemHnd: TItem;
   buff      : array [0 .. umlMaxFileRecSize] of umlChar;
 begin
@@ -3819,7 +3821,7 @@ begin
     end;
   if SenderItem.Size > umlMaxFileRecSize then
     begin
-      for Rep_Int := 1 to (SenderItem.Size div umlMaxFileRecSize) do
+      for i := 1 to (SenderItem.Size div umlMaxFileRecSize) do
         begin
           if dbItem_BlockReadData(RecFile, SenderItem, buff, umlMaxFileRecSize) = False then
             begin
@@ -3874,8 +3876,8 @@ end;
 
 function dbField_CopyItemBuffer(var SenderItem: TItem; var RecFile: TRecFile; var DestItemHnd: TItem; var DestRecFile: TRecFile): Boolean;
 var
-  Rep_Int: Integer;
-  buff   : array [0 .. umlMaxFileRecSize] of umlChar;
+  i   : Integer;
+  buff: array [0 .. umlMaxFileRecSize] of umlChar;
 begin
   if dbItem_BlockSeekStartPOS(RecFile, SenderItem) = False then
     begin
@@ -3884,7 +3886,7 @@ begin
     end;
   if SenderItem.Size > umlMaxFileRecSize then
     begin
-      for Rep_Int := 1 to (SenderItem.Size div umlMaxFileRecSize) do
+      for i := 1 to (SenderItem.Size div umlMaxFileRecSize) do
         begin
           if dbItem_BlockReadData(RecFile, SenderItem, buff, umlMaxFileRecSize) = False then
             begin
@@ -3939,31 +3941,31 @@ end;
 
 function dbField_CopyAllTo(const FilterName: umlString; const fieldPos: Int64; var RecFile: TRecFile; const DestFieldPos: Int64; var DestRecFile: TRecFile): Boolean;
 var
-  _FieldSearch: TFieldSearch;
-  NewField    : TField;
-  NewItem     : TItem;
+  fs      : TFieldSearch;
+  NewField: TField;
+  NewItem : TItem;
 begin
-  InitTFieldSearch(_FieldSearch);
-  if dbField_OnlyFindFirstName(FilterName, fieldPos, RecFile, _FieldSearch) then
+  InitTFieldSearch(fs);
+  if dbField_OnlyFindFirstName(FilterName, fieldPos, RecFile, fs) then
     begin
       repeat
-        case _FieldSearch.ID of
+        case fs.ID of
           db_Header_FieldID:
             begin
               InitTField(NewField);
-              if dbField_ReadRec(_FieldSearch.RHeader.CurrentHeader, RecFile, NewField) then
-                if dbField_CreateField(_FieldSearch.RHeader.Name, DestFieldPos, DestRecFile, NewField) then
-                    dbField_CopyAllTo(FilterName, _FieldSearch.RHeader.CurrentHeader, RecFile, NewField.RHeader.CurrentHeader, DestRecFile);
+              if dbField_ReadRec(fs.RHeader.CurrentHeader, RecFile, NewField) then
+                if dbField_CreateField(fs.RHeader.Name, DestFieldPos, DestRecFile, NewField) then
+                    dbField_CopyAllTo(FilterName, fs.RHeader.CurrentHeader, RecFile, NewField.RHeader.CurrentHeader, DestRecFile);
             end;
           db_Header_ItemID:
             begin
-              if dbItem_ReadRec(_FieldSearch.RHeader.CurrentHeader, RecFile, NewItem) then
+              if dbItem_ReadRec(fs.RHeader.CurrentHeader, RecFile, NewItem) then
                 begin
                   dbField_CopyItem(NewItem, RecFile, DestFieldPos, DestRecFile);
                 end;
             end;
         end;
-      until not dbField_OnlyFindNextName(RecFile, _FieldSearch);
+      until not dbField_OnlyFindNextName(RecFile, fs);
     end;
   Result := True;
 end;
@@ -4413,8 +4415,8 @@ end;
 function dbPack_CreateField(const PathName, Description: umlString; var SenderTMDB: TTMDB): Boolean;
 var
   f                        : TField;
-  _FieldSearch             : TFieldSearch;
-  Rep_Int, _PathCount      : Integer;
+  fs                       : TFieldSearch;
+  i, pc                    : Integer;
   TempPathStr, TempPathName: umlString;
 begin
   if umlFileTest(SenderTMDB.RecFile) = False then
@@ -4437,10 +4439,10 @@ begin
       Exit;
     end;
   TempPathName := PathName;
-  _PathCount := dbPack_GetIndexStrCount(TempPathName);
-  if _PathCount > 0 then
+  pc := dbPack_GetIndexStrCount(TempPathName);
+  if pc > 0 then
     begin
-      for Rep_Int := 1 to _PathCount do
+      for i := 1 to pc do
         begin
           TempPathStr := dbPack_GetFirstPath(TempPathName);
           TempPathName := dbPack_MaskFirstPath(TempPathName);
@@ -4451,7 +4453,7 @@ begin
               Result := False;
               Exit;
             end;
-          case dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, _FieldSearch) of
+          case dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, fs) of
             False:
               begin
                 f.Description := Description;
@@ -4464,7 +4466,7 @@ begin
               end;
             True:
               begin
-                if dbField_ReadRec(_FieldSearch.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
+                if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
                   begin
                     SenderTMDB.Return := f.Return;
                     Result := False;
@@ -4819,7 +4821,7 @@ begin
       Exit;
     end;
 
-  if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+  if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
     begin
       SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
       SenderTMDB.Return := db_Pack_ok;
@@ -4840,7 +4842,7 @@ begin
       Exit;
     end;
 
-  if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+  if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
     begin
       SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
       SenderTMDB.Return := db_Pack_ok;
@@ -4856,7 +4858,7 @@ begin
           Result := False;
           Exit;
         end;
-      if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+      if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
         begin
           SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
           SenderTMDB.Return := db_Pack_ok;
@@ -4871,8 +4873,8 @@ end;
 function dbPack_SetCurrentField(const PathName: umlString; var SenderTMDB: TTMDB): Boolean;
 var
   f                        : TField;
-  _FieldSearch             : TFieldSearch;
-  Rep_Int, _PathCount      : Integer;
+  fs                       : TFieldSearch;
+  i, pc                    : Integer;
   TempPathStr, TempPathName: umlString;
 begin
   if umlFileTest(SenderTMDB.RecFile) = False then
@@ -4897,10 +4899,10 @@ begin
       Exit;
     end;
   TempPathName := PathName;
-  _PathCount := dbPack_GetIndexStrCount(TempPathName);
-  if _PathCount > 0 then
+  pc := dbPack_GetIndexStrCount(TempPathName);
+  if pc > 0 then
     begin
-      for Rep_Int := 1 to _PathCount do
+      for i := 1 to pc do
         begin
           TempPathStr := dbPack_GetFirstPath(TempPathName);
           TempPathName := dbPack_MaskFirstPath(TempPathName);
@@ -4911,13 +4913,13 @@ begin
               Result := False;
               Exit;
             end;
-          if dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, _FieldSearch) = False then
+          if dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, fs) = False then
             begin
-              SenderTMDB.Return := _FieldSearch.Return;
+              SenderTMDB.Return := fs.Return;
               Result := False;
               Exit;
             end;
-          if dbField_ReadRec(_FieldSearch.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
+          if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
             begin
               SenderTMDB.Return := f.Return;
               Result := False;
@@ -4926,7 +4928,7 @@ begin
         end;
     end;
   SenderTMDB.CurrentFieldPOS := f.RHeader.CurrentHeader;
-  SenderTMDB.CurrentFieldLevel := _PathCount;
+  SenderTMDB.CurrentFieldLevel := pc;
   SenderTMDB.WriteFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
@@ -4954,7 +4956,7 @@ begin
       Exit;
     end;
 
-  if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+  if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
       SenderField := f;
@@ -4977,7 +4979,7 @@ begin
       Exit;
     end;
 
-  if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+  if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
       SenderField := f;
@@ -4994,7 +4996,7 @@ begin
           Result := False;
           Exit;
         end;
-      if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+      if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
         begin
           SenderTMDB.Return := db_Pack_ok;
           SenderField := f;
@@ -5010,8 +5012,8 @@ end;
 function dbPack_GetField(const PathName: umlString; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
   f                        : TField;
-  _FieldSearch             : TFieldSearch;
-  Rep_Int, _PathCount      : Integer;
+  fs                       : TFieldSearch;
+  i, pc                    : Integer;
   TempPathStr, TempPathName: umlString;
 begin
   if umlFileTest(SenderTMDB.RecFile) = False then
@@ -5035,11 +5037,11 @@ begin
       Exit;
     end;
   TempPathName := PathName;
-  _PathCount := dbPack_GetIndexStrCount(TempPathName);
+  pc := dbPack_GetIndexStrCount(TempPathName);
 
-  if _PathCount > 0 then
+  if pc > 0 then
     begin
-      for Rep_Int := 1 to _PathCount do
+      for i := 1 to pc do
         begin
           TempPathStr := dbPack_GetFirstPath(TempPathName);
           TempPathName := dbPack_MaskFirstPath(TempPathName);
@@ -5050,13 +5052,13 @@ begin
               Result := False;
               Exit;
             end;
-          if dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, _FieldSearch) = False then
+          if dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, fs) = False then
             begin
-              SenderTMDB.Return := _FieldSearch.Return;
+              SenderTMDB.Return := fs.Return;
               Result := False;
               Exit;
             end;
-          if dbField_ReadRec(_FieldSearch.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
+          if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
             begin
               SenderTMDB.Return := f.Return;
               Result := False;
@@ -5121,8 +5123,8 @@ end;
 function dbPack_NewItem(const PathName, ItemName, ItemDescription: umlString; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
 var
   f                        : TField;
-  _FieldSearch             : TFieldSearch;
-  Rep_Int, _PathCount      : Integer;
+  fs                       : TFieldSearch;
+  i, pc                    : Integer;
   TempPathStr, TempPathName: umlString;
 begin
   if umlFileTest(SenderTMDB.RecFile) = False then
@@ -5141,10 +5143,10 @@ begin
   if umlGetLength(PathName) > 0 then
     begin
       TempPathName := PathName;
-      _PathCount := dbPack_GetIndexStrCount(TempPathName);
-      if _PathCount > 0 then
+      pc := dbPack_GetIndexStrCount(TempPathName);
+      if pc > 0 then
         begin
-          for Rep_Int := 1 to _PathCount do
+          for i := 1 to pc do
             begin
               TempPathStr := dbPack_GetFirstPath(TempPathName);
               TempPathName := dbPack_MaskFirstPath(TempPathName);
@@ -5155,7 +5157,7 @@ begin
                   Result := False;
                   Exit;
                 end;
-              case dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, _FieldSearch) of
+              case dbField_FindFirst(TempPathStr, db_Header_FieldID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, fs) of
                 False:
                   begin
                     f.Description := db_Pack_DefaultDescription;
@@ -5168,7 +5170,7 @@ begin
                   end;
                 True:
                   begin
-                    if dbField_ReadRec(_FieldSearch.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
+                    if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
                       begin
                         SenderTMDB.Return := f.Return;
                         Result := False;
@@ -5186,7 +5188,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirstItem(ItemName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, _FieldSearch) then
+  if dbField_FindFirstItem(ItemName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, fs) then
     begin
       if SenderTMDB.OverWriteItem = False then
         begin
@@ -5199,7 +5201,7 @@ begin
         end
       else
         begin
-          if dbField_DeleteHeader(_FieldSearch.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
+          if dbField_DeleteHeader(fs.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.RecFile, f) = False then
             begin
               SenderTMDB.Return := f.Return;
               Result := False;
@@ -5405,7 +5407,7 @@ end;
 
 function dbPack_ItemFastOpen(const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
   if SenderTMDBItemHandle.OpenFlags then
     begin
@@ -5413,31 +5415,31 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(fPos, SenderTMDB.RecFile, _Item.RHeader) = False then
+  if dbHeader_ReadRec(fPos, SenderTMDB.RecFile, itm.RHeader) = False then
     begin
-      SenderTMDB.Return := _Item.RHeader.Return;
+      SenderTMDB.Return := itm.RHeader.Return;
       Result := False;
       Exit;
     end;
-  if _Item.RHeader.ID <> db_Header_ItemID then
-    begin
-      SenderTMDB.Return := db_Pack_OpenItemError;
-      Result := False;
-      Exit;
-    end;
-  if dbItem_OnlyReadItemRec(_Item.RHeader.DataMainPOS, SenderTMDB.RecFile, _Item) = False then
-    begin
-      SenderTMDB.Return := _Item.Return;
-      Result := False;
-      Exit;
-    end;
-  if _Item.ExtID <> ItemExtID then
+  if itm.RHeader.ID <> db_Header_ItemID then
     begin
       SenderTMDB.Return := db_Pack_OpenItemError;
       Result := False;
       Exit;
     end;
-  SenderTMDBItemHandle.Item := _Item;
+  if dbItem_OnlyReadItemRec(itm.RHeader.DataMainPOS, SenderTMDB.RecFile, itm) = False then
+    begin
+      SenderTMDB.Return := itm.Return;
+      Result := False;
+      Exit;
+    end;
+  if itm.ExtID <> ItemExtID then
+    begin
+      SenderTMDB.Return := db_Pack_OpenItemError;
+      Result := False;
+      Exit;
+    end;
+  SenderTMDBItemHandle.Item := itm;
   if dbItem_BlockInit(SenderTMDB.RecFile, SenderTMDBItemHandle.Item) = False then
     begin
       SenderTMDB.Return := SenderTMDBItemHandle.Item.Return;
@@ -5445,7 +5447,7 @@ begin
       Exit;
     end;
   SenderTMDBItemHandle.Path := '';
-  SenderTMDBItemHandle.Name := _Item.RHeader.Name;
+  SenderTMDBItemHandle.Name := itm.RHeader.Name;
   SenderTMDBItemHandle.Description := SenderTMDBItemHandle.Item.Description;
   SenderTMDBItemHandle.CreateTime := SenderTMDBItemHandle.Item.RHeader.CreateTime;
   SenderTMDBItemHandle.LastModifyTime := SenderTMDBItemHandle.Item.RHeader.LastModifyTime;
@@ -5736,7 +5738,7 @@ end;
 function dbPack_AppendItemSize(var SenderTMDBItemHandle: TTMDBItemHandle; const Size: Int64; var SenderTMDB: TTMDB): Boolean;
 var
   SwapBuffers: array [0 .. umlMaxFileRecSize] of Byte;
-  Rep_Int    : Integer;
+  i          : Integer;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5752,7 +5754,7 @@ begin
     end;
   if Size > umlMaxFileRecSize then
     begin
-      for Rep_Int := 1 to (Size div umlMaxFileRecSize) do
+      for i := 1 to (Size div umlMaxFileRecSize) do
         begin
           if dbItem_BlockWriteData(SenderTMDB.RecFile, SenderTMDBItemHandle.Item, SwapBuffers, umlMaxFileRecSize) = False then
             begin
@@ -5798,7 +5800,7 @@ begin
       Exit;
     end;
 
-  if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+  if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
@@ -5818,7 +5820,7 @@ begin
       Exit;
     end;
 
-  if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+  if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
@@ -5833,7 +5835,7 @@ begin
           Result := False;
           Exit;
         end;
-      if (dbHeader_MultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
+      if (dbMultipleMatch(name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_FieldID) then
         begin
           SenderTMDB.Return := db_Pack_ok;
           Result := True;
@@ -5932,30 +5934,24 @@ end;
 
 function dbPack_FindFirstItem(const PathName, FilterName: umlString; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
-  f    : TField;
-  _Item: TItem;
+  f  : TField;
+  itm: TItem;
 begin
   if dbPack_GetField(PathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirstItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, SenderSearch.FieldSearch) = False then
+  if dbField_FindFirstItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
-  if dbItem_OnlyReadItemRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.RecFile, _Item) = False then
-    begin
-      SenderTMDB.Return := _Item.Return;
-      Result := False;
-      Exit;
-    end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -5964,24 +5960,18 @@ end;
 
 function dbPack_FindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
-  if dbField_FindNextItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch) = False then
+  if dbField_FindNextItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
-  if dbItem_OnlyReadItemRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.RecFile, _Item) = False then
-    begin
-      SenderTMDB.Return := _Item.Return;
-      Result := False;
-      Exit;
-    end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -5990,30 +5980,24 @@ end;
 
 function dbPack_FindLastItem(const PathName, FilterName: umlString; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
-  f    : TField;
-  _Item: TItem;
+  f  : TField;
+  itm: TItem;
 begin
   if dbPack_GetField(PathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindLastItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, SenderSearch.FieldSearch) = False then
+  if dbField_FindLastItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
-  if dbItem_OnlyReadItemRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.RecFile, _Item) = False then
-    begin
-      SenderTMDB.Return := _Item.Return;
-      Result := False;
-      Exit;
-    end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6022,24 +6006,18 @@ end;
 
 function dbPack_FindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
-  if dbField_FindPrevItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch) = False then
+  if dbField_FindPrevItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
-  if dbItem_OnlyReadItemRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.RecFile, _Item) = False then
-    begin
-      SenderTMDB.Return := _Item.Return;
-      Result := False;
-      Exit;
-    end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6048,18 +6026,18 @@ end;
 
 function dbPack_FastFindFirstItem(const fieldPos: Int64; const FilterName: umlString; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
-  if dbField_FindFirstItem(FilterName, ItemExtID, fieldPos, SenderTMDB.RecFile, SenderSearch.FieldSearch, _Item) = False then
+  if dbField_FindFirstItem(FilterName, ItemExtID, fieldPos, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6068,18 +6046,18 @@ end;
 
 function dbPack_FastFindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
-  if dbField_FindNextItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch, _Item) = False then
+  if dbField_FindNextItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6088,18 +6066,18 @@ end;
 
 function dbPack_FastFindLastItem(const fieldPos: Int64; const FilterName: umlString; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
-  if dbField_FindLastItem(FilterName, ItemExtID, fieldPos, SenderTMDB.RecFile, SenderSearch.FieldSearch, _Item) = False then
+  if dbField_FindLastItem(FilterName, ItemExtID, fieldPos, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6108,18 +6086,18 @@ end;
 
 function dbPack_FastFindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
-  _Item: TItem;
+  itm: TItem;
 begin
-  if dbField_FindPrevItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch, _Item) = False then
+  if dbField_FindPrevItem(ItemExtID, SenderTMDB.RecFile, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := _Item.Description;
-  SenderSearch.ExtID := _Item.ExtID;
-  SenderSearch.Size := _Item.Size;
+  SenderSearch.Description := itm.Description;
+  SenderSearch.ExtID := itm.ExtID;
+  SenderSearch.Size := itm.Size;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;

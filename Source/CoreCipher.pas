@@ -12,6 +12,9 @@
 
   2017-12-6
   added supported hash elf64
+
+  2017-12-7
+  added System default key
 *)
 
 { .$define parallel }
@@ -432,8 +435,11 @@ var
   { system default parallel depth }
   DefaultParallelDepth: Integer = 16;
   {$ENDIF}
+  { system default key and cipherStyle }
+  DefaultKey        : TCipherKeyBuffer;
+  DefaultCipherStyle: TCipherStyle = TCipherStyle.csBlowfish;
 
-procedure InitSysCBC(rand: Int64);
+procedure InitSysCBCAndDefaultKey(rand: Int64);
 
 function SequEncryptWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
@@ -444,6 +450,7 @@ function SequEncryptWithParallel(const ca: TCipherStyleArray; sour: Pointer; Siz
 
 function SequEncrypt(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncrypt(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncrypt(sour: Pointer; Size: nativeInt; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 function SequEncryptCBCWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBCWithDirect(const ca: TCipherStyleArray; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
@@ -2814,7 +2821,7 @@ end;
 {$ENDIF}
 
 
-procedure InitSysCBC(rand: Int64);
+procedure InitSysCBCAndDefaultKey(rand: Int64);
 var
   i   : Integer;
   Seed: TInt64;
@@ -2823,6 +2830,8 @@ begin
   Seed.i := rand;
   for i := low(SystemCBC) to high(SystemCBC) do
       SystemCBC[i] := TMISC.Random64(Seed);
+
+  TCipher.GenerateKey(DefaultCipherStyle, @rand, SizeOf(rand), DefaultKey);
 end;
 
 function SequEncryptWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
@@ -2906,6 +2915,11 @@ begin
   else
     {$ENDIF}
       Result := SequEncryptWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
+end;
+
+function SequEncrypt(sour: Pointer; Size: nativeInt; Encrypt, ProcessTail: Boolean): Boolean;
+begin
+  Result := SequEncrypt(DefaultCipherStyle, sour, Size, DefaultKey, Encrypt, ProcessTail);
 end;
 
 function SequEncryptCBCWithDirect(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
@@ -5499,7 +5513,7 @@ end;
 
 initialization
 
-InitSysCBC(0);
+InitSysCBCAndDefaultKey(Int64($F0F0F0F0F0F00F0F));
 DCP_towfish_Precomp;
 {$IFDEF parallel}
 TPasMP.CreateGlobalInstance;
