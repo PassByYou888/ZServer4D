@@ -76,7 +76,7 @@ object EZClientForm: TEZClientForm
     OnClick = SendBigStreamButtonClick
   end
   object Timer1: TTimer
-    Interval = 100
+    Interval = 1
     OnTimer = Timer1Timer
     Left = 344
     Top = 16

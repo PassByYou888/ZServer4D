@@ -9,8 +9,7 @@
 *)
 unit CommunicationFramework_Client_ICS;
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$I ..\..\zDefine.inc}
 
 interface
 
@@ -190,15 +189,30 @@ begin
       if FDriver.State in [wsClosed] then
           break;
 
-      TThread.Sleep(10);
+      TThread.Sleep(1);
     end;
 
   Result := FDriver.State in [wsConnected];
+
   if Result then
-    begin
       DoConnected(FClient);
-      FClient.Print('client connected %s:%s', [FDriver.Addr, FDriver.Port]);
+
+  while (not RemoteInited) and (FDriver.State in [wsConnected]) do
+    begin
+      ProgressBackground;
+
+      if (GetTimeTickCount >= AStopTime) then
+          break;
+      if FDriver.State in [wsClosed] then
+          break;
+
+      TThread.Sleep(1);
     end;
+
+  Result := (RemoteInited);
+
+  if Result then
+      FClient.Print('client connected %s:%s', [FDriver.Addr, FDriver.Port]);
 end;
 
 function TCommunicationFramework_Client_ICS.Connect(Host, Port: string): Boolean;

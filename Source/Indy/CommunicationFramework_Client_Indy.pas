@@ -9,8 +9,7 @@
 *)
 unit CommunicationFramework_Client_Indy;
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$I ..\..\zDefine.inc}
 
 interface
 
@@ -324,8 +323,8 @@ begin
     repeat
       try
         FDriver.Connect;
-        TThread.Sleep(10);
         ProgressBackground;
+        TThread.Sleep(10);
       except
       end;
 

@@ -9,7 +9,8 @@ uses
   DoStatusIO, CoreClasses,
   CommunicationFramework_Client_CrossSocket,
   CommunicationFramework_Client_ICS,
-  Cadencer, DataFrameEngine, UnicodeMixedLib;
+  Cadencer, DataFrameEngine, UnicodeMixedLib,
+  CommunicationFramework_Client_Indy;
 
 type
   TEZClientForm = class(TForm)
@@ -33,7 +34,7 @@ type
     procedure BackCall_helloWorld_Stream_Result(Sender: TPeerClient; ResultData: TDataFrameEngine);
   public
     { Public declarations }
-    client: TCommunicationFramework_Client_CrossSocket;
+    client: TCommunicationFrameworkClient;
   end;
 
 var
@@ -52,7 +53,7 @@ end;
 procedure TEZClientForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
-  client := TCommunicationFramework_Client_CrossSocket.Create;
+  client := TCommunicationFramework_Client_Indy.Create;
 end;
 
 procedure TEZClientForm.FormDestroy(Sender: TObject);
@@ -168,6 +169,8 @@ procedure TEZClientForm.ConnectButtonClick(Sender: TObject);
 begin
   if client.Connect(HostEdit.Text, 9818) then
       DoStatus('connect success');
+
+  DoStatus('current client id:', [client.ClientIO.ID]);
 end;
 
 end.

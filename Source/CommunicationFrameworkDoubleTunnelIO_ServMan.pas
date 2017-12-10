@@ -15,7 +15,11 @@ uses
   NotifyObjectBase, CoreCipher;
 
 type
-  TServerType = (stUnknow, stManager, stDatabasePrimary, stDatabaseDependence, stLogicPrimary, stLogic, stHome, stHall, stHall2Home, stPaymentQuery);
+  TServerType = (stUnknow,
+    stManager,
+    stDatabasePrimary, stDatabaseDependence, stLogicPrimary, stLogicDependence,
+    stHall, stHall2Home, stHome,
+    stPayment, stPaymentQuery);
 
   TServerManager_ClientPool = class;
   TServerManager_Client     = class;
@@ -65,12 +69,13 @@ type
     function GetItems(index: Integer): TServerManager_Client;
     procedure SetItems(index: Integer; const Value: TServerManager_Client);
   public
-    ServerConfig                    : TSectionTextData;
-    LastManagerServerAddr           : string;
-    LastRegAddr                     : string;
-    LastRegRecvPort, LastRegSendPort: word;
-    DefaultClientClass              : TCommunicationFrameworkClientClass;
-    NotifyIntf                      : IServerManager_ClientPoolNotify;
+    ServerConfig                            : TSectionTextData;
+    LastManagerServerAddr                   : string;
+    LastManServRecvPort, LastManServSendPort: word;
+    LastRegAddr                             : string;
+    LastRegRecvPort, LastRegSendPort        : word;
+    DefaultClientClass                      : TCommunicationFrameworkClientClass;
+    NotifyIntf                              : IServerManager_ClientPoolNotify;
 
     constructor Create(AClientClass: TCommunicationFrameworkClientClass; ANotifyIntf: IServerManager_ClientPoolNotify);
     destructor Destroy; override;
@@ -328,6 +333,8 @@ begin
   inherited Create;
   FClientList := TCoreClassListForObj.Create;
   LastManagerServerAddr := '';
+  LastManServRecvPort := 0;
+  LastManServSendPort := 0;
   LastRegAddr := '';
   LastRegRecvPort := 0;
   LastRegSendPort := 0;
@@ -459,6 +466,8 @@ begin
         begin
           FClientList.Add(c);
           LastManagerServerAddr := ManServAddr;
+          LastManServRecvPort := ManCliRecvPort;
+          LastManServSendPort := ManCliSendPort;
           LastRegAddr := RegAddr;
           LastRegRecvPort := RegRecvPort;
           LastRegSendPort := RegSendPort;

@@ -9,8 +9,7 @@
 *)
 unit CommunicationFramework_Server_ICS;
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$I ..\..\zDefine.inc}
 
 interface
 

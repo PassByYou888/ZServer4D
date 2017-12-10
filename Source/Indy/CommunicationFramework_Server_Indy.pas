@@ -12,8 +12,7 @@ unit CommunicationFramework_Server_Indy;
   update history
 *)
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$I ..\..\zDefine.inc}
 
 interface
 

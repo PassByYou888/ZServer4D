@@ -26,9 +26,10 @@ uses Classes, SysUtils,
   DataFrameEngine, ItemStream, DoStatusIO, CoreCipher;
 
 var
-  DefaultCacheAnnealingTime: Double  = 60.0;
+  DefaultCacheAnnealingTime: Double  = 15.0;
   DefaultCacheBufferLength : Integer = 10000;
-  DefaultMaximumCache      : Integer = 10000 * 100;
+  DefaultMaximumCache      : Integer = 10000 * 10;
+  DefaultIndexCacheSize    : Integer = 10000 * 10;
 
 type
   TDBStoreBase = class;
@@ -208,7 +209,7 @@ type
   TQueryState = record
     DBEng: TDBStoreBase;
     StorePos: Int64;
-    QueryHnd: PItemSearch;
+    QueryHnd: PHeader;
     TaskTag: SystemString;
     DeltaTime, NewTime: TTimeTickValue;
     Aborted: Boolean;
@@ -237,7 +238,7 @@ type
     FDBEng   : TDBStoreBase;
     FInited  : Boolean;
     FReverse : Boolean;
-    FItmSrHnd: TItemSearch;
+    FItmSrHnd: THeader;
     FState   : TQueryState;
 
     FTriggerTime: TTimeTickValue;
@@ -293,27 +294,61 @@ type
     procedure DoDeleteData(Sender: TDBStoreBase; const StorePos: Int64);
   end;
 
+  PIndexCacheHeader    = PHeader;
+  PIndexCacheItemBlock = PItemBlock;
+
+  PIndexCacheItem = ^TIndexCacheItem;
+
+  TIndexCacheItem = record
+    Description: umlString;
+    ExtID: Byte;
+    FirstBlockPOS: Int64;
+    LastBlockPOS: Int64;
+    Size: Int64;
+    BlockCount: Int64;
+    CurrentBlockSeekPOS: Int64;
+    CurrentFileSeekPOS: Int64;
+    DataWrited: Boolean;
+    Return: Integer;
+    procedure Write(var wVal: TItem); inline;
+    procedure Read(var rVal: TItem); inline;
+  end;
+
+  PIndexCacheField = ^TIndexCacheField;
+
+  TIndexCacheField = record
+    UpLevelFieldPOS: Int64;
+    Description: umlString;
+    HeaderCount: Int64;
+    FirstHeaderPOS: Int64;
+    LastHeaderPOS: Int64;
+    Return: Integer;
+    procedure Write(var wVal: TField); inline;
+    procedure Read(var rVal: TField); inline;
+  end;
+
   // store engine
   TCacheStyle = (csAutomation, csDisabled, csEnabled);
 
   TDBStoreBase = class(TCoreClassObject)
   protected
-    FDBEngine                   : TObjectDataManager;
-    FStoreFieldPos              : Int64;
-    FCount                      : Int64;
-    FQueryQueue                 : TCoreClassListForObj;
-    FQueryThread                : TQueryThread;
-    FQueryThreadTerminate       : Boolean;
-    FQueryThreadLastActivtedTime: TDateTime;
-    FNotifyIntf                 : IDBStoreBaseNotify;
-    FCache                      : TInt64HashObjectList;
-    FCacheStyle                 : TCacheStyle;
-    FCacheAnnealingTime         : Double;
-    FMaximumCache               : Integer;
-    FCacheAnnealingState        : SystemString;
-    FResultDF                   : TDBEngineDF;
-    FResultVL                   : TDBEngineVL;
-    FResultTE                   : TDBEngineTE;
+    FDBEngine                                             : TObjectDataManager;
+    FStoreFieldPos                                        : Int64;
+    FCount                                                : Int64;
+    FQueryQueue                                           : TCoreClassListForObj;
+    FQueryThread                                          : TQueryThread;
+    FQueryThreadTerminate                                 : Boolean;
+    FQueryThreadLastActivtedTime                          : TDateTime;
+    FNotifyIntf                                           : IDBStoreBaseNotify;
+    FCache                                                : TInt64HashObjectList;
+    FCacheStyle                                           : TCacheStyle;
+    FCacheAnnealingTime                                   : Double;
+    FMaximumCache                                         : Integer;
+    FCacheAnnealingState                                  : SystemString;
+    FHeaderCache, FItemBlockCache, FItemCache, FFieldCache: TInt64HashPointerList;
+    FResultDF                                             : TDBEngineDF;
+    FResultVL                                             : TDBEngineVL;
+    FResultTE                                             : TDBEngineTE;
     {$IFNDEF FPC}
     FResultJson: TDBEngineJson;
     {$ENDIF}
@@ -323,6 +358,24 @@ type
 
     procedure ThreadFreeEvent(Sender: TObject);
     procedure DoCreateInit; virtual;
+
+    procedure HeaderCache_DataFreeProc(p: Pointer);
+    procedure ItemBlockCache_DataFreeProc(p: Pointer);
+    procedure ItemCache_DataFreeProc(p: Pointer);
+    procedure FieldCache_DataFreeProc(p: Pointer);
+
+    procedure HeaderWriteProc(fPos: Int64; var wVal: THeader);
+    procedure HeaderReadProc(fPos: Int64; var rVal: THeader; var Done: Boolean);
+    procedure ItemBlockWriteProc(fPos: Int64; var wVal: TItemBlock);
+    procedure ItemBlockReadProc(fPos: Int64; var rVal: TItemBlock; var Done: Boolean);
+    procedure ItemWriteProc(fPos: Int64; var wVal: TItem);
+    procedure ItemReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+    procedure OnlyItemRecWriteProc(fPos: Int64; var wVal: TItem);
+    procedure OnlyItemRecReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+    procedure FieldWriteProc(fPos: Int64; var wVal: TField);
+    procedure FieldReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+    procedure OnlyFieldRecWriteProc(fPos: Int64; var wVal: TField);
+    procedure OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
   public
     constructor Create(DBFile: SystemString; OnlyRead: Boolean);
     constructor CreateMemory(DBMemory: TCoreClassStream; OnlyRead: Boolean);
@@ -358,7 +411,7 @@ type
     property MaximumCache: Integer read FMaximumCache write FMaximumCache;
     property CacheAnnealingState: SystemString read FCacheAnnealingState;
 
-    // lowlevel data operation
+    // lowlevel data
     function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; inline;
     function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal): Int64; overload; inline;
     function AddData(buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; inline;
@@ -372,7 +425,7 @@ type
     // backcall
     property NotifyIntf: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
 
-    // lowlevel search
+    // lowlevel
     function QueryFirst(var qState: TQueryState): Boolean;
     function QueryNext(var qState: TQueryState): Boolean;
     function QueryLast(var qState: TQueryState): Boolean;
@@ -718,7 +771,7 @@ end;
 
 procedure TDBListDF.LoadFromStoreEngine(DBEng: TDBStoreBase);
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
 begin
   Clear;
@@ -726,7 +779,7 @@ begin
   if DBEng.QueryFirst(qState) then
     begin
       repeat
-        if qState.QueryHnd^.FieldSearch.RHeader.UserProperty = c_DF then
+        if qState.ID = c_DF then
             FHashListBuff.Add(DBEng.BuildDF(qState.StorePos));
       until not DBEng.QueryNext(qState);
     end;
@@ -890,7 +943,7 @@ end;
 
 procedure TDBListVL.LoadFromStoreEngine(DBEng: TDBStoreBase);
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
 begin
   Clear;
@@ -898,7 +951,7 @@ begin
   if DBEng.QueryFirst(qState) then
     begin
       repeat
-        if qState.QueryHnd^.FieldSearch.RHeader.UserProperty = c_VL then
+        if qState.ID = c_VL then
             FHashListBuff.Add(DBEng.BuildVL(qState.StorePos));
       until not DBEng.QueryNext(qState);
     end;
@@ -959,7 +1012,7 @@ end;
 
 procedure TDBListTE.LoadFromStoreEngine(DBEng: TDBStoreBase);
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
 begin
   Clear;
@@ -967,7 +1020,7 @@ begin
   if DBEng.QueryFirst(qState) then
     begin
       repeat
-        if qState.QueryHnd^.FieldSearch.RHeader.UserProperty = c_TE then
+        if qState.ID = c_TE then
             FHashListBuff.Add(DBEng.BuildTE(qState.StorePos));
       until not DBEng.QueryNext(qState);
     end;
@@ -1031,7 +1084,7 @@ end;
 
 procedure TDBListJson.LoadFromStoreEngine(DBEng: TDBStoreBase);
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
 begin
   Clear;
@@ -1039,7 +1092,7 @@ begin
   if DBEng.QueryFirst(qState) then
     begin
       repeat
-        if qState.QueryHnd^.FieldSearch.RHeader.UserProperty = c_Json then
+        if qState.ID = c_Json then
             FHashListBuff.Add(DBEng.BuildJson(qState.StorePos));
       until not DBEng.QueryNext(qState);
     end;
@@ -1102,7 +1155,7 @@ end;
 
 procedure TDBListPascalString.LoadFromStoreEngine(DBEng: TDBStoreBase);
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
 begin
   Clear;
@@ -1110,7 +1163,7 @@ begin
   if DBEng.QueryFirst(qState) then
     begin
       repeat
-        if qState.QueryHnd^.FieldSearch.RHeader.UserProperty = c_PascalString then
+        if qState.ID = c_PascalString then
             FHashListBuff.Add(DBEng.BuildPascalString(qState.StorePos));
       until not DBEng.QueryNext(qState);
     end;
@@ -1127,7 +1180,7 @@ end;
 function TQueryState.ID: Cardinal;
 begin
   if QueryHnd <> nil then
-      Result := QueryHnd^.FieldSearch.RHeader.UserProperty
+      Result := QueryHnd^.UserProperty
   else
       Result := 0;
 end;
@@ -1208,7 +1261,7 @@ begin
   FDBEng := nil;
   FInited := False;
   FReverse := False;
-  InitTTMDBSearchItem(FItmSrHnd);
+  Init_THeader(FItmSrHnd);
   FState.StorePos := 0;
   FState.QueryHnd := @FItmSrHnd;
   FState.Aborted := False;
@@ -1388,7 +1441,6 @@ end;
 procedure TQueryThread.SyncCheckCache;
 var
   Allowed: Boolean;
-  old    : Int64;
 begin
   if StoreEngine = nil then
       exit;
@@ -1400,8 +1452,12 @@ begin
       PausedIdleTime := 0;
       if Allowed then
         begin
-          old := StoreEngine.FCache.Count;
-          StoreEngine.FCacheAnnealingState := Format('cleanup cache %d', [old]);
+          StoreEngine.FCacheAnnealingState := Format('cleanup cache(stream:%d header:%d block:%d Item:%d field:%d)',
+            [StoreEngine.FCache.Count,
+            StoreEngine.FHeaderCache.Count,
+            StoreEngine.FItemBlockCache.Count,
+            StoreEngine.FItemCache.Count,
+            StoreEngine.FFieldCache.Count]);
           StoreEngine.Recache;
         end;
     end
@@ -1415,7 +1471,9 @@ end;
 procedure TQueryThread.SyncUpdateCacheState;
 begin
   if StoreEngine <> nil then
-      StoreEngine.FCacheAnnealingState := 'activted cache ' + IntToStr(StoreEngine.FCache.Count);
+      StoreEngine.FCacheAnnealingState := Format('cache state(stream:%d header:%d)',
+      [StoreEngine.FCache.Count,
+      StoreEngine.FItemCache.Count]);
 end;
 
 procedure TQueryThread.Execute;
@@ -1472,6 +1530,54 @@ begin
   inherited Destroy;
 end;
 
+procedure TIndexCacheItem.Write(var wVal: TItem);
+begin
+  Description := wVal.Description;
+  ExtID := wVal.ExtID;
+  FirstBlockPOS := wVal.FirstBlockPOS;
+  LastBlockPOS := wVal.LastBlockPOS;
+  Size := wVal.Size;
+  BlockCount := wVal.BlockCount;
+  CurrentBlockSeekPOS := wVal.CurrentBlockSeekPOS;
+  CurrentFileSeekPOS := wVal.CurrentFileSeekPOS;
+  DataWrited := wVal.DataWrited;
+  Return := wVal.Return;
+end;
+
+procedure TIndexCacheItem.Read(var rVal: TItem);
+begin
+  rVal.Description := Description;
+  rVal.ExtID := ExtID;
+  rVal.FirstBlockPOS := FirstBlockPOS;
+  rVal.LastBlockPOS := LastBlockPOS;
+  rVal.Size := Size;
+  rVal.BlockCount := BlockCount;
+  rVal.CurrentBlockSeekPOS := CurrentBlockSeekPOS;
+  rVal.CurrentFileSeekPOS := CurrentFileSeekPOS;
+  rVal.DataWrited := DataWrited;
+  rVal.Return := Return;
+end;
+
+procedure TIndexCacheField.Write(var wVal: TField);
+begin
+  UpLevelFieldPOS := wVal.UpLevelFieldPOS;
+  Description := wVal.Description;
+  HeaderCount := wVal.HeaderCount;
+  FirstHeaderPOS := wVal.FirstHeaderPOS;
+  LastHeaderPOS := wVal.LastHeaderPOS;
+  Return := wVal.Return;
+end;
+
+procedure TIndexCacheField.Read(var rVal: TField);
+begin
+  rVal.UpLevelFieldPOS := UpLevelFieldPOS;
+  rVal.Description := Description;
+  rVal.HeaderCount := HeaderCount;
+  rVal.FirstHeaderPOS := FirstHeaderPOS;
+  rVal.LastHeaderPOS := LastHeaderPOS;
+  rVal.Return := Return;
+end;
+
 procedure TDBStoreBase.ReadHeaderInfo;
 var
   f: TFieldHandle;
@@ -1505,12 +1611,39 @@ begin
 
   FCache := TInt64HashObjectList.Create(DefaultCacheBufferLength);
   FCache.AutoFreeData := True;
-  FCache.AccessOptimization := True;
 
   FCacheStyle := TCacheStyle.csAutomation;
   FCacheAnnealingTime := DefaultCacheAnnealingTime;
   FMaximumCache := DefaultMaximumCache;
   FCacheAnnealingState := '';
+
+  FHeaderCache := TInt64HashPointerList.Create(DefaultIndexCacheSize);
+  FHeaderCache.AutoFreeData := True;
+  FHeaderCache.AccessOptimization := True;
+
+  FItemBlockCache := TInt64HashPointerList.Create(DefaultIndexCacheSize);
+  FItemBlockCache.AutoFreeData := True;
+  FItemBlockCache.AccessOptimization := True;
+
+  FItemCache := TInt64HashPointerList.Create(DefaultIndexCacheSize);
+  FItemCache.AutoFreeData := True;
+  FItemCache.AccessOptimization := True;
+
+  FFieldCache := TInt64HashPointerList.Create(DefaultIndexCacheSize);
+  FFieldCache.AutoFreeData := True;
+  FFieldCache.AccessOptimization := True;
+
+  {$IFDEF FPC}
+  FHeaderCache.OnDataFreeProc := @HeaderCache_DataFreeProc;
+  FItemBlockCache.OnDataFreeProc := @ItemBlockCache_DataFreeProc;
+  FItemCache.OnDataFreeProc := @ItemCache_DataFreeProc;
+  FFieldCache.OnDataFreeProc := @FieldCache_DataFreeProc;
+  {$ELSE}
+  FHeaderCache.OnDataFreeProc := HeaderCache_DataFreeProc;
+  FItemBlockCache.OnDataFreeProc := ItemBlockCache_DataFreeProc;
+  FItemCache.OnDataFreeProc := ItemCache_DataFreeProc;
+  FFieldCache.OnDataFreeProc := FieldCache_DataFreeProc;
+  {$ENDIF}
 
   FResultDF := TDBEngineDF.Create;
   FResultVL := TDBEngineVL.Create;
@@ -1526,6 +1659,243 @@ begin
   FQueryThread.OnTerminate := ThreadFreeEvent;
   {$ENDIF}
   FQueryThread.Suspended := False;
+
+  if not IsMemoryMode then
+    begin
+      {$IFDEF FPC}
+      FDBEngine.ObjectDataHandlePtr^.OnWriteHeader := @HeaderWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadHeader := @HeaderReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnWriteItemBlock := @ItemBlockWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadItemBlock := @ItemBlockReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnWriteItem := @ItemWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadItem := @ItemReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyWriteItemRec := @OnlyItemRecWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyReadItemRec := @OnlyItemRecReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnWriteField := @FieldWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadField := @FieldReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyWriteFieldRec := @OnlyFieldRecWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyReadFieldRec := @OnlyFieldRecReadProc;
+      {$ELSE}
+      FDBEngine.ObjectDataHandlePtr^.OnWriteHeader := HeaderWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadHeader := HeaderReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnWriteItemBlock := ItemBlockWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadItemBlock := ItemBlockReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnWriteItem := ItemWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadItem := ItemReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyWriteItemRec := OnlyItemRecWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyReadItemRec := OnlyItemRecReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnWriteField := FieldWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnReadField := FieldReadProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyWriteFieldRec := OnlyFieldRecWriteProc;
+      FDBEngine.ObjectDataHandlePtr^.OnOnlyReadFieldRec := OnlyFieldRecReadProc;
+      {$ENDIF}
+    end;
+end;
+
+procedure TDBStoreBase.HeaderCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PIndexCacheHeader(p));
+end;
+
+procedure TDBStoreBase.ItemBlockCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PIndexCacheItemBlock(p));
+end;
+
+procedure TDBStoreBase.ItemCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PIndexCacheItem(p));
+end;
+
+procedure TDBStoreBase.FieldCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PIndexCacheField(p));
+end;
+
+procedure TDBStoreBase.HeaderWriteProc(fPos: Int64; var wVal: THeader);
+var
+  p: PIndexCacheHeader;
+begin
+  p := PIndexCacheHeader(FHeaderCache[wVal.CurrentHeader]);
+  if p = nil then
+    begin
+      new(p);
+      p^ := wVal;
+      FHeaderCache.Add(wVal.CurrentHeader, p, False);
+    end
+  else
+      p^ := wVal;
+
+  p^.Return := db_Header_ok;
+end;
+
+procedure TDBStoreBase.HeaderReadProc(fPos: Int64; var rVal: THeader; var Done: Boolean);
+var
+  p: PIndexCacheHeader;
+begin
+  p := PIndexCacheHeader(FHeaderCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      exit;
+  rVal := p^;
+end;
+
+procedure TDBStoreBase.ItemBlockWriteProc(fPos: Int64; var wVal: TItemBlock);
+var
+  p: PIndexCacheItemBlock;
+begin
+  p := PIndexCacheItemBlock(FItemBlockCache[wVal.CurrentBlockPOS]);
+  if p = nil then
+    begin
+      new(p);
+      p^ := wVal;
+      FItemBlockCache.Add(wVal.CurrentBlockPOS, p, False);
+    end
+  else
+      p^ := wVal;
+
+  p^.Return := db_Item_ok;
+end;
+
+procedure TDBStoreBase.ItemBlockReadProc(fPos: Int64; var rVal: TItemBlock; var Done: Boolean);
+var
+  p: PIndexCacheItemBlock;
+begin
+  p := PIndexCacheItemBlock(FItemBlockCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      exit;
+  rVal := p^;
+end;
+
+procedure TDBStoreBase.ItemWriteProc(fPos: Int64; var wVal: TItem);
+var
+  p: PIndexCacheItem;
+begin
+  HeaderWriteProc(fPos, wVal.RHeader);
+
+  p := PIndexCacheItem(FItemCache[wVal.RHeader.DataMainPOS]);
+  if p = nil then
+    begin
+      new(p);
+      p^.Write(wVal);
+      FItemCache.Add(wVal.RHeader.DataMainPOS, p, False);
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Item_ok;
+end;
+
+procedure TDBStoreBase.ItemReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+var
+  p: PIndexCacheItem;
+begin
+  HeaderReadProc(fPos, rVal.RHeader, Done);
+
+  if not Done then
+      exit;
+
+  p := PIndexCacheItem(FItemCache[rVal.RHeader.DataMainPOS]);
+  Done := p <> nil;
+  if not Done then
+      exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TDBStoreBase.OnlyItemRecWriteProc(fPos: Int64; var wVal: TItem);
+var
+  p: PIndexCacheItem;
+begin
+  p := PIndexCacheItem(FItemCache[fPos]);
+  if p = nil then
+    begin
+      new(p);
+      p^.Write(wVal);
+      FItemCache.Add(fPos, p, False);
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Item_ok;
+end;
+
+procedure TDBStoreBase.OnlyItemRecReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+var
+  p: PIndexCacheItem;
+begin
+  p := PIndexCacheItem(FItemCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TDBStoreBase.FieldWriteProc(fPos: Int64; var wVal: TField);
+var
+  p: PIndexCacheField;
+begin
+  HeaderWriteProc(fPos, wVal.RHeader);
+
+  p := PIndexCacheField(FFieldCache[wVal.RHeader.DataMainPOS]);
+  if p = nil then
+    begin
+      new(p);
+      p^.Write(wVal);
+      FFieldCache.Add(wVal.RHeader.DataMainPOS, p, False);
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Field_ok;
+end;
+
+procedure TDBStoreBase.FieldReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+var
+  p: PIndexCacheField;
+begin
+  HeaderReadProc(fPos, rVal.RHeader, Done);
+
+  if not Done then
+      exit;
+
+  p := PIndexCacheField(FFieldCache[rVal.RHeader.DataMainPOS]);
+  Done := p <> nil;
+  if not Done then
+      exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TDBStoreBase.OnlyFieldRecWriteProc(fPos: Int64; var wVal: TField);
+var
+  p: PIndexCacheField;
+begin
+  p := PIndexCacheField(FFieldCache[fPos]);
+  if p = nil then
+    begin
+      new(p);
+      p^.Write(wVal);
+      FFieldCache.Add(fPos, p, False);
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Field_ok;
+end;
+
+procedure TDBStoreBase.OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+var
+  p: PIndexCacheField;
+begin
+  p := PIndexCacheField(FFieldCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      exit;
+
+  p^.Read(rVal);
 end;
 
 constructor TDBStoreBase.Create(DBFile: SystemString; OnlyRead: Boolean);
@@ -1579,7 +1949,7 @@ begin
 
   for i := 0 to FQueryQueue.Count - 1 do
       DisposeObject(FQueryQueue[i]);
-  DisposeObject([FDBEngine, FQueryQueue, FCache]);
+  DisposeObject([FDBEngine, FQueryQueue, FCache, FHeaderCache, FItemBlockCache, FItemCache, FFieldCache]);
   DisposeObject([FResultDF, FResultVL, FResultTE, FResultPascalString]);
   {$IFNDEF FPC}
   DisposeObject(FResultJson);
@@ -1750,6 +2120,11 @@ end;
 procedure TDBStoreBase.Recache;
 begin
   FCache.Clear;
+  FHeaderCache.Clear;
+  FItemBlockCache.Clear;
+  FItemCache.Clear;
+  FFieldCache.Clear;
+
   FResultDF.Clear;
   FResultVL.Clear;
   FResultTE.Clear;
@@ -1766,7 +2141,9 @@ begin
       begin
         if FDBEngine.StreamEngine is TMemoryStream64 then
             Result := False
-        else if (FCache.Count < 10000) then
+        else if FDBEngine.Size < 256 * 1024 * 1024 then
+            Result := True
+        else if (FCache.Count < 100000) then
             Result := True
         else if (FQueryQueue.Count >= 2) and (FCache.Count < FMaximumCache) then
             Result := True
@@ -1901,12 +2278,21 @@ begin
 end;
 
 function TDBStoreBase.DeleteData(const StorePos: Int64): Boolean;
+var
+  itmHnd: TItemHandle;
 begin
   Result := False;
   if IsReadOnly then
       exit;
 
   FCache.Delete(StorePos);
+
+  if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
+    begin
+      FHeaderCache.Delete(itmHnd.Item.RHeader.CurrentHeader);
+      FItemCache.Delete(itmHnd.Item.RHeader.DataMainPOS);
+      FItemBlockCache.Delete(itmHnd.Item.FirstBlockPOS);
+    end;
 
   Result := FDBEngine.FastDelete(FStoreFieldPos, StorePos);
   if Result then
@@ -1932,16 +2318,20 @@ end;
 
 function TDBStoreBase.QueryFirst(var qState: TQueryState): Boolean;
 begin
+  Result := False;
   qState.DBEng := Self;
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.TaskTag := '';
   qState.DeltaTime := 0;
   qState.NewTime := 0;
+  if qState.QueryHnd = nil then
+      exit;
+
   try
-    Result := FDBEngine.ItemFastFindFirst(FStoreFieldPos, '', qState.QueryHnd^);
+    Result := FDBEngine.GetFirstHeaderFromField(FStoreFieldPos, qState.QueryHnd^);
     if Result then
-        qState.StorePos := qState.QueryHnd^.HeaderPOS;
+        qState.StorePos := qState.QueryHnd^.CurrentHeader;
   except
       Result := False;
   end;
@@ -1949,10 +2339,17 @@ end;
 
 function TDBStoreBase.QueryNext(var qState: TQueryState): Boolean;
 begin
+  Result := False;
+
+  if qState.QueryHnd = nil then
+      exit;
+  if qState.QueryHnd^.PositionID in [db_Header_LastPositionFlags, db_Header_OnlyPositionFlags] then
+      exit;
+
   try
-    Result := FDBEngine.ItemFastFindNext(qState.QueryHnd^);
+    Result := FDBEngine.GetHeader(qState.QueryHnd^.NextHeader, qState.QueryHnd^);
     if Result then
-        qState.StorePos := qState.QueryHnd^.HeaderPOS;
+        qState.StorePos := qState.QueryHnd^.CurrentHeader;
   except
       Result := False;
   end;
@@ -1960,16 +2357,20 @@ end;
 
 function TDBStoreBase.QueryLast(var qState: TQueryState): Boolean;
 begin
+  Result := False;
   qState.DBEng := Self;
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.TaskTag := '';
   qState.DeltaTime := 0;
   qState.NewTime := 0;
+  if qState.QueryHnd = nil then
+      exit;
+
   try
-    Result := FDBEngine.ItemFastFindLast(FStoreFieldPos, '', qState.QueryHnd^);
+    Result := FDBEngine.GetLastHeaderFromField(FStoreFieldPos, qState.QueryHnd^);
     if Result then
-        qState.StorePos := qState.QueryHnd^.HeaderPOS;
+        qState.StorePos := qState.QueryHnd^.CurrentHeader;
   except
       Result := False;
   end;
@@ -1977,10 +2378,17 @@ end;
 
 function TDBStoreBase.QueryPrev(var qState: TQueryState): Boolean;
 begin
+  Result := False;
+
+  if qState.QueryHnd = nil then
+      exit;
+  if qState.QueryHnd^.PositionID in [db_Header_FirstPositionFlags, db_Header_OnlyPositionFlags] then
+      exit;
+
   try
-    Result := FDBEngine.ItemFastFindPrev(qState.QueryHnd^);
+    Result := FDBEngine.GetHeader(qState.QueryHnd^.PrevHeader, qState.QueryHnd^);
     if Result then
-        qState.StorePos := qState.QueryHnd^.HeaderPOS;
+        qState.StorePos := qState.QueryHnd^.CurrentHeader;
   except
       Result := False;
   end;
@@ -1993,7 +2401,7 @@ procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQuer
 type
   TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
   f, n      : TDynamicQueryMethod;
 begin
@@ -2036,7 +2444,7 @@ procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQuer
 type
   TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
 var
-  itmSearHnd: TItemSearch;
+  itmSearHnd: THeader;
   qState    : TQueryState;
   f, n      : TDynamicQueryMethod;
 begin

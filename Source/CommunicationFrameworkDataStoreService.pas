@@ -755,6 +755,13 @@ begin
   if pl = nil then
       exit;
 
+  if not pl.Activted then
+    exit;
+  if pl.SourceDB = nil then
+      exit;
+  if pl.OutputDB = nil then
+      exit;
+
   ps.Init;
   ps.WriteOutputDB := (pl.WriteResultToOutputDB);
   ps.Activted := (pl.Activted);

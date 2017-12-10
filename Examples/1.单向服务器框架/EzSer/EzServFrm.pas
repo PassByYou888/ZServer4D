@@ -12,6 +12,17 @@ uses
   DataFrameEngine, UnicodeMixedLib, MemoryStream64;
 
 type
+  // TPeerClientUserSpecial是基于每用户链接后自动创建的实例
+  // 使用时候请注意释放内存
+  // TPeerClientUserDefine用于Auth,DB等等服务
+  // TPeerClientUserSpecial的作用是与高级服务的Auth,DB发生冲突时，对开发者提供独享实例
+  TMySpecialDefine = class(TPeerClientUserSpecial)
+  public
+    tempStream: TMemoryStream64;
+    constructor Create(AOwner: TPeerClient); override;
+    destructor Destroy; override;
+  end;
+
   TEZServerForm = class(TForm)
     Memo1: TMemo;
     StartServiceButton: TButton;
@@ -22,8 +33,6 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
-    tempStream: TMemoryStream64;
-
     procedure DoStatusNear(AText: string; const ID: Integer);
 
     procedure cmd_helloWorld_Console(Sender: TPeerClient; InData: string);
@@ -74,7 +83,10 @@ begin
 end;
 
 procedure TEZServerForm.cmd_Test128MBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+var
+  tempStream: TMemoryStream64;
 begin
+  tempStream := TMySpecialDefine(Sender.UserSpecial).tempStream;
   tempStream.CopyFrom(InData, InData.Size);
 
   // bigstream complete
@@ -95,6 +107,7 @@ procedure TEZServerForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
   server := TCommunicationFramework_Server_CrossSocket.Create;
+  server.PeerClientUserSpecialClass := TMySpecialDefine;
 
   server.RegisterDirectConsole('helloWorld_Console').OnExecute := cmd_helloWorld_Console;
   server.RegisterDirectStream('helloWorld_Stream').OnExecute := cmd_helloWorld_Stream;
@@ -102,13 +115,10 @@ begin
 
   server.RegisterDirectStream('TestMiniStream').OnExecute := cmd_TestMiniStream;
   server.RegisterBigStream('Test128MBigStream').OnExecute := cmd_Test128MBigStream;
-
-  tempStream := TMemoryStream64.Create;
 end;
 
 procedure TEZServerForm.FormDestroy(Sender: TObject);
 begin
-  DisposeObject(tempStream);
   DisposeObject(server);
   DeleteDoStatusHook(self);
 end;
@@ -125,6 +135,20 @@ end;
 procedure TEZServerForm.Timer1Timer(Sender: TObject);
 begin
   server.ProgressBackground;
+end;
+
+{ TMySpecialDefine }
+
+constructor TMySpecialDefine.Create(AOwner: TPeerClient);
+begin
+  inherited Create(AOwner);
+  tempStream := TMemoryStream64.Create;
+end;
+
+destructor TMySpecialDefine.Destroy;
+begin
+  DisposeObject(tempStream);
+  inherited Destroy;
 end;
 
 end.

@@ -9,8 +9,7 @@
 *)
 unit CommunicationFramework_Server_ICSCustomSocket;
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$I ..\..\zDefine.inc}
 
 interface
 

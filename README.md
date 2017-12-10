@@ -73,6 +73,15 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 ## 更新日志
 
 
+2017-12-10
+
+将ZDB数据库的查询能力向前优化了15倍，内存消耗也因此提高了10%，默认单库体量为500万条，如果服务器内存在16G以上，需要自行在ZDBEngine中修改最大Cache和退火参数
+
+修复了单通道客户端Indy,ICS,CrossSocket在发出链接后的ID不更新问题(感谢AK47)
+
+在EZServer增加了使用Special实例的方法(感谢AK47)
+
+
 2017-12-8
 
 新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明 [Demo说明](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/10.ZDB%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E5%99%A8)

@@ -81,7 +81,7 @@ type
 
   TMixedStream = TCoreClassStream;
 
-  TRecFile = record
+  TIOHnd = record
     IsOnlyRead: Boolean;
     OpenFlags: Boolean;
     AutoFree: Boolean;
@@ -94,6 +94,7 @@ type
     FlushBuff: TMixedStream;
     PrepareReadPosition: Int64;
     PrepareReadBuff: TMixedStream;
+    Data: Pointer;
     Return: Integer;
   end;
 
@@ -103,7 +104,7 @@ type
 
   FixedLengthString = packed record
     len: Byte;
-    data: packed array [0 .. FixedLengthStringSize] of Byte;
+    Data: packed array [0 .. FixedLengthStringSize] of Byte;
   end;
 
 function umlBytesOf(S: umlString): TBytes; inline;
@@ -150,28 +151,28 @@ function umlGetFilePath(S: umlString): umlString;
 function umlChangeFileExt(S, ext: umlString): umlString;
 function umlGetFileExt(S: umlString): umlString;
 
-procedure InitTRecFile(var SenderRecFile: TRecFile); inline;
-function umlFileCreateAsStream(Name: umlString; Stream: TMixedStream; var RecFile: TRecFile): Boolean; inline;
-function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var RecFile: TRecFile; _OnlyRead: Boolean): Boolean; inline;
-function umlFileCreate(Name: umlString; var RecFile: TRecFile): Boolean; inline;
-function umlFileOpen(Name: umlString; var RecFile: TRecFile; _OnlyRead: Boolean): Boolean; inline;
-function umlFileClose(var RecFile: TRecFile): Boolean; inline;
-function umlFileTest(var RecFile: TRecFile): Boolean; inline;
+procedure InitIOHnd(var IOHnd: TIOHnd); inline;
+function umlFileCreateAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd): Boolean; inline;
+function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; inline;
+function umlFileCreate(Name: umlString; var IOHnd: TIOHnd): Boolean; inline;
+function umlFileOpen(Name: umlString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; inline;
+function umlFileClose(var IOHnd: TIOHnd): Boolean; inline;
+function umlFileTest(var IOHnd: TIOHnd): Boolean; inline;
 
-procedure umlResetPrepareRead(var RecFile: TRecFile); inline;
-function umlFilePrepareRead(var RecFile: TRecFile; Size: Int64; var Buffers): Boolean; inline;
-function umlFileRead(var RecFile: TRecFile; Size: Int64; var Buffers): Boolean; inline;
+procedure umlResetPrepareRead(var IOHnd: TIOHnd); inline;
+function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inline;
+function umlFileRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inline;
 
-function umlFileBeginWrite(var RecFile: TRecFile): Boolean; inline;
-function umlFileEndWrite(var RecFile: TRecFile): Boolean; inline;
-function umlFileWrite(var RecFile: TRecFile; Size: Int64; var Buffers): Boolean; inline;
+function umlFileBeginWrite(var IOHnd: TIOHnd): Boolean; inline;
+function umlFileEndWrite(var IOHnd: TIOHnd): Boolean; inline;
+function umlFileWrite(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inline;
 
-function umlFileWriteStr(var RecFile: TRecFile; var Value: umlString): Boolean; inline;
-function umlFileReadStr(var RecFile: TRecFile; var Value: umlString): Boolean; inline;
+function umlFileWriteStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; inline;
+function umlFileReadStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; inline;
 
-function umlFileSeek(var RecFile: TRecFile; APos: Int64): Boolean; inline;
-function umlFileGetPOS(var RecFile: TRecFile): Int64; inline;
-function umlFileGetSize(var RecFile: TRecFile): Int64; inline;
+function umlFileSeek(var IOHnd: TIOHnd; APos: Int64): Boolean; inline;
+function umlFileGetPOS(var IOHnd: TIOHnd): Int64; inline;
+function umlFileGetSize(var IOHnd: TIOHnd): Int64; inline;
 
 function umlGetFileTime(FileName: umlString): TDateTime;
 procedure umlSetFileTime(FileName: umlString; newTime: TDateTime);
@@ -460,7 +461,7 @@ var
   B: TBytes;
 begin
   SetLength(B, FixedLengthStringSize);
-  move(S.data, B[0], FixedLengthStringSize);
+  move(S.Data, B[0], FixedLengthStringSize);
   SetLength(B, S.len);
   Result.Bytes := B;
   SetLength(B, 0);
@@ -475,8 +476,8 @@ begin
   if Result.len > FixedLengthStringSize then
       Result.len := FixedLengthStringSize
   else
-      FillByte(Result.data[0], FixedLengthStringSize, 0);
-  move(bb[0], Result.data[0], Result.len);
+      FillByte(Result.Data[0], FixedLengthStringSize, 0);
+  move(bb[0], Result.Data[0], Result.len);
 end;
 
 function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Boolean;
@@ -933,259 +934,260 @@ begin
       Result := '';
 end;
 
-procedure InitTRecFile(var SenderRecFile: TRecFile);
+procedure InitIOHnd(var IOHnd: TIOHnd);
 begin
-  SenderRecFile.IsOnlyRead := True;
-  SenderRecFile.OpenFlags := False;
-  SenderRecFile.AutoFree := False;
-  SenderRecFile.Handle := nil;
-  SenderRecFile.Time := 0;
-  SenderRecFile.Attrib := 0;
-  SenderRecFile.Size := 0;
-  SenderRecFile.Position := 0;
-  SenderRecFile.Name := '';
-  SenderRecFile.FlushBuff := nil;
-  SenderRecFile.PrepareReadPosition := -1;
-  SenderRecFile.PrepareReadBuff := nil;
-  SenderRecFile.Return := umlNotError;
+  IOHnd.IsOnlyRead := True;
+  IOHnd.OpenFlags := False;
+  IOHnd.AutoFree := False;
+  IOHnd.Handle := nil;
+  IOHnd.Time := 0;
+  IOHnd.Attrib := 0;
+  IOHnd.Size := 0;
+  IOHnd.Position := 0;
+  IOHnd.Name := '';
+  IOHnd.FlushBuff := nil;
+  IOHnd.PrepareReadPosition := -1;
+  IOHnd.PrepareReadBuff := nil;
+  IOHnd.Data := nil;
+  IOHnd.Return := umlNotError;
 end;
 
-function umlFileCreateAsStream(Name: umlString; Stream: TMixedStream; var RecFile: TRecFile): Boolean;
+function umlFileCreateAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd): Boolean;
 begin
-  if RecFile.OpenFlags = True then
+  if IOHnd.OpenFlags = True then
     begin
-      RecFile.Return := umlFileIsActive;
+      IOHnd.Return := umlFileIsActive;
       Result := False;
       Exit;
     end;
   Stream.Position := 0;
-  RecFile.Handle := Stream;
-  RecFile.Return := umlNotError;
-  RecFile.Size := 0;
-  RecFile.Position := 0;
-  RecFile.Time := umlDefaultTime;
-  RecFile.Attrib := umlDefaultAttrib;
-  RecFile.Name := name;
-  RecFile.OpenFlags := True;
-  RecFile.IsOnlyRead := False;
-  RecFile.AutoFree := False;
+  IOHnd.Handle := Stream;
+  IOHnd.Return := umlNotError;
+  IOHnd.Size := 0;
+  IOHnd.Position := 0;
+  IOHnd.Time := umlDefaultTime;
+  IOHnd.Attrib := umlDefaultAttrib;
+  IOHnd.Name := name;
+  IOHnd.OpenFlags := True;
+  IOHnd.IsOnlyRead := False;
+  IOHnd.AutoFree := False;
   Result := True;
 end;
 
-function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var RecFile: TRecFile; _OnlyRead: Boolean): Boolean;
+function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean;
 begin
-  if RecFile.OpenFlags = True then
+  if IOHnd.OpenFlags = True then
     begin
-      RecFile.Return := umlFileIsActive;
+      IOHnd.Return := umlFileIsActive;
       Result := False;
       Exit;
     end;
   Stream.Position := 0;
-  RecFile.Handle := Stream;
-  RecFile.IsOnlyRead := _OnlyRead;
-  RecFile.Return := umlNotError;
-  RecFile.Size := Stream.Size;
-  RecFile.Position := 0;
-  RecFile.Time := umlDefaultTime;
-  RecFile.Attrib := 0;
-  RecFile.Name := name;
-  RecFile.OpenFlags := True;
-  RecFile.AutoFree := False;
+  IOHnd.Handle := Stream;
+  IOHnd.IsOnlyRead := _OnlyRead;
+  IOHnd.Return := umlNotError;
+  IOHnd.Size := Stream.Size;
+  IOHnd.Position := 0;
+  IOHnd.Time := umlDefaultTime;
+  IOHnd.Attrib := 0;
+  IOHnd.Name := name;
+  IOHnd.OpenFlags := True;
+  IOHnd.AutoFree := False;
   Result := True;
 end;
 
-function umlFileCreate(Name: umlString; var RecFile: TRecFile): Boolean;
+function umlFileCreate(Name: umlString; var IOHnd: TIOHnd): Boolean;
 begin
-  if RecFile.OpenFlags = True then
+  if IOHnd.OpenFlags = True then
     begin
-      RecFile.Return := umlFileIsActive;
+      IOHnd.Return := umlFileIsActive;
       Result := False;
       Exit;
     end;
   try
-      RecFile.Handle := TCoreClassFileStream.Create(name.Text, fmCreate);
+      IOHnd.Handle := TCoreClassFileStream.Create(name.Text, fmCreate);
   except
-    RecFile.Handle := nil;
-    RecFile.Return := umlCreateFileError;
+    IOHnd.Handle := nil;
+    IOHnd.Return := umlCreateFileError;
     Result := False;
     Exit;
   end;
-  RecFile.Return := umlNotError;
-  RecFile.Size := 0;
-  RecFile.Position := 0;
-  RecFile.Time := Now;
-  RecFile.Attrib := umlDefaultAttrib;
-  RecFile.Name := name;
-  RecFile.OpenFlags := True;
-  RecFile.IsOnlyRead := False;
-  RecFile.AutoFree := True;
+  IOHnd.Return := umlNotError;
+  IOHnd.Size := 0;
+  IOHnd.Position := 0;
+  IOHnd.Time := Now;
+  IOHnd.Attrib := umlDefaultAttrib;
+  IOHnd.Name := name;
+  IOHnd.OpenFlags := True;
+  IOHnd.IsOnlyRead := False;
+  IOHnd.AutoFree := True;
   Result := True;
 end;
 
-function umlFileOpen(Name: umlString; var RecFile: TRecFile; _OnlyRead: Boolean): Boolean;
+function umlFileOpen(Name: umlString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean;
 var
   SR: TSR;
 begin
-  if RecFile.OpenFlags = True then
+  if IOHnd.OpenFlags = True then
     begin
-      RecFile.Return := umlFileIsActive;
+      IOHnd.Return := umlFileIsActive;
       Result := False;
       Exit;
     end;
   if umlFindFirstFile(name, SR) = False then
     begin
-      RecFile.Return := umlNotFindFile;
+      IOHnd.Return := umlNotFindFile;
       Result := False;
       umlFindClose(SR);
       Exit;
     end;
   try
     if _OnlyRead then
-        RecFile.Handle := TCoreClassFileStream.Create(name.Text, fmOpenRead or fmShareDenyWrite)
+        IOHnd.Handle := TCoreClassFileStream.Create(name.Text, fmOpenRead or fmShareDenyWrite)
     else
-        RecFile.Handle := TCoreClassFileStream.Create(name.Text, fmOpenReadWrite);
+        IOHnd.Handle := TCoreClassFileStream.Create(name.Text, fmOpenReadWrite);
   except
-    RecFile.Handle := nil;
-    RecFile.Return := umlOpenFileError;
+    IOHnd.Handle := nil;
+    IOHnd.Return := umlOpenFileError;
     Result := False;
     umlFindClose(SR);
     Exit;
   end;
-  RecFile.IsOnlyRead := _OnlyRead;
-  RecFile.Return := umlNotError;
-  RecFile.Size := SR.Size;
-  RecFile.Position := 0;
-  if not FileAge(name.Text, RecFile.Time) then
-      RecFile.Time := Now;
-  RecFile.Attrib := SR.Attr;
-  RecFile.Name := name;
-  RecFile.OpenFlags := True;
-  RecFile.AutoFree := True;
+  IOHnd.IsOnlyRead := _OnlyRead;
+  IOHnd.Return := umlNotError;
+  IOHnd.Size := SR.Size;
+  IOHnd.Position := 0;
+  if not FileAge(name.Text, IOHnd.Time) then
+      IOHnd.Time := Now;
+  IOHnd.Attrib := SR.Attr;
+  IOHnd.Name := name;
+  IOHnd.OpenFlags := True;
+  IOHnd.AutoFree := True;
   Result := True;
   umlFindClose(SR);
 end;
 
-function umlFileClose(var RecFile: TRecFile): Boolean;
+function umlFileClose(var IOHnd: TIOHnd): Boolean;
 begin
-  if RecFile.OpenFlags = False then
+  if IOHnd.OpenFlags = False then
     begin
-      RecFile.Return := umlNotOpenFile;
+      IOHnd.Return := umlNotOpenFile;
       Result := False;
       Exit;
     end;
-  if RecFile.Handle = nil then
+  if IOHnd.Handle = nil then
     begin
-      RecFile.Return := umlFileHandleError;
+      IOHnd.Return := umlFileHandleError;
       Result := False;
       Exit;
     end;
 
-  umlFileEndWrite(RecFile);
+  umlFileEndWrite(IOHnd);
 
-  if RecFile.PrepareReadBuff <> nil then
-      DisposeObject(RecFile.PrepareReadBuff);
-  RecFile.PrepareReadBuff := nil;
-  RecFile.PrepareReadPosition := -1;
+  if IOHnd.PrepareReadBuff <> nil then
+      DisposeObject(IOHnd.PrepareReadBuff);
+  IOHnd.PrepareReadBuff := nil;
+  IOHnd.PrepareReadPosition := -1;
 
   try
-    if RecFile.AutoFree then
-        DisposeObject(RecFile.Handle)
+    if IOHnd.AutoFree then
+        DisposeObject(IOHnd.Handle)
     else
-        RecFile.Handle := nil;
+        IOHnd.Handle := nil;
   except
   end;
-  RecFile.Handle := nil;
-  RecFile.Return := umlNotError;
-  RecFile.Time := umlDefaultTime;
-  RecFile.Attrib := umlDefaultAttrib;
-  RecFile.Name := '';
-  RecFile.OpenFlags := False;
+  IOHnd.Handle := nil;
+  IOHnd.Return := umlNotError;
+  IOHnd.Time := umlDefaultTime;
+  IOHnd.Attrib := umlDefaultAttrib;
+  IOHnd.Name := '';
+  IOHnd.OpenFlags := False;
   Result := True;
 end;
 
-function umlFileTest(var RecFile: TRecFile): Boolean;
+function umlFileTest(var IOHnd: TIOHnd): Boolean;
 begin
-  if (RecFile.OpenFlags = False) or (RecFile.Handle = nil) then
+  if (IOHnd.OpenFlags = False) or (IOHnd.Handle = nil) then
     begin
-      RecFile.Return := umlFileHandleError;
+      IOHnd.Return := umlFileHandleError;
       Result := False;
       Exit;
     end;
-  RecFile.Return := umlNotError;
+  IOHnd.Return := umlNotError;
   Result := True;
 end;
 
-procedure umlResetPrepareRead(var RecFile: TRecFile);
+procedure umlResetPrepareRead(var IOHnd: TIOHnd);
 begin
-  if RecFile.PrepareReadBuff <> nil then
-      DisposeObject(RecFile.PrepareReadBuff);
-  RecFile.PrepareReadBuff := nil;
-  RecFile.PrepareReadPosition := -1;
+  if IOHnd.PrepareReadBuff <> nil then
+      DisposeObject(IOHnd.PrepareReadBuff);
+  IOHnd.PrepareReadBuff := nil;
+  IOHnd.PrepareReadPosition := -1;
 end;
 
-function umlFilePrepareRead(var RecFile: TRecFile; Size: Int64; var Buffers): Boolean;
+function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean;
 var
   m64      : TMemoryStream64;
   preRedSiz: Int64;
 begin
   Result := False;
 
-  if not RecFile.Handle.InheritsFrom(TCoreClassFileStream) then
+  if not IOHnd.Handle.InheritsFrom(TCoreClassFileStream) then
       Exit;
 
   if Size > PrepareReadCacheSize then
     begin
-      umlResetPrepareRead(RecFile);
-      RecFile.Handle.Position := RecFile.Position;
+      umlResetPrepareRead(IOHnd);
+      IOHnd.Handle.Position := IOHnd.Position;
       Exit;
     end;
 
-  if RecFile.PrepareReadBuff = nil then
-      RecFile.PrepareReadBuff := TMemoryStream64.Create;
+  if IOHnd.PrepareReadBuff = nil then
+      IOHnd.PrepareReadBuff := TMemoryStream64.Create;
 
-  m64 := TMemoryStream64(RecFile.PrepareReadBuff);
+  m64 := TMemoryStream64(IOHnd.PrepareReadBuff);
 
-  if (RecFile.Position < RecFile.PrepareReadPosition) or (RecFile.PrepareReadPosition + m64.Size < RecFile.Position + Size) then
+  if (IOHnd.Position < IOHnd.PrepareReadPosition) or (IOHnd.PrepareReadPosition + m64.Size < IOHnd.Position + Size) then
     begin
       // prepare read buffer
-      RecFile.Handle.Position := RecFile.Position;
-      RecFile.PrepareReadPosition := RecFile.Position;
+      IOHnd.Handle.Position := IOHnd.Position;
+      IOHnd.PrepareReadPosition := IOHnd.Position;
 
       m64.Clear;
-      RecFile.PrepareReadPosition := RecFile.Handle.Position;
-      if RecFile.Handle.Size - RecFile.Handle.Position >= PrepareReadCacheSize then
+      IOHnd.PrepareReadPosition := IOHnd.Handle.Position;
+      if IOHnd.Handle.Size - IOHnd.Handle.Position >= PrepareReadCacheSize then
         begin
-          Result := m64.CopyFrom(RecFile.Handle, PrepareReadCacheSize) = PrepareReadCacheSize;
+          Result := m64.CopyFrom(IOHnd.Handle, PrepareReadCacheSize) = PrepareReadCacheSize;
         end
       else
         begin
-          preRedSiz := RecFile.Handle.Size - RecFile.Handle.Position;
-          Result := m64.CopyFrom(RecFile.Handle, preRedSiz) = preRedSiz;
+          preRedSiz := IOHnd.Handle.Size - IOHnd.Handle.Position;
+          Result := m64.CopyFrom(IOHnd.Handle, preRedSiz) = preRedSiz;
         end;
     end;
 
-  if (RecFile.Position >= RecFile.PrepareReadPosition) and (RecFile.PrepareReadPosition + m64.Size >= RecFile.Position + Size) then
+  if (IOHnd.Position >= IOHnd.PrepareReadPosition) and (IOHnd.PrepareReadPosition + m64.Size >= IOHnd.Position + Size) then
     begin
-      move(Pointer(NativeUInt(m64.Memory) + (RecFile.Position - RecFile.PrepareReadPosition))^, Buffers, Size);
-      Inc(RecFile.Position, Size);
+      move(Pointer(NativeUInt(m64.Memory) + (IOHnd.Position - IOHnd.PrepareReadPosition))^, Buffers, Size);
+      Inc(IOHnd.Position, Size);
       Result := True;
     end
   else
     begin
       // safe process
-      umlResetPrepareRead(RecFile);
-      RecFile.Handle.Position := RecFile.Position;
+      umlResetPrepareRead(IOHnd);
+      IOHnd.Handle.Position := IOHnd.Position;
       Exit;
     end;
 end;
 
-function umlFileRead(var RecFile: TRecFile; Size: Int64; var Buffers): Boolean;
+function umlFileRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean;
 var
   BuffPointer: Pointer;
   i          : NativeInt;
   BuffInt    : NativeUInt;
 begin
-  if not umlFileEndWrite(RecFile) then
+  if not umlFileEndWrite(IOHnd) then
     begin
       Result := False;
       Exit;
@@ -1193,14 +1195,14 @@ begin
 
   if Size = 0 then
     begin
-      RecFile.Return := umlNotError;
+      IOHnd.Return := umlNotError;
       Result := True;
       Exit;
     end;
 
-  if umlFilePrepareRead(RecFile, Size, Buffers) then
+  if umlFilePrepareRead(IOHnd, Size, Buffers) then
     begin
-      RecFile.Return := umlNotError;
+      IOHnd.Return := umlNotError;
       Result := True;
       Exit;
     end;
@@ -1213,9 +1215,9 @@ begin
         BuffPointer := Pointer(BuffInt);
         for i := 1 to (Size div umlMaxFileRecSize) do
           begin
-            if RecFile.Handle.Read(BuffPointer^, umlMaxFileRecSize) <> umlMaxFileRecSize then
+            if IOHnd.Handle.Read(BuffPointer^, umlMaxFileRecSize) <> umlMaxFileRecSize then
               begin
-                RecFile.Return := umlFileReadError;
+                IOHnd.Return := umlFileReadError;
                 Result := False;
                 Exit;
               end;
@@ -1224,58 +1226,58 @@ begin
           end;
         // process buffer rest
         i := Size mod umlMaxFileRecSize;
-        if RecFile.Handle.Read(BuffPointer^, i) <> i then
+        if IOHnd.Handle.Read(BuffPointer^, i) <> i then
           begin
-            RecFile.Return := umlFileReadError;
+            IOHnd.Return := umlFileReadError;
             Result := False;
             Exit;
           end;
-        Inc(RecFile.Position, Size);
-        RecFile.Return := umlNotError;
+        Inc(IOHnd.Position, Size);
+        IOHnd.Return := umlNotError;
         Result := True;
         Exit;
       end;
-    if RecFile.Handle.Read(Buffers, Size) <> Size then
+    if IOHnd.Handle.Read(Buffers, Size) <> Size then
       begin
-        RecFile.Return := umlFileReadError;
+        IOHnd.Return := umlFileReadError;
         Result := False;
         Exit;
       end;
-    Inc(RecFile.Position, Size);
-    RecFile.Return := umlNotError;
+    Inc(IOHnd.Position, Size);
+    IOHnd.Return := umlNotError;
     Result := True;
   except
-    RecFile.Return := umlFileReadError;
+    IOHnd.Return := umlFileReadError;
     Result := False;
   end;
 end;
 
-function umlFileBeginWrite(var RecFile: TRecFile): Boolean;
+function umlFileBeginWrite(var IOHnd: TIOHnd): Boolean;
 begin
   Result := True;
 
-  if not umlFileTest(RecFile) then
+  if not umlFileTest(IOHnd) then
       Exit;
 
-  if RecFile.FlushBuff <> nil then
+  if IOHnd.FlushBuff <> nil then
       Exit;
 
-  if RecFile.Handle is TCoreClassFileStream then
-      RecFile.FlushBuff := TMemoryStream64.Create;
+  if IOHnd.Handle is TCoreClassFileStream then
+      IOHnd.FlushBuff := TMemoryStream64.Create;
 end;
 
-function umlFileEndWrite(var RecFile: TRecFile): Boolean;
+function umlFileEndWrite(var IOHnd: TIOHnd): Boolean;
 var
   m64: TMemoryStream64;
 begin
-  if RecFile.FlushBuff <> nil then
+  if IOHnd.FlushBuff <> nil then
     begin
-      m64 := TMemoryStream64(RecFile.FlushBuff);
-      RecFile.FlushBuff := nil;
+      m64 := TMemoryStream64(IOHnd.FlushBuff);
+      IOHnd.FlushBuff := nil;
 
-      if RecFile.Handle.Write(m64.Memory^, m64.Size) <> m64.Size then
+      if IOHnd.Handle.Write(m64.Memory^, m64.Size) <> m64.Size then
         begin
-          RecFile.Return := umlFileWriteError;
+          IOHnd.Return := umlFileWriteError;
           Result := False;
           Exit;
         end;
@@ -1284,43 +1286,43 @@ begin
   Result := True;
 end;
 
-function umlFileWrite(var RecFile: TRecFile; Size: Int64; var Buffers): Boolean;
+function umlFileWrite(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean;
 var
   BuffPointer: Pointer;
   i          : NativeInt;
   BuffInt    : NativeUInt;
 begin
-  if (RecFile.IsOnlyRead) or (not RecFile.OpenFlags) then
+  if (IOHnd.IsOnlyRead) or (not IOHnd.OpenFlags) then
     begin
-      RecFile.Return := umlFileWriteError;
+      IOHnd.Return := umlFileWriteError;
       Result := False;
       Exit;
     end;
   if Size = 0 then
     begin
-      RecFile.Return := umlNotError;
+      IOHnd.Return := umlNotError;
       Result := True;
       Exit;
     end;
 
-  umlResetPrepareRead(RecFile);
+  umlResetPrepareRead(IOHnd);
 
   if Size <= $F000 then
-      umlFileBeginWrite(RecFile);
+      umlFileBeginWrite(IOHnd);
 
-  if RecFile.FlushBuff <> nil then
+  if IOHnd.FlushBuff <> nil then
     begin
-      if TMemoryStream64(RecFile.FlushBuff).Write64(Buffers, Size) <> Size then
+      if TMemoryStream64(IOHnd.FlushBuff).Write64(Buffers, Size) <> Size then
         begin
-          RecFile.Return := umlFileWriteError;
+          IOHnd.Return := umlFileWriteError;
           Result := False;
           Exit;
         end;
 
-      Inc(RecFile.Position, Size);
-      if RecFile.Position > RecFile.Size then
-          RecFile.Size := RecFile.Position;
-      RecFile.Return := umlNotError;
+      Inc(IOHnd.Position, Size);
+      if IOHnd.Position > IOHnd.Size then
+          IOHnd.Size := IOHnd.Position;
+      IOHnd.Return := umlNotError;
       Result := True;
       Exit;
     end;
@@ -1333,9 +1335,9 @@ begin
         BuffPointer := Pointer(BuffInt);
         for i := 1 to (Size div umlMaxFileRecSize) do
           begin
-            if RecFile.Handle.Write(BuffPointer^, umlMaxFileRecSize) <> umlMaxFileRecSize then
+            if IOHnd.Handle.Write(BuffPointer^, umlMaxFileRecSize) <> umlMaxFileRecSize then
               begin
-                RecFile.Return := umlFileWriteError;
+                IOHnd.Return := umlFileWriteError;
                 Result := False;
                 Exit;
               end;
@@ -1344,62 +1346,62 @@ begin
           end;
         // process buffer rest
         i := Size mod umlMaxFileRecSize;
-        if RecFile.Handle.Write(BuffPointer^, i) <> i then
+        if IOHnd.Handle.Write(BuffPointer^, i) <> i then
           begin
-            RecFile.Return := umlFileWriteError;
+            IOHnd.Return := umlFileWriteError;
             Result := False;
             Exit;
           end;
 
-        Inc(RecFile.Position, Size);
-        if RecFile.Position > RecFile.Size then
-            RecFile.Size := RecFile.Position;
-        RecFile.Return := umlNotError;
+        Inc(IOHnd.Position, Size);
+        if IOHnd.Position > IOHnd.Size then
+            IOHnd.Size := IOHnd.Position;
+        IOHnd.Return := umlNotError;
         Result := True;
         Exit;
       end;
-    if RecFile.Handle.Write(Buffers, Size) <> Size then
+    if IOHnd.Handle.Write(Buffers, Size) <> Size then
       begin
-        RecFile.Return := umlFileWriteError;
+        IOHnd.Return := umlFileWriteError;
         Result := False;
         Exit;
       end;
 
-    Inc(RecFile.Position, Size);
-    if RecFile.Position > RecFile.Size then
-        RecFile.Size := RecFile.Position;
-    RecFile.Return := umlNotError;
+    Inc(IOHnd.Position, Size);
+    if IOHnd.Position > IOHnd.Size then
+        IOHnd.Size := IOHnd.Position;
+    IOHnd.Return := umlNotError;
     Result := True;
   except
-    RecFile.Return := umlFileWriteError;
+    IOHnd.Return := umlFileWriteError;
     Result := False;
   end;
 end;
 
-function umlFileWriteStr(var RecFile: TRecFile; var Value: umlString): Boolean;
+function umlFileWriteStr(var IOHnd: TIOHnd; var Value: umlString): Boolean;
 var
   buff: FixedLengthString;
 begin
   buff := Pascal2FixedLengthString(Value);
-  if umlFileWrite(RecFile, FixedLengthStringSize + FixedLengthStringHeaderSize, buff) = False then
+  if umlFileWrite(IOHnd, FixedLengthStringSize + FixedLengthStringHeaderSize, buff) = False then
     begin
-      RecFile.Return := umlFileWriteError;
+      IOHnd.Return := umlFileWriteError;
       Result := False;
       Exit;
     end;
 
-  RecFile.Return := umlNotError;
+  IOHnd.Return := umlNotError;
   Result := True;
 end;
 
-function umlFileReadStr(var RecFile: TRecFile; var Value: umlString): Boolean;
+function umlFileReadStr(var IOHnd: TIOHnd; var Value: umlString): Boolean;
 var
   buff: FixedLengthString;
 begin
   try
-    if umlFileRead(RecFile, FixedLengthStringSize + FixedLengthStringHeaderSize, buff) = False then
+    if umlFileRead(IOHnd, FixedLengthStringSize + FixedLengthStringHeaderSize, buff) = False then
       begin
-        RecFile.Return := umlFileReadError;
+        IOHnd.Return := umlFileReadError;
         Result := False;
         Exit;
       end;
@@ -1408,55 +1410,55 @@ begin
       Value.Text := '';
   end;
 
-  RecFile.Return := umlNotError;
+  IOHnd.Return := umlNotError;
   Result := True;
 end;
 
-function umlFileSeek(var RecFile: TRecFile; APos: Int64): Boolean;
+function umlFileSeek(var IOHnd: TIOHnd; APos: Int64): Boolean;
 begin
-  if (APos <> RecFile.Position) or (APos <> RecFile.Handle.Position) then
-    if not umlFileEndWrite(RecFile) then
+  if (APos <> IOHnd.Position) or (APos <> IOHnd.Handle.Position) then
+    if not umlFileEndWrite(IOHnd) then
       begin
         Result := False;
         Exit;
       end;
 
-  RecFile.Return := umlSeekError;
+  IOHnd.Return := umlSeekError;
   Result := False;
   try
-    RecFile.Position := RecFile.Handle.Seek(APos, TSeekOrigin.soBeginning);
-    Result := RecFile.Position <> -1;
+    IOHnd.Position := IOHnd.Handle.Seek(APos, TSeekOrigin.soBeginning);
+    Result := IOHnd.Position <> -1;
     if Result then
-        RecFile.Return := umlNotError;
+        IOHnd.Return := umlNotError;
   except
   end;
 end;
 
-function umlFileGetPOS(var RecFile: TRecFile): Int64;
+function umlFileGetPOS(var IOHnd: TIOHnd): Int64;
 begin
-  if (RecFile.OpenFlags = False) or (RecFile.Handle = nil) then
+  if (IOHnd.OpenFlags = False) or (IOHnd.Handle = nil) then
     begin
-      RecFile.Return := umlFileHandleError;
+      IOHnd.Return := umlFileHandleError;
       Result := umlFileHandleError;
       Exit;
     end;
   try
-      Result := RecFile.Position;
+      Result := IOHnd.Position;
   except
-    RecFile.Return := umlFileHandleError;
+    IOHnd.Return := umlFileHandleError;
     Result := umlFileHandleError;
   end;
 end;
 
-function umlFileGetSize(var RecFile: TRecFile): Int64;
+function umlFileGetSize(var IOHnd: TIOHnd): Int64;
 begin
-  if (RecFile.OpenFlags = False) or (RecFile.Handle = nil) then
+  if (IOHnd.OpenFlags = False) or (IOHnd.Handle = nil) then
     begin
-      RecFile.Return := umlFileHandleError;
+      IOHnd.Return := umlFileHandleError;
       Result := 0;
       Exit;
     end;
-  Result := RecFile.Size;
+  Result := IOHnd.Size;
 end;
 
 function umlGetFileTime(FileName: umlString): TDateTime;

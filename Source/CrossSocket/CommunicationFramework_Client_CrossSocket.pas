@@ -9,6 +9,8 @@
 *)
 unit CommunicationFramework_Client_CrossSocket;
 
+{$I ..\..\zDefine.inc}
+
 interface
 
 uses SysUtils, Classes,
@@ -211,6 +213,7 @@ end;
 function TCommunicationFramework_Client_CrossSocket.Connect(Addr: string; port: Word): Boolean;
 var
   completed, r: Boolean;
+  dt          : TTimeTickValue;
 begin
   completed := False;
   r := False;
@@ -231,8 +234,13 @@ begin
       *)
     end);
 
-  while not completed do
+  dt := GetTimeTick + 5000;
+  while (not completed) and (GetTimeTick < dt) do
       CheckSynchronize(5);
+
+  while (completed) and (not RemoteInited) and (GetTimeTick < dt) do
+      ProgressBackground;
+
   Result := r;
 end;
 

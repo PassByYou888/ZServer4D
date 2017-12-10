@@ -55,7 +55,7 @@ constructor TItemStream.Create;
 begin
   inherited Create;
   FDBEngine := nil;
-  InitTTMDBItemHandle(FItemHnd);
+  Init_TTMDBItemHandle(FItemHnd);
 end;
 
 constructor TItemStream.Create(DBEngine: TObjectDataManager; DBPath, DBItem: string);

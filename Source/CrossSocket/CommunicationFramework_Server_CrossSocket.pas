@@ -9,6 +9,8 @@
 *)
 unit CommunicationFramework_Server_CrossSocket;
 
+{$I ..\..\zDefine.inc}
+
 interface
 
 uses SysUtils, Classes,
