@@ -26,10 +26,12 @@ uses Classes, SysUtils,
   DataFrameEngine, ItemStream, DoStatusIO, CoreCipher;
 
 var
-  DefaultCacheAnnealingTime: Double  = 15.0;
-  DefaultCacheBufferLength : Integer = 10000;
-  DefaultMaximumCache      : Integer = 10000 * 10;
-  DefaultIndexCacheSize    : Integer = 10000 * 10;
+  DefaultCacheAnnealingTime     : Double  = 15.0;
+  DefaultCacheBufferLength      : Integer = 10000;
+  DefaultMinimizeCache          : Integer = 10000;
+  DefaultMaximumCache           : Integer = 10000 * 500;
+  DefaultIndexCacheSize         : Integer = 10000 * 10;
+  DefaultMinimizeCacheOfFileSize: Int64   = 128 * 1024 * 1024;
 
 type
   TDBStoreBase = class;
@@ -344,6 +346,8 @@ type
     FCacheStyle                                           : TCacheStyle;
     FCacheAnnealingTime                                   : Double;
     FMaximumCache                                         : Integer;
+    FMinimizeCache                                        : Integer;
+    FMinimizeCacheOfFileSize                              : Int64;
     FCacheAnnealingState                                  : SystemString;
     FHeaderCache, FItemBlockCache, FItemCache, FFieldCache: TInt64HashPointerList;
     FResultDF                                             : TDBEngineDF;
@@ -406,9 +410,12 @@ type
     property Cache: TInt64HashObjectList read FCache;
     procedure Recache;
     function AllowedCache: Boolean; inline;
+
     property CacheStyle: TCacheStyle read FCacheStyle write FCacheStyle;
     property CacheAnnealingTime: Double read FCacheAnnealingTime write FCacheAnnealingTime;
     property MaximumCache: Integer read FMaximumCache write FMaximumCache;
+    property MinimizeCache: Integer read FMinimizeCache write FMinimizeCache;
+    property MinimizeCacheOfFileSize: Int64 read FMinimizeCacheOfFileSize write FMinimizeCacheOfFileSize;
     property CacheAnnealingState: SystemString read FCacheAnnealingState;
 
     // lowlevel data
@@ -1435,7 +1442,10 @@ begin
 
   Paused := StoreEngine.FQueryQueue.Count = 0;
   if Paused then
+    begin
       StoreEngine.FQueryThreadLastActivtedTime := Now;
+      SyncUpdateCacheState;
+    end;
 end;
 
 procedure TQueryThread.SyncCheckCache;
@@ -1461,11 +1471,8 @@ begin
           StoreEngine.Recache;
         end;
     end
-  else
-    begin
-      if Allowed then
-          StoreEngine.FCacheAnnealingState := Format('Annealing Cooldown %d', [Round(StoreEngine.CacheAnnealingTime - PausedIdleTime)])
-    end;
+  else if Allowed then
+      StoreEngine.FCacheAnnealingState := Format('Annealing Cooldown %d', [Round(StoreEngine.CacheAnnealingTime - PausedIdleTime)]);
 end;
 
 procedure TQueryThread.SyncUpdateCacheState;
@@ -1615,6 +1622,8 @@ begin
   FCacheStyle := TCacheStyle.csAutomation;
   FCacheAnnealingTime := DefaultCacheAnnealingTime;
   FMaximumCache := DefaultMaximumCache;
+  FMinimizeCache := DefaultMinimizeCache;
+  FMinimizeCacheOfFileSize := DefaultMinimizeCacheOfFileSize;
   FCacheAnnealingState := '';
 
   FHeaderCache := TInt64HashPointerList.Create(DefaultIndexCacheSize);
@@ -1644,7 +1653,6 @@ begin
   FItemCache.OnDataFreeProc := ItemCache_DataFreeProc;
   FFieldCache.OnDataFreeProc := FieldCache_DataFreeProc;
   {$ENDIF}
-
   FResultDF := TDBEngineDF.Create;
   FResultVL := TDBEngineVL.Create;
   FResultTE := TDBEngineTE.Create;
@@ -2141,11 +2149,11 @@ begin
       begin
         if FDBEngine.StreamEngine is TMemoryStream64 then
             Result := False
-        else if FDBEngine.Size < 256 * 1024 * 1024 then
-            Result := True
-        else if (FCache.Count < 100000) then
+        else if (FCache.Count < FMinimizeCache) then
             Result := True
         else if (FQueryQueue.Count >= 2) and (FCache.Count < FMaximumCache) then
+            Result := True
+        else if FDBEngine.Size < FMinimizeCacheOfFileSize then
             Result := True
         else
             Result := False;

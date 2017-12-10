@@ -25,6 +25,10 @@ type
     ListBox1: TListBox;
     Splitter1: TSplitter;
     PrintButton: TButton;
+    ReverseQueryButton: TButton;
+    QueryAndDeleteButton: TButton;
+    QueryAndModifyButton: TButton;
+    QueryAndAnalysisButton: TButton;
     procedure buildTempDataButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -37,6 +41,10 @@ type
     procedure StopButtonClick(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure PrintButtonClick(Sender: TObject);
+    procedure ReverseQueryButtonClick(Sender: TObject);
+    procedure QueryAndDeleteButtonClick(Sender: TObject);
+    procedure QueryAndModifyButtonClick(Sender: TObject);
+    procedure QueryAndAnalysisButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure CreateQuery(pipe: TZDBPipeline);
@@ -80,7 +88,7 @@ begin
 
   enabled := False;
 
-  for i := 1 to 100000 do
+  for i := 1 to 50000 do
     begin
       df := TDBEngineDF.Create;
       for j := 1 to RandomRange(10, 25) do
@@ -95,7 +103,7 @@ begin
       zdb.PostData('Test', df);
       inc(tc, df.Count);
       DisposeObject(df);
-      Caption := Format('total:%s complete:%s data:%s', [umlSizeToStr(100000).Text, umlSizeToStr(i).Text, umlSizeToStr(tc).Text]);
+      Caption := Format('total:%s complete:%s data:%s', [umlSizeToStr(50000).Text, umlSizeToStr(i).Text, umlSizeToStr(zdb['Test'].DBEngine.Size).Text]);
       application.ProcessMessages;
     end;
 
@@ -122,15 +130,12 @@ procedure TZDBmanagerForm.QueryButtonClick(Sender: TObject);
 var
   p: TZDBPipeline;
 begin
-  p := zdb.QueryDB(True, True, False, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p := zdb.QueryDB(True, True, False, 'Test', 'output_' + TimeToStr(Now), True, 1, 0.1, 0, 0, 0);
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
-    var
-      c: Integer;
-      d: Double;
     begin
-      c := qState.DBEng.GetDF(qState).Count;
-      d := qState.DBEng.GetDF(qState).ReadDouble(0);
-      Allowed := InRange(d, -100, 100);
+      if qState.IsDF then
+        with qState.DBEng.GetDF(qState) do
+            Allowed := InRange(ReadDouble(0), -100, 100);
     end;
 end;
 
@@ -155,7 +160,7 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       db := TZDBStoreEngine(lst[i]);
-      ListBox1.Items.Add(Format('db: %s total items:%d %s', [db.name, db.Count, db.CacheAnnealingState]));
+      ListBox1.Items.Add(Format('db: %s total items:%d size:%s %s', [db.name, db.Count, umlSizeToStr(db.DBEngine.Size).Text, db.CacheAnnealingState]));
     end;
 
   lst.Clear;
@@ -184,6 +189,19 @@ begin
     begin
       df := pipe.SourceDB.GetDF(StorePos);
     end);
+end;
+
+procedure TZDBmanagerForm.ReverseQueryButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(False, True, True, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      if qState.IsDF then
+        with qState.DBEng.GetDF(qState) do
+            Allowed := InRange(ReadDouble(0), -100, 100);
+    end;
 end;
 
 procedure TZDBmanagerForm.StopButtonClick(Sender: TObject);
@@ -332,6 +350,78 @@ begin
   doStatus('');
   doStatus('');
   doStatus('');
+end;
+
+procedure TZDBmanagerForm.QueryAndAnalysisButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  if zdb.ExistsDB('Analysis') then
+      exit;
+
+  p := zdb.QueryDB(True, False, True, 'Test', 'Analysis', True, 1.0, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    var
+      df: TDataFrameEngine;
+    begin
+      if not qState.IsDF then
+          exit;
+      df := qState.DBEng.GetDF(qState);
+      if InRange(df.ReadDouble(0), 1, 10) then
+        begin
+          Allowed := True;
+        end;
+    end;
+  p.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
+    var
+      AnalysisPipe: TZDBPipeline;
+      sum         : Double;
+    begin
+      doStatus('Analysis finished!');
+      sum := 0;
+      AnalysisPipe := zdb.QueryDB(False, True, True, 'Analysis', 'temp', True, 1, 0.1, 0, 0, 0);
+      AnalysisPipe.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+        begin
+          with qState.DBEng.GetDF(qState) do
+              sum := sum + ReadDouble(0);
+        end;
+      AnalysisPipe.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
+        begin
+          doStatus('符合1.0到10.0之间条件的条目总和:%f', [sum]);
+          doStatus('符合1.0到10.0之间条件的条目总数:%d', [zdb['Analysis'].Count]);
+        end;
+    end;
+end;
+
+procedure TZDBmanagerForm.QueryAndDeleteButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(False, True, True, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      if qState.IsDF then
+        with qState.DBEng.GetDF(qState) do
+          if InRange(ReadDouble(0), -100, 100) then
+              qState.DBEng.DeleteData(qState.StorePos);
+    end;
+end;
+
+procedure TZDBmanagerForm.QueryAndModifyButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(True, True, False, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      if qState.IsDF then
+        with qState.DBEng.GetDF(qState) do
+          if InRange(ReadDouble(0), -200, 200) then
+            begin
+              TDataFrameDouble(Data[0]).Buffer := umlRandomRangeD(-100.0, 100.0);
+              Save;
+            end;
+    end;
 end;
 
 procedure TZDBmanagerForm.DeleteButtonClick(Sender: TObject);

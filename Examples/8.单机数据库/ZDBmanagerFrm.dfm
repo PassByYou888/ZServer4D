@@ -3,7 +3,7 @@ object ZDBmanagerForm: TZDBmanagerForm
   Top = 0
   Caption = 'ZDB Local...'
   ClientHeight = 857
-  ClientWidth = 1108
+  ClientWidth = 1350
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,58 +14,58 @@ object ZDBmanagerForm: TZDBmanagerForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    1108
+    1350
     857)
   PixelsPerInch = 96
   TextHeight = 13
   object buildTempDataButton: TButton
     Left = 16
     Top = 8
-    Width = 91
-    Height = 33
-    Caption = 'generate 100k'
+    Width = 113
+    Height = 45
+    Caption = 'generate 50k'
     TabOrder = 0
     OnClick = buildTempDataButtonClick
   end
   object QueryButton: TButton
     Left = 16
-    Top = 47
-    Width = 75
-    Height = 25
+    Top = 55
+    Width = 113
+    Height = 45
     Caption = 'query'
     TabOrder = 1
     OnClick = QueryButtonClick
   end
   object InsertButton: TButton
     Left = 16
-    Top = 154
+    Top = 710
     Width = 75
     Height = 25
-    Caption = 'insert'
+    Caption = 'easy insert'
     TabOrder = 2
     OnClick = InsertButtonClick
   end
   object DeleteButton: TButton
     Left = 16
-    Top = 185
+    Top = 741
     Width = 75
     Height = 25
-    Caption = 'delete'
+    Caption = 'easy delete'
     TabOrder = 3
     OnClick = DeleteButtonClick
   end
   object ModifyButton: TButton
     Left = 16
-    Top = 216
+    Top = 772
     Width = 75
     Height = 25
-    Caption = 'modify'
+    Caption = 'easy modify'
     TabOrder = 4
     OnClick = ModifyButtonClick
   end
   object CompressButton: TButton
     Left = 16
-    Top = 344
+    Top = 354
     Width = 75
     Height = 25
     HelpType = htKeyword
@@ -75,7 +75,7 @@ object ZDBmanagerForm: TZDBmanagerForm
   end
   object StopButton: TButton
     Left = 16
-    Top = 80
+    Top = 323
     Width = 75
     Height = 25
     Caption = 'stop'
@@ -83,19 +83,19 @@ object ZDBmanagerForm: TZDBmanagerForm
     OnClick = StopButtonClick
   end
   object Panel1: TPanel
-    Left = 121
+    Left = 176
     Top = 8
-    Width = 968
+    Width = 1155
     Height = 831
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
     Caption = 'Panel1'
     TabOrder = 7
-    ExplicitHeight = 361
+    ExplicitWidth = 913
     object Splitter1: TSplitter
       Left = 0
       Top = 541
-      Width = 968
+      Width = 1155
       Height = 3
       Cursor = crVSplit
       Align = alBottom
@@ -105,7 +105,7 @@ object ZDBmanagerForm: TZDBmanagerForm
     object Memo1: TMemo
       Left = 0
       Top = 0
-      Width = 968
+      Width = 1155
       Height = 541
       Align = alClient
       Lines.Strings = (
@@ -158,26 +158,63 @@ object ZDBmanagerForm: TZDBmanagerForm
         '')
       ScrollBars = ssBoth
       TabOrder = 0
-      ExplicitHeight = 261
+      ExplicitWidth = 968
     end
     object ListBox1: TListBox
       Left = 0
       Top = 544
-      Width = 968
+      Width = 1155
       Height = 287
       Align = alBottom
       ItemHeight = 13
       TabOrder = 1
+      ExplicitWidth = 968
     end
   end
   object PrintButton: TButton
     Left = 16
-    Top = 247
+    Top = 803
     Width = 75
     Height = 25
     Caption = 'print'
     TabOrder = 8
     OnClick = PrintButtonClick
+  end
+  object ReverseQueryButton: TButton
+    Left = 16
+    Top = 106
+    Width = 113
+    Height = 45
+    Caption = 'Reverse query'
+    TabOrder = 9
+    OnClick = ReverseQueryButtonClick
+  end
+  object QueryAndDeleteButton: TButton
+    Left = 16
+    Top = 157
+    Width = 113
+    Height = 45
+    Caption = 'query and delete'
+    TabOrder = 10
+    OnClick = QueryAndDeleteButtonClick
+  end
+  object QueryAndModifyButton: TButton
+    Left = 16
+    Top = 208
+    Width = 113
+    Height = 45
+    Caption = 'query and modify'
+    TabOrder = 11
+    OnClick = QueryAndModifyButtonClick
+  end
+  object QueryAndAnalysisButton: TButton
+    Left = 16
+    Top = 259
+    Width = 113
+    Height = 45
+    Caption = 'query and Analysis'
+    TabOrder = 12
+    OnClick = QueryAndAnalysisButtonClick
   end
   object Timer1: TTimer
     Interval = 10
