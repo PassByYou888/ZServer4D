@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/12/08 04:29:25.000.748,C:\git\ZServer4D\Examples\10.ZDB数据服务器\ZDBServicePG.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
+  </Transactions>
+	<Default.Personality>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\10.ZDB网络服务\ZDBClient\ZDBClientDemo.dproj"/>
+	</Default.Personality>
+</BorlandProject>

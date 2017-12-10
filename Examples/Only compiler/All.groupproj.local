@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-	<Transactions>
-    <Transaction>2017/12/08 04:50:57.000.883,C:\git\ZServer4D\Examples\Only compiler\All.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
+  <Transactions>
+    <Transaction>2017/12/11 01:02:55.836,C:\git\ZServer4D\Examples\Only compiler\all.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
   </Transactions>
-	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
-	</Default.Personality>
+  <Default.Personality>
+    <Projects ActiveProject="C:\git\ZServer4D\Examples\10.ZDB网络服务\ZDBClient\ZDBClientDemo.dproj"/>
+  </Default.Personality>
 </BorlandProject>

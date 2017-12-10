@@ -91,7 +91,6 @@ object ZDBmanagerForm: TZDBmanagerForm
     BevelOuter = bvNone
     Caption = 'Panel1'
     TabOrder = 7
-    ExplicitWidth = 913
     object Splitter1: TSplitter
       Left = 0
       Top = 541
@@ -158,7 +157,6 @@ object ZDBmanagerForm: TZDBmanagerForm
         '')
       ScrollBars = ssBoth
       TabOrder = 0
-      ExplicitWidth = 968
     end
     object ListBox1: TListBox
       Left = 0
@@ -168,7 +166,6 @@ object ZDBmanagerForm: TZDBmanagerForm
       Align = alBottom
       ItemHeight = 13
       TabOrder = 1
-      ExplicitWidth = 968
     end
   end
   object PrintButton: TButton

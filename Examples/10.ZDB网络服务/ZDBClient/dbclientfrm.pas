@@ -80,7 +80,7 @@ end;
 
 procedure TForm1.ModifyG300AsG700ButtonClick(Sender: TObject);
 begin
-  DataStoreClient.QueryDB('G300', False, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
+  DataStoreClient.QueryDB('G300', True, False, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     var
       de: TDataFrameEngine;
@@ -139,7 +139,7 @@ end;
 
 procedure TForm1.QueryG300AndDeleteButtonClick(Sender: TObject);
 begin
-  DataStoreClient.QueryDB('G300', False, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
+  DataStoreClient.QueryDB('G300', True, False, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     begin
       DataStoreClient.DeleteData('LocalTestDB', StorePos);
@@ -152,7 +152,7 @@ end;
 
 procedure TForm1.QueryG300ButtonClick(Sender: TObject);
 begin
-  DataStoreClient.QueryDB('G300', True, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
+  DataStoreClient.QueryDB('G300', True, True, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     begin
     end,
@@ -164,7 +164,7 @@ end;
 
 procedure TForm1.QueryG700AndDeleteButtonClick(Sender: TObject);
 begin
-  DataStoreClient.QueryDB('G700', False, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
+  DataStoreClient.QueryDB('G700', True, False, True, False, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     begin
       DataStoreClient.DeleteData('LocalTestDB', StorePos);
@@ -177,7 +177,7 @@ end;
 
 procedure TForm1.QueryG700ButtonClick(Sender: TObject);
 begin
-  DataStoreClient.QueryDB('G700', True, True, True, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
+  DataStoreClient.QueryDB('G700', True, True, True, True, 'LocalTestDB', 'temp', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     var
       de: TDataFrameEngine;

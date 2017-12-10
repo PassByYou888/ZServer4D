@@ -197,7 +197,7 @@ end;
 initialization
 
 TestStreamData := TMemoryStream64.Create;
-TestStreamData.SetSize(1024 * 1024);
+TestStreamData.SetSize(Int64(1024 * 1024));
 FillByte(TestStreamData.Memory^, TestStreamData.Size, $99);
 
 finalization

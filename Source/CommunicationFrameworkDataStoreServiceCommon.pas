@@ -71,7 +71,7 @@ type
 
   TPipeState = record
     WriteOutputDB, Activted, SyncToClient, MemoryMode, Paused: Boolean;
-    DBCounter, QueryCounter, OutputCounter, MaxQueryCompare, MaxQueryResult: Int64;
+    DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;
     SourceDB, OutputDB, PipelineName, RegistedQuery: string;
     procedure Init; inline;
@@ -140,7 +140,7 @@ begin
   Paused := False;
   DBCounter := 0;
   QueryCounter := 0;
-  OutputCounter := 0;
+  QueryResultCounter := 0;
   MaxQueryCompare := 0;
   MaxQueryResult := 0;
   QueryPerformanceOfPerSec := 0;
@@ -161,7 +161,7 @@ begin
   d.WriteBool(Paused);
   d.WriteInt64(DBCounter);
   d.WriteInt64(QueryCounter);
-  d.WriteInt64(OutputCounter);
+  d.WriteInt64(QueryResultCounter);
   d.WriteInt64(MaxQueryCompare);
   d.WriteInt64(MaxQueryResult);
   d.WriteDouble(QueryPerformanceOfPerSec);
@@ -183,7 +183,7 @@ begin
   Paused := d.Reader.ReadBool;
   DBCounter := d.Reader.ReadInt64;
   QueryCounter := d.Reader.ReadInt64;
-  OutputCounter := d.Reader.ReadInt64;
+  QueryResultCounter := d.Reader.ReadInt64;
   MaxQueryCompare := d.Reader.ReadInt64;
   MaxQueryResult := d.Reader.ReadInt64;
   QueryPerformanceOfPerSec := d.Reader.ReadDouble;

@@ -113,9 +113,6 @@ object Form1: TForm1
     Align = alRight
     ItemHeight = 13
     TabOrder = 1
-    ExplicitLeft = 720
-    ExplicitTop = 57
-    ExplicitHeight = 355
   end
   object PageControl1: TPageControl
     Left = 0
@@ -130,6 +127,8 @@ object Form1: TForm1
     ExplicitHeight = 574
     object TabSheet1: TTabSheet
       Caption = #29366#24577
+      ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitWidth = 281
       ExplicitHeight = 165
       object Memo: TMemo
@@ -201,8 +200,6 @@ object Form1: TForm1
         ScrollBars = ssBoth
         TabOrder = 0
         WordWrap = False
-        ExplicitLeft = -2
-        ExplicitTop = -3
       end
     end
   end

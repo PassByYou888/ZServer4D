@@ -53,6 +53,7 @@ type
     FLastPerformaceTime      : TTimeTickValue;
     FQueryCounterOfPerSec    : Double;
     FRealTimePostFragmentData: Boolean;
+    FQueryResultCounter      : Int64;
 
     procedure Query(var qState: TQueryState);
     procedure QueryDone();
@@ -60,10 +61,10 @@ type
     procedure WriteToOutput(DBEng: TDBStoreBase; StorePos: Int64; ID: Cardinal);
     procedure PostFragmentData(forcePost: Boolean); inline;
   public
-    Owner       : TZDBLocalManager;
-    SourceDB    : TZDBStoreEngine;
-    OutputDB    : TZDBStoreEngine;
-    PipelineName: SystemString;
+    Owner                                   : TZDBLocalManager;
+    SourceDB                                : TZDBStoreEngine;
+    OutputDB                                : TZDBStoreEngine;
+    SourceDBName, OutputDBName, PipelineName: SystemString;
 
     // query options
     WriteResultToOutputDB : Boolean; // query result write to output
@@ -107,6 +108,7 @@ type
     property QueryCounterOfPerSec: Double read FQueryCounterOfPerSec;
     property RealTimePostFragmentData: Boolean read FRealTimePostFragmentData write FRealTimePostFragmentData;
     property QueryCounter: Int64 read FQueryCounter;
+    property QueryResultCounter: Int64 read FQueryResultCounter;
   end;
 
   TZDBPipelineClass = class of TZDBPipeline;
@@ -464,6 +466,7 @@ var
     if not NoOutput then
         WriteToOutput(qState.DBEng, qState.StorePos, qState.ID);
     AlreadWrite := True;
+    inc(FQueryResultCounter);
   end;
 
 begin
@@ -513,7 +516,7 @@ begin
   {$ENDIF}
   inc(FQueryCounter);
 
-  if (MaxQueryResult > 0) and (OutputDB.Count >= MaxQueryResult) then
+  if (MaxQueryResult > 0) and (FQueryResultCounter >= MaxQueryResult) then
     begin
       qState.Aborted := True;
       exit;
@@ -634,6 +637,7 @@ begin
   FLastPerformaceTime := GetTimeTick;
   FQueryCounterOfPerSec := 0;
   FRealTimePostFragmentData := True;
+  FQueryResultCounter := 0;
 
   // data query options
   WriteResultToOutputDB := True; // query result write to output
@@ -671,6 +675,9 @@ begin
   SourceDB := Owner.FDBPool[sourDBName] as TZDBStoreEngine;
 
   PipelineName := APipelineN;
+  SourceDBName := sourDBName;
+  OutputDBName := OutDBName;
+
   if InMem then
       OutputDB := Owner.InitMemoryDB(OutDBName)
   else

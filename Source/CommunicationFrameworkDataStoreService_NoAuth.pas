@@ -142,19 +142,19 @@ type
 
     procedure QuietQueryDB(RegistedQueryName: string; ReverseQuery: Boolean; dbN, outDBN: string; MaxWait: Double; MaxQueryResult: Int64); virtual;
 
-    procedure QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+    procedure QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; Values: THashVariantList); overload; virtual;
 
-    procedure QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+    procedure QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       Values: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
 
-    procedure QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+    procedure QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
 
     {$IFNDEF FPC}
-    procedure QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+    procedure QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       Values: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
     {$ENDIF}
@@ -338,9 +338,6 @@ var
 begin
   doStatus('%s query done', [pipe.PipelineName]);
   pl := TTDataStoreService_DBPipeline(pipe);
-
-  if not pl.SyncToClient then
-      exit;
 
   if not FSendTunnel.Exists(pl.SendTunnel) then
       exit;
@@ -731,7 +728,8 @@ begin
   for i := 0 to FZDBLocal.QueryPipelineList.Count - 1 do
     begin
       pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryPipelineList[i]);
-      if (pl.RecvTunnel.Owner = Sender) then
+      if (pl.RecvTunnel <> nil) and (pl.RecvTunnel.Owner = Sender) and
+        (pl.Activted) and (pl.SourceDB <> nil) and (pl.OutputDB <> nil) then
           OutData.WriteString(pl.PipelineName);
     end;
 end;
@@ -756,7 +754,7 @@ begin
       exit;
 
   if not pl.Activted then
-    exit;
+      exit;
   if pl.SourceDB = nil then
       exit;
   if pl.OutputDB = nil then
@@ -770,14 +768,14 @@ begin
   ps.Paused := (pl.Paused);
   ps.DBCounter := (pl.SourceDB.Count);
   ps.QueryCounter := (pl.QueryCounter);
-  ps.OutputCounter := (pl.OutputDB.Count);
+  ps.QueryResultCounter := (pl.QueryResultCounter);
   ps.MaxQueryCompare := (pl.MaxQueryCompare);
   ps.MaxQueryResult := (pl.MaxQueryResult);
   ps.QueryPerformanceOfPerSec := (pl.QueryCounterOfPerSec);
   ps.ConsumTime := (pl.QueryConsumTime);
   ps.MaxWaitTime := (pl.MaxWaitTime);
-  ps.SourceDB := (pl.SourceDB.name);
-  ps.OutputDB := (pl.OutputDB.name);
+  ps.SourceDB := (pl.SourceDBName);
+  ps.OutputDB := (pl.OutputDBName);
   ps.PipelineName := (pl.PipelineName);
   ps.RegistedQuery := (pl.RegistedQuery);
   ps.Encode(OutData);
@@ -984,8 +982,8 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(pipe.SourceDB.name);
-  de.WriteString(pipe.OutputDB.name);
+  de.WriteString(pipe.SourceDBName);
+  de.WriteString(pipe.OutputDBName);
   de.WriteString(pipe.PipelineName);
   de.WritePointer(pipe.BackcallPtr);
   pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedFragmentBigStream', de);
@@ -997,11 +995,11 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(pipe.SourceDB.name);
-  de.WriteString(pipe.OutputDB.name);
+  de.WriteString(pipe.SourceDBName);
+  de.WriteString(pipe.OutputDBName);
   de.WriteString(pipe.PipelineName);
   de.WritePointer(pipe.BackcallPtr);
-  de.WriteInt64(pipe.OutputDB.Count);
+  de.WriteInt64(pipe.QueryResultCounter);
   pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedQuery', de);
   DisposeObject(de);
   ClearBatchStream(pipe.SendTunnel.Owner);
@@ -1285,7 +1283,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; Values: THashVariantList);
 var
   de: TDataFrameEngine;
@@ -1293,7 +1291,7 @@ begin
   de := TDataFrameEngine.Create;
 
   de.WriteString(RegistedQueryName);
-  de.WriteBool(True); // sync to client
+  de.WriteBool(SyncToClient); // sync to client
   de.WriteBool(WriteResultToOutputDB);
   de.WriteBool(inMem);
   de.WriteBool(ReverseQuery);
@@ -1311,7 +1309,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   Values: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
@@ -1321,10 +1319,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
 end;
 
-procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
@@ -1334,13 +1332,13 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
+procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: string;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   Values: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
@@ -1350,7 +1348,7 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
 end;
 {$ENDIF}
 
@@ -1363,7 +1361,7 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
+  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
 end;
 
 procedure TDataStoreClient_NoAuth.QueryDB(RegistedQueryName: string; dbN: string; Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
@@ -1374,7 +1372,7 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
+  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
 end;
 
 {$IFNDEF FPC}
@@ -1388,7 +1386,7 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
+  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
 end;
 {$ENDIF}
 
