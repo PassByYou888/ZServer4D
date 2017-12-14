@@ -23,17 +23,17 @@
     <Transaction>2017/10/18 01:10:06.000.239,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>2017/10/21 05:13:08.000.694,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>2017/11/06 15:16:31.000.021,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2017/11/06 15:16:59.000.085,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXCliFrm.fmx</Transaction>
-    <Transaction>2017/11/06 15:16:59.000.085,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXCliFrm.pas</Transaction>
-    <Transaction>2017/11/06 15:17:03.000.090,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXClient.dproj</Transaction>
-    <Transaction>2017/11/07 02:39:00.000.395,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXClient.dproj=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRClient.dproj</Transaction>
-    <Transaction>2017/11/07 02:39:33.000.698,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXCliFrm.fmx=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRCliFrm.fmx</Transaction>
-    <Transaction>2017/11/07 02:39:33.000.698,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXCliFrm.pas=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRCliFrm.pas</Transaction>
+    <Transaction>2017/11/06 15:16:59.000.085,C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXCliFrm.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/11/06 15:16:59.000.085,C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXCliFrm.fmx=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx</Transaction>
+    <Transaction>2017/11/06 15:17:03.000.090,C:\git\ZServer4D\Examples\HelloWorld\FMXCli\FMXClient.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2017/11/07 02:39:00.000.395,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRClient.dproj=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXClient.dproj</Transaction>
+    <Transaction>2017/11/07 02:39:33.000.698,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRCliFrm.fmx=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXCliFrm.fmx</Transaction>
+    <Transaction>2017/11/07 02:39:33.000.698,C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXDRCliFrm.pas=C:\git\ZServer4D\Examples\延时响应服务器\FMXCli\FMXCliFrm.pas</Transaction>
     <Transaction>2017/11/17 21:37:57.000.321,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
     <Transaction>2017/11/17 21:37:57.000.290,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
-		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
+		<Pmini iOSSimulator="iPhone5" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
 	</ActiveMobileDevice>
 </BorlandProject>

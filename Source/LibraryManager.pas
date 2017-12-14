@@ -14,7 +14,8 @@ unit LibraryManager;
 
 interface
 
-uses ObjectDataManager, StreamList, CoreClasses;
+uses ObjectDataManager, StreamList, CoreClasses, PascalStrings,
+  UnicodeMixedLib;
 
 type
   TLibraryManager = class(TCoreClassObject)
@@ -22,37 +23,35 @@ type
     FList: TCoreClassListForObj;
     FDBEngine: TObjectDataManager;
     FRoot: THashStreamList;
-    FRootDir: string;
+    FRootDir: SystemString;
   private
   protected
     function GetItems(Index: Integer): THashStreamList;
-    function GetNameItems(aName: string): THashStreamList;
-    function GetPathItems(aPath: string): PHashStreamListData;
+    function GetNameItems(aName: SystemString): THashStreamList;
+    function GetPathItems(aPath: SystemString): PHashStreamListData;
   public
-    constructor Create(aDataEngine: TObjectDataManager; aRootDir: string);
+    constructor Create(aDataEngine: TObjectDataManager; aRootDir: SystemString);
     destructor Destroy; override;
     function Clone: TLibraryManager;
     function Count: Integer;
     procedure Clear;
     procedure Refresh;
-    procedure ChangeRoot(NewRoot: string);
+    procedure ChangeRoot(NewRoot: SystemString);
 
     function TotalCount: Integer;
-    function New(aName, aDescription: string): THashStreamList;
-    function Delete(aName: string; ForceRefresh: Boolean): Boolean;
-    function ReName(aOLDName, NewName, aDescription: string; ForceRefresh: Boolean): Boolean;
-    function Exists(aName: string): Boolean;
+    function New(aName, aDescription: SystemString): THashStreamList;
+    function Delete(aName: SystemString; ForceRefresh: Boolean): Boolean;
+    function ReName(aOLDName, NewName, aDescription: SystemString; ForceRefresh: Boolean): Boolean;
+    function Exists(aName: SystemString): Boolean;
 
     property Items[index: Integer]: THashStreamList read GetItems;
-    property NameItems[aName: string]: THashStreamList read GetNameItems; default;
-    property PathItems[aPath: string]: PHashStreamListData read GetPathItems;
+    property NameItems[aName: SystemString]: THashStreamList read GetNameItems; default;
+    property PathItems[aPath: SystemString]: PHashStreamListData read GetPathItems;
     property DBEngine: TObjectDataManager read FDBEngine;
     property Root: THashStreamList read FRoot;
   end;
 
 implementation
-
-uses PascalStrings, UnicodeMixedLib;
 
 const
   PathDelim = ':\/';
@@ -101,7 +100,7 @@ begin
   Result := THashStreamList(FList[index]);
 end;
 
-function TLibraryManager.GetNameItems(aName: string): THashStreamList;
+function TLibraryManager.GetNameItems(aName: SystemString): THashStreamList;
 var
   i: Integer;
 begin
@@ -115,11 +114,11 @@ begin
         end;
 end;
 
-function TLibraryManager.GetPathItems(aPath: string): PHashStreamListData;
+function TLibraryManager.GetPathItems(aPath: SystemString): PHashStreamListData;
 var
   i: Integer;
   slst: THashStreamList;
-  PhPrefix, phPostfix: string;
+  PhPrefix, phPostfix: SystemString;
 begin
   Result := nil;
   if Count > 0 then
@@ -145,7 +144,7 @@ begin
     end;
 end;
 
-constructor TLibraryManager.Create(aDataEngine: TObjectDataManager; aRootDir: string);
+constructor TLibraryManager.Create(aDataEngine: TObjectDataManager; aRootDir: SystemString);
 begin
   inherited Create;
   FList := TCoreClassListForObj.Create;
@@ -191,7 +190,7 @@ procedure TLibraryManager.Refresh;
 var
   fPos: Int64;
   hsList: THashStreamList;
-  n, d: string;
+  n, d: SystemString;
   fSearchHnd: TFieldSearch;
 begin
   if FDBEngine.isAbort then
@@ -230,7 +229,7 @@ begin
     end;
 end;
 
-procedure TLibraryManager.ChangeRoot(NewRoot: string);
+procedure TLibraryManager.ChangeRoot(NewRoot: SystemString);
 begin
   FRootDir := NewRoot;
   Refresh;
@@ -246,10 +245,10 @@ begin
         Result := Result + Items[i].Count;
 end;
 
-function TLibraryManager.New(aName, aDescription: string): THashStreamList;
+function TLibraryManager.New(aName, aDescription: SystemString): THashStreamList;
 var
   fPos: Int64;
-  n, d: string;
+  n, d: SystemString;
   fSearchHnd: TFieldSearch;
 begin
   Result := nil;
@@ -275,14 +274,14 @@ begin
     end;
 end;
 
-function TLibraryManager.Delete(aName: string; ForceRefresh: Boolean): Boolean;
+function TLibraryManager.Delete(aName: SystemString; ForceRefresh: Boolean): Boolean;
 begin
   Result := FDBEngine.FieldDelete(FRootDir, aName);
   if (ForceRefresh) and (Result) then
       Refresh;
 end;
 
-function TLibraryManager.ReName(aOLDName, NewName, aDescription: string; ForceRefresh: Boolean): Boolean;
+function TLibraryManager.ReName(aOLDName, NewName, aDescription: SystemString; ForceRefresh: Boolean): Boolean;
 var
   fPos: Int64;
 begin
@@ -297,7 +296,7 @@ begin
     end;
 end;
 
-function TLibraryManager.Exists(aName: string): Boolean;
+function TLibraryManager.Exists(aName: SystemString): Boolean;
 var
   i: Integer;
 begin

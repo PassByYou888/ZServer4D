@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C354C5D4-49BD-4670-BC44-F20D6610D463}</ProjectGuid>
+        <ProjectGuid>{71F2E74E-F913-45F7-92C4-D30992FE40D8}</ProjectGuid>
         <ProjectVersion>18.2</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <MainSource>ZDBBatchDataService.dpr</MainSource>
@@ -109,14 +109,6 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="..\..\..\Source\Cadencer.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFramework.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDataStoreService_NoAuth.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDataStoreServiceCommon.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationFrameworkIO.pas"/>
-        <DCCReference Include="..\..\..\Source\CommunicationTest.pas"/>
         <DCCReference Include="..\..\..\Source\CoreCipher.pas"/>
         <DCCReference Include="..\..\..\Source\CoreClasses.pas"/>
         <DCCReference Include="..\..\..\Source\DataFrameEngine.pas"/>
@@ -149,7 +141,17 @@
         <DCCReference Include="..\..\..\Source\ICS\CommunicationFramework_Server_ICSCustomSocket.pas"/>
         <DCCReference Include="..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas"/>
         <DCCReference Include="..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFramework.pas"/>
         <DCCReference Include="..\..\..\Source\CommunicationFrameworkDataStoreService.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDataStoreService_NoAuth.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDataStoreService_VirtualAuth.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDataStoreServiceCommon.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationFrameworkIO.pas"/>
+        <DCCReference Include="..\..\..\Source\CommunicationTest.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

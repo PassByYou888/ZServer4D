@@ -10,10 +10,12 @@ uses
   ZDBLocalManager, CommunicationFramework_Client_Indy,
   CommunicationFramework, CoreClasses, DoStatusIO, FMX.ScrollBox, FMX.Memo,
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
-  FMX.ListView, PascalStrings, MemoryStream64, UnicodeMixedLib;
+  FMX.ListView, PascalStrings, MemoryStream64, UnicodeMixedLib,
+  CommunicationFrameworkDataStoreService_VirtualAuth,
+  CommunicationFrameworkDoubleTunnelIO_VirtualAuth;
 
 type
-  TMyDataStoreClient = class(TDataStoreClient)
+  TMyDataStoreClient = class(TDataStoreClient_VirtualAuth)
   protected
     procedure ClientDisconnect(Sender: TCommunicationFrameworkClient); override;
 
@@ -179,7 +181,8 @@ begin
       DisposeObject(j);
 
       // 因为创建的json条目太多，这里要做消息处理，否则创建指令会一直堵塞在发送缓存，主要是我们不想等太久
-      Application.ProcessMessages;
+      if i mod 10 = 0 then
+          Application.ProcessMessages;
     end;
   TabControl.Enabled := True;
 end;
@@ -215,6 +218,7 @@ begin
   RecvTunnel := TCommunicationFramework_Client_Indy.Create;
   SendTunnel := TCommunicationFramework_Client_Indy.Create;
   DBClient := TMyDataStoreClient.Create(RecvTunnel, SendTunnel);
+  DBClient.RegisterCommand;
 
   RecvTunnel.AllowPrintCommand := False;
   SendTunnel.AllowPrintCommand := False;
@@ -267,7 +271,8 @@ begin
       DisposeObject(j);
 
       // 因为创建的json条目太多，这里要做消息处理，否则创建指令会一直堵塞在发送缓存，主要是我们不想等太久
-      Application.ProcessMessages;
+      if i mod 100 = 0 then
+          Application.ProcessMessages;
     end;
   TabControl.Enabled := True;
 end;
@@ -315,17 +320,17 @@ begin
   ResultMemo.Lines.Clear;
 
   DBClient.QueryDB(
-    'MyCustomQuery',             // MyCustomQuery在服务器注册和实现
-  True,                          // 缓冲碎片是否同步到客户端
-  False,                         // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
-  True,                          // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
-  False,                         // 是否反向查询，从最后开始查
-  JsonDestDBEdit.Text,           // 查询的数据库名称
-  'QueryJson.' + timetoStr(now), // 查询的Output名称，因为我们不写入Output，又是临时内存，这里可以忽略掉
-  1.0,                           // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
-  0,                             // 最大等待的查询时间，0是无限
-  0,                             // 最大匹配查询的反馈条目数
-  vl,                            // 发送给MyCustomQuery用的KeyValue参数
+    'MyCustomQuery',   // MyCustomQuery在服务器注册和实现
+  True,                // 缓冲碎片是否同步到客户端
+  False,               // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
+  True,                // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
+  False,               // 是否反向查询，从最后开始查
+  JsonDestDBEdit.Text, // 查询的数据库名称
+  '',                  // 查询的Output名称，因为我们不写入Output，又是临时内存，这里可以忽略掉
+  1.0,                 // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
+  0,                   // 最大等待的查询时间，0是无限
+  0,                   // 最大匹配查询的反馈条目数
+  vl,                  // 发送给MyCustomQuery用的KeyValue参数
     procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
     var
       ns: TStringList;

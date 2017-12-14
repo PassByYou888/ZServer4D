@@ -12,7 +12,7 @@ uses
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework, DoStatusIO, UnicodeMixedLib,
   DataFrameEngine,
 
-  NotifyObjectBase, CoreCipher;
+  NotifyObjectBase, CoreCipher, PascalStrings;
 
 type
   TServerType = (stUnknow,
@@ -27,11 +27,11 @@ type
 
   IServerManager_ClientPoolNotify = interface
     procedure ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
-    procedure ServerOffline(Sender: TServerManager_Client; RegAddr: string; ServerType: TServerType);
+    procedure ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
   end;
 
   TServerManager_ClientConnectInfo = record
-    RegName, ManServAddr, RegAddr: string;
+    RegName, ManServAddr, RegAddr: SystemString;
     ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word;
     ServerType: TServerType;
   end;
@@ -55,10 +55,10 @@ type
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
 
-    function Connect(addr: string; const RecvPort, SendPort: word): Boolean; override;
+    function Connect(addr: SystemString; const RecvPort, SendPort: word): Boolean; override;
 
     procedure AntiIdle(WorkLoad: word);
-    function EnabledServer(const RegName, ManServAddr, RegAddr: string; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
+    function EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
   end;
 
   TServerManager_ClientPool = class(TCoreClassPersistent)
@@ -70,9 +70,9 @@ type
     procedure SetItems(index: Integer; const Value: TServerManager_Client);
   public
     ServerConfig                            : TSectionTextData;
-    LastManagerServerAddr                   : string;
+    LastManagerServerAddr                   : SystemString;
     LastManServRecvPort, LastManServSendPort: word;
-    LastRegAddr                             : string;
+    LastRegAddr                             : SystemString;
     LastRegRecvPort, LastRegSendPort        : word;
     DefaultClientClass                      : TCommunicationFrameworkClientClass;
     NotifyIntf                              : IServerManager_ClientPoolNotify;
@@ -89,7 +89,7 @@ type
     procedure Progress; virtual;
     procedure AntiIdle(WorkLoad: word);
 
-    function BuildClientAndConnect(const RegName, ManServAddr, RegAddr: string;
+    function BuildClientAndConnect(const RegName, ManServAddr, RegAddr: SystemString;
       const ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
   end;
 
@@ -101,7 +101,7 @@ type
 
   TServerManager_RecvTunnelData = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
   public
-    ManServAddr, RegName, RegAddr: string;
+    ManServAddr, RegName, RegAddr: SystemString;
     RegRecvPort, RegSendPort     : word;
     LastEnabled                  : TTimeTickValue;
     WorkLoad                     : word;
@@ -112,7 +112,7 @@ type
     destructor Destroy; override;
 
     procedure WriteConfig(t: TSectionTextData);
-    function MakeRegName: string;
+    function MakeRegName: SystemString;
   end;
 
   TServerManager = class(TCommunicationFramework_DoubleTunnelService_NoAuth, IServerManager_ClientPoolNotify)
@@ -127,7 +127,7 @@ type
     procedure Command_AntiIdle(Sender: TPeerClient; InData: TDataFrameEngine);
   protected
     procedure ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
-    procedure ServerOffline(Sender: TServerManager_Client; RegAddr: string; ServerType: TServerType);
+    procedure ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
   public
     ServerConfig     : TSectionTextData;
     ServManClientPool: TServerManager_ClientPool;
@@ -142,11 +142,11 @@ type
     procedure Progress; override;
   end;
 
-function serverType2Str(t: TServerType): string;
+function serverType2Str(t: TServerType): SystemString;
 
 implementation
 
-function serverType2Str(t: TServerType): string;
+function serverType2Str(t: TServerType): SystemString;
 begin
   Result := GetEnumName(TypeInfo(TServerType), Ord(t));
 end;
@@ -178,7 +178,7 @@ end;
 
 procedure TServerManager_Client.PostExecute_Offline(Sender: TNPostExecute);
 var
-  RegAddr   : string;
+  RegAddr   : SystemString;
   ServerType: TServerType;
 
   ns: TCoreClassStringList;
@@ -195,7 +195,7 @@ begin
   for i := 0 to ns.Count - 1 do
     begin
       vl := Owner.ServerConfig.VariantList[ns[i]];
-      if SameText(string(vl.GetDefaultValue('Host', RegAddr)), RegAddr) and
+      if SameText(SystemString(vl.GetDefaultValue('Host', RegAddr)), RegAddr) and
         (TServerType(byte(vl.GetDefaultValue('Type', ServerType))) = ServerType) then
           Owner.ServerConfig.Delete(ns[i]);
     end;
@@ -255,7 +255,7 @@ begin
   NetRecvTunnelIntf.DeleteRegistedCMD('Offline');
 end;
 
-function TServerManager_Client.Connect(addr: string; const RecvPort, SendPort: word): Boolean;
+function TServerManager_Client.Connect(addr: SystemString; const RecvPort, SendPort: word): Boolean;
 begin
   Result := inherited Connect(addr, RecvPort, SendPort);
 
@@ -280,7 +280,7 @@ begin
   DisposeObject(SendDE);
 end;
 
-function TServerManager_Client.EnabledServer(const RegName, ManServAddr, RegAddr: string; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
+function TServerManager_Client.EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
 var
   SendData, ResultData: TDataFrameEngine;
 begin
@@ -434,7 +434,7 @@ begin
   AntiIdleIsRun := False;
 end;
 
-function TServerManager_ClientPool.BuildClientAndConnect(const RegName, ManServAddr, RegAddr: string;
+function TServerManager_ClientPool.BuildClientAndConnect(const RegName, ManServAddr, RegAddr: SystemString;
   const ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
 var
   c: TServerManager_Client;
@@ -508,7 +508,7 @@ end;
 procedure TServerManager_RecvTunnelData.WriteConfig(t: TSectionTextData);
 var
   m: TServerManager;
-  n: string;
+  n: SystemString;
 begin
   m := DoubleTunnelService as TServerManager;
   n := MakeRegName;
@@ -523,7 +523,7 @@ begin
   t.SetDefaultValue(n, 'Type', ServerType);
 end;
 
-function TServerManager_RecvTunnelData.MakeRegName: string;
+function TServerManager_RecvTunnelData.MakeRegName: SystemString;
 begin
   Result := Format('%s_%s_%d_%d', [serverType2Str(ServerType), RegAddr, RegRecvPort, RegSendPort]);
 end;
@@ -568,7 +568,7 @@ begin
       for i := 0 to ns.Count - 1 do
         begin
           vl := ServerConfig.VariantList[ns[i]];
-          if SameText(string(vl.GetDefaultValue('ManagerServer', '')), cli.RegAddr) then
+          if SameText(SystemString(vl.GetDefaultValue('ManagerServer', '')), cli.RegAddr) then
               ServerConfig.Delete(ns[i]);
         end;
       DisposeObject(ns);
@@ -710,7 +710,7 @@ begin
   DisposeObject(SendDE);
 end;
 
-procedure TServerManager.ServerOffline(Sender: TServerManager_Client; RegAddr: string; ServerType: TServerType);
+procedure TServerManager.ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
 var
   ns                     : TCoreClassStringList;
   i                      : Integer;
@@ -737,7 +737,7 @@ begin
       for i := 0 to ns.Count - 1 do
         begin
           vl := ServerConfig.VariantList[ns[i]];
-          if SameText(string(vl.GetDefaultValue('Host', RegAddr)), RegAddr) and
+          if SameText(SystemString(vl.GetDefaultValue('Host', RegAddr)), RegAddr) and
             (TServerType(byte(vl.GetDefaultValue('Type', ServerType))) = ServerType) then
               ServerConfig.Delete(ns[i]);
         end;

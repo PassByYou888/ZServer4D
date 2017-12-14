@@ -34,7 +34,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         item
         end>
       IsSelected = True
-      Size.Width = 164.000000000000000000
+      Size.Width = 44.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
@@ -130,7 +130,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
             Touch.InteractiveGestures = [LongTap, DoubleTap]
             Align = VertCenter
             TabOrder = 1
-            Text = '1270.0.1'
+            Text = '127.0.0.1'
             Position.X = 60.000000000000000000
             Position.Y = 10.000000000000000000
             Margins.Right = 20.000000000000000000
@@ -146,7 +146,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         item
         end>
       IsSelected = False
-      Size.Width = 164.000000000000000000
+      Size.Width = 44.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
@@ -182,7 +182,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         item
         end>
       IsSelected = False
-      Size.Width = 164.000000000000000000
+      Size.Width = 98.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
@@ -385,7 +385,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         item
         end>
       IsSelected = False
-      Size.Width = 167.000000000000000000
+      Size.Width = 104.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''

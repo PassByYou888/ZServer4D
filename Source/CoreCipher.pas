@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * Core cipher Library ,written by QQ 600585@qq.com                           * }
+{ * Core cipher Library ,writen by QQ 600585@qq.com                            * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { ****************************************************************************** }
 
@@ -247,9 +247,9 @@ type
   public
     const
     CAllHash: THashStyles                   = [hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsELF64, hsMix128, hsCRC16, hsCRC32];
-    CHashName: array [THashStyle] of string = ('None', 'FastMD5', 'MD5', 'SHA1', '256', '128', '64', '32', '16', 'ELF', 'ELF64', 'Mix128', 'CRC16', 'CRC32');
+    CHashName: array [THashStyle] of SystemString = ('None', 'FastMD5', 'MD5', 'SHA1', '256', '128', '64', '32', '16', 'ELF', 'ELF64', 'Mix128', 'CRC16', 'CRC32');
 
-    CCipherStyleName: array [TCipherStyle] of string =
+    CCipherStyleName: array [TCipherStyle] of SystemString =
       ('None',
       'DES64', 'DES128', 'DES192',
       'Blowfish', 'LBC', 'LQC', 'RNG32', 'RNG64', 'LSC', 'TwoFish',
@@ -274,7 +274,7 @@ type
   public
     class function AllCipher: TCipherStyleArray;
 
-    class function NameToHashStyle(n: string; var hash: THashStyle): Boolean;
+    class function NameToHashStyle(n: SystemString; var hash: THashStyle): Boolean;
 
     class function BuffToString(buff: Pointer; Size: nativeInt): TPascalString; overload;
     class function StringToBuff(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean; overload;
@@ -283,7 +283,7 @@ type
     class procedure HashToString(hash: TSHA1Digest; var Output: TPascalString); overload;
     class procedure HashToString(hash: TMD5Digest; var Output: TPascalString); overload;
     class procedure HashToString(hash: TBytes; var Output: TPascalString); overload;
-    class procedure HashToString(hash: TBytes; var Output: string); overload;
+    class procedure HashToString(hash: TBytes; var Output: SystemString); overload;
 
     class function CompareHash(h1, h2: TSHA1Digest): Boolean; overload;
     class function CompareHash(h1, h2: TMD5Digest): Boolean; overload;
@@ -643,7 +643,7 @@ type
 implementation
 
 const
-  SInvalidFileFormat: string = 'Invalid file format';
+  SInvalidFileFormat: SystemString = 'Invalid file format';
 
   { -Blowfish lookup tables }
 
@@ -1111,7 +1111,7 @@ begin
       Result[Integer(cs)] := cs;
 end;
 
-class function TCipher.NameToHashStyle(n: string; var hash: THashStyle): Boolean;
+class function TCipher.NameToHashStyle(n: SystemString; var hash: THashStyle): Boolean;
 var
   h: THashStyle;
 begin
@@ -1164,7 +1164,7 @@ begin
   HashToString(@hash[0], length(hash), Output);
 end;
 
-class procedure TCipher.HashToString(hash: TBytes; var Output: string);
+class procedure TCipher.HashToString(hash: TBytes; var Output: SystemString);
 var
   s: TPascalString;
 begin
@@ -3010,7 +3010,7 @@ var
   h    : THashStyle;
   vl   : THashVariantList;
   hBuff: TBytes;
-  n    : string;
+  n    : SystemString;
 begin
   vl := THashVariantList.Create;
   for h in hssArry do
@@ -3031,7 +3031,7 @@ var
   h    : THashStyle;
   vl   : THashVariantList;
   hBuff: TBytes;
-  n    : string;
+  n    : SystemString;
 begin
   vl := THashVariantList.Create;
   for h in hssArry do
@@ -3052,7 +3052,7 @@ var
   h    : THashStyle;
   vl   : THashVariantList;
   hBuff: TBytes;
-  n    : string;
+  n    : SystemString;
 begin
   vl := THashVariantList.Create;
   for h in hssArry do
@@ -3073,7 +3073,7 @@ var
   ns                : TListString;
   i                 : Integer;
   sourHash, destHash: TBytes;
-  hName             : string;
+  hName             : SystemString;
   hValue            : TPascalString;
   h                 : THashStyle;
 begin
@@ -3177,7 +3177,7 @@ var
   KeyBuff: TBytes;
   buff   : TBytes;
   m64    : TMemoryStream64;
-  n      : string;
+  n      : SystemString;
 begin
   KeyBuff := passwd.Bytes;
   buff := passwd.Bytes;
@@ -3481,7 +3481,7 @@ begin
       Context.PBox[i] := Context.PBox[i] xor Data;
     end;
 
-  { encrypt an all-zero string using the Blowfish algorithm and }
+  { encrypt an all-zero SystemString using the Blowfish algorithm and }
   { replace the elements of the P-array with the output of this process }
 
   Block[0] := 0;

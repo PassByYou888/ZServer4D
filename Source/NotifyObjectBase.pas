@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * Delay trigger Engine, support,                                             * }
+{ * Delay trigger imp, support,                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 (* https://github.com/PassByYou888/ZServer4D *)
 { ****************************************************************************** }

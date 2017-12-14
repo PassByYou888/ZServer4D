@@ -21,7 +21,7 @@ type
 
   THashStreamListData = record
     qHash: THash;
-    LowerCaseName, OriginName: string;
+    LowerCaseName, OriginName: SystemString;
     Stream: TItemStream;
     ItemHnd: TItemHandle;
     CallCount: Integer;
@@ -37,8 +37,8 @@ type
   protected
     FCounter    : Boolean;
     FCount      : Integer;
-    FName       : string;
-    FDescription: string;
+    FName       : SystemString;
+    FDescription: SystemString;
     FDBEngine   : TObjectDataManager;
     FFieldPos   : Int64;
     FAryList    : array of TCoreClassList;
@@ -51,23 +51,23 @@ type
     destructor Destroy; override;
     procedure Clear;
     procedure Refresh;
-    procedure GetOriginNameListFromFilter(aFilter: string; OutputList: TCoreClassStrings);
-    procedure GetListFromFilter(aFilter: string; OutputList: TCoreClassList);
+    procedure GetOriginNameListFromFilter(aFilter: SystemString; OutputList: TCoreClassStrings);
+    procedure GetListFromFilter(aFilter: SystemString; OutputList: TCoreClassList);
     procedure GetOriginNameList(OutputList: TCoreClassStrings); overload;
     procedure GetOriginNameList(OutputList: TListString); overload;
     procedure GetList(OutputList: TCoreClassList);
-    function Find(aName: string): PHashStreamListData;
-    function Exists(aName: string): Boolean;
+    function Find(aName: SystemString): PHashStreamListData;
+    function Exists(aName: SystemString): Boolean;
 
     procedure SetHashBlockCount(cnt: Integer);
 
-    function GetItem(aName: string): PHashStreamListData;
-    property Names[aName: string]: PHashStreamListData read GetItem; default;
+    function GetItem(aName: SystemString): PHashStreamListData;
+    property Names[aName: SystemString]: PHashStreamListData read GetItem; default;
 
     property DBEngine: TObjectDataManager read FDBEngine;
     property FieldPos: Int64 read FFieldPos;
-    property name: string read FName write FName;
-    property Description: string read FDescription write FDescription;
+    property name: SystemString read FName write FName;
+    property Description: SystemString read FDescription write FDescription;
     property Counter: Boolean read FCounter write FCounter;
     property Count: Integer read FCount;
     property Data: Pointer read FData write FData;
@@ -213,7 +213,7 @@ begin
   RefreshDBLst(FDBEngine, FFieldPos);
 end;
 
-procedure THashStreamList.GetOriginNameListFromFilter(aFilter: string; OutputList: TCoreClassStrings);
+procedure THashStreamList.GetOriginNameListFromFilter(aFilter: SystemString; OutputList: TCoreClassStrings);
 var
   i: Integer;
   L: TCoreClassList;
@@ -234,7 +234,7 @@ begin
   DisposeObject(L);
 end;
 
-procedure THashStreamList.GetListFromFilter(aFilter: string; OutputList: TCoreClassList);
+procedure THashStreamList.GetListFromFilter(aFilter: SystemString; OutputList: TCoreClassList);
 var
   i: Integer;
   L: TCoreClassList;
@@ -372,7 +372,7 @@ begin
     end;
 end;
 
-function THashStreamList.Find(aName: string): PHashStreamListData;
+function THashStreamList.Find(aName: SystemString): PHashStreamListData;
 var
   i            : Integer;
   Rep_Int_Index: Integer;
@@ -404,7 +404,7 @@ begin
     end;
 end;
 
-function THashStreamList.Exists(aName: string): Boolean;
+function THashStreamList.Exists(aName: SystemString): Boolean;
 var
   NewHash: THash;
   i      : Integer;
@@ -435,7 +435,7 @@ begin
       FAryList[i] := nil;
 end;
 
-function THashStreamList.GetItem(aName: string): PHashStreamListData;
+function THashStreamList.GetItem(aName: SystemString): PHashStreamListData;
 var
   NewHash: THash;
   i      : Integer;

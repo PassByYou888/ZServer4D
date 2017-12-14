@@ -24,8 +24,8 @@ type
 
   TPeerClientUserDefineForIO = class(TPeerClientUserDefine)
   public
-    UserFlag, UserID: string;
-    UserPath        : string;
+    UserFlag, UserID: SystemString;
+    UserPath        : SystemString;
     UserConfigFile  : TSectionTextData;
     UserAuthService : TCommunicationFramework_UserAuthService;
     UserDBIntf      : THashVariantList;
@@ -34,13 +34,13 @@ type
     constructor Create(AOwner: TPeerClient); override;
     destructor Destroy; override;
 
-    function MakeFilePath(fn: string): string;
-    function GetUserID: string;
+    function MakeFilePath(fn: SystemString): SystemString;
+    function GetUserID: SystemString;
   end;
 
   TCommunicationFramework_UserAuthService = class(TCoreClassObject)
   protected
-    FRootPath          : string;
+    FRootPath          : SystemString;
     FUserDB            : TSectionTextData;
     FCanRegisterNewUser: Boolean;
     FCanSaveUserInfo   : Boolean;
@@ -63,11 +63,11 @@ type
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
 
-    function MakeUserFlag: string;
+    function MakeUserFlag: SystemString;
     function GetUserDefineClient(cli: TPeerClient): TPeerClientUserDefineForIO;
 
     property CanRegisterNewUser: Boolean read FCanRegisterNewUser write FCanRegisterNewUser;
-    property RootPath: string read FRootPath;
+    property RootPath: SystemString read FRootPath;
     property CanSaveUserInfo: Boolean read FCanSaveUserInfo write FCanSaveUserInfo;
     property LoginUserList: THashVariantList read FLoginUserList;
   end;
@@ -88,8 +88,8 @@ type
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
 
-    function UserLogin(UserID, Passwd: string): Boolean;
-    function RegisterUser(UserID, Passwd: string): Boolean;
+    function UserLogin(UserID, Passwd: SystemString): Boolean;
+    function RegisterUser(UserID, Passwd: SystemString): Boolean;
   end;
 
 implementation
@@ -137,19 +137,19 @@ begin
   inherited Destroy;
 end;
 
-function TPeerClientUserDefineForIO.MakeFilePath(fn: string): string;
+function TPeerClientUserDefineForIO.MakeFilePath(fn: SystemString): SystemString;
 begin
   Result := umlCombineFileName(UserPath, fn);
 end;
 
-function TPeerClientUserDefineForIO.GetUserID: string;
+function TPeerClientUserDefineForIO.GetUserID: SystemString;
 begin
   Result := UserConfigFile.GetDefaultValue('UserInfo', 'UserID', '');
 end;
 
 procedure TCommunicationFramework_UserAuthService.Command_UserLogin(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  UserID, UserPasswd: string;
+  UserID, UserPasswd: SystemString;
   UserDefineIO      : TPeerClientUserDefineForIO;
 begin
   UserID := InData.Reader.ReadString;
@@ -171,7 +171,7 @@ begin
     end;
   UnLockObject(FLoginUserList);
 
-  if not ComparePassword(TCipherStyle.csDES64, UserPasswd, string(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
+  if not ComparePassword(TCipherStyle.csDES64, UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('password error', []));
@@ -202,7 +202,7 @@ end;
 
 procedure TCommunicationFramework_UserAuthService.Command_RegisterUser(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  UserID, UserPasswd: string;
+  UserID, UserPasswd: SystemString;
   UserDefineIO      : TPeerClientUserDefineForIO;
 begin
   if not FCanRegisterNewUser then
@@ -329,7 +329,7 @@ begin
   Communication.PeerClientUserDefineClass := TPeerClientUserDefine;
 end;
 
-function TCommunicationFramework_UserAuthService.MakeUserFlag: string;
+function TCommunicationFramework_UserAuthService.MakeUserFlag: SystemString;
 label goLoop;
 var
   d: Double;
@@ -389,7 +389,7 @@ procedure TCommunicationFramework_UserAuthClient.UnRegisterCommand;
 begin
 end;
 
-function TCommunicationFramework_UserAuthClient.UserLogin(UserID, Passwd: string): Boolean;
+function TCommunicationFramework_UserAuthClient.UserLogin(UserID, Passwd: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
@@ -411,7 +411,7 @@ begin
   DisposeObject(resDE);
 end;
 
-function TCommunicationFramework_UserAuthClient.RegisterUser(UserID, Passwd: string): Boolean;
+function TCommunicationFramework_UserAuthClient.RegisterUser(UserID, Passwd: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin

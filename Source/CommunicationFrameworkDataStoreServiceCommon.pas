@@ -14,7 +14,7 @@ type
     RecvTunnel   : TPeerClientUserDefine;
     BackcallPtr  : UInt64;
     SyncToClient : Boolean;
-    RegistedQuery: string;
+    RegistedQuery: SystemString;
 
     constructor Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString); override;
     destructor Destroy; override;
@@ -30,11 +30,11 @@ type
     constructor Create;
   end;
 
-  TQueryDoneNotifyCall   = procedure(dbN, outN, pipeN: string; TotalResult: Int64);
-  TQueryDoneNotifyMethod = procedure(dbN, outN, pipeN: string; TotalResult: Int64) of object;
+  TQueryDoneNotifyCall   = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
+  TQueryDoneNotifyMethod = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
 
   {$IFNDEF FPC}
-  TQueryDoneNotifyProc = reference to procedure(dbN, outN, pipeN: string; TotalResult: Int64);
+  TQueryDoneNotifyProc = reference to procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
   {$ENDIF}
   PDataStoreClientQueryNotify = ^TDataStoreClientQueryNotify;
 
@@ -52,11 +52,11 @@ type
     procedure Init;
   end;
 
-  TDownloadDoneNotifyCall   = procedure(dbN: string; dStorePos: Int64; stream: TMemoryStream64);
-  TDownloadDoneNotifyMethod = procedure(dbN: string; dStorePos: Int64; stream: TMemoryStream64) of object;
+  TDownloadDoneNotifyCall   = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+  TDownloadDoneNotifyMethod = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
 
   {$IFNDEF FPC}
-  TDownloadDoneNotifyProc = reference to procedure(dbN: string; dStorePos: Int64; stream: TMemoryStream64);
+  TDownloadDoneNotifyProc = reference to procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
   {$ENDIF}
   PDataStoreClientDownloadNotify = ^TDataStoreClientDownloadNotify;
 
@@ -73,7 +73,7 @@ type
     WriteOutputDB, Activted, SyncToClient, MemoryMode, Paused: Boolean;
     DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;
-    SourceDB, OutputDB, PipelineName, RegistedQuery: string;
+    SourceDB, OutputDB, PipelineName, RegistedQuery: SystemString;
     procedure Init; inline;
     procedure Encode(d: TDataFrameEngine); inline;
     procedure Decode(d: TDataFrameEngine); inline;
@@ -87,7 +87,7 @@ begin
   SendTunnel := nil;
   RecvTunnel := nil;
   BackcallPtr := 0;
-  SyncToClient := True;
+  SyncToClient := False;
   RegistedQuery := '';
 end;
 

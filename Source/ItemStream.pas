@@ -13,7 +13,8 @@ unit ItemStream;
 
 interface
 
-uses SysUtils, CoreClasses, Classes, UnicodeMixedLib, ObjectData, ObjectDataManager;
+uses SysUtils, CoreClasses, Classes, UnicodeMixedLib, ObjectData, ObjectDataManager,
+  PascalStrings;
 
 type
   TItemStream = class(TCoreClassStream)
@@ -23,7 +24,7 @@ type
   protected
     function GetSize: Int64; override;
   public
-    constructor Create(DBEngine: TObjectDataManager; DBPath, DBItem: string); overload;
+    constructor Create(DBEngine: TObjectDataManager; DBPath, DBItem: SystemString); overload;
     constructor Create(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle); overload;
     constructor Create; overload;
     destructor Destroy; override;
@@ -58,7 +59,7 @@ begin
   Init_TTMDBItemHandle(FItemHnd);
 end;
 
-constructor TItemStream.Create(DBEngine: TObjectDataManager; DBPath, DBItem: string);
+constructor TItemStream.Create(DBEngine: TObjectDataManager; DBPath, DBItem: SystemString);
 var
   ihnd: TItemHandle;
 begin

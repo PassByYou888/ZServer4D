@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * hash List Library,Wrten by QQ 600585@qq.com                                * }
+{ * hash Library,Writen by QQ 600585@qq.com                                    * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 (* https://github.com/PassByYou888/ZServer4D *)
 { ****************************************************************************** }
@@ -88,6 +88,7 @@ type
 
     function First: Pointer; inline;
     function Last: Pointer; inline;
+
     function GetNext(Name: SystemString): Pointer; inline;
     function GetPrev(Name: SystemString): Pointer; inline;
 
@@ -151,6 +152,7 @@ type
 
     function First: TCoreClassObject; inline;
     function Last: TCoreClassObject; inline;
+
     function GetNext(i64: Int64): TCoreClassObject; inline;
     function GetPrev(i64: Int64): TCoreClassObject; inline;
 
@@ -215,6 +217,7 @@ type
 
     function First: Pointer; inline;
     function Last: Pointer; inline;
+
     function GetNext(i64: Int64): Pointer; inline;
     function GetPrev(i64: Int64): Pointer; inline;
 
@@ -242,6 +245,12 @@ type
 
   PHashObjectListData = ^THashObjectListData;
 
+  THashObjectListLoopCall   = procedure(Name: PSystemString; obj: TCoreClassObject);
+  THashObjectListLoopMethod = procedure(Name: PSystemString; obj: TCoreClassObject) of object;
+  {$IFNDEF FPC}
+  THashObjectListLoopProc = reference to procedure(name: PSystemString; obj: TCoreClassObject);
+  {$ENDIF}
+
   THashObjectList = class(TCoreClassObject)
   private
     FAutoFreeObject: Boolean;
@@ -268,6 +277,14 @@ type
     constructor Create(_AutoFreeObject: Boolean); overload;
     constructor Create(_AutoFreeObject: Boolean; MaxHashBlock: Integer); overload;
     destructor Destroy; override;
+
+    procedure Assign(sour: THashObjectList);
+    procedure Progress(OnProgress: THashObjectListLoopCall); overload;
+    procedure Progress(OnProgress: THashObjectListLoopMethod); overload;
+    {$IFNDEF FPC}
+    procedure Progress(OnProgress: THashObjectListLoopProc); overload;
+    {$ENDIF}
+    //
     procedure Clear;
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
     procedure GetNameList(OutputList: TListString); overload;
@@ -277,6 +294,7 @@ type
     function GetObjAsName(obj: TCoreClassObject): SystemString;
     procedure Delete(Name: SystemString); inline;
     function Add(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; inline;
+    function FastAdd(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; inline;
     function Find(Name: SystemString): TCoreClassObject; inline;
     function Exists(Name: SystemString): Boolean; inline;
     function ExistsObject(obj: TCoreClassObject): Boolean;
@@ -330,6 +348,7 @@ type
     constructor Create; overload;
     constructor Create(MaxHashBlock: Integer); overload;
     destructor Destroy; override;
+    procedure Assign(sour: THashVariantList);
     procedure Clear; inline;
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
     procedure GetNameList(OutputList: TListString); overload;
@@ -2594,6 +2613,93 @@ begin
   inherited Destroy;
 end;
 
+procedure THashObjectList.Assign(sour: THashObjectList);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  Clear;
+  if sour.HashList.Count > 0 then
+    begin
+      i := 0;
+      p := sour.HashList.FirstPtr;
+      while i < sour.HashList.Count do
+        begin
+          FastAdd(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashObjectList.Progress(OnProgress: THashObjectListLoopCall);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(@p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashObjectList.Progress(OnProgress: THashObjectListLoopMethod);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(@p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+{$IFNDEF FPC}
+
+
+procedure THashObjectList.Progress(OnProgress: THashObjectListLoopProc);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(@p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+{$ENDIF}
+
+
 procedure THashObjectList.Clear;
 var
   lst     : TCoreClassList;
@@ -2778,6 +2884,18 @@ begin
       pObjData^.OnChnage := nil;
       FHashList.Add(name, pObjData, False);
     end;
+
+  pObjData^.obj := _Object;
+  Result := _Object;
+end;
+
+function THashObjectList.FastAdd(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject;
+var
+  pObjData: PHashObjectListData;
+begin
+  New(pObjData);
+  pObjData^.OnChnage := nil;
+  FHashList.Add(name, pObjData, False);
 
   pObjData^.obj := _Object;
   Result := _Object;
@@ -3023,6 +3141,25 @@ destructor THashVariantList.Destroy;
 begin
   DisposeObject(FHashList);
   inherited Destroy;
+end;
+
+procedure THashVariantList.Assign(sour: THashVariantList);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  Clear;
+  if sour.HashList.Count > 0 then
+    begin
+      i := 0;
+      p := sour.HashList.FirstPtr;
+      while i < sour.HashList.Count do
+        begin
+          FastAdd(p^.OriginName, PHashVariantListData(p^.Data)^.V);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashVariantList.Clear;
@@ -3380,29 +3517,29 @@ end;
 
 function THashVariantList.ReplaceMacro(const AText, HeadFlag, TailFlag: SystemString; var Output: SystemString): Boolean;
 var
-  Sour      : umlString;
+  sour      : umlString;
   hf, tf    : umlString;
   bPos, ePos: Integer;
   KeyText   : SystemString;
   i         : Integer;
 begin
   Output := '';
-  Sour.Text := AText;
+  sour.Text := AText;
   hf.Text := HeadFlag;
   tf.Text := TailFlag;
   Result := True;
 
   i := 1;
 
-  while i <= Sour.Len do
+  while i <= sour.Len do
     begin
-      if Sour.ComparePos(i, hf) then
+      if sour.ComparePos(i, hf) then
         begin
           bPos := i;
-          ePos := Sour.GetPos(tf, i + hf.Len);
+          ePos := sour.GetPos(tf, i + hf.Len);
           if ePos > 0 then
             begin
-              KeyText := Sour.copy(bPos + hf.Len, ePos - (bPos + hf.Len)).Text;
+              KeyText := sour.copy(bPos + hf.Len, ePos - (bPos + hf.Len)).Text;
 
               if Exists(KeyText) then
                 begin
@@ -3417,7 +3554,7 @@ begin
             end;
         end;
 
-      Output := Output + Sour[i];
+      Output := Output + sour[i];
       Inc(i);
     end;
 end;

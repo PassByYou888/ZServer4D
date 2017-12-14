@@ -165,7 +165,7 @@ type
     property ObjectName: SystemString read FObjectName write FObjectName;
     property DefaultItemID: Byte read FDefaultItemID;
     property StreamEngine: TCoreClassStream read FStreamEngine;
-    property Time: TDateTime read GetDBTime;
+    property DBTime: TDateTime read GetDBTime;
 
     property OverWriteItem: Boolean read GetOverWriteItem write SetOverWriteItem;
     property AllowSameHeaderName: Boolean read GetAllowSameHeaderName write SetAllowSameHeaderName;
@@ -474,7 +474,7 @@ end;
 
 function TObjectDataManager.Modify: Boolean;
 begin
-  Result := FObjectDataHandle.WriteFlags;
+  Result := FObjectDataHandle.IOHnd.WriteFlag;
 end;
 
 function TObjectDataManager.Size: Int64;

@@ -179,6 +179,7 @@ function IsMobile: Boolean;
 
 function GetTimeTickCount: TTimeTickValue; inline;
 function GetTimeTick: TTimeTickValue; inline;
+function GetCrashTimeTick: TTimeTickValue;
 
 implementation
 
@@ -320,6 +321,10 @@ begin
   Result := TCoreClassThread.GetTickCount;
 end;
 
+function GetCrashTimeTick: TTimeTickValue;
+begin
+  Result:= $FFFFFFFF - GetTimeTick;
+end;
 
 {$IFDEF FPC}
 

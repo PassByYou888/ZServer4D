@@ -99,7 +99,7 @@ begin
           if DataStoreService.SendTunnel.Exists(pl.SendTunnel) then
               lip := pl.SendTunnel.Owner.GetPeerIP
           else
-            lip := '';
+              lip := '';
           ListBox.Items.Add(Format('%s name: %s query performance:%d', [lip, pl.PipelineName, Round(pl.QueryCounterOfPerSec)]));
         end;
     end;
@@ -122,6 +122,8 @@ begin
   RecvTunnel.StartService('', 13887);
   SendTunnel.StartService('', 13888);
   DataStoreService := TDataStoreService_NoAuth.Create(RecvTunnel, SendTunnel);
+  DataStoreService.RegisterCommand;
+  DataStoreService.ZDBLocal.LoadDB(False);
 
   DataStoreService.RegisterQueryCall('G300').OnPipelineQuery := Query_G300;
   DataStoreService.RegisterQueryCall('G700').OnPipelineQuery := Query_G700;

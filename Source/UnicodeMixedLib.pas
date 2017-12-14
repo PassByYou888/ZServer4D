@@ -94,6 +94,7 @@ type
     FlushBuff: TMixedStream;
     PrepareReadPosition: Int64;
     PrepareReadBuff: TMixedStream;
+    WriteFlag: Boolean;
     Data: Pointer;
     Return: Integer;
   end;
@@ -157,6 +158,7 @@ function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: T
 function umlFileCreate(Name: umlString; var IOHnd: TIOHnd): Boolean; inline;
 function umlFileOpen(Name: umlString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; inline;
 function umlFileClose(var IOHnd: TIOHnd): Boolean; inline;
+function umlFileUpdate(var IOHnd: TIOHnd): Boolean; inline;
 function umlFileTest(var IOHnd: TIOHnd): Boolean; inline;
 
 procedure umlResetPrepareRead(var IOHnd: TIOHnd); inline;
@@ -780,6 +782,8 @@ begin
           n := Result;
           Result := umlStringReplace(Result, '\\', '\', True);
         until Result.Same(n);
+        if (Result.len > 0) and (Result.Last <> '\') then
+            Result.Append('\');
       end;
     else
       begin
@@ -803,6 +807,8 @@ begin
           n := Result;
           Result := umlStringReplace(Result, '//', '/', True);
         until Result.Same(n);
+        if (Result.len > 0) and (Result.Last <> '/') then
+            Result.Append('/');
       end;
   end;
 end;
@@ -948,6 +954,7 @@ begin
   IOHnd.FlushBuff := nil;
   IOHnd.PrepareReadPosition := -1;
   IOHnd.PrepareReadBuff := nil;
+  IOHnd.WriteFlag := False;
   IOHnd.Data := nil;
   IOHnd.Return := umlNotError;
 end;
@@ -1102,6 +1109,23 @@ begin
   IOHnd.Attrib := umlDefaultAttrib;
   IOHnd.Name := '';
   IOHnd.OpenFlags := False;
+  IOHnd.WriteFlag := False;
+  Result := True;
+end;
+
+function umlFileUpdate(var IOHnd: TIOHnd): Boolean;
+begin
+  if (IOHnd.OpenFlags = False) or (IOHnd.Handle = nil) then
+    begin
+      IOHnd.Return := umlFileHandleError;
+      Result := False;
+      Exit;
+    end;
+
+  umlFileEndWrite(IOHnd);
+  umlResetPrepareRead(IOHnd);
+  IOHnd.WriteFlag := False;
+
   Result := True;
 end;
 
@@ -1304,6 +1328,8 @@ begin
       Result := True;
       Exit;
     end;
+
+  IOHnd.WriteFlag := True;
 
   umlResetPrepareRead(IOHnd);
 

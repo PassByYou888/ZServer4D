@@ -144,7 +144,6 @@ type
     CurrentFieldLevel: Word;
     IOHnd: TIOHnd;
     OverWriteItem: Boolean;
-    WriteFlags: Boolean;
     AllowSameHeaderName: Boolean;
     OnWriteHeader: TObjectDataHeaderWriteProc;
     OnReadHeader: TObjectDataHeaderReadProc;
@@ -647,7 +646,6 @@ begin
   InitIOHnd(SenderTMDB.IOHnd);
   SenderTMDB.IOHnd.Data := @SenderTMDB;
   SenderTMDB.OverWriteItem := True;
-  SenderTMDB.WriteFlags := False;
   SenderTMDB.AllowSameHeaderName := False;
 
   SenderTMDB.OnWriteHeader := nil;
@@ -4149,7 +4147,6 @@ begin
   SenderTMDB.LastHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.FirstHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.CurrentFieldPOS := SenderTMDB.DefaultFieldPOS;
-  SenderTMDB.WriteFlags := True;
   if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
     begin
       Result := False;
@@ -4186,7 +4183,6 @@ begin
       Exit;
     end;
 
-  SenderTMDB.WriteFlags := False;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
@@ -4214,7 +4210,6 @@ begin
   SenderTMDB.LastHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.FirstHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.CurrentFieldPOS := SenderTMDB.DefaultFieldPOS;
-  SenderTMDB.WriteFlags := True;
   if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
     begin
       Result := False;
@@ -4251,7 +4246,6 @@ begin
       Exit;
     end;
 
-  SenderTMDB.WriteFlags := False;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
@@ -4264,7 +4258,7 @@ begin
       Result := False;
       Exit;
     end;
-  if SenderTMDB.WriteFlags then
+  if SenderTMDB.IOHnd.WriteFlag then
     begin
       SenderTMDB.LastModifyTime := umlDefaultTime;
       if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
@@ -4272,7 +4266,6 @@ begin
           Result := False;
           Exit;
         end;
-      SenderTMDB.WriteFlags := False;
     end;
   if umlFileClose(SenderTMDB.IOHnd) = False then
     begin
@@ -4292,7 +4285,7 @@ begin
       Result := False;
       Exit;
     end;
-  if SenderTMDB.WriteFlags then
+  if SenderTMDB.IOHnd.WriteFlag then
     begin
       SenderTMDB.LastModifyTime := umlDefaultTime;
       if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
@@ -4300,10 +4293,9 @@ begin
           Result := False;
           Exit;
         end;
-      SenderTMDB.WriteFlags := False;
     end;
   SenderTMDB.Return := db_Pack_ok;
-  Result := True;
+  Result := umlFileUpdate(SenderTMDB.IOHnd);
 end;
 
 function dbPack_CopyFieldTo(const FilterName: umlString; var SenderTMDB: TTMDB; const SourceFieldPos: Int64; var DestTMDB: TTMDB; const DestFieldPos: Int64): Boolean;
@@ -4489,8 +4481,6 @@ begin
       end;
   end;
 
-  if SenderTMDB.WriteFlags = False then
-      SenderTMDB.WriteFlags := True;
   SenderHeader.Return := db_Header_ok;
   Result := True;
 end;
@@ -4632,7 +4622,6 @@ begin
           end;
         end;
     end;
-  SenderTMDB.WriteFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
@@ -5085,7 +5074,6 @@ begin
     end;
   SenderTMDB.CurrentFieldPOS := f.RHeader.CurrentHeader;
   SenderTMDB.CurrentFieldLevel := pc;
-  SenderTMDB.WriteFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
@@ -5372,7 +5360,6 @@ begin
       Result := False;
       Exit;
     end;
-  SenderTMDB.WriteFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
@@ -5408,7 +5395,6 @@ begin
           Exit;
         end;
     end;
-  SenderTMDB.WriteFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
@@ -5435,7 +5421,6 @@ begin
       Result := False;
       Exit;
     end;
-  SenderTMDB.WriteFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;

@@ -67,6 +67,7 @@ begin
   RecvTunnel := TCommunicationFramework_Client_CrossSocket.Create;
   SendTunnel := TCommunicationFramework_Client_CrossSocket.Create;
   DataStoreClient := TDataStoreClient_NoAuth.Create(RecvTunnel, SendTunnel);
+  DataStoreClient.RegisterCommand;
 
   RecvTunnel.AllowPrintCommand := False;
   SendTunnel.AllowPrintCommand := False;

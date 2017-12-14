@@ -122,15 +122,8 @@ object Form1: TForm1
     ActivePage = TabSheet1
     Align = alClient
     TabOrder = 2
-    ExplicitTop = 201
-    ExplicitWidth = 835
-    ExplicitHeight = 574
     object TabSheet1: TTabSheet
       Caption = #29366#24577
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 281
-      ExplicitHeight = 165
       object Memo: TMemo
         Left = 0
         Top = 0

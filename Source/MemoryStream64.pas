@@ -1,6 +1,6 @@
 { ****************************************************************************** }
 { * support > 2G TMemoryStream64, writen by QQ 600585@qq.com                   * }
-{ * https://github.com/PassByYou888/CoreCipher                                  * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
 (* https://github.com/PassByYou888/ZServer4D *)
 { ******************************************************************************* }
 
@@ -23,7 +23,7 @@ uses
   {$IFDEF FPC}
   zstream,
   {$ENDIF}
-  CoreClasses, SysUtils;
+  CoreClasses, SysUtils, PascalStrings;
 
 type
   TMemoryStream64 = class(TCoreClassStream)
@@ -47,9 +47,9 @@ type
     function PositionAsPtr(APosition: Int64): Pointer;
 
     procedure LoadFromStream(Stream: TCoreClassStream); virtual;
-    procedure LoadFromFile(const FileName: string);
+    procedure LoadFromFile(const FileName: SystemString);
     procedure SaveToStream(Stream: TCoreClassStream); virtual;
-    procedure SaveToFile(const FileName: string);
+    procedure SaveToFile(const FileName: SystemString);
 
     procedure SetSize(const NewSize: Int64); overload; override;
     procedure SetSize(NewSize: Longint); overload; override;
@@ -248,7 +248,7 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.LoadFromFile(const FileName: string);
+procedure TMemoryStream64.LoadFromFile(const FileName: SystemString);
 var
   Stream: TCoreClassStream;
 begin
@@ -298,7 +298,7 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.SaveToFile(const FileName: string);
+procedure TMemoryStream64.SaveToFile(const FileName: SystemString);
 var
   Stream: TCoreClassStream;
 begin

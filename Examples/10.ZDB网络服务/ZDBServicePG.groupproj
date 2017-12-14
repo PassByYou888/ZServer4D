@@ -3,10 +3,10 @@
         <ProjectGuid>{E7619607-68A9-4B7E-A6B2-22EC1E7BBCF6}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="ZDBClient\ZDBClientDemo.dproj">
+        <Projects Include="ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="ZDBService\ZDBServiceDemo.dproj">
+        <Projects Include="ZDBClient\ZDBClientDemo.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -17,15 +17,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="ZDBClientDemo">
-        <MSBuild Projects="ZDBClient\ZDBClientDemo.dproj"/>
-    </Target>
-    <Target Name="ZDBClientDemo:Clean">
-        <MSBuild Projects="ZDBClient\ZDBClientDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBClientDemo:Make">
-        <MSBuild Projects="ZDBClient\ZDBClientDemo.dproj" Targets="Make"/>
-    </Target>
     <Target Name="ZDBServiceDemo">
         <MSBuild Projects="ZDBService\ZDBServiceDemo.dproj"/>
     </Target>
@@ -35,14 +26,23 @@
     <Target Name="ZDBServiceDemo:Make">
         <MSBuild Projects="ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ZDBClientDemo">
+        <MSBuild Projects="ZDBClient\ZDBClientDemo.dproj"/>
+    </Target>
+    <Target Name="ZDBClientDemo:Clean">
+        <MSBuild Projects="ZDBClient\ZDBClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBClientDemo:Make">
+        <MSBuild Projects="ZDBClient\ZDBClientDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ZDBClientDemo;ZDBServiceDemo"/>
+        <CallTarget Targets="ZDBServiceDemo;ZDBClientDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ZDBClientDemo:Clean;ZDBServiceDemo:Clean"/>
+        <CallTarget Targets="ZDBServiceDemo:Clean;ZDBClientDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ZDBClientDemo:Make;ZDBServiceDemo:Make"/>
+        <CallTarget Targets="ZDBServiceDemo:Make;ZDBClientDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

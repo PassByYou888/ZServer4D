@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2016/12/03 03:10:20.000.072,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2016/12/30 00:57:14.000.294,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2016/12/30 02:39:37.000.654,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2016/12/30 02:39:48.000.852,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/01/09 15:37:57.000.320,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/01/21 03:53:54.000.890,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/04/28 09:49:23.000.922,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/05/23 12:29:03.000.996,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/06/08 02:29:26.000.644,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/06/15 00:00:48.000.381,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/07/03 19:52:29.000.177,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/09/06 15:42:38.000.216,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/09/19 15:21:01.000.817,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/09/19 15:22:19.000.993,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/09/20 04:55:24.000.255,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/10/17 16:41:56.000.974,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/10/17 16:42:19.000.977,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/10/17 16:44:11.000.723,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ServerMethodsUnit1.pas</Transaction>
+    <Transaction>2017/10/17 16:44:12.000.553,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ServerContainerUnit1.pas</Transaction>
+    <Transaction>2017/10/18 01:10:06.000.239,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/10/21 05:13:08.000.694,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/11/11 22:28:20.000.892,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/11/11 22:30:52.000.428,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/11/18 20:45:39.000.443,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/11/25 08:53:52.000.286,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/11/25 20:46:44.000.640,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/12/01 01:51:55.000.146,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/12/10 20:45:58.000.636,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/12/10 20:46:34.000.116,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\git\ZServer4D\Examples\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClientFrm.pas</Transaction>
+    <Transaction>2017/12/10 20:46:34.000.116,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\git\ZServer4D\Examples\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClientFrm.fmx</Transaction>
+    <Transaction>2017/12/10 20:46:36.000.746,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\git\ZServer4D\Examples\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClient.dproj</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.665,=C:\git\ZServer4D\Source\CoreClasses.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.905,=C:\git\ZServer4D\Source\TextParsing.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.678,=C:\git\ZServer4D\Source\DataFrameEngine.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.856,=C:\git\ZServer4D\Source\ObjectData.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.944,=C:\git\ZServer4D\Source\UnicodeMixedLib.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.546,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.595,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.528,=C:\git\ZServer4D\Source\CommunicationFramework.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.764,=C:\git\ZServer4D\Source\ItemStream.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.711,=C:\git\ZServer4D\Source\Geometry2DUnit.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.755,=C:\git\ZServer4D\Source\GeometryRotationUnit.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.927,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.614,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.657,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.876,=C:\git\ZServer4D\Source\PascalStrings.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.746,=C:\git\ZServer4D\Source\GeometryLib.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.968,=C:\git\ZServer4D\Source\ZDBLocalManager.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.810,=C:\git\ZServer4D\Source\ListEngine.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.564,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreServiceCommon.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.835,=C:\git\ZServer4D\Source\NotifyObjectBase.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.867,=C:\git\ZServer4D\Source\ObjectDataManager.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.957,=C:\git\ZServer4D\Source\ZDBEngine.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.885,=C:\git\ZServer4D\Source\StreamList.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.695,=C:\git\ZServer4D\Source\DoStatusIO.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.513,=C:\git\ZServer4D\Source\Cadencer.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.895,=C:\git\ZServer4D\Source\TextDataEngine.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.796,=C:\git\ZServer4D\Source\LibraryManager.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.640,=C:\git\ZServer4D\Source\CommunicationTest.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.827,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.722,=C:\git\ZServer4D\Source\Geometry3DUnit.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.556,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_NoAuth.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.687,=C:\git\ZServer4D\Source\DBCompressPackageForFile.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.788,=C:\git\ZServer4D\Source\JsonDataObjects.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.632,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.623,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas</Transaction>
+    <Transaction>2017/12/10 20:53:23.000.885,=C:\git\ZServer4D\Source\Indy\CommunicationFramework_Client_Indy.pas</Transaction>
+    <Transaction>2017/12/10 20:53:23.000.895,=C:\git\ZServer4D\Source\Indy\CommunicationFramework_Server_Indy.pas</Transaction>
+    <Transaction>2017/12/14 16:21:47.000.767,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_VirtualAuth.pas</Transaction>
+    <Transaction>2017/12/14 16:21:47.000.835,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas</Transaction>
+    <Transaction>2017/12/14 17:04:25.000.223,C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FMXBatchPictureDataClient.dproj=C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FMXBatchDataClient.dproj</Transaction>
+    <Transaction>2017/12/14 17:16:34.000.143,=C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FileBuffOfCode.pas</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
+		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
+	</ActiveMobileDevice>
+</BorlandProject>

@@ -5,15 +5,6 @@ uses
   FMX.Forms,
   FMXBatchDataClientFrm in 'FMXBatchDataClientFrm.pas' {FMXBatchDataClientForm},
   Cadencer in '..\..\..\Source\Cadencer.pas',
-  CommunicationFramework in '..\..\..\Source\CommunicationFramework.pas',
-  CommunicationFrameworkDataStoreService in '..\..\..\Source\CommunicationFrameworkDataStoreService.pas',
-  CommunicationFrameworkDataStoreService_NoAuth in '..\..\..\Source\CommunicationFrameworkDataStoreService_NoAuth.pas',
-  CommunicationFrameworkDataStoreServiceCommon in '..\..\..\Source\CommunicationFrameworkDataStoreServiceCommon.pas',
-  CommunicationFrameworkDoubleTunnelIO in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas',
-  CommunicationFrameworkDoubleTunnelIO_NoAuth in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas',
-  CommunicationFrameworkDoubleTunnelIO_ServMan in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas',
-  CommunicationFrameworkIO in '..\..\..\Source\CommunicationFrameworkIO.pas',
-  CommunicationTest in '..\..\..\Source\CommunicationTest.pas',
   CoreCipher in '..\..\..\Source\CoreCipher.pas',
   CoreClasses in '..\..\..\Source\CoreClasses.pas',
   DataFrameEngine in '..\..\..\Source\DataFrameEngine.pas',
@@ -40,7 +31,18 @@ uses
   ZDBEngine in '..\..\..\Source\ZDBEngine.pas',
   ZDBLocalManager in '..\..\..\Source\ZDBLocalManager.pas',
   CommunicationFramework_Client_Indy in '..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas',
-  CommunicationFramework_Server_Indy in '..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas';
+  CommunicationFramework_Server_Indy in '..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas',
+  CommunicationFramework in '..\..\..\Source\CommunicationFramework.pas',
+  CommunicationFrameworkDataStoreService in '..\..\..\Source\CommunicationFrameworkDataStoreService.pas',
+  CommunicationFrameworkDataStoreService_NoAuth in '..\..\..\Source\CommunicationFrameworkDataStoreService_NoAuth.pas',
+  CommunicationFrameworkDataStoreService_VirtualAuth in '..\..\..\Source\CommunicationFrameworkDataStoreService_VirtualAuth.pas',
+  CommunicationFrameworkDataStoreServiceCommon in '..\..\..\Source\CommunicationFrameworkDataStoreServiceCommon.pas',
+  CommunicationFrameworkDoubleTunnelIO in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas',
+  CommunicationFrameworkDoubleTunnelIO_NoAuth in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas',
+  CommunicationFrameworkDoubleTunnelIO_ServMan in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas',
+  CommunicationFrameworkDoubleTunnelIO_VirtualAuth in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas',
+  CommunicationFrameworkIO in '..\..\..\Source\CommunicationFrameworkIO.pas',
+  CommunicationTest in '..\..\..\Source\CommunicationTest.pas';
 
 {$R *.res}
 

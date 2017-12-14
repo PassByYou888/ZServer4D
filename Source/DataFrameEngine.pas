@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * Data Struct Engine library                                                 * }
+{ * Data Struct Engine                                                         * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 (* https://github.com/PassByYou888/ZServer4D *)
@@ -41,7 +41,7 @@ type
   TDataFrameString = class(TDataFrameBase)
   private
   protected
-    FBuffer: string;
+    FBuffer: SystemString;
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -50,7 +50,7 @@ type
     procedure SaveToStream(stream: TCoreClassStream); override;
     function ComputeEncodeSize: Integer; override;
 
-    property Buffer: string read FBuffer write FBuffer;
+    property Buffer: SystemString read FBuffer write FBuffer;
   end;
 
   TDataFrameInteger = class(TDataFrameBase)
@@ -385,7 +385,7 @@ type
     function NotEnd: Boolean;
     procedure GoNext;
 
-    function ReadString: string;
+    function ReadString: SystemString;
     function ReadInteger: Integer;
     function ReadCardinal: Cardinal;
     function ReadWord: Word;
@@ -448,7 +448,7 @@ type
     procedure Clear;
     function AddData(v: TRunTimeDataType): TDataFrameBase;
     function GetData(idx: Integer): TDataFrameBase;
-    function GetDataInfo(_Obj: TDataFrameBase): string;
+    function GetDataInfo(_Obj: TDataFrameBase): SystemString;
     function Count: Integer;
     function Delete(idx: Integer): Boolean;
     function DeleteFirst: Boolean;
@@ -457,7 +457,7 @@ type
     function DeleteCount(idx, _Count: Integer): Boolean;
     procedure Assign(SameObj: TDataFrameEngine);
 
-    procedure WriteString(v: string); overload;
+    procedure WriteString(v: SystemString); overload;
     procedure WriteString(v: umlString); overload;
     procedure WriteInteger(v: Integer);
     procedure WriteCardinal(v: Cardinal);
@@ -487,7 +487,7 @@ type
     {$IFNDEF FPC}
     procedure WriteJson(v: TJsonObject);
     {$ENDIF}
-    procedure WriteFile(fn: string);
+    procedure WriteFile(fn: SystemString);
     procedure WriteRect(v: TRect);
     procedure WriteRectf(v: TRectf);
     procedure WritePoint(v: TPoint);
@@ -511,7 +511,7 @@ type
 
     property Reader: TDataFrameEngineReader read FReader;
 
-    function ReadString(idx: Integer): string;
+    function ReadString(idx: Integer): SystemString;
     function ReadInteger(idx: Integer): Integer;
     function ReadCardinal(idx: Integer): Cardinal;
     function ReadWord(idx: Integer): Word;
@@ -596,7 +596,7 @@ type
 
     procedure Clear; virtual;
 
-    procedure WriteString(v: string); virtual;
+    procedure WriteString(v: SystemString); virtual;
     procedure WriteInteger(v: Integer); virtual;
     procedure WriteCardinal(v: Cardinal); virtual;
     procedure WriteWORD(v: Word); virtual;
@@ -649,7 +649,7 @@ type
     constructor Create(AStream: TCoreClassStream);
     destructor Destroy; override;
 
-    function ReadString: string; virtual;
+    function ReadString: SystemString; virtual;
     function ReadInteger: Integer; virtual;
     function ReadCardinal: Cardinal; virtual;
     function ReadWord: Word; virtual;
@@ -1733,7 +1733,7 @@ begin
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadString: string;
+function TDataFrameEngineReader.ReadString: SystemString;
 begin
   Result := FOwner.ReadString(FIndex);
   inc(FIndex);
@@ -2093,11 +2093,11 @@ begin
       Result := nil;
 end;
 
-function TDataFrameEngine.GetDataInfo(_Obj: TDataFrameBase): string;
+function TDataFrameEngine.GetDataInfo(_Obj: TDataFrameBase): SystemString;
 begin
   case ByteToDataType(_Obj.FID) of
     rdtString:
-      Result := 'String';
+      Result := 'SystemString';
     rdtInteger:
       Result := 'Integer';
     rdtCardinal:
@@ -2192,7 +2192,7 @@ begin
   DisposeObject(s);
 end;
 
-procedure TDataFrameEngine.WriteString(v: string);
+procedure TDataFrameEngine.WriteString(v: SystemString);
 var
   _Obj: TDataFrameString;
 begin
@@ -2433,7 +2433,7 @@ end;
 {$ENDIF}
 
 
-procedure TDataFrameEngine.WriteFile(fn: string);
+procedure TDataFrameEngine.WriteFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
@@ -2573,7 +2573,7 @@ begin
   DisposeObject(s);
 end;
 
-function TDataFrameEngine.ReadString(idx: Integer): string;
+function TDataFrameEngine.ReadString(idx: Integer): SystemString;
 var
   _Obj: TDataFrameBase;
   i   : Integer;
@@ -3645,7 +3645,7 @@ begin
   FEngine.Clear;
 end;
 
-procedure TDataWriter.WriteString(v: string);
+procedure TDataWriter.WriteString(v: SystemString);
 begin
   FEngine.WriteString(v);
 end;
@@ -3898,7 +3898,7 @@ begin
   inherited Destroy;
 end;
 
-function TDataReader.ReadString: string;
+function TDataReader.ReadString: SystemString;
 begin
   Result := FEngine.Reader.ReadString;
 end;

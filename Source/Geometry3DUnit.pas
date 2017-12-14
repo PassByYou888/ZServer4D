@@ -12,7 +12,7 @@ interface
 {$I zDefine.inc}
 
 uses Types, SysUtils,
-  GeometryLib, Geometry2DUnit;
+  GeometryLib, Geometry2DUnit, PascalStrings, UnicodeMixedLib;
 
 type
   TMat4 = TMatrix;
@@ -235,19 +235,19 @@ function Vec2(const v: TVec4): TVec2; overload;
 function Vec2(const v: TVector3): TVec2; overload;
 function Vec2(const v: TVector4): TVec2; overload;
 
-function VecToStr(const v: TVec2): string; overload;
-function VecToStr(const v: TVec3): string; overload;
-function VecToStr(const v: TVec4): string; overload;
-function VecToStr(const v: TVector3): string; overload;
-function VecToStr(const v: TVector4): string; overload;
-function RectToStr(const v: T2DRect): string; overload;
+function VecToStr(const v: TVec2): SystemString; overload;
+function VecToStr(const v: TVec3): SystemString; overload;
+function VecToStr(const v: TVec4): SystemString; overload;
+function VecToStr(const v: TVector3): SystemString; overload;
+function VecToStr(const v: TVector4): SystemString; overload;
+function RectToStr(const v: T2DRect): SystemString; overload;
 
-function StrToVec2(const s: string): TVec2;
-function StrToVec3(const s: string): TVec3;
-function StrToVec4(const s: string): TVec4;
-function StrToVector3(const s: string): TVector3;
-function StrToVector4(const s: string): TVector4;
-function StrToRect(const s: string): T2DRect;
+function StrToVec2(const s: SystemString): TVec2;
+function StrToVec3(const s: SystemString): TVec3;
+function StrToVec4(const s: SystemString): TVec4;
+function StrToVector3(const s: SystemString): TVector3;
+function StrToVector4(const s: SystemString): TVector4;
+function StrToRect(const s: SystemString): T2DRect;
 
 function BounceVector(Current: TVector4; DeltaDistance: Single; BeginVector, EndVector: TVector4; var EndFlag: Boolean): TVector4; overload;
 function BounceVector(Current: TVector3; DeltaDistance: Single; BeginVector, EndVector: TVector3; var EndFlag: Boolean): TVector3; overload;
@@ -333,8 +333,6 @@ operator - (const a: TVector3; const b: TVector3): TVector3;
 {$ENDIF}
 
 implementation
-
-uses PascalStrings, UnicodeMixedLib;
 
 function Vector4(X, Y, Z, W: Single): TVector4;
 begin
@@ -468,37 +466,37 @@ begin
   Result[1] := v.Link[1];
 end;
 
-function VecToStr(const v: TVec2): string;
+function VecToStr(const v: TVec2): SystemString;
 begin
   Result := Format('%g,%g', [v[0], v[1]]);
 end;
 
-function VecToStr(const v: TVec3): string;
+function VecToStr(const v: TVec3): SystemString;
 begin
   Result := Format('%g,%g,%g', [v[0], v[1], v[2]]);
 end;
 
-function VecToStr(const v: TVec4): string;
+function VecToStr(const v: TVec4): SystemString;
 begin
   Result := Format('%g,%g,%g,%g', [v[0], v[1], v[2], v[3]]);
 end;
 
-function VecToStr(const v: TVector3): string;
+function VecToStr(const v: TVector3): SystemString;
 begin
   Result := VecToStr(v.Link);
 end;
 
-function VecToStr(const v: TVector4): string;
+function VecToStr(const v: TVector4): SystemString;
 begin
   Result := VecToStr(v.Link);
 end;
 
-function RectToStr(const v: T2DRect): string;
+function RectToStr(const v: T2DRect): SystemString;
 begin
   Result := Format('%g,%g,%g,%g', [v[0][0], v[0][1], v[1][0], v[1][1]]);
 end;
 
-function StrToVec2(const s: string): TVec2;
+function StrToVec2(const s: SystemString): TVec2;
 var
   v, v1, v2: umlString;
 begin
@@ -511,7 +509,7 @@ begin
   Result[1] := umlStrToFloat(v2, 0);
 end;
 
-function StrToVec3(const s: string): TVec3;
+function StrToVec3(const s: SystemString): TVec3;
 var
   v, v1, v2, v3: umlString;
 begin
@@ -527,7 +525,7 @@ begin
   Result[2] := umlStrToFloat(v3, 0);
 end;
 
-function StrToVec4(const s: string): TVec4;
+function StrToVec4(const s: SystemString): TVec4;
 var
   v, v1, v2, v3, v4: umlString;
 begin
@@ -546,7 +544,7 @@ begin
   Result[3] := umlStrToFloat(v4, 0);
 end;
 
-function StrToVector3(const s: string): TVector3;
+function StrToVector3(const s: SystemString): TVector3;
 var
   v, v1, v2, v3: umlString;
 begin
@@ -562,7 +560,7 @@ begin
   Result.Link[2] := umlStrToFloat(v3, 0);
 end;
 
-function StrToVector4(const s: string): TVector4;
+function StrToVector4(const s: SystemString): TVector4;
 var
   v, v1, v2, v3, v4: umlString;
 begin
@@ -581,7 +579,7 @@ begin
   Result.Link[3] := umlStrToFloat(v4, 0);
 end;
 
-function StrToRect(const s: string): T2DRect;
+function StrToRect(const s: SystemString): T2DRect;
 var
   v, v1, v2, v3, v4: umlString;
 begin

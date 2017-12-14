@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/12/14 17:04:09.000.798,C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\BatchPictureDataServiceDemo.groupproj=C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\BatchDataServiceDemo.groupproj</Transaction>
+  </Transactions>
+	<Default.Personality>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\ZDBBatchDataService\ZDBBatchPictureDataService.dproj"/>
+	</Default.Personality>
+</BorlandProject>

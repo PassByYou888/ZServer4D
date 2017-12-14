@@ -362,6 +362,7 @@ type
 
     procedure ThreadFreeEvent(Sender: TObject);
     procedure DoCreateInit; virtual;
+    procedure BuildDBCacheIntf;
 
     procedure HeaderCache_DataFreeProc(p: Pointer);
     procedure ItemBlockCache_DataFreeProc(p: Pointer);
@@ -1668,6 +1669,11 @@ begin
   {$ENDIF}
   FQueryThread.Suspended := False;
 
+  BuildDBCacheIntf;
+end;
+
+procedure TDBStoreBase.BuildDBCacheIntf;
+begin
   if not IsMemoryMode then
     begin
       {$IFDEF FPC}
@@ -2012,6 +2018,8 @@ begin
       FDBEngine := TObjectDataManager.Create(oldFN, ObjectDataMarshal.ID, False);
       ReadHeaderInfo;
     end;
+
+  BuildDBCacheIntf;
 end;
 
 procedure TDBStoreBase.Update;
@@ -2123,6 +2131,7 @@ begin
 
   FDBEngine := TObjectDataManager.Create(oldFN, ObjectDataMarshal.ID, False);
   ReadHeaderInfo;
+  BuildDBCacheIntf;
 end;
 
 procedure TDBStoreBase.Recache;
@@ -2140,6 +2149,8 @@ begin
   FResultJson.Clear;
   {$ENDIF}
   FResultPascalString.Clear;
+
+  FQueryThread.SyncUpdateCacheState;
 end;
 
 function TDBStoreBase.AllowedCache: Boolean;

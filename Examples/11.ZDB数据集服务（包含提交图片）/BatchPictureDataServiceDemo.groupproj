@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{BFEDABD6-5203-4058-8FC4-82F33F916AD6}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ZDBBatchDataService\ZDBBatchPictureDataService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXBatchDataClient\FMXBatchPictureDataClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ZDBBatchPictureDataService">
+        <MSBuild Projects="ZDBBatchDataService\ZDBBatchPictureDataService.dproj"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService:Clean">
+        <MSBuild Projects="ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService:Make">
+        <MSBuild Projects="ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient">
+        <MSBuild Projects="FMXBatchDataClient\FMXBatchPictureDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Clean">
+        <MSBuild Projects="FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Make">
+        <MSBuild Projects="FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ZDBBatchPictureDataService;FMXBatchPictureDataClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ZDBBatchPictureDataService:Clean;FMXBatchPictureDataClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ZDBBatchPictureDataService:Make;FMXBatchPictureDataClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
