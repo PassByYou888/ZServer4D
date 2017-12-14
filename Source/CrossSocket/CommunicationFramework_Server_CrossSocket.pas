@@ -9,7 +9,7 @@
 *)
 unit CommunicationFramework_Server_CrossSocket;
 
-{$I ..\..\zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

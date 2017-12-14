@@ -9,7 +9,7 @@
 *)
 unit CommunicationFramework_Server_ICSCustomSocket;
 
-{$I ..\..\zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

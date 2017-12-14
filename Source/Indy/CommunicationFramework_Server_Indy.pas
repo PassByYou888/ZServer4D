@@ -12,7 +12,7 @@ unit CommunicationFramework_Server_Indy;
   update history
 *)
 
-{$I ..\..\zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

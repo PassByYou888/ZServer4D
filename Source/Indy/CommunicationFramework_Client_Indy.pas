@@ -9,7 +9,7 @@
 *)
 unit CommunicationFramework_Client_Indy;
 
-{$I ..\..\zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

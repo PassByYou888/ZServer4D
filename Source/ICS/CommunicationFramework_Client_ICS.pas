@@ -9,7 +9,7 @@
 *)
 unit CommunicationFramework_Client_ICS;
 
-{$I ..\..\zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 
