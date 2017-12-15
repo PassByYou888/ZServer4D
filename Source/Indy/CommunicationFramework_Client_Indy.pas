@@ -328,15 +328,21 @@ begin
       except
       end;
 
-      if (GetTimeTickCount - t > 5000) then
+      if (GetTimeTickCount - t > 1000) then
           break;
     until FDriver.Connected;
 
     if FDriver.Connected then
         DoConnected(ClientIntf);
 
-    while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount - t < 2000) do
+    while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount - t < 1000) do
         ProgressBackground;
+
+    if (FDriver.Connected) and (not RemoteInited) then
+      begin
+        FDriver.Disconnect;
+        exit(Connect(Addr, port));
+      end;
 
     Result := (RemoteInited) and (FDriver.Connected);
   except
@@ -371,14 +377,14 @@ begin
         except
         end;
 
-        if (GetTimeTickCount - t > 5000) then
+        if (GetTimeTickCount - t > 1000) then
             break;
       until FDriver.Connected;
 
       if FDriver.Connected then
           DoConnected(ClientIntf);
 
-      while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount - t < 2000) do
+      while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount - t < 1000) do
           ProgressBackground;
       Result := (RemoteInited) and (FDriver.Connected);
     except

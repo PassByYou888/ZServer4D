@@ -4,14 +4,13 @@ Author:       Arno Garrels <arno.garrels@gmx.de>
 Description:  Some more function headers of LIBEAY32.DLL which are not
               declared/used in OverbyteIcsLibeay.pas (OpenSSL)
               This is only the subset and may grow.
-              WARNING - Oct 2016 this unit now obsolete and not needed
 Creation:     Jan 12, 2005
-Version:      8.35
+Version:      8.00
 EMail:        francois.piette@overbyte.be  http://www.overbyte.be
 Support:      Use the mailing list ics-ssl@elists.org
               Follow "SSL" link at http://www.overbyte.be for subscription.
-Legal issues: Copyright (C) 2005-2016 by François PIETTE
-              Rue de Grady 24, 4053 Embourg, Belgium.
+Legal issues: Copyright (C) 2005-2010 by François PIETTE
+              Rue de Grady 24, 4053 Embourg, Belgium. 
               <francois.piette@overbyte.be>
 
               This software is provided 'as-is', without any express or
@@ -47,14 +46,7 @@ Sep 09, 2009 Arno - Don't define PEngine if it's already defined in
 Oct 17, 2009 Removed some declarations available in OverbyteIcsLibeay as well.
 May 2012 - V8.00 - Arno added FireMonkey cross platform support with POSIX/MacOS
                    also IPv6 support, include files now in sub-directory
-June 2015  - V8.01 Angus moved to main source dir
-Oct 23, 2015 V8.02 Angus added f_RSA_generate_key_ex, f_keyxx_size, EVP_PKEY_get1_xxx
-Nov 20, 2015 V8.03 Eugene Kotlyarov added RSA key related stuff
-Nov 23, 2015 V8.04 Eugene Kotlyarov MacOSX lacks PsAPI SO NO IcsRandPoll
-May 24, 2016 V8.27 Angus match version to Wsocket where most of this API is used
-                   Initial support for OpenSSL 1.1.0, RAND_cleanup gone
-Oct 18, 2016  V8.35 Angus, moved all imports to OverbyteIcsLIBEAY to ease maintenance and use
-                   only LoadLibeayEx left for backward compatibility 
+
 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 {$B-}                                 { Enable partial boolean evaluation   }
@@ -62,21 +54,15 @@ Oct 18, 2016  V8.35 Angus, moved all imports to OverbyteIcsLIBEAY to ease mainte
 {$X+}                                 { Enable extended syntax              }
 {$H+}                                 { Use long strings                    }
 {$J+}                                 { Allow typed constant to be modified }
-{$I Include\OverbyteIcsDefs.inc}
-{$I Include\OverbyteIcsSslDefs.inc}
+{$I ..\Include\OverbyteIcsSslDefs.inc}
 
 unit OverbyteIcsLibeayEx;
 
 interface
 
 uses
-{$IFDEF MSWINDOWS}  { V8.04 }
-    {$IFDEF RTL_NAMESPACES}Winapi.Windows{$ELSE}Windows{$ENDIF},
-    {$IFDEF RTL_NAMESPACES}Winapi.PsApi{$ELSE}PsApi{$ENDIF},
-{$ENDIF}
-    {$IFDEF RTL_NAMESPACES}System.SysUtils{$ELSE}SysUtils{$ENDIF},
-    OverbyteIcsSSLEAY, OverbyteIcsLibeay;
-(*
+    Windows, SysUtils, PsApi, OverbyteIcsSSLEAY, OverbyteIcsLibeay;
+
 const
     RSA_PKCS1_PADDING                 = 1;
     RSA_SSLV23_PADDING                = 2;
@@ -90,7 +76,7 @@ const
 type
     TEVP_CIPHER_CTX_st = packed record
         Dummy : array [0..0] of Byte;
-        {
+        (*
         cipher        : PEVP_CIPHER;
         encrypt       : Integer;
         buf_len       : Integer;
@@ -105,7 +91,7 @@ type
         final_used    : Integer;
         block_mask    : Integer;
         final         : array [0..EVP_MAX_BLOCK_LENGTH -1] of Char;
-        }
+        *)
     end;
     PEVP_CIPHER_CTX = ^TEVP_CIPHER_CTX_st;
 
@@ -163,20 +149,13 @@ f_RAND_screen             : procedure; cdecl = nil;
 f_RAND_load_file          : function(const FileName: PAnsiChar; Max_Bytes: Longint): Integer; cdecl = nil;
 f_RAND_write_file         : function(const FileName: PAnsiChar): Integer; cdecl = nil;
 f_RAND_status             : function: Integer; cdecl = nil;
-f_RAND_cleanup            : procedure; cdecl = nil;              { gone V8.27 }
+f_RAND_cleanup            : procedure; cdecl = nil;
 f_RAND_poll               : function: Integer; cdecl = nil;
 f_RAND_add                : procedure(buf: Pointer; num: Integer; entropy: Double); cdecl = nil;
 f_RAND_bytes              : function(buf: PAnsiChar; num: Integer): Integer; cdecl = nil;
-{f_RAND_pseudo_bytes       : function(buf: PAnsiChar; num: Integer): Integer; cdecl = nil;  V8.27 }
+f_RAND_pseudo_bytes       : function(buf: PAnsiChar; num: Integer): Integer; cdecl = nil;
 
-f_RSA_new                 : function: PRSA; cdecl = nil;            { V8.03 }
 f_RSA_free                : procedure(RSA: PRSA); cdecl = nil;
-f_DSA_free                : procedure(DSA: PDSA); cdecl = nil;   //Angus
-f_DH_free                 : procedure(DH: PDH); cdecl = nil;     //Angus
-f_RSA_generate_key_ex     : function(Rsa: PRSA; Bits: Integer; e: Pointer; cb: Pointer): Integer; cdecl = nil; //Angus  { V8.03 }
-f_RSA_size                : function(Rsa: PRSA): Integer; cdecl = nil; //Angus
-f_DH_size                 : function(Dh: PDH): Integer; cdecl = nil;   //Angus
-f_DSA_size                : function(Dsa: PDSA): Integer; cdecl = nil; //Angus
 
 f_X509V3_EXT_conf_nid     : function(Conf: PLHASH; Ctx: PX509V3_CTX; ext_nid: Integer; value: PAnsiChar): PX509_EXTENSION; cdecl = nil;
 f_X509_add_ext            : function(Cert: PX509; Ex: PX509_EXTENSION; loc: Integer): Integer; cdecl = nil;
@@ -200,45 +179,34 @@ f_EVP_bf_ecb              : function: PEVP_CIPHER; cdecl = nil;
 f_EVP_bf_cfb64            : function: PEVP_CIPHER; cdecl = nil;
 f_EVP_bf_ofb              : function: PEVP_CIPHER; cdecl = nil;
 f_EVP_aes_128_cbc         : function: PEVP_CIPHER; cdecl = nil;
-f_EVP_PKEY_get1_RSA       : function (pkey: PEVP_PKEY): PRSA; cdecl = nil; //Angus
-f_EVP_PKEY_get1_DSA       : function (pkey: PEVP_PKEY): PDSA; cdecl = nil; //Angus
-f_EVP_PKEY_get1_DH        : function (pkey: PEVP_PKEY): PDH; cdecl = nil; //Angus
-f_EVP_PKEY_get1_EC_KEY    : function (pkey: PEVP_PKEY): PEC_KEY; cdecl = nil; //Angus
-f_EVP_CIPHER_CTX_reset    : procedure(ctx: PEVP_CIPHER_CTX); cdecl = nil;  { V8.27 new with OpenSSL 1.1.0 }
 
 f_EVP_CIPHER_CTX_new      : function: PEVP_CIPHER_CTX; cdecl = nil;
 f_EVP_CIPHER_CTX_free     : procedure(ctx: PEVP_CIPHER_CTX); cdecl = nil;
-f_EVP_CIPHER_CTX_init     : procedure(ctx: PEVP_CIPHER_CTX); cdecl = nil;  { V8.27 gone with OpenSSL 1.1.0 }
+f_EVP_CIPHER_CTX_init     : procedure(ctx: PEVP_CIPHER_CTX); cdecl = nil;
 f_EVP_CIPHER_CTX_set_key_length : function(ctx: PEVP_CIPHER_CTX; keyl: Integer): LongBool; cdecl = nil;
 f_EVP_CipherInit_ex       : function(ctx: PEVP_CIPHER_CTX; const cipher: PEVP_CIPHER; impl: PEngine; key, iv: PAnsiChar; enc: Integer): LongBool; cdecl = nil;
 f_EVP_CipherUpdate        : function(ctx: PEVP_CIPHER_CTX; out_: PAnsiChar; var outl: Integer; const in_: PAnsiChar; inl: Integer): LongBool; cdecl = nil;
 f_EVP_CipherFinal_ex      : function(ctx: PEVP_CIPHER_CTX; out_: PAnsiChar; var outl: Integer): LongBool; cdecl = nil;
-f_EVP_CIPHER_CTX_cleanup  : function(ctx: PEVP_CIPHER_CTX): Integer; cdecl = nil;   { V8.27 gone with OpenSSL 1.1.0 } 
+f_EVP_CIPHER_CTX_cleanup  : function(ctx: PEVP_CIPHER_CTX): Integer; cdecl = nil;
 f_EVP_BytesToKey          : function(const type_: PEVP_CIPHER; const md: PEVP_MD; const salt: PAnsiChar; const data: PAnsiChar; datalen, count : Integer; key, iv: PAnsiChar): Integer; cdecl = nil;
 f_EVP_EncryptInit_ex      : function (ctx: PEVP_CIPHER_CTX; const cipher: PEVP_CIPHER; impl: PEngine; const key: PAnsiChar; const iv: PAnsiChar): LongBool; cdecl = nil;
 f_EVP_DecryptInit_ex      : function (ctx: PEVP_CIPHER_CTX; const cipher: PEVP_CIPHER; impl: PEngine; const key: PAnsiChar; const iv: PAnsiChar): LongBool; cdecl = nil;
 f_EVP_EncryptUpdate       : function (ctx: PEVP_CIPHER_CTX; out_: PAnsiChar; var outl: Integer; const in_: PAnsiChar; inl: Integer): LongBool; cdecl = nil;
 f_EVP_DecryptUpdate       : function (ctx: PEVP_CIPHER_CTX; out_: PAnsiChar; var outl: Integer; const in_: PAnsiChar; inl: Integer): LongBool; cdecl = nil;
 
-f_HMAC                    : function(evp: pEVP_MD; key: PByte; key_len: integer; data: PByte; data_len: integer; md: PByte; var md_len: integer): PByte; cdecl = nil;    { V8.03 }
-
-*)
 var
   LibeayExLoaded: Boolean = FALSE;
 
 procedure LoadLibeayEx;
-(*function  IcsRandSeedFromFile(const FileName: String; MaxBytes: Integer = -1): Integer;
-{$IFDEF MSWINDOWS}  { V8.04 }
+function  IcsRandSeedFromFile(const FileName: String; MaxBytes: Integer = -1): Integer;
 procedure IcsRandPoll;
-{$ENDIF}
 
 { C-macros }
 function f_X509_REQ_get_subject_name(AReq: PX509_REQ): PX509_NAME;
-*)
+
 
 implementation
 
-(*
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 function IcsRandSeedFromFile(const FileName: String; MaxBytes: Integer = -1): Integer;
 begin
@@ -252,7 +220,6 @@ end;
 
 
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
-{$IFDEF MSWINDOWS}  { V8.04 }
 procedure IcsRandPoll;
 var
     ProcIDs, P : PDWORD;
@@ -299,26 +266,26 @@ begin
         FreeMem(ProcIDs);
     end;
 end;
-{$ENDIF}
+
 
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 function f_X509_REQ_get_subject_name(AReq: PX509_REQ): PX509_NAME;
 begin
     Result := AReq^.req_info^.subject;
 end;
-*)
+
 
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 procedure LoadLibeayEx;
-//const
-//    Msg = 'GetProcAddress failed ';
+const
+    Msg = 'GetProcAddress failed ';
 begin
     if LibeayExLoaded and (GLIBEAY_DLL_Handle <> 0) then Exit;
-(*    if GLIBEAY_DLL_Handle = 0 then
-        LibeayLoad;    { V8.27 }
-{    f_RAND_pseudo_bytes := GetProcAddress(GLIBEAY_DLL_Handle, 'RAND_pseudo_bytes');
+    if GLIBEAY_DLL_Handle = 0 then
+        Load;
+    f_RAND_pseudo_bytes := GetProcAddress(GLIBEAY_DLL_Handle, 'RAND_pseudo_bytes');
     if not Assigned(f_RAND_pseudo_bytes) then
-        raise Exception.Create(Msg + 'RAND_pseudo_bytes');    V8.27  deprecated in 1.1.0  }
+        raise Exception.Create(Msg + 'RAND_pseudo_bytes');
     f_RAND_bytes := GetProcAddress(GLIBEAY_DLL_Handle, 'RAND_bytes');
     if not Assigned(f_RAND_bytes) then
         raise Exception.Create(Msg + 'RAND_bytes');
@@ -340,12 +307,9 @@ begin
     f_RAND_status := GetProcAddress(GLIBEAY_DLL_Handle, 'RAND_status');
     if not Assigned(f_RAND_status) then
         raise Exception.Create(Msg + 'RAND_status');
-    { V8.27 gone in OpenSSL 1.1.0 and later }
-    if (ICS_OPENSSL_VERSION_NUMBER < OSSL_VER_1100) then begin
-        f_RAND_cleanup := GetProcAddress(GLIBEAY_DLL_Handle, 'RAND_cleanup');
-        if not Assigned(f_RAND_cleanup) then
-            raise Exception.Create(Msg + 'RAND_cleanup');
-    end;
+    f_RAND_cleanup := GetProcAddress(GLIBEAY_DLL_Handle, 'RAND_cleanup');
+    if not Assigned(f_RAND_cleanup) then
+        raise Exception.Create(Msg + 'RAND_cleanup');
     f_X509_add_ext := GetProcAddress(GLIBEAY_DLL_Handle, 'X509_add_ext');
     if not Assigned(f_X509_add_ext) then
         raise Exception.Create(Msg + 'X509_add_ext');
@@ -355,30 +319,9 @@ begin
     f_X509V3_EXT_conf_nid := GetProcAddress(GLIBEAY_DLL_Handle, 'X509V3_EXT_conf_nid');
     if not Assigned(f_X509V3_EXT_conf_nid) then
         raise Exception.Create(Msg + 'X509V3_EXT_conf_nid');
-    f_RSA_new := GetProcAddress(GLIBEAY_DLL_Handle, 'RSA_new');
-    if not Assigned(f_RSA_new) then
-        raise Exception.Create(Msg + 'RSA_new');
     f_RSA_free := GetProcAddress(GLIBEAY_DLL_Handle, 'RSA_free');
     if not Assigned(f_RSA_free) then
         raise Exception.Create(Msg + 'RSA_free');
-    f_DSA_free := GetProcAddress(GLIBEAY_DLL_Handle, 'DSA_free');
-    if not Assigned(f_DSA_free) then
-        raise Exception.Create(Msg + 'DSA_free');
-    f_DH_free := GetProcAddress(GLIBEAY_DLL_Handle, 'DH_free');
-    if not Assigned(f_DH_free) then
-        raise Exception.Create(Msg + 'DH_free');
-    f_RSA_generate_key_ex := GetProcAddress(GLIBEAY_DLL_Handle, 'RSA_generate_key_ex');
-    if not Assigned(f_RSA_generate_key_ex) then
-        raise Exception.Create(Msg + 'RSA_generate_key_ex');
-    f_RSA_size := GetProcAddress(GLIBEAY_DLL_Handle, 'RSA_size');
-    if not Assigned(f_RSA_size) then
-        raise Exception.Create(Msg + 'RSA_size');
-    f_DH_size := GetProcAddress(GLIBEAY_DLL_Handle, 'DH_size');
-    if not Assigned(f_DH_size) then
-        raise Exception.Create(Msg + 'DH_size');
-    f_DSA_size := GetProcAddress(GLIBEAY_DLL_Handle, 'DSA_size');
-    if not Assigned(f_DSA_size) then
-        raise Exception.Create(Msg + 'DSA_size');
     f_X509_Req_new := GetProcAddress(GLIBEAY_DLL_Handle, 'X509_REQ_new');
     if not Assigned(f_X509_Req_new) then
         raise Exception.Create(Msg + 'X509_REQ_new');
@@ -418,18 +361,6 @@ begin
     f_EVP_bf_ofb := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_bf_ofb');
     if not Assigned(f_EVP_bf_ofb) then
         raise Exception.Create(Msg + 'EVP_bf_ofb');
-    f_EVP_PKEY_get1_RSA := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_PKEY_get1_RSA');   //Angus
-    if not Assigned(f_EVP_PKEY_get1_RSA) then
-        raise Exception.Create(Msg + 'EVP_EVP_PKEY_get1_RSA');
-    f_EVP_PKEY_get1_DSA := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_PKEY_get1_DSA');    //Angus
-    if not Assigned(f_EVP_PKEY_get1_DSA) then
-        raise Exception.Create(Msg + 'EVP_EVP_PKEY_get1_DSA');
-    f_EVP_PKEY_get1_DH := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_PKEY_get1_DH');     //Angus
-    if not Assigned(f_EVP_PKEY_get1_DH) then
-        raise Exception.Create(Msg + 'EVP_PKEY_get1_DH');
-    f_EVP_PKEY_get1_EC_KEY := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_PKEY_get1_EC_KEY');  //Angus
-    if not Assigned(f_EVP_PKEY_get1_EC_KEY) then
-        raise Exception.Create(Msg + 'EVP_PKEY_get1_EC_KEY');
     f_EVP_aes_128_cbc := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_aes_128_cbc');
     if not Assigned(f_EVP_aes_128_cbc) then
         raise Exception.Create(Msg + 'EVP_aes_128_cbc');
@@ -439,6 +370,9 @@ begin
     f_EVP_CIPHER_CTX_free := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_free');
     if not Assigned(f_EVP_CIPHER_CTX_free) then
         raise Exception.Create(Msg + 'EVP_CIPHER_CTX_free');
+    f_EVP_CIPHER_CTX_init := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_init');
+    if not Assigned(f_EVP_CIPHER_CTX_init) then
+        raise Exception.Create(Msg + 'EVP_CIPHER_CTX_init');
     f_EVP_CipherInit_ex := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CipherInit_ex');
     if not Assigned(f_EVP_CipherInit_ex) then
         raise Exception.Create(Msg + 'EVP_CipherInit_ex');
@@ -448,19 +382,9 @@ begin
     f_EVP_CipherFinal_ex := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CipherFinal_ex');
     if not Assigned(f_EVP_CipherFinal_ex) then
         raise Exception.Create(Msg + 'EVP_CipherFinal_ex');
-    if ICS_OPENSSL_VERSION_NUMBER < OSSL_VER_1100 then begin
-        f_EVP_CIPHER_CTX_init := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_init');
-        if not Assigned(f_EVP_CIPHER_CTX_init) then
-            raise Exception.Create(Msg + 'EVP_CIPHER_CTX_init');
-        f_EVP_CIPHER_CTX_cleanup := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_cleanup');
-        if not Assigned(f_EVP_CIPHER_CTX_cleanup) then
-            raise Exception.Create(Msg + 'EVP_CIPHER_CTX_cleanup');
-    end
-    else begin
-        f_EVP_CIPHER_CTX_reset := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_reset');
-        if not Assigned(f_EVP_CIPHER_CTX_reset) then
-            raise Exception.Create(Msg + 'EVP_CIPHER_CTX_reset');
-    end;
+    f_EVP_CIPHER_CTX_cleanup := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_cleanup');
+    if not Assigned(f_EVP_CIPHER_CTX_cleanup) then
+        raise Exception.Create(Msg + 'EVP_CIPHER_CTX_cleanup');
     f_EVP_CIPHER_CTX_set_key_length := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_CIPHER_CTX_set_key_length');
     if not Assigned(f_EVP_CIPHER_CTX_set_key_length) then
         raise Exception.Create(Msg + 'EVP_CIPHER_CTX_set_key_length');
@@ -479,10 +403,7 @@ begin
     f_EVP_DecryptUpdate := GetProcAddress(GLIBEAY_DLL_Handle, 'EVP_DecryptUpdate');
     if not Assigned(f_EVP_DecryptUpdate) then
         raise Exception.Create(Msg + 'EVP_DecryptUpdate');
-    f_HMAC   := GetProcAddress(GLIBEAY_DLL_Handle, 'HMAC');
-    if not Assigned(f_HMAC) then
-        raise Exception.Create(Msg + 'HMAC');
-*)
+
     LibeayExLoaded := TRUE;
 
 end;

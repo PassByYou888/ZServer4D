@@ -62,11 +62,11 @@
     <Transaction>2017/12/10 20:52:58.000.632,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.827,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.623,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.640,=C:\git\ZServer4D\Source\CommunicationTest.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.556,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_NoAuth.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.788,=C:\git\ZServer4D\Source\JsonDataObjects.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.687,=C:\git\ZServer4D\Source\DBCompressPackageForFile.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.640,=C:\git\ZServer4D\Source\CommunicationTest.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.796,=C:\git\ZServer4D\Source\LibraryManager.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.556,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_NoAuth.pas</Transaction>
     <Transaction>2017/12/10 20:53:23.000.895,=C:\git\ZServer4D\Source\Indy\CommunicationFramework_Server_Indy.pas</Transaction>
     <Transaction>2017/12/10 20:53:23.000.885,=C:\git\ZServer4D\Source\Indy\CommunicationFramework_Client_Indy.pas</Transaction>
     <Transaction>2017/12/14 16:21:47.000.767,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_VirtualAuth.pas</Transaction>

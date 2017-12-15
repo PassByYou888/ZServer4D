@@ -1,11 +1,23 @@
+{ ****************************************************************************** }
+{ * DataStore Service common unit                                              * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFrameworkDataStoreServiceCommon;
 
-{$I zDefine.inc}
+{$I  zDefine.inc}
 
 interface
 
 uses CoreClasses, CommunicationFramework, PascalStrings, ZDBEngine, ZDBLocalManager, MemoryStream64,
   DataFrameEngine;
+
+const
+  PerQueryPipelineDoneDelayFreeTime = 5.0;
 
 type
   TTDataStoreService_DBPipeline = class(TZDBPipeline)
@@ -194,5 +206,7 @@ begin
   PipelineName := d.Reader.ReadString;
   RegistedQuery := d.Reader.ReadString;
 end;
+
+initialization
 
 end.

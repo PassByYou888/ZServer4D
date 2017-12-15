@@ -13,7 +13,7 @@ unit CommunicationFramework;
 
 interface
 
-{$I zDefine.inc}
+{$I  zDefine.inc}
 
 
 uses Classes, SysUtils, Variants, TypInfo,
@@ -431,7 +431,7 @@ type
     stRequest, stResponse,
     stConsole, stStream, stDirestConsole, stDirestStream, stReceiveBigStream, stSendBigStream,
     stExecConsole, stExecStream, stExecDirestConsole, stExecDirestStream, stExecBigStream,
-    stConnest, stDisconnest,
+    stTriggerConnect, stTriggerDisconnect,
     stTotalCommandExecute, stTotalCommandSend, stTotalCommandReg,
     stEncrypt, stCompress, stGenerateHash,
     stPause, stContinue,
@@ -639,9 +639,10 @@ type
     procedure DoPrint(const v: SystemString); override;
 
     procedure StreamResult_ConnectedInit(Sender: TPeerClient; ResultData: TDataFrameEngine); virtual;
-    procedure DoConnected(Sender: TPeerClient); override;
 
+    procedure DoConnected(Sender: TPeerClient); override;
     procedure DoDisconnect(Sender: TPeerClient); override;
+
     function CanExecuteCommand(Sender: TPeerClient; Cmd: SystemString): Boolean; override;
     function CanSendCommand(Sender: TPeerClient; Cmd: SystemString): Boolean; override;
     function CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean; override;
@@ -2267,7 +2268,7 @@ begin
   FOwnerFramework.FRegistedClients.Add(Self);
   UnLockObject(FOwnerFramework.FRegistedClients);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stConnest]);
+  inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
   FOwnerFramework.FOnPeerClientCreateNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
 end;
@@ -2284,7 +2285,7 @@ begin
 
   FOwnerFramework.FOnPeerClientDestroyNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stDisconnest]);
+  inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerDisconnect]);
 
   LockObject(FOwnerFramework.FRegistedClients);
   try

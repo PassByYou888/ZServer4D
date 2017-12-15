@@ -121,7 +121,7 @@ begin
     AnalysisDestDBEdit.Text, // 统计的Output名称
     1.0,                     // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
     0,                       // 最大等待的查询时间，0是无限
-    0,                       // 最大匹配查询的反馈条目数
+    0,                       // 最大匹配查询的反馈条目数，0是无限
     vl,                      // 发送给MyCustomQuery用的KeyValue参数
     nil,
     procedure(dbN, outN, pipeN: string; TotalResult: Int64)
@@ -273,15 +273,12 @@ begin
   img.Bitmap.SaveToStream(m);
   m.Position := 0;
   DoStatus('post size:%d md5:%s', [m.Size, umlMD5Char(m.Memory, m.Size).Text]);
-
   // InitDB的第一个参数是内存数据库，我们设置成false是创建一个文件数据库
   DBClient.InitDB(False, JsonDestDBEdit.Text);
-
   // 111是我们自定义的picture id
   // 因为查询只索引c_Json的id，后台查询器会跳过去，所以我们可以直接把img提交到同一张表中
-  DBClient.BeginAssembleStream;
-  DBClient.PostAssembleStream(JsonDestDBEdit.Text, m, 111, True);
-
+  DBClient.BeginAssembleStream;                                   // BeginAssembleStream的作用是清空Batch提交Stream到数据服务器的暂存buffer
+  DBClient.PostAssembleStream(JsonDestDBEdit.Text, m, 111, True); // 将Stream立即提交到数据服务器
   // 从远程数据库获取最后提交img的数据库存储信息
   DBClient.GetBatchStreamState(
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
@@ -292,11 +289,11 @@ begin
     begin
       if ResultData.Count > 0 then
         begin
+          // 如果我们提交的Batch Stream在数据库有暂存数据，这里会获取很多状态，我们取最后一条BatchStream状态，并且解码
           df := TDataFrameEngine.Create;
           ResultData.ReadDataFrame(ResultData.Count - 1, df);
           bpInfo.Decode(df);
           DisposeObject(df);
-
           // 产生1个json对象到实体文件库
           j := TDBEngineJson.Create;
           j.S['myKey'] := '1';                  // 这里相当于我们的日常用数据
@@ -305,7 +302,7 @@ begin
           j.i['RandomValue'] := 1;
           DBClient.PostAssembleStream(JsonDestDBEdit.Text, j);
           DisposeObject(j);
-          DBClient.EndAssembleStream;
+          DBClient.EndAssembleStream; // EndAssembleStream的作用是清空Batch提交Stream到数据服务器的暂存buffer
         end;
     end);
 end;
@@ -350,19 +347,18 @@ begin
   vl['Value'] := JsonValueEdit.Text;
 
   ResultListBox.Clear;
-
-  DBClient.QueryDB(
-    'MyCustomQuery',   // MyCustomQuery在服务器注册和实现
-  True,                // 缓冲碎片是否同步到客户端
-  False,               // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
-  True,                // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
-  False,               // 是否反向查询，从最后开始查
-  JsonDestDBEdit.Text, // 查询的数据库名称
-  '',                  // 查询的Output名称，因为我们不写入Output，又是临时内存，这里可以忽略掉
-  1.0,                 // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
-  0,                   // 最大等待的查询时间，0是无限
-  0,                   // 最大匹配查询的反馈条目数
-  vl,                  // 发送给MyCustomQuery用的KeyValue参数
+  //
+  DBClient.QueryDB('MyCustomQuery', // MyCustomQuery在服务器注册和实现
+  True,                             // 缓冲碎片是否同步到客户端
+  False,                            // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
+  True,                             // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
+  False,                            // 是否反向查询，从最后开始查
+  JsonDestDBEdit.Text,              // 查询的数据库名称
+  '',                               // 查询的Output名称，因为我们不写入Output，又是临时内存，这里可以忽略掉
+  1.0,                              // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
+  0,                                // 最大等待的查询时间，0是无限
+  0,                                // 最大匹配查询的反馈条目数，0是无限
+  vl,                               // 发送给MyCustomQuery用的KeyValue参数
     procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
     var
       js: TJsonObject;
@@ -378,22 +374,22 @@ begin
       litm.Selectable := False;
       ResultListBox.AddObject(litm);
 
-      DBClient.DownloadAssembleStream(JsonDestDBEdit.Text, js.L['StorePos'],
+      // DownloadAssembleStream 这个方法在数据服务器会先被最大化压缩和加密，然后再下载，此方法适用于公网通讯下载，如手机端，pc访问互联网服务器
+      // FastDownloadAssembleStream和DownloadAssembleStream一样，但是FastDownloadAssembleStream不会做数据处理，它的速度更快，此方法主要用于服务器间的通讯
+      DBClient.FastDownloadAssembleStream(JsonDestDBEdit.Text, js.L['StorePos'],
         procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64)
         var
           img: TImage;
           m: TMemoryStream64;
-          dPos: Int64;
-          ID: Cardinal;
         begin
           // stream是临时的，并且是encode的数据，必须使用DecodeOneFragment方法进行解码
           // 完成后存放再M中，在调用结束时注意释放M
-          m := DecodeOneFragment(stream, dPos, ID);
+          m := DecodeOneFragment(stream);
           img := TImage.Create(litm);
           img.Parent := litm;
           img.Align := TAlignLayout.Right;
           stream.Position := 0;
-          DoStatus('download size:%d md5:%s', [m.Size, umlMD5Char(m.Memory, m.Size).Text]);
+          //DoStatus('download size:%d md5:%s', [m.Size, umlMD5Char(m.Memory, m.Size).Text]);
           m.Position := 0;
           img.Bitmap.LoadFromStream(m);
           DisposeObject(m);

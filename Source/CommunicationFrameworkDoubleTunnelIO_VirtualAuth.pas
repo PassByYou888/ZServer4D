@@ -2,7 +2,7 @@ unit CommunicationFrameworkDoubleTunnelIO_VirtualAuth;
 
 interface
 
-{$I zDefine.inc}
+{$I  zDefine.inc}
 
 
 uses CoreClasses,

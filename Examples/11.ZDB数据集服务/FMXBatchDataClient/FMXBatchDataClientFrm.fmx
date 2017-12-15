@@ -191,6 +191,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
       ExplicitSize.cx = 80.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
       object Gen10JsonButton: TButton
+        StyledSettings = [Family, Style, FontColor]
         Position.X = 8.000000000000000000
         Position.Y = 6.000000000000000000
         Size.Width = 161.000000000000000000
@@ -233,6 +234,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         end
       end
       object Gen100kJsonButton: TButton
+        StyledSettings = [Family, Style, FontColor]
         Position.X = 176.000000000000000000
         Position.Y = 62.000000000000000000
         Size.Width = 161.000000000000000000
@@ -244,6 +246,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         OnClick = Gen100kJsonButtonClick
       end
       object QueryJsonButton: TButton
+        StyledSettings = [Family, Style, FontColor]
         Position.X = 8.000000000000000000
         Position.Y = 118.000000000000000000
         Size.Width = 113.000000000000000000
@@ -317,6 +320,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         end
       end
       object ResetJsonDBButton: TButton
+        StyledSettings = [Family, Style, FontColor]
         Position.X = 400.000000000000000000
         Position.Y = 14.000000000000000000
         Size.Width = 121.000000000000000000
@@ -327,6 +331,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         OnClick = ResetJsonDBButtonClick
       end
       object AnalysisJsonButton: TButton
+        StyledSettings = [Family, Style, FontColor]
         Position.X = 8.000000000000000000
         Position.Y = 167.000000000000000000
         Size.Width = 113.000000000000000000
@@ -369,6 +374,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         end
       end
       object Button1: TButton
+        StyledSettings = [Family, Style, FontColor]
         Position.X = 8.000000000000000000
         Position.Y = 62.000000000000000000
         Size.Width = 161.000000000000000000

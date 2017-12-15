@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-  <Transactions/>
-  <Default.Personality>
-    <Projects ActiveProject="C:\git\ZServer4D\Examples\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj"/>
-  </Default.Personality>
+	<Transactions/>
+	<Default.Personality>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
+	</Default.Personality>
 </BorlandProject>

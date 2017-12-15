@@ -202,7 +202,10 @@ begin
       ProgressBackground;
 
       if (GetTimeTickCount >= AStopTime) then
-          break;
+        begin
+          FDriver.Close;
+          Exit(Connect(Host, Port, AWaitTimeOut));
+        end;
       if FDriver.State in [wsClosed] then
           break;
 
@@ -247,7 +250,7 @@ begin
   if not Connected then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   FClient.PostQueueData(v);

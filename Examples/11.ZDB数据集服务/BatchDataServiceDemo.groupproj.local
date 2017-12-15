@@ -2,6 +2,6 @@
 <BorlandProject>
 	<Transactions/>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClient.dproj"/>
 	</Default.Personality>
 </BorlandProject>

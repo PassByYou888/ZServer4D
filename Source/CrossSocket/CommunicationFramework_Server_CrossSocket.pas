@@ -242,23 +242,16 @@ procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject
 var
   cli: TContextIntfForServer;
 begin
-  TThread.Synchronize(nil,
-    procedure
-    begin
-      try
-        cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
-        cli.LastActiveTime := GetTimeTickCount;
-        AConnection.UserObject := cli;
-      except
-      end;
-    end);
+  cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
+  cli.LastActiveTime := GetTimeTickCount;
+  AConnection.UserObject := cli;
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
 var
   cli: TContextIntfForServer;
 begin
-  TThread.Synchronize(nil,
+  TThread.Synchronize(TThread.CurrentThread,
     procedure
     begin
       cli := AConnection.UserObject as TContextIntfForServer;
@@ -288,7 +281,7 @@ begin
   if cli.ClientIntf = nil then
       exit;
 
-  TThread.Synchronize(nil,
+  TThread.Synchronize(TThread.CurrentThread,
     procedure
     begin
       try

@@ -75,7 +75,7 @@ type
     MaxQueryCompare       : Int64;   // max query compare
     MaxQueryResult        : Int64;   // max query result
     QueryDoneFreeDelayTime: Double;  // delay free query pipeline
-    NoOutput              : Boolean; // no outputDB
+    WriteFragmentBuffer   : Boolean; // write fragment buffer
 
     OnDataFilterCall  : TZDBPipelineFilterCall;
     OnDataFilterMethod: TZDBPipelineFilterMethod;
@@ -298,7 +298,9 @@ procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64
 procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload; inline;
 {$ENDIF}
 
-function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64;
+function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean; inline;
+function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; inline;
+function DecodeOneFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; inline;
 
 implementation
 
@@ -455,6 +457,29 @@ end;
 {$ENDIF}
 
 
+function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
+var
+  itmStream: TItemStream;
+  siz      : Int64;
+  ID       : Cardinal;
+begin
+  Result := False;
+  itmStream := db.GetData(StorePos);
+  if itmStream <> nil then
+    begin
+      siz := itmStream.Size;
+      ID := itmStream.Hnd^.Item.RHeader.UserProperty;
+      DestStream.Position := DestStream.Size;
+      DestStream.WritePtr(@StorePos, umlInt64Length);
+      DestStream.WritePtr(@siz, umlInt64Length);
+      DestStream.WritePtr(@ID, umlCardinalLength);
+      DestStream.CopyFrom(itmStream, siz);
+
+      DisposeObject(itmStream);
+      Result := True;
+    end;
+end;
+
 function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64;
 var
   siz: Int64;
@@ -472,6 +497,14 @@ begin
 
   Result := TMemoryStream64.Create;
   Result.SetPointerWithProtectedMode(DataSour.PositionAsPtr(DataSour.Position), siz);
+end;
+
+function DecodeOneFragment(DataSour: TMemoryStream64): TMemoryStream64;
+var
+  dStorePos: Int64;
+  ID       : Cardinal;
+begin
+  Result := DecodeOneFragment(DataSour, dStorePos, ID);
 end;
 
 procedure TZDBStoreEngine.DoCreateInit;
@@ -492,8 +525,7 @@ var
     if AlreadWrite then
         exit;
 
-    if not NoOutput then
-        WriteToOutput(qState.DBEng, qState.StorePos, qState.ID);
+    WriteToOutput(qState.DBEng, qState.StorePos, qState.ID);
     AlreadWrite := True;
     inc(FQueryResultCounter);
   end;
@@ -545,6 +577,13 @@ begin
   {$ENDIF}
   inc(FQueryCounter);
 
+  FCurrentFragmentTime := FCurrentFragmentTime + qState.deltaTime;
+  if (AlreadWrite) and (FCurrentFragmentTime >= Trunc(FragmentWaitTime * 1000)) then
+    begin
+      PostFragmentData(False);
+      FCurrentFragmentTime := 0;
+    end;
+
   if (MaxQueryResult > 0) and (FQueryResultCounter >= MaxQueryResult) then
     begin
       qState.Aborted := True;
@@ -559,16 +598,6 @@ begin
     begin
       qState.Aborted := True;
       exit;
-    end;
-
-  FCurrentFragmentTime := FCurrentFragmentTime + qState.deltaTime;
-  if (FragmentWaitTime >= 0) and (AlreadWrite) then
-    begin
-      if FCurrentFragmentTime >= Trunc(FragmentWaitTime * 1000) then
-        begin
-          PostFragmentData(False);
-          FCurrentFragmentTime := 0;
-        end;
     end;
 
   if lastTime - FLastPerformaceTime > 1000 then
@@ -588,8 +617,7 @@ end;
 
 procedure TZDBPipeline.QueryDone();
 begin
-  if (FragmentWaitTime > 0) then
-      PostFragmentData(True);
+  PostFragmentData(True);
 
   try
     if Assigned(OnDataDoneCall) then
@@ -610,7 +638,11 @@ begin
   except
   end;
   {$ENDIF}
-  Owner.DoQueryDone(Self);
+  //
+  try
+      Owner.DoQueryDone(Self);
+  except
+  end;
 
   FActivted := False;
   FQueryTask := nil;
@@ -629,7 +661,7 @@ begin
   if WriteResultToOutputDB then
       OutputDB.AddData(itmStream, ID);
 
-  if FragmentWaitTime > 0 then
+  if WriteFragmentBuffer then
     begin
       itmStream.Position := 0;
       siz := itmStream.Size;
@@ -639,6 +671,7 @@ begin
       FFragmentBuffer.WritePtr(@ID, umlCardinalLength);
       FFragmentBuffer.CopyFrom(itmStream, siz);
     end;
+
   DisposeObject(itmStream);
 end;
 
@@ -676,7 +709,7 @@ begin
   MaxQueryCompare := 0;          // max query compare
   MaxQueryResult := 0;           // max query result
   QueryDoneFreeDelayTime := 60;  // query done free delay time
-  NoOutput := False;             // no outputDB
+  WriteFragmentBuffer := True;   // write fragment
 
   OnDataFilterCall := nil;
   OnDataFilterMethod := nil;
@@ -1435,7 +1468,7 @@ begin
   Result.MaxQueryCompare := MaxQueryCompare;
   Result.MaxQueryResult := MaxQueryResult;
   Result.QueryDoneFreeDelayTime := QueryDoneFreeDelayTime;
-  Result.NoOutput := False;
+  Result.WriteFragmentBuffer := True;
 
   {$IFDEF FPC}
   Result.FQueryTask := Result.SourceDB.Query(Result.PipelineName, @Result.Query, @Result.QueryDone);
@@ -1533,28 +1566,12 @@ begin
 end;
 
 function TZDBLocalManager.WriteDBItemToOneFragment(dbN: SystemString; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
-var
-  itmStream: TItemStream;
-  siz      : Int64;
-  ID       : Cardinal;
 begin
   Result := False;
   if not ExistsDB(dbN) then
       exit;
-  itmStream := DBName[dbN].GetData(StorePos);
-  if itmStream <> nil then
-    begin
-      siz := itmStream.Size;
-      ID := itmStream.Hnd^.Item.RHeader.UserProperty;
-      DestStream.Position := DestStream.Size;
-      DestStream.WritePtr(@StorePos, umlInt64Length);
-      DestStream.WritePtr(@siz, umlInt64Length);
-      DestStream.WritePtr(@ID, umlCardinalLength);
-      DestStream.CopyFrom(itmStream, siz);
 
-      DisposeObject(itmStream);
-      Result := True;
-    end;
+  Result := EncodeOneFragment(DBName[dbN], StorePos, DestStream);
 end;
 
 function TZDBLocalManager.PostData(dN: SystemString; sourDBEng: TZDBStoreEngine; SourStorePos: Int64): Int64;

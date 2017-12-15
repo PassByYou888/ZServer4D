@@ -1,8 +1,17 @@
+{ ****************************************************************************** }
+{ * DataStore Service with VirtualAuth                                         * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFrameworkDataStoreService_VirtualAuth;
 
 interface
 
-{$I zDefine.inc}
+{$I  zDefine.inc}
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
@@ -67,7 +76,9 @@ type
 
     procedure Command_QueryDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_DownloadDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+
     procedure Command_RequestDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
 
     procedure Command_CompletedPostAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedInsertAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
@@ -81,6 +92,12 @@ type
     procedure Command_QueryStop(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_QueryPause(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_QueryPlay(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+
+    // send client command
+    procedure Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
+    procedure Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
+    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     destructor Destroy; override;
@@ -97,11 +114,6 @@ type
     procedure UnRegisterQueryCall(cName: SystemString);
     function GetRegistedQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
 
-    // send client command
-    procedure Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
-    procedure Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
-    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
-
     function PostCounterOfPerSec: Double;
 
     property ZDBLocal: TZDBLocalManager read FZDBLocal;
@@ -113,6 +125,7 @@ type
     procedure Command_CompletedFragmentBigStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedQuery(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedFastDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
     destructor Destroy; override;
@@ -172,6 +185,14 @@ type
     procedure DownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
     {$IFNDEF FPC}
     procedure DownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
+    {$ENDIF}
+    //
+    //
+    procedure RequestFastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify); virtual;
+    procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall); overload;
+    procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
     {$ENDIF}
     //
     //
@@ -509,12 +530,15 @@ begin
   else
       AutoDestoryOutputDB := False;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, AutoDestoryOutputDB, 5, fragmentReponseTime, MaxWait, 0, MaxQueryResult));
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN,
+    AutoDestoryOutputDB, PerQueryPipelineDoneDelayFreeTime, fragmentReponseTime, MaxWait, 0, MaxQueryResult));
   pl.SendTunnel := rt.SendTunnelDefine;
   pl.RecvTunnel := rt;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := SyncToClient;
   pl.RegistedQuery := RegedQueryName;
+  pl.WriteFragmentBuffer := pl.SyncToClient;
+
   if InData.Reader.NotEnd then
       InData.Reader.ReadVariantList(pl.Values);
 
@@ -524,11 +548,13 @@ begin
       pl.OnDataDoneMethod := qc.OnPipelineQueryDone;
     end
   else
-    {$IFDEF FPC}
+    begin
+      {$IFDEF FPC}
       pl.OnDataFilterMethod := @DownloadQueryFilterMethod;
-    {$ELSE}
+      {$ELSE}
       pl.OnDataFilterMethod := DownloadQueryFilterMethod;
-  {$ENDIF}
+      {$ENDIF}
+    end;
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
@@ -549,11 +575,13 @@ begin
   if not FZDBLocal.ExistsDB(dbN) then
       exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, False, ReverseQuery, dbN, 'Download', True, 5.0, 0.5, 0, 0, 0));
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, False, ReverseQuery, dbN, 'Download', True, PerQueryPipelineDoneDelayFreeTime, 0.5, 0, 0, 0));
   pl.SendTunnel := rt.SendTunnelDefine;
   pl.RecvTunnel := rt;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := True;
+  pl.WriteFragmentBuffer := pl.SyncToClient;
+  //
   {$IFDEF FPC}
   pl.OnDataFilterMethod := @DownloadQueryFilterMethod;
   {$ELSE}
@@ -563,6 +591,41 @@ begin
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_RequestDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
+var
+  rt         : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN        : SystemString;
+  StorePos   : Int64;
+  BackcallPtr: UInt64;
+  m, cm      : TMemoryStream64;
+begin
+  rt := GetDataStoreUserDefine(Sender);
+  if not rt.LinkOk then
+      exit;
+
+  dbN := InData.Reader.ReadString;
+  StorePos := InData.Reader.ReadInt64;
+  BackcallPtr := InData.Reader.ReadPointer;
+
+  m := TMemoryStream64.Create;
+  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, m) then
+    begin
+      Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
+      DisposeObject(m);
+      exit;
+    end;
+  SequEncrypt(m.Memory, m.Size, True, True);
+  cm := TMemoryStream64.Create;
+  m.Position := 0;
+  MaxCompressStream(m, cm);
+  DisposeObject(m);
+
+  ClearBatchStream(rt.SendTunnelDefine.Owner);
+  PostBatchStream(rt.SendTunnelDefine.Owner, cm, True);
+  Send_CompletedDownloadAssemble(rt.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
+  ClearBatchStream(rt.SendTunnelDefine.Owner);
+end;
+
+procedure TDataStoreService_VirtualAuth.Command_RequestFastDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
 var
   rt         : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   dbN        : SystemString;
@@ -585,11 +648,10 @@ begin
       DisposeObject(m);
       exit;
     end;
-  SequEncrypt(m.Memory, m.Size, True, True);
 
   ClearBatchStream(rt.SendTunnelDefine.Owner);
   PostBatchStream(rt.SendTunnelDefine.Owner, m, True);
-  Send_CompletedDownloadAssemble(rt.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
+  Send_CompletedFastDownloadAssemble(rt.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
@@ -827,6 +889,60 @@ begin
       pl.Play;
 end;
 
+procedure TDataStoreService_VirtualAuth.Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(pipe.SourceDBName);
+  de.WriteString(pipe.OutputDBName);
+  de.WriteString(pipe.PipelineName);
+  de.WritePointer(pipe.BackcallPtr);
+  pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedFragmentBigStream', de);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreService_VirtualAuth.Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(pipe.SourceDBName);
+  de.WriteString(pipe.OutputDBName);
+  de.WriteString(pipe.PipelineName);
+  de.WritePointer(pipe.BackcallPtr);
+  de.WriteInt64(pipe.QueryResultCounter);
+  pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedQuery', de);
+  DisposeObject(de);
+  ClearBatchStream(pipe.SendTunnel.Owner);
+end;
+
+procedure TDataStoreService_VirtualAuth.Send_CompletedDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(dbN);
+  de.WriteInt64(dStorePos);
+  de.WritePointer(BackcallPtr);
+  ASendCli.SendDirectStreamCmd('CompletedDownloadAssemble', de);
+  DisposeObject(de);
+  ClearBatchStream(ASendCli);
+end;
+
+procedure TDataStoreService_VirtualAuth.Send_CompletedFastDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(dbN);
+  de.WriteInt64(dStorePos);
+  de.WritePointer(BackcallPtr);
+  ASendCli.SendDirectStreamCmd('CompletedFastDownloadAssemble', de);
+  DisposeObject(de);
+  ClearBatchStream(ASendCli);
+end;
+
 constructor TDataStoreService_VirtualAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
 begin
   inherited Create(ARecvTunnel, ASendTunnel);
@@ -861,6 +977,7 @@ begin
   FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := @Command_QueryDB;
   FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := @Command_DownloadDB;
   FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := @Command_RequestDownloadAssembleStream;
+  FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := @Command_RequestFastDownloadAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := @Command_CompletedPostAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedInsertAssembleStream').OnExecute := @Command_CompletedInsertAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedModifyAssembleStream').OnExecute := @Command_CompletedModifyAssembleStream;
@@ -884,6 +1001,7 @@ begin
   FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := Command_QueryDB;
   FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := Command_DownloadDB;
   FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := Command_RequestDownloadAssembleStream;
+  FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := Command_RequestFastDownloadAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := Command_CompletedPostAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedInsertAssembleStream').OnExecute := Command_CompletedInsertAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedModifyAssembleStream').OnExecute := Command_CompletedModifyAssembleStream;
@@ -961,47 +1079,6 @@ end;
 function TDataStoreService_VirtualAuth.GetRegistedQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
 begin
   Result := TTDataStoreService_QueryCall(FQueryCallPool[cName]);
-end;
-
-procedure TDataStoreService_VirtualAuth.Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
-var
-  de: TDataFrameEngine;
-begin
-  de := TDataFrameEngine.Create;
-  de.WriteString(pipe.SourceDBName);
-  de.WriteString(pipe.OutputDBName);
-  de.WriteString(pipe.PipelineName);
-  de.WritePointer(pipe.BackcallPtr);
-  pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedFragmentBigStream', de);
-  DisposeObject(de);
-end;
-
-procedure TDataStoreService_VirtualAuth.Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
-var
-  de: TDataFrameEngine;
-begin
-  de := TDataFrameEngine.Create;
-  de.WriteString(pipe.SourceDBName);
-  de.WriteString(pipe.OutputDBName);
-  de.WriteString(pipe.PipelineName);
-  de.WritePointer(pipe.BackcallPtr);
-  de.WriteInt64(pipe.QueryResultCounter);
-  pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedQuery', de);
-  DisposeObject(de);
-  ClearBatchStream(pipe.SendTunnel.Owner);
-end;
-
-procedure TDataStoreService_VirtualAuth.Send_CompletedDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
-var
-  de: TDataFrameEngine;
-begin
-  de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
-  de.WriteInt64(dStorePos);
-  de.WritePointer(BackcallPtr);
-  ASendCli.SendDirectStreamCmd('CompletedDownloadAssemble', de);
-  DisposeObject(de);
-  ClearBatchStream(ASendCli);
 end;
 
 function TDataStoreService_VirtualAuth.PostCounterOfPerSec: Double;
@@ -1101,6 +1178,56 @@ var
   dbN        : SystemString;
   dStorePos  : Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
+  m, cm      : TMemoryStream64;
+begin
+  dbN := InData.Reader.ReadString;
+  dStorePos := InData.Reader.ReadInt64;
+  BackcallPtr := PDataStoreClientDownloadNotify(InData.Reader.ReadPointer);
+
+  if Sender.UserDefine.BigStreamBatchList.Count > 0 then
+      m := Sender.UserDefine.BigStreamBatchList.Last^.Source
+  else
+      m := nil;
+
+  if BackcallPtr <> nil then
+    begin
+      if m <> nil then
+        begin
+          cm := TMemoryStream64.Create;
+          DecompressStream(m, cm);
+          Sender.UserDefine.BigStreamBatchList.DeleteLast;
+
+          SequEncrypt(cm.Memory, cm.Size, False, True);
+
+          try
+            cm.Position := 0;
+            if Assigned(BackcallPtr^.OnDoneCall) then
+              begin
+                BackcallPtr^.OnDoneCall(dbN, dStorePos, cm);
+                cm.Position := 0;
+              end;
+            if Assigned(BackcallPtr^.OnDoneMethod) then
+              begin
+                BackcallPtr^.OnDoneMethod(dbN, dStorePos, cm);
+                cm.Position := 0;
+              end;
+            {$IFNDEF FPC}
+            if Assigned(BackcallPtr^.OnDoneProc) then
+                BackcallPtr^.OnDoneProc(dbN, dStorePos, cm);
+            {$ENDIF}
+            DisposeObject(cm);
+          except
+          end;
+        end;
+      Dispose(BackcallPtr);
+    end;
+end;
+
+procedure TDataStoreClient_VirtualAuth.Command_CompletedFastDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine);
+var
+  dbN        : SystemString;
+  dStorePos  : Int64;
+  BackcallPtr: PDataStoreClientDownloadNotify;
   m          : TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
@@ -1116,7 +1243,6 @@ begin
     begin
       if m <> nil then
         begin
-          SequEncrypt(m.Memory, m.Size, False, True);
           try
             m.Position := 0;
             if Assigned(BackcallPtr^.OnDoneCall) then
@@ -1158,10 +1284,12 @@ begin
   FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := @Command_CompletedFragmentBigStream;
   FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := @Command_CompletedQuery;
   FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := @Command_CompletedDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := @Command_CompletedFastDownloadAssemble;
   {$ELSE}
   FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := Command_CompletedFragmentBigStream;
   FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := Command_CompletedQuery;
   FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := Command_CompletedDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := Command_CompletedFastDownloadAssemble;
   {$ENDIF}
 end;
 
@@ -1482,6 +1610,59 @@ begin
   p^.OnDoneProc := OnDoneProc;
 
   RequestDownloadAssembleStream(dbN, StorePos, p);
+end;
+{$ENDIF}
+
+
+procedure TDataStoreClient_VirtualAuth.RequestFastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+
+  de.WriteString(dbN);
+  de.WriteInt64(StorePos);
+  de.WritePointer(BackcallPtr);
+
+  SendTunnel.SendDirectStreamCmd('RequestFastDownloadAssembleStream', de);
+
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneCall := OnDoneCall;
+
+  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneMethod := OnDoneMethod;
+
+  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneProc := OnDoneProc;
+
+  RequestFastDownloadAssembleStream(dbN, StorePos, p);
 end;
 {$ENDIF}
 

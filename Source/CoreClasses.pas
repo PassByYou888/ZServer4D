@@ -137,7 +137,7 @@ type
 
   {$ENDIF}
 
-  TExecutePlatform = (epWin32, epWin64, epOSX, epIOS, epIOSSIM, epANDROID, epUnknow);
+  TExecutePlatform = (epWin32, epWin64, epOSX, epIOS, epIOSSIM, epANDROID, epLinux64, epUnknow);
 
 const
   {$IF Defined(WIN32)}
@@ -154,6 +154,8 @@ const
   {$ENDIF}
   {$ELSEIF Defined(ANDROID)}
   CurrentPlatform = TExecutePlatform.epANDROID;
+  {$ELSEIF Defined(Linux)}
+  CurrentPlatform = TExecutePlatform.epLinux64;
   {$ELSE}
   CurrentPlatform = TExecutePlatform.epUnknow;
   {$IFEND}

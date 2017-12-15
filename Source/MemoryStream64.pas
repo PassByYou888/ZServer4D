@@ -69,7 +69,7 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     property Memory: Pointer read FMemory;
 
-    function CopyFrom(const Source: TCoreClassStream; cCount: Int64): Int64;
+    function CopyFrom(const Source: TCoreClassStream; cCount: Int64): Int64; virtual;
   end;
 
   IMemoryStream64WriteTrigger = interface
@@ -480,6 +480,7 @@ begin
       Source.Position := 0;
       cCount := Source.Size;
     end;
+
   Result := cCount;
   if cCount > MaxBufSize then
       BufSize := MaxBufSize

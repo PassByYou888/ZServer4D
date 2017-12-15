@@ -9,19 +9,21 @@ uses
   DoStatusIO, CoreClasses,
   CommunicationFramework_Client_CrossSocket,
   CommunicationFramework_Client_ICS,
-  Cadencer, DataFrameEngine, UnicodeMixedLib, CommunicationTest;
+  Cadencer, DataFrameEngine, UnicodeMixedLib, CommunicationTest,
+  CommunicationFramework_Client_Indy;
 
 type
   TEZClientForm = class(TForm)
     ConnectButton: TButton;
     HostEdit: TLabeledEdit;
-    Timer1: TTimer;
-    Button1: TButton;
+    Timer: TTimer;
+    TestCommandButton: TButton;
+    Memo: TMemo;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure TimerTimer(Sender: TObject);
+    procedure TestCommandButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -32,7 +34,7 @@ type
   end;
 
 const
-  MaxConn = 1000;
+  MaxConn = 20000;
 
 var
   EZClientForm: TEZClientForm;
@@ -56,7 +58,7 @@ begin
   SetLength(test, MaxConn);
   for i := low(client) to high(client) do
     begin
-      client[i] := TCommunicationFramework_Client_ICS.Create;
+      client[i] := TCommunicationFramework_Client_CrossSocket.Create;
       client[i].AllowPrintCommand := False;
       client[i].SwitchMaxPerformance;
       test[i] := TCommunicationTestIntf.Create;
@@ -75,7 +77,7 @@ begin
   DeleteDoStatusHook(self);
 end;
 
-procedure TEZClientForm.Timer1Timer(Sender: TObject);
+procedure TEZClientForm.TimerTimer(Sender: TObject);
 var
   i: Integer;
 begin
@@ -83,7 +85,7 @@ begin
       client[i].ProgressBackground;
 end;
 
-procedure TEZClientForm.Button1Click(Sender: TObject);
+procedure TEZClientForm.TestCommandButtonClick(Sender: TObject);
 var
   i: Integer;
 begin
@@ -101,8 +103,16 @@ var
   i: Integer;
 begin
   ConnectButton.Visible := False;
+  Timer.Enabled := False;
+  TestCommandButton.Visible := False;
   for i := low(client) to high(client) do
+    begin
       client[i].Connect(HostEdit.Text, 9818);
+      Application.ProcessMessages;
+    end;
+
+  Timer.Enabled := True;
+  TestCommandButton.Visible := True;
 end;
 
 end.

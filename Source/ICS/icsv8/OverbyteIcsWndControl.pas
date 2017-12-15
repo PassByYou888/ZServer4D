@@ -3,7 +3,7 @@
 Author:       François PIETTE
 Creation:     Octobre 2002
 Description:  Composant non-visuel avec un handle de fenêtre.
-Version:      8.04
+Version:      8.03
 EMail:        francois.piette@overbyte.be   http://www.overbyte.be
 Support:      Use the mailing list twsocket@elists.org
               Follow "support" link at http://www.overbyte.be for subscription.
@@ -108,7 +108,6 @@ May 2012 - V8.00 - Arno added FireMonkey cross platform support with POSIX/MacOS
 Aug 18, 2013 V8.02 Arno added some default property specifiers.
 Jul 9, 2014  V8.03 Angus break MessageLoop for Terminated flag,
                        suggested by Wolfgang Prinzjakowitsch
-Jan 22, 2016 V8.04 Angus fixed 64-bit bug in UpdateTimer
 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 {$IFNDEF ICS_INCLUDE_MODE}
@@ -152,8 +151,8 @@ uses
   OverbyteIcsTypes;
 
 const
-  TIcsWndControlVersion  = 804;
-  CopyRight : String     = ' TIcsWndControl (c) 2002-2016 F. Piette V8.04 ';
+  TIcsWndControlVersion  = 803;
+  CopyRight : String     = ' TIcsWndControl (c) 2002-2014 F. Piette V8.03 ';
 
   IcsWndControlWindowClassName = 'IcsWndControlWindowClass';
 
@@ -314,7 +313,7 @@ type
     ThreadID : TThreadID;
   end;
 
-  TWhMaxMsgIDs = 50..3000;
+  TWhMaxMsgIDs = 50..8000;
 
   TIcsWndHandlerPool = class(TObject)
   private
@@ -377,7 +376,7 @@ uses
 
 var
   GUIDOffSet   : Integer;
-  G_WH_MAX_MSG : Word = 3000;
+  G_WH_MAX_MSG : Word = 8000;
 
 threadvar
   // Initialized by the RTL to zero = fehNone
@@ -1429,7 +1428,7 @@ begin
     KillTimer(FIcsWndControl.Handle, UINT_PTR(Self));
     if (FInterval <> 0) and FEnabled and Assigned(FOnTimer) then
         if SetTimer(FIcsWndControl.Handle,
-                    UINT_PTR(Self), FInterval, nil) = 0 then begin   { V8.04 }
+                    Cardinal(Self), FInterval, nil) = 0 then begin
             FEnabled := FALSE;
             raise EIcsTimerException.Create('No more timers');
         end
