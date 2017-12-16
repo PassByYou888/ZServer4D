@@ -12,7 +12,7 @@ unit CommunicationFrameworkDoubleTunnelIO_NoAuth;
 
 interface
 
-{$I  zDefine.inc}
+{$I zDefine.inc}
 
 
 uses CoreClasses,
@@ -415,7 +415,7 @@ begin
       Exit;
 
   fileName := InData.Reader.ReadString;
-  fullfn := umlCombinePath(FFileReceiveDirectory, fileName);
+  fullfn := umlCombineFileName(FFileReceiveDirectory, fileName);
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
@@ -443,7 +443,7 @@ begin
   remoteinfo := InData.Reader.ReadString;
   RemoteBackcallAddr := InData.Reader.ReadPointer;
 
-  fullfn := umlCombinePath(FFileReceiveDirectory, fileName);
+  fullfn := umlCombineFileName(FFileReceiveDirectory, fileName);
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
@@ -502,7 +502,7 @@ begin
   fn := InData.Reader.ReadString;
   fsize := InData.Reader.ReadInt64;
 
-  fullfn := umlCombinePath(FFileReceiveDirectory, fn);
+  fullfn := umlCombineFileName(FFileReceiveDirectory, fn);
   UserDefineIO.FCurrentReceiveFileName := fullfn;
   try
     UserDefineIO.FCurrentFileStream := TCoreClassFileStream.Create(fullfn, fmCreate);
@@ -996,7 +996,7 @@ begin
   if not umlDirectoryExists(remoteinfo) then
       umlCreateDirectory(remoteinfo);
 
-  fullfn := umlCombinePath(remoteinfo, fn);
+  fullfn := umlCombineFileName(remoteinfo, fn);
   FCurrentReceiveStreamFileName := fullfn;
   try
       FCurrentStream := TCoreClassFileStream.Create(fullfn, fmCreate);

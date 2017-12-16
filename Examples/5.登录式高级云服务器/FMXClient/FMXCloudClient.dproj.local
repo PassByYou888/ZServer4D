@@ -43,8 +43,8 @@
     <Transaction>2017/11/07 14:01:55.000.747,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO.pas</Transaction>
     <Transaction>2017/11/07 14:01:55.000.730,=C:\git\ZServer4D\Source\CommunicationFramework.pas</Transaction>
     <Transaction>2017/11/07 14:01:55.000.918,=C:\git\ZServer4D\Source\GeometryLib.pas</Transaction>
-    <Transaction>2017/11/07 14:01:55.000.780,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
     <Transaction>2017/11/07 14:01:55.000.709,=C:\git\ZServer4D\Source\Cadencer.pas</Transaction>
+    <Transaction>2017/11/07 14:01:55.000.780,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.076,=C:\git\ZServer4D\Source\ObjectData.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.021,=C:\git\ZServer4D\Source\ListEngine.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.188,=C:\git\ZServer4D\Source\UnicodeMixedLib.pas</Transaction>
@@ -53,9 +53,9 @@
     <Transaction>2017/11/07 14:01:56.000.091,=C:\git\ZServer4D\Source\ObjectDataManager.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.106,=C:\git\ZServer4D\Source\PascalStrings.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.152,=C:\git\ZServer4D\Source\TextParsing.pas</Transaction>
-    <Transaction>2017/11/07 14:01:56.000.136,=C:\git\ZServer4D\Source\TextDataEngine.pas</Transaction>
-    <Transaction>2017/11/07 14:01:56.000.035,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.121,=C:\git\ZServer4D\Source\StreamList.pas</Transaction>
+    <Transaction>2017/11/07 14:01:56.000.035,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
+    <Transaction>2017/11/07 14:01:56.000.136,=C:\git\ZServer4D\Source\TextDataEngine.pas</Transaction>
     <Transaction>2017/11/07 14:01:56.000.167,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
     <Transaction>2017/11/07 14:04:26.000.069,=C:\git\ZServer4D\Examples\云服务器框架\FMXClient\HallMobileClient.pas</Transaction>
     <Transaction>2017/11/07 14:04:32.000.628,C:\git\ZServer4D\Examples\云服务器框架\FMXClient\LoginMobileClient.pas=C:\git\ZServer4D\Examples\云服务器框架\FMXClient\HallMobileClient.pas</Transaction>

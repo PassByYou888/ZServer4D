@@ -277,7 +277,9 @@ begin
       if LastResult then
           LastConnection := AConnection;
     end);
-
+	
+  TThread.Sleep(2);
+	
   dt := GetTimeTick + 1000;
   while (not LastCompleted) and (GetTimeTick < dt) do
       CheckSynchronize(1);

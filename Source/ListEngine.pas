@@ -2741,7 +2741,7 @@ begin
   if lst.Count > 0 then
     for i := 0 to lst.Count - 1 do
       with PHashListData(lst[i])^ do
-          OutputList.Add(OriginName);
+          OutputList.AddObject(OriginName, PHashObjectListData(Data)^.obj);
   DisposeObject(lst);
 end;
 
@@ -2786,7 +2786,7 @@ begin
   if lst.Count > 0 then
     for i := 0 to lst.Count - 1 do
       with PHashListData(lst[i])^ do
-          OutputList.Add(OriginName);
+          OutputList.AddObject(OriginName, PHashObjectListData(Data)^.obj);
   DisposeObject(lst);
 end;
 

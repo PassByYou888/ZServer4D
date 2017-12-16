@@ -12,7 +12,7 @@ unit CommunicationFrameworkDoubleTunnelIO;
 
 interface
 
-{$I  zDefine.inc}
+{$I zDefine.inc}
 
 
 uses CoreClasses,
@@ -472,7 +472,7 @@ end;
 
 function TPeerClientUserDefineForRecvTunnel.MakeFilePath(fn: SystemString): SystemString;
 begin
-  Result := umlCombinePath(UserPath, fn);
+  Result := umlCombineFileName(UserPath, fn);
 end;
 
 function TPeerClientUserDefineForRecvTunnel.GetUserID: SystemString;
@@ -1030,7 +1030,7 @@ begin
   remoteinfo := InData.Reader.ReadString;
   RemoteBackcallAddr := InData.Reader.ReadPointer;
 
-  fullfn := umlCombinePath(FPublicPath, fileName);
+  fullfn := umlCombineFileName(FPublicPath, fileName);
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
@@ -1086,7 +1086,7 @@ begin
   remoteinfo := InData.Reader.ReadString;
   RemoteBackcallAddr := InData.Reader.ReadPointer;
 
-  fullfn := umlCombinePath(umlCombinePath(UserDefineIO.UserPath, dn), fileName);
+  fullfn := umlCombineFileName(umlCombinePath(UserDefineIO.UserPath, dn), fileName);
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
@@ -1208,7 +1208,7 @@ begin
   if not ExistsUser(UserID) then
       Exit;
 
-  fullfn := umlCombinePath(umlCombinePath(GetUserPath(UserID), dn), fileName);
+  fullfn := umlCombineFileName(umlCombinePath(GetUserPath(UserID), dn), fileName);
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
@@ -1339,7 +1339,7 @@ begin
   fn := InData.Reader.ReadString;
   fsize := InData.Reader.ReadInt64;
 
-  fullfn := umlCombinePath(FPublicPath, fn);
+  fullfn := umlCombineFileName(FPublicPath, fn);
   UserDefineIO.FCurrentReceiveFileName := fullfn;
   try
     UserDefineIO.FCurrentFileStream := TCoreClassFileStream.Create(fullfn, fmCreate);
@@ -1385,7 +1385,7 @@ begin
       Exit;
     end;
 
-  fullfn := umlCombinePath(umlCombinePath(UserDefineIO.UserPath, dn), fn);
+  fullfn := umlCombineFileName(umlCombinePath(UserDefineIO.UserPath, dn), fn);
   UserDefineIO.FCurrentReceiveFileName := fullfn;
 
   try
@@ -1665,9 +1665,9 @@ var
   i  : Integer;
   cli: TPeerClientUserDefineForRecvTunnel;
 begin
-  if umlFileExists(umlCombinePath(FRootPath, 'UserDB')) then
+  if umlFileExists(umlCombineFileName(FRootPath, 'UserDB')) then
     begin
-      FUserDB.LoadFromFile(umlCombinePath(FRootPath, 'UserDB'));
+      FUserDB.LoadFromFile(umlCombineFileName(FRootPath, 'UserDB'));
 
       FRecvTunnel.LockClients;
       for i := 0 to FRecvTunnel.Count - 1 do
@@ -1685,7 +1685,7 @@ var
   i  : Integer;
   cli: TPeerClientUserDefineForRecvTunnel;
 begin
-  FUserDB.SaveToFile(umlCombinePath(FRootPath, 'UserDB'));
+  FUserDB.SaveToFile(umlCombineFileName(FRootPath, 'UserDB'));
 
   FRecvTunnel.LockClients;
   for i := 0 to FRecvTunnel.Count - 1 do
@@ -1731,14 +1731,14 @@ begin
     begin
       AUserConfigFile.Hit['UserInfo', 'UserID'] := AUserID;
       AUserConfigFile.Hit['UserInfo', 'Password'] := AUserDBIntf['password'];
-      AUserConfigFile.SaveToFile(umlCombinePath(AUserPath, 'User.Config'));
+      AUserConfigFile.SaveToFile(umlCombineFileName(AUserPath, 'User.Config'));
     end
   else
     begin
       te := TSectionTextData.Create;
       te.Hit['UserInfo', 'UserID'] := AUserID;
       te.Hit['UserInfo', 'Password'] := AUserDBIntf['password'];
-      te.SaveToFile(umlCombinePath(AUserPath, 'User.Config'));
+      te.SaveToFile(umlCombineFileName(AUserPath, 'User.Config'));
       DisposeObject(te);
     end;
 
@@ -1909,7 +1909,7 @@ begin
         TCoreClassThread.Sleep(1);
         d := Now;
         p := @d;
-        fn := umlCombinePath(UserPath, IntToHex(p^, 16) + '.queue');
+        fn := umlCombineFileName(UserPath, IntToHex(p^, 16) + '.queue');
       until not umlFileExists(fn);
 
       de := TDataFrameEngine.Create;
@@ -2229,7 +2229,7 @@ begin
   if not umlDirectoryExists(remoteinfo) then
       umlCreateDirectory(remoteinfo);
 
-  fullfn := umlCombinePath(remoteinfo, fn);
+  fullfn := umlCombineFileName(remoteinfo, fn);
   FCurrentReceiveStreamFileName := fullfn;
   try
       FCurrentStream := TCoreClassFileStream.Create(fullfn, fmCreate);
