@@ -14,12 +14,44 @@ uses
 
   NotifyObjectBase, CoreCipher, PascalStrings;
 
+const
+  cManagerService_QueryPort = 10888;
+  cManagerService_RecvPort  = 13336;
+  cManagerService_SendPort  = 13335;
+
+  cDataStorePrimary_RecvPort = 7732;
+  cDataStorePrimary_SendPort = 7731;
+
+  cFileStore_RecvPort = 5732;
+  cFileStore_SendPort = 5731;
+
+  cHallService_HomeRecvPort = 7839;
+  cHallService_HomeSendPort = 7838;
+
+  cHallService_PayRecvPort = 6319;
+  cHallService_PaySendPort = 6318;
+
+  cHallService_RecvPort = 3339;
+  cHallService_SendPort = 3338;
+
+  cHomeService_RecvPort = 13439;
+  cHomeService_SendPort = 13438;
+
 type
   TServerType = (stUnknow,
-    stManager,
-    stDatabasePrimary, stDatabaseDependence, stLogicPrimary, stLogicDependence,
-    stHall, stHall2Home, stHome,
-    stPayment, stPaymentQuery);
+    stManager,         // Infinite deploy
+    stDatabase,        // only limitations deploy
+    stDataStore,       // only limitations deploy
+    stFileStore,       // Infinite deploy
+    stLogicPrimary,    // Infinite deploy
+    stLogicDependence, // Infinite deploy
+    stHall,            // Infinite deploy
+    stHall2Home,       // Infinite deploy
+    stHome,            // Infinite deploy
+    stPayment,         // Infinite deploy
+    stPaymentQuery     // Infinite deploy
+    );
+  TServerTypes = set of TServerType;
 
   TServerManager_ClientPool = class;
   TServerManager_Client     = class;
@@ -550,7 +582,6 @@ begin
 
   ServerConfig.Delete(cli.MakeRegName);
 
-  // 通知全网客户端，这台服务器离线
   with ProgressEngine.PostExecute do
     begin
       DataEng.WriteString(cli.RegAddr);
@@ -558,10 +589,9 @@ begin
       OnExecuteMethod := PostExecute_ServerOffline;
     end;
 
-  // 如果管理服务器离线，矫正本地配置表
   if cli.ServerType = TServerType.stManager then
     begin
-      // 删除本地配置
+      // delete local configure
       ns := TCoreClassStringList.Create;
       ServerConfig.GetSectionList(ns);
 
@@ -573,7 +603,7 @@ begin
         end;
       DisposeObject(ns);
 
-      // 同步所有客户端
+      // sync all client
       ProgressEngine.PostExecute(nil, PostExecute_RegServer);
     end;
 
@@ -591,7 +621,7 @@ var
   SendDE: TDataFrameEngine;
   c     : TServerManager_RecvTunnelData;
 begin
-  // 矫正本地连接
+  // fixed local connect info
   RecvTunnel.LockClients;
   for i := 0 to RecvTunnel.Count - 1 do
     begin
@@ -644,6 +674,11 @@ begin
             cli.SuccessEnabled := False;
             break;
           end;
+        if (listcli.ServerType = cli.ServerType) and (cli.ServerType in [TServerType.stDataStore, TServerType.stDatabase]) then
+          begin
+            cli.SuccessEnabled := False;
+            break;
+          end;
       end;
   except
   end;
@@ -651,7 +686,7 @@ begin
   if not cli.SuccessEnabled then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('%s same server configure!!', [cli.MakeRegName]));
+      OutData.WriteString(Format('exists %s same server configure!!', [cli.MakeRegName]));
       with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
         begin
           Data1 := Sender;
@@ -719,7 +754,6 @@ var
   existedSameOnlineServer: Boolean;
   SendDE                 : TDataFrameEngine;
 begin
-  // 判断离线通知服务器是否属于已连接的客户端
   existedSameOnlineServer := False;
   for i := 0 to RecvTunnel.Count - 1 do
     begin
@@ -730,7 +764,7 @@ begin
 
   if not existedSameOnlineServer then
     begin
-      // 删除本地配置
+      // delete local configure
       ns := TCoreClassStringList.Create;
       ServerConfig.GetSectionList(ns);
 
@@ -745,8 +779,7 @@ begin
       ServerConfig.ReBuildList;
     end;
 
-  // 同步所有客户端
-  // 矫正本地连接
+  // sync all client
   for i := 0 to RecvTunnel.Count - 1 do
     begin
       c := (RecvTunnel[i].UserDefine as TServerManager_RecvTunnelData);

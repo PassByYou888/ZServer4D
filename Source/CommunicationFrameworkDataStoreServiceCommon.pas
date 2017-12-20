@@ -13,11 +13,8 @@ unit CommunicationFrameworkDataStoreServiceCommon;
 
 interface
 
-uses CoreClasses, CommunicationFramework, PascalStrings, ZDBEngine, ZDBLocalManager, MemoryStream64,
+uses Variants, CoreClasses, CommunicationFramework, PascalStrings, ZDBEngine, ZDBLocalManager, MemoryStream64,
   DataFrameEngine;
-
-const
-  PerQueryPipelineDoneDelayFreeTime = 5.0;
 
 type
   TTDataStoreService_DBPipeline = class(TZDBPipeline)
@@ -42,43 +39,89 @@ type
     constructor Create;
   end;
 
+  TUserQueryDoneNotifyCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, outN, pipeN: SystemString; TotalResult: Int64);
+  TUserQueryDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
+  {$IFNDEF FPC}
+  TUserQueryDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, outN, pipeN: SystemString; TotalResult: Int64);
+  {$ENDIF}
+  //
   TQueryDoneNotifyCall   = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
   TQueryDoneNotifyMethod = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
-
   {$IFNDEF FPC}
   TQueryDoneNotifyProc = reference to procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
   {$ENDIF}
+  //
   PDataStoreClientQueryNotify = ^TDataStoreClientQueryNotify;
 
   TDataStoreClientQueryNotify = record
+    UserPointer: Pointer;
+    UserObject: TCoreClassObject;
+    UserVariant: Variant;
+
     OnQueryCall: TFillQueryDataCall;
     OnQueryMethod: TFillQueryDataMethod;
     {$IFNDEF FPC}
     OnQueryProc: TFillQueryDataProc;
     {$ENDIF}
+    //
+    OnUserQueryCall: TUserFillQueryDataCall;
+    OnUserQueryMethod: TUserFillQueryDataMethod;
+    {$IFNDEF FPC}
+    OnUserQueryProc: TUserFillQueryDataProc;
+    {$ENDIF}
+    //
     OnDoneCall: TQueryDoneNotifyCall;
     OnDoneMethod: TQueryDoneNotifyMethod;
     {$IFNDEF FPC}
     OnDoneProc: TQueryDoneNotifyProc;
     {$ENDIF}
-    procedure Init;
+    //
+    OnUserDoneCall: TUserQueryDoneNotifyCall;
+    OnUserDoneMethod: TUserQueryDoneNotifyMethod;
+    {$IFNDEF FPC}
+    OnUserDoneProc: TUserQueryDoneNotifyProc;
+    {$ENDIF}
+    //
+    procedure Init; inline;
   end;
 
+  TUserDownloadDoneNotifyCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+  TUserDownloadDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
+  {$IFNDEF FPC}
+  TUserDownloadDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+  {$ENDIF}
+  //
   TDownloadDoneNotifyCall   = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
   TDownloadDoneNotifyMethod = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
-
   {$IFNDEF FPC}
   TDownloadDoneNotifyProc = reference to procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
   {$ENDIF}
+  //
   PDataStoreClientDownloadNotify = ^TDataStoreClientDownloadNotify;
 
   TDataStoreClientDownloadNotify = record
+    UserPointer: Pointer;
+    UserObject: TCoreClassObject;
+    UserVariant: Variant;
+
+    OnUserDoneCall: TUserDownloadDoneNotifyCall;
+    OnUserDoneMethod: TUserDownloadDoneNotifyMethod;
+    {$IFNDEF FPC}
+    OnUserDoneProc: TUserDownloadDoneNotifyProc;
+    {$ENDIF}
+    //
     OnDoneCall: TDownloadDoneNotifyCall;
     OnDoneMethod: TDownloadDoneNotifyMethod;
     {$IFNDEF FPC}
     OnDoneProc: TDownloadDoneNotifyProc;
     {$ENDIF}
-    procedure Init;
+    procedure Init; inline;
   end;
 
   TPipeState = record
@@ -86,6 +129,7 @@ type
     DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;
     SourceDB, OutputDB, PipelineName, RegistedQuery: SystemString;
+    //
     procedure Init; inline;
     procedure Encode(d: TDataFrameEngine); inline;
     procedure Decode(d: TDataFrameEngine); inline;
@@ -122,24 +166,51 @@ end;
 
 procedure TDataStoreClientQueryNotify.Init;
 begin
+  UserPointer := nil;
+  UserObject := nil;
+  UserVariant := Null;
+
   OnQueryCall := nil;
   OnQueryMethod := nil;
   {$IFNDEF FPC}
   OnQueryProc := nil;
   {$ENDIF}
+  //
+  OnUserQueryCall := nil;
+  OnUserQueryMethod := nil;
+  {$IFNDEF FPC}
+  OnUserQueryProc := nil;
+  {$ENDIF}
+  //
   OnDoneCall := nil;
   OnDoneMethod := nil;
   {$IFNDEF FPC}
   OnDoneProc := nil;
   {$ENDIF}
+  //
+  OnUserDoneCall := nil;
+  OnUserDoneMethod := nil;
+  {$IFNDEF FPC}
+  OnUserDoneProc := nil;
+  {$ENDIF}
 end;
 
 procedure TDataStoreClientDownloadNotify.Init;
 begin
+  UserPointer := nil;
+  UserObject := nil;
+  UserVariant := Null;
+
   OnDoneCall := nil;
   OnDoneMethod := nil;
   {$IFNDEF FPC}
   OnDoneProc := nil;
+  {$ENDIF}
+  //
+  OnUserDoneCall := nil;
+  OnUserDoneMethod := nil;
+  {$IFNDEF FPC}
+  OnUserDoneProc := nil;
   {$ENDIF}
 end;
 

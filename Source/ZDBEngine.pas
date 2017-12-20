@@ -383,7 +383,7 @@ type
     procedure OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
   public
     constructor Create(DBFile: SystemString; OnlyRead: Boolean);
-    constructor CreateMemory(DBMemory: TCoreClassStream; OnlyRead: Boolean);
+    constructor CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
     constructor CreateNew(DBFile: SystemString);
     constructor CreateNewMemory;
     destructor Destroy; override;
@@ -595,7 +595,7 @@ end;
 
 constructor TDBEngineVL.Create;
 begin
-  inherited Create;
+  inherited Create(2);
   DBStorePos := -1;
   DBEng := nil;
   CreateTime := umlDefaultTime;
@@ -1921,7 +1921,7 @@ begin
   DoCreateInit;
 end;
 
-constructor TDBStoreBase.CreateMemory(DBMemory: TCoreClassStream; OnlyRead: Boolean);
+constructor TDBStoreBase.CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
 begin
   inherited Create;
   FDBEngine := TObjectDataManager.CreateAsStream(DBMemory, '', ObjectDataMarshal.ID, OnlyRead, False, True);

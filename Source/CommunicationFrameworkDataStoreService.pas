@@ -51,8 +51,9 @@ type
 
   TDataStoreService = class(TCommunicationFramework_DoubleTunnelService, IZDBLocalManagerNotify)
   private
-    FZDBLocal     : TZDBLocalManager;
-    FQueryCallPool: THashObjectList;
+    FZDBLocal                     : TZDBLocalManager;
+    FQueryCallPool                : THashObjectList;
+    FPerQueryPipelineDelayFreeTime: Double;
   protected
     procedure CreateQuery(pipe: TZDBPipeline); virtual;
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64); virtual;
@@ -119,6 +120,7 @@ type
 
     property ZDBLocal: TZDBLocalManager read FZDBLocal;
     property QueryCallPool: THashObjectList read FQueryCallPool;
+    property PerQueryPipelineDelayFreeTime: Double read FPerQueryPipelineDelayFreeTime write FPerQueryPipelineDelayFreeTime;
   end;
 
   TDataStoreClient = class(TCommunicationFramework_DoubleTunnelClient)
@@ -147,27 +149,48 @@ type
     procedure QuietQueryDB(RegistedQueryName: SystemString; ReverseQuery: Boolean; dbN, outDBN: SystemString; MaxWait: Double; MaxQueryResult: Int64); virtual;
 
     procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
-      fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; Values: THashVariantList); overload; virtual;
+      fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList); overload; virtual;
 
     procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
-      Values: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
+      RemoteParams: THashVariantList; // service ref remote parameter
+      OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
 
     procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
-      Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+      RemoteParams: THashVariantList;                                           // service ref remote parameter
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnQueryCall: TUserFillQueryDataCall; OnDoneCall: TUserQueryDoneNotifyCall); overload;
+
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+      fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
+      RemoteParams: THashVariantList; // service ref remote parameter
+      OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+      fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
+      RemoteParams: THashVariantList;                                           // service ref remote parameter
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnQueryMethod: TUserFillQueryDataMethod; OnDoneMethod: TUserQueryDoneNotifyMethod); overload;
 
     {$IFNDEF FPC}
     procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
-      Values: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+      RemoteParams: THashVariantList; // service ref remote parameter
+      OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+      fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
+      RemoteParams: THashVariantList;                                           // service ref remote parameter
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnQueryProc: TUserFillQueryDataProc; OnDoneProc: TUserQueryDoneNotifyProc); overload;
     {$ENDIF}
     //
     //
-    procedure QueryDB(RegistedQueryName: SystemString; dbN: SystemString; Values: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
-    procedure QueryDB(RegistedQueryName: SystemString; dbN: SystemString; Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+    procedure QueryDB(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
+    procedure QueryDB(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
     {$IFNDEF FPC}
-    procedure QueryDB(RegistedQueryName: SystemString; dbN: SystemString; Values: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+    procedure QueryDB(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
     {$ENDIF}
     //
     //
@@ -187,6 +210,17 @@ type
     {$IFNDEF FPC}
     procedure DownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
     {$ENDIF}
+    procedure DownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnDoneCall: TUserDownloadDoneNotifyCall); overload;
+    procedure DownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnDoneMethod: TUserDownloadDoneNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure DownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnDoneProc: TUserDownloadDoneNotifyProc); overload;
+    {$ENDIF}
     //
     //
     procedure RequestFastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify); virtual;
@@ -194,6 +228,17 @@ type
     procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
     {$IFNDEF FPC}
     procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
+    {$ENDIF}
+    procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnDoneCall: TUserDownloadDoneNotifyCall); overload;
+    procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnDoneMethod: TUserDownloadDoneNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+      OnDoneProc: TUserDownloadDoneNotifyProc); overload;
     {$ENDIF}
     //
     //
@@ -236,7 +281,6 @@ type
     //
     //
     procedure EndAssembleStream; virtual;
-
     //
     procedure DeleteData(dbN: SystemString; dStorePos: Int64); virtual;
     //
@@ -532,7 +576,7 @@ begin
       AutoDestoryOutputDB := False;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN,
-    AutoDestoryOutputDB, PerQueryPipelineDoneDelayFreeTime, fragmentReponseTime, MaxWait, 0, MaxQueryResult));
+    AutoDestoryOutputDB, FPerQueryPipelineDelayFreeTime, fragmentReponseTime, MaxWait, 0, MaxQueryResult));
   pl.SendTunnel := rt.SendTunnelDefine;
   pl.RecvTunnel := rt;
   pl.BackcallPtr := InData.Reader.ReadPointer;
@@ -576,7 +620,7 @@ begin
   if not FZDBLocal.ExistsDB(dbN) then
       exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, False, ReverseQuery, dbN, 'Download', True, PerQueryPipelineDoneDelayFreeTime, 0.5, 0, 0, 0));
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, False, ReverseQuery, dbN, 'Download', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
   pl.SendTunnel := rt.SendTunnelDefine;
   pl.RecvTunnel := rt;
   pl.BackcallPtr := InData.Reader.ReadPointer;
@@ -955,6 +999,7 @@ begin
   FZDBLocal.NotifyIntf := Self;
 
   FQueryCallPool := THashObjectList.Create(True);
+  FPerQueryPipelineDelayFreeTime := 3.0;
 end;
 
 destructor TDataStoreService.Destroy;
@@ -1120,6 +1165,24 @@ begin
       try
         SequEncrypt(m.Memory, m.Size, False, True);
         m.Position := 0;
+        if Assigned(BackcallPtr^.OnUserQueryCall) then
+          begin
+            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, m, BackcallPtr^.OnUserQueryCall);
+            m.Position := 0;
+          end;
+        if Assigned(BackcallPtr^.OnUserQueryMethod) then
+          begin
+            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, m, BackcallPtr^.OnUserQueryMethod);
+            m.Position := 0;
+          end;
+        {$IFNDEF FPC}
+        if Assigned(BackcallPtr^.OnUserQueryProc) then
+          begin
+            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, m, BackcallPtr^.OnUserQueryProc);
+            m.Position := 0;
+          end;
+        {$ENDIF}
+        //
         if Assigned(BackcallPtr^.OnQueryCall) then
           begin
             FillFragmentSource(dbN, pipeN, m, BackcallPtr^.OnQueryCall);
@@ -1159,6 +1222,15 @@ begin
   if BackcallPtr <> nil then
     begin
       try
+        if Assigned(BackcallPtr^.OnUserDoneCall) then
+            BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, outN, pipeN, TotalResultCount);
+        if Assigned(BackcallPtr^.OnUserDoneMethod) then
+            BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, outN, pipeN, TotalResultCount);
+        {$IFNDEF FPC}
+        if Assigned(BackcallPtr^.OnUserDoneProc) then
+            BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, outN, pipeN, TotalResultCount);
+        {$ENDIF}
+        //
         if Assigned(BackcallPtr^.OnDoneCall) then
             BackcallPtr^.OnDoneCall(dbN, outN, pipeN, TotalResultCount);
         if Assigned(BackcallPtr^.OnDoneMethod) then
@@ -1202,6 +1274,24 @@ begin
 
           try
             cm.Position := 0;
+            if Assigned(BackcallPtr^.OnUserDoneCall) then
+              begin
+                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, cm);
+                cm.Position := 0;
+              end;
+            if Assigned(BackcallPtr^.OnUserDoneMethod) then
+              begin
+                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, cm);
+                cm.Position := 0;
+              end;
+            {$IFNDEF FPC}
+            if Assigned(BackcallPtr^.OnUserDoneProc) then
+              begin
+                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, cm);
+                cm.Position := 0;
+              end;
+            {$ENDIF}
+            //
             if Assigned(BackcallPtr^.OnDoneCall) then
               begin
                 BackcallPtr^.OnDoneCall(dbN, dStorePos, cm);
@@ -1214,7 +1304,10 @@ begin
               end;
             {$IFNDEF FPC}
             if Assigned(BackcallPtr^.OnDoneProc) then
+              begin
                 BackcallPtr^.OnDoneProc(dbN, dStorePos, cm);
+                cm.Position := 0;
+              end;
             {$ENDIF}
             DisposeObject(cm);
           except
@@ -1246,6 +1339,24 @@ begin
         begin
           try
             m.Position := 0;
+            if Assigned(BackcallPtr^.OnUserDoneCall) then
+              begin
+                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, m);
+                m.Position := 0;
+              end;
+            if Assigned(BackcallPtr^.OnUserDoneMethod) then
+              begin
+                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, m);
+                m.Position := 0;
+              end;
+            {$IFNDEF FPC}
+            if Assigned(BackcallPtr^.OnUserDoneProc) then
+              begin
+                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, m);
+                m.Position := 0;
+              end;
+            {$ENDIF}
+            //
             if Assigned(BackcallPtr^.OnDoneCall) then
               begin
                 BackcallPtr^.OnDoneCall(dbN, dStorePos, m);
@@ -1258,7 +1369,10 @@ begin
               end;
             {$IFNDEF FPC}
             if Assigned(BackcallPtr^.OnDoneProc) then
+              begin
                 BackcallPtr^.OnDoneProc(dbN, dStorePos, m);
+                m.Position := 0;
+              end;
             {$ENDIF}
           except
           end;
@@ -1397,7 +1511,7 @@ begin
 end;
 
 procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
-  fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; Values: THashVariantList);
+  fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList);
 var
   de: TDataFrameEngine;
 begin
@@ -1414,8 +1528,8 @@ begin
   de.WriteDouble(MaxWait);
   de.WriteInt64(MaxQueryResult);
   de.WritePointer(BackcallPtr);
-  if Values <> nil then
-      de.WriteVariantList(Values);
+  if RemoteParams <> nil then
+      de.WriteVariantList(RemoteParams);
 
   SendTunnel.SendDirectStreamCmd('QueryDB', de);
 
@@ -1424,7 +1538,7 @@ end;
 
 procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
-  Values: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
+  RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1432,12 +1546,30 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
 procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
-  Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
+  RemoteParams: THashVariantList;                                           // service ref remote parameter
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnQueryCall: TUserFillQueryDataCall; OnDoneCall: TUserQueryDoneNotifyCall);
+var
+  p: PDataStoreClientQueryNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserQueryCall := OnQueryCall;
+  p^.OnUserDoneCall := OnDoneCall;
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+end;
+
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+  fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
+  RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1445,7 +1577,25 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+end;
+
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+  fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
+  RemoteParams: THashVariantList;                                           // service ref remote parameter
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnQueryMethod: TUserFillQueryDataMethod; OnDoneMethod: TUserQueryDoneNotifyMethod);
+var
+  p: PDataStoreClientQueryNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserQueryMethod := OnQueryMethod;
+  p^.OnUserDoneMethod := OnDoneMethod;
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
 {$IFNDEF FPC}
@@ -1453,7 +1603,7 @@ end;
 
 procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
-  Values: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
+  RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1461,12 +1611,31 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, Values);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
+
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+  fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
+  RemoteParams: THashVariantList;                                           // service ref remote parameter
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnQueryProc: TUserFillQueryDataProc; OnDoneProc: TUserQueryDoneNotifyProc);
+var
+  p: PDataStoreClientQueryNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserQueryProc := OnQueryProc;
+  p^.OnUserDoneProc := OnDoneProc;
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+end;
+
 {$ENDIF}
 
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; dbN: SystemString; Values: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1474,10 +1643,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
+  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, RemoteParams);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; dbN: SystemString; Values: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1485,13 +1654,13 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
+  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, RemoteParams);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; dbN: SystemString; Values: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1499,7 +1668,7 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, Values);
+  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, RemoteParams);
 end;
 {$ENDIF}
 
@@ -1615,6 +1784,59 @@ end;
 {$ENDIF}
 
 
+procedure TDataStoreClient.DownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnDoneCall: TUserDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneCall := OnDoneCall;
+
+  RequestDownloadAssembleStream(dbN, StorePos, p);
+end;
+
+procedure TDataStoreClient.DownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnDoneMethod: TUserDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneMethod := OnDoneMethod;
+
+  RequestDownloadAssembleStream(dbN, StorePos, p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TDataStoreClient.DownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnDoneProc: TUserDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneProc := OnDoneProc;
+
+  RequestDownloadAssembleStream(dbN, StorePos, p);
+end;
+{$ENDIF}
+
+
 procedure TDataStoreClient.RequestFastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
 var
   de: TDataFrameEngine;
@@ -1662,6 +1884,59 @@ begin
   new(p);
   p^.Init;
   p^.OnDoneProc := OnDoneProc;
+
+  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+end;
+{$ENDIF}
+
+
+procedure TDataStoreClient.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnDoneCall: TUserDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneCall := OnDoneCall;
+
+  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+end;
+
+procedure TDataStoreClient.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnDoneMethod: TUserDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneMethod := OnDoneMethod;
+
+  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TDataStoreClient.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
+  OnDoneProc: TUserDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneProc := OnDoneProc;
 
   RequestFastDownloadAssembleStream(dbN, StorePos, p);
 end;

@@ -216,6 +216,7 @@ begin
   else
       DoStatus('listen Recv service failed!');
 
+  Service.UnRegisterCommand;
   Service.RegisterCommand;
 end;
 

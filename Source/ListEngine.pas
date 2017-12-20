@@ -2732,106 +2732,120 @@ end;
 
 procedure THashObjectList.GetNameList(OutputList: TCoreClassStrings);
 var
-  lst: TCoreClassList;
-  i  : Integer;
+  i: Integer;
+  p: PHashListData;
 begin
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
   OutputList.Clear;
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-      with PHashListData(lst[i])^ do
-          OutputList.AddObject(OriginName, PHashObjectListData(Data)^.obj);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.AddObject(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashObjectList.GetNameList(OutputList: TListString);
 var
-  lst: TCoreClassList;
-  i  : Integer;
+  i: Integer;
+  p: PHashListData;
 begin
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
   OutputList.Clear;
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-      with PHashListData(lst[i])^ do
-          OutputList.Add(OriginName);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashObjectList.GetNameList(OutputList: TListPascalString);
 var
-  lst: TCoreClassList;
-  i  : Integer;
+  i: Integer;
+  p: PHashListData;
 begin
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
   OutputList.Clear;
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-      with PHashListData(lst[i])^ do
-          OutputList.Add(OriginName);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashObjectList.GetListData(OutputList: TCoreClassStrings);
 var
-  lst: TCoreClassList;
-  i  : Integer;
+  i: Integer;
+  p: PHashListData;
 begin
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
   OutputList.Clear;
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-      with PHashListData(lst[i])^ do
-          OutputList.AddObject(OriginName, PHashObjectListData(Data)^.obj);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.AddObject(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashObjectList.GetAsList(OutputList: TCoreClassListForObj);
 var
-  lst     : TCoreClassList;
-  pObjData: PHashObjectListData;
-  i       : Integer;
+  i: Integer;
+  p: PHashListData;
 begin
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
   OutputList.Clear;
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-      begin
-        with PHashListData(lst[i])^ do
-          begin
-            pObjData := Data;
-            OutputList.Add(pObjData^.obj);
-          end;
-      end;
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(PHashObjectListData(p^.Data)^.obj);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 function THashObjectList.GetObjAsName(obj: TCoreClassObject): SystemString;
 var
-  lst: TCoreClassList;
-  i  : Integer;
+  i: Integer;
+  p: PHashListData;
 begin
-  Result := '';
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-      begin
-        with PHashListData(lst[i])^ do
-          begin
-            if PHashObjectListData(Data)^.obj = obj then
-              begin
-                Result := OriginName;
-                Break;
-              end;
-          end;
-      end;
-  DisposeObject(lst);
+  Result:='';
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          if PHashObjectListData(p^.Data)^.obj=obj then
+            begin
+              Result:=p^.OriginName;
+              exit;
+            end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashObjectList.Delete(Name: SystemString);
@@ -3169,44 +3183,59 @@ end;
 
 procedure THashVariantList.GetNameList(OutputList: TCoreClassStrings);
 var
-  i  : Integer;
-  lst: TCoreClassList;
+  i: Integer;
+  p: PHashListData;
 begin
   OutputList.Clear;
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-        OutputList.Append(PHashListData(lst[i])^.OriginName);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashVariantList.GetNameList(OutputList: TListString);
 var
-  i  : Integer;
-  lst: TCoreClassList;
+  i: Integer;
+  p: PHashListData;
 begin
   OutputList.Clear;
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-        OutputList.Add(PHashListData(lst[i])^.OriginName);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashVariantList.GetNameList(OutputList: TListPascalString);
 var
-  i  : Integer;
-  lst: TCoreClassList;
+  i: Integer;
+  p: PHashListData;
 begin
   OutputList.Clear;
-  lst := TCoreClassList.Create;
-  FHashList.GetListData(lst);
-  if lst.Count > 0 then
-    for i := 0 to lst.Count - 1 do
-        OutputList.Add(PHashListData(lst[i])^.OriginName);
-  DisposeObject(lst);
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure THashVariantList.Delete(Name: SystemString);

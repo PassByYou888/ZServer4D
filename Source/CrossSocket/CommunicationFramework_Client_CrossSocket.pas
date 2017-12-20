@@ -52,14 +52,12 @@ type
   TGlobalCrossSocketClientPool = class
   public
     Driver                   : TDriverEngine;
-    CurrentBuildIntf         : TCommunicationFramework_Client_CrossSocket;
     LastCompleted, LastResult: Boolean;
     LastConnection           : ICrossConnection;
 
     constructor Create;
     destructor Destroy;
 
-    procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
@@ -146,6 +144,7 @@ end;
 
 function TCommunicationFramework_Client_CrossSocket.Connect(host: string; port: string): Boolean;
 begin
+  Disconnect;
   Result := Connect(host, umlStrToInt(port, 0));
 end;
 
@@ -169,31 +168,14 @@ constructor TGlobalCrossSocketClientPool.Create;
 begin
   inherited Create;
   Driver := TDriverEngine.Create(0);
-  Driver.OnConnected := DoConnected;
   Driver.OnDisconnected := DoDisconnect;
   Driver.OnReceived := DoReceived;
   Driver.OnSent := DoSent;
-  CurrentBuildIntf := nil;
 end;
 
 destructor TGlobalCrossSocketClientPool.Destroy;
 begin
   inherited Destroy;
-end;
-
-procedure TGlobalCrossSocketClientPool.DoConnected(Sender: TObject; AConnection: ICrossConnection);
-var
-  cli: TContextIntfForClient;
-begin
-  cli := TContextIntfForClient.Create(CurrentBuildIntf, AConnection.ConnectionIntf);
-  cli.LastActiveTime := GetTimeTickCount;
-  cli.OwnerClient := CurrentBuildIntf;
-
-  AConnection.UserObject := cli;
-
-  cli.OwnerClient.ClientIOIntf := cli;
-
-  CurrentBuildIntf := nil;
 end;
 
 procedure TGlobalCrossSocketClientPool.DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
@@ -203,15 +185,16 @@ begin
   TThread.Synchronize(TThread.CurrentThread,
     procedure
     begin
-      cli := AConnection.UserObject as TContextIntfForClient;
-      if cli = nil then
-          exit;
+      if AConnection.UserObject is TContextIntfForClient then
+        begin
+          cli := AConnection.UserObject as TContextIntfForClient;
 
-      cli.ClientIntf := nil;
-      AConnection.UserObject := nil;
+          cli.ClientIntf := nil;
+          AConnection.UserObject := nil;
 
-      if cli.OwnerClient <> nil then
-          cli.OwnerClient.DoDisconnect(cli);
+          if cli.OwnerClient <> nil then
+              cli.OwnerClient.DoDisconnect(cli);
+        end;
     end);
 end;
 
@@ -221,10 +204,10 @@ var
 begin
   if ALen <= 0 then
       exit;
+  if not(AConnection.UserObject is TContextIntfForClient) then
+      exit;
 
   cli := AConnection.UserObject as TContextIntfForClient;
-  if cli = nil then
-      exit;
 
   if (cli.ClientIntf = nil) then
       exit;
@@ -249,9 +232,10 @@ procedure TGlobalCrossSocketClientPool.DoSent(Sender: TObject; AConnection: ICro
 var
   cli: TContextIntfForClient;
 begin
-  cli := AConnection.UserObject as TContextIntfForClient;
-  if cli = nil then
+  if not(AConnection.UserObject is TContextIntfForClient) then
       exit;
+
+  cli := AConnection.UserObject as TContextIntfForClient;
 
   if (cli.ClientIntf = nil) then
       exit;
@@ -261,13 +245,28 @@ end;
 
 function TGlobalCrossSocketClientPool.BuildConnect(Addr: string; port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
 var
-  dt: TTimeTickValue;
+  dt : TTimeTickValue;
+  cli: TContextIntfForClient;
+  i  : Integer;
+  lst: TCrossConnections;
 begin
-  CurrentBuildIntf := BuildIntf;
-
   LastResult := False;
   LastCompleted := False;
   LastConnection := nil;
+
+  if BuildIntf.ClientIOIntf <> nil then
+    begin
+      try
+        if BuildIntf.ClientIOIntf.Context <> nil then
+            BuildIntf.ClientIOIntf.Context.Close;
+      except
+      end;
+      while BuildIntf.ClientIOIntf <> nil do
+        begin
+          CheckSynchronize(10);
+          BuildIntf.ProgressBackground;
+        end;
+    end;
 
   ICrossSocket(Driver).Connect(Addr, port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
@@ -277,16 +276,23 @@ begin
       if LastResult then
           LastConnection := AConnection;
     end);
-	
-  TThread.Sleep(2);
-	
+
+  TThread.Sleep(3);
+
   dt := GetTimeTick + 1000;
   while (not LastCompleted) and (GetTimeTick < dt) do
-      CheckSynchronize(1);
+      CheckSynchronize(2);
 
   if LastResult then
     begin
-      BuildIntf.DoConnected(BuildIntf.ClientIOIntf);
+      cli := TContextIntfForClient.Create(BuildIntf, LastConnection.ConnectionIntf);
+      cli.LastActiveTime := GetTimeTickCount;
+      cli.OwnerClient := BuildIntf;
+
+      LastConnection.UserObject := cli;
+
+      cli.OwnerClient.ClientIOIntf := cli;
+      BuildIntf.DoConnected(cli);
     end;
 
   dt := GetTimeTick + 1000;

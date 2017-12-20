@@ -65,7 +65,6 @@ type
     FFileReceiveDirectory   : SystemString;
   protected
     procedure UserLogin(UserID, UserPasswd: SystemString); virtual;
-    procedure UserRegistedSuccess(UserID: SystemString); virtual;
     procedure UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
@@ -102,6 +101,7 @@ type
     procedure UnRegisterCommand; virtual;
 
     function GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+    function ExistsUser(AUserID: SystemString): Boolean;
 
     function GetUserDefineRecvTunnel(RecvCli: TPeerClient): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
 
@@ -352,10 +352,6 @@ begin
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserLogin(UserID, UserPasswd: SystemString);
-begin
-end;
-
-procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserRegistedSuccess(UserID: SystemString);
 begin
 end;
 
@@ -883,6 +879,11 @@ end;
 function TCommunicationFramework_DoubleTunnelService_VirtualAuth.GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
 begin
   Result := TPeerClientUserDefineForRecvTunnel_VirtualAuth(FLoginUserDefineIOList[AUserID]);
+end;
+
+function TCommunicationFramework_DoubleTunnelService_VirtualAuth.ExistsUser(AUserID: SystemString): Boolean;
+begin
+  Result := FLoginUserDefineIOList.Exists(AUserID);
 end;
 
 function TCommunicationFramework_DoubleTunnelService_VirtualAuth.GetUserDefineRecvTunnel(RecvCli: TPeerClient): TPeerClientUserDefineForRecvTunnel_VirtualAuth;

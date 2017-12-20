@@ -289,6 +289,14 @@ type
   {$IFNDEF FPC}
   TFillQueryDataProc = reference to procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
   {$ENDIF}
+  TUserFillQueryDataCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
+  TUserFillQueryDataMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64) of object;
+  {$IFNDEF FPC}
+  TUserFillQueryDataProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
+  {$ENDIF}
 
 function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString;
 procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStoreBase); inline;
@@ -297,10 +305,20 @@ procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64
 {$IFNDEF FPC}
 procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload; inline;
 {$ENDIF}
+procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall); overload; inline;
+procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod); overload; inline;
+{$IFNDEF FPC}
+procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc); overload; inline;
+{$ENDIF}
 
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean; inline;
 function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; inline;
 function DecodeOneFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; inline;
+function DecodeOneNewFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; inline;
+function DecodeOneNewFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; inline;
 
 implementation
 
@@ -457,6 +475,125 @@ end;
 {$ENDIF}
 
 
+procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall);
+var
+  StorePos, siz: Int64;
+  ID           : Cardinal;
+  m64          : TMemoryStream64;
+begin
+  if not Assigned(OnResult) then
+      exit;
+  if DataSour.Size <= 0 then
+      exit;
+
+  DataSour.Position := 0;
+
+  m64 := TMemoryStream64.Create;
+  while DataSour.Position < DataSour.Size do
+    begin
+      if DataSour.ReadPtr(@StorePos, umlInt64Length) <> umlInt64Length then
+          break;
+      if DataSour.ReadPtr(@siz, umlInt64Length) <> umlInt64Length then
+          break;
+      if DataSour.ReadPtr(@ID, umlCardinalLength) <> umlCardinalLength then
+          break;
+
+      if DataSour.Position + siz > DataSour.Size then
+          break;
+
+      try
+        m64.SetPointerWithProtectedMode(DataSour.PositionAsPtr(DataSour.Position), siz);
+        OnResult(UserPointer, UserObject, UserVariant, dbN, pipeN, StorePos, ID, m64);
+      except
+      end;
+
+      DataSour.Position := DataSour.Position + siz;
+    end;
+  DisposeObject(m64);
+end;
+
+procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod);
+var
+  StorePos, siz: Int64;
+  ID           : Cardinal;
+  m64          : TMemoryStream64;
+begin
+  if not Assigned(OnResult) then
+      exit;
+  if DataSour.Size <= 0 then
+      exit;
+
+  DataSour.Position := 0;
+
+  m64 := TMemoryStream64.Create;
+  while DataSour.Position < DataSour.Size do
+    begin
+      if DataSour.ReadPtr(@StorePos, umlInt64Length) <> umlInt64Length then
+          break;
+      if DataSour.ReadPtr(@siz, umlInt64Length) <> umlInt64Length then
+          break;
+      if DataSour.ReadPtr(@ID, umlCardinalLength) <> umlCardinalLength then
+          break;
+
+      if DataSour.Position + siz > DataSour.Size then
+          break;
+
+      try
+        m64.SetPointerWithProtectedMode(DataSour.PositionAsPtr(DataSour.Position), siz);
+        OnResult(UserPointer, UserObject, UserVariant, dbN, pipeN, StorePos, ID, m64);
+      except
+      end;
+
+      DataSour.Position := DataSour.Position + siz;
+    end;
+  DisposeObject(m64);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc);
+var
+  StorePos, siz: Int64;
+  ID           : Cardinal;
+  m64          : TMemoryStream64;
+begin
+  if not Assigned(OnResult) then
+      exit;
+  if DataSour.Size <= 0 then
+      exit;
+
+  DataSour.Position := 0;
+
+  m64 := TMemoryStream64.Create;
+  while DataSour.Position < DataSour.Size do
+    begin
+      if DataSour.ReadPtr(@StorePos, umlInt64Length) <> umlInt64Length then
+          break;
+      if DataSour.ReadPtr(@siz, umlInt64Length) <> umlInt64Length then
+          break;
+      if DataSour.ReadPtr(@ID, umlCardinalLength) <> umlCardinalLength then
+          break;
+
+      if DataSour.Position + siz > DataSour.Size then
+          break;
+
+      try
+        m64.SetPointerWithProtectedMode(DataSour.PositionAsPtr(DataSour.Position), siz);
+        OnResult(UserPointer, UserObject, UserVariant, dbN, pipeN, StorePos, ID, m64);
+      except
+      end;
+
+      DataSour.Position := DataSour.Position + siz;
+    end;
+  DisposeObject(m64);
+end;
+{$ENDIF}
+
+
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
 var
   itmStream: TItemStream;
@@ -505,6 +642,34 @@ var
   ID       : Cardinal;
 begin
   Result := DecodeOneFragment(DataSour, dStorePos, ID);
+end;
+
+function DecodeOneNewFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64;
+var
+  siz: Int64;
+begin
+  Result := nil;
+  if DataSour.ReadPtr(@dStorePos, umlInt64Length) <> umlInt64Length then
+      exit;
+  if DataSour.ReadPtr(@siz, umlInt64Length) <> umlInt64Length then
+      exit;
+  if DataSour.ReadPtr(@ID, umlCardinalLength) <> umlCardinalLength then
+      exit;
+
+  if DataSour.Position + siz > DataSour.Size then
+      exit;
+
+  Result := TMemoryStream64.Create;
+  Result.CopyFrom(DataSour, siz);
+  Result.Position := 0;
+end;
+
+function DecodeOneNewFragment(DataSour: TMemoryStream64): TMemoryStream64;
+var
+  dStorePos: Int64;
+  ID       : Cardinal;
+begin
+  Result := DecodeOneNewFragment(DataSour, dStorePos, ID);
 end;
 
 procedure TZDBStoreEngine.DoCreateInit;
@@ -1011,10 +1176,10 @@ begin
   inherited Create;
   FRootPath := umlCurrentPath;
   FDBPool := THashObjectList.Create(True, 1024);
-  FDBPool.AccessOptimization := True;
+  FDBPool.AccessOptimization := False;
 
   FQueryPipelinePool := THashObjectList.Create(False, 1024);
-  FQueryPipelinePool.AccessOptimization := True;
+  FQueryPipelinePool.AccessOptimization := False;
 
   FQueryPipelineList := TCoreClassListForObj.Create;
 

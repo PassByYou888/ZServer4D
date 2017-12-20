@@ -57,7 +57,6 @@ object AuthDoubleServerForm: TAuthDoubleServerForm
       '')
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitHeight = 353
   end
   object StartServiceButton: TButton
     Left = 32

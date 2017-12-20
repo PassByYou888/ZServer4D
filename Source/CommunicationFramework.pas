@@ -220,6 +220,9 @@ type
     FOwner: TPeerClient;
   public
     constructor Create(AOwner: TPeerClient); virtual;
+    destructor Destroy; override;
+
+    procedure Progress; virtual;
 
     property Owner: TPeerClient read FOwner;
   end;
@@ -1359,6 +1362,15 @@ begin
   FOwner := AOwner;
 end;
 
+destructor TPeerClientUserSpecial.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TPeerClientUserSpecial.Progress;
+begin
+end;
+
 function TPeerClient.GetUserVariants: THashVariantList;
 begin
   if FUserVariants = nil then
@@ -2374,6 +2386,11 @@ begin
   except
   end;
 
+  try
+      FUserSpecial.Progress;
+  except
+  end;
+
   if FAllSendProcessing then
       exit;
   if FReceiveProcessing then
@@ -2425,8 +2442,6 @@ begin
           ProcessAllSendCmd(nil, False, False);
           FillRecvBuffer(nil, False, False);
         end;
-
-      exit;
     end;
 end;
 
@@ -2457,7 +2472,6 @@ begin
       exit;
 
   FReceiveProcessing := True;
-  LockObject(Self);
   try
     while (FReceivedBuffer.Size > 0) and (Connected) do
       begin
@@ -2618,7 +2632,6 @@ begin
   finally
     FReceivedBuffer.Position := FReceivedBuffer.Size;
     FReceiveProcessing := False;
-    UnLockObject(Self);
   end;
 end;
 
