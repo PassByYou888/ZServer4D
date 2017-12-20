@@ -93,7 +93,7 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 新增6万压测Demo，附截图
 
-
+![6万压测截图](https://github.com/PassByYou888/ZServer4D/blob/master/Examples/9.%E9%95%BF%E8%BF%9E%E6%8E%A5%E5%8E%8B%E6%B5%8B/6%E4%B8%87%E5%8E%8B%E6%B5%8B%E6%88%AA%E5%9B%BE.png)
 
 ZDB新增一组提交数据条目和大图片捆绑的Demo，每张图片各2M，此机制可用于任何Stream数据，请参考并且依次类推
 
@@ -136,7 +136,7 @@ ZDB和ZServer均已在Linux下测试通过
 
 新增单机数据库Demo
 
-新增20k链接压力测试，服务器光速响应，并且无内存泄漏 [20k长连接测试](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/9.%E9%95%BF%E8%BF%9E%E6%8E%A5%E5%8E%8B%E6%B5%8B)
+新增20k链接压力测试，服务器光速响应，并且无内存泄漏
 
 通讯内核新增批次化BigStream支持
 
