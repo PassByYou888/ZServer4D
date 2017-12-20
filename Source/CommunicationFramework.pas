@@ -13,7 +13,7 @@ unit CommunicationFramework;
 
 interface
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 
 uses Classes, SysUtils, Variants, TypInfo,
@@ -231,42 +231,43 @@ type
 
   TPeerClient = class(TCoreClassInterfacedObject, IMemoryStream64WriteTrigger)
   private
-    FOwnerFramework                     : TCommunicationFramework;
-    FClientIntf                         : TCoreClassObject;
-    FID                                 : Cardinal;
-    FHeadFlag                           : Byte;
-    FReceivedBuffer                     : TMemoryStream64OfWriteTrigger;
-    FBigStreamReceiveProcessing         : Boolean;
-    FBigStreamTotal, FBigStreamCompleted: Int64;
-    FBigStreamCmd                       : SystemString;
-    FBigStreamReceive                   : TCoreClassStream;
-    FBigStreamSending                   : TCoreClassStream;
-    FBigStreamSendState                 : Int64; // stream current position
-    FBigStreamSendDoneTimeFree          : Boolean;
-    FCurrentQueueData                   : PQueueData;
-    FWaitOnResult                       : Boolean;
-    FCurrentPauseResultSend_CommDataType: Byte;
-    FCanPauseResultSend                 : Boolean;
-    FPauseResultSend                    : Boolean;
-    FRunReceiveTrigger                  : Boolean;
-    FReceiveDataCipherStyle             : TCipherStyle;
-    FResultDataBuffer                   : TMemoryStream64;
-    FSendDataCipherStyle                : TCipherStyle;
-    FAllSendProcessing                  : Boolean;
-    FReceiveProcessing                  : Boolean;
-    FQueueList                          : TCoreClassList;
-    FLastCommunicationTimeTickCount     : TTimeTickValue;
-    FCipherKey                          : TCipherKeyBuffer;
-    FRemoteExecutedForConnectInit       : Boolean;
-    FInCmd                              : SystemString;
-    FInText, FOutText                   : SystemString;
-    FInDataFrame, FOutDataFrame         : TDataFrameEngine;
-    ResultText                          : SystemString;
-    ResultDataFrame                     : TDataFrameEngine;
-    FSyncPick                           : PQueueData;
-    FWaitSendBusy                       : Boolean;
-    FReceiveCommandRuning               : Boolean;
-    FReceiveResultRuning                : Boolean;
+    FOwnerFramework                                                                      : TCommunicationFramework;
+    FClientIntf                                                                          : TCoreClassObject;
+    FID                                                                                  : Cardinal;
+    FHeadToken, FTailToken                                                               : Cardinal;
+    FConsoleToken, FStreamToken, FDirectConsoleToken, FDirectStreamToken, FBigStreamToken: Byte;
+    FReceivedBuffer                                                                      : TMemoryStream64OfWriteTrigger;
+    FBigStreamReceiveProcessing                                                          : Boolean;
+    FBigStreamTotal, FBigStreamCompleted                                                 : Int64;
+    FBigStreamCmd                                                                        : SystemString;
+    FBigStreamReceive                                                                    : TCoreClassStream;
+    FBigStreamSending                                                                    : TCoreClassStream;
+    FBigStreamSendState                                                                  : Int64; // stream current position
+    FBigStreamSendDoneTimeFree                                                           : Boolean;
+    FCurrentQueueData                                                                    : PQueueData;
+    FWaitOnResult                                                                        : Boolean;
+    FCurrentPauseResultSend_CommDataType                                                 : Byte;
+    FCanPauseResultSend                                                                  : Boolean;
+    FPauseResultSend                                                                     : Boolean;
+    FRunReceiveTrigger                                                                   : Boolean;
+    FReceiveDataCipherStyle                                                              : TCipherStyle;
+    FResultDataBuffer                                                                    : TMemoryStream64;
+    FSendDataCipherStyle                                                                 : TCipherStyle;
+    FAllSendProcessing                                                                   : Boolean;
+    FReceiveProcessing                                                                   : Boolean;
+    FQueueList                                                                           : TCoreClassList;
+    FLastCommunicationTimeTickCount                                                      : TTimeTickValue;
+    FCipherKey                                                                           : TCipherKeyBuffer;
+    FRemoteExecutedForConnectInit                                                        : Boolean;
+    FInCmd                                                                               : SystemString;
+    FInText, FOutText                                                                    : SystemString;
+    FInDataFrame, FOutDataFrame                                                          : TDataFrameEngine;
+    ResultText                                                                           : SystemString;
+    ResultDataFrame                                                                      : TDataFrameEngine;
+    FSyncPick                                                                            : PQueueData;
+    FWaitSendBusy                                                                        : Boolean;
+    FReceiveCommandRuning                                                                : Boolean;
+    FReceiveResultRuning                                                                 : Boolean;
   private
     // user
     FUserData           : Pointer;
@@ -702,19 +703,23 @@ type
 
   TProgressBackgroundProc = procedure();
 
-const
-  // header verify flag
-  c_DataHeadFlag = $F0;
-  // communication data type
-  cdtConsole       = 11;
-  cdtStream        = 22;
-  cdtDirectConsole = 37;
-  cdtDirectStream  = 46;
-  cdtBigStream     = 75;
-  // dostatus print id
-  c_DefaultPrintID = $FFFFFFFF;
-
 var
+  // communication data token
+  c_DefaultConsoleToken      : Byte = 11;
+  c_DefaultStreamToken       : Byte = 22;
+  c_DefaultDirectConsoleToken: Byte = 33;
+  c_DefaultDirectStreamToken : Byte = 44;
+  c_DefaultBigStreamToken    : Byte = 55;
+
+  // user custom header verify token
+  c_DataHeadToken: Cardinal = $F0F0F0F0;
+  // user custom tail verify token
+  c_DataTailToken: Cardinal = $F1F1F1F1;
+
+  // dostatus print id
+  c_DefaultDoStatusID: Integer = $FFFFFFFF;
+
+  // global progress backcall
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
 
 procedure DisposeQueueData(v: PQueueData); inline;
@@ -1479,12 +1484,13 @@ end;
 procedure TPeerClient.InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
 begin
   WriteBufferOpen;
-  SendByte(Byte(FHeadFlag));
-  SendByte(Byte(cdtConsole));
+  SendCardinal(FHeadToken);
+  SendByte(Byte(FConsoleToken));
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
   SendEncryptMemoryStream(buff, cs);
+  SendCardinal(FTailToken);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1493,12 +1499,13 @@ end;
 procedure TPeerClient.InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
 begin
   WriteBufferOpen;
-  SendByte(Byte(FHeadFlag));
-  SendByte(Byte(cdtStream));
+  SendCardinal(FHeadToken);
+  SendByte(Byte(FStreamToken));
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
   SendEncryptMemoryStream(buff, cs);
+  SendCardinal(FTailToken);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1507,12 +1514,13 @@ end;
 procedure TPeerClient.InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
 begin
   WriteBufferOpen;
-  SendByte(Byte(FHeadFlag));
-  SendByte(Byte(cdtDirectConsole));
+  SendCardinal(FHeadToken);
+  SendByte(Byte(FDirectConsoleToken));
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
   SendEncryptMemoryStream(buff, cs);
+  SendCardinal(FTailToken);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1521,12 +1529,13 @@ end;
 procedure TPeerClient.InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
 begin
   WriteBufferOpen;
-  SendByte(Byte(FHeadFlag));
-  SendByte(Byte(cdtDirectStream));
+  SendCardinal(FHeadToken);
+  SendByte(Byte(FDirectStreamToken));
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
   SendEncryptMemoryStream(buff, cs);
+  SendCardinal(FTailToken);
 
   WriteBufferFlush;
   WriteBufferClose;
@@ -1538,12 +1547,13 @@ var
 begin
   WriteBufferOpen;
 
-  SendByte(FHeadFlag);
-  SendByte(cdtBigStream);
+  SendCardinal(FHeadToken);
+  SendByte(FBigStreamToken);
   SendInt64(streamSiz);
   buff := TPascalString(Cmd).Bytes;
   SendCardinal(Cardinal(Length(buff)));
   InternalSendByteBuffer(@buff[0], Length(buff));
+  SendCardinal(FTailToken);
   try
     WriteBufferFlush;
     WriteBufferClose;
@@ -1838,123 +1848,123 @@ var
 begin
   FInCmd := dataFrame.Reader.ReadString;
 
-  case CommDataType of
-    cdtConsole:
-      begin
-        FInText := dataFrame.Reader.ReadString;
-        FOutText := '';
+  if CommDataType = FConsoleToken then
+    begin
+      FInText := dataFrame.Reader.ReadString;
+      FOutText := '';
 
-        FCanPauseResultSend := True;
+      FCanPauseResultSend := True;
 
-        FRunReceiveTrigger := True;
-        {$IFDEF FPC}
-        SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteConsole);
-        {$ELSE}
-        SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteConsole);
-        {$ENDIF}
-        FRunReceiveTrigger := False;
+      FRunReceiveTrigger := True;
+      {$IFDEF FPC}
+      SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteConsole);
+      {$ELSE}
+      SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteConsole);
+      {$ENDIF}
+      FRunReceiveTrigger := False;
 
-        FCanPauseResultSend := False;
+      FCanPauseResultSend := False;
 
-        if FPauseResultSend then
-          begin
-            FCurrentPauseResultSend_CommDataType := CommDataType;
-            exit;
-          end;
-        if not Connected then
-            exit;
+      if FPauseResultSend then
+        begin
+          FCurrentPauseResultSend_CommDataType := CommDataType;
+          exit;
+        end;
+      if not Connected then
+          exit;
 
-        buff := TPascalString(FOutText).Bytes;
-        WriteBufferOpen;
+      buff := TPascalString(FOutText).Bytes;
+      WriteBufferOpen;
 
-        SendByte(Byte(FHeadFlag));
-        SendInteger(Length(buff));
+      SendCardinal(FHeadToken);
+      SendInteger(Length(buff));
 
-        SendVerifyCode(@buff[0], Length(buff));
+      SendVerifyCode(@buff[0], Length(buff));
 
-        SendEncryptBuffer(@buff[0], Length(buff), FReceiveDataCipherStyle);
+      SendEncryptBuffer(@buff[0], Length(buff), FReceiveDataCipherStyle);
+      SendCardinal(FTailToken);
 
-        WriteBufferFlush;
-        WriteBufferClose;
+      WriteBufferFlush;
+      WriteBufferClose;
 
-        inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
-      end;
-    cdtStream:
-      begin
-        FInDataFrame.Clear;
-        FOutDataFrame.Clear;
-        dataFrame.Reader.ReadDataFrame(FInDataFrame);
+      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+    end
+  else if CommDataType = FStreamToken then
+    begin
+      FInDataFrame.Clear;
+      FOutDataFrame.Clear;
+      dataFrame.Reader.ReadDataFrame(FInDataFrame);
 
-        FCanPauseResultSend := True;
+      FCanPauseResultSend := True;
 
-        FRunReceiveTrigger := True;
-        {$IFDEF FPC}
-        SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteStream);
-        {$ELSE}
-        SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteStream);
-        {$ENDIF}
-        FRunReceiveTrigger := False;
+      FRunReceiveTrigger := True;
+      {$IFDEF FPC}
+      SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteStream);
+      {$ELSE}
+      SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteStream);
+      {$ENDIF}
+      FRunReceiveTrigger := False;
 
-        FCanPauseResultSend := False;
+      FCanPauseResultSend := False;
 
-        if FPauseResultSend then
-          begin
-            FCurrentPauseResultSend_CommDataType := CommDataType;
-            exit;
-          end;
+      if FPauseResultSend then
+        begin
+          FCurrentPauseResultSend_CommDataType := CommDataType;
+          exit;
+        end;
 
-        if not Connected then
-            exit;
+      if not Connected then
+          exit;
 
-        m64 := TMemoryStream64.Create;
-        FOutDataFrame.EncodeTo(m64, True);
+      m64 := TMemoryStream64.Create;
+      FOutDataFrame.EncodeTo(m64, True);
 
-        WriteBufferOpen;
-        SendByte(Byte(FHeadFlag));
-        SendInteger(m64.Size);
+      WriteBufferOpen;
+      SendCardinal(FHeadToken);
+      SendInteger(m64.Size);
 
-        SendVerifyCode(m64.Memory, m64.Size);
+      SendVerifyCode(m64.Memory, m64.Size);
 
-        SendEncryptBuffer(m64.Memory, m64.Size, FReceiveDataCipherStyle);
-        DisposeObject(m64);
+      SendEncryptBuffer(m64.Memory, m64.Size, FReceiveDataCipherStyle);
+      SendCardinal(FTailToken);
+      DisposeObject(m64);
 
-        WriteBufferFlush;
-        WriteBufferClose;
-        inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
-      end;
-    cdtDirectConsole:
-      begin
-        FInText := dataFrame.Reader.ReadString;
+      WriteBufferFlush;
+      WriteBufferClose;
+      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+    end
+  else if CommDataType = FDirectConsoleToken then
+    begin
+      FInText := dataFrame.Reader.ReadString;
 
-        FRunReceiveTrigger := True;
-        {$IFDEF FPC}
-        SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteDirectConsole);
-        {$ELSE}
-        SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteDirectConsole);
-        {$ENDIF}
-        FRunReceiveTrigger := False;
+      FRunReceiveTrigger := True;
+      {$IFDEF FPC}
+      SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteDirectConsole);
+      {$ELSE}
+      SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteDirectConsole);
+      {$ENDIF}
+      FRunReceiveTrigger := False;
 
-        if not Connected then
-            exit;
-      end;
-    cdtDirectStream:
-      begin
-        FInDataFrame.Clear;
-        FOutDataFrame.Clear;
-        dataFrame.Reader.ReadDataFrame(FInDataFrame);
+      if not Connected then
+          exit;
+    end
+  else if CommDataType = FDirectStreamToken then
+    begin
+      FInDataFrame.Clear;
+      FOutDataFrame.Clear;
+      dataFrame.Reader.ReadDataFrame(FInDataFrame);
 
-        FRunReceiveTrigger := True;
-        {$IFDEF FPC}
-        SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteDirectStream);
-        {$ELSE}
-        SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteDirectStream);
-        {$ENDIF}
-        FRunReceiveTrigger := False;
+      FRunReceiveTrigger := True;
+      {$IFDEF FPC}
+      SyncMethod(ACurrentActiveThread, Sync, @Sync_ExecuteDirectStream);
+      {$ELSE}
+      SyncMethod(ACurrentActiveThread, Sync, Sync_ExecuteDirectStream);
+      {$ENDIF}
+      FRunReceiveTrigger := False;
 
-        if not Connected then
-            exit;
-      end;
-  end;
+      if not Connected then
+          exit;
+    end;
 end;
 
 procedure TPeerClient.Sync_ExecuteBigStream;
@@ -2059,7 +2069,7 @@ end;
 
 function TPeerClient.FillWaitOnResultBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean): Boolean;
 var
-  dID         : Byte;
+  dHead, dTail: Cardinal;
   dSize       : Integer;
   dHashStyle  : THashStyle;
   dHashSiz    : Word;
@@ -2076,13 +2086,11 @@ begin
 
   FReceivedBuffer.Position := 0;
 
-  if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
+  // 0: head token
+  if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
       exit;
-
-  // 0: data type
-  FReceivedBuffer.Read(dID, umlByteLength);
-
-  if dID <> FHeadFlag then
+  FReceivedBuffer.Read(dHead, umlCardinalLength);
+  if dHead <> FHeadToken then
     begin
       Disconnect;
       exit;
@@ -2110,11 +2118,20 @@ begin
       exit;
   FReceivedBuffer.Read(dCipherStyle, umlByteLength);
 
-  // 5:process bytes
-  if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize) then
+  // 5:process buff and tail token
+  if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
       exit;
   SetLength(buff, dSize);
   FReceivedBuffer.Read(buff[0], dSize);
+
+  // 6: tail token
+  FReceivedBuffer.Read(dTail, umlCardinalLength);
+  if dTail <> FTailToken then
+    begin
+      Print('tail token error!');
+      Disconnect;
+      exit;
+    end;
 
   FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
 
@@ -2223,7 +2240,14 @@ begin
   if AOwnerFramework.FIDCounter = 0 then
       inc(AOwnerFramework.FIDCounter);
 
-  FHeadFlag := c_DataHeadFlag;
+  FHeadToken := c_DataHeadToken;
+  FTailToken := c_DataTailToken;
+
+  FConsoleToken := c_DefaultConsoleToken;
+  FStreamToken := c_DefaultStreamToken;
+  FDirectConsoleToken := c_DefaultDirectConsoleToken;
+  FDirectStreamToken := c_DefaultDirectStreamToken;
+  FBigStreamToken := c_DefaultBigStreamToken;
 
   FReceivedBuffer := TMemoryStream64OfWriteTrigger.Create(Self);
   FBigStreamReceiveProcessing := False;
@@ -2447,7 +2471,8 @@ end;
 
 procedure TPeerClient.FillRecvBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
 var
-  dFlag, dID  : Byte;
+  dHead, dTail: Cardinal;
+  dID         : Byte;
   dSize       : Cardinal;
   dHashStyle  : THashStyle;
   dHashSiz    : Word;
@@ -2496,11 +2521,11 @@ begin
                 break;
           end;
 
-        // 0: flag
-        if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
+        // 0: head token
+        if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
             break;
-        FReceivedBuffer.Read(dFlag, umlByteLength);
-        if dFlag <> FHeadFlag then
+        FReceivedBuffer.Read(dHead, umlCardinalLength);
+        if dHead <> FHeadToken then
           begin
             Disconnect;
             break;
@@ -2511,123 +2536,140 @@ begin
             break;
         FReceivedBuffer.Read(dID, umlByteLength);
 
-        case dID of
-          cdtConsole, cdtStream, cdtDirectConsole, cdtDirectStream:
-            begin
-              // 2: size
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
-                  break;
-              FReceivedBuffer.Read(dSize, umlCardinalLength);
+        if dID in [FConsoleToken, FStreamToken, FDirectConsoleToken, FDirectStreamToken] then
+          begin
+            // 2: size
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
+                break;
+            FReceivedBuffer.Read(dSize, umlCardinalLength);
 
-              // 3:verify code header
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < 3) then
-                  break;
-              FReceivedBuffer.Read(dHashStyle, umlByteLength);
-              FReceivedBuffer.Read(dHashSiz, umlWordLength);
+            // 3:verify code header
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < 3) then
+                break;
+            FReceivedBuffer.Read(dHashStyle, umlByteLength);
+            FReceivedBuffer.Read(dHashSiz, umlWordLength);
 
-              // 4:verify code body
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < dHashSiz) then
-                  break;
-              SetLength(dHash, dHashSiz);
-              FReceivedBuffer.Read(dHash[0], dHashSiz);
+            // 4:verify code body
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < dHashSiz) then
+                break;
+            SetLength(dHash, dHashSiz);
+            FReceivedBuffer.Read(dHash[0], dHashSiz);
 
-              // 5: Encrypt style
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
-                  break;
-              FReceivedBuffer.Read(dCipherStyle, umlByteLength);
+            // 5: Encrypt style
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
+                break;
+            FReceivedBuffer.Read(dCipherStyle, umlByteLength);
 
-              // 6: process stream
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize) then
-                  break;
-              tmpStream := TMemoryStream64OfWriteTrigger.Create(nil);
-              tmpStream.CopyFrom(FReceivedBuffer, dSize);
+            // 6: process stream
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
+                break;
+            tmpStream := TMemoryStream64OfWriteTrigger.Create(nil);
+            tmpStream.CopyFrom(FReceivedBuffer, dSize);
 
-              FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
-
-              try
-                  Encrypt(FReceiveDataCipherStyle, tmpStream.Memory, tmpStream.Size, FCipherKey, False);
-              except
-                Print('Encrypt error!');
-                DisposeObject(tmpStream);
+            // 7: process tail token
+            FReceivedBuffer.Read(dTail, umlCardinalLength);
+            if dTail <> FTailToken then
+              begin
+                Print('tail error!');
                 Disconnect;
                 break;
               end;
 
-              if not VerifyHashCode(dHashStyle, tmpStream.Memory, tmpStream.Size, dHash) then
-                begin
-                  Print('verify data error!');
-                  DisposeObject(tmpStream);
-                  Disconnect;
-                  break;
-                end;
+            FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
 
-              df := TDataFrameEngine.Create;
-              tmpStream.Position := 0;
-              try
-                  df.DecodeFrom(tmpStream, True);
-              except
-                Print('DECode dataFrame error!');
-                DisposeObject(tmpStream);
-                Disconnect;
-                break;
-              end;
+            try
+                Encrypt(FReceiveDataCipherStyle, tmpStream.Memory, tmpStream.Size, FCipherKey, False);
+            except
+              Print('Encrypt error!');
               DisposeObject(tmpStream);
-
-              // stripped stream
-              tmpStream := TMemoryStream64OfWriteTrigger.Create(nil);
-              if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
-                  tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
-              DisposeObject(FReceivedBuffer);
-              FReceivedBuffer := tmpStream;
-              FReceivedBuffer.Trigger := Self;
-
-              try
-                  ExecuteDataFrame(ACurrentActiveThread, RecvSync, dID, df);
-              except
-              end;
-              DisposeObject(df);
-
-              inc(FOwnerFramework.Statistics[TStatisticsType.stRequest]);
-            end;
-          cdtBigStream:
-            begin
-              // 2:stream size
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlInt64Length) then
-                  break;
-              FReceivedBuffer.Read(Total, umlInt64Length);
-
-              // 3:command len
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
-                  break;
-              FReceivedBuffer.Read(dSize, umlCardinalLength);
-
-              // 4:command text
-              if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize) then
-                  break;
-              SetLength(buff, dSize);
-              FReceivedBuffer.Read(buff[0], dSize);
-              FBigStreamTotal := Total;
-              FBigStreamCompleted := 0;
-              FBigStreamCmd := PascalStringOfBytes(buff).Text;
-              FBigStreamReceiveProcessing := True;
-              SetLength(buff, 0);
-
-              // stripped stream
-              tmpStream := TMemoryStream64OfWriteTrigger.Create(nil);
-              if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
-                  tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
-              DisposeObject(FReceivedBuffer);
-              FReceivedBuffer := tmpStream;
-              FReceivedBuffer.Trigger := Self;
-
-              inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveBigStream]);
-            end;
-          else
-            begin
               Disconnect;
               break;
             end;
-        end;
+
+            if not VerifyHashCode(dHashStyle, tmpStream.Memory, tmpStream.Size, dHash) then
+              begin
+                Print('verify data error!');
+                DisposeObject(tmpStream);
+                Disconnect;
+                break;
+              end;
+
+            df := TDataFrameEngine.Create;
+            tmpStream.Position := 0;
+            try
+                df.DecodeFrom(tmpStream, True);
+            except
+              Print('DECode dataFrame error!');
+              DisposeObject(tmpStream);
+              Disconnect;
+              break;
+            end;
+            DisposeObject(tmpStream);
+
+            // stripped stream
+            tmpStream := TMemoryStream64OfWriteTrigger.Create(nil);
+            if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
+                tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
+            DisposeObject(FReceivedBuffer);
+            FReceivedBuffer := tmpStream;
+            FReceivedBuffer.Trigger := Self;
+
+            try
+                ExecuteDataFrame(ACurrentActiveThread, RecvSync, dID, df);
+            except
+            end;
+            DisposeObject(df);
+
+            inc(FOwnerFramework.Statistics[TStatisticsType.stRequest]);
+          end
+        else if dID = FBigStreamToken then
+          begin
+            // 2:stream size
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlInt64Length) then
+                break;
+            FReceivedBuffer.Read(Total, umlInt64Length);
+
+            // 3:command len
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
+                break;
+            FReceivedBuffer.Read(dSize, umlCardinalLength);
+
+            // 4:command and tial token
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
+                break;
+            SetLength(buff, dSize);
+            FReceivedBuffer.Read(buff[0], dSize);
+
+            // 5: process tail token
+            FReceivedBuffer.Read(dTail, umlCardinalLength);
+            if dTail <> FTailToken then
+              begin
+                Print('tail error!');
+                Disconnect;
+                break;
+              end;
+
+            FBigStreamTotal := Total;
+            FBigStreamCompleted := 0;
+            FBigStreamCmd := PascalStringOfBytes(buff).Text;
+            FBigStreamReceiveProcessing := True;
+            SetLength(buff, 0);
+
+            // stripped stream
+            tmpStream := TMemoryStream64OfWriteTrigger.Create(nil);
+            if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
+                tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
+            DisposeObject(FReceivedBuffer);
+            FReceivedBuffer := tmpStream;
+            FReceivedBuffer.Trigger := Self;
+
+            inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveBigStream]);
+          end
+        else
+          begin
+            Disconnect;
+            break;
+          end;
       end;
   finally
     FReceivedBuffer.Position := FReceivedBuffer.Size;
@@ -2799,7 +2841,7 @@ var
   headBuff    : array [0 .. 2] of Byte;
   b           : TBytes;
   buff        : TMemoryStream64;
-  flag        : Byte;
+  dHead, dTail: Cardinal;
   len         : Integer;
   code        : TBytes;
   bCipherStyle: Byte;
@@ -2811,48 +2853,50 @@ begin
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stContinue]);
 
-  case FCurrentPauseResultSend_CommDataType of
-    cdtConsole, cdtStream:
-      begin
-        buff := TMemoryStream64.Create;
+  if FCurrentPauseResultSend_CommDataType in [FConsoleToken, FStreamToken] then
+    begin
+      buff := TMemoryStream64.Create;
 
-        if FCurrentPauseResultSend_CommDataType = cdtConsole then
-          begin
-            b := TPascalString(FOutText).Bytes;
-            buff.WritePtr(@b[0], Length(b));
-          end
-        else
-            FOutDataFrame.EncodeTo(buff, True);
+      if FCurrentPauseResultSend_CommDataType = FConsoleToken then
+        begin
+          b := TPascalString(FOutText).Bytes;
+          buff.WritePtr(@b[0], Length(b));
+        end
+      else
+          FOutDataFrame.EncodeTo(buff, True);
 
-        flag := FHeadFlag;
-        len := buff.Size;
+      dHead := FHeadToken;
+      dTail := FTailToken;
+      len := buff.Size;
 
-        // generate hash source
-        GenerateHashCode(FOwnerFramework.FHashStyle, buff.Memory, buff.Size, code);
-        headBuff[0] := Byte(FOwnerFramework.FHashStyle);
-        PWord(@headBuff[1])^ := Length(code);
+      // generate hash source
+      GenerateHashCode(FOwnerFramework.FHashStyle, buff.Memory, buff.Size, code);
+      headBuff[0] := Byte(FOwnerFramework.FHashStyle);
+      PWord(@headBuff[1])^ := Length(code);
 
-        // generate encrypt data body
-        bCipherStyle := Byte(FReceiveDataCipherStyle);
-        Encrypt(FReceiveDataCipherStyle, buff.Memory, buff.Size, FCipherKey, True);
+      // generate encrypt data body
+      bCipherStyle := Byte(FReceiveDataCipherStyle);
+      Encrypt(FReceiveDataCipherStyle, buff.Memory, buff.Size, FCipherKey, True);
 
-        // result data header
-        FResultDataBuffer.WritePtr(@flag, umlByteLength);
-        FResultDataBuffer.WritePtr(@len, umlIntegerLength);
+      // result data header
+      FResultDataBuffer.WritePtr(@dHead, umlCardinalLength);
+      FResultDataBuffer.WritePtr(@len, umlIntegerLength);
 
-        // verify code
-        FResultDataBuffer.WritePtr(@headBuff[0], 3);
-        FResultDataBuffer.WritePtr(@code[0], Length(code));
+      // verify code
+      FResultDataBuffer.WritePtr(@headBuff[0], 3);
+      FResultDataBuffer.WritePtr(@code[0], Length(code));
 
-        // data body
-        FResultDataBuffer.WritePtr(@bCipherStyle, umlByteLength);
-        FResultDataBuffer.WritePtr(buff.Memory, len);
+      // data body
+      FResultDataBuffer.WritePtr(@bCipherStyle, umlByteLength);
+      FResultDataBuffer.WritePtr(buff.Memory, len);
 
-        DisposeObject(buff);
+      // data tail
+      FResultDataBuffer.WritePtr(@dTail, umlCardinalLength);
 
-        inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
-      end;
-  end;
+      DisposeObject(buff);
+
+      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+    end;
   FPauseResultSend := False;
 end;
 
@@ -3039,7 +3083,7 @@ end;
 
 procedure TCommunicationFramework.DoPrint(const v: SystemString);
 begin
-  DoStatus(v, c_DefaultPrintID);
+  DoStatus(v, c_DefaultDoStatusID);
   inc(Statistics[TStatisticsType.stPrint]);
 end;
 

@@ -154,6 +154,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString('change caption as hello World,from server!');
+  // 广播方法不会区分客户端是否有登录，是否建立成功了双通道
   SendTunnel.BroadcastSendDirectStreamCmd('ChangeCaption', de);
   disposeObject(de);
 end;
@@ -189,6 +190,13 @@ begin
   for i := 0 to SendTunnel.Count - 1 do
     begin
       c := SendTunnel[i];
+      // 如果客户端没有登录成功
+      if TPeerClientUserDefineForSendTunnel(c.UserDefine).RecvTunnel = nil then
+          continue;
+      // 和上列一样，如果客户端没有登录
+      if not TPeerClientUserDefineForSendTunnel(c.UserDefine).RecvTunnel.LinkOK then
+          continue;
+
       de := TDataFrameEngine.Create;
       de.WriteString('change caption as hello World,from server!');
       c.SendStreamCmd('GetClientValue', de,
