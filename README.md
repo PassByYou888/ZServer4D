@@ -80,7 +80,7 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 新增LZ77哈夫曼和BRRC压缩算法，请自行对比ZLib性能及压缩率
 
-因为是公有服务器框架，处于安全考虑，通讯包协议在首尾各增加4byte作为验证标记，发行时可以有80亿的独特协议包数据（你只需要从80亿的数值选择一个独特的验证序，别人就算有ZS源码就也无法访问你的服务器）
+因为是公有服务器框架，处于安全考虑，通讯包协议在首尾各增加4byte作为验证标记，发行时可以有80亿的独特协议包数据（你只需要从80亿的数值选择一个独特的验证序，别人就算有ZS源码也无法访问你的服务器）
 
 
 2017-12-15
@@ -116,7 +116,10 @@ ZDB和ZServer均已在Linux下测试通过
 
 2017-12-8
 
-新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明 [Demo说明](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/10.ZDB%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E5%99%A8)
+新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明 [Demo说明](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/11.ZDB%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%8C%85%E5%90%AB%E6%8F%90%E4%BA%A4%E5%9B%BE%E7%89%87%EF%BC%89)
+
+(https://github.com/PassByYou888/ZServer4D/blob/master/Examples/11.ZDB%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%8C%85%E5%90%AB%E6%8F%90%E4%BA%A4%E5%9B%BE%E7%89%87%EF%BC%89/IMG_6101.PNG)
+
 
 在ZDB中新增压缩，拷贝，替换等等底层功能
 
