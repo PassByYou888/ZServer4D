@@ -33,7 +33,8 @@ uses
   StreamList in '..\..\..\Source\StreamList.pas',
   CommunicationFramework_Client_Indy in '..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas',
   CommunicationFramework_Server_Indy in '..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas';
+  CoreCipher in '..\..\..\Source\CoreCipher.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas';
 
 {$R *.res}
 

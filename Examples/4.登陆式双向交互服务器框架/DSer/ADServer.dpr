@@ -37,7 +37,8 @@ uses
   CommunicationFramework_Server_ICSCustomSocket in '..\..\..\Source\ICS\CommunicationFramework_Server_ICSCustomSocket.pas',
   CommunicationFramework_Client_CrossSocket in '..\..\..\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas',
   CommunicationFramework_Server_CrossSocket in '..\..\..\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas';
+  CoreCipher in '..\..\..\Source\CoreCipher.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas';
 
 {$R *.res}
 

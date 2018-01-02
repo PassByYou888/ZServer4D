@@ -4,8 +4,8 @@
     <Transaction>2017/05/23 12:54:17.000.355,C:\MJGame\MJServer\ManagerServer\ManagerServerFrm.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
     <Transaction>2017/05/23 12:54:20.000.683,C:\MJGame\MJServer\ManagerServer\ManagerServer.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
     <Transaction>2017/05/26 09:55:12.000.103,C:\MJGame\MJServer\ManagerServer\Unit2.dfm=C:\MJGame\MJServer\ManagerServer\ConnectManagerServerFrm.dfm</Transaction>
-    <Transaction>2017/11/07 13:12:29.000.989,C:\TextGame\core\CoreClasses.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.994,C:\TextGame\core\GeometryRotationUnit.pas=</Transaction>
+    <Transaction>2017/11/07 13:12:29.000.989,C:\TextGame\core\CoreClasses.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.992,C:\TextGame\core\Geometry2DUnit.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.993,C:\TextGame\core\GeometryLib.pas=</Transaction>
     <Transaction>2017/11/07 13:12:29.000.995,C:\TextGame\core\MemoryStream64.pas=</Transaction>
@@ -33,8 +33,8 @@
     <Transaction>2017/11/07 13:12:47.000.451,C:\TextGame\core\ObjectData\ItemStream.pas=</Transaction>
     <Transaction>2017/11/07 13:12:47.000.452,C:\TextGame\core\ObjectData\LibraryManager.pas=</Transaction>
     <Transaction>2017/11/07 13:12:47.000.455,C:\TextGame\core\ObjectData\StreamList.pas=</Transaction>
-    <Transaction>2017/11/17 21:47:45.000.930,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
     <Transaction>2017/11/17 21:47:45.000.871,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
+    <Transaction>2017/11/17 21:47:45.000.930,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
     <Transaction>2017/11/27 00:57:44.000.116,=C:\git\ZServer4D\Source\CommunicationTest.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
@@ -62,6 +62,7 @@
     <File Path="..\..\..\Source\CommunicationTest.pas"/>
     <File Path="..\..\..\Source\CoreCipher.pas"/>
     <File Path="..\..\..\Source\CoreClasses.pas"/>
+    <File Path="..\..\..\Source\CoreCompress.pas"/>
     <File Path="..\..\..\Source\DataFrameEngine.pas"/>
     <File Path="..\..\..\Source\DBCompressPackageForFile.pas"/>
     <File Path="..\..\..\Source\DoStatusIO.pas"/>
@@ -74,6 +75,7 @@
     <File Path="..\..\..\Source\LibraryManager.pas"/>
     <File Path="..\..\..\Source\ListEngine.pas"/>
     <File Path="..\..\..\Source\MemoryStream64.pas"/>
+    <File Path="..\..\..\Source\MH_ZDB.pas"/>
     <File Path="..\..\..\Source\NotifyObjectBase.pas"/>
     <File Path="..\..\..\Source\ObjectData.pas"/>
     <File Path="..\..\..\Source\ObjectDataManager.pas"/>

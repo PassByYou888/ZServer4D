@@ -4,6 +4,6 @@
     <Transaction>2018/01/02 04:32:06.000.499,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Examples\Only compiler\All.groupproj</Transaction>
   </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\4.登陆式双向交互服务器框架\DCli\ADClient.dproj"/>
 	</Default.Personality>
 </BorlandProject>

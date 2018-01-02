@@ -38,7 +38,7 @@
     <Transaction>2017/11/17 21:43:45.000.789,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
+		<NoProfile iOSSimulator="iPhone5" Android=""/>
 		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
 	</ActiveMobileDevice>
 </BorlandProject>

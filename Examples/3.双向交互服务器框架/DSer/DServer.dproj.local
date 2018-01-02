@@ -30,11 +30,11 @@
     <Transaction>2017/11/06 13:52:02.000.765,=C:\git\ZServer4D\Examples\HelloWorld\EzSer\EzServFrm.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.321,=C:\git\ZServer4D\Source\DataFrameEngine.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.311,=C:\git\ZServer4D\Source\CoreClasses.pas</Transaction>
-    <Transaction>2017/11/06 13:52:41.000.306,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
+    <Transaction>2017/11/06 13:52:41.000.276,=C:\git\ZServer4D\Source\Cadencer.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.300,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.294,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.285,=C:\git\ZServer4D\Source\CommunicationFramework.pas</Transaction>
-    <Transaction>2017/11/06 13:52:41.000.276,=C:\git\ZServer4D\Source\Cadencer.pas</Transaction>
+    <Transaction>2017/11/06 13:52:41.000.306,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.948,=C:\git\ZServer4D\Source\TextParsing.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.898,=C:\git\ZServer4D\Source\ListDBEngine.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.970,=C:\git\ZServer4D\Source\UnicodeMixedLib.pas</Transaction>
@@ -45,9 +45,9 @@
     <Transaction>2017/11/06 13:52:44.000.956,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.801,=C:\git\ZServer4D\Source\Geometry2DUnit.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.859,=C:\git\ZServer4D\Source\GeometryLib.pas</Transaction>
-    <Transaction>2017/11/06 13:52:44.000.915,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
-    <Transaction>2017/11/06 13:52:44.000.930,=C:\git\ZServer4D\Source\PascalStrings.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.824,=C:\git\ZServer4D\Source\Geometry3DUnit.pas</Transaction>
+    <Transaction>2017/11/06 13:52:44.000.930,=C:\git\ZServer4D\Source\PascalStrings.pas</Transaction>
+    <Transaction>2017/11/06 13:52:44.000.915,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.774,=C:\git\ZServer4D\Source\DoStatusIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.908,=C:\git\ZServer4D\Source\ListEngine.pas</Transaction>
     <Transaction>2017/11/06 13:53:14.000.725,=C:\git\ZServer4D\Source\ObjectData.pas</Transaction>
@@ -58,8 +58,8 @@
     <Transaction>2017/11/06 13:53:14.000.667,=C:\git\ZServer4D\Source\LibraryManager.pas</Transaction>
     <Transaction>2017/11/06 13:53:32.000.061,=C:\git\ZServer4D\Source\Indy\CommunicationFramework_Server_Indy.pas</Transaction>
     <Transaction>2017/11/06 13:53:32.000.041,=C:\git\ZServer4D\Source\Indy\CommunicationFramework_Client_Indy.pas</Transaction>
-    <Transaction>2017/11/06 13:55:03.000.157,=C:\git\ZServer4D\Source\ICS\CommunicationFramework_Client_ICS.pas</Transaction>
     <Transaction>2017/11/06 13:55:03.000.174,=C:\git\ZServer4D\Source\ICS\CommunicationFramework_Server_ICS.pas</Transaction>
+    <Transaction>2017/11/06 13:55:03.000.157,=C:\git\ZServer4D\Source\ICS\CommunicationFramework_Client_ICS.pas</Transaction>
     <Transaction>2017/11/06 13:55:03.000.188,=C:\git\ZServer4D\Source\ICS\CommunicationFramework_Server_ICSCustomSocket.pas</Transaction>
     <Transaction>2017/11/06 13:55:14.000.610,=C:\git\ZServer4D\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas</Transaction>
     <Transaction>2017/11/06 13:55:14.000.590,=C:\git\ZServer4D\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas</Transaction>

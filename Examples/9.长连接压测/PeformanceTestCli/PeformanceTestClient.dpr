@@ -38,7 +38,9 @@ uses
   CommunicationFramework_Client_CrossSocket in '..\..\..\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas',
   CommunicationFramework_Server_CrossSocket in '..\..\..\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas',
   CoreCipher in '..\..\..\Source\CoreCipher.pas',
-  CommunicationTest in '..\..\..\Source\CommunicationTest.pas';
+  CommunicationTest in '..\..\..\Source\CommunicationTest.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas';
+
 
 {$R *.res}
 

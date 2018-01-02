@@ -35,7 +35,9 @@ uses
   LoginMobileClient in 'LoginMobileClient.pas',
   CommunicationFramework_Client_Indy in '..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas',
   CommunicationFramework_Server_Indy in '..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas';
+  CoreCipher in '..\..\..\Source\CoreCipher.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas',
+  MH_ZDB in '..\..\..\Source\MH_ZDB.pas';
 
 {$R *.res}
 

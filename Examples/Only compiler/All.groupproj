@@ -96,6 +96,9 @@
         <Projects Include="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\13.内存分析钩子的使用\MHDemo.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -383,14 +386,23 @@
     <Target Name="ZDBServiceDemo:Make">
         <MSBuild Projects="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="MHDemo">
+        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj"/>
+    </Target>
+    <Target Name="MHDemo:Clean">
+        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MHDemo:Make">
+        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ADClient;ADServer;AFDRClient;AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;PeformanceTestClient;performaceTestServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo"/>
+        <CallTarget Targets="ADClient;ADServer;AFDRClient;AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;PeformanceTestClient;performaceTestServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;MHDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean"/>
+        <CallTarget Targets="ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;MHDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;PeformanceTestClient:Make;performaceTestServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make"/>
+        <CallTarget Targets="ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;PeformanceTestClient:Make;performaceTestServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;MHDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -42,7 +42,9 @@ uses
   CommunicationFrameworkDoubleTunnelIO_ServMan in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas',
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas',
   CommunicationFrameworkIO in '..\..\..\Source\CommunicationFrameworkIO.pas',
-  CommunicationTest in '..\..\..\Source\CommunicationTest.pas';
+  CommunicationTest in '..\..\..\Source\CommunicationTest.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas',
+  MH_ZDB in '..\..\..\Source\MH_ZDB.pas';
 
 {$R *.res}
 

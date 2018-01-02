@@ -28,7 +28,9 @@ uses
   TextTable in '..\..\Source\TextTable.pas',
   UnicodeMixedLib in '..\..\Source\UnicodeMixedLib.pas',
   ZDBEngine in '..\..\Source\ZDBEngine.pas',
-  ZDBLocalManager in '..\..\Source\ZDBLocalManager.pas';
+  ZDBLocalManager in '..\..\Source\ZDBLocalManager.pas',
+  CoreCompress in '..\..\Source\CoreCompress.pas',
+  MH_ZDB in '..\..\Source\MH_ZDB.pas';
 
 {$R *.res}
 

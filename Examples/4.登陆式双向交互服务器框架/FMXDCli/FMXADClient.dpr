@@ -3,7 +3,7 @@ program FMXADClient;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  FMXAuthDoubleTunnelCliFrm in 'FMXAuthDoubleTunnelCliFrm.pas' {FMXAuthDoubleClientForm},
+  FMXAuthDoubleTunnelCliFrm in 'FMXAuthDoubleTunnelCliFrm.pas' {FMXAuthDoubleClientForm} ,
   Cadencer in '..\..\..\Source\Cadencer.pas',
   CommunicationFramework in '..\..\..\Source\CommunicationFramework.pas',
   CommunicationFrameworkDoubleTunnelIO in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas',
@@ -33,7 +33,8 @@ uses
   StreamList in '..\..\..\Source\StreamList.pas',
   CommunicationFramework_Client_Indy in '..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas',
   CommunicationFramework_Server_Indy in '..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas';
+  CoreCipher in '..\..\..\Source\CoreCipher.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas';
 
 {$R *.res}
 
@@ -42,4 +43,5 @@ begin
   Application.FormFactor.Orientations := [TFormOrientation.Landscape, TFormOrientation.InvertedLandscape];
   Application.CreateForm(TFMXAuthDoubleClientForm, FMXAuthDoubleClientForm);
   Application.Run;
+
 end.

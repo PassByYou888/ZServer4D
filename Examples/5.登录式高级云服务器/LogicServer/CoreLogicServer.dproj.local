@@ -56,6 +56,7 @@
     <File Path="..\..\..\Source\CommunicationFrameworkIO.pas"/>
     <File Path="..\..\..\Source\CoreCipher.pas"/>
     <File Path="..\..\..\Source\CoreClasses.pas"/>
+    <File Path="..\..\..\Source\CoreCompress.pas"/>
     <File Path="..\..\..\Source\DataFrameEngine.pas"/>
     <File Path="..\..\..\Source\DBCompressPackageForFile.pas"/>
     <File Path="..\..\..\Source\DoStatusIO.pas"/>

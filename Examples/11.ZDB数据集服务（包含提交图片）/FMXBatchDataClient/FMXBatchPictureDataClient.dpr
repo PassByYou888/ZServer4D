@@ -43,7 +43,9 @@ uses
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas',
   CommunicationFrameworkIO in '..\..\..\Source\CommunicationFrameworkIO.pas',
   CommunicationTest in '..\..\..\Source\CommunicationTest.pas',
-  FileBuffOfCode in 'FileBuffOfCode.pas';
+  FileBuffOfCode in 'FileBuffOfCode.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas',
+  MH_ZDB in '..\..\..\Source\MH_ZDB.pas';
 
 {$R *.res}
 

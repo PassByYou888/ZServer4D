@@ -38,7 +38,8 @@ uses
   Cadencer in '..\..\..\Source\Cadencer.pas',
   CommunicationFramework in '..\..\..\Source\CommunicationFramework.pas',
   CoreCipher in '..\..\..\Source\CoreCipher.pas',
-  CommunicationTest in '..\..\..\Source\CommunicationTest.pas';
+  CommunicationTest in '..\..\..\Source\CommunicationTest.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas';
 
 {$R *.res}
 

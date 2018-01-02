@@ -33,14 +33,14 @@
     <Transaction>2017/11/06 13:52:41.000.294,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.285,=C:\git\ZServer4D\Source\CommunicationFramework.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.300,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas</Transaction>
-    <Transaction>2017/11/06 13:52:41.000.306,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:41.000.276,=C:\git\ZServer4D\Source\Cadencer.pas</Transaction>
+    <Transaction>2017/11/06 13:52:41.000.306,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.898,=C:\git\ZServer4D\Source\ListDBEngine.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.908,=C:\git\ZServer4D\Source\ListEngine.pas</Transaction>
-    <Transaction>2017/11/06 13:52:44.000.866,=C:\git\ZServer4D\Source\GeometryRotationUnit.pas</Transaction>
+    <Transaction>2017/11/06 13:52:44.000.956,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.970,=C:\git\ZServer4D\Source\UnicodeMixedLib.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.801,=C:\git\ZServer4D\Source\Geometry2DUnit.pas</Transaction>
-    <Transaction>2017/11/06 13:52:44.000.956,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
+    <Transaction>2017/11/06 13:52:44.000.866,=C:\git\ZServer4D\Source\GeometryRotationUnit.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.922,=C:\git\ZServer4D\Source\NotifyObjectBase.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.859,=C:\git\ZServer4D\Source\GeometryLib.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.890,=C:\git\ZServer4D\Source\JsonDataObjects.pas</Transaction>
@@ -63,8 +63,8 @@
     <Transaction>2017/11/06 13:55:03.000.174,=C:\git\ZServer4D\Source\ICS\CommunicationFramework_Server_ICS.pas</Transaction>
     <Transaction>2017/11/06 13:55:14.000.610,=C:\git\ZServer4D\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas</Transaction>
     <Transaction>2017/11/06 13:55:14.000.590,=C:\git\ZServer4D\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas</Transaction>
-    <Transaction>2017/11/17 21:31:25.000.999,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
     <Transaction>2017/11/17 21:31:25.000.945,=C:\git\ZServer4D\Source\CoreCipher.pas</Transaction>
+    <Transaction>2017/11/17 21:31:25.000.999,=C:\git\ZServer4D\Source\PasMP.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>

@@ -40,7 +40,10 @@ uses
   TextDataEngine in '..\..\..\Source\TextDataEngine.pas',
   TextParsing in '..\..\..\Source\TextParsing.pas',
   TextTable in '..\..\..\Source\TextTable.pas',
-  UnicodeMixedLib in '..\..\..\Source\UnicodeMixedLib.pas';
+  UnicodeMixedLib in '..\..\..\Source\UnicodeMixedLib.pas',
+  CoreCompress in '..\..\..\Source\CoreCompress.pas',
+  MH_ZDB in '..\..\..\Source\MH_ZDB.pas';
+
 
 {$R *.res}
 
