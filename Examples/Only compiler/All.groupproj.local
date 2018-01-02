@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-	<Transactions/>
+	<Transactions>
+    <Transaction>2018/01/02 04:32:06.000.499,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Examples\Only compiler\All.groupproj</Transaction>
+  </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj"/>
 	</Default.Personality>
 </BorlandProject>

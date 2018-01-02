@@ -442,10 +442,17 @@ type
     stLock, stUnLock,
     stPrint, stIDCounter);
 
+  TPerClientListCall   = procedure(PeerClient: TPeerClient);
+  TPerClientListMethod = procedure(PeerClient: TPeerClient) of object;
+  {$IFNDEF FPC}
+  TPerClientListProc = reference to procedure(PeerClient: TPeerClient);
+  {$ENDIF}
+  TClientIDPool = array of Cardinal;
+
   TCommunicationFramework = class(TCoreClassInterfacedObject)
   private
     FCommandList               : THashObjectList;
-    FRegistedClients           : TCoreClassListForObj;
+    FPerClientHashList         : TUInt32HashObjectList;
     FIDCounter                 : Cardinal;
     FOnConnected               : TPeerClientNotify;
     FOnDisconnect              : TPeerClientNotify;
@@ -499,6 +506,14 @@ type
 
     procedure ProgressBackground; virtual;
 
+    procedure ProgressPerClient(OnProgress: TPerClientListCall); overload;
+    procedure ProgressPerClient(OnProgress: TPerClientListMethod); overload;
+    {$IFNDEF FPC}
+    procedure ProgressPerClient(OnProgress: TPerClientListProc); overload;
+    {$ENDIF}
+    //
+    procedure GetClientIDPool(out IDPool: TClientIDPool);
+
     procedure ProgressWaitSendOfClient(Client: TPeerClient); virtual;
 
     procedure PrintParam(v: SystemString; Args: SystemString);
@@ -517,6 +532,9 @@ type
     function ExecuteDirectStream(Sender: TPeerClient; Cmd: SystemString; InData: TDataFrameEngine): Boolean; virtual;
     function ExecuteDirectConsole(Sender: TPeerClient; Cmd: SystemString; const InData: SystemString): Boolean; virtual;
     function ExecuteBigStream(Sender: TPeerClient; Cmd: SystemString; InData: TCoreClassStream; FBigStreamTotal, BigStreamCompleteSize: Int64): Boolean; virtual;
+
+    function FirstClient: TPeerClient;
+    function LastClient: TPeerClient;
 
     property OnConnected: TPeerClientNotify read FOnConnected write FOnConnected;
     property OnDisconnect: TPeerClientNotify read FOnDisconnect write FOnDisconnect;
@@ -544,7 +562,6 @@ type
   TCommunicationFrameworkServer = class(TCommunicationFramework)
   protected
     procedure DoPrint(const v: SystemString); override;
-    function GetItems(Index: Integer): TPeerClient;
     function CanExecuteCommand(Sender: TPeerClient; Cmd: SystemString): Boolean; override;
     function CanSendCommand(Sender: TPeerClient; Cmd: SystemString): Boolean; override;
     function CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean; override;
@@ -615,12 +632,11 @@ type
     procedure BroadcastDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
     procedure BroadcastSendDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
 
-    function Count: Integer;
-    function Exists(Cli: TCoreClassObject): Boolean; overload;
-    function Exists(Cli: TPeerClient): Boolean; overload;
-    function Exists(Cli: TPeerClientUserDefine): Boolean; overload;
-    function Exists(Cli: TPeerClientUserSpecial): Boolean; overload;
-    property Items[index: Integer]: TPeerClient read GetItems; default;
+    function Count: Integer; inline;
+    function Exists(cli: TCoreClassObject): Boolean; overload;
+    function Exists(cli: TPeerClient): Boolean; overload;
+    function Exists(cli: TPeerClientUserDefine): Boolean; overload;
+    function Exists(cli: TPeerClientUserSpecial): Boolean; overload;
 
     function Exists(ClientID: Cardinal): Boolean; overload;
     function GetClientFromID(ID: Cardinal): TPeerClient;
@@ -1678,7 +1694,7 @@ begin
   df.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeToCompressed(stream, True)
+      df.EncodeAsZLib(stream, True)
   else
       df.EncodeTo(stream, True);
 
@@ -1703,7 +1719,7 @@ begin
   df.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeToCompressed(stream, True)
+      df.EncodeAsZLib(stream, True)
   else
       df.EncodeTo(stream, True);
 
@@ -1728,7 +1744,7 @@ begin
   df.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeToCompressed(stream, True)
+      df.EncodeAsZLib(stream, True)
   else
       df.EncodeTo(stream, True);
 
@@ -1753,7 +1769,7 @@ begin
   df.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeToCompressed(stream, True)
+      df.EncodeAsZLib(stream, True)
   else
       df.EncodeTo(stream, True);
 
@@ -2236,8 +2252,10 @@ begin
   FClientIntf := AClientIntf;
 
   FID := AOwnerFramework.FIDCounter;
+
+  // only ID
   inc(AOwnerFramework.FIDCounter);
-  if AOwnerFramework.FIDCounter = 0 then
+  while (AOwnerFramework.FIDCounter = 0) or (AOwnerFramework.FPerClientHashList.Exists(AOwnerFramework.FIDCounter)) do
       inc(AOwnerFramework.FIDCounter);
 
   FHeadToken := c_DataHeadToken;
@@ -2300,9 +2318,9 @@ begin
   FUserDefine := FOwnerFramework.FPeerClientUserDefineClass.Create(Self);
   FUserSpecial := FOwnerFramework.FPeerClientUserSpecialClass.Create(Self);
 
-  LockObject(FOwnerFramework.FRegistedClients);
-  FOwnerFramework.FRegistedClients.Add(Self);
-  UnLockObject(FOwnerFramework.FRegistedClients);
+  LockObject(FOwnerFramework.FPerClientHashList);
+  FOwnerFramework.FPerClientHashList.Add(FID, Self, False);
+  UnLockObject(FOwnerFramework.FPerClientHashList);
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
@@ -2323,19 +2341,9 @@ begin
 
   inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerDisconnect]);
 
-  LockObject(FOwnerFramework.FRegistedClients);
-  try
-    i := 0;
-    while i < FOwnerFramework.FRegistedClients.Count do
-      begin
-        if FOwnerFramework.FRegistedClients[i] = Self then
-            FOwnerFramework.FRegistedClients.Delete(i)
-        else
-            inc(i);
-      end;
-  except
-  end;
-  UnLockObject(FOwnerFramework.FRegistedClients);
+  LockObject(FOwnerFramework.FPerClientHashList);
+  FOwnerFramework.FPerClientHashList.Delete(FID);
+  UnLockObject(FOwnerFramework.FPerClientHashList);
 
   LockObject(FQueueList);
   for i := 0 to FQueueList.Count - 1 do
@@ -3145,22 +3153,14 @@ end;
 
 procedure TCommunicationFramework.DelayExecuteOnResultState(Sender: TNPostExecute);
 var
-  Cli   : TPeerClient;
+  cli   : TPeerClient;
   nQueue: PQueueData;
-  i     : Integer;
-
-  ExistsCli: Boolean;
 begin
-  Cli := TPeerClient(Sender.Data1);
+  cli := TPeerClient(Sender.Data1);
   nQueue := PQueueData(Sender.Data5);
 
-  ExistsCli := False;
-  for i := 0 to FRegistedClients.Count - 1 do
-    if FRegistedClients[i] = Cli then
-        ExistsCli := True;
-
-  if ExistsCli then
-      DoExecuteResult(Cli, nQueue, Sender.Data3, Sender.DataEng);
+  if FPerClientHashList.ExistsObject(cli) then
+      DoExecuteResult(cli, nQueue, Sender.Data3, Sender.DataEng);
 
   DisposeQueueData(nQueue);
 end;
@@ -3172,7 +3172,9 @@ begin
   inherited Create;
   FCommandList := THashObjectList.Create(True, 1024);
   FIDCounter := 1;
-  FRegistedClients := TCoreClassListForObj.Create;
+  FPerClientHashList := TUInt32HashObjectList.Create(1024);
+  FPerClientHashList.AutoFreeData := False;
+  FPerClientHashList.AccessOptimization := False;
   FOnConnected := nil;
   FOnDisconnect := nil;
   FOnExecuteCommand := nil;
@@ -3207,7 +3209,7 @@ end;
 destructor TCommunicationFramework.Destroy;
 begin
   DisposeObject(FCommandList);
-  DisposeObject(FRegistedClients);
+  DisposeObject(FPerClientHashList);
   DisposeObject(FPrintParams);
   DisposeObject(FProgressPost);
   DisposeObject([FOnPeerClientCreateNotify, FOnPeerClientDestroyNotify]);
@@ -3241,19 +3243,20 @@ end;
 
 procedure TCommunicationFramework.LockClients;
 begin
-  LockObject(FRegistedClients);
+  LockObject(FPerClientHashList);
   inc(Statistics[TStatisticsType.stLock]);
 end;
 
 procedure TCommunicationFramework.UnLockClients;
 begin
-  UnLockObject(FRegistedClients);
+  UnLockObject(FPerClientHashList);
   inc(Statistics[TStatisticsType.stUnLock]);
 end;
 
 procedure TCommunicationFramework.ProgressBackground;
 var
   i: Integer;
+  p: PUInt32HashListObjectStruct;
 begin
   try
     if Assigned(ProgressBackgroundProc) then
@@ -3261,15 +3264,20 @@ begin
   except
   end;
 
-  i := 0;
-  try
-    while i < FRegistedClients.Count do
-      begin
-        TPeerClient(FRegistedClients[i]).Progress;
-        inc(i);
-      end;
-  except
-  end;
+  if (FPerClientHashList.Count > 0) then
+    begin
+      i := 0;
+      p := FPerClientHashList.FirstPtr;
+      while i < FPerClientHashList.Count do
+        begin
+          try
+              TPeerClient(p^.Data).Progress;
+          except
+          end;
+          inc(i);
+          p := p^.next;
+        end;
+    end;
 
   try
       ProgressPost.Progress;
@@ -3277,6 +3285,99 @@ begin
   end;
 
   Statistics[TStatisticsType.stIDCounter] := FIDCounter;
+end;
+
+procedure TCommunicationFramework.ProgressPerClient(OnProgress: TPerClientListCall);
+var
+  IDPool: TClientIDPool;
+  pcid  : Cardinal;
+  c     : TPeerClient;
+begin
+  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+    begin
+      GetClientIDPool(IDPool);
+      for pcid in IDPool do
+        begin
+          c := TPeerClient(FPerClientHashList[pcid]);
+          if c <> nil then
+            begin
+              try
+                  OnProgress(c);
+              except
+              end;
+            end;
+        end;
+    end;
+end;
+
+procedure TCommunicationFramework.ProgressPerClient(OnProgress: TPerClientListMethod);
+var
+  IDPool: TClientIDPool;
+  pcid  : Cardinal;
+  c     : TPeerClient;
+begin
+  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+    begin
+      GetClientIDPool(IDPool);
+      for pcid in IDPool do
+        begin
+          c := TPeerClient(FPerClientHashList[pcid]);
+          if c <> nil then
+            begin
+              try
+                  OnProgress(c);
+              except
+              end;
+            end;
+        end;
+    end;
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TCommunicationFramework.ProgressPerClient(OnProgress: TPerClientListProc);
+var
+  IDPool: TClientIDPool;
+  pcid  : Cardinal;
+  c     : TPeerClient;
+begin
+  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+    begin
+      GetClientIDPool(IDPool);
+      for pcid in IDPool do
+        begin
+          c := TPeerClient(FPerClientHashList[pcid]);
+          if c <> nil then
+            begin
+              try
+                  OnProgress(c);
+              except
+              end;
+            end;
+        end;
+    end;
+end;
+{$ENDIF}
+
+
+procedure TCommunicationFramework.GetClientIDPool(out IDPool: TClientIDPool);
+var
+  i: Integer;
+  p: PUInt32HashListObjectStruct;
+begin
+  SetLength(IDPool, FPerClientHashList.Count);
+  if (FPerClientHashList.Count > 0) then
+    begin
+      i := 0;
+      p := FPerClientHashList.FirstPtr;
+      while i < FPerClientHashList.Count do
+        begin
+          IDPool[i] := TPeerClient(p^.Data).FID;
+          inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 procedure TCommunicationFramework.ProgressWaitSendOfClient(Client: TPeerClient);
@@ -3528,21 +3629,19 @@ begin
   Result := TCommandBigStreamMode(b).Execute(Sender, InData, FBigStreamTotal, BigStreamCompleteSize);
 end;
 
+function TCommunicationFramework.FirstClient: TPeerClient;
+begin
+  Result := TPeerClient(FPerClientHashList.First);
+end;
+
+function TCommunicationFramework.LastClient: TPeerClient;
+begin
+  Result := TPeerClient(FPerClientHashList.Last);
+end;
+
 procedure TCommunicationFrameworkServer.DoPrint(const v: SystemString);
 begin
   inherited DoPrint('server ' + v);
-end;
-
-function TCommunicationFrameworkServer.GetItems(Index: Integer): TPeerClient;
-begin
-  try
-    if (index >= 0) and (index < Count) then
-        Result := FRegistedClients[index] as TPeerClient
-    else
-        Result := nil;
-  except
-      Result := nil;
-  end;
 end;
 
 function TCommunicationFrameworkServer.CanExecuteCommand(Sender: TPeerClient; Cmd: SystemString): Boolean;
@@ -4080,96 +4179,121 @@ end;
 procedure TCommunicationFrameworkServer.BroadcastDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
 var
   i: Integer;
+  p: PUInt32HashListObjectStruct;
 begin
-  LockClients;
-  i := 0;
-  while i < Count do
+  if (FPerClientHashList.Count > 0) then
     begin
-      if Items[i] <> nil then
-          Items[i].SendDirectConsoleCmd(Cmd, ConsoleData);
-      inc(i);
+      i := 0;
+      p := FPerClientHashList.FirstPtr;
+      while i < FPerClientHashList.Count do
+        begin
+          try
+              TPeerClient(p^.Data).SendDirectConsoleCmd(Cmd, ConsoleData);
+          except
+          end;
+          inc(i);
+          p := p^.next;
+        end;
     end;
-  UnLockClients;
 end;
 
 procedure TCommunicationFrameworkServer.BroadcastSendDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
 var
   i: Integer;
+  p: PUInt32HashListObjectStruct;
 begin
-  LockClients;
-  i := 0;
-  while i < Count do
+  if (FPerClientHashList.Count > 0) then
     begin
-      if Items[i] <> nil then
-          Items[i].SendDirectStreamCmd(Cmd, StreamData);
-      inc(i);
+      i := 0;
+      p := FPerClientHashList.FirstPtr;
+      while i < FPerClientHashList.Count do
+        begin
+          try
+              TPeerClient(p^.Data).SendDirectStreamCmd(Cmd, StreamData);
+          except
+          end;
+          inc(i);
+          p := p^.next;
+        end;
     end;
-  UnLockClients;
 end;
 
 function TCommunicationFrameworkServer.Count: Integer;
 begin
-  Result := FRegistedClients.Count;
+  Result := FPerClientHashList.Count;
 end;
 
-function TCommunicationFrameworkServer.Exists(Cli: TCoreClassObject): Boolean;
+function TCommunicationFrameworkServer.Exists(cli: TCoreClassObject): Boolean;
 begin
-  if Cli is TPeerClient then
-      Result := Exists(Cli as TPeerClient)
-  else if Cli is TPeerClientUserDefine then
-      Result := Exists(Cli as TPeerClientUserDefine)
-  else if Cli is TPeerClientUserSpecial then
-      Result := Exists(Cli as TPeerClientUserSpecial)
+  if cli is TPeerClient then
+      Result := Exists(cli as TPeerClient)
+  else if cli is TPeerClientUserDefine then
+      Result := Exists(cli as TPeerClientUserDefine)
+  else if cli is TPeerClientUserSpecial then
+      Result := Exists(cli as TPeerClientUserSpecial)
   else
       Result := False;
 end;
 
-function TCommunicationFrameworkServer.Exists(Cli: TPeerClient): Boolean;
-var
-  i: Integer;
+function TCommunicationFrameworkServer.Exists(cli: TPeerClient): Boolean;
 begin
-  Result := True;
-  for i := 0 to Count - 1 do
-    if Items[i] = Cli then
-        exit;
-  Result := False;
+  Result := FPerClientHashList.ExistsObject(cli);
 end;
 
-function TCommunicationFrameworkServer.Exists(Cli: TPeerClientUserDefine): Boolean;
+function TCommunicationFrameworkServer.Exists(cli: TPeerClientUserDefine): Boolean;
 var
   i: Integer;
+  p: PUInt32HashListObjectStruct;
 begin
-  Result := True;
-  for i := 0 to Count - 1 do
-    if Items[i].FUserDefine = Cli then
-        exit;
   Result := False;
+  if (FPerClientHashList.Count > 0) then
+    begin
+      i := 0;
+      p := FPerClientHashList.FirstPtr;
+      while i < FPerClientHashList.Count do
+        begin
+          if TPeerClient(p^.Data).UserDefine = cli then
+            begin
+              Result := True;
+              exit;
+            end;
+          inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
-function TCommunicationFrameworkServer.Exists(Cli: TPeerClientUserSpecial): Boolean;
+function TCommunicationFrameworkServer.Exists(cli: TPeerClientUserSpecial): Boolean;
 var
   i: Integer;
+  p: PUInt32HashListObjectStruct;
 begin
-  Result := True;
-  for i := 0 to Count - 1 do
-    if Items[i].FUserSpecial = Cli then
-        exit;
   Result := False;
+  if (FPerClientHashList.Count > 0) then
+    begin
+      i := 0;
+      p := FPerClientHashList.FirstPtr;
+      while i < FPerClientHashList.Count do
+        begin
+          if TPeerClient(p^.Data).FUserSpecial = cli then
+            begin
+              Result := True;
+              exit;
+            end;
+          inc(i);
+          p := p^.next;
+        end;
+    end;
 end;
 
 function TCommunicationFrameworkServer.Exists(ClientID: Cardinal): Boolean;
 begin
-  Result := GetClientFromID(ClientID) <> nil;
+  Result := FPerClientHashList.Exists(ClientID);
 end;
 
 function TCommunicationFrameworkServer.GetClientFromID(ID: Cardinal): TPeerClient;
-var
-  i: Integer;
 begin
-  Result := nil;
-  for i := 0 to Count - 1 do
-    if Items[i].ID = ID then
-        exit(Items[i]);
+  Result := TPeerClient(FPerClientHashList[ID]);
 end;
 
 procedure TCommunicationFrameworkClient.DoPrint(const v: SystemString);
@@ -4183,8 +4307,10 @@ var
 begin
   if ResultData.Count > 0 then
     begin
+      FPerClientHashList.Delete(Sender.FID);
       // index 0: my remote id
       Sender.FID := ResultData.Reader.ReadCardinal;
+      FPerClientHashList.Add(Sender.FID, Sender, True);
       // index 1: used Encrypt
       Sender.FSendDataCipherStyle := TCipherStyle(ResultData.Reader.ReadByte);
 
@@ -4224,6 +4350,7 @@ end;
 
 procedure TCommunicationFrameworkClient.DoDisconnect(Sender: TPeerClient);
 begin
+  FPerClientHashList.Delete(Sender.FID);
   Sender.FID := 0;
   Sender.FRemoteExecutedForConnectInit := False;
 

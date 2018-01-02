@@ -249,11 +249,18 @@ end;
 
 destructor TCommunicationFramework_Server_Indy.Destroy;
 begin
+  ProgressPerClient(procedure(cli: TPeerClient)
+    begin
+      try
+          cli.Disconnect;
+      except
+      end;
+    end);
+
   try
     while Count > 0 do
       begin
-        Items[0].Disconnect;
-        CheckSynchronize;
+        CheckSynchronize(1);
       end;
   except
   end;

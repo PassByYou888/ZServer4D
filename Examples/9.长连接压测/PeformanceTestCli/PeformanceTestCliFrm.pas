@@ -24,6 +24,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
     procedure TestCommandButtonClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -46,6 +47,11 @@ implementation
 
 procedure TEZClientForm.DoStatusNear(AText: string; const ID: Integer);
 begin
+end;
+
+procedure TEZClientForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  ClientPool.CloseAllConnection;
 end;
 
 procedure TEZClientForm.FormCreate(Sender: TObject);
@@ -82,7 +88,8 @@ var
   i: Integer;
 begin
   for i := low(client) to high(client) do
-      client[i].ProgressBackground;
+    if client[i].Connected then
+        client[i].ProgressBackground;
 end;
 
 procedure TEZClientForm.TestCommandButtonClick(Sender: TObject);
@@ -107,7 +114,7 @@ begin
   TestCommandButton.Visible := False;
   for i := low(client) to high(client) do
     begin
-      client[i].Connect(HostEdit.Text, 9818);
+      TCommunicationFramework_Client_CrossSocket(client[i]).AsyncConnect(HostEdit.Text, 9818);
       Application.ProcessMessages;
     end;
 

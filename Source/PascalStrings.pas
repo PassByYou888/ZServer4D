@@ -19,20 +19,15 @@ interface
 uses SysUtils;
 
 type
-  {$IFDEF FPC}
-  SystemChar   = UnicodeChar;
-  SystemString = Unicodestring;
-  {$ELSE}
-  SystemString = string;
-  SystemChar   = char;
-  {$ENDIF}
+  SystemChar   = Char;
+  SystemString = String;
   THash         = Cardinal;
   THash64       = UInt64;
   PSystemString = ^SystemString;
 
   PPascalString = ^TPascalString;
 
-  TPascalString = packed record
+  TPascalString = record
   private
     function GetText: SystemString;
     procedure SetText(const Value: SystemString);
@@ -512,7 +507,11 @@ end;
 
 function TPascalString.GetBytes: TBytes;
 begin
+  {$IFDEF FPC}
+  Result := SysUtils.TEncoding.UTF8.GetBytes(Text);
+  {$ELSE}
   Result := SysUtils.TEncoding.UTF8.GetBytes(Buff);
+  {$ENDIF}
 end;
 
 function TPascalString.GetLast: SystemChar;
@@ -846,7 +845,11 @@ end;
 
 procedure TPascalString.FastGetBytes(var Output: TBytes);
 begin
+  {$IFDEF FPC}
+  Output := SysUtils.TEncoding.UTF8.GetBytes(Text);
+  {$ELSE}
   Output := SysUtils.TEncoding.UTF8.GetBytes(Buff);
+  {$ENDIF}
 end;
 
 function TPascalString.LowerText: SystemString;
@@ -869,5 +872,5 @@ begin
 end;
 
 initialization
-
+finalization
 end.

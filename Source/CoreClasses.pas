@@ -12,9 +12,9 @@
 
 unit CoreClasses;
 
-interface
-
 {$I zDefine.inc}
+
+interface
 
 uses SysUtils, Classes, Types
 
@@ -34,7 +34,6 @@ const
   fmOpenRead      = SysUtils.fmOpenRead;
   fmOpenWrite     = SysUtils.fmOpenWrite;
   fmOpenReadWrite = SysUtils.fmOpenReadWrite;
-  //fmExclusive     = SysUtils.fmExclusive;
 
   fmShareExclusive = SysUtils.fmShareExclusive;
   fmShareDenyWrite = SysUtils.fmShareDenyWrite;
@@ -171,7 +170,7 @@ procedure FreeObject(const objs: array of TObject); overload;
 procedure LockObject(obj:TObject); inline;
 procedure UnLockObject(obj:TObject); inline;
 
-procedure FillByte(var Dest; Count: NativeUInt; const Value: Byte); inline;
+procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte); inline;
 function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; inline;
 
 procedure RaiseInfo(n: string); overload;
@@ -255,14 +254,14 @@ begin
 {$ENDIF}
 end;
 
-procedure FillByte(var Dest; Count: NativeUInt; const Value: Byte);
+procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte);
 var
   Index: NativeUInt;
   V    : UInt64;
   PB   : PByte;
   Total: NativeUInt;
 begin
-  PB := PByte(@Dest);
+  PB := Dest;
 
   if Count >= 8 then
     begin
@@ -392,5 +391,6 @@ end;
 
 {$ENDIF}
 
-
+initialization
+finalization
 end.

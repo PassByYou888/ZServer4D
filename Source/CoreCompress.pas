@@ -6,44 +6,6 @@ interface
 
 uses Math, Types, CoreClasses;
 
-{$IFDEF FPC}
-{$ASMMODE intel}
-{$ENDIF}
-
-{$IFDEF FPC_BIG_ENDIAN}
-{$DEFINE BIG_ENDIAN}
-{$ENDIF}
-
-{$UNDEF CPU64}
-{$IFDEF CPU64BITS}
-{$DEFINE CPU64}
-{$ELSE}
-{$IFDEF CPUX64}
-{$DEFINE CPU64}
-{$ENDIF}
-{$ENDIF}
-{$IFNDEF CPU64}
-{$DEFINE CPU32}
-{$ENDIF}
-
-{$RANGECHECKS off}
-{$WRITEABLECONST on}
-{$HINTS off}
-{$BOOLEVAL off}
-{$TYPEDADDRESS off}
-{$STACKFRAMES off}
-{$VARSTRINGCHECKS on}
-{$TYPEINFO on}
-{$OVERFLOWCHECKS off}
-{$LONGSTRINGS on}
-{$M+}
-
-{$REALCOMPATIBILITY off}
-{$EXTENDEDSYNTAX on}
-{$LOCALSYMBOLS on}
-{$OPENSTRINGS on}
-
-
 type
   PPCCInt8 = ^PCCInt8;
   PCCInt8  = ^TCCInt8;
@@ -117,14 +79,8 @@ type
 
   TCCUInt64Record = packed record
     case boolean of
-      false:
-        (
-          {$IFDEF BIG_ENDIAN}Hi, Lo{$ELSE}Lo, Hi{$ENDIF}: TCCUInt32;
-        );
-      true:
-        (
-          Value: TCCUInt64;
-        );
+      false: ( {$IFDEF BIG_ENDIAN}Hi, Lo{$ELSE}Lo, Hi{$ENDIF}: TCCUInt32;);
+      true: (Value: TCCUInt64;);
   end;
 
   TCompressor = class(TCoreClassObject)
@@ -133,6 +89,9 @@ type
     destructor Destroy; override;
     function Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; virtual;
     function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; virtual;
+
+    procedure CompressStream(Sour: TCoreClassStream; StartPos, EndPos: NativeInt; CompressTo: TCoreClassStream);
+    procedure DecompressStream(Sour, DecompressTo: TCoreClassStream);
   end;
 
   TCompressorClass = class of TCompressor;
@@ -152,6 +111,10 @@ type
     HashRef_ENDIAN_B30 = {$IF defined(FPC_BIG_ENDIAN)}$FFFFFF00{$ELSE}$00FFFFFF{$IFEND};
 
   const
+    {$IFNDEF BIG_ENDIAN}
+    MultiplyDeBruijnBytePosition: array [0 .. 31] of TCCUInt8 = (0, 0, 3, 0, 3, 1, 3, 0, 3, 2, 2, 1, 3, 2, 0, 1, 3, 3, 1, 2, 2, 2, 2, 0, 3, 1, 2, 0, 1, 0, 1, 1);
+    {$ENDIF}
+    //
     LengthCodes: array [0 .. 28, 0 .. 3] of TCCUInt32 =
       ( // Code, ExtraBits, Min, Max
       (257, 0, 3, 3),
@@ -311,8 +274,8 @@ type
   private
     const
     FlagModel    = 0;
-    LiteralModel = 1;
-    SizeModels   = 257;
+    LiteralModel = 2;
+    SizeModels   = 258;
   private
   public
     constructor Create; override;
@@ -322,25 +285,9 @@ type
   published
   end;
 
-  {$IFNDEF fpc}
-
-
-function BSRDWord(Value: TCCUInt32): TCCUInt32; {$IF defined(CPU386) or defined(CPUX64)}assembler; register; {$IFEND}
-function SARLongint(Value, Shift: TCCInt32): TCCInt32;
-function SARInt64(Value: TCCInt64; Shift: TCCInt32): TCCInt64;
-{$ENDIF}
-
 implementation
 
-const
-  {$IFNDEF BIG_ENDIAN}
-  MultiplyDeBruijnBytePosition: array [0 .. 31] of TCCUInt8 = (
-    0, 0, 3, 0, 3, 1, 3, 0,
-    3, 2, 2, 1, 3, 2, 0, 1,
-    3, 3, 1, 2, 2, 2, 2, 0,
-    3, 1, 2, 0, 1, 0, 1, 1);
-  {$ENDIF}
-
+uses MemoryStream64;
 
 procedure BytewiseMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt); {$IF defined(CPU386)} register; assembler; {$IFDEF fpc}nostackframe; {$ENDIF}
 asm
@@ -564,8 +511,238 @@ begin
   result := 0;
 end;
 
+procedure TCompressor.CompressStream(Sour: TCoreClassStream; StartPos, EndPos: NativeInt; CompressTo: TCoreClassStream);
+const
+  ChunkSize       = $FFFF - $2000;
+  PrepareBuffSize = $FFFF;
+type
+  TPrepareBuff = array [0 .. PrepareBuffSize + 2] of byte;
+  PPrepareBuff = ^TPrepareBuff;
+
+var
+  buff          : array [0 .. ChunkSize] of byte;
+  PrepareBuffPtr: PPrepareBuff;
+  siz           : Int64;
+  j             : NativeInt;
+  Num           : NativeInt;
+  Rest          : NativeInt;
+
+  CompressOriginPos, CompressToSiz: Int64;
+begin
+  LockObject(Self);
+  siz := EndPos - StartPos;
+  try
+    if siz > 0 then
+      begin
+        if CompressTo is TCoreClassMemoryStream then
+          begin
+            CompressOriginPos := CompressTo.Position;
+            TCoreClassMemoryStream(CompressTo).Size := CompressOriginPos + Sour.Size + 8 + ((siz div ChunkSize) * $2000);
+
+            CompressTo.Write(siz, 8);
+            CompressToSiz := 8;
+
+            Sour.Position := StartPos;
+
+            if siz > ChunkSize then
+              begin
+                { Calculate number of full chunks that will fit into the buffer }
+                Num := siz div ChunkSize;
+                { Calculate remaining bytes }
+                Rest := siz mod ChunkSize;
+
+                { Process full chunks }
+                for j := 0 to Num - 1 do
+                  begin
+                    Sour.Read(buff[0], ChunkSize);
+                    PrepareBuffPtr := Pointer(NativeUInt(TCoreClassMemoryStream(CompressTo).Memory) + (CompressOriginPos + CompressToSiz));
+                    PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
+                    inc(CompressToSiz, PWord(@(PrepareBuffPtr^[0]))^ + 2);
+                  end;
+
+                { Process remaining bytes }
+                if Rest > 0 then
+                  begin
+                    Sour.Read(buff[0], Rest);
+                    PrepareBuffPtr := Pointer(NativeUInt(TCoreClassMemoryStream(CompressTo).Memory) + (CompressOriginPos + CompressToSiz));
+                    PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
+                    inc(CompressToSiz, PWord(@(PrepareBuffPtr^[0]))^ + 2);
+                  end;
+              end
+            else
+              begin
+                Sour.Read(buff[0], siz);
+                PrepareBuffPtr := Pointer(NativeUInt(TCoreClassMemoryStream(CompressTo).Memory) + (CompressOriginPos + CompressToSiz));
+                PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
+                inc(CompressToSiz, PWord(@(PrepareBuffPtr^[0]))^ + 2);
+              end;
+
+            if CompressOriginPos + CompressToSiz < TCoreClassMemoryStream(CompressTo).Size then
+                TCoreClassMemoryStream(CompressTo).Size := CompressOriginPos + CompressToSiz;
+          end
+        else if CompressTo is TMemoryStream64 then
+          begin
+            CompressOriginPos := CompressTo.Position;
+            TMemoryStream64(CompressTo).Size := CompressOriginPos + Sour.Size + 8 + ((siz div ChunkSize) * $2000);
+
+            CompressTo.Write(siz, 8);
+            CompressToSiz := 8;
+
+            Sour.Position := StartPos;
+
+            if siz > ChunkSize then
+              begin
+                { Calculate number of full chunks that will fit into the buffer }
+                Num := siz div ChunkSize;
+                { Calculate remaining bytes }
+                Rest := siz mod ChunkSize;
+
+                { Process full chunks }
+                for j := 0 to Num - 1 do
+                  begin
+                    Sour.Read(buff[0], ChunkSize);
+                    PrepareBuffPtr := TMemoryStream64(CompressTo).PositionAsPtr(CompressOriginPos + CompressToSiz);
+                    PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
+                    inc(CompressToSiz, PWord(@(PrepareBuffPtr^[0]))^ + 2);
+                  end;
+
+                { Process remaining bytes }
+                if Rest > 0 then
+                  begin
+                    Sour.Read(buff[0], Rest);
+                    PrepareBuffPtr := TMemoryStream64(CompressTo).PositionAsPtr(CompressOriginPos + CompressToSiz);
+                    PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
+                    inc(CompressToSiz, PWord(@(PrepareBuffPtr^[0]))^ + 2);
+                  end;
+              end
+            else
+              begin
+                Sour.Read(buff[0], siz);
+                PrepareBuffPtr := TMemoryStream64(CompressTo).PositionAsPtr(CompressOriginPos + CompressToSiz);
+                PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
+                inc(CompressToSiz, PWord(@(PrepareBuffPtr^[0]))^ + 2);
+              end;
+
+            if CompressOriginPos + CompressToSiz < TMemoryStream64(CompressTo).Size then
+                TMemoryStream64(CompressTo).Size := CompressOriginPos + CompressToSiz;
+          end
+        else
+          begin
+            CompressTo.Write(siz, 8);
+            Sour.Position := StartPos;
+
+            New(PrepareBuffPtr);
+            if siz > ChunkSize then
+              begin
+                { Calculate number of full chunks that will fit into the buffer }
+                Num := siz div ChunkSize;
+                { Calculate remaining bytes }
+                Rest := siz mod ChunkSize;
+
+                { Process full chunks }
+                for j := 0 to Num - 1 do
+                  begin
+                    Sour.Read(buff[0], ChunkSize);
+                    PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
+                    CompressTo.Write(PrepareBuffPtr^[0], PWord(@(PrepareBuffPtr^[0]))^ + 2);
+                  end;
+
+                { Process remaining bytes }
+                if Rest > 0 then
+                  begin
+                    Sour.Read(buff[0], Rest);
+                    PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
+                    CompressTo.Write(PrepareBuffPtr^[0], PWord(@(PrepareBuffPtr^[0]))^ + 2);
+                  end;
+              end
+            else
+              begin
+                Sour.Read(buff[0], siz);
+                PWord(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
+                CompressTo.Write(PrepareBuffPtr^[0], PWord(@(PrepareBuffPtr^[0]))^ + 2);
+              end;
+            Dispose(PrepareBuffPtr);
+          end;
+      end;
+  finally
+      UnLockObject(Self);
+  end;
+end;
+
+procedure TCompressor.DecompressStream(Sour, DecompressTo: TCoreClassStream);
+var
+  siz, cSiz, DecompressOriginPos: Int64;
+  bufSiz, deBufSiz              : Word;
+  buff, debuff                  : array of byte;
+begin
+  LockObject(Self);
+  try
+    if Sour.Position + 10 < Sour.Size then
+      begin
+        Sour.Read(siz, 8);
+        cSiz := 0;
+        DecompressOriginPos := DecompressTo.Position;
+
+        if DecompressTo is TCoreClassMemoryStream then
+          begin
+            TCoreClassMemoryStream(DecompressTo).Size := DecompressOriginPos + siz;
+            DecompressTo.Position := DecompressOriginPos;
+            SetLength(buff, $FFFF);
+            while cSiz < siz do
+              begin
+                if Sour.Read(bufSiz, 2) <> 2 then
+                    break;
+                if Sour.Read(buff[0], bufSiz) <> bufSiz then
+                    break;
+
+                deBufSiz := Decompress(@buff[0], bufSiz, Pointer(NativeUInt(TCoreClassMemoryStream(DecompressTo).Memory) + (DecompressOriginPos + cSiz)), $FFFF);
+                inc(cSiz, deBufSiz);
+              end;
+            SetLength(buff, 0);
+          end
+        else if DecompressTo is TMemoryStream64 then
+          begin
+            TMemoryStream64(DecompressTo).Size := DecompressOriginPos + siz;
+            DecompressTo.Position := DecompressOriginPos;
+            SetLength(buff, $FFFF);
+            while cSiz < siz do
+              begin
+                if Sour.Read(bufSiz, 2) <> 2 then
+                    break;
+                if Sour.Read(buff[0], bufSiz) <> bufSiz then
+                    break;
+
+                deBufSiz := Decompress(@buff[0], bufSiz, TMemoryStream64(DecompressTo).PositionAsPtr(DecompressOriginPos + cSiz), $FFFF);
+                inc(cSiz, deBufSiz);
+              end;
+            SetLength(buff, 0);
+          end
+        else
+          begin
+            SetLength(buff, $FFFF);
+            SetLength(debuff, $FFFF);
+            while cSiz < siz do
+              begin
+                if Sour.Read(bufSiz, 2) <> 2 then
+                    break;
+                if Sour.Read(buff[0], bufSiz) <> bufSiz then
+                    break;
+
+                deBufSiz := Decompress(@buff[0], bufSiz, @debuff[0], $FFFF);
+                DecompressTo.Write(debuff[0], deBufSiz);
+                inc(cSiz, deBufSiz);
+              end;
+            SetLength(buff, 0);
+            SetLength(debuff, 0);
+          end;
+      end;
+  finally
+      UnLockObject(Self);
+  end;
+end;
+
 constructor TCompressorDeflate.Create;
-  procedure BuildFixedTrees(var aLT, aDT: TTree);
+  procedure BuildFixedTrees(var aLT, aDT: TTree); inline;
   var
     i: TCCInt32;
   begin
@@ -577,43 +754,27 @@ constructor TCompressorDeflate.Create;
     aLT.Table[8] := 152;
     aLT.Table[9] := 112;
     for i := 0 to 23 do
-      begin
         aLT.Translation[i] := 256 + i;
-      end;
     for i := 0 to 143 do
-      begin
         aLT.Translation[24 + i] := i;
-      end;
     for i := 0 to 7 do
-      begin
         aLT.Translation[168 + i] := 280 + i;
-      end;
     for i := 0 to 111 do
-      begin
         aLT.Translation[176 + i] := 144 + i;
-      end;
     for i := 0 to 4 do
-      begin
         aDT.Table[i] := 0;
-      end;
     aDT.Table[5] := 32;
     for i := 0 to 31 do
-      begin
         aDT.Translation[i] := i;
-      end;
   end;
-  procedure BuildBitsBase(aBits: PCCUInt8Array; aBase: PCCUInt16; aDelta, aFirst: TCCInt32);
+  procedure BuildBitsBase(aBits: PCCUInt8Array; aBase: PCCUInt16; aDelta, aFirst: TCCInt32); inline;
   var
     i, Sum: TCCInt32;
   begin
     for i := 0 to aDelta - 1 do
-      begin
         aBits^[i] := 0;
-      end;
     for i := 0 to (30 - aDelta) - 1 do
-      begin
         aBits^[i + aDelta] := i div aDelta;
-      end;
     Sum := aFirst;
     for i := 0 to 29 do
       begin
@@ -628,32 +789,25 @@ var
 begin
   inherited Create;
   for index := 0 to length(LengthCodes) - 1 do
-    begin
-      for ValueIndex := IfThen(index = 0, 0, LengthCodes[index, 2]) to LengthCodes[index, 3] do
-        begin
-          fLengthCodesLookUpTable[ValueIndex] := index;
-        end;
-    end;
+    for ValueIndex := IfThen(index = 0, 0, LengthCodes[index, 2]) to LengthCodes[index, 3] do
+        fLengthCodesLookUpTable[ValueIndex] := index;
   for index := 0 to length(DistanceCodes) - 1 do
-    begin
-      for ValueIndex := IfThen(index = 0, 0, DistanceCodes[index, 2]) to DistanceCodes[index, 3] do
-        begin
-          fDistanceCodesLookUpTable[ValueIndex] := index;
-        end;
-    end;
-  FillByte(fLengthBits, sizeof(TBits), 0);
-  FillByte(fDistanceBits, sizeof(TBits), 0);
-  FillByte(fLengthBase, sizeof(TBase), 0);
-  FillByte(fDistanceBase, sizeof(TBase), 0);
-  FillByte(fFixedSymbolLengthTree, sizeof(TTree), 0);
-  FillByte(fFixedDistanceTree, sizeof(TTree), 0);
+    for ValueIndex := IfThen(index = 0, 0, DistanceCodes[index, 2]) to DistanceCodes[index, 3] do
+        fDistanceCodesLookUpTable[ValueIndex] := index;
+
+  FillPtrByte(@fLengthBits, sizeof(TBits), 0);
+  FillPtrByte(@fDistanceBits, sizeof(TBits), 0);
+  FillPtrByte(@fLengthBase, sizeof(TBase), 0);
+  FillPtrByte(@fDistanceBase, sizeof(TBase), 0);
+  FillPtrByte(@fFixedSymbolLengthTree, sizeof(TTree), 0);
+  FillPtrByte(@fFixedDistanceTree, sizeof(TTree), 0);
   BuildFixedTrees(fFixedSymbolLengthTree, fFixedDistanceTree);
   BuildBitsBase(TCCPointer(@fLengthBits[0]), PCCUInt16(TCCPointer(@fLengthBase[0])), 4, 3);
   BuildBitsBase(TCCPointer(@fDistanceBits[0]), PCCUInt16(TCCPointer(@fDistanceBase[0])), 2, 1);
   fLengthBits[28] := 0;
   fLengthBase[28] := 258;
-  fWithHeader := true;
-  fGreedy := true;
+  fWithHeader := false;
+  fGreedy := false;
   fSkipStrength := 32;
   fMaxSteps := 128;
 end;
@@ -688,17 +842,11 @@ var
         dec(CountOutputBits, 8);
       end;
   end;
-  procedure DoOutputLiteral(const aValue: TCCUInt8);
+  procedure DoOutputLiteral(const aValue: TCCUInt8); inline;
   begin
     case aValue of
-      0 .. 143:
-        begin
-          DoOutputBits(MirrorBytes[$30 + aValue], 8);
-        end;
-      else
-        begin
-          DoOutputBits((MirrorBytes[$90 + (aValue - 144)] shl 1) or 1, 9);
-        end;
+      0 .. 143: DoOutputBits(MirrorBytes[$30 + aValue], 8);
+      else DoOutputBits((MirrorBytes[$90 + (aValue - 144)] shl 1) or 1, 9);
     end;
   end;
   procedure DoOutputCopy(const aDistance, aLength: TCCUInt32);
@@ -709,39 +857,22 @@ var
     while Remain > 0 do
       begin
         case Remain of
-          0 .. 258:
-            begin
-              ToDo := Remain;
-            end;
-          259 .. 260:
-            begin
-              ToDo := Remain - 3;
-            end;
-          else
-            begin
-              ToDo := 258;
-            end;
+          0 .. 258: ToDo := Remain;
+          259 .. 260: ToDo := Remain - 3;
+          else ToDo := 258;
         end;
         dec(Remain, ToDo);
         index := fLengthCodesLookUpTable[Min(Max(ToDo, 0), 258)];
         if LengthCodes[index, 0] <= 279 then
-          begin
-            DoOutputBits(MirrorBytes[(LengthCodes[index, 0] - 256) shl 1], 7);
-          end
+            DoOutputBits(MirrorBytes[(LengthCodes[index, 0] - 256) shl 1], 7)
         else
-          begin
             DoOutputBits(MirrorBytes[$C0 + (LengthCodes[index, 0] - 280)], 8);
-          end;
         if LengthCodes[index, 1] <> 0 then
-          begin
             DoOutputBits(ToDo - LengthCodes[index, 2], LengthCodes[index, 1]);
-          end;
         index := fDistanceCodesLookUpTable[Min(Max(aDistance, 0), 32768)];
         DoOutputBits(MirrorBytes[DistanceCodes[index, 0] shl 3], 5);
         if DistanceCodes[index, 1] <> 0 then
-          begin
             DoOutputBits(aDistance - DistanceCodes[index, 2], DistanceCodes[index, 1]);
-          end;
       end;
   end;
   procedure OutputStartBlock;
@@ -754,7 +885,7 @@ var
     DoOutputBits(0, 7); // Close block
     DoOutputBits(0, 7); // Make sure all bits are flushed
   end;
-  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32;
+  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32; inline;
   const
     Base               = 65521;
     MaximumCountAtOnce = 5552;
@@ -769,13 +900,9 @@ var
     while Remain > 0 do
       begin
         if Remain < MaximumCountAtOnce then
-          begin
-            ToDo := Remain;
-          end
+            ToDo := Remain
         else
-          begin
             ToDo := MaximumCountAtOnce;
-          end;
         dec(Remain, ToDo);
         for index := 1 to ToDo do
           begin
@@ -805,8 +932,8 @@ begin
       DoOutputBits($9C, 8); // FLG Default Compression
     end;
   OutputStartBlock;
-  FillByte(fHashTable, sizeof(THashTable), 0);
-  FillByte(fChainTable, sizeof(TChainTable), 0);
+  FillPtrByte(@fHashTable, sizeof(THashTable), 0);
+  FillPtrByte(@fChainTable, sizeof(TChainTable), 0);
   CurrentPointer := aInData;
   EndPointer := TCCPointer(TCCPtrUInt(TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)));
   EndSearchPointer := TCCPointer(TCCPtrUInt((TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)) - TCCPtrUInt(TCCInt64(Max(TCCInt64(MinMatch), TCCInt64(sizeof(TCCUInt32)))))));
@@ -830,12 +957,14 @@ begin
                 (PCCUInt8Array(CurrentPointer)^[BestMatchLength - 1] = PCCUInt8Array(CurrentPossibleMatch)^[BestMatchLength - 1]) then
                 begin
                   MatchLength := MinMatch;
+
                   while ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) and (sizeof(TCCUInt32) - 1)) <> 0) and
                     ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) < TCCPtrUInt(EndPointer))) and
                     (PCCUInt8Array(CurrentPointer)^[MatchLength] = PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]) do
                     begin
                       inc(MatchLength);
                     end;
+
                   while (TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength + (sizeof(TCCUInt32) - 1)]) < TCCPtrUInt(EndPointer)) do
                     begin
                       Difference := PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPointer)^[MatchLength]))^ xor PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]))^;
@@ -869,13 +998,9 @@ begin
             end;
           inc(Step);
           if Step < fMaxSteps then
-            begin
-              CurrentPossibleMatch := fChainTable[(TCCPtrUInt(CurrentPossibleMatch) - TCCPtrUInt(aInData)) and WindowMask];
-            end
+              CurrentPossibleMatch := fChainTable[(TCCPtrUInt(CurrentPossibleMatch) - TCCPtrUInt(aInData)) and WindowMask]
           else
-            begin
               break;
-            end;
         end;
       if (BestMatchDistance > 0) and (BestMatchLength > 1) then
         begin
@@ -901,10 +1026,10 @@ begin
               inc(UnsuccessfulFindMatchAttempts, ord(UnsuccessfulFindMatchAttempts < TCCUInt32($FFFFFFFF)) and 1);
             end;
         end;
+
       if not OK then
-        begin
           break;
-        end;
+
       HashTableItem^ := CurrentPointer;
       fChainTable[(TCCPtrUInt(CurrentPointer) - TCCPtrUInt(aInData)) and WindowMask] := Head;
       if fGreedy then
@@ -926,10 +1051,10 @@ begin
   while TCCPtrUInt(CurrentPointer) < TCCPtrUInt(EndPointer) do
     begin
       DoOutputLiteral(CurrentPointer^);
+
       if not OK then
-        begin
           break;
-        end;
+
       inc(CurrentPointer);
     end;
   OutputEndBlock;
@@ -945,14 +1070,11 @@ begin
           inc(DestLen, 4);
         end;
     end;
+
   if OK then
-    begin
-      result := DestLen;
-    end
+      result := DestLen
   else
-    begin
       result := 0;
-    end;
 end;
 
 function TCompressorDeflate.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
@@ -961,7 +1083,7 @@ var
   Source, SourceEnd: PCCUInt8;
   Dest             : PCCUInt8;
   DestLen          : TCCSizeUInt;
-  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32;
+  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32; inline;
   const
     Base = 65521;
     NMAX = 5552;
@@ -975,13 +1097,9 @@ var
     while aLength > 0 do
       begin
         if aLength < NMAX then
-          begin
-            k := aLength;
-          end
+            k := aLength
         else
-          begin
             k := NMAX;
-          end;
         dec(aLength, k);
         for i := 1 to k do
           begin
@@ -994,40 +1112,29 @@ var
       end;
     result := (s2 shl 16) or s1;
   end;
-  procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32);
+  procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32); inline;
   var
-    Offsets: POffsets;
+    Offsets: TOffsets;
     i      : TCCInt32;
     Sum    : TCCUInt32;
   begin
-    New(Offsets);
-    try
-      for i := 0 to 15 do
+    for i := 0 to 15 do
+        aTree.Table[i] := 0;
+    for i := 0 to aNum - 1 do
+        inc(aTree.Table[TCCUInt8(aLengths^[i])]);
+    aTree.Table[0] := 0;
+    Sum := 0;
+    for i := 0 to 15 do
+      begin
+        Offsets[i] := Sum;
+        inc(Sum, aTree.Table[i]);
+      end;
+    for i := 0 to aNum - 1 do
+      if aLengths^[i] <> 0 then
         begin
-          aTree.Table[i] := 0;
+          aTree.Translation[Offsets[TCCUInt8(aLengths^[i])]] := i;
+          inc(Offsets[TCCUInt8(aLengths^[i])]);
         end;
-      for i := 0 to aNum - 1 do
-        begin
-          inc(aTree.Table[TCCUInt8(aLengths^[i])]);
-        end;
-      aTree.Table[0] := 0;
-      Sum := 0;
-      for i := 0 to 15 do
-        begin
-          Offsets^[i] := Sum;
-          inc(Sum, aTree.Table[i]);
-        end;
-      for i := 0 to aNum - 1 do
-        begin
-          if aLengths^[i] <> 0 then
-            begin
-              aTree.Translation[Offsets^[TCCUInt8(aLengths^[i])]] := i;
-              inc(Offsets^[TCCUInt8(aLengths^[i])]);
-            end;
-        end;
-    finally
-        Dispose(Offsets);
-    end;
   end;
   function GetBit: TCCUInt32;
   begin
@@ -1038,13 +1145,11 @@ var
         BitCount := 7;
       end
     else
-      begin
         dec(BitCount);
-      end;
     result := Tag and 1;
     Tag := Tag shr 1;
   end;
-  function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32;
+  function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32; inline;
   var
     Limit, Mask: TCCUInt32;
   begin
@@ -1056,15 +1161,13 @@ var
         while Mask < Limit do
           begin
             if GetBit <> 0 then
-              begin
                 inc(result, Mask);
-              end;
             Mask := Mask shl 1;
           end;
       end;
     inc(result, aBase);
   end;
-  function DecodeSymbol(const aTree: TTree): TCCUInt32;
+  function DecodeSymbol(const aTree: TTree): TCCUInt32; inline;
   var
     Sum, c, l: TCCInt32;
   begin
@@ -1083,15 +1186,13 @@ var
   var
     hlit, hdist, hclen, i, Num, Len, clen, Symbol, Prev: TCCUInt32;
   begin
-    FillByte(fCodeTree, sizeof(TTree), 0);
-    FillByte(fLengths, sizeof(TLengths), 0);
+    FillPtrByte(@fCodeTree, sizeof(TTree), 0);
+    FillPtrByte(@fLengths, sizeof(TLengths), 0);
     hlit := ReadBits(5, 257);
     hdist := ReadBits(5, 1);
     hclen := ReadBits(4, 4);
     for i := 0 to 18 do
-      begin
         fLengths[i] := 0;
-      end;
     for i := 1 to hclen do
       begin
         clen := ReadBits(3, 0);
@@ -1168,9 +1269,7 @@ var
                 inc(DestLen);
               end
             else
-              begin
                 exit;
-              end;
           end
         else
           begin
@@ -1187,9 +1286,7 @@ var
                 inc(DestLen, Len);
               end
             else
-              begin
                 exit;
-              end;
           end;
       end;
   end;
@@ -1201,9 +1298,7 @@ var
     Len := (TCCUInt8(PCCUInt8Array(Source)^[1]) shl 8) or TCCUInt8(PCCUInt8Array(Source)^[0]);
     InvLen := (TCCUInt8(PCCUInt8Array(Source)^[3]) shl 8) or TCCUInt8(PCCUInt8Array(Source)^[2]);
     if Len <> ((not InvLen) and $FFFF) then
-      begin
         exit;
-      end;
     inc(Source, 4);
     if Len > 0 then
       begin
@@ -1214,9 +1309,7 @@ var
             inc(Dest, Len);
           end
         else
-          begin
             exit;
-          end;
       end;
     BitCount := 0;
     inc(DestLen, Len);
@@ -1228,8 +1321,8 @@ var
   end;
   function InflateDynamicBlock: boolean;
   begin
-    FillByte(fSymbolLengthTree, sizeof(TTree), 0);
-    FillByte(fDistanceTree, sizeof(TTree), 0);
+    FillPtrByte(@fSymbolLengthTree, sizeof(TTree), 0);
+    FillPtrByte(@fDistanceTree, sizeof(TTree), 0);
     DecodeTrees(fSymbolLengthTree, fDistanceTree);
     result := InflateBlockData(fSymbolLengthTree, fDistanceTree);
   end;
@@ -1417,9 +1510,7 @@ var
     Counter: TCCInt32;
   begin
     for Counter := 1 to 5 do
-      begin
         EncoderShift;
-      end;
   end;
   procedure EncodeTree(ModelIndex, Bits, Move, Value: TCCInt32);
   var
@@ -1465,15 +1556,11 @@ begin
   if OK then
     begin
       while (DestLen > MinDestLen) and (PCCUInt8Array(aOutData)^[DestLen - 1] = 0) do
-        begin
           dec(DestLen);
-        end;
       result := DestLen;
     end
   else
-    begin
       result := 0;
-    end;
 end;
 
 function TCompressorBRRC.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
@@ -1502,15 +1589,11 @@ var
     while Range < $1000000 do
       begin
         if Position < aInSize then
-          begin
-            Code := (Code shl 8) or PCCUInt8Array(aInData)^[Position];
-          end
+            Code := (Code shl 8) or PCCUInt8Array(aInData)^[Position]
         else
           begin
             if Position < (aInSize + 4 + 5) then
-              begin
-                Code := Code shl 8;
-              end
+                Code := Code shl 8
             else
               begin
                 OK := false;
@@ -1525,9 +1608,7 @@ var
   begin
     result := 1;
     while OK and (result < MaxValue) do
-      begin
         result := (result shl 1) or DecodeBit(ModelIndex + result, Move);
-      end;
     dec(result, MaxValue);
   end;
 
@@ -1570,6 +1651,7 @@ begin
         else
             exit;
       until false;
+
       result := DestLen;
     end;
 end;

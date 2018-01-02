@@ -59,6 +59,7 @@ implementation
 
 {$R *.dfm}
 
+
 procedure TMyService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
 begin
   inherited UserLinkSuccess(UserDefineIO);
@@ -134,14 +135,13 @@ begin
 end;
 
 procedure TDoubleServerForm.GetClientValueButtonClick(Sender: TObject);
-var
-  i : Integer;
-  c : TPeerClient;
-  de: TDataFrameEngine;
 begin
-  for i := 0 to SendTunnel.Count - 1 do
+  SendTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
+    var
+      c: TPeerClient;
+      de: TDataFrameEngine;
     begin
-      c := SendTunnel[i];
+      c := PeerClient;
       de := TDataFrameEngine.Create;
       de.WriteString('change caption as hello World,from server!');
       c.SendStreamCmd('GetClientValue', de,
@@ -151,7 +151,7 @@ begin
               DoStatus('getClientValue [%s] response:%s', [c.GetPeerIP, ResultData.Reader.ReadString]);
         end);
       disposeObject(de);
-    end;
+    end);
 end;
 
 procedure TDoubleServerForm.StartServiceButtonClick(Sender: TObject);

@@ -61,6 +61,11 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 在ZServer4D中所捆绑的类，包括编解码，链表，数据库，均无内存泄漏
 
 
+## 关于压力测试
+
+
+压力测试如果链接超过6万，Windows系统会自动关闭侦听端口，具体原因不详，压测请尽量保持在6万以内，超过6万服务器侦听端口会自动关闭，只需要将服务器重开一次即可
+
 
 ## 关于切入和使用
 
@@ -71,6 +76,45 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 
 ## 更新日志
+
+重做压力测试客户端的链接方法，6完并发压力测试客户端性能向前提高1000倍，1秒可以完成6万并发连接
+
+优化了压力测试服务器性能，抗上万压测只会消耗单cpu 10%资源
+
+核心压缩库已被并入主线工程，并且提供了和Delphi/fpc可以进行比较的Demo工程（支持ARM）
+
+新增服务器的内存Hook库（傻瓜，暴力，非常暴力的释放和管理内存），同时也新增了内存管理领域开发工艺Demo，MH库支持FPC和Delphi
+
+新增的内存Hook库已在ZDB内部有效应用
+
+服务器端有个大改动：不再支持用户遍历方法，同时服务器内核不在使用链表来管理客户端，所有客户端全部改用Hash数组来管理
+
+此类方法已被替代为匿名函数来工作，同时服务器对链接实例的管理也不再支持链表，从内核到外围，全部使用哈希数组进行管理，这些升级和改动，都是为下一步1000万并发做的铺垫
+
+```Delphi
+	// 曾经的老写法很不安全，已废弃
+	LockClient;
+	for i:=0 to client.count-1 do
+	  client.sendcommand(xx) 
+	UnLockClient;
+```
+
+新的遍历方法
+```Delphi
+	// 后台安全写法1，
+	Server.ProgressPerClient(Procedure(peerClient:TPeerClient)
+	begin
+	  client.sendcommand(xx)
+	end);
+	// 后台安全写法2
+	RecvTunnel.GetClientIDPool(IDPool);
+	for pcid in IDPool do
+	  if RecvTunnel.Exists(pcid) then
+	   begin
+		 RecvTunnel.ClientFromID[pcid].sendcommand(xx);
+	   end;
+```
+
 
 
 2017-12-20

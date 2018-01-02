@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/12/29 19:10:12.000.999,C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTestFrm.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/12/29 19:10:12.000.999,C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTestFrm.fmx=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx</Transaction>
+    <Transaction>2017/12/29 19:10:15.000.501,C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTest.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
+		<Pmini iOSSimulator="_iossimulator_3F775F22-DD02-402A-83C6-3C3834BD3118" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
+	</ActiveMobileDevice>
+</BorlandProject>

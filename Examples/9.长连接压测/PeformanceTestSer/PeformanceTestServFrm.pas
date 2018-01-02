@@ -74,6 +74,7 @@ procedure TEZServerForm.RefStateTimerTimer(Sender: TObject);
     st  : TStatisticsType;
     i   : Integer;
     v   : Int64;
+    n   : string;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -90,7 +91,11 @@ procedure TEZServerForm.RefStateTimerTimer(Sender: TObject);
     for st := low(TStatisticsType) to high(TStatisticsType) do
       begin
         v := buff[st];
-        StateMemo.Lines.Add(GetEnumName(TypeInfo(TStatisticsType), Ord(st)) + ' : ' + IntToStr(v));
+        if v > 8192 then
+            n := umlSizeToStr(v).Text
+        else
+            n := IntToStr(v);
+        StateMemo.Lines.Add(GetEnumName(TypeInfo(TStatisticsType), Ord(st)) + ' : ' + n);
       end;
     StateMemo.Lines.EndUpdate;
   end;

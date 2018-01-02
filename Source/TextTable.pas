@@ -1,9 +1,8 @@
-{*****************************************************************************}
-{* Transform TextTable support,writen by QQ 600585@qq.com                    *}
-{* https://github.com/PassByYou888/CoreCipher                                *}
-(* https://github.com/PassByYou888/ZServer4D                                 *)
-{*****************************************************************************}
-
+{ ***************************************************************************** }
+{ * Transform TextTable support,writen by QQ 600585@qq.com                    * }
+{ * https://github.com/PassByYou888/CoreCipher                                * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ***************************************************************************** }
 
 unit TextTable;
 
@@ -17,15 +16,15 @@ uses SysUtils, CoreClasses, DataFrameEngine, ListEngine, UnicodeMixedLib,
 type
   TTextTableItem = record
     // origin info
-    OriginText: string;
-    Category: string;
+    OriginText: SystemString;
+    Category: SystemString;
 
     // ext pick info
     Picked: Boolean;
 
     // encode and import info
     Index: Integer;
-    DefineText: string;
+    DefineText: SystemString;
 
     // text style
     TextStyle: TTextStyle;
@@ -55,14 +54,14 @@ type
 
     function GetMaxIndexNo: Integer;
 
-    function GetOrigin(const s: string): PTextTableItem;
-    property Origin[const s: string]: PTextTableItem read GetOrigin;
+    function GetOrigin(const s: SystemString): PTextTableItem;
+    property Origin[const s: SystemString]: PTextTableItem read GetOrigin;
 
-    procedure AddText(AOriginText, ACategory: string; APicked: Boolean);
-    procedure AddPascal(AOriginText, ACategory: string; APicked: Boolean);
-    procedure ChangeDefineText(Index: Integer; newDefine: string);
+    procedure AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddPascal(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure ChangeDefineText(Index: Integer; newDefine: SystemString);
 
-    function Search(AOriginText: string): PTextTableItem;
+    function Search(AOriginText: SystemString): PTextTableItem;
 
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromStream(stream: TCoreClassStream);
@@ -178,7 +177,7 @@ begin
     end;
 end;
 
-function TTextTable.GetOrigin(const s: string): PTextTableItem;
+function TTextTable.GetOrigin(const s: SystemString): PTextTableItem;
 var
   i: Integer;
   p: PTextTableItem;
@@ -192,7 +191,7 @@ begin
     end;
 end;
 
-procedure TTextTable.AddText(AOriginText, ACategory: string; APicked: Boolean);
+procedure TTextTable.AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
 var
   p: PTextTableItem;
 begin
@@ -215,7 +214,7 @@ begin
     end;
 end;
 
-procedure TTextTable.AddPascal(AOriginText, ACategory: string; APicked: Boolean);
+procedure TTextTable.AddPascal(AOriginText, ACategory: SystemString; APicked: Boolean);
 var
   p: PTextTableItem;
 begin
@@ -238,7 +237,7 @@ begin
     end;
 end;
 
-procedure TTextTable.ChangeDefineText(Index: Integer; newDefine: string);
+procedure TTextTable.ChangeDefineText(Index: Integer; newDefine: SystemString);
 var
   i: Integer;
   p: PTextTableItem;
@@ -258,7 +257,7 @@ begin
     end;
 end;
 
-function TTextTable.Search(AOriginText: string): PTextTableItem;
+function TTextTable.Search(AOriginText: SystemString): PTextTableItem;
 var
   i: Integer;
   p: PTextTableItem;
@@ -295,7 +294,7 @@ begin
       ms.Clear;
     end;
 
-  df.EncodeToCompressed(stream);
+  df.EncodeAsZLib(stream);
 
   DisposeObject(ms);
   DisposeObject(df);

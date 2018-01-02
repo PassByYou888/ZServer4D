@@ -15,7 +15,7 @@ interface
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
-  DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher, ZDBEngine, ItemStream,
+  DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher, ZDBEngine, ItemStream, CoreCompress,
   {$IFNDEF FPC}
   SysUtils, JsonDataObjects,
   {$ENDIF}
@@ -381,7 +381,7 @@ begin
   destStream := TMemoryStream64.Create;
   FragmentSource.Position := 0;
 
-  MaxCompressStream(FragmentSource, destStream);
+  CompressStream(FragmentSource, destStream);
 
   ClearBatchStream(pl.SendTunnel.Owner);
   PostBatchStream(pl.SendTunnel.Owner, destStream, True);
@@ -660,7 +660,7 @@ begin
   SequEncrypt(m.Memory, m.Size, True, True);
   cm := TMemoryStream64.Create;
   m.Position := 0;
-  MaxCompressStream(m, cm);
+  CompressStream(m, cm);
   DisposeObject(m);
 
   ClearBatchStream(rt.SendTunnelDefine.Owner);
@@ -998,6 +998,7 @@ begin
   FZDBLocal.NotifyIntf := Self;
 
   FQueryCallPool := THashObjectList.Create(True);
+
   FPerQueryPipelineDelayFreeTime := 3.0;
 end;
 
@@ -1128,13 +1129,15 @@ end;
 
 function TDataStoreService_VirtualAuth.PostCounterOfPerSec: Double;
 var
-  i : Integer;
-  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  IDPool: TClientIDPool;
+  pcid  : Cardinal;
+  rt    : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
 begin
   Result := 0;
-  for i := 0 to FRecvTunnel.Count - 1 do
+  FRecvTunnel.GetClientIDPool(IDPool);
+  for pcid in IDPool do
     begin
-      rt := GetDataStoreUserDefine(FRecvTunnel[i]);
+      rt := GetDataStoreUserDefine(FRecvTunnel.ClientFromID[pcid]);
       Result := Result + rt.FPostCounterOfPerSec;
     end;
 end;

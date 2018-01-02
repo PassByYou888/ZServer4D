@@ -182,20 +182,19 @@ begin
 end;
 
 procedure TAuthDoubleServerForm.GetClientValueButtonClick(Sender: TObject);
-var
-  i : Integer;
-  c : TPeerClient;
-  de: TDataFrameEngine;
 begin
-  for i := 0 to SendTunnel.Count - 1 do
+  SendTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
+    var
+      c: TPeerClient;
+      de: TDataFrameEngine;
     begin
-      c := SendTunnel[i];
+      c := PeerClient;
       // 如果客户端没有登录成功
       if TPeerClientUserDefineForSendTunnel(c.UserDefine).RecvTunnel = nil then
-          continue;
+          exit;
       // 和上列一样，如果客户端没有登录
       if not TPeerClientUserDefineForSendTunnel(c.UserDefine).RecvTunnel.LinkOK then
-          continue;
+          exit;
 
       de := TDataFrameEngine.Create;
       de.WriteString('change caption as hello World,from server!');
@@ -206,7 +205,7 @@ begin
               DoStatus('getClientValue [%s] response:%s', [c.GetPeerIP, ResultData.Reader.ReadString]);
         end);
       disposeObject(de);
-    end;
+    end);
 end;
 
 procedure TAuthDoubleServerForm.StartServiceButtonClick(Sender: TObject);

@@ -12,8 +12,8 @@ unit MemoryStream64;
   create by passbyyou
   first 2011-10
 
-  last 2017-11-2
-  added x64 memory interface
+  last 2017-11-2 added x64 memory interface
+  2017-12-29 added newCompressor
 }
 
 interface
@@ -23,7 +23,7 @@ uses
   {$IFDEF FPC}
   zstream,
   {$ENDIF}
-  CoreClasses, SysUtils, PascalStrings;
+  CoreCompress, CoreClasses, SysUtils, PascalStrings;
 
 type
   TMemoryStream64 = class(TCoreClassStream)
@@ -96,6 +96,20 @@ type
     function Read64(var Buffer; Count: Int64): Int64; override;
   end;
 
+  IMemoryStream64ReadWriteTrigger = interface
+    procedure TriggerWrite64(Count: Int64);
+    procedure TriggerRead64(Count: Int64);
+  end;
+
+  TMemoryStream64OfReadWriteTrigger = class(TMemoryStream64)
+  private
+  public
+    Trigger: IMemoryStream64ReadWriteTrigger;
+    constructor Create(ATrigger: IMemoryStream64ReadWriteTrigger);
+    function Read64(var Buffer; Count: Int64): Int64; override;
+    function Write64(const Buffer; Count: Int64): Int64; override;
+  end;
+
   {$IFDEF FPC}
 
   TDecompressionStream = class(zstream.TDecompressionStream)
@@ -114,14 +128,20 @@ type
   TDecompressionStream = TZDecompressionStream;
   TCompressionStream   = TZCompressionStream;
   {$ENDIF}
-
+  //
+  // zlib
 function MaxCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
 function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean;
 
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; inline;
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; inline;
+
 implementation
+
+uses UnicodeMixedLib;
 
 procedure TMemoryStream64.SetPointer(BuffPtr: Pointer; const BuffSize: NativeUInt);
 begin
@@ -138,14 +158,12 @@ begin
 end;
 
 function TMemoryStream64.Realloc(var NewCapacity: NativeUInt): Pointer;
-const
-  MemoryDelta = $2000;
 begin
   if FProtectedMode then
       exit(nil);
 
   if (NewCapacity > 0) and (NewCapacity <> FSize) then
-      NewCapacity := (NewCapacity + (MemoryDelta - 1)) and not(MemoryDelta - 1);
+      NewCapacity := umlDeltaNumber(NewCapacity, 256);
   Result := Memory;
   if NewCapacity <> FCapacity then
     begin
@@ -210,9 +228,9 @@ const
   ChunkSize = 64 * 1024 * 1024;
 var
   p   : Pointer;
-  j   : Integer;
-  Num : Integer;
-  Rest: Integer;
+  j   : NativeInt;
+  Num : NativeInt;
+  Rest: NativeInt;
 begin
   if FProtectedMode then
       exit;
@@ -265,9 +283,9 @@ const
   ChunkSize = 64 * 1024 * 1024;
 var
   p   : Pointer;
-  j   : Integer;
-  Num : Integer;
-  Rest: Integer;
+  j   : NativeInt;
+  Num : NativeInt;
+  Rest: NativeInt;
 begin
   if Size > 0 then
     begin
@@ -529,12 +547,32 @@ begin
       Trigger.TriggerRead64(Count);
 end;
 
+constructor TMemoryStream64OfReadWriteTrigger.Create(ATrigger: IMemoryStream64ReadWriteTrigger);
+begin
+  inherited Create;
+  Trigger := ATrigger;
+end;
+
+function TMemoryStream64OfReadWriteTrigger.Read64(var Buffer; Count: Int64): Int64;
+begin
+  Result := inherited Read64(Buffer, Count);
+  if Assigned(Trigger) then
+      Trigger.TriggerRead64(Count);
+end;
+
+function TMemoryStream64OfReadWriteTrigger.Write64(const Buffer; Count: Int64): Int64;
+begin
+  Result := inherited Write64(Buffer, Count);
+  if Assigned(Trigger) then
+      Trigger.TriggerWrite64(Count);
+end;
+
 {$IFDEF FPC}
 
 
 constructor TCompressionStream.Create(Stream: TCoreClassStream);
 begin
-  inherited Create(clfastest, Stream);
+  inherited Create(clFastest, Stream);
 end;
 
 constructor TCompressionStream.Create(level: Tcompressionlevel; Stream: TCoreClassStream);
@@ -576,7 +614,7 @@ begin
     if Sour.Size > 0 then
       begin
         Sour.Position := 0;
-        cp := TCompressionStream.Create(clfastest, ComTo);
+        cp := TCompressionStream.Create(clFastest, ComTo);
         Result := cp.CopyFrom(Sour, sizevalue) = sizevalue;
         DisposeObject(cp);
       end;
@@ -638,6 +676,26 @@ begin
         DisposeObject(DC);
       end;
   except
+  end;
+end;
+
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+begin
+  try
+    Compressor.CompressStream(Sour, 0, Sour.Size, ComTo);
+    Result := True;
+  except
+      Result := False;
+  end;
+end;
+
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
+begin
+  try
+    Compressor.DecompressStream(Sour, DeTo);
+    Result := True;
+  except
+      Result := False;
   end;
 end;
 

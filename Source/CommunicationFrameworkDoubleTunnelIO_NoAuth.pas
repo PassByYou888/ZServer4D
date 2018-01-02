@@ -1053,11 +1053,13 @@ begin
                 FCurrentStream.Position := 0;
                 p^.OnCompleteMethod(p^.UserData, p^.UserObject, FCurrentStream, fn);
               end;
+            {$IFNDEF FPC}
             if Assigned(p^.OnCompleteProc) then
               begin
                 FCurrentStream.Position := 0;
                 p^.OnCompleteProc(p^.UserData, p^.UserObject, FCurrentStream, fn);
               end;
+            {$ENDIF}
             Dispose(p);
           end;
       except

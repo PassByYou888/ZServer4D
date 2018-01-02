@@ -652,14 +652,14 @@ begin
   TreeView.Items.BeginUpdate;
   TreeView.Items.Clear;
 
-  for i := 0 to FLoginRecvTunnel.Count - 1 do
+  FLoginRecvTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
     begin
-      LoginCli := FLoginRecvTunnel[i].UserDefine as TPerUserLoginRecvTunnel;
+      LoginCli := PeerClient.UserDefine as TPerUserLoginRecvTunnel;
       // 如果验证客户端登录并且link成功
       if (LoginCli.LoginSuccessed) and (LoginCli.SendTunnel <> nil) then
         begin
         end;
-    end;
+    end);
 
   vDBServer := 0;
   vCoreLogicServer := 0;

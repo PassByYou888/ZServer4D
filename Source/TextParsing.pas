@@ -1,8 +1,8 @@
-{*****************************************************************************}
-{* parsing library,writen by QQ 600585@qq.com                                *}
-{* https://github.com/PassByYou888/CoreCipher                                *}
-(* https://github.com/PassByYou888/ZServer4D                                 *)
-{*****************************************************************************}
+{ ***************************************************************************** }
+{ * parsing library,writen by QQ 600585@qq.com                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ***************************************************************************** }
 
 unit TextParsing;
 
@@ -10,7 +10,7 @@ unit TextParsing;
 
 interface
 
-uses SysUtils, Types, CoreClasses, UnicodeMixedLib;
+uses SysUtils, Types, CoreClasses, UnicodeMixedLib, PascalStrings;
 
 type
   TTextStyle = (tsPascal, tsText);
@@ -155,8 +155,6 @@ const
   DefaultSymbol                         = ',.+-*/();:=#@^&%!"[]<>?{}'#39;
 
 implementation
-
-uses PascalStrings;
 
 function TTextParsing.ComparePosStr(charPos: Integer; t: umlString): Boolean;
 var

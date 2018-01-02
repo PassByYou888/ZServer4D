@@ -23,6 +23,7 @@ uses SysUtils, CoreClasses, Types, Variants,
   {$IFNDEF FPC}
   JsonDataObjects,
   {$ENDIF}
+  CoreCompress,
   UnicodeMixedLib, PascalStrings;
 
 type
@@ -436,8 +437,10 @@ type
 
   TDataFrameEngine = class(TCoreClassObject)
   private
-    FDataList: TCoreClassListForObj;
-    FReader  : TDataFrameEngineReader;
+    FDataList         : TCoreClassListForObj;
+    FReader           : TDataFrameEngineReader;
+    FCompressorDeflate: TCompressorDeflate;
+    FCompressorBRRC   : TCompressorBRRC;
   protected
     function DataTypeToByte(v: TRunTimeDataType): Byte;
     function ByteToDataType(v: Byte): TRunTimeDataType;
@@ -563,8 +566,18 @@ type
 
     function EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
     function EncodeTo(output: TCoreClassStream): Integer; overload;
-    function EncodeToCompressed(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
-    function EncodeToCompressed(output: TCoreClassStream): Integer; overload;
+
+    // ZLib compressor
+    function EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
+    function EncodeAsZLib(output: TCoreClassStream): Integer; overload;
+
+    // Deflate compressor
+    function EncodeAsDeflate(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
+    function EncodeAsDeflate(output: TCoreClassStream): Integer; overload;
+
+    // BRRC compressor
+    function EncodeAsBRRC(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
+    function EncodeAsBRRC(output: TCoreClassStream): Integer; overload;
 
     function IsCompressed(source: TCoreClassStream): Boolean;
     function DecodeFrom(source: TCoreClassStream; const FastMode: Boolean): Integer; overload;
@@ -575,8 +588,7 @@ type
     procedure DecodeFromBytes(var b: TBytes); overload;
     procedure DecodeFromBytes(var b: TBytes; const FastMode: Boolean); overload;
 
-    function GetMD5(const Compressed, FastMode: Boolean): UnicodeMixedLib.TMD5;
-
+    function GetMD5(const FastMode: Boolean): UnicodeMixedLib.TMD5;
     function Compare(dest: TDataFrameEngine): Boolean;
 
     procedure LoadFromStream(stream: TCoreClassStream);
@@ -2009,6 +2021,8 @@ begin
   inherited Create;
   FDataList := TCoreClassListForObj.Create;
   FReader := TDataFrameEngineReader.Create(Self);
+  FCompressorDeflate := nil;
+  FCompressorBRRC := nil;
 end;
 
 destructor TDataFrameEngine.Destroy;
@@ -2016,6 +2030,10 @@ begin
   Clear;
   DisposeObject(FDataList);
   DisposeObject(FReader);
+  if FCompressorDeflate <> nil then
+      DisposeObject(FCompressorDeflate);
+  if FCompressorBRRC <> nil then
+      DisposeObject(FCompressorBRRC);
   inherited Destroy;
 end;
 
@@ -2381,7 +2399,7 @@ var
   d: TMemoryStream64;
 begin
   d := TMemoryStream64.Create;
-  v.EncodeToCompressed(d, True);
+  v.EncodeAsZLib(d, True);
   d.Position := 0;
   WriteStream(d);
   DisposeObject(d);
@@ -3285,7 +3303,7 @@ var
 
   editionFlag: Byte;
   sizeInfo   : Integer;
-  compFlag   : Boolean;
+  compFlag   : Byte;
   md5        : UnicodeMixedLib.TMD5;
 begin
   Result := Count;
@@ -3310,7 +3328,7 @@ begin
   // make header
   editionFlag := $FF;
   sizeInfo := StoreStream.Size;
-  compFlag := False;
+  compFlag := 0;
   StoreStream.Position := 0;
   if FastMode then
       md5 := NullMD5
@@ -3320,7 +3338,7 @@ begin
   nStream.Clear;
   nStream.Write(editionFlag, umlByteLength);
   nStream.Write(sizeInfo, umlIntegerLength);
-  nStream.Write(compFlag, umlBoolLength);
+  nStream.Write(compFlag, umlByteLength);
   nStream.Write(md5[0], umlMD5Length);
 
   // write header
@@ -3339,7 +3357,7 @@ begin
   Result := EncodeTo(output, False);
 end;
 
-function TDataFrameEngine.EncodeToCompressed(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDataFrameEngine.EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i                               : Integer;
   b                               : TDataFrameBase;
@@ -3349,7 +3367,7 @@ var
 
   editionFlag : Byte;
   sizeInfo    : Integer;
-  compFlag    : Boolean;
+  compFlag    : Byte;
   compSizeInfo: Integer;
   md5         : UnicodeMixedLib.TMD5;
 begin
@@ -3389,12 +3407,12 @@ begin
 
   editionFlag := $FF;
   sizeInfo := compStream.Size;
-  compFlag := True;
+  compFlag := 1;
 
   nStream.Clear;
   nStream.Write(editionFlag, umlByteLength);
   nStream.Write(sizeInfo, umlIntegerLength);
-  nStream.Write(compFlag, umlBoolLength);
+  nStream.Write(compFlag, umlByteLength);
   nStream.Write(compSizeInfo, umlIntegerLength);
   nStream.Write(md5[0], umlMD5Length);
 
@@ -3409,9 +3427,161 @@ begin
   DisposeObject(compStream);
 end;
 
-function TDataFrameEngine.EncodeToCompressed(output: TCoreClassStream): Integer;
+function TDataFrameEngine.EncodeAsZLib(output: TCoreClassStream): Integer;
 begin
-  Result := EncodeToCompressed(output, False);
+  Result := EncodeAsZLib(output, False);
+end;
+
+function TDataFrameEngine.EncodeAsDeflate(output: TCoreClassStream; const FastMode: Boolean): Integer;
+var
+  i                               : Integer;
+  b                               : TDataFrameBase;
+  StoreStream, nStream, compStream: TMemoryStream64;
+  id                              : Byte;
+
+  editionFlag : Byte;
+  sizeInfo    : Integer;
+  compFlag    : Byte;
+  compSizeInfo: Integer;
+  md5         : UnicodeMixedLib.TMD5;
+begin
+  Result := Count;
+  StoreStream := TMemoryStream64.Create;
+
+  // make body
+  StoreStream.WriteBuffer(Result, umlIntegerLength);
+
+  nStream := TMemoryStream64.Create;
+  for i := 0 to Count - 1 do
+    begin
+      b := GetData(i);
+      id := b.FID;
+      b.SaveToStream(nStream);
+
+      StoreStream.WriteBuffer(id, umlByteLength);
+      nStream.Position := 0;
+      StoreStream.CopyFrom(nStream, nStream.Size);
+      nStream.Clear;
+    end;
+
+  // compress body and make header
+  compSizeInfo := StoreStream.Size;
+  StoreStream.Position := 0;
+  if FastMode then
+      md5 := NullMD5
+  else
+      md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
+
+  compStream := TMemoryStream64.Create;
+  StoreStream.Position := 0;
+
+  if FCompressorDeflate = nil then
+      FCompressorDeflate := TCompressorDeflate.Create;
+
+  CoreCompressStream(FCompressorDeflate, StoreStream, compStream);
+  DisposeObject(StoreStream);
+
+  editionFlag := $FF;
+  sizeInfo := compStream.Size;
+  compFlag := 2;
+
+  nStream.Clear;
+  nStream.Write(editionFlag, umlByteLength);
+  nStream.Write(sizeInfo, umlIntegerLength);
+  nStream.Write(compFlag, umlByteLength);
+  nStream.Write(compSizeInfo, umlIntegerLength);
+  nStream.Write(md5[0], umlMD5Length);
+
+  // write header
+  nStream.Position := 0;
+  output.CopyFrom(nStream, nStream.Size);
+  DisposeObject(nStream);
+
+  // write body
+  compStream.Position := 0;
+  output.CopyFrom(compStream, compStream.Size);
+  DisposeObject(compStream);
+end;
+
+function TDataFrameEngine.EncodeAsDeflate(output: TCoreClassStream): Integer;
+begin
+  Result := EncodeAsDeflate(output, False);
+end;
+
+function TDataFrameEngine.EncodeAsBRRC(output: TCoreClassStream; const FastMode: Boolean): Integer;
+var
+  i                               : Integer;
+  b                               : TDataFrameBase;
+  StoreStream, nStream, compStream: TMemoryStream64;
+  id                              : Byte;
+
+  editionFlag : Byte;
+  sizeInfo    : Integer;
+  compFlag    : Byte;
+  compSizeInfo: Integer;
+  md5         : UnicodeMixedLib.TMD5;
+begin
+  Result := Count;
+  StoreStream := TMemoryStream64.Create;
+
+  // make body
+  StoreStream.WriteBuffer(Result, umlIntegerLength);
+
+  nStream := TMemoryStream64.Create;
+  for i := 0 to Count - 1 do
+    begin
+      b := GetData(i);
+      id := b.FID;
+      b.SaveToStream(nStream);
+
+      StoreStream.WriteBuffer(id, umlByteLength);
+      nStream.Position := 0;
+      StoreStream.CopyFrom(nStream, nStream.Size);
+      nStream.Clear;
+    end;
+
+  // compress body and make header
+  compSizeInfo := StoreStream.Size;
+  StoreStream.Position := 0;
+  if FastMode then
+      md5 := NullMD5
+  else
+      md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
+
+  compStream := TMemoryStream64.Create;
+  StoreStream.Position := 0;
+
+  if FCompressorBRRC = nil then
+      FCompressorBRRC := TCompressorBRRC.Create;
+
+  CoreCompressStream(FCompressorBRRC, StoreStream, compStream);
+  DisposeObject(StoreStream);
+
+  editionFlag := $FF;
+  sizeInfo := compStream.Size;
+  compFlag := 3;
+
+  nStream.Clear;
+  nStream.Write(editionFlag, umlByteLength);
+  nStream.Write(sizeInfo, umlIntegerLength);
+  nStream.Write(compFlag, umlByteLength);
+  nStream.Write(compSizeInfo, umlIntegerLength);
+  nStream.Write(md5[0], umlMD5Length);
+
+  // write header
+  nStream.Position := 0;
+  output.CopyFrom(nStream, nStream.Size);
+  DisposeObject(nStream);
+
+  // write body
+  compStream.Position := 0;
+  output.CopyFrom(compStream, compStream.Size);
+  DisposeObject(compStream);
+end;
+
+function TDataFrameEngine.EncodeAsBRRC(output: TCoreClassStream): Integer;
+begin
+  Result := EncodeAsBRRC(output, False);
 end;
 
 function TDataFrameEngine.IsCompressed(source: TCoreClassStream): Boolean;
@@ -3420,7 +3590,7 @@ var
 
   editionFlag: Byte;
   sizeInfo   : Integer;
-  compFlag   : Boolean;
+  compFlag   : Byte;
 begin
   bakPos := source.Position;
   Result := False;
@@ -3429,12 +3599,9 @@ begin
   if editionFlag = $FF then
     begin
       source.Read(sizeInfo, umlIntegerLength);
-      source.Read(compFlag, umlBoolLength);
+      source.Read(compFlag, umlByteLength);
 
-      Result := compFlag;
-    end
-  else
-    begin
+      Result := compFlag in [1, 2, 3];
     end;
 
   source.Position := bakPos;
@@ -3450,7 +3617,7 @@ var
 
   editionFlag : Byte;
   sizeInfo    : Integer;
-  compFlag    : Boolean;
+  compFlag    : Byte;
   compSizeInfo: Integer;
   md5         : UnicodeMixedLib.TMD5;
 begin
@@ -3464,26 +3631,8 @@ begin
   if editionFlag = $FF then
     begin
       source.Read(sizeInfo, umlIntegerLength);
-      source.Read(compFlag, umlBoolLength);
-      if compFlag then
-        begin
-          source.Read(compSizeInfo, umlIntegerLength);
-          source.Read(md5[0], 16);
-
-          ZDecompStream := TDecompressionStream.Create(source);
-          StoreStream.CopyFrom(ZDecompStream, compSizeInfo);
-          DisposeObject(ZDecompStream);
-
-          StoreStream.Position := 0;
-          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
-            if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
-              begin
-                DoStatus('dataframe md5 error!');
-                DisposeObject(StoreStream);
-                Exit;
-              end;
-        end
-      else
+      source.Read(compFlag, umlByteLength);
+      if compFlag = 0 then
         begin
           source.Read(md5[0], 16);
 
@@ -3497,6 +3646,60 @@ begin
             if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('dataframe md5 error!');
+                DisposeObject(StoreStream);
+                Exit;
+              end;
+        end
+      else if compFlag = 1 then
+        begin
+          source.Read(compSizeInfo, umlIntegerLength);
+          source.Read(md5[0], 16);
+
+          ZDecompStream := TDecompressionStream.Create(source);
+          StoreStream.CopyFrom(ZDecompStream, compSizeInfo);
+          DisposeObject(ZDecompStream);
+
+          StoreStream.Position := 0;
+          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+            if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
+              begin
+                DoStatus('ZLib md5 error!');
+                DisposeObject(StoreStream);
+                Exit;
+              end;
+        end
+      else if compFlag = 2 then
+        begin
+          source.Read(compSizeInfo, umlIntegerLength);
+          source.Read(md5[0], 16);
+
+          if FCompressorDeflate = nil then
+              FCompressorDeflate := TCompressorDeflate.Create;
+          CoreDecompressStream(FCompressorDeflate, source, StoreStream);
+
+          StoreStream.Position := 0;
+          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+            if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
+              begin
+                DoStatus('Deflate md5 error!');
+                DisposeObject(StoreStream);
+                Exit;
+              end;
+        end
+      else if compFlag = 3 then
+        begin
+          source.Read(compSizeInfo, umlIntegerLength);
+          source.Read(md5[0], 16);
+
+          if FCompressorBRRC = nil then
+              FCompressorBRRC := TCompressorBRRC.Create;
+          CoreDecompressStream(FCompressorBRRC, source, StoreStream);
+
+          StoreStream.Position := 0;
+          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+            if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
+              begin
+                DoStatus('BRRC md5 error!');
                 DisposeObject(StoreStream);
                 Exit;
               end;
@@ -3533,7 +3736,7 @@ var
 begin
   enStream := TMemoryStream64.Create;
   if Compressed then
-      EncodeToCompressed(enStream, FastMode)
+      EncodeAsZLib(enStream, FastMode)
   else
       EncodeTo(enStream, FastMode);
 
@@ -3557,15 +3760,12 @@ begin
   DisposeObject(enStream);
 end;
 
-function TDataFrameEngine.GetMD5(const Compressed, FastMode: Boolean): UnicodeMixedLib.TMD5;
+function TDataFrameEngine.GetMD5(const FastMode: Boolean): UnicodeMixedLib.TMD5;
 var
   enStream: TMemoryStream64;
 begin
   enStream := TMemoryStream64.Create;
-  if Compressed then
-      EncodeToCompressed(enStream, FastMode)
-  else
-      EncodeTo(enStream, FastMode);
+  EncodeTo(enStream, FastMode);
 
   Result := umlMD5(enStream.Memory, enStream.Size);
   DisposeObject(enStream);
@@ -3575,8 +3775,8 @@ function TDataFrameEngine.Compare(dest: TDataFrameEngine): Boolean;
 var
   m1, m2: UnicodeMixedLib.TMD5;
 begin
-  m1 := GetMD5(False, False);
-  m2 := dest.GetMD5(False, False);
+  m1 := GetMD5(False);
+  m2 := dest.GetMD5(False);
   Result := umlMD5Compare(m1, m2);
 end;
 
@@ -3592,7 +3792,7 @@ procedure TDataFrameEngine.SaveToStream(stream: TCoreClassStream);
 begin
   try
     if ComputeEncodeSize > 8 * 1024 then
-        EncodeToCompressed(stream)
+        EncodeAsZLib(stream)
     else
         EncodeTo(stream);
   except

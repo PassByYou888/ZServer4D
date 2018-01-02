@@ -480,9 +480,9 @@ end;
 procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; Error: Word);
 begin
   DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
-//  Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-//  Client.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
-//  Client.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
+  // Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
+  // Client.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
+  // Client.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
 end;
 
 procedure TCommunicationFramework_Server_ICS.ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
@@ -599,13 +599,16 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_ICS.StopService;
-var
-  i: Integer;
 begin
-  LockClients;
-  for i := 0 to Count - 1 do
-      Items[i].Disconnect;
-  UnLockClients;
+  while Count > 0 do
+    begin
+      ProgressPerClient(procedure(cli: TPeerClient)
+        begin
+          cli.Disconnect;
+        end);
+      ProgressBackground;
+    end;
+
   try
     FDriver.Close;
     FStartedService := False;
@@ -630,16 +633,10 @@ procedure TCommunicationFramework_Server_ICS.ProgressBackground;
 var
   i: Integer;
 begin
-  try
-    for i := 0 to Count - 1 do
-      begin
-        try
-            TPeerClientIntfForICS(Items[i]).FContext.ProcessClientActiveTime;
-        except
-        end;
-      end;
-  except
-  end;
+  ProgressPerClient(procedure(cli: TPeerClient)
+    begin
+      TPeerClientIntfForICS(cli).FContext.ProcessClientActiveTime;
+    end);
 
   inherited ProgressBackground;
 

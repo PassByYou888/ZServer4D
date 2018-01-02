@@ -1,8 +1,8 @@
-{******************************************************************************}
-{* Status Library, writen by QQ 600585@qq.com                                 *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * Status Library, writen by QQ 600585@qq.com                                 * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit DoStatusIO;
 
@@ -19,18 +19,20 @@ uses
   Sysutils, PascalStrings, CoreClasses, MemoryStream64;
 
 type
-  TDoStatusNear = procedure(AText: SystemString; const ID: Integer) of object;
-  TDoStatusFar  = procedure(AText: SystemString; const ID: Integer);
+  TDoStatusMethod = procedure(AText: SystemString; const ID: Integer) of object;
+  TDoStatusCall   = procedure(AText: SystemString; const ID: Integer);
 
-procedure DoStatus(Text: SystemString; ID: Integer); overload;
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusNear); overload;
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusFar); overload;
+procedure DoStatus(Text: SystemString; const ID: Integer); overload;
+procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusMethod); overload;
+procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusCall); overload;
 procedure DeleteDoStatusHook(FlagObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
 
+procedure DoStatus(v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(v: TMemoryStream64); overload;
 procedure DoStatus(v: TCoreClassStrings); overload;
+procedure DoStatus(v: int64); overload;
 procedure DoStatus(v: Integer); overload;
 procedure DoStatus(v: Single); overload;
 procedure DoStatus(v: Double); overload;
@@ -40,11 +42,51 @@ procedure DoError(v: SystemString; const Args: array of const); overload;
 procedure DoStatus(v: SystemString); overload;
 
 var
-  LastDoStatus : SystemString;
-  IDEOutput    : Boolean;
-  ConsoleOutput: Boolean;
+  LastDoStatus  : SystemString;
+  IDEOutput     : Boolean;
+  ConsoleOutput : Boolean;
+  OnDoStatusHook: TDoStatusCall;
 
 implementation
+
+procedure bufHashToString(hash: Pointer; Size: NativeInt; var Output: TPascalString);
+const
+  HexArr: array [0 .. 15] of SystemChar = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
+var
+  i: Integer;
+begin
+  Output.Len := Size * 2;
+  for i := 0 to Size - 1 do
+    begin
+      Output.buff[i * 2] := HexArr[(PByte(nativeUInt(hash) + i)^ shr 4) and $0F];
+      Output.buff[i * 2 + 1] := HexArr[PByte(nativeUInt(hash) + i)^ and $0F];
+    end;
+end;
+
+procedure DoStatus(v: Pointer; siz, width: NativeInt);
+var
+  s: TPascalString;
+  i: Integer;
+  n: SystemString;
+begin
+  bufHashToString(v, siz, s);
+  n := '';
+  for i := 1 to s.Len div 2 do
+    begin
+      if n <> '' then
+          n := n + #32 + s[i * 2 - 1] + s[i * 2]
+      else
+          n := s[i * 2 - 1] + s[i * 2];
+
+      if i mod (width div 2) = 0 then
+        begin
+          DoStatus(n);
+          n := '';
+        end;
+    end;
+  if n <> '' then
+      DoStatus(n);
+end;
 
 procedure DoStatus(v: TMemoryStream64);
 var
@@ -53,7 +95,7 @@ var
   n: SystemString;
 begin
   p := v.Memory;
-  for i := 0 to v.size - 1 do
+  for i := 0 to v.Size - 1 do
     begin
       if n <> '' then
           n := n + ',' + IntToStr(p^)
@@ -70,6 +112,11 @@ var
 begin
   for i := 0 to v.Count - 1 do
       DoStatus(v[i]);
+end;
+
+procedure DoStatus(v: int64);
+begin
+  DoStatus(IntToStr(v));
 end;
 
 procedure DoStatus(v: Integer);
@@ -110,8 +157,8 @@ end;
 type
   TDoStatusData = record
     FlagObj: TCoreClassObject;
-    OnStatusNear: TDoStatusNear;
-    OnStatusFar: TDoStatusFar;
+    OnStatusNear: TDoStatusMethod;
+    OnStatusFar: TDoStatusCall;
   end;
 
   PDoStatusData = ^TDoStatusData;
@@ -120,7 +167,7 @@ var
   HookDoSatus : TCoreClassList = nil;
   StatusActive: Boolean        = True;
 
-procedure DoStatus(Text: SystemString; ID: Integer);
+procedure InternalDoStatus(Text: SystemString; const ID: Integer);
 var
   Rep_Int: Integer;
   p      : PDoStatusData;
@@ -161,7 +208,12 @@ begin
   end;
 end;
 
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusNear);
+procedure DoStatus(Text: SystemString; const ID: Integer);
+begin
+  OnDoStatusHook(Text, ID);
+end;
+
+procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusMethod);
 var
   _Data: PDoStatusData;
 begin
@@ -172,7 +224,7 @@ begin
   HookDoSatus.Add(_Data);
 end;
 
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusFar);
+procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusCall);
 var
   _Data: PDoStatusData;
 begin
@@ -219,6 +271,11 @@ StatusActive := True;
 LastDoStatus := '';
 IDEOutput := False;
 ConsoleOutput := True;
+{$IFDEF FPC}
+OnDoStatusHook := @InternalDoStatus;
+{$ELSE}
+OnDoStatusHook := InternalDoStatus;
+{$ENDIF}
 
 finalization
 

@@ -135,6 +135,9 @@ type
     procedure Decode(d: TDataFrameEngine); inline;
   end;
 
+  TPipeInfo = TPipeState;
+  PPipeInfo = ^TPipeInfo;
+
 implementation
 
 constructor TTDataStoreService_DBPipeline.Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString);

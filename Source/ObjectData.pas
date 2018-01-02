@@ -72,7 +72,8 @@ type
     ID, PositionID: Byte;
     UserProperty: Cardinal; // external define
     Name: umlString;
-    Return: Integer; // nowrite
+    Return: Integer;       // nowrite
+    MemorySiz: NativeUInt; // nowrite
   end;
 
   TObjectDataHeaderWriteProc = procedure(fPos: Int64; var wVal: THeader) of object;
@@ -84,7 +85,8 @@ type
     IDFlags: Byte;
     CurrentBlockPOS, NextBlockPOS, PrevBlockPOS, DataBlockPOS: Int64;
     Size: Int64;
-    Return: Integer; // nowrite
+    Return: Integer;       // nowrite
+    MemorySiz: NativeUInt; // nowrite
   end;
 
   TObjectDataItemBlockWriteProc = procedure(fPos: Int64; var wVal: TItemBlock) of object;
@@ -104,6 +106,7 @@ type
     CurrentItemBlock: TItemBlock; // nowrite
     DataWrited: Boolean;          // nowrite
     Return: Integer;              // nowrite
+    MemorySiz: NativeUInt;        // nowrite
   end;
 
   TObjectDataItemWriteProc = procedure(fPos: Int64; var wVal: TItem) of object;
@@ -117,7 +120,8 @@ type
     Description: umlString;
     HeaderCount: Int64;
     FirstHeaderPOS, LastHeaderPOS: Int64;
-    Return: Integer; // nowrite
+    Return: Integer;       // nowrite
+    MemorySiz: NativeUInt; // nowrite
   end;
 
   TObjectDataFieldWriteProc = procedure(fPos: Int64; var wVal: TField) of object;
@@ -158,6 +162,7 @@ type
     OnOnlyWriteFieldRec: TObjectDataFieldWriteProc;
     OnOnlyReadFieldRec: TObjectDataFieldReadProc;
     Return: Integer;
+    MemorySiz: NativeUInt; // nowrite
   end;
 
   TTMDBItemHandle = record
@@ -578,6 +583,7 @@ begin
   SenderHeader.UserProperty := 0;
   SenderHeader.Name := '';
   SenderHeader.Return := db_Header_ok;
+  SenderHeader.MemorySiz := 0;
 end;
 
 procedure Init_TItemBlock(var SenderItemBlock: TItemBlock);
@@ -589,6 +595,7 @@ begin
   SenderItemBlock.DataBlockPOS := 0;
   SenderItemBlock.Size := 0;
   SenderItemBlock.Return := db_Item_ok;
+  SenderItemBlock.MemorySiz := 0;
 end;
 
 procedure Init_TItem(var SenderItem: TItem);
@@ -605,6 +612,7 @@ begin
   Init_TItemBlock(SenderItem.CurrentItemBlock);
   SenderItem.DataWrited := False;
   SenderItem.Return := db_Item_ok;
+  SenderItem.MemorySiz := 0;
 end;
 
 procedure Init_TField(var SenderField: TField);
@@ -616,6 +624,7 @@ begin
   SenderField.LastHeaderPOS := 0;
   Init_THeader(SenderField.RHeader);
   SenderField.Return := db_Field_ok;
+  SenderField.MemorySiz := 0;
 end;
 
 procedure Init_TFieldSearch(var SenderFieldSearch: TFieldSearch);
@@ -662,6 +671,7 @@ begin
   SenderTMDB.OnOnlyReadFieldRec := nil;
 
   SenderTMDB.Return := db_Pack_ok;
+  SenderTMDB.MemorySiz := 0;
 end;
 
 procedure Init_TTMDBItemHandle(var SenderTMDBItemHandle: TTMDBItemHandle);

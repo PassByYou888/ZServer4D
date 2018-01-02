@@ -242,21 +242,21 @@ procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject
 var
   cli: TContextIntfForServer;
 begin
-  // TThread.Synchronize(TThread.CurrentThread,
-  // procedure
-  // begin
-  cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
-  cli.LastActiveTime := GetTimeTickCount;
-  AConnection.UserObject := cli;
-  // end);
+  TThread.Synchronize(TThread.CurrentThread,
+    procedure
+    begin
+      cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
+      cli.LastActiveTime := GetTimeTickCount;
+      AConnection.UserObject := cli;
+    end);
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
-var
-  cli: TContextIntfForServer;
 begin
   TThread.Synchronize(TThread.CurrentThread,
     procedure
+    var
+      cli: TContextIntfForServer;
     begin
       cli := AConnection.UserObject as TContextIntfForServer;
       if cli <> nil then
@@ -272,8 +272,6 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
-var
-  cli: TContextIntfForServer;
 begin
   if ALen <= 0 then
       exit;
@@ -281,14 +279,16 @@ begin
   if AConnection.UserObject = nil then
       exit;
 
-  cli := AConnection.UserObject as TContextIntfForServer;
-  if cli.ClientIntf = nil then
-      exit;
-
   TThread.Synchronize(TThread.CurrentThread,
     procedure
+    var
+      cli: TContextIntfForServer;
     begin
       try
+        cli := AConnection.UserObject as TContextIntfForServer;
+        if cli.ClientIntf = nil then
+            exit;
+
         cli.LastActiveTime := GetTimeTickCount;
         cli.ReceivedBuffer.Position := cli.ReceivedBuffer.size;
         cli.ReceivedBuffer.Write(ABuf^, ALen);
@@ -396,28 +396,27 @@ end;
 
 procedure TCommunicationFramework_Server_CrossSocket.ProgressBackground;
 var
-  i: Integer;
-  c: TContextIntfForServer;
+  IDPool: TClientIDPool;
+  pid   : Cardinal;
+  c     : TContextIntfForServer;
 begin
+  GetClientIDPool(IDPool);
   try
-    try
-      for i := 0 to Count - 1 do
-        begin
-          c := TContextIntfForServer(Items[i]);
-          if c <> nil then
-            begin
-              if (IdleTimeout > 0) and (GetTimeTickCount - c.LastActiveTime > IdleTimeout) then
-                  c.Disconnect
-              else
-                begin
-                  if c.Connected then
-                      c.ProcessAllSendCmd(nil, False, False);
-                end;
-            end;
-        end;
-    except
-    end;
-  finally
+    for pid in IDPool do
+      begin
+        c := TContextIntfForServer(ClientFromID[pid]);
+        if c <> nil then
+          begin
+            if (IdleTimeout > 0) and (GetTimeTickCount - c.LastActiveTime > IdleTimeout) then
+                c.Disconnect
+            else
+              begin
+                if c.Connected then
+                    c.ProcessAllSendCmd(nil, False, False);
+              end;
+          end;
+      end;
+  except
   end;
 
   inherited ProgressBackground;

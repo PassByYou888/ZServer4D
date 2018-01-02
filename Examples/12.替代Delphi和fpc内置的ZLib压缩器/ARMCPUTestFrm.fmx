@@ -1,0 +1,69 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 567
+  ClientWidth = 440
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object GlobalLayout: TLayout
+    Align = Client
+    Size.Width = 440.000000000000000000
+    Size.Height = 567.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      ReadOnly = True
+      StyledSettings = [Family, Style, FontColor]
+      Align = Client
+      Size.Width = 440.000000000000000000
+      Size.Height = 567.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Viewport.Width = 436.000000000000000000
+      Viewport.Height = 563.000000000000000000
+    end
+    object ZLibCompressorButton: TButton
+      Anchors = [akRight, akBottom]
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 224.000000000000000000
+      Position.Y = 392.000000000000000000
+      Size.Width = 201.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'delphi/fpc'#20869#32622#21387#32553#22120'(ZLib)'
+      OnClick = ZLibCompressorButtonClick
+    end
+    object DeflateCompressorButton: TButton
+      Anchors = [akRight, akBottom]
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 224.000000000000000000
+      Position.Y = 504.000000000000000000
+      Size.Width = 201.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'LZ77+'#21704#22827#26364#21387#32553#22120'(Deflate)'
+      OnClick = DeflateCompressorButtonClick
+    end
+    object BRRCCompressorButton: TButton
+      Anchors = [akRight, akBottom]
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 224.000000000000000000
+      Position.Y = 448.000000000000000000
+      Size.Width = 201.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = #32431#38454#21387#32553#22120'(BRRC)'
+      OnClick = BRRCCompressorButtonClick
+    end
+  end
+end

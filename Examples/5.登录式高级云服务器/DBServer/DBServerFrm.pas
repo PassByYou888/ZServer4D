@@ -43,7 +43,7 @@ type
 
   TDBDoubleTunnelService = class(TCommunicationFramework_DoubleTunnelService_NoAuth)
   private
-    UserCheckStates       : TSectionTextData;
+    UserCheckStates: TSectionTextData;
   protected
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
@@ -447,11 +447,11 @@ begin
       end;
     end;
 
-  for i := 0 to FDBRecvTunnel.Count - 1 do
+  FDBRecvTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
     begin
-      if FDBRecvTunnel[i].UserDefine is TPerUserLoginRecvTunnel then
+      if PeerClient.UserDefine is TPerUserLoginRecvTunnel then
         begin
-          LoginCli := FDBRecvTunnel[i].UserDefine as TPerUserLoginRecvTunnel;
+          LoginCli := PeerClient.UserDefine as TPerUserLoginRecvTunnel;
           if LoginCli.LinkOk and LoginCli.Registed then
             begin
               n := Format('Login Client for LoginService/(%d) %s/receive port:%d', [i + 1, LoginCli.LoginServerAddr, LoginCli.LoginServerRecvPort]);
@@ -464,7 +464,7 @@ begin
               GetPathTreeNode(n, '/', TreeView, nil);
             end;
         end;
-    end;
+    end);
 
   for i := 0 to ns.Count - 1 do
     begin

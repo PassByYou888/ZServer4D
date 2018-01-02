@@ -13,7 +13,7 @@ unit ObjectDataManager;
 
 interface
 
-uses CoreClasses, ObjectData, UnicodeMixedLib, PascalStrings;
+uses CoreClasses, ObjectData, UnicodeMixedLib, PascalStrings, ListEngine;
 
 type
   TItemHandle          = TTMDBItemHandle;
@@ -40,6 +40,8 @@ type
     function GetAutoFreeHandle: Boolean;
     procedure SetAutoFreeHandle(const Value: Boolean);
   protected
+    procedure DoCreateFinish; virtual;
+
     function GetOverWriteItem: Boolean;
     function GetAllowSameHeaderName: Boolean;
     function GetDBTime: TDateTime;
@@ -62,7 +64,9 @@ type
     function Close: Boolean;
     function ErrorNo: Int64;
     function Modify: Boolean;
-    function Size: Int64;
+    function Size: Int64; inline;
+    function IORead: Int64; inline;
+    function IOWrite: Int64; inline;
     procedure SetID(const ID: Byte);
     procedure Update;
 
@@ -173,6 +177,82 @@ type
     property Data: Pointer read FData write FData;
   end;
 
+  TObjectDataManagerOfCache = class(TObjectDataManager)
+  private
+    type
+    PObjectDataCacheHeader    = PHeader;
+    PObjectDataCacheItemBlock = PItemBlock;
+
+    PObjectDataCacheItem = ^TObjectDataCacheItem;
+
+    TObjectDataCacheItem = record
+      Description: umlString;
+      ExtID: Byte;
+      FirstBlockPOS: Int64;
+      LastBlockPOS: Int64;
+      Size: Int64;
+      BlockCount: Int64;
+      CurrentBlockSeekPOS: Int64;
+      CurrentFileSeekPOS: Int64;
+      DataWrited: Boolean;
+      Return: Integer;
+      MemorySiz: NativeUInt;
+      procedure Write(var wVal: TItem); inline;
+      procedure Read(var rVal: TItem); inline;
+    end;
+
+    PObjectDataCacheField = ^TObjectDataCacheField;
+
+    TObjectDataCacheField = record
+      UpLevelFieldPOS: Int64;
+      Description: umlString;
+      HeaderCount: Int64;
+      FirstHeaderPOS: Int64;
+      LastHeaderPOS: Int64;
+      Return: Integer;
+      MemorySiz: NativeUInt;
+      procedure Write(var wVal: TField); inline;
+      procedure Read(var rVal: TField); inline;
+    end;
+  private
+    FHeaderCache, FItemBlockCache, FItemCache, FFieldCache: TInt64HashPointerList;
+
+    procedure HeaderCache_AddDataProc(p: Pointer);
+    procedure ItemBlockCache_AddDataProc(p: Pointer);
+    procedure ItemCache_AddDataProc(p: Pointer);
+    procedure FieldCache_AddDataProc(p: Pointer);
+
+    procedure HeaderCache_DataFreeProc(p: Pointer);
+    procedure ItemBlockCache_DataFreeProc(p: Pointer);
+    procedure ItemCache_DataFreeProc(p: Pointer);
+    procedure FieldCache_DataFreeProc(p: Pointer);
+
+    procedure HeaderWriteProc(fPos: Int64; var wVal: THeader);
+    procedure HeaderReadProc(fPos: Int64; var rVal: THeader; var Done: Boolean);
+    procedure ItemBlockWriteProc(fPos: Int64; var wVal: TItemBlock);
+    procedure ItemBlockReadProc(fPos: Int64; var rVal: TItemBlock; var Done: Boolean);
+    procedure ItemWriteProc(fPos: Int64; var wVal: TItem);
+    procedure ItemReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+    procedure OnlyItemRecWriteProc(fPos: Int64; var wVal: TItem);
+    procedure OnlyItemRecReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+    procedure FieldWriteProc(fPos: Int64; var wVal: TField);
+    procedure FieldReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+    procedure OnlyFieldRecWriteProc(fPos: Int64; var wVal: TField);
+    procedure OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+
+    procedure DoCreateFinish; override;
+  public
+    destructor Destroy; override;
+    procedure BuildDBCacheIntf;
+    procedure FreeDBCacheIntf;
+    procedure CleaupCache;
+
+    property HeaderCache: TInt64HashPointerList read FHeaderCache;
+    property ItemBlockCache: TInt64HashPointerList read FItemBlockCache;
+    property ItemCache: TInt64HashPointerList read FItemCache;
+    property FieldCache: TInt64HashPointerList read FFieldCache;
+  end;
+
   TObjectDataMarshal = class(TCoreClassObject)
   private
     FID         : Byte;
@@ -237,6 +317,10 @@ begin
       FObjectDataHandle.IOHnd.AutoFree := Value;
 end;
 
+procedure TObjectDataManager.DoCreateFinish;
+begin
+end;
+
 function TObjectDataManager.GetOverWriteItem: Boolean;
 begin
   Result := FObjectDataHandle.OverWriteItem;
@@ -268,12 +352,14 @@ constructor TObjectDataManager.Create(const aObjectName: SystemString; const aID
 begin
   inherited Create;
   NewHandle(nil, aObjectName, aID, aOnlyRead, False);
+  DoCreateFinish;
 end;
 
 constructor TObjectDataManager.CreateNew(const aObjectName: SystemString; const aID: Byte);
 begin
   inherited Create;
   NewHandle(nil, aObjectName, aID, False, True);
+  DoCreateFinish;
 end;
 
 constructor TObjectDataManager.CreateAsStream(aStream: TCoreClassStream; const aObjectName: SystemString; const aID: Byte; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
@@ -281,6 +367,7 @@ begin
   inherited Create;
   NewHandle(aStream, aObjectName, aID, aOnlyRead, aIsNewData);
   AutoFreeHandle := aAutoFreeHandle;
+  DoCreateFinish;
 end;
 
 destructor TObjectDataManager.Destroy;
@@ -480,6 +567,16 @@ end;
 function TObjectDataManager.Size: Int64;
 begin
   Result := FObjectDataHandle.IOHnd.Size;
+end;
+
+function TObjectDataManager.IORead: Int64;
+begin
+  Result := FObjectDataHandle.IOHnd.IORead;
+end;
+
+function TObjectDataManager.IOWrite: Int64;
+begin
+  Result := FObjectDataHandle.IOHnd.IOWrite;
 end;
 
 procedure TObjectDataManager.SetID(const ID: Byte);
@@ -1330,6 +1427,410 @@ begin
   Result := @FObjectDataHandle;
 end;
 
+procedure TObjectDataManagerOfCache.TObjectDataCacheItem.Write(var wVal: TItem);
+begin
+  Description := wVal.Description;
+  ExtID := wVal.ExtID;
+  FirstBlockPOS := wVal.FirstBlockPOS;
+  LastBlockPOS := wVal.LastBlockPOS;
+  Size := wVal.Size;
+  BlockCount := wVal.BlockCount;
+  CurrentBlockSeekPOS := wVal.CurrentBlockSeekPOS;
+  CurrentFileSeekPOS := wVal.CurrentFileSeekPOS;
+  DataWrited := wVal.DataWrited;
+  Return := wVal.Return;
+  MemorySiz := 0;
+end;
+
+procedure TObjectDataManagerOfCache.TObjectDataCacheItem.Read(var rVal: TItem);
+begin
+  rVal.Description := Description;
+  rVal.ExtID := ExtID;
+  rVal.FirstBlockPOS := FirstBlockPOS;
+  rVal.LastBlockPOS := LastBlockPOS;
+  rVal.Size := Size;
+  rVal.BlockCount := BlockCount;
+  rVal.CurrentBlockSeekPOS := CurrentBlockSeekPOS;
+  rVal.CurrentFileSeekPOS := CurrentFileSeekPOS;
+  rVal.DataWrited := DataWrited;
+  rVal.Return := Return;
+end;
+
+procedure TObjectDataManagerOfCache.TObjectDataCacheField.Write(var wVal: TField);
+begin
+  UpLevelFieldPOS := wVal.UpLevelFieldPOS;
+  Description := wVal.Description;
+  HeaderCount := wVal.HeaderCount;
+  FirstHeaderPOS := wVal.FirstHeaderPOS;
+  LastHeaderPOS := wVal.LastHeaderPOS;
+  Return := wVal.Return;
+  MemorySiz := 0;
+end;
+
+procedure TObjectDataManagerOfCache.TObjectDataCacheField.Read(var rVal: TField);
+begin
+  rVal.UpLevelFieldPOS := UpLevelFieldPOS;
+  rVal.Description := Description;
+  rVal.HeaderCount := HeaderCount;
+  rVal.FirstHeaderPOS := FirstHeaderPOS;
+  rVal.LastHeaderPOS := LastHeaderPOS;
+  rVal.Return := Return;
+end;
+
+procedure TObjectDataManagerOfCache.HeaderCache_AddDataProc(p: Pointer);
+begin
+end;
+
+procedure TObjectDataManagerOfCache.ItemBlockCache_AddDataProc(p: Pointer);
+begin
+end;
+
+procedure TObjectDataManagerOfCache.ItemCache_AddDataProc(p: Pointer);
+begin
+end;
+
+procedure TObjectDataManagerOfCache.FieldCache_AddDataProc(p: Pointer);
+begin
+end;
+
+procedure TObjectDataManagerOfCache.HeaderCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PObjectDataCacheHeader(p));
+end;
+
+procedure TObjectDataManagerOfCache.ItemBlockCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PObjectDataCacheItemBlock(p));
+end;
+
+procedure TObjectDataManagerOfCache.ItemCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PObjectDataCacheItem(p));
+end;
+
+procedure TObjectDataManagerOfCache.FieldCache_DataFreeProc(p: Pointer);
+begin
+  Dispose(PObjectDataCacheField(p));
+end;
+
+procedure TObjectDataManagerOfCache.HeaderWriteProc(fPos: Int64; var wVal: THeader);
+var
+  p: PObjectDataCacheHeader;
+begin
+  p := PObjectDataCacheHeader(FHeaderCache[wVal.CurrentHeader]);
+  if p = nil then
+    begin
+      try
+        new(p);
+        p^ := wVal;
+
+        FHeaderCache.Add(wVal.CurrentHeader, p, False);
+      finally
+      end;
+    end
+  else
+      p^ := wVal;
+
+  p^.Return := db_Header_ok;
+end;
+
+procedure TObjectDataManagerOfCache.HeaderReadProc(fPos: Int64; var rVal: THeader; var Done: Boolean);
+var
+  p: PObjectDataCacheHeader;
+begin
+  p := PObjectDataCacheHeader(FHeaderCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      Exit;
+  rVal := p^;
+end;
+
+procedure TObjectDataManagerOfCache.ItemBlockWriteProc(fPos: Int64; var wVal: TItemBlock);
+var
+  p: PObjectDataCacheItemBlock;
+begin
+  p := PObjectDataCacheItemBlock(FItemBlockCache[wVal.CurrentBlockPOS]);
+  if p = nil then
+    begin
+      try
+        new(p);
+        p^ := wVal;
+
+        FItemBlockCache.Add(wVal.CurrentBlockPOS, p, False);
+      finally
+      end;
+    end
+  else
+      p^ := wVal;
+
+  p^.Return := db_Item_ok;
+end;
+
+procedure TObjectDataManagerOfCache.ItemBlockReadProc(fPos: Int64; var rVal: TItemBlock; var Done: Boolean);
+var
+  p: PObjectDataCacheItemBlock;
+begin
+  p := PObjectDataCacheItemBlock(FItemBlockCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      Exit;
+  rVal := p^;
+end;
+
+procedure TObjectDataManagerOfCache.ItemWriteProc(fPos: Int64; var wVal: TItem);
+var
+  p: PObjectDataCacheItem;
+begin
+  HeaderWriteProc(fPos, wVal.RHeader);
+
+  p := PObjectDataCacheItem(FItemCache[wVal.RHeader.DataMainPOS]);
+  if p = nil then
+    begin
+      try
+        new(p);
+        p^.Write(wVal);
+
+        FItemCache.Add(wVal.RHeader.DataMainPOS, p, False);
+      finally
+      end;
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Item_ok;
+end;
+
+procedure TObjectDataManagerOfCache.ItemReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+var
+  p: PObjectDataCacheItem;
+begin
+  HeaderReadProc(fPos, rVal.RHeader, Done);
+
+  if not Done then
+      Exit;
+
+  p := PObjectDataCacheItem(FItemCache[rVal.RHeader.DataMainPOS]);
+  Done := p <> nil;
+  if not Done then
+      Exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TObjectDataManagerOfCache.OnlyItemRecWriteProc(fPos: Int64; var wVal: TItem);
+var
+  p: PObjectDataCacheItem;
+begin
+  p := PObjectDataCacheItem(FItemCache[fPos]);
+  if p = nil then
+    begin
+      try
+        new(p);
+        p^.Write(wVal);
+
+        FItemCache.Add(fPos, p, False);
+      finally
+      end;
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Item_ok;
+end;
+
+procedure TObjectDataManagerOfCache.OnlyItemRecReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
+var
+  p: PObjectDataCacheItem;
+begin
+  p := PObjectDataCacheItem(FItemCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      Exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TObjectDataManagerOfCache.FieldWriteProc(fPos: Int64; var wVal: TField);
+var
+  p: PObjectDataCacheField;
+begin
+  HeaderWriteProc(fPos, wVal.RHeader);
+
+  p := PObjectDataCacheField(FFieldCache[wVal.RHeader.DataMainPOS]);
+  if p = nil then
+    begin
+      try
+        new(p);
+        p^.Write(wVal);
+
+        FFieldCache.Add(wVal.RHeader.DataMainPOS, p, False);
+      finally
+      end;
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Field_ok;
+end;
+
+procedure TObjectDataManagerOfCache.FieldReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+var
+  p: PObjectDataCacheField;
+begin
+  HeaderReadProc(fPos, rVal.RHeader, Done);
+
+  if not Done then
+      Exit;
+
+  p := PObjectDataCacheField(FFieldCache[rVal.RHeader.DataMainPOS]);
+  Done := p <> nil;
+  if not Done then
+      Exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TObjectDataManagerOfCache.OnlyFieldRecWriteProc(fPos: Int64; var wVal: TField);
+var
+  p: PObjectDataCacheField;
+begin
+  p := PObjectDataCacheField(FFieldCache[fPos]);
+  if p = nil then
+    begin
+      try
+        new(p);
+        p^.Write(wVal);
+
+        FFieldCache.Add(fPos, p, False);
+      finally
+      end;
+    end
+  else
+      p^.Write(wVal);
+
+  p^.Return := db_Field_ok;
+end;
+
+procedure TObjectDataManagerOfCache.OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
+var
+  p: PObjectDataCacheField;
+begin
+  p := PObjectDataCacheField(FFieldCache[fPos]);
+  Done := p <> nil;
+  if not Done then
+      Exit;
+
+  p^.Read(rVal);
+end;
+
+procedure TObjectDataManagerOfCache.DoCreateFinish;
+begin
+  inherited DoCreateFinish;
+
+  FHeaderCache := TInt64HashPointerList.Create(10 * 10000);
+  FHeaderCache.AutoFreeData := True;
+  FHeaderCache.AccessOptimization := True;
+
+  FItemBlockCache := TInt64HashPointerList.Create(10 * 10000);
+  FItemBlockCache.AutoFreeData := True;
+  FItemBlockCache.AccessOptimization := True;
+
+  FItemCache := TInt64HashPointerList.Create(10 * 10000);
+  FItemCache.AutoFreeData := True;
+  FItemCache.AccessOptimization := True;
+
+  FFieldCache := TInt64HashPointerList.Create(10 * 10000);
+  FFieldCache.AutoFreeData := True;
+  FFieldCache.AccessOptimization := True;
+
+  {$IFDEF FPC}
+  FHeaderCache.OnAddDataNotifyProc := @HeaderCache_AddDataProc;
+  FItemBlockCache.OnAddDataNotifyProc := @ItemBlockCache_AddDataProc;
+  FItemCache.OnAddDataNotifyProc := @ItemCache_AddDataProc;
+  FFieldCache.OnAddDataNotifyProc := @FieldCache_AddDataProc;
+
+  FHeaderCache.OnDataFreeProc := @HeaderCache_DataFreeProc;
+  FItemBlockCache.OnDataFreeProc := @ItemBlockCache_DataFreeProc;
+  FItemCache.OnDataFreeProc := @ItemCache_DataFreeProc;
+  FFieldCache.OnDataFreeProc := @FieldCache_DataFreeProc;
+  {$ELSE}
+  FHeaderCache.OnAddDataNotifyProc := HeaderCache_AddDataProc;
+  FItemBlockCache.OnAddDataNotifyProc := ItemBlockCache_AddDataProc;
+  FItemCache.OnAddDataNotifyProc := ItemCache_AddDataProc;
+  FFieldCache.OnAddDataNotifyProc := FieldCache_AddDataProc;
+
+  FHeaderCache.OnDataFreeProc := HeaderCache_DataFreeProc;
+  FItemBlockCache.OnDataFreeProc := ItemBlockCache_DataFreeProc;
+  FItemCache.OnDataFreeProc := ItemCache_DataFreeProc;
+  FFieldCache.OnDataFreeProc := FieldCache_DataFreeProc;
+  {$ENDIF}
+  BuildDBCacheIntf;
+end;
+
+destructor TObjectDataManagerOfCache.Destroy;
+begin
+  FreeDBCacheIntf;
+  DisposeObject([FHeaderCache, FItemBlockCache, FItemCache, FFieldCache]);
+  inherited Destroy;
+end;
+
+procedure TObjectDataManagerOfCache.BuildDBCacheIntf;
+begin
+  {$IFDEF FPC}
+  ObjectDataHandlePtr^.OnWriteHeader := @HeaderWriteProc;
+  ObjectDataHandlePtr^.OnReadHeader := @HeaderReadProc;
+  ObjectDataHandlePtr^.OnWriteItemBlock := @ItemBlockWriteProc;
+  ObjectDataHandlePtr^.OnReadItemBlock := @ItemBlockReadProc;
+  ObjectDataHandlePtr^.OnWriteItem := @ItemWriteProc;
+  ObjectDataHandlePtr^.OnReadItem := @ItemReadProc;
+  ObjectDataHandlePtr^.OnOnlyWriteItemRec := @OnlyItemRecWriteProc;
+  ObjectDataHandlePtr^.OnOnlyReadItemRec := @OnlyItemRecReadProc;
+  ObjectDataHandlePtr^.OnWriteField := @FieldWriteProc;
+  ObjectDataHandlePtr^.OnReadField := @FieldReadProc;
+  ObjectDataHandlePtr^.OnOnlyWriteFieldRec := @OnlyFieldRecWriteProc;
+  ObjectDataHandlePtr^.OnOnlyReadFieldRec := @OnlyFieldRecReadProc;
+  {$ELSE}
+  ObjectDataHandlePtr^.OnWriteHeader := HeaderWriteProc;
+  ObjectDataHandlePtr^.OnReadHeader := HeaderReadProc;
+  ObjectDataHandlePtr^.OnWriteItemBlock := ItemBlockWriteProc;
+  ObjectDataHandlePtr^.OnReadItemBlock := ItemBlockReadProc;
+  ObjectDataHandlePtr^.OnWriteItem := ItemWriteProc;
+  ObjectDataHandlePtr^.OnReadItem := ItemReadProc;
+  ObjectDataHandlePtr^.OnOnlyWriteItemRec := OnlyItemRecWriteProc;
+  ObjectDataHandlePtr^.OnOnlyReadItemRec := OnlyItemRecReadProc;
+  ObjectDataHandlePtr^.OnWriteField := FieldWriteProc;
+  ObjectDataHandlePtr^.OnReadField := FieldReadProc;
+  ObjectDataHandlePtr^.OnOnlyWriteFieldRec := OnlyFieldRecWriteProc;
+  ObjectDataHandlePtr^.OnOnlyReadFieldRec := OnlyFieldRecReadProc;
+  {$ENDIF}
+end;
+
+procedure TObjectDataManagerOfCache.FreeDBCacheIntf;
+begin
+  ObjectDataHandlePtr^.OnWriteHeader := nil;
+  ObjectDataHandlePtr^.OnReadHeader := nil;
+  ObjectDataHandlePtr^.OnWriteItemBlock := nil;
+  ObjectDataHandlePtr^.OnReadItemBlock := nil;
+  ObjectDataHandlePtr^.OnWriteItem := nil;
+  ObjectDataHandlePtr^.OnReadItem := nil;
+  ObjectDataHandlePtr^.OnOnlyWriteItemRec := nil;
+  ObjectDataHandlePtr^.OnOnlyReadItemRec := nil;
+  ObjectDataHandlePtr^.OnWriteField := nil;
+  ObjectDataHandlePtr^.OnReadField := nil;
+  ObjectDataHandlePtr^.OnOnlyWriteFieldRec := nil;
+  ObjectDataHandlePtr^.OnOnlyReadFieldRec := nil;
+
+  CleaupCache;
+end;
+
+procedure TObjectDataManagerOfCache.CleaupCache;
+begin
+  FHeaderCache.Clear;
+  FItemBlockCache.Clear;
+  FItemCache.Clear;
+  FFieldCache.Clear;
+end;
+
 function TObjectDataMarshal.GetItems(aIndex: Integer): TObjectDataManager;
 begin
   Result := TObjectDataManager(FLibList.Objects[aIndex]);
@@ -1349,11 +1850,13 @@ begin
           if not umlMatchLimitChar('\', aUName) then
               aUName := '*\' + aUName;
           for RepaInt := 0 to FLibList.Count - 1 do
-            if umlMultipleMatch(False, aUName, FLibList[RepaInt]) then
-              begin
-                Result := TObjectDataManager(FLibList.Objects[RepaInt]);
-                Exit;
-              end;
+            begin
+              if umlMultipleMatch(False, aUName, FLibList[RepaInt]) then
+                begin
+                  Result := TObjectDataManager(FLibList.Objects[RepaInt]);
+                  Exit;
+                end;
+            end;
         end
       else
         begin
@@ -1405,7 +1908,7 @@ end;
 
 function TObjectDataMarshal.GetAbsoluteFileName(aFileName: SystemString): SystemString;
 begin
-  Result := umlUpperCase(aFileName).Text;
+  Result := umlUpperCase(umlCharReplace(umlTrimSpace(aFileName), '/', '\')).Text;
 end;
 
 function TObjectDataMarshal.NewDB(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
@@ -1469,7 +1972,7 @@ begin
     if Items[i] = db then
         Delete(i)
     else
-        Inc(i);
+        inc(i);
 end;
 
 procedure TObjectDataMarshal.Clear;
@@ -1513,7 +2016,7 @@ begin
                   FLibList.Delete(RepaInt);
                 end
               else
-                  Inc(RepaInt);
+                  inc(RepaInt);
             end;
         end
       else
@@ -1529,7 +2032,7 @@ begin
                       FLibList.Delete(RepaInt);
                     end
                   else
-                      Inc(RepaInt);
+                      inc(RepaInt);
                 end;
             end
           else
@@ -1543,7 +2046,7 @@ begin
                       FLibList.Delete(RepaInt);
                     end
                   else
-                      Inc(RepaInt);
+                      inc(RepaInt);
                 end;
             end;
         end;

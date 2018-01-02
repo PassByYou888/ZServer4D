@@ -35,7 +35,6 @@ object EZServerForm: TEZServerForm
       #24403#23458#25143#31471#37117#36864#20986#23436#25104#21518#65292#26381#21153#22120#27809#26377#20869#23384#27844#28431)
     ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitLeft = -6
   end
   object StateMemo: TMemo
     Left = 451
@@ -118,12 +117,12 @@ object EZServerForm: TEZServerForm
     WordWrap = False
   end
   object Timer: TTimer
-    Interval = 1
     OnTimer = TimerTimer
     Left = 80
     Top = 144
   end
   object RefStateTimer: TTimer
+    Interval = 2000
     OnTimer = RefStateTimerTimer
     Left = 320
     Top = 152

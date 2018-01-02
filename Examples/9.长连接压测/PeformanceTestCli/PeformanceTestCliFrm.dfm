@@ -14,6 +14,7 @@ object EZClientForm: TEZClientForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -77,7 +78,6 @@ object EZClientForm: TEZClientForm
     WordWrap = False
   end
   object Timer: TTimer
-    Interval = 100
     OnTimer = TimerTimer
     Left = 89
     Top = 96

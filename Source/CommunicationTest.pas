@@ -12,9 +12,10 @@ uses SysUtils, CommunicationFramework, DataFrameEngine,
 type
   TCommunicationTestIntf = class(TCoreClassObject)
   private
-    PrepareSendConsole, PrepareResultConsole    : string;
-    PrepareSendDataFrame, PrepareResultDataFrame: TDataFrameEngine;
-    TempStream                                  : TMemoryStream64;
+    FPrepareSendConsole, FPrepareResultConsole    : string;
+    FPrepareSendDataFrame, FPrepareResultDataFrame: TDataFrameEngine;
+    FTempStream                                   : TMemoryStream64;
+    FLastReg                                      : TCommunicationFramework;
   public
     constructor Create;
     destructor Destroy; override;
@@ -35,77 +36,81 @@ type
     procedure RegCmd(intf: TCommunicationFramework);
     procedure ExecuteTest(intf: TPeerClient);
     procedure ExecuteAsyncTest(intf: TPeerClient);
+    procedure ExecuteAsyncTestWithBigStream(intf: TPeerClient);
+
+    property LastReg: TCommunicationFramework read FLastReg;
   end;
 
 implementation
 
 var
   TestStreamData: TMemoryStream64 = nil;
+  TestStreamMD5 : string;
 
 constructor TCommunicationTestIntf.Create;
 var
   i: Integer;
 begin
   inherited;
-  PrepareSendConsole := 'console test';
-  PrepareResultConsole := 'console result';
-  PrepareSendDataFrame := TDataFrameEngine.Create;
-  PrepareResultDataFrame := TDataFrameEngine.Create;
+  FPrepareSendConsole := 'console test';
+  FPrepareResultConsole := 'console result';
+  FPrepareSendDataFrame := TDataFrameEngine.Create;
+  FPrepareResultDataFrame := TDataFrameEngine.Create;
   for i := 1 to 10 do
     begin
-      PrepareSendDataFrame.WriteInteger(i);
-      PrepareResultDataFrame.WriteInteger(i);
+      FPrepareSendDataFrame.WriteInteger(i);
+      FPrepareResultDataFrame.WriteInteger(i);
     end;
 
-  TempStream := TMemoryStream64.Create;
-
+  FTempStream := TMemoryStream64.Create;
+  FLastReg := nil;
 end;
 
 destructor TCommunicationTestIntf.Destroy;
 begin
-  DisposeObject(PrepareSendDataFrame);
-  DisposeObject(PrepareResultDataFrame);
-  DisposeObject(TempStream);
+  DisposeObject(FPrepareSendDataFrame);
+  DisposeObject(FPrepareResultDataFrame);
+  DisposeObject(FTempStream);
   inherited;
 end;
 
 procedure TCommunicationTestIntf.Cmd_TestStream(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 begin
-  if not InData.Compare(PrepareSendDataFrame) then
+  if not InData.Compare(FPrepareSendDataFrame) then
       DoStatus('TestStream in Data failed!');
-  OutData.Assign(PrepareResultDataFrame);
+  OutData.Assign(FPrepareResultDataFrame);
 end;
 
 procedure TCommunicationTestIntf.Cmd_TestConsole(Sender: TPeerClient; InData: string; var OutData: string);
 begin
-  if InData <> PrepareSendConsole then
+  if InData <> FPrepareSendConsole then
       DoStatus('TestConsole in Data failed!');
-  OutData := PrepareResultConsole;
+  OutData := FPrepareResultConsole;
 end;
 
 procedure TCommunicationTestIntf.Cmd_TestDirectStream(Sender: TPeerClient; InData: TDataFrameEngine);
 begin
-  if not InData.Compare(PrepareSendDataFrame) then
+  if not InData.Compare(FPrepareSendDataFrame) then
       DoStatus('TestDirectStream in Data failed!');
 end;
 
 procedure TCommunicationTestIntf.Cmd_TestDirectConsole(Sender: TPeerClient; InData: string);
 begin
-  if InData <> PrepareSendConsole then
+  if InData <> FPrepareSendConsole then
       DoStatus('TestDirectConsole in Data failed!');
-  TempStream.Clear;
+  FTempStream.Clear;
 end;
 
 procedure TCommunicationTestIntf.Cmd_TestBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 begin
-  TempStream.CopyFrom(InData, InData.Size);
+  FTempStream.CopyFrom(InData, InData.Size);
 end;
 
 procedure TCommunicationTestIntf.Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: string);
 begin
-  if InData <> umlStreamMD5Char(TempStream).Text then
+  if InData <> umlStreamMD5Char(FTempStream).Text then
       DoStatus('TestBigStream failed!');
-  TempStream.Clear;
+  FTempStream.Clear;
 end;
 
 procedure TCommunicationTestIntf.Cmd_RemoteInfo(Sender: TPeerClient; InData: string);
@@ -115,13 +120,13 @@ end;
 
 procedure TCommunicationTestIntf.CmdResult_TestConsole(Sender: TPeerClient; ResultData: string);
 begin
-  if ResultData <> PrepareResultConsole then
+  if ResultData <> FPrepareResultConsole then
       DoStatus('TestResultConsole Data failed!');
 end;
 
 procedure TCommunicationTestIntf.CmdResult_TestStream(Sender: TPeerClient; ResultData: TDataFrameEngine);
 begin
-  if not ResultData.Compare(PrepareResultDataFrame) then
+  if not ResultData.Compare(FPrepareResultDataFrame) then
       DoStatus('TestResultStream Data failed!');
 end;
 
@@ -144,6 +149,7 @@ begin
   intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := Cmd_BigStreamPostInfo;
   intf.RegisterDirectConsole('RemoteInfo').OnExecute := Cmd_RemoteInfo;
   {$ENDIF}
+  FLastReg := intf;
 end;
 
 procedure TCommunicationTestIntf.ExecuteTest(intf: TPeerClient);
@@ -151,25 +157,25 @@ var
   tmpdf: TDataFrameEngine;
 begin
   {$IFDEF FPC}
-  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, @CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, @CmdResult_TestStream);
+  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
   {$ELSE}
-  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, CmdResult_TestStream);
+  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
   {$ENDIF}
-  intf.SendDirectConsoleCmd('TestDirectConsole', PrepareSendConsole);
-  intf.SendDirectStreamCmd('TestDirectStream', PrepareSendDataFrame);
+  intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
+  intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
   intf.SendBigStream('TestBigStream', TestStreamData, False);
   intf.SendDirectConsoleCmd('BigStreamPostInfo', umlStreamMD5Char(TestStreamData).Text);
 
   if intf.OwnerFramework is TCommunicationFrameworkClient then
     begin
-      if intf.WaitSendConsoleCmd('TestConsole', PrepareSendConsole, 0) <> PrepareResultConsole then
+      if intf.WaitSendConsoleCmd('TestConsole', FPrepareSendConsole, 0) <> FPrepareResultConsole then
           DoStatus('wait Mode:TestResultConsole Data failed!');
 
       tmpdf := TDataFrameEngine.Create;
-      intf.WaitSendStreamCmd('TestStream', PrepareSendDataFrame, tmpdf, 0);
-      if not tmpdf.Compare(PrepareResultDataFrame) then
+      intf.WaitSendStreamCmd('TestStream', FPrepareSendDataFrame, tmpdf, 0);
+      if not tmpdf.Compare(FPrepareResultDataFrame) then
           DoStatus('wait Mode:TestResultStream Data failed!');
       DisposeObject(tmpdf);
     end;
@@ -182,14 +188,34 @@ var
   tmpdf: TDataFrameEngine;
 begin
   {$IFDEF FPC}
-  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, @CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, @CmdResult_TestStream);
+  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
   {$ELSE}
-  intf.SendConsoleCmd('TestConsole', PrepareSendConsole, CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', PrepareSendDataFrame, CmdResult_TestStream);
+  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
   {$ENDIF}
-  intf.SendDirectConsoleCmd('TestDirectConsole', PrepareSendConsole);
-  intf.SendDirectStreamCmd('TestDirectStream', PrepareSendDataFrame);
+  intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
+  intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
+
+  intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
+end;
+
+procedure TCommunicationTestIntf.ExecuteAsyncTestWithBigStream(intf: TPeerClient);
+var
+  tmpdf: TDataFrameEngine;
+begin
+  {$IFDEF FPC}
+  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
+  {$ELSE}
+  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
+  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
+  {$ENDIF}
+  intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
+  intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
+
+  intf.SendBigStream('TestBigStream', TestStreamData, False);
+  intf.SendDirectConsoleCmd('BigStreamPostInfo', TestStreamMD5);
 
   intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
 end;
@@ -197,8 +223,9 @@ end;
 initialization
 
 TestStreamData := TMemoryStream64.Create;
-TestStreamData.SetSize(Int64(1024 * 1024));
-FillByte(TestStreamData.Memory^, TestStreamData.Size, $99);
+TestStreamData.SetSize(Int64(1024 * 1024 * 10));
+FillPtrByte(TestStreamData.Memory, TestStreamData.Size, $99);
+TestStreamMD5 := umlStreamMD5String(TestStreamData).Text;
 
 finalization
 

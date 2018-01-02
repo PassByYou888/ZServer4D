@@ -28,8 +28,8 @@ uses SysUtils, Types, Variants,
   CoreClasses;
 
 const
-  umlAddressLength = SizeOf(Pointer);
-
+  umlAddressLength  = SizeOf(Pointer);
+  umlPointerLength  = umlAddressLength;
   umlIntegerLength  = 4;
   umlInt64Length    = 8;
   umlUInt64Length   = 8;
@@ -73,7 +73,7 @@ type
   umlString         = TPascalString;
   umlPString        = ^umlString;
   umlChar           = SystemChar;
-  umlStringDynArray = array of string;
+  umlStringDynArray = array of SystemString;
 
   umlBytes = TBytes;
 
@@ -94,12 +94,13 @@ type
     FlushBuff: TMixedStream;
     PrepareReadPosition: Int64;
     PrepareReadBuff: TMixedStream;
+    IORead, IOWrite: Int64;
     WriteFlag: Boolean;
     Data: Pointer;
     Return: Integer;
   end;
 
-  umlArraySystemString = array of string;
+  umlArraySystemString = array of SystemString;
   umlArrayString       = array of umlString;
   pumlArrayString      = ^umlArrayString;
 
@@ -116,6 +117,8 @@ function Pascal2FixedLengthString(var S: TPascalString): FixedLengthString; inli
 
 function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Boolean;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
+
+function umlDeltaNumber(v, delta: NativeInt): NativeInt; inline;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 
@@ -167,7 +170,7 @@ function umlFileRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inli
 
 function umlFileBeginWrite(var IOHnd: TIOHnd): Boolean; inline;
 function umlFileEndWrite(var IOHnd: TIOHnd): Boolean; inline;
-function umlFileWrite(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inline;
+function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var Buffers): Boolean; inline;
 
 function umlFileWriteStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; inline;
 function umlFileReadStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; inline;
@@ -478,7 +481,7 @@ begin
   if Result.len > FixedLengthStringSize then
       Result.len := FixedLengthStringSize
   else
-      FillByte(Result.Data[0], FixedLengthStringSize, 0);
+      FillPtrByte(@Result.Data[0], FixedLengthStringSize, 0);
   move(bb[0], Result.Data[0], Result.len);
 end;
 
@@ -490,6 +493,11 @@ end;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 begin
   Result := Str.GetPos(SubStr, Offset);
+end;
+
+function umlDeltaNumber(v, delta: NativeInt): NativeInt;
+begin
+  Result := (v + (delta - 1)) and not(delta - 1);
 end;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
@@ -954,6 +962,8 @@ begin
   IOHnd.FlushBuff := nil;
   IOHnd.PrepareReadPosition := -1;
   IOHnd.PrepareReadBuff := nil;
+  IOHnd.IORead := 0;
+  IOHnd.IOWrite := 0;
   IOHnd.WriteFlag := False;
   IOHnd.Data := nil;
   IOHnd.Return := umlNotError;
@@ -1182,11 +1192,13 @@ begin
       if IOHnd.Handle.Size - IOHnd.Handle.Position >= PrepareReadCacheSize then
         begin
           Result := m64.CopyFrom(IOHnd.Handle, PrepareReadCacheSize) = PrepareReadCacheSize;
+          Inc(IOHnd.IORead, PrepareReadCacheSize);
         end
       else
         begin
           preRedSiz := IOHnd.Handle.Size - IOHnd.Handle.Position;
           Result := m64.CopyFrom(IOHnd.Handle, preRedSiz) = preRedSiz;
+          Inc(IOHnd.IORead, preRedSiz);
         end;
     end;
 
@@ -1259,6 +1271,7 @@ begin
         Inc(IOHnd.Position, Size);
         IOHnd.Return := umlNotError;
         Result := True;
+        Inc(IOHnd.IORead, Size);
         Exit;
       end;
     if IOHnd.Handle.Read(Buffers, Size) <> Size then
@@ -1270,6 +1283,7 @@ begin
     Inc(IOHnd.Position, Size);
     IOHnd.Return := umlNotError;
     Result := True;
+    Inc(IOHnd.IORead, Size);
   except
     IOHnd.Return := umlFileReadError;
     Result := False;
@@ -1305,12 +1319,13 @@ begin
           Result := False;
           Exit;
         end;
+      Inc(IOHnd.IOWrite, m64.Size);
       DisposeObject(m64);
     end;
   Result := True;
 end;
 
-function umlFileWrite(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean;
+function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var Buffers): Boolean;
 var
   BuffPointer: Pointer;
   i          : NativeInt;
@@ -1384,6 +1399,7 @@ begin
             IOHnd.Size := IOHnd.Position;
         IOHnd.Return := umlNotError;
         Result := True;
+        Inc(IOHnd.IOWrite, Size);
         Exit;
       end;
     if IOHnd.Handle.Write(Buffers, Size) <> Size then
@@ -1398,6 +1414,7 @@ begin
         IOHnd.Size := IOHnd.Position;
     IOHnd.Return := umlNotError;
     Result := True;
+    Inc(IOHnd.IOWrite, Size);
   except
     IOHnd.Return := umlFileWriteError;
     Result := False;
@@ -3558,7 +3575,7 @@ var
   Bits         : array [0 .. 7] of Byte;
   Index, PadLen: NativeUInt;
 begin
-  FillByte(Padding, 64, 0);
+  FillPtrByte(@Padding, 64, 0);
   Padding[0] := $80;
   ContextCount[0] := 0;
   ContextCount[1] := 0;
@@ -3872,7 +3889,7 @@ var
                 Stream.Position := StartPos + i;
                 if Stream.Position + buffSiz > EndPos then
                   begin
-                    FillByte(buff[0], buffSiz, 0);
+                    FillPtrByte(@buff[0], buffSiz, 0);
                     Stream.Read(buff[0], EndPos - Stream.Position);
                   end
                 else
@@ -3912,7 +3929,7 @@ var
   Bits         : array [0 .. 7] of Byte;
   Index, PadLen: NativeUInt;
 begin
-  FillByte(Padding, 64, 0);
+  FillPtrByte(@Padding, 64, 0);
   Padding[0] := $80;
   ContextCount[0] := 0;
   ContextCount[1] := 0;
@@ -4971,33 +4988,33 @@ begin
 end;
 
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
-  function IfOut(Cur, Delta, Dest: Single): Boolean; inline;
+  function IfOut(Cur, delta, Dest: Single): Boolean; inline;
   begin
     if Cur > Dest then
-        Result := Cur - Delta < Dest
+        Result := Cur - delta < Dest
     else
-        Result := Cur + Delta > Dest;
+        Result := Cur + delta > Dest;
   end;
 
-  function GetOutValue(Cur, Delta, Dest: Single): Single; inline;
+  function GetOutValue(Cur, delta, Dest: Single): Single; inline;
   begin
-    if IfOut(Cur, Delta, Dest) then
+    if IfOut(Cur, delta, Dest) then
       begin
         if Cur > Dest then
-            Result := Dest - (Cur - Delta)
+            Result := Dest - (Cur - delta)
         else
-            Result := Cur + Delta - Dest;
+            Result := Cur + delta - Dest;
       end
     else
         Result := 0;
   end;
 
-  function GetDeltaValue(Cur, Delta, Dest: Single): Single; inline;
+  function GetDeltaValue(Cur, delta, Dest: Single): Single; inline;
   begin
     if Cur > Dest then
-        Result := Cur - Delta
+        Result := Cur - delta
     else
-        Result := Cur + Delta;
+        Result := Cur + delta;
   end;
 
 begin
@@ -5027,5 +5044,9 @@ begin
   else
       Result := CurrentVal;
 end;
+
+initialization
+
+finalization
 
 end.

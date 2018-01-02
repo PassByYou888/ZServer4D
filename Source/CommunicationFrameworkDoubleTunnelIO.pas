@@ -1662,39 +1662,39 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService.LoadUserDB;
 var
-  i  : Integer;
-  cli: TPeerClientUserDefineForRecvTunnel;
+  IDPool: TClientIDPool;
+  pcid  : Cardinal;
+  cli   : TPeerClientUserDefineForRecvTunnel;
 begin
   if umlFileExists(umlCombineFileName(FRootPath, 'UserDB')) then
     begin
       FUserDB.LoadFromFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-      FRecvTunnel.LockClients;
-      for i := 0 to FRecvTunnel.Count - 1 do
+      FRecvTunnel.GetClientIDPool(IDPool);
+      for pcid in IDPool do
         begin
-          cli := GetUserDefineRecvTunnel(FRecvTunnel[i]);
-          if cli.LoginSuccessed then
+          cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
+          if (cli <> nil) and (cli.LoginSuccessed) then
               cli.UserDBIntf := FUserDB.VariantList[cli.UserID];
         end;
-      FRecvTunnel.UnLockClients;
     end;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService.SaveUserDB;
 var
-  i  : Integer;
-  cli: TPeerClientUserDefineForRecvTunnel;
+  IDPool: TClientIDPool;
+  pcid  : Cardinal;
+  cli   : TPeerClientUserDefineForRecvTunnel;
 begin
   FUserDB.SaveToFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-  FRecvTunnel.LockClients;
-  for i := 0 to FRecvTunnel.Count - 1 do
+  FRecvTunnel.GetClientIDPool(IDPool);
+  for pcid in IDPool do
     begin
-      cli := GetUserDefineRecvTunnel(FRecvTunnel[i]);
-      if cli.LoginSuccessed then
+      cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
+      if (cli <> nil) and (cli.LoginSuccessed) then
           cli.UserDBIntf := FUserDB.VariantList[cli.UserID];
     end;
-  FRecvTunnel.UnLockClients;
 end;
 
 function TCommunicationFramework_DoubleTunnelService.RegUser(AUserID, APasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
@@ -1916,7 +1916,7 @@ begin
       de.WriteString(cmd);
       de.WriteDataFrame(InData);
       fs := TCoreClassFileStream.Create(fn, fmCreate);
-      de.EncodeToCompressed(fs);
+      de.EncodeAsZLib(fs);
       DisposeObject(de);
       DisposeObject(fs);
     end;
@@ -2039,7 +2039,10 @@ end;
 
 function TCommunicationFramework_DoubleTunnelService.GetUserDefineRecvTunnel(RecvCli: TPeerClient): TPeerClientUserDefineForRecvTunnel;
 begin
-  Result := RecvCli.UserDefine as TPeerClientUserDefineForRecvTunnel;
+  if RecvCli <> nil then
+      Result := RecvCli.UserDefine as TPeerClientUserDefineForRecvTunnel
+  else
+      Result := nil;
 end;
 
 function TCommunicationFramework_DoubleTunnelService.TotalLinkCount: Integer;

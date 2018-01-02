@@ -204,7 +204,11 @@ begin
     begin
       Data1 := Sender;
       Data2 := te;
+      {$IFDEF FPC}
+      OnExecuteMethod := @PostExecute_RegServer;
+      {$ELSE}
       OnExecuteMethod := PostExecute_RegServer;
+      {$ENDIF}
     end;
 end;
 
@@ -241,7 +245,11 @@ end;
 
 procedure TServerManager_Client.Command_Offline(Sender: TPeerClient; InData: TDataFrameEngine);
 begin
+  {$IFDEF FPC}
+  ProgressEngine.PostExecute(InData, @PostExecute_Offline);
+  {$ELSE}
   ProgressEngine.PostExecute(InData, PostExecute_Offline);
+  {$ENDIF}
 end;
 
 constructor TServerManager_Client.Create(AOwner: TServerManager_ClientPool);
@@ -276,8 +284,13 @@ end;
 procedure TServerManager_Client.RegisterCommand;
 begin
   inherited RegisterCommand;
+  {$IFDEF FPC}
+  NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := @Command_RegServer;
+  NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := @Command_Offline;
+  {$ELSE}
   NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := Command_RegServer;
   NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := Command_Offline;
+  {$ENDIF}
 end;
 
 procedure TServerManager_Client.UnRegisterCommand;
@@ -585,8 +598,12 @@ begin
   with ProgressEngine.PostExecute do
     begin
       DataEng.WriteString(cli.RegAddr);
-      DataEng.WriteString(cli.ServerType);
+      DataEng.WriteByte(Byte(cli.ServerType));
+      {$IFDEF FPC}
+      OnExecuteMethod := @PostExecute_ServerOffline;
+      {$ELSE}
       OnExecuteMethod := PostExecute_ServerOffline;
+      {$ENDIF}
     end;
 
   if cli.ServerType = TServerType.stManager then
@@ -604,7 +621,11 @@ begin
       DisposeObject(ns);
 
       // sync all client
+      {$IFDEF FPC}
+      ProgressEngine.PostExecute(nil, @PostExecute_RegServer);
+      {$ELSE}
       ProgressEngine.PostExecute(nil, PostExecute_RegServer);
+      {$ENDIF}
     end;
 
   inherited UserOut(UserDefineIO);
@@ -617,19 +638,24 @@ end;
 
 procedure TServerManager.PostExecute_RegServer(Sender: TNPostExecute);
 var
-  i     : Integer;
+  IDPool: TClientIDPool;
+  pid   : Cardinal;
   SendDE: TDataFrameEngine;
+  peer  : TPeerClient;
   c     : TServerManager_RecvTunnelData;
 begin
   // fixed local connect info
-  RecvTunnel.LockClients;
-  for i := 0 to RecvTunnel.Count - 1 do
+  FRecvTunnel.GetClientIDPool(IDPool);
+  for pid in IDPool do
     begin
-      c := (RecvTunnel[i].UserDefine as TServerManager_RecvTunnelData);
-      if c.SuccessEnabled then
-          c.WriteConfig(ServerConfig);
+      peer := RecvTunnel.ClientFromID[pid];
+      if (peer <> nil) then
+        begin
+          c := (peer.UserDefine as TServerManager_RecvTunnelData);
+          if c.SuccessEnabled then
+              c.WriteConfig(ServerConfig);
+        end;
     end;
-  RecvTunnel.UnLockClients;
 
   SendDE := TDataFrameEngine.Create;
   SendDE.WriteSectionText(ServerConfig);
@@ -639,6 +665,9 @@ end;
 
 procedure TServerManager.Command_EnabledServer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
+  IDPool : TClientIDPool;
+  pid    : Cardinal;
+  peer   : TPeerClient;
   cli    : TServerManager_RecvTunnelData;
   SendDE : TDataFrameEngine;
   i      : Integer;
@@ -663,23 +692,29 @@ begin
   cli.SuccessEnabled := True;
 
   try
-    for i := 0 to RecvTunnel.Count - 1 do
+    FRecvTunnel.GetClientIDPool(IDPool);
+    for pid in IDPool do
       begin
-        listcli := (RecvTunnel[i].UserDefine as TServerManager_RecvTunnelData);
-        if listcli = cli then
-            continue;
-        if SameText(listcli.RegAddr, cli.RegAddr) and (listcli.RegRecvPort = cli.RegRecvPort) and (listcli.RegSendPort = cli.RegSendPort)
-          and (listcli.ServerType = cli.ServerType) then
+        peer := RecvTunnel.ClientFromID[pid];
+        if (peer <> nil) then
           begin
-            cli.SuccessEnabled := False;
-            break;
-          end;
-        if (listcli.ServerType = cli.ServerType) and (cli.ServerType in [TServerType.stDataStore, TServerType.stDatabase]) then
-          begin
-            cli.SuccessEnabled := False;
-            break;
+            listcli := (peer.UserDefine as TServerManager_RecvTunnelData);
+            if listcli = cli then
+                continue;
+            if SameText(listcli.RegAddr, cli.RegAddr) and (listcli.RegRecvPort = cli.RegRecvPort) and (listcli.RegSendPort = cli.RegSendPort)
+              and (listcli.ServerType = cli.ServerType) then
+              begin
+                cli.SuccessEnabled := False;
+                break;
+              end;
+            if (listcli.ServerType = cli.ServerType) and (cli.ServerType in [TServerType.stDataStore, TServerType.stDatabase]) then
+              begin
+                cli.SuccessEnabled := False;
+                break;
+              end;
           end;
       end;
+
   except
   end;
 
@@ -687,7 +722,11 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('exists %s same server configure!!', [cli.MakeRegName]));
+      {$IFDEF FPC}
+      with ProgressEngine.PostExecute(InData, @PostExecute_Disconnect) do
+      {$ELSE}
       with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
+      {$ENDIF}
         begin
           Data1 := Sender;
           Data2 := cli;
@@ -747,6 +786,9 @@ end;
 
 procedure TServerManager.ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
 var
+  IDPool                 : TClientIDPool;
+  pid                    : Cardinal;
+  peer                   : TPeerClient;
   ns                     : TCoreClassStringList;
   i                      : Integer;
   vl                     : THashVariantList;
@@ -755,11 +797,16 @@ var
   SendDE                 : TDataFrameEngine;
 begin
   existedSameOnlineServer := False;
-  for i := 0 to RecvTunnel.Count - 1 do
+  FRecvTunnel.GetClientIDPool(IDPool);
+  for pid in IDPool do
     begin
-      c := RecvTunnel.Items[i].UserDefine as TServerManager_RecvTunnelData;
-      if SameText(c.RegAddr, RegAddr) and (c.ServerType = ServerType) then
-          existedSameOnlineServer := True;
+      peer := RecvTunnel.ClientFromID[pid];
+      if (peer <> nil) then
+        begin
+          c := peer.UserDefine as TServerManager_RecvTunnelData;
+          if SameText(c.RegAddr, RegAddr) and (c.ServerType = ServerType) then
+              existedSameOnlineServer := True;
+        end;
     end;
 
   if not existedSameOnlineServer then
@@ -780,11 +827,15 @@ begin
     end;
 
   // sync all client
-  for i := 0 to RecvTunnel.Count - 1 do
+  for pid in IDPool do
     begin
-      c := (RecvTunnel[i].UserDefine as TServerManager_RecvTunnelData);
-      if c.SuccessEnabled then
-          c.WriteConfig(ServerConfig);
+      peer := RecvTunnel.ClientFromID[pid];
+      if (peer <> nil) then
+        begin
+          c := (peer.UserDefine as TServerManager_RecvTunnelData);
+          if c.SuccessEnabled then
+              c.WriteConfig(ServerConfig);
+        end;
     end;
 
   ServerConfig.ReBuildList;
@@ -820,8 +871,13 @@ end;
 procedure TServerManager.RegisterCommand;
 begin
   inherited RegisterCommand;
+  {$IFDEF FPC}
+  FRecvTunnel.RegisterStream('EnabledServer').OnExecute := @Command_EnabledServer;
+  FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := @Command_AntiIdle;
+  {$ELSE}
   FRecvTunnel.RegisterStream('EnabledServer').OnExecute := Command_EnabledServer;
   FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := Command_AntiIdle;
+  {$ENDIF}
 end;
 
 procedure TServerManager.UnRegisterCommand;
@@ -833,8 +889,11 @@ end;
 
 procedure TServerManager.Progress;
 var
-  i  : Integer;
-  cli: TServerManager_RecvTunnelData;
+  IDPool: TClientIDPool;
+  pid   : Cardinal;
+  peer  : TPeerClient;
+  i     : Integer;
+  cli   : TServerManager_RecvTunnelData;
 begin
   ServManClientPool.Progress;
   inherited Progress;
@@ -842,13 +901,18 @@ begin
   if GetTimeTick - LastTimeTick > 5000 then
     begin
       try
-        for i := 0 to RecvTunnel.Count - 1 do
+        FRecvTunnel.GetClientIDPool(IDPool);
+        for pid in IDPool do
           begin
-            cli := RecvTunnel[i].UserDefine as TServerManager_RecvTunnelData;
-            if GetTimeTickCount - cli.LastEnabled > 5 * 60000 then
+            peer := RecvTunnel.ClientFromID[pid];
+            if (peer <> nil) then
               begin
-                ServerConfig.Delete(cli.MakeRegName);
-                cli.Owner.Disconnect;
+                cli := peer.UserDefine as TServerManager_RecvTunnelData;
+                if GetTimeTickCount - cli.LastEnabled > 5 * 60000 then
+                  begin
+                    ServerConfig.Delete(cli.MakeRegName);
+                    cli.Owner.Disconnect;
+                  end;
               end;
           end;
       except

@@ -246,14 +246,12 @@ var
   c     : TManagerServer_RecvTunnelData;
 begin
   // 矫正本地连接
-  RecvTunnel.LockClients;
-  for i := 0 to RecvTunnel.Count - 1 do
+  RecvTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
     begin
-      c := (RecvTunnel[i].UserDefine as TManagerServer_RecvTunnelData);
+      c := (PeerClient.UserDefine as TManagerServer_RecvTunnelData);
       if c.SuccessEnabled then
           c.WriteConfig(FManagerWindow.ServerConfig);
-    end;
-  RecvTunnel.UnLockClients;
+    end);
 
   SendDE := TDataFrameEngine.Create;
   SendDE.WriteSectionText(FManagerWindow.ServerConfig);
@@ -287,18 +285,17 @@ begin
   cli.SuccessEnabled := True;
 
   try
-    for i := 0 to RecvTunnel.Count - 1 do
+      RecvTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
       begin
-        listcli := (RecvTunnel[i].UserDefine as TManagerServer_RecvTunnelData);
+        listcli := (PeerClient.UserDefine as TManagerServer_RecvTunnelData);
         if listcli = cli then
-            continue;
+            exit;
         if SameText(listcli.RegAddr, cli.RegAddr) and (listcli.RegRecvPort = cli.RegRecvPort) and (listcli.RegSendPort = cli.RegSendPort)
           and (listcli.ServerType = cli.ServerType) then
           begin
             cli.SuccessEnabled := False;
-            break;
           end;
-      end;
+      end);
   except
   end;
 
@@ -388,8 +385,7 @@ end;
 
 procedure TManagerServerForm.AntiIdleCheckTimerTimer(Sender: TObject);
 var
-  i  : Integer;
-  cli: TManagerServer_RecvTunnelData;
+  i: Integer;
 begin
   try
     if Memo.Lines.Count > 5000 then
@@ -398,15 +394,18 @@ begin
   end;
 
   try
-    for i := 0 to RecvService.Count - 1 do
+      RecvService.ProgressPerClient(procedure(PeerClient: TPeerClient)
+      var
+        cli: TManagerServer_RecvTunnelData;
       begin
-        cli := RecvService[i].UserDefine as TManagerServer_RecvTunnelData;
+        cli := PeerClient.UserDefine as TManagerServer_RecvTunnelData;
         if GetTimeTickCount - cli.LastEnabled > 5 * 60000 then
           begin
             ServerConfig.Delete(cli.MakeRegName);
             cli.Owner.Disconnect;
           end;
-      end;
+      end);
+
   except
   end;
 
@@ -834,14 +833,12 @@ var
 begin
   // 判断离线通知服务器是否属于已连接的客户端
   existedSameOnlineServer := False;
-  RecvService.LockClients;
-  for i := 0 to RecvService.Count - 1 do
+  RecvService.ProgressPerClient(procedure(PeerClient: TPeerClient)
     begin
-      c := RecvService.Items[i].UserDefine as TManagerServer_RecvTunnelData;
+      c := PeerClient.UserDefine as TManagerServer_RecvTunnelData;
       if SameText(c.RegAddr, RegAddr) and (c.ServerType = ServerType) then
           existedSameOnlineServer := True;
-    end;
-  RecvService.UnLockClients;
+    end);
 
   if not existedSameOnlineServer then
     begin
@@ -862,14 +859,12 @@ begin
 
   // 同步所有客户端
   // 矫正本地连接
-  RecvService.LockClients;
-  for i := 0 to RecvService.Count - 1 do
+  RecvService.ProgressPerClient(procedure(PeerClient: TPeerClient)
     begin
-      c := (RecvService[i].UserDefine as TManagerServer_RecvTunnelData);
+      c := (PeerClient.UserDefine as TManagerServer_RecvTunnelData);
       if c.SuccessEnabled then
           c.WriteConfig(ServerConfig);
-    end;
-  RecvService.UnLockClients;
+    end);
 
   ServerConfig.ReBuildList;
 

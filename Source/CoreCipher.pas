@@ -246,7 +246,7 @@ type
   TCipher = class(TCoreClassObject)
   public
     const
-    CAllHash: THashStyles                   = [hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsELF64, hsMix128, hsCRC16, hsCRC32];
+    CAllHash: THashStyles                         = [hsNone, hsFastMD5, hsMD5, hsSHA1, hs256, hs128, hs64, hs32, hs16, hsELF, hsELF64, hsMix128, hsCRC16, hsCRC32];
     CHashName: array [THashStyle] of SystemString = ('None', 'FastMD5', 'MD5', 'SHA1', '256', '128', '64', '32', '16', 'ELF', 'ELF64', 'Mix128', 'CRC16', 'CRC32');
 
     CCipherStyleName: array [TCipherStyle] of SystemString =
@@ -1348,7 +1348,7 @@ begin
     if CharIn(cChar, [c0to9, cLoAtoF, cHiAtoF]) then
         filStr.Append(cChar);
 
-  FillByte(Buf, BufSize, 0);
+  FillPtrByte(@Buf, BufSize, 0);
   Count := Min(filStr.Len div 2, BufSize);
 
   for i := 0 to Count - 1 do
@@ -3258,9 +3258,9 @@ begin
   sour := TMemoryStream64.Create;
   sour.Size := Int64(1024 * 1024 + 9);
 
-  FillByte(sour.Memory^, sour.Size, $7F);
-  DoStatus(umlStreamMD5Char(sour).Text);
-  DoStatus(umlMD5Char(sour.Memory, sour.Size).Text);
+  FillPtrByte(sour.Memory, sour.Size, $7F);
+  DoStatus(umlStreamMD5String(sour).Text);
+  DoStatus(umlMD5String(sour.Memory, sour.Size).Text);
 
   DisposeObject(sour);
 
@@ -3301,7 +3301,7 @@ begin
 
   // hash and Sequence Encrypt
   SetLength(buffer, 1024 * 1024);
-  FillByte(buffer[0], length(buffer), 99);
+  FillPtrByte(@buffer[0], length(buffer), 99);
 
   ps := TCoreClassStringList.Create;
 
@@ -3324,8 +3324,8 @@ begin
       DoStatus('hash compare failed!');
 
   // cipher Encrypt performance
-  SetLength(buffer, 1024 * 1024 * 8 + 99);
-  FillByte(buffer[0], length(buffer), $7F);
+  SetLength(buffer, 1024 * 1024 + 99);
+  FillPtrByte(@buffer[0], length(buffer), $7F);
 
   sour := TMemoryStream64.Create;
   dest := TMemoryStream64.Create;
@@ -3734,7 +3734,7 @@ begin
         end;
 
       { select bits individually }
-      FillByte(KS, SizeOf(KS), 0);
+      FillPtrByte(@KS, SizeOf(KS), 0);
       for J := 0 to 47 do
         if Boolean(PC1R[PC2[J]]) then begin
             L := J div 6;
@@ -3890,7 +3890,7 @@ end;
 
 class procedure TSHA1.SHA1Clear(var Context: TSHA1Context);
 begin
-  FillByte(Context, SizeOf(Context), $00);
+  FillPtrByte(@Context, SizeOf(Context), $00);
 end;
 
 class procedure TSHA1.SHA1Hash(var Context: TSHA1Context);
@@ -3969,8 +3969,8 @@ begin
       sdHash[3] := sdHash[3] + d;
       sdHash[4] := sdHash[4] + E;
 
-      FillByte(W, SizeOf(W), $00);
-      FillByte(sdBuf, SizeOf(sdBuf), $00);
+      FillPtrByte(@W, SizeOf(W), $00);
+      FillPtrByte(@sdBuf, SizeOf(sdBuf), $00);
     end;
 end;
 
@@ -4316,7 +4316,7 @@ class procedure TCipherMD5.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: n
 var
   Context: TMD5Context;
 begin
-  FillByte(Context, SizeOf(Context), $00);
+  FillPtrByte(@Context, SizeOf(Context), $00);
   InitMD5(Context);
   UpdateMD5(Context, Buf, BufSize);
   FinalizeMD5(Context, Digest);
@@ -4430,7 +4430,7 @@ begin
   { return Digest of requested DigestSize }
   { max digest is 2048-bit, although it could be greater if Pi2048 was larger }
   if DigestSize > SizeOf(Context.Digest) then
-      FillByte(Digest, DigestSize, 0);
+      FillPtrByte(@Digest, DigestSize, 0);
   move(Context.Digest, Digest, Min(SizeOf(Context.Digest), DigestSize));
 end;
 
@@ -5004,7 +5004,7 @@ var
   k64Cnt, i, J, A, b, q: DWord;
   L0, L1               : TDCPTF2048;
 begin
-  FillByte(key32, SizeOf(key32), 0);
+  FillPtrByte(@key32, SizeOf(key32), 0);
   move(key, key32, Size div 8);
   if Size <= 128 then { pad the key to either 128bit, 192bit or 256bit }
       Size := 128
