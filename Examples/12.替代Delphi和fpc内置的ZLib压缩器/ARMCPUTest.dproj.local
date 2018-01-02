@@ -12,7 +12,7 @@
     <Transaction>2018/01/02 09:41:59.000.451,=C:\ZServer4D-master\Source\DoStatusIO.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5" Android=""/>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
 		<Pmini iOSSimulator="_iossimulator_3F775F22-DD02-402A-83C6-3C3834BD3118" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
 	</ActiveMobileDevice>
 </BorlandProject>

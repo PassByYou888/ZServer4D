@@ -1,5 +1,5 @@
 unit MHMainFrm;
-
+
 interface
 
 uses
@@ -60,7 +60,7 @@ begin
       DoStatus(NPtr, uData, 80);
 
       // 现在我们可以直接释放该地址
-      FreeMem(NPtr);
+      Dispose(NPtr);
 
       DoStatus('已成功释放 地址:0x%s 占用了 %d 字节内存', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2), uData]);
     end);
@@ -158,7 +158,7 @@ var
   p: PMyRec;
   i: Integer;
 begin
-  // 100万次的大批量记录内存申请，最后一次性释放
+  // 200万次的大批量记录内存申请，最后一次性释放
   // 这种场景情况，可以用于批量释放泄漏的内存
 
   // 我们内建20万个Hash数组进行存储
@@ -172,7 +172,7 @@ begin
   // 继续记录内存申请
   MH_3.MemoryHooked := True;
 
-  for i := 0 to 100 * 10000 do
+  for i := 0 to 200 * 10000 do
     begin
       new(p);
       new(p^.p);
@@ -187,11 +187,16 @@ begin
     end;
   MH_3.EndMemoryHook;
 
+  DoStatus('总共内存分配 %d 次 占用 %s 空间，地址跨度为：%s ', [MH_3.HookPtrList.Count, umlSizeToStr(MH_3.GetHookMemorySize).Text,
+    umlSizeToStr(NativeUInt(MH_3.GetHookMemoryMaximumPtr) - NativeUInt(MH_3.GetHookMemoryMinimizePtr)).Text]);
+
   MH_3.HookPtrList.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       // 现在我们可以释放该地址
       FreeMem(NPtr);
     end);
+  MH_3.HookPtrList.SetHashBlockCount(0);
 end;
 
 end.
+

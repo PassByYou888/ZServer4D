@@ -33,7 +33,7 @@
     <Transaction>2017/11/25 16:25:27.000.410,C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\FMXServer\FMXServFrm.pas=C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\FMXServer\FMXCliFrm.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5" Android=""/>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
 		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
 	</ActiveMobileDevice>
 </BorlandProject>

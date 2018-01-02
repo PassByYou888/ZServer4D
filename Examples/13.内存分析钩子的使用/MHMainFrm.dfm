@@ -20,11 +20,11 @@ object MHMainForm: TMHMainForm
     Width = 918
     Height = 312
     Align = alClient
-    Color = clBlack
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
-    Font.Height = -11
-    Font.Name = 'Tahoma'
+    Color = clWhite
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Consolas'
     Font.Style = []
     Lines.Strings = (
       #22312'ZS'#24037#31243#20869#37096#26377'4'#27425#20869#23384#38057#23376#21103#26412#65292#21487#36328#25152#26377#24179#21488#65292#24182#19988#24615#33021#26497#22909

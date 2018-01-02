@@ -33,7 +33,7 @@
 {$ENDIF}
 *)
 
-{.$define parallel}
+{$define parallel}
 
 {$IFDEF FPC}
 {$ASMMODE intel}

@@ -36,7 +36,7 @@
     <Transaction>2017/11/28 16:03:31.000.925,C:\git\ZServer4D\Examples\7.基于匿名函数的异步通讯\FMXCli\FMXDRCliFrm.fmx=C:\git\ZServer4D\Examples\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRCliFrm.fmx</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5" Android=""/>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
 		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
 	</ActiveMobileDevice>
 </BorlandProject>

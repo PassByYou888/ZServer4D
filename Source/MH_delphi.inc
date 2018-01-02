@@ -7,7 +7,10 @@ uses ListEngine, CoreClasses;
 procedure BeginMemoryHook; overload;
 procedure BeginMemoryHook(cacheLen: Integer); overload;
 procedure EndMemoryHook;
-function GetHookMemorySize: NativeUInt;
+function GetHookMemorySize: NativeUInt; overload;
+function GetHookMemorySize(p: Pointer): NativeUInt; overload;
+function GetHookMemoryMinimizePtr: Pointer;
+function GetHookMemoryMaximumPtr: Pointer;
 
 threadvar
   MemoryHooked: Boolean;
@@ -65,63 +68,94 @@ end;
 function GetHookMemorySize: NativeUInt;
 var
   bak: Boolean;
-  i  : Integer;
-  p  : PPointerHashListNativeUIntStruct;
 begin
-  bak := MemoryHooked;
-  MemoryHooked := False;
-  Result := 0;
+  bak := MHGlobalHookEnabled;
+  MHGlobalHookEnabled := False;
   try
-    if HookPtrList.Count > 0 then
-      begin
-        i := 0;
-        p := HookPtrList.FirstPtr;
-        while i < HookPtrList.Count do
-          begin
-            Inc(Result, p^.Data);
-            Inc(i);
-            p := p^.next;
-          end;
-      end;
+      Result := HookPtrList.Total;
   finally
-      MemoryHooked := bak;
+      MHGlobalHookEnabled := bak;
+  end;
+end;
+
+function GetHookMemorySize(p: Pointer): NativeUInt;
+var
+  bak: Boolean;
+begin
+  bak := MHGlobalHookEnabled;
+  MHGlobalHookEnabled := False;
+  try
+      Result := HookPtrList[p];
+  finally
+      MHGlobalHookEnabled := bak;
+  end;
+end;
+
+function GetHookMemoryMinimizePtr: Pointer;
+var
+  bak: Boolean;
+begin
+  bak := MHGlobalHookEnabled;
+  MHGlobalHookEnabled := False;
+  try
+      Result := HookPtrList.MinimizePtr;
+  finally
+      MHGlobalHookEnabled := bak;
+  end;
+end;
+
+function GetHookMemoryMaximumPtr: Pointer;
+var
+  bak: Boolean;
+begin
+  bak := MHGlobalHookEnabled;
+  MHGlobalHookEnabled := False;
+  try
+      Result := HookPtrList.MaximumPtr;
+  finally
+      MHGlobalHookEnabled := bak;
   end;
 end;
 
 function Hash_GetMem(Size: NativeInt): MPtr;
 begin
   Result := OriginMM.GetMem(Size);
-  if (not MemoryHooked) or (Result = nil) then
+  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
       exit;
   MemoryHooked := False;
+  MHGlobalHookEnabled := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Add(Result, Size, False);
   finally
-      MemoryHooked := True;
+    MemoryHooked := True;
+    MHGlobalHookEnabled := True;
   end;
 end;
 
 function Hash_FreeMem(p: MPtr): Integer;
 begin
   Result := OriginMM.FreeMem(p);
-  if (not MemoryHooked) or (p = nil) then
+  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (p = nil) then
       exit;
   MemoryHooked := False;
+  MHGlobalHookEnabled := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Delete(p);
   finally
-      MemoryHooked := True;
+    MemoryHooked := True;
+    MHGlobalHookEnabled := True;
   end;
 end;
 
 function Hash_ReallocMem(p: MPtr; Size: NativeInt): MPtr;
 begin
   Result := OriginMM.ReallocMem(p, Size);
-  if (not MemoryHooked) then
+  if (not MemoryHooked) or (not MHGlobalHookEnabled) then
       exit;
   MemoryHooked := False;
+  MHGlobalHookEnabled := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
       begin
@@ -131,21 +165,24 @@ begin
             HookPtrList.Add(Result, Size, False);
       end;
   finally
-      MemoryHooked := True;
+    MemoryHooked := True;
+    MHGlobalHookEnabled := True;
   end;
 end;
 
 function Hash_AllocMem(Size: NativeInt): MPtr;
 begin
   Result := OriginMM.AllocMem(Size);
-  if (not MemoryHooked) or (Result = nil) then
+  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
       exit;
   MemoryHooked := False;
+  MHGlobalHookEnabled := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Add(Result, Size);
   finally
-      MemoryHooked := True;
+    MemoryHooked := True;
+    MHGlobalHookEnabled := True;
   end;
 end;
 

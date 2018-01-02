@@ -342,12 +342,14 @@ type
     const
     NullValue = 0;
   private
-    FListBuffer        : TListBuffer;
-    FCount             : NativeInt;
-    FIDCounter         : TCounter;
-    FAccessOptimization: Boolean;
-    FFirst             : PPointerHashListNativeUIntStruct;
-    FLast              : PPointerHashListNativeUIntStruct;
+    FListBuffer              : TListBuffer;
+    FCount                   : NativeInt;
+    FIDCounter               : TCounter;
+    FAccessOptimization      : Boolean;
+    FFirst                   : PPointerHashListNativeUIntStruct;
+    FLast                    : PPointerHashListNativeUIntStruct;
+    FTotal                   : UInt64;
+    FMinimizePtr, FMaximumPtr: Pointer;
 
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
     function GetNPtrData(NPtr: Pointer): PPointerHashListNativeUIntStruct;
@@ -392,6 +394,9 @@ type
 
     procedure PrintHashReport;
 
+    property Total: UInt64 read FTotal;
+    property MinimizePtr: Pointer read FMinimizePtr;
+    property MaximumPtr: Pointer read FMaximumPtr;
     property AccessOptimization: Boolean read FAccessOptimization write FAccessOptimization;
     property Count: NativeInt read FCount write FCount;
     property NPtrVal[NPtr: Pointer]: NativeUInt read GetNPtrVal write SetValue; default;
@@ -1654,7 +1659,7 @@ procedure THashList.PrintHashReport;
 var
   i                 : NativeInt;
   L                 : TCoreClassList;
-  total             : NativeInt;
+  Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
 begin
@@ -1662,14 +1667,14 @@ begin
   usaged := 0;
   aMax := 0;
   aMin := 0;
-  total := 0;
+  Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
       L := FListBuffer[i];
       if L <> nil then
         begin
           Inc(usaged);
-          total := total + L.Count;
+          Total := Total + L.Count;
           if inited then
             begin
               if L.Count > aMax then
@@ -1685,7 +1690,7 @@ begin
             end;
         end;
     end;
-  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
+  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, Total, aMax, aMin]));
 end;
 
 function TInt64HashObjectList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -2165,7 +2170,7 @@ procedure TInt64HashObjectList.PrintHashReport;
 var
   i                 : NativeInt;
   L                 : TCoreClassList;
-  total             : NativeInt;
+  Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
 begin
@@ -2173,14 +2178,14 @@ begin
   usaged := 0;
   aMax := 0;
   aMin := 0;
-  total := 0;
+  Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
       L := FListBuffer[i];
       if L <> nil then
         begin
           Inc(usaged);
-          total := total + L.Count;
+          Total := Total + L.Count;
           if inited then
             begin
               if L.Count > aMax then
@@ -2196,7 +2201,7 @@ begin
             end;
         end;
     end;
-  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
+  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, Total, aMax, aMin]));
 end;
 
 function TInt64HashPointerList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -2680,7 +2685,7 @@ procedure TInt64HashPointerList.PrintHashReport;
 var
   i                 : NativeInt;
   L                 : TCoreClassList;
-  total             : NativeInt;
+  Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
 begin
@@ -2688,14 +2693,14 @@ begin
   usaged := 0;
   aMax := 0;
   aMin := 0;
-  total := 0;
+  Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
       L := FListBuffer[i];
       if L <> nil then
         begin
           Inc(usaged);
-          total := total + L.Count;
+          Total := Total + L.Count;
           if inited then
             begin
               if L.Count > aMax then
@@ -2711,7 +2716,7 @@ begin
             end;
         end;
     end;
-  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
+  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, Total, aMax, aMin]));
 end;
 
 function TUInt32HashObjectList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -3254,7 +3259,7 @@ procedure TUInt32HashObjectList.PrintHashReport;
 var
   i                 : NativeInt;
   L                 : TCoreClassList;
-  total             : NativeInt;
+  Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
 begin
@@ -3262,14 +3267,14 @@ begin
   usaged := 0;
   aMax := 0;
   aMin := 0;
-  total := 0;
+  Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
       L := FListBuffer[i];
       if L <> nil then
         begin
           Inc(usaged);
-          total := total + L.Count;
+          Total := Total + L.Count;
           if inited then
             begin
               if L.Count > aMax then
@@ -3285,7 +3290,7 @@ begin
             end;
         end;
     end;
-  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
+  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, Total, aMax, aMin]));
 end;
 
 function TPointerHashNativeUIntList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -3427,6 +3432,9 @@ begin
   FAccessOptimization := False;
   FFirst := nil;
   FLast := nil;
+  FTotal := 0;
+  FMinimizePtr := nil;
+  FMaximumPtr := nil;
   SetLength(FListBuffer, 0);
   SetHashBlockCount(256);
 end;
@@ -3439,6 +3447,9 @@ begin
   FAccessOptimization := False;
   FFirst := nil;
   FLast := nil;
+  FTotal := 0;
+  FMinimizePtr := nil;
+  FMaximumPtr := nil;
   SetLength(FListBuffer, 0);
   SetHashBlockCount(hashBlockCount);
 end;
@@ -3460,6 +3471,9 @@ begin
   FIDCounter := 0;
   FFirst := nil;
   FLast := nil;
+  FTotal := 0;
+  FMinimizePtr := nil;
+  FMaximumPtr := nil;
 
   if Length(FListBuffer) = 0 then
       Exit;
@@ -3494,6 +3508,9 @@ begin
   FIDCounter := 0;
   FFirst := nil;
   FLast := nil;
+  FTotal := 0;
+  FMinimizePtr := nil;
+  FMaximumPtr := nil;
 
   if Length(FListBuffer) = 0 then
       Exit;
@@ -3555,6 +3572,7 @@ begin
           _ItemData := lst.Items[i];
           if (newhash = _ItemData^.qHash) and (NPtr = _ItemData^.NPtr) then
             begin
+              Dec(FTotal, _ItemData^.Data);
               DoDelete(_ItemData);
               Dispose(_ItemData);
               lst.Delete(i);
@@ -3566,7 +3584,12 @@ begin
     end;
 
   if FCount = 0 then
+    begin
       FIDCounter := 1;
+      FTotal := 0;
+      FMinimizePtr := nil;
+      FMaximumPtr := nil;
+    end;
 end;
 
 function TPointerHashNativeUIntList.Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean = True): PPointerHashListNativeUIntStruct;
@@ -3586,6 +3609,7 @@ begin
           pData := PPointerHashListNativeUIntStruct(lst.Items[i]);
           if (newhash = pData^.qHash) and (NPtr = pData^.NPtr) then
             begin
+              Dec(FTotal, pData^.Data);
               DoDelete(pData);
               pData^.Data := _CustomData;
               Result := pData;
@@ -3608,6 +3632,7 @@ begin
                       Inc(FIDCounter);
                 end;
 
+              Inc(FTotal, pData^.Data);
               Exit;
             end;
         end;
@@ -3630,6 +3655,13 @@ begin
       RebuildIDCounter
   else
       Inc(FIDCounter);
+
+  Inc(FTotal, pData^.Data);
+
+  if (NativeUInt(NPtr) < NativeUInt(FMinimizePtr)) or (FMinimizePtr = nil) then
+      FMinimizePtr := NPtr;
+  if (NativeUInt(NPtr) > NativeUInt(FMaximumPtr)) or (FMaximumPtr = nil) then
+      FMaximumPtr := NPtr;
 end;
 
 procedure TPointerHashNativeUIntList.SetValue(NPtr: Pointer; _CustomData: NativeUInt);
@@ -3649,7 +3681,9 @@ begin
           pData := PPointerHashListNativeUIntStruct(lst.Items[i]);
           if (newhash = pData^.qHash) and (NPtr = pData^.NPtr) then
             begin
+              Dec(FTotal, pData^.Data);
               pData^.Data := _CustomData;
+              Inc(FTotal, pData^.Data);
             end;
         end;
     end;
@@ -3827,7 +3861,7 @@ procedure TPointerHashNativeUIntList.PrintHashReport;
 var
   i                 : NativeInt;
   L                 : TCoreClassList;
-  total             : NativeInt;
+  t                 : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
 begin
@@ -3835,14 +3869,14 @@ begin
   usaged := 0;
   aMax := 0;
   aMin := 0;
-  total := 0;
+  t := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
       L := FListBuffer[i];
       if L <> nil then
         begin
           Inc(usaged);
-          total := total + L.Count;
+          t := t + L.Count;
           if inited then
             begin
               if L.Count > aMax then
@@ -3858,7 +3892,7 @@ begin
             end;
         end;
     end;
-  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, total, aMax, aMin]));
+  DoStatus(Format('usaged container:%d item total:%d Max:%d min:%d', [usaged, t, aMax, aMin]));
 end;
 
 function THashObjectList.GetCount: NativeInt;

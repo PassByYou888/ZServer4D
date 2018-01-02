@@ -55,14 +55,14 @@
     <Transaction>2017/12/10 20:52:58.000.957,=C:\git\ZServer4D\Source\ZDBEngine.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.564,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreServiceCommon.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.835,=C:\git\ZServer4D\Source\NotifyObjectBase.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.895,=C:\git\ZServer4D\Source\TextDataEngine.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.885,=C:\git\ZServer4D\Source\StreamList.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.632,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.556,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_NoAuth.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.827,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.895,=C:\git\ZServer4D\Source\TextDataEngine.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.513,=C:\git\ZServer4D\Source\Cadencer.pas</Transaction>
-    <Transaction>2017/12/10 20:52:58.000.695,=C:\git\ZServer4D\Source\DoStatusIO.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.556,=C:\git\ZServer4D\Source\CommunicationFrameworkDataStoreService_NoAuth.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.722,=C:\git\ZServer4D\Source\Geometry3DUnit.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.632,=C:\git\ZServer4D\Source\CommunicationFrameworkIO.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.695,=C:\git\ZServer4D\Source\DoStatusIO.pas</Transaction>
+    <Transaction>2017/12/10 20:52:58.000.827,=C:\git\ZServer4D\Source\MemoryStream64.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.788,=C:\git\ZServer4D\Source\JsonDataObjects.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.687,=C:\git\ZServer4D\Source\DBCompressPackageForFile.pas</Transaction>
     <Transaction>2017/12/10 20:52:58.000.796,=C:\git\ZServer4D\Source\LibraryManager.pas</Transaction>
@@ -75,7 +75,7 @@
     <Transaction>2017/12/14 17:16:34.000.143,=C:\git\ZServer4D\Examples\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FileBuffOfCode.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5" Android=""/>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
 		<Pmini iOSSimulator="_iossimulator_CB011082-14D4-48CA-B31D-8F618031347C" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
 	</ActiveMobileDevice>
 </BorlandProject>

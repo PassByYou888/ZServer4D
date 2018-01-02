@@ -42,10 +42,9 @@ object EZServerForm: TEZServerForm
     Width = 202
     Height = 384
     Align = alRight
-    Color = clBlack
     DoubleBuffered = True
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
@@ -62,10 +61,9 @@ object EZServerForm: TEZServerForm
     Width = 202
     Height = 384
     Align = alRight
-    Color = clBlack
     DoubleBuffered = True
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
@@ -82,10 +80,9 @@ object EZServerForm: TEZServerForm
     Width = 202
     Height = 384
     Align = alRight
-    Color = clBlack
     DoubleBuffered = True
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
@@ -102,10 +99,9 @@ object EZServerForm: TEZServerForm
     Width = 202
     Height = 384
     Align = alRight
-    Color = clBlack
     DoubleBuffered = True
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []

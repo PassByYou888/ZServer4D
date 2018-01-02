@@ -182,6 +182,9 @@ function GetTimeTickCount: TTimeTickValue; inline;
 function GetTimeTick: TTimeTickValue; inline;
 function GetCrashTimeTick: TTimeTickValue;
 
+threadvar
+  MHGlobalHookEnabled: Boolean;
+
 implementation
 
 procedure EmptyProc;
@@ -392,5 +395,6 @@ end;
 {$ENDIF}
 
 initialization
+  MHGlobalHookEnabled := True;
 finalization
 end.
