@@ -89,6 +89,45 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 新增服务器的内存Hook库（傻瓜，暴力，非常暴力的释放和管理内存），同时也新增了内存管理领域开发工艺Demo，MH库支持FPC和Delphi
 
+```Delphi
+type
+  PMyRec = ^TMyRec;
+
+  TMyRec = record
+    s1: string;
+    s2: string;
+    s3: TPascalString;
+    obj: TObject;
+  end;
+
+var
+  p: PMyRec;
+begin
+  MH.BeginMemoryHook_1;
+  new(p);
+  p^.s1 := '12345';
+  p^.s2 := '中文';
+  p^.s3 := '测试';
+  p^.obj := TObject.Create;
+  MH.EndMemoryHook_1;
+
+  // 这里我们会发现泄漏
+  DoStatus('TMyRec总分分配了 %d 次内存，占用 %d 字节空间，', [MH.GetHookPtrList_1.Count, MH.GetHookMemorySize_1]);
+
+  MH.GetHookPtrList_1.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+    begin
+      DoStatus('泄漏的地址:0x%s', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2)]);
+      DoStatus(NPtr, uData, 80);
+
+      // 现在我们可以直接释放该地址
+      FreeMem(NPtr);
+
+      DoStatus('已成功释放 地址:0x%s 占用了 %d 字节内存', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2), uData]);
+    end);
+end;
+```
+
+
 新增的内存Hook库已在ZDB内部有效应用
 
 服务器端有个大改动：不再支持用户遍历方法，同时服务器内核不在使用链表来管理客户端，所有客户端全部改用Hash数组来管理
