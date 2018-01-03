@@ -19,7 +19,7 @@ interface
 uses SysUtils, Classes, Types
 
   {$IFDEF FPC}
-    , Contnrs
+    , Contnrs, fgl
   {$ELSE}
   , System.Generics.Collections
   {$ENDIF}
@@ -162,28 +162,27 @@ const
 procedure EmptyProc;
 procedure Empty;
 
-procedure DisposeObject(const obj: TObject); overload; inline;
+procedure DisposeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure DisposeObject(const objs: array of TObject); overload;
-procedure FreeObject(const obj: TObject); overload; inline;
+procedure FreeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FreeObject(const objs: array of TObject); overload;
 
-procedure LockObject(obj:TObject); inline;
-procedure UnLockObject(obj:TObject); inline;
+procedure LockObject(obj:TObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure UnLockObject(obj:TObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte); inline;
-function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; inline;
+procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure RaiseInfo(n: string); overload;
 procedure RaiseInfo(n: string; const Args: array of const); overload;
 
 function IsMobile: Boolean;
 
-function GetTimeTickCount: TTimeTickValue; inline;
-function GetTimeTick: TTimeTickValue; inline;
+function GetTimeTickCount: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function GetTimeTick: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function GetCrashTimeTick: TTimeTickValue;
 
-threadvar
-  MHGlobalHookEnabled: Boolean;
+threadvar MHGlobalHookEnabled: Boolean;
 
 implementation
 
@@ -397,4 +396,5 @@ end;
 initialization
   MHGlobalHookEnabled := True;
 finalization
+  MHGlobalHookEnabled := False;
 end.

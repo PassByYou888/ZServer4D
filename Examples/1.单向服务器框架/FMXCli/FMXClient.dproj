@@ -359,10 +359,10 @@
         <DCCReference Include="..\..\..\Source\StreamList.pas"/>
         <DCCReference Include="..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas"/>
         <DCCReference Include="..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCipher.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCompress.pas"/>
         <DCCReference Include="..\..\..\Source\MH_ZDB.pas"/>

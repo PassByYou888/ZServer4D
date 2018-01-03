@@ -70,7 +70,7 @@ type
     {$IFNDEF FPC}
     OnProc: TStateProc;
     {$ENDIF}
-    procedure init; inline;
+    procedure init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TFileComplete = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; Stream: TCoreClassStream; const fileName: SystemString) of object;

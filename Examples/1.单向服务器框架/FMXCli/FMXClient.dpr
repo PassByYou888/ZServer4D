@@ -3,45 +3,12 @@ program FMXClient;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  FMXCliFrm in 'FMXCliFrm.pas' {FMXClientForm},
-  Cadencer in '..\..\..\Source\Cadencer.pas',
-  CommunicationFramework in '..\..\..\Source\CommunicationFramework.pas',
-  CommunicationFrameworkDoubleTunnelIO in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO.pas',
-  CommunicationFrameworkDoubleTunnelIO_NoAuth in '..\..\..\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas',
-  CommunicationFrameworkIO in '..\..\..\Source\CommunicationFrameworkIO.pas',
-  CoreClasses in '..\..\..\Source\CoreClasses.pas',
-  DataFrameEngine in '..\..\..\Source\DataFrameEngine.pas',
-  DoStatusIO in '..\..\..\Source\DoStatusIO.pas',
-  Geometry2DUnit in '..\..\..\Source\Geometry2DUnit.pas',
-  Geometry3DUnit in '..\..\..\Source\Geometry3DUnit.pas',
-  GeometryLib in '..\..\..\Source\GeometryLib.pas',
-  GeometryRotationUnit in '..\..\..\Source\GeometryRotationUnit.pas',
-  JsonDataObjects in '..\..\..\Source\JsonDataObjects.pas',
-  ListEngine in '..\..\..\Source\ListEngine.pas',
-  MemoryStream64 in '..\..\..\Source\MemoryStream64.pas',
-  NotifyObjectBase in '..\..\..\Source\NotifyObjectBase.pas',
-  PascalStrings in '..\..\..\Source\PascalStrings.pas',
-  TextDataEngine in '..\..\..\Source\TextDataEngine.pas',
-  TextParsing in '..\..\..\Source\TextParsing.pas',
-  TextTable in '..\..\..\Source\TextTable.pas',
-  UnicodeMixedLib in '..\..\..\Source\UnicodeMixedLib.pas',
-  DBCompressPackageForFile in '..\..\..\Source\DBCompressPackageForFile.pas',
-  ItemStream in '..\..\..\Source\ItemStream.pas',
-  LibraryManager in '..\..\..\Source\LibraryManager.pas',
-  ObjectData in '..\..\..\Source\ObjectData.pas',
-  ObjectDataManager in '..\..\..\Source\ObjectDataManager.pas',
-  StreamList in '..\..\..\Source\StreamList.pas',
-  CommunicationFramework_Client_Indy in '..\..\..\Source\Indy\CommunicationFramework_Client_Indy.pas',
-  CommunicationFramework_Server_Indy in '..\..\..\Source\Indy\CommunicationFramework_Server_Indy.pas',
-  CoreCipher in '..\..\..\Source\CoreCipher.pas',
-  CoreCompress in '..\..\..\Source\CoreCompress.pas',
-  MH_ZDB in '..\..\..\Source\MH_ZDB.pas';
+  FMXCliFrm in 'FMXCliFrm.pas' {FMXClientForm};
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  Application.FormFactor.Orientations := [TFormOrientation.Landscape, TFormOrientation.InvertedLandscape];
   Application.CreateForm(TFMXClientForm, FMXClientForm);
   Application.Run;
 end.

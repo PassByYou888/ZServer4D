@@ -742,7 +742,7 @@ begin
 end;
 
 constructor TCompressorDeflate.Create;
-  procedure BuildFixedTrees(var aLT, aDT: TTree); inline;
+  procedure BuildFixedTrees(var aLT, aDT: TTree); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     i: TCCInt32;
   begin
@@ -767,7 +767,7 @@ constructor TCompressorDeflate.Create;
     for i := 0 to 31 do
         aDT.Translation[i] := i;
   end;
-  procedure BuildBitsBase(aBits: PCCUInt8Array; aBase: PCCUInt16; aDelta, aFirst: TCCInt32); inline;
+  procedure BuildBitsBase(aBits: PCCUInt8Array; aBase: PCCUInt16; aDelta, aFirst: TCCInt32); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     i, Sum: TCCInt32;
   begin
@@ -842,7 +842,7 @@ var
         dec(CountOutputBits, 8);
       end;
   end;
-  procedure DoOutputLiteral(const aValue: TCCUInt8); inline;
+  procedure DoOutputLiteral(const aValue: TCCUInt8); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     case aValue of
       0 .. 143: DoOutputBits(MirrorBytes[$30 + aValue], 8);
@@ -885,7 +885,7 @@ var
     DoOutputBits(0, 7); // Close block
     DoOutputBits(0, 7); // Make sure all bits are flushed
   end;
-  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32; inline;
+  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   const
     Base               = 65521;
     MaximumCountAtOnce = 5552;
@@ -1083,7 +1083,7 @@ var
   Source, SourceEnd: PCCUInt8;
   Dest             : PCCUInt8;
   DestLen          : TCCSizeUInt;
-  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32; inline;
+  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   const
     Base = 65521;
     NMAX = 5552;
@@ -1112,7 +1112,7 @@ var
       end;
     result := (s2 shl 16) or s1;
   end;
-  procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32); inline;
+  procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     Offsets: TOffsets;
     i      : TCCInt32;
@@ -1149,7 +1149,7 @@ var
     result := Tag and 1;
     Tag := Tag shr 1;
   end;
-  function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32; inline;
+  function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     Limit, Mask: TCCUInt32;
   begin
@@ -1167,7 +1167,7 @@ var
       end;
     inc(result, aBase);
   end;
-  function DecodeSymbol(const aTree: TTree): TCCUInt32; inline;
+  function DecodeSymbol(const aTree: TTree): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     Sum, c, l: TCCInt32;
   begin

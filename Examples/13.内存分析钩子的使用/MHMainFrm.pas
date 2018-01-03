@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  DoStatusIO, PascalStrings, CoreClasses, UnicodeMixedLib;
+  DoStatusIO, PascalStrings, CoreClasses, UnicodeMixedLib, ListEngine;
 
 type
   TMHMainForm = class(TForm)
@@ -82,9 +82,9 @@ var
 begin
   MH.BeginMemoryHook_1;
   new(p);
-  p^.s1 := '12345';
+  p^.s1 := #7#8#9;
   p^.s2 := '中文';
-  p^.s3 := '测试';
+  p^.s3.Text := #1#2#3;
   p^.obj := TObject.Create;
   MH.EndMemoryHook_1;
 
@@ -155,8 +155,9 @@ type
   end;
 
 var
-  p: PMyRec;
-  i: Integer;
+  p : PMyRec;
+  i : Integer;
+  hl: TPointerHashNativeUIntList;
 begin
   // 200万次的大批量记录内存申请，最后一次性释放
   // 这种场景情况，可以用于批量释放泄漏的内存
@@ -171,6 +172,9 @@ begin
   Application.ProcessMessages;
   // 继续记录内存申请
   MH_3.MemoryHooked := True;
+
+  // 另一种方法是清空
+  // MH_3.HookPtrList.Clear;
 
   for i := 0 to 200 * 10000 do
     begin
@@ -195,6 +199,7 @@ begin
       // 现在我们可以释放该地址
       FreeMem(NPtr);
     end);
+  MH_3.HookPtrList.PrintHashReport;
   MH_3.HookPtrList.SetHashBlockCount(0);
 end;
 

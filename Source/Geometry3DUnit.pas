@@ -1,15 +1,15 @@
-{******************************************************************************}
-{* geometry 3D Advance library writen by QQ 600585@qq.com                     *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
-
+{ ****************************************************************************** }
+{ * geometry 3D Advance library writen by QQ 600585@qq.com                     * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit Geometry3DUnit;
 
 interface
 
 {$I zDefine.inc}
+
 
 uses Types, SysUtils,
   GeometryLib, Geometry2DUnit, PascalStrings, UnicodeMixedLib;
@@ -259,28 +259,28 @@ function GetMin(const arry: array of Integer): Integer; overload;
 function GetMax(const arry: array of TGeoFloat): TGeoFloat; overload;
 function GetMax(const arry: array of Integer): Integer; overload;
 
-function FinalAngle(a: TGeoFloat): TGeoFloat; inline;
-function CalcAngle(v1, v2: T2DPoint): TGeoFloat; inline;
-function AngleDistance(sour, Dest: TGeoFloat): TGeoFloat; inline;
-function SmoothAngle(sour, Dest, Delta: TGeoFloat): TGeoFloat; inline;
-function AngleEqual(a1, a2: TGeoFloat): Boolean; inline;
+function FinalAngle(a: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CalcAngle(v1, v2: T2DPoint): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function AngleDistance(sour, Dest: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function SmoothAngle(sour, Dest, Delta: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function AngleEqual(a1, a2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function distance(v1, v2: T2DPoint): TGeoFloat; inline; overload;
-function distance(v1, v2: T2DRect): TGeoFloat; inline; overload;
+function distance(v1, v2: T2DPoint): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function distance(v1, v2: T2DRect): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function MovementLerp(s, d, Lerp: TGeoFloat): TGeoFloat; inline; overload;
-function MovementLerp(s, d: T2DPoint; Lerp: TGeoFloat): T2DPoint; inline; overload;
-function MovementLerp(s, d: T2DRect; Lerp: TGeoFloat): T2DRect; inline; overload;
+function MovementLerp(s, d, Lerp: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementLerp(s, d: T2DPoint; Lerp: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementLerp(s, d: T2DRect; Lerp: TGeoFloat): T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function MovementDistance(s, d: T2DPoint; dt: TGeoFloat): T2DPoint; inline; overload;
-function MovementDistance(s, d: T2DRect; dt: TGeoFloat): T2DRect; inline; overload;
+function MovementDistance(s, d: T2DPoint; dt: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistance(s, d: T2DRect; dt: TGeoFloat): T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function MovementDistance(sour, Dest: TVector4; distance: Single): TVector4; inline; overload;
-function MovementDistance(sour, Dest: TVector3; distance: Single): TVector3; inline; overload;
+function MovementDistance(sour, Dest: TVector4; distance: Single): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistance(sour, Dest: TVector3; distance: Single): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function MovementDistanceDeltaTime(s, d: T2DPoint; ASpeed: TGeoFloat): Double; inline; overload;
-function MovementDistanceDeltaTime(s, d: T2DRect; ASpeed: TGeoFloat): Double; inline; overload;
-function AngleRollDistanceDeltaTime(s, d: TGeoFloat; ARollSpeed: TGeoFloat): Double; inline; overload;
+function MovementDistanceDeltaTime(s, d: T2DPoint; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistanceDeltaTime(s, d: T2DRect; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function AngleRollDistanceDeltaTime(s, d: TGeoFloat; ARollSpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 {$IFDEF FPC}
 
@@ -668,7 +668,7 @@ begin
 end;
 
 function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; var EndFlag: Boolean): TGeoFloat;
-  function IfOut(Cur, Delta, Dest: Single): Boolean; inline;
+  function IfOut(Cur, Delta, Dest: Single): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     if Cur > Dest then
         Result := Cur - Delta < Dest
@@ -676,7 +676,7 @@ function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; v
         Result := Cur + Delta > Dest;
   end;
 
-  function GetOutValue(Cur, Delta, Dest: Single): Single; inline;
+  function GetOutValue(Cur, Delta, Dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     if IfOut(Cur, Delta, Dest) then
       begin
@@ -689,7 +689,7 @@ function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; v
         Result := 0;
   end;
 
-  function GetDeltaValue(Cur, Delta, Dest: Single): Single; inline;
+  function GetDeltaValue(Cur, Delta, Dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     if Cur > Dest then
         Result := Cur - Delta
@@ -892,7 +892,7 @@ begin
       Result[1] := d[1];
 end;
 
-function MovementDistance(sour, Dest: TVector4; distance: Single): TVector4; inline;
+function MovementDistance(sour, Dest: TVector4; distance: Single): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   k: Single;
 begin
@@ -906,7 +906,7 @@ begin
   Result[3] := sour[3] + k * (Dest[3] - sour[3]);
 end;
 
-function MovementDistance(sour, Dest: TVector3; distance: Single): TVector3; inline;
+function MovementDistance(sour, Dest: TVector3; distance: Single): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   k: Single;
 begin

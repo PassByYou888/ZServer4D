@@ -64,9 +64,9 @@ type
     function Close: Boolean;
     function ErrorNo: Int64;
     function Modify: Boolean;
-    function Size: Int64; inline;
-    function IORead: Int64; inline;
-    function IOWrite: Int64; inline;
+    function Size: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IORead: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IOWrite: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetID(const ID: Byte);
     procedure Update;
 
@@ -101,10 +101,9 @@ type
     function GetItemSize(const dbPath, DBItem: SystemString): Int64;
 
     // fast lowlevel
-    function GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean; inline;
-    function GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean; inline;
-    function GetHeader(hPos: Int64; var h: THeader): Boolean; inline;
-
+    function GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetHeader(hPos: Int64; var h: THeader): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemAddFile(var ItemHnd: TItemHandle; const FileName: SystemString): Boolean;
     function ItemAutoConnect(const dbPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
     function ItemFastAutoConnect_F(const FieldPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
@@ -123,46 +122,42 @@ type
     function ItemFastFindLast(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemFastOpen(const aPos: Int64; var ItemHnd: TItemHandle): Boolean; inline;
+    function ItemFastOpen(const aPos: Int64; var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemFastResetBody(const aPos: Int64): Boolean;
-    function ItemFindFirst(const dbPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; inline;
-    function ItemFindLast(const dbPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; inline;
-    function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean; inline;
-    function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean; inline;
+    function ItemFindFirst(const dbPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemFindLast(const dbPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemGetFile(var ItemHnd: TItemHandle; const FileName: SystemString): Boolean;
     function ItemMove(const dbPath, ItemName, DestPath: SystemString): Boolean;
     function ItemOpen(const dbPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
 
-    function ItemRead(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean; inline;
-    function ItemReadBool(var ItemHnd: TItemHandle; var Value: Boolean): Boolean; inline;
-    function ItemReadInt(var ItemHnd: TItemHandle; var Value: Integer): Boolean; inline;
-    function ItemReadReturnBool(var ItemHnd: TItemHandle; const DefaultValue: Boolean): Boolean; inline;
-    function ItemReadReturnInt(var ItemHnd: TItemHandle; const DefaultValue: Integer): Integer; inline;
-    function ItemReadReturnStr(var ItemHnd: TItemHandle; const DefaultValue: SystemString): SystemString; inline;
-    function ItemReadStr(var ItemHnd: TItemHandle; var Value: SystemString): Boolean; inline;
-    function ItemReadTime(var ItemHnd: TItemHandle; var Value: TDateTime): Boolean; inline;
-
-    function ItemSeekStart(var ItemHnd: TItemHandle): Boolean; inline;
-    function ItemSeekLast(var ItemHnd: TItemHandle): Boolean; inline;
-    function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean; inline;
-    function ItemGetPos(var ItemHnd: TItemHandle): Int64; inline;
-    function ItemGetSize(var ItemHnd: TItemHandle): Int64; inline;
-
-    function ItemWrite(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean; inline;
-    function ItemWriteBool(var ItemHnd: TItemHandle; const Value: Boolean): Boolean; inline;
-    function ItemWriteInt(var ItemHnd: TItemHandle; const Value: Integer): Boolean; inline;
-    function ItemWriteStr(var ItemHnd: TItemHandle; const Value: SystemString): Boolean; inline;
-    function ItemWriteTime(var ItemHnd: TItemHandle; const Value: TDateTime): Boolean; inline;
-    function ReadBool(const Section, Item: SystemString; const Value: Boolean): Boolean; inline;
-    function ReadString(const Section, Item, Value: SystemString): SystemString; inline;
-    function WriteBool(const Section, Item: SystemString; const Value: Boolean): Boolean; inline;
-    function WriteString(const Section, Item, Value: SystemString): Boolean; inline;
-
+    function ItemRead(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadBool(var ItemHnd: TItemHandle; var Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadInt(var ItemHnd: TItemHandle; var Value: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadReturnBool(var ItemHnd: TItemHandle; const DefaultValue: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadReturnInt(var ItemHnd: TItemHandle; const DefaultValue: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadReturnStr(var ItemHnd: TItemHandle; const DefaultValue: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadStr(var ItemHnd: TItemHandle; var Value: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemReadTime(var ItemHnd: TItemHandle; var Value: TDateTime): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemSeekStart(var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemSeekLast(var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemGetPos(var ItemHnd: TItemHandle): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemGetSize(var ItemHnd: TItemHandle): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemWrite(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemWriteBool(var ItemHnd: TItemHandle; const Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemWriteInt(var ItemHnd: TItemHandle; const Value: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemWriteStr(var ItemHnd: TItemHandle; const Value: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemWriteTime(var ItemHnd: TItemHandle; const Value: TDateTime): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadBool(const Section, Item: SystemString; const Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadString(const Section, Item, Value: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteBool(const Section, Item: SystemString; const Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteString(const Section, Item, Value: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 
-    function ObjectDataHandlePtr: PTMDB; inline;
-
+    function ObjectDataHandlePtr: PTMDB; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property AutoFreeHandle: Boolean read GetAutoFreeHandle write SetAutoFreeHandle;
     property IsOnlyRead: Boolean read FOnlyRead;
     property NeedCreateNew: Boolean read FNeedCreateNew;
@@ -197,8 +192,8 @@ type
       DataWrited: Boolean;
       Return: Integer;
       MemorySiz: NativeUInt;
-      procedure Write(var wVal: TItem); inline;
-      procedure Read(var rVal: TItem); inline;
+      procedure Write(var wVal: TItem); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      procedure Read(var rVal: TItem); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     end;
 
     PObjectDataCacheField = ^TObjectDataCacheField;
@@ -211,8 +206,8 @@ type
       LastHeaderPOS: Int64;
       Return: Integer;
       MemorySiz: NativeUInt;
-      procedure Write(var wVal: TField); inline;
-      procedure Read(var rVal: TField); inline;
+      procedure Write(var wVal: TField); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      procedure Read(var rVal: TField); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     end;
   private
     FHeaderCache, FItemBlockCache, FItemCache, FFieldCache: TInt64HashPointerList;

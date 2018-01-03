@@ -167,16 +167,16 @@
         <DCCReference Include="..\..\..\Source\ICS\CommunicationFramework_Server_ICSCustomSocket.pas"/>
         <DCCReference Include="..\..\..\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas"/>
         <DCCReference Include="..\..\..\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCipher.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CommunicationTest.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCompress.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

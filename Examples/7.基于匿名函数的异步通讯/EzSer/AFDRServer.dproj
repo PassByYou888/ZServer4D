@@ -142,7 +142,7 @@
         <DCCReference Include="..\..\..\Source\CrossSocket\CommunicationFramework_Client_CrossSocket.pas"/>
         <DCCReference Include="..\..\..\Source\CrossSocket\CommunicationFramework_Server_CrossSocket.pas"/>
         <DCCReference Include="..\..\..\Source\CoreCipher.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCompress.pas"/>
         <BuildConfiguration Include="Release">

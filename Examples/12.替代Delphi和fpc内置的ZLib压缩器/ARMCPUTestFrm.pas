@@ -16,11 +16,13 @@ type
     BRRCCompressorButton: TButton;
     ZLibCompressorButton: TButton;
     GlobalLayout: TLayout;
+    MHTestButton: TButton;
     procedure DeflateCompressorButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure BRRCCompressorButtonClick(Sender: TObject);
     procedure ZLibCompressorButtonClick(Sender: TObject);
+    procedure MHTestButtonClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -34,6 +36,8 @@ var
 implementation
 
 {$R *.fmx}
+
+uses MH;
 
 procedure TForm1.BRRCCompressorButtonClick(Sender: TObject);
 var
@@ -146,6 +150,43 @@ end;
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
   DeleteDoStatusHook(Self);
+end;
+
+procedure TForm1.MHTestButtonClick(Sender: TObject);
+type
+  PMyRec = ^TMyRec;
+
+  TMyRec = record
+    s1: string;
+    s2: string;
+    s3: TPascalString;
+    obj: TObject;
+  end;
+
+var
+  p: PMyRec;
+begin
+  MH.BeginMemoryHook_1;
+  new(p);
+  p^.s1 := #7#8#9;
+  p^.s2 := '中文';
+  p^.s3.Text := #1#2#3;
+  p^.obj := TObject.Create;
+  MH.EndMemoryHook_1;
+
+  // 这里我们会发现泄漏
+  DoStatus('TMyRec总分分配了 %d 次内存，占用 %d 字节空间，', [MH.GetHookPtrList_1.Count, MH.GetHookMemorySize_1]);
+
+  MH.GetHookPtrList_1.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+    begin
+      DoStatus('泄漏的地址:0x%s', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2)]);
+      DoStatus(NPtr, uData, 80);
+
+      // 现在我们可以直接释放该地址
+      FreeMem(NPtr);
+
+      DoStatus('已成功释放 地址:0x%s 占用了 %d 字节内存', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2), uData]);
+    end);
 end;
 
 procedure TForm1.ZLibCompressorButtonClick(Sender: TObject);

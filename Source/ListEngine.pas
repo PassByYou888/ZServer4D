@@ -63,37 +63,32 @@ type
 
     procedure RebuildIDCounter;
 
-    procedure DoAdd(p: PHashListData); inline;
-    procedure DoDelete(p: PHashListData); inline;
-
+    procedure DoAdd(p: PHashListData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoDelete(p: PHashListData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DefaultDataFreeProc(p: Pointer);
 
-    procedure DoDataFreeProc(p: Pointer); inline;
+    procedure DoDataFreeProc(p: Pointer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create; overload;
     constructor Create(hashBlockCount: Integer); overload;
     destructor Destroy; override;
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(Name: SystemString); inline;
-    procedure Add(Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True); inline;
+    procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Add(Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetValue(Name: SystemString; const _CustomData: Pointer);
-    function Find(Name: SystemString): Pointer; inline;
-    function Exists(Name: SystemString): Boolean; inline;
-
+    function Find(Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetHashBlockCount(cnt: Integer);
 
     property FirstPtr: PHashListData read FFirst;
     property LastPtr: PHashListData read FLast;
 
-    function First: Pointer; inline;
-    function Last: Pointer; inline;
-
-    function GetNext(Name: SystemString): Pointer; inline;
-    function GetPrev(Name: SystemString): Pointer; inline;
-
-    function ListBuffer: PListBuffer; inline;
-
+    function First: Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Last: Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNext(Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPrev(Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure PrintHashReport;
 
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
@@ -134,22 +129,20 @@ type
 
     procedure RebuildIDCounter;
 
-    procedure DoAdd(p: PInt64HashListObjectStruct); inline;
-    procedure DoDelete(p: PInt64HashListObjectStruct); inline;
-
+    procedure DoAdd(p: PInt64HashListObjectStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoDelete(p: PInt64HashListObjectStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DefaultObjectFreeProc(obj: TCoreClassObject);
-    procedure DoDataFreeProc(obj: TCoreClassObject); inline;
+    procedure DoDataFreeProc(obj: TCoreClassObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create; overload;
     constructor Create(hashBlockCount: Integer); overload;
     destructor Destroy; override;
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(i64: Int64); inline;
-    function Add(i64: Int64; _CustomData: TCoreClassObject; const overwrite: Boolean = True): PInt64HashListObjectStruct; inline;
+    procedure Delete(i64: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(i64: Int64; _CustomData: TCoreClassObject; const overwrite: Boolean = True): PInt64HashListObjectStruct; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetValue(i64: Int64; _CustomData: TCoreClassObject);
-    function Exists(i64: Int64): Boolean; inline;
-
+    function Exists(i64: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetHashBlockCount(cnt: Integer);
 
     procedure DeleteFirst;
@@ -158,14 +151,11 @@ type
     property FirstPtr: PInt64HashListObjectStruct read FFirst;
     property LastPtr: PInt64HashListObjectStruct read FLast;
 
-    function First: TCoreClassObject; inline;
-    function Last: TCoreClassObject; inline;
-
-    function GetNext(i64: Int64): TCoreClassObject; inline;
-    function GetPrev(i64: Int64): TCoreClassObject; inline;
-
-    function ListBuffer: PListBuffer; inline;
-
+    function First: TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Last: TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNext(i64: Int64): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPrev(i64: Int64): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure PrintHashReport;
 
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
@@ -204,36 +194,31 @@ type
 
     procedure RebuildIDCounter;
 
-    procedure DoAdd(p: PInt64HashListPointerStruct); inline;
-    procedure DoDelete(p: PInt64HashListPointerStruct); inline;
-
+    procedure DoAdd(p: PInt64HashListPointerStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoDelete(p: PInt64HashListPointerStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DefaultDataFreeProc(p: Pointer);
-    procedure DoDataFreeProc(p: Pointer); inline;
-    procedure DoAddDataNotifyProc(p: Pointer); inline;
+    procedure DoDataFreeProc(p: Pointer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoAddDataNotifyProc(p: Pointer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create; overload;
     constructor Create(hashBlockCount: Integer); overload;
     destructor Destroy; override;
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(i64: Int64); inline;
-    function Add(i64: Int64; _CustomData: Pointer; const overwrite: Boolean = True): PInt64HashListPointerStruct; inline;
+    procedure Delete(i64: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(i64: Int64; _CustomData: Pointer; const overwrite: Boolean = True): PInt64HashListPointerStruct; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetValue(i64: Int64; _CustomData: Pointer);
-    function Exists(i64: Int64): Boolean; inline;
-
+    function Exists(i64: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetHashBlockCount(cnt: Integer);
 
     property FirstPtr: PInt64HashListPointerStruct read FFirst;
     property LastPtr: PInt64HashListPointerStruct read FLast;
 
-    function First: Pointer; inline;
-    function Last: Pointer; inline;
-
-    function GetNext(i64: Int64): Pointer; inline;
-    function GetPrev(i64: Int64): Pointer; inline;
-
-    function ListBuffer: PListBuffer; inline;
-
+    function First: Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Last: Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNext(i64: Int64): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPrev(i64: Int64): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure PrintHashReport;
 
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
@@ -255,11 +240,9 @@ type
     prev, next: PUInt32HashListObjectStruct;
   end;
 
-  TUInt32HashObjectListLoopCall   = procedure(u32: UInt32; obj: TCoreClassObject);
-  TUInt32HashObjectListLoopMethod = procedure(u32: UInt32; obj: TCoreClassObject) of object;
-  {$IFNDEF FPC}
-  TUInt32HashObjectListLoopProc = reference to procedure(u32: UInt32; obj: TCoreClassObject);
-  {$ENDIF}
+  TUInt32HashObjectListLoopCall               = procedure(u32: UInt32; obj: TCoreClassObject);
+  TUInt32HashObjectListLoopMethod             = procedure(u32: UInt32; obj: TCoreClassObject) of object;
+  {$IFNDEF FPC} TUInt32HashObjectListLoopProc = reference to procedure(u32: UInt32; obj: TCoreClassObject); {$ENDIF}
 
   TUInt32HashObjectList = class(TCoreClassObject)
   private
@@ -277,38 +260,32 @@ type
 
     procedure RebuildIDCounter;
 
-    procedure DoAdd(p: PUInt32HashListObjectStruct); inline;
-    procedure DoDelete(p: PUInt32HashListObjectStruct); inline;
-    procedure DoDataFreeProc(obj: TCoreClassObject); inline;
+    procedure DoAdd(p: PUInt32HashListObjectStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoDelete(p: PUInt32HashListObjectStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoDataFreeProc(obj: TCoreClassObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create; overload;
     constructor Create(hashBlockCount: Integer); overload;
     destructor Destroy; override;
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(u32: UInt32); inline;
-    function Add(u32: UInt32; _CustomData: TCoreClassObject; const overwrite: Boolean = True): PUInt32HashListObjectStruct; inline;
+    procedure Delete(u32: UInt32); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(u32: UInt32; _CustomData: TCoreClassObject; const overwrite: Boolean = True): PUInt32HashListObjectStruct; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetValue(u32: UInt32; _CustomData: TCoreClassObject);
-    function Exists(u32: UInt32): Boolean; inline;
-
+    function Exists(u32: UInt32): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetHashBlockCount(cnt: Integer);
 
     property FirstPtr: PUInt32HashListObjectStruct read FFirst;
     property LastPtr: PUInt32HashListObjectStruct read FLast;
 
-    function First: TCoreClassObject; inline;
-    function Last: TCoreClassObject; inline;
-
-    function GetNext(u32: UInt32): TCoreClassObject; inline;
-    function GetPrev(u32: UInt32): TCoreClassObject; inline;
-
-    function ListBuffer: PListBuffer; inline;
-
+    function First: TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Last: TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNext(u32: UInt32): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPrev(u32: UInt32): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Progress(OnProgress: TUInt32HashObjectListLoopCall); overload;
     procedure Progress(OnProgress: TUInt32HashObjectListLoopMethod); overload;
-    {$IFNDEF FPC}
-    procedure Progress(OnProgress: TUInt32HashObjectListLoopProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure Progress(OnProgress: TUInt32HashObjectListLoopProc); overload; {$ENDIF}
     //
     function ExistsObject(obj: TCoreClassObject): Boolean;
 
@@ -331,11 +308,9 @@ type
     prev, next: PPointerHashListNativeUIntStruct;
   end;
 
-  TPointerHashNativeUIntListLoopCall   = procedure(NPtr: Pointer; uData: NativeUInt);
-  TPointerHashNativeUIntListLoopMethod = procedure(NPtr: Pointer; uData: NativeUInt) of object;
-  {$IFNDEF FPC}
-  TPointerHashNativeUIntListLoopProc = reference to procedure(NPtr: Pointer; uData: NativeUInt);
-  {$ENDIF}
+  TPointerHashNativeUIntListLoopCall               = procedure(NPtr: Pointer; uData: NativeUInt);
+  TPointerHashNativeUIntListLoopMethod             = procedure(NPtr: Pointer; uData: NativeUInt) of object;
+  {$IFNDEF FPC} TPointerHashNativeUIntListLoopProc = reference to procedure(NPtr: Pointer; uData: NativeUInt); {$ENDIF}
 
   TPointerHashNativeUIntList = class(TCoreClassObject)
   public
@@ -357,8 +332,8 @@ type
 
     procedure RebuildIDCounter;
 
-    procedure DoAdd(p: PPointerHashListNativeUIntStruct); inline;
-    procedure DoDelete(p: PPointerHashListNativeUIntStruct); inline;
+    procedure DoAdd(p: PPointerHashListNativeUIntStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DoDelete(p: PPointerHashListNativeUIntStruct); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create; overload;
     constructor Create(hashBlockCount: Integer); overload;
@@ -366,29 +341,23 @@ type
     procedure Clear;
     procedure FastClear;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(NPtr: Pointer); inline;
-    function Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean = True): PPointerHashListNativeUIntStruct; inline;
+    procedure Delete(NPtr: Pointer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean = True): PPointerHashListNativeUIntStruct; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetValue(NPtr: Pointer; _CustomData: NativeUInt);
-    function Exists(NPtr: Pointer): Boolean; inline;
-
+    function Exists(NPtr: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetHashBlockCount(cnt: Integer);
 
     property FirstPtr: PPointerHashListNativeUIntStruct read FFirst;
     property LastPtr: PPointerHashListNativeUIntStruct read FLast;
 
-    function First: NativeUInt; inline;
-    function Last: NativeUInt; inline;
-
-    function GetNext(NPtr: Pointer): NativeUInt; inline;
-    function GetPrev(NPtr: Pointer): NativeUInt; inline;
-
-    function ListBuffer: PListBuffer; inline;
-
+    function First: NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Last: NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNext(NPtr: Pointer): NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPrev(NPtr: Pointer): NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Progress(OnProgress: TPointerHashNativeUIntListLoopCall); overload;
     procedure Progress(OnProgress: TPointerHashNativeUIntListLoopMethod); overload;
-    {$IFNDEF FPC}
-    procedure Progress(OnProgress: TPointerHashNativeUIntListLoopProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure Progress(OnProgress: TPointerHashNativeUIntListLoopProc); overload; {$ENDIF}
     //
     function ExistsNaviveUInt(obj: NativeUInt): Boolean;
 
@@ -415,11 +384,9 @@ type
 
   PHashObjectListData = ^THashObjectListData;
 
-  THashObjectListLoopCall   = procedure(Name: PSystemString; obj: TCoreClassObject);
-  THashObjectListLoopMethod = procedure(Name: PSystemString; obj: TCoreClassObject) of object;
-  {$IFNDEF FPC}
-  THashObjectListLoopProc = reference to procedure(name: PSystemString; obj: TCoreClassObject);
-  {$ENDIF}
+  THashObjectListLoopCall               = procedure(Name: PSystemString; obj: TCoreClassObject);
+  THashObjectListLoopMethod             = procedure(Name: PSystemString; obj: TCoreClassObject) of object;
+  {$IFNDEF FPC} THashObjectListLoopProc = reference to procedure(name: PSystemString; obj: TCoreClassObject); {$ENDIF}
 
   THashObjectList = class(TCoreClassObject)
   private
@@ -451,9 +418,7 @@ type
     procedure Assign(sour: THashObjectList);
     procedure Progress(OnProgress: THashObjectListLoopCall); overload;
     procedure Progress(OnProgress: THashObjectListLoopMethod); overload;
-    {$IFNDEF FPC}
-    procedure Progress(OnProgress: THashObjectListLoopProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure Progress(OnProgress: THashObjectListLoopProc); overload; {$ENDIF}
     //
     procedure Clear;
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
@@ -462,14 +427,14 @@ type
     procedure GetListData(OutputList: TCoreClassStrings);
     procedure GetAsList(OutputList: TCoreClassListForObj);
     function GetObjAsName(obj: TCoreClassObject): SystemString;
-    procedure Delete(Name: SystemString); inline;
-    function Add(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; inline;
-    function FastAdd(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; inline;
-    function Find(Name: SystemString): TCoreClassObject; inline;
-    function Exists(Name: SystemString): Boolean; inline;
+    procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FastAdd(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Find(Name: SystemString): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ExistsObject(obj: TCoreClassObject): Boolean;
     procedure CopyFrom(Source: THashObjectList);
-    function ReName(_OLDName, _NewName: SystemString): Boolean; inline;
+    function ReName(_OLDName, _NewName: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function MakeName: SystemString;
     function MakeRefName(RefrenceName: SystemString): SystemString;
 
@@ -519,19 +484,18 @@ type
     constructor Create(MaxHashBlock: Integer); overload;
     destructor Destroy; override;
     procedure Assign(sour: THashVariantList);
-    procedure Clear; inline;
+    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
     procedure GetNameList(OutputList: TListString); overload;
     procedure GetNameList(OutputList: TListPascalString); overload;
-    procedure Delete(Name: SystemString); inline;
-    function Add(Name: SystemString; V: Variant): Variant; inline;
-    function FastAdd(Name: SystemString; V: Variant): Variant; inline;
-    function Find(Name: SystemString): Variant; inline;
-    function FindValue(aValue: Variant): SystemString; inline;
-    function Exists(Name: SystemString): Boolean; inline;
+    procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FastAdd(Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Find(Name: SystemString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FindValue(aValue: Variant): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure CopyFrom(Source: THashVariantList);
-    function GetType(Name: SystemString): Word; inline;
-
+    function GetType(Name: SystemString): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function IncValue(Name: SystemString; V: Variant): Variant; overload;
     procedure IncValue(vl: THashVariantList); overload;
 
@@ -579,9 +543,8 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    class function VToStr(V: Variant): SystemString; inline;
-    class function StrToV(s: SystemString): Variant; inline;
-
+    class function VToStr(V: Variant): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function StrToV(s: SystemString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DataImport(TextList: TCoreClassStrings);
     procedure DataExport(TextList: TCoreClassStrings);
     procedure LoadFromStream(Stream: TCoreClassStream);
@@ -878,9 +841,7 @@ type
     procedure GetList(_To: TListVariant);
     function Count: Integer;
 
-    {$IFNDEF FPC}
-    property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
-    {$ENDIF}
+    {$IFNDEF FPC} property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData; {$ENDIF}
     property Items[id: Variant]: Pointer read GetItems write SetItems; default;
     property OnDataFreeProc: TPointerDataNotifyProc read FOnDataFreeProc write FOnDataFreeProc;
   end;
@@ -946,18 +907,14 @@ type
   TBackcallNotifyCall   = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
   TBackcallNotifyMethod = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant) of object;
 
-  {$IFNDEF FPC}
-  TBackcallNotifyProc = reference to procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
-  {$ENDIF}
-  PBackcallData = ^TBackcallData;
+  {$IFNDEF FPC} TBackcallNotifyProc = reference to procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant); {$ENDIF}
+  PBackcallData                     = ^TBackcallData;
 
   TBackcallData = record
     FlagObject: TCoreClassObject;
     NotifyCall: TBackcallNotifyCall;
     NotifyMethod: TBackcallNotifyMethod;
-    {$IFNDEF FPC}
-    NotifyProc: TBackcallNotifyProc;
-    {$ENDIF}
+    {$IFNDEF FPC} NotifyProc: TBackcallNotifyProc; {$ENDIF}
     procedure Init;
   end;
 
@@ -977,9 +934,7 @@ type
 
     procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyCall: TBackcallNotifyCall); overload;
     procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyMethod: TBackcallNotifyMethod); overload;
-    {$IFNDEF FPC}
-    procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyProc: TBackcallNotifyProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure RegisterBackcall(AFlagObject: TCoreClassObject; ANotifyProc: TBackcallNotifyProc); overload; {$ENDIF}
     procedure UnRegisterBackcall(AFlagObject: TCoreClassObject);
 
     procedure Clear;
@@ -1001,27 +956,27 @@ implementation
 
 uses DoStatusIO, UnicodeMixedLib;
 
-function MakeHash(var s: SystemString): THash; inline; overload;
+function MakeHash(var s: SystemString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 begin
   Result := FastHashSystemString(@s);
 end;
 
-function MakeHash(var s: TPascalString): THash; inline; overload;
+function MakeHash(var s: TPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 begin
   Result := FastHashPascalString(@s);
 end;
 
-function MakeHash(const i64: Int64): THash; inline; overload;
+function MakeHash(const i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 begin
   Result := umlCRC32(@i64, umlInt64Length);
 end;
 
-function MakeHash(const c32: Cardinal): THash; inline; overload;
+function MakeHash(const c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 begin
   Result := umlCRC32(@c32, umlCardinalLength);
 end;
 
-function MakeHash(const p: Pointer): THash; inline; overload;
+function MakeHash(const p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 begin
   Result := umlCRC32(@p, umlPointerLength);
 end;

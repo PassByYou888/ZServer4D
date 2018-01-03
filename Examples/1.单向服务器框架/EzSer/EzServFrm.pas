@@ -147,6 +147,7 @@ end;
 
 destructor TMySpecialDefine.Destroy;
 begin
+  DoStatus('%s disconnect', [Owner.GetPeerIP]);
   DisposeObject(tempStream);
   inherited Destroy;
 end;

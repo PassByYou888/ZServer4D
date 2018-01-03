@@ -221,13 +221,13 @@ type
     DeltaTime, NewTime: TTimeTickValue;
     Aborted: Boolean;
 
-    function ID: Cardinal; inline;
-    function IsDF: Boolean; inline;
-    function IsVL: Boolean; inline;
-    function IsTE: Boolean; inline;
-    function IsJson: Boolean; inline;
-    function IsString: Boolean; inline;
-    function IsOther: Boolean; inline;
+    function ID: Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsDF: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsVL: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsTE: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsJson: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsString: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsOther: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TQueryCall       = procedure(var qState: TQueryState);
@@ -279,7 +279,7 @@ type
 
     function ProcessQuery: Boolean;
     property Paused: Boolean read FPaused;
-    function ConsumTime: Double; inline;
+    function ConsumTime: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TQueryThread = class(TCoreClassThread)
@@ -353,10 +353,9 @@ type
     procedure DoCreateInit; virtual;
 
     procedure InstanceCacheObjectFreeProc(obj: TCoreClassObject);
-    procedure ProcessNewInstanceCache(StorePos: Int64; obj: TCoreClassObject; siz: NativeInt); inline;
-
+    procedure ProcessNewInstanceCache(StorePos: Int64; obj: TCoreClassObject; siz: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure StreamCacheObjectFreeProc(obj: TCoreClassObject);
-    procedure ProcessNewStreamCache(m: TMemoryStream64InCache); inline;
+    procedure ProcessNewStreamCache(m: TMemoryStream64InCache); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create(DBFile: SystemString; OnlyRead: Boolean);
     constructor CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
@@ -397,18 +396,17 @@ type
     property CacheAnnealingState: SystemString read FCacheAnnealingState;
 
     // lowlevel data
-    function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; inline;
-    function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal): Int64; overload; inline;
-    function AddData(buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; inline;
-    function AddData(buff: TCoreClassStream; ID: Cardinal): Int64; overload; inline;
-    function SetData(const StorePos: Int64; buff: TCoreClassStream): Boolean; inline;
-    function GetData(const StorePos: Int64; ID: Cardinal): TItemStream; overload; inline;
-    function GetData(const StorePos: Int64): TItemStream; overload; inline;
-    function GetCacheStream(const StorePos: Int64; ID: Cardinal): TMemoryStream64InCache; overload; inline;
-    function GetCacheStream(const StorePos: Int64): TMemoryStream64InCache; overload; inline;
-    function DeleteData(const StorePos: Int64): Boolean; inline;
-    function GetSize(const StorePos: Int64): Int64; inline;
-
+    function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddData(buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddData(buff: TCoreClassStream; ID: Cardinal): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SetData(const StorePos: Int64; buff: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetData(const StorePos: Int64; ID: Cardinal): TItemStream; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetData(const StorePos: Int64): TItemStream; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCacheStream(const StorePos: Int64; ID: Cardinal): TMemoryStream64InCache; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCacheStream(const StorePos: Int64): TMemoryStream64InCache; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function DeleteData(const StorePos: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetSize(const StorePos: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     // backcall
     property NotifyIntf: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
 
@@ -479,7 +477,7 @@ type
     procedure WaitQueryThread(waitTime: TTimeTickValue); overload;
 
     // query state
-    function QueryProcessing: Boolean; inline;
+    function QueryProcessing: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property QueryThreadLastActivtedTime: TDateTime read FQueryThreadLastActivtedTime;
 
     // query task operation

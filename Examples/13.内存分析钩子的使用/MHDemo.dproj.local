@@ -75,8 +75,8 @@
     <Transaction>2018/01/02 06:56:37.000.141,=C:\git\ZServer4D\Source\PascalStrings.pas</Transaction>
     <Transaction>2018/01/02 06:56:37.000.111,=C:\git\ZServer4D\Source\ObjectDataManager.pas</Transaction>
     <Transaction>2018/01/02 06:56:37.000.173,=C:\git\ZServer4D\Source\TextParsing.pas</Transaction>
-    <Transaction>2018/01/02 06:56:37.000.226,=C:\git\ZServer4D\Source\ZDBLocalManager.pas</Transaction>
     <Transaction>2018/01/02 06:56:37.000.015,=C:\git\ZServer4D\Source\ListEngine.pas</Transaction>
+    <Transaction>2018/01/02 06:56:37.000.226,=C:\git\ZServer4D\Source\ZDBLocalManager.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>

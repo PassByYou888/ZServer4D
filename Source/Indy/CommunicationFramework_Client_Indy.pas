@@ -17,7 +17,7 @@ uses CommunicationFramework, CoreClasses,
   DataFrameEngine, ListEngine, MemoryStream64,
 
   Classes, SysUtils,
-  IdTCPClient, IdYarn,
+  IdTCPClient, IdYarn, IdStack,
   IDGlobal, IdBaseComponent, IdComponent, IdTCPConnection, IdContext,
   DoStatusIO, UnicodeMixedLib, PascalStrings;
 
@@ -345,6 +345,8 @@ begin
       end;
 
     Result := (RemoteInited) and (FDriver.Connected);
+    if Result then
+      FDriver.Socket.Binding.SetKeepAliveValues(True, 1000, 2);
   except
     Result := False;
 

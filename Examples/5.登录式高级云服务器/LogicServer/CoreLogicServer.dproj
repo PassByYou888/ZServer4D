@@ -179,7 +179,7 @@
         <DCCReference Include="..\ManagerServer\ManagerServer_ClientIntf.pas"/>
         <DCCReference Include="..\DBServer\DBClientIntf.pas"/>
         <DCCReference Include="..\..\..\Source\CoreCipher.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCompress.pas"/>
         <BuildConfiguration Include="Release">

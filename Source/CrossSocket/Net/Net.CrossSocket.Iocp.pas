@@ -210,7 +210,10 @@ begin
   TriggerConnecting(LConnection);
 
   if _NewReadZero(LConnection) then
-    TriggerConnected(LConnection)
+    begin
+      TriggerConnected(LConnection);
+      SetKeepAlive(LClientSocket);
+    end
   else
     LConnection.Close;
 end;

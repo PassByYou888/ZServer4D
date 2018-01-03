@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{92AE2507-FEDA-4509-9418-A357734C5881}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="PeformanceTestSer\performaceTestServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PeformanceTestCli\PeformanceTestClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="performaceTestServer">
+        <MSBuild Projects="PeformanceTestSer\performaceTestServer.dproj"/>
+    </Target>
+    <Target Name="performaceTestServer:Clean">
+        <MSBuild Projects="PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="performaceTestServer:Make">
+        <MSBuild Projects="PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PeformanceTestClient">
+        <MSBuild Projects="PeformanceTestCli\PeformanceTestClient.dproj"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Clean">
+        <MSBuild Projects="PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Make">
+        <MSBuild Projects="PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="performaceTestServer;PeformanceTestClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="performaceTestServer:Clean;PeformanceTestClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="performaceTestServer:Make;PeformanceTestClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

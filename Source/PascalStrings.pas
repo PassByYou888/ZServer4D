@@ -19,8 +19,8 @@ interface
 uses SysUtils;
 
 type
-  SystemChar   = Char;
-  SystemString = String;
+  SystemChar    = Char;
+  SystemString  = string;
   THash         = Cardinal;
   THash64       = UInt64;
   PSystemString = ^SystemString;
@@ -71,30 +71,27 @@ type
     class operator Explicit(Value: Variant): TPascalString;
     class operator Explicit(Value: SystemChar): TPascalString;
     {$ENDIF}
-    function copy(index, count: Integer): TPascalString; inline;
-    function Same(const t: TPascalString): Boolean; overload; inline;
-    function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; inline;
-    function ComparePos(Offset: Integer; const t: PPascalString): Boolean; overload; inline;
-    function ComparePos(Offset: Integer; const t: TPascalString): Boolean; overload; inline;
-    function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; inline;
+    function copy(index, count: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Same(const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ComparePos(Offset: Integer; const t: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ComparePos(Offset: Integer; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Exists(c: SystemChar): Boolean; overload;
     function Exists(c: array of SystemChar): Boolean; overload;
 
     property Last: SystemChar read GetLast write SetLast;
     property First: SystemChar read GetFirst write SetFirst;
 
-    procedure DeleteLast; inline;
-    procedure DeleteFirst; inline;
-    procedure Delete(idx, cnt: Integer); inline;
-    procedure Clear; inline;
-
-    procedure Append(t: TPascalString); inline;
-    function GetString(bPos, ePos: Integer): TPascalString; inline;
-    procedure Insert(AText: SystemString; idx: Integer); inline;
-
-    procedure AsText(var Output: SystemString); inline;
-    procedure FastGetBytes(var Output: TBytes); inline;
-
+    procedure DeleteLast; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeleteFirst; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Delete(idx, cnt: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Append(t: TPascalString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetString(bPos, ePos: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Insert(AText: SystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure AsText(var Output: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure FastGetBytes(var Output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
     function UpperText: SystemString;
@@ -113,17 +110,17 @@ function CharIn(c: SystemChar; const SomeCharsets: TOrdChars): Boolean; overload
 function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload;
 
-function BytesOfPascalString(var s: TPascalString): TBytes; overload; inline;
-function PascalStringOfBytes(var s: TBytes): TPascalString; overload; inline;
+function BytesOfPascalString(var s: TPascalString): TBytes; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function PascalStringOfBytes(var s: TBytes): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastHashSystemString(s: PSystemString): THash; overload; inline;
-function FastHash64SystemString(s: PSystemString): THash64; overload; inline;
+function FastHashSystemString(s: PSystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHash64SystemString(s: PSystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastHashSystemString(s: SystemString): THash; overload; inline;
-function FastHash64SystemString(s: SystemString): THash64; overload; inline;
+function FastHashSystemString(s: SystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHash64SystemString(s: SystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastHashPascalString(s: PPascalString): THash; inline;
-function FastHash64PascalString(s: PPascalString): THash64; inline;
+function FastHashPascalString(s: PPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHash64PascalString(s: PPascalString): THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 {$IFDEF FPC}
 
@@ -501,7 +498,7 @@ begin
   try
       Text := StringOf(SysUtils.TEncoding.Convert(SysUtils.TEncoding.UTF8, SysUtils.TEncoding.Default, Value));
   except
-    SetLength(Buff, 0);
+      SetLength(Buff, 0);
   end;
 end;
 
@@ -872,5 +869,7 @@ begin
 end;
 
 initialization
+
 finalization
+
 end.

@@ -1,8 +1,8 @@
-{******************************************************************************}
-{* geometry Rotation imp writen by QQ 600585@qq.com                           *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * geometry Rotation imp writen by QQ 600585@qq.com                           * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit GeometryRotationUnit;
 
@@ -20,49 +20,50 @@ uses
 procedure NormalizeMat(var m: TMatrix);
 procedure MulRMat(var m: TMatrix; const ScaleXYZ: TAffineVector);
 
-procedure DecodeOrderAngle(lvec, uvec, dvec: TAffineVector; var p, t, r: Single); overload;
-procedure DecodeOrderAngle(lvec, uvec, dvec: TVector; var p, t, r: Single); overload;
-procedure DecodeOrderAngle(uvec, dvec: TVector; var p, t, r: Single); overload;
-procedure DecodeOrderAngle(m: TMatrix; var p, t, r: Single); overload;
+procedure DecodeOrderAngle(lvec, uvec, dvec: TAffineVector; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(lvec, uvec, dvec: TVector; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(uvec, dvec: TVector; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(m: TMatrix; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function ComputePitch(uvec, dvec: TAffineVector): Single; overload;
-function ComputePitch(uvec, dvec: TVector): Single; overload;
-function ComputePitch(m: TMatrix): Single; overload;
+function ComputePitch(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ComputePitch(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ComputePitch(m: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function ComputeTurn(uvec, dvec: TAffineVector): Single; overload;
-function ComputeTurn(uvec, dvec: TVector): Single; overload;
-function ComputeTurn(m: TMatrix): Single; overload;
+function ComputeTurn(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ComputeTurn(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ComputeTurn(m: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function ComputeRoll(uvec, dvec: TAffineVector): Single; overload;
-function ComputeRoll(uvec, dvec: TVector): Single; overload;
-function ComputeRoll(m: TMatrix): Single; overload;
+function ComputeRoll(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ComputeRoll(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ComputeRoll(m: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure StepPitch(var uvec, dvec: TVector; angle: Single); overload;
-procedure StepPitch(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload;
-procedure StepPitch(m: TMatrix; angle: Single; var p, t, r: Single); overload;
-procedure StepPitch(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload;
+procedure StepPitch(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepPitch(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepPitch(m: TMatrix; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepPitch(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure StepTurn(var uvec, dvec: TVector; angle: Single); overload;
-procedure StepTurn(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload;
-procedure StepTurn(m: TMatrix; angle: Single; var p, t, r: Single); overload;
-procedure StepTurn(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload;
+procedure StepTurn(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepTurn(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepTurn(m: TMatrix; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepTurn(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure StepRoll(var uvec, dvec: TVector; angle: Single); overload;
-procedure StepRoll(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload;
-procedure StepRoll(m: TMatrix; angle: Single; var p, t, r: Single); overload;
-procedure StepRoll(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload;
+procedure StepRoll(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepRoll(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepRoll(m: TMatrix; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepRoll(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure SetPitch(var uvec, dvec: TAffineVector; angle: Single); overload;
-procedure SetPitch(var uvec, dvec: TVector; angle: Single); overload;
-procedure SetPitch(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload;
+procedure SetPitch(var uvec, dvec: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure SetPitch(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure SetPitch(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure SetTurn(var uvec, dvec: TAffineVector; angle: Single); overload;
-procedure SetTurn(var uvec, dvec: TVector; angle: Single); overload;
-procedure SetTurn(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload;
+procedure SetTurn(var uvec, dvec: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure SetTurn(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure SetTurn(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure SetRoll(var uvec, dvec: TAffineVector; angle: Single); overload;
-procedure SetRoll(var uvec, dvec: TVector; angle: Single); overload;
-procedure SetRoll(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload;
+procedure SetRoll(var uvec, dvec: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure SetRoll(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure SetRoll(var m: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 implementation
 
@@ -137,7 +138,7 @@ begin
   DecodeOrderAngle(m[0], m[1], m[2], p, t, r);
 end;
 
-function ComputePitch(uvec, dvec: TAffineVector): Single; overload;
+function ComputePitch(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   sinTurn, cosTurn, sinPitch, cosPitch: Single;
 begin
@@ -148,17 +149,17 @@ begin
   Result := RadToDeg(ArcTan2(sinPitch, cosPitch));
 end;
 
-function ComputePitch(uvec, dvec: TVector): Single; overload;
+function ComputePitch(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 begin
   Result := ComputePitch(PAffineVector(@uvec)^, PAffineVector(@dvec)^);
 end;
 
-function ComputePitch(m: TMatrix): Single; overload;
+function ComputePitch(m: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 begin
   Result := ComputePitch(m[1], m[2]);
 end;
 
-function ComputeTurn(uvec, dvec: TAffineVector): Single; overload;
+function ComputeTurn(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   sinTurn, cosTurn: Single;
 begin
@@ -168,19 +169,19 @@ begin
   Result := -RadToDeg(ArcTan2(sinTurn, cosTurn));
 end;
 
-function ComputeTurn(uvec, dvec: TVector): Single; overload;
+function ComputeTurn(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 begin
   Result := ComputeTurn(PAffineVector(@uvec)^, PAffineVector(@dvec)^);
 end;
 
-function ComputeTurn(m: TMatrix): Single; overload;
+function ComputeTurn(m: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 begin
   Result := ComputeTurn(m[1], m[2]);
 end;
 
-function ComputeRoll(uvec, dvec: TAffineVector): Single; overload;
+function ComputeRoll(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
-  lvec: TAffineVector;
+  lvec                              : TAffineVector;
   sinTurn, cosTurn, sinRoll, cosRoll: Single;
 begin
   lvec := VectorCrossProduct(uvec, dvec);
@@ -194,12 +195,12 @@ begin
   Result := -RadToDeg(ArcTan2(sinRoll, cosRoll));
 end;
 
-function ComputeRoll(uvec, dvec: TVector): Single; overload;
+function ComputeRoll(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 begin
   Result := ComputeRoll(PAffineVector(@uvec)^, PAffineVector(@dvec)^);
 end;
 
-function ComputeRoll(m: TMatrix): Single; overload;
+function ComputeRoll(m: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 begin
   Result := ComputeRoll(m[1], m[2]);
 end;
@@ -311,8 +312,8 @@ end;
 
 procedure SetPitch(var uvec, dvec: TAffineVector; angle: Single);
 var
-  rvec: TAffineVector;
-  diff: Single;
+  rvec     : TAffineVector;
+  diff     : Single;
   rotMatrix: TMatrix;
 begin
   rvec := VectorCrossProduct(dvec, uvec);
@@ -342,8 +343,8 @@ end;
 
 procedure SetTurn(var uvec, dvec: TAffineVector; angle: Single);
 var
-  rvec: TAffineVector;
-  diff: Single;
+  rvec     : TAffineVector;
+  diff     : Single;
   rotMatrix: TMatrix;
 begin
   rvec := VectorCrossProduct(dvec, uvec);
@@ -374,8 +375,8 @@ end;
 
 procedure SetRoll(var uvec, dvec: TAffineVector; angle: Single);
 var
-  rvec: TAffineVector;
-  diff: Single;
+  rvec     : TAffineVector;
+  diff     : Single;
   rotMatrix: TMatrix;
 begin
   rvec := VectorCrossProduct(dvec, uvec);

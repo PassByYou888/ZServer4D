@@ -179,7 +179,7 @@
         <DCCReference Include="..\..\..\Source\TextParsing.pas"/>
         <DCCReference Include="..\..\..\Source\TextTable.pas"/>
         <DCCReference Include="..\..\..\Source\UnicodeMixedLib.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCompress.pas"/>
         <DCCReference Include="..\..\..\Source\MH_ZDB.pas"/>

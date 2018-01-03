@@ -16,13 +16,6 @@ interface
 
 uses UnicodeMixedLib;
 
-{$IFDEF release}
-{$DEFINE INLINE_ASM}
-{$ELSE}
-{$UNDEF INLINE_ASM}
-{$ENDIF}
-
-
 const
   umlVersionLength  = 2;
   umlTimeLength     = 8;

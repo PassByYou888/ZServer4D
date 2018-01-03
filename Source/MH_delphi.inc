@@ -1,24 +1,3 @@
-{$I zDefine.inc}
-
-interface
-
-uses ListEngine, CoreClasses;
-
-procedure BeginMemoryHook; overload;
-procedure BeginMemoryHook(cacheLen: Integer); overload;
-procedure EndMemoryHook;
-function GetHookMemorySize: NativeUInt; overload;
-function GetHookMemorySize(p: Pointer): NativeUInt; overload;
-function GetHookMemoryMinimizePtr: Pointer;
-function GetHookMemoryMaximumPtr: Pointer;
-
-threadvar
-  MemoryHooked: Boolean;
-
-var
-  HookPtrList: TPointerHashNativeUIntList;
-
-implementation
 
 type
   MPtrUInt  = NativeUInt;
@@ -211,12 +190,4 @@ begin
   DisposeObject(HookPtrList);
 end;
 
-initialization
 
-InstallMemoryHook;
-
-finalization
-
-UnInstallMemoryHook;
-
-end.

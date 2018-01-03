@@ -59,7 +59,7 @@ type
     {$IFNDEF FPC}
     OnProc: TStateProc;
     {$ENDIF}
-    procedure init; inline;
+    procedure init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TCommunicationFramework_DoubleTunnelService_NoAuth = class(TCoreClassInterfacedObject)

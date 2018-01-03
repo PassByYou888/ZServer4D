@@ -37,7 +37,7 @@ object Form1: TForm1
       Size.Width = 201.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 3
+      TabOrder = 4
       Text = 'delphi/fpc'#20869#32622#21387#32553#22120'(ZLib)'
       OnClick = ZLibCompressorButtonClick
     end
@@ -64,6 +64,18 @@ object Form1: TForm1
       TabOrder = 0
       Text = #32431#38454#21387#32553#22120'(BRRC)'
       OnClick = BRRCCompressorButtonClick
+    end
+    object MHTestButton: TButton
+      Anchors = [akRight, akBottom]
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 224.000000000000000000
+      Position.Y = 336.000000000000000000
+      Size.Width = 201.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'MH'#20869#23384#20998#37197#27979#35797
+      OnClick = MHTestButtonClick
     end
   end
 end

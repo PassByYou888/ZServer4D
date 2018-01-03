@@ -19,12 +19,14 @@ type
     Timer: TTimer;
     TestCommandButton: TButton;
     Memo: TMemo;
+    disconnectButton: TButton;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
     procedure TestCommandButtonClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure disconnectButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -44,6 +46,14 @@ implementation
 
 {$R *.dfm}
 
+
+procedure TEZClientForm.disconnectButtonClick(Sender: TObject);
+begin
+  ClientPool.CloseAllConnection;
+  ConnectButton.Visible := True;
+  TestCommandButton.Visible := False;
+  disconnectButton.Visible := False;
+end;
 
 procedure TEZClientForm.DoStatusNear(AText: string; const ID: Integer);
 begin
@@ -96,18 +106,27 @@ procedure TEZClientForm.TestCommandButtonClick(Sender: TObject);
 var
   i: Integer;
 begin
-  for i := low(test) to high(test) do
-    begin
-      try
+  TestCommandButton.Visible := False;
+  disconnectButton.Visible := False;
+  try
+    for i := low(test) to high(test) do
+      begin
+        try
           test[i].ExecuteAsyncTest(client[i].ClientIO);
-      except
+          application.ProcessMessages;
+        except
+        end;
       end;
-    end;
+  finally
+    TestCommandButton.Visible := True;
+    disconnectButton.Visible := True;
+  end;
 end;
 
 procedure TEZClientForm.ConnectButtonClick(Sender: TObject);
 var
-  i: Integer;
+  i           : Integer;
+  allconnected: Boolean;
 begin
   ConnectButton.Visible := False;
   Timer.Enabled := False;
@@ -115,11 +134,25 @@ begin
   for i := low(client) to high(client) do
     begin
       TCommunicationFramework_Client_CrossSocket(client[i]).AsyncConnect(HostEdit.Text, 9818);
-      Application.ProcessMessages;
+      application.ProcessMessages;
     end;
 
   Timer.Enabled := True;
+
+  while True do
+    begin
+      allconnected := True;
+      for i := low(client) to high(client) do
+        begin
+          allconnected := allconnected and client[i].RemoteInited;
+          application.ProcessMessages;
+        end;
+      if allconnected then
+          break;
+    end;
+
   TestCommandButton.Visible := True;
+  disconnectButton.Visible := True;
 end;
 
 end.

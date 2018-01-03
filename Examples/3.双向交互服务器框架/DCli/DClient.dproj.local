@@ -37,7 +37,7 @@
     <Transaction>2017/11/06 13:52:41.000.294,=C:\git\ZServer4D\Source\CommunicationFrameworkDoubleTunnelIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.970,=C:\git\ZServer4D\Source\UnicodeMixedLib.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.898,=C:\git\ZServer4D\Source\ListDBEngine.pas</Transaction>
-    <Transaction>2017/11/06 13:52:44.000.866,=C:\git\ZServer4D\Source\GeometryRotationUnit.pas</Transaction>
+    <Transaction>2017/11/06 13:52:44.000.956,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.774,=C:\git\ZServer4D\Source\DoStatusIO.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.801,=C:\git\ZServer4D\Source\Geometry2DUnit.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.859,=C:\git\ZServer4D\Source\GeometryLib.pas</Transaction>
@@ -46,7 +46,7 @@
     <Transaction>2017/11/06 13:52:44.000.930,=C:\git\ZServer4D\Source\PascalStrings.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.922,=C:\git\ZServer4D\Source\NotifyObjectBase.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.824,=C:\git\ZServer4D\Source\Geometry3DUnit.pas</Transaction>
-    <Transaction>2017/11/06 13:52:44.000.956,=C:\git\ZServer4D\Source\TextTable.pas</Transaction>
+    <Transaction>2017/11/06 13:52:44.000.866,=C:\git\ZServer4D\Source\GeometryRotationUnit.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.890,=C:\git\ZServer4D\Source\JsonDataObjects.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.939,=C:\git\ZServer4D\Source\TextDataEngine.pas</Transaction>
     <Transaction>2017/11/06 13:52:44.000.948,=C:\git\ZServer4D\Source\TextParsing.pas</Transaction>

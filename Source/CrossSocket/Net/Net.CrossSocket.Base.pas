@@ -679,7 +679,7 @@ type
 
   TAbstractCrossSocket = class abstract(TCoreClassInterfacedObject, ICrossSocket)
   protected const
-    RCV_BUF_SIZE = 10485760;
+    RCV_BUF_SIZE = 1048576;
   protected class threadvar
     FRecvBuf: array [0..RCV_BUF_SIZE-1] of Byte;
   protected
@@ -1058,7 +1058,7 @@ end;
 
 function TAbstractCrossSocket.SetKeepAlive(ASocket: THandle): Integer;
 begin
-  Result := TSocketAPI.SetKeepAlive(ASocket, 5, 3, 5);
+  Result := TSocketAPI.SetKeepAlive(ASocket, 2, 1, 2);
 end;
 
 procedure TAbstractCrossSocket.SetOnConnected(const Value: TCrossConnectEvent);

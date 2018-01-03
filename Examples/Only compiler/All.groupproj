@@ -1,20 +1,8 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3DD1AAFB-1342-45DF-B472-6BB51F6BC9C3}</ProjectGuid>
+        <ProjectGuid>{363DE885-44F0-4AB1-8786-718B7042D82C}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj">
             <Dependencies/>
         </Projects>
@@ -75,6 +63,9 @@
         <Projects Include="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\13.内存分析钩子的使用\MHDemo.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj">
             <Dependencies/>
         </Projects>
@@ -96,7 +87,16 @@
         <Projects Include="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\13.内存分析钩子的使用\MHDemo.dproj">
+        <Projects Include="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -107,42 +107,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="ADClient">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj"/>
-    </Target>
-    <Target Name="ADClient:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ADClient:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ADServer">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj"/>
-    </Target>
-    <Target Name="ADServer:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ADServer:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="AFDRClient">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj"/>
-    </Target>
-    <Target Name="AFDRClient:Clean">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AFDRClient:Make">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="AFDRServer">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj"/>
-    </Target>
-    <Target Name="AFDRServer:Clean">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AFDRServer:Make">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
-    </Target>
     <Target Name="ARMCPUTest">
         <MSBuild Projects="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj"/>
     </Target>
@@ -323,6 +287,15 @@
     <Target Name="ManagerServer:Make">
         <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
     </Target>
+    <Target Name="MHDemo">
+        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj"/>
+    </Target>
+    <Target Name="MHDemo:Clean">
+        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MHDemo:Make">
+        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="PeformanceTestClient">
         <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
     </Target>
@@ -386,23 +359,50 @@
     <Target Name="ZDBServiceDemo:Make">
         <MSBuild Projects="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
-    <Target Name="MHDemo">
-        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj"/>
+    <Target Name="ADClient">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj"/>
     </Target>
-    <Target Name="MHDemo:Clean">
-        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Clean"/>
+    <Target Name="ADClient:Clean">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="MHDemo:Make">
-        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Make"/>
+    <Target Name="ADClient:Make">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADServer">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj"/>
+    </Target>
+    <Target Name="ADServer:Clean">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADServer:Make">
+        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRClient">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj"/>
+    </Target>
+    <Target Name="AFDRClient:Clean">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRClient:Make">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRServer">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj"/>
+    </Target>
+    <Target Name="AFDRServer:Clean">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRServer:Make">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="ADClient;ADServer;AFDRClient;AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;PeformanceTestClient;performaceTestServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;MHDemo"/>
+        <CallTarget Targets="ARMCPUTest;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;MHDemo;PeformanceTestClient;performaceTestServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;AFDRServer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;MHDemo:Clean"/>
+        <CallTarget Targets="ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;PeformanceTestClient:Make;performaceTestServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;MHDemo:Make"/>
+        <CallTarget Targets="ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

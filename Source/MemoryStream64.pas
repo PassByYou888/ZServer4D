@@ -130,14 +130,15 @@ type
   {$ENDIF}
   //
   // zlib
-function MaxCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
-function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
-function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
-function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
-function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean;
+function MaxCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; inline;
-function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; inline;
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 implementation
 

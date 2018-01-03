@@ -1,0 +1,16 @@
+del/s *.dproj
+del/s *.dproj.local
+del/s *.identcache
+del/s *.otares
+del/s *.stat
+del/s *.ico
+del/s *.res
+del/s *.deployproj
+del/s *.res
+del/s *.local
+del/s *.tvsconfig
+del/s *.exe
+del/s *.res
+del/s *.xml
+del/s *.plist
+del/s *.entitlements

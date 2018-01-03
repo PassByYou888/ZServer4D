@@ -320,6 +320,7 @@ begin
   c := TCommunicationFramework_Server_Context(AContext);
   c.ClientIntf := TContextIntfForServer.Create(Self, c);
   DoConnected(c.ClientIntf);
+  c.Binding.SetKeepAliveValues(True, 2000, 2);
 end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_ContextCreated(AContext: TIdContext);

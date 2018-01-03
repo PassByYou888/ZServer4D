@@ -150,6 +150,9 @@ begin
   inherited Create;
   FDriver := TClientICSContextIntf.Create(nil);
   FDriver.MultiThreaded := False;
+  FDriver.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
+  FDriver.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
+  FDriver.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
   FDriver.OnDataAvailable := DataAvailable;
   FDriver.OnSessionConnected := SessionConnected;
   FDriver.OnSessionClosed := SessionClosed;

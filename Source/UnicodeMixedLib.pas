@@ -109,23 +109,23 @@ type
     Data: packed array [0 .. FixedLengthStringSize] of Byte;
   end;
 
-function umlBytesOf(S: umlString): TBytes; inline;
-function umlStringOf(S: TBytes): umlString; overload; inline;
+function umlBytesOf(S: umlString): TBytes; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStringOf(S: TBytes): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FixedLengthString2Pascal(var S: FixedLengthString): TPascalString; inline;
-function Pascal2FixedLengthString(var S: TPascalString): FixedLengthString; inline;
+function FixedLengthString2Pascal(var S: FixedLengthString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Pascal2FixedLengthString(var S: TPascalString): FixedLengthString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Boolean;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 
-function umlDeltaNumber(v, delta: NativeInt): NativeInt; inline;
+function umlDeltaNumber(v, delta: NativeInt): NativeInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 
 function umlRandomRange(aMin, aMax: Integer): Integer;
 function umlRandomRangeF(aMin, aMax: Single): Single;
 function umlRandomRangeD(aMin, aMax: Double): Double;
-function umlDefaultTime: Double; inline;
+function umlDefaultTime: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlDefaultAttrib: Integer;
 function umlBoolToStr(Value: Boolean): umlString;
 function umlStrToBool(Value: umlString): Boolean;
@@ -155,29 +155,29 @@ function umlGetFilePath(S: umlString): umlString;
 function umlChangeFileExt(S, ext: umlString): umlString;
 function umlGetFileExt(S: umlString): umlString;
 
-procedure InitIOHnd(var IOHnd: TIOHnd); inline;
-function umlFileCreateAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd): Boolean; inline;
-function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; inline;
-function umlFileCreate(Name: umlString; var IOHnd: TIOHnd): Boolean; inline;
-function umlFileOpen(Name: umlString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; inline;
-function umlFileClose(var IOHnd: TIOHnd): Boolean; inline;
-function umlFileUpdate(var IOHnd: TIOHnd): Boolean; inline;
-function umlFileTest(var IOHnd: TIOHnd): Boolean; inline;
+procedure InitIOHnd(var IOHnd: TIOHnd); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileCreateAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileOpenAsStream(Name: umlString; Stream: TMixedStream; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileCreate(Name: umlString; var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileOpen(Name: umlString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileClose(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileUpdate(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileTest(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure umlResetPrepareRead(var IOHnd: TIOHnd); inline;
-function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inline;
-function umlFileRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; inline;
+procedure umlResetPrepareRead(var IOHnd: TIOHnd); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlFileBeginWrite(var IOHnd: TIOHnd): Boolean; inline;
-function umlFileEndWrite(var IOHnd: TIOHnd): Boolean; inline;
-function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var Buffers): Boolean; inline;
+function umlFileBeginWrite(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileEndWrite(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlFileWriteStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; inline;
-function umlFileReadStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; inline;
+function umlFileWriteStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileReadStr(var IOHnd: TIOHnd; var Value: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlFileSeek(var IOHnd: TIOHnd; APos: Int64): Boolean; inline;
-function umlFileGetPOS(var IOHnd: TIOHnd): Int64; inline;
-function umlFileGetSize(var IOHnd: TIOHnd): Int64; inline;
+function umlFileSeek(var IOHnd: TIOHnd; APos: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileGetPOS(var IOHnd: TIOHnd): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileGetSize(var IOHnd: TIOHnd): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlGetFileTime(FileName: umlString): TDateTime;
 procedure umlSetFileTime(FileName: umlString; newTime: TDateTime);
@@ -199,35 +199,35 @@ function umlGetLength(aStr: umlString): Integer; overload;
 function umlGetLength(var aStr: umlBytes): Integer; overload;
 function umlGetLength(aStr: umlArrayString): Integer; overload;
 
-function umlUpperCase(Str: umlString): umlString; inline;
-function umlLowerCase(Str: umlString): umlString; inline;
-function umlCopyStr(aStr: umlString; MainPosition, LastPosition: Integer): umlString; inline;
-function umlSameText(s1, s2: umlString): Boolean; inline;
+function umlUpperCase(Str: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlLowerCase(Str: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlCopyStr(aStr: umlString; MainPosition, LastPosition: Integer): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlSameText(s1, s2: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlGetStrIndexPos(IgnoreCase: Boolean; StartIndex: Integer; Str, SubStr: umlString): Integer;
 function umlDeleteChar(_Text, _Char: umlString): umlString; overload;
 function umlDeleteChar(_Text: umlString; const SomeCharsets: TOrdChars): umlString; overload;
 function umlGetNumberCharInText(n: umlString): umlString;
 
-function umlGetLimitCharPos(CharValue: umlChar; LimitValue: umlString): Integer; inline;
-function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlPString): Boolean; overload; inline;
-function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlString): Boolean; overload; inline;
-function umlExistsLimitChar(StrValue: umlString; LimitValue: umlString): Boolean; inline;
-function umlExistsChar(StrValue: umlString; LimitValue: umlString): Boolean; inline;
-function umlDelLimitChar(StrValue: umlString; LimitValue: umlString): umlString; inline;
-function umlGetLimitCharCount(StrValue: umlString; LimitValue: umlString): Integer; inline;
-function umlTrimChar(S: umlString; SpaceStr: umlString): umlString; inline;
+function umlGetLimitCharPos(CharValue: umlChar; LimitValue: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlPString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlExistsLimitChar(StrValue: umlString; LimitValue: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlExistsChar(StrValue: umlString; LimitValue: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDelLimitChar(StrValue: umlString; LimitValue: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetLimitCharCount(StrValue: umlString; LimitValue: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlTrimChar(S: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlGetFirstStr(aStr: umlString; SpaceStr: umlString): umlString; inline;
-function umlGetLastStr(aStr: umlString; SpaceStr: umlString): umlString; inline;
-function umlDeleteFirstStr(aStr: umlString; SpaceStr: umlString): umlString; inline;
-function umlDeleteLastStr(aStr: umlString; SpaceStr: umlString): umlString; inline;
-function umlGetIndexStrCount(aStr: umlString; SpaceStr: umlString): Integer; inline;
-function umlGetIndexStr(aStr: umlString; SpaceStr: umlString; Index: Integer): umlString; inline;
+function umlGetFirstStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetLastStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDeleteFirstStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDeleteLastStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetIndexStrCount(aStr: umlString; SpaceStr: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetIndexStr(aStr: umlString; SpaceStr: umlString; Index: Integer): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure umlGetSplitArray(_SourText: umlString; var _DestArray: umlArrayString; _SplitChar: umlString); inline;
-function umlArrayStringToText(var _Ary: umlArrayString; _SplitChar: umlString): umlString; inline;
-function umlStringsToText(_List: TCoreClassStrings; _SplitChar: umlString): umlString; inline;
+procedure umlGetSplitArray(_SourText: umlString; var _DestArray: umlArrayString; _SplitChar: umlString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlArrayStringToText(var _Ary: umlArrayString; _SplitChar: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStringsToText(_List: TCoreClassStrings; _SplitChar: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlGetFirstStr_M(aStr: umlString; SpaceStr: umlString): umlString;
 function umlDeleteFirstStr_M(aStr: umlString; SpaceStr: umlString): umlString;
@@ -269,12 +269,12 @@ function umlStrToInt(_V: umlString; _Def: Integer): Integer; overload;
 function umlStrToInt(_V: umlString; _Def: Double): Integer; overload;
 function umlStrToFloat(_V: umlString; _Def: Double): Double; overload;
 
-function umlMultipleMatch(IgnoreCase: Boolean; SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: umlString): Boolean; overload; inline;
-function umlMultipleMatch(IgnoreCase: Boolean; SourceStr, TargetStr: umlString): Boolean; overload; inline;
-function umlMultipleMatch(const SourceStr, TargetStr: umlString): Boolean; overload; inline;
-function umlMultipleMatch(const ValueCheck: umlArrayString; Value: umlString): Boolean; overload; inline;
-function umlSearchMatch(const SourceStr, TargetStr: umlString): Boolean; overload; inline;
-function umlSearchMatch(ValueCheck: umlArrayString; Value: umlString): Boolean; overload; inline;
+function umlMultipleMatch(IgnoreCase: Boolean; SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMultipleMatch(IgnoreCase: Boolean; SourceStr, TargetStr: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMultipleMatch(const SourceStr, TargetStr: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMultipleMatch(const ValueCheck: umlArrayString; Value: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlSearchMatch(const SourceStr, TargetStr: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlSearchMatch(ValueCheck: umlArrayString; Value: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 { De Time Double Code }
 function umlDeTimeCodeToStr(NowDateTime: TDateTime): umlString;
@@ -316,8 +316,9 @@ function umlStringMD5(const Value: umlString): TMD5; overload;
 function umlStringMD5Char(const Value: umlString): umlString; overload;
 function umlMD52Str(md5: TMD5): umlString;
 function umlMD52String(md5: TMD5): umlString;
-function umlMD5Compare(const m1, m2: TMD5): Boolean; inline;
-function umlCompareMD5(const m1, m2: TMD5): Boolean; inline;
+function umlMD5Compare(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlCompareMD5(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 const
   CRC16Table: array [0 .. 255] of Word = (
@@ -347,10 +348,11 @@ const
     $81C1, $8081, $4040
     );
 
-function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word; inline;
-function umlStringCRC16(const Value: umlString): Word; inline;
-function umlStreamCRC16(Stream: TMixedStream; StartPos, EndPos: Int64): Word; overload; inline;
-function umlStreamCRC16(Stream: TMixedStream): Word; overload; inline;
+function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStringCRC16(const Value: umlString): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStreamCRC16(Stream: TMixedStream; StartPos, EndPos: Int64): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStreamCRC16(Stream: TMixedStream): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 const
   CRC32Table: array [0 .. 255] of Cardinal = (
@@ -393,10 +395,11 @@ const
     $B40BBE37, $C30C8EA1, $5A05DF1B, $2D02EF8D
     );
 
-function umlCRC32(const Value: PBYTE; const Count: NativeUInt): Cardinal; inline;
-function umlString2CRC32(const Value: umlString): Cardinal; inline;
-function umlStreamCRC32(Stream: TMixedStream; StartPos, EndPos: Int64): Cardinal; overload; inline;
-function umlStreamCRC32(Stream: TMixedStream): Cardinal; overload; inline;
+function umlCRC32(const Value: PBYTE; const Count: NativeUInt): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlString2CRC32(const Value: umlString): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStreamCRC32(Stream: TMixedStream; StartPos, EndPos: Int64): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStreamCRC32(Stream: TMixedStream): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 type
   TDESKey = array [0 .. 7] of Byte;
@@ -411,10 +414,10 @@ procedure umlDES(DataPtr: Pointer; Size: Cardinal; const Key: TDESKey; Encrypt: 
 procedure umlDES(DataPtr: Pointer; Size: Cardinal; const Key: umlString; Encrypt: Boolean); overload;
 procedure umlDES(Input, Output: TMixedStream; const Key: TDESKey; Encrypt: Boolean); overload;
 procedure umlDES(Input, Output: TMixedStream; const Key: umlString; Encrypt: Boolean); overload;
-function umlDESCompare(const d1, d2: TDESKey): Boolean; inline;
+function umlDESCompare(const d1, d2: TDESKey): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: TDESKey; Encrypt: Boolean); overload; inline;
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: umlString; Encrypt: Boolean); overload; inline;
+procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: TDESKey; Encrypt: Boolean); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: umlString; Encrypt: Boolean); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlTrimSpace(S: umlString): umlString;
 
@@ -3363,7 +3366,7 @@ var
   ContextBuffer: array [0 .. 63] of Byte;
   Padding      : array [0 .. 63] of Byte;
 
-  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); inline;
+  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     i, j: NativeUInt;
   begin
@@ -3379,7 +3382,7 @@ var
         Inc(i);
       end;
   end;
-  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); inline;
+  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     i, j: NativeUInt;
   begin
@@ -3399,45 +3402,45 @@ var
   end;
 
   procedure Transform(const Block: PByteArray; const Shift: NativeUInt);
-    function f(const x, y, z: DWORD): DWORD; inline;
+    function f(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := (x and y) or ((not x) and z);
     end;
-    function G(const x, y, z: DWORD): DWORD; inline;
+    function G(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := (x and z) or (y and (not z));
     end;
-    function H(const x, y, z: DWORD): DWORD; inline;
+    function H(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := x xor y xor z;
     end;
-    function i(const x, y, z: DWORD): DWORD; inline;
+    function i(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := y xor (x or (not z));
     end;
-    procedure RL(var x: DWORD; const n: Byte); inline;
+    procedure RL(var x: DWORD; const n: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       x := (x shl n) or (x shr (32 - n));
     end;
-    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, f(B, c, d) + x + ac);
       RL(a, S);
       Inc(a, B);
     end;
-    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, G(B, c, d) + x + ac);
       RL(a, S);
       Inc(a, B);
     end;
-    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, H(B, c, d) + x + ac);
       RL(a, S);
       Inc(a, B);
     end;
-    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, i(B, c, d) + x + ac);
       RL(a, S);
@@ -3637,7 +3640,7 @@ var
   ContextBuffer: array [0 .. 63] of Byte;
   Padding      : array [0 .. 63] of Byte;
 
-  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); inline;
+  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     i, j: NativeUInt;
   begin
@@ -3653,7 +3656,7 @@ var
         Inc(i);
       end;
   end;
-  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); inline;
+  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     i, j: NativeUInt;
   begin
@@ -3673,45 +3676,45 @@ var
   end;
 
   procedure Transform(const Block: PByteArray; const Shift: NativeUInt);
-    function f(const x, y, z: DWORD): DWORD; inline;
+    function f(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := (x and y) or ((not x) and z);
     end;
-    function G(const x, y, z: DWORD): DWORD; inline;
+    function G(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := (x and z) or (y and (not z));
     end;
-    function H(const x, y, z: DWORD): DWORD; inline;
+    function H(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := x xor y xor z;
     end;
-    function i(const x, y, z: DWORD): DWORD; inline;
+    function i(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Result := y xor (x or (not z));
     end;
-    procedure RL(var x: DWORD; const n: Byte); inline;
+    procedure RL(var x: DWORD; const n: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       x := (x shl n) or (x shr (32 - n));
     end;
-    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, f(B, c, d) + x + ac);
       RL(a, S);
       Inc(a, B);
     end;
-    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, G(B, c, d) + x + ac);
       RL(a, S);
       Inc(a, B);
     end;
-    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, H(B, c, d) + x + ac);
       RL(a, S);
       Inc(a, B);
     end;
-    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); inline;
+    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     begin
       Inc(a, i(B, c, d) + x + ac);
       RL(a, S);
@@ -4048,7 +4051,7 @@ end;
 function umlStreamCRC16(Stream: TMixedStream; StartPos, EndPos: Int64): Word;
 const
   ChunkSize = 1024 * 1024;
-  procedure CRC16BUpdate(var crc: Word; const Buf: Pointer; len: NativeUInt); inline;
+  procedure CRC16BUpdate(var crc: Word; const Buf: Pointer; len: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     p: PBYTE;
     i: Integer;
@@ -4134,7 +4137,7 @@ function umlStreamCRC32(Stream: TMixedStream; StartPos, EndPos: Int64): Cardinal
 const
   ChunkSize = 1024 * 1024;
 
-  procedure CRC32BUpdate(var crc: Cardinal; const Buf: Pointer; len: NativeUInt); inline;
+  procedure CRC32BUpdate(var crc: Cardinal; const Buf: Pointer; len: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     p: PBYTE;
     i: Integer;
@@ -4320,7 +4323,7 @@ const
     (7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8),
     (2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11)));
 
-  function GetBit(const Bits: TDESKey; const Index: Byte): Byte; inline;
+  function GetBit(const Bits: TDESKey; const Index: Byte): Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     idx: Byte;
   begin
@@ -4331,7 +4334,7 @@ const
         Result := 0;
   end;
 
-  procedure SetBit(var Bits: TDESKey; Index, Value: Byte); inline;
+  procedure SetBit(var Bits: TDESKey; Index, Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     Bit: Byte;
   begin
@@ -4343,7 +4346,7 @@ const
     end;
   end;
 
-  procedure f(var FR: TArrayOf32Bytes; var FK: TArrayOf48Bytes; var TotalOut: TArrayOf32Bytes); inline;
+  procedure f(var FR: TArrayOf32Bytes; var FK: TArrayOf48Bytes; var TotalOut: TArrayOf32Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     Temp1                  : TArrayOf48Bytes;
     Temp2                  : TArrayOf32Bytes;
@@ -4372,7 +4375,7 @@ const
         TotalOut[n] := Temp2[p[n]];
   end;
 
-  procedure Shift(var SubKeyPart: TArrayOf28Bytes); inline;
+  procedure Shift(var SubKeyPart: TArrayOf28Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     n, B: Byte;
   begin
@@ -4382,7 +4385,7 @@ const
     SubKeyPart[28] := B;
   end;
 
-  procedure SubKey(var DesData: TDesData; Round: Byte; var SubKey: TArrayOf48Bytes); inline;
+  procedure SubKey(var DesData: TDesData; Round: Byte; var SubKey: TArrayOf48Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     n, B: Byte;
   begin
@@ -4988,7 +4991,7 @@ begin
 end;
 
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
-  function IfOut(Cur, delta, Dest: Single): Boolean; inline;
+  function IfOut(Cur, delta, Dest: Single): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     if Cur > Dest then
         Result := Cur - delta < Dest
@@ -4996,7 +4999,7 @@ function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; v
         Result := Cur + delta > Dest;
   end;
 
-  function GetOutValue(Cur, delta, Dest: Single): Single; inline;
+  function GetOutValue(Cur, delta, Dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     if IfOut(Cur, delta, Dest) then
       begin
@@ -5009,7 +5012,7 @@ function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; v
         Result := 0;
   end;
 
-  function GetDeltaValue(Cur, delta, Dest: Single): Single; inline;
+  function GetDeltaValue(Cur, delta, Dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   begin
     if Cur > Dest then
         Result := Cur - delta

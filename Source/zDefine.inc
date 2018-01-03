@@ -35,6 +35,12 @@
 
 {$define parallel}
 
+{$IFDEF release}
+{$DEFINE INLINE_ASM}
+{$ELSE}
+{$UNDEF INLINE_ASM}
+{$ENDIF}
+
 {$IFDEF FPC}
 {$ASMMODE intel}
 {$ENDIF}
@@ -54,4 +60,6 @@
 {$IFNDEF CPU64}
 {$DEFINE CPU32}
 {$ENDIF}
+
+
 

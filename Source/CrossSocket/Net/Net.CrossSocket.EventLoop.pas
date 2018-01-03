@@ -20,7 +20,8 @@ uses
   {$IFDEF MSWINDOWS}
   Winapi.Windows, Net.Winsock2, Net.Wship6,
   {$ENDIF}
-  Net.SocketAPI, Utils.Logger;
+
+  Net.SocketAPI, Utils.Logger;
 
 const
   CT_ACCEPT  = 1;
@@ -248,7 +249,7 @@ end;
 
 function TAbstractEventLoop.SetKeepAlive(ASocket: THandle): Integer;
 begin
-  Result := TSocketAPI.SetKeepAlive(ASocket, 5, 3, 5);
+  Result := TSocketAPI.SetKeepAlive(ASocket, 2, 1, 2);
 end;
 
 function TAbstractEventLoop.StopListen(ASocket: THandle): Integer;

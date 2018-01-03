@@ -142,7 +142,7 @@
         <DCCReference Include="..\..\..\Source\Cadencer.pas"/>
         <DCCReference Include="..\..\..\Source\CommunicationFramework.pas"/>
         <DCCReference Include="..\..\..\Source\CoreCipher.pas">
-            <Form>$R *.res</Form>
+                         
         </DCCReference>
         <DCCReference Include="..\..\..\Source\CoreCompress.pas"/>
         <BuildConfiguration Include="Release">

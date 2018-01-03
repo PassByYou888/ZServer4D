@@ -4,7 +4,7 @@ object EZClientForm: TEZClientForm
   AutoSize = True
   BorderWidth = 20
   Caption = 'PeformanceTest Client'
-  ClientHeight = 434
+  ClientHeight = 425
   ClientWidth = 409
   Color = clBtnFace
   DoubleBuffered = True
@@ -20,8 +20,8 @@ object EZClientForm: TEZClientForm
   PixelsPerInch = 96
   TextHeight = 13
   object ConnectButton: TButton
-    Left = 81
-    Top = 36
+    Left = 8
+    Top = 27
     Width = 176
     Height = 35
     Caption = 'build 20000 connect'
@@ -29,7 +29,7 @@ object EZClientForm: TEZClientForm
     OnClick = ConnectButtonClick
   end
   object HostEdit: TLabeledEdit
-    Left = 129
+    Left = 81
     Top = 0
     Width = 121
     Height = 21
@@ -41,8 +41,8 @@ object EZClientForm: TEZClientForm
     Text = '127.0.0.1'
   end
   object TestCommandButton: TButton
-    Left = 81
-    Top = 77
+    Left = 8
+    Top = 68
     Width = 176
     Height = 66
     Caption = 'test command'
@@ -52,7 +52,7 @@ object EZClientForm: TEZClientForm
   end
   object Memo: TMemo
     Left = 0
-    Top = 149
+    Top = 140
     Width = 409
     Height = 285
     Lines.Strings = (
@@ -77,9 +77,19 @@ object EZClientForm: TEZClientForm
     TabOrder = 3
     WordWrap = False
   end
+  object disconnectButton: TButton
+    Left = 190
+    Top = 27
+    Width = 176
+    Height = 35
+    Caption = 'disconnect'
+    TabOrder = 4
+    Visible = False
+    OnClick = disconnectButtonClick
+  end
   object Timer: TTimer
     OnTimer = TimerTimer
-    Left = 89
-    Top = 96
+    Left = 177
+    Top = 160
   end
 end

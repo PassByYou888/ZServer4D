@@ -172,9 +172,9 @@ type
     Index: Integer;
     DBStorePos: Int64;
 
-    procedure Init; inline;
-    procedure Encode(d: TDataFrameEngine); inline;
-    procedure Decode(d: TDataFrameEngine); inline;
+    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Encode(d: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Decode(d: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TBigStreamBatchList = class(TCoreClassInterfacedObject)
@@ -284,17 +284,15 @@ type
   private
     procedure TriggerWrite64(Count: Int64);
   private
-    procedure InternalSendByteBuffer(buff: PByte; Size: Integer); inline;
-
-    procedure SendInteger(v: Integer); inline;
-    procedure SendCardinal(v: Cardinal); inline;
-    procedure SendInt64(v: Int64); inline;
-    procedure SendByte(v: Byte); inline;
-    procedure SendWord(v: Word); inline;
-    procedure SendVerifyCode(buff: Pointer; siz: Integer); inline;
-    procedure SendEncryptBuffer(buff: PByte; Size: Integer; cs: TCipherStyle); inline;
-    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle); inline;
-
+    procedure InternalSendByteBuffer(buff: PByte; Size: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendInteger(v: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendCardinal(v: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendInt64(v: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendByte(v: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendWord(v: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendVerifyCode(buff: Pointer; siz: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendEncryptBuffer(buff: PByte; Size: Integer; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
     procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
     procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
@@ -367,8 +365,7 @@ type
     property WaitSendBusy: Boolean read FWaitSendBusy;
     property ReceiveCommandRuning: Boolean read FReceiveCommandRuning;
     property ReceiveResultRuning: Boolean read FReceiveResultRuning;
-    function BigStreamIsSending: Boolean; inline;
-
+    function BigStreamIsSending: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
     property ClientIntf: TCoreClassObject read FClientIntf write FClientIntf;
@@ -632,7 +629,7 @@ type
     procedure BroadcastDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
     procedure BroadcastSendDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
 
-    function Count: Integer; inline;
+    function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Exists(cli: TCoreClassObject): Boolean; overload;
     function Exists(cli: TPeerClient): Boolean; overload;
     function Exists(cli: TPeerClientUserDefine): Boolean; overload;
@@ -738,14 +735,14 @@ var
   // global progress backcall
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
 
-procedure DisposeQueueData(v: PQueueData); inline;
-procedure InitQueueData(var v: TQueueData); inline;
-function NewQueueData: PQueueData; inline;
+procedure DisposeQueueData(v: PQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure InitQueueData(var v: TQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function NewQueueData: PQueueData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function TranslateBindAddr(const Addr: SystemString): SystemString; inline;
+function TranslateBindAddr(const Addr: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod); inline;
-procedure DoExecuteResult(c: TPeerClient; QueuePtr: PQueueData; AResultText: SystemString; AResultDF: TDataFrameEngine); inline;
+procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DoExecuteResult(c: TPeerClient; QueuePtr: PQueueData; AResultText: SystemString; AResultDF: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 {$IFNDEF FPC}
 function WaitSendConsoleCmdInThread(th: TCoreClassThread; cf: TCommunicationFrameworkClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
