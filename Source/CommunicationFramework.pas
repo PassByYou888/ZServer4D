@@ -4249,7 +4249,7 @@ begin
       p := FPerClientHashList.FirstPtr;
       while i < FPerClientHashList.Count do
         begin
-          if TPeerClient(p^.Data).UserDefine = cli then
+          if TPeerClient(p^.Data).FUserDefine = cli then
             begin
               Result := True;
               exit;

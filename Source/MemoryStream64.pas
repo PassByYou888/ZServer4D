@@ -23,7 +23,7 @@ uses
   {$IFDEF FPC}
   zstream,
   {$ENDIF}
-  CoreCompress, CoreClasses, SysUtils, PascalStrings;
+  CoreClasses, SysUtils, PascalStrings;
 
 type
   TMemoryStream64 = class(TCoreClassStream)
@@ -135,10 +135,6 @@ function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Bo
 function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
-function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
 
 implementation
 
@@ -677,26 +673,6 @@ begin
         DisposeObject(DC);
       end;
   except
-  end;
-end;
-
-function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
-begin
-  try
-    Compressor.CompressStream(Sour, 0, Sour.Size, ComTo);
-    Result := True;
-  except
-      Result := False;
-  end;
-end;
-
-function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
-begin
-  try
-    Compressor.DecompressStream(Sour, DeTo);
-    Result := True;
-  except
-      Result := False;
   end;
 end;
 

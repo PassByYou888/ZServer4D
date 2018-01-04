@@ -16,7 +16,8 @@ type
   { : Progression event for time-base animations/simulations.<p>
     deltaTime is the time delta since last progress and newTime is the new
     time after the progress event is completed. }
-  TCadencerProgressEvent = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
+  TCadencerProgressMethod = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
+  TCadencerProgressCall   = procedure(Sender: TObject; const deltaTime, newTime: Double);
 
   ICadencerProgressInterface = interface
     procedure CadencerProgress(const deltaTime, newTime: Double);
@@ -42,7 +43,8 @@ type
     FCurrentTime                                 : Double;
     FOriginTime                                  : Double;
     FMaxDeltaTime, FMinDeltaTime, FFixedDeltaTime: Double;
-    FOnProgress                                  : TCadencerProgressEvent;
+    FOnProgress                                  : TCadencerProgressMethod;
+    FOnProgressCall                              : TCadencerProgressCall;
     FProgressing                                 : Integer;
     FProgressIntf                                : ICadencerProgressInterface;
   protected
@@ -117,7 +119,8 @@ type
       help for the "sleep" procedure in delphi for details). }
     property SleepLength: Integer read FSleepLength write FSleepLength default -1;
 
-    property OnProgress: TCadencerProgressEvent read FOnProgress write FOnProgress;
+    property OnProgress: TCadencerProgressMethod read FOnProgress write FOnProgress;
+    property OnProgressCall: TCadencerProgressCall read FOnProgressCall write FOnProgressCall;
 
     property ProgressIntf: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
@@ -205,6 +208,7 @@ begin
   FSleepLength := -1;
   Enabled := True;
   FOnProgress := nil;
+  FOnProgressCall := nil;
   FProgressIntf := nil;
 end;
 
@@ -255,6 +259,8 @@ begin
                     try
                       if Assigned(FOnProgress) then
                           FOnProgress(Self, deltaTime, newTime);
+                      if Assigned(FOnProgressCall) then
+                          FOnProgressCall(Self, deltaTime, newTime);
                       if Assigned(FProgressIntf) then
                           FProgressIntf.CadencerProgress(deltaTime, newTime);
                     except
@@ -301,4 +307,3 @@ initialization
 finalization
 
 end.
-

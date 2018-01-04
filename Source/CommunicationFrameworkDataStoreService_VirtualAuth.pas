@@ -376,12 +376,12 @@ begin
   if not SendTunnel.Exists(pl.SendTunnel.Owner) then
       exit;
 
-  SequEncrypt(FragmentSource.Memory, FragmentSource.Size, True, True);
-
   destStream := TMemoryStream64.Create;
   FragmentSource.Position := 0;
 
   CompressStream(FragmentSource, destStream);
+
+  SequEncrypt(destStream.Memory, destStream.Size, True, True);
 
   ClearBatchStream(pl.SendTunnel.Owner);
   PostBatchStream(pl.SendTunnel.Owner, destStream, True);
@@ -657,11 +657,12 @@ begin
       DisposeObject(m);
       exit;
     end;
-  SequEncrypt(m.Memory, m.Size, True, True);
   cm := TMemoryStream64.Create;
   m.Position := 0;
   CompressStream(m, cm);
   DisposeObject(m);
+
+  SequEncrypt(cm.Memory, cm.Size, True, True);
 
   ClearBatchStream(rt.SendTunnelDefine.Owner);
   PostBatchStream(rt.SendTunnelDefine.Owner, cm, True);
@@ -1158,6 +1159,8 @@ begin
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
     begin
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
+      SequEncrypt(Sender.UserDefine.BigStreamBatchList.Last^.Source.Memory, Sender.UserDefine.BigStreamBatchList.Last^.Source.Size, False, True);
+      Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
       DecompressStream(Sender.UserDefine.BigStreamBatchList.Last^.Source, m);
       Sender.UserDefine.BigStreamBatchList.DeleteLast;
     end;
@@ -1165,7 +1168,6 @@ begin
   if (BackcallPtr <> nil) and (m.Size > 0) then
     begin
       try
-        SequEncrypt(m.Memory, m.Size, False, True);
         m.Position := 0;
         if Assigned(BackcallPtr^.OnUserQueryCall) then
           begin
@@ -1269,10 +1271,9 @@ begin
       if m <> nil then
         begin
           cm := TMemoryStream64.Create;
+          SequEncrypt(m.Memory, m.Size, False, True);
           DecompressStream(m, cm);
           Sender.UserDefine.BigStreamBatchList.DeleteLast;
-
-          SequEncrypt(cm.Memory, cm.Size, False, True);
 
           try
             cm.Position := 0;

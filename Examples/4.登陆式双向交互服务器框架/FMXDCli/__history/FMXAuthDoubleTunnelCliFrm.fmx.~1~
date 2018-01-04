@@ -1,7 +1,7 @@
-object FMXDoubleClientForm: TFMXDoubleClientForm
+object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   Left = 0
   Top = 0
-  Caption = 'fmx Double client...'
+  Caption = 'fmx Auth Double client...'
   ClientHeight = 315
   ClientWidth = 612
   FormFactor.Width = 320
@@ -16,13 +16,26 @@ object FMXDoubleClientForm: TFMXDoubleClientForm
     DataDetectorTypes = []
     Lines.Strings = (
       'ZServer4D'#26159#19968#27454#26381#21153#22120#20013#38388#20214
-      #27492'Demo'#20026#21452#21521#27169#24335
+      #27492'Demo'#20026#30331#24405#24335#21452#21521#27169#24335
+      ''
+      #30331#24405#35299#37322
+      #21457#36215#36830#25509#26102#20505#24517#39035#36827#34892#36523#20221#39564#35777
+      #22240#20026#30331#24405#23384#22312#29992#25143#36523#20221#65292#22312#30331#38470#30340#26381#21153#22120#31995#32479#20013#65292#27599#20010#29992#25143#37117#26377#33258#24049#30340#25991#20214#23384#20648#21644#25968
+      #25454
+      #23384#20648#31354#38388
       ''
       #21452#21521#27169#24335#35299#37322
       #26082#33021#30001#23458#25143#31471#20027#21160#21457#36865#21629#20196#21435#26381#21153#22120#25191#34892
       #20063#33021#30001#26381#21153#22120#20027#21160#21521#23458#25143#31471#21457#36215#21629#20196#25191#34892
       #22312#38142#25509#26426#21046#19978#20351#29992#20102#20004#20010#36890#36947#65292#19968#20010#29992#20110#25509#25910#65292#19968#20010#29992#20110#21457#36865
       #24403#20004#20010#36890#36947#37117#38142#25509#25104#21151#65292#20351#29992'TunnelLink'#26041#27861#21363#21487#23436#25104#21452#21521#26725#25509
+      ''
+      #30331#24405#24335#21452#21521#36890#35759#27169#24335#65292#30456#27604#27604#21333#32431#30340#21452#21521#24037#20316#27169#24335#22686#21152#20102#20197#19979#21151#33021
+      #24322#27493#30331#24405#65288#23458#25143#31471#65289
+      #22823#25991#20214#20256#36755#25903#25345#65288#26381#21153#22120#65292#23458#25143#31471#65289
+      #22534#26632#24335#25351#20196#23384#20648#65288#26381#21153#22120#65289
+      #23384#20648#31354#38388#21644#25968#25454#31649#29702#65288#26381#21153#22120#65289
+      #25250#21344#24335#30331#24405#65288#26381#21153#22120#65289
       ''
       #21629#20196
       #21629#20196#31995#32479#21487#20197#26159#31616#21333#23383#31526#20018#21644#21508#31181#25968#25454#25171#21253#65292#20063#21487#20197#26159'Stream'#25171#21253
@@ -32,6 +45,7 @@ object FMXDoubleClientForm: TFMXDoubleClientForm
       ''
       #38468#38543#30340#23458#25143#31471#65292#21487#20197#26159#31227#21160#24179#21488#65292#21450#20010#20154#30005#33041#24179#21488)
     ReadOnly = True
+    StyledSettings = [Family, Style, FontColor]
     Align = Client
     Margins.Left = 130.000000000000000000
     Size.Width = 482.000000000000000000
@@ -40,23 +54,23 @@ object FMXDoubleClientForm: TFMXDoubleClientForm
     TabOrder = 0
     Left = 136
     Top = 38
-    Viewport.Width = 478.000000000000000000
+    Viewport.Width = 462.000000000000000000
     Viewport.Height = 311.000000000000000000
   end
   object connectButton: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 56.000000000000000000
+    Position.Y = 184.000000000000000000
     Size.Width = 105.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 2
+    TabOrder = 3
     Text = 'connect'
     OnClick = connectButtonClick
   end
   object HostEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
-    TabOrder = 3
-    Text = '127.0.0.1'
+    TabOrder = 6
+    Text = '192.168.2.77'
     Position.X = 8.000000000000000000
     Position.Y = 16.000000000000000000
     Size.Width = 113.000000000000000000
@@ -66,7 +80,7 @@ object FMXDoubleClientForm: TFMXDoubleClientForm
   end
   object HelloWorldBtn: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 104.000000000000000000
+    Position.Y = 240.000000000000000000
     Size.Width = 105.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -79,5 +93,37 @@ object FMXDoubleClientForm: TFMXDoubleClientForm
     OnTimer = Timer1Timer
     Left = 296
     Top = 144
+  end
+  object UserEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 5
+    Text = 'test'
+    Position.X = 8.000000000000000000
+    Position.Y = 64.000000000000000000
+    Size.Width = 73.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object PasswdEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 4
+    Text = '123456'
+    Position.X = 8.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 73.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object RegUserButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 144.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'reg user'
+    OnClick = RegUserButtonClick
   end
 end

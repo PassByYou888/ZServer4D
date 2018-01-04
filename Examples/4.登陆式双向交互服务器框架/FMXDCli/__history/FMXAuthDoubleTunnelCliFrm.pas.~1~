@@ -1,4 +1,4 @@
-unit FMXDoubleTunnelCliFrm;
+unit FMXAuthDoubleTunnelCliFrm;
 
 interface
 
@@ -9,20 +9,24 @@ uses
 
   CommunicationFramework_Client_Indy, DataFrameEngine,
   CommunicationFramework, CoreClasses, DoStatusIO,
-  CommunicationFrameworkDoubleTunnelIO_NoAuth;
+  CommunicationFrameworkDoubleTunnelIO;
 
 type
-  TFMXDoubleClientForm = class(TForm)
+  TFMXAuthDoubleClientForm = class(TForm)
     Memo1: TMemo;
     connectButton: TButton;
     HostEdit: TEdit;
     HelloWorldBtn: TButton;
     Timer1: TTimer;
+    UserEdit: TEdit;
+    PasswdEdit: TEdit;
+    RegUserButton: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure connectButtonClick(Sender: TObject);
     procedure HelloWorldBtnClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure RegUserButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -33,11 +37,11 @@ type
     { Public declarations }
     RecvTunnel: TCommunicationFramework_Client_Indy;
     SendTunnel: TCommunicationFramework_Client_Indy;
-    client    : TCommunicationFramework_DoubleTunnelClient_NoAuth;
+    client    : TCommunicationFramework_DoubleTunnelClient;
   end;
 
 var
-  FMXDoubleClientForm: TFMXDoubleClientForm;
+  FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm;
 
 implementation
 
@@ -45,17 +49,17 @@ implementation
 
 { TFMXClientForm }
 
-procedure TFMXDoubleClientForm.cmd_ChangeCaption(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TFMXAuthDoubleClientForm.cmd_ChangeCaption(Sender: TPeerClient; InData: TDataFrameEngine);
 begin
   DoStatus('Change Caption:%s', [InData.Reader.ReadString]);
 end;
 
-procedure TFMXDoubleClientForm.cmd_GetClientValue(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TFMXAuthDoubleClientForm.cmd_GetClientValue(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 begin
   OutData.WriteString('getclientvalue:abc');
 end;
 
-procedure TFMXDoubleClientForm.connectButtonClick(Sender: TObject);
+procedure TFMXAuthDoubleClientForm.connectButtonClick(Sender: TObject);
 begin
   SendTunnel.Connect(HostEdit.Text, 9815);
   RecvTunnel.Connect(HostEdit.Text, 9816);
@@ -69,37 +73,32 @@ begin
 
   if client.Connected then
     begin
-      // 异步方式合并两个通道
-      client.TunnelLink(
+      // 嵌套式匿名函数支持
+      client.UserLogin(UserEdit.Text, PasswdEdit.Text,
         procedure(const State: Boolean)
         begin
           if State then
-            begin
-              // 双通道链接成功
-              DoStatus('double tunnel link success!');
-            end;
+              client.TunnelLink(
+              procedure(const State: Boolean)
+              begin
+                DoStatus('double tunnel link success!');
+              end)
         end);
-      // 同步方式合并两个通道
-      // if client.TunnelLink then
-      // begin
-      // // 双通道链接成功
-      // end;
     end;
 end;
 
-procedure TFMXDoubleClientForm.DoStatusNear(AText: string; const ID: Integer);
+procedure TFMXAuthDoubleClientForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
-  Memo1.GoToTextEnd;
 end;
 
-procedure TFMXDoubleClientForm.FormCreate(Sender: TObject);
+procedure TFMXAuthDoubleClientForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
 
   RecvTunnel := TCommunicationFramework_Client_Indy.Create;
   SendTunnel := TCommunicationFramework_Client_Indy.Create;
-  client := TCommunicationFramework_DoubleTunnelClient_NoAuth.Create(RecvTunnel, SendTunnel);
+  client := TCommunicationFramework_DoubleTunnelClient.Create(RecvTunnel, SendTunnel);
 
   client.RegisterCommand;
 
@@ -108,13 +107,13 @@ begin
   client.RecvTunnel.RegisterStream('GetClientValue').OnExecute := cmd_GetClientValue;
 end;
 
-procedure TFMXDoubleClientForm.FormDestroy(Sender: TObject);
+procedure TFMXAuthDoubleClientForm.FormDestroy(Sender: TObject);
 begin
   DisposeObject(client);
   DeleteDoStatusHook(self);
 end;
 
-procedure TFMXDoubleClientForm.HelloWorldBtnClick(Sender: TObject);
+procedure TFMXAuthDoubleClientForm.HelloWorldBtnClick(Sender: TObject);
 var
   SendDe, ResultDE: TDataFrameEngine;
 begin
@@ -148,7 +147,26 @@ begin
   DisposeObject([SendDe, ResultDE]);
 end;
 
-procedure TFMXDoubleClientForm.Timer1Timer(Sender: TObject);
+procedure TFMXAuthDoubleClientForm.RegUserButtonClick(Sender: TObject);
+begin
+  SendTunnel.Connect(HostEdit.Text, 9815);
+  RecvTunnel.Connect(HostEdit.Text, 9816);
+
+  // 检查双通道是否都已经成功链接，确保完成了对称加密等等初始化工作
+  while (not client.RemoteInited) and (client.Connected) do
+    begin
+      TThread.Sleep(10);
+      client.Progress;
+    end;
+
+  if client.Connected then
+      client.RegisterUser(UserEdit.Text, PasswdEdit.Text);
+
+  SendTunnel.Disconnect;
+  RecvTunnel.Disconnect;
+end;
+
+procedure TFMXAuthDoubleClientForm.Timer1Timer(Sender: TObject);
 begin
   client.Progress;
 end;

@@ -2,7 +2,7 @@ unit CommunicationTest;
 
 interface
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 
 uses SysUtils, CommunicationFramework, DataFrameEngine,

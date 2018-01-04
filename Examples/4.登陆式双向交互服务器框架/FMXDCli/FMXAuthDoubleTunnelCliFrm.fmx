@@ -70,7 +70,7 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   object HostEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
     TabOrder = 6
-    Text = '192.168.2.77'
+    Text = '127.0.0.1'
     Position.X = 8.000000000000000000
     Position.Y = 16.000000000000000000
     Size.Width = 113.000000000000000000

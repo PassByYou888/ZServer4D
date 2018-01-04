@@ -90,6 +90,7 @@ end;
 procedure TFMXAuthDoubleClientForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
+  Memo1.GoToTextEnd;
 end;
 
 procedure TFMXAuthDoubleClientForm.FormCreate(Sender: TObject);

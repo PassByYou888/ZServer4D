@@ -285,9 +285,32 @@ type
   published
   end;
 
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 implementation
 
 uses MemoryStream64;
+
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+begin
+  try
+    Compressor.CompressStream(Sour, 0, Sour.Size, ComTo);
+    Result := True;
+  except
+      Result := False;
+  end;
+end;
+
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
+begin
+  try
+    Compressor.DecompressStream(Sour, DeTo);
+    Result := True;
+  except
+      Result := False;
+  end;
+end;
 
 procedure BytewiseMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt); {$IF defined(CPU386)} register; assembler; {$IFDEF fpc}nostackframe; {$ENDIF}
 asm
