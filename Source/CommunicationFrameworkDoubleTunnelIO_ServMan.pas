@@ -49,7 +49,8 @@ type
     stHall2Home,       // Infinite deploy
     stHome,            // Infinite deploy
     stPayment,         // Infinite deploy
-    stPaymentQuery     // Infinite deploy
+    stPaymentQuery,    // Infinite deploy
+    stLog              // Infinite deploy
     );
   TServerTypes = set of TServerType;
 
@@ -598,7 +599,7 @@ begin
   with ProgressEngine.PostExecute do
     begin
       DataEng.WriteString(cli.RegAddr);
-      DataEng.WriteByte(Byte(cli.ServerType));
+      DataEng.WriteByte(byte(cli.ServerType));
       {$IFDEF FPC}
       OnExecuteMethod := @PostExecute_ServerOffline;
       {$ELSE}
@@ -726,7 +727,7 @@ begin
       with ProgressEngine.PostExecute(InData, @PostExecute_Disconnect) do
       {$ELSE}
       with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
-      {$ENDIF}
+        {$ENDIF}
         begin
           Data1 := Sender;
           Data2 := cli;

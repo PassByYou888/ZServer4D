@@ -19,7 +19,7 @@ unit ListEngine;
 
 interface
 
-uses Sysutils, Variants, CoreClasses, Math, PascalStrings;
+uses Sysutils, Variants, CoreClasses, PascalStrings;
 
 type
   TCounter = NativeUInt;
@@ -954,7 +954,7 @@ procedure FreeAndNilSectionList(var V: TCoreClassStrings);
 
 implementation
 
-uses DoStatusIO, UnicodeMixedLib;
+uses Math, DoStatusIO, UnicodeMixedLib;
 
 function MakeHash(var s: SystemString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 begin

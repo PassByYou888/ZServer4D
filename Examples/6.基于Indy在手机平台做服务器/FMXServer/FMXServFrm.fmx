@@ -36,7 +36,7 @@ object FMXClientForm: TFMXClientForm
     Viewport.Height = 311.000000000000000000
   end
   object Timer1: TTimer
-    Interval = 10
+    Interval = 1
     OnTimer = Timer1Timer
     Left = 296
     Top = 144

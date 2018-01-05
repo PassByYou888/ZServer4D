@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/11/25 16:26:12.000.373,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\ServerWithMobile.groupproj</Transaction>
+    <Transaction>2017/11/25 16:26:12.000.373,C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\ServerWithMobile.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
   </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj"/>
 	</Default.Personality>
 </BorlandProject>

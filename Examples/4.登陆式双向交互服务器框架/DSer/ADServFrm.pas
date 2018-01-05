@@ -9,7 +9,7 @@ uses
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
   CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
-  DataFrameEngine, CommunicationFrameworkDoubleTunnelIO;
+  DataFrameEngine, CommunicationFrameworkDoubleTunnelIO, CommunicationFrameworkDoubleTunnelIO_VirtualAuth;
 
 type
   TAuthDoubleServerForm = class;
@@ -171,6 +171,12 @@ begin
   RecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
   SendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
   Service := TMyService.Create(RecvTunnel, SendTunnel);
+
+  // 默认情况下，TMyService不会保存用户信息到UserDB，在每次退出服务器都会产生许多没用的目录
+  // 当我们将CanSaveUserInfo打开以后，所有的用户信息都将被永久记录
+  // 注意：未来当我们要维护时用户数据库时，只能通过编程来干，直接管理文件是反人类的
+  Service.CanSaveUserInfo := True;
+
   Service.f := self;
   Service.CanRegisterNewUser := True;
 end;

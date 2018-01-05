@@ -2,6 +2,6 @@
 <BorlandProject>
 	<Transactions/>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj"/>
 	</Default.Personality>
 </BorlandProject>

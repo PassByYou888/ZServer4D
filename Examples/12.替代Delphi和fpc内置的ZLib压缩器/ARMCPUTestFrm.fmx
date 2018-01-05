@@ -32,7 +32,7 @@ object Form1: TForm1
     object ZLibCompressorButton: TButton
       Anchors = [akRight, akBottom]
       StyledSettings = [Family, Style, FontColor]
-      Position.X = 224.000000000000000000
+      Position.X = 216.000000000000000000
       Position.Y = 392.000000000000000000
       Size.Width = 201.000000000000000000
       Size.Height = 49.000000000000000000
@@ -44,7 +44,7 @@ object Form1: TForm1
     object DeflateCompressorButton: TButton
       Anchors = [akRight, akBottom]
       StyledSettings = [Family, Style, FontColor]
-      Position.X = 224.000000000000000000
+      Position.X = 216.000000000000000000
       Position.Y = 504.000000000000000000
       Size.Width = 201.000000000000000000
       Size.Height = 49.000000000000000000
@@ -56,7 +56,7 @@ object Form1: TForm1
     object BRRCCompressorButton: TButton
       Anchors = [akRight, akBottom]
       StyledSettings = [Family, Style, FontColor]
-      Position.X = 224.000000000000000000
+      Position.X = 216.000000000000000000
       Position.Y = 448.000000000000000000
       Size.Width = 201.000000000000000000
       Size.Height = 49.000000000000000000
@@ -68,13 +68,13 @@ object Form1: TForm1
     object MHTestButton: TButton
       Anchors = [akRight, akBottom]
       StyledSettings = [Family, Style, FontColor]
-      Position.X = 224.000000000000000000
-      Position.Y = 336.000000000000000000
+      Position.X = 216.000000000000000000
+      Position.Y = 320.000000000000000000
       Size.Width = 201.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 3
-      Text = 'MH'#20869#23384#20998#37197#27979#35797
+      Text = 'MH'#20869#23384#20998#37197#27979#35797' '#35831#20351#29992#25163#26426
       OnClick = MHTestButtonClick
     end
   end

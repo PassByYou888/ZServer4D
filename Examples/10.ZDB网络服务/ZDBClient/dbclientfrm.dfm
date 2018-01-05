@@ -42,7 +42,7 @@ object Form1: TForm1
       OnClick = build100DataButtonClick
     end
     object QueryG300Button: TButton
-      Left = 255
+      Left = 256
       Top = 17
       Width = 178
       Height = 64

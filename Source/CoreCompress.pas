@@ -285,31 +285,74 @@ type
   published
   end;
 
-function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function DeflateCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function DeflateDecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function BRRCCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BRRCDecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 implementation
 
 uses MemoryStream64;
 
-function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean;
 begin
   try
     Compressor.CompressStream(Sour, 0, Sour.Size, ComTo);
-    Result := True;
+    Result := true;
   except
-      Result := False;
+      Result := false;
   end;
 end;
 
-function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
+function CoreDecompressStream(Compressor: TCompressor; Sour: TCoreClassStream; DeTo: TCoreClassStream): boolean;
 begin
   try
     Compressor.DecompressStream(Sour, DeTo);
-    Result := True;
+    Result := true;
   except
-      Result := False;
+      Result := false;
   end;
+end;
+
+function DeflateCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean;
+var
+  c: TCompressorDeflate;
+begin
+  c := TCompressorDeflate.Create;
+  Result := CoreCompressStream(c, Sour, ComTo);
+  disposeObject(c);
+end;
+
+function DeflateDecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): boolean;
+var
+  c: TCompressorDeflate;
+begin
+  c := TCompressorDeflate.Create;
+  Result := CoreDecompressStream(c, Sour, DeTo);
+  disposeObject(c);
+end;
+
+function BRRCCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean;
+var
+  c: TCompressorBRRC;
+begin
+  c := TCompressorBRRC.Create;
+  Result := CoreCompressStream(c, Sour, ComTo);
+  disposeObject(c);
+end;
+
+function BRRCDecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): boolean;
+var
+  c: TCompressorBRRC;
+begin
+  c := TCompressorBRRC.Create;
+  Result := CoreDecompressStream(c, Sour, DeTo);
+  disposeObject(c);
 end;
 
 procedure BytewiseMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt); {$IF defined(CPU386)} register; assembler; {$IFDEF fpc}nostackframe; {$ENDIF}
@@ -416,7 +459,7 @@ const
 begin
   if Value = 0 then
     begin
-      result := 255;
+      Result := 255;
     end
   else
     begin
@@ -425,7 +468,7 @@ begin
       Value := Value or (Value shr 4);
       Value := Value or (Value shr 8);
       Value := Value or (Value shr 16);
-      result := BSRDebruijn32Table[((Value * BSRDebruijn32Multiplicator) shr BSRDebruijn32Shift) and BSRDebruijn32Mask];
+      Result := BSRDebruijn32Table[((Value * BSRDebruijn32Multiplicator) shr BSRDebruijn32Shift) and BSRDebruijn32Mask];
     end;
 end;
 {$IFEND}
@@ -462,7 +505,7 @@ end {$IFDEF fpc}['r0', 'R1']
 {$ELSE}
 begin
   Shift := Shift and 31;
-  result := (TCCUInt32(Value) shr Shift) or (TCCUInt32(TCCInt32(TCCUInt32(-TCCUInt32(TCCUInt32(Value) shr 31)) and TCCUInt32(-TCCUInt32(ord(Shift <> 0) and 1)))) shl (32 - Shift));
+  Result := (TCCUInt32(Value) shr Shift) or (TCCUInt32(TCCInt32(TCCUInt32(-TCCUInt32(TCCUInt32(Value) shr 31)) and TCCUInt32(-TCCUInt32(ord(Shift <> 0) and 1)))) shl (32 - Shift));
 end;
 {$IFEND}
 
@@ -507,7 +550,7 @@ end;
 {$ELSE}
 begin
   Shift := Shift and 63;
-  result := (TCCInt64(Value) shr Shift) or (TCCInt64(TCCInt64(TCCInt64(-TCCInt64(TCCInt64(Value) shr 63)) and TCCInt64(-TCCInt64(ord(Shift <> 0) and 1)))) shl (63 - Shift));
+  Result := (TCCInt64(Value) shr Shift) or (TCCInt64(TCCInt64(TCCInt64(-TCCInt64(TCCInt64(Value) shr 63)) and TCCInt64(-TCCInt64(ord(Shift <> 0) and 1)))) shl (63 - Shift));
 end;
 {$IFEND}
 
@@ -526,12 +569,12 @@ end;
 
 function TCompressor.Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 begin
-  result := 0;
+  Result := 0;
 end;
 
 function TCompressor.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 begin
-  result := 0;
+  Result := 0;
 end;
 
 procedure TCompressor.CompressStream(Sour: TCoreClassStream; StartPos, EndPos: NativeInt; CompressTo: TCoreClassStream);
@@ -936,7 +979,7 @@ var
         s1 := s1 mod Base;
         s2 := s2 mod Base;
       end;
-    result := (s2 shl 16) or s1;
+    Result := (s2 shl 16) or s1;
   end;
 
 var
@@ -1095,9 +1138,9 @@ begin
     end;
 
   if OK then
-      result := DestLen
+      Result := DestLen
   else
-      result := 0;
+      Result := 0;
 end;
 
 function TCompressorDeflate.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
@@ -1133,7 +1176,7 @@ var
         s1 := s1 mod Base;
         s2 := s2 mod Base;
       end;
-    result := (s2 shl 16) or s1;
+    Result := (s2 shl 16) or s1;
   end;
   procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
@@ -1169,14 +1212,14 @@ var
       end
     else
         dec(BitCount);
-    result := Tag and 1;
+    Result := Tag and 1;
     Tag := Tag shr 1;
   end;
   function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     Limit, Mask: TCCUInt32;
   begin
-    result := 0;
+    Result := 0;
     if aNum <> 0 then
       begin
         Limit := 1 shl aNum;
@@ -1184,11 +1227,11 @@ var
         while Mask < Limit do
           begin
             if GetBit <> 0 then
-                inc(result, Mask);
+                inc(Result, Mask);
             Mask := Mask shl 1;
           end;
       end;
-    inc(result, aBase);
+    inc(Result, aBase);
   end;
   function DecodeSymbol(const aTree: TTree): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
@@ -1203,7 +1246,7 @@ var
       inc(Sum, aTree.Table[l]);
       dec(c, aTree.Table[l]);
     until not(c >= 0);
-    result := aTree.Translation[Sum + c];
+    Result := aTree.Translation[Sum + c];
   end;
   procedure DecodeTrees(var aLT, aDT: TTree);
   var
@@ -1274,13 +1317,13 @@ var
     Len, Distance, Offset: TCCInt32;
     t                    : PCCUInt8;
   begin
-    result := false;
+    Result := false;
     while (TCCPtrUInt(TCCPointer(Source)) < TCCPtrUInt(TCCPointer(SourceEnd))) or (BitCount > 0) do
       begin
         Symbol := DecodeSymbol(aLT);
         if Symbol = 256 then
           begin
-            result := true;
+            Result := true;
             break;
           end;
         if Symbol < 256 then
@@ -1317,7 +1360,7 @@ var
   var
     Len, InvLen: TCCUInt32;
   begin
-    result := false;
+    Result := false;
     Len := (TCCUInt8(PCCUInt8Array(Source)^[1]) shl 8) or TCCUInt8(PCCUInt8Array(Source)^[0]);
     InvLen := (TCCUInt8(PCCUInt8Array(Source)^[3]) shl 8) or TCCUInt8(PCCUInt8Array(Source)^[2]);
     if Len <> ((not InvLen) and $FFFF) then
@@ -1336,18 +1379,18 @@ var
       end;
     BitCount := 0;
     inc(DestLen, Len);
-    result := true;
+    Result := true;
   end;
   function InflateFixedBlock: boolean;
   begin
-    result := InflateBlockData(fFixedSymbolLengthTree, fFixedDistanceTree);
+    Result := InflateBlockData(fFixedSymbolLengthTree, fFixedDistanceTree);
   end;
   function InflateDynamicBlock: boolean;
   begin
     FillPtrByte(@fSymbolLengthTree, sizeof(TTree), 0);
     FillPtrByte(@fDistanceTree, sizeof(TTree), 0);
     DecodeTrees(fSymbolLengthTree, fDistanceTree);
-    result := InflateBlockData(fSymbolLengthTree, fDistanceTree);
+    Result := InflateBlockData(fSymbolLengthTree, fDistanceTree);
   end;
   function Uncompress: boolean;
   var
@@ -1361,29 +1404,29 @@ var
       case BlockType of
         0:
           begin
-            result := InflateUncompressedBlock;
+            Result := InflateUncompressedBlock;
           end;
         1:
           begin
-            result := InflateFixedBlock;
+            Result := InflateFixedBlock;
           end;
         2:
           begin
-            result := InflateDynamicBlock;
+            Result := InflateDynamicBlock;
           end;
         else
           begin
-            result := false;
+            Result := false;
           end;
       end;
-    until FinalBlock or not result;
+    until FinalBlock or not Result;
   end;
   function UncompressZLIB: boolean;
   var
     cmf, flg: TCCUInt8;
     a32     : TCCUInt32;
   begin
-    result := false;
+    Result := false;
     Source := aInData;
     cmf := TCCUInt8(PCCUInt8Array(Source)^[0]);
     flg := TCCUInt8(PCCUInt8Array(Source)^[1]);
@@ -1397,36 +1440,36 @@ var
       (TCCUInt8(PCCUInt8Array(Source)^[aInSize - 1]) shl 0);
     inc(Source, 2);
     SourceEnd := @PCCUInt8Array(Source)^[aInSize - 6];
-    result := Uncompress;
-    if not result then
+    Result := Uncompress;
+    if not Result then
       begin
         exit;
       end;
-    result := Adler32(aOutData, DestLen) = a32;
+    Result := Adler32(aOutData, DestLen) = a32;
   end;
   function UncompressDirect: boolean;
   begin
     Source := aInData;
     SourceEnd := @PCCUInt8Array(Source)^[aInSize];
-    result := Uncompress;
+    Result := Uncompress;
   end;
 
 begin
   Dest := aOutData;
   DestLen := 0;
-  result := 0;
+  Result := 0;
   if fWithHeader then
     begin
       if UncompressZLIB then
         begin
-          result := DestLen;
+          Result := DestLen;
         end;
     end
   else
     begin
       if UncompressDirect then
         begin
-          result := DestLen;
+          Result := DestLen;
         end;
     end;
 end;
@@ -1526,7 +1569,7 @@ var
         Range := Range shl 8;
         EncoderShift;
       end;
-    result := Bit;
+    Result := Bit;
   end;
   procedure EncoderFlush;
   var
@@ -1580,10 +1623,10 @@ begin
     begin
       while (DestLen > MinDestLen) and (PCCUInt8Array(aOutData)^[DestLen - 1] = 0) do
           dec(DestLen);
-      result := DestLen;
+      Result := DestLen;
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 function TCompressorBRRC.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
@@ -1600,14 +1643,14 @@ var
       begin
         Range := Bound;
         inc(Model[ModelIndex], (4096 - Model[ModelIndex]) shr Move);
-        result := 0;
+        Result := 0;
       end
     else
       begin
         dec(Code, Bound);
         dec(Range, Bound);
         dec(Model[ModelIndex], Model[ModelIndex] shr Move);
-        result := 1;
+        Result := 1;
       end;
     while Range < $1000000 do
       begin
@@ -1629,16 +1672,16 @@ var
   end;
   function DecodeTree(ModelIndex, MaxValue, Move: TCCInt32): TCCInt32;
   begin
-    result := 1;
-    while OK and (result < MaxValue) do
-        result := (result shl 1) or DecodeBit(ModelIndex + result, Move);
-    dec(result, MaxValue);
+    Result := 1;
+    while OK and (Result < MaxValue) do
+        Result := (Result shl 1) or DecodeBit(ModelIndex + Result, Move);
+    dec(Result, MaxValue);
   end;
 
 var
   DestLen, Value: TCCInt32;
 begin
-  result := 0;
+  Result := 0;
   if aInSize >= 3 then
     begin
       OK := true;
@@ -1675,7 +1718,7 @@ begin
             exit;
       until false;
 
-      result := DestLen;
+      Result := DestLen;
     end;
 end;
 

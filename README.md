@@ -79,6 +79,8 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 2018-1-3
 
+在演示源码中说明部分使用中的坑（感谢好人一生平安路）
+
 修改了物理断线检测机制
 
 Inline函数可以通过zDefine.inc进行定义
@@ -92,49 +94,6 @@ Inline函数可以通过zDefine.inc进行定义
 优化了压力测试服务器性能，抗上万压测只会消耗单cpu 10%资源
 
 核心压缩库已被并入主线工程，并且提供了和Delphi/fpc可以进行比较的Demo工程（支持ARM）
-
-新增服务器的内存Hook库（傻瓜，暴力，非常暴力的释放和管理内存），同时也新增了内存管理领域开发工艺Demo，MH库支持FPC和Delphi
-
-```Delphi
-type
-  PMyRec = ^TMyRec;
-
-  TMyRec = record
-    s1: string;
-    s2: string;
-    s3: TPascalString;
-    obj: TObject;
-  end;
-
-var
-  p: PMyRec;
-begin
-  MH.BeginMemoryHook_1;
-  new(p);
-  p^.s1 := '12345';
-  p^.s2 := '中文';
-  p^.s3 := '测试';
-  p^.obj := TObject.Create;
-  MH.EndMemoryHook_1;
-
-  // 这里我们会发现泄漏
-  DoStatus('TMyRec总分分配了 %d 次内存，占用 %d 字节空间，', [MH.GetHookPtrList_1.Count, MH.GetHookMemorySize_1]);
-
-  MH.GetHookPtrList_1.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
-    begin
-      DoStatus('泄漏的地址:0x%s', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2)]);
-      DoStatus(NPtr, uData, 80);
-
-      // 现在我们可以直接释放该地址
-      FreeMem(NPtr);
-
-      DoStatus('已成功释放 地址:0x%s 占用了 %d 字节内存', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2), uData]);
-    end);
-end;
-```
-
-
-新增的内存Hook库已在ZDB内部有效应用
 
 服务器端有个大改动：不再支持用户遍历方法，同时服务器内核不在使用链表来管理客户端，所有客户端全部改用Hash数组来管理
 
@@ -164,6 +123,69 @@ end;
 	   end;
 ```
 
+新增服务器的内存Hook库（傻瓜，暴力，非常暴力的释放和管理内存），同时也新增了内存管理领域开发工艺Demo，MH库支持FPC和Delphi
+
+```Delphi
+type
+  PMyRec = ^TMyRec;
+
+  TMyRec = record
+    s1: string;
+    p: PMyRec;
+  end;
+
+var
+  p : PMyRec;
+  i : Integer;
+  hl: TPointerHashNativeUIntList;
+begin
+  // 200万次的大批量记录内存申请，最后一次性释放
+  // 这种场景情况，可以用于批量释放泄漏的内存
+
+  // 我们内建20万个Hash数组进行存储
+  // BeginMemoryHook的参数越大，面对对大批量存储的高频率记录性能就越好，但也越消耗内存
+  MH_3.BeginMemoryHook(200000);
+
+  for i := 0 to 200 * 10000 do
+    begin
+      new(p);
+      new(p^.p);
+      // 模拟字符串赋值，高频率触发Realloc调用
+      p^.s1 := '111111111111111';
+      p^.s1 := '1111111111111111111111111111111111';
+      p^.s1 := '11111111111111111111111111111111111111111111111111111111111111';
+      p^.p^.s1 := '1';
+      p^.p^.s1 := '11111111111111111111';
+      p^.p^.s1 := '1111111111111111111111111111111111111';
+      p^.p^.s1 := '11111111111111111111111111111111111111111111111111111111111111111111111111';
+
+      if i mod 99999 = 0 then
+        begin
+          // 这里是迭代调用，我们不记录，将MH_3.MemoryHooked设置为False即可
+          MH_3.MemoryHooked := False;
+          Button1Click(nil);
+          Application.ProcessMessages;
+          // 继续记录内存申请
+          MH_3.MemoryHooked := True;
+        end;
+    end;
+  MH_3.EndMemoryHook;
+
+  DoStatus('总共内存分配 %d 次 占用 %s 空间，地址跨度为：%s ', [MH_3.HookPtrList.Count, umlSizeToStr(MH_3.GetHookMemorySize).Text,
+    umlSizeToStr(NativeUInt(MH_3.GetHookMemoryMaximumPtr) - NativeUInt(MH_3.GetHookMemoryMinimizePtr)).Text]);
+
+  MH_3.HookPtrList.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+    begin
+      // 现在我们可以释放该地址
+      FreeMem(NPtr);
+    end);
+  MH_3.HookPtrList.PrintHashReport;
+  MH_3.HookPtrList.SetHashBlockCount(0);
+end;
+```
+
+
+新增的内存Hook库已在ZDB内部有效应用
 
 
 2017-12-20

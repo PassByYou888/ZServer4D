@@ -229,18 +229,18 @@ type
 
     procedure GetFileTime(RemoteFilename: SystemString; CallResultProc: TStreamMethod); overload;
 
-    // 异步方式从服务器下载文件，完成时触发通知
+    // async download and completed time of notify
     procedure GetFile_StreamParamResult(Sender: TPeerClient; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_VirtualAuth); overload;
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_VirtualAuth); overload;
     {$IFNDEF FPC}
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_VirtualAuth); overload;
     {$ENDIF}
-    // 同步方式等待从服务器下载文件完成
+    // sync download in public
     function GetFile(fileName, saveToPath: SystemString): Boolean; overload;
-    // 异步上传本地文件
+    // async upload file
     procedure PostFile(fileName: SystemString); overload;
-    // 异步上传一个Stream，完成后会自动释放filestream
+    // async upload stream
     procedure PostFile(fn: SystemString; fileStream: TCoreClassStream); overload;
 
     // batch stream suppport
