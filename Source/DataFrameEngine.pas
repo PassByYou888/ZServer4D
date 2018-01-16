@@ -382,57 +382,55 @@ type
     constructor Create(AOwner: TDataFrameEngine);
     destructor Destroy; override;
     property index: Integer read FIndex write FIndex;
-    function IsEnd: Boolean;
-    function NotEnd: Boolean;
-    procedure GoNext;
-
-    function ReadString: SystemString;
-    function ReadInteger: Integer;
-    function ReadCardinal: Cardinal;
-    function ReadWord: Word;
-    function ReadBool: Boolean;
-    function ReadBoolean: Boolean;
-    function ReadByte: Byte;
-    function ReadSingle: Single;
-    function ReadDouble: Double;
-    function ReadArrayInteger: TDataFrameArrayInteger;
-    function ReadArrayShortInt: TDataFrameArrayShortInt;
-    function ReadArrayByte: TDataFrameArrayByte;
-    function ReadMD5: UnicodeMixedLib.TMD5;
-    function ReadArraySingle: TDataFrameArraySingle;
-    function ReadArrayDouble: TDataFrameArrayDouble;
-    function ReadArrayInt64: TDataFrameArrayInt64;
-    procedure ReadStream(output: TCoreClassStream);
-    function ReadVariant: Variant;
-    function ReadInt64: Int64;
-    function ReadUInt64: UInt64;
-    procedure ReadStrings(output: TCoreClassStrings);
-    procedure ReadDataFrame(output: TDataFrameEngine);
-    procedure ReadVariantList(output: THashVariantList);
-    procedure ReadSectionText(output: TSectionTextData);
-    procedure ReadTextSection(output: TSectionTextData);
-    {$IFNDEF FPC}
-    procedure ReadJson(output: TJsonObject);
-    {$ENDIF}
-    function ReadRect: TRect;
-    function ReadRectf: TRectf;
-    function ReadPoint: TPoint;
-    function ReadPointf: TPointf;
-    function ReadVector: TVector;
-    function ReadAffineVector: TAffineVector;
-    function ReadVec3: TVec3;
-    function ReadVec4: TVec4;
-    function ReadVector3: TVector3;
-    function ReadVector4: TVector4;
-    function ReadMat4: TMat4;
-    function ReadMatrix4: TMatrix4;
-    function Read2DPoint: T2DPoint;
-    function ReadVec2: TVec2;
-    function Read2DRect: T2DRect;
-    function ReadPointer: UInt64;
-
-    // auto read buff from stream data
-    procedure Read(var aBuf; aCount: Cardinal);
+    //
+    function IsEnd: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function NotEnd: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure GoNext; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
+    function ReadString: SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadInteger: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadCardinal: Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadWord: Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadBool: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadBoolean: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadByte: Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadSingle: Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadDouble: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayInteger: TDataFrameArrayInteger; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayShortInt: TDataFrameArrayShortInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayByte: TDataFrameArrayByte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadMD5: UnicodeMixedLib.TMD5; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArraySingle: TDataFrameArraySingle; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayDouble: TDataFrameArrayDouble; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayInt64: TDataFrameArrayInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadStream(output: TCoreClassStream); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVariant: Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadInt64: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadUInt64: UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadStrings(output: TCoreClassStrings); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadDataFrame(output: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadVariantList(output: THashVariantList); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadSectionText(output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadTextSection(output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    {$IFNDEF FPC} procedure ReadJson(output: TJsonObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
+    function ReadRect: TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadRectf: TRectf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPoint: TPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPointf: TPointf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVector: TVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadAffineVector: TAffineVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVec3: TVec3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVec4: TVec4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVector3: TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVector4: TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadMat4: TMat4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadMatrix4: TMatrix4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Read2DPoint: T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVec2: TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Read2DRect: T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPointer: UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // auto read from stream data
+    procedure Read(var aBuf; aCount: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TDataFrameEngine = class(TCoreClassObject)
@@ -448,121 +446,118 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Clear;
-    function AddData(v: TRunTimeDataType): TDataFrameBase;
-    function GetData(idx: Integer): TDataFrameBase;
-    function GetDataInfo(_Obj: TDataFrameBase): SystemString;
-    function Count: Integer;
-    function Delete(idx: Integer): Boolean;
-    function DeleteFirst: Boolean;
-    function DeleteLast: Boolean; overload;
-    function DeleteLastCount(cnt: Integer): Boolean; overload;
-    function DeleteCount(idx, _Count: Integer): Boolean;
-    procedure Assign(SameObj: TDataFrameEngine);
-
-    procedure WriteString(v: SystemString); overload;
-    procedure WriteString(v: umlString); overload;
-    procedure WriteInteger(v: Integer);
-    procedure WriteCardinal(v: Cardinal);
-    procedure WriteWORD(v: Word);
-    procedure WriteBool(v: Boolean);
-    procedure WriteBoolean(v: Boolean);
-    procedure WriteByte(v: Byte);
-    procedure WriteSingle(v: Single);
-    procedure WriteDouble(v: Double);
-    function WriteArrayInteger: TDataFrameArrayInteger;
-    function WriteArrayShortInt: TDataFrameArrayShortInt;
-    function WriteArrayByte: TDataFrameArrayByte;
-    procedure WriteMD5(md5: UnicodeMixedLib.TMD5);
-    function WriteArraySingle: TDataFrameArraySingle;
-    function WriteArrayDouble: TDataFrameArrayDouble;
-    function WriteArrayInt64: TDataFrameArrayInt64;
-    procedure WriteStream(v: TCoreClassStream);
-    procedure WriteVariant(v: Variant);
-    procedure WriteInt64(v: Int64);
-    procedure WriteUInt64(v: UInt64);
-    procedure WriteStrings(v: TCoreClassStrings);
-    procedure WriteDataFrame(v: TDataFrameEngine);
-    procedure WriteDataFrameCompressed(v: TDataFrameEngine);
-    procedure WriteVariantList(v: THashVariantList);
-    procedure WriteSectionText(v: TSectionTextData);
-    procedure WriteTextSection(v: TSectionTextData);
-    {$IFNDEF FPC}
-    procedure WriteJson(v: TJsonObject);
-    {$ENDIF}
-    procedure WriteFile(fn: SystemString);
-    procedure WriteRect(v: TRect);
-    procedure WriteRectf(v: TRectf);
-    procedure WritePoint(v: TPoint);
-    procedure WritePointf(v: TPointf);
-    procedure WriteVector(v: TVector);
-    procedure WriteAffineVector(v: TAffineVector);
-    procedure WriteVec4(v: TVec4);
-    procedure WriteVec3(v: TVec3);
-    procedure WriteVector4(v: TVector4);
-    procedure WriteVector3(v: TVector3);
-    procedure WriteMat4(v: TMat4);
-    procedure WriteMatrix4(v: TMatrix4);
-    procedure Write2DPoint(v: T2DPoint);
-    procedure WriteVec2(v: TVec2);
-    procedure Write2DRect(v: T2DRect);
-    procedure WritePointer(v: Pointer); overload;
-    procedure WritePointer(v: UInt64); overload;
-
-    // auto append new stream and write
-    procedure Write(const aBuf; aCount: Int64);
-
     property Reader: TDataFrameEngineReader read FReader;
 
-    function ReadString(idx: Integer): SystemString;
-    function ReadInteger(idx: Integer): Integer;
-    function ReadCardinal(idx: Integer): Cardinal;
-    function ReadWord(idx: Integer): Word;
-    function ReadBool(idx: Integer): Boolean;
-    function ReadBoolean(idx: Integer): Boolean;
-    function ReadByte(idx: Integer): Byte;
-    function ReadSingle(idx: Integer): Single;
-    function ReadDouble(idx: Integer): Double;
-    function ReadArrayInteger(idx: Integer): TDataFrameArrayInteger;
-    function ReadArrayShortInt(idx: Integer): TDataFrameArrayShortInt;
-    function ReadArrayByte(idx: Integer): TDataFrameArrayByte;
-    function ReadMD5(idx: Integer): UnicodeMixedLib.TMD5;
-    function ReadArraySingle(idx: Integer): TDataFrameArraySingle;
-    function ReadArrayDouble(idx: Integer): TDataFrameArrayDouble;
-    function ReadArrayInt64(idx: Integer): TDataFrameArrayInt64;
-    procedure ReadStream(idx: Integer; output: TCoreClassStream);
-    function ReadVariant(idx: Integer): Variant;
-    function ReadInt64(idx: Integer): Int64;
-    function ReadUInt64(idx: Integer): UInt64;
-    procedure ReadStrings(idx: Integer; output: TCoreClassStrings);
-    procedure ReadDataFrame(idx: Integer; output: TDataFrameEngine);
-    procedure ReadVariantList(idx: Integer; output: THashVariantList);
-    procedure ReadSectionText(idx: Integer; output: TSectionTextData);
-    procedure ReadTextSection(idx: Integer; output: TSectionTextData);
-    {$IFNDEF FPC}
-    procedure ReadJson(idx: Integer; output: TJsonObject);
-    {$ENDIF}
-    function ReadRect(idx: Integer): TRect;
-    function ReadRectf(idx: Integer): TRectf;
-    function ReadPoint(idx: Integer): TPoint;
-    function ReadPointf(idx: Integer): TPointf;
-    function ReadVector(idx: Integer): TVector;
-    function ReadAffineVector(idx: Integer): TAffineVector;
-    function ReadVec3(idx: Integer): TVec3;
-    function ReadVec4(idx: Integer): TVec4;
-    function ReadVector3(idx: Integer): TVector3;
-    function ReadVector4(idx: Integer): TVector4;
-    function ReadMat4(idx: Integer): TMat4;
-    function ReadMatrix4(idx: Integer): TMatrix4;
-    function Read2DPoint(idx: Integer): T2DPoint;
-    function ReadVec2(idx: Integer): TVec2;
-    function Read2DRect(idx: Integer): T2DRect;
-    function ReadPointer(idx: Integer): UInt64;
-
-    // auto read buff from stream data
-    procedure Read(idx: Integer; var aBuf; aCount: Int64);
-
+    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddData(v: TRunTimeDataType): TDataFrameBase; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetData(idx: Integer): TDataFrameBase; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetDataInfo(_Obj: TDataFrameBase): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Delete(idx: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function DeleteFirst: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function DeleteLast: Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function DeleteLastCount(cnt: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function DeleteCount(idx, _Count: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
+    procedure Assign(SameObj: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
+    procedure WriteString(v: SystemString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteString(v: umlString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteInteger(v: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteCardinal(v: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteWORD(v: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteBool(v: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteBoolean(v: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteByte(v: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteSingle(v: Single); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteDouble(v: Double); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteArrayInteger: TDataFrameArrayInteger; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteArrayShortInt: TDataFrameArrayShortInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteArrayByte: TDataFrameArrayByte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteMD5(md5: UnicodeMixedLib.TMD5); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteArraySingle: TDataFrameArraySingle; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteArrayDouble: TDataFrameArrayDouble; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WriteArrayInt64: TDataFrameArrayInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteStream(v: TCoreClassStream); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVariant(v: Variant); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteInt64(v: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteUInt64(v: UInt64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteStrings(v: TCoreClassStrings); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteDataFrame(v: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteDataFrameCompressed(v: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVariantList(v: THashVariantList); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteSectionText(v: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteTextSection(v: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    {$IFNDEF FPC} procedure WriteJson(v: TJsonObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
+    procedure WriteFile(fn: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteRect(v: TRect); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteRectf(v: TRectf); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WritePoint(v: TPoint); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WritePointf(v: TPointf); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVector(v: TVector); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteAffineVector(v: TAffineVector); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVec4(v: TVec4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVec3(v: TVec3); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVector4(v: TVector4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVector3(v: TVector3); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteMat4(v: TMat4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteMatrix4(v: TMatrix4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Write2DPoint(v: T2DPoint); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteVec2(v: TVec2); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Write2DRect(v: T2DRect); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WritePointer(v: Pointer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WritePointer(v: UInt64); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // auto append new stream and write
+    procedure Write(const aBuf; aCount: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
+    function ReadString(idx: Integer): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadInteger(idx: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadCardinal(idx: Integer): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadWord(idx: Integer): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadBool(idx: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadBoolean(idx: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadByte(idx: Integer): Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadSingle(idx: Integer): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadDouble(idx: Integer): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayInteger(idx: Integer): TDataFrameArrayInteger; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayShortInt(idx: Integer): TDataFrameArrayShortInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayByte(idx: Integer): TDataFrameArrayByte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadMD5(idx: Integer): UnicodeMixedLib.TMD5; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArraySingle(idx: Integer): TDataFrameArraySingle; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayDouble(idx: Integer): TDataFrameArrayDouble; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadArrayInt64(idx: Integer): TDataFrameArrayInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadStream(idx: Integer; output: TCoreClassStream); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVariant(idx: Integer): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadInt64(idx: Integer): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadUInt64(idx: Integer): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadStrings(idx: Integer; output: TCoreClassStrings); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadDataFrame(idx: Integer; output: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadVariantList(idx: Integer; output: THashVariantList); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadSectionText(idx: Integer; output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReadTextSection(idx: Integer; output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    {$IFNDEF FPC} procedure ReadJson(idx: Integer; output: TJsonObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
+    function ReadRect(idx: Integer): TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadRectf(idx: Integer): TRectf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPoint(idx: Integer): TPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPointf(idx: Integer): TPointf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVector(idx: Integer): TVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadAffineVector(idx: Integer): TAffineVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVec3(idx: Integer): TVec3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVec4(idx: Integer): TVec4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVector3(idx: Integer): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVector4(idx: Integer): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadMat4(idx: Integer): TMat4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadMatrix4(idx: Integer): TMatrix4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Read2DPoint(idx: Integer): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadVec2(idx: Integer): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Read2DRect(idx: Integer): T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPointer(idx: Integer): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // read from stream data
+    procedure Read(idx: Integer; var aBuf; aCount: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     function ComputeEncodeSize: Integer;
+
+    class procedure BuildEmptyStream(output: TCoreClassStream);
 
     function EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
     function EncodeTo(output: TCoreClassStream): Integer; overload;
@@ -651,7 +646,7 @@ type
     procedure WriteVec2(v: TVec2); virtual;
     procedure Write2DRect(v: T2DRect); virtual;
     procedure WritePointer(v: Pointer); virtual;
-    procedure Write(const aBuf; aCount: Cardinal); virtual;
+    procedure Write(const aBuf; aCount: Int64); virtual;
   end;
 
   TDataReader = class(TCoreClassPersistent)
@@ -703,7 +698,7 @@ type
     function ReadVec2: TVec2; virtual;
     function Read2DRect: T2DRect; virtual;
     function ReadPointer: UInt64; virtual;
-    procedure Read(var aBuf; aCount: Cardinal); virtual;
+    procedure Read(var aBuf; aCount: Int64); virtual;
   end;
 
 implementation
@@ -2000,7 +1995,7 @@ begin
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.Read(var aBuf; aCount: Cardinal);
+procedure TDataFrameEngineReader.Read(var aBuf; aCount: Int64);
 begin
   FOwner.Read(FIndex, aBuf, aCount);
   inc(FIndex);
@@ -3294,6 +3289,28 @@ begin
       Result := Result + umlByteLength + GetData(i).ComputeEncodeSize;
 end;
 
+class procedure TDataFrameEngine.BuildEmptyStream(output: TCoreClassStream);
+var
+  editionFlag: Byte;
+  sizeInfo   : Integer;
+  compFlag   : Byte;
+  md5        : UnicodeMixedLib.TMD5;
+  cnt        : Integer;
+begin
+  // make header
+  editionFlag := $FF;
+  sizeInfo := umlIntegerLength;
+  compFlag := 0;
+  md5 := NullMD5;
+  cnt := 0;
+
+  output.Write(editionFlag, umlByteLength);
+  output.Write(sizeInfo, umlIntegerLength);
+  output.Write(compFlag, umlByteLength);
+  output.Write(md5[0], umlMD5Length);
+  output.Write(cnt, umlIntegerLength);
+end;
+
 function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i                   : Integer;
@@ -3307,6 +3324,13 @@ var
   md5        : UnicodeMixedLib.TMD5;
 begin
   Result := Count;
+
+  if Result = 0 then
+    begin
+      BuildEmptyStream(output);
+      exit;
+    end;
+
   StoreStream := TMemoryStream64.Create;
 
   // make body
@@ -3372,6 +3396,13 @@ var
   md5         : UnicodeMixedLib.TMD5;
 begin
   Result := Count;
+
+  if Result = 0 then
+    begin
+      BuildEmptyStream(output);
+      exit;
+    end;
+
   StoreStream := TMemoryStream64.Create;
 
   // make body
@@ -3446,6 +3477,13 @@ var
   md5         : UnicodeMixedLib.TMD5;
 begin
   Result := Count;
+
+  if Result = 0 then
+    begin
+      BuildEmptyStream(output);
+      exit;
+    end;
+
   StoreStream := TMemoryStream64.Create;
 
   // make body
@@ -3522,6 +3560,13 @@ var
   md5         : UnicodeMixedLib.TMD5;
 begin
   Result := Count;
+
+  if Result = 0 then
+    begin
+      BuildEmptyStream(output);
+      exit;
+    end;
+
   StoreStream := TMemoryStream64.Create;
 
   // make body
@@ -3647,7 +3692,7 @@ begin
               begin
                 DoStatus('dataframe md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compFlag = 1 then
@@ -3665,7 +3710,7 @@ begin
               begin
                 DoStatus('ZLib md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compFlag = 2 then
@@ -3683,7 +3728,7 @@ begin
               begin
                 DoStatus('Deflate md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compFlag = 3 then
@@ -3701,7 +3746,7 @@ begin
               begin
                 DoStatus('BRRC md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end;
     end
@@ -3709,7 +3754,7 @@ begin
     begin
       DoStatus('dataframe decode error!');
       DisposeObject(StoreStream);
-      Exit;
+      exit;
     end;
 
   StoreStream.Position := 0;
@@ -4055,7 +4100,7 @@ begin
   FEngine.WritePointer(v);
 end;
 
-procedure TDataWriter.Write(const aBuf; aCount: Cardinal);
+procedure TDataWriter.Write(const aBuf; aCount: Int64);
 begin
   FEngine.Write(aBuf, aCount);
 end;
@@ -4333,7 +4378,7 @@ begin
   Result := FEngine.Reader.ReadPointer;
 end;
 
-procedure TDataReader.Read(var aBuf; aCount: Cardinal);
+procedure TDataReader.Read(var aBuf; aCount: Int64);
 begin
   FEngine.Reader.Read(aBuf, aCount);
 end;

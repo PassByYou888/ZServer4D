@@ -1,0 +1,90 @@
+object AC2LogicForm: TAC2LogicForm
+  Left = 0
+  Top = 0
+  ClientHeight = 701
+  ClientWidth = 1191
+  Quality = HighQuality
+  FormFactor.Width = 960
+  FormFactor.Height = 540
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object MainLayout: TLayout
+    Size.Width = 960.000000000000000000
+    Size.Height = 540.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object ExpEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 0
+      Text = '1+1*3.14/2.999*999+0.99111'
+      Position.X = 24.000000000000000000
+      Position.Y = 104.000000000000000000
+      Size.Width = 537.000000000000000000
+      Size.Height = 89.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object computeButton: TButton
+      Position.X = 24.000000000000000000
+      Position.Y = 216.000000000000000000
+      Size.Width = 241.000000000000000000
+      Size.Height = 89.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = #38654#35745#31639' '#21477#27861#34920#36798#24335
+      OnClick = computeButtonClick
+    end
+    object ValueEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 2
+      Position.X = 24.000000000000000000
+      Position.Y = 336.000000000000000000
+      Size.Width = 537.000000000000000000
+      Size.Height = 89.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object AntiIdleCheckBox: TCheckBox
+      Position.X = 24.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 225.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = #33258#21160#38450#27490#26029#32447
+      OnChange = AntiIdleCheckBoxChange
+    end
+    object LogicFileInfoMemo: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Position.X = 576.000000000000000000
+      Position.Y = 64.000000000000000000
+      Size.Width = 369.000000000000000000
+      Size.Height = 465.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      Viewport.Width = 365.000000000000000000
+      Viewport.Height = 461.000000000000000000
+    end
+    object GetLogicFileInfoButton: TButton
+      Position.X = 576.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 369.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = #33719#21462#36828#31243#25991#20214#20449#24687'(ZDB'#25991#20214#21253')'
+      OnClick = GetLogicFileInfoButtonClick
+    end
+  end
+  object AntiIdleTimer: TTimer
+    Enabled = False
+    OnTimer = AntiIdleTimerTimer
+    Left = 296
+    Top = 48
+  end
+end

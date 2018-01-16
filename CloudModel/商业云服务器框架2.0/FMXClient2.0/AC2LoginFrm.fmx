@@ -1,0 +1,92 @@
+object AC2LoginForm: TAC2LoginForm
+  Left = 0
+  Top = 0
+  Caption = #30331#24405
+  ClientHeight = 674
+  ClientWidth = 1082
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object MainLayout: TLayout
+    Size.Width = 960.000000000000000000
+    Size.Height = 540.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object GameNameLabel: TLabel
+      Align = Center
+      StyledSettings = []
+      Size.Width = 527.000000000000000000
+      Size.Height = 162.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 40.000000000000000000
+      TextSettings.FontColor = claSaddlebrown
+      TextSettings.HorzAlign = Center
+      TextSettings.WordWrap = False
+      object FloatAnimation5: TFloatAnimation
+        AnimationType = InOut
+        AutoReverse = True
+        Enabled = True
+        Duration = 2.000000000000000000
+        Interpolation = Bounce
+        Loop = True
+        PropertyName = 'RotationAngle'
+        StartValue = -5.000000000000000000
+        StopValue = 5.000000000000000000
+      end
+      object GlowEffect4: TGlowEffect
+        Softness = 0.400000005960464500
+        GlowColor = claGold
+        Opacity = 0.899999976158142100
+      end
+    end
+    object GameEditionInfoLabel: TLabel
+      Align = MostBottom
+      StyledSettings = [Family]
+      Position.Y = 444.000000000000000000
+      Size.Width = 960.000000000000000000
+      Size.Height = 96.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = claSeashell
+      Text = 'AAAA'
+    end
+    object UserIDEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 2
+      Position.X = 72.000000000000000000
+      Position.Y = 376.000000000000000000
+      Size.Width = 233.000000000000000000
+      Size.Height = 54.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = EditChange
+      OnKeyUp = UserIDEditKeyUp
+    end
+    object UserPasswdEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 1
+      Position.X = 312.000000000000000000
+      Position.Y = 376.000000000000000000
+      Size.Width = 233.000000000000000000
+      Size.Height = 54.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = EditChange
+      OnKeyUp = UserIDEditKeyUp
+    end
+    object LoginButton: TButton
+      Position.X = 568.000000000000000000
+      Position.Y = 375.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 57.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      OnClick = LoginButtonClick
+    end
+  end
+end

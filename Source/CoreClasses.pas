@@ -398,3 +398,6 @@ initialization
 finalization
   MHGlobalHookEnabled := False;
 end.
+
+
+

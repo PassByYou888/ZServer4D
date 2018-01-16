@@ -1,0 +1,63 @@
+object SortForm: TSortForm
+  Left = 0
+  Top = 0
+  Caption = 'Sort dpr source...by qq600585'
+  ClientHeight = 469
+  ClientWidth = 761
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'program DPRCodeSort;'
+      ''
+      '{'
+      '   '#25490#24207#24037#20855#30340#23454#29616#20351#29992#30340#26159#23383#31526#20018#30340#35789#27861#24341#25806#65292#33021#22815#39640#24230#32416#38169
+      '   '#20351#29992#26102#21482#38656#35201#23558'dpr'#30340#28304#30721#20840#37096#31896#36148#21040#36825#37324#21518#28857#25490#24207#21363#21487
+      '   '#38468#36865#23454#29616#28304#30721#20294#19981#21253#21547#35789#27861#24341#25806#24211
+      '}'
+      ''
+      'uses'
+      '  System.StartUpCopy,'
+      '  FMX.Forms,'
+      '  SortFrm in '#39'SortFrm.pas'#39' {SortForm},'
+      '  CoreClasses in '#39'CoreClasses.pas'#39','
+      '  PascalStrings in '#39'PascalStrings.pas'#39','
+      '  UnicodeMixedLib in '#39'UnicodeMixedLib.pas'#39','
+      '  TextParsing in '#39'TextParsing.pas'#39';'
+      ''
+      '{$R *.res}'
+      ''
+      'begin'
+      '  Application.Initialize;'
+      '  Application.CreateForm(TSortForm, SortForm);'
+      '  Application.Run;'
+      'end.')
+    Align = Client
+    Size.Width = 761.000000000000000000
+    Size.Height = 419.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 757.000000000000000000
+    Viewport.Height = 415.000000000000000000
+  end
+  object Layout1: TLayout
+    Align = Top
+    Size.Width = 761.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object SortButton: TButton
+      Align = Left
+      Size.Width = 89.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Execute Sort'
+      OnClick = SortButtonClick
+    end
+  end
+end

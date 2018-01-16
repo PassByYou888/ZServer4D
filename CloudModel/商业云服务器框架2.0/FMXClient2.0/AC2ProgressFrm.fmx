@@ -1,0 +1,76 @@
+object AC2ProgressForm: TAC2ProgressForm
+  Left = 0
+  Top = 0
+  Caption = #31561#24453#20013'...'
+  ClientHeight = 671
+  ClientWidth = 1130
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object MainLayout: TLayout
+    Size.Width = 960.000000000000000000
+    Size.Height = 540.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Memo: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      Align = Bottom
+      CanFocus = False
+      HitTest = False
+      Opacity = 0.750000000000000000
+      Position.Y = 390.000000000000000000
+      Size.Width = 960.000000000000000000
+      Size.Height = 150.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Viewport.Width = 956.000000000000000000
+      Viewport.Height = 146.000000000000000000
+      object MemoGoInFloatAnimation: TFloatAnimation
+        Enabled = True
+        Duration = 0.200000002980232200
+        Interpolation = Quintic
+        OnFinish = MemoGoInFloatAnimationFinish
+        PropertyName = 'Height'
+        StartValue = 0.000000000000000000
+        StopValue = 150.000000000000000000
+      end
+    end
+    object AppNameLabel: TLabel
+      Align = Center
+      StyledSettings = []
+      Size.Width = 527.000000000000000000
+      Size.Height = 162.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 40.000000000000000000
+      TextSettings.FontColor = claSaddlebrown
+      TextSettings.HorzAlign = Center
+      TextSettings.WordWrap = False
+      object FloatAnimation5: TFloatAnimation
+        AnimationType = InOut
+        AutoReverse = True
+        Enabled = True
+        Duration = 2.000000000000000000
+        Interpolation = Bounce
+        Loop = True
+        PropertyName = 'RotationAngle'
+        StartValue = -5.000000000000000000
+        StopValue = 5.000000000000000000
+      end
+      object GlowEffect4: TGlowEffect
+        Softness = 0.400000005960464400
+        GlowColor = claGold
+        Opacity = 0.899999976158142100
+      end
+    end
+  end
+end

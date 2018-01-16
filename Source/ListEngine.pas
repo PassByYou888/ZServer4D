@@ -11,6 +11,7 @@
 
   2017-12-5
   added support int64 hash object : TInt64HashObjectList
+  added support pointer-NativeUInt hash : TPointerHashNativeUIntList
 *)
 
 unit ListEngine;
@@ -424,7 +425,8 @@ type
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
     procedure GetNameList(OutputList: TListString); overload;
     procedure GetNameList(OutputList: TListPascalString); overload;
-    procedure GetListData(OutputList: TCoreClassStrings);
+    procedure GetListData(OutputList: TCoreClassStrings); overload;
+    procedure GetListData(OutputList: TListString); overload;
     procedure GetAsList(OutputList: TCoreClassListForObj);
     function GetObjAsName(obj: TCoreClassObject): SystemString;
     procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -732,6 +734,7 @@ type
 
   TListStringData = record
     Data: SystemString;
+    obj: TCoreClassObject;
     Hash: THash;
   end;
 
@@ -743,11 +746,15 @@ type
   protected
     function GetItems(Idx: Integer): SystemString;
     procedure SetItems(Idx: Integer; Value: SystemString);
+
+    function GetObjects(Idx: Integer): TCoreClassObject;
+    procedure SetObjects(Idx: Integer; Value: TCoreClassObject);
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Add(Value: SystemString): Integer;
+    function Add(Value: SystemString): Integer; overload;
+    function Add(Value: SystemString; obj: TCoreClassObject): Integer; overload;
     function Delete(Idx: Integer): Integer;
     function DeleteString(Value: SystemString): Integer;
     procedure Clear;
@@ -756,10 +763,12 @@ type
     procedure Assign(SameObj: TListString);
 
     property Items[Idx: Integer]: SystemString read GetItems write SetItems; default;
+    property Objects[Idx: Integer]: TCoreClassObject read GetObjects write SetObjects;
   end;
 
   TListPascalStringData = record
     Data: TPascalString;
+    obj: TCoreClassObject;
     Hash: THash;
   end;
 
@@ -771,11 +780,17 @@ type
   protected
     function GetItems(Idx: Integer): TPascalString;
     procedure SetItems(Idx: Integer; Value: TPascalString);
+
+    function GetObjects(Idx: Integer): TCoreClassObject;
+    procedure SetObjects(Idx: Integer; Value: TCoreClassObject);
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Add(Value: TPascalString): Integer;
+    function Add(Value: SystemString): Integer; overload;
+    function Add(Value: TPascalString): Integer; overload;
+    function Add(Value: SystemString; obj: TCoreClassObject): Integer; overload;
+    function Add(Value: TPascalString; obj: TCoreClassObject): Integer; overload;
     function Delete(Idx: Integer): Integer;
     function DeletePascalString(Value: TPascalString): Integer;
     procedure Clear;
@@ -784,6 +799,7 @@ type
     procedure Assign(SameObj: TListPascalString);
 
     property Items[Idx: Integer]: TPascalString read GetItems write SetItems; default;
+    property Objects[Idx: Integer]: TCoreClassObject read GetObjects write SetObjects;
   end;
 
   TListVariantData = record
@@ -946,144 +962,39 @@ type
     property Owner: TCoreClassObject read FOwner write FOwner;
   end;
 
-function LoadSectionTextAsHashObjectList(AText: SystemString): THashObjectList;
-function LoadSectionTextAsObjectList(AText: SystemString): TCoreClassStrings;
-function SaveObjectListAsSectionText(aSectionList: TCoreClassStrings): SystemString;
-function SaveHashObjectListAsSectionText(aSectionList: THashObjectList): SystemString;
-procedure FreeAndNilSectionList(var V: TCoreClassStrings);
+function MakeHash(var s: SystemString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var s: TPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 implementation
 
 uses Math, DoStatusIO, UnicodeMixedLib;
 
-function MakeHash(var s: SystemString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var s: SystemString): THash;
 begin
   Result := FastHashSystemString(@s);
 end;
 
-function MakeHash(var s: TPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var s: TPascalString): THash;
 begin
   Result := FastHashPascalString(@s);
 end;
 
-function MakeHash(const i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var i64: Int64): THash;
 begin
   Result := umlCRC32(@i64, umlInt64Length);
 end;
 
-function MakeHash(const c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var c32: Cardinal): THash;
 begin
   Result := umlCRC32(@c32, umlCardinalLength);
 end;
 
-function MakeHash(const p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MakeHash(var p: Pointer): THash;
 begin
   Result := umlCRC32(@p, umlPointerLength);
-end;
-
-function LoadSectionTextAsObjectList(AText: SystemString): TCoreClassStrings;
-  procedure AddDataSection(Name: SystemString; sLst: TCoreClassStrings);
-  begin
-    while (sLst.Count > 0) and (sLst[sLst.Count - 1] = '') do
-        sLst.Delete(sLst.Count - 1);
-    Result.AddObject(name, sLst);
-  end;
-
-var
-  TextList    : TCoreClassStrings;
-  i           : Integer;
-  flag        : Boolean;
-  _NewSection : SystemString;
-  _NewTextList: TCoreClassStrings;
-begin
-  Result := TCoreClassStringList.Create;
-  TextList := TCoreClassStringList.Create;
-  TextList.Text := AText;
-  _NewTextList := nil;
-  _NewSection := '';
-  flag := False;
-  if TextList.Count > 0 then
-    begin
-      for i := 0 to TextList.Count - 1 do
-        begin
-          if umlMultipleMatch(False, '[*]', umlTrimChar(TextList[i], ' ')) then
-            begin
-              if flag then
-                  AddDataSection(_NewSection, _NewTextList);
-              _NewTextList := TCoreClassStringList.Create;
-              if TextList[i] <> '[]' then
-                  _NewSection := umlGetFirstStr(TextList[i], '[]').Text
-              else
-                  _NewSection := '';
-              flag := True;
-            end
-          else if flag then
-            begin
-              _NewTextList.Append(TextList[i]);
-            end;
-        end;
-      if flag then
-          AddDataSection(_NewSection, _NewTextList);
-    end;
-  DisposeObject(TextList);
-end;
-
-function LoadSectionTextAsHashObjectList(AText: SystemString): THashObjectList;
-var
-  i   : Integer;
-  sLst: TCoreClassStrings;
-begin
-  Result := THashObjectList.Create(True);
-  sLst := LoadSectionTextAsObjectList(AText);
-  if sLst.Count > 0 then
-    for i := 0 to sLst.Count - 1 do
-        Result[sLst[i]] := sLst.Objects[i];
-  DisposeObject(sLst);
-end;
-
-function SaveObjectListAsSectionText(aSectionList: TCoreClassStrings): SystemString;
-var
-  i  : Integer;
-  obj: TCoreClassStrings;
-begin
-  Result := '';
-  if aSectionList.Count > 0 then
-    for i := 0 to aSectionList.Count - 1 do
-      begin
-        Result := Result + Format('[%s]'#13#10, [aSectionList[i]]);
-        if aSectionList.Objects[i] is TCoreClassStrings then
-          begin
-            obj := TCoreClassStrings(aSectionList.Objects[i]);
-            Result := Result + obj.Text + #13#10;
-          end;
-      end;
-end;
-
-function SaveHashObjectListAsSectionText(aSectionList: THashObjectList): SystemString;
-var
-  sLst: TCoreClassStrings;
-begin
-  sLst := TCoreClassStringList.Create;
-  aSectionList.GetListData(sLst);
-  Result := SaveObjectListAsSectionText(sLst);
-  DisposeObject(sLst);
-end;
-
-procedure FreeAndNilSectionList(var V: TCoreClassStrings);
-var
-  i: Integer;
-begin
-  if V.Count > 0 then
-    for i := 0 to V.Count - 1 do
-      begin
-        try
-            DisposeObject(V.Objects[i]);
-        except
-        end;
-      end;
-
-  DisposeObject(V);
-  V := nil;
 end;
 
 function THashList.GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -4113,7 +4024,7 @@ begin
       p := HashList.FirstPtr;
       while i < HashList.Count do
         begin
-          OutputList.Add(p^.OriginName);
+          OutputList.Add(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
           Inc(i);
           p := p^.next;
         end;
@@ -4132,7 +4043,7 @@ begin
       p := HashList.FirstPtr;
       while i < HashList.Count do
         begin
-          OutputList.Add(p^.OriginName);
+          OutputList.Add(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
           Inc(i);
           p := p^.next;
         end;
@@ -4152,6 +4063,25 @@ begin
       while i < HashList.Count do
         begin
           OutputList.AddObject(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashObjectList.GetListData(OutputList: TListString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
           Inc(i);
           p := p^.next;
         end;
@@ -5870,8 +5800,7 @@ end;
 
 function TListString.GetItems(Idx: Integer): SystemString;
 begin
-  with PListStringData(FList[Idx])^ do
-      Result := Data;
+  Result := PListStringData(FList[Idx])^.Data;
 end;
 
 procedure TListString.SetItems(Idx: Integer; Value: SystemString);
@@ -5881,6 +5810,16 @@ begin
       Data := Value;
       Hash := MakeHash(Value);
     end;
+end;
+
+function TListString.GetObjects(Idx: Integer): TCoreClassObject;
+begin
+  Result := PListStringData(FList[Idx])^.obj;
+end;
+
+procedure TListString.SetObjects(Idx: Integer; Value: TCoreClassObject);
+begin
+  PListStringData(FList[Idx])^.obj := Value;
 end;
 
 constructor TListString.Create;
@@ -5902,6 +5841,18 @@ var
 begin
   New(p);
   p^.Data := Value;
+  p^.obj := nil;
+  p^.Hash := MakeHash(Value);
+  Result := FList.Add(p);
+end;
+
+function TListString.Add(Value: SystemString; obj: TCoreClassObject): Integer;
+var
+  p: PListStringData;
+begin
+  New(p);
+  p^.Data := Value;
+  p^.obj := obj;
   p^.Hash := MakeHash(Value);
   Result := FList.Add(p);
 end;
@@ -5964,17 +5915,22 @@ end;
 
 procedure TListString.Assign(SameObj: TListString);
 var
-  i: Integer;
+  i     : Integer;
+  p1, p2: PListStringData;
 begin
   Clear;
   for i := 0 to SameObj.Count - 1 do
-      Add(SameObj[i]);
+    begin
+      p2 := PListStringData(SameObj.FList[i]);
+      New(p1);
+      p1^ := p2^;
+      FList.Add(p1);
+    end;
 end;
 
 function TListPascalString.GetItems(Idx: Integer): TPascalString;
 begin
-  with PListPascalStringData(FList[Idx])^ do
-      Result := Data;
+  Result := PListPascalStringData(FList[Idx])^.Data;
 end;
 
 procedure TListPascalString.SetItems(Idx: Integer; Value: TPascalString);
@@ -5984,6 +5940,16 @@ begin
       Data := Value;
       Hash := MakeHash(Value);
     end;
+end;
+
+function TListPascalString.GetObjects(Idx: Integer): TCoreClassObject;
+begin
+  Result := PListPascalStringData(FList[Idx])^.obj;
+end;
+
+procedure TListPascalString.SetObjects(Idx: Integer; Value: TCoreClassObject);
+begin
+  PListPascalStringData(FList[Idx])^.obj := Value;
 end;
 
 constructor TListPascalString.Create;
@@ -5999,13 +5965,47 @@ begin
   inherited Destroy;
 end;
 
+function TListPascalString.Add(Value: SystemString): Integer;
+var
+  p: PListPascalStringData;
+begin
+  New(p);
+  p^.Data.Text := Value;
+  p^.obj := nil;
+  p^.Hash := MakeHash(p^.Data);
+  Result := FList.Add(p);
+end;
+
 function TListPascalString.Add(Value: TPascalString): Integer;
 var
   p: PListPascalStringData;
 begin
   New(p);
   p^.Data := Value;
-  p^.Hash := MakeHash(Value);
+  p^.obj := nil;
+  p^.Hash := MakeHash(p^.Data);
+  Result := FList.Add(p);
+end;
+
+function TListPascalString.Add(Value: SystemString; obj: TCoreClassObject): Integer;
+var
+  p: PListPascalStringData;
+begin
+  New(p);
+  p^.Data.Text := Value;
+  p^.obj := obj;
+  p^.Hash := MakeHash(p^.Data);
+  Result := FList.Add(p);
+end;
+
+function TListPascalString.Add(Value: TPascalString; obj: TCoreClassObject): Integer;
+var
+  p: PListPascalStringData;
+begin
+  New(p);
+  p^.Data := Value;
+  p^.obj := obj;
+  p^.Hash := MakeHash(p^.Data);
   Result := FList.Add(p);
 end;
 
@@ -6065,11 +6065,17 @@ end;
 
 procedure TListPascalString.Assign(SameObj: TListPascalString);
 var
-  i: Integer;
+  i     : Integer;
+  p1, p2: PListPascalStringData;
 begin
   Clear;
   for i := 0 to SameObj.Count - 1 do
-      Add(SameObj[i]);
+    begin
+      p2 := PListPascalStringData(SameObj.FList[i]);
+      New(p1);
+      p1^ := p2^;
+      FList.Add(p1);
+    end;
 end;
 
 function TListVariant.GetItems(Idx: Integer): Variant;

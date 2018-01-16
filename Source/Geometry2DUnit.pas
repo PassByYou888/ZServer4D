@@ -1,14 +1,15 @@
-{******************************************************************************}
-{* geometry 2D library writen by QQ 600585@qq.com                             *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * geometry 2D library writen by QQ 600585@qq.com                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 
 unit Geometry2DUnit;
 
 interface
 
 {$I zDefine.inc}
+
 
 uses CoreClasses, Sysutils, Math, Types;
 
@@ -979,45 +980,23 @@ begin
 end;
 
 function Distance(const x1, y1, x2, y2: TGeoFloat): TGeoFloat;
-var
-  dx: TGeoFloat;
-  dy: TGeoFloat;
 begin
-  dx := x2 - x1;
-  dy := y2 - y1;
-  Result := Sqrt(dx * dx + dy * dy);
+  Result := Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 end;
 
 function Distance(const x1, y1, z1, x2, y2, z2: TGeoFloat): TGeoFloat;
-var
-  dx: TGeoFloat;
-  dy: TGeoFloat;
-  dz: TGeoFloat;
 begin
-  dx := x2 - x1;
-  dy := y2 - y1;
-  dz := z2 - z1;
-  Result := Sqrt(dx * dx + dy * dy + dz * dz);
+  Result := Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
 end;
 
 function PointDistance(const x1, y1, x2, y2: TGeoFloat): TGeoFloat;
-var
-  dx: TGeoFloat;
-  dy: TGeoFloat;
 begin
-  dx := x2 - x1;
-  dy := y2 - y1;
-  Result := Sqrt(dx * dx + dy * dy);
+  Result := Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 end;
 
 function PointDistance(const v1, v2: T2DPoint): TGeoFloat;
-var
-  dx: TGeoFloat;
-  dy: TGeoFloat;
 begin
-  dx := v2[0] - v1[0];
-  dy := v2[1] - v1[1];
-  Result := Sqrt(dx * dx + dy * dy);
+  Result := Sqrt((v2[0] - v1[0]) * (v2[0] - v1[0]) + (v2[1] - v1[1]) * (v2[1] - v1[1]));
 end;
 
 function PointLayDistance(const v1, v2: T2DPoint): TGeoFloat;
@@ -5729,5 +5708,5 @@ initialization
 SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 
 finalization
-end.
 
+end.

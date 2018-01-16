@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/05/23 12:28:55.000.602,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\MJGame\MJServer\HomeServer\HomeServerFrm.dfm</Transaction>
+    <Transaction>2017/05/23 12:28:59.000.398,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\MJGame\MJServer\HomeServer\HomeServer.dproj</Transaction>
+    <Transaction>2017/10/20 17:08:20.000.606,C:\MJGame\MJServer\IOSVerifyReceiptServer\IOSVerifyReceiptServer.dproj=C:\MJGame\MJServer\IOSVerifyReceiptServer\HomeServer.dproj</Transaction>
+    <Transaction>2017/10/20 17:11:14.000.589,C:\MJGame\MJServer\IOSVerifyReceiptServer\IOSVerifyReceiptServerFrm.dfm=C:\MJGame\MJServer\IOSVerifyReceiptServer\HomeServerFrm.dfm</Transaction>
+    <Transaction>2017/10/20 17:11:14.000.589,C:\MJGame\MJServer\IOSVerifyReceiptServer\IOSVerifyReceiptServerFrm.pas=C:\MJGame\MJServer\IOSVerifyReceiptServer\HomeServerFrm.pas</Transaction>
+    <Transaction>2017/10/22 23:42:08.000.154,C:\MJGame\MJServer\IOSVerifyReceiptServer\IOSVerifyReceiptServer.dproj=C:\MJGame\MJServer\IOSVerifyReceiptServer\PayVerifyReceiptServer.dproj</Transaction>
+    <Transaction>2017/10/22 23:42:21.000.982,C:\MJGame\MJServer\IOSVerifyReceiptServer\PayVerifyReceiptServer.dproj=C:\MJGame\MJServer\IOSVerifyReceiptServer\PaymentVerifyReceiptServer.dproj</Transaction>
+    <Transaction>2017/10/22 23:42:52.000.268,C:\MJGame\MJServer\IOSVerifyReceiptServer\IOSVerifyReceiptServerFrm.dfm=C:\MJGame\MJServer\IOSVerifyReceiptServer\PaymentVerifyReceiptServerFrm.dfm</Transaction>
+    <Transaction>2017/10/23 00:06:26.000.173,C:\MJGame\MJServer\IOSVerifyReceiptServer\PaymentVerifyReceiptServer.dproj=C:\MJGame\MJServer\IOSVerifyReceiptServer\PaymentQueryServer.dproj</Transaction>
+    <Transaction>2017/10/23 00:06:34.000.932,C:\MJGame\MJServer\IOSVerifyReceiptServer\PaymentVerifyReceiptServerFrm.dfm=C:\MJGame\MJServer\IOSVerifyReceiptServer\PaymentQueryServerFrm.dfm</Transaction>
+    <Transaction>2018/01/15 15:35:06.000.457,C:\git\ZServer4D\CloudModel\云服务器2.0\IOSVerifyReceiptServer\PaymentQueryServer.dproj=C:\git\ZServer4D\CloudModel\云服务器2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj</Transaction>
+    <Transaction>2018/01/15 15:35:13.000.483,C:\git\ZServer4D\CloudModel\云服务器2.0\IOSVerifyReceiptServer\PaymentQueryServerFrm.dfm=C:\git\ZServer4D\CloudModel\云服务器2.0\IOSVerifyReceiptServer\IOSPaymentQueryServerFrm.dfm</Transaction>
+    <Transaction>2018/01/15 15:35:13.000.483,C:\git\ZServer4D\CloudModel\云服务器2.0\IOSVerifyReceiptServer\PaymentQueryServerFrm.pas=C:\git\ZServer4D\CloudModel\云服务器2.0\IOSVerifyReceiptServer\IOSPaymentQueryServerFrm.pas</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="ae373968"/>
+		<Pmini iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+</BorlandProject>

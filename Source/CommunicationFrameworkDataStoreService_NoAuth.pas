@@ -66,6 +66,8 @@ type
     procedure DeleteData(Sender: TZDBStoreEngine; const StorePos: Int64); virtual;
   protected
     procedure DownloadQueryFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
+    procedure DownloadQueryWithIDFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
+
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
 
     procedure Command_InitDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
@@ -77,7 +79,9 @@ type
     procedure Command_ResetData(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
 
     procedure Command_QueryDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+
     procedure Command_DownloadDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_DownloadDBWithID(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
 
     procedure Command_RequestDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
     procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
@@ -201,6 +205,12 @@ type
     procedure DownloadDB(ReverseQuery: Boolean; dbN: SystemString; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
     {$ENDIF}
     //
+    procedure DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify); overload; virtual;
+    procedure DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
+    procedure DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+    {$ENDIF}
     //
     procedure BeginAssembleStream; virtual;
 
@@ -431,6 +441,15 @@ begin
   Allowed := True;
 end;
 
+procedure TDataStoreService_NoAuth.DownloadQueryWithIDFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
+begin
+  try
+      Allowed := qState.id = dPipe.UserVariant;
+  except
+      Allowed := False;
+  end;
+end;
+
 procedure TDataStoreService_NoAuth.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
 var
   i : Integer;
@@ -620,7 +639,7 @@ begin
   if not FZDBLocal.ExistsDB(dbN) then
       exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, False, ReverseQuery, dbN, 'Download', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dbN, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
   pl.SendTunnel := rt.SendTunnelDefine;
   pl.RecvTunnel := rt;
   pl.BackcallPtr := InData.Reader.ReadPointer;
@@ -631,6 +650,43 @@ begin
   pl.OnDataFilterMethod := @DownloadQueryFilterMethod;
   {$ELSE}
   pl.OnDataFilterMethod := DownloadQueryFilterMethod;
+  {$ENDIF}
+  ClearBatchStream(rt.SendTunnelDefine.Owner);
+end;
+
+procedure TDataStoreService_NoAuth.Command_DownloadDBWithID(Sender: TPeerClient; InData: TDataFrameEngine);
+var
+  rt            : TDataStoreService_PeerClientRecvTunnel_NoAuth;
+  ReverseQuery  : Boolean;
+  dbN           : SystemString;
+  downloadWithID: Cardinal;
+  pl            : TTDataStoreService_DBPipeline;
+begin
+  rt := GetDataStoreUserDefine(Sender);
+  if not rt.LinkOk then
+      exit;
+
+  ReverseQuery := InData.Reader.ReadBool;
+  dbN := InData.Reader.ReadString;
+  downloadWithID := InData.Reader.ReadCardinal;
+
+  if not FZDBLocal.ExistsDB(dbN) then
+      exit;
+
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dbN, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
+  pl.SendTunnel := rt.SendTunnelDefine;
+  pl.RecvTunnel := rt;
+  pl.BackcallPtr := InData.Reader.ReadPointer;
+  pl.SyncToClient := True;
+  pl.WriteFragmentBuffer := pl.SyncToClient;
+  //
+  // user download with ID
+  pl.UserVariant := downloadWithID;
+  //
+  {$IFDEF FPC}
+  pl.OnDataFilterMethod := @DownloadQueryWithIDFilterMethod;
+  {$ELSE}
+  pl.OnDataFilterMethod := DownloadQueryWithIDFilterMethod;
   {$ENDIF}
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
@@ -1024,6 +1080,7 @@ begin
 
   FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := @Command_QueryDB;
   FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := @Command_DownloadDB;
+  FRecvTunnel.RegisterDirectStream('DownloadDBWithID').OnExecute := @Command_DownloadDBWithID;
   FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := @Command_RequestDownloadAssembleStream;
   FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := @Command_RequestFastDownloadAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := @Command_CompletedPostAssembleStream;
@@ -1048,6 +1105,7 @@ begin
 
   FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := Command_QueryDB;
   FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := Command_DownloadDB;
+  FRecvTunnel.RegisterDirectStream('DownloadDBWithID').OnExecute := Command_DownloadDBWithID;
   FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := Command_RequestDownloadAssembleStream;
   FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := Command_RequestFastDownloadAssembleStream;
   FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := Command_CompletedPostAssembleStream;
@@ -1726,6 +1784,60 @@ begin
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
   DownloadDB(ReverseQuery, dbN, p);
+end;
+{$ENDIF}
+
+
+procedure TDataStoreClient_NoAuth.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+
+  de.WriteBool(ReverseQuery);
+  de.WriteString(dbN);
+  de.WriteCardinal(db_ID);
+  de.WritePointer(BackcallPtr);
+
+  SendTunnel.SendDirectStreamCmd('DownloadDBWithID', de);
+
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_NoAuth.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
+var
+  p: PDataStoreClientQueryNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnQueryCall := OnQueryCall;
+  p^.OnDoneCall := OnDoneCall;
+  DownloadDBWithID(ReverseQuery, dbN, db_ID, p);
+end;
+
+procedure TDataStoreClient_NoAuth.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
+var
+  p: PDataStoreClientQueryNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnQueryMethod := OnQueryMethod;
+  p^.OnDoneMethod := OnDoneMethod;
+  DownloadDBWithID(ReverseQuery, dbN, db_ID, p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TDataStoreClient_NoAuth.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
+var
+  p: PDataStoreClientQueryNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnQueryProc := OnQueryProc;
+  p^.OnDoneProc := OnDoneProc;
+  DownloadDBWithID(ReverseQuery, dbN, db_ID, p);
 end;
 {$ENDIF}
 

@@ -121,6 +121,8 @@ type
 
 function WSAInfo: string;
 
+function WSAIPList: TStrings;
+
 procedure ProcessICSMessages;
 
 implementation
@@ -147,6 +149,11 @@ begin
 
 end;
 
+function WSAIPList: TStrings;
+begin
+  Result := LocalIPList(TSocketFamily.sfAny);
+end;
+
 var
   ICSMessageProcessing: Boolean = False;
 
@@ -155,7 +162,7 @@ var
   msg: TMsg;
 begin
   if ICSMessageProcessing then
-    exit;
+      exit;
 
   ICSMessageProcessing := True;
   try
@@ -338,4 +345,3 @@ begin
 end;
 
 end.
-

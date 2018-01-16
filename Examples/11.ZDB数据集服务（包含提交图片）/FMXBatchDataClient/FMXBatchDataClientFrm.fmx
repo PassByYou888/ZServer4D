@@ -17,7 +17,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
     Size.Height = 284.000000000000000000
     Size.PlatformDefault = False
     TabHeight = 49.000000000000000000
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 0
     TabPosition = PlatformDefault
     Sizes = (
@@ -33,7 +33,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
       CustomIcon = <
         item
         end>
-      IsSelected = True
+      IsSelected = False
       Size.Width = 44.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
@@ -181,7 +181,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
       CustomIcon = <
         item
         end>
-      IsSelected = False
+      IsSelected = True
       Size.Width = 98.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False

@@ -16,7 +16,7 @@ uses
   {$ELSE}
   FMX.Types,
   {$ENDIF}
-  Sysutils, PascalStrings, CoreClasses, MemoryStream64;
+  Sysutils, Classes, PascalStrings, CoreClasses, MemoryStream64;
 
 type
   TDoStatusMethod = procedure(AText: SystemString; const ID: Integer) of object;
@@ -163,34 +163,40 @@ type
 
   PDoStatusData = ^TDoStatusData;
 
-var
-  HookDoSatus : TCoreClassList = nil;
-  StatusActive: Boolean        = True;
+  TThreadSyncIntf = class
+  public
+    Text: SystemString;
+    ID  : Integer;
+    th  : TCoreClassThread;
+    procedure DoSync;
+  end;
 
-procedure InternalDoStatus(Text: SystemString; const ID: Integer);
+threadvar StatusActive: Boolean;
+
 var
-  Rep_Int: Integer;
-  p      : PDoStatusData;
+  HookDoSatus: TCoreClassList = nil;
+
+procedure TThreadSyncIntf.DoSync;
+var
+  i: Integer;
+  p: PDoStatusData;
 begin
   try
-    try
-      if (StatusActive) and (HookDoSatus.Count > 0) then
-        begin
-          LastDoStatus := Text;
-          for Rep_Int := HookDoSatus.Count - 1 downto 0 do
-            begin
-              p := HookDoSatus[Rep_Int];
-              try
-                if Assigned(p^.OnStatusNear) then
-                    p^.OnStatusNear(Text, ID)
-                else if Assigned(p^.OnStatusFar) then
-                    p^.OnStatusFar(Text, ID);
-              except
-              end;
+    if (StatusActive) and (HookDoSatus.Count > 0) then
+      begin
+        LastDoStatus := Text;
+        for i := HookDoSatus.Count - 1 downto 0 do
+          begin
+            p := HookDoSatus[i];
+            try
+              if Assigned(p^.OnStatusNear) then
+                  p^.OnStatusNear(Text, ID)
+              else if Assigned(p^.OnStatusFar) then
+                  p^.OnStatusFar(Text, ID);
+            except
             end;
-        end;
-    except
-    end;
+          end;
+      end;
 
     {$IFNDEF FPC}
     if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
@@ -206,6 +212,63 @@ begin
         Writeln(Text);
   finally
   end;
+end;
+
+procedure InternalDoStatus(Text: SystemString; const ID: Integer);
+var
+  th: TCoreClassThread;
+  ts: TThreadSyncIntf;
+  i : Integer;
+  p : PDoStatusData;
+begin
+  th := TCoreClassThread.CurrentThread;
+  if (th <> nil) and (th.ThreadID <> MainThreadID) then
+    begin
+      ts := TThreadSyncIntf.Create;
+      ts.Text := Text;
+      ts.ID := ID;
+      ts.th := th;
+      {$IFDEF FPC}
+      TCoreClassThread.Synchronize(th, @ts.DoSync);
+      {$ELSE}
+      TCoreClassThread.Synchronize(th, ts.DoSync);
+      {$ENDIF}
+      DisposeObject(ts);
+      exit;
+    end;
+
+  try
+    if (StatusActive) and (HookDoSatus.Count > 0) then
+      begin
+        LastDoStatus := Text;
+        for i := HookDoSatus.Count - 1 downto 0 do
+          begin
+            p := HookDoSatus[i];
+            try
+              if Assigned(p^.OnStatusNear) then
+                  p^.OnStatusNear(Text, ID)
+              else if Assigned(p^.OnStatusFar) then
+                  p^.OnStatusFar(Text, ID);
+            except
+            end;
+          end;
+      end;
+
+    {$IFNDEF FPC}
+    if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
+      begin
+        {$IF Defined(WIN32) or Defined(WIN64)}
+        OutputDebugString(PWideChar(Text));
+        {$ELSE}
+        FMX.Types.Log.d(Text);
+        {$ENDIF}
+      end;
+    {$ENDIF}
+    if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
+        Writeln(Text);
+  finally
+  end;
+
 end;
 
 procedure DoStatus(Text: SystemString; const ID: Integer);
@@ -237,20 +300,20 @@ end;
 
 procedure DeleteDoStatusHook(FlagObj: TCoreClassObject);
 var
-  Rep_Int: Integer;
-  p      : PDoStatusData;
+  i: Integer;
+  p: PDoStatusData;
 begin
-  Rep_Int := 0;
-  while Rep_Int < HookDoSatus.Count do
+  i := 0;
+  while i < HookDoSatus.Count do
     begin
-      p := HookDoSatus[Rep_Int];
+      p := HookDoSatus[i];
       if p^.FlagObj = FlagObj then
         begin
           Dispose(p);
-          HookDoSatus.Delete(Rep_Int);
+          HookDoSatus.Delete(i);
         end
       else
-          inc(Rep_Int);
+          inc(i);
     end;
 end;
 
@@ -285,5 +348,6 @@ while HookDoSatus.Count > 0 do
     HookDoSatus.Delete(0);
   end;
 DisposeObject(HookDoSatus);
+StatusActive := True;
 
 end.

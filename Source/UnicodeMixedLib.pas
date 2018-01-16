@@ -23,7 +23,7 @@ unit UnicodeMixedLib;
 
 interface
 
-uses SysUtils, Types, Variants,
+uses SysUtils, Classes, Types, Variants,
   PascalStrings,
   CoreClasses;
 
@@ -119,6 +119,7 @@ function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Bo
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 
 function umlDeltaNumber(v, delta: NativeInt): NativeInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetResourceStream(const FileName: umlString): TStream;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 
@@ -318,6 +319,7 @@ function umlMD52Str(md5: TMD5): umlString;
 function umlMD52String(md5: TMD5): umlString;
 function umlMD5Compare(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlCompareMD5(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlIsNullMD5(m: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
 const
@@ -501,6 +503,18 @@ end;
 function umlDeltaNumber(v, delta: NativeInt): NativeInt;
 begin
   Result := (v + (delta - 1)) and not(delta - 1);
+end;
+
+function umlGetResourceStream(const FileName: umlString): TStream;
+var
+  n: umlString;
+begin
+  Result := nil;
+
+  if FileName.Exists('.') then
+      n := umlDeleteLastStr(FileName, '.');
+
+  Result := TResourceStream.Create(hInstance, n.Text, RT_RCDATA);
 end;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
@@ -4027,6 +4041,11 @@ end;
 function umlCompareMD5(const m1, m2: TMD5): Boolean;
 begin
   Result := (PUInt64(@m1[0])^ = PUInt64(@m2[0])^) and (PUInt64(@m1[8])^ = PUInt64(@m2[8])^);
+end;
+
+function umlIsNullMD5(m: TMD5): Boolean;
+begin
+  Result := umlCompareMD5(m, NullMD5);
 end;
 
 function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word;

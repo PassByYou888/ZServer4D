@@ -26,9 +26,6 @@ unit CoreCipher;
 {$I zDefine.inc}
 { -private key encryption/decryption primitives }
 
-{$ifdef parallel}
-{$endif}
-
 interface
 
 uses

@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{B2F58E22-BD9A-4140-81D8-2AC370404D08}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="DPRSourceSort\DPRCodeSort.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FilePackageWithZDB\FilePackageWithZDB.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ConvFile2RESCode\ConvFile2Pascal.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DPRCodeSort">
+        <MSBuild Projects="DPRSourceSort\DPRCodeSort.dproj"/>
+    </Target>
+    <Target Name="DPRCodeSort:Clean">
+        <MSBuild Projects="DPRSourceSort\DPRCodeSort.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DPRCodeSort:Make">
+        <MSBuild Projects="DPRSourceSort\DPRCodeSort.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FilePackageWithZDB">
+        <MSBuild Projects="FilePackageWithZDB\FilePackageWithZDB.dproj"/>
+    </Target>
+    <Target Name="FilePackageWithZDB:Clean">
+        <MSBuild Projects="FilePackageWithZDB\FilePackageWithZDB.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FilePackageWithZDB:Make">
+        <MSBuild Projects="FilePackageWithZDB\FilePackageWithZDB.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ConvFile2Pascal">
+        <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj"/>
+    </Target>
+    <Target Name="ConvFile2Pascal:Clean">
+        <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ConvFile2Pascal:Make">
+        <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DPRCodeSort;FilePackageWithZDB;ConvFile2Pascal"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DPRCodeSort:Clean;FilePackageWithZDB:Clean;ConvFile2Pascal:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DPRCodeSort:Make;FilePackageWithZDB:Make;ConvFile2Pascal:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

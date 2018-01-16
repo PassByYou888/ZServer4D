@@ -4,7 +4,6 @@ interface
 
 {$I zDefine.inc}
 
-
 uses
   SysUtils, TypInfo,
 
@@ -14,46 +13,9 @@ uses
 
   NotifyObjectBase, CoreCipher, PascalStrings;
 
-const
-  cManagerService_QueryPort = 10888;
-  cManagerService_RecvPort  = 13336;
-  cManagerService_SendPort  = 13335;
-
-  cDataStorePrimary_RecvPort = 7732;
-  cDataStorePrimary_SendPort = 7731;
-
-  cFileStore_RecvPort = 5732;
-  cFileStore_SendPort = 5731;
-
-  cHallService_HomeRecvPort = 7839;
-  cHallService_HomeSendPort = 7838;
-
-  cHallService_PayRecvPort = 6319;
-  cHallService_PaySendPort = 6318;
-
-  cHallService_RecvPort = 3339;
-  cHallService_SendPort = 3338;
-
-  cHomeService_RecvPort = 13439;
-  cHomeService_SendPort = 13438;
+{$I ServerManTypeDefine.inc}
 
 type
-  TServerType = (stUnknow,
-    stManager,         // Infinite deploy
-    stDatabase,        // only limitations deploy
-    stDataStore,       // only limitations deploy
-    stFileStore,       // Infinite deploy
-    stLogicPrimary,    // Infinite deploy
-    stLogicDependence, // Infinite deploy
-    stHall,            // Infinite deploy
-    stHall2Home,       // Infinite deploy
-    stHome,            // Infinite deploy
-    stPayment,         // Infinite deploy
-    stPaymentQuery,    // Infinite deploy
-    stLog              // Infinite deploy
-    );
-  TServerTypes = set of TServerType;
-
   TServerManager_ClientPool = class;
   TServerManager_Client     = class;
   TServerManager            = class;
@@ -924,3 +886,4 @@ begin
 end;
 
 end.
+

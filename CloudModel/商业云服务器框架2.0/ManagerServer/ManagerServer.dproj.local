@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/05/23 12:54:17.000.355,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\MJGame\MJServer\ManagerServer\ManagerServerFrm.dfm</Transaction>
+    <Transaction>2017/05/23 12:54:20.000.683,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\MJGame\MJServer\ManagerServer\ManagerServer.dproj</Transaction>
+    <Transaction>2017/05/26 09:55:12.000.103,C:\MJGame\MJServer\ManagerServer\ConnectManagerServerFrm.dfm=C:\MJGame\MJServer\ManagerServer\Unit2.dfm</Transaction>
+    <Transaction>2018/01/14 10:06:56.000.023,C:\QP2.0\MJServer\ManagerServer\Unit1.pas=C:\QP2.0\common\CommonServiceDefine.pas</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.147,C:\CoreLibrary\TextDataEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.137,C:\CoreLibrary\CoreCipher.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.141,C:\CoreLibrary\Geometry2DUnit.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.142,C:\CoreLibrary\GeometryLib.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.145,C:\CoreLibrary\MemoryStream64.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.139,C:\CoreLibrary\DataFrameEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.144,C:\CoreLibrary\JsonDataObjects.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.148,C:\CoreLibrary\UnicodeMixedLib.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.144,C:\CoreLibrary\ListEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.146,C:\CoreLibrary\PascalStrings.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.140,C:\CoreLibrary\DoStatusIO.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.148,C:\CoreLibrary\TextTable.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.147,C:\CoreLibrary\TextParsing.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.143,C:\CoreLibrary\GeometryRotationUnit.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.145,C:\CoreLibrary\NotifyObjectBase.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.141,C:\CoreLibrary\Geometry3DUnit.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.138,C:\CoreLibrary\CoreClasses.pas=</Transaction>
+    <Transaction>2018/01/14 10:20:43.000.117,C:\CoreLibrary\Cadencer.pas=</Transaction>
+    <Transaction>2018/01/14 16:03:22.000.952,=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\DataStoreServer\DataStoreClientIntf.pas</Transaction>
+    <Transaction>2018/01/14 16:05:24.000.045,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\DataStoreServer\DataStoreClientIntf.pas=</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="ae373968"/>
+		<Pmini iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+</BorlandProject>

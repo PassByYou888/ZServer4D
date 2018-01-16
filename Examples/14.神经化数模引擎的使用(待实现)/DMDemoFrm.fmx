@@ -1,0 +1,11 @@
+object DMDemoForm: TDMDemoForm
+  Left = 0
+  Top = 0
+  Caption = #31070#32463#21270#25968#27169#24341#25806#28436#31034'...'
+  ClientHeight = 392
+  ClientWidth = 643
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+end

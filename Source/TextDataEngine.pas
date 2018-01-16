@@ -249,11 +249,11 @@ end;
 procedure TSectionTextData.ReBuildList;
 var
   i        : Integer;
-  tmpSecLst: TCoreClassStrings;
+  tmpSecLst: TListString;
   nsl      : TCoreClassStrings;
   h        : THashVariantTextStream;
 begin
-  tmpSecLst := TCoreClassStringList.Create;
+  tmpSecLst := TListString.Create;
 
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
@@ -304,12 +304,12 @@ var
   ln       : umlString;
   nsect    : SystemString;
   ntLst    : TCoreClassStrings;
-  tmpSecLst: TCoreClassStrings;
+  tmpSecLst: TListString;
   nsl      : TCoreClassStrings;
   vt       : THashVariantTextStream;
 begin
   // merge section
-  tmpSecLst := TCoreClassStringList.Create;
+  tmpSecLst := TListString.Create;
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
@@ -367,14 +367,14 @@ end;
 procedure TSectionTextData.DataExport(TextList: TCoreClassStrings);
 var
   i        : Integer;
-  tmpSecLst: TCoreClassStrings;
+  tmpSecLst: TListString;
   nsl      : TCoreClassStrings;
   vt       : THashVariantTextStream;
 begin
   TextList.AddStrings(FComment);
   if FComment.Count > 0 then
       TextList.Append('');
-  tmpSecLst := TCoreClassStringList.Create;
+  tmpSecLst := TListString.Create;
 
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
@@ -563,11 +563,11 @@ end;
 procedure TSectionTextData.GetSectionList(Dest: TCoreClassStrings);
 var
   i        : Integer;
-  tmpSecLst: TCoreClassStrings;
+  tmpSecLst: TListString;
   nsl      : TCoreClassStrings;
   vt       : THashVariantTextStream;
 begin
-  tmpSecLst := TCoreClassStringList.Create;
+  tmpSecLst := TListString.Create;
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
@@ -586,11 +586,11 @@ end;
 procedure TSectionTextData.GetSectionList(Dest: TListString);
 var
   i        : Integer;
-  tmpSecLst: TCoreClassStrings;
+  tmpSecLst: TListString;
   nsl      : TCoreClassStrings;
   vt       : THashVariantTextStream;
 begin
-  tmpSecLst := TCoreClassStringList.Create;
+  tmpSecLst := TListString.Create;
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
@@ -609,11 +609,11 @@ end;
 procedure TSectionTextData.GetSectionList(Dest: TListPascalString);
 var
   i        : Integer;
-  tmpSecLst: TCoreClassStrings;
+  tmpSecLst: TListString;
   nsl      : TCoreClassStrings;
   vt       : THashVariantTextStream;
 begin
-  tmpSecLst := TCoreClassStringList.Create;
+  tmpSecLst := TListString.Create;
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do

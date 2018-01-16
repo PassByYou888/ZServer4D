@@ -1,5 +1,5 @@
 unit ADServFrm;
-
+
 interface
 
 uses
@@ -177,6 +177,12 @@ begin
   // 注意：未来当我们要维护时用户数据库时，只能通过编程来干，直接管理文件是反人类的
   Service.CanSaveUserInfo := True;
 
+  // 带验证的双通道服务器启动时 必须手动读取用户数据库 这一步会大量使用交换内存 如果UserDB大小为300M 读取时大概需要2G内存开销
+  // 在用户登录后，为了加快用户资料检索，所有用户信息存在与内存中，如果UserDB大小为300M 运行时大概需要1G的内存开销
+  // 如果用户太多，诸如超过10万，那么x86平台的内存是不够用的，你需要x64
+  // LoadUserDB内部使用了是高速Hash表进行搜索，读取非常快 但非常消耗内存
+  Service.LoadUserDB;
+
   Service.f := self;
   Service.CanRegisterNewUser := True;
 end;
@@ -239,3 +245,4 @@ begin
 end;
 
 end.
+

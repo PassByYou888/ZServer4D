@@ -77,11 +77,6 @@ implementation
 
 uses UnicodeMixedLib;
 
-function MakeHash(var s: SystemString): THash; inline;
-begin
-  Result := FastHashSystemString(@s);
-end;
-
 constructor THashStreamList.Create(aDBEngine: TObjectDataManager; aFieldPos: Int64);
 begin
   inherited Create;

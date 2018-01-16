@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/05/23 12:27:44.000.554,C:\MJGame\MJServer\GameServer\GameServerFrm.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2017/05/23 12:27:54.000.038,C:\MJGame\MJServer\GameServer\GameServer.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2017/05/27 09:52:48.000.226,C:\MJGame\MJServer\GameServer\GameServer.dproj=C:\MJGame\MJServer\GameServer\GameAndLoginServer.dproj</Transaction>
+    <Transaction>2017/05/27 12:58:40.000.630,C:\MJGame\MJServer\GameAndLoginServer\GameServerFrm.pas=C:\MJGame\MJServer\GameAndLoginServer\GameAndLoginServerFrm.pas</Transaction>
+    <Transaction>2017/05/27 12:58:40.000.630,C:\MJGame\MJServer\GameAndLoginServer\GameServerFrm.dfm=C:\MJGame\MJServer\GameAndLoginServer\GameAndLoginServerFrm.dfm</Transaction>
+    <Transaction>2017/06/22 01:40:58.000.919,C:\MJGame\MJServer\GameAndLoginServer\GameAndLoginServerFrm.dfm=C:\MJGame\MJServer\GameAndLoginServer\HallServerFrm.dfm</Transaction>
+    <Transaction>2017/06/22 01:41:05.000.744,C:\MJGame\MJServer\GameAndLoginServer\GameAndLoginServer.dproj=C:\MJGame\MJServer\GameAndLoginServer\HallServer.dproj</Transaction>
+    <Transaction>2018/01/14 10:30:27.000.334,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\HallServer.dproj=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\LogicServer.dproj</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.488,C:\CoreLibrary\TextParsing.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.498,C:\CoreLibrary\UnicodeMixedLib.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.481,C:\CoreLibrary\TextDataEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.449,C:\CoreLibrary\JsonDataObjects.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.443,C:\CoreLibrary\GeometryLib.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.440,C:\CoreLibrary\Geometry3DUnit.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.474,C:\CoreLibrary\PascalStrings.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.424,C:\CoreLibrary\DataFrameEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.494,C:\CoreLibrary\TextTable.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.408,C:\CoreLibrary\CoreCipher.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.468,C:\CoreLibrary\NotifyObjectBase.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.400,C:\CoreLibrary\Cadencer.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.416,C:\CoreLibrary\CoreClasses.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.446,C:\CoreLibrary\GeometryRotationUnit.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.461,C:\CoreLibrary\MemoryStream64.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.432,C:\CoreLibrary\DoStatusIO.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.437,C:\CoreLibrary\Geometry2DUnit.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:43.000.454,C:\CoreLibrary\ListEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.990,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.984,C:\CoreLibrary\server\CommunicationFrameworkDataStoreService_VirtualAuth.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.965,C:\CoreLibrary\server\CommunicationFrameworkDataStoreService.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.978,C:\CoreLibrary\server\CommunicationFrameworkDataStoreService_NoAuth.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.972,C:\CoreLibrary\server\CommunicationFrameworkDataStoreServiceCommon.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.995,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.959,C:\CoreLibrary\server\CommunicationFramework.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:47.000.998,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO_ServMan.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:48.000.000,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:48.000.003,C:\CoreLibrary\server\CommunicationFrameworkIO.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.540,C:\CoreLibrary\ObjectData\ItemStream.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.558,C:\CoreLibrary\ObjectData\StreamList.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.563,C:\CoreLibrary\ObjectData\ZDBLocalManager.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.534,C:\CoreLibrary\ObjectData\DBCompressPackageForFile.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.560,C:\CoreLibrary\ObjectData\ZDBEngine.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.551,C:\CoreLibrary\ObjectData\ObjectData.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.556,C:\CoreLibrary\ObjectData\ObjectDataManager.pas=</Transaction>
+    <Transaction>2018/01/14 10:30:52.000.546,C:\CoreLibrary\ObjectData\LibraryManager.pas=</Transaction>
+    <Transaction>2018/01/14 10:50:03.000.672,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\HallServerFrm.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\LogicServerFrm.pas</Transaction>
+    <Transaction>2018/01/14 10:50:03.000.672,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\HallServerFrm.dfm=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\LogicServerFrm.dfm</Transaction>
+    <Transaction>2018/01/14 11:02:43.000.999,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\LogicFile.OX=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\LogicServer\HallFile.OX</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="ae373968"/>
+		<Pmini iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="..\..\商业云服务器框架2.0"/>
+    <File Path="..\common"/>
+    <File Path="..\common\CommonServiceDefine.pas"/>
+    <File Path="..\DataStoreServer"/>
+    <File Path="..\DataStoreServer\DataStoreClientIntf.pas"/>
+    <File Path="..\FileStoreServer"/>
+    <File Path="..\FileStoreServer\FileStoreClientIntf.pas"/>
+    <File Path="..\ManagerServer"/>
+    <File Path="..\ManagerServer\ConnectManagerServerFrm.pas"/>
+    <File Path="..\ManagerServer\ConnectManagerServerFrm.dfm"/>
+    <File Path="LogicFile.OX"/>
+    <File Path="LogicServerFrm.pas"/>
+    <File Path="LogicServerFrm.dfm"/>
+  </ProjectSortOrder>
+</BorlandProject>

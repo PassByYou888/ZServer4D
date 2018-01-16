@@ -4,3 +4,4 @@ del/s *.ppu
 del/s *.rsm
 del/s *.replay
 del/s *.loginpackage
+del/s *.dres

@@ -82,8 +82,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerClient; InData, OutData: TDataFrameEngine): Boolean;
-
+    function Execute(Sender: TPeerClient; InData, OutData: TDataFrameEngine): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Command: SystemString read FCommand write FCommand;
     property OnExecute: TCommandStreamProc read FOnCommandStreamProc write FOnCommandStreamProc;
   end;
@@ -100,8 +99,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerClient; InData: SystemString; var OutData: SystemString): Boolean;
-
+    function Execute(Sender: TPeerClient; InData: SystemString; var OutData: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Command: SystemString read FCommand write FCommand;
     property OnExecute: TCommandConsoleProc read FOnCommandConsoleProc write FOnCommandConsoleProc;
   end;
@@ -118,8 +116,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerClient; InData: TDataFrameEngine): Boolean;
-
+    function Execute(Sender: TPeerClient; InData: TDataFrameEngine): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Command: SystemString read FCommand write FCommand;
     property OnExecute: TCommandDirectStreamProc read FOnCommandDirectStreamProc write FOnCommandDirectStreamProc;
   end;
@@ -136,8 +133,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerClient; InData: SystemString): Boolean;
-
+    function Execute(Sender: TPeerClient; InData: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Command: SystemString read FCommand write FCommand;
     property OnExecute: TCommandDirectConsoleProc read FOnCommandDirectConsoleProc write FOnCommandDirectConsoleProc;
   end;
@@ -154,8 +150,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean;
-
+    function Execute(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Command: SystemString read FCommand write FCommand;
     property OnExecute: TCommandBigStreamProc read FOnCommandBigStreamProc write FOnCommandBigStreamProc;
   end;
@@ -187,14 +182,14 @@ type
     constructor Create(AOwner: TPeerClient);
     destructor Destroy; override;
 
-    procedure Clear;
-    function Count: Integer;
+    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Items[const index: Integer]: PBigStreamBatchPostData read GetItems; default;
-    function NewPostData: PBigStreamBatchPostData;
-    function Last: PBigStreamBatchPostData;
-    procedure DeleteLast;
-    procedure Delete(const Index: Integer);
-    procedure RebuildMD5;
+    function NewPostData: PBigStreamBatchPostData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Last: PBigStreamBatchPostData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeleteLast; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Delete(const Index: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure RebuildMD5; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TPeerClientUserDefine = class(TCoreClassObject)
@@ -285,6 +280,7 @@ type
     procedure TriggerWrite64(Count: Int64);
   private
     procedure InternalSendByteBuffer(buff: PByte; Size: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     procedure SendInteger(v: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SendCardinal(v: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SendInt64(v: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -293,13 +289,14 @@ type
     procedure SendVerifyCode(buff: Pointer; siz: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SendEncryptBuffer(buff: PByte; Size: Integer; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64);
-    procedure InternalSendBigStreamBuff(var Queue: TQueueData);
-
+    //
+    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendBigStreamBuff(var Queue: TQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     procedure Sync_InternalSendResultData;
     procedure Sync_InternalSendConsoleCmd;
     procedure Sync_InternalSendStreamCmd;
@@ -327,7 +324,6 @@ type
     procedure WriteBufferFlush; virtual; abstract;
     procedure WriteBufferClose; virtual; abstract;
     function GetPeerIP: SystemString; virtual; abstract;
-  public
     function WriteBufferEmpty: Boolean; virtual;
   public
     constructor Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject); virtual;
@@ -371,7 +367,7 @@ type
     property ClientIntf: TCoreClassObject read FClientIntf write FClientIntf;
     property ID: Cardinal read FID;
     property CipherKey: TCipherKeyBuffer read FCipherKey;
-    function CipherKeyPtr: PCipherKeyBuffer;
+    function CipherKeyPtr: PCipherKeyBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property SendCipherStyle: TCipherStyle read FSendDataCipherStyle write FSendDataCipherStyle;
     property RemoteExecutedForConnectInit: Boolean read FRemoteExecutedForConnectInit;
 
@@ -677,6 +673,8 @@ type
 
     function Wait(ATimeOut: Cardinal): SystemString; virtual;
 
+    function WaitSendBusy: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     // send cmd method
     procedure SendConsoleCmd(Cmd: SystemString; ConsoleData: SystemString; OnResult: TConsoleMethod); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamMethod; DoneFreeStream: Boolean); overload;
@@ -748,6 +746,8 @@ procedure DoExecuteResult(c: TPeerClient; QueuePtr: PQueueData; AResultText: Sys
 function WaitSendConsoleCmdInThread(th: TCoreClassThread; cf: TCommunicationFrameworkClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 procedure WaitSendStreamCmdInThread(th: TCoreClassThread; cf: TCommunicationFrameworkClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 {$ENDIF}
+
+procedure DefaultProgressBackgroundProc;
 
 implementation
 
@@ -2055,7 +2055,7 @@ begin
   if FCurrentQueueData = nil then
       exit;
 
-  if FOwnerFramework.FSyncOnResult then
+  if (FOwnerFramework.FSyncOnResult) then
     begin
       DoExecuteResult(Self, FCurrentQueueData, ResultText, ResultDataFrame);
     end
@@ -3764,7 +3764,10 @@ begin
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamMethod := OnResult;
   TriggerQueueData(p);
   Client.PrintCommand('Send Stream cmd: %s', Cmd);
@@ -3786,7 +3789,10 @@ begin
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamParamMethod := OnResult;
   p^.Param1 := p^.Param1;
   p^.Param2 := p^.Param2;
@@ -3856,7 +3862,10 @@ begin
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamProc := OnResult;
   TriggerQueueData(p);
   Client.PrintCommand('Send Stream cmd: %s', Cmd);
@@ -3878,7 +3887,10 @@ begin
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamParamProc := OnResult;
   p^.Param1 := p^.Param1;
   p^.Param2 := p^.Param2;
@@ -3943,7 +3955,10 @@ begin
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   TriggerQueueData(p);
   Client.PrintCommand('Send DirectStream cmd: %s', Cmd);
 end;
@@ -4402,9 +4417,23 @@ end;
 function TCommunicationFrameworkClient.Wait(ATimeOut: Cardinal): SystemString;
 begin
   Result := '';
+  if ClientIO = nil then
+      exit;
   if not Connected then
       exit;
+  if ClientIO.WaitSendBusy then
+      exit;
+  if ClientIO.WaitOnResult then
+      exit;
+  if ClientIO.BigStreamIsSending then
+      exit;
+
   Result := WaitSendConsoleCmd('Wait', '', ATimeOut);
+end;
+
+function TCommunicationFrameworkClient.WaitSendBusy: Boolean;
+begin
+  Result := (ClientIO <> nil) and (ClientIO.WaitSendBusy);
 end;
 
 procedure TCommunicationFrameworkClient.SendConsoleCmd(Cmd, ConsoleData: SystemString; OnResult: TConsoleMethod);
@@ -4470,7 +4499,10 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamMethod := OnResult;
   TriggerQueueData(p);
   ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
@@ -4494,7 +4526,10 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamParamMethod := OnResult;
   p^.Param1 := Param1;
   p^.Param2 := Param2;
@@ -4568,7 +4603,10 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamProc := OnResult;
   TriggerQueueData(p);
   ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
@@ -4592,7 +4630,10 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   p^.OnStreamParamProc := OnResult;
   p^.Param1 := Param1;
   p^.Param2 := Param2;
@@ -4663,7 +4704,10 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherStyle;
   p^.DoneFreeStream := True;
   p^.StreamData := TMemoryStream64.Create;
-  StreamData.EncodeTo(p^.StreamData, True);
+  if StreamData <> nil then
+      StreamData.EncodeTo(p^.StreamData, True)
+  else
+      TDataFrameEngine.BuildEmptyStream(p^.StreamData);
   TriggerQueueData(p);
   ClientIO.PrintCommand('Send DirectStream cmd: %s', Cmd);
 end;

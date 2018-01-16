@@ -96,8 +96,6 @@ type
     function GetPathFieldPos(const dbPath: SystemString): Int64;
     function GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
 
-    function AddFile(const dbPath, DBItem, DBItemDescription, FileName: SystemString): Boolean;
-    function PutToFile(const dbPath, DBItem, FileName: SystemString): Boolean;
     function GetItemSize(const dbPath, DBItem: SystemString): Int64;
 
     // fast lowlevel
@@ -128,32 +126,16 @@ type
     function ItemFindLast(const dbPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemGetFile(var ItemHnd: TItemHandle; const FileName: SystemString): Boolean;
     function ItemMove(const dbPath, ItemName, DestPath: SystemString): Boolean;
     function ItemOpen(const dbPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
 
     function ItemRead(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadBool(var ItemHnd: TItemHandle; var Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadInt(var ItemHnd: TItemHandle; var Value: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadReturnBool(var ItemHnd: TItemHandle; const DefaultValue: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadReturnInt(var ItemHnd: TItemHandle; const DefaultValue: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadReturnStr(var ItemHnd: TItemHandle; const DefaultValue: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadStr(var ItemHnd: TItemHandle; var Value: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemReadTime(var ItemHnd: TItemHandle; var Value: TDateTime): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemSeekStart(var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemSeekLast(var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemGetPos(var ItemHnd: TItemHandle): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemGetSize(var ItemHnd: TItemHandle): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ItemWrite(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemWriteBool(var ItemHnd: TItemHandle; const Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemWriteInt(var ItemHnd: TItemHandle; const Value: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemWriteStr(var ItemHnd: TItemHandle; const Value: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemWriteTime(var ItemHnd: TItemHandle; const Value: TDateTime): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadBool(const Section, Item: SystemString; const Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadString(const Section, Item, Value: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteBool(const Section, Item: SystemString; const Value: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteString(const Section, Item, Value: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 
@@ -760,56 +742,6 @@ begin
       Result := umlDefaultTime;
 end;
 
-function TObjectDataManager.AddFile(const dbPath, DBItem, DBItemDescription, FileName: SystemString): Boolean;
-var
-  DBItemHandle: TItemHandle;
-begin
-  Result := False;
-
-  if ItemExists(dbPath, DBItem) then
-    begin
-      if not ItemOpen(dbPath, DBItem, DBItemHandle) then
-        begin
-          ItemClose(DBItemHandle);
-          Exit;
-        end;
-    end
-  else
-    begin
-      CreateField(dbPath, DBItemDescription);
-      if not ItemCreate(dbPath, DBItem, DBItemDescription, DBItemHandle) then
-        begin
-          ItemClose(DBItemHandle);
-          Exit;
-        end;
-    end;
-
-  if not ItemAddFile(DBItemHandle, FileName) then
-    begin
-      ItemClose(DBItemHandle);
-      Exit;
-    end;
-  Result := True;
-end;
-
-function TObjectDataManager.PutToFile(const dbPath, DBItem, FileName: SystemString): Boolean;
-var
-  DBItemHandle: TItemHandle;
-begin
-  Result := False;
-  if not ItemOpen(dbPath, DBItem, DBItemHandle) then
-    begin
-      ItemClose(DBItemHandle);
-      Exit;
-    end;
-  if not ItemGetFile(DBItemHandle, FileName) then
-    begin
-      ItemClose(DBItemHandle);
-      Exit;
-    end;
-  Result := True;
-end;
-
 function TObjectDataManager.GetItemSize(const dbPath, DBItem: SystemString): Int64;
 var
   DBItemHandle: TItemHandle;
@@ -1106,76 +1038,6 @@ begin
   Result := dbPack_FindPrevItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
 end;
 
-function TObjectDataManager.ItemGetFile(var ItemHnd: TItemHandle; const FileName: SystemString): Boolean;
-var
-  RepaInt   : Integer;
-  FileHandle: TIOHnd;
-  FileSize  : Int64;
-  Buff      : array [0 .. MaxBuffSize] of umlChar;
-begin
-  Result := False;
-  InitIOHnd(FileHandle);
-  if not umlFileCreate(FileName, FileHandle) then
-    begin
-      umlFileClose(FileHandle);
-      Exit;
-    end;
-
-  if not dbPack_ItemRead(umlSizeLength, FileSize, ItemHnd, FObjectDataHandle) then
-    begin
-      umlFileClose(FileHandle);
-      Exit;
-    end;
-
-  if FileSize > MaxBuffSize then
-    begin
-      for RepaInt := 1 to FileSize div MaxBuffSize do
-        begin
-          if not dbPack_ItemRead(MaxBuffSize, Buff, ItemHnd, FObjectDataHandle) then
-            begin
-              umlFileClose(FileHandle);
-              Exit;
-            end;
-          if not umlFileWrite(FileHandle, MaxBuffSize, Buff) then
-            begin
-              umlFileClose(FileHandle);
-              Exit;
-            end;
-        end;
-      if (FileSize mod MaxBuffSize) > 0 then
-        begin
-          if not dbPack_ItemRead(FileSize mod MaxBuffSize, Buff, ItemHnd, FObjectDataHandle) then
-            begin
-              umlFileClose(FileHandle);
-              Exit;
-            end;
-          if not umlFileWrite(FileHandle, FileSize mod MaxBuffSize, Buff) then
-            begin
-              umlFileClose(FileHandle);
-              Exit;
-            end;
-        end;
-    end
-  else
-    begin
-      if FileSize > 0 then
-        begin
-          if not dbPack_ItemRead(FileSize, Buff, ItemHnd, FObjectDataHandle) then
-            begin
-              umlFileClose(FileHandle);
-              Exit;
-            end;
-          if not umlFileWrite(FileHandle, FileSize, Buff) then
-            begin
-              umlFileClose(FileHandle);
-              Exit;
-            end;
-        end;
-    end;
-  umlFileClose(FileHandle);
-  Result := True;
-end;
-
 function TObjectDataManager.ItemMove(const dbPath, ItemName, DestPath: SystemString): Boolean;
 begin
   Result := dbPack_MoveItem(dbPath, ItemName, DestPath, FDefaultItemID, FObjectDataHandle);
@@ -1190,80 +1052,6 @@ end;
 function TObjectDataManager.ItemRead(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean;
 begin
   Result := dbPack_ItemRead(aSize, Buffers, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemReadBool(var ItemHnd: TItemHandle; var Value: Boolean): Boolean;
-var
-  TempValue: Byte;
-begin
-  TempValue := 0;
-  Result := dbPack_ItemRead(1, TempValue, ItemHnd, FObjectDataHandle);
-  Value := (TempValue = 1);
-end;
-
-function TObjectDataManager.ItemReadInt(var ItemHnd: TItemHandle; var Value: Integer): Boolean;
-begin
-  Result := dbPack_ItemRead(umlIntegerLength, Value, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemReadReturnBool(var ItemHnd: TItemHandle; const DefaultValue: Boolean): Boolean;
-var
-  TempValue: Byte;
-begin
-  TempValue := 0;
-  if dbPack_ItemRead(1, TempValue, ItemHnd, FObjectDataHandle) then
-      Result := (TempValue = 1)
-  else
-      Result := DefaultValue;
-end;
-
-function TObjectDataManager.ItemReadReturnInt(var ItemHnd: TItemHandle; const DefaultValue: Integer): Integer;
-var
-  TempInt: Integer;
-begin
-  TempInt := DefaultValue;
-  if dbPack_ItemRead(umlIntegerLength, TempInt, ItemHnd, FObjectDataHandle) then
-      Result := TempInt
-  else
-      Result := DefaultValue;
-end;
-
-function TObjectDataManager.ItemReadReturnStr(var ItemHnd: TItemHandle; const DefaultValue: SystemString): SystemString;
-var
-  TempStr: umlString;
-begin
-  TempStr := DefaultValue;
-  if dbPack_ItemReadStr(TempStr, ItemHnd, FObjectDataHandle) then
-      Result := TempStr
-  else
-      Result := DefaultValue;
-end;
-
-function TObjectDataManager.ItemReadStr(var ItemHnd: TItemHandle; var Value: SystemString): Boolean;
-var
-  TempStr: umlString;
-begin
-  Result := dbPack_ItemReadStr(TempStr, ItemHnd, FObjectDataHandle);
-  if Result then
-      Value := TempStr;
-end;
-
-function TObjectDataManager.ItemReadTime(var ItemHnd: TItemHandle; var Value: TDateTime): Boolean;
-var
-  TempValue: Double;
-begin
-  if dbPack_ItemRead(umlDoubleLength, TempValue, ItemHnd, FObjectDataHandle) then
-    begin
-      try
-          Value := TempValue;
-      except
-      end;
-      Result := True;
-    end
-  else
-    begin
-      Result := False;
-    end;
 end;
 
 function TObjectDataManager.ItemSeekStart(var ItemHnd: TItemHandle): Boolean;
@@ -1304,106 +1092,6 @@ end;
 function TObjectDataManager.ItemWrite(var ItemHnd: TItemHandle; const aSize: Int64; var Buffers): Boolean;
 begin
   Result := dbPack_ItemWrite(aSize, Buffers, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemWriteBool(var ItemHnd: TItemHandle; const Value: Boolean): Boolean;
-var
-  TempValue: Byte;
-begin
-  if Value then
-      TempValue := 1
-  else
-      TempValue := 0;
-  Result := dbPack_ItemWrite(1, TempValue, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemWriteInt(var ItemHnd: TItemHandle; const Value: Integer): Boolean;
-var
-  TempValue: Integer;
-begin
-  TempValue := Value;
-  Result := dbPack_ItemWrite(umlIntegerLength, TempValue, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemWriteStr(var ItemHnd: TItemHandle; const Value: SystemString): Boolean;
-begin
-  Result := dbPack_ItemWriteStr(Value, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemWriteTime(var ItemHnd: TItemHandle; const Value: TDateTime): Boolean;
-var
-  TempValue: Double;
-begin
-  TempValue := Value;
-  Result := dbPack_ItemWrite(umlDoubleLength, TempValue, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ReadBool(const Section, Item: SystemString; const Value: Boolean): Boolean;
-begin
-  if Value then
-      Result := ReadString(Section, Item, '1') = '1'
-  else
-      Result := ReadString(Section, Item, '0') = '1';
-end;
-
-function TObjectDataManager.ReadString(const Section, Item, Value: SystemString): SystemString;
-var
-  TempStr     : SystemString;
-  DBItemHandle: TItemHandle;
-begin
-  Result := Value;
-  TempStr := Value;
-  if not ItemOpen(Section, Item, DBItemHandle) then
-    begin
-      ItemClose(DBItemHandle);
-      Exit;
-    end;
-  if not ItemReadStr(DBItemHandle, TempStr) then
-    begin
-      ItemClose(DBItemHandle);
-      Exit;
-    end;
-  ItemClose(DBItemHandle);
-  Result := TempStr;
-end;
-
-function TObjectDataManager.WriteBool(const Section, Item: SystemString; const Value: Boolean): Boolean;
-begin
-  if Value then
-      Result := WriteString(Section, Item, '1')
-  else
-      Result := WriteString(Section, Item, '0');
-end;
-
-function TObjectDataManager.WriteString(const Section, Item, Value: SystemString): Boolean;
-var
-  DBItemHandle: TItemHandle;
-begin
-  Result := False;
-
-  if not ItemExists(Section, Item) then
-    begin
-      if not ItemCreate(Section, Item, 'Section.Database', DBItemHandle) then
-        begin
-          ItemClose(DBItemHandle);
-          Exit;
-        end;
-    end
-  else
-    begin
-      if not ItemOpen(Section, Item, DBItemHandle) then
-        begin
-          ItemClose(DBItemHandle);
-          Exit;
-        end;
-    end;
-  if not ItemWriteStr(DBItemHandle, Value) then
-    begin
-      ItemClose(DBItemHandle);
-      Exit;
-    end;
-  ItemClose(DBItemHandle);
-  Result := True;
 end;
 
 function TObjectDataManager.RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
