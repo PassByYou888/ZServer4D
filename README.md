@@ -10,18 +10,19 @@
 
 良好支持轻量云主机，腾讯云，阿里云，亚马逊云，均有数百台使用ZServer4D的服务器在运行中
 
+支持内网穿透，在公司或家里自己架设宅服 参考[宅服架设说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
+
 ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记录秒切，支持所有IPV6的云主机
 
 内置高级加密系统，一万在线客户端会有一万把密钥，并且能动态定时更换密钥（请参考ZServer4D的附属开源项目 https://github.com/PassByYou888/CoreCipher ）
 
 架构设计可以轻松实现IP池和入口网络秒切，非常利于在国内商业环境中防止对手DDos攻击
 
+支持中心化网络群集，支持中心化网络群集一键对接
+
 内置NoSQL并行化内核，良好支持大数据，良好支持聚类分析，支持分布式数据库负载，支持分布式数据查询结果汇集（NoSQL技术体系从11月初开始一直处于整理中，工程较大，可能短期不能完成，但是未来会以开源形式为Delphi国内带来前沿的数据库支持体系）
 
 (NoSQL并行化内核已经完成，聚类分析和分布式负载已完成50%文档)
-
-支持中心化网络群集，支持中心化网络群集一键对接
-
 
 
 ## 通讯接口支持(只限Delphi)
@@ -69,13 +70,40 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 ## 关于切入和使用
 
-使用ZServer4D前，请仔细阅读本项目所提供的Demo，做到对基于ZServer4D的开发范式非常了解
+使用ZServer4D前，请仔细阅读本项目所提供的Demo和文档，做到对基于ZServer4D的开发范式非常了解
 
-多读代码!
+参考 [库说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E5%8D%95%E5%85%83%E5%BA%93%E8%AF%B4%E6%98%8E.pdf)
 
 
 
 ## 更新日志
+
+2018-1-16
+
+新增内网穿透 [宅服架设说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
+
+新增云服务器框架2.0 [云服务器框架2.0说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%95%86%E4%B8%9A%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A1%86%E6%9E%B62.0%20%E6%A1%86%E6%9E%B6%E8%AF%B4%E6%98%8E.pdf)
+
+新增单元库的介绍文档，[单元库介绍](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E5%8D%95%E5%85%83%E5%BA%93%E8%AF%B4%E6%98%8E.pdf)
+
+新增DoStatusIO线程无关性支持
+
+新增数模引擎
+
+新增文件打包工具，开放源码
+
+新增将文件编码成pascal代码的工具，开放源码
+
+新增.drp源码排序工具，开放源码
+
+现在SendStreamCmd时DataFrameEngine参数可以为nil
+```Delphi
+	  client.SendStreamCmd('xx cmd', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+	  begin
+	  end) 
+```
+
+
 
 2018-1-3
 
