@@ -10,7 +10,7 @@
 
 良好支持轻量云主机，腾讯云，阿里云，亚马逊云，均有数百台使用ZServer4D的服务器在运行中
 
-支持内网穿透，在公司或家里自己架设宅服 参考[宅服架设说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
+支持内网穿透，在公司或家里自己架设宅服 [宅服架设说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
 
 ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记录秒切，支持所有IPV6的云主机
 
@@ -28,14 +28,17 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 ## 通讯接口支持(只限Delphi)
 
 1.indy(open source) http://www.indyproject.org/
+
 id是阻塞模式的通讯组件，已在ZServer4D内部集成
 
 
 2.CrossSocket(open source) https://github.com/winddriver/Delphi-Cross-Socket
+
 异步式通讯组件，已在ZServer4D内部集成
 
 
 3.ICS(open source) www.overbyte.be
+
 异步式通讯组件，已在ZServer4D内部集成
  
 
@@ -96,8 +99,10 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 新增.drp源码排序工具，开放源码
 
-现在SendStreamCmd时DataFrameEngine参数可以为nil
+维护ObjectData，修改了部分方法
+
 ```Delphi
+	  // 现在SendStreamCmd时DataFrameEngine参数可以为nil
 	  client.SendStreamCmd('xx cmd', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
 	  begin
 	  end) 
