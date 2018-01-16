@@ -98,7 +98,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Align = alLeft
       ParentColor = True
       TabOrder = 4
-      ExplicitLeft = 333
     end
     object CacheStateMemo: TMemo
       Left = 610
@@ -107,8 +106,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Height = 39
       Align = alClient
       TabOrder = 5
-      ExplicitLeft = 558
-      ExplicitWidth = 338
     end
     object RecalcMD5Button: TButton
       Left = 349
@@ -119,7 +116,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'MD5'
       TabOrder = 6
       OnClick = RecalcMD5ButtonClick
-      ExplicitLeft = 297
     end
     object CompressAsButton: TButton
       Left = 221
@@ -130,7 +126,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Save as Compressed'
       TabOrder = 7
       OnClick = CompressAsButtonClick
-      ExplicitLeft = 211
     end
   end
   object Memo: TMemo
@@ -143,10 +138,9 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
     WordWrap = False
   end
   object OpenDialog: TOpenDialog
-    DefaultExt = '.OX'
     Filter = 
-      'Object Data(*.OX)|*.OX|Compressed Object Data(*.OXC)|*.OXC|All(*' +
-      '.*)|*.*'
+      'all files(*.OX;*.OXC)|*.OX;*.OXC|Object Data(*.OX)|*.OX|Compress' +
+      'ed Object Data(*.OXC)|*.OXC|All(*.*)|*.*'
     Options = [ofPathMustExist, ofFileMustExist, ofShareAware, ofNoTestFileCreate, ofEnableSizing]
     Left = 56
     Top = 88

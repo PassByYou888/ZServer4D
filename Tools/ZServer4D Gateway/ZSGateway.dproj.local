@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2018/01/14 17:37:30.000.777,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.dfm</Transaction>
+    <Transaction>2018/01/14 17:37:30.000.777,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.pas</Transaction>
+    <Transaction>2018/01/14 17:37:35.000.600,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigure.dproj</Transaction>
+    <Transaction>2018/01/15 14:44:54.000.271,C:\git\ZServer4D\Tools\FRPConfigure\GatewayConfigure.dproj=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigure.dproj</Transaction>
+    <Transaction>2018/01/15 14:45:01.000.686,C:\git\ZServer4D\Tools\FRPConfigure\ZSGateway.dproj=C:\git\ZServer4D\Tools\FRPConfigure\GatewayConfigure.dproj</Transaction>
+    <Transaction>2018/01/15 14:45:27.000.304,C:\git\ZServer4D\Tools\FRPConfigure\zsGatewayConfigureFrm.dfm=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.dfm</Transaction>
+    <Transaction>2018/01/15 14:45:27.000.304,C:\git\ZServer4D\Tools\FRPConfigure\zsGatewayConfigureFrm.pas=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.pas</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
+		<Pmini iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+</BorlandProject>

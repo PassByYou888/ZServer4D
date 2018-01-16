@@ -2,6 +2,6 @@
 <BorlandProject>
 	<Transactions/>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\1.单向服务器框架\FMXCli\FMXClient.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\Examples\1.单向服务器框架\EzSer\EzServer.dproj"/>
 	</Default.Personality>
 </BorlandProject>

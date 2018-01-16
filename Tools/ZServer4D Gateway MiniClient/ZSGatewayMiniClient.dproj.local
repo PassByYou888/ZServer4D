@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/10/17 16:44:11.000.723,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ServerMethodsUnit1.pas</Transaction>
+    <Transaction>2018/01/14 17:37:30.000.777,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.pas</Transaction>
+    <Transaction>2018/01/14 17:37:30.000.777,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.dfm</Transaction>
+    <Transaction>2018/01/14 17:37:35.000.600,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigure.dproj</Transaction>
+    <Transaction>2018/01/15 14:44:54.000.271,C:\git\ZServer4D\Tools\FRPConfigure\GatewayConfigure.dproj=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigure.dproj</Transaction>
+    <Transaction>2018/01/15 14:45:01.000.686,C:\git\ZServer4D\Tools\FRPConfigure\ZSGateway.dproj=C:\git\ZServer4D\Tools\FRPConfigure\GatewayConfigure.dproj</Transaction>
+    <Transaction>2018/01/15 14:45:27.000.304,C:\git\ZServer4D\Tools\FRPConfigure\zsGatewayConfigureFrm.pas=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.pas</Transaction>
+    <Transaction>2018/01/15 14:45:27.000.304,C:\git\ZServer4D\Tools\FRPConfigure\zsGatewayConfigureFrm.dfm=C:\git\ZServer4D\Tools\FRPConfigure\frpConfigureFrm.dfm</Transaction>
+    <Transaction>2018/01/17 00:47:49.000.449,C:\TextGame\experiment\ZServer4D Gateway MiniServer\ZSGateway.dproj=C:\TextGame\experiment\ZServer4D Gateway MiniServer\ZSGatewayMiniServ.dproj</Transaction>
+    <Transaction>2018/01/17 00:48:00.000.630,C:\TextGame\experiment\ZServer4D Gateway MiniServer\zsGatewayConfigureFrm.pas=C:\TextGame\experiment\ZServer4D Gateway MiniServer\zsGatewayMiniServConfigureFrm.pas</Transaction>
+    <Transaction>2018/01/17 00:48:00.000.630,C:\TextGame\experiment\ZServer4D Gateway MiniServer\zsGatewayConfigureFrm.dfm=C:\TextGame\experiment\ZServer4D Gateway MiniServer\zsGatewayMiniServConfigureFrm.dfm</Transaction>
+    <Transaction>2018/01/17 00:49:36.000.243,=C:\TextGame\experiment\ZServer4D Gateway MiniServer\FRPServFilePackage.OXC</Transaction>
+    <Transaction>2018/01/17 01:46:04.000.188,C:\TextGame\experiment\ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj=C:\TextGame\experiment\ZServer4D Gateway MiniClient\ZSGatewayMiniServ.dproj</Transaction>
+    <Transaction>2018/01/17 01:46:17.000.820,C:\TextGame\experiment\ZServer4D Gateway MiniClient\zsGatewayMiniClientConfigureFrm.dfm=C:\TextGame\experiment\ZServer4D Gateway MiniClient\zsGatewayMiniServConfigureFrm.dfm</Transaction>
+    <Transaction>2018/01/17 01:46:17.000.820,C:\TextGame\experiment\ZServer4D Gateway MiniClient\zsGatewayMiniClientConfigureFrm.pas=C:\TextGame\experiment\ZServer4D Gateway MiniClient\zsGatewayMiniServConfigureFrm.pas</Transaction>
+    <Transaction>2018/01/17 01:58:47.000.943,=C:\TextGame\experiment\ZServer4D Gateway MiniClient\FRPClientPackage.OXC</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
+		<Pmini iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+</BorlandProject>
