@@ -101,13 +101,13 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 维护ObjectData，修改了部分方法
 
+现在SendStreamCmd时DataFrameEngine参数可以为nil
+	  
 ```Delphi
-	  // 现在SendStreamCmd时DataFrameEngine参数可以为nil
 	  client.SendStreamCmd('xx cmd', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
 	  begin
 	  end) 
 ```
-
 
 
 2018-1-3
