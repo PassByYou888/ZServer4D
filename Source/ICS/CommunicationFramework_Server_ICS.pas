@@ -15,6 +15,7 @@ interface
 
 uses Windows, SysUtils, Classes, Messages,
   OverByteIcsWSocket,
+  PascalStrings,
   CommunicationFramework_Server_ICSCustomSocket,
   CommunicationFramework, CoreClasses, DoStatusIO, DataFrameEngine;
 
@@ -48,7 +49,7 @@ type
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
-    function GetPeerIP: string; override;
+    function GetPeerIP: SystemString; override;
 
     procedure ContinueResultSend; override;
   end;
@@ -81,7 +82,7 @@ type
   TCommunicationFramework_Server_ICS = class(TCommunicationFrameworkServer)
   private
     FDriver        : TCustomICSSocketServer;
-    FBindHost      : string;
+    FBindHost      : SystemString;
     FBindPort      : Word;
     FStartedService: Boolean;
 
@@ -93,17 +94,17 @@ type
     destructor Destroy; override;
 
     procedure StopService; override;
-    function StartService(Host: string; Port: Word): Boolean; override;
+    function StartService(Host: SystemString; Port: Word): Boolean; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; overload; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TCustomICSSocketServer read FDriver;
-    property BindHost: string read FBindHost;
+    property BindHost: SystemString read FBindHost;
     property BindPort: Word read FBindPort;
   end;
 
@@ -335,7 +336,7 @@ begin
   end;
 end;
 
-function TPeerClientIntfForICS.GetPeerIP: string;
+function TPeerClientIntfForICS.GetPeerIP: SystemString;
 begin
   if FContext <> nil then
       Result := FContext.PeerAddr
@@ -579,7 +580,7 @@ begin
   inherited Destroy;
 end;
 
-function TCommunicationFramework_Server_ICS.StartService(Host: string; Port: Word): Boolean;
+function TCommunicationFramework_Server_ICS.StartService(Host: SystemString; Port: Word): Boolean;
 begin
   try
     // open listen
@@ -646,13 +647,13 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
+function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
-procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;

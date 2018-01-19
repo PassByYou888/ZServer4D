@@ -35,8 +35,6 @@ type
     procedure ListViewEdited(Sender: TObject; Item: TListItem; var S: string);
     procedure ListViewEditing(Sender: TObject; Item: TListItem; var AllowEdit: Boolean);
     procedure ListViewKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure ListViewCustomDrawItem(Sender: TCustomListView;
-      Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
   private
     { Private declarations }
     FDefaultFolderImageIndex: Integer;
@@ -194,15 +192,6 @@ begin
       Exit;
   if ListView.Selected <> nil then
       ListView.Selected.EditCaption;
-end;
-
-procedure TObjectDataManagerFrame.ListViewCustomDrawItem(
-  Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
-begin
-  if Item.ImageIndex = DefaultFolderImageIndex then
-      Sender.Canvas.Font.Style := [fsBold]
-  else
-      Sender.Canvas.Font.Style := [];
 end;
 
 procedure TObjectDataManagerFrame.ListViewEdited(Sender: TObject; Item: TListItem; var S: string);

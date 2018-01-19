@@ -185,14 +185,20 @@ begin
 
   if NetSendTunnelIntf.ClientIO.StopCommunicationTime > 5 * 1000 then
     begin
-      if NetSendTunnelIntf.Wait(1000) = '' then
+      NetSendTunnelIntf.Wait(3000, procedure(const cState: Boolean)
         begin
-          if LastConnectState then
-              NetSendTunnelIntf.TriggerDoDisconnect;
-          LastConnectState := False;
-          exit;
-        end;
-      NetSendTunnelIntf.ClientIO.SetLastCommunicationTimeAsCurrent;
+          if cState then
+            begin
+              NetSendTunnelIntf.ClientIO.SetLastCommunicationTimeAsCurrent;
+              NetRecvTunnelIntf.ClientIO.SetLastCommunicationTimeAsCurrent;
+            end
+          else
+            begin
+              if LastConnectState then
+                  NetSendTunnelIntf.TriggerDoDisconnect;
+              LastConnectState := False;
+            end;
+        end);
     end;
 end;
 

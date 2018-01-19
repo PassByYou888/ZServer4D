@@ -39,7 +39,7 @@
 {$ENDIF}
 *)
 
-{$define parallel}
+{.$define parallel}
 
 {$IFDEF release}
 {$DEFINE INLINE_ASM}

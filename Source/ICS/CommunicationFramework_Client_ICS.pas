@@ -14,6 +14,7 @@ unit CommunicationFramework_Client_ICS;
 interface
 
 uses Windows, SysUtils, Classes, Messages,
+  PascalStrings,
   OverByteIcsWSocket,
   CommunicationFramework_Server_ICSCustomSocket,
   CommunicationFramework, CoreClasses, DoStatusIO;
@@ -31,7 +32,7 @@ type
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
-    function GetPeerIP: string; override;
+    function GetPeerIP: SystemString; override;
 
     procedure ContinueResultSend; override;
   end;
@@ -44,17 +45,31 @@ type
     FDriver: TClientICSContextIntf;
     FClient: TPeerClientIntfForICS;
 
+    FAsyncConnecting           : Boolean;
+    FOnAsyncConnectNotifyCall  : TStateCall;
+    FOnAsyncConnectNotifyMethod: TStateMethod;
+    FOnAsyncConnectNotifyProc  : TStateProc;
+
     procedure DataAvailable(Sender: TObject; ErrCode: Word);
     procedure SessionClosed(Sender: TObject; ErrCode: Word);
-    procedure SessionConnected(Sender: TObject; ErrCode: Word);
+    procedure SessionConnectedAndCreateContext(Sender: TObject; ErrCode: Word);
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
   public
     constructor Create; override;
     destructor Destroy; override;
 
-    function Connect(Host, Port: string; AWaitTimeOut: TTimeTickValue): Boolean; overload;
-    function Connect(Host, Port: string): Boolean; overload;
-    function Connect(Addr: string; Port: Word): Boolean; overload; override;
+    procedure TriggerDoConnectFailed; override;
+    procedure TriggerDoConnectFinished; override;
+
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+
+    function Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTickValue): Boolean; overload;
+    function Connect(Host, Port: SystemString): Boolean; overload;
+    function Connect(Addr: SystemString; Port: Word): Boolean; overload; override;
     procedure Disconnect; override;
+
     function Connected: Boolean; override;
     function ClientIO: TPeerClient; override;
 
@@ -79,7 +94,7 @@ begin
   Context.Disconnect;
 end;
 
-function TPeerClientIntfForICS.GetPeerIP: string;
+function TPeerClientIntfForICS.GetPeerIP: SystemString;
 begin
   Result := Context.FDriver.Addr;
 end;
@@ -137,12 +152,39 @@ end;
 
 procedure TCommunicationFramework_Client_ICS.SessionClosed(Sender: TObject; ErrCode: Word);
 begin
-  DoDisconnect(FClient);
+  if FAsyncConnecting then
+      TriggerDoConnectFailed;
   FClient.Print('client disonnect for %s:%s', [FDriver.Addr, FDriver.Port]);
+  DoDisconnect(FClient);
 end;
 
-procedure TCommunicationFramework_Client_ICS.SessionConnected(Sender: TObject; ErrCode: Word);
+procedure TCommunicationFramework_Client_ICS.SessionConnectedAndCreateContext(Sender: TObject; ErrCode: Word);
 begin
+  FClient.Print('client connected %s:%s', [FDriver.Addr, FDriver.Port]);
+  DoConnected(FClient);
+end;
+
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
+var
+  AStopTime: TTimeTickValue;
+begin
+  Disconnect;
+
+  FDriver.OnSessionConnected := SessionConnectedAndCreateContext;
+  FAsyncConnecting := True;
+  FOnAsyncConnectNotifyCall := OnResultCall;
+  FOnAsyncConnectNotifyMethod := OnResultMethod;
+  FOnAsyncConnectNotifyProc := OnResultProc;
+
+  FDriver.Proto := 'tcp';
+  FDriver.Port := IntToStr(Port);
+  FDriver.Addr := Addr;
+
+  try
+      FDriver.Connect;
+  except
+      TriggerDoConnectFailed;
+  end;
 end;
 
 constructor TCommunicationFramework_Client_ICS.Create;
@@ -154,9 +196,13 @@ begin
   FDriver.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
   FDriver.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
   FDriver.OnDataAvailable := DataAvailable;
-  FDriver.OnSessionConnected := SessionConnected;
   FDriver.OnSessionClosed := SessionClosed;
   FClient := TPeerClientIntfForICS.Create(Self, Self);
+
+  FAsyncConnecting := False;
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
 end;
 
 destructor TCommunicationFramework_Client_ICS.Destroy;
@@ -166,11 +212,78 @@ begin
   inherited Destroy;
 end;
 
-function TCommunicationFramework_Client_ICS.Connect(Host, Port: string; AWaitTimeOut: TTimeTickValue): Boolean;
+procedure TCommunicationFramework_Client_ICS.TriggerDoConnectFailed;
+begin
+  inherited TriggerDoConnectFailed;
+
+  try
+    if Assigned(FOnAsyncConnectNotifyCall) then
+        FOnAsyncConnectNotifyCall(False);
+    if Assigned(FOnAsyncConnectNotifyMethod) then
+        FOnAsyncConnectNotifyMethod(False);
+    if Assigned(FOnAsyncConnectNotifyProc) then
+        FOnAsyncConnectNotifyProc(False);
+  except
+  end;
+
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
+
+  FDriver.OnSessionConnected := nil;
+
+  FAsyncConnecting := False;
+end;
+
+procedure TCommunicationFramework_Client_ICS.TriggerDoConnectFinished;
+begin
+  inherited TriggerDoConnectFinished;
+
+  try
+    if Assigned(FOnAsyncConnectNotifyCall) then
+        FOnAsyncConnectNotifyCall(True);
+    if Assigned(FOnAsyncConnectNotifyMethod) then
+        FOnAsyncConnectNotifyMethod(True);
+    if Assigned(FOnAsyncConnectNotifyProc) then
+        FOnAsyncConnectNotifyProc(True);
+  except
+  end;
+
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
+
+  FDriver.OnSessionConnected := nil;
+
+  FAsyncConnecting := False;
+end;
+
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
+begin
+  AsyncConnect(Addr, Port, OnResult, nil, nil);
+end;
+
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
+begin
+  AsyncConnect(Addr, Port, nil, OnResult, nil);
+end;
+
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+begin
+  AsyncConnect(Addr, Port, nil, nil, OnResult);
+end;
+
+function TCommunicationFramework_Client_ICS.Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTickValue): Boolean;
 var
   AStopTime: TTimeTickValue;
 begin
   Disconnect;
+
+  FDriver.OnSessionConnected := nil;
+  FAsyncConnecting := False;
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
 
   FDriver.Proto := 'tcp';
   FDriver.Port := Port;
@@ -179,6 +292,8 @@ begin
   try
       FDriver.Connect;
   except
+    Result := False;
+    exit;
   end;
 
   AStopTime := GetTimeTickCount + AWaitTimeOut;
@@ -207,7 +322,7 @@ begin
       if (GetTimeTickCount >= AStopTime) then
         begin
           FDriver.Close;
-          Exit(Connect(Host, Port, AWaitTimeOut));
+          exit(Connect(Host, Port, AWaitTimeOut));
         end;
       if FDriver.State in [wsClosed] then
           break;
@@ -221,12 +336,12 @@ begin
       FClient.Print('client connected %s:%s', [FDriver.Addr, FDriver.Port]);
 end;
 
-function TCommunicationFramework_Client_ICS.Connect(Host, Port: string): Boolean;
+function TCommunicationFramework_Client_ICS.Connect(Host, Port: SystemString): Boolean;
 begin
   Result := Connect(Host, Port, 5000);
 end;
 
-function TCommunicationFramework_Client_ICS.Connect(Addr: string; Port: Word): Boolean;
+function TCommunicationFramework_Client_ICS.Connect(Addr: SystemString; Port: Word): Boolean;
 begin
   Result := Connect(Addr, IntToStr(Port), 5000);
 end;
@@ -253,7 +368,7 @@ begin
   if not Connected then
     begin
       DisposeQueueData(v);
-      Exit;
+      exit;
     end;
 
   FClient.PostQueueData(v);

@@ -4,34 +4,7 @@
     <Transaction>2018/01/14 17:33:01.000.295,C:\git\ZServer4D\Tools\FilePackageWithZDB\DBMan.dproj=C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDB.dproj</Transaction>
     <Transaction>2018/01/14 17:33:14.000.611,C:\git\ZServer4D\Tools\FilePackageWithZDB\DBFrm.dfm=C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainForm.dfm</Transaction>
     <Transaction>2018/01/14 17:33:14.000.611,C:\git\ZServer4D\Tools\FilePackageWithZDB\DBFrm.pas=C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainForm.pas</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.034,C:\CoreLibrary\DataFrameEngine.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.055,C:\CoreLibrary\UnicodeMixedLib.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.044,C:\CoreLibrary\JsonDataObjects.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.032,C:\CoreLibrary\CoreCompress.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.039,C:\CoreLibrary\Geometry3DUnit.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.041,C:\CoreLibrary\GeometryLib.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.053,C:\CoreLibrary\TextTable.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.050,C:\CoreLibrary\PascalStrings.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.051,C:\CoreLibrary\TextDataEngine.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.048,C:\CoreLibrary\NotifyObjectBase.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.025,C:\CoreLibrary\Cadencer.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.036,C:\CoreLibrary\DoStatusIO.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.042,C:\CoreLibrary\GeometryRotationUnit.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.047,C:\CoreLibrary\MemoryStream64.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.030,C:\CoreLibrary\CoreClasses.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.052,C:\CoreLibrary\TextParsing.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.029,C:\CoreLibrary\CoreCipher.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.037,C:\CoreLibrary\Geometry2DUnit.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:33.000.045,C:\CoreLibrary\ListEngine.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.198,C:\CoreLibrary\ObjectData\StreamList.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.194,C:\CoreLibrary\ObjectData\ItemStream.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.200,C:\CoreLibrary\ObjectData\ZDBLocalManager.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.192,C:\CoreLibrary\ObjectData\DBCompressPackageForFile.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.199,C:\CoreLibrary\ObjectData\ZDBEngine.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.196,C:\CoreLibrary\ObjectData\ObjectData.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.195,C:\CoreLibrary\ObjectData\LibraryManager.pas=</Transaction>
-    <Transaction>2018/01/14 17:33:37.000.197,C:\CoreLibrary\ObjectData\ObjectDataManager.pas=</Transaction>
-    <Transaction>2018/01/14 17:34:15.000.137,C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainForm.dfm=C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainFrm.dfm</Transaction>
     <Transaction>2018/01/14 17:34:15.000.137,C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainForm.pas=C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainFrm.pas</Transaction>
+    <Transaction>2018/01/14 17:34:15.000.137,C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainForm.dfm=C:\git\ZServer4D\Tools\FilePackageWithZDB\FilePackageWithZDBMainFrm.dfm</Transaction>
   </Transactions>
 </BorlandProject>

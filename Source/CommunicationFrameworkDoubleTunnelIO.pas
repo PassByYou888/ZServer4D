@@ -282,6 +282,17 @@ type
     // client notify interface
     procedure ClientConnected(Sender: TCommunicationFrameworkClient); virtual;
     procedure ClientDisconnect(Sender: TCommunicationFrameworkClient); virtual;
+  protected
+    // async connect support
+    FAsyncConnectAddr                     : SystemString;
+    FAsyncConnRecvPort, FAsyncConnSendPort: word;
+    FAsyncOnResultCall                    : TStateCall;
+    FAsyncOnResultMethod                  : TStateMethod;
+    {$IFNDEF FPC}
+    FAsyncOnResultProc: TStateProc;
+    {$ENDIF}
+    procedure AsyncSendConnectResult(const cState: Boolean);
+    procedure AsyncRecvConnectResult(const cState: Boolean);
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
     destructor Destroy; override;
@@ -295,7 +306,14 @@ type
     procedure Progress; virtual;
     procedure CadencerProgress(Sender: TObject; const deltaTime, newTime: Double); virtual;
 
+    // sync connect
     function Connect(addr: SystemString; const RecvPort, SendPort: word): Boolean; virtual;
+
+    // async
+    procedure AsyncConnect(addr: SystemString; const RecvPort, SendPort: word; OnResult: TStateCall); overload; virtual;
+    procedure AsyncConnect(addr: SystemString; const RecvPort, SendPort: word; OnResult: TStateMethod); overload; virtual;
+    {$IFNDEF FPC} procedure AsyncConnect(addr: SystemString; const RecvPort, SendPort: word; OnResult: TStateProc); overload; virtual; {$ENDIF}
+    //
     procedure Disconnect; virtual;
 
     // Block mode
@@ -2592,6 +2610,66 @@ procedure TCommunicationFramework_DoubleTunnelClient.ClientDisconnect(Sender: TC
 begin
 end;
 
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncSendConnectResult(const cState: Boolean);
+begin
+  if not cState then
+    begin
+      try
+        if Assigned(FAsyncOnResultCall) then
+            FAsyncOnResultCall(False);
+        if Assigned(FAsyncOnResultMethod) then
+            FAsyncOnResultMethod(False);
+        {$IFNDEF FPC}
+        if Assigned(FAsyncOnResultProc) then
+            FAsyncOnResultProc(False);
+        {$ENDIF}
+      except
+      end;
+      FAsyncConnectAddr := '';
+      FAsyncConnRecvPort := 0;
+      FAsyncConnSendPort := 0;
+      FAsyncOnResultCall := nil;
+      FAsyncOnResultMethod := nil;
+      {$IFNDEF FPC}
+      FAsyncOnResultProc := nil;
+      {$ENDIF}
+      Exit;
+    end;
+
+  {$IFDEF FPC}
+  RecvTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnRecvPort, @AsyncRecvConnectResult);
+  {$ELSE}
+  RecvTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnRecvPort, AsyncRecvConnectResult);
+  {$ENDIF}
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncRecvConnectResult(const cState: Boolean);
+begin
+  if not cState then
+      SendTunnel.Disconnect;
+
+  try
+    if Assigned(FAsyncOnResultCall) then
+        FAsyncOnResultCall(cState);
+    if Assigned(FAsyncOnResultMethod) then
+        FAsyncOnResultMethod(cState);
+    {$IFNDEF FPC}
+    if Assigned(FAsyncOnResultProc) then
+        FAsyncOnResultProc(cState);
+    {$ENDIF}
+  except
+  end;
+
+  FAsyncConnectAddr := '';
+  FAsyncConnRecvPort := 0;
+  FAsyncConnSendPort := 0;
+  FAsyncOnResultCall := nil;
+  FAsyncOnResultMethod := nil;
+  {$IFNDEF FPC}
+  FAsyncOnResultProc := nil;
+  {$ENDIF}
+end;
+
 constructor TCommunicationFramework_DoubleTunnelClient.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
 begin
   inherited Create;
@@ -2623,6 +2701,15 @@ begin
 
   FProgressEngine := TNProgressPost.Create;
 
+  FAsyncConnectAddr := '';
+  FAsyncConnRecvPort := 0;
+  FAsyncConnSendPort := 0;
+  FAsyncOnResultCall := nil;
+  FAsyncOnResultMethod := nil;
+  {$IFNDEF FPC}
+  FAsyncOnResultProc := nil;
+  {$ENDIF}
+  //
   SwitchAsDefaultPerformance;
 end;
 
@@ -2712,6 +2799,60 @@ begin
   Result := Connected;
 end;
 
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnect(addr: SystemString; const RecvPort, SendPort: word; OnResult: TStateCall);
+begin
+  Disconnect;
+  FAsyncConnectAddr := addr;
+  FAsyncConnRecvPort := RecvPort;
+  FAsyncConnSendPort := SendPort;
+  FAsyncOnResultCall := OnResult;
+  FAsyncOnResultMethod := nil;
+  {$IFNDEF FPC}
+  FAsyncOnResultProc := nil;
+  {$ENDIF}
+  {$IFDEF FPC}
+  SendTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnSendPort, @AsyncSendConnectResult);
+  {$ELSE}
+  SendTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnSendPort, AsyncSendConnectResult);
+  {$ENDIF}
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnect(addr: SystemString; const RecvPort, SendPort: word; OnResult: TStateMethod);
+begin
+  Disconnect;
+  FAsyncConnectAddr := addr;
+  FAsyncConnRecvPort := RecvPort;
+  FAsyncConnSendPort := SendPort;
+  FAsyncOnResultCall := nil;
+  FAsyncOnResultMethod := OnResult;
+  {$IFNDEF FPC}
+  FAsyncOnResultProc := nil;
+  {$ENDIF}
+  {$IFDEF FPC}
+  SendTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnSendPort, @AsyncSendConnectResult);
+  {$ELSE}
+  SendTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnSendPort, AsyncSendConnectResult);
+  {$ENDIF}
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnect(addr: SystemString; const RecvPort, SendPort: word; OnResult: TStateProc);
+begin
+  Disconnect;
+  FAsyncConnectAddr := addr;
+  FAsyncConnRecvPort := RecvPort;
+  FAsyncConnSendPort := SendPort;
+  FAsyncOnResultCall := nil;
+  FAsyncOnResultMethod := nil;
+  FAsyncOnResultProc := OnResult;
+
+  SendTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnSendPort, AsyncSendConnectResult);
+end;
+{$ENDIF}
+
+
 procedure TCommunicationFramework_DoubleTunnelClient.Disconnect;
 begin
   if FSendTunnel.ClientIO <> nil then
@@ -2719,6 +2860,15 @@ begin
 
   if FRecvTunnel.ClientIO <> nil then
       FRecvTunnel.ClientIO.Disconnect;
+
+  FAsyncConnectAddr := '';
+  FAsyncConnRecvPort := 0;
+  FAsyncConnSendPort := 0;
+  FAsyncOnResultCall := nil;
+  FAsyncOnResultMethod := nil;
+  {$IFNDEF FPC}
+  FAsyncOnResultProc := nil;
+  {$ENDIF}
 end;
 
 function TCommunicationFramework_DoubleTunnelClient.UserLogin(UserID, Passwd: SystemString): Boolean;

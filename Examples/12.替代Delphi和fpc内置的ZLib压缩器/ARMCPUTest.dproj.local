@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/12/29 19:10:12.000.999,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTestFrm.pas</Transaction>
-    <Transaction>2017/12/29 19:10:12.000.999,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTestFrm.fmx</Transaction>
-    <Transaction>2017/12/29 19:10:15.000.501,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTest.dproj</Transaction>
+    <Transaction>2017/12/29 19:10:12.000.999,C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTestFrm.fmx=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx</Transaction>
+    <Transaction>2017/12/29 19:10:12.000.999,C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTestFrm.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/12/29 19:10:15.000.501,C:\Users\Administrator\Desktop\ARMCpuTest\ARMCPUTest.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
     <Transaction>2018/01/02 09:41:13.000.731,=C:\ZServer4D-master\Source\MemoryStream64.pas</Transaction>
-    <Transaction>2018/01/02 09:41:13.000.689,=C:\ZServer4D-master\Source\CoreClasses.pas</Transaction>
     <Transaction>2018/01/02 09:41:13.000.714,=C:\ZServer4D-master\Source\CoreCompress.pas</Transaction>
+    <Transaction>2018/01/02 09:41:13.000.689,=C:\ZServer4D-master\Source\CoreClasses.pas</Transaction>
     <Transaction>2018/01/02 09:41:24.000.064,=C:\ZServer4D-master\Source\PascalStrings.pas</Transaction>
     <Transaction>2018/01/02 09:41:44.000.294,=C:\ZServer4D-master\Source\UnicodeMixedLib.pas</Transaction>
     <Transaction>2018/01/02 09:41:59.000.451,=C:\ZServer4D-master\Source\DoStatusIO.pas</Transaction>

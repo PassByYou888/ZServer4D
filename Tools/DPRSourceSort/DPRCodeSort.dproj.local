@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2016/12/30 00:57:52.000.701,C:\Addiction RPG Builder\DPRSourceSort\SortFrm.fmx=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx</Transaction>
-    <Transaction>2016/12/30 00:58:04.000.597,C:\Addiction RPG Builder\DPRSourceSort\DPRCodeSort.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2016/12/30 00:57:52.000.701,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\Addiction RPG Builder\DPRSourceSort\SortFrm.fmx</Transaction>
+    <Transaction>2016/12/30 00:58:04.000.597,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Addiction RPG Builder\DPRSourceSort\DPRCodeSort.dproj</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>

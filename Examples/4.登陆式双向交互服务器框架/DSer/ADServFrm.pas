@@ -38,6 +38,7 @@ type
     Timer1: TTimer;
     ChangeCaptionButton: TButton;
     GetClientValueButton: TButton;
+    TimeLabel: TLabel;
     procedure StartServiceButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -242,6 +243,7 @@ end;
 procedure TAuthDoubleServerForm.Timer1Timer(Sender: TObject);
 begin
   Service.Progress;
+  timeLabel.Caption:=Format('sync time:%f', [Service.CadencerEngine.UpdateCurrentTime]);
 end;
 
 end.

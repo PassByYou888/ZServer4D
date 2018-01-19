@@ -3,7 +3,7 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   Top = 0
   Caption = 'File Package WithZDB...'
   ClientHeight = 513
-  ClientWidth = 897
+  ClientWidth = 1167
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -18,124 +18,215 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
+  object Splitter1: TSplitter
+    Left = 0
+    Top = 389
+    Width = 1167
+    Height = 3
+    Cursor = crVSplit
+    Align = alBottom
+    AutoSnap = False
+    ExplicitTop = 41
+    ExplicitWidth = 407
+  end
   object TopPanel: TPanel
     Left = 0
     Top = 0
-    Width = 897
-    Height = 41
+    Width = 1167
+    Height = 57
     Align = alTop
+    BorderWidth = 5
     TabOrder = 0
+    ExplicitWidth = 897
     object Bevel1: TBevel
-      Left = 151
-      Top = 1
+      Left = 176
+      Top = 6
       Width = 10
-      Height = 39
+      Height = 45
       Align = alLeft
       Shape = bsSpacer
+      ExplicitLeft = 151
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object Bevel2: TBevel
-      Left = 339
-      Top = 1
+      Left = 364
+      Top = 6
       Width = 10
-      Height = 39
+      Height = 45
       Align = alLeft
       Shape = bsSpacer
+      ExplicitLeft = 339
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object Bevel3: TBevel
-      Left = 211
-      Top = 1
+      Left = 236
+      Top = 6
       Width = 10
-      Height = 39
+      Height = 45
       Align = alLeft
       Shape = bsSpacer
+      ExplicitLeft = 211
       ExplicitTop = 2
+      ExplicitHeight = 39
+    end
+    object Bevel4: TBevel
+      Left = 56
+      Top = 6
+      Width = 10
+      Height = 45
+      Align = alLeft
+      Shape = bsSpacer
+      ExplicitLeft = 38
+      ExplicitTop = 8
+      ExplicitHeight = 33
+    end
+    object Bevel5: TBevel
+      Left = 116
+      Top = 6
+      Width = 10
+      Height = 45
+      Align = alLeft
+      Shape = bsSpacer
+      ExplicitLeft = 98
+      ExplicitTop = 0
+      ExplicitHeight = 33
+    end
+    object Bevel6: TBevel
+      Left = 410
+      Top = 6
+      Width = 10
+      Height = 45
+      Align = alLeft
+      Shape = bsSpacer
+      ExplicitLeft = 408
+      ExplicitTop = 4
+      ExplicitHeight = 33
+    end
+    object Bevel7: TBevel
+      Left = 645
+      Top = 6
+      Width = 10
+      Height = 45
+      Align = alLeft
+      Shape = bsSpacer
+      ExplicitLeft = 637
+      ExplicitTop = 0
+      ExplicitHeight = 33
     end
     object NewButton: TButton
-      Left = 1
-      Top = 1
+      Left = 6
+      Top = 6
       Width = 50
-      Height = 39
+      Height = 45
       Align = alLeft
       Caption = 'New'
       TabOrder = 0
       OnClick = NewButtonClick
+      ExplicitLeft = -2
+      ExplicitTop = -2
+      ExplicitHeight = 33
     end
     object OpenButton: TButton
-      Left = 51
-      Top = 1
+      Left = 66
+      Top = 6
       Width = 50
-      Height = 39
+      Height = 45
       Align = alLeft
       Caption = 'Open'
       TabOrder = 1
       OnClick = OpenButtonClick
+      ExplicitLeft = 51
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object SaveButton: TButton
-      Left = 101
-      Top = 1
+      Left = 126
+      Top = 6
       Width = 50
-      Height = 39
+      Height = 45
       Align = alLeft
       Caption = 'Save'
       TabOrder = 2
       OnClick = SaveButtonClick
+      ExplicitLeft = 101
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object SaveAsButton: TButton
-      Left = 161
-      Top = 1
+      Left = 186
+      Top = 6
       Width = 50
-      Height = 39
+      Height = 45
       Align = alLeft
       Caption = 'Save as'
       TabOrder = 3
       OnClick = SaveAsButtonClick
+      ExplicitLeft = 161
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object MD5Edit: TMemo
-      Left = 385
-      Top = 1
+      Left = 420
+      Top = 6
       Width = 225
-      Height = 39
+      Height = 45
       Align = alLeft
       ParentColor = True
       TabOrder = 4
+      ExplicitLeft = 385
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object CacheStateMemo: TMemo
-      Left = 610
-      Top = 1
-      Width = 286
-      Height = 39
+      Left = 655
+      Top = 6
+      Width = 506
+      Height = 45
       Align = alClient
       TabOrder = 5
+      ExplicitLeft = 610
+      ExplicitTop = 1
+      ExplicitWidth = 286
+      ExplicitHeight = 39
     end
     object RecalcMD5Button: TButton
-      Left = 349
-      Top = 1
+      Left = 374
+      Top = 6
       Width = 36
-      Height = 39
+      Height = 45
       Align = alLeft
       Caption = 'MD5'
       TabOrder = 6
       OnClick = RecalcMD5ButtonClick
+      ExplicitLeft = 349
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
     object CompressAsButton: TButton
-      Left = 221
-      Top = 1
+      Left = 246
+      Top = 6
       Width = 118
-      Height = 39
+      Height = 45
       Align = alLeft
       Caption = 'Save as Compressed'
       TabOrder = 7
       OnClick = CompressAsButtonClick
+      ExplicitLeft = 221
+      ExplicitTop = 1
+      ExplicitHeight = 39
     end
   end
   object Memo: TMemo
     Left = 0
-    Top = 448
-    Width = 897
-    Height = 65
+    Top = 392
+    Width = 1167
+    Height = 121
     Align = alBottom
     TabOrder = 1
     WordWrap = False
+    ExplicitWidth = 897
   end
   object OpenDialog: TOpenDialog
     Filter = 

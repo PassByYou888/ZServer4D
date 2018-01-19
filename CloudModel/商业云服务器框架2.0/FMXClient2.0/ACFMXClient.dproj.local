@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/12/23 10:03:49.000.046,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit2.fmx=C:\QP2.0\QPClient2.0\QPMainFrm.fmx</Transaction>
+    <Transaction>2017/12/23 10:04:05.000.905,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\QP2.0\QPClient2.0\QP2Cliient.dproj</Transaction>
+    <Transaction>2018/01/03 06:31:49.000.650,C:\QP2.0\QPClient2.0\Unit2.fmx=C:\QP2.0\QPClient2.0\QPLoginFrm.fmx</Transaction>
+    <Transaction>2018/01/04 17:08:08.000.850,C:\QP2.0\QPClient2.0\QPHallFrm.fmx=C:\QP2.0\QPClient2.0\QPMainFrm.fmx</Transaction>
+    <Transaction>2018/01/08 10:55:31.000.289,C:\QP2.0\QPClient2.0\ProgressFrm.fmx=C:\QP2.0\QPClient2.0\Unit1.fmx</Transaction>
+    <Transaction>2018/01/14 11:06:34.000.828,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\QP2Cliient.dproj=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\FMXCliient2.dproj</Transaction>
+    <Transaction>2018/01/14 11:06:45.000.285,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\FMXCliient2.dproj=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\ACFMXCliient2.dproj</Transaction>
+    <Transaction>2018/01/14 11:07:03.000.478,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\UIResource.pas=</Transaction>
+    <Transaction>2018/01/14 11:07:05.000.131,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\StyleModule.pas=</Transaction>
+    <Transaction>2018/01/14 11:08:17.000.752,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2ClientGlobal.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\QPClientGlobal.pas</Transaction>
+    <Transaction>2018/01/14 11:08:26.000.248,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2LogicMobileClient.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\HallMobileClient.pas</Transaction>
+    <Transaction>2018/01/14 11:08:31.000.044,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2ManagerServerMobileClient.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\ManagerServerMobileClient.pas</Transaction>
+    <Transaction>2018/01/14 11:08:34.000.891,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2KeepAwakeUnit.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\KeepAwakeUnit.pas</Transaction>
+    <Transaction>2018/01/14 11:08:39.000.640,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2ProgressFrm.fmx=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\ProgressFrm.fmx</Transaction>
+    <Transaction>2018/01/14 11:08:39.000.640,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2ProgressFrm.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\ProgressFrm.pas</Transaction>
+    <Transaction>2018/01/14 11:08:53.000.464,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2LoginFrm.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\QPLoginFrm.pas</Transaction>
+    <Transaction>2018/01/14 11:08:53.000.464,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2LoginFrm.fmx=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\QPLoginFrm.fmx</Transaction>
+    <Transaction>2018/01/14 11:09:01.000.370,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2HallFrm.fmx=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\QPHallFrm.fmx</Transaction>
+    <Transaction>2018/01/14 11:09:01.000.370,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2HallFrm.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\QPHallFrm.pas</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.351,C:\CoreLibrary\PascalStrings.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.330,C:\CoreLibrary\CoreClasses.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.342,C:\CoreLibrary\Geometry3DUnit.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.337,C:\CoreLibrary\DoStatusIO.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.306,C:\CoreLibrary\Cadencer.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.348,C:\CoreLibrary\ListEngine.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.332,C:\CoreLibrary\CoreCompress.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.340,C:\CoreLibrary\Geometry2DUnit.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.327,C:\CoreLibrary\CoreCipher.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.354,C:\CoreLibrary\TextTable.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.354,C:\CoreLibrary\UnicodeMixedLib.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.345,C:\CoreLibrary\GeometryLib.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.335,C:\CoreLibrary\DataFrameEngine.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.347,C:\CoreLibrary\JsonDataObjects.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.350,C:\CoreLibrary\NotifyObjectBase.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.352,C:\CoreLibrary\TextDataEngine.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.349,C:\CoreLibrary\MemoryStream64.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.353,C:\CoreLibrary\TextParsing.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:10.000.346,C:\CoreLibrary\GeometryRotationUnit.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:13.000.966,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:13.000.964,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:13.000.969,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:13.000.967,C:\CoreLibrary\server\CommunicationFrameworkDoubleTunnelIO_ServMan.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:13.000.962,C:\CoreLibrary\server\CommunicationFramework.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:17.000.269,C:\CoreLibrary\server\Indy\CommunicationFramework_Client_Indy.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:21.000.669,C:\CoreLibrary\Render\SoundEngine.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:21.000.663,C:\CoreLibrary\Render\BulletMovementEngine.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:21.000.665,C:\CoreLibrary\Render\DrawEngine.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:21.000.666,C:\CoreLibrary\Render\MediaCenter.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:21.000.668,C:\CoreLibrary\Render\MemoryBitmap32.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:25.000.231,C:\CoreLibrary\Render\DrawInterfaceInFMX\DrawEngineInterface_FMX.pas=</Transaction>
+    <Transaction>2018/01/14 11:09:25.000.229,C:\CoreLibrary\Render\DrawInterfaceInFMX\DrawControlBoxForFMX.pas=</Transaction>
+    <Transaction>2018/01/14 11:15:40.000.931,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2LogicFrm.fmx=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2HallFrm.fmx</Transaction>
+    <Transaction>2018/01/14 11:15:40.000.931,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2LogicFrm.pas=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FMXClient2.0\AC2HallFrm.pas</Transaction>
+    <Transaction>2018/01/14 11:19:25.000.708,=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\Common\CommonServiceDefine.pas</Transaction>
+    <Transaction>2018/01/14 15:02:58.000.375,=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\FOGComputeServer\FOGComputeClientIntf.pas</Transaction>
+    <Transaction>2018/01/19 15:16:39.312,C:\git\ZServer4D\CloudModel\商业云服务器框架2.0\FMXClient2.0\ACFMXClient2.dproj=C:\git\ZServer4D\CloudModel\商业云服务器框架2.0\FMXClient2.0\ACFMXCliient2.dproj</Transaction>
+    <Transaction>2018/01/19 15:16:41.937,C:\git\ZServer4D\CloudModel\商业云服务器框架2.0\FMXClient2.0\ACFMXClient.dproj=C:\git\ZServer4D\CloudModel\商业云服务器框架2.0\FMXClient2.0\ACFMXClient2.dproj</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5" Android="androidtv"/>
+		<Pmini iOSSimulator="iPhone5" iOSDevice32="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b" iOSDevice64="_iosdevice_4075915dd70e3e997dd4d0f7ecb5cf095dedb33b"/>
+	</ActiveMobileDevice>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="android-support-v4.dex.jar"/>
+    <File Path="cloud-messaging.dex.jar"/>
+    <File Path="fmx.dex.jar"/>
+    <File Path="google-analytics-v2.dex.jar"/>
+    <File Path="google-play-billing.dex.jar"/>
+    <File Path="google-play-licensing.dex.jar"/>
+    <File Path="google-play-services.dex.jar"/>
+    <File Path="..\..\商业云服务器框架2.0"/>
+    <File Path="..\Common"/>
+    <File Path="..\Common\CommonServiceDefine.pas"/>
+    <File Path="..\FOGComputeServer"/>
+    <File Path="..\FOGComputeServer\FOGComputeClientIntf.pas"/>
+    <File Path="AC2LogicFrm.pas"/>
+    <File Path="AC2LogicFrm.fmx"/>
+    <File Path="AC2LoginFrm.pas"/>
+    <File Path="AC2LoginFrm.fmx"/>
+    <File Path="AC2ClientGlobal.pas"/>
+    <File Path="AC2LogicMobileClient.pas"/>
+    <File Path="AC2ManagerServerMobileClient.pas"/>
+    <File Path="AC2KeepAwakeUnit.pas"/>
+    <File Path="AC2ProgressFrm.pas"/>
+    <File Path="AC2ProgressFrm.fmx"/>
+  </ProjectSortOrder>
+</BorlandProject>

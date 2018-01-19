@@ -52,12 +52,23 @@ end;
 
 procedure TFMXClientForm.connectButtonClick(Sender: TObject);
 begin
-  client.Connect(HostEdit.Text, 9818);
+  // 方法1，阻塞式链接
+  // client.Connect(HostEdit.Text, 9818);
+
+  // 方法2，异步高速链接
+  client.AsyncConnect(HostEdit.Text, 9818, procedure(const cState: Boolean)
+    begin
+      if cState then
+          DoStatus('链接成功')
+      else
+          DoStatus('链接失败');
+    end);
 end;
 
 procedure TFMXClientForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
+  Memo1.GoToTextEnd;
 end;
 
 procedure TFMXClientForm.FormCreate(Sender: TObject);
@@ -121,7 +132,7 @@ var
 begin
   // 在ms中包含了128M大型数据，在服务器端相当于执行了1条普通命令
   ms := TMemoryStream.Create;
-  ms.Size:=128 * 1024 * 1024;
+  ms.Size := 128 * 1024 * 1024;
 
   DoStatus('创建128M临时大数据流');
   p := ms.Memory;
@@ -147,7 +158,7 @@ var
 begin
   // 在SendDE中包含了512k大型数据，在服务器端相当于执行了512条普通命令
   ms := TMemoryStream.Create;
-  ms.Size:=512 * 1024;
+  ms.Size := 512 * 1024;
 
   p := ms.Memory;
   for i := 1 to ms.Size div SizeOf(Int64) do

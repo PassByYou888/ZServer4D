@@ -15,6 +15,7 @@ interface
 
 uses SysUtils, Classes,
   Net.CrossSocket, Net.SocketAPI, Net.CrossSocket.Base, Net.CrossServer,
+  PascalStrings,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64,
   DataFrameEngine;
 
@@ -37,7 +38,7 @@ type
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
-    function GetPeerIP: string; override;
+    function GetPeerIP: SystemString; override;
     function WriteBufferEmpty: Boolean; override;
   end;
 
@@ -47,7 +48,7 @@ type
   private
     FDriver        : TDriverEngine;
     FStartedService: Boolean;
-    FBindHost      : string;
+    FBindHost      : SystemString;
     FBindPort      : Word;
 
     procedure DoConnected(Sender: TObject; AConnection: ICrossConnection); virtual;
@@ -58,19 +59,19 @@ type
     constructor Create; override;
     destructor Destroy; override;
 
-    function StartService(Host: string; Port: Word): Boolean; override;
+    function StartService(Host: SystemString; Port: Word): Boolean; override;
     procedure StopService; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; overload; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TDriverEngine read FDriver;
     property BindPort: Word read FBindPort;
-    property BindHost: string read FBindHost;
+    property BindHost: SystemString read FBindHost;
   end;
 
 implementation
@@ -125,9 +126,12 @@ begin
     var
       i: Integer;
       m: TMemoryStream64;
+      isConn: Boolean;
     begin
+      isConn := False;
       try
-        if (ASuccess and Connected) then
+        isConn := Connected;
+        if (ASuccess and isConn) then
           begin
             if SendBuffQueue.Count > 0 then
               begin
@@ -157,7 +161,10 @@ begin
 
             Sending := False;
 
-            Print('send failed!');
+            if isConn then
+                Print('send failed!')
+            else
+                Print('invailed connected!,send failed!');
             Disconnect;
           end;
       except
@@ -200,11 +207,11 @@ begin
     begin
       if CurrentBuff.size > 0 then
         begin
-          ms := TMemoryStream64.Create;
-          CurrentBuff.Position := 0;
-          ms.CopyFrom(CurrentBuff, CurrentBuff.size);
+          // 完成优化
+          ms := CurrentBuff;
           ms.Position := 0;
           SendBuffQueue.Add(ms);
+          CurrentBuff := TMemoryStream64.Create;
         end;
     end
   else
@@ -214,8 +221,8 @@ begin
       // 感谢ak47 qq512757165 的测试报告
       Sending := True;
       Context.SendBuf(CurrentBuff.Memory, CurrentBuff.size, SendBuffResult);
+      CurrentBuff.Clear;
     end;
-  CurrentBuff.Clear;
 end;
 
 procedure TContextIntfForServer.WriteBufferClose;
@@ -225,7 +232,7 @@ begin
   CurrentBuff.Clear;
 end;
 
-function TContextIntfForServer.GetPeerIP: string;
+function TContextIntfForServer.GetPeerIP: SystemString;
 begin
   if Connected then
       Result := Context.PeerAddr
@@ -336,7 +343,7 @@ begin
   inherited Destroy;
 end;
 
-function TCommunicationFramework_Server_CrossSocket.StartService(Host: string; Port: Word): Boolean;
+function TCommunicationFramework_Server_CrossSocket.StartService(Host: SystemString; Port: Word): Boolean;
 var
   completed, successed: Boolean;
 begin
@@ -424,13 +431,13 @@ begin
   CheckSynchronize;
 end;
 
-function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
+function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;

@@ -4336,7 +4336,7 @@ end;
 
 function dbPack_TestNameStr(const Name: umlString): Boolean;
 begin
-  Result := umlGetLength(umlDelLimitChar(name, db_FieldPathLimitChar + #9#32#13#10)) > 0;
+  Result := umlDeleteChar(name, TPascalString(db_FieldPathLimitChar + #9#32#13#10)).len > 0;
 end;
 
 function dbPack_AutoCheckRootField(const Name: umlString; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;

@@ -11,9 +11,6 @@ object ObjectDataTreeFrame: TObjectDataTreeFrame
     Width = 451
     Height = 304
     Align = alClient
-    AutoExpand = True
-    BevelInner = bvNone
-    BevelOuter = bvNone
     BorderStyle = bsNone
     HideSelection = False
     Indent = 19

@@ -5,6 +5,7 @@ object AuthDoubleServerForm: TAuthDoubleServerForm
   ClientHeight = 456
   ClientWidth = 634
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -18,6 +19,13 @@ object AuthDoubleServerForm: TAuthDoubleServerForm
     456)
   PixelsPerInch = 96
   TextHeight = 13
+  object TimeLabel: TLabel
+    Left = 40
+    Top = 168
+    Width = 47
+    Height = 13
+    Caption = 'TimeLabel'
+  end
   object Memo1: TMemo
     Left = 144
     Top = 8
@@ -86,7 +94,7 @@ object AuthDoubleServerForm: TAuthDoubleServerForm
     OnClick = GetClientValueButtonClick
   end
   object Timer1: TTimer
-    Interval = 100
+    Interval = 10
     OnTimer = Timer1Timer
     Left = 360
     Top = 8

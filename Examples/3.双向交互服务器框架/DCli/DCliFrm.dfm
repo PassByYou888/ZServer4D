@@ -62,12 +62,21 @@ object DoubleTunnelClientForm: TDoubleTunnelClientForm
   end
   object HelloWorldBtn: TButton
     Left = 32
-    Top = 95
+    Top = 143
     Width = 89
     Height = 34
     Caption = 'hello world'
     TabOrder = 3
     OnClick = HelloWorldBtnClick
+  end
+  object AsyncConnectButton: TButton
+    Left = 32
+    Top = 79
+    Width = 89
+    Height = 35
+    Caption = 'async connect'
+    TabOrder = 4
+    OnClick = AsyncConnectButtonClick
   end
   object Timer1: TTimer
     Interval = 100

@@ -18,11 +18,13 @@ type
     HostEdit: TLabeledEdit;
     Timer1: TTimer;
     HelloWorldBtn: TButton;
+    AsyncConnectButton: TButton;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure HelloWorldBtnClick(Sender: TObject);
+    procedure AsyncConnectButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -121,6 +123,7 @@ end;
 
 procedure TDoubleTunnelClientForm.ConnectButtonClick(Sender: TObject);
 begin
+  // 方法1，阻塞式链接
   SendTunnel.Connect(HostEdit.Text, 9815);
   RecvTunnel.Connect(HostEdit.Text, 9816);
 
@@ -149,6 +152,31 @@ begin
       // // 双通道链接成功
       // end;
     end;
+end;
+
+procedure TDoubleTunnelClientForm.AsyncConnectButtonClick(Sender: TObject);
+begin
+  // 方法2，异步式双通道链接
+  client.AsyncConnect(HostEdit.Text, 9816, 9815,
+    procedure(const cState: Boolean)
+    begin
+      if cState then
+        // 异步方式合并两个通道
+          client.TunnelLink(
+          procedure(const tState: Boolean)
+          begin
+            if tState then
+              begin
+                // 双通道链接成功
+                DoStatus('double tunnel link success!');
+              end;
+          end);
+      // 同步方式合并两个通道
+      // if client.TunnelLink then
+      // begin
+      // // 双通道链接成功
+      // end;
+    end);
 end;
 
 end.

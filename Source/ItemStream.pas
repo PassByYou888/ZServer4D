@@ -1,8 +1,8 @@
-{******************************************************************************}
-{* ObjectDB Stream support,                                                   *}
-{* https://github.com/PassByYou888/CoreCipher                                 *}
-(* https://github.com/PassByYou888/ZServer4D                                  *)
-{******************************************************************************}
+{ ****************************************************************************** }
+{ * ObjectDB Stream support,                                                   * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
 (*
   update history
 *)
@@ -29,6 +29,10 @@ type
     constructor Create; overload;
     destructor Destroy; override;
     procedure ChangeHandle(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle);
+
+    procedure SaveToFile(fn: string);
+    procedure LoadFromFile(fn: string);
+
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
@@ -84,6 +88,30 @@ begin
   FDBEngine := DBEngine;
   FItemHnd := ItemHnd;
   FDBEngine.ItemSeek(FItemHnd, 0);
+end;
+
+procedure TItemStream.SaveToFile(fn: string);
+var
+  Stream: TCoreClassStream;
+begin
+  Stream := TCoreClassFileStream.Create(fn, fmCreate);
+  try
+      Stream.CopyFrom(Self, size);
+  finally
+      DisposeObject(Stream);
+  end;
+end;
+
+procedure TItemStream.LoadFromFile(fn: string);
+var
+  Stream: TCoreClassStream;
+begin
+  Stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  try
+      CopyFrom(Stream, Stream.size);
+  finally
+      DisposeObject(Stream);
+  end;
 end;
 
 function TItemStream.Read(var Buffer; Count: Longint): Longint;

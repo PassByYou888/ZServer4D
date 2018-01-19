@@ -18,6 +18,13 @@ object AuthDoubleTunnelClientForm: TAuthDoubleTunnelClientForm
     384)
   PixelsPerInch = 96
   TextHeight = 13
+  object TimeLabel: TLabel
+    Left = 32
+    Top = 264
+    Width = 47
+    Height = 13
+    Caption = 'TimeLabel'
+  end
   object Memo1: TMemo
     Left = 136
     Top = 62
@@ -80,7 +87,7 @@ object AuthDoubleTunnelClientForm: TAuthDoubleTunnelClientForm
   end
   object HelloWorldBtn: TButton
     Left = 32
-    Top = 151
+    Top = 207
     Width = 89
     Height = 34
     Caption = 'hello world'
@@ -120,8 +127,26 @@ object AuthDoubleTunnelClientForm: TAuthDoubleTunnelClientForm
     TabOrder = 6
     OnClick = RegUserButtonClick
   end
+  object AsyncConnectButton: TButton
+    Left = 32
+    Top = 135
+    Width = 89
+    Height = 35
+    Caption = 'async connect'
+    TabOrder = 7
+    OnClick = AsyncConnectButtonClick
+  end
+  object fixedTimeButton: TButton
+    Left = 32
+    Top = 296
+    Width = 89
+    Height = 34
+    Caption = 'Fixed time Sync'
+    TabOrder = 8
+    OnClick = fixedTimeButtonClick
+  end
   object Timer1: TTimer
-    Interval = 100
+    Interval = 10
     OnTimer = Timer1Timer
     Left = 344
     Top = 48

@@ -4,6 +4,7 @@ interface
 
 {$I zDefine.inc}
 
+
 uses
   SysUtils, TypInfo,
 
@@ -14,6 +15,7 @@ uses
   NotifyObjectBase, CoreCipher, PascalStrings;
 
 {$I ServerManTypeDefine.inc}
+
 
 type
   TServerManager_ClientPool = class;
@@ -50,7 +52,7 @@ type
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
 
-    function Connect(addr: SystemString; const RecvPort, SendPort: word): Boolean; override;
+    function ConnectAndLink(addr: SystemString; const RecvPort, SendPort: word): Boolean;
 
     procedure AntiIdle(WorkLoad: word);
     function EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
@@ -153,6 +155,7 @@ begin
   te := Sender.Data2 as TSectionTextData;
   if Assigned(Owner.NotifyIntf) then
       Owner.NotifyIntf.ServerConfigChange(Self, te);
+
   DisposeObject(te);
 end;
 
@@ -263,7 +266,7 @@ begin
   NetRecvTunnelIntf.DeleteRegistedCMD('Offline');
 end;
 
-function TServerManager_Client.Connect(addr: SystemString; const RecvPort, SendPort: word): Boolean;
+function TServerManager_Client.ConnectAndLink(addr: SystemString; const RecvPort, SendPort: word): Boolean;
 begin
   Result := inherited Connect(addr, RecvPort, SendPort);
 
@@ -421,7 +424,7 @@ begin
             conninfo := c.ConnectInfo;
             inc(c.ReconnectTotal);
 
-            if c.Connect(conninfo.ManServAddr, conninfo.ManCliRecvPort, conninfo.ManCliSendPort) then
+            if c.ConnectAndLink(conninfo.ManServAddr, conninfo.ManCliRecvPort, conninfo.ManCliSendPort) then
               begin
                 DoStatus('reconnect call enabled api 2 send cmd:%s %s [n:%s][addr:%s][r:%d][s:%d][w:%d]',
                   [LastManagerServerAddr, serverType2Str(conninfo.ServerType), conninfo.RegName, LastRegAddr, LastRegRecvPort, LastRegSendPort, 0]);
@@ -466,7 +469,7 @@ begin
     end;
 
   c := TServerManager_Client.Create(Self);
-  if c.Connect(ManServAddr, ManCliRecvPort, ManCliSendPort) then
+  if c.ConnectAndLink(ManServAddr, ManCliRecvPort, ManCliSendPort) then
     begin
       DoStatus('call enabled api 2 send cmd:%s %s [n:%s][addr:%s][r:%d][s:%d][w:%d]', [ManServAddr, serverType2Str(ServerType), RegName, RegAddr, RegRecvPort, RegSendPort, 0]);
       Result := c.EnabledServer(RegName, ManServAddr, RegAddr, RegRecvPort, RegSendPort, ServerType);
@@ -670,7 +673,7 @@ begin
                 cli.SuccessEnabled := False;
                 break;
               end;
-            if (listcli.ServerType = cli.ServerType) and (cli.ServerType in [TServerType.stDataStore, TServerType.stDatabase]) then
+            if (listcli.ServerType = cli.ServerType) and (cli.ServerType in climitationsServerType) then
               begin
                 cli.SuccessEnabled := False;
                 break;
@@ -886,4 +889,3 @@ begin
 end;
 
 end.
-

@@ -2,8 +2,8 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   Left = 0
   Top = 0
   Caption = 'fmx Auth Double client...'
-  ClientHeight = 315
-  ClientWidth = 612
+  ClientHeight = 378
+  ClientWidth = 763
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
@@ -48,31 +48,31 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
     StyledSettings = [Family, Style, FontColor]
     Align = Client
     Margins.Left = 130.000000000000000000
-    Size.Width = 482.000000000000000000
-    Size.Height = 315.000000000000000000
+    Size.Width = 633.000000000000000000
+    Size.Height = 378.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     Left = 136
     Top = 38
-    Viewport.Width = 462.000000000000000000
-    Viewport.Height = 311.000000000000000000
+    Viewport.Width = 613.000000000000000000
+    Viewport.Height = 374.000000000000000000
   end
   object connectButton: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 184.000000000000000000
+    Position.Y = 168.000000000000000000
     Size.Width = 105.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 3
+    TabOrder = 4
     Text = 'connect'
     OnClick = connectButtonClick
   end
   object HostEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
-    TabOrder = 6
+    TabOrder = 7
     Text = '127.0.0.1'
     Position.X = 8.000000000000000000
-    Position.Y = 16.000000000000000000
+    Position.Y = 8.000000000000000000
     Size.Width = 113.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -80,7 +80,7 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   end
   object HelloWorldBtn: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 240.000000000000000000
+    Position.Y = 248.000000000000000000
     Size.Width = 105.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -89,17 +89,17 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
     OnClick = HelloWorldBtnClick
   end
   object Timer1: TTimer
-    Interval = 100
+    Interval = 10
     OnTimer = Timer1Timer
     Left = 296
     Top = 144
   end
   object UserEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
-    TabOrder = 5
+    TabOrder = 6
     Text = 'test'
     Position.X = 8.000000000000000000
-    Position.Y = 64.000000000000000000
+    Position.Y = 48.000000000000000000
     Size.Width = 73.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -107,10 +107,10 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   end
   object PasswdEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
-    TabOrder = 4
+    TabOrder = 5
     Text = '123456'
     Position.X = 8.000000000000000000
-    Position.Y = 104.000000000000000000
+    Position.Y = 88.000000000000000000
     Size.Width = 73.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -118,12 +118,41 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   end
   object RegUserButton: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 144.000000000000000000
+    Position.Y = 128.000000000000000000
     Size.Width = 105.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 2
     Text = 'reg user'
     OnClick = RegUserButtonClick
+  end
+  object AsyncButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 208.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'async connect'
+    OnClick = AsyncButtonClick
+  end
+  object timeLabel: TLabel
+    AutoSize = True
+    Position.X = 8.000000000000000000
+    Position.Y = 288.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 16.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'timeLabel'
+  end
+  object FixedTimeButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 312.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 10
+    Text = 'fixed sync time'
+    OnClick = FixedTimeButtonClick
   end
 end

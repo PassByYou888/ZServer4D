@@ -81,6 +81,27 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 ## 更新日志
 
+2018-1-19
+
+内核会自行判断ipv4和ipv6的地址版本，如果使用域名，会根据定义自动优先级选择AAAA和A记录，100%支持苹果ipv6过审
+
+重做了indy的connect方法，ics,indy,cross均新增异步链接（类似6万并发，零阻塞，高频率触发），双通道现在均支持异步链接了
+
+indy的connect阻塞被缩短在1秒内
+
+重做wait机制，在indy中，现在使用心跳检测可以用零阻塞机制，和keepalive的效率相同
+
+小幅调整FilePackageWithZDB的UI样式，小幅修正FilePackageWithZDB的ui
+
+在"4.登陆式双向交互服务器框架"中，新增了精确时间戳同步的演示
+
+在Demo中新增了双通道和单向链接的异步方法，这些方法都有写明使用
+
+修改了几个UnicodeMixedLib的核心函数
+
+小幅优化PascalString内核
+
+
 2018-1-16
 
 提交了内网穿透Shell工具全部的源代码，编译时必须包含ZServer4D的服务器框架，在源码目录有OXC包的下载地址

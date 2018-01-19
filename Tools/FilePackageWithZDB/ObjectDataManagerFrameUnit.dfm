@@ -1,13 +1,13 @@
 object ObjectDataManagerFrame: TObjectDataManagerFrame
   Left = 0
   Top = 0
-  Width = 610
-  Height = 316
+  Width = 810
+  Height = 431
   TabOrder = 0
   object Splitter: TSplitter
     Left = 185
     Top = 0
-    Height = 316
+    Height = 431
     ExplicitLeft = 200
     ExplicitTop = 64
     ExplicitHeight = 100
@@ -15,8 +15,8 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
   object ListView: TListView
     Left = 188
     Top = 0
-    Width = 422
-    Height = 316
+    Width = 622
+    Height = 431
     Align = alClient
     BorderStyle = bsNone
     Columns = <
@@ -26,7 +26,7 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       end
       item
         Caption = 'Property'
-        Width = 60
+        Width = 80
       end
       item
         Caption = 'Size'
@@ -41,26 +41,33 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
         Caption = 'Time'
         Width = 100
       end>
+    ColumnClick = False
+    DoubleBuffered = True
+    HideSelection = False
     IconOptions.AutoArrange = True
     MultiSelect = True
     RowSelect = True
+    ParentDoubleBuffered = False
     PopupMenu = PopupMenu
     TabOrder = 0
     ViewStyle = vsReport
-    OnCustomDrawItem = ListViewCustomDrawItem
     OnEdited = ListViewEdited
     OnEditing = ListViewEditing
     OnKeyUp = ListViewKeyUp
+    ExplicitWidth = 422
+    ExplicitHeight = 316
   end
   object TreePanel: TPanel
     Left = 0
     Top = 0
     Width = 185
-    Height = 316
+    Height = 431
     Align = alLeft
     BevelOuter = bvNone
     PopupMenu = PopupMenu
     TabOrder = 1
+    ExplicitLeft = -3
+    ExplicitHeight = 316
   end
   object ActionList: TActionList
     Left = 224

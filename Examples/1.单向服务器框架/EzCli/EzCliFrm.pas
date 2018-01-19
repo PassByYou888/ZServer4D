@@ -167,10 +167,24 @@ end;
 
 procedure TEZClientForm.ConnectButtonClick(Sender: TObject);
 begin
-  if client.Connect(HostEdit.Text, 9818) then
-      DoStatus('connect success');
+  // 方法1，阻塞式链接
+  // if client.Connect(HostEdit.Text, 9818) then
+  // DoStatus('链接成功')
+  // else
+  // DoStatus('链接失败');
 
-  DoStatus('current client id:', [client.ClientIO.ID]);
+  // 方法2，异步高速链接
+  client.AsyncConnect(HostEdit.Text, 9818, procedure(const cState: Boolean)
+    begin
+      if cState then
+        begin
+          DoStatus('链接成功');
+          DoStatus('current client id: %d', [client.ClientIO.ID]);
+        end
+      else
+          DoStatus('链接失败');
+    end);
+
 end;
 
 end.

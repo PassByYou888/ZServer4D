@@ -24,7 +24,7 @@
         <Projects Include="IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="FMXClient2.0\ACFMXCliient2.dproj">
+        <Projects Include="FMXClient2.0\ACFMXClient.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -98,23 +98,23 @@
     <Target Name="IOSPaymentQueryServer:Make">
         <MSBuild Projects="IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Make"/>
     </Target>
-    <Target Name="ACFMXCliient2">
-        <MSBuild Projects="FMXClient2.0\ACFMXCliient2.dproj"/>
+    <Target Name="ACFMXClient">
+        <MSBuild Projects="FMXClient2.0\ACFMXClient.dproj"/>
     </Target>
-    <Target Name="ACFMXCliient2:Clean">
-        <MSBuild Projects="FMXClient2.0\ACFMXCliient2.dproj" Targets="Clean"/>
+    <Target Name="ACFMXClient:Clean">
+        <MSBuild Projects="FMXClient2.0\ACFMXClient.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="ACFMXCliient2:Make">
-        <MSBuild Projects="FMXClient2.0\ACFMXCliient2.dproj" Targets="Make"/>
+    <Target Name="ACFMXClient:Make">
+        <MSBuild Projects="FMXClient2.0\ACFMXClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="ManagerServer;DataStoreServer;FileStoreServer;DataStoreViewClient;LogicServer;FOGComputeServer;IOSPaymentQueryServer;ACFMXCliient2"/>
+        <CallTarget Targets="ManagerServer;DataStoreServer;FileStoreServer;DataStoreViewClient;LogicServer;FOGComputeServer;IOSPaymentQueryServer;ACFMXClient"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ManagerServer:Clean;DataStoreServer:Clean;FileStoreServer:Clean;DataStoreViewClient:Clean;LogicServer:Clean;FOGComputeServer:Clean;IOSPaymentQueryServer:Clean;ACFMXCliient2:Clean"/>
+        <CallTarget Targets="ManagerServer:Clean;DataStoreServer:Clean;FileStoreServer:Clean;DataStoreViewClient:Clean;LogicServer:Clean;FOGComputeServer:Clean;IOSPaymentQueryServer:Clean;ACFMXClient:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ManagerServer:Make;DataStoreServer:Make;FileStoreServer:Make;DataStoreViewClient:Make;LogicServer:Make;FOGComputeServer:Make;IOSPaymentQueryServer:Make;ACFMXCliient2:Make"/>
+        <CallTarget Targets="ManagerServer:Make;DataStoreServer:Make;FileStoreServer:Make;DataStoreViewClient:Make;LogicServer:Make;FOGComputeServer:Make;IOSPaymentQueryServer:Make;ACFMXClient:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2018/01/14 10:22:21.000.362,C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\登录式高级云服务器2.0.groupproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
-    <Transaction>2018/01/15 15:34:20.000.196,C:\git\ZServer4D\CloudModel\云服务器2.0\登录式高级云服务器2.0.groupproj=C:\git\ZServer4D\CloudModel\云服务器2.0\商业云服务器框架和开发范式.groupproj</Transaction>
+    <Transaction>2018/01/14 10:22:21.000.362,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Examples\14.登录式高级云服务器2.0\登录式高级云服务器2.0.groupproj</Transaction>
+    <Transaction>2018/01/15 15:34:20.000.196,C:\git\ZServer4D\CloudModel\云服务器2.0\商业云服务器框架和开发范式.groupproj=C:\git\ZServer4D\CloudModel\云服务器2.0\登录式高级云服务器2.0.groupproj</Transaction>
   </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\CloudModel\商业云服务器框架2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj"/>
+		<Projects ActiveProject="C:\git\ZServer4D\CloudModel\商业云服务器框架2.0\FMXClient2.0\ACFMXClient.dproj"/>
 	</Default.Personality>
 </BorlandProject>

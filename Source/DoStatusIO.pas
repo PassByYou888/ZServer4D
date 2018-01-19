@@ -202,9 +202,9 @@ begin
     if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
       begin
         {$IF Defined(WIN32) or Defined(WIN64)}
-        OutputDebugString(PWideChar(Text));
+        OutputDebugString(PWideChar('"' + Text + '"'));
         {$ELSE}
-        FMX.Types.Log.d(Text);
+        FMX.Types.Log.d('"' + Text + '"');
         {$ENDIF}
       end;
     {$ENDIF}
@@ -258,9 +258,9 @@ begin
     if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
       begin
         {$IF Defined(WIN32) or Defined(WIN64)}
-        OutputDebugString(PWideChar(Text));
+        OutputDebugString(PWideChar('"' + Text + '"'));
         {$ELSE}
-        FMX.Types.Log.d(Text);
+        FMX.Types.Log.d('"' + Text + '"');
         {$ENDIF}
       end;
     {$ENDIF}

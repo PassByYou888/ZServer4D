@@ -12,3 +12,7 @@ type
     stLog           // Infinite deploy
     );
   TServerTypes = set of TServerType;
+
+const
+  climitationsServerType: TServerTypes = [stDatabase, stDataStore];
+

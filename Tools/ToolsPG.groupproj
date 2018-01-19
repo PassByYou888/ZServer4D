@@ -12,6 +12,15 @@
         <Projects Include="ConvFile2RESCode\ConvFile2Pascal.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="ZServer4D Gateway\ZSGateway.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ZServer4D Gateway MiniServer\ZSGatewayMiniServ.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +56,41 @@
     <Target Name="ConvFile2Pascal:Make">
         <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ZSGateway">
+        <MSBuild Projects="ZServer4D Gateway\ZSGateway.dproj"/>
+    </Target>
+    <Target Name="ZSGateway:Clean">
+        <MSBuild Projects="ZServer4D Gateway\ZSGateway.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZSGateway:Make">
+        <MSBuild Projects="ZServer4D Gateway\ZSGateway.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZSGatewayMiniClient">
+        <MSBuild Projects="ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj"/>
+    </Target>
+    <Target Name="ZSGatewayMiniClient:Clean">
+        <MSBuild Projects="ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZSGatewayMiniClient:Make">
+        <MSBuild Projects="ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZSGatewayMiniServ">
+        <MSBuild Projects="ZServer4D Gateway MiniServer\ZSGatewayMiniServ.dproj"/>
+    </Target>
+    <Target Name="ZSGatewayMiniServ:Clean">
+        <MSBuild Projects="ZServer4D Gateway MiniServer\ZSGatewayMiniServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZSGatewayMiniServ:Make">
+        <MSBuild Projects="ZServer4D Gateway MiniServer\ZSGatewayMiniServ.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="DPRCodeSort;FilePackageWithZDB;ConvFile2Pascal"/>
+        <CallTarget Targets="DPRCodeSort;FilePackageWithZDB;ConvFile2Pascal;ZSGateway;ZSGatewayMiniClient;ZSGatewayMiniServ"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="DPRCodeSort:Clean;FilePackageWithZDB:Clean;ConvFile2Pascal:Clean"/>
+        <CallTarget Targets="DPRCodeSort:Clean;FilePackageWithZDB:Clean;ConvFile2Pascal:Clean;ZSGateway:Clean;ZSGatewayMiniClient:Clean;ZSGatewayMiniServ:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="DPRCodeSort:Make;FilePackageWithZDB:Make;ConvFile2Pascal:Make"/>
+        <CallTarget Targets="DPRCodeSort:Make;FilePackageWithZDB:Make;ConvFile2Pascal:Make;ZSGateway:Make;ZSGatewayMiniClient:Make;ZSGatewayMiniServ:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

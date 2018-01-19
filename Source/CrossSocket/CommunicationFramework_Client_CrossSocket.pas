@@ -15,6 +15,7 @@ interface
 
 uses SysUtils, Classes,
   Net.CrossSocket, Net.SocketAPI, Net.CrossSocket.Base,
+  PascalStrings,
   CommunicationFramework_Server_CrossSocket,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64,
   NotifyObjectBase;
@@ -30,6 +31,12 @@ type
   TCommunicationFramework_Client_CrossSocket = class(TCommunicationFrameworkClient)
   private
     ClientIOIntf: TContextIntfForClient;
+
+    FOnAsyncConnectNotifyCall  : TStateCall;
+    FOnAsyncConnectNotifyMethod: TStateMethod;
+    FOnAsyncConnectNotifyProc  : TStateProc;
+
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
   protected
     procedure DoConnected(Sender: TPeerClient); override;
     procedure DoDisconnect(Sender: TPeerClient); override;
@@ -37,14 +44,21 @@ type
     constructor Create; override;
     destructor Destroy; override;
 
+    procedure TriggerDoConnectFailed; override;
+    procedure TriggerDoConnectFinished; override;
+
     function Connected: Boolean; override;
     function ClientIO: TPeerClient; override;
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    procedure AsyncConnect(Addr: string; port: Word);
-    function Connect(Addr: string; port: Word): Boolean; overload; override;
-    function Connect(host: string; port: string): Boolean; overload;
+    procedure AsyncConnect(Addr: SystemString; Port: Word); overload;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+
+    function Connect(Addr: SystemString; Port: Word): Boolean; overload; override;
+    function Connect(host: SystemString; Port: SystemString): Boolean; overload;
     procedure Disconnect; override;
   end;
 
@@ -63,8 +77,8 @@ type
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
 
-    function BuildConnect(Addr: string; port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
-    procedure BuildAsyncConnect(Addr: string; port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket; StateProc: TStateProc);
+    function BuildConnect(Addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
+    procedure BuildAsyncConnect(Addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket);
   end;
 
 var
@@ -73,6 +87,25 @@ var
 implementation
 
 
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
+begin
+  FOnAsyncConnectNotifyCall := OnResultCall;
+  FOnAsyncConnectNotifyMethod := OnResultMethod;
+  FOnAsyncConnectNotifyProc := OnResultProc;
+
+  ClientPool.BuildAsyncConnect(Addr, Port, Self);
+end;
+
+procedure TCommunicationFramework_Client_CrossSocket.DoConnected(Sender: TPeerClient);
+begin
+  inherited DoConnected(Sender);
+end;
+
+procedure TCommunicationFramework_Client_CrossSocket.DoDisconnect(Sender: TPeerClient);
+begin
+  inherited DoDisconnect(Sender);
+end;
+
 constructor TCommunicationFramework_Client_CrossSocket.Create;
 var
   r: TCommandStreamMode;
@@ -80,12 +113,54 @@ begin
   inherited Create;
   if ClientPool = nil then
       ClientPool := TGlobalCrossSocketClientPool.Create;
+
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
 end;
 
 destructor TCommunicationFramework_Client_CrossSocket.Destroy;
 begin
   Disconnect;
   inherited Destroy;
+end;
+
+procedure TCommunicationFramework_Client_CrossSocket.TriggerDoConnectFailed;
+begin
+  inherited TriggerDoConnectFailed;
+
+  try
+    if Assigned(FOnAsyncConnectNotifyCall) then
+        FOnAsyncConnectNotifyCall(False);
+    if Assigned(FOnAsyncConnectNotifyMethod) then
+        FOnAsyncConnectNotifyMethod(False);
+    if Assigned(FOnAsyncConnectNotifyProc) then
+        FOnAsyncConnectNotifyProc(False);
+  except
+  end;
+
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
+end;
+
+procedure TCommunicationFramework_Client_CrossSocket.TriggerDoConnectFinished;
+begin
+  inherited TriggerDoConnectFinished;
+
+  try
+    if Assigned(FOnAsyncConnectNotifyCall) then
+        FOnAsyncConnectNotifyCall(True);
+    if Assigned(FOnAsyncConnectNotifyMethod) then
+        FOnAsyncConnectNotifyMethod(True);
+    if Assigned(FOnAsyncConnectNotifyProc) then
+        FOnAsyncConnectNotifyProc(True);
+  except
+  end;
+
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
 end;
 
 function TCommunicationFramework_Client_CrossSocket.Connected: Boolean;
@@ -142,36 +217,48 @@ begin
   CheckSynchronize;
 end;
 
-procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(Addr: string; port: Word);
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(Addr: SystemString; Port: Word);
 begin
-  ClientPool.BuildAsyncConnect(Addr, port, Self, nil);
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
+
+  ClientPool.BuildAsyncConnect(Addr, Port, Self);
 end;
 
-function TCommunicationFramework_Client_CrossSocket.Connect(Addr: string; port: Word): Boolean;
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
-  Result := ClientPool.BuildConnect(Addr, port, Self);
+  AsyncConnect(Addr, Port, OnResult, nil, nil);
 end;
 
-function TCommunicationFramework_Client_CrossSocket.Connect(host: string; port: string): Boolean;
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
-  Disconnect;
-  Result := Connect(host, umlStrToInt(port, 0));
+  AsyncConnect(Addr, Port, nil, OnResult, nil);
+end;
+
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+begin
+  AsyncConnect(Addr, Port, nil, nil, OnResult);
+end;
+
+function TCommunicationFramework_Client_CrossSocket.Connect(Addr: SystemString; Port: Word): Boolean;
+begin
+  Result := ClientPool.BuildConnect(Addr, Port, Self);
+end;
+
+function TCommunicationFramework_Client_CrossSocket.Connect(host: SystemString; Port: SystemString): Boolean;
+begin
+  Result := Connect(host, umlStrToInt(Port, 0));
 end;
 
 procedure TCommunicationFramework_Client_CrossSocket.Disconnect;
 begin
   if Connected then
       ClientIO.Disconnect;
-end;
 
-procedure TCommunicationFramework_Client_CrossSocket.DoConnected(Sender: TPeerClient);
-begin
-  inherited DoConnected(Sender);
-end;
-
-procedure TCommunicationFramework_Client_CrossSocket.DoDisconnect(Sender: TPeerClient);
-begin
-  inherited DoDisconnect(Sender);
+  FOnAsyncConnectNotifyCall := nil;
+  FOnAsyncConnectNotifyMethod := nil;
+  FOnAsyncConnectNotifyProc := nil;
 end;
 
 constructor TGlobalCrossSocketClientPool.Create;
@@ -263,7 +350,7 @@ begin
   cli.LastActiveTime := GetTimeTickCount;
 end;
 
-function TGlobalCrossSocketClientPool.BuildConnect(Addr: string; port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
+function TGlobalCrossSocketClientPool.BuildConnect(Addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
 var
   dt : TTimeTickValue;
   cli: TContextIntfForClient;
@@ -288,7 +375,7 @@ begin
         end;
     end;
 
-  ICrossSocket(Driver).Connect(Addr, port,
+  ICrossSocket(Driver).Connect(Addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
     begin
       LastCompleted := True;
@@ -297,11 +384,11 @@ begin
           LastConnection := AConnection;
     end);
 
-  TThread.Sleep(3);
+  TThread.Sleep(10);
 
   dt := GetTimeTick + 1000;
   while (not LastCompleted) and (GetTimeTick < dt) do
-      CheckSynchronize(2);
+      CheckSynchronize(5);
 
   if LastResult then
     begin
@@ -323,14 +410,14 @@ begin
         begin
           if LastConnection <> nil then
               LastConnection.Disconnect;
-          exit(BuildConnect(Addr, port, BuildIntf));
+          break;
         end;
     end;
 
   Result := BuildIntf.RemoteInited;
 end;
 
-procedure TGlobalCrossSocketClientPool.BuildAsyncConnect(Addr: string; port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket; StateProc: TStateProc);
+procedure TGlobalCrossSocketClientPool.BuildAsyncConnect(Addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket);
 begin
   try
     if BuildIntf.ClientIOIntf <> nil then
@@ -340,6 +427,7 @@ begin
               BuildIntf.ClientIOIntf.Context.Close;
         except
         end;
+
         while BuildIntf.ClientIOIntf <> nil do
           begin
             try
@@ -349,12 +437,11 @@ begin
           end;
       end;
   except
-    if Assigned(StateProc) then
-        StateProc(False);
+    BuildIntf.TriggerDoConnectFailed;
     exit;
   end;
 
-  ICrossSocket(Driver).Connect(Addr, port,
+  ICrossSocket(Driver).Connect(Addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
     var
       dt: TTimeTickValue;
@@ -375,8 +462,7 @@ begin
           TThread.Synchronize(TThread.CurrentThread,
             procedure
             begin
-              BuildIntf.ProgressPost.PostExecute(0,
-                procedure(Sender: TNPostExecute)
+              BuildIntf.ProgressPost.PostExecute(0, procedure(Sender: TNPostExecute)
                 begin
                   BuildIntf.DoConnected(cli);
                 end);
@@ -384,7 +470,7 @@ begin
         end
       else
         begin
-          BuildAsyncConnect(Addr, port, BuildIntf, StateProc);
+          BuildIntf.TriggerDoConnectFailed;
         end;
     end);
 end;

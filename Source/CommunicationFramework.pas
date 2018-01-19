@@ -362,6 +362,7 @@ type
     property ReceiveCommandRuning: Boolean read FReceiveCommandRuning;
     property ReceiveResultRuning: Boolean read FReceiveResultRuning;
     function BigStreamIsSending: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
     property ClientIntf: TCoreClassObject read FClientIntf write FClientIntf;
@@ -370,6 +371,9 @@ type
     function CipherKeyPtr: PCipherKeyBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property SendCipherStyle: TCipherStyle read FSendDataCipherStyle write FSendDataCipherStyle;
     property RemoteExecutedForConnectInit: Boolean read FRemoteExecutedForConnectInit;
+
+    // remote
+    property PeerIP: SystemString read GetPeerIP;
 
     // user define
     property UserVariants: THashVariantList read GetUserVariants;
@@ -649,31 +653,60 @@ type
   protected
     FNotyifyInterface: ICommunicationFrameworkClientInterface;
 
+    FConnectInitWaiting       : Boolean;
+    FConnectInitWaitingTimeout: TTimeTickValue;
+
     procedure DoPrint(const v: SystemString); override;
 
     procedure StreamResult_ConnectedInit(Sender: TPeerClient; ResultData: TDataFrameEngine); virtual;
-
     procedure DoConnected(Sender: TPeerClient); override;
     procedure DoDisconnect(Sender: TPeerClient); override;
 
     function CanExecuteCommand(Sender: TPeerClient; Cmd: SystemString): Boolean; override;
     function CanSendCommand(Sender: TPeerClient; Cmd: SystemString): Boolean; override;
     function CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean; override;
+  protected
+    // async wait support
+    FWaiting           : Boolean;
+    FWaitingTimeOut    : TTimeTickValue;
+    FOnWaitResultCall  : TStateCall;
+    FOnWaitResultMethod: TStateMethod;
+    {$IFNDEF FPC}
+    FOnWaitResultProc: TStateProc;
+    {$ENDIF}
+    procedure ConsoleResult_Wait(Sender: TPeerClient; ResultData: SystemString);
   public
     constructor Create; virtual;
 
+    procedure ProgressBackground; override;
+
     procedure TriggerDoDisconnect;
 
-    function Connected: Boolean; virtual; abstract;
-    function ClientIO: TPeerClient; virtual; abstract;
-    procedure TriggerQueueData(v: PQueueData); virtual; abstract;
+    function Connected: Boolean; virtual;
+    function ClientIO: TPeerClient; virtual;
+    procedure TriggerQueueData(v: PQueueData); virtual;
 
-    function Connect(Addr: SystemString; Port: Word): Boolean; virtual; abstract;
-    procedure Disconnect; virtual; abstract;
+    // async connect support
+    procedure TriggerDoConnectFailed; virtual;
+    procedure TriggerDoConnectFinished; virtual;
 
-    function Wait(ATimeOut: Cardinal): SystemString; virtual;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; virtual;
+    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; virtual;
+    {$IFNDEF FPC} procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; virtual; {$ENDIF}
+    function Connect(Addr: SystemString; Port: Word): Boolean; virtual;
+    procedure Disconnect; virtual;
 
+    // sync KeepAlive
+    function Wait(ATimeOut: TTimeTickValue): string; overload;
+    // async KeepAlive
+    function Wait(ATimeOut: TTimeTickValue; OnResult: TStateCall): Boolean; overload;
+    function Wait(ATimeOut: TTimeTickValue; OnResult: TStateMethod): Boolean; overload;
+    {$IFNDEF FPC} function Wait(ATimeOut: TTimeTickValue; OnResult: TStateProc): Boolean; overload; {$ENDIF}
+    //
     function WaitSendBusy: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function LastQueueData: PQueueData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function LastQueueCmd: SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function QueueCmdCount: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
     // send cmd method
     procedure SendConsoleCmd(Cmd: SystemString; ConsoleData: SystemString; OnResult: TConsoleMethod); overload;
@@ -714,6 +747,9 @@ type
 
   TProgressBackgroundProc = procedure();
 
+  TIPV4 = array [0 .. 3] of Byte;
+  TIPV6 = array [0 .. 7] of Word;
+
 var
   // communication data token
   c_DefaultConsoleToken      : Byte = 11;
@@ -736,6 +772,13 @@ var
 procedure DisposeQueueData(v: PQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure InitQueueData(var v: TQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function NewQueueData: PQueueData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function StrToIPv4(const S: umlString; var Success: Boolean): TIPV4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function IPv4ToStr(const AIcsIPv4Addr: TIPV4): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function StrToIPv6(const S: umlString; var Success: Boolean; var ScopeID: Cardinal): TIPV6; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function IPv6ToStr(const IPv6Addr: TIPV6): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function IsIPv4(const S: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function IsIPV6(const S: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function TranslateBindAddr(const Addr: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
@@ -799,6 +842,305 @@ begin
   InitQueueData(Result^);
 end;
 
+function StrToIPv4(const S: umlString; var Success: Boolean): TIPV4;
+var
+  n       : umlString;
+  i       : Integer;
+  DotCount: Integer;
+  NumVal  : Integer;
+  len     : Integer;
+  ch      : Char;
+begin
+  FillPtrByte(@Result[0], SizeOf(Result), 0);
+  Success := False;
+  n := umlDeleteChar(S, [#32, #0, #9, #13, #10]);
+  len := n.len;
+  if len < 6 then
+      Exit;
+  DotCount := 0;
+  NumVal := -1;
+  for i := 1 to len do
+    begin
+      ch := n[i];
+      if CharIn(ch, c0to9) then
+        begin
+          if NumVal < 0 then
+              NumVal := Ord(ch) - Ord('0')
+          else
+              NumVal := NumVal * 10 + Ord(ch) - Ord('0');
+          if NumVal > 255 then
+              Exit;
+        end
+      else if ch = '.' then
+        begin
+          if (NumVal > -1) and (DotCount < 3) then
+              Result[DotCount] := NumVal
+          else
+              Exit;
+          Inc(DotCount);
+          NumVal := -1;
+        end
+      else
+          Exit;
+    end;
+
+  if (NumVal > -1) and (DotCount = 3) then
+    begin
+      Result[DotCount] := NumVal;
+      Success := True;
+    end;
+end;
+
+function IPv4ToStr(const AIcsIPv4Addr: TIPV4): umlString;
+begin
+  Result.Text := IntToStr(AIcsIPv4Addr[0]) + '.' + IntToStr(AIcsIPv4Addr[1]) + '.' + IntToStr(AIcsIPv4Addr[2]) + '.' + IntToStr(AIcsIPv4Addr[3]);
+end;
+
+function StrToIPv6(const S: umlString; var Success: Boolean; var ScopeID: Cardinal): TIPV6;
+const
+  Colon   = ':';
+  Percent = '%';
+var
+  n        : umlString;
+  ColonCnt : Integer;
+  i        : Integer;
+  NumVal   : Integer;
+  ch       : Char;
+  SLen     : Integer;
+  OmitPos  : Integer;
+  OmitCnt  : Integer;
+  PartCnt  : Byte;
+  ScopeFlag: Boolean;
+begin
+  FillPtrByte(@Result[0], SizeOf(Result), 0);
+  Success := False;
+  n := umlDeleteChar(S, [#32, #0, #9, #13, #10]);
+  SLen := n.len;
+  if (SLen < 1) or (SLen > (4 * 8) + 7) then
+      Exit;
+  ColonCnt := 0;
+  for i := 1 to SLen do
+    if (n[i] = Colon) then
+        Inc(ColonCnt);
+  if ColonCnt > 7 then
+      Exit;
+  OmitPos := n.GetPos('::') - 1;
+  if OmitPos > -1 then
+      OmitCnt := 8 - ColonCnt
+  else begin
+      OmitCnt := 0; // Make the compiler happy
+      if (n.First = Colon) or (n.Last = Colon) then
+          Exit;
+    end;
+  NumVal := -1;
+  ColonCnt := 0;
+  PartCnt := 0;
+  i := 0;
+  ScopeID := 0;
+  ScopeFlag := False;
+  while i < SLen do
+    begin
+      ch := n.buff[i];
+
+      if ch = Percent then
+        begin
+          if ScopeFlag then
+              Exit
+          else
+              ScopeFlag := True;
+
+          PartCnt := 0;
+          if NumVal > -1 then
+            begin
+              Result[ColonCnt] := NumVal;
+              NumVal := -1;
+            end;
+        end
+      else if ch = Colon then
+        begin
+          if ScopeFlag then
+              Exit;
+          PartCnt := 0;
+          if NumVal > -1 then
+            begin
+              Result[ColonCnt] := NumVal;
+              NumVal := -1;
+            end;
+          if (OmitPos = i) then
+            begin
+              Inc(ColonCnt, OmitCnt);
+              Inc(i);
+            end;
+          Inc(ColonCnt);
+          if ColonCnt > 7 then
+              Exit;
+        end
+      else if CharIn(ch, c0to9) then
+        begin
+          Inc(PartCnt);
+          if NumVal < 0 then
+              NumVal := (Ord(ch) - Ord('0'))
+          else if ScopeFlag then
+              NumVal := NumVal * 10 + (Ord(ch) - Ord('0'))
+          else
+              NumVal := NumVal * 16 + (Ord(ch) - Ord('0'));
+          if (NumVal > high(Word)) or (PartCnt > 4) then
+              Exit;
+        end
+      else if CharIn(ch, cAtoZ) then
+        begin
+          if ScopeFlag then
+              Exit;
+          Inc(PartCnt);
+          if NumVal < 0 then
+              NumVal := ((Ord(ch) and 15) + 9)
+          else
+              NumVal := NumVal * 16 + ((Ord(ch) and 15) + 9);
+          if (NumVal > high(Word)) or (PartCnt > 4) then
+              Exit;
+        end
+      else
+          Exit;
+
+      Inc(i);
+    end;
+
+  if (NumVal > -1) and (ColonCnt > 1) then
+    begin
+      if not ScopeFlag then
+        begin
+          Result[ColonCnt] := NumVal;
+        end
+      else
+          ScopeID := NumVal;
+    end;
+  Success := ColonCnt > 1;
+end;
+
+function IPv6ToStr(const IPv6Addr: TIPV6): umlString;
+var
+  i                   : Integer;
+  Zeros1, Zeros2      : set of Byte;
+  Zeros1Cnt, Zeros2Cnt: Byte;
+  OmitFlag            : Boolean;
+  ipv                 : SystemString;
+begin
+  ipv := '';
+  Zeros1 := [];
+  Zeros2 := [];
+  Zeros1Cnt := 0;
+  Zeros2Cnt := 0;
+  for i := low(IPv6Addr) to high(IPv6Addr) do
+    begin
+      if IPv6Addr[i] = 0 then
+        begin
+          Include(Zeros1, i);
+          Inc(Zeros1Cnt);
+        end
+      else if Zeros1Cnt > Zeros2Cnt then
+        begin
+          Zeros2Cnt := Zeros1Cnt;
+          Zeros2 := Zeros1;
+          Zeros1 := [];
+          Zeros1Cnt := 0;
+        end;
+    end;
+  if Zeros1Cnt > Zeros2Cnt then
+    begin
+      Zeros2 := Zeros1;
+      Zeros2Cnt := Zeros1Cnt;
+    end;
+
+  if Zeros2Cnt = 0 then
+    begin
+      for i := low(IPv6Addr) to high(IPv6Addr) do
+        begin
+          if i = 0 then
+              ipv := IntToHex(IPv6Addr[i], 1)
+          else
+              ipv := ipv + ':' + IntToHex(IPv6Addr[i], 1);
+        end;
+    end
+  else begin
+      OmitFlag := False;
+      for i := low(IPv6Addr) to high(IPv6Addr) do
+        begin
+          if not(i in Zeros2) then
+            begin
+              if OmitFlag then
+                begin
+                  if ipv = '' then
+                      ipv := '::'
+                  else
+                      ipv := ipv + ':';
+                  OmitFlag := False;
+                end;
+              if i < high(IPv6Addr) then
+                  ipv := ipv + IntToHex(IPv6Addr[i], 1) + ':'
+              else
+                  ipv := ipv + IntToHex(IPv6Addr[i], 1);
+            end
+          else
+              OmitFlag := True;
+        end;
+      if OmitFlag then
+        begin
+          if ipv = '' then
+              ipv := '::'
+          else
+              ipv := ipv + ':';
+        end;
+      if ipv = '' then
+          ipv := '::';
+    end;
+  Result.Text := LowerCase(ipv);
+end;
+
+function IsIPv4(const S: umlString): Boolean;
+var
+  n     : umlString;
+  i     : Integer;
+  DotCnt: Integer;
+  NumVal: Integer;
+  ch    : Char;
+begin
+  n := umlDeleteChar(S, [#32, #0, #9, #13, #10]);
+  Result := False;
+  DotCnt := 0;
+  NumVal := -1;
+  for i := 1 to n.len do
+    begin
+      ch := n[i];
+      if CharIn(ch, c0to9) then
+        begin
+          if NumVal = -1 then
+              NumVal := Ord(ch) - Ord('0')
+          else
+              NumVal := NumVal * 10 + Ord(ch) - Ord('0');
+          if NumVal > 255 then
+              Exit;
+        end
+      else if ch = '.' then
+        begin
+          Inc(DotCnt);
+          if (DotCnt > 3) or (NumVal = -1) then
+              Exit;
+          NumVal := -1;
+        end
+      else
+          Exit;
+    end;
+
+  Result := DotCnt = 3;
+end;
+
+function IsIPV6(const S: umlString): Boolean;
+var
+  ScopeID: Cardinal;
+begin
+  StrToIPv6(S, Result, ScopeID);
+end;
+
 function TranslateBindAddr(const Addr: SystemString): SystemString;
 begin
   if Addr = '' then
@@ -811,6 +1153,10 @@ begin
       Result := 'All IPv4'
   else if Addr = '::' then
       Result := 'All IPv6'
+  else if IsIPv4(Addr) then
+      Result := 'Custom IPv4'
+  else if IsIPV6(Addr) then
+      Result := 'Custom IPv6'
   else
       Result := Addr;
 end;
@@ -835,7 +1181,7 @@ var
   AInData: TDataFrameEngine;
 begin
   if QueuePtr = nil then
-      exit;
+      Exit;
 
   c.FReceiveResultRuning := True;
 
@@ -968,9 +1314,9 @@ var
 begin
   Result := '';
   if cf.ClientIO = nil then
-      exit;
+      Exit;
   if not cf.Connected then
-      exit;
+      Exit;
 
   r := True;
   TCoreClassThread.Synchronize(th,
@@ -979,7 +1325,7 @@ begin
       r := cf.CanSendCommand(cf.ClientIO, Cmd);
     end);
   if not r then
-      exit;
+      Exit;
 
   TCoreClassThread.Synchronize(th,
     procedure
@@ -997,9 +1343,9 @@ begin
         end);
 
       if not cf.Connected then
-          exit;
+          Exit;
       if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-          exit;
+          Exit;
       th.Sleep(1);
     end;
 
@@ -1049,9 +1395,9 @@ var
   r       : Boolean;
 begin
   if cf.ClientIO = nil then
-      exit;
+      Exit;
   if not cf.Connected then
-      exit;
+      Exit;
 
   r := True;
   TCoreClassThread.Synchronize(th,
@@ -1060,7 +1406,7 @@ begin
       r := cf.CanSendCommand(cf.ClientIO, Cmd);
     end);
   if not r then
-      exit;
+      Exit;
 
   TCoreClassThread.Synchronize(th,
     procedure
@@ -1080,9 +1426,9 @@ begin
               cf.ProgressBackground;
             end);
           if not cf.Connected then
-              exit;
+              Exit;
           if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-              exit;
+              Exit;
           th.Sleep(1);
         end;
     end;
@@ -1415,7 +1761,7 @@ end;
 
 procedure TPeerClient.TriggerWrite64(Count: Int64);
 begin
-  inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveSize], Count);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveSize], Count);
 end;
 
 procedure TPeerClient.InternalSendByteBuffer(buff: PByte; Size: Integer);
@@ -1425,14 +1771,14 @@ begin
   FLastCommunicationTimeTickCount := GetTimeTickCount;
 
   if Size < 1 then
-      exit;
+      Exit;
 
   // fill fragment
   while Size > FlushBuffSize do
     begin
       SendByteBuffer(buff, FlushBuffSize);
-      inc(buff, FlushBuffSize);
-      inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], FlushBuffSize);
+      Inc(buff, FlushBuffSize);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], FlushBuffSize);
       WriteBufferFlush;
       dec(Size, FlushBuffSize);
     end;
@@ -1440,7 +1786,7 @@ begin
   if Size > 0 then
     begin
       SendByteBuffer(buff, Size);
-      inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
     end;
 end;
 
@@ -1602,7 +1948,7 @@ begin
   for j := 0 to Num - 1 do
     begin
       if not Connected then
-          exit;
+          Exit;
 
       LockObject(Queue.BigStream);
       try
@@ -1634,7 +1980,7 @@ begin
           FBigStreamSendState := tmpPos;
           FBigStreamSendDoneTimeFree := Queue.DoneFreeStream;
           Queue.BigStream := nil;
-          exit;
+          Exit;
         end;
     end;
 
@@ -1701,7 +2047,7 @@ begin
   DisposeObject(stream);
 
   if FOwnerFramework.FSendDataCompressed then
-      inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 end;
 
 procedure TPeerClient.Sync_InternalSendStreamCmd;
@@ -1726,7 +2072,7 @@ begin
   DisposeObject(stream);
 
   if FOwnerFramework.FSendDataCompressed then
-      inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 end;
 
 procedure TPeerClient.Sync_InternalSendDirectConsoleCmd;
@@ -1751,7 +2097,7 @@ begin
   DisposeObject(stream);
 
   if FOwnerFramework.FSendDataCompressed then
-      inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 end;
 
 procedure TPeerClient.Sync_InternalSendDirectStreamCmd;
@@ -1776,14 +2122,14 @@ begin
   DisposeObject(stream);
 
   if FOwnerFramework.FSendDataCompressed then
-      inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 end;
 
 procedure TPeerClient.Sync_InternalSendBigStreamCmd;
 begin
   FSyncPick^.BigStream.Position := 0;
   InternalSendBigStreamBuff(FSyncPick^);
-  inc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
 end;
 
 procedure TPeerClient.Sync_ExecuteConsole;
@@ -1799,7 +2145,7 @@ begin
 
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stExecConsole]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stExecConsole]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
@@ -1816,7 +2162,7 @@ begin
 
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stExecStream]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stExecStream]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
@@ -1833,7 +2179,7 @@ begin
 
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestConsole]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestConsole]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
@@ -1850,7 +2196,7 @@ begin
 
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestStream]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestStream]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
 end;
 
@@ -1881,10 +2227,10 @@ begin
       if FPauseResultSend then
         begin
           FCurrentPauseResultSend_CommDataType := CommDataType;
-          exit;
+          Exit;
         end;
       if not Connected then
-          exit;
+          Exit;
 
       buff := TPascalString(FOutText).Bytes;
       WriteBufferOpen;
@@ -1900,7 +2246,7 @@ begin
       WriteBufferFlush;
       WriteBufferClose;
 
-      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
     end
   else if CommDataType = FStreamToken then
     begin
@@ -1923,11 +2269,11 @@ begin
       if FPauseResultSend then
         begin
           FCurrentPauseResultSend_CommDataType := CommDataType;
-          exit;
+          Exit;
         end;
 
       if not Connected then
-          exit;
+          Exit;
 
       m64 := TMemoryStream64.Create;
       FOutDataFrame.EncodeTo(m64, True);
@@ -1944,7 +2290,7 @@ begin
 
       WriteBufferFlush;
       WriteBufferClose;
-      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
     end
   else if CommDataType = FDirectConsoleToken then
     begin
@@ -1959,7 +2305,7 @@ begin
       FRunReceiveTrigger := False;
 
       if not Connected then
-          exit;
+          Exit;
     end
   else if CommDataType = FDirectStreamToken then
     begin
@@ -1976,7 +2322,7 @@ begin
       FRunReceiveTrigger := False;
 
       if not Connected then
-          exit;
+          Exit;
     end;
 end;
 
@@ -2053,7 +2399,7 @@ var
   nQueue : PQueueData;
 begin
   if FCurrentQueueData = nil then
-      exit;
+      Exit;
 
   if (FOwnerFramework.FSyncOnResult) then
     begin
@@ -2093,47 +2439,47 @@ var
 begin
   Result := False;
   if not FWaitOnResult then
-      exit;
+      Exit;
   if FCurrentQueueData = nil then
-      exit;
+      Exit;
 
   FReceivedBuffer.Position := 0;
 
   // 0: head token
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlCardinalLength) then
-      exit;
+      Exit;
   FReceivedBuffer.Read(dHead, umlCardinalLength);
   if dHead <> FHeadToken then
     begin
       Disconnect;
-      exit;
+      Exit;
     end;
 
   // 1: data len
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlIntegerLength) then
-      exit;
+      Exit;
   FReceivedBuffer.Read(dSize, umlIntegerLength);
 
   // 2:verify code header
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < 3) then
-      exit;
+      Exit;
   FReceivedBuffer.Read(dHashStyle, umlByteLength);
   FReceivedBuffer.Read(dHashSiz, umlWordLength);
 
   // 3:verify code body
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < dHashSiz) then
-      exit;
+      Exit;
   SetLength(dHash, dHashSiz);
   FReceivedBuffer.Read(dHash[0], dHashSiz);
 
   // 4: use Encrypt state
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
-      exit;
+      Exit;
   FReceivedBuffer.Read(dCipherStyle, umlByteLength);
 
   // 5:process buff and tail token
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
-      exit;
+      Exit;
   SetLength(buff, dSize);
   FReceivedBuffer.Read(buff[0], dSize);
 
@@ -2143,7 +2489,7 @@ begin
     begin
       Print('tail token error!');
       Disconnect;
-      exit;
+      Exit;
     end;
 
   FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
@@ -2153,14 +2499,14 @@ begin
   except
     Print('Encrypt error!');
     Disconnect;
-    exit;
+    Exit;
   end;
 
   if not VerifyHashCode(dHashStyle, @buff[0], dSize, dHash) then
     begin
       Print('verify data error!');
       Disconnect;
-      exit;
+      Exit;
     end;
 
   {$IFDEF FPC}
@@ -2176,7 +2522,7 @@ begin
       except
         Print('data error!');
         Disconnect;
-        exit;
+        Exit;
       end;
 
       {$IFDEF FPC}
@@ -2186,7 +2532,7 @@ begin
       {$ENDIF}
       ResultText := '';
 
-      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
     end
   else
     {$IFDEF FPC}
@@ -2205,7 +2551,7 @@ begin
         except
           Print('data error!');
           Disconnect;
-          exit;
+          Exit;
         end;
 
         {$IFDEF FPC}
@@ -2215,7 +2561,7 @@ begin
         {$ENDIF}
         ResultDataFrame.Clear;
 
-        inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+        Inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
       end;
 
   // stripped stream
@@ -2251,9 +2597,9 @@ begin
   FID := AOwnerFramework.FIDCounter;
 
   // only ID
-  inc(AOwnerFramework.FIDCounter);
+  Inc(AOwnerFramework.FIDCounter);
   while (AOwnerFramework.FIDCounter = 0) or (AOwnerFramework.FPerClientHashList.Exists(AOwnerFramework.FIDCounter)) do
-      inc(AOwnerFramework.FIDCounter);
+      Inc(AOwnerFramework.FIDCounter);
 
   FHeadToken := c_DataHeadToken;
   FTailToken := c_DataTailToken;
@@ -2319,9 +2665,9 @@ begin
   FOwnerFramework.FPerClientHashList.Add(FID, Self, False);
   UnLockObject(FOwnerFramework.FPerClientHashList);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
-  FOwnerFramework.FOnPeerClientCreateNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
+  FOwnerFramework.FOnPeerClientCreateNotify.ExecuteBackcall(Self, FID, NULL, NULL);
 end;
 
 destructor TPeerClient.Destroy;
@@ -2334,9 +2680,9 @@ begin
       FBigStreamSending := nil;
     end;
 
-  FOwnerFramework.FOnPeerClientDestroyNotify.ExecuteBackcall(Self, NULL, NULL, NULL);
+  FOwnerFramework.FOnPeerClientDestroyNotify.ExecuteBackcall(Self, FID, NULL, NULL);
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerDisconnect]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerDisconnect]);
 
   LockObject(FOwnerFramework.FPerClientHashList);
   FOwnerFramework.FPerClientHashList.Delete(FID);
@@ -2388,7 +2734,7 @@ begin
     if (OwnerFramework.FAllowPrintCommand) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
         Print(Format(v, [Args]))
     else
-        inc(OwnerFramework.Statistics[TStatisticsType.stPrint]);
+        Inc(OwnerFramework.Statistics[TStatisticsType.stPrint]);
   except
       Print(Format(v, [Args]));
   end;
@@ -2421,9 +2767,9 @@ begin
   end;
 
   if FAllSendProcessing then
-      exit;
+      Exit;
   if FReceiveProcessing then
-      exit;
+      Exit;
 
   if (FBigStreamSending <> nil) and (WriteBufferEmpty) then
     begin
@@ -2441,12 +2787,12 @@ begin
         FBigStreamSending.Position := FBigStreamSendState;
         FBigStreamSending.Read(buff[0], SendBufferSize);
 
-        inc(FBigStreamSendState, SendBufferSize);
+        Inc(FBigStreamSendState, SendBufferSize);
 
       except
         UnLockObject(FBigStreamSending);
         Disconnect;
-        exit;
+        Exit;
       end;
 
       UnLockObject(FBigStreamSending);
@@ -2458,7 +2804,7 @@ begin
         WriteBufferClose;
       except
         Disconnect;
-        exit;
+        Exit;
       end;
 
       if SendDone then
@@ -2489,17 +2835,17 @@ var
   Total       : Int64;
 begin
   if FAllSendProcessing then
-      exit;
+      Exit;
   if FReceiveProcessing then
-      exit;
+      Exit;
   if FPauseResultSend then
-      exit;
+      Exit;
   if FResultDataBuffer.Size > 0 then
-      exit;
+      Exit;
   if FRunReceiveTrigger then
-      exit;
+      Exit;
   if FBigStreamSending <> nil then
-      exit;
+      Exit;
 
   FReceiveProcessing := True;
   try
@@ -2625,7 +2971,7 @@ begin
             end;
             DisposeObject(df);
 
-            inc(FOwnerFramework.Statistics[TStatisticsType.stRequest]);
+            Inc(FOwnerFramework.Statistics[TStatisticsType.stRequest]);
           end
         else if dID = FBigStreamToken then
           begin
@@ -2668,7 +3014,7 @@ begin
             FReceivedBuffer := tmpStream;
             FReceivedBuffer.Trigger := Self;
 
-            inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveBigStream]);
+            Inc(FOwnerFramework.Statistics[TStatisticsType.stReceiveBigStream]);
           end
         else
           begin
@@ -2697,18 +3043,18 @@ var
 begin
   Result := 0;
   if not Connected then
-      exit;
+      Exit;
 
   if FAllSendProcessing then
-      exit;
+      Exit;
   if FReceiveProcessing then
-      exit;
+      Exit;
   if FWaitOnResult then
-      exit;
+      Exit;
   if FBigStreamReceiveProcessing then
-      exit;
+      Exit;
   if FBigStreamSending <> nil then
-      exit;
+      Exit;
 
   if FResultDataBuffer.Size > 0 then
     begin
@@ -2720,7 +3066,7 @@ begin
     end;
 
   if FRunReceiveTrigger then
-      exit;
+      Exit;
 
   FAllSendProcessing := True;
 
@@ -2737,7 +3083,7 @@ begin
         case p^.State of
           qsSendConsoleCMD:
             begin
-              inc(FOwnerFramework.Statistics[TStatisticsType.stConsole]);
+              Inc(FOwnerFramework.Statistics[TStatisticsType.stConsole]);
 
               FSyncPick := p;
               // wait result
@@ -2750,12 +3096,12 @@ begin
               FSyncPick := nil;
 
               FQueueList.Delete(0);
-              inc(Result);
+              Inc(Result);
               break;
             end;
           qsSendStreamCMD:
             begin
-              inc(FOwnerFramework.Statistics[TStatisticsType.stStream]);
+              Inc(FOwnerFramework.Statistics[TStatisticsType.stStream]);
 
               FSyncPick := p;
 
@@ -2770,12 +3116,12 @@ begin
               FSyncPick := nil;
 
               FQueueList.Delete(0);
-              inc(Result);
+              Inc(Result);
               break;
             end;
           qsSendDirectConsoleCMD:
             begin
-              inc(FOwnerFramework.Statistics[TStatisticsType.stDirestConsole]);
+              Inc(FOwnerFramework.Statistics[TStatisticsType.stDirestConsole]);
 
               FSyncPick := p;
               {$IFDEF FPC}
@@ -2787,11 +3133,11 @@ begin
 
               DisposeQueueData(p);
               FQueueList.Delete(0);
-              inc(Result);
+              Inc(Result);
             end;
           qsSendDirectStreamCMD:
             begin
-              inc(FOwnerFramework.Statistics[TStatisticsType.stDirestStream]);
+              Inc(FOwnerFramework.Statistics[TStatisticsType.stDirestStream]);
 
               FSyncPick := p;
               {$IFDEF FPC}
@@ -2803,11 +3149,11 @@ begin
 
               DisposeQueueData(p);
               FQueueList.Delete(0);
-              inc(Result);
+              Inc(Result);
             end;
           qsSendBigStream:
             begin
-              inc(FOwnerFramework.Statistics[TStatisticsType.stSendBigStream]);
+              Inc(FOwnerFramework.Statistics[TStatisticsType.stSendBigStream]);
 
               FSyncPick := p;
               {$IFDEF FPC}
@@ -2819,7 +3165,7 @@ begin
 
               DisposeQueueData(p);
               FQueueList.Delete(0);
-              inc(Result);
+              Inc(Result);
 
               if FBigStreamSending <> nil then
                   break;
@@ -2837,7 +3183,7 @@ begin
   if FCanPauseResultSend then
     begin
       FPauseResultSend := True;
-      inc(FOwnerFramework.Statistics[TStatisticsType.stPause]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stPause]);
     end;
 end;
 
@@ -2852,11 +3198,11 @@ var
   bCipherStyle: Byte;
 begin
   if not FPauseResultSend then
-      exit;
+      Exit;
   if FResultDataBuffer.Size > 0 then
-      exit;
+      Exit;
 
-  inc(FOwnerFramework.Statistics[TStatisticsType.stContinue]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stContinue]);
 
   if FCurrentPauseResultSend_CommDataType in [FConsoleToken, FStreamToken] then
     begin
@@ -2900,7 +3246,7 @@ begin
 
       DisposeObject(buff);
 
-      inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
     end;
   FPauseResultSend := False;
 end;
@@ -2923,7 +3269,7 @@ end;
 procedure TPeerClient.GenerateHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
 begin
   TCipher.GenerateHashByte(hs, buff, siz, output);
-  inc(FOwnerFramework.Statistics[TStatisticsType.stGenerateHash]);
+  Inc(FOwnerFramework.Statistics[TStatisticsType.stGenerateHash]);
 end;
 
 function TPeerClient.VerifyHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var code: TBytes): Boolean;
@@ -2946,7 +3292,7 @@ begin
       SequEncryptCBCWithDirect(cs, DataPtr, Size, k, Enc, True);
 
   if cs <> TCipherStyle.csNone then
-      inc(FOwnerFramework.Statistics[TStatisticsType.stEncrypt]);
+      Inc(FOwnerFramework.Statistics[TStatisticsType.stEncrypt]);
 end;
 
 function TPeerClient.StopCommunicationTime: TTimeTickValue;
@@ -3089,7 +3435,7 @@ end;
 procedure TCommunicationFramework.DoPrint(const v: SystemString);
 begin
   DoStatus(v, c_DefaultDoStatusID);
-  inc(Statistics[TStatisticsType.stPrint]);
+  Inc(Statistics[TStatisticsType.stPrint]);
 end;
 
 function TCommunicationFramework.GetIdleTimeout: TTimeTickValue;
@@ -3125,7 +3471,7 @@ begin
       end;
     end;
   if Result then
-      inc(Statistics[TStatisticsType.stTotalCommandExecute]);
+      Inc(Statistics[TStatisticsType.stTotalCommandExecute]);
 end;
 
 function TCommunicationFramework.CanSendCommand(Sender: TPeerClient; Cmd: SystemString): Boolean;
@@ -3139,13 +3485,13 @@ begin
       end;
     end;
   if Result then
-      inc(Statistics[TStatisticsType.stTotalCommandSend]);
+      Inc(Statistics[TStatisticsType.stTotalCommandSend]);
 end;
 
 function TCommunicationFramework.CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean;
 begin
   Result := True;
-  inc(Statistics[TStatisticsType.stTotalCommandReg]);
+  Inc(Statistics[TStatisticsType.stTotalCommandReg]);
 end;
 
 procedure TCommunicationFramework.DelayExecuteOnResultState(Sender: TNPostExecute);
@@ -3241,13 +3587,13 @@ end;
 procedure TCommunicationFramework.LockClients;
 begin
   LockObject(FPerClientHashList);
-  inc(Statistics[TStatisticsType.stLock]);
+  Inc(Statistics[TStatisticsType.stLock]);
 end;
 
 procedure TCommunicationFramework.UnLockClients;
 begin
   UnLockObject(FPerClientHashList);
-  inc(Statistics[TStatisticsType.stUnLock]);
+  Inc(Statistics[TStatisticsType.stUnLock]);
 end;
 
 procedure TCommunicationFramework.ProgressBackground;
@@ -3271,7 +3617,7 @@ begin
               TPeerClient(p^.Data).Progress;
           except
           end;
-          inc(i);
+          Inc(i);
           p := p^.next;
         end;
     end;
@@ -3371,7 +3717,7 @@ begin
       while i < FPerClientHashList.Count do
         begin
           IDPool[i] := TPeerClient(p^.Data).FID;
-          inc(i);
+          Inc(i);
           p := p^.next;
         end;
     end;
@@ -3410,14 +3756,14 @@ begin
     begin
       raiseInfo(Format('Illegal Register', []));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   if FCommandList.Exists(Cmd) then
     begin
       raiseInfo(Format('exists cmd:%s', [Cmd]));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   Result := TCommandConsoleMode.Create;
@@ -3433,14 +3779,14 @@ begin
     begin
       raiseInfo(Format('Illegal Register', []));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   if FCommandList.Exists(Cmd) then
     begin
       raiseInfo(Format('exists cmd:%s', [Cmd]));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   Result := TCommandStreamMode.Create;
@@ -3456,14 +3802,14 @@ begin
     begin
       raiseInfo(Format('Illegal Register', []));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   if FCommandList.Exists(Cmd) then
     begin
       raiseInfo(Format('exists cmd:%s', [Cmd]));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   Result := TCommandDirectStreamMode.Create;
@@ -3479,14 +3825,14 @@ begin
     begin
       raiseInfo(Format('Illegal Register', []));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   if FCommandList.Exists(Cmd) then
     begin
       raiseInfo(Format('exists cmd:%s', [Cmd]));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   Result := TCommandDirectConsoleMode.Create;
@@ -3502,14 +3848,14 @@ begin
     begin
       raiseInfo(Format('Illegal Register', []));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   if FCommandList.Exists(Cmd) then
     begin
       raiseInfo(Format('exists cmd:%s', [Cmd]));
       Result := nil;
-      exit;
+      Exit;
     end;
 
   Result := TCommandBigStreamMode.Create;
@@ -3525,17 +3871,17 @@ var
 begin
   Result := False;
   if not CanExecuteCommand(Sender, Cmd) then
-      exit;
+      Exit;
   b := FCommandList[Cmd];
   if b = nil then
     begin
       Sender.PrintCommand('no exists console cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   if not b.InheritsFrom(TCommandConsoleMode) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   Result := TCommandConsoleMode(b).Execute(Sender, InData, OutData);
 end;
@@ -3546,17 +3892,17 @@ var
 begin
   Result := False;
   if not CanExecuteCommand(Sender, Cmd) then
-      exit;
+      Exit;
   b := FCommandList[Cmd];
   if b = nil then
     begin
       Sender.PrintCommand('no exists stream cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   if not b.InheritsFrom(TCommandStreamMode) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   InData.Reader.Index := 0;
   Result := TCommandStreamMode(b).Execute(Sender, InData, OutData);
@@ -3568,17 +3914,17 @@ var
 begin
   Result := False;
   if not CanExecuteCommand(Sender, Cmd) then
-      exit;
+      Exit;
   b := FCommandList[Cmd];
   if b = nil then
     begin
       Sender.PrintCommand('no exists direct console cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   if not b.InheritsFrom(TCommandDirectStreamMode) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   InData.Reader.Index := 0;
   Result := TCommandDirectStreamMode(b).Execute(Sender, InData);
@@ -3590,17 +3936,17 @@ var
 begin
   Result := False;
   if not CanExecuteCommand(Sender, Cmd) then
-      exit;
+      Exit;
   b := FCommandList[Cmd];
   if b = nil then
     begin
       Sender.PrintCommand('no exists direct stream cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   if not b.InheritsFrom(TCommandDirectConsoleMode) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   Result := TCommandDirectConsoleMode(b).Execute(Sender, InData);
 end;
@@ -3611,17 +3957,17 @@ var
 begin
   Result := False;
   if not CanExecuteCommand(Sender, Cmd) then
-      exit;
+      Exit;
   b := FCommandList[Cmd];
   if b = nil then
     begin
       Sender.PrintCommand('no exists Big Stream cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   if not b.InheritsFrom(TCommandBigStreamMode) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
-      exit;
+      Exit;
     end;
   Result := TCommandBigStreamMode(b).Execute(Sender, InData, FBigStreamTotal, BigStreamCompleteSize);
 end;
@@ -3682,7 +4028,7 @@ end;
 
 procedure TCommunicationFrameworkServer.Command_Wait(Sender: TPeerClient; InData: SystemString; var OutData: SystemString);
 begin
-  OutData := IntToStr(GetTimeTickCount);
+  OutData := IntToHex(GetTimeTick, SizeOf(TTimeTickValue) * 2);
 end;
 
 constructor TCommunicationFrameworkServer.Create;
@@ -3711,9 +4057,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -3733,9 +4079,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
   p^.Client := Client;
@@ -3754,9 +4100,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
   p^.Client := Client;
@@ -3779,9 +4125,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
   p^.Client := Client;
@@ -3809,9 +4155,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -3831,9 +4177,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
   p^.Client := Client;
@@ -3852,9 +4198,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
   p^.Client := Client;
@@ -3877,9 +4223,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
   p^.Client := Client;
@@ -3906,9 +4252,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectConsoleCMD;
   p^.Client := Client;
@@ -3925,9 +4271,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
   p^.Client := Client;
@@ -3945,9 +4291,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
   p^.Client := Client;
@@ -3978,9 +4324,9 @@ var
   timetick: TTimeTickValue;
 begin
   if (Client = nil) or (not Client.Connected) then
-      exit('');
+      Exit('');
   if not CanSendCommand(Client, Cmd) then
-      exit('');
+      Exit('');
 
   Client.PrintCommand('Begin Wait Console cmd: %s', Cmd);
 
@@ -3990,13 +4336,13 @@ begin
     begin
       ProgressWaitSendOfClient(Client);
       if not Exists(Client) then
-          exit;
+          Exit;
       if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-          exit('');
+          Exit('');
     end;
 
   if not Exists(Client) then
-      exit('');
+      Exit('');
 
   Client.FWaitSendBusy := True;
 
@@ -4035,9 +4381,9 @@ var
   timetick: Cardinal;
 begin
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
 
   Client.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
 
@@ -4047,13 +4393,13 @@ begin
     begin
       ProgressWaitSendOfClient(Client);
       if not Exists(Client) then
-          exit;
+          Exit;
       if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-          exit;
+          Exit;
     end;
 
   if not Exists(Client) then
-      exit;
+      Exit;
 
   Client.FWaitSendBusy := True;
 
@@ -4092,9 +4438,9 @@ var
 begin
   // init queue data
   if (Client = nil) or (not Client.Connected) then
-      exit;
+      Exit;
   if not CanSendCommand(Client, Cmd) then
-      exit;
+      Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendBigStream;
   p^.Client := Client;
@@ -4203,7 +4549,7 @@ begin
               TPeerClient(p^.Data).SendDirectConsoleCmd(Cmd, ConsoleData);
           except
           end;
-          inc(i);
+          Inc(i);
           p := p^.next;
         end;
     end;
@@ -4224,7 +4570,7 @@ begin
               TPeerClient(p^.Data).SendDirectStreamCmd(Cmd, StreamData);
           except
           end;
-          inc(i);
+          Inc(i);
           p := p^.next;
         end;
     end;
@@ -4267,9 +4613,9 @@ begin
           if TPeerClient(p^.Data).FUserDefine = cli then
             begin
               Result := True;
-              exit;
+              Exit;
             end;
-          inc(i);
+          Inc(i);
           p := p^.next;
         end;
     end;
@@ -4290,9 +4636,9 @@ begin
           if TPeerClient(p^.Data).FUserSpecial = cli then
             begin
               Result := True;
-              exit;
+              Exit;
             end;
-          inc(i);
+          Inc(i);
           p := p^.next;
         end;
     end;
@@ -4332,13 +4678,26 @@ begin
       arr.GetBuff(@Sender.FCipherKey[0]);
 
       Sender.FRemoteExecutedForConnectInit := True;
+
+      if FConnectInitWaiting then
+          TriggerDoConnectFinished;
+    end
+  else
+    begin
+      if FConnectInitWaiting then
+          TriggerDoConnectFailed;
     end;
+
+  FConnectInitWaiting := False;
 end;
 
 procedure TCommunicationFrameworkClient.DoConnected(Sender: TPeerClient);
 var
   de: TDataFrameEngine;
 begin
+  FConnectInitWaiting := True;
+  FConnectInitWaitingTimeout := GetTimeTick + 2000;
+
   ClientIO.FSendDataCipherStyle := TCipherStyle.csNone;
   de := TDataFrameEngine.Create;
   de.WriteInteger(Integer(CurrentPlatform));
@@ -4403,10 +4762,90 @@ begin
   Result := inherited CanRegCommand(Sender, Cmd);
 end;
 
+procedure TCommunicationFrameworkClient.ConsoleResult_Wait(Sender: TPeerClient; ResultData: SystemString);
+begin
+  if FWaiting then
+    begin
+      FWaiting := False;
+      FWaitingTimeOut := 0;
+      try
+        if Assigned(FOnWaitResultCall) then
+            FOnWaitResultCall(False);
+        if Assigned(FOnWaitResultMethod) then
+            FOnWaitResultMethod(False);
+        {$IFNDEF FPC}
+        if Assigned(FOnWaitResultProc) then
+            FOnWaitResultProc(False);
+        {$ENDIF}
+      except
+      end;
+
+      FOnWaitResultCall := nil;
+      FOnWaitResultMethod := nil;
+      {$IFNDEF FPC}
+      FOnWaitResultProc := nil;
+      {$ENDIF}
+    end;
+end;
+
 constructor TCommunicationFrameworkClient.Create;
 begin
   inherited Create;
   FNotyifyInterface := nil;
+  FConnectInitWaiting := False;
+  FConnectInitWaitingTimeout := 0;
+
+  FWaiting := False;
+  FWaitingTimeOut := 0;
+  FOnWaitResultCall := nil;
+  FOnWaitResultMethod := nil;
+  {$IFNDEF FPC}
+  FOnWaitResultProc := nil;
+  {$ENDIF}
+end;
+
+procedure TCommunicationFrameworkClient.ProgressBackground;
+begin
+  inherited ProgressBackground;
+
+  if (FConnectInitWaiting) and (GetTimeTick > FConnectInitWaitingTimeout) then
+    begin
+      FConnectInitWaiting := False;
+
+      try
+          TriggerDoConnectFailed;
+      except
+      end;
+
+      try
+        if Connected then
+            Disconnect;
+      except
+      end;
+    end;
+
+  if (FWaiting) and (GetTimeTick > FWaitingTimeOut) then
+    begin
+      FWaiting := False;
+      FWaitingTimeOut := 0;
+      try
+        if Assigned(FOnWaitResultCall) then
+            FOnWaitResultCall(False);
+        if Assigned(FOnWaitResultMethod) then
+            FOnWaitResultMethod(False);
+        {$IFNDEF FPC}
+        if Assigned(FOnWaitResultProc) then
+            FOnWaitResultProc(False);
+        {$ENDIF}
+      except
+      end;
+
+      FOnWaitResultCall := nil;
+      FOnWaitResultMethod := nil;
+      {$IFNDEF FPC}
+      FOnWaitResultProc := nil;
+      {$ENDIF}
+    end;
 end;
 
 procedure TCommunicationFrameworkClient.TriggerDoDisconnect;
@@ -4414,26 +4853,180 @@ begin
   DoDisconnect(ClientIO);
 end;
 
-function TCommunicationFrameworkClient.Wait(ATimeOut: Cardinal): SystemString;
+function TCommunicationFrameworkClient.Connected: Boolean;
+begin
+  Result := False;
+end;
+
+function TCommunicationFrameworkClient.ClientIO: TPeerClient;
+begin
+  Result := nil;
+end;
+
+procedure TCommunicationFrameworkClient.TriggerQueueData(v: PQueueData);
+begin
+end;
+
+procedure TCommunicationFrameworkClient.TriggerDoConnectFailed;
+begin
+  FConnectInitWaiting := False;
+end;
+
+procedure TCommunicationFrameworkClient.TriggerDoConnectFinished;
+begin
+  FConnectInitWaiting := False;
+end;
+
+procedure TCommunicationFrameworkClient.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
+begin
+  if Assigned(OnResult) then
+      OnResult(False);
+end;
+
+procedure TCommunicationFrameworkClient.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
+begin
+  if Assigned(OnResult) then
+      OnResult(False);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TCommunicationFrameworkClient.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+begin
+  if Assigned(OnResult) then
+      OnResult(False);
+end;
+{$ENDIF}
+
+
+function TCommunicationFrameworkClient.Connect(Addr: SystemString; Port: Word): Boolean;
+begin
+  Result := False;
+end;
+
+procedure TCommunicationFrameworkClient.Disconnect;
+begin
+end;
+
+// sync KeepAlive
+function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue): string;
 begin
   Result := '';
-  if ClientIO = nil then
-      exit;
-  if not Connected then
-      exit;
-  if ClientIO.WaitSendBusy then
-      exit;
-  if ClientIO.WaitOnResult then
-      exit;
-  if ClientIO.BigStreamIsSending then
-      exit;
+  if (ClientIO = nil) then
+      Exit;
+  if (not Connected) then
+      Exit;
 
   Result := WaitSendConsoleCmd('Wait', '', ATimeOut);
 end;
 
+function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue; OnResult: TStateCall): Boolean;
+begin
+  Result := False;
+  if (ClientIO = nil) then
+      Exit;
+  if (not Connected) then
+      Exit;
+  if (FWaiting) then
+      Exit;
+
+  FWaiting := True;
+  FWaitingTimeOut := GetTimeTick + ATimeOut;
+  FOnWaitResultCall := OnResult;
+  FOnWaitResultMethod := nil;
+  {$IFNDEF FPC}
+  FOnWaitResultProc := nil;
+  {$ENDIF}
+  {$IFDEF FPC}
+  SendConsoleCmd('Wait', '', @ConsoleResult_Wait);
+  {$ELSE}
+  SendConsoleCmd('Wait', '', ConsoleResult_Wait);
+  {$ENDIF}
+  Result := True;
+end;
+
+function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue; OnResult: TStateMethod): Boolean;
+begin
+  Result := False;
+  if (ClientIO = nil) then
+      Exit;
+  if (not Connected) then
+      Exit;
+  if (FWaiting) then
+      Exit;
+
+  FWaiting := True;
+  FWaitingTimeOut := GetTimeTick + ATimeOut;
+  FOnWaitResultCall := nil;
+  FOnWaitResultMethod := OnResult;
+  {$IFNDEF FPC}
+  FOnWaitResultProc := nil;
+  {$ENDIF}
+  {$IFDEF FPC}
+  SendConsoleCmd('Wait', '', @ConsoleResult_Wait);
+  {$ELSE}
+  SendConsoleCmd('Wait', '', ConsoleResult_Wait);
+  {$ENDIF}
+  Result := True;
+end;
+
+{$IFNDEF FPC}
+
+
+function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue; OnResult: TStateProc): Boolean;
+begin
+  Result := False;
+  if (ClientIO = nil) then
+      Exit;
+  if (not Connected) then
+      Exit;
+  if (FWaiting) then
+      Exit;
+
+  FWaiting := True;
+  FWaitingTimeOut := GetTimeTick + ATimeOut;
+  FOnWaitResultCall := nil;
+  FOnWaitResultMethod := nil;
+  FOnWaitResultProc := OnResult;
+  SendConsoleCmd('Wait', '', ConsoleResult_Wait);
+  Result := True;
+end;
+{$ENDIF}
+
+
 function TCommunicationFrameworkClient.WaitSendBusy: Boolean;
 begin
   Result := (ClientIO <> nil) and (ClientIO.WaitSendBusy);
+end;
+
+function TCommunicationFrameworkClient.LastQueueData: PQueueData;
+begin
+  Result := nil;
+  if ClientIO = nil then
+      Exit;
+  if ClientIO.FQueueList.Count = 0 then
+      Exit;
+  Result := PQueueData(ClientIO.FQueueList[ClientIO.FQueueList.Count - 1]);
+end;
+
+function TCommunicationFrameworkClient.LastQueueCmd: SystemString;
+var
+  p: PQueueData;
+begin
+  p := LastQueueData;
+  if p <> nil then
+      Result := p^.Cmd
+  else
+      Result := '';
+end;
+
+function TCommunicationFrameworkClient.QueueCmdCount: Integer;
+begin
+  Result := 0;
+  if ClientIO = nil then
+      Exit;
+  Result := ClientIO.FQueueList.Count;
 end;
 
 procedure TCommunicationFrameworkClient.SendConsoleCmd(Cmd, ConsoleData: SystemString; OnResult: TConsoleMethod);
@@ -4441,11 +5034,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -4463,11 +5056,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -4486,11 +5079,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -4513,11 +5106,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -4545,11 +5138,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -4567,11 +5160,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -4590,11 +5183,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -4617,11 +5210,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -4648,11 +5241,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectConsoleCMD;
@@ -4669,11 +5262,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
@@ -4691,11 +5284,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
@@ -4728,11 +5321,11 @@ var
 begin
   Result := '';
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   ClientIO.PrintCommand('Begin Wait console cmd: %s', Cmd);
 
   timetick := GetTimeTickCount + TimeOut;
@@ -4741,13 +5334,13 @@ begin
     begin
       ProgressWaitSendOfClient(ClientIO);
       if not Connected then
-          exit;
+          Exit;
       if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-          exit;
+          Exit;
     end;
 
   if not Connected then
-      exit('');
+      Exit('');
 
   ClientIO.FWaitSendBusy := True;
 
@@ -4786,11 +5379,11 @@ var
   timetick: TTimeTickValue;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
 
   ClientIO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
 
@@ -4800,13 +5393,13 @@ begin
     begin
       ProgressWaitSendOfClient(ClientIO);
       if not Connected then
-          exit;
+          Exit;
       if (TimeOut > 0) and (GetTimeTickCount > timetick) then
-          exit;
+          Exit;
     end;
 
   if not Connected then
-      exit;
+      Exit;
 
   ClientIO.FWaitSendBusy := True;
 
@@ -4844,11 +5437,11 @@ var
   p: PQueueData;
 begin
   if ClientIO = nil then
-      exit;
+      Exit;
   if not Connected then
-      exit;
+      Exit;
   if not CanSendCommand(ClientIO, Cmd) then
-      exit;
+      Exit;
   // init queue data
   p := NewQueueData;
   p^.State := TQueueState.qsSendBigStream;

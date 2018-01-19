@@ -28,6 +28,11 @@ type
     CompressAsButton: TButton;
     Bevel3: TBevel;
     SaveAsCompressedDialog: TSaveDialog;
+    Splitter1: TSplitter;
+    Bevel4: TBevel;
+    Bevel5: TBevel;
+    Bevel6: TBevel;
+    Bevel7: TBevel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);

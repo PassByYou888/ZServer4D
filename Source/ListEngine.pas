@@ -4799,7 +4799,7 @@ begin
     pVarData := FHashList.NameValue[name];
     if pVarData <> nil then
       begin
-        if VarIsNULL(pVarData^.V) then
+        if (VarIsNULL(pVarData^.V)) or (VarIsEmpty(pVarData^.V)) or ((VarIsStr(pVarData^.V)) and (VarToStr(pVarData^.V) = '')) then
           begin
             Result := aValue;
             if FAutoUpdateDefaultValue then

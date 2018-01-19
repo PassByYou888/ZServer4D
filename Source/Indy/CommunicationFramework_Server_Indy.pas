@@ -18,6 +18,7 @@ interface
 
 uses CommunicationFramework,
   CoreClasses,
+  PascalStrings,
   DataFrameEngine, ListEngine, MemoryStream64,
 
   Classes, SysUtils,
@@ -45,7 +46,7 @@ type
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
-    function GetPeerIP: string; override;
+    function GetPeerIP: SystemString; override;
   end;
 
   TCommunicationFramework_Server_Context = class(TIdServerContext)
@@ -73,7 +74,7 @@ type
     property Port: Word read GetPort write SetPort;
 
     procedure StopService; override;
-    function StartService(Host: string; Port: Word): Boolean; override;
+    function StartService(Host: SystemString; Port: Word): Boolean; override;
 
     procedure Indy_Connect(AContext: TIdContext);
     procedure Indy_ContextCreated(AContext: TIdContext);
@@ -82,15 +83,15 @@ type
 
     procedure Indy_Execute(AContext: TIdContext);
 
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string; overload; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; overload; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
 
     property Driver: TIdTCPServer read FDriver;
   end;
 
 implementation
 
-uses UnicodeMixedLib, PascalStrings, DoStatusIO;
+uses UnicodeMixedLib, DoStatusIO;
 
 function ToIDBytes(p: PByte; size: Integer): TIdBytes;
 var
@@ -194,7 +195,7 @@ begin
       Context.Connection.IOHandler.WriteBufferClose;
 end;
 
-function TContextIntfForServer.GetPeerIP: string;
+function TContextIntfForServer.GetPeerIP: SystemString;
 begin
   Result := Context.Binding.PeerIP;
 end;
@@ -298,7 +299,7 @@ begin
     end;
 end;
 
-function TCommunicationFramework_Server_Indy.StartService(Host: string; Port: Word): Boolean;
+function TCommunicationFramework_Server_Indy.StartService(Host: SystemString; Port: Word): Boolean;
 begin
   FDriver.DefaultPort := Port;
   Result := False;
@@ -480,13 +481,13 @@ begin
     end);
 end;
 
-function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerClient; Cmd: string; ConsoleData: string; TimeOut: TTimeTickValue): string;
+function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
-procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerClient; Cmd: string; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;

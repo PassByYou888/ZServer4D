@@ -71,7 +71,7 @@ const
 type
   umlSystemString   = SystemString;
   umlString         = TPascalString;
-  umlPString        = ^umlString;
+  umlPString        = PPascalString;
   umlChar           = SystemChar;
   umlStringDynArray = array of SystemString;
 
@@ -143,8 +143,8 @@ function umlFindFirstDir(DirName: umlString; var SR: TSR): Boolean;
 function umlFindNextDir(var SR: TSR): Boolean;
 procedure umlFindClose(var SR: TSR);
 
-function umlGetFileList(FullPath: umlString; _AsList: TCoreClassStrings): Integer;
-function umlGetDirList(FullPath: umlString; _AsList: TCoreClassStrings): Integer;
+function umlGetFileList(FullPath: umlString; AsLst: TCoreClassStrings): Integer;
+function umlGetDirList(FullPath: umlString; AsLst: TCoreClassStrings): Integer;
 
 function umlGetFileListWithFullPath(FullPath: umlString): umlStringDynArray;
 function umlGetDirListWithFullPath(FullPath: umlString): umlStringDynArray;
@@ -202,21 +202,20 @@ function umlGetLength(aStr: umlArrayString): Integer; overload;
 
 function umlUpperCase(Str: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlLowerCase(Str: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlCopyStr(aStr: umlString; MainPosition, LastPosition: Integer): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlCopyStr(var aStr: umlString; MainPosition, LastPosition: Integer): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlSameText(s1, s2: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlGetStrIndexPos(IgnoreCase: Boolean; StartIndex: Integer; Str, SubStr: umlString): Integer;
-function umlDeleteChar(_Text, _Char: umlString): umlString; overload;
-function umlDeleteChar(_Text: umlString; const SomeCharsets: TOrdChars): umlString; overload;
+function umlDeleteChar(SText, ch: umlString): umlString; overload;
+function umlDeleteChar(SText: umlString; const SomeChars: array of SystemChar): umlString; overload;
+function umlDeleteChar(SText: umlString; const SomeCharsets: TOrdChars): umlString; overload;
 function umlGetNumberCharInText(n: umlString): umlString;
 
-function umlGetLimitCharPos(CharValue: umlChar; LimitValue: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlPString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlExistsLimitChar(StrValue: umlString; LimitValue: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlExistsChar(StrValue: umlString; LimitValue: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlDelLimitChar(StrValue: umlString; LimitValue: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetLimitCharCount(StrValue: umlString; LimitValue: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 function umlTrimChar(S: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlGetFirstStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -421,27 +420,27 @@ function umlDESCompare(const d1, d2: TDESKey): Boolean; {$IFDEF INLINE_ASM} inli
 procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: TDESKey; Encrypt: Boolean); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: umlString; Encrypt: Boolean); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlTrimSpace(S: umlString): umlString;
+function umlTrimSpace(S: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function umlSeparatorText(AText: umlString; Dest: TCoreClassStrings; SeparatorChar: umlString): Integer;
 function umlStringsMatchText(OriginValue: TCoreClassStrings; DestValue: umlString; IgnoreCase: Boolean = True): Boolean;
 
-function umlStringsInExists(Dest: TCoreClassStrings; _Text: umlString; IgnoreCase: Boolean = True): Boolean;
-function umlTextInStrings(_Text: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Boolean;
+function umlStringsInExists(Dest: TCoreClassStrings; SText: umlString; IgnoreCase: Boolean = True): Boolean;
+function umlTextInStrings(SText: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Boolean;
 
 function umlAddNewStrTo(SourceStr: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Boolean;
-function umlDeleteStrings(_Text: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
-function umlDeleteStringsNot(_Text: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
+function umlDeleteStrings(SText: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
+function umlDeleteStringsNot(SText: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
 function umlMergeStrings(Source, Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
 
 function umlConverStrToFileName(Value: umlString): umlString;
 
-function umlLimitTextMatch(_Text, _Limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
-function umlLimitTextTrimSpaceMatch(_Text, _Limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
-function umlLimitDeleteText(_Text, _Limit, _MatchText: umlString; _IgnoreCase: Boolean): umlString;
-function umlLimitTextAsList(_Text, _Limit: umlString; _AsList: TCoreClassStrings): Boolean;
-function umlLimitTextAsListAndTrimSpace(_Text, _Limit: umlString; _AsList: TCoreClassStrings): Boolean;
-function umlListAsLimitText(_List: TCoreClassStrings; _Limit: umlString): umlString;
+function umlLimitTextMatch(SText, limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
+function umlLimitTextTrimSpaceMatch(SText, limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
+function umlLimitDeleteText(SText, limit, _MatchText: umlString; _IgnoreCase: Boolean): umlString;
+function umlLimitTextAsList(SText, limit: umlString; AsLst: TCoreClassStrings): Boolean;
+function umlLimitTextAsListAndTrimSpace(SText, limit: umlString; AsLst: TCoreClassStrings): Boolean;
+function umlListAsLimitText(_List: TCoreClassStrings; limit: umlString): umlString;
 
 function umlUpdateComponentName(Name: umlString): umlString;
 function umlMakeComponentName(OWner: TCoreClassComponent; RefrenceName: umlString): umlString;
@@ -450,7 +449,7 @@ procedure umlReadComponent(Stream: TCoreClassStream; comp: TCoreClassComponent);
 procedure umlWriteComponent(Stream: TCoreClassStream; comp: TCoreClassComponent);
 procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 
-function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
+function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 implementation
 
@@ -718,7 +717,7 @@ begin
   FindClose(SR);
 end;
 
-function umlGetFileList(FullPath: umlString; _AsList: TCoreClassStrings): Integer;
+function umlGetFileList(FullPath: umlString; AsLst: TCoreClassStrings): Integer;
 var
   _SR: TSR;
 begin
@@ -726,14 +725,14 @@ begin
   if umlFindFirstFile(umlCombineFileName(FullPath, '*'), _SR) then
     begin
       repeat
-        _AsList.Add(_SR.Name);
+        AsLst.Add(_SR.Name);
         Inc(Result);
       until not umlFindNextFile(_SR);
     end;
   umlFindClose(_SR);
 end;
 
-function umlGetDirList(FullPath: umlString; _AsList: TCoreClassStrings): Integer;
+function umlGetDirList(FullPath: umlString; AsLst: TCoreClassStrings): Integer;
 var
   _SR: TSR;
 begin
@@ -741,7 +740,7 @@ begin
   if umlFindFirstDir(umlCombineFileName(FullPath, '*'), _SR) then
     begin
       repeat
-        _AsList.Add(_SR.Name);
+        AsLst.Add(_SR.Name);
         Inc(Result);
       until not umlFindNextDir(_SR);
     end;
@@ -1677,9 +1676,9 @@ begin
   Result := LowerCase(Str.Text);
 end;
 
-function umlCopyStr(aStr: umlString; MainPosition, LastPosition: Integer): umlString;
+function umlCopyStr(var aStr: umlString; MainPosition, LastPosition: Integer): umlString;
 begin
-  Result := aStr.Copy(MainPosition, LastPosition - MainPosition);
+  Result := aStr.GetString(MainPosition, LastPosition);
 end;
 
 function umlSameText(s1, s2: umlString): Boolean;
@@ -1736,26 +1735,37 @@ Cycle_Label:
   goto Cycle_Label;
 end;
 
-function umlDeleteChar(_Text, _Char: umlString): umlString;
+function umlDeleteChar(SText, ch: umlString): umlString;
 var
   i: Integer;
 begin
   Result := '';
-  if _Text.len > 0 then
-    for i := 1 to _Text.len do
-      if not umlMatchLimitChar(_Text[i], _Char) then
-          Result := Result + _Text[i];
+  if SText.len > 0 then
+    for i := 1 to SText.len do
+      if not CharIn(SText[i], ch) then
+          Result := Result + SText[i];
 end;
 
-function umlDeleteChar(_Text: umlString; const SomeCharsets: TOrdChars): umlString; overload;
+function umlDeleteChar(SText: umlString; const SomeChars: array of SystemChar): umlString;
 var
   i: Integer;
 begin
   Result := '';
-  if _Text.len > 0 then
-    for i := 1 to _Text.len do
-      if not CharIn(_Text[i], SomeCharsets) then
-          Result := Result + _Text[i];
+  if SText.len > 0 then
+    for i := 1 to SText.len do
+      if not CharIn(SText[i], SomeChars) then
+          Result := Result + SText[i];
+end;
+
+function umlDeleteChar(SText: umlString; const SomeCharsets: TOrdChars): umlString; overload;
+var
+  i: Integer;
+begin
+  Result := '';
+  if SText.len > 0 then
+    for i := 1 to SText.len do
+      if not CharIn(SText[i], SomeCharsets) then
+          Result := Result + SText[i];
 end;
 
 function umlGetNumberCharInText(n: umlString): umlString;
@@ -1784,68 +1794,14 @@ begin
     end;
 end;
 
-function umlGetLimitCharPos(CharValue: umlChar; LimitValue: umlString): Integer;
-var
-  LimitCharValuePos, LimitCharValueLength: Integer;
-begin
-  Result := 0;
-  LimitCharValueLength := umlGetLength(LimitValue);
-  if LimitCharValueLength > 0 then
-    begin
-      LimitCharValuePos := 1;
-      if LimitCharValueLength > 1 then
-        begin
-          while (LimitValue[LimitCharValuePos] <> CharValue) and (LimitCharValuePos < LimitCharValueLength) do
-              Inc(LimitCharValuePos);
-          if LimitCharValuePos < LimitCharValueLength then
-              Result := LimitCharValuePos;
-        end;
-      if Result = 0 then
-        begin
-          if LimitValue[LimitCharValueLength] = CharValue then
-              Result := LimitCharValueLength;
-        end;
-    end;
-end;
-
 function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlPString): Boolean;
-var
-  LimitCharValuePos, LimitCharValueLength: Integer;
 begin
-  Result := False;
-  LimitCharValueLength := umlGetLength(LimitValue^);
-  if LimitCharValueLength > 0 then
-    begin
-      LimitCharValuePos := 1;
-      if LimitCharValueLength > 1 then
-        begin
-          while (LimitValue^[LimitCharValuePos] <> CharValue) and (LimitCharValuePos < LimitCharValueLength) do
-              Inc(LimitCharValuePos);
-          Result := LimitCharValuePos < LimitCharValueLength;
-        end;
-      if not Result then
-          Result := LimitValue^[LimitCharValueLength] = CharValue;
-    end;
+  Result := CharIn(CharValue, LimitValue);
 end;
 
 function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlString): Boolean;
-var
-  LimitCharValuePos, LimitCharValueLength: Integer;
 begin
-  Result := False;
-  LimitCharValueLength := umlGetLength(LimitValue);
-  if LimitCharValueLength > 0 then
-    begin
-      LimitCharValuePos := 1;
-      if LimitCharValueLength > 1 then
-        begin
-          while (LimitValue[LimitCharValuePos] <> CharValue) and (LimitCharValuePos < LimitCharValueLength) do
-              Inc(LimitCharValuePos);
-          Result := LimitCharValuePos < LimitCharValueLength;
-        end;
-      if not Result then
-          Result := LimitValue[LimitCharValueLength] = CharValue;
-    end;
+  Result := CharIn(CharValue, @LimitValue);
 end;
 
 function umlExistsLimitChar(StrValue: umlString; LimitValue: umlString): Boolean;
@@ -1854,7 +1810,7 @@ var
 begin
   Result := True;
   for c in StrValue.buff do
-    if CharIn(c, LimitValue.buff) then
+    if CharIn(c, @LimitValue) then
         Exit;
   Result := False;
 end;
@@ -1865,59 +1821,45 @@ var
 begin
   Result := True;
   for c in StrValue.buff do
-    if CharIn(c, LimitValue.buff) then
+    if CharIn(c, @LimitValue) then
         Exit;
   Result := False;
 end;
 
-function umlDelLimitChar(StrValue: umlString; LimitValue: umlString): umlString;
-var
-  i: Integer;
-begin
-  Result := '';
-  if umlGetLength(StrValue) > 0 then
-    begin
-      for i := 1 to umlGetLength(StrValue) do
-        if not umlMatchLimitChar(StrValue[i], @LimitValue) then
-            Result := Result + StrValue[i];
-    end;
-end;
-
-function umlGetLimitCharCount(StrValue: umlString; LimitValue: umlString): Integer;
-var
-  i: Integer;
-begin
-  Result := 0;
-  if umlGetLength(StrValue) > 0 then
-    begin
-      for i := 1 to umlGetLength(StrValue) do
-        begin
-          if umlMatchLimitChar(StrValue[i], @LimitValue) then
-              Inc(Result);
-        end;
-    end;
-end;
-
 function umlTrimChar(S: umlString; SpaceStr: umlString): umlString;
 var
-  i, l: Integer;
+  l, bp, ep: Integer;
 begin
   Result := '';
-  l := umlGetLength(S);
+  l := S.len;
   if l > 0 then
     begin
-      i := 1;
-      while umlMatchLimitChar(S[i], @SpaceStr) do
+      bp := 1;
+      while CharIn(S[bp], @SpaceStr) do
         begin
-          Inc(i);
-          if (i > l) then
+          Inc(bp);
+          if (bp > l) then
+            begin
+              Result := '';
               Exit;
+            end;
         end;
-      if not(i > l) then
+      if bp > l then
+          Result := ''
+      else
         begin
-          while umlMatchLimitChar(S[l], @SpaceStr) do
-              Dec(l);
-          Result := umlCopyStr(S, i, l + 1);
+          ep := l;
+
+          while CharIn(S[ep], @SpaceStr) do
+            begin
+              Dec(ep);
+              if (ep < 1) then
+                begin
+                  Result := '';
+                  Exit;
+                end;
+            end;
+          Result := S.GetString(bp, ep + 1);
         end;
     end;
 end;
@@ -2122,10 +2064,10 @@ end;
 procedure umlGetSplitArray(_SourText: umlString; var _DestArray: umlArrayString; _SplitChar: umlString);
 var
   i, _IndexCount: Integer;
-  _Text         : umlString;
+  SText         : umlString;
 begin
-  _Text := _SourText;
-  _IndexCount := umlGetIndexStrCount(_Text, _SplitChar);
+  SText := _SourText;
+  _IndexCount := umlGetIndexStrCount(SText, _SplitChar);
   if (_IndexCount = 0) and (umlGetLength(_SourText) > 0) then
     begin
       SetLength(_DestArray, 1);
@@ -2137,8 +2079,8 @@ begin
       i := low(_DestArray);
       while i < _IndexCount do
         begin
-          _DestArray[i] := umlGetFirstStr(_Text, _SplitChar);
-          _Text := umlDeleteFirstStr(_Text, _SplitChar);
+          _DestArray[i] := umlGetFirstStr(SText, _SplitChar);
+          SText := umlDeleteFirstStr(SText, _SplitChar);
           Inc(i);
         end;
     end;
@@ -4597,36 +4539,38 @@ end;
 
 function umlTrimSpace(S: umlString): umlString;
 var
-  i, l: Integer;
+  l, bp, ep: Integer;
 begin
   Result := '';
   l := S.len;
   if l > 0 then
     begin
-      i := 1;
-      while CharIn(S[i], #32#0) do
+      bp := 1;
+      while CharIn(S[bp], [#32, #0]) do
         begin
-          Inc(i);
-          if (i > l) then
+          Inc(bp);
+          if (bp > l) then
             begin
               Result := '';
               Exit;
             end;
         end;
-      if i > l then
+      if bp > l then
           Result := ''
       else
         begin
-          while CharIn(S[i], #32#0) do
+          ep := l;
+
+          while CharIn(S[ep], [#32, #0]) do
             begin
-              Dec(l);
-              if not(l > 0) then
+              Dec(ep);
+              if (ep < 1) then
                 begin
                   Result := '';
                   Exit;
                 end;
             end;
-          Result := S.Copy(i, l - i + 1);
+          Result := S.GetString(bp, ep + 1);
         end;
     end;
 end;
@@ -4640,7 +4584,7 @@ begin
     begin
       ANewText := AText;
       ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
-      while (umlGetLength(ASeparatorText) > 0) and (umlGetLength(ANewText) > 0) do
+      while (ASeparatorText.len > 0) and (ANewText.len > 0) do
         begin
           Dest.Add(ASeparatorText.Text);
           Inc(Result);
@@ -4670,23 +4614,23 @@ begin
     end;
 end;
 
-function umlStringsInExists(Dest: TCoreClassStrings; _Text: umlString; IgnoreCase: Boolean = True): Boolean;
+function umlStringsInExists(Dest: TCoreClassStrings; SText: umlString; IgnoreCase: Boolean = True): Boolean;
 var
   i  : Integer;
   _NS: umlString;
 begin
   Result := False;
   if IgnoreCase then
-      _NS := umlUpperCase(_Text)
+      _NS := umlUpperCase(SText)
   else
-      _NS := _Text;
+      _NS := SText;
   if Assigned(Dest) then
     begin
       if Dest.Count > 0 then
         begin
           for i := 0 to Dest.Count - 1 do
             begin
-              if ((not IgnoreCase) and (_Text = Dest[i])) or ((IgnoreCase) and (umlSameText(_Text, Dest[i]))) then
+              if ((not IgnoreCase) and (SText = Dest[i])) or ((IgnoreCase) and (umlSameText(SText, Dest[i]))) then
                 begin
                   Result := True;
                   Exit;
@@ -4696,9 +4640,9 @@ begin
     end;
 end;
 
-function umlTextInStrings(_Text: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Boolean;
+function umlTextInStrings(SText: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Boolean;
 begin
-  Result := umlStringsInExists(Dest, _Text, IgnoreCase);
+  Result := umlStringsInExists(Dest, SText, IgnoreCase);
 end;
 
 function umlAddNewStrTo(SourceStr: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Boolean;
@@ -4708,7 +4652,7 @@ begin
       Dest.Append(SourceStr.Text);
 end;
 
-function umlDeleteStrings(_Text: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
+function umlDeleteStrings(SText: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
 var
   i: Integer;
 begin
@@ -4720,7 +4664,7 @@ begin
           i := 0;
           while i < Dest.Count do
             begin
-              if ((not IgnoreCase) and (_Text = Dest[i])) or ((IgnoreCase) and (umlMultipleMatch(IgnoreCase, _Text, Dest[i]))) then
+              if ((not IgnoreCase) and (SText = Dest[i])) or ((IgnoreCase) and (umlMultipleMatch(IgnoreCase, SText, Dest[i]))) then
                 begin
                   Dest.Delete(i);
                   Inc(Result);
@@ -4732,7 +4676,7 @@ begin
     end;
 end;
 
-function umlDeleteStringsNot(_Text: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
+function umlDeleteStringsNot(SText: umlString; Dest: TCoreClassStrings; IgnoreCase: Boolean = True): Integer;
 var
   i: Integer;
 begin
@@ -4744,7 +4688,7 @@ begin
           i := 0;
           while i < Dest.Count do
             begin
-              if ((not IgnoreCase) and (_Text <> Dest[i])) or ((IgnoreCase) and (not umlMultipleMatch(IgnoreCase, _Text, Dest[i]))) then
+              if ((not IgnoreCase) and (SText <> Dest[i])) or ((IgnoreCase) and (not umlMultipleMatch(IgnoreCase, SText, Dest[i]))) then
                 begin
                   Dest.Delete(i);
                   Inc(Result);
@@ -4785,147 +4729,147 @@ begin
     end;
 end;
 
-function umlLimitTextMatch(_Text, _Limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
+function umlLimitTextMatch(SText, limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
 var
-  _N, _T: umlString;
+  n, t: umlString;
 begin
   Result := True;
   if _MatchText = '' then
       Exit;
-  _N := _Text;
+  n := SText;
   //
-  if umlExistsLimitChar(_N, _Limit) then
+  if umlExistsLimitChar(n, limit) then
     begin
       repeat
-        _T := umlGetFirstStr(_N, _Limit);
-        if umlMultipleMatch(_IgnoreCase, _MatchText, _T) then
+        t := umlGetFirstStr(n, limit);
+        if umlMultipleMatch(_IgnoreCase, _MatchText, t) then
             Exit;
-        _N := umlDeleteFirstStr(_N, _Limit);
-      until _N = '';
+        n := umlDeleteFirstStr(n, limit);
+      until n = '';
     end
   else
     begin
-      _T := _N;
-      if umlMultipleMatch(_IgnoreCase, _MatchText, _T) then
+      t := n;
+      if umlMultipleMatch(_IgnoreCase, _MatchText, t) then
           Exit;
     end;
   //
   Result := False;
 end;
 
-function umlLimitTextTrimSpaceMatch(_Text, _Limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
+function umlLimitTextTrimSpaceMatch(SText, limit, _MatchText: umlString; _IgnoreCase: Boolean): Boolean;
 var
-  _N, _T: umlString;
+  n, t: umlString;
 begin
   Result := True;
   if _MatchText = '' then
       Exit;
-  _N := _Text;
-  //
-  if umlExistsLimitChar(_N, _Limit) then
+  n := SText;
+
+  if umlExistsLimitChar(n, limit) then
     begin
       repeat
-        _T := umlTrimSpace(umlGetFirstStr(_N, _Limit));
-        if umlMultipleMatch(_IgnoreCase, _MatchText, _T) then
+        t := umlTrimSpace(umlGetFirstStr(n, limit));
+        if umlMultipleMatch(_IgnoreCase, _MatchText, t) then
             Exit;
-        _N := umlDeleteFirstStr(_N, _Limit);
-      until _N = '';
+        n := umlDeleteFirstStr(n, limit);
+      until n = '';
     end
   else
     begin
-      _T := umlTrimSpace(_N);
-      if umlMultipleMatch(_IgnoreCase, _MatchText, _T) then
+      t := umlTrimSpace(n);
+      if umlMultipleMatch(_IgnoreCase, _MatchText, t) then
           Exit;
     end;
-  //
+
   Result := False;
 end;
 
-function umlLimitDeleteText(_Text, _Limit, _MatchText: umlString; _IgnoreCase: Boolean): umlString;
+function umlLimitDeleteText(SText, limit, _MatchText: umlString; _IgnoreCase: Boolean): umlString;
 var
-  _N, _T: umlString;
+  n, t: umlString;
 begin
-  if (_MatchText = '') or (_Limit = '') then
+  if (_MatchText = '') or (limit = '') then
     begin
-      Result := _Text;
+      Result := SText;
       Exit;
     end;
   Result := '';
-  _N := _Text;
+  n := SText;
   //
-  if umlExistsLimitChar(_N, _Limit) then
+  if umlExistsLimitChar(n, limit) then
     begin
       repeat
-        _T := umlGetFirstStr(_N, _Limit);
-        if not umlMultipleMatch(_IgnoreCase, _MatchText, _T) then
+        t := umlGetFirstStr(n, limit);
+        if not umlMultipleMatch(_IgnoreCase, _MatchText, t) then
           begin
             if Result <> '' then
-                Result := Result + _Limit[1] + _T
+                Result := Result + limit[1] + t
             else
-                Result := _T;
+                Result := t;
           end;
-        _N := umlDeleteFirstStr(_N, _Limit);
-      until _N = '';
+        n := umlDeleteFirstStr(n, limit);
+      until n = '';
     end
   else
     begin
-      _T := _N;
-      if not umlMultipleMatch(_IgnoreCase, _MatchText, _T) then
-          Result := _Text;
+      t := n;
+      if not umlMultipleMatch(_IgnoreCase, _MatchText, t) then
+          Result := SText;
     end;
 end;
 
-function umlLimitTextAsList(_Text, _Limit: umlString; _AsList: TCoreClassStrings): Boolean;
+function umlLimitTextAsList(SText, limit: umlString; AsLst: TCoreClassStrings): Boolean;
 var
-  _N, _T: umlString;
+  n, t: umlString;
 begin
-  _AsList.Clear;
-  _N := _Text;
+  AsLst.Clear;
+  n := SText;
   //
-  if umlExistsLimitChar(_N, _Limit) then
+  if umlExistsLimitChar(n, limit) then
     begin
       repeat
-        _T := umlGetFirstStr(_N, _Limit);
-        _AsList.Append(_T.Text);
-        _N := umlDeleteFirstStr(_N, _Limit);
-      until _N = '';
+        t := umlGetFirstStr(n, limit);
+        AsLst.Append(t.Text);
+        n := umlDeleteFirstStr(n, limit);
+      until n = '';
     end
   else
     begin
-      _T := _N;
-      if umlGetLength(_T) > 0 then
-          _AsList.Append(_T.Text);
+      t := n;
+      if umlGetLength(t) > 0 then
+          AsLst.Append(t.Text);
     end;
   //
-  Result := _AsList.Count > 0;
+  Result := AsLst.Count > 0;
 end;
 
-function umlLimitTextAsListAndTrimSpace(_Text, _Limit: umlString; _AsList: TCoreClassStrings): Boolean;
+function umlLimitTextAsListAndTrimSpace(SText, limit: umlString; AsLst: TCoreClassStrings): Boolean;
 var
-  _N, _T: umlString;
+  n, t: umlString;
 begin
-  _AsList.Clear;
-  _N := _Text;
+  AsLst.Clear;
+  n := SText;
   //
-  if umlExistsLimitChar(_N, _Limit) then
+  if umlExistsLimitChar(n, limit) then
     begin
       repeat
-        _T := umlGetFirstStr(_N, _Limit);
-        _AsList.Append(umlTrimSpace(_T).Text);
-        _N := umlDeleteFirstStr(_N, _Limit);
-      until _N = '';
+        t := umlGetFirstStr(n, limit);
+        AsLst.Append(umlTrimSpace(t).Text);
+        n := umlDeleteFirstStr(n, limit);
+      until n = '';
     end
   else
     begin
-      _T := _N;
-      if umlGetLength(_T) > 0 then
-          _AsList.Append(umlTrimSpace(_T).Text);
+      t := n;
+      if umlGetLength(t) > 0 then
+          AsLst.Append(umlTrimSpace(t).Text);
     end;
   //
-  Result := _AsList.Count > 0;
+  Result := AsLst.Count > 0;
 end;
 
-function umlListAsLimitText(_List: TCoreClassStrings; _Limit: umlString): umlString;
+function umlListAsLimitText(_List: TCoreClassStrings; limit: umlString): umlString;
 var
   i: Integer;
 begin
@@ -4934,7 +4878,7 @@ begin
     if Result = '' then
         Result := _List[i]
     else
-        Result := Result + _Limit + _List[i];
+        Result := Result + limit + _List[i];
 end;
 
 function umlUpdateComponentName(Name: umlString): umlString;
