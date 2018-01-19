@@ -12,7 +12,7 @@ uses
   PascalStrings, DoStatusIO, ItemStream, NotifyObjectBase, DataFrameEngine,
   CommunicationFramework,
   CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Server_ICSCustomSocket;
+  CommunicationFramework_Server_ICSCustomSocket, Vcl.Menus;
 
 type
   TExecThread = class(TThread)
@@ -29,7 +29,7 @@ type
 
   TzsGatewayMiniClientConfigureForm = class(TForm)
     Memo: TMemo;
-    Timer: TTimer;
+    sysProcessTimer: TTimer;
     RemoteIPEdit: TLabeledEdit;
     RemotePortEdit: TLabeledEdit;
     GetConfigureButton: TButton;
@@ -48,17 +48,22 @@ type
     StartClientListenButton: TButton;
     MinimizedToTaskButton: TButton;
     TokenEdit: TLabeledEdit;
+    ListPopupMenu: TPopupMenu;
+    ModifyLocalPort1: TMenuItem;
+    NetworkTimer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure StartClientListenButtonClick(Sender: TObject);
     procedure AboutButtonClick(Sender: TObject);
-    procedure TimerTimer(Sender: TObject);
+    procedure sysProcessTimerTimer(Sender: TObject);
     procedure GetConfigureButtonClick(Sender: TObject);
     procedure MinimizedToTaskButtonClick(Sender: TObject);
     procedure TrayIconClick(Sender: TObject);
     procedure OpenWebButtonClick(Sender: TObject);
+    procedure ModifyLocalPort1Click(Sender: TObject);
+    procedure NetworkTimerTimer(Sender: TObject);
   private
     { Private declarations }
   public
@@ -327,12 +332,14 @@ begin
 
   ConfigureClient := TCommunicationFramework_Client_CrossSocket.Create;
   ConfigureClient.AllowPrintCommand := False;
+  ConfigureClient.SwitchMaxSafe;
 
   NatPort := '';
   WebPort := '';
   Token := '';
 
-  Timer.Enabled := True;
+  sysProcessTimer.Enabled := True;
+  NetworkTimer.Enabled:=True;
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.FormDestroy(Sender: TObject);
@@ -342,8 +349,16 @@ end;
 
 procedure TzsGatewayMiniClientConfigureForm.GetConfigureButtonClick(Sender: TObject);
 begin
-  if ConfigureClient.Connect(RemoteIPEdit.Text, umlStrToInt(RemotePortEdit.Text, 4797)) then
+  Hide;
+  ConfigureClient.AsyncConnect(RemoteIPEdit.Text, umlStrToInt(RemotePortEdit.Text, 4797),
+    procedure(const cState: Boolean)
     begin
+      if not cState then
+        begin
+          show;
+          exit;
+        end;
+
       ConfigureClient.SendStreamCmd('GetConfigure', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
         var
           te: TSectionTextData;
@@ -370,6 +385,7 @@ begin
                 begin
                   Caption := Format('s%s', [n]);
                   SubItems.Add(n);
+                  SubItems.Add(n);
                   ImageIndex := -1;
                   StateIndex := -1;
                   Checked := True;
@@ -389,14 +405,33 @@ begin
           Position := TPosition.poScreenCenter;
 
           ConfigureClient.Disconnect;
+
+          show;
         end);
-    end;
+    end);
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.MinimizedToTaskButtonClick(Sender: TObject);
 begin
   Hide;
   TrayIcon.Visible := True;
+end;
+
+procedure TzsGatewayMiniClientConfigureForm.ModifyLocalPort1Click(Sender: TObject);
+var
+  s: string;
+begin
+  if ListView.SelCount <> 1 then
+      exit;
+  s := ListView.Selected.SubItems[1];
+  if InputQuery('Modify local port', 'local port:', s) then
+      ListView.Selected.SubItems[1] := s;
+end;
+
+procedure TzsGatewayMiniClientConfigureForm.NetworkTimerTimer(Sender: TObject);
+begin
+  ConfigureClient.ProgressBackground;
+  ProgressPost.Progress;
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.OpenWebButtonClick(
@@ -495,12 +530,8 @@ begin
     end;
 end;
 
-procedure TzsGatewayMiniClientConfigureForm.TimerTimer(Sender: TObject);
+procedure TzsGatewayMiniClientConfigureForm.sysProcessTimerTimer(Sender: TObject);
 begin
-  ConfigureClient.ProgressBackground;
-
-  ProgressPost.Progress;
-
   if cliTh <> nil then
       StartClientListenButton.Caption := 'Stop NAT Client'
   else
@@ -515,7 +546,7 @@ end;
 procedure TzsGatewayMiniClientConfigureForm.TrayIconClick(Sender: TObject);
 begin
   TrayIcon.Visible := False;
-  Show;
+  show;
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.DoStatusMethod(AText: SystemString; const ID: Integer);
@@ -554,7 +585,8 @@ begin
         else
             ns.Add(Format('local_ip = 127.0.0.1', []));
 
-        ns.Add(Format('local_port = %s', [ListView.Items[i].SubItems[0]]));
+        ns.Add(Format('remote_port = %s', [ListView.Items[i].SubItems[0]]));
+        ns.Add(Format('local_port = %s', [ListView.Items[i].SubItems[1]]));
       end;
 end;
 

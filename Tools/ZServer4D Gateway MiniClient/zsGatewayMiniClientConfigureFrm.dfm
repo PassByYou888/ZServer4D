@@ -92,7 +92,7 @@ object zsGatewayMiniClientConfigureForm: TzsGatewayMiniClientConfigureForm
       ActivePage = ServTabSheet
       TabOrder = 0
       object ServTabSheet: TTabSheet
-        Caption = 'NAT Service'
+        Caption = 'Remote NAT'
         object RemoteInfoLabel: TLabel
           Left = 14
           Top = 34
@@ -115,13 +115,18 @@ object zsGatewayMiniClientConfigureForm: TzsGatewayMiniClientConfigureForm
               Caption = 'NAT Tunnel Name'
             end
             item
-              Caption = 'Share Port'
+              Caption = 'Remote Map'
+              Width = 80
+            end
+            item
+              Caption = 'Local Port'
               Width = 80
             end>
           HideSelection = False
           MultiSelect = True
           ReadOnly = True
           RowSelect = True
+          PopupMenu = ListPopupMenu
           TabOrder = 1
           ViewStyle = vsReport
         end
@@ -200,9 +205,10 @@ object zsGatewayMiniClientConfigureForm: TzsGatewayMiniClientConfigureForm
       OnClick = MinimizedToTaskButtonClick
     end
   end
-  object Timer: TTimer
+  object sysProcessTimer: TTimer
     Enabled = False
-    OnTimer = TimerTimer
+    Interval = 2000
+    OnTimer = sysProcessTimerTimer
     Left = 252
     Top = 116
   end
@@ -213,5 +219,20 @@ object zsGatewayMiniClientConfigureForm: TzsGatewayMiniClientConfigureForm
     OnClick = TrayIconClick
     Left = 264
     Top = 272
+  end
+  object ListPopupMenu: TPopupMenu
+    Left = 220
+    Top = 357
+    object ModifyLocalPort1: TMenuItem
+      Caption = 'Modify Local Port'
+      OnClick = ModifyLocalPort1Click
+    end
+  end
+  object NetworkTimer: TTimer
+    Enabled = False
+    Interval = 10
+    OnTimer = NetworkTimerTimer
+    Left = 200
+    Top = 192
   end
 end

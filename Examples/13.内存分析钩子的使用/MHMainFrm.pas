@@ -15,11 +15,13 @@ type
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
+    Button5: TButton;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -201,6 +203,37 @@ begin
     end);
   MH_3.HookPtrList.PrintHashReport;
   MH_3.HookPtrList.SetHashBlockCount(0);
+end;
+
+procedure TMHMainForm.Button5Click(Sender: TObject);
+
+var
+  s   : string;
+  sptr: PString;
+begin
+  MH_1.BeginMemoryHook(16);
+
+  Memo1.Lines.Add('123'); // 因为没有前后文参考，这里的Realloc和GetMem均不会被记录
+  s := '12345';           // 因为s字符串在调用开始时已经初始化，没有前后文参考，这里的Realloc不会被记录
+
+  new(sptr); // 这里会记录sptr的GetMem地址
+  sptr^ := '123';
+  sptr^ := '123456789'; // 在发生了对sptr的Realloc时，mh会寻找前后文，这里符合了realloc的记录条件，mh将记录它，并且在后续释放
+
+  // mh支持控件创建和释放
+  // mh不支持tform窗口释放，因为tform窗口会注册全局参数，mh在释放了tform以后，某些回调进来没有地址就会报错
+  TButton.Create(Self).Free;
+
+  MH_1.EndMemoryHook;
+
+  MH_1.HookPtrList.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+    begin
+      // 现在我们可以释放该地址
+      DoStatus(NPtr, uData, 80);
+      FreeMem(NPtr);
+    end);
+
+  MH_1.HookPtrList.SetHashBlockCount(0);
 end;
 
 end.

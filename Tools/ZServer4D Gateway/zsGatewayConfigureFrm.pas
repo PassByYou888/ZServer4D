@@ -84,6 +84,7 @@ var
   zsGatewayConfigureForm: TzsGatewayConfigureForm = nil;
   ExecThreadList        : TCoreClassListForObj    = nil;
   DefaultPath           : string                  = '';
+  LocalPath             : string                  = '';
 
 function FindProcessCount(AFileName: string): Integer;
 function FindProcess(AFileName: string): Boolean;
@@ -576,9 +577,9 @@ var
   i : Integer;
   n : string;
 begin
-  if umlFileExists(umlCombineFileName(DefaultPath, 'zsGatewayConfigure.ini')) then
+  if umlFileExists(umlCombineFileName(LocalPath, 'zsGatewayConfigure.ini')) then
     begin
-      Configure.LoadFromFile(umlCombineFileName(DefaultPath, 'zsGatewayConfigure.ini'));
+      Configure.LoadFromFile(umlCombineFileName(LocalPath, 'zsGatewayConfigure.ini'));
 
       IPComboBox.Items.Assign(Configure.Names['RemoteIP']);
       SharePortComboBox.Items.Assign(Configure.Names['SharePort']);
@@ -629,7 +630,7 @@ begin
     if ListView.Items[i].SubItems.Count > 0 then
         umlAddNewStrTo(ListView.Items[i].SubItems[0], ns);
 
-  Configure.SaveToFile(umlCombineFileName(DefaultPath, 'zsGatewayConfigure.ini'));
+  Configure.SaveToFile(umlCombineFileName(LocalPath, 'zsGatewayConfigure.ini'));
 end;
 
 procedure TzsGatewayConfigureForm.DoStatusMethod(AText: SystemString; const ID: Integer);
@@ -703,6 +704,7 @@ end;
 initialization
 
 DefaultPath := System.IOUtils.TPath.GetTempPath;
+LocalPath := umlGetFilePath(Application.ExeName);
 
 finalization
 

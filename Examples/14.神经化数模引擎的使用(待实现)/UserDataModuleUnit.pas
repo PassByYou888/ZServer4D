@@ -1,17 +1,15 @@
 unit UserDataModuleUnit;
 
-{$I zDefine.inc}
-
 interface
 
 uses CoreClasses, Geometry2DUnit, NumberBase;
 
 type
-  TBioBaseData = class;
+  TUserDM = class;
 
-  TDataItem = class(TCoreClassObject)
+  TUserDMItem = class(TCoreClassObject)
   private
-    FOwner: TBioBaseData;
+    FOwner: TUserDM;
     FName : string;
     FValue: TNumberModule;
 
@@ -35,10 +33,10 @@ type
 
     procedure ChangeEvent(Sender: TNumberModuleEventInterface; NewValue: Variant);
   public
-    constructor Create(AOwner: TBioBaseData; AName: string);
+    constructor Create(AOwner: TUserDM; AName: string);
     destructor Destroy; override;
 
-    property Owner: TBioBaseData read FOwner;
+    property Owner: TUserDM read FOwner;
     property name: string read FName;
 
     function GetFinalValue: Variant;
@@ -62,14 +60,14 @@ type
     property ReducePercentageFromDefine: TNumberModule read FReducePercentageFromDefine;
   end;
 
-  TBioBaseData = class(TCoreClassObject)
+  TUserDM = class(TCoreClassObject)
   private
     FDataItemList      : TCoreClassListForObj;
     FNMList            : TNumberModuleList;
     FNMAutomatedManager: TNMAutomatedManager;
     FUpdateCounter     : Integer;
   protected
-    procedure NumberItemChange(Sender: TDataItem);
+    procedure NumberItemChange(Sender: TUserDMItem);
   public
     constructor Create;
     destructor Destroy; override;
@@ -87,13 +85,13 @@ type
 
 implementation
 
-procedure TDataItem.ChangeEvent(Sender: TNumberModuleEventInterface; NewValue: Variant);
+procedure TUserDMItem.ChangeEvent(Sender: TNumberModuleEventInterface; NewValue: Variant);
 begin
   FNeedRecalcFinalValue := True;
   FOwner.NumberItemChange(Self);
 end;
 
-constructor TDataItem.Create(AOwner: TBioBaseData; AName: string);
+constructor TUserDMItem.Create(AOwner: TUserDM; AName: string);
 begin
   Assert(not AOwner.FNMList.Exists(AName));
   inherited Create;
@@ -173,12 +171,12 @@ begin
   FNeedRecalcFinalValue := True;
 end;
 
-destructor TDataItem.Destroy;
+destructor TUserDMItem.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TDataItem.GetFinalValue: Variant;
+function TUserDMItem.GetFinalValue: Variant;
 var
   vInc, vDec, vIncP, vDecP, v: Variant;
 begin
@@ -209,14 +207,14 @@ begin
   Result := FLastFinalValue;
 end;
 
-procedure TBioBaseData.NumberItemChange(Sender: TDataItem);
+procedure TUserDM.NumberItemChange(Sender: TUserDMItem);
 begin
   if FUpdateCounter > 0 then
       Exit;
   RebuildAssociate;
 end;
 
-constructor TBioBaseData.Create;
+constructor TUserDM.Create;
 begin
   inherited Create;
   FDataItemList := TCoreClassListForObj.Create;
@@ -228,7 +226,7 @@ begin
   RebuildAssociate;
 end;
 
-destructor TBioBaseData.Destroy;
+destructor TUserDM.Destroy;
 begin
   Clear;
   DisposeObject(FNMAutomatedManager);
@@ -236,21 +234,21 @@ begin
   inherited Destroy;
 end;
 
-procedure TBioBaseData.InitData;
+procedure TUserDM.InitData;
 begin
 end;
 
-procedure TBioBaseData.Progress(deltaTime: Double);
+procedure TUserDM.Progress(deltaTime: Double);
 begin
   FNMAutomatedManager.Progress(deltaTime);
 end;
 
-procedure TBioBaseData.BeginUpdate;
+procedure TUserDM.BeginUpdate;
 begin
   inc(FUpdateCounter);
 end;
 
-procedure TBioBaseData.EndUpdate;
+procedure TUserDM.EndUpdate;
 begin
   Dec(FUpdateCounter);
   if FUpdateCounter <= 0 then
@@ -260,15 +258,15 @@ begin
     end;
 end;
 
-procedure TBioBaseData.RebuildAssociate;
+procedure TUserDM.RebuildAssociate;
 var
   i: Integer;
 begin
   for i := 0 to FDataItemList.Count - 1 do
-      TDataItem(FDataItemList[i]).FNeedRecalcFinalValue := True;
+      TUserDMItem(FDataItemList[i]).FNeedRecalcFinalValue := True;
 end;
 
-procedure TBioBaseData.Clear;
+procedure TUserDM.Clear;
 var
   i: Integer;
 begin
@@ -280,7 +278,7 @@ begin
   FNMList.Clear;
 end;
 
-procedure TBioBaseData.DeletePostFlag(Flag: TCoreClassPersistent);
+procedure TUserDM.DeletePostFlag(Flag: TCoreClassPersistent);
 begin
   FNMAutomatedManager.Delete(Flag);
 end;

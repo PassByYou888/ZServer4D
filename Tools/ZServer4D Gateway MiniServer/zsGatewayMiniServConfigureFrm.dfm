@@ -37,7 +37,7 @@ object zsGatewayMiniServConfigureForm: TzsGatewayMiniServConfigureForm
     ActivePage = ServTabSheet
     TabOrder = 6
     object ServTabSheet: TTabSheet
-      Caption = 'NAT Service'
+      Caption = 'Local NAT Service'
       object Label2: TLabel
         Left = 19
         Top = 17
@@ -233,9 +233,9 @@ object zsGatewayMiniServConfigureForm: TzsGatewayMiniServConfigureForm
     TabOrder = 12
     OnClick = MinimizedToTaskButtonClick
   end
-  object Timer: TTimer
+  object sysProcessTimer: TTimer
     Enabled = False
-    OnTimer = TimerTimer
+    OnTimer = sysProcessTimerTimer
     Left = 252
     Top = 116
   end
@@ -246,5 +246,12 @@ object zsGatewayMiniServConfigureForm: TzsGatewayMiniServConfigureForm
     OnClick = GatewayTrayIconClick
     Left = 248
     Top = 256
+  end
+  object NetworkTimer: TTimer
+    Enabled = False
+    Interval = 10
+    OnTimer = NetworkTimerTimer
+    Left = 200
+    Top = 192
   end
 end

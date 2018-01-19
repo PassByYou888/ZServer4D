@@ -2,8 +2,8 @@ object MHMainForm: TMHMainForm
   Left = 0
   Top = 0
   Caption = 'MemoryHook demo'
-  ClientHeight = 384
-  ClientWidth = 918
+  ClientHeight = 680
+  ClientWidth = 1080
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,10 +17,10 @@ object MHMainForm: TMHMainForm
   object Memo1: TMemo
     Left = 0
     Top = 0
-    Width = 918
-    Height = 312
+    Width = 1080
+    Height = 600
     Align = alClient
-    Color = clWhite
+    BorderStyle = bsNone
     Font.Charset = ANSI_CHARSET
     Font.Color = clBlack
     Font.Height = -13
@@ -45,18 +45,20 @@ object MHMainForm: TMHMainForm
       'MH_3.pas '#31532#19977#27425#38057#20303
       ''
       #19979#38754#26159'DoStatus'#20449#24687)
+    ParentColor = True
     ParentFont = False
     ScrollBars = ssBoth
     TabOrder = 0
     WordWrap = False
+    ExplicitHeight = 552
   end
   object Panel1: TPanel
     Left = 0
-    Top = 312
-    Width = 918
-    Height = 72
+    Top = 600
+    Width = 1080
+    Height = 80
     Align = alBottom
-    Caption = 'Panel1'
+    BevelOuter = bvNone
     TabOrder = 1
     object Button1: TButton
       Left = 8
@@ -86,13 +88,22 @@ object MHMainForm: TMHMainForm
       OnClick = Button3Click
     end
     object Button4: TButton
-      Left = 679
+      Left = 680
       Top = 16
       Width = 210
       Height = 41
       Caption = #35760#24405#22823#25209#37327#20869#23384#30003#35831
       TabOrder = 3
       OnClick = Button4Click
+    end
+    object Button5: TButton
+      Left = 912
+      Top = 16
+      Width = 153
+      Height = 41
+      Caption = #20005#26684#20869#23384#30417#25511
+      TabOrder = 4
+      OnClick = Button5Click
     end
   end
 end

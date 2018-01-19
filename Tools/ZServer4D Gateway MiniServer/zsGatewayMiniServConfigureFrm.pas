@@ -45,13 +45,14 @@ type
     x64RadioButton: TRadioButton;
     Memo: TMemo;
     saveButton: TButton;
-    Timer: TTimer;
+    sysProcessTimer: TTimer;
     RemoteConfigurePortEdit: TLabeledEdit;
     EnabledRemoteConfigureCheckBox: TCheckBox;
     Label1: TLabel;
     IPV6CheckBox: TCheckBox;
     MinimizedToTaskButton: TButton;
     GatewayTrayIcon: TTrayIcon;
+    NetworkTimer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -62,10 +63,11 @@ type
     procedure StartServerListenButtonClick(Sender: TObject);
     procedure AboutButtonClick(Sender: TObject);
     procedure saveButtonClick(Sender: TObject);
-    procedure TimerTimer(Sender: TObject);
+    procedure sysProcessTimerTimer(Sender: TObject);
     procedure EnabledRemoteConfigureCheckBoxClick(Sender: TObject);
     procedure GatewayTrayIconClick(Sender: TObject);
     procedure MinimizedToTaskButtonClick(Sender: TObject);
+    procedure NetworkTimerTimer(Sender: TObject);
   private
     { Private declarations }
   public
@@ -90,8 +92,8 @@ type
 
 var
   zsGatewayMiniServConfigureForm: TzsGatewayMiniServConfigureForm = nil;
-  ExecThreadList        : TCoreClassListForObj    = nil;
-  DefaultPath           : string                  = '';
+  ExecThreadList                : TCoreClassListForObj            = nil;
+  DefaultPath                   : string                          = '';
 
 function FindProcessCount(AFileName: string): Integer;
 function FindProcess(AFileName: string): Boolean;
@@ -341,6 +343,7 @@ begin
   ConfigureService := TCommunicationFramework_Server_CrossSocket.Create;
   ConfigureService.RegisterStream('GetConfigure').OnExecute := cmd_GetConfigure;
   ConfigureService.AllowPrintCommand := False;
+  ConfigureService.SwitchMaxSafe;
 
   EnabledRemoteConfigureCheckBox.OnClick := nil;
   LoadConfig;
@@ -353,7 +356,8 @@ begin
   EnabledRemoteConfigureCheckBox.OnClick := EnabledRemoteConfigureCheckBoxClick;
   EnabledRemoteConfigureCheckBoxClick(EnabledRemoteConfigureCheckBox);
 
-  Timer.Enabled := True;
+  sysProcessTimer.Enabled := True;
+  NetworkTimer.Enabled := True;
 end;
 
 procedure TzsGatewayMiniServConfigureForm.FormDestroy(Sender: TObject);
@@ -514,12 +518,8 @@ begin
     end;
 end;
 
-procedure TzsGatewayMiniServConfigureForm.TimerTimer(Sender: TObject);
+procedure TzsGatewayMiniServConfigureForm.sysProcessTimerTimer(Sender: TObject);
 begin
-  ConfigureService.ProgressBackground;
-
-  ProgressPost.Progress;
-
   if servTh <> nil then
       StartServerListenButton.Caption := 'Stop NAT Service'
   else
@@ -583,6 +583,13 @@ procedure TzsGatewayMiniServConfigureForm.MinimizedToTaskButtonClick(
 begin
   Hide;
   GatewayTrayIcon.Visible := True;
+end;
+
+procedure TzsGatewayMiniServConfigureForm.NetworkTimerTimer(
+  Sender: TObject);
+begin
+  ConfigureService.ProgressBackground;
+  ProgressPost.Progress;
 end;
 
 procedure TzsGatewayMiniServConfigureForm.SaveConfigAsMemory;

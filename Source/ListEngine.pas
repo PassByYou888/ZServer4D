@@ -342,7 +342,7 @@ type
     procedure Clear;
     procedure FastClear;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(NPtr: Pointer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Delete(NPtr: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean = True): PPointerHashListNativeUIntStruct; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetValue(NPtr: Pointer; _CustomData: NativeUInt);
     function Exists(NPtr: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -3419,13 +3419,14 @@ begin
     end;
 end;
 
-procedure TPointerHashNativeUIntList.Delete(NPtr: Pointer);
+function TPointerHashNativeUIntList.Delete(NPtr: Pointer): Boolean;
 var
   newhash  : THash;
   i        : Integer;
   lst      : TCoreClassList;
   _ItemData: PPointerHashListNativeUIntStruct;
 begin
+  Result := False;
   if FCount = 0 then
       Exit;
   newhash := MakeHash(NPtr);
@@ -3443,6 +3444,7 @@ begin
               Dispose(_ItemData);
               lst.Delete(i);
               Dec(FCount);
+              Result := True;
             end
           else
               Inc(i);

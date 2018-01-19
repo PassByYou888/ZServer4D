@@ -1,4 +1,3 @@
-
 type
   MPtrUInt  = NativeUInt;
   MPtr      = Pointer;
@@ -139,8 +138,12 @@ begin
     if CurrentHookThread = TCoreClassThread.CurrentThread then
       begin
         if p <> nil then
-            HookPtrList.Delete(p);
-        if Result <> nil then
+          begin
+            if HookPtrList.Delete(p) then
+              if Result <> nil then
+                  HookPtrList.Add(Result, Size, False);
+          end
+        else if Result <> nil then
             HookPtrList.Add(Result, Size, False);
       end;
   finally
@@ -189,5 +192,3 @@ begin
   SetMemoryManager(OriginMM);
   DisposeObject(HookPtrList);
 end;
-
-
