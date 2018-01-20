@@ -5,3 +5,6 @@ del/s *.rsm
 del/s *.replay
 del/s *.loginpackage
 del/s *.dres
+del/s *.local
+del/s *.identcache
+del/s *.stat

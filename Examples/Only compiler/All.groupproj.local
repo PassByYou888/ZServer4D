@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject>
-	<Transactions>
-    <Transaction>2018/01/02 04:32:06.000.499,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Examples\Only compiler\All.groupproj</Transaction>
-  </Transactions>
-	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Examples\13.内存分析钩子的使用\MHDemo.dproj"/>
-	</Default.Personality>
-</BorlandProject>

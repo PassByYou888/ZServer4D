@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject>
-	<Transactions>
-    <Transaction>2018/01/16 00:34:56.000.703,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\git\ZServer4D\Tools\ToolsPG.groupproj</Transaction>
-  </Transactions>
-	<Default.Personality>
-		<Projects ActiveProject="C:\git\ZServer4D\Tools\ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj"/>
-	</Default.Personality>
-</BorlandProject>

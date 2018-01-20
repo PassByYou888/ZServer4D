@@ -1,10 +1,12 @@
 ### ZServer4D 是一套从商业项目剥离而出的云服务器中间件，可以承载百万级在线的分布式长连接负载
 
+[日常问题汇总](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
+
 ## 介绍
 
 支持运行平台Android,IOS,Win32/64,Linux,OSX
 
-支持开发平台：FPC以及DelphiXE2以后的版本
+支持开发平台：FPC以及DelphiXE10和以后的版本
 
 并行计算支持HPC服务器，并行深度参数服务器可配置
 
@@ -46,7 +48,7 @@ id是阻塞模式的通讯组件，已在ZServer4D内部集成
 
 REST,BAAS等等单项式的HTTP服务请自行在服务器开发和集成，ZServer4D不提供外部http支持
 
-如果你在使用ZServer4D，并且对开发有疑问，请加群去寻找答案（请不要直接联系作者，因为作者一般不在线）
+如果你在使用ZServer4D，并且对开发有疑问，请加群去寻找答案（请不要直接联系作者，作者不爱交网友）
 
 
 qq群490269542
@@ -77,6 +79,7 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 参考 [库说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E5%8D%95%E5%85%83%E5%BA%93%E8%AF%B4%E6%98%8E.pdf)
 
+[日常问题汇总](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
 
 
 ## 更新日志

@@ -50,7 +50,6 @@ object MHMainForm: TMHMainForm
     ScrollBars = ssBoth
     TabOrder = 0
     WordWrap = False
-    ExplicitHeight = 552
   end
   object Panel1: TPanel
     Left = 0
