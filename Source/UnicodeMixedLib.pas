@@ -118,6 +118,28 @@ function Pascal2FixedLengthString(var S: TPascalString): FixedLengthString; {$IF
 function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Boolean;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 
+function umlMax(v1, v2: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Byte): Byte; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: ShortInt): ShortInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Double): Double; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(v1, v2: Single): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function umlMin(v1, v2: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Byte): Byte; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: ShortInt): ShortInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Double): Double; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(v1, v2: Single): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 function umlDeltaNumber(v, delta: NativeInt): NativeInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlGetResourceStream(const FileName: umlString): TStream;
 
@@ -451,6 +473,7 @@ procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+
 implementation
 
 uses MemoryStream64;
@@ -470,7 +493,7 @@ var
   B: TBytes;
 begin
   SetLength(B, FixedLengthStringSize);
-  move(S.Data, B[0], FixedLengthStringSize);
+  CopyPtr(@S.Data[0], @B[0], FixedLengthStringSize);
   SetLength(B, S.len);
   Result.Bytes := B;
   SetLength(B, 0);
@@ -486,7 +509,7 @@ begin
       Result.len := FixedLengthStringSize
   else
       FillPtrByte(@Result.Data[0], FixedLengthStringSize, 0);
-  move(bb[0], Result.Data[0], Result.len);
+  CopyPtr(@bb[0], @Result.Data[0], Result.len);
 end;
 
 function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Boolean;
@@ -497,6 +520,166 @@ end;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 begin
   Result := Str.GetPos(SubStr, Offset);
+end;
+
+function umlMax(v1, v2: UInt64): UInt64;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Cardinal): Cardinal;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Word): Word;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Byte): Byte;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Int64): Int64;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Integer): Integer;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: SmallInt): SmallInt;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: ShortInt): ShortInt;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Double): Double;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMax(v1, v2: Single): Single;
+begin
+  if v1 > v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: UInt64): UInt64;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Cardinal): Cardinal;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Word): Word;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Byte): Byte;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Int64): Int64;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Integer): Integer;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: SmallInt): SmallInt;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: ShortInt): ShortInt;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Double): Double;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
+end;
+
+function umlMin(v1, v2: Single): Single;
+begin
+  if v1 < v2 then
+      Result := v1
+  else
+      Result := v2;
 end;
 
 function umlDeltaNumber(v, delta: NativeInt): NativeInt;
@@ -1220,7 +1403,7 @@ begin
 
   if (IOHnd.Position >= IOHnd.PrepareReadPosition) and (IOHnd.PrepareReadPosition + m64.Size >= IOHnd.Position + Size) then
     begin
-      move(Pointer(NativeUInt(m64.Memory) + (IOHnd.Position - IOHnd.PrepareReadPosition))^, Buffers, Size);
+      CopyPtr(Pointer(NativeUInt(m64.Memory) + (IOHnd.Position - IOHnd.PrepareReadPosition)), @Buffers, Size);
       Inc(IOHnd.Position, Size);
       Result := True;
     end

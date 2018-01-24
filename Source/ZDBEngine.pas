@@ -317,7 +317,7 @@ type
     destructor Destroy; override;
   end;
 
-  TDBStoreBase = class(TCoreClassObject)
+  TDBStoreBase = class(TCoreClassInterfacedObject)
   protected
     FDBEngine                     : TObjectDataManagerOfCache;
     FStoreFieldPos                : Int64;

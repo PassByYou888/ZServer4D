@@ -45,7 +45,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(buff: PByte; size: Integer); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -99,8 +99,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; overload; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TCustomICSSocketServer read FDriver;
@@ -307,11 +307,11 @@ begin
     end;
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(buff: PByte; size: Integer);
+procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Connected then
-    if size > 0 then
-        FContext.Send(buff, size);
+    if Size > 0 then
+        FContext.Send(buff, Size);
 end;
 
 procedure TPeerClientIntfForICS.WriteBufferOpen;
@@ -373,8 +373,7 @@ begin
   if BuffCount > 0 then
     begin
       try
-        FClientIntf.ReceivedBuffer.Position := FClientIntf.ReceivedBuffer.size;
-        FClientIntf.ReceivedBuffer.Write(buff[0], BuffCount);
+        FClientIntf.SaveReceiveBuffer(@buff[0], BuffCount);
         FClientIntf.FillRecvBuffer(FICSSocketThread, True, False);
       except
           Close;
@@ -491,6 +490,11 @@ var
   cli: TICSContext;
   t  : TTimeTickValue;
 begin
+  if Count > 500 then
+    begin
+      cli.Close;
+      Exit;
+    end;
   try
     cli := Client as TICSContext;
     cli.FTimeOut := IdleTimeout;
@@ -528,7 +532,9 @@ var
 begin
   cli := Client as TICSContext;
 
-  cli.FClientIntf.Print('disconnect %s:%s', [Client.GetPeerAddr, Client.GetPeerPort]);
+  if cli <> nil then
+    if cli.FClientIntf <> nil then
+        cli.FClientIntf.Print('disconnect %s:%s', [Client.GetPeerAddr, Client.GetPeerPort]);
 
   if cli.FICSSocketThread <> nil then
     begin

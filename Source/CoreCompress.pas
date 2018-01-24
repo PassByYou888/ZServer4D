@@ -416,7 +416,7 @@ begin
     begin
       if (TCCSizeUInt(TCCPointer(@aSource)) + aLength) <= TCCSizeUInt(TCCPointer(@aDestination)) then
         // Non-overlapping, so we an use an optimized memory move function
-          Move(aSource, aDestination, aLength)
+          CopyPtr(@aSource, @aDestination, aLength)
       else
         // Overlapping, so we must do copy byte-wise for to get the free RLE-like side-effect included
           BytewiseMemoryMove(aSource, aDestination, aLength);
@@ -1370,7 +1370,7 @@ var
       begin
         if (DestLen + Len) < aOutLimit then
           begin
-            Move(Source^, Dest^, Len);
+            CopyPtr(Source, Dest, Len);
             inc(Source, Len);
             inc(Dest, Len);
           end

@@ -34,7 +34,7 @@ type
     RealSend    : Boolean;
     RealSendBuff: TMemoryStream64;
 
-    constructor Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject); override;
+    procedure CreateAfter; override;
     destructor Destroy; override;
 
     function Context: TCommunicationFramework_Server_Context;
@@ -42,7 +42,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(buff: PByte; size: Integer); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -83,8 +83,8 @@ type
 
     procedure Indy_Execute(AContext: TIdContext);
 
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; overload; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
 
     property Driver: TIdTCPServer read FDriver;
   end;
@@ -93,21 +93,15 @@ implementation
 
 uses UnicodeMixedLib, DoStatusIO;
 
-function ToIDBytes(p: PByte; size: Integer): TIdBytes;
-var
-  i: Integer;
+function ToIDBytes(p: PByte; Size: Integer): TIdBytes; inline;
 begin
-  SetLength(Result, size);
-  for i := 0 to size - 1 do
-    begin
-      Result[i] := p^;
-      inc(p);
-    end;
+  SetLength(Result, Size);
+  CopyPtr(p, @Result[0], Size);
 end;
 
-constructor TContextIntfForServer.Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject);
+procedure TContextIntfForServer.CreateAfter;
 begin
-  inherited Create(AOwnerFramework, AClientIntf);
+  inherited CreateAfter;
   RealSend := False;
   RealSendBuff := TMemoryStream64.Create;
 end;
@@ -125,12 +119,12 @@ end;
 
 procedure TContextIntfForServer.ProcesRealSendBuff;
 begin
-  if (RealSend) and (RealSendBuff.size > 0) then
+  if (RealSend) and (RealSendBuff.Size > 0) then
     begin
       LockObject(RealSendBuff);
       try
         Context.Connection.IOHandler.WriteBufferOpen;
-        Context.Connection.IOHandler.Write(ToIDBytes(RealSendBuff.Memory, RealSendBuff.size));
+        Context.Connection.IOHandler.Write(ToIDBytes(RealSendBuff.Memory, RealSendBuff.Size));
         Context.Connection.IOHandler.WriteBufferFlush;
         Context.Connection.IOHandler.WriteBufferClose;
       except
@@ -154,22 +148,22 @@ begin
   Context.Connection.Disconnect;
 end;
 
-procedure TContextIntfForServer.SendByteBuffer(buff: PByte; size: Integer);
+procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
-  if size > 0 then
+  if Size > 0 then
     begin
       if RealSend then
         begin
-          Context.Connection.IOHandler.Write(ToIDBytes(buff, size));
+          Context.Connection.IOHandler.Write(ToIDBytes(buff, Size));
           Context.LastTimeTick := GetTimeTickCount;
         end
       else
         begin
           LockObject(RealSendBuff);
           try
-            if RealSendBuff.size > 0 then
-                RealSendBuff.Position := RealSendBuff.size;
-            RealSendBuff.WritePtr(buff, size);
+            if RealSendBuff.Size > 0 then
+                RealSendBuff.Position := RealSendBuff.Size;
+            RealSendBuff.WritePtr(buff, Size);
           except
           end;
           UnLockObject(RealSendBuff);
@@ -234,7 +228,7 @@ end;
 
 constructor TCommunicationFramework_Server_Indy.Create;
 begin
-  inherited Create;
+  inherited Create(128);
   FDriver := TIdTCPServer.Create(nil);
   FDriver.UseNagle := False;
   FDriver.MaxConnections := 20;
@@ -358,8 +352,9 @@ end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Execute(AContext: TIdContext);
 var
-  t: TTimeTickValue;
-  c: TCommunicationFramework_Server_Context;
+  t   : TTimeTickValue;
+  c   : TCommunicationFramework_Server_Context;
+  iBuf: TIdBytes;
 begin
   c := TCommunicationFramework_Server_Context(AContext);
 
@@ -393,12 +388,14 @@ begin
           end);
 
         c.Connection.IOHandler.CheckForDataOnSource(10);
-        if c.Connection.IOHandler.InputBuffer.size > 0 then
+        if c.Connection.IOHandler.InputBuffer.Size > 0 then
           begin
             t := GetTimeTickCount + 5000;
             c.LastTimeTick := GetTimeTickCount;
-            c.ClientIntf.ReceivedBuffer.Position := c.ClientIntf.ReceivedBuffer.size;
-            c.Connection.IOHandler.InputBuffer.ExtractToStream(c.ClientIntf.ReceivedBuffer);
+            c.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
+            c.Connection.IOHandler.InputBuffer.Clear;
+            c.ClientIntf.SaveReceiveBuffer(@iBuf[0], Length(iBuf));
+            SetLength(iBuf, 0);
             try
                 c.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
             except
@@ -433,11 +430,13 @@ begin
 
   try
     c.Connection.IOHandler.CheckForDataOnSource(10);
-    while c.Connection.IOHandler.InputBuffer.size > 0 do
+    while c.Connection.IOHandler.InputBuffer.Size > 0 do
       begin
         c.LastTimeTick := GetTimeTickCount;
-        c.ClientIntf.ReceivedBuffer.Position := c.ClientIntf.ReceivedBuffer.size;
-        c.Connection.IOHandler.InputBuffer.ExtractToStream(c.ClientIntf.ReceivedBuffer);
+        c.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
+        c.Connection.IOHandler.InputBuffer.Clear;
+        c.ClientIntf.SaveReceiveBuffer(@iBuf[0], Length(iBuf));
+        SetLength(iBuf, 0);
         try
           c.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
           c.Connection.IOHandler.CheckForDataOnSource(10);

@@ -107,8 +107,6 @@ begin
 end;
 
 constructor TCommunicationFramework_Client_CrossSocket.Create;
-var
-  r: TCommandStreamMode;
 begin
   inherited Create;
   if ClientPool = nil then
@@ -186,8 +184,6 @@ begin
 end;
 
 procedure TCommunicationFramework_Client_CrossSocket.ProgressBackground;
-var
-  i: Integer;
 begin
   if not Connected then
     begin
@@ -327,8 +323,7 @@ begin
             TThread.Sleep(1);
 
         cli.LastActiveTime := GetTimeTickCount;
-        cli.ReceivedBuffer.Position := cli.ReceivedBuffer.size;
-        cli.ReceivedBuffer.Write(ABuf^, ALen);
+        cli.SaveReceiveBuffer(ABuf, ALen);
         cli.FillRecvBuffer(nil, False, False);
       except
       end;
@@ -354,8 +349,6 @@ function TGlobalCrossSocketClientPool.BuildConnect(Addr: SystemString; Port: Wor
 var
   dt : TTimeTickValue;
   cli: TContextIntfForClient;
-  i  : Integer;
-  lst: TCrossConnections;
 begin
   LastResult := False;
   LastCompleted := False;
@@ -444,10 +437,7 @@ begin
   ICrossSocket(Driver).Connect(Addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
     var
-      dt: TTimeTickValue;
       cli: TContextIntfForClient;
-      i: Integer;
-      lst: TCrossConnections;
     begin
       if ASuccess then
         begin

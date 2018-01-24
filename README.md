@@ -1,6 +1,10 @@
 ### ZServer4D 是一套从商业项目剥离而出的云服务器中间件，可以承载百万级在线的分布式长连接负载
 
-[日常问题汇总](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
+[日常问题](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
+ [库说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E5%8D%95%E5%85%83%E5%BA%93%E8%AF%B4%E6%98%8E.pdf)
+ [宅服架设](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
+ [多媒体通讯](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8ZS%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6CompleteBuffer.pdf)
+ [p2pVM隧道技术](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZS%E4%B8%AD%E7%9A%84p2pVM%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF.pdf)
 
 ## 介绍
 
@@ -83,6 +87,21 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 
 ## 更新日志
+
+
+2018-1-24
+
+新增多媒体机制支持 [多媒体通讯](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8ZS%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6CompleteBuffer.pdf)
+
+新增p2pVM隧道技术体系，并且新增基于隧道的服务器开发工艺 [p2pVM隧道技术说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZS%E4%B8%AD%E7%9A%84p2pVM%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF.pdf)
+
+新增两套p2pVM隧道技术体系的服务器Demo，分别是可以带100万压测的Demo，改造认证双通道为p2pVM技术体系的Demo，内容太多，这里就不贴图和源码了
+
+新增两套文档，分别是p2pVM隧道技术体系介绍和多媒体支持的CompleteBuffer介绍文档
+
+优化indy通讯对手机平台的容错性(ipv4+ipv6)
+
+
 
 2018-1-19
 

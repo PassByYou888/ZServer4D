@@ -16,10 +16,6 @@
 
 服务器可以使用indy，ics，CrossSocket任意链接接口
 
-indy支持200以下并发服务
-ics支持1000以下并发服务
-CrossSocket支持10000以下并发服务
-
 使用什么接口自行在Server中修改
 
 前端在移动平台只能使用indy通讯，其它平台可以使用ics,indy,CrossSocket任意接口

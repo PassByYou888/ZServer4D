@@ -26,20 +26,20 @@
 
 {$WARNINGS OFF}
 {$HINTS OFF}
-{$H+} {long string}
-{$R-} {range check}
-{$A+} {Word Align Data}
+{$H+} { long string }
+{$R-} { range check }
+{$A+} { Word Align Data }
 
 (*
-{$IFDEF FPC}
-{$ELSE}
-{$ENDIF}
+  {$IFDEF FPC}
+  {$ELSE}
+  {$ENDIF}
 
-{$IFNDEF FPC}
-{$ENDIF}
+  {$IFNDEF FPC}
+  {$ENDIF}
 *)
 
-{.$define parallel}
+{ .$define parallel }
 
 {$IFDEF release}
 {$DEFINE INLINE_ASM}
@@ -58,6 +58,3 @@
 {$IFNDEF CPU64}
 {$DEFINE CPU32}
 {$ENDIF}
-
-
-

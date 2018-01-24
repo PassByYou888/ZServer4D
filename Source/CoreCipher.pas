@@ -1533,7 +1533,7 @@ begin
   SetLength(Output, umlByteLength + cIntSize + Size);
   Output[0] := Byte(TCipherKeyStyle.ckyDynamicKey);
   PInteger(@Output[1])^ := Size;
-  move(key^, (@Output[1 + cIntSize])^, Size);
+  CopyPtr(key, @Output[1 + cIntSize], Size);
 end;
 
 class procedure TCipher.GenerateKey(cs: TCipherStyle; buffPtr: Pointer; Size: nativeInt; var Output: TCipherKeyBuffer);
@@ -1633,7 +1633,7 @@ begin
       exit;
   siz := PInteger(@KeyBuffPtr^[1])^;
   SetLength(key, siz);
-  move((@KeyBuffPtr^[1 + cIntSize])^, key[0], siz);
+  CopyPtr(@KeyBuffPtr^[1 + cIntSize], @key[0], siz);
 end;
 
 class procedure TCipher.EncryptTail(TailPtr: Pointer; TailSize: nativeInt);
@@ -2822,10 +2822,10 @@ var
   i   : Integer;
   Seed: TInt64;
 begin
-  SetLength(SystemCBC, 2048);
+  SetLength(SystemCBC, 1024 * 1024);
   Seed.i := rand;
-  for i := low(SystemCBC) to high(SystemCBC) do
-      SystemCBC[i] := TMISC.Random64(Seed);
+  for i := 0 to (length(SystemCBC) div 4) - 1 do
+      PInteger(@SystemCBC[i * 4])^ := TMISC.Random64(Seed);
 
   TCipher.GenerateKey(DefaultCipherStyle, @rand, SizeOf(rand), DefaultKey);
 end;
@@ -3412,7 +3412,7 @@ var
   i       : Integer;
   TmpBlock: TBFBlockEx; { !!.01 }
 begin
-  move(Block, TmpBlock, SizeOf(TmpBlock)); { !!.01 }
+  CopyPtr(@Block, @TmpBlock, SizeOf(TmpBlock)); { !!.01 }
   if Encrypt then begin
       Block[0] := Block[0] xor Context.PBox[0];
 
@@ -3460,9 +3460,9 @@ var
   Block: TBFBlock;
 begin
   { initialize PArray }
-  move(bf_P, Context.PBox, SizeOf(Context.PBox));
+  CopyPtr(@bf_P, @Context.PBox, SizeOf(Context.PBox));
   { initialize SBox }
-  move(bf_S, Context.SBox, SizeOf(Context.SBox));
+  CopyPtr(@bf_S, @Context.SBox, SizeOf(Context.SBox));
 
   { update PArray with the key bits }
   J := 0;
@@ -3759,7 +3759,7 @@ class procedure TDES.InitEncryptTripleDES(const key: TKey128; var Context: TTrip
 var
   KeyArray: array [0 .. 1] of TKey64;
 begin
-  move(key, KeyArray, SizeOf(KeyArray)); { !!.01 }
+  CopyPtr(@key, @KeyArray, SizeOf(KeyArray)); { !!.01 }
   if Encrypt then begin
       InitEncryptDES(KeyArray[0], Context[0], True);
       InitEncryptDES(KeyArray[1], Context[1], False);
@@ -3860,7 +3860,7 @@ begin
       sdHash[3] := SHA1SwapByteOrder(sdHash[3]);
       sdHash[4] := SHA1SwapByteOrder(sdHash[4]);
 
-      move(sdHash, Digest, SizeOf(Digest));
+      CopyPtr(@sdHash, @Digest, SizeOf(Digest));
       SHA1Clear(Context);
     end;
 end;
@@ -3904,7 +3904,7 @@ var
 begin
   with Context do begin
       sdIndex := 0;
-      move(sdBuf, W, SizeOf(W));
+      CopyPtr(@sdBuf, @W, SizeOf(W));
 
       // W := Mt, for t = 0 to 15 : Mt is M sub t
       for i := 0 to 15 do
@@ -3998,13 +3998,13 @@ begin
       PBuf := @Buf;
       while BufSize > 0 do begin
           if (SizeOf(sdBuf) - sdIndex) <= DWord(BufSize) then begin
-              move(PBuf^, sdBuf[sdIndex], SizeOf(sdBuf) - sdIndex);
+              CopyPtr(PBuf, @sdBuf[sdIndex], SizeOf(sdBuf) - sdIndex);
               dec(BufSize, SizeOf(sdBuf) - sdIndex);
               inc(PBuf, SizeOf(sdBuf) - sdIndex);
               SHA1Hash(Context);
             end
           else begin
-              move(PBuf^, sdBuf[sdIndex], BufSize);
+              CopyPtr(PBuf, @sdBuf[sdIndex], BufSize);
               inc(sdIndex, BufSize);
               BufSize := 0;
             end;
@@ -4024,7 +4024,7 @@ var
   CC, DD: Integer;
   R, T  : Integer;
 begin
-  move(Block, Blocks, SizeOf(Blocks)); { !!.01 }
+  CopyPtr(@Block, @Blocks, SizeOf(Blocks)); { !!.01 }
   Right := Blocks[0];
   Left := Blocks[1];
 
@@ -4104,7 +4104,7 @@ begin
 
   Blocks[0] := Left;
   Blocks[1] := Right;
-  move(Blocks, Block, SizeOf(Block)); { !!.01 }
+  CopyPtr(@Blocks, @Block, SizeOf(Block)); { !!.01 }
 end;
 
 class procedure TLBC.EncryptLQC(const key: TKey128; var Block: TLQCBlock; Encrypt: Boolean);
@@ -4122,8 +4122,8 @@ var
   AA, BB : Integer;
   CC, DD : Integer;
 begin
-  move(key, KeyInts, SizeOf(KeyInts)); { !!.01 }
-  move(Block, Blocks, SizeOf(Blocks)); { !!.01 }
+  CopyPtr(@key, @KeyInts, SizeOf(KeyInts)); { !!.01 }
+  CopyPtr(@Block, @Blocks, SizeOf(Blocks)); { !!.01 }
   Right := Blocks[0];
   Left := Blocks[1];
 
@@ -4164,7 +4164,7 @@ begin
 
   Blocks[0] := Left;
   Blocks[1] := Right;
-  move(Blocks, Block, SizeOf(Block)); { !!.01 }
+  CopyPtr(@Blocks, @Block, SizeOf(Block)); { !!.01 }
 end;
 
 class procedure TLBC.InitEncryptLBC(const key: TKey128; var Context: TLBCContext; Rounds: Integer; Encrypt: Boolean);
@@ -4277,7 +4277,7 @@ begin
       PadLen := 120 - MDI;
   UpdateMD5(Context, Padding, PadLen);
 
-  move(Context, Context, SizeOf(Context)); { !!.01 }
+  CopyPtr(@Context, @Context, SizeOf(Context)); { !!.01 }
 
   { append length in bits and transform }
   II := 0;
@@ -4427,7 +4427,7 @@ begin
   { max digest is 2048-bit, although it could be greater if Pi2048 was larger }
   if DigestSize > SizeOf(Context.Digest) then
       FillPtrByte(@Digest, DigestSize, 0);
-  move(Context.Digest, Digest, Min(SizeOf(Context.Digest), DigestSize));
+  CopyPtr(@Context.Digest, @Digest, Min(SizeOf(Context.Digest), DigestSize));
 end;
 
 class procedure TLMD.GenerateLMDKey(var key; KeySize: Integer; const ABytes: TBytes);
@@ -5001,7 +5001,7 @@ var
   L0, L1               : TDCPTF2048;
 begin
   FillPtrByte(@key32, SizeOf(key32), 0);
-  move(key, key32, Size div 8);
+  CopyPtr(@key, @key32, Size div 8);
   if Size <= 128 then { pad the key to either 128bit, 192bit or 256bit }
       Size := 128
   else if Size <= 192 then
@@ -5426,11 +5426,11 @@ var
   i, J, k, xKeyLen, A, b: DWord;
 begin
   Size := Size div 8;
-  move(buff^, xKeyD, Size);
+  CopyPtr(buff, @xKeyD, Size);
   xKeyLen := Size div 4;
   if (Size mod 4) <> 0 then
       inc(xKeyLen);
-  move(cRC6_sBox, KeyContext, ((cRC6_NumRounds * 2) + 4) * 4);
+  CopyPtr(@cRC6_sBox, @KeyContext, ((cRC6_NumRounds * 2) + 4) * 4);
   i := 0;
   J := 0;
   A := 0;
@@ -5515,4 +5515,6 @@ DCP_towfish_Precomp;
 TPasMP.CreateGlobalInstance;
 {$ENDIF}
 
+finalization
+  SetLength(SystemCBC, 0);
 end.

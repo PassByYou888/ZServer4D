@@ -94,16 +94,7 @@ type
 
 implementation
 
-{$IFDEF FPC}
-
-
 uses SysUtils;
-{$ELSE}
-
-
-uses SysUtils, IOUtils;
-{$ENDIF}
-
 
 constructor TPeerClientUserDefineForIO.Create(AOwner: TPeerClient);
 begin
@@ -330,18 +321,16 @@ begin
 end;
 
 function TCommunicationFramework_UserAuthService.MakeUserFlag: SystemString;
-label goLoop;
 var
   d: Double;
-  p: PInteger;
+  p: PInt64;
 begin
-goLoop:
-  TCoreClassThread.Sleep(1);
-  d := Now;
-  p := @d;
-  Result := IntToHex(p^, 8);
-  if umlDirectoryExists(umlCombinePath(FRootPath, Result)) then
-      goto goLoop;
+  repeat
+    TCoreClassThread.Sleep(1);
+    d := Now;
+    p := @d;
+    Result := IntToHex(p^, 16);
+  until not umlDirectoryExists(umlCombinePath(FRootPath, Result));
 end;
 
 function TCommunicationFramework_UserAuthService.GetUserDefineClient(cli: TPeerClient): TPeerClientUserDefineForIO;

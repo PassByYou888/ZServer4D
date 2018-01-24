@@ -3786,7 +3786,7 @@ begin
       EncodeTo(enStream, FastMode);
 
   SetLength(output, enStream.Size);
-  move(enStream.Memory^, output[0], enStream.Size);
+  CopyPtr(enStream.Memory, @output[0], enStream.Size);
   DisposeObject(enStream);
 end;
 

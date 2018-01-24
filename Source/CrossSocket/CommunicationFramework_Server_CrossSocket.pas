@@ -27,14 +27,14 @@ type
     SendBuffQueue : TCoreClassListForObj;
     CurrentBuff   : TMemoryStream64;
 
-    constructor Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject); override;
+    procedure CreateAfter; override;
     destructor Destroy; override;
 
     function Context: TCrossConnection;
     function Connected: Boolean; override;
     procedure Disconnect; override;
     procedure SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
-    procedure SendByteBuffer(buff: PByte; size: Integer); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -56,7 +56,8 @@ type
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
   public
-    constructor Create; override;
+    constructor Create; overload; override;
+    constructor Create(maxThPool: Word); overload;
     destructor Destroy; override;
 
     function StartService(Host: SystemString; Port: Word): Boolean; override;
@@ -65,8 +66,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; overload; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); overload; override;
+    function WaitSendConsoleCmd(Client: TPeerClient; Cmd: SystemString; ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerClient; Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TDriverEngine read FDriver;
@@ -76,9 +77,9 @@ type
 
 implementation
 
-constructor TContextIntfForServer.Create(AOwnerFramework: TCommunicationFramework; AClientIntf: TCoreClassObject);
+procedure TContextIntfForServer.CreateAfter;
 begin
-  inherited Create(AOwnerFramework, AClientIntf);
+  inherited CreateAfter;
   LastActiveTime := GetTimeTickCount;
   Sending := False;
   SendBuffQueue := TCoreClassListForObj.Create;
@@ -113,7 +114,7 @@ procedure TContextIntfForServer.Disconnect;
 begin
   if not Connected then
       exit;
-  Context.Disconnect;
+  Context.Close;
 end;
 
 procedure TContextIntfForServer.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
@@ -140,7 +141,7 @@ begin
                 // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
                 // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
                 // 感谢ak47 qq512757165 的测试报告
-                Context.SendBuf(m.Memory, m.size, SendBuffResult);
+                Context.SendBuf(m.Memory, m.Size, SendBuffResult);
 
                 // 释放内存
                 disposeObject(m);
@@ -174,7 +175,7 @@ begin
     end);
 end;
 
-procedure TContextIntfForServer.SendByteBuffer(buff: PByte; size: Integer);
+procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if not Connected then
       exit;
@@ -183,8 +184,8 @@ begin
 
   // 避免大量零碎数据消耗系统资源，这里需要做个碎片收集
   // 在flush中实现精确异步发送和校验
-  if size > 0 then
-      CurrentBuff.Write(Pointer(buff)^, size);
+  if Size > 0 then
+      CurrentBuff.Write(Pointer(buff)^, Size);
 end;
 
 procedure TContextIntfForServer.WriteBufferOpen;
@@ -205,7 +206,7 @@ begin
 
   if Sending then
     begin
-      if CurrentBuff.size > 0 then
+      if CurrentBuff.Size > 0 then
         begin
           // 完成优化
           ms := CurrentBuff;
@@ -220,7 +221,7 @@ begin
       // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
       // 感谢ak47 qq512757165 的测试报告
       Sending := True;
-      Context.SendBuf(CurrentBuff.Memory, CurrentBuff.size, SendBuffResult);
+      Context.SendBuf(CurrentBuff.Memory, CurrentBuff.Size, SendBuffResult);
       CurrentBuff.Clear;
     end;
 end;
@@ -297,8 +298,7 @@ begin
             exit;
 
         cli.LastActiveTime := GetTimeTickCount;
-        cli.ReceivedBuffer.Position := cli.ReceivedBuffer.size;
-        cli.ReceivedBuffer.Write(ABuf^, ALen);
+        cli.SaveReceiveBuffer(ABuf, ALen);
         cli.FillRecvBuffer(nil, False, False);
       except
       end;
@@ -319,11 +319,22 @@ begin
 end;
 
 constructor TCommunicationFramework_Server_CrossSocket.Create;
-var
-  r: TCommandStreamMode;
 begin
   inherited Create;
   FDriver := TDriverEngine.Create(4);
+  FDriver.OnConnected := DoConnected;
+  FDriver.OnDisconnected := DoDisconnect;
+  FDriver.OnReceived := DoReceived;
+  FDriver.OnSent := DoSent;
+  FStartedService := False;
+  FBindPort := 0;
+  FBindHost := '';
+end;
+
+constructor TCommunicationFramework_Server_CrossSocket.Create(maxThPool: Word);
+begin
+  inherited Create;
+  FDriver := TDriverEngine.Create(maxThPool);
   FDriver.OnConnected := DoConnected;
   FDriver.OnDisconnected := DoDisconnect;
   FDriver.OnReceived := DoReceived;

@@ -44,7 +44,7 @@ type
     procedure Clear;
 
     procedure SetPointerWithProtectedMode(BuffPtr: Pointer; const BuffSize: NativeUInt);
-    function PositionAsPtr(APosition: Int64): Pointer;
+    function PositionAsPtr(const APosition: Int64): Pointer;
 
     procedure LoadFromStream(Stream: TCoreClassStream); virtual;
     procedure LoadFromFile(const FileName: SystemString);
@@ -136,6 +136,7 @@ function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolea
 function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+
 implementation
 
 uses UnicodeMixedLib;
@@ -215,7 +216,7 @@ begin
   FProtectedMode := True;
 end;
 
-function TMemoryStream64.PositionAsPtr(APosition: Int64): Pointer;
+function TMemoryStream64.PositionAsPtr(const APosition: Int64): Pointer;
 begin
   Result := Pointer(NativeUInt(FMemory) + APosition);
 end;

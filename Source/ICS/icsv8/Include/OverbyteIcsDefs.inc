@@ -198,10 +198,10 @@ Mar 2017 - V8.42 - Angus couple more BCBs, added BDS numbers
 { Uncomment next line to always include SSL code into the binary.            }
 { In most cases leave it commented and define USE_SSL in the project options }
 { if required.                                                               }
-{$DEFINE USE_SSL}
+{.$DEFINE USE_SSL}
 
 { Next line specifies to link the ZLIB .obj files.                           }
-{$DEFINE ZLIB_OBJ}
+{.$DEFINE ZLIB_OBJ}
 
 { Next symbol affects D2010 and later only. If defined adds RTTI directive   }
 { "$RTTI EXPLICIT METHODS([]) FIELDS([]) PROPERTIES([])" to all units which  }
@@ -210,8 +210,9 @@ Mar 2017 - V8.42 - Angus couple more BCBs, added BDS numbers
 {.$DEFINE NO_EXTENDED_RTTI}
 
 { Next symbols include extra features.                                       }
-{$DEFINE BUILTIN_TIMEOUT}
-{$DEFINE BUILTIN_THROTTLE}
+{.$DEFINE BUILTIN_TIMEOUT}
+{.$DEFINE BUILTIN_THROTTLE}
+{$DEFINE NOFORMS}                        { No unit forms.         }
 
 
 { Do not change anything below this line !                                   }

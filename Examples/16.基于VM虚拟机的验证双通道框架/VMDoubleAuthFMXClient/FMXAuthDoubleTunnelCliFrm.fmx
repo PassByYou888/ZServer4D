@@ -1,0 +1,165 @@
+object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx Auth Double client...'
+  ClientHeight = 323
+  ClientWidth = 763
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'ZServer4D'#26159#19968#27454#26381#21153#22120#20013#38388#20214
+      ''
+      #38567#36947#23458#25143#31471#21407#29702':'
+      #20808#36890#36807'VMTunnel'#24314#31435#24314#31435#65292#22312#21311#21517#20989#25968#20107#20214#20013#65292#33719#21462'VMTunnel'#34394#25311#38567#36947#30340#25569#25163#25104#21151#29366#24577
+      #24403#38567#36947#25569#25163#25104#21151#65292#21518#32493#25805#20316#19982#39564#35777#24335#21452#36890#36947#19968#33268
+      ''
+      #22914#26524#32465#23450#30340#30340#36890#36947#26159#26381#21153#22120#31867#22411#65292#21487#20197#19968#23545#22810
+      #19968#23545#22810#26159#21516#19968#20010#26381#21153#22120#65292#21487#20197#32465#23450#21040#22810#20010'vm'#38567#36947#20013#65292#20174#32780#23454#29616'vm'#34394#25311#38567#36947#26381#21153
+      #32780'vm'#34394#25311#38567#36947#26381#21153#23545#38142#25509#25968#26159#19981#38480#21046#30340#65292#19968#20010#34394#25311#38567#36947#21487#20197#24102'100'#19975#20197#19978#38142#25509
+      ''
+      
+        #38567#36947#19968#26086#24314#31435#25104#21151#65292'VMTunnel'#20063#33021#27491#24120#25910#21457#21629#20196#65292'RecvTunnel+SendTunnel'#30340#38567#36947#32465#23450#65292#24182#19981#20250#24433#21709'VMTunn' +
+        'el'
+      #38567#36947#19968#26086#24314#31435#25104#21151#65292'VMTunnel'#30340#21327#35758#23601#20250#21457#29983#21464#21270#65292#19981#26159#29305#27530#24773#20917#65292#19981#35201#36731#26131#35299#38500#38567#36947)
+    ReadOnly = True
+    StyledSettings = [Family, Style, FontColor]
+    Align = Client
+    Margins.Left = 250.000000000000000000
+    Size.Width = 513.000000000000000000
+    Size.Height = 323.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 509.000000000000000000
+    Viewport.Height = 303.000000000000000000
+  end
+  object connectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 144.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = '3.connect'
+    TextSettings.HorzAlign = Leading
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 7
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 233.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object HelloWorldBtn: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 192.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = '4.Hello World'
+    TextSettings.HorzAlign = Leading
+    OnClick = HelloWorldBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+  object UserEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 6
+    Text = 'test'
+    Position.X = 8.000000000000000000
+    Position.Y = 48.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object PasswdEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 5
+    Text = '123456'
+    Position.X = 128.000000000000000000
+    Position.Y = 48.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object RegUserButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 120.000000000000000000
+    Position.Y = 88.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = '2.reg user'
+    TextSettings.HorzAlign = Leading
+    OnClick = RegUserButtonClick
+  end
+  object AsyncButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 120.000000000000000000
+    Position.Y = 144.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = '3.async connect'
+    TextSettings.HorzAlign = Leading
+    OnClick = AsyncButtonClick
+  end
+  object timeLabel: TLabel
+    AutoSize = True
+    Position.X = 8.000000000000000000
+    Position.Y = 272.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 16.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'timeLabel'
+  end
+  object FixedTimeButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 232.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 10
+    Text = '5.fixed sync time'
+    TextSettings.HorzAlign = Leading
+    OnClick = FixedTimeButtonClick
+  end
+  object connectTunnelButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 88.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 12
+    Text = '1.connect Tunnel'
+    TextSettings.HorzAlign = Leading
+    OnClick = connectTunnelButtonClick
+  end
+end

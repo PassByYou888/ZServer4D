@@ -1,8 +1,11 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{363DE885-44F0-4AB1-8786-718B7042D82C}</ProjectGuid>
+        <ProjectGuid>{B1BCAE67-4969-4468-ACCF-517585748152}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
+        <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj">
             <Dependencies/>
         </Projects>
@@ -13,6 +16,9 @@
             <Dependencies/>
         </Projects>
         <Projects Include="..\3.双向交互服务器框架\DCli\DClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\2.延时响应服务器\EzCli\DRClient.dproj">
@@ -72,6 +78,21 @@
         <Projects Include="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj">
             <Dependencies/>
         </Projects>
@@ -96,9 +117,6 @@
         <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
-            <Dependencies/>
-        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -107,6 +125,15 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
+    <Target Name="AFDRServer">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj"/>
+    </Target>
+    <Target Name="AFDRServer:Clean">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRServer:Make">
+        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
+    </Target>
     <Target Name="ARMCPUTest">
         <MSBuild Projects="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj"/>
     </Target>
@@ -142,6 +169,15 @@
     </Target>
     <Target Name="DClient:Make">
         <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DMDemo">
+        <MSBuild Projects="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj"/>
+    </Target>
+    <Target Name="DMDemo:Clean">
+        <MSBuild Projects="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DMDemo:Make">
+        <MSBuild Projects="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="DRClient">
         <MSBuild Projects="..\2.延时响应服务器\EzCli\DRClient.dproj"/>
@@ -314,6 +350,51 @@
     <Target Name="performaceTestServer:Make">
         <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
     </Target>
+    <Target Name="VMCli">
+        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj"/>
+    </Target>
+    <Target Name="VMCli:Clean">
+        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMCli:Make">
+        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Clean">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Make">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Clean">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Make">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Clean">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Make">
+        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMServ">
+        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj"/>
+    </Target>
+    <Target Name="VMServ:Clean">
+        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMServ:Make">
+        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj" Targets="Make"/>
+    </Target>
     <Target Name="ZDBBatchDataService">
         <MSBuild Projects="..\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj"/>
     </Target>
@@ -386,23 +467,14 @@
     <Target Name="AFDRClient:Make">
         <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Make"/>
     </Target>
-    <Target Name="AFDRServer">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj"/>
-    </Target>
-    <Target Name="AFDRServer:Clean">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AFDRServer:Make">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ARMCPUTest;CoreLogicServer;DBServer;DClient;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;MHDemo;PeformanceTestClient;performaceTestServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;AFDRServer"/>
+        <CallTarget Targets="AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;VMServ;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean"/>
+        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;VMServ:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make"/>
+        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;VMServ:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

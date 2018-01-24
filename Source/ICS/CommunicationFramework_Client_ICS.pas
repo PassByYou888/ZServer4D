@@ -28,7 +28,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(buff: PByte; size: Integer); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -105,10 +105,10 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(buff: PByte; size: Integer);
+procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Connected then
-      Context.FDriver.Send(buff, size);
+      Context.FDriver.Send(buff, Size);
 end;
 
 procedure TPeerClientIntfForICS.WriteBufferClose;
@@ -141,8 +141,7 @@ begin
   if BuffCount > 0 then
     begin
       try
-        FClient.ReceivedBuffer.Position := FClient.ReceivedBuffer.size;
-        FClient.ReceivedBuffer.Write(buff[0], BuffCount);
+        FClient.SaveReceiveBuffer(@buff[0], BuffCount);
         FClient.FillRecvBuffer(nil, False, False);
       except
           FDriver.Close;
@@ -209,6 +208,7 @@ destructor TCommunicationFramework_Client_ICS.Destroy;
 begin
   Disconnect;
   // DisposeObject(FDriver);
+  DisposeObject(FClient);
   inherited Destroy;
 end;
 

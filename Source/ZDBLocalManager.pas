@@ -43,7 +43,7 @@ type
   TZDBPipelineDoneProc   = reference to procedure(dPipe: TZDBPipeline);
   {$ENDIF}
 
-  TZDBPipeline = class(TCoreClassObject)
+  TZDBPipeline = class(TCoreClassInterfacedObject)
   private
     FQueryCounter            : Int64;
     FCurrentFragmentTime     : TTimeTickValue;
