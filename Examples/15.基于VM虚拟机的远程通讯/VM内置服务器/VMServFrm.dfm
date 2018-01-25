@@ -40,7 +40,6 @@ object VMServForm: TVMServForm
       ParentFont = False
       TabOrder = 0
       WordWrap = False
-      ExplicitLeft = 572
     end
     object ReceiveMemo: TMemo
       Left = 780
@@ -98,7 +97,6 @@ object VMServForm: TVMServForm
       ParentFont = False
       TabOrder = 3
       WordWrap = False
-      ExplicitLeft = 1190
     end
     object Panel1: TPanel
       Left = 1
@@ -171,7 +169,6 @@ object VMServForm: TVMServForm
       ScrollBars = ssVertical
       TabOrder = 5
       WordWrap = False
-      ExplicitLeft = 132
     end
   end
   object ProgressTimer: TTimer

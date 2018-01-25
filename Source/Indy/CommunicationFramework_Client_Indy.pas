@@ -186,11 +186,7 @@ begin
 
   FDriver.ConnectTimeout := 500;
   try
-    try
-        FDriver.Connect;
-    except
-        FDriver.Connect;
-    end;
+    FDriver.Connect;
     ProgressBackground;
   except
     if (IsIPV4(Addr)) or (IsIPV6(Addr)) then
@@ -495,11 +491,7 @@ begin
 
   FDriver.ConnectTimeout := 500;
   try
-    try
-        FDriver.Connect;
-    except
-        FDriver.Connect;
-    end;
+    FDriver.Connect;
     ProgressBackground;
   except
     if (IsIPV4(Addr)) or (IsIPV6(Addr)) then

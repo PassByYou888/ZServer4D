@@ -1,5 +1,5 @@
 unit PeformanceTestCliFrm;
-
+
 interface
 
 uses
@@ -37,7 +37,7 @@ type
   end;
 
 const
-  MaxConn = 20000;
+  MaxConn = 60000;
 
 var
   EZClientForm: TEZClientForm;
@@ -133,6 +133,7 @@ begin
   TestCommandButton.Visible := False;
   for i := low(client) to high(client) do
     begin
+      TCommunicationFramework_Client_CrossSocket(client[i]).AsyncConnectTimeout := 60 * 1000;
       TCommunicationFramework_Client_CrossSocket(client[i]).AsyncConnect(HostEdit.Text, 9818);
       application.ProcessMessages;
     end;
@@ -156,3 +157,4 @@ begin
 end;
 
 end.
+

@@ -43,9 +43,10 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    procedure SetPointerWithProtectedMode(BuffPtr: Pointer; const BuffSize: NativeUInt);
-    function PositionAsPtr(const APosition: Int64): Pointer;
-
+    procedure SetPointerWithProtectedMode(BuffPtr: Pointer; const BuffSize: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function PositionAsPtr(const APosition: Int64): Pointer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function PositionAsPtr: Pointer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     procedure LoadFromStream(Stream: TCoreClassStream); virtual;
     procedure LoadFromFile(const FileName: SystemString);
     procedure SaveToStream(Stream: TCoreClassStream); virtual;
@@ -55,13 +56,13 @@ type
     procedure SetSize(NewSize: Longint); overload; override;
 
     function Write64(const Buffer; Count: Int64): Int64; virtual;
-    function WritePtr(const p: Pointer; Count: Int64): Int64;
+    function WritePtr(const p: Pointer; Count: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Write(const Buffer; Count: Longint): Longint; overload; override;
     {$IFNDEF FPC}
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload; override;
     {$ENDIF}
     function Read64(var Buffer; Count: Int64): Int64; virtual;
-    function ReadPtr(const p: Pointer; Count: Int64): Int64;
+    function ReadPtr(const p: Pointer; Count: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Read(var Buffer; Count: Longint): Longint; overload; override;
     {$IFNDEF FPC}
     function Read(Buffer: TBytes; Offset, Count: Longint): Longint; overload; override;
@@ -135,7 +136,6 @@ function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Bo
 function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
 
 implementation
 
@@ -219,6 +219,11 @@ end;
 function TMemoryStream64.PositionAsPtr(const APosition: Int64): Pointer;
 begin
   Result := Pointer(NativeUInt(FMemory) + APosition);
+end;
+
+function TMemoryStream64.PositionAsPtr: Pointer;
+begin
+  Result := Pointer(NativeUInt(FMemory) + FPosition);
 end;
 
 procedure TMemoryStream64.LoadFromStream(Stream: TCoreClassStream);
@@ -489,7 +494,15 @@ var
   Buffer    : TBytes;
 begin
   if FProtectedMode then
+      raiseInfo('protected mode');
+
+  if Source is TMemoryStream64 then
+    begin
+      WritePtr(TMemoryStream64(Source).PositionAsPtr, cCount);
+      TMemoryStream64(Source).Position := TMemoryStream64(Source).FPosition + cCount;
+      Result := cCount;
       exit;
+    end;
 
   if cCount <= 0 then
     begin

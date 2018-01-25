@@ -90,7 +90,7 @@ procedure TVMServForm.ExecuteTestButtonClick(Sender: TObject);
 begin
   ServWithVM.ProgressPerClient(procedure(PeerClient: TPeerClient)
     begin
-      ServWithVMTest.ExecuteAsyncTestWithBigStream(PeerClient);
+      ServWithVMTest.ExecuteAsyncTest(PeerClient);
     end);
 end;
 
@@ -102,6 +102,7 @@ begin
   ServTunnel.QuietMode := True;
 
   ServWithVM := TCommunicationFrameworkWithP2PVM_Server.Create(10240, 88);
+  ServWithVM.SwitchMaxPerformance;
   ServWithVM.QuietMode := False;
   ServWithVMTest := TCommunicationTestIntf.Create;
   ServWithVMTest.RegCmd(ServWithVM);

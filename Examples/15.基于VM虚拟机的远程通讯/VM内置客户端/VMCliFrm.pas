@@ -95,6 +95,7 @@ begin
   for i := low(ClientWithVM) to high(ClientWithVM) do
     begin
       ClientWithVM[i] := TMyClient.Create(i + 99);
+      ClientWithVM[i].SwitchMaxPerformance;
       ClientWithVMTest[i] := TCommunicationTestIntf.Create;
       ClientWithVMTest[i].RegCmd(ClientWithVM[i]);
     end;
@@ -220,7 +221,7 @@ begin
         begin
           DoStatus('VM’˝‘⁄Œ’ ÷...');
           ClientTunnel.ClientIO.OpenP2PVMTunnel(10000 * 10, True);
-          ClientTunnel.ClientIO.p2pVMTunnel.MinVMProgressSize := 16 * 1024 * 1024;
+          ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 16 * 1024 * 1024;
           ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
 
           for i := low(ClientWithVM) to high(ClientWithVM) do

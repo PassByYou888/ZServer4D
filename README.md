@@ -5,7 +5,9 @@
  [宅服架设](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
  [多媒体通讯](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8ZS%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6CompleteBuffer.pdf)
  [p2pVM隧道技术](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZS%E4%B8%AD%E7%9A%84p2pVM%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF.pdf)
-
+ [云服务器框架](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%95%86%E4%B8%9A%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A1%86%E6%9E%B62.0%20%E6%A1%86%E6%9E%B6%E8%AF%B4%E6%98%8E.pdf)
+ 
+ 
 ## 介绍
 
 支持运行平台Android,IOS,Win32/64,Linux,OSX
@@ -87,6 +89,18 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 
 ## 更新日志
+
+
+2018-1-25
+
+修复一处不常见的内存泄漏：泄漏症状为，服务器发送一条待反馈的消息SendStreamCMD，在等待反馈中，客户端断线，这时候发生泄漏
+
+对多媒体机制的CompleteBuffer现在可以兼容匿名函数
+
+新增一处实现定制化协议的标准范式Demo，内附详细使用说明，"Examples\17.外部协议实现范式"
+
+p2pVM隧道性能小幅提升10%，在100万压测Demo下能明显感觉性能提高
+
 
 
 2018-1-24

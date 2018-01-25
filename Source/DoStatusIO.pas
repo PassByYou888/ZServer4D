@@ -30,6 +30,7 @@ procedure DisableStatus;
 procedure EnabledStatus;
 
 procedure DoStatus(v: Pointer; siz, width: NativeInt); overload;
+procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(v: TMemoryStream64); overload;
 procedure DoStatus(v: TCoreClassStrings); overload;
 procedure DoStatus(v: int64); overload;
@@ -86,6 +87,31 @@ begin
     end;
   if n <> '' then
       DoStatus(n);
+end;
+
+procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt);
+var
+  s: TPascalString;
+  i: Integer;
+  n: SystemString;
+begin
+  bufHashToString(v, siz, s);
+  n := '';
+  for i := 1 to s.Len div 2 do
+    begin
+      if n <> '' then
+          n := n + #32 + s[i * 2 - 1] + s[i * 2]
+      else
+          n := s[i * 2 - 1] + s[i * 2];
+
+      if i mod (width div 2) = 0 then
+        begin
+          DoStatus(prefix + n);
+          n := '';
+        end;
+    end;
+  if n <> '' then
+      DoStatus(prefix + n);
 end;
 
 procedure DoStatus(v: TMemoryStream64);

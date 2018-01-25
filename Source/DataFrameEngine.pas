@@ -3819,7 +3819,15 @@ end;
 function TDataFrameEngine.Compare(dest: TDataFrameEngine): Boolean;
 var
   m1, m2: UnicodeMixedLib.TMD5;
+  i     : Integer;
 begin
+  Result := False;
+  if Count <> dest.Count then
+    exit;
+  for i := 0 to Count - 1 do
+    if FDataList[i].ClassType <> dest.ClassType then
+      exit;
+
   m1 := GetMD5(False);
   m2 := dest.GetMD5(False);
   Result := umlMD5Compare(m1, m2);
