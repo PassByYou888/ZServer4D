@@ -152,7 +152,8 @@ type
 
 const
   NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0);
-  DefaultSymbol                         = ',.+-*/();:=#@^&%!"[]<>?{}'#39;
+  // DefaultSymbol                         = ',.+-*/();:=#@^&%!"[]<>?{}'#39;
+  DefaultSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39;
 
 implementation
 
@@ -642,7 +643,7 @@ begin
   else if CharIn(c, '+-.$') then
     begin
       IsHex := c = '$';
-      if CharIn(c, ['.']) then
+      if CharIn(c, '.') then
         begin
           while True do
             begin
@@ -739,9 +740,9 @@ begin
                 begin
                   Inc(AddSubSymCnt);
                 end
-              else if (not IsHex) and (dotCount = 0) and (eCnt <= 1) and (AddSubSymCnt <= 1) and (CharIn(c, ['.'])) then
+              else if (not IsHex) and (dotCount = 0) and (eCnt <= 1) and (AddSubSymCnt <= 1) and (CharIn(c, '.')) then
                 begin
-                  if (CharIn(c, ['.'])) and ((Result + 1 = l) or (not CharIn(ParsingData.Text[Result + 1], [c0to9]))) then
+                  if ((Result + 1 > l) or (not CharIn(ParsingData.Text[Result + 1], [c0to9]))) then
                       Exit
                   else
                       Inc(dotCount);

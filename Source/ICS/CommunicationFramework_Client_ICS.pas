@@ -74,6 +74,7 @@ type
     function ClientIO: TPeerClient; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
+
     procedure ProgressBackground; override;
   end;
 

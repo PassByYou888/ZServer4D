@@ -1,5 +1,5 @@
 unit PeformanceTestServFrm;
-
+
 interface
 
 uses
@@ -9,11 +9,18 @@ uses
   CommunicationFramework,
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
-  CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
+  CommunicationFramework_Server_CrossSocket,
+  CommunicationFramework_Server_DIOCP,
+  DoStatusIO, CoreClasses,
   DataFrameEngine, UnicodeMixedLib, MemoryStream64, CommunicationTest,
   PascalStrings, ListEngine;
 
 type
+  // 做服务器压力测试，可以选用下列接口
+  // 可以抗住并发的只有CrossSocket和DIOCP，其它接口诸如Indy，ICS只能用于500链接内小规模服务
+  //TMyServer = TCommunicationFramework_Server_CrossSocket;
+  TMyServer = TCommunicationFramework_Server_DIOCP;
+
   TEZServerForm = class(TForm)
     readmeMemo: TMemo;
     Timer: TTimer;
@@ -31,7 +38,7 @@ type
     tempStream: TMemoryStream64;
   public
     { Public declarations }
-    server: TCommunicationFramework_Server_CrossSocket;
+    server: TMyServer;
     test  : TCommunicationTestIntf;
   end;
 
@@ -45,7 +52,7 @@ implementation
 
 procedure TEZServerForm.FormCreate(Sender: TObject);
 begin
-  server := TCommunicationFramework_Server_CrossSocket.Create;
+  server := TMyServer.Create;
   test := TCommunicationTestIntf.Create;
 
   server.AllowPrintCommand := False;
@@ -54,7 +61,7 @@ begin
   test.RegCmd(server);
 
   // 基于CrosssSocket官方文档，绑定字符串如果为空，绑定IPV6+IPV4
-  if server.StartService('', 9818) then
+  if server.StartService('0.0.0.0', 9818) then
       DoStatus('start service success')
   else
       DoStatus('start service failed!')
@@ -168,3 +175,4 @@ begin
 end;
 
 end.
+

@@ -33,6 +33,9 @@ uses
   {$IFDEF parallel}
   PasMP,
   {$ENDIF}
+  {$IFDEF FastMD5}
+  Fast_MD5,
+  {$ENDIF}
   CoreClasses, UnicodeMixedLib, MemoryStream64, PascalStrings, ListEngine,
   DoStatusIO;
 
@@ -191,7 +194,7 @@ type
 
   { message digest blocks }
   PMD5Digest = ^TMD5Digest;
-  TMD5Digest = array [0 .. 15] of Byte; { 128 bits - MD5 }
+  TMD5Digest = TMD5; { 128 bits - MD5 }
   TMD5Key    = TMD5Digest;
 
   PSHA1Digest = ^TSHA1Digest;
@@ -1200,7 +1203,11 @@ end;
 
 class function TCipher.GenerateMD5Hash(sour: Pointer; Size: nativeInt): TMD5Digest;
 begin
+  {$IF Defined(FastMD5) and (Defined(WIN32) or Defined(WIN64))}
+  Result := FastMD5(sour, Size);
+  {$ELSE}
   TCipherMD5.HashMD5(Result, sour^, Size);
+  {$IFEND}
 end;
 
 class procedure TCipher.GenerateHash(sour: Pointer; Size: nativeInt; OutHash: Pointer; HashSize: nativeInt);
@@ -3173,7 +3180,6 @@ var
   KeyBuff: TBytes;
   buff   : TBytes;
   m64    : TMemoryStream64;
-  n      : SystemString;
 begin
   KeyBuff := passwd.Bytes;
   buff := passwd.Bytes;
@@ -3281,9 +3287,9 @@ begin
   DoStatus('verify full chiher style password');
   s := GeneratePassword(TCipher.AllCipher, 'hello world');
   if not ComparePassword(TCipher.AllCipher, 'hello world', s) then
-      DoStatus('Password cipher test failed! cipher: %s', []);
+      DoStatus('Password cipher test failed! cipher: %s', ['']);
   if ComparePassword(TCipher.AllCipher, 'hello_world', s) then
-      DoStatus('Password cipher test failed! cipher: %s', []);
+      DoStatus('Password cipher test failed! cipher: %s', ['']);
 
   for cs in TCipher.AllCipher do
     begin
@@ -4341,34 +4347,29 @@ var
   BufOfs: nativeInt;
   MDI   : DWord;
   i     : DWord;
-  II    : DWord;
 begin
   // { compute number of bytes mod 64 }
   MDI := (Context.Count[0] shr 3) and $3F;
 
   // { update number of bits }
-  inc(Context.Count[0], BufSize shl 3);
-  if Context.Count[0] < (BufSize shl 3) then
+  if BufSize shl 3 < 0 then
       inc(Context.Count[1]);
 
-  inc(Context.Count[1], BufSize shr (SizeOf(BufSize) * 8 - 3));
+  inc(Context.Count[0], BufSize shl 3);
+  inc(Context.Count[1], BufSize shr 29);
 
   { add new byte acters to buffer }
   BufOfs := 0;
-  while (BufSize > 0) do begin
+  while (BufSize > 0) do
+    begin
       dec(BufSize);
       Context.Buf[MDI] := TByteArray(Buf)[BufOfs]; { !!.01 }
       inc(MDI);
       inc(BufOfs);
-      if (MDI = $40) then begin
-          II := 0;
-          for i := 0 to 15 do begin
-              InBuf[i] := Integer(Context.Buf[II + 3]) shl 24 or
-                Integer(Context.Buf[II + 2]) shl 16 or
-                Integer(Context.Buf[II + 1]) shl 8 or
-                Integer(Context.Buf[II]);
-              inc(II, 4);
-            end;
+      if (MDI = $40) then
+        begin
+          for i := 0 to 15 do
+              InBuf[i] := PDWord(@Context.Buf[i * 4])^;
           TMISC.Transform(Context.State, InBuf);
           MDI := 0;
         end;
@@ -5516,5 +5517,7 @@ TPasMP.CreateGlobalInstance;
 {$ENDIF}
 
 finalization
-  SetLength(SystemCBC, 0);
+
+SetLength(SystemCBC, 0);
+
 end.

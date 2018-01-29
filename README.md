@@ -6,6 +6,7 @@
  [多媒体通讯](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8ZS%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6CompleteBuffer.pdf)
  [p2pVM隧道技术](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZS%E4%B8%AD%E7%9A%84p2pVM%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF.pdf)
  [云服务器框架](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%95%86%E4%B8%9A%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A1%86%E6%9E%B62.0%20%E6%A1%86%E6%9E%B6%E8%AF%B4%E6%98%8E.pdf)
+ [怎样开发基于ZS的底层通讯IO接口](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZServer4D%E5%BC%80%E5%8F%91%E5%BA%95%E5%B1%82%E9%80%9A%E8%AE%AFIO%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%96%B9%E6%B3%95.pdf)
  
  
 ## 介绍
@@ -33,6 +34,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 (NoSQL并行化内核已经完成，聚类分析和分布式负载已完成50%文档)
 
 
+
 ## 通讯接口支持(只限Delphi)
 
 1.indy(open source) http://www.indyproject.org/
@@ -45,10 +47,28 @@ id是阻塞模式的通讯组件，已在ZServer4D内部集成
 异步式通讯组件，已在ZServer4D内部集成
 
 
-3.ICS(open source) www.overbyte.be
+3.ICS(open source) http://www.overbyte.be
 
 异步式通讯组件，已在ZServer4D内部集成
+
+
+4.DIOCP(Open source) https://github.com/ymofen/diocp-v5
  
+国人所开发的稳定DIOCP通讯库
+
+
+## 通讯接口支持(FreePascal with Lazarus 计划支持中)
+
+1.synapse4(open source) 计划支持
+
+支持ssl的优秀开源项目
+
+
+2.fcl-net(open source) 计划支持
+
+freepascal内置的网络库
+
+
 
 ## 注意
 
@@ -79,6 +99,7 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 压力测试如果链接超过6万，Windows系统会自动关闭侦听端口，具体原因不详，压测请尽量保持在6万以内，超过6万服务器侦听端口会自动关闭，只需要将服务器重开一次即可
 
 
+
 ## 关于切入和使用
 
 使用ZServer4D前，请仔细阅读本项目所提供的Demo和文档，做到对基于ZServer4D的开发范式非常了解
@@ -88,7 +109,25 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 [日常问题汇总](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
 
 
+
 ## 更新日志
+
+
+2018-1-29
+
+通讯新增DIOCP接口 DIOCP是国人所开发的稳定服务器项目 因为呼声较高 所以我今天做了DIOCP的底层接口并且测试通过
+
+新增帮助开发者自行开发网络接口的范例库(source\developerRefrence)
+
+大幅优化TPascalStrings库
+
+新增FastMD5 [FastMD5开源地址](https://github.com/PassByYou888/FastMD5/)
+
+通讯数据结构 TDataFrameEngine 已支持Json打包，Json引擎基于优秀开源项目 [JsonDataObjects](https://github.com/ahausladen/JsonDataObjects)
+
+修复一个小型bug 在云服务器框架2.0中 我们基于雾服务器做表达式计算时 写1*2.1 会出现表达式错误的问题
+
+新增一个制作底层通讯库IO接口的小文档
 
 
 2018-1-25
@@ -177,9 +216,9 @@ FilePackageWithZDB现在可以打开OXC压缩文件
 现在SendStreamCmd时DataFrameEngine参数可以为nil
 	  
 ```Delphi
-	  client.SendStreamCmd('xx cmd', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
-	  begin
-	  end) 
+client.SendStreamCmd('xx cmd', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+begin
+end) 
 ```
 
 
@@ -215,18 +254,18 @@ Inline函数可以通过zDefine.inc进行定义
 
 新的遍历方法
 ```Delphi
-	// 后台安全写法1，
-	Server.ProgressPerClient(Procedure(peerClient:TPeerClient)
-	begin
-	  client.sendcommand(xx)
-	end);
-	// 后台安全写法2
-	RecvTunnel.GetClientIDPool(IDPool);
-	for pcid in IDPool do
-	  if RecvTunnel.Exists(pcid) then
-	   begin
-		 RecvTunnel.ClientFromID[pcid].sendcommand(xx);
-	   end;
+// 后台安全写法1，
+Server.ProgressPerClient(Procedure(peerClient:TPeerClient)
+begin
+  client.sendcommand(xx)
+end);
+// 后台安全写法2
+RecvTunnel.GetClientIDPool(IDPool);
+for pcid in IDPool do
+  if RecvTunnel.Exists(pcid) then
+   begin
+	 RecvTunnel.ClientFromID[pcid].sendcommand(xx);
+   end;
 ```
 
 新增服务器的内存Hook库（傻瓜，暴力，非常暴力的释放和管理内存），同时也新增了内存管理领域开发工艺Demo，MH库支持FPC和Delphi
@@ -312,9 +351,7 @@ end;
 
 2017-12-15
 
-新增6万压测Demo，附截图
-
-![6万压测截图](https://github.com/PassByYou888/ZServer4D/blob/master/Examples/9.%E9%95%BF%E8%BF%9E%E6%8E%A5%E5%8E%8B%E6%B5%8B/6%E4%B8%87%E5%8E%8B%E6%B5%8B%E6%88%AA%E5%9B%BE.png)
+新增6万压测Demo
 
 ZDB新增一组提交数据条目和大图片捆绑的Demo，每张图片各2M，此机制可用于任何Stream数据，请参考并且依次类推
 
@@ -338,10 +375,6 @@ ZDB和ZServer均已在Linux下测试通过
 2017-12-8
 
 新增大数据库引擎ZDB的网络服务器Demo，并且内附了详细功能说明 [Demo说明](https://github.com/PassByYou888/ZServer4D/tree/master/Examples/11.ZDB%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%8C%85%E5%90%AB%E6%8F%90%E4%BA%A4%E5%9B%BE%E7%89%87%EF%BC%89)
-
-![苹果](https://github.com/PassByYou888/ZServer4D/blob/master/Examples/11.ZDB%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%8C%85%E5%90%AB%E6%8F%90%E4%BA%A4%E5%9B%BE%E7%89%87%EF%BC%89/IMG_6101.PNG)
-![安卓](https://github.com/PassByYou888/ZServer4D/blob/master/Examples/11.ZDB%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%8C%85%E5%90%AB%E6%8F%90%E4%BA%A4%E5%9B%BE%E7%89%87%EF%BC%89/Screenshot_20171215-002124.png)
-
 
 在ZDB中新增压缩，拷贝，替换等等底层功能
 

@@ -118,6 +118,9 @@ function Pascal2FixedLengthString(var S: TPascalString): FixedLengthString; {$IF
 function umlComparePosStr(const S: umlString; Offset: Integer; t: umlString): Boolean;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 
+function umlVarToStr(V: Variant): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlStrToVar(S: umlString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 function umlMax(v1, v2: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlMax(v1, v2: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlMax(v1, v2: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -140,7 +143,7 @@ function umlMin(v1, v2: ShortInt): ShortInt; overload; {$IFDEF INLINE_ASM} inlin
 function umlMin(v1, v2: Double): Double; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlMin(v1, v2: Single): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlDeltaNumber(v, delta: NativeInt): NativeInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDeltaNumber(V, delta: NativeInt): NativeInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlGetResourceStream(const FileName: umlString): TStream;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
@@ -327,7 +330,7 @@ type
 const
   NullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-function umlMD5(const BuffPtr: PBYTE; const BuffSize: NativeUInt): TMD5;
+function umlMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
 function umlMD5Char(const BuffPtr: PBYTE; const BuffSize: NativeUInt): umlString;
 function umlMD5String(const BuffPtr: PBYTE; const BuffSize: NativeUInt): umlString;
 function umlStreamMD5(Stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5; overload;
@@ -476,7 +479,11 @@ function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; v
 
 implementation
 
-uses MemoryStream64;
+uses
+  {$IF Defined(WIN32) or Defined(WIN64)}
+  Fast_MD5,
+  {$ENDIF}
+  MemoryStream64;
 
 function umlBytesOf(S: umlString): TBytes;
 begin
@@ -490,13 +497,13 @@ end;
 
 function FixedLengthString2Pascal(var S: FixedLengthString): TPascalString;
 var
-  B: TBytes;
+  b: TBytes;
 begin
-  SetLength(B, FixedLengthStringSize);
-  CopyPtr(@S.Data[0], @B[0], FixedLengthStringSize);
-  SetLength(B, S.len);
-  Result.Bytes := B;
-  SetLength(B, 0);
+  SetLength(b, FixedLengthStringSize);
+  CopyPtr(@S.Data[0], @b[0], FixedLengthStringSize);
+  SetLength(b, S.len);
+  Result.Bytes := b;
+  SetLength(b, 0);
 end;
 
 function Pascal2FixedLengthString(var S: TPascalString): FixedLengthString;
@@ -520,6 +527,99 @@ end;
 function umlPos(SubStr, Str: umlString; const Offset: Integer = 1): Integer;
 begin
   Result := Str.GetPos(SubStr, Offset);
+end;
+
+function umlVarToStr(V: Variant): umlString;
+var
+  n, b64: umlString;
+begin
+  try
+    case VarType(V) of
+      varSmallint, varInteger, varShortInt, varByte, varWord, varLongWord:
+        begin
+          Result := IntToStr(V);
+        end;
+      varInt64:
+        begin
+          Result := IntToStr(Int64(V));
+        end;
+      varUInt64:
+        begin
+          {$IFDEF FPC}
+          Result := IntToStr(UInt64(V));
+          {$ELSE}
+          Result := UIntToStr(UInt64(V));
+          {$ENDIF}
+        end;
+      varSingle, varDouble, varCurrency, varDate:
+        begin
+          Result := FloatToStr(V);
+        end;
+      varOleStr, varString, varUString:
+        begin
+          n.Text := VarToStr(V);
+
+          if umlExistsLimitChar(n, #10#13#9#8#0) then
+            begin
+              umlEncodeLineBASE64(n, b64);
+              Result := '___base64:' + b64.Text;
+            end
+          else
+              Result := n.Text;
+        end;
+      varBoolean:
+        begin
+          Result := BoolToStr(V, True);
+        end;
+      else
+        Result := VarToStr(V);
+    end;
+  except
+    try
+        Result := VarToStr(V);
+    except
+        Result := '';
+    end;
+  end;
+end;
+
+function umlStrToVar(S: umlString): Variant;
+var
+  n, b64: umlString;
+begin
+  n := umlTrimSpace(S);
+  try
+    if n.ComparePos(1, '___base64:') then
+      begin
+        n := umlDeleteFirstStr(n, ':').Text;
+        umlDecodeLineBASE64(n, b64);
+        Result := b64.Text;
+      end
+    else
+      begin
+        case umlGetNumTextType(n) of
+          ntBool: Result := StrToBool(n.Text);
+          ntInt: Result := StrToInt(n.Text);
+          ntInt64: Result := StrToInt64(n.Text);
+          {$IFDEF FPC}
+          ntUInt64: Result := StrToQWord(n.Text);
+          {$ELSE}
+          ntUInt64: Result := StrToUInt64(n.Text);
+          {$ENDIF}
+          ntWord: Result := StrToInt(n.Text);
+          ntByte: Result := StrToInt(n.Text);
+          ntSmallInt: Result := StrToInt(n.Text);
+          ntShortInt: Result := StrToInt(n.Text);
+          ntUInt: Result := StrToInt(n.Text);
+          ntSingle: Result := StrToFloat(n.Text);
+          ntDouble: Result := StrToFloat(n.Text);
+          ntCurrency: Result := StrToFloat(n.Text);
+          else Result := n.Text;
+        end;
+      end;
+  except
+      Result := n.Text;
+  end;
 end;
 
 function umlMax(v1, v2: UInt64): UInt64;
@@ -682,9 +782,9 @@ begin
       Result := v2;
 end;
 
-function umlDeltaNumber(v, delta: NativeInt): NativeInt;
+function umlDeltaNumber(V, delta: NativeInt): NativeInt;
 begin
-  Result := (v + (delta - 1)) and not(delta - 1);
+  Result := (V + (delta - 1)) and not(delta - 1);
 end;
 
 function umlGetResourceStream(const FileName: umlString): TStream;
@@ -2530,15 +2630,15 @@ type
   TValSym = (vsSymSub, vsSymAdd, vsSymAddSub, vsSymDollar, vsDot, vsDotBeforNum, vsDotAfterNum, vsNum, vsAtoF, vsE, vsUnknow);
 var
   cnt: array [TValSym] of Integer;
-  v  : TValSym;
+  V  : TValSym;
   c  : umlChar;
   i  : Integer;
 begin
   if umlSameText('true', S) or umlSameText('false', S) then
       Exit(ntBool);
 
-  for v := low(TValSym) to high(TValSym) do
-      cnt[v] := 0;
+  for V := low(TValSym) to high(TValSym) do
+      cnt[V] := 0;
 
   for i := 1 to S.len do
     begin
@@ -3298,7 +3398,7 @@ const
     090, 097, 098, 099, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 048, 049, 050, 051, 052, 053, 054, 055,
     056, 057, 043, 047);
 var
-  B, InMax3        : NativeUInt;
+  b, InMax3        : NativeUInt;
   InPtr, InLimitPtr: ^Byte;
   OutPtr           : PByte4;
 begin
@@ -3310,47 +3410,47 @@ begin
   NativeUInt(InLimitPtr) := NativeUInt(InPtr) + InMax3;
   while InPtr <> InLimitPtr do
     begin
-      B := InPtr^;
-      B := B shl 8;
+      b := InPtr^;
+      b := b shl 8;
       Inc(InPtr);
-      B := B or InPtr^;
-      B := B shl 8;
+      b := b or InPtr^;
+      b := b shl 8;
       Inc(InPtr);
-      B := B or InPtr^;
+      b := b or InPtr^;
       Inc(InPtr);
-      OutPtr^.b4 := umlBase64_ENCODE_TABLE[B and $3F];
-      B := B shr 6;
-      OutPtr^.b3 := umlBase64_ENCODE_TABLE[B and $3F];
-      B := B shr 6;
-      OutPtr^.b2 := umlBase64_ENCODE_TABLE[B and $3F];
-      B := B shr 6;
-      OutPtr^.b1 := umlBase64_ENCODE_TABLE[B];
+      OutPtr^.b4 := umlBase64_ENCODE_TABLE[b and $3F];
+      b := b shr 6;
+      OutPtr^.b3 := umlBase64_ENCODE_TABLE[b and $3F];
+      b := b shr 6;
+      OutPtr^.b2 := umlBase64_ENCODE_TABLE[b and $3F];
+      b := b shr 6;
+      OutPtr^.b1 := umlBase64_ENCODE_TABLE[b];
       Inc(OutPtr);
     end;
 
   case InputByteCount - InMax3 of
     1:
       begin
-        B := InPtr^;
-        B := B shl 4;
-        OutPtr^.b2 := umlBase64_ENCODE_TABLE[B and $3F];
-        B := B shr 6;
-        OutPtr^.b1 := umlBase64_ENCODE_TABLE[B];
+        b := InPtr^;
+        b := b shl 4;
+        OutPtr^.b2 := umlBase64_ENCODE_TABLE[b and $3F];
+        b := b shr 6;
+        OutPtr^.b1 := umlBase64_ENCODE_TABLE[b];
         OutPtr^.b3 := EQUAL_SIGN;
         OutPtr^.b4 := EQUAL_SIGN;
       end;
     2:
       begin
-        B := InPtr^;
+        b := InPtr^;
         Inc(InPtr);
-        B := B shl 8;
-        B := B or InPtr^;
-        B := B shl 2;
-        OutPtr^.b3 := umlBase64_ENCODE_TABLE[B and $3F];
-        B := B shr 6;
-        OutPtr^.b2 := umlBase64_ENCODE_TABLE[B and $3F];
-        B := B shr 6;
-        OutPtr^.b1 := umlBase64_ENCODE_TABLE[B];
+        b := b shl 8;
+        b := b or InPtr^;
+        b := b shl 2;
+        OutPtr^.b3 := umlBase64_ENCODE_TABLE[b and $3F];
+        b := b shr 6;
+        OutPtr^.b2 := umlBase64_ENCODE_TABLE[b and $3F];
+        b := b shr 6;
+        OutPtr^.b1 := umlBase64_ENCODE_TABLE[b];
         OutPtr^.b4 := EQUAL_SIGN;
       end;
   end;
@@ -3403,29 +3503,29 @@ end;
 
 procedure umlDecodeLineBASE64(Buffer: umlString; var Output: umlString);
 var
-  B, nb: TBytes;
+  b, nb: TBytes;
 begin
-  B := umlBytesOf(Buffer);
-  umlBase64DecodeBytes(B, nb);
+  b := umlBytesOf(Buffer);
+  umlBase64DecodeBytes(b, nb);
   Output := umlStringOf(nb);
 end;
 
 procedure umlEncodeLineBASE64(Buffer: umlString; var Output: umlString);
 var
-  B, nb: TBytes;
+  b, nb: TBytes;
 begin
-  B := umlBytesOf(Buffer);
-  umlBase64EncodeBytes(B, nb);
+  b := umlBytesOf(Buffer);
+  umlBase64EncodeBytes(b, nb);
   Output := umlStringOf(nb);
 end;
 
 procedure umlDecodeStreamBASE64(Buffer: umlString; Output: TCoreClassStream);
 var
-  B, nb: TBytes;
+  b, nb: TBytes;
   bak  : Int64;
 begin
-  B := umlBytesOf(Buffer);
-  umlBase64DecodeBytes(B, nb);
+  b := umlBytesOf(Buffer);
+  umlBase64DecodeBytes(b, nb);
   bak := Output.Position;
   Output.WriteBuffer(nb[0], Length(nb));
   Output.Position := bak;
@@ -3433,15 +3533,15 @@ end;
 
 procedure umlEncodeStreamBASE64(Buffer: TCoreClassStream; var Output: umlString);
 var
-  B, nb: TBytes;
+  b, nb: TBytes;
   bak  : Int64;
 begin
   bak := Buffer.Position;
 
   Buffer.Position := 0;
-  SetLength(B, Buffer.Size);
-  Buffer.ReadBuffer(B[0], Buffer.Size);
-  umlBase64EncodeBytes(B, nb);
+  SetLength(b, Buffer.Size);
+  Buffer.ReadBuffer(b[0], Buffer.Size);
+  umlBase64EncodeBytes(b, nb);
   Output := umlStringOf(nb);
 
   Buffer.Position := bak;
@@ -3473,269 +3573,173 @@ begin
       Output.Append('''' + ';');
 end;
 
-function umlMD5(const BuffPtr: PBYTE; const BuffSize: NativeUInt): TMD5;
+procedure umlTransformMD5(var Accu; var buf); inline;
+  function ROL(const x: Cardinal; const n: Byte): Cardinal; inline;
+  begin
+    Result := (x shl n) or (x shr (32 - n))
+  end;
+
+  function FF(const a, b, c, d, x: Cardinal; const S: Byte; const ac: Cardinal): Cardinal; inline;
+  begin
+    Result := ROL(a + x + ac + (b and c or not b and d), S) + b
+  end;
+
+  function GG(const a, b, c, d, x: Cardinal; const S: Byte; const ac: Cardinal): Cardinal; inline;
+  begin
+    Result := ROL(a + x + ac + (b and d or c and not d), S) + b
+  end;
+
+  function HH(const a, b, c, d, x: Cardinal; const S: Byte; const ac: Cardinal): Cardinal; inline;
+  begin
+    Result := ROL(a + x + ac + (b xor c xor d), S) + b
+  end;
+
+  function II(const a, b, c, d, x: Cardinal; const S: Byte; const ac: Cardinal): Cardinal; inline;
+  begin
+    Result := ROL(a + x + ac + (c xor (b or not d)), S) + b
+  end;
+
 type
-  TDWordArray = array [0 .. MaxInt div SizeOf(DWORD) - 1] of DWORD;
-  PDWordArray = ^TDWordArray;
-
-const
-  S11 = 7;
-  S12 = 12;
-  S13 = 17;
-  S14 = 22;
-
-  S21 = 5;
-  S22 = 9;
-  S23 = 14;
-  S24 = 20;
-
-  S31 = 4;
-  S32 = 11;
-  S33 = 16;
-  S34 = 23;
-
-  S41 = 6;
-  S42 = 10;
-  S43 = 15;
-  S44 = 21;
-
+  TDigestCardinal = array [0 .. 3] of Cardinal;
+  TCardinalBuf    = array [0 .. 15] of Cardinal;
 var
-  ContextCount : array [0 .. 1] of DWORD;
-  ContextState : array [0 .. 4] of DWORD;
-  ContextBuffer: array [0 .. 63] of Byte;
-  Padding      : array [0 .. 63] of Byte;
-
-  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-  var
-    i, j: NativeUInt;
-  begin
-    i := 0;
-    j := 0;
-    while (j < Count) do
-      begin
-        Dst^[j] := Src^[i] and $FF;
-        Dst^[j + 1] := (Src^[i] shr 8) and $FF;
-        Dst^[j + 2] := (Src^[i] shr 16) and $FF;
-        Dst^[j + 3] := (Src^[i] shr 24) and $FF;
-        Inc(j, 4);
-        Inc(i);
-      end;
-  end;
-  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-  var
-    i, j: NativeUInt;
-  begin
-    j := 0;
-    i := 0;
-    while (j < Count) do
-      begin
-        Dst^[i] := (
-          (Src^[j + Shift] and $FF) or
-          ((Src^[j + Shift + 1] and $FF) shl 8) or
-          ((Src^[j + Shift + 2] and $FF) shl 16) or
-          ((Src^[j + Shift + 3] and $FF) shl 24)
-          );
-        Inc(j, 4);
-        Inc(i);
-      end;
-  end;
-
-  procedure Transform(const Block: PByteArray; const Shift: NativeUInt);
-    function f(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := (x and y) or ((not x) and z);
-    end;
-    function G(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := (x and z) or (y and (not z));
-    end;
-    function H(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := x xor y xor z;
-    end;
-    function i(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := y xor (x or (not z));
-    end;
-    procedure RL(var x: DWORD; const n: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      x := (x shl n) or (x shr (32 - n));
-    end;
-    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, f(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, G(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, H(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, i(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-
-  var
-    a, B, c, d: DWORD;
-  var
-    x: array [0 .. 15] of DWORD;
-  begin
-    a := ContextState[0];
-    B := ContextState[1];
-    c := ContextState[2];
-    d := ContextState[3];
-    Decode(@x[0], Block, 64, Shift);
-    // Round 1
-    FF(a, B, c, d, x[0], S11, $D76AA478);  { 1 }
-    FF(d, a, B, c, x[1], S12, $E8C7B756);  { 2 }
-    FF(c, d, a, B, x[2], S13, $242070DB);  { 3 }
-    FF(B, c, d, a, x[3], S14, $C1BDCEEE);  { 4 }
-    FF(a, B, c, d, x[4], S11, $F57C0FAF);  { 5 }
-    FF(d, a, B, c, x[5], S12, $4787C62A);  { 6 }
-    FF(c, d, a, B, x[6], S13, $A8304613);  { 7 }
-    FF(B, c, d, a, x[7], S14, $FD469501);  { 8 }
-    FF(a, B, c, d, x[8], S11, $698098D8);  { 9 }
-    FF(d, a, B, c, x[9], S12, $8B44F7AF);  { 10 }
-    FF(c, d, a, B, x[10], S13, $FFFF5BB1); { 11 }
-    FF(B, c, d, a, x[11], S14, $895CD7BE); { 12 }
-    FF(a, B, c, d, x[12], S11, $6B901122); { 13 }
-    FF(d, a, B, c, x[13], S12, $FD987193); { 14 }
-    FF(c, d, a, B, x[14], S13, $A679438E); { 15 }
-    FF(B, c, d, a, x[15], S14, $49B40821); { 16 }
-    // Round 2
-    GG(a, B, c, d, x[1], S21, $F61E2562);  { 17 }
-    GG(d, a, B, c, x[6], S22, $C040B340);  { 18 }
-    GG(c, d, a, B, x[11], S23, $265E5A51); { 19 }
-    GG(B, c, d, a, x[0], S24, $E9B6C7AA);  { 20 }
-    GG(a, B, c, d, x[5], S21, $D62F105D);  { 21 }
-    GG(d, a, B, c, x[10], S22, $2441453);  { 22 }
-    GG(c, d, a, B, x[15], S23, $D8A1E681); { 23 }
-    GG(B, c, d, a, x[4], S24, $E7D3FBC8);  { 24 }
-    GG(a, B, c, d, x[9], S21, $21E1CDE6);  { 25 }
-    GG(d, a, B, c, x[14], S22, $C33707D6); { 26 }
-    GG(c, d, a, B, x[3], S23, $F4D50D87);  { 27 }
-    GG(B, c, d, a, x[8], S24, $455A14ED);  { 28 }
-    GG(a, B, c, d, x[13], S21, $A9E3E905); { 29 }
-    GG(d, a, B, c, x[2], S22, $FCEFA3F8);  { 30 }
-    GG(c, d, a, B, x[7], S23, $676F02D9);  { 31 }
-    GG(B, c, d, a, x[12], S24, $8D2A4C8A); { 32 }
-    // Round 3
-    HH(a, B, c, d, x[5], S31, $FFFA3942);  { 33 }
-    HH(d, a, B, c, x[8], S32, $8771F681);  { 34 }
-    HH(c, d, a, B, x[11], S33, $6D9D6122); { 35 }
-    HH(B, c, d, a, x[14], S34, $FDE5380C); { 36 }
-    HH(a, B, c, d, x[1], S31, $A4BEEA44);  { 37 }
-    HH(d, a, B, c, x[4], S32, $4BDECFA9);  { 38 }
-    HH(c, d, a, B, x[7], S33, $F6BB4B60);  { 39 }
-    HH(B, c, d, a, x[10], S34, $BEBFBC70); { 40 }
-    HH(a, B, c, d, x[13], S31, $289B7EC6); { 41 }
-    HH(d, a, B, c, x[0], S32, $EAA127FA);  { 42 }
-    HH(c, d, a, B, x[3], S33, $D4EF3085);  { 43 }
-    HH(B, c, d, a, x[6], S34, $4881D05);   { 44 }
-    HH(a, B, c, d, x[9], S31, $D9D4D039);  { 45 }
-    HH(d, a, B, c, x[12], S32, $E6DB99E5); { 46 }
-    HH(c, d, a, B, x[15], S33, $1FA27CF8); { 47 }
-    HH(B, c, d, a, x[2], S34, $C4AC5665);  { 48 }
-    // Round 4
-    II(a, B, c, d, x[0], S41, $F4292244);  { 49 }
-    II(d, a, B, c, x[7], S42, $432AFF97);  { 50 }
-    II(c, d, a, B, x[14], S43, $AB9423A7); { 51 }
-    II(B, c, d, a, x[5], S44, $FC93A039);  { 52 }
-    II(a, B, c, d, x[12], S41, $655B59C3); { 53 }
-    II(d, a, B, c, x[3], S42, $8F0CCC92);  { 54 }
-    II(c, d, a, B, x[10], S43, $FFEFF47D); { 55 }
-    II(B, c, d, a, x[1], S44, $85845DD1);  { 56 }
-    II(a, B, c, d, x[8], S41, $6FA87E4F);  { 57 }
-    II(d, a, B, c, x[15], S42, $FE2CE6E0); { 58 }
-    II(c, d, a, B, x[6], S43, $A3014314);  { 59 }
-    II(B, c, d, a, x[13], S44, $4E0811A1); { 60 }
-    II(a, B, c, d, x[4], S41, $F7537E82);  { 61 }
-    II(d, a, B, c, x[11], S42, $BD3AF235); { 62 }
-    II(c, d, a, B, x[2], S43, $2AD7D2BB);  { 63 }
-    II(B, c, d, a, x[9], S44, $EB86D391);  { 64 }
-
-    Inc(ContextState[0], a);
-    Inc(ContextState[1], B);
-    Inc(ContextState[2], c);
-    Inc(ContextState[3], d);
-  end;
-  procedure Update(const Value: PBYTE; const Count: NativeUInt);
-  var
-    i, Index, PartLen, Start: NativeUInt;
-  var
-    pb: PByteArray;
-  begin
-    pb := PByteArray(Value);
-    index := (ContextCount[0] shr 3) and $3F;
-
-    Inc(ContextCount[0], Count shl 3);
-    if ContextCount[0] < (Count shl 3) then
-        Inc(ContextCount[1]);
-
-    Inc(ContextCount[1], Count shr (SizeOf(Count) * 8 - 3));
-
-    PartLen := 64 - index;
-    if Count >= PartLen then
-      begin
-        for i := 0 to PartLen - 1 do
-            ContextBuffer[i + index] := pb^[i];
-
-        Transform(@ContextBuffer, 0);
-        i := PartLen;
-        while (i + 63) < Count do
-          begin
-            Transform(pb, i);
-            Inc(i, 64);
-          end;
-        index := 0;
-      end
-    else
-        i := 0;
-    if (i < Count) then
-      begin
-        Start := i;
-        while (i < Count) do
-          begin
-            ContextBuffer[index + i - Start] := pb^[i];
-            Inc(i);
-          end;
-      end;
-  end;
-
-var
-  Bits         : array [0 .. 7] of Byte;
-  Index, PadLen: NativeUInt;
+  a, b, c, d: Cardinal;
 begin
-  FillPtrByte(@Padding, 64, 0);
-  Padding[0] := $80;
-  ContextCount[0] := 0;
-  ContextCount[1] := 0;
-  ContextState[0] := $67452301;
-  ContextState[1] := $EFCDAB89;
-  ContextState[2] := $98BADCFE;
-  ContextState[3] := $10325476;
-  Update(BuffPtr, BuffSize);
-  Encode(@Bits, @ContextCount, 8);
-  index := (ContextCount[0] shr 3) and $3F;
-  if index < 56 then
-      PadLen := 56 - index
-  else
-      PadLen := 120 - index;
-  Update(@Padding, PadLen);
-  Update(@Bits, 8);
-  Encode(@Result, @ContextState, 16);
+  a := TDigestCardinal(Accu)[0];
+  b := TDigestCardinal(Accu)[1];
+  c := TDigestCardinal(Accu)[2];
+  d := TDigestCardinal(Accu)[3];
+
+  a := FF(a, b, c, d, TCardinalBuf(buf)[0], 7, $D76AA478);   { 1 }
+  d := FF(d, a, b, c, TCardinalBuf(buf)[1], 12, $E8C7B756);  { 2 }
+  c := FF(c, d, a, b, TCardinalBuf(buf)[2], 17, $242070DB);  { 3 }
+  b := FF(b, c, d, a, TCardinalBuf(buf)[3], 22, $C1BDCEEE);  { 4 }
+  a := FF(a, b, c, d, TCardinalBuf(buf)[4], 7, $F57C0FAF);   { 5 }
+  d := FF(d, a, b, c, TCardinalBuf(buf)[5], 12, $4787C62A);  { 6 }
+  c := FF(c, d, a, b, TCardinalBuf(buf)[6], 17, $A8304613);  { 7 }
+  b := FF(b, c, d, a, TCardinalBuf(buf)[7], 22, $FD469501);  { 8 }
+  a := FF(a, b, c, d, TCardinalBuf(buf)[8], 7, $698098D8);   { 9 }
+  d := FF(d, a, b, c, TCardinalBuf(buf)[9], 12, $8B44F7AF);  { 10 }
+  c := FF(c, d, a, b, TCardinalBuf(buf)[10], 17, $FFFF5BB1); { 11 }
+  b := FF(b, c, d, a, TCardinalBuf(buf)[11], 22, $895CD7BE); { 12 }
+  a := FF(a, b, c, d, TCardinalBuf(buf)[12], 7, $6B901122);  { 13 }
+  d := FF(d, a, b, c, TCardinalBuf(buf)[13], 12, $FD987193); { 14 }
+  c := FF(c, d, a, b, TCardinalBuf(buf)[14], 17, $A679438E); { 15 }
+  b := FF(b, c, d, a, TCardinalBuf(buf)[15], 22, $49B40821); { 16 }
+
+  a := GG(a, b, c, d, TCardinalBuf(buf)[1], 5, $F61E2562);   { 17 }
+  d := GG(d, a, b, c, TCardinalBuf(buf)[6], 9, $C040B340);   { 18 }
+  c := GG(c, d, a, b, TCardinalBuf(buf)[11], 14, $265E5A51); { 19 }
+  b := GG(b, c, d, a, TCardinalBuf(buf)[0], 20, $E9B6C7AA);  { 20 }
+  a := GG(a, b, c, d, TCardinalBuf(buf)[5], 5, $D62F105D);   { 21 }
+  d := GG(d, a, b, c, TCardinalBuf(buf)[10], 9, $02441453);  { 22 }
+  c := GG(c, d, a, b, TCardinalBuf(buf)[15], 14, $D8A1E681); { 23 }
+  b := GG(b, c, d, a, TCardinalBuf(buf)[4], 20, $E7D3FBC8);  { 24 }
+  a := GG(a, b, c, d, TCardinalBuf(buf)[9], 5, $21E1CDE6);   { 25 }
+  d := GG(d, a, b, c, TCardinalBuf(buf)[14], 9, $C33707D6);  { 26 }
+  c := GG(c, d, a, b, TCardinalBuf(buf)[3], 14, $F4D50D87);  { 27 }
+  b := GG(b, c, d, a, TCardinalBuf(buf)[8], 20, $455A14ED);  { 28 }
+  a := GG(a, b, c, d, TCardinalBuf(buf)[13], 5, $A9E3E905);  { 29 }
+  d := GG(d, a, b, c, TCardinalBuf(buf)[2], 9, $FCEFA3F8);   { 30 }
+  c := GG(c, d, a, b, TCardinalBuf(buf)[7], 14, $676F02D9);  { 31 }
+  b := GG(b, c, d, a, TCardinalBuf(buf)[12], 20, $8D2A4C8A); { 32 }
+
+  a := HH(a, b, c, d, TCardinalBuf(buf)[5], 4, $FFFA3942);   { 33 }
+  d := HH(d, a, b, c, TCardinalBuf(buf)[8], 11, $8771F681);  { 34 }
+  c := HH(c, d, a, b, TCardinalBuf(buf)[11], 16, $6D9D6122); { 35 }
+  b := HH(b, c, d, a, TCardinalBuf(buf)[14], 23, $FDE5380C); { 36 }
+  a := HH(a, b, c, d, TCardinalBuf(buf)[1], 4, $A4BEEA44);   { 37 }
+  d := HH(d, a, b, c, TCardinalBuf(buf)[4], 11, $4BDECFA9);  { 38 }
+  c := HH(c, d, a, b, TCardinalBuf(buf)[7], 16, $F6BB4B60);  { 39 }
+  b := HH(b, c, d, a, TCardinalBuf(buf)[10], 23, $BEBFBC70); { 40 }
+  a := HH(a, b, c, d, TCardinalBuf(buf)[13], 4, $289B7EC6);  { 41 }
+  d := HH(d, a, b, c, TCardinalBuf(buf)[0], 11, $EAA127FA);  { 42 }
+  c := HH(c, d, a, b, TCardinalBuf(buf)[3], 16, $D4EF3085);  { 43 }
+  b := HH(b, c, d, a, TCardinalBuf(buf)[6], 23, $04881D05);  { 44 }
+  a := HH(a, b, c, d, TCardinalBuf(buf)[9], 4, $D9D4D039);   { 45 }
+  d := HH(d, a, b, c, TCardinalBuf(buf)[12], 11, $E6DB99E5); { 46 }
+  c := HH(c, d, a, b, TCardinalBuf(buf)[15], 16, $1FA27CF8); { 47 }
+  b := HH(b, c, d, a, TCardinalBuf(buf)[2], 23, $C4AC5665);  { 48 }
+
+  a := II(a, b, c, d, TCardinalBuf(buf)[0], 6, $F4292244);   { 49 }
+  d := II(d, a, b, c, TCardinalBuf(buf)[7], 10, $432AFF97);  { 50 }
+  c := II(c, d, a, b, TCardinalBuf(buf)[14], 15, $AB9423A7); { 51 }
+  b := II(b, c, d, a, TCardinalBuf(buf)[5], 21, $FC93A039);  { 52 }
+  a := II(a, b, c, d, TCardinalBuf(buf)[12], 6, $655B59C3);  { 53 }
+  d := II(d, a, b, c, TCardinalBuf(buf)[3], 10, $8F0CCC92);  { 54 }
+  c := II(c, d, a, b, TCardinalBuf(buf)[10], 15, $FFEFF47D); { 55 }
+  b := II(b, c, d, a, TCardinalBuf(buf)[1], 21, $85845DD1);  { 56 }
+  a := II(a, b, c, d, TCardinalBuf(buf)[8], 6, $6FA87E4F);   { 57 }
+  d := II(d, a, b, c, TCardinalBuf(buf)[15], 10, $FE2CE6E0); { 58 }
+  c := II(c, d, a, b, TCardinalBuf(buf)[6], 15, $A3014314);  { 59 }
+  b := II(b, c, d, a, TCardinalBuf(buf)[13], 21, $4E0811A1); { 60 }
+  a := II(a, b, c, d, TCardinalBuf(buf)[4], 6, $F7537E82);   { 61 }
+  d := II(d, a, b, c, TCardinalBuf(buf)[11], 10, $BD3AF235); { 62 }
+  c := II(c, d, a, b, TCardinalBuf(buf)[2], 15, $2AD7D2BB);  { 63 }
+  b := II(b, c, d, a, TCardinalBuf(buf)[9], 21, $EB86D391);  { 64 }
+
+  Inc(TDigestCardinal(Accu)[0], a);
+  Inc(TDigestCardinal(Accu)[1], b);
+  Inc(TDigestCardinal(Accu)[2], c);
+  Inc(TDigestCardinal(Accu)[3], d)
 end;
+
+function umlMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
+{$IF Defined(FastMD5) and (Defined(WIN32) or Defined(WIN64))}
+begin
+  Result := FastMD5(BuffPtr, BufSiz);
+end;
+{$ELSE}
+
+
+var
+  digest : TMD5;
+  Lo, Hi : Cardinal;
+  p      : PBYTE;
+  WorkLen: Byte;
+  WorkBuf: array [0 .. 63] of Byte;
+begin
+  Lo := 0;
+  Hi := 0;
+  PCardinal(@digest[0])^ := $67452301;
+  PCardinal(@digest[4])^ := $EFCDAB89;
+  PCardinal(@digest[8])^ := $98BADCFE;
+  PCardinal(@digest[12])^ := $10325476;
+
+  if BufSiz shl 3 < 0 then
+      Inc(Hi);
+
+  Inc(Lo, BufSiz shl 3);
+  Inc(Hi, BufSiz shr 29);
+
+  p := BuffPtr;
+
+  while BufSiz >= $40 do
+    begin
+      umlTransformMD5(digest, p^);
+      Inc(p, $40);
+      Dec(BufSiz, $40);
+    end;
+  if BufSiz > 0 then
+      CopyPtr(p, @WorkBuf[0], BufSiz);
+
+  Result := PMD5(@digest[0])^;
+  WorkBuf[BufSiz] := $80;
+  WorkLen := BufSiz + 1;
+  if WorkLen > $38 then
+    begin
+      if WorkLen < $40 then
+          FillPtrByte(@WorkBuf[WorkLen], $40 - WorkLen, 0);
+      umlTransformMD5(Result, WorkBuf);
+      WorkLen := 0
+    end;
+  FillPtrByte(@WorkBuf[WorkLen], $38 - WorkLen, 0);
+  PCardinal(@WorkBuf[$38])^ := Lo;
+  PCardinal(@WorkBuf[$3C])^ := Hi;
+  umlTransformMD5(Result, WorkBuf);
+end;
+{$IFEND}
+
 
 function umlMD5Char(const BuffPtr: PBYTE; const BuffSize: NativeUInt): umlString;
 begin
@@ -3748,349 +3752,104 @@ begin
 end;
 
 function umlStreamMD5(Stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5;
-type
-  TDWordArray = array [0 .. MaxInt div SizeOf(DWORD) - 1] of DWORD;
-  PDWordArray = ^TDWordArray;
+{$IF Defined(FastMD5) and (Defined(WIN32) or Defined(WIN64))}
+begin
+  Result := FastMD5(Stream, StartPos, EndPos);
+end;
+{$ELSE}
+
 
 const
-  S11 = 7;
-  S12 = 12;
-  S13 = 17;
-  S14 = 22;
-
-  S21 = 5;
-  S22 = 9;
-  S23 = 14;
-  S24 = 20;
-
-  S31 = 4;
-  S32 = 11;
-  S33 = 16;
-  S34 = 23;
-
-  S41 = 6;
-  S42 = 10;
-  S43 = 15;
-  S44 = 21;
+  deltaSize = $40 * $FFFF;
 
 var
-  ContextCount : array [0 .. 1] of DWORD;
-  ContextState : array [0 .. 4] of DWORD;
-  ContextBuffer: array [0 .. 63] of Byte;
-  Padding      : array [0 .. 63] of Byte;
-
-  procedure Encode(const Dst: PByteArray; const Src: PDWordArray; const Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-  var
-    i, j: NativeUInt;
-  begin
-    i := 0;
-    j := 0;
-    while (j < Count) do
-      begin
-        Dst^[j] := Src^[i] and $FF;
-        Dst^[j + 1] := (Src^[i] shr 8) and $FF;
-        Dst^[j + 2] := (Src^[i] shr 16) and $FF;
-        Dst^[j + 3] := (Src^[i] shr 24) and $FF;
-        Inc(j, 4);
-        Inc(i);
-      end;
-  end;
-  procedure Decode(const Dst: PDWordArray; const Src: PByteArray; const Count, Shift: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-  var
-    i, j: NativeUInt;
-  begin
-    j := 0;
-    i := 0;
-    while (j < Count) do
-      begin
-        Dst^[i] := (
-          (Src^[j + Shift] and $FF) or
-          ((Src^[j + Shift + 1] and $FF) shl 8) or
-          ((Src^[j + Shift + 2] and $FF) shl 16) or
-          ((Src^[j + Shift + 3] and $FF) shl 24)
-          );
-        Inc(j, 4);
-        Inc(i);
-      end;
-  end;
-
-  procedure Transform(const Block: PByteArray; const Shift: NativeUInt);
-    function f(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := (x and y) or ((not x) and z);
-    end;
-    function G(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := (x and z) or (y and (not z));
-    end;
-    function H(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := x xor y xor z;
-    end;
-    function i(const x, y, z: DWORD): DWORD; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Result := y xor (x or (not z));
-    end;
-    procedure RL(var x: DWORD; const n: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      x := (x shl n) or (x shr (32 - n));
-    end;
-    procedure FF(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, f(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-    procedure GG(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, G(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-    procedure HH(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, H(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-    procedure II(var a: DWORD; const B, c, d, x: DWORD; const S: Byte; const ac: DWORD); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    begin
-      Inc(a, i(B, c, d) + x + ac);
-      RL(a, S);
-      Inc(a, B);
-    end;
-
-  var
-    a, B, c, d: DWORD;
-  var
-    x: array [0 .. 15] of DWORD;
-  begin
-    a := ContextState[0];
-    B := ContextState[1];
-    c := ContextState[2];
-    d := ContextState[3];
-    Decode(@x[0], Block, 64, Shift);
-    // Round 1
-    FF(a, B, c, d, x[0], S11, $D76AA478);  { 1 }
-    FF(d, a, B, c, x[1], S12, $E8C7B756);  { 2 }
-    FF(c, d, a, B, x[2], S13, $242070DB);  { 3 }
-    FF(B, c, d, a, x[3], S14, $C1BDCEEE);  { 4 }
-    FF(a, B, c, d, x[4], S11, $F57C0FAF);  { 5 }
-    FF(d, a, B, c, x[5], S12, $4787C62A);  { 6 }
-    FF(c, d, a, B, x[6], S13, $A8304613);  { 7 }
-    FF(B, c, d, a, x[7], S14, $FD469501);  { 8 }
-    FF(a, B, c, d, x[8], S11, $698098D8);  { 9 }
-    FF(d, a, B, c, x[9], S12, $8B44F7AF);  { 10 }
-    FF(c, d, a, B, x[10], S13, $FFFF5BB1); { 11 }
-    FF(B, c, d, a, x[11], S14, $895CD7BE); { 12 }
-    FF(a, B, c, d, x[12], S11, $6B901122); { 13 }
-    FF(d, a, B, c, x[13], S12, $FD987193); { 14 }
-    FF(c, d, a, B, x[14], S13, $A679438E); { 15 }
-    FF(B, c, d, a, x[15], S14, $49B40821); { 16 }
-    // Round 2
-    GG(a, B, c, d, x[1], S21, $F61E2562);  { 17 }
-    GG(d, a, B, c, x[6], S22, $C040B340);  { 18 }
-    GG(c, d, a, B, x[11], S23, $265E5A51); { 19 }
-    GG(B, c, d, a, x[0], S24, $E9B6C7AA);  { 20 }
-    GG(a, B, c, d, x[5], S21, $D62F105D);  { 21 }
-    GG(d, a, B, c, x[10], S22, $2441453);  { 22 }
-    GG(c, d, a, B, x[15], S23, $D8A1E681); { 23 }
-    GG(B, c, d, a, x[4], S24, $E7D3FBC8);  { 24 }
-    GG(a, B, c, d, x[9], S21, $21E1CDE6);  { 25 }
-    GG(d, a, B, c, x[14], S22, $C33707D6); { 26 }
-    GG(c, d, a, B, x[3], S23, $F4D50D87);  { 27 }
-    GG(B, c, d, a, x[8], S24, $455A14ED);  { 28 }
-    GG(a, B, c, d, x[13], S21, $A9E3E905); { 29 }
-    GG(d, a, B, c, x[2], S22, $FCEFA3F8);  { 30 }
-    GG(c, d, a, B, x[7], S23, $676F02D9);  { 31 }
-    GG(B, c, d, a, x[12], S24, $8D2A4C8A); { 32 }
-    // Round 3
-    HH(a, B, c, d, x[5], S31, $FFFA3942);  { 33 }
-    HH(d, a, B, c, x[8], S32, $8771F681);  { 34 }
-    HH(c, d, a, B, x[11], S33, $6D9D6122); { 35 }
-    HH(B, c, d, a, x[14], S34, $FDE5380C); { 36 }
-    HH(a, B, c, d, x[1], S31, $A4BEEA44);  { 37 }
-    HH(d, a, B, c, x[4], S32, $4BDECFA9);  { 38 }
-    HH(c, d, a, B, x[7], S33, $F6BB4B60);  { 39 }
-    HH(B, c, d, a, x[10], S34, $BEBFBC70); { 40 }
-    HH(a, B, c, d, x[13], S31, $289B7EC6); { 41 }
-    HH(d, a, B, c, x[0], S32, $EAA127FA);  { 42 }
-    HH(c, d, a, B, x[3], S33, $D4EF3085);  { 43 }
-    HH(B, c, d, a, x[6], S34, $4881D05);   { 44 }
-    HH(a, B, c, d, x[9], S31, $D9D4D039);  { 45 }
-    HH(d, a, B, c, x[12], S32, $E6DB99E5); { 46 }
-    HH(c, d, a, B, x[15], S33, $1FA27CF8); { 47 }
-    HH(B, c, d, a, x[2], S34, $C4AC5665);  { 48 }
-    // Round 4
-    II(a, B, c, d, x[0], S41, $F4292244);  { 49 }
-    II(d, a, B, c, x[7], S42, $432AFF97);  { 50 }
-    II(c, d, a, B, x[14], S43, $AB9423A7); { 51 }
-    II(B, c, d, a, x[5], S44, $FC93A039);  { 52 }
-    II(a, B, c, d, x[12], S41, $655B59C3); { 53 }
-    II(d, a, B, c, x[3], S42, $8F0CCC92);  { 54 }
-    II(c, d, a, B, x[10], S43, $FFEFF47D); { 55 }
-    II(B, c, d, a, x[1], S44, $85845DD1);  { 56 }
-    II(a, B, c, d, x[8], S41, $6FA87E4F);  { 57 }
-    II(d, a, B, c, x[15], S42, $FE2CE6E0); { 58 }
-    II(c, d, a, B, x[6], S43, $A3014314);  { 59 }
-    II(B, c, d, a, x[13], S44, $4E0811A1); { 60 }
-    II(a, B, c, d, x[4], S41, $F7537E82);  { 61 }
-    II(d, a, B, c, x[11], S42, $BD3AF235); { 62 }
-    II(c, d, a, B, x[2], S43, $2AD7D2BB);  { 63 }
-    II(B, c, d, a, x[9], S44, $EB86D391);  { 64 }
-
-    Inc(ContextState[0], a);
-    Inc(ContextState[1], B);
-    Inc(ContextState[2], c);
-    Inc(ContextState[3], d);
-  end;
-
-  procedure Update(const Value: PBYTE; const Count: NativeUInt);
-  var
-    i, Index, PartLen, Start: NativeUInt;
-    pb                      : PByteArray;
-  begin
-    pb := PByteArray(Value);
-    index := (ContextCount[0] shr 3) and $3F;
-
-    Inc(ContextCount[0], Count shl 3);
-    if ContextCount[0] < (Count shl 3) then
-        Inc(ContextCount[1]);
-
-    Inc(ContextCount[1], Count shr (SizeOf(Count) * 8 - 3));
-
-    PartLen := 64 - index;
-    if Count >= PartLen then
-      begin
-        for i := 0 to PartLen - 1 do
-            ContextBuffer[i + index] := pb^[i];
-
-        Transform(@ContextBuffer, 0);
-        i := PartLen;
-        while (i + 63) < Count do
-          begin
-            Transform(pb, i);
-            Inc(i, 64);
-          end;
-        index := 0;
-      end
-    else
-        i := 0;
-    if (i < Count) then
-      begin
-        Start := i;
-        while (i < Count) do
-          begin
-            ContextBuffer[index + i - Start] := pb^[i];
-            Inc(i);
-          end;
-      end;
-  end;
-
-  procedure UpdateStreamBuffer();
-  var
-    i, Index, PartLen, Start      : Int64;
-    StreamSize, buffSiz, BuffStart: Int64;
-    buff                          : TBytes;
-  begin
-    StreamSize := EndPos - StartPos;
-
-    index := (ContextCount[0] shr 3) and $3F;
-
-    Inc(ContextCount[0], StreamSize shl 3);
-    if ContextCount[0] < (StreamSize shl 3) then
-        Inc(ContextCount[1]);
-
-    Inc(ContextCount[1], StreamSize shr 61);
-
-    // default size = 1M;
-    buffSiz := 1024 * 1024;
-
-    if StreamSize < buffSiz then
-        buffSiz := StreamSize;
-
-    SetLength(buff, buffSiz);
-
-    Stream.Position := StartPos;
-    Stream.Read(buff[0], buffSiz);
-
-    PartLen := 64 - index;
-    BuffStart := 0;
-
-    if StreamSize >= PartLen then
-      begin
-        for i := 0 to PartLen - 1 do
-            ContextBuffer[i + index] := buff[i];
-
-        Transform(@ContextBuffer, 0);
-        i := PartLen;
-        while (i + 63) < StreamSize do
-          begin
-            if BuffStart + 64 > buffSiz then
-              begin
-                Stream.Position := StartPos + i;
-                if Stream.Position + buffSiz > EndPos then
-                  begin
-                    FillPtrByte(@buff[0], buffSiz, 0);
-                    Stream.Read(buff[0], EndPos - Stream.Position);
-                  end
-                else
-                    Stream.Read(buff[0], buffSiz);
-                BuffStart := 0;
-              end;
-
-            Transform(@buff[0], BuffStart);
-            Inc(i, 64);
-            Inc(BuffStart, 64);
-          end;
-        index := 0;
-      end
-    else
-        i := 0;
-
-    if (i < StreamSize) then
-      begin
-        if BuffStart + (StreamSize - i) > buffSiz then
-          begin
-            Stream.Position := StartPos + i;
-            Stream.Read(buff[0], (StreamSize - i));
-            BuffStart := 0;
-          end;
-
-        Start := i;
-        while (i < StreamSize) do
-          begin
-            ContextBuffer[index + i - Start] := buff[BuffStart];
-            Inc(i);
-            Inc(BuffStart);
-          end;
-      end;
-  end;
-
-var
-  Bits         : array [0 .. 7] of Byte;
-  Index, PadLen: NativeUInt;
+  digest  : TMD5;
+  Lo, Hi  : Cardinal;
+  DeltaBuf: Pointer;
+  BufSiz  : Int64;
+  rest    : Cardinal;
+  p       : PBYTE;
+  WorkLen : Byte;
+  WorkBuf : array [0 .. 63] of Byte;
 begin
-  FillPtrByte(@Padding, 64, 0);
-  Padding[0] := $80;
-  ContextCount[0] := 0;
-  ContextCount[1] := 0;
-  ContextState[0] := $67452301;
-  ContextState[1] := $EFCDAB89;
-  ContextState[2] := $98BADCFE;
-  ContextState[3] := $10325476;
-  UpdateStreamBuffer;
-  // Update(BuffPtr, BuffSize);
-  Encode(@Bits, @ContextCount, 8);
-  index := (ContextCount[0] shr 3) and $3F;
-  if index < 56 then
-      PadLen := 56 - index
+  {$IFDEF OptimizationMemoryStreamMD5}
+  if Stream is TCoreClassMemoryStream then
+    begin
+      Result := umlMD5(Pointer(NativeUInt(TCoreClassMemoryStream(Stream).Memory) + StartPos), EndPos - StartPos);
+      Exit;
+    end;
+  if Stream is TMemoryStream64 then
+    begin
+      Result := umlMD5(TMemoryStream64(Stream).PositionAsPtr(StartPos), EndPos - StartPos);
+      Exit;
+    end;
+  {$IFEND}
+  //
+
+  Lo := 0;
+  Hi := 0;
+  PCardinal(@digest[0])^ := $67452301;
+  PCardinal(@digest[4])^ := $EFCDAB89;
+  PCardinal(@digest[8])^ := $98BADCFE;
+  PCardinal(@digest[12])^ := $10325476;
+
+  BufSiz := EndPos - StartPos;
+  rest := 0;
+
+  if BufSiz shl 3 < 0 then
+      Inc(Hi);
+
+  Inc(Lo, BufSiz shl 3);
+  Inc(Hi, BufSiz shr 29);
+
+  DeltaBuf := GetMemory(deltaSize);
+  Stream.Position := StartPos;
+
+  if BufSiz < $40 then
+    begin
+      Stream.Read(DeltaBuf^, BufSiz);
+      p := DeltaBuf;
+    end
   else
-      PadLen := 120 - index;
-  Update(@Padding, PadLen);
-  Update(@Bits, 8);
-  Encode(@Result, @ContextState, 16);
+    while BufSiz >= $40 do
+      begin
+        if rest = 0 then
+          begin
+            if BufSiz >= deltaSize then
+                rest := Stream.Read(DeltaBuf^, deltaSize)
+            else
+                rest := Stream.Read(DeltaBuf^, BufSiz);
+
+            p := DeltaBuf;
+          end;
+        umlTransformMD5(digest, p^);
+        Inc(p, $40);
+        Dec(BufSiz, $40);
+        Dec(rest, $40);
+      end;
+
+  if BufSiz > 0 then
+      CopyPtr(p, @WorkBuf[0], BufSiz);
+
+  FreeMemory(DeltaBuf);
+
+  Result := PMD5(@digest[0])^;
+  WorkBuf[BufSiz] := $80;
+  WorkLen := BufSiz + 1;
+  if WorkLen > $38 then
+    begin
+      if WorkLen < $40 then
+          FillPtrByte(@WorkBuf[WorkLen], $40 - WorkLen, 0);
+      umlTransformMD5(Result, WorkBuf);
+      WorkLen := 0
+    end;
+  FillPtrByte(@WorkBuf[WorkLen], $38 - WorkLen, 0);
+  PCardinal(@WorkBuf[$38])^ := Lo;
+  PCardinal(@WorkBuf[$3C])^ := Hi;
+  umlTransformMD5(Result, WorkBuf);
 end;
+{$IFEND}
+
 
 function umlStreamMD5(Stream: TCoreClassStream): TMD5;
 begin
@@ -4116,18 +3875,18 @@ end;
 
 function umlStringMD5(const Value: umlString): TMD5;
 var
-  B: TBytes;
+  b: TBytes;
 begin
-  B := umlBytesOf(Value);
-  Result := umlMD5(@B[0], Length(B));
+  b := umlBytesOf(Value);
+  Result := umlMD5(@b[0], Length(b));
 end;
 
 function umlStringMD5Char(const Value: umlString): umlString;
 var
-  B: TBytes;
+  b: TBytes;
 begin
-  B := umlBytesOf(Value);
-  Result := umlMD52Str(umlMD5(@B[0], Length(B)));
+  b := umlBytesOf(Value);
+  Result := umlMD52Str(umlMD5(@b[0], Length(b)));
 end;
 
 function umlMD52Str(md5: TMD5): umlString;
@@ -4176,7 +3935,6 @@ end;
 function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word;
 var
   i: NativeUInt;
-var
   pb: PByteArray absolute Value;
 begin
   Result := 0;
@@ -4186,21 +3944,21 @@ end;
 
 function umlStringCRC16(const Value: umlString): Word;
 var
-  B: TBytes;
+  b: TBytes;
 begin
-  B := umlBytesOf(Value);
-  Result := umlCRC16(@B[0], Length(B));
+  b := umlBytesOf(Value);
+  Result := umlCRC16(@b[0], Length(b));
 end;
 
 function umlStreamCRC16(Stream: TMixedStream; StartPos, EndPos: Int64): Word;
 const
   ChunkSize = 1024 * 1024;
-  procedure CRC16BUpdate(var crc: Word; const Buf: Pointer; len: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure CRC16BUpdate(var crc: Word; const buf: Pointer; len: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     p: PBYTE;
     i: Integer;
   begin
-    p := Buf;
+    p := buf;
     for i := 0 to len - 1 do
       begin
         crc := (crc shr 8) xor CRC16Table[p^ xor (crc and $FF)];
@@ -4211,12 +3969,12 @@ const
 var
   j    : NativeUInt;
   Num  : NativeUInt;
-  Rest : NativeUInt;
-  Buf  : Pointer;
+  rest : NativeUInt;
+  buf  : Pointer;
   FSize: Int64;
 begin
   { Allocate buffer to read file }
-  Buf := GetMemory(ChunkSize);
+  buf := GetMemory(ChunkSize);
   { Initialize CRC }
   Result := 0;
 
@@ -4230,24 +3988,24 @@ begin
   { Calculate number of full chunks that will fit into the buffer }
   Num := EndPos div ChunkSize;
   { Calculate remaining bytes }
-  Rest := EndPos mod ChunkSize;
+  rest := EndPos mod ChunkSize;
 
   { Set the stream to the beginning of the file }
   Stream.Position := StartPos;
 
   { Process full chunks }
   for j := 0 to Num - 1 do begin
-      Stream.Read(Buf^, ChunkSize);
-      CRC16BUpdate(Result, Buf, ChunkSize);
+      Stream.Read(buf^, ChunkSize);
+      CRC16BUpdate(Result, buf, ChunkSize);
     end;
 
   { Process remaining bytes }
-  if Rest > 0 then begin
-      Stream.Read(Buf^, Rest);
-      CRC16BUpdate(Result, Buf, Rest);
+  if rest > 0 then begin
+      Stream.Read(buf^, rest);
+      CRC16BUpdate(Result, buf, rest);
     end;
 
-  FreeMem(Buf, ChunkSize);
+  FreeMem(buf, ChunkSize);
 end;
 
 function umlStreamCRC16(Stream: TMixedStream): Word;
@@ -4260,7 +4018,6 @@ end;
 function umlCRC32(const Value: PBYTE; const Count: NativeUInt): Cardinal;
 var
   i: NativeUInt;
-var
   pb: PByteArray absolute Value;
 begin
   Result := $FFFFFFFF;
@@ -4271,22 +4028,22 @@ end;
 
 function umlString2CRC32(const Value: umlString): Cardinal;
 var
-  B: TBytes;
+  b: TBytes;
 begin
-  B := umlBytesOf(Value);
-  Result := umlCRC32(@B[0], Length(B));
+  b := umlBytesOf(Value);
+  Result := umlCRC32(@b[0], Length(b));
 end;
 
 function umlStreamCRC32(Stream: TMixedStream; StartPos, EndPos: Int64): Cardinal;
 const
   ChunkSize = 1024 * 1024;
 
-  procedure CRC32BUpdate(var crc: Cardinal; const Buf: Pointer; len: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure CRC32BUpdate(var crc: Cardinal; const buf: Pointer; len: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
     p: PBYTE;
     i: Integer;
   begin
-    p := Buf;
+    p := buf;
     for i := 0 to len - 1 do
       begin
         crc := ((crc shr 8) and $00FFFFFF) xor CRC32Table[(crc xor p^) and $FF];
@@ -4297,12 +4054,12 @@ const
 var
   j    : NativeUInt;
   Num  : NativeUInt;
-  Rest : NativeUInt;
-  Buf  : Pointer;
+  rest : NativeUInt;
+  buf  : Pointer;
   FSize: Int64;
 begin
   { Allocate buffer to read file }
-  Buf := GetMemory(ChunkSize);
+  buf := GetMemory(ChunkSize);
 
   { Initialize CRC }
   Result := $FFFFFFFF;
@@ -4317,24 +4074,24 @@ begin
   { Calculate number of full chunks that will fit into the buffer }
   Num := EndPos div ChunkSize;
   { Calculate remaining bytes }
-  Rest := EndPos mod ChunkSize;
+  rest := EndPos mod ChunkSize;
 
   { Set the stream to the beginning of the file }
   Stream.Position := StartPos;
 
   { Process full chunks }
   for j := 0 to Num - 1 do begin
-      Stream.Read(Buf^, ChunkSize);
-      CRC32BUpdate(Result, Buf, ChunkSize);
+      Stream.Read(buf^, ChunkSize);
+      CRC32BUpdate(Result, buf, ChunkSize);
     end;
 
   { Process remaining bytes }
-  if Rest > 0 then begin
-      Stream.Read(Buf^, Rest);
-      CRC32BUpdate(Result, Buf, Rest);
+  if rest > 0 then begin
+      Stream.Read(buf^, rest);
+      CRC32BUpdate(Result, buf, rest);
     end;
 
-  FreeMem(Buf, ChunkSize);
+  FreeMem(buf, ChunkSize);
 
   Result := Result xor $FFFFFFFF;
 end;
@@ -4521,17 +4278,17 @@ const
 
   procedure Shift(var SubKeyPart: TArrayOf28Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
-    n, B: Byte;
+    n, b: Byte;
   begin
-    B := SubKeyPart[1];
+    b := SubKeyPart[1];
     for n := 1 to 27 do
         SubKeyPart[n] := SubKeyPart[n + 1];
-    SubKeyPart[28] := B;
+    SubKeyPart[28] := b;
   end;
 
   procedure SubKey(var DesData: TDesData; Round: Byte; var SubKey: TArrayOf48Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
-    n, B: Byte;
+    n, b: Byte;
   begin
     for n := 1 to ST[Round] do
       begin
@@ -4540,16 +4297,16 @@ const
       end;
     for n := 1 to 48 do
       begin
-        B := PC_2[n];
-        if B <= 28 then
-            SubKey[n] := DesData.c[B]
+        b := PC_2[n];
+        if b <= 28 then
+            SubKey[n] := DesData.c[b]
         else
-            SubKey[n] := DesData.d[B - 28];
+            SubKey[n] := DesData.d[b - 28];
       end;
   end;
 
 var
-  n, B, Round: Byte;
+  n, b, Round: Byte;
   DesData    : TDesData;
 begin
   for n := 1 to 64 do
@@ -4581,11 +4338,11 @@ begin
     end;
   for n := 1 to 64 do
     begin
-      B := InvIP[n];
-      if B <= 32 then
-          DesData.OutputValue[n] := DesData.r[B]
+      b := InvIP[n];
+      if b <= 32 then
+          DesData.OutputValue[n] := DesData.r[b]
       else
-          DesData.OutputValue[n] := DesData.l[B - 32];
+          DesData.OutputValue[n] := DesData.l[b - 32];
     end;
   for n := 1 to 64 do
       SetBit(Output, n, DesData.OutputValue[n]);
@@ -4695,16 +4452,16 @@ procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: TDESKey; En
 var
   p: NativeUInt;
   i: Integer;
-  B: PBYTE;
+  b: PBYTE;
 begin
   i := 0;
   for p := 0 to Size - 1 do
     begin
-      B := Pointer(NativeUInt(DataPtr) + p);
+      b := Pointer(NativeUInt(DataPtr) + p);
       if Encrypt then
-          B^ := B^ + Key[i]
+          b^ := b^ + Key[i]
       else
-          B^ := B^ - Key[i];
+          b^ := b^ - Key[i];
 
       Inc(i);
       if i >= umlDESLength then

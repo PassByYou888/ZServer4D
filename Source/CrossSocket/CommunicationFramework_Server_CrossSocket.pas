@@ -250,13 +250,9 @@ procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject
 var
   cli: TContextIntfForServer;
 begin
-  TThread.Synchronize(TThread.CurrentThread,
-    procedure
-    begin
-      cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
-      cli.LastActiveTime := GetTimeTickCount;
-      AConnection.UserObject := cli;
-    end);
+  cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
+  cli.LastActiveTime := GetTimeTickCount;
+  AConnection.UserObject := cli;
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
@@ -280,6 +276,8 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
+var
+  cli: TContextIntfForServer;
 begin
   if ALen <= 0 then
       exit;
@@ -287,22 +285,20 @@ begin
   if AConnection.UserObject = nil then
       exit;
 
-  TThread.Synchronize(TThread.CurrentThread,
-    procedure
-    var
-      cli: TContextIntfForServer;
-    begin
-      try
-        cli := AConnection.UserObject as TContextIntfForServer;
-        if cli.ClientIntf = nil then
-            exit;
+  try
+    cli := AConnection.UserObject as TContextIntfForServer;
+    if cli.ClientIntf = nil then
+        exit;
 
-        cli.LastActiveTime := GetTimeTickCount;
-        cli.SaveReceiveBuffer(ABuf, ALen);
-        cli.FillRecvBuffer(nil, False, False);
-      except
-      end;
-    end);
+    cli.LastActiveTime := GetTimeTickCount;
+
+    // zs内核在新版本已经完全支持了100%的异步解析数据
+    // 在zs内核的新版本中，CrossSocket是100%的异步框架，不再是半异步化处理数据流
+    // by 2018-1-29
+    cli.SaveReceiveBuffer(ABuf, ALen);
+    cli.FillRecvBuffer(TThread.CurrentThread, True, True);
+  except
+  end;
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);

@@ -37,7 +37,7 @@ type
   end;
 
 const
-  MaxConn = 60000;
+  MaxConn = 20000;
 
 var
   EZClientForm: TEZClientForm;

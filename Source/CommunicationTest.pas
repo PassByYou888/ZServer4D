@@ -12,7 +12,7 @@ uses SysUtils, CommunicationFramework, DataFrameEngine,
 type
   TCommunicationTestIntf = class(TCoreClassObject)
   private
-    FPrepareSendConsole, FPrepareResultConsole    : string;
+    FPrepareSendConsole, FPrepareResultConsole    : SystemString;
     FPrepareSendDataFrame, FPrepareResultDataFrame: TDataFrameEngine;
     FLastReg                                      : TCommunicationFramework;
   public
@@ -21,16 +21,16 @@ type
 
     // client test command
     procedure Cmd_TestStream(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure Cmd_TestConsole(Sender: TPeerClient; InData: string; var OutData: string);
+    procedure Cmd_TestConsole(Sender: TPeerClient; InData: SystemString; var OutData: SystemString);
     procedure Cmd_TestDirectStream(Sender: TPeerClient; InData: TDataFrameEngine);
-    procedure Cmd_TestDirectConsole(Sender: TPeerClient; InData: string);
+    procedure Cmd_TestDirectConsole(Sender: TPeerClient; InData: SystemString);
     procedure Cmd_TestBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
-    procedure Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: string);
+    procedure Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: SystemString);
     procedure Cmd_TestCompleteBuffer(Sender: TPeerClient; InData: PByte; DataSize: NativeInt);
-    procedure Cmd_RemoteInfo(Sender: TPeerClient; InData: string);
+    procedure Cmd_RemoteInfo(Sender: TPeerClient; InData: SystemString);
 
     // server test command result
-    procedure CmdResult_TestConsole(Sender: TPeerClient; ResultData: string);
+    procedure CmdResult_TestConsole(Sender: TPeerClient; ResultData: SystemString);
     procedure CmdResult_TestStream(Sender: TPeerClient; ResultData: TDataFrameEngine);
 
     procedure RegCmd(intf: TCommunicationFramework);
@@ -45,10 +45,10 @@ implementation
 
 var
   TestStreamData: TMemoryStream64 = nil;
-  TestStreamMD5 : string;
+  TestStreamMD5 : SystemString;
   TestBuff      : PByte;
   TestBuffSize  : NativeInt;
-  TestBuffMD5   : string;
+  TestBuffMD5   : SystemString;
 
 constructor TCommunicationTestIntf.Create;
 var
@@ -82,7 +82,7 @@ begin
   OutData.Assign(FPrepareResultDataFrame);
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestConsole(Sender: TPeerClient; InData: string; var OutData: string);
+procedure TCommunicationTestIntf.Cmd_TestConsole(Sender: TPeerClient; InData: SystemString; var OutData: SystemString);
 begin
   if InData <> FPrepareSendConsole then
       Sender.Print('TestConsole in Data failed!');
@@ -95,7 +95,7 @@ begin
       Sender.Print('TestDirectStream in Data failed!');
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestDirectConsole(Sender: TPeerClient; InData: string);
+procedure TCommunicationTestIntf.Cmd_TestDirectConsole(Sender: TPeerClient; InData: SystemString);
 begin
   if InData <> FPrepareSendConsole then
       Sender.Print('TestDirectConsole in Data failed!');
@@ -109,7 +109,7 @@ begin
   Sender.UserDefine.BigStreamBatchList.Last^.Source.CopyFrom(InData, InData.Size);
 end;
 
-procedure TCommunicationTestIntf.Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: string);
+procedure TCommunicationTestIntf.Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: SystemString);
 begin
   if InData <> umlStreamMD5String(Sender.UserDefine.BigStreamBatchList.Last^.Source).Text then
       Sender.Print('TestBigStream failed!');
@@ -122,12 +122,12 @@ begin
       Sender.Print('TestCompleteBuffer failed!');
 end;
 
-procedure TCommunicationTestIntf.Cmd_RemoteInfo(Sender: TPeerClient; InData: string);
+procedure TCommunicationTestIntf.Cmd_RemoteInfo(Sender: TPeerClient; InData: SystemString);
 begin
   Sender.Print('remote:' + InData);
 end;
 
-procedure TCommunicationTestIntf.CmdResult_TestConsole(Sender: TPeerClient; ResultData: string);
+procedure TCommunicationTestIntf.CmdResult_TestConsole(Sender: TPeerClient; ResultData: SystemString);
 begin
   if ResultData <> FPrepareResultConsole then
       Sender.Print('TestResultConsole Data failed!');

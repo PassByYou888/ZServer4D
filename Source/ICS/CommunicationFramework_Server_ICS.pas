@@ -97,6 +97,7 @@ type
     function StartService(Host: SystemString; Port: Word): Boolean; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
+
     procedure ProgressBackground; override;
 
     function WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;

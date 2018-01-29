@@ -427,7 +427,7 @@ type
 
     procedure Sync_ExecuteResult;
     function FillWaitOnResultBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean): Boolean;
-
+    //
     procedure InternalSaveReceiveBuffer(const buff: Pointer; Siz: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure InternalProcessReceiveBuffer(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure InternalProcessAllSendCmd(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -463,7 +463,7 @@ type
     procedure PrintCommand(v: SystemString; Args: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure PrintParam(v: SystemString; Args: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
-    procedure Progress; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Progress; virtual;
     //
     procedure SaveReceiveBuffer(const p: Pointer; Siz: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure FillRecvBuffer(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -605,7 +605,7 @@ type
     FProgressPost              : TNProgressPostWithCadencer;
     FFrameworkIsServer         : Boolean;
     FFrameworkIsClient         : Boolean;
-    FFrameworkInfo             : string;
+    FFrameworkInfo             : SystemString;
   protected
     procedure DoPrint(const v: SystemString); virtual;
 
@@ -665,7 +665,7 @@ type
 
     property FrameworkIsServer: Boolean read FFrameworkIsServer;
     property FrameworkIsClient: Boolean read FFrameworkIsClient;
-    property FrameworkInfo: string read FFrameworkInfo;
+    property FrameworkInfo: SystemString read FFrameworkInfo;
 
     procedure ProgressBackground; virtual;
 
@@ -892,7 +892,7 @@ type
     procedure Disconnect; virtual;
 
     // sync KeepAlive
-    function Wait(ATimeOut: TTimeTickValue): string; overload;
+    function Wait(ATimeOut: TTimeTickValue): SystemString; overload;
     // async KeepAlive
     function Wait(ATimeOut: TTimeTickValue; OnResult: TStateCall): Boolean; overload;
     function Wait(ATimeOut: TTimeTickValue; OnResult: TStateMethod): Boolean; overload;
@@ -1066,7 +1066,7 @@ type
     procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
     procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
     {$IFNDEF FPC} procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override; {$ENDIF}
-    function Connect(Addr: string; Port: Word): Boolean; override;
+    function Connect(Addr: SystemString; Port: Word): Boolean; override;
     procedure Disconnect; override;
 
     procedure ProgressWaitSendOfClient(Client: TPeerClient); override;
@@ -1179,9 +1179,7 @@ type
     procedure echoing(const OnEchoPtr: POnEcho; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure echoing(OnResult: TStateCall; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure echoing(OnResult: TStateMethod; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    {$IFNDEF FPC}
-    procedure echoing(OnResult: TStateProc; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    {$ENDIF}
+    {$IFNDEF FPC} procedure echoing(OnResult: TStateProc; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF} {$ENDIF}
     procedure echoBuffer(const buff: Pointer; const Siz: NativeInt);
     //
     // p2p VM simulate with network listen
@@ -3781,8 +3779,11 @@ begin
 
   // only ID
   Inc(AOwnerFramework.FIDCounter);
+
+  LockObject(FOwnerFramework.FPerClientHashList); // atomic lock
   while (AOwnerFramework.FIDCounter = 0) or (AOwnerFramework.FPerClientHashList.Exists(AOwnerFramework.FIDCounter)) do
       Inc(AOwnerFramework.FIDCounter);
+  UnLockObject(FOwnerFramework.FPerClientHashList); // atomic lock
 
   FHeadToken := c_DataHeadToken;
   FTailToken := c_DataTailToken;
@@ -6311,24 +6312,33 @@ begin
 end;
 
 procedure TCommunicationFrameworkClient.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
+var
+  r: Boolean;
 begin
+  r := Connect(Addr, Port);
   if Assigned(OnResult) then
-      OnResult(False);
+      OnResult(r);
 end;
 
 procedure TCommunicationFrameworkClient.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
+var
+  r: Boolean;
 begin
+  r := Connect(Addr, Port);
   if Assigned(OnResult) then
-      OnResult(False);
+      OnResult(r);
 end;
 
 {$IFNDEF FPC}
 
 
 procedure TCommunicationFrameworkClient.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+var
+  r: Boolean;
 begin
+  r := Connect(Addr, Port);
   if Assigned(OnResult) then
-      OnResult(False);
+      OnResult(r);
 end;
 {$ENDIF}
 
@@ -6343,7 +6353,7 @@ begin
 end;
 
 // sync KeepAlive
-function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue): string;
+function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   if (ClientIO = nil) then
@@ -7773,7 +7783,7 @@ end;
 {$ENDIF}
 
 
-function TCommunicationFrameworkWithP2PVM_Client.Connect(Addr: string; Port: Word): Boolean;
+function TCommunicationFrameworkWithP2PVM_Client.Connect(Addr: SystemString; Port: Word): Boolean;
 var
   ipv6: TIPV6;
   p   : Pp2pVMListen;

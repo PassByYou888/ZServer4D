@@ -613,12 +613,12 @@ type
     procedure Add(const AValue: Integer); overload;
     procedure Add(const AValue: Int64); overload;
     procedure Add(const AValue: UInt64); overload;
-    procedure Add(const AValue: Double); overload;
-    procedure Add(const AValue: TDateTime); overload;
+    procedure AddF(const AValue: Double); overload;
+    procedure AddT(const AValue: TDateTime); overload;
     procedure Add(const AValue: Boolean); overload;
     procedure Add(const AValue: TJsonArray); overload;
     procedure Add(const AValue: TJsonObject); overload;
-    procedure Add(const AValue: Variant); overload;
+    procedure AddV(const AValue: Variant); overload;
     function AddArray: TJsonArray;
     function AddObject: TJsonObject; overload;
     procedure AddObject(const Value: TJsonObject); overload; inline; // makes it easier to add "null"
@@ -2039,7 +2039,7 @@ begin
 
     jtkFloat:
       begin
-        Data.Add(FLook.F);
+        Data.AddF(FLook.F);
         Next;
       end;
 
@@ -3729,7 +3729,7 @@ begin
   Data.ULongValue := AValue;
 end;
 
-procedure TJsonArray.Add(const AValue: Double);
+procedure TJsonArray.AddF(const AValue: Double);
 var
   Data: PJsonDataValue;
 begin
@@ -3737,7 +3737,7 @@ begin
   Data.FloatValue := AValue;
 end;
 
-procedure TJsonArray.Add(const AValue: TDateTime);
+procedure TJsonArray.AddT(const AValue: TDateTime);
 var
   Data: PJsonDataValue;
 begin
@@ -3753,7 +3753,7 @@ begin
   Data.Value := AValue;
 end;
 
-procedure TJsonArray.Add(const AValue: Variant);
+procedure TJsonArray.AddV(const AValue: Variant);
 var
   Data: PJsonDataValue;
 begin

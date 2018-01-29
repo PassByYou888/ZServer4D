@@ -19,11 +19,11 @@ unit MemoryStream64;
 interface
 
 uses
-  ZLib,
+  SysUtils, ZLib,
   {$IFDEF FPC}
   zstream,
   {$ENDIF}
-  CoreClasses, SysUtils, PascalStrings;
+  CoreClasses, PascalStrings;
 
 type
   TMemoryStream64 = class(TCoreClassStream)
@@ -136,6 +136,7 @@ function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Bo
 function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 
 implementation
 

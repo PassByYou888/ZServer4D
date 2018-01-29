@@ -34,7 +34,7 @@ type
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
-    function GetPeerIP: string; override;
+    function GetPeerIP: SystemString; override;
   end;
 
   TCommunicationFramework_Client_Indy = class(TCommunicationFrameworkClient)
@@ -63,18 +63,18 @@ type
     procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
     procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
     procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
-    function Connect(Addr: string; Port: Word): Boolean; override;
+    function Connect(Addr: SystemString; Port: Word): Boolean; override;
     procedure Disconnect; override;
   end;
 
-procedure CheckIPV6(hostName: string; Port: Word);
+procedure CheckIPV6(hostName: SystemString; Port: Word);
 
 var
   DefaultIPVersion: TIdIPVersion;
 
 implementation
 
-procedure CheckIPV6(hostName: string; Port: Word);
+procedure CheckIPV6(hostName: SystemString; Port: Word);
 var
   cli: TIdTCPClient;
 begin
@@ -150,7 +150,7 @@ begin
   Context.IOHandler.WriteBufferClose;
 end;
 
-function TClientIntf.GetPeerIP: string;
+function TClientIntf.GetPeerIP: SystemString;
 begin
   Result := Context.host;
 end;
@@ -456,7 +456,7 @@ begin
   AsyncConnect(Addr, Port, nil, nil, OnResult);
 end;
 
-function TCommunicationFramework_Client_Indy.Connect(Addr: string; Port: Word): Boolean;
+function TCommunicationFramework_Client_Indy.Connect(Addr: SystemString; Port: Word): Boolean;
 var
   t: TTimeTickValue;
 begin

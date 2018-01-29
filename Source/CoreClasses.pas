@@ -16,8 +16,7 @@ unit CoreClasses;
 
 interface
 
-uses SysUtils, Classes, Types
-
+uses SysUtils, Classes, Types, PascalStrings
   {$IFDEF FPC}
     , Contnrs, fgl
   {$ELSE}
@@ -159,7 +158,6 @@ const
   CurrentPlatform = TExecutePlatform.epUnknow;
   {$IFEND}
 
-procedure EmptyProc;
 procedure Empty;
 
 procedure DisposeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -174,8 +172,8 @@ procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte); {$IFD
 function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure CopyPtr(sour, dest:Pointer; Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure RaiseInfo(n: string); overload;
-procedure RaiseInfo(n: string; const Args: array of const); overload;
+procedure RaiseInfo(n: SystemString); overload;
+procedure RaiseInfo(n: SystemString; const Args: array of const); overload;
 
 function IsMobile: Boolean;
 
@@ -186,10 +184,6 @@ function GetCrashTimeTick: TTimeTickValue;
 threadvar MHGlobalHookEnabled: Boolean;
 
 implementation
-
-procedure EmptyProc;
-begin
-end;
 
 procedure Empty;
 begin
@@ -302,12 +296,12 @@ begin
   move(sour^, dest^, Count);
 end;
 
-procedure RaiseInfo(n: string);
+procedure RaiseInfo(n: SystemString);
 begin
   raise Exception.Create(n);
 end;
 
-procedure RaiseInfo(n: string; const Args: array of const);
+procedure RaiseInfo(n: SystemString; const Args: array of const);
 begin
   raise Exception.Create(Format(n, Args));
 end;

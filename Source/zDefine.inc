@@ -10,6 +10,11 @@
 {$DEFINE BIG_ENDIAN}
 {$ENDIF}
 
+{$UNDEF Delphi}
+{$DEFINE parallel}
+{$UNDEF FastMD5}
+{$DEFINE OptimizationMemoryStreamMD5}
+
 {$ELSE}
 
 {$DEFINE DELPHI}
@@ -22,10 +27,16 @@
 {$DEFINE FirstCharInZero}
 {$ENDIF}
 
+{$DEFINE Delphi}
+{$DEFINE parallel}
+{$DEFINE FastMD5}
+{$DEFINE OptimizationMemoryStreamMD5}
+
 {$ENDIF}
 
 {$WARNINGS OFF}
 {$HINTS OFF}
+
 {$H+} { long string }
 {$R-} { range check }
 {$A+} { Word Align Data }
@@ -38,8 +49,6 @@
   {$IFNDEF FPC}
   {$ENDIF}
 *)
-
-{ .$define parallel }
 
 {$IFDEF release}
 {$DEFINE INLINE_ASM}
@@ -58,3 +67,5 @@
 {$IFNDEF CPU64}
 {$DEFINE CPU32}
 {$ENDIF}
+
+
