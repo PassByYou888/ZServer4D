@@ -44,17 +44,17 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 ## 操作系统和设备支持一览
 
-### Windows: CrossSocket(C/S OK), DIOCP(C/S OK), ICS(C/S OK), Indy(C/S OK)
+Windows: CrossSocket(C/S OK), DIOCP(C/S OK), ICS(C/S OK), Indy(C/S OK)
 
-### Linux(X64): CrossSocket(C/S 老版本支持，新版本未测试), Indy(C/S OK)
+Linux(X64): CrossSocket(C/S 老版本支持，新版本未测试), Indy(C/S OK)
 
-### Android:Indy(C/S OK)
+Android:Indy(C/S OK)
 
-### IOS Device: Indy(C/S OK)
+IOS Device: Indy(C/S OK)
 
-### IOS Simulaor: n/a
+IOS Simulaor: n/a
 
-### OSX: Indy(C/S OK)，ICS(未测试)
+OSX: Indy(C/S OK)，ICS(未测试)
 
 
 
@@ -147,7 +147,8 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，每次链�
 最近的新版本尚未在Linux测试，请尽量使用Windows做后台
 
 
-#### 此次更新以调优为主，调优内容：
+
+此次更新以调优为主，调优内容：
 
 修改了通讯框架的数据结构，以Inline方式优化，小幅减少函数调用频率
 
