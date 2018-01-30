@@ -1,4 +1,4 @@
-program fastMD5Performance;
+program MD5PerformanceTest;
 
 uses
   Vcl.Forms,

@@ -120,6 +120,9 @@
         <Projects Include="..\17.外部协议实现范式\CustomProtocol.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -479,14 +482,23 @@
     <Target Name="CustomProtocol:Make">
         <MSBuild Projects="..\17.外部协议实现范式\CustomProtocol.dproj" Targets="Make"/>
     </Target>
+    <Target Name="MD5PerformanceTest">
+        <MSBuild Projects="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj"/>
+    </Target>
+    <Target Name="MD5PerformanceTest:Clean">
+        <MSBuild Projects="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MD5PerformanceTest:Make">
+        <MSBuild Projects="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol"/>
+        <CallTarget Targets="AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol;MD5PerformanceTest"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean"/>
+        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean;MD5PerformanceTest:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make"/>
+        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make;MD5PerformanceTest:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
