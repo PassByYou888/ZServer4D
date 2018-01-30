@@ -162,8 +162,8 @@ begin
   RecvTunnel.StartService('', 10099);
   SendTunnel.StartService('', 10098);
 
-  RecvTunnel.AllowPrintCommand := False;
-  SendTunnel.AllowPrintCommand := False;
+  RecvTunnel.QuietMode := True;
+  SendTunnel.QuietMode := True;
 
   DBService.SwitchAsMaxSafe;
 end;

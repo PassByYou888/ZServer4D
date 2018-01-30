@@ -50,8 +50,8 @@ type
     procedure DoStatusNear(AText: string; const ID: Integer);
   public
     { Public declarations }
-    RecvTunnel: TCommunicationFramework_Server_CrossSocket;
-    SendTunnel: TCommunicationFramework_Server_CrossSocket;
+    RecvTunnel: TCommunicationFramework_Server_ICS;
+    SendTunnel: TCommunicationFramework_Server_ICS;
     Service   : TMyService;
   end;
 
@@ -169,8 +169,8 @@ procedure TAuthDoubleServerForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
 
-  RecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
-  SendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  RecvTunnel := TCommunicationFramework_Server_ICS.Create;
+  SendTunnel := TCommunicationFramework_Server_ICS.Create;
   Service := TMyService.Create(RecvTunnel, SendTunnel);
 
   // 默认情况下，TMyService不会保存用户信息到UserDB，在每次退出服务器都会产生许多没用的目录
@@ -223,15 +223,14 @@ end;
 
 procedure TAuthDoubleServerForm.StartServiceButtonClick(Sender: TObject);
 begin
-  // 基于CrosssSocket官方文档，绑定如果Host接口如果为空，绑定所有IPV6+IPV4的IP地址
-  // 如果Host接口为0.0.0.0绑定所有IPV4地址，::绑定所有IPV6地址
-  if SendTunnel.StartService('', 9816) then
+  // 基于ICS官方文档，绑定Host接口不能为空，需要指定IPV4 or IPV6
+  if SendTunnel.StartService('0.0.0.0', 9816) then
       DoStatus('listen send service success')
   else
       DoStatus('listen send service failed!');
   SendTunnel.IDCounter := 100;
 
-  if RecvTunnel.StartService('', 9815) then
+  if RecvTunnel.StartService('0.0.0.0', 9815) then
       DoStatus('listen Recv service success')
   else
       DoStatus('listen Recv service failed!');

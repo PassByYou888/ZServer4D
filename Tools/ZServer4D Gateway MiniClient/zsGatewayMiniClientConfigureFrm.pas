@@ -331,7 +331,7 @@ begin
   ProgressPost := TNProgressPostWithCadencer.Create;
 
   ConfigureClient := TCommunicationFramework_Client_CrossSocket.Create;
-  ConfigureClient.AllowPrintCommand := False;
+  ConfigureClient.QuietMode := True;
   ConfigureClient.SwitchMaxSafe;
 
   NatPort := '';

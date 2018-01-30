@@ -1,3 +1,13 @@
+{ ****************************************************************************** }
+{ * Developer refrence Support                                                 * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
+
 unit CommunicationFramework_Server_Refrence;
 
 {$I ..\zDefine.inc}
@@ -9,7 +19,7 @@ uses SysUtils, Classes,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64, DataFrameEngine;
 
 type
-  TPeerIOWithRefrenceServer = class(TPeerClient)
+  TPeerIOWithRefrenceServer = class(TPeerIO)
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -37,9 +47,9 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient;
+    function WaitSendConsoleCmd(Client: TPeerIO;
       const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient;
+    procedure WaitSendStreamCmd(Client: TPeerIO;
       const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
   end;
 
@@ -125,14 +135,14 @@ begin
   inherited ProgressBackground;
 end;
 
-function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(Client: TPeerClient;
+function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(Client: TPeerIO;
   const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport');
 end;
 
-procedure TCommunicationFramework_Server_Refrence.WaitSendStreamCmd(Client: TPeerClient;
+procedure TCommunicationFramework_Server_Refrence.WaitSendStreamCmd(Client: TPeerIO;
   const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport');

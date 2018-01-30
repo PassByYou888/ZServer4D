@@ -24,7 +24,7 @@ uses CommunicationFramework, CoreClasses,
 type
   TCommunicationFramework_Client_Indy = class;
 
-  TClientIntf = class(TPeerClient)
+  TClientIntf = class(TPeerIO)
   public
     function Context: TIdTCPClient;
 
@@ -56,7 +56,7 @@ type
     procedure TriggerDoConnectFinished; override;
 
     function Connected: Boolean; override;
-    function ClientIO: TPeerClient; override;
+    function ClientIO: TPeerIO; override;
     procedure ProgressBackground; override;
     procedure TriggerQueueData(v: PQueueData); override;
 
@@ -343,7 +343,7 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Client_Indy.ClientIO: TPeerClient;
+function TCommunicationFramework_Client_Indy.ClientIO: TPeerIO;
 begin
   Result := ClientIntf;
 end;

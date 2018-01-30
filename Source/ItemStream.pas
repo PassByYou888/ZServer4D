@@ -30,8 +30,8 @@ type
     destructor Destroy; override;
     procedure ChangeHandle(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle);
 
-    procedure SaveToFile(fn: string);
-    procedure LoadFromFile(fn: string);
+    procedure SaveToFile(fn: SystemString);
+    procedure LoadFromFile(fn: SystemString);
 
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -90,7 +90,7 @@ begin
   FDBEngine.ItemSeek(FItemHnd, 0);
 end;
 
-procedure TItemStream.SaveToFile(fn: string);
+procedure TItemStream.SaveToFile(fn: SystemString);
 var
   Stream: TCoreClassStream;
 begin
@@ -102,7 +102,7 @@ begin
   end;
 end;
 
-procedure TItemStream.LoadFromFile(fn: string);
+procedure TItemStream.LoadFromFile(fn: SystemString);
 var
   Stream: TCoreClassStream;
 begin

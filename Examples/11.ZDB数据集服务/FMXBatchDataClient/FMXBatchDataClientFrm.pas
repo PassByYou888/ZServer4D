@@ -220,8 +220,8 @@ begin
   DBClient := TMyDataStoreClient.Create(RecvTunnel, SendTunnel);
   DBClient.RegisterCommand;
 
-  RecvTunnel.AllowPrintCommand := False;
-  SendTunnel.AllowPrintCommand := False;
+  RecvTunnel.QuietMode := True;
+  SendTunnel.QuietMode := True;
 end;
 
 procedure TFMXBatchDataClientForm.FormDestroy(Sender: TObject);

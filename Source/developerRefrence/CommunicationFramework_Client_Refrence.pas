@@ -1,3 +1,13 @@
+{ ****************************************************************************** }
+{ * Developer refrence Support                                                 * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
+
 unit CommunicationFramework_Client_Refrence;
 
 {$I ..\zDefine.inc}
@@ -10,7 +20,7 @@ uses SysUtils, Classes,
   NotifyObjectBase;
 
 type
-  TPeerIOWithRefrenceClient = class(TPeerClient)
+  TPeerIOWithRefrenceClient = class(TPeerIO)
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -31,8 +41,8 @@ type
     FOnAsyncConnectNotifyMethod: TStateMethod;
     FOnAsyncConnectNotifyProc  : TStateProc;
   protected
-    procedure DoConnected(Sender: TPeerClient); override;
-    procedure DoDisconnect(Sender: TPeerClient); override;
+    procedure DoConnected(Sender: TPeerIO); override;
+    procedure DoDisconnect(Sender: TPeerIO); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -41,7 +51,7 @@ type
     procedure TriggerDoConnectFinished; override;
 
     function Connected: Boolean; override;
-    function ClientIO: TPeerClient; override;
+    function ClientIO: TPeerIO; override;
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
@@ -102,12 +112,12 @@ function TPeerIOWithRefrenceClient.WriteBufferEmpty: Boolean;
 begin
 end;
 
-procedure TCommunicationFramework_Client_Refrence.DoConnected(Sender: TPeerClient);
+procedure TCommunicationFramework_Client_Refrence.DoConnected(Sender: TPeerIO);
 begin
   inherited DoConnected(Sender);
 end;
 
-procedure TCommunicationFramework_Client_Refrence.DoDisconnect(Sender: TPeerClient);
+procedure TCommunicationFramework_Client_Refrence.DoDisconnect(Sender: TPeerIO);
 begin
   inherited DoDisconnect(Sender);
 end;
@@ -170,7 +180,7 @@ begin
   Result := (ClientIO <> nil) and (ClientIO.Connected);
 end;
 
-function TCommunicationFramework_Client_Refrence.ClientIO: TPeerClient;
+function TCommunicationFramework_Client_Refrence.ClientIO: TPeerIO;
 begin
 end;
 

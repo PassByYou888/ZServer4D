@@ -69,8 +69,8 @@ begin
   DataStoreClient := TDataStoreClient_NoAuth.Create(RecvTunnel, SendTunnel);
   DataStoreClient.RegisterCommand;
 
-  RecvTunnel.AllowPrintCommand := False;
-  SendTunnel.AllowPrintCommand := False;
+  RecvTunnel.QuietMode := True;
+  SendTunnel.QuietMode := True;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);

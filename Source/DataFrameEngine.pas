@@ -34,11 +34,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); virtual; abstract;
-    procedure SaveToStream(stream: TCoreClassStream); virtual; abstract;
+    procedure LoadFromStream(stream: TMemoryStream64); virtual; abstract;
+    procedure SaveToStream(stream: TMemoryStream64); virtual; abstract;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); virtual; abstract;
-    procedure SaveToJson(json: TJsonObject; id: Integer); virtual; abstract;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); virtual; abstract;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); virtual; abstract;
     {$ENDIF}
     function ComputeEncodeSize: Integer; virtual; abstract;
   end;
@@ -51,11 +51,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -70,11 +70,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -89,11 +89,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -108,11 +108,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -127,11 +127,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -146,11 +146,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -165,11 +165,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -194,11 +194,11 @@ type
     function Count: Integer;
     procedure WriteArray(const a: array of Integer);
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -223,11 +223,11 @@ type
     function Count: Integer;
     procedure WriteArray(const a: array of ShortInt);
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -260,11 +260,11 @@ type
     procedure SetBuff(p: PByte; Size: Integer);
     procedure GetBuff(p: PByte);
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -289,11 +289,11 @@ type
     function Count: Integer;
     procedure WriteArray(const a: array of Single);
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -318,11 +318,11 @@ type
     function Count: Integer;
     procedure WriteArray(const a: array of Double);
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -347,11 +347,11 @@ type
     function Count: Integer;
     procedure WriteArray(const a: array of Int64);
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -370,11 +370,11 @@ type
 
     procedure Clear;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -389,11 +389,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -408,11 +408,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -427,11 +427,11 @@ type
     constructor Create(id: Byte);
     destructor Destroy; override;
 
-    procedure LoadFromStream(stream: TCoreClassStream); override;
-    procedure SaveToStream(stream: TCoreClassStream); override;
+    procedure LoadFromStream(stream: TMemoryStream64); override;
+    procedure SaveToStream(stream: TMemoryStream64); override;
     {$IFNDEF FPC}
-    procedure LoadFromJson(json: TJsonObject; id: Integer); override;
-    procedure SaveToJson(json: TJsonObject; id: Integer); override;
+    procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
+    procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
@@ -634,10 +634,11 @@ type
 
     // json support
     {$IFNDEF FPC}
-    procedure EncodeAsPublicJson(output: TCoreClassStream); overload;
-    procedure EncodeAsJson(output: TCoreClassStream); overload;
-    procedure DecodeFromJson(stream: TCoreClassStream); overload;
+    procedure EncodeAsPublicJson(output: TCoreClassStream);
+    procedure EncodeAsJson(output: TCoreClassStream);
+    procedure DecodeFromJson(stream: TMemoryStream64);
     {$ENDIF}
+    //
     // ZLib compressor
     function EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
     function EncodeAsZLib(output: TCoreClassStream): Integer; overload;
@@ -803,41 +804,42 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameString.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameString.LoadFromStream(stream: TMemoryStream64);
 var
   _Len: Integer;
   b   : TBytes;
 begin
-  stream.ReadBuffer(_Len, umlIntegerLength);
+  stream.Read64(_Len, umlIntegerLength);
   SetLength(b, _Len);
   if (_Len > 0) then
-      stream.ReadBuffer(b[0], _Len);
+      stream.Read64(b[0], _Len);
 
   FBuffer := umlStringOf(b).Text;
 end;
 
-procedure TDataFrameString.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameString.SaveToStream(stream: TMemoryStream64);
 var
   b   : TBytes;
   _Len: Integer;
 begin
   b := umlBytesOf(FBuffer);
   _Len := Length(b);
-  stream.WriteBuffer(_Len, umlIntegerLength);
+  stream.Write64(_Len, umlIntegerLength);
   if _Len > 0 then
-      stream.WriteBuffer(b[0], _Len);
+      stream.Write64(b[0], _Len);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameString.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameString.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.S[IntToStr(id)];
+  FBuffer := jarry.S[idx];
 end;
 
-procedure TDataFrameString.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameString.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.S[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -861,26 +863,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameInteger.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameInteger.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlIntegerLength);
+  stream.Read64(FBuffer, umlIntegerLength);
 end;
 
-procedure TDataFrameInteger.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameInteger.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlIntegerLength);
+  stream.Write64(FBuffer, umlIntegerLength);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameInteger.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameInteger.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.I[IntToStr(id)];
+  FBuffer := jarry.i[idx];
 end;
 
-procedure TDataFrameInteger.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameInteger.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.I[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -901,26 +904,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameCardinal.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameCardinal.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlCardinalLength);
+  stream.Read64(FBuffer, umlCardinalLength);
 end;
 
-procedure TDataFrameCardinal.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameCardinal.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlCardinalLength);
+  stream.Write64(FBuffer, umlCardinalLength);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameCardinal.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameCardinal.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.I[IntToStr(id)];
+  FBuffer := jarry.i[idx];
 end;
 
-procedure TDataFrameCardinal.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameCardinal.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.I[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -941,26 +945,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameWord.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameWord.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlWordLength);
+  stream.Read64(FBuffer, umlWordLength);
 end;
 
-procedure TDataFrameWord.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameWord.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlWordLength);
+  stream.Write64(FBuffer, umlWordLength);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameWord.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameWord.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.I[IntToStr(id)];
+  FBuffer := jarry.i[idx];
 end;
 
-procedure TDataFrameWord.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameWord.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.I[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -981,26 +986,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameByte.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameByte.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlByteLength);
+  stream.Read64(FBuffer, umlByteLength);
 end;
 
-procedure TDataFrameByte.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameByte.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlByteLength);
+  stream.Write64(FBuffer, umlByteLength);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameByte.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameByte.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.I[IntToStr(id)];
+  FBuffer := jarry.i[idx];
 end;
 
-procedure TDataFrameByte.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameByte.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.I[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -1021,26 +1027,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameSingle.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameSingle.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlSingleLength);
+  stream.Read64(FBuffer, umlSingleLength);
 end;
 
-procedure TDataFrameSingle.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameSingle.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlSingleLength);
+  stream.Write64(FBuffer, umlSingleLength);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameSingle.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameSingle.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.F[IntToStr(id)];
+  FBuffer := jarry.F[idx];
 end;
 
-procedure TDataFrameSingle.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameSingle.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.F[IntToStr(id)] := FBuffer;
+  jarry.AddF(FBuffer);
 end;
 {$ENDIF}
 
@@ -1061,26 +1068,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameDouble.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameDouble.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlDoubleLength);
+  stream.Read64(FBuffer, umlDoubleLength);
 end;
 
-procedure TDataFrameDouble.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameDouble.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlDoubleLength);
+  stream.Write64(FBuffer, umlDoubleLength);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameDouble.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameDouble.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.F[IntToStr(id)];
+  FBuffer := jarry.F[idx];
 end;
 
-procedure TDataFrameDouble.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameDouble.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.F[IntToStr(id)] := FBuffer;
+  jarry.AddF(FBuffer);
 end;
 {$ENDIF}
 
@@ -1115,12 +1123,12 @@ end;
 
 procedure TDataFrameArrayInteger.Clear;
 var
-  I: Integer;
+  i: Integer;
   p: PInteger;
 begin
-  for I := 0 to FBuffer.Count - 1 do
+  for i := 0 to FBuffer.Count - 1 do
     begin
-      p := FBuffer[I];
+      p := FBuffer[i];
       Dispose(p);
     end;
   FBuffer.Clear;
@@ -1148,60 +1156,61 @@ end;
 
 procedure TDataFrameArrayInteger.WriteArray(const a: array of Integer);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
-procedure TDataFrameArrayInteger.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameArrayInteger.LoadFromStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Integer;
 begin
   Clear;
-  stream.ReadBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Read64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      stream.ReadBuffer(d, umlIntegerLength);
+      stream.Read64(d, umlIntegerLength);
       Add(d);
     end;
 end;
 
-procedure TDataFrameArrayInteger.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameArrayInteger.SaveToStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Integer;
 begin
   l := Count;
-  stream.WriteBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Write64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      d := Buffer[I];
-      stream.WriteBuffer(d, umlIntegerLength);
+      d := Buffer[i];
+      stream.Write64(d, umlIntegerLength);
     end;
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameArrayInteger.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameArrayInteger.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to ja.Count - 1 do
-      Add(ja.I[I]);
+  ja := jarry.a[idx];
+  for i := 0 to ja.Count - 1 do
+      Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayInteger.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameArrayInteger.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to Count - 1 do
-      ja.Add(Buffer[I]);
+  ja := jarry.AddArray;
+  for i := 0 to Count - 1 do
+      ja.Add(Buffer[i]);
 end;
 {$ENDIF}
 
@@ -1236,12 +1245,12 @@ end;
 
 procedure TDataFrameArrayShortInt.Clear;
 var
-  I: Integer;
+  i: Integer;
   p: PShortInt;
 begin
-  for I := 0 to FBuffer.Count - 1 do
+  for i := 0 to FBuffer.Count - 1 do
     begin
-      p := FBuffer[I];
+      p := FBuffer[i];
       Dispose(p);
     end;
   FBuffer.Clear;
@@ -1269,60 +1278,61 @@ end;
 
 procedure TDataFrameArrayShortInt.WriteArray(const a: array of ShortInt);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
-procedure TDataFrameArrayShortInt.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameArrayShortInt.LoadFromStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : ShortInt;
 begin
   Clear;
-  stream.ReadBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Read64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      stream.ReadBuffer(d, umlShortIntLength);
+      stream.Read64(d, umlShortIntLength);
       Add(d);
     end;
 end;
 
-procedure TDataFrameArrayShortInt.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameArrayShortInt.SaveToStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : ShortInt;
 begin
   l := Count;
-  stream.WriteBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Write64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      d := Buffer[I];
-      stream.WriteBuffer(d, umlShortIntLength);
+      d := Buffer[i];
+      stream.Write64(d, umlShortIntLength);
     end;
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameArrayShortInt.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameArrayShortInt.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to ja.Count - 1 do
-      Add(ja.I[I]);
+  ja := jarry.a[idx];
+  for i := 0 to ja.Count - 1 do
+      Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayShortInt.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameArrayShortInt.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to Count - 1 do
-      ja.Add(Buffer[I]);
+  ja := jarry.AddArray;
+  for i := 0 to Count - 1 do
+      ja.Add(Buffer[i]);
 end;
 {$ENDIF}
 
@@ -1357,12 +1367,12 @@ end;
 
 procedure TDataFrameArrayByte.Clear;
 var
-  I: Integer;
+  i: Integer;
   p: PByte;
 begin
-  for I := 0 to FBuffer.Count - 1 do
+  for i := 0 to FBuffer.Count - 1 do
     begin
-      p := FBuffer[I];
+      p := FBuffer[i];
       Dispose(p);
     end;
   FBuffer.Clear;
@@ -1379,9 +1389,9 @@ end;
 
 procedure TDataFrameArrayByte.AddPtrBuff(p: PByte; Size: Integer);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := 0 to Size - 1 do
+  for i := 0 to Size - 1 do
     begin
       Add(p^);
       inc(p);
@@ -1421,19 +1431,19 @@ end;
 
 procedure TDataFrameArrayByte.WriteArray(const a: array of Byte);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayByte.SetArray(const a: array of Byte);
 var
-  I: Integer;
+  i: Integer;
 begin
   Clear;
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayByte.SetBuff(p: PByte; Size: Integer);
@@ -1444,63 +1454,64 @@ end;
 
 procedure TDataFrameArrayByte.GetBuff(p: PByte);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      p^ := PByte(FBuffer[I])^;
+      p^ := PByte(FBuffer[i])^;
       inc(p);
     end;
 end;
 
-procedure TDataFrameArrayByte.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameArrayByte.LoadFromStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Byte;
 begin
   Clear;
-  stream.ReadBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Read64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      stream.ReadBuffer(d, umlByteLength);
+      stream.Read64(d, umlByteLength);
       Add(d);
     end;
 end;
 
-procedure TDataFrameArrayByte.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameArrayByte.SaveToStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Byte;
 begin
   l := Count;
-  stream.WriteBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Write64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      d := Buffer[I];
-      stream.WriteBuffer(d, umlByteLength);
+      d := Buffer[i];
+      stream.Write64(d, umlByteLength);
     end;
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameArrayByte.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameArrayByte.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to ja.Count - 1 do
-      Add(ja.I[I]);
+  ja := jarry.a[idx];
+  for i := 0 to ja.Count - 1 do
+      Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayByte.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameArrayByte.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to Count - 1 do
-      ja.Add(Buffer[I]);
+  ja := jarry.AddArray;
+  for i := 0 to Count - 1 do
+      ja.Add(Buffer[i]);
 end;
 {$ENDIF}
 
@@ -1535,12 +1546,12 @@ end;
 
 procedure TDataFrameArraySingle.Clear;
 var
-  I: Integer;
+  i: Integer;
   p: PSingle;
 begin
-  for I := 0 to FBuffer.Count - 1 do
+  for i := 0 to FBuffer.Count - 1 do
     begin
-      p := FBuffer[I];
+      p := FBuffer[i];
       Dispose(p);
     end;
   FBuffer.Clear;
@@ -1568,60 +1579,61 @@ end;
 
 procedure TDataFrameArraySingle.WriteArray(const a: array of Single);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
-procedure TDataFrameArraySingle.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameArraySingle.LoadFromStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Single;
 begin
   Clear;
-  stream.ReadBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Read64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      stream.ReadBuffer(d, umlSingleLength);
+      stream.Read64(d, umlSingleLength);
       Add(d);
     end;
 end;
 
-procedure TDataFrameArraySingle.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameArraySingle.SaveToStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Single;
 begin
   l := Count;
-  stream.WriteBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Write64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      d := Buffer[I];
-      stream.WriteBuffer(d, umlSingleLength);
+      d := Buffer[i];
+      stream.Write64(d, umlSingleLength);
     end;
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameArraySingle.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameArraySingle.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to ja.Count - 1 do
-      Add(ja.F[I]);
+  ja := jarry.a[idx];
+  for i := 0 to ja.Count - 1 do
+      Add(ja.F[i]);
 end;
 
-procedure TDataFrameArraySingle.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameArraySingle.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to Count - 1 do
-      ja.AddF(Buffer[I]);
+  ja := jarry.AddArray;
+  for i := 0 to Count - 1 do
+      ja.AddF(Buffer[i]);
 end;
 {$ENDIF}
 
@@ -1656,12 +1668,12 @@ end;
 
 procedure TDataFrameArrayDouble.Clear;
 var
-  I: Integer;
+  i: Integer;
   p: PDouble;
 begin
-  for I := 0 to FBuffer.Count - 1 do
+  for i := 0 to FBuffer.Count - 1 do
     begin
-      p := FBuffer[I];
+      p := FBuffer[i];
       Dispose(p);
     end;
   FBuffer.Clear;
@@ -1689,60 +1701,61 @@ end;
 
 procedure TDataFrameArrayDouble.WriteArray(const a: array of Double);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
-procedure TDataFrameArrayDouble.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameArrayDouble.LoadFromStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Double;
 begin
   Clear;
-  stream.ReadBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Read64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      stream.ReadBuffer(d, umlDoubleLength);
+      stream.Read64(d, umlDoubleLength);
       Add(d);
     end;
 end;
 
-procedure TDataFrameArrayDouble.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameArrayDouble.SaveToStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Double;
 begin
   l := Count;
-  stream.WriteBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Write64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      d := Buffer[I];
-      stream.WriteBuffer(d, umlDoubleLength);
+      d := Buffer[i];
+      stream.Write64(d, umlDoubleLength);
     end;
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameArrayDouble.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameArrayDouble.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to ja.Count - 1 do
-      Add(ja.F[I]);
+  ja := jarry.a[idx];
+  for i := 0 to ja.Count - 1 do
+      Add(ja.F[i]);
 end;
 
-procedure TDataFrameArrayDouble.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameArrayDouble.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to Count - 1 do
-      ja.AddF(Buffer[I]);
+  ja := jarry.AddArray;
+  for i := 0 to Count - 1 do
+      ja.AddF(Buffer[i]);
 end;
 {$ENDIF}
 
@@ -1777,12 +1790,12 @@ end;
 
 procedure TDataFrameArrayInt64.Clear;
 var
-  I: Integer;
+  i: Integer;
   p: PInt64;
 begin
-  for I := 0 to FBuffer.Count - 1 do
+  for i := 0 to FBuffer.Count - 1 do
     begin
-      p := FBuffer[I];
+      p := FBuffer[i];
       Dispose(p);
     end;
   FBuffer.Clear;
@@ -1810,60 +1823,61 @@ end;
 
 procedure TDataFrameArrayInt64.WriteArray(const a: array of Int64);
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := low(a) to high(a) do
-      Add(a[I]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
-procedure TDataFrameArrayInt64.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameArrayInt64.LoadFromStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Int64;
 begin
   Clear;
-  stream.ReadBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Read64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      stream.ReadBuffer(d, umlInt64Length);
+      stream.Read64(d, umlInt64Length);
       Add(d);
     end;
 end;
 
-procedure TDataFrameArrayInt64.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameArrayInt64.SaveToStream(stream: TMemoryStream64);
 var
-  I, l: Integer;
+  i, l: Integer;
   d   : Int64;
 begin
   l := Count;
-  stream.WriteBuffer(l, umlIntegerLength);
-  for I := 0 to l - 1 do
+  stream.Write64(l, umlIntegerLength);
+  for i := 0 to l - 1 do
     begin
-      d := Buffer[I];
-      stream.WriteBuffer(d, umlInt64Length);
+      d := Buffer[i];
+      stream.Write64(d, umlInt64Length);
     end;
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameArrayInt64.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameArrayInt64.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to ja.Count - 1 do
-      Add(ja.l[I]);
+  ja := jarry.a[idx];
+  for i := 0 to ja.Count - 1 do
+      Add(ja.l[i]);
 end;
 
-procedure TDataFrameArrayInt64.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameArrayInt64.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   ja: TJsonArray;
-  I : Integer;
+  i : Integer;
 begin
-  ja := json.a[IntToStr(id)];
-  for I := 0 to Count - 1 do
-      ja.Add(Buffer[I]);
+  ja := jarry.AddArray;
+  for i := 0 to Count - 1 do
+      ja.Add(Buffer[i]);
 end;
 {$ENDIF}
 
@@ -1907,22 +1921,22 @@ begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameStream.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameStream.LoadFromStream(stream: TMemoryStream64);
 var
   _Len: Integer;
 begin
   FBuffer.Clear;
-  stream.ReadBuffer(_Len, umlIntegerLength);
+  stream.Read64(_Len, umlIntegerLength);
   if (_Len > 0) then
       FBuffer.CopyFrom(stream, _Len);
 end;
 
-procedure TDataFrameStream.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameStream.SaveToStream(stream: TMemoryStream64);
 var
   _Len: Integer;
 begin
   _Len := FBuffer.Size;
-  stream.WriteBuffer(_Len, umlIntegerLength);
+  stream.Write64(_Len, umlIntegerLength);
   if _Len > 0 then
     begin
       FBuffer.Position := 0;
@@ -1932,21 +1946,22 @@ end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameStream.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameStream.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
   b64: umlString;
 begin
   FBuffer.Clear;
-  b64.Text := json.S[IntToStr(id)];
+  b64.Text := jarry.S[idx];
   umlDecodeStreamBASE64(b64, FBuffer);
 end;
 
-procedure TDataFrameStream.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameStream.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
   b64: umlString;
 begin
   umlEncodeStreamBASE64(FBuffer, b64);
-  json.S[IntToStr(id)] := b64.Text;
+  jarry.Add(b64.Text);
 end;
 {$ENDIF}
 
@@ -1966,7 +1981,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameVariant.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameVariant.LoadFromStream(stream: TMemoryStream64);
 var
   r: TCoreClassReader;
 begin
@@ -1976,7 +1991,7 @@ begin
   DisposeObject(r);
 end;
 
-procedure TDataFrameVariant.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameVariant.SaveToStream(stream: TMemoryStream64);
 var
   w: TCoreClassWriter;
 begin
@@ -1988,14 +2003,15 @@ end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameVariant.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameVariant.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := umlStrToVar(json.S[IntToStr(id)]);
+  FBuffer := umlStrToVar(jarry.S[idx]);
 end;
 
-procedure TDataFrameVariant.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameVariant.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.S[IntToStr(id)] := umlVarToStr(FBuffer);
+  jarry.Add(umlVarToStr(FBuffer).Text);
 end;
 {$ENDIF}
 
@@ -2025,26 +2041,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameInt64.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameInt64.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlInt64Length);
+  stream.Read64(FBuffer, umlInt64Length);
 end;
 
-procedure TDataFrameInt64.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameInt64.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlInt64Length);
+  stream.Write64(FBuffer, umlInt64Length);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameInt64.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameInt64.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.l[IntToStr(id)];
+  FBuffer := jarry.l[idx];
 end;
 
-procedure TDataFrameInt64.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameInt64.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.l[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -2065,26 +2082,27 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameUInt64.LoadFromStream(stream: TCoreClassStream);
+procedure TDataFrameUInt64.LoadFromStream(stream: TMemoryStream64);
 begin
-  stream.ReadBuffer(FBuffer, umlUInt64Length);
+  stream.Read64(FBuffer, umlUInt64Length);
 end;
 
-procedure TDataFrameUInt64.SaveToStream(stream: TCoreClassStream);
+procedure TDataFrameUInt64.SaveToStream(stream: TMemoryStream64);
 begin
-  stream.WriteBuffer(FBuffer, umlUInt64Length);
+  stream.Write64(FBuffer, umlUInt64Length);
 end;
 
 {$IFNDEF FPC}
 
-procedure TDataFrameUInt64.LoadFromJson(json: TJsonObject; id: Integer);
+
+procedure TDataFrameUInt64.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := json.U[IntToStr(id)];
+  FBuffer := jarry.U[idx];
 end;
 
-procedure TDataFrameUInt64.SaveToJson(json: TJsonObject; id: Integer);
+procedure TDataFrameUInt64.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  json.U[IntToStr(id)] := FBuffer;
+  jarry.Add(FBuffer);
 end;
 {$ENDIF}
 
@@ -2415,12 +2433,12 @@ end;
 
 procedure TDataFrameEngine.Clear;
 var
-  I  : Integer;
+  i  : Integer;
   obj: TDataFrameBase;
 begin
-  for I := 0 to FDataList.Count - 1 do
+  for i := 0 to FDataList.Count - 1 do
     begin
-      obj := TDataFrameBase(FDataList[I]);
+      obj := TDataFrameBase(FDataList[i]);
       try
           DisposeObject(obj);
       except
@@ -2567,10 +2585,10 @@ end;
 
 function TDataFrameEngine.DeleteCount(idx, _Count: Integer): Boolean;
 var
-  I: Integer;
+  i: Integer;
 begin
   Result := True;
-  for I := 0 to _Count - 1 do
+  for i := 0 to _Count - 1 do
       Result := Result and Delete(idx);
 end;
 
@@ -2970,7 +2988,7 @@ end;
 function TDataFrameEngine.ReadString(idx: Integer): SystemString;
 var
   _Obj: TDataFrameBase;
-  I   : Integer;
+  i   : Integer;
 begin
   _Obj := Data[idx];
   if _Obj is TDataFrameString then
@@ -2992,11 +3010,11 @@ begin
       Result := '(';
       with TDataFrameArrayInteger(_Obj) do
         begin
-          for I := 0 to Count - 1 do
+          for i := 0 to Count - 1 do
             if Result <> '(' then
-                Result := Result + ',' + IntToStr(Buffer[I])
+                Result := Result + ',' + IntToStr(Buffer[i])
             else
-                Result := Result + IntToStr(Buffer[I]);
+                Result := Result + IntToStr(Buffer[i]);
         end;
       Result := Result + ')';
     end
@@ -3005,11 +3023,11 @@ begin
       Result := '(';
       with TDataFrameArrayShortInt(_Obj) do
         begin
-          for I := 0 to Count - 1 do
+          for i := 0 to Count - 1 do
             if Result <> '(' then
-                Result := Result + ',' + IntToStr(Buffer[I])
+                Result := Result + ',' + IntToStr(Buffer[i])
             else
-                Result := Result + IntToStr(Buffer[I]);
+                Result := Result + IntToStr(Buffer[i]);
         end;
       Result := Result + ')';
     end
@@ -3018,11 +3036,11 @@ begin
       Result := '(';
       with TDataFrameArrayByte(_Obj) do
         begin
-          for I := 0 to Count - 1 do
+          for i := 0 to Count - 1 do
             if Result <> '(' then
-                Result := Result + ',' + IntToStr(Buffer[I])
+                Result := Result + ',' + IntToStr(Buffer[i])
             else
-                Result := Result + IntToStr(Buffer[I]);
+                Result := Result + IntToStr(Buffer[i]);
         end;
       Result := Result + ')';
     end
@@ -3031,11 +3049,11 @@ begin
       Result := '(';
       with TDataFrameArraySingle(_Obj) do
         begin
-          for I := 0 to Count - 1 do
+          for i := 0 to Count - 1 do
             if Result <> '(' then
-                Result := Result + ',' + FloatToStr(Buffer[I])
+                Result := Result + ',' + FloatToStr(Buffer[i])
             else
-                Result := Result + FloatToStr(Buffer[I]);
+                Result := Result + FloatToStr(Buffer[i]);
         end;
       Result := Result + ')';
     end
@@ -3044,11 +3062,11 @@ begin
       Result := '(';
       with TDataFrameArrayDouble(_Obj) do
         begin
-          for I := 0 to Count - 1 do
+          for i := 0 to Count - 1 do
             if Result <> '(' then
-                Result := Result + ',' + FloatToStr(Buffer[I])
+                Result := Result + ',' + FloatToStr(Buffer[i])
             else
-                Result := Result + FloatToStr(Buffer[I]);
+                Result := Result + FloatToStr(Buffer[i]);
         end;
       Result := Result + ')';
     end
@@ -3057,11 +3075,11 @@ begin
       Result := '(';
       with TDataFrameArrayInt64(_Obj) do
         begin
-          for I := 0 to Count - 1 do
+          for i := 0 to Count - 1 do
             if Result <> '(' then
-                Result := Result + ',' + IntToStr(Buffer[I])
+                Result := Result + ',' + IntToStr(Buffer[i])
             else
-                Result := Result + IntToStr(Buffer[I]);
+                Result := Result + IntToStr(Buffer[i]);
         end;
       Result := Result + ')';
     end
@@ -3298,11 +3316,11 @@ end;
 
 function TDataFrameEngine.ReadMD5(idx: Integer): UnicodeMixedLib.TMD5;
 var
-  I: Integer;
+  i: Integer;
 begin
   with ReadArrayByte(idx) do
-    for I := low(UnicodeMixedLib.TMD5) to high(UnicodeMixedLib.TMD5) do
-        Result[I] := Buffer[I];
+    for i := low(UnicodeMixedLib.TMD5) to high(UnicodeMixedLib.TMD5) do
+        Result[i] := Buffer[i];
 end;
 
 function TDataFrameEngine.ReadArraySingle(idx: Integer): TDataFrameArraySingle;
@@ -3354,8 +3372,10 @@ begin
           Buffer.Position := 0;
         end;
     end
+  else if output is TMemoryStream64 then
+      _Obj.SaveToStream(TMemoryStream64(output))
   else
-      _Obj.SaveToStream(output);
+      raiseInfo('no support');
   if AneedResetPos then
       output.Position := 0;
 end;
@@ -3606,13 +3626,13 @@ end;
 
 function TDataFrameEngine.ReadMat4(idx: Integer): TMat4;
 var
-  I, j: Integer;
+  i, j: Integer;
 begin
   with ReadArraySingle(idx) do
     begin
-      for I := 0 to 3 do
+      for i := 0 to 3 do
         for j := 0 to 3 do
-            Result[I][j] := Buffer[I * 4 + j];
+            Result[i][j] := Buffer[i * 4 + j];
     end;
 end;
 
@@ -3663,11 +3683,11 @@ end;
 
 function TDataFrameEngine.ComputeEncodeSize: Integer;
 var
-  I: Integer;
+  i: Integer;
 begin
   Result := umlIntegerLength;
-  for I := 0 to Count - 1 do
-      Result := Result + umlByteLength + GetData(I).ComputeEncodeSize;
+  for i := 0 to Count - 1 do
+      Result := Result + umlByteLength + GetData(i).ComputeEncodeSize;
 end;
 
 class procedure TDataFrameEngine.BuildEmptyStream(output: TCoreClassStream);
@@ -3694,7 +3714,7 @@ end;
 
 function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
-  I                   : Integer;
+  i                   : Integer;
   b                   : TDataFrameBase;
   StoreStream, nStream: TMemoryStream64;
   id                  : Byte;
@@ -3715,16 +3735,16 @@ begin
   StoreStream := TMemoryStream64.Create;
 
   // make body
-  StoreStream.WriteBuffer(Result, umlIntegerLength);
+  StoreStream.Write64(Result, umlIntegerLength);
 
   nStream := TMemoryStream64.Create;
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      b := GetData(I);
+      b := GetData(i);
       id := b.FID;
       b.SaveToStream(nStream);
 
-      StoreStream.WriteBuffer(id, umlByteLength);
+      StoreStream.Write64(id, umlByteLength);
       nStream.Position := 0;
       StoreStream.CopyFrom(nStream, nStream.Size);
       nStream.Clear;
@@ -3764,19 +3784,19 @@ end;
 
 {$IFNDEF FPC}
 
+
 procedure TDataFrameEngine.EncodeAsPublicJson(output: TCoreClassStream);
 var
   j: TJsonObject;
-  I: Integer;
+  i: Integer;
 begin
   j := TJsonObject.Create;
   j.S['help'] := 'This JSON with TDataFrameEngine encode';
-  j.I['Total'] := Count;
 
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      j.I['i' + IntToStr(I + 1)] := TDataFrameBase(FDataList[I]).FID;
-      TDataFrameBase(FDataList[I]).SaveToJson(j, I + 1);
+      j.a['Ref'].Add(TDataFrameBase(FDataList[i]).FID);
+      TDataFrameBase(FDataList[i]).SaveToJson(j.a['Data'], i);
     end;
 
   j.SaveToStream(output, False, TEncoding.UTF8, True);
@@ -3787,15 +3807,16 @@ end;
 procedure TDataFrameEngine.EncodeAsJson(output: TCoreClassStream);
 var
   j: TJsonObject;
-  I: Integer;
+  i: Integer;
+  b: TDataFrameBase;
 begin
   j := TJsonObject.Create;
-  j.I['Total'] := Count;
 
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      j.I['i' + IntToStr(I + 1)] := TDataFrameBase(FDataList[I]).FID;
-      TDataFrameBase(FDataList[I]).SaveToJson(j, I + 1);
+      b := TDataFrameBase(FDataList[i]);
+      b.SaveToJson(j.a['Data'], i);
+      j.a['Ref'].Add(b.FID);
     end;
 
   j.SaveToStream(output, True, TEncoding.UTF8, True);
@@ -3803,11 +3824,11 @@ begin
   DisposeObject(j);
 end;
 
-procedure TDataFrameEngine.DecodeFromJson(stream: TCoreClassStream);
+procedure TDataFrameEngine.DecodeFromJson(stream: TMemoryStream64);
 var
   j: TJsonObject;
   t: Byte;
-  I: Integer;
+  i: Integer;
   b: TDataFrameBase;
 begin
   Clear;
@@ -3820,11 +3841,11 @@ begin
   end;
 
   try
-    for I := 0 to j.I['Total'] - 1 do
+    for i := 0 to j.a['Ref'].Count - 1 do
       begin
-        t := j.I['i' + IntToStr(I + 1)];
+        t := j.a['Ref'].i[i];
         b := AddData(ByteToDataType(t));
-        b.LoadFromJson(j, I + 1);
+        b.LoadFromJson(j.a['Data'], i);
       end;
   except
     DisposeObject(j);
@@ -3838,7 +3859,7 @@ end;
 
 function TDataFrameEngine.EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
-  I                               : Integer;
+  i                               : Integer;
   b                               : TDataFrameBase;
   StoreStream, nStream, compStream: TMemoryStream64;
   ZCompStream                     : TCompressionStream;
@@ -3861,16 +3882,16 @@ begin
   StoreStream := TMemoryStream64.Create;
 
   // make body
-  StoreStream.WriteBuffer(Result, umlIntegerLength);
+  StoreStream.Write64(Result, umlIntegerLength);
 
   nStream := TMemoryStream64.Create;
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      b := GetData(I);
+      b := GetData(i);
       id := b.FID;
       b.SaveToStream(nStream);
 
-      StoreStream.WriteBuffer(id, umlByteLength);
+      StoreStream.Write64(id, umlByteLength);
       nStream.Position := 0;
       StoreStream.CopyFrom(nStream, nStream.Size);
       nStream.Clear;
@@ -3920,7 +3941,7 @@ end;
 
 function TDataFrameEngine.EncodeAsDeflate(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
-  I                               : Integer;
+  i                               : Integer;
   b                               : TDataFrameBase;
   StoreStream, nStream, compStream: TMemoryStream64;
   id                              : Byte;
@@ -3942,16 +3963,16 @@ begin
   StoreStream := TMemoryStream64.Create;
 
   // make body
-  StoreStream.WriteBuffer(Result, umlIntegerLength);
+  StoreStream.Write64(Result, umlIntegerLength);
 
   nStream := TMemoryStream64.Create;
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      b := GetData(I);
+      b := GetData(i);
       id := b.FID;
       b.SaveToStream(nStream);
 
-      StoreStream.WriteBuffer(id, umlByteLength);
+      StoreStream.Write64(id, umlByteLength);
       nStream.Position := 0;
       StoreStream.CopyFrom(nStream, nStream.Size);
       nStream.Clear;
@@ -4003,7 +4024,7 @@ end;
 
 function TDataFrameEngine.EncodeAsBRRC(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
-  I                               : Integer;
+  i                               : Integer;
   b                               : TDataFrameBase;
   StoreStream, nStream, compStream: TMemoryStream64;
   id                              : Byte;
@@ -4025,16 +4046,16 @@ begin
   StoreStream := TMemoryStream64.Create;
 
   // make body
-  StoreStream.WriteBuffer(Result, umlIntegerLength);
+  StoreStream.Write64(Result, umlIntegerLength);
 
   nStream := TMemoryStream64.Create;
-  for I := 0 to Count - 1 do
+  for i := 0 to Count - 1 do
     begin
-      b := GetData(I);
+      b := GetData(i);
       id := b.FID;
       b.SaveToStream(nStream);
 
-      StoreStream.WriteBuffer(id, umlByteLength);
+      StoreStream.Write64(id, umlByteLength);
       nStream.Position := 0;
       StoreStream.CopyFrom(nStream, nStream.Size);
       nStream.Clear;
@@ -4109,7 +4130,7 @@ end;
 
 function TDataFrameEngine.DecodeFrom(source: TCoreClassStream; const FastMode: Boolean): Integer;
 var
-  I, cnt       : Integer;
+  i, cnt       : Integer;
   id           : Byte;
   StoreStream  : TMemoryStream64;
   ZDecompStream: TDecompressionStream;
@@ -4137,12 +4158,12 @@ begin
           source.Read(md5[0], 16);
 
           if source is TMemoryStream64 then
-              StoreStream.SetPointerWithProtectedMode(TMemoryStream64(source).PositionAsPtr(source.Position), sizeInfo)
+              StoreStream.SetPointerWithProtectedMode(TMemoryStream64(source).PositionAsPtr, sizeInfo)
           else
               StoreStream.CopyFrom(source, sizeInfo);
 
           StoreStream.Position := 0;
-          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+          if (not FastMode) and (not umlIsNullMD5(md5)) then
             if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('dataframe md5 error!');
@@ -4160,7 +4181,7 @@ begin
           DisposeObject(ZDecompStream);
 
           StoreStream.Position := 0;
-          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+          if (not FastMode) and (not umlIsNullMD5(md5)) then
             if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('ZLib md5 error!');
@@ -4178,7 +4199,7 @@ begin
           CoreDecompressStream(FCompressorDeflate, source, StoreStream);
 
           StoreStream.Position := 0;
-          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+          if (not FastMode) and (not umlIsNullMD5(md5)) then
             if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('Deflate md5 error!');
@@ -4196,7 +4217,7 @@ begin
           CoreDecompressStream(FCompressorBRRC, source, StoreStream);
 
           StoreStream.Position := 0;
-          if (not FastMode) and (not umlMD5Compare(md5, NullMD5)) then
+          if (not FastMode) and (not umlIsNullMD5(md5)) then
             if not umlMD5Compare(umlMD5(StoreStream.Memory, StoreStream.Size), md5) then
               begin
                 DoStatus('BRRC md5 error!');
@@ -4214,10 +4235,10 @@ begin
 
   StoreStream.Position := 0;
 
-  StoreStream.ReadBuffer(cnt, umlIntegerLength);
-  for I := 0 to cnt - 1 do
+  StoreStream.Read64(cnt, umlIntegerLength);
+  for i := 0 to cnt - 1 do
     begin
-      StoreStream.ReadBuffer(id, umlByteLength);
+      StoreStream.Read64(id, umlByteLength);
       b := AddData(ByteToDataType(id));
       b.LoadFromStream(StoreStream);
     end;
@@ -4274,15 +4295,15 @@ end;
 function TDataFrameEngine.Compare(dest: TDataFrameEngine): Boolean;
 var
   m1, m2: UnicodeMixedLib.TMD5;
-  I     : Integer;
+  i     : Integer;
 begin
   Result := False;
 
   // fast prepare compare
   if Count <> dest.Count then
       exit;
-  for I := 0 to Count - 1 do
-    if FDataList[I].ClassType <> dest[I].ClassType then
+  for i := 0 to Count - 1 do
+    if FDataList[i].ClassType <> dest[i].ClassType then
         exit;
 
   // data compare
@@ -4656,62 +4677,62 @@ end;
 
 procedure TDataReader.ReadArrayInteger(var Data: array of Integer);
 var
-  I : Integer;
+  i : Integer;
   rb: TDataFrameArrayInteger;
 begin
   rb := FEngine.Reader.ReadArrayInteger;
-  for I := low(Data) to high(Data) do
-      Data[I] := rb[I];
+  for i := low(Data) to high(Data) do
+      Data[i] := rb[i];
 end;
 
 procedure TDataReader.ReadArrayShortInt(var Data: array of ShortInt);
 var
-  I : Integer;
+  i : Integer;
   rb: TDataFrameArrayShortInt;
 begin
   rb := FEngine.Reader.ReadArrayShortInt;
-  for I := low(Data) to high(Data) do
-      Data[I] := rb[I];
+  for i := low(Data) to high(Data) do
+      Data[i] := rb[i];
 end;
 
 procedure TDataReader.ReadArrayByte(var Data: array of Byte);
 var
-  I : Integer;
+  i : Integer;
   rb: TDataFrameArrayByte;
 begin
   rb := FEngine.Reader.ReadArrayByte;
-  for I := low(Data) to high(Data) do
-      Data[I] := rb[I];
+  for i := low(Data) to high(Data) do
+      Data[i] := rb[i];
 end;
 
 procedure TDataReader.ReadArraySingle(var Data: array of Single);
 var
-  I : Integer;
+  i : Integer;
   rb: TDataFrameArraySingle;
 begin
   rb := FEngine.Reader.ReadArraySingle;
-  for I := low(Data) to high(Data) do
-      Data[I] := rb[I];
+  for i := low(Data) to high(Data) do
+      Data[i] := rb[i];
 end;
 
 procedure TDataReader.ReadArrayDouble(var Data: array of Double);
 var
-  I : Integer;
+  i : Integer;
   rb: TDataFrameArrayDouble;
 begin
   rb := FEngine.Reader.ReadArrayDouble;
-  for I := low(Data) to high(Data) do
-      Data[I] := rb[I];
+  for i := low(Data) to high(Data) do
+      Data[i] := rb[i];
 end;
 
 procedure TDataReader.ReadArrayInt64(var Data: array of Int64);
 var
-  I : Integer;
+  i : Integer;
   rb: TDataFrameArrayInt64;
 begin
   rb := FEngine.Reader.ReadArrayInt64;
-  for I := low(Data) to high(Data) do
-      Data[I] := rb[I];
+  for i := low(Data) to high(Data) do
+      Data[i] := rb[i];
 end;
 
 procedure TDataReader.ReadStream(output: TCoreClassStream);

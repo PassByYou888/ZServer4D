@@ -20,23 +20,23 @@ type
     destructor Destroy; override;
 
     // client test command
-    procedure Cmd_TestStream(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure Cmd_TestConsole(Sender: TPeerClient; InData: SystemString; var OutData: SystemString);
-    procedure Cmd_TestDirectStream(Sender: TPeerClient; InData: TDataFrameEngine);
-    procedure Cmd_TestDirectConsole(Sender: TPeerClient; InData: SystemString);
-    procedure Cmd_TestBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
-    procedure Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: SystemString);
-    procedure Cmd_TestCompleteBuffer(Sender: TPeerClient; InData: PByte; DataSize: NativeInt);
-    procedure Cmd_RemoteInfo(Sender: TPeerClient; InData: SystemString);
+    procedure Cmd_TestStream(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure Cmd_TestConsole(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
+    procedure Cmd_TestDirectStream(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Cmd_TestDirectConsole(Sender: TPeerIO; InData: SystemString);
+    procedure Cmd_TestBigStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+    procedure Cmd_BigStreamPostInfo(Sender: TPeerIO; InData: SystemString);
+    procedure Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+    procedure Cmd_RemoteInfo(Sender: TPeerIO; InData: SystemString);
 
     // server test command result
-    procedure CmdResult_TestConsole(Sender: TPeerClient; ResultData: SystemString);
-    procedure CmdResult_TestStream(Sender: TPeerClient; ResultData: TDataFrameEngine);
+    procedure CmdResult_TestConsole(Sender: TPeerIO; ResultData: SystemString);
+    procedure CmdResult_TestStream(Sender: TPeerIO; ResultData: TDataFrameEngine);
 
     procedure RegCmd(intf: TCommunicationFramework);
-    procedure ExecuteTest(intf: TPeerClient);
-    procedure ExecuteAsyncTest(intf: TPeerClient);
-    procedure ExecuteAsyncTestWithBigStream(intf: TPeerClient);
+    procedure ExecuteTest(intf: TPeerIO);
+    procedure ExecuteAsyncTest(intf: TPeerIO);
+    procedure ExecuteAsyncTestWithBigStream(intf: TPeerIO);
 
     property LastReg: TCommunicationFramework read FLastReg;
   end;
@@ -75,33 +75,33 @@ begin
   inherited;
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestStream(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationTestIntf.Cmd_TestStream(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 begin
   if not InData.Compare(FPrepareSendDataFrame) then
       Sender.Print('TestStream in Data failed!');
   OutData.Assign(FPrepareResultDataFrame);
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestConsole(Sender: TPeerClient; InData: SystemString; var OutData: SystemString);
+procedure TCommunicationTestIntf.Cmd_TestConsole(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
 begin
   if InData <> FPrepareSendConsole then
       Sender.Print('TestConsole in Data failed!');
   OutData := FPrepareResultConsole;
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestDirectStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationTestIntf.Cmd_TestDirectStream(Sender: TPeerIO; InData: TDataFrameEngine);
 begin
   if not InData.Compare(FPrepareSendDataFrame) then
       Sender.Print('TestDirectStream in Data failed!');
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestDirectConsole(Sender: TPeerClient; InData: SystemString);
+procedure TCommunicationTestIntf.Cmd_TestDirectConsole(Sender: TPeerIO; InData: SystemString);
 begin
   if InData <> FPrepareSendConsole then
       Sender.Print('TestDirectConsole in Data failed!');
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+procedure TCommunicationTestIntf.Cmd_TestBigStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 begin
   if Sender.UserDefine.BigStreamBatchList.Count = 0 then
       Sender.UserDefine.BigStreamBatchList.NewPostData;
@@ -109,31 +109,31 @@ begin
   Sender.UserDefine.BigStreamBatchList.Last^.Source.CopyFrom(InData, InData.Size);
 end;
 
-procedure TCommunicationTestIntf.Cmd_BigStreamPostInfo(Sender: TPeerClient; InData: SystemString);
+procedure TCommunicationTestIntf.Cmd_BigStreamPostInfo(Sender: TPeerIO; InData: SystemString);
 begin
   if InData <> umlStreamMD5String(Sender.UserDefine.BigStreamBatchList.Last^.Source).Text then
       Sender.Print('TestBigStream failed!');
   Sender.UserDefine.BigStreamBatchList.Clear;
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestCompleteBuffer(Sender: TPeerClient; InData: PByte; DataSize: NativeInt);
+procedure TCommunicationTestIntf.Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 begin
   if umlMD5Char(InData, DataSize).Text <> TestBuffMD5 then
       Sender.Print('TestCompleteBuffer failed!');
 end;
 
-procedure TCommunicationTestIntf.Cmd_RemoteInfo(Sender: TPeerClient; InData: SystemString);
+procedure TCommunicationTestIntf.Cmd_RemoteInfo(Sender: TPeerIO; InData: SystemString);
 begin
   Sender.Print('remote:' + InData);
 end;
 
-procedure TCommunicationTestIntf.CmdResult_TestConsole(Sender: TPeerClient; ResultData: SystemString);
+procedure TCommunicationTestIntf.CmdResult_TestConsole(Sender: TPeerIO; ResultData: SystemString);
 begin
   if ResultData <> FPrepareResultConsole then
       Sender.Print('TestResultConsole Data failed!');
 end;
 
-procedure TCommunicationTestIntf.CmdResult_TestStream(Sender: TPeerClient; ResultData: TDataFrameEngine);
+procedure TCommunicationTestIntf.CmdResult_TestStream(Sender: TPeerIO; ResultData: TDataFrameEngine);
 begin
   if not ResultData.Compare(FPrepareResultDataFrame) then
       Sender.Print('TestResultStream Data failed!');
@@ -163,7 +163,7 @@ begin
   FLastReg := intf;
 end;
 
-procedure TCommunicationTestIntf.ExecuteTest(intf: TPeerClient);
+procedure TCommunicationTestIntf.ExecuteTest(intf: TPeerIO);
 var
   tmpdf: TDataFrameEngine;
 begin
@@ -195,7 +195,7 @@ begin
   intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
 end;
 
-procedure TCommunicationTestIntf.ExecuteAsyncTest(intf: TPeerClient);
+procedure TCommunicationTestIntf.ExecuteAsyncTest(intf: TPeerIO);
 var
   tmpdf: TDataFrameEngine;
 begin
@@ -212,7 +212,7 @@ begin
   intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
 end;
 
-procedure TCommunicationTestIntf.ExecuteAsyncTestWithBigStream(intf: TPeerClient);
+procedure TCommunicationTestIntf.ExecuteAsyncTestWithBigStream(intf: TPeerIO);
 var
   tmpdf: TDataFrameEngine;
 begin

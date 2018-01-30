@@ -18,8 +18,8 @@ uses
 type
   // 做服务器压力测试，可以选用下列接口
   // 可以抗住并发的只有CrossSocket和DIOCP，其它接口诸如Indy，ICS只能用于500链接内小规模服务
-  //TMyServer = TCommunicationFramework_Server_CrossSocket;
-  TMyServer = TCommunicationFramework_Server_DIOCP;
+  TMyServer = TCommunicationFramework_Server_CrossSocket;
+  // TMyServer = TCommunicationFramework_Server_DIOCP;
 
   TEZServerForm = class(TForm)
     readmeMemo: TMemo;
@@ -55,7 +55,7 @@ begin
   server := TMyServer.Create;
   test := TCommunicationTestIntf.Create;
 
-  server.AllowPrintCommand := False;
+  server.QuietMode := True;
   server.SwitchMaxPerformance;
 
   test.RegCmd(server);

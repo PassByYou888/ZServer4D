@@ -11,13 +11,11 @@
 {$ENDIF}
 
 {$UNDEF Delphi}
-{$DEFINE parallel}
 {$UNDEF FastMD5}
+{$DEFINE parallel}
 {$DEFINE OptimizationMemoryStreamMD5}
 
 {$ELSE}
-
-{$DEFINE DELPHI}
 
 {$IFDEF ANDROID}
 {$DEFINE FirstCharInZero}
@@ -28,8 +26,8 @@
 {$ENDIF}
 
 {$DEFINE Delphi}
-{$DEFINE parallel}
 {$DEFINE FastMD5}
+{$DEFINE parallel}
 {$DEFINE OptimizationMemoryStreamMD5}
 
 {$ENDIF}
@@ -43,11 +41,11 @@
 
 (*
   {$IFDEF FPC}
-  {$ELSE}
-  {$ENDIF}
+  {$ELSE }
+  {$ENDIF FPC}
 
   {$IFNDEF FPC}
-  {$ENDIF}
+  {$ENDIF FPC}
 *)
 
 {$IFDEF release}

@@ -20,7 +20,7 @@ uses SysUtils, Classes,
   DataFrameEngine;
 
 type
-  TContextIntfForServer = class(TPeerClient)
+  TContextIntfForServer = class(TPeerIO)
   public
     LastActiveTime: TTimeTickValue;
     Sending       : Boolean;
@@ -66,8 +66,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TDriverEngine read FDriver;
@@ -438,13 +438,13 @@ begin
   CheckSynchronize;
 end;
 
-function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerClient; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;

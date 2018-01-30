@@ -19,30 +19,30 @@ uses SysUtils,
   DoStatusIO, ListEngine, TextDataEngine, PascalStrings;
 
 procedure BeginImportStreamToDB(dbEng: TObjectDataManager; md5List: THashVariantList);
-procedure ImportStreamToDB(md5List: THashVariantList; stream: TCoreClassStream; fileName: string; dbEng: TObjectDataManager);
+procedure ImportStreamToDB(md5List: THashVariantList; stream: TCoreClassStream; fileName: SystemString; dbEng: TObjectDataManager);
 procedure EndImportStreamToDB(dbEng: TObjectDataManager; md5List: THashVariantList);
 
-procedure BatchImportPathToDB(InitDir, Filter: string; dbEng: TObjectDataManager);
-procedure BatchImportPathToDBFile(InitDir, Filter, dbFile: string);
-procedure BatchImportPathToDBStream(InitDir, Filter: string; DBStream: TCoreClassStream);
+procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataManager);
+procedure BatchImportPathToDBFile(InitDir, Filter, dbFile: SystemString);
+procedure BatchImportPathToDBStream(InitDir, Filter: SystemString; DBStream: TCoreClassStream);
 
-function ExtractFileInDB(dbEng: TObjectDataManager; FieldPos: Int64; fileName: string; ExtractToStream: TCoreClassStream): Boolean; overload;
-function ExtractFileInDB(dbEng: TObjectDataManager; DBPath, fileName: string; ExtractToStream: TCoreClassStream): Boolean; overload;
-function ExtractFileInDB(dbFileName, DBPath, fileName: string; ExtractToStream: TCoreClassStream): Boolean; overload;
-function ExtractFileInDB(DBStream: TCoreClassStream; DBPath, fileName: string; ExtractToStream: TCoreClassStream): Boolean; overload;
-function ExistsFileInDB(DBStream: TCoreClassStream; DBPath, fileName: string): Boolean; overload;
-function ExistsFileInDB(dbFileName, DBPath, fileName: string): Boolean; overload;
+function ExtractFileInDB(dbEng: TObjectDataManager; FieldPos: Int64; fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean; overload;
+function ExtractFileInDB(dbEng: TObjectDataManager; DBPath, fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean; overload;
+function ExtractFileInDB(dbFileName, DBPath, fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean; overload;
+function ExtractFileInDB(DBStream: TCoreClassStream; DBPath, fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean; overload;
+function ExistsFileInDB(DBStream: TCoreClassStream; DBPath, fileName: SystemString): Boolean; overload;
+function ExistsFileInDB(dbFileName, DBPath, fileName: SystemString): Boolean; overload;
 
-procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: string; OutputFileList: TCoreClassStrings); overload;
-procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: string); overload;
-procedure ExtractDBFileToPath(dbFile, ExtractToDir: string);
+procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: SystemString; OutputFileList: TCoreClassStrings); overload;
+procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: SystemString); overload;
+procedure ExtractDBFileToPath(dbFile, ExtractToDir: SystemString);
 
 function VerifyFileInDB(dbEng: TObjectDataManager): Integer;
 function VerifyFileInDBStream(DBStream: TCoreClassStream): Integer;
-function VerifyFileInDBFile(dbFile: string): Integer;
+function VerifyFileInDBFile(dbFile: SystemString): Integer;
 
 var
-  DBPackageMD5VerifyFileName: string  = '______md5info.txt';
+  DBPackageMD5VerifyFileName: SystemString  = '______md5info.txt';
   DBPackageFileCompressed   : Boolean = True;
 
 implementation
@@ -87,13 +87,13 @@ begin
     end;
 end;
 
-procedure ImportStreamToDB(md5List: THashVariantList; stream: TCoreClassStream; fileName: string; dbEng: TObjectDataManager);
+procedure ImportStreamToDB(md5List: THashVariantList; stream: TCoreClassStream; fileName: SystemString; dbEng: TObjectDataManager);
 var
   FieldPos : Int64;
   srHnd    : TItemSearch;
   itmHnd   : TItemHandle;
   itmStream: TItemStream;
-  md5      : string;
+  md5      : SystemString;
 begin
   FieldPos := dbEng.RootField;
 
@@ -150,17 +150,17 @@ begin
   dbEng.Update;
 end;
 
-procedure BatchImportPathToDB(InitDir, Filter: string; dbEng: TObjectDataManager);
+procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataManager);
 
-  procedure AddPath(aPath: string; aFieldPos: Int64);
+  procedure AddPath(aPath: SystemString; aFieldPos: Int64);
   var
     fAry          : umlStringDynArray;
-    n, suffixn    : string;
+    n, suffixn    : SystemString;
     fs            : TCoreClassFileStream;
     itmHnd        : TItemHandle;
     itmStream     : TItemStream;
     fPos          : Int64;
-    md5           : string;
+    md5           : SystemString;
     md5List       : THashVariantList;
     hashTextStream: THashVariantTextStream;
     srHnd         : TItemSearch;
@@ -251,7 +251,7 @@ begin
     end;
 end;
 
-procedure BatchImportPathToDBFile(InitDir, Filter, dbFile: string);
+procedure BatchImportPathToDBFile(InitDir, Filter, dbFile: SystemString);
 var
   dbEng: TObjectDataManager;
 begin
@@ -261,7 +261,7 @@ begin
   ObjectDataMarshal.CloseDB(dbEng);
 end;
 
-procedure BatchImportPathToDBStream(InitDir, Filter: string; DBStream: TCoreClassStream);
+procedure BatchImportPathToDBStream(InitDir, Filter: SystemString; DBStream: TCoreClassStream);
 var
   dbEng: TObjectDataManager;
 begin
@@ -272,7 +272,7 @@ begin
   DBStream.Position := 0;
 end;
 
-function ExtractFileInDB(dbEng: TObjectDataManager; FieldPos: Int64; fileName: string; ExtractToStream: TCoreClassStream): Boolean;
+function ExtractFileInDB(dbEng: TObjectDataManager; FieldPos: Int64; fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean;
 var
   itmSrHnd : TItemSearch;
   itmHnd   : TItemHandle;
@@ -298,7 +298,7 @@ begin
     end;
 end;
 
-function ExtractFileInDB(dbEng: TObjectDataManager; DBPath, fileName: string; ExtractToStream: TCoreClassStream): Boolean;
+function ExtractFileInDB(dbEng: TObjectDataManager; DBPath, fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean;
 var
   FieldPos: Int64;
 begin
@@ -306,7 +306,7 @@ begin
   Result := Result and ExtractFileInDB(dbEng, FieldPos, fileName, ExtractToStream);
 end;
 
-function ExtractFileInDB(dbFileName, DBPath, fileName: string; ExtractToStream: TCoreClassStream): Boolean;
+function ExtractFileInDB(dbFileName, DBPath, fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean;
 var
   dbEng: TObjectDataManager;
 begin
@@ -319,7 +319,7 @@ begin
   ObjectDataMarshal.CloseDB(dbEng);
 end;
 
-function ExtractFileInDB(DBStream: TCoreClassStream; DBPath, fileName: string; ExtractToStream: TCoreClassStream): Boolean;
+function ExtractFileInDB(DBStream: TCoreClassStream; DBPath, fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean;
 var
   dbEng: TObjectDataManager;
 begin
@@ -332,7 +332,7 @@ begin
   DBStream.Position := 0;
 end;
 
-function ExistsFileInDB(DBStream: TCoreClassStream; DBPath, fileName: string): Boolean;
+function ExistsFileInDB(DBStream: TCoreClassStream; DBPath, fileName: SystemString): Boolean;
 var
   dbEng: TObjectDataManager;
 begin
@@ -343,7 +343,7 @@ begin
   DisposeObject(dbEng);
 end;
 
-function ExistsFileInDB(dbFileName, DBPath, fileName: string): Boolean;
+function ExistsFileInDB(dbFileName, DBPath, fileName: SystemString): Boolean;
 var
   dbEng: TObjectDataManager;
 begin
@@ -356,12 +356,12 @@ begin
   ObjectDataMarshal.CloseDB(dbEng);
 end;
 
-procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: string; OutputFileList: TCoreClassStrings);
-  procedure ExportTo(AField: Int64; ToDir: string);
+procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: SystemString; OutputFileList: TCoreClassStrings);
+  procedure ExportTo(AField: Int64; ToDir: SystemString);
   var
     itmSrHnd  : TItemSearch;
     FieldSrHnd: TFieldSearch;
-    fn        : string;
+    fn        : SystemString;
     fs        : TCoreClassFileStream;
 
     itmHnd   : TItemHandle;
@@ -406,12 +406,12 @@ begin
       ExportTo(dbEng.RootField, ExtractToDir);
 end;
 
-procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: string);
+procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: SystemString);
 begin
   ExtractDBToPath(dbEng, ExtractToDir, nil);
 end;
 
-procedure ExtractDBFileToPath(dbFile, ExtractToDir: string);
+procedure ExtractDBFileToPath(dbFile, ExtractToDir: SystemString);
 var
   dbEng: TObjectDataManager;
 begin
@@ -435,7 +435,7 @@ var
     itmStream : TItemStream;
     ms        : TMemoryStream64;
 
-    md5           : string;
+    md5           : SystemString;
     md5List       : THashVariantList;
     hashTextStream: THashVariantTextStream;
   begin
@@ -519,7 +519,7 @@ begin
   DisposeObject(dbEng);
 end;
 
-function VerifyFileInDBFile(dbFile: string): Integer;
+function VerifyFileInDBFile(dbFile: SystemString): Integer;
 var
   dbEng: TObjectDataManager;
 begin

@@ -217,9 +217,9 @@ function umlCopyFile(SourFile, DestFile: umlString): Boolean;
 function umlRenameFile(OldName, NewName: umlString): Boolean;
 
 { umlString }
-procedure umlSetLength(var aStr: umlString; NewStrLength: Integer); overload;
-procedure umlSetLength(var aStr: umlBytes; NewStrLength: Integer); overload;
-procedure umlSetLength(var aStr: umlArrayString; NewStrLength: Integer); overload;
+procedure umlSetLength(var aStr: umlString; len: Integer); overload;
+procedure umlSetLength(var aStr: umlBytes; len: Integer); overload;
+procedure umlSetLength(var aStr: umlArrayString; len: Integer); overload;
 
 function umlGetLength(aStr: umlString): Integer; overload;
 function umlGetLength(var aStr: umlBytes): Integer; overload;
@@ -344,6 +344,7 @@ function umlMD52String(md5: TMD5): umlString;
 function umlMD5Compare(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlCompareMD5(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlIsNullMD5(m: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlWasNullMD5(m: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
 const
@@ -1919,19 +1920,19 @@ begin
   Result := RenameFile(OldName.Text, NewName.Text);
 end;
 
-procedure umlSetLength(var aStr: umlString; NewStrLength: Integer);
+procedure umlSetLength(var aStr: umlString; len: Integer);
 begin
-  aStr.len := NewStrLength;
+  aStr.len := len;
 end;
 
-procedure umlSetLength(var aStr: umlBytes; NewStrLength: Integer);
+procedure umlSetLength(var aStr: umlBytes; len: Integer);
 begin
-  SetLength(aStr, NewStrLength);
+  SetLength(aStr, len);
 end;
 
-procedure umlSetLength(var aStr: umlArrayString; NewStrLength: Integer);
+procedure umlSetLength(var aStr: umlArrayString; len: Integer);
 begin
-  SetLength(aStr, NewStrLength);
+  SetLength(aStr, len);
 end;
 
 function umlGetLength(aStr: umlString): Integer;
@@ -3928,6 +3929,11 @@ begin
 end;
 
 function umlIsNullMD5(m: TMD5): Boolean;
+begin
+  Result := umlCompareMD5(m, NullMD5);
+end;
+
+function umlWasNullMD5(m: TMD5): Boolean;
 begin
   Result := umlCompareMD5(m, NullMD5);
 end;

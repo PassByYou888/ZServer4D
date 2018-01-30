@@ -1,5 +1,5 @@
 unit EzCliFrm;
-
+
 interface
 
 uses
@@ -21,6 +21,7 @@ type
     HelloWorldBtn: TButton;
     sendMiniStreamButton: TButton;
     SendBigStreamButton: TButton;
+    SendCompletebufferButton: TButton;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -28,6 +29,7 @@ type
     procedure HelloWorldBtnClick(Sender: TObject);
     procedure sendMiniStreamButtonClick(Sender: TObject);
     procedure SendBigStreamButtonClick(Sender: TObject);
+    procedure SendCompletebufferButtonClick(Sender: TObject);
   private
     { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
@@ -127,10 +129,35 @@ begin
     end;
 
   DoStatus('计算临时大数据流md5');
-  DoStatus('md5:' + umlMD5Char(ms.Memory, ms.Size).Text);
+  DoStatus('bigstream md5:' + umlMD5Char(ms.Memory, ms.Size).Text);
 
   // 往服务器发送一条Big Stream形式的指令
   client.SendBigStream('Test128MBigStream', ms, True);
+end;
+
+procedure TEZClientForm.SendCompletebufferButtonClick(Sender: TObject);
+var
+  buff: Pointer;
+  p   : PInt64;
+  i   : Integer;
+begin
+  // 在ms中包含了128M大型数据，在服务器端相当于执行了1条普通命令
+  buff := GetMemory(128 * 1024 * 1024);
+
+  DoStatus('创建128M临时大数据流');
+  p := buff;
+  for i := 1 to (128 * 1024 * 1024) div SizeOf(Int64) do
+    begin
+      p^ := Random(MaxInt);
+      inc(p);
+    end;
+
+  DoStatus('计算临时大数据流md5');
+  DoStatus('complete buffer md5:' + umlMD5String(buff, 128 * 1024 * 1024).Text);
+
+  // 往服务器发送一条CompleteBuffer形式的指令
+  // 最后的布尔参数表示是否在完成发送后释放buff
+  client.SendCompleteBuffer('TestCompleteBuffer', buff, 128 * 1024 * 1024, True);
 end;
 
 procedure TEZClientForm.sendMiniStreamButtonClick(Sender: TObject);
@@ -151,7 +178,7 @@ begin
       inc(p);
     end;
 
-  DoStatus(umlMD5Char(ms.Memory, ms.Size).Text);
+  DoStatus('mini stream md5:' + umlMD5Char(ms.Memory, ms.Size).Text);
 
   // 往服务器发送一条direct stream形式的指令
   SendDe := TDataFrameEngine.Create;
@@ -188,3 +215,4 @@ begin
 end;
 
 end.
+

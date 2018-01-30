@@ -29,7 +29,7 @@ uses CommunicationFramework,
 type
   TCommunicationFramework_Server_Context = class;
 
-  TContextIntfForServer = class(TPeerClient)
+  TContextIntfForServer = class(TPeerIO)
   public
     RealSend    : Boolean;
     RealSendBuff: TMemoryStream64;
@@ -83,8 +83,8 @@ type
 
     procedure Indy_Execute(AContext: TIdContext);
 
-    function WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
 
     property Driver: TIdTCPServer read FDriver;
   end;
@@ -244,7 +244,7 @@ end;
 
 destructor TCommunicationFramework_Server_Indy.Destroy;
 begin
-  ProgressPerClient(procedure(cli: TPeerClient)
+  ProgressPerClient(procedure(cli: TPeerIO)
     begin
       try
           cli.Disconnect;
@@ -480,13 +480,13 @@ begin
     end);
 end;
 
-function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
-procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerClient; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;

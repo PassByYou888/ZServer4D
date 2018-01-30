@@ -75,6 +75,15 @@ object EZClientForm: TEZClientForm
     TabOrder = 5
     OnClick = SendBigStreamButtonClick
   end
+  object SendCompletebufferButton: TButton
+    Left = 8
+    Top = 246
+    Width = 113
+    Height = 33
+    Caption = 'send Buffer(fast)'
+    TabOrder = 6
+    OnClick = SendCompletebufferButtonClick
+  end
   object Timer1: TTimer
     Interval = 1
     OnTimer = Timer1Timer

@@ -124,6 +124,10 @@ object Form1: TForm1
     TabOrder = 2
     object TabSheet1: TTabSheet
       Caption = #29366#24577
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Memo: TMemo
         Left = 0
         Top = 0

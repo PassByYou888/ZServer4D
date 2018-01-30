@@ -223,8 +223,8 @@ begin
   DBClient := TMyDataStoreClient.Create(RecvTunnel, SendTunnel);
   DBClient.RegisterCommand;
 
-  RecvTunnel.AllowPrintCommand := False;
-  SendTunnel.AllowPrintCommand := False;
+  RecvTunnel.QuietMode := True;
+  SendTunnel.QuietMode := True;
 
   RegisterFileStream('c81c2ef1794dfa4863e6ed5752201313', Get_Chrysanthemum_Stream, 'Chrysanthemum.jpg');
   RegisterFileStream('e805490727905eada15ca44916412449', Get_Desert_Stream, 'Desert.jpg');

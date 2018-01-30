@@ -42,6 +42,8 @@ type
     procedure cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);
 
     procedure cmd_Test128MBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+
+    procedure cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
   public
     { Public declarations }
     server: TCommunicationFramework_Server_CrossSocket;
@@ -98,6 +100,11 @@ begin
     end;
 end;
 
+procedure TEZServerForm.cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+begin
+  Sender.Print('Complete buffer md5: %s', [umlMD5String(InData, DataSize).Text]);
+end;
+
 procedure TEZServerForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
@@ -109,12 +116,18 @@ begin
   server := TCommunicationFramework_Server_CrossSocket.Create;
   server.PeerClientUserSpecialClass := TMySpecialDefine;
 
+  // 更改最大completeBuffer，这里只用于测试，正常运行服务器，这里一般给4M就可以了
+  server.MaxCompleteBufferSize := 128 * 1024 * 1024;
+
   server.RegisterDirectConsole('helloWorld_Console').OnExecute := cmd_helloWorld_Console;
   server.RegisterDirectStream('helloWorld_Stream').OnExecute := cmd_helloWorld_Stream;
   server.RegisterStream('helloWorld_Stream_Result').OnExecute := cmd_helloWorld_Stream_Result;
 
   server.RegisterDirectStream('TestMiniStream').OnExecute := cmd_TestMiniStream;
   server.RegisterBigStream('Test128MBigStream').OnExecute := cmd_Test128MBigStream;
+
+  // 注册Completebuffer指令
+  server.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := cmd_TestCompleteBuffer;
 end;
 
 procedure TEZServerForm.FormDestroy(Sender: TObject);

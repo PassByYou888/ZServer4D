@@ -30,7 +30,7 @@ type
     RecvTunnelID       : Cardinal;
     DoubleTunnelService: TCommunicationFramework_DoubleTunnelService_NoAuth;
 
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
 
     function LinkOk: Boolean;
@@ -45,7 +45,7 @@ type
     SendTunnelID       : Cardinal;
     DoubleTunnelService: TCommunicationFramework_DoubleTunnelService_NoAuth;
 
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
 
     function LinkOk: Boolean;
@@ -75,20 +75,20 @@ type
     procedure UserPostFileSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth; fn: SystemString); virtual;
   protected
     // registed server command
-    procedure Command_TunnelLink(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetCurrentCadencer(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
 
-    procedure Command_GetFileTime(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetFile(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_PostFileInfo(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_PostFile(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_PostFileOver(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_GetFileTime(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_GetFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
+    procedure Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_NewBatchStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_PostBatchStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_ClearBatchStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_PostBatchStreamDone(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_GetBatchStreamState(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostBatchStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
+    procedure Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     destructor Destroy; override;
@@ -103,20 +103,20 @@ type
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
 
-    function GetUserDefineRecvTunnel(RecvCli: TPeerClient): TPeerClientUserDefineForRecvTunnel_NoAuth;
+    function GetUserDefineRecvTunnel(RecvCli: TPeerIO): TPeerClientUserDefineForRecvTunnel_NoAuth;
 
     function TotalLinkCount: Integer;
 
-    procedure PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean); overload;
-    procedure PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall); overload;
-    procedure PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod); overload;
+    procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean); overload;
+    procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall); overload;
+    procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod); overload;
     {$IFNDEF FPC}
-    procedure PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
+    procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
     {$ENDIF}
-    procedure ClearBatchStream(cli: TPeerClient);
-    procedure GetBatchStreamState(cli: TPeerClient; OnResult: TStreamMethod); overload;
+    procedure ClearBatchStream(cli: TPeerIO);
+    procedure GetBatchStreamState(cli: TPeerIO; OnResult: TStreamMethod); overload;
     {$IFNDEF FPC}
-    procedure GetBatchStreamState(cli: TPeerClient; OnResult: TStreamProc); overload;
+    procedure GetBatchStreamState(cli: TPeerIO; OnResult: TStreamProc); overload;
     {$ENDIF}
     property CanStatus: Boolean read FCanStatus write FCanStatus;
     property CadencerEngine: TCadencer read FCadencerEngine;
@@ -136,7 +136,7 @@ type
     Client    : TCommunicationFramework_DoubleTunnelClient_NoAuth;
     SendTunnel: TClientUserDefineForSendTunnel_NoAuth;
 
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -145,7 +145,7 @@ type
     Client    : TCommunicationFramework_DoubleTunnelClient_NoAuth;
     RecvTunnel: TClientUserDefineForRecvTunnel_NoAuth;
 
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -187,18 +187,18 @@ type
     procedure ClientDisconnect(Sender: TCommunicationFrameworkClient); virtual;
   protected
     // registed client command
-    procedure Command_FileInfo(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_PostFile(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_PostFileOver(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_FileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
+    procedure Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure GetCurrentCadencer_StreamResult(Sender: TPeerClient; ResultData: TDataFrameEngine); virtual;
+    procedure GetCurrentCadencer_StreamResult(Sender: TPeerIO; ResultData: TDataFrameEngine); virtual;
 
     // batch stream suppport
-    procedure Command_NewBatchStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_PostBatchStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_ClearBatchStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_PostBatchStreamDone(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_GetBatchStreamState(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostBatchStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
+    procedure Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
   protected
     // async connect support
     FAsyncConnectAddr                     : SystemString;
@@ -245,7 +245,7 @@ type
     procedure GetFileTime(RemoteFilename: SystemString; CallResultProc: TStreamMethod); overload;
 
     // 异步方式从服务器下载文件，完成时触发通知
-    procedure GetFile_StreamParamResult(Sender: TPeerClient; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+    procedure GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_NoAuth); overload;
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_NoAuth); overload;
     {$IFNDEF FPC}
@@ -292,7 +292,7 @@ implementation
 
 uses SysUtils;
 
-constructor TPeerClientUserDefineForSendTunnel_NoAuth.Create(AOwner: TPeerClient);
+constructor TPeerClientUserDefineForSendTunnel_NoAuth.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
   RecvTunnel := nil;
@@ -315,7 +315,7 @@ begin
   Result := DoubleTunnelService <> nil;
 end;
 
-constructor TPeerClientUserDefineForRecvTunnel_NoAuth.Create(AOwner: TPeerClient);
+constructor TPeerClientUserDefineForRecvTunnel_NoAuth.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
   SendTunnel := nil;
@@ -372,7 +372,7 @@ procedure TCommunicationFramework_DoubleTunnelService_NoAuth.UserPostFileSuccess
 begin
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_TunnelLink(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   RecvID, SendID: Cardinal;
   UserDefineIO  : TPeerClientUserDefineForRecvTunnel_NoAuth;
@@ -417,13 +417,13 @@ begin
   UserLinkSuccess(UserDefineIO);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetCurrentCadencer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 begin
   FCadencerEngine.Progress;
   OutData.WriteDouble(FCadencerEngine.CurrentTime);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetFileTime(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetFileTime(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   UserDefineIO    : TPeerClientUserDefineForRecvTunnel_NoAuth;
   fullfn, fileName: SystemString;
@@ -444,7 +444,7 @@ begin
   OutData.WriteDouble(umlGetFileTime(fullfn));
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetFile(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   UserDefineIO                : TPeerClientUserDefineForRecvTunnel_NoAuth;
   fullfn, fileName, remoteinfo: SystemString;
@@ -497,7 +497,7 @@ begin
   OutData.WriteString(Format('post %s to send tunnel', [fileName]));
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostFileInfo(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth;
   fn          : SystemString;
@@ -531,7 +531,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostFile(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth;
 begin
@@ -550,7 +550,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostFileOver(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   UserDefineIO  : TPeerClientUserDefineForRecvTunnel_NoAuth;
   ClientMD5, md5: UnicodeMixedLib.TMD5;
@@ -585,7 +585,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_NewBatchStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt: TPeerClientUserDefineForRecvTunnel_NoAuth;
   p : PBigStreamBatchPostData;
@@ -598,7 +598,7 @@ begin
   p^.CompletedBackcallPtr := InData.Reader.ReadPointer;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostBatchStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostBatchStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 var
   rt: TPeerClientUserDefineForRecvTunnel_NoAuth;
   p : PBigStreamBatchPostData;
@@ -631,7 +631,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_ClearBatchStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt: TPeerClientUserDefineForRecvTunnel_NoAuth;
 begin
@@ -641,7 +641,7 @@ begin
   rt.BigStreamBatchList.Clear;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostBatchStreamDone(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt            : TPeerClientUserDefineForRecvTunnel_NoAuth;
   rMD5, sMD5    : UnicodeMixedLib.TMD5;
@@ -688,7 +688,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetBatchStreamState(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   rt: TPeerClientUserDefineForRecvTunnel_NoAuth;
   i : Integer;
@@ -821,7 +821,7 @@ begin
   FRecvTunnel.DeleteRegistedCMD('GetBatchStreamState');
 end;
 
-function TCommunicationFramework_DoubleTunnelService_NoAuth.GetUserDefineRecvTunnel(RecvCli: TPeerClient): TPeerClientUserDefineForRecvTunnel_NoAuth;
+function TCommunicationFramework_DoubleTunnelService_NoAuth.GetUserDefineRecvTunnel(RecvCli: TPeerIO): TPeerClientUserDefineForRecvTunnel_NoAuth;
 begin
   Result := RecvCli.UserDefine as TPeerClientUserDefineForRecvTunnel_NoAuth;
 end;
@@ -831,7 +831,7 @@ begin
   Result := RecvTunnel.Count;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean);
 var
   de: TDataFrameEngine;
 begin
@@ -845,7 +845,7 @@ begin
   cli.SendBigStream('PostBatchStream', stream, doneFreeStream);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall);
 var
   de: TDataFrameEngine;
   p : PPostBatchBackcallData_NoAuth;
@@ -869,7 +869,7 @@ begin
   cli.SendBigStream('PostBatchStream', stream, doneFreeStream);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod);
 var
   de: TDataFrameEngine;
   p : PPostBatchBackcallData_NoAuth;
@@ -896,7 +896,7 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerClient; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc);
 var
   de: TDataFrameEngine;
   p : PPostBatchBackcallData_NoAuth;
@@ -922,7 +922,7 @@ end;
 {$ENDIF}
 
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.ClearBatchStream(cli: TPeerClient);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.ClearBatchStream(cli: TPeerIO);
 var
   de: TDataFrameEngine;
   p : PPostBatchBackcallData_NoAuth;
@@ -932,7 +932,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.GetBatchStreamState(cli: TPeerClient; OnResult: TStreamMethod);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.GetBatchStreamState(cli: TPeerIO; OnResult: TStreamMethod);
 var
   de: TDataFrameEngine;
   p : PPostBatchBackcallData_NoAuth;
@@ -945,7 +945,7 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.GetBatchStreamState(cli: TPeerClient; OnResult: TStreamProc);
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.GetBatchStreamState(cli: TPeerIO; OnResult: TStreamProc);
 var
   de: TDataFrameEngine;
   p : PPostBatchBackcallData_NoAuth;
@@ -957,7 +957,7 @@ end;
 {$ENDIF}
 
 
-constructor TClientUserDefineForRecvTunnel_NoAuth.Create(AOwner: TPeerClient);
+constructor TClientUserDefineForRecvTunnel_NoAuth.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
   Client := nil;
@@ -971,7 +971,7 @@ begin
   inherited Destroy;
 end;
 
-constructor TClientUserDefineForSendTunnel_NoAuth.Create(AOwner: TPeerClient);
+constructor TClientUserDefineForSendTunnel_NoAuth.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
   Client := nil;
@@ -994,7 +994,7 @@ procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.ClientDisconnect(Sen
 begin
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_FileInfo(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_FileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   fn        : SystemString;
   fsize     : Int64;
@@ -1025,7 +1025,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostFile(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 begin
   if FCurrentStream <> nil then
     begin
@@ -1038,7 +1038,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostFileOver(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   servMD5, md5      : UnicodeMixedLib.TMD5;
   RemoteBackcallAddr: UInt64;
@@ -1088,7 +1088,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.GetCurrentCadencer_StreamResult(Sender: TPeerClient; ResultData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.GetCurrentCadencer_StreamResult(Sender: TPeerIO; ResultData: TDataFrameEngine);
 var
   servTime: Double;
 begin
@@ -1101,7 +1101,7 @@ begin
   FCadencerEngine.Progress;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_NewBatchStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt: TClientUserDefineForRecvTunnel_NoAuth;
   p : PBigStreamBatchPostData;
@@ -1114,7 +1114,7 @@ begin
   p^.CompletedBackcallPtr := InData.Reader.ReadPointer;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostBatchStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostBatchStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 var
   rt: TClientUserDefineForRecvTunnel_NoAuth;
   p : PBigStreamBatchPostData;
@@ -1147,7 +1147,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_ClearBatchStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt: TClientUserDefineForRecvTunnel_NoAuth;
   p : PBigStreamBatchPostData;
@@ -1159,7 +1159,7 @@ begin
   rt.BigStreamBatchList.Clear;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostBatchStreamDone(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt            : TClientUserDefineForRecvTunnel_NoAuth;
   rMD5, sMD5    : UnicodeMixedLib.TMD5;
@@ -1206,7 +1206,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_GetBatchStreamState(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   rt: TClientUserDefineForRecvTunnel_NoAuth;
   i : Integer;
@@ -1529,6 +1529,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.TunnelLink(OnProc: TStateProc);
 var
   sendDE: TDataFrameEngine;
@@ -1550,7 +1551,7 @@ begin
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
 
   FSendTunnel.SendStreamCmd('TunnelLink', sendDE,
-    procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
       r: Boolean;
     begin
@@ -1617,7 +1618,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.GetFile_StreamParamResult(Sender: TPeerClient; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
 var
   p: PRemoteFileBackcall_NoAuth;
 begin

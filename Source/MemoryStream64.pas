@@ -58,15 +58,13 @@ type
     function Write64(const Buffer; Count: Int64): Int64; virtual;
     function WritePtr(const p: Pointer; Count: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Write(const Buffer; Count: Longint): Longint; overload; override;
-    {$IFNDEF FPC}
-    function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload; override;
-    {$ENDIF}
+    {$IFNDEF FPC} function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload; override; {$ENDIF}
+    //
     function Read64(var Buffer; Count: Int64): Int64; virtual;
     function ReadPtr(const p: Pointer; Count: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Read(var Buffer; Count: Longint): Longint; overload; override;
-    {$IFNDEF FPC}
-    function Read(Buffer: TBytes; Offset, Count: Longint): Longint; overload; override;
-    {$ENDIF}
+    {$IFNDEF FPC} function Read(Buffer: TBytes; Offset, Count: Longint): Longint; overload; override; {$ENDIF}
+    //
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     property Memory: Pointer read FMemory;
 

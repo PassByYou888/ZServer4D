@@ -13,6 +13,8 @@
 [云服务器框架](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%95%86%E4%B8%9A%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A1%86%E6%9E%B62.0%20%E6%A1%86%E6%9E%B6%E8%AF%B4%E6%98%8E.pdf)
 
 [怎样开发基于ZS的底层通讯IO接口](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZServer4D%E5%BC%80%E5%8F%91%E5%BA%95%E5%B1%82%E9%80%9A%E8%AE%AFIO%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%96%B9%E6%B3%95.pdf)
+
+[p2pVM第二篇机理说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZS%E7%9A%84%20p2pVM%E7%AC%AC%E4%BA%8C%E7%AF%87%E6%9C%BA%E7%90%86%E8%AF%B4%E6%98%8E.pdf)
  
  
 ## 介绍
@@ -40,27 +42,43 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 (NoSQL并行化内核已经完成，聚类分析和分布式负载已完成50%文档)
 
 
+## 操作系统和设备支持一览
 
-## 通讯接口支持(只限Delphi)
+### Windows: CrossSocket(C/S OK), DIOCP(C/S OK), ICS(C/S OK), Indy(C/S OK)
 
-1.indy(open source) http://www.indyproject.org/
+### Linux(X64): CrossSocket(C/S 老版本支持，新版本未测试), Indy(C/S OK)
 
-id是阻塞模式的通讯组件，已在ZServer4D内部集成
+### Android:Indy(C/S OK)
 
+### IOS Device: Indy(C/S OK)
 
-2.CrossSocket(open source) https://github.com/winddriver/Delphi-Cross-Socket
+### IOS Simulaor: n/a
 
-异步式通讯组件，已在ZServer4D内部集成
-
-
-3.ICS(open source) http://www.overbyte.be
-
-异步式通讯组件，已在ZServer4D内部集成
+### OSX: Indy(C/S OK)，ICS(未测试)
 
 
-4.DIOCP(Open source) https://github.com/ymofen/diocp-v5
+
+## 通讯接口支持(Delphi 10或则更高版本，低版本未测试)
+
+1.indy 阻塞模式的通讯组件，已在ZServer4D内部集成
+
+(open source) http://www.indyproject.org/
+
+
+2.CrossSocket 异步式通讯组件，已在ZServer4D内部集成
+
+(open source) https://github.com/winddriver/Delphi-Cross-Socket
+
+
+3.ICS异步式通讯组件，已在ZServer4D内部集成
+
+(open source) http://www.overbyte.be
+
+
+4.DIOCP 国人所开发的稳定DIOCP通讯库
  
-国人所开发的稳定DIOCP通讯库
+(Open source) https://github.com/ymofen/diocp-v5
+
 
 
 ## 通讯接口支持(FreePascal with Lazarus 计划支持中)
@@ -73,6 +91,7 @@ id是阻塞模式的通讯组件，已在ZServer4D内部集成
 2.fcl-net(open source) 计划支持
 
 freepascal内置的网络库
+
 
 
 
@@ -92,11 +111,12 @@ qq群490269542
 
 ## 关于内存泄漏
 
-ZServer4D内置的服务器有3种：Indy，ICS，CrossSocket，所有的服务器均无内存泄漏
+ZServer4D内置的服务器有4种：Indy，ICS，CrossSocket，DIOCP所有的服务器均无内存泄漏
 
-ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服务器都会抛弃现有链接类，并且重建新接口链接，这里不会释放老的链接（这样干是保证客户端的正常工作）
+ZServer4D内置的客户端采用的是用完抛弃的工作方式，每次链接登录服务器都会抛弃现有链接类，并且重建新接口链接，这里不会释放老的链接（这样干是保证客户端的正常工作）
 
 在ZServer4D中所捆绑的类，包括编解码，链表，数据库，均无内存泄漏
+
 
 
 ## 关于压力测试
@@ -117,6 +137,38 @@ ZServer4D内置的客户端采用的是抛弃式链接，每次链接登录服�
 
 
 ## 更新日志
+
+### 2018-1-30
+
+新增了P2PVM第二篇技术文档，简单编写，没画图
+
+新增了一份基于FastMD5的性能对比测试(在Examples中可以找到，需要安装Mormot感谢南极土著qq4499972)
+
+最近的新版本尚未在Linux测试，请尽量使用Windows做后台
+
+
+#### 此次更新以调优为主，调优内容：
+
+修改了通讯框架的数据结构，以Inline方式优化，小幅减少函数调用频率
+
+修改了基于TDataFrameEngine的Json存储格式，此格式以后可以恒定下来
+
+所有的演示内容重新测试和编译
+
+云框架2.0的内容重新测试和编译
+
+Tools目录中的所有工程，已追加了.OXC(FRP的编译打包文件)
+
+将TPeerClient更名为TPeerIO，仍然留有老的TPeerClient指向，不会影响项目编译和升级
+
+在TPeerIO创建时，增加了一个更加安全的原子锁，已测试调优过Cross,ICS,Indy,DIOCP等等接口
+
+取消了AllowPrintCommand属性，以QuietMode代替
+
+用一个已经跑过百万在线的后台项目重新编了一次新版本，并且测试全部通过
+
+
+
 
 
 ### 2018-1-29

@@ -347,23 +347,9 @@ begin
   for I := 0 to Length(FIoThreads) - 1 do
     PostQueuedCompletionStatus(FIocpHandle, 0, 0, POverlapped(SHUTDOWN_FLAG));
   WaitForMultipleObjects(Length(FIoThreadHandles), Pointer(FIoThreadHandles), True, INFINITE);
-
-  try
-    CloseHandle(FIocpHandle);
-  except
-  end;
-
-  try
-    for I := 0 to Length(FIoThreads) - 1 do
-      begin
-        try
-         FreeAndNil(FIoThreads[I]);
-        except
-        end;
-      end;
-  except
-  end;
-
+  CloseHandle(FIocpHandle);
+  for I := 0 to Length(FIoThreads) - 1 do
+    FreeAndNil(FIoThreads[I]);
   FIoThreads := nil;
   FIoThreadHandles := nil;
 end;
@@ -518,6 +504,9 @@ begin
   LAddrInfo := TSocketAPI.GetAddrInfo(AHost, APort, LHints);
   if (LAddrInfo = nil) then
   begin
+    {$IFDEF DEBUG}
+    _LogLastOsError;
+    {$ENDIF}
     _Failed;
     Exit;
   end;
@@ -543,6 +532,9 @@ begin
       if (TSocketAPI.Bind(LListenSocket, LAddrInfo.ai_addr, LAddrInfo.ai_addrlen) < 0)
         or (TSocketAPI.Listen(LListenSocket) < 0) then
       begin
+        {$IFDEF DEBUG}
+        _LogLastOsError;
+        {$ENDIF}
         _Failed;
         Exit;
       end;
@@ -638,10 +630,16 @@ begin
       // ERROR_CONNECTION_REFUSED, 1225, 远程计算机拒绝网络连接。
       if (LPerIoData.CrossData <> nil) then
       begin
-        LPerIoData.CrossData.Close;
-        if Assigned(LPerIoData.Callback)
-          and (LPerIoData.CrossData is TIocpConnection) then
-          LPerIoData.Callback(LPerIoData.CrossData as ICrossConnection, False);
+        // AcceptEx虽然成功, 但是Socket句柄耗尽了, 再次投递AcceptEx
+        if (LPerIoData.Action = ioAccept) then
+          _NewAccept(LPerIoData.CrossData as ICrossListen)
+        else
+        begin
+          LPerIoData.CrossData.Close;
+          if Assigned(LPerIoData.Callback)
+            and (LPerIoData.CrossData is TIocpConnection) then
+            LPerIoData.Callback(LPerIoData.CrossData as ICrossConnection, False);
+        end;
       end else
       begin
         TSocketAPI.CloseSocket(LPerIoData.Socket);

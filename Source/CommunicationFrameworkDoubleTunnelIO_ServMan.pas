@@ -12,7 +12,7 @@ uses
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework, DoStatusIO, UnicodeMixedLib,
   DataFrameEngine,
 
-  NotifyObjectBase, CoreCipher, PascalStrings;
+  NotifyObjectBase, CoreCipher, PascalStrings, MemoryStream64;
 
 {$I ServerManTypeDefine.inc}
 
@@ -36,10 +36,10 @@ type
   TServerManager_Client = class(TCommunicationFramework_DoubleTunnelClient_NoAuth)
   protected
     procedure PostExecute_RegServer(Sender: TNPostExecute);
-    procedure Command_RegServer(Sender: TPeerClient; InData: TDataFrameEngine);
+    procedure Command_RegServer(Sender: TPeerIO; InData: TDataFrameEngine);
 
     procedure PostExecute_Offline(Sender: TNPostExecute);
-    procedure Command_Offline(Sender: TPeerClient; InData: TDataFrameEngine);
+    procedure Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
   public
     Owner                               : TServerManager_ClientPool;
     NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFrameworkClient;
@@ -92,7 +92,7 @@ type
 
   TServerManager_SendTunnelData = class(TPeerClientUserDefineForSendTunnel_NoAuth)
   public
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -105,7 +105,7 @@ type
     ServerType                   : TServerType;
     SuccessEnabled               : Boolean;
   public
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
 
     procedure WriteConfig(t: TSectionTextData);
@@ -119,9 +119,9 @@ type
     procedure PostExecute_ServerOffline(Sender: TNPostExecute);
     procedure PostExecute_RegServer(Sender: TNPostExecute);
   protected
-    procedure Command_EnabledServer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+    procedure Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure PostExecute_Disconnect(Sender: TNPostExecute);
-    procedure Command_AntiIdle(Sender: TPeerClient; InData: TDataFrameEngine);
+    procedure Command_AntiIdle(Sender: TPeerIO; InData: TDataFrameEngine);
   protected
     procedure ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
     procedure ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
@@ -159,7 +159,7 @@ begin
   DisposeObject(te);
 end;
 
-procedure TServerManager_Client.Command_RegServer(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TServerManager_Client.Command_RegServer(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   te: TSectionTextData;
 begin
@@ -209,7 +209,7 @@ begin
       Owner.NotifyIntf.ServerOffline(Self, RegAddr, ServerType);
 end;
 
-procedure TServerManager_Client.Command_Offline(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TServerManager_Client.Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
 begin
   {$IFDEF FPC}
   ProgressEngine.PostExecute(InData, @PostExecute_Offline);
@@ -488,7 +488,7 @@ begin
       DisposeObject(c);
 end;
 
-constructor TServerManager_SendTunnelData.Create(AOwner: TPeerClient);
+constructor TServerManager_SendTunnelData.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
 end;
@@ -498,7 +498,7 @@ begin
   inherited Destroy;
 end;
 
-constructor TServerManager_RecvTunnelData.Create(AOwner: TPeerClient);
+constructor TServerManager_RecvTunnelData.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
   RegName := '';
@@ -607,7 +607,7 @@ var
   IDPool: TClientIDPool;
   pid   : Cardinal;
   SendDE: TDataFrameEngine;
-  peer  : TPeerClient;
+  peer  : TPeerIO;
   c     : TServerManager_RecvTunnelData;
 begin
   // fixed local connect info
@@ -629,11 +629,11 @@ begin
   DisposeObject(SendDE);
 end;
 
-procedure TServerManager.Command_EnabledServer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TServerManager.Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   IDPool : TClientIDPool;
   pid    : Cardinal;
-  peer   : TPeerClient;
+  peer   : TPeerIO;
   cli    : TServerManager_RecvTunnelData;
   SendDE : TDataFrameEngine;
   i      : Integer;
@@ -715,13 +715,13 @@ end;
 
 procedure TServerManager.PostExecute_Disconnect(Sender: TNPostExecute);
 var
-  c: TPeerClient;
+  c: TPeerIO;
 begin
-  c := Sender.Data1 as TPeerClient;
+  c := Sender.Data1 as TPeerIO;
   c.Disconnect;
 end;
 
-procedure TServerManager.Command_AntiIdle(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TServerManager.Command_AntiIdle(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   cli: TServerManager_RecvTunnelData;
 begin
@@ -754,7 +754,7 @@ procedure TServerManager.ServerOffline(Sender: TServerManager_Client; RegAddr: S
 var
   IDPool                 : TClientIDPool;
   pid                    : Cardinal;
-  peer                   : TPeerClient;
+  peer                   : TPeerIO;
   ns                     : TCoreClassStringList;
   i                      : Integer;
   vl                     : THashVariantList;
@@ -857,7 +857,7 @@ procedure TServerManager.Progress;
 var
   IDPool: TClientIDPool;
   pid   : Cardinal;
-  peer  : TPeerClient;
+  peer  : TPeerIO;
   i     : Integer;
   cli   : TServerManager_RecvTunnelData;
 begin

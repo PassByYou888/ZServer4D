@@ -22,7 +22,7 @@ uses Windows, SysUtils, Classes, Messages,
 type
   TCommunicationFramework_Client_ICS = class;
 
-  TPeerClientIntfForICS = class(TPeerClient)
+  TPeerClientIntfForICS = class(TPeerIO)
   public
     function Context: TCommunicationFramework_Client_ICS;
 
@@ -71,7 +71,7 @@ type
     procedure Disconnect; override;
 
     function Connected: Boolean; override;
-    function ClientIO: TPeerClient; override;
+    function ClientIO: TPeerIO; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
 
@@ -359,7 +359,7 @@ begin
   Result := (FDriver.State in [wsConnected]);
 end;
 
-function TCommunicationFramework_Client_ICS.ClientIO: TPeerClient;
+function TCommunicationFramework_Client_ICS.ClientIO: TPeerIO;
 begin
   Result := FClient;
 end;

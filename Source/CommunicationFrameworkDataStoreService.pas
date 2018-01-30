@@ -32,7 +32,7 @@ type
     FLastPostPerformaceTime: TTimeTickValue;
     FPostCounterOfPerSec   : Double;
   public
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
 
     procedure Progress; override;
@@ -43,7 +43,7 @@ type
 
   TDataStoreService_PeerClientSendTunnel = class(TPeerClientUserDefineForSendTunnel)
   public
-    constructor Create(AOwner: TPeerClient); override;
+    constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
 
     function RecvTunnelDefine: TDataStoreService_PeerClientRecvTunnel;
@@ -70,40 +70,40 @@ type
 
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel); override;
 
-    procedure Command_InitDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CloseDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_CopyDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CompressDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_ReplaceDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_ResetData(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_QueryDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_DownloadDB(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_DownloadDBWithID(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_DownloadDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_DownloadDBWithID(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_RequestDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_CompletedPostAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedInsertAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedModifyAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_DeleteData(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_GetDBList(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetQueryList(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetQueryState(Sender: TPeerClient; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_QueryStop(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_QueryPause(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_QueryPlay(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
     // send client command
     procedure Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
     procedure Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
-    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
-    procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     destructor Destroy; override;
@@ -114,7 +114,7 @@ type
     procedure Progress; override;
     procedure CadencerProgress(Sender: TObject; const deltaTime, newTime: Double); override;
 
-    function GetDataStoreUserDefine(RecvCli: TPeerClient): TDataStoreService_PeerClientRecvTunnel;
+    function GetDataStoreUserDefine(RecvCli: TPeerIO): TDataStoreService_PeerClientRecvTunnel;
 
     function RegisterQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
     procedure UnRegisterQueryCall(cName: SystemString);
@@ -129,10 +129,10 @@ type
 
   TDataStoreClient = class(TCommunicationFramework_DoubleTunnelClient)
   private
-    procedure Command_CompletedFragmentBigStream(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedQuery(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedFastDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
     destructor Destroy; override;
@@ -312,7 +312,7 @@ type
 implementation
 
 
-constructor TDataStoreService_PeerClientRecvTunnel.Create(AOwner: TPeerClient);
+constructor TDataStoreService_PeerClientRecvTunnel.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
   FPostPerformaceCounter := 0;
@@ -353,7 +353,7 @@ begin
   Result := SendTunnel as TDataStoreService_PeerClientSendTunnel;
 end;
 
-constructor TDataStoreService_PeerClientSendTunnel.Create(AOwner: TPeerClient);
+constructor TDataStoreService_PeerClientSendTunnel.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
 end;
@@ -464,7 +464,7 @@ begin
   inherited UserOut(UserDefineIO);
 end;
 
-procedure TDataStoreService.Command_InitDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt   : TDataStoreService_PeerClientRecvTunnel;
   inMem: Boolean;
@@ -482,7 +482,7 @@ begin
       FZDBLocal.InitDB(dbN, False);
 end;
 
-procedure TDataStoreService.Command_CloseDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt             : TDataStoreService_PeerClientRecvTunnel;
   dbN            : SystemString;
@@ -501,7 +501,7 @@ begin
       FZDBLocal.CloseDB(dbN);
 end;
 
-procedure TDataStoreService.Command_CopyDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt         : TDataStoreService_PeerClientRecvTunnel;
   dbN, copy2N: SystemString;
@@ -515,7 +515,7 @@ begin
   FZDBLocal.CopyDB(dbN, copy2N);
 end;
 
-procedure TDataStoreService.Command_CompressDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt : TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
@@ -528,7 +528,7 @@ begin
   FZDBLocal.CompressDB(dbN);
 end;
 
-procedure TDataStoreService.Command_ReplaceDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt           : TDataStoreService_PeerClientRecvTunnel;
   dbN, ReplaceN: SystemString;
@@ -542,7 +542,7 @@ begin
   FZDBLocal.ReplaceDB(dbN, ReplaceN);
 end;
 
-procedure TDataStoreService.Command_ResetData(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt : TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
@@ -555,7 +555,7 @@ begin
   FZDBLocal.ResetData(dbN);
 end;
 
-procedure TDataStoreService.Command_QueryDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt                                                      : TDataStoreService_PeerClientRecvTunnel;
   RegedQueryName                                          : SystemString;
@@ -622,7 +622,7 @@ begin
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_DownloadDB(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_DownloadDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt          : TDataStoreService_PeerClientRecvTunnel;
   ReverseQuery: Boolean;
@@ -654,7 +654,7 @@ begin
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_DownloadDBWithID(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_DownloadDBWithID(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt            : TDataStoreService_PeerClientRecvTunnel;
   ReverseQuery  : Boolean;
@@ -691,7 +691,7 @@ begin
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_RequestDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt         : TDataStoreService_PeerClientRecvTunnel;
   dbN        : SystemString;
@@ -727,7 +727,7 @@ begin
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_RequestFastDownloadAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt         : TDataStoreService_PeerClientRecvTunnel;
   dbN        : SystemString;
@@ -757,7 +757,7 @@ begin
   ClearBatchStream(rt.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_CompletedPostAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt : TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
@@ -779,7 +779,7 @@ begin
   inc(rt.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_CompletedInsertAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt       : TDataStoreService_PeerClientRecvTunnel;
   dbN      : SystemString;
@@ -803,7 +803,7 @@ begin
   inc(rt.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_CompletedModifyAssembleStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt       : TDataStoreService_PeerClientRecvTunnel;
   dbN      : SystemString;
@@ -832,7 +832,7 @@ begin
   inc(rt.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_DeleteData(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt       : TDataStoreService_PeerClientRecvTunnel;
   dbN      : SystemString;
@@ -848,7 +848,7 @@ begin
   inc(rt.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_GetDBList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TDataStoreService.Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   rt : TDataStoreService_PeerClientRecvTunnel;
   lst: TCoreClassListForObj;
@@ -869,7 +869,7 @@ begin
   DisposeObject(lst);
 end;
 
-procedure TDataStoreService.Command_GetQueryList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TDataStoreService.Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   rt: TDataStoreService_PeerClientRecvTunnel;
   i : Integer;
@@ -887,7 +887,7 @@ begin
     end;
 end;
 
-procedure TDataStoreService.Command_GetQueryState(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TDataStoreService.Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   rt   : TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
@@ -934,7 +934,7 @@ begin
   ps.Encode(OutData);
 end;
 
-procedure TDataStoreService.Command_QueryStop(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt   : TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
@@ -953,7 +953,7 @@ begin
       pl.Stop;
 end;
 
-procedure TDataStoreService.Command_QueryPause(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt   : TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
@@ -972,7 +972,7 @@ begin
       pl.Pause;
 end;
 
-procedure TDataStoreService.Command_QueryPlay(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   rt   : TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
@@ -1019,7 +1019,7 @@ begin
   ClearBatchStream(pipe.SendTunnel.Owner);
 end;
 
-procedure TDataStoreService.Send_CompletedDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+procedure TDataStoreService.Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
   de: TDataFrameEngine;
 begin
@@ -1032,7 +1032,7 @@ begin
   ClearBatchStream(ASendCli);
 end;
 
-procedure TDataStoreService.Send_CompletedFastDownloadAssemble(ASendCli: TPeerClient; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+procedure TDataStoreService.Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
   de: TDataFrameEngine;
 begin
@@ -1160,7 +1160,7 @@ begin
   inherited CadencerProgress(Sender, deltaTime, newTime);
 end;
 
-function TDataStoreService.GetDataStoreUserDefine(RecvCli: TPeerClient): TDataStoreService_PeerClientRecvTunnel;
+function TDataStoreService.GetDataStoreUserDefine(RecvCli: TPeerIO): TDataStoreService_PeerClientRecvTunnel;
 begin
   Result := RecvCli.UserDefine as TDataStoreService_PeerClientRecvTunnel;
 end;
@@ -1202,7 +1202,7 @@ begin
     end;
 end;
 
-procedure TDataStoreClient.Command_CompletedFragmentBigStream(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN, outN, pipeN: SystemString;
   BackcallPtr     : PDataStoreClientQueryNotify;
@@ -1270,7 +1270,7 @@ begin
   DisposeObject(m);
 end;
 
-procedure TDataStoreClient.Command_CompletedQuery(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN, outN, pipeN: SystemString;
   BackcallPtr     : PDataStoreClientQueryNotify;
@@ -1309,7 +1309,7 @@ begin
   Sender.UserDefine.BigStreamBatchList.Clear;
 end;
 
-procedure TDataStoreClient.Command_CompletedDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN        : SystemString;
   dStorePos  : Int64;
@@ -1379,7 +1379,7 @@ begin
     end;
 end;
 
-procedure TDataStoreClient.Command_CompletedFastDownloadAssemble(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN        : SystemString;
   dStorePos  : Int64;

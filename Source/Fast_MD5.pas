@@ -5,14 +5,10 @@ unit Fast_MD5;
 interface
 
 
-{$IF Defined(MSWINDOWS) and Defined(Delphi)}
-
 uses CoreClasses, UnicodeMixedLib;
 
 function FastMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5; overload;
 function FastMD5(Stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5; overload;
-
-{$ENDIF}
 
 implementation
 
@@ -232,6 +228,19 @@ begin
   MD5_Transform(Result, WorkBuf);
 end;
 
-{$ENDIF}
+{$ELSE}
+
+
+function FastMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
+begin
+  Result := umlMD5(BuffPtr, BufSiz);
+end;
+
+function FastMD5(Stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
+begin
+  Result := umlStreamMD5(Stream, StartPos, EndPos);
+end;
+
+{$ENDIF Defined(MSWINDOWS) and Defined(Delphi)}
 
 end.

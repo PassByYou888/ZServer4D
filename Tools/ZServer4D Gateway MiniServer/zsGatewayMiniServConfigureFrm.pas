@@ -342,7 +342,7 @@ begin
 
   ConfigureService := TCommunicationFramework_Server_CrossSocket.Create;
   ConfigureService.RegisterStream('GetConfigure').OnExecute := cmd_GetConfigure;
-  ConfigureService.AllowPrintCommand := False;
+  ConfigureService.QuietMode := True;
   ConfigureService.SwitchMaxSafe;
 
   EnabledRemoteConfigureCheckBox.OnClick := nil;

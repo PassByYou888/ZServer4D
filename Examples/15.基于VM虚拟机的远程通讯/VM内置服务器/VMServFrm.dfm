@@ -172,6 +172,7 @@ object VMServForm: TVMServForm
     end
   end
   object ProgressTimer: TTimer
+    Interval = 100
     OnTimer = ProgressTimerTimer
     Left = 208
     Top = 80

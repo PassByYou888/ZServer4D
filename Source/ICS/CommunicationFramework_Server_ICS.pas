@@ -39,7 +39,7 @@ type
     procedure ProcessThreadTrigger;
   end;
 
-  TPeerClientIntfForICS = class(TPeerClient)
+  TPeerClientIntfForICS = class(TPeerIO)
   public
     FContext: TICSContext;
 
@@ -100,8 +100,8 @@ type
 
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerClient; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
     property Driver: TCustomICSSocketServer read FDriver;
@@ -610,7 +610,7 @@ procedure TCommunicationFramework_Server_ICS.StopService;
 begin
   while Count > 0 do
     begin
-      ProgressPerClient(procedure(cli: TPeerClient)
+      ProgressPerClient(procedure(cli: TPeerIO)
         begin
           cli.Disconnect;
         end);
@@ -641,7 +641,7 @@ procedure TCommunicationFramework_Server_ICS.ProgressBackground;
 var
   i: Integer;
 begin
-  ProgressPerClient(procedure(cli: TPeerClient)
+  ProgressPerClient(procedure(cli: TPeerIO)
     begin
       TPeerClientIntfForICS(cli).FContext.ProcessClientActiveTime;
     end);
@@ -654,13 +654,13 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerClient; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
-procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerClient; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;

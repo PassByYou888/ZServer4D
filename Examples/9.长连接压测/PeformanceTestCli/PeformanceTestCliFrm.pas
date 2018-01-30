@@ -75,7 +75,7 @@ begin
   for i := low(client) to high(client) do
     begin
       client[i] := TCommunicationFramework_Client_CrossSocket.Create;
-      client[i].AllowPrintCommand := False;
+      client[i].QuietMode := True;
       client[i].SwitchMaxPerformance;
       test[i] := TCommunicationTestIntf.Create;
       test[i].RegCmd(client[i]);

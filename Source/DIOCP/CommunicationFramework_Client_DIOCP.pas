@@ -1,3 +1,12 @@
+{ ****************************************************************************** }
+{ * DIOCP Support                                                              * }
+{ * written by QQ 600585@qq.com                                                * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+(* https://github.com/PassByYou888/ZServer4D *)
+{ ****************************************************************************** }
+(*
+  update history
+*)
 unit CommunicationFramework_Client_DIOCP;
 
 {$I ..\zDefine.inc}
@@ -27,7 +36,7 @@ type
     destructor Destroy; override;
   end;
 
-  TPeerIOWithDIOCPClient = class(TPeerClient)
+  TPeerIOWithDIOCPClient = class(TPeerIO)
   private
     Link         : TIocpClientContextIntf_WithDCli;
     SendingStream: TMemoryStream64;
@@ -59,8 +68,8 @@ type
     procedure DCDoConnectFailed(Sender: TIocpClientContextIntf_WithDCli);
     procedure DCDoRecvBuffer(buf: Pointer; len: Cardinal; ErrCode: WORD);
 
-    procedure DoConnected(Sender: TPeerClient); override;
-    procedure DoDisconnect(Sender: TPeerClient); override;
+    procedure DoConnected(Sender: TPeerIO); override;
+    procedure DoDisconnect(Sender: TPeerIO); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -69,7 +78,7 @@ type
     procedure TriggerDoConnectFinished; override;
 
     function Connected: Boolean; override;
-    function ClientIO: TPeerClient; override;
+    function ClientIO: TPeerIO; override;
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
@@ -226,12 +235,12 @@ begin
   DCIntf.Link.FillRecvBuffer(TThread.CurrentThread, True, True);
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.DoConnected(Sender: TPeerClient);
+procedure TCommunicationFramework_Client_DIOCP.DoConnected(Sender: TPeerIO);
 begin
   inherited DoConnected(Sender);
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.DoDisconnect(Sender: TPeerClient);
+procedure TCommunicationFramework_Client_DIOCP.DoDisconnect(Sender: TPeerIO);
 begin
   inherited DoDisconnect(Sender);
 end;
@@ -304,7 +313,7 @@ begin
   Result := (ClientIO <> nil) and (ClientIO.Connected);
 end;
 
-function TCommunicationFramework_Client_DIOCP.ClientIO: TPeerClient;
+function TCommunicationFramework_Client_DIOCP.ClientIO: TPeerIO;
 begin
   Result := DCIntf.Link;
 end;

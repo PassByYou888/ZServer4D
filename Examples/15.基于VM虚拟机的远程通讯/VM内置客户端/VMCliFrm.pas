@@ -41,6 +41,7 @@ type
     PrintStateTimer: TTimer;
     StatusCheckBox: TCheckBox;
     OriginDataLabel: TLabel;
+    MaxTestButton: TButton;
     procedure CreateVMButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ProgressTimerTimer(Sender: TObject);
@@ -49,6 +50,7 @@ type
     procedure DisconnectButtonClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure PrintStateTimerTimer(Sender: TObject);
+    procedure MaxTestButtonClick(Sender: TObject);
   private
     procedure DoStatusMethod(AText: SystemString; const ID: Integer);
     { Private declarations }
@@ -58,7 +60,7 @@ type
     ClientWithVM    : TClientArry;
     ClientWithVMTest: TTestArry;
 
-    procedure cmd_SimulateKeepAlivte(Sender: TPeerClient; InData: TDataFrameEngine);
+    procedure cmd_SimulateKeepAlivte(Sender: TPeerIO; InData: TDataFrameEngine);
   end;
 
 var
@@ -69,18 +71,34 @@ implementation
 {$R *.dfm}
 
 
-procedure TVMCliForm.DisconnectButtonClick(Sender: TObject);
-var
-  i: Integer;
+procedure TVMCliForm.CreateVMButtonClick(Sender: TObject);
 begin
-  for i := low(ClientWithVM) to high(ClientWithVM) do
-      ClientWithVM[i].Disconnect;
-end;
+  // VM.CloseP2PVMTunnel;
+  ClientTunnel.AsyncConnect(AddrEdit.Text, 9988, procedure(const cState: Boolean)
+    begin
+      DoStatus('VM隧道已链接...');
+      if cState then
+        begin
+          DoStatus('VM正在握手...');
+          ClientTunnel.ClientIO.OpenP2PVMTunnel(10000 * 10, True,
+            procedure(const vState: Boolean)
+            var
+              i: Integer;
+            begin
+              ClientTunnel.ClientIO.p2pVMTunnel.MaxVMFragmentSize := 8192;
+              ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 8 * 1024 * 1024;
+              ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
 
-procedure TVMCliForm.DoStatusMethod(AText: SystemString; const ID: Integer);
-begin
-  if StatusCheckBox.Checked then
-      Memo.Lines.Add(AText);
+              for i := low(ClientWithVM) to high(ClientWithVM) do
+                begin
+                  ClientWithVM[i].QuietMode := False;
+                  ClientTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(ClientWithVM[i]);
+                end;
+
+              DoStatus('VM已握手');
+            end);
+        end;
+    end);
 end;
 
 procedure TVMCliForm.FormCreate(Sender: TObject);
@@ -101,6 +119,72 @@ begin
     end;
 end;
 
+procedure TVMCliForm.ProgressTimerTimer(Sender: TObject);
+var
+  i                                    : Integer;
+  TotalCli, connectingCli, ConnectedCli: Integer;
+begin
+  ClientTunnel.ProgressBackground;
+
+  for i := low(ClientWithVM) to high(ClientWithVM) do
+      ClientWithVM[i].ProgressBackground;
+
+  TotalCli := 0;
+  connectingCli := 0;
+  ConnectedCli := 0;
+
+  if ClientTunnel.Connected then
+    if ClientTunnel.ClientIO.p2pVMTunnel <> nil then
+        ClientTunnel.ClientIO.p2pVMTunnel.ProgressCommunicationFramework(procedure(PeerFramework: TCommunicationFramework)
+        begin
+          if (PeerFramework is TCommunicationFrameworkWithP2PVM_Client) then
+            begin
+              inc(TotalCli);
+
+              if TCommunicationFrameworkWithP2PVM_Client(PeerFramework).RemoteInited then
+                  inc(ConnectedCli)
+              else if TCommunicationFrameworkWithP2PVM_Client(PeerFramework).Connected then
+                  inc(connectingCli);
+            end;
+        end);
+
+  Caption := Format('VM客户端(%d)...半开链接中(%d) 链接完成(%d)', [TotalCli, connectingCli, ConnectedCli]);
+end;
+
+procedure TVMCliForm.ConnectVMButtonClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  if not ClientTunnel.Connected then
+      exit;
+
+  ClientTunnel.ClientIO.p2pVMTunnel.CloseAllClientIO;
+
+  for i := low(ClientWithVM) to high(ClientWithVM) do
+    begin
+      ClientWithVM[i].AsyncConnectTimeout := 10 * 60 * 1000;
+      ClientWithVM[i].AsyncConnect(VMAddrEdit.Text, 11139);
+    end;
+end;
+
+procedure TVMCliForm.TestButtonClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  if not ClientTunnel.Connected then
+      exit;
+  for i := low(ClientWithVM) to high(ClientWithVM) do
+      ClientWithVMTest[i].ExecuteAsyncTest(ClientWithVM[i].ClientIO);
+end;
+
+procedure TVMCliForm.DisconnectButtonClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  for i := low(ClientWithVM) to high(ClientWithVM) do
+      ClientWithVM[i].Disconnect;
+end;
+
 procedure TVMCliForm.FormDestroy(Sender: TObject);
 var
   i: Integer;
@@ -112,6 +196,16 @@ begin
       DisposeObject(ClientWithVM[i]);
     end;
   DisposeObject(ClientTunnel);
+end;
+
+procedure TVMCliForm.MaxTestButtonClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  if not ClientTunnel.Connected then
+      exit;
+  for i := low(ClientWithVM) to high(ClientWithVM) do
+      ClientWithVMTest[i].ExecuteAsyncTestWithBigStream(ClientWithVM[i].ClientIO);
 end;
 
 procedure TVMCliForm.PrintStateTimerTimer(Sender: TObject);
@@ -152,90 +246,13 @@ begin
   PrintServerState(ClientWithVM);
 end;
 
-procedure TVMCliForm.ProgressTimerTimer(Sender: TObject);
-var
-  i                                    : Integer;
-  TotalCli, connectingCli, ConnectedCli: Integer;
+procedure TVMCliForm.DoStatusMethod(AText: SystemString; const ID: Integer);
 begin
-  ClientTunnel.ProgressBackground;
-
-  for i := low(ClientWithVM) to high(ClientWithVM) do
-      ClientWithVM[i].ProgressBackground;
-
-  TotalCli := 0;
-  connectingCli := 0;
-  ConnectedCli := 0;
-
-  if ClientTunnel.Connected then
-    if ClientTunnel.ClientIO.p2pVMTunnel <> nil then
-        ClientTunnel.ClientIO.p2pVMTunnel.ProgressCommunicationFramework(procedure(PeerFramework: TCommunicationFramework)
-        begin
-          if (PeerFramework is TCommunicationFrameworkWithP2PVM_Client) then
-            begin
-              inc(TotalCli);
-
-              if TCommunicationFrameworkWithP2PVM_Client(PeerFramework).RemoteInited then
-                  inc(ConnectedCli)
-              else if TCommunicationFrameworkWithP2PVM_Client(PeerFramework).Connected then
-                  inc(connectingCli);
-            end;
-        end);
-
-  Caption := Format('VM客户端(%d)...半开链接中(%d) 链接完成(%d)', [TotalCli, connectingCli, ConnectedCli]);
+  if StatusCheckBox.Checked then
+      Memo.Lines.Add(AText);
 end;
 
-procedure TVMCliForm.TestButtonClick(Sender: TObject);
-var
-  i: Integer;
-begin
-  if not ClientTunnel.Connected then
-      exit;
-  for i := low(ClientWithVM) to high(ClientWithVM) do
-      ClientWithVMTest[i].ExecuteAsyncTest(ClientWithVM[i].ClientIO);
-end;
-
-procedure TVMCliForm.ConnectVMButtonClick(Sender: TObject);
-var
-  i: Integer;
-begin
-  if not ClientTunnel.Connected then
-      exit;
-  ClientTunnel.ClientIO.p2pVMTunnel.CloseAllClientIO;
-
-  for i := low(ClientWithVM) to high(ClientWithVM) do
-    begin
-      ClientWithVM[i].AsyncConnectTimeout := 5 * 60 * 1000;
-      ClientWithVM[i].AsyncConnect(VMAddrEdit.Text, 11139);
-    end;
-end;
-
-procedure TVMCliForm.CreateVMButtonClick(Sender: TObject);
-begin
-  // VM.CloseP2PVMTunnel;
-  ClientTunnel.AsyncConnect(AddrEdit.Text, 9988, procedure(const cState: Boolean)
-    var
-      i: Integer;
-    begin
-      DoStatus('VM隧道已链接...');
-      if cState then
-        begin
-          DoStatus('VM正在握手...');
-          ClientTunnel.ClientIO.OpenP2PVMTunnel(10000 * 10, True);
-          ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 16 * 1024 * 1024;
-          ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
-
-          for i := low(ClientWithVM) to high(ClientWithVM) do
-            begin
-              ClientWithVM[i].QuietMode := False;
-              ClientTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(ClientWithVM[i]);
-            end;
-
-          DoStatus('VM已握手');
-        end;
-    end);
-end;
-
-procedure TVMCliForm.cmd_SimulateKeepAlivte(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TVMCliForm.cmd_SimulateKeepAlivte(Sender: TPeerIO; InData: TDataFrameEngine);
 begin
   OriginDataLabel.Caption := Format('心跳包:%s', [InData.Reader.ReadString]);
 end;

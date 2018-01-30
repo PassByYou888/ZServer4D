@@ -100,6 +100,15 @@ object VMCliForm: TVMCliForm
       State = cbChecked
       TabOrder = 6
     end
+    object MaxTestButton: TButton
+      Left = 16
+      Top = 278
+      Width = 139
+      Height = 25
+      Caption = #36807#20998#27979#35797'VM'#24615#33021
+      TabOrder = 7
+      OnClick = MaxTestButtonClick
+    end
   end
   object Memo: TMemo
     Left = 185
@@ -131,6 +140,7 @@ object VMCliForm: TVMCliForm
     WordWrap = False
   end
   object ProgressTimer: TTimer
+    Interval = 100
     OnTimer = ProgressTimerTimer
     Left = 296
     Top = 64
