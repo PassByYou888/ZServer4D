@@ -16,7 +16,8 @@ unit CoreClasses;
 
 interface
 
-uses SysUtils, Classes, Types, PascalStrings
+uses SysUtils, Classes, Types, PascalStrings,
+  SyncObjs
   {$IFDEF FPC}
     , Contnrs, fgl
   {$ELSE}
@@ -235,19 +236,31 @@ begin
       FreeObject(obj);
 end;
 
+{$I CoreAtomic.inc}
+
 procedure LockObject(obj:TObject);
 begin
 {$IFDEF FPC}
+  _LockCriticalObj(obj);
 {$ELSE}
+  {$IFDEF CriticalSimulateAtomic}
+  _LockCriticalObj(obj);
+  {$ELSE}
   TMonitor.Enter(obj);
+  {$ENDIF}
 {$ENDIF}
 end;
 
 procedure UnLockObject(obj:TObject);
 begin
 {$IFDEF FPC}
+  _UnLockCriticalObj(obj);
 {$ELSE}
+  {$IFDEF CriticalSimulateAtomic}
+  _UnLockCriticalObj(obj);
+  {$ELSE}
   TMonitor.Exit(obj);
+  {$ENDIF}
 {$ENDIF}
 end;
 
@@ -394,8 +407,10 @@ end;
 {$ENDIF}
 
 initialization
+  InitCriticalLock;
   MHGlobalHookEnabled := True;
 finalization
+  FreeCriticalLock;
   MHGlobalHookEnabled := False;
 end.
 

@@ -408,8 +408,8 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         Size.Height = 239.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Viewport.Width = 661.000000000000000000
-        Viewport.Height = 239.000000000000000000
+        Viewport.Width = 657.000000000000000000
+        Viewport.Height = 235.000000000000000000
       end
     end
   end

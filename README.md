@@ -138,6 +138,14 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，每次链�
 
 ## 更新日志
 
+
+### 2018-1-31
+
+在CoreClasses.pas中新增一个原子锁的后背支持功能：CriticalSimulateAtomic，用临界区替代Atomic，在delphi下打开它会让并行功能效率降低，但是它可以兼容所有平台和fpc
+
+修复了p2pVM中的echo，用于模拟tcp链接中的keepalive
+
+
 ### 2018-1-30
 
 新增了P2PVM第二篇技术文档，简单编写，没画图

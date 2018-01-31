@@ -3,7 +3,7 @@ object ZDBBatchDataServiceForm: TZDBBatchDataServiceForm
   Top = 0
   Caption = #25968#25454#38598#26381#21153
   ClientHeight = 744
-  ClientWidth = 1193
+  ClientWidth = 1402
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object ZDBBatchDataServiceForm: TZDBBatchDataServiceForm
   object StatusMemo: TMemo
     Left = 0
     Top = 0
-    Width = 728
+    Width = 937
     Height = 744
     Align = alClient
     Lines.Strings = (
@@ -81,15 +81,17 @@ object ZDBBatchDataServiceForm: TZDBBatchDataServiceForm
     ScrollBars = ssBoth
     TabOrder = 0
     WordWrap = False
+    ExplicitWidth = 728
   end
   object WatchMemo: TMemo
-    Left = 728
+    Left = 937
     Top = 0
     Width = 465
     Height = 744
     Align = alRight
     ReadOnly = True
     TabOrder = 1
+    ExplicitLeft = 728
   end
   object Timer1: TTimer
     Interval = 10

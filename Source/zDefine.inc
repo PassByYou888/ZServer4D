@@ -14,6 +14,7 @@
 {$UNDEF FastMD5}
 {$DEFINE parallel}
 {$DEFINE OptimizationMemoryStreamMD5}
+{$DEFINE CriticalSimulateAtomic}
 
 {$ELSE}
 
@@ -29,6 +30,10 @@
 {$DEFINE FastMD5}
 {$DEFINE parallel}
 {$DEFINE OptimizationMemoryStreamMD5}
+
+// used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
+// if CriticalSimulateAtomic defined so performance to be reduced
+{.$DEFINE CriticalSimulateAtomic}
 
 {$ENDIF}
 
