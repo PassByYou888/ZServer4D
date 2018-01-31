@@ -515,15 +515,16 @@ type
     property UserSpecial: TPeerClientUserSpecial read FUserSpecial;
 
     // hash code
-    procedure GenerateHashCode(hs: THashStyle; buff: Pointer; Siz: Integer; var output: TBytes);
-    function VerifyHashCode(hs: THashStyle; buff: Pointer; Siz: Integer; var code: TBytes): Boolean;
+    procedure GenerateHashCode(hs: THashStyle; buff: Pointer; Siz: Integer; var output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function VerifyHashCode(hs: THashStyle; buff: Pointer; Siz: Integer; var code: TBytes): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     // encrypt
-    procedure Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; Enc: Boolean);
-
+    procedure Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; Enc: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     // timeout
-    function StopCommunicationTime: TTimeTickValue;
-    procedure SetLastCommunicationTimeAsCurrent;
-
+    function StopCommunicationTime: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SetLastCommunicationTimeAsCurrent; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     // queue data
     property CurrentQueueData: PQueueData read FCurrentQueueData;
 
@@ -717,7 +718,7 @@ type
     property UsedParallelEncrypt: Boolean read FUsedParallelEncrypt write FUsedParallelEncrypt;
     property SyncOnResult: Boolean read FSyncOnResult write FSyncOnResult;
     property SyncOnCompleteBuffer: Boolean read FSyncOnCompleteBuffer write FSyncOnCompleteBuffer;
-//    property AllowPrintCommand: Boolean read FQuietMode write FQuietMode;
+    // property AllowPrintCommand: Boolean read FQuietMode write FQuietMode;
     property QuietMode: Boolean read FQuietMode write FQuietMode;
     property CipherStyle: TCipherStyle read FCipherStyle;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
@@ -1165,6 +1166,7 @@ type
     function CreateLogicClient: TCommunicationFrameworkWithP2PVM_Client;
     //
     // p2p VM Peformance support
+    // MaxVMFragmentSize see also MTU
     property MaxVMFragmentSize: Cardinal read FMaxVMFragmentSize write FMaxVMFragmentSize;
     property MaxRealBuffer: Cardinal read FMaxRealBuffer write FMaxRealBuffer;
     property QuietMode: Boolean read FQuietMode write FQuietMode;
@@ -1175,7 +1177,7 @@ type
     property WasAuthed: Boolean read FAuthed;
     procedure AuthSuccessed; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
-    // p2p VM echo support
+    // p2p VM echo support and keepalive
     procedure echoing(const OnEchoPtr: POnEcho; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure echoing(OnResult: TStateCall; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure echoing(OnResult: TStateMethod; TimeOut: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -8517,14 +8519,26 @@ begin
   if FPhysicsTunnel = nil then
       Exit;
 
-  // echo
+  // echo and keepalive simulate
   i := 0;
   while i < FWaitEchoList.Count do
     begin
       OnEchoPtr := FWaitEchoList[i];
-      if OnEchoPtr^.TimeOut > GetTimeTick then
+      if OnEchoPtr^.TimeOut < GetTimeTick then
         begin
           FWaitEchoList.Delete(i);
+
+          try
+            if Assigned(OnEchoPtr^.OnEchoCall) then
+                OnEchoPtr^.OnEchoCall(False);
+            if Assigned(OnEchoPtr^.OnEchoMethod) then
+                OnEchoPtr^.OnEchoMethod(False);
+            {$IFNDEF FPC}
+            if Assigned(OnEchoPtr^.OnEchoProc) then
+                OnEchoPtr^.OnEchoProc(False);
+            {$ENDIF}
+          except
+          end;
 
           try
               Dispose(OnEchoPtr);
@@ -8891,27 +8905,31 @@ begin
                   Inc(i);
             end;
 
-          if Assigned(OnEchoPtr^.OnEchoCall) then
-              OnEchoPtr^.OnEchoCall(False);
-          if Assigned(OnEchoPtr^.OnEchoMethod) then
-              OnEchoPtr^.OnEchoMethod(False);
-          {$IFNDEF FPC}
-          if Assigned(OnEchoPtr^.OnEchoProc) then
-              OnEchoPtr^.OnEchoProc(False);
-          {$ENDIF}
+          try
+            if Assigned(OnEchoPtr^.OnEchoCall) then
+                OnEchoPtr^.OnEchoCall(False);
+            if Assigned(OnEchoPtr^.OnEchoMethod) then
+                OnEchoPtr^.OnEchoMethod(False);
+            {$IFNDEF FPC}
+            if Assigned(OnEchoPtr^.OnEchoProc) then
+                OnEchoPtr^.OnEchoProc(False);
+            {$ENDIF}
+          except
+          end;
+
           Dispose(OnEchoPtr);
         end;
       Exit;
     end;
 
-  FWaitEchoList.Add(OnEchoPtr);
-
-  u64ptr := UInt64(p);
+  u64ptr := UInt64(OnEchoPtr);
   p := BuildP2PVMPackage(8, 0, 0, c_p2pVM_echoing, @u64ptr);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
   FreeP2PVMPackage(p);
+
+  FWaitEchoList.Add(OnEchoPtr);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.echoing(OnResult: TStateCall; TimeOut: TTimeTickValue);

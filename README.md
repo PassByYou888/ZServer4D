@@ -42,19 +42,19 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 (NoSQL并行化内核已经完成，聚类分析和分布式负载已完成50%文档)
 
 
-## 操作系统和设备支持一览
+## 操作系统和设备支持一览，test with Delphi 10.2 upate 1 Tokyo
 
 Windows: CrossSocket(C/S OK), DIOCP(C/S OK), ICS(C/S OK), Indy(C/S OK)
 
 Linux(X64): CrossSocket(C/S 老版本支持，新版本未测试), Indy(C/S OK)
 
-Android:Indy(C/S OK)
+Android:Indy(C/S OK), CrossSocket(Only Client)
 
-IOS Device: Indy(C/S OK)
+IOS Device: Indy(C/S OK), CrossSocket(Only Client)
 
 IOS Simulaor: n/a
 
-OSX: Indy(C/S OK)，ICS(未测试)
+OSX: Indy(C/S OK)，ICS(未测试), CrossSocket(C/S OK)
 
 
 

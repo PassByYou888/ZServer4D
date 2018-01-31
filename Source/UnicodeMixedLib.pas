@@ -3686,7 +3686,7 @@ begin
 end;
 
 function umlMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
-{$IF Defined(FastMD5) and (Defined(WIN32) or Defined(WIN64))}
+{$IF Defined(FastMD5) and Defined(Delphi) and (Defined(WIN32) or Defined(WIN64))}
 begin
   Result := FastMD5(BuffPtr, BufSiz);
 end;
@@ -3753,7 +3753,7 @@ begin
 end;
 
 function umlStreamMD5(Stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5;
-{$IF Defined(FastMD5) and (Defined(WIN32) or Defined(WIN64))}
+{$IF Defined(FastMD5) and Defined(Delphi) and (Defined(WIN32) or Defined(WIN64))}
 begin
   Result := FastMD5(Stream, StartPos, EndPos);
 end;
