@@ -1,4 +1,4 @@
-### ZServer4D 是一套从商业项目剥离而出的云服务器中间件，可以承载百万级在线的分布式长连接负载
+## ZServer4D 是一套从商业项目(游戏类)剥离而出的云服务器中间件，可以承载百万级在线的分布式长连接负载
 
 [日常问题](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
 
