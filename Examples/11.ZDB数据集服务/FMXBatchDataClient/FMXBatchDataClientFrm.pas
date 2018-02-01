@@ -177,7 +177,7 @@ begin
       j.S['myKey'] := IntToStr(i);
       // randomValue用于演示统计和分析功能
       j.i['RandomValue'] := umlRandomRange(1, 10);
-      DBClient.PostAssembleStream(JsonDestDBEdit.Text, j);
+      DBClient.FastPostCompleteBuffer(JsonDestDBEdit.Text, j);
       DisposeObject(j);
 
       // 因为创建的json条目太多，这里要做消息处理，否则创建指令会一直堵塞在发送缓存，主要是我们不想等太久
@@ -267,7 +267,7 @@ begin
       j.S['myKey'] := IntToStr(i);
       // randomValue用于演示统计和分析功能
       j.i['RandomValue'] := umlRandomRange(1, 10);
-      DBClient.PostAssembleStream(JsonDestDBEdit.Text, j);
+      DBClient.FastPostCompleteBuffer(JsonDestDBEdit.Text, j);
       DisposeObject(j);
 
       // 因为创建的json条目太多，这里要做消息处理，否则创建指令会一直堵塞在发送缓存，主要是我们不想等太久

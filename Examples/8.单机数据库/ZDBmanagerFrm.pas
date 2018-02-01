@@ -403,7 +403,7 @@ begin
       if qState.IsDF then
         with qState.DBEng.GetDF(qState) do
           if InRange(ReadDouble(0), -100, 100) then
-              qState.DBEng.DeleteData(qState.StorePos);
+              qState.DBEng.PostDeleteData(qState.StorePos);
     end;
 end;
 
@@ -436,7 +436,7 @@ begin
     begin
       if qs.IsString then
         if umlMultipleMatch(True, 'insert*', DBEng.PascalString[qs.StorePos]) then
-            DBEng.DeleteData(qs.StorePos);
+            DBEng.PostDeleteData(qs.StorePos);
     end);
 
   doStatus('');

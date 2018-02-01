@@ -139,6 +139,15 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，每次链�
 ## 更新日志
 
 
+### 2018-2-1
+
+ZDB网络数据库现在支持基于CompleteBuffer的FastPost，可以支持到每秒10000条以上记录量通过服务器存储
+
+删除数据条目的机制改为安全队列
+
+删除了Tools目录中的EXE
+
+
 ### 2018-1-31
 
 在CoreClasses.pas中新增一个原子锁的后背支持功能：CriticalSimulateAtomic，用临界区替代Atomic，在delphi下打开它会让并行功能效率降低，但是它可以兼容所有平台和fpc

@@ -110,14 +110,11 @@ type
     procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean); overload;
     procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall); overload;
     procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod); overload;
-    {$IFNDEF FPC}
-    procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload; {$ENDIF}
     procedure ClearBatchStream(cli: TPeerIO);
     procedure GetBatchStreamState(cli: TPeerIO; OnResult: TStreamMethod); overload;
-    {$IFNDEF FPC}
-    procedure GetBatchStreamState(cli: TPeerIO; OnResult: TStreamProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure GetBatchStreamState(cli: TPeerIO; OnResult: TStreamProc); overload; {$ENDIF}
+    //
     property CanStatus: Boolean read FCanStatus write FCanStatus;
     property CadencerEngine: TCadencer read FCadencerEngine;
     property ProgressEngine: TNProgressPost read FProgressEngine;
@@ -265,14 +262,10 @@ type
     procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean); overload;
     procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall); overload;
     procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod); overload;
-    {$IFNDEF FPC}
-    procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload; {$ENDIF}
     procedure ClearBatchStream;
     procedure GetBatchStreamState(OnResult: TStreamMethod); overload;
-    {$IFNDEF FPC}
-    procedure GetBatchStreamState(OnResult: TStreamProc); overload;
-    {$ENDIF}
+    {$IFNDEF FPC} procedure GetBatchStreamState(OnResult: TStreamProc); overload; {$ENDIF}
     function GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTickValue): Boolean; overload;
 
     procedure RegisterCommand; virtual;

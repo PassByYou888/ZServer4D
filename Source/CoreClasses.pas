@@ -176,7 +176,7 @@ procedure CopyPtr(sour, dest:Pointer; Count: NativeUInt); {$IFDEF INLINE_ASM} in
 procedure RaiseInfo(n: SystemString); overload;
 procedure RaiseInfo(n: SystemString; const Args: array of const); overload;
 
-function IsMobile: Boolean;
+function IsMobile: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function GetTimeTickCount: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function GetTimeTick: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}

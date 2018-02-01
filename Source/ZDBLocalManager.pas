@@ -12,7 +12,7 @@ unit ZDBLocalManager;
 
 interface
 
-uses Variants,
+uses SysUtils, Variants,
   CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, TextDataEngine,
   {$IFNDEF FPC}
   JsonDataObjects,
@@ -274,10 +274,10 @@ type
     {$ENDIF}
     //
     // delete operation
-    function DeleteData(dN: SystemString; StorePos: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeleteData(dN: SystemString; StorePos: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
     // manual getData
-    function GetData(dN: SystemString; StorePos: Int64; ID: Cardinal): TItemStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetData(dN: SystemString; StorePos: Int64; ID: Cardinal): TMemoryStream64InCache; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
     // modify operation
     function SetData(dN: SystemString; StorePos: Int64; dSour: TMemoryStream64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -300,23 +300,31 @@ type
 
 function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+// fill and store
 procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStoreBase); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 {$IFNDEF FPC} procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}{$ENDIF}
-//
+
+// fill and trigger
 procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 {$IFNDEF FPC} procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}{$ENDIF}
-
+// one fragment operation
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecodeOneFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecodeOneNewFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecodeOneNewFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+// encrypt as completeBuffer
+function EncodeOneBuff(const dbN: TPascalString; const ID: Cardinal; const StorePos: Int64;
+  buff: Pointer; buffSiz: NativeUInt; var outputSiz: NativeUInt): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOneBuff(buff: Pointer; buffSiz: NativeUInt;
+  var dbN: TPascalString; var ID: Cardinal; var StorePos: Int64; var output: Pointer; var outputSiz: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
 implementation
@@ -595,16 +603,16 @@ end;
 
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
 var
-  itmStream: TItemStream;
+  itmStream: TMemoryStream64InCache;
   siz      : Int64;
   ID       : Cardinal;
 begin
   Result := False;
-  itmStream := db.GetData(StorePos);
+  itmStream := db.GetCacheStream(StorePos);
   if itmStream <> nil then
     begin
       siz := itmStream.Size;
-      ID := itmStream.Hnd^.Item.RHeader.UserProperty;
+      ID := itmStream.CacheID;
       DestStream.Position := DestStream.Size;
       DestStream.WritePtr(@StorePos, umlInt64Length);
       DestStream.WritePtr(@siz, umlInt64Length);
@@ -669,6 +677,41 @@ var
   ID       : Cardinal;
 begin
   Result := DecodeOneNewFragment(DataSour, dStorePos, ID);
+end;
+
+function EncodeOneBuff(const dbN: TPascalString; const ID: Cardinal; const StorePos: Int64;
+  buff: Pointer; buffSiz: NativeUInt; var outputSiz: NativeUInt): Pointer;
+var
+  nb: TBytes;
+  l : word;
+  p : PByteArray;
+begin
+  dbN.FastGetBytes(nb);
+  l := length(nb);
+  outputSiz := 2 + l + 4 + 8 + buffSiz;
+  p := GetMemory(outputSiz);
+  Result := p;
+  PWord(@p^[0])^ := l;
+  copyPtr(@nb[0], @p^[2], l);
+  PCardinal(@(p^[2 + l]))^ := ID;
+  PInt64(@(p^[2 + l + 4]))^ := StorePos;
+  copyPtr(buff, @p^[2 + l + 4 + 8], buffSiz);
+end;
+
+procedure DecodeOneBuff(buff: Pointer; buffSiz: NativeUInt;
+  var dbN: TPascalString; var ID: Cardinal; var StorePos: Int64; var output: Pointer; var outputSiz: NativeUInt);
+var
+  nb: TBytes;
+  p : PByteArray;
+begin
+  p := buff;
+  setLength(nb, PWord(@p^[0])^);
+  copyPtr(@p^[2], @nb[0], PWord(@p^[0])^);
+  dbN.Bytes := nb;
+  ID := PCardinal(@(p^[2 + PWord(@p^[0])^]))^;
+  StorePos := PInt64(@(p^[2 + PWord(@p^[0])^ + 4]))^;
+  outputSiz := buffSiz - (2 + PWord(@p^[0])^ + 4 + 8);
+  output := @p^[2 + PWord(@p^[0])^ + 4 + 8];
 end;
 
 procedure TZDBStoreEngine.DoCreateInit;
@@ -1748,16 +1791,16 @@ end;
 function TZDBLocalManager.PostData(dN: SystemString; sourDBEng: TZDBStoreEngine; SourStorePos: Int64): Int64;
 var
   d: TZDBStoreEngine;
-  m: TItemStream;
+  m: TMemoryStream64InCache;
 begin
   Result := -1;
   d := GetDB(dN);
   if d = nil then
       d := InitMemoryDB(dN);
-  m := sourDBEng.GetData(SourStorePos);
+  m := sourDBEng.GetCacheStream(SourStorePos);
   if m <> nil then
     begin
-      Result := d.AddData(m, m.Hnd^.Item.RHeader.UserProperty);
+      Result := d.AddData(m, m.CacheID);
       DisposeObject(m);
     end;
 end;
@@ -1765,16 +1808,16 @@ end;
 function TZDBLocalManager.PostData(dN: SystemString; var qState: TQueryState): Int64;
 var
   d: TZDBStoreEngine;
-  m: TItemStream;
+  m: TMemoryStream64InCache;
 begin
   Result := -1;
   d := GetDB(dN);
   if d = nil then
       d := InitMemoryDB(dN);
-  m := qState.DBEng.GetData(qState.StorePos, qState.ID);
+  m := qState.DBEng.GetCacheStream(qState.StorePos, qState.ID);
   if m <> nil then
     begin
-      Result := d.AddData(m, m.Hnd^.Item.RHeader.UserProperty);
+      Result := d.AddData(m, m.CacheID);
       DisposeObject(m);
     end;
 end;
@@ -1889,7 +1932,7 @@ begin
         if umlMultipleMatch(True, '*.OX', n) then
             InitDB(umlChangeFileExt(n, '').Text, readonly);
     end;
-  SetLength(arr, 0);
+  setLength(arr, 0);
 end;
 
 procedure TZDBLocalManager.SetRootPath(const Value: SystemString);
@@ -1998,18 +2041,17 @@ end;
 {$ENDIF}
 
 
-function TZDBLocalManager.DeleteData(dN: SystemString; StorePos: Int64): Boolean;
+procedure TZDBLocalManager.DeleteData(dN: SystemString; StorePos: Int64);
 var
   d: TZDBStoreEngine;
 begin
-  Result := False;
   d := GetDB(dN);
   if d = nil then
       exit;
-  Result := d.DeleteData(StorePos);
+  d.PostDeleteData(StorePos);
 end;
 
-function TZDBLocalManager.GetData(dN: SystemString; StorePos: Int64; ID: Cardinal): TItemStream;
+function TZDBLocalManager.GetData(dN: SystemString; StorePos: Int64; ID: Cardinal): TMemoryStream64InCache;
 var
   d: TZDBStoreEngine;
 begin
@@ -2017,7 +2059,7 @@ begin
   d := GetDB(dN);
   if d = nil then
       exit;
-  Result := d.GetData(StorePos, ID);
+  Result := d.GetCacheStream(StorePos, ID);
 end;
 
 function TZDBLocalManager.SetData(dN: SystemString; StorePos: Int64; dSour: TMemoryStream64): Boolean;
@@ -2030,5 +2072,7 @@ begin
       exit;
   Result := d.SetData(StorePos, dSour);
 end;
+
+initialization
 
 end.

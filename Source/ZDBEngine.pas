@@ -15,7 +15,8 @@ unit ZDBEngine;
 
 interface
 
-uses ListEngine, PascalStrings, UnicodeMixedLib, TextDataEngine,
+uses SysUtils, Classes,
+  ListEngine, PascalStrings, UnicodeMixedLib, TextDataEngine,
   {$IFNDEF FPC} JsonDataObjects, {$ENDIF}
   CoreClasses, MemoryStream64, ObjectData, ObjectDataManager,
   DataFrameEngine, ItemStream;
@@ -230,14 +231,19 @@ type
     function IsOther: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
-  TQueryCall       = procedure(var qState: TQueryState);
-  TQueryMethod     = procedure(var qState: TQueryState) of object;
+  TQueryCall   = procedure(var qState: TQueryState);
+  TQueryMethod = procedure(var qState: TQueryState) of object;
+
   TQueryDoneCall   = procedure();
   TQueryDoneMethod = procedure() of object;
+
+  TRemoveCall   = procedure(StorePos: Int64; RemoveSuccesed: Boolean);
+  TRemoveMethod = procedure(StorePos: Int64; RemoveSuccesed: Boolean) of object;
 
   {$IFNDEF FPC}
   TQueryProc     = reference to procedure(var qState: TQueryState);
   TQueryDoneProc = reference to procedure();
+  TRemoveProc    = reference to procedure(StorePos: Int64; RemoveSuccesed: Boolean);
   {$ENDIF}
 
   TQueryTask = class(TCoreClassObject)
@@ -282,16 +288,39 @@ type
     function ConsumTime: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
+  PRemoveQueueData = ^TRemoveQueueData;
+
+  TRemoveQueueData = record
+    OnRemoveCall: TRemoveCall;
+    OnRemoveMethod: TRemoveMethod;
+    {$IFNDEF FPC}
+    OnRemoveProc: TRemoveProc;
+    {$ENDIF FPC}
+  end;
+
   TQueryThread = class(TCoreClassThread)
   public
-    StoreEngine   : TDBStoreBase;
-    Paused        : Boolean;
-    PausedIdleTime: Double;
+    StoreEngine                      : TDBStoreBase;
+    Paused                           : Boolean;
+    PausedIdleTime                   : Double;
+    RemoveQueue, RemoveCompletedQueue: TInt64HashPointerList;
+
     procedure SyncQuery;
+    procedure SyncRemove;
     procedure SyncCheckCache;
     procedure SyncUpdateCacheState;
+
     procedure Execute; override;
+
+    constructor Create(CreateSuspended: Boolean);
     destructor Destroy; override;
+
+    procedure RemoveDeleteProc(p: Pointer);
+
+    procedure PostRemoveQueue(StorePos: Int64); overload;
+    procedure PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveCall); overload;
+    procedure PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveMethod); overload;
+    {$IFNDEF FPC} procedure PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveProc); overload; {$ENDIF FPC}
   end;
 
   IDBStoreBaseNotify = interface
@@ -315,6 +344,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    property CacheID: Cardinal read ID;
   end;
 
   TDBStoreBase = class(TCoreClassInterfacedObject)
@@ -342,20 +373,24 @@ type
     FResultDF                     : TDBEngineDF;
     FResultVL                     : TDBEngineVL;
     FResultTE                     : TDBEngineTE;
-    {$IFNDEF FPC}
-    FResultJson: TDBEngineJson;
-    {$ENDIF}
-    FResultPascalString: TDBEnginePascalString;
+    {$IFNDEF FPC} FResultJson     : TDBEngineJson; {$ENDIF}
+    FResultPascalString           : TDBEnginePascalString;
 
     procedure ReadHeaderInfo;
 
     procedure ThreadFreeEvent(Sender: TObject);
+
     procedure DoCreateInit; virtual;
 
     procedure InstanceCacheObjectFreeProc(obj: TCoreClassObject);
+    { }
     procedure ProcessNewInstanceCache(StorePos: Int64; obj: TCoreClassObject; siz: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
     procedure StreamCacheObjectFreeProc(obj: TCoreClassObject);
+    { }
     procedure ProcessNewStreamCache(m: TMemoryStream64InCache); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function DeleteData(const StorePos: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   public
     constructor Create(DBFile: SystemString; OnlyRead: Boolean);
     constructor CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
@@ -374,17 +409,17 @@ type
     procedure LoadFromStream(Stream: TCoreClassStream);
     procedure LoadFromFile(fn: SystemString);
 
-    function IsMemoryMode: Boolean;
-    function IsReadOnly: Boolean;
-    procedure ResetDB;
-    function RenameDB(newName: SystemString): Boolean;
-
+    function IsMemoryMode: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsReadOnly: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ResetDB; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RenameDB(newName: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
     property DBEngine: TObjectDataManagerOfCache read FDBEngine;
     property Count: Int64 read FCount;
 
     // cache states
     property Cache: TInt64HashObjectList read FCache;
-    procedure Recache;
+    procedure Recache; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function AllowedCache: Boolean; virtual;
 
     property CacheStyle: TCacheStyle read FCacheStyle write FCacheStyle;
@@ -401,12 +436,8 @@ type
     function AddData(buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function AddData(buff: TCoreClassStream; ID: Cardinal): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function SetData(const StorePos: Int64; buff: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetData(const StorePos: Int64; ID: Cardinal): TItemStream; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetData(const StorePos: Int64): TItemStream; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetCacheStream(const StorePos: Int64; ID: Cardinal): TMemoryStream64InCache; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetCacheStream(const StorePos: Int64): TMemoryStream64InCache; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function DeleteData(const StorePos: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetSize(const StorePos: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     // backcall
     property NotifyIntf: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
 
@@ -484,6 +515,8 @@ type
     procedure StopQuery(const TaskTag: SystemString);
     procedure StopAllQuery;
 
+    // post operation
+    procedure PostDeleteData(const StorePos: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     // data operation
     function InsertData(const InsertPos: Int64; buff: TDataFrameEngine): Int64; overload;
     function AddData(buff: TDataFrameEngine): Int64; overload;
@@ -546,9 +579,30 @@ var
   c_Json        : Cardinal = $FFFFFFF3;
   c_PascalString: Cardinal = $FFFFFFF4;
 
+procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+
 implementation
 
-uses MH_ZDB, CoreCipher, DoStatusIO, SysUtils, Classes;
+uses MH_ZDB, CoreCipher, DoStatusIO;
+
+procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+begin
+  if Sync then
+    begin
+      try
+          TCoreClassThread.Synchronize(t, proc);
+      except
+      end;
+    end
+  else
+    begin
+      try
+          proc;
+      except
+      end;
+    end;
+end;
 
 constructor TDBEngineDF.Create;
 begin
@@ -1303,7 +1357,11 @@ begin
   Result := False;
   if FStoped then
     begin
-      DoQueryDone;
+      {$IFDEF FPC}
+      zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+      {$ELSE }
+      zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+      {$ENDIF FPC}
       exit;
     end;
 
@@ -1323,13 +1381,25 @@ begin
         begin
           if not FDBEng.QueryPrev(FState) then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
-          DoTriggerQuery;
+          {$IFDEF FPC}
+          zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
+          {$ELSE }
+          zDBthSync(FDBEng.FQueryThread, True, DoTriggerQuery);
+          {$ENDIF FPC}
           if FState.Aborted then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
           Result := True;
@@ -1338,13 +1408,25 @@ begin
         begin
           if not FDBEng.QueryNext(FState) then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
-          DoTriggerQuery;
+          {$IFDEF FPC}
+          zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
+          {$ELSE }
+          zDBthSync(FDBEng.FQueryThread, True, DoTriggerQuery);
+          {$ENDIF FPC}
           if FState.Aborted then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
           Result := True;
@@ -1361,13 +1443,25 @@ begin
         begin
           if not FDBEng.QueryLast(FState) then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
-          DoTriggerQuery;
+          {$IFDEF FPC}
+          zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
+          {$ELSE }
+          zDBthSync(FDBEng.FQueryThread, True, DoTriggerQuery);
+          {$ENDIF FPC}
           if FState.Aborted then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
           Result := True;
@@ -1376,13 +1470,25 @@ begin
         begin
           if not FDBEng.QueryFirst(FState) then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
-          DoTriggerQuery;
+          {$IFDEF FPC}
+          zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
+          {$ELSE }
+          zDBthSync(FDBEng.FQueryThread, True, DoTriggerQuery);
+          {$ENDIF FPC}
           if FState.Aborted then
             begin
-              DoQueryDone;
+              {$IFDEF FPC}
+              zDBthSync(FDBEng.FQueryThread, True, @DoQueryDone);
+              {$ELSE }
+              zDBthSync(FDBEng.FQueryThread, True, DoQueryDone);
+              {$ENDIF FPC}
               exit;
             end;
           Result := True;
@@ -1405,8 +1511,9 @@ end;
 
 procedure TQueryThread.SyncQuery;
 var
-  i : Integer;
-  qt: TQueryTask;
+  i        : Integer;
+  qt       : TQueryTask;
+  completed: Boolean;
 begin
   if StoreEngine = nil then
       exit;
@@ -1415,7 +1522,10 @@ begin
   while i < StoreEngine.FQueryQueue.Count do
     begin
       qt := StoreEngine.FQueryQueue[i] as TQueryTask;
-      if not qt.ProcessQuery then
+
+      completed := not qt.ProcessQuery;
+
+      if completed then
         begin
           DoStatus('complete query task,consum time: %dms', [qt.FState.NewTime]);
           DisposeObject(qt);
@@ -1426,11 +1536,63 @@ begin
     end;
 
   Paused := StoreEngine.FQueryQueue.Count = 0;
+
   if Paused then
     begin
       StoreEngine.FQueryThreadLastActivtedTime := Now;
       SyncUpdateCacheState;
     end;
+end;
+
+procedure TQueryThread.SyncRemove;
+var
+  i         : Integer;
+  p         : PInt64HashListPointerStruct;
+  triggerPtr: PRemoveQueueData;
+  removed   : Boolean;
+begin
+  if StoreEngine = nil then
+      exit;
+
+  RemoveCompletedQueue.Clear;
+
+  if RemoveQueue.Count > 0 then
+    begin
+      i := 0;
+      p := RemoveQueue.FirstPtr;
+      while i < RemoveQueue.Count do
+        begin
+          triggerPtr := p^.Data;
+
+          if RemoveCompletedQueue.Exists(p^.i64) then
+              removed := True
+          else
+            begin
+              removed := StoreEngine.DeleteData(p^.i64);
+              RemoveCompletedQueue.Add(p^.i64, triggerPtr);
+            end;
+
+          if triggerPtr <> nil then
+            begin
+              try
+                if Assigned(triggerPtr^.OnRemoveCall) then
+                    triggerPtr^.OnRemoveCall(p^.i64, removed);
+                if Assigned(triggerPtr^.OnRemoveMethod) then
+                    triggerPtr^.OnRemoveMethod(p^.i64, removed);
+                {$IFNDEF FPC}
+                if Assigned(triggerPtr^.OnRemoveProc) then
+                    triggerPtr^.OnRemoveProc(p^.i64, removed);
+                {$ENDIF FPC}
+              except
+              end;
+            end;
+
+          inc(i);
+          p := p^.next;
+        end;
+    end;
+  RemoveQueue.Clear;
+  RemoveCompletedQueue.Clear;
 end;
 
 procedure TQueryThread.SyncCheckCache;
@@ -1488,49 +1650,113 @@ begin
       PausedIdleTime := 0;
       while Paused do
         begin
-          Sleep(100);
-          PausedIdleTime := PausedIdleTime + 0.1;
+          Sleep(10);
+          PausedIdleTime := PausedIdleTime + 0.01;
 
-          try
-            {$IFDEF FPC}
-            Synchronize(Self, @SyncCheckCache);
-            {$ELSE}
-            Synchronize(Self, SyncCheckCache);
-            {$ENDIF}
-          except
-          end;
+          {$IFDEF FPC}
+          zDBthSync(Self, True, @SyncCheckCache);
+          {$ELSE }
+          zDBthSync(Self, True, SyncCheckCache);
+          {$ENDIF FPC}
         end;
 
-      try
-        {$IFDEF FPC}
-        Synchronize(Self, @SyncQuery);
-        {$ELSE}
-        Synchronize(Self, SyncQuery);
-        {$ENDIF}
-      except
-      end;
-
-      //
+      {$IFDEF FPC}
+      zDBthSync(Self, True, @SyncQuery);
+      {$ELSE }
+      zDBthSync(Self, True, SyncQuery);
+      {$ENDIF FPC}
+      {$IFDEF FPC}
+      zDBthSync(Self, True, @SyncRemove);
+      {$ELSE }
+      zDBthSync(Self, True, SyncRemove);
+      {$ENDIF FPC}
       if (cloop = 0) or (cloop > 10000) then
         begin
           cloop := 0;
-          try
-            {$IFDEF FPC}
-            Synchronize(Self, @SyncUpdateCacheState);
-            {$ELSE}
-            Synchronize(Self, SyncUpdateCacheState);
-            {$ENDIF}
-          except
-          end;
+          {$IFDEF FPC}
+          zDBthSync(Self, True, @SyncUpdateCacheState);
+          {$ELSE }
+          zDBthSync(Self, True, SyncUpdateCacheState);
+          {$ENDIF FPC}
         end;
       inc(cloop);
     end;
 end;
 
+constructor TQueryThread.Create(CreateSuspended: Boolean);
+begin
+  inherited Create(CreateSuspended);
+  FreeOnTerminate := True;
+  Paused := True;
+
+  RemoveQueue := TInt64HashPointerList.Create(1024);
+  RemoveQueue.AutoFreeData := True;
+  {$IFDEF FPC}
+  RemoveQueue.OnDataFreeProc := @RemoveDeleteProc;
+  {$ELSE }
+  RemoveQueue.OnDataFreeProc := RemoveDeleteProc;
+  {$ENDIF FPC}
+  RemoveCompletedQueue := TInt64HashPointerList.Create(1024);
+  RemoveCompletedQueue.AutoFreeData := False;
+end;
+
 destructor TQueryThread.Destroy;
 begin
+  DisposeObject([RemoveQueue, RemoveCompletedQueue]);
   inherited Destroy;
 end;
+
+procedure TQueryThread.RemoveDeleteProc(p: Pointer);
+begin
+  if p <> nil then
+      Dispose(PRemoveQueueData(p));
+end;
+
+procedure TQueryThread.PostRemoveQueue(StorePos: Int64);
+begin
+  RemoveQueue.Add(StorePos, nil, False);
+end;
+
+procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveCall);
+var
+  p: PRemoveQueueData;
+begin
+  new(p);
+  p^.OnRemoveCall := OnRemove;
+  p^.OnRemoveMethod := nil;
+  {$IFNDEF FPC}
+  p^.OnRemoveProc := nil;
+  {$ENDIF FPC}
+  RemoveQueue.Add(StorePos, p, False);
+end;
+
+procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveMethod);
+var
+  p: PRemoveQueueData;
+begin
+  new(p);
+  p^.OnRemoveCall := nil;
+  p^.OnRemoveMethod := OnRemove;
+  {$IFNDEF FPC}
+  p^.OnRemoveProc := nil;
+  {$ENDIF FPC}
+  RemoveQueue.Add(StorePos, p, False);
+end;
+
+{$IFNDEF FPC}
+
+procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveProc);
+var
+  p: PRemoveQueueData;
+begin
+  new(p);
+  p^.OnRemoveCall := nil;
+  p^.OnRemoveMethod := nil;
+  p^.OnRemoveProc := OnRemove;
+  RemoveQueue.Add(StorePos, p, False);
+end;
+{$ENDIF FPC}
+
 
 constructor TMemoryStream64InCache.Create;
 begin
@@ -1581,8 +1807,7 @@ begin
 
   FQueryThread := TQueryThread.Create(True);
   FQueryThread.StoreEngine := Self;
-  FQueryThread.Paused := True;
-  FQueryThread.FreeOnTerminate := True;
+
   FQueryThreadTerminate := False;
   FQueryThreadLastActivtedTime := Now;
 
@@ -1675,6 +1900,37 @@ begin
   if FUsedStreamCacheMemory > FMaximumStreamCacheMemorySize then
     while (FUsedStreamCacheMemory > FMinimizeStreamCacheMemorySize) and (FStreamCache.First <> m) do
         FStreamCache.DeleteFirst;
+end;
+
+function TDBStoreBase.DeleteData(const StorePos: Int64): Boolean;
+var
+  itmHnd: TItemHandle;
+begin
+  Result := False;
+  if IsReadOnly then
+      exit;
+
+  FCache.Delete(StorePos);
+  FStreamCache.Delete(StorePos);
+
+  if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
+    begin
+      FDBEngine.HeaderCache.Delete(itmHnd.Item.RHeader.CurrentHeader);
+      FDBEngine.ItemCache.Delete(itmHnd.Item.RHeader.DataMainPOS);
+      FDBEngine.ItemBlockCache.Delete(itmHnd.Item.FirstBlockPOS);
+    end;
+
+  Result := FDBEngine.FastDelete(FStoreFieldPos, StorePos);
+  if Result then
+    begin
+      Dec(FCount);
+
+      try
+        if Assigned(FNotifyIntf) then
+            FNotifyIntf.DoDeleteData(Self, StorePos);
+      except
+      end;
+    end;
 end;
 
 constructor TDBStoreBase.Create(DBFile: SystemString; OnlyRead: Boolean);
@@ -2040,56 +2296,38 @@ begin
       end;
 end;
 
-function TDBStoreBase.GetData(const StorePos: Int64; ID: Cardinal): TItemStream;
-var
-  itmHnd: TItemHandle;
-begin
-  Result := nil;
-
-  if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
-    begin
-      if ID = itmHnd.Item.RHeader.UserProperty then
-          Result := TItemStream.Create(FDBEngine, itmHnd);
-    end;
-end;
-
-function TDBStoreBase.GetData(const StorePos: Int64): TItemStream;
-var
-  itmHnd: TItemHandle;
-begin
-  Result := nil;
-
-  if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
-      Result := TItemStream.Create(FDBEngine, itmHnd);
-end;
-
 function TDBStoreBase.GetCacheStream(const StorePos: Int64; ID: Cardinal): TMemoryStream64InCache;
 var
+  itmHnd   : TItemHandle;
   itmStream: TItemStream;
 begin
   Result := TMemoryStream64InCache(FStreamCache[StorePos]);
   if Result = nil then
     begin
-      itmStream := GetData(StorePos, ID);
-      if itmStream = nil then
-          exit;
+      itmStream := nil;
 
-      try
-        Result := TMemoryStream64InCache.Create;
-        Result.CopyFrom(itmStream, itmStream.Size);
-        Result.Position := 0;
+      if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
+        begin
+          if ID = itmHnd.Item.RHeader.UserProperty then
+              itmStream := TItemStream.Create(FDBEngine, itmHnd);
 
-        Result.OwnerEng := Self;
-        Result.OwnerCache := FStreamCache;
-        Result.ID := itmStream.Hnd^.Item.RHeader.UserProperty;
-        Result.CreateTime := itmStream.Hnd^.CreateTime;
-        Result.LastModifyTime := itmStream.Hnd^.LastModifyTime;
-        Result.StorePos := StorePos;
-      finally
-          ProcessNewStreamCache(Result);
-      end;
+          try
+            Result := TMemoryStream64InCache.Create;
+            Result.CopyFrom(itmStream, itmStream.Size);
+            Result.Position := 0;
 
-      DisposeObject(itmStream);
+            Result.OwnerEng := Self;
+            Result.OwnerCache := FStreamCache;
+            Result.ID := itmStream.Hnd^.Item.RHeader.UserProperty;
+            Result.CreateTime := itmStream.Hnd^.CreateTime;
+            Result.LastModifyTime := itmStream.Hnd^.LastModifyTime;
+            Result.StorePos := StorePos;
+          finally
+              ProcessNewStreamCache(Result);
+          end;
+
+          DisposeObject(itmStream);
+        end;
     end
   else if Result.ID <> ID then
       Result := nil
@@ -2099,74 +2337,36 @@ end;
 
 function TDBStoreBase.GetCacheStream(const StorePos: Int64): TMemoryStream64InCache;
 var
+  itmHnd   : TItemHandle;
   itmStream: TItemStream;
 begin
   Result := TMemoryStream64InCache(FStreamCache[StorePos]);
   if Result = nil then
     begin
-      itmStream := GetData(StorePos);
-      if itmStream = nil then
-          exit;
+      if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
+        begin
+          itmStream := TItemStream.Create(FDBEngine, itmHnd);
 
-      try
-        Result := TMemoryStream64InCache.Create;
-        Result.CopyFrom(itmStream, itmStream.Size);
-        Result.Position := 0;
+          try
+            Result := TMemoryStream64InCache.Create;
+            Result.CopyFrom(itmStream, itmStream.Size);
+            Result.Position := 0;
 
-        Result.OwnerEng := Self;
-        Result.OwnerCache := FStreamCache;
-        Result.ID := itmStream.Hnd^.Item.RHeader.UserProperty;
-        Result.CreateTime := itmStream.Hnd^.CreateTime;
-        Result.LastModifyTime := itmStream.Hnd^.LastModifyTime;
-        Result.StorePos := StorePos;
-      finally
-          ProcessNewStreamCache(Result);
-      end;
+            Result.OwnerEng := Self;
+            Result.OwnerCache := FStreamCache;
+            Result.ID := itmStream.Hnd^.Item.RHeader.UserProperty;
+            Result.CreateTime := itmStream.Hnd^.CreateTime;
+            Result.LastModifyTime := itmStream.Hnd^.LastModifyTime;
+            Result.StorePos := StorePos;
+          finally
+              ProcessNewStreamCache(Result);
+          end;
 
-      DisposeObject(itmStream);
+          DisposeObject(itmStream);
+        end;
     end
   else
       Result.Position := 0;
-end;
-
-function TDBStoreBase.DeleteData(const StorePos: Int64): Boolean;
-var
-  itmHnd: TItemHandle;
-begin
-  Result := False;
-  if IsReadOnly then
-      exit;
-
-  FCache.Delete(StorePos);
-  FStreamCache.Delete(StorePos);
-
-  if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
-    begin
-      FDBEngine.HeaderCache.Delete(itmHnd.Item.RHeader.CurrentHeader);
-      FDBEngine.ItemCache.Delete(itmHnd.Item.RHeader.DataMainPOS);
-      FDBEngine.ItemBlockCache.Delete(itmHnd.Item.FirstBlockPOS);
-    end;
-
-  Result := FDBEngine.FastDelete(FStoreFieldPos, StorePos);
-  if Result then
-    begin
-      Dec(FCount);
-
-      try
-        if Assigned(FNotifyIntf) then
-            FNotifyIntf.DoDeleteData(Self, StorePos);
-      except
-      end;
-    end;
-end;
-
-function TDBStoreBase.GetSize(const StorePos: Int64): Int64;
-var
-  itmHnd: TItemHandle;
-begin
-  Result := -1;
-  if DBEngine.ItemFastOpen(StorePos, itmHnd) then
-      Result := itmHnd.Item.Size;
 end;
 
 function TDBStoreBase.QueryFirst(var qState: TQueryState): Boolean;
@@ -2401,6 +2601,7 @@ begin
   Result.FOnQueryDoneCall := OnQueryDoneCall;
   Result.FOnQueryMethod := OnQueryMethod;
   Result.FOnQueryDoneMethod := OnQueryDoneMethod;
+
   FQueryQueue.Add(Result);
   FQueryThread.Paused := False;
   FQueryThreadLastActivtedTime := Now;
@@ -2464,6 +2665,7 @@ begin
   Result.FOnQueryDoneProc := OnQueryDoneProc;
   Result.FOnQueryMethod := OnQueryMethod;
   Result.FOnQueryDoneMethod := OnQueryDoneMethod;
+
   FQueryQueue.Add(Result);
   FQueryThread.Paused := False;
   FQueryThreadLastActivtedTime := Now;
@@ -2574,6 +2776,13 @@ begin
   for i := 0 to FQueryQueue.Count - 1 do
       TQueryTask(FQueryQueue[i]).Stop;
   FQueryThread.SyncQuery;
+end;
+
+procedure TDBStoreBase.PostDeleteData(const StorePos: Int64);
+begin
+  FQueryThread.PostRemoveQueue(StorePos);
+  FQueryThread.Paused := False;
+  FQueryThreadLastActivtedTime := Now;
 end;
 
 function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TDataFrameEngine): Int64;
