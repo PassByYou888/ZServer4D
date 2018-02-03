@@ -16,9 +16,11 @@ uses
 
 (*
   Windows下一切正常
-  优于Delphi没有支持linux->atomic的api，Indy在Linux需要打开zDefine.inc->CriticalSimulateAtomic，用互斥区模拟原子锁和原子内存屏障(跑并行性能会降低)
+  
+  linux只能支持Indy
+  由于Delphi没有支持linux->atomic的api，在Linux需要打开zDefine.inc->CriticalSimulateAtomic，用互斥区模拟原子锁和原子内存屏障(跑并行性能会降低)
 
-  Linux下CrossSocket无法处理数据接收，无法通过Debug分析，linux的gdb调试符号有点问题
+  经过实际测试：Linux下CrossSocket无法处理数据接收，无法通过Debug分析，linux的gdb调试符号有点问题
 
   后续版本，我有时间后就会修正linux下的高并发问题
 *)
