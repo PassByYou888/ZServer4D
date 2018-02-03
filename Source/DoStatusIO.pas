@@ -13,7 +13,7 @@ interface
 uses
   {$IF Defined(WIN32) or Defined(WIN64)}
   Windows,
-  {$ELSE}
+  {$ELSEIF not Defined(Linux)}
   FMX.Types,
   {$ENDIF}
   Sysutils, Classes, PascalStrings, CoreClasses, MemoryStream64;
@@ -229,7 +229,7 @@ begin
       begin
         {$IF Defined(WIN32) or Defined(WIN64)}
         OutputDebugString(PWideChar('"' + Text + '"'));
-        {$ELSE}
+        {$ELSEIF not Defined(Linux)}
         FMX.Types.Log.d('"' + Text + '"');
         {$ENDIF}
       end;
@@ -285,7 +285,7 @@ begin
       begin
         {$IF Defined(WIN32) or Defined(WIN64)}
         OutputDebugString(PWideChar('"' + Text + '"'));
-        {$ELSE}
+        {$ELSEIF not Defined(Linux)}
         FMX.Types.Log.d('"' + Text + '"');
         {$ENDIF}
       end;

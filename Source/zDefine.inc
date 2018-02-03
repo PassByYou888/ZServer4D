@@ -35,6 +35,11 @@
 // if CriticalSimulateAtomic defined so performance to be reduced
 {.$DEFINE CriticalSimulateAtomic}
 
+{$IFDEF Linux}
+{$DEFINE CriticalSimulateAtomic}
+{$UNDEF parallel}
+{$ENDIF}
+
 {$ENDIF}
 
 {$WARNINGS OFF}

@@ -3764,6 +3764,7 @@ var
   kref: TInt64;
 begin
   inherited Create;
+
   FOwnerFramework := AOwnerFramework;
   FClientIntf := AClientIntf;
 
@@ -3836,10 +3837,6 @@ begin
   FReceiveCommandRuning := False;
   FReceiveResultRuning := False;
 
-  LockObject(FOwnerFramework.FPerClientHashList); // atomic lock
-  FOwnerFramework.FPerClientHashList.Add(FID, Self, False);
-  UnLockObject(FOwnerFramework.FPerClientHashList); // atomic lock
-
   Inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
   FP2PVMTunnel := nil;
@@ -3869,15 +3866,30 @@ begin
   FUserVariants := nil;
   FUserObjects := nil;
   FUserAutoFreeObjects := nil;
-  FUserDefine := FOwnerFramework.FPeerClientUserDefineClass.Create(Self);
-  FUserSpecial := FOwnerFramework.FPeerClientUserSpecialClass.Create(Self);
+
+  try
+      FUserDefine := FOwnerFramework.FPeerClientUserDefineClass.Create(Self);
+  except
+  end;
+
+  try
+      FUserSpecial := FOwnerFramework.FPeerClientUserSpecialClass.Create(Self);
+  except
+  end;
 
   try
       OnCreate(Self);
   except
   end;
 
-  CreateAfter;
+  try
+      CreateAfter;
+  except
+  end;
+
+  LockObject(FOwnerFramework.FPerClientHashList); // atomic lock
+  FOwnerFramework.FPerClientHashList.Add(FID, Self, False);
+  UnLockObject(FOwnerFramework.FPerClientHashList); // atomic lock
 end;
 
 procedure TPeerIO.CreateAfter;

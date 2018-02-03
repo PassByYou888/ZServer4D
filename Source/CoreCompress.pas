@@ -355,44 +355,7 @@ begin
   disposeObject(c);
 end;
 
-procedure BytewiseMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt); {$IF defined(CPU386)} register; assembler; {$IFDEF fpc}nostackframe; {$ENDIF}
-asm
-  push esi
-  push edi
-  mov esi,eax
-  mov edi,edx
-  cld
-  rep movsb
-  pop edi
-  pop esi
-end;
-{$ELSEIF defined(CPUX64)}assembler; {$IFDEF fpc}nostackframe; {$ENDIF}
-asm
-  {$IFNDEF fpc}
-  .noframe
-  {$ENDIF}
-  {$IFDEF Win64}
-  // Win64 ABI: rcx, rdx, r8, r9, rest on stack (scratch registers: rax, rcx, rdx, r8, r9, r10, r11)
-  push rdi
-  push rsi
-  mov rsi,rcx
-  mov rdi,rdx
-  mov rcx,r8
-  {$ELSE}
-  // SystemV ABI: rdi, rsi, rdx, rcx, r8, r9, rest on stack (scratch registers: rax, rdi, rsi, rdx, rcx, r8, r9, r10, r11)
-  xchg rsi,rdi
-  mov rcx,rdx
-  {$ENDIF}
-  cld
-  rep movsb
-  {$IFDEF win64}
-  pop rsi
-  pop rdi
-  {$ENDIF}
-end;
-{$ELSE}
-
-
+procedure BytewiseMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt);
 var
   Index              : TCCSizeUInt;
   Source, Destination: PCCUInt8Array;
@@ -407,7 +370,6 @@ begin
         end;
     end;
 end;
-{$IFEND}
 
 
 procedure RLELikeSideEffectAwareMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt);
@@ -426,30 +388,7 @@ end;
 {$IFNDEF fpc}
 
 
-function BSRDWord(Value: TCCUInt32): TCCUInt32; {$IF defined(CPU386)}assembler; register;
-asm
-  bsr eax,eax
-  jnz @Done
-  mov eax,255
-@Done:
-end;
-{$ELSEIF defined(CPUX64)}assembler;
-register; {$IFDEF fpc}nostackframe; {$ENDIF}
-asm
-  {$IFNDEF fpc}
-  .NOFRAME
-  {$ENDIF}
-  {$IFDEF Windows}
-  bsr eax,ecx
-  {$ELSE}
-  bsr eax,edi
-  {$ENDIF}
-  jnz @Done
-  mov eax,255
-@Done:
-end;
-{$ELSE}
-
+function BSRDWord(Value: TCCUInt32): TCCUInt32;
 
 const
   BSRDebruijn32Multiplicator                      = TCCUInt32($07C4ACDD);
@@ -474,88 +413,16 @@ end;
 {$IFEND}
 
 
-function SARLongint(Value, Shift: TCCInt32): TCCInt32; {$IF defined(CPU386)}assembler; register;
-asm
-  mov ecx,edx
-  sar eax,cl
-end;
-{$ELSEIF defined(CPUX64)}assembler;
-register; {$IFDEF fpc}nostackframe; {$ENDIF}
-asm
-  {$IFNDEF fpc}
-  .noframe
-  {$ENDIF}
-  {$IFDEF Win64}
-  // Win64 ABI: rcx, rdx, r8, r9, rest on stack (scratch registers: rax, rcx, rdx, r8, r9, r10, r11)
-  mov eax,ecx
-  mov ecx,edx
-  {$ELSE}
-  // SystemV ABI: rdi, rsi, rdx, rcx, r8, r9, rest on stack (scratch registers: rax, rdi, rsi, rdx, rcx, r8, r9, r10, r11)
-  mov eax,edi
-  mov ecx,esi
-  {$ENDIF}
-  sar eax,cl
-end;
-{$ELSEIF defined(CPUARM) and defined(fpc)}assembler;
-register;
-asm
-  mov r0,r0,asr R1
-end {$IFDEF fpc}['r0', 'R1']
-{$ENDIF};
-{$ELSE}
+function SARLongint(Value, Shift: TCCInt32): TCCInt32;
 begin
   Shift := Shift and 31;
   Result := (TCCUInt32(Value) shr Shift) or (TCCUInt32(TCCInt32(TCCUInt32(-TCCUInt32(TCCUInt32(Value) shr 31)) and TCCUInt32(-TCCUInt32(ord(Shift <> 0) and 1)))) shl (32 - Shift));
 end;
-{$IFEND}
 
-
-function SARInt64(Value: TCCInt64; Shift: TCCInt32): TCCInt64; {$IF defined(CPU386)}assembler; register;
-asm
-  mov ecx,eax
-  and cl,63
-  cmp cl,32
-  jc @Full
-  mov eax,dword ptr [Value+4]
-  sar eax,cl
-  bt eax,31
-  sbb edx,eax
-  jmp @Done
-@Full:
-  mov eax,dword ptr [Value+0]
-  mov edx,dword ptr [Value+4]
-  shrd eax,edx,cl
-  sar edx,cl
-@Done:
-  mov dword ptr [result+0],eax
-  mov dword ptr [result+4],edx
-end;
-{$ELSEIF defined(CPUX64)}assembler;
-register; {$IFDEF fpc}nostackframe; {$ENDIF}
-asm
-  {$IFNDEF fpc}
-  .noframe
-  {$ENDIF}
-  {$IFDEF Win64}
-  // Win64 ABI: rcx, rdx, r8, r9, rest on stack (scratch registers: rax, rcx, rdx, r8, r9, r10, r11)
-  mov rax,rcx
-  mov rcx,rdx
-  {$ELSE}
-  // SystemV ABI: rdi, rsi, rdx, rcx, r8, r9, rest on stack (scratch registers: rax, rdi, rsi, rdx, rcx, r8, r9, r10, r11)
-  mov rax,rdi
-  mov rcx,rsi
-  {$ENDIF}
-  sar rax,cl
-end;
-{$ELSE}
-begin
+function SARInt64(Value: TCCInt64; Shift: TCCInt32): TCCInt64;begin
   Shift := Shift and 63;
   Result := (TCCInt64(Value) shr Shift) or (TCCInt64(TCCInt64(TCCInt64(-TCCInt64(TCCInt64(Value) shr 63)) and TCCInt64(-TCCInt64(ord(Shift <> 0) and 1)))) shl (63 - Shift));
 end;
-{$IFEND}
-
-{$ENDIF}
-
 
 constructor TCompressor.Create;
 begin

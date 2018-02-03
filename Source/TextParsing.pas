@@ -13,7 +13,7 @@ interface
 uses SysUtils, Types, CoreClasses, UnicodeMixedLib, PascalStrings;
 
 type
-  TTextStyle = (tsPascal, tsText);
+  TTextStyle = (tsPascal, tsC, tsText);
 
   TTokenType       = (ttTextDecl, ttComment, ttNumber, ttSymbol, ttAscii, ttUnknow);
   TTokenStatistics = array [TTokenType] of Integer;
@@ -205,6 +205,27 @@ begin
           Inc(Result);
         end;
     end
+  else if (FTextStyle = tsC) and (ComparePosStr(Result, '#')) then
+    begin
+      Inc(Result, 2);
+      while ParsingData.Text[Result] <> #10 do
+        begin
+          if Result + 1 > l then
+              Break;
+          Inc(Result);
+        end;
+    end
+  else if (FTextStyle = tsC) and (ComparePosStr(Result, '/*')) then
+    begin
+      Inc(Result, 1);
+      while ParsingData.Text[Result] <> '*/' do
+        begin
+          if Result + 1 > l then
+              Break;
+          Inc(Result);
+        end;
+      Inc(Result, 1);
+    end
   else if (FTextStyle = tsPascal) and (ComparePosStr(Result, '{')) then
     begin
       Inc(Result, 1);
@@ -253,6 +274,39 @@ begin
       Inc(Result, 1);
       while ParsingData.Text[Result] <> #39 do
         begin
+          if Result + 1 > l then
+              Break;
+          if ParsingData.Text[Result] = #10 then
+              Exit(charPos);
+          Inc(Result);
+        end;
+      Inc(Result, 1);
+    end;
+
+  // #39 = '
+  if (Result + 1 < l) and (FTextStyle = tsC) and (ComparePosStr(Result, #39)) then
+    begin
+      Inc(Result, 1);
+      while ParsingData.Text[Result] <> #39 do
+        begin
+          if ComparePosStr(Result, '\' + #39) then
+              Inc(Result, 2);
+          if Result + 1 > l then
+              Break;
+          if ParsingData.Text[Result] = #10 then
+              Exit(charPos);
+          Inc(Result);
+        end;
+      Inc(Result, 1);
+    end;
+
+  if (Result + 1 < l) and (FTextStyle = tsC) and (ComparePosStr(Result, '"')) then
+    begin
+      Inc(Result, 1);
+      while ParsingData.Text[Result] <> '"' do
+        begin
+          if ComparePosStr(Result, '\"') then
+              Inc(Result, 2);
           if Result + 1 > l then
               Break;
           if ParsingData.Text[Result] = #10 then

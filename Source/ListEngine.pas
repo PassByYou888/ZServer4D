@@ -459,6 +459,10 @@ type
 
   PHashVariantListData = ^THashVariantListData;
 
+  THashVariantListLoopCall               = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant);
+  THashVariantListLoopMethod             = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant) of object;
+  {$IFNDEF FPC} THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; name: PSystemString; const V: Variant); {$ENDIF}
+
   THashVariantList = class(TCoreClassObject)
   private
     FHashList              : THashList;
@@ -485,11 +489,19 @@ type
     constructor Create; overload;
     constructor Create(MaxHashBlock: Integer); overload;
     destructor Destroy; override;
+    //
     procedure Assign(sour: THashVariantList);
+    //
+    procedure Progress(OnProgress: THashVariantListLoopCall); overload;
+    procedure Progress(OnProgress: THashVariantListLoopMethod); overload;
+    {$IFNDEF FPC} procedure Progress(OnProgress: THashVariantListLoopProc); overload; {$ENDIF}
+    //
     procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
     procedure GetNameList(OutputList: TListString); overload;
     procedure GetNameList(OutputList: TListPascalString); overload;
+    //
     procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Add(Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function FastAdd(Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -4460,6 +4472,75 @@ begin
         end;
     end;
 end;
+
+procedure THashVariantList.Progress(OnProgress: THashVariantListLoopCall);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.V);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashVariantList.Progress(OnProgress: THashVariantListLoopMethod);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.V);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+{$IFNDEF FPC}
+
+
+procedure THashVariantList.Progress(OnProgress: THashVariantListLoopProc);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.V);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+{$ENDIF}
+
 
 procedure THashVariantList.Clear;
 begin
