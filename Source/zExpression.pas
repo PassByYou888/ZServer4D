@@ -1,6 +1,6 @@
 unit zExpression;
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 (*
 

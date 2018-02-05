@@ -56,6 +56,9 @@
 
   {$IFNDEF FPC}
   {$ENDIF FPC}
+
+  {$Region 'RegionName'}
+  {$EndRegion}
 *)
 
 {$IFDEF release}

@@ -5,6 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  JsonDataObjects,
   CommunicationFramework,
   DoStatusIO, CoreClasses,
   CommunicationFramework_Client_CrossSocket,
@@ -73,6 +74,7 @@ end;
 procedure TEZClientForm.HelloWorldBtnClick(Sender: TObject);
 var
   SendDe, ResultDE: TDataFrameEngine;
+  js              : TJsonObject;
 begin
   // 往服务器发送一条console形式的hello world指令
   client.SendDirectConsoleCmd('helloWorld_Console', '');
@@ -108,6 +110,14 @@ begin
   if ResultDE.Count > 0 then
       DoStatus('server response:%s', [ResultDE.Reader.ReadString]);
   DisposeObject([SendDe, ResultDE]);
+
+  // json收发
+  js := TJsonObject.Create;
+  js.S['中文测试'] := '你好世界';
+  SendDe := TDataFrameEngine.Create;
+  SendDe.WriteJson(js);
+  client.SendDirectStreamCmd('Json_Stream', SendDe);
+  DisposeObject([js, SendDe]);
 end;
 
 procedure TEZClientForm.SendBigStreamButtonClick(Sender: TObject);

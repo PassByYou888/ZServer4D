@@ -1,10 +1,11 @@
 unit EzServFrm;
-
+
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  JsonDataObjects,
   CommunicationFramework,
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
@@ -39,6 +40,8 @@ type
     procedure cmd_helloWorld_Stream(Sender: TPeerClient; InData: TDataFrameEngine);
     procedure cmd_helloWorld_Stream_Result(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 
+    procedure cmd_Json_Stream(Sender: TPeerClient; InData: TDataFrameEngine);
+
     procedure cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);
 
     procedure cmd_Test128MBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
@@ -72,6 +75,19 @@ begin
   OutData.WriteString('result 654321');
 end;
 
+procedure TEZServerForm.cmd_Json_Stream(Sender: TPeerClient; InData: TDataFrameEngine);
+var
+  js: TJsonObject;
+  ns: TStringList;
+begin
+  js := TJsonObject.Create;
+  ns := TStringList.Create;
+  InData.Reader.ReadJson(js);
+  js.SaveToLines(ns);
+  DoStatus(ns);
+  disposeObject(ns);
+end;
+
 procedure TEZServerForm.cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);
 var
   ms: TMemoryStream;
@@ -81,7 +97,7 @@ begin
 
   DoStatus(umlMD5Char(ms.Memory, ms.Size).Text);
 
-  DisposeObject(ms);
+  disposeObject(ms);
 end;
 
 procedure TEZServerForm.cmd_Test128MBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
@@ -123,6 +139,8 @@ begin
   server.RegisterDirectStream('helloWorld_Stream').OnExecute := cmd_helloWorld_Stream;
   server.RegisterStream('helloWorld_Stream_Result').OnExecute := cmd_helloWorld_Stream_Result;
 
+  server.RegisterDirectStream('Json_Stream').OnExecute := cmd_Json_Stream;
+
   server.RegisterDirectStream('TestMiniStream').OnExecute := cmd_TestMiniStream;
   server.RegisterBigStream('Test128MBigStream').OnExecute := cmd_Test128MBigStream;
 
@@ -132,7 +150,7 @@ end;
 
 procedure TEZServerForm.FormDestroy(Sender: TObject);
 begin
-  DisposeObject(server);
+  disposeObject(server);
   DeleteDoStatusHook(self);
 end;
 
@@ -161,8 +179,9 @@ end;
 destructor TMySpecialDefine.Destroy;
 begin
   DoStatus('%s disconnect', [Owner.GetPeerIP]);
-  DisposeObject(tempStream);
+  disposeObject(tempStream);
   inherited Destroy;
 end;
 
 end.
+

@@ -3295,12 +3295,20 @@ begin
     Encoding := TEncoding.UTF8
   else
   begin
-    if Encoding = nil then
+    { if Encoding = nil then
       Encoding := TEncoding.Default;
 
-    Preamble := Encoding.GetPreamble;
-    if Preamble <> nil then
-      Stream.Write(Preamble[0], Length(Preamble));
+      Preamble := Encoding.GetPreamble;
+      if Preamble <> nil then
+      Stream.Write(Preamble[0], Length(Preamble)); }
+    if Encoding = nil then
+    begin
+      Encoding := TEncoding.UTF8; //thx qingfeng qq274838061
+
+      Preamble := Encoding.GetPreamble;
+      if Preamble <> nil then
+        Stream.Write(Preamble[0], Length(Preamble));
+    end;
   end;
 
   Writer.Init(Compact, Stream, Encoding, nil);

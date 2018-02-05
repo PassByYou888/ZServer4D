@@ -2837,7 +2837,7 @@ var
   ms: TMemoryStream64;
 begin
   ms := TMemoryStream64.Create;
-  v.SaveToStream(ms, False, TEncoding.UTF8, False);
+  v.SaveToStream(ms, False, TEncoding.UTF8, True);
   ms.Position := 0;
   WriteStream(ms);
   DisposeObject(ms);

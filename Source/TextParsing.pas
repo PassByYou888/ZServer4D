@@ -29,6 +29,7 @@ type
     bPos, ePos: Integer;
     Text: umlString;
     tokenType: TTokenType;
+    idx: Integer;
   end;
 
   PTokenData = ^TTokenData;
@@ -46,6 +47,9 @@ type
   end;
 
   TTextParsing = class(TCoreClassObject)
+  public const
+    NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0);
+    DefaultSymbol                         = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39;
   protected
     FTextStyle: TTextStyle;
   public
@@ -55,105 +59,103 @@ type
 
     property TextStyle: TTextStyle read FTextStyle;
 
-    function ComparePosStr(charPos: Integer; t: umlString): Boolean; virtual;
+    function ComparePosStr(charPos: Integer; t: umlString): Boolean;
 
-    function CompareCommentGetEndPos(charPos: Integer): Integer; virtual;
-    function CompareTextDeclGetEndPos(charPos: Integer): Integer; virtual;
-    procedure RebuildParsingCache; virtual;
+    function CompareCommentGetEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function CompareTextDeclGetEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure RebuildParsingCache; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure RebuildText;
-
-    function GetContextBeginPos(const charPos: Integer): Integer; virtual;
-    function GetContextEndPos(const charPos: Integer): Integer; virtual;
-
-    function IsNumber(const charPos: Integer): Boolean; overload;
-    function IsNumber(const charPos: Integer; var NumberBegin: Integer; var IsHex: Boolean): Boolean; overload; virtual;
-    function GetNumberEndPos(charPos: Integer): Integer; virtual;
-
-    function IsTextDecl(const charPos: Integer): Boolean; virtual;
-    function GetTextDeclEndPos(const charPos: Integer): Integer;
-    function GetTextDeclBeginPos(const charPos: Integer): Integer;
-    function GetTextBody(const AText: umlString): umlString; virtual;
-    function GetTextDeclPos(charPos: Integer; var charBeginPos, charEndPos: Integer): Boolean; virtual;
-
-    function IsSymbol(const charPos: Integer): Boolean; virtual;
-    function GetSymbolEndPos(charPos: Integer): Integer; virtual;
-
-    function IsAscii(const charPos: Integer): Boolean; virtual;
-    function GetAsciiBeginPos(const charPos: Integer): Integer; virtual;
-    function GetAsciiEndPos(const charPos: Integer): Integer; virtual;
-
-    function IsComment(charPos: Integer): Boolean; virtual;
-    function GetCommentEndPos(charPos: Integer): Integer;
-    function GetCommentBeginPos(charPos: Integer): Integer;
-    function GetCommentPos(charPos: Integer; var charBeginPos, charEndPos: Integer): Boolean; virtual;
-    function GetDeletedCommentText: umlString;
-
-    function IsTextOrComment(charPos: Integer): Boolean;
-    function IsCommentOrText(charPos: Integer): Boolean;
-
-    function isWordSplitChar(c: umlChar; SplitCharSet: umlString): Boolean; overload;
-    function isWordSplitChar(c: umlChar): Boolean; overload;
-    function isWordSplitChar(c: umlChar; DefaultChar: Boolean; SplitCharSet: umlString): Boolean; overload; virtual;
-
-    function GetWordBeginPos(charPos: Integer; SplitCharSet: umlString): Integer; overload;
-    function GetWordBeginPos(charPos: Integer): Integer; overload;
-    function GetWordBeginPos(charPos: Integer; BeginDefaultChar: Boolean; SplitCharSet: umlString): Integer; overload; virtual;
-
-    function GetWordEndPos(charPos: Integer; SplitCharSet: umlString): Integer; overload;
-    function GetWordEndPos(charPos: Integer): Integer; overload;
-    function GetWordEndPos(charPos: Integer; BeginSplitCharSet, EndSplitCharSet: umlString): Integer; overload;
+    { }
+    function GetContextBeginPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetContextEndPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function IsNumber(const charPos: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsNumber(const charPos: Integer; var NumberBegin: Integer; var IsHex: Boolean): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNumberEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function IsTextDecl(const charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetTextDeclEndPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetTextDeclBeginPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetTextBody(const AText: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetTextDeclPos(charPos: Integer; var charBeginPos, charEndPos: Integer): Boolean;
+    { }
+    function IsSymbol(const charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetSymbolEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function IsAscii(const charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetAsciiBeginPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetAsciiEndPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function IsComment(charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCommentEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCommentBeginPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCommentPos(charPos: Integer; var charBeginPos, charEndPos: Integer): Boolean;
+    function GetDeletedCommentText: umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function IsTextOrComment(charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsCommentOrText(charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function isWordSplitChar(c: umlChar; SplitCharSet: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(c: umlChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(c: umlChar; DefaultChar: Boolean; SplitCharSet: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function GetWordBeginPos(charPos: Integer; SplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordBeginPos(charPos: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordBeginPos(charPos: Integer; BeginDefaultChar: Boolean; SplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function GetWordEndPos(charPos: Integer; SplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordEndPos(charPos: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordEndPos(charPos: Integer; BeginSplitCharSet, EndSplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetWordEndPos(charPos: Integer;
       BeginDefaultChar: Boolean; BeginSplitCharSet: umlString;
-      EndDefaultChar: Boolean; EndSplitCharSet: umlString): Integer; overload; virtual;
-
+      EndDefaultChar: Boolean; EndSplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function CompareTokenText(charPos: Integer; t: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function CompareTokenChar(charPos: Integer; const c: array of SystemChar): Boolean;
     function GetToken(charPos: Integer): PTokenData;
-    function GetTokenIndex(t: TTokenType; idx: Integer): PTokenData;
+    property TokenPos[charPos: Integer]: PTokenData read GetToken;
+    function GetTokenIndex(t: TTokenType; idx: Integer): PTokenData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property TokenIndex[t: TTokenType; idx: Integer]: PTokenData read GetTokenIndex;
-
-    function SniffingNextChar(charPos: Integer; declChar: umlString): Boolean; overload;
-    function SniffingNextChar(charPos: Integer; declChar: umlString; out OutPos: Integer): Boolean; overload; virtual;
-
+    { }
+    function SniffingNextChar(charPos: Integer; declChar: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SniffingNextChar(charPos: Integer; declChar: umlString; out OutPos: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
     function SplitText(charPos: Integer; out LastPos: Integer; SplitCharSet, EndCharSet: umlString): umlArrayString;
-
-    function GetStr(bPos, ePos: Integer): umlString; overload;
-    function GetStr(const tp: TTextPos): umlString; overload;
-
-    function GetWordStr(const charPos: Integer): umlString; overload;
-
-    function GetPoint(charPos: Integer): TPoint;
-    function GetChar(charPos: Integer): umlChar;
+    { }
+    function GetStr(bPos, ePos: Integer): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetStr(const tp: TTextPos): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function GetWordStr(const charPos: Integer): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function GetPoint(charPos: Integer): TPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetChar(charPos: Integer): umlChar; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Len: Integer read ParsingData.Len;
     property TextChar[charPos: Integer]: umlChar read GetChar; default;
-
-    procedure DeletePos(bPos, ePos: Integer); overload;
-    procedure DeletePos(const tp: TTextPos); overload;
-
-    procedure DeletedComment;
-
-    procedure InsertTextBlock(bPos, ePos: Integer; AInsertText: umlString); overload;
-    procedure InsertTextBlock(const tp: TTextPos; AInsertText: umlString); overload;
-
-    function SearchWordInBody(initPos: Integer; wordInfo: umlString; var OutPos: TTextPos): Boolean;
-
+    { }
+    procedure DeletePos(bPos, ePos: Integer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeletePos(const tp: TTextPos); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    procedure DeletedComment; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    procedure InsertTextBlock(bPos, ePos: Integer; AInsertText: umlString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InsertTextBlock(const tp: TTextPos; AInsertText: umlString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
+    function SearchWordInBody(initPos: Integer; wordInfo: umlString; var OutPos: TTextPos): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
     function GetTextData: umlString; virtual;
     procedure SetTextData(const Value: umlString); virtual;
     property TextData: umlString read GetTextData write SetTextData;
-
-    class function TranslatePascalDeclToText(Text: umlString): umlString;
-    class function TranslateTextToPascalDecl(Text: umlString): umlString;
-
+    { }
+    class function TranslatePascalDeclToText(Text: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateTextToPascalDecl(Text: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { }
     constructor Create(AText: umlString; AStyle: TTextStyle); virtual;
     destructor Destroy; override;
-
+    { }
     function Parsing: Boolean; virtual;
   end;
 
   TTextParsingClass = class of TTextParsing;
-
-const
-  NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0);
-  // DefaultSymbol                         = ',.+-*/();:=#@^&%!"[]<>?{}'#39;
-  DefaultSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39;
 
 implementation
 
@@ -431,6 +433,7 @@ begin
           LastTokenData^.ePos := ePos;
           LastTokenData^.Text := GetStr(bPos, ePos);
           LastTokenData^.tokenType := ttTextDecl;
+          LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
           Inc(TokenStatistics[LastTokenData^.tokenType]);
 
@@ -445,6 +448,7 @@ begin
           LastTokenData^.ePos := ePos;
           LastTokenData^.Text := GetStr(bPos, ePos);
           LastTokenData^.tokenType := ttComment;
+          LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
           Inc(TokenStatistics[LastTokenData^.tokenType]);
 
@@ -459,6 +463,7 @@ begin
           LastTokenData^.ePos := ePos;
           LastTokenData^.Text := GetStr(bPos, ePos);
           LastTokenData^.tokenType := ttNumber;
+          LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
           Inc(TokenStatistics[LastTokenData^.tokenType]);
 
@@ -473,6 +478,7 @@ begin
           LastTokenData^.ePos := ePos;
           LastTokenData^.Text := GetStr(bPos, ePos);
           LastTokenData^.tokenType := ttSymbol;
+          LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
           Inc(TokenStatistics[LastTokenData^.tokenType]);
 
@@ -487,6 +493,7 @@ begin
           LastTokenData^.ePos := ePos;
           LastTokenData^.Text := GetStr(bPos, ePos);
           LastTokenData^.tokenType := ttAscii;
+          LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
           Inc(TokenStatistics[LastTokenData^.tokenType]);
 
@@ -503,6 +510,7 @@ begin
               LastTokenData^.ePos := ePos;
               LastTokenData^.Text := GetStr(bPos, ePos);
               LastTokenData^.tokenType := ttUnknow;
+              LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
               ParsingData.Cache.TokenDataList.Add(LastTokenData);
               Inc(TokenStatistics[LastTokenData^.tokenType]);
             end
@@ -1144,6 +1152,30 @@ begin
       if Result > l then
           Break;
     end;
+end;
+
+function TTextParsing.CompareTokenText(charPos: Integer; t: TPascalString): Boolean;
+var
+  p: PTokenData;
+begin
+  Result := False;
+  p := GetToken(charPos);
+  if p = nil then
+      Exit;
+  Result := p^.Text.Same(t);
+end;
+
+function TTextParsing.CompareTokenChar(charPos: Integer; const c: array of SystemChar): Boolean;
+var
+  p: PTokenData;
+begin
+  Result := False;
+  p := GetToken(charPos);
+  if p = nil then
+      Exit;
+  if p^.Text.Len <> 1 then
+      Exit;
+  Result := CharIn(p^.Text.First, c);
 end;
 
 function TTextParsing.GetToken(charPos: Integer): PTokenData;

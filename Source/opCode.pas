@@ -1,6 +1,6 @@
 unit opCode;
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 interface
 
