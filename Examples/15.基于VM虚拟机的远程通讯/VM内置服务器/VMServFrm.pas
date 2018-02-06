@@ -28,7 +28,6 @@ type
     SendMemo: TMemo;
     CpuMemo: TMemo;
     Panel1: TPanel;
-    OriginDataLabel: TLabel;
     VMListenButton: TButton;
     VMStopListenButton: TButton;
     CloseAllClientButton: TButton;
@@ -98,7 +97,7 @@ procedure TVMServForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusMethod);
   ServTunnel := TMyServer.Create;
-  ServTunnel.StartService('', 9988);
+  ServTunnel.StartService('0.0.0.0', 9988);
   ServTunnel.QuietMode := True;
 
   ServWithVM := TCommunicationFrameworkWithP2PVM_Server.Create(10240, 88);
@@ -229,21 +228,6 @@ begin
     end);
 
   Caption := Format('VM内置服务器... 活动客户端 %d 半开链接 %d 已链接 %d', [ServWithVM.Count, connectingcount, InitedCount]);
-
-  OriginDataLabel.Caption := Format('心跳包:%s', [UIntToStr(GetTimeTick)]);
-
-  ServTunnel.FastProgressPerClient(procedure(PeerClient: TPeerClient)
-    var
-      de: TDataFrameEngine;
-    begin
-      if (PeerClient.p2pVMTunnel <> nil) and (PeerClient.p2pVMTunnel.WasAuthed) then
-        begin
-          de := TDataFrameEngine.Create;
-          de.WriteString(UIntToStr(GetTimeTick));
-          PeerClient.SendDirectStreamCmd('SimulateKeepAlivte', de);
-          DisposeObject(de);
-        end;
-    end);
 end;
 
 procedure TVMServForm.VMListenButtonClick(Sender: TObject);
@@ -253,6 +237,8 @@ begin
   ServWithVM.StartService('::FF:F233:99', 21132);
   ServWithVM.StartService('::FF:F243:99', 31132);
   ServWithVM.StartService('::FF:F253:99', 41132);
+
+  StatusCheckBox.Checked := False;
 end;
 
 procedure TVMServForm.VMStopListenButtonClick(Sender: TObject);

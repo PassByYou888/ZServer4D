@@ -140,7 +140,7 @@ object VMCliForm: TVMCliForm
     WordWrap = False
   end
   object ProgressTimer: TTimer
-    Interval = 100
+    Interval = 500
     OnTimer = ProgressTimerTimer
     Left = 296
     Top = 64

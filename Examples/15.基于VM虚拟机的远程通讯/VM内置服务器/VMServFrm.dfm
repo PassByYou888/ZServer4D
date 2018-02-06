@@ -106,13 +106,6 @@ object VMServForm: TVMServForm
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 4
-      object OriginDataLabel: TLabel
-        Left = 8
-        Top = 191
-        Width = 36
-        Height = 13
-        Caption = #24515#36339#21253
-      end
       object VMListenButton: TButton
         Left = 7
         Top = 8
@@ -172,7 +165,7 @@ object VMServForm: TVMServForm
     end
   end
   object ProgressTimer: TTimer
-    Interval = 100
+    Interval = 500
     OnTimer = ProgressTimerTimer
     Left = 208
     Top = 80

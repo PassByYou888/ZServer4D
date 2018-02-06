@@ -264,6 +264,7 @@ begin
       exit;
     end;
 
+  LockObject(HookDoSatus);
   try
     if (StatusActive) and (HookDoSatus.Count > 0) then
       begin
@@ -294,8 +295,8 @@ begin
     if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
         Writeln(Text);
   finally
+      UnLockObject(HookDoSatus);
   end;
-
 end;
 
 procedure DoStatus(Text: SystemString; const ID: Integer);

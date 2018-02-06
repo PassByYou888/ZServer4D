@@ -17,7 +17,7 @@ uses
   NotifyObjectBase, CommunicationTest, ListEngine;
 
 const
-  MaxClient = 10;
+  MaxClient = 100000;
 
 type
   TMyClient = class(TCommunicationFrameworkWithP2PVM_Client)
@@ -56,7 +56,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    ClientTunnel    : TCommunicationFramework_Client_CrossSocket;
+    ClientTunnel    : TCommunicationFramework_Client_ICS;
     ClientWithVM    : TClientArry;
     ClientWithVMTest: TTestArry;
 
@@ -106,7 +106,7 @@ var
   i: Integer;
 begin
   AddDoStatusHook(Self, DoStatusMethod);
-  ClientTunnel := TCommunicationFramework_Client_CrossSocket.Create;
+  ClientTunnel := TCommunicationFramework_Client_ICS.Create;
   ClientTunnel.QuietMode := True;
   ClientTunnel.RegisterDirectStream('SimulateKeepAlivte').OnExecute := cmd_SimulateKeepAlivte;
 
@@ -157,6 +157,8 @@ var
 begin
   if not ClientTunnel.Connected then
       exit;
+
+  StatusCheckBox.Checked := False;
 
   ClientTunnel.ClientIO.p2pVMTunnel.CloseAllClientIO;
 
