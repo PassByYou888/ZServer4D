@@ -971,7 +971,7 @@ type
     FIP                : TIPV6;
     FPort              : Word;
     FDestroyTimeNotify : Boolean;
-  protected
+  public
     procedure CreateAfter; override;
     destructor Destroy; override;
     function Connected: Boolean; override;
@@ -1056,7 +1056,7 @@ type
     {$ENDIF}
   public
     constructor Create; overload; override;
-    constructor Create(frameworkID: Cardinal); overload; virtual;
+    constructor Create(frameworkID: Cardinal); overload;
     destructor Destroy; override;
 
     procedure TriggerDoConnectFailed; override;
@@ -3020,8 +3020,7 @@ end;
 
 procedure TPeerIO.Sync_ExecuteCompleteBuffer;
 var
-  d        : TTimeTickValue;
-  newStream: TMemoryStream64;
+  d: TTimeTickValue;
 begin
   if FOwnerFramework.FSyncOnCompleteBuffer then
     begin
@@ -7001,6 +7000,7 @@ end;
 
 function Tp2pVMFragmentPackage.FillReceiveBuff(stream: TMemoryStream64): Integer;
 begin
+  Result := 0;
   if stream.Size < 13 then
     begin
       Init;
@@ -8291,7 +8291,6 @@ var
   Remote_p2pID      : Cardinal;
   ipv6              : TIPV6;
   Port              : Word;
-  LocalVMc          : TPeerClientWithP2PVM;
   Allowed           : Boolean;
 begin
   if Siz <> SizeOf(TBuf) then
@@ -8343,7 +8342,6 @@ type
 var
   c                 : TCommunicationFramework;
   p                 : PBuf;
-  LocalVMc          : TPeerClientWithP2PVM;
   Remote_frameworkID: Cardinal;
   Remote_p2pID      : Cardinal;
 begin
@@ -8361,8 +8359,6 @@ begin
   c := TCommunicationFramework(FFrameworkPool[frameworkID]);
   if c is TCommunicationFrameworkWithP2PVM_Client then
     begin
-      LocalVMc := TCommunicationFrameworkWithP2PVM_Client(c).FVMClient;
-
       p := @buff^;
       Remote_frameworkID := PCardinal(@p^[0])^;
       Remote_p2pID := PCardinal(@p^[4])^;
@@ -9240,7 +9236,7 @@ var
   Seed: Integer;
 begin
   SetLength(P2PVMAuthToken, 1024); // 1k auth buffer
-  Seed := $FF00FF00FF;
+  Seed := $FF0000FF;
   for i := 0 to (Length(P2PVMAuthToken) div 4) - 1 do
       PInteger(@P2PVMAuthToken[i * 4])^ := TMISC.Ran03(Seed);
 end;

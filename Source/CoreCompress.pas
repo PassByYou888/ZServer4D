@@ -269,11 +269,11 @@ type
     destructor Destroy; override;
     function Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
     function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
-  published
-    property WithHeader  : boolean read fWithHeader write fWithHeader;
-    property Greedy      : boolean read fGreedy write fGreedy;
+
+    property WithHeader: boolean read fWithHeader write fWithHeader;
+    property Greedy: boolean read fGreedy write fGreedy;
     property SkipStrength: TCCUInt32 read fSkipStrength write fSkipStrength;
-    property MaxSteps    : TCCUInt32 read fMaxSteps write fMaxSteps;
+    property MaxSteps: TCCUInt32 read fMaxSteps write fMaxSteps;
   end;
 
   TCompressorBRRC = class(TCompressor)
@@ -288,7 +288,6 @@ type
     destructor Destroy; override;
     function Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
     function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
-  published
   end;
 
 function CoreCompressStream(Compressor: TCompressor; Sour: TCoreClassStream; ComTo: TCoreClassStream): boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -377,7 +376,6 @@ begin
     end;
 end;
 
-
 procedure RLELikeSideEffectAwareMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt);
 begin
   if aLength > 0 then
@@ -425,7 +423,8 @@ begin
   Result := (TCCUInt32(Value) shr Shift) or (TCCUInt32(TCCInt32(TCCUInt32(-TCCUInt32(TCCUInt32(Value) shr 31)) and TCCUInt32(-TCCUInt32(ord(Shift <> 0) and 1)))) shl (32 - Shift));
 end;
 
-function SARInt64(Value: TCCInt64; Shift: TCCInt32): TCCInt64;begin
+function SARInt64(Value: TCCInt64; Shift: TCCInt32): TCCInt64;
+begin
   Shift := Shift and 63;
   Result := (TCCInt64(Value) shr Shift) or (TCCInt64(TCCInt64(TCCInt64(-TCCInt64(TCCInt64(Value) shr 63)) and TCCInt64(-TCCInt64(ord(Shift <> 0) and 1)))) shl (63 - Shift));
 end;

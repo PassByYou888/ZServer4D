@@ -72,7 +72,7 @@ type
     autoReconnect: Boolean;
 
     constructor Create;
-    destructor Destroy;
+    destructor Destroy; override;
 
     procedure CloseAllConnection;
 

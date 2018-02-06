@@ -792,10 +792,10 @@ function umlGetResourceStream(const FileName: umlString): TStream;
 var
   n: umlString;
 begin
-  Result := nil;
-
   if FileName.Exists('.') then
-      n := umlDeleteLastStr(FileName, '.');
+      n := umlDeleteLastStr(FileName, '.')
+  else
+      n := FileName;
 
   Result := TResourceStream.Create(hInstance, n.Text, RT_RCDATA);
 end;
@@ -3940,7 +3940,7 @@ end;
 
 function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word;
 var
-  i: NativeUInt;
+  i : NativeUInt;
   pb: PByteArray absolute Value;
 begin
   Result := 0;
@@ -4023,7 +4023,7 @@ end;
 
 function umlCRC32(const Value: PBYTE; const Count: NativeUInt): Cardinal;
 var
-  i: NativeUInt;
+  i : NativeUInt;
   pb: PByteArray absolute Value;
 begin
   Result := $FFFFFFFF;

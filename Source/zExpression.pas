@@ -1642,7 +1642,7 @@ var
                 ProcOp.AddValue(p1^.Value);
                 for i := 0 to p1^.Expression.Count - 1 do
                   begin
-                    ResOp := BuildAsOpCode(DebugMode, p1^.Expression[i]^.Expression, uName, LineNo);
+                    ResOp := BuildAsOpCode(False, p1^.Expression[i]^.Expression, uName, LineNo);
                     if ResOp <> nil then
                         ProcOp.AddLink(ResOp)
                     else

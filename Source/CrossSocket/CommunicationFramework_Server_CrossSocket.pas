@@ -52,10 +52,10 @@ type
     FBindHost      : SystemString;
     FBindPort      : Word;
   protected
-    procedure DoConnected(Sender: TObject; AConnection: ICrossConnection); virtual;
-    procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection); virtual;
-    procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
-    procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer); virtual;
+    procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
+    procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
+    procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
+    procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
   public
     constructor Create; overload; override;
     constructor Create(maxThPool: Word); overload;

@@ -864,7 +864,6 @@ var
   IDPool: TClientIDPool;
   pid   : Cardinal;
   peer  : TPeerIO;
-  i     : Integer;
   cli   : TServerManager_RecvTunnelData;
 begin
   ServManClientPool.Progress;

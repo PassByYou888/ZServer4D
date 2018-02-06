@@ -494,7 +494,7 @@ var
 begin
   if Count > 500 then
     begin
-      cli.Close;
+      Client.Close;
       Exit;
     end;
   try
@@ -560,8 +560,6 @@ begin
 end;
 
 constructor TCommunicationFramework_Server_ICS.Create;
-var
-  r: TCommandStreamMode;
 begin
   inherited Create;
   FDriver := TCustomICSSocketServer.Create(nil);
@@ -639,8 +637,6 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_ICS.ProgressBackground;
-var
-  i: Integer;
 begin
   ProgressPerClient(procedure(cli: TPeerIO)
     begin

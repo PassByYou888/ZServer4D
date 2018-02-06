@@ -111,7 +111,7 @@ begin
   PCardinal(@digest[8])^ := $98BADCFE;
   PCardinal(@digest[12])^ := $10325476;
 
-  if BufSiz shl 3 < 0 then
+  if (BufSiz shl 3) < 0 then
       Inc(Hi);
 
   Inc(Lo, BufSiz shl 3);
@@ -181,7 +181,7 @@ begin
   BufSiz := EndPos - StartPos;
   rest := 0;
 
-  if BufSiz shl 3 < 0 then
+  if (BufSiz shl 3) < 0 then
       Inc(Hi);
 
   Inc(Lo, BufSiz shl 3);

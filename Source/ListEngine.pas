@@ -989,13 +989,13 @@ uses Math, DoStatusIO, UnicodeMixedLib;
 function MakeHash(var s: SystemString): THash;
 begin
   Result := FastHashSystemString(@s);
-  Result:=umlCRC32(@Result, SizeOf(THash));
+  Result := umlCRC32(@Result, SizeOf(THash));
 end;
 
 function MakeHash(var s: TPascalString): THash;
 begin
   Result := FastHashPascalString(@s);
-  Result:=umlCRC32(@Result, SizeOf(THash));
+  Result := umlCRC32(@Result, SizeOf(THash));
 end;
 
 function MakeHash(var i64: Int64): THash;

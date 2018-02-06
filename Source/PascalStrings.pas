@@ -544,8 +544,6 @@ begin
 end;
 
 procedure TPascalString.SetText(const Value: SystemString);
-var
-  i: Integer;
 begin
   SetLength(Buff, Length(Value));
   CopyPtr(@Value[FirstCharPos], @Buff[0], Length(Buff) * SystemCharSize);
@@ -572,8 +570,6 @@ begin
 end;
 
 procedure TPascalString.SetBytes(const Value: TBytes);
-var
-  i: Integer;
 begin
   SetLength(Buff, 0);
   try

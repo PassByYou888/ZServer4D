@@ -37,7 +37,7 @@
 
 // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
 // if CriticalSimulateAtomic defined so performance to be reduced
-{.$DEFINE CriticalSimulateAtomic}
+{ .$DEFINE CriticalSimulateAtomic }
 
 {$IFDEF Linux}
 {$DEFINE CriticalSimulateAtomic}
@@ -48,11 +48,10 @@
 
 {$WARNINGS OFF}
 {$HINTS OFF}
-
 {$H+} { long string }
 {$R-} { range check }
 {$A+} { Word Align Data }
-{$O-} { optimization }
+// {$O-} { optimization }
 
 (*
   {$IFDEF FPC}
@@ -83,5 +82,3 @@
 {$IFNDEF CPU64}
 {$DEFINE CPU32}
 {$ENDIF}
-
-

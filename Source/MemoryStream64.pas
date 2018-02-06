@@ -360,7 +360,7 @@ begin
       exit;
     end;
 
-  if (FPosition >= 0) and (Count >= 0) then
+  if (Count > 0) then
     begin
       p := FPosition;
       p := p + Count;
@@ -398,7 +398,7 @@ function TMemoryStream64.Write(const Buffer: TBytes; Offset, Count: Longint): Lo
 var
   p: Int64;
 begin
-  if (FPosition >= 0) and (Count >= 0) then
+  if Count > 0 then
     begin
       p := FPosition;
       p := p + Count;
@@ -423,7 +423,7 @@ end;
 
 function TMemoryStream64.Read64(var Buffer; Count: Int64): Int64;
 begin
-  if (FPosition >= 0) and (Count >= 0) then
+  if Count > 0 then
     begin
       Result := FSize;
       Result := Result - FPosition;
@@ -456,7 +456,7 @@ function TMemoryStream64.Read(Buffer: TBytes; Offset, Count: Longint): Longint;
 var
   p: Int64;
 begin
-  if (FPosition >= 0) and (Count >= 0) then
+  if Count > 0 then
     begin
       p := FSize;
       p := p - FPosition;
