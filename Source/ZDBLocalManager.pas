@@ -1,7 +1,8 @@
 { ****************************************************************************** }
 { * ZDBLocal , createby qq600585                                               * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
-(* https://github.com/PassByYou888/ZServer4D *)
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
 { ****************************************************************************** }
 (*
   update history

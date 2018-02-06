@@ -1,3 +1,9 @@
+{ * opCode                                                                     * }
+{ ****************************************************************************** }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ ****************************************************************************** }
 unit opCode;
 
 {$I zDefine.inc}
@@ -26,44 +32,40 @@ type
     ValueType: TOpValueType;
   end;
 
-  TOnOpCall               = function(Param: TOpParam)                           : Variant;
-  TOnOpMethod             = function(Param: TOpParam)                         : Variant of object;
-  {$IFNDEF FPC} TOnOpProc = reference to function(Param: TOpParam): Variant; {$ENDIF FPC}
-  { }
-  PopRTproc = ^TopRTproc;
-
-  TopRTproc = record
-    Name: SystemString;
-    OnOpCall: TOnOpCall;
-    OnOpMethod: TOnOpMethod;
-    {$IFNDEF FPC} OnOpProc: TOnOpProc; {$ENDIF FPC}
-    procedure Init;
-  end;
+  TOnOpCall   = function(var Param: TOpParam)  : Variant;
+  TOnOpMethod = function(var Param: TOpParam): Variant of object;
+  {$IFNDEF FPC}
+  TOnOpProc = reference to function(var Param: TOpParam): Variant;
+  {$ENDIF FPC}
 
   TOpCustomRunTime = class(TCoreClassObject)
   private
     procedure FreeNotifyProc(p: Pointer);
 
-    function DoInt(Param: TOpParam): Variant;
-    function DoFrac(Param: TOpParam): Variant;
-    function DoExp(Param: TOpParam): Variant;
-    function DoCos(Param: TOpParam): Variant;
-    function DoSin(Param: TOpParam): Variant;
-    function DoLn(Param: TOpParam): Variant;
-    function DoArcTan(Param: TOpParam): Variant;
-    function DoSqrt(Param: TOpParam): Variant;
-    function DoTan(Param: TOpParam): Variant;
+    function DoInt(var Param: TOpParam): Variant;
+    function DoFrac(var Param: TOpParam): Variant;
+    function DoExp(var Param: TOpParam): Variant;
+    function DoCos(var Param: TOpParam): Variant;
+    function DoSin(var Param: TOpParam): Variant;
+    function DoLn(var Param: TOpParam): Variant;
+    function DoArcTan(var Param: TOpParam): Variant;
+    function DoSqrt(var Param: TOpParam): Variant;
+    function DoTan(var Param: TOpParam): Variant;
+    function DoRound(var Param: TOpParam): Variant;
+    function DoTrunc(var Param: TOpParam): Variant;
 
-    function DoGetFirst(Param: TOpParam): Variant;
-    function DoDeleteFirst(Param: TOpParam): Variant;
-    function DoGetLast(Param: TOpParam): Variant;
-    function DoDeleteLast(Param: TOpParam): Variant;
+    function DoGetFirst(var Param: TOpParam): Variant;
+    function DoDeleteFirst(var Param: TOpParam): Variant;
+    function DoGetLast(var Param: TOpParam): Variant;
+    function DoDeleteLast(var Param: TOpParam): Variant;
+
+    procedure InternalReg;
   public
     ProcList: THashList;
 
-    constructor Create; virtual;
+    constructor Create; overload; virtual;
+    constructor Create(maxHashLen: Integer); overload; virtual;
     destructor Destroy; override;
-    function Execute(sender: TOpCode; const ProcName: SystemString; var Parameter: TOpParam): Variant; virtual;
 
     procedure RegOp(ProcName: string; OnProc: TOnOpCall); overload;
     procedure RegOp(ProcName: string; OnProc: TOnOpMethod); overload;
@@ -74,8 +76,8 @@ type
 
   TOpCode = class(TCoreClassObject)
   private
-    FParam              : TCoreClassList;
-    FDestoryTimeFreeLink: Boolean;
+    FParam       : TCoreClassList;
+    FAutoFreeLink: Boolean;
     function doExecute(opRT: TOpCustomRunTime): Variant; virtual;
     function GetParam(index: Integer): POpData;
     procedure EvaluateParam(opRT: TOpCustomRunTime); overload;
@@ -103,7 +105,7 @@ type
     function Execute: Variant; overload;
     function Execute(opRT: TOpCustomRunTime): Variant; overload;
 
-    property DestoryTimeFreeLink: Boolean read FDestoryTimeFreeLink write FDestoryTimeFreeLink;
+    property AutoFreeLink: Boolean read FAutoFreeLink write FAutoFreeLink;
   end;
 
   op_Value = class(TOpCode)
@@ -114,7 +116,7 @@ type
 
   op_Proc = class(TOpCode)
   private
-    // proc(a,b,c)
+    // proc(a,b,c...)
     function doExecute(opRT: TOpCustomRunTime): Variant; override;
   end;
 
@@ -238,7 +240,7 @@ type
     function doExecute(opRT: TOpCustomRunTime): Variant; override;
   end;
 
-function LoadOpFromStream(Stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
+function LoadOpFromStream(Fast: Boolean; Stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
 
 var
   DefaultOpRT: TOpCustomRunTime;
@@ -248,6 +250,17 @@ implementation
 uses DataFrameEngine;
 
 type
+  PopRTproc = ^TopRTproc;
+
+  TopRTproc = record
+    Param: TOpParam;
+    Name: SystemString;
+    OnOpCall: TOnOpCall;
+    OnOpMethod: TOnOpMethod;
+    {$IFNDEF FPC} OnOpProc: TOnOpProc; {$ENDIF FPC}
+    procedure Init;
+  end;
+
   opRegData = record
     opClass: opClass;
     OpName: SystemString;
@@ -258,6 +271,15 @@ type
 
 var
   OpList: TCoreClassList;
+
+procedure TopRTproc.Init;
+begin
+  Param := [];
+  name := '';
+  OnOpCall := nil;
+  OnOpMethod := nil;
+  {$IFNDEF FPC} OnOpProc := nil; {$ENDIF FPC}
+end;
 
 function GetRegistedOp(Name: SystemString): POpRegData; inline;
 var
@@ -301,7 +323,7 @@ begin
   DisposeObject(OpList);
 end;
 
-function LoadOpFromStream(Stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
+function LoadOpFromStream(Fast: Boolean; Stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
 
   function LoadFromDataFrame_1(CurDataEng: TDataFrameEngine): TOpCode;
   var
@@ -352,7 +374,7 @@ begin
   Result := False;
   dataEng := TDataFrameEngine.Create;
   try
-    dataEng.LoadFromStream(Stream);
+    dataEng.DecodeFrom(Stream, False);
     DataEdition := dataEng.Reader.ReadInteger;
     if DataEdition = 1 then
       begin
@@ -366,20 +388,12 @@ begin
   DisposeObject(dataEng);
 end;
 
-procedure TopRTproc.Init;
-begin
-  name := '';
-  OnOpCall := nil;
-  OnOpMethod := nil;
-  {$IFNDEF FPC} OnOpProc := nil; {$ENDIF FPC}
-end;
-
 procedure TOpCustomRunTime.FreeNotifyProc(p: Pointer);
 begin
   Dispose(PopRTproc(p));
 end;
 
-function TOpCustomRunTime.DoInt(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoInt(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -390,7 +404,7 @@ begin
   Result := Int(v);
 end;
 
-function TOpCustomRunTime.DoFrac(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoFrac(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -401,7 +415,7 @@ begin
   Result := Frac(v);
 end;
 
-function TOpCustomRunTime.DoExp(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoExp(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -412,7 +426,7 @@ begin
   Result := Exp(v);
 end;
 
-function TOpCustomRunTime.DoCos(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoCos(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -423,7 +437,7 @@ begin
   Result := Cos(v);
 end;
 
-function TOpCustomRunTime.DoSin(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoSin(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -434,7 +448,7 @@ begin
   Result := Sin(v);
 end;
 
-function TOpCustomRunTime.DoLn(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoLn(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -445,7 +459,7 @@ begin
   Result := Ln(v);
 end;
 
-function TOpCustomRunTime.DoArcTan(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoArcTan(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -456,7 +470,7 @@ begin
   Result := ArcTan(v);
 end;
 
-function TOpCustomRunTime.DoSqrt(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoSqrt(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -467,7 +481,7 @@ begin
   Result := Sqrt(v);
 end;
 
-function TOpCustomRunTime.DoTan(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoTan(var Param: TOpParam): Variant;
 var
   v: Variant;
   i: Integer;
@@ -478,7 +492,29 @@ begin
   Result := Tan(v);
 end;
 
-function TOpCustomRunTime.DoGetFirst(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoRound(var Param: TOpParam): Variant;
+var
+  v: Variant;
+  i: Integer;
+begin
+  v := 0;
+  for i := low(Param) to high(Param) do
+      v := v + Param[i];
+  Result := Round(Double(v));
+end;
+
+function TOpCustomRunTime.DoTrunc(var Param: TOpParam): Variant;
+var
+  v: Variant;
+  i: Integer;
+begin
+  v := 0;
+  for i := low(Param) to high(Param) do
+      v := v + Param[i];
+  Result := Trunc(Double(v));
+end;
+
+function TOpCustomRunTime.DoGetFirst(var Param: TOpParam): Variant;
 begin
   if Length(Param) = 2 then
       Result := umlGetFirstStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
@@ -486,7 +522,7 @@ begin
       Result := '';
 end;
 
-function TOpCustomRunTime.DoDeleteFirst(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoDeleteFirst(var Param: TOpParam): Variant;
 begin
   if Length(Param) = 2 then
       Result := umlDeleteFirstStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
@@ -494,7 +530,7 @@ begin
       Result := '';
 end;
 
-function TOpCustomRunTime.DoGetLast(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoGetLast(var Param: TOpParam): Variant;
 begin
   if Length(Param) = 2 then
       Result := umlGetLastStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
@@ -502,7 +538,7 @@ begin
       Result := '';
 end;
 
-function TOpCustomRunTime.DoDeleteLast(Param: TOpParam): Variant;
+function TOpCustomRunTime.DoDeleteLast(var Param: TOpParam): Variant;
 begin
   if Length(Param) = 2 then
       Result := umlDeleteLastStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
@@ -510,11 +546,8 @@ begin
       Result := '';
 end;
 
-constructor TOpCustomRunTime.Create;
+procedure TOpCustomRunTime.InternalReg;
 begin
-  inherited Create;
-  ProcList := THashList.Create(256);
-  ProcList.AutoFreeData := True;
   {$IFDEF FPC}
   ProcList.OnDataFreeProc := @FreeNotifyProc;
   RegOp('Int', @DoInt);
@@ -526,6 +559,9 @@ begin
   RegOp('ArcTan', @DoArcTan);
   RegOp('Sqrt', @DoSqrt);
   RegOp('Tan', @DoTan);
+  RegOp('Round', @DoRound);
+  RegOp('Trunc', @DoTrunc);
+
   RegOp('GetFirst', @DoGetFirst);
   RegOp('DeleteFirst', @DoDeleteFirst);
   RegOp('GetLast', @DoGetLast);
@@ -541,6 +577,9 @@ begin
   RegOp('ArcTan', DoArcTan);
   RegOp('Sqrt', DoSqrt);
   RegOp('Tan', DoTan);
+  RegOp('Round', DoRound);
+  RegOp('Trunc', DoTrunc);
+
   RegOp('GetFirst', DoGetFirst);
   RegOp('DeleteFirst', DoDeleteFirst);
   RegOp('GetLast', DoGetLast);
@@ -548,29 +587,26 @@ begin
   {$ENDIF FPC}
 end;
 
+constructor TOpCustomRunTime.Create;
+begin
+  inherited Create;
+  ProcList := THashList.Create(256);
+  ProcList.AutoFreeData := True;
+  InternalReg;
+end;
+
+constructor TOpCustomRunTime.Create(maxHashLen: Integer);
+begin
+  inherited Create;
+  ProcList := THashList.Create(maxHashLen);
+  ProcList.AutoFreeData := True;
+  InternalReg;
+end;
+
 destructor TOpCustomRunTime.Destroy;
 begin
   DisposeObject(ProcList);
   inherited Destroy;
-end;
-
-function TOpCustomRunTime.Execute(sender: TOpCode; const ProcName: SystemString; var Parameter: TOpParam): Variant;
-var
-  p: PopRTproc;
-begin
-  Result := 0;
-  p := ProcList[ProcName];
-  if p <> nil then
-    begin
-      if Assigned(p^.OnOpCall) then
-          Result := p^.OnOpCall(Parameter);
-      if Assigned(p^.OnOpMethod) then
-          Result := p^.OnOpMethod(Parameter);
-      {$IFNDEF FPC}
-      if Assigned(p^.OnOpProc) then
-          Result := p^.OnOpProc(Parameter);
-      {$ENDIF FPC}
-    end;
 end;
 
 procedure TOpCustomRunTime.RegOp(ProcName: string; OnProc: TOnOpCall);
@@ -657,7 +693,7 @@ begin
   inherited Create;
   Owner := nil;
   FParam := TCoreClassList.Create;
-  FDestoryTimeFreeLink := True;
+  FAutoFreeLink := True;
   ParsedInfo := '';
   ParsedLineNo := 0;
 end;
@@ -667,7 +703,7 @@ begin
   inherited Create;
   Owner := nil;
   FParam := TCoreClassList.Create;
-  FDestoryTimeFreeLink := AFreeLink;
+  FAutoFreeLink := AFreeLink;
   ParsedInfo := '';
   ParsedLineNo := 0;
 end;
@@ -682,7 +718,7 @@ begin
       for i := 0 to FParam.Count - 1 do
         begin
           p := FParam[i];
-          if (FDestoryTimeFreeLink) and (p^.OnGet <> nil) then
+          if (FAutoFreeLink) and (p^.OnGet <> nil) then
               DisposeObject(p^.OnGet);
           Dispose(p);
         end;
@@ -729,7 +765,7 @@ begin
   dataEng := TDataFrameEngine.Create;
   dataEng.WriteInteger(1);
   SaveToDataFrame(Self, dataEng);
-  dataEng.SaveToStream(Stream);
+  dataEng.EncodeTo(Stream, True);
   DisposeObject(dataEng);
 end;
 
@@ -850,19 +886,37 @@ end;
 { op_Proc }
 function op_Proc.doExecute(opRT: TOpCustomRunTime): Variant;
 var
-  arr: TOpParam;
-  i  : Integer;
+  p: PopRTproc;
+  i: Integer;
 begin
-  if opRT <> nil then
+  Result := 0;
+  if (opRT = nil) then
+      opRT := DefaultOpRT;
+
+  p := opRT.ProcList[VarToStr(Param[0]^.Value)];
+  if p = nil then
     begin
-      SetLength(arr, Count - 1);
-      for i := low(arr) to high(arr) do
-          arr[i] := Param[i + 1]^.Value;
-      Result := opRT.Execute(Self, SystemString(Param[0]^.Value), arr);
-      SetLength(arr, 0);
-    end
-  else
-      Result := 0;
+      if opRT = DefaultOpRT then
+          Exit;
+      p := DefaultOpRT.ProcList[VarToStr(Param[0]^.Value)];
+      if p = nil then
+          Exit;
+    end;
+
+  if Length(p^.Param) <> Count - 1 then
+      SetLength(p^.Param, Count - 1);
+
+  for i := 1 to Count - 1 do
+      p^.Param[i - 1] := Param[i]^.Value;
+
+  if Assigned(p^.OnOpCall) then
+      Result := p^.OnOpCall(p^.Param);
+  if Assigned(p^.OnOpMethod) then
+      Result := p^.OnOpMethod(p^.Param);
+  {$IFNDEF FPC}
+  if Assigned(p^.OnOpProc) then
+      Result := p^.OnOpProc(p^.Param);
+  {$ENDIF FPC}
 end;
 
 { op_Add }

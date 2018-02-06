@@ -1,7 +1,8 @@
 { ****************************************************************************** }
 { * hash Library,Writen by QQ 600585@qq.com                                    * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
-(* https://github.com/PassByYou888/ZServer4D *)
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
 { ****************************************************************************** }
 
 (*
@@ -522,7 +523,7 @@ type
     function GetDefaultValue(Name: SystemString; aValue: Variant): Variant;
     procedure SetDefaultValue(Name: SystemString; aValue: Variant);
 
-    function ReplaceMacro(const AText, HeadFlag, TailFlag: SystemString; var Output: SystemString): Boolean;
+    function ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
     property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
@@ -988,11 +989,13 @@ uses Math, DoStatusIO, UnicodeMixedLib;
 function MakeHash(var s: SystemString): THash;
 begin
   Result := FastHashSystemString(@s);
+  Result:=umlCRC32(@Result, SizeOf(THash));
 end;
 
 function MakeHash(var s: TPascalString): THash;
 begin
   Result := FastHashPascalString(@s);
+  Result:=umlCRC32(@Result, SizeOf(THash));
 end;
 
 function MakeHash(var i64: Int64): THash;
@@ -4910,36 +4913,36 @@ begin
   SetNames(name, aValue);
 end;
 
-function THashVariantList.ReplaceMacro(const AText, HeadFlag, TailFlag: SystemString; var Output: SystemString): Boolean;
+function THashVariantList.ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
 var
   sour      : umlString;
-  hf, tf    : umlString;
+  h, t      : umlString;
   bPos, ePos: Integer;
   KeyText   : SystemString;
   i         : Integer;
 begin
   Output := '';
   sour.Text := AText;
-  hf.Text := HeadFlag;
-  tf.Text := TailFlag;
+  h.Text := HeadToken;
+  t.Text := TailToken;
   Result := True;
 
   i := 1;
 
   while i <= sour.Len do
     begin
-      if sour.ComparePos(i, hf) then
+      if sour.ComparePos(i, h) then
         begin
           bPos := i;
-          ePos := sour.GetPos(tf, i + hf.Len);
+          ePos := sour.GetPos(t, i + h.Len);
           if ePos > 0 then
             begin
-              KeyText := sour.copy(bPos + hf.Len, ePos - (bPos + hf.Len)).Text;
+              KeyText := sour.copy(bPos + h.Len, ePos - (bPos + h.Len)).Text;
 
               if Exists(KeyText) then
                 begin
                   Output := Output + VarToStr(GetNameValue(KeyText));
-                  i := ePos + tf.Len;
+                  i := ePos + t.Len;
                   Continue;
                 end
               else

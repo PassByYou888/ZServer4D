@@ -18,7 +18,7 @@ object Form1: TForm1
     Top = 0
     Width = 896
     Height = 440
-    ActivePage = TabSheet1
+    ActivePage = TabSheet3
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -64,10 +64,6 @@ object Form1: TForm1
     object TabSheet2: TTabSheet
       Caption = 'pascal proc list'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo3: TMemo
         Left = 24
         Top = 27
@@ -98,6 +94,65 @@ object Form1: TForm1
         Width = 393
         Height = 337
         TabOrder = 2
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'zExpression Demo'
+      ImageIndex = 2
+      object Memo5: TMemo
+        Left = 0
+        Top = 49
+        Width = 888
+        Height = 363
+        Align = alClient
+        TabOrder = 0
+        ExplicitTop = 41
+        ExplicitHeight = 371
+      end
+      object Panel1: TPanel
+        Left = 0
+        Top = 0
+        Width = 888
+        Height = 49
+        Align = alTop
+        BevelOuter = bvNone
+        TabOrder = 1
+        object Button4: TButton
+          Left = 8
+          Top = 10
+          Width = 75
+          Height = 25
+          Caption = 'demo1'
+          TabOrder = 0
+          OnClick = Button4Click
+        end
+        object Button5: TButton
+          Left = 89
+          Top = 10
+          Width = 75
+          Height = 25
+          Caption = 'demo2'
+          TabOrder = 1
+          OnClick = Button5Click
+        end
+        object Button6: TButton
+          Left = 170
+          Top = 10
+          Width = 75
+          Height = 25
+          Caption = 'demo3'
+          TabOrder = 2
+          OnClick = Button6Click
+        end
+        object Button7: TButton
+          Left = 251
+          Top = 10
+          Width = 75
+          Height = 25
+          Caption = 'demo4'
+          TabOrder = 3
+          OnClick = Button7Click
+        end
       end
     end
   end

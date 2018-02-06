@@ -1,7 +1,8 @@
 { ***************************************************************************** }
 { * string support,writen by QQ 600585@qq.com                                 * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
-(* https://github.com/PassByYou888/ZServer4D *)
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
 { ****************************************************************************** }
 
 (*
@@ -88,7 +89,8 @@ type
     procedure DeleteFirst; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Delete(idx, cnt: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Append(t: TPascalString);
+    procedure Append(t: TPascalString); overload;
+    procedure Append(c: SystemChar); overload;
     function GetString(bPos, ePos: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Insert(AText: SystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure AsText(var Output: SystemString);
@@ -896,6 +898,12 @@ begin
       SetLength(Buff, r + l);
       CopyPtr(@t.Buff[0], @Buff[r], l * SystemCharSize);
     end;
+end;
+
+procedure TPascalString.Append(c: SystemChar);
+begin
+  SetLength(Buff, Length(Buff) + 1);
+  Buff[Length(Buff) - 1] := c;
 end;
 
 function TPascalString.GetString(bPos, ePos: Integer): TPascalString;

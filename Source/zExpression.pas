@@ -1,68 +1,36 @@
+{ * zExpression                                                                * }
+{ ****************************************************************************** }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ ****************************************************************************** }
 unit zExpression;
 
 {$I zDefine.inc}
 
-(*
-
-  zExpression 句法编译器+解释器
-
-  技术体系解释：
-  在编译原理的技术体系中，凡是处理文本化的代码前，都需要做一次预处理，其中我们常说的语法，语法糖，都是一种预处理程序
-  词法：词法是对文本关键字，数字，符号，进行分类整理，最后形成词法树，并且严格遵循顺序化处理原则
-  申明：在预处理代码中，申明部分，叫做申明树，申明树又依赖于词法顺序预处理，因为对词法预处理是一种简化手段
-  句法：在经过了申明预处理以后，是对代码表达式的单行逻辑操作进行处理，这一步叫句法
-  zExpression句法编译器是我从曾经撰写的编译器中特意剥离出来的解决方案
-  它可以独立出来分发和使用，可以实用数字化预处理，图形图像，科学计算等等领域，也可以作为学习提高自己的手段
-
-  核心思路
-  实现zExpression采用的是对等复杂化原则，面向解决编译器问题而编写，复杂度相比于常规程序会高许多，因为解决了最终问题，代码在命名和堆结构上也看不出漏洞
-  它是成熟句法解释器方案
-
-  zExpression特点
-  完整的单步原子化操作
-  完整的符号优先级后处理
-  能预处理字面错误，并反馈错误发生在哪
-  能识别浮点和整数的自然数写法
-  在编译以后，能形成原子化op代码，可以通过stream高速载入并运行，不限制cpu类型，可以兼容手机程序
-  早年开发编译器时所编写的核心组件，套上不同的文本解析引擎，可以处理c/c++/pascal多种复杂句法
-
-
-  更新日志
-  首发代码创建 于2004年 创建人qq600585
-  最后更新于2014年 可以兼容fpc编译器和最新的delphi xe，包括ios,osx,android,linux,win32
-
-  有问题请来信
-  by600585 qq邮箱
-
-*)
-
 interface
 
-uses SysUtils, Variants, CoreClasses, TypInfo, OpCode, TextParsing, PascalStrings, DoStatusIO;
+uses SysUtils, Variants, CoreClasses, TypInfo, OpCode, TextParsing, PascalStrings, DoStatusIO, ListEngine;
 
 type
-  // 文本符号操作类型，包括常用的数学逻辑类型缩进类型
-  TSymbolOperation = (soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor, // 数学操作
-    soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,  // 比较符操作
-    soShl, soShr,                                                                             // 移位
-    soBlockIndentBegin, soBlockIndentEnd,                                                     // 括号缩进符
-    soPropParamIndentBegin, soPropParamIndentEnd,                                             // 方框缩紧符
-    soDotSymbol, soCommaSymbol,                                                               // 点和逗号
-    soEolSymbol,                                                                              // 终止符
-    soProc, soParameter,                                                                      // 函数支持
+  TSymbolOperation = (soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor, // compute
+    soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,  // match
+    soShl, soShr,                                                                             // bit
+    soBlockIndentBegin, soBlockIndentEnd,                                                     // block indent
+    soPropParamIndentBegin, soPropParamIndentEnd,                                             // param indent
+    soDotSymbol, soCommaSymbol,                                                               // dot and comma
+    soEolSymbol,                                                                              // eol
+    soProc, soParameter,                                                                      // proc
     soUnknow);
   TSymbolOperations = set of TSymbolOperation;
 
-  // 表达式数值类型
-  // 解析器会识别写明的自然数，并且给自然数分类
-  // 其次是操作符号，字符串，常量，变量，函数，嵌套
   TExpressionDeclType = (
-    edtSymbol,                                                                                 // 符号
-    edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt, // 编译器内置整数变量
-    edtSingle, edtDouble, edtCurrency,                                                         // 浮点
-    edtString,                                                                                 // 字符串
-    edtProcExp,                                                                                // 函数支持
-    edtExpressionAsValue,                                                                      // 镶嵌
+    edtSymbol,                                                                                 // symbol
+    edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt, // internal type
+    edtSingle, edtDouble, edtCurrency,                                                         // float
+    edtString,                                                                                 // string
+    edtProcExp,                                                                                // proc
+    edtExpressionAsValue,                                                                      // expression
     edtUnknow);
 
   TExpressionDeclTypes = set of TExpressionDeclType;
@@ -70,17 +38,18 @@ type
   TSymbolExpression = class;
 
   TExpressionListData = record
-    DeclType: TExpressionDeclType; // 表达式申明类型
-    charPos: Integer;              // 表达式字符坐标
-    Symbol: TSymbolOperation;      // 符号
-    Value: Variant;                // 值
-    Expression: TSymbolExpression; // 镶嵌
-    ExpressionAutoFree: Boolean;   // 自动释放
+    DeclType: TExpressionDeclType; // declaration
+    charPos: Integer;              // char pos
+    Symbol: TSymbolOperation;      // symbol
+    Value: Variant;                // value
+    Expression: TSymbolExpression; // expression
+    ExpressionAutoFree: Boolean;   // autofree
   end;
 
   PExpressionListData = ^TExpressionListData;
 
-  // 已经剥离完成的核心数据结构
+  TNumTextType = (nttBool, nttInt, nttInt64, nttUInt64, nttWord, nttByte, nttSmallInt, nttShortInt, nttUInt, nttSingle, nttDouble, nttCurrency, nttUnknow);
+
   TSymbolExpression = class(TCoreClassObject)
   protected
     FList: TCoreClassList;
@@ -132,61 +101,65 @@ type
     property Items[index: Integer]: PExpressionListData read GetItems; default;
   end;
 
-  // 用于获取代码中常量值的事件
-  // 单独使用ParseTextExpressionAsSymbol时 将改事件设置为nil即可
-  // 假如有pi,maxInteger这类需求时，根据DeclName判断名字，吻合时返回Value对应的3.141592654即可
-  // 浮点类型ValType根据ieee规范，追求性能单浮点精度edtSingle，精确性双浮点edtDouble
-  // RefObj和Obj是用于编译器知道当前蚂蚁爬到了依赖于哪个类的方法和变量上，并且返回迭代值，除非做编译器，否则单独使用时可以无视它们
-  TExpressionGetValue = procedure(DeclName: SystemString; RefObj: TCoreClassObject;
-    var ValType: TExpressionDeclType; var Value: Variant; var Obj: TCoreClassObject) of object;
-
-  // 核心函数：将文本表达式解析成符号表达式
-  // 核心思路：采用双原子化处理，以蚂蚁化推进法处理字符和符号
-  // 这里有两个原子点 其中 符号在前 字符在后 是一种情况，这是其中的原子1，第二种情况是字符在前，而符号再后，这是第二种原子2，两种情况相辅相成
-  // 此函数复杂度偏高，遵循理论+学术所编写，无递归元素，且高效解析
-  // zExpression 运行步骤的第一步就是得到一套符号表达，从而为下一步逻辑处理做出简化准备
-  // TextEngClass 可以选择普通文本引擎，pascal文本引擎，c/c++文本引擎，它主要影响的是字符串的表达式，c的表示以"表示字符串，pascal表达式以'表示字符串
-  // uName 是为上层编译器准备的，单元说明，类似unit name; include name; 编译时可以知道哪个原文件，便于编译预处理时查错和报错
-  // ExpressionText 是表达式的文本内容
-  // OnGetValue 在申明了常量和函数时，常量的值以此事件获取
-  // 返回：符号表达式的TSymbolExpression类
+  TOnDeclValueCall   = procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
+  TOnDeclValueMethod = procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant) of object;
+  {$IFNDEF FPC}
+  TOnDeclValueProc = reference to procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
+  {$ENDIF FPC}
+  { }
+  // text parse support
+function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; uName: SystemString;
+  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; uName: SystemString;
+  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+{$IFNDEF FPC}
+function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; uName: SystemString;
+  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+{$ENDIF FPC}
+function ParseTextExpressionAsSymbol(textStyle: TTextStyle; uName, ExpressionText: SystemString;
+  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol(TextEngClass: TTextParsingClass; uName, ExpressionText: SystemString;
-  const OnGetValue: TExpressionGetValue; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
-// zExpression 的核心逻辑第二步：对表达式做缩进优先级处理，这一步是为RebuildAllSymbol进行预处理，并不会得到最后符号顺序
-// 将TSymbolExpression数据结构拆开，并且对带有符号优先级的符号做缩进预处理，该步骤带侦错功能
+// symbol priority
 function RebuildLogicalPrioritySymbol(Exps: TSymbolExpression): TSymbolExpression;
 
-// zExpression 的核心逻辑第三步，在符号缩进预处理完成以后，重新拆开表达式数据结构，并且重建一个带有缩进的严谨TSymbolExpression的缩进顺序，该步骤带侦错功能
+// format symbol
 function RebuildAllSymbol(Exps: TSymbolExpression): TSymbolExpression;
 
-// zExpression 的核心逻辑第四步，根据RebuildAllSymbol后的严谨TSymbolExpression符号顺序，创建单步原子化执行
-// 单步原子化执行的实现请参考opCode内容
+// op
 function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression; uName: SystemString; LineNo: Integer): TOpCode; overload;
 function BuildAsOpCode(SymbExps: TSymbolExpression): TOpCode; overload;
 function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression): TOpCode; overload;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString): TOpCode; overload;
+function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString): TOpCode; overload;
+function BuildAsOpCode(ExpressionText: SystemString): TOpCode; overload;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
+function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
+function BuildAsOpCode(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
 
-// 预处理一二三步以后输出opCode 并且运行opCode 最后返回一个值
-// 该函数会消耗一定的硬件资源，高效运行建议一次性BuildAsOpCode，然后再用SaveToStream将opcode以二进制方式保存，使用时用LoadOpFromStream载入
-function EvaluateExpressionValue(TextEngClass: TTextParsingClass; const ExpressionText: SystemString; const OnGetValue: TExpressionGetValue): Variant; overload;
+// evaluate(safe thread)
+function EvaluateExpressionValue(TextEngClass: TTextParsingClass; const ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant; overload;
 function EvaluateExpressionValue(DebugMode: Boolean; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(DebugMode: Boolean; const ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(const ExpressionText: SystemString): Variant; overload;
+function EvaluateExpressionValue(textStyle: TTextStyle; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 
-function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
-
-type
-  TNumTextType = (nttBool, nttInt, nttInt64, nttUInt64, nttWord, nttByte, nttSmallInt, nttShortInt, nttUInt,
-    nttSingle, nttDouble, nttCurrency, nttUnknow);
-
+// other
 function NumTextType(s: TPascalString): TNumTextType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure InitExp(var v: TExpressionListData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function dt2op(v: TExpressionDeclType): TOpValueType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+
+var
+  OpCache: THashObjectList;
 
 implementation
+
 
 const
   MethodFlags: TExpressionDeclTypes = ([edtProcExp]);
@@ -770,8 +743,13 @@ begin
   Result := False;
 end;
 
-function ParseTextExpressionAsSymbol(TextEngClass: TTextParsingClass; uName, ExpressionText: SystemString;
-  const OnGetValue: TExpressionGetValue; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; uName: SystemString;
+  const OnDeclValueCall: TOnDeclValueCall;
+  const OnDeclValueMethod: TOnDeclValueMethod;
+  {$IFNDEF FPC}
+  const OnDeclValueProc: TOnDeclValueProc;
+  {$ENDIF FPC}
+  RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
   procedure PrintError(const s: SystemString);
   begin
@@ -782,17 +760,19 @@ function ParseTextExpressionAsSymbol(TextEngClass: TTextParsingClass; uName, Exp
     DoStatus('');
   end;
 
-  function GetDeclValue(DeclName: SystemString; var v: Variant; var Obj: TCoreClassObject): TExpressionDeclType;
+  function GetDeclValue(DeclName: SystemString; var v: Variant): TExpressionDeclType;
   begin
-    if Assigned(OnGetValue) then
-      begin
-        OnGetValue(DeclName, nil, Result, v, Obj);
-      end
-    else
-      begin
-        v := DeclName;
-        Result := edtProcExp;
-      end;
+    v := DeclName;
+    Result := edtProcExp;
+
+    if Assigned(OnDeclValueCall) then
+        OnDeclValueCall(DeclName, Result, v);
+    if Assigned(OnDeclValueMethod) then
+        OnDeclValueMethod(DeclName, Result, v);
+    {$IFNDEF FPC}
+    if Assigned(OnDeclValueProc) then
+        OnDeclValueProc(DeclName, Result, v);
+    {$ENDIF FPC}
   end;
 
   function FillProc(var ExpIndex: Integer; const Exps, procExp: TSymbolExpression): TSymbolExpression;
@@ -879,7 +859,6 @@ function ParseTextExpressionAsSymbol(TextEngClass: TTextParsingClass; uName, Exp
   end;
 
 var
-  ParsingEng                             : TTextParsing;
   cPos, bPos, ePos, i                    : Integer;
   State                                  : TExpressionParsingState;
   BlockIndent, PropIndent                : Integer;
@@ -890,13 +869,8 @@ var
   OpState                                : TSymbolOperation;
   IsNumber, IsAscii, IsTextDecl, IsSymbol: Boolean;
   rv                                     : Variant;
-  robj                                   : TCoreClassObject;
   p                                      : PExpressionListData;
 begin
-  te := TextEngClass.Create(ExpressionText, tsPascal);
-  ParsingEng := TextEngClass.Create(te.GetDeletedCommentText, tsPascal);
-  DisposeObject(te);
-
   Result := nil;
 
   if ParsingEng.ParsingData.Len < 1 then
@@ -984,7 +958,7 @@ begin
               nttCurrency: Container.AddCurrency(StrToFloat(Decl), bPos);
               else
                 begin
-                  case GetDeclValue(Decl, rv, robj) of
+                  case GetDeclValue(Decl, rv) of
                     edtBool: Container.AddBool(rv, bPos);
                     edtInt: Container.AddInt(rv, bPos);
                     edtInt64: Container.AddInt64(rv, bPos);
@@ -1001,10 +975,11 @@ begin
                     edtProcExp:
                       begin
                         if (RefrenceOpRT <> nil) and (not RefrenceOpRT.ProcList.Exists(rv)) then
-                          begin
-                            PrintError(Format('function "%s" Illegal', [rv]));
-                            break;
-                          end;
+                          if (DefaultOpRT <> RefrenceOpRT) and (not DefaultOpRT.ProcList.Exists(rv)) then
+                            begin
+                              PrintError(Format('function "%s" Illegal', [rv]));
+                              break;
+                            end;
                         Container.AddFunc(rv, bPos);
                       end;
                     else
@@ -1041,6 +1016,74 @@ begin
       DoStatus('indent error:%d,%d', [BlockIndent, PropIndent]);
 
   DisposeObject(Container);
+end;
+
+function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; uName: SystemString;
+  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+begin
+  {$IFDEF FPC}
+  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, OnGetValue, nil, RefrenceOpRT);
+  {$ELSE }
+  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, OnGetValue, nil, nil, RefrenceOpRT);
+  {$ENDIF FPC}
+end;
+
+function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; uName: SystemString;
+  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+begin
+  {$IFDEF FPC}
+  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, OnGetValue, RefrenceOpRT);
+  {$ELSE }
+  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, OnGetValue, nil, RefrenceOpRT);
+  {$ENDIF FPC}
+end;
+
+{$IFNDEF FPC}
+
+
+function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; uName: SystemString;
+  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+begin
+  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, nil, OnGetValue, RefrenceOpRT);
+end;
+{$ENDIF FPC}
+
+
+function ParseTextExpressionAsSymbol(textStyle: TTextStyle; uName, ExpressionText: SystemString;
+  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+var
+  ParsingEng: TTextParsing;
+begin
+  ParsingEng := TTextParsing.Create(ExpressionText, textStyle);
+  Result := ParseTextExpressionAsSymbol_M(ParsingEng, uName, OnGetValue, RefrenceOpRT);
+  DisposeObject(ParsingEng);
+end;
+
+function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+var
+  ParsingEng: TTextParsing;
+begin
+  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal);
+  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, RefrenceOpRT);
+  DisposeObject(ParsingEng);
+end;
+
+function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression;
+var
+  ParsingEng: TTextParsing;
+begin
+  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal);
+  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, DefaultOpRT);
+  DisposeObject(ParsingEng);
+end;
+
+function ParseTextExpressionAsSymbol(TextEngClass: TTextParsingClass; uName, ExpressionText: SystemString;
+  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+var
+  ParsingEng: TTextParsing;
+begin
+  ParsingEng := TextEngClass.Create(ExpressionText, tsPascal);
+  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', OnGetValue, RefrenceOpRT);
   DisposeObject(ParsingEng);
 end;
 
@@ -1711,7 +1754,7 @@ var
   begin
     for i := 0 to OpContainer.Count - 1 do
       if Successed then
-          TOpCode(OpContainer[i]).DestoryTimeFreeLink := True
+          TOpCode(OpContainer[i]).AutoFreeLink := True
       else
           DisposeObject(TOpCode(OpContainer[i]));
     OpContainer.Clear;
@@ -1750,28 +1793,98 @@ begin
   Result := BuildAsOpCode(DebugMode, SymbExps, '', 0);
 end;
 
-function EvaluateExpressionValue(TextEngClass: TTextParsingClass; const ExpressionText: SystemString; const OnGetValue: TExpressionGetValue): Variant;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString): TOpCode;
+var
+  sym: TSymbolExpression;
+begin
+  sym := ParseTextExpressionAsSymbol(textStyle, '', ExpressionText, nil, DefaultOpRT);
+  Result := BuildAsOpCode(DebugMode, sym, '', 0);
+  DisposeObject(sym);
+end;
+
+function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString): TOpCode;
+var
+  sym: TSymbolExpression;
+begin
+  sym := ParseTextExpressionAsSymbol(textStyle, '', ExpressionText, nil, DefaultOpRT);
+  Result := BuildAsOpCode(False, sym, '', 0);
+  DisposeObject(sym);
+end;
+
+function BuildAsOpCode(ExpressionText: SystemString): TOpCode;
+var
+  sym: TSymbolExpression;
+begin
+  sym := ParseTextExpressionAsSymbol(ExpressionText);
+  Result := BuildAsOpCode(False, sym, '', 0);
+  DisposeObject(sym);
+end;
+
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
+var
+  sym: TSymbolExpression;
+begin
+  sym := ParseTextExpressionAsSymbol(textStyle, '', ExpressionText, nil, RefrenceOpRT);
+  Result := BuildAsOpCode(DebugMode, sym, '', 0);
+  DisposeObject(sym);
+end;
+
+function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
+var
+  sym: TSymbolExpression;
+begin
+  sym := ParseTextExpressionAsSymbol(textStyle, '', ExpressionText, nil, RefrenceOpRT);
+  Result := BuildAsOpCode(False, sym, '', 0);
+  DisposeObject(sym);
+end;
+
+function BuildAsOpCode(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
+var
+  sym: TSymbolExpression;
+begin
+  sym := ParseTextExpressionAsSymbol(ExpressionText, RefrenceOpRT);
+  Result := BuildAsOpCode(False, sym, '', 0);
+  DisposeObject(sym);
+end;
+
+function EvaluateExpressionValue(TextEngClass: TTextParsingClass; const ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
 var
   sym: TSymbolExpression;
   op : TOpCode;
   i  : Integer;
 begin
-  Result := NULL;
-  sym := ParseTextExpressionAsSymbol(TextEngClass, 'Main', ExpressionText, OnGetValue, nil);
-
-  if sym <> nil then
+  LockObject(OpCache);
+  op := TOpCode(OpCache[ExpressionText]);
+  UnLockObject(OpCache);
+  if op <> nil then
     begin
-      op := BuildAsOpCode(False, sym, 'Main', -1);
-      if op <> nil then
+      try
+          Result := op.Execute;
+      except
+          Result := NULL;
+      end;
+    end
+  else
+    begin
+      Result := NULL;
+      sym := ParseTextExpressionAsSymbol(TextEngClass, '', ExpressionText, OnGetValue, DefaultOpRT);
+
+      if sym <> nil then
         begin
-          try
-              Result := op.Execute;
-          except
-              Result := NULL;
-          end;
-          DisposeObject(op);
+          op := BuildAsOpCode(False, sym, 'Main', -1);
+          if op <> nil then
+            begin
+              try
+                Result := op.Execute;
+                LockObject(OpCache);
+                OpCache.Add(ExpressionText, op);
+                UnLockObject(OpCache);
+              except
+                  Result := NULL;
+              end;
+            end;
+          DisposeObject(sym);
         end;
-      DisposeObject(sym);
     end;
 end;
 
@@ -1781,97 +1894,94 @@ var
   op : TOpCode;
   i  : Integer;
 begin
-  Result := NULL;
-  sym := ParseTextExpressionAsSymbol(TTextParsing, 'Main', ExpressionText, nil, opRT);
-
-  if sym <> nil then
+  LockObject(OpCache);
+  op := TOpCode(OpCache[ExpressionText]);
+  UnLockObject(OpCache);
+  if op <> nil then
     begin
-      op := BuildAsOpCode(DebugMode, sym, 'Main', -1);
-      if op <> nil then
+      try
+          Result := op.Execute;
+      except
+          Result := NULL;
+      end;
+    end
+  else
+    begin
+      Result := NULL;
+      sym := ParseTextExpressionAsSymbol(ExpressionText, opRT);
+
+      if sym <> nil then
         begin
-          try
-              Result := op.Execute(opRT);
-          except
-              Result := NULL;
-          end;
-          DisposeObject(op);
+          op := BuildAsOpCode(False, sym, 'Main', -1);
+          if op <> nil then
+            begin
+              try
+                Result := op.Execute(opRT);
+                LockObject(OpCache);
+                OpCache.Add(ExpressionText, op);
+                UnLockObject(OpCache);
+              except
+                  Result := NULL;
+              end;
+            end;
+          DisposeObject(sym);
         end;
-      DisposeObject(sym);
     end;
 end;
 
 function EvaluateExpressionValue(const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
-var
-  sym: TSymbolExpression;
-  op : TOpCode;
-  i  : Integer;
 begin
-  Result := NULL;
-  sym := ParseTextExpressionAsSymbol(TTextParsing, 'Main', ExpressionText, nil, opRT);
-
-  if sym <> nil then
-    begin
-      op := BuildAsOpCode(False, sym, 'Main', -1);
-      if op <> nil then
-        begin
-          try
-              Result := op.Execute(opRT);
-          except
-              Result := NULL;
-          end;
-          DisposeObject(op);
-        end;
-      DisposeObject(sym);
-    end;
+  Result := EvaluateExpressionValue(False, ExpressionText, opRT);
 end;
 
 function EvaluateExpressionValue(DebugMode: Boolean; const ExpressionText: SystemString): Variant;
-var
-  sym: TSymbolExpression;
-  op : TOpCode;
-  i  : Integer;
 begin
-  Result := NULL;
-  sym := ParseTextExpressionAsSymbol(TTextParsing, 'Main', ExpressionText, nil, nil);
-
-  if sym <> nil then
-    begin
-      op := BuildAsOpCode(DebugMode, sym, 'Main', -1);
-      if op <> nil then
-        begin
-          try
-              Result := op.Execute;
-          except
-              Result := NULL;
-          end;
-          DisposeObject(op);
-        end;
-      DisposeObject(sym);
-    end;
+  Result := EvaluateExpressionValue(False, ExpressionText, DefaultOpRT);
 end;
 
 function EvaluateExpressionValue(const ExpressionText: SystemString): Variant;
+begin
+  Result := EvaluateExpressionValue(False, ExpressionText);
+end;
+
+function EvaluateExpressionValue(textStyle: TTextStyle; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 var
   sym: TSymbolExpression;
   op : TOpCode;
   i  : Integer;
 begin
-  Result := NULL;
-  sym := ParseTextExpressionAsSymbol(TTextParsing, 'Main', ExpressionText, nil, nil);
-
-  if sym <> nil then
+  LockObject(OpCache);
+  op := TOpCode(OpCache[ExpressionText]);
+  UnLockObject(OpCache);
+  if op <> nil then
     begin
-      op := BuildAsOpCode(False, sym, 'Main', -1);
-      if op <> nil then
+      try
+          Result := op.Execute;
+      except
+          Result := NULL;
+      end;
+    end
+  else
+    begin
+      Result := NULL;
+      sym := ParseTextExpressionAsSymbol(textStyle, '', ExpressionText, nil, opRT);
+
+      if sym <> nil then
         begin
-          try
-              Result := op.Execute;
-          except
-              Result := NULL;
-          end;
-          DisposeObject(op);
+          op := BuildAsOpCode(sym);
+          if op <> nil then
+            begin
+              try
+                Result := op.Execute(opRT);
+                LockObject(OpCache);
+                OpCache.Add(ExpressionText, op);
+                UnLockObject(OpCache);
+              except
+                  Result := NULL;
+              end;
+            end;
+          DisposeObject(sym);
         end;
-      DisposeObject(sym);
     end;
 end;
 
@@ -2407,5 +2517,13 @@ function TSymbolExpression.GetItems(index: Integer): PExpressionListData;
 begin
   Result := FList[index];
 end;
+
+initialization
+
+OpCache := THashObjectList.Create(True, 8192);
+
+finalization
+
+DisposeObject(OpCache);
 
 end.

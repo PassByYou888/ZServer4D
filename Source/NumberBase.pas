@@ -4,7 +4,7 @@ unit NumberBase;
 
 interface
 
-uses ListEngine, CoreClasses, DataFrameEngine;
+uses ListEngine, CoreClasses, DataFrameEngine, PascalStrings;
 
 type
   TNumberModuleHookInterface  = class;
@@ -50,7 +50,7 @@ type
   TNumberModule = class(TCoreClassObject)
   private
     FOwner                                              : TNumberModuleList;
-    FName, FSymbolName, FDescription, FDetailDescription: string;
+    FName, FSymbolName, FDescription, FDetailDescription: SystemString;
 
     FCurrentValueHookList            : TCoreClassListForObj;
     FCurrentValueChangeAfterEventList: TCoreClassListForObj;
@@ -66,7 +66,7 @@ type
 
     FOnChange: TNumberModuleChangeEvent;
   private
-    procedure SetName(const Value: string);
+    procedure SetName(const Value: SystemString);
 
     function GetCurrentValue: Variant;
     procedure SetCurrentValue(const Value: Variant);
@@ -85,7 +85,7 @@ type
     function GetCurrentAsInt64: Int64;
     function GetCurrentAsInteger: Integer;
     function GetCurrentAsSingle: Single;
-    function GetCurrentAsString: string;
+    function GetCurrentAsString: SystemString;
     function GetCurrentAsBool: Boolean;
 
     procedure SetCurrentAsCardinal(const Value: Cardinal);
@@ -93,7 +93,7 @@ type
     procedure SetCurrentAsInt64(const Value: Int64);
     procedure SetCurrentAsInteger(const Value: Integer);
     procedure SetCurrentAsSingle(const Value: Single);
-    procedure SetCurrentAsString(const Value: string);
+    procedure SetCurrentAsString(const Value: SystemString);
     procedure SetCurrentAsBool(const Value: Boolean);
 
     function GetOriginAsCardinal: Cardinal;
@@ -101,7 +101,7 @@ type
     function GetOriginAsInt64: Int64;
     function GetOriginAsInteger: Integer;
     function GetOriginAsSingle: Single;
-    function GetOriginAsString: string;
+    function GetOriginAsString: SystemString;
     function GetOriginAsBool: Boolean;
 
     procedure SetOriginAsCardinal(const Value: Cardinal);
@@ -109,7 +109,7 @@ type
     procedure SetOriginAsInt64(const Value: Int64);
     procedure SetOriginAsInteger(const Value: Integer);
     procedure SetOriginAsSingle(const Value: Single);
-    procedure SetOriginAsString(const Value: string);
+    procedure SetOriginAsString(const Value: SystemString);
     procedure SetOriginAsBool(const Value: Boolean);
   public
     constructor Create(AOwner: TNumberModuleList);
@@ -134,7 +134,7 @@ type
     property CurrentAsInteger: Integer read GetCurrentAsInteger write SetCurrentAsInteger;
     property CurrentAsInt64: Int64 read GetCurrentAsInt64 write SetCurrentAsInt64;
     property CurrentAsCardinal: Cardinal read GetCurrentAsCardinal write SetCurrentAsCardinal;
-    property CurrentAsString: string read GetCurrentAsString write SetCurrentAsString;
+    property CurrentAsString: SystemString read GetCurrentAsString write SetCurrentAsString;
     property CurrentAsBool: Boolean read GetCurrentAsBool write SetCurrentAsBool;
 
     property AsValue: Variant read GetCurrentValue write SetCurrentValue;
@@ -143,7 +143,7 @@ type
     property AsInteger: Integer read GetCurrentAsInteger write SetCurrentAsInteger;
     property AsInt64: Int64 read GetCurrentAsInt64 write SetCurrentAsInt64;
     property AsCardinal: Cardinal read GetCurrentAsCardinal write SetCurrentAsCardinal;
-    property AsString: string read GetCurrentAsString write SetCurrentAsString;
+    property AsString: SystemString read GetCurrentAsString write SetCurrentAsString;
     property AsBool: Boolean read GetCurrentAsBool write SetCurrentAsBool;
 
     property OriginAsSingle: Single read GetOriginAsSingle write SetOriginAsSingle;
@@ -151,7 +151,7 @@ type
     property OriginAsInteger: Integer read GetOriginAsInteger write SetOriginAsInteger;
     property OriginAsInt64: Int64 read GetOriginAsInt64 write SetOriginAsInt64;
     property OriginAsCardinal: Cardinal read GetOriginAsCardinal write SetOriginAsCardinal;
-    property OriginAsString: string read GetOriginAsString write SetOriginAsString;
+    property OriginAsString: SystemString read GetOriginAsString write SetOriginAsString;
     property OriginAsBool: Boolean read GetOriginAsBool write SetOriginAsBool;
 
     // skip hook
@@ -167,30 +167,30 @@ type
     property EnabledEvent: Boolean read FEnabledEvent write FEnabledEvent;
 
     property Owner: TNumberModuleList read FOwner;
-    property name: string read FName write SetName;
-    property SymbolName: string read FSymbolName write FSymbolName;
-    property Description: string read FDescription write FDescription;
-    property DetailDescription: string read FDetailDescription write FDetailDescription;
+    property name: SystemString read FName write SetName;
+    property SymbolName: SystemString read FSymbolName write FSymbolName;
+    property Description: SystemString read FDescription write FDescription;
+    property DetailDescription: SystemString read FDetailDescription write FDetailDescription;
   end;
 
-  TGetDMAsString = function(key: string; DM: TNumberModule): string;
+  TGetDMAsString = function(key: SystemString; DM: TNumberModule): SystemString;
 
   TNumberModuleList = class(TCoreClassObject)
   protected
   private
     FList: THashObjectList;
-    function GetItems(AName: string): TNumberModule;
+    function GetItems(AName: SystemString): TNumberModule;
   public
     constructor Create;
     destructor Destroy; override;
 
-    procedure Delete(AName: string); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Exists(AName: string): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Delete(AName: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(AName: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ExistsIntf(ADM: TNumberModule): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
-    function Macro(const AText, HeadFlag, TailFlag, OwnerFlag: string; out Output: string): Boolean;
-    function ManualMacro(const AText, HeadFlag, TailFlag, OwnerFlag: string; OnDM2Text: TGetDMAsString; out Output: string): Boolean;
+    function Macro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; out Output: SystemString): Boolean;
+    function ManualMacro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out Output: SystemString): Boolean;
     //
     procedure Assign(Source: TNumberModuleList); // create by 2011-6-17
 
@@ -204,7 +204,7 @@ type
     // save as text
     procedure SaveToVariantList(v: THashVariantList);
 
-    property Items[AName: string]: TNumberModule read GetItems; default;
+    property Items[AName: SystemString]: TNumberModule read GetItems; default;
     property List: THashObjectList read FList;
   end;
 
@@ -272,9 +272,9 @@ type
 
 implementation
 
-uses SysUtils, Variants, UnicodeMixedLib, DoStatusIO, PascalStrings;
+uses SysUtils, Variants, UnicodeMixedLib, DoStatusIO;
 
-function __GetDMAsString(key: string; DM: TNumberModule): string;
+function __GetDMAsString(key: SystemString; DM: TNumberModule): SystemString;
 begin
   if key = '' then
       Result := DM.CurrentAsString
@@ -346,7 +346,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TNumberModule.SetName(const Value: string);
+procedure TNumberModule.SetName(const Value: SystemString);
 begin
   if Value <> FName then
     begin
@@ -468,7 +468,7 @@ begin
   Result := CurrentValue;
 end;
 
-function TNumberModule.GetCurrentAsString: string;
+function TNumberModule.GetCurrentAsString: SystemString;
 begin
   Result := VarToStr(CurrentValue);
 end;
@@ -503,7 +503,7 @@ begin
   CurrentValue := Value;
 end;
 
-procedure TNumberModule.SetCurrentAsString(const Value: string);
+procedure TNumberModule.SetCurrentAsString(const Value: SystemString);
 begin
   CurrentValue := Value;
 end;
@@ -538,7 +538,7 @@ begin
   Result := OriginValue;
 end;
 
-function TNumberModule.GetOriginAsString: string;
+function TNumberModule.GetOriginAsString: SystemString;
 begin
   Result := VarToStr(OriginValue);
 end;
@@ -573,7 +573,7 @@ begin
   OriginValue := Value;
 end;
 
-procedure TNumberModule.SetOriginAsString(const Value: string);
+procedure TNumberModule.SetOriginAsString(const Value: SystemString);
 begin
   OriginValue := Value;
 end;
@@ -667,7 +667,7 @@ begin
   FDetailDescription := Sour.FDetailDescription;
 end;
 
-function TNumberModuleList.GetItems(AName: string): TNumberModule;
+function TNumberModuleList.GetItems(AName: SystemString): TNumberModule;
 begin
   Result := TNumberModule(FList[AName]);
   if Result = nil then
@@ -690,12 +690,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TNumberModuleList.Delete(AName: string);
+procedure TNumberModuleList.Delete(AName: SystemString);
 begin
   FList.Delete(AName);
 end;
 
-function TNumberModuleList.Exists(AName: string): Boolean;
+function TNumberModuleList.Exists(AName: SystemString): Boolean;
 begin
   Result := FList.Exists(AName);
 end;
@@ -710,20 +710,20 @@ begin
   FList.Clear;
 end;
 
-function TNumberModuleList.Macro(const AText, HeadFlag, TailFlag, OwnerFlag: string; out Output: string): Boolean;
+function TNumberModuleList.Macro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; out Output: SystemString): Boolean;
 begin
   {$IFDEF FPC}
-  Result := ManualMacro(AText, HeadFlag, TailFlag, OwnerFlag, @__GetDMAsString, Output);
+  Result := ManualMacro(AText, HeadToken, TailToken, OwnerFlag, @__GetDMAsString, Output);
   {$ELSE}
-  Result := ManualMacro(AText, HeadFlag, TailFlag, OwnerFlag, __GetDMAsString, Output);
+  Result := ManualMacro(AText, HeadToken, TailToken, OwnerFlag, __GetDMAsString, Output);
   {$ENDIF}
 end;
 
-function TNumberModuleList.ManualMacro(const AText, HeadFlag, TailFlag, OwnerFlag: string; OnDM2Text: TGetDMAsString; out Output: string): Boolean;
+function TNumberModuleList.ManualMacro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out Output: SystemString): Boolean;
 var
   Lst: TCoreClassListForObj;
 
-  function _GetDM(k: string): TNumberModule;
+  function _GetDM(k: SystemString): TNumberModule;
   var
     i: Integer;
   begin
@@ -748,8 +748,8 @@ begin
   FList.GetAsList(Lst);
   Output := '';
   Sour.Text := AText;
-  hf.Text := HeadFlag;
-  tf.Text := TailFlag;
+  hf.Text := HeadToken;
+  tf.Text := TailToken;
   owf.Text := OwnerFlag;
   Result := True;
 
@@ -833,7 +833,7 @@ procedure TNumberModuleList.LoadFromStream(Stream: TCoreClassStream);
 var
   df : TDataFrameEngine;
   DM : TNumberModule;
-  n  : string;
+  n  : SystemString;
   Lst: TCoreClassListForObj;
   i  : Integer;
 begin
@@ -1180,7 +1180,7 @@ end;
 procedure test;
 var
   nl: TNumberModuleList;
-  n : string;
+  n : SystemString;
 begin
   nl := TNumberModuleList.Create;
   nl['a'].OriginValue := '123';

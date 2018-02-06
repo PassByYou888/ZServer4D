@@ -1,8 +1,9 @@
 { ***************************************************************************** }
 { * parsing library,writen by QQ 600585@qq.com                                * }
-{ * https://github.com/PassByYou888/CoreCipher                                * }
-(* https://github.com/PassByYou888/ZServer4D *)
-{ ***************************************************************************** }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ ****************************************************************************** }
 
 unit TextParsing;
 
@@ -10,7 +11,7 @@ unit TextParsing;
 
 interface
 
-uses SysUtils, Types, CoreClasses, UnicodeMixedLib, PascalStrings;
+uses SysUtils, Types, CoreClasses, PascalStrings, UnicodeMixedLib;
 
 type
   TTextStyle = (tsPascal, tsC, tsText);
@@ -20,14 +21,14 @@ type
 
   TTextPos = record
     bPos, ePos: Integer;
-    Text: umlString;
+    Text: TPascalString;
   end;
 
   PTextPos = ^TTextPos;
 
   TTokenData = record
     bPos, ePos: Integer;
-    Text: umlString;
+    Text: TPascalString;
     tokenType: TTokenType;
     idx: Integer;
   end;
@@ -42,7 +43,7 @@ type
 
   TTextParsingData = record
     Cache: TTextParsingCache;
-    Text: umlString;
+    Text: TPascalString;
     Len: Integer;
   end;
 
@@ -50,16 +51,36 @@ type
   public const
     NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0);
     DefaultSymbol                         = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39;
+  protected type
+    TCTranslateStruct = record
+      s: SystemChar;
+      c: SystemString;
+    end;
+  protected const
+    CTranslateTable: array [0 .. 11] of TCTranslateStruct = (
+      (s: #007; c: '\a'),
+      (s: #008; c: '\b'),
+      (s: #012; c: '\f'),
+      (s: #010; c: '\n'),
+      (s: #013; c: '\r'),
+      (s: #009; c: '\t'),
+      (s: #011; c: '\v'),
+      (s: #092; c: '\\'),
+      (s: #063; c: '\?'),
+      (s: #039; c: '\'#39),
+      (s: #034; c: '\"'),
+      (s: #000; c: '\0'));
+
   protected
     FTextStyle: TTextStyle;
   public
     ParsingData    : TTextParsingData;
-    SymbolTable    : umlString;
+    SymbolTable    : TPascalString;
     TokenStatistics: TTokenStatistics;
 
     property TextStyle: TTextStyle read FTextStyle;
 
-    function ComparePosStr(charPos: Integer; t: umlString): Boolean;
+    function ComparePosStr(charPos: Integer; t: TPascalString): Boolean;
 
     function CompareCommentGetEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function CompareTextDeclGetEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -76,7 +97,7 @@ type
     function IsTextDecl(const charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetTextDeclEndPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetTextDeclBeginPos(const charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetTextBody(const AText: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetTextBody(const AText: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetTextDeclPos(charPos: Integer; var charBeginPos, charEndPos: Integer): Boolean;
     { }
     function IsSymbol(const charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -90,25 +111,25 @@ type
     function GetCommentEndPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetCommentBeginPos(charPos: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetCommentPos(charPos: Integer; var charBeginPos, charEndPos: Integer): Boolean;
-    function GetDeletedCommentText: umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetDeletedCommentText: TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function IsTextOrComment(charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function IsCommentOrText(charPos: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function isWordSplitChar(c: umlChar; SplitCharSet: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function isWordSplitChar(c: umlChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function isWordSplitChar(c: umlChar; DefaultChar: Boolean; SplitCharSet: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(c: SystemChar; SplitCharSet: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(c: SystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(c: SystemChar; DefaultChar: Boolean; SplitCharSet: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function GetWordBeginPos(charPos: Integer; SplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordBeginPos(charPos: Integer; SplitCharSet: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetWordBeginPos(charPos: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetWordBeginPos(charPos: Integer; BeginDefaultChar: Boolean; SplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordBeginPos(charPos: Integer; BeginDefaultChar: Boolean; SplitCharSet: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function GetWordEndPos(charPos: Integer; SplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordEndPos(charPos: Integer; SplitCharSet: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetWordEndPos(charPos: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetWordEndPos(charPos: Integer; BeginSplitCharSet, EndSplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordEndPos(charPos: Integer; BeginSplitCharSet, EndSplitCharSet: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetWordEndPos(charPos: Integer;
-      BeginDefaultChar: Boolean; BeginSplitCharSet: umlString;
-      EndDefaultChar: Boolean; EndSplitCharSet: umlString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      BeginDefaultChar: Boolean; BeginSplitCharSet: TPascalString;
+      EndDefaultChar: Boolean; EndSplitCharSet: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function CompareTokenText(charPos: Integer; t: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function CompareTokenChar(charPos: Integer; const c: array of SystemChar): Boolean;
@@ -117,39 +138,41 @@ type
     function GetTokenIndex(t: TTokenType; idx: Integer): PTokenData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property TokenIndex[t: TTokenType; idx: Integer]: PTokenData read GetTokenIndex;
     { }
-    function SniffingNextChar(charPos: Integer; declChar: umlString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function SniffingNextChar(charPos: Integer; declChar: umlString; out OutPos: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SniffingNextChar(charPos: Integer; declChar: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SniffingNextChar(charPos: Integer; declChar: TPascalString; out OutPos: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function SplitText(charPos: Integer; out LastPos: Integer; SplitCharSet, EndCharSet: umlString): umlArrayString;
+    function SplitText(charPos: Integer; out LastPos: Integer; SplitCharSet, EndCharSet: TPascalString): umlArrayString;
     { }
-    function GetStr(bPos, ePos: Integer): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetStr(const tp: TTextPos): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetStr(bPos, ePos: Integer): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetStr(const tp: TTextPos): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function GetWordStr(const charPos: Integer): umlString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetWordStr(const charPos: Integer): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function GetPoint(charPos: Integer): TPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetChar(charPos: Integer): umlChar; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetChar(charPos: Integer): SystemChar; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Len: Integer read ParsingData.Len;
-    property TextChar[charPos: Integer]: umlChar read GetChar; default;
+    property TextChar[charPos: Integer]: SystemChar read GetChar; default;
     { }
     procedure DeletePos(bPos, ePos: Integer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DeletePos(const tp: TTextPos); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     procedure DeletedComment; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    procedure InsertTextBlock(bPos, ePos: Integer; AInsertText: umlString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InsertTextBlock(const tp: TTextPos; AInsertText: umlString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InsertTextBlock(bPos, ePos: Integer; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InsertTextBlock(const tp: TTextPos; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function SearchWordInBody(initPos: Integer; wordInfo: umlString; var OutPos: TTextPos): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SearchWordInBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function GetTextData: umlString; virtual;
-    procedure SetTextData(const Value: umlString); virtual;
-    property TextData: umlString read GetTextData write SetTextData;
+    function GetTextData: TPascalString; virtual;
+    procedure SetTextData(const Value: TPascalString); virtual;
+    property TextData: TPascalString read GetTextData write SetTextData;
     { }
-    class function TranslatePascalDeclToText(Text: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    class function TranslateTextToPascalDecl(Text: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslatePascalDeclToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateTextToPascalDecl(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateC_DeclToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateTextToC_Decl(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    constructor Create(AText: umlString; AStyle: TTextStyle); virtual;
+    constructor Create(AText: TPascalString; AStyle: TTextStyle); virtual;
     destructor Destroy; override;
     { }
     function Parsing: Boolean; virtual;
@@ -159,10 +182,10 @@ type
 
 implementation
 
-function TTextParsing.ComparePosStr(charPos: Integer; t: umlString): Boolean;
+function TTextParsing.ComparePosStr(charPos: Integer; t: TPascalString): Boolean;
 var
   i, l              : Integer;
-  sourChar, destChar: umlChar;
+  sourChar, destChar: SystemChar;
 begin
   Result := False;
   i := 1;
@@ -681,7 +704,7 @@ end;
 
 function TTextParsing.IsNumber(const charPos: Integer; var NumberBegin: Integer; var IsHex: Boolean): Boolean;
 var
-  c   : umlChar;
+  c   : SystemChar;
   l   : Integer;
   cPos: Integer;
 begin
@@ -763,7 +786,7 @@ function TTextParsing.GetNumberEndPos(charPos: Integer): Integer;
 var
   IsHex       : Boolean;
   l           : Integer;
-  c           : umlChar;
+  c           : SystemChar;
   dotCount    : Integer;
   eCnt        : Integer;
   AddSubSymCnt: Integer;
@@ -845,10 +868,12 @@ begin
       Result := charPos;
 end;
 
-function TTextParsing.GetTextBody(const AText: umlString): umlString;
+function TTextParsing.GetTextBody(const AText: TPascalString): TPascalString;
 begin
   if FTextStyle = tsPascal then
       Result := TranslatePascalDeclToText(AText)
+  else if FTextStyle = tsC then
+      Result := TranslateC_DeclToText(AText)
   else
       Result := AText;
 end;
@@ -1013,7 +1038,7 @@ begin
     end;
 end;
 
-function TTextParsing.GetDeletedCommentText: umlString;
+function TTextParsing.GetDeletedCommentText: TPascalString;
 var
   oriPos, cPos, nPos: Integer;
 begin
@@ -1051,17 +1076,17 @@ begin
   Result := IsComment(charPos) or IsTextDecl(charPos);
 end;
 
-function TTextParsing.isWordSplitChar(c: umlChar; SplitCharSet: umlString): Boolean;
+function TTextParsing.isWordSplitChar(c: SystemChar; SplitCharSet: TPascalString): Boolean;
 begin
   Result := isWordSplitChar(c, True, SplitCharSet);
 end;
 
-function TTextParsing.isWordSplitChar(c: umlChar): Boolean;
+function TTextParsing.isWordSplitChar(c: SystemChar): Boolean;
 begin
   Result := isWordSplitChar(c, True, '');
 end;
 
-function TTextParsing.isWordSplitChar(c: umlChar; DefaultChar: Boolean; SplitCharSet: umlString): Boolean;
+function TTextParsing.isWordSplitChar(c: SystemChar; DefaultChar: Boolean; SplitCharSet: TPascalString): Boolean;
 begin
   if DefaultChar then
       Result := CharIn(c, [c0To32], SplitCharSet)
@@ -1069,7 +1094,7 @@ begin
       Result := CharIn(c, SplitCharSet);
 end;
 
-function TTextParsing.GetWordBeginPos(charPos: Integer; SplitCharSet: umlString): Integer;
+function TTextParsing.GetWordBeginPos(charPos: Integer; SplitCharSet: TPascalString): Integer;
 begin
   Result := GetWordBeginPos(charPos, True, SplitCharSet);
 end;
@@ -1079,7 +1104,7 @@ begin
   Result := GetWordBeginPos(charPos, True, '');
 end;
 
-function TTextParsing.GetWordBeginPos(charPos: Integer; BeginDefaultChar: Boolean; SplitCharSet: umlString): Integer;
+function TTextParsing.GetWordBeginPos(charPos: Integer; BeginDefaultChar: Boolean; SplitCharSet: TPascalString): Integer;
 var
   l    : Integer;
   tbPos: Integer;
@@ -1117,7 +1142,7 @@ begin
       Inc(Result);
 end;
 
-function TTextParsing.GetWordEndPos(charPos: Integer; SplitCharSet: umlString): Integer;
+function TTextParsing.GetWordEndPos(charPos: Integer; SplitCharSet: TPascalString): Integer;
 begin
   Result := GetWordEndPos(charPos, True, SplitCharSet, True, SplitCharSet);
 end;
@@ -1127,14 +1152,14 @@ begin
   Result := GetWordEndPos(charPos, True, '', True, '');
 end;
 
-function TTextParsing.GetWordEndPos(charPos: Integer; BeginSplitCharSet, EndSplitCharSet: umlString): Integer;
+function TTextParsing.GetWordEndPos(charPos: Integer; BeginSplitCharSet, EndSplitCharSet: TPascalString): Integer;
 begin
   Result := GetWordEndPos(charPos, True, BeginSplitCharSet, True, EndSplitCharSet);
 end;
 
 function TTextParsing.GetWordEndPos(charPos: Integer;
-  BeginDefaultChar: Boolean; BeginSplitCharSet: umlString;
-  EndDefaultChar: Boolean; EndSplitCharSet: umlString): Integer;
+  BeginDefaultChar: Boolean; BeginSplitCharSet: TPascalString;
+  EndDefaultChar: Boolean; EndSplitCharSet: TPascalString): Integer;
 var
   l: Integer;
 begin
@@ -1239,14 +1264,14 @@ begin
     end;
 end;
 
-function TTextParsing.SniffingNextChar(charPos: Integer; declChar: umlString): Boolean;
+function TTextParsing.SniffingNextChar(charPos: Integer; declChar: TPascalString): Boolean;
 var
   tmp: Integer;
 begin
   Result := SniffingNextChar(charPos, declChar, tmp);
 end;
 
-function TTextParsing.SniffingNextChar(charPos: Integer; declChar: umlString; out OutPos: Integer): Boolean;
+function TTextParsing.SniffingNextChar(charPos: Integer; declChar: TPascalString; out OutPos: Integer): Boolean;
 var
   l: Integer;
 begin
@@ -1272,8 +1297,8 @@ begin
       OutPos := charPos;
 end;
 
-function TTextParsing.SplitText(charPos: Integer; out LastPos: Integer; SplitCharSet, EndCharSet: umlString): umlArrayString;
-  procedure AddS(s: umlString);
+function TTextParsing.SplitText(charPos: Integer; out LastPos: Integer; SplitCharSet, EndCharSet: TPascalString): umlArrayString;
+  procedure AddS(s: TPascalString);
   var
     l: Integer;
   begin
@@ -1287,7 +1312,7 @@ type
 
 var
   l         : Integer;
-  c         : umlChar;
+  c         : SystemChar;
   bPos, ePos: Integer;
   LastSym   : TLastSym;
 begin
@@ -1343,17 +1368,17 @@ begin
   SetLength(Result, 0);
 end;
 
-function TTextParsing.GetStr(bPos, ePos: Integer): umlString;
+function TTextParsing.GetStr(bPos, ePos: Integer): TPascalString;
 begin
   Result := ParsingData.Text.copy(bPos, ePos - bPos);
 end;
 
-function TTextParsing.GetStr(const tp: TTextPos): umlString;
+function TTextParsing.GetStr(const tp: TTextPos): TPascalString;
 begin
   Result := GetStr(tp.bPos, tp.ePos);
 end;
 
-function TTextParsing.GetWordStr(const charPos: Integer): umlString;
+function TTextParsing.GetWordStr(const charPos: Integer): TPascalString;
 begin
   Result := GetStr(GetAsciiBeginPos(charPos), GetAsciiEndPos(charPos));
 end;
@@ -1379,7 +1404,7 @@ begin
     end;
 end;
 
-function TTextParsing.GetChar(charPos: Integer): umlChar;
+function TTextParsing.GetChar(charPos: Integer): SystemChar;
 begin
   Result := ParsingData.Text[charPos];
 end;
@@ -1403,19 +1428,19 @@ begin
   RebuildParsingCache;
 end;
 
-procedure TTextParsing.InsertTextBlock(bPos, ePos: Integer; AInsertText: umlString);
+procedure TTextParsing.InsertTextBlock(bPos, ePos: Integer; AInsertText: TPascalString);
 begin
   ParsingData.Text := GetStr(1, bPos) + AInsertText + GetStr(ePos, Len + 1);
   ParsingData.Len := ParsingData.Text.Len;
   RebuildParsingCache;
 end;
 
-procedure TTextParsing.InsertTextBlock(const tp: TTextPos; AInsertText: umlString);
+procedure TTextParsing.InsertTextBlock(const tp: TTextPos; AInsertText: TPascalString);
 begin
   InsertTextBlock(tp.bPos, tp.ePos, AInsertText);
 end;
 
-function TTextParsing.SearchWordInBody(initPos: Integer; wordInfo: umlString; var OutPos: TTextPos): Boolean;
+function TTextParsing.SearchWordInBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean;
 var
   cp  : Integer;
   ePos: Integer;
@@ -1470,12 +1495,12 @@ begin
     end;
 end;
 
-function TTextParsing.GetTextData: umlString;
+function TTextParsing.GetTextData: TPascalString;
 begin
   Result := ParsingData.Text;
 end;
 
-procedure TTextParsing.SetTextData(const Value: umlString);
+procedure TTextParsing.SetTextData(const Value: TPascalString);
 begin
   if Value.Len = 0 then
       ParsingData.Text := #13#10
@@ -1486,13 +1511,13 @@ begin
   RebuildParsingCache;
 end;
 
-class function TTextParsing.TranslatePascalDeclToText(Text: umlString): umlString;
+class function TTextParsing.TranslatePascalDeclToText(Text: TPascalString): TPascalString;
 var
   cPos: Integer;
 
   // ext decl begin flag
   VIsTextDecl: Boolean;
-  nText      : umlString;
+  nText      : TPascalString;
 begin
   cPos := 1;
   VIsTextDecl := False;
@@ -1530,18 +1555,20 @@ begin
                   else
                       Break;
                 end;
-              Result.Append(umlChar(StrToIntDef(nText.Text, 0)));
-            end;
+              Result.Append(SystemChar(StrToIntDef(nText.Text, 0)));
+            end
+          else
+              Inc(cPos);
         end;
     end;
 end;
 
-class function TTextParsing.TranslateTextToPascalDecl(Text: umlString): umlString;
+class function TTextParsing.TranslateTextToPascalDecl(Text: TPascalString): TPascalString;
 var
   cPos         : Integer;
-  c            : umlChar;
+  c            : SystemChar;
   LastIsOrdChar: Boolean;
-  ordCharInfo  : umlString;
+  ordCharInfo  : TPascalString;
 begin
   if Text.Len = 0 then
     begin
@@ -1551,7 +1578,7 @@ begin
 
   ordCharInfo.Len := 32;
   for cPos := 0 to 31 do
-      ordCharInfo[cPos] := umlChar(ord(cPos));
+      ordCharInfo[cPos] := SystemChar(ord(cPos));
   ordCharInfo[32] := #39;
 
   Result := '';
@@ -1586,7 +1613,98 @@ begin
       Result.Append(#39);
 end;
 
-constructor TTextParsing.Create(AText: umlString; AStyle: TTextStyle);
+class function TTextParsing.TranslateC_DeclToText(Text: TPascalString): TPascalString;
+var
+  cPos: Integer;
+  i   : Integer;
+
+  // ext decl begin flag
+  VIsTextDecl: Boolean;
+  nText      : TPascalString;
+  wasC       : Boolean;
+begin
+  cPos := 1;
+  VIsTextDecl := False;
+  Result := '';
+  while cPos <= Text.Len do
+    begin
+      if Text[cPos] = '"' then
+        begin
+          VIsTextDecl := not VIsTextDecl;
+          Inc(cPos);
+        end
+      else
+        begin
+          wasC := False;
+          for i := low(CTranslateTable) to high(CTranslateTable) do
+            begin
+              if Text.ComparePos(cPos, CTranslateTable[i].c) then
+                begin
+                  Inc(cPos, Length(CTranslateTable[i].c));
+                  Result.Append(CTranslateTable[i].s);
+                  wasC := True;
+                  Break;
+                end;
+            end;
+          if (not wasC) then
+            begin
+              if (VIsTextDecl) then
+                  Result.Append(Text[cPos]);
+              Inc(cPos);
+            end;
+        end;
+    end;
+end;
+
+class function TTextParsing.TranslateTextToC_Decl(Text: TPascalString): TPascalString;
+  function GetCStyle(const c: SystemChar): SystemString; inline;
+  var
+    i: Integer;
+  begin
+    Result := '';
+    for i := low(CTranslateTable) to high(CTranslateTable) do
+      if c = CTranslateTable[i].s then
+        begin
+          Result := CTranslateTable[i].c;
+          Break;
+        end;
+  end;
+
+var
+  cPos         : Integer;
+  c            : SystemChar;
+  LastIsOrdChar: Boolean;
+  n            : SystemString;
+begin
+  if Text.Len = 0 then
+    begin
+      Result := '""';
+      Exit;
+    end;
+
+  Result := '';
+  LastIsOrdChar := False;
+  for cPos := 1 to Text.Len do
+    begin
+      c := Text[cPos];
+
+      if Result.Len = 0 then
+          Result := '"' + c
+      else
+        begin
+          n := GetCStyle(c);
+          if n <> '' then
+              Result.Append(n)
+          else
+              Result.Append(c);
+        end;
+    end;
+
+  if not LastIsOrdChar then
+      Result.Append('"');
+end;
+
+constructor TTextParsing.Create(AText: TPascalString; AStyle: TTextStyle);
 begin
   inherited Create;
   ParsingData.Cache.CommentData := nil;

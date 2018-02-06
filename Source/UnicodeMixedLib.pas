@@ -1,16 +1,16 @@
 { ****************************************************************************** }
 { * MixedLibrary,writen by QQ 600585@qq.com                                    * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
-(* https://github.com/PassByYou888/ZServer4D *)
-{ ***************************************************************************** }
-
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
 { ****************************************************************************** }
-{ ***************************************************************
+
+{
   *
   * Unit Name: MixedLibrary
   * Purpose  : mixed Low Level Function Library
   *
-  **************************************************************** }
+}
 
 (*
   update history

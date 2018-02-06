@@ -143,6 +143,51 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 # 更新日志
 
+### 2018-2-6
+
+## 基本用法演示
+
+Tools新增pascal,c,c++字符串申明互转，字符串10/16进制互转
+
+在 Exameples/19.词法引擎TextParsing的用法演示/ 中新增zExpression的用法，包括if实现，html和文本宏替换，二进制保存和读取op
+
+新增zExpression到主线工程 开源地址 https://github.com/PassByYouOfTeam/zExpression
+
+```Delphi
+var
+  rt: TOpCustomRunTime;
+  v : Variant;
+begin
+  // rt为ze的运行函数支持库
+  rt := TOpCustomRunTime.Create;
+  rt.RegOp('myAddFunction', function(var Param: TOpParam): Variant
+    // (a+b)*0.5
+    begin
+      Result := (Param[0] + Param[1]) * 0.5;
+    end);
+  rt.RegOp('myStringFunction', function(var Param: TOpParam): Variant
+    begin
+      Result := Format('字符串长度为:%d', [Length(VarToStr(Param[0]) + VarToStr(Param[1]))]);
+    end);
+
+  // 简单数学表达式
+  v := EvaluateExpressionValue(False, '1000+{ 这里是备注 ze可以识别pascal和c的备注以及字符串写法 } myAddFunction(1+1/2*3/3.14*9999, 599+2+2*100 shl 3)', rt);
+  DoStatus(VarToStr(v));
+
+  // 简单字符串表达式，ze的默认文本处理格式为Pascal
+  v := EvaluateExpressionValue(False, 'myStringFunction('#39'abc'#39', '#39'123'#39')', rt);
+  DoStatus(VarToStr(v));
+
+  // 简单字符串表达式，我们使用c的文本格式
+  v := EvaluateExpressionValue(tsC, 'myStringFunction("abc", "123")', rt);
+  DoStatus(VarToStr(v));
+
+  disposeObject(rt);
+end;
+
+```
+
+
 
 ### 2018-2-5
 

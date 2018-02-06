@@ -5,8 +5,9 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  PascalStrings, TextParsing, CoreClasses, UnicodeMixedLib, TypInfo,
-  Vcl.ComCtrls;
+  PascalStrings, TextParsing, CoreClasses, UnicodeMixedLib, zExpression, opCode, MemoryStream64,
+  TypInfo,
+  Vcl.ComCtrls, Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -20,9 +21,20 @@ type
     Memo3: TMemo;
     Button3: TButton;
     Memo4: TMemo;
+    TabSheet3: TTabSheet;
+    Memo5: TMemo;
+    Panel1: TPanel;
+    Button4: TButton;
+    Button5: TButton;
+    Button6: TButton;
+    Button7: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Button6Click(Sender: TObject);
+    procedure Button7Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -106,6 +118,296 @@ begin
     end;
 
   DisposeObject(t);
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+var
+  rt: TOpCustomRunTime;
+  v : Variant;
+begin
+  Memo5.Lines.Add('基本使用demo');
+  // rt为ze的运行函数支持库
+  rt := TOpCustomRunTime.Create;
+  rt.RegOp('myAddFunction', function(var Param: TOpParam): Variant
+    // (a+b)*0.5
+    begin
+      Result := (Param[0] + Param[1]) * 0.5;
+    end);
+  rt.RegOp('myStringFunction', function(var Param: TOpParam): Variant
+    begin
+      Result := Format('字符串长度为:%d', [Length(VarToStr(Param[0]) + VarToStr(Param[1]))]);
+    end);
+
+  // 简单数学表达式
+  v := EvaluateExpressionValue(False, '1000+{ 这里是备注 ze可以识别pascal和c的备注以及字符串写法 } myAddFunction(1+1/2*3/3.14*9999, 599+2+2*100 shl 3)', rt);
+  Memo5.Lines.Add(VarToStr(v));
+
+  // 简单字符串表达式，ze的默认文本处理格式为Pascal
+  v := EvaluateExpressionValue(False, 'myStringFunction('#39'abc'#39', '#39'123'#39')', rt);
+  Memo5.Lines.Add(VarToStr(v));
+
+  // 简单字符串表达式，我们使用c的文本格式
+  v := EvaluateExpressionValue(tsC, 'myStringFunction("abc", "123")', rt);
+  Memo5.Lines.Add(VarToStr(v));
+
+  DisposeObject(rt);
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  tmpSym: TSymbolExpression;
+  op    : TOpCode;
+  rt    : TOpCustomRunTime;
+  m64   : TMemoryStream64;
+begin
+  Memo5.Lines.Add('高速载入与执行demo');
+  // rt为ze的运行函数支持库
+  rt := TOpCustomRunTime.Create;
+  rt.RegOp('myAddFunction', function(var Param: TOpParam): Variant
+    // (a+b)*0.5
+    begin
+      Result := (Param[0] + Param[1]) * 0.5;
+    end);
+  rt.RegOp('myStringFunction', function(var Param: TOpParam): Variant
+    begin
+      Result := Format('字符串长度为:%d', [Length(VarToStr(Param[0]) + VarToStr(Param[1]))]);
+    end);
+
+  // 使用ParseTextExpressionAsSymbol函数，将表达式翻译成词法树
+  tmpSym := ParseTextExpressionAsSymbol(TTextParsing, '', '1000+myAddFunction(1+1/2*3/3.14*9999, 599+2+2*100 shl 3)', nil, rt);
+  // BuildAsOpCode会将词法树再次翻译成语法树，然后再基于语法树生成op代码
+  op := BuildAsOpCode(tmpSym);
+  DisposeObject(tmpSym);
+  // 我们执行一次op
+  Memo5.Lines.Add(Format('op运行返回值(正确值为4489.2962): %s', [VarToStr(op.Execute(rt))]));
+
+  m64 := TMemoryStream64.Create;
+  op.SaveToStream(m64);
+
+  // 这里已经释放了op
+  DisposeObject(op);
+
+  // 从stream快速读取op，这便于我们在
+  m64.Position := 0;
+  if LoadOpFromStream(True, m64, op) then
+    begin
+      Memo5.Lines.Add(Format('op运行返回值(正确值为4489.2962): %s', [VarToStr(op.Execute(rt))]));
+    end;
+
+  DisposeObject([op, rt, m64]);
+
+  Memo5.Lines.Add('高速载入与执行demo，运行完毕');
+end;
+
+procedure TForm1.Button6Click(Sender: TObject);
+type
+  TState = (sUnknow, sIF, sTrue, sFalse); // 解析用的简单状态机
+label gFillStruct;
+var
+  t                                      : TTextParsing;     // 词法解析引擎
+  cp, ep                                 : Integer;          // 字坐标
+  wasNumber, wasText, wasAscii, wasSymbol: Boolean;          // 解析文本状态机
+  state                                  : TState;           // 解析结构状态机
+  decl                                   : TPascalString;    // 当前解析词法体，包括
+  ifMatchBody                            : TPascalString;    // 条件布尔判断运行体
+  ifTrueBody                             : TPascalString;    // 条件成立运行体
+  ifFalseBody                            : TPascalString;    // 条件不成立运行体
+  rt                                     : TOpCustomRunTime; // 运行函数库支持
+begin
+  // 由于pascal的字符串不便于书写在程序中，这里我们c风格字符串
+  t := TTextParsing.Create('if 1+1=2 then writeln("if was true") else writeln("if was false");', tsC);
+  cp := 1;
+  ep := 1;
+  state := sUnknow;
+  ifMatchBody := '';
+  ifTrueBody := '';
+  ifFalseBody := '';
+
+  // 解析主循环
+  while cp < t.Len do
+    begin
+      // 词法流程范式，这套此范式是以成熟词法解析为主，没有考虑性能，如果需要加速运行脚本，请考虑编译成数据结构存储再以高速方式载入运行
+      wasNumber := t.IsNumber(cp);
+      wasText := t.IsTextDecl(cp);
+      wasAscii := t.IsAscii(cp);
+      wasSymbol := t.IsSymbol(cp);
+
+      if wasNumber then
+        begin
+          ep := t.GetNumberEndPos(cp);
+          decl := t.GetStr(cp, ep);
+          cp := ep;
+          goto gFillStruct;
+        end;
+
+      if wasText then
+        begin
+          ep := t.GetTextDeclEndPos(cp);
+          decl := t.GetStr(cp, ep);
+          cp := ep;
+          goto gFillStruct;
+        end;
+
+      if wasAscii then
+        begin
+          ep := t.GetAsciiEndPos(cp);
+          decl := t.GetStr(cp, ep);
+          cp := ep;
+          goto gFillStruct;
+        end;
+
+      if wasSymbol then
+        begin
+          decl := t.ParsingData.Text[cp];
+          inc(cp);
+          ep := cp;
+          goto gFillStruct;
+        end;
+
+      inc(cp);
+      continue;
+      // 词法流程范式结束，下面我们做结构体判断
+
+    gFillStruct:
+
+      if wasAscii then
+        begin
+          // 词法结构
+          if decl.Same('if') then
+            begin
+              if state <> sUnknow then
+                begin
+                  Memo5.Lines.Add('if 格式解析错误');
+                  break;
+                end;
+              state := sIF;
+              continue;
+            end;
+
+          if decl.Same('then') then
+            begin
+              if state <> sIF then
+                begin
+                  Memo5.Lines.Add('then 格式解析错误');
+                  break;
+                end;
+              state := sTrue;
+              continue;
+            end;
+
+          if decl.Same('else') then
+            begin
+              if state <> sTrue then
+                begin
+                  Memo5.Lines.Add('else 书写格式解析错误');
+                  break;
+                end;
+              state := sFalse;
+              continue;
+            end;
+        end;
+
+      case state of
+        sIF: ifMatchBody.Append(decl);    // 在TPascalString中，使用Append方法，要比string:=string+string效率更高
+        sTrue: ifTrueBody.Append(decl);   // 在TPascalString中，使用Append方法，要比string:=string+string效率更高
+        sFalse: ifFalseBody.Append(decl); // 在TPascalString中，使用Append方法，要比string:=string+string效率更高
+      end;
+    end;
+
+  // 到这一步，整个if结构体就已经解析成功了，我们直接运行程序即可
+  if state = sFalse then
+    begin
+      rt := TOpCustomRunTime.Create;
+      rt.RegOp('writeln', function(var Param: TOpParam): Variant
+        begin
+          Memo5.Lines.Add(VarToStr(Param[0]));
+          Result := 0;
+        end);
+      // 如果需要性能，这里的结构体你可以考虑用数据结构来存储，实现快速脚本
+      if EvaluateExpressionValue(tsC, ifMatchBody, rt) = True then
+          EvaluateExpressionValue(tsC, ifTrueBody, rt)
+      else
+          EvaluateExpressionValue(tsC, ifFalseBody, rt);
+      DisposeObject(rt);
+    end;
+
+  DisposeObject(t);
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+var
+  rt: TOpCustomRunTime;
+
+  function Macro(var AText: string; const HeadToken, TailToken: string): TPascalString;
+  var
+    sour      : TPascalString;
+    ht, tt    : TPascalString;
+    bPos, ePos: Integer;
+    KeyText   : SystemString;
+    i         : Integer;
+    tmpSym    : TSymbolExpression;
+    op        : TOpCode;
+  begin
+    Result := '';
+    sour.Text := AText;
+    ht.Text := HeadToken;
+    tt.Text := TailToken;
+
+    i := 1;
+
+    while i <= sour.Len do
+      begin
+        if sour.ComparePos(i, @ht) then
+          begin
+            bPos := i;
+            ePos := sour.GetPos(tt, i + ht.Len);
+            if ePos > 0 then
+              begin
+                KeyText := sour.copy(bPos + ht.Len, ePos - (bPos + ht.Len)).Text;
+
+                // 在TPascalString中，使用Append方法，要比string:=string+string效率更高
+                Result.Append(VarToStr(EvaluateExpressionValue(KeyText, rt)));
+                i := ePos + tt.Len;
+                continue;
+              end;
+          end;
+
+        // 在TPascalString中，使用Append方法，要比string:=string+string效率更高
+        Result.Append(sour[i]);
+        inc(i);
+      end;
+  end;
+
+var
+  n: string;
+  i: Integer;
+  t: TTimeTick;
+begin
+  Memo5.Lines.Add('简单演示用脚本来封装zExpression');
+  // rt为ze的运行函数支持库
+  rt := TOpCustomRunTime.Create;
+  rt.RegOp('OverFunction', function(var Param: TOpParam): Variant
+    begin
+      Result := '谢谢';
+    end);
+
+  // 我们这里使用宏处理将1+1以表达式来翻译
+  n := '这是1+1=<begin>1+1<end>，这是一个UInt48位整形:<begin>1<<48<end>，结束 <begin>OverFunction<end>';
+
+  Memo5.Lines.Add('原型:' + n);
+  Memo5.Lines.Add('计算结果' + Macro(n, '<begin>', '<end>').Text);
+
+  Memo5.Lines.Add('zExpression正在测试性能，对上列原型做100万次处理');
+
+  t := GetTimeTick;
+
+  // 重复做100万次句法表达式解析和处理
+  for i := 1 to 100 * 10000 do
+      Macro(n, '<begin>', '<end>');
+
+  Memo5.Lines.Add(Format('zExpression性能测试完成，耗时:%dms', [GetTimeTick - t]));
+
+  DisposeObject([rt]);
 end;
 
 end.

@@ -1,6 +1,11 @@
 // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
 // if CriticalSimulateAtomic defined so performance to be reduced
 
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ ****************************************************************************** }
+
 type
   PCriticalLock = ^TCriticalLock;
 

@@ -1,7 +1,8 @@
 { ****************************************************************************** }
 { * Status Library, writen by QQ 600585@qq.com                                 * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
-(* https://github.com/PassByYou888/ZServer4D *)
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
 { ****************************************************************************** }
 
 unit DoStatusIO;
@@ -23,9 +24,9 @@ type
   TDoStatusCall   = procedure(AText: SystemString; const ID: Integer);
 
 procedure DoStatus(Text: SystemString; const ID: Integer); overload;
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusMethod); overload;
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusCall); overload;
-procedure DeleteDoStatusHook(FlagObj: TCoreClassObject);
+procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod); overload;
+procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusCall); overload;
+procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
 
@@ -182,7 +183,7 @@ end;
 
 type
   TDoStatusData = record
-    FlagObj: TCoreClassObject;
+    TokenObj: TCoreClassObject;
     OnStatusNear: TDoStatusMethod;
     OnStatusFar: TDoStatusCall;
   end;
@@ -302,29 +303,29 @@ begin
   OnDoStatusHook(Text, ID);
 end;
 
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusMethod);
+procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 var
   _Data: PDoStatusData;
 begin
   New(_Data);
-  _Data^.FlagObj := FlagObj;
+  _Data^.TokenObj := TokenObj;
   _Data^.OnStatusNear := CallProc;
   _Data^.OnStatusFar := nil;
   HookDoSatus.Add(_Data);
 end;
 
-procedure AddDoStatusHook(FlagObj: TCoreClassObject; CallProc: TDoStatusCall);
+procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 var
   _Data: PDoStatusData;
 begin
   New(_Data);
-  _Data^.FlagObj := FlagObj;
+  _Data^.TokenObj := TokenObj;
   _Data^.OnStatusNear := nil;
   _Data^.OnStatusFar := CallProc;
   HookDoSatus.Add(_Data);
 end;
 
-procedure DeleteDoStatusHook(FlagObj: TCoreClassObject);
+procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 var
   i: Integer;
   p: PDoStatusData;
@@ -333,7 +334,7 @@ begin
   while i < HookDoSatus.Count do
     begin
       p := HookDoSatus[i];
-      if p^.FlagObj = FlagObj then
+      if p^.TokenObj = TokenObj then
         begin
           Dispose(p);
           HookDoSatus.Delete(i);
