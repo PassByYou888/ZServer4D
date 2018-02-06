@@ -145,13 +145,13 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 ### 2018-2-6
 
-## 基本用法演示
-
 Tools新增pascal,c,c++字符串申明互转，字符串10/16进制互转
 
 在 Exameples/19.词法引擎TextParsing的用法演示/ 中新增zExpression的用法，包括if实现，html和文本宏替换，二进制保存和读取op
 
 新增zExpression到主线工程 开源地址 https://github.com/PassByYouOfTeam/zExpression
+
+### zExpression 基本用法演示
 
 ```Delphi
 var
