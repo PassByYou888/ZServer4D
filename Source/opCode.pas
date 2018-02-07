@@ -274,7 +274,7 @@ var
 
 procedure TopRTproc.Init;
 begin
-  Param := [];
+  SetLength(Param,0);
   name := '';
   OnOpCall := nil;
   OnOpMethod := nil;
@@ -390,6 +390,7 @@ end;
 
 procedure TOpCustomRunTime.FreeNotifyProc(p: Pointer);
 begin
+  SetLength(PopRTproc(p)^.Param, 0);
   Dispose(PopRTproc(p));
 end;
 

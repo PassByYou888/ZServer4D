@@ -844,8 +844,8 @@ var
   i: Integer;
 begin
   Result := 0;
-  if SubStr.Len > 0 then
-    for i := Offset to Len - SubStr.Len + 1 do
+  if SubStr^.Len > 0 then
+    for i := Offset to Len - SubStr^.Len + 1 do
       if ComparePos(i, SubStr) then
           Exit(i);
 end;
