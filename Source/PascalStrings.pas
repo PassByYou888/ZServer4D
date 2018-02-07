@@ -78,7 +78,8 @@ type
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ComparePos(Offset: Integer; const t: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ComparePos(Offset: Integer; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPos(const SubStr: PPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Exists(c: SystemChar): Boolean; overload;
     function Exists(c: array of SystemChar): Boolean; overload;
 
@@ -93,7 +94,7 @@ type
     procedure Append(c: SystemChar); overload;
     function GetString(bPos, ePos: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Insert(AText: SystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure AsText(var Output: SystemString);
+    procedure FastAsText(var Output: SystemString);
     procedure FastGetBytes(var Output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
@@ -838,6 +839,17 @@ begin
           Exit(i);
 end;
 
+function TPascalString.GetPos(const SubStr: PPascalString; const Offset: Integer = 1): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  if SubStr.Len > 0 then
+    for i := Offset to Len - SubStr.Len + 1 do
+      if ComparePos(i, SubStr) then
+          Exit(i);
+end;
+
 function TPascalString.Exists(c: SystemChar): Boolean;
 var
   i: Integer;
@@ -912,7 +924,7 @@ begin
   Text := GetString(1, idx) + AText + GetString(idx + 1, Len);
 end;
 
-procedure TPascalString.AsText(var Output: SystemString);
+procedure TPascalString.FastAsText(var Output: SystemString);
 begin
   SetLength(Output, Length(Buff));
   CopyPtr(@Buff[0], @Output[FirstCharPos], Length(Buff) * SystemCharSize);

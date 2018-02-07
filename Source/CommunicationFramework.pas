@@ -956,9 +956,9 @@ type
     pkType: Byte;
     buff: PByte;
   private
-    procedure Init;
-    function FillReceiveBuff(stream: TMemoryStream64): Integer;
-    procedure BuildSendBuff(stream: TMemoryStream64);
+    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FillReceiveBuff(stream: TMemoryStream64): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure BuildSendBuff(stream: TMemoryStream64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
   TPeerClientWithP2PVM = class(TPeerIO)

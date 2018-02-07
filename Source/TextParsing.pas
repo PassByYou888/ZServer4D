@@ -161,7 +161,7 @@ type
     procedure InsertTextBlock(bPos, ePos: Integer; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure InsertTextBlock(const tp: TTextPos; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function SearchWordInBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SearchWordBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function GetTextData: TPascalString; virtual;
     procedure SetTextData(const Value: TPascalString); virtual;
@@ -243,13 +243,13 @@ begin
   else if (FTextStyle = tsC) and (ComparePosStr(Result, '/*')) then
     begin
       Inc(Result, 1);
-      while ParsingData.Text[Result] <> '*/' do
+      while not ComparePosStr(Result, '*/') do
         begin
           if Result + 1 > l then
               Break;
           Inc(Result);
         end;
-      Inc(Result, 1);
+      Inc(Result, 2);
     end
   else if (FTextStyle = tsPascal) and (ComparePosStr(Result, '{')) then
     begin
@@ -1131,7 +1131,7 @@ begin
   until not IsComment(charPos);
 
   Result := charPos;
-  while (IsTextOrComment(Result)) or (not isWordSplitChar(ParsingData.Text[Result], BeginDefaultChar, SplitCharSet)) do
+  while (not isWordSplitChar(ParsingData.Text[Result], BeginDefaultChar, SplitCharSet)) do
     begin
       if Result - 1 <= 0 then
           Break;
@@ -1171,7 +1171,7 @@ begin
 
   Result := GetWordBeginPos(charPos, BeginDefaultChar, BeginSplitCharSet);
 
-  while (IsTextOrComment(Result)) or (not isWordSplitChar(ParsingData.Text[Result], EndDefaultChar, EndSplitCharSet)) do
+  while (not isWordSplitChar(ParsingData.Text[Result], EndDefaultChar, EndSplitCharSet)) do
     begin
       Inc(Result);
       if Result > l then
@@ -1440,7 +1440,7 @@ begin
   InsertTextBlock(tp.bPos, tp.ePos, AInsertText);
 end;
 
-function TTextParsing.SearchWordInBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean;
+function TTextParsing.SearchWordBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean;
 var
   cp  : Integer;
   ePos: Integer;

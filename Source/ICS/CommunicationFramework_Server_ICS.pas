@@ -497,8 +497,9 @@ begin
       Client.Close;
       Exit;
     end;
+
+  cli := TICSContext(Client);
   try
-    cli := Client as TICSContext;
     cli.FTimeOut := IdleTimeout;
 
     cli.ThreadDetach;

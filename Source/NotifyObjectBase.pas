@@ -110,7 +110,7 @@ type
     {$ENDIF}
     procedure Delete(p: TNPostExecute); overload; virtual;
 
-    procedure Progress(deltaTime: Double); virtual;
+    procedure Progress(deltaTime: Double);
 
     procedure PauseProgress;
     procedure ContinueProgress;

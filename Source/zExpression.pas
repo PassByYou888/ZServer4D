@@ -110,6 +110,7 @@ type
   // text parse support
 function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; uName: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+
 function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; uName: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 {$IFNDEF FPC}
@@ -118,8 +119,11 @@ function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; uName: SystemSt
 {$ENDIF FPC}
 function ParseTextExpressionAsSymbol(textStyle: TTextStyle; uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression; overload;
+
 function ParseTextExpressionAsSymbol(TextEngClass: TTextParsingClass; uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
@@ -1011,9 +1015,11 @@ begin
     begin
       i := 0;
       Result := FillProc(i, Container, nil);
+      if Result = nil then
+          PrintError('indent error');
     end
   else
-      DoStatus('indent error:%d,%d', [BlockIndent, PropIndent]);
+      PrintError('indent error');
 
   DisposeObject(Container);
 end;
@@ -1111,7 +1117,7 @@ var
   newExpression: TSymbolExpression;
   ParseAborted : Boolean;
 
-  procedure PostError(const s: SystemString);
+  procedure PrintError(const s: SystemString);
   begin
     ParseAborted := True;
     if s <> '' then
@@ -1211,7 +1217,7 @@ var
                   end
                 else
                   begin
-                    PostError(SymbolOperationTextDecl[p2^.Symbol].Decl);
+                    PrintError(SymbolOperationTextDecl[p2^.Symbol].Decl);
                     Exit;
                   end;
               end;
@@ -1250,13 +1256,13 @@ var
                   end
                 else
                   begin
-                    PostError(SymbolOperationTextDecl[p1^.Symbol].Decl);
+                    PrintError(SymbolOperationTextDecl[p1^.Symbol].Decl);
                     Exit;
                   end;
               end
             else
               begin
-                PostError('expression structor Illegal');
+                PrintError('expression structor Illegal');
                 Exit;
               end;
           end;
@@ -1275,7 +1281,7 @@ begin
     soPropParamIndentBegin, soPropParamIndentEnd,
     soEolSymbol, soUnknow]) > 0 then
     begin
-      PostError('Illegal symbol');
+      PrintError('Illegal symbol');
       Exit;
     end;
 
@@ -1286,7 +1292,10 @@ begin
   ProcessSymbol(soUnknow);
 
   if ParseAborted then
-      newExpression.Free
+    begin
+      newExpression.Free;
+      PrintError('Illegal');
+    end
   else
       Result := newExpression;
 end;
@@ -1296,7 +1305,7 @@ var
   SymbolIndex : Integer;
   ParseAborted: Boolean;
 
-  procedure PostError(const s: SystemString);
+  procedure PrintError(const s: SystemString);
   begin
     ParseAborted := True;
     if s <> '' then
@@ -1330,7 +1339,7 @@ var
 
                 if SymbolIndex >= Exps.Count then
                   begin
-                    PostError('indent Illegal');
+                    PrintError('indent Illegal');
                     Exit;
                   end;
               end
@@ -1372,7 +1381,7 @@ var
                   begin
                     if (p1^.DeclType in MethodFlags) then
                       begin
-                        PostError('method Illegal');
+                        PrintError('method Illegal');
                         Exit;
                       end;
 
@@ -1384,7 +1393,7 @@ var
 
                     if SymbolIndex >= Exps.Count then
                       begin
-                        PostError('indent Illegal');
+                        PrintError('indent Illegal');
                         Exit;
                       end;
 
@@ -1397,7 +1406,7 @@ var
                   end
                 else if p2^.Symbol = soCommaSymbol then
                   begin
-                    PostError('Comma Illegal');
+                    PrintError('Comma Illegal');
                     Exit;
                   end
                 else
@@ -1408,7 +1417,7 @@ var
               end
             else
               begin
-                PostError('expression structor Illegal');
+                PrintError('expression structor Illegal');
                 Exit;
               end;
           end;
@@ -1426,7 +1435,8 @@ var
     e := RebuildLogicalPrioritySymbol(_e);
     if e = nil then
       begin
-        PostError('parse priority failed');
+        Result := nil;
+        PrintError('parse priority failed');
         Exit;
       end;
 
@@ -1504,7 +1514,7 @@ var
   BuildAborted: Boolean;
   OpContainer : TCoreClassListForObj;
 
-  procedure PostError(const s: SystemString);
+  procedure PrintError(const s: SystemString);
   begin
     BuildAborted := True;
     if s <> '' then
@@ -1604,7 +1614,7 @@ var
                   end
                 else
                   begin
-                    PostError('logical cperotion Illegal');
+                    PrintError('logical cperotion Illegal');
                     break;
                   end;
               end
@@ -1624,13 +1634,13 @@ var
                   end
                 else
                   begin
-                    PostError('logical cperotion Illegal');
+                    PrintError('logical cperotion Illegal');
                     break;
                   end;
               end
             else
               begin
-                PostError('logical cperotion Illegal');
+                PrintError('logical cperotion Illegal');
                 break;
               end;
           end
@@ -1647,7 +1657,7 @@ var
                         ProcOp.AddLink(ResOp)
                     else
                       begin
-                        PostError('method Illegal');
+                        PrintError('method Illegal');
                         break;
                       end;
                   end;
@@ -1690,7 +1700,7 @@ var
                     // function call
                     if not(p1^.DeclType in MethodFlags) then
                       begin
-                        PostError('method Illegal');
+                        PrintError('method Illegal');
                         break;
                       end
                     else
@@ -1733,13 +1743,13 @@ var
                   end
                 else
                   begin
-                    PostError('Illegal');
+                    PrintError('Illegal');
                     break;
                   end;
               end
             else
               begin
-                PostError('Illegal');
+                PrintError('Illegal');
                 break;
               end;
           end;
