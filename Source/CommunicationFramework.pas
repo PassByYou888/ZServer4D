@@ -490,6 +490,7 @@ type
     property AllSendProcessing: Boolean read FAllSendProcessing;
     property BigStreamProcessing: Boolean read FBigStreamReceiveProcessing;
     property WaitSendBusy: Boolean read FWaitSendBusy;
+    property ReceiveProcessing: Boolean read FReceiveProcessing;
     property ReceiveCommandRuning: Boolean read FReceiveCommandRuning;
     property ReceiveResultRuning: Boolean read FReceiveResultRuning;
     function BigStreamIsSending: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -3158,6 +3159,7 @@ begin
   FReceivedBuffer.Read(dHead, umlCardinalLength);
   if dHead <> FHeadToken then
     begin
+      Print('Header Illegal');
       Disconnect;
       Exit;
     end;

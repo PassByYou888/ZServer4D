@@ -48,7 +48,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 Windows: CrossSocket(C/S OK), DIOCP(C/S OK), ICS(C/S OK), Indy(C/S OK)
 
-Linux(X64): Indy(C/S OK)
+Linux(X64): Indy(C/S OK), CrossSocket(C/S OK)
 
 Android:Indy(C/S OK), CrossSocket(Only Client)
 
@@ -142,6 +142,13 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 
 # 更新日志
+
+### 2018-2-7
+
+项目内置的CrossSocket接口现在已经支持linux，我实测的Linux服务器版本为Ubunto16.04 LTS，感谢CrossSocket作者，感谢群友
+
+修正Linux HelloWorld服务器主循环吃cpu资源问题
+
 
 ### 2018-2-6
 

@@ -15,21 +15,14 @@ uses
   DataFrameEngine, UnicodeMixedLib, MemoryStream64;
 
 (*
-  Windows下一切正常
-  
-  linux只能支持Indy
-  由于Delphi没有支持linux->atomic的api，在Linux需要打开zDefine.inc->CriticalSimulateAtomic，用互斥区模拟原子锁和原子内存屏障(跑并行性能会降低)
+  经过实际测试：Linux下indy用系统原子锁会锁不住线程，我们临界区模拟原子锁和内存屏障即可解决问题
+  经过实际测试：Linux下crossSocket的高并发问题现在已修复, 技术细节和机制问题我已在CommunicationFramework_Server_CrossSocket.pas中写明
 
-  经过实际测试：Linux下CrossSocket无法处理数据接收，无法通过Debug分析，linux的gdb调试符号有点问题
-
-  后续版本，我有时间后就会修正linux下的高并发问题
+  EzLinuxServ工程使用delphi xe10.1.2所编写
+  请更换delphi xe10.2.2或以上版本，如果我们在平台下拉项会找不到linux，就新建一个console工程，将代码复制过去即可
 *)
 
 type
-  // TPeerClientUserSpecial是基于每用户链接后自动创建的实例
-  // 使用时候请注意释放内存
-  // TPeerClientUserDefine用于Auth,DB等等服务
-  // TPeerClientUserSpecial的作用是与高级服务的Auth,DB发生冲突时，对开发者提供独享实例
   TMySpecialDefine = class(TPeerClientUserSpecial)
   public
     tempStream: TMemoryStream64;
@@ -37,9 +30,7 @@ type
     destructor Destroy; override;
   end;
 
-  // 基于控制台的测试服务器框架，在这里我们可以用indy
-  // 经过测试 还算稳定
-  TMyServer = class(TCommunicationFramework_Server_Indy)
+  TMyServer = class(TCommunicationFramework_Server_CrossSocket)
   private
     procedure cmd_helloWorld_Console(Sender: TPeerClient; InData: string);
     procedure cmd_helloWorld_Stream(Sender: TPeerClient; InData: TDataFrameEngine);
@@ -116,9 +107,9 @@ begin
 end;
 
 // 主循环
-procedure MainLook;
 var
   server: TMyServer;
+
 begin
   server := TMyServer.Create;
   server.PeerClientUserSpecialClass := TMySpecialDefine;
@@ -134,18 +125,18 @@ begin
   // 注册Completebuffer指令
   server.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := server.cmd_TestCompleteBuffer;
 
-  // 基于CrosssSocket官方文档，绑定字符串如果为空，绑定IPV6+IPV4
-  if server.StartService('', 9818) then
+  if server.StartService('0.0.0.0', 9818) then
       DoStatus('start service success')
   else
       DoStatus('start service failed!');
 
   // 进入主循环
   while true do
+    begin
       server.ProgressBackground;
-end;
 
-begin
-  MainLook;
+      // 延迟同步检查
+      System.Classes.CheckSynchronize(10)
+    end;
 
 end.

@@ -16,7 +16,7 @@ interface
 
 uses SysUtils, Classes,
   Net.CrossSocket, Net.SocketAPI, Net.CrossSocket.Base, Net.CrossServer,
-  PascalStrings,
+  PascalStrings, DoStatusIO,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64,
   DataFrameEngine;
 
@@ -27,11 +27,14 @@ type
     Sending       : Boolean;
     SendBuffQueue : TCoreClassListForObj;
     CurrentBuff   : TMemoryStream64;
+    DelayBuffPool : TCoreClassListForObj;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
 
-    function Context: TCrossConnection;
+    procedure FreeDelayBuffPool; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Context: TCrossConnection; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     function Connected: Boolean; override;
     procedure Disconnect; override;
     procedure SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
@@ -41,6 +44,7 @@ type
     procedure WriteBufferClose; override;
     function GetPeerIP: SystemString; override;
     function WriteBufferEmpty: Boolean; override;
+    procedure Progress; override;
   end;
 
   TDriverEngine = TCrossSocket;
@@ -85,19 +89,32 @@ begin
   Sending := False;
   SendBuffQueue := TCoreClassListForObj.Create;
   CurrentBuff := TMemoryStream64.Create;
+  DelayBuffPool := TCoreClassListForObj.Create;
 end;
 
 destructor TContextIntfForServer.Destroy;
 var
   i: Integer;
 begin
+  FreeDelayBuffPool;
+
   for i := 0 to SendBuffQueue.Count - 1 do
       disposeObject(SendBuffQueue[i]);
 
   disposeObject(SendBuffQueue);
 
   disposeObject(CurrentBuff);
+  disposeObject(DelayBuffPool);
   inherited Destroy;
+end;
+
+procedure TContextIntfForServer.FreeDelayBuffPool;
+var
+  i: Integer;
+begin
+  for i := 0 to DelayBuffPool.Count - 1 do
+      disposeObject(DelayBuffPool[i]);
+  DelayBuffPool.Clear;
 end;
 
 function TContextIntfForServer.Context: TCrossConnection;
@@ -130,6 +147,10 @@ begin
       m: TMemoryStream64;
       isConn: Boolean;
     begin
+      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
+      // 发送完成状态返回时，我们释放所有临时缓冲区
+      FreeDelayBuffPool;
+
       isConn := False;
       try
         isConn := Connected;
@@ -144,8 +165,9 @@ begin
                 // 感谢ak47 qq512757165 的测试报告
                 Context.SendBuf(m.Memory, m.Size, SendBuffResult);
 
-                // 释放内存
-                disposeObject(m);
+                // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
+                DelayBuffPool.Add(m);
+
                 // 释放队列
                 SendBuffQueue.Delete(0);
               end
@@ -205,7 +227,9 @@ begin
       exit;
   LastActiveTime := GetTimeTickCount;
 
-  if Sending then
+  // 在ubuntu 16.04 TLS下，接收线程在程序运行时，我们调用发送api，这时出去的数据会错误
+  // 我们将机制改为检查后发送,检查是否正在接收线程工作:避免双工方式工作
+  if Sending or ReceiveProcessing then
     begin
       if CurrentBuff.Size > 0 then
         begin
@@ -223,7 +247,10 @@ begin
       // 感谢ak47 qq512757165 的测试报告
       Sending := True;
       Context.SendBuf(CurrentBuff.Memory, CurrentBuff.Size, SendBuffResult);
-      CurrentBuff.Clear;
+
+      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
+      DelayBuffPool.Add(CurrentBuff);
+      CurrentBuff := TMemoryStream64.Create;
     end;
 end;
 
@@ -245,6 +272,33 @@ end;
 function TContextIntfForServer.WriteBufferEmpty: Boolean;
 begin
   Result := not Sending;
+end;
+
+procedure TContextIntfForServer.Progress;
+var
+  m: TMemoryStream64;
+begin
+  inherited Progress;
+  ProcessAllSendCmd(nil, False, False);
+
+  // 在ubuntu 16.04 TLS下，接收线程在程序运行时，我们调用发送api，这时出去的数据会错误
+  // 我们将机制改为检查后发送,检查是否正在接收线程工作:避免双工方式工作
+  if (not Sending) and (SendBuffQueue.Count > 0) then
+    begin
+      Sending := True;
+      LastActiveTime := GetTimeTickCount;
+      m := TMemoryStream64(SendBuffQueue[0]);
+      // 释放队列
+      SendBuffQueue.Delete(0);
+
+      // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
+      // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
+      // 感谢ak47 qq512757165 的测试报告
+      Context.SendBuf(m.Memory, m.Size, SendBuffResult);
+
+      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
+      DelayBuffPool.Add(m);
+    end;
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);
@@ -424,11 +478,6 @@ begin
           begin
             if (IdleTimeout > 0) and (GetTimeTickCount - c.LastActiveTime > IdleTimeout) then
                 c.Disconnect
-            else
-              begin
-                if c.Connected then
-                    c.ProcessAllSendCmd(nil, False, False);
-              end;
           end;
       end;
   except

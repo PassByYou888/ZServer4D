@@ -55,7 +55,7 @@ end;
 procedure TEZClientForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
-  client := TCommunicationFramework_Client_Indy.Create;
+  client := TCommunicationFramework_Client_ICS.Create;
 end;
 
 procedure TEZClientForm.FormDestroy(Sender: TObject);
