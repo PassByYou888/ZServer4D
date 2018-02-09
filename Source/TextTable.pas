@@ -15,6 +15,8 @@ uses SysUtils, CoreClasses, DataFrameEngine, ListEngine, UnicodeMixedLib,
   MemoryStream64, TextParsing, PascalStrings;
 
 type
+  TTranlateStyle = (tsPascalText, tsPascalComment, tsCText, tsCComment, tsNormalText);
+
   TTextTableItem = record
     // origin info
     OriginText: SystemString;
@@ -28,7 +30,7 @@ type
     DefineText: SystemString;
 
     // text style
-    TextStyle: TTextStyle;
+    TextStyle: TTranlateStyle;
 
     RepCount: Integer;
 
@@ -59,7 +61,10 @@ type
     property Origin[const s: SystemString]: PTextTableItem read GetOrigin;
 
     procedure AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure AddPascal(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure ChangeDefineText(Index: Integer; newDefine: SystemString);
 
     function Search(AOriginText: SystemString): PTextTableItem;
@@ -80,7 +85,7 @@ begin
   Picked := False;
   index := -1;
   DefineText := '';
-  TextStyle := tsText;
+  TextStyle := tsNormalText;
   RepCount := 0;
 end;
 
@@ -96,7 +101,7 @@ begin
   Picked := df.Reader.ReadBool;
   index := df.Reader.ReadInteger;
   DefineText := df.Reader.ReadString;
-  TextStyle := TTextStyle(df.Reader.ReadInteger);
+  TextStyle := TTranlateStyle(df.Reader.ReadInteger);
   RepCount := df.Reader.ReadInteger;
 
   DisposeObject(df);
@@ -205,7 +210,7 @@ begin
       p^.Picked := APicked;
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
-      p^.TextStyle := tsText;
+      p^.TextStyle := tsNormalText;
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -215,7 +220,7 @@ begin
     end;
 end;
 
-procedure TTextTable.AddPascal(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
 var
   p: PTextTableItem;
 begin
@@ -228,7 +233,76 @@ begin
       p^.Picked := APicked;
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
-      p^.TextStyle := tsPascal;
+      p^.TextStyle := tsPascalText;
+      p^.RepCount := 1;
+      FList.Add(p);
+    end
+  else
+    begin
+      p^.RepCount := p^.RepCount + 1;
+    end;
+end;
+
+procedure TTextTable.AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+var
+  p: PTextTableItem;
+begin
+  p := GetOrigin(AOriginText);
+  if p = nil then
+    begin
+      New(p);
+      p^.OriginText := AOriginText;
+      p^.Category := ACategory;
+      p^.Picked := APicked;
+      p^.Index := GetMaxIndexNo + 1;
+      p^.DefineText := AOriginText;
+      p^.TextStyle := tsPascalComment;
+      p^.RepCount := 1;
+      FList.Add(p);
+    end
+  else
+    begin
+      p^.RepCount := p^.RepCount + 1;
+    end;
+end;
+
+procedure TTextTable.AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
+var
+  p: PTextTableItem;
+begin
+  p := GetOrigin(AOriginText);
+  if p = nil then
+    begin
+      New(p);
+      p^.OriginText := AOriginText;
+      p^.Category := ACategory;
+      p^.Picked := APicked;
+      p^.Index := GetMaxIndexNo + 1;
+      p^.DefineText := AOriginText;
+      p^.TextStyle := tsCText;
+      p^.RepCount := 1;
+      FList.Add(p);
+    end
+  else
+    begin
+      p^.RepCount := p^.RepCount + 1;
+    end;
+end;
+
+procedure TTextTable.AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+var
+  p: PTextTableItem;
+begin
+  p := GetOrigin(AOriginText);
+  if p = nil then
+    begin
+      New(p);
+      p^.OriginText := AOriginText;
+      p^.Category := ACategory;
+      p^.Picked := APicked;
+      p^.Index := GetMaxIndexNo + 1;
+      p^.DefineText := AOriginText;
+      p^.TextStyle := tsCComment;
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -250,8 +324,10 @@ begin
       p := FList[i];
       if (p^.Picked) and (p^.Index = index) then
         begin
-          if p^.TextStyle = tsPascal then
+          if p^.TextStyle = tsPascalText then
               p^.DefineText := TTextParsing.TranslateTextToPascalDecl(newDefine).Text
+          else if p^.TextStyle = tsCText then
+              p^.DefineText := TTextParsing.TranslateTextToC_Decl(newDefine).Text
           else
               p^.DefineText := newDefine;
         end;
@@ -346,10 +422,12 @@ begin
         if not expList.Exists(p^.OriginText) then
           begin
             expList.Add(p^.OriginText, p, False);
-            if p^.TextStyle = tsPascal then
+            if p^.TextStyle = tsPascalText then
                 ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]))
+            else if p^.TextStyle = tsCText then
+                ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclToText(p^.DefineText).Text]))
             else
-                ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
+              ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
           end;
     end;
   ns.SaveToStream(stream);
@@ -370,7 +448,7 @@ var
 begin
   ns := TCoreClassStringList.Create;
   ns.LoadFromStream(stream);
-  t := TTextParsing.Create(ns.Text, tsText);
+  t := TTextParsing.Create(ns.Text, TTextStyle.tsText);
 
   cp := 1;
   n := '';

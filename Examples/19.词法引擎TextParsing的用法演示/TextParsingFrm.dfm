@@ -18,7 +18,7 @@ object Form1: TForm1
     Top = 0
     Width = 896
     Height = 440
-    ActivePage = TabSheet3
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -106,8 +106,6 @@ object Form1: TForm1
         Height = 363
         Align = alClient
         TabOrder = 0
-        ExplicitTop = 41
-        ExplicitHeight = 371
       end
       object Panel1: TPanel
         Left = 0

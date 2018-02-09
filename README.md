@@ -17,6 +17,9 @@
 [怎样开发基于ZS的底层通讯IO接口](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZServer4D%E5%BC%80%E5%8F%91%E5%BA%95%E5%B1%82%E9%80%9A%E8%AE%AFIO%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%96%B9%E6%B3%95.pdf)
 
 [部署Ubuntu服务器的开发环境](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E9%83%A8%E7%BD%B2Ubuntu%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84Delphi%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.pdf)
+
+外部http服务支持文档  [百度翻译服务的后台实现范式(支持Ubuntu16.04LTS服务器)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0%E8%8C%83%E5%BC%8F.pdf)
+  [百度翻译服务的API调用范例(支持Ubuntu16.04LTS服务器)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1%E7%9A%84API%E8%B0%83%E7%94%A8%E8%8C%83%E4%BE%8B.pdf) 
  
  
 ## 介绍
@@ -143,11 +146,23 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 # 更新日志
 
+### 2018-2-9
+
+新增百度翻译后台服务模型，支持最新的Ubuntu16.04LTS服务器版，同样也支持Windows服务器
+
+已并入CrossSocket新版本接口，CrossSocket新版本接口的详细情况已在代码中备注，我修改过的Cross内容也已备注(尊重开源)
+
+小幅修了zExpression的OpCache问题
+
+在UnicodeMixedLib中新增了umlURLEncode
+
+
 ### 2018-2-7
 
 项目内置的CrossSocket接口现在已经支持linux，我实测的Linux服务器版本为Ubunto16.04 LTS，感谢CrossSocket作者，感谢群友
 
 修正Linux HelloWorld服务器主循环吃cpu资源问题
+
 
 
 ### 2018-2-6

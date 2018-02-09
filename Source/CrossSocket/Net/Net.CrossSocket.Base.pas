@@ -9,6 +9,11 @@
 {******************************************************************************}
 unit Net.CrossSocket.Base;
 
+// 是否将大块数据分成小块发送(仅IOCP下有效)
+// 注意: 开启该开关的情况下, 同一个连接不要在一次发送尚未结束时开始另一次发送
+//       否则会导致两块数据被分成小块后出现交错
+{.$DEFINE __LITTLE_PIECE__}
+
 interface
 
 uses
@@ -94,6 +99,9 @@ type
     function GetLocalAddr: string;
     function GetLocalPort: Word;
     function GetIsClosed: Boolean;
+    function GetUserData: Pointer;
+
+    procedure SetUserData(const AValue: Pointer);
 
     /// <summary>
     ///   更新套接字地址信息
@@ -137,6 +145,11 @@ type
     ///   是否已关闭
     /// </summary>
     property IsClosed: Boolean read GetIsClosed;
+
+    /// <summary>
+    ///   用户数据(可以用于存储用户自定义的数据结构)
+    /// </summary>
+    property UserData: Pointer read GetUserData write SetUserData;
   end;
   TCrossDatas = TDictionary<UInt64, ICrossData>;
 
@@ -563,6 +576,7 @@ type
     FSocket: THandle;
     FLocalAddr: string;
     FLocalPort: Word;
+    FUserData: Pointer;
   protected
     function GetOwner: ICrossSocket;
     function GetUIDTag: Byte; virtual;
@@ -571,6 +585,9 @@ type
     function GetLocalAddr: string;
     function GetLocalPort: Word;
     function GetIsClosed: Boolean; virtual; abstract;
+    function GetUserData: Pointer;
+
+    procedure SetUserData(const AValue: Pointer);
   public
     constructor Create(AOwner: ICrossSocket; ASocket: THandle); virtual;
     destructor Destroy; override;
@@ -584,6 +601,7 @@ type
     property LocalAddr: string read GetLocalAddr;
     property LocalPort: Word read GetLocalPort;
     property IsClosed: Boolean read GetIsClosed;
+    property UserData: Pointer read GetUserData write SetUserData;
   end;
 
   TAbstractCrossListen = class(TCrossData, ICrossListen)
@@ -677,6 +695,9 @@ type
     constructor Create(ACrossSocket: ICrossSocket); reintroduce;
   end;
 
+  //在zs中使用CrossSocket，因为服务器会在一个实例中创建多个
+  //如果给引用计数，在释放时会造成内存泄漏，所以这里我们使用zs的接口框架，不用引用计数
+  //这里是我修改的，已通知过作者,by QQ600585
   TAbstractCrossSocket = class abstract(TCoreClassInterfacedObject, ICrossSocket)
   protected const
     RCV_BUF_SIZE = 1048576;
@@ -843,7 +864,6 @@ begin
   LError := GetLastError;
   _Log('System Error.  Code: %0:d(%0:.4x), %1:s',
     [LError, SysErrorMessage(LError)]);
-//  RaiseLastOSError(LError);
   {$ENDIF}
 end;
 
@@ -1152,13 +1172,13 @@ end;
 
 procedure TAbstractCrossSocket.TriggerListenEnd(AListen: ICrossListen);
 begin
-  System.TMonitor.Enter(FListensLock);
+  _LockListens;
   try
     if not FListens.ContainsKey(AListen.UID) then Exit;
     FListens.Remove(AListen.UID);
     FListensCount := FListens.Count;
   finally
-    System.TMonitor.Exit(FListensLock);
+    _UnlockListens;
   end;
 
   if Assigned(FOnListenEnd) then
@@ -1271,6 +1291,16 @@ end;
 function TCrossData.GetUIDTag: Byte;
 begin
   Result := UID_RAW;
+end;
+
+function TCrossData.GetUserData: Pointer;
+begin
+  Result := FUserData;
+end;
+
+procedure TCrossData.SetUserData(const AValue: Pointer);
+begin
+  FUserData := AValue;
 end;
 
 procedure TCrossData.UpdateAddr;
@@ -1446,7 +1476,7 @@ end;
 
 procedure TAbstractCrossConnection.SendBuf(ABuffer: Pointer; ACount: Integer;
   const ACallback: TProc<ICrossConnection, Boolean>);
-{$IFDEF POSIX}
+{$IF defined(POSIX) or not defined(__LITTLE_PIECE__)}
 begin
   DirectSend(ABuffer, ACount, ACallback);
 end;

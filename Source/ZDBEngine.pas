@@ -1528,7 +1528,7 @@ begin
 
       if completed then
         begin
-          DoStatus('complete query task,consum time: %dms', [qt.FState.NewTime]);
+          // DoStatus('complete query task,consum time: %dms', [qt.FState.NewTime]);
           DisposeObject(qt);
           StoreEngine.FQueryQueue.Delete(i);
         end
@@ -1745,6 +1745,7 @@ begin
 end;
 
 {$IFNDEF FPC}
+
 
 procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveProc);
 var
@@ -1995,14 +1996,14 @@ end;
 
 procedure TDBStoreBase.CompressTo(DestDB: TObjectDataManager);
 begin
-  DoStatus('build struct...');
+  // DoStatus('build struct...');
   DestDB.CreateField('/Store', '');
 
-  DoStatus('compress data...');
+  // DoStatus('compress data...');
   FDBEngine.CopyFieldToPath(FStoreFieldPos, DestDB, '/Store');
 
   DestDB.Update;
-  DoStatus('build finish...', []);
+  // DoStatus('build finish...', []);
 end;
 
 procedure TDBStoreBase.Compress;

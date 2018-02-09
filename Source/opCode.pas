@@ -92,6 +92,7 @@ type
     destructor Destroy; override;
 
     procedure SaveToStream(Stream: TCoreClassStream);
+    class function LoadFromStream(Fast: Boolean; Stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
 
     function AddValue(v: Variant): Integer; overload;
     function AddValue(v: Variant; vt: TOpValueType): Integer; overload;
@@ -274,7 +275,7 @@ var
 
 procedure TopRTproc.Init;
 begin
-  SetLength(Param,0);
+  SetLength(Param, 0);
   name := '';
   OnOpCall := nil;
   OnOpMethod := nil;
@@ -768,6 +769,11 @@ begin
   SaveToDataFrame(Self, dataEng);
   dataEng.EncodeTo(Stream, True);
   DisposeObject(dataEng);
+end;
+
+class function TOpCode.LoadFromStream(Fast: Boolean; Stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
+begin
+  Result := LoadOpFromStream(Fast, Stream, LoadedOp);
 end;
 
 function TOpCode.AddValue(v: Variant): Integer;

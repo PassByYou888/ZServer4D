@@ -103,7 +103,7 @@ type
   TCommandCompleteBufferProc = reference to procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
   {$ENDIF}
 
-  TCommandStreamMode = class(TCoreClassInterfacedObject)
+  TCommandStream = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall  : TCommandStreamCall;
     FOnExecuteMethod: TCommandStreamMethod;
@@ -123,7 +123,7 @@ type
     {$ENDIF}
   end;
 
-  TCommandConsoleMode = class(TCoreClassInterfacedObject)
+  TCommandConsole = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall  : TCommandConsoleCall;
     FOnExecuteMethod: TCommandConsoleMethod;
@@ -143,7 +143,7 @@ type
     {$ENDIF}
   end;
 
-  TCommandDirectStreamMode = class(TCoreClassInterfacedObject)
+  TCommandDirectStream = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall  : TCommandDirectStreamCall;
     FOnExecuteMethod: TCommandDirectStreamMethod;
@@ -163,7 +163,7 @@ type
     {$ENDIF}
   end;
 
-  TCommandDirectConsoleMode = class(TCoreClassInterfacedObject)
+  TCommandDirectConsole = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall  : TCommandDirectConsoleCall;
     FOnExecuteMethod: TCommandDirectConsoleMethod;
@@ -183,7 +183,7 @@ type
     {$ENDIF}
   end;
 
-  TCommandBigStreamMode = class(TCoreClassInterfacedObject)
+  TCommandBigStream = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall  : TCommandBigStreamCall;
     FOnExecuteMethod: TCommandBigStreamMethod;
@@ -203,7 +203,7 @@ type
     {$ENDIF}
   end;
 
-  TCommandCompleteBufferMode = class(TCoreClassInterfacedObject)
+  TCommandCompleteBuffer = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall  : TCommandCompleteBufferCall;
     FOnExecuteMethod: TCommandCompleteBufferMethod;
@@ -530,13 +530,13 @@ type
     // queue data
     property CurrentQueueData: PQueueData read FCurrentQueueData;
 
-    // send cmd and method return
+    // send cmd and result method
     procedure SendConsoleCmd(Cmd: SystemString; ConsoleData: SystemString; OnResult: TConsoleMethod); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine; OnResult: TStreamMethod); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
 
-    // send cmd and proc return
+    // send cmd and result proc
     {$IFNDEF FPC}
     procedure SendConsoleCmd(Cmd: SystemString; ConsoleData: SystemString; OnResult: TConsoleProc); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
@@ -651,64 +651,77 @@ type
     procedure CreateAfter; virtual;
     destructor Destroy; override;
 
+    // user protocol support
     procedure FillCustomBuffer(Sender: TPeerIO; const Th: TCoreClassThread; const Buffer: PByte; const Size: NativeInt; var Done: Boolean); virtual;
     procedure WriteCustomBuffer(Client: TPeerIO; const Buffer: PByte; const Size: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
+    // p2pVM backcall interface
     procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
     procedure p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
     procedure p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
     procedure p2pVMTunnelClose(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
-
+    //
+    // safe support
     procedure SwitchMaxPerformance; virtual;
     procedure SwitchMaxSafe; virtual;
     procedure SwitchDefaultPerformance; virtual;
-
+    //
+    // atomic lock
     procedure LockClients; virtual;
     procedure UnLockClients; virtual;
-
+    //
+    // delay event support
     property ProgressPost: TNProgressPostWithCadencer read FProgressPost;
 
     property FrameworkIsServer: Boolean read FFrameworkIsServer;
     property FrameworkIsClient: Boolean read FFrameworkIsClient;
     property FrameworkInfo: SystemString read FFrameworkInfo;
 
+    // mainLoop
     procedure ProgressBackground; virtual;
 
+    // seealso filler allclient,safe works
     procedure ProgressPerClient(OnProgress: TPerClientListCall); overload;
     procedure ProgressPerClient(OnProgress: TPerClientListMethod); overload;
     {$IFNDEF FPC}
     procedure ProgressPerClient(OnProgress: TPerClientListProc); overload;
     {$ENDIF}
     //
+    // seealso filler allclient,fast
     procedure FastProgressPerClient(OnProgress: TPerClientListCall); overload;
     procedure FastProgressPerClient(OnProgress: TPerClientListMethod); overload;
     {$IFNDEF FPC}
     procedure FastProgressPerClient(OnProgress: TPerClientListProc); overload;
     {$ENDIF}
     //
+    // client idPool
     procedure GetClientIDPool(out IDPool: TClientIDPool); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
+    // block mainLoop,only work in client
     procedure ProgressWaitSendOfClient(Client: TPeerIO); virtual;
-
+    //
+    // print
     procedure PrintParam(v: SystemString; Args: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
+    // register command with server/client
     function DeleteRegistedCMD(Cmd: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function UnRegisted(Cmd: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterConsole(Cmd: SystemString): TCommandConsole; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterStream(Cmd: SystemString): TCommandStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterDirectStream(Cmd: SystemString): TCommandDirectStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterDirectConsole(Cmd: SystemString): TCommandDirectConsole; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterBigStream(Cmd: SystemString): TCommandBigStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
-    function RegisterConsole(Cmd: SystemString): TCommandConsoleMode; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterStream(Cmd: SystemString): TCommandStreamMode; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterDirectStream(Cmd: SystemString): TCommandDirectStreamMode; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterDirectConsole(Cmd: SystemString): TCommandDirectConsoleMode; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterBigStream(Cmd: SystemString): TCommandBigStreamMode; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBufferMode; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    //
+    // execute command with internal
     function ExecuteConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString; var OutData: SystemString): Boolean; virtual;
     function ExecuteStream(Sender: TPeerIO; Cmd: SystemString; InData, OutData: TDataFrameEngine): Boolean; virtual;
     function ExecuteDirectStream(Sender: TPeerIO; Cmd: SystemString; InData: TDataFrameEngine): Boolean; virtual;
     function ExecuteDirectConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString): Boolean; virtual;
     function ExecuteBigStream(Sender: TPeerIO; Cmd: SystemString; InData: TCoreClassStream; FBigStreamTotal, BigStreamCompleteSize: Int64): Boolean; virtual;
     function ExecuteCompleteBuffer(Sender: TPeerIO; Cmd: SystemString; InData: PByte; DataSize: NativeInt): Boolean; virtual;
-
+    //
+    // misc
     function FirstClient: TPeerIO; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function LastClient: TPeerIO; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property OnConnected: TPeerClientNotify read FOnConnected write FOnConnected;
@@ -757,6 +770,7 @@ type
     constructor Create(HashPoolLen: Integer); overload; virtual;
     destructor Destroy; override;
 
+    // external service method
     procedure StopService; virtual;
     function StartService(Host: SystemString; Port: Word): Boolean; virtual;
     procedure TriggerQueueData(v: PQueueData); virtual;
@@ -878,11 +892,16 @@ type
   public
     constructor Create; virtual;
 
+    // mainLoop
     procedure ProgressBackground; override;
 
+    // external client support,intf
     procedure TriggerDoDisconnect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // external client support,state
     function Connected: Boolean; virtual;
+    // external client support,intf
     function ClientIO: TPeerIO; virtual;
+    // external client support,intf
     procedure TriggerQueueData(v: PQueueData); virtual;
 
     // async connect support
@@ -1023,16 +1042,20 @@ type
     constructor Create(HashPoolLen: Integer; frameworkID: Cardinal); overload; virtual;
     destructor Destroy; override;
 
+    // mainLoop
     procedure ProgressBackground; override;
 
+    // intf
     procedure TriggerQueueData(v: PQueueData); override;
 
     procedure CloseAllClient;
 
+    // service method
     procedure ProgressStopServiceWithPerVM(SenderVM: TCommunicationFrameworkWithP2PVM);
     procedure StopService; override;
     function StartService(Host: SystemString; Port: Word): Boolean; override;
 
+    // no blockMode mode
     function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
     procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
   end;
@@ -1224,7 +1247,7 @@ var
   // user custom tail verify token
   c_DataTailToken: Cardinal = $F1F1F1F1;
 
-  // dostatus print id
+  // dostatus id
   c_DefaultDoStatusID: Integer = $0FFFFFFF;
 
   // p2p VM auth
@@ -2000,7 +2023,7 @@ end;
 {$ENDIF}
 
 
-constructor TCommandStreamMode.Create;
+constructor TCommandStream.Create;
 begin
   inherited Create;
 
@@ -2011,12 +2034,12 @@ begin
   {$ENDIF}
 end;
 
-destructor TCommandStreamMode.Destroy;
+destructor TCommandStream.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TCommandStreamMode.Execute(Sender: TPeerIO; InData, OutData: TDataFrameEngine): Boolean;
+function TCommandStream.Execute(Sender: TPeerIO; InData, OutData: TDataFrameEngine): Boolean;
 begin
   Result := False;
   try
@@ -2035,7 +2058,7 @@ begin
   end;
 end;
 
-constructor TCommandConsoleMode.Create;
+constructor TCommandConsole.Create;
 begin
   inherited Create;
 
@@ -2046,12 +2069,12 @@ begin
   {$ENDIF}
 end;
 
-destructor TCommandConsoleMode.Destroy;
+destructor TCommandConsole.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TCommandConsoleMode.Execute(Sender: TPeerIO; InData: SystemString; var OutData: SystemString): Boolean;
+function TCommandConsole.Execute(Sender: TPeerIO; InData: SystemString; var OutData: SystemString): Boolean;
 begin
   Result := False;
   try
@@ -2070,7 +2093,7 @@ begin
   end;
 end;
 
-constructor TCommandDirectStreamMode.Create;
+constructor TCommandDirectStream.Create;
 begin
   inherited Create;
 
@@ -2081,12 +2104,12 @@ begin
   {$ENDIF}
 end;
 
-destructor TCommandDirectStreamMode.Destroy;
+destructor TCommandDirectStream.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TCommandDirectStreamMode.Execute(Sender: TPeerIO; InData: TDataFrameEngine): Boolean;
+function TCommandDirectStream.Execute(Sender: TPeerIO; InData: TDataFrameEngine): Boolean;
 begin
   Result := True;
   try
@@ -2105,7 +2128,7 @@ begin
   end;
 end;
 
-constructor TCommandDirectConsoleMode.Create;
+constructor TCommandDirectConsole.Create;
 begin
   inherited Create;
 
@@ -2116,12 +2139,12 @@ begin
   {$ENDIF}
 end;
 
-destructor TCommandDirectConsoleMode.Destroy;
+destructor TCommandDirectConsole.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TCommandDirectConsoleMode.Execute(Sender: TPeerIO; InData: SystemString): Boolean;
+function TCommandDirectConsole.Execute(Sender: TPeerIO; InData: SystemString): Boolean;
 begin
   Result := True;
   try
@@ -2140,7 +2163,7 @@ begin
   end;
 end;
 
-constructor TCommandBigStreamMode.Create;
+constructor TCommandBigStream.Create;
 begin
   inherited Create;
 
@@ -2151,12 +2174,12 @@ begin
   {$ENDIF}
 end;
 
-destructor TCommandBigStreamMode.Destroy;
+destructor TCommandBigStream.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TCommandBigStreamMode.Execute(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean;
+function TCommandBigStream.Execute(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean;
 begin
   Result := True;
   try
@@ -2175,7 +2198,7 @@ begin
   end;
 end;
 
-constructor TCommandCompleteBufferMode.Create;
+constructor TCommandCompleteBuffer.Create;
 begin
   inherited Create;
 
@@ -2186,12 +2209,12 @@ begin
   {$ENDIF}
 end;
 
-destructor TCommandCompleteBufferMode.Destroy;
+destructor TCommandCompleteBuffer.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TCommandCompleteBufferMode.Execute(Sender: TPeerIO; InData: PByte; DataSize: NativeInt): Boolean;
+function TCommandCompleteBuffer.Execute(Sender: TPeerIO; InData: PByte; DataSize: NativeInt): Boolean;
 begin
   Result := True;
   try
@@ -4631,7 +4654,7 @@ procedure TCommunicationFramework.InternalProcessReceiveBuffer(const Sender: TPe
 var
   FillDone: Boolean;
 begin
-  LockObject(Sender);
+  LockObject(Sender); // atomic lock
   FillDone := False;
 
   try
@@ -4645,11 +4668,11 @@ begin
   if FillDone then
     begin
       Sender.FReceivedBuffer.Clear;
-      UnLockObject(Sender);
+      UnLockObject(Sender); // atomic lock
     end
   else
     begin
-      UnLockObject(Sender);
+      UnLockObject(Sender); // atomic lock
       Sender.InternalProcessReceiveBuffer(ACurrentActiveThread, RecvSync, SendSync);
     end;
 end;
@@ -5103,7 +5126,7 @@ begin
   FCommandList.Delete(Cmd);
 end;
 
-function TCommunicationFramework.RegisterConsole(Cmd: SystemString): TCommandConsoleMode;
+function TCommunicationFramework.RegisterConsole(Cmd: SystemString): TCommandConsole;
 begin
   if not CanRegCommand(Self, Cmd) then
     begin
@@ -5119,14 +5142,14 @@ begin
       Exit;
     end;
 
-  Result := TCommandConsoleMode.Create;
+  Result := TCommandConsole.Create;
   FCommandList[Cmd] := Result;
 
   CmdRecvStatistics.IncValue(Cmd, 0);
   CmdMaxExecuteConsumeStatistics[Cmd] := 0;
 end;
 
-function TCommunicationFramework.RegisterStream(Cmd: SystemString): TCommandStreamMode;
+function TCommunicationFramework.RegisterStream(Cmd: SystemString): TCommandStream;
 begin
   if not CanRegCommand(Self, Cmd) then
     begin
@@ -5142,14 +5165,14 @@ begin
       Exit;
     end;
 
-  Result := TCommandStreamMode.Create;
+  Result := TCommandStream.Create;
   FCommandList[Cmd] := Result;
 
   CmdRecvStatistics.IncValue(Cmd, 0);
   CmdMaxExecuteConsumeStatistics[Cmd] := 0;
 end;
 
-function TCommunicationFramework.RegisterDirectStream(Cmd: SystemString): TCommandDirectStreamMode;
+function TCommunicationFramework.RegisterDirectStream(Cmd: SystemString): TCommandDirectStream;
 begin
   if not CanRegCommand(Self, Cmd) then
     begin
@@ -5165,14 +5188,14 @@ begin
       Exit;
     end;
 
-  Result := TCommandDirectStreamMode.Create;
+  Result := TCommandDirectStream.Create;
   FCommandList[Cmd] := Result;
 
   CmdRecvStatistics.IncValue(Cmd, 0);
   CmdMaxExecuteConsumeStatistics[Cmd] := 0;
 end;
 
-function TCommunicationFramework.RegisterDirectConsole(Cmd: SystemString): TCommandDirectConsoleMode;
+function TCommunicationFramework.RegisterDirectConsole(Cmd: SystemString): TCommandDirectConsole;
 begin
   if not CanRegCommand(Self, Cmd) then
     begin
@@ -5188,14 +5211,14 @@ begin
       Exit;
     end;
 
-  Result := TCommandDirectConsoleMode.Create;
+  Result := TCommandDirectConsole.Create;
   FCommandList[Cmd] := Result;
 
   CmdRecvStatistics.IncValue(Cmd, 0);
   CmdMaxExecuteConsumeStatistics[Cmd] := 0;
 end;
 
-function TCommunicationFramework.RegisterBigStream(Cmd: SystemString): TCommandBigStreamMode;
+function TCommunicationFramework.RegisterBigStream(Cmd: SystemString): TCommandBigStream;
 begin
   if not CanRegCommand(Self, Cmd) then
     begin
@@ -5211,14 +5234,14 @@ begin
       Exit;
     end;
 
-  Result := TCommandBigStreamMode.Create;
+  Result := TCommandBigStream.Create;
   FCommandList[Cmd] := Result;
 
   CmdRecvStatistics.IncValue(Cmd, 0);
   CmdMaxExecuteConsumeStatistics[Cmd] := 0;
 end;
 
-function TCommunicationFramework.RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBufferMode;
+function TCommunicationFramework.RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBuffer;
 begin
   if not CanRegCommand(Self, Cmd) then
     begin
@@ -5234,7 +5257,7 @@ begin
       Exit;
     end;
 
-  Result := TCommandCompleteBufferMode.Create;
+  Result := TCommandCompleteBuffer.Create;
   FCommandList[Cmd] := Result;
 
   CmdRecvStatistics.IncValue(Cmd, 0);
@@ -5254,12 +5277,12 @@ begin
       Sender.PrintCommand('no exists console cmd:%s', Cmd);
       Exit;
     end;
-  if not b.InheritsFrom(TCommandConsoleMode) then
+  if not b.InheritsFrom(TCommandConsole) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
       Exit;
     end;
-  Result := TCommandConsoleMode(b).Execute(Sender, InData, OutData);
+  Result := TCommandConsole(b).Execute(Sender, InData, OutData);
 end;
 
 function TCommunicationFramework.ExecuteStream(Sender: TPeerIO; Cmd: SystemString; InData, OutData: TDataFrameEngine): Boolean;
@@ -5275,13 +5298,13 @@ begin
       Sender.PrintCommand('no exists stream cmd:%s', Cmd);
       Exit;
     end;
-  if not b.InheritsFrom(TCommandStreamMode) then
+  if not b.InheritsFrom(TCommandStream) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
       Exit;
     end;
   InData.Reader.Index := 0;
-  Result := TCommandStreamMode(b).Execute(Sender, InData, OutData);
+  Result := TCommandStream(b).Execute(Sender, InData, OutData);
 end;
 
 function TCommunicationFramework.ExecuteDirectStream(Sender: TPeerIO; Cmd: SystemString; InData: TDataFrameEngine): Boolean;
@@ -5297,13 +5320,13 @@ begin
       Sender.PrintCommand('no exists direct console cmd:%s', Cmd);
       Exit;
     end;
-  if not b.InheritsFrom(TCommandDirectStreamMode) then
+  if not b.InheritsFrom(TCommandDirectStream) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
       Exit;
     end;
   InData.Reader.Index := 0;
-  Result := TCommandDirectStreamMode(b).Execute(Sender, InData);
+  Result := TCommandDirectStream(b).Execute(Sender, InData);
 end;
 
 function TCommunicationFramework.ExecuteDirectConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString): Boolean;
@@ -5319,12 +5342,12 @@ begin
       Sender.PrintCommand('no exists direct stream cmd:%s', Cmd);
       Exit;
     end;
-  if not b.InheritsFrom(TCommandDirectConsoleMode) then
+  if not b.InheritsFrom(TCommandDirectConsole) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
       Exit;
     end;
-  Result := TCommandDirectConsoleMode(b).Execute(Sender, InData);
+  Result := TCommandDirectConsole(b).Execute(Sender, InData);
 end;
 
 function TCommunicationFramework.ExecuteBigStream(Sender: TPeerIO; Cmd: SystemString; InData: TCoreClassStream; FBigStreamTotal, BigStreamCompleteSize: Int64): Boolean;
@@ -5340,12 +5363,12 @@ begin
       Sender.PrintCommand('no exists Big Stream cmd:%s', Cmd);
       Exit;
     end;
-  if not b.InheritsFrom(TCommandBigStreamMode) then
+  if not b.InheritsFrom(TCommandBigStream) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
       Exit;
     end;
-  Result := TCommandBigStreamMode(b).Execute(Sender, InData, FBigStreamTotal, BigStreamCompleteSize);
+  Result := TCommandBigStream(b).Execute(Sender, InData, FBigStreamTotal, BigStreamCompleteSize);
 end;
 
 function TCommunicationFramework.ExecuteCompleteBuffer(Sender: TPeerIO; Cmd: SystemString; InData: PByte; DataSize: NativeInt): Boolean;
@@ -5361,12 +5384,12 @@ begin
       Sender.PrintCommand('no exists complete buffer cmd:%s', Cmd);
       Exit;
     end;
-  if not b.InheritsFrom(TCommandCompleteBufferMode) then
+  if not b.InheritsFrom(TCommandCompleteBuffer) then
     begin
       Sender.PrintCommand('Illegal interface in cmd:%s', Cmd);
       Exit;
     end;
-  Result := TCommandCompleteBufferMode(b).Execute(Sender, InData, DataSize);
+  Result := TCommandCompleteBuffer(b).Execute(Sender, InData, DataSize);
 end;
 
 function TCommunicationFramework.FirstClient: TPeerIO;

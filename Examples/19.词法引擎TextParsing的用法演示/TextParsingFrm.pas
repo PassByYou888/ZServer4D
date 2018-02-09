@@ -97,7 +97,7 @@ var
 
   PrepareProc: Boolean;
 begin
-  t := TTextParsing.Create(Memo3.Text, TTextStyle.tsC);
+  t := TTextParsing.Create(Memo3.Text, TTextStyle.tsPascal);
 
   Memo2.Clear;
   PrepareProc := False;
@@ -215,7 +215,7 @@ var
   rt                                     : TOpCustomRunTime; // 运行函数库支持
 begin
   // 由于pascal的字符串不便于书写在程序中，这里我们c风格字符串
-  t := TTextParsing.Create('if 1+1=2 then writeln("if was true") else writeln("if was false");', tsC);
+  t := TTextParsing.Create('if 1+1=/* comment */2 then writeln/* comment */("if was true") else writeln/* comment */("if was false");', tsC);
   cp := 1;
   ep := 1;
   state := sUnknow;
@@ -226,6 +226,14 @@ begin
   // 解析主循环
   while cp < t.Len do
     begin
+      // 如果是代码备注，跳过去
+      if t.IsComment(cp) then
+        begin
+          ep := t.GetCommentEndPos(cp);
+          cp := ep;
+          continue;
+        end;
+
       // 词法流程范式，这套此范式是以成熟词法解析为主，没有考虑性能，如果需要加速运行脚本，请考虑编译成数据结构存储再以高速方式载入运行
       wasNumber := t.IsNumber(cp);
       wasText := t.IsTextDecl(cp);
@@ -324,6 +332,7 @@ begin
           Result := 0;
         end);
       // 如果需要性能，这里的结构体你可以考虑用数据结构来存储，实现快速脚本
+      // opCache.Clear;
       if EvaluateExpressionValue(tsC, ifMatchBody, rt) = True then
           EvaluateExpressionValue(tsC, ifTrueBody, rt)
       else
@@ -335,10 +344,8 @@ begin
 end;
 
 procedure TForm1.Button7Click(Sender: TObject);
-var
-  rt: TOpCustomRunTime;
 
-  function Macro(var AText: string; const HeadToken, TailToken: string): TPascalString;
+  function Macro(var AText: string; const HeadToken, TailToken: string; const rt: TOpCustomRunTime): TPascalString; inline;
   var
     sour      : TPascalString;
     ht, tt    : TPascalString;
@@ -360,7 +367,7 @@ var
         if sour.ComparePos(i, @ht) then
           begin
             bPos := i;
-            ePos := sour.GetPos(tt, i + ht.Len);
+            ePos := sour.GetPos(@tt, i + ht.Len);
             if ePos > 0 then
               begin
                 KeyText := sour.copy(bPos + ht.Len, ePos - (bPos + ht.Len)).Text;
@@ -379,9 +386,10 @@ var
   end;
 
 var
-  n: string;
-  i: Integer;
-  t: TTimeTick;
+  n : string;
+  i : Integer;
+  t : TTimeTick;
+  rt: TOpCustomRunTime;
 begin
   Memo5.Lines.Add('简单演示用脚本来封装zExpression');
   // rt为ze的运行函数支持库
@@ -395,15 +403,15 @@ begin
   n := '这是1+1=<begin>1+1<end>，这是一个UInt48位整形:<begin>1<<48<end>，结束 <begin>OverFunction<end>';
 
   Memo5.Lines.Add('原型:' + n);
-  Memo5.Lines.Add('计算结果' + Macro(n, '<begin>', '<end>').Text);
+  Memo5.Lines.Add('计算结果' + Macro(n, '<begin>', '<end>', rt).Text);
 
-  Memo5.Lines.Add('zExpression正在测试性能，对上列原型做100万次处理');
+  Memo5.Lines.Add('zExpression正在测试性能，对上列原型做10万次处理');
 
   t := GetTimeTick;
 
-  // 重复做100万次句法表达式解析和处理
-  for i := 1 to 100 * 10000 do
-      Macro(n, '<begin>', '<end>');
+  // 重复做1万次句法表达式解析和处理
+  for i := 1 to 10 * 10000 do
+      Macro(n, '<begin>', '<end>', rt);
 
   Memo5.Lines.Add(Format('zExpression性能测试完成，耗时:%dms', [GetTimeTick - t]));
 

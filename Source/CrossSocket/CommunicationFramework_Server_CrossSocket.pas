@@ -47,7 +47,18 @@ type
     procedure Progress; override;
   end;
 
-  TDriverEngine = TCrossSocket;
+  TDriverEngine = class(TCrossSocket)
+  protected type
+    // 因为crossSocket在底层对外部支持的接口有点少，大改接口比较麻烦，暂时搁置一下，过段时间空了再来做
+    PCrossSocketIntfStruct = ^TCrossSocketIntfStruct;
+
+    TCrossSocketIntfStruct = record
+      IO: TContextIntfForServer;
+    end;
+  protected
+    function CreateListen(AOwner: ICrossSocket; AListenSocket: THandle;
+      AFamily, ASockType, AProtocol: Integer): ICrossListen; override;
+  end;
 
   TCommunicationFramework_Server_CrossSocket = class(TCommunicationFrameworkServer)
   private
@@ -130,9 +141,13 @@ end;
 
 procedure TContextIntfForServer.Disconnect;
 begin
-  if not Connected then
-      exit;
-  Context.Close;
+  if ClientIntf <> nil then
+    begin
+      try
+          Context.Disconnect;
+      except
+      end;
+    end;
 end;
 
 procedure TContextIntfForServer.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
@@ -186,10 +201,10 @@ begin
             Sending := False;
 
             if isConn then
-                Print('send failed!')
-            else
-                Print('invailed connected!,send failed!');
-            Disconnect;
+              begin
+                Print('send failed!');
+                Disconnect;
+              end;
           end;
       except
         Print('send failed!');
@@ -278,7 +293,15 @@ procedure TContextIntfForServer.Progress;
 var
   m: TMemoryStream64;
 begin
+  // 检查空闲
+  if (OwnerFramework.IdleTimeout > 0) and (GetTimeTickCount - LastActiveTime > OwnerFramework.IdleTimeout) then
+    begin
+      Disconnect;
+      exit;
+    end;
+
   inherited Progress;
+
   ProcessAllSendCmd(nil, False, False);
 
   // 在ubuntu 16.04 TLS下，接收线程在程序运行时，我们调用发送api，这时出去的数据会错误
@@ -299,6 +322,11 @@ begin
       // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
       DelayBuffPool.Add(m);
     end;
+end;
+
+function TDriverEngine.CreateListen(AOwner: ICrossSocket; AListenSocket: THandle; AFamily, ASockType, AProtocol: Integer): ICrossListen;
+begin
+  Result := inherited CreateListen(AOwner, AListenSocket, AFamily, ASockType, AProtocol);
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);
@@ -464,25 +492,7 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.ProgressBackground;
-var
-  IDPool: TClientIDPool;
-  pid   : Cardinal;
-  c     : TContextIntfForServer;
 begin
-  GetClientIDPool(IDPool);
-  try
-    for pid in IDPool do
-      begin
-        c := TContextIntfForServer(ClientFromID[pid]);
-        if c <> nil then
-          begin
-            if (IdleTimeout > 0) and (GetTimeTickCount - c.LastActiveTime > IdleTimeout) then
-                c.Disconnect
-          end;
-      end;
-  except
-  end;
-
   inherited ProgressBackground;
 
   CheckSynchronize;

@@ -1869,7 +1869,7 @@ begin
   if op <> nil then
     begin
       try
-          Result := op.Execute;
+          Result := op.Execute(DefaultOpRT);
       except
           Result := NULL;
       end;
@@ -1910,7 +1910,7 @@ begin
   if op <> nil then
     begin
       try
-          Result := op.Execute;
+          Result := op.Execute(opRT);
       except
           Result := NULL;
       end;
@@ -1966,7 +1966,7 @@ begin
   if op <> nil then
     begin
       try
-          Result := op.Execute;
+          Result := op.Execute(opRT);
       except
           Result := NULL;
       end;
