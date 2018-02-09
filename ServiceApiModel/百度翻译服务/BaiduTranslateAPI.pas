@@ -85,6 +85,7 @@ type
     HTTP: TIdHTTP;
     m64: TMemoryStream64;
     UserData: Pointer;
+    RepleatGet: Integer;
     OnResult: TTranslateCompleteProc;
 
     procedure AsyncGet;
@@ -106,11 +107,21 @@ begin
   try
       HTTP.Get(url, m64);
   except
-    th.Synchronize(
-      procedure
+    inc(RepleatGet);
+
+    // 由于网络质量，https经常会发生断线和异常情况，我们在这里用最大重复5次的方式反复获取，直到成功
+    if RepleatGet < 5 then
       begin
-        OnResult(UserData, false, '', '');
-      end);
+        AsyncGet;
+      end
+    else
+      begin
+        th.Synchronize(
+          procedure
+          begin
+            OnResult(UserData, false, '', '');
+          end);
+      end;
     exit;
   end;
   m64.Position := 0;
@@ -247,6 +258,7 @@ begin
   intf.HTTP := TIdHTTP.Create(nil);
   intf.m64 := TMemoryStream64.Create;
   intf.UserData := UserData;
+  intf.RepleatGet := 0;
   intf.OnResult := OnResult;
   intf.th.Suspended := false;
 end;
