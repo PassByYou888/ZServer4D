@@ -188,8 +188,8 @@ begin
   LListenSocket := LListen.Socket;
 
   // 不设置该参数, 会导致 getpeername 调用失败
-  if (TSocketAPI.SetSockOpt(LClientSocket, SOL_SOCKET,
-    SO_UPDATE_ACCEPT_CONTEXT, LListenSocket, SizeOf(THandle)) < 0) then
+  if (TSocketAPI.SetSockOpt<THandle>(LClientSocket, SOL_SOCKET,
+    SO_UPDATE_ACCEPT_CONTEXT, LListenSocket) < 0) then
   begin
     {$IFDEF DEBUG}
     _LogLastOsError;
@@ -220,7 +220,6 @@ procedure TIocpCrossSocket._HandleConnect(APerIoData: PPerIoData);
 var
   LClientSocket: THandle;
   LConnection: ICrossConnection;
-  LOptVal: Integer;
   LSuccess: Boolean;
 
   procedure _Failed1;
@@ -244,9 +243,8 @@ begin
   end;
 
   // 不设置该参数, 会导致 getpeername 调用失败
-  LOptVal := 1;
-  if (TSocketAPI.SetSockOpt(LClientSocket, SOL_SOCKET,
-    SO_UPDATE_CONNECT_CONTEXT, LOptVal, SizeOf(Integer)) < 0) then
+  if (TSocketAPI.SetSockOpt<Integer>(LClientSocket, SOL_SOCKET,
+    SO_UPDATE_CONNECT_CONTEXT, 1) < 0) then
   begin
     _Failed1;
     Exit;
@@ -471,7 +469,6 @@ var
   LHints: TRawAddrInfo;
   P, LAddrInfo: PRawAddrInfo;
   LListenSocket: THandle;
-  LIPv6Only: Integer;
   LListen: ICrossListen;
   I: Integer;
 
@@ -528,10 +525,7 @@ begin
       TSocketAPI.SetReUseAddr(LListenSocket, True);
 
       if (LAddrInfo.ai_family = AF_INET6) then
-      begin
-        LIPv6Only := 1;
-        TSocketAPI.SetSockOpt(LListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, LIPv6Only, SizeOf(LIPv6Only));
-      end;
+        TSocketAPI.SetSockOpt<Integer>(LListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, 1);
 
       if (TSocketAPI.Bind(LListenSocket, LAddrInfo.ai_addr, LAddrInfo.ai_addrlen) < 0)
         or (TSocketAPI.Listen(LListenSocket) < 0) then

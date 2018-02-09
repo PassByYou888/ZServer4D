@@ -651,11 +651,8 @@ begin
 end;
 
 procedure TKqueueCrossSocket._SetNoSigPipe(ASocket: THandle);
-var
-  LOptVal: Integer;
 begin
-  LOptVal := 1;
-  TSocketAPI.SetSockOpt(ASocket, SOL_SOCKET, SO_NOSIGPIPE, LOptVal, SizeOf(Integer));
+  TSocketAPI.SetSockOpt<Integer>(ASocket, SOL_SOCKET, SO_NOSIGPIPE, 1);
 end;
 
 procedure TKqueueCrossSocket.StartLoop;
@@ -799,7 +796,6 @@ var
   LHints: TRawAddrInfo;
   P, LAddrInfo: PRawAddrInfo;
   LListenSocket: THandle;
-  LIPv6Only: Integer;
   LListen: ICrossListen;
   LKqListen: TKqueueListen;
   LSuccess: Boolean;
@@ -840,10 +836,7 @@ begin
       TSocketAPI.SetReUseAddr(LListenSocket, True);
 
       if (LAddrInfo.ai_family = AF_INET6) then
-      begin
-        LIPv6Only := 1;
-        TSocketAPI.SetSockOpt(LListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, LIPv6Only, SizeOf(LIPv6Only));
-      end;
+        TSocketAPI.SetSockOpt<Integer>(LListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, 1);
 
       if (TSocketAPI.Bind(LListenSocket, LAddrInfo.ai_addr, LAddrInfo.ai_addrlen) < 0)
         or (TSocketAPI.Listen(LListenSocket) < 0) then
