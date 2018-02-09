@@ -229,9 +229,9 @@ begin
   soursign := BaiduTranslate_Appid + text + intToStr(salt) + BaiduTranslate_Key;
 
   if UsedSSL then
-      httpurl := 'http://api.fanyi.baidu.com/api/trans/vip/translate'
+      httpurl := 'https://api.fanyi.baidu.com/api/trans/vip/translate'
   else
-      httpurl := 'https://api.fanyi.baidu.com/api/trans/vip/translate';
+      httpurl := 'http://api.fanyi.baidu.com/api/trans/vip/translate';
 
   lasturl.text := httpurl + '?' +
     'q=' + umlURLEncode(text) +

@@ -26,7 +26,7 @@ uses
 
   百度翻译的http查询是在线程中干的
   一个客户端假如同时发送1000个查询请求，不会发生1000个线程，而是一个查询完成后，接下来才会查询下一个
-  这套服务器有安全机制，限定为500ip同时查询
+  这套服务器有安全机制，限定为100ip同时查询
 
   注意：这套服务器模型使用了数据库，并且没有DataStoreService这类有热备功能组件(主要是我不想把一个小翻译服务搞太庞大)
   当你使用Ctrl+F2关闭服务器时，相当于断电，ZDB有安全回写机制，稳妥的做法是，先把客户端全部关闭完，2秒以后，再用ctrl+f2
@@ -76,8 +76,8 @@ begin
   // 如果不关心zdb也没事，直接跳过zdb环节，参阅BaiduTranslateWithHTTP的使用即可
 
   // 处于对服务器的安全考虑
-  // 如果在线ip操过500个，又同时发出查询，就返回错误
-  // 因为只有ip在线超过500人，同时500人又都在发出翻译请求才会触发这样的条件
+  // 如果在线ip操过100个，又同时发出查询，就返回错误
+  // 因为只有ip在线超过100人，同时100人又都在发出翻译请求才会触发这样的条件
   if BaiduTranslateTh > BaiduTranslate_MaxSafeThread then
     begin
       OutData.WriteBool(False);
@@ -226,9 +226,9 @@ begin
   // 如果在linux出现ipv6侦听错误，要么自己装ipv6服务和模块，要么就无视它
   server_2 := TMyServer.Create;
   if server_2.StartService('::', 59814) then
-      DoStatus('start service with ipv6:59813 success')
+      DoStatus('start service with ipv6:59814 success')
   else
-      DoStatus('start service with ipv6:59813 failed!');
+      DoStatus('start service with ipv6:59814 failed!');
 
   server_1.RegisterStream('BaiduTranslate').OnExecuteCall := cmd_BaiduTranslate;
   server_2.RegisterStream('BaiduTranslate').OnExecuteCall := cmd_BaiduTranslate;
