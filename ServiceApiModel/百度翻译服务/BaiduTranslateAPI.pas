@@ -74,7 +74,7 @@ threadvar BaiduTranslateTh: Int64;
 
 implementation
 
-uses SysUtils, IdHTTP;
+uses SysUtils, IDHttp;
 
 type
   THTTPGetTh = class;
@@ -82,7 +82,7 @@ type
   THTTPSyncIntf = class
     th: THTTPGetTh;
     url: string;
-    HTTP: TIdHTTP;
+    HTTP: TIdCustomHTTP;
     m64: TMemoryStream64;
     UserData: Pointer;
     RepleatGet: Integer;
@@ -119,7 +119,7 @@ begin
         th.Synchronize(
           procedure
           begin
-            OnResult(UserData, false, '', '');
+            OnResult(UserData, False, '', '');
           end);
       end;
     exit;
@@ -128,7 +128,7 @@ begin
   js := TJsonObject.Create;
   js.LoadFromStream(m64, TEncoding.UTF8, True);
 
-  Success := false;
+  Success := False;
   sour := '';
   dst := '';
 
@@ -160,7 +160,7 @@ begin
     th.Synchronize(
       procedure
       begin
-        OnResult(UserData, false, '', '');
+        OnResult(UserData, False, '', '');
       end);
     exit;
   end;
@@ -180,10 +180,15 @@ procedure THTTPGetTh.execute;
 begin
   inc(BaiduTranslateTh);
   FreeOnTerminate := True;
+  syncIntf.HTTP := TIdCustomHTTP.Create(nil);
   try
       syncIntf.AsyncGet;
   finally
     // 安全回收
+    try
+        DisposeObject(syncIntf.HTTP);
+    except
+    end;
     DisposeObject(syncIntf);
     dec(BaiduTranslateTh);
   end;
@@ -236,6 +241,11 @@ var
   intf    : THTTPSyncIntf;
   th      : THTTPGetTh;
 begin
+  if text.Len > 2000 then
+    begin
+      OnResult(UserData, False, '', '');
+      exit;
+    end;
   salt := umlRandomRange(32767, 1024 * 1024 * 2);
   soursign := BaiduTranslate_Appid + text + intToStr(salt) + BaiduTranslate_Key;
 
@@ -255,12 +265,12 @@ begin
   intf.th := THTTPGetTh.Create;
   intf.th.syncIntf := intf;
   intf.url := lasturl;
-  intf.HTTP := TIdHTTP.Create(nil);
+  intf.HTTP := nil;
   intf.m64 := TMemoryStream64.Create;
   intf.UserData := UserData;
   intf.RepleatGet := 0;
   intf.OnResult := OnResult;
-  intf.th.Suspended := false;
+  intf.th.Suspended := False;
 end;
 
 end.
