@@ -15,10 +15,20 @@ uses
   System.SysUtils,
   System.Classes,
   System.Variants,
-  PascalStrings, CommunicationFramework, CommunicationFramework_Server_Indy, CommunicationFramework_Server_CrossSocket,
-  DoStatusIO, CoreClasses, DataFrameEngine, UnicodeMixedLib, MemoryStream64, JsonDataObjects,
-  ZDBLocalManager, ZDBEngine,
-  BaiduTranslateAPI in 'BaiduTranslateAPI.pas';
+  PascalStrings,
+  CommunicationFramework,
+  CommunicationFramework_Server_Indy,
+  CommunicationFramework_Server_CrossSocket,
+  DoStatusIO,
+  CoreClasses,
+  DataFrameEngine,
+  UnicodeMixedLib,
+  MemoryStream64,
+  JsonDataObjects,
+  ZDBLocalManager,
+  ZDBEngine,
+  BaiduTranslateAPI in 'BaiduTranslateAPI.pas',
+  BaiduTranslateClient in 'Client.Lib\BaiduTranslateClient.pas';
 
 (*
   百度翻译服务器使用delphi xe10.1.2所编写
@@ -44,16 +54,6 @@ type
     procedure DoClientDisconnect(Sender: TPeerIO); override;
   end;
 
-  PDelayReponseSource = ^TDelayReponseSource;
-
-  TDelayReponseSource = record
-    serv: TMyServer;
-    id: Cardinal;
-    sourLan, destLan: TTranslateLanguage;
-    s: TPascalString;
-    Hash64: THash64;
-  end;
-
 procedure TMyServer.DoClientConnectAfter(Sender: TPeerIO);
 begin
   DoStatus('id: %d ip:%s connected', [Sender.id, Sender.PeerIP]);
@@ -68,6 +68,18 @@ begin
 end;
 
 procedure cmd_BaiduTranslate(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+type
+  PDelayReponseSource = ^TDelayReponseSource;
+
+  TDelayReponseSource = record
+    serv: TMyServer;
+    id: Cardinal;
+    sourLan, destLan: TTranslateLanguage;
+    s: TPascalString;
+    UsedCache: Boolean;
+    Hash64: THash64;
+  end;
+
 var
   sp: PDelayReponseSource;
 begin
@@ -92,10 +104,11 @@ begin
   sp^.serv := TMyServer(Sender.OwnerFramework);
   sp^.id := Sender.id;
   // 发自客户端的翻译数据
-  sp^.sourLan := TTranslateLanguage(InData.Reader.ReadByte);                                     // 翻译的源语言
-  sp^.destLan := TTranslateLanguage(InData.Reader.ReadByte);                                     // 翻译的目标语言
-  sp^.s := umlTrimSpace(umlCharReplace(umlDeleteChar(InData.Reader.ReadString, #13), #10, #32)); // 这里是做预裁剪，将换行全部替换成空格
-  sp^.Hash64 := FastHash64PascalString(@sp^.s);                                                  // 高速hash
+  sp^.sourLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的源语言
+  sp^.destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
+  sp^.s := InData.Reader.ReadString;                         // 这里不做字符串修正，把字符串修正改在客户端去做
+  sp^.UsedCache := InData.Reader.ReadBool;                   // 是否使用cache数据库
+  sp^.Hash64 := FastHash64PascalString(@sp^.s);              // 高速hash
 
   // 从cache数据库查询我们的翻译
   // 因为超过200万条翻译，就必须给百度交钱
@@ -120,6 +133,13 @@ begin
         // 查询过滤器回调
         p := dPipe.UserPointer;
 
+        // 如果客户端UsedCache为假，我们直接结束查询，并且跳到查询完成事件中去
+        if not p^.UsedCache then
+        begin
+            dPipe.Stop;
+            exit;
+        end;
+
         j := qState.DBEng.GetJson(qState);
         Allowed := (TTranslateLanguage(j.I['sl']) = p^.sourLan) and (TTranslateLanguage(j.I['dl']) = p^.destLan) and
         (p^.Hash64 = j.U['h']) // 我们用hash来提高遍历速度
@@ -133,8 +153,9 @@ begin
             // 如果断线，cli就是nil
             if cli <> nil then
             begin
-                cli.OutDataFrame.WriteBool(True);
-                cli.OutDataFrame.WriteString(j.s['d']);
+                cli.OutDataFrame.WriteBool(True);       // 翻译成功状态
+                cli.OutDataFrame.WriteString(j.s['d']); // 翻译完成的目标语言
+                cli.OutDataFrame.WriteBool(True);       // 翻译是否来自cache数据库
                 cli.ContinueResultSend;
             end;
 
@@ -171,25 +192,30 @@ begin
               if Success then
                 begin
                   cli.OutDataFrame.WriteString(dest);
+                  cli.OutDataFrame.WriteBool(False); // 翻译是否来自cache数据库
 
-                  // 将查询结果记录到数据库
-                  // 因为超过200万条翻译，就必须给百度交钱
-                  js := TJsonObject.Create;
-                  js.I['sl'] := Integer(p^.sourLan);
-                  js.I['dl'] := Integer(p^.destLan);
-                  js.U['h'] := FastHash64PascalString(@p^.s);
-                  js.F['t'] := Now;
-                  js.s['ip'] := cli.PeerIP;
-                  js.s['s'] := p^.s.Text;
-                  js.s['d'] := dest.Text;
+                  // 只有当客户端的UsedCache为真我们才写入翻译信息到数据库
+                  if p^.UsedCache then
+                    begin
+                      // 将查询结果记录到数据库
+                      // 因为超过200万条翻译，就必须给百度交钱
+                      js := TJsonObject.Create;
+                      js.I['sl'] := Integer(p^.sourLan);
+                      js.I['dl'] := Integer(p^.destLan);
+                      js.U['h'] := FastHash64PascalString(@p^.s);
+                      js.F['t'] := Now;
+                      js.s['s'] := p^.s.Text;
+                      js.s['d'] := dest.Text;
+                      js.s['ip'] := cli.PeerIP;
 
-                  MiniDB.PostData('History', js);
+                      MiniDB.PostData('History', js);
 
-                  // 在ubuntu服务器模式下，无法显示中文
-                  {$IFNDEF Linux}
-                  DoStatus(js.ToString);
-                  {$IFEND}
-                  disposeObject(js);
+                      // 在ubuntu服务器模式下，无法显示中文
+                      {$IFNDEF Linux}
+                      DoStatus('new cache %s', [js.ToString]);
+                      {$IFEND}
+                      disposeObject(js);
+                    end;
                 end;
 
               // 继续响应
@@ -198,6 +224,38 @@ begin
           dispose(p);
         end);
     end).UserPointer := sp;
+end;
+
+// 更新cache数据库，这里的实现机制是无限的往数据库末尾追加一条翻译记录，这里并不会删除之前的东西
+// 百度翻译对cache数据库的查询是从末尾开始，所以我们追加也等同于修改了
+procedure cmd_UpdateTranslate(Sender: TPeerIO; InData: TDataFrameEngine);
+var
+  sourLan, destLan: TTranslateLanguage;
+  s, d            : TPascalString;
+  Hash64          : THash64;
+  js              : TJsonObject;
+begin
+  sourLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的源语言
+  destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
+  s := InData.Reader.ReadString;                         // 源文
+  d := InData.Reader.ReadString;                         // 翻译
+  Hash64 := FastHash64PascalString(@s);                  // 高速hash
+
+  js := TJsonObject.Create;
+  js.I['sl'] := Integer(sourLan);
+  js.I['dl'] := Integer(destLan);
+  js.U['h'] := Hash64;
+  js.F['t'] := Now;
+  js.s['s'] := s.Text;
+  js.s['d'] := d.Text;
+  js.s['ip'] := Sender.PeerIP;
+  MiniDB.PostData('History', js);
+
+  // 在ubuntu服务器模式下，无法显示中文
+  {$IFNDEF Linux}
+  DoStatus('update cache %s', [js.ToString]);
+  {$IFEND}
+  disposeObject(js);
 end;
 
 var
@@ -209,7 +267,8 @@ begin
   MiniDB.InitDB('History');
 
   server_1 := TMyServer.Create;
-
+  // 使用最强加密系统，3次级DES反复加密结合ECB
+  server_1.SwitchMaxSafe;
   // 如果在Ubuntu下使用indy服务器，这里必须指定绑定的回环地址
   // if server_IPv4.StartService('0.0.0.0', 59813) then
 
@@ -225,6 +284,8 @@ begin
 
   // 如果在linux出现ipv6侦听错误，要么自己装ipv6服务和模块，要么就无视它
   server_2 := TMyServer.Create;
+  // 使用最强加密系统，3次级DES反复加密结合ECB
+  server_2.SwitchMaxSafe;
   if server_2.StartService('::', 59814) then
       DoStatus('start service with ipv6:59814 success')
   else
@@ -232,6 +293,9 @@ begin
 
   server_1.RegisterStream('BaiduTranslate').OnExecuteCall := cmd_BaiduTranslate;
   server_2.RegisterStream('BaiduTranslate').OnExecuteCall := cmd_BaiduTranslate;
+
+  server_1.RegisterDirectStream('UpdateTranslate').OnExecuteCall := cmd_UpdateTranslate;
+  server_2.RegisterDirectStream('UpdateTranslate').OnExecuteCall := cmd_UpdateTranslate;
 
   // 15秒空闲时断开链接
   server_1.IdleTimeout := 15000;
