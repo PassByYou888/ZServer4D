@@ -2,7 +2,8 @@ program ZSTranslateClient;
 
 uses
   Vcl.Forms,
-  ZSClientFrm in 'ZSClientFrm.pas' {ZSClientForm};
+  ZSClientFrm in 'ZSClientFrm.pas' {ZSClientForm},
+  BaiduTranslateClient in '..\Client.Lib\BaiduTranslateClient.pas';
 
 {$R *.res}
 

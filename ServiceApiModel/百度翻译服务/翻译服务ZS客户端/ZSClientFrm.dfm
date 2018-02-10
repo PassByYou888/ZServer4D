@@ -25,7 +25,7 @@ object ZSClientForm: TZSClientForm
   end
   object Label2: TLabel
     Left = 0
-    Top = 171
+    Top = 179
     Width = 24
     Height = 13
     Caption = #32763#35793
@@ -52,7 +52,7 @@ object ZSClientForm: TZSClientForm
   end
   object DestMemo: TMemo
     Left = 0
-    Top = 190
+    Top = 198
     Width = 345
     Height = 110
     TabOrder = 2
@@ -99,7 +99,7 @@ object ZSClientForm: TZSClientForm
   end
   object DestComboBox: TComboBox
     Left = 40
-    Top = 163
+    Top = 171
     Width = 145
     Height = 21
     Style = csDropDownList
@@ -153,10 +153,23 @@ object ZSClientForm: TZSClientForm
     Height = 169
     TabOrder = 6
   end
-  object ProgressTimer: TTimer
-    Interval = 10
-    OnTimer = ProgressTimerTimer
-    Left = 184
-    Top = 296
+  object UsedCacheCheckBox: TCheckBox
+    Left = 167
+    Top = 20
+    Width = 170
+    Height = 17
+    Caption = #21152#36895#32763#35793' ('#30465#38065#26041#26696')'
+    Checked = True
+    State = cbChecked
+    TabOrder = 7
+  end
+  object UpdateTranslateButton: TButton
+    Left = 248
+    Top = 171
+    Width = 97
+    Height = 21
+    Caption = #32763#35793#20462#27491
+    TabOrder = 8
+    OnClick = UpdateTranslateButtonClick
   end
 end
