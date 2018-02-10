@@ -30,7 +30,6 @@ var
   BaiduTranslate_MaxSafeThread: Integer = 100; // 100是豪华配置的linux云主机
 
 type
-  // 将来百度翻译api新增语种后，自行在下列添加进去即可
   TTranslateLanguage = (
     tL_auto, // 自动
     tL_zh,   // 中文
@@ -126,7 +125,13 @@ begin
   end;
   m64.Position := 0;
   js := TJsonObject.Create;
-  js.LoadFromStream(m64, TEncoding.UTF8, True);
+  try
+      js.LoadFromStream(m64, TEncoding.UTF8, True);
+  except
+    DisposeObject([js]);
+    OnResult(UserData, False, '', '');
+    exit;
+  end;
 
   Success := False;
   sour := '';
