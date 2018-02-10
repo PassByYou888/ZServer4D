@@ -82,7 +82,10 @@ type
     function GetPos(const SubStr: PPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Exists(c: SystemChar): Boolean; overload;
     function Exists(c: array of SystemChar): Boolean; overload;
-
+    //
+    function Hash: THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Hash64: THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     property Last: SystemChar read GetLast write SetLast;
     property First: SystemChar read GetFirst write SetFirst;
 
@@ -94,8 +97,10 @@ type
     procedure Append(c: SystemChar); overload;
     function GetString(bPos, ePos: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Insert(AText: SystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     procedure FastAsText(var Output: SystemString);
     procedure FastGetBytes(var Output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
     function UpperText: SystemString;
@@ -868,6 +873,16 @@ begin
     if CharIn(Buff[i], c) then
         Exit(True);
   Result := False;
+end;
+
+function TPascalString.Hash: THash;
+begin
+  Result := FastHashPascalString(@Self);
+end;
+
+function TPascalString.Hash64: THash64;
+begin
+  Result := FastHash64PascalString(@Self);
 end;
 
 procedure TPascalString.DeleteLast;
