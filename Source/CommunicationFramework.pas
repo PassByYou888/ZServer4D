@@ -4878,7 +4878,7 @@ end;
 procedure TCommunicationFramework.SwitchMaxSafe;
 begin
   FUsedParallelEncrypt := True;
-  FHashStyle := THashStyle.hsSHA1;
+  FHashStyle := THashStyle.hsFastMD5;
   FSendDataCompressed := True;
   FCipherStyle := TCipherStyle.csDES192;
 end;
