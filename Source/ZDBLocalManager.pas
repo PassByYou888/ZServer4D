@@ -1686,9 +1686,9 @@ begin
   Result.WriteFragmentBuffer := True;
 
   {$IFDEF FPC}
-  Result.FQueryTask := Result.SourceDB.Query(Result.PipelineName, @Result.Query, @Result.QueryDone);
+  Result.FQueryTask := Result.SourceDB.Query(Result.PipelineName, ReverseQuery, @Result.Query, @Result.QueryDone);
   {$ELSE}
-  Result.FQueryTask := Result.SourceDB.Query(Result.PipelineName, Result.Query, Result.QueryDone);
+  Result.FQueryTask := Result.SourceDB.Query(Result.PipelineName, ReverseQuery, Result.Query, Result.QueryDone);
   {$ENDIF}
   try
     if Assigned(NotifyIntf) then
