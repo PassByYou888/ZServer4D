@@ -32,6 +32,14 @@ type
     // text style
     TextStyle: TTranlateStyle;
 
+    // fast hash
+    OriginHash: THash;
+    DefineHash: THash;
+
+    // project language
+    originLanguage: Integer;
+    DefineLanguage: Integer;
+
     RepCount: Integer;
 
     procedure InitSelf;
@@ -60,12 +68,13 @@ type
     function GetOrigin(const s: SystemString): PTextTableItem;
     property Origin[const s: SystemString]: PTextTableItem read GetOrigin;
 
+    procedure AddCopy(var t: TTextTableItem);
     procedure AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure ChangeDefineText(Index: Integer; newDefine: SystemString);
+    procedure ChangeDefineText(Index: Integer; newDefine: umlString);
 
     function Search(AOriginText: SystemString): PTextTableItem;
 
@@ -87,6 +96,8 @@ begin
   DefineText := '';
   TextStyle := tsNormalText;
   RepCount := 0;
+  OriginHash := 0;
+  DefineHash := 0;
 end;
 
 procedure TTextTableItem.LoadFromStream(stream: TCoreClassStream);
@@ -104,6 +115,12 @@ begin
   TextStyle := TTranlateStyle(df.Reader.ReadInteger);
   RepCount := df.Reader.ReadInteger;
 
+  OriginHash := df.Reader.ReadCardinal;
+  DefineHash := df.Reader.ReadCardinal;
+
+  originLanguage := df.Reader.ReadInteger;
+  DefineLanguage := df.Reader.ReadInteger;
+
   DisposeObject(df);
 end;
 
@@ -119,6 +136,12 @@ begin
   df.WriteString(DefineText);
   df.WriteInteger(Integer(TextStyle));
   df.WriteInteger(RepCount);
+
+  df.WriteCardinal(OriginHash);
+  df.WriteCardinal(DefineHash);
+
+  df.WriteInteger(originLanguage);
+  df.WriteInteger(DefineLanguage);
 
   df.EncodeTo(stream);
   DisposeObject(df);
@@ -197,6 +220,24 @@ begin
     end;
 end;
 
+procedure TTextTable.AddCopy(var t: TTextTableItem);
+var
+  p: PTextTableItem;
+begin
+  p := GetOrigin(t.OriginText);
+  if p = nil then
+    begin
+      New(p);
+      p^ := t;
+      p^.RepCount := 1;
+      FList.Add(p);
+    end
+  else
+    begin
+      p^.RepCount := p^.RepCount + 1;
+    end;
+end;
+
 procedure TTextTable.AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
 var
   p: PTextTableItem;
@@ -211,6 +252,8 @@ begin
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsNormalText;
+      p^.OriginHash := FastHashSystemString(@AOriginText);
+      p^.DefineHash := FastHashSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -234,6 +277,8 @@ begin
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsPascalText;
+      p^.OriginHash := FastHashSystemString(@AOriginText);
+      p^.DefineHash := FastHashSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -257,6 +302,8 @@ begin
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsPascalComment;
+      p^.OriginHash := FastHashSystemString(@AOriginText);
+      p^.DefineHash := FastHashSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -280,6 +327,8 @@ begin
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsCText;
+      p^.OriginHash := FastHashSystemString(@AOriginText);
+      p^.DefineHash := FastHashSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -303,6 +352,8 @@ begin
       p^.Index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsCComment;
+      p^.OriginHash := FastHashSystemString(@AOriginText);
+      p^.DefineHash := FastHashSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -312,12 +363,15 @@ begin
     end;
 end;
 
-procedure TTextTable.ChangeDefineText(Index: Integer; newDefine: SystemString);
+procedure TTextTable.ChangeDefineText(Index: Integer; newDefine: umlString);
 var
   i: Integer;
   p: PTextTableItem;
 begin
   newDefine := umlCharReplace(newDefine, #9, #32).Text;
+
+  while (newDefine.Len > 0) and (CharIn(newDefine.Last, [#13, #10])) do
+      newDefine.DeleteLast;
 
   for i := 0 to FList.Count - 1 do
     begin
@@ -328,21 +382,39 @@ begin
               p^.DefineText := TTextParsing.TranslateTextToPascalDecl(newDefine).Text
           else if p^.TextStyle = tsCText then
               p^.DefineText := TTextParsing.TranslateTextToC_Decl(newDefine).Text
+          else if p^.TextStyle = tsPascalComment then
+            begin
+              if umlMultipleMatch(False, '{*}', umlTrimSpace(newDefine)) then
+                  p^.DefineText := newDefine
+              else
+                  p^.DefineText := '{ ' + (newDefine) + ' }';
+            end
+          else if p^.TextStyle = tsCComment then
+            begin
+              if umlMultipleMatch(False, '#*', umlTrimSpace(newDefine)) then
+                  p^.DefineText := newDefine
+              else
+                  p^.DefineText := '/* ' + (newDefine) + ' */';
+            end
           else
               p^.DefineText := newDefine;
+
+          p^.DefineHash := FastHashSystemString(@p^.DefineText);
         end;
     end;
 end;
 
 function TTextTable.Search(AOriginText: SystemString): PTextTableItem;
 var
-  i: Integer;
-  p: PTextTableItem;
+  hash: THash;
+  i   : Integer;
+  p   : PTextTableItem;
 begin
+  hash := FastHashSystemString(@AOriginText);
   for i := 0 to FList.Count - 1 do
     begin
       p := FList[i];
-      if (p^.OriginText = AOriginText) then
+      if (p^.OriginHash = hash) and (p^.OriginText = AOriginText) then
         begin
           Exit(p);
         end;
@@ -371,7 +443,7 @@ begin
       ms.Clear;
     end;
 
-  df.EncodeAsZLib(stream);
+  df.EncodeAsBRRC(stream);
 
   DisposeObject(ms);
   DisposeObject(df);
@@ -412,6 +484,7 @@ var
   i      : Integer;
   p      : PTextTableItem;
   ns     : TCoreClassStringList;
+  n      : TPascalString;
 begin
   expList := THashList.Create;
   ns := TCoreClassStringList.Create;
@@ -426,8 +499,79 @@ begin
                 ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]))
             else if p^.TextStyle = tsCText then
                 ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclToText(p^.DefineText).Text]))
+            else if p^.TextStyle = tsPascalComment then
+              begin
+                n := umlTrimSpace(p^.DefineText);
+                if umlMultipleMatch(False, '{*}', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteLast;
+                    if umlMultipleMatch(False, '$*', umlTrimSpace(n)) then
+                        n := p^.OriginText;
+                  end
+                else if umlMultipleMatch(False, '(*?*)', n, '?', '') then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteLast;
+                    n.DeleteLast;
+                  end
+                else if umlMultipleMatch(False, '////*', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                  end
+                else if umlMultipleMatch(False, '///*', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                  end
+                else if umlMultipleMatch(False, '//*', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                  end;
+                ns.Add(Format('%d=%s', [p^.Index, n.Text]));
+              end
+            else if p^.TextStyle = tsCComment then
+              begin
+                n := umlTrimSpace(p^.DefineText);
+                if umlMultipleMatch(False, '#*', n) then
+                  begin
+                    n := p^.OriginText;
+                  end
+                else if umlMultipleMatch(False, '/*?*/', n, '?', '') then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteLast;
+                    n.DeleteLast;
+                  end
+                else if umlMultipleMatch(False, '////*', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                  end
+                else if umlMultipleMatch(False, '///*', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                  end
+                else if umlMultipleMatch(False, '//*', n) then
+                  begin
+                    n.DeleteFirst;
+                    n.DeleteFirst;
+                  end;
+                ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
+              end
             else
-              ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
+                ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
           end;
     end;
   ns.SaveToStream(stream);
