@@ -74,7 +74,9 @@ type
     procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+
     procedure ChangeDefineText(Index: Integer; newDefine: umlString);
+    function ExistsIndex(Index: Integer): Boolean;
 
     function Search(AOriginText: SystemString): PTextTableItem;
 
@@ -402,6 +404,17 @@ begin
           p^.DefineHash := FastHashSystemString(@p^.DefineText);
         end;
     end;
+end;
+
+function TTextTable.ExistsIndex(Index: Integer): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 0 to FList.Count - 1 do
+    if index = PTextTableItem(FList[i])^.Index then
+      Exit;
+  Result := False;
 end;
 
 function TTextTable.Search(AOriginText: SystemString): PTextTableItem;
