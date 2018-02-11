@@ -169,6 +169,7 @@ type
     { }
     class function TranslatePascalDeclToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateTextToPascalDecl(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateTextToPascalDeclWithUnicode(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateC_DeclToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateTextToC_Decl(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
@@ -1587,6 +1588,56 @@ begin
     begin
       c := Text[cPos];
       if CharIn(c, ordCharInfo) then
+        begin
+          if Result.Len = 0 then
+              Result := '#' + IntToStr(ord(c))
+          else if LastIsOrdChar then
+              Result.Append('#' + IntToStr(ord(c)))
+          else
+              Result.Append(#39 + '#' + IntToStr(ord(c)));
+          LastIsOrdChar := True;
+        end
+      else
+        begin
+          if Result.Len = 0 then
+              Result := #39 + c
+          else if LastIsOrdChar then
+              Result.Append(#39 + c)
+          else
+              Result.Append(c);
+
+          LastIsOrdChar := False;
+        end;
+    end;
+
+  if not LastIsOrdChar then
+      Result.Append(#39);
+end;
+
+class function TTextParsing.TranslateTextToPascalDeclWithUnicode(Text: TPascalString): TPascalString;
+var
+  cPos         : Integer;
+  c            : SystemChar;
+  LastIsOrdChar: Boolean;
+  ordCharInfo  : TPascalString;
+begin
+  if Text.Len = 0 then
+    begin
+      Result := #39#39;
+      Exit;
+    end;
+
+  ordCharInfo.Len := 32;
+  for cPos := 0 to 31 do
+      ordCharInfo[cPos] := SystemChar(ord(cPos));
+  ordCharInfo[32] := #39;
+
+  Result := '';
+  LastIsOrdChar := False;
+  for cPos := 1 to Text.Len do
+    begin
+      c := Text[cPos];
+      if CharIn(c, ordCharInfo) or (ord(c) >= $80) then
         begin
           if Result.Len = 0 then
               Result := '#' + IntToStr(ord(c))
