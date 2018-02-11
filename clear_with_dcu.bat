@@ -8,3 +8,4 @@ del/s *.dres
 del/s *.local
 del/s *.identcache
 del/s *.stat
+del/s *.tvsconfig
