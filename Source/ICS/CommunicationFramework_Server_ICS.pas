@@ -1,4 +1,4 @@
-{ ****************************************************************************** }
+锘縶 ****************************************************************************** }
 { * ics support                                                                * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -483,8 +483,8 @@ procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject;
 begin
   DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
   Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  Client.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
-  Client.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
+  Client.KeepAliveTime := 1 * 1000;     { From heartbeat check to disconnected time }
+  Client.KeepAliveInterval := 1 * 1000; { Heartbeat interval }
 end;
 
 procedure TCommunicationFramework_Server_ICS.ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);

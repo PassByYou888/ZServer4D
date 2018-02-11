@@ -1,4 +1,4 @@
-{ ****************************************************************************** }
+锘縶 ****************************************************************************** }
 { * DIOCP Support                                                              * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -109,8 +109,8 @@ destructor TPeerIOWithDIOCPServer.Destroy;
 begin
   if Link <> nil then
     begin
-      // 系统绿色化，我在破坏对象时，不是直接close，而是post一个消息出去
-      // 这样会导致断线产生一个小幅延迟，这里不影响性能
+      { The system is green, and when I destroy the object, it's not a direct close, but a message from post. }
+      { This leads to a small delay in the broken line, which does not affect the performance. }
       Link.PostWSACloseRequest;
       Link.Link := nil;
     end;
@@ -149,9 +149,9 @@ begin
     begin
       inc(lastSendBufferTag);
       WasSending := True;
-      // 因为DIOCP的发送是基于数据队列的
-      // 把所有的预置数据以队列方式fill后再发送
-      // 这里我用flush方式后置化发送数据，做到每次发送出去的是一个块，一般来说，这里被zs触发时，都是一个ip包左右的大小，不是碎片
+      { Because the transmission of DIOCP is based on the data queue }
+      { Send all the preset data in queue mode fill }
+      { Here I use flush mode to post data, so that every time I send out is a block. Generally speaking, when triggered by ZS, it is a size of IP packet, not a fragment. }
       Link.PostWSASendRequest(SendingStream.Memory, SendingStream.Size, True, lastSendBufferTag);
       SendingStream.Clear;
     end;
@@ -219,9 +219,9 @@ begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
       exit;
 
-  // zs内核在新版本已经完全支持了100%的异步解析数据
-  // 经过简单分析，这个事件被上锁保护了，似乎调度有点延迟
-  // 这里的性能热点不太好找，diocp的瓶颈主要是卡在这一步
+  { The ZS kernel has fully supported 100% asynchronous parsing data in the new version }
+  { After a simple analysis, the event was protected by a lock, and it seemed to be a bit delayed. }
+  { The performance hot spots here are not very good, and the main bottleneck of diocp is to be stuck in this step }
   TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(buf, len);
   TIocpClientContextIntf_WithDServ(pvClientContext).Link.FillRecvBuffer(TThread.CurrentThread, True, True);
 end;

@@ -141,8 +141,9 @@ begin
         end;
 
         j := qState.DBEng.GetJson(qState);
-        Allowed := (TTranslateLanguage(j.I['sl']) = p^.sourLan) and (TTranslateLanguage(j.I['dl']) = p^.destLan) and
+        Allowed :=
         (p^.Hash64 = j.U['h']) // 我们用hash来提高遍历速度
+        and (TTranslateLanguage(j.I['sl']) = p^.sourLan) and (TTranslateLanguage(j.I['dl']) = p^.destLan)
         and (p^.s.Same(TPascalString(j.s['s'])));
 
         if Allowed then
@@ -265,6 +266,7 @@ begin
   MiniDB := TZDBLocalManager.Create;
   // 因为创建文件形式的数据库，对于这种经常ctrl+f2的强退，数据库很容易损坏
   MiniDB.InitDB('History');
+  MiniDB['History'].CacheStyle := TCacheStyle.csEnabled;
 
   server_1 := TMyServer.Create;
   // 使用最强加密系统，3次级DES反复加密结合ECB
@@ -312,7 +314,7 @@ begin
 
       // 绿色环保，避免多余开销
       if server_1.Count + server_2.Count > 0 then
-          System.Classes.CheckSynchronize(10)
+          System.Classes.CheckSynchronize(1)
       else
         begin
           System.Classes.CheckSynchronize(100);

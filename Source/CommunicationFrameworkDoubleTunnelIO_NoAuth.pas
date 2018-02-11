@@ -1,4 +1,4 @@
-{ ****************************************************************************** }
+锘縶 ****************************************************************************** }
 { * double tunnel IO framework(incl File service)                              * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -242,18 +242,18 @@ type
 
     procedure GetFileTime(RemoteFilename: SystemString; CallResultProc: TStreamMethod); overload;
 
-    // 异步方式从服务器下载文件，完成时触发通知
+    { Downloading files from the server asynchronously and triggering notifications when completed }
     procedure GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_NoAuth); overload;
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_NoAuth); overload;
     {$IFNDEF FPC}
     procedure GetFile(fileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_NoAuth); overload;
     {$ENDIF}
-    // 同步方式等待从服务器下载文件完成
+    { Synchronously waiting to download files from the server to complete }
     function GetFile(fileName, saveToPath: SystemString): Boolean; overload;
-    // 异步上传本地文件
+    { Uploading local files asynchronously }
     procedure PostFile(fileName: SystemString); overload;
-    // 异步上传一个Stream，完成后会自动释放filestream
+    { Upload an Stream asynchronously and automatically release FileStream after completion }
     procedure PostFile(fn: SystemString; fileStream: TCoreClassStream); overload;
 
     // batch stream suppport

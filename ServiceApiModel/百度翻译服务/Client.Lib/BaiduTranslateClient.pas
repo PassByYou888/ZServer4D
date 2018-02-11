@@ -59,6 +59,9 @@ procedure BaiduTranslate(sourLanguage, desLanguage: Byte; text: TPascalString;
 procedure UpdateTranslate(sourLanguage, desLanguage: TBaiduL; SourText, DestText: TPascalString); overload;
 procedure UpdateTranslate(sourLanguage, desLanguage: Byte; SourText, DestText: TPascalString); overload;
 
+procedure OpenBaiduTranslate;
+procedure CloseBaiduTranslate;
+
 implementation
 
 {$IF Defined(IOS) or Defined(ANDROID) or Defined(OSX)}
@@ -264,6 +267,24 @@ end;
 procedure UpdateTranslate(sourLanguage, desLanguage: Byte; SourText, DestText: TPascalString);
 begin
   UpdateTranslate(TBaiduL(sourLanguage), TBaiduL(desLanguage), SourText, DestText);
+end;
+
+procedure OpenBaiduTranslate;
+begin
+  if not BaiduTranslate_Client.Connected then
+      BaiduTranslate_Client.AsyncConnect(BaiduTranslateServiceHost, BaiduTranslateServicePort,
+      procedure(const cState: Boolean)
+      begin
+        if cState then
+            DoStatus('OpenBaidu Translate Success,server: %s', [BaiduTranslateServiceHost])
+        else
+            DoStatus('OpenBaidu Translate Failed,server: %s', [BaiduTranslateServiceHost]);
+      end);
+end;
+
+procedure CloseBaiduTranslate;
+begin
+  BaiduTranslate_Client.Disconnect;
 end;
 
 initialization

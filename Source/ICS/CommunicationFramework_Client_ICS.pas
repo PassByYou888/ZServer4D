@@ -1,4 +1,4 @@
-{ ****************************************************************************** }
+锘縶 ****************************************************************************** }
 { * ics support                                                                * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -194,8 +194,8 @@ begin
   FDriver := TClientICSContextIntf.Create(nil);
   FDriver.MultiThreaded := False;
   FDriver.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  FDriver.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
-  FDriver.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
+  FDriver.KeepAliveTime := 1 * 1000;     { From heartbeat check to disconnected time }
+  FDriver.KeepAliveInterval := 1 * 1000; { Heartbeat interval }
   FDriver.OnDataAvailable := DataAvailable;
   FDriver.OnSessionClosed := SessionClosed;
   FClient := TPeerClientIntfForICS.Create(Self, Self);
