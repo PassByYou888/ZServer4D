@@ -167,11 +167,17 @@ type
     procedure SetTextData(const Value: TPascalString); virtual;
     property TextData: TPascalString read GetTextData write SetTextData;
     { }
+    { string declaration }
     class function TranslatePascalDeclToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateTextToPascalDecl(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateTextToPascalDeclWithUnicode(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateC_DeclToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function TranslateTextToC_Decl(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    { comment declaration }
+    class function TranslatePascalDeclCommentToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateTextToPascalDeclComment(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateC_DeclCommentToText(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function TranslateTextToC_DeclComment(Text: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     constructor Create(AText: TPascalString; AStyle: TTextStyle); virtual;
     destructor Destroy; override;
@@ -1753,6 +1759,103 @@ begin
 
   if not LastIsOrdChar then
       Result.Append('"');
+end;
+
+class function TTextParsing.TranslatePascalDeclCommentToText(Text: TPascalString): TPascalString;
+begin
+  Result := umlTrimSpace(Text);
+  if umlMultipleMatch(False, '{*}', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteLast;
+      if umlMultipleMatch(False, '$*', umlTrimSpace(Result)) then
+          Result := Text;
+    end
+  else if umlMultipleMatch(False, '(*?*)', Result, '?', '') then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteLast;
+      Result.DeleteLast;
+    end
+  else if umlMultipleMatch(False, '////*', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+    end
+  else if umlMultipleMatch(False, '///*', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+    end
+  else if umlMultipleMatch(False, '//*', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+    end;
+end;
+
+class function TTextParsing.TranslateTextToPascalDeclComment(Text: TPascalString): TPascalString;
+var
+  n: TPascalString;
+begin
+  n := umlTrimSpace(Text);
+  if umlMultipleMatch(False, '{*}', n) then
+      Result := Text
+  else if umlMultipleMatch(False, '(*?*)', n, '?', '') then
+      Result := Text
+  else if n.Exists(['{', '}']) then
+      Result := Text
+  else
+      Result := '{ ' + (Text) + ' }';
+end;
+
+class function TTextParsing.TranslateC_DeclCommentToText(Text: TPascalString): TPascalString;
+begin
+  Result := umlTrimSpace(Text);
+  if umlMultipleMatch(False, '#*', Result) then
+    begin
+      Result := Text;
+    end
+  else if umlMultipleMatch(False, '/*?*/', Result, '?', '') then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteLast;
+      Result.DeleteLast;
+    end
+  else if umlMultipleMatch(False, '////*', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+    end
+  else if umlMultipleMatch(False, '///*', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+    end
+  else if umlMultipleMatch(False, '//*', Result) then
+    begin
+      Result.DeleteFirst;
+      Result.DeleteFirst;
+    end;
+end;
+
+class function TTextParsing.TranslateTextToC_DeclComment(Text: TPascalString): TPascalString;
+var
+  n: TPascalString;
+begin
+  n := umlTrimSpace(Text);
+  if umlMultipleMatch(False, '#*', n) then
+      Result := Text
+  else
+      Result := '/* ' + n + ' */';
 end;
 
 constructor TTextParsing.Create(AText: TPascalString; AStyle: TTextStyle);

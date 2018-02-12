@@ -15,7 +15,7 @@ uses SysUtils, CoreClasses, DataFrameEngine, ListEngine, UnicodeMixedLib,
   MemoryStream64, TextParsing, PascalStrings;
 
 type
-  TTranlateStyle = (tsPascalText, tsPascalComment, tsCText, tsCComment, tsNormalText);
+  TTranlateStyle = (tsPascalText, tsPascalComment, tsCText, tsCComment, tsNormalText, tsDFMText);
 
   TTextTableItem = record
     // origin info
@@ -74,6 +74,7 @@ type
     procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddDelphiFormText(AOriginText, ACategory: SystemString; APicked: Boolean);
 
     procedure ChangeDefineText(Index: Integer; newDefine: umlString);
     function ExistsIndex(Index: Integer): Boolean;
@@ -365,6 +366,31 @@ begin
     end;
 end;
 
+procedure TTextTable.AddDelphiFormText(AOriginText, ACategory: SystemString; APicked: Boolean);
+var
+  p: PTextTableItem;
+begin
+  p := GetOrigin(AOriginText);
+  if p = nil then
+    begin
+      New(p);
+      p^.OriginText := AOriginText;
+      p^.Category := ACategory;
+      p^.Picked := APicked;
+      p^.Index := GetMaxIndexNo + 1;
+      p^.DefineText := AOriginText;
+      p^.TextStyle := tsDFMText;
+      p^.OriginHash := FastHashSystemString(@AOriginText);
+      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.RepCount := 1;
+      FList.Add(p);
+    end
+  else
+    begin
+      p^.RepCount := p^.RepCount + 1;
+    end;
+end;
+
 procedure TTextTable.ChangeDefineText(Index: Integer; newDefine: umlString);
 var
   i: Integer;
@@ -380,26 +406,14 @@ begin
       p := FList[i];
       if (p^.Picked) and (p^.Index = index) then
         begin
-          if p^.TextStyle = tsPascalText then
-              p^.DefineText := TTextParsing.TranslateTextToPascalDecl(newDefine).Text
-          else if p^.TextStyle = tsCText then
-              p^.DefineText := TTextParsing.TranslateTextToC_Decl(newDefine).Text
-          else if p^.TextStyle = tsPascalComment then
-            begin
-              if umlMultipleMatch(False, '{*}', umlTrimSpace(newDefine)) then
-                  p^.DefineText := newDefine
-              else
-                  p^.DefineText := '{ ' + (newDefine) + ' }';
-            end
-          else if p^.TextStyle = tsCComment then
-            begin
-              if umlMultipleMatch(False, '#*', umlTrimSpace(newDefine)) then
-                  p^.DefineText := newDefine
-              else
-                  p^.DefineText := '/* ' + (newDefine) + ' */';
-            end
-          else
-              p^.DefineText := newDefine;
+          case p^.TextStyle of
+            tsPascalText: p^.DefineText := TTextParsing.TranslateTextToPascalDecl(newDefine);
+            tsPascalComment: p^.DefineText := TTextParsing.TranslateTextToPascalDeclComment(newDefine);
+            tsCText: p^.DefineText := TTextParsing.TranslateTextToC_Decl(newDefine);
+            tsCComment: p^.DefineText := TTextParsing.TranslateTextToC_DeclComment(newDefine);
+            tsDFMText: p^.DefineText := TTextParsing.TranslateTextToPascalDeclWithUnicode(newDefine);
+            else p^.DefineText := newDefine;
+          end;
 
           p^.DefineHash := FastHashSystemString(@p^.DefineText);
         end;
@@ -413,7 +427,7 @@ begin
   Result := True;
   for i := 0 to FList.Count - 1 do
     if index = PTextTableItem(FList[i])^.Index then
-      Exit;
+        Exit;
   Result := False;
 end;
 
@@ -508,83 +522,14 @@ begin
         if not expList.Exists(p^.OriginText) then
           begin
             expList.Add(p^.OriginText, p, False);
-            if p^.TextStyle = tsPascalText then
-                ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]))
-            else if p^.TextStyle = tsCText then
-                ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclToText(p^.DefineText).Text]))
-            else if p^.TextStyle = tsPascalComment then
-              begin
-                n := umlTrimSpace(p^.DefineText);
-                if umlMultipleMatch(False, '{*}', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteLast;
-                    if umlMultipleMatch(False, '$*', umlTrimSpace(n)) then
-                        n := p^.OriginText;
-                  end
-                else if umlMultipleMatch(False, '(*?*)', n, '?', '') then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteLast;
-                    n.DeleteLast;
-                  end
-                else if umlMultipleMatch(False, '////*', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                  end
-                else if umlMultipleMatch(False, '///*', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                  end
-                else if umlMultipleMatch(False, '//*', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                  end;
-                ns.Add(Format('%d=%s', [p^.Index, n.Text]));
-              end
-            else if p^.TextStyle = tsCComment then
-              begin
-                n := umlTrimSpace(p^.DefineText);
-                if umlMultipleMatch(False, '#*', n) then
-                  begin
-                    n := p^.OriginText;
-                  end
-                else if umlMultipleMatch(False, '/*?*/', n, '?', '') then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteLast;
-                    n.DeleteLast;
-                  end
-                else if umlMultipleMatch(False, '////*', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                  end
-                else if umlMultipleMatch(False, '///*', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                  end
-                else if umlMultipleMatch(False, '//*', n) then
-                  begin
-                    n.DeleteFirst;
-                    n.DeleteFirst;
-                  end;
-                ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
-              end
-            else
-                ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
+            case p^.TextStyle of
+              tsPascalText: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]));
+              tsCText: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclToText(p^.DefineText).Text]));
+              tsPascalComment: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclCommentToText(p^.DefineText).Text]));
+              tsCComment: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclCommentToText(p^.DefineText).Text]));
+              tsDFMText: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]));
+              else ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
+            end;
           end;
     end;
   ns.SaveToStream(stream);
@@ -622,10 +567,10 @@ begin
             case umlGetNumTextType(numText) of
               ntUInt64, ntWord, ntByte, ntUInt:
                 begin
-                  num := StrToInt(numText.Text);
+                  num := umlStrToInt(numText.Text, 0);
                   if n.Len >= Length(ns.LineBreak) then
                       n.Len := n.Len - Length(ns.LineBreak);
-                  ChangeDefineText(CurrentItem, n.Text);
+                  ChangeDefineText(CurrentItem, n);
                   n := '';
                   CurrentItem := num;
                   cp := nePos + 1;

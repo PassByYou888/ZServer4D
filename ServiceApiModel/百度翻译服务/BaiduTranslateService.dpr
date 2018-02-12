@@ -266,7 +266,6 @@ begin
   MiniDB := TZDBLocalManager.Create;
   // 因为创建文件形式的数据库，对于这种经常ctrl+f2的强退，数据库很容易损坏
   MiniDB.InitDB('History');
-  MiniDB['History'].CacheStyle := TCacheStyle.csEnabled;
 
   server_1 := TMyServer.Create;
   // 使用最强加密系统，3次级DES反复加密结合ECB
