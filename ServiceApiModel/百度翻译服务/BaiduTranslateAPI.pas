@@ -108,8 +108,8 @@ begin
   except
     inc(RepleatGet);
 
-    // 由于网络质量，https经常会发生断线和异常情况，我们在这里用最大重复5次的方式反复获取，直到成功
-    if RepleatGet < 5 then
+    // 由于网络质量，https经常会发生断线和异常情况，我们在这里用最大重复1次的方式反复获取，直到成功
+    if RepleatGet < 1 then
       begin
         AsyncGet;
       end

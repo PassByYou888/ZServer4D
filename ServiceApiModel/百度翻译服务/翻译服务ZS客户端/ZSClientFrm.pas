@@ -73,24 +73,10 @@ begin
   while (sour.Len > 0) and (CharIn(sour.Last, [#13, #10])) do
       sour.DeleteLast;
 
-  BaiduTranslate(UsedCacheCheckBox.Checked, SourComboBox.ItemIndex, DestComboBox.ItemIndex, sour, nil,
+  BaiduTranslate(False, UsedCacheCheckBox.Checked, SourComboBox.ItemIndex, DestComboBox.ItemIndex, sour, nil,
     procedure(UserData: Pointer; Success, Cached: Boolean; TranslateTime: TTimeTick; sour, dest: TPascalString)
     begin
       DestMemo.Text := dest.Text;
-
-      DoStatus('原文: %s', [sour.Text]);
-      DoStatus('翻译: %s', [dest.Text]);
-      DoStatus(Format('耗时:%dms', [TranslateTime]));
-      if Success then
-        begin
-          DoStatus('翻译成功!');
-          if Cached then
-              DoStatus('翻译数据来自ZServer服务器')
-          else
-              DoStatus('翻译数据来自百度服务器');
-        end
-      else
-          DoStatus('翻译失败!');
     end);
 end;
 

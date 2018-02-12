@@ -2,60 +2,60 @@ unit BaiduTranslateClient;
 
 interface
 
-{ 百度翻译客户端支持手机和fmx，不支持fpc }
+{ Baidu translation client does not support FPC }
 
 uses Classes, CoreClasses,
   PascalStrings, UnicodeMixedLib, DoStatusIO, DataFrameEngine, NotifyObjectBase,
   CommunicationFramework;
 
 var
-  // 主机地址支持ipv6
+  { Host address support IPv6 }
   BaiduTranslateServiceHost: string = '127.0.0.1';
   BaiduTranslateServicePort: Word   = 59813;
 
 type
   TBaiduL = (
-    L_auto, // 自动
-    L_zh,   // 中文
-    L_en,   // 英语
-    L_yue,  // 粤语
-    L_wyw,  // 文言文
-    L_jp,   // 日语
-    L_kor,  // 韩语
-    L_fra,  // 法语
-    L_spa,  // 西班牙语
-    L_th,   // 泰语
-    L_ara,  // 阿拉伯语
-    L_ru,   // 俄语
-    L_pt,   // 葡萄牙语
-    L_de,   // 德语
-    L_it,   // 意大利语
-    L_el,   // 希腊语
-    L_nl,   // 荷兰语
-    L_pl,   // 波兰语
-    L_bul,  // 保加利亚语
-    L_est,  // 爱沙尼亚语
-    L_dan,  // 丹麦语
-    L_fin,  // 芬兰语
-    L_cs,   // 捷克语
-    L_rom,  // 罗马尼亚语
-    L_slo,  // 斯洛文尼亚语
-    L_swe,  // 瑞典语
-    L_hu,   // 匈牙利语
-    L_cht,  // 繁体中文
-    L_vie); // 越南语
+    L_auto, { automatic }
+    L_zh,   { Chinese }
+    L_en,   { English }
+    L_yue,  { Cantonese }
+    L_wyw,  { Classical Chinese }
+    L_jp,   { Japanese }
+    L_kor,  { Korean }
+    L_fra,  { French }
+    L_spa,  { Spanish }
+    L_th,   { Thai }
+    L_ara,  { Arabic }
+    L_ru,   { Russian }
+    L_pt,   { Portuguese }
+    L_de,   { German }
+    L_it,   { Italian }
+    L_el,   { Greek language }
+    L_nl,   { Dutch }
+    L_pl,   { Polish }
+    L_bul,  { Bulgarian }
+    L_est,  { Estonia language }
+    L_dan,  { Danish }
+    L_fin,  { Finnish }
+    L_cs,   { Czech }
+    L_rom,  { Romanian }
+    L_slo,  { Slovenia language }
+    L_swe,  { Swedish }
+    L_hu,   { Hungarian }
+    L_cht,  { Traditional Chinese }
+    L_vie); { Vietnamese }
 
   TBaiduTranslate_CompleteProc = reference to procedure(UserData: Pointer; Success, Cached: Boolean; TranslateTime: TTimeTick; sour, dest: TPascalString);
 
-  // 翻译api
-procedure BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString;
+  { Translation API }
+procedure BaiduTranslate(RealTime, UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString;
   UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc); overload;
-procedure BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: Byte; text: TPascalString;
+procedure BaiduTranslate(RealTime, UsedCache: Boolean; sourLanguage, desLanguage: Byte; text: TPascalString;
   UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc); overload;
 procedure BaiduTranslate(sourLanguage, desLanguage: Byte; text: TPascalString;
   UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc); overload;
 
-// 更新翻译服务器的Cache
+{ Update the Cache of the translation server }
 procedure UpdateTranslate(sourLanguage, desLanguage: TBaiduL; SourText, DestText: TPascalString); overload;
 procedure UpdateTranslate(sourLanguage, desLanguage: Byte; SourText, DestText: TPascalString); overload;
 
@@ -64,115 +64,172 @@ procedure CloseBaiduTranslate;
 
 implementation
 
-{$IF Defined(IOS) or Defined(ANDROID) or Defined(OSX)}
-
 
 uses CommunicationFramework_Client_Indy;
 
 type
   TBaiduTranslateClientBase = TCommunicationFramework_Client_Indy;
-{$ELSE}
-
-
-uses CommunicationFramework_Client_CrossSocket;
-
-type
-  TBaiduTranslateClientBase = TCommunicationFramework_Client_CrossSocket;
-  {$IFEND}
 
   TBaiduTranslateClient = class(TBaiduTranslateClientBase)
+  private type
+    PUserDef = ^TUserDef;
+
+    TUserDef = record
+      sourLanguage, desLanguage: TBaiduL;
+      text: TPascalString;
+      UsedCache: Boolean;
+      UserData: Pointer;
+      OnResult: TBaiduTranslate_CompleteProc;
+      LastTime: TTimeTick;
+    end;
+  private
+    FTranslateList   : TCoreClassList;
+    FTranslateBusy   : Boolean;
+    FCurrentTranslate: PUserDef;
+  protected
+    procedure DoConnected(Sender: TPeerIO); override;
+    procedure DoDisconnect(Sender: TPeerIO); override;
+
+    procedure ClearTranslateList;
+    procedure doBaiduTranslate(p: PUserDef);
+    procedure BaiduTranslate_Result(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
   public
     constructor Create; override;
-    // 翻译服务器api
-    procedure BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString;
-      UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc); overload;
-    procedure BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: Byte; text: TPascalString;
-      UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc); overload;
-    procedure BaiduTranslate(sourLanguage, desLanguage: Byte; text: TPascalString;
-      UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc); overload;
+    destructor Destroy; override;
 
-    // 更新翻译服务器的Cache
-    procedure UpdateTranslate(sourLanguage, desLanguage: TBaiduL; SourText, DestText: TPascalString); overload;
-    procedure UpdateTranslate(sourLanguage, desLanguage: Byte; SourText, DestText: TPascalString); overload;
+    procedure BaiduTranslate(RealTime, UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString;
+      UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
+
+    procedure UpdateTranslate(sourLanguage, desLanguage: TBaiduL; SourText, DestText: TPascalString);
   end;
+
+procedure TBaiduTranslateClient.DoConnected(Sender: TPeerIO);
+begin
+  inherited DoConnected(Sender);
+end;
+
+procedure TBaiduTranslateClient.DoDisconnect(Sender: TPeerIO);
+begin
+  inherited DoDisconnect(Sender);
+end;
 
 constructor TBaiduTranslateClient.Create;
 begin
   inherited Create;
   QuietMode := True;
-  // 使用最强加密系统，3次级DES反复加密结合ECB
-  SwitchMaxSafe;
+  FTranslateList := TCoreClassList.Create;
+  FTranslateBusy := False;
+  FCurrentTranslate := nil;
 end;
 
-procedure TBaiduTranslateClient.BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString;
-  UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
-type
-  PUserDef = ^TUserDef;
+destructor TBaiduTranslateClient.Destroy;
+begin
+  ClearTranslateList;
+  DisposeObject(FTranslateList);
+  inherited Destroy;
+end;
 
-  TUserDef = record
-    sourLanguage, desLanguage: TBaiduL;
-    text: TPascalString;
-    UserData: Pointer;
-    OnResult: TBaiduTranslate_CompleteProc;
-    LastTime: TTimeTick;
-  end;
+procedure TBaiduTranslateClient.ClearTranslateList;
+var
+  i: Integer;
+begin
+  for i := 0 to FTranslateList.Count - 1 do
+      dispose(PUserDef(FTranslateList[i]));
+  FTranslateList.Clear;
+end;
+
+procedure TBaiduTranslateClient.doBaiduTranslate(p: PUserDef);
+var
+  de: TDataFrameEngine;
+begin
+  FCurrentTranslate := p;
+
+  p^.LastTime := GetTimeTick;
+
+  de := TDataFrameEngine.Create;
+  de.WriteByte(Byte(p^.sourLanguage));
+  de.WriteByte(Byte(p^.desLanguage));
+  de.WriteString(umlTrimSpace(p^.text));
+  de.WriteBool(p^.UsedCache);
+  SendStreamCmd('BaiduTranslate', de, p, nil, BaiduTranslate_Result);
+  DisposeObject(de);
+end;
+
+procedure TBaiduTranslateClient.BaiduTranslate_Result(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+var
+  p2    : PUserDef;
+  n     : TPascalString;
+  Cached: Boolean;
+begin
+  p2 := Param1;
+  if ResultData.Reader.ReadBool then
+    begin
+      n := ResultData.Reader.ReadString;
+      Cached := ResultData.Reader.ReadBool;
+      p2^.OnResult(p2^.UserData, True, Cached, GetTimeTick - p2^.LastTime, p2^.text, n);
+
+      DoStatus('Original:%s', [p2^.text.text]);
+      DoStatus('Translation:%s', [n.text]);
+      DoStatus('Time:%dms', [GetTimeTick - p2^.LastTime]);
+      DoStatus('Translation success!');
+      if Cached then
+          DoStatus('Translation data from ZServer')
+      else
+          DoStatus('Translation data from Baidu');
+      DoStatus('');
+    end
+  else
+    begin
+      n := 'Translation error!';
+      p2^.OnResult(p2^.UserData, False, False, GetTimeTick - p2^.LastTime, p2^.text, n);
+
+      DoStatus('Original:%s', [p2.text.text]);
+      DoStatus('Time:%dms', [GetTimeTick - p2^.LastTime]);
+      DoStatus('Translation failed!');
+      DoStatus('');
+    end;
+  dispose(p2);
+
+  if FTranslateList.Count > 0 then
+    begin
+      p2 := FTranslateList[0];
+      FTranslateList.Delete(0);
+      doBaiduTranslate(p2);
+      exit;
+    end
+  else
+      FTranslateBusy := False;
+end;
+
+procedure TBaiduTranslateClient.BaiduTranslate(RealTime, UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString;
+  UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
 var
   p : PUserDef;
   de: TDataFrameEngine;
 begin
-  if not Connected then
-    begin
-      OnResult(UserData, False, False, 0, text, '!翻译错误!');
-      exit;
-    end;
-
   new(p);
   p^.sourLanguage := sourLanguage;
   p^.desLanguage := desLanguage;
   p^.text := text;
+  p^.UsedCache := UsedCache;
   p^.UserData := UserData;
   p^.OnResult := OnResult;
   p^.LastTime := GetTimeTick;
 
-  de := TDataFrameEngine.Create;
-  de.WriteByte(Byte(sourLanguage));
-  de.WriteByte(Byte(desLanguage));
-  de.WriteString(umlTrimSpace(text));
-  de.WriteBool(UsedCache);
-
-  SendStreamCmd('BaiduTranslate', de, p, nil,
-    procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine)
-    var
-      p2: PUserDef;
-      n: TPascalString;
-      Cached: Boolean;
+  if Connected and RealTime then
     begin
-      p2 := Param1;
-      if ResultData.Reader.ReadBool then
-        begin
-          n := ResultData.Reader.ReadString;
-          Cached := ResultData.Reader.ReadBool;
-          p2^.OnResult(p2^.UserData, True, Cached, GetTimeTick - p2^.LastTime, p2^.text, n);
-        end
-      else
-        begin
-          n := '!翻译错误!';
-          p2^.OnResult(p2^.UserData, False, False, GetTimeTick - p2^.LastTime, p2^.text, n);
-        end;
-      dispose(p2);
-    end);
-end;
+      doBaiduTranslate(p);
+      exit;
+    end;
 
-procedure TBaiduTranslateClient.BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: Byte; text: TPascalString;
-UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
-begin
-  BaiduTranslate(UsedCache, TBaiduL(sourLanguage), TBaiduL(desLanguage), text, UserData, OnResult);
-end;
+  if (not Connected) or (FTranslateBusy) then
+    begin
+      FTranslateList.Add(p);
+      exit;
+    end;
 
-procedure TBaiduTranslateClient.BaiduTranslate(sourLanguage, desLanguage: Byte; text: TPascalString;
-UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
-begin
-  BaiduTranslate(True, TBaiduL(sourLanguage), TBaiduL(desLanguage), text, UserData, OnResult);
+  FTranslateBusy := True;
+  doBaiduTranslate(p);
 end;
 
 procedure TBaiduTranslateClient.UpdateTranslate(sourLanguage, desLanguage: TBaiduL; SourText, DestText: TPascalString);
@@ -187,12 +244,7 @@ begin
 
   SendDirectStreamCmd('UpdateTranslate', de);
 
-  disposeObject(de);
-end;
-
-procedure TBaiduTranslateClient.UpdateTranslate(sourLanguage, desLanguage: Byte; SourText, DestText: TPascalString);
-begin
-  UpdateTranslate(TBaiduL(sourLanguage), TBaiduL(desLanguage), SourText, DestText);
+  DisposeObject(de);
 end;
 
 type
@@ -208,17 +260,55 @@ var
   BaiduTranslate_Client: TBaiduTranslateClient;
 
 procedure TTranslateClient_Th.SyncCheck;
+var
+  p2: TBaiduTranslateClient.PUserDef;
+  n : TPascalString;
 begin
   BaiduTranslate_Client.ProgressBackground;
 
   if BaiduTranslate_Client.Connected then
-    if BaiduTranslate_Client.ClientIO <> nil then
-      if BaiduTranslate_Client.ClientIO.StopCommunicationTime > 5000 then
+    begin
+      if BaiduTranslate_Client.ClientIO <> nil then
+        if BaiduTranslate_Client.ClientIO.StopCommunicationTime > 5000 then
+          begin
+            BaiduTranslate_Client.Wait(2000, procedure(const cState: Boolean)
+              begin
+              end)
+          end;
+    end
+  else
+    begin
+      if (BaiduTranslate_Client.FTranslateBusy) and (BaiduTranslate_Client.FCurrentTranslate <> nil) then
         begin
-          BaiduTranslate_Client.Wait(2000, procedure(const cState: Boolean)
+          p2 := BaiduTranslate_Client.FCurrentTranslate;
+          n := 'Translation error!';
+          p2^.OnResult(p2^.UserData, False, False, GetTimeTick - p2^.LastTime, p2^.text, n);
+
+          DoStatus('Original:%s', [p2.text.text]);
+          DoStatus('Time:%dms', [GetTimeTick - p2^.LastTime]);
+          DoStatus('Translation failed!');
+          DoStatus('');
+
+          dispose(p2);
+          BaiduTranslate_Client.FCurrentTranslate := nil;
+
+          if BaiduTranslate_Client.Connect(BaiduTranslateServiceHost, BaiduTranslateServicePort) then
             begin
-            end)
+              if BaiduTranslate_Client.FTranslateList.Count > 0 then
+                begin
+                  p2 := BaiduTranslate_Client.FTranslateList[0];
+                  BaiduTranslate_Client.FTranslateList.Delete(0);
+                  BaiduTranslate_Client.doBaiduTranslate(p2);
+                  exit;
+                end;
+            end
+          else
+            begin
+              BaiduTranslate_Client.FTranslateBusy := False;
+              BaiduTranslate_Client.ClearTranslateList;
+            end;
         end;
+    end;
 end;
 
 procedure TTranslateClient_Th.Execute;
@@ -235,25 +325,25 @@ begin
   Client_Th := nil;
 end;
 
-procedure BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString; UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
+procedure BaiduTranslate(RealTime, UsedCache: Boolean; sourLanguage, desLanguage: TBaiduL; text: TPascalString; UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
 begin
   if not BaiduTranslate_Client.Connected then
     if not BaiduTranslate_Client.Connect(BaiduTranslateServiceHost, BaiduTranslateServicePort) then
       begin
-        OnResult(UserData, False, False, 0, text, '!翻译错误!');
+        OnResult(UserData, False, False, 0, text, 'Translation error!');
         exit;
       end;
-  BaiduTranslate_Client.BaiduTranslate(UsedCache, sourLanguage, desLanguage, text, UserData, OnResult);
+  BaiduTranslate_Client.BaiduTranslate(RealTime, UsedCache, sourLanguage, desLanguage, text, UserData, OnResult);
 end;
 
-procedure BaiduTranslate(UsedCache: Boolean; sourLanguage, desLanguage: Byte; text: TPascalString; UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
+procedure BaiduTranslate(RealTime, UsedCache: Boolean; sourLanguage, desLanguage: Byte; text: TPascalString; UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
 begin
-  BaiduTranslate(UsedCache, TBaiduL(sourLanguage), TBaiduL(desLanguage), text, UserData, OnResult);
+  BaiduTranslate(RealTime, UsedCache, TBaiduL(sourLanguage), TBaiduL(desLanguage), text, UserData, OnResult);
 end;
 
 procedure BaiduTranslate(sourLanguage, desLanguage: Byte; text: TPascalString; UserData: Pointer; OnResult: TBaiduTranslate_CompleteProc);
 begin
-  BaiduTranslate(True, TBaiduL(sourLanguage), TBaiduL(desLanguage), text, UserData, OnResult);
+  BaiduTranslate(True, True, TBaiduL(sourLanguage), TBaiduL(desLanguage), text, UserData, OnResult);
 end;
 
 procedure UpdateTranslate(sourLanguage, desLanguage: TBaiduL; SourText, DestText: TPascalString);
@@ -272,18 +362,17 @@ end;
 procedure OpenBaiduTranslate;
 begin
   if not BaiduTranslate_Client.Connected then
-      BaiduTranslate_Client.AsyncConnect(BaiduTranslateServiceHost, BaiduTranslateServicePort,
-      procedure(const cState: Boolean)
-      begin
-        if cState then
-            DoStatus('OpenBaidu Translate Success,server: %s', [BaiduTranslateServiceHost])
-        else
-            DoStatus('OpenBaidu Translate Failed,server: %s', [BaiduTranslateServiceHost]);
-      end);
+    if BaiduTranslate_Client.Connect(BaiduTranslateServiceHost, BaiduTranslateServicePort) then
+        DoStatus('connect Translate Success,server %s', [BaiduTranslateServiceHost])
+    else
+        DoStatus('connect  Translate Failed,server %s', [BaiduTranslateServiceHost]);
 end;
 
 procedure CloseBaiduTranslate;
 begin
+  BaiduTranslate_Client.FTranslateBusy := False;
+  BaiduTranslate_Client.FCurrentTranslate := nil;
+  BaiduTranslate_Client.ClearTranslateList;
   BaiduTranslate_Client.Disconnect;
 end;
 
@@ -298,6 +387,6 @@ finalization
 tCliThProcessing := False;
 while Client_Th <> nil do
     Classes.CheckSynchronize(1);
-disposeObject(BaiduTranslate_Client);
+DisposeObject(BaiduTranslate_Client);
 
 end.

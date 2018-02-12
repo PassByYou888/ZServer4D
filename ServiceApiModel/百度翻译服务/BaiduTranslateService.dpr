@@ -140,7 +140,9 @@ begin
             exit;
         end;
 
+        // 这一步是ZDB的重要加速机制，json的实例是被退火引擎管理的，当数据库繁忙时，json不会被释放，是作为cache在内存中
         j := qState.DBEng.GetJson(qState);
+
         Allowed :=
         (p^.Hash64 = j.U['h']) // 我们用hash来提高遍历速度
         and (TTranslateLanguage(j.I['sl']) = p^.sourLan) and (TTranslateLanguage(j.I['dl']) = p^.destLan)

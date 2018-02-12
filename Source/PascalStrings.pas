@@ -82,6 +82,7 @@ type
     function GetPos(const SubStr: PPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Exists(c: SystemChar): Boolean; overload;
     function Exists(c: array of SystemChar): Boolean; overload;
+    function Exists(const SubStr: TPascalString): Boolean; overload;
     //
     function Hash: THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Hash64: THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -873,6 +874,11 @@ begin
     if CharIn(Buff[i], c) then
         Exit(True);
   Result := False;
+end;
+
+function TPascalString.Exists(const SubStr: TPascalString): Boolean;
+begin
+  Result := GetPos(@SubStr, 1) > 0;
 end;
 
 function TPascalString.Hash: THash;
