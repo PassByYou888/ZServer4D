@@ -310,6 +310,7 @@ function umlStringReplace(S, OldPattern, NewPattern: umlString; IgnoreCase: Bool
 function umlCharReplace(S: umlString; OldPattern, NewPattern: umlChar): umlString;
 
 function umlEncodeText2HTML(psSrc: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 function umlURLEncode(const AValue: umlString): umlString;
 
 procedure umlBase64EncodeBytes(var Sour, Dest: TBytes); overload;
@@ -3301,15 +3302,7 @@ end;
 
 function umlURLEncode(const AValue: umlString): umlString;
 const
-  URLSafeCharMatrix: array [33 .. 127] of Boolean = (False, False, False, False, False, False, False, False, False, False, False,
-    False, True, True, False, True, True, True, True, True, True, True, True, True, True, False, False, False, False,
-    False, False, False, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
-    True, True, True, True, True, True, True, True, True, True, False, False, False, False, True, False, True, True,
-    True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
-    True, True, True, True, True, False, False, False, True, False);
-
-  XD: array [0 .. 15] of Char = ('0', '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
+  XD: array [0 .. 15] of Char = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
 var
   buff: TBytes;
   i   : Integer;
@@ -3320,16 +3313,16 @@ begin
   while i < Length(buff) do
     begin
       if (i + 2 < Length(buff)) and (buff[i] = Ord('%')) then
-        if CharIn(Char(buff[i + 1]), cHex) and CharIn(Char(buff[i + 2]), cHex) then
+        if CharIn(SystemChar(buff[i + 1]), cHex) and CharIn(SystemChar(buff[i + 2]), cHex) then
           begin
             Result.Append('%' + Char(buff[i + 1]) + Char(buff[i + 2]));
             Inc(i, 3);
             Continue;
           end;
 
-      if (buff[i] >= 33) and (buff[i] <= 127) then
+      if (buff[i] > 33) and (buff[i] < 127) then
         begin
-          if URLSafeCharMatrix[buff[i]] then
+          if CharIn(SystemChar(buff[i]), [c0to9,cAtoZ], '_') then
               Result.Append(Char(buff[i]))
           else
               Result.Append('%' + XD[(buff[i] shr 4) and $0F] + XD[buff[i] and $0F]);
