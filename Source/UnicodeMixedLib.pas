@@ -2029,7 +2029,7 @@ begin
   if SText.len > 0 then
     for i := 1 to SText.len do
       if not CharIn(SText[i], ch) then
-          Result := Result + SText[i];
+          Result.Append(SText[i]);
 end;
 
 function umlDeleteChar(SText: umlString; const SomeChars: array of SystemChar): umlString;
@@ -2040,7 +2040,7 @@ begin
   if SText.len > 0 then
     for i := 1 to SText.len do
       if not CharIn(SText[i], SomeChars) then
-          Result := Result + SText[i];
+          Result.Append(SText[i]);
 end;
 
 function umlDeleteChar(SText: umlString; const SomeCharsets: TOrdChars): umlString; overload;
@@ -2051,7 +2051,7 @@ begin
   if SText.len > 0 then
     for i := 1 to SText.len do
       if not CharIn(SText[i], SomeCharsets) then
-          Result := Result + SText[i];
+          Result.Append(SText[i]);
 end;
 
 function umlGetNumberCharInText(n: umlString): umlString;
@@ -2074,7 +2074,7 @@ begin
         end
       else
         begin
-          Result := Result + n[i];
+          Result.Append(n[i]);
           Inc(i);
         end;
     end;
@@ -3322,7 +3322,7 @@ begin
 
       if (buff[i] > 33) and (buff[i] < 127) then
         begin
-          if CharIn(SystemChar(buff[i]), [c0to9,cAtoZ], '_') then
+          if CharIn(SystemChar(buff[i]), [c0to9, cAtoZ], '_') then
               Result.Append(Char(buff[i]))
           else
               Result.Append('%' + XD[(buff[i] shr 4) and $0F] + XD[buff[i] and $0F]);
