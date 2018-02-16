@@ -4,6 +4,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 (*
   update history
@@ -194,8 +195,8 @@ begin
   FDriver := TClientICSContextIntf.Create(nil);
   FDriver.MultiThreaded := False;
   FDriver.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  FDriver.KeepAliveTime := 1 * 1000;     { From heartbeat check to disconnected time }
-  FDriver.KeepAliveInterval := 1 * 1000; { Heartbeat interval }
+  FDriver.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
+  FDriver.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
   FDriver.OnDataAvailable := DataAvailable;
   FDriver.OnSessionClosed := SessionClosed;
   FClient := TPeerClientIntfForICS.Create(Self, Self);

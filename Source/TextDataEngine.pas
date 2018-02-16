@@ -3,6 +3,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 (*
   update history
@@ -349,7 +350,7 @@ begin
                 end
               else
                 begin
-                  if ln.len > 0 then
+                  if (ln.len > 0) and (not CharIn(ln.First, [';'])) then
                       FComment.Append(ln);
                 end;
               Inc(i);

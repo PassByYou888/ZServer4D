@@ -3,6 +3,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 unit zExpression;
 
@@ -13,8 +14,8 @@ interface
 uses SysUtils, Variants, CoreClasses, TypInfo, OpCode, TextParsing, PascalStrings, DoStatusIO, ListEngine;
 
 type
-  TSymbolOperation = (soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor, // compute
-    soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,  // match
+  TSymbolOperation = (soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor, // math
+    soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,  // logic
     soShl, soShr,                                                                             // bit
     soBlockIndentBegin, soBlockIndentEnd,                                                     // block indent
     soPropParamIndentBegin, soPropParamIndentEnd,                                             // param indent
@@ -166,7 +167,7 @@ implementation
 
 
 const
-  MethodFlags: TExpressionDeclTypes = ([edtProcExp]);
+  MethodToken: TExpressionDeclTypes = ([edtProcExp]);
 
   AllExpressionValueType: TExpressionDeclTypes = ([
     edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt,
@@ -197,8 +198,7 @@ const
     'float', 'double', 'Currency',
     'text', 'method',
     'Exps',
-    'unknow'
-    );
+    'unknow');
 
 type
   TSymbolOperationType = record
@@ -748,11 +748,7 @@ begin
 end;
 
 function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; uName: SystemString;
-  const OnDeclValueCall: TOnDeclValueCall;
-  const OnDeclValueMethod: TOnDeclValueMethod;
-  {$IFNDEF FPC}
-  const OnDeclValueProc: TOnDeclValueProc;
-  {$ENDIF FPC}
+  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod; {$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
   procedure PrintError(const s: SystemString);
@@ -1167,7 +1163,7 @@ var
 
             p2 := Exps[SymbolIndex];
 
-            if (p1^.DeclType in MethodFlags) and (p2^.DeclType = edtExpressionAsValue) then
+            if (p1^.DeclType in MethodToken) and (p2^.DeclType = edtExpressionAsValue) then
               begin
                 newExpression.Add(p1^);
                 newExpression.Add(p2^);
@@ -1379,7 +1375,7 @@ var
               begin
                 if (p2^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin]) then
                   begin
-                    if (p1^.DeclType in MethodFlags) then
+                    if (p1^.DeclType in MethodToken) then
                       begin
                         PrintError('method Illegal');
                         Exit;
@@ -1698,7 +1694,7 @@ var
                 if (p2^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin]) then
                   begin
                     // function call
-                    if not(p1^.DeclType in MethodFlags) then
+                    if not(p1^.DeclType in MethodToken) then
                       begin
                         PrintError('method Illegal');
                         break;

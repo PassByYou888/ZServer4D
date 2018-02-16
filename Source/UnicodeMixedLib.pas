@@ -3,6 +3,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 
 {
@@ -241,33 +242,32 @@ function umlMatchLimitChar(CharValue: umlChar; LimitValue: umlString): Boolean; 
 function umlExistsLimitChar(StrValue: umlString; LimitValue: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlExistsChar(StrValue: umlString; LimitValue: umlString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlTrimChar(S: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlTrimChar(S: umlString; limitS: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlGetFirstStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetLastStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlDeleteFirstStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlDeleteLastStr(aStr: umlString; SpaceStr: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetIndexStrCount(aStr: umlString; SpaceStr: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetIndexStr(aStr: umlString; SpaceStr: umlString; Index: Integer): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetFirstStr(aStr: umlString; limitS: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetLastStr(aStr: umlString; limitS: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDeleteFirstStr(aStr: umlString; limitS: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDeleteLastStr(aStr: umlString; limitS: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetIndexStrCount(aStr: umlString; limitS: umlString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetIndexStr(aStr: umlString; limitS: umlString; Index: Integer): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure umlGetSplitArray(_SourText: umlString; var _DestArray: umlArrayString; _SplitChar: umlString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlArrayStringToText(var _Ary: umlArrayString; _SplitChar: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlStringsToText(_List: TCoreClassStrings; _SplitChar: umlString): umlString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlGetFirstStr_M(aStr: umlString; SpaceStr: umlString): umlString;
-function umlDeleteFirstStr_M(aStr: umlString; SpaceStr: umlString): umlString;
-function umlGetLastStr_M(aStr: umlString; SpaceStr: umlString): umlString;
-function umlDeleteLastStr_M(aStr: umlString; SpaceStr: umlString): umlString;
-function umlGetIndexStrCount_M(aStr: umlString; SpaceStr: umlString): Integer;
-function umlGetIndexStr_M(aStr: umlString; SpaceStr: umlString; Index: Integer): umlString;
+function umlGetFirstStr_M(aStr: umlString; limitS: umlString): umlString;
+function umlDeleteFirstStr_M(aStr: umlString; limitS: umlString): umlString;
+function umlGetLastStr_M(aStr: umlString; limitS: umlString): umlString;
+function umlDeleteLastStr_M(aStr: umlString; limitS: umlString): umlString;
+function umlGetIndexStrCount_M(aStr: umlString; limitS: umlString): Integer;
+function umlGetIndexStr_M(aStr: umlString; limitS: umlString; Index: Integer): umlString;
 
-function umlGetFirstTextPos(S: umlString; ATextList: array of umlString; var OutText: umlString): Integer;
-function umlDeleteText(ASourText: umlString; ABeginFlag, AEndFlag: array of umlString; ANeedBegin, ANeedEnd: Boolean): umlString;
-function umlGetTextContent(ASourText: umlString; ABeginFlag, AEndFlag: array of umlString): umlString;
+function umlGetFirstTextPos(S: umlString; TextArry: array of umlString; var OutText: umlString): Integer;
+function umlDeleteText(Sour: umlString; bToken, eToken: array of umlString; ANeedBegin, ANeedEnd: Boolean): umlString;
+function umlGetTextContent(Sour: umlString; bToken, eToken: array of umlString): umlString;
 
 type
-  TTextType = (ntBool, ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt,
-    ntSingle, ntDouble, ntCurrency, ntUnknow);
+  TTextType  = (ntBool, ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt, ntSingle, ntDouble, ntCurrency, ntUnknow);
   TTextTypes = set of TTextType;
 function umlGetNumTextType(S: umlString): TTextType;
 
@@ -2112,7 +2112,7 @@ begin
   Result := False;
 end;
 
-function umlTrimChar(S: umlString; SpaceStr: umlString): umlString;
+function umlTrimChar(S: umlString; limitS: umlString): umlString;
 var
   l, bp, ep: Integer;
 begin
@@ -2121,7 +2121,7 @@ begin
   if l > 0 then
     begin
       bp := 1;
-      while CharIn(S[bp], @SpaceStr) do
+      while CharIn(S[bp], @limitS) do
         begin
           Inc(bp);
           if (bp > l) then
@@ -2136,7 +2136,7 @@ begin
         begin
           ep := l;
 
-          while CharIn(S[ep], @SpaceStr) do
+          while CharIn(S[ep], @limitS) do
             begin
               Dec(ep);
               if (ep < 1) then
@@ -2150,26 +2150,26 @@ begin
     end;
 end;
 
-function umlGetFirstStr(aStr: umlString; SpaceStr: umlString): umlString;
+function umlGetFirstStr(aStr: umlString; limitS: umlString): umlString;
 var
   umlGetFirstName_PrevPos, umlGetFirstName_Pos: Integer;
 begin
   Result := aStr;
-  if umlGetLength(Result) <= 1 then
+  if Result.len <= 1 then
     begin
       Exit;
     end;
   umlGetFirstName_Pos := 1;
-  while umlMatchLimitChar(Result[umlGetFirstName_Pos], @SpaceStr) do
+  while umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) do
     begin
-      if umlGetFirstName_Pos = umlGetLength(Result) then
+      if umlGetFirstName_Pos = Result.len then
           Exit;
       Inc(umlGetFirstName_Pos);
     end;
   umlGetFirstName_PrevPos := umlGetFirstName_Pos;
-  while not umlMatchLimitChar(Result[umlGetFirstName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) do
     begin
-      if umlGetFirstName_Pos = umlGetLength(Result) then
+      if umlGetFirstName_Pos = Result.len then
         begin
           Result := umlCopyStr(Result, umlGetFirstName_PrevPos, umlGetFirstName_Pos + 1);
           Exit;
@@ -2179,24 +2179,24 @@ begin
   Result := umlCopyStr(Result, umlGetFirstName_PrevPos, umlGetFirstName_Pos);
 end;
 
-function umlGetLastStr(aStr: umlString; SpaceStr: umlString): umlString;
+function umlGetLastStr(aStr: umlString; limitS: umlString): umlString;
 var
   umlGetLastName_PrevPos, umlGetLastName_Pos: Integer;
 begin
   Result := aStr;
-  umlGetLastName_Pos := umlGetLength(Result);
+  umlGetLastName_Pos := Result.len;
   if umlGetLastName_Pos <= 1 then
     begin
       Exit;
     end;
-  while umlMatchLimitChar(Result[umlGetLastName_Pos], @SpaceStr) do
+  while umlMatchLimitChar(Result[umlGetLastName_Pos], @limitS) do
     begin
       if umlGetLastName_Pos = 1 then
           Exit;
       Dec(umlGetLastName_Pos);
     end;
   umlGetLastName_PrevPos := umlGetLastName_Pos;
-  while not umlMatchLimitChar(Result[umlGetLastName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlGetLastName_Pos], @limitS) do
     begin
       if umlGetLastName_Pos = 1 then
         begin
@@ -2208,59 +2208,59 @@ begin
   Result := umlCopyStr(Result, umlGetLastName_Pos + 1, umlGetLastName_PrevPos + 1);
 end;
 
-function umlDeleteFirstStr(aStr: umlString; SpaceStr: umlString): umlString;
+function umlDeleteFirstStr(aStr: umlString; limitS: umlString): umlString;
 var
   umlMaskFirstName_Pos: Integer;
 begin
   Result := aStr;
-  if umlGetLength(Result) <= 1 then
+  if Result.len <= 1 then
     begin
       Result := '';
       Exit;
     end;
   umlMaskFirstName_Pos := 1;
-  while umlMatchLimitChar(Result[umlMaskFirstName_Pos], @SpaceStr) do
+  while umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
     begin
-      if umlMaskFirstName_Pos = umlGetLength(Result) then
+      if umlMaskFirstName_Pos = Result.len then
         begin
           Result := '';
           Exit;
         end;
       Inc(umlMaskFirstName_Pos);
     end;
-  while not umlMatchLimitChar(Result[umlMaskFirstName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
     begin
-      if umlMaskFirstName_Pos = umlGetLength(Result) then
+      if umlMaskFirstName_Pos = Result.len then
         begin
           Result := '';
           Exit;
         end;
       Inc(umlMaskFirstName_Pos);
     end;
-  while umlMatchLimitChar(Result[umlMaskFirstName_Pos], @SpaceStr) do
+  while umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
     begin
-      if umlMaskFirstName_Pos = umlGetLength(Result) then
+      if umlMaskFirstName_Pos = Result.len then
         begin
           Result := '';
           Exit;
         end;
       Inc(umlMaskFirstName_Pos);
     end;
-  Result := umlCopyStr(Result, umlMaskFirstName_Pos, umlGetLength(Result) + 1);
+  Result := umlCopyStr(Result, umlMaskFirstName_Pos, Result.len + 1);
 end;
 
-function umlDeleteLastStr(aStr: umlString; SpaceStr: umlString): umlString;
+function umlDeleteLastStr(aStr: umlString; limitS: umlString): umlString;
 var
   umlMaskLastName_Pos: Integer;
 begin
   Result := aStr;
-  umlMaskLastName_Pos := umlGetLength(Result);
+  umlMaskLastName_Pos := Result.len;
   if umlMaskLastName_Pos <= 1 then
     begin
       Result := '';
       Exit;
     end;
-  while umlMatchLimitChar(Result[umlMaskLastName_Pos], @SpaceStr) do
+  while umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2269,7 +2269,7 @@ begin
         end;
       Dec(umlMaskLastName_Pos);
     end;
-  while not umlMatchLimitChar(Result[umlMaskLastName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2278,7 +2278,7 @@ begin
         end;
       Dec(umlMaskLastName_Pos);
     end;
-  while umlMatchLimitChar(Result[umlMaskLastName_Pos], @SpaceStr) do
+  while umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2290,35 +2290,35 @@ begin
   umlSetLength(Result, umlMaskLastName_Pos);
 end;
 
-function umlGetIndexStrCount(aStr: umlString; SpaceStr: umlString): Integer;
+function umlGetIndexStrCount(aStr: umlString; limitS: umlString): Integer;
 var
   Str : umlString;
   APos: Integer;
 begin
   Str := aStr;
   Result := 0;
-  if umlGetLength(Str) = 0 then
+  if Str.len = 0 then
       Exit;
   APos := 1;
   while True do
     begin
-      while umlMatchLimitChar(Str[APos], @SpaceStr) do
+      while umlMatchLimitChar(Str[APos], @limitS) do
         begin
-          if APos >= umlGetLength(Str) then
+          if APos >= Str.len then
               Exit;
           Inc(APos);
         end;
       Inc(Result);
-      while not umlMatchLimitChar(Str[APos], @SpaceStr) do
+      while not umlMatchLimitChar(Str[APos], @limitS) do
         begin
-          if APos >= umlGetLength(Str) then
+          if APos >= Str.len then
               Exit;
           Inc(APos);
         end;
     end;
 end;
 
-function umlGetIndexStr(aStr: umlString; SpaceStr: umlString; Index: Integer): umlString;
+function umlGetIndexStr(aStr: umlString; limitS: umlString; Index: Integer): umlString;
 var
   umlGetIndexName_Repeat: Integer;
 begin
@@ -2330,21 +2330,21 @@ begin
       end;
     0, 1:
       begin
-        Result := umlGetFirstStr(aStr, SpaceStr);
+        Result := umlGetFirstStr(aStr, limitS);
         Exit;
       end;
   end;
-  if index >= umlGetIndexStrCount(aStr, SpaceStr) then
+  if index >= umlGetIndexStrCount(aStr, limitS) then
     begin
-      Result := umlGetLastStr(aStr, SpaceStr);
+      Result := umlGetLastStr(aStr, limitS);
       Exit;
     end;
   Result := aStr;
   for umlGetIndexName_Repeat := 2 to index do
     begin
-      Result := umlDeleteFirstStr(Result, SpaceStr);
+      Result := umlDeleteFirstStr(Result, limitS);
     end;
-  Result := umlGetFirstStr(Result, SpaceStr);
+  Result := umlGetFirstStr(Result, limitS);
 end;
 
 procedure umlGetSplitArray(_SourText: umlString; var _DestArray: umlArrayString; _SplitChar: umlString);
@@ -2354,7 +2354,7 @@ var
 begin
   SText := _SourText;
   _IndexCount := umlGetIndexStrCount(SText, _SplitChar);
-  if (_IndexCount = 0) and (umlGetLength(_SourText) > 0) then
+  if (_IndexCount = 0) and (_SourText.len > 0) then
     begin
       SetLength(_DestArray, 1);
       _DestArray[0] := _SourText;
@@ -2396,15 +2396,15 @@ begin
         Result := _List[i];
 end;
 
-function umlGetFirstStr_M(aStr: umlString; SpaceStr: umlString): umlString;
+function umlGetFirstStr_M(aStr: umlString; limitS: umlString): umlString;
 var
   umlGetFirstName_PrevPos, umlGetFirstName_Pos: Integer;
 begin
   Result := aStr;
-  if umlGetLength(Result) <= 1 then
+  if Result.len <= 1 then
       Exit;
   umlGetFirstName_Pos := 1;
-  if umlMatchLimitChar(Result[umlGetFirstName_Pos], @SpaceStr) then
+  if umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) then
     begin
       Inc(umlGetFirstName_Pos);
       umlGetFirstName_PrevPos := umlGetFirstName_Pos;
@@ -2412,9 +2412,9 @@ begin
   else
     begin
       umlGetFirstName_PrevPos := umlGetFirstName_Pos;
-      while not umlMatchLimitChar(Result[umlGetFirstName_Pos], @SpaceStr) do
+      while not umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) do
         begin
-          if umlGetFirstName_Pos = umlGetLength(Result) then
+          if umlGetFirstName_Pos = Result.len then
             begin
               Result := umlCopyStr(Result, umlGetFirstName_PrevPos, umlGetFirstName_Pos + 1);
               Exit;
@@ -2425,43 +2425,43 @@ begin
   Result := umlCopyStr(Result, umlGetFirstName_PrevPos, umlGetFirstName_Pos);
 end;
 
-function umlDeleteFirstStr_M(aStr: umlString; SpaceStr: umlString): umlString;
+function umlDeleteFirstStr_M(aStr: umlString; limitS: umlString): umlString;
 var
   umlMaskFirstName_Pos: Integer;
 begin
   Result := aStr;
-  if umlGetLength(Result) <= 1 then
+  if Result.len <= 1 then
     begin
       Result := '';
       Exit;
     end;
   umlMaskFirstName_Pos := 1;
-  while not umlMatchLimitChar(Result[umlMaskFirstName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
     begin
-      if umlMaskFirstName_Pos = umlGetLength(Result) then
+      if umlMaskFirstName_Pos = Result.len then
         begin
           Result := '';
           Exit;
         end;
       Inc(umlMaskFirstName_Pos);
     end;
-  if umlMatchLimitChar(Result[umlMaskFirstName_Pos], @SpaceStr) then
+  if umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) then
       Inc(umlMaskFirstName_Pos);
-  Result := umlCopyStr(Result, umlMaskFirstName_Pos, umlGetLength(Result) + 1);
+  Result := umlCopyStr(Result, umlMaskFirstName_Pos, Result.len + 1);
 end;
 
-function umlGetLastStr_M(aStr: umlString; SpaceStr: umlString): umlString;
+function umlGetLastStr_M(aStr: umlString; limitS: umlString): umlString;
 var
   umlGetLastName_PrevPos, umlGetLastName_Pos: Integer;
 begin
   Result := aStr;
-  umlGetLastName_Pos := umlGetLength(Result);
+  umlGetLastName_Pos := Result.len;
   if umlGetLastName_Pos <= 1 then
       Exit;
-  if Result[umlGetLastName_Pos] = SpaceStr then
+  if Result[umlGetLastName_Pos] = limitS then
       Dec(umlGetLastName_Pos);
   umlGetLastName_PrevPos := umlGetLastName_Pos;
-  while not umlMatchLimitChar(Result[umlGetLastName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlGetLastName_Pos], @limitS) do
     begin
       if umlGetLastName_Pos = 1 then
         begin
@@ -2473,20 +2473,20 @@ begin
   Result := umlCopyStr(Result, umlGetLastName_Pos + 1, umlGetLastName_PrevPos + 1);
 end;
 
-function umlDeleteLastStr_M(aStr: umlString; SpaceStr: umlString): umlString;
+function umlDeleteLastStr_M(aStr: umlString; limitS: umlString): umlString;
 var
   umlMaskLastName_Pos: Integer;
 begin
   Result := aStr;
-  umlMaskLastName_Pos := umlGetLength(Result);
+  umlMaskLastName_Pos := Result.len;
   if umlMaskLastName_Pos <= 1 then
     begin
       Result := '';
       Exit;
     end;
-  if umlMatchLimitChar(Result[umlMaskLastName_Pos], @SpaceStr) then
+  if umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) then
       Dec(umlMaskLastName_Pos);
-  while not umlMatchLimitChar(Result[umlMaskLastName_Pos], @SpaceStr) do
+  while not umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2498,33 +2498,33 @@ begin
   umlSetLength(Result, umlMaskLastName_Pos);
 end;
 
-function umlGetIndexStrCount_M(aStr: umlString; SpaceStr: umlString): Integer;
+function umlGetIndexStrCount_M(aStr: umlString; limitS: umlString): Integer;
 var
   Str : umlString;
   APos: Integer;
 begin
   Str := aStr;
   Result := 0;
-  if umlGetLength(Str) = 0 then
+  if Str.len = 0 then
       Exit;
   APos := 1;
   Result := 1;
   while True do
     begin
-      while not umlMatchLimitChar(Str[APos], @SpaceStr) do
+      while not umlMatchLimitChar(Str[APos], @limitS) do
         begin
-          if APos = umlGetLength(Str) then
+          if APos = Str.len then
               Exit;
           Inc(APos);
         end;
       Inc(Result);
-      if APos = umlGetLength(Str) then
+      if APos = Str.len then
           Exit;
       Inc(APos);
     end;
 end;
 
-function umlGetIndexStr_M(aStr: umlString; SpaceStr: umlString; Index: Integer): umlString;
+function umlGetIndexStr_M(aStr: umlString; limitS: umlString; Index: Integer): umlString;
 var
   umlGetIndexName_Repeat: Integer;
 begin
@@ -2536,33 +2536,33 @@ begin
       end;
     0, 1:
       begin
-        Result := umlGetFirstStr_M(aStr, SpaceStr);
+        Result := umlGetFirstStr_M(aStr, limitS);
         Exit;
       end;
   end;
-  if index >= umlGetIndexStrCount_M(aStr, SpaceStr) then
+  if index >= umlGetIndexStrCount_M(aStr, limitS) then
     begin
-      Result := umlGetLastStr_M(aStr, SpaceStr);
+      Result := umlGetLastStr_M(aStr, limitS);
       Exit;
     end;
   Result := aStr;
   for umlGetIndexName_Repeat := 2 to index do
-      Result := umlDeleteFirstStr_M(Result, SpaceStr);
-  Result := umlGetFirstStr_M(Result, SpaceStr);
+      Result := umlDeleteFirstStr_M(Result, limitS);
+  Result := umlGetFirstStr_M(Result, limitS);
 end;
 
-function umlGetFirstTextPos(S: umlString; ATextList: array of umlString; var OutText: umlString): Integer;
+function umlGetFirstTextPos(S: umlString; TextArry: array of umlString; var OutText: umlString): Integer;
 var
   i, j: Integer;
 begin
   Result := -1;
   for i := 1 to S.len do
     begin
-      for j := low(ATextList) to high(ATextList) do
+      for j := low(TextArry) to high(TextArry) do
         begin
-          if S.ComparePos(i, @ATextList[j]) then
+          if S.ComparePos(i, @TextArry[j]) then
             begin
-              OutText := ATextList[j];
+              OutText := TextArry[j];
               Result := i;
               Exit;
             end;
@@ -2570,25 +2570,25 @@ begin
     end;
 end;
 
-function umlDeleteText(ASourText: umlString; ABeginFlag, AEndFlag: array of umlString; ANeedBegin, ANeedEnd: Boolean): umlString;
+function umlDeleteText(Sour: umlString; bToken, eToken: array of umlString; ANeedBegin, ANeedEnd: Boolean): umlString;
 var
   ABeginPos, AEndPos           : Integer;
   ABeginText, AEndText, ANewStr: umlString;
 begin
-  Result := ASourText;
-  if umlGetLength(ASourText) > 0 then
+  Result := Sour;
+  if Sour.len > 0 then
     begin
-      ABeginPos := umlGetFirstTextPos(ASourText, ABeginFlag, ABeginText);
+      ABeginPos := umlGetFirstTextPos(Sour, bToken, ABeginText);
       if ABeginPos > 0 then
-          ANewStr := umlCopyStr(ASourText, ABeginPos + umlGetLength(ABeginText), umlGetLength(ASourText) + 1)
+          ANewStr := umlCopyStr(Sour, ABeginPos + ABeginText.len, Sour.len + 1)
       else if ANeedBegin then
           Exit
       else
-          ANewStr := ASourText;
+          ANewStr := Sour;
 
-      AEndPos := umlGetFirstTextPos(ANewStr, AEndFlag, AEndText);
+      AEndPos := umlGetFirstTextPos(ANewStr, eToken, AEndText);
       if AEndPos > 0 then
-          ANewStr := umlCopyStr(ANewStr, (AEndPos + umlGetLength(AEndText)), umlGetLength(ANewStr) + 1)
+          ANewStr := umlCopyStr(ANewStr, (AEndPos + AEndText.len), ANewStr.len + 1)
       else if ANeedEnd then
           Exit
       else
@@ -2597,30 +2597,30 @@ begin
       if ABeginPos > 0 then
         begin
           if AEndPos > 0 then
-              Result := umlCopyStr(ASourText, 0, ABeginPos - 1) + umlDeleteText(ANewStr, ABeginFlag, AEndFlag, ANeedBegin, ANeedEnd)
+              Result := umlCopyStr(Sour, 0, ABeginPos - 1) + umlDeleteText(ANewStr, bToken, eToken, ANeedBegin, ANeedEnd)
           else
-              Result := umlCopyStr(ASourText, 0, ABeginPos - 1) + ANewStr;
+              Result := umlCopyStr(Sour, 0, ABeginPos - 1) + ANewStr;
         end
       else if AEndPos > 0 then
           Result := ANewStr;
     end;
 end;
 
-function umlGetTextContent(ASourText: umlString; ABeginFlag, AEndFlag: array of umlString): umlString;
+function umlGetTextContent(Sour: umlString; bToken, eToken: array of umlString): umlString;
 var
   ABeginPos, AEndPos           : Integer;
   ABeginText, AEndText, ANewStr: umlString;
 begin
   Result := '';
-  if umlGetLength(ASourText) > 0 then
+  if Sour.len > 0 then
     begin
-      ABeginPos := umlGetFirstTextPos(ASourText, ABeginFlag, ABeginText);
+      ABeginPos := umlGetFirstTextPos(Sour, bToken, ABeginText);
       if ABeginPos > 0 then
-          ANewStr := umlCopyStr(ASourText, ABeginPos + umlGetLength(ABeginText), umlGetLength(ASourText) + 1)
+          ANewStr := umlCopyStr(Sour, ABeginPos + ABeginText.len, Sour.len + 1)
       else
-          ANewStr := ASourText;
+          ANewStr := Sour;
 
-      AEndPos := umlGetFirstTextPos(ANewStr, AEndFlag, AEndText);
+      AEndPos := umlGetFirstTextPos(ANewStr, eToken, AEndText);
       if AEndPos > 0 then
           Result := umlCopyStr(ANewStr, 0, AEndPos - 1)
       else
@@ -2806,7 +2806,7 @@ var
   i: Integer;
 begin
   Result := 0;
-  for i := 1 to umlGetLength(aStr) do
+  for i := 1 to aStr.len do
     if CharIn(aStr[i], [c0to9]) then
         Inc(Result);
 end;
@@ -3045,7 +3045,7 @@ MultipleStringRep_Label:
             end;
         end;
       SwapStr := umlCopyStr(UpperCaseSourceStr, SourceIndex, SourceLength + 1);
-      SwapLength := umlGetLength(SwapStr);
+      SwapLength := SwapStr.len;
       if SwapLength = 0 then
         begin
           Result := (UpperCaseSourceStr[SourceIndex] = umlMultipleString);
@@ -3068,7 +3068,7 @@ MultipleStringRep_Label:
               Result := False;
               Exit;
             end;
-          SwapLength := umlGetLength(SwapStr);
+          SwapLength := SwapStr.len;
           SwapIndex := 1;
           SwapChar := SwapStr[SwapLength];
           TargetChar := UpperCaseTargetStr[TargetLength];
@@ -3093,7 +3093,7 @@ MultipleStringRep_Label:
         end;
       SwapChar := SwapStr[1];
       SwapIndex := 1;
-      SwapLength := umlGetLength(SwapStr);
+      SwapLength := SwapStr.len;
       while SwapIndex <= SwapLength do
         begin
           if (TargetIndex - 1) + SwapIndex > TargetLength then
@@ -3233,7 +3233,7 @@ var
   i: Integer;
 begin
   Result := S;
-  if umlGetLength(Result) > 0 then
+  if Result.len > 0 then
     begin
       for i := 1 to umlGetLength(Result) do
         begin
@@ -3254,29 +3254,23 @@ begin
       while i <= psSrc.len do
         begin
           case psSrc[i] of
-            ' ':
-              Result := Result + '&nbsp;';
-            '<':
-              Result := Result + '&lt;';
-            '>':
-              Result := Result + '&gt;';
-            '&':
-              Result := Result + '&amp;';
-            '"':
-              Result := Result + '&quot;';
-            #9:
-              Result := Result + '&nbsp;&nbsp;&nbsp;&nbsp;';
+            ' ': Result.Append('&nbsp;');
+            '<': Result.Append('&lt;');
+            '>': Result.Append('&gt;');
+            '&': Result.Append('&amp;');
+            '"': Result.Append('&quot;');
+            #9: Result.Append('&nbsp;&nbsp;&nbsp;&nbsp;');
             #13:
               begin
                 if i + 1 <= psSrc.len then
                   begin
                     if psSrc[i + 1] = #10 then
                         Inc(i);
-                    Result := Result + '<br>';
+                    Result.Append('<br>');
                   end
                 else
                   begin
-                    Result := Result + '<br>';
+                    Result.Append('<br>');
                   end;
               end;
             #10:
@@ -3285,15 +3279,15 @@ begin
                   begin
                     if psSrc[i + 1] = #13 then
                         Inc(i);
-                    Result := Result + '<br>';
+                    Result.Append('<br>');
                   end
                 else
                   begin
-                    Result := Result + '<br>';
+                    Result.Append('<br>');
                   end;
               end;
             else
-              Result := Result + psSrc[i];
+              Result.Append(psSrc[i]);
           end;
           Inc(i);
         end;

@@ -3,6 +3,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 
 (*
@@ -73,7 +74,7 @@ type
     class operator Explicit(Value: Variant): TPascalString;
     class operator Explicit(Value: SystemChar): TPascalString;
     {$ENDIF}
-    function copy(index, count: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function copy(index, count: NativeInt): TPascalString;
     function Same(const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ComparePos(Offset: Integer; const t: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -96,7 +97,7 @@ type
     procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Append(t: TPascalString); overload;
     procedure Append(c: SystemChar); overload;
-    function GetString(bPos, ePos: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetString(bPos, ePos: NativeInt): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure Insert(AText: SystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
     procedure FastAsText(var Output: SystemString);
@@ -728,9 +729,19 @@ end;
 {$ENDIF}
 
 
-function TPascalString.copy(index, count: Integer): TPascalString;
+function TPascalString.copy(index, count: NativeInt): TPascalString;
+var
+  l: NativeInt;
 begin
-  Result.Buff := System.copy(Buff, index - 1, count);
+  l := Length(Buff);
+
+  if (index - 1) + count > l then
+      count := l - (index - 1);
+
+  SetLength(Result.Buff, count);
+  CopyPtr(@Buff[index - 1], @Result.Buff[0], SystemCharSize * count);
+
+  // Result.Buff := System.copy(Buff, index - 1, count);
 end;
 
 function TPascalString.Same(const t: TPascalString): Boolean;
@@ -935,7 +946,7 @@ begin
   Buff[Length(Buff) - 1] := c;
 end;
 
-function TPascalString.GetString(bPos, ePos: Integer): TPascalString;
+function TPascalString.GetString(bPos, ePos: NativeInt): TPascalString;
 begin
   Result.Text := Self.copy(bPos, ePos - bPos);
 end;

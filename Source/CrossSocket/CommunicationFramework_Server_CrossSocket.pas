@@ -4,6 +4,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 (*
   update history
@@ -49,7 +50,7 @@ type
 
   TDriverEngine = class(TCrossSocket)
   protected type
-    { Because crossSocket at the bottom of the external support of the interface is a little less, to change the interface is more troublesome, temporarily put aside, after a period of time to do again to do it. }
+    // 因为crossSocket在底层对外部支持的接口有点少，大改接口比较麻烦，暂时搁置一下，过段时间空了再来做
     PCrossSocketIntfStruct = ^TCrossSocketIntfStruct;
 
     TCrossSocketIntfStruct = record
@@ -154,7 +155,7 @@ procedure TContextIntfForServer.SendBuffResult(AConnection: ICrossConnection; AS
 begin
   LastActiveTime := GetTimeTickCount;
 
-  { In order to avoid using non - Page exchange memory, the IO kernel is sent to the main thread to send the progress }
+  // 为避免使用非页面交换内存，将io内核发送进度同步到主线程来发
   TThread.Synchronize(nil,
     procedure
     var
@@ -162,8 +163,8 @@ begin
       m: TMemoryStream64;
       isConn: Boolean;
     begin
-      { Since Send under Linux does not have a copy of the copy buffer, we need to delay the release of our own buffer }
-      { When the send completion state returns, we release all temporary buffers }
+      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
+      // 发送完成状态返回时，我们释放所有临时缓冲区
       FreeDelayBuffPool;
 
       isConn := False;
@@ -175,15 +176,15 @@ begin
               begin
                 m := TMemoryStream64(SendBuffQueue[0]);
 
-                { When WSASend huff and puff is sent, a copy is copied. There is a copy of the memory, the copy is limited to 32K, and the shards are cut in the bottom frame. }
-                { Note: the total amount of buff sent by the event callback will finally be determined according to the stack size }
-                { Thank you for the test report of AK47 qq512757165 }
+                // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
+                // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
+                // 感谢ak47 qq512757165 的测试报告
                 Context.SendBuf(m.Memory, m.Size, SendBuffResult);
 
-                { Since Send under Linux does not have a copy of the copy buffer, we need to delay the release of our own buffer }
+                // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
                 DelayBuffPool.Add(m);
 
-                { Release queue }
+                // 释放队列
                 SendBuffQueue.Delete(0);
               end
             else
@@ -193,7 +194,7 @@ begin
           end
         else
           begin
-            { Release queue space }
+            // 释放队列空间
             for i := 0 to SendBuffQueue.Count - 1 do
                 disposeObject(SendBuffQueue[i]);
             SendBuffQueue.Clear;
@@ -220,8 +221,8 @@ begin
 
   LastActiveTime := GetTimeTickCount;
 
-  { Avoid a large amount of fragmented data to consume system resources, and there is a need to do a collection of fragments }
-  { Accurate asynchronous transmission and verification in flush }
+  // 避免大量零碎数据消耗系统资源，这里需要做个碎片收集
+  // 在flush中实现精确异步发送和校验
   if Size > 0 then
       CurrentBuff.Write(Pointer(buff)^, Size);
 end;
@@ -242,13 +243,13 @@ begin
       exit;
   LastActiveTime := GetTimeTickCount;
 
-  { At Ubuntu 16.04 TLS, when the receiving thread is running in the program, we call to send API, when the data out is wrong }
-  { We change the mechanism to check to send, check whether the thread is being received: avoid duplex work }
+  // 在ubuntu 16.04 TLS下，接收线程在程序运行时，我们调用发送api，这时出去的数据会错误
+  // 我们将机制改为检查后发送,检查是否正在接收线程工作:避免双工方式工作
   if Sending or ReceiveProcessing then
     begin
       if CurrentBuff.Size > 0 then
         begin
-          { Completion of optimization }
+          // 完成优化
           ms := CurrentBuff;
           ms.Position := 0;
           SendBuffQueue.Add(ms);
@@ -257,13 +258,13 @@ begin
     end
   else
     begin
-      { When WSASend huff and puff is sent, a copy is copied. There is a copy of the memory, the copy is limited to 32K, and the shards are cut in the bottom frame. }
-      { Note: the total amount of buff sent by the event callback will finally be determined according to the stack size }
-      { Thank you for the test report of AK47 qq512757165 }
+      // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
+      // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
+      // 感谢ak47 qq512757165 的测试报告
       Sending := True;
       Context.SendBuf(CurrentBuff.Memory, CurrentBuff.Size, SendBuffResult);
 
-      { Since Send under Linux does not have a copy of the copy buffer, we need to delay the release of our own buffer }
+      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
       DelayBuffPool.Add(CurrentBuff);
       CurrentBuff := TMemoryStream64.Create;
     end;
@@ -293,7 +294,7 @@ procedure TContextIntfForServer.Progress;
 var
   m: TMemoryStream64;
 begin
-  { Check free }
+  // 检查空闲
   if (OwnerFramework.IdleTimeout > 0) and (GetTimeTickCount - LastActiveTime > OwnerFramework.IdleTimeout) then
     begin
       Disconnect;
@@ -304,22 +305,22 @@ begin
 
   ProcessAllSendCmd(nil, False, False);
 
-  { At Ubuntu 16.04 TLS, when the receiving thread is running in the program, we call to send API, when the data out is wrong }
-  { We change the mechanism to check to send, check whether the thread is being received: avoid duplex work }
+  // 在ubuntu 16.04 TLS下，接收线程在程序运行时，我们调用发送api，这时出去的数据会错误
+  // 我们将机制改为检查后发送,检查是否正在接收线程工作:避免双工方式工作
   if (not Sending) and (SendBuffQueue.Count > 0) then
     begin
       Sending := True;
       LastActiveTime := GetTimeTickCount;
       m := TMemoryStream64(SendBuffQueue[0]);
-      { Release queue }
+      // 释放队列
       SendBuffQueue.Delete(0);
 
-      { When WSASend huff and puff is sent, a copy is copied. There is a copy of the memory, the copy is limited to 32K, and the shards are cut in the bottom frame. }
-      { Note: the total amount of buff sent by the event callback will finally be determined according to the stack size }
+      // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
+      // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
       { Thank you for the test report of AK47 qq512757165 }
       Context.SendBuf(m.Memory, m.Size, SendBuffResult);
 
-      { Since Send under Linux does not have a copy of the copy buffer, we need to delay the release of our own buffer }
+      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
       DelayBuffPool.Add(m);
     end;
 end;
@@ -375,8 +376,8 @@ begin
 
     cli.LastActiveTime := GetTimeTickCount;
 
-    { The ZS kernel has fully supported 100% asynchronous parsing data in the new version }
-    { In the new version of the ZS kernel, CrossSocket is an asynchronous framework of 100%, no longer semi asynchronous processing of data streams }
+    // zs内核在新版本已经完全支持了100%的异步解析数据
+    // 在zs内核的新版本中，CrossSocket是100%的异步框架，不再是半异步化处理数据流
     // by 2018-1-29
     cli.SaveReceiveBuffer(ABuf, ALen);
     cli.FillRecvBuffer(TThread.CurrentThread, True, True);

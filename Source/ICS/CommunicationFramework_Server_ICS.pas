@@ -4,6 +4,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 (*
   update history
@@ -483,8 +484,8 @@ procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject;
 begin
   DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
   Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  Client.KeepAliveTime := 1 * 1000;     { From heartbeat check to disconnected time }
-  Client.KeepAliveInterval := 1 * 1000; { Heartbeat interval }
+  Client.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
+  Client.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
 end;
 
 procedure TCommunicationFramework_Server_ICS.ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
