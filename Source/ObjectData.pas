@@ -364,12 +364,8 @@ function dbPack_DeleteItem(const PathName, FilterName: umlString; const ItemExtI
 function dbPack_GetItem(const PathName, ItemName: umlString; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 function dbPack_ItemCreate(const PathName, ItemName, ItemDescription: umlString; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function dbPack_ItemFastCreate(const ItemName, ItemDescription: umlString; const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline;
-{$ENDIF}
-function dbPack_ItemFastInsertNew(const ItemName, ItemDescription: umlString; const fieldPos, InsertHeaderPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
-{$IFDEF INLINE_ASM}inline; {$ENDIF}
-{$IFDEF INLINE_ASM}inline;
-{$ENDIF}
+function dbPack_ItemFastCreate(const ItemName, ItemDescription: umlString; const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbPack_ItemFastInsertNew(const ItemName, ItemDescription: umlString; const fieldPos, InsertHeaderPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function dbPack_ItemOpen(const PathName, ItemName: umlString; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function dbPack_ItemFastOpen(const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function dbPack_ItemClose(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -540,27 +536,27 @@ implementation
 
 uses PascalStrings;
 
-function dbPack_GetIndexStrCount(const StrName: umlString): Integer; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbPack_GetIndexStrCount(const StrName: umlString): Integer; inline;
 begin
   Result := umlGetIndexStrCount(StrName, db_FieldPathLimitChar);
 end;
 
-function dbPack_MaskFirstPath(const PathName: umlString): umlString; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbPack_MaskFirstPath(const PathName: umlString): umlString; inline;
 begin
   Result := umlDeleteFirstStr(PathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_MaskLastPath(const PathName: umlString): umlString; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbPack_MaskLastPath(const PathName: umlString): umlString; inline;
 begin
   Result := umlDeleteLastStr(PathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_GetFirstPath(const PathName: umlString): umlString; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbPack_GetFirstPath(const PathName: umlString): umlString; inline;
 begin
   Result := umlGetFirstStr(PathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_GetLastPath(const PathName: umlString): umlString; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function dbPack_GetLastPath(const PathName: umlString): umlString; inline;
 begin
   Result := umlGetLastStr(PathName, db_FieldPathLimitChar).Text;
 end;
