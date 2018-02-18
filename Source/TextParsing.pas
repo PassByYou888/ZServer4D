@@ -1866,7 +1866,7 @@ begin
   ParsingData.Cache.TextData := nil;
   ParsingData.Cache.TokenDataList := nil;
   if AText.Len = 0 then
-      ParsingData.Text := #13#10
+    ParsingData.Text := #13#10
   else
       ParsingData.Text := AText;
   ParsingData.Len := ParsingData.Text.Len;
