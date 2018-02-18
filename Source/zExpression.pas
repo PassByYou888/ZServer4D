@@ -431,7 +431,7 @@ begin
   if not(esWaitOp in pStates) then
       Exit;
 
-  while cPos <= ParsingEng.ParsingData.Text.Len do
+  while cPos <= ParsingEng.Len do
     begin
       c := ParsingEng.ParsingData.Text[cPos];
       bPos := cPos;
