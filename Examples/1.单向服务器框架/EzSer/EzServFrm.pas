@@ -9,7 +9,8 @@ uses
   CommunicationFramework,
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
-  CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
+  CommunicationFramework_Server_CrossSocket,
+  DoStatusIO, CoreClasses,
   DataFrameEngine, UnicodeMixedLib, MemoryStream64;
 
 type

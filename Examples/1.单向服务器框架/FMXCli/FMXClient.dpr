@@ -9,6 +9,7 @@ uses
 
 begin
   Application.Initialize;
+  Application.FormFactor.Orientations := [TFormOrientation.Landscape, TFormOrientation.InvertedLandscape];
   Application.CreateForm(TFMXClientForm, FMXClientForm);
   Application.Run;
 end.
