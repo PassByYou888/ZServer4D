@@ -32,11 +32,7 @@ object Form1: TForm1
           #39#26631#35760#31526#34920#39
           'abc'
           '"'#26631#35760#31526#34920'"'
-          '123'
-          '$data'
-          '$FF'
-          '0xFF'
-          '0xdata')
+          '123')
         TabOrder = 0
       end
       object Button1: TButton
@@ -68,10 +64,6 @@ object Form1: TForm1
     object TabSheet2: TTabSheet
       Caption = 'pascal proc list'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo3: TMemo
         Left = 24
         Top = 27
@@ -107,10 +99,6 @@ object Form1: TForm1
     object TabSheet3: TTabSheet
       Caption = 'zExpression Demo'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo5: TMemo
         Left = 0
         Top = 49
@@ -171,6 +159,15 @@ object Form1: TForm1
           Caption = 'demo5'
           TabOrder = 4
           OnClick = Button8Click
+        end
+        object Button9: TButton
+          Left = 413
+          Top = 10
+          Width = 100
+          Height = 25
+          Caption = 'special function'
+          TabOrder = 5
+          OnClick = Button9Click
         end
       end
     end

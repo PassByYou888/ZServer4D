@@ -77,7 +77,7 @@ type
     function copy(index, count: NativeInt): TPascalString;
     function Same(const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(Offset: Integer; const t: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ComparePos(Offset: Integer; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ComparePos(Offset: Integer; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetPos(const SubStr: PPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -794,20 +794,20 @@ begin
     end;
 end;
 
-function TPascalString.ComparePos(Offset: Integer; const t: PPascalString): Boolean;
+function TPascalString.ComparePos(Offset: Integer; const p: PPascalString): Boolean;
 var
   i, l              : Integer;
   sourChar, destChar: SystemChar;
 begin
   Result := False;
   i := 1;
-  l := t^.Len;
+  l := p^.Len;
   if (Offset + l - 1) > Len then
       Exit;
   while i <= l do
     begin
       sourChar := GetChars(Offset + i - 1);
-      destChar := t^[i];
+      destChar := p^[i];
 
       if CharIn(sourChar, cLoAtoZ) then
           dec(sourChar, 32);

@@ -171,7 +171,8 @@ function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType; {$IFD
 
 
 var
-  OpCache: THashObjectList;
+  OpCache          : THashObjectList;
+  SpecialAsciiToken: TListPascalString;
 
 implementation
 
@@ -435,6 +436,12 @@ begin
 
   while cPos <= ParsingEng.Len do
     begin
+      if ParsingEng.isComment(cPos) then
+        begin
+          cPos := ParsingEng.GetCommentEndPos(cPos);
+          continue;
+        end;
+
       c := ParsingEng.ParsingData.Text[cPos];
       bPos := cPos;
 
@@ -627,7 +634,7 @@ begin
           Exit;
         end;
 
-      if (ParsingEng.IsAscii(cPos)) then
+      if (ParsingEng.isAscii(cPos)) then
         begin
           bPos := cPos;
           ePos := ParsingEng.GetAsciiEndPos(cPos);
@@ -667,7 +674,7 @@ begin
           Exit;
         end;
 
-      if ParsingEng.IsNumber(cPos) then
+      if ParsingEng.isNumber(cPos) then
         begin
           Result := soUnknow;
           Exit;
@@ -863,17 +870,16 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; uName: SystemSt
   end;
 
 var
-  cPos, bPos, ePos, i                    : Integer;
-  State                                  : TExpressionParsingState;
-  BlockIndent, PropIndent                : Integer;
-  Container                              : TSymbolExpression;
-  te                                     : TTextParsing;
-  c                                      : SystemChar;
-  Decl                                   : TPascalString;
-  OpState                                : TSymbolOperation;
-  IsNumber, IsAscii, IsTextDecl, IsSymbol: Boolean;
-  rv                                     : Variant;
-  p                                      : PExpressionListData;
+  cPos, bPos, ePos, i                                     : Integer;
+  State                                                   : TExpressionParsingState;
+  BlockIndent, PropIndent                                 : Integer;
+  Container                                               : TSymbolExpression;
+  te                                                      : TTextParsing;
+  Decl                                                    : TPascalString;
+  OpState                                                 : TSymbolOperation;
+  isNumber, isSpecialSymbol, isAscii, isTextDecl, isSymbol: Boolean;
+  rv                                                      : Variant;
+  p                                                       : PExpressionListData;
 begin
   Result := nil;
 
@@ -888,13 +894,29 @@ begin
 
   while cPos <= ParsingEng.Len do
     begin
-      c := ParsingEng[cPos];
-      IsNumber := ParsingEng.IsNumber(cPos);
-      IsTextDecl := ParsingEng.IsTextDecl(cPos);
-      IsAscii := ParsingEng.IsAscii(cPos);
-      IsSymbol := ParsingEng.IsSymbol(cPos);
+      if ParsingEng.isComment(cPos) then
+        begin
+          cPos := ParsingEng.GetCommentEndPos(cPos);
+          continue;
+        end;
 
-      if (not(esWaitOp in State)) and (IsNumber or IsTextDecl or IsAscii) then
+      isSpecialSymbol := ParsingEng.isSpecialSymbol(cPos);
+      if isSpecialSymbol then
+        begin
+          isNumber := False;
+          isTextDecl := False;
+          isAscii := False;
+          isSymbol := False;
+        end
+      else
+        begin
+          isNumber := ParsingEng.isNumber(cPos);
+          isTextDecl := ParsingEng.isTextDecl(cPos);
+          isAscii := ParsingEng.isAscii(cPos);
+          isSymbol := ParsingEng.isSymbol(cPos);
+        end;
+
+      if (not(esWaitOp in State)) and (isSpecialSymbol or isNumber or isTextDecl or isAscii) then
         begin
           if not((esWaitValue in State) or (esFirst in State)) then
             begin
@@ -903,16 +925,22 @@ begin
             end;
 
           bPos := cPos;
-          if IsNumber then
+          if isSpecialSymbol then
+            begin
+              ePos := ParsingEng.GetSpecialSymbolEndPos(cPos);
+              if ParsingEng.GetAsciiBeginPos(ePos) <= ePos then
+                  ePos := ParsingEng.GetSpecialSymbolEndPos(ParsingEng.GetAsciiEndPos(ePos));
+            end
+          else if isNumber then
               ePos := ParsingEng.GetNumberEndPos(cPos)
-          else if IsTextDecl then
+          else if isTextDecl then
               ePos := ParsingEng.GetTextDeclEndPos(cPos)
           else
               ePos := ParsingEng.GetAsciiEndPos(cPos);
           cPos := ePos;
 
           Decl := ParsingEng.GetStr(bPos, ePos);
-          if IsNumber then
+          if isNumber then
             begin
               if Decl.ComparePos(1, '0x') then
                 begin
@@ -943,7 +971,7 @@ begin
                   end;
               end;
             end
-          else if IsTextDecl then
+          else if isTextDecl then
             begin
               Container.AddString(ParsingEng.GetTextBody(Decl), bPos);
             end
@@ -1005,7 +1033,7 @@ begin
               continue;
         end;
 
-      if (IsSymbol) then
+      if (isSymbol) then
         begin
           if not ParseSymbol(ParsingEng, Container, cPos, bPos, ePos, BlockIndent, PropIndent, @State) then
               break
@@ -1065,7 +1093,7 @@ function ParseTextExpressionAsSymbol(textStyle: TTextStyle; uName, ExpressionTex
 var
   ParsingEng: TTextParsing;
 begin
-  ParsingEng := TTextParsing.Create(ExpressionText, textStyle);
+  ParsingEng := TTextParsing.Create(ExpressionText, textStyle, SpecialAsciiToken);
   Result := ParseTextExpressionAsSymbol_M(ParsingEng, uName, OnGetValue, RefrenceOpRT);
   DisposeObject(ParsingEng);
 end;
@@ -1074,7 +1102,7 @@ function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT:
 var
   ParsingEng: TTextParsing;
 begin
-  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal);
+  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal, SpecialAsciiToken);
   Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, RefrenceOpRT);
   DisposeObject(ParsingEng);
 end;
@@ -1083,7 +1111,7 @@ function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpre
 var
   ParsingEng: TTextParsing;
 begin
-  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal);
+  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal, SpecialAsciiToken);
   Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, DefaultOpRT);
   DisposeObject(ParsingEng);
 end;
@@ -1093,7 +1121,7 @@ function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; textStyl
 var
   ParsingEng: TTextParsing;
 begin
-  ParsingEng := TextEngClass.Create(ExpressionText, textStyle);
+  ParsingEng := TextEngClass.Create(ExpressionText, textStyle, SpecialAsciiToken);
   Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', OnGetValue, RefrenceOpRT);
   DisposeObject(ParsingEng);
 end;
@@ -1103,19 +1131,20 @@ function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; textStyl
 var
   ParsingEng: TTextParsing;
 begin
-  ParsingEng := TextEngClass.Create(ExpressionText, textStyle);
+  ParsingEng := TextEngClass.Create(ExpressionText, textStyle, SpecialAsciiToken);
   Result := ParseTextExpressionAsSymbol_C(ParsingEng, '', OnGetValue, RefrenceOpRT);
   DisposeObject(ParsingEng);
 end;
 
 {$IFNDEF FPC}
 
+
 function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
 begin
-  ParsingEng := TextEngClass.Create(ExpressionText, textStyle);
+  ParsingEng := TextEngClass.Create(ExpressionText, textStyle, SpecialAsciiToken);
   Result := ParseTextExpressionAsSymbol_P(ParsingEng, '', OnGetValue, RefrenceOpRT);
   DisposeObject(ParsingEng);
 end;
@@ -1970,6 +1999,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 function EvaluateExpressionValue_P(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
 var
   sym: TSymbolExpression;
@@ -2646,9 +2676,10 @@ end;
 initialization
 
 OpCache := THashObjectList.Create(True, 8192);
+SpecialAsciiToken := TListPascalString.Create;
 
 finalization
 
-DisposeObject(OpCache);
+DisposeObject([OpCache, SpecialAsciiToken]);
 
 end.

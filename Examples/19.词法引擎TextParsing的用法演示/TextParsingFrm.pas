@@ -30,6 +30,7 @@ type
     Button6: TButton;
     Button7: TButton;
     Button8: TButton;
+    Button9: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -38,6 +39,7 @@ type
     procedure Button6Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -58,7 +60,7 @@ var
   i : Integer;
   pt: PTokenData;
 begin
-  t := TTextParsing.Create(Memo1.Text, TTextStyle.tsPascal);
+  t := TTextParsing.Create(Memo1.Text, TTextStyle.tsPascal, nil);
 
   Memo2.Clear;
 
@@ -78,7 +80,7 @@ var
   i : Integer;
   pt: PTokenData;
 begin
-  t := TTextParsing.Create(Memo1.Text, TTextStyle.tsC);
+  t := TTextParsing.Create(Memo1.Text, TTextStyle.tsC, nil);
 
   Memo2.Clear;
 
@@ -100,7 +102,7 @@ var
 
   PrepareProc: Boolean;
 begin
-  t := TTextParsing.Create(Memo3.Text, TTextStyle.tsPascal);
+  t := TTextParsing.Create(Memo3.Text, TTextStyle.tsPascal, nil);
 
   Memo2.Clear;
   PrepareProc := False;
@@ -220,7 +222,7 @@ var
   rt                                     : TOpCustomRunTime; // 运行函数库支持
 begin
   // 由于pascal的字符串不便于书写在程序中，这里我们c风格字符串
-  t := TTextParsing.Create('if 1+1=/* comment */2 then writeln/* comment */("if was true") else writeln/* comment */("if was false");', tsC);
+  t := TTextParsing.Create('if 1+1=/* comment */2 then writeln/* comment */("if was true") else writeln/* comment */("if was false");', tsC, nil);
   cp := 1;
   ep := 1;
   state := sUnknow;
@@ -439,7 +441,7 @@ var
   dynvar             : Integer;            // 动态变量
 begin
   // 这里有c和pascal两种写法，自行修改备注即可
-  sourTp := TTextParsing.Create('myvar1/*这里是备注*/,myvar2,myvar3 = 123+456+" 变量: "+dynamic', tsC); // 词法解析引擎，以c语法为例
+  sourTp := TTextParsing.Create('myvar1/*这里是备注*/,myvar2,myvar3 = 123+456+" 变量: "+dynamic', tsC, nil); // 词法解析引擎，以c语法为例
   // sourTp := TTextParsing.Create('myvar1(*这里是备注*),myvar2,myvar3 := 123+456+'#39' 变量: '#39'+dynamic', tsPascal); // 词法解析引擎，以c语法为例
   // sourTp := TTextParsing.Create('123+456+dynamic', tsPascal); // 词法解析引擎，以c语法为例
 
@@ -459,11 +461,11 @@ begin
             setBefore := splitVarDecl[0];
             setAfter := splitVarDecl[1];
 
-            t := TTextParsing.Create(setBefore, tsPascal);
+            t := TTextParsing.Create(setBefore, tsPascal, nil);
             t.DeletedComment;
             if t.SplitChar(1, ',', ';', myvars) = 0 then // 这里不是字符串，是以字符作为切割记号，对带有,的字符进行切割
                 Memo5.Lines.Add(Format('变量赋值语法错误 %s', [setBefore.Text]));
-            disposeObject(t);
+            DisposeObject(t);
           end;
       end;
     tsC:
@@ -475,11 +477,11 @@ begin
             setBefore := splitVarDecl[0];
             setAfter := splitVarDecl[1];
 
-            t := TTextParsing.Create(setBefore, tsC);
+            t := TTextParsing.Create(setBefore, tsC, nil);
             t.DeletedComment;
             if t.SplitChar(1, ',', ';', myvars) = 0 then // 这里不是字符串，是以字符作为切割记号，对带有,的字符进行切割
                 Memo5.Lines.Add(Format('变量赋值语法错误 %s', [setBefore.Text]));
-            disposeObject(t);
+            DisposeObject(t);
           end;
       end;
     else
@@ -553,7 +555,53 @@ begin
       Memo5.Lines.Add(Format('表达式 "%s"' + #13#10 + '运行结果 %s', [sourTp.TextData.Text, VarToStr(EvaluateExpressionValue(sourTp.TextStyle, sourTp.TextData, rt))]));
     end;
 
-  disposeObject([sourTp, HashVars, rt]);
+  DisposeObject([sourTp, HashVars, rt]);
+end;
+
+procedure TForm1.Button9Click(Sender: TObject);
+// 特殊符号函数
+var
+  rt: TOpCustomRunTime;
+  v : Variant;
+begin
+  Memo5.Lines.Add('全局的词法探头前缀参量的使用');
+
+  // 全局的特殊符号探头的前后缀参量 凡是前缀有@@符号,均作为ascii来处理
+  SpecialAsciiToken.Clear;
+  SpecialAsciiToken.Add('@@');
+  SpecialAsciiToken.Add('&&');
+
+  // rt为ze的运行函数支持库
+  rt := TOpCustomRunTime.Create;
+  rt.RegOp('@@a&&', function(var Param: TOpParam): Variant
+    // (a+b)*0.5
+    begin
+      Result := (Param[0] + Param[1]) * 0.5;
+    end);
+  rt.RegOp('@@combineString&&', function(var Param: TOpParam): Variant
+    // (a+b)*0.5
+    begin
+      Result := VarToStr(Param[0]) + VarToStr(Param[1]);
+    end);
+
+  // 带有@@前缀的ascii也可以在后缀带有特殊符号，特殊符号长度不限制
+  v := EvaluateExpressionValue(False, '{ 备注 } @@a&&(1,2)', rt);
+  Memo5.Lines.Add(VarToStr(v));
+
+  // 简单字符串表达式，ze的默认文本处理格式为Pascal
+  v := EvaluateExpressionValue(False, '@@combineString&&('#39'abc'#39', '#39'123'#39')', rt);
+  Memo5.Lines.Add(VarToStr(v));
+
+  // 简单字符串表达式，我们使用c的文本格式
+  v := EvaluateExpressionValue(tsC, '@@combineString&&("abc", "123")', rt);
+  Memo5.Lines.Add(VarToStr(v));
+  v := EvaluateExpressionValue(tsC, '@@combineString&&('#39'abc'#39', '#39'123'#39')', rt);
+  Memo5.Lines.Add(VarToStr(v));
+
+  DisposeObject(rt);
+
+  // 复原全局的特殊符号探头的前后缀参量
+  SpecialAsciiToken.Clear;
 end;
 
 end.

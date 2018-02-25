@@ -55,6 +55,8 @@ type
     function DoRound(var Param: TOpParam): Variant;
     function DoTrunc(var Param: TOpParam): Variant;
 
+    function DoStr(var Param: TOpParam): Variant;
+
     function DoGetFirst(var Param: TOpParam): Variant;
     function DoDeleteFirst(var Param: TOpParam): Variant;
     function DoGetLast(var Param: TOpParam): Variant;
@@ -283,7 +285,7 @@ begin
   {$IFNDEF FPC} OnOpProc := nil; {$ENDIF FPC}
 end;
 
-function GetRegistedOp(Name: SystemString): POpRegData; inline;
+function GetRegistedOp(Name: SystemString): POpRegData;
 var
   i   : Integer;
   p   : POpRegData;
@@ -517,6 +519,17 @@ begin
   Result := Trunc(Double(v));
 end;
 
+function TOpCustomRunTime.DoStr(var Param: TOpParam): Variant;
+var
+  n: TPascalString;
+  i: Integer;
+begin
+  n := '';
+  for i := low(Param) to high(Param) do
+      n.Append(VarToStr(Param[i]));
+  Result := n;
+end;
+
 function TOpCustomRunTime.DoGetFirst(var Param: TOpParam): Variant;
 begin
   if Length(Param) = 2 then
@@ -565,6 +578,8 @@ begin
   RegOp('Round', @DoRound);
   RegOp('Trunc', @DoTrunc);
 
+  RegOp('Str', @DoStr);
+
   RegOp('GetFirst', @DoGetFirst);
   RegOp('DeleteFirst', @DoDeleteFirst);
   RegOp('GetLast', @DoGetLast);
@@ -582,6 +597,8 @@ begin
   RegOp('Tan', DoTan);
   RegOp('Round', DoRound);
   RegOp('Trunc', DoTrunc);
+
+  RegOp('Str', DoStr);
 
   RegOp('GetFirst', DoGetFirst);
   RegOp('DeleteFirst', DoDeleteFirst);
@@ -931,7 +948,7 @@ end;
 
 function op_Add.doExecute(opRT: TOpCustomRunTime): Variant;
 
-  function Fast_VarIsStr(var v: Variant): Boolean; inline;
+  function Fast_VarIsStr(var v: Variant): Boolean;
   var
     p: PVarData;
   begin
@@ -1227,7 +1244,8 @@ RegisterOp(op_Symbol_Add);
 
 finalization
 
-_FreeOp;
 DisposeObject(DefaultOpRT);
-
+_FreeOp;
 end.
+
+

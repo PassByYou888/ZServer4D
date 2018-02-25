@@ -795,6 +795,8 @@ type
     function GetItems(Idx: Integer): TPascalString;
     procedure SetItems(Idx: Integer; Value: TPascalString);
 
+    function GetItems_PPascalString(Idx: Integer): PPascalString;
+
     function GetObjects(Idx: Integer): TCoreClassObject;
     procedure SetObjects(Idx: Integer; Value: TCoreClassObject);
   public
@@ -813,6 +815,7 @@ type
     procedure Assign(SameObj: TListPascalString);
 
     property Items[Idx: Integer]: TPascalString read GetItems write SetItems; default;
+    property Items_PPascalString[Idx: Integer]: PPascalString read GetItems_PPascalString;
     property Objects[Idx: Integer]: TCoreClassObject read GetObjects write SetObjects;
   end;
 
@@ -6028,6 +6031,11 @@ begin
       Data := Value;
       Hash := MakeHash(Value);
     end;
+end;
+
+function TListPascalString.GetItems_PPascalString(Idx: Integer): PPascalString;
+begin
+  Result := @(PListPascalStringData(FList[Idx])^.Data);
 end;
 
 function TListPascalString.GetObjects(Idx: Integer): TCoreClassObject;

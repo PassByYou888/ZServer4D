@@ -551,7 +551,7 @@ var
 begin
   ns := TCoreClassStringList.Create;
   ns.LoadFromStream(stream);
-  t := TTextParsing.Create(ns.Text, TTextStyle.tsText);
+  t := TTextParsing.Create(ns.Text, TTextStyle.tsText, nil);
 
   cp := 1;
   n := '';
