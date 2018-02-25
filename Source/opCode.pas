@@ -249,7 +249,7 @@ var
 
 implementation
 
-uses DataFrameEngine;
+uses DataFrameEngine, zExpression;
 
 type
   PopRTproc = ^TopRTproc;
@@ -930,18 +930,71 @@ end;
 { op_Add }
 
 function op_Add.doExecute(opRT: TOpCustomRunTime): Variant;
+
+  function Fast_VarIsStr(var v: Variant): Boolean; inline;
+  var
+    p: PVarData;
+  begin
+    // optimized
+    p := @TVarData(v);
+    while p^.VType = varByRef or varVariant do
+        p := PVarData(p^.VPointer);
+    Result := (p^.VType = varOleStr) or (p^.VType = varString) or (p^.VType = varUString);
+  end;
+
 var
-  i: Integer;
+  i     : Integer;
+  n1, n2: TPascalString;
 begin
   if Count = 0 then
       Exit(NULL);
   Result := Param[0]^.Value;
-  for i := 1 to Count - 1 do
+
+  if Fast_VarIsStr(Result) then
     begin
-      try
-          Result := Result + Param[i]^.Value;
-      except
-      end;
+      // optimized
+      n1 := VarToStr(Result);
+      for i := 1 to Count - 1 do
+        begin
+          try
+              n1.Append(VarToStr(Param[i]^.Value));
+          except
+          end;
+        end;
+      Result := n1.Text;
+    end
+  else
+    begin
+      for i := 1 to Count - 1 do
+        begin
+          try
+            if Fast_VarIsStr(Result) then
+              begin
+                // string combine
+                n1 := VarToStr(Result);
+                if NumTextType(n1) = nttUnknow then
+                  begin
+                    Result := n1 + VarToStr(Param[i]^.Value);
+                    continue;
+                  end
+              end;
+
+            if Fast_VarIsStr(Param[i]^.Value) then
+              begin
+                // string combine
+                n2 := VarToStr(Param[i]^.Value);
+                if NumTextType(n2) = nttUnknow then
+                  begin
+                    Result := VarToStr(Result) + n2;
+                    continue;
+                  end
+              end;
+
+            // logic compute
+            Result := Result + Param[i]^.Value;
+          except
+          end;
+        end;
     end;
 end;
 
