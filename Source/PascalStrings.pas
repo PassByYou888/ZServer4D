@@ -37,8 +37,8 @@ type
     procedure SetText(const Value: SystemString);
     function GetLen: Integer;
     procedure SetLen(const Value: Integer);
-    function GetItems(index: Integer): SystemChar;
-    procedure SetItems(index: Integer; const Value: SystemChar);
+    function GetChars(index: Integer): SystemChar;
+    procedure SetChars(index: Integer; const Value: SystemChar);
     function GetBytes: TBytes;
     procedure SetBytes(const Value: TBytes);
     function GetLast: SystemChar;
@@ -106,11 +106,14 @@ type
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
     function UpperText: SystemString;
+    function TrimChar(const limitS: TPascalString): TPascalString;
     property Len: Integer read GetLen write SetLen;
-    property Items[index: Integer]: SystemChar read GetItems write SetItems; default;
+    property Chars[index: Integer]: SystemChar read GetChars write SetChars; default;
     property Bytes: TBytes read GetBytes write SetBytes;
     function BOMBytes: TBytes;
   end;
+
+  TArrayPascalString = array of TPascalString;
 
   TOrdChar  = (c0to9, c1to9, c0to32, c0to32no10, cLoAtoF, cHiAtoF, cLoAtoZ, cHiAtoZ, cHex, cAtoF, cAtoZ);
   TOrdChars = set of TOrdChar;
@@ -567,12 +570,12 @@ begin
   SetLength(Buff, Value);
 end;
 
-function TPascalString.GetItems(index: Integer): SystemChar;
+function TPascalString.GetChars(index: Integer): SystemChar;
 begin
   Result := Buff[index - 1];
 end;
 
-procedure TPascalString.SetItems(index: Integer; const Value: SystemChar);
+procedure TPascalString.SetChars(index: Integer; const Value: SystemChar);
 begin
   Buff[index - 1] := Value;
 end;
@@ -803,7 +806,7 @@ begin
       Exit;
   while i <= l do
     begin
-      sourChar := Items[Offset + i - 1];
+      sourChar := GetChars(Offset + i - 1);
       destChar := t^[i];
 
       if CharIn(sourChar, cLoAtoZ) then
@@ -830,7 +833,7 @@ begin
       Exit;
   while i <= l do
     begin
-      sourChar := Items[Offset + i - 1];
+      sourChar := GetChars(Offset + i - 1);
       destChar := t[i];
 
       if CharIn(sourChar, cLoAtoZ) then
@@ -905,7 +908,7 @@ end;
 procedure TPascalString.DeleteLast;
 begin
   if Len > 0 then
-      Buff := System.copy(Buff, 0, Len - 1);
+      SetLength(Buff, Length(Buff) - 1);
 end;
 
 procedure TPascalString.DeleteFirst;
@@ -917,7 +920,7 @@ end;
 procedure TPascalString.Delete(idx, cnt: Integer);
 begin
   if (idx + cnt <= Len) then
-      Text := GetString(1, idx) + GetString(idx + cnt, Len)
+      Text := GetString(1, idx) + GetString(idx + cnt, Len + 1)
   else
       Text := GetString(1, idx);
 end;
@@ -948,7 +951,10 @@ end;
 
 function TPascalString.GetString(bPos, ePos: NativeInt): TPascalString;
 begin
-  Result.Text := Self.copy(bPos, ePos - bPos);
+  if ePos > Length(Buff) then
+      Result.Text := Self.copy(bPos, Length(Buff) - bPos + 1)
+  else
+      Result.Text := Self.copy(bPos, (ePos - bPos));
 end;
 
 procedure TPascalString.Insert(AText: SystemString; idx: Integer);
@@ -979,6 +985,44 @@ end;
 function TPascalString.UpperText: SystemString;
 begin
   Result := UpperCase(Text);
+end;
+
+function TPascalString.TrimChar(const limitS: TPascalString): TPascalString;
+var
+  l, bp, ep: Integer;
+begin
+  Result := '';
+  l := Len;
+  if l > 0 then
+    begin
+      bp := 1;
+      while CharIn(GetChars(bp), @limitS) do
+        begin
+          inc(bp);
+          if (bp > l) then
+            begin
+              Result := '';
+              Exit;
+            end;
+        end;
+      if bp > l then
+          Result := ''
+      else
+        begin
+          ep := l;
+
+          while CharIn(GetChars(ep), @limitS) do
+            begin
+              dec(ep);
+              if (ep < 1) then
+                begin
+                  Result := '';
+                  Exit;
+                end;
+            end;
+          Result := GetString(bp, ep + 1);
+        end;
+    end;
 end;
 
 function TPascalString.BOMBytes: TBytes;
