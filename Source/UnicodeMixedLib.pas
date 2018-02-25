@@ -102,7 +102,7 @@ type
   end;
 
   umlArraySystemString = array of SystemString;
-  umlArrayString       = array of umlString;
+  umlArrayString       = TArrayPascalString;
   pumlArrayString      = ^umlArrayString;
 
   FixedLengthString = packed record
@@ -1156,7 +1156,7 @@ begin
         until Result.Same(n);
 
         if Result.Last = '\' then
-            Result.Delete(Result.len, 1);
+            Result.DeleteLast;
       end;
     else
       begin
@@ -2634,10 +2634,10 @@ type
 var
   cnt: array [TValSym] of Integer;
   V  : TValSym;
-  c  : umlChar;
+  c  : SystemChar;
   i  : Integer;
 begin
-  if umlSameText('true', S) or umlSameText('false', S) then
+  if S.Same('true') or S.Same('false') then
       Exit(ntBool);
 
   for V := low(TValSym) to high(TValSym) do
@@ -2718,26 +2718,26 @@ begin
         begin
           if cnt[vsSymSub] > 0 then
             begin
-              if cnt[vsNum] < 2 then
+              if cnt[vsNum] + cnt[vsAtoF] < 2 then
                   Result := ntShortInt
-              else if cnt[vsNum] < 4 then
+              else if cnt[vsNum] + cnt[vsAtoF] < 4 then
                   Result := ntSmallInt
-              else if cnt[vsNum] < 7 then
+              else if cnt[vsNum] + cnt[vsAtoF] < 7 then
                   Result := ntInt
-              else if cnt[vsNum] < 13 then
+              else if cnt[vsNum] + cnt[vsAtoF] < 13 then
                   Result := ntInt64
               else
                   Result := ntUnknow;
             end
           else
             begin
-              if cnt[vsNum] < 3 then
+              if cnt[vsNum] + cnt[vsAtoF] < 3 then
                   Result := ntByte
-              else if cnt[vsNum] < 5 then
+              else if cnt[vsNum] + cnt[vsAtoF] < 5 then
                   Result := ntWord
-              else if cnt[vsNum] < 8 then
+              else if cnt[vsNum] + cnt[vsAtoF] < 8 then
                   Result := ntUInt
-              else if cnt[vsNum] < 14 then
+              else if cnt[vsNum] + cnt[vsAtoF] < 14 then
                   Result := ntUInt64
               else
                   Result := ntUnknow;
@@ -2753,7 +2753,7 @@ begin
               Result := ntSmallInt
           else if cnt[vsNum] < 8 then
               Result := ntInt
-          else if cnt[vsNum] < 13 then
+          else if cnt[vsNum] < 15 then
               Result := ntInt64
           else
               Result := ntUnknow;
@@ -2766,7 +2766,7 @@ begin
               Result := ntWord
           else if cnt[vsNum] < 8 then
               Result := ntUInt
-          else if cnt[vsNum] < 14 then
+          else if cnt[vsNum] < 16 then
               Result := ntUInt64
           else
               Result := ntUnknow;
