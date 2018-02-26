@@ -189,7 +189,7 @@ begin
 end;
 
 type
-  TDoStatusData = record
+  TDoStatusData = packed record
     TokenObj: TCoreClassObject;
     OnStatusNear: TDoStatusMethod;
     OnStatusFar: TDoStatusCall;

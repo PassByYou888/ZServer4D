@@ -34,7 +34,7 @@ type
     procedure ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
   end;
 
-  TServerManager_ClientConnectInfo = record
+  TServerManager_ClientConnectInfo = packed record
     RegName, ManServAddr, RegAddr: SystemString;
     ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word;
     ServerType: TServerType;

@@ -148,6 +148,13 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 # 更新日志
 
+### 2018-2-26
+
+重制了内置原子锁，新版本的内置原子锁现在可以支持高并发，支持Linux。( 使用内置原子锁需要在zDefine.inc打开 CriticalSimulateAtomic )
+
+修复zExpression切割分段不正确问题
+
+
 ### 2018-2-25
 
 zExpression新增自定义表达式符号支持

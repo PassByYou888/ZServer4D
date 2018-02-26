@@ -37,7 +37,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
     Align = alTop
     BorderWidth = 5
     TabOrder = 0
-    ExplicitWidth = 897
     object Bevel1: TBevel
       Left = 176
       Top = 6
@@ -124,9 +123,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'New'
       TabOrder = 0
       OnClick = NewButtonClick
-      ExplicitLeft = -2
-      ExplicitTop = -2
-      ExplicitHeight = 33
     end
     object OpenButton: TButton
       Left = 66
@@ -137,9 +133,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Open'
       TabOrder = 1
       OnClick = OpenButtonClick
-      ExplicitLeft = 51
-      ExplicitTop = 1
-      ExplicitHeight = 39
     end
     object SaveButton: TButton
       Left = 126
@@ -150,9 +143,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Save'
       TabOrder = 2
       OnClick = SaveButtonClick
-      ExplicitLeft = 101
-      ExplicitTop = 1
-      ExplicitHeight = 39
     end
     object SaveAsButton: TButton
       Left = 186
@@ -163,9 +153,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Save as'
       TabOrder = 3
       OnClick = SaveAsButtonClick
-      ExplicitLeft = 161
-      ExplicitTop = 1
-      ExplicitHeight = 39
     end
     object MD5Edit: TMemo
       Left = 420
@@ -175,9 +162,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Align = alLeft
       ParentColor = True
       TabOrder = 4
-      ExplicitLeft = 385
-      ExplicitTop = 1
-      ExplicitHeight = 39
     end
     object CacheStateMemo: TMemo
       Left = 655
@@ -186,10 +170,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Height = 45
       Align = alClient
       TabOrder = 5
-      ExplicitLeft = 610
-      ExplicitTop = 1
-      ExplicitWidth = 286
-      ExplicitHeight = 39
     end
     object RecalcMD5Button: TButton
       Left = 374
@@ -200,9 +180,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'MD5'
       TabOrder = 6
       OnClick = RecalcMD5ButtonClick
-      ExplicitLeft = 349
-      ExplicitTop = 1
-      ExplicitHeight = 39
     end
     object CompressAsButton: TButton
       Left = 246
@@ -210,12 +187,9 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Width = 118
       Height = 45
       Align = alLeft
-      Caption = 'Save as Compressed'
+      Caption = 'Save as .OXC'
       TabOrder = 7
       OnClick = CompressAsButtonClick
-      ExplicitLeft = 221
-      ExplicitTop = 1
-      ExplicitHeight = 39
     end
   end
   object Memo: TMemo
@@ -224,9 +198,9 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
     Width = 1167
     Height = 121
     Align = alBottom
+    BorderStyle = bsNone
     TabOrder = 1
     WordWrap = False
-    ExplicitWidth = 897
   end
   object OpenDialog: TOpenDialog
     Filter = 

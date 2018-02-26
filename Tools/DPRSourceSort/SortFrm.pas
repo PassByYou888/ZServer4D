@@ -114,7 +114,7 @@ begin
       n := umlTrimSpace(Code[i]);
       if (n.Len > 0) then
         begin
-          t := TTextParsing.Create(n, tsPascal);
+          t := TTextParsing.Create(n, tsPascal, nil);
           if (t.TokenStatistics[ttTextDecl] = 1) then
             begin
               new(p);
@@ -213,7 +213,7 @@ var
   s: umlString;
 begin
   SourceOutput := '';
-  t := TTextParsing.Create(sourceCode, tsPascal);
+  t := TTextParsing.Create(sourceCode, tsPascal, nil);
 
   InitedUnit := False;
   InitedUses := False;

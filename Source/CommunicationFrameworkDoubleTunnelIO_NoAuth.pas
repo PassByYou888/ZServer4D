@@ -55,7 +55,7 @@ type
 
   PPostBatchBackcallData_NoAuth = ^TPostBatchBackcallData_NoAuth;
 
-  TPostBatchBackcallData_NoAuth = record
+  TPostBatchBackcallData_NoAuth = packed record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
     {$IFNDEF FPC}
@@ -156,7 +156,7 @@ type
   {$ENDIF}
   PRemoteFileBackcall_NoAuth = ^TRemoteFileBackcall_NoAuth;
 
-  TRemoteFileBackcall_NoAuth = record
+  TRemoteFileBackcall_NoAuth = packed record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall_NoAuth;

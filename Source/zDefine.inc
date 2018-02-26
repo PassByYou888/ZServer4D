@@ -1,6 +1,7 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
 { ****************************************************************************** }
 {$IFDEF FPC}
 
@@ -37,7 +38,7 @@
 
 // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
 // if CriticalSimulateAtomic defined so performance to be reduced
-{ .$DEFINE CriticalSimulateAtomic }
+// {$DEFINE CriticalSimulateAtomic}
 
 {$IFDEF Linux}
 {$DEFINE CriticalSimulateAtomic}
@@ -51,7 +52,7 @@
 {$H+} { long string }
 {$R-} { range check }
 {$A+} { Word Align Data }
-// {$O-} { optimization }
+//{$O-} { optimization }
 
 (*
   {$IFDEF FPC}
@@ -66,19 +67,22 @@
 *)
 
 {$IFDEF release}
-{$DEFINE INLINE_ASM}
+ {$DEFINE INLINE_ASM}
 {$ELSE}
-{$UNDEF INLINE_ASM}
+ {$UNDEF INLINE_ASM}
 {$ENDIF}
 
 {$UNDEF CPU64}
+
 {$IFDEF CPU64BITS}
-{$DEFINE CPU64}
+ {$DEFINE CPU64}
 {$ELSE}
-{$IFDEF CPUX64}
-{$DEFINE CPU64}
+ {$IFDEF CPUX64}
+  {$DEFINE CPU64}
+ {$ENDIF}
 {$ENDIF}
-{$ENDIF}
+
 {$IFNDEF CPU64}
-{$DEFINE CPU32}
+ {$DEFINE CPU32}
 {$ENDIF}
+

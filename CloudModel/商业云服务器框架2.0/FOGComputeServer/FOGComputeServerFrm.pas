@@ -112,7 +112,7 @@ begin
   if RecvTunnel.Exists(Sender.Data1) then
     begin
       // 客户端未离线时，使用句法引擎计算一次表达式结果
-      v := EvaluateExpressionValue(TTextParsing, Sender.DataEng.ReadString(0), nil);
+      v := EvaluateExpressionValue(Sender.DataEng.ReadString(0));
       // 往延迟数据结构写入反馈值，相当于OutData
       if VarIsNull(v) then
           TPeerClient(Sender.Data1).OutDataFrame.WriteString('表达式无效')

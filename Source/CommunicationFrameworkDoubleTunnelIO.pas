@@ -68,7 +68,7 @@ type
 
   PPostBatchBackcallData = ^TPostBatchBackcallData;
 
-  TPostBatchBackcallData = record
+  TPostBatchBackcallData = packed record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
     {$IFNDEF FPC}
@@ -230,7 +230,7 @@ type
   {$ENDIF}
   PRemoteFileBackcall = ^TRemoteFileBackcall;
 
-  TRemoteFileBackcall = record
+  TRemoteFileBackcall = packed record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall;

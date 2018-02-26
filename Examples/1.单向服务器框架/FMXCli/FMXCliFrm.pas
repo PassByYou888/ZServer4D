@@ -1,5 +1,5 @@
 unit FMXCliFrm;
-
+
 interface
 
 uses
@@ -71,10 +71,16 @@ begin
   Memo1.GoToTextEnd;
 end;
 
+procedure fmx_Indy_ProgressBackgroundProc;
+begin
+  Application.ProcessMessages;
+end;
+
 procedure TFMXClientForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
   client := TCommunicationFramework_Client_Indy.Create;
+  ProgressBackgroundProc := fmx_Indy_ProgressBackgroundProc;
 end;
 
 procedure TFMXClientForm.FormDestroy(Sender: TObject);
@@ -130,11 +136,11 @@ var
   p : PInt64;
   i : Integer;
 begin
-  // 在ms中包含了128M大型数据，在服务器端相当于执行了1条普通命令
+  // 在ms中包含了16M大型数据，在服务器端相当于执行了1条普通命令
   ms := TMemoryStream.Create;
-  ms.Size := 128 * 1024 * 1024;
+  ms.Size := 16 * 1024 * 1024;
 
-  DoStatus('创建128M临时大数据流');
+  DoStatus('创建16M临时大数据流');
   p := ms.Memory;
   for i := 1 to ms.Size div SizeOf(Int64) do
     begin
@@ -182,3 +188,4 @@ begin
 end;
 
 end.
+

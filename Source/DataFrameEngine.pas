@@ -455,54 +455,54 @@ type
     destructor Destroy; override;
     property index: Integer read FIndex write FIndex;
     //
-    function IsEnd: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function NotEnd: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure GoNext; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IsEnd: Boolean;  { inline }
+    function NotEnd: Boolean; { inline }
+    procedure GoNext;         { inline }
     //
-    function ReadString: SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadInteger: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadCardinal: Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadWord: Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadBool: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadBoolean: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadByte: Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadSingle: Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadDouble: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayInteger: TDataFrameArrayInteger; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayShortInt: TDataFrameArrayShortInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayByte: TDataFrameArrayByte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadMD5: UnicodeMixedLib.TMD5; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArraySingle: TDataFrameArraySingle; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayDouble: TDataFrameArrayDouble; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayInt64: TDataFrameArrayInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadStream(output: TCoreClassStream); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVariant: Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadInt64: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadUInt64: UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadStrings(output: TCoreClassStrings); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadDataFrame(output: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadVariantList(output: THashVariantList); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadSectionText(output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadTextSection(output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    {$IFNDEF FPC} procedure ReadJson(output: TJsonObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
-    function ReadRect: TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadRectf: TRectf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadPoint: TPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadPointf: TPointf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVector: TVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadAffineVector: TAffineVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVec3: TVec3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVec4: TVec4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVector3: TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVector4: TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadMat4: TMat4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadMatrix4: TMatrix4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Read2DPoint: T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVec2: TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Read2DRect: T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadPointer: UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadString: SystemString;                   { inline }
+    function ReadInteger: Integer;                       { inline }
+    function ReadCardinal: Cardinal;                     { inline }
+    function ReadWord: Word;                             { inline }
+    function ReadBool: Boolean;                          { inline }
+    function ReadBoolean: Boolean;                       { inline }
+    function ReadByte: Byte;                             { inline }
+    function ReadSingle: Single;                         { inline }
+    function ReadDouble: Double;                         { inline }
+    function ReadArrayInteger: TDataFrameArrayInteger;   { inline }
+    function ReadArrayShortInt: TDataFrameArrayShortInt; { inline }
+    function ReadArrayByte: TDataFrameArrayByte;         { inline }
+    function ReadMD5: UnicodeMixedLib.TMD5;              { inline }
+    function ReadArraySingle: TDataFrameArraySingle;     { inline }
+    function ReadArrayDouble: TDataFrameArrayDouble;     { inline }
+    function ReadArrayInt64: TDataFrameArrayInt64;       { inline }
+    procedure ReadStream(output: TCoreClassStream);      { inline }
+    function ReadVariant: Variant;                       { inline }
+    function ReadInt64: Int64;                           { inline }
+    function ReadUInt64: UInt64;                         { inline }
+    procedure ReadStrings(output: TCoreClassStrings);    { inline }
+    procedure ReadDataFrame(output: TDataFrameEngine);   { inline }
+    procedure ReadVariantList(output: THashVariantList); { inline }
+    procedure ReadSectionText(output: TSectionTextData); { inline }
+    procedure ReadTextSection(output: TSectionTextData); { inline }
+    {$IFNDEF FPC} procedure ReadJson(output: TJsonObject); { inline }    {$ENDIF}
+    function ReadRect: TRect;                 { inline }
+    function ReadRectf: TRectf;               { inline }
+    function ReadPoint: TPoint;               { inline }
+    function ReadPointf: TPointf;             { inline }
+    function ReadVector: TVector;             { inline }
+    function ReadAffineVector: TAffineVector; { inline }
+    function ReadVec3: TVec3;                 { inline }
+    function ReadVec4: TVec4;                 { inline }
+    function ReadVector3: TVector3;           { inline }
+    function ReadVector4: TVector4;           { inline }
+    function ReadMat4: TMat4;                 { inline }
+    function ReadMatrix4: TMatrix4;           { inline }
+    function Read2DPoint: T2DPoint;           { inline }
+    function ReadVec2: TVec2;                 { inline }
+    function Read2DRect: T2DRect;             { inline }
+    function ReadPointer: UInt64;             { inline }
     // auto read from stream data
-    procedure Read(var aBuf; aCount: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Read(var aBuf; aCount: Int64); { inline }
   end;
 
   TDataFrameEngine = class(TCoreClassObject)
@@ -520,112 +520,112 @@ type
 
     property Reader: TDataFrameEngineReader read FReader;
 
-    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddData(v: TRunTimeDataType): TDataFrameBase; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetData(idx: Integer): TDataFrameBase; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetDataInfo(_Obj: TDataFrameBase): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Delete(idx: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function DeleteFirst: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function DeleteLast: Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function DeleteLastCount(cnt: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function DeleteCount(idx, _Count: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Clear;                                           { inline }
+    function AddData(v: TRunTimeDataType): TDataFrameBase;     { inline }
+    function GetData(idx: Integer): TDataFrameBase;            { inline }
+    function GetDataInfo(_Obj: TDataFrameBase): SystemString;  { inline }
+    function Count: Integer;                                   { inline }
+    function Delete(idx: Integer): Boolean;                    { inline }
+    function DeleteFirst: Boolean;                             { inline }
+    function DeleteLast: Boolean; overload;                    { inline }
+    function DeleteLastCount(cnt: Integer): Boolean; overload; { inline }
+    function DeleteCount(idx, _Count: Integer): Boolean;       { inline }
     //
-    procedure Assign(SameObj: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Assign(SameObj: TDataFrameEngine); { inline }
     //
-    procedure WriteString(v: SystemString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteString(v: umlString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteInteger(v: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteCardinal(v: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteWORD(v: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteBool(v: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteBoolean(v: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteByte(v: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteSingle(v: Single); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteDouble(v: Double); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteArrayInteger: TDataFrameArrayInteger; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteArrayShortInt: TDataFrameArrayShortInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteArrayByte: TDataFrameArrayByte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteMD5(md5: UnicodeMixedLib.TMD5); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteArraySingle: TDataFrameArraySingle; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteArrayDouble: TDataFrameArrayDouble; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function WriteArrayInt64: TDataFrameArrayInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteStream(v: TCoreClassStream); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVariant(v: Variant); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteInt64(v: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteUInt64(v: UInt64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteStrings(v: TCoreClassStrings); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteDataFrame(v: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteDataFrameCompressed(v: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVariantList(v: THashVariantList); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteSectionText(v: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteTextSection(v: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    {$IFNDEF FPC} procedure WriteJson(v: TJsonObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
-    procedure WriteFile(fn: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteRect(v: TRect); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteRectf(v: TRectf); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WritePoint(v: TPoint); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WritePointf(v: TPointf); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVector(v: TVector); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteAffineVector(v: TAffineVector); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVec4(v: TVec4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVec3(v: TVec3); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVector4(v: TVector4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVector3(v: TVector3); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteMat4(v: TMat4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteMatrix4(v: TMatrix4); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Write2DPoint(v: T2DPoint); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WriteVec2(v: TVec2); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Write2DRect(v: T2DRect); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WritePointer(v: Pointer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure WritePointer(v: UInt64); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteString(v: SystemString); overload;        { inline }
+    procedure WriteString(v: umlString); overload;           { inline }
+    procedure WriteInteger(v: Integer);                      { inline }
+    procedure WriteCardinal(v: Cardinal);                    { inline }
+    procedure WriteWORD(v: Word);                            { inline }
+    procedure WriteBool(v: Boolean);                         { inline }
+    procedure WriteBoolean(v: Boolean);                      { inline }
+    procedure WriteByte(v: Byte);                            { inline }
+    procedure WriteSingle(v: Single);                        { inline }
+    procedure WriteDouble(v: Double);                        { inline }
+    function WriteArrayInteger: TDataFrameArrayInteger;      { inline }
+    function WriteArrayShortInt: TDataFrameArrayShortInt;    { inline }
+    function WriteArrayByte: TDataFrameArrayByte;            { inline }
+    procedure WriteMD5(md5: UnicodeMixedLib.TMD5);           { inline }
+    function WriteArraySingle: TDataFrameArraySingle;        { inline }
+    function WriteArrayDouble: TDataFrameArrayDouble;        { inline }
+    function WriteArrayInt64: TDataFrameArrayInt64;          { inline }
+    procedure WriteStream(v: TCoreClassStream);              { inline }
+    procedure WriteVariant(v: Variant);                      { inline }
+    procedure WriteInt64(v: Int64);                          { inline }
+    procedure WriteUInt64(v: UInt64);                        { inline }
+    procedure WriteStrings(v: TCoreClassStrings);            { inline }
+    procedure WriteDataFrame(v: TDataFrameEngine);           { inline }
+    procedure WriteDataFrameCompressed(v: TDataFrameEngine); { inline }
+    procedure WriteVariantList(v: THashVariantList);         { inline }
+    procedure WriteSectionText(v: TSectionTextData);         { inline }
+    procedure WriteTextSection(v: TSectionTextData);         { inline }
+    {$IFNDEF FPC} procedure WriteJson(v: TJsonObject); { inline }    {$ENDIF}
+    procedure WriteFile(fn: SystemString);         { inline }
+    procedure WriteRect(v: TRect);                 { inline }
+    procedure WriteRectf(v: TRectf);               { inline }
+    procedure WritePoint(v: TPoint);               { inline }
+    procedure WritePointf(v: TPointf);             { inline }
+    procedure WriteVector(v: TVector);             { inline }
+    procedure WriteAffineVector(v: TAffineVector); { inline }
+    procedure WriteVec4(v: TVec4);                 { inline }
+    procedure WriteVec3(v: TVec3);                 { inline }
+    procedure WriteVector4(v: TVector4);           { inline }
+    procedure WriteVector3(v: TVector3);           { inline }
+    procedure WriteMat4(v: TMat4);                 { inline }
+    procedure WriteMatrix4(v: TMatrix4);           { inline }
+    procedure Write2DPoint(v: T2DPoint);           { inline }
+    procedure WriteVec2(v: TVec2);                 { inline }
+    procedure Write2DRect(v: T2DRect);             { inline }
+    procedure WritePointer(v: Pointer); overload;  { inline }
+    procedure WritePointer(v: UInt64); overload;   { inline }
     // auto append new stream and write
-    procedure Write(const aBuf; aCount: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Write(const aBuf; aCount: Int64); { inline }
     //
-    function ReadString(idx: Integer): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadInteger(idx: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadCardinal(idx: Integer): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadWord(idx: Integer): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadBool(idx: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadBoolean(idx: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadByte(idx: Integer): Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadSingle(idx: Integer): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadDouble(idx: Integer): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayInteger(idx: Integer): TDataFrameArrayInteger; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayShortInt(idx: Integer): TDataFrameArrayShortInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayByte(idx: Integer): TDataFrameArrayByte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadMD5(idx: Integer): UnicodeMixedLib.TMD5; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArraySingle(idx: Integer): TDataFrameArraySingle; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayDouble(idx: Integer): TDataFrameArrayDouble; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadArrayInt64(idx: Integer): TDataFrameArrayInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadStream(idx: Integer; output: TCoreClassStream); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVariant(idx: Integer): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadInt64(idx: Integer): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadUInt64(idx: Integer): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadStrings(idx: Integer; output: TCoreClassStrings); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadDataFrame(idx: Integer; output: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadVariantList(idx: Integer; output: THashVariantList); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadSectionText(idx: Integer; output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReadTextSection(idx: Integer; output: TSectionTextData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    {$IFNDEF FPC} procedure ReadJson(idx: Integer; output: TJsonObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
-    function ReadRect(idx: Integer): TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadRectf(idx: Integer): TRectf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadPoint(idx: Integer): TPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadPointf(idx: Integer): TPointf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVector(idx: Integer): TVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadAffineVector(idx: Integer): TAffineVector; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVec3(idx: Integer): TVec3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVec4(idx: Integer): TVec4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVector3(idx: Integer): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVector4(idx: Integer): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadMat4(idx: Integer): TMat4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadMatrix4(idx: Integer): TMatrix4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Read2DPoint(idx: Integer): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadVec2(idx: Integer): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Read2DRect(idx: Integer): T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ReadPointer(idx: Integer): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadString(idx: Integer): SystemString;                   { inline }
+    function ReadInteger(idx: Integer): Integer;                       { inline }
+    function ReadCardinal(idx: Integer): Cardinal;                     { inline }
+    function ReadWord(idx: Integer): Word;                             { inline }
+    function ReadBool(idx: Integer): Boolean;                          { inline }
+    function ReadBoolean(idx: Integer): Boolean;                       { inline }
+    function ReadByte(idx: Integer): Byte;                             { inline }
+    function ReadSingle(idx: Integer): Single;                         { inline }
+    function ReadDouble(idx: Integer): Double;                         { inline }
+    function ReadArrayInteger(idx: Integer): TDataFrameArrayInteger;   { inline }
+    function ReadArrayShortInt(idx: Integer): TDataFrameArrayShortInt; { inline }
+    function ReadArrayByte(idx: Integer): TDataFrameArrayByte;         { inline }
+    function ReadMD5(idx: Integer): UnicodeMixedLib.TMD5;              { inline }
+    function ReadArraySingle(idx: Integer): TDataFrameArraySingle;     { inline }
+    function ReadArrayDouble(idx: Integer): TDataFrameArrayDouble;     { inline }
+    function ReadArrayInt64(idx: Integer): TDataFrameArrayInt64;       { inline }
+    procedure ReadStream(idx: Integer; output: TCoreClassStream);      { inline }
+    function ReadVariant(idx: Integer): Variant;                       { inline }
+    function ReadInt64(idx: Integer): Int64;                           { inline }
+    function ReadUInt64(idx: Integer): UInt64;                         { inline }
+    procedure ReadStrings(idx: Integer; output: TCoreClassStrings);    { inline }
+    procedure ReadDataFrame(idx: Integer; output: TDataFrameEngine);   { inline }
+    procedure ReadVariantList(idx: Integer; output: THashVariantList); { inline }
+    procedure ReadSectionText(idx: Integer; output: TSectionTextData); { inline }
+    procedure ReadTextSection(idx: Integer; output: TSectionTextData); { inline }
+    {$IFNDEF FPC} procedure ReadJson(idx: Integer; output: TJsonObject); { inline }    {$ENDIF}
+    function ReadRect(idx: Integer): TRect;                 { inline }
+    function ReadRectf(idx: Integer): TRectf;               { inline }
+    function ReadPoint(idx: Integer): TPoint;               { inline }
+    function ReadPointf(idx: Integer): TPointf;             { inline }
+    function ReadVector(idx: Integer): TVector;             { inline }
+    function ReadAffineVector(idx: Integer): TAffineVector; { inline }
+    function ReadVec3(idx: Integer): TVec3;                 { inline }
+    function ReadVec4(idx: Integer): TVec4;                 { inline }
+    function ReadVector3(idx: Integer): TVector3;           { inline }
+    function ReadVector4(idx: Integer): TVector4;           { inline }
+    function ReadMat4(idx: Integer): TMat4;                 { inline }
+    function ReadMatrix4(idx: Integer): TMatrix4;           { inline }
+    function Read2DPoint(idx: Integer): T2DPoint;           { inline }
+    function ReadVec2(idx: Integer): TVec2;                 { inline }
+    function Read2DRect(idx: Integer): T2DRect;             { inline }
+    function ReadPointer(idx: Integer): UInt64;             { inline }
     // read from stream data
-    procedure Read(idx: Integer; var aBuf; aCount: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Read(idx: Integer; var aBuf; aCount: Int64); { inline }
     //
     function ComputeEncodeSize: Integer;
 

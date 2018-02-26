@@ -54,7 +54,7 @@ type
 
   PPostBatchBackcallData_VirtualAuth = ^TPostBatchBackcallData_VirtualAuth;
 
-  TPostBatchBackcallData_VirtualAuth = record
+  TPostBatchBackcallData_VirtualAuth = packed record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
     {$IFNDEF FPC}
@@ -162,7 +162,7 @@ type
   {$ENDIF}
   PRemoteFileBackcall_VirtualAuth = ^TRemoteFileBackcall_VirtualAuth;
 
-  TRemoteFileBackcall_VirtualAuth = record
+  TRemoteFileBackcall_VirtualAuth = packed record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall_VirtualAuth;

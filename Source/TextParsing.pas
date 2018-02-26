@@ -20,14 +20,14 @@ type
   TTokenType       = (ttTextDecl, ttComment, ttNumber, ttSymbol, ttAscii, ttSpecialSymbol, ttUnknow);
   TTokenStatistics = array [TTokenType] of Integer;
 
-  TTextPos = record
+  TTextPos = packed record
     bPos, ePos: Integer;
     Text: TPascalString;
   end;
 
   PTextPos = ^TTextPos;
 
-  TTokenData = record
+  TTokenData = packed record
     bPos, ePos: Integer;
     Text: TPascalString;
     tokenType: TTokenType;
@@ -36,13 +36,13 @@ type
 
   PTokenData = ^TTokenData;
 
-  TTextParsingCache = record
+  TTextParsingCache = packed record
     CommentData: TCoreClassList;
     TextData: TCoreClassList;
     TokenDataList: TCoreClassList;
   end;
 
-  TTextParsingData = record
+  TTextParsingData = packed record
     Cache: TTextParsingCache;
     Text: TPascalString;
     Len: Integer;
@@ -53,7 +53,7 @@ type
     NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0, 0);
     DefaultSymbol                         = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36;
   protected type
-    TCTranslateStruct = record
+    TCTranslateStruct = packed record
       s: SystemChar;
       c: SystemString;
     end;
@@ -1437,6 +1437,9 @@ function TTextParsing.SplitChar(const charPos: Integer; var LastPos: Integer; co
   var
     l: Integer;
   begin
+    s := s.TrimChar(#32#0);
+    if s.Len = 0 then
+        Exit;
     l := Length(SplitOutput);
     SetLength(SplitOutput, l + 1);
     SplitOutput[l] := s;
@@ -1467,9 +1470,14 @@ begin
   LastSym := lsNone;
   while (cPos <= l) do
     begin
-      if isTextOrComment(cPos) then
+      if isComment(cPos) then
         begin
-          Inc(cPos);
+          cPos := GetCommentEndPos(cPos);
+          continue;
+        end;
+      if isTextDecl(cPos) then
+        begin
+          cPos := GetTextDeclEndPos(cPos);
           continue;
         end;
       c := ParsingData.Text[cPos];
@@ -1525,6 +1533,9 @@ function TTextParsing.SplitString(const charPos: Integer; var LastPos: Integer; 
   var
     l: Integer;
   begin
+    s := s.TrimChar(#32#0);
+    if s.Len = 0 then
+        Exit;
     l := Length(SplitOutput);
     SetLength(SplitOutput, l + 1);
     SplitOutput[l] := s;
@@ -1555,9 +1566,14 @@ begin
   LastSym := lsNone;
   while (cPos <= l) do
     begin
-      if isTextOrComment(cPos) then
+      if isComment(cPos) then
         begin
-          Inc(cPos);
+          cPos := GetCommentEndPos(cPos);
+          continue;
+        end;
+      if isTextDecl(cPos) then
+        begin
+          cPos := GetTextDeclEndPos(cPos);
           continue;
         end;
       if ComparePosStr(cPos, SplitTokenS) then

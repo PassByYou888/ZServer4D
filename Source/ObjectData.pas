@@ -60,7 +60,7 @@ const
 type
   PHeader = ^THeader;
 
-  THeader = record
+  THeader = packed record
     CurrentHeader: Int64; // nowrite
     NextHeader, PrevHeader, DataMainPOS: Int64;
     CreateTime, LastModifyTime: Double;
@@ -76,7 +76,7 @@ type
 
   PItemBlock = ^TItemBlock;
 
-  TItemBlock = record
+  TItemBlock = packed record
     IDFlags: Byte;
     CurrentBlockPOS, NextBlockPOS, PrevBlockPOS, DataBlockPOS: Int64;
     Size: Int64;
@@ -89,7 +89,7 @@ type
 
   PItem = ^TItem;
 
-  TItem = record
+  TItem = packed record
     RHeader: THeader;
     Description: umlString;
     ExtID: Byte;
@@ -109,7 +109,7 @@ type
 
   PField = ^TField;
 
-  TField = record
+  TField = packed record
     RHeader: THeader;
     UpLevelFieldPOS: Int64;
     Description: umlString;
@@ -122,7 +122,7 @@ type
   TObjectDataFieldWriteProc = procedure(fPos: Int64; var wVal: TField) of object;
   TObjectDataFieldReadProc  = procedure(fPos: Int64; var rVal: TField; var Done: Boolean) of object;
 
-  TFieldSearch = record
+  TFieldSearch = packed record
     RHeader: THeader;
     InitFlags: Boolean;
     Name: umlString;
@@ -134,7 +134,7 @@ type
 
   PTMDB = ^TTMDB;
 
-  TTMDB = record
+  TTMDB = packed record
     FileDescription: umlString;
     MajorVer, MinorVer: SmallInt;
     CreateTime, LastModifyTime: Double;
@@ -160,7 +160,7 @@ type
     MemorySiz: NativeUInt; // nowrite
   end;
 
-  TTMDBItemHandle = record
+  TTMDBItemHandle = packed record
     Item: TItem;
     Path: umlString;
     Name: umlString;
@@ -170,7 +170,7 @@ type
     OpenFlags: Boolean;
   end;
 
-  TTMDBSearchHeader = record
+  TTMDBSearchHeader = packed record
     Name: umlString;
     ID: Byte;
     CreateTime, LastModifyTime: Double;
@@ -179,7 +179,7 @@ type
     FieldSearch: TFieldSearch;
   end;
 
-  TTMDBSearchItem = record
+  TTMDBSearchItem = packed record
     Name: umlString;
     Description: umlString;
     ExtID: Byte;
@@ -189,7 +189,7 @@ type
     FieldSearch: TFieldSearch;
   end;
 
-  TTMDBSearchField = record
+  TTMDBSearchField = packed record
     Name: umlString;
     Description: umlString;
     HeaderCount: Int64;
@@ -198,7 +198,7 @@ type
     FieldSearch: TFieldSearch;
   end;
 
-  TTMDBDescriptionHandle = record
+  TTMDBDescriptionHandle = packed record
     StructVarID: Byte;
     StructDescription: umlString;
     StructNextPos, StructCurrentPos, StructPublicPos: Int64;
@@ -206,14 +206,14 @@ type
     StructPositionID: Byte;
   end;
 
-  TTMDBItemStruct = record
+  TTMDBItemStruct = packed record
     Description: umlString;
     StructCount: Int64;
     StructFirstPos, StructLastPos, ItemStructCurrentPos: Int64;
     DescriptionHandle: TTMDBDescriptionHandle;
   end;
 
-  TTMDBRecursionSearch = record
+  TTMDBRecursionSearch = packed record
     ReturnHeader: THeader;
     CurrentField: TField;
     InitPath: umlString;

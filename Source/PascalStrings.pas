@@ -31,7 +31,7 @@ type
 
   TPascalChars = array of Char;
 
-  TPascalString = record
+  TPascalString = packed record
   private
     function GetText: SystemString;
     procedure SetText(const Value: SystemString);

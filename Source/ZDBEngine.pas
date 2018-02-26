@@ -216,7 +216,7 @@ type
 
   PQueryState = ^TQueryState;
 
-  TQueryState = record
+  TQueryState = packed record
     DBEng: TDBStoreBase;
     StorePos: Int64;
     QueryHnd: PHeader;
@@ -292,7 +292,7 @@ type
 
   PRemoveQueueData = ^TRemoveQueueData;
 
-  TRemoveQueueData = record
+  TRemoveQueueData = packed record
     OnRemoveCall: TRemoveCall;
     OnRemoveMethod: TRemoveMethod;
     {$IFNDEF FPC}

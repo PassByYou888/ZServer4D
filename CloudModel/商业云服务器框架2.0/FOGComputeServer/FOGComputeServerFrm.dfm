@@ -115,6 +115,10 @@ object FOGComputeServerForm: TFOGComputeServerForm
     TabOrder = 1
     object StatusTabSheet: TTabSheet
       Caption = 'Log Status'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Memo: TMemo
         Left = 0
         Top = 0
@@ -136,6 +140,10 @@ object FOGComputeServerForm: TFOGComputeServerForm
     object OptionsTabSheet: TTabSheet
       Caption = 'Options'
       ImageIndex = -1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object RecvPortEdit: TLabeledEdit
         Left = 136
         Top = 38
@@ -176,6 +184,10 @@ object FOGComputeServerForm: TFOGComputeServerForm
     object ConnectTreeTabSheet: TTabSheet
       Caption = 'connect tree'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object TreeView: TTreeView
         Left = 0
         Top = 0

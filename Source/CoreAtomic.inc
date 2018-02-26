@@ -9,22 +9,22 @@
 type
   PCriticalLock = ^TCriticalLock;
 
-  TCriticalLock = record
+  TCriticalLock = packed record
     Obj: TObject;
     Critical: TCriticalSection;
   end;
 
 var
-  CoreCritical: TCriticalSection = nil;
-  CriticalList: TCoreClassList   = nil;
+  CoreCritical: TCriticalSection;
+  CriticalList: TCoreClassList;
 
-procedure InitCriticalLock; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure InitCriticalLock;
 begin
   CoreCritical := TCriticalSection.Create;
   CriticalList := TCoreClassList.Create;
 end;
 
-procedure FreeCriticalLock; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure FreeCriticalLock;
 var
   i: Integer;
 begin
@@ -38,73 +38,78 @@ begin
   DisposeObject(CriticalList);
 end;
 
-function GetCriticalLock(Obj: TObject): PCriticalLock; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure GetCriticalLock(Obj: TObject; var output: PCriticalLock);
 var
-  i : Integer;
-  pi: Integer;
-  p : PCriticalLock;
-begin
-  Result := nil;
-  pi := -1;
-  p := nil;
-  i := 0;
-  while i < CriticalList.Count do
-    begin
-      if PCriticalLock(CriticalList[i])^.Obj = Obj then
-        begin
-          Result := PCriticalLock(CriticalList[i]);
-          break;
-        end
-      else
-        begin
-          if (p = nil) and (PCriticalLock(CriticalList[i])^.Obj = nil) then
-            begin
-              p := PCriticalLock(CriticalList[i]);
-              pi := i;
-            end;
-          inc(i);
-        end;
-    end;
-  if Result = nil then
-    begin
-      if p <> nil then
-        begin
-          p^.Obj := Obj;
-          Result := p;
-          if pi > 0 then
-              CriticalList.Move(pi, 0);
-        end
-      else
-        begin
-          new(p);
-          p^.Obj := Obj;
-          p^.Critical := TCriticalSection.Create;
-          CriticalList.Insert(0, p);
-          Result := p;
-        end;
-    end;
-end;
-
-procedure _LockCriticalObj(Obj: TObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  i, pi: Integer;
+  p    : PCriticalLock;
 begin
   CoreCritical.Acquire;
-  if Obj = nil then
-      GetCriticalLock(CoreCritical)^.Critical.Acquire
-  else
-      GetCriticalLock(Obj)^.Critical.Acquire;
-  CoreCritical.Release;
+  try
+    output := nil;
+    pi := -1;
+    p := nil;
+    i := 0;
+    if CriticalList.Count > 1 then
+        empty;
+    while i < CriticalList.Count do
+      begin
+        if PCriticalLock(CriticalList[i])^.Obj = Obj then
+          begin
+            output := PCriticalLock(CriticalList[i]);
+            break;
+          end
+        else
+          begin
+            if (p = nil) and (PCriticalLock(CriticalList[i])^.Obj = nil) then
+              begin
+                p := PCriticalLock(CriticalList[i]);
+                pi := i;
+              end;
+            inc(i);
+          end;
+      end;
+    if output = nil then
+      begin
+        if p <> nil then
+          begin
+            p^.Obj := Obj;
+            output := p;
+            if pi > 0 then
+                CriticalList.Move(pi, 0);
+          end
+        else
+          begin
+            new(p);
+            p^.Obj := Obj;
+            p^.Critical := TCriticalSection.Create;
+            CriticalList.Insert(0, p);
+            output := p;
+          end;
+      end;
+  finally
+      CoreCritical.Release;
+  end;
 end;
 
-procedure _UnLockCriticalObj(Obj: TObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure _LockCriticalObj(Obj: TObject);
 var
   p: PCriticalLock;
 begin
-  CoreCritical.Acquire;
   if Obj = nil then
-      p := GetCriticalLock(CoreCritical)
+      GetCriticalLock(CoreCritical, p)
   else
-      p := GetCriticalLock(Obj);
-  p^.Critical.Release;
+      GetCriticalLock(Obj, p);
+  p^.Critical.Acquire;
+end;
+
+procedure _UnLockCriticalObj(Obj: TObject);
+var
+  p: PCriticalLock;
+begin
+  if Obj = nil then
+      GetCriticalLock(CoreCritical, p)
+  else
+      GetCriticalLock(Obj, p);
   p^.Obj := nil;
-  CoreCritical.Release;
+  p^.Critical.Release;
 end;

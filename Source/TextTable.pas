@@ -18,7 +18,7 @@ uses SysUtils, CoreClasses, DataFrameEngine, ListEngine, UnicodeMixedLib,
 type
   TTranlateStyle = (tsPascalText, tsPascalComment, tsCText, tsCComment, tsNormalText, tsDFMText);
 
-  TTextTableItem = record
+  TTextTableItem = packed record
     // origin info
     OriginText: SystemString;
     Category: SystemString;

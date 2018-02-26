@@ -31,14 +31,14 @@ type
 
   {$IFDEF FPC}
 
-  TPointf = record
+  TPointf = packed record
     X: TGeoFloat;
     Y: TGeoFloat;
   end;
 
   PPointf = ^TPointf;
 
-  TRectf = record
+  TRectf = packed record
     case Integer of
       0:
         (Left, Top, Right, Bottom: TGeoFloat);
@@ -370,7 +370,7 @@ type
 
   PPolyPoint = ^TPolyPoint;
 
-  TPolyPoint = record
+  TPolyPoint = packed record
     Owner: TPoly;
     angle: TGeoFloat;
     Dist: TGeoFloat;
@@ -467,7 +467,7 @@ type
     property UserData: Pointer read FUserData write FUserData;
   end;
 
-  T2DLine = record
+  T2DLine = packed record
     Buff: array [0 .. 1] of T2DPoint;
     Poly: TPoly;
     PolyIndex: array [0 .. 1] of Integer;
@@ -517,7 +517,7 @@ type
 
   P2DCircle = ^T2DCircle;
 
-  T2DCircle = record
+  T2DCircle = packed record
     Position: T2DPoint;
     radius: TGeoFloat;
     UserData: TCoreClassObject;
@@ -561,7 +561,7 @@ type
     procedure Delete(Index: Integer);
   end;
 
-  TPolyRect = record
+  TPolyRect = packed record
     LeftTop: T2DPoint;
     RightTop: T2DPoint;
     RightBottom: T2DPoint;
@@ -585,7 +585,7 @@ type
     class function InitZero: TPolyRect; static;
   end;
 
-  TRectPackData = record
+  TRectPackData = packed record
     rect: T2DRect;
     error: Boolean;
     Data1: Pointer;
@@ -2864,7 +2864,7 @@ const
   CollinearOrientation = 0;
 
 type
-  T2DHullPoint = record
+  T2DHullPoint = packed record
     X: TGeoFloat;
     Y: TGeoFloat;
     Ang: TGeoFloat;
@@ -3871,7 +3871,7 @@ const
   CollinearOrientation = 0;
 
 type
-  T2DHullPoint = record
+  T2DHullPoint = packed record
     X: TGeoFloat;
     Y: TGeoFloat;
     Ang: TGeoFloat;

@@ -19,6 +19,7 @@ object FMXClientForm: TFMXClientForm
       #27492'Demo'#21482#28436#31034#22522#26412#38142#25509#36890#35759#22788#29702
       ''
       #38468#38543#30340#23458#25143#31471#65292#21487#20197#26159#31227#21160#24179#21488#65292#21450#20010#20154#30005#33041#24179#21488)
+    TextSettings.WordWrap = True
     Align = Client
     Margins.Left = 140.000000000000000000
     Size.Width = 472.000000000000000000
@@ -32,7 +33,7 @@ object FMXClientForm: TFMXClientForm
   end
   object connectButton: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 56.000000000000000000
+    Position.Y = 48.000000000000000000
     Size.Width = 105.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -45,15 +46,16 @@ object FMXClientForm: TFMXClientForm
     TabOrder = 5
     Text = '192.168.2.77'
     Position.X = 8.000000000000000000
-    Position.Y = 16.000000000000000000
+    Position.Y = 8.000000000000000000
     Size.Width = 113.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
     TextPrompt = 'server host'
+    StyledSettings = [Family, Style, FontColor]
   end
   object HelloWorldBtn: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 104.000000000000000000
+    Position.Y = 96.000000000000000000
     Size.Width = 121.000000000000000000
     Size.Height = 49.000000000000000000
     Size.PlatformDefault = False
@@ -69,7 +71,7 @@ object FMXClientForm: TFMXClientForm
   end
   object SendMiniStreamButton: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 168.000000000000000000
+    Position.Y = 160.000000000000000000
     Size.Width = 121.000000000000000000
     Size.Height = 65.000000000000000000
     Size.PlatformDefault = False
@@ -79,12 +81,12 @@ object FMXClientForm: TFMXClientForm
   end
   object Send128MBigStreamButton: TButton
     Position.X = 8.000000000000000000
-    Position.Y = 240.000000000000000000
+    Position.Y = 232.000000000000000000
     Size.Width = 121.000000000000000000
     Size.Height = 65.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
-    Text = 'Send 128M Stream'
+    Text = 'Send 16M Stream'
     OnClick = Send128MBigStreamButtonClick
   end
 end

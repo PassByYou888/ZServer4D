@@ -11,7 +11,7 @@ unit zExpression;
 
 interface
 
-uses SysUtils, Variants, CoreClasses, TypInfo, OpCode, TextParsing, PascalStrings, DoStatusIO, ListEngine;
+uses SysUtils, Variants, CoreClasses, TypInfo, TextParsing, PascalStrings, DoStatusIO, ListEngine, OpCode;
 
 type
   TSymbolOperation = (soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor, // math
@@ -38,7 +38,7 @@ type
 
   TSymbolExpression = class;
 
-  TExpressionListData = record
+  TExpressionListData = packed record
     DeclType: TExpressionDeclType; // declaration
     charPos: Integer;              // char pos
     Symbol: TSymbolOperation;      // symbol
@@ -204,7 +204,7 @@ const
     soShl, soShr]);
 
 type
-  TSymbolOperationType = record
+  TSymbolOperationType = packed record
     State: TSymbolOperation;
     Decl: SystemString;
   end;

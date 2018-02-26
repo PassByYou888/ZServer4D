@@ -82,7 +82,7 @@ type
 
   TMixedStream = TCoreClassStream;
 
-  TIOHnd = record
+  TIOHnd = packed record
     IsOnlyRead: Boolean;
     OpenFlags: Boolean;
     AutoFree: Boolean;
@@ -3328,7 +3328,7 @@ begin
 end;
 
 type
-  TByte4 = record
+  TByte4 = packed record
     b1: Byte;
     b2: Byte;
     b3: Byte;
@@ -3337,7 +3337,7 @@ type
 
   PByte4 = ^TByte4;
 
-  TByte3 = record
+  TByte3 = packed record
     b1: Byte;
     b2: Byte;
     b3: Byte;
@@ -4147,7 +4147,7 @@ type
   TArrayOf56Bytes = array [1 .. 56] of Byte;
   TArrayOf64Bytes = array [1 .. 64] of Byte;
 
-  TDesData = record
+  TDesData = packed record
     InputValue: TArrayOf64Bytes;
     OutputValue: TArrayOf64Bytes;
     RoundKeys: array [1 .. 16] of TArrayOf48Bytes;

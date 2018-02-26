@@ -216,7 +216,7 @@ type
 
   TNumberProcessStyle = (npsInc, npsDec, npsIncMul, npsDecMul);
 
-  TNumberProcessingData = record
+  TNumberProcessingData = packed record
     Flag: TCoreClassObject;
     SeedNumber: Variant;
     Style: TNumberProcessStyle;

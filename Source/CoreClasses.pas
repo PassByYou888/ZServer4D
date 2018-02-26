@@ -168,8 +168,8 @@ procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FreeObject(const objs: array of TObject); overload;
 
-procedure LockObject(obj:TObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure UnLockObject(obj:TObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure LockObject(obj:TObject);
+procedure UnLockObject(obj:TObject);
 
 procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
