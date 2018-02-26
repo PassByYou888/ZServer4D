@@ -52,7 +52,7 @@
 {$H+} { long string }
 {$R-} { range check }
 {$A+} { Word Align Data }
-//{$O-} { optimization }
+{$O-} { optimization }
 
 (*
   {$IFDEF FPC}
