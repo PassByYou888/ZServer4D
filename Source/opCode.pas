@@ -265,7 +265,7 @@ type
 
   opRegData = packed record
     opClass: opClass;
-    OpName: SystemString;
+    OpName: TPascalString;
     Hash: Cardinal;
   end;
 
@@ -283,7 +283,7 @@ begin
   {$IFNDEF FPC} OnOpProc := nil; {$ENDIF FPC}
 end;
 
-function GetRegistedOp(Name: SystemString): POpRegData;
+function GetRegistedOp(Name: TPascalString): POpRegData;
 var
   i   : Integer;
   p   : POpRegData;
