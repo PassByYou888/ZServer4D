@@ -4,6 +4,7 @@
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
 { ****************************************************************************** }
 
 (*
@@ -77,8 +78,8 @@ type
     function copy(index, count: NativeInt): TPascalString;
     function Same(const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(Offset: Integer; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(Offset: Integer; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ComparePos(const Offset: Integer; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ComparePos(const Offset: Integer; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetPos(const SubStr: TPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetPos(const SubStr: PPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Exists(c: SystemChar): Boolean; overload;
@@ -794,7 +795,7 @@ begin
     end;
 end;
 
-function TPascalString.ComparePos(Offset: Integer; const p: PPascalString): Boolean;
+function TPascalString.ComparePos(const Offset: Integer; const p: PPascalString): Boolean;
 var
   i, l              : Integer;
   sourChar, destChar: SystemChar;
@@ -821,7 +822,7 @@ begin
   Result := True;
 end;
 
-function TPascalString.ComparePos(Offset: Integer; const t: TPascalString): Boolean;
+function TPascalString.ComparePos(const Offset: Integer; const t: TPascalString): Boolean;
 var
   i, l              : Integer;
   sourChar, destChar: SystemChar;

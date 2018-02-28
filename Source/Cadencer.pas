@@ -4,6 +4,7 @@
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
 { ****************************************************************************** }
 
 unit Cadencer;
@@ -18,8 +19,9 @@ type
   { : Progression event for time-base animations/simulations.<p>
     deltaTime is the time delta since last progress and newTime is the new
     time after the progress event is completed. }
-  TCadencerProgressMethod = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
-  TCadencerProgressCall   = procedure(Sender: TObject; const deltaTime, newTime: Double);
+  TCadencerProgressMethod             = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
+  TCadencerProgressCall               = procedure(Sender: TObject; const deltaTime, newTime: Double);
+  {$IFNDEF FPC} TCadencerProgressProc = reference to procedure(Sender: TObject; const deltaTime, newTime: Double); {$ENDIF}
 
   ICadencerProgressInterface = interface
     procedure CadencerProgress(const deltaTime, newTime: Double);
@@ -47,6 +49,9 @@ type
     FMaxDeltaTime, FMinDeltaTime, FFixedDeltaTime: Double;
     FOnProgress                                  : TCadencerProgressMethod;
     FOnProgressCall                              : TCadencerProgressCall;
+    {$IFNDEF FPC}
+    FOnProgressProc                              : TCadencerProgressProc;
+    {$ENDIF FPC}
     FProgressing                                 : Integer;
     FProgressIntf                                : ICadencerProgressInterface;
   protected
@@ -120,10 +125,11 @@ type
       A "sleep" is issued BEFORE each progress if SleepLength>=0 (see
       help for the "sleep" procedure in delphi for details). }
     property SleepLength: Integer read FSleepLength write FSleepLength default -1;
-
+    { backcall }
     property OnProgress: TCadencerProgressMethod read FOnProgress write FOnProgress;
     property OnProgressCall: TCadencerProgressCall read FOnProgressCall write FOnProgressCall;
-
+    {$IFNDEF FPC} property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc; {$ENDIF FPC}
+    { intf }
     property ProgressIntf: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
 
@@ -211,6 +217,7 @@ begin
   Enabled := True;
   FOnProgress := nil;
   FOnProgressCall := nil;
+  {$IFNDEF FPC} FOnProgressProc := nil; {$ENDIF FPC}
   FProgressIntf := nil;
 end;
 
@@ -263,6 +270,12 @@ begin
                           FOnProgress(Self, deltaTime, newTime);
                       if Assigned(FOnProgressCall) then
                           FOnProgressCall(Self, deltaTime, newTime);
+
+                      {$IFNDEF FPC}
+                      if Assigned(FOnProgressProc) then
+                          FOnProgressProc(Self, deltaTime, newTime);
+                      {$ENDIF FPC}
+                      { }
                       if Assigned(FProgressIntf) then
                           FProgressIntf.CadencerProgress(deltaTime, newTime);
                     except

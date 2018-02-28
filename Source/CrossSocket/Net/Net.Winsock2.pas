@@ -182,7 +182,7 @@ To deal with this, I use the FPC predefined FPC_REQUIRES_PROPER_ALIGNMENT.
 {$ENDIF}
 
 uses
-  SysUtils, Windows;
+  SysUtils, Windows, AnsiStrings;
 
 type
   EIdWinsockStubError = class(Exception)
@@ -6718,7 +6718,7 @@ begin
     with snb^ do begin
       snb_family := AF_NETBIOS;
       snb_type := SnbType;
-      len := StrLen(Name);
+      len := AnsiStrings.StrLen(Name);
       if len >= NETBIOS_NAME_LENGTH-1 then begin
         System.Move(Name^, snb_name, NETBIOS_NAME_LENGTH-1);
       end else begin

@@ -1,3 +1,11 @@
+;{ * https://github.com/PassByYou888/CoreCipher                                 * }
+;{ * https://github.com/PassByYou888/ZServer4D                                  * }
+;{ * https://github.com/PassByYou888/zExpression                                * }
+;{ * https://github.com/PassByYou888/zTranslate                                 * }
+;{ * https://github.com/PassByYou888/zSound                                     * }
+;{ ****************************************************************************** }
+
+
 ; MD5_386.Asm   -  386 optimized helper routine for calculating
 ;                  MD Message-Digest values
 ; written 2/2/94 by

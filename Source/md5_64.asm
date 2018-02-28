@@ -1,3 +1,11 @@
+;{ * https://github.com/PassByYou888/CoreCipher                                 * }
+;{ * https://github.com/PassByYou888/ZServer4D                                  * }
+;{ * https://github.com/PassByYou888/zExpression                                * }
+;{ * https://github.com/PassByYou888/zTranslate                                 * }
+;{ * https://github.com/PassByYou888/zSound                                     * }
+;{ ****************************************************************************** }
+
+
 ; MD5_Transform-x64
 ; MD5 transform routine oprimized for x64 processors
 ; Copyright 2018 Ritlabs, SRL

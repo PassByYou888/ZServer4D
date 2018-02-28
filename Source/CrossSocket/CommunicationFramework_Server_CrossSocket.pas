@@ -5,6 +5,7 @@
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
 { ****************************************************************************** }
 (*
   update history
@@ -53,7 +54,7 @@ type
     // 因为crossSocket在底层对外部支持的接口有点少，大改接口比较麻烦，暂时搁置一下，过段时间空了再来做
     PCrossSocketIntfStruct = ^TCrossSocketIntfStruct;
 
-    TCrossSocketIntfStruct = record
+    TCrossSocketIntfStruct = packed record
       IO: TContextIntfForServer;
     end;
   protected

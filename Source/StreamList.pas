@@ -1,9 +1,10 @@
-{*****************************************************************************}
-{* fast StreamQuery,writen by QQ 600585@qq.com                               *}
+{ ****************************************************************************** }
+{ * fast StreamQuery,writen by QQ 600585@qq.com                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
 { ****************************************************************************** }
 (*
   update history
