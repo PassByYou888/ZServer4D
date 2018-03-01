@@ -34,18 +34,18 @@ type
 
   TPascalString = packed record
   private
-    function GetText: SystemString;
-    procedure SetText(const Value: SystemString);
-    function GetLen: Integer;
-    procedure SetLen(const Value: Integer);
-    function GetChars(index: Integer): SystemChar;
-    procedure SetChars(index: Integer; const Value: SystemChar);
-    function GetBytes: TBytes;
-    procedure SetBytes(const Value: TBytes);
-    function GetLast: SystemChar;
-    procedure SetLast(const Value: SystemChar);
-    function GetFirst: SystemChar;
-    procedure SetFirst(const Value: SystemChar);
+    function GetText: SystemString; inline;
+    procedure SetText(const Value: SystemString); inline;
+    function GetLen: Integer; inline;
+    procedure SetLen(const Value: Integer); inline;
+    function GetChars(index: Integer): SystemChar; inline;
+    procedure SetChars(index: Integer; const Value: SystemChar); inline;
+    function GetBytes: TBytes; inline;
+    procedure SetBytes(const Value: TBytes); inline;
+    function GetLast: SystemChar; inline;
+    procedure SetLast(const Value: SystemChar); inline;
+    function GetFirst: SystemChar; inline;
+    procedure SetFirst(const Value: SystemChar); inline;
   public
     Buff: TPascalChars;
 
@@ -107,7 +107,13 @@ type
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
     function UpperText: SystemString;
+    function Invert: TPascalString;
     function TrimChar(const limitS: TPascalString): TPascalString;
+
+    { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
+    function SmithWaterman(const p: PPascalString): Double; overload;
+    function SmithWaterman(const s: TPascalString): Double; overload;
+
     property Len: Integer read GetLen write SetLen;
     property Chars[index: Integer]: SystemChar read GetChars write SetChars; default;
     property Bytes: TBytes read GetBytes write SetBytes;
@@ -170,6 +176,17 @@ operator + (const A: SystemChar; const B: TPascalString): TPascalString;
 
 {$ENDIF}
 
+{ https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
+function SmithWatermanCompare(const seq1, seq2: PPascalString; var diff1, diff2: TPascalString;
+  const NoDiffChar: Boolean = False; const diffChar: SystemChar = '-'): Double; overload;
+function SmithWatermanCompare(const seq1, seq2: TPascalString; var diff1, diff2: TPascalString;
+  const NoDiffChar: Boolean = False; const diffChar: SystemChar = '-'): Double; overload;
+
+function SmithWatermanCompare(const seq1, seq2: PPascalString): Double; overload;
+function SmithWatermanCompare(const seq1, seq2: TPascalString): Double; overload;
+
+const
+  SystemCharSize = SizeOf(SystemChar);
 
 implementation
 
@@ -181,7 +198,7 @@ const
   {$ELSE}
   FirstCharPos = 1;
   {$ENDIF}
-  SystemCharSize = SizeOf(SystemChar);
+
 
 procedure CombineCharsPP(const c1, c2: TPascalChars; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
@@ -988,6 +1005,19 @@ begin
   Result := UpperCase(Text);
 end;
 
+function TPascalString.Invert: TPascalString;
+var
+  i, j: Integer;
+begin
+  SetLength(Result.Buff, Length(Buff));
+  j := low(Result.Buff);
+  for i := high(Buff) downto low(Buff) do
+    begin
+      Result.Buff[j] := Buff[i];
+      inc(j);
+    end;
+end;
+
 function TPascalString.TrimChar(const limitS: TPascalString): TPascalString;
 var
   l, bp, ep: Integer;
@@ -1026,6 +1056,16 @@ begin
     end;
 end;
 
+function TPascalString.SmithWaterman(const p: PPascalString): Double;
+begin
+  Result := SmithWatermanCompare(@Self, @p);
+end;
+
+function TPascalString.SmithWaterman(const s: TPascalString): Double;
+begin
+  Result := SmithWatermanCompare(@Self, @s);
+end;
+
 function TPascalString.BOMBytes: TBytes;
 begin
   {$IFDEF FPC}
@@ -1033,6 +1073,287 @@ begin
   {$ELSE}
   Result := SysUtils.TEncoding.UTF8.GetPreamble + GetBytes;
   {$ENDIF}
+end;
+
+function SmithWatermanCompare(const seq1, seq2: PPascalString; var diff1, diff2: TPascalString;
+  const NoDiffChar: Boolean; const diffChar: SystemChar): Double;
+const
+  mismatch_penalty = -15;
+  gap_penalty      = -20;
+
+  function CMatch(const alpha, beta, diff: SystemChar): Integer; inline;
+  begin
+    if alpha = beta then
+        Result := 30
+    else if (alpha = diff) or (beta = diff) then
+        Result := gap_penalty
+    else
+        Result := mismatch_penalty;
+  end;
+
+  function _Max(const i1, i2: Integer): Integer; inline;
+  begin
+    if i1 > i2 then
+        Result := i1
+    else
+        Result := i2;
+  end;
+
+var
+  i, j, l1, l2, matched, deleted, inserted              : Integer;
+  score_current, score_diagonal, score_left, score_right: Integer;
+  swMatrix                                              : array of array of Integer; // Smith Waterman Matrix
+  align1, align2                                        : TPascalString;
+  identity                                              : Integer;
+begin
+  l1 := seq1^.Len;
+  l2 := seq2^.Len;
+
+  { build matrix }
+  i := 0;
+  SetLength(swMatrix, l1 + 1, l2 + 1);
+  while i <= l1 do
+    begin
+      j := 0;
+      while j <= l2 do
+        begin
+          if i = 0 then
+              swMatrix[0][j] := gap_penalty * j
+          else
+              swMatrix[i][j] := 0;
+          inc(j);
+        end;
+
+      swMatrix[i][0] := gap_penalty * i;
+      inc(i);
+    end;
+
+  { compute matrix }
+  i := 1;
+  while i <= l1 do
+    begin
+      j := 1;
+      while j <= l2 do
+        begin
+          matched := swMatrix[i - 1][j - 1] + CMatch(seq1^[i], seq2^[j], diffChar);
+          deleted := swMatrix[i - 1][j] + gap_penalty;
+          inserted := swMatrix[i][j - 1] + gap_penalty;
+          swMatrix[i][j] := _Max(matched, _Max(deleted, inserted));
+          inc(j);
+        end;
+      inc(i);
+    end;
+
+  { compute align }
+  i := l1;
+  j := l2;
+  align1 := '';
+  align2 := '';
+  identity := 0;
+  while (i > 0) and (j > 0) do
+    begin
+      score_current := swMatrix[i][j];
+      score_diagonal := swMatrix[i - 1][j - 1];
+      score_left := swMatrix[i - 1][j];
+      score_right := swMatrix[i][j - 1];
+
+      if score_current = score_diagonal + CMatch(seq1^[i], seq2^[j], diffChar) then
+        begin
+          if (seq1^[i] = seq2^[j]) then
+            begin
+              inc(identity);
+              align1.Append(seq1^[i]);
+              align2.Append(seq2^[j]);
+            end
+          else if NoDiffChar then
+            begin
+              align1.Append(diffChar);
+              align2.Append(diffChar);
+            end
+          else
+            begin
+              align1.Append(seq1^[i]);
+              align2.Append(seq2^[j]);
+            end;
+          dec(i);
+          dec(j);
+        end
+      else if score_current = score_left + gap_penalty then
+        begin
+          if NoDiffChar then
+              align1.Append(diffChar)
+          else
+              align1.Append(seq1^[i]);
+          align2.Append(diffChar);
+          dec(i);
+        end
+      else if score_current = score_right + gap_penalty then
+        begin
+          if NoDiffChar then
+              align2.Append(diffChar)
+          else
+              align2.Append(seq2^[j]);
+          align1.Append(diffChar);
+          dec(j);
+        end
+      else
+        begin
+          SetLength(swMatrix, 0, 0);
+          raise Exception.Create('matrix error');
+        end;
+    end;
+
+  SetLength(swMatrix, 0, 0);
+
+  while i > 0 do
+    begin
+      if NoDiffChar then
+          align1.Append(diffChar)
+      else
+          align1.Append(seq1^[i]);
+      align2.Append(diffChar);
+      dec(i);
+    end;
+
+  while j > 0 do
+    begin
+      if NoDiffChar then
+          align2.Append(diffChar)
+      else
+          align2.Append(seq2^[j]);
+      align1.Append(diffChar);
+      dec(j);
+    end;
+
+  if identity > 0 then
+      Result := identity / align1.Len
+  else
+      Result := -1;
+
+  diff1 := align1.Invert;
+  diff2 := align2.Invert;
+end;
+
+function SmithWatermanCompare(const seq1, seq2: TPascalString; var diff1, diff2: TPascalString;
+  const NoDiffChar: Boolean; const diffChar: SystemChar): Double;
+begin
+  Result := SmithWatermanCompare(@seq1, @seq2, diff1, diff2, NoDiffChar, diffChar);
+end;
+
+function SmithWatermanCompare(const seq1, seq2: PPascalString): Double;
+const
+  mismatch_penalty = -15;
+  gap_penalty      = -20;
+
+  function CMatch(const alpha, beta: SystemChar): Integer; inline;
+  begin
+    if alpha = beta then
+        Result := 30
+    else
+        Result := mismatch_penalty;
+  end;
+
+  function _Max(const i1, i2: Integer): Integer; inline;
+  begin
+    if i1 > i2 then
+        Result := i1
+    else
+        Result := i2;
+  end;
+
+var
+  i, j, l1, l2, matched, deleted, inserted              : Integer;
+  score_current, score_diagonal, score_left, score_right: Integer;
+  swMatrix                                              : array of array of Integer; // Smith Waterman Matrix
+  identity, l                                           : Integer;
+begin
+  l1 := seq1^.Len;
+  l2 := seq2^.Len;
+
+  { build matrix }
+  i := 0;
+  SetLength(swMatrix, l1 + 1, l2 + 1);
+  while i <= l1 do
+    begin
+      j := 0;
+      while j <= l2 do
+        begin
+          if i = 0 then
+              swMatrix[0][j] := gap_penalty * j
+          else
+              swMatrix[i][j] := 0;
+          inc(j);
+        end;
+
+      swMatrix[i][0] := gap_penalty * i;
+      inc(i);
+    end;
+
+  { compute matrix }
+  i := 1;
+  while i <= l1 do
+    begin
+      j := 1;
+      while j <= l2 do
+        begin
+          matched := swMatrix[i - 1][j - 1] + CMatch(seq1^[i], seq2^[j]);
+          deleted := swMatrix[i - 1][j] + gap_penalty;
+          inserted := swMatrix[i][j - 1] + gap_penalty;
+          swMatrix[i][j] := _Max(matched, _Max(deleted, inserted));
+          inc(j);
+        end;
+      inc(i);
+    end;
+
+  { compute align }
+  i := l1;
+  j := l2;
+  identity := 0;
+  l := 0;
+  while (i > 0) and (j > 0) do
+    begin
+      score_current := swMatrix[i][j];
+      score_diagonal := swMatrix[i - 1][j - 1];
+      score_left := swMatrix[i - 1][j];
+      score_right := swMatrix[i][j - 1];
+
+      if score_current = score_diagonal + CMatch(seq1^[i], seq2^[j]) then
+        begin
+          if (seq1^[i] = seq2^[j]) then
+              inc(identity);
+
+          inc(l);
+          dec(i);
+          dec(j);
+        end
+      else if score_current = score_left + gap_penalty then
+        begin
+          inc(l);
+          dec(i);
+        end
+      else if score_current = score_right + gap_penalty then
+        begin
+          inc(l);
+          dec(j);
+        end
+      else
+        begin
+          SetLength(swMatrix, 0, 0);
+          raise Exception.Create('matrix error');
+        end;
+    end;
+
+  SetLength(swMatrix, 0, 0);
+
+  if identity > 0 then
+      Result := identity / (l + i + j)
+  else
+      Result := -1;
+end;
+
+function SmithWatermanCompare(const seq1, seq2: TPascalString): Double;
+begin
+  Result := SmithWatermanCompare(@seq1, @seq2);
 end;
 
 initialization

@@ -44,6 +44,7 @@ procedure DoStatus(v: Pointer); overload;
 procedure DoStatus(v: SystemString; const Args: array of const); overload;
 procedure DoError(v: SystemString; const Args: array of const); overload;
 procedure DoStatus(v: SystemString); overload;
+procedure DoStatus(v: TPascalString); overload;
 procedure DoStatus(v: TMD5); overload;
 
 var
@@ -182,6 +183,11 @@ end;
 procedure DoStatus(v: SystemString);
 begin
   DoStatus(v, 0);
+end;
+
+procedure DoStatus(v: TPascalString);
+begin
+  DoStatus(v.Text, 0);
 end;
 
 procedure DoStatus(v: TMD5);

@@ -149,6 +149,13 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 # 更新日志
 
 
+### 2018-3-1
+
+在TPascalString内核中新增模糊字符串对比函数（SmithWaterman），优化与测试完成
+
+该算法属于生物基因工程学科 Smith-Waterman的维基百科地址 https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm
+
+
 ### 2018-2-28
 
 为新项目增加了备注信息
