@@ -168,11 +168,13 @@ type
 
   TTextParsingClass = class of TTextParsing;
 
+const
+  TextParsing_DefaultSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36;
+
 implementation
 
 const
   NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0, 0);
-  DefaultSymbol                         = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36;
 
 type
   TCTranslateStruct = packed record
@@ -2114,7 +2116,7 @@ begin
       ParsingData.Text := AText + #32;
   ParsingData.Len := ParsingData.Text.Len + 1;
   TextStyle := AStyle;
-  SymbolTable := DefaultSymbol;
+  SymbolTable := TextParsing_DefaultSymbol;
   TokenStatistics := NullTokenStatistics;
   SpecialSymbol := TListPascalString.Create;
   if ASpecialSymbol <> nil then
