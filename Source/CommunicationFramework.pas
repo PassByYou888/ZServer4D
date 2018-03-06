@@ -16,7 +16,7 @@ unit CommunicationFramework;
 
 interface
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 
 uses Classes, SysUtils, Variants, TypInfo,

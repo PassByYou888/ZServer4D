@@ -12,7 +12,7 @@
 
 unit ItemStream;
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 interface
 

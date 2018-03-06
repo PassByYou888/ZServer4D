@@ -15,7 +15,7 @@ unit CommunicationFrameworkIO;
 
 interface
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib,

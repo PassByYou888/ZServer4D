@@ -15,7 +15,7 @@ unit CommunicationFrameworkDoubleTunnelIO_NoAuth;
 
 interface
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 
 uses CoreClasses,

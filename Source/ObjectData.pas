@@ -13,7 +13,7 @@
 
 unit ObjectData;
 
-{$I ..\zDefine.inc}
+{$I zDefine.inc}
 
 interface
 
