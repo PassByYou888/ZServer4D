@@ -525,7 +525,7 @@ begin
       OpCache.Clear;
 
       Memo5.Lines.Add(VarToStr(EvaluateExpressionValue_P(TTextParsing, tsC, '"静态复用 "+myvar1',
-        procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant)
+        procedure(const DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant)
         begin
           if HashVars.Exists(DeclName) then
             begin
@@ -535,7 +535,7 @@ begin
         end)));
 
       Memo5.Lines.Add(VarToStr(EvaluateExpressionValue_P(TTextParsing, tsC, '"静态复用 "+myvar4',
-        procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant)
+        procedure(const DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant)
         begin
           // myvar4是不存在的
           // 然后 我们以myvar2来代替
@@ -552,7 +552,8 @@ begin
   else
     begin
       Memo5.Lines.Add('没有发现了变量赋值');
-      Memo5.Lines.Add(Format('表达式 "%s"' + #13#10 + '运行结果 %s', [sourTp.TextData.Text, VarToStr(EvaluateExpressionValue(sourTp.TextStyle, sourTp.TextData, rt))]));
+      Memo5.Lines.Add(Format('表达式 "%s"' + #13#10 + '运行结果 %s',
+        [sourTp.ParsingData.Text.Text, VarToStr(EvaluateExpressionValue(sourTp.TextStyle, sourTp.ParsingData.Text, rt))]));
     end;
 
   DisposeObject([sourTp, HashVars, rt]);

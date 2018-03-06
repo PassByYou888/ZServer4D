@@ -8,6 +8,7 @@
 
 {$MODE objfpc}
 {$MODESWITCH AdvancedRecords}
+{$MODESWITCH nestedprocvars}
 {$NOTES OFF}
 
 {$ASMMODE intel}
@@ -48,8 +49,8 @@
 
 {$ENDIF}
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+//{$WARNINGS OFF}
+//{$HINTS OFF}
 {$H+} { long string }
 {$R-} { range check }
 {$A+} { Word Align Data }
@@ -57,7 +58,7 @@
 
 (*
   {$IFDEF FPC}
-  {$ELSE }
+  {$ELSE FPC}
   {$ENDIF FPC}
 
   {$IFNDEF FPC}

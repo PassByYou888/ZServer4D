@@ -12,7 +12,7 @@
 
 unit StreamList;
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

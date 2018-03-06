@@ -68,30 +68,30 @@ type
     function AvailValueCount: Integer;
     function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function InsertSymbol(idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Insert(idx: Integer; v: TExpressionListData): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InsertExpression(idx: Integer; e: TSymbolExpression); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure AddExpression(e: TSymbolExpression); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddSymbol(v: TSymbolOperation; charPos: Integer): PExpressionListData;
-    function AddBool(v: Boolean; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddInt(v: Integer; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddUInt(v: Cardinal; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddInt64(v: int64; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddUInt64(v: UInt64; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddWord(v: Word; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddByte(v: Byte; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddSmallInt(v: SmallInt; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddShortInt(v: ShortInt; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddSingle(v: Single; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddDouble(v: Double; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddCurrency(v: Currency; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddString(v: SystemString; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddFunc(v: SystemString; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function InsertSymbol(const idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Insert(const idx: Integer; v: TExpressionListData): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InsertExpression(const idx: Integer; e: TSymbolExpression); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure AddExpression(const e: TSymbolExpression); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddSymbol(const v: TSymbolOperation; charPos: Integer): PExpressionListData;
+    function AddBool(const v: Boolean; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddInt(const v: Integer; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddUInt(const v: Cardinal; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddInt64(const v: int64; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddUInt64(const v: UInt64; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddWord(const v: Word; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddByte(const v: Byte; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddSmallInt(const v: SmallInt; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddShortInt(const v: ShortInt; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddSingle(const v: Single; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddDouble(const v: Double; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddCurrency(const v: Currency; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddString(const v: SystemString; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddFunc(const v: SystemString; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function AddExpressionAsValue(AutoFree: Boolean; Expression: TSymbolExpression; Symbol: TSymbolOperation; Value: Variant; charPos: Integer): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Add(v: TExpressionListData): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddCopy(v: TExpressionListData): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(const v: TExpressionListData): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddCopy(const v: TExpressionListData): PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    procedure Delete(idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Delete(const idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DeleteLast; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function Last: PExpressionListData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -103,35 +103,35 @@ type
     property Items[index: Integer]: PExpressionListData read GetItems; default;
   end;
 
-  TOnDeclValueCall   = procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
-  TOnDeclValueMethod = procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant) of object;
+  TOnDeclValueCall   = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
+  TOnDeclValueMethod = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) of object;
   {$IFNDEF FPC}
-  TOnDeclValueProc = reference to procedure(DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
+  TOnDeclValueProc = reference to procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
   {$ENDIF FPC}
   { }
   // text parse support
-function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; uName: SystemString;
+function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
-function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; uName: SystemString;
+function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 {$IFNDEF FPC}
-function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; uName: SystemString;
+function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 {$ENDIF FPC}
-function ParseTextExpressionAsSymbol(textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol(textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
-function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+function ParseTextExpressionAsSymbol(const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
-function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression; overload;
+function ParseTextExpressionAsSymbol(const ExpressionText: SystemString): TSymbolExpression; overload;
 
-function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
-function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 {$IFNDEF FPC}
-function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 {$ENDIF FPC}
 
@@ -142,15 +142,15 @@ function RebuildLogicalPrioritySymbol(Exps: TSymbolExpression): TSymbolExpressio
 function RebuildAllSymbol(Exps: TSymbolExpression): TSymbolExpression;
 
 // op
-function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression; uName: SystemString; LineNo: Integer): TOpCode; overload;
+function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression; const uName: SystemString; LineNo: Integer): TOpCode; overload;
 function BuildAsOpCode(SymbExps: TSymbolExpression): TOpCode; overload;
 function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression): TOpCode; overload;
-function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString): TOpCode; overload;
-function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString): TOpCode; overload;
-function BuildAsOpCode(ExpressionText: SystemString): TOpCode; overload;
-function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
-function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
-function BuildAsOpCode(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; const ExpressionText: SystemString): TOpCode; overload;
+function BuildAsOpCode(textStyle: TTextStyle; const ExpressionText: SystemString): TOpCode; overload;
+function BuildAsOpCode(const ExpressionText: SystemString): TOpCode; overload;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
+function BuildAsOpCode(textStyle: TTextStyle; const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
+function BuildAsOpCode(const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
 
 // evaluate(safe thread)
 function EvaluateExpressionValue_M(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
@@ -167,7 +167,7 @@ function EvaluateExpressionValue(textStyle: TTextStyle; const ExpressionText: Sy
 // other
 function NumTextType(s: TPascalString): TNumTextType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure InitExp(var v: TExpressionListData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function dt2op(v: TExpressionDeclType): TOpValueType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function dt2op(const v: TExpressionDeclType): TOpValueType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
@@ -398,7 +398,7 @@ begin
   v.ExpressionAutoFree := False;
 end;
 
-function dt2op(v: TExpressionDeclType): TOpValueType;
+function dt2op(const v: TExpressionDeclType): TOpValueType;
 begin
   case v of
     edtBool: Result := ovtBool;
@@ -757,7 +757,7 @@ begin
   Result := False;
 end;
 
-function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; uName: SystemString;
+function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
   const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod; {$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
@@ -770,18 +770,18 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; uName: SystemSt
     DoStatus('');
   end;
 
-  function GetDeclValue(DeclName: SystemString; var v: Variant): TExpressionDeclType;
+  function GetDeclValue(const Decl: SystemString; var v: Variant): TExpressionDeclType;
   begin
-    v := DeclName;
+    v := Decl;
     Result := edtProcExp;
 
     if Assigned(OnDeclValueCall) then
-        OnDeclValueCall(DeclName, Result, v);
+        OnDeclValueCall(Decl, Result, v);
     if Assigned(OnDeclValueMethod) then
-        OnDeclValueMethod(DeclName, Result, v);
+        OnDeclValueMethod(Decl, Result, v);
     {$IFNDEF FPC}
     if Assigned(OnDeclValueProc) then
-        OnDeclValueProc(DeclName, Result, v);
+        OnDeclValueProc(Decl, Result, v);
     {$ENDIF FPC}
   end;
 
@@ -1058,7 +1058,7 @@ begin
   DisposeObject(Container);
 end;
 
-function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; uName: SystemString;
+function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   {$IFDEF FPC}
@@ -1068,7 +1068,7 @@ begin
   {$ENDIF FPC}
 end;
 
-function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; uName: SystemString;
+function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   {$IFDEF FPC}
@@ -1081,7 +1081,7 @@ end;
 {$IFNDEF FPC}
 
 
-function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; uName: SystemString;
+function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, nil, OnGetValue, RefrenceOpRT);
@@ -1089,7 +1089,7 @@ end;
 {$ENDIF FPC}
 
 
-function ParseTextExpressionAsSymbol(textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol(textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
@@ -1099,7 +1099,7 @@ begin
   DisposeObject(ParsingEng);
 end;
 
-function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+function ParseTextExpressionAsSymbol(const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
 begin
@@ -1108,7 +1108,7 @@ begin
   DisposeObject(ParsingEng);
 end;
 
-function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression;
+function ParseTextExpressionAsSymbol(const ExpressionText: SystemString): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
 begin
@@ -1117,7 +1117,7 @@ begin
   DisposeObject(ParsingEng);
 end;
 
-function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
@@ -1127,7 +1127,7 @@ begin
   DisposeObject(ParsingEng);
 end;
 
-function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
@@ -1140,7 +1140,7 @@ end;
 {$IFNDEF FPC}
 
 
-function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; textStyle: TTextStyle; uName, ExpressionText: SystemString;
+function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; textStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
   ParsingEng: TTextParsing;
@@ -1566,7 +1566,7 @@ begin
   DisposeObject(rse);
 end;
 
-function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression; uName: SystemString; LineNo: Integer): TOpCode;
+function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression; const uName: SystemString; LineNo: Integer): TOpCode;
 var
   NewSymbExps : TSymbolExpression;
   SymbolIndex : Integer;
@@ -1598,7 +1598,7 @@ var
     OpContainer.Add(Result);
   end;
 
-  function NewOpFromSym(sym: TSymbolOperation; uName: SystemString): TOpCode;
+  function NewOpFromSym(sym: TSymbolOperation; const uName: SystemString): TOpCode;
   begin
     case sym of
       soAdd: Result := op_Add.Create(False);
@@ -1862,7 +1862,7 @@ begin
   Result := BuildAsOpCode(DebugMode, SymbExps, '', 0);
 end;
 
-function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString): TOpCode;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; const ExpressionText: SystemString): TOpCode;
 var
   sym: TSymbolExpression;
 begin
@@ -1871,7 +1871,7 @@ begin
   DisposeObject(sym);
 end;
 
-function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString): TOpCode;
+function BuildAsOpCode(textStyle: TTextStyle; const ExpressionText: SystemString): TOpCode;
 var
   sym: TSymbolExpression;
 begin
@@ -1880,7 +1880,7 @@ begin
   DisposeObject(sym);
 end;
 
-function BuildAsOpCode(ExpressionText: SystemString): TOpCode;
+function BuildAsOpCode(const ExpressionText: SystemString): TOpCode;
 var
   sym: TSymbolExpression;
 begin
@@ -1889,7 +1889,7 @@ begin
   DisposeObject(sym);
 end;
 
-function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
+function BuildAsOpCode(DebugMode: Boolean; textStyle: TTextStyle; const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
 var
   sym: TSymbolExpression;
 begin
@@ -1898,7 +1898,7 @@ begin
   DisposeObject(sym);
 end;
 
-function BuildAsOpCode(textStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
+function BuildAsOpCode(textStyle: TTextStyle; const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
 var
   sym: TSymbolExpression;
 begin
@@ -1907,7 +1907,7 @@ begin
   DisposeObject(sym);
 end;
 
-function BuildAsOpCode(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
+function BuildAsOpCode(const ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode;
 var
   sym: TSymbolExpression;
 begin
@@ -2330,7 +2330,7 @@ begin
   Result := FList.Count;
 end;
 
-function TSymbolExpression.InsertSymbol(idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData;
+function TSymbolExpression.InsertSymbol(const idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2344,7 +2344,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.Insert(idx: Integer; v: TExpressionListData): PExpressionListData;
+function TSymbolExpression.Insert(const idx: Integer; v: TExpressionListData): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2354,7 +2354,7 @@ begin
   Result := p;
 end;
 
-procedure TSymbolExpression.InsertExpression(idx: Integer; e: TSymbolExpression);
+procedure TSymbolExpression.InsertExpression(const idx: Integer; e: TSymbolExpression);
 var
   newList: TCoreClassList;
   i      : Integer;
@@ -2380,7 +2380,7 @@ begin
   FList := newList;
 end;
 
-procedure TSymbolExpression.AddExpression(e: TSymbolExpression);
+procedure TSymbolExpression.AddExpression(const e: TSymbolExpression);
 var
   i: Integer;
 begin
@@ -2388,7 +2388,7 @@ begin
       AddCopy(e[i]^);
 end;
 
-function TSymbolExpression.AddSymbol(v: TSymbolOperation; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddSymbol(const v: TSymbolOperation; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2402,7 +2402,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddBool(v: Boolean; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddBool(const v: Boolean; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2415,7 +2415,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddInt(v: Integer; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddInt(const v: Integer; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2428,7 +2428,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddUInt(v: Cardinal; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddUInt(const v: Cardinal; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2441,7 +2441,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddInt64(v: int64; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddInt64(const v: int64; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2454,7 +2454,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddUInt64(v: UInt64; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddUInt64(const v: UInt64; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2467,7 +2467,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddWord(v: Word; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddWord(const v: Word; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2480,7 +2480,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddByte(v: Byte; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddByte(const v: Byte; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2493,7 +2493,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddSmallInt(v: SmallInt; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddSmallInt(const v: SmallInt; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2506,7 +2506,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddShortInt(v: ShortInt; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddShortInt(const v: ShortInt; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2519,7 +2519,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddSingle(v: Single; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddSingle(const v: Single; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2532,7 +2532,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddDouble(v: Double; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddDouble(const v: Double; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2545,7 +2545,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddCurrency(v: Currency; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddCurrency(const v: Currency; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2558,7 +2558,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddString(v: SystemString; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddString(const v: SystemString; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2571,7 +2571,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddFunc(v: SystemString; charPos: Integer): PExpressionListData;
+function TSymbolExpression.AddFunc(const v: SystemString; charPos: Integer): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2603,7 +2603,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.Add(v: TExpressionListData): PExpressionListData;
+function TSymbolExpression.Add(const v: TExpressionListData): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -2614,7 +2614,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddCopy(v: TExpressionListData): PExpressionListData;
+function TSymbolExpression.AddCopy(const v: TExpressionListData): PExpressionListData;
 var
   p: PExpressionListData;
   i: Integer;
@@ -2633,7 +2633,7 @@ begin
   Result := p;
 end;
 
-procedure TSymbolExpression.Delete(idx: Integer);
+procedure TSymbolExpression.Delete(const idx: Integer);
 var
   p: PExpressionListData;
 begin

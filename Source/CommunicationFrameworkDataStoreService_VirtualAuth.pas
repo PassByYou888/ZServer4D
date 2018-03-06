@@ -13,7 +13,7 @@ unit CommunicationFrameworkDataStoreService_VirtualAuth;
 
 interface
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,

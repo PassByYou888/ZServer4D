@@ -247,7 +247,7 @@ begin
         begin
           ePos := t.GetSymbolEndPos(cp);
           if (InitedUnit) and (InitedUses) then
-            if t[cp] = ';' then
+            if t.ParsingData.Text[cp] = ';' then
               begin
                 InitedUses := False;
                 EndParseUses;
@@ -281,7 +281,7 @@ begin
         end
       else
         begin
-          AppendCode(t[cp]);
+          AppendCode(t.ParsingData.Text[cp]);
           Inc(cp);
         end;
     end;

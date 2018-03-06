@@ -15,8 +15,6 @@
 
 unit CoreClasses;
 
-{$I zDefine.inc}
-
 interface
 
 uses SysUtils, Classes, Types, PascalStrings,
@@ -27,6 +25,8 @@ uses SysUtils, Classes, Types, PascalStrings,
   , System.Generics.Collections
   {$ENDIF}
     ;
+
+{$I zDefine.inc}
 
 const
   fmCreate        = Classes.fmCreate;
@@ -269,7 +269,7 @@ end;
 
 procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte);
 var
-  Index: NativeUInt;
+  Index: NativeInt;
   V    : UInt64;
   PB   : PByte;
   Total: NativeUInt;

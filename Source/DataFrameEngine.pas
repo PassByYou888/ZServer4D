@@ -46,7 +46,7 @@ type
     function ComputeEncodeSize: Integer; virtual; abstract;
   end;
 
-  TDataFrameString = class(TDataFrameBase)
+  TDataFrameString = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: SystemString;
@@ -65,7 +65,7 @@ type
     property Buffer: SystemString read FBuffer write FBuffer;
   end;
 
-  TDataFrameInteger = class(TDataFrameBase)
+  TDataFrameInteger = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Integer;
@@ -84,7 +84,7 @@ type
     property Buffer: Integer read FBuffer write FBuffer;
   end;
 
-  TDataFrameCardinal = class(TDataFrameBase)
+  TDataFrameCardinal = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Cardinal;
@@ -103,7 +103,7 @@ type
     property Buffer: Cardinal read FBuffer write FBuffer;
   end;
 
-  TDataFrameWord = class(TDataFrameBase)
+  TDataFrameWord = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Word;
@@ -122,7 +122,7 @@ type
     property Buffer: Word read FBuffer write FBuffer;
   end;
 
-  TDataFrameByte = class(TDataFrameBase)
+  TDataFrameByte = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Byte;
@@ -141,7 +141,7 @@ type
     property Buffer: Byte read FBuffer write FBuffer;
   end;
 
-  TDataFrameSingle = class(TDataFrameBase)
+  TDataFrameSingle = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Single;
@@ -160,7 +160,7 @@ type
     property Buffer: Single read FBuffer write FBuffer;
   end;
 
-  TDataFrameDouble = class(TDataFrameBase)
+  TDataFrameDouble = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Double;
@@ -179,14 +179,9 @@ type
     property Buffer: Double read FBuffer write FBuffer;
   end;
 
-  TDataFrameArrayInteger = class(TDataFrameBase)
-  private
+  TDataFrameArrayInteger = class sealed(TDataFrameBase)
   protected
     FBuffer: TCoreClassList;
-
-    function GetBuffer(idx: Integer): Integer;
-    procedure SetBuffer(idx: Integer; Value: Integer);
-
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -205,16 +200,14 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer(idx: Integer): Integer;
+    procedure SetBuffer(idx: Integer; Value: Integer);
     property Buffer[idx: Integer]: Integer read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayShortInt = class(TDataFrameBase)
-  private
+  TDataFrameArrayShortInt = class sealed(TDataFrameBase)
   protected
     FBuffer: TCoreClassList;
-
-    function GetBuffer(idx: Integer): ShortInt;
-    procedure SetBuffer(idx: Integer; Value: ShortInt);
 
   public
     constructor Create(id: ShortInt);
@@ -234,17 +227,14 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer(idx: Integer): ShortInt;
+    procedure SetBuffer(idx: Integer; Value: ShortInt);
     property Buffer[idx: Integer]: ShortInt read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayByte = class(TDataFrameBase)
-  private
+  TDataFrameArrayByte = class sealed(TDataFrameBase)
   protected
     FBuffer: TCoreClassList;
-
-    function GetBuffer(idx: Integer): Byte;
-    procedure SetBuffer(idx: Integer; Value: Byte);
-
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -271,17 +261,14 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer(idx: Integer): Byte;
+    procedure SetBuffer(idx: Integer; Value: Byte);
     property Buffer[idx: Integer]: Byte read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArraySingle = class(TDataFrameBase)
-  private
+  TDataFrameArraySingle = class sealed(TDataFrameBase)
   protected
     FBuffer: TCoreClassList;
-
-    function GetBuffer(idx: Integer): Single;
-    procedure SetBuffer(idx: Integer; Value: Single);
-
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -300,17 +287,15 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer(idx: Integer): Single;
+    procedure SetBuffer(idx: Integer; Value: Single);
     property Buffer[idx: Integer]: Single read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayDouble = class(TDataFrameBase)
+  TDataFrameArrayDouble = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: TCoreClassList;
-
-    function GetBuffer(idx: Integer): Double;
-    procedure SetBuffer(idx: Integer; Value: Double);
-
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -329,17 +314,15 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer(idx: Integer): Double;
+    procedure SetBuffer(idx: Integer; Value: Double);
     property Buffer[idx: Integer]: Double read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayInt64 = class(TDataFrameBase)
+  TDataFrameArrayInt64 = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: TCoreClassList;
-
-    function GetBuffer(idx: Integer): Int64;
-    procedure SetBuffer(idx: Integer; Value: Int64);
-
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -358,15 +341,15 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer(idx: Integer): Int64;
+    procedure SetBuffer(idx: Integer; Value: Int64);
     property Buffer[idx: Integer]: Int64 read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameStream = class(TDataFrameBase)
+  TDataFrameStream = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: TMemoryStream64;
-    function GetBuffer: TCoreClassStream;
-    procedure SetBuffer(_Buffer: TCoreClassStream);
   public
     constructor Create(id: Byte);
     destructor Destroy; override;
@@ -381,10 +364,12 @@ type
     {$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
+    function GetBuffer: TCoreClassStream;
+    procedure SetBuffer(_Buffer: TCoreClassStream);
     property Buffer: TCoreClassStream read GetBuffer write SetBuffer;
   end;
 
-  TDataFrameVariant = class(TDataFrameBase)
+  TDataFrameVariant = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Variant;
@@ -403,7 +388,7 @@ type
     property Buffer: Variant read FBuffer write FBuffer;
   end;
 
-  TDataFrameInt64 = class(TDataFrameBase)
+  TDataFrameInt64 = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: Int64;
@@ -422,7 +407,7 @@ type
     property Buffer: Int64 read FBuffer write FBuffer;
   end;
 
-  TDataFrameUInt64 = class(TDataFrameBase)
+  TDataFrameUInt64 = class sealed(TDataFrameBase)
   private
   protected
     FBuffer: UInt64;
@@ -673,7 +658,7 @@ type
     property List: TCoreClassListForObj read FDataList;
   end;
 
-  TDataWriter = class(TCoreClassPersistent)
+  TDataWriter = class sealed(TCoreClassPersistent)
   protected
     FEngine: TDataFrameEngine;
     FStream: TCoreClassStream;
@@ -729,7 +714,7 @@ type
     procedure Write(const aBuf; aCount: Int64); virtual;
   end;
 
-  TDataReader = class(TCoreClassPersistent)
+  TDataReader = class sealed(TCoreClassPersistent)
   protected
     FEngine: TDataFrameEngine;
   public
@@ -1101,16 +1086,6 @@ begin
   Result := umlDoubleLength;
 end;
 
-function TDataFrameArrayInteger.GetBuffer(idx: Integer): Integer;
-begin
-  Result := PInteger(FBuffer[idx])^;
-end;
-
-procedure TDataFrameArrayInteger.SetBuffer(idx: Integer; Value: Integer);
-begin
-  PInteger(FBuffer[idx])^ := Value;
-end;
-
 constructor TDataFrameArrayInteger.Create(id: Byte);
 begin
   inherited Create(id);
@@ -1223,14 +1198,14 @@ begin
   Result := umlIntegerLength + umlIntegerLength * Count;
 end;
 
-function TDataFrameArrayShortInt.GetBuffer(idx: Integer): ShortInt;
+function TDataFrameArrayInteger.GetBuffer(idx: Integer): Integer;
 begin
-  Result := PShortInt(FBuffer[idx])^;
+  Result := PInteger(FBuffer[idx])^;
 end;
 
-procedure TDataFrameArrayShortInt.SetBuffer(idx: Integer; Value: ShortInt);
+procedure TDataFrameArrayInteger.SetBuffer(idx: Integer; Value: Integer);
 begin
-  PShortInt(FBuffer[idx])^ := Value;
+  PInteger(FBuffer[idx])^ := Value;
 end;
 
 constructor TDataFrameArrayShortInt.Create(id: ShortInt);
@@ -1345,14 +1320,14 @@ begin
   Result := umlIntegerLength + umlShortIntLength * Count;
 end;
 
-function TDataFrameArrayByte.GetBuffer(idx: Integer): Byte;
+function TDataFrameArrayShortInt.GetBuffer(idx: Integer): ShortInt;
 begin
-  Result := PByte(FBuffer[idx])^;
+  Result := PShortInt(FBuffer[idx])^;
 end;
 
-procedure TDataFrameArrayByte.SetBuffer(idx: Integer; Value: Byte);
+procedure TDataFrameArrayShortInt.SetBuffer(idx: Integer; Value: ShortInt);
 begin
-  PByte(FBuffer[idx])^ := Value;
+  PShortInt(FBuffer[idx])^ := Value;
 end;
 
 constructor TDataFrameArrayByte.Create(id: Byte);
@@ -1534,6 +1509,16 @@ begin
   PSingle(FBuffer[idx])^ := Value;
 end;
 
+function TDataFrameArrayByte.GetBuffer(idx: Integer): Byte;
+begin
+  Result := PByte(FBuffer[idx])^;
+end;
+
+procedure TDataFrameArrayByte.SetBuffer(idx: Integer; Value: Byte);
+begin
+  PByte(FBuffer[idx])^ := Value;
+end;
+
 constructor TDataFrameArraySingle.Create(id: Byte);
 begin
   inherited Create(id);
@@ -1644,16 +1629,6 @@ end;
 function TDataFrameArraySingle.ComputeEncodeSize: Integer;
 begin
   Result := umlIntegerLength + umlSingleLength * Count;
-end;
-
-function TDataFrameArrayDouble.GetBuffer(idx: Integer): Double;
-begin
-  Result := PDouble(FBuffer[idx])^;
-end;
-
-procedure TDataFrameArrayDouble.SetBuffer(idx: Integer; Value: Double);
-begin
-  PDouble(FBuffer[idx])^ := Value;
 end;
 
 constructor TDataFrameArrayDouble.Create(id: Byte);
@@ -1768,14 +1743,14 @@ begin
   Result := umlIntegerLength + umlDoubleLength * Count;
 end;
 
-function TDataFrameArrayInt64.GetBuffer(idx: Integer): Int64;
+function TDataFrameArrayDouble.GetBuffer(idx: Integer): Double;
 begin
-  Result := PInt64(FBuffer[idx])^;
+  Result := PDouble(FBuffer[idx])^;
 end;
 
-procedure TDataFrameArrayInt64.SetBuffer(idx: Integer; Value: Int64);
+procedure TDataFrameArrayDouble.SetBuffer(idx: Integer; Value: Double);
 begin
-  PInt64(FBuffer[idx])^ := Value;
+  PDouble(FBuffer[idx])^ := Value;
 end;
 
 constructor TDataFrameArrayInt64.Create(id: Byte);
@@ -1890,21 +1865,14 @@ begin
   Result := umlIntegerLength + umlInt64Length * Count;
 end;
 
-function TDataFrameStream.GetBuffer: TCoreClassStream;
+function TDataFrameArrayInt64.GetBuffer(idx: Integer): Int64;
 begin
-  Result := FBuffer;
+  Result := PInt64(FBuffer[idx])^;
 end;
 
-procedure TDataFrameStream.SetBuffer(_Buffer: TCoreClassStream);
-var
-  _P: Int64;
+procedure TDataFrameArrayInt64.SetBuffer(idx: Integer; Value: Int64);
 begin
-  FBuffer.Clear;
-  _P := _Buffer.Position;
-  _Buffer.Position := 0;
-  if _Buffer.Size > 0 then
-      FBuffer.CopyFrom(_Buffer, _Buffer.Size);
-  _Buffer.Position := _P;
+  PInt64(FBuffer[idx])^ := Value;
 end;
 
 constructor TDataFrameStream.Create(id: Byte);
@@ -1972,6 +1940,23 @@ end;
 function TDataFrameStream.ComputeEncodeSize: Integer;
 begin
   Result := umlIntegerLength + FBuffer.Size;
+end;
+
+function TDataFrameStream.GetBuffer: TCoreClassStream;
+begin
+  Result := FBuffer;
+end;
+
+procedure TDataFrameStream.SetBuffer(_Buffer: TCoreClassStream);
+var
+  _P: Int64;
+begin
+  FBuffer.Clear;
+  _P := _Buffer.Position;
+  _Buffer.Position := 0;
+  if _Buffer.Size > 0 then
+      FBuffer.CopyFrom(_Buffer, _Buffer.Size);
+  _Buffer.Position := _P;
 end;
 
 constructor TDataFrameVariant.Create(id: Byte);

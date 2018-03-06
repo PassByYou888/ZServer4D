@@ -11,7 +11,7 @@
 *)
 unit ZDBLocalManager;
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

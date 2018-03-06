@@ -32,20 +32,24 @@ procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
 
-procedure DoStatus(v: Pointer; siz, width: NativeInt); overload;
+procedure DoStatus(const v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt); overload;
-procedure DoStatus(v: TMemoryStream64); overload;
-procedure DoStatus(v: TCoreClassStrings); overload;
-procedure DoStatus(v: int64); overload;
-procedure DoStatus(v: Integer); overload;
-procedure DoStatus(v: Single); overload;
-procedure DoStatus(v: Double); overload;
-procedure DoStatus(v: Pointer); overload;
-procedure DoStatus(v: SystemString; const Args: array of const); overload;
+procedure DoStatus(const v: TMemoryStream64); overload;
+procedure DoStatus(const v: TCoreClassStrings); overload;
+procedure DoStatus(const v: int64); overload;
+procedure DoStatus(const v: Integer); overload;
+procedure DoStatus(const v: Single); overload;
+procedure DoStatus(const v: Double); overload;
+procedure DoStatus(const v: Pointer); overload;
+procedure DoStatus(const v: SystemString; const Args: array of const); overload;
 procedure DoError(v: SystemString; const Args: array of const); overload;
-procedure DoStatus(v: SystemString); overload;
-procedure DoStatus(v: TPascalString); overload;
-procedure DoStatus(v: TMD5); overload;
+procedure DoStatus(const v: SystemString); overload;
+procedure DoStatus(const v: TPascalString); overload;
+procedure DoStatus(const v: TMD5); overload;
+
+procedure DoStatusNoLn(const v: TPascalString); overload;
+procedure DoStatusNoLn(const v: SystemString; const Args: array of const); overload;
+procedure DoStatusNoLn; overload;
 
 var
   LastDoStatus  : SystemString;
@@ -69,7 +73,7 @@ begin
     end;
 end;
 
-procedure DoStatus(v: Pointer; siz, width: NativeInt);
+procedure DoStatus(const v: Pointer; siz, width: NativeInt);
 var
   s: TPascalString;
   i: Integer;
@@ -119,7 +123,7 @@ begin
       DoStatus(prefix + n);
 end;
 
-procedure DoStatus(v: TMemoryStream64);
+procedure DoStatus(const v: TMemoryStream64);
 var
   p: PByte;
   i: Integer;
@@ -137,7 +141,7 @@ begin
   DoStatus(IntToHex(NativeInt(v), SizeOf(Pointer)) + ':' + n);
 end;
 
-procedure DoStatus(v: TCoreClassStrings);
+procedure DoStatus(const v: TCoreClassStrings);
 var
   i: Integer;
 begin
@@ -145,32 +149,32 @@ begin
       DoStatus(v[i]);
 end;
 
-procedure DoStatus(v: int64);
+procedure DoStatus(const v: int64);
 begin
   DoStatus(IntToStr(v));
 end;
 
-procedure DoStatus(v: Integer);
+procedure DoStatus(const v: Integer);
 begin
   DoStatus(IntToStr(v));
 end;
 
-procedure DoStatus(v: Single);
+procedure DoStatus(const v: Single);
 begin
   DoStatus(FloatToStr(v));
 end;
 
-procedure DoStatus(v: Double);
+procedure DoStatus(const v: Double);
 begin
   DoStatus(FloatToStr(v));
 end;
 
-procedure DoStatus(v: Pointer);
+procedure DoStatus(const v: Pointer);
 begin
   DoStatus(Format('0x%p', [v]));
 end;
 
-procedure DoStatus(v: SystemString; const Args: array of const);
+procedure DoStatus(const v: SystemString; const Args: array of const);
 begin
   DoStatus(Format(v, Args));
 end;
@@ -180,19 +184,63 @@ begin
   DoStatus(Format(v, Args), 2);
 end;
 
-procedure DoStatus(v: SystemString);
+procedure DoStatus(const v: SystemString);
 begin
   DoStatus(v, 0);
 end;
 
-procedure DoStatus(v: TPascalString);
+procedure DoStatus(const v: TPascalString);
 begin
   DoStatus(v.Text, 0);
 end;
 
-procedure DoStatus(v: TMD5);
+procedure DoStatus(const v: TMD5);
 begin
   DoStatus(umlMD52String(v).Text);
+end;
+
+var
+  LastDoStatusNoLn: TPascalString;
+
+procedure DoStatusNoLn(const v: TPascalString);
+var
+  l, i: Integer;
+begin
+  l := v.Len;
+  i := 1;
+  while i <= l do
+    begin
+      if CharIn(v[i], [#13, #10]) then
+        begin
+          if LastDoStatusNoLn.Len > 0 then
+            begin
+              DoStatus(LastDoStatusNoLn);
+              LastDoStatusNoLn := '';
+            end;
+          repeat
+              inc(i);
+          until (i > l) or (not CharIn(v[i], [#13, #10]));
+        end
+      else
+        begin
+          LastDoStatusNoLn.Append(v[i]);
+          inc(i);
+        end;
+    end;
+end;
+
+procedure DoStatusNoLn(const v: SystemString; const Args: array of const);
+begin
+  DoStatusNoLn(Format(v, Args));
+end;
+
+procedure DoStatusNoLn;
+begin
+  if LastDoStatusNoLn.Len > 0 then
+    begin
+      DoStatus(LastDoStatusNoLn);
+      LastDoStatusNoLn := '';
+    end;
 end;
 
 type
@@ -322,7 +370,7 @@ procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod)
 var
   _Data: PDoStatusData;
 begin
-  New(_Data);
+  new(_Data);
   _Data^.TokenObj := TokenObj;
   _Data^.OnStatusNear := CallProc;
   _Data^.OnStatusFar := nil;
@@ -333,7 +381,7 @@ procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 var
   _Data: PDoStatusData;
 begin
-  New(_Data);
+  new(_Data);
   _Data^.TokenObj := TokenObj;
   _Data^.OnStatusNear := nil;
   _Data^.OnStatusFar := CallProc;
@@ -391,5 +439,6 @@ while HookDoSatus.Count > 0 do
   end;
 DisposeObject(HookDoSatus);
 StatusActive := True;
+LastDoStatusNoLn := '';
 
 end.

@@ -14,7 +14,7 @@
 
 unit ZDBEngine;
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 

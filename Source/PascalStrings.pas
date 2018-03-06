@@ -136,17 +136,17 @@ function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean; overload; 
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function BytesOfPascalString(var s: TPascalString): TBytes; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function PascalStringOfBytes(var s: TBytes): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BytesOfPascalString(const s: TPascalString): TBytes; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function PascalStringOfBytes(const s: TBytes): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastHashSystemString(s: PSystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastHash64SystemString(s: PSystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHashSystemString(const s: PSystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHash64SystemString(const s: PSystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastHashSystemString(s: SystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastHash64SystemString(s: SystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHashSystemString(const s: SystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHash64SystemString(const s: SystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastHashPascalString(s: PPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastHash64PascalString(s: PPascalString): THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHashPascalString(const s: PPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHash64PascalString(const s: PPascalString): THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 {$IFDEF FPC}
 
@@ -190,6 +190,7 @@ function SmithWatermanCompare(const seq1, seq2: TPascalString; var diff1, diff2:
 function SmithWatermanCompare(const seq1, seq2: PPascalString; out Same, Diff: Integer): Double; overload;
 function SmithWatermanCompare(const seq1, seq2: PPascalString): Double; overload;
 function SmithWatermanCompare(const seq1, seq2: TPascalString): Double; overload;
+function SmithWatermanCompare(const seq1: TArrayPascalString; const seq2: TPascalString): Double; overload;
 
 // memory likeness
 function SmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: Pointer; siz2: Integer;
@@ -197,11 +198,16 @@ function SmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: Po
 function SmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: Pointer; siz2: Integer): Double; overload;
 
 // long string likeness
-function SmithWatermanCompareLongString(const t1, t2: TPascalString; out Same, Diff: Integer): Double; overload;
+function SmithWatermanCompareLongString(const t1, t2: TPascalString; const MinDiffCharWithPeerLine: Integer; out Same, Diff: Integer): Double; overload;
 function SmithWatermanCompareLongString(const t1, t2: TPascalString): Double; overload;
 
 const
   SystemCharSize = SizeOf(SystemChar);
+  {$IFDEF CPU64}
+  MaxSmithWatermanMatrix = 10000 * 10;
+  {$ELSE}
+  MaxSmithWatermanMatrix = 8192;
+  {$ENDIF}
 
 implementation
 
@@ -361,17 +367,17 @@ begin
       Result := CharIn(c, p);
 end;
 
-function BytesOfPascalString(var s: TPascalString): TBytes;
+function BytesOfPascalString(const s: TPascalString): TBytes;
 begin
   Result := s.Bytes;
 end;
 
-function PascalStringOfBytes(var s: TBytes): TPascalString;
+function PascalStringOfBytes(const s: TBytes): TPascalString;
 begin
   Result.Bytes := s;
 end;
 
-function FastHashSystemString(s: PSystemString): THash;
+function FastHashSystemString(const s: PSystemString): THash;
 var
   i: Integer;
   c: SystemChar;
@@ -391,7 +397,7 @@ begin
     end;
 end;
 
-function FastHash64SystemString(s: PSystemString): THash64;
+function FastHash64SystemString(const s: PSystemString): THash64;
 var
   i: Integer;
   c: SystemChar;
@@ -411,17 +417,17 @@ begin
     end;
 end;
 
-function FastHashSystemString(s: SystemString): THash;
+function FastHashSystemString(const s: SystemString): THash;
 begin
   Result := FastHashSystemString(@s);
 end;
 
-function FastHash64SystemString(s: SystemString): THash64;
+function FastHash64SystemString(const s: SystemString): THash64;
 begin
   Result := FastHash64SystemString(@s);
 end;
 
-function FastHashPascalString(s: PPascalString): THash;
+function FastHashPascalString(const s: PPascalString): THash;
 var
   i: Integer;
   c: SystemChar;
@@ -436,7 +442,7 @@ begin
     end;
 end;
 
-function FastHash64PascalString(s: PPascalString): THash64;
+function FastHash64PascalString(const s: PPascalString): THash64;
 var
   i: Integer;
   c: SystemChar;
@@ -510,7 +516,7 @@ begin
   l1 := seq1^.Len;
   l2 := seq2^.Len;
 
-  if (l1 = 0) or (l2 = 0) then
+  if (l1 = 0) or (l2 = 0) or (l1 > MaxSmithWatermanMatrix) or (l2 > MaxSmithWatermanMatrix) then
     begin
       Result := -1;
       Exit;
@@ -529,7 +535,7 @@ begin
   i := 0;
   while i <= l1 do
     begin
-      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * j);
+      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * i);
       inc(i);
     end;
 
@@ -676,7 +682,7 @@ begin
   l1 := seq1^.Len;
   l2 := seq2^.Len;
 
-  if (l1 = 0) or (l2 = 0) then
+  if (l1 = 0) or (l2 = 0) or (l1 > MaxSmithWatermanMatrix) or (l2 > MaxSmithWatermanMatrix) then
     begin
       Result := -1;
       Same := 0;
@@ -695,7 +701,7 @@ begin
   i := 0;
   while i <= l1 do
     begin
-      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * j);
+      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * i);
       inc(i);
     end;
 
@@ -786,6 +792,21 @@ begin
   Result := SmithWatermanCompare(@seq1, @seq2);
 end;
 
+function SmithWatermanCompare(const seq1: TArrayPascalString; const seq2: TPascalString): Double;
+var
+  i: Integer;
+  r: Double;
+begin
+  r := -1;
+  Result := -1;
+  for i := 0 to Length(seq1) - 1 do
+    begin
+      r := SmithWatermanCompare(seq1[i], seq2);
+      if r > Result then
+          Result := r;
+    end;
+end;
+
 function SmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: Pointer; siz2: Integer;
   out Same, Diff: Integer): Double;
 
@@ -807,7 +828,7 @@ begin
   l1 := siz1;
   l2 := siz2;
 
-  if (l1 = 0) or (l2 = 0) then
+  if (l1 = 0) or (l2 = 0) or (l1 > MaxSmithWatermanMatrix) or (l2 > MaxSmithWatermanMatrix) then
     begin
       Result := -1;
       Same := 0;
@@ -826,7 +847,7 @@ begin
   i := 0;
   while i <= l1 do
     begin
-      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * j);
+      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * i);
       inc(i);
     end;
 
@@ -912,7 +933,7 @@ begin
   Result := SmithWatermanCompare(seq1, siz1, seq2, siz2, Same, Diff);
 end;
 
-function SmithWatermanCompareLongString(const t1, t2: TPascalString; out Same, Diff: Integer): Double;
+function SmithWatermanCompareLongString(const t1, t2: TPascalString; const MinDiffCharWithPeerLine: Integer; out Same, Diff: Integer): Double;
 type
   PSRec = ^TSRec;
 
@@ -961,11 +982,11 @@ type
       end;
   end;
 
-  function InlineMatch(const alpha, beta: PSRec; var cSame, cDiff: Integer): NativeInt; inline;
+  function InlineMatch(const alpha, beta: PSRec; const MinDiffCharWithPeerLine: Integer; var cSame, cDiff: Integer): NativeInt; inline;
   begin
     if SmithWatermanCompare(@alpha^.s, @beta^.s, cSame, cDiff) > 0 then
       begin
-        if cDiff < 10 then
+        if cDiff < MinDiffCharWithPeerLine then
             Result := SmithWaterman_MatchOk
         else
             Result := mismatch_penalty;
@@ -1007,7 +1028,7 @@ begin
   l1 := lst1.count;
   l2 := lst2.count;
 
-  if (l1 = 0) or (l2 = 0) then
+  if (l1 = 0) or (l2 = 0) or (l1 > MaxSmithWatermanMatrix) or (l2 > MaxSmithWatermanMatrix) then
     begin
       Result := -1;
       Same := 0;
@@ -1028,7 +1049,7 @@ begin
   i := 0;
   while i <= l1 do
     begin
-      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * j);
+      SetSWMV(swMatrixPtr, l1, i, 0, gap_penalty * i);
       inc(i);
     end;
 
@@ -1046,7 +1067,7 @@ begin
       j := 1;
       while j <= l2 do
         begin
-          matched := GetSWMV(swMatrixPtr, l1, i - 1, j - 1) + InlineMatch(PSRec(lst1[i - 1]), PSRec(lst2[j - 1]), cSame, cDiff);
+          matched := GetSWMV(swMatrixPtr, l1, i - 1, j - 1) + InlineMatch(PSRec(lst1[i - 1]), PSRec(lst2[j - 1]), MinDiffCharWithPeerLine, cSame, cDiff);
           deleted := GetSWMV(swMatrixPtr, l1, i - 1, j) + gap_penalty;
           inserted := GetSWMV(swMatrixPtr, l1, i, j - 1) + gap_penalty;
           SetSWMV(swMatrixPtr, l1, i, j, _Max(matched, _Max(deleted, inserted)));
@@ -1066,7 +1087,7 @@ begin
       score_diagonal := GetSWMV(swMatrixPtr, l1, i - 1, j - 1);
       score_left := GetSWMV(swMatrixPtr, l1, i - 1, j);
       score_right := GetSWMV(swMatrixPtr, l1, i, j - 1);
-      matched := InlineMatch(PSRec(lst1[i - 1]), PSRec(lst2[j - 1]), cSame, cDiff);
+      matched := InlineMatch(PSRec(lst1[i - 1]), PSRec(lst2[j - 1]), MinDiffCharWithPeerLine, cSame, cDiff);
 
       inc(TotalSame, cSame);
       inc(TotalDiff, cDiff);
@@ -1109,7 +1130,7 @@ function SmithWatermanCompareLongString(const t1, t2: TPascalString): Double;
 var
   Same, Diff: Integer;
 begin
-  Result := SmithWatermanCompareLongString(t1, t2, Same, Diff);
+  Result := SmithWatermanCompareLongString(t1, t2, 5, Same, Diff);
 end;
 
 {$IFDEF FPC}

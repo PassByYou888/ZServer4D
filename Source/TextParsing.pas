@@ -98,9 +98,9 @@ type
     function isTextOrComment(const cOffset: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function isCommentOrText(const cOffset: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function isWordSplitChar(c: SystemChar; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function isWordSplitChar(c: SystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function isWordSplitChar(c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(const c: SystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function GetWordBeginPos(const cOffset: Integer; SplitTokenC: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetWordBeginPos(const cOffset: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -129,7 +129,7 @@ type
     function SplitString(const cOffset: Integer; var LastPos: Integer; const SplitTokenS, SplitEndTokenS: TPascalString; var SplitOutput: TArrayPascalString): Integer; overload;
     function SplitString(const cOffset: Integer; const SplitTokenS, SplitEndTokenS: TPascalString; var SplitOutput: TArrayPascalString): Integer; overload;
     { }
-    function GetStr(bPos, ePos: Integer): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetStr(const bPos, ePos: Integer): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetStr(const tp: TTextPos): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function GetWordStr(const cOffset: Integer): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -138,29 +138,29 @@ type
     function GetChar(const cOffset: Integer): SystemChar; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property Len: Integer read ParsingData.Len;
     { }
-    procedure DeletePos(bPos, ePos: Integer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeletePos(const bPos, ePos: Integer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure DeletePos(const tp: TTextPos); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     procedure DeletedComment; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    procedure InsertTextBlock(bPos, ePos: Integer; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InsertTextBlock(const bPos, ePos: Integer; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure InsertTextBlock(const tp: TTextPos; AInsertText: TPascalString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function SearchWordBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     { string declaration }
-    class function TranslatePascalDeclToText(Text: TPascalString): TPascalString;
-    class function TranslateTextToPascalDecl(Text: TPascalString): TPascalString;
-    class function TranslateTextToPascalDeclWithUnicode(Text: TPascalString): TPascalString;
-    class function TranslateC_DeclToText(Text: TPascalString): TPascalString;
-    class function TranslateTextToC_Decl(Text: TPascalString): TPascalString;
+    class function TranslatePascalDeclToText(const Text: TPascalString): TPascalString;
+    class function TranslateTextToPascalDecl(const Text: TPascalString): TPascalString;
+    class function TranslateTextToPascalDeclWithUnicode(const Text: TPascalString): TPascalString;
+    class function TranslateC_DeclToText(const Text: TPascalString): TPascalString;
+    class function TranslateTextToC_Decl(const Text: TPascalString): TPascalString;
     { comment declaration }
-    class function TranslatePascalDeclCommentToText(Text: TPascalString): TPascalString;
-    class function TranslateTextToPascalDeclComment(Text: TPascalString): TPascalString;
-    class function TranslateC_DeclCommentToText(Text: TPascalString): TPascalString;
-    class function TranslateTextToC_DeclComment(Text: TPascalString): TPascalString;
+    class function TranslatePascalDeclCommentToText(const Text: TPascalString): TPascalString;
+    class function TranslateTextToPascalDeclComment(const Text: TPascalString): TPascalString;
+    class function TranslateC_DeclCommentToText(const Text: TPascalString): TPascalString;
+    class function TranslateTextToC_DeclComment(const Text: TPascalString): TPascalString;
     { }
-    constructor Create(AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString); virtual;
+    constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString); virtual;
     destructor Destroy; override;
     { }
     function Parsing: Boolean; virtual;
@@ -1217,17 +1217,17 @@ begin
   Result := isComment(cOffset) or isTextDecl(cOffset);
 end;
 
-function TTextParsing.isWordSplitChar(c: SystemChar; SplitTokenC: TPascalString): Boolean;
+function TTextParsing.isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean;
 begin
   Result := isWordSplitChar(c, True, SplitTokenC);
 end;
 
-function TTextParsing.isWordSplitChar(c: SystemChar): Boolean;
+function TTextParsing.isWordSplitChar(const c: SystemChar): Boolean;
 begin
   Result := isWordSplitChar(c, True, '');
 end;
 
-function TTextParsing.isWordSplitChar(c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean;
+function TTextParsing.isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean;
 begin
   if DefaultChar then
       Result := CharIn(c, [c0To32], SplitTokenC)
@@ -1633,11 +1633,12 @@ begin
   Result := SplitString(cOffset, t, SplitTokenS, SplitEndTokenS, SplitOutput);
 end;
 
-function TTextParsing.GetStr(bPos, ePos: Integer): TPascalString;
+function TTextParsing.GetStr(const bPos, ePos: Integer): TPascalString;
 begin
   if ePos = ParsingData.Len then
-      Inc(ePos);
-  Result := ParsingData.Text.GetString(bPos, ePos);
+      Result := ParsingData.Text.GetString(bPos, ePos + 1)
+  else
+      Result := ParsingData.Text.GetString(bPos, ePos);
 end;
 
 function TTextParsing.GetStr(const tp: TTextPos): TPascalString;
@@ -1678,7 +1679,7 @@ begin
   Result := ParsingData.Text[cOffset];
 end;
 
-procedure TTextParsing.DeletePos(bPos, ePos: Integer);
+procedure TTextParsing.DeletePos(const bPos, ePos: Integer);
 begin
   ParsingData.Text := GetStr(1, bPos) + GetStr(ePos, Len);
   ParsingData.Len := ParsingData.Text.Len;
@@ -1697,7 +1698,7 @@ begin
   RebuildParsingCache;
 end;
 
-procedure TTextParsing.InsertTextBlock(bPos, ePos: Integer; AInsertText: TPascalString);
+procedure TTextParsing.InsertTextBlock(const bPos, ePos: Integer; AInsertText: TPascalString);
 begin
   ParsingData.Text := GetStr(1, bPos) + AInsertText + GetStr(ePos, Len + 1);
   ParsingData.Len := ParsingData.Text.Len;
@@ -1764,7 +1765,7 @@ begin
     end;
 end;
 
-class function TTextParsing.TranslatePascalDeclToText(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslatePascalDeclToText(const Text: TPascalString): TPascalString;
 var
   cPos: Integer;
 
@@ -1816,7 +1817,7 @@ begin
     end;
 end;
 
-class function TTextParsing.TranslateTextToPascalDecl(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateTextToPascalDecl(const Text: TPascalString): TPascalString;
 var
   cPos         : Integer;
   c            : SystemChar;
@@ -1866,7 +1867,7 @@ begin
       Result.Append(#39);
 end;
 
-class function TTextParsing.TranslateTextToPascalDeclWithUnicode(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateTextToPascalDeclWithUnicode(const Text: TPascalString): TPascalString;
 var
   cPos         : Integer;
   c            : SystemChar;
@@ -1916,7 +1917,7 @@ begin
       Result.Append(#39);
 end;
 
-class function TTextParsing.TranslateC_DeclToText(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateC_DeclToText(const Text: TPascalString): TPascalString;
 var
   cPos: Integer;
   i   : Integer;
@@ -1959,7 +1960,7 @@ begin
     end;
 end;
 
-class function TTextParsing.TranslateTextToC_Decl(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateTextToC_Decl(const Text: TPascalString): TPascalString;
   function GetCStyle(const c: SystemChar): SystemString; inline;
   var
     i: Integer;
@@ -2007,7 +2008,7 @@ begin
       Result.Append('"');
 end;
 
-class function TTextParsing.TranslatePascalDeclCommentToText(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslatePascalDeclCommentToText(const Text: TPascalString): TPascalString;
 begin
   Result := umlTrimSpace(Text);
   if umlMultipleMatch(False, '{*}', Result) then
@@ -2044,7 +2045,7 @@ begin
     end;
 end;
 
-class function TTextParsing.TranslateTextToPascalDeclComment(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateTextToPascalDeclComment(const Text: TPascalString): TPascalString;
 var
   n: TPascalString;
 begin
@@ -2059,7 +2060,7 @@ begin
       Result := '{ ' + (Text) + ' }';
 end;
 
-class function TTextParsing.TranslateC_DeclCommentToText(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateC_DeclCommentToText(const Text: TPascalString): TPascalString;
 begin
   Result := umlTrimSpace(Text);
   if umlMultipleMatch(False, '#*', Result) then
@@ -2093,7 +2094,7 @@ begin
     end;
 end;
 
-class function TTextParsing.TranslateTextToC_DeclComment(Text: TPascalString): TPascalString;
+class function TTextParsing.TranslateTextToC_DeclComment(const Text: TPascalString): TPascalString;
 var
   n: TPascalString;
 begin
@@ -2104,7 +2105,7 @@ begin
       Result := '/* ' + n + ' */';
 end;
 
-constructor TTextParsing.Create(AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString);
+constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString);
 begin
   inherited Create;
   ParsingData.Cache.CommentData := nil;

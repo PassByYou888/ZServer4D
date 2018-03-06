@@ -9,10 +9,9 @@
 
 unit Geometry2DUnit;
 
-interface
-
 {$I zDefine.inc}
 
+interface
 
 uses CoreClasses, Sysutils, Math, Types;
 

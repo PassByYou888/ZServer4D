@@ -13,7 +13,7 @@
 
 unit LibraryManager;
 
-{$I zDefine.inc}
+{$I ..\zDefine.inc}
 
 interface
 
