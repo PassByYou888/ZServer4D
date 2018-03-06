@@ -49,8 +49,8 @@
 
 {$ENDIF}
 
-//{$WARNINGS OFF}
-//{$HINTS OFF}
+{$WARNINGS OFF}
+{$HINTS OFF}
 {$H+} { long string }
 {$R-} { range check }
 {$A+} { Word Align Data }
