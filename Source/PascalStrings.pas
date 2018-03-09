@@ -234,7 +234,7 @@ begin
       CopyPtr(@c2[0], @Output[ll], rl * SystemCharSize);
 end;
 
-procedure CombineCharsSP(c1: SystemString; c2: TPascalChars; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsSP(const c1: SystemString; const c2: TPascalChars; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   ll, rl: Integer;
 begin
@@ -247,7 +247,7 @@ begin
       CopyPtr(@c2[0], @Output[ll], rl * SystemCharSize);
 end;
 
-procedure CombineCharsPS(c1: TPascalChars; c2: SystemString; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPS(const c1: TPascalChars; const c2: SystemString; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   ll, rl: Integer;
 begin
@@ -260,7 +260,7 @@ begin
       CopyPtr(@c2[FirstCharPos], @Output[ll], rl * SystemCharSize);
 end;
 
-procedure CombineCharsCP(const c1: SystemChar; c2: TPascalChars; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsCP(const c1: SystemChar; const c2: TPascalChars; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   rl: Integer;
 begin
@@ -271,7 +271,7 @@ begin
       CopyPtr(@c2[0], @Output[1], rl * SystemCharSize);
 end;
 
-procedure CombineCharsPC(const c1: TPascalChars; c2: SystemChar; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPC(const c1: TPascalChars; const c2: SystemChar; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
   ll: Integer;
 begin
@@ -458,6 +458,7 @@ begin
 end;
 
 function GetSWMVMemory(const xLen, yLen: NativeUInt): Pointer; inline;
+{ optimized matrix performance }
 begin
   Result := System.AllocMem((xLen + 1) * (yLen + 1) * SizeOf(NativeInt));
 end;
@@ -465,16 +466,16 @@ end;
 function GetSWMV(const p: Pointer; const w, x, y: NativeUInt): NativeInt; inline;
 { optimized matrix performance }
 begin
-  Result := PInteger(NativeUInt(p) + ((x + y * (w + 1)) * SizeOf(NativeInt)))^;
+  Result := PNativeInt(NativeUInt(p) + ((x + y * (w + 1)) * SizeOf(NativeInt)))^;
 end;
 
 procedure SetSWMV(const p: Pointer; const w, x, y: NativeUInt; const v: NativeInt); inline;
 { optimized matrix performance }
 begin
-  PInteger(NativeUInt(p) + ((x + y * (w + 1)) * SizeOf(NativeInt)))^ := v;
+  PNativeInt(NativeUInt(p) + ((x + y * (w + 1)) * SizeOf(NativeInt)))^ := v;
 end;
 
-function _Max(const i1, i2: NativeInt): NativeInt; inline;
+function GetMax(const i1, i2: NativeInt): NativeInt; inline;
 begin
   if i1 > i2 then
       Result := i1
@@ -556,7 +557,7 @@ begin
           matched := GetSWMV(swMatrixPtr, l1, i - 1, j - 1) + InlineMatch(seq1^[i], seq2^[j], diffChar);
           deleted := GetSWMV(swMatrixPtr, l1, i - 1, j) + gap_penalty;
           inserted := GetSWMV(swMatrixPtr, l1, i, j - 1) + gap_penalty;
-          SetSWMV(swMatrixPtr, l1, i, j, _Max(matched, _Max(deleted, inserted)));
+          SetSWMV(swMatrixPtr, l1, i, j, GetMax(matched, GetMax(deleted, inserted)));
           inc(j);
         end;
       inc(i);
@@ -722,7 +723,7 @@ begin
           matched := GetSWMV(swMatrixPtr, l1, i - 1, j - 1) + InlineMatch(seq1^[i], seq2^[j]);
           deleted := GetSWMV(swMatrixPtr, l1, i - 1, j) + gap_penalty;
           inserted := GetSWMV(swMatrixPtr, l1, i, j - 1) + gap_penalty;
-          SetSWMV(swMatrixPtr, l1, i, j, _Max(matched, _Max(deleted, inserted)));
+          SetSWMV(swMatrixPtr, l1, i, j, GetMax(matched, GetMax(deleted, inserted)));
           inc(j);
         end;
       inc(i);
@@ -868,7 +869,7 @@ begin
           matched := GetSWMV(swMatrixPtr, l1, i - 1, j - 1) + InlineMatch(PByte(NativeUInt(seq1) + (i - 1))^, PByte(NativeUInt(seq2) + (j - 1))^);
           deleted := GetSWMV(swMatrixPtr, l1, i - 1, j) + gap_penalty;
           inserted := GetSWMV(swMatrixPtr, l1, i, j - 1) + gap_penalty;
-          SetSWMV(swMatrixPtr, l1, i, j, _Max(matched, _Max(deleted, inserted)));
+          SetSWMV(swMatrixPtr, l1, i, j, GetMax(matched, GetMax(deleted, inserted)));
           inc(j);
         end;
       inc(i);
@@ -1070,7 +1071,7 @@ begin
           matched := GetSWMV(swMatrixPtr, l1, i - 1, j - 1) + InlineMatch(PSRec(lst1[i - 1]), PSRec(lst2[j - 1]), MinDiffCharWithPeerLine, cSame, cDiff);
           deleted := GetSWMV(swMatrixPtr, l1, i - 1, j) + gap_penalty;
           inserted := GetSWMV(swMatrixPtr, l1, i, j - 1) + gap_penalty;
-          SetSWMV(swMatrixPtr, l1, i, j, _Max(matched, _Max(deleted, inserted)));
+          SetSWMV(swMatrixPtr, l1, i, j, GetMax(matched, GetMax(deleted, inserted)));
           inc(j);
         end;
       inc(i);

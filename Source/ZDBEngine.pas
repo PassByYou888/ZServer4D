@@ -221,6 +221,7 @@ type
     DBEng: TDBStoreBase;
     StorePos: Int64;
     QueryHnd: PHeader;
+    index: NativeInt;
     TaskTag: SystemString;
     DeltaTime, NewTime: TTimeTickValue;
     Aborted: Boolean;
@@ -334,7 +335,7 @@ type
   end;
 
   // store engine
-  TCacheStyle = (csAutomation, csDisabled, csEnabled);
+  TCacheStyle = (csAutomation, csNever, csAlways);
 
   TMemoryStream64InCache = class(TMemoryStream64)
   private
@@ -350,6 +351,8 @@ type
 
     property CacheID: Cardinal read ID;
   end;
+
+  TStoreArray = array of Int64;
 
   TDBStoreBase = class(TCoreClassInterfacedObject)
   protected
@@ -449,6 +452,9 @@ type
     function QueryNext(var qState: TQueryState): Boolean;
     function QueryLast(var qState: TQueryState): Boolean;
     function QueryPrev(var qState: TQueryState): Boolean;
+
+    // data array
+    procedure BuildStoreArray(ReverseBuild: Boolean; var Output: TStoreArray);
 
     // wait query
     {$IFDEF FPC}
@@ -1314,6 +1320,7 @@ begin
   FState.StorePos := 0;
   FState.QueryHnd := @FItmSrHnd;
   FState.Aborted := False;
+  FState.index := -1;
 
   FTriggerTime := 0;
   FTaskTag := '';
@@ -1391,6 +1398,7 @@ begin
               {$ENDIF FPC}
               exit;
             end;
+          dec(FState.index);
           {$IFDEF FPC}
           zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
           {$ELSE }
@@ -1418,6 +1426,7 @@ begin
               {$ENDIF FPC}
               exit;
             end;
+          inc(FState.index);
           {$IFDEF FPC}
           zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
           {$ELSE }
@@ -1453,6 +1462,7 @@ begin
               {$ENDIF FPC}
               exit;
             end;
+          FState.index := FDBEng.Count - 1;
           {$IFDEF FPC}
           zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
           {$ELSE }
@@ -1480,6 +1490,7 @@ begin
               {$ENDIF FPC}
               exit;
             end;
+          FState.index := 0;
           {$IFDEF FPC}
           zDBthSync(FDBEng.FQueryThread, True, @DoTriggerQuery);
           {$ELSE }
@@ -1783,7 +1794,7 @@ begin
       OwnerCache.AutoFreeData := True;
     end;
   if OwnerEng <> nil then
-      Dec(OwnerEng.FUsedStreamCacheMemory, UsedMemorySize);
+      dec(OwnerEng.FUsedStreamCacheMemory, UsedMemorySize);
   inherited Destroy;
 end;
 
@@ -1861,17 +1872,17 @@ end;
 procedure TDBStoreBase.InstanceCacheObjectFreeProc(obj: TCoreClassObject);
 begin
   if obj is TDBEngineDF then
-      Dec(FUsedInstanceCacheMemory, TDBEngineDF(obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineDF(obj).UsedMemory)
   else if obj is TDBEngineVL then
-      Dec(FUsedInstanceCacheMemory, TDBEngineVL(obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineVL(obj).UsedMemory)
   else if obj is TDBEngineTE then
-      Dec(FUsedInstanceCacheMemory, TDBEngineTE(obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineTE(obj).UsedMemory)
     {$IFNDEF FPC}
   else if obj is TDBEngineJson then
-      Dec(FUsedInstanceCacheMemory, TDBEngineJson(obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineJson(obj).UsedMemory)
     {$ENDIF}
   else if obj is TDBEnginePascalString then
-      Dec(FUsedInstanceCacheMemory, TDBEnginePascalString(obj).UsedMemory);
+      dec(FUsedInstanceCacheMemory, TDBEnginePascalString(obj).UsedMemory);
 
   DisposeObject(obj);
 end;
@@ -1881,7 +1892,10 @@ begin
   FCache.Add(StorePos, obj, False);
   inc(FUsedInstanceCacheMemory, siz);
 
-  if FUsedInstanceCacheMemory > FMaximumCacheMemorySize then
+  if FCacheStyle = TCacheStyle.csAlways then
+    exit;
+
+  if (FUsedInstanceCacheMemory > FMaximumCacheMemorySize) then
     while (FUsedInstanceCacheMemory > FMinimizeCacheMemorySize) and (FCache.First <> obj) do
         FCache.DeleteFirst;
 end;
@@ -1901,7 +1915,7 @@ begin
   m.UsedMemorySize := m.Size;
   inc(FUsedStreamCacheMemory, m.UsedMemorySize);
 
-  if FUsedStreamCacheMemory > FMaximumStreamCacheMemorySize then
+  if (FUsedStreamCacheMemory > FMaximumStreamCacheMemorySize) then
     while (FUsedStreamCacheMemory > FMinimizeStreamCacheMemorySize) and (FStreamCache.First <> m) do
         FStreamCache.DeleteFirst;
 end;
@@ -1927,7 +1941,7 @@ begin
   Result := FDBEngine.FastDelete(FStoreFieldPos, StorePos);
   if Result then
     begin
-      Dec(FCount);
+      dec(FCount);
 
       try
         if Assigned(FNotifyIntf) then
@@ -2189,7 +2203,7 @@ begin
         else
             Result := False;
       end;
-    TCacheStyle.csDisabled: Result := False;
+    TCacheStyle.csNever: Result := False;
     else Result := True;
   end;
 end;
@@ -2451,6 +2465,60 @@ begin
   end;
 end;
 
+procedure TDBStoreBase.BuildStoreArray(ReverseBuild: Boolean; var Output: TStoreArray);
+type
+  TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
+var
+  itmSearHnd: THeader;
+  qState    : TQueryState;
+  f, n      : TDynamicQueryMethod;
+begin
+  SetLength(Output, FCount);
+
+  qState.StorePos := -1;
+  qState.Aborted := False;
+  qState.QueryHnd := @itmSearHnd;
+
+  {$IFDEF FPC}
+  if ReverseBuild then
+    begin
+      f := @QueryLast;
+      n := @QueryPrev;
+      qState.index := Count - 1;
+    end
+  else
+    begin
+      f := @QueryFirst;
+      n := @QueryNext;
+      qState.index := 0;
+    end;
+  {$ELSE FPC}
+  if ReverseBuild then
+    begin
+      f := QueryLast;
+      n := QueryPrev;
+      qState.index := Count - 1;
+    end
+  else
+    begin
+      f := QueryFirst;
+      n := QueryNext;
+      qState.index := 0;
+    end;
+  {$ENDIF FPC}
+  //
+  if f(qState) then
+    begin
+      repeat
+        Output[qState.index] := qState.StorePos;
+        if ReverseBuild then
+            dec(qState.index)
+        else
+            inc(qState.index);
+      until (not n(qState));
+    end;
+end;
+
 {$IFDEF FPC}
 
 
@@ -2465,16 +2533,19 @@ begin
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.QueryHnd := @itmSearHnd;
+  qState.index := 0;
 
   if ReverseQuery then
     begin
       f := @QueryLast;
       n := @QueryPrev;
+      qState.index := Count - 1;
     end
   else
     begin
       f := @QueryFirst;
       n := @QueryNext;
+      qState.index := 0;
     end;
 
   if f(qState) then
@@ -2491,6 +2562,10 @@ begin
         if qState.Aborted then
             break;
 
+        if ReverseQuery then
+            dec(qState.index)
+        else
+            inc(qState.index);
       until (not n(qState));
     end;
 end;
@@ -2513,11 +2588,13 @@ begin
     begin
       f := QueryLast;
       n := QueryPrev;
+      qState.index := Count - 1;
     end
   else
     begin
       f := QueryFirst;
       n := QueryNext;
+      qState.index := 0;
     end;
 
   if f(qState) then
@@ -2536,6 +2613,10 @@ begin
         if qState.Aborted then
             break;
 
+        if ReverseQuery then
+            dec(qState.index)
+        else
+            inc(qState.index);
       until (not n(qState));
     end;
 end;
@@ -3440,7 +3521,7 @@ end;
 initialization
 
 DefaultCacheAnnealingTime := 15.0;
-DefaultMinimizeCacheOfFileSize := 16 * 1024 * 1024; // 16M
+DefaultMinimizeCacheOfFileSize := 64 * 1024 * 1024; // 64M
 
 {$IFDEF CPU64}
 DefaultCacheBufferLength := 10000 * 20;
@@ -3453,9 +3534,9 @@ DefaultMaximumStreamCacheSize := Int64(1048576 * 128);    // 128M
 DefaultCacheBufferLength := 10000;
 DefaultIndexCacheBufferLength := 10000;
 DefaultMinimizeInstanceCacheSize := 16 * 1024 * 1024; // 16M
-DefaultMaximumInstanceCacheSize := 64 * 1024 * 1024;  // 64M
+DefaultMaximumInstanceCacheSize := 512 * 1024 * 1024; // 512M
 DefaultMinimizeStreamCacheSize := 8 * 1048576;        // 8M
-DefaultMaximumStreamCacheSize := 32 * 1024 * 1024;    // 16M
+DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;   // 128M
 {$ENDIF}
 
 finalization

@@ -172,12 +172,12 @@ procedure FreeObject(const objs: array of TObject); overload;
 procedure LockObject(obj:TObject);
 procedure UnLockObject(obj:TObject);
 
-procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure CopyPtr(sour, dest:Pointer; Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure FillPtrByte(const Dest:Pointer; Count: NativeUInt; const Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CompareMemory(const P1, P2: Pointer; const MLen: NativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure RaiseInfo(n: SystemString); overload;
-procedure RaiseInfo(n: SystemString; const Args: array of const); overload;
+procedure RaiseInfo(const n: SystemString); overload;
+procedure RaiseInfo(const n: SystemString; const Args: array of const); overload;
 
 function IsMobile: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
@@ -267,7 +267,7 @@ begin
 {$ENDIF}
 end;
 
-procedure FillPtrByte(Dest:Pointer; Count: NativeUInt; const Value: Byte);
+procedure FillPtrByte(const Dest:Pointer; Count: NativeUInt; const Value: Byte);
 var
   Index: NativeInt;
   V    : UInt64;
@@ -301,23 +301,23 @@ begin
       end;
 end;
 
-function CompareMemory(P1, P2: Pointer; MLen: NativeUInt): Boolean;
+function CompareMemory(const P1, P2: Pointer; const MLen: NativeUInt): Boolean;
 begin;
   if MLen=0 then Result:=True
   else Result:=CompareMem(p1,p2, MLen);
 end;
 
-procedure CopyPtr(sour, dest:Pointer; Count: NativeUInt);
+procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt);
 begin
   move(sour^, dest^, Count);
 end;
 
-procedure RaiseInfo(n: SystemString);
+procedure RaiseInfo(const n: SystemString);
 begin
   raise Exception.Create(n);
 end;
 
-procedure RaiseInfo(n: SystemString; const Args: array of const);
+procedure RaiseInfo(const n: SystemString; const Args: array of const);
 begin
   raise Exception.Create(Format(n, Args));
 end;
