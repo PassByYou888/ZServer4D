@@ -3,6 +3,7 @@
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
 { ****************************************************************************** }
 {$IFDEF FPC}
 
@@ -35,7 +36,7 @@
 
 {$DEFINE Delphi}
 {$DEFINE FastMD5}
-//{$DEFINE parallel}
+{$DEFINE parallel}
 {$DEFINE OptimizationMemoryStreamMD5}
 
 // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
