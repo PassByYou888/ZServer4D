@@ -36,7 +36,7 @@
 
 {$DEFINE Delphi}
 {$DEFINE FastMD5}
-{$DEFINE parallel}
+//{$DEFINE parallel}
 {$DEFINE OptimizationMemoryStreamMD5}
 
 // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
