@@ -43,6 +43,7 @@ type
     procedure connectButtonClick(Sender: TObject);
     procedure WriteStringButtonClick(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
   public
@@ -129,6 +130,11 @@ end;
 procedure TCustomProtocolForm.DoStatusMethod(AText: SystemString; const ID: Integer);
 begin
   Memo.Lines.Add(AText);
+end;
+
+procedure TCustomProtocolForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DisposeObject(myServer);
 end;
 
 procedure TCustomProtocolForm.FormCreate(Sender: TObject);
