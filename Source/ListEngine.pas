@@ -29,7 +29,7 @@ uses Sysutils, Variants, CoreClasses, PascalStrings;
 type
   TCounter = NativeUInt;
 
-  TListBuffer = array of TCoreClassList;
+  TListBuffer = packed array of TCoreClassList;
   PListBuffer = ^TListBuffer;
 
   TDataPos = (dpOnly, dpFirst, dpMiddle, dpLast);
@@ -713,6 +713,7 @@ type
     destructor Destroy; override;
 
     function Add(Value: Double): Integer;
+    procedure AddArray(const Value: array of Double);
     function Delete(Idx: Integer): Integer;
     function DeleteDouble(Value: Double): Integer;
     procedure Clear;
@@ -5174,7 +5175,8 @@ begin
   if TextList.Count > 0 then
     for i := 0 to TextList.Count - 1 do
       begin
-        n := umlTrimSpace(TextList[i]);
+        n.Text := TextList[i];
+        n := umlTrimSpace(n);
 
         if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
           begin
@@ -5227,7 +5229,11 @@ begin
   {$IFDEF FPC}
   n.LoadFromStream(Stream);
   {$ELSE}
-  n.LoadFromStream(Stream, TEncoding.UTF8);
+  try
+      n.LoadFromStream(Stream, TEncoding.UTF8);
+  except
+      n.LoadFromStream(Stream);
+  end;
   {$ENDIF}
   DataImport(n);
   DisposeObject(n);
@@ -5773,6 +5779,14 @@ begin
   New(p);
   p^.Data := Value;
   Result := FList.Add(p);
+end;
+
+procedure TListDouble.AddArray(const Value: array of Double);
+var
+  i: Integer;
+begin
+  for i := 0 to Length(Value) - 1 do
+      Add(Value[i]);
 end;
 
 function TListDouble.Delete(Idx: Integer): Integer;

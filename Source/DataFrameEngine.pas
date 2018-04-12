@@ -521,7 +521,7 @@ type
     procedure Assign(SameObj: TDataFrameEngine); { inline }
     //
     procedure WriteString(v: SystemString); overload;        { inline }
-    procedure WriteString(v: umlString); overload;           { inline }
+    procedure WriteString(v: TPascalString); overload;       { inline }
     procedure WriteInteger(v: Integer);                      { inline }
     procedure WriteCardinal(v: Cardinal);                    { inline }
     procedure WriteWORD(v: Word);                            { inline }
@@ -625,7 +625,7 @@ type
     {$IFNDEF FPC}
     procedure EncodeAsPublicJson(output: TCoreClassStream);
     procedure EncodeAsJson(output: TCoreClassStream);
-    procedure DecodeFromJson(stream: TMemoryStream64);
+    procedure DecodeFromJson(stream: TCoreClassStream);
     {$ENDIF}
     //
     // ZLib compressor
@@ -1921,7 +1921,7 @@ end;
 
 procedure TDataFrameStream.LoadFromJson(jarry: TJsonArray; idx: Integer);
 var
-  b64: umlString;
+  b64: TPascalString;
 begin
   FBuffer.Clear;
   b64.Text := jarry.S[idx];
@@ -1930,7 +1930,7 @@ end;
 
 procedure TDataFrameStream.SaveToJson(jarry: TJsonArray; idx: Integer);
 var
-  b64: umlString;
+  b64: TPascalString;
 begin
   umlEncodeStreamBASE64(FBuffer, b64);
   jarry.Add(b64.Text);
@@ -2602,7 +2602,7 @@ begin
   FDataList.Add(_Obj);
 end;
 
-procedure TDataFrameEngine.WriteString(v: umlString);
+procedure TDataFrameEngine.WriteString(v: TPascalString);
 begin
   WriteString(v.Text);
 end;
@@ -3813,7 +3813,7 @@ begin
   DisposeObject(j);
 end;
 
-procedure TDataFrameEngine.DecodeFromJson(stream: TMemoryStream64);
+procedure TDataFrameEngine.DecodeFromJson(stream: TCoreClassStream);
 var
   j: TJsonObject;
   t: Byte;

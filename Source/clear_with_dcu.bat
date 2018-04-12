@@ -9,3 +9,5 @@ del/s *.local
 del/s *.identcache
 del/s *.stat
 del/s *.tvsconfig
+del/s *.deployproj
+del/s *.stat

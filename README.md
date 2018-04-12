@@ -117,7 +117,7 @@ REST,BAAS等等单项式的HTTP服务请自行在服务器开发和集成，ZSer
 
 qq群490269542
  
-作者qq600585（不接受加人）
+作者qq600585（请不要直接加作者）
 
 
 
@@ -144,5 +144,11 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 [日常问题汇总](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
 
+
+## 捐赠
+
+**如果你支持zServer开发，请向作者捐款，希望捐赠后能留下真实姓名和联系方式，开发建议请发至作者邮箱** [600585@qq.com](mailto:600585@qq.com "600585@qq.com")
+
+![](alipay.jpg)
 
 

@@ -974,11 +974,11 @@ type
 
   Tp2pVMFragmentPackage = packed record
   public
-    buffSiz: Cardinal;
+    buffSiz    : Cardinal;
     frameworkID: Cardinal;
-    p2pID: Cardinal;
-    pkType: Byte;
-    buff: PByte;
+    p2pID      : Cardinal;
+    pkType     : Byte;
+    buff       : PByte;
   private
     procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function FillReceiveBuff(stream: TMemoryStream64): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -2446,7 +2446,8 @@ begin
   headBuff[0] := Byte(FOwnerFramework.FHashStyle);
   PWord(@headBuff[1])^ := Length(code);
   InternalSendByteBuffer(@headBuff[0], 3);
-  InternalSendByteBuffer(@code[0], Length(code));
+  if Length(code) > 0 then
+      InternalSendByteBuffer(@code[0], Length(code));
 end;
 
 procedure TPeerIO.SendEncryptBuffer(buff: PByte; Siz: NativeInt; cs: TCipherStyle);
@@ -3206,7 +3207,8 @@ begin
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < dHashSiz) then
       Exit;
   SetLength(dHash, dHashSiz);
-  FReceivedBuffer.Read(dHash[0], dHashSiz);
+  if Length(dHash) > 0 then
+      FReceivedBuffer.Read(dHash[0], dHashSiz);
 
   // 4: use Encrypt state
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
@@ -3217,7 +3219,8 @@ begin
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
       Exit;
   SetLength(buff, dSize);
-  FReceivedBuffer.Read(buff[0], dSize);
+  if Length(buff) > 0 then
+      FReceivedBuffer.Read(buff[0], dSize);
 
   // 6: tail token
   FReceivedBuffer.Read(dTail, umlCardinalLength);
@@ -3231,19 +3234,21 @@ begin
   FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
 
   try
-      Encrypt(FReceiveDataCipherStyle, @buff[0], dSize, FCipherKey, False);
+    if Length(buff) > 0 then
+        Encrypt(FReceiveDataCipherStyle, @buff[0], dSize, FCipherKey, False);
   except
     Print('Encrypt error!');
     Disconnect;
     Exit;
   end;
 
-  if not VerifyHashCode(dHashStyle, @buff[0], dSize, dHash) then
-    begin
-      Print('verify data error!');
-      Disconnect;
-      Exit;
-    end;
+  if Length(buff) > 0 then
+    if not VerifyHashCode(dHashStyle, @buff[0], dSize, dHash) then
+      begin
+        Print('verify data error!');
+        Disconnect;
+        Exit;
+      end;
 
   {$IFDEF FPC}
   if Assigned(FCurrentQueueData^.OnConsoleMethod) then
@@ -3442,7 +3447,8 @@ begin
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
                 break;
             SetLength(buff, dSize);
-            FReceivedBuffer.Read(buff[0], dSize);
+            if dSize > 0 then
+                FReceivedBuffer.Read(buff[0], dSize);
 
             // 5: process tail token
             FReceivedBuffer.Read(dTail, umlCardinalLength);
@@ -3484,7 +3490,8 @@ begin
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + umlCardinalLength) then
                 break;
             SetLength(buff, dSize);
-            FReceivedBuffer.Read(buff[0], dSize);
+            if Length(buff) > 0 then
+                FReceivedBuffer.Read(buff[0], dSize);
 
             // 5: process tail token
             FReceivedBuffer.Read(dTail, umlCardinalLength);
@@ -3535,7 +3542,8 @@ begin
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dHashSiz) then
                 break;
             SetLength(dHash, dHashSiz);
-            FReceivedBuffer.Read(dHash[0], dHashSiz);
+            if Length(dHash) > 0 then
+                FReceivedBuffer.Read(dHash[0], dHashSiz);
 
             // 5: Encrypt style
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < umlByteLength) then
@@ -3952,9 +3960,9 @@ begin
 
   LockObject(FOwnerFramework.FPerClientHashList); // atomic lock
   try
-  FOwnerFramework.FPerClientHashList.Delete(FID);
+      FOwnerFramework.FPerClientHashList.Delete(FID);
   finally
-  UnLockObject(FOwnerFramework.FPerClientHashList); // atomic lock
+      UnLockObject(FOwnerFramework.FPerClientHashList); // atomic lock
   end;
 
   LockObject(FQueueList); // atomic lock
@@ -4324,7 +4332,8 @@ begin
 
       // verify code
       FResultDataBuffer.WritePtr(@headBuff[0], 3);
-      FResultDataBuffer.WritePtr(@code[0], Length(code));
+      if Length(code) > 0 then
+          FResultDataBuffer.WritePtr(@code[0], Length(code));
 
       // data body
       FResultDataBuffer.WritePtr(@bCipherStyle, umlByteLength);
@@ -9268,7 +9277,7 @@ var
   Seed: Integer;
 begin
   SetLength(P2PVMAuthToken, 1024); // 1k auth buffer
-  Seed := $FF0000FF;
+  Seed := $0F0000FF;
   for i := 0 to (Length(P2PVMAuthToken) div 4) - 1 do
       PInteger(@P2PVMAuthToken[i * 4])^ := TMISC.Ran03(Seed);
 end;

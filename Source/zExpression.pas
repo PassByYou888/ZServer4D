@@ -20,7 +20,7 @@ type
     soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,  // logic
     soShl, soShr,                                                                             // bit
     soBlockIndentBegin, soBlockIndentEnd,                                                     // block indent
-    soPropParamIndentBegin, soPropParamIndentEnd,                                             // param indent
+    soPropIndentBegin, soPropIndentEnd,                                                       // property indent
     soDotSymbol, soCommaSymbol,                                                               // dot and comma
     soEolSymbol,                                                                              // eol
     soProc, soParameter,                                                                      // proc
@@ -29,8 +29,8 @@ type
 
   TExpressionDeclType = (
     edtSymbol,                                                                                 // symbol
-    edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt, // internal type
-    edtSingle, edtDouble, edtCurrency,                                                         // float
+    edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt, // inbuild byte type
+    edtSingle, edtDouble, edtCurrency,                                                         // inbuild float type
     edtString,                                                                                 // string
     edtProcExp,                                                                                // proc
     edtExpressionAsValue,                                                                      // expression
@@ -53,7 +53,7 @@ type
 
   TNumTextType = (nttBool, nttInt, nttInt64, nttUInt64, nttWord, nttByte, nttSmallInt, nttShortInt, nttUInt, nttSingle, nttDouble, nttCurrency, nttUnknow);
 
-  TSymbolExpression = class(TCoreClassObject)
+  TSymbolExpression = class sealed(TCoreClassObject)
   protected
     FList: TCoreClassList;
   public
@@ -109,8 +109,22 @@ type
   {$IFNDEF FPC}
   TOnDeclValueProc = reference to procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
   {$ENDIF FPC}
-  { }
-  // text parse support
+  //
+  { text parse support }
+  TExpressionParsingState = set of (esFirst, esWaitOp, esWaitIndentEnd, esWaitPropParamIndentEnd, esWaitValue);
+  PExpressionParsingState = ^TExpressionParsingState;
+
+function ParseOperationState(ParsingEng: TTextParsing;
+  var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function ParseSymbol(ParsingEng: TTextParsing; WorkSym: TSymbolExpression;
+  var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; pStates: PExpressionParsingState): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
+  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod;
+  {$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
+  RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+
 function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
@@ -233,8 +247,8 @@ const
     (State: soShr; Decl: ' shr '),
     (State: soBlockIndentBegin; Decl: '('),
     (State: soBlockIndentEnd; Decl: ')'),
-    (State: soPropParamIndentBegin; Decl: '['),
-    (State: soPropParamIndentEnd; Decl: ']'),
+    (State: soPropIndentBegin; Decl: '['),
+    (State: soPropIndentEnd; Decl: ']'),
     (State: soDotSymbol; Decl: '.'),
     (State: soCommaSymbol; Decl: ','),
     (State: soEolSymbol; Decl: ';'),
@@ -420,12 +434,8 @@ begin
   end;
 end;
 
-type
-  TExpressionParsingState = set of (esFirst, esWaitOp, esWaitIndentEnd, esWaitPropParamIndentEnd, esWaitValue);
-  PExpressionParsingState = ^TExpressionParsingState;
-
 function ParseOperationState(ParsingEng: TTextParsing;
-  var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation;
 
 var
   c   : SystemChar;
@@ -498,20 +508,20 @@ begin
               if PropIndent < 0 then
                 begin
                   pStates := pStates - [esWaitOp, esWaitPropParamIndentEnd];
-                  Result := soPropParamIndentEnd;
+                  Result := soPropIndentEnd;
                   Exit;
                 end
               else if PropIndent = 0 then
                   pStates := pStates - [esWaitPropParamIndentEnd];
 
               pStates := pStates + [esWaitOp];
-              Result := soPropParamIndentEnd;
+              Result := soPropIndentEnd;
               Exit;
             end
           else
             begin
               pStates := pStates - [esWaitOp, esWaitPropParamIndentEnd];
-              Result := soPropParamIndentEnd;
+              Result := soPropIndentEnd;
               Exit;
             end;
         end;
@@ -531,7 +541,7 @@ begin
         begin
           Inc(cPos);
           Inc(PropIndent);
-          Result := soPropParamIndentBegin;
+          Result := soPropIndentBegin;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue, esWaitPropParamIndentEnd];
           Exit;
@@ -689,7 +699,7 @@ begin
 end;
 
 function ParseSymbol(ParsingEng: TTextParsing; WorkSym: TSymbolExpression;
-  var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; pStates: PExpressionParsingState): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; pStates: PExpressionParsingState): Boolean;
 var
   bak_cPos: Integer;
   Decl    : SystemString;
@@ -723,13 +733,13 @@ begin
             Result := True;
             Exit;
           end;
-        soPropParamIndentBegin:
+        soPropIndentBegin:
           begin
             WorkSym.AddSymbol(OpState, bak_cPos);
             Result := True;
             Exit;
           end;
-        soPropParamIndentEnd:
+        soPropIndentEnd:
           begin
             WorkSym.AddSymbol(OpState, bak_cPos);
             Result := True;
@@ -759,7 +769,8 @@ begin
 end;
 
 function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod; {$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
+  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod;
+  {$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
   procedure PrintError(const s: SystemString);
@@ -820,7 +831,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
           begin
             if p2 <> nil then
               begin
-                if (p2^.DeclType = edtSymbol) and (p2^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin]) then
+                if (p2^.DeclType = edtSymbol) and (p2^.Symbol in [soBlockIndentBegin, soPropIndentBegin]) then
                   begin
                     Inc(ExpIndex, 2);
                     p := LocalExp.AddFunc(p1^.Value, p1^.charPos);
@@ -838,7 +849,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
 
         if (p1^.DeclType = edtSymbol) then
           begin
-            if p1^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin] then
+            if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
                 Inc(ExpIndex);
                 ResExp := FillProc(ExpIndex, Exps, nil);
@@ -846,7 +857,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
                     LocalExp.AddExpressionAsValue(True, ResExp, soBlockIndentBegin, p1^.Symbol, p1^.charPos);
                 continue;
               end;
-            if p1^.Symbol in [soBlockIndentEnd, soPropParamIndentEnd] then
+            if p1^.Symbol in [soBlockIndentEnd, soPropIndentEnd] then
               begin
                 Inc(ExpIndex);
                 Exit;
@@ -1338,7 +1349,7 @@ begin
 
   if Exps.GetSymbolCount([
     soBlockIndentBegin, soBlockIndentEnd,
-    soPropParamIndentBegin, soPropParamIndentEnd,
+    soPropIndentBegin, soPropIndentEnd,
     soEolSymbol, soUnknow]) > 0 then
     begin
       PrintError('Illegal symbol');
@@ -1390,7 +1401,7 @@ var
 
         if (p1^.DeclType in [edtSymbol]) then
           begin
-            if p1^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin] then
+            if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
                 Inc(SymbolIndex);
 
@@ -1404,7 +1415,7 @@ var
                   end;
               end
             else if ((OwnerIndentSym = soBlockIndentBegin) and (p1^.Symbol = soBlockIndentEnd)) or
-              ((OwnerIndentSym = soPropParamIndentBegin) and (p1^.Symbol = soPropParamIndentEnd)) then
+              ((OwnerIndentSym = soPropIndentBegin) and (p1^.Symbol = soPropIndentEnd)) then
               begin
                 Exit;
               end
@@ -1437,7 +1448,7 @@ var
 
             if p2^.DeclType = edtSymbol then
               begin
-                if (p2^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin]) then
+                if (p2^.Symbol in [soBlockIndentBegin, soPropIndentBegin]) then
                   begin
                     if (p1^.DeclType in MethodToken) then
                       begin
@@ -1459,7 +1470,7 @@ var
 
                   end
                 else if ((OwnerIndentSym = soBlockIndentBegin) and (p2^.Symbol = soBlockIndentEnd)) or
-                  ((OwnerIndentSym = soPropParamIndentBegin) and (p2^.Symbol = soPropParamIndentEnd)) then
+                  ((OwnerIndentSym = soPropIndentBegin) and (p2^.Symbol = soPropIndentEnd)) then
                   begin
                     LocalExp.Add(p1^);
                     Exit;
@@ -1519,16 +1530,16 @@ var
                     end;
                   Result.AddSymbol(soBlockIndentEnd, p^.charPos);
                 end;
-              soPropParamIndentBegin:
+              soPropIndentBegin:
                 begin
-                  Result.AddSymbol(soPropParamIndentBegin, p^.charPos);
+                  Result.AddSymbol(soPropIndentBegin, p^.charPos);
                   ResExp := ProcessPriority(p^.Expression);
                   if ResExp <> nil then
                     begin
                       Result.AddExpression(ResExp);
                       DisposeObject(ResExp);
                     end;
-                  Result.AddSymbol(soPropParamIndentEnd, p^.charPos);
+                  Result.AddSymbol(soPropIndentEnd, p^.charPos);
                 end;
               else
                 begin
@@ -1656,7 +1667,7 @@ var
 
         if (p1^.DeclType in [edtSymbol]) then
           begin
-            if p1^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin] then
+            if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
                 Inc(SymbolIndex);
                 ResOp := ProcessIndent(p1^.Symbol);
@@ -1679,7 +1690,7 @@ var
                   end;
               end
             else if ((OwnerIndentSym = soBlockIndentBegin) and (p1^.Symbol = soBlockIndentEnd)) or
-              ((OwnerIndentSym = soPropParamIndentBegin) and (p1^.Symbol = soPropParamIndentEnd)) then
+              ((OwnerIndentSym = soPropIndentBegin) and (p1^.Symbol = soPropIndentEnd)) then
               begin
                 Result := LocalOp;
                 break;
@@ -1740,12 +1751,12 @@ var
               begin
                 if LocalOp <> nil then
                   begin
-                    LocalOp.AddValue(p1^.Value, dt2op(p1^.DeclType));
+                    LocalOp.AddValueT(p1^.Value, dt2op(p1^.DeclType));
                   end
                 else
                   begin
                     LocalOp := NewOpValue(uName);
-                    LocalOp.AddValue(p1^.Value, dt2op(p1^.DeclType));
+                    LocalOp.AddValueT(p1^.Value, dt2op(p1^.DeclType));
                   end;
                 Result := LocalOp;
                 break;
@@ -1755,7 +1766,7 @@ var
 
             if p2^.DeclType = edtSymbol then
               begin
-                if (p2^.Symbol in [soBlockIndentBegin, soPropParamIndentBegin]) then
+                if (p2^.Symbol in [soBlockIndentBegin, soPropIndentBegin]) then
                   begin
                     // function call
                     if not(p1^.DeclType in MethodToken) then
@@ -1772,16 +1783,16 @@ var
 
                   end
                 else if ((OwnerIndentSym = soBlockIndentBegin) and (p2^.Symbol = soBlockIndentEnd)) or
-                  ((OwnerIndentSym = soPropParamIndentBegin) and (p2^.Symbol = soPropParamIndentEnd)) then
+                  ((OwnerIndentSym = soPropIndentBegin) and (p2^.Symbol = soPropIndentEnd)) then
                   begin
                     if LocalOp <> nil then
                       begin
-                        LocalOp.AddValue(p1^.Value, dt2op(p1^.DeclType));
+                        LocalOp.AddValueT(p1^.Value, dt2op(p1^.DeclType));
                       end
                     else
                       begin
                         LocalOp := NewOpValue(uName);
-                        LocalOp.AddValue(p1^.Value, dt2op(p1^.DeclType));
+                        LocalOp.AddValueT(p1^.Value, dt2op(p1^.DeclType));
                       end;
                     Result := LocalOp;
                     break;
@@ -1791,14 +1802,14 @@ var
                     if LocalOp <> nil then
                       begin
                         OldOp := LocalOp;
-                        OldOp.AddValue(p1^.Value, dt2op(p1^.DeclType));
+                        OldOp.AddValueT(p1^.Value, dt2op(p1^.DeclType));
                         LocalOp := NewOpFromSym(p2^.Symbol, uName);
                         LocalOp.AddLink(OldOp);
                       end
                     else
                       begin
                         LocalOp := NewOpFromSym(p2^.Symbol, uName);
-                        LocalOp.AddValue(p1^.Value, dt2op(p1^.DeclType));
+                        LocalOp.AddValueT(p1^.Value, dt2op(p1^.DeclType));
                       end;
                   end
                 else
@@ -1838,8 +1849,8 @@ begin
       if DebugMode then
           NewSymbExps.PrintDebug(True);
 
-      if NewSymbExps.GetSymbolCount([soBlockIndentBegin, soPropParamIndentBegin]) =
-        NewSymbExps.GetSymbolCount([soBlockIndentEnd, soPropParamIndentEnd]) then
+      if NewSymbExps.GetSymbolCount([soBlockIndentBegin, soPropIndentBegin]) =
+        NewSymbExps.GetSymbolCount([soBlockIndentEnd, soPropIndentEnd]) then
         begin
           OpContainer := TCoreClassListForObj.Create;
 
@@ -2263,12 +2274,12 @@ begin
                   p^.Expression.Decl,
                   SymbolOperationTextDecl[soBlockIndentEnd].Decl
                   ]);
-              soPropParamIndentBegin:
+              soPropIndentBegin:
                 Result := Format('%s%s%s%s',
                   [Result,
-                  SymbolOperationTextDecl[soPropParamIndentBegin].Decl,
+                  SymbolOperationTextDecl[soPropIndentBegin].Decl,
                   p^.Expression.Decl,
-                  SymbolOperationTextDecl[soPropParamIndentEnd].Decl
+                  SymbolOperationTextDecl[soPropIndentEnd].Decl
                   ]);
               soParameter:
                 begin

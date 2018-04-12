@@ -1,11 +1,12 @@
 { ****************************************************************************** }
 { * parallel support                                                           * }
-{ * written by QQ 600585@qq.com                                                * }
+{ * last modify by QQ 600585@qq.com                                            * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
 { ****************************************************************************** }
 (******************************************************************************
  *                                   PasMP                                    *

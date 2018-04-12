@@ -18,7 +18,8 @@ unit CoreClasses;
 
 interface
 
-uses SysUtils, Classes, Types, PascalStrings,
+uses SysUtils, Classes, Types, Math,
+  PascalStrings,
   SyncObjs
   {$IFDEF FPC}
     , Contnrs, fgl
@@ -165,6 +166,8 @@ const
 
 procedure Empty;
 
+function CheckThreadSynchronize(Timeout: Integer): Boolean;
+
 procedure DisposeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -177,7 +180,7 @@ procedure FillPtrByte(const Dest:Pointer; Count: NativeUInt; const Value: Byte);
 function CompareMemory(const P1, P2: Pointer; const MLen: NativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure RaiseInfo(const n: SystemString); overload;
+procedure RaiseInfo(const n: SystemString); overload; inline;
 procedure RaiseInfo(const n: SystemString; const Args: array of const); overload;
 
 function IsMobile: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -186,12 +189,26 @@ function GetTimeTickCount: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function GetTimeTick: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function GetCrashTimeTick: TTimeTickValue;
 
+function ROL8(const Value:Byte; Shift: Byte): Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROL16(const Value: Word; Shift: Byte): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROL32(const Value: Cardinal; Shift: Byte): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROL64(const Value: UInt64; Shift: Byte): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROR8(const Value:Byte; Shift: Byte): Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROR16(const Value: Word; Shift: Byte): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROR32(const Value: Cardinal; Shift: Byte): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ROR64(const Value: UInt64; Shift: Byte): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 threadvar MHGlobalHookEnabled: Boolean;
 
 implementation
 
 procedure Empty;
 begin
+end;
+
+function CheckThreadSynchronize(Timeout: Integer): Boolean;
+begin
+  Result := CheckSynchronize(Timeout);
 end;
 
 procedure DisposeObject(const obj: TObject);
@@ -268,7 +285,7 @@ begin
 {$ENDIF}
 end;
 
-procedure FillPtrByte(const Dest:Pointer; Count: NativeUInt; const Value: Byte);
+procedure FillPtrByte(const Dest: Pointer; Count: NativeUInt; const Value: Byte);
 var
   Index: NativeInt;
   V    : UInt64;
@@ -294,7 +311,7 @@ begin
     end;
 
   // Fill remain.
-  if Count>0 then
+  if Count > 0 then
     for index := 0 to Count - 1 do
       begin
         PB^ := Value;
@@ -304,13 +321,15 @@ end;
 
 function CompareMemory(const P1, P2: Pointer; const MLen: NativeUInt): Boolean;
 begin;
-  if MLen=0 then Result:=True
-  else Result:=CompareMem(p1,p2, MLen);
+  if MLen = 0 then
+    Result := True
+  else
+    Result := CompareMem(P1, P2, MLen);
 end;
 
-procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt);
+procedure CopyPtr(const sour, Dest: Pointer; Count: NativeUInt);
 begin
-  move(sour^, dest^, Count);
+  move(sour^, Dest^, Count);
 end;
 
 procedure RaiseInfo(const n: SystemString);
@@ -343,7 +362,55 @@ end;
 
 function GetCrashTimeTick: TTimeTickValue;
 begin
-  Result:= $FFFFFFFF - GetTimeTick;
+  Result := $FFFFFFFF - GetTimeTick;
+end;
+
+function ROL8(const Value: Byte; Shift: Byte): Byte;
+begin
+  Shift := Shift and $07;
+  Result := Byte((Value shl Shift) or (Value shr (8 - Shift)));
+end;
+
+function ROL16(const Value: Word; Shift: Byte): Word;
+begin
+  Shift := Shift and $0F;
+  Result := Word((Value shl Shift) or (Value shr (16 - Shift)));
+end;
+
+function ROL32(const Value: Cardinal; Shift: Byte): Cardinal;
+begin
+  Shift := Shift and $1F;
+  Result := Cardinal((Value shl Shift) or (Value shr (32 - Shift)));
+end;
+
+function ROL64(const Value: UInt64; Shift: Byte): UInt64;
+begin
+  Shift := Shift and $3F;
+  Result := UInt64((Value shl Shift) or (Value shr (64 - Shift)));
+end;
+
+function ROR8(const Value: Byte; Shift: Byte): Byte;
+begin
+  Shift := Shift and $07;
+  Result := UInt8((Value shr Shift) or (Value shl (8 - Shift)));
+end;
+
+function ROR16(const Value: Word; Shift: Byte): Word;
+begin
+  Shift := Shift and $0F;
+  Result := Word((Value shr Shift) or (Value shl (16 - Shift)));
+end;
+
+function ROR32(const Value: Cardinal; Shift: Byte): Cardinal;
+begin
+  Shift := Shift and $1F;
+  Result := Cardinal((Value shr Shift) or (Value shl (32 - Shift)));
+end;
+
+function ROR64(const Value: UInt64; Shift: Byte): UInt64;
+begin
+  Shift := Shift and $3F;
+  Result := UInt64((Value shr Shift) or (Value shl (64 - Shift)));
 end;
 
 {$IFDEF FPC}
@@ -413,6 +480,9 @@ end;
 initialization
   InitCriticalLock;
   MHGlobalHookEnabled := True;
+
+  // float check
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 finalization
   FreeCriticalLock;
   MHGlobalHookEnabled := False;

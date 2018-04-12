@@ -15,15 +15,16 @@
 
 unit ZDBEngine;
 
-{$I zDefine.inc}
-
 interface
+
+{$I zDefine.inc}
 
 uses SysUtils, Classes,
   ListEngine, PascalStrings, UnicodeMixedLib, TextDataEngine,
   {$IFNDEF FPC} JsonDataObjects, {$ENDIF}
   CoreClasses, MemoryStream64, ObjectData, ObjectDataManager,
   DataFrameEngine, ItemStream;
+
 
 var
   DefaultCacheAnnealingTime    : Double;
@@ -40,6 +41,9 @@ var
 
 type
   TDBStoreBase = class;
+
+  TStoreArray = packed array of Int64;
+  PStoreArray = ^TStoreArray;
 
   // Base Data Struct
   TDBEngineDF = class(TDataFrameEngine)
@@ -353,8 +357,6 @@ type
     property CacheID: Cardinal read ID;
   end;
 
-  TStoreArray = array of Int64;
-
   TDBStoreBase = class(TCoreClassInterfacedObject)
   protected
     FDBEngine                     : TObjectDataManagerOfCache;
@@ -455,7 +457,7 @@ type
     function QueryPrev(var qState: TQueryState): Boolean;
 
     // data array
-    procedure BuildStoreArray(ReverseBuild: Boolean; var Output: TStoreArray);
+    procedure BuildStoreArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
 
     // wait query
     {$IFDEF FPC}
@@ -524,6 +526,7 @@ type
     // query task operation
     procedure StopQuery(const TaskTag: SystemString);
     procedure StopAllQuery;
+    function QueryThreadCount: Integer;
 
     // post operation
     procedure PostDeleteData(const StorePos: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -1894,7 +1897,7 @@ begin
   inc(FUsedInstanceCacheMemory, siz);
 
   if FCacheStyle = TCacheStyle.csAlways then
-    exit;
+      exit;
 
   if (FUsedInstanceCacheMemory > FMaximumCacheMemorySize) then
     while (FUsedInstanceCacheMemory > FMinimizeCacheMemorySize) and (FCache.First <> obj) do
@@ -2466,7 +2469,7 @@ begin
   end;
 end;
 
-procedure TDBStoreBase.BuildStoreArray(ReverseBuild: Boolean; var Output: TStoreArray);
+procedure TDBStoreBase.BuildStoreArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
 type
   TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
 var
@@ -2474,7 +2477,7 @@ var
   qState    : TQueryState;
   f, n      : TDynamicQueryMethod;
 begin
-  SetLength(Output, FCount);
+  SetLength(OutputPtr^, FCount);
 
   qState.StorePos := -1;
   qState.Aborted := False;
@@ -2511,7 +2514,7 @@ begin
   if f(qState) then
     begin
       repeat
-        Output[qState.index] := qState.StorePos;
+        OutputPtr^[qState.index] := qState.StorePos;
         if ReverseBuild then
             dec(qState.index)
         else
@@ -2862,6 +2865,11 @@ begin
   for i := 0 to FQueryQueue.Count - 1 do
       TQueryTask(FQueryQueue[i]).Stop;
   FQueryThread.SyncQuery;
+end;
+
+function TDBStoreBase.QueryThreadCount: Integer;
+begin
+  Result := FQueryQueue.Count;
 end;
 
 procedure TDBStoreBase.PostDeleteData(const StorePos: Int64);

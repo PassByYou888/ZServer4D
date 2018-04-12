@@ -31,12 +31,12 @@ type
 
   PPascalString = ^TPascalString;
 
-  TPascalChars = array of Char;
+  TPascalChars = packed array of Char;
 
   TPascalString = packed record
   private
-    function GetText: SystemString; inline;
-    procedure SetText(const Value: SystemString); inline;
+    function GetText: SystemString;
+    procedure SetText(const Value: SystemString);
     function GetLen: Integer; inline;
     procedure SetLen(const Value: Integer); inline;
     function GetChars(index: Integer): SystemChar; inline;
@@ -202,12 +202,12 @@ function SmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: Po
 function SmithWatermanCompareLongString(const t1, t2: TPascalString; const MinDiffCharWithPeerLine: Integer; out Same, Diff: Integer): Double; overload;
 function SmithWatermanCompareLongString(const t1, t2: TPascalString): Double; overload;
 
-const
-  SystemCharSize = SizeOf(SystemChar);
+var
+  SystemCharSize: NativeInt = SizeOf(SystemChar);
   {$IFDEF CPU64}
-  MaxSmithWatermanMatrix = 10000 * 10;
+  MaxSmithWatermanMatrix: NativeInt = 10000 * 10;
   {$ELSE}
-  MaxSmithWatermanMatrix = 8192;
+  MaxSmithWatermanMatrix: NativeInt = 8192;
   {$ENDIF}
 
 implementation
@@ -1254,13 +1254,16 @@ end;
 function TPascalString.GetText: SystemString;
 begin
   SetLength(Result, Length(Buff));
-  CopyPtr(@Buff[0], @Result[FirstCharPos], Length(Buff) * SystemCharSize);
+  if Length(Buff) > 0 then
+      CopyPtr(@Buff[0], @Result[FirstCharPos], Length(Buff) * SystemCharSize);
 end;
 
 procedure TPascalString.SetText(const Value: SystemString);
 begin
   SetLength(Buff, Length(Value));
-  CopyPtr(@Value[FirstCharPos], @Buff[0], Length(Buff) * SystemCharSize);
+
+  if Length(Buff) > 0 then
+      CopyPtr(@Value[FirstCharPos], @Buff[0], Length(Buff) * SystemCharSize);
 end;
 
 function TPascalString.GetLen: Integer;
@@ -1275,7 +1278,10 @@ end;
 
 function TPascalString.GetChars(index: Integer): SystemChar;
 begin
-  Result := Buff[index - 1];
+  if index > Length(Buff) then
+      Result := Buff[Length(Buff) - 1]
+  else
+      Result := Buff[index - 1];
 end;
 
 procedure TPascalString.SetChars(index: Integer; const Value: SystemChar);
@@ -1304,12 +1310,12 @@ end;
 
 function TPascalString.GetLast: SystemChar;
 begin
-  Result := Buff[high(Buff)];
+  Result := Buff[Length(Buff) - 1];
 end;
 
 procedure TPascalString.SetLast(const Value: SystemChar);
 begin
-  Buff[high(Buff)] := Value;
+  Buff[Length(Buff) - 1] := Value;
 end;
 
 function TPascalString.GetFirst: SystemChar;
@@ -1445,9 +1451,8 @@ begin
       count := l - (index - 1);
 
   SetLength(Result.Buff, count);
-  CopyPtr(@Buff[index - 1], @Result.Buff[0], SystemCharSize * count);
-
-  // Result.Buff := System.copy(Buff, index - 1, count);
+  if count > 0 then
+      CopyPtr(@Buff[index - 1], @Result.Buff[0], SystemCharSize * count);
 end;
 
 function TPascalString.Same(const p: PPascalString): Boolean;
@@ -1676,9 +1681,9 @@ end;
 function TPascalString.GetString(bPos, ePos: NativeInt): TPascalString;
 begin
   if ePos > Length(Buff) then
-      Result.Text := Self.copy(bPos, Length(Buff) - bPos + 1)
+      Result := Self.copy(bPos, Length(Buff) - bPos + 1)
   else
-      Result.Text := Self.copy(bPos, (ePos - bPos));
+      Result := Self.copy(bPos, (ePos - bPos));
 end;
 
 procedure TPascalString.Insert(AText: SystemString; idx: Integer);
@@ -1689,7 +1694,8 @@ end;
 procedure TPascalString.FastAsText(var Output: SystemString);
 begin
   SetLength(Output, Length(Buff));
-  CopyPtr(@Buff[0], @Output[FirstCharPos], Length(Buff) * SystemCharSize);
+  if Length(Buff) > 0 then
+      CopyPtr(@Buff[0], @Output[FirstCharPos], Length(Buff) * SystemCharSize);
 end;
 
 procedure TPascalString.FastGetBytes(var Output: TBytes);

@@ -8256,6 +8256,4 @@ initialization
 // --------------------------------------------------------------
 // --------------------------------------------------------------
 
-// SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-
 end.

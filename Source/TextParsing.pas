@@ -162,6 +162,7 @@ type
     class function TranslateTextToC_DeclComment(const Text: TPascalString): TPascalString;
     { }
     constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString); virtual;
+    constructor Create2(const AText: TPascalString; AStyle: TTextStyle);
     destructor Destroy; override;
     { }
     function Parsing: Boolean; virtual;
@@ -346,6 +347,7 @@ begin
     begin
       repeat
         Inc(cPos, 1);
+
         while isWordSplitChar(ParsingData.Text[cPos]) do
           begin
             if cPos + 1 > l then
@@ -780,23 +782,29 @@ begin
   if cPos > l then
       cPos := l;
 
+  if cPos = l then
+      Exit;
+
   IsHex := False;
-  if (CharIn(ParsingData.Text[cPos], '$')) then
-    begin
-      // pascal style hex
-      IsHex := True;
-      Inc(cPos);
-      if cPos > l then
-          Exit;
-    end
-  else if ComparePosStr(cPos, '0x') then
-    begin
-      // c style hex
-      IsHex := True;
-      Inc(cPos, 2);
-      if cPos > l then
-          Exit;
-    end;
+  try
+    if (CharIn(ParsingData.Text[cPos], '$')) then
+      begin
+        // pascal style hex
+        IsHex := True;
+        Inc(cPos);
+        if cPos > l then
+            Exit;
+      end
+    else if ComparePosStr(cPos, '0x') then
+      begin
+        // c style hex
+        IsHex := True;
+        Inc(cPos, 2);
+        if cPos > l then
+            Exit;
+      end;
+  except
+  end;
 
   if IsHex then
     begin
@@ -1063,7 +1071,7 @@ end;
 
 function TTextParsing.isSymbol(const cOffset: Integer): Boolean;
 begin
-  Result := CharIn(ParsingData.Text[cOffset], SymbolTable);
+  Result := CharIn(ParsingData.Text[cOffset], SymbolTable)
 end;
 
 function TTextParsing.GetSymbolEndPos(const cOffset: Integer): Integer;
@@ -2123,6 +2131,25 @@ begin
   SpecialSymbol := TListPascalString.Create;
   if ASpecialSymbol <> nil then
       SpecialSymbol.Assign(ASpecialSymbol);
+
+  RebuildParsingCache;
+end;
+
+constructor TTextParsing.Create2(const AText: TPascalString; AStyle: TTextStyle);
+begin
+  inherited Create;
+  ParsingData.Cache.CommentData := nil;
+  ParsingData.Cache.TextData := nil;
+  ParsingData.Cache.TokenDataList := nil;
+  if AText.Len = 0 then
+      ParsingData.Text := #13#10
+  else
+      ParsingData.Text := AText + #32;
+  ParsingData.Len := ParsingData.Text.Len + 1;
+  TextStyle := AStyle;
+  SymbolTable := TextParsing_DefaultSymbol;
+  TokenStatistics := NullTokenStatistics;
+  SpecialSymbol := TListPascalString.Create;
 
   RebuildParsingCache;
 end;

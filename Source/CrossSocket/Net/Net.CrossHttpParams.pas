@@ -119,6 +119,11 @@ type
     function Encode: string; virtual; abstract;
 
     /// <summary>
+    ///   获取参数值
+    /// </summary>
+    function GetParamValue(const AName: string; out AValue: string): Boolean;
+
+    /// <summary>
     ///   按名称访问参数
     /// </summary>
     property Params[const AName: string]: string read GetParam write SetParam; default;
@@ -854,6 +859,21 @@ begin
   Result := -1;
 end;
 
+function TBaseParams.GetParamValue(const AName: string;
+  out AValue: string): Boolean;
+var
+  I: Integer;
+begin
+  I := GetParamIndex(AName);
+  if (I >= 0) then
+  begin
+    AValue := FParams[I].Value;
+    Exit(True);
+  end;
+
+  Result := False;
+end;
+
 procedure TBaseParams.Remove(const AName: string);
 var
   I: Integer;
@@ -1406,7 +1426,8 @@ begin
   if (FBoundaryBytes = nil) then Exit(0);
 
   P := ABuf;
-  for I := 0 to ALen - 1 do
+  I := 0;
+  while (I < ALen) do
   begin
     C := P[I];
     case FDecodeState of
@@ -1520,7 +1541,12 @@ begin
             Inc(FBoundaryIndex)
           else
           begin
-            FBoundaryIndex := 0;
+            if (FBoundaryIndex > 0) then
+            begin
+              Dec(I);
+              FBoundaryIndex := 0;
+            end;
+
             if (FPartDataBegin < 0) then
               FPartDataBegin := I;
           end;
@@ -1546,7 +1572,8 @@ begin
           if (I >= ALen - 1) or (FBoundaryIndex >= Length(FBoundaryBytes)) then
           begin
             // 将内存块数据存入Field中
-            FCurrentPartField.FValue.Write(P[FPartDataBegin], I - FPartDataBegin - FBoundaryIndex + 1);
+            if (FPartDataBegin >= 0) then
+              FCurrentPartField.FValue.Write(P[FPartDataBegin], I - FPartDataBegin - FBoundaryIndex + 1);
 
             // 已解析出一个完整的数据块
             if (FBoundaryIndex >= Length(FBoundaryBytes)) then
@@ -1557,7 +1584,7 @@ begin
             end else
             // 已解析到本内存块结尾, 但是发现了部分有点像Boundary的数据
             // 将其保存起来
-            if (FBoundaryIndex > 0) then
+            if (FPrevIndex = 0) and (FBoundaryIndex > 0) then
             begin
               FPrevIndex := FBoundaryIndex;
               Move(P[I - FBoundaryIndex + 1], FLookbehind[0], FBoundaryIndex);
@@ -1568,6 +1595,8 @@ begin
           end;
         end;
     end;
+
+    Inc(I);
   end;
 
   Result := ALen;

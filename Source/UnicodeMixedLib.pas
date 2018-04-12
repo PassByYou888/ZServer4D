@@ -76,7 +76,7 @@ type
   umlString         = TPascalString;
   umlPString        = PPascalString;
   umlChar           = SystemChar;
-  umlStringDynArray = array of SystemString;
+  umlStringDynArray = packed array of SystemString;
 
   umlBytes = TBytes;
 
@@ -111,6 +111,9 @@ type
     len: Byte;
     Data: packed array [0 .. FixedLengthStringSize] of Byte;
   end;
+
+  TUMLByteArray = array [0 .. MaxInt div SizeOf(Byte) - 1] of Byte;
+  PUMLByteArray = ^TUMLByteArray;
 
 function umlBytesOf(const S: TPascalString): TBytes; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function umlStringOf(const S: TBytes): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -520,7 +523,9 @@ begin
       Result.len := FixedLengthStringSize
   else
       FillPtrByte(@Result.Data[0], FixedLengthStringSize, 0);
-  CopyPtr(@bb[0], @Result.Data[0], Result.len);
+
+  if Result.len > 0 then
+      CopyPtr(@bb[0], @Result.Data[0], Result.len);
 end;
 
 function umlComparePosStr(const S: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
@@ -3933,7 +3938,7 @@ end;
 function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word;
 var
   i : NativeUInt;
-  pb: PByteArray absolute Value;
+  pb: PUMLByteArray absolute Value;
 begin
   Result := 0;
   for i := 0 to Count - 1 do
@@ -4016,7 +4021,7 @@ end;
 function umlCRC32(const Value: PBYTE; const Count: NativeUInt): Cardinal;
 var
   i : NativeUInt;
-  pb: PByteArray absolute Value;
+  pb: PUMLByteArray absolute Value;
 begin
   Result := $FFFFFFFF;
   for i := 0 to Count - 1 do

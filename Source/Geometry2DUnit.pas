@@ -19,11 +19,11 @@ uses CoreClasses, Sysutils, Math, Types;
 type
   TGeoFloat     = Single;
   TGeoInt       = Integer;
-  T2DPoint      = array [0 .. 1] of TGeoFloat;
+  T2DPoint      = packed array [0 .. 1] of TGeoFloat;
   P2DPoint      = ^T2DPoint;
   TVec2         = T2DPoint;
   TPoint2       = T2DPoint;
-  TArray2DPoint = array of T2DPoint;
+  TArray2DPoint = packed array of T2DPoint;
   PArray2DPoint = ^TArray2DPoint;
   T2DRect       = array [0 .. 1] of T2DPoint;
   P2DRect       = ^T2DRect;
@@ -210,6 +210,7 @@ function RectCentre(const r: T2DRect): T2DPoint; {$IFDEF INLINE_ASM} inline; {$E
 procedure FixRect(var Left, Top, Right, Bottom: Integer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FixRect(var Left, Top, Right, Bottom: TGeoFloat); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function FixRect(r: T2DRect): T2DRect; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FixRect(r: TRect): TRect; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function MakeRect(const r: T2DRect): TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function MakeRectf(const r: T2DRect): TRectf; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -1512,6 +1513,12 @@ function FixRect(r: T2DRect): T2DRect;
 begin
   Result := r;
   FixRect(Result[0][0], Result[0][1], Result[1][0], Result[1][1]);
+end;
+
+function FixRect(r: TRect): TRect;
+begin
+  Result := r;
+  FixRect(Result.Left, Result.Top, Result.Right, Result.Bottom);
 end;
 
 function MakeRect(const r: T2DRect): TRect;
@@ -5707,8 +5714,6 @@ begin
 end;
 
 initialization
-
-SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 
 finalization
 
