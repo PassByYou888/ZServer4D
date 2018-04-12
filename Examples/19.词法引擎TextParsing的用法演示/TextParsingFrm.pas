@@ -196,7 +196,7 @@ begin
 
   // 从stream快速读取op，这便于我们在
   m64.Position := 0;
-  if LoadOpFromStream(True, m64, op) then
+  if LoadOpFromStream(m64, op) then
     begin
       Memo5.Lines.Add(Format('op运行返回值(正确值为4489.2962): %s', [VarToStr(op.Execute(rt))]));
     end;
