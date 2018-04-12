@@ -8,6 +8,9 @@
 
 已合并近期更新的crossSocket
 
+因为FastKDTree属于统计学领域，在此次更新已移除，如果如果需要使用FastKDTree请访问
+
+https://github.com/PassByYou888/zAnalysis
 
 ### 2018-3-13
 
