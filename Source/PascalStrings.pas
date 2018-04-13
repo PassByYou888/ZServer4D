@@ -16,7 +16,7 @@
 
 unit PascalStrings;
 
-{$I ZDefine.inc}
+{$I zDefine.inc}
 
 interface
 
@@ -35,8 +35,8 @@ type
 
   TPascalString = packed record
   private
-    function GetText: SystemString;
-    procedure SetText(const Value: SystemString);
+    function GetText: SystemString; inline;
+    procedure SetText(const Value: SystemString); inline;
     function GetLen: Integer; inline;
     procedure SetLen(const Value: Integer); inline;
     function GetChars(index: Integer): SystemChar; inline;
@@ -210,10 +210,6 @@ var
   MaxSmithWatermanMatrix: NativeInt = 8192;
   {$ENDIF}
 
-implementation
-
-uses CoreClasses, Variants;
-
 const
   {$IFDEF FirstCharInZero}
   FirstCharPos = 0;
@@ -221,6 +217,9 @@ const
   FirstCharPos = 1;
   {$ENDIF}
 
+implementation
+
+uses CoreClasses, Variants;
 
 procedure CombineCharsPP(const c1, c2: TPascalChars; var Output: TPascalChars); {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
