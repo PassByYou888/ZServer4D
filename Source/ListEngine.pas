@@ -16,6 +16,9 @@
   2017-12-5
   added support int64 hash object : TInt64HashObjectList
   added support pointer-NativeUInt hash : TPointerHashNativeUIntList
+
+  2018-4-17
+  added support big StringList with TListString and TListPascalString
 *)
 
 unit ListEngine;
@@ -24,7 +27,7 @@ unit ListEngine;
 
 interface
 
-uses Sysutils, Variants, CoreClasses, PascalStrings;
+uses SysUtils, Classes, Variants, CoreClasses, PascalStrings;
 
 type
   TCounter = NativeUInt;
@@ -49,6 +52,9 @@ type
 
   TPointerDataNotifyProc = procedure(p: Pointer) of object;
 
+  TListString       = class;
+  TListPascalString = class;
+
   THashList = class(TCoreClassObject)
   private
     FListBuffer        : TListBuffer;
@@ -62,9 +68,11 @@ type
     FFirst: PHashListData;
     FLast : PHashListData;
 
+    FMaxNameLen, FMinNameLen: NativeInt;
+
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
-    function GetNameData(Name: SystemString): PHashListData;
-    function GetNameValue(Name: SystemString): Pointer;
+    function GetNameData(const Name: SystemString): PHashListData;
+    function GetNameValue(const Name: SystemString): Pointer;
 
     procedure RebuildIDCounter;
 
@@ -78,12 +86,15 @@ type
     constructor Create(hashBlockCount: Integer); overload;
     destructor Destroy; override;
     procedure Clear;
+    procedure GetNameList(var Output: TArrayPascalString); overload;
+    procedure GetNameList(OutputList: TListString); overload;
+    procedure GetNameList(OutputList: TListPascalString); overload;
     procedure GetListData(OutputList: TCoreClassList);
-    procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Add(Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SetValue(Name: SystemString; const _CustomData: Pointer);
-    function Find(Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Exists(Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Delete(const Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Add(const Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SetValue(const Name: SystemString; const _CustomData: Pointer);
+    function Find(const Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(const Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure SetHashBlockCount(cnt: Integer);
 
     property FirstPtr: PHashListData read FFirst;
@@ -91,8 +102,8 @@ type
 
     function First: Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Last: Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetNext(Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetPrev(Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetNext(const Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetPrev(const Name: SystemString): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     procedure PrintHashReport;
 
@@ -100,9 +111,16 @@ type
     property IgnoreCase: Boolean read FIgnoreCase write FIgnoreCase;
     property AccessOptimization: Boolean read FAccessOptimization write FAccessOptimization;
     property Count: NativeInt read FCount write FCount;
-    property NameValue[name: SystemString]: Pointer read GetNameValue write SetValue; default;
-    property NameData[name: SystemString]: PHashListData read GetNameData;
+
+    property KeyValue[const name: SystemString]: Pointer read GetNameValue write SetValue; default;
+    property NameValue[const name: SystemString]: Pointer read GetNameValue write SetValue;
+
+    property KeyData[const name: SystemString]: PHashListData read GetNameData;
+    property NameData[const name: SystemString]: PHashListData read GetNameData;
+
     property OnDataFreeProc: TPointerDataNotifyProc read FOnDataFreeProc write FOnDataFreeProc;
+    property MaxNameLen: NativeInt read FMaxNameLen;
+    property MinNameLen: NativeInt read FMinNameLen;
   end;
 
   PInt64HashListObjectStruct = ^TInt64HashListObjectStruct;
@@ -360,6 +378,7 @@ type
     function GetNext(NPtr: Pointer): NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetPrev(NPtr: Pointer): NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
     procedure Progress(OnProgress: TPointerHashNativeUIntListLoopCall); overload;
     procedure Progress(OnProgress: TPointerHashNativeUIntListLoopMethod); overload;
     {$IFNDEF FPC} procedure Progress(OnProgress: TPointerHashNativeUIntListLoopProc); overload; {$ENDIF}
@@ -377,9 +396,6 @@ type
     property NPtrData[NPtr: Pointer]: PPointerHashListNativeUIntStruct read GetNPtrData;
   end;
 
-  TListString       = class;
-  TListPascalString = class;
-
   THashObjectChangeEvent = procedure(Sender: THashObjectList; Name: SystemString; _OLD, _New: TCoreClassObject) of object;
 
   THashObjectListData = packed record
@@ -389,9 +405,9 @@ type
 
   PHashObjectListData = ^THashObjectListData;
 
-  THashObjectListLoopCall               = procedure(Name: PSystemString; obj: TCoreClassObject);
-  THashObjectListLoopMethod             = procedure(Name: PSystemString; obj: TCoreClassObject) of object;
-  {$IFNDEF FPC} THashObjectListLoopProc = reference to procedure(name: PSystemString; obj: TCoreClassObject); {$ENDIF}
+  THashObjectListLoopCall               = procedure(const Name: PSystemString; obj: TCoreClassObject);
+  THashObjectListLoopMethod             = procedure(const Name: PSystemString; obj: TCoreClassObject) of object;
+  {$IFNDEF FPC} THashObjectListLoopProc = reference to procedure(const name: PSystemString; obj: TCoreClassObject); {$ENDIF}
 
   THashObjectList = class(TCoreClassObject)
   private
@@ -404,11 +420,11 @@ type
     function GetIgnoreCase: Boolean;
     procedure SetIgnoreCase(const Value: Boolean);
 
-    function GetNameValue(Name: SystemString): TCoreClassObject;
-    procedure SetNames(Name: SystemString; const Value: TCoreClassObject);
+    function GetNameValue(const Name: SystemString): TCoreClassObject;
+    procedure SetNames(const Name: SystemString; const Value: TCoreClassObject);
 
-    function GetOnChange(Name: SystemString): THashObjectChangeEvent;
-    procedure SetOnChange(Name: SystemString; const aValue: THashObjectChangeEvent);
+    function GetOnChange(const Name: SystemString): THashObjectChangeEvent;
+    procedure SetOnChange(const Name: SystemString; const aValue: THashObjectChangeEvent);
 
     function GetAccessOptimization: Boolean;
     procedure SetAccessOptimization(const Value: Boolean);
@@ -421,6 +437,7 @@ type
     destructor Destroy; override;
 
     procedure Assign(sour: THashObjectList);
+
     procedure Progress(OnProgress: THashObjectListLoopCall); overload;
     procedure Progress(OnProgress: THashObjectListLoopMethod); overload;
     {$IFNDEF FPC} procedure Progress(OnProgress: THashObjectListLoopProc); overload; {$ENDIF}
@@ -431,15 +448,16 @@ type
     procedure GetNameList(OutputList: TListPascalString); overload;
     procedure GetListData(OutputList: TCoreClassStrings); overload;
     procedure GetListData(OutputList: TListString); overload;
+    procedure GetListData(OutputList: TListPascalString); overload;
     procedure GetAsList(OutputList: TCoreClassListForObj);
     function GetObjAsName(obj: TCoreClassObject): SystemString;
-    procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Add(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FastAdd(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Find(Name: SystemString): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Exists(Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Delete(const Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(const Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FastAdd(const Name: SystemString; _Object: TCoreClassObject): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Find(const Name: SystemString): TCoreClassObject; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(const Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ExistsObject(obj: TCoreClassObject): Boolean;
-    procedure CopyFrom(Source: THashObjectList);
+    procedure CopyFrom(const Source: THashObjectList);
     function ReName(_OLDName, _NewName: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function MakeName: SystemString;
     function MakeRefName(RefrenceName: SystemString): SystemString;
@@ -448,10 +466,133 @@ type
     property IgnoreCase: Boolean read GetIgnoreCase write SetIgnoreCase;
     property AutoFreeObject: Boolean read FAutoFreeObject write FAutoFreeObject;
     property Count: NativeInt read GetCount;
-    property NameValue[name: SystemString]: TCoreClassObject read GetNameValue write SetNames; default;
-    property OnChange[name: SystemString]: THashObjectChangeEvent read GetOnChange write SetOnChange;
-    // no script interface
+
+    property KeyValue[const name: SystemString]: TCoreClassObject read GetNameValue write SetNames; default;
+    property NameValue[const name: SystemString]: TCoreClassObject read GetNameValue write SetNames;
+
+    property OnChange[const name: SystemString]: THashObjectChangeEvent read GetOnChange write SetOnChange;
+
     property HashList: THashList read FHashList;
+  end;
+
+  THashStringList = class;
+
+  THashStringChangeEvent = procedure(Sender: THashStringList; Name: SystemString; _OLD, _New: SystemString) of object;
+
+  THashStringListData = packed record
+    V: SystemString;
+    OnChnage: THashStringChangeEvent;
+  end;
+
+  PHashStringListData = ^THashStringListData;
+
+  THashStringListLoopCall               = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString);
+  THashStringListLoopMethod             = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString) of object;
+  {$IFNDEF FPC} THashStringListLoopProc = reference to procedure(Sender: THashStringList; name: PSystemString; const V: SystemString); {$ENDIF}
+
+  THashStringList = class(TCoreClassObject)
+  private
+    FHashList              : THashList;
+    FAutoUpdateDefaultValue: Boolean;
+    FOnValueChangeNotify   : THashStringChangeEvent;
+
+    function GetCount: NativeInt;
+
+    function GetIgnoreCase: Boolean;
+    procedure SetIgnoreCase(const Value: Boolean);
+
+    function GetNameValue(const Name: SystemString): SystemString;
+    procedure SetNames(const Name: SystemString; const Value: SystemString);
+
+    function GetOnChange(const Name: SystemString): THashStringChangeEvent;
+    procedure SetOnChange(const Name: SystemString; const aValue: THashStringChangeEvent);
+
+    function GetAccessOptimization: Boolean;
+    procedure SetAccessOptimization(const Value: Boolean);
+
+    procedure DefaultDataFreeProc(p: Pointer);
+  protected
+  public
+    constructor Create; overload;
+    constructor Create(MaxHashBlock: Integer); overload;
+    destructor Destroy; override;
+    //
+    procedure Assign(sour: THashStringList);
+    //
+    procedure Progress(OnProgress: THashStringListLoopCall); overload;
+    procedure Progress(OnProgress: THashStringListLoopMethod); overload;
+    {$IFNDEF FPC} procedure Progress(OnProgress: THashStringListLoopProc); overload; {$ENDIF}
+    //
+    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    //
+    procedure GetNameList(OutputList: TCoreClassStrings); overload;
+    procedure GetNameList(OutputList: TListString); overload;
+    procedure GetNameList(OutputList: TListPascalString); overload;
+    //
+    procedure Delete(const Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(const Name: SystemString; V: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FastAdd(const Name: SystemString; V: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Find(const Name: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FindValue(const aValue: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(const Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure CopyFrom(const Source: THashStringList);
+    function IncValue(const Name: SystemString; V: SystemString): SystemString; overload;
+    procedure IncValue(const vl: THashStringList); overload;
+
+    function GetDefaultValue(const Name: SystemString; aValue: SystemString): SystemString;
+    procedure SetDefaultValue(const Name: SystemString; aValue: SystemString);
+
+    function ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
+
+    property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
+    property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
+    property IgnoreCase: Boolean read GetIgnoreCase write SetIgnoreCase;
+    property Count: NativeInt read GetCount;
+
+    property KeyValue[const name: SystemString]: SystemString read GetNameValue write SetNames; default;
+    property NameValue[const name: SystemString]: SystemString read GetNameValue write SetNames;
+
+    property OnChange[const name: SystemString]: THashStringChangeEvent read GetOnChange write SetOnChange;
+    property OnValueChangeNotify: THashStringChangeEvent read FOnValueChangeNotify write FOnValueChangeNotify;
+
+    procedure LoadFromStream(Stream: TCoreClassStream);
+    procedure SaveToStream(Stream: TCoreClassStream);
+    procedure LoadFromFile(FileName: SystemString);
+    procedure SaveToFile(FileName: SystemString);
+    procedure ExportAsStrings(Output: TListPascalString);
+    procedure ImportFromStrings(Output: TListPascalString);
+    function GetAsText: SystemString;
+    procedure SetAsText(const Value: SystemString);
+    property AsText: SystemString read GetAsText write SetAsText;
+
+    property HashList: THashList read FHashList;
+  end;
+
+  THashStringTextStream = class(TCoreClassObject)
+  private
+    FStringList: THashStringList;
+
+    function GetNameValue(aName: SystemString): SystemString;
+    procedure SetNames(aName: SystemString; const Value: SystemString);
+  public
+    constructor Create(_VList: THashStringList);
+    destructor Destroy; override;
+    procedure Clear;
+
+    function VToStr(const V: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function StrToV(const s: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DataImport(TextList: TListPascalString);
+    procedure DataExport(TextList: TListPascalString);
+    procedure LoadFromStream(Stream: TCoreClassStream);
+    procedure SaveToStream(Stream: TCoreClassStream);
+    procedure LoadFromFile(FileName: SystemString);
+    procedure SaveToFile(FileName: SystemString);
+
+    procedure LoadFromText(AText: SystemString);
+    procedure SaveToText(var AText: SystemString);
+    function Text: SystemString;
+
+    property StringList: THashStringList read FStringList write FStringList;
   end;
 
   THashVariantChangeEvent = procedure(Sender: THashVariantList; Name: SystemString; _OLD, _New: Variant) of object;
@@ -478,16 +619,25 @@ type
     function GetIgnoreCase: Boolean;
     procedure SetIgnoreCase(const Value: Boolean);
 
-    function GetNameValue(Name: SystemString): Variant;
-    procedure SetNames(Name: SystemString; const Value: Variant);
+    function GetNameValue(const Name: SystemString): Variant;
+    procedure SetNames(const Name: SystemString; const Value: Variant);
 
-    function GetOnChange(Name: SystemString): THashVariantChangeEvent;
-    procedure SetOnChange(Name: SystemString; const aValue: THashVariantChangeEvent);
+    function GetOnChange(const Name: SystemString): THashVariantChangeEvent;
+    procedure SetOnChange(const Name: SystemString; const aValue: THashVariantChangeEvent);
 
     function GetAccessOptimization: Boolean;
     procedure SetAccessOptimization(const Value: Boolean);
 
     procedure DefaultDataFreeProc(p: Pointer);
+
+    function GetI64(const Name: SystemString): Int64;
+    procedure SetI64(const Name: SystemString; const Value: Int64);
+    function GetI32(const Name: SystemString): Integer;
+    procedure SetI32(const Name: SystemString; const Value: Integer);
+    function GetF(const Name: SystemString): Double;
+    procedure SetF(const Name: SystemString; const Value: Double);
+    function GetS(const Name: SystemString): SystemString;
+    procedure SetS(const Name, Value: SystemString);
   protected
   public
     constructor Create; overload;
@@ -506,25 +656,25 @@ type
     procedure GetNameList(OutputList: TListString); overload;
     procedure GetNameList(OutputList: TListPascalString); overload;
     //
-    procedure Delete(Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Add(Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FastAdd(Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Find(Name: SystemString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FindValue(aValue: Variant): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Exists(Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure CopyFrom(Source: THashVariantList);
-    function GetType(Name: SystemString): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function IncValue(Name: SystemString; V: Variant): Variant; overload;
-    procedure IncValue(vl: THashVariantList); overload;
+    procedure Delete(const Name: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Add(const Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FastAdd(const Name: SystemString; V: Variant): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Find(const Name: SystemString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FindValue(const aValue: Variant): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Exists(const Name: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure CopyFrom(const Source: THashVariantList);
+    function GetType(const Name: SystemString): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function IncValue(const Name: SystemString; V: Variant): Variant; overload;
+    procedure IncValue(const vl: THashVariantList); overload;
 
-    function SetMax(Name: SystemString; V: Variant): Variant; overload;
-    procedure SetMax(vl: THashVariantList); overload;
+    function SetMax(const Name: SystemString; V: Variant): Variant; overload;
+    procedure SetMax(const vl: THashVariantList); overload;
 
-    function SetMin(Name: SystemString; V: Variant): Variant; overload;
-    procedure SetMin(vl: THashVariantList); overload;
+    function SetMin(const Name: SystemString; V: Variant): Variant; overload;
+    procedure SetMin(const vl: THashVariantList); overload;
 
-    function GetDefaultValue(Name: SystemString; aValue: Variant): Variant;
-    procedure SetDefaultValue(Name: SystemString; aValue: Variant);
+    function GetDefaultValue(const Name: SystemString; aValue: Variant): Variant;
+    procedure SetDefaultValue(const Name: SystemString; aValue: Variant);
 
     function ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
 
@@ -532,21 +682,30 @@ type
     property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
     property IgnoreCase: Boolean read GetIgnoreCase write SetIgnoreCase;
     property Count: NativeInt read GetCount;
-    property NameValue[name: SystemString]: Variant read GetNameValue write SetNames; default;
-    property OnChange[name: SystemString]: THashVariantChangeEvent read GetOnChange write SetOnChange;
+
+    property i64[const name: SystemString]: Int64 read GetI64 write SetI64;
+    property i32[const name: SystemString]: Integer read GetI32 write SetI32;
+    property f[const name: SystemString]: Double read GetF write SetF;
+    property s[const name: SystemString]: SystemString read GetS write SetS;
+
+    property KeyValue[const name: SystemString]: Variant read GetNameValue write SetNames; default;
+    property NameValue[const name: SystemString]: Variant read GetNameValue write SetNames;
+
+    property OnChange[const name: SystemString]: THashVariantChangeEvent read GetOnChange write SetOnChange;
     property OnValueChangeNotify: THashVariantChangeEvent read FOnValueChangeNotify write FOnValueChangeNotify;
 
     procedure LoadFromStream(Stream: TCoreClassStream);
     procedure SaveToStream(Stream: TCoreClassStream);
     procedure LoadFromFile(FileName: SystemString);
     procedure SaveToFile(FileName: SystemString);
-    procedure ExportAsStrings(Output: TCoreClassStrings);
-    procedure ImportFromStrings(Output: TCoreClassStrings);
+    procedure ExportAsStrings(Output: TListPascalString); overload;
+    procedure ExportAsStrings(Output: TCoreClassStrings); overload;
+    procedure ImportFromStrings(Output: TListPascalString); overload;
+    procedure ImportFromStrings(Output: TCoreClassStrings); overload;
     function GetAsText: SystemString;
     procedure SetAsText(const Value: SystemString);
     property AsText: SystemString read GetAsText write SetAsText;
 
-    // no script interface
     property HashList: THashList read FHashList;
   end;
 
@@ -561,16 +720,19 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    class function VToStr(V: Variant): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    class function StrToV(s: SystemString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DataImport(TextList: TCoreClassStrings);
-    procedure DataExport(TextList: TCoreClassStrings);
+    class function VToStr(const V: Variant): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function StrToV(const s: SystemString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DataImport(TextList: TListPascalString); overload;
+    procedure DataImport(TextList: TCoreClassStrings); overload;
+    procedure DataExport(TextList: TListPascalString); overload;
+    procedure DataExport(TextList: TCoreClassStrings); overload;
+
     procedure LoadFromStream(Stream: TCoreClassStream);
     procedure SaveToStream(Stream: TCoreClassStream);
     procedure LoadFromFile(FileName: SystemString);
     procedure SaveToFile(FileName: SystemString);
-    procedure LoadFromText(AText: SystemString);
 
+    procedure LoadFromText(AText: SystemString);
     procedure SaveToText(var AText: SystemString); overload;
     function Text: SystemString;
 
@@ -783,6 +945,11 @@ type
     function ExistsValue(Value: SystemString): Integer;
     procedure Assign(SameObj: TListString);
 
+    procedure LoadFromStream(Stream: TCoreClassStream);
+    procedure SaveToStream(Stream: TCoreClassStream);
+    procedure LoadFromFile(fn: SystemString);
+    procedure SaveToFile(fn: SystemString);
+
     property Items[Idx: Integer]: SystemString read GetItems write SetItems; default;
     property Objects[Idx: Integer]: TCoreClassObject read GetObjects write SetObjects;
   end;
@@ -798,6 +965,8 @@ type
   TListPascalString = class(TCoreClassObject)
   private
     FList: TCoreClassList;
+    function GetText: SystemString;
+    procedure SetText(const Value: SystemString);
   protected
     function GetItems(Idx: Integer): TPascalString;
     procedure SetItems(Idx: Integer; Value: TPascalString);
@@ -814,12 +983,29 @@ type
     function Add(Value: TPascalString): Integer; overload;
     function Add(Value: SystemString; obj: TCoreClassObject): Integer; overload;
     function Add(Value: TPascalString; obj: TCoreClassObject): Integer; overload;
+    function Append(Value: SystemString): Integer; overload;
     function Delete(Idx: Integer): Integer;
     function DeletePascalString(Value: TPascalString): Integer;
     procedure Clear;
     function Count: Integer;
     function ExistsValue(Value: TPascalString): Integer;
-    procedure Assign(SameObj: TListPascalString);
+
+    procedure Assign(SameObj: TListPascalString); overload;
+    procedure Assign(sour: TCoreClassStrings); overload;
+    procedure AssignTo(Dest: TCoreClassStrings); overload;
+
+    procedure AddStrings(sour: TListPascalString); overload;
+    procedure AddStrings(sour: TCoreClassStrings); overload;
+
+    procedure FillTo(var Output: TArrayPascalString); overload;
+    procedure FillFrom(const InData: TArrayPascalString);
+
+    procedure LoadFromStream(Stream: TCoreClassStream);
+    procedure SaveToStream(Stream: TCoreClassStream);
+    procedure LoadFromFile(fn: SystemString);
+    procedure SaveToFile(fn: SystemString);
+
+    property Text: SystemString read GetText write SetText;
 
     property Items[Idx: Integer]: TPascalString read GetItems write SetItems; default;
     property Items_PPascalString[Idx: Integer]: PPascalString read GetItems_PPascalString;
@@ -995,7 +1181,11 @@ function MakeHash(var p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF} o
 
 implementation
 
-uses Math, DoStatusIO, UnicodeMixedLib;
+uses Math,
+  {$IFDEF FPC}
+  streamex,
+  {$ENDIF FPC}
+  MemoryStream64, DoStatusIO, UnicodeMixedLib;
 
 function MakeHash(var s: SystemString): THash;
 begin
@@ -1035,7 +1225,7 @@ begin
   Result := FListBuffer[i];
 end;
 
-function THashList.GetNameData(Name: SystemString): PHashListData;
+function THashList.GetNameData(const Name: SystemString): PHashListData;
 var
   lName  : SystemString;
   newhash: THash;
@@ -1081,7 +1271,7 @@ begin
       end;
 end;
 
-function THashList.GetNameValue(Name: SystemString): Pointer;
+function THashList.GetNameValue(const Name: SystemString): Pointer;
 var
   p: PHashListData;
 begin
@@ -1192,6 +1382,9 @@ begin
   {$ENDIF}
   FFirst := nil;
   FLast := nil;
+  FMaxNameLen := -1;
+  FMinNameLen := -1;
+
   SetLength(FListBuffer, 0);
   SetHashBlockCount(64);
 end;
@@ -1212,6 +1405,8 @@ begin
   {$ENDIF}
   FFirst := nil;
   FLast := nil;
+  FMaxNameLen := -1;
+  FMinNameLen := -1;
   SetLength(FListBuffer, 0);
   SetHashBlockCount(hashBlockCount);
 end;
@@ -1233,6 +1428,8 @@ begin
   FIDCounter := 0;
   FFirst := nil;
   FLast := nil;
+  FMaxNameLen := -1;
+  FMinNameLen := -1;
   if Length(FListBuffer) = 0 then
       Exit;
 
@@ -1260,6 +1457,63 @@ begin
     end;
 end;
 
+procedure THashList.GetNameList(var Output: TArrayPascalString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  SetLength(Output, Count);
+  if FCount > 0 then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          Output[i] := p^.OriginName;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashList.GetNameList(OutputList: TListString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if FCount > 0 then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashList.GetNameList(OutputList: TListPascalString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if FCount > 0 then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
 procedure THashList.GetListData(OutputList: TCoreClassList);
 var
   i: Integer;
@@ -1280,7 +1534,7 @@ begin
     end;
 end;
 
-procedure THashList.Delete(Name: SystemString);
+procedure THashList.Delete(const Name: SystemString);
 var
   newhash  : THash;
   i        : Integer;
@@ -1323,12 +1577,17 @@ begin
     end;
 
   if FCount = 0 then
+    begin
       FIDCounter := 1;
+      FMaxNameLen := -1;
+      FMinNameLen := -1;
+    end;
 end;
 
-procedure THashList.Add(Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True);
+procedure THashList.Add(const Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True);
 var
   newhash: THash;
+  l      : NativeInt;
   lst    : TCoreClassList;
   i      : Integer;
   lName  : SystemString;
@@ -1339,6 +1598,20 @@ begin
   else
       lName := name;
   newhash := MakeHash(lName);
+
+  l := Length(lName);
+  if Count > 0 then
+    begin
+      if l > FMaxNameLen then
+          FMaxNameLen := l;
+      if l < FMinNameLen then
+          FMinNameLen := l;
+    end
+  else
+    begin
+      FMaxNameLen := l;
+      FMinNameLen := l;
+    end;
 
   lst := GetListTable(newhash, True);
   if (lst.Count > 0) and (overwrite) then
@@ -1402,9 +1675,10 @@ begin
 
 end;
 
-procedure THashList.SetValue(Name: SystemString; const _CustomData: Pointer);
+procedure THashList.SetValue(const Name: SystemString; const _CustomData: Pointer);
 var
   newhash: THash;
+  l      : NativeInt;
   lst    : TCoreClassList;
   i      : Integer;
   lName  : SystemString;
@@ -1415,6 +1689,20 @@ begin
   else
       lName := name;
   newhash := MakeHash(lName);
+
+  l := Length(lName);
+  if Count > 0 then
+    begin
+      if l > FMaxNameLen then
+          FMaxNameLen := l;
+      if l < FMinNameLen then
+          FMinNameLen := l;
+    end
+  else
+    begin
+      FMaxNameLen := l;
+      FMinNameLen := l;
+    end;
 
   lst := GetListTable(newhash, True);
   if (lst.Count > 0) then
@@ -1437,7 +1725,7 @@ begin
     end;
 end;
 
-function THashList.Find(Name: SystemString): Pointer;
+function THashList.Find(const Name: SystemString): Pointer;
 var
   i    : Integer;
   j    : Integer;
@@ -1466,7 +1754,7 @@ begin
     end;
 end;
 
-function THashList.Exists(Name: SystemString): Boolean;
+function THashList.Exists(const Name: SystemString): Boolean;
 var
   newhash: THash;
   i      : Integer;
@@ -1521,7 +1809,7 @@ begin
       Result := nil;
 end;
 
-function THashList.GetNext(Name: SystemString): Pointer;
+function THashList.GetNext(const Name: SystemString): Pointer;
 var
   p: PHashListData;
 begin
@@ -1532,7 +1820,7 @@ begin
   Result := p^.next^.Data;
 end;
 
-function THashList.GetPrev(Name: SystemString): Pointer;
+function THashList.GetPrev(const Name: SystemString): Pointer;
 var
   p: PHashListData;
 begin
@@ -1551,7 +1839,7 @@ end;
 procedure THashList.PrintHashReport;
 var
   i                 : NativeInt;
-  L                 : TCoreClassList;
+  l                 : TCoreClassList;
   Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
@@ -1563,22 +1851,22 @@ begin
   Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
-      L := FListBuffer[i];
-      if L <> nil then
+      l := FListBuffer[i];
+      if l <> nil then
         begin
           Inc(usaged);
-          Total := Total + L.Count;
+          Total := Total + l.Count;
           if inited then
             begin
-              if L.Count > aMax then
-                  aMax := L.Count;
-              if aMin > L.Count then
-                  aMin := L.Count;
+              if l.Count > aMax then
+                  aMax := l.Count;
+              if aMin > l.Count then
+                  aMin := l.Count;
             end
           else
             begin
-              aMax := L.Count;
-              aMin := L.Count;
+              aMax := l.Count;
+              aMin := l.Count;
               inited := True;
             end;
         end;
@@ -2062,7 +2350,7 @@ end;
 procedure TInt64HashObjectList.PrintHashReport;
 var
   i                 : NativeInt;
-  L                 : TCoreClassList;
+  l                 : TCoreClassList;
   Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
@@ -2074,22 +2362,22 @@ begin
   Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
-      L := FListBuffer[i];
-      if L <> nil then
+      l := FListBuffer[i];
+      if l <> nil then
         begin
           Inc(usaged);
-          Total := Total + L.Count;
+          Total := Total + l.Count;
           if inited then
             begin
-              if L.Count > aMax then
-                  aMax := L.Count;
-              if aMin > L.Count then
-                  aMin := L.Count;
+              if l.Count > aMax then
+                  aMax := l.Count;
+              if aMin > l.Count then
+                  aMin := l.Count;
             end
           else
             begin
-              aMax := L.Count;
-              aMin := L.Count;
+              aMax := l.Count;
+              aMin := l.Count;
               inited := True;
             end;
         end;
@@ -2577,7 +2865,7 @@ end;
 procedure TInt64HashPointerList.PrintHashReport;
 var
   i                 : NativeInt;
-  L                 : TCoreClassList;
+  l                 : TCoreClassList;
   Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
@@ -2589,22 +2877,22 @@ begin
   Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
-      L := FListBuffer[i];
-      if L <> nil then
+      l := FListBuffer[i];
+      if l <> nil then
         begin
           Inc(usaged);
-          Total := Total + L.Count;
+          Total := Total + l.Count;
           if inited then
             begin
-              if L.Count > aMax then
-                  aMax := L.Count;
-              if aMin > L.Count then
-                  aMin := L.Count;
+              if l.Count > aMax then
+                  aMax := l.Count;
+              if aMin > l.Count then
+                  aMin := l.Count;
             end
           else
             begin
-              aMax := L.Count;
-              aMin := L.Count;
+              aMax := l.Count;
+              aMin := l.Count;
               inited := True;
             end;
         end;
@@ -3151,7 +3439,7 @@ end;
 procedure TUInt32HashObjectList.PrintHashReport;
 var
   i                 : NativeInt;
-  L                 : TCoreClassList;
+  l                 : TCoreClassList;
   Total             : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
@@ -3163,22 +3451,22 @@ begin
   Total := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
-      L := FListBuffer[i];
-      if L <> nil then
+      l := FListBuffer[i];
+      if l <> nil then
         begin
           Inc(usaged);
-          Total := Total + L.Count;
+          Total := Total + l.Count;
           if inited then
             begin
-              if L.Count > aMax then
-                  aMax := L.Count;
-              if aMin > L.Count then
-                  aMin := L.Count;
+              if l.Count > aMax then
+                  aMax := l.Count;
+              if aMin > l.Count then
+                  aMin := l.Count;
             end
           else
             begin
-              aMax := L.Count;
-              aMin := L.Count;
+              aMax := l.Count;
+              aMin := l.Count;
               inited := True;
             end;
         end;
@@ -3755,7 +4043,7 @@ end;
 procedure TPointerHashNativeUIntList.PrintHashReport;
 var
   i                 : NativeInt;
-  L                 : TCoreClassList;
+  l                 : TCoreClassList;
   t                 : NativeInt;
   usaged, aMax, aMin: NativeInt;
   inited            : Boolean;
@@ -3767,22 +4055,22 @@ begin
   t := 0;
   for i := low(FListBuffer) to high(FListBuffer) do
     begin
-      L := FListBuffer[i];
-      if L <> nil then
+      l := FListBuffer[i];
+      if l <> nil then
         begin
           Inc(usaged);
-          t := t + L.Count;
+          t := t + l.Count;
           if inited then
             begin
-              if L.Count > aMax then
-                  aMax := L.Count;
-              if aMin > L.Count then
-                  aMin := L.Count;
+              if l.Count > aMax then
+                  aMax := l.Count;
+              if aMin > l.Count then
+                  aMin := l.Count;
             end
           else
             begin
-              aMax := L.Count;
-              aMin := L.Count;
+              aMax := l.Count;
+              aMin := l.Count;
               inited := True;
             end;
         end;
@@ -3805,7 +4093,7 @@ begin
   FHashList.IgnoreCase := Value;
 end;
 
-function THashObjectList.GetNameValue(Name: SystemString): TCoreClassObject;
+function THashObjectList.GetNameValue(const Name: SystemString): TCoreClassObject;
 var
   pObjData: PHashObjectListData;
 begin
@@ -3821,12 +4109,12 @@ begin
       Result := nil;
 end;
 
-procedure THashObjectList.SetNames(Name: SystemString; const Value: TCoreClassObject);
+procedure THashObjectList.SetNames(const Name: SystemString; const Value: TCoreClassObject);
 begin
   Add(name, Value);
 end;
 
-function THashObjectList.GetOnChange(Name: SystemString): THashObjectChangeEvent;
+function THashObjectList.GetOnChange(const Name: SystemString): THashObjectChangeEvent;
 var
   pObjData: PHashObjectListData;
 begin
@@ -3837,7 +4125,7 @@ begin
       Result := nil;
 end;
 
-procedure THashObjectList.SetOnChange(Name: SystemString; const aValue: THashObjectChangeEvent);
+procedure THashObjectList.SetOnChange(const Name: SystemString; const aValue: THashObjectChangeEvent);
 var
   pObjData: PHashObjectListData;
 begin
@@ -4117,6 +4405,25 @@ begin
     end;
 end;
 
+procedure THashObjectList.GetListData(OutputList: TListPascalString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName, PHashObjectListData(p^.Data)^.obj);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
 procedure THashObjectList.GetAsList(OutputList: TCoreClassListForObj);
 var
   i: Integer;
@@ -4159,7 +4466,7 @@ begin
     end;
 end;
 
-procedure THashObjectList.Delete(Name: SystemString);
+procedure THashObjectList.Delete(const Name: SystemString);
 var
   pObjData: PHashObjectListData;
 begin
@@ -4181,7 +4488,7 @@ begin
   FHashList.Delete(name);
 end;
 
-function THashObjectList.Add(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject;
+function THashObjectList.Add(const Name: SystemString; _Object: TCoreClassObject): TCoreClassObject;
 var
   pObjData: PHashObjectListData;
 begin
@@ -4214,7 +4521,7 @@ begin
   Result := _Object;
 end;
 
-function THashObjectList.FastAdd(Name: SystemString; _Object: TCoreClassObject): TCoreClassObject;
+function THashObjectList.FastAdd(const Name: SystemString; _Object: TCoreClassObject): TCoreClassObject;
 var
   pObjData: PHashObjectListData;
 begin
@@ -4226,7 +4533,7 @@ begin
   Result := _Object;
 end;
 
-function THashObjectList.Find(Name: SystemString): TCoreClassObject;
+function THashObjectList.Find(const Name: SystemString): TCoreClassObject;
 var
   pObjData: PHashObjectListData;
 begin
@@ -4237,7 +4544,7 @@ begin
       Result := nil;
 end;
 
-function THashObjectList.Exists(Name: SystemString): Boolean;
+function THashObjectList.Exists(const Name: SystemString): Boolean;
 var
   pObjData: PHashObjectListData;
 begin
@@ -4276,7 +4583,7 @@ begin
   DisposeObject(lst);
 end;
 
-procedure THashObjectList.CopyFrom(Source: THashObjectList);
+procedure THashObjectList.CopyFrom(const Source: THashObjectList);
 var
   lst     : TCoreClassList;
   pObjData: PHashObjectListData;
@@ -4330,6 +4637,796 @@ begin
   until not Exists(Result);
 end;
 
+function THashStringList.GetCount: NativeInt;
+begin
+  Result := FHashList.Count;
+end;
+
+function THashStringList.GetIgnoreCase: Boolean;
+begin
+  Result := IgnoreCase;
+end;
+
+procedure THashStringList.SetIgnoreCase(const Value: Boolean);
+begin
+  FHashList.IgnoreCase := Value;
+end;
+
+function THashStringList.GetNameValue(const Name: SystemString): SystemString;
+var
+  pVarData: PHashStringListData;
+begin
+  if name = '' then
+    begin
+      Result := Null;
+      Exit;
+    end;
+  pVarData := FHashList.NameValue[name];
+  if pVarData <> nil then
+      Result := pVarData^.V
+  else
+      Result := Null;
+end;
+
+procedure THashStringList.SetNames(const Name: SystemString; const Value: SystemString);
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.NameValue[name];
+
+  if pVarData = nil then
+    begin
+      New(pVarData);
+      pVarData^.OnChnage := nil;
+      FHashList.Add(name, pVarData, False);
+      if Assigned(FOnValueChangeNotify) then
+          FOnValueChangeNotify(Self, name, Null, Value);
+    end
+  else
+    begin
+      if Assigned(pVarData^.OnChnage) then
+        begin
+          try
+              pVarData^.OnChnage(Self, name, pVarData^.V, Value);
+          except
+          end;
+        end;
+      if Assigned(FOnValueChangeNotify) then
+          FOnValueChangeNotify(Self, name, pVarData^.V, Value);
+    end;
+  pVarData^.V := Value;
+end;
+
+function THashStringList.GetOnChange(const Name: SystemString): THashStringChangeEvent;
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.NameValue[name];
+  if pVarData <> nil then
+      Result := pVarData^.OnChnage
+  else
+      Result := nil;
+end;
+
+procedure THashStringList.SetOnChange(const Name: SystemString; const aValue: THashStringChangeEvent);
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.NameValue[name];
+  if pVarData = nil then
+    begin
+      New(pVarData);
+      pVarData^.V := Null;
+      pVarData^.OnChnage := aValue;
+      FHashList.Add(name, pVarData, False);
+    end
+  else
+      pVarData^.OnChnage := aValue;
+end;
+
+function THashStringList.GetAccessOptimization: Boolean;
+begin
+  Result := FHashList.AccessOptimization;
+end;
+
+procedure THashStringList.SetAccessOptimization(const Value: Boolean);
+begin
+  FHashList.AccessOptimization := Value;
+end;
+
+procedure THashStringList.DefaultDataFreeProc(p: Pointer);
+begin
+  Dispose(PHashStringListData(p));
+end;
+
+constructor THashStringList.Create;
+begin
+  inherited Create;
+  FHashList := THashList.Create;
+  FHashList.FAutoFreeData := True;
+
+  {$IFDEF FPC}
+  FHashList.OnDataFreeProc := @DefaultDataFreeProc;
+  {$ELSE}
+  FHashList.OnDataFreeProc := DefaultDataFreeProc;
+  {$ENDIF}
+  FAutoUpdateDefaultValue := False;
+  FOnValueChangeNotify := nil;
+end;
+
+constructor THashStringList.Create(MaxHashBlock: Integer);
+begin
+  inherited Create;
+  FHashList := THashList.Create(MaxHashBlock);
+  FHashList.FAutoFreeData := True;
+
+  {$IFDEF FPC}
+  FHashList.OnDataFreeProc := @DefaultDataFreeProc;
+  {$ELSE}
+  FHashList.OnDataFreeProc := DefaultDataFreeProc;
+  {$ENDIF}
+  FAutoUpdateDefaultValue := False;
+  FOnValueChangeNotify := nil;
+end;
+
+destructor THashStringList.Destroy;
+begin
+  DisposeObject(FHashList);
+  inherited Destroy;
+end;
+
+procedure THashStringList.Assign(sour: THashStringList);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  Clear;
+  if sour.HashList.Count > 0 then
+    begin
+      i := 0;
+      p := sour.HashList.FirstPtr;
+      while i < sour.HashList.Count do
+        begin
+          FastAdd(p^.OriginName, PHashStringListData(p^.Data)^.V);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashStringList.Progress(OnProgress: THashStringListLoopCall);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.V);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashStringList.Progress(OnProgress: THashStringListLoopMethod);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.V);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+{$IFNDEF FPC}
+
+
+procedure THashStringList.Progress(OnProgress: THashStringListLoopProc);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          try
+              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.V);
+          except
+          end;
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+{$ENDIF}
+
+
+procedure THashStringList.Clear;
+begin
+  FHashList.Clear;
+end;
+
+procedure THashStringList.GetNameList(OutputList: TCoreClassStrings);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashStringList.GetNameList(OutputList: TListString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashStringList.GetNameList(OutputList: TListPascalString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if HashList.Count > 0 then
+    begin
+      i := 0;
+      p := HashList.FirstPtr;
+      while i < HashList.Count do
+        begin
+          OutputList.Add(p^.OriginName);
+          Inc(i);
+          p := p^.next;
+        end;
+    end;
+end;
+
+procedure THashStringList.Delete(const Name: SystemString);
+begin
+  FHashList.Delete(name);
+end;
+
+function THashStringList.Add(const Name: SystemString; V: SystemString): SystemString;
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.NameValue[name];
+  if pVarData <> nil then
+    begin
+      try
+        if Assigned(pVarData^.OnChnage) then
+            pVarData^.OnChnage(Self, name, pVarData^.V, V);
+      except
+      end;
+    end
+  else
+    begin
+      New(pVarData);
+      pVarData^.OnChnage := nil;
+      FHashList.Add(name, pVarData, True);
+    end;
+
+  pVarData^.V := V;
+  Result := V;
+end;
+
+function THashStringList.FastAdd(const Name: SystemString; V: SystemString): SystemString;
+var
+  pVarData: PHashStringListData;
+begin
+  New(pVarData);
+  pVarData^.OnChnage := nil;
+  FHashList.Add(name, pVarData, False);
+
+  pVarData^.V := V;
+  Result := V;
+end;
+
+function THashStringList.Find(const Name: SystemString): SystemString;
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.Find(name);
+  if pVarData <> nil then
+      Result := pVarData^.V
+  else
+      Result := Null;
+end;
+
+function THashStringList.FindValue(const aValue: SystemString): SystemString;
+var
+  i       : Integer;
+  lst     : TCoreClassList;
+  pVarData: PHashStringListData;
+begin
+  Result := '';
+  lst := TCoreClassList.Create;
+  FHashList.GetListData(lst);
+  if lst.Count > 0 then
+    for i := 0 to lst.Count - 1 do
+      begin
+        pVarData := PHashListData(lst[i])^.Data;
+        if umlSameVarValue(aValue, pVarData^.V) then
+          begin
+            Result := PHashListData(lst[i])^.OriginName;
+            Break;
+          end;
+      end;
+  DisposeObject(lst);
+end;
+
+function THashStringList.Exists(const Name: SystemString): Boolean;
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.NameValue[name];
+  if pVarData = nil then
+      Result := False
+  else
+      Result := not VarIsEmpty(pVarData^.V);
+end;
+
+procedure THashStringList.CopyFrom(const Source: THashStringList);
+var
+  lst     : TCoreClassList;
+  pVarData: PHashStringListData;
+  i       : Integer;
+begin
+  lst := TCoreClassList.Create;
+  Source.HashList.GetListData(lst);
+  if lst.Count > 0 then
+    for i := 0 to lst.Count - 1 do
+      begin
+        with PHashListData(lst[i])^ do
+          begin
+            pVarData := Data;
+            NameValue[OriginName] := pVarData^.V;
+          end;
+      end;
+  DisposeObject(lst);
+end;
+
+function THashStringList.IncValue(const Name: SystemString; V: SystemString): SystemString;
+var
+  pVarData: PHashStringListData;
+begin
+  pVarData := FHashList.NameValue[name];
+  if pVarData <> nil then
+    begin
+      if pVarData^.V <> '' then
+          Result := pVarData^.V + ',' + V;
+
+      try
+        if Assigned(pVarData^.OnChnage) then
+            pVarData^.OnChnage(Self, name, pVarData^.V, Result);
+      except
+      end;
+
+      pVarData^.V := Result;
+    end
+  else
+    begin
+      Result := V;
+
+      New(pVarData);
+      pVarData^.OnChnage := nil;
+      pVarData^.V := Result;
+      FHashList.Add(name, pVarData, True);
+    end;
+end;
+
+procedure THashStringList.IncValue(const vl: THashStringList);
+var
+  lst: TCoreClassList;
+  i  : Integer;
+  p  : PHashListData;
+begin
+  lst := TCoreClassList.Create;
+  vl.FHashList.GetListData(lst);
+  for i := 0 to lst.Count - 1 do
+    begin
+      p := PHashListData(lst[i]);
+      IncValue(p^.OriginName, PHashStringListData(p^.Data)^.V);
+    end;
+  DisposeObject(lst);
+end;
+
+function THashStringList.GetDefaultValue(const Name: SystemString; aValue: SystemString): SystemString;
+var
+  pVarData: PHashStringListData;
+begin
+  try
+    if name = '' then
+      begin
+        Result := aValue;
+        Exit;
+      end;
+    pVarData := FHashList.NameValue[name];
+    if pVarData <> nil then
+      begin
+        if (VarIsNULL(pVarData^.V)) or (VarIsEmpty(pVarData^.V)) or ((VarIsStr(pVarData^.V)) and (VarToStr(pVarData^.V) = '')) then
+          begin
+            Result := aValue;
+            if FAutoUpdateDefaultValue then
+                SetNames(name, aValue);
+          end
+        else
+          begin
+            Result := pVarData^.V;
+          end;
+      end
+    else
+      begin
+        Result := aValue;
+        if FAutoUpdateDefaultValue then
+            SetNames(name, aValue);
+      end;
+  except
+      Result := aValue;
+  end;
+end;
+
+procedure THashStringList.SetDefaultValue(const Name: SystemString; aValue: SystemString);
+begin
+  SetNames(name, aValue);
+end;
+
+function THashStringList.ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
+var
+  sour      : umlString;
+  h, t      : umlString;
+  bPos, ePos: Integer;
+  KeyText   : SystemString;
+  i         : Integer;
+begin
+  Output := '';
+  sour.Text := AText;
+  h.Text := HeadToken;
+  t.Text := TailToken;
+  Result := True;
+
+  i := 1;
+
+  while i <= sour.Len do
+    begin
+      if sour.ComparePos(i, h) then
+        begin
+          bPos := i;
+          ePos := sour.GetPos(t, i + h.Len);
+          if ePos > 0 then
+            begin
+              KeyText := sour.copy(bPos + h.Len, ePos - (bPos + h.Len)).Text;
+
+              if Exists(KeyText) then
+                begin
+                  Output := Output + GetNameValue(KeyText);
+                  i := ePos + t.Len;
+                  Continue;
+                end
+              else
+                begin
+                  Result := False;
+                end;
+            end;
+        end;
+
+      Output := Output + sour[i];
+      Inc(i);
+    end;
+end;
+
+procedure THashStringList.LoadFromStream(Stream: TCoreClassStream);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.LoadFromStream(Stream);
+  DisposeObject(vt);
+end;
+
+procedure THashStringList.SaveToStream(Stream: TCoreClassStream);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.SaveToStream(Stream);
+  DisposeObject(vt);
+end;
+
+procedure THashStringList.LoadFromFile(FileName: SystemString);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.LoadFromFile(FileName);
+  DisposeObject(vt);
+end;
+
+procedure THashStringList.SaveToFile(FileName: SystemString);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.SaveToFile(FileName);
+  DisposeObject(vt);
+end;
+
+procedure THashStringList.ExportAsStrings(Output: TListPascalString);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.DataExport(Output);
+  DisposeObject(vt);
+end;
+
+procedure THashStringList.ImportFromStrings(Output: TListPascalString);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.DataImport(Output);
+  DisposeObject(vt);
+end;
+
+function THashStringList.GetAsText: SystemString;
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.SaveToText(Result);
+  DisposeObject(vt);
+end;
+
+procedure THashStringList.SetAsText(const Value: SystemString);
+var
+  vt: THashStringTextStream;
+begin
+  vt := THashStringTextStream.Create(Self);
+  vt.LoadFromText(Value);
+  DisposeObject(vt);
+end;
+
+function THashStringTextStream.GetNameValue(aName: SystemString): SystemString;
+begin
+  if FStringList <> nil then
+      Result := FStringList[aName]
+  else
+      Result := Null;
+end;
+
+procedure THashStringTextStream.SetNames(aName: SystemString; const Value: SystemString);
+begin
+  if FStringList <> nil then
+      FStringList[aName] := Value;
+end;
+
+constructor THashStringTextStream.Create(_VList: THashStringList);
+begin
+  inherited Create;
+  FStringList := _VList;
+end;
+
+destructor THashStringTextStream.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure THashStringTextStream.Clear;
+begin
+  if FStringList <> nil then
+      FStringList.Clear;
+end;
+
+function THashStringTextStream.VToStr(const V: SystemString): SystemString;
+var
+  b64: TPascalString;
+begin
+  if umlExistsLimitChar(V, #10#13#9#8#0) then
+    begin
+      umlEncodeLineBASE64(V, b64);
+      Result := '___base64:' + b64.Text;
+    end
+  else
+      Result := V;
+end;
+
+function THashStringTextStream.StrToV(const s: SystemString): SystemString;
+var
+  n, b64: umlString;
+begin
+  n := umlTrimSpace(s);
+  try
+    if n.ComparePos(1, '___base64:') then
+      begin
+        n := umlDeleteFirstStr(n, ':').Text;
+        umlDecodeLineBASE64(n, b64);
+        Result := b64.Text;
+      end
+    else
+      begin
+        Result := n.Text;
+      end;
+  except
+      Result := n.Text;
+  end;
+end;
+
+procedure THashStringTextStream.DataImport(TextList: TListPascalString);
+var
+  i                  : Integer;
+  n                  : TPascalString;
+  TextName, TextValue: TPascalString;
+begin
+  if FStringList = nil then
+      Exit;
+  if TextList.Count > 0 then
+    for i := 0 to TextList.Count - 1 do
+      begin
+        n := TextList[i].TrimChar(#32);
+
+        if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
+          begin
+            TextName := umlGetFirstStr_M(n, ':=');
+            if TextName.Len > 0 then
+              begin
+                TextValue := umlDeleteFirstStr_M(n, ':=');
+                FStringList[TextName.Text] := StrToV(TextValue.Text);
+              end
+            else
+                FStringList[n.Text] := '';
+          end
+        else
+          begin
+            FStringList[n.Text] := '';
+          end;
+      end;
+end;
+
+procedure THashStringTextStream.DataExport(TextList: TListPascalString);
+var
+  i        : Integer;
+  vl       : TCoreClassList;
+  TextValue: SystemString;
+begin
+  if FStringList = nil then
+      Exit;
+  vl := TCoreClassList.Create;
+  FStringList.HashList.GetListData(vl);
+  if vl.Count > 0 then
+    for i := 0 to vl.Count - 1 do
+      begin
+        TextValue := VToStr(PHashStringListData(PHashListData(vl[i])^.Data)^.V);
+
+        if TextValue <> '' then
+            TextList.Add((PHashListData(vl[i])^.OriginName + '=' + TextValue))
+        else
+            TextList.Add(PHashListData(vl[i])^.OriginName);
+      end;
+  DisposeObject(vl);
+end;
+
+procedure THashStringTextStream.LoadFromStream(Stream: TCoreClassStream);
+var
+  n: TListPascalString;
+begin
+  if FStringList = nil then
+      Exit;
+  n := TListPascalString.Create;
+  n.LoadFromStream(Stream);
+  DataImport(n);
+  DisposeObject(n);
+end;
+
+procedure THashStringTextStream.SaveToStream(Stream: TCoreClassStream);
+var
+  n: TListPascalString;
+begin
+  if FStringList = nil then
+      Exit;
+  n := TListPascalString.Create;
+  DataExport(n);
+  n.SaveToStream(Stream);
+  DisposeObject(n);
+end;
+
+procedure THashStringTextStream.LoadFromFile(FileName: SystemString);
+var
+  ns: TCoreClassStream;
+begin
+  ns := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+      LoadFromStream(ns);
+  finally
+      DisposeObject(ns);
+  end;
+end;
+
+procedure THashStringTextStream.SaveToFile(FileName: SystemString);
+var
+  ns: TCoreClassStream;
+begin
+  ns := TCoreClassFileStream.Create(FileName, fmCreate);
+  try
+      SaveToStream(ns);
+  finally
+      DisposeObject(ns);
+  end;
+end;
+
+procedure THashStringTextStream.LoadFromText(AText: SystemString);
+var
+  n: TListPascalString;
+begin
+  if FStringList = nil then
+      Exit;
+  n := TListPascalString.Create;
+  n.Text := AText;
+  DataImport(n);
+  DisposeObject(n);
+end;
+
+procedure THashStringTextStream.SaveToText(var AText: SystemString);
+var
+  n: TListPascalString;
+begin
+  if FStringList = nil then
+      Exit;
+  n := TListPascalString.Create;
+  DataExport(n);
+  AText := n.Text;
+  DisposeObject(n);
+end;
+
+function THashStringTextStream.Text: SystemString;
+begin
+  SaveToText(Result);
+end;
+
 function THashVariantList.GetCount: NativeInt;
 begin
   Result := FHashList.Count;
@@ -4345,7 +5442,7 @@ begin
   FHashList.IgnoreCase := Value;
 end;
 
-function THashVariantList.GetNameValue(Name: SystemString): Variant;
+function THashVariantList.GetNameValue(const Name: SystemString): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4361,7 +5458,7 @@ begin
       Result := Null;
 end;
 
-procedure THashVariantList.SetNames(Name: SystemString; const Value: Variant);
+procedure THashVariantList.SetNames(const Name: SystemString; const Value: Variant);
 var
   pVarData: PHashVariantListData;
 begin
@@ -4390,7 +5487,7 @@ begin
   pVarData^.V := Value;
 end;
 
-function THashVariantList.GetOnChange(Name: SystemString): THashVariantChangeEvent;
+function THashVariantList.GetOnChange(const Name: SystemString): THashVariantChangeEvent;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4401,7 +5498,7 @@ begin
       Result := nil;
 end;
 
-procedure THashVariantList.SetOnChange(Name: SystemString; const aValue: THashVariantChangeEvent);
+procedure THashVariantList.SetOnChange(const Name: SystemString; const aValue: THashVariantChangeEvent);
 var
   pVarData: PHashVariantListData;
 begin
@@ -4430,6 +5527,64 @@ end;
 procedure THashVariantList.DefaultDataFreeProc(p: Pointer);
 begin
   Dispose(PHashVariantListData(p));
+end;
+
+function THashVariantList.GetI64(const Name: SystemString): Int64;
+var
+  V: Variant;
+begin
+  V := GetDefaultValue(name, 0);
+  if VarIsOrdinal(V) then
+      Result := V
+  else
+      Result := 0;
+end;
+
+procedure THashVariantList.SetI64(const Name: SystemString; const Value: Int64);
+begin
+  SetDefaultValue(name, Value);
+end;
+
+function THashVariantList.GetI32(const Name: SystemString): Integer;
+var
+  V: Variant;
+begin
+  V := GetDefaultValue(name, 0);
+  if VarIsOrdinal(V) then
+      Result := V
+  else
+      Result := 0;
+end;
+
+procedure THashVariantList.SetI32(const Name: SystemString; const Value: Integer);
+begin
+  SetDefaultValue(name, Value);
+end;
+
+function THashVariantList.GetF(const Name: SystemString): Double;
+var
+  V: Variant;
+begin
+  V := GetDefaultValue(name, 0);
+  if VarIsFloat(V) then
+      Result := V
+  else
+      Result := 0;
+end;
+
+procedure THashVariantList.SetF(const Name: SystemString; const Value: Double);
+begin
+  SetDefaultValue(name, Value);
+end;
+
+function THashVariantList.GetS(const Name: SystemString): SystemString;
+begin
+  Result := VarToStr(GetDefaultValue(name, ''));
+end;
+
+procedure THashVariantList.SetS(const Name, Value: SystemString);
+begin
+  SetDefaultValue(name, Value);
 end;
 
 constructor THashVariantList.Create;
@@ -4618,12 +5773,12 @@ begin
     end;
 end;
 
-procedure THashVariantList.Delete(Name: SystemString);
+procedure THashVariantList.Delete(const Name: SystemString);
 begin
   FHashList.Delete(name);
 end;
 
-function THashVariantList.Add(Name: SystemString; V: Variant): Variant;
+function THashVariantList.Add(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4647,7 +5802,7 @@ begin
   Result := V;
 end;
 
-function THashVariantList.FastAdd(Name: SystemString; V: Variant): Variant;
+function THashVariantList.FastAdd(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4659,7 +5814,7 @@ begin
   Result := V;
 end;
 
-function THashVariantList.Find(Name: SystemString): Variant;
+function THashVariantList.Find(const Name: SystemString): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4670,7 +5825,7 @@ begin
       Result := Null;
 end;
 
-function THashVariantList.FindValue(aValue: Variant): SystemString;
+function THashVariantList.FindValue(const aValue: Variant): SystemString;
 var
   i       : Integer;
   lst     : TCoreClassList;
@@ -4692,7 +5847,7 @@ begin
   DisposeObject(lst);
 end;
 
-function THashVariantList.Exists(Name: SystemString): Boolean;
+function THashVariantList.Exists(const Name: SystemString): Boolean;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4703,7 +5858,7 @@ begin
       Result := not VarIsEmpty(pVarData^.V);
 end;
 
-procedure THashVariantList.CopyFrom(Source: THashVariantList);
+procedure THashVariantList.CopyFrom(const Source: THashVariantList);
 var
   lst     : TCoreClassList;
   pVarData: PHashVariantListData;
@@ -4723,7 +5878,7 @@ begin
   DisposeObject(lst);
 end;
 
-function THashVariantList.GetType(Name: SystemString): Word;
+function THashVariantList.GetType(const Name: SystemString): Word;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4734,14 +5889,28 @@ begin
       Result := VarType(pVarData^.V);
 end;
 
-function THashVariantList.IncValue(Name: SystemString; V: Variant): Variant;
+function THashVariantList.IncValue(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
   pVarData := FHashList.NameValue[name];
   if pVarData <> nil then
     begin
-      Result := pVarData^.V + V;
+      if VarIsStr(pVarData^.V) and VarIsStr(V) then
+        begin
+          if VarToStr(pVarData^.V) <> '' then
+              Result := VarToStr(pVarData^.V) + ',' + VarToStr(V)
+          else
+              Result := VarToStr(pVarData^.V) + VarToStr(V);
+        end
+      else
+        begin
+          try
+              Result := pVarData^.V + V;
+          except
+              Result := VarToStr(pVarData^.V) + VarToStr(V);
+          end;
+        end;
 
       try
         if Assigned(pVarData^.OnChnage) then
@@ -4762,7 +5931,7 @@ begin
     end;
 end;
 
-procedure THashVariantList.IncValue(vl: THashVariantList);
+procedure THashVariantList.IncValue(const vl: THashVariantList);
 var
   lst: TCoreClassList;
   i  : Integer;
@@ -4778,7 +5947,7 @@ begin
   DisposeObject(lst);
 end;
 
-function THashVariantList.SetMax(Name: SystemString; V: Variant): Variant;
+function THashVariantList.SetMax(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
   r       : Boolean;
@@ -4815,7 +5984,7 @@ begin
     end;
 end;
 
-procedure THashVariantList.SetMax(vl: THashVariantList);
+procedure THashVariantList.SetMax(const vl: THashVariantList);
 var
   lst: TCoreClassList;
   i  : Integer;
@@ -4831,7 +6000,7 @@ begin
   DisposeObject(lst);
 end;
 
-function THashVariantList.SetMin(Name: SystemString; V: Variant): Variant;
+function THashVariantList.SetMin(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
   r       : Boolean;
@@ -4868,7 +6037,7 @@ begin
     end;
 end;
 
-procedure THashVariantList.SetMin(vl: THashVariantList);
+procedure THashVariantList.SetMin(const vl: THashVariantList);
 var
   lst: TCoreClassList;
   i  : Integer;
@@ -4884,7 +6053,7 @@ begin
   DisposeObject(lst);
 end;
 
-function THashVariantList.GetDefaultValue(Name: SystemString; aValue: Variant): Variant;
+function THashVariantList.GetDefaultValue(const Name: SystemString; aValue: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -4919,7 +6088,7 @@ begin
   end;
 end;
 
-procedure THashVariantList.SetDefaultValue(Name: SystemString; aValue: Variant);
+procedure THashVariantList.SetDefaultValue(const Name: SystemString; aValue: Variant);
 begin
   SetNames(name, aValue);
 end;
@@ -5004,7 +6173,7 @@ begin
   DisposeObject(vt);
 end;
 
-procedure THashVariantList.ExportAsStrings(Output: TCoreClassStrings);
+procedure THashVariantList.ExportAsStrings(Output: TListPascalString);
 var
   vt: THashVariantTextStream;
 begin
@@ -5013,13 +6182,33 @@ begin
   DisposeObject(vt);
 end;
 
-procedure THashVariantList.ImportFromStrings(Output: TCoreClassStrings);
+procedure THashVariantList.ExportAsStrings(Output: TCoreClassStrings);
+var
+  ns: TListPascalString;
+begin
+  ns := TListPascalString.Create;
+  ExportAsStrings(ns);
+  ns.AssignTo(Output);
+  DisposeObject(ns);
+end;
+
+procedure THashVariantList.ImportFromStrings(Output: TListPascalString);
 var
   vt: THashVariantTextStream;
 begin
   vt := THashVariantTextStream.Create(Self);
   vt.DataImport(Output);
   DisposeObject(vt);
+end;
+
+procedure THashVariantList.ImportFromStrings(Output: TCoreClassStrings);
+var
+  ns: TListPascalString;
+begin
+  ns := TListPascalString.Create;
+  ns.Assign(Output);
+  ImportFromStrings(ns);
+  DisposeObject(ns);
 end;
 
 function THashVariantList.GetAsText: SystemString;
@@ -5071,7 +6260,7 @@ begin
       FVariantList.Clear;
 end;
 
-class function THashVariantTextStream.VToStr(V: Variant): SystemString;
+class function THashVariantTextStream.VToStr(const V: Variant): SystemString;
 var
   n, b64: umlString;
 begin
@@ -5125,7 +6314,7 @@ begin
   end;
 end;
 
-class function THashVariantTextStream.StrToV(s: SystemString): Variant;
+class function THashVariantTextStream.StrToV(const s: SystemString): Variant;
 var
   n, b64: umlString;
 begin
@@ -5164,7 +6353,7 @@ begin
   end;
 end;
 
-procedure THashVariantTextStream.DataImport(TextList: TCoreClassStrings);
+procedure THashVariantTextStream.DataImport(TextList: TListPascalString);
 var
   i                  : Integer;
   n                  : TPascalString;
@@ -5175,8 +6364,7 @@ begin
   if TextList.Count > 0 then
     for i := 0 to TextList.Count - 1 do
       begin
-        n.Text := TextList[i];
-        n := umlTrimSpace(n);
+        n := TextList[i].TrimChar(#32);
 
         if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
           begin
@@ -5196,7 +6384,17 @@ begin
       end;
 end;
 
-procedure THashVariantTextStream.DataExport(TextList: TCoreClassStrings);
+procedure THashVariantTextStream.DataImport(TextList: TCoreClassStrings);
+var
+  ns: TListPascalString;
+begin
+  ns := TListPascalString.Create;
+  ns.Assign(TextList);
+  DataImport(ns);
+  DisposeObject(ns);
+end;
+
+procedure THashVariantTextStream.DataExport(TextList: TListPascalString);
 var
   i        : Integer;
   vl       : TCoreClassList;
@@ -5219,39 +6417,37 @@ begin
   DisposeObject(vl);
 end;
 
+procedure THashVariantTextStream.DataExport(TextList: TCoreClassStrings);
+var
+  ns: TListPascalString;
+begin
+  ns := TListPascalString.Create;
+  DataExport(ns);
+  ns.AssignTo(TextList);
+  DisposeObject(ns);
+end;
+
 procedure THashVariantTextStream.LoadFromStream(Stream: TCoreClassStream);
 var
-  n: TCoreClassStrings;
+  n: TListPascalString;
 begin
   if FVariantList = nil then
       Exit;
-  n := TCoreClassStringList.Create;
-  {$IFDEF FPC}
+  n := TListPascalString.Create;
   n.LoadFromStream(Stream);
-  {$ELSE}
-  try
-      n.LoadFromStream(Stream, TEncoding.UTF8);
-  except
-      n.LoadFromStream(Stream);
-  end;
-  {$ENDIF}
   DataImport(n);
   DisposeObject(n);
 end;
 
 procedure THashVariantTextStream.SaveToStream(Stream: TCoreClassStream);
 var
-  n: TCoreClassStrings;
+  n: TListPascalString;
 begin
   if FVariantList = nil then
       Exit;
-  n := TCoreClassStringList.Create;
+  n := TListPascalString.Create;
   DataExport(n);
-  {$IFDEF FPC}
   n.SaveToStream(Stream);
-  {$ELSE}
-  n.SaveToStream(Stream, TEncoding.UTF8);
-  {$ENDIF}
   DisposeObject(n);
 end;
 
@@ -5281,11 +6477,11 @@ end;
 
 procedure THashVariantTextStream.LoadFromText(AText: SystemString);
 var
-  n: TCoreClassStrings;
+  n: TListPascalString;
 begin
   if FVariantList = nil then
       Exit;
-  n := TCoreClassStringList.Create;
+  n := TListPascalString.Create;
   n.Text := AText;
   DataImport(n);
   DisposeObject(n);
@@ -5293,11 +6489,11 @@ end;
 
 procedure THashVariantTextStream.SaveToText(var AText: SystemString);
 var
-  n: TCoreClassStrings;
+  n: TListPascalString;
 begin
   if FVariantList = nil then
       Exit;
-  n := TCoreClassStringList.Create;
+  n := TListPascalString.Create;
   DataExport(n);
   AText := n.Text;
   DisposeObject(n);
@@ -6005,6 +7201,7 @@ var
   p: PListStringData;
 begin
   p := FList[Idx];
+  p^.Data := '';
   Dispose(p);
   FList.Delete(Idx);
   Result := Count;
@@ -6029,9 +7226,17 @@ begin
 end;
 
 procedure TListString.Clear;
+var
+  i: Integer;
+  p: PListStringData;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListStringData(FList[i]);
+      p^.Data := '';
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListString.Count: Integer;
@@ -6069,6 +7274,102 @@ begin
       p1^ := p2^;
       FList.Add(p1);
     end;
+end;
+
+procedure TListString.LoadFromStream(Stream: TCoreClassStream);
+var
+  bp: Int64;
+  r : TStreamReader;
+begin
+  Clear;
+  bp := Stream.Position;
+  {$IFDEF FPC}
+  r := TStreamReader.Create(Stream);
+  while not r.Eof do
+      Add(r.ReadLine);
+  {$ELSE FPC}
+  r := TStreamReader.Create(Stream, TEncoding.UTF8);
+  try
+    while not r.EndOfStream do
+        Add(r.ReadLine);
+  except
+    Clear;
+    DisposeObject(r);
+    Stream.Position := bp;
+    r := TStreamReader.Create(Stream);
+    while not r.EndOfStream do
+        Add(r.ReadLine);
+  end;
+  {$ENDIF FPC}
+  DisposeObject(r);
+end;
+
+procedure TListString.SaveToStream(Stream: TCoreClassStream);
+var
+  i: Integer;
+  n: TPascalString;
+  b: TBytes;
+begin
+  for i := 0 to FList.Count - 1 do
+    begin
+      n.Text := PListStringData(FList[i])^.Data + #13#10;
+      b := n.Bytes;
+      Stream.Write(b[0], Length(b));
+      n := '';
+    end;
+end;
+
+procedure TListString.LoadFromFile(fn: SystemString);
+var
+  fs: TCoreClassFileStream;
+begin
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  try
+      LoadFromStream(fs);
+  finally
+      DisposeObject(fs);
+  end;
+end;
+
+procedure TListString.SaveToFile(fn: SystemString);
+var
+  fs: TCoreClassFileStream;
+begin
+  fs := TCoreClassFileStream.Create(fn, fmCreate);
+  try
+      SaveToStream(fs);
+  finally
+      DisposeObject(fs);
+  end;
+end;
+
+function TListPascalString.GetText: SystemString;
+var
+  i: Integer;
+begin
+  Result := '';
+  if Count > 0 then
+    begin
+      Result := Items[0];
+      for i := 1 to Count - 1 do
+          Result := Result + #13#10 + Items[i];
+    end;
+end;
+
+procedure TListPascalString.SetText(const Value: SystemString);
+var
+  n  : TPascalString;
+  b  : TBytes;
+  m64: TMemoryStream64;
+begin
+  n.Text := Value;
+  b := n.Bytes;
+  n := '';
+  m64 := TMemoryStream64.Create;
+  m64.SetPointerWithProtectedMode(@b[0], Length(b));
+  LoadFromStream(m64);
+  DisposeObject(m64);
+  SetLength(b, 0);
 end;
 
 function TListPascalString.GetItems(Idx: Integer): TPascalString;
@@ -6157,11 +7458,17 @@ begin
   Result := FList.Add(p);
 end;
 
+function TListPascalString.Append(Value: SystemString): Integer;
+begin
+  Result := Add(Value);
+end;
+
 function TListPascalString.Delete(Idx: Integer): Integer;
 var
   p: PListPascalStringData;
 begin
   p := FList[Idx];
+  p^.Data := '';
   Dispose(p);
   FList.Delete(Idx);
   Result := Count;
@@ -6185,9 +7492,17 @@ begin
 end;
 
 procedure TListPascalString.Clear;
+var
+  i: Integer;
+  p: PListPascalStringData;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListPascalStringData(FList[i]);
+      p^.Data := '';
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListPascalString.Count: Integer;
@@ -6224,6 +7539,125 @@ begin
       p1^ := p2^;
       FList.Add(p1);
     end;
+end;
+
+procedure TListPascalString.Assign(sour: TCoreClassStrings);
+var
+  i: Integer;
+begin
+  Clear;
+  for i := 0 to sour.Count - 1 do
+      Add(sour[i], sour.Objects[i]);
+end;
+
+procedure TListPascalString.AssignTo(Dest: TCoreClassStrings);
+var
+  i: Integer;
+begin
+  Dest.Clear;
+  for i := 0 to Count - 1 do
+      Dest.AddObject(Items[i], Objects[i]);
+end;
+
+procedure TListPascalString.AddStrings(sour: TListPascalString);
+var
+  i: Integer;
+begin
+  for i := 0 to sour.Count - 1 do
+      Add(sour[i]);
+end;
+
+procedure TListPascalString.AddStrings(sour: TCoreClassStrings);
+var
+  i: Integer;
+begin
+  for i := 0 to sour.Count - 1 do
+      Add(sour[i]);
+end;
+
+procedure TListPascalString.FillTo(var Output: TArrayPascalString);
+var
+  i: Integer;
+begin
+  SetLength(Output, Count);
+  for i := 0 to Count - 1 do
+      Output[i] := Items[i];
+end;
+
+procedure TListPascalString.FillFrom(const InData: TArrayPascalString);
+var
+  i: Integer;
+begin
+  Clear;
+  for i := 0 to Length(InData) - 1 do
+      Add(InData[i]);
+end;
+
+procedure TListPascalString.LoadFromStream(Stream: TCoreClassStream);
+var
+  bp: Int64;
+  r : TStreamReader;
+begin
+  Clear;
+  bp := Stream.Position;
+  {$IFDEF FPC}
+  r := TStreamReader.Create(Stream);
+  while not r.Eof do
+      Add(r.ReadLine);
+  {$ELSE FPC}
+  r := TStreamReader.Create(Stream, TEncoding.UTF8);
+  try
+    while not r.EndOfStream do
+        Add(r.ReadLine);
+  except
+    Clear;
+    DisposeObject(r);
+    Stream.Position := bp;
+    r := TStreamReader.Create(Stream);
+    while not r.EndOfStream do
+        Add(r.ReadLine);
+  end;
+  {$ENDIF FPC}
+  DisposeObject(r);
+end;
+
+procedure TListPascalString.SaveToStream(Stream: TCoreClassStream);
+var
+  i: Integer;
+  n: TPascalString;
+  b: TBytes;
+begin
+  for i := 0 to FList.Count - 1 do
+    begin
+      n := PListPascalStringData(FList[i])^.Data.Text + #13#10;
+      b := n.Bytes;
+      Stream.Write(b[0], Length(b));
+      n := '';
+    end;
+end;
+
+procedure TListPascalString.LoadFromFile(fn: SystemString);
+var
+  fs: TCoreClassFileStream;
+begin
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  try
+      LoadFromStream(fs);
+  finally
+      DisposeObject(fs);
+  end;
+end;
+
+procedure TListPascalString.SaveToFile(fn: SystemString);
+var
+  fs: TCoreClassFileStream;
+begin
+  fs := TCoreClassFileStream.Create(fn, fmCreate);
+  try
+      SaveToStream(fs);
+  finally
+      DisposeObject(fs);
+  end;
 end;
 
 function TListVariant.GetItems(Idx: Integer): Variant;
