@@ -151,7 +151,7 @@ type
     procedure DoDeleteData(Sender: TDBStoreBase; const StorePos: Int64); virtual;
   protected
     // canencer trigger
-    procedure ZDBEngProgress(Name: PSystemString; obj: TCoreClassObject);
+    procedure ZDBEngProgress(const Name: PSystemString; obj: TCoreClassObject);
     procedure CadencerProgress(const deltaTime, newTime: Double);
   protected
     procedure DoQueryFragmentData(pipe: TZDBPipeline; FragmentSour: TMemoryStream64); virtual;
@@ -1351,7 +1351,7 @@ begin
   end;
 end;
 
-procedure TZDBLocalManager.ZDBEngProgress(Name: PSystemString; obj: TCoreClassObject);
+procedure TZDBLocalManager.ZDBEngProgress(const Name: PSystemString; obj: TCoreClassObject);
 var
   db: TZDBStoreEngine;
 begin
