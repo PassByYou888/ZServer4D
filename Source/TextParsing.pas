@@ -120,6 +120,9 @@ type
     property TokenPos[const cOffset: Integer]: PTokenData read GetToken; default;
     function GetTokenIndex(t: TTokenType; idx: Integer): PTokenData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     property TokenIndex[t: TTokenType; idx: Integer]: PTokenData read GetTokenIndex;
+    function TokenCount: Integer;
+    function GetTokens(idx: Integer): PTokenData;
+    property Tokens[idx: Integer]: PTokenData read GetTokens;
     { }
     function SniffingNextChar(const cOffset: Integer; declChar: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function SniffingNextChar(const cOffset: Integer; declChar: TPascalString; out OutPos: Integer): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -1414,6 +1417,16 @@ begin
               Inc(c);
         end;
     end;
+end;
+
+function TTextParsing.TokenCount: Integer;
+begin
+  Result := ParsingData.Cache.TokenDataList.Count;
+end;
+
+function TTextParsing.GetTokens(idx: Integer): PTokenData;
+begin
+  Result := PTokenData(ParsingData.Cache.TokenDataList[idx]);
 end;
 
 function TTextParsing.SniffingNextChar(const cOffset: Integer; declChar: TPascalString): Boolean;
