@@ -27,8 +27,9 @@ unit UnicodeMixedLib;
 interface
 
 uses SysUtils, Classes, Types, Variants,
+  CoreClasses,
   PascalStrings,
-  CoreClasses;
+  ListEngine;
 
 const
   umlAddressLength  = SizeOf(Pointer);
@@ -103,9 +104,8 @@ type
     Return: Integer;
   end;
 
-  umlArraySystemString = umlStringDynArray;
-  umlArrayString       = TArrayPascalString;
-  pumlArrayString      = ^umlArrayString;
+  umlArrayString  = TArrayPascalString;
+  pumlArrayString = ^umlArrayString;
 
   FixedLengthString = packed record
     len: Byte;
@@ -291,7 +291,8 @@ function umlIntToStr(Parameter: Int64): TPascalString; overload;
 function umlSizeToStr(Parameter: Int64): TPascalString;
 function umlTimeToStr(TimeInteger: Integer): TPascalString;
 function umlDateToStr(TimeInteger: Integer): TPascalString;
-function umlFloatToStr(f: Double): TPascalString;
+function umlFloatToStr(const f: Extended): TPascalString;
+function umlShortFloatToStr(const f: Extended): TPascalString;
 
 function umlStrToInt(const _V: TPascalString): Integer; overload;
 function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer; overload;
@@ -454,7 +455,10 @@ procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const Key: TPascalStri
 
 function umlTrimSpace(const S: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function umlSeparatorText(AText: TPascalString; Dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer;
+function umlSeparatorText(AText: TPascalString; Dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer; overload;
+function umlSeparatorText(AText: TPascalString; Dest: THashVariantList; SeparatorChar: TPascalString): Integer; overload;
+function umlSeparatorText(AText: TPascalString; Dest: TListPascalString; SeparatorChar: TPascalString): Integer; overload;
+
 function umlStringsMatchText(OriginValue: TCoreClassStrings; DestValue: TPascalString; IgnoreCase: Boolean = True): Boolean;
 
 function umlStringsInExists(Dest: TCoreClassStrings; SText: TPascalString; IgnoreCase: Boolean = True): Boolean;
@@ -484,6 +488,16 @@ procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
+type
+  TCSVCall               = procedure(const Sour: TPascalString; const king, Data: TArrayPascalString);
+  TCSVMethod             = procedure(const Sour: TPascalString; const king, Data: TArrayPascalString) of object;
+  {$IFNDEF FPC} TCSVProc = reference to procedure(const Sour: TPascalString; const king, Data: TArrayPascalString); {$ENDIF FPC}
+
+procedure ImportCSV_C(const Sour: TArrayPascalString; OnNotify: TCSVCall);
+procedure ImportCSV_M(const Sour: TArrayPascalString; OnNotify: TCSVMethod);
+{$IFNDEF FPC} procedure ImportCSV_P(const Sour: TArrayPascalString; OnNotify: TCSVProc); {$ENDIF FPC}
+
+
 implementation
 
 uses
@@ -494,12 +508,12 @@ uses
 
 function umlBytesOf(const S: TPascalString): TBytes;
 begin
-  Result := BytesOfPascalString(S);
+  Result := S.Bytes
 end;
 
 function umlStringOf(const S: TBytes): TPascalString;
 begin
-  Result := PascalStringOfBytes(S);
+  Result.Bytes := S;
 end;
 
 function FixedLengthString2Pascal(var S: FixedLengthString): TPascalString;
@@ -2838,9 +2852,14 @@ begin
   Result := DateToStr(FileDateToDateTime(TimeInteger));
 end;
 
-function umlFloatToStr(f: Double): TPascalString;
+function umlFloatToStr(const f: Extended): TPascalString;
 begin
   Result := FloatToStr(f);
+end;
+
+function umlShortFloatToStr(const f: Extended): TPascalString;
+begin
+  Result := format('%f', [f]);
 end;
 
 function umlStrToInt(const _V: TPascalString): Integer;
@@ -4537,6 +4556,44 @@ begin
     end;
 end;
 
+function umlSeparatorText(AText: TPascalString; Dest: THashVariantList; SeparatorChar: TPascalString): Integer;
+var
+  ANewText, ASeparatorText: TPascalString;
+begin
+  Result := 0;
+  if Assigned(Dest) then
+    begin
+      ANewText := AText;
+      ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+      while (ASeparatorText.len > 0) and (ANewText.len > 0) do
+        begin
+          Dest.IncValue(ASeparatorText.Text, 1);
+          Inc(Result);
+          ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
+          ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+        end;
+    end;
+end;
+
+function umlSeparatorText(AText: TPascalString; Dest: TListPascalString; SeparatorChar: TPascalString): Integer;
+var
+  ANewText, ASeparatorText: TPascalString;
+begin
+  Result := 0;
+  if Assigned(Dest) then
+    begin
+      ANewText := AText;
+      ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+      while (ASeparatorText.len > 0) and (ANewText.len > 0) do
+        begin
+          Dest.Add(ASeparatorText);
+          Inc(Result);
+          ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
+          ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+        end;
+    end;
+end;
+
 function umlStringsMatchText(OriginValue: TCoreClassStrings; DestValue: TPascalString; IgnoreCase: Boolean = True): Boolean;
 var
   i: Integer;
@@ -4953,6 +5010,181 @@ begin
   else
       Result := CurrentVal;
 end;
+
+procedure ImportCSV_C(const Sour: TArrayPascalString; OnNotify: TCSVCall);
+var
+  i, j, bp, hc: NativeInt;
+  n           : TPascalString;
+  king, buff  : TArrayPascalString;
+begin
+  // fill csv head
+  bp := -1;
+  for i := low(Sour) to high(Sour) do
+    begin
+      n := Sour[i];
+      if n.len <> 0 then
+        begin
+          bp := i + 1;
+          hc := n.GetCharCount(',') + 1;
+          SetLength(buff, hc);
+          SetLength(king, hc);
+
+          for j := low(king) to high(king) do
+              king[j] := '';
+          j := 0;
+          while (j < Length(king)) and (n.len > 0) do
+            begin
+              king[j] := umlGetFirstStr_M(n, ',');
+              n := umlDeleteFirstStr_M(n, ',');
+              Inc(j);
+            end;
+
+          break;
+        end;
+    end;
+
+  // fill csv body
+  if bp > 0 then
+    for i := bp to high(Sour) do
+      begin
+        n := Sour[i];
+        if n.len > 0 then
+          begin
+            for j := low(buff) to high(buff) do
+                buff[j] := '';
+            j := 0;
+            while (j < Length(buff)) and (n.len > 0) do
+              begin
+                buff[j] := umlGetFirstStr_M(n, ',');
+                n := umlDeleteFirstStr_M(n, ',');
+                Inc(j);
+              end;
+            OnNotify(Sour[i], king, buff);
+          end;
+      end;
+
+  SetLength(buff, 0);
+  SetLength(king, 0);
+  n := '';
+end;
+
+procedure ImportCSV_M(const Sour: TArrayPascalString; OnNotify: TCSVMethod);
+var
+  i, j, bp, hc: NativeInt;
+  n           : TPascalString;
+  king, buff  : TArrayPascalString;
+begin
+  // fill csv head
+  bp := -1;
+  for i := low(Sour) to high(Sour) do
+    begin
+      n := Sour[i];
+      if n.len <> 0 then
+        begin
+          bp := i + 1;
+          hc := n.GetCharCount(',') + 1;
+          SetLength(buff, hc);
+          SetLength(king, hc);
+
+          for j := low(king) to high(king) do
+              king[j] := '';
+          j := 0;
+          while (j < Length(king)) and (n.len > 0) do
+            begin
+              king[j] := umlGetFirstStr_M(n, ',');
+              n := umlDeleteFirstStr_M(n, ',');
+              Inc(j);
+            end;
+
+          break;
+        end;
+    end;
+
+  // fill csv body
+  if bp > 0 then
+    for i := bp to high(Sour) do
+      begin
+        n := Sour[i];
+        if n.len > 0 then
+          begin
+            for j := low(buff) to high(buff) do
+                buff[j] := '';
+            j := 0;
+            while (j < Length(buff)) and (n.len > 0) do
+              begin
+                buff[j] := umlGetFirstStr_M(n, ',');
+                n := umlDeleteFirstStr_M(n, ',');
+                Inc(j);
+              end;
+            OnNotify(Sour[i], king, buff);
+          end;
+      end;
+
+  SetLength(buff, 0);
+  SetLength(king, 0);
+  n := '';
+end;
+
+{$IFNDEF FPC}
+
+
+procedure ImportCSV_P(const Sour: TArrayPascalString; OnNotify: TCSVProc);
+var
+  i, j, bp, hc: NativeInt;
+  n           : TPascalString;
+  king, buff  : TArrayPascalString;
+begin
+  // fill csv head
+  bp := -1;
+  for i := low(Sour) to high(Sour) do
+    begin
+      n := Sour[i];
+      if n.len <> 0 then
+        begin
+          bp := i + 1;
+          hc := n.GetCharCount(',') + 1;
+          SetLength(buff, hc);
+          SetLength(king, hc);
+
+          for j := low(king) to high(king) do
+              king[j] := '';
+          j := 0;
+          while (j < Length(king)) and (n.len > 0) do
+            begin
+              king[j] := umlGetFirstStr_M(n, ',');
+              n := umlDeleteFirstStr_M(n, ',');
+              Inc(j);
+            end;
+
+          break;
+        end;
+    end;
+
+  // fill csv body
+  if bp > 0 then
+    for i := bp to high(Sour) do
+      begin
+        n := Sour[i];
+        if n.len > 0 then
+          begin
+            for j := low(buff) to high(buff) do
+                buff[j] := '';
+            j := 0;
+            while (j < Length(buff)) and (n.len > 0) do
+              begin
+                buff[j] := umlGetFirstStr_M(n, ',');
+                n := umlDeleteFirstStr_M(n, ',');
+                Inc(j);
+              end;
+            OnNotify(Sour[i], king, buff);
+          end;
+      end;
+
+  SetLength(buff, 0);
+  SetLength(king, 0);
+  n := '';
+end;
+{$ENDIF FPC}
 
 initialization
 
