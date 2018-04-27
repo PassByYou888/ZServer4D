@@ -70,8 +70,8 @@ const
   BelowOrientation     = -1;
   CoplanarOrientation  = 0;
 
-function RangeValue(const v, minv, maxv: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function ClampValue(const v, minv, maxv: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Range(const v, minv, maxv: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Clamp(const v, minv, maxv: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function MaxValue(const v1, v2: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MinValue(const v1, v2: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakePoint(const X, Y: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -129,6 +129,7 @@ function PointLerp(const v1, v2: T2DPoint; t: TGeoFloat): T2DPoint; {$IFDEF INLI
 function PointLerpTo(const sour, dest: T2DPoint; const d: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 procedure SwapPoint(var v1, v2: T2DPoint); {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function Pow(v: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Pow(v: TGeoFloat; n: Integer): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function MidPoint(const pt1, pt2: T2DPoint): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function IsEqual(const Val1, Val2, Epsilon: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -281,23 +282,23 @@ procedure Circle2LineIntersectionPoint(const lb, le, cp: T2DPoint; const radius:
 
 procedure Circle2CircleIntersectionPoint(const cp1, cp2: T2DPoint; const r1, r2: TGeoFloat; out Point1, Point2: T2DPoint); {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-// circle collision check
-function Check_Circle2Circle(const p1, p2: T2DPoint; const r1, r2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+// circle collision Detect
+function Detect_Circle2Circle(const p1, p2: T2DPoint; const r1, r2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function CircleCollision(const p1, p2: T2DPoint; const r1, r2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function Check_Circle2CirclePoint(const p1, p2: T2DPoint; const r1, r2: TGeoFloat; out op1, op2: T2DPoint): Boolean;
+function Detect_Circle2CirclePoint(const p1, p2: T2DPoint; const r1, r2: TGeoFloat; out op1, op2: T2DPoint): Boolean;
 // circle 2 line collision
-function Check_Circle2Line(const cp: T2DPoint; const r: TGeoFloat; const lb, le: T2DPoint): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Detect_Circle2Line(const cp: T2DPoint; const r: TGeoFloat; const lb, le: T2DPoint): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 type
-  T2DPointList = class;
-  TPoly        = class;
-  T2DLineList  = class;
+  TVec2List   = class;
+  TPoly       = class;
+  T2DLineList = class;
 
-  T2DPointList = class(TCoreClassPersistent)
+  TVec2List = class(TCoreClassPersistent)
   private
-    FList      : TCoreClassList;
-    FUserData  : Pointer;
+    FList: TCoreClassList;
+    FUserData: Pointer;
     FUserObject: TCoreClassObject;
 
     function GetPoints(Index: Integer): P2DPoint;
@@ -330,13 +331,13 @@ type
 
     procedure Scale(axis: T2DPoint; Scale: TGeoFloat); overload;
 
-    procedure ConvexHull(output: T2DPointList); overload;
+    procedure ConvexHull(output: TVec2List); overload;
 
     procedure ExtractToBuff(var output: TArray2DPoint); overload;
     procedure GiveListDataFromBuff(output: PArray2DPoint); overload;
     procedure VertexReduction(Epsilon: TGeoFloat); overload;
 
-    function Line2Intersect(const lb, le: T2DPoint; ClosedPolyMode: Boolean; OutputPoint: T2DPointList): Boolean; overload;
+    function Line2Intersect(const lb, le: T2DPoint; ClosedPolyMode: Boolean; OutputPoint: TVec2List): Boolean; overload;
     function Line2NearIntersect(const lb, le: T2DPoint; const ClosedPolyMode: Boolean; out idx1, idx2: Integer; out IntersectPt: T2DPoint): Boolean; overload;
 
     procedure SortOfNear(const pt: T2DPoint); overload;
@@ -360,8 +361,8 @@ type
     function First: P2DPoint;
     function Last: P2DPoint;
 
-    procedure ExpandDistanceAsList(ExpandDist: TGeoFloat; output: T2DPointList);
-    procedure ExpandConvexHullAsList(ExpandDist: TGeoFloat; output: T2DPointList);
+    procedure ExpandDistanceAsList(ExpandDist: TGeoFloat; output: TVec2List);
+    procedure ExpandConvexHullAsList(ExpandDist: TGeoFloat; output: TVec2List);
 
     function GetExpands(idx: Integer; ExpandDist: TGeoFloat): T2DPoint;
     property Expands[idx: Integer; ExpandDist: TGeoFloat]: T2DPoint read GetExpands;
@@ -369,6 +370,8 @@ type
     property UserData: Pointer read FUserData write FUserData;
     property UserObject: TCoreClassObject read FUserObject write FUserObject;
   end;
+
+  T2DPointList = TVec2List;
 
   PPolyPoint = ^TPolyPoint;
 
@@ -382,15 +385,15 @@ type
 
   TPoly = class(TCoreClassPersistent)
   private
-    FList      : TCoreClassList;
-    FScale     : TGeoFloat;
-    FAngle     : TGeoFloat;
-    FMaxRadius : TGeoFloat;
-    FPosition  : T2DPoint;
+    FList: TCoreClassList;
+    FScale: TGeoFloat;
+    FAngle: TGeoFloat;
+    FMaxRadius: TGeoFloat;
+    FPosition: T2DPoint;
     FExpandMode: TExpandMode;
 
     FUserDataObject: TCoreClassObject;
-    FUserData      : Pointer;
+    FUserData: Pointer;
 
     function GetPoly(Index: Integer): PPolyPoint;
   public
@@ -417,8 +420,8 @@ type
     procedure FixedSameError;
 
     { * auto build opt from convex hull point * }
-    procedure ConvexHullFromPoint(AFrom: T2DPointList); overload;
-    procedure RebuildPoly(pl: T2DPointList); overload;
+    procedure ConvexHullFromPoint(AFrom: TVec2List); overload;
+    procedure RebuildPoly(pl: TVec2List); overload;
     procedure RebuildPoly; overload;
     procedure RebuildPoly(AScale: TGeoFloat; AAngle: TGeoFloat; AExpandMode: TExpandMode; APosition: T2DPoint); overload;
 
@@ -489,8 +492,8 @@ type
 
   T2DLineList = class(TCoreClassPersistent)
   private
-    FList      : TCoreClassList;
-    FUserData  : Pointer;
+    FList: TCoreClassList;
+    FUserData: Pointer;
     FUserObject: TCoreClassObject;
     function GetItems(Index: Integer): P2DLine;
   public
@@ -697,7 +700,7 @@ end;
 {$ENDIF}
 
 
-function RangeValue(const v, minv, maxv: TGeoFloat): TGeoFloat;
+function Range(const v, minv, maxv: TGeoFloat): TGeoFloat;
 begin
   if v < minv then
       Result := minv
@@ -707,7 +710,7 @@ begin
       Result := v;
 end;
 
-function ClampValue(const v, minv, maxv: TGeoFloat): TGeoFloat;
+function Clamp(const v, minv, maxv: TGeoFloat): TGeoFloat;
 begin
   if v < minv then
       Result := minv
@@ -954,7 +957,7 @@ end;
 function PointNormalize(const v: T2DPoint): T2DPoint;
 var
   invLen: TGeoFloat;
-  vn    : TGeoFloat;
+  vn: TGeoFloat;
 begin
   vn := PointNorm(v);
   if vn = 0 then
@@ -1026,7 +1029,7 @@ function PointLerpTo(const sour, dest: T2DPoint; const d: TGeoFloat): T2DPoint;
 var
   dx: TGeoFloat;
   dy: TGeoFloat;
-  k : Double;
+  k: Double;
 begin
   dx := dest[0] - sour[0];
   dy := dest[1] - sour[1];
@@ -1056,6 +1059,11 @@ begin
   Result := v * v;
 end;
 
+function Pow(v: TGeoFloat; n: Integer): TGeoFloat;
+begin
+  Result := Math.Power(v, n);
+end;
+
 function MidPoint(const pt1, pt2: T2DPoint): T2DPoint;
 begin
   Result[0] := (pt1[0] + pt2[0]) * 0.5;
@@ -1067,7 +1075,7 @@ var
   Diff: TGeoFloat;
 begin
   Diff := Val1 - Val2;
-  Assert(((-Epsilon <= Diff) and (Diff <= Epsilon)) = (Abs(Diff) <= Epsilon), 'Error - Illogical error in equality check. (IsEqual)');
+  Assert(((-Epsilon <= Diff) and (Diff <= Epsilon)) = (Abs(Diff) <= Epsilon), 'Error - Illogical error in equality Detect. (IsEqual)');
   Result := ((-Epsilon <= Diff) and (Diff <= Epsilon));
 end;
 
@@ -1096,7 +1104,7 @@ var
   Diff: TGeoFloat;
 begin
   Diff := Val1 - Val2;
-  Assert(((-Epsilon > Diff) or (Diff > Epsilon)) = (Abs(Val1 - Val2) > Epsilon), 'Error - Illogical error in equality check. (NotEqual)');
+  Assert(((-Epsilon > Diff) or (Diff > Epsilon)) = (Abs(Val1 - Val2) > Epsilon), 'Error - Illogical error in equality Detect. (NotEqual)');
   Result := ((-Epsilon > Diff) or (Diff > Epsilon));
 end;
 
@@ -1568,7 +1576,7 @@ end;
 
 function RectFit(const r, b: T2DRect): T2DRect;
 var
-  k              : TGeoFloat;
+  k: TGeoFloat;
   rs, bs, siz, pt: T2DPoint;
 begin
   rs := RectSize(r);
@@ -1592,12 +1600,12 @@ end;
 
 function BoundRect(const Buff: TArray2DPoint): T2DRect;
 var
-  t   : T2DPoint;
+  t: T2DPoint;
   MaxX: TGeoFloat;
   MaxY: TGeoFloat;
   MinX: TGeoFloat;
   MinY: TGeoFloat;
-  i   : Integer;
+  i: Integer;
 begin
   Result := Make2DRect(Zero, Zero, Zero, Zero);
   if Length(Buff) < 2 then
@@ -1652,8 +1660,8 @@ end;
 function BuffCentroid(const Buff: TArray2DPoint): T2DPoint;
 var
   i, Count: Integer;
-  asum    : TGeoFloat;
-  term    : TGeoFloat;
+  asum: TGeoFloat;
+  term: TGeoFloat;
 
   t1, t2: T2DPoint;
 begin
@@ -1707,15 +1715,15 @@ end;
 
 function FastRamerDouglasPeucker(var Points: TArray2DPoint; Epsilon: TGeoFloat): Integer;
 var
-  i             : Integer;
-  Range         : array of Integer;
-  FirstIndex    : Integer;
-  LastIndex     : Integer;
-  LastPoint     : T2DPoint;
+  i: Integer;
+  Range: array of Integer;
+  FirstIndex: Integer;
+  LastIndex: Integer;
+  LastPoint: T2DPoint;
   FirstLastDelta: T2DPoint;
-  DeltaMaxIndex : Integer;
-  Delta         : TGeoFloat;
-  DeltaMax      : TGeoFloat;
+  DeltaMaxIndex: Integer;
+  Delta: TGeoFloat;
+  DeltaMax: TGeoFloat;
 begin
   Result := Length(Points);
   if Result < 3 then
@@ -1774,8 +1782,8 @@ procedure FastVertexReduction(Points: TArray2DPoint; Epsilon: TGeoFloat; var out
 
   procedure FilterPoints;
   var
-    Index     : Integer;
-    Count     : Integer;
+    Index: Integer;
+    Count: Integer;
     SqrEpsilon: TGeoFloat;
   begin
     SqrEpsilon := Sqr(Epsilon);
@@ -1856,15 +1864,15 @@ end;
 
 function Orientation(const x1, y1, z1, x2, y2, z2, x3, y3, z3, Px, Py, Pz: TGeoFloat): Integer;
 var
-  Px1 : TGeoFloat;
-  Px2 : TGeoFloat;
-  Px3 : TGeoFloat;
-  Py1 : TGeoFloat;
-  Py2 : TGeoFloat;
-  Py3 : TGeoFloat;
-  Pz1 : TGeoFloat;
-  Pz2 : TGeoFloat;
-  Pz3 : TGeoFloat;
+  Px1: TGeoFloat;
+  Px2: TGeoFloat;
+  Px3: TGeoFloat;
+  Py1: TGeoFloat;
+  Py2: TGeoFloat;
+  Py3: TGeoFloat;
+  Pz1: TGeoFloat;
+  Pz2: TGeoFloat;
+  Pz3: TGeoFloat;
   Orin: TGeoFloat;
 begin
   Px1 := x1 - Px;
@@ -1915,15 +1923,15 @@ var
   UpperY: TGeoFloat;
   LowerX: TGeoFloat;
   LowerY: TGeoFloat;
-  Ax    : TGeoFloat;
-  Bx    : TGeoFloat;
-  Cx    : TGeoFloat;
-  Ay    : TGeoFloat;
-  By    : TGeoFloat;
-  Cy    : TGeoFloat;
-  d     : TGeoFloat;
-  F     : TGeoFloat;
-  e     : TGeoFloat;
+  Ax: TGeoFloat;
+  Bx: TGeoFloat;
+  Cx: TGeoFloat;
+  Ay: TGeoFloat;
+  By: TGeoFloat;
+  Cy: TGeoFloat;
+  d: TGeoFloat;
+  F: TGeoFloat;
+  e: TGeoFloat;
 begin
   Result := False;
 
@@ -2003,16 +2011,16 @@ var
   UpperY: TGeoFloat;
   LowerX: TGeoFloat;
   LowerY: TGeoFloat;
-  Ax    : TGeoFloat;
-  Bx    : TGeoFloat;
-  Cx    : TGeoFloat;
-  Ay    : TGeoFloat;
-  By    : TGeoFloat;
-  Cy    : TGeoFloat;
-  d     : TGeoFloat;
-  F     : TGeoFloat;
-  e     : TGeoFloat;
-  Ratio : TGeoFloat;
+  Ax: TGeoFloat;
+  Bx: TGeoFloat;
+  Cx: TGeoFloat;
+  Ay: TGeoFloat;
+  By: TGeoFloat;
+  Cy: TGeoFloat;
+  d: TGeoFloat;
+  F: TGeoFloat;
+  e: TGeoFloat;
+  Ratio: TGeoFloat;
 begin
   Result := False;
 
@@ -2137,12 +2145,12 @@ end;
 
 procedure ClosestPointOnSegmentFromPoint(const x1, y1, x2, y2, Px, Py: TGeoFloat; out Nx, Ny: TGeoFloat);
 var
-  Vx   : TGeoFloat;
-  Vy   : TGeoFloat;
-  Wx   : TGeoFloat;
-  Wy   : TGeoFloat;
-  c1   : TGeoFloat;
-  c2   : TGeoFloat;
+  Vx: TGeoFloat;
+  Vy: TGeoFloat;
+  Wx: TGeoFloat;
+  Wy: TGeoFloat;
+  c1: TGeoFloat;
+  c2: TGeoFloat;
   Ratio: TGeoFloat;
 begin
   Vx := x2 - x1;
@@ -2352,12 +2360,12 @@ end;
 procedure Circle2LineIntersectionPoint(const lb, le, cp: T2DPoint; const radius: TGeoFloat;
   out pt1in, pt2in: Boolean; out ICnt: Integer; out pt1, pt2: T2DPoint);
 var
-  Px  : TGeoFloat;
-  Py  : TGeoFloat;
+  Px: TGeoFloat;
+  Py: TGeoFloat;
   S1In: Boolean;
   s2In: Boolean;
-  h   : TGeoFloat;
-  a   : TGeoFloat;
+  h: TGeoFloat;
+  a: TGeoFloat;
 begin
   ICnt := 0;
 
@@ -2436,16 +2444,16 @@ end;
 
 procedure Circle2CircleIntersectionPoint(const cp1, cp2: T2DPoint; const r1, r2: TGeoFloat; out Point1, Point2: T2DPoint);
 var
-  Dist  : TGeoFloat;
-  a     : TGeoFloat;
-  h     : TGeoFloat;
+  Dist: TGeoFloat;
+  a: TGeoFloat;
+  h: TGeoFloat;
   RatioA: TGeoFloat;
   RatioH: TGeoFloat;
-  dx    : TGeoFloat;
-  dy    : TGeoFloat;
-  Phi   : T2DPoint;
-  r1Sqr : TGeoFloat;
-  r2Sqr : TGeoFloat;
+  dx: TGeoFloat;
+  dy: TGeoFloat;
+  Phi: T2DPoint;
+  r1Sqr: TGeoFloat;
+  r2Sqr: TGeoFloat;
   dstSqr: TGeoFloat;
 begin
   Dist := Distance(cp1[0], cp1[1], cp2[0], cp2[1]);
@@ -2476,7 +2484,7 @@ begin
   Point2[1] := Phi[1] + dx;
 end;
 
-function Check_Circle2Circle(const p1, p2: T2DPoint; const r1, r2: TGeoFloat): Boolean;
+function Detect_Circle2Circle(const p1, p2: T2DPoint; const r1, r2: TGeoFloat): Boolean;
 begin
   // return point disace < sum
   Result := PointDistance(p1, p2) <= r1 + r2;
@@ -2488,18 +2496,18 @@ begin
   Result := PointDistance(p1, p2) <= r1 + r2;
 end;
 
-function Check_Circle2CirclePoint(const p1, p2: T2DPoint; const r1, r2: TGeoFloat; out op1, op2: T2DPoint): Boolean;
+function Detect_Circle2CirclePoint(const p1, p2: T2DPoint; const r1, r2: TGeoFloat; out op1, op2: T2DPoint): Boolean;
 var
-  Dist  : TGeoFloat;
-  a     : TGeoFloat;
-  h     : TGeoFloat;
+  Dist: TGeoFloat;
+  a: TGeoFloat;
+  h: TGeoFloat;
   RatioA: TGeoFloat;
   RatioH: TGeoFloat;
-  dx    : TGeoFloat;
-  dy    : TGeoFloat;
-  Phi   : T2DPoint;
-  r1Sqr : TGeoFloat;
-  r2Sqr : TGeoFloat;
+  dx: TGeoFloat;
+  dy: TGeoFloat;
+  Phi: T2DPoint;
+  r1Sqr: TGeoFloat;
+  r2Sqr: TGeoFloat;
   dstSqr: TGeoFloat;
 begin
   Dist := Distance(p1[0], p1[1], p2[0], p2[1]);
@@ -2535,12 +2543,12 @@ end;
 
 // circle 2 line collision
 
-function Check_Circle2Line(const cp: T2DPoint; const r: TGeoFloat; const lb, le: T2DPoint): Boolean;
+function Detect_Circle2Line(const cp: T2DPoint; const r: TGeoFloat; const lb, le: T2DPoint): Boolean;
 var
   lineCen, v1, v2: T2DPoint;
 begin
   lineCen := PointLerp(lb, le, 0.5);
-  if Check_Circle2Circle(cp, lineCen, r, PointDistance(lb, le) * 0.5) then
+  if Detect_Circle2Circle(cp, lineCen, r, PointDistance(lb, le) * 0.5) then
     begin
       v1 := PointSub(lb, cp);
       v2 := PointSub(le, cp);
@@ -2550,12 +2558,12 @@ begin
       Result := False;
 end;
 
-function T2DPointList.GetPoints(Index: Integer): P2DPoint;
+function TVec2List.GetPoints(Index: Integer): P2DPoint;
 begin
   Result := FList[index];
 end;
 
-constructor T2DPointList.Create;
+constructor TVec2List.Create;
 begin
   inherited Create;
   FList := TCoreClassList.Create;
@@ -2563,14 +2571,14 @@ begin
   FUserObject := nil;
 end;
 
-destructor T2DPointList.Destroy;
+destructor TVec2List.Destroy;
 begin
   Clear;
   DisposeObject(FList);
   inherited Destroy;
 end;
 
-procedure T2DPointList.Add(X, Y: TGeoFloat);
+procedure TVec2List.Add(X, Y: TGeoFloat);
 var
   p: P2DPoint;
 begin
@@ -2579,16 +2587,16 @@ begin
   FList.Add(p);
 end;
 
-procedure T2DPointList.Add(pt: T2DPoint);
+procedure TVec2List.Add(pt: T2DPoint);
 begin
   Add(pt[0], pt[1]);
 end;
 
-procedure T2DPointList.AddSubdivision(nbCount: Integer; pt: T2DPoint);
+procedure TVec2List.AddSubdivision(nbCount: Integer; pt: T2DPoint);
 var
   lpt: P2DPoint;
-  i  : Integer;
-  t  : Double;
+  i: Integer;
+  t: Double;
 begin
   if Count > 0 then
     begin
@@ -2601,11 +2609,11 @@ begin
       Add(pt);
 end;
 
-procedure T2DPointList.AddSubdivisionWithDistance(avgDist: TGeoFloat; pt: T2DPoint);
+procedure TVec2List.AddSubdivisionWithDistance(avgDist: TGeoFloat; pt: T2DPoint);
 var
-  lpt       : P2DPoint;
+  lpt: P2DPoint;
   i, nbCount: Integer;
-  t         : Double;
+  t: Double;
 begin
   if (Count > 0) and (PointDistance(P2DPoint(FList.Last)^, pt) > avgDist) then
     begin
@@ -2618,7 +2626,7 @@ begin
   Add(pt);
 end;
 
-procedure T2DPointList.Insert(idx: Integer; X, Y: TGeoFloat);
+procedure TVec2List.Insert(idx: Integer; X, Y: TGeoFloat);
 var
   p: P2DPoint;
 begin
@@ -2627,13 +2635,13 @@ begin
   FList.Insert(idx, p);
 end;
 
-procedure T2DPointList.Delete(idx: Integer);
+procedure TVec2List.Delete(idx: Integer);
 begin
   Dispose(P2DPoint(FList[idx]));
   FList.Delete(idx);
 end;
 
-procedure T2DPointList.Clear;
+procedure TVec2List.Clear;
 var
   i: Integer;
 begin
@@ -2642,15 +2650,15 @@ begin
   FList.Clear;
 end;
 
-function T2DPointList.Count: Integer;
+function TVec2List.Count: Integer;
 begin
   Result := FList.Count;
 end;
 
-procedure T2DPointList.FixedSameError;
+procedure TVec2List.FixedSameError;
 var
   l, p: P2DPoint;
-  i   : Integer;
+  i: Integer;
 begin
   if Count < 2 then
       Exit;
@@ -2681,15 +2689,15 @@ begin
     end;
 end;
 
-procedure T2DPointList.Assign(Source: TCoreClassPersistent);
+procedure TVec2List.Assign(Source: TCoreClassPersistent);
 var
   i: Integer;
 begin
-  if Source is T2DPointList then
+  if Source is TVec2List then
     begin
       Clear;
-      for i := 0 to T2DPointList(Source).Count - 1 do
-          Add(T2DPointList(Source)[i]^);
+      for i := 0 to TVec2List(Source).Count - 1 do
+          Add(TVec2List(Source)[i]^);
     end
   else if Source is TPoly then
     begin
@@ -2699,7 +2707,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.SaveToStream(Stream: TCoreClassStream);
+procedure TVec2List.SaveToStream(Stream: TCoreClassStream);
 var
   w: TDataWriter;
   i: Integer;
@@ -2716,7 +2724,7 @@ begin
   DisposeObject(w);
 end;
 
-procedure T2DPointList.LoadFromStream(Stream: TCoreClassStream);
+procedure TVec2List.LoadFromStream(Stream: TCoreClassStream);
 var
   r: TDataReader;
   c: Integer;
@@ -2730,14 +2738,14 @@ begin
   DisposeObject(r);
 end;
 
-function T2DPointList.BoundRect: T2DRect;
+function TVec2List.BoundRect: T2DRect;
 var
-  p   : P2DPoint;
+  p: P2DPoint;
   MaxX: TGeoFloat;
   MaxY: TGeoFloat;
   MinX: TGeoFloat;
   MinY: TGeoFloat;
-  i   : Integer;
+  i: Integer;
 begin
   Result := Make2DRect(Zero, Zero, Zero, Zero);
   if Count < 2 then
@@ -2763,10 +2771,10 @@ begin
   Result := Make2DRect(MinX, MinY, MaxX, MaxY);
 end;
 
-function T2DPointList.CircleRadius(ACentroid: T2DPoint): TGeoFloat;
+function TVec2List.CircleRadius(ACentroid: T2DPoint): TGeoFloat;
 var
-  i      : Integer;
-  LayLen : TGeoFloat;
+  i: Integer;
+  LayLen: TGeoFloat;
   LayDist: TGeoFloat;
 begin
   Result := 0;
@@ -2782,9 +2790,9 @@ begin
   Result := Sqrt(LayLen);
 end;
 
-function T2DPointList.Centroid: T2DPoint;
+function TVec2List.Centroid: T2DPoint;
 var
-  i   : Integer;
+  i: Integer;
   asum: TGeoFloat;
   term: TGeoFloat;
 
@@ -2816,9 +2824,9 @@ begin
     end;
 end;
 
-function T2DPointList.PointInHere(pt: T2DPoint): Boolean;
+function TVec2List.PointInHere(pt: T2DPoint): Boolean;
 var
-  i     : Integer;
+  i: Integer;
   pi, pj: P2DPoint;
 begin
   Result := False;
@@ -2839,7 +2847,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.RotateAngle(axis: T2DPoint; angle: TGeoFloat);
+procedure TVec2List.RotateAngle(axis: T2DPoint; angle: TGeoFloat);
 var
   i: Integer;
   p: P2DPoint;
@@ -2851,7 +2859,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.Scale(axis: T2DPoint; Scale: TGeoFloat);
+procedure TVec2List.Scale(axis: T2DPoint; Scale: TGeoFloat);
 var
   i: Integer;
   p: P2DPoint;
@@ -2863,7 +2871,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.ConvexHull(output: T2DPointList);
+procedure TVec2List.ConvexHull(output: TVec2List);
 
 const
   RightHandSide        = -1;
@@ -2881,10 +2889,10 @@ type
   TCompareResult = (eGreaterThan, eLessThan, eEqual);
 
 var
-  Point            : array of T2DHullPoint;
-  Stack            : array of T2DHullPoint;
+  Point: array of T2DHullPoint;
+  Stack: array of T2DHullPoint;
   StackHeadPosition: Integer;
-  Anchor           : T2DHullPoint;
+  Anchor: T2DHullPoint;
 
   function CartesianAngle(const X, Y: TGeoFloat): TGeoFloat;
   const
@@ -2938,10 +2946,10 @@ var
 
   procedure RQSort(Left, Right: Integer; var Point: array of T2DHullPoint);
   var
-    i     : Integer;
-    j     : Integer;
+    i: Integer;
+    j: Integer;
     Middle: Integer;
-    Pivot : T2DHullPoint;
+    Pivot: T2DHullPoint;
   begin
     repeat
       i := Left;
@@ -3027,7 +3035,7 @@ var
 
   procedure GrahamScan;
   var
-    i   : Integer;
+    i: Integer;
     Orin: Integer;
   begin
     Push(Point[0]);
@@ -3103,7 +3111,7 @@ begin
   end;
 end;
 
-procedure T2DPointList.ExtractToBuff(var output: TArray2DPoint);
+procedure TVec2List.ExtractToBuff(var output: TArray2DPoint);
 var
   i: Integer;
 begin
@@ -3112,7 +3120,7 @@ begin
       output[i] := Items[i]^;
 end;
 
-procedure T2DPointList.GiveListDataFromBuff(output: PArray2DPoint);
+procedure TVec2List.GiveListDataFromBuff(output: PArray2DPoint);
 var
   i: Integer;
 begin
@@ -3121,7 +3129,7 @@ begin
       Add(output^[i]);
 end;
 
-procedure T2DPointList.VertexReduction(Epsilon: TGeoFloat);
+procedure TVec2List.VertexReduction(Epsilon: TGeoFloat);
 var
   Buff, output: TArray2DPoint;
 begin
@@ -3130,9 +3138,9 @@ begin
   GiveListDataFromBuff(@output);
 end;
 
-function T2DPointList.Line2Intersect(const lb, le: T2DPoint; ClosedPolyMode: Boolean; OutputPoint: T2DPointList): Boolean;
+function TVec2List.Line2Intersect(const lb, le: T2DPoint; ClosedPolyMode: Boolean; OutputPoint: TVec2List): Boolean;
 var
-  i     : Integer;
+  i: Integer;
   p1, p2: P2DPoint;
   ox, oy: TGeoFloat;
 begin
@@ -3178,12 +3186,12 @@ begin
     end;
 end;
 
-function T2DPointList.Line2NearIntersect(const lb, le: T2DPoint; const ClosedPolyMode: Boolean; out idx1, idx2: Integer; out IntersectPt: T2DPoint): Boolean;
+function TVec2List.Line2NearIntersect(const lb, le: T2DPoint; const ClosedPolyMode: Boolean; out idx1, idx2: Integer; out IntersectPt: T2DPoint): Boolean;
 var
-  i     : Integer;
+  i: Integer;
   p1, p2: P2DPoint;
   ox, oy: TGeoFloat;
-  d, d2 : TGeoFloat;
+  d, d2: TGeoFloat;
 begin
   Result := False;
   if FList.Count > 1 then
@@ -3226,7 +3234,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.SortOfNear(const pt: T2DPoint);
+procedure TVec2List.SortOfNear(const pt: T2DPoint);
 
   function ListSortCompare(Item1, Item2: Pointer): Integer;
   var
@@ -3274,7 +3282,7 @@ begin
       QuickSortList(FList.ListData^, 0, Count - 1);
 end;
 
-procedure T2DPointList.SortOfFar(const pt: T2DPoint);
+procedure TVec2List.SortOfFar(const pt: T2DPoint);
 
   function ListSortCompare(Item1, Item2: Pointer): Integer;
   var
@@ -3322,10 +3330,10 @@ begin
       QuickSortList(FList.ListData^, 0, Count - 1);
 end;
 
-procedure T2DPointList.Reverse;
+procedure TVec2List.Reverse;
 var
   NewList: TCoreClassList;
-  i, c   : Integer;
+  i, c: Integer;
 begin
   NewList := TCoreClassList.Create;
   c := Count - 1;
@@ -3336,7 +3344,7 @@ begin
   FList := NewList;
 end;
 
-procedure T2DPointList.AddCirclePoint(ACount: Cardinal; axis: T2DPoint; ADist: TGeoFloat);
+procedure TVec2List.AddCirclePoint(ACount: Cardinal; axis: T2DPoint; ADist: TGeoFloat);
 var
   i: Integer;
 begin
@@ -3344,7 +3352,7 @@ begin
       Add(PointRotation(axis, ADist, 360 / ACount * i));
 end;
 
-procedure T2DPointList.AddRectangle(r: T2DRect);
+procedure TVec2List.AddRectangle(r: T2DRect);
 begin
   Add(r[0][0], r[0][1]);
   Add(r[1][0], r[0][1]);
@@ -3352,12 +3360,12 @@ begin
   Add(r[0][0], r[1][1]);
 end;
 
-function T2DPointList.GetMinimumFromPointToLine(const pt: T2DPoint; const ClosedMode: Boolean; out lb, le: Integer): T2DPoint;
+function TVec2List.GetMinimumFromPointToLine(const pt: T2DPoint; const ClosedMode: Boolean; out lb, le: Integer): T2DPoint;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: P2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   if FList.Count > 1 then
     begin
@@ -3410,12 +3418,12 @@ begin
     end;
 end;
 
-function T2DPointList.GetMinimumFromPointToLine(const pt: T2DPoint; const ClosedMode: Boolean): T2DPoint;
+function TVec2List.GetMinimumFromPointToLine(const pt: T2DPoint; const ClosedMode: Boolean): T2DPoint;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: P2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   if FList.Count > 1 then
     begin
@@ -3460,12 +3468,12 @@ begin
     end;
 end;
 
-function T2DPointList.GetMinimumFromPointToLine(const pt: T2DPoint; const ExpandDist: TGeoFloat): T2DPoint;
+function TVec2List.GetMinimumFromPointToLine(const pt: T2DPoint; const ExpandDist: TGeoFloat): T2DPoint;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   if FList.Count > 1 then
     begin
@@ -3508,7 +3516,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.CutLineBeginPtToIdx(const pt: T2DPoint; const toidx: Integer);
+procedure TVec2List.CutLineBeginPtToIdx(const pt: T2DPoint; const toidx: Integer);
 var
   i: Integer;
 begin
@@ -3517,7 +3525,7 @@ begin
   Items[0]^ := pt;
 end;
 
-procedure T2DPointList.Translation(X, Y: TGeoFloat);
+procedure TVec2List.Translation(X, Y: TGeoFloat);
 var
   i: Integer;
   p: P2DPoint;
@@ -3530,7 +3538,7 @@ begin
     end;
 end;
 
-procedure T2DPointList.Mul(X, Y: TGeoFloat);
+procedure TVec2List.Mul(X, Y: TGeoFloat);
 var
   i: Integer;
   p: P2DPoint;
@@ -3543,7 +3551,7 @@ begin
     end;
 end;
 
-function T2DPointList.First: P2DPoint;
+function TVec2List.First: P2DPoint;
 begin
   if Count > 0 then
       Result := Items[0]
@@ -3551,7 +3559,7 @@ begin
       Result := nil;
 end;
 
-function T2DPointList.Last: P2DPoint;
+function TVec2List.Last: P2DPoint;
 begin
   if Count > 0 then
       Result := Items[Count - 1]
@@ -3559,7 +3567,7 @@ begin
       Result := nil;
 end;
 
-procedure T2DPointList.ExpandDistanceAsList(ExpandDist: TGeoFloat; output: T2DPointList);
+procedure TVec2List.ExpandDistanceAsList(ExpandDist: TGeoFloat; output: TVec2List);
 var
   i: Integer;
 begin
@@ -3567,22 +3575,22 @@ begin
       output.Add(GetExpands(i, ExpandDist));
 end;
 
-procedure T2DPointList.ExpandConvexHullAsList(ExpandDist: TGeoFloat; output: T2DPointList);
+procedure TVec2List.ExpandConvexHullAsList(ExpandDist: TGeoFloat; output: TVec2List);
 var
-  pl: T2DPointList;
+  pl: TVec2List;
 begin
-  pl := T2DPointList.Create;
+  pl := TVec2List.Create;
   ConvexHull(pl);
   pl.ExpandDistanceAsList(ExpandDist, output);
   DisposeObject(pl);
 end;
 
-function T2DPointList.GetExpands(idx: Integer; ExpandDist: TGeoFloat): T2DPoint;
+function TVec2List.GetExpands(idx: Integer; ExpandDist: TGeoFloat): T2DPoint;
 var
   lpt, pt, rpt: T2DPoint;
-  ln, rn      : T2DPoint;
+  ln, rn: T2DPoint;
   dx, dy, F, r: TGeoFloat;
-  Cx, Cy      : TGeoFloat;
+  Cx, Cy: TGeoFloat;
 begin
   if (ExpandDist = 0) or (Count < 2) then
     begin
@@ -3663,7 +3671,7 @@ end;
 
 procedure TPoly.Assign(Source: TCoreClassPersistent);
 var
-  i    : Integer;
+  i: Integer;
   p, p2: PPolyPoint;
 begin
   if Source is TPoly then
@@ -3686,9 +3694,9 @@ begin
           FList.Add(p);
         end;
     end
-  else if Source is T2DPointList then
+  else if Source is TVec2List then
     begin
-      RebuildPoly(T2DPointList(Source));
+      RebuildPoly(TVec2List(Source));
     end;
 end;
 
@@ -3807,7 +3815,7 @@ end;
 procedure TPoly.Reverse;
 var
   NewList: TCoreClassList;
-  i, c   : Integer;
+  i, c: Integer;
 begin
   NewList := TCoreClassList.Create;
   c := Count - 1;
@@ -3839,7 +3847,7 @@ end;
 procedure TPoly.FixedSameError;
 var
   l, p: PPolyPoint;
-  i   : Integer;
+  i: Integer;
 begin
   if Count < 2 then
       Exit;
@@ -3870,7 +3878,7 @@ begin
     end;
 end;
 
-procedure TPoly.ConvexHullFromPoint(AFrom: T2DPointList);
+procedure TPoly.ConvexHullFromPoint(AFrom: TVec2List);
 
 const
   RightHandSide        = -1;
@@ -3888,10 +3896,10 @@ type
   TCompareResult = (eGreaterThan, eLessThan, eEqual);
 
 var
-  Point            : array of T2DHullPoint;
-  Stack            : array of T2DHullPoint;
+  Point: array of T2DHullPoint;
+  Stack: array of T2DHullPoint;
   StackHeadPosition: Integer;
-  Anchor           : T2DHullPoint;
+  Anchor: T2DHullPoint;
 
   function CartesianAngle(const X, Y: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   const
@@ -3945,10 +3953,10 @@ var
 
   procedure RQSort(Left, Right: Integer; var Point: array of T2DHullPoint);
   var
-    i     : Integer;
-    j     : Integer;
+    i: Integer;
+    j: Integer;
     Middle: Integer;
-    Pivot : T2DHullPoint;
+    Pivot: T2DHullPoint;
   begin
     repeat
       i := Left;
@@ -4034,7 +4042,7 @@ var
 
   procedure GrahamScan;
   var
-    i   : Integer;
+    i: Integer;
     Orin: Integer;
   begin
     Push(Point[0]);
@@ -4063,8 +4071,8 @@ var
 
   function CalcCentroid: T2DPoint;
   var
-    i   : Integer;
-    j   : Integer;
+    i: Integer;
+    j: Integer;
     asum: TGeoFloat;
     term: TGeoFloat;
   begin
@@ -4090,8 +4098,8 @@ var
   end;
 
 var
-  i : Integer;
-  j : Integer;
+  i: Integer;
+  j: Integer;
   pt: T2DPoint;
 begin
   if AFrom.Count <= 3 then
@@ -4148,9 +4156,9 @@ begin
   RebuildPoly;
 end;
 
-procedure TPoly.RebuildPoly(pl: T2DPointList);
+procedure TPoly.RebuildPoly(pl: TVec2List);
 var
-  i  : Integer;
+  i: Integer;
   Ply: TPoly;
 begin
   { * rebuild opt * }
@@ -4178,10 +4186,10 @@ end;
 
 procedure TPoly.RebuildPoly;
 var
-  pl: T2DPointList;
-  i : Integer;
+  pl: TVec2List;
+  i: Integer;
 begin
-  pl := T2DPointList.Create;
+  pl := TVec2List.Create;
   for i := 0 to Count - 1 do
       pl.Add(GetPoint(i));
   RebuildPoly(pl);
@@ -4190,10 +4198,10 @@ end;
 
 procedure TPoly.RebuildPoly(AScale, AAngle: TGeoFloat; AExpandMode: TExpandMode; APosition: T2DPoint);
 var
-  pl: T2DPointList;
-  i : Integer;
+  pl: TVec2List;
+  i: Integer;
 begin
-  pl := T2DPointList.Create;
+  pl := TVec2List.Create;
   for i := 0 to Count - 1 do
       pl.Add(GetPoint(i));
   Scale := AScale;
@@ -4206,12 +4214,12 @@ end;
 
 function TPoly.BoundRect: T2DRect;
 var
-  p   : T2DPoint;
+  p: T2DPoint;
   MaxX: TGeoFloat;
   MaxY: TGeoFloat;
   MinX: TGeoFloat;
   MinY: TGeoFloat;
-  i   : Integer;
+  i: Integer;
 begin
   Result := Make2DRect(Zero, Zero, Zero, Zero);
   if Count < 2 then
@@ -4239,7 +4247,7 @@ end;
 
 function TPoly.Centroid: T2DPoint;
 var
-  i   : Integer;
+  i: Integer;
   asum: TGeoFloat;
   term: TGeoFloat;
 
@@ -4273,7 +4281,7 @@ end;
 
 function TPoly.PointInHere(pt: T2DPoint): Boolean;
 var
-  i     : Integer;
+  i: Integer;
   pi, pj: T2DPoint;
 begin
   Result := False;
@@ -4298,13 +4306,13 @@ end;
 
 function TPoly.LineNearIntersect(const lb, le: T2DPoint; const ClosedPolyMode: Boolean; out idx1, idx2: Integer; out IntersectPt: T2DPoint): Boolean;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   Result := False;
-  if not Check_Circle2Line(FPosition, FMaxRadius * FScale, lb, le) then
+  if not Detect_Circle2Line(FPosition, FMaxRadius * FScale, lb, le) then
       Exit;
 
   if FList.Count > 1 then
@@ -4349,11 +4357,11 @@ end;
 
 function TPoly.LineIntersect(const lb, le: T2DPoint; const ClosedPolyMode: Boolean): Boolean;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
 begin
   Result := False;
-  if not Check_Circle2Line(FPosition, FMaxRadius * FScale, lb, le) then
+  if not Detect_Circle2Line(FPosition, FMaxRadius * FScale, lb, le) then
       Exit;
 
   if FList.Count > 1 then
@@ -4380,10 +4388,10 @@ end;
 
 function TPoly.GetMinimumFromPointToPoly(const pt: T2DPoint; const ClosedPolyMode: Boolean; out lb, le: Integer): T2DPoint;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   if FList.Count > 1 then
     begin
@@ -4438,7 +4446,7 @@ end;
 
 function TPoly.PointInHere(AExpandDistance: TGeoFloat; pt: T2DPoint): Boolean;
 var
-  i     : Integer;
+  i: Integer;
   pi, pj: T2DPoint;
 begin
   Result := False;
@@ -4463,13 +4471,13 @@ end;
 
 function TPoly.LineNearIntersect(AExpandDistance: TGeoFloat; const lb, le: T2DPoint; const ClosedPolyMode: Boolean; out idx1, idx2: Integer; out IntersectPt: T2DPoint): Boolean;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   Result := False;
-  if not Check_Circle2Line(FPosition, FMaxRadius * FScale + AExpandDistance, lb, le) then
+  if not Detect_Circle2Line(FPosition, FMaxRadius * FScale + AExpandDistance, lb, le) then
       Exit;
 
   if FList.Count > 1 then
@@ -4514,11 +4522,11 @@ end;
 
 function TPoly.LineIntersect(AExpandDistance: TGeoFloat; const lb, le: T2DPoint; const ClosedPolyMode: Boolean): Boolean;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
 begin
   Result := False;
-  if not Check_Circle2Line(FPosition, FMaxRadius * FScale + AExpandDistance, lb, le) then
+  if not Detect_Circle2Line(FPosition, FMaxRadius * FScale + AExpandDistance, lb, le) then
       Exit;
 
   if FList.Count > 1 then
@@ -4545,10 +4553,10 @@ end;
 
 function TPoly.GetMinimumFromPointToPoly(AExpandDistance: TGeoFloat; const pt: T2DPoint; const ClosedPolyMode: Boolean; out lb, le: Integer): T2DPoint;
 var
-  i       : Integer;
+  i: Integer;
   pt1, pt2: T2DPoint;
-  opt     : T2DPoint;
-  d, d2   : TGeoFloat;
+  opt: T2DPoint;
+  d, d2: TGeoFloat;
 begin
   if FList.Count > 1 then
     begin
@@ -4601,22 +4609,22 @@ end;
 
 function TPoly.Collision2Circle(cp: T2DPoint; r: TGeoFloat; ClosedPolyMode: Boolean): Boolean;
 var
-  i            : Integer;
+  i: Integer;
   curpt, destpt: T2DPoint;
 begin
-  if (Check_Circle2Circle(FPosition, cp, FMaxRadius * FScale, r)) and (Count > 0) then
+  if (Detect_Circle2Circle(FPosition, cp, FMaxRadius * FScale, r)) and (Count > 0) then
     begin
       Result := True;
       curpt := Points[0];
       for i := 1 to Count - 1 do
         begin
           destpt := Points[i];
-          if Check_Circle2Line(cp, r, curpt, destpt) then
+          if Detect_Circle2Line(cp, r, curpt, destpt) then
               Exit;
           curpt := destpt;
         end;
       if ClosedPolyMode then
-        if Check_Circle2Line(cp, r, curpt, Points[0]) then
+        if Detect_Circle2Line(cp, r, curpt, Points[0]) then
             Exit;
     end;
   Result := False;
@@ -4624,17 +4632,17 @@ end;
 
 function TPoly.Collision2Circle(cp: T2DPoint; r: TGeoFloat; ClosedPolyMode: Boolean; OutputLine: T2DLineList): Boolean;
 var
-  i            : Integer;
+  i: Integer;
   curpt, destpt: T2DPoint;
 begin
   Result := False;
-  if (Check_Circle2Circle(FPosition, cp, FMaxRadius * FScale, r)) and (Count > 0) then
+  if (Detect_Circle2Circle(FPosition, cp, FMaxRadius * FScale, r)) and (Count > 0) then
     begin
       curpt := Points[0];
       for i := 1 to Count - 1 do
         begin
           destpt := Points[i];
-          if Check_Circle2Line(cp, r, curpt, destpt) then
+          if Detect_Circle2Line(cp, r, curpt, destpt) then
             begin
               OutputLine.Add(curpt, destpt, i - 1, i, Self);
               Result := True;
@@ -4642,7 +4650,7 @@ begin
           curpt := destpt;
         end;
       if ClosedPolyMode then
-        if Check_Circle2Line(cp, r, curpt, Points[0]) then
+        if Detect_Circle2Line(cp, r, curpt, Points[0]) then
           begin
             OutputLine.Add(curpt, Points[0], Count - 1, 0, Self);
             Result := True;
@@ -4652,17 +4660,17 @@ end;
 
 function TPoly.Collision2Circle(AExpandDistance: TGeoFloat; cp: T2DPoint; r: TGeoFloat; ClosedPolyMode: Boolean; OutputLine: T2DLineList): Boolean;
 var
-  i            : Integer;
+  i: Integer;
   curpt, destpt: T2DPoint;
 begin
   Result := False;
-  if (Check_Circle2Circle(FPosition, cp, FMaxRadius * FScale + AExpandDistance, r)) and (Count > 0) then
+  if (Detect_Circle2Circle(FPosition, cp, FMaxRadius * FScale + AExpandDistance, r)) and (Count > 0) then
     begin
       curpt := Expands[0, AExpandDistance];
       for i := 1 to Count - 1 do
         begin
           destpt := Expands[i, AExpandDistance];
-          if Check_Circle2Line(cp, r, curpt, destpt) then
+          if Detect_Circle2Line(cp, r, curpt, destpt) then
             begin
               OutputLine.Add(curpt, destpt, i - 1, i, Self);
               Result := True;
@@ -4670,7 +4678,7 @@ begin
           curpt := destpt;
         end;
       if ClosedPolyMode then
-        if Check_Circle2Line(cp, r, curpt, Expands[0, AExpandDistance]) then
+        if Detect_Circle2Line(cp, r, curpt, Expands[0, AExpandDistance]) then
           begin
             OutputLine.Add(curpt, Expands[0, AExpandDistance], Count - 1, 0, Self);
             Result := True;
@@ -4682,7 +4690,7 @@ function TPoly.PolyIntersect(APoly: TPoly): Boolean;
 var
   i: Integer;
 begin
-  Result := Check_Circle2Circle(Position, APoly.Position, MaxRadius * FScale, APoly.MaxRadius * APoly.Scale);
+  Result := Detect_Circle2Circle(Position, APoly.Position, MaxRadius * FScale, APoly.MaxRadius * APoly.Scale);
   if not Result then
       Exit;
 
@@ -4724,8 +4732,8 @@ function TPoly.LerpToOfEndge(pt: T2DPoint; AProjDistance, AExpandDistance: TGeoF
 
 var
   idxDir: ShortInt;
-  ToPt  : T2DPoint;
-  d     : TGeoFloat;
+  ToPt: T2DPoint;
+  d: TGeoFloat;
 begin
   Result := pt;
   if Count <= 1 then
@@ -4783,9 +4791,9 @@ end;
 function TPoly.GetExpands(idx: Integer; ExpandDist: TGeoFloat): T2DPoint;
 var
   lpt, pt, rpt: T2DPoint;
-  ln, rn      : T2DPoint;
+  ln, rn: T2DPoint;
   dx, dy, F, r: TGeoFloat;
-  Cx, Cy      : TGeoFloat;
+  Cx, Cy: TGeoFloat;
 begin
   if (ExpandDist = 0) or (Count < 2) then
     begin
@@ -4992,8 +5000,8 @@ end;
 function T2DLineList.NearLine(const ExpandDist: TGeoFloat; const pt: T2DPoint): P2DLine;
 var
   d, d2: TGeoFloat;
-  l    : P2DLine;
-  i    : Integer;
+  l: P2DLine;
+  i: Integer;
 begin
   Result := nil;
   if Count = 1 then
@@ -5030,8 +5038,8 @@ end;
 function T2DLineList.FarLine(const ExpandDist: TGeoFloat; const pt: T2DPoint): P2DLine;
 var
   d, d2: TGeoFloat;
-  l    : P2DLine;
-  i    : Integer;
+  l: P2DLine;
+  i: Integer;
 begin
   Result := nil;
   if Count > 0 then
@@ -5522,8 +5530,8 @@ end;
 
 function TRectPacking.Pack(width, height: TGeoFloat; var X, Y: TGeoFloat): Boolean;
 var
-  i   : Integer;
-  p   : PRectPackData;
+  i: Integer;
+  p: PRectPackData;
   r, b: TGeoFloat;
 begin
   MaxWidth := Max(MaxWidth, width);
@@ -5681,9 +5689,9 @@ procedure TRectPacking.Build(SpaceWidth, SpaceHeight: TGeoFloat);
   end;
 
 var
-  newLst    : TRectPacking;
-  p         : PRectPackData;
-  i         : Integer;
+  newLst: TRectPacking;
+  p: PRectPackData;
+  i: Integer;
   X, Y, w, h: TGeoFloat;
 begin
   if FList.Count > 1 then
