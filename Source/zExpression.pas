@@ -61,7 +61,7 @@ type
     destructor Destroy; override;
 
     procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure PrintDebug(const detail: Boolean; const prefix: string = ''); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure PrintDebug(const detail: Boolean; const prefix: SystemString = ''); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Decl: SystemString;
 
     function GetCount(t: TExpressionDeclTypes): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -2206,7 +2206,7 @@ begin
   FList.Clear;
 end;
 
-procedure TSymbolExpression.PrintDebug(const detail: Boolean; const prefix: string = '');
+procedure TSymbolExpression.PrintDebug(const detail: Boolean; const prefix: SystemString = '');
 var
   i: Integer;
   p: PExpressionListData;
