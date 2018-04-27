@@ -30,6 +30,7 @@ type
   public
     constructor Create(DBEngine: TObjectDataManager; DBPath, DBItem: SystemString); overload;
     constructor Create(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle); overload;
+    constructor Create(DBEngine: TObjectDataManager; var ItemHeaderPos: Int64); overload;
     constructor Create; overload;
     destructor Destroy; override;
     procedure ChangeHandle(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle);
@@ -80,6 +81,14 @@ constructor TItemStream.Create(DBEngine: TObjectDataManager; var ItemHnd: TItemH
 begin
   inherited Create;
   ChangeHandle(DBEngine, ItemHnd);
+end;
+
+constructor TItemStream.Create(DBEngine: TObjectDataManager; var ItemHeaderPos: Int64);
+var
+  ItemHnd: TItemHandle;
+begin
+  DBEngine.ItemFastOpen(ItemHeaderPos, ItemHnd);
+  Create(DBEngine, ItemHnd);
 end;
 
 destructor TItemStream.Destroy;
