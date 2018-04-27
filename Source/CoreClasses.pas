@@ -19,6 +19,13 @@ unit CoreClasses;
 interface
 
 uses SysUtils, Classes, Types, Math,
+  {$IFDEF parallel}
+  {$IFDEF FPC}
+  mtprocs,
+  {$ELSE}
+  Threading,
+  {$ENDIF FPC}
+  {$ENDIF parallel}
   PascalStrings,
   SyncObjs
   {$IFDEF FPC}
@@ -131,12 +138,11 @@ type
   TCoreClassForObjectList = array of TCoreClassObject;
   PCoreClassForObjectList = ^TCoreClassForObjectList;
 
-  TCoreClassSortCompare = function(Item1, Item2: Pointer): Integer;
-
   TCoreClassListForObj_ = class(System.Generics.Collections.TList<TCoreClassObject>)
   end;
 
   TCoreClassListForObj = class(TCoreClassListForObj_)
+    function ListData: PCoreClassForObjectList;
   end;
 
   {$ENDIF}
@@ -172,6 +178,9 @@ procedure DisposeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inlin
 procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure FreeObject(const objs: array of TObject); overload;
+
+procedure LockID(const ID:Byte);
+procedure UnLockID(const ID:Byte);
 
 procedure LockObject(obj:TObject);
 procedure UnLockObject(obj:TObject);
@@ -258,6 +267,35 @@ begin
 end;
 
 {$I CoreAtomic.inc}
+
+threadvar
+  LockIDBuff: packed array [0..255] of TCoreClassPersistent;
+
+procedure InitLockIDBuff;
+var
+  i: Integer;
+begin
+  for i := 0 to 255 do
+      LockIDBuff[i] := TCoreClassPersistent.Create;
+end;
+
+procedure FreeLockIDBuff;
+var
+  i: Integer;
+begin
+  for i := 0 to 255 do
+      DisposeObject(LockIDBuff[i]);
+end;
+
+procedure LockID(const ID: Byte);
+begin
+  LockObject(LockIDBuff[ID]);
+end;
+
+procedure UnLockID(const ID: Byte);
+begin
+  UnLockObject(LockIDBuff[ID]);
+end;
 
 procedure LockObject(obj:TObject);
 begin
@@ -475,16 +513,23 @@ begin
   Result := @(inherited List);
 end;
 
+function TCoreClassListForObj.ListData: PCoreClassForObjectList;
+begin
+  Result := @(inherited List);
+end;
+
 {$ENDIF}
 
 initialization
   InitCriticalLock;
+  InitLockIDBuff;
   MHGlobalHookEnabled := True;
 
   // float check
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 finalization
   FreeCriticalLock;
+  FreeLockIDBuff;
   MHGlobalHookEnabled := False;
 end.
 
