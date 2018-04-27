@@ -77,9 +77,9 @@ type
     constructor Create(maxHashLen: Integer); overload; virtual;
     destructor Destroy; override;
 
-    procedure RegOp(ProcName: string; OnProc: TOnOpCall); overload;
-    procedure RegOp(ProcName: string; OnProc: TOnOpMethod); overload;
-    {$IFNDEF FPC} procedure RegOp(ProcName: string; OnProc: TOnOpProc); overload; {$ENDIF FPC}
+    procedure RegOp(ProcName: SystemString; OnProc: TOnOpCall); overload;
+    procedure RegOp(ProcName: SystemString; OnProc: TOnOpMethod); overload;
+    {$IFNDEF FPC} procedure RegOp(ProcName: SystemString; OnProc: TOnOpProc); overload; {$ENDIF FPC}
   end;
 
   opClass = class of TOpCode;
@@ -701,7 +701,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TOpCustomRunTime.RegOp(ProcName: string; OnProc: TOnOpCall);
+procedure TOpCustomRunTime.RegOp(ProcName: SystemString; OnProc: TOnOpCall);
 var
   p: PopRTproc;
 begin
@@ -712,7 +712,7 @@ begin
   ProcList.Add(ProcName, p);
 end;
 
-procedure TOpCustomRunTime.RegOp(ProcName: string; OnProc: TOnOpMethod);
+procedure TOpCustomRunTime.RegOp(ProcName: SystemString; OnProc: TOnOpMethod);
 var
   p: PopRTproc;
 begin
@@ -726,7 +726,7 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TOpCustomRunTime.RegOp(ProcName: string; OnProc: TOnOpProc);
+procedure TOpCustomRunTime.RegOp(ProcName: SystemString; OnProc: TOnOpProc);
 var
   p: PopRTproc;
 begin
@@ -1059,7 +1059,7 @@ begin
           try
             if Fast_VarIsStr(Result) then
               begin
-                // string combine
+                // SystemString combine
                 n1 := VarToStr(Result);
                 if not umlIsNumber(n1) then
                   begin
@@ -1070,7 +1070,7 @@ begin
 
             if Fast_VarIsStr(Param[i]^.Value) then
               begin
-                // string combine
+                // SystemString combine
                 n2 := VarToStr(Param[i]^.Value);
                 if not umlIsNumber(n2) then
                   begin
