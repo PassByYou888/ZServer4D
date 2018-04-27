@@ -10,8 +10,6 @@
 
 unit DoStatusIO;
 
-{$I zDefine.inc}
-
 interface
 
 uses
@@ -19,8 +17,10 @@ uses
   Windows,
   {$ELSEIF not Defined(Linux)}
   FMX.Types,
-  {$ENDIF}
-  Sysutils, Classes, PascalStrings, UnicodeMixedLib, CoreClasses, MemoryStream64;
+  {$IFEND}
+  Sysutils, Classes, PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses, MemoryStream64;
+
+{$I zDefine.inc}
 
 type
   TDoStatusMethod = procedure(AText: SystemString; const ID: Integer) of object;
@@ -46,6 +46,7 @@ procedure DoStatus(const v: SystemString; const Args: array of const); overload;
 procedure DoError(v: SystemString; const Args: array of const); overload;
 procedure DoStatus(const v: SystemString); overload;
 procedure DoStatus(const v: TPascalString); overload;
+procedure DoStatus(const v: TUPascalString); overload;
 procedure DoStatus(const v: TMD5); overload;
 
 procedure DoStatusNoLn(const v: TPascalString); overload;
@@ -195,6 +196,11 @@ begin
   DoStatus(v.Text, 0);
 end;
 
+procedure DoStatus(const v: TUPascalString);
+begin
+  DoStatus(v.Text, 0);
+end;
+
 procedure DoStatus(const v: TMD5);
 begin
   DoStatus(umlMD52String(v).Text);
@@ -295,9 +301,9 @@ begin
         OutputDebugString(PWideChar('"' + Text + '"'));
         {$ELSEIF not Defined(Linux)}
         FMX.Types.Log.d('"' + Text + '"');
-        {$ENDIF}
+        {$IFEND}
       end;
-    {$ENDIF}
+    {$IFEND}
     if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
         Writeln(Text);
   finally
@@ -322,7 +328,7 @@ begin
       TCoreClassThread.Synchronize(th, @ts.DoSync);
       {$ELSE}
       TCoreClassThread.Synchronize(th, ts.DoSync);
-      {$ENDIF}
+      {$IFEND}
       DisposeObject(ts);
       exit;
     end;
@@ -352,9 +358,9 @@ begin
         OutputDebugString(PWideChar('"' + Text + '"'));
         {$ELSEIF not Defined(Linux)}
         FMX.Types.Log.d('"' + Text + '"');
-        {$ENDIF}
+        {$IFEND}
       end;
-    {$ENDIF}
+    {$IFEND}
     if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
         Writeln(Text);
   finally
@@ -429,7 +435,7 @@ ConsoleOutput := True;
 OnDoStatusHook := @InternalDoStatus;
 {$ELSE}
 OnDoStatusHook := InternalDoStatus;
-{$ENDIF}
+{$IFEND}
 
 finalization
 
