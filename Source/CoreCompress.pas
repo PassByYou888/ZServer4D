@@ -81,7 +81,7 @@ type
   TCCSize  = TCCPtrUInt;
 
   PCCUInt8Array = ^TCCUInt8Array;
-  TCCUInt8Array = array [0 .. 65535] of TCCUInt8;
+  TCCUInt8Array = array [0 .. MaxInt div SizeOf(TCCUInt8) - 1] of TCCUInt8;
 
   PPCCUInt64Record = ^PCCUInt64Record;
   PCCUInt64Record  = ^TCCUInt64Record;
@@ -736,12 +736,12 @@ begin
     for ValueIndex := IfThen(index = 0, 0, DistanceCodes[index, 2]) to DistanceCodes[index, 3] do
         fDistanceCodesLookUpTable[ValueIndex] := index;
 
-  FillPtrByte(@fLengthBits, sizeof(TBits), 0);
-  FillPtrByte(@fDistanceBits, sizeof(TBits), 0);
-  FillPtrByte(@fLengthBase, sizeof(TBase), 0);
-  FillPtrByte(@fDistanceBase, sizeof(TBase), 0);
-  FillPtrByte(@fFixedSymbolLengthTree, sizeof(TTree), 0);
-  FillPtrByte(@fFixedDistanceTree, sizeof(TTree), 0);
+  FillPtrByte(@fLengthBits, SizeOf(TBits), 0);
+  FillPtrByte(@fDistanceBits, SizeOf(TBits), 0);
+  FillPtrByte(@fLengthBase, SizeOf(TBase), 0);
+  FillPtrByte(@fDistanceBase, SizeOf(TBase), 0);
+  FillPtrByte(@fFixedSymbolLengthTree, SizeOf(TTree), 0);
+  FillPtrByte(@fFixedDistanceTree, SizeOf(TTree), 0);
   BuildFixedTrees(fFixedSymbolLengthTree, fFixedDistanceTree);
   BuildBitsBase(TCCPointer(@fLengthBits[0]), PCCUInt16(TCCPointer(@fLengthBase[0])), 4, 3);
   BuildBitsBase(TCCPointer(@fDistanceBits[0]), PCCUInt16(TCCPointer(@fDistanceBase[0])), 2, 1);
@@ -873,11 +873,11 @@ begin
       DoOutputBits($9C, 8); // FLG Default Compression
     end;
   OutputStartBlock;
-  FillPtrByte(@fHashTable, sizeof(THashTable), 0);
-  FillPtrByte(@fChainTable, sizeof(TChainTable), 0);
+  FillPtrByte(@fHashTable, SizeOf(THashTable), 0);
+  FillPtrByte(@fChainTable, SizeOf(TChainTable), 0);
   CurrentPointer := aInData;
   EndPointer := TCCPointer(TCCPtrUInt(TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)));
-  EndSearchPointer := TCCPointer(TCCPtrUInt((TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)) - TCCPtrUInt(TCCInt64(Max(TCCInt64(MinMatch), TCCInt64(sizeof(TCCUInt32)))))));
+  EndSearchPointer := TCCPointer(TCCPtrUInt((TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)) - TCCPtrUInt(TCCInt64(Max(TCCInt64(MinMatch), TCCInt64(SizeOf(TCCUInt32)))))));
   UnsuccessfulFindMatchAttempts := TCCUInt32(1) shl fSkipStrength;
   while TCCPtrUInt(CurrentPointer) < TCCPtrUInt(EndSearchPointer) do
     begin
@@ -899,19 +899,19 @@ begin
                 begin
                   MatchLength := MinMatch;
 
-                  while ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) and (sizeof(TCCUInt32) - 1)) <> 0) and
+                  while ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) and (SizeOf(TCCUInt32) - 1)) <> 0) and
                     ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) < TCCPtrUInt(EndPointer))) and
                     (PCCUInt8Array(CurrentPointer)^[MatchLength] = PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]) do
                     begin
                       inc(MatchLength);
                     end;
 
-                  while (TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength + (sizeof(TCCUInt32) - 1)]) < TCCPtrUInt(EndPointer)) do
+                  while (TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength + (SizeOf(TCCUInt32) - 1)]) < TCCPtrUInt(EndPointer)) do
                     begin
                       Difference := PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPointer)^[MatchLength]))^ xor PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]))^;
                       if Difference = 0 then
                         begin
-                          inc(MatchLength, sizeof(TCCUInt32));
+                          inc(MatchLength, SizeOf(TCCUInt32));
                         end
                       else
                         begin
@@ -1127,8 +1127,8 @@ var
   var
     hlit, hdist, hclen, i, Num, Len, clen, Symbol, Prev: TCCUInt32;
   begin
-    FillPtrByte(@fCodeTree, sizeof(TTree), 0);
-    FillPtrByte(@fLengths, sizeof(TLengths), 0);
+    FillPtrByte(@fCodeTree, SizeOf(TTree), 0);
+    FillPtrByte(@fLengths, SizeOf(TLengths), 0);
     hlit := ReadBits(5, 257);
     hdist := ReadBits(5, 1);
     hclen := ReadBits(4, 4);
@@ -1262,8 +1262,8 @@ var
   end;
   function InflateDynamicBlock: boolean;
   begin
-    FillPtrByte(@fSymbolLengthTree, sizeof(TTree), 0);
-    FillPtrByte(@fDistanceTree, sizeof(TTree), 0);
+    FillPtrByte(@fSymbolLengthTree, SizeOf(TTree), 0);
+    FillPtrByte(@fDistanceTree, SizeOf(TTree), 0);
     DecodeTrees(fSymbolLengthTree, fDistanceTree);
     Result := InflateBlockData(fSymbolLengthTree, fDistanceTree);
   end;
@@ -1385,7 +1385,7 @@ var
           begin
             if TCCSizeUInt(DestLen) < TCCSizeUInt(aOutLimit) then
               begin
-                PCCUInt8Array(aOutData)^[DestLen] := Cache + TCCUInt8(ord(Carry) and 1);
+                PCCUInt8Array(aOutData)^[DestLen] := TCCUInt8(Cache + TCCUInt8(ord(Carry) and 1));
                 inc(DestLen);
               end
             else
@@ -1399,7 +1399,7 @@ var
             dec(CountFFBytes);
             if TCCSizeUInt(DestLen) < TCCSizeUInt(aOutLimit) then
               begin
-                PCCUInt8Array(aOutData)^[DestLen] := $FF + TCCUInt8(ord(Carry) and 1);
+                PCCUInt8Array(aOutData)^[DestLen] := TCCUInt8($FF + TCCUInt8(ord(Carry) and 1));
                 inc(DestLen);
               end
             else
