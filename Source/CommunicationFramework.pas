@@ -3259,7 +3259,7 @@ begin
     begin
 
       try
-          ResultText := PascalStringOfBytes(buff).Text;
+          ResultText := umlStringOf(buff).Text;
       except
         Print('data error!');
         Disconnect;
@@ -3461,7 +3461,7 @@ begin
 
             FBigStreamTotal := Total;
             FBigStreamCompleted := 0;
-            FBigStreamCmd := PascalStringOfBytes(buff).Text;
+            FBigStreamCmd := umlStringOf(buff).Text;
             FBigStreamReceiveProcessing := True;
             SetLength(buff, 0);
 
@@ -3504,14 +3504,14 @@ begin
 
             if (FOwnerFramework.FMaxCompleteBufferSize > 0) and (Total > FOwnerFramework.FMaxCompleteBufferSize) then
               begin
-                Print('Oversize of CompleteBuffer cmd: ' + PascalStringOfBytes(buff).Text);
+                Print('Oversize of CompleteBuffer cmd: ' + umlStringOf(buff).Text);
                 NeedDisconnected := True;
                 break;
               end;
 
             FCompleteBufferTotal := Total;
             FCompleteBufferCompleted := 0;
-            FCompleteBufferCmd := PascalStringOfBytes(buff).Text;
+            FCompleteBufferCmd := umlStringOf(buff).Text;
             FCompleteBufferReceiveProcessing := True;
             FCompleteBufferReceiveStream.Clear;
             SetLength(buff, 0);
