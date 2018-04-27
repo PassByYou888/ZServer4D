@@ -16,19 +16,19 @@
 
 unit DataFrameEngine;
 
-{$I zDefine.inc}
 
 interface
 
 uses SysUtils, CoreClasses, Types, Variants,
-  ListEngine, MemoryStream64,
+  ListEngine, MemoryStream64, DoStatusIO,
   GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
-
   {$IFNDEF FPC}
   JsonDataObjects,
   {$ENDIF}
   CoreCompress,
   UnicodeMixedLib, PascalStrings;
+
+{$I zDefine.inc}
 
 type
   TDataFrameBase = class(TCoreClassObject)
@@ -768,8 +768,6 @@ type
   end;
 
 implementation
-
-uses DoStatusIO;
 
 constructor TDataFrameBase.Create(id: Byte);
 begin
