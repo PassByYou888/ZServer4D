@@ -136,7 +136,9 @@ type
 function MaxCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function FastCompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function CompressStream(Sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
+function DecompressStream(DataPtr: Pointer; siz: NativeInt; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStreamToPtr(Sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
@@ -654,6 +656,16 @@ begin
       end;
   except
   end;
+end;
+
+function DecompressStream(DataPtr: Pointer; siz: NativeInt; DeTo: TCoreClassStream): Boolean;
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.Create;
+  m64.SetPointer(DataPtr, siz);
+  Result := DecompressStream(m64, DeTo);
+  DisposeObject(m64);
 end;
 
 function DecompressStream(Sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
