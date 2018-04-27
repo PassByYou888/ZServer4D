@@ -25,7 +25,6 @@
 unit CoreCipher;
 
 { core cipher engine. create by qq600585 }
-
 {$I zDefine.inc}
 
 interface
@@ -57,9 +56,9 @@ type
 
   { general structures }
   PDWordArray = ^TDWordArray;
-  TDWordArray = array [0 .. MaxStructSize div SizeOf(DWord) - 1] of DWord;
+  TDWordArray = packed array [0 .. MaxStructSize div SizeOf(DWord) - 1] of DWord;
 
-  TCCByteArray = array [0 .. MaxStructSize div SizeOf(Byte) - 1] of Byte;
+  TCCByteArray = packed array [0 .. MaxStructSize div SizeOf(Byte) - 1] of Byte;
   PCCByteArray = ^TCCByteArray;
 
   TIntegerRec = packed record
@@ -97,29 +96,29 @@ type
   { encryption key types }
 type
   PKey64 = ^TKey64; { !!.03 }
-  TKey64 = array [0 .. 7] of Byte;
+  TKey64 = packed array [0 .. 7] of Byte;
 
   PKey128 = ^TKey128; { !!.03 }
-  TKey128 = array [0 .. 15] of Byte;
+  TKey128 = packed array [0 .. 15] of Byte;
 
   PKey256 = ^TKey256; { !!.03 }
-  TKey256 = array [0 .. 31] of Byte;
+  TKey256 = packed array [0 .. 31] of Byte;
 
   { encryption block types }
   PLBCBlock = ^TLBCBlock;
-  TLBCBlock = array [0 .. 3] of DWord; { LBC block }
+  TLBCBlock = packed array [0 .. 3] of DWord; { LBC block }
 
   PDESBlock = ^TDESBlock;
-  TDESBlock = array [0 .. 7] of Byte; { DES block }
+  TDESBlock = packed array [0 .. 7] of Byte; { DES block }
 
   PLQCBlock = ^TLQCBlock;
-  TLQCBlock = array [0 .. 1] of DWord; { Quick Cipher,no LBC key generate }
+  TLQCBlock = packed array [0 .. 1] of DWord; { Quick Cipher,no LBC key generate }
 
   PBFBlock = ^TBFBlock;
-  TBFBlock = array [0 .. 1] of DWord; { BlowFish }
+  TBFBlock = packed array [0 .. 1] of DWord; { BlowFish }
 
   PXXTEABlock = ^TXXTEABlock;
-  TXXTEABlock = array [0 .. 63] of Byte; { XXTEA }
+  TXXTEABlock = packed array [0 .. 63] of Byte; { XXTEA }
 
   TDesConverter = packed record
     case Byte of
@@ -128,13 +127,13 @@ type
   end;
 
   P128Bit = ^T128Bit;
-  T128Bit = array [0 .. 3] of DWord;
+  T128Bit = packed array [0 .. 3] of DWord;
 
   P256Bit = ^T256Bit;
-  T256Bit = array [0 .. 7] of DWord;
+  T256Bit = packed array [0 .. 7] of DWord;
 
-  TTransformOutput = array [0 .. 3] of DWord;
-  TTransformInput  = array [0 .. 15] of DWord;
+  TTransformOutput = packed array [0 .. 3] of DWord;
+  TTransformInput  = packed array [0 .. 15] of DWord;
 
   { context type constants }
 const
@@ -160,10 +159,10 @@ type
 
   { 3 DES }
   PTripleDESContext = ^TTripleDESContext;
-  TTripleDESContext = array [0 .. 1] of TDESContext;
+  TTripleDESContext = packed array [0 .. 1] of TDESContext;
 
   PTripleDESContext3Key = ^TTripleDESContext3Key;
-  TTripleDESContext3Key = array [0 .. 2] of TDESContext; { !!.01 }
+  TTripleDESContext3Key = packed array [0 .. 2] of TDESContext; { !!.01 }
 
   { LBC Cipher context }
   PLBCContext = ^TLBCContext;
@@ -188,10 +187,10 @@ type
 
   { random number stream ciphers }
   PRNG32Context = ^TRNG32Context;
-  TRNG32Context = array [0 .. 3] of Byte;
+  TRNG32Context = packed array [0 .. 3] of Byte;
 
   PRNG64Context = ^TRNG64Context;
-  TRNG64Context = array [0 .. 7] of Byte;
+  TRNG64Context = packed array [0 .. 7] of Byte;
 
   { message digest blocks }
   PMD5Digest = ^TMD5Digest;
@@ -199,7 +198,7 @@ type
   TMD5Key    = TMD5Digest;
 
   PSHA1Digest = ^TSHA1Digest;
-  TSHA1Digest = array [0 .. 19] of Byte; { 160 bits - SHA-1 }
+  TSHA1Digest = packed array [0 .. 19] of Byte; { 160 bits - SHA-1 }
   TSHA1Key    = TSHA1Digest;
 
   { message digest context types }
@@ -208,7 +207,7 @@ type
     Digest: array [0 .. 255] of Byte;
     KeyIndex: Integer;
     case Byte of
-      0: (KeyInts: array [0 .. 3] of Integer);
+      0: (KeyInts: array [0 .. 3] of DWord);
       1: (key: TKey128);
   end;
 
@@ -432,7 +431,7 @@ var
   SystemCBC: TBytes;
   {$IFDEF parallel}
   { system default parallel depth }
-  DefaultParallelDepth: Integer = 16;
+  DefaultParallelDepth: Integer = 4;
   {$ENDIF}
   { system default key and cipherStyle }
   DefaultKey        : TCipherKeyBuffer;
@@ -598,7 +597,7 @@ const
 
 type
   PDCPTFSubKeys = ^TDCPTFSubKeys;
-  TDCPTFSubKeys = array [0 .. DCPTF_ROUNDSUBKEYS + DCPTF_NUMROUNDS * 2 - 1] of DWord;
+  TDCPTFSubKeys = packed array [0 .. DCPTF_ROUNDSUBKEYS + DCPTF_NUMROUNDS * 2 - 1] of DWord;
 
   PDCPTFSBox = ^TDCPTFSBox;
   TDCPTFSBox = packed array [0 .. 3, 0 .. 512 - 1] of DWord;
@@ -626,10 +625,10 @@ const
 
 type
   PRC6Key = ^TRC6Key;
-  TRC6Key = array [0 .. ((cRC6_NumRounds * 2) + 3)] of DWord;
+  TRC6Key = packed array [0 .. ((cRC6_NumRounds * 2) + 3)] of DWord;
 
   PRC6Block = ^TRC6Block;
-  TRC6Block = array [0 .. 15] of Byte;
+  TRC6Block = packed array [0 .. 15] of Byte;
 
   TRC6 = class
   public
@@ -1091,9 +1090,9 @@ const
     $16, $25, $86, $56, $55, $09, $BE, $91));
 
 type
-  TBlock2048 = array [0 .. 255] of Byte;
+  TBlock2048 = packed array [0 .. 255] of Byte;
 
-  TBCHalfBlock = array [0 .. 1] of Integer;
+  TBCHalfBlock = packed array [0 .. 1] of Integer;
 
   TBFBlockEx = packed record
     Xl: array [0 .. 3] of Byte;
@@ -4491,8 +4490,8 @@ end;
 
 class procedure TLMD.UpdateLMD(var Context: TLMDContext; const Buf; BufSize: nativeInt);
 var
-  AA, BB: Integer;
-  CC, DD: Integer;
+  AA, BB: DWord;
+  CC, DD: DWord;
   i, R  : nativeInt;
 begin
   for i := 0 to BufSize - 1 do
@@ -4643,7 +4642,7 @@ end;
 
 class procedure TMISC.HashMix128(var Digest: DWord; const Buf; BufSize: nativeUInt);
 type
-  T128BitArray = array [0 .. MaxStructSize div SizeOf(T128Bit) - 1] of T128Bit;
+  T128BitArray = packed array [0 .. MaxStructSize div SizeOf(T128Bit) - 1] of T128Bit;
 var
   Temp : T128Bit;
   PTemp: PCCByteArray;
