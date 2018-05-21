@@ -36,9 +36,9 @@ type
   private
     ClientIOIntf: TContextIntfForClient;
 
-    FOnAsyncConnectNotifyCall  : TStateCall;
+    FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
-    FOnAsyncConnectNotifyProc  : TStateProc;
+    FOnAsyncConnectNotifyProc: TStateProc;
 
     procedure AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
   protected
@@ -68,11 +68,11 @@ type
 
   TGlobalCrossSocketClientPool = class
   private
-    Driver                   : TDriverEngine;
+    Driver: TDriverEngine;
     LastCompleted, LastResult: Boolean;
-    LastConnection           : ICrossConnection;
+    LastConnection: ICrossConnection;
   public
-    autoReconnect: Boolean;
+    AutoReconnect: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -115,9 +115,6 @@ end;
 constructor TCommunicationFramework_Client_CrossSocket.Create;
 begin
   inherited Create;
-  if ClientPool = nil then
-      ClientPool := TGlobalCrossSocketClientPool.Create;
-
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
@@ -201,7 +198,7 @@ begin
     end;
 
   try
-    if (IdleTimeout > 0) and (GetTimeTickCount - ClientIOIntf.LastActiveTime > IdleTimeout) then
+    if (Connected) and (IdleTimeout > 0) and (GetTimeTickCount - ClientIOIntf.LastActiveTime > IdleTimeout) then
         Disconnect;
   except
   end;
@@ -271,11 +268,12 @@ begin
   Driver.OnReceived := DoReceived;
   Driver.OnSent := DoSent;
 
-  autoReconnect := False;
+  AutoReconnect := False;
 end;
 
 destructor TGlobalCrossSocketClientPool.Destroy;
 begin
+  DisposeObject(Driver);
   inherited Destroy;
 end;
 
@@ -305,11 +303,19 @@ begin
               except
               end;
             end;
+
+          if cli.OwnerClient.ClientIOIntf <> nil then
+            begin
+              DisposeObject(cli.OwnerClient.ClientIOIntf);
+              cli.OwnerClient.ClientIOIntf := nil;
+            end;
         end;
     end);
 end;
 
 procedure TGlobalCrossSocketClientPool.DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
+var
+  cli: TContextIntfForClient;
 begin
   if ALen <= 0 then
       exit;
@@ -317,9 +323,7 @@ begin
       exit;
 
   TThread.Synchronize(TThread.CurrentThread,
-    procedure
-    var
-      cli: TContextIntfForClient;
+    procedure()
     begin
       try
         cli := AConnection.UserObject as TContextIntfForClient;
@@ -358,7 +362,7 @@ end;
 
 function TGlobalCrossSocketClientPool.BuildConnect(Addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
 var
-  dt : TTimeTickValue;
+  dt: TTimeTickValue;
   cli: TContextIntfForClient;
 begin
   LastResult := False;
@@ -401,7 +405,6 @@ begin
       cli.OwnerClient := BuildIntf;
 
       LastConnection.UserObject := cli;
-
       cli.OwnerClient.ClientIOIntf := cli;
       BuildIntf.DoConnected(cli);
     end;
@@ -420,7 +423,7 @@ begin
 
   Result := BuildIntf.RemoteInited;
 
-  if (not Result) and (autoReconnect) then
+  if (not Result) and (AutoReconnect) then
       Result := BuildConnect(Addr, Port, BuildIntf);
 end;
 
@@ -474,7 +477,7 @@ begin
         end
       else
         begin
-          if autoReconnect then
+          if AutoReconnect then
             begin
               BuildAsyncConnect(Addr, Port, BuildIntf);
               exit;
@@ -486,6 +489,11 @@ end;
 
 initialization
 
+ClientPool := TGlobalCrossSocketClientPool.Create;
+
 finalization
+
+DisposeObject(ClientPool);
+ClientPool := nil;
 
 end.

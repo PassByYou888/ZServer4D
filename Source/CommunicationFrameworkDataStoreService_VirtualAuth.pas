@@ -31,9 +31,9 @@ type
 
   TDataStoreService_PeerClientRecvTunnel_VirtualAuth = class(TPeerClientUserDefineForRecvTunnel_VirtualAuth)
   private
-    FPostPerformaceCounter : Integer;
+    FPostPerformaceCounter: Integer;
     FLastPostPerformaceTime: TTimeTickValue;
-    FPostCounterOfPerSec   : Double;
+    FPostCounterOfPerSec: Double;
   public
     constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
@@ -53,14 +53,22 @@ type
   end;
 
   TDataStoreService_VirtualAuth = class(TCommunicationFramework_DoubleTunnelService_VirtualAuth, IZDBLocalManagerNotify)
+  private type
+    POnStorePosTransformTrigger_VirtualAuth = ^TOnStorePosTransformTrigger_VirtualAuth;
+
+    TOnStorePosTransformTrigger_VirtualAuth = record
+      Client_SendTunnel_ID: Cardinal;
+      BackcallPtr: UInt64;
+    end;
   private
-    FZDBLocal                     : TZDBLocalManager;
-    FQueryCallPool                : THashObjectList;
+    FZDBLocal: TZDBLocalManager;
+    FQueryCallPool: THashObjectList;
     FPerQueryPipelineDelayFreeTime: Double;
   protected
     procedure CreateQuery(pipe: TZDBPipeline); virtual;
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64); virtual;
     procedure QueryDone(pipe: TZDBPipeline); virtual;
+    procedure StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
     procedure CreateDB(ActiveDB: TZDBStoreEngine); virtual;
     procedure CloseDB(ActiveDB: TZDBStoreEngine); virtual;
     procedure InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; id: Cardinal; CompletePos: Int64); virtual;
@@ -111,6 +119,7 @@ type
     procedure Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
     procedure Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
     procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedStorePosTransform(ASendCli: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     destructor Destroy; override;
@@ -140,6 +149,7 @@ type
     procedure Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
     destructor Destroy; override;
@@ -152,8 +162,22 @@ type
     procedure InitDB(inMem: Boolean; dbN: SystemString); virtual;
     procedure CloseDB(dbN: SystemString; CloseAndDeleted: Boolean); virtual;
 
-    procedure CopyDB(dbN, copyToN: SystemString); virtual;
-    procedure CompressDB(dbN: SystemString); virtual;
+    procedure CopyDB(dbN, copyToN: SystemString); overload;
+    procedure CopyDB(dbN, copyToN: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
+    procedure CopyDB_C(dbN, copyToN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
+    procedure CopyDB_M(dbN, copyToN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure CopyDB_P(dbN, copyToN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
+    {$ENDIF FPC}
+    //
+    procedure CompressDB(dbN: SystemString); overload;
+    procedure CompressDB(dbN: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
+    procedure CompressDB_C(dbN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
+    procedure CompressDB_M(dbN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
+    {$IFNDEF FPC}
+    procedure CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
+    {$ENDIF FPC}
+    //
     procedure ReplaceDB(dbN, ReplaceN: SystemString); virtual;
     procedure ResetData(dbN: SystemString); virtual;
 
@@ -404,14 +428,14 @@ end;
 
 procedure TDataStoreService_VirtualAuth.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
 var
-  pl        : TTDataStoreService_DBPipeline;
+  pl: TTDataStoreService_DBPipeline;
   destStream: TMemoryStream64;
 begin
   pl := TTDataStoreService_DBPipeline(pipe);
   if not pl.SyncToClient then
       exit;
 
-  if not SendTunnel.Exists(pl.SendTunnel.Owner) then
+  if not SendTunnel.Exists(pl.SendTunnel) then
       exit;
 
   destStream := TMemoryStream64.Create;
@@ -437,6 +461,19 @@ begin
       exit;
 
   Send_CompletedQuery(pl);
+end;
+
+procedure TDataStoreService_VirtualAuth.StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
+var
+  p: POnStorePosTransformTrigger_VirtualAuth;
+  de: TDataFrameEngine;
+begin
+  if Data = nil then
+      exit;
+  p := POnStorePosTransformTrigger_VirtualAuth(Data);
+  if (p^.BackcallPtr <> 0) and (FSendTunnel.Exists(p^.Client_SendTunnel_ID)) then
+      Send_CompletedStorePosTransform(SendTunnel.ClientFromID[p^.Client_SendTunnel_ID], p^.BackcallPtr, TransformBuff);
+  Dispose(p);
 end;
 
 procedure TDataStoreService_VirtualAuth.CreateDB(ActiveDB: TZDBStoreEngine);
@@ -479,7 +516,7 @@ end;
 
 procedure TDataStoreService_VirtualAuth.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
 var
-  i : Integer;
+  i: Integer;
   pl: TTDataStoreService_DBPipeline;
 begin
   for i := 0 to FZDBLocal.QueryPipelineList.Count - 1 do
@@ -493,9 +530,9 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt   : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   inMem: Boolean;
-  dbN  : SystemString;
+  dbN: SystemString;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -511,8 +548,8 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt             : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN            : SystemString;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: SystemString;
   CloseAndDeleted: Boolean;
 begin
   rt := GetDataStoreUserDefine(Sender);
@@ -530,8 +567,10 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt         : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   dbN, copy2N: SystemString;
+  BackcallPtr: UInt64;
+  p: POnStorePosTransformTrigger_VirtualAuth;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -539,25 +578,45 @@ begin
 
   dbN := InData.Reader.ReadString;
   copy2N := InData.Reader.ReadString;
-  FZDBLocal.CopyDB(dbN, copy2N);
+  BackcallPtr := InData.Reader.ReadPointer;
+
+  new(p);
+  p^.Client_SendTunnel_ID := rt.SendTunnelID;
+  p^.BackcallPtr := BackcallPtr;
+  {$IFDEF FPC}
+  FZDBLocal.CopyDB(dbN, copy2N, p, @StorePosTransform);
+  {$ELSE FPC}
+  FZDBLocal.CopyDB(dbN, copy2N, p, StorePosTransform);
+  {$ENDIF FPC}
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   dbN: SystemString;
+  BackcallPtr: UInt64;
+  p: POnStorePosTransformTrigger_VirtualAuth;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
       exit;
 
   dbN := InData.Reader.ReadString;
-  FZDBLocal.CompressDB(dbN);
+  BackcallPtr := InData.Reader.ReadPointer;
+
+  new(p);
+  p^.Client_SendTunnel_ID := rt.SendTunnelID;
+  p^.BackcallPtr := BackcallPtr;
+  {$IFDEF FPC}
+  FZDBLocal.CompressDB(dbN, p, @StorePosTransform);
+  {$ELSE FPC}
+  FZDBLocal.CompressDB(dbN, p, StorePosTransform);
+  {$ENDIF FPC}
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt           : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   dbN, ReplaceN: SystemString;
 begin
   rt := GetDataStoreUserDefine(Sender);
@@ -571,7 +630,7 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   dbN: SystemString;
 begin
   rt := GetDataStoreUserDefine(Sender);
@@ -584,17 +643,17 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt                                                      : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  RegedQueryName                                          : SystemString;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  RegedQueryName: SystemString;
   SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean;
-  dbN, outDBN                                             : SystemString;
-  fragmentReponseTime, MaxWait                            : Double;
-  MaxQueryResult                                          : Int64;
+  dbN, outDBN: SystemString;
+  fragmentReponseTime, MaxWait: Double;
+  MaxQueryResult: Int64;
 
   AutoDestoryOutputDB: Boolean;
-  DelayDestoryTime   : Double;
-  pl                 : TTDataStoreService_DBPipeline;
-  qc                 : TTDataStoreService_QueryCall;
+  DelayDestoryTime: Double;
+  pl: TTDataStoreService_DBPipeline;
+  qc: TTDataStoreService_QueryCall;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -651,10 +710,10 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_DownloadDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt          : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   ReverseQuery: Boolean;
-  dbN         : SystemString;
-  pl          : TTDataStoreService_DBPipeline;
+  dbN: SystemString;
+  pl: TTDataStoreService_DBPipeline;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -683,11 +742,11 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_DownloadDBWithID(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt            : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  ReverseQuery  : Boolean;
-  dbN           : SystemString;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  ReverseQuery: Boolean;
+  dbN: SystemString;
   downloadWithID: Cardinal;
-  pl            : TTDataStoreService_DBPipeline;
+  pl: TTDataStoreService_DBPipeline;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -720,11 +779,11 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt         : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN        : SystemString;
-  StorePos   : Int64;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: SystemString;
+  StorePos: Int64;
   BackcallPtr: UInt64;
-  m, cm      : TMemoryStream64;
+  m, cm: TMemoryStream64;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -738,13 +797,13 @@ begin
   if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, m) then
     begin
       Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
-      DisposeObject(m);
+      disposeObject(m);
       exit;
     end;
   cm := TMemoryStream64.Create;
   m.Position := 0;
   CompressStream(m, cm);
-  DisposeObject(m);
+  disposeObject(m);
 
   SequEncrypt(cm.Memory, cm.Size, True, True);
 
@@ -756,11 +815,11 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt         : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN        : SystemString;
-  StorePos   : Int64;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: SystemString;
+  StorePos: Int64;
   BackcallPtr: UInt64;
-  m          : TMemoryStream64;
+  m: TMemoryStream64;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -774,7 +833,7 @@ begin
   if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, m) then
     begin
       Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
-      DisposeObject(m);
+      disposeObject(m);
       exit;
     end;
 
@@ -786,13 +845,13 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  rt       : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN      : TPascalString;
-  itmID    : Cardinal;
-  StorePos : Int64;
-  output   : Pointer;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: TPascalString;
+  itmID: Cardinal;
+  StorePos: Int64;
+  output: Pointer;
   outputSiz: NativeUInt;
-  m64      : TMemoryStream64;
+  m64: TMemoryStream64;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -803,18 +862,18 @@ begin
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.PostData(dbN, m64, itmID);
-  DisposeObject(m64);
+  disposeObject(m64);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  rt       : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN      : TPascalString;
-  itmID    : Cardinal;
-  StorePos : Int64;
-  output   : Pointer;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: TPascalString;
+  itmID: Cardinal;
+  StorePos: Int64;
+  output: Pointer;
   outputSiz: NativeUInt;
-  m64      : TMemoryStream64;
+  m64: TMemoryStream64;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -825,18 +884,18 @@ begin
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.InsertData(dbN, StorePos, m64, itmID);
-  DisposeObject(m64);
+  disposeObject(m64);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  rt       : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN      : TPascalString;
-  itmID    : Cardinal;
-  StorePos : Int64;
-  output   : Pointer;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: TPascalString;
+  itmID: Cardinal;
+  StorePos: Int64;
+  output: Pointer;
   outputSiz: NativeUInt;
-  m64      : TMemoryStream64;
+  m64: TMemoryStream64;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -847,15 +906,15 @@ begin
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.SetData(dbN, StorePos, m64);
-  DisposeObject(m64);
+  disposeObject(m64);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   dbN: SystemString;
   dID: Cardinal;
-  p  : PBigStreamBatchPostData;
+  p: PBigStreamBatchPostData;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -875,11 +934,11 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt       : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN      : SystemString;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: SystemString;
   dStorePos: Int64;
-  dID      : Cardinal;
-  p        : PBigStreamBatchPostData;
+  dID: Cardinal;
+  p: PBigStreamBatchPostData;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -900,10 +959,10 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt       : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN      : SystemString;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: SystemString;
   dStorePos: Int64;
-  p        : PBigStreamBatchPostData;
+  p: PBigStreamBatchPostData;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -930,8 +989,8 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt       : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN      : SystemString;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dbN: SystemString;
   dStorePos: Int64;
 begin
   rt := GetDataStoreUserDefine(Sender);
@@ -946,10 +1005,10 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  rt : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   lst: TCoreClassListForObj;
-  i  : Integer;
-  db : TZDBStoreEngine;
+  i: Integer;
+  db: TZDBStoreEngine;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -962,13 +1021,13 @@ begin
       db := TZDBStoreEngine(lst[i]);
       OutData.WriteString(db.name);
     end;
-  DisposeObject(lst);
+  disposeObject(lst);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  i : Integer;
+  i: Integer;
   pl: TTDataStoreService_DBPipeline;
 begin
   rt := GetDataStoreUserDefine(Sender);
@@ -985,10 +1044,10 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  rt   : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   pipeN: SystemString;
-  pl   : TTDataStoreService_DBPipeline;
-  ps   : TPipeState;
+  pl: TTDataStoreService_DBPipeline;
+  ps: TPipeState;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -1028,13 +1087,14 @@ begin
   ps.PipelineName := (pl.PipelineName);
   ps.RegistedQuery := (pl.RegistedQuery);
   ps.Encode(OutData);
+  ps.Init;
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt   : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   pipeN: SystemString;
-  pl   : TTDataStoreService_DBPipeline;
+  pl: TTDataStoreService_DBPipeline;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -1051,9 +1111,9 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt   : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   pipeN: SystemString;
-  pl   : TTDataStoreService_DBPipeline;
+  pl: TTDataStoreService_DBPipeline;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -1070,9 +1130,9 @@ end;
 
 procedure TDataStoreService_VirtualAuth.Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt   : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   pipeN: SystemString;
-  pl   : TTDataStoreService_DBPipeline;
+  pl: TTDataStoreService_DBPipeline;
 begin
   rt := GetDataStoreUserDefine(Sender);
   if not rt.LinkOk then
@@ -1097,7 +1157,7 @@ begin
   de.WriteString(pipe.PipelineName);
   de.WritePointer(pipe.BackcallPtr);
   pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedFragmentBigStream', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreService_VirtualAuth.Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
@@ -1111,7 +1171,7 @@ begin
   de.WritePointer(pipe.BackcallPtr);
   de.WriteInt64(pipe.QueryResultCounter);
   pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedQuery', de);
-  DisposeObject(de);
+  disposeObject(de);
   ClearBatchStream(pipe.SendTunnel.Owner);
 end;
 
@@ -1124,7 +1184,7 @@ begin
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
   ASendCli.SendDirectStreamCmd('CompletedDownloadAssemble', de);
-  DisposeObject(de);
+  disposeObject(de);
   ClearBatchStream(ASendCli);
 end;
 
@@ -1137,8 +1197,29 @@ begin
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
   ASendCli.SendDirectStreamCmd('CompletedFastDownloadAssemble', de);
-  DisposeObject(de);
+  disposeObject(de);
   ClearBatchStream(ASendCli);
+end;
+
+procedure TDataStoreService_VirtualAuth.Send_CompletedStorePosTransform(ASendCli: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
+var
+  de: TDataFrameEngine;
+  i: Integer;
+  arr: TDataFrameArrayInt64;
+begin
+  de := TDataFrameEngine.Create;
+  de.WritePointer(BackcallPtr);
+
+  arr := de.WriteArrayInt64;
+  for i := 0 to length(TransformBuff^) - 1 do
+      arr.Add(TransformBuff^[i].OriginPos);
+
+  arr := de.WriteArrayInt64;
+  for i := 0 to length(TransformBuff^) - 1 do
+      arr.Add(TransformBuff^[i].NewPos);
+
+  ASendCli.SendDirectStreamCmd('CompletedStorePosTransform', de);
+  disposeObject(de);
 end;
 
 constructor TDataStoreService_VirtualAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
@@ -1158,7 +1239,7 @@ end;
 
 destructor TDataStoreService_VirtualAuth.Destroy;
 begin
-  DisposeObject([FZDBLocal, FQueryCallPool]);
+  disposeObject([FZDBLocal, FQueryCallPool]);
   inherited Destroy;
 end;
 
@@ -1301,8 +1382,8 @@ end;
 function TDataStoreService_VirtualAuth.PostCounterOfPerSec: Double;
 var
   IDPool: TClientIDPool;
-  pcid  : Cardinal;
-  rt    : TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  pcid: Cardinal;
+  rt: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
 begin
   Result := 0;
   FRecvTunnel.GetClientIDPool(IDPool);
@@ -1316,8 +1397,8 @@ end;
 procedure TDataStoreClient_VirtualAuth.Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN, outN, pipeN: SystemString;
-  BackcallPtr     : PDataStoreClientQueryNotify;
-  m               : TMemoryStream64;
+  BackcallPtr: PDataStoreClientQueryNotify;
+  m: TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
   outN := InData.Reader.ReadString;
@@ -1378,13 +1459,13 @@ begin
       end;
     end;
 
-  DisposeObject(m);
+  disposeObject(m);
 end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN, outN, pipeN: SystemString;
-  BackcallPtr     : PDataStoreClientQueryNotify;
+  BackcallPtr: PDataStoreClientQueryNotify;
   TotalResultCount: Int64;
 begin
   dbN := InData.Reader.ReadString;
@@ -1422,10 +1503,10 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  dbN        : SystemString;
-  dStorePos  : Int64;
+  dbN: SystemString;
+  dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  m, cm      : TMemoryStream64;
+  m, cm: TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
@@ -1482,7 +1563,7 @@ begin
                 cm.Position := 0;
               end;
             {$ENDIF}
-            DisposeObject(cm);
+            disposeObject(cm);
           except
           end;
         end;
@@ -1492,10 +1573,10 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  dbN        : SystemString;
-  dStorePos  : Int64;
+  dbN: SystemString;
+  dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  m          : TMemoryStream64;
+  m: TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
@@ -1555,6 +1636,40 @@ begin
     end;
 end;
 
+procedure TDataStoreClient_VirtualAuth.Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine);
+var
+  BackcallPtr: PStorePosTransformNotify;
+  arr: TDataFrameArrayInt64;
+  i: Integer;
+  TransformBuff: TZDBStorePosTransformArray;
+begin
+  BackcallPtr := PStorePosTransformNotify(InData.Reader.ReadPointer);
+
+  arr := InData.Reader.ReadArrayInt64;
+  SetLength(TransformBuff, arr.Count);
+  for i := 0 to arr.Count - 1 do
+      TransformBuff[i].OriginPos := arr[i];
+
+  arr := InData.Reader.ReadArrayInt64;
+  for i := 0 to arr.Count - 1 do
+      TransformBuff[i].NewPos := arr[i];
+
+  if BackcallPtr <> nil then
+    begin
+      if Assigned(BackcallPtr^.OnDoneCall) then
+          BackcallPtr^.OnDoneCall(@TransformBuff);
+      if Assigned(BackcallPtr^.OnDoneMethod) then
+          BackcallPtr^.OnDoneMethod(@TransformBuff);
+      {$IFNDEF FPC}
+      if Assigned(BackcallPtr^.OnDoneProc) then
+          BackcallPtr^.OnDoneProc(@TransformBuff);
+      {$ENDIF FPC}
+    end;
+
+  SetLength(TransformBuff, 0);
+  Dispose(BackcallPtr);
+end;
+
 constructor TDataStoreClient_VirtualAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
 begin
   inherited Create(ARecvTunnel, ASendTunnel);
@@ -1573,11 +1688,13 @@ begin
   FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := @Command_CompletedQuery;
   FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := @Command_CompletedDownloadAssemble;
   FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := @Command_CompletedFastDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream('CompletedStorePosTransform').OnExecute := @Command_CompletedStorePosTransform;
   {$ELSE}
   FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := Command_CompletedFragmentBigStream;
   FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := Command_CompletedQuery;
   FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := Command_CompletedDownloadAssemble;
   FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := Command_CompletedFastDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream('CompletedStorePosTransform').OnExecute := Command_CompletedStorePosTransform;
   {$ENDIF}
 end;
 
@@ -1587,6 +1704,8 @@ begin
   FRecvTunnel.DeleteRegistedCMD('CompletedFragmentBigStream');
   FRecvTunnel.DeleteRegistedCMD('CompletedQuery');
   FRecvTunnel.DeleteRegistedCMD('CompletedDownloadAssemble');
+  FRecvTunnel.DeleteRegistedCMD('CompletedFastDownloadAssemble');
+  FRecvTunnel.DeleteRegistedCMD('CompletedStorePosTransform');
 end;
 
 procedure TDataStoreClient_VirtualAuth.Progress;
@@ -1604,7 +1723,7 @@ begin
   de.WriteString(dbN);
 
   SendTunnel.SendDirectStreamCmd('InitDB', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.CloseDB(dbN: SystemString; CloseAndDeleted: Boolean);
@@ -1615,29 +1734,111 @@ begin
   de.WriteString(dbN);
   de.WriteBool(CloseAndDeleted);
   SendTunnel.SendDirectStreamCmd('CloseDB', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.CopyDB(dbN, copyToN: SystemString);
+begin
+  CopyDB(dbN, copyToN, nil);
+end;
+
+procedure TDataStoreClient_VirtualAuth.CopyDB(dbN, copyToN: SystemString; const BackcallPtr: PStorePosTransformNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteString(copyToN);
+  de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd('CopyDB', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
+procedure TDataStoreClient_VirtualAuth.CopyDB_C(dbN, copyToN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
+var
+  p: PStorePosTransformNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneCall := OnDoneCall;
+  CopyDB(dbN, copyToN, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.CopyDB_M(dbN, copyToN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod);
+var
+  p: PStorePosTransformNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneMethod := OnDoneMethod;
+  CopyDB(dbN, copyToN, p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TDataStoreClient_VirtualAuth.CopyDB_P(dbN, copyToN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc);
+var
+  p: PStorePosTransformNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneProc := OnDoneProc;
+  CopyDB(dbN, copyToN, p);
+end;
+{$ENDIF FPC}
+
+
 procedure TDataStoreClient_VirtualAuth.CompressDB(dbN: SystemString);
+begin
+  CompressDB(dbN, nil);
+end;
+
+procedure TDataStoreClient_VirtualAuth.CompressDB(dbN: SystemString; const BackcallPtr: PStorePosTransformNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
+  de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd('CompressDB', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
+
+procedure TDataStoreClient_VirtualAuth.CompressDB_C(dbN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
+var
+  p: PStorePosTransformNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneCall := OnDoneCall;
+  CompressDB(dbN, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.CompressDB_M(dbN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod);
+var
+  p: PStorePosTransformNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneMethod := OnDoneMethod;
+  CompressDB(dbN, p);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TDataStoreClient_VirtualAuth.CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc);
+var
+  p: PStorePosTransformNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneProc := OnDoneProc;
+  CompressDB(dbN, p);
+end;
+{$ENDIF FPC}
+
 
 procedure TDataStoreClient_VirtualAuth.ReplaceDB(dbN, ReplaceN: SystemString);
 var
@@ -1647,7 +1848,7 @@ begin
   de.WriteString(dbN);
   de.WriteString(ReplaceN);
   SendTunnel.SendDirectStreamCmd('ReplaceDB', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.ResetData(dbN: SystemString);
@@ -1657,7 +1858,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   SendTunnel.SendDirectStreamCmd('ResetData', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.QuietQueryDB(RegistedQueryName: SystemString; ReverseQuery: Boolean; dbN, outDBN: SystemString; MaxWait: Double; MaxQueryResult: Int64);
@@ -1680,7 +1881,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('QueryDB', de);
 
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
@@ -1706,7 +1907,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('QueryDB', de);
 
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
@@ -1858,7 +2059,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('DownloadDB', de);
 
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.DownloadDB(ReverseQuery: Boolean; dbN: SystemString; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
@@ -1912,7 +2113,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('DownloadDBWithID', de);
 
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
@@ -1970,7 +2171,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('RequestDownloadAssembleStream', de);
 
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.DownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
@@ -2076,7 +2277,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('RequestFastDownloadAssembleStream', de);
 
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
@@ -2181,7 +2382,7 @@ begin
   de.WriteString(dbN);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd('CompletedPostAssembleStream', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.PostAssembleStreamCopy(dbN: SystemString; Stream: TCoreClassStream; dID: Cardinal);
@@ -2257,7 +2458,7 @@ begin
   de.WriteInt64(dStorePos);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd('CompletedInsertAssembleStream', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
@@ -2333,7 +2534,7 @@ begin
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd('CompletedModifyAssembleStream', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream);
@@ -2425,19 +2626,19 @@ begin
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd('DeleteData', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
-  p  : Pointer;
+  p: Pointer;
   siz: NativeUInt;
 begin
   p := EncodeOneBuff(dbN, dID, 0, Stream.Memory, Stream.Size, siz);
   SendTunnel.SendCompleteBuffer('FastPostCompleteBuffer', p, siz, True);
 
   if DoneTimeFree then
-      DisposeObject(Stream);
+      disposeObject(Stream);
 end;
 
 procedure TDataStoreClient_VirtualAuth.FastPostCompleteBufferCopy(dbN: SystemString; Stream: TCoreClassStream; dID: Cardinal);
@@ -2503,14 +2704,14 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
-  p  : Pointer;
+  p: Pointer;
   siz: NativeUInt;
 begin
   p := EncodeOneBuff(dbN, dID, dStorePos, Stream.Memory, Stream.Size, siz);
   SendTunnel.SendCompleteBuffer('FastInsertCompleteBuffer', p, siz, True);
 
   if DoneTimeFree then
-      DisposeObject(Stream);
+      disposeObject(Stream);
 end;
 
 procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
@@ -2573,14 +2774,14 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
-  p  : Pointer;
+  p: Pointer;
   siz: NativeUInt;
 begin
   p := EncodeOneBuff(dbN, dID, dStorePos, Stream.Memory, Stream.Size, siz);
   SendTunnel.SendCompleteBuffer('FastModifyCompleteBuffer', p, siz, True);
 
   if DoneTimeFree then
-      DisposeObject(Stream);
+      disposeObject(Stream);
 end;
 
 procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
@@ -2647,7 +2848,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetDBList', de, OnResult);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.GetQueryList(OnResult: TStreamMethod);
@@ -2656,7 +2857,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetQueryList', de, OnResult);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.GetQueryState(pipeN: SystemString; OnResult: TStreamMethod);
@@ -2666,7 +2867,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendStreamCmd('GetQueryState', de, OnResult);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.QueryStop(pipeN: SystemString);
@@ -2676,7 +2877,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendDirectStreamCmd('QueryStop', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.QueryPause(pipeN: SystemString);
@@ -2686,7 +2887,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendDirectStreamCmd('QueryPause', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.QueryPlay(pipeN: SystemString);
@@ -2696,7 +2897,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendDirectStreamCmd('QueryPlay', de);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 {$IFNDEF FPC}
@@ -2708,7 +2909,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetDBList', de, OnResult);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.GetQueryList(OnResult: TStreamProc);
@@ -2717,7 +2918,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetQueryList', de, OnResult);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.GetQueryState(pipeN: SystemString; OnResult: TStreamProc);
@@ -2727,7 +2928,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendStreamCmd('GetQueryState', de, OnResult);
-  DisposeObject(de);
+  disposeObject(de);
 end;
 {$ENDIF}
 

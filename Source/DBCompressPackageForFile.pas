@@ -22,9 +22,9 @@ uses SysUtils,
   ObjectData, ObjectDataManager, UnicodeMixedLib, CoreClasses, ItemStream,
   DoStatusIO, ListEngine, TextDataEngine, PascalStrings;
 
-procedure BeginImportStreamToDB(dbEng: TObjectDataManager; md5List: THashVariantList);
-procedure ImportStreamToDB(md5List: THashVariantList; stream: TCoreClassStream; fileName: SystemString; dbEng: TObjectDataManager);
-procedure EndImportStreamToDB(dbEng: TObjectDataManager; md5List: THashVariantList);
+procedure BeginImportStreamToDB(dbEng: TObjectDataManager; md5List: THashStringList);
+procedure ImportStreamToDB(md5List: THashStringList; stream: TCoreClassStream; fileName: SystemString; dbEng: TObjectDataManager);
+procedure EndImportStreamToDB(dbEng: TObjectDataManager; md5List: THashStringList);
 
 procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataManager);
 procedure BatchImportPathToDBFile(InitDir, Filter, dbFile: SystemString);
@@ -46,8 +46,8 @@ function VerifyFileInDBStream(DBStream: TCoreClassStream): Integer;
 function VerifyFileInDBFile(dbFile: SystemString): Integer;
 
 var
-  DBPackageMD5VerifyFileName: SystemString  = '______md5info.txt';
-  DBPackageFileCompressed   : Boolean = True;
+  DBPackageMD5VerifyFileName: SystemString = '______md5info.txt';
+  DBPackageFileCompressed: Boolean         = True;
 
 implementation
 
@@ -56,7 +56,7 @@ uses MemoryStream64;
 procedure PackStream(sour, GenPack: TCoreClassStream);
 begin
   if DBPackageFileCompressed then
-      CompressStream(sour, GenPack)
+      MaxCompressStream(sour, GenPack)
   else
       GenPack.CopyFrom(sour, sour.Size);
 end;
@@ -69,17 +69,17 @@ begin
       UnPackTo.CopyFrom(sour, sour.Size);
 end;
 
-procedure BeginImportStreamToDB(dbEng: TObjectDataManager; md5List: THashVariantList);
+procedure BeginImportStreamToDB(dbEng: TObjectDataManager; md5List: THashStringList);
 var
-  hashTextStream: THashVariantTextStream;
-  srHnd         : TItemSearch;
-  itmHnd        : TItemHandle;
-  itmStream     : TItemStream;
+  hashTextStream: THashStringTextStream;
+  srHnd: TItemSearch;
+  itmHnd: TItemHandle;
+  itmStream: TItemStream;
 begin
   md5List.Clear;
   if dbEng.ItemFastFindLast(dbEng.RootField, DBPackageMD5VerifyFileName, srHnd) then
     begin
-      hashTextStream := THashVariantTextStream.Create(md5List);
+      hashTextStream := THashStringTextStream.Create(md5List);
       if dbEng.ItemFastOpen(srHnd.HeaderPOS, itmHnd) then
         begin
           itmStream := TItemStream.Create(dbEng, itmHnd);
@@ -91,13 +91,13 @@ begin
     end;
 end;
 
-procedure ImportStreamToDB(md5List: THashVariantList; stream: TCoreClassStream; fileName: SystemString; dbEng: TObjectDataManager);
+procedure ImportStreamToDB(md5List: THashStringList; stream: TCoreClassStream; fileName: SystemString; dbEng: TObjectDataManager);
 var
-  FieldPos : Int64;
-  srHnd    : TItemSearch;
-  itmHnd   : TItemHandle;
+  FieldPos: Int64;
+  srHnd: TItemSearch;
+  itmHnd: TItemHandle;
   itmStream: TItemStream;
-  md5      : SystemString;
+  md5: SystemString;
 begin
   FieldPos := dbEng.RootField;
 
@@ -132,13 +132,13 @@ begin
     end;
 end;
 
-procedure EndImportStreamToDB(dbEng: TObjectDataManager; md5List: THashVariantList);
+procedure EndImportStreamToDB(dbEng: TObjectDataManager; md5List: THashStringList);
 var
-  hashTextStream: THashVariantTextStream;
-  itmHnd        : TItemHandle;
-  itmStream     : TItemStream;
+  hashTextStream: THashStringTextStream;
+  itmHnd: TItemHandle;
+  itmStream: TItemStream;
 begin
-  hashTextStream := THashVariantTextStream.Create(md5List);
+  hashTextStream := THashStringTextStream.Create(md5List);
   if dbEng.ItemFastCreate(dbEng.RootField, DBPackageMD5VerifyFileName, '', itmHnd) then
     begin
       try
@@ -158,22 +158,22 @@ procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataM
 
   procedure AddPath(aPath: SystemString; aFieldPos: Int64);
   var
-    fAry          : umlStringDynArray;
-    n, suffixn    : SystemString;
-    fs            : TCoreClassFileStream;
-    itmHnd        : TItemHandle;
-    itmStream     : TItemStream;
-    fPos          : Int64;
-    md5           : SystemString;
-    md5List       : THashVariantList;
-    hashTextStream: THashVariantTextStream;
-    srHnd         : TItemSearch;
+    fAry: umlStringDynArray;
+    n, suffixn: SystemString;
+    fs: TCoreClassFileStream;
+    itmHnd: TItemHandle;
+    itmStream: TItemStream;
+    fPos: Int64;
+    md5: SystemString;
+    md5List: THashStringList;
+    hashTextStream: THashStringTextStream;
+    srHnd: TItemSearch;
   begin
-    md5List := THashVariantList.Create;
+    md5List := THashStringList.Create;
 
     if dbEng.ItemFastFindLast(aFieldPos, DBPackageMD5VerifyFileName, srHnd) then
       begin
-        hashTextStream := THashVariantTextStream.Create(md5List);
+        hashTextStream := THashStringTextStream.Create(md5List);
         if dbEng.ItemFastOpen(srHnd.HeaderPOS, itmHnd) then
           begin
             itmStream := TItemStream.Create(dbEng, itmHnd);
@@ -223,7 +223,7 @@ procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataM
           end;
       end;
 
-    hashTextStream := THashVariantTextStream.Create(md5List);
+    hashTextStream := THashStringTextStream.Create(md5List);
 
     if dbEng.ItemFastCreate(aFieldPos, DBPackageMD5VerifyFileName, '', itmHnd) then
       begin
@@ -278,8 +278,8 @@ end;
 
 function ExtractFileInDB(dbEng: TObjectDataManager; FieldPos: Int64; fileName: SystemString; ExtractToStream: TCoreClassStream): Boolean;
 var
-  itmSrHnd : TItemSearch;
-  itmHnd   : TItemHandle;
+  itmSrHnd: TItemSearch;
+  itmHnd: TItemHandle;
   itmStream: TItemStream;
 begin
   Result := False;
@@ -294,7 +294,7 @@ begin
           else
               UnPackStream(itmStream, ExtractToStream);
 
-          DoStatus('extract %s %s ok!', [fileName, umlSizeToStr(ExtractToStream.Size).Text]);
+          DoStatus('extract %s %s done!', [fileName, umlSizeToStr(ExtractToStream.Size).Text]);
 
           DisposeObject(itmStream);
           Result := True;
@@ -363,12 +363,12 @@ end;
 procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: SystemString; OutputFileList: TCoreClassStrings);
   procedure ExportTo(AField: Int64; ToDir: SystemString);
   var
-    itmSrHnd  : TItemSearch;
+    itmSrHnd: TItemSearch;
     FieldSrHnd: TFieldSearch;
-    fn        : SystemString;
-    fs        : TCoreClassFileStream;
+    fn: SystemString;
+    fs: TCoreClassFileStream;
 
-    itmHnd   : TItemHandle;
+    itmHnd: TItemHandle;
     itmStream: TItemStream;
   begin
     umlCreateDirectory(ToDir);
@@ -433,19 +433,19 @@ var
 
   procedure VerifyField(AField: Int64);
   var
-    itmSrHnd  : TItemSearch;
+    itmSrHnd: TItemSearch;
     FieldSrHnd: TFieldSearch;
-    itmHnd    : TItemHandle;
-    itmStream : TItemStream;
-    ms        : TMemoryStream64;
+    itmHnd: TItemHandle;
+    itmStream: TItemStream;
+    ms: TMemoryStream64;
 
-    md5           : SystemString;
-    md5List       : THashVariantList;
-    hashTextStream: THashVariantTextStream;
+    md5: SystemString;
+    md5List: THashStringList;
+    hashTextStream: THashStringTextStream;
   begin
-    md5List := THashVariantList.Create;
+    md5List := THashStringList.Create;
 
-    hashTextStream := THashVariantTextStream.Create(md5List);
+    hashTextStream := THashStringTextStream.Create(md5List);
     if dbEng.ItemFastFindLast(AField, DBPackageMD5VerifyFileName, itmSrHnd) then
       begin
         if dbEng.ItemFastOpen(itmSrHnd.HeaderPOS, itmHnd) then

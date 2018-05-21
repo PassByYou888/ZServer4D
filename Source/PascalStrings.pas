@@ -522,12 +522,12 @@ function SmithWatermanCompare(const seq1, seq2: PPascalString; var diff1, diff2:
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  identity                                              : NativeInt;
-  align1, align2                                        : TPascalString;
+  identity: NativeInt;
+  align1, align2: TPascalString;
 begin
   l1 := seq1^.Len;
   l2 := seq2^.Len;
@@ -689,11 +689,11 @@ function SmithWatermanCompare(const seq1, seq2: PPascalString; out Same, Diff: I
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  identity, l                                           : NativeInt;
+  identity, l: NativeInt;
 begin
   l1 := seq1^.Len;
   l2 := seq2^.Len;
@@ -834,11 +834,11 @@ function SmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: Po
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  identity, l                                           : NativeInt;
+  identity, l: NativeInt;
 begin
   l1 := siz1;
   l2 := siz2;
@@ -959,8 +959,8 @@ type
   procedure _FillText(psPtr: PPascalString; outLst: TCoreClassList);
   var
     l, i: Integer;
-    n   : TPascalString;
-    p   : PSRec;
+    n: TPascalString;
+    p: PSRec;
   begin
     l := psPtr^.Len;
     i := 1;
@@ -1033,11 +1033,11 @@ var
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  cSame, cDiff, TotalSame, TotalDiff                    : Integer;
+  cSame, cDiff, TotalSame, TotalDiff: Integer;
 begin
   _Init;
   l1 := lst1.count;
@@ -1291,8 +1291,8 @@ end;
 
 function TPascalString.GetChars(index: Integer): SystemChar;
 begin
-  if index > Length(Buff) then
-      Result := Buff[Length(Buff) - 1]
+  if (index > Length(Buff)) or (index <= 0) then
+      Result := #0
   else
       Result := Buff[index - 1];
 end;
@@ -1470,7 +1470,7 @@ end;
 
 function TPascalString.Same(const p: PPascalString): Boolean;
 var
-  i   : Integer;
+  i: Integer;
   s, d: SystemChar;
 begin
   Result := (p^.Len = Len);
@@ -1491,7 +1491,7 @@ end;
 
 function TPascalString.Same(const t: TPascalString): Boolean;
 var
-  i   : Integer;
+  i: Integer;
   s, d: SystemChar;
 begin
   Result := (t.Len = Len);
@@ -1512,7 +1512,7 @@ end;
 
 function TPascalString.Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean;
 var
-  i   : Integer;
+  i: Integer;
   s, d: SystemChar;
 begin
   Result := (t.Len = Len);
@@ -1538,7 +1538,7 @@ end;
 
 function TPascalString.ComparePos(const Offset: Integer; const p: PPascalString): Boolean;
 var
-  i, l              : Integer;
+  i, l: Integer;
   sourChar, destChar: SystemChar;
 begin
   Result := False;
@@ -1565,7 +1565,7 @@ end;
 
 function TPascalString.ComparePos(const Offset: Integer; const t: TPascalString): Boolean;
 var
-  i, l              : Integer;
+  i, l: Integer;
   sourChar, destChar: SystemChar;
 begin
   Result := False;
@@ -1871,3 +1871,4 @@ initialization
 finalization
 
 end.
+

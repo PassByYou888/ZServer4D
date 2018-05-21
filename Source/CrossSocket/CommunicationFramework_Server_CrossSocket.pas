@@ -26,11 +26,12 @@ uses SysUtils, Classes,
 type
   TContextIntfForServer = class(TPeerIO)
   public
+    LastPeerIP: SystemString;
     LastActiveTime: TTimeTickValue;
-    Sending       : Boolean;
-    SendBuffQueue : TCoreClassListForObj;
-    CurrentBuff   : TMemoryStream64;
-    DelayBuffPool : TCoreClassListForObj;
+    Sending: Boolean;
+    SendBuffQueue: TCoreClassListForObj;
+    CurrentBuff: TMemoryStream64;
+    DelayBuffPool: TCoreClassListForObj;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -50,25 +51,15 @@ type
     procedure Progress; override;
   end;
 
-  TDriverEngine = class(TCrossSocket)
-  protected type
-    // 因为crossSocket在底层对外部支持的接口有点少，大改接口比较麻烦，暂时搁置一下，过段时间空了再来做
-    PCrossSocketIntfStruct = ^TCrossSocketIntfStruct;
-
-    TCrossSocketIntfStruct = packed record
-      IO: TContextIntfForServer;
-    end;
-  protected
-    function CreateListen(AOwner: ICrossSocket; AListenSocket: THandle;
-      AFamily, ASockType, AProtocol: Integer): ICrossListen; override;
-  end;
+  // 因为crossSocket在底层对外部支持的接口有点少，大改接口比较麻烦，暂时搁置一下，过段时间空了再来做
+  TDriverEngine = TCrossSocket;
 
   TCommunicationFramework_Server_CrossSocket = class(TCommunicationFrameworkServer)
   private
-    FDriver        : TDriverEngine;
+    FDriver: TDriverEngine;
     FStartedService: Boolean;
-    FBindHost      : SystemString;
-    FBindPort      : Word;
+    FBindHost: SystemString;
+    FBindPort: Word;
   protected
     procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
@@ -99,6 +90,7 @@ implementation
 procedure TContextIntfForServer.CreateAfter;
 begin
   inherited CreateAfter;
+  LastPeerIP := '';
   LastActiveTime := GetTimeTickCount;
   Sending := False;
   SendBuffQueue := TCoreClassListForObj.Create;
@@ -147,7 +139,7 @@ begin
   if ClientIntf <> nil then
     begin
       try
-          Context.Disconnect;
+        Context.Disconnect;
       except
       end;
     end;
@@ -282,9 +274,12 @@ end;
 function TContextIntfForServer.GetPeerIP: SystemString;
 begin
   if Connected then
-      Result := Context.PeerAddr
+    begin
+      Result := Context.PeerAddr;
+      LastPeerIP := Result;
+    end
   else
-      Result := '';
+      Result := LastPeerIP;
 end;
 
 function TContextIntfForServer.WriteBufferEmpty: Boolean;
@@ -325,11 +320,6 @@ begin
       // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
       DelayBuffPool.Add(m);
     end;
-end;
-
-function TDriverEngine.CreateListen(AOwner: ICrossSocket; AListenSocket: THandle; AFamily, ASockType, AProtocol: Integer): ICrossListen;
-begin
-  Result := inherited CreateListen(AOwner, AListenSocket, AFamily, ASockType, AProtocol);
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);

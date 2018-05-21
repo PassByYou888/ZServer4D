@@ -33,13 +33,13 @@ type
 
   TObjectDataManager = class(TCoreClassObject)
   private
-    FStreamEngine                                                  : TCoreClassStream;
-    FObjectDataHandle                                              : TTMDB;
+    FStreamEngine: TCoreClassStream;
+    FObjectDataHandle: TTMDB;
     FNeedCreateNew, FOverWriteItem, FAllowSameHeaderName, FOnlyRead: Boolean;
-    FObjectName                                                    : SystemString;
-    FDefaultItemID                                                 : Byte;
-    FIsOpened                                                      : Boolean;
-    FData                                                          : Pointer;
+    FObjectName: SystemString;
+    FDefaultItemID: Byte;
+    FIsOpened: Boolean;
+    FData: Pointer;
 
     function GetAutoFreeHandle: Boolean;
     procedure SetAutoFreeHandle(const Value: Boolean);
@@ -236,8 +236,8 @@ type
 
   TObjectDataMarshal = class(TCoreClassObject)
   private
-    FID         : Byte;
-    FLibList    : TCoreClassStrings;
+    FID: Byte;
+    FLibList: TCoreClassStrings;
     FUseWildcard: Boolean;
     function GetItems(aIndex: Integer): TObjectDataManager;
     function GetNames(AName: SystemString): TObjectDataManager;
@@ -460,11 +460,11 @@ end;
 
 procedure TObjectDataManager.ImpFromPath(ImpPath, dbPath: SystemString; IncludeSub: Boolean);
 var
-  fAry     : umlStringDynArray;
-  n        : SystemString;
-  fPos     : Int64;
-  fs       : TCoreClassFileStream;
-  itmHnd   : TItemHandle;
+  fAry: umlStringDynArray;
+  n: SystemString;
+  fPos: Int64;
+  fs: TCoreClassFileStream;
+  itmHnd: TItemHandle;
   itmStream: TItemStreamEngine;
 begin
   dbPath := umlCharReplace(dbPath, '\', '/').Text;
@@ -497,11 +497,11 @@ end;
 
 procedure TObjectDataManager.ImpFromFiles(ImpFiles: TCoreClassStrings; dbPath: SystemString);
 var
-  i        : Integer;
-  n        : SystemString;
-  fPos     : Int64;
-  fs       : TCoreClassFileStream;
-  itmHnd   : TItemHandle;
+  i: Integer;
+  n: SystemString;
+  fPos: Int64;
+  fs: TCoreClassFileStream;
+  itmHnd: TItemHandle;
   itmStream: TItemStreamEngine;
 begin
   dbPath := umlCharReplace(dbPath, '\', '/').Text;
@@ -784,10 +784,10 @@ end;
 
 function TObjectDataManager.ItemAddFile(var ItemHnd: TItemHandle; const FileName: SystemString): Boolean;
 var
-  RepaInt   : Integer;
+  RepaInt: Integer;
   FileHandle: TIOHnd;
-  FileSize  : Int64;
-  Buff      : array [0 .. MaxBuffSize] of umlChar;
+  FileSize: Int64;
+  Buff: array [0 .. MaxBuffSize] of umlChar;
 begin
   Result := False;
   if not umlFileExists(FileName) then
@@ -909,7 +909,7 @@ end;
 function TObjectDataManager.ItemCopyTo(var ItemHnd: TItemHandle; DestDB: TObjectDataManager; var DestItemHandle: TItemHandle; const CopySize: Int64): Boolean;
 var
   RepaInt: Integer;
-  Buff   : array [0 .. MaxBuffSize] of umlChar;
+  Buff: array [0 .. MaxBuffSize] of umlChar;
 begin
   Result := False;
   if CopySize > MaxBuffSize then
@@ -1526,7 +1526,7 @@ end;
 function TObjectDataMarshal.GetNames(AName: SystemString): TObjectDataManager;
 var
   RepaInt: Integer;
-  aUName : SystemString;
+  aUName: SystemString;
 begin
   Result := nil;
   aUName := GetAbsoluteFileName(AName);
@@ -1601,7 +1601,7 @@ end;
 function TObjectDataMarshal.NewDB(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
 var
   RepaInt: Integer;
-  aUName : SystemString;
+  aUName: SystemString;
 begin
   Result := nil;
   aUName := GetAbsoluteFileName(aFile);
@@ -1627,7 +1627,7 @@ end;
 function TObjectDataMarshal.Open(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
 var
   RepaInt: Integer;
-  aUName : SystemString;
+  aUName: SystemString;
 begin
   Result := nil;
   aUName := GetAbsoluteFileName(aFile);
@@ -1685,7 +1685,7 @@ end;
 procedure TObjectDataMarshal.DeleteFromName(AName: SystemString);
 var
   RepaInt: Integer;
-  aUName : SystemString;
+  aUName: SystemString;
 begin
   aUName := GetAbsoluteFileName(AName);
   if FLibList.Count > 0 then

@@ -57,16 +57,16 @@ type
 
   THashList = class(TCoreClassObject)
   private
-    FListBuffer        : TListBuffer;
-    FAutoFreeData      : Boolean;
-    FCount             : NativeInt;
-    FIDCounter         : TCounter;
-    FIgnoreCase        : Boolean;
+    FListBuffer: TListBuffer;
+    FAutoFreeData: Boolean;
+    FCount: NativeInt;
+    FIDCounter: TCounter;
+    FIgnoreCase: Boolean;
     FAccessOptimization: Boolean;
-    FOnDataFreeProc    : TPointerDataNotifyProc;
+    FOnDataFreeProc: TPointerDataNotifyProc;
 
     FFirst: PHashListData;
-    FLast : PHashListData;
+    FLast: PHashListData;
 
     FMaxNameLen, FMinNameLen: NativeInt;
 
@@ -119,6 +119,9 @@ type
     property NameData[const name: SystemString]: PHashListData read GetNameData;
 
     property OnDataFreeProc: TPointerDataNotifyProc read FOnDataFreeProc write FOnDataFreeProc;
+
+    property MaxKeyLen: NativeInt read FMaxNameLen;
+    property MinKeyLen: NativeInt read FMinNameLen;
     property MaxNameLen: NativeInt read FMaxNameLen;
     property MinNameLen: NativeInt read FMinNameLen;
   end;
@@ -137,14 +140,14 @@ type
 
   TInt64HashObjectList = class(TCoreClassObject)
   private
-    FListBuffer        : TListBuffer;
-    FCount             : NativeInt;
-    FIDCounter         : TCounter;
+    FListBuffer: TListBuffer;
+    FCount: NativeInt;
+    FIDCounter: TCounter;
     FAccessOptimization: Boolean;
-    FAutoFreeData      : Boolean;
-    FFirst             : PInt64HashListObjectStruct;
-    FLast              : PInt64HashListObjectStruct;
-    FOnObjectFreeProc  : TObjectFreeProc;
+    FAutoFreeData: Boolean;
+    FFirst: PInt64HashListObjectStruct;
+    FLast: PInt64HashListObjectStruct;
+    FOnObjectFreeProc: TObjectFreeProc;
 
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
     function Geti64Data(i64: Int64): PInt64HashListObjectStruct;
@@ -201,14 +204,14 @@ type
 
   TInt64HashPointerList = class(TCoreClassObject)
   private
-    FListBuffer         : TListBuffer;
-    FCount              : NativeInt;
-    FIDCounter          : TCounter;
-    FAccessOptimization : Boolean;
-    FAutoFreeData       : Boolean;
-    FFirst              : PInt64HashListPointerStruct;
-    FLast               : PInt64HashListPointerStruct;
-    FOnDataFreeProc     : TPointerDataNotifyProc;
+    FListBuffer: TListBuffer;
+    FCount: NativeInt;
+    FIDCounter: TCounter;
+    FAccessOptimization: Boolean;
+    FAutoFreeData: Boolean;
+    FFirst: PInt64HashListPointerStruct;
+    FLast: PInt64HashListPointerStruct;
+    FOnDataFreeProc: TPointerDataNotifyProc;
     FOnAddDataNotifyProc: TPointerDataNotifyProc;
 
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -269,13 +272,13 @@ type
 
   TUInt32HashObjectList = class(TCoreClassObject)
   private
-    FListBuffer        : TListBuffer;
-    FCount             : NativeInt;
-    FIDCounter         : TCounter;
+    FListBuffer: TListBuffer;
+    FCount: NativeInt;
+    FIDCounter: TCounter;
     FAccessOptimization: Boolean;
-    FAutoFreeData      : Boolean;
-    FFirst             : PUInt32HashListObjectStruct;
-    FLast              : PUInt32HashListObjectStruct;
+    FAutoFreeData: Boolean;
+    FFirst: PUInt32HashListObjectStruct;
+    FLast: PUInt32HashListObjectStruct;
 
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
     function Getu32Data(u32: UInt32): PUInt32HashListObjectStruct;
@@ -340,13 +343,13 @@ type
     const
     NullValue = 0;
   private
-    FListBuffer              : TListBuffer;
-    FCount                   : NativeInt;
-    FIDCounter               : TCounter;
-    FAccessOptimization      : Boolean;
-    FFirst                   : PPointerHashListNativeUIntStruct;
-    FLast                    : PPointerHashListNativeUIntStruct;
-    FTotal                   : UInt64;
+    FListBuffer: TListBuffer;
+    FCount: NativeInt;
+    FIDCounter: TCounter;
+    FAccessOptimization: Boolean;
+    FFirst: PPointerHashListNativeUIntStruct;
+    FLast: PPointerHashListNativeUIntStruct;
+    FTotal: UInt64;
     FMinimizePtr, FMaximumPtr: Pointer;
 
     function GetListTable(Hash: THash; AutoCreate: Boolean): TCoreClassList;
@@ -378,7 +381,6 @@ type
     function GetNext(NPtr: Pointer): NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetPrev(NPtr: Pointer): NativeUInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function ListBuffer: PListBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
     procedure Progress(OnProgress: TPointerHashNativeUIntListLoopCall); overload;
     procedure Progress(OnProgress: TPointerHashNativeUIntListLoopMethod); overload;
     {$IFNDEF FPC} procedure Progress(OnProgress: TPointerHashNativeUIntListLoopProc); overload; {$ENDIF}
@@ -412,8 +414,8 @@ type
   THashObjectList = class(TCoreClassObject)
   private
     FAutoFreeObject: Boolean;
-    FHashList      : THashList;
-    FIncremental   : NativeInt;
+    FHashList: THashList;
+    FIncremental: NativeInt;
 
     function GetCount: NativeInt;
 
@@ -492,9 +494,9 @@ type
 
   THashStringList = class(TCoreClassObject)
   private
-    FHashList              : THashList;
+    FHashList: THashList;
     FAutoUpdateDefaultValue: Boolean;
-    FOnValueChangeNotify   : THashStringChangeEvent;
+    FOnValueChangeNotify: THashStringChangeEvent;
 
     function GetCount: NativeInt;
 
@@ -610,9 +612,9 @@ type
 
   THashVariantList = class(TCoreClassObject)
   private
-    FHashList              : THashList;
+    FHashList: THashList;
     FAutoUpdateDefaultValue: Boolean;
-    FOnValueChangeNotify   : THashVariantChangeEvent;
+    FOnValueChangeNotify: THashVariantChangeEvent;
 
     function GetCount: NativeInt;
 
@@ -877,10 +879,8 @@ type
     function Add(Value: Double): Integer;
     procedure AddArray(const Value: array of Double);
     function Delete(Idx: Integer): Integer;
-    function DeleteDouble(Value: Double): Integer;
     procedure Clear;
     function Count: Integer;
-    function ExistsValue(Value: Double): Integer;
     procedure Assign(SameObj: TListDouble);
 
     property Items[Idx: Integer]: Double read GetItems write SetItems; default;
@@ -1048,8 +1048,8 @@ type
 
   TVariantToDataList = class(TCoreClassObject)
   private
-    FList          : TCoreClassList;
-    FAutoFreeData  : Boolean;
+    FList: TCoreClassList;
+    FAutoFreeData: Boolean;
     FOnDataFreeProc: TPointerDataNotifyProc;
   protected
     function GetItems(id: Variant): Pointer;
@@ -1146,10 +1146,10 @@ type
 
   TBackcalls = class(TCoreClassObject)
   private
-    FList       : TCoreClassList;
+    FList: TCoreClassList;
     FVariantList: THashVariantList;
-    FObjectList : THashObjectList;
-    FOwner      : TCoreClassObject;
+    FObjectList: THashObjectList;
+    FOwner: TCoreClassObject;
 
     function GetVariantList: THashVariantList;
     function GetObjectList: THashObjectList;
@@ -1227,11 +1227,11 @@ end;
 
 function THashList.GetNameData(const Name: SystemString): PHashListData;
 var
-  lName  : SystemString;
+  lName: SystemString;
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PHashListData;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PHashListData;
 begin
   Result := nil;
   if FIgnoreCase then
@@ -1419,9 +1419,9 @@ end;
 
 procedure THashList.Clear;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PHashListData;
 begin
   FCount := 0;
@@ -1536,10 +1536,10 @@ end;
 
 procedure THashList.Delete(const Name: SystemString);
 var
-  newhash  : THash;
-  i        : Integer;
-  lName    : SystemString;
-  lst      : TCoreClassList;
+  newhash: THash;
+  i: Integer;
+  lName: SystemString;
+  lst: TCoreClassList;
   _ItemData: PHashListData;
 begin
   if FCount = 0 then
@@ -1587,11 +1587,11 @@ end;
 procedure THashList.Add(const Name: SystemString; _CustomData: Pointer; const overwrite: Boolean = True);
 var
   newhash: THash;
-  l      : NativeInt;
-  lst    : TCoreClassList;
-  i      : Integer;
-  lName  : SystemString;
-  pData  : PHashListData;
+  l: NativeInt;
+  lst: TCoreClassList;
+  i: Integer;
+  lName: SystemString;
+  pData: PHashListData;
 begin
   if FIgnoreCase then
       lName := LowerCase(name)
@@ -1678,11 +1678,11 @@ end;
 procedure THashList.SetValue(const Name: SystemString; const _CustomData: Pointer);
 var
   newhash: THash;
-  l      : NativeInt;
-  lst    : TCoreClassList;
-  i      : Integer;
-  lName  : SystemString;
-  pData  : PHashListData;
+  l: NativeInt;
+  lst: TCoreClassList;
+  i: Integer;
+  lName: SystemString;
+  pData: PHashListData;
 begin
   if FIgnoreCase then
       lName := LowerCase(name)
@@ -1727,9 +1727,9 @@ end;
 
 function THashList.Find(const Name: SystemString): Pointer;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PHashListData;
 begin
   Result := nil;
@@ -1757,10 +1757,10 @@ end;
 function THashList.Exists(const Name: SystemString): Boolean;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PHashListData;
-  lName  : SystemString;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PHashListData;
+  lName: SystemString;
 begin
   Result := False;
   if FCount = 0 then
@@ -1838,11 +1838,11 @@ end;
 
 procedure THashList.PrintHashReport;
 var
-  i                 : NativeInt;
-  l                 : TCoreClassList;
-  Total             : NativeInt;
+  i: NativeInt;
+  l: TCoreClassList;
+  Total: NativeInt;
   usaged, aMax, aMin: NativeInt;
-  inited            : Boolean;
+  inited: Boolean;
 begin
   inited := False;
   usaged := 0;
@@ -1888,9 +1888,9 @@ end;
 function TInt64HashObjectList.Geti64Data(i64: Int64): PInt64HashListObjectStruct;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PInt64HashListObjectStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PInt64HashListObjectStruct;
 begin
   Result := nil;
   newhash := MakeHash(i64);
@@ -2060,9 +2060,9 @@ end;
 
 procedure TInt64HashObjectList.Clear;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PInt64HashListObjectStruct;
 begin
   FCount := 0;
@@ -2119,9 +2119,9 @@ end;
 
 procedure TInt64HashObjectList.Delete(i64: Int64);
 var
-  newhash  : THash;
-  i        : Integer;
-  lst      : TCoreClassList;
+  newhash: THash;
+  i: Integer;
+  lst: TCoreClassList;
   _ItemData: PInt64HashListObjectStruct;
 begin
   if FCount = 0 then
@@ -2161,9 +2161,9 @@ end;
 function TInt64HashObjectList.Add(i64: Int64; _CustomData: TCoreClassObject; const overwrite: Boolean = True): PInt64HashListObjectStruct;
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PInt64HashListObjectStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PInt64HashListObjectStruct;
 begin
   newhash := MakeHash(i64);
 
@@ -2231,9 +2231,9 @@ end;
 procedure TInt64HashObjectList.SetValue(i64: Int64; _CustomData: TCoreClassObject);
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PInt64HashListObjectStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PInt64HashListObjectStruct;
 begin
   newhash := MakeHash(i64);
 
@@ -2261,9 +2261,9 @@ end;
 function TInt64HashObjectList.Exists(i64: Int64): Boolean;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PInt64HashListObjectStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PInt64HashListObjectStruct;
 begin
   Result := False;
   if FCount = 0 then
@@ -2349,11 +2349,11 @@ end;
 
 procedure TInt64HashObjectList.PrintHashReport;
 var
-  i                 : NativeInt;
-  l                 : TCoreClassList;
-  Total             : NativeInt;
+  i: NativeInt;
+  l: TCoreClassList;
+  Total: NativeInt;
   usaged, aMax, aMin: NativeInt;
-  inited            : Boolean;
+  inited: Boolean;
 begin
   inited := False;
   usaged := 0;
@@ -2399,9 +2399,9 @@ end;
 function TInt64HashPointerList.Geti64Data(i64: Int64): PInt64HashListPointerStruct;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PInt64HashListPointerStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PInt64HashListPointerStruct;
 begin
   Result := nil;
   newhash := MakeHash(i64);
@@ -2582,9 +2582,9 @@ end;
 
 procedure TInt64HashPointerList.Clear;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PInt64HashListPointerStruct;
 begin
   FCount := 0;
@@ -2641,9 +2641,9 @@ end;
 
 procedure TInt64HashPointerList.Delete(i64: Int64);
 var
-  newhash  : THash;
-  i        : Integer;
-  lst      : TCoreClassList;
+  newhash: THash;
+  i: Integer;
+  lst: TCoreClassList;
   _ItemData: PInt64HashListPointerStruct;
 begin
   if FCount = 0 then
@@ -2683,9 +2683,9 @@ end;
 function TInt64HashPointerList.Add(i64: Int64; _CustomData: Pointer; const overwrite: Boolean = True): PInt64HashListPointerStruct;
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PInt64HashListPointerStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PInt64HashListPointerStruct;
 begin
   newhash := MakeHash(i64);
 
@@ -2757,9 +2757,9 @@ end;
 procedure TInt64HashPointerList.SetValue(i64: Int64; _CustomData: Pointer);
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PInt64HashListPointerStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PInt64HashListPointerStruct;
 begin
   newhash := MakeHash(i64);
 
@@ -2788,9 +2788,9 @@ end;
 function TInt64HashPointerList.Exists(i64: Int64): Boolean;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PInt64HashListPointerStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PInt64HashListPointerStruct;
 begin
   Result := False;
   if FCount = 0 then
@@ -2864,11 +2864,11 @@ end;
 
 procedure TInt64HashPointerList.PrintHashReport;
 var
-  i                 : NativeInt;
-  l                 : TCoreClassList;
-  Total             : NativeInt;
+  i: NativeInt;
+  l: TCoreClassList;
+  Total: NativeInt;
   usaged, aMax, aMin: NativeInt;
-  inited            : Boolean;
+  inited: Boolean;
 begin
   inited := False;
   usaged := 0;
@@ -2914,9 +2914,9 @@ end;
 function TUInt32HashObjectList.Getu32Data(u32: UInt32): PUInt32HashListObjectStruct;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PUInt32HashListObjectStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PUInt32HashListObjectStruct;
 begin
   Result := nil;
   newhash := MakeHash(u32);
@@ -3070,9 +3070,9 @@ end;
 
 procedure TUInt32HashObjectList.Clear;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PUInt32HashListObjectStruct;
 begin
   FCount := 0;
@@ -3129,9 +3129,9 @@ end;
 
 procedure TUInt32HashObjectList.Delete(u32: UInt32);
 var
-  newhash  : THash;
-  i        : Integer;
-  lst      : TCoreClassList;
+  newhash: THash;
+  i: Integer;
+  lst: TCoreClassList;
   _ItemData: PUInt32HashListObjectStruct;
 begin
   if FCount = 0 then
@@ -3171,9 +3171,9 @@ end;
 function TUInt32HashObjectList.Add(u32: UInt32; _CustomData: TCoreClassObject; const overwrite: Boolean = True): PUInt32HashListObjectStruct;
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PUInt32HashListObjectStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PUInt32HashListObjectStruct;
 begin
   newhash := MakeHash(u32);
 
@@ -3241,9 +3241,9 @@ end;
 procedure TUInt32HashObjectList.SetValue(u32: UInt32; _CustomData: TCoreClassObject);
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PUInt32HashListObjectStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PUInt32HashListObjectStruct;
 begin
   newhash := MakeHash(u32);
 
@@ -3271,9 +3271,9 @@ end;
 function TUInt32HashObjectList.Exists(u32: UInt32): Boolean;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PUInt32HashListObjectStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PUInt32HashListObjectStruct;
 begin
   Result := False;
   if FCount = 0 then
@@ -3438,11 +3438,11 @@ end;
 
 procedure TUInt32HashObjectList.PrintHashReport;
 var
-  i                 : NativeInt;
-  l                 : TCoreClassList;
-  Total             : NativeInt;
+  i: NativeInt;
+  l: TCoreClassList;
+  Total: NativeInt;
   usaged, aMax, aMin: NativeInt;
-  inited            : Boolean;
+  inited: Boolean;
 begin
   inited := False;
   usaged := 0;
@@ -3488,9 +3488,9 @@ end;
 function TPointerHashNativeUIntList.GetNPtrData(NPtr: Pointer): PPointerHashListNativeUIntStruct;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PPointerHashListNativeUIntStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PPointerHashListNativeUIntStruct;
 begin
   Result := nil;
   newhash := MakeHash(NPtr);
@@ -3643,9 +3643,9 @@ end;
 
 procedure TPointerHashNativeUIntList.Clear;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PPointerHashListNativeUIntStruct;
 begin
   FCount := 0;
@@ -3680,9 +3680,9 @@ end;
 
 procedure TPointerHashNativeUIntList.FastClear;
 var
-  i    : Integer;
-  j    : Integer;
-  lst  : TCoreClassList;
+  i: Integer;
+  j: Integer;
+  lst: TCoreClassList;
   pData: PPointerHashListNativeUIntStruct;
 begin
   FCount := 0;
@@ -3736,9 +3736,9 @@ end;
 
 function TPointerHashNativeUIntList.Delete(NPtr: Pointer): Boolean;
 var
-  newhash  : THash;
-  i        : Integer;
-  lst      : TCoreClassList;
+  newhash: THash;
+  i: Integer;
+  lst: TCoreClassList;
   _ItemData: PPointerHashListNativeUIntStruct;
 begin
   Result := False;
@@ -3778,9 +3778,9 @@ end;
 function TPointerHashNativeUIntList.Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean = True): PPointerHashListNativeUIntStruct;
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PPointerHashListNativeUIntStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PPointerHashListNativeUIntStruct;
 begin
   newhash := MakeHash(NPtr);
 
@@ -3850,9 +3850,9 @@ end;
 procedure TPointerHashNativeUIntList.SetValue(NPtr: Pointer; _CustomData: NativeUInt);
 var
   newhash: THash;
-  lst    : TCoreClassList;
-  i      : Integer;
-  pData  : PPointerHashListNativeUIntStruct;
+  lst: TCoreClassList;
+  i: Integer;
+  pData: PPointerHashListNativeUIntStruct;
 begin
   newhash := MakeHash(NPtr);
 
@@ -3875,9 +3875,9 @@ end;
 function TPointerHashNativeUIntList.Exists(NPtr: Pointer): Boolean;
 var
   newhash: THash;
-  i      : Integer;
-  lst    : TCoreClassList;
-  pData  : PPointerHashListNativeUIntStruct;
+  i: Integer;
+  lst: TCoreClassList;
+  pData: PPointerHashListNativeUIntStruct;
 begin
   Result := False;
   if FCount = 0 then
@@ -4042,11 +4042,11 @@ end;
 
 procedure TPointerHashNativeUIntList.PrintHashReport;
 var
-  i                 : NativeInt;
-  l                 : TCoreClassList;
-  t                 : NativeInt;
+  i: NativeInt;
+  l: TCoreClassList;
+  t: NativeInt;
   usaged, aMax, aMin: NativeInt;
-  inited            : Boolean;
+  inited: Boolean;
 begin
   inited := False;
   usaged := 0;
@@ -4282,9 +4282,9 @@ end;
 
 procedure THashObjectList.Clear;
 var
-  lst     : TCoreClassList;
+  lst: TCoreClassList;
   pObjData: PHashObjectListData;
-  i       : Integer;
+  i: Integer;
 begin
   if AutoFreeObject then
     begin
@@ -4563,7 +4563,7 @@ end;
 function THashObjectList.ExistsObject(obj: TCoreClassObject): Boolean;
 var
   lst: TCoreClassList;
-  i  : Integer;
+  i: Integer;
 begin
   Result := False;
   lst := TCoreClassList.Create;
@@ -4585,9 +4585,9 @@ end;
 
 procedure THashObjectList.CopyFrom(const Source: THashObjectList);
 var
-  lst     : TCoreClassList;
+  lst: TCoreClassList;
   pObjData: PHashObjectListData;
-  i       : Integer;
+  i: Integer;
 begin
   lst := TCoreClassList.Create;
   Source.HashList.GetListData(lst);
@@ -4979,8 +4979,8 @@ end;
 
 function THashStringList.FindValue(const aValue: SystemString): SystemString;
 var
-  i       : Integer;
-  lst     : TCoreClassList;
+  i: Integer;
+  lst: TCoreClassList;
   pVarData: PHashStringListData;
 begin
   Result := '';
@@ -5012,9 +5012,9 @@ end;
 
 procedure THashStringList.CopyFrom(const Source: THashStringList);
 var
-  lst     : TCoreClassList;
+  lst: TCoreClassList;
   pVarData: PHashStringListData;
-  i       : Integer;
+  i: Integer;
 begin
   lst := TCoreClassList.Create;
   Source.HashList.GetListData(lst);
@@ -5062,8 +5062,8 @@ end;
 procedure THashStringList.IncValue(const vl: THashStringList);
 var
   lst: TCoreClassList;
-  i  : Integer;
-  p  : PHashListData;
+  i: Integer;
+  p: PHashListData;
 begin
   lst := TCoreClassList.Create;
   vl.FHashList.GetListData(lst);
@@ -5117,11 +5117,11 @@ end;
 
 function THashStringList.ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
 var
-  sour      : umlString;
-  h, t      : umlString;
+  sour: umlString;
+  h, t: umlString;
   bPos, ePos: Integer;
-  KeyText   : SystemString;
-  i         : Integer;
+  KeyText: SystemString;
+  i: Integer;
 begin
   Output := '';
   sour.Text := AText;
@@ -5298,8 +5298,8 @@ end;
 
 procedure THashStringTextStream.DataImport(TextList: TListPascalString);
 var
-  i                  : Integer;
-  n                  : TPascalString;
+  i: Integer;
+  n: TPascalString;
   TextName, TextValue: TPascalString;
 begin
   if FStringList = nil then
@@ -5329,8 +5329,8 @@ end;
 
 procedure THashStringTextStream.DataExport(TextList: TListPascalString);
 var
-  i        : Integer;
-  vl       : TCoreClassList;
+  i: Integer;
+  vl: TCoreClassList;
   TextValue: SystemString;
 begin
   if FStringList = nil then
@@ -5827,8 +5827,8 @@ end;
 
 function THashVariantList.FindValue(const aValue: Variant): SystemString;
 var
-  i       : Integer;
-  lst     : TCoreClassList;
+  i: Integer;
+  lst: TCoreClassList;
   pVarData: PHashVariantListData;
 begin
   Result := '';
@@ -5860,9 +5860,9 @@ end;
 
 procedure THashVariantList.CopyFrom(const Source: THashVariantList);
 var
-  lst     : TCoreClassList;
+  lst: TCoreClassList;
   pVarData: PHashVariantListData;
-  i       : Integer;
+  i: Integer;
 begin
   lst := TCoreClassList.Create;
   Source.HashList.GetListData(lst);
@@ -5934,8 +5934,8 @@ end;
 procedure THashVariantList.IncValue(const vl: THashVariantList);
 var
   lst: TCoreClassList;
-  i  : Integer;
-  p  : PHashListData;
+  i: Integer;
+  p: PHashListData;
 begin
   lst := TCoreClassList.Create;
   vl.FHashList.GetListData(lst);
@@ -5950,7 +5950,7 @@ end;
 function THashVariantList.SetMax(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
-  r       : Boolean;
+  r: Boolean;
 begin
   pVarData := FHashList.NameValue[name];
   if pVarData <> nil then
@@ -5987,8 +5987,8 @@ end;
 procedure THashVariantList.SetMax(const vl: THashVariantList);
 var
   lst: TCoreClassList;
-  i  : Integer;
-  p  : PHashListData;
+  i: Integer;
+  p: PHashListData;
 begin
   lst := TCoreClassList.Create;
   vl.FHashList.GetListData(lst);
@@ -6003,7 +6003,7 @@ end;
 function THashVariantList.SetMin(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
-  r       : Boolean;
+  r: Boolean;
 begin
   pVarData := FHashList.NameValue[name];
   if pVarData <> nil then
@@ -6040,8 +6040,8 @@ end;
 procedure THashVariantList.SetMin(const vl: THashVariantList);
 var
   lst: TCoreClassList;
-  i  : Integer;
-  p  : PHashListData;
+  i: Integer;
+  p: PHashListData;
 begin
   lst := TCoreClassList.Create;
   vl.FHashList.GetListData(lst);
@@ -6095,11 +6095,11 @@ end;
 
 function THashVariantList.ReplaceMacro(const AText, HeadToken, TailToken: SystemString; var Output: SystemString): Boolean;
 var
-  sour      : umlString;
-  h, t      : umlString;
+  sour: umlString;
+  h, t: umlString;
   bPos, ePos: Integer;
-  KeyText   : SystemString;
-  i         : Integer;
+  KeyText: SystemString;
+  i: Integer;
 begin
   Output := '';
   sour.Text := AText;
@@ -6355,8 +6355,8 @@ end;
 
 procedure THashVariantTextStream.DataImport(TextList: TListPascalString);
 var
-  i                  : Integer;
-  n                  : TPascalString;
+  i: Integer;
+  n: TPascalString;
   TextName, TextValue: TPascalString;
 begin
   if FVariantList = nil then
@@ -6396,8 +6396,8 @@ end;
 
 procedure THashVariantTextStream.DataExport(TextList: TListPascalString);
 var
-  i        : Integer;
-  vl       : TCoreClassList;
+  i: Integer;
+  vl: TCoreClassList;
   TextValue: SystemString;
 begin
   if FVariantList = nil then
@@ -6582,9 +6582,16 @@ begin
 end;
 
 procedure TListCardinal.Clear;
+var
+  i: Integer;
+  p: PListCardinalData;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListCardinalData(FList[i]);
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListCardinal.Count: Integer;
@@ -6683,9 +6690,16 @@ begin
 end;
 
 procedure TListInt64.Clear;
+var
+  i: Integer;
+  p: PListInt64Data;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListInt64Data(FList[i]);
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListInt64.Count: Integer;
@@ -6809,9 +6823,16 @@ begin
 end;
 
 procedure TListNativeInt.Clear;
+var
+  i: Integer;
+  p: PListNativeIntData;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListNativeIntData(FList[i]);
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListNativeInt.Count: Integer;
@@ -6910,9 +6931,16 @@ begin
 end;
 
 procedure TListInteger.Clear;
+var
+  i: Integer;
+  p: PListIntegerData;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListIntegerData(FList[i]);
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListInteger.Count: Integer;
@@ -6995,44 +7023,22 @@ begin
   Result := Count;
 end;
 
-function TListDouble.DeleteDouble(Value: Double): Integer;
+procedure TListDouble.Clear;
 var
   i: Integer;
+  p: PListDoubleData;
 begin
-  i := 0;
-  while i < Count do
+  for i := 0 to FList.Count - 1 do
     begin
-      if Math.SameValue(Items[i], Value) then
-          Delete(i)
-      else
-          Inc(i);
+      p := PListDoubleData(FList[i]);
+      Dispose(p);
     end;
-  Result := Count;
-end;
-
-procedure TListDouble.Clear;
-begin
-  while Count > 0 do
-      Delete(0);
+  FList.Clear;
 end;
 
 function TListDouble.Count: Integer;
 begin
   Result := FList.Count;
-end;
-
-function TListDouble.ExistsValue(Value: Double): Integer;
-var
-  i: Integer;
-begin
-  Result := -1;
-
-  for i := 0 to Count - 1 do
-    if Math.SameValue(Items[i], Value) then
-      begin
-        Result := i;
-        Break;
-      end;
 end;
 
 procedure TListDouble.Assign(SameObj: TListDouble);
@@ -7104,9 +7110,16 @@ begin
 end;
 
 procedure TListPointer.Clear;
+var
+  i: Integer;
+  p: PListPointerData;
 begin
-  while Count > 0 do
-      Delete(0);
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := PListPointerData(FList[i]);
+      Dispose(p);
+    end;
+  FList.Clear;
 end;
 
 function TListPointer.Count: Integer;
@@ -7263,7 +7276,7 @@ end;
 
 procedure TListString.Assign(SameObj: TListString);
 var
-  i     : Integer;
+  i: Integer;
   p1, p2: PListStringData;
 begin
   Clear;
@@ -7279,7 +7292,7 @@ end;
 procedure TListString.LoadFromStream(Stream: TCoreClassStream);
 var
   bp: Int64;
-  r : TStreamReader;
+  r: TStreamReader;
 begin
   Clear;
   bp := Stream.Position;
@@ -7358,8 +7371,8 @@ end;
 
 procedure TListPascalString.SetText(const Value: SystemString);
 var
-  n  : TPascalString;
-  b  : TBytes;
+  n: TPascalString;
+  b: TBytes;
   m64: TMemoryStream64;
 begin
   n.Text := Value;
@@ -7528,7 +7541,7 @@ end;
 
 procedure TListPascalString.Assign(SameObj: TListPascalString);
 var
-  i     : Integer;
+  i: Integer;
   p1, p2: PListPascalStringData;
 begin
   Clear;
@@ -7596,7 +7609,7 @@ end;
 procedure TListPascalString.LoadFromStream(Stream: TCoreClassStream);
 var
   bp: Int64;
-  r : TStreamReader;
+  r: TStreamReader;
 begin
   Clear;
   bp := Stream.Position;
@@ -8003,8 +8016,8 @@ end;
 
 procedure TVariantToVariantList.GetValueList(_To: TListVariant);
 var
-  i           : Integer;
-  pVarData    : PVariantToDataListData;
+  i: Integer;
+  pVarData: PVariantToDataListData;
   pToValueData: PVariantToVariantListData;
 begin
   for i := 0 to FList.FList.Count - 1 do
@@ -8023,7 +8036,7 @@ end;
 procedure TVariantToVariantList.Assign(SameObj: TVariantToVariantList);
 var
   _To: TListVariant;
-  i  : Integer;
+  i: Integer;
 begin
   Clear;
   _To := TListVariant.Create;
@@ -8126,7 +8139,7 @@ end;
 procedure TVariantToObjectList.Assign(SameObj: TVariantToObjectList);
 var
   _To: TListVariant;
-  i  : Integer;
+  i: Integer;
 begin
   Clear;
   _To := TListVariant.Create;

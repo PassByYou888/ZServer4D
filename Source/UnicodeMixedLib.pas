@@ -289,8 +289,8 @@ function umlSmartSizeToStr(Size: Int64): TPascalString;
 function umlIntToStr(Parameter: Double): TPascalString; overload;
 function umlIntToStr(Parameter: Int64): TPascalString; overload;
 function umlSizeToStr(Parameter: Int64): TPascalString;
-function umlTimeToStr(TimeInteger: Integer): TPascalString;
-function umlDateToStr(TimeInteger: Integer): TPascalString;
+function umlTimeToStr(t:TDateTime): TPascalString;
+function umlDateToStr(t:TDateTime): TPascalString;
 function umlFloatToStr(const f: Extended): TPascalString;
 function umlShortFloatToStr(const f: Extended): TPascalString;
 
@@ -336,6 +336,7 @@ type
 
 const
   NullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  ZeroMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 function umlMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
 function umlMD5Char(const BuffPtr: PBYTE; const BuffSize: NativeUInt): TPascalString;
@@ -1062,7 +1063,7 @@ function umlGetFileListWithFullPath(const FullPath: TPascalString): umlStringDyn
 var
   ph: TPascalString;
   ns: TCoreClassStrings;
-  i : Integer;
+  i: Integer;
 begin
   ph := FullPath;
   ns := TCoreClassStringList.Create;
@@ -1077,7 +1078,7 @@ function umlGetDirListWithFullPath(const FullPath: TPascalString): umlStringDynA
 var
   ph: TPascalString;
   ns: TCoreClassStrings;
-  i : Integer;
+  i: Integer;
 begin
   ph := FullPath;
   ns := TCoreClassStringList.Create;
@@ -1492,7 +1493,7 @@ end;
 
 function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean;
 var
-  m64      : TMemoryStream64;
+  m64: TMemoryStream64;
   preRedSiz: Int64;
 begin
   Result := False;
@@ -1551,8 +1552,8 @@ end;
 function umlFileRead(var IOHnd: TIOHnd; Size: Int64; var Buffers): Boolean;
 var
   BuffPointer: Pointer;
-  i          : NativeInt;
-  BuffInt    : NativeUInt;
+  i: NativeInt;
+  BuffInt: NativeUInt;
 begin
   if not umlFileEndWrite(IOHnd) then
     begin
@@ -1659,8 +1660,8 @@ end;
 function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var Buffers): Boolean;
 var
   BuffPointer: Pointer;
-  i          : NativeInt;
-  BuffInt    : NativeUInt;
+  i: NativeInt;
+  BuffInt: NativeUInt;
 begin
   if (IOHnd.IsOnlyRead) or (not IOHnd.OpenFlags) then
     begin
@@ -2272,7 +2273,7 @@ end;
 
 function umlGetIndexStrCount(const aStr, limitS: TPascalString): Integer;
 var
-  Str : TPascalString;
+  Str: TPascalString;
   APos: Integer;
 begin
   Str := aStr;
@@ -2330,7 +2331,7 @@ end;
 procedure umlGetSplitArray(const _SourText: TPascalString; var _DestArray: TArrayPascalString; const _SplitChar: TPascalString);
 var
   i, _IndexCount: Integer;
-  SText         : TPascalString;
+  SText: TPascalString;
 begin
   SText := _SourText;
   _IndexCount := umlGetIndexStrCount(SText, _SplitChar);
@@ -2480,7 +2481,7 @@ end;
 
 function umlGetIndexStrCount_M(const aStr, limitS: TPascalString): Integer;
 var
-  Str : TPascalString;
+  Str: TPascalString;
   APos: Integer;
 begin
   Str := aStr;
@@ -2552,7 +2553,7 @@ end;
 
 function umlDeleteText(const Sour: TPascalString; const bToken, eToken: TArrayPascalString; ANeedBegin, ANeedEnd: Boolean): TPascalString;
 var
-  ABeginPos, AEndPos           : Integer;
+  ABeginPos, AEndPos: Integer;
   ABeginText, AEndText, ANewStr: TPascalString;
 begin
   Result := Sour;
@@ -2588,7 +2589,7 @@ end;
 
 function umlGetTextContent(const Sour: TPascalString; const bToken, eToken: TArrayPascalString): TPascalString;
 var
-  ABeginPos, AEndPos           : Integer;
+  ABeginPos, AEndPos: Integer;
   ABeginText, AEndText, ANewStr: TPascalString;
 begin
   Result := '';
@@ -2613,10 +2614,10 @@ type
   TValSym = (vsSymSub, vsSymAdd, vsSymAddSub, vsSymDollar, vsDot, vsDotBeforNum, vsDotAfterNum, vsNum, vsAtoF, vsE, vsUnknow);
 var
   cnt: array [TValSym] of Integer;
-  n  : TPascalString;
-  V  : TValSym;
-  c  : SystemChar;
-  i  : Integer;
+  n: TPascalString;
+  V: TValSym;
+  c: SystemChar;
+  i: Integer;
 begin
   n := umlTrimSpace(S);
   if n.Same('true') or n.Same('false') then
@@ -2842,14 +2843,14 @@ begin
   end;
 end;
 
-function umlTimeToStr(TimeInteger: Integer): TPascalString;
+function umlTimeToStr(t:TDateTime): TPascalString;
 begin
-  Result := DateTimeToStr(FileDateToDateTime(TimeInteger));
+  Result := TimeToStr(t);
 end;
 
-function umlDateToStr(TimeInteger: Integer): TPascalString;
+function umlDateToStr(t:TDateTime): TPascalString;
 begin
-  Result := DateToStr(FileDateToDateTime(TimeInteger));
+  Result := DateToStr(t);
 end;
 
 function umlFloatToStr(const f: Extended): TPascalString;
@@ -2894,8 +2895,8 @@ end;
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean;
 label CharacterRep_Label, MultipleCharacterRep_Label, MultipleStringRep_Label;
 var
-  UpperCaseSourceStr, UpperCaseTargetStr, SwapStr                            : TPascalString;
-  SourceChar, TargetChar, SwapChar                                           : umlChar;
+  UpperCaseSourceStr, UpperCaseTargetStr, SwapStr: TPascalString;
+  SourceChar, TargetChar, SwapChar: umlChar;
   SourceIndex, TargetIndex, SwapIndex, SourceLength, TargetLength, SwapLength: Integer;
 begin
   SourceLength := SourceStr.len;
@@ -3195,7 +3196,7 @@ end;
 
 function umlDeTimeCodeToStr(NowDateTime: TDateTime): TPascalString;
 var
-  Year, Month, Day    : Word;
+  Year, Month, Day: Word;
   Hour, Min, Sec, MSec: Word;
 begin
   DecodeDate(NowDateTime, Year, Month, Day);
@@ -3286,7 +3287,7 @@ const
   XD: array [0 .. 15] of Char = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
 var
   buff: TBytes;
-  i   : Integer;
+  i: Integer;
 begin
   buff := AValue.Bytes;
   Result := '';
@@ -3344,8 +3345,8 @@ const
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255);
 var
   lByteBuffer, lByteBufferSpace, c: Cardinal;
-  InPtr, InLimitPtr               : PBYTE;
-  OutPtr                          : PByte3;
+  InPtr, InLimitPtr: PBYTE;
+  OutPtr: PByte3;
 begin
   if InputBytesCount > 0 then
     begin
@@ -3415,9 +3416,9 @@ const
     090, 097, 098, 099, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 048, 049, 050, 051, 052, 053, 054, 055,
     056, 057, 043, 047);
 var
-  b, InMax3        : NativeUInt;
+  b, InMax3: NativeUInt;
   InPtr, InLimitPtr: ^Byte;
-  OutPtr           : PByte4;
+  OutPtr: PByte4;
 begin
   if InputByteCount <= 0 then
       Exit;
@@ -3496,7 +3497,7 @@ end;
 procedure umlBase64DecodeBytes(var Sour, Dest: TBytes);
 var
   ByteBuffer, ByteBufferSpace: NativeInt;
-  l                          : NativeInt;
+  l: NativeInt;
 begin
   l := Length(Sour);
   if l > 0 then
@@ -3539,7 +3540,7 @@ end;
 procedure umlDecodeStreamBASE64(const Buffer: TPascalString; Output: TCoreClassStream);
 var
   b, nb: TBytes;
-  bak  : Int64;
+  bak: Int64;
 begin
   b := umlBytesOf(Buffer);
   umlBase64DecodeBytes(b, nb);
@@ -3551,7 +3552,7 @@ end;
 procedure umlEncodeStreamBASE64(Buffer: TCoreClassStream; var Output: TPascalString);
 var
   b, nb: TBytes;
-  bak  : Int64;
+  bak: Int64;
 begin
   bak := Buffer.Position;
 
@@ -3710,9 +3711,9 @@ end;
 
 
 var
-  digest : TMD5;
-  Lo, Hi : Cardinal;
-  p      : PBYTE;
+  digest: TMD5;
+  Lo, Hi: Cardinal;
+  p: PBYTE;
   WorkLen: Byte;
   WorkBuf: array [0 .. 63] of Byte;
 begin
@@ -3722,9 +3723,6 @@ begin
   PCardinal(@digest[4])^ := $EFCDAB89;
   PCardinal(@digest[8])^ := $98BADCFE;
   PCardinal(@digest[12])^ := $10325476;
-
-  if BufSiz shl 3 < 0 then
-      Inc(Hi);
 
   Inc(Lo, BufSiz shl 3);
   Inc(Hi, BufSiz shr 29);
@@ -3780,14 +3778,14 @@ const
   deltaSize = $40 * $FFFF;
 
 var
-  digest  : TMD5;
-  Lo, Hi  : Cardinal;
+  digest: TMD5;
+  Lo, Hi: Cardinal;
   DeltaBuf: Pointer;
-  BufSiz  : Int64;
-  rest    : Cardinal;
-  p       : PBYTE;
-  WorkLen : Byte;
-  WorkBuf : array [0 .. 63] of Byte;
+  BufSiz: Int64;
+  rest: Cardinal;
+  p: PBYTE;
+  WorkLen: Byte;
+  WorkBuf: array [0 .. 63] of Byte;
 begin
   {$IFDEF OptimizationMemoryStreamMD5}
   if Stream is TCoreClassMemoryStream then
@@ -3812,9 +3810,6 @@ begin
 
   BufSiz := EndPos - StartPos;
   rest := 0;
-
-  if BufSiz shl 3 < 0 then
-      Inc(Hi);
 
   Inc(Lo, BufSiz shl 3);
   Inc(Hi, BufSiz shr 29);
@@ -3956,7 +3951,7 @@ end;
 
 function umlCRC16(const Value: PBYTE; const Count: NativeUInt): Word;
 var
-  i : NativeUInt;
+  i: NativeUInt;
   pb: PUMLByteArray absolute Value;
 begin
   Result := 0;
@@ -3989,10 +3984,10 @@ const
   end;
 
 var
-  j    : NativeUInt;
-  Num  : NativeUInt;
-  rest : NativeUInt;
-  buf  : Pointer;
+  j: NativeUInt;
+  Num: NativeUInt;
+  rest: NativeUInt;
+  buf: Pointer;
   FSize: Int64;
 begin
   { Allocate buffer to read file }
@@ -4039,7 +4034,7 @@ end;
 
 function umlCRC32(const Value: PBYTE; const Count: NativeUInt): Cardinal;
 var
-  i : NativeUInt;
+  i: NativeUInt;
   pb: PUMLByteArray absolute Value;
 begin
   Result := $FFFFFFFF;
@@ -4074,10 +4069,10 @@ const
   end;
 
 var
-  j    : NativeUInt;
-  Num  : NativeUInt;
-  rest : NativeUInt;
-  buf  : Pointer;
+  j: NativeUInt;
+  Num: NativeUInt;
+  rest: NativeUInt;
+  buf: Pointer;
   FSize: Int64;
 begin
   { Allocate buffer to read file }
@@ -4271,8 +4266,8 @@ const
 
   procedure f(var FR: TArrayOf32Bytes; var FK: TArrayOf48Bytes; var TotalOut: TArrayOf32Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
   var
-    Temp1                  : TArrayOf48Bytes;
-    Temp2                  : TArrayOf32Bytes;
+    Temp1: TArrayOf48Bytes;
+    Temp2: TArrayOf32Bytes;
     n, H, i, j, Row, Column: Cardinal;
   begin
     for n := 1 to 48 do
@@ -4329,7 +4324,7 @@ const
 
 var
   n, b, Round: Byte;
-  DesData    : TDesData;
+  DesData: TDesData;
 begin
   for n := 1 to 64 do
       DesData.InputValue[n] := GetBit(Input, n);
@@ -4408,7 +4403,7 @@ var
   end;
 
 var
-  l      : Cardinal;
+  l: Cardinal;
   p, Size: Int64;
 begin
   SetLength(buff, bufflen);
@@ -4616,7 +4611,7 @@ end;
 
 function umlStringsInExists(Dest: TCoreClassStrings; SText: TPascalString; IgnoreCase: Boolean = True): Boolean;
 var
-  i  : Integer;
+  i: Integer;
   _NS: TPascalString;
 begin
   Result := False;
@@ -4912,7 +4907,7 @@ end;
 
 procedure umlReadComponent(Stream: TCoreClassStream; comp: TCoreClassComponent);
 var
-  r            : TCoreClassReader;
+  r: TCoreClassReader;
   needClearName: Boolean;
 begin
   r := TCoreClassReader.Create(Stream, 4096);
@@ -5014,8 +5009,8 @@ end;
 procedure ImportCSV_C(const Sour: TArrayPascalString; OnNotify: TCSVCall);
 var
   i, j, bp, hc: NativeInt;
-  n           : TPascalString;
-  king, buff  : TArrayPascalString;
+  n: TPascalString;
+  king, buff: TArrayPascalString;
 begin
   // fill csv head
   bp := -1;
@@ -5071,8 +5066,8 @@ end;
 procedure ImportCSV_M(const Sour: TArrayPascalString; OnNotify: TCSVMethod);
 var
   i, j, bp, hc: NativeInt;
-  n           : TPascalString;
-  king, buff  : TArrayPascalString;
+  n: TPascalString;
+  king, buff: TArrayPascalString;
 begin
   // fill csv head
   bp := -1;
@@ -5131,8 +5126,8 @@ end;
 procedure ImportCSV_P(const Sour: TArrayPascalString; OnNotify: TCSVProc);
 var
   i, j, bp, hc: NativeInt;
-  n           : TPascalString;
-  king, buff  : TArrayPascalString;
+  n: TPascalString;
+  king, buff: TArrayPascalString;
 begin
   // fill csv head
   bp := -1;

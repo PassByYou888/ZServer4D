@@ -18,7 +18,7 @@ unit CoreClasses;
 
 interface
 
-uses SysUtils, Classes, Types, Math,
+uses SysUtils, Classes, Types,
   {$IFDEF parallel}
   {$IFDEF FPC}
   mtprocs,
@@ -33,7 +33,7 @@ uses SysUtils, Classes, Types, Math,
   {$ELSE}
   , System.Generics.Collections
   {$ENDIF}
-    ;
+  ,Math;
 
 {$I zDefine.inc}
 
@@ -207,6 +207,14 @@ function ROR16(const Value: Word; Shift: Byte): Word; {$IFDEF INLINE_ASM} inline
 function ROR32(const Value: Cardinal; Shift: Byte): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function ROR64(const Value: UInt64; Shift: Byte): UInt64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+procedure Swap(var v1,v2:Integer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure Swap(var v1,v2:Int64); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure Swap(var v1,v2:UInt64); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure Swap(var v1,v2:SystemString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure Swap(var v1,v2:Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure Swap(var v1,v2:Double); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure Swap(var v1,v2:Pointer); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 threadvar MHGlobalHookEnabled: Boolean;
 
 implementation
@@ -268,14 +276,14 @@ end;
 
 {$I CoreAtomic.inc}
 
-threadvar
-  LockIDBuff: packed array [0..255] of TCoreClassPersistent;
+var
+  LockIDBuff: packed array [0..$FF] of TCoreClassPersistent;
 
 procedure InitLockIDBuff;
 var
-  i: Integer;
+  i: Byte;
 begin
-  for i := 0 to 255 do
+  for i := 0 to $FF do
       LockIDBuff[i] := TCoreClassPersistent.Create;
 end;
 
@@ -283,7 +291,7 @@ procedure FreeLockIDBuff;
 var
   i: Integer;
 begin
-  for i := 0 to 255 do
+  for i := 0 to $FF do
       DisposeObject(LockIDBuff[i]);
 end;
 
@@ -449,6 +457,69 @@ function ROR64(const Value: UInt64; Shift: Byte): UInt64;
 begin
   Shift := Shift and $3F;
   Result := UInt64((Value shr Shift) or (Value shl (64 - Shift)));
+end;
+
+procedure Swap(var v1, v2: Integer);
+var
+  V: Integer;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
+end;
+
+procedure Swap(var v1, v2: Int64);
+var
+  V: Int64;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
+end;
+
+procedure Swap(var v1, v2: UInt64);
+var
+  V: UInt64;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
+end;
+
+procedure Swap(var v1, v2: SystemString);
+var
+  V: SystemString;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
+end;
+
+procedure Swap(var v1, v2: Single);
+var
+  V: Single;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
+end;
+
+procedure Swap(var v1, v2: Double);
+var
+  V: Double;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
+end;
+
+procedure Swap(var v1, v2: Pointer);
+var
+  V: Pointer;
+begin
+  V := v1;
+  v1 := v2;
+  v2 := V;
 end;
 
 {$IFDEF FPC}

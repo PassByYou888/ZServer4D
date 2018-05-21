@@ -50,10 +50,10 @@ type
     procedure PostExecute_Offline(Sender: TNPostExecute);
     procedure Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
   public
-    Owner                               : TServerManager_ClientPool;
+    Owner: TServerManager_ClientPool;
     NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFrameworkClient;
-    ConnectInfo                         : TServerManager_ClientConnectInfo;
-    ReconnectTotal                      : Integer;
+    ConnectInfo: TServerManager_ClientConnectInfo;
+    ReconnectTotal: Integer;
 
     constructor Create(AOwner: TServerManager_ClientPool);
     destructor Destroy; override;
@@ -69,19 +69,19 @@ type
 
   TServerManager_ClientPool = class(TCoreClassPersistent)
   protected
-    FClientList  : TCoreClassListForObj;
+    FClientList: TCoreClassListForObj;
     AntiIdleIsRun: Boolean;
 
     function GetItems(index: Integer): TServerManager_Client;
     procedure SetItems(index: Integer; const Value: TServerManager_Client);
   public
-    ServerConfig                            : TSectionTextData;
-    LastManagerServerAddr                   : SystemString;
+    ServerConfig: TSectionTextData;
+    LastManagerServerAddr: SystemString;
     LastManServRecvPort, LastManServSendPort: word;
-    LastRegAddr                             : SystemString;
-    LastRegRecvPort, LastRegSendPort        : word;
-    DefaultClientClass                      : TCommunicationFrameworkClientClass;
-    NotifyIntf                              : IServerManager_ClientPoolNotify;
+    LastRegAddr: SystemString;
+    LastRegRecvPort, LastRegSendPort: word;
+    DefaultClientClass: TCommunicationFrameworkClientClass;
+    NotifyIntf: IServerManager_ClientPoolNotify;
 
     constructor Create(AClientClass: TCommunicationFrameworkClientClass; ANotifyIntf: IServerManager_ClientPoolNotify);
     destructor Destroy; override;
@@ -108,11 +108,11 @@ type
   TServerManager_RecvTunnelData = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
   public
     ManServAddr, RegName, RegAddr: SystemString;
-    RegRecvPort, RegSendPort     : word;
-    LastEnabled                  : TTimeTickValue;
-    WorkLoad                     : word;
-    ServerType                   : TServerType;
-    SuccessEnabled               : Boolean;
+    RegRecvPort, RegSendPort: word;
+    LastEnabled: TTimeTickValue;
+    WorkLoad: word;
+    ServerType: TServerType;
+    SuccessEnabled: Boolean;
   public
     constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
@@ -135,9 +135,9 @@ type
     procedure ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
     procedure ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
   public
-    ServerConfig     : TSectionTextData;
+    ServerConfig: TSectionTextData;
     ServManClientPool: TServerManager_ClientPool;
-    LastTimeTick     : TTimeTickValue;
+    LastTimeTick: TTimeTickValue;
 
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
     destructor Destroy; override;
@@ -189,11 +189,11 @@ end;
 
 procedure TServerManager_Client.PostExecute_Offline(Sender: TNPostExecute);
 var
-  RegAddr   : SystemString;
+  RegAddr: SystemString;
   ServerType: TServerType;
 
   ns: TCoreClassStringList;
-  i : Integer;
+  i: Integer;
   vl: THashVariantList;
 begin
   RegAddr := Sender.DataEng.Reader.ReadString;
@@ -416,9 +416,9 @@ end;
 
 procedure TServerManager_ClientPool.AntiIdle(WorkLoad: word);
 var
-  i       : Integer;
+  i: Integer;
   conninfo: TServerManager_ClientConnectInfo;
-  c       : TServerManager_Client;
+  c: TServerManager_Client;
 begin
   if AntiIdleIsRun then
       exit;
@@ -557,9 +557,9 @@ end;
 procedure TServerManager.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
 var
   cli: TServerManager_RecvTunnelData;
-  i  : Integer;
-  ns : TCoreClassStringList;
-  vl : THashVariantList;
+  i: Integer;
+  ns: TCoreClassStringList;
+  vl: THashVariantList;
 begin
   cli := UserDefineIO as TServerManager_RecvTunnelData;
 
@@ -614,10 +614,10 @@ end;
 procedure TServerManager.PostExecute_RegServer(Sender: TNPostExecute);
 var
   IDPool: TClientIDPool;
-  pid   : Cardinal;
+  pid: Cardinal;
   SendDE: TDataFrameEngine;
-  peer  : TPeerIO;
-  c     : TServerManager_RecvTunnelData;
+  peer: TPeerIO;
+  c: TServerManager_RecvTunnelData;
 begin
   // fixed local connect info
   FRecvTunnel.GetClientIDPool(IDPool);
@@ -640,12 +640,12 @@ end;
 
 procedure TServerManager.Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  IDPool : TClientIDPool;
-  pid    : Cardinal;
-  peer   : TPeerIO;
-  cli    : TServerManager_RecvTunnelData;
-  SendDE : TDataFrameEngine;
-  i      : Integer;
+  IDPool: TClientIDPool;
+  pid: Cardinal;
+  peer: TPeerIO;
+  cli: TServerManager_RecvTunnelData;
+  SendDE: TDataFrameEngine;
+  i: Integer;
   listcli: TServerManager_RecvTunnelData;
 begin
   cli := Sender.UserDefine as TServerManager_RecvTunnelData;
@@ -761,15 +761,15 @@ end;
 
 procedure TServerManager.ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
 var
-  IDPool                 : TClientIDPool;
-  pid                    : Cardinal;
-  peer                   : TPeerIO;
-  ns                     : TCoreClassStringList;
-  i                      : Integer;
-  vl                     : THashVariantList;
-  c                      : TServerManager_RecvTunnelData;
+  IDPool: TClientIDPool;
+  pid: Cardinal;
+  peer: TPeerIO;
+  ns: TCoreClassStringList;
+  i: Integer;
+  vl: THashVariantList;
+  c: TServerManager_RecvTunnelData;
   existedSameOnlineServer: Boolean;
-  SendDE                 : TDataFrameEngine;
+  SendDE: TDataFrameEngine;
 begin
   existedSameOnlineServer := False;
   FRecvTunnel.GetClientIDPool(IDPool);
@@ -865,9 +865,9 @@ end;
 procedure TServerManager.Progress;
 var
   IDPool: TClientIDPool;
-  pid   : Cardinal;
-  peer  : TPeerIO;
-  cli   : TServerManager_RecvTunnelData;
+  pid: Cardinal;
+  peer: TPeerIO;
+  cli: TServerManager_RecvTunnelData;
 begin
   ServManClientPool.Progress;
   inherited Progress;

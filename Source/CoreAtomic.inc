@@ -41,10 +41,10 @@ begin
   DisposeObject(CriticalList);
 end;
 
-procedure GetCriticalLock(Obj: TObject; var output: PCriticalLock);
+procedure GetCriticalLock(Obj: TObject; var output: PCriticalLock); inline;
 var
   i, pi: Integer;
-  p    : PCriticalLock;
+  p: PCriticalLock;
 begin
   CoreCritical.Acquire;
   try
@@ -94,7 +94,7 @@ begin
   end;
 end;
 
-procedure _LockCriticalObj(Obj: TObject);
+procedure _LockCriticalObj(Obj: TObject); inline;
 var
   p: PCriticalLock;
 begin
@@ -105,7 +105,7 @@ begin
   p^.Critical.Acquire;
 end;
 
-procedure _UnLockCriticalObj(Obj: TObject);
+procedure _UnLockCriticalObj(Obj: TObject); inline;
 var
   p: PCriticalLock;
 begin

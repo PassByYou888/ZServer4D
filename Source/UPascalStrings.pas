@@ -19,13 +19,12 @@ uses SysUtils, PascalStrings;
 
 type
   {$IFDEF FPC}
-  USystemChar    = UnicodeChar;
-  USystemString  = UnicodeString;
+  USystemChar   = UnicodeChar;
+  USystemString = UnicodeString;
   {$ELSE FPC}
-  USystemChar    = PascalStrings.SystemChar;
-  USystemString  = PascalStrings.SystemString;
+  USystemChar   = PascalStrings.SystemChar;
+  USystemString = PascalStrings.SystemString;
   {$ENDIF FPC}
-
   PUSystemString = ^USystemString;
   PUPascalString = ^TUPascalString;
   TUPascalChars  = packed array of USystemChar;
@@ -527,12 +526,12 @@ function USmithWatermanCompare(const seq1, seq2: PUPascalString; var diff1, diff
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  identity                                              : NativeInt;
-  align1, align2                                        : TUPascalString;
+  identity: NativeInt;
+  align1, align2: TUPascalString;
 begin
   l1 := seq1^.Len;
   l2 := seq2^.Len;
@@ -694,11 +693,11 @@ function USmithWatermanCompare(const seq1, seq2: PUPascalString; out Same, Diff:
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  identity, l                                           : NativeInt;
+  identity, l: NativeInt;
 begin
   l1 := seq1^.Len;
   l2 := seq2^.Len;
@@ -839,11 +838,11 @@ function USmithWatermanCompare(const seq1: Pointer; siz1: Integer; const seq2: P
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  identity, l                                           : NativeInt;
+  identity, l: NativeInt;
 begin
   l1 := siz1;
   l2 := siz2;
@@ -964,8 +963,8 @@ type
   procedure _FillText(psPtr: PUPascalString; outLst: TCoreClassList);
   var
     l, i: Integer;
-    n   : TUPascalString;
-    p   : PSRec;
+    n: TUPascalString;
+    p: PSRec;
   begin
     l := psPtr^.Len;
     i := 1;
@@ -1038,11 +1037,11 @@ var
   end;
 
 var
-  swMatrixPtr                                           : Pointer;
-  i, j, l1, l2                                          : NativeInt;
-  matched, deleted, inserted                            : NativeInt;
+  swMatrixPtr: Pointer;
+  i, j, l1, l2: NativeInt;
+  matched, deleted, inserted: NativeInt;
   score_current, score_diagonal, score_left, score_right: NativeInt;
-  cSame, cDiff, TotalSame, TotalDiff                    : Integer;
+  cSame, cDiff, TotalSame, TotalDiff: Integer;
 begin
   _Init;
   l1 := lst1.count;
@@ -1306,8 +1305,8 @@ end;
 
 function TUPascalString.GetChars(index: Integer): USystemChar;
 begin
-  if index > Length(Buff) then
-      Result := Buff[Length(Buff) - 1]
+  if (index > Length(Buff)) or (index <= 0) then
+      Result := #0
   else
       Result := Buff[index - 1];
 end;
@@ -1495,7 +1494,7 @@ end;
 
 function TUPascalString.Same(const p: PUPascalString): Boolean;
 var
-  i   : Integer;
+  i: Integer;
   s, d: USystemChar;
 begin
   Result := (p^.Len = Len);
@@ -1516,7 +1515,7 @@ end;
 
 function TUPascalString.Same(const t: TUPascalString): Boolean;
 var
-  i   : Integer;
+  i: Integer;
   s, d: USystemChar;
 begin
   Result := (t.Len = Len);
@@ -1537,7 +1536,7 @@ end;
 
 function TUPascalString.Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean;
 var
-  i   : Integer;
+  i: Integer;
   s, d: USystemChar;
 begin
   Result := (t.Len = Len);
@@ -1563,7 +1562,7 @@ end;
 
 function TUPascalString.ComparePos(const Offset: Integer; const p: PUPascalString): Boolean;
 var
-  i, l              : Integer;
+  i, l: Integer;
   sourChar, destChar: USystemChar;
 begin
   Result := False;
@@ -1590,7 +1589,7 @@ end;
 
 function TUPascalString.ComparePos(const Offset: Integer; const t: TUPascalString): Boolean;
 var
-  i, l              : Integer;
+  i, l: Integer;
   sourChar, destChar: USystemChar;
 begin
   Result := False;

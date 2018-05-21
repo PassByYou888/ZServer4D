@@ -49,10 +49,10 @@ type
     FDriver: TClientICSContextIntf;
     FClient: TPeerClientIntfForICS;
 
-    FAsyncConnecting           : Boolean;
-    FOnAsyncConnectNotifyCall  : TStateCall;
+    FAsyncConnecting: Boolean;
+    FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
-    FOnAsyncConnectNotifyProc  : TStateProc;
+    FOnAsyncConnectNotifyProc: TStateProc;
 
     procedure DataAvailable(Sender: TObject; ErrCode: Word);
     procedure SessionClosed(Sender: TObject; ErrCode: Word);
@@ -135,7 +135,7 @@ end;
 procedure TCommunicationFramework_Client_ICS.DataAvailable(Sender: TObject; ErrCode: Word);
 var
   BuffCount: Integer;
-  buff     : TBytes;
+  buff: TBytes;
 begin
   // increment receive
   BuffCount := FDriver.RcvdCount;
@@ -212,7 +212,7 @@ end;
 destructor TCommunicationFramework_Client_ICS.Destroy;
 begin
   Disconnect;
-  // DisposeObject(FDriver);
+  DisposeObject(FDriver);
   DisposeObject(FClient);
   inherited Destroy;
 end;

@@ -233,7 +233,6 @@ function Vec4(const v: TVec3): TVec4; overload;
 function Vec4(const v: TVec3; const Z: Single): TVec4; overload;
 function Vec4(const v: TVector3): TVec4; overload;
 
-function Vec2(const X, Y: Single): TVec2; overload;
 function Vec2(const v: TVec3): TVec2; overload;
 function Vec2(const v: TVec4): TVec2; overload;
 function Vec2(const v: TVector3): TVec2; overload;
@@ -244,14 +243,14 @@ function VecToStr(const v: TVec3): SystemString; overload;
 function VecToStr(const v: TVec4): SystemString; overload;
 function VecToStr(const v: TVector3): SystemString; overload;
 function VecToStr(const v: TVector4): SystemString; overload;
-function RectToStr(const v: T2DRect): SystemString; overload;
+function RectToStr(const v: TRectV2): SystemString; overload;
 
 function StrToVec2(const s: SystemString): TVec2;
 function StrToVec3(const s: SystemString): TVec3;
 function StrToVec4(const s: SystemString): TVec4;
 function StrToVector3(const s: SystemString): TVector3;
 function StrToVector4(const s: SystemString): TVector4;
-function StrToRect(const s: SystemString): T2DRect;
+function StrToRect(const s: SystemString): TRectV2;
 
 function BounceVector(Current: TVector4; DeltaDistance: Single; BeginVector, EndVector: TVector4; var EndFlag: Boolean): TVector4; overload;
 function BounceVector(Current: TVector3; DeltaDistance: Single; BeginVector, EndVector: TVector3; var EndFlag: Boolean): TVector3; overload;
@@ -270,20 +269,20 @@ function SmoothAngle(sour, Dest, Delta: TGeoFloat): TGeoFloat; {$IFDEF INLINE_AS
 function AngleEqual(a1, a2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function distance(v1, v2: T2DPoint): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function distance(v1, v2: T2DRect): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function distance(v1, v2: TRectV2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function MovementLerp(s, d, Lerp: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function MovementLerp(s, d: T2DPoint; Lerp: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementLerp(s, d: T2DRect; Lerp: TGeoFloat): T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementLerp(s, d: TRectV2; Lerp: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function MovementDistance(s, d: T2DPoint; dt: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementDistance(s, d: T2DRect; dt: TGeoFloat): T2DRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistance(s, d: TRectV2; dt: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function MovementDistance(sour, Dest: TVector4; distance: Single): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function MovementDistance(sour, Dest: TVector3; distance: Single): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function MovementDistanceDeltaTime(s, d: T2DPoint; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementDistanceDeltaTime(s, d: T2DRect; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistanceDeltaTime(s, d: TRectV2; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function AngleRollDistanceDeltaTime(s, d: TGeoFloat; ARollSpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 {$IFDEF FPC}
@@ -442,12 +441,6 @@ begin
   Result := VectorMake(v.Link);
 end;
 
-function Vec2(const X, Y: Single): TVec2;
-begin
-  Result[0] := X;
-  Result[1] := Y;
-end;
-
 function Vec2(const v: TVec3): TVec2;
 begin
   Result := Vec2(v[0], v[1]);
@@ -495,7 +488,7 @@ begin
   Result := VecToStr(v.Link);
 end;
 
-function RectToStr(const v: T2DRect): SystemString;
+function RectToStr(const v: TRectV2): SystemString;
 begin
   Result := Format('%g,%g,%g,%g', [v[0][0], v[0][1], v[1][0], v[1][1]]);
 end;
@@ -583,7 +576,7 @@ begin
   Result.Link[3] := umlStrToFloat(v4, 0);
 end;
 
-function StrToRect(const s: SystemString): T2DRect;
+function StrToRect(const s: SystemString): TRectV2;
 var
   v, v1, v2, v3, v4: umlString;
 begin
@@ -832,7 +825,7 @@ begin
   Result := PointDistance(v1, v2);
 end;
 
-function distance(v1, v2: T2DRect): TGeoFloat;
+function distance(v1, v2: TRectV2): TGeoFloat;
 var
   d1, d2: TGeoFloat;
 begin
@@ -863,7 +856,7 @@ begin
       Result := d;
 end;
 
-function MovementLerp(s, d: T2DRect; Lerp: TGeoFloat): T2DRect;
+function MovementLerp(s, d: TRectV2; Lerp: TGeoFloat): TRectV2;
 begin
   if Lerp < 1.0 then
     begin
@@ -883,7 +876,7 @@ begin
   Result[1] := s[1] + k * (d[1] - s[1]);
 end;
 
-function MovementDistance(s, d: T2DRect; dt: TGeoFloat): T2DRect;
+function MovementDistance(s, d: TRectV2; dt: TGeoFloat): TRectV2;
 begin
   if distance(s[0], d[0]) > dt then
       Result[0] := MovementDistance(s[0], d[0], dt)
@@ -927,7 +920,7 @@ begin
   Result := distance(s, d) / ASpeed;
 end;
 
-function MovementDistanceDeltaTime(s, d: T2DRect; ASpeed: TGeoFloat): Double;
+function MovementDistanceDeltaTime(s, d: TRectV2; ASpeed: TGeoFloat): Double;
 var
   d1, d2: Double;
 begin

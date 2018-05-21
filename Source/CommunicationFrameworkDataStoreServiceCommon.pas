@@ -23,10 +23,10 @@ uses Variants, CoreClasses, CommunicationFramework, PascalStrings, ZDBEngine, ZD
 type
   TTDataStoreService_DBPipeline = class(TZDBPipeline)
   public
-    SendTunnel   : TPeerClientUserDefine;
-    RecvTunnel   : TPeerClientUserDefine;
-    BackcallPtr  : UInt64;
-    SyncToClient : Boolean;
+    SendTunnel: TPeerClientUserDefine;
+    RecvTunnel: TPeerClientUserDefine;
+    BackcallPtr: UInt64;
+    SyncToClient: Boolean;
     RegistedQuery: SystemString;
 
     constructor Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString); override;
@@ -38,7 +38,7 @@ type
   TTDataStoreService_QueryCall = class(TCoreClassObject)
   private
   public
-    OnPipelineQuery    : TZDBPipelineFilterMethod;
+    OnPipelineQuery: TZDBPipelineFilterMethod;
     OnPipelineQueryDone: TZDBPipelineDoneMethod;
     constructor Create;
   end;
@@ -128,6 +128,24 @@ type
     procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
 
+  // client storePos transform
+  TStorePosTransformNotifyCall   = procedure(const TransformBuff: PZDBStorePosTransformArray);
+  TStorePosTransformNotifyMethod = procedure(const TransformBuff: PZDBStorePosTransformArray) of object;
+  {$IFNDEF FPC}
+  TStorePosTransformNotifyProc = reference to procedure(const TransformBuff: PZDBStorePosTransformArray);
+  {$ENDIF}
+
+  PStorePosTransformNotify = ^TStorePosTransformNotify;
+
+  TStorePosTransformNotify = packed record
+    OnDoneCall: TStorePosTransformNotifyCall;
+    OnDoneMethod: TStorePosTransformNotifyMethod;
+    {$IFNDEF FPC}
+    OnDoneProc: TStorePosTransformNotifyProc;
+    {$ENDIF}
+    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  end;
+  //
   TPipeState = packed record
     WriteOutputDB, Activted, SyncToClient, MemoryMode, Paused: Boolean;
     DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
@@ -199,6 +217,15 @@ begin
   OnUserDoneMethod := nil;
   {$IFNDEF FPC}
   OnUserDoneProc := nil;
+  {$ENDIF}
+end;
+
+procedure TStorePosTransformNotify.Init;
+begin
+  OnDoneCall := nil;
+  OnDoneMethod := nil;
+  {$IFNDEF FPC}
+  OnDoneProc := nil;
   {$ENDIF}
 end;
 

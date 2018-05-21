@@ -1,5 +1,5 @@
 ## ZServer4D 是一套从商业项目(游戏类)剥离而出的云服务器中间件，可以承载百万级在线的分布式长连接负载
-
+ 
  
 ## 介绍
 
@@ -143,6 +143,30 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 参考 [库说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E5%8D%95%E5%85%83%E5%BA%93%E8%AF%B4%E6%98%8E.pdf)
 
 [日常问题汇总](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)
+
+## 最后一更新日志
+
+- 完全移除Pasmp，并行线程的触发面积现在是根据Cpu*2进行展开，安全并行化仍然保持支持Linux，IOS，Android，windows，OSX等主流系统
+- 新增HPC内核（延迟线程技术）
+- HPC内核暂无Demo，稍等几天会补充上Demo
+- 新增10种云服务器种类，稍等几天会补充上Demo
+- CrossSocket客户端的连接池现在会自动释放
+- ICS客户端在关闭时，会自动释放内存（检测内存泄漏可以用ICS，无泄漏后，再换成DIOCP or Cross）
+- 已测试过所有服务器，无内存泄漏，ICSSever,IndyServer,DIOCP,CrossSocketServer
+- 修复CrossSocket服务器的连接在关闭后，仍然可以获取到客户端IP的问题
+- TDataFrameEngine新增对TListPascalString，TListString, THashStringList支持
+- ZDB新增压缩+Copy信息反馈机制，当我们大量使用StorePos在记录条目位置，这时候ZDB被压缩后，StorePos将会变化，ZDB现在能够反馈这一变化
+- ZDB网络数据库同步支持ZDB的StorePos变化反馈机制，当ZDB被压缩或则Copy时，客户端将搜到StorePos变化事件
+- TPascalString的GetChar机制更改：当Index超过字符串长度时，返回#0
+- TUPascalString面向FPC设计的Unicode字符串同步更新GetChar机制，与TPascalString一致
+- CoreClasses中的更新：LockObject+LockID，兼容所有平台与并行化调用
+- Geometry2DUnit，2D相关支持的几何库大量更新
+- 本次所有更新均已在FPC(3.0.4)+Laz(1.8)下测试通过
+- 本次更新了大量内核基础库，已做过系统测试，建议更新
+- 本次更新并没有新增Demo
+
+
+[更多更新日志](https://github.com/PassByYou888/ZServer4D/update.md)
 
 
 ## 捐赠

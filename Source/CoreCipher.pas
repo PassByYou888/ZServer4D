@@ -20,6 +20,9 @@
 
   2017-12-7
   added System default key
+
+  2018-5-16
+  remove pasmp
 *)
 
 unit CoreCipher;
@@ -31,14 +34,10 @@ interface
 
 uses
   Types, SysUtils, Math, TypInfo,
-  {$IFDEF parallel}
-  PasMP,
-  {$ENDIF}
   {$IFDEF FastMD5}
   Fast_MD5,
   {$ENDIF}
-  CoreClasses, UnicodeMixedLib, MemoryStream64, PascalStrings, ListEngine,
-  DoStatusIO;
+  CoreClasses, UnicodeMixedLib, MemoryStream64, PascalStrings, ListEngine;
 
 const
   { largest structure that can be created }
@@ -384,8 +383,6 @@ type
   end;
 
   TParallelCipher = class(TCoreClassObject)
-  private
-    FakeAtomicOperationMutex: TPasMPMutex;
   protected
     procedure DES64_Parallel(Job, buff, key: Pointer; Size: nativeInt);
     procedure DES128_Parallel(Job, buff, key: Pointer; Size: nativeInt);
@@ -399,9 +396,10 @@ type
 
     procedure BlockCBC_Parallel(Job, buff, key: Pointer; Size: nativeInt);
 
-    procedure ParallelCipherCall(const Job: PPasMPJob; const ThreadIndex: TPasMPInt32; const Data: Pointer; const FromIndex, ToIndex: TPasMPNativeInt);
+    procedure ParallelCipherCall(const JobData: PParallelCipherJobData; const FromIndex, ToIndex: Integer);
+    procedure RunParallel(const JobData: PParallelCipherJobData; const Total, Depth: Integer);
   public
-    ParallelGranularity, ParallelDepth: Integer;
+    ParallelDepth: Integer;
 
     constructor Create;
     destructor Destroy; override;
@@ -431,10 +429,10 @@ var
   SystemCBC: TBytes;
   {$IFDEF parallel}
   { system default parallel depth }
-  DefaultParallelDepth: Integer = 4;
+  DefaultParallelDepth: Integer;
   {$ENDIF}
   { system default key and cipherStyle }
-  DefaultKey        : TCipherKeyBuffer;
+  DefaultKey: TCipherKeyBuffer;
   DefaultCipherStyle: TCipherStyle = TCipherStyle.csBlowfish;
 
 procedure InitSysCBCAndDefaultKey(rand: Int64);
@@ -567,7 +565,7 @@ type
 type
   { Miscellaneous hash algorithms }
   { Misc public utilities }
-  TMISC = packed record
+  TMISC = class(TCoreClassObject)
   private
     class procedure Mix128(var X: T128Bit); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
     class function Ran0Prim(var Seed: Integer; IA, IQ, IR: Integer): Integer; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -630,7 +628,7 @@ type
   PRC6Block = ^TRC6Block;
   TRC6Block = packed array [0 .. 15] of Byte;
 
-  TRC6 = class
+  TRC6 = class(TCoreClassObject)
   public
     class function LRot32(X, C: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
     class function RRot32(X, C: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -640,6 +638,16 @@ type
   end;
 
 implementation
+
+uses DoStatusIO,
+  {$IFDEF parallel}
+  {$IFDEF FPC}
+  mtprocs,
+  {$ELSE parallel}
+  Threading,
+  {$ENDIF FPC}
+  {$ENDIF parallel}
+  SyncObjs;
 
 const
   SInvalidFileFormat: SystemString = 'Invalid file format';
@@ -1353,10 +1361,10 @@ end;
 
 class function TCipher.HexToBuffer(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean;
 var
-  i, C  : Integer;
+  i, C: Integer;
   filStr: TPascalString;
-  Count : Integer;
-  cChar : Char;
+  Count: Integer;
+  cChar: Char;
 begin
   Result := False;
   filStr.Text := '';
@@ -1572,7 +1580,7 @@ end;
 class procedure TCipher.GenerateKey(cs: TCipherStyle; s: TPascalString; var Output: TCipherKeyBuffer);
 var
   buff: TBytes;
-  key : TBytes;
+  key: TBytes;
 begin
   buff := s.Bytes;
   SetLength(key, 128);
@@ -1755,8 +1763,8 @@ end;
 class function TCipher.DES192(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k1, k2, k3: TKey64;
-  d         : TTripleDESContext3Key;
-  p         : nativeUInt;
+  d: TTripleDESContext3Key;
+  p: nativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -1892,7 +1900,7 @@ end;
 class function TCipher.RNG64(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer): Boolean;
 var
   k1, k2: DWord;
-  d     : TRNG64Context;
+  d: TRNG64Context;
 begin
   Result := False;
   if Size <= 0 then
@@ -1909,9 +1917,9 @@ end;
 
 class function TCipher.LSC(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer): Boolean;
 var
-  k   : TBytes;
+  k: TBytes;
   k255: TBytes;
-  d   : TLSCContext;
+  d: TLSCContext;
 begin
   Result := False;
   if Size <= 0 then
@@ -1938,8 +1946,8 @@ class function TCipher.TwoFish(sour: Pointer; Size: nativeInt; KeyBuff: PCipherK
 var
   k, k256: TBytes;
   SubKeys: TDCPTFSubKeys;
-  SBox   : TDCPTFSBox;
-  p      : nativeUInt;
+  SBox: TDCPTFSBox;
+  p: nativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -2021,8 +2029,8 @@ end;
 class function TCipher.RC6(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k, k256: TBytes;
-  d      : TRC6Key;
-  p      : nativeUInt;
+  d: TRC6Key;
+  p: nativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -2272,48 +2280,86 @@ begin
   TCipher.BlockCBC(buff, Size, key, PParallelCipherJobData(Job)^.BlockLen);
 end;
 
-procedure TParallelCipher.ParallelCipherCall(const Job: PPasMPJob; const ThreadIndex: TPasMPInt32; const Data: Pointer; const FromIndex, ToIndex: TPasMPNativeInt);
+procedure TParallelCipher.ParallelCipherCall(const JobData: PParallelCipherJobData; const FromIndex, ToIndex: Integer);
 var
-  p         : PParallelCipherJobData;
   newBuffPtr: Pointer;
   newBuffSiz: nativeUInt;
 begin
-  p := PParallelCipherJobData(Data);
-
-  newBuffPtr := Pointer(nativeUInt(p^.OriginBuffer) + (FromIndex * p^.BlockLen));
-  newBuffSiz := (ToIndex - FromIndex + 1) * p^.BlockLen;
-
+  newBuffPtr := Pointer(nativeUInt(JobData^.OriginBuffer) + (FromIndex * JobData^.BlockLen));
   try
-      p^.cipherFunc(p, newBuffPtr, p^.KeyBuffer, newBuffSiz);
+      newBuffSiz := (ToIndex - FromIndex) * JobData^.BlockLen;
   except
   end;
 
-  FakeAtomicOperationMutex.Acquire;
   try
-      inc(p^.CompletedBlock, (ToIndex - FromIndex + 1));
-  finally
-      FakeAtomicOperationMutex.Release;
+      JobData^.cipherFunc(JobData, newBuffPtr, JobData^.KeyBuffer, newBuffSiz);
+  except
   end;
+
+  inc(JobData^.CompletedBlock, (ToIndex - FromIndex));
+end;
+
+procedure TParallelCipher.RunParallel(const JobData: PParallelCipherJobData; const Total, Depth: Integer);
+var
+  StepTotal, stepW: Integer;
+  {$IFDEF FPC}
+  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
+  var
+    w: Integer;
+  begin
+    w := stepW * pass;
+    if w + stepW <= Total then
+        ParallelCipherCall(JobData, w, w + stepW)
+    else
+        ParallelCipherCall(JobData, w, Total);
+  end;
+{$ENDIF FPC}
+
+
+begin
+  if Total <= 0 then
+      exit;
+  if (Depth <= 0) or (Total < Depth) then
+    begin
+      ParallelCipherCall(JobData, 0, Total);
+      exit;
+    end;
+  stepW := Total div Depth;
+  StepTotal := Total div stepW;
+  if Total mod stepW > 0 then
+      inc(StepTotal);
+
+  {$IFDEF FPC}
+  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, StepTotal - 1);
+  {$ELSE FPC}
+  TParallel.For(0, StepTotal - 1, procedure(pass: Integer)
+    var
+      w: Integer;
+    begin
+      w := stepW * pass;
+      if w + stepW <= Total then
+          ParallelCipherCall(JobData, w, w + stepW)
+      else
+          ParallelCipherCall(JobData, w, Total);
+    end);
+  {$ENDIF FPC}
 end;
 
 constructor TParallelCipher.Create;
 begin
   inherited Create;
-  FakeAtomicOperationMutex := TPasMPMutex.Create;
-  ParallelGranularity := 1024;
   ParallelDepth := DefaultParallelDepth;
 end;
 
 destructor TParallelCipher.Destroy;
 begin
-  DisposeObject(FakeAtomicOperationMutex);
   inherited Destroy;
 end;
 
 function TParallelCipher.DES64(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   JobData: TParallelCipherJobData;
-  k      : TKey64;
+  k: TKey64;
   Context: TDESContext;
   tailSiz: nativeInt;
 begin
@@ -2336,16 +2382,12 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 8;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
       try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
+          RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
       except
       end;
     end;
@@ -2364,7 +2406,7 @@ end;
 function TParallelCipher.DES128(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   JobData: TParallelCipherJobData;
-  k      : TKey128;
+  k: TKey128;
   Context: TTripleDESContext;
   tailSiz: nativeInt;
 begin
@@ -2387,18 +2429,11 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 8;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2414,10 +2449,10 @@ end;
 
 function TParallelCipher.DES192(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
-  JobData   : TParallelCipherJobData;
+  JobData: TParallelCipherJobData;
   k1, k2, k3: TKey64;
-  Context   : TTripleDESContext3Key;
-  tailSiz   : nativeInt;
+  Context: TTripleDESContext3Key;
+  tailSiz: nativeInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -2438,18 +2473,11 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 8;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2466,7 +2494,7 @@ end;
 function TParallelCipher.Blowfish(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   JobData: TParallelCipherJobData;
-  k      : TKey128;
+  k: TKey128;
   Context: TBFContext;
   tailSiz: nativeInt;
 begin
@@ -2489,18 +2517,11 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 8;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2517,7 +2538,7 @@ end;
 function TParallelCipher.LBC(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   JobData: TParallelCipherJobData;
-  k      : TKey128;
+  k: TKey128;
   Context: TLBCContext;
   tailSiz: nativeInt;
 begin
@@ -2540,18 +2561,11 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 16;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2568,7 +2582,7 @@ end;
 function TParallelCipher.LQC(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   JobData: TParallelCipherJobData;
-  k      : TKey128;
+  k: TKey128;
   tailSiz: nativeInt;
 begin
   Result := False;
@@ -2588,18 +2602,11 @@ begin
       JobData.KeyBuffer := @k;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 8;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2643,18 +2650,11 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 16;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2671,7 +2671,7 @@ end;
 function TParallelCipher.XXTea512(sour: Pointer; Size: nativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   JobData: TParallelCipherJobData;
-  k      : TKey128;
+  k: TKey128;
   tailSiz: nativeInt;
 begin
   Result := False;
@@ -2691,18 +2691,11 @@ begin
       JobData.KeyBuffer := @k;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 64;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2745,18 +2738,11 @@ begin
       JobData.KeyBuffer := @Context;
       JobData.OriginBuffer := sour;
       JobData.BlockLen := 16;
-      JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+      JobData.TotalBlock := Size div JobData.BlockLen;
       JobData.CompletedBlock := 0;
       JobData.Encrypt := Encrypt;
 
-      try
-        {$IFDEF FPC}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ELSE}
-        GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-        {$ENDIF}
-      except
-      end;
+      RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
     end;
 
   if ProcessTail then
@@ -2794,18 +2780,11 @@ begin
   JobData.KeyBuffer := boxBuff;
   JobData.OriginBuffer := sour;
   JobData.BlockLen := boxSiz;
-  JobData.TotalBlock := (Size div JobData.BlockLen) - 1;
+  JobData.TotalBlock := Size div JobData.BlockLen;
   JobData.CompletedBlock := 0;
   JobData.Encrypt := True;
 
-  try
-    {$IFDEF FPC}
-    GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, @ParallelCipherCall, ParallelGranularity, ParallelDepth));
-    {$ELSE}
-    GlobalPasMP.Invoke(GlobalPasMP.ParallelFor(@JobData, 0, JobData.TotalBlock, ParallelCipherCall, ParallelGranularity, ParallelDepth));
-    {$ENDIF}
-  except
-  end;
+  RunParallel(@JobData, JobData.TotalBlock, ParallelDepth);
 
   tailSiz := Size mod JobData.BlockLen;
 
@@ -2859,9 +2838,13 @@ end;
 
 procedure InitSysCBCAndDefaultKey(rand: Int64);
 var
-  i   : Integer;
+  i: Integer;
   Seed: TInt64;
 begin
+  {$IFDEF parallel}
+  { system default parallel depth }
+  DefaultParallelDepth := CPUCount * 2;
+  {$ENDIF}
   SetLength(SystemCBC, 1024 * 1024);
   Seed.i := rand;
   for i := 0 to (length(SystemCBC) div 4) - 1 do
@@ -2901,13 +2884,12 @@ end;
 
 function SequEncryptWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 var
-  k       : TCipherKeyBuffer;
+  k: TCipherKeyBuffer;
   Parallel: TParallelCipher;
 begin
   TCipher.GenerateKey(cs, @key[0], length(key), k);
 
   Parallel := TParallelCipher.Create;
-  Parallel.ParallelGranularity := Size div 64;
   Parallel.ParallelDepth := DefaultParallelDepth;
   Result := Parallel.EncryptBuffer(cs, sour, Size, @k, Encrypt, ProcessTail);
   DisposeObject(Parallel);
@@ -2989,13 +2971,12 @@ end;
 
 function SequEncryptCBCWithParallel(const cs: TCipherStyle; sour: Pointer; Size: nativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
 var
-  k       : TCipherKeyBuffer;
+  k: TCipherKeyBuffer;
   Parallel: TParallelCipher;
 begin
   TCipher.GenerateKey(cs, @key[0], length(key), k);
 
   Parallel := TParallelCipher.Create;
-  Parallel.ParallelGranularity := Size div 64;
   Parallel.ParallelDepth := DefaultParallelDepth;
   Result := Parallel.EncryptBufferCBC(cs, sour, Size, @k, Encrypt, ProcessTail);
   DisposeObject(Parallel);
@@ -3043,10 +3024,10 @@ end;
 
 function GenerateSequHash(hssArry: THashStyles; sour: Pointer; Size: nativeInt): TPascalString;
 var
-  h    : THashStyle;
-  vl   : THashVariantList;
+  h: THashStyle;
+  vl: THashVariantList;
   hBuff: TBytes;
-  n    : SystemString;
+  n: SystemString;
 begin
   vl := THashVariantList.Create;
   for h in hssArry do
@@ -3064,10 +3045,10 @@ end;
 
 procedure GenerateSequHash(hssArry: THashStyles; sour: Pointer; Size: nativeInt; Output: TCoreClassStrings);
 var
-  h    : THashStyle;
-  vl   : THashVariantList;
+  h: THashStyle;
+  vl: THashVariantList;
   hBuff: TBytes;
-  n    : SystemString;
+  n: SystemString;
 begin
   vl := THashVariantList.Create;
   for h in hssArry do
@@ -3085,10 +3066,10 @@ end;
 
 procedure GenerateSequHash(hssArry: THashStyles; sour: Pointer; Size: nativeInt; Output: TCoreClassStream);
 var
-  h    : THashStyle;
-  vl   : THashVariantList;
+  h: THashStyle;
+  vl: THashVariantList;
   hBuff: TBytes;
-  n    : SystemString;
+  n: SystemString;
 begin
   vl := THashVariantList.Create;
   for h in hssArry do
@@ -3106,12 +3087,12 @@ end;
 
 function CompareSequHash(HashVL: THashVariantList; sour: Pointer; Size: nativeInt): Boolean;
 var
-  ns                : TListString;
-  i                 : Integer;
+  ns: TListString;
+  i: Integer;
   sourHash, destHash: TBytes;
-  hName             : SystemString;
-  hValue            : TPascalString;
-  h                 : THashStyle;
+  hName: SystemString;
+  hValue: TPascalString;
+  h: THashStyle;
 begin
   Result := True;
 
@@ -3175,7 +3156,7 @@ end;
 function GeneratePasswordHash(hssArry: THashStyles; passwd: TPascalString): TPascalString;
 var
   buff: TBytes;
-  m64 : TMemoryStream64;
+  m64: TMemoryStream64;
 begin
   buff := passwd.Bytes;
   m64 := TMemoryStream64.Create;
@@ -3188,7 +3169,7 @@ end;
 function ComparePasswordHash(passwd, hashBuff: TPascalString): Boolean;
 var
   buff: TBytes;
-  m64 : TMemoryStream64;
+  m64: TMemoryStream64;
 begin
   Result := False;
   hashBuff := umlTrimSpace(hashBuff);
@@ -3207,7 +3188,7 @@ end;
 function GeneratePassword(const ca: TCipherStyleArray; passwd: TPascalString): TPascalString;
 var
   KeyBuff: TBytes;
-  buff   : TBytes;
+  buff: TBytes;
 begin
   KeyBuff := passwd.Bytes;
   buff := passwd.Bytes;
@@ -3237,7 +3218,7 @@ end;
 function GeneratePassword(const cs: TCipherStyle; passwd: TPascalString): TPascalString; overload;
 var
   KeyBuff: TBytes;
-  buff   : TBytes;
+  buff: TBytes;
 begin
   KeyBuff := passwd.Bytes;
   buff := passwd.Bytes;
@@ -3266,14 +3247,14 @@ end;
 
 procedure TestCoreCipher;
 var
-  buffer    : TBytes;
+  buffer: TBytes;
   sour, dest: TMemoryStream64;
-  k         : TCipherKeyBuffer;
-  cs        : TCipherStyle;
-  sourHash  : TSHA1Digest;
-  d         : Cardinal;
+  k: TCipherKeyBuffer;
+  cs: TCipherStyle;
+  sourHash: TSHA1Digest;
+  d: Cardinal;
 
-  hs   : THashStyle;
+  hs: THashStyle;
   hByte: TBytes;
 
   {$IFDEF parallel}
@@ -3352,7 +3333,7 @@ begin
       DoStatus('hash compare failed!');
 
   // cipher Encrypt performance
-  SetLength(buffer, 1024 * 1024 + 99);
+  SetLength(buffer, 1024 * 1024 * 1 + 99);
   FillPtrByte(@buffer[0], length(buffer), $7F);
 
   sour := TMemoryStream64.Create;
@@ -3374,7 +3355,6 @@ begin
     begin
       TCipher.GenerateKey(cs, 'hello world', k);
       Parallel := TParallelCipher.Create;
-      Parallel.ParallelGranularity := 1024;
 
       dest.Clear;
       sour.Position := 0;
@@ -3441,7 +3421,7 @@ end;
 
 class procedure TBlowfish.EncryptBF(const Context: TBFContext; var Block: TBFBlock; Encrypt: Boolean);
 var
-  i       : Integer;
+  i: Integer;
   TmpBlock: TBFBlockEx; { !!.01 }
 begin
   CopyPtr(@Block, @TmpBlock, SizeOf(TmpBlock)); { !!.01 }
@@ -3485,10 +3465,10 @@ end;
 
 class procedure TBlowfish.InitEncryptBF(key: TKey128; var Context: TBFContext);
 var
-  i    : Integer;
-  J    : Integer;
-  k    : Integer;
-  Data : DWord;
+  i: Integer;
+  J: Integer;
+  k: Integer;
+  Data: DWord;
   Block: TBFBlock;
 begin
   { initialize PArray }
@@ -3609,7 +3589,7 @@ const
     $10041040, $00041000, $00041000, $00001040, $00001040, $00040040, $10000000, $10041000));
 var
   i, L, R, Work: DWord;
-  CPtr         : PDWord;
+  CPtr: PDWord;
 
   procedure IPerm(var L, R: DWord);
   var
@@ -3734,9 +3714,9 @@ const
   CTotRot: array [0 .. 15] of Byte = (1, 2, 4, 6, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25, 27, 28);
   CBitMask: array [0 .. 7] of Byte = (128, 64, 32, 16, 8, 4, 2, 1);
 var
-  PC1M      : array [0 .. 55] of Byte;
-  PC1R      : array [0 .. 55] of Byte;
-  KS        : array [0 .. 7] of Byte;
+  PC1M: array [0 .. 55] of Byte;
+  PC1R: array [0 .. 55] of Byte;
+  KS: array [0 .. 7] of Byte;
   i, J, L, M: Integer;
 begin
   { convert PC1 to bits of key }
@@ -3820,7 +3800,7 @@ end;
 class procedure TDES.JoinBlock(const L, R: DWord; var Block: TDESBlock);
 var
   Temp: TDesConverter;
-  i   : Integer;
+  i: Integer;
 begin
   Temp.DWords[0] := DWord(L);
   Temp.DWords[1] := DWord(R);
@@ -3833,9 +3813,9 @@ const
   SK1: TKey64 = ($C4, $08, $B0, $54, $0B, $A1, $E0, $AE);
   SK2: TKey64 = ($EF, $2C, $04, $1C, $E6, $38, $2F, $E6);
 var
-  i      : Integer;
-  Work1  : TKey64;
-  Work2  : TKey64;
+  i: Integer;
+  Work1: TKey64;
+  Work2: TKey64;
   Context: TDESContext;
 begin
   { step #1 zero the parity bits - 8, 16, 24, ..., 64 }
@@ -3863,7 +3843,7 @@ end;
 class procedure TDES.SplitBlock(const Block: TDESBlock; var L, R: DWord);
 var
   Temp: TDesConverter;
-  i   : Integer;
+  i: Integer;
 begin
   for i := low(Block) to high(Block) do
       Temp.Bytes[7 - i] := Block[i];
@@ -3930,22 +3910,22 @@ var
   E: DWord;
 
   X: DWord;
-  W: array [0 .. 79] of DWord;
+  w: array [0 .. 79] of DWord;
 
   i: Integer;
 begin
   with Context do begin
       sdIndex := 0;
-      CopyPtr(@sdBuf, @W, SizeOf(W));
+      CopyPtr(@sdBuf, @w, SizeOf(w));
 
       // W := Mt, for t = 0 to 15 : Mt is M sub t
       for i := 0 to 15 do
-          W[i] := SHA1SwapByteOrder(W[i]);
+          w[i] := SHA1SwapByteOrder(w[i]);
 
       // Transform Message block from 16 32 bit words to 80 32 bit words
       // Wt, = ( Wt-3 xor Wt-8 xor Wt-13 xor Wt-16 ) rolL 1 : Wt is W sub t
       for i := 16 to 79 do
-          W[i] := TMISC.RolX(W[i - 3] xor W[i - 8] xor W[i - 14] xor W[i - 16], 1);
+          w[i] := TMISC.RolX(w[i - 3] xor w[i - 8] xor w[i - 14] xor w[i - 16], 1);
 
       A := sdHash[0];
       b := sdHash[1];
@@ -3955,7 +3935,7 @@ begin
 
       // the four rounds
       for i := 0 to 19 do begin
-          X := TMISC.RolX(A, 5) + (d xor (b and (C xor d))) + E + W[i] + SHA1_K1;
+          X := TMISC.RolX(A, 5) + (d xor (b and (C xor d))) + E + w[i] + SHA1_K1;
           E := d;
           d := C;
           C := TMISC.RolX(b, 30);
@@ -3964,7 +3944,7 @@ begin
         end;
 
       for i := 20 to 39 do begin
-          X := TMISC.RolX(A, 5) + (b xor C xor d) + E + W[i] + SHA1_K2;
+          X := TMISC.RolX(A, 5) + (b xor C xor d) + E + w[i] + SHA1_K2;
           E := d;
           d := C;
           C := TMISC.RolX(b, 30);
@@ -3973,7 +3953,7 @@ begin
         end;
 
       for i := 40 to 59 do begin
-          X := TMISC.RolX(A, 5) + ((b and C) or (d and (b or C))) + E + W[i] + SHA1_K3;
+          X := TMISC.RolX(A, 5) + ((b and C) or (d and (b or C))) + E + w[i] + SHA1_K3;
           E := d;
           d := C;
           C := TMISC.RolX(b, 30);
@@ -3983,7 +3963,7 @@ begin
 
       for i := 60 to 79 do
         begin
-          X := TMISC.RolX(A, 5) + (b xor C xor d) + E + W[i] + SHA1_K4;
+          X := TMISC.RolX(A, 5) + (b xor C xor d) + E + w[i] + SHA1_K4;
           E := d;
           d := C;
           C := TMISC.RolX(b, 30);
@@ -3997,7 +3977,7 @@ begin
       sdHash[3] := sdHash[3] + d;
       sdHash[4] := sdHash[4] + E;
 
-      FillPtrByte(@W, SizeOf(W), $00);
+      FillPtrByte(@w, SizeOf(w), $00);
       FillPtrByte(@sdBuf, SizeOf(sdBuf), $00);
     end;
 end;
@@ -4049,12 +4029,12 @@ end;
 class procedure TLBC.EncryptLBC(const Context: TLBCContext; var Block: TLBCBlock);
 var
   Blocks: array [0 .. 1] of TBCHalfBlock; { !!.01 }
-  Work  : TBCHalfBlock;
-  Right : TBCHalfBlock;
-  Left  : TBCHalfBlock;
+  Work: TBCHalfBlock;
+  Right: TBCHalfBlock;
+  Left: TBCHalfBlock;
   AA, BB: Integer;
   CC, DD: Integer;
-  R, T  : Integer;
+  R, T: Integer;
 begin
   CopyPtr(@Block, @Blocks, SizeOf(Blocks)); { !!.01 }
   Right := Blocks[0];
@@ -4146,13 +4126,13 @@ const
     ((3, 2, 0), (1, 0, 2), (2, 1, 3), (0, 3, 1)));
 var
   KeyInts: array [0 .. 3] of Integer; { !!.01 }
-  Blocks : array [0 .. 1] of Integer; { !!.01 }
-  Work   : Integer;
-  Right  : Integer;
-  Left   : Integer;
-  R      : Integer;
-  AA, BB : Integer;
-  CC, DD : Integer;
+  Blocks: array [0 .. 1] of Integer;  { !!.01 }
+  Work: Integer;
+  Right: Integer;
+  Left: Integer;
+  R: Integer;
+  AA, BB: Integer;
+  CC, DD: Integer;
 begin
   CopyPtr(@key, @KeyInts, SizeOf(KeyInts)); { !!.01 }
   CopyPtr(@Block, @Blocks, SizeOf(Blocks)); { !!.01 }
@@ -4208,12 +4188,12 @@ type
   end;
 var
   KeyArray: PDWordArray;
-  AA, BB  : DWord;
-  CC, DD  : DWord;
-  EE, FF  : DWord;
-  GG, HH  : DWord;
-  i, R    : Integer;
-  Temp    : TDCPTFSubKeys;
+  AA, BB: DWord;
+  CC, DD: DWord;
+  EE, FF: DWord;
+  GG, HH: DWord;
+  i, R: Integer;
+  Temp: TDCPTFSubKeys;
 begin
   KeyArray := @key;
   Context.Encrypt := Encrypt;
@@ -4291,10 +4271,10 @@ const
     $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,
     $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00);
 var
-  InBuf : TTransformInput;
-  MDI   : Integer;
-  i     : Word;
-  II    : Word;
+  InBuf: TTransformInput;
+  MDI: Integer;
+  i: Word;
+  II: Word;
   PadLen: Word;
 begin
   { save number of bits }
@@ -4369,10 +4349,10 @@ end;
 
 class procedure TCipherMD5.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: nativeInt);
 var
-  InBuf : TTransformInput;
+  InBuf: TTransformInput;
   BufOfs: DWord;
-  MDI   : DWord;
-  i     : DWord;
+  MDI: DWord;
+  i: DWord;
 begin
   // { compute number of bytes mod 64 }
   MDI := (Context.Count[0] shr 3) and $3F;
@@ -4440,7 +4420,7 @@ const
   Padding: array [0 .. 7] of Byte = (1, 0, 0, 0, 0, 0, 0, 0);
 var
   BCContext: TLBCContext;
-  i        : Integer;
+  i: Integer;
 begin
   { pad with "1", followed by as many "0"s as needed to fill the block }
   UpdateLMD(Context, Padding, SizeOf(Padding) - Context.KeyIndex);
@@ -4492,7 +4472,7 @@ class procedure TLMD.UpdateLMD(var Context: TLMDContext; const Buf; BufSize: nat
 var
   AA, BB: DWord;
   CC, DD: DWord;
-  i, R  : nativeInt;
+  i, R: nativeInt;
 begin
   for i := 0 to BufSize - 1 do
     with Context do begin
@@ -4556,7 +4536,7 @@ end;
 class procedure TLSC.EncryptLSC(var Context: TLSCContext; var Buf; BufSize: Integer);
 var
   L, Y, X: Integer;
-  i, A   : Integer;
+  i, A: Integer;
 begin
   i := Context.Index;
   A := Context.Accumulator;
@@ -4580,7 +4560,7 @@ end;
 class procedure TLSC.InitEncryptLSC(const key; KeySize: Integer; var Context: TLSCContext);
 var
   R, i, A: Integer;
-  X      : Byte;
+  X: Byte;
 begin
   { initialize SBox }
   for i := 0 to 255 do
@@ -4644,9 +4624,9 @@ class procedure TMISC.HashMix128(var Digest: DWord; const Buf; BufSize: nativeUI
 type
   T128BitArray = packed array [0 .. MaxStructSize div SizeOf(T128Bit) - 1] of T128Bit;
 var
-  Temp : T128Bit;
+  Temp: T128Bit;
   PTemp: PCCByteArray;
-  i, L : nativeInt;
+  i, L: nativeInt;
 begin
   Temp[0] := $243F6A88; { first 16 bytes of Pi in binary }
   Temp[1] := $93F40317;
@@ -4917,8 +4897,8 @@ end;
 
 class procedure TMISC.XorMem(var Mem1; const Mem2; Count: nativeInt);
 var
-  siz   : Byte;
-  i     : Integer;
+  siz: Byte;
+  i: Integer;
   p1, p2: nativeUInt;
 begin
   p1 := nativeUInt(@Mem1);
@@ -4943,7 +4923,7 @@ procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubK
   function RS_MDS_Encode(lK0, lK1: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
   var
     lR, nJ, lG2, lG3: DWord;
-    BB              : Byte;
+    BB: Byte;
   begin
     lR := lK1;
     for nJ := 0 to 3 do
@@ -5006,7 +4986,7 @@ procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubK
 
   procedure Xor256(var Dst: TDCPTF2048; const Src: TDCPTF2048; v: Byte); {$IFDEF INLINE_ASM}inline; {$ENDIF}
   var
-    i, J      : DWord;
+    i, J: DWord;
     PDst, PSrc: PDWord;
   begin
     J := v * $01010101;
@@ -5023,10 +5003,10 @@ procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubK
 const
   subkeyCnt = DCPTF_ROUNDSUBKEYS + 2 * DCPTF_NUMROUNDS;
 var
-  key32                : T256Bit;
-  k32e, k32o, sboxkeys : T128Bit;
+  key32: T256Bit;
+  k32e, k32o, sboxkeys: T128Bit;
   k64Cnt, i, J, A, b, q: DWord;
-  L0, L1               : TDCPTF2048;
+  L0, L1: TDCPTF2048;
 begin
   FillPtrByte(@key32, SizeOf(key32), 0);
   CopyPtr(@key, @key32, Size div 8);
@@ -5220,10 +5200,10 @@ end;
 
 procedure DCP_twofish_EncryptECB(var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox; const InData: T128Bit; var OutData: T128Bit);
 var
-  i     : Cardinal;
+  i: Cardinal;
   t0, t1: DWord;
-  X     : T128Bit;
-  k     : Integer;
+  X: T128Bit;
+  k: Integer;
 begin
   for k := 0 to 3 do
       X[k] := InData[k] xor SubKeys[INPUTWHITEN + k];
@@ -5261,9 +5241,9 @@ end;
 
 procedure DCP_twofish_DecryptECB(var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox; const InData: T128Bit; var OutData: T128Bit);
 var
-  i, k  : Integer;
+  i, k: Integer;
   t0, t1: DWord;
-  X     : T128Bit;
+  X: T128Bit;
 begin
   X[2] := InData[0] xor SubKeys[DCPTF_OUTPUTWHITEN];
   X[3] := InData[1] xor SubKeys[DCPTF_OUTPUTWHITEN + 1];
@@ -5337,7 +5317,7 @@ procedure DCP_towfish_Precomp; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 var
   m1, mx, my: array [0 .. 1] of DWord;
-  nI        : Cardinal;
+  nI: Cardinal;
 begin
   for nI := 0 to 255 do
     begin
@@ -5375,7 +5355,7 @@ procedure XXTEAEncrypt(var key: TKey128; var Block: TXXTEABlock);
 const
   XXTeaDelta = $9E3779B9;
 var
-  k, v                 : PDWordArray;
+  k, v: PDWordArray;
   n, Z, Y, Sum, E, p, q: DWord;
 begin
   n := 64 div 4 - 1;
@@ -5404,7 +5384,7 @@ procedure XXTEADecrypt(var key: TKey128; var Block: TXXTEABlock);
 const
   XXTeaDelta = $9E3779B9;
 var
-  k, v                 : PDWordArray;
+  k, v: PDWordArray;
   n, Z, Y, Sum, E, p, q: DWord;
 begin
   n := 64 div 4 - 1;
@@ -5453,7 +5433,7 @@ const
     $ACFB49BD, $4B32C376, $E96A3D2F, $87A1B6E8, $25D930A1, $C410AA5A,
     $62482413, $007F9DCC, $9EB71785, $3CEE913E);
 var
-  xKeyD                 : array [0 .. 63] of DWord;
+  xKeyD: array [0 .. 63] of DWord;
   i, J, k, xKeyLen, A, b: DWord;
 begin
   Size := Size div 8;
@@ -5485,7 +5465,7 @@ end;
 class procedure TRC6.Encrypt(var KeyContext: TRC6Key; var Data: TRC6Block);
 var
   x0, x1, x2, x3: PDWord;
-  u, T, i       : DWord;
+  u, T, i: DWord;
 begin
   x0 := PDWord(@Data[0]);
   x1 := PDWord(@Data[4]);
@@ -5513,7 +5493,7 @@ end;
 class procedure TRC6.Decrypt(var KeyContext: TRC6Key; var Data: TRC6Block);
 var
   x0, x1, x2, x3: PDWord;
-  u, T, i       : DWord;
+  u, T, i: DWord;
 begin
   x0 := PDWord(@Data[0]);
   x1 := PDWord(@Data[4]);
@@ -5542,9 +5522,6 @@ initialization
 
 InitSysCBCAndDefaultKey(Int64($F0F0F0F0F0F00F0F));
 DCP_towfish_Precomp;
-{$IFDEF parallel}
-TPasMP.CreateGlobalInstance;
-{$ENDIF}
 
 finalization
 
