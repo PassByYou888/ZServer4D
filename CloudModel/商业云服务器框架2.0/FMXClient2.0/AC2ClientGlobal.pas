@@ -289,7 +289,7 @@ end;
 
 procedure FitScale(const sour: TRect2D; const destWidth, destHeight: TGeoFloat; var outOffset: TVec2; var outScale: TGeoFloat); overload;
 begin
-  FitScale(sour, Make2DRect(0, 0, destWidth, destHeight), outOffset, outScale);
+  FitScale(sour, MakeRectV2(0, 0, destWidth, destHeight), outOffset, outScale);
 end;
 
 procedure ResetMainLayout(l: TLayout; f: TForm);
@@ -298,7 +298,7 @@ var
   sa: TGeoFloat;
 begin
   // compute scale
-  FitScale(Make2DRect(0, 0, GlobalScreenWidth, GlobalScreenHeight), f.ClientWidth, f.ClientHeight, pt, sa);
+  FitScale(MakeRectV2(0, 0, GlobalScreenWidth, GlobalScreenHeight), f.ClientWidth, f.ClientHeight, pt, sa);
   l.BeginUpdate;
   l.Scale.Point := Pointf(sa, sa);
   l.Position.Point := MakePointf(pt);
