@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{AC0A847B-8C9E-4674-B9E4-C73B2E578FF9}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ManagerServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MyCloudServiceDemo\MyCloudServiceDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MyCloudClientDemo\MyCloudClientDemo.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ManagerServer">
+        <MSBuild Projects="ManagerServer.dproj"/>
+    </Target>
+    <Target Name="ManagerServer:Clean">
+        <MSBuild Projects="ManagerServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ManagerServer:Make">
+        <MSBuild Projects="ManagerServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MyCloudServiceDemo">
+        <MSBuild Projects="MyCloudServiceDemo\MyCloudServiceDemo.dproj"/>
+    </Target>
+    <Target Name="MyCloudServiceDemo:Clean">
+        <MSBuild Projects="MyCloudServiceDemo\MyCloudServiceDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MyCloudServiceDemo:Make">
+        <MSBuild Projects="MyCloudServiceDemo\MyCloudServiceDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MyCloudClientDemo">
+        <MSBuild Projects="MyCloudClientDemo\MyCloudClientDemo.dproj"/>
+    </Target>
+    <Target Name="MyCloudClientDemo:Clean">
+        <MSBuild Projects="MyCloudClientDemo\MyCloudClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MyCloudClientDemo:Make">
+        <MSBuild Projects="MyCloudClientDemo\MyCloudClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ManagerServer;MyCloudServiceDemo;MyCloudClientDemo"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ManagerServer:Clean;MyCloudServiceDemo:Clean;MyCloudClientDemo:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ManagerServer:Make;MyCloudServiceDemo:Make;MyCloudClientDemo:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

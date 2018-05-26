@@ -23,7 +23,12 @@ uses
 
   NotifyObjectBase, CoreCipher, PascalStrings, MemoryStream64;
 
-{$I ServerManTypeDefine.inc}
+const
+  DEFAULT_MANAGERSERVICE_RECVPORT: WORD   = 13336;
+  DEFAULT_MANAGERSERVICE_SENDPORT: WORD   = 13335;
+  CDEFAULT_MANAGERSERVICE_QUERYPORT: WORD = 10888;
+
+  {$I ServerManTypeDefine.inc}
 
 
 type
@@ -38,7 +43,7 @@ type
 
   TServerManager_ClientConnectInfo = packed record
     RegName, ManServAddr, RegAddr: SystemString;
-    ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word;
+    ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: WORD;
     ServerType: TServerType;
   end;
 
@@ -61,10 +66,10 @@ type
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
 
-    function ConnectAndLink(addr: SystemString; const RecvPort, SendPort: word): Boolean;
+    function ConnectAndLink(addr: SystemString; const RecvPort, SendPort: WORD): Boolean;
 
-    procedure AntiIdle(WorkLoad: word);
-    function EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
+    procedure AntiIdle(WorkLoad: WORD);
+    function EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: WORD; ServerType: TServerType): Boolean;
   end;
 
   TServerManager_ClientPool = class(TCoreClassPersistent)
@@ -77,9 +82,9 @@ type
   public
     ServerConfig: TSectionTextData;
     LastManagerServerAddr: SystemString;
-    LastManServRecvPort, LastManServSendPort: word;
+    LastManServRecvPort, LastManServSendPort: WORD;
     LastRegAddr: SystemString;
-    LastRegRecvPort, LastRegSendPort: word;
+    LastRegRecvPort, LastRegSendPort: WORD;
     DefaultClientClass: TCommunicationFrameworkClientClass;
     NotifyIntf: IServerManager_ClientPoolNotify;
 
@@ -93,10 +98,10 @@ type
     procedure Clear;
 
     procedure Progress; virtual;
-    procedure AntiIdle(WorkLoad: word);
+    procedure AntiIdle(WorkLoad: WORD);
 
     function BuildClientAndConnect(const RegName, ManServAddr, RegAddr: SystemString;
-      const ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
+      const ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: WORD; ServerType: TServerType): Boolean;
   end;
 
   TServerManager_SendTunnelData = class(TPeerClientUserDefineForSendTunnel_NoAuth)
@@ -108,9 +113,9 @@ type
   TServerManager_RecvTunnelData = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
   public
     ManServAddr, RegName, RegAddr: SystemString;
-    RegRecvPort, RegSendPort: word;
+    RegRecvPort, RegSendPort: WORD;
     LastEnabled: TTimeTickValue;
-    WorkLoad: word;
+    WorkLoad: WORD;
     ServerType: TServerType;
     SuccessEnabled: Boolean;
   public
@@ -128,6 +133,7 @@ type
     procedure PostExecute_ServerOffline(Sender: TNPostExecute);
     procedure PostExecute_RegServer(Sender: TNPostExecute);
   protected
+    // manager client
     procedure Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure PostExecute_Disconnect(Sender: TNPostExecute);
     procedure Command_AntiIdle(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -244,7 +250,7 @@ begin
 
   RegisterCommand;
 
-  SwitchAsDefaultPerformance;
+  SwitchAsMaxSafe;
 end;
 
 destructor TServerManager_Client.Destroy;
@@ -275,7 +281,7 @@ begin
   NetRecvTunnelIntf.DeleteRegistedCMD('Offline');
 end;
 
-function TServerManager_Client.ConnectAndLink(addr: SystemString; const RecvPort, SendPort: word): Boolean;
+function TServerManager_Client.ConnectAndLink(addr: SystemString; const RecvPort, SendPort: WORD): Boolean;
 begin
   Result := inherited Connect(addr, RecvPort, SendPort);
 
@@ -290,7 +296,7 @@ begin
     end;
 end;
 
-procedure TServerManager_Client.AntiIdle(WorkLoad: word);
+procedure TServerManager_Client.AntiIdle(WorkLoad: WORD);
 var
   SendDE: TDataFrameEngine;
 begin
@@ -300,7 +306,7 @@ begin
   DisposeObject(SendDE);
 end;
 
-function TServerManager_Client.EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
+function TServerManager_Client.EnabledServer(const RegName, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: WORD; ServerType: TServerType): Boolean;
 var
   SendData, ResultData: TDataFrameEngine;
 begin
@@ -414,7 +420,7 @@ begin
       Items[i].Progress;
 end;
 
-procedure TServerManager_ClientPool.AntiIdle(WorkLoad: word);
+procedure TServerManager_ClientPool.AntiIdle(WorkLoad: WORD);
 var
   i: Integer;
   conninfo: TServerManager_ClientConnectInfo;
@@ -455,7 +461,7 @@ begin
 end;
 
 function TServerManager_ClientPool.BuildClientAndConnect(const RegName, ManServAddr, RegAddr: SystemString;
-  const ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: word; ServerType: TServerType): Boolean;
+  const ManCliRecvPort, ManCliSendPort, RegRecvPort, RegSendPort: WORD; ServerType: TServerType): Boolean;
 var
   c: TServerManager_Client;
   i: Integer;
@@ -833,7 +839,7 @@ begin
 
   LastTimeTick := GetTimeTick;
 
-  SwitchAsDefaultPerformance;
+  SwitchAsMaxSafe;
 end;
 
 destructor TServerManager.Destroy;

@@ -4,64 +4,22 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.TypInfo,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
+  System.TypInfo,
 
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine,
 
-  ManagerServer_ClientIntf, ConnectManagerServerFrm,
+  ConnectManagerServerFrm,
   CommunicationFramework_Server_ICSCustomSocket, Vcl.AppEvnts,
   CommunicationFramework_Server_CrossSocket, NotifyObjectBase,
-  CommunicationFramework_Server_ICS;
+  CommunicationFramework_Client_CrossSocket,
+  CommunicationFramework_Server_ICS, CoreCipher,
+  CommunicationFrameworkDoubleTunnelIO_ServMan, PascalStrings,
+  CommonServiceDefine;
 
 type
-  TManagerServerForm = class;
-
-  TManagerServer_SendTunnelData = class(TPeerClientUserDefineForSendTunnel_NoAuth)
-  public
-    constructor Create(AOwner: TPeerClient); override;
-    destructor Destroy; override;
-  end;
-
-  TManagerServer_RecvTunnelData = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
-  protected
-    ManServAddr     : string;
-    RegName, RegAddr: string;
-    RegRecvPort     : word;
-    RegSendPort     : word;
-    LastEnabled     : TTimeTickValue;
-    WorkLoad        : word;
-    ServerType      : byte;
-    SuccessEnabled  : Boolean;
-  public
-    constructor Create(AOwner: TPeerClient); override;
-    destructor Destroy; override;
-
-    procedure WriteConfig(t: TSectionTextData);
-    function MakeRegName: string;
-  end;
-
-  TManagerServer_DoubleTunnelService = class(TCommunicationFramework_DoubleTunnelService_NoAuth)
-  private
-    FManagerWindow: TManagerServerForm;
-  protected
-    procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
-    procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
-    procedure PostExecute_ServerOffline(Sender: TNPostExecute);
-    procedure PostExecute_RegServer(Sender: TNPostExecute);
-  protected
-    procedure Command_EnabledServer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure PostExecute_Disconnect(Sender: TNPostExecute);
-    procedure Command_AntiIdle(Sender: TPeerClient; InData: TDataFrameEngine);
-  public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
-    destructor Destroy; override;
-
-    procedure RegisterCommand; override;
-    procedure UnRegisterCommand; override;
-  end;
-
   TManagerServerForm = class(TForm)
     ProgressTimer: TTimer;
     TopPanel: TPanel;
@@ -69,7 +27,6 @@ type
     StopServiceButton: TButton;
     Bevel1: TBevel;
     connectButton: TButton;
-    AntiIdleCheckTimer: TTimer;
     RefreshServerListButton: TButton;
     StatusCheckBox: TCheckBox;
     PageControl: TPageControl;
@@ -82,35 +39,32 @@ type
     AppEvents: TApplicationEvents;
     OptTabSheet: TTabSheet;
     BindIPEdit: TLabeledEdit;
+    RecvPortEdit: TLabeledEdit;
+    SendPortEdit: TLabeledEdit;
+    QueryPortEdit: TLabeledEdit;
     procedure ProgressTimerTimer(Sender: TObject);
-    procedure AntiIdleCheckTimerTimer(Sender: TObject);
     procedure StartServiceButtonClick(Sender: TObject);
     procedure StopServiceButtonClick(Sender: TObject);
     procedure connectButtonClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure RefreshServerListButtonClick(Sender: TObject);
     procedure AppEventsException(Sender: TObject; E: Exception);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure RefreshServerListButtonClick(Sender: TObject);
   private
     { Private declarations }
     RecvService, SendService: TCommunicationFramework_Server_CrossSocket;
     AccessService           : TCommunicationFramework_Server_CrossSocket;
-    ManagerService          : TManagerServer_DoubleTunnelService;
+    ManagerService          : TServerManager;
 
-    // game server list
-    ServerConfig: TSectionTextData;
+    procedure DoStatusNear(AText: SystemString; const ID: Integer);
 
-    FManagerClients: TManagerClients;
-
-    procedure DoStatusNear(AText: string; const ID: Integer);
-
-    function GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
+    function GetPathTreeNode(_Value, _Split: SystemString; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
 
     procedure Command_Query(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure ManagerClient_ServerConfigChange(Sender: TManagerClient; ConfigData: TSectionTextData);
-    procedure ManagerClient_ServerOffline(Sender: TManagerClient; RegAddr: string; ServerType: byte);
+    procedure Command_QueryMinLoad(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 
     procedure PostExecute_DelayStartService(Sender: TNPostExecute);
+    procedure PostExecute_DelayRegService(Sender: TNPostExecute);
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -128,322 +82,22 @@ implementation
 {$R *.dfm}
 
 
-constructor TManagerServer_SendTunnelData.Create(AOwner: TPeerClient);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TManagerServer_SendTunnelData.Destroy;
-begin
-  inherited Destroy;
-end;
-
-constructor TManagerServer_RecvTunnelData.Create(AOwner: TPeerClient);
-begin
-  inherited Create(AOwner);
-  RegName := '';
-  RegAddr := '';
-  RegRecvPort := 0;
-  RegSendPort := 0;
-  LastEnabled := GetTimeTickCount;
-  WorkLoad := 0;
-  ServerType := cUnknowServer;
-  SuccessEnabled := False;
-end;
-
-destructor TManagerServer_RecvTunnelData.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure TManagerServer_RecvTunnelData.WriteConfig(t: TSectionTextData);
-var
-  m: TManagerServer_DoubleTunnelService;
-  n: string;
-begin
-  m := DoubleTunnelService as TManagerServer_DoubleTunnelService;
-  n := MakeRegName;
-
-  t.SetDefaultValue(n, 'Name', RegName);
-  t.SetDefaultValue(n, 'ManagerServer', ManServAddr);
-  t.SetDefaultValue(n, 'Host', RegAddr);
-  t.SetDefaultValue(n, 'RecvPort', RegRecvPort);
-  t.SetDefaultValue(n, 'SendPort', RegSendPort);
-  t.SetDefaultValue(n, 'LastEnabled', LastEnabled);
-  t.SetDefaultValue(n, 'WorkLoad', WorkLoad);
-  t.SetDefaultValue(n, 'Type', ServerType);
-end;
-
-function TManagerServer_RecvTunnelData.MakeRegName: string;
-begin
-  Result := Format('%s_%s_%d_%d', [serverType2Str(ServerType), RegAddr, RegRecvPort, RegSendPort]);
-end;
-
-procedure TManagerServer_DoubleTunnelService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
-begin
-  UserDefineIO.Owner.Print('channel link success[r%d]<->[s%d]', [UserDefineIO.Owner.ID, UserDefineIO.SendTunnelID]);
-  inherited UserLinkSuccess(UserDefineIO);
-end;
-
-procedure TManagerServer_DoubleTunnelService.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
-var
-  cli: TManagerServer_RecvTunnelData;
-  i  : Integer;
-  ns : TCoreClassStringList;
-  vl : THashVariantList;
-begin
-  cli := UserDefineIO as TManagerServer_RecvTunnelData;
-  if FManagerWindow <> nil then
-    begin
-      UserDefineIO.Owner.Print('%s [n:%s][addr:%s][r:%d][s:%d][w:%d] offline!', [serverType2Str(cli.ServerType),
-        umlCharReplace(cli.RegName, ' ', '_').Text,
-        umlCharReplace(cli.RegAddr, ' ', '_').Text,
-        cli.RegRecvPort, cli.RegSendPort, cli.WorkLoad]);
-
-      FManagerWindow.ServerConfig.Delete(cli.MakeRegName);
-
-      // 通知全网客户端，这台服务器离线
-
-      with ProgressEngine.PostExecute do
-        begin
-          DataEng.WriteString(cli.RegAddr);
-          DataEng.WriteString(cli.ServerType);
-          OnExecuteMethod := PostExecute_ServerOffline;
-        end;
-
-      // 如果管理服务器离线，矫正本地配置表
-      if cli.ServerType = cManagerServer then
-        begin
-          // 删除本地配置
-          ns := TCoreClassStringList.Create;
-          FManagerWindow.ServerConfig.GetSectionList(ns);
-
-          for i := 0 to ns.Count - 1 do
-            begin
-              vl := FManagerWindow.ServerConfig.VariantList[ns[i]];
-              if SameText(string(vl.GetDefaultValue('ManagerServer', '')), cli.RegAddr) then
-                  FManagerWindow.ServerConfig.Delete(ns[i]);
-            end;
-          DisposeObject(ns);
-
-          // 同步所有客户端
-          ProgressEngine.PostExecute(nil, PostExecute_RegServer);
-        end;
-    end;
-
-  inherited UserOut(UserDefineIO);
-end;
-
-procedure TManagerServer_DoubleTunnelService.PostExecute_ServerOffline(Sender: TNPostExecute);
-begin
-  SendTunnel.BroadcastSendDirectStreamCmd('Offline', Sender.DataEng);
-end;
-
-procedure TManagerServer_DoubleTunnelService.PostExecute_RegServer(Sender: TNPostExecute);
-var
-  i     : Integer;
-  SendDE: TDataFrameEngine;
-  c     : TManagerServer_RecvTunnelData;
-begin
-  // 矫正本地连接
-  RecvTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
-    begin
-      c := (PeerClient.UserDefine as TManagerServer_RecvTunnelData);
-      if c.SuccessEnabled then
-          c.WriteConfig(FManagerWindow.ServerConfig);
-    end);
-
-  SendDE := TDataFrameEngine.Create;
-  SendDE.WriteSectionText(FManagerWindow.ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd('RegServer', SendDE);
-  DisposeObject(SendDE);
-end;
-
-procedure TManagerServer_DoubleTunnelService.Command_EnabledServer(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-var
-  cli    : TManagerServer_RecvTunnelData;
-  SendDE : TDataFrameEngine;
-  i      : Integer;
-  listcli: TManagerServer_RecvTunnelData;
-begin
-  cli := Sender.UserDefine as TManagerServer_RecvTunnelData;
-  if not cli.LinkOk then
-    begin
-      OutData.WriteBool(False);
-      OutData.WriteString('nolink');
-      exit;
-    end;
-
-  cli.ManServAddr := InData.Reader.ReadString;
-  cli.RegName := InData.Reader.ReadString;
-  cli.RegAddr := InData.Reader.ReadString;
-  cli.RegRecvPort := InData.Reader.ReadWord;
-  cli.RegSendPort := InData.Reader.ReadWord;
-  cli.LastEnabled := GetTimeTickCount;
-  cli.WorkLoad := InData.Reader.ReadWord;
-  cli.ServerType := InData.Reader.ReadByte;
-  cli.SuccessEnabled := True;
-
-  try
-      RecvTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
-      begin
-        listcli := (PeerClient.UserDefine as TManagerServer_RecvTunnelData);
-        if listcli = cli then
-            exit;
-        if SameText(listcli.RegAddr, cli.RegAddr) and (listcli.RegRecvPort = cli.RegRecvPort) and (listcli.RegSendPort = cli.RegSendPort)
-          and (listcli.ServerType = cli.ServerType) then
-          begin
-            cli.SuccessEnabled := False;
-          end;
-      end);
-  except
-  end;
-
-  if not cli.SuccessEnabled then
-    begin
-      OutData.WriteBool(False);
-      OutData.WriteString(Format('%s same server configure!!', [cli.MakeRegName]));
-      with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
-        begin
-          Data1 := Sender;
-          Data2 := cli;
-        end;
-      exit;
-    end;
-
-  cli.WriteConfig(FManagerWindow.ServerConfig);
-
-  SendDE := TDataFrameEngine.Create;
-  SendDE.WriteSectionText(FManagerWindow.ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd('RegServer', SendDE);
-  DisposeObject(SendDE);
-
-  OutData.WriteBool(True);
-  OutData.WriteString(Format('[n:%s][addr:%s][r:%d][s:%d][w:%d] registed!', [cli.RegName, cli.RegAddr, cli.RegRecvPort, cli.RegSendPort, cli.WorkLoad]));
-
-  Sender.Print('%s [n:%s][addr:%s][r:%d][s:%d][w:%d] registed', [serverType2Str(cli.ServerType), cli.RegName, cli.RegAddr, cli.RegRecvPort, cli.RegSendPort, cli.WorkLoad]);
-end;
-
-procedure TManagerServer_DoubleTunnelService.PostExecute_Disconnect(Sender: TNPostExecute);
-var
-  c: TPeerClient;
-begin
-  c := Sender.Data1 as TPeerClient;
-  c.Disconnect;
-end;
-
-procedure TManagerServer_DoubleTunnelService.Command_AntiIdle(Sender: TPeerClient; InData: TDataFrameEngine);
-var
-  cli: TManagerServer_RecvTunnelData;
-begin
-  cli := Sender.UserDefine as TManagerServer_RecvTunnelData;
-
-  cli.WorkLoad := InData.Reader.ReadWord;
-
-  cli.LastEnabled := GetTimeTickCount;
-
-  if cli.LinkOk and (FManagerWindow <> nil) then
-      cli.WriteConfig(FManagerWindow.ServerConfig);
-end;
-
-constructor TManagerServer_DoubleTunnelService.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
-begin
-  inherited Create(ARecvTunnel, ASendTunnel);
-  FRecvTunnel.PeerClientUserDefineClass := TManagerServer_RecvTunnelData;
-  FSendTunnel.PeerClientUserDefineClass := TManagerServer_SendTunnelData;
-end;
-
-destructor TManagerServer_DoubleTunnelService.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure TManagerServer_DoubleTunnelService.RegisterCommand;
-begin
-  inherited RegisterCommand;
-  FRecvTunnel.RegisterStream('EnabledServer').OnExecute := Command_EnabledServer;
-  FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := Command_AntiIdle;
-end;
-
-procedure TManagerServer_DoubleTunnelService.UnRegisterCommand;
-begin
-  inherited UnRegisterCommand;
-  FRecvTunnel.DeleteRegistedCMD('EnabledServer');
-  FRecvTunnel.DeleteRegistedCMD('AntiIdle');
-end;
-
 procedure TManagerServerForm.ProgressTimerTimer(Sender: TObject);
 begin
   try
     ManagerService.Progress;
     AccessService.ProgressBackground;
-    FManagerClients.Progress;
     ProcessICSMessages;
-  except
-  end;
-end;
 
-procedure TManagerServerForm.AntiIdleCheckTimerTimer(Sender: TObject);
-var
-  i: Integer;
-begin
-  try
-    if Memo.Lines.Count > 5000 then
-        Memo.Clear;
-  except
-  end;
+    try
+      if Memo.Lines.Count > 5000 then
+          Memo.Clear;
+    except
+    end;
 
-  try
-      RecvService.ProgressPerClient(procedure(PeerClient: TPeerClient)
-      var
-        cli: TManagerServer_RecvTunnelData;
-      begin
-        cli := PeerClient.UserDefine as TManagerServer_RecvTunnelData;
-        if GetTimeTickCount - cli.LastEnabled > 5 * 60000 then
-          begin
-            ServerConfig.Delete(cli.MakeRegName);
-            cli.Owner.Disconnect;
-          end;
-      end);
-
-  except
-  end;
-
-  try
-    FManagerClients.AntiIdle(RecvService.Count + SendService.Count);
     Caption := Format('Server Manager...(total server:%d)', [ManagerService.TotalLinkCount + 1]);
   except
   end;
-end;
-
-procedure TManagerServerForm.StartServiceButtonClick(Sender: TObject);
-begin
-  StartService;
-end;
-
-procedure TManagerServerForm.StopServiceButtonClick(Sender: TObject);
-begin
-  StopService;
-end;
-
-procedure TManagerServerForm.connectButtonClick(Sender: TObject);
-begin
-  if ShowAndConnectManagerServer(FManagerClients, 13336, 13335, cManagerServer) then
-    begin
-      FManagerClients.ServerConfig.Merge(ServerConfig);
-    end;
-end;
-
-procedure TManagerServerForm.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  StopService;
-  Action := caFree;
-end;
-
-procedure TManagerServerForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-begin
-  StopService;
-  CanClose := True;
 end;
 
 procedure TManagerServerForm.RefreshServerListButtonClick(Sender: TObject);
@@ -452,33 +106,26 @@ var
   ns: TCoreClassStringList;
   vl: THashVariantList;
 
-  ManServAddr     : string;
-  RegName, RegAddr: string;
+  ManServAddr     : SystemString;
+  RegName, RegAddr: SystemString;
   RegRecvPort     : word;
   RegSendPort     : word;
   LastEnabled     : UInt64;
   WorkLoad        : word;
-  ServerType      : byte;
+  ServerType      : TServerType;
   SuccessEnabled  : Boolean;
 
-  vDBServer, vCoreLogicServer, vManagerServer, vPayService, vPayQueryService, vUnknowServer: byte;
+  vServerVal: array [TServerType] of Integer;
 
-  n: string;
-  c: TManagerClient;
+  n: SystemString;
+  c: TServerManager_Client;
 
-  function GetServTypStat(t: byte): Integer;
+  function GetServTypStat(t: TServerType): Integer;
   begin
-    case ServerType of
-      cDBServer: Result := (vDBServer);
-      cCoreLogicServer: Result := (vCoreLogicServer);
-      cManagerServer: Result := (vManagerServer);
-      cPayService: Result := (vPayService);
-      cPayQueryService: Result := (vPayQueryService);
-      else Result := vUnknowServer;
-    end;
+    Result := vServerVal[t];
   end;
 
-  procedure PrintServerState(prefix: string; const arry: array of TCommunicationFramework);
+  procedure PrintServerState(prefix: SystemString; const arry: array of TCommunicationFramework);
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
@@ -495,13 +142,13 @@ var
             buff[st] := buff[st] + comm.Statistics[st];
       end;
 
-    for i := 0 to FManagerClients.Count - 1 do
+    for i := 0 to ManagerService.ServManClientPool.Count - 1 do
       begin
-        comm := FManagerClients[i].RecvTunnel;
+        comm := ManagerService.ServManClientPool[i].RecvTunnel;
         for st := low(TStatisticsType) to high(TStatisticsType) do
             buff[st] := buff[st] + comm.Statistics[st];
 
-        comm := FManagerClients[i].SendTunnel;
+        comm := ManagerService.ServManClientPool[i].SendTunnel;
         for st := low(TStatisticsType) to high(TStatisticsType) do
             buff[st] := buff[st] + comm.Statistics[st];
       end;
@@ -513,7 +160,7 @@ var
       end;
   end;
 
-  procedure PrintServerCMDStatistics(prefix: string; const arry: array of TCommunicationFramework);
+  procedure PrintServerCMDStatistics(prefix: SystemString; const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
     comm                               : TCommunicationFramework;
@@ -530,14 +177,14 @@ var
         ExecuteConsumeLst.SetMax(comm.CmdMaxExecuteConsumeStatistics);
       end;
 
-    for i := 0 to FManagerClients.Count - 1 do
+    for i := 0 to ManagerService.ServManClientPool.Count - 1 do
       begin
-        comm := FManagerClients[i].RecvTunnel;
+        comm := ManagerService.ServManClientPool[i].RecvTunnel;
         RecvLst.IncValue(comm.CmdRecvStatistics);
         SendLst.IncValue(comm.CmdSendStatistics);
         ExecuteConsumeLst.SetMax(comm.CmdMaxExecuteConsumeStatistics);
 
-        comm := FManagerClients[i].SendTunnel;
+        comm := ManagerService.ServManClientPool[i].SendTunnel;
         RecvLst.IncValue(comm.CmdRecvStatistics);
         SendLst.IncValue(comm.CmdSendStatistics);
         ExecuteConsumeLst.SetMax(comm.CmdMaxExecuteConsumeStatistics);
@@ -566,37 +213,25 @@ var
 
 begin
   ns := TCoreClassStringList.Create;
-  ServerConfig.GetSectionList(ns);
+  ManagerService.ServerConfig.GetSectionList(ns);
 
   TreeView.Items.BeginUpdate;
   TreeView.Items.Clear;
 
-  vDBServer := 0;
-  vCoreLogicServer := 0;
-  vManagerServer := 0;
-  vPayService := 0;
-  vPayQueryService := 0;
-  vUnknowServer := 0;
+  for ServerType := low(TServerType) to high(TServerType) do
+      vServerVal[ServerType] := 0;
 
   for i := 0 to ns.Count - 1 do
     begin
-      vl := ServerConfig.VariantList[ns[i]];
+      vl := ManagerService.ServerConfig.VariantList[ns[i]];
 
-      ServerType := vl.GetDefaultValue('Type', cUnknowServer);
-
-      case ServerType of
-        cDBServer: inc(vDBServer);
-        cCoreLogicServer: inc(vCoreLogicServer);
-        cManagerServer: inc(vManagerServer);
-        cPayService: inc(vPayService);
-        cPayQueryService: inc(vPayQueryService);
-        else inc(vUnknowServer);
-      end;
+      ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
+      inc(vServerVal[ServerType]);
     end;
 
   for i := 0 to ns.Count - 1 do
     begin
-      vl := ServerConfig.VariantList[ns[i]];
+      vl := ManagerService.ServerConfig.VariantList[ns[i]];
 
       try
         RegName := vl.GetDefaultValue('Name', '');
@@ -606,7 +241,7 @@ begin
         RegSendPort := vl.GetDefaultValue('SendPort', 0);
         LastEnabled := vl.GetDefaultValue('LastEnabled', GetTimeTickCount);
         WorkLoad := vl.GetDefaultValue('WorkLoad', 0);
-        ServerType := vl.GetDefaultValue('Type', cUnknowServer);
+        ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
 
         n := Format('Local Manager Server Configure/%s(%d)/(%d)%s/registed name: %s', [serverType2Str(ServerType), GetServTypStat(ServerType), i, RegAddr, RegName]);
         GetPathTreeNode(n, '/', TreeView, nil);
@@ -627,32 +262,10 @@ begin
     end;
 
   ns.Clear;
-  FManagerClients.ServerConfig.GetSectionList(ns);
-
-  vDBServer := 0;
-  vCoreLogicServer := 0;
-  vManagerServer := 0;
-  vPayService := 0;
-  vPayQueryService := 0;
-  vUnknowServer := 0;
-
+  ManagerService.ServManClientPool.ServerConfig.GetSectionList(ns);
   for i := 0 to ns.Count - 1 do
     begin
-      vl := FManagerClients.ServerConfig.VariantList[ns[i]];
-
-      ServerType := vl.GetDefaultValue('Type', cUnknowServer);
-
-      case ServerType of
-        cDBServer: inc(vDBServer);
-        cCoreLogicServer: inc(vCoreLogicServer);
-        cManagerServer: inc(vManagerServer);
-        else inc(vUnknowServer);
-      end;
-    end;
-
-  for i := 0 to ns.Count - 1 do
-    begin
-      vl := FManagerClients.ServerConfig.VariantList[ns[i]];
+      vl := ManagerService.ServManClientPool.ServerConfig.VariantList[ns[i]];
 
       try
         RegName := vl.GetDefaultValue('Name', '');
@@ -662,7 +275,7 @@ begin
         RegSendPort := vl.GetDefaultValue('SendPort', 0);
         LastEnabled := vl.GetDefaultValue('LastEnabled', GetTimeTickCount);
         WorkLoad := vl.GetDefaultValue('WorkLoad', 0);
-        ServerType := vl.GetDefaultValue('Type', cUnknowServer);
+        ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
 
         n := Format('Remote Server Configure/%s(%d)/(%d)%s/registed name: %s', [serverType2Str(ServerType), GetServTypStat(ServerType), i, RegAddr, RegName]);
         GetPathTreeNode(n, '/', TreeView, nil);
@@ -682,29 +295,29 @@ begin
       end;
     end;
 
-  for i := 0 to FManagerClients.Count - 1 do
+  for i := 0 to ManagerService.ServManClientPool.Count - 1 do
     begin
-      c := FManagerClients[i];
+      c := ManagerService.ServManClientPool[i];
       try
-        n := Format('connected Manager server(%d)/%d - %s/registed name: %s', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegName]);
+        n := Format('connected Manager server(%d)/%d - %s/registed name: %s', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegName]);
         GetPathTreeNode(n, '/', TreeView, nil);
 
-        n := Format('connected Manager server(%d)/%d - %s/registed address: %s', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegAddr]);
+        n := Format('connected Manager server(%d)/%d - %s/registed address: %s', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegAddr]);
         GetPathTreeNode(n, '/', TreeView, nil);
 
-        n := Format('connected Manager server(%d)/%d - %s/registed receive Port: %d', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegRecvPort]);
+        n := Format('connected Manager server(%d)/%d - %s/registed receive Port: %d', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegRecvPort]);
         GetPathTreeNode(n, '/', TreeView, nil);
 
-        n := Format('connected Manager server(%d)/%d - %s/registed send Port: %d', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegSendPort]);
+        n := Format('connected Manager server(%d)/%d - %s/registed send Port: %d', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, c.ConnectInfo.RegSendPort]);
         GetPathTreeNode(n, '/', TreeView, nil);
 
-        n := Format('connected Manager server(%d)/%d - %s/registed type: %s', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, serverType2Str(c.ConnectInfo.ServerType)]);
+        n := Format('connected Manager server(%d)/%d - %s/registed type: %s', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, serverType2Str(c.ConnectInfo.ServerType)]);
         GetPathTreeNode(n, '/', TreeView, nil);
 
-        n := Format('connected Manager server(%d)/%d - %s/connected: %s', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, BoolToStr(c.Connected, True)]);
+        n := Format('connected Manager server(%d)/%d - %s/connected: %s', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, BoolToStr(c.Connected, True)]);
         GetPathTreeNode(n, '/', TreeView, nil);
 
-        n := Format('connected Manager server(%d)/%d - %s/reconnect total: %d', [FManagerClients.Count, i + 1, c.ConnectInfo.ManServAddr, c.ReconnectTotal]);
+        n := Format('connected Manager server(%d)/%d - %s/reconnect total: %d', [ManagerService.ServManClientPool.Count, i + 1, c.ConnectInfo.ManServAddr, c.ReconnectTotal]);
         GetPathTreeNode(n, '/', TreeView, nil);
       except
       end;
@@ -718,7 +331,37 @@ begin
   DisposeObject(ns);
 end;
 
-procedure TManagerServerForm.DoStatusNear(AText: string; const ID: Integer);
+procedure TManagerServerForm.StartServiceButtonClick(Sender: TObject);
+begin
+  StartService;
+end;
+
+procedure TManagerServerForm.StopServiceButtonClick(Sender: TObject);
+begin
+  StopService;
+end;
+
+procedure TManagerServerForm.connectButtonClick(Sender: TObject);
+begin
+  if ShowAndConnectManagerServer(ManagerService.ServManClientPool, cManagerService_SendPort, cManagerService_RecvPort, TServerType.stManager) then
+    begin
+      ManagerService.ServManClientPool.ServerConfig.Merge(ManagerService.ServerConfig);
+    end;
+end;
+
+procedure TManagerServerForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  StopService;
+  Action := caFree;
+end;
+
+procedure TManagerServerForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  StopService;
+  CanClose := True;
+end;
+
+procedure TManagerServerForm.DoStatusNear(AText: SystemString; const ID: Integer);
 begin
   if StatusCheckBox.Checked then
     begin
@@ -726,10 +369,10 @@ begin
     end;
 end;
 
-function TManagerServerForm.GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
+function TManagerServerForm.GetPathTreeNode(_Value, _Split: SystemString; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
 var
   Rep_Int : Integer;
-  _Postfix: string;
+  _Postfix: SystemString;
 begin
   _Postfix := umlGetFirstStr(_Value, _Split);
   if _Value = '' then
@@ -791,87 +434,54 @@ end;
 
 procedure TManagerServerForm.Command_Query(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  i : Integer;
-  ns: TCoreClassStringList;
-  vl: THashVariantList;
+  servType: TServerType;
+  i       : Integer;
+  ns      : TListString;
+  vl      : THashVariantList;
 begin
-  ns := TCoreClassStringList.Create;
-  ServerConfig.GetSectionList(ns);
+  servType := TServerType(InData.Reader.ReadByte);
+
+  ns := TListString.Create;
+  ManagerService.ServerConfig.GetSectionList(ns);
 
   for i := 0 to ns.Count - 1 do
     begin
-      vl := ServerConfig.VariantList[ns[i]];
-      OutData.WriteVariantList(vl);
+      vl := ManagerService.ServerConfig.VariantList[ns[i]];
+      if servType = vl.GetDefaultValue('Type', TServerType.stUnknow) then
+        begin
+          OutData.WriteVariantList(vl);
+        end;
     end;
 
   DisposeObject(ns);
 end;
 
-procedure TManagerServerForm.ManagerClient_ServerConfigChange(Sender: TManagerClient; ConfigData: TSectionTextData);
+procedure TManagerServerForm.Command_QueryMinLoad(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  SendDE: TDataFrameEngine;
+  servType: TServerType;
+  i       : Integer;
+  ns      : TListString;
+  vl, mvl : THashVariantList;
 begin
-  if ServerConfig.Same(ConfigData) then
-      exit;
+  servType := TServerType(InData.Reader.ReadByte);
 
-  ServerConfig.Merge(ConfigData);
+  ns := TListString.Create;
+  ManagerService.ServerConfig.GetSectionList(ns);
 
-  SendDE := TDataFrameEngine.Create;
-  SendDE.WriteSectionText(ServerConfig);
-  SendService.BroadcastSendDirectStreamCmd('RegServer', SendDE);
-  DisposeObject(SendDE);
-end;
-
-procedure TManagerServerForm.ManagerClient_ServerOffline(Sender: TManagerClient; RegAddr: string; ServerType: byte);
-var
-  ns                     : TCoreClassStringList;
-  i                      : Integer;
-  vl                     : THashVariantList;
-  c                      : TManagerServer_RecvTunnelData;
-  existedSameOnlineServer: Boolean;
-  SendDE                 : TDataFrameEngine;
-begin
-  // 判断离线通知服务器是否属于已连接的客户端
-  existedSameOnlineServer := False;
-  RecvService.ProgressPerClient(procedure(PeerClient: TPeerClient)
+  mvl := nil;
+  for i := 0 to ns.Count - 1 do
     begin
-      c := PeerClient.UserDefine as TManagerServer_RecvTunnelData;
-      if SameText(c.RegAddr, RegAddr) and (c.ServerType = ServerType) then
-          existedSameOnlineServer := True;
-    end);
-
-  if not existedSameOnlineServer then
-    begin
-      // 删除本地配置
-      ns := TCoreClassStringList.Create;
-      ServerConfig.GetSectionList(ns);
-
-      for i := 0 to ns.Count - 1 do
+      vl := ManagerService.ServerConfig.VariantList[ns[i]];
+      if servType = vl.GetDefaultValue('Type', TServerType.stUnknow) then
         begin
-          vl := ServerConfig.VariantList[ns[i]];
-          if SameText(string(vl.GetDefaultValue('Host', RegAddr)), RegAddr) and
-            (byte(vl.GetDefaultValue('Type', ServerType)) = ServerType) then
-              ServerConfig.Delete(ns[i]);
+          if (mvl = nil) or (mvl['WorkLoad'] > vl['WorkLoad']) then
+              mvl := vl;
         end;
-      DisposeObject(ns);
-      ServerConfig.ReBuildList;
     end;
+  if mvl <> nil then
+      OutData.WriteVariantList(mvl);
 
-  // 同步所有客户端
-  // 矫正本地连接
-  RecvService.ProgressPerClient(procedure(PeerClient: TPeerClient)
-    begin
-      c := (PeerClient.UserDefine as TManagerServer_RecvTunnelData);
-      if c.SuccessEnabled then
-          c.WriteConfig(ServerConfig);
-    end);
-
-  ServerConfig.ReBuildList;
-
-  SendDE := TDataFrameEngine.Create;
-  SendDE.WriteSectionText(ServerConfig);
-  SendService.BroadcastSendDirectStreamCmd('RegServer', SendDE);
-  DisposeObject(SendDE);
+  DisposeObject(ns);
 end;
 
 procedure TManagerServerForm.PostExecute_DelayStartService(Sender: TNPostExecute);
@@ -879,13 +489,27 @@ begin
   StartService;
 end;
 
+procedure TManagerServerForm.PostExecute_DelayRegService(Sender: TNPostExecute);
+begin
+  if AutoConnectManagerServer(ManagerService.ServManClientPool,
+    Sender.Data3, Sender.Data4, umlStrToInt(SendPortEdit.Text, cManagerService_SendPort), umlStrToInt(RecvPortEdit.Text, cManagerService_RecvPort), TServerType.stManager) then
+    begin
+      ManagerService.ServManClientPool.ServerConfig.Merge(ManagerService.ServerConfig);
+    end;
+end;
+
 constructor TManagerServerForm.Create(AOwner: TComponent);
 var
   i, pcount: Integer;
-  p1, p2   : string;
+  p1, p2   : SystemString;
 
   delayStartService    : Boolean;
   delayStartServiceTime: Double;
+
+  delayReg    : Boolean;
+  delayRegTime: Double;
+  ManServAddr : SystemString;
+  RegAddr     : SystemString;
 begin
   inherited Create(AOwner);
   AddDoStatusHook(Self, DoStatusNear);
@@ -898,19 +522,18 @@ begin
   AccessService := TCommunicationFramework_Server_CrossSocket.Create;
   AccessService.IdleTimeout := 5000;
   AccessService.RegisterStream('Query').OnExecute := Command_Query;
+  AccessService.RegisterStream('QueryMinLoad').OnExecute := Command_QueryMinLoad;
 
-  ManagerService := TManagerServer_DoubleTunnelService.Create(RecvService, SendService);
+  ManagerService := TServerManager.Create(RecvService, SendService, TCommunicationFramework_Client_CrossSocket);
   ManagerService.CanStatus := True;
   ManagerService.RegisterCommand;
 
   Memo.Lines.Add(WSAInfo);
   Memo.Lines.Add(Format('File Receive directory %s', [ManagerService.FileReceiveDirectory]));
 
-  ServerConfig := TSectionTextData.Create;
-
-  FManagerClients := TManagerClients.Create;
-  FManagerClients.OnServerConfigChange := ManagerClient_ServerConfigChange;
-  FManagerClients.OnServerOffline := ManagerClient_ServerOffline;
+  RecvPortEdit.Text := IntToStr(cManagerService_RecvPort);
+  SendPortEdit.Text := IntToStr(cManagerService_SendPort);
+  QueryPortEdit.Text := IntToStr(cManagerService_QueryPort);
 
   delayStartService := False;
   delayStartServiceTime := 1.0;
@@ -924,6 +547,27 @@ begin
             if umlMultipleMatch(['NoStatus', 'NoInfo', '-NoStatus', '-NoInfo'], p1) then
               begin
                 StatusCheckBox.Checked := False;
+              end;
+
+            if umlMultipleMatch(['Recv:*', 'r:*', 'Receive:*', '-r:*', '-recv:*', '-receive:*'], p1) then
+              begin
+                p2 := umlDeleteFirstStr(p1, ':');
+                if umlIsNumber(p2) then
+                    RecvPortEdit.Text := p2;
+              end;
+
+            if umlMultipleMatch(['Send:*', 's:*', '-s:*', '-Send:*'], p1) then
+              begin
+                p2 := umlDeleteFirstStr(p1, ':');
+                if umlIsNumber(p2) then
+                    SendPortEdit.Text := p2;
+              end;
+
+            if umlMultipleMatch(['Query:*', 'q:*', '-q:*', '-Query:*'], p1) then
+              begin
+                p2 := umlDeleteFirstStr(p1, ':');
+                if umlIsNumber(p2) then
+                    QueryPortEdit.Text := p2;
               end;
 
             if umlMultipleMatch(['ipv6', '-6', '-ipv6', '-v6'], p1) then
@@ -956,6 +600,27 @@ begin
                 delayStartService := True;
                 delayStartServiceTime := 1.0;
               end;
+
+            if umlMultipleMatch(['ManagerServer:*', 'Manager:*', 'ManServ:*', 'ManServer:*',
+              '-ManagerServer:*', '-Manager:*', '-ManServ:*', '-ManServer:*'], p1) then
+              begin
+                ManServAddr := umlTrimSpace(umlDeleteFirstStr(p1, ':'));
+              end;
+
+            if umlMultipleMatch(['RegAddress:*', 'RegistedAddress:*', 'RegAddr:*', 'RegistedAddr:*',
+              '-RegAddress:*', '-RegistedAddress:*', '-RegAddr:*', '-RegistedAddr:*'], p1) then
+              begin
+                RegAddr := umlTrimSpace(umlDeleteFirstStr(p1, ':'));
+              end;
+
+            if umlMultipleMatch(['DelayRegManager:*', 'DelayReg:*', 'DelayRegisted:*', 'DelayRegMan:*',
+              '-DelayRegManager:*', '-DelayReg:*', '-DelayRegisted:*', '-DelayRegMan:*'], p1) then
+              begin
+                delayReg := True;
+                p2 := umlDeleteFirstStr(p1, ':');
+                if umlIsNumber(p2) then
+                    delayRegTime := umlStrToInt(p2, 1);
+              end;
           end;
       end;
   except
@@ -965,6 +630,16 @@ begin
     begin
       with ManagerService.ProgressEngine.PostExecute(delayStartServiceTime) do
           OnExecuteMethod := PostExecute_DelayStartService;
+    end;
+
+  if delayReg then
+    begin
+      with ManagerService.ProgressEngine.PostExecute(delayRegTime) do
+        begin
+          Data3 := ManServAddr;
+          Data4 := RegAddr;
+          OnExecuteMethod := PostExecute_DelayRegService;
+        end;
     end;
 
   DoStatus('');
@@ -979,10 +654,6 @@ begin
   DisposeObject(AccessService);
   DisposeObject(ManagerService);
 
-  DisposeObject(ServerConfig);
-
-  DisposeObject(FManagerClients);
-
   DeleteDoStatusHook(Self);
   try
       inherited Destroy;
@@ -993,36 +664,31 @@ end;
 procedure TManagerServerForm.StartService;
 begin
   StopService;
-  if AccessService.StartService(BindIPEdit.Text, 8388) then
-      DoStatus('Manager Access Service ready Ok! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), '8388'])
+  if AccessService.StartService(BindIPEdit.Text, umlStrToInt(QueryPortEdit.Text, cManagerService_QueryPort)) then
+      DoStatus('Manager Access Service ready Ok! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), QueryPortEdit.Text])
   else
-      MessageDlg(Format('Manager Access Service Failed! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), '8388']),
+      MessageDlg(Format('Manager Access Service Failed! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), QueryPortEdit.Text]),
       mtError, [mbYes], 0);
 
-  if RecvService.StartService(BindIPEdit.Text, 13335) then
-      DoStatus('Manager Receive tunnel ready Ok! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), '13335'])
+  if RecvService.StartService(BindIPEdit.Text, umlStrToInt(RecvPortEdit.Text, cManagerService_RecvPort)) then
+      DoStatus('Receive tunnel ready Ok! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), RecvPortEdit.Text])
   else
-      MessageDlg(Format('Manager Receive tunnel Failed! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), '13335']),
+      MessageDlg(Format('Receive tunnel Failed! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), RecvPortEdit.Text]),
       mtError, [mbYes], 0);
 
-  if SendService.StartService(BindIPEdit.Text, 13336) then
-      DoStatus('Manager Send tunnel ready Ok! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), '13336'])
+  if SendService.StartService(BindIPEdit.Text, umlStrToInt(SendPortEdit.Text, cManagerService_SendPort)) then
+      DoStatus('Send tunnel ready Ok! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), SendPortEdit.Text])
   else
-      MessageDlg(Format('Manager Send tunnel Failed! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), '13336']),
+      MessageDlg(Format('Send tunnel Failed! bind:%s port:%s', [TranslateBindAddr(BindIPEdit.Text), SendPortEdit.Text]),
       mtError, [mbYes], 0);
-
-  // RecvService.IDCounter := 100;
-  ManagerService.FManagerWindow := Self;
 end;
 
 procedure TManagerServerForm.StopService;
 begin
-  ManagerService.FManagerWindow := nil;
   try
     AccessService.StopService;
     RecvService.StopService;
     SendService.StopService;
-    FManagerClients.Clear;
   except
   end;
 end;

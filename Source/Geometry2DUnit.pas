@@ -385,7 +385,7 @@ type
     function GetMinimumFromPointToLine(const pt: TVec2; const ExpandDist: TGeoFloat): TVec2; overload;
     procedure CutLineBeginPtToIdx(const pt: TVec2; const toidx: Integer);
 
-    procedure Translation(X, Y: TGeoFloat); overload;
+    procedure Transform(X, Y: TGeoFloat); overload;
     procedure Mul(X, Y: TGeoFloat); overload;
 
     property Items[index: Integer]: PVec2 read GetPoints;
@@ -3685,7 +3685,7 @@ begin
   Items[0]^ := pt;
 end;
 
-procedure TVec2List.Translation(X, Y: TGeoFloat);
+procedure TVec2List.Transform(X, Y: TGeoFloat);
 var
   i: Integer;
   p: PVec2;

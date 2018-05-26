@@ -147,6 +147,37 @@ type
 
   {$ENDIF}
 
+  TComputeThread = class(TCoreClassThread)
+  private type
+    TRunWithThreadCall               = procedure(Sender: TComputeThread);
+    TRunWithThreadMethod             = procedure(Sender: TComputeThread) of object;
+    {$IFNDEF FPC} TRunWithThreadProc = reference to procedure(Sender: TComputeThread); {$ENDIF FPC}
+  protected
+    OnRunCall: TRunWithThreadCall;
+    OnRunMethod: TRunWithThreadMethod;
+    {$IFNDEF FPC}
+    OnRunProc: TRunWithThreadProc;
+    {$ENDIF FPC}
+    OnDoneCall: TRunWithThreadCall;
+    OnDoneMethod: TRunWithThreadMethod;
+    {$IFNDEF FPC}
+    OnDoneProc: TRunWithThreadProc;
+    {$ENDIF FPC}
+    procedure Execute; override;
+    procedure Done_Sync;
+  public
+    UserData: Pointer;
+    UserObject: TCoreClassObject;
+
+    constructor Create;
+    class function RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall): TComputeThread;
+    class function RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod): TComputeThread;
+    {$IFNDEF FPC}
+    class function RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc): TComputeThread;
+    {$ENDIF FPC}
+  end;
+
+
   TExecutePlatform = (epWin32, epWin64, epOSX, epIOS, epIOSSIM, epANDROID, epLinux64, epUnknow);
 
 const
@@ -590,6 +621,100 @@ begin
 end;
 
 {$ENDIF}
+
+
+
+procedure TComputeThread.Execute;
+begin
+  try
+    if Assigned(OnRunCall) then
+        OnRunCall(Self);
+    if Assigned(OnRunMethod) then
+        OnRunMethod(Self);
+    {$IFNDEF FPC}
+    if Assigned(OnRunProc) then
+        OnRunProc(Self);
+    {$ENDIF FPC}
+  except
+  end;
+
+  {$IFDEF FPC}
+  Synchronize(@Done_Sync);
+  {$ELSE FPC}
+  Synchronize(Done_Sync);
+  {$ENDIF FPC}
+end;
+
+procedure TComputeThread.Done_Sync;
+begin
+  try
+    if Assigned(OnDoneCall) then
+        OnDoneCall(Self);
+    if Assigned(OnDoneMethod) then
+        OnDoneMethod(Self);
+    {$IFNDEF FPC}
+    if Assigned(OnDoneProc) then
+        OnDoneProc(Self);
+    {$ENDIF FPC}
+  except
+  end;
+end;
+
+constructor TComputeThread.Create;
+begin
+  inherited Create(True);
+  FreeOnTerminate := True;
+
+  OnRunCall := nil;
+  OnRunMethod := nil;
+  {$IFNDEF FPC} OnRunProc := nil; {$ENDIF FPC}
+  OnDoneCall := nil;
+  OnDoneMethod := nil;
+  {$IFNDEF FPC} OnDoneProc := nil; {$ENDIF FPC}
+  UserData := nil;
+  UserObject := nil;
+end;
+
+class function TComputeThread.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall): TComputeThread;
+begin
+  Result := TComputeThread.Create;
+  Result.FreeOnTerminate := True;
+
+  Result.OnRunCall := OnRun;
+  Result.OnDoneCall := OnDone;
+  Result.UserData := Data;
+  Result.UserObject := Obj;
+  Result.Suspended := False;
+end;
+
+class function TComputeThread.RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod): TComputeThread;
+begin
+  Result := TComputeThread.Create;
+  Result.FreeOnTerminate := True;
+
+  Result.OnRunMethod := OnRun;
+  Result.OnDoneMethod := OnDone;
+  Result.UserData := Data;
+  Result.UserObject := Obj;
+  Result.Suspended := False;
+end;
+
+{$IFNDEF FPC}
+
+
+class function TComputeThread.RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc): TComputeThread;
+begin
+  Result := TComputeThread.Create;
+  Result.FreeOnTerminate := True;
+
+  Result.OnRunProc := OnRun;
+  Result.OnDoneProc := OnDone;
+  Result.UserData := Data;
+  Result.UserObject := Obj;
+  Result.Suspended := False;
+end;
+{$ENDIF FPC}
+
 
 initialization
   InitCriticalLock;

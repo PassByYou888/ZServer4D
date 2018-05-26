@@ -16,11 +16,12 @@ type
     stFOGCompute,   // Infinite deploy
     stCloudCompute, // Infinite deploy
     stHPCCompute,   // Infinite deploy
-    stHPCMatcher,   // Infinite deploy
-    stHPCSort,      // Infinite deploy
-    stTranslate,    // Infinite deploy
     stMatrix,       // Infinite deploy
-    stLearn         // Infinite deploy
+    stVec,          // Infinite deploy
+    stLearn,        // Infinite deploy
+    stImage,        // Infinite deploy
+    stWave,         // Infinite deploy
+    stOCR           // Infinite deploy
     );
   TServerTypes = set of TServerType;
 

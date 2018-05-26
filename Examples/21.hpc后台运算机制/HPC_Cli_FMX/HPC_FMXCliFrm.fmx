@@ -1,0 +1,83 @@
+object FMXDoubleClientForm: TFMXDoubleClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx Double client...'
+  ClientHeight = 315
+  ClientWidth = 612
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'HPC'#21518#21488#36816#31639#26381#21153#22120#28436#31034
+      ''
+      #21518#21488#36816#31639#21344#29992#26381#21153#22120#36164#28304#26102#38388#20026#38646
+      ''
+      'HPC'#21518#21488#28436#31034#38750#24120#36866#21512#22823#35268#27169#36816#31639#38656#27714
+      ''
+      #25216#26415#26426#21046#20027#35201#38598#20013#20110#26381#21153#22120#31471#30340#22823#35268#27169#36816#31639
+      #24403#26381#21153#22120#25910#21040#19968#26465'StreamCMD'#27169#24335#30340#21629#20196#26102#65292#20256#32479#30340#22788#29702#21150#27861#20026#22788#29702#21629#20196#20013#26381#21153#22120#26159#38459#22622#30340#65292#21035#30340#35831#27714#37117#20250#22312#31561#24453#20013
+      #25105#20204#22312#27492#21051#19981#35753#26381#21153#22120#38459#22622#65292#25105#20204#20351#29992#24310#36831#25216#26415#65292#21578#35785#21518#21488#26242#20572#21453#39304'(PauseResultSend)'
+      #28982#21518#65292#25105#20204#20877#24320#21551#19968#20010#21518#21488#32447#31243#65292#24453#32447#31243#25191#34892#23436#25104#21518#65292#20877#35753#21518#21488#32487#32493#21453#39304'(ContinueResultSend)'
+      ''
+      #22312'HPC'#21518#21488#28436#31034#31243#24207#20013#65292#20197#19978#27969#31243#26159#33258#21160#21270#36827#34892#30340#65292#23427#20351#29992#24456#31616#21333#65292#20351#29992#35813#27169#24335#21487#20197#26080#38480#22534#31215#20195#30721
+      ''
+      ''
+      'by.600585'
+      '2018-5-22')
+    ReadOnly = True
+    Align = Client
+    Margins.Left = 130.000000000000000000
+    Size.Width = 482.000000000000000000
+    Size.Height = 315.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 478.000000000000000000
+    Viewport.Height = 295.000000000000000000
+  end
+  object connectButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object HelloWorldBtn: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Hello World'
+    OnClick = HelloWorldBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+end

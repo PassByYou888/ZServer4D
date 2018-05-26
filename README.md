@@ -60,6 +60,14 @@ OSX: Indy(C/S OK)，ICS(未测试), CrossSocket(C/S OK)
 
 [部署Ubuntu服务器的开发环境](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E9%83%A8%E7%BD%B2Ubuntu%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84Delphi%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.pdf)
 
+[BatchStream机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/BatchStream%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
+
+[HPC服务器的工作机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/HPC%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
+
+[延迟反馈机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%BB%B6%E8%BF%9F%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
+
+[云调度服务器用法详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E4%BA%91%E8%B0%83%E5%BA%A6%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%94%A8%E6%B3%95%E8%AF%A6%E8%A7%A3.pdf)
+
 [百度翻译服务后台(支持Ubuntu16.04LTS服务器)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0%E8%8C%83%E5%BC%8F.pdf)
   [百度翻译服务API(支持Ubuntu16.04LTS服务器)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1%E7%9A%84API%E8%B0%83%E7%94%A8%E8%8C%83%E4%BE%8B.pdf) 
  
@@ -146,24 +154,18 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 ## 最后一更新日志
 
-- 完全移除Pasmp，并行线程的触发面积现在是根据Cpu*2进行展开，安全并行化仍然保持支持Linux，IOS，Android，windows，OSX等主流系统
-- 新增HPC内核（延迟线程技术）
-- HPC内核暂无Demo，稍等几天会补充上Demo
-- 新增10种云服务器种类，稍等几天会补充上Demo
-- CrossSocket客户端的连接池现在会自动释放
-- ICS客户端在关闭时，会自动释放内存（检测内存泄漏可以用ICS，无泄漏后，再换成DIOCP or Cross）
-- 已测试过所有服务器，无内存泄漏，ICSSever,IndyServer,DIOCP,CrossSocketServer
-- 修复CrossSocket服务器的连接在关闭后，仍然可以获取到客户端IP的问题
-- TDataFrameEngine新增对TListPascalString，TListString, THashStringList支持
-- ZDB新增压缩+Copy信息反馈机制，当我们大量使用StorePos在记录条目位置，这时候ZDB被压缩后，StorePos将会变化，ZDB现在能够反馈这一变化
-- ZDB网络数据库同步支持ZDB的StorePos变化反馈机制，当ZDB被压缩或则Copy时，客户端将搜到StorePos变化事件
-- TPascalString的GetChar机制更改：当Index超过字符串长度时，返回#0
-- TUPascalString面向FPC设计的Unicode字符串同步更新GetChar机制，与TPascalString一致
-- CoreClasses中的更新：LockObject+LockID，兼容所有平台与并行化调用
-- Geometry2DUnit，2D相关支持的几何库大量更新
-- 本次所有更新均已在FPC(3.0.4)+Laz(1.8)下测试通过
-- 本次更新了大量内核基础库，已做过系统测试，建议更新
-- 本次更新并没有新增Demo
+### 2018-5-26 基于云服务器的开发工艺在本次已经升级
+
+- 删除了云服务器模型1.0及其Demo
+- 原商业云服务器框架2.0被移动至Demo中
+- 新版本云服务器模型并入到了 ServiceApiModel 中
+- 新版本的云服务器模型具备低门槛的技术基因，支持了在Linux系统架设云服务器后台，整个模型只有一个300行代码的群集调度服务器，外加两个附属Demo和一份调度服务器的用法详解文档
+- 新增一个HPC服务器的使用Demo
+- 新增技术文档，BatchStream机制详解.pdf
+- 新增技术文档，HPC服务器的工作机制详解.pdf
+- 新增技术文档，延迟反馈机制详解.pdf
+- 新增技术文档，云调度服务器用法详解.pdf
+- 本次更新未对反向代理更新，反向代理工具系列将留在下次更新一并升级
 
 
 [更多更新日志](https://github.com/PassByYou888/ZServer4D/update.md)

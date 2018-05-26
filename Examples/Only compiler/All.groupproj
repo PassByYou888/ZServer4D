@@ -9,12 +9,6 @@
         <Projects Include="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\5.登录式高级云服务器\DBServer\DBServer.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="..\3.双向交互服务器框架\DCli\DClient.dproj">
             <Dependencies/>
         </Projects>
@@ -54,9 +48,6 @@
         <Projects Include="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj">
             <Dependencies/>
         </Projects>
@@ -64,9 +55,6 @@
             <Dependencies/>
         </Projects>
         <Projects Include="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\13.内存分析钩子的使用\MHDemo.dproj">
@@ -132,6 +120,15 @@
         <Projects Include="..\20.Linux服务器HelloWorld\ClientToLinuxServer\ClientToLinuxServer.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -157,24 +154,6 @@
     </Target>
     <Target Name="ARMCPUTest:Make">
         <MSBuild Projects="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="CoreLogicServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj"/>
-    </Target>
-    <Target Name="CoreLogicServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="CoreLogicServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\CoreLogicServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="DBServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj"/>
-    </Target>
-    <Target Name="DBServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="DBServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\DBServer\DBServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="DClient">
         <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj"/>
@@ -293,15 +272,6 @@
     <Target Name="FMXClient2:Make">
         <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj" Targets="Make"/>
     </Target>
-    <Target Name="FMXCloudClient">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj"/>
-    </Target>
-    <Target Name="FMXCloudClient:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXCloudClient:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient\FMXCloudClient.dproj" Targets="Make"/>
-    </Target>
     <Target Name="FMXDClient">
         <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj"/>
     </Target>
@@ -328,15 +298,6 @@
     </Target>
     <Target Name="FMXServer:Make">
         <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ManagerServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
-    </Target>
-    <Target Name="ManagerServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ManagerServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="MHDemo">
         <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj"/>
@@ -527,14 +488,41 @@
     <Target Name="ClientToLinuxServer:Make">
         <MSBuild Projects="..\20.Linux服务器HelloWorld\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Make"/>
     </Target>
+    <Target Name="HPC_Server">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj"/>
+    </Target>
+    <Target Name="HPC_Server:Clean">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Server:Make">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj"/>
+    </Target>
+    <Target Name="HPC_Client:Clean">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client:Make">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client_FMX">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Clean">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Make">
+        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="AFDRServer;ARMCPUTest;CoreLogicServer;DBServer;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXCloudClient;FMXDClient;FMXDRClient;FMXServer;ManagerServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol;MD5PerformanceTest;TextParsingDemo;EZLinuxServ;ClientToLinuxServer"/>
+        <CallTarget Targets="AFDRServer;ARMCPUTest;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol;MD5PerformanceTest;TextParsingDemo;EZLinuxServ;ClientToLinuxServer;HPC_Server;HPC_Client;HPC_Client_FMX"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;CoreLogicServer:Clean;DBServer:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXCloudClient:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;ManagerServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean;MD5PerformanceTest:Clean;TextParsingDemo:Clean;EZLinuxServ:Clean;ClientToLinuxServer:Clean"/>
+        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean;MD5PerformanceTest:Clean;TextParsingDemo:Clean;EZLinuxServ:Clean;ClientToLinuxServer:Clean;HPC_Server:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;CoreLogicServer:Make;DBServer:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXCloudClient:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;ManagerServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make;MD5PerformanceTest:Make;TextParsingDemo:Make;EZLinuxServ:Make;ClientToLinuxServer:Make"/>
+        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make;MD5PerformanceTest:Make;TextParsingDemo:Make;EZLinuxServ:Make;ClientToLinuxServer:Make;HPC_Server:Make;HPC_Client:Make;HPC_Client_FMX:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

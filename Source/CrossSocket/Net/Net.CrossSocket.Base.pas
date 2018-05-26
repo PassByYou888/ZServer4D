@@ -843,10 +843,10 @@ end;
 
 procedure _Log(const S: string); overload;
 begin
-  if IsConsole then
-    Writeln(S)
-  else
-    AppendLog(S);
+//  if IsConsole then
+//    Writeln(S)
+//  else
+//    AppendLog(S);
 end;
 
 procedure _Log(const Fmt: string; const Args: array of const); overload;
@@ -862,8 +862,7 @@ var
 begin
   {$IFDEF DEBUG}
   LError := GetLastError;
-  _Log('System Error.  Code: %0:d(%0:.4x), %1:s',
-    [LError, SysErrorMessage(LError)]);
+  _Log('System Error.  Code: %0:d(%0:.4x), %1:s', [LError, SysErrorMessage(LError)]);
   {$ENDIF}
 end;
 
@@ -908,8 +907,8 @@ end;
 
 procedure TAbstractCrossSocket.CloseAll;
 begin
-  CloseAllConnections;
   CloseAllListens;
+  CloseAllConnections;
 end;
 
 procedure TAbstractCrossSocket.CloseAllConnections;
