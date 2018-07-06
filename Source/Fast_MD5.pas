@@ -6,18 +6,20 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 unit Fast_MD5;
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
 
 uses CoreClasses, UnicodeMixedLib;
 
-function FastMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5; overload;
-function FastMD5(Stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5; overload;
+function FastMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5; overload;
+function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5; overload;
 
 implementation
 
@@ -99,38 +101,38 @@ uses MemoryStream64;
 
 procedure MD5_Transform(var Accu; const Buf); register; external;
 
-function FastMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
+function FastMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5;
 var
-  digest : TMD5;
+  Digest : TMD5;
   Lo, Hi : Cardinal;
-  p      : PBYTE;
+  p      : PByte;
   WorkLen: Byte;
   WorkBuf: array [0 .. 63] of Byte;
 begin
   Lo := 0;
   Hi := 0;
-  PCardinal(@digest[0])^ := $67452301;
-  PCardinal(@digest[4])^ := $EFCDAB89;
-  PCardinal(@digest[8])^ := $98BADCFE;
-  PCardinal(@digest[12])^ := $10325476;
+  PCardinal(@Digest[0])^ := $67452301;
+  PCardinal(@Digest[4])^ := $EFCDAB89;
+  PCardinal(@Digest[8])^ := $98BADCFE;
+  PCardinal(@Digest[12])^ := $10325476;
 
-  Inc(Lo, BufSiz shl 3);
-  Inc(Hi, BufSiz shr 29);
+  Inc(Lo, bufSiz shl 3);
+  Inc(Hi, bufSiz shr 29);
 
-  p := BuffPtr;
+  p := buffPtr;
 
-  while BufSiz >= $40 do
+  while bufSiz >= $40 do
     begin
-      MD5_Transform(digest, p^);
+      MD5_Transform(Digest, p^);
       Inc(p, $40);
-      Dec(BufSiz, $40);
+      Dec(bufSiz, $40);
     end;
-  if BufSiz > 0 then
-      CopyPtr(p, @WorkBuf[0], BufSiz);
+  if bufSiz > 0 then
+      CopyPtr(p, @WorkBuf[0], bufSiz);
 
-  Result := PMD5(@digest[0])^;
-  WorkBuf[BufSiz] := $80;
-  WorkLen := BufSiz + 1;
+  Result := PMD5(@Digest[0])^;
+  WorkBuf[bufSiz] := $80;
+  WorkLen := bufSiz + 1;
   if WorkLen > $38 then
     begin
       if WorkLen < $40 then
@@ -144,83 +146,80 @@ begin
   MD5_Transform(Result, WorkBuf);
 end;
 
-function FastMD5(Stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
+function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
 const
   deltaSize = $40 * $FFFF;
 
 var
-  digest  : TMD5;
+  Digest  : TMD5;
   Lo, Hi  : Cardinal;
   DeltaBuf: Pointer;
-  BufSiz  : Int64;
-  rest    : Cardinal;
-  p       : PBYTE;
+  bufSiz  : Int64;
+  Rest    : Cardinal;
+  p       : PByte;
   WorkLen : Byte;
   WorkBuf : array [0 .. 63] of Byte;
 begin
   {$IFDEF OptimizationMemoryStreamMD5}
-  if Stream is TCoreClassMemoryStream then
+  if stream is TCoreClassMemoryStream then
     begin
-      Result := FastMD5(Pointer(NativeUInt(TCoreClassMemoryStream(Stream).Memory) + StartPos), EndPos - StartPos);
-      exit;
+      Result := FastMD5(Pointer(nativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
+      Exit;
     end;
-  if Stream is TMemoryStream64 then
+  if stream is TMemoryStream64 then
     begin
-      Result := FastMD5(TMemoryStream64(Stream).PositionAsPtr(StartPos), EndPos - StartPos);
-      exit;
+      Result := FastMD5(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
+      Exit;
     end;
   {$ENDIF}
   //
   Lo := 0;
   Hi := 0;
-  PCardinal(@digest[0])^ := $67452301;
-  PCardinal(@digest[4])^ := $EFCDAB89;
-  PCardinal(@digest[8])^ := $98BADCFE;
-  PCardinal(@digest[12])^ := $10325476;
+  PCardinal(@Digest[0])^ := $67452301;
+  PCardinal(@Digest[4])^ := $EFCDAB89;
+  PCardinal(@Digest[8])^ := $98BADCFE;
+  PCardinal(@Digest[12])^ := $10325476;
 
-  BufSiz := EndPos - StartPos;
-  rest := 0;
+  bufSiz := EndPos - StartPos;
+  Rest := 0;
 
-  if (BufSiz shl 3) < 0 then
-      Inc(Hi);
-
-  Inc(Lo, BufSiz shl 3);
-  Inc(Hi, BufSiz shr 29);
+  Inc(Lo, bufSiz shl 3);
+  Inc(Hi, bufSiz shr 29);
 
   DeltaBuf := GetMemory(deltaSize);
-  Stream.Position := StartPos;
+  stream.Position := StartPos;
 
-  if BufSiz < $40 then
+  if bufSiz < $40 then
     begin
-      Stream.Read(DeltaBuf^, BufSiz);
+      stream.read(DeltaBuf^, bufSiz);
       p := DeltaBuf;
     end
   else
-    while BufSiz >= $40 do
+    while bufSiz >= $40 do
       begin
-        if rest = 0 then
+        if Rest = 0 then
           begin
-            if BufSiz >= deltaSize then
-                rest := Stream.Read(DeltaBuf^, deltaSize)
+            if bufSiz >= deltaSize then
+                Rest := stream.read(DeltaBuf^, deltaSize)
             else
-                rest := Stream.Read(DeltaBuf^, BufSiz);
+                Rest := stream.read(DeltaBuf^, bufSiz);
 
             p := DeltaBuf;
           end;
-        MD5_Transform(digest, p^);
+        MD5_Transform(Digest, p^);
         Inc(p, $40);
-        Dec(BufSiz, $40);
-        Dec(rest, $40);
+        Dec(bufSiz, $40);
+        Dec(Rest, $40);
       end;
 
-  if BufSiz > 0 then
-      CopyPtr(p, @WorkBuf[0], BufSiz);
+  if bufSiz > 0 then
+      CopyPtr(p, @WorkBuf[0], bufSiz);
 
   FreeMemory(DeltaBuf);
 
-  Result := PMD5(@digest[0])^;
-  WorkBuf[BufSiz] := $80;
-  WorkLen := BufSiz + 1;
+  Result := PMD5(@Digest[0])^;
+  WorkBuf[bufSiz] := $80;
+  WorkLen := bufSiz + 1;
   if WorkLen > $38 then
     begin
       if WorkLen < $40 then
@@ -237,16 +236,16 @@ end;
 {$ELSE}
 
 
-function FastMD5(const BuffPtr: PBYTE; BufSiz: NativeUInt): TMD5;
+function FastMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5;
 begin
-  Result := umlMD5(BuffPtr, BufSiz);
+  Result := umlMD5(buffPtr, bufSiz);
 end;
 
-function FastMD5(Stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
+function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
 begin
-  Result := umlStreamMD5(Stream, StartPos, EndPos);
+  Result := umlStreamMD5(stream, StartPos, EndPos);
 end;
 
 {$ENDIF Defined(MSWINDOWS) and Defined(Delphi)}
 
-end.
+end. 

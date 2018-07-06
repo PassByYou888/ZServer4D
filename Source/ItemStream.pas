@@ -6,6 +6,8 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -13,7 +15,7 @@
 
 unit ItemStream;
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
@@ -23,7 +25,7 @@ uses SysUtils, CoreClasses, Classes, UnicodeMixedLib, ObjectData, ObjectDataMana
 type
   TItemStream = class(TCoreClassStream)
   private
-    FItemHnd : TItemHandle;
+    FItemHnd: TItemHandle;
     FDBEngine: TObjectDataManager;
   protected
     function GetSize: Int64; override;
@@ -38,10 +40,10 @@ type
     procedure SaveToFile(fn: SystemString);
     procedure LoadFromFile(fn: SystemString);
 
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
+    function read(var buffer; Count: longint): longint; override;
+    function write(const buffer; Count: longint): longint; override;
+    function Seek(Offset: longint; origin: Word): longint; overload; override;
+    function Seek(const Offset: Int64; origin: TSeekOrigin): Int64; overload; override;
     procedure SeekStart;
     procedure SeekLast;
     function UpdateHandle: Boolean;
@@ -73,7 +75,7 @@ var
   ihnd: TItemHandle;
 begin
   inherited Create;
-  DBEngine.ItemAutoConnect(DBPath, DBItem, DBItem, ihnd);
+  DBEngine.ItemAutoOpenOrCreate(DBPath, DBItem, DBItem, ihnd);
   ChangeHandle(DBEngine, ihnd);
 end;
 
@@ -105,31 +107,31 @@ end;
 
 procedure TItemStream.SaveToFile(fn: SystemString);
 var
-  Stream: TCoreClassStream;
+  stream: TCoreClassStream;
 begin
-  Stream := TCoreClassFileStream.Create(fn, fmCreate);
+  stream := TCoreClassFileStream.Create(fn, fmCreate);
   try
-      Stream.CopyFrom(Self, size);
+      stream.CopyFrom(Self, Size);
   finally
-      DisposeObject(Stream);
+      DisposeObject(stream);
   end;
 end;
 
 procedure TItemStream.LoadFromFile(fn: SystemString);
 var
-  Stream: TCoreClassStream;
+  stream: TCoreClassStream;
 begin
-  Stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
   try
-      CopyFrom(Stream, Stream.size);
+      CopyFrom(stream, stream.Size);
   finally
-      DisposeObject(Stream);
+      DisposeObject(stream);
   end;
 end;
 
-function TItemStream.Read(var Buffer; Count: Longint): Longint;
+function TItemStream.read(var buffer; Count: longint): longint;
 var
-  _P   : Int64;
+  _P: Int64;
   _Size: Int64;
 begin
   Result := 0;
@@ -139,27 +141,27 @@ begin
       _Size := FDBEngine.ItemGetSize(FItemHnd);
       if _P + Count <= _Size then
         begin
-          if FDBEngine.ItemRead(FItemHnd, Count, PByte(@Buffer)^) then
+          if FDBEngine.ItemRead(FItemHnd, Count, PByte(@buffer)^) then
               Result := Count;
         end
-      else if FDBEngine.ItemRead(FItemHnd, _Size - _P, PByte(@Buffer)^) then
+      else if FDBEngine.ItemRead(FItemHnd, _Size - _P, PByte(@buffer)^) then
           Result := _Size - _P;
     end;
 end;
 
-function TItemStream.Write(const Buffer; Count: Longint): Longint;
+function TItemStream.write(const buffer; Count: longint): longint;
 begin
   Result := Count;
   if (Count > 0) then
-    if not FDBEngine.ItemWrite(FItemHnd, Count, PByte(@Buffer)^) then
+    if not FDBEngine.ItemWrite(FItemHnd, Count, PByte(@buffer)^) then
       begin
         Result := 0;
       end;
 end;
 
-function TItemStream.Seek(Offset: Longint; Origin: Word): Longint;
+function TItemStream.Seek(Offset: longint; origin: Word): longint;
 begin
-  case Origin of
+  case origin of
     soFromBeginning:
       begin
         FDBEngine.ItemSeek(FItemHnd, Offset);
@@ -177,9 +179,9 @@ begin
   Result := FDBEngine.ItemGetPos(FItemHnd);
 end;
 
-function TItemStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+function TItemStream.Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
 begin
-  case Origin of
+  case origin of
     TSeekOrigin.soBeginning:
       begin
         FDBEngine.ItemSeek(FItemHnd, Offset);
@@ -228,4 +230,4 @@ begin
   inherited Destroy;
 end;
 
-end.
+end. 

@@ -5,14 +5,14 @@ interface
 uses SysUtils, Classes;
 
 // desSour.txt Origin MD5:0ddfc5d5bccac82c332aa9836e5736c5
-procedure Get_desSour_Stream(Output: TStream);
+procedure Get_desSour_Stream(output: TStream);
 
 implementation
 
 uses ZLib;
 
 type
-  T_desSour_PackageBuffer = array [0..2638] of byte;
+  T_desSour_PackageBuffer = array [0..2638] of Byte;
 
 const
   // compiled desSour.txt package
@@ -106,49 +106,49 @@ const
 
 
 
-procedure DisposeObject(const obj: TObject);
+procedure DisposeObject(const Obj: TObject);
 begin
-  if obj <> nil then
+  if Obj <> nil then
     begin
       try
 {$IFDEF AUTOREFCOUNT}
-          obj.DisposeOf;
+          Obj.DisposeOf;
 {$ELSE}
-        obj.Free;
+        Obj.Free;
 {$ENDIF}
       except
       end;
     end;
 end;
 
-function DecompressStream(Sour, DeTo: TStream): Boolean;
+function DecompressStream(sour, DeTo: TStream): Boolean;
 var
   DC: TZDecompressionStream;
   DeSize: Int64;
 begin
   Result := False;
-  Sour.ReadBuffer(DeSize, 8);
+  sour.ReadBuffer(DeSize, 8);
   if DeSize > 0 then
     begin
-      DC := TZDecompressionStream.Create(Sour);
+      DC := TZDecompressionStream.Create(sour);
       Result := DeTo.CopyFrom(DC, DeSize) = DeSize;
       DisposeObject(DC);
     end;
 end;
 
-procedure Get_desSour_Stream(Output: TStream);
+procedure Get_desSour_Stream(output: TStream);
 var
   Source: TMemoryStream;
   PrepareSource: TMemoryStream;
-  Buff: T_desSour_PackageBuffer;
+  buff: T_desSour_PackageBuffer;
 begin
-  Buff := C_desSourPackageBuffer;
+  buff := C_desSourPackageBuffer;
   Source := TMemoryStream.Create;
-  Source.WriteBuffer(Buff[0], 2639);
+  Source.WriteBuffer(buff[0], 2639);
   Source.Position := 0;
-  DecompressStream(Source, Output);
+  DecompressStream(Source, output);
   DisposeObject(Source);
-  Output.Position := 0;
+  output.Position := 0;
 end;
 
 
@@ -166,4 +166,4 @@ initialization
   RegisterFileStream('0ddfc5d5bccac82c332aa9836e5736c5', Get_desSour_Stream, 'desSour.txt');
 *)
 end.
-
+ 

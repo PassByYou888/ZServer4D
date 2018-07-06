@@ -6,11 +6,13 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 
 unit GeometryLib;
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
@@ -18,37 +20,37 @@ type
   THalfFloat = type Word;
   PHalfFloat = ^THalfFloat;
 
-  TVector2d  = array [0 .. 1] of double;
-  TVector2f  = array [0 .. 1] of single;
+  TVector2d  = array [0 .. 1] of Double;
+  TVector2f  = array [0 .. 1] of Single;
   TVector2h  = array [0 .. 1] of THalfFloat;
   TVector2i  = array [0 .. 1] of Integer;
   TVector2ui = array [0 .. 1] of Cardinal;
-  TVector2s  = array [0 .. 1] of smallint;
-  TVector2b  = array [0 .. 1] of byte;
+  TVector2s  = array [0 .. 1] of SmallInt;
+  TVector2b  = array [0 .. 1] of Byte;
   TVector2sb = array [0 .. 1] of ShortInt;
   TVector2e  = array [0 .. 1] of Extended;
   TVector2w  = array [0 .. 1] of Word;
   TVector2p  = array [0 .. 1] of Pointer;
 
-  TVector3d  = array [0 .. 2] of double;
-  TVector3f  = array [0 .. 2] of single;
+  TVector3d  = array [0 .. 2] of Double;
+  TVector3f  = array [0 .. 2] of Single;
   TVector3h  = array [0 .. 2] of THalfFloat;
   TVector3i  = array [0 .. 2] of Integer;
   TVector3ui = array [0 .. 2] of Cardinal;
-  TVector3s  = array [0 .. 2] of smallint;
-  TVector3b  = array [0 .. 2] of byte;
+  TVector3s  = array [0 .. 2] of SmallInt;
+  TVector3b  = array [0 .. 2] of Byte;
   TVector3sb = array [0 .. 2] of ShortInt;
   TVector3e  = array [0 .. 2] of Extended;
   TVector3w  = array [0 .. 2] of Word;
   TVector3p  = array [0 .. 2] of Pointer;
 
-  TVector4d  = array [0 .. 3] of double;
-  TVector4f  = array [0 .. 3] of single;
+  TVector4d  = array [0 .. 3] of Double;
+  TVector4f  = array [0 .. 3] of Single;
   TVector4h  = array [0 .. 3] of THalfFloat;
   TVector4i  = array [0 .. 3] of Integer;
   TVector4ui = array [0 .. 3] of Cardinal;
-  TVector4s  = array [0 .. 3] of smallint;
-  TVector4b  = array [0 .. 3] of byte;
+  TVector4s  = array [0 .. 3] of SmallInt;
+  TVector4b  = array [0 .. 3] of Byte;
   TVector4sb = array [0 .. 3] of ShortInt;
   TVector4e  = array [0 .. 3] of Extended;
   TVector4w  = array [0 .. 3] of Word;
@@ -94,14 +96,14 @@ type
   PTexPoint = ^TTexPoint;
 
   TTexPoint = packed record
-    S, T: single;
+    s, T: Single;
   end;
 
   // types to specify continous streams of a specific type
   // switch off range checking to access values beyond the limits
   PByteVector     = ^TByteVector;
   PByteArray      = PByteVector;
-  TByteVector     = array [0 .. cMaxArray] of byte;
+  TByteVector     = array [0 .. cMaxArray] of Byte;
   PWordVector     = ^TWordVector;
   TWordVector     = array [0 .. cMaxArray] of Word;
   PIntegerVector  = ^TIntegerVector;
@@ -110,11 +112,11 @@ type
   PFloatVector    = ^TFloatVector;
   PFloatArray     = PFloatVector;
   PSingleArray    = PFloatArray;
-  TFloatVector    = array [0 .. cMaxArray] of single;
-  TSingleArray    = array of single;
+  TFloatVector    = array [0 .. cMaxArray] of Single;
+  TSingleArray    = array of Single;
   PDoubleVector   = ^TDoubleVector;
   PDoubleArray    = PDoubleVector;
-  TDoubleVector   = array [0 .. cMaxArray] of double;
+  TDoubleVector   = array [0 .. cMaxArray] of Double;
   PPointerVector  = ^TPointerVector;
   PPointerArray   = PPointerVector;
   TPointerVector  = array [0 .. cMaxArray] of Pointer;
@@ -210,14 +212,14 @@ type
 
   TQuaternion = packed record
     ImagPart: TAffineVector;
-    RealPart: single;
+    RealPart: Single;
   end;
 
   PQuaternionArray = ^TQuaternionArray;
   TQuaternionArray = array [0 .. MaxInt shr 5] of TQuaternion;
 
   TRectangle = packed record
-    Left, Top, Width, Height: Integer;
+    Left, Top, width, height: Integer;
   end;
 
   TFrustum = packed record
@@ -233,17 +235,17 @@ type
   // used to describe a sequence of transformations in following order:
   // [Sx][Sy][Sz][ShearXY][ShearXZ][ShearZY][Rx][Ry][Rz][Tx][Ty][Tz][P(x,y,z,w)]
   // constants are declared for easier access (see MatrixDecompose below)
-  TTransformations = array [TTransType] of single;
+  TTransformations = array [TTransType] of Single;
 
-  TPackedRotationMatrix = array [0 .. 2] of smallint;
+  TPackedRotationMatrix = array [0 .. 2] of SmallInt;
 
 const
   // TexPoints (2D space)
-  XTexPoint: TTexPoint    = (S: 1; T: 0);
-  YTexPoint: TTexPoint    = (S: 0; T: 1);
-  XYTexPoint: TTexPoint   = (S: 1; T: 1);
-  NullTexPoint: TTexPoint = (S: 0; T: 0);
-  MidTexPoint: TTexPoint  = (S: 0.5; T: 0.5);
+  XTexPoint: TTexPoint    = (s: 1; T: 0);
+  YTexPoint: TTexPoint    = (s: 0; T: 1);
+  XYTexPoint: TTexPoint   = (s: 1; T: 1);
+  NullTexPoint: TTexPoint = (s: 0; T: 0);
+  MidTexPoint: TTexPoint  = (s: 0.5; T: 0.5);
 
   // standard vectors
   XVector: TAffineVector      = (1, 0, 0);
@@ -306,60 +308,60 @@ const
   IdentityQuaternion: TQuaternion = (ImagPart: (0, 0, 0); RealPart: 1);
 
   // some very small numbers
-  EPSILON: single  = 1E-40;
-  EPSILON2: single = 1E-30;
+  Epsilon: Single  = 1E-40;
+  EPSILON2: Single = 1E-30;
 
   // ------------------------------------------------------------------------------
   // Vector functions
   // ------------------------------------------------------------------------------
 
-function TexPointMake(const S, T: single): TTexPoint; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function AffineVectorMake(const x, y, z: single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function TexPointMake(const s, T: Single): TTexPoint; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function AffineVectorMake(const X, Y, Z: Single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function AffineVectorMake(const v: TVector): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure SetAffineVector(out v: TAffineVector; const x, y, z: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure SetVector(out v: TAffineVector; const x, y, z: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure SetAffineVector(out v: TAffineVector; const X, Y, Z: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure SetVector(out v: TAffineVector; const X, Y, Z: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure SetVector(out v: TAffineVector; const vSrc: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure SetVector(out v: TAffineVector; const vSrc: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure SetVector(out v: TAffineDblVector; const vSrc: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure SetVector(out v: TAffineDblVector; const vSrc: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorMake(const v: TAffineVector; w: single = 0): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorMake(const x, y, z: single; w: single = 0): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function PointMake(const x, y, z: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorMake(const v: TAffineVector; w: Single = 0): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorMake(const X, Y, Z: Single; w: Single = 0): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function PointMake(const X, Y, Z: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function PointMake(const v: TAffineVector): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function PointMake(const v: TVector): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure SetVector(out v: TVector; const x, y, z: single; w: single = 0); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure SetVector(out v: TVector; const av: TAffineVector; w: single = 0); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure SetVector(out v: TVector; const X, Y, Z: Single; w: Single = 0); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure SetVector(out v: TVector; const av: TAffineVector; w: Single = 0); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure SetVector(out v: TVector; const vSrc: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure MakePoint(out v: TVector; const x, y, z: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure MakePoint(out v: TVector; const X, Y, Z: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure MakePoint(out v: TVector; const av: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure MakePoint(out v: TVector; const av: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure MakeVector(out v: TAffineVector; const x, y, z: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure MakeVector(out v: TVector; const x, y, z: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure MakeVector(out v: TAffineVector; const X, Y, Z: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure MakeVector(out v: TVector; const X, Y, Z: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure MakeVector(out v: TVector; const av: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure MakeVector(out v: TVector; const av: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure RstVector(var v: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 procedure RstVector(var v: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // 2
-function VectorEquals(const V1, V2: TVector2f): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector2i): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector2d): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector2s): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector2b): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector2f): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector2i): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector2d): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector2s): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector2b): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // 3
 // function VectorEquals(const V1, V2: TVector3f): Boolean; overload; //declared further
-function VectorEquals(const V1, V2: TVector3i): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector3d): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector3s): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector3b): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector3i): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector3d): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector3s): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector3b): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // 4
 // function VectorEquals(const V1, V2: TVector4f): Boolean; overload; //declared further
-function VectorEquals(const V1, V2: TVector4i): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector4d): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector4s): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorEquals(const V1, V2: TVector4b): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector4i): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector4d): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector4s): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector4b): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // 3x3
 function MatrixEquals(const Matrix1, Matrix2: TMatrix3f): Boolean; overload;
@@ -376,11 +378,11 @@ function MatrixEquals(const Matrix1, Matrix2: TMatrix4s): Boolean; overload;
 function MatrixEquals(const Matrix1, Matrix2: TMatrix4b): Boolean; overload;
 
 // 2x
-function Vector2fMake(const x, y: single): TVector2f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector2iMake(const x, y: Integer): TVector2i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector2sMake(const x, y: smallint): TVector2s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector2dMake(const x, y: double): TVector2d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector2bMake(const x, y: byte): TVector2b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector2fMake(const X, Y: Single): TVector2f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector2iMake(const X, Y: Integer): TVector2i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector2sMake(const X, Y: SmallInt): TVector2s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector2dMake(const X, Y: Double): TVector2d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector2bMake(const X, Y: Byte): TVector2b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 function Vector2fMake(const Vector: TVector3f): TVector2f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function Vector2iMake(const Vector: TVector3i): TVector2i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -394,17 +396,17 @@ function Vector2sMake(const Vector: TVector4s): TVector2s; overload; {$IFDEF INL
 function Vector2dMake(const Vector: TVector4d): TVector2d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function Vector2bMake(const Vector: TVector4b): TVector2b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // 3x
-function Vector3fMake(const x: single; const y: single = 0; const z: single = 0): TVector3f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3iMake(const x: Integer; const y: Integer = 0; const z: Integer = 0): TVector3i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3sMake(const x: smallint; const y: smallint = 0; const z: smallint = 0): TVector3s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3dMake(const x: double; const y: double = 0; const z: double = 0): TVector3d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3bMake(const x: byte; const y: byte = 0; const z: byte = 0): TVector3b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3fMake(const X: Single; const Y: Single = 0; const Z: Single = 0): TVector3f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3iMake(const X: Integer; const Y: Integer = 0; const Z: Integer = 0): TVector3i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3sMake(const X: SmallInt; const Y: SmallInt = 0; const Z: SmallInt = 0): TVector3s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3dMake(const X: Double; const Y: Double = 0; const Z: Double = 0): TVector3d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3bMake(const X: Byte; const Y: Byte = 0; const Z: Byte = 0): TVector3b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
-function Vector3fMake(const Vector: TVector2f; const z: single = 0): TVector3f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3iMake(const Vector: TVector2i; const z: Integer = 0): TVector3i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3sMake(const Vector: TVector2s; const z: smallint = 0): TVector3s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3dMake(const Vector: TVector2d; const z: double = 0): TVector3d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector3bMake(const Vector: TVector2b; const z: byte = 0): TVector3b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3fMake(const Vector: TVector2f; const Z: Single = 0): TVector3f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3iMake(const Vector: TVector2i; const Z: Integer = 0): TVector3i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3sMake(const Vector: TVector2s; const Z: SmallInt = 0): TVector3s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3dMake(const Vector: TVector2d; const Z: Double = 0): TVector3d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector3bMake(const Vector: TVector2b; const Z: Byte = 0): TVector3b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 function Vector3fMake(const Vector: TVector4f): TVector3f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function Vector3iMake(const Vector: TVector4i): TVector3i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -412,23 +414,23 @@ function Vector3sMake(const Vector: TVector4s): TVector3s; overload; {$IFDEF INL
 function Vector3dMake(const Vector: TVector4d): TVector3d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function Vector3bMake(const Vector: TVector4b): TVector3b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // 4x
-function Vector4fMake(const x: single; const y: single = 0; const z: single = 0; const w: single = 0): TVector4f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4iMake(const x: Integer; const y: Integer = 0; const z: Integer = 0; const w: Integer = 0): TVector4i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4sMake(const x: smallint; const y: smallint = 0; const z: smallint = 0; const w: smallint = 0): TVector4s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4dMake(const x: double; const y: double = 0; const z: double = 0; const w: double = 0): TVector4d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4bMake(const x: byte; const y: byte = 0; const z: byte = 0; const w: byte = 0): TVector4b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4fMake(const X: Single; const Y: Single = 0; const Z: Single = 0; const w: Single = 0): TVector4f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4iMake(const X: Integer; const Y: Integer = 0; const Z: Integer = 0; const w: Integer = 0): TVector4i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4sMake(const X: SmallInt; const Y: SmallInt = 0; const Z: SmallInt = 0; const w: SmallInt = 0): TVector4s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4dMake(const X: Double; const Y: Double = 0; const Z: Double = 0; const w: Double = 0): TVector4d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4bMake(const X: Byte; const Y: Byte = 0; const Z: Byte = 0; const w: Byte = 0): TVector4b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
-function Vector4fMake(const Vector: TVector3f; const w: single = 0): TVector4f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4fMake(const Vector: TVector3f; const w: Single = 0): TVector4f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 function Vector4iMake(const Vector: TVector3i; const w: Integer = 0): TVector4i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4sMake(const Vector: TVector3s; const w: smallint = 0): TVector4s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4dMake(const Vector: TVector3d; const w: double = 0): TVector4d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4bMake(const Vector: TVector3b; const w: byte = 0): TVector4b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4sMake(const Vector: TVector3s; const w: SmallInt = 0): TVector4s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4dMake(const Vector: TVector3d; const w: Double = 0): TVector4d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4bMake(const Vector: TVector3b; const w: Byte = 0): TVector4b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
-function Vector4fMake(const Vector: TVector2f; const z: single = 0; const w: single = 0): TVector4f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4iMake(const Vector: TVector2i; const z: Integer = 0; const w: Integer = 0): TVector4i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4sMake(const Vector: TVector2s; const z: smallint = 0; const w: smallint = 0): TVector4s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4dMake(const Vector: TVector2d; const z: double = 0; const w: double = 0): TVector4d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function Vector4bMake(const Vector: TVector2b; const z: byte = 0; const w: byte = 0): TVector4b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4fMake(const Vector: TVector2f; const Z: Single = 0; const w: Single = 0): TVector4f; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4iMake(const Vector: TVector2i; const Z: Integer = 0; const w: Integer = 0): TVector4i; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4sMake(const Vector: TVector2s; const Z: SmallInt = 0; const w: SmallInt = 0): TVector4s; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4dMake(const Vector: TVector2d; const Z: Double = 0; const w: Double = 0): TVector4d; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Vector4bMake(const Vector: TVector2b; const Z: Byte = 0; const w: Byte = 0): TVector4b; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // : Vector comparison functions:
 // ComparedVector
@@ -472,245 +474,245 @@ function VectorLessEqualThen(const SourceVector, ComparedVector: TVector4s): Boo
 
 // ComparedNumber
 // 3f
-function VectorMoreThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
-function VectorMoreEqualThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
 
-function VectorLessThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
-function VectorLessEqualThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
 // 4f
-function VectorMoreThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
-function VectorMoreEqualThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
 
-function VectorLessThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
-function VectorLessEqualThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
 // 3i
-function VectorMoreThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
-function VectorMoreEqualThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
 
-function VectorLessThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
-function VectorLessEqualThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
 // 4i
-function VectorMoreThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
-function VectorMoreEqualThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
 
-function VectorLessThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
-function VectorLessEqualThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
 // 3s
-function VectorMoreThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
-function VectorMoreEqualThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
 
-function VectorLessThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
-function VectorLessEqualThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
 // 4s
-function VectorMoreThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
-function VectorMoreEqualThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
 
-function VectorLessThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
-function VectorLessEqualThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
 
-function VectorAdd(const V1, V2: TVector2f): TVector2f; overload;
+function VectorAdd(const v1, v2: TVector2f): TVector2f; overload;
 // : Returns the sum of two affine vectors
-function VectorAdd(const V1, V2: TAffineVector): TAffineVector; overload;
+function VectorAdd(const v1, v2: TAffineVector): TAffineVector; overload;
 // : Adds two vectors and places result in vr
-procedure VectorAdd(const V1, V2: TAffineVector; var vr: TAffineVector); overload;
-procedure VectorAdd(const V1, V2: TAffineVector; vr: PAffineVector); overload;
+procedure VectorAdd(const v1, v2: TAffineVector; var vr: TAffineVector); overload;
+procedure VectorAdd(const v1, v2: TAffineVector; vr: PAffineVector); overload;
 // : Returns the sum of two homogeneous vectors
-function VectorAdd(const V1, V2: TVector): TVector; overload;
-procedure VectorAdd(const V1, V2: TVector; var vr: TVector); overload;
+function VectorAdd(const v1, v2: TVector): TVector; overload;
+procedure VectorAdd(const v1, v2: TVector; var vr: TVector); overload;
 // : Sums up f to each component of the vector
-function VectorAdd(const v: TAffineVector; const f: single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorAdd(const v: TAffineVector; const F: Single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Sums up f to each component of the vector
-function VectorAdd(const v: TVector; const f: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorAdd(const v: TVector; const F: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Adds V2 to V1, result is placed in V1
-procedure AddVector(var V1: TAffineVector; const V2: TAffineVector); overload;
+procedure AddVector(var v1: TAffineVector; const v2: TAffineVector); overload;
 // : Adds V2 to V1, result is placed in V1
-procedure AddVector(var V1: TAffineVector; const V2: TVector); overload;
+procedure AddVector(var v1: TAffineVector; const v2: TVector); overload;
 // : Adds V2 to V1, result is placed in V1
-procedure AddVector(var V1: TVector; const V2: TVector); overload;
+procedure AddVector(var v1: TVector; const v2: TVector); overload;
 // : Sums up f to each component of the vector
-procedure AddVector(var v: TAffineVector; const f: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure AddVector(var v: TAffineVector; const F: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Sums up f to each component of the vector
-procedure AddVector(var v: TVector; const f: single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure AddVector(var v: TVector; const F: Single); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // : Adds V2 to V1, result is placed in V1. W coordinate is always 1.
-procedure AddPoint(var V1: TVector; const V2: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure AddPoint(var v1: TVector; const v2: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // : Returns the sum of two homogeneous vectors. W coordinate is always 1.
-function PointAdd(var V1: TVector; const V2: TVector): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function PointAdd(var v1: TVector; const v2: TVector): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // : Adds delta to nb texpoints in src and places result in dest
-procedure TexPointArrayAdd(const src: PTexPointArray; const delta: TTexPoint; const nb: Integer; dest: PTexPointArray); overload;
-procedure TexPointArrayScaleAndAdd(const src: PTexPointArray; const delta: TTexPoint; const nb: Integer; const scale: TTexPoint; dest: PTexPointArray); overload;
+procedure TexPointArrayAdd(const Src: PTexPointArray; const Delta: TTexPoint; const nb: Integer; dest: PTexPointArray); overload;
+procedure TexPointArrayScaleAndAdd(const Src: PTexPointArray; const Delta: TTexPoint; const nb: Integer; const Scale: TTexPoint; dest: PTexPointArray); overload;
 // : Adds delta to nb vectors in src and places result in dest
-procedure VectorArrayAdd(const src: PAffineVectorArray; const delta: TAffineVector; const nb: Integer; dest: PAffineVectorArray); overload;
+procedure VectorArrayAdd(const Src: PAffineVectorArray; const Delta: TAffineVector; const nb: Integer; dest: PAffineVectorArray); overload;
 
 // : Returns V1-V2
-function VectorSubtract(const V1, V2: TVector2f): TVector2f; overload;
+function VectorSubtract(const v1, v2: TVector2f): TVector2f; overload;
 // : Subtracts V2 from V1, result is placed in V1
-procedure SubtractVector(var V1: TVector2f; const V2: TVector2f); overload;
+procedure SubtractVector(var v1: TVector2f; const v2: TVector2f); overload;
 
 // : Returns V1-V2
-function VectorSubtract(const V1, V2: TAffineVector): TAffineVector; overload;
+function VectorSubtract(const v1, v2: TAffineVector): TAffineVector; overload;
 // : Subtracts V2 from V1 and return value in result
-procedure VectorSubtract(const V1, V2: TAffineVector; var result: TAffineVector); overload;
+procedure VectorSubtract(const v1, v2: TAffineVector; var Result: TAffineVector); overload;
 // : Subtracts V2 from V1 and return value in result
-procedure VectorSubtract(const V1, V2: TAffineVector; var result: TVector); overload;
+procedure VectorSubtract(const v1, v2: TAffineVector; var Result: TVector); overload;
 // : Subtracts V2 from V1 and return value in result
-procedure VectorSubtract(const V1: TVector; V2: TAffineVector; var result: TVector); overload;
+procedure VectorSubtract(const v1: TVector; v2: TAffineVector; var Result: TVector); overload;
 // : Returns V1-V2
-function VectorSubtract(const V1, V2: TVector): TVector; overload;
+function VectorSubtract(const v1, v2: TVector): TVector; overload;
 // : Subtracts V2 from V1 and return value in result
-procedure VectorSubtract(const V1, V2: TVector; var result: TVector); overload;
+procedure VectorSubtract(const v1, v2: TVector; var Result: TVector); overload;
 // : Subtracts V2 from V1 and return value in result
-procedure VectorSubtract(const V1, V2: TVector; var result: TAffineVector); overload;
-function VectorSubtract(const V1: TAffineVector; delta: single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function VectorSubtract(const V1: TVector; delta: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure VectorSubtract(const v1, v2: TVector; var Result: TAffineVector); overload;
+function VectorSubtract(const v1: TAffineVector; Delta: Single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorSubtract(const v1: TVector; Delta: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Subtracts V2 from V1, result is placed in V1
-procedure SubtractVector(var V1: TAffineVector; const V2: TAffineVector); overload;
+procedure SubtractVector(var v1: TAffineVector; const v2: TAffineVector); overload;
 // : Subtracts V2 from V1, result is placed in V1
-procedure SubtractVector(var V1: TVector; const V2: TVector); overload;
+procedure SubtractVector(var v1: TVector; const v2: TVector); overload;
 
 // : Combine the first vector with the second : vr:=vr+v*f
-procedure CombineVector(var vr: TAffineVector; const v: TAffineVector; var f: single); overload;
+procedure CombineVector(var vr: TAffineVector; const v: TAffineVector; var F: Single); overload;
 procedure CombineVector(var vr: TAffineVector; const v: TAffineVector; pf: PFloat); overload;
 // : Makes a linear combination of two texpoints
-function TexPointCombine(const t1, t2: TTexPoint; f1, f2: single): TTexPoint; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function TexPointCombine(const t1, t2: TTexPoint; f1, f2: Single): TTexPoint; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Makes a linear combination of two vectors and return the result
-function VectorCombine(const V1, V2: TAffineVector; const f1, f2: single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorCombine(const v1, v2: TAffineVector; const f1, f2: Single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Makes a linear combination of three vectors and return the result
-function VectorCombine3(const V1, V2, V3: TAffineVector; const f1, f2, F3: single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure VectorCombine3(const V1, V2, V3: TAffineVector; const f1, f2, F3: single; var vr: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorCombine3(const v1, v2, v3: TAffineVector; const f1, f2, F3: Single): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure VectorCombine3(const v1, v2, v3: TAffineVector; const f1, f2, F3: Single; var vr: TAffineVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // : Combine the first vector with the second : vr:=vr+v*f
-procedure CombineVector(var vr: TVector; const v: TVector; var f: single); overload;
+procedure CombineVector(var vr: TVector; const v: TVector; var F: Single); overload;
 // : Combine the first vector with the second : vr:=vr+v*f
-procedure CombineVector(var vr: TVector; const v: TAffineVector; var f: single); overload;
+procedure CombineVector(var vr: TVector; const v: TAffineVector; var F: Single); overload;
 // : Makes a linear combination of two vectors and return the result
-function VectorCombine(const V1, V2: TVector; const f1, f2: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorCombine(const v1, v2: TVector; const f1, f2: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Makes a linear combination of two vectors and return the result
-function VectorCombine(const V1: TVector; const V2: TAffineVector; const f1, f2: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorCombine(const v1: TVector; const v2: TAffineVector; const f1, f2: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Makes a linear combination of two vectors and place result in vr
-procedure VectorCombine(const V1: TVector; const V2: TAffineVector; const f1, f2: single; var vr: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure VectorCombine(const v1: TVector; const v2: TAffineVector; const f1, f2: Single; var vr: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Makes a linear combination of two vectors and place result in vr
-procedure VectorCombine(const V1, V2: TVector; const f1, f2: single; var vr: TVector); overload;
+procedure VectorCombine(const v1, v2: TVector; const f1, f2: Single; var vr: TVector); overload;
 // : Makes a linear combination of two vectors and place result in vr, F1=1.0
-procedure VectorCombine(const V1, V2: TVector; const f2: single; var vr: TVector); overload;
+procedure VectorCombine(const v1, v2: TVector; const f2: Single; var vr: TVector); overload;
 // : Makes a linear combination of three vectors and return the result
-function VectorCombine3(const V1, V2, V3: TVector; const f1, f2, F3: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorCombine3(const v1, v2, v3: TVector; const f1, f2, F3: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Makes a linear combination of three vectors and return the result
-procedure VectorCombine3(const V1, V2, V3: TVector; const f1, f2, F3: single; var vr: TVector); overload;
+procedure VectorCombine3(const v1, v2, v3: TVector; const f1, f2, F3: Single; var vr: TVector); overload;
 
 { : Calculates the dot product between V1 and V2.
   Result:=V1[X] * V2[X] + V1[Y] * V2[Y] }
-function VectorDotProduct(const V1, V2: TVector2f): single; overload;
+function VectorDotProduct(const v1, v2: TVector2f): Single; overload;
 { : Calculates the dot product between V1 and V2.
   Result:=V1[X] * V2[X] + V1[Y] * V2[Y] + V1[Z] * V2[Z] }
-function VectorDotProduct(const V1, V2: TAffineVector): single; overload;
+function VectorDotProduct(const v1, v2: TAffineVector): Single; overload;
 { : Calculates the dot product between V1 and V2.
   Result:=V1[X] * V2[X] + V1[Y] * V2[Y] + V1[Z] * V2[Z] }
-function VectorDotProduct(const V1, V2: TVector): single; overload;
+function VectorDotProduct(const v1, v2: TVector): Single; overload;
 { : Calculates the dot product between V1 and V2.
   Result:=V1[X] * V2[X] + V1[Y] * V2[Y] + V1[Z] * V2[Z] }
-function VectorDotProduct(const V1: TVector; const V2: TAffineVector): single; overload;
+function VectorDotProduct(const v1: TVector; const v2: TAffineVector): Single; overload;
 
 { : Projects p on the line defined by o and direction.
   Performs VectorDotProduct(VectorSubtract(p, origin), direction), which,
   if direction is normalized, computes the distance between origin and the
   projection of p on the (origin, direction) line. }
-function PointProject(const p, origin, direction: TAffineVector): single; overload;
-function PointProject(const p, origin, direction: TVector): single; overload;
+function PointProject(const p, origin, direction: TAffineVector): Single; overload;
+function PointProject(const p, origin, direction: TVector): Single; overload;
 
 // : Calculates the cross product between vector 1 and 2
-function VectorCrossProduct(const V1, V2: TAffineVector): TAffineVector; overload;
+function VectorCrossProduct(const v1, v2: TAffineVector): TAffineVector; overload;
 // : Calculates the cross product between vector 1 and 2
-function VectorCrossProduct(const V1, V2: TVector): TVector; overload;
+function VectorCrossProduct(const v1, v2: TVector): TVector; overload;
 // : Calculates the cross product between vector 1 and 2, place result in vr
-procedure VectorCrossProduct(const V1, V2: TVector; var vr: TVector); overload;
+procedure VectorCrossProduct(const v1, v2: TVector; var vr: TVector); overload;
 // : Calculates the cross product between vector 1 and 2, place result in vr
-procedure VectorCrossProduct(const V1, V2: TAffineVector; var vr: TVector); overload;
+procedure VectorCrossProduct(const v1, v2: TAffineVector; var vr: TVector); overload;
 // : Calculates the cross product between vector 1 and 2, place result in vr
-procedure VectorCrossProduct(const V1, V2: TVector; var vr: TAffineVector); overload;
+procedure VectorCrossProduct(const v1, v2: TVector; var vr: TAffineVector); overload;
 // : Calculates the cross product between vector 1 and 2, place result in vr
-procedure VectorCrossProduct(const V1, V2: TAffineVector; var vr: TAffineVector); overload;
+procedure VectorCrossProduct(const v1, v2: TAffineVector; var vr: TAffineVector); overload;
 
 // : Calculates linear interpolation between start and stop at point t
-function Lerp(const start, stop, T: single): single; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function Lerp(const Start, stop, T: Single): Single; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Calculates angular interpolation between start and stop at point t
-function AngleLerp(start, stop, T: single): single; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function AngleLerp(Start, stop, T: Single): Single; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 { : This is used for interpolating between 2 matrices. The result
   is used to reposition the model parts each frame. }
-function MatrixLerp(const m1, m2: TMatrix; const delta: single): TMatrix;
+function MatrixLerp(const m1, m2: TMatrix; const Delta: Single): TMatrix;
 
 { : Calculates the angular distance between two angles in radians.
   Result is in the [0; PI] range. }
-function DistanceBetweenAngles(angle1, angle2: single): single;
+function DistanceBetweenAngles(angle1, angle2: Single): Single;
 
 // : Calculates linear interpolation between texpoint1 and texpoint2 at point t
-function TexPointLerp(const t1, t2: TTexPoint; T: single): TTexPoint; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function TexPointLerp(const t1, t2: TTexPoint; T: Single): TTexPoint; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Calculates linear interpolation between vector1 and vector2 at point t
-function VectorLerp(const V1, V2: TAffineVector; T: single): TAffineVector; overload;
+function VectorLerp(const v1, v2: TAffineVector; T: Single): TAffineVector; overload;
 // : Calculates linear interpolation between vector1 and vector2 at point t, places result in vr
-procedure VectorLerp(const V1, V2: TAffineVector; T: single; var vr: TAffineVector); overload;
+procedure VectorLerp(const v1, v2: TAffineVector; T: Single; var vr: TAffineVector); overload;
 // : Calculates linear interpolation between vector1 and vector2 at point t
-function VectorLerp(const V1, V2: TVector; T: single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorLerp(const v1, v2: TVector; T: Single): TVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : Calculates linear interpolation between vector1 and vector2 at point t, places result in vr
-procedure VectorLerp(const V1, V2: TVector; T: single; var vr: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure VectorLerp(const v1, v2: TVector; T: Single; var vr: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
-function VectorAngleLerp(const V1, V2: TAffineVector; T: single): TAffineVector; overload;
-function VectorAngleCombine(const V1, V2: TAffineVector; f: single): TAffineVector; overload;
+function VectorAngleLerp(const v1, v2: TAffineVector; T: Single): TAffineVector; overload;
+function VectorAngleCombine(const v1, v2: TAffineVector; F: Single): TAffineVector; overload;
 
 // : Calculates linear interpolation between vector arrays
-procedure VectorArrayLerp(const src1, src2: PVectorArray; T: single; n: Integer; dest: PVectorArray); overload;
-procedure VectorArrayLerp(const src1, src2: PAffineVectorArray; T: single; n: Integer; dest: PAffineVectorArray); overload;
-procedure VectorArrayLerp(const src1, src2: PTexPointArray; T: single; n: Integer; dest: PTexPointArray); overload;
+procedure VectorArrayLerp(const src1, src2: PVectorArray; T: Single; n: Integer; dest: PVectorArray); overload;
+procedure VectorArrayLerp(const src1, src2: PAffineVectorArray; T: Single; n: Integer; dest: PAffineVectorArray); overload;
+procedure VectorArrayLerp(const src1, src2: PTexPointArray; T: Single; n: Integer; dest: PTexPointArray); overload;
 
 type
   TGLInterpolationType = (itLinear, itPower, itSin, itSinAlt, itTan, itLn, itExp);
 
   { : There functions that do the same as "Lerp", but add some distortions. }
-function InterpolatePower(const start, stop, delta: single; const DistortionDegree: single): single;
-function InterpolateLn(const start, stop, delta: single; const DistortionDegree: single): single;
-function InterpolateExp(const start, stop, delta: single; const DistortionDegree: single): single;
+function InterpolatePower(const Start, stop, Delta: Single; const DistortionDegree: Single): Single;
+function InterpolateLn(const Start, stop, Delta: Single; const DistortionDegree: Single): Single;
+function InterpolateExp(const Start, stop, Delta: Single; const DistortionDegree: Single): Single;
 
 { : Only valid where Delta belongs to [0..1] }
-function InterpolateSin(const start, stop, delta: single): single;
-function InterpolateTan(const start, stop, delta: single): single;
+function InterpolateSin(const Start, stop, Delta: Single): Single;
+function InterpolateTan(const Start, stop, Delta: Single): Single;
 
 { : "Alt" functions are valid everywhere }
-function InterpolateSinAlt(const start, stop, delta: single): single;
+function InterpolateSinAlt(const Start, stop, Delta: Single): Single;
 
-function InterpolateCombinedFastPower(const OriginalStart, OriginalStop, OriginalCurrent: single; const TargetStart, TargetStop: single; const DistortionDegree: single): single;
-function InterpolateCombinedSafe(const OriginalStart, OriginalStop, OriginalCurrent: single; const TargetStart, TargetStop: single; const DistortionDegree: single; const InterpolationType: TGLInterpolationType): single;
-function InterpolateCombinedFast(const OriginalStart, OriginalStop, OriginalCurrent: single; const TargetStart, TargetStop: single; const DistortionDegree: single; const InterpolationType: TGLInterpolationType): single;
-function InterpolateCombined(const start, stop, delta: single; const DistortionDegree: single; const InterpolationType: TGLInterpolationType): single;
+function InterpolateCombinedFastPower(const OriginalStart, OriginalStop, OriginalCurrent: Single; const TargetStart, TargetStop: Single; const DistortionDegree: Single): Single;
+function InterpolateCombinedSafe(const OriginalStart, OriginalStop, OriginalCurrent: Single; const TargetStart, TargetStop: Single; const DistortionDegree: Single; const InterpolationType: TGLInterpolationType): Single;
+function InterpolateCombinedFast(const OriginalStart, OriginalStop, OriginalCurrent: Single; const TargetStart, TargetStop: Single; const DistortionDegree: Single; const InterpolationType: TGLInterpolationType): Single;
+function InterpolateCombined(const Start, stop, Delta: Single; const DistortionDegree: Single; const InterpolationType: TGLInterpolationType): Single;
 
 { : Calculates the length of a vector following the equation sqrt(x*x+y*y). }
-function VectorLength(const x, y: single): single; overload;
+function VectorLength(const X, Y: Single): Single; overload;
 { : Calculates the length of a vector following the equation sqrt(x*x+y*y+z*z). }
-function VectorLength(const x, y, z: single): single; overload;
+function VectorLength(const X, Y, Z: Single): Single; overload;
 // : Calculates the length of a vector following the equation sqrt(x*x+y*y).
-function VectorLength(const v: TVector2f): single; overload;
+function VectorLength(const v: TVector2f): Single; overload;
 // : Calculates the length of a vector following the equation sqrt(x*x+y*y+z*z).
-function VectorLength(const v: TAffineVector): single; overload;
+function VectorLength(const v: TAffineVector): Single; overload;
 // : Calculates the length of a vector following the equation sqrt(x*x+y*y+z*z+w*w).
-function VectorLength(const v: TVector): single; overload;
+function VectorLength(const v: TVector): Single; overload;
 { : Calculates the length of a vector following the equation: sqrt(x*x+y*y+...).
   Note: The parameter of this function is declared as open array. Thus
   there's no restriction about the number of the components of the vector. }
-function VectorLength(const v: array of single): single; overload;
+function VectorLength(const v: array of Single): Single; overload;
 
 { : Calculates norm of a vector which is defined as norm = x * x + y * y
   Also known as "Norm 2" in the math world, this is sqr(VectorLength). }
-function VectorNorm(const x, y: single): single; overload;
+function VectorNorm(const X, Y: Single): Single; overload;
 { : Calculates norm of a vector which is defined as norm = x*x + y*y + z*z
   Also known as "Norm 2" in the math world, this is sqr(VectorLength). }
-function VectorNorm(const v: TAffineVector): single; overload;
+function VectorNorm(const v: TAffineVector): Single; overload;
 { : Calculates norm of a vector which is defined as norm = x*x + y*y + z*z
   Also known as "Norm 2" in the math world, this is sqr(VectorLength). }
-function VectorNorm(const v: TVector): single; overload;
+function VectorNorm(const v: TVector): Single; overload;
 { : Calculates norm of a vector which is defined as norm = v[0]*v[0] + ...
   Also known as "Norm 2" in the math world, this is sqr(VectorLength). }
-function VectorNorm(var v: array of single): single; overload;
+function VectorNorm(var v: array of Single): Single; overload;
 
 // : Transforms a vector to unit length
 procedure NormalizeVector(var v: TVector2f); overload;
@@ -727,15 +729,15 @@ function VectorNormalize(const v: TAffineVector): TAffineVector; overload;
 function VectorNormalize(const v: TVector): TVector; overload;
 
 // : Transforms vectors to unit length
-procedure NormalizeVectorArray(list: PAffineVectorArray; n: Integer); overload;
+procedure NormalizeVectorArray(List: PAffineVectorArray; n: Integer); overload;
 
 { : Calculates the cosine of the angle between Vector1 and Vector2.
   Result = DotProduct(V1, V2) / (Length(V1) * Length(V2)) }
-function VectorAngleCosine(const V1, V2: TAffineVector): single; overload;
+function VectorAngleCosine(const v1, v2: TAffineVector): Single; overload;
 
 { : Calculates the cosine of the angle between Vector1 and Vector2.
   Result = DotProduct(V1, V2) / (Length(V1) * Length(V2)) }
-function VectorAngleCosine(const V1, V2: TVector): single; overload;
+function VectorAngleCosine(const v1, v2: TVector): Single; overload;
 
 // : Negates the vector
 function VectorNegate(const v: TAffineVector): TAffineVector; overload;
@@ -746,33 +748,33 @@ procedure NegateVector(var v: TAffineVector); overload;
 // : Negates the vector
 procedure NegateVector(var v: TVector); overload;
 // : Negates the vector
-procedure NegateVector(var v: array of single); overload;
+procedure NegateVector(var v: array of Single); overload;
 
 // : Scales given vector by a factor
-procedure ScaleVector(var v: TVector2f; factor: single); overload;
+procedure ScaleVector(var v: TVector2f; factor: Single); overload;
 // : Scales given vector by a factor
-procedure ScaleVector(var v: TAffineVector; factor: single); overload;
+procedure ScaleVector(var v: TAffineVector; factor: Single); overload;
 { : Scales given vector by another vector.
   v[x]:=v[x]*factor[x], v[y]:=v[y]*factor[y] etc. }
 procedure ScaleVector(var v: TAffineVector; const factor: TAffineVector); overload;
 // : Scales given vector by a factor
-procedure ScaleVector(var v: TVector; factor: single); overload;
+procedure ScaleVector(var v: TVector; factor: Single); overload;
 { : Scales given vector by another vector.
   v[x]:=v[x]*factor[x], v[y]:=v[y]*factor[y] etc. }
 procedure ScaleVector(var v: TVector; const factor: TVector); overload;
 
 // : Returns a vector scaled by a factor
-function VectorScale(const v: TVector2f; factor: single): TVector2f; overload;
+function VectorScale(const v: TVector2f; factor: Single): TVector2f; overload;
 // : Returns a vector scaled by a factor
-function VectorScale(const v: TAffineVector; factor: single): TAffineVector; overload;
+function VectorScale(const v: TAffineVector; factor: Single): TAffineVector; overload;
 // : Scales a vector by a factor and places result in vr
-procedure VectorScale(const v: TAffineVector; factor: single; var vr: TAffineVector); overload;
+procedure VectorScale(const v: TAffineVector; factor: Single; var vr: TAffineVector); overload;
 // : Returns a vector scaled by a factor
-function VectorScale(const v: TVector; factor: single): TVector; overload;
+function VectorScale(const v: TVector; factor: Single): TVector; overload;
 // : Scales a vector by a factor and places result in vr
-procedure VectorScale(const v: TVector; factor: single; var vr: TVector); overload;
+procedure VectorScale(const v: TVector; factor: Single; var vr: TVector); overload;
 // : Scales a vector by a factor and places result in vr
-procedure VectorScale(const v: TVector; factor: single; var vr: TAffineVector); overload;
+procedure VectorScale(const v: TVector; factor: Single; var vr: TAffineVector); overload;
 // : Scales given vector by another vector
 function VectorScale(const v: TAffineVector; const factor: TAffineVector): TAffineVector; overload;
 // : RScales given vector by another vector
@@ -790,36 +792,36 @@ function VectorDivide(const v: TAffineVector; const divider: TAffineVector): TAf
 function TexpointEquals(const p1, p2: TTexPoint): Boolean; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : True if all components are equal.
 // : True if all components are equal.
-function VectorEquals(const V1, V2: TVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : True if all components are equal.
-function VectorEquals(const V1, V2: TAffineVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function VectorEquals(const v1, v2: TAffineVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : True if X, Y and Z components are equal.
-function AffineVectorEquals(const V1, V2: TVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function AffineVectorEquals(const v1, v2: TVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : True if x=y=z=0, w ignored
 function VectorIsNull(const v: TVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 // : True if x=y=z=0, w ignored
 function VectorIsNull(const v: TAffineVector): Boolean; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 { : Calculates Abs(v1[x]-v2[x])+Abs(v1[y]-v2[y]), also know as "Norm1". }
-function VectorSpacing(const V1, V2: TTexPoint): single; overload;
+function VectorSpacing(const v1, v2: TTexPoint): Single; overload;
 { : Calculates Abs(v1[x]-v2[x])+Abs(v1[y]-v2[y])+..., also know as "Norm1". }
-function VectorSpacing(const V1, V2: TAffineVector): single; overload;
+function VectorSpacing(const v1, v2: TAffineVector): Single; overload;
 { : Calculates Abs(v1[x]-v2[x])+Abs(v1[y]-v2[y])+..., also know as "Norm1". }
-function VectorSpacing(const V1, V2: TVector): single; overload;
+function VectorSpacing(const v1, v2: TVector): Single; overload;
 
 { : Calculates distance between two vectors.
   ie. sqrt(sqr(v1[x]-v2[x])+...) }
-function VectorDistance(const V1, V2: TAffineVector): single; overload;
+function VectorDistance(const v1, v2: TAffineVector): Single; overload;
 { : Calculates distance between two vectors.
   ie. sqrt(sqr(v1[x]-v2[x])+...) (w component ignored) }
-function VectorDistance(const V1, V2: TVector): single; overload;
+function VectorDistance(const v1, v2: TVector): Single; overload;
 
 { : Calculates the "Norm 2" between two vectors.
   ie. sqr(v1[x]-v2[x])+... }
-function VectorDistance2(const V1, V2: TAffineVector): single; overload;
+function VectorDistance2(const v1, v2: TAffineVector): Single; overload;
 { : Calculates the "Norm 2" between two vectors.
   ie. sqr(v1[x]-v2[x])+... (w component ignored) }
-function VectorDistance2(const V1, V2: TVector): single; overload;
+function VectorDistance2(const v1, v2: TVector): Single; overload;
 
 { : Calculates a vector perpendicular to N.
   N is assumed to be of unit length, subtract out any component parallel to N }
@@ -827,20 +829,20 @@ function VectorPerpendicular(const v, n: TAffineVector): TAffineVector;
 // : Reflects vector V against N (assumes N is normalized)
 function VectorReflect(const v, n: TAffineVector): TAffineVector;
 // : Rotates Vector about Axis with Angle radians
-procedure RotateVector(var Vector: TVector; const axis: TAffineVector; angle: single); overload;
+procedure RotateVector(var Vector: TVector; const Axis: TAffineVector; angle: Single); overload;
 // : Rotates Vector about Axis with Angle radians
-procedure RotateVector(var Vector: TVector; const axis: TVector; angle: single); overload;
+procedure RotateVector(var Vector: TVector; const Axis: TVector; angle: Single); overload;
 
 // : Rotate given vector around the Y axis (alpha is in rad)
-procedure RotateVectorAroundY(var v: TAffineVector; alpha: single);
+procedure RotateVectorAroundY(var v: TAffineVector; alpha: Single);
 // : Returns given vector rotated around the X axis (alpha is in rad)
-function VectorRotateAroundX(const v: TAffineVector; alpha: single): TAffineVector; overload;
+function VectorRotateAroundX(const v: TAffineVector; alpha: Single): TAffineVector; overload;
 // : Returns given vector rotated around the Y axis (alpha is in rad)
-function VectorRotateAroundY(const v: TAffineVector; alpha: single): TAffineVector; overload;
+function VectorRotateAroundY(const v: TAffineVector; alpha: Single): TAffineVector; overload;
 // : Returns given vector rotated around the Y axis in vr (alpha is in rad)
-procedure VectorRotateAroundY(const v: TAffineVector; alpha: single; var vr: TAffineVector); overload;
+procedure VectorRotateAroundY(const v: TAffineVector; alpha: Single; var vr: TAffineVector); overload;
 // : Returns given vector rotated around the Z axis (alpha is in rad)
-function VectorRotateAroundZ(const v: TAffineVector; alpha: single): TAffineVector; overload;
+function VectorRotateAroundZ(const v: TAffineVector; alpha: Single): TAffineVector; overload;
 
 // : Vector components are replaced by their Abs() value. }
 procedure AbsVector(var v: TVector); overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
@@ -852,18 +854,18 @@ function VectorAbs(const v: TVector): TVector; overload; {$IFDEF INLINE_ASM}inli
 function VectorAbs(const v: TAffineVector): TAffineVector; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 // : Returns true if both vector are colinear
-function IsColinear(const V1, V2: TVector2f): Boolean; overload;
+function IsColinear(const v1, v2: TVector2f): Boolean; overload;
 // : Returns true if both vector are colinear
-function IsColinear(const V1, V2: TAffineVector): Boolean; overload;
+function IsColinear(const v1, v2: TAffineVector): Boolean; overload;
 // : Returns true if both vector are colinear
-function IsColinear(const V1, V2: TVector): Boolean; overload;
+function IsColinear(const v1, v2: TVector): Boolean; overload;
 // ------------------------------------------------------------------------------
 // Matrix functions
 // ------------------------------------------------------------------------------
 
-procedure SetMatrix(var dest: THomogeneousDblMatrix; const src: TMatrix); overload;
-procedure SetMatrix(var dest: TAffineMatrix; const src: TMatrix); overload;
-procedure SetMatrix(var dest: TMatrix; const src: TAffineMatrix); overload;
+procedure SetMatrix(var dest: THomogeneousDblMatrix; const Src: TMatrix); overload;
+procedure SetMatrix(var dest: TAffineMatrix; const Src: TMatrix); overload;
+procedure SetMatrix(var dest: TMatrix; const Src: TAffineMatrix); overload;
 
 procedure SetMatrixRow(var dest: TMatrix; rowNb: Integer; const aRow: TVector); overload;
 
@@ -877,21 +879,21 @@ function CreateTranslationMatrix(const v: TAffineVector): TMatrix; overload;
 function CreateTranslationMatrix(const v: TVector): TMatrix; overload;
 { : Creates a scale+translation matrix.
   Scale is applied BEFORE applying offset }
-function CreateScaleAndTranslationMatrix(const scale, offset: TVector): TMatrix; overload;
+function CreateScaleAndTranslationMatrix(const Scale, Offset: TVector): TMatrix; overload;
 // : Creates matrix for rotation about x-axis (angle in rad)
-function CreateRotationMatrixX(const sine, cosine: single): TMatrix; overload;
-function CreateRotationMatrixX(const angle: single): TMatrix; overload;
+function CreateRotationMatrixX(const sine, cosine: Single): TMatrix; overload;
+function CreateRotationMatrixX(const angle: Single): TMatrix; overload;
 // : Creates matrix for rotation about y-axis (angle in rad)
-function CreateRotationMatrixY(const sine, cosine: single): TMatrix; overload;
-function CreateRotationMatrixY(const angle: single): TMatrix; overload;
+function CreateRotationMatrixY(const sine, cosine: Single): TMatrix; overload;
+function CreateRotationMatrixY(const angle: Single): TMatrix; overload;
 // : Creates matrix for rotation about z-axis (angle in rad)
-function CreateRotationMatrixZ(const sine, cosine: single): TMatrix; overload;
-function CreateRotationMatrixZ(const angle: single): TMatrix; overload;
+function CreateRotationMatrixZ(const sine, cosine: Single): TMatrix; overload;
+function CreateRotationMatrixZ(const angle: Single): TMatrix; overload;
 // : Creates a rotation matrix along the given Axis by the given Angle in radians.
-function CreateRotationMatrix(const anAxis: TAffineVector; angle: single): TMatrix; overload;
-function CreateRotationMatrix(const anAxis: TVector; angle: single): TMatrix; overload;
+function CreateRotationMatrix(const anAxis: TAffineVector; angle: Single): TMatrix; overload;
+function CreateRotationMatrix(const anAxis: TVector; angle: Single): TMatrix; overload;
 // : Creates a rotation matrix along the given Axis by the given Angle in radians.
-function CreateAffineRotationMatrix(const anAxis: TAffineVector; angle: single): TAffineMatrix;
+function CreateAffineRotationMatrix(const anAxis: TAffineVector; angle: Single): TAffineMatrix;
 
 // : Multiplies two 3x3 matrices
 function MatrixMultiply(const m1, m2: TAffineMatrix): TAffineMatrix; overload;
@@ -910,9 +912,9 @@ function VectorTransform(const v: TAffineVector; const M: TMatrix): TAffineVecto
 function VectorTransform(const v: TAffineVector; const M: TAffineMatrix): TAffineVector; overload;
 
 // : Determinant of a 3x3 matrix
-function MatrixDeterminant(const M: TAffineMatrix): single; overload;
+function MatrixDeterminant(const M: TAffineMatrix): Single; overload;
 // : Determinant of a 4x4 matrix
-function MatrixDeterminant(const M: TMatrix): single; overload;
+function MatrixDeterminant(const M: TMatrix): Single; overload;
 
 { : Adjoint of a 4x4 matrix.
   used in the computation of the inverse of a 4x4 matrix }
@@ -922,9 +924,9 @@ procedure AdjointMatrix(var M: TMatrix); overload;
 procedure AdjointMatrix(var M: TAffineMatrix); overload;
 
 // : Multiplies all elements of a 3x3 matrix with a factor
-procedure ScaleMatrix(var M: TAffineMatrix; const factor: single); overload;
+procedure ScaleMatrix(var M: TAffineMatrix; const factor: Single); overload;
 // : Multiplies all elements of a 4x4 matrix with a factor
-procedure ScaleMatrix(var M: TMatrix; const factor: single); overload;
+procedure ScaleMatrix(var M: TMatrix; const factor: Single); overload;
 
 // : Adds the translation vector into the matrix
 procedure TranslateMatrix(var M: TMatrix; const v: TAffineVector); overload;
@@ -960,10 +962,10 @@ function AnglePreservingMatrixInvert(const mat: TMatrix): TMatrix;
 function MatrixDecompose(const M: TMatrix; var Tran: TTransformations): Boolean;
 
 function CreateLookAtMatrix(const eye, center, normUp: TVector): TMatrix;
-function CreateMatrixFromFrustum(Left, Right, Bottom, Top, ZNear, ZFar: single): TMatrix;
-function CreatePerspectiveMatrix(FOV, Aspect, ZNear, ZFar: single): TMatrix;
-function CreateOrthoMatrix(Left, Right, Bottom, Top, ZNear, ZFar: single): TMatrix;
-function CreatePickMatrix(x, y, deltax, deltay: single; const viewport: TVector4i): TMatrix;
+function CreateMatrixFromFrustum(Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix;
+function CreatePerspectiveMatrix(FOV, Aspect, ZNear, ZFar: Single): TMatrix;
+function CreateOrthoMatrix(Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix;
+function CreatePickMatrix(X, Y, deltax, deltay: Single; const viewport: TVector4i): TMatrix;
 function Project(objectVector: TVector; const ViewProjMatrix: TMatrix; const viewport: TVector4i; out WindowVector: TVector): Boolean;
 function UnProject(WindowVector: TVector; ViewProjMatrix: TMatrix; const viewport: TVector4i; out objectVector: TVector): Boolean;
 // ------------------------------------------------------------------------------
@@ -974,10 +976,10 @@ function UnProject(WindowVector: TVector; ViewProjMatrix: TMatrix; const viewpor
 function PlaneMake(const p1, p2, p3: TAffineVector): THmgPlane; overload;
 function PlaneMake(const p1, p2, p3: TVector): THmgPlane; overload;
 // : Computes the parameters of a plane defined by a point and a normal.
-function PlaneMake(const point, normal: TAffineVector): THmgPlane; overload;
-function PlaneMake(const point, normal: TVector): THmgPlane; overload;
+function PlaneMake(const Point, normal: TAffineVector): THmgPlane; overload;
+function PlaneMake(const Point, normal: TVector): THmgPlane; overload;
 // : Converts from single to double representation
-procedure SetPlane(var dest: TDoubleHmgPlane; const src: THmgPlane);
+procedure SetPlane(var dest: TDoubleHmgPlane; const Src: THmgPlane);
 
 // : Normalize a plane so that point evaluation = plane distance. }
 procedure NormalizePlane(var plane: THmgPlane);
@@ -986,8 +988,8 @@ procedure NormalizePlane(var plane: THmgPlane);
   This functions gives an hint as to were the point is, if the point is in the
   half-space pointed by the vector, result is positive.
   This function performs an homogeneous space dot-product. }
-function PlaneEvaluatePoint(const plane: THmgPlane; const point: TAffineVector): single; overload;
-function PlaneEvaluatePoint(const plane: THmgPlane; const point: TVector): single; overload;
+function PlaneEvaluatePoint(const plane: THmgPlane; const Point: TAffineVector): Single; overload;
+function PlaneEvaluatePoint(const plane: THmgPlane; const Point: TVector): Single; overload;
 
 { : Calculate the normal of a plane defined by three points. }
 function CalcPlaneNormal(const p1, p2, p3: TAffineVector): TAffineVector; overload;
@@ -996,63 +998,63 @@ procedure CalcPlaneNormal(const p1, p2, p3: TVector; var vr: TAffineVector); ove
 
 { : Returns true if point is in the half-space defined by a plane with normal.
   The plane itself is not considered to be in the tested halfspace. }
-function PointIsInHalfSpace(const point, planePoint, planeNormal: TVector): Boolean; overload;
-function PointIsInHalfSpace(const point, planePoint, planeNormal: TAffineVector): Boolean; overload;
-function PointIsInHalfSpace(const point: TAffineVector; plane: THmgPlane): Boolean; overload;
+function PointIsInHalfSpace(const Point, planePoint, planeNormal: TVector): Boolean; overload;
+function PointIsInHalfSpace(const Point, planePoint, planeNormal: TAffineVector): Boolean; overload;
+function PointIsInHalfSpace(const Point: TAffineVector; plane: THmgPlane): Boolean; overload;
 
 { : Computes algebraic distance between point and plane.
   Value will be positive if the point is in the halfspace pointed by the normal,
   negative on the other side. }
-function PointPlaneDistance(const point, planePoint, planeNormal: TVector): single; overload;
-function PointPlaneDistance(const point, planePoint, planeNormal: TAffineVector): single; overload;
-function PointPlaneDistance(const point: TAffineVector; plane: THmgPlane): single; overload;
+function PointPlaneDistance(const Point, planePoint, planeNormal: TVector): Single; overload;
+function PointPlaneDistance(const Point, planePoint, planeNormal: TAffineVector): Single; overload;
+function PointPlaneDistance(const Point: TAffineVector; plane: THmgPlane): Single; overload;
 
 { : Computes point to plane projection. Plane and direction have to be normalized }
-function PointPlaneOrthoProjection(const point: TAffineVector; const plane: THmgPlane; var inter: TAffineVector; bothface: Boolean = True): Boolean;
-function PointPlaneProjection(const point, direction: TAffineVector; const plane: THmgPlane; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointPlaneOrthoProjection(const Point: TAffineVector; const plane: THmgPlane; var inter: TAffineVector; bothface: Boolean): Boolean;
+function PointPlaneProjection(const Point, direction: TAffineVector; const plane: THmgPlane; var inter: TAffineVector; bothface: Boolean): Boolean;
 
 { : Computes segment / plane intersection return false if there isn't an intersection }
 function SegmentPlaneIntersection(const ptA, ptB: TAffineVector; const plane: THmgPlane; var inter: TAffineVector): Boolean;
 
 { : Computes point to triangle projection. Direction has to be normalized }
-function PointTriangleOrthoProjection(const point, ptA, ptB, ptC: TAffineVector; var inter: TAffineVector; bothface: Boolean = True): Boolean;
-function PointTriangleProjection(const point, direction, ptA, ptB, ptC: TAffineVector; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointTriangleOrthoProjection(const Point, ptA, ptB, ptC: TAffineVector; var inter: TAffineVector; bothface: Boolean): Boolean;
+function PointTriangleProjection(const Point, direction, ptA, ptB, ptC: TAffineVector; var inter: TAffineVector; bothface: Boolean): Boolean;
 
 { : Returns true if line intersect ABC triangle. }
-function IsLineIntersectTriangle(const point, direction, ptA, ptB, ptC: TAffineVector): Boolean;
+function IsLineIntersectTriangle(const Point, direction, ptA, ptB, ptC: TAffineVector): Boolean;
 
 { : Computes point to Quad projection. Direction has to be normalized. Quad have to be flat and convex }
-function PointQuadOrthoProjection(const point, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean = True): Boolean;
-function PointQuadProjection(const point, direction, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointQuadOrthoProjection(const Point, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean): Boolean;
+function PointQuadProjection(const Point, direction, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean): Boolean;
 
 { : Returns true if line intersect ABCD quad. Quad have to be flat and convex }
-function IsLineIntersectQuad(const point, direction, ptA, ptB, ptC, ptD: TAffineVector): Boolean;
+function IsLineIntersectQuad(const Point, direction, ptA, ptB, ptC, ptD: TAffineVector): Boolean;
 
 { : Computes point to disk projection. Direction has to be normalized }
-function PointDiskOrthoProjection(const point, center, up: TAffineVector; const radius: single; var inter: TAffineVector; bothface: Boolean = True): Boolean;
-function PointDiskProjection(const point, direction, center, up: TAffineVector; const radius: single; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointDiskOrthoProjection(const Point, center, up: TAffineVector; const radius: Single; var inter: TAffineVector; bothface: Boolean): Boolean;
+function PointDiskProjection(const Point, direction, center, up: TAffineVector; const radius: Single; var inter: TAffineVector; bothface: Boolean): Boolean;
 
 { : Computes closest point on a segment (a segment is a limited line). }
-function PointSegmentClosestPoint(const point, segmentStart, segmentStop: TAffineVector): TAffineVector; overload;
-function PointSegmentClosestPoint(const point, segmentStart, segmentStop: TVector): TVector; overload;
+function PointSegmentClosestPoint(const Point, segmentStart, segmentStop: TAffineVector): TAffineVector; overload;
+function PointSegmentClosestPoint(const Point, segmentStart, segmentStop: TVector): TVector; overload;
 
 { : Computes algebraic distance between segment and line (a segment is a limited line). }
-function PointSegmentDistance(const point, segmentStart, segmentStop: TAffineVector): single;
+function PointSegmentDistance(const Point, segmentStart, segmentStop: TAffineVector): Single;
 
 { : Computes closest point on a line. }
-function PointLineClosestPoint(const point, linePoint, lineDirection: TAffineVector): TAffineVector;
+function PointLineClosestPoint(const Point, linePoint, lineDirection: TAffineVector): TAffineVector;
 
 { : Computes algebraic distance between point and line. }
-function PointLineDistance(const point, linePoint, lineDirection: TAffineVector): single;
+function PointLineDistance(const Point, linePoint, lineDirection: TAffineVector): Single;
 
 { : Computes the closest points (2) given two segments. }
 procedure SegmentSegmentClosestPoint(const S0Start, S0Stop, S1Start, S1Stop: TAffineVector; var Segment0Closest, Segment1Closest: TAffineVector);
 
 { : Computes the closest distance between two segments. }
-function SegmentSegmentDistance(const S0Start, S0Stop, S1Start, S1Stop: TAffineVector): single;
+function SegmentSegmentDistance(const S0Start, S0Stop, S1Start, S1Stop: TAffineVector): Single;
 
 { : Computes the closest distance between two lines. }
-function LineLineDistance(const linePt0, lineDir0, linePt1, lineDir1: TAffineVector): single;
+function LineLineDistance(const linePt0, lineDir0, linePt1, lineDir1: TAffineVector): Single;
 
 // ------------------------------------------------------------------------------
 // Quaternion functions
@@ -1062,18 +1064,18 @@ type
   TEulerOrder = (eulXYZ, eulXZY, eulYXZ, eulYZX, eulZXY, eulZYX);
 
   // : Creates a quaternion from the given values
-function QuaternionMake(const Imag: array of single; Real: single): TQuaternion;
+function QuaternionMake(const Imag: array of Single; Real: Single): TQuaternion;
 // : Returns the conjugate of a quaternion
-function QuaternionConjugate(const Q: TQuaternion): TQuaternion;
+function QuaternionConjugate(const q: TQuaternion): TQuaternion;
 // : Returns the magnitude of the quaternion
-function QuaternionMagnitude(const Q: TQuaternion): single;
+function QuaternionMagnitude(const q: TQuaternion): Single;
 // : Normalizes the given quaternion
-procedure NormalizeQuaternion(var Q: TQuaternion);
+procedure NormalizeQuaternion(var q: TQuaternion);
 
 // : Constructs a unit quaternion from two points on unit sphere
-function QuaternionFromPoints(const V1, V2: TAffineVector): TQuaternion;
+function QuaternionFromPoints(const v1, v2: TAffineVector): TQuaternion;
 // : Converts a unit quaternion into two points on a unit sphere
-procedure QuaternionToPoints(const Q: TQuaternion; var ArcFrom, ArcTo: TAffineVector);
+procedure QuaternionToPoints(const q: TQuaternion; var ArcFrom, ArcTo: TAffineVector);
 // : Constructs a unit quaternion from a rotation matrix
 function QuaternionFromMatrix(const mat: TMatrix): TQuaternion;
 { : Constructs a rotation matrix from (possibly non-unit) quaternion.
@@ -1084,11 +1086,11 @@ function QuaternionToMatrix(quat: TQuaternion): TMatrix;
 { : Constructs an affine rotation matrix from (possibly non-unit) quaternion. }
 function QuaternionToAffineMatrix(quat: TQuaternion): TAffineMatrix;
 // : Constructs quaternion from angle (in deg) and axis
-function QuaternionFromAngleAxis(const angle: single; const axis: TAffineVector): TQuaternion;
+function QuaternionFromAngleAxis(const angle: Single; const Axis: TAffineVector): TQuaternion;
 // : Constructs quaternion from Euler angles
-function QuaternionFromRollPitchYaw(const r, p, y: single): TQuaternion;
+function QuaternionFromRollPitchYaw(const R, p, Y: Single): TQuaternion;
 // : Constructs quaternion from Euler angles in arbitrary order (angles in degrees)
-function QuaternionFromEuler(const x, y, z: single; eulerOrder: TEulerOrder): TQuaternion;
+function QuaternionFromEuler(const X, Y, Z: Single; eulerOrder: TEulerOrder): TQuaternion;
 
 { : Returns quaternion product qL * qR.
   Note: order is important!
@@ -1100,98 +1102,98 @@ function QuaternionMultiply(const qL, qR: TQuaternion): TQuaternion;
   QStart, QEnd - start and end unit quaternions<br>
   t            - interpolation parameter (0 to 1)<br>
   Spin         - number of extra spin rotations to involve<br> }
-function QuaternionSlerp(const QStart, QEnd: TQuaternion; Spin: Integer; T: single): TQuaternion; overload;
-function QuaternionSlerp(const source, dest: TQuaternion; const T: single): TQuaternion; overload;
+function QuaternionSlerp(const QStart, QEnd: TQuaternion; Spin: Integer; T: Single): TQuaternion; overload;
+function QuaternionSlerp(const Source, dest: TQuaternion; const T: Single): TQuaternion; overload;
 
 // ------------------------------------------------------------------------------
 // Logarithmic and exponential functions
 // ------------------------------------------------------------------------------
 
 { : Return ln(1 + X),  accurate for X near 0. }
-function LnXP1(x: Extended): Extended;
+function LnXP1(X: Extended): Extended;
 { : Log base 10 of X }
-function Log10(x: Extended): Extended;
+function Log10(X: Extended): Extended;
 { : Log base 2 of X }
-function Log2(x: Extended): Extended; overload;
+function Log2(X: Extended): Extended; overload;
 { : Log base 2 of X }
-function Log2(x: single): single; overload;
+function Log2(X: Single): Single; overload;
 { : Log base N of X }
-function LogN(Base, x: Extended): Extended;
+function LogN(Base, X: Extended): Extended;
 { : Raise base to an integer. }
 function IntPower(Base: Extended; Exponent: Integer): Extended;
 { : Raise base to any power.
   For fractional exponents, or |exponents| > MaxInt, base must be > 0. }
-function Power(const Base, Exponent: single): single; overload;
+function Power(const Base, Exponent: Single): Single; overload;
 { : Raise base to an integer. }
-function Power(Base: single; Exponent: Integer): single; overload;
-function Power(Base: single; Exponent: Int64): single; overload;
+function Power(Base: Single; Exponent: Integer): Single; overload;
+function Power(Base: Single; Exponent: Int64): Single; overload;
 
 // ------------------------------------------------------------------------------
 // Trigonometric functions
 // ------------------------------------------------------------------------------
 
 function DegToRad(const Degrees: Extended): Extended; overload;
-function DegToRad(const Degrees: single): single; overload;
+function DegToRad(const Degrees: Single): Single; overload;
 function RadToDeg(const Radians: Extended): Extended; overload;
-function RadToDeg(const Radians: single): single; overload;
+function RadToDeg(const Radians: Single): Single; overload;
 
 // : Normalize to an angle in the [-PI; +PI] range
-function NormalizeAngle(angle: single): single;
+function NormalizeAngle(angle: Single): Single;
 // : Normalize to an angle in the [-180; 180] range
-function NormalizeDegAngle(angle: single): single;
+function NormalizeDegAngle(angle: Single): Single;
 
 // : Calculates sine and cosine from the given angle Theta
 procedure SinCos(const Theta: Extended; out Sin, Cos: Extended); overload;
 // : Calculates sine and cosine from the given angle Theta
-procedure SinCos(const Theta: single; out Sin, Cos: single); overload;
+procedure SinCos(const Theta: Single; out Sin, Cos: Single); overload;
 { : Calculates sine and cosine from the given angle Theta and Radius.
   sin and cos values calculated from theta are multiplicated by radius. }
-procedure SinCos(const Theta, radius: double; out Sin, Cos: Extended); overload;
+procedure SinCos(const Theta, radius: Double; out Sin, Cos: Extended); overload;
 { : Calculates sine and cosine from the given angle Theta and Radius.
   sin and cos values calculated from theta are multiplicated by radius. }
-procedure SinCos(const Theta, radius: single; out Sin, Cos: single); overload;
+procedure SinCos(const Theta, radius: Single; out Sin, Cos: Single); overload;
 
 { : Fills up the two given dynamic arrays with sin cos values.
   start and stop angles must be given in degrees, the number of steps is
   determined by the length of the given arrays. }
-procedure PrepareSinCosCache(var S, c: array of single;
-  startAngle, stopAngle: single);
+procedure PrepareSinCosCache(var s, C: array of Single;
+  startAngle, stopAngle: Single);
 
-function ArcCos(const x: Extended): Extended; overload;
-function ArcCos(const x: single): single; overload;
-function ArcSin(const x: Extended): Extended; overload;
-function ArcSin(const x: single): single; overload;
-function ArcTan2(const y, x: Extended): Extended; overload;
-function ArcTan2(const y, x: single): single; overload;
+function ArcCos(const X: Extended): Extended; overload;
+function ArcCos(const X: Single): Single; overload;
+function ArcSin(const X: Extended): Extended; overload;
+function ArcSin(const X: Single): Single; overload;
+function ArcTan2(const Y, X: Extended): Extended; overload;
+function ArcTan2(const Y, X: Single): Single; overload;
 { : Fast ArcTan2 approximation, about 0.07 rads accuracy. }
-function FastArcTan2(y, x: single): single;
-function Tan(const x: Extended): Extended; overload;
-function Tan(const x: single): single; overload;
-function CoTan(const x: Extended): Extended; overload;
-function CoTan(const x: single): single; overload;
+function FastArcTan2(Y, X: Single): Single;
+function Tan(const X: Extended): Extended; overload;
+function Tan(const X: Single): Single; overload;
+function CoTan(const X: Extended): Extended; overload;
+function CoTan(const X: Single): Single; overload;
 
 // ------------------------------------------------------------------------------
 // Hyperbolic Trigonometric functions
 // ------------------------------------------------------------------------------
 
-function Sinh(const x: single): single; overload;
-function Sinh(const x: double): double; overload;
-function Cosh(const x: single): single; overload;
-function Cosh(const x: double): double; overload;
+function Sinh(const X: Single): Single; overload;
+function Sinh(const X: Double): Double; overload;
+function Cosh(const X: Single): Single; overload;
+function Cosh(const X: Double): Double; overload;
 
 // ------------------------------------------------------------------------------
 // Miscellanious math functions
 // ------------------------------------------------------------------------------
 
 { : Computes 1/Sqrt(v). }
-function RSqrt(v: single): single;
+function RSqrt(v: Single): Single;
 { : Computes 1/Sqrt(Sqr(x)+Sqr(y)). }
-function RLength(x, y: single): single;
+function RLength(X, Y: Single): Single;
 { : Computes an integer sqrt approximation. }
 function ISqrt(i: Integer): Integer;
 { : Computes an integer length Result:=Sqrt(x*x+y*y). }
-function ILength(x, y: Integer): Integer; overload;
-function ILength(x, y, z: Integer): Integer; overload;
+function ILength(X, Y: Integer): Integer; overload;
+function ILength(X, Y, Z: Integer): Integer; overload;
 
 { : Generates a random point on the unit sphere.
   Point repartition is correctly isotropic with no privilegied direction. }
@@ -1199,158 +1201,150 @@ procedure RandomPointOnSphere(var p: TAffineVector);
 
 { : Rounds the floating point value to the closest integer.
   Behaves like Round but returns a floating point value like Int. }
-function RoundInt(v: single): single; overload;
+function RoundInt(v: Single): Single; overload;
 function RoundInt(v: Extended): Extended; overload;
 
-function Trunc(x: Extended): Int64;
-function Round(x: Extended): Int64;
-function Frac(x: Extended): Extended;
+function Trunc(X: Extended): Int64;
+function Round(X: Extended): Int64;
+function Frac(X: Extended): Extended;
 
-function Ceil(v: single): Integer; overload;
+function Ceil(v: Single): Integer; overload;
 function Ceil64(v: Extended): Int64; overload;
-function Floor(v: single): Integer; overload;
+function Floor(v: Single): Integer; overload;
 function Floor64(v: Extended): Int64; overload;
 
 { : Multiples i by s and returns the rounded result. }
-function ScaleAndRound(i: Integer; var S: single): Integer;
+function ScaleAndRound(i: Integer; var s: Single): Integer;
 
 { : Returns the sign of the x value using the (-1, 0, +1) convention }
-function Sign(x: single): Integer;
-function SignStrict(x: single): Integer;
+function Sign(X: Single): Integer;
+function SignStrict(X: Single): Integer;
 
 { : Returns True if x is in [a; b] }
-function IsInRange(const x, a, b: single): Boolean; overload;
-function IsInRange(const x, a, b: double): Boolean; overload;
+function IsInRange(const X, A, b: Single): Boolean; overload;
+function IsInRange(const X, A, b: Double): Boolean; overload;
 
 { : Returns True if p is in the cube defined by d. }
 function IsInCube(const p, d: TAffineVector): Boolean; overload;
 function IsInCube(const p, d: TVector): Boolean; overload;
 
 { : Returns the minimum value of the array. }
-function MinFloat(values: PSingleArray; nbItems: Integer): single; overload;
-function MinFloat(values: PDoubleArray; nbItems: Integer): double; overload;
+function MinFloat(values: PSingleArray; nbItems: Integer): Single; overload;
+function MinFloat(values: PDoubleArray; nbItems: Integer): Double; overload;
 { : Returns the minimum of given values. }
-function MinFloat(const V1, V2: single): single; overload;
-function MinFloat(const v: array of single): single; overload;
-function MinFloat(const V1, V2: double): double; overload;
-function MinFloat(const V1, V2, V3: single): single; overload;
-function MinFloat(const V1, V2, V3: double): double; overload;
+function MinFloat(const v1, v2: Single): Single; overload;
+function MinFloat(const v: array of Single): Single; overload;
+function MinFloat(const v1, v2: Double): Double; overload;
+function MinFloat(const v1, v2, v3: Single): Single; overload;
+function MinFloat(const v1, v2, v3: Double): Double; overload;
 { : Returns the maximum value of the array. }
-function MaxFloat(values: PSingleArray; nbItems: Integer): single; overload;
-function MaxFloat(values: PDoubleArray; nbItems: Integer): double; overload;
-function MaxFloat(const v: array of single): single; overload;
+function MaxFloat(values: PSingleArray; nbItems: Integer): Single; overload;
+function MaxFloat(values: PDoubleArray; nbItems: Integer): Double; overload;
+function MaxFloat(const v: array of Single): Single; overload;
 { : Returns the maximum of given values. }
-function MaxFloat(const V1, V2: single): single; overload;
-function MaxFloat(const V1, V2: double): double; overload;
-function MaxFloat(const V1, V2, V3: single): single; overload;
-function MaxFloat(const V1, V2, V3: double): double; overload;
+function MaxFloat(const v1, v2: Single): Single; overload;
+function MaxFloat(const v1, v2: Double): Double; overload;
+function MaxFloat(const v1, v2, v3: Single): Single; overload;
+function MaxFloat(const v1, v2, v3: Double): Double; overload;
 
-function MinInteger(const V1, V2: Integer): Integer; overload;
-function MinInteger(const V1, V2: Cardinal): Cardinal; overload;
-function MinInteger(const V1, V2, V3: Integer): Integer; overload;
-function MinInteger(const V1, V2, V3: Cardinal): Cardinal; overload;
+function MinInteger(const v1, v2: Integer): Integer; overload;
+function MinInteger(const v1, v2: Cardinal): Cardinal; overload;
+function MinInteger(const v1, v2, v3: Integer): Integer; overload;
+function MinInteger(const v1, v2, v3: Cardinal): Cardinal; overload;
 
-function MaxInteger(const V1, V2: Integer): Integer; overload;
-function MaxInteger(const V1, V2: Cardinal): Cardinal; overload;
-function MaxInteger(const V1, V2, V3: Integer): Integer; overload;
-function MaxInteger(const V1, V2, V3: Cardinal): Cardinal; overload;
+function MaxInteger(const v1, v2: Integer): Integer; overload;
+function MaxInteger(const v1, v2: Cardinal): Cardinal; overload;
+function MaxInteger(const v1, v2, v3: Integer): Integer; overload;
+function MaxInteger(const v1, v2, v3: Cardinal): Cardinal; overload;
 
-function ClampInteger(const value, min, max: Integer): Integer; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-function ClampInteger(const value, min, max: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function ClampInteger(const Value, Min, Max: Integer): Integer; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function ClampInteger(const Value, Min, Max: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM}inline; {$ENDIF}
 
 { : Computes the triangle's area. }
-function TriangleArea(const p1, p2, p3: TAffineVector): single; overload;
+function TriangleArea(const p1, p2, p3: TAffineVector): Single; overload;
 { : Computes the polygons's area.
   Points must be coplanar. Polygon needs not be convex. }
-function PolygonArea(const p: PAffineVectorArray; nSides: Integer): single; overload;
+function PolygonArea(const p: PAffineVectorArray; nSides: Integer): Single; overload;
 { : Computes a 2D triangle's signed area.
   Only X and Y coordinates are used, Z is ignored. }
-function TriangleSignedArea(const p1, p2, p3: TAffineVector): single; overload;
+function TriangleSignedArea(const p1, p2, p3: TAffineVector): Single; overload;
 { : Computes a 2D polygon's signed area.
   Only X and Y coordinates are used, Z is ignored. Polygon needs not be convex. }
-function PolygonSignedArea(const p: PAffineVectorArray; nSides: Integer): single; overload;
+function PolygonSignedArea(const p: PAffineVectorArray; nSides: Integer): Single; overload;
 
 { : Multiplies values in the array by factor.
   This function is especially efficient for large arrays, it is not recommended
   for arrays that have less than 10 items.<br>
   Expected performance is 4 to 5 times that of a Deliph-compiled loop on AMD
   CPUs, and 2 to 3 when 3DNow! isn't available. }
-procedure ScaleFloatArray(values: PSingleArray; nb: Integer; var factor: single); overload;
-procedure ScaleFloatArray(var values: TSingleArray; factor: single); overload;
+procedure ScaleFloatArray(values: PSingleArray; nb: Integer; var factor: Single); overload;
+procedure ScaleFloatArray(var values: TSingleArray; factor: Single); overload;
 
 { : Adds delta to values in the array.
   Array size must be a multiple of four. }
-procedure OffsetFloatArray(values: PSingleArray; nb: Integer; var delta: single); overload;
-procedure OffsetFloatArray(var values: array of single; delta: single); overload;
+procedure OffsetFloatArray(values: PSingleArray; nb: Integer; var Delta: Single); overload;
+procedure OffsetFloatArray(var values: array of Single; Delta: Single); overload;
 procedure OffsetFloatArray(valuesDest, valuesDelta: PSingleArray; nb: Integer); overload;
 
 { : Returns the max of the X, Y and Z components of a vector (W is ignored). }
-function MaxXYZComponent(const v: TVector): single; overload;
-function MaxXYZComponent(const v: TAffineVector): single; overload;
+function MaxXYZComponent(const v: TVector): Single; overload;
+function MaxXYZComponent(const v: TAffineVector): Single; overload;
 { : Returns the min of the X, Y and Z components of a vector (W is ignored). }
-function MinXYZComponent(const v: TVector): single; overload;
-function MinXYZComponent(const v: TAffineVector): single; overload;
+function MinXYZComponent(const v: TVector): Single; overload;
+function MinXYZComponent(const v: TAffineVector): Single; overload;
 { : Returns the max of the Abs(X), Abs(Y) and Abs(Z) components of a vector (W is ignored). }
-function MaxAbsXYZComponent(v: TVector): single;
+function MaxAbsXYZComponent(v: TVector): Single;
 { : Returns the min of the Abs(X), Abs(Y) and Abs(Z) components of a vector (W is ignored). }
-function MinAbsXYZComponent(v: TVector): single;
+function MinAbsXYZComponent(v: TVector): Single;
 { : Replace components of v with the max of v or v1 component.
   Maximum is computed per component. }
-procedure MaxVector(var v: TVector; const V1: TVector); overload;
-procedure MaxVector(var v: TAffineVector; const V1: TAffineVector); overload;
+procedure MaxVector(var v: TVector; const v1: TVector); overload;
+procedure MaxVector(var v: TAffineVector; const v1: TAffineVector); overload;
 { : Replace components of v with the min of v or v1 component.
   Minimum is computed per component. }
-procedure MinVector(var v: TVector; const V1: TVector); overload;
-procedure MinVector(var v: TAffineVector; const V1: TAffineVector); overload;
+procedure MinVector(var v: TVector; const v1: TVector); overload;
+procedure MinVector(var v: TAffineVector; const v1: TAffineVector); overload;
 
 { : Sorts given array in ascending order.
   NOTE : current implementation is a slow bubble sort... }
-procedure SortArrayAscending(var a: array of Extended);
+procedure SortArrayAscending(var A: array of Extended);
 
 { : Clamps aValue in the aMin-aMax interval. }
-function ClampValue(const aValue, aMin, aMax: single): single; overload;
+function ClampValue(const AValue, aMin, aMax: Single): Single; overload;
 { : Clamps aValue in the aMin-INF interval. }
-function ClampValue(const aValue, aMin: single): single; overload;
+function ClampValue(const AValue, aMin: Single): Single; overload;
 
-
-// --------------------- Unstandardized functions after these lines
-// --------------------- Unstandardized functions after these lines
-// --------------------- Unstandardized functions after these lines
-// --------------------- Unstandardized functions after these lines
-// --------------------- Unstandardized functions after these lines
-
-// mixed functions
 
 { : Turn a triplet of rotations about x, y, and z (in that order) into an equivalent rotation around a single axis (all in radians). }
 function ConvertRotation(const Angles: TAffineVector): TVector;
 
 // miscellaneous functions
 
-function MakeAffineDblVector(var v: array of double): TAffineDblVector;
-function MakeDblVector(var v: array of double): THomogeneousDblVector;
+function MakeAffineDblVector(var v: array of Double): TAffineDblVector;
+function MakeDblVector(var v: array of Double): THomogeneousDblVector;
 function VectorAffineDblToFlt(const v: TAffineDblVector): TAffineVector;
 function VectorDblToFlt(const v: THomogeneousDblVector): THomogeneousVector;
 function VectorAffineFltToDbl(const v: TAffineVector): TAffineDblVector;
 function VectorFltToDbl(const v: TVector): THomogeneousDblVector;
 
-function PointInPolygon(var xp, yp: array of single; x, y: single): Boolean;
+function PointInPolygon(var xp, yp: array of Single; X, Y: Single): Boolean;
 
-procedure DivMod(Dividend: Integer; Divisor: Word; var result, Remainder: Word);
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
 
 // coordinate system manipulation functions
 
 // : Rotates the given coordinate system (represented by the matrix) around its Y-axis
-function Turn(const Matrix: TMatrix; angle: single): TMatrix; overload;
+function Turn(const Matrix: TMatrix; angle: Single): TMatrix; overload;
 // : Rotates the given coordinate system (represented by the matrix) around MasterUp
-function Turn(const Matrix: TMatrix; const MasterUp: TAffineVector; angle: single): TMatrix; overload;
+function Turn(const Matrix: TMatrix; const MasterUp: TAffineVector; angle: Single): TMatrix; overload;
 // : Rotates the given coordinate system (represented by the matrix) around its X-axis
-function Pitch(const Matrix: TMatrix; angle: single): TMatrix; overload;
+function Pitch(const Matrix: TMatrix; angle: Single): TMatrix; overload;
 // : Rotates the given coordinate system (represented by the matrix) around MasterRight
-function Pitch(const Matrix: TMatrix; const MasterRight: TAffineVector; angle: single): TMatrix; overload;
+function Pitch(const Matrix: TMatrix; const MasterRight: TAffineVector; angle: Single): TMatrix; overload;
 // : Rotates the given coordinate system (represented by the matrix) around its Z-axis
-function Roll(const Matrix: TMatrix; angle: single): TMatrix; overload;
+function Roll(const Matrix: TMatrix; angle: Single): TMatrix; overload;
 // : Rotates the given coordinate system (represented by the matrix) around MasterDirection
-function Roll(const Matrix: TMatrix; const MasterDirection: TAffineVector; angle: single): TMatrix; overload;
+function Roll(const Matrix: TMatrix; const MasterDirection: TAffineVector; angle: Single): TMatrix; overload;
 
 // intersection functions
 
@@ -1362,7 +1356,7 @@ function Roll(const Matrix: TMatrix; const MasterDirection: TAffineVector; angle
   </ul><br>
   Adapted from:<br>
   E.Hartmann, Computeruntersttzte Darstellende Geometrie, B.G. Teubner Stuttgart 1988 }
-function IntersectLinePlane(const point, direction: TVector; const plane: THmgPlane; intersectPoint: PVector = nil): Integer; overload;
+function IntersectLinePlane(const Point, direction: TVector; const plane: THmgPlane; intersectPoint: PVector = nil): Integer; overload;
 
 { : Compute intersection between a triangle and a box.
   Returns True if an intersection was found. }
@@ -1372,26 +1366,26 @@ function IntersectTriangleBox(const p1, p2, p3, aMinExtent, aMaxExtent: TAffineV
   Up, Direction and Right must be normalized!
   Use CubDepht, CubeHeight and CubeWidth to scale TGLCube. }
 function IntersectSphereBox(
-  const SpherePos: TVector; const SphereRadius: single; const BoxMatrix: TMatrix;
-  const BoxScale: TAffineVector; intersectPoint: PAffineVector = nil; normal: PAffineVector = nil; depth: PSingle = nil): Boolean;
+  const SpherePos: TVector; const SphereRadius: Single; const BoxMatrix: TMatrix;
+  const BoxScale: TAffineVector; intersectPoint: PAffineVector = nil; normal: PAffineVector = nil; Depth: PSingle = nil): Boolean;
 
 { : Compute intersection between a ray and a plane.
   Returns True if an intersection was found, the intersection point is placed
   in intersectPoint is the reference is not nil. }
 function RayCastPlaneIntersect(const rayStart, rayVector: TVector; const planePoint, planeNormal: TVector; intersectPoint: PVector = nil): Boolean; overload;
-function RayCastPlaneXZIntersect(const rayStart, rayVector: TVector; const planeY: single; intersectPoint: PVector = nil): Boolean; overload;
+function RayCastPlaneXZIntersect(const rayStart, rayVector: TVector; const planeY: Single; intersectPoint: PVector = nil): Boolean; overload;
 
 { : Compute intersection between a ray and a triangle. }
 function RayCastTriangleIntersect(const rayStart, rayVector: TVector; const p1, p2, p3: TAffineVector; intersectPoint: PVector = nil; intersectNormal: PVector = nil): Boolean; overload;
 { : Compute the min distance a ray will pass to a point. }
-function RayCastMinDistToPoint(const rayStart, rayVector: TVector; const point: TVector): single;
+function RayCastMinDistToPoint(const rayStart, rayVector: TVector; const Point: TVector): Single;
 { : Determines if a ray will intersect with a given sphere. }
-function RayCastIntersectsSphere(const rayStart, rayVector: TVector; const sphereCenter: TVector; const SphereRadius: single): Boolean; overload;
+function RayCastIntersectsSphere(const rayStart, rayVector: TVector; const sphereCenter: TVector; const SphereRadius: Single): Boolean; overload;
 { : Calculates the intersections between a sphere and a ray.
   Returns 0 if no intersection is found (i1 and i2 untouched), 1 if one
   intersection was found (i1 defined, i2 untouched), and 2 is two intersections
   were found (i1 and i2 defined). }
-function RayCastSphereIntersect(const rayStart, rayVector: TVector; const sphereCenter: TVector; const SphereRadius: single; var i1, i2: TVector): Integer; overload;
+function RayCastSphereIntersect(const rayStart, rayVector: TVector; const sphereCenter: TVector; const SphereRadius: Single; var i1, i2: TVector): Integer; overload;
 { : Compute intersection between a ray and a box.
   Returns True if an intersection was found, the intersection point is
   placed in intersectPoint if the reference is not nil. }
@@ -1403,20 +1397,20 @@ function RayCastBoxIntersect(const rayStart, rayVector, aMinExtent, aMaxExtent: 
 function RectanglesIntersect(const ACenterOfRect1, ACenterOfRect2, ASizeOfRect1, ASizeOfRect2: TVector2f): Boolean;
 
 { : Determine if BigRect completely contains SmallRect. }
-function RectangleContains(const ACenterOfBigRect1, ACenterOfSmallRect2, ASizeOfBigRect1, ASizeOfSmallRect2: TVector2f; const AEps: single = 0.0): Boolean;
+function RectangleContains(const ACenterOfBigRect1, ACenterOfSmallRect2, ASizeOfBigRect1, ASizeOfSmallRect2: TVector2f; const AEps: Single = 0.0): Boolean;
 
 { : Computes the visible radius of a sphere in a perspective projection.
   This radius can be used for occlusion culling (cone extrusion) or 2D
   intersection testing. }
-function SphereVisibleRadius(distance, radius: single): single;
+function SphereVisibleRadius(Distance, radius: Single): Single;
 
 { : Extracts a TFrustum for combined modelview and projection matrices. }
 function ExtractFrustumFromModelViewProjection(const modelViewProj: TMatrix): TFrustum;
 
 // : Determines if volume is clipped or not
-function IsVolumeClipped(const objPos: TAffineVector; const objRadius: single; const Frustum: TFrustum): Boolean; overload;
-function IsVolumeClipped(const objPos: TVector; const objRadius: single; const Frustum: TFrustum): Boolean; overload;
-function IsVolumeClipped(const min, max: TAffineVector; const Frustum: TFrustum): Boolean; overload;
+function IsVolumeClipped(const objPos: TAffineVector; const objRadius: Single; const Frustum: TFrustum): Boolean; overload;
+function IsVolumeClipped(const objPos: TVector; const objRadius: Single; const Frustum: TFrustum): Boolean; overload;
+function IsVolumeClipped(const Min, Max: TAffineVector; const Frustum: TFrustum): Boolean; overload;
 
 // misc funcs
 
@@ -1456,14 +1450,14 @@ function UnPackRotationMatrix(const packedMatrix: TPackedRotationMatrix): TMatri
   Returns true if the point is inside the triangle, false otherwise.
   NOTE: This function assumes that the point lies on the plane defined by the triangle.
   If this is not the case, the function will not work correctly! }
-function BarycentricCoordinates(const V1, V2, V3, p: TAffineVector; var u, v: single): Boolean;
+function BarycentricCoordinates(const v1, v2, v3, p: TAffineVector; var u, v: Single): Boolean;
 
 { : Extracted from Camera.MoveAroundTarget(pitch, turn). }
-function MoveObjectAround(const AMovingObjectPosition, AMovingObjectUp, ATargetPosition: TVector; pitchDelta, turnDelta: single): TVector;
+function MoveObjectAround(const AMovingObjectPosition, AMovingObjectUp, ATargetPosition: TVector; pitchDelta, turnDelta: Single): TVector;
 
 { : Calcualtes Angle between 2 Vectors: (A-CenterPoint) and (B-CenterPoint). In radians. }
-function AngleBetweenVectors(const a, b, ACenterPoint: TVector): single; overload;
-function AngleBetweenVectors(const a, b, ACenterPoint: TAffineVector): single; overload;
+function AngleBetweenVectors(const A, b, ACenterPoint: TVector): Single; overload;
+function AngleBetweenVectors(const A, b, ACenterPoint: TAffineVector): Single; overload;
 
 { :
   AOriginalPosition - Object initial position.
@@ -1473,24 +1467,24 @@ function AngleBetweenVectors(const a, b, ACenterPoint: TAffineVector): single; o
   or
   ADistance + not AFromCenterSpot - distance, which object should shift from his current position away from center.
 }
-function ShiftObjectFromCenter(const AOriginalPosition: TVector; const ACenter: TVector; const ADistance: single; const AFromCenterSpot: Boolean): TVector; overload;
-function ShiftObjectFromCenter(const AOriginalPosition: TAffineVector; const ACenter: TAffineVector; const ADistance: single; const AFromCenterSpot: Boolean): TAffineVector; overload;
+function ShiftObjectFromCenter(const AOriginalPosition: TVector; const ACenter: TVector; const aDistance: Single; const AFromCenterSpot: Boolean): TVector; overload;
+function ShiftObjectFromCenter(const AOriginalPosition: TAffineVector; const ACenter: TAffineVector; const aDistance: Single; const AFromCenterSpot: Boolean): TAffineVector; overload;
 
 const
-  cPI: single       = 3.141592654;
-  cPIdiv180: single = 0.017453292;
-  c180divPI: single = 57.29577951;
-  c2PI: single      = 6.283185307;
-  cPIdiv2: single   = 1.570796326;
-  cPIdiv4: single   = 0.785398163;
-  c3PIdiv2: single  = 4.71238898;
-  c3PIdiv4: single  = 2.35619449;
-  cInv2PI: single   = 1 / 6.283185307;
-  cInv360: single   = 1 / 360;
-  c180: single      = 180;
-  c360: single      = 360;
-  cOneHalf: single  = 0.5;
-  cLn10: single     = 2.302585093;
+  cPI: Single       = 3.141592654;
+  cPIdiv180: Single = 0.017453292;
+  c180divPI: Single = 57.29577951;
+  c2PI: Single      = 6.283185307;
+  cPIdiv2: Single   = 1.570796326;
+  cPIdiv4: Single   = 0.785398163;
+  c3PIdiv2: Single  = 4.71238898;
+  c3PIdiv4: Single  = 2.35619449;
+  cInv2PI: Single   = 1 / 6.283185307;
+  cInv360: Single   = 1 / 360;
+  c180: Single      = 180;
+  c360: Single      = 360;
+  cOneHalf: Single  = 0.5;
+  cLn10: Single     = 2.302585093;
 
   // Ranges of the IEEE floating point types, including denormals
   // with Math.pas compatible name
@@ -1516,14 +1510,14 @@ uses Math;
 
 const
   // to be used as descriptive indices
-  x = 0;
-  y = 1;
-  z = 2;
+  X = 0;
+  Y = 1;
+  Z = 2;
   w = 3;
 
-  cZero: single       = 0.0;
-  cOne: single        = 1.0;
-  cOneDotFive: single = 0.5;
+  cZero: Single       = 0.0;
+  cOne: Single        = 1.0;
+  cOneDotFive: Single = 0.5;
 
   // ------------------------------------------------------------------------------
   // ----------------- vector functions -------------------------------------------
@@ -1531,46 +1525,46 @@ const
 
   // TexPointMake
   //
-function TexPointMake(const S, T: single): TTexPoint;
+function TexPointMake(const s, T: Single): TTexPoint;
 begin
-  result.S := S;
-  result.T := T;
+  Result.s := s;
+  Result.T := T;
 end;
 
 // AffineVectorMake
 //
-function AffineVectorMake(const x, y, z: single): TAffineVector; overload;
+function AffineVectorMake(const X, Y, Z: Single): TAffineVector; overload;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
 end;
 
 // AffineVectorMake
 //
 function AffineVectorMake(const v: TVector): TAffineVector;
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
 end;
 
 // SetAffineVector
 //
-procedure SetAffineVector(out v: TAffineVector; const x, y, z: single); overload;
+procedure SetAffineVector(out v: TAffineVector; const X, Y, Z: Single); overload;
 begin
-  v[0] := x;
-  v[1] := y;
-  v[2] := z;
+  v[0] := X;
+  v[1] := Y;
+  v[2] := Z;
 end;
 
 // SetVector (affine)
 //
-procedure SetVector(out v: TAffineVector; const x, y, z: single);
+procedure SetVector(out v: TAffineVector; const X, Y, Z: Single);
 begin
-  v[0] := x;
-  v[1] := y;
-  v[2] := z;
+  v[0] := X;
+  v[1] := Y;
+  v[2] := Z;
 end;
 
 // SetVector (affine-hmg)
@@ -1611,67 +1605,67 @@ end;
 
 // VectorMake
 //
-function VectorMake(const v: TAffineVector; w: single = 0): TVector;
+function VectorMake(const v: TAffineVector; w: Single = 0): TVector;
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
-  result[3] := w;
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
+  Result[3] := w;
 end;
 
 // VectorMake
 //
-function VectorMake(const x, y, z: single; w: single = 0): TVector;
+function VectorMake(const X, Y, Z: Single; w: Single = 0): TVector;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := w;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
 // PointMake (xyz)
 //
-function PointMake(const x, y, z: single): TVector; overload;
+function PointMake(const X, Y, Z: Single): TVector; overload;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := 1;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := 1;
 end;
 
 // PointMake (affine)
 //
 function PointMake(const v: TAffineVector): TVector; overload;
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
-  result[3] := 1;
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
+  Result[3] := 1;
 end;
 
 // PointMake (hmg)
 //
 function PointMake(const v: TVector): TVector; overload;
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
-  result[3] := 1;
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
+  Result[3] := 1;
 end;
 
 // SetVector
 //
-procedure SetVector(out v: TVector; const x, y, z: single; w: single = 0);
+procedure SetVector(out v: TVector; const X, Y, Z: Single; w: Single = 0);
 begin
-  v[0] := x;
-  v[1] := y;
-  v[2] := z;
+  v[0] := X;
+  v[1] := Y;
+  v[2] := Z;
   v[3] := w;
 end;
 
 // SetVector
 //
-procedure SetVector(out v: TVector; const av: TAffineVector; w: single = 0);
+procedure SetVector(out v: TVector; const av: TAffineVector; w: Single = 0);
 begin
   v[0] := av[0];
   v[1] := av[1];
@@ -1692,11 +1686,11 @@ end;
 
 // MakePoint
 //
-procedure MakePoint(out v: TVector; const x, y, z: single);
+procedure MakePoint(out v: TVector; const X, Y, Z: Single);
 begin
-  v[0] := x;
-  v[1] := y;
-  v[2] := z;
+  v[0] := X;
+  v[1] := Y;
+  v[2] := Z;
   v[3] := 1;
 end;
 
@@ -1722,20 +1716,20 @@ end;
 
 // MakeVector
 //
-procedure MakeVector(out v: TAffineVector; const x, y, z: single); overload;
+procedure MakeVector(out v: TAffineVector; const X, Y, Z: Single); overload;
 begin
-  v[0] := x;
-  v[1] := y;
-  v[2] := z;
+  v[0] := X;
+  v[1] := Y;
+  v[2] := Z;
 end;
 
 // MakeVector
 //
-procedure MakeVector(out v: TVector; const x, y, z: single);
+procedure MakeVector(out v: TVector; const X, Y, Z: Single);
 begin
-  v[0] := x;
-  v[1] := y;
-  v[2] := z;
+  v[0] := X;
+  v[1] := Y;
+  v[2] := Z;
   v[3] := 0;
 end;
 
@@ -1780,315 +1774,315 @@ end;
 
 // VectorAdd (func)
 //
-function VectorAdd(const V1, V2: TVector2f): TVector2f;
+function VectorAdd(const v1, v2: TVector2f): TVector2f;
 begin
-  result[0] := V1[0] + V2[0];
-  result[1] := V1[1] + V2[1];
+  Result[0] := v1[0] + v2[0];
+  Result[1] := v1[1] + v2[1];
 end;
 
 // VectorAdd (func, affine)
 //
-function VectorAdd(const V1, V2: TAffineVector): TAffineVector;
+function VectorAdd(const v1, v2: TAffineVector): TAffineVector;
 begin
-  result[0] := V1[0] + V2[0];
-  result[1] := V1[1] + V2[1];
-  result[2] := V1[2] + V2[2];
+  Result[0] := v1[0] + v2[0];
+  Result[1] := v1[1] + v2[1];
+  Result[2] := v1[2] + v2[2];
 end;
 
 // VectorAdd (proc, affine)
 //
-procedure VectorAdd(const V1, V2: TAffineVector; var vr: TAffineVector); overload;
+procedure VectorAdd(const v1, v2: TAffineVector; var vr: TAffineVector); overload;
 begin
-  vr[0] := V1[0] + V2[0];
-  vr[1] := V1[1] + V2[1];
-  vr[2] := V1[2] + V2[2];
+  vr[0] := v1[0] + v2[0];
+  vr[1] := v1[1] + v2[1];
+  vr[2] := v1[2] + v2[2];
 end;
 
 // VectorAdd (proc, affine)
 //
-procedure VectorAdd(const V1, V2: TAffineVector; vr: PAffineVector); overload;
+procedure VectorAdd(const v1, v2: TAffineVector; vr: PAffineVector); overload;
 begin
-  vr^[0] := V1[0] + V2[0];
-  vr^[1] := V1[1] + V2[1];
-  vr^[2] := V1[2] + V2[2];
+  vr^[0] := v1[0] + v2[0];
+  vr^[1] := v1[1] + v2[1];
+  vr^[2] := v1[2] + v2[2];
 end;
 
 // VectorAdd (hmg)
 //
-function VectorAdd(const V1, V2: TVector): TVector;
+function VectorAdd(const v1, v2: TVector): TVector;
 begin
-  result[0] := V1[0] + V2[0];
-  result[1] := V1[1] + V2[1];
-  result[2] := V1[2] + V2[2];
-  result[3] := V1[3] + V2[3];
+  Result[0] := v1[0] + v2[0];
+  Result[1] := v1[1] + v2[1];
+  Result[2] := v1[2] + v2[2];
+  Result[3] := v1[3] + v2[3];
 end;
 
 // VectorAdd (hmg, proc)
 //
-procedure VectorAdd(const V1, V2: TVector; var vr: TVector);
+procedure VectorAdd(const v1, v2: TVector; var vr: TVector);
 begin
-  vr[0] := V1[0] + V2[0];
-  vr[1] := V1[1] + V2[1];
-  vr[2] := V1[2] + V2[2];
-  vr[3] := V1[3] + V2[3];
+  vr[0] := v1[0] + v2[0];
+  vr[1] := v1[1] + v2[1];
+  vr[2] := v1[2] + v2[2];
+  vr[3] := v1[3] + v2[3];
 end;
 
 // VectorAdd (affine, single)
 //
-function VectorAdd(const v: TAffineVector; const f: single): TAffineVector;
+function VectorAdd(const v: TAffineVector; const F: Single): TAffineVector;
 begin
-  result[0] := v[0] + f;
-  result[1] := v[1] + f;
-  result[2] := v[2] + f;
+  Result[0] := v[0] + F;
+  Result[1] := v[1] + F;
+  Result[2] := v[2] + F;
 end;
 
 // VectorAdd (hmg, single)
 //
-function VectorAdd(const v: TVector; const f: single): TVector;
+function VectorAdd(const v: TVector; const F: Single): TVector;
 begin
-  result[0] := v[0] + f;
-  result[1] := v[1] + f;
-  result[2] := v[2] + f;
-  result[3] := v[3] + f;
+  Result[0] := v[0] + F;
+  Result[1] := v[1] + F;
+  Result[2] := v[2] + F;
+  Result[3] := v[3] + F;
 end;
 
 // PointAdd (hmg, W = 1)
 //
-function PointAdd(var V1: TVector; const V2: TVector): TVector;
+function PointAdd(var v1: TVector; const v2: TVector): TVector;
 begin
-  result[0] := V1[0] + V2[0];
-  result[1] := V1[1] + V2[1];
-  result[2] := V1[2] + V2[2];
-  result[3] := 1;
+  Result[0] := v1[0] + v2[0];
+  Result[1] := v1[1] + v2[1];
+  Result[2] := v1[2] + v2[2];
+  Result[3] := 1;
 end;
 
 // AddVector (affine)
 //
-procedure AddVector(var V1: TAffineVector; const V2: TAffineVector);
+procedure AddVector(var v1: TAffineVector; const v2: TAffineVector);
 begin
-  V1[0] := V1[0] + V2[0];
-  V1[1] := V1[1] + V2[1];
-  V1[2] := V1[2] + V2[2];
+  v1[0] := v1[0] + v2[0];
+  v1[1] := v1[1] + v2[1];
+  v1[2] := v1[2] + v2[2];
 end;
 
 // AddVector (affine)
 //
-procedure AddVector(var V1: TAffineVector; const V2: TVector);
+procedure AddVector(var v1: TAffineVector; const v2: TVector);
 begin
-  V1[0] := V1[0] + V2[0];
-  V1[1] := V1[1] + V2[1];
-  V1[2] := V1[2] + V2[2];
+  v1[0] := v1[0] + v2[0];
+  v1[1] := v1[1] + v2[1];
+  v1[2] := v1[2] + v2[2];
 end;
 
 // AddVector (hmg)
 //
-procedure AddVector(var V1: TVector; const V2: TVector);
+procedure AddVector(var v1: TVector; const v2: TVector);
 begin
-  V1[0] := V1[0] + V2[0];
-  V1[1] := V1[1] + V2[1];
-  V1[2] := V1[2] + V2[2];
-  V1[3] := V1[3] + V2[3];
+  v1[0] := v1[0] + v2[0];
+  v1[1] := v1[1] + v2[1];
+  v1[2] := v1[2] + v2[2];
+  v1[3] := v1[3] + v2[3];
 end;
 
 // AddVector (affine)
 //
-procedure AddVector(var v: TAffineVector; const f: single);
+procedure AddVector(var v: TAffineVector; const F: Single);
 begin
-  v[0] := v[0] + f;
-  v[1] := v[1] + f;
-  v[2] := v[2] + f;
+  v[0] := v[0] + F;
+  v[1] := v[1] + F;
+  v[2] := v[2] + F;
 end;
 
 // AddVector (hmg)
 //
-procedure AddVector(var v: TVector; const f: single);
+procedure AddVector(var v: TVector; const F: Single);
 begin
-  v[0] := v[0] + f;
-  v[1] := v[1] + f;
-  v[2] := v[2] + f;
-  v[3] := v[3] + f;
+  v[0] := v[0] + F;
+  v[1] := v[1] + F;
+  v[2] := v[2] + F;
+  v[3] := v[3] + F;
 end;
 
 // AddPoint (hmg, W = 1)
 //
-procedure AddPoint(var V1: TVector; const V2: TVector);
+procedure AddPoint(var v1: TVector; const v2: TVector);
 begin
-  V1[0] := V1[0] + V2[0];
-  V1[1] := V1[1] + V2[1];
-  V1[2] := V1[2] + V2[2];
-  V1[3] := 1;
+  v1[0] := v1[0] + v2[0];
+  v1[1] := v1[1] + v2[1];
+  v1[2] := v1[2] + v2[2];
+  v1[3] := 1;
 end;
 
 // TexPointArrayAdd
 //
-procedure TexPointArrayAdd(const src: PTexPointArray; const delta: TTexPoint;
+procedure TexPointArrayAdd(const Src: PTexPointArray; const Delta: TTexPoint;
   const nb: Integer;
   dest: PTexPointArray); overload;
 var
   i: Integer;
 begin
   for i := 0 to nb - 1 do begin
-      dest^[i].S := src^[i].S + delta.S;
-      dest^[i].T := src^[i].T + delta.T;
+      dest^[i].s := Src^[i].s + Delta.s;
+      dest^[i].T := Src^[i].T + Delta.T;
     end;
 end;
 
 // TexPointArrayScaleAndAdd
 //
-procedure TexPointArrayScaleAndAdd(const src: PTexPointArray; const delta: TTexPoint;
-  const nb: Integer; const scale: TTexPoint;
+procedure TexPointArrayScaleAndAdd(const Src: PTexPointArray; const Delta: TTexPoint;
+  const nb: Integer; const Scale: TTexPoint;
   dest: PTexPointArray); overload;
 var
   i: Integer;
 begin
   for i := 0 to nb - 1 do begin
-      dest^[i].S := src^[i].S * scale.S + delta.S;
-      dest^[i].T := src^[i].T * scale.T + delta.T;
+      dest^[i].s := Src^[i].s * Scale.s + Delta.s;
+      dest^[i].T := Src^[i].T * Scale.T + Delta.T;
     end;
 end;
 
 // VectorArrayAdd
 //
-procedure VectorArrayAdd(const src: PAffineVectorArray; const delta: TAffineVector;
+procedure VectorArrayAdd(const Src: PAffineVectorArray; const Delta: TAffineVector;
   const nb: Integer; dest: PAffineVectorArray);
 var
   i: Integer;
 begin
   for i := 0 to nb - 1 do begin
-      dest^[i][0] := src^[i][0] + delta[0];
-      dest^[i][1] := src^[i][1] + delta[1];
-      dest^[i][2] := src^[i][2] + delta[2];
+      dest^[i][0] := Src^[i][0] + Delta[0];
+      dest^[i][1] := Src^[i][1] + Delta[1];
+      dest^[i][2] := Src^[i][2] + Delta[2];
     end;
 end;
 
 // VectorSubtract (func, affine)
 //
-function VectorSubtract(const V1, V2: TAffineVector): TAffineVector;
+function VectorSubtract(const v1, v2: TAffineVector): TAffineVector;
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
 end;
 
 // VectorSubtract (func, 2f)
 //
-function VectorSubtract(const V1, V2: TVector2f): TVector2f;
+function VectorSubtract(const v1, v2: TVector2f): TVector2f;
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
 end;
 
 // VectorSubtract (proc, affine)
 //
-procedure VectorSubtract(const V1, V2: TAffineVector; var result: TAffineVector);
+procedure VectorSubtract(const v1, v2: TAffineVector; var Result: TAffineVector);
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
 end;
 
 // VectorSubtract (proc, affine-hmg)
 //
-procedure VectorSubtract(const V1, V2: TAffineVector; var result: TVector);
+procedure VectorSubtract(const v1, v2: TAffineVector; var Result: TVector);
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
-  result[3] := 0;
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
+  Result[3] := 0;
 end;
 
 // VectorSubtract
 //
-procedure VectorSubtract(const V1: TVector; V2: TAffineVector; var result: TVector);
+procedure VectorSubtract(const v1: TVector; v2: TAffineVector; var Result: TVector);
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
-  result[3] := V1[0];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
+  Result[3] := v1[0];
 end;
 
 // VectorSubtract (hmg)
 //
-function VectorSubtract(const V1, V2: TVector): TVector;
+function VectorSubtract(const v1, v2: TVector): TVector;
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
-  result[3] := V1[3] - V2[3];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
+  Result[3] := v1[3] - v2[3];
 end;
 
 // VectorSubtract (proc, hmg)
 //
-procedure VectorSubtract(const V1, V2: TVector; var result: TVector);
+procedure VectorSubtract(const v1, v2: TVector; var Result: TVector);
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
-  result[3] := V1[3] - V2[3];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
+  Result[3] := v1[3] - v2[3];
 end;
 
 // VectorSubtract (proc, affine)
 //
-procedure VectorSubtract(const V1, V2: TVector; var result: TAffineVector); overload;
+procedure VectorSubtract(const v1, v2: TVector; var Result: TAffineVector); overload;
 begin
-  result[0] := V1[0] - V2[0];
-  result[1] := V1[1] - V2[1];
-  result[2] := V1[2] - V2[2];
+  Result[0] := v1[0] - v2[0];
+  Result[1] := v1[1] - v2[1];
+  Result[2] := v1[2] - v2[2];
 end;
 
 // VectorSubtract (affine, single)
 //
-function VectorSubtract(const V1: TAffineVector; delta: single): TAffineVector;
+function VectorSubtract(const v1: TAffineVector; Delta: Single): TAffineVector;
 begin
-  result[0] := V1[0] - delta;
-  result[1] := V1[1] - delta;
-  result[2] := V1[2] - delta;
+  Result[0] := v1[0] - Delta;
+  Result[1] := v1[1] - Delta;
+  Result[2] := v1[2] - Delta;
 end;
 
 // VectorSubtract (hmg, single)
 //
-function VectorSubtract(const V1: TVector; delta: single): TVector;
+function VectorSubtract(const v1: TVector; Delta: Single): TVector;
 begin
-  result[0] := V1[0] - delta;
-  result[1] := V1[1] - delta;
-  result[2] := V1[2] - delta;
-  result[3] := V1[3] - delta;
+  Result[0] := v1[0] - Delta;
+  Result[1] := v1[1] - Delta;
+  Result[2] := v1[2] - Delta;
+  Result[3] := v1[3] - Delta;
 end;
 
 // SubtractVector (affine)
 //
-procedure SubtractVector(var V1: TAffineVector; const V2: TAffineVector);
+procedure SubtractVector(var v1: TAffineVector; const v2: TAffineVector);
 begin
-  V1[0] := V1[0] - V2[0];
-  V1[1] := V1[1] - V2[1];
-  V1[2] := V1[2] - V2[2];
+  v1[0] := v1[0] - v2[0];
+  v1[1] := v1[1] - v2[1];
+  v1[2] := v1[2] - v2[2];
 end;
 
 // SubtractVector (2f)
 //
-procedure SubtractVector(var V1: TVector2f; const V2: TVector2f);
+procedure SubtractVector(var v1: TVector2f; const v2: TVector2f);
 begin
-  V1[0] := V1[0] - V2[0];
-  V1[1] := V1[1] - V2[1];
+  v1[0] := v1[0] - v2[0];
+  v1[1] := v1[1] - v2[1];
 end;
 
 // SubtractVector (hmg)
 //
-procedure SubtractVector(var V1: TVector; const V2: TVector);
+procedure SubtractVector(var v1: TVector; const v2: TVector);
 begin
-  V1[0] := V1[0] - V2[0];
-  V1[1] := V1[1] - V2[1];
-  V1[2] := V1[2] - V2[2];
-  V1[3] := V1[3] - V2[3];
+  v1[0] := v1[0] - v2[0];
+  v1[1] := v1[1] - v2[1];
+  v1[2] := v1[2] - v2[2];
+  v1[3] := v1[3] - v2[3];
 end;
 
 // CombineVector (var)
 //
-procedure CombineVector(var vr: TAffineVector; const v: TAffineVector; var f: single);
+procedure CombineVector(var vr: TAffineVector; const v: TAffineVector; var F: Single);
 begin
-  vr[0] := vr[0] + v[0] * f;
-  vr[1] := vr[1] + v[1] * f;
-  vr[2] := vr[2] + v[2] * f;
+  vr[0] := vr[0] + v[0] * F;
+  vr[1] := vr[1] + v[1] * F;
+  vr[2] := vr[2] + v[2] * F;
 end;
 
 // CombineVector (pointer)
@@ -2102,348 +2096,348 @@ end;
 
 // TexPointCombine
 //
-function TexPointCombine(const t1, t2: TTexPoint; f1, f2: single): TTexPoint;
+function TexPointCombine(const t1, t2: TTexPoint; f1, f2: Single): TTexPoint;
 begin
-  result.S := (f1 * t1.S) + (f2 * t2.S);
-  result.T := (f1 * t1.T) + (f2 * t2.T);
+  Result.s := (f1 * t1.s) + (f2 * t2.s);
+  Result.T := (f1 * t1.T) + (f2 * t2.T);
 end;
 
 // VectorCombine
 //
-function VectorCombine(const V1, V2: TAffineVector; const f1, f2: single): TAffineVector;
+function VectorCombine(const v1, v2: TAffineVector; const f1, f2: Single): TAffineVector;
 begin
-  result[x] := (f1 * V1[x]) + (f2 * V2[x]);
-  result[y] := (f1 * V1[y]) + (f2 * V2[y]);
-  result[z] := (f1 * V1[z]) + (f2 * V2[z]);
+  Result[X] := (f1 * v1[X]) + (f2 * v2[X]);
+  Result[Y] := (f1 * v1[Y]) + (f2 * v2[Y]);
+  Result[Z] := (f1 * v1[Z]) + (f2 * v2[Z]);
 end;
 
 // VectorCombine3 (func)
 //
-function VectorCombine3(const V1, V2, V3: TAffineVector; const f1, f2, F3: single): TAffineVector;
+function VectorCombine3(const v1, v2, v3: TAffineVector; const f1, f2, F3: Single): TAffineVector;
 begin
-  result[x] := (f1 * V1[x]) + (f2 * V2[x]) + (F3 * V3[x]);
-  result[y] := (f1 * V1[y]) + (f2 * V2[y]) + (F3 * V3[y]);
-  result[z] := (f1 * V1[z]) + (f2 * V2[z]) + (F3 * V3[z]);
+  Result[X] := (f1 * v1[X]) + (f2 * v2[X]) + (F3 * v3[X]);
+  Result[Y] := (f1 * v1[Y]) + (f2 * v2[Y]) + (F3 * v3[Y]);
+  Result[Z] := (f1 * v1[Z]) + (f2 * v2[Z]) + (F3 * v3[Z]);
 end;
 
 // VectorCombine3 (vector)
 //
-procedure VectorCombine3(const V1, V2, V3: TAffineVector; const f1, f2, F3: single; var vr: TAffineVector);
+procedure VectorCombine3(const v1, v2, v3: TAffineVector; const f1, f2, F3: Single; var vr: TAffineVector);
 begin
-  vr[x] := (f1 * V1[x]) + (f2 * V2[x]) + (F3 * V3[x]);
-  vr[y] := (f1 * V1[y]) + (f2 * V2[y]) + (F3 * V3[y]);
-  vr[z] := (f1 * V1[z]) + (f2 * V2[z]) + (F3 * V3[z]);
+  vr[X] := (f1 * v1[X]) + (f2 * v2[X]) + (F3 * v3[X]);
+  vr[Y] := (f1 * v1[Y]) + (f2 * v2[Y]) + (F3 * v3[Y]);
+  vr[Z] := (f1 * v1[Z]) + (f2 * v2[Z]) + (F3 * v3[Z]);
 end;
 
 // CombineVector
 //
-procedure CombineVector(var vr: TVector; const v: TVector; var f: single); overload;
+procedure CombineVector(var vr: TVector; const v: TVector; var F: Single); overload;
 begin
-  vr[0] := vr[0] + v[0] * f;
-  vr[1] := vr[1] + v[1] * f;
-  vr[2] := vr[2] + v[2] * f;
-  vr[3] := vr[3] + v[3] * f;
+  vr[0] := vr[0] + v[0] * F;
+  vr[1] := vr[1] + v[1] * F;
+  vr[2] := vr[2] + v[2] * F;
+  vr[3] := vr[3] + v[3] * F;
 end;
 
 // CombineVector
 //
-procedure CombineVector(var vr: TVector; const v: TAffineVector; var f: single); overload;
+procedure CombineVector(var vr: TVector; const v: TAffineVector; var F: Single); overload;
 begin
-  vr[0] := vr[0] + v[0] * f;
-  vr[1] := vr[1] + v[1] * f;
-  vr[2] := vr[2] + v[2] * f;
+  vr[0] := vr[0] + v[0] * F;
+  vr[1] := vr[1] + v[1] * F;
+  vr[2] := vr[2] + v[2] * F;
 end;
 
 // VectorCombine
 //
-function VectorCombine(const V1, V2: TVector; const f1, f2: single): TVector;
+function VectorCombine(const v1, v2: TVector; const f1, f2: Single): TVector;
 begin
-  result[x] := (f1 * V1[x]) + (f2 * V2[x]);
-  result[y] := (f1 * V1[y]) + (f2 * V2[y]);
-  result[z] := (f1 * V1[z]) + (f2 * V2[z]);
-  result[w] := (f1 * V1[w]) + (f2 * V2[w]);
+  Result[X] := (f1 * v1[X]) + (f2 * v2[X]);
+  Result[Y] := (f1 * v1[Y]) + (f2 * v2[Y]);
+  Result[Z] := (f1 * v1[Z]) + (f2 * v2[Z]);
+  Result[w] := (f1 * v1[w]) + (f2 * v2[w]);
 end;
 
 // VectorCombine
 //
-function VectorCombine(const V1: TVector; const V2: TAffineVector; const f1, f2: single): TVector; overload;
+function VectorCombine(const v1: TVector; const v2: TAffineVector; const f1, f2: Single): TVector; overload;
 begin
-  result[x] := (f1 * V1[x]) + (f2 * V2[x]);
-  result[y] := (f1 * V1[y]) + (f2 * V2[y]);
-  result[z] := (f1 * V1[z]) + (f2 * V2[z]);
-  result[w] := f1 * V1[w];
+  Result[X] := (f1 * v1[X]) + (f2 * v2[X]);
+  Result[Y] := (f1 * v1[Y]) + (f2 * v2[Y]);
+  Result[Z] := (f1 * v1[Z]) + (f2 * v2[Z]);
+  Result[w] := f1 * v1[w];
 end;
 
 // VectorCombine
 //
-procedure VectorCombine(const V1, V2: TVector; const f1, f2: single; var vr: TVector); overload;
+procedure VectorCombine(const v1, v2: TVector; const f1, f2: Single; var vr: TVector); overload;
 begin
-  vr[0] := (f1 * V1[0]) + (f2 * V2[0]);
-  vr[1] := (f1 * V1[1]) + (f2 * V2[1]);
-  vr[2] := (f1 * V1[2]) + (f2 * V2[2]);
-  vr[3] := (f1 * V1[3]) + (f2 * V2[3]);
+  vr[0] := (f1 * v1[0]) + (f2 * v2[0]);
+  vr[1] := (f1 * v1[1]) + (f2 * v2[1]);
+  vr[2] := (f1 * v1[2]) + (f2 * v2[2]);
+  vr[3] := (f1 * v1[3]) + (f2 * v2[3]);
 end;
 
 // VectorCombine (F1=1.0)
 //
-procedure VectorCombine(const V1, V2: TVector; const f2: single; var vr: TVector); overload;
+procedure VectorCombine(const v1, v2: TVector; const f2: Single; var vr: TVector); overload;
 begin
-  vr[0] := V1[0] + (f2 * V2[0]);
-  vr[1] := V1[1] + (f2 * V2[1]);
-  vr[2] := V1[2] + (f2 * V2[2]);
-  vr[3] := V1[3] + (f2 * V2[3]);
+  vr[0] := v1[0] + (f2 * v2[0]);
+  vr[1] := v1[1] + (f2 * v2[1]);
+  vr[2] := v1[2] + (f2 * v2[2]);
+  vr[3] := v1[3] + (f2 * v2[3]);
 end;
 
 // VectorCombine
 //
-procedure VectorCombine(const V1: TVector; const V2: TAffineVector; const f1, f2: single; var vr: TVector);
+procedure VectorCombine(const v1: TVector; const v2: TAffineVector; const f1, f2: Single; var vr: TVector);
 begin
-  vr[x] := (f1 * V1[x]) + (f2 * V2[x]);
-  vr[y] := (f1 * V1[y]) + (f2 * V2[y]);
-  vr[z] := (f1 * V1[z]) + (f2 * V2[z]);
-  vr[w] := f1 * V1[w];
+  vr[X] := (f1 * v1[X]) + (f2 * v2[X]);
+  vr[Y] := (f1 * v1[Y]) + (f2 * v2[Y]);
+  vr[Z] := (f1 * v1[Z]) + (f2 * v2[Z]);
+  vr[w] := f1 * v1[w];
 end;
 
 // VectorCombine3
 //
-function VectorCombine3(const V1, V2, V3: TVector; const f1, f2, F3: single): TVector;
+function VectorCombine3(const v1, v2, v3: TVector; const f1, f2, F3: Single): TVector;
 begin
-  result[x] := (f1 * V1[x]) + (f2 * V2[x]) + (F3 * V3[x]);
-  result[y] := (f1 * V1[y]) + (f2 * V2[y]) + (F3 * V3[y]);
-  result[z] := (f1 * V1[z]) + (f2 * V2[z]) + (F3 * V3[z]);
-  result[w] := (f1 * V1[w]) + (f2 * V2[w]) + (F3 * V3[w]);
+  Result[X] := (f1 * v1[X]) + (f2 * v2[X]) + (F3 * v3[X]);
+  Result[Y] := (f1 * v1[Y]) + (f2 * v2[Y]) + (F3 * v3[Y]);
+  Result[Z] := (f1 * v1[Z]) + (f2 * v2[Z]) + (F3 * v3[Z]);
+  Result[w] := (f1 * v1[w]) + (f2 * v2[w]) + (F3 * v3[w]);
 end;
 
 // VectorCombine3
 //
-procedure VectorCombine3(const V1, V2, V3: TVector; const f1, f2, F3: single; var vr: TVector);
+procedure VectorCombine3(const v1, v2, v3: TVector; const f1, f2, F3: Single; var vr: TVector);
 begin
-  vr[x] := (f1 * V1[x]) + (f2 * V2[x]) + (F3 * V3[x]);
-  vr[y] := (f1 * V1[y]) + (f2 * V2[y]) + (F3 * V3[y]);
-  vr[z] := (f1 * V1[z]) + (f2 * V2[z]) + (F3 * V3[z]);
-  vr[w] := (f1 * V1[w]) + (f2 * V2[w]) + (F3 * V3[w]);
+  vr[X] := (f1 * v1[X]) + (f2 * v2[X]) + (F3 * v3[X]);
+  vr[Y] := (f1 * v1[Y]) + (f2 * v2[Y]) + (F3 * v3[Y]);
+  vr[Z] := (f1 * v1[Z]) + (f2 * v2[Z]) + (F3 * v3[Z]);
+  vr[w] := (f1 * v1[w]) + (f2 * v2[w]) + (F3 * v3[w]);
 end;
 
 // VectorDotProduct (2f)
 //
-function VectorDotProduct(const V1, V2: TVector2f): single;
+function VectorDotProduct(const v1, v2: TVector2f): Single;
 begin
-  result := V1[0] * V2[0] + V1[1] * V2[1];
+  Result := v1[0] * v2[0] + v1[1] * v2[1];
 end;
 
 // VectorDotProduct (affine)
 //
-function VectorDotProduct(const V1, V2: TAffineVector): single;
+function VectorDotProduct(const v1, v2: TAffineVector): Single;
 begin
-  result := V1[0] * V2[0] + V1[1] * V2[1] + V1[2] * V2[2];
+  Result := v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 end;
 
 // VectorDotProduct (hmg)
 //
-function VectorDotProduct(const V1, V2: TVector): single;
+function VectorDotProduct(const v1, v2: TVector): Single;
 begin
-  result := V1[0] * V2[0] + V1[1] * V2[1] + V1[2] * V2[2] + V1[3] * V2[3];
+  Result := v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2] + v1[3] * v2[3];
 end;
 
 // VectorDotProduct
 //
-function VectorDotProduct(const V1: TVector; const V2: TAffineVector): single;
+function VectorDotProduct(const v1: TVector; const v2: TAffineVector): Single;
 begin
-  result := V1[0] * V2[0] + V1[1] * V2[1] + V1[2] * V2[2];
+  Result := v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 end;
 
 // PointProject (affine)
 //
-function PointProject(const p, origin, direction: TAffineVector): single;
+function PointProject(const p, origin, direction: TAffineVector): Single;
 begin
-  result := direction[0] * (p[0] - origin[0])
+  Result := direction[0] * (p[0] - origin[0])
     + direction[1] * (p[1] - origin[1])
     + direction[2] * (p[2] - origin[2]);
 end;
 
 // PointProject (vector)
 //
-function PointProject(const p, origin, direction: TVector): single;
+function PointProject(const p, origin, direction: TVector): Single;
 begin
-  result := direction[0] * (p[0] - origin[0])
+  Result := direction[0] * (p[0] - origin[0])
     + direction[1] * (p[1] - origin[1])
     + direction[2] * (p[2] - origin[2]);
 end;
 
 // VectorCrossProduct
 //
-function VectorCrossProduct(const V1, V2: TAffineVector): TAffineVector;
+function VectorCrossProduct(const v1, v2: TAffineVector): TAffineVector;
 begin
-  result[x] := V1[y] * V2[z] - V1[z] * V2[y];
-  result[y] := V1[z] * V2[x] - V1[x] * V2[z];
-  result[z] := V1[x] * V2[y] - V1[y] * V2[x];
+  Result[X] := v1[Y] * v2[Z] - v1[Z] * v2[Y];
+  Result[Y] := v1[Z] * v2[X] - v1[X] * v2[Z];
+  Result[Z] := v1[X] * v2[Y] - v1[Y] * v2[X];
 end;
 
 // VectorCrossProduct
 //
-function VectorCrossProduct(const V1, V2: TVector): TVector;
+function VectorCrossProduct(const v1, v2: TVector): TVector;
 begin
-  result[x] := V1[y] * V2[z] - V1[z] * V2[y];
-  result[y] := V1[z] * V2[x] - V1[x] * V2[z];
-  result[z] := V1[x] * V2[y] - V1[y] * V2[x];
-  result[w] := 0;
+  Result[X] := v1[Y] * v2[Z] - v1[Z] * v2[Y];
+  Result[Y] := v1[Z] * v2[X] - v1[X] * v2[Z];
+  Result[Z] := v1[X] * v2[Y] - v1[Y] * v2[X];
+  Result[w] := 0;
 end;
 
 // VectorCrossProduct
 //
-procedure VectorCrossProduct(const V1, V2: TVector; var vr: TVector);
+procedure VectorCrossProduct(const v1, v2: TVector; var vr: TVector);
 begin
-  vr[x] := V1[y] * V2[z] - V1[z] * V2[y];
-  vr[y] := V1[z] * V2[x] - V1[x] * V2[z];
-  vr[z] := V1[x] * V2[y] - V1[y] * V2[x];
+  vr[X] := v1[Y] * v2[Z] - v1[Z] * v2[Y];
+  vr[Y] := v1[Z] * v2[X] - v1[X] * v2[Z];
+  vr[Z] := v1[X] * v2[Y] - v1[Y] * v2[X];
   vr[w] := 0;
 end;
 
 // VectorCrossProduct
 //
-procedure VectorCrossProduct(const V1, V2: TAffineVector; var vr: TVector); overload;
+procedure VectorCrossProduct(const v1, v2: TAffineVector; var vr: TVector); overload;
 begin
-  vr[x] := V1[y] * V2[z] - V1[z] * V2[y];
-  vr[y] := V1[z] * V2[x] - V1[x] * V2[z];
-  vr[z] := V1[x] * V2[y] - V1[y] * V2[x];
+  vr[X] := v1[Y] * v2[Z] - v1[Z] * v2[Y];
+  vr[Y] := v1[Z] * v2[X] - v1[X] * v2[Z];
+  vr[Z] := v1[X] * v2[Y] - v1[Y] * v2[X];
   vr[w] := 0;
 end;
 
 // VectorCrossProduct
 //
-procedure VectorCrossProduct(const V1, V2: TVector; var vr: TAffineVector); overload;
+procedure VectorCrossProduct(const v1, v2: TVector; var vr: TAffineVector); overload;
 begin
-  vr[x] := V1[y] * V2[z] - V1[z] * V2[y];
-  vr[y] := V1[z] * V2[x] - V1[x] * V2[z];
-  vr[z] := V1[x] * V2[y] - V1[y] * V2[x];
+  vr[X] := v1[Y] * v2[Z] - v1[Z] * v2[Y];
+  vr[Y] := v1[Z] * v2[X] - v1[X] * v2[Z];
+  vr[Z] := v1[X] * v2[Y] - v1[Y] * v2[X];
 end;
 
 // VectorCrossProduct
 //
-procedure VectorCrossProduct(const V1, V2: TAffineVector; var vr: TAffineVector); overload;
+procedure VectorCrossProduct(const v1, v2: TAffineVector; var vr: TAffineVector); overload;
 begin
-  vr[x] := V1[y] * V2[z] - V1[z] * V2[y];
-  vr[y] := V1[z] * V2[x] - V1[x] * V2[z];
-  vr[z] := V1[x] * V2[y] - V1[y] * V2[x];
+  vr[X] := v1[Y] * v2[Z] - v1[Z] * v2[Y];
+  vr[Y] := v1[Z] * v2[X] - v1[X] * v2[Z];
+  vr[Z] := v1[X] * v2[Y] - v1[Y] * v2[X];
 end;
 
 // Lerp
 //
-function Lerp(const start, stop, T: single): single;
+function Lerp(const Start, stop, T: Single): Single;
 begin
-  result := start + (stop - start) * T;
+  Result := Start + (stop - Start) * T;
 end;
 
 // Angle Lerp
 //
-function AngleLerp(start, stop, T: single): single;
+function AngleLerp(Start, stop, T: Single): Single;
 var
-  d: single;
+  d: Single;
 begin
-  start := NormalizeAngle(start);
+  Start := NormalizeAngle(Start);
   stop := NormalizeAngle(stop);
-  d := stop - start;
-  if d > PI then begin
+  d := stop - Start;
+  if d > pi then begin
       // positive d, angle on opposite side, becomes negative i.e. changes direction
       d := -d - c2PI;
     end
-  else if d < -PI then begin
+  else if d < -pi then begin
       // negative d, angle on opposite side, becomes positive i.e. changes direction
       d := d + c2PI;
     end;
-  result := start + d * T;
+  Result := Start + d * T;
 end;
 
 // DistanceBetweenAngles
 //
-function DistanceBetweenAngles(angle1, angle2: single): single;
+function DistanceBetweenAngles(angle1, angle2: Single): Single;
 begin
   angle1 := NormalizeAngle(angle1);
   angle2 := NormalizeAngle(angle2);
-  result := Abs(angle2 - angle1);
-  if result > PI then
-      result := c2PI - result;
+  Result := Abs(angle2 - angle1);
+  if Result > pi then
+      Result := c2PI - Result;
 end;
 
 // TexPointLerp
 //
-function TexPointLerp(const t1, t2: TTexPoint; T: single): TTexPoint; overload;
+function TexPointLerp(const t1, t2: TTexPoint; T: Single): TTexPoint; overload;
 begin
-  result.S := t1.S + (t2.S - t1.S) * T;
-  result.T := t1.T + (t2.T - t1.T) * T;
+  Result.s := t1.s + (t2.s - t1.s) * T;
+  Result.T := t1.T + (t2.T - t1.T) * T;
 end;
 
 // VectorAffineLerp
 //
-function VectorLerp(const V1, V2: TAffineVector; T: single): TAffineVector;
+function VectorLerp(const v1, v2: TAffineVector; T: Single): TAffineVector;
 begin
-  result[x] := V1[x] + (V2[x] - V1[x]) * T;
-  result[y] := V1[y] + (V2[y] - V1[y]) * T;
-  result[z] := V1[z] + (V2[z] - V1[z]) * T;
+  Result[X] := v1[X] + (v2[X] - v1[X]) * T;
+  Result[Y] := v1[Y] + (v2[Y] - v1[Y]) * T;
+  Result[Z] := v1[Z] + (v2[Z] - v1[Z]) * T;
 end;
 
 // VectorLerp
 //
-procedure VectorLerp(const V1, V2: TAffineVector; T: single; var vr: TAffineVector);
+procedure VectorLerp(const v1, v2: TAffineVector; T: Single; var vr: TAffineVector);
 begin
-  vr[x] := V1[x] + (V2[x] - V1[x]) * T;
-  vr[y] := V1[y] + (V2[y] - V1[y]) * T;
-  vr[z] := V1[z] + (V2[z] - V1[z]) * T;
+  vr[X] := v1[X] + (v2[X] - v1[X]) * T;
+  vr[Y] := v1[Y] + (v2[Y] - v1[Y]) * T;
+  vr[Z] := v1[Z] + (v2[Z] - v1[Z]) * T;
 end;
 
 // VectorLerp
 //
-function VectorLerp(const V1, V2: TVector; T: single): TVector;
+function VectorLerp(const v1, v2: TVector; T: Single): TVector;
 begin
-  result[x] := V1[x] + (V2[x] - V1[x]) * T;
-  result[y] := V1[y] + (V2[y] - V1[y]) * T;
-  result[z] := V1[z] + (V2[z] - V1[z]) * T;
-  result[w] := V1[w] + (V2[w] - V1[w]) * T;
+  Result[X] := v1[X] + (v2[X] - v1[X]) * T;
+  Result[Y] := v1[Y] + (v2[Y] - v1[Y]) * T;
+  Result[Z] := v1[Z] + (v2[Z] - v1[Z]) * T;
+  Result[w] := v1[w] + (v2[w] - v1[w]) * T;
 end;
 
 // VectorLerp
 //
-procedure VectorLerp(const V1, V2: TVector; T: single; var vr: TVector);
+procedure VectorLerp(const v1, v2: TVector; T: Single; var vr: TVector);
 begin
-  vr[x] := V1[x] + (V2[x] - V1[x]) * T;
-  vr[y] := V1[y] + (V2[y] - V1[y]) * T;
-  vr[z] := V1[z] + (V2[z] - V1[z]) * T;
-  vr[w] := V1[w] + (V2[w] - V1[w]) * T;
+  vr[X] := v1[X] + (v2[X] - v1[X]) * T;
+  vr[Y] := v1[Y] + (v2[Y] - v1[Y]) * T;
+  vr[Z] := v1[Z] + (v2[Z] - v1[Z]) * T;
+  vr[w] := v1[w] + (v2[w] - v1[w]) * T;
 end;
 
 // VectorAngleLerp
 //
-function VectorAngleLerp(const V1, V2: TAffineVector; T: single): TAffineVector;
+function VectorAngleLerp(const v1, v2: TAffineVector; T: Single): TAffineVector;
 var
   q1, q2, qR: TQuaternion;
   M: TMatrix;
   Tran: TTransformations;
 begin
-  if VectorEquals(V1, V2) then begin
-      result := V1;
+  if VectorEquals(v1, v2) then begin
+      Result := v1;
     end
   else begin
-      q1 := QuaternionFromEuler(GeometryLib.RadToDeg(V1[0]), GeometryLib.RadToDeg(V1[1]), GeometryLib.RadToDeg(V1[2]), eulZYX);
-      q2 := QuaternionFromEuler(GeometryLib.RadToDeg(V2[0]), GeometryLib.RadToDeg(V2[1]), GeometryLib.RadToDeg(V2[2]), eulZYX);
+      q1 := QuaternionFromEuler(GeometryLib.RadToDeg(v1[0]), GeometryLib.RadToDeg(v1[1]), GeometryLib.RadToDeg(v1[2]), eulZYX);
+      q2 := QuaternionFromEuler(GeometryLib.RadToDeg(v2[0]), GeometryLib.RadToDeg(v2[1]), GeometryLib.RadToDeg(v2[2]), eulZYX);
       qR := QuaternionSlerp(q1, q2, T);
       M := QuaternionToMatrix(qR);
       MatrixDecompose(M, Tran);
-      result[0] := Tran[ttRotateX];
-      result[1] := Tran[ttRotateY];
-      result[2] := Tran[ttRotateZ];
+      Result[0] := Tran[ttRotateX];
+      Result[1] := Tran[ttRotateY];
+      Result[2] := Tran[ttRotateZ];
     end;
 end;
 
 // VectorAngleCombine
 //
-function VectorAngleCombine(const V1, V2: TAffineVector; f: single): TAffineVector;
+function VectorAngleCombine(const v1, v2: TAffineVector; F: Single): TAffineVector;
 begin
-  result := VectorCombine(V1, V2, 1, f);
+  Result := VectorCombine(v1, v2, 1, F);
 end;
 
 // VectorArrayLerp (hmg)
 //
-procedure VectorArrayLerp(const src1, src2: PVectorArray; T: single; n: Integer; dest: PVectorArray);
+procedure VectorArrayLerp(const src1, src2: PVectorArray; T: Single; n: Integer; dest: PVectorArray);
 var
   i: Integer;
 begin
@@ -2457,7 +2451,7 @@ end;
 
 // VectorArrayLerp (affine)
 //
-procedure VectorArrayLerp(const src1, src2: PAffineVectorArray; T: single; n: Integer; dest: PAffineVectorArray);
+procedure VectorArrayLerp(const src1, src2: PAffineVectorArray; T: Single; n: Integer; dest: PAffineVectorArray);
 var
   i: Integer;
 begin
@@ -2468,31 +2462,31 @@ begin
     end;
 end;
 
-procedure VectorArrayLerp(const src1, src2: PTexPointArray; T: single; n: Integer; dest: PTexPointArray);
+procedure VectorArrayLerp(const src1, src2: PTexPointArray; T: Single; n: Integer; dest: PTexPointArray);
 var
   i: Integer;
 begin
   for i := 0 to n - 1 do begin
-      dest^[i].S := src1^[i].S + (src2^[i].S - src1^[i].S) * T;
+      dest^[i].s := src1^[i].s + (src2^[i].s - src1^[i].s) * T;
       dest^[i].T := src1^[i].T + (src2^[i].T - src1^[i].T) * T;
     end;
 end;
 
 // InterpolateCombined
 //
-function InterpolateCombined(const start, stop, delta: single; const DistortionDegree: single; const InterpolationType: TGLInterpolationType): single;
+function InterpolateCombined(const Start, stop, Delta: Single; const DistortionDegree: Single; const InterpolationType: TGLInterpolationType): Single;
 begin
   case InterpolationType of
-    itLinear: result := Lerp(start, stop, delta);
-    itPower: result := InterpolatePower(start, stop, delta, DistortionDegree);
-    itSin: result := InterpolateSin(start, stop, delta);
-    itSinAlt: result := InterpolateSinAlt(start, stop, delta);
-    itTan: result := InterpolateTan(start, stop, delta);
-    itLn: result := InterpolateLn(start, stop, delta, DistortionDegree);
-    itExp: result := InterpolateExp(start, stop, delta, DistortionDegree);
+    itLinear: Result := Lerp(Start, stop, Delta);
+    itPower: Result := InterpolatePower(Start, stop, Delta, DistortionDegree);
+    itSin: Result := InterpolateSin(Start, stop, Delta);
+    itSinAlt: Result := InterpolateSinAlt(Start, stop, Delta);
+    itTan: Result := InterpolateTan(Start, stop, Delta);
+    itLn: Result := InterpolateLn(Start, stop, Delta, DistortionDegree);
+    itExp: Result := InterpolateExp(Start, stop, Delta, DistortionDegree);
     else
       begin
-        result := -1;
+        Result := -1;
         Assert(False);
       end;
   end;
@@ -2500,183 +2494,183 @@ end;
 
 // InterpolateCombinedFastPower
 //
-function InterpolateCombinedFastPower(const OriginalStart, OriginalStop, OriginalCurrent: single; const TargetStart, TargetStop: single; const DistortionDegree: single): single;
+function InterpolateCombinedFastPower(const OriginalStart, OriginalStop, OriginalCurrent: Single; const TargetStart, TargetStop: Single; const DistortionDegree: Single): Single;
 begin
-  result := InterpolatePower(TargetStart, TargetStop, (OriginalCurrent - OriginalStart) / (OriginalStop - OriginalStart), DistortionDegree);
+  Result := InterpolatePower(TargetStart, TargetStop, (OriginalCurrent - OriginalStart) / (OriginalStop - OriginalStart), DistortionDegree);
 end;
 
 // InterpolateCombinedSafe
 //
-function InterpolateCombinedSafe(const OriginalStart, OriginalStop, OriginalCurrent: single; const TargetStart, TargetStop: single; const DistortionDegree: single; const InterpolationType: TGLInterpolationType): single;
+function InterpolateCombinedSafe(const OriginalStart, OriginalStop, OriginalCurrent: Single; const TargetStart, TargetStop: Single; const DistortionDegree: Single; const InterpolationType: TGLInterpolationType): Single;
 var
-  ChangeDelta: single;
+  ChangeDelta: Single;
 begin
   if OriginalStop = OriginalStart then
-      result := TargetStart
+      Result := TargetStart
   else
     begin
       ChangeDelta := (OriginalCurrent - OriginalStart) / (OriginalStop - OriginalStart);
-      result := InterpolateCombined(TargetStart, TargetStop, ChangeDelta, DistortionDegree, InterpolationType);
+      Result := InterpolateCombined(TargetStart, TargetStop, ChangeDelta, DistortionDegree, InterpolationType);
     end;
 end;
 
 // InterpolateCombinedFast
 //
-function InterpolateCombinedFast(const OriginalStart, OriginalStop, OriginalCurrent: single; const TargetStart, TargetStop: single; const DistortionDegree: single; const InterpolationType: TGLInterpolationType): single;
+function InterpolateCombinedFast(const OriginalStart, OriginalStop, OriginalCurrent: Single; const TargetStart, TargetStop: Single; const DistortionDegree: Single; const InterpolationType: TGLInterpolationType): Single;
 var
-  ChangeDelta: single;
+  ChangeDelta: Single;
 begin
   ChangeDelta := (OriginalCurrent - OriginalStart) / (OriginalStop - OriginalStart);
-  result := InterpolateCombined(TargetStart, TargetStop, ChangeDelta, DistortionDegree, InterpolationType);
+  Result := InterpolateCombined(TargetStart, TargetStop, ChangeDelta, DistortionDegree, InterpolationType);
 end;
 
 // InterpolateLn
 //
-function InterpolateLn(const start, stop, delta: single; const DistortionDegree: single): single;
+function InterpolateLn(const Start, stop, Delta: Single; const DistortionDegree: Single): Single;
 begin
-  result := (stop - start) * Ln(1 + delta * DistortionDegree) / Ln(1 + DistortionDegree) + start;
+  Result := (stop - Start) * ln(1 + Delta * DistortionDegree) / ln(1 + DistortionDegree) + Start;
 end;
 
 // InterpolateExp
 //
-function InterpolateExp(const start, stop, delta: single; const DistortionDegree: single): single;
+function InterpolateExp(const Start, stop, Delta: Single; const DistortionDegree: Single): Single;
 begin
-  result := (stop - start) * Exp(-DistortionDegree * (1 - delta)) + start;
+  Result := (stop - Start) * Exp(-DistortionDegree * (1 - Delta)) + Start;
 end;
 
 // InterpolateSinAlt
 //
-function InterpolateSinAlt(const start, stop, delta: single): single;
+function InterpolateSinAlt(const Start, stop, Delta: Single): Single;
 begin
-  result := (stop - start) * delta * Sin(delta * PI / 2) + start;
+  Result := (stop - Start) * Delta * Sin(Delta * pi / 2) + Start;
 end;
 
 // InterpolateSin
 //
-function InterpolateSin(const start, stop, delta: single): single;
+function InterpolateSin(const Start, stop, Delta: Single): Single;
 begin
-  result := (stop - start) * Sin(delta * PI / 2) + start;
+  Result := (stop - Start) * Sin(Delta * pi / 2) + Start;
 end;
 
 // InterpolateTan
 //
-function InterpolateTan(const start, stop, delta: single): single;
+function InterpolateTan(const Start, stop, Delta: Single): Single;
 begin
-  result := (stop - start) * GeometryLib.Tan(delta * PI / 4) + start;
+  Result := (stop - Start) * GeometryLib.Tan(Delta * pi / 4) + Start;
 end;
 
 // InterpolatePower
 //
-function InterpolatePower(const start, stop, delta: single; const DistortionDegree: single): single;
+function InterpolatePower(const Start, stop, Delta: Single; const DistortionDegree: Single): Single;
 begin
-  if (Round(DistortionDegree) <> DistortionDegree) and (delta < 0) then
-      result := (stop - start) * GeometryLib.Power(delta, Round(DistortionDegree)) + start
+  if (Round(DistortionDegree) <> DistortionDegree) and (Delta < 0) then
+      Result := (stop - Start) * GeometryLib.Power(Delta, Round(DistortionDegree)) + Start
   else
-      result := (stop - start) * GeometryLib.Power(delta, DistortionDegree) + start;
+      Result := (stop - Start) * GeometryLib.Power(Delta, DistortionDegree) + Start;
 end;
 
 // MatrixLerp
 //
-function MatrixLerp(const m1, m2: TMatrix; const delta: single): TMatrix;
+function MatrixLerp(const m1, m2: TMatrix; const Delta: Single): TMatrix;
 var
   i, J: Integer;
 begin
   for J := 0 to 3 do
     for i := 0 to 3 do
-        result[i][J] := m1[i][J] + (m2[i][J] - m1[i][J]) * delta;
+        Result[i][J] := m1[i][J] + (m2[i][J] - m1[i][J]) * Delta;
 end;
 
 // VectorLength (array)
 //
-function VectorLength(const v: array of single): single;
+function VectorLength(const v: array of Single): Single;
 var
   i: Integer;
 begin
-  result := 0;
+  Result := 0;
   for i := low(v) to high(v) do
-      result := result + Sqr(v[i]);
-  result := Sqrt(result);
+      Result := Result + Sqr(v[i]);
+  Result := Sqrt(Result);
 end;
 
 // VectorLength  (x, y)
 //
-function VectorLength(const x, y: single): single;
+function VectorLength(const X, Y: Single): Single;
 begin
-  result := Sqrt(x * x + y * y);
+  Result := Sqrt(X * X + Y * Y);
 end;
 
 // VectorLength (x, y, z)
 //
-function VectorLength(const x, y, z: single): single;
+function VectorLength(const X, Y, Z: Single): Single;
 begin
-  result := Sqrt(x * x + y * y + z * z);
+  Result := Sqrt(X * X + Y * Y + Z * Z);
 end;
 
 // VectorLength
 //
-function VectorLength(const v: TVector2f): single;
+function VectorLength(const v: TVector2f): Single;
 begin
-  result := Sqrt(VectorNorm(v[0], v[1]));
+  Result := Sqrt(VectorNorm(v[0], v[1]));
 end;
 
 // VectorLength
 //
-function VectorLength(const v: TAffineVector): single;
+function VectorLength(const v: TAffineVector): Single;
 begin
-  result := Sqrt(VectorNorm(v));
+  Result := Sqrt(VectorNorm(v));
 end;
 
 // VectorLength
 //
-function VectorLength(const v: TVector): single;
+function VectorLength(const v: TVector): Single;
 begin
-  result := Sqrt(VectorNorm(v));
+  Result := Sqrt(VectorNorm(v));
 end;
 
 // VectorNorm
 //
-function VectorNorm(const x, y: single): single;
+function VectorNorm(const X, Y: Single): Single;
 begin
-  result := Sqr(x) + Sqr(y);
+  Result := Sqr(X) + Sqr(Y);
 end;
 
 // VectorNorm (affine)
 //
-function VectorNorm(const v: TAffineVector): single;
+function VectorNorm(const v: TAffineVector): Single;
 begin
-  result := v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+  Result := v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 end;
 
 // VectorNorm (hmg)
 //
-function VectorNorm(const v: TVector): single;
+function VectorNorm(const v: TVector): Single;
 begin
-  result := v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+  Result := v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 end;
 
 // VectorNorm
 //
-function VectorNorm(var v: array of single): single;
+function VectorNorm(var v: array of Single): Single;
 var
   i: Integer;
 begin
-  result := 0;
+  Result := 0;
   for i := low(v) to high(v) do
-      result := result + v[i] * v[i];
+      Result := Result + v[i] * v[i];
 end;
 
 // NormalizeVector (2f)
 //
 procedure NormalizeVector(var v: TVector2f);
 var
-  invLen: single;
-  vn: single;
+  InvLen: Single;
+  vn: Single;
 begin
   vn := VectorNorm(v);
   if vn > 0 then begin
-      invLen := RSqrt(vn);
-      v[0] := v[0] * invLen;
-      v[1] := v[1] * invLen;
+      InvLen := RSqrt(vn);
+      v[0] := v[0] * InvLen;
+      v[1] := v[1] * InvLen;
     end;
 end;
 
@@ -2684,15 +2678,15 @@ end;
 //
 procedure NormalizeVector(var v: TAffineVector);
 var
-  invLen: single;
-  vn: single;
+  InvLen: Single;
+  vn: Single;
 begin
   vn := VectorNorm(v);
   if vn > 0 then begin
-      invLen := RSqrt(vn);
-      v[0] := v[0] * invLen;
-      v[1] := v[1] * invLen;
-      v[2] := v[2] * invLen;
+      InvLen := RSqrt(vn);
+      v[0] := v[0] * InvLen;
+      v[1] := v[1] * InvLen;
+      v[2] := v[2] * InvLen;
     end;
 end;
 
@@ -2700,16 +2694,16 @@ end;
 //
 function VectorNormalize(const v: TVector2f): TVector2f;
 var
-  invLen: single;
-  vn: single;
+  InvLen: Single;
+  vn: Single;
 begin
   vn := VectorNorm(v[0], v[1]);
   if vn = 0 then
-      result := v
+      Result := v
   else begin
-      invLen := RSqrt(vn);
-      result[0] := v[0] * invLen;
-      result[1] := v[1] * invLen;
+      InvLen := RSqrt(vn);
+      Result[0] := v[0] * InvLen;
+      Result[1] := v[1] * InvLen;
     end;
 end;
 
@@ -2717,43 +2711,43 @@ end;
 //
 function VectorNormalize(const v: TAffineVector): TAffineVector;
 var
-  invLen: single;
-  vn: single;
+  InvLen: Single;
+  vn: Single;
 begin
   vn := VectorNorm(v);
   if vn = 0 then
-      SetVector(result, v)
+      SetVector(Result, v)
   else begin
-      invLen := RSqrt(vn);
-      result[0] := v[0] * invLen;
-      result[1] := v[1] * invLen;
-      result[2] := v[2] * invLen;
+      InvLen := RSqrt(vn);
+      Result[0] := v[0] * InvLen;
+      Result[1] := v[1] * InvLen;
+      Result[2] := v[2] * InvLen;
     end;
 end;
 
 // NormalizeVectorArray
 //
-procedure NormalizeVectorArray(list: PAffineVectorArray; n: Integer);
+procedure NormalizeVectorArray(List: PAffineVectorArray; n: Integer);
 var
   i: Integer;
 begin
   for i := 0 to n - 1 do
-      NormalizeVector(list^[i]);
+      NormalizeVector(List^[i]);
 end;
 
 // NormalizeVector (hmg)
 //
 procedure NormalizeVector(var v: TVector);
 var
-  invLen: single;
-  vn: single;
+  InvLen: Single;
+  vn: Single;
 begin
   vn := VectorNorm(v);
   if vn > 0 then begin
-      invLen := RSqrt(vn);
-      v[0] := v[0] * invLen;
-      v[1] := v[1] * invLen;
-      v[2] := v[2] * invLen;
+      InvLen := RSqrt(vn);
+      v[0] := v[0] * InvLen;
+      v[1] := v[1] * InvLen;
+      v[2] := v[2] * InvLen;
     end;
   v[3] := 0;
 end;
@@ -2762,52 +2756,52 @@ end;
 //
 function VectorNormalize(const v: TVector): TVector;
 var
-  invLen: single;
-  vn: single;
+  InvLen: Single;
+  vn: Single;
 begin
   vn := VectorNorm(v);
   if vn = 0 then
-      SetVector(result, v)
+      SetVector(Result, v)
   else begin
-      invLen := RSqrt(vn);
-      result[0] := v[0] * invLen;
-      result[1] := v[1] * invLen;
-      result[2] := v[2] * invLen;
+      InvLen := RSqrt(vn);
+      Result[0] := v[0] * InvLen;
+      Result[1] := v[1] * InvLen;
+      Result[2] := v[2] * InvLen;
     end;
-  result[3] := 0;
+  Result[3] := 0;
 end;
 
 // VectorAngleCosine
 //
-function VectorAngleCosine(const V1, V2: TAffineVector): single;
+function VectorAngleCosine(const v1, v2: TAffineVector): Single;
 begin
-  result := VectorDotProduct(V1, V2) / (VectorLength(V1) * VectorLength(V2));
+  Result := VectorDotProduct(v1, v2) / (VectorLength(v1) * VectorLength(v2));
 end;
 
 // VectorAngleCosine
 //
-function VectorAngleCosine(const V1, V2: TVector): single;
+function VectorAngleCosine(const v1, v2: TVector): Single;
 begin
-  result := VectorDotProduct(V1, V2) / (VectorLength(V1) * VectorLength(V2));
+  Result := VectorDotProduct(v1, v2) / (VectorLength(v1) * VectorLength(v2));
 end;
 
 // VectorNegate (affine)
 //
 function VectorNegate(const v: TAffineVector): TAffineVector;
 begin
-  result[0] := -v[0];
-  result[1] := -v[1];
-  result[2] := -v[2];
+  Result[0] := -v[0];
+  Result[1] := -v[1];
+  Result[2] := -v[2];
 end;
 
 // VectorNegate (hmg)
 //
 function VectorNegate(const v: TVector): TVector;
 begin
-  result[0] := -v[0];
-  result[1] := -v[1];
-  result[2] := -v[2];
-  result[3] := -v[3];
+  Result[0] := -v[0];
+  Result[1] := -v[1];
+  Result[2] := -v[2];
+  Result[3] := -v[3];
 end;
 
 // NegateVector
@@ -2831,7 +2825,7 @@ end;
 
 // NegateVector
 //
-procedure NegateVector(var v: array of single);
+procedure NegateVector(var v: array of Single);
 var
   i: Integer;
 begin
@@ -2841,7 +2835,7 @@ end;
 
 // ScaleVector (2f)
 //
-procedure ScaleVector(var v: TVector2f; factor: single);
+procedure ScaleVector(var v: TVector2f; factor: Single);
 begin
   v[0] := v[0] * factor;
   v[1] := v[1] * factor;
@@ -2849,7 +2843,7 @@ end;
 
 // ScaleVector (affine)
 //
-procedure ScaleVector(var v: TAffineVector; factor: single);
+procedure ScaleVector(var v: TAffineVector; factor: Single);
 begin
   v[0] := v[0] * factor;
   v[1] := v[1] * factor;
@@ -2858,7 +2852,7 @@ end;
 
 // ScaleVector (hmg)
 //
-procedure ScaleVector(var v: TVector; factor: single);
+procedure ScaleVector(var v: TVector; factor: Single);
 begin
   v[0] := v[0] * factor;
   v[1] := v[1] * factor;
@@ -2887,24 +2881,24 @@ end;
 
 // VectorScale (2f)
 //
-function VectorScale(const v: TVector2f; factor: single): TVector2f;
+function VectorScale(const v: TVector2f; factor: Single): TVector2f;
 begin
-  result[0] := v[0] * factor;
-  result[1] := v[1] * factor;
+  Result[0] := v[0] * factor;
+  Result[1] := v[1] * factor;
 end;
 
 // VectorScale (affine)
 //
-function VectorScale(const v: TAffineVector; factor: single): TAffineVector;
+function VectorScale(const v: TAffineVector; factor: Single): TAffineVector;
 begin
-  result[0] := v[0] * factor;
-  result[1] := v[1] * factor;
-  result[2] := v[2] * factor;
+  Result[0] := v[0] * factor;
+  Result[1] := v[1] * factor;
+  Result[2] := v[2] * factor;
 end;
 
 // VectorScale (proc, affine)
 //
-procedure VectorScale(const v: TAffineVector; factor: single; var vr: TAffineVector);
+procedure VectorScale(const v: TAffineVector; factor: Single; var vr: TAffineVector);
 begin
   vr[0] := v[0] * factor;
   vr[1] := v[1] * factor;
@@ -2913,17 +2907,17 @@ end;
 
 // VectorScale (hmg)
 //
-function VectorScale(const v: TVector; factor: single): TVector;
+function VectorScale(const v: TVector; factor: Single): TVector;
 begin
-  result[0] := v[0] * factor;
-  result[1] := v[1] * factor;
-  result[2] := v[2] * factor;
-  result[3] := v[3] * factor;
+  Result[0] := v[0] * factor;
+  Result[1] := v[1] * factor;
+  Result[2] := v[2] * factor;
+  Result[3] := v[3] * factor;
 end;
 
 // VectorScale (proc, hmg)
 //
-procedure VectorScale(const v: TVector; factor: single; var vr: TVector);
+procedure VectorScale(const v: TVector; factor: Single; var vr: TVector);
 begin
   vr[0] := v[0] * factor;
   vr[1] := v[1] * factor;
@@ -2933,7 +2927,7 @@ end;
 
 // VectorScale (proc, hmg-affine)
 //
-procedure VectorScale(const v: TVector; factor: single; var vr: TAffineVector);
+procedure VectorScale(const v: TVector; factor: Single; var vr: TAffineVector);
 begin
   vr[0] := v[0] * factor;
   vr[1] := v[1] * factor;
@@ -2944,19 +2938,19 @@ end;
 //
 function VectorScale(const v: TAffineVector; const factor: TAffineVector): TAffineVector;
 begin
-  result[0] := v[0] * factor[0];
-  result[1] := v[1] * factor[1];
-  result[2] := v[2] * factor[2];
+  Result[0] := v[0] * factor[0];
+  Result[1] := v[1] * factor[1];
+  Result[2] := v[2] * factor[2];
 end;
 
 // VectorScale (func, hmg)
 //
 function VectorScale(const v: TVector; const factor: TVector): TVector;
 begin
-  result[0] := v[0] * factor[0];
-  result[1] := v[1] * factor[1];
-  result[2] := v[2] * factor[2];
-  result[3] := v[3] * factor[3];
+  Result[0] := v[0] * factor[0];
+  Result[1] := v[1] * factor[1];
+  Result[2] := v[2] * factor[2];
+  Result[3] := v[3] * factor[3];
 end;
 
 // DivideVector
@@ -2982,209 +2976,209 @@ end;
 //
 function VectorDivide(const v: TVector; const divider: TVector): TVector; overload;
 begin
-  result[0] := v[0] / divider[0];
-  result[1] := v[1] / divider[1];
-  result[2] := v[2] / divider[2];
-  result[3] := v[3] / divider[3];
+  Result[0] := v[0] / divider[0];
+  Result[1] := v[1] / divider[1];
+  Result[2] := v[2] / divider[2];
+  Result[3] := v[3] / divider[3];
 end;
 
 // VectorDivide
 //
 function VectorDivide(const v: TAffineVector; const divider: TAffineVector): TAffineVector; overload;
 begin
-  result[0] := v[0] / divider[0];
-  result[1] := v[1] / divider[1];
-  result[2] := v[2] / divider[2];
+  Result[0] := v[0] / divider[0];
+  Result[1] := v[1] / divider[1];
+  Result[2] := v[2] / divider[2];
 end;
 
 // TexpointEquals
 //
 function TexpointEquals(const p1, p2: TTexPoint): Boolean;
 begin
-  result := (p1.S = p2.S) and (p1.T = p2.T);
+  Result := (p1.s = p2.s) and (p1.T = p2.T);
 end;
 
 // VectorEquals (hmg vector)
 //
-function VectorEquals(const V1, V2: TVector): Boolean;
+function VectorEquals(const v1, v2: TVector): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]) and (V1[3] = V2[3]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]) and (v1[3] = v2[3]);
 end;
 
 // VectorEquals (affine vector)
 //
-function VectorEquals(const V1, V2: TAffineVector): Boolean;
+function VectorEquals(const v1, v2: TAffineVector): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]);
 end;
 
 // AffineVectorEquals (hmg vector)
 //
-function AffineVectorEquals(const V1, V2: TVector): Boolean;
+function AffineVectorEquals(const v1, v2: TVector): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]);
 end;
 
 // VectorIsNull (hmg)
 //
 function VectorIsNull(const v: TVector): Boolean;
 begin
-  result := ((v[0] = 0) and (v[1] = 0) and (v[2] = 0));
+  Result := ((v[0] = 0) and (v[1] = 0) and (v[2] = 0));
 end;
 
 // VectorIsNull (affine)
 //
 function VectorIsNull(const v: TAffineVector): Boolean; overload;
 begin
-  result := ((v[0] = 0) and (v[1] = 0) and (v[2] = 0));
+  Result := ((v[0] = 0) and (v[1] = 0) and (v[2] = 0));
 end;
 
 // VectorSpacing (texpoint)
 //
-function VectorSpacing(const V1, V2: TTexPoint): single; overload;
+function VectorSpacing(const v1, v2: TTexPoint): Single; overload;
 begin
-  result := Abs(V2.S - V1.S) + Abs(V2.T - V1.T);
+  Result := Abs(v2.s - v1.s) + Abs(v2.T - v1.T);
 end;
 
 // VectorSpacing (affine)
 //
-function VectorSpacing(const V1, V2: TAffineVector): single;
+function VectorSpacing(const v1, v2: TAffineVector): Single;
 begin
-  result := Abs(V2[0] - V1[0]) + Abs(V2[1] - V1[1]) + Abs(V2[2] - V1[2]);
+  Result := Abs(v2[0] - v1[0]) + Abs(v2[1] - v1[1]) + Abs(v2[2] - v1[2]);
 end;
 
 // VectorSpacing (Hmg)
 //
-function VectorSpacing(const V1, V2: TVector): single;
+function VectorSpacing(const v1, v2: TVector): Single;
 begin
-  result := Abs(V2[0] - V1[0]) + Abs(V2[1] - V1[1]) + Abs(V2[2] - V1[2]) + Abs(V2[3] - V1[3]);
+  Result := Abs(v2[0] - v1[0]) + Abs(v2[1] - v1[1]) + Abs(v2[2] - v1[2]) + Abs(v2[3] - v1[3]);
 end;
 
 // VectorDistance (affine)
 //
-function VectorDistance(const V1, V2: TAffineVector): single;
+function VectorDistance(const v1, v2: TAffineVector): Single;
 begin
-  result := Sqrt(Sqr(V2[0] - V1[0]) + Sqr(V2[1] - V1[1]) + Sqr(V2[2] - V1[2]));
+  Result := Sqrt(Sqr(v2[0] - v1[0]) + Sqr(v2[1] - v1[1]) + Sqr(v2[2] - v1[2]));
 end;
 
 // VectorDistance (hmg)
 //
-function VectorDistance(const V1, V2: TVector): single;
+function VectorDistance(const v1, v2: TVector): Single;
 begin
-  result := Sqrt(Sqr(V2[0] - V1[0]) + Sqr(V2[1] - V1[1]) + Sqr(V2[2] - V1[2]));
+  Result := Sqrt(Sqr(v2[0] - v1[0]) + Sqr(v2[1] - v1[1]) + Sqr(v2[2] - v1[2]));
 end;
 
 // VectorDistance2 (affine)
 //
-function VectorDistance2(const V1, V2: TAffineVector): single;
+function VectorDistance2(const v1, v2: TAffineVector): Single;
 begin
-  result := Sqr(V2[0] - V1[0]) + Sqr(V2[1] - V1[1]) + Sqr(V2[2] - V1[2]);
+  Result := Sqr(v2[0] - v1[0]) + Sqr(v2[1] - v1[1]) + Sqr(v2[2] - v1[2]);
 end;
 
 // VectorDistance2 (hmg)
 //
-function VectorDistance2(const V1, V2: TVector): single;
+function VectorDistance2(const v1, v2: TVector): Single;
 begin
-  result := Sqr(V2[0] - V1[0]) + Sqr(V2[1] - V1[1]) + Sqr(V2[2] - V1[2]);
+  Result := Sqr(v2[0] - v1[0]) + Sqr(v2[1] - v1[1]) + Sqr(v2[2] - v1[2]);
 end;
 
 // VectorPerpendicular
 //
 function VectorPerpendicular(const v, n: TAffineVector): TAffineVector;
 var
-  dot: single;
+  dot: Single;
 begin
   dot := VectorDotProduct(v, n);
-  result[x] := v[x] - dot * n[x];
-  result[y] := v[y] - dot * n[y];
-  result[z] := v[z] - dot * n[z];
+  Result[X] := v[X] - dot * n[X];
+  Result[Y] := v[Y] - dot * n[Y];
+  Result[Z] := v[Z] - dot * n[Z];
 end;
 
 // VectorReflect
 //
 function VectorReflect(const v, n: TAffineVector): TAffineVector;
 begin
-  result := VectorCombine(v, n, 1, -2 * VectorDotProduct(v, n));
+  Result := VectorCombine(v, n, 1, -2 * VectorDotProduct(v, n));
 end;
 
 // RotateVector
 //
-procedure RotateVector(var Vector: TVector; const axis: TAffineVector; angle: single);
+procedure RotateVector(var Vector: TVector; const Axis: TAffineVector; angle: Single);
 var
   rotMatrix: TMatrix4f;
 begin
-  rotMatrix := CreateRotationMatrix(axis, angle);
+  rotMatrix := CreateRotationMatrix(Axis, angle);
   Vector := VectorTransform(Vector, rotMatrix);
 end;
 
 // RotateVector
 //
-procedure RotateVector(var Vector: TVector; const axis: TVector; angle: single); overload;
+procedure RotateVector(var Vector: TVector; const Axis: TVector; angle: Single); overload;
 var
   rotMatrix: TMatrix4f;
 begin
-  rotMatrix := CreateRotationMatrix(PAffineVector(@axis)^, angle);
+  rotMatrix := CreateRotationMatrix(PAffineVector(@Axis)^, angle);
   Vector := VectorTransform(Vector, rotMatrix);
 end;
 
 // RotateVectorAroundY
 //
-procedure RotateVectorAroundY(var v: TAffineVector; alpha: single);
+procedure RotateVectorAroundY(var v: TAffineVector; alpha: Single);
 var
-  c, S, v0: single;
+  C, s, v0: Single;
 begin
-  GeometryLib.SinCos(alpha, S, c);
+  GeometryLib.SinCos(alpha, s, C);
   v0 := v[0];
-  v[0] := c * v0 + S * v[2];
-  v[2] := c * v[2] - S * v0;
+  v[0] := C * v0 + s * v[2];
+  v[2] := C * v[2] - s * v0;
 end;
 
 // VectorRotateAroundX (func)
 //
-function VectorRotateAroundX(const v: TAffineVector; alpha: single): TAffineVector;
+function VectorRotateAroundX(const v: TAffineVector; alpha: Single): TAffineVector;
 var
-  c, S: single;
+  C, s: Single;
 begin
-  GeometryLib.SinCos(alpha, S, c);
-  result[0] := v[0];
-  result[1] := c * v[1] + S * v[2];
-  result[2] := c * v[2] - S * v[1];
+  GeometryLib.SinCos(alpha, s, C);
+  Result[0] := v[0];
+  Result[1] := C * v[1] + s * v[2];
+  Result[2] := C * v[2] - s * v[1];
 end;
 
 // VectorRotateAroundY (func)
 //
-function VectorRotateAroundY(const v: TAffineVector; alpha: single): TAffineVector;
+function VectorRotateAroundY(const v: TAffineVector; alpha: Single): TAffineVector;
 var
-  c, S: single;
+  C, s: Single;
 begin
-  GeometryLib.SinCos(alpha, S, c);
-  result[1] := v[1];
-  result[0] := c * v[0] + S * v[2];
-  result[2] := c * v[2] - S * v[0];
+  GeometryLib.SinCos(alpha, s, C);
+  Result[1] := v[1];
+  Result[0] := C * v[0] + s * v[2];
+  Result[2] := C * v[2] - s * v[0];
 end;
 
 // VectorRotateAroundY (proc)
 //
-procedure VectorRotateAroundY(const v: TAffineVector; alpha: single; var vr: TAffineVector);
+procedure VectorRotateAroundY(const v: TAffineVector; alpha: Single; var vr: TAffineVector);
 var
-  c, S: single;
+  C, s: Single;
 begin
-  GeometryLib.SinCos(alpha, S, c);
+  GeometryLib.SinCos(alpha, s, C);
   vr[1] := v[1];
-  vr[0] := c * v[0] + S * v[2];
-  vr[2] := c * v[2] - S * v[0];
+  vr[0] := C * v[0] + s * v[2];
+  vr[2] := C * v[2] - s * v[0];
 end;
 
 // VectorRotateAroundZ (func)
 //
-function VectorRotateAroundZ(const v: TAffineVector; alpha: single): TAffineVector;
+function VectorRotateAroundZ(const v: TAffineVector; alpha: Single): TAffineVector;
 var
-  c, S: single;
+  C, s: Single;
 begin
-  GeometryLib.SinCos(alpha, S, c);
-  result[0] := c * v[0] + S * v[1];
-  result[1] := c * v[1] - S * v[0];
-  result[2] := v[2];
+  GeometryLib.SinCos(alpha, s, C);
+  Result[0] := C * v[0] + s * v[1];
+  Result[1] := C * v[1] - s * v[0];
+  Result[2] := v[2];
 end;
 
 // AbsVector (hmg)
@@ -3210,101 +3204,101 @@ end;
 //
 function VectorAbs(const v: TVector): TVector;
 begin
-  result[0] := Abs(v[0]);
-  result[1] := Abs(v[1]);
-  result[2] := Abs(v[2]);
-  result[3] := Abs(v[3]);
+  Result[0] := Abs(v[0]);
+  Result[1] := Abs(v[1]);
+  Result[2] := Abs(v[2]);
+  Result[3] := Abs(v[3]);
 end;
 
 // VectorAbs (affine)
 //
 function VectorAbs(const v: TAffineVector): TAffineVector;
 begin
-  result[0] := Abs(v[0]);
-  result[1] := Abs(v[1]);
-  result[2] := Abs(v[2]);
+  Result[0] := Abs(v[0]);
+  Result[1] := Abs(v[1]);
+  Result[2] := Abs(v[2]);
 end;
 
 // IsColinear (2f)
 //
-function IsColinear(const V1, V2: TVector2f): Boolean; overload;
+function IsColinear(const v1, v2: TVector2f): Boolean; overload;
 var
-  a, b, c: single;
+  A, b, C: Single;
 begin
-  a := VectorDotProduct(V1, V1);
-  b := VectorDotProduct(V1, V2);
-  c := VectorDotProduct(V2, V2);
-  result := (a * c - b * b) < cColinearBias;
+  A := VectorDotProduct(v1, v1);
+  b := VectorDotProduct(v1, v2);
+  C := VectorDotProduct(v2, v2);
+  Result := (A * C - b * b) < cColinearBias;
 end;
 
 // IsColinear (affine)
 //
-function IsColinear(const V1, V2: TAffineVector): Boolean; overload;
+function IsColinear(const v1, v2: TAffineVector): Boolean; overload;
 var
-  a, b, c: single;
+  A, b, C: Single;
 begin
-  a := VectorDotProduct(V1, V1);
-  b := VectorDotProduct(V1, V2);
-  c := VectorDotProduct(V2, V2);
-  result := (a * c - b * b) < cColinearBias;
+  A := VectorDotProduct(v1, v1);
+  b := VectorDotProduct(v1, v2);
+  C := VectorDotProduct(v2, v2);
+  Result := (A * C - b * b) < cColinearBias;
 end;
 
 // IsColinear (hmg)
 //
-function IsColinear(const V1, V2: TVector): Boolean; overload;
+function IsColinear(const v1, v2: TVector): Boolean; overload;
 var
-  a, b, c: single;
+  A, b, C: Single;
 begin
-  a := VectorDotProduct(V1, V1);
-  b := VectorDotProduct(V1, V2);
-  c := VectorDotProduct(V2, V2);
-  result := (a * c - b * b) < cColinearBias;
+  A := VectorDotProduct(v1, v1);
+  b := VectorDotProduct(v1, v2);
+  C := VectorDotProduct(v2, v2);
+  Result := (A * C - b * b) < cColinearBias;
 end;
 
 // SetMatrix (single->double)
 //
-procedure SetMatrix(var dest: THomogeneousDblMatrix; const src: TMatrix);
+procedure SetMatrix(var dest: THomogeneousDblMatrix; const Src: TMatrix);
 var
   i: Integer;
 begin
-  for i := x to w do begin
-      dest[i, x] := src[i, x];
-      dest[i, y] := src[i, y];
-      dest[i, z] := src[i, z];
-      dest[i, w] := src[i, w];
+  for i := X to w do begin
+      dest[i, X] := Src[i, X];
+      dest[i, Y] := Src[i, Y];
+      dest[i, Z] := Src[i, Z];
+      dest[i, w] := Src[i, w];
     end;
 end;
 
 // SetMatrix (hmg->affine)
 //
-procedure SetMatrix(var dest: TAffineMatrix; const src: TMatrix);
+procedure SetMatrix(var dest: TAffineMatrix; const Src: TMatrix);
 begin
-  dest[0, 0] := src[0, 0];
-  dest[0, 1] := src[0, 1];
-  dest[0, 2] := src[0, 2];
-  dest[1, 0] := src[1, 0];
-  dest[1, 1] := src[1, 1];
-  dest[1, 2] := src[1, 2];
-  dest[2, 0] := src[2, 0];
-  dest[2, 1] := src[2, 1];
-  dest[2, 2] := src[2, 2];
+  dest[0, 0] := Src[0, 0];
+  dest[0, 1] := Src[0, 1];
+  dest[0, 2] := Src[0, 2];
+  dest[1, 0] := Src[1, 0];
+  dest[1, 1] := Src[1, 1];
+  dest[1, 2] := Src[1, 2];
+  dest[2, 0] := Src[2, 0];
+  dest[2, 1] := Src[2, 1];
+  dest[2, 2] := Src[2, 2];
 end;
 
 // SetMatrix (affine->hmg)
 //
-procedure SetMatrix(var dest: TMatrix; const src: TAffineMatrix);
+procedure SetMatrix(var dest: TMatrix; const Src: TAffineMatrix);
 begin
-  dest[0, 0] := src[0, 0];
-  dest[0, 1] := src[0, 1];
-  dest[0, 2] := src[0, 2];
+  dest[0, 0] := Src[0, 0];
+  dest[0, 1] := Src[0, 1];
+  dest[0, 2] := Src[0, 2];
   dest[0, 3] := 0;
-  dest[1, 0] := src[1, 0];
-  dest[1, 1] := src[1, 1];
-  dest[1, 2] := src[1, 2];
+  dest[1, 0] := Src[1, 0];
+  dest[1, 1] := Src[1, 1];
+  dest[1, 2] := Src[1, 2];
   dest[1, 3] := 0;
-  dest[2, 0] := src[2, 0];
-  dest[2, 1] := src[2, 1];
-  dest[2, 2] := src[2, 2];
+  dest[2, 0] := Src[2, 0];
+  dest[2, 1] := Src[2, 1];
+  dest[2, 2] := Src[2, 2];
   dest[2, 3] := 0;
   dest[3, 0] := 0;
   dest[3, 1] := 0;
@@ -3326,222 +3320,222 @@ end;
 //
 function CreateScaleMatrix(const v: TAffineVector): TMatrix;
 begin
-  result := IdentityHmgMatrix;
-  result[x, x] := v[x];
-  result[y, y] := v[y];
-  result[z, z] := v[z];
+  Result := IdentityHmgMatrix;
+  Result[X, X] := v[X];
+  Result[Y, Y] := v[Y];
+  Result[Z, Z] := v[Z];
 end;
 
 // CreateScaleMatrix (Hmg)
 //
 function CreateScaleMatrix(const v: TVector): TMatrix;
 begin
-  result := IdentityHmgMatrix;
-  result[x, x] := v[x];
-  result[y, y] := v[y];
-  result[z, z] := v[z];
+  Result := IdentityHmgMatrix;
+  Result[X, X] := v[X];
+  Result[Y, Y] := v[Y];
+  Result[Z, Z] := v[Z];
 end;
 
 // CreateTranslationMatrix (affine)
 //
 function CreateTranslationMatrix(const v: TAffineVector): TMatrix;
 begin
-  result := IdentityHmgMatrix;
-  result[w, x] := v[x];
-  result[w, y] := v[y];
-  result[w, z] := v[z];
+  Result := IdentityHmgMatrix;
+  Result[w, X] := v[X];
+  Result[w, Y] := v[Y];
+  Result[w, Z] := v[Z];
 end;
 
 // CreateTranslationMatrix (hmg)
 //
 function CreateTranslationMatrix(const v: TVector): TMatrix;
 begin
-  result := IdentityHmgMatrix;
-  result[w, x] := v[x];
-  result[w, y] := v[y];
-  result[w, z] := v[z];
+  Result := IdentityHmgMatrix;
+  Result[w, X] := v[X];
+  Result[w, Y] := v[Y];
+  Result[w, Z] := v[Z];
 end;
 
 // CreateScaleAndTranslationMatrix
 //
-function CreateScaleAndTranslationMatrix(const scale, offset: TVector): TMatrix;
+function CreateScaleAndTranslationMatrix(const Scale, Offset: TVector): TMatrix;
 begin
-  result := IdentityHmgMatrix;
-  result[x, x] := scale[x];
-  result[w, x] := offset[x];
-  result[y, y] := scale[y];
-  result[w, y] := offset[y];
-  result[z, z] := scale[z];
-  result[w, z] := offset[z];
+  Result := IdentityHmgMatrix;
+  Result[X, X] := Scale[X];
+  Result[w, X] := Offset[X];
+  Result[Y, Y] := Scale[Y];
+  Result[w, Y] := Offset[Y];
+  Result[Z, Z] := Scale[Z];
+  Result[w, Z] := Offset[Z];
 end;
 
 // CreateRotationMatrixX
 //
-function CreateRotationMatrixX(const sine, cosine: single): TMatrix;
+function CreateRotationMatrixX(const sine, cosine: Single): TMatrix;
 begin
-  result := EmptyHmgMatrix;
-  result[x, x] := 1;
-  result[y, y] := cosine;
-  result[y, z] := sine;
-  result[z, y] := -sine;
-  result[z, z] := cosine;
-  result[w, w] := 1;
+  Result := EmptyHmgMatrix;
+  Result[X, X] := 1;
+  Result[Y, Y] := cosine;
+  Result[Y, Z] := sine;
+  Result[Z, Y] := -sine;
+  Result[Z, Z] := cosine;
+  Result[w, w] := 1;
 end;
 
 // CreateRotationMatrixX
 //
-function CreateRotationMatrixX(const angle: single): TMatrix;
+function CreateRotationMatrixX(const angle: Single): TMatrix;
 var
-  S, c: single;
+  s, C: Single;
 begin
-  GeometryLib.SinCos(angle, S, c);
-  result := CreateRotationMatrixX(S, c);
+  GeometryLib.SinCos(angle, s, C);
+  Result := CreateRotationMatrixX(s, C);
 end;
 
 // CreateRotationMatrixY
 //
-function CreateRotationMatrixY(const sine, cosine: single): TMatrix;
+function CreateRotationMatrixY(const sine, cosine: Single): TMatrix;
 begin
-  result := EmptyHmgMatrix;
-  result[x, x] := cosine;
-  result[x, z] := -sine;
-  result[y, y] := 1;
-  result[z, x] := sine;
-  result[z, z] := cosine;
-  result[w, w] := 1;
+  Result := EmptyHmgMatrix;
+  Result[X, X] := cosine;
+  Result[X, Z] := -sine;
+  Result[Y, Y] := 1;
+  Result[Z, X] := sine;
+  Result[Z, Z] := cosine;
+  Result[w, w] := 1;
 end;
 
 // CreateRotationMatrixY
 //
-function CreateRotationMatrixY(const angle: single): TMatrix;
+function CreateRotationMatrixY(const angle: Single): TMatrix;
 var
-  S, c: single;
+  s, C: Single;
 begin
-  GeometryLib.SinCos(angle, S, c);
-  result := CreateRotationMatrixY(S, c);
+  GeometryLib.SinCos(angle, s, C);
+  Result := CreateRotationMatrixY(s, C);
 end;
 
 // CreateRotationMatrixZ
 //
-function CreateRotationMatrixZ(const sine, cosine: single): TMatrix;
+function CreateRotationMatrixZ(const sine, cosine: Single): TMatrix;
 begin
-  result := EmptyHmgMatrix;
-  result[x, x] := cosine;
-  result[x, y] := sine;
-  result[y, x] := -sine;
-  result[y, y] := cosine;
-  result[z, z] := 1;
-  result[w, w] := 1;
+  Result := EmptyHmgMatrix;
+  Result[X, X] := cosine;
+  Result[X, Y] := sine;
+  Result[Y, X] := -sine;
+  Result[Y, Y] := cosine;
+  Result[Z, Z] := 1;
+  Result[w, w] := 1;
 end;
 
 // CreateRotationMatrixZ
 //
-function CreateRotationMatrixZ(const angle: single): TMatrix;
+function CreateRotationMatrixZ(const angle: Single): TMatrix;
 var
-  S, c: single;
+  s, C: Single;
 begin
-  GeometryLib.SinCos(angle, S, c);
-  result := CreateRotationMatrixZ(S, c);
+  GeometryLib.SinCos(angle, s, C);
+  Result := CreateRotationMatrixZ(s, C);
 end;
 
 // CreateRotationMatrix (affine)
 //
-function CreateRotationMatrix(const anAxis: TAffineVector; angle: single): TMatrix;
+function CreateRotationMatrix(const anAxis: TAffineVector; angle: Single): TMatrix;
 var
-  axis: TAffineVector;
-  cosine, sine, one_minus_cosine: single;
+  Axis: TAffineVector;
+  cosine, sine, one_minus_cosine: Single;
 begin
   GeometryLib.SinCos(angle, sine, cosine);
   one_minus_cosine := 1 - cosine;
-  axis := VectorNormalize(anAxis);
+  Axis := VectorNormalize(anAxis);
 
-  result[x, x] := (one_minus_cosine * axis[0] * axis[0]) + cosine;
-  result[x, y] := (one_minus_cosine * axis[0] * axis[1]) - (axis[2] * sine);
-  result[x, z] := (one_minus_cosine * axis[2] * axis[0]) + (axis[1] * sine);
-  result[x, w] := 0;
+  Result[X, X] := (one_minus_cosine * Axis[0] * Axis[0]) + cosine;
+  Result[X, Y] := (one_minus_cosine * Axis[0] * Axis[1]) - (Axis[2] * sine);
+  Result[X, Z] := (one_minus_cosine * Axis[2] * Axis[0]) + (Axis[1] * sine);
+  Result[X, w] := 0;
 
-  result[y, x] := (one_minus_cosine * axis[0] * axis[1]) + (axis[2] * sine);
-  result[y, y] := (one_minus_cosine * axis[1] * axis[1]) + cosine;
-  result[y, z] := (one_minus_cosine * axis[1] * axis[2]) - (axis[0] * sine);
-  result[y, w] := 0;
+  Result[Y, X] := (one_minus_cosine * Axis[0] * Axis[1]) + (Axis[2] * sine);
+  Result[Y, Y] := (one_minus_cosine * Axis[1] * Axis[1]) + cosine;
+  Result[Y, Z] := (one_minus_cosine * Axis[1] * Axis[2]) - (Axis[0] * sine);
+  Result[Y, w] := 0;
 
-  result[z, x] := (one_minus_cosine * axis[2] * axis[0]) - (axis[1] * sine);
-  result[z, y] := (one_minus_cosine * axis[1] * axis[2]) + (axis[0] * sine);
-  result[z, z] := (one_minus_cosine * axis[2] * axis[2]) + cosine;
-  result[z, w] := 0;
+  Result[Z, X] := (one_minus_cosine * Axis[2] * Axis[0]) - (Axis[1] * sine);
+  Result[Z, Y] := (one_minus_cosine * Axis[1] * Axis[2]) + (Axis[0] * sine);
+  Result[Z, Z] := (one_minus_cosine * Axis[2] * Axis[2]) + cosine;
+  Result[Z, w] := 0;
 
-  result[w, x] := 0;
-  result[w, y] := 0;
-  result[w, z] := 0;
-  result[w, w] := 1;
+  Result[w, X] := 0;
+  Result[w, Y] := 0;
+  Result[w, Z] := 0;
+  Result[w, w] := 1;
 end;
 
 // CreateRotationMatrix (hmg)
 //
-function CreateRotationMatrix(const anAxis: TVector; angle: single): TMatrix;
+function CreateRotationMatrix(const anAxis: TVector; angle: Single): TMatrix;
 begin
-  result := CreateRotationMatrix(PAffineVector(@anAxis)^, angle);
+  Result := CreateRotationMatrix(PAffineVector(@anAxis)^, angle);
 end;
 
 // CreateAffineRotationMatrix
 //
-function CreateAffineRotationMatrix(const anAxis: TAffineVector; angle: single): TAffineMatrix;
+function CreateAffineRotationMatrix(const anAxis: TAffineVector; angle: Single): TAffineMatrix;
 var
-  axis: TAffineVector;
-  cosine, sine, one_minus_cosine: single;
+  Axis: TAffineVector;
+  cosine, sine, one_minus_cosine: Single;
 begin
   GeometryLib.SinCos(angle, sine, cosine);
   one_minus_cosine := 1 - cosine;
-  axis := VectorNormalize(anAxis);
+  Axis := VectorNormalize(anAxis);
 
-  result[x, x] := (one_minus_cosine * Sqr(axis[0])) + cosine;
-  result[x, y] := (one_minus_cosine * axis[0] * axis[1]) - (axis[2] * sine);
-  result[x, z] := (one_minus_cosine * axis[2] * axis[0]) + (axis[1] * sine);
+  Result[X, X] := (one_minus_cosine * Sqr(Axis[0])) + cosine;
+  Result[X, Y] := (one_minus_cosine * Axis[0] * Axis[1]) - (Axis[2] * sine);
+  Result[X, Z] := (one_minus_cosine * Axis[2] * Axis[0]) + (Axis[1] * sine);
 
-  result[y, x] := (one_minus_cosine * axis[0] * axis[1]) + (axis[2] * sine);
-  result[y, y] := (one_minus_cosine * Sqr(axis[1])) + cosine;
-  result[y, z] := (one_minus_cosine * axis[1] * axis[2]) - (axis[0] * sine);
+  Result[Y, X] := (one_minus_cosine * Axis[0] * Axis[1]) + (Axis[2] * sine);
+  Result[Y, Y] := (one_minus_cosine * Sqr(Axis[1])) + cosine;
+  Result[Y, Z] := (one_minus_cosine * Axis[1] * Axis[2]) - (Axis[0] * sine);
 
-  result[z, x] := (one_minus_cosine * axis[2] * axis[0]) - (axis[1] * sine);
-  result[z, y] := (one_minus_cosine * axis[1] * axis[2]) + (axis[0] * sine);
-  result[z, z] := (one_minus_cosine * Sqr(axis[2])) + cosine;
+  Result[Z, X] := (one_minus_cosine * Axis[2] * Axis[0]) - (Axis[1] * sine);
+  Result[Z, Y] := (one_minus_cosine * Axis[1] * Axis[2]) + (Axis[0] * sine);
+  Result[Z, Z] := (one_minus_cosine * Sqr(Axis[2])) + cosine;
 end;
 
 // MatrixMultiply (3x3 func)
 //
 function MatrixMultiply(const m1, m2: TAffineMatrix): TAffineMatrix;
 begin
-  result[x, x] := m1[x, x] * m2[x, x] + m1[x, y] * m2[y, x] + m1[x, z] * m2[z, x];
-  result[x, y] := m1[x, x] * m2[x, y] + m1[x, y] * m2[y, y] + m1[x, z] * m2[z, y];
-  result[x, z] := m1[x, x] * m2[x, z] + m1[x, y] * m2[y, z] + m1[x, z] * m2[z, z];
-  result[y, x] := m1[y, x] * m2[x, x] + m1[y, y] * m2[y, x] + m1[y, z] * m2[z, x];
-  result[y, y] := m1[y, x] * m2[x, y] + m1[y, y] * m2[y, y] + m1[y, z] * m2[z, y];
-  result[y, z] := m1[y, x] * m2[x, z] + m1[y, y] * m2[y, z] + m1[y, z] * m2[z, z];
-  result[z, x] := m1[z, x] * m2[x, x] + m1[z, y] * m2[y, x] + m1[z, z] * m2[z, x];
-  result[z, y] := m1[z, x] * m2[x, y] + m1[z, y] * m2[y, y] + m1[z, z] * m2[z, y];
-  result[z, z] := m1[z, x] * m2[x, z] + m1[z, y] * m2[y, z] + m1[z, z] * m2[z, z];
+  Result[X, X] := m1[X, X] * m2[X, X] + m1[X, Y] * m2[Y, X] + m1[X, Z] * m2[Z, X];
+  Result[X, Y] := m1[X, X] * m2[X, Y] + m1[X, Y] * m2[Y, Y] + m1[X, Z] * m2[Z, Y];
+  Result[X, Z] := m1[X, X] * m2[X, Z] + m1[X, Y] * m2[Y, Z] + m1[X, Z] * m2[Z, Z];
+  Result[Y, X] := m1[Y, X] * m2[X, X] + m1[Y, Y] * m2[Y, X] + m1[Y, Z] * m2[Z, X];
+  Result[Y, Y] := m1[Y, X] * m2[X, Y] + m1[Y, Y] * m2[Y, Y] + m1[Y, Z] * m2[Z, Y];
+  Result[Y, Z] := m1[Y, X] * m2[X, Z] + m1[Y, Y] * m2[Y, Z] + m1[Y, Z] * m2[Z, Z];
+  Result[Z, X] := m1[Z, X] * m2[X, X] + m1[Z, Y] * m2[Y, X] + m1[Z, Z] * m2[Z, X];
+  Result[Z, Y] := m1[Z, X] * m2[X, Y] + m1[Z, Y] * m2[Y, Y] + m1[Z, Z] * m2[Z, Y];
+  Result[Z, Z] := m1[Z, X] * m2[X, Z] + m1[Z, Y] * m2[Y, Z] + m1[Z, Z] * m2[Z, Z];
 end;
 
 // MatrixMultiply (4x4, func)
 //
 function MatrixMultiply(const m1, m2: TMatrix): TMatrix;
 begin
-  result[x, x] := m1[x, x] * m2[x, x] + m1[x, y] * m2[y, x] + m1[x, z] * m2[z, x] + m1[x, w] * m2[w, x];
-  result[x, y] := m1[x, x] * m2[x, y] + m1[x, y] * m2[y, y] + m1[x, z] * m2[z, y] + m1[x, w] * m2[w, y];
-  result[x, z] := m1[x, x] * m2[x, z] + m1[x, y] * m2[y, z] + m1[x, z] * m2[z, z] + m1[x, w] * m2[w, z];
-  result[x, w] := m1[x, x] * m2[x, w] + m1[x, y] * m2[y, w] + m1[x, z] * m2[z, w] + m1[x, w] * m2[w, w];
-  result[y, x] := m1[y, x] * m2[x, x] + m1[y, y] * m2[y, x] + m1[y, z] * m2[z, x] + m1[y, w] * m2[w, x];
-  result[y, y] := m1[y, x] * m2[x, y] + m1[y, y] * m2[y, y] + m1[y, z] * m2[z, y] + m1[y, w] * m2[w, y];
-  result[y, z] := m1[y, x] * m2[x, z] + m1[y, y] * m2[y, z] + m1[y, z] * m2[z, z] + m1[y, w] * m2[w, z];
-  result[y, w] := m1[y, x] * m2[x, w] + m1[y, y] * m2[y, w] + m1[y, z] * m2[z, w] + m1[y, w] * m2[w, w];
-  result[z, x] := m1[z, x] * m2[x, x] + m1[z, y] * m2[y, x] + m1[z, z] * m2[z, x] + m1[z, w] * m2[w, x];
-  result[z, y] := m1[z, x] * m2[x, y] + m1[z, y] * m2[y, y] + m1[z, z] * m2[z, y] + m1[z, w] * m2[w, y];
-  result[z, z] := m1[z, x] * m2[x, z] + m1[z, y] * m2[y, z] + m1[z, z] * m2[z, z] + m1[z, w] * m2[w, z];
-  result[z, w] := m1[z, x] * m2[x, w] + m1[z, y] * m2[y, w] + m1[z, z] * m2[z, w] + m1[z, w] * m2[w, w];
-  result[w, x] := m1[w, x] * m2[x, x] + m1[w, y] * m2[y, x] + m1[w, z] * m2[z, x] + m1[w, w] * m2[w, x];
-  result[w, y] := m1[w, x] * m2[x, y] + m1[w, y] * m2[y, y] + m1[w, z] * m2[z, y] + m1[w, w] * m2[w, y];
-  result[w, z] := m1[w, x] * m2[x, z] + m1[w, y] * m2[y, z] + m1[w, z] * m2[z, z] + m1[w, w] * m2[w, z];
-  result[w, w] := m1[w, x] * m2[x, w] + m1[w, y] * m2[y, w] + m1[w, z] * m2[z, w] + m1[w, w] * m2[w, w];
+  Result[X, X] := m1[X, X] * m2[X, X] + m1[X, Y] * m2[Y, X] + m1[X, Z] * m2[Z, X] + m1[X, w] * m2[w, X];
+  Result[X, Y] := m1[X, X] * m2[X, Y] + m1[X, Y] * m2[Y, Y] + m1[X, Z] * m2[Z, Y] + m1[X, w] * m2[w, Y];
+  Result[X, Z] := m1[X, X] * m2[X, Z] + m1[X, Y] * m2[Y, Z] + m1[X, Z] * m2[Z, Z] + m1[X, w] * m2[w, Z];
+  Result[X, w] := m1[X, X] * m2[X, w] + m1[X, Y] * m2[Y, w] + m1[X, Z] * m2[Z, w] + m1[X, w] * m2[w, w];
+  Result[Y, X] := m1[Y, X] * m2[X, X] + m1[Y, Y] * m2[Y, X] + m1[Y, Z] * m2[Z, X] + m1[Y, w] * m2[w, X];
+  Result[Y, Y] := m1[Y, X] * m2[X, Y] + m1[Y, Y] * m2[Y, Y] + m1[Y, Z] * m2[Z, Y] + m1[Y, w] * m2[w, Y];
+  Result[Y, Z] := m1[Y, X] * m2[X, Z] + m1[Y, Y] * m2[Y, Z] + m1[Y, Z] * m2[Z, Z] + m1[Y, w] * m2[w, Z];
+  Result[Y, w] := m1[Y, X] * m2[X, w] + m1[Y, Y] * m2[Y, w] + m1[Y, Z] * m2[Z, w] + m1[Y, w] * m2[w, w];
+  Result[Z, X] := m1[Z, X] * m2[X, X] + m1[Z, Y] * m2[Y, X] + m1[Z, Z] * m2[Z, X] + m1[Z, w] * m2[w, X];
+  Result[Z, Y] := m1[Z, X] * m2[X, Y] + m1[Z, Y] * m2[Y, Y] + m1[Z, Z] * m2[Z, Y] + m1[Z, w] * m2[w, Y];
+  Result[Z, Z] := m1[Z, X] * m2[X, Z] + m1[Z, Y] * m2[Y, Z] + m1[Z, Z] * m2[Z, Z] + m1[Z, w] * m2[w, Z];
+  Result[Z, w] := m1[Z, X] * m2[X, w] + m1[Z, Y] * m2[Y, w] + m1[Z, Z] * m2[Z, w] + m1[Z, w] * m2[w, w];
+  Result[w, X] := m1[w, X] * m2[X, X] + m1[w, Y] * m2[Y, X] + m1[w, Z] * m2[Z, X] + m1[w, w] * m2[w, X];
+  Result[w, Y] := m1[w, X] * m2[X, Y] + m1[w, Y] * m2[Y, Y] + m1[w, Z] * m2[Z, Y] + m1[w, w] * m2[w, Y];
+  Result[w, Z] := m1[w, X] * m2[X, Z] + m1[w, Y] * m2[Y, Z] + m1[w, Z] * m2[Z, Z] + m1[w, w] * m2[w, Z];
+  Result[w, w] := m1[w, X] * m2[X, w] + m1[w, Y] * m2[Y, w] + m1[w, Z] * m2[Z, w] + m1[w, w] * m2[w, w];
 end;
 
 // MatrixMultiply (4x4, proc)
@@ -3555,67 +3549,67 @@ end;
 //
 function VectorTransform(const v: TVector; const M: TMatrix): TVector;
 begin
-  result[x] := v[x] * M[x, x] + v[y] * M[y, x] + v[z] * M[z, x] + v[w] * M[w, x];
-  result[y] := v[x] * M[x, y] + v[y] * M[y, y] + v[z] * M[z, y] + v[w] * M[w, y];
-  result[z] := v[x] * M[x, z] + v[y] * M[y, z] + v[z] * M[z, z] + v[w] * M[w, z];
-  result[w] := v[x] * M[x, w] + v[y] * M[y, w] + v[z] * M[z, w] + v[w] * M[w, w];
+  Result[X] := v[X] * M[X, X] + v[Y] * M[Y, X] + v[Z] * M[Z, X] + v[w] * M[w, X];
+  Result[Y] := v[X] * M[X, Y] + v[Y] * M[Y, Y] + v[Z] * M[Z, Y] + v[w] * M[w, Y];
+  Result[Z] := v[X] * M[X, Z] + v[Y] * M[Y, Z] + v[Z] * M[Z, Z] + v[w] * M[w, Z];
+  Result[w] := v[X] * M[X, w] + v[Y] * M[Y, w] + v[Z] * M[Z, w] + v[w] * M[w, w];
 end;
 
 // VectorTransform
 //
 function VectorTransform(const v: TVector; const M: TAffineMatrix): TVector;
 begin
-  result[x] := v[x] * M[x, x] + v[y] * M[y, x] + v[z] * M[z, x];
-  result[y] := v[x] * M[x, y] + v[y] * M[y, y] + v[z] * M[z, y];
-  result[z] := v[x] * M[x, z] + v[y] * M[y, z] + v[z] * M[z, z];
-  result[w] := v[w];
+  Result[X] := v[X] * M[X, X] + v[Y] * M[Y, X] + v[Z] * M[Z, X];
+  Result[Y] := v[X] * M[X, Y] + v[Y] * M[Y, Y] + v[Z] * M[Z, Y];
+  Result[Z] := v[X] * M[X, Z] + v[Y] * M[Y, Z] + v[Z] * M[Z, Z];
+  Result[w] := v[w];
 end;
 
 // VectorTransform
 //
 function VectorTransform(const v: TAffineVector; const M: TMatrix): TAffineVector;
 begin
-  result[x] := v[x] * M[x, x] + v[y] * M[y, x] + v[z] * M[z, x] + M[w, x];
-  result[y] := v[x] * M[x, y] + v[y] * M[y, y] + v[z] * M[z, y] + M[w, y];
-  result[z] := v[x] * M[x, z] + v[y] * M[y, z] + v[z] * M[z, z] + M[w, z];
+  Result[X] := v[X] * M[X, X] + v[Y] * M[Y, X] + v[Z] * M[Z, X] + M[w, X];
+  Result[Y] := v[X] * M[X, Y] + v[Y] * M[Y, Y] + v[Z] * M[Z, Y] + M[w, Y];
+  Result[Z] := v[X] * M[X, Z] + v[Y] * M[Y, Z] + v[Z] * M[Z, Z] + M[w, Z];
 end;
 
 // VectorTransform
 //
 function VectorTransform(const v: TAffineVector; const M: TAffineMatrix): TAffineVector;
 begin
-  result[x] := v[x] * M[x, x] + v[y] * M[y, x] + v[z] * M[z, x];
-  result[y] := v[x] * M[x, y] + v[y] * M[y, y] + v[z] * M[z, y];
-  result[z] := v[x] * M[x, z] + v[y] * M[y, z] + v[z] * M[z, z];
+  Result[X] := v[X] * M[X, X] + v[Y] * M[Y, X] + v[Z] * M[Z, X];
+  Result[Y] := v[X] * M[X, Y] + v[Y] * M[Y, Y] + v[Z] * M[Z, Y];
+  Result[Z] := v[X] * M[X, Z] + v[Y] * M[Y, Z] + v[Z] * M[Z, Z];
 end;
 
 // MatrixDeterminant (affine)
 //
-function MatrixDeterminant(const M: TAffineMatrix): single;
+function MatrixDeterminant(const M: TAffineMatrix): Single;
 begin
-  result := M[x, x] * (M[y, y] * M[z, z] - M[z, y] * M[y, z])
-    - M[x, y] * (M[y, x] * M[z, z] - M[z, x] * M[y, z])
-    + M[x, z] * (M[y, x] * M[z, y] - M[z, x] * M[y, y]);
+  Result := M[X, X] * (M[Y, Y] * M[Z, Z] - M[Z, Y] * M[Y, Z])
+    - M[X, Y] * (M[Y, X] * M[Z, Z] - M[Z, X] * M[Y, Z])
+    + M[X, Z] * (M[Y, X] * M[Z, Y] - M[Z, X] * M[Y, Y]);
 end;
 
 // MatrixDetInternal
 //
-function MatrixDetInternal(const a1, a2, a3, b1, b2, b3, c1, c2, c3: single): single;
+function MatrixDetInternal(const a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
 // internal version for the determinant of a 3x3 matrix
 begin
-  result := a1 * (b2 * c3 - b3 * c2)
+  Result := a1 * (b2 * c3 - b3 * c2)
     - b1 * (a2 * c3 - a3 * c2)
     + c1 * (a2 * b3 - a3 * b2);
 end;
 
 // MatrixDeterminant (hmg)
 //
-function MatrixDeterminant(const M: TMatrix): single;
+function MatrixDeterminant(const M: TMatrix): Single;
 begin
-  result := M[x, x] * MatrixDetInternal(M[y, y], M[z, y], M[w, y], M[y, z], M[z, z], M[w, z], M[y, w], M[z, w], M[w, w])
-    - M[x, y] * MatrixDetInternal(M[y, x], M[z, x], M[w, x], M[y, z], M[z, z], M[w, z], M[y, w], M[z, w], M[w, w])
-    + M[x, z] * MatrixDetInternal(M[y, x], M[z, x], M[w, x], M[y, y], M[z, y], M[w, y], M[y, w], M[z, w], M[w, w])
-    - M[x, w] * MatrixDetInternal(M[y, x], M[z, x], M[w, x], M[y, y], M[z, y], M[w, y], M[y, z], M[z, z], M[w, z]);
+  Result := M[X, X] * MatrixDetInternal(M[Y, Y], M[Z, Y], M[w, Y], M[Y, Z], M[Z, Z], M[w, Z], M[Y, w], M[Z, w], M[w, w])
+    - M[X, Y] * MatrixDetInternal(M[Y, X], M[Z, X], M[w, X], M[Y, Z], M[Z, Z], M[w, Z], M[Y, w], M[Z, w], M[w, w])
+    + M[X, Z] * MatrixDetInternal(M[Y, X], M[Z, X], M[w, X], M[Y, Y], M[Z, Y], M[w, Y], M[Y, w], M[Z, w], M[w, w])
+    - M[X, w] * MatrixDetInternal(M[Y, X], M[Z, X], M[w, X], M[Y, Y], M[Z, Y], M[w, Y], M[Y, Z], M[Z, Z], M[w, Z]);
 end;
 
 // AdjointMatrix
@@ -3625,44 +3619,44 @@ var
   a1, a2, a3, a4,
     b1, b2, b3, b4,
     c1, c2, c3, c4,
-    d1, d2, d3, d4: single;
+    d1, d2, d3, d4: Single;
 begin
-  a1 := M[x, x];
-  b1 := M[x, y];
-  c1 := M[x, z];
-  d1 := M[x, w];
-  a2 := M[y, x];
-  b2 := M[y, y];
-  c2 := M[y, z];
-  d2 := M[y, w];
-  a3 := M[z, x];
-  b3 := M[z, y];
-  c3 := M[z, z];
-  d3 := M[z, w];
-  a4 := M[w, x];
-  b4 := M[w, y];
-  c4 := M[w, z];
+  a1 := M[X, X];
+  b1 := M[X, Y];
+  c1 := M[X, Z];
+  d1 := M[X, w];
+  a2 := M[Y, X];
+  b2 := M[Y, Y];
+  c2 := M[Y, Z];
+  d2 := M[Y, w];
+  a3 := M[Z, X];
+  b3 := M[Z, Y];
+  c3 := M[Z, Z];
+  d3 := M[Z, w];
+  a4 := M[w, X];
+  b4 := M[w, Y];
+  c4 := M[w, Z];
   d4 := M[w, w];
 
   // row column labeling reversed since we transpose rows & columns
-  M[x, x] := MatrixDetInternal(b2, b3, b4, c2, c3, c4, d2, d3, d4);
-  M[y, x] := -MatrixDetInternal(a2, a3, a4, c2, c3, c4, d2, d3, d4);
-  M[z, x] := MatrixDetInternal(a2, a3, a4, b2, b3, b4, d2, d3, d4);
-  M[w, x] := -MatrixDetInternal(a2, a3, a4, b2, b3, b4, c2, c3, c4);
+  M[X, X] := MatrixDetInternal(b2, b3, b4, c2, c3, c4, d2, d3, d4);
+  M[Y, X] := -MatrixDetInternal(a2, a3, a4, c2, c3, c4, d2, d3, d4);
+  M[Z, X] := MatrixDetInternal(a2, a3, a4, b2, b3, b4, d2, d3, d4);
+  M[w, X] := -MatrixDetInternal(a2, a3, a4, b2, b3, b4, c2, c3, c4);
 
-  M[x, y] := -MatrixDetInternal(b1, b3, b4, c1, c3, c4, d1, d3, d4);
-  M[y, y] := MatrixDetInternal(a1, a3, a4, c1, c3, c4, d1, d3, d4);
-  M[z, y] := -MatrixDetInternal(a1, a3, a4, b1, b3, b4, d1, d3, d4);
-  M[w, y] := MatrixDetInternal(a1, a3, a4, b1, b3, b4, c1, c3, c4);
+  M[X, Y] := -MatrixDetInternal(b1, b3, b4, c1, c3, c4, d1, d3, d4);
+  M[Y, Y] := MatrixDetInternal(a1, a3, a4, c1, c3, c4, d1, d3, d4);
+  M[Z, Y] := -MatrixDetInternal(a1, a3, a4, b1, b3, b4, d1, d3, d4);
+  M[w, Y] := MatrixDetInternal(a1, a3, a4, b1, b3, b4, c1, c3, c4);
 
-  M[x, z] := MatrixDetInternal(b1, b2, b4, c1, c2, c4, d1, d2, d4);
-  M[y, z] := -MatrixDetInternal(a1, a2, a4, c1, c2, c4, d1, d2, d4);
-  M[z, z] := MatrixDetInternal(a1, a2, a4, b1, b2, b4, d1, d2, d4);
-  M[w, z] := -MatrixDetInternal(a1, a2, a4, b1, b2, b4, c1, c2, c4);
+  M[X, Z] := MatrixDetInternal(b1, b2, b4, c1, c2, c4, d1, d2, d4);
+  M[Y, Z] := -MatrixDetInternal(a1, a2, a4, c1, c2, c4, d1, d2, d4);
+  M[Z, Z] := MatrixDetInternal(a1, a2, a4, b1, b2, b4, d1, d2, d4);
+  M[w, Z] := -MatrixDetInternal(a1, a2, a4, b1, b2, b4, c1, c2, c4);
 
-  M[x, w] := -MatrixDetInternal(b1, b2, b3, c1, c2, c3, d1, d2, d3);
-  M[y, w] := MatrixDetInternal(a1, a2, a3, c1, c2, c3, d1, d2, d3);
-  M[z, w] := -MatrixDetInternal(a1, a2, a3, b1, b2, b3, d1, d2, d3);
+  M[X, w] := -MatrixDetInternal(b1, b2, b3, c1, c2, c3, d1, d2, d3);
+  M[Y, w] := MatrixDetInternal(a1, a2, a3, c1, c2, c3, d1, d2, d3);
+  M[Z, w] := -MatrixDetInternal(a1, a2, a3, b1, b2, b3, d1, d2, d3);
   M[w, w] := MatrixDetInternal(a1, a2, a3, b1, b2, b3, c1, c2, c3);
 end;
 
@@ -3672,33 +3666,33 @@ procedure AdjointMatrix(var M: TAffineMatrix);
 var
   a1, a2, a3,
     b1, b2, b3,
-    c1, c2, c3: single;
+    c1, c2, c3: Single;
 begin
-  a1 := M[x, x];
-  a2 := M[x, y];
-  a3 := M[x, z];
-  b1 := M[y, x];
-  b2 := M[y, y];
-  b3 := M[y, z];
-  c1 := M[z, x];
-  c2 := M[z, y];
-  c3 := M[z, z];
-  M[x, x] := (b2 * c3 - c2 * b3);
-  M[y, x] := -(b1 * c3 - c1 * b3);
-  M[z, x] := (b1 * c2 - c1 * b2);
+  a1 := M[X, X];
+  a2 := M[X, Y];
+  a3 := M[X, Z];
+  b1 := M[Y, X];
+  b2 := M[Y, Y];
+  b3 := M[Y, Z];
+  c1 := M[Z, X];
+  c2 := M[Z, Y];
+  c3 := M[Z, Z];
+  M[X, X] := (b2 * c3 - c2 * b3);
+  M[Y, X] := -(b1 * c3 - c1 * b3);
+  M[Z, X] := (b1 * c2 - c1 * b2);
 
-  M[x, y] := -(a2 * c3 - c2 * a3);
-  M[y, y] := (a1 * c3 - c1 * a3);
-  M[z, y] := -(a1 * c2 - c1 * a2);
+  M[X, Y] := -(a2 * c3 - c2 * a3);
+  M[Y, Y] := (a1 * c3 - c1 * a3);
+  M[Z, Y] := -(a1 * c2 - c1 * a2);
 
-  M[x, z] := (a2 * b3 - b2 * a3);
-  M[y, z] := -(a1 * b3 - b1 * a3);
-  M[z, z] := (a1 * b2 - b1 * a2);
+  M[X, Z] := (a2 * b3 - b2 * a3);
+  M[Y, Z] := -(a1 * b3 - b1 * a3);
+  M[Z, Z] := (a1 * b2 - b1 * a2);
 end;
 
 // ScaleMatrix (affine)
 //
-procedure ScaleMatrix(var M: TAffineMatrix; const factor: single);
+procedure ScaleMatrix(var M: TAffineMatrix; const factor: Single);
 var
   i: Integer;
 begin
@@ -3711,7 +3705,7 @@ end;
 
 // ScaleMatrix (hmg)
 //
-procedure ScaleMatrix(var M: TMatrix; const factor: single);
+procedure ScaleMatrix(var M: TMatrix; const factor: Single);
 var
   i: Integer;
 begin
@@ -3758,53 +3752,53 @@ end;
 //
 procedure TransposeMatrix(var M: TAffineMatrix);
 var
-  f: single;
+  F: Single;
 begin
-  f := M[0, 1];
+  F := M[0, 1];
   M[0, 1] := M[1, 0];
-  M[1, 0] := f;
-  f := M[0, 2];
+  M[1, 0] := F;
+  F := M[0, 2];
   M[0, 2] := M[2, 0];
-  M[2, 0] := f;
-  f := M[1, 2];
+  M[2, 0] := F;
+  F := M[1, 2];
   M[1, 2] := M[2, 1];
-  M[2, 1] := f;
+  M[2, 1] := F;
 end;
 
 // TransposeMatrix
 //
 procedure TransposeMatrix(var M: TMatrix);
 var
-  f: single;
+  F: Single;
 begin
-  f := M[0, 1];
+  F := M[0, 1];
   M[0, 1] := M[1, 0];
-  M[1, 0] := f;
-  f := M[0, 2];
+  M[1, 0] := F;
+  F := M[0, 2];
   M[0, 2] := M[2, 0];
-  M[2, 0] := f;
-  f := M[0, 3];
+  M[2, 0] := F;
+  F := M[0, 3];
   M[0, 3] := M[3, 0];
-  M[3, 0] := f;
-  f := M[1, 2];
+  M[3, 0] := F;
+  F := M[1, 2];
   M[1, 2] := M[2, 1];
-  M[2, 1] := f;
-  f := M[1, 3];
+  M[2, 1] := F;
+  F := M[1, 3];
   M[1, 3] := M[3, 1];
-  M[3, 1] := f;
-  f := M[2, 3];
+  M[3, 1] := F;
+  F := M[2, 3];
   M[2, 3] := M[3, 2];
-  M[3, 2] := f;
+  M[3, 2] := F;
 end;
 
 // InvertMatrix
 //
 procedure InvertMatrix(var M: TMatrix);
 var
-  det: single;
+  det: Single;
 begin
   det := MatrixDeterminant(M);
-  if Abs(det) < EPSILON then
+  if Abs(det) < Epsilon then
       M := IdentityHmgMatrix
   else begin
       AdjointMatrix(M);
@@ -3816,18 +3810,18 @@ end;
 //
 function MatrixInvert(const M: TMatrix): TMatrix;
 begin
-  result := M;
-  InvertMatrix(result);
+  Result := M;
+  InvertMatrix(Result);
 end;
 
 // InvertMatrix (affine)
 //
 procedure InvertMatrix(var M: TAffineMatrix);
 var
-  det: single;
+  det: Single;
 begin
   det := MatrixDeterminant(M);
-  if Abs(det) < EPSILON then
+  if Abs(det) < Epsilon then
       M := IdentityMatrix
   else begin
       AdjointMatrix(M);
@@ -3839,63 +3833,63 @@ end;
 //
 function MatrixInvert(const M: TAffineMatrix): TAffineMatrix;
 begin
-  result := M;
-  InvertMatrix(result);
+  Result := M;
+  InvertMatrix(Result);
 end;
 
 // transpose_scale_m33
 //
-procedure transpose_scale_m33(const src: TMatrix; var dest: TMatrix; var scale: single);
+procedure transpose_scale_m33(const Src: TMatrix; var dest: TMatrix; var Scale: Single);
 begin
-  dest[0][0] := scale * src[0][0];
-  dest[1][0] := scale * src[0][1];
-  dest[2][0] := scale * src[0][2];
-  dest[0][1] := scale * src[1][0];
-  dest[1][1] := scale * src[1][1];
-  dest[2][1] := scale * src[1][2];
-  dest[0][2] := scale * src[2][0];
-  dest[1][2] := scale * src[2][1];
-  dest[2][2] := scale * src[2][2];
+  dest[0][0] := Scale * Src[0][0];
+  dest[1][0] := Scale * Src[0][1];
+  dest[2][0] := Scale * Src[0][2];
+  dest[0][1] := Scale * Src[1][0];
+  dest[1][1] := Scale * Src[1][1];
+  dest[2][1] := Scale * Src[1][2];
+  dest[0][2] := Scale * Src[2][0];
+  dest[1][2] := Scale * Src[2][1];
+  dest[2][2] := Scale * Src[2][2];
 end;
 
 // AnglePreservingMatrixInvert
 //
 function AnglePreservingMatrixInvert(const mat: TMatrix): TMatrix;
 var
-  scale: single;
+  Scale: Single;
 begin
-  scale := VectorNorm(mat[0]);
+  Scale := VectorNorm(mat[0]);
 
   // Is the submatrix A singular?
-  if Abs(scale) < EPSILON then begin
+  if Abs(Scale) < Epsilon then begin
       // Matrix M has no inverse
-      result := IdentityHmgMatrix;
+      Result := IdentityHmgMatrix;
       Exit;
     end
   else begin
       // Calculate the inverse of the square of the isotropic scale factor
-      scale := 1.0 / scale;
+      Scale := 1.0 / Scale;
     end;
 
   // Fill in last row while CPU is busy with the division
-  result[0][3] := 0.0;
-  result[1][3] := 0.0;
-  result[2][3] := 0.0;
-  result[3][3] := 1.0;
+  Result[0][3] := 0.0;
+  Result[1][3] := 0.0;
+  Result[2][3] := 0.0;
+  Result[3][3] := 1.0;
 
   // Transpose and scale the 3 by 3 upper-left submatrix
-  transpose_scale_m33(mat, result, scale);
+  transpose_scale_m33(mat, Result, Scale);
 
   // Calculate -(transpose(A) / s*s) C
-  result[3][0] := -(result[0][0] * mat[3][0]
-    + result[1][0] * mat[3][1]
-    + result[2][0] * mat[3][2]);
-  result[3][1] := -(result[0][1] * mat[3][0]
-    + result[1][1] * mat[3][1]
-    + result[2][1] * mat[3][2]);
-  result[3][2] := -(result[0][2] * mat[3][0]
-    + result[1][2] * mat[3][1]
-    + result[2][2] * mat[3][2]);
+  Result[3][0] := -(Result[0][0] * mat[3][0]
+    + Result[1][0] * mat[3][1]
+    + Result[2][0] * mat[3][2]);
+  Result[3][1] := -(Result[0][1] * mat[3][0]
+    + Result[1][1] * mat[3][1]
+    + Result[2][1] * mat[3][2]);
+  Result[3][2] := -(Result[0][2] * mat[3][0]
+    + Result[1][2] * mat[3][1]
+    + Result[2][2] * mat[3][2]);
 end;
 
 // MatrixDecompose
@@ -3906,9 +3900,9 @@ var
   LocMat, pmat, invpmat: TMatrix;
   prhs, psol: TVector;
   row0, row1, row2: TAffineVector;
-  f: single;
+  F: Single;
 begin
-  result := False;
+  Result := False;
   LocMat := M;
   // normalize the matrix
   if LocMat[w, w] = 0 then
@@ -3929,11 +3923,11 @@ begin
       Exit;
 
   // First, isolate perspective.  This is the messiest.
-  if (LocMat[x, w] <> 0) or (LocMat[y, w] <> 0) or (LocMat[z, w] <> 0) then begin
+  if (LocMat[X, w] <> 0) or (LocMat[Y, w] <> 0) or (LocMat[Z, w] <> 0) then begin
       // prhs is the right hand side of the equation.
-      prhs[x] := LocMat[x, w];
-      prhs[y] := LocMat[y, w];
-      prhs[z] := LocMat[z, w];
+      prhs[X] := LocMat[X, w];
+      prhs[Y] := LocMat[Y, w];
+      prhs[Z] := LocMat[Z, w];
       prhs[w] := LocMat[w, w];
 
       // Solve the equation by inverting pmat and multiplying
@@ -3946,15 +3940,15 @@ begin
       psol := VectorTransform(prhs, invpmat);
 
       // stuff the answer away
-      Tran[ttPerspectiveX] := psol[x];
-      Tran[ttPerspectiveY] := psol[y];
-      Tran[ttPerspectiveZ] := psol[z];
+      Tran[ttPerspectiveX] := psol[X];
+      Tran[ttPerspectiveY] := psol[Y];
+      Tran[ttPerspectiveZ] := psol[Z];
       Tran[ttPerspectiveW] := psol[w];
 
       // clear the perspective partition
-      LocMat[x, w] := 0;
-      LocMat[y, w] := 0;
-      LocMat[z, w] := 0;
+      LocMat[X, w] := 0;
+      LocMat[Y, w] := 0;
+      LocMat[Z, w] := 0;
       LocMat[w, w] := 1;
     end
   else begin
@@ -3982,8 +3976,8 @@ begin
 
   // compute XY shear factor and make 2nd row orthogonal to 1st
   Tran[ttShearXY] := VectorDotProduct(row0, row1);
-  f := -Tran[ttShearXY];
-  CombineVector(row1, row0, f);
+  F := -Tran[ttShearXY];
+  CombineVector(row1, row0, F);
 
   // now, compute Y scale and normalize 2nd row
   Tran[ttScaleY] := VectorNorm(row1);
@@ -3992,11 +3986,11 @@ begin
 
   // compute XZ and YZ shears, orthogonalize 3rd row
   Tran[ttShearXZ] := VectorDotProduct(row0, row2);
-  f := -Tran[ttShearXZ];
-  CombineVector(row2, row0, f);
+  F := -Tran[ttShearXZ];
+  CombineVector(row2, row0, F);
   Tran[ttShearYZ] := VectorDotProduct(row1, row2);
-  f := -Tran[ttShearYZ];
-  CombineVector(row2, row1, f);
+  F := -Tran[ttShearYZ];
+  CombineVector(row2, row1, F);
 
   // next, get Z scale and normalize 3rd row
   Tran[ttScaleZ] := VectorNorm(row2);
@@ -4016,17 +4010,17 @@ begin
     end;
 
   // now, get the rotations out, as described in the gem
-  Tran[ttRotateY] := GeometryLib.ArcSin(-row0[z]);
+  Tran[ttRotateY] := GeometryLib.ArcSin(-row0[Z]);
   if Cos(Tran[ttRotateY]) <> 0 then begin
-      Tran[ttRotateX] := GeometryLib.ArcTan2(row1[z], row2[z]);
-      Tran[ttRotateZ] := GeometryLib.ArcTan2(row0[y], row0[x]);
+      Tran[ttRotateX] := GeometryLib.ArcTan2(row1[Z], row2[Z]);
+      Tran[ttRotateZ] := GeometryLib.ArcTan2(row0[Y], row0[X]);
     end
   else begin
-      Tran[ttRotateX] := GeometryLib.ArcTan2(row1[x], row1[y]);
+      Tran[ttRotateX] := GeometryLib.ArcTan2(row1[X], row1[Y]);
       Tran[ttRotateZ] := 0;
     end;
   // All done!
-  result := True;
+  Result := True;
 end;
 
 function CreateLookAtMatrix(const eye, center, normUp: TVector): TMatrix;
@@ -4038,89 +4032,89 @@ begin
   XAxis := VectorCrossProduct(ZAxis, normUp);
   NormalizeVector(XAxis);
   YAxis := VectorCrossProduct(XAxis, ZAxis);
-  result[0] := XAxis;
-  result[1] := YAxis;
-  result[2] := ZAxis;
-  NegateVector(result[2]);
-  result[3] := NullHmgPoint;
-  TransposeMatrix(result);
+  Result[0] := XAxis;
+  Result[1] := YAxis;
+  Result[2] := ZAxis;
+  NegateVector(Result[2]);
+  Result[3] := NullHmgPoint;
+  TransposeMatrix(Result);
   negEye := eye;
   NegateVector(negEye);
   negEye[3] := 1;
-  negEye := VectorTransform(negEye, result);
-  result[3] := negEye;
+  negEye := VectorTransform(negEye, Result);
+  Result[3] := negEye;
 end;
 
-function CreateMatrixFromFrustum(Left, Right, Bottom, Top, ZNear, ZFar: single): TMatrix;
+function CreateMatrixFromFrustum(Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix;
 begin
-  result[0][0] := 2 * ZNear / (Right - Left);
-  result[0][1] := 0;
-  result[0][2] := 0;
-  result[0][3] := 0;
+  Result[0][0] := 2 * ZNear / (Right - Left);
+  Result[0][1] := 0;
+  Result[0][2] := 0;
+  Result[0][3] := 0;
 
-  result[1][0] := 0;
-  result[1][1] := 2 * ZNear / (Top - Bottom);
-  result[1][2] := 0;
-  result[1][3] := 0;
+  Result[1][0] := 0;
+  Result[1][1] := 2 * ZNear / (Top - Bottom);
+  Result[1][2] := 0;
+  Result[1][3] := 0;
 
-  result[2][0] := (Right + Left) / (Right - Left);
-  result[2][1] := (Top + Bottom) / (Top - Bottom);
-  result[2][2] := -(ZFar + ZNear) / (ZFar - ZNear);
-  result[2][3] := -1;
+  Result[2][0] := (Right + Left) / (Right - Left);
+  Result[2][1] := (Top + Bottom) / (Top - Bottom);
+  Result[2][2] := -(ZFar + ZNear) / (ZFar - ZNear);
+  Result[2][3] := -1;
 
-  result[3][0] := 0;
-  result[3][1] := 0;
-  result[3][2] := -2 * ZFar * ZNear / (ZFar - ZNear);
-  result[3][3] := 0;
+  Result[3][0] := 0;
+  Result[3][1] := 0;
+  Result[3][2] := -2 * ZFar * ZNear / (ZFar - ZNear);
+  Result[3][3] := 0;
 end;
 
-function CreatePerspectiveMatrix(FOV, Aspect, ZNear, ZFar: single): TMatrix;
+function CreatePerspectiveMatrix(FOV, Aspect, ZNear, ZFar: Single): TMatrix;
 var
-  x, y: single;
+  X, Y: Single;
 begin
   FOV := MinFloat(179.9, MaxFloat(0, FOV));
-  y := ZNear * GeometryLib.Tan(GeometryLib.DegToRad(FOV) * 0.5);
-  x := y * Aspect;
-  result := CreateMatrixFromFrustum(-x, x, -y, y, ZNear, ZFar);
+  Y := ZNear * GeometryLib.Tan(GeometryLib.DegToRad(FOV) * 0.5);
+  X := Y * Aspect;
+  Result := CreateMatrixFromFrustum(-X, X, -Y, Y, ZNear, ZFar);
 end;
 
-function CreateOrthoMatrix(Left, Right, Bottom, Top, ZNear, ZFar: single): TMatrix;
+function CreateOrthoMatrix(Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix;
 begin
-  result[0][0] := 2 / (Right - Left);
-  result[0][1] := 0;
-  result[0][2] := 0;
-  result[0][3] := 0;
+  Result[0][0] := 2 / (Right - Left);
+  Result[0][1] := 0;
+  Result[0][2] := 0;
+  Result[0][3] := 0;
 
-  result[1][0] := 0;
-  result[1][1] := 2 / (Top - Bottom);
-  result[1][2] := 0;
-  result[1][3] := 0;
+  Result[1][0] := 0;
+  Result[1][1] := 2 / (Top - Bottom);
+  Result[1][2] := 0;
+  Result[1][3] := 0;
 
-  result[2][0] := 0;
-  result[2][1] := 0;
-  result[2][2] := -2 / (ZFar - ZNear);
-  result[2][3] := 0;
+  Result[2][0] := 0;
+  Result[2][1] := 0;
+  Result[2][2] := -2 / (ZFar - ZNear);
+  Result[2][3] := 0;
 
-  result[3][0] := (Left + Right) / (Left - Right);
-  result[3][1] := (Bottom + Top) / (Bottom - Top);
-  result[3][2] := (ZNear + ZFar) / (ZNear - ZFar);
-  result[3][3] := 1;
+  Result[3][0] := (Left + Right) / (Left - Right);
+  Result[3][1] := (Bottom + Top) / (Bottom - Top);
+  Result[3][2] := (ZNear + ZFar) / (ZNear - ZFar);
+  Result[3][3] := 1;
 end;
 
-function CreatePickMatrix(x, y, deltax, deltay: single; const viewport: TVector4i): TMatrix;
+function CreatePickMatrix(X, Y, deltax, deltay: Single; const viewport: TVector4i): TMatrix;
 begin
   if (deltax <= 0) or (deltay <= 0) then
     begin
-      result := IdentityHmgMatrix;
+      Result := IdentityHmgMatrix;
       Exit;
     end;
   // Translate and scale the picked region to the entire window
-  result := CreateTranslationMatrix(AffineVectorMake(
-    (viewport[2] - 2 * (x - viewport[0])) / deltax,
-    (viewport[3] - 2 * (y - viewport[1])) / deltay,
+  Result := CreateTranslationMatrix(AffineVectorMake(
+    (viewport[2] - 2 * (X - viewport[0])) / deltax,
+    (viewport[3] - 2 * (Y - viewport[1])) / deltay,
     0.0));
-  result[0][0] := viewport[2] / deltax;
-  result[1][1] := viewport[3] / deltay;
+  Result[0][0] := viewport[2] / deltax;
+  Result[1][1] := viewport[3] / deltay;
 end;
 
 function Project(
@@ -4129,7 +4123,7 @@ function Project(
   const viewport: TVector4i;
   out WindowVector: TVector): Boolean;
 begin
-  result := False;
+  Result := False;
   objectVector[3] := 1.0;
   WindowVector := VectorTransform(objectVector, ViewProjMatrix);
   if WindowVector[3] = 0.0 then
@@ -4145,7 +4139,7 @@ begin
   // Map x,y to viewport
   WindowVector[0] := WindowVector[0] * viewport[2] + viewport[0];
   WindowVector[1] := WindowVector[1] * viewport[3] + viewport[1];
-  result := True;
+  Result := True;
 end;
 
 function UnProject(
@@ -4154,7 +4148,7 @@ function UnProject(
   const viewport: TVector4i;
   out objectVector: TVector): Boolean;
 begin
-  result := False;
+  Result := False;
   InvertMatrix(ViewProjMatrix);
   WindowVector[3] := 1.0;
   // Map x and y from window coordinates
@@ -4170,30 +4164,30 @@ begin
   objectVector[0] := objectVector[0] / objectVector[3];
   objectVector[1] := objectVector[1] / objectVector[3];
   objectVector[2] := objectVector[2] / objectVector[3];
-  result := True;
+  Result := True;
 end;
 
 // CalcPlaneNormal (func, affine)
 //
 function CalcPlaneNormal(const p1, p2, p3: TAffineVector): TAffineVector;
 var
-  V1, V2: TAffineVector;
+  v1, v2: TAffineVector;
 begin
-  VectorSubtract(p2, p1, V1);
-  VectorSubtract(p3, p1, V2);
-  VectorCrossProduct(V1, V2, result);
-  NormalizeVector(result);
+  VectorSubtract(p2, p1, v1);
+  VectorSubtract(p3, p1, v2);
+  VectorCrossProduct(v1, v2, Result);
+  NormalizeVector(Result);
 end;
 
 // CalcPlaneNormal (proc, affine)
 //
 procedure CalcPlaneNormal(const p1, p2, p3: TAffineVector; var vr: TAffineVector);
 var
-  V1, V2: TAffineVector;
+  v1, v2: TAffineVector;
 begin
-  VectorSubtract(p2, p1, V1);
-  VectorSubtract(p3, p1, V2);
-  VectorCrossProduct(V1, V2, vr);
+  VectorSubtract(p2, p1, v1);
+  VectorSubtract(p3, p1, v2);
+  VectorCrossProduct(v1, v2, vr);
   NormalizeVector(vr);
 end;
 
@@ -4201,61 +4195,61 @@ end;
 //
 procedure CalcPlaneNormal(const p1, p2, p3: TVector; var vr: TAffineVector); overload;
 var
-  V1, V2: TVector;
+  v1, v2: TVector;
 begin
-  VectorSubtract(p2, p1, V1);
-  VectorSubtract(p3, p1, V2);
-  VectorCrossProduct(V1, V2, vr);
+  VectorSubtract(p2, p1, v1);
+  VectorSubtract(p3, p1, v2);
+  VectorCrossProduct(v1, v2, vr);
   NormalizeVector(vr);
 end;
 
 // PlaneMake (point + normal, affine)
 //
-function PlaneMake(const point, normal: TAffineVector): THmgPlane;
+function PlaneMake(const Point, normal: TAffineVector): THmgPlane;
 begin
-  PAffineVector(@result)^ := normal;
-  result[3] := -VectorDotProduct(point, normal);
+  PAffineVector(@Result)^ := normal;
+  Result[3] := -VectorDotProduct(Point, normal);
 end;
 
 // PlaneMake (point + normal, hmg)
 //
-function PlaneMake(const point, normal: TVector): THmgPlane;
+function PlaneMake(const Point, normal: TVector): THmgPlane;
 begin
-  PAffineVector(@result)^ := PAffineVector(@normal)^;
-  result[3] := -VectorDotProduct(PAffineVector(@point)^, PAffineVector(@normal)^);
+  PAffineVector(@Result)^ := PAffineVector(@normal)^;
+  Result[3] := -VectorDotProduct(PAffineVector(@Point)^, PAffineVector(@normal)^);
 end;
 
 // PlaneMake (3 points, affine)
 //
 function PlaneMake(const p1, p2, p3: TAffineVector): THmgPlane;
 begin
-  CalcPlaneNormal(p1, p2, p3, PAffineVector(@result)^);
-  result[3] := -VectorDotProduct(p1, PAffineVector(@result)^);
+  CalcPlaneNormal(p1, p2, p3, PAffineVector(@Result)^);
+  Result[3] := -VectorDotProduct(p1, PAffineVector(@Result)^);
 end;
 
 // PlaneMake (3 points, hmg)
 //
 function PlaneMake(const p1, p2, p3: TVector): THmgPlane;
 begin
-  CalcPlaneNormal(p1, p2, p3, PAffineVector(@result)^);
-  result[3] := -VectorDotProduct(p1, PAffineVector(@result)^);
+  CalcPlaneNormal(p1, p2, p3, PAffineVector(@Result)^);
+  Result[3] := -VectorDotProduct(p1, PAffineVector(@Result)^);
 end;
 
 // SetPlane
 //
-procedure SetPlane(var dest: TDoubleHmgPlane; const src: THmgPlane);
+procedure SetPlane(var dest: TDoubleHmgPlane; const Src: THmgPlane);
 begin
-  dest[0] := src[0];
-  dest[1] := src[1];
-  dest[2] := src[2];
-  dest[3] := src[3];
+  dest[0] := Src[0];
+  dest[1] := Src[1];
+  dest[2] := Src[2];
+  dest[3] := Src[3];
 end;
 
 // NormalizePlane
 //
 procedure NormalizePlane(var plane: THmgPlane);
 var
-  n: single;
+  n: Single;
 begin
   n := RSqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
   ScaleVector(plane, n);
@@ -4263,93 +4257,93 @@ end;
 
 // PlaneEvaluatePoint (affine)
 //
-function PlaneEvaluatePoint(const plane: THmgPlane; const point: TAffineVector): single;
+function PlaneEvaluatePoint(const plane: THmgPlane; const Point: TAffineVector): Single;
 begin
-  result := plane[0] * point[0] + plane[1] * point[1] + plane[2] * point[2] + plane[3];
+  Result := plane[0] * Point[0] + plane[1] * Point[1] + plane[2] * Point[2] + plane[3];
 end;
 
 // PlaneEvaluatePoint (hmg)
 //
-function PlaneEvaluatePoint(const plane: THmgPlane; const point: TVector): single;
+function PlaneEvaluatePoint(const plane: THmgPlane; const Point: TVector): Single;
 begin
-  result := plane[0] * point[0] + plane[1] * point[1] + plane[2] * point[2] + plane[3];
+  Result := plane[0] * Point[0] + plane[1] * Point[1] + plane[2] * Point[2] + plane[3];
 end;
 
 // PointIsInHalfSpace
 //
-function PointIsInHalfSpace(const point, planePoint, planeNormal: TVector): Boolean;
+function PointIsInHalfSpace(const Point, planePoint, planeNormal: TVector): Boolean;
 begin
-  result := (PointPlaneDistance(point, planePoint, planeNormal) > 0); // 44
+  Result := (PointPlaneDistance(Point, planePoint, planeNormal) > 0); // 44
 end;
 
 // PointIsInHalfSpace
 //
-function PointIsInHalfSpace(const point, planePoint, planeNormal: TAffineVector): Boolean;
+function PointIsInHalfSpace(const Point, planePoint, planeNormal: TAffineVector): Boolean;
 begin
-  result := (PointPlaneDistance(point, planePoint, planeNormal) > 0);
+  Result := (PointPlaneDistance(Point, planePoint, planeNormal) > 0);
 end;
 
 // PointIsInHalfSpace
 //
-function PointIsInHalfSpace(const point: TAffineVector; plane: THmgPlane): Boolean;
+function PointIsInHalfSpace(const Point: TAffineVector; plane: THmgPlane): Boolean;
 begin
-  result := (PointPlaneDistance(point, plane) > 0);
+  Result := (PointPlaneDistance(Point, plane) > 0);
 end;
 
 // PointPlaneDistance
 //
-function PointPlaneDistance(const point, planePoint, planeNormal: TVector): single;
+function PointPlaneDistance(const Point, planePoint, planeNormal: TVector): Single;
 begin
-  result := (point[0] - planePoint[0]) * planeNormal[0]
-    + (point[1] - planePoint[1]) * planeNormal[1]
-    + (point[2] - planePoint[2]) * planeNormal[2];
+  Result := (Point[0] - planePoint[0]) * planeNormal[0]
+    + (Point[1] - planePoint[1]) * planeNormal[1]
+    + (Point[2] - planePoint[2]) * planeNormal[2];
 end;
 
 // PointPlaneDistance
 //
-function PointPlaneDistance(const point, planePoint, planeNormal: TAffineVector): single;
+function PointPlaneDistance(const Point, planePoint, planeNormal: TAffineVector): Single;
 begin
-  result := (point[0] - planePoint[0]) * planeNormal[0]
-    + (point[1] - planePoint[1]) * planeNormal[1]
-    + (point[2] - planePoint[2]) * planeNormal[2];
+  Result := (Point[0] - planePoint[0]) * planeNormal[0]
+    + (Point[1] - planePoint[1]) * planeNormal[1]
+    + (Point[2] - planePoint[2]) * planeNormal[2];
 end;
 
 // PointPlaneDistance
 //
-function PointPlaneDistance(const point: TAffineVector; plane: THmgPlane): single;
+function PointPlaneDistance(const Point: TAffineVector; plane: THmgPlane): Single;
 begin
-  result := PlaneEvaluatePoint(plane, point);
+  Result := PlaneEvaluatePoint(plane, Point);
 end;
 
 // PointPlaneOrthoProjection
 //
-function PointPlaneOrthoProjection(const point: TAffineVector; const plane: THmgPlane;
-  var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointPlaneOrthoProjection(const Point: TAffineVector; const plane: THmgPlane;
+  var inter: TAffineVector; bothface: Boolean): Boolean;
 var
-  h: single;
+  h: Single;
   normal: TAffineVector;
 begin
-  result := False;
+  Result := False;
 
-  h := PointPlaneDistance(point, plane);
+  h := PointPlaneDistance(Point, plane);
 
   if (not bothface) and (h < 0) then
       Exit;
 
   normal := Vector3fMake(plane);
-  inter := VectorAdd(point, VectorScale(normal, -h));
-  result := True;
+  inter := VectorAdd(Point, VectorScale(normal, -h));
+  Result := True;
 end;
 
 // PointPlaneProjection
 //
-function PointPlaneProjection(const point, direction: TAffineVector; const plane: THmgPlane;
-  var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointPlaneProjection(const Point, direction: TAffineVector; const plane: THmgPlane;
+  var inter: TAffineVector; bothface: Boolean): Boolean;
 var
-  h, dot: single;
+  h, dot: Single;
   normal: TAffineVector;
 begin
-  result := False;
+  Result := False;
 
   normal := Vector3fMake(plane);
   dot := VectorDotProduct(VectorNormalize(direction), normal);
@@ -4358,9 +4352,9 @@ begin
       Exit;
 
   if Abs(dot) >= 0.000000001 then begin
-      h := PointPlaneDistance(point, plane);
-      inter := VectorAdd(point, VectorScale(direction, -h / dot));
-      result := True;
+      h := PointPlaneDistance(Point, plane);
+      inter := VectorAdd(Point, VectorScale(direction, -h / dot));
+      Result := True;
     end;
 end;
 
@@ -4368,10 +4362,10 @@ end;
 //
 function SegmentPlaneIntersection(const ptA, ptB: TAffineVector; const plane: THmgPlane; var inter: TAffineVector): Boolean;
 var
-  hA, hB, dot: single;
+  hA, hB, dot: Single;
   normal, direction: TVector3f;
 begin
-  result := False;
+  Result := False;
   hA := PointPlaneDistance(ptA, plane);
   hB := PointPlaneDistance(ptB, plane);
   if hA * hB <= 0 then
@@ -4381,55 +4375,55 @@ begin
       dot := VectorDotProduct(direction, normal);
       if Abs(dot) >= 0.000000001 then begin
           inter := VectorAdd(ptA, VectorScale(direction, -hA / dot));
-          result := True;
+          Result := True;
         end;
     end;
 end;
 
 // PointTriangleOrthoProjection
 //
-function PointTriangleOrthoProjection(const point, ptA, ptB, ptC: TAffineVector;
-  var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointTriangleOrthoProjection(const Point, ptA, ptB, ptC: TAffineVector;
+  var inter: TAffineVector; bothface: Boolean): Boolean;
 var
   plane: THmgPlane;
 begin
-  result := False;
+  Result := False;
 
   plane := PlaneMake(ptA, ptB, ptC);
-  if not IsLineIntersectTriangle(point, Vector3fMake(plane), ptA, ptB, ptC) then
+  if not IsLineIntersectTriangle(Point, Vector3fMake(plane), ptA, ptB, ptC) then
       Exit;
 
-  result := PointPlaneOrthoProjection(point, plane, inter, bothface);
+  Result := PointPlaneOrthoProjection(Point, plane, inter, bothface);
 end;
 
 // PointTriangleProjection
 //
-function PointTriangleProjection(const point, direction, ptA, ptB, ptC: TAffineVector;
-  var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointTriangleProjection(const Point, direction, ptA, ptB, ptC: TAffineVector;
+  var inter: TAffineVector; bothface: Boolean): Boolean;
 var
   plane: THmgPlane;
 begin
-  result := False;
+  Result := False;
 
-  if not IsLineIntersectTriangle(point, direction, ptA, ptB, ptC) then
+  if not IsLineIntersectTriangle(Point, direction, ptA, ptB, ptC) then
       Exit;
 
   plane := PlaneMake(ptA, ptB, ptC);
-  result := PointPlaneProjection(point, direction, plane, inter, bothface);
+  Result := PointPlaneProjection(Point, direction, plane, inter, bothface);
 end;
 
 // IsLineIntersectTriangle
 //
-function IsLineIntersectTriangle(const point, direction, ptA, ptB, ptC: TAffineVector): Boolean;
+function IsLineIntersectTriangle(const Point, direction, ptA, ptB, ptC: TAffineVector): Boolean;
 var
   PA, PB, PC: TAffineVector;
   crossAB, crossBC, crossCA: TAffineVector;
 begin
-  result := False;
+  Result := False;
 
-  PA := VectorSubtract(ptA, point);
-  PB := VectorSubtract(ptB, point);
-  PC := VectorSubtract(ptC, point);
+  PA := VectorSubtract(ptA, Point);
+  PB := VectorSubtract(ptB, Point);
+  PC := VectorSubtract(ptC, Point);
 
   crossAB := VectorCrossProduct(PA, PB);
   crossBC := VectorCrossProduct(PB, PC);
@@ -4440,7 +4434,7 @@ begin
         begin
           crossCA := VectorCrossProduct(PC, PA);
           if VectorDotProduct(crossCA, direction) > 0 then
-              result := True;
+              Result := True;
         end;
     end
   else
@@ -4448,53 +4442,53 @@ begin
     begin
       crossCA := VectorCrossProduct(PC, PA);
       if VectorDotProduct(crossCA, direction) < 0 then
-          result := True;
+          Result := True;
     end
 end;
 
 // PointQuadOrthoProjection
 //
-function PointQuadOrthoProjection(const point, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointQuadOrthoProjection(const Point, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean): Boolean;
 var
   plane: THmgPlane;
 begin
-  result := False;
+  Result := False;
 
   plane := PlaneMake(ptA, ptB, ptC);
-  if not IsLineIntersectQuad(point, Vector3fMake(plane), ptA, ptB, ptC, ptD) then
+  if not IsLineIntersectQuad(Point, Vector3fMake(plane), ptA, ptB, ptC, ptD) then
       Exit;
 
-  result := PointPlaneOrthoProjection(point, plane, inter, bothface);
+  Result := PointPlaneOrthoProjection(Point, plane, inter, bothface);
 end;
 
 // PointQuadProjection
 //
-function PointQuadProjection(const point, direction, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointQuadProjection(const Point, direction, ptA, ptB, ptC, ptD: TAffineVector; var inter: TAffineVector; bothface: Boolean): Boolean;
 var
   plane: THmgPlane;
 begin
-  result := False;
+  Result := False;
 
-  if not IsLineIntersectQuad(point, direction, ptA, ptB, ptC, ptD) then
+  if not IsLineIntersectQuad(Point, direction, ptA, ptB, ptC, ptD) then
       Exit;
 
   plane := PlaneMake(ptA, ptB, ptC);
-  result := PointPlaneProjection(point, direction, plane, inter, bothface);
+  Result := PointPlaneProjection(Point, direction, plane, inter, bothface);
 end;
 
 // IsLineIntersectQuad
 //
-function IsLineIntersectQuad(const point, direction, ptA, ptB, ptC, ptD: TAffineVector): Boolean;
+function IsLineIntersectQuad(const Point, direction, ptA, ptB, ptC, ptD: TAffineVector): Boolean;
 var
   PA, PB, PC, PD: TAffineVector;
   crossAB, crossBC, crossCD, crossDA: TAffineVector;
 begin
-  result := False;
+  Result := False;
 
-  PA := VectorSubtract(ptA, point);
-  PB := VectorSubtract(ptB, point);
-  PC := VectorSubtract(ptC, point);
-  PD := VectorSubtract(ptD, point);
+  PA := VectorSubtract(ptA, Point);
+  PB := VectorSubtract(ptB, Point);
+  PC := VectorSubtract(ptC, Point);
+  PD := VectorSubtract(ptD, Point);
 
   crossAB := VectorCrossProduct(PA, PB);
   crossBC := VectorCrossProduct(PB, PC);
@@ -4508,7 +4502,7 @@ begin
             begin
               crossDA := VectorCrossProduct(PD, PA);
               if VectorDotProduct(crossDA, direction) > 0 then
-                  result := True;
+                  Result := True;
             end;
         end;
     end
@@ -4520,99 +4514,99 @@ begin
         begin
           crossDA := VectorCrossProduct(PD, PA);
           if VectorDotProduct(crossDA, direction) < 0 then
-              result := True;
+              Result := True;
         end;
     end
 end;
 
 // PointDiskOrthoProjection
 //
-function PointDiskOrthoProjection(const point, center, up: TAffineVector; const radius: single; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointDiskOrthoProjection(const Point, center, up: TAffineVector; const radius: Single; var inter: TAffineVector; bothface: Boolean): Boolean;
 begin
-  if PointPlaneOrthoProjection(point, PlaneMake(center, up), inter, bothface) then
-      result := (VectorDistance2(inter, center) <= radius * radius)
+  if PointPlaneOrthoProjection(Point, PlaneMake(center, up), inter, bothface) then
+      Result := (VectorDistance2(inter, center) <= radius * radius)
   else
-      result := False;
+      Result := False;
 end;
 
 // PointDiskProjection
 //
-function PointDiskProjection(const point, direction, center, up: TAffineVector; const radius: single; var inter: TAffineVector; bothface: Boolean = True): Boolean;
+function PointDiskProjection(const Point, direction, center, up: TAffineVector; const radius: Single; var inter: TAffineVector; bothface: Boolean): Boolean;
 begin
-  if PointPlaneProjection(point, direction, PlaneMake(center, up), inter, bothface) then
-      result := VectorDistance2(inter, center) <= radius * radius
+  if PointPlaneProjection(Point, direction, PlaneMake(center, up), inter, bothface) then
+      Result := VectorDistance2(inter, center) <= radius * radius
   else
-      result := False;
+      Result := False;
 end;
 
 // PointLineClosestPoint
 //
-function PointLineClosestPoint(const point, linePoint, lineDirection: TAffineVector): TAffineVector;
+function PointLineClosestPoint(const Point, linePoint, lineDirection: TAffineVector): TAffineVector;
 var
   w: TAffineVector;
-  c1, c2, b: single;
+  c1, c2, b: Single;
 begin
-  w := VectorSubtract(point, linePoint);
+  w := VectorSubtract(Point, linePoint);
 
   c1 := VectorDotProduct(w, lineDirection);
   c2 := VectorDotProduct(lineDirection, lineDirection);
   b := c1 / c2;
 
-  VectorAdd(linePoint, VectorScale(lineDirection, b), result);
+  VectorAdd(linePoint, VectorScale(lineDirection, b), Result);
 end;
 
 // PointLineDistance
 //
-function PointLineDistance(const point, linePoint, lineDirection: TAffineVector): single;
+function PointLineDistance(const Point, linePoint, lineDirection: TAffineVector): Single;
 var
   PB: TAffineVector;
 begin
-  PB := PointLineClosestPoint(point, linePoint, lineDirection);
-  result := VectorDistance(point, PB);
+  PB := PointLineClosestPoint(Point, linePoint, lineDirection);
+  Result := VectorDistance(Point, PB);
 end;
 
 // PointSegmentClosestPoint
 //
-function PointSegmentClosestPoint(const point, segmentStart, segmentStop: TVector): TVector;
+function PointSegmentClosestPoint(const Point, segmentStart, segmentStop: TVector): TVector;
 var
   w, lineDirection: TVector;
-  c1, c2, b: single;
+  c1, c2, b: Single;
 begin
   lineDirection := VectorSubtract(segmentStop, segmentStart);
-  w := VectorSubtract(point, segmentStart);
+  w := VectorSubtract(Point, segmentStart);
 
   c1 := VectorDotProduct(w, lineDirection);
   c2 := VectorDotProduct(lineDirection, lineDirection);
   b := ClampValue(c1 / c2, 0, 1);
 
-  VectorAdd(segmentStart, VectorScale(lineDirection, b), result);
+  VectorAdd(segmentStart, VectorScale(lineDirection, b), Result);
 end;
 
 // PointSegmentClosestPoint
 //
-function PointSegmentClosestPoint(const point, segmentStart, segmentStop: TAffineVector): TAffineVector;
+function PointSegmentClosestPoint(const Point, segmentStart, segmentStop: TAffineVector): TAffineVector;
 var
   w, lineDirection: TAffineVector;
-  c1, c2, b: single;
+  c1, c2, b: Single;
 begin
   lineDirection := VectorSubtract(segmentStop, segmentStart);
-  w := VectorSubtract(point, segmentStart);
+  w := VectorSubtract(Point, segmentStart);
 
   c1 := VectorDotProduct(w, lineDirection);
   c2 := VectorDotProduct(lineDirection, lineDirection);
   b := ClampValue(c1 / c2, 0, 1);
 
-  VectorAdd(segmentStart, VectorScale(lineDirection, b), result);
+  VectorAdd(segmentStart, VectorScale(lineDirection, b), Result);
 end;
 
 // PointSegmentDistance
 //
-function PointSegmentDistance(const point, segmentStart, segmentStop: TAffineVector): single;
+function PointSegmentDistance(const Point, segmentStart, segmentStop: TAffineVector): Single;
 var
   PB: TAffineVector;
 begin
-  PB := PointSegmentClosestPoint(point, segmentStart, segmentStop);
-  result := VectorDistance(point, PB);
+  PB := PointSegmentClosestPoint(Point, segmentStart, segmentStop);
+  Result := VectorDistance(Point, PB);
 end;
 
 // http://geometryalgorithms.com/Archive/algorithm_0104/algorithm_0104B.htm
@@ -4623,18 +4617,18 @@ const
   cSMALL_NUM = 0.000000001;
 var
   u, v, w: TAffineVector;
-  a, b, c, smalld, e, largeD, sc, sn, sD, tc, tN, tD: single;
+  A, b, C, smalld, E, largeD, sc, sn, sD, tc, tN, tD: Single;
 begin
   VectorSubtract(S0Stop, S0Start, u);
   VectorSubtract(S1Stop, S1Start, v);
   VectorSubtract(S0Start, S1Start, w);
 
-  a := VectorDotProduct(u, u);
+  A := VectorDotProduct(u, u);
   b := VectorDotProduct(u, v);
-  c := VectorDotProduct(v, v);
+  C := VectorDotProduct(v, v);
   smalld := VectorDotProduct(u, w);
-  e := VectorDotProduct(v, w);
-  largeD := a * c - b * b;
+  E := VectorDotProduct(v, w);
+  largeD := A * C - b * b;
 
   sD := largeD;
   tD := largeD;
@@ -4643,24 +4637,24 @@ begin
     begin
       sn := 0.0;
       sD := 1.0;
-      tN := e;
-      tD := c;
+      tN := E;
+      tD := C;
     end
   else
     begin
-      sn := (b * e - c * smalld);
-      tN := (a * e - b * smalld);
+      sn := (b * E - C * smalld);
+      tN := (A * E - b * smalld);
       if (sn < 0.0) then
         begin
           sn := 0.0;
-          tN := e;
-          tD := c;
+          tN := E;
+          tD := C;
         end
       else if (sn > sD) then
         begin
           sn := sD;
-          tN := e + b;
-          tD := c;
+          tN := E + b;
+          tD := C;
         end;
     end;
 
@@ -4670,12 +4664,12 @@ begin
       // recompute sc for this edge
       if (-smalld < 0.0) then
           sn := 0.0
-      else if (-smalld > a) then
+      else if (-smalld > A) then
           sn := sD
       else
         begin
           sn := -smalld;
-          sD := a;
+          sD := A;
         end;
     end
   else if (tN > tD) then
@@ -4684,12 +4678,12 @@ begin
       // recompute sc for this edge
       if ((-smalld + b) < 0.0) then
           sn := 0
-      else if ((-smalld + b) > a) then
+      else if ((-smalld + b) > A) then
           sn := sD
       else
         begin
           sn := (-smalld + b);
-          sD := a;
+          sD := A;
         end;
     end;
 
@@ -4715,86 +4709,86 @@ end;
 
 // SegmentSegmentDistance
 //
-function SegmentSegmentDistance(const S0Start, S0Stop, S1Start, S1Stop: TAffineVector): single;
+function SegmentSegmentDistance(const S0Start, S0Stop, S1Start, S1Stop: TAffineVector): Single;
 var
   Pb0, PB1: TAffineVector;
 begin
   SegmentSegmentClosestPoint(S0Start, S0Stop, S1Start, S1Stop, Pb0, PB1);
-  result := VectorDistance(Pb0, PB1);
+  Result := VectorDistance(Pb0, PB1);
 end;
 
 // LineLineDistance
 //
-function LineLineDistance(const linePt0, lineDir0, linePt1, lineDir1: TAffineVector): single;
+function LineLineDistance(const linePt0, lineDir0, linePt1, lineDir1: TAffineVector): Single;
 const
   cBIAS = 0.000000001;
 var
-  det: single;
+  det: Single;
 begin
   det := Abs((linePt1[0] - linePt0[0]) * (lineDir0[1] * lineDir1[2] - lineDir1[1] * lineDir0[2]) -
     (linePt1[1] - linePt0[1]) * (lineDir0[0] * lineDir1[2] - lineDir1[0] * lineDir0[2]) +
     (linePt1[2] - linePt0[2]) * (lineDir0[0] * lineDir1[1] - lineDir1[0] * lineDir0[1]));
   if det < cBIAS then
-      result := PointLineDistance(linePt0, linePt1, lineDir1)
+      Result := PointLineDistance(linePt0, linePt1, lineDir1)
   else
-      result := det / VectorLength(VectorCrossProduct(lineDir0, lineDir1));
+      Result := det / VectorLength(VectorCrossProduct(lineDir0, lineDir1));
 end;
 
 // QuaternionMake
 //
-function QuaternionMake(const Imag: array of single; Real: single): TQuaternion;
+function QuaternionMake(const Imag: array of Single; Real: Single): TQuaternion;
 var
   n: Integer;
 begin
-  n := Length(Imag);
+  n := length(Imag);
   if n >= 1 then
-      result.ImagPart[0] := Imag[0];
+      Result.ImagPart[0] := Imag[0];
   if n >= 2 then
-      result.ImagPart[1] := Imag[1];
+      Result.ImagPart[1] := Imag[1];
   if n >= 3 then
-      result.ImagPart[2] := Imag[2];
-  result.RealPart := Real;
+      Result.ImagPart[2] := Imag[2];
+  Result.RealPart := Real;
 end;
 
 // QuaternionConjugate
 //
-function QuaternionConjugate(const Q: TQuaternion): TQuaternion;
+function QuaternionConjugate(const q: TQuaternion): TQuaternion;
 begin
-  result.ImagPart[0] := -Q.ImagPart[0];
-  result.ImagPart[1] := -Q.ImagPart[1];
-  result.ImagPart[2] := -Q.ImagPart[2];
-  result.RealPart := Q.RealPart;
+  Result.ImagPart[0] := -q.ImagPart[0];
+  Result.ImagPart[1] := -q.ImagPart[1];
+  Result.ImagPart[2] := -q.ImagPart[2];
+  Result.RealPart := q.RealPart;
 end;
 
 // QuaternionMagnitude
 //
-function QuaternionMagnitude(const Q: TQuaternion): single;
+function QuaternionMagnitude(const q: TQuaternion): Single;
 begin
-  result := Sqrt(VectorNorm(Q.ImagPart) + Sqr(Q.RealPart));
+  Result := Sqrt(VectorNorm(q.ImagPart) + Sqr(q.RealPart));
 end;
 
 // NormalizeQuaternion
 //
-procedure NormalizeQuaternion(var Q: TQuaternion);
+procedure NormalizeQuaternion(var q: TQuaternion);
 var
-  M, f: single;
+  M, F: Single;
 begin
-  M := QuaternionMagnitude(Q);
+  M := QuaternionMagnitude(q);
   if M > EPSILON2 then begin
-      f := 1 / M;
-      ScaleVector(Q.ImagPart, f);
-      Q.RealPart := Q.RealPart * f;
+      F := 1 / M;
+      ScaleVector(q.ImagPart, F);
+      q.RealPart := q.RealPart * F;
     end
   else
-      Q := IdentityQuaternion;
+      q := IdentityQuaternion;
 end;
 
 // QuaternionFromPoints
 //
-function QuaternionFromPoints(const V1, V2: TAffineVector): TQuaternion;
+function QuaternionFromPoints(const v1, v2: TAffineVector): TQuaternion;
 begin
-  result.ImagPart := VectorCrossProduct(V1, V2);
-  result.RealPart := Sqrt((VectorDotProduct(V1, V2) + 1) / 2);
+  Result.ImagPart := VectorCrossProduct(v1, v2);
+  Result.RealPart := Sqrt((VectorDotProduct(v1, v2) + 1) / 2);
 end;
 
 // QuaternionFromMatrix
@@ -4802,42 +4796,42 @@ end;
 function QuaternionFromMatrix(const mat: TMatrix): TQuaternion;
 // the matrix must be a rotation matrix!
 var
-  traceMat, S, invS: double;
+  traceMat, s, invS: Double;
 begin
   traceMat := 1 + mat[0, 0] + mat[1, 1] + mat[2, 2];
   if traceMat > EPSILON2 then begin
-      S := Sqrt(traceMat) * 2;
-      invS := 1 / S;
-      result.ImagPart[0] := (mat[1, 2] - mat[2, 1]) * invS;
-      result.ImagPart[1] := (mat[2, 0] - mat[0, 2]) * invS;
-      result.ImagPart[2] := (mat[0, 1] - mat[1, 0]) * invS;
-      result.RealPart := 0.25 * S;
+      s := Sqrt(traceMat) * 2;
+      invS := 1 / s;
+      Result.ImagPart[0] := (mat[1, 2] - mat[2, 1]) * invS;
+      Result.ImagPart[1] := (mat[2, 0] - mat[0, 2]) * invS;
+      Result.ImagPart[2] := (mat[0, 1] - mat[1, 0]) * invS;
+      Result.RealPart := 0.25 * s;
     end
   else if (mat[0, 0] > mat[1, 1]) and (mat[0, 0] > mat[2, 2]) then begin // Row 0:
-      S := Sqrt(MaxFloat(EPSILON2, cOne + mat[0, 0] - mat[1, 1] - mat[2, 2])) * 2;
-      invS := 1 / S;
-      result.ImagPart[0] := 0.25 * S;
-      result.ImagPart[1] := (mat[0, 1] + mat[1, 0]) * invS;
-      result.ImagPart[2] := (mat[2, 0] + mat[0, 2]) * invS;
-      result.RealPart := (mat[1, 2] - mat[2, 1]) * invS;
+      s := Sqrt(MaxFloat(EPSILON2, cOne + mat[0, 0] - mat[1, 1] - mat[2, 2])) * 2;
+      invS := 1 / s;
+      Result.ImagPart[0] := 0.25 * s;
+      Result.ImagPart[1] := (mat[0, 1] + mat[1, 0]) * invS;
+      Result.ImagPart[2] := (mat[2, 0] + mat[0, 2]) * invS;
+      Result.RealPart := (mat[1, 2] - mat[2, 1]) * invS;
     end
   else if (mat[1, 1] > mat[2, 2]) then begin // Row 1:
-      S := Sqrt(MaxFloat(EPSILON2, cOne + mat[1, 1] - mat[0, 0] - mat[2, 2])) * 2;
-      invS := 1 / S;
-      result.ImagPart[0] := (mat[0, 1] + mat[1, 0]) * invS;
-      result.ImagPart[1] := 0.25 * S;
-      result.ImagPart[2] := (mat[1, 2] + mat[2, 1]) * invS;
-      result.RealPart := (mat[2, 0] - mat[0, 2]) * invS;
+      s := Sqrt(MaxFloat(EPSILON2, cOne + mat[1, 1] - mat[0, 0] - mat[2, 2])) * 2;
+      invS := 1 / s;
+      Result.ImagPart[0] := (mat[0, 1] + mat[1, 0]) * invS;
+      Result.ImagPart[1] := 0.25 * s;
+      Result.ImagPart[2] := (mat[1, 2] + mat[2, 1]) * invS;
+      Result.RealPart := (mat[2, 0] - mat[0, 2]) * invS;
     end
   else begin // Row 2:
-      S := Sqrt(MaxFloat(EPSILON2, cOne + mat[2, 2] - mat[0, 0] - mat[1, 1])) * 2;
-      invS := 1 / S;
-      result.ImagPart[0] := (mat[2, 0] + mat[0, 2]) * invS;
-      result.ImagPart[1] := (mat[1, 2] + mat[2, 1]) * invS;
-      result.ImagPart[2] := 0.25 * S;
-      result.RealPart := (mat[0, 1] - mat[1, 0]) * invS;
+      s := Sqrt(MaxFloat(EPSILON2, cOne + mat[2, 2] - mat[0, 0] - mat[1, 1])) * 2;
+      invS := 1 / s;
+      Result.ImagPart[0] := (mat[2, 0] + mat[0, 2]) * invS;
+      Result.ImagPart[1] := (mat[1, 2] + mat[2, 1]) * invS;
+      Result.ImagPart[2] := 0.25 * s;
+      Result.RealPart := (mat[0, 1] - mat[1, 0]) * invS;
     end;
-  NormalizeQuaternion(result);
+  NormalizeQuaternion(Result);
 end;
 
 // QuaternionMultiply
@@ -4846,311 +4840,311 @@ function QuaternionMultiply(const qL, qR: TQuaternion): TQuaternion;
 var
   Temp: TQuaternion;
 begin
-  Temp.RealPart := qL.RealPart * qR.RealPart - qL.ImagPart[x] * qR.ImagPart[x]
-    - qL.ImagPart[y] * qR.ImagPart[y] - qL.ImagPart[z] * qR.ImagPart[z];
-  Temp.ImagPart[x] := qL.RealPart * qR.ImagPart[x] + qL.ImagPart[x] * qR.RealPart
-    + qL.ImagPart[y] * qR.ImagPart[z] - qL.ImagPart[z] * qR.ImagPart[y];
-  Temp.ImagPart[y] := qL.RealPart * qR.ImagPart[y] + qL.ImagPart[y] * qR.RealPart
-    + qL.ImagPart[z] * qR.ImagPart[x] - qL.ImagPart[x] * qR.ImagPart[z];
-  Temp.ImagPart[z] := qL.RealPart * qR.ImagPart[z] + qL.ImagPart[z] * qR.RealPart
-    + qL.ImagPart[x] * qR.ImagPart[y] - qL.ImagPart[y] * qR.ImagPart[x];
-  result := Temp;
+  Temp.RealPart := qL.RealPart * qR.RealPart - qL.ImagPart[X] * qR.ImagPart[X]
+    - qL.ImagPart[Y] * qR.ImagPart[Y] - qL.ImagPart[Z] * qR.ImagPart[Z];
+  Temp.ImagPart[X] := qL.RealPart * qR.ImagPart[X] + qL.ImagPart[X] * qR.RealPart
+    + qL.ImagPart[Y] * qR.ImagPart[Z] - qL.ImagPart[Z] * qR.ImagPart[Y];
+  Temp.ImagPart[Y] := qL.RealPart * qR.ImagPart[Y] + qL.ImagPart[Y] * qR.RealPart
+    + qL.ImagPart[Z] * qR.ImagPart[X] - qL.ImagPart[X] * qR.ImagPart[Z];
+  Temp.ImagPart[Z] := qL.RealPart * qR.ImagPart[Z] + qL.ImagPart[Z] * qR.RealPart
+    + qL.ImagPart[X] * qR.ImagPart[Y] - qL.ImagPart[Y] * qR.ImagPart[X];
+  Result := Temp;
 end;
 
 // QuaternionToMatrix
 //
 function QuaternionToMatrix(quat: TQuaternion): TMatrix;
 var
-  w, x, y, z, xx, xy, xz, xw, yy, yz, yw, zz, zw: single;
+  w, X, Y, Z, xx, xy, xz, xw, yy, yz, yw, zz, zw: Single;
 begin
   NormalizeQuaternion(quat);
   w := quat.RealPart;
-  x := quat.ImagPart[0];
-  y := quat.ImagPart[1];
-  z := quat.ImagPart[2];
-  xx := x * x;
-  xy := x * y;
-  xz := x * z;
-  xw := x * w;
-  yy := y * y;
-  yz := y * z;
-  yw := y * w;
-  zz := z * z;
-  zw := z * w;
-  result[0, 0] := 1 - 2 * (yy + zz);
-  result[1, 0] := 2 * (xy - zw);
-  result[2, 0] := 2 * (xz + yw);
-  result[3, 0] := 0;
-  result[0, 1] := 2 * (xy + zw);
-  result[1, 1] := 1 - 2 * (xx + zz);
-  result[2, 1] := 2 * (yz - xw);
-  result[3, 1] := 0;
-  result[0, 2] := 2 * (xz - yw);
-  result[1, 2] := 2 * (yz + xw);
-  result[2, 2] := 1 - 2 * (xx + yy);
-  result[3, 2] := 0;
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
-  result[3, 3] := 1;
+  X := quat.ImagPart[0];
+  Y := quat.ImagPart[1];
+  Z := quat.ImagPart[2];
+  xx := X * X;
+  xy := X * Y;
+  xz := X * Z;
+  xw := X * w;
+  yy := Y * Y;
+  yz := Y * Z;
+  yw := Y * w;
+  zz := Z * Z;
+  zw := Z * w;
+  Result[0, 0] := 1 - 2 * (yy + zz);
+  Result[1, 0] := 2 * (xy - zw);
+  Result[2, 0] := 2 * (xz + yw);
+  Result[3, 0] := 0;
+  Result[0, 1] := 2 * (xy + zw);
+  Result[1, 1] := 1 - 2 * (xx + zz);
+  Result[2, 1] := 2 * (yz - xw);
+  Result[3, 1] := 0;
+  Result[0, 2] := 2 * (xz - yw);
+  Result[1, 2] := 2 * (yz + xw);
+  Result[2, 2] := 1 - 2 * (xx + yy);
+  Result[3, 2] := 0;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+  Result[3, 3] := 1;
 end;
 
 // QuaternionToAffineMatrix
 //
 function QuaternionToAffineMatrix(quat: TQuaternion): TAffineMatrix;
 var
-  w, x, y, z, xx, xy, xz, xw, yy, yz, yw, zz, zw: single;
+  w, X, Y, Z, xx, xy, xz, xw, yy, yz, yw, zz, zw: Single;
 begin
   NormalizeQuaternion(quat);
   w := quat.RealPart;
-  x := quat.ImagPart[0];
-  y := quat.ImagPart[1];
-  z := quat.ImagPart[2];
-  xx := x * x;
-  xy := x * y;
-  xz := x * z;
-  xw := x * w;
-  yy := y * y;
-  yz := y * z;
-  yw := y * w;
-  zz := z * z;
-  zw := z * w;
-  result[0, 0] := 1 - 2 * (yy + zz);
-  result[1, 0] := 2 * (xy - zw);
-  result[2, 0] := 2 * (xz + yw);
-  result[0, 1] := 2 * (xy + zw);
-  result[1, 1] := 1 - 2 * (xx + zz);
-  result[2, 1] := 2 * (yz - xw);
-  result[0, 2] := 2 * (xz - yw);
-  result[1, 2] := 2 * (yz + xw);
-  result[2, 2] := 1 - 2 * (xx + yy);
+  X := quat.ImagPart[0];
+  Y := quat.ImagPart[1];
+  Z := quat.ImagPart[2];
+  xx := X * X;
+  xy := X * Y;
+  xz := X * Z;
+  xw := X * w;
+  yy := Y * Y;
+  yz := Y * Z;
+  yw := Y * w;
+  zz := Z * Z;
+  zw := Z * w;
+  Result[0, 0] := 1 - 2 * (yy + zz);
+  Result[1, 0] := 2 * (xy - zw);
+  Result[2, 0] := 2 * (xz + yw);
+  Result[0, 1] := 2 * (xy + zw);
+  Result[1, 1] := 1 - 2 * (xx + zz);
+  Result[2, 1] := 2 * (yz - xw);
+  Result[0, 2] := 2 * (xz - yw);
+  Result[1, 2] := 2 * (yz + xw);
+  Result[2, 2] := 1 - 2 * (xx + yy);
 end;
 
 // QuaternionFromAngleAxis
 //
-function QuaternionFromAngleAxis(const angle: single; const axis: TAffineVector): TQuaternion;
+function QuaternionFromAngleAxis(const angle: Single; const Axis: TAffineVector): TQuaternion;
 var
-  f, S, c: single;
+  F, s, C: Single;
 begin
-  GeometryLib.SinCos(GeometryLib.DegToRad(angle * cOneDotFive), S, c);
-  result.RealPart := c;
-  f := S / VectorLength(axis);
-  result.ImagPart[0] := axis[0] * f;
-  result.ImagPart[1] := axis[1] * f;
-  result.ImagPart[2] := axis[2] * f;
+  GeometryLib.SinCos(GeometryLib.DegToRad(angle * cOneDotFive), s, C);
+  Result.RealPart := C;
+  F := s / VectorLength(Axis);
+  Result.ImagPart[0] := Axis[0] * F;
+  Result.ImagPart[1] := Axis[1] * F;
+  Result.ImagPart[2] := Axis[2] * F;
 end;
 
 // QuaternionFromRollPitchYaw
 //
-function QuaternionFromRollPitchYaw(const r, p, y: single): TQuaternion;
+function QuaternionFromRollPitchYaw(const R, p, Y: Single): TQuaternion;
 var
   qp, qy: TQuaternion;
 begin
-  result := QuaternionFromAngleAxis(r, ZVector);
+  Result := QuaternionFromAngleAxis(R, ZVector);
   qp := QuaternionFromAngleAxis(p, XVector);
-  qy := QuaternionFromAngleAxis(y, YVector);
+  qy := QuaternionFromAngleAxis(Y, YVector);
 
-  result := QuaternionMultiply(qp, result);
-  result := QuaternionMultiply(qy, result);
+  Result := QuaternionMultiply(qp, Result);
+  Result := QuaternionMultiply(qy, Result);
 end;
 
 // QuaternionFromEuler
 //
-function QuaternionFromEuler(const x, y, z: single; eulerOrder: TEulerOrder): TQuaternion;
+function QuaternionFromEuler(const X, Y, Z: Single; eulerOrder: TEulerOrder): TQuaternion;
 // input angles in degrees
 var
   gimbalLock: Boolean;
   quat1, quat2: TQuaternion;
 
-  function EulerToQuat(const x, y, z: single; eulerOrder: TEulerOrder): TQuaternion;
+  function EulerToQuat(const X, Y, Z: Single; eulerOrder: TEulerOrder): TQuaternion;
   const
-    cOrder: array [low(TEulerOrder) .. high(TEulerOrder)] of array [1 .. 3] of byte =
+    cOrder: array [low(TEulerOrder) .. high(TEulerOrder)] of array [1 .. 3] of Byte =
       ((1, 2, 3), (1, 3, 2), (2, 1, 3), // eulXYZ, eulXZY, eulYXZ,
       (3, 1, 2), (2, 3, 1), (3, 2, 1)); // eulYZX, eulZXY, eulZYX
   var
-    Q: array [1 .. 3] of TQuaternion;
+    q: array [1 .. 3] of TQuaternion;
   begin
-    Q[cOrder[eulerOrder][1]] := QuaternionFromAngleAxis(x, XVector);
-    Q[cOrder[eulerOrder][2]] := QuaternionFromAngleAxis(y, YVector);
-    Q[cOrder[eulerOrder][3]] := QuaternionFromAngleAxis(z, ZVector);
-    result := QuaternionMultiply(Q[2], Q[3]);
-    result := QuaternionMultiply(Q[1], result);
+    q[cOrder[eulerOrder][1]] := QuaternionFromAngleAxis(X, XVector);
+    q[cOrder[eulerOrder][2]] := QuaternionFromAngleAxis(Y, YVector);
+    q[cOrder[eulerOrder][3]] := QuaternionFromAngleAxis(Z, ZVector);
+    Result := QuaternionMultiply(q[2], q[3]);
+    Result := QuaternionMultiply(q[1], Result);
   end;
 
 const
   SMALL_ANGLE = 0.001;
 begin
-  NormalizeDegAngle(x);
-  NormalizeDegAngle(y);
-  NormalizeDegAngle(z);
+  NormalizeDegAngle(X);
+  NormalizeDegAngle(Y);
+  NormalizeDegAngle(Z);
   case eulerOrder of
-    eulXYZ, eulZYX: gimbalLock := Abs(Abs(y) - 90.0) <= EPSILON2; // cos(Y) = 0;
-    eulYXZ, eulZXY: gimbalLock := Abs(Abs(x) - 90.0) <= EPSILON2; // cos(X) = 0;
-    eulXZY, eulYZX: gimbalLock := Abs(Abs(z) - 90.0) <= EPSILON2; // cos(Z) = 0;
+    eulXYZ, eulZYX: gimbalLock := Abs(Abs(Y) - 90.0) <= EPSILON2; // cos(Y) = 0;
+    eulYXZ, eulZXY: gimbalLock := Abs(Abs(X) - 90.0) <= EPSILON2; // cos(X) = 0;
+    eulXZY, eulYZX: gimbalLock := Abs(Abs(Z) - 90.0) <= EPSILON2; // cos(Z) = 0;
     else
       Assert(False);
       gimbalLock := False;
   end;
   if gimbalLock then begin
       case eulerOrder of
-        eulXYZ, eulZYX: quat1 := EulerToQuat(x, y - SMALL_ANGLE, z, eulerOrder);
-        eulYXZ, eulZXY: quat1 := EulerToQuat(x - SMALL_ANGLE, y, z, eulerOrder);
-        eulXZY, eulYZX: quat1 := EulerToQuat(x, y, z - SMALL_ANGLE, eulerOrder);
+        eulXYZ, eulZYX: quat1 := EulerToQuat(X, Y - SMALL_ANGLE, Z, eulerOrder);
+        eulYXZ, eulZXY: quat1 := EulerToQuat(X - SMALL_ANGLE, Y, Z, eulerOrder);
+        eulXZY, eulYZX: quat1 := EulerToQuat(X, Y, Z - SMALL_ANGLE, eulerOrder);
       end;
       case eulerOrder of
-        eulXYZ, eulZYX: quat2 := EulerToQuat(x, y + SMALL_ANGLE, z, eulerOrder);
-        eulYXZ, eulZXY: quat2 := EulerToQuat(x + SMALL_ANGLE, y, z, eulerOrder);
-        eulXZY, eulYZX: quat2 := EulerToQuat(x, y, z + SMALL_ANGLE, eulerOrder);
+        eulXYZ, eulZYX: quat2 := EulerToQuat(X, Y + SMALL_ANGLE, Z, eulerOrder);
+        eulYXZ, eulZXY: quat2 := EulerToQuat(X + SMALL_ANGLE, Y, Z, eulerOrder);
+        eulXZY, eulYZX: quat2 := EulerToQuat(X, Y, Z + SMALL_ANGLE, eulerOrder);
       end;
-      result := QuaternionSlerp(quat1, quat2, 0.5);
+      Result := QuaternionSlerp(quat1, quat2, 0.5);
     end
   else begin
-      result := EulerToQuat(x, y, z, eulerOrder);
+      Result := EulerToQuat(X, Y, Z, eulerOrder);
     end;
 end;
 
 // QuaternionToPoints
 //
-procedure QuaternionToPoints(const Q: TQuaternion; var ArcFrom, ArcTo: TAffineVector);
+procedure QuaternionToPoints(const q: TQuaternion; var ArcFrom, ArcTo: TAffineVector);
 var
-  S, invS: single;
+  s, invS: Single;
 begin
-  S := Q.ImagPart[x] * Q.ImagPart[x] + Q.ImagPart[y] * Q.ImagPart[y];
-  if S = 0 then
+  s := q.ImagPart[X] * q.ImagPart[X] + q.ImagPart[Y] * q.ImagPart[Y];
+  if s = 0 then
       SetAffineVector(ArcFrom, 0, 1, 0)
   else begin
-      invS := RSqrt(S);
-      SetAffineVector(ArcFrom, -Q.ImagPart[y] * invS, Q.ImagPart[x] * invS, 0);
+      invS := RSqrt(s);
+      SetAffineVector(ArcFrom, -q.ImagPart[Y] * invS, q.ImagPart[X] * invS, 0);
     end;
-  ArcTo[x] := Q.RealPart * ArcFrom[x] - Q.ImagPart[z] * ArcFrom[y];
-  ArcTo[y] := Q.RealPart * ArcFrom[y] + Q.ImagPart[z] * ArcFrom[x];
-  ArcTo[z] := Q.ImagPart[x] * ArcFrom[y] - Q.ImagPart[y] * ArcFrom[x];
-  if Q.RealPart < 0 then
-      SetAffineVector(ArcFrom, -ArcFrom[x], -ArcFrom[y], 0);
+  ArcTo[X] := q.RealPart * ArcFrom[X] - q.ImagPart[Z] * ArcFrom[Y];
+  ArcTo[Y] := q.RealPart * ArcFrom[Y] + q.ImagPart[Z] * ArcFrom[X];
+  ArcTo[Z] := q.ImagPart[X] * ArcFrom[Y] - q.ImagPart[Y] * ArcFrom[X];
+  if q.RealPart < 0 then
+      SetAffineVector(ArcFrom, -ArcFrom[X], -ArcFrom[Y], 0);
 end;
 
 // LnXP1
 //
-function LnXP1(x: Extended): Extended;
+function LnXP1(X: Extended): Extended;
 begin
-  result := Math.LnXP1(x);
+  Result := Math.LnXP1(X);
 end;
 
 // Log10
 //
-function Log10(x: Extended): Extended;
+function Log10(X: Extended): Extended;
 begin
-  result := Math.Log10(x);
+  Result := Math.Log10(X);
 end;
 
 // Log2
 //
-function Log2(x: Extended): Extended;
+function Log2(X: Extended): Extended;
 begin
-  result := Math.Log2(x);
+  Result := Math.Log2(X);
 end;
 
 // Log2
 //
-function Log2(x: single): single;
+function Log2(X: Single): Single;
 begin
-  result := Math.Log2(x);
+  Result := Math.Log2(X);
 end;
 
 // LogN
 //
-function LogN(Base, x: Extended): Extended;
+function LogN(Base, X: Extended): Extended;
 begin
-  result := Math.LogN(Base, x);
+  Result := Math.LogN(Base, X);
 end;
 
 // IntPower
 //
 function IntPower(Base: Extended; Exponent: Integer): Extended;
 begin
-  result := Math.IntPower(Base, Exponent);
+  Result := Math.IntPower(Base, Exponent);
 end;
 
 // Power
 //
-function Power(const Base, Exponent: single): single;
+function Power(const Base, Exponent: Single): Single;
 begin
   if Exponent = cZero then
-      result := cOne
+      Result := cOne
   else if (Base = cZero) and (Exponent > cZero) then
-      result := cZero
+      Result := cZero
   else if RoundInt(Exponent) = Exponent then
-      result := Power(Base, Integer(Round(Exponent)))
+      Result := Power(Base, Integer(Round(Exponent)))
   else
-      result := Exp(Exponent * Ln(Base));
+      Result := Exp(Exponent * ln(Base));
 end;
 
 // Power (int exponent)
 //
-function Power(Base: single; Exponent: Integer): single;
+function Power(Base: Single; Exponent: Integer): Single;
 begin
-  result := Math.Power(Base, Exponent);
+  Result := Math.Power(Base, Exponent);
 end;
 
-function Power(Base: single; Exponent: Int64): single;
+function Power(Base: Single; Exponent: Int64): Single;
 begin
-  result := Math.Power(Base, Exponent);
+  Result := Math.Power(Base, Exponent);
 end;
 
 // DegToRad (extended)
 //
 function DegToRad(const Degrees: Extended): Extended;
 begin
-  result := Degrees * (PI / 180);
+  Result := Degrees * (pi / 180);
 end;
 
 // DegToRad (single)
 //
-function DegToRad(const Degrees: single): single;
+function DegToRad(const Degrees: Single): Single;
 // Result:=Degrees * cPIdiv180;
 // don't laugh, Delphi's compiler manages to make a nightmare of this one
 // with pushs, pops, etc. in its default compile... (this one is twice faster !)
 begin
-  result := Degrees * cPIdiv180;
+  Result := Degrees * cPIdiv180;
 end;
 
 // RadToDeg (extended)
 //
 function RadToDeg(const Radians: Extended): Extended;
 begin
-  result := Radians * (180 / PI);
+  Result := Radians * (180 / pi);
 end;
 
 // RadToDeg (single)
 //
-function RadToDeg(const Radians: single): single;
+function RadToDeg(const Radians: Single): Single;
 // Result:=Radians * c180divPI;
 // don't laugh, Delphi's compiler manages to make a nightmare of this one
 // with pushs, pops, etc. in its default compile... (this one is twice faster !)
 begin
-  result := Radians * c180divPI;
+  Result := Radians * c180divPI;
 end;
 
 // NormalizeAngle
 //
-function NormalizeAngle(angle: single): single;
+function NormalizeAngle(angle: Single): Single;
 begin
-  result := angle - Int(angle * cInv2PI) * c2PI;
-  if result > PI then
-      result := result - 2 * PI
-  else if result < -PI then
-      result := result + 2 * PI;
+  Result := angle - Int(angle * cInv2PI) * c2PI;
+  if Result > pi then
+      Result := Result - 2 * pi
+  else if Result < -pi then
+      Result := Result + 2 * pi;
 end;
 
 // NormalizeDegAngle
 //
-function NormalizeDegAngle(angle: single): single;
+function NormalizeDegAngle(angle: Single): Single;
 begin
-  result := angle - Int(angle * cInv360) * c360;
-  if result > c180 then
-      result := result - c360
-  else if result < -c180 then
-      result := result + c360;
+  Result := angle - Int(angle * cInv360) * c360;
+  if Result > c180 then
+      Result := Result - c360
+  else if Result < -c180 then
+      Result := Result + c360;
 end;
 
 // SinCos (Extended)
@@ -5162,276 +5156,276 @@ end;
 
 // SinCos (Single)
 //
-procedure SinCos(const Theta: single; out Sin, Cos: single);
+procedure SinCos(const Theta: Single; out Sin, Cos: Single);
 var
-  S, c: Extended;
+  s, C: Extended;
 begin
-  Math.SinCos(Theta, S, c);
-  Sin := S;
-  Cos := c;
+  Math.SinCos(Theta, s, C);
+  Sin := s;
+  Cos := C;
 end;
 
 // SinCos (Extended w radius)
 //
-procedure SinCos(const Theta, radius: double; out Sin, Cos: Extended);
+procedure SinCos(const Theta, radius: Double; out Sin, Cos: Extended);
 var
-  S, c: Extended;
+  s, C: Extended;
 begin
-  Math.SinCos(Theta, S, c);
-  Sin := S * radius;
-  Cos := c * radius;
+  Math.SinCos(Theta, s, C);
+  Sin := s * radius;
+  Cos := C * radius;
 end;
 
 // SinCos (Single w radius)
 //
-procedure SinCos(const Theta, radius: single; out Sin, Cos: single);
+procedure SinCos(const Theta, radius: Single; out Sin, Cos: Single);
 var
-  S, c: Extended;
+  s, C: Extended;
 begin
-  Math.SinCos(Theta, S, c);
-  Sin := S * radius;
-  Cos := c * radius;
+  Math.SinCos(Theta, s, C);
+  Sin := s * radius;
+  Cos := C * radius;
 end;
 
 // PrepareSinCosCache
 //
-procedure PrepareSinCosCache(var S, c: array of single;
-  startAngle, stopAngle: single);
+procedure PrepareSinCosCache(var s, C: array of Single;
+  startAngle, stopAngle: Single);
 var
   i: Integer;
-  d, alpha, beta: single;
+  d, alpha, beta: Single;
 begin
-  Assert((high(S) = high(c)) and (low(S) = low(c)));
+  Assert((high(s) = high(C)) and (low(s) = low(C)));
   stopAngle := stopAngle + 1E-5;
-  if high(S) > low(S) then
-      d := cPIdiv180 * (stopAngle - startAngle) / (high(S) - low(S))
+  if high(s) > low(s) then
+      d := cPIdiv180 * (stopAngle - startAngle) / (high(s) - low(s))
   else
       d := 0;
 
-  if high(S) - low(S) < 1000 then begin
+  if high(s) - low(s) < 1000 then begin
       // Fast computation (approx 5.5x)
       alpha := 2 * Sqr(Sin(d * 0.5));
       beta := Sin(d);
-      GeometryLib.SinCos(startAngle * cPIdiv180, S[low(S)], c[low(S)]);
-      for i := low(S) to high(S) - 1 do begin
+      GeometryLib.SinCos(startAngle * cPIdiv180, s[low(s)], C[low(s)]);
+      for i := low(s) to high(s) - 1 do begin
           // Make use of the incremental formulae:
           // cos (theta+delta) = cos(theta) - [alpha*cos(theta) + beta*sin(theta)]
           // sin (theta+delta) = sin(theta) - [alpha*sin(theta) - beta*cos(theta)]
-          c[i + 1] := c[i] - alpha * c[i] - beta * S[i];
-          S[i + 1] := S[i] - alpha * S[i] + beta * c[i];
+          C[i + 1] := C[i] - alpha * C[i] - beta * s[i];
+          s[i + 1] := s[i] - alpha * s[i] + beta * C[i];
         end;
     end
   else begin
       // Slower, but maintains precision when steps are small
       startAngle := startAngle * cPIdiv180;
-      for i := low(S) to high(S) do
-          GeometryLib.SinCos((i - low(S)) * d + startAngle, S[i], c[i]);
+      for i := low(s) to high(s) do
+          GeometryLib.SinCos((i - low(s)) * d + startAngle, s[i], C[i]);
     end;
 end;
 
 // ArcCos (Extended)
 //
-function ArcCos(const x: Extended): Extended;
+function ArcCos(const X: Extended): Extended;
 begin
-  result := GeometryLib.ArcTan2(Sqrt(1 - Sqr(x)), x);
+  Result := GeometryLib.ArcTan2(Sqrt(1 - Sqr(X)), X);
 end;
 
 // ArcCos (Single)
 //
-function ArcCos(const x: single): single;
+function ArcCos(const X: Single): Single;
 // Result:=ArcTan2(Sqrt(c1 - X * X), X);
 begin
   {$IFDEF FPC}
-  if Abs(x) > 1.0 then
-      result := Math.ArcCos(Sign(x))
+  if Abs(X) > 1.0 then
+      Result := Math.ArcCos(Sign(X))
   else
     {$ENDIF}
-      result := Math.ArcCos(x);
+      Result := Math.ArcCos(X);
 end;
 
 // ArcSin (Extended)
 //
-function ArcSin(const x: Extended): Extended;
+function ArcSin(const X: Extended): Extended;
 begin
-  result := GeometryLib.ArcTan2(x, Sqrt(1 - Sqr(x)))
+  Result := GeometryLib.ArcTan2(X, Sqrt(1 - Sqr(X)))
 end;
 
 // ArcSin (Single)
 //
-function ArcSin(const x: single): single;
+function ArcSin(const X: Single): Single;
 // Result:=ArcTan2(X, Sqrt(1 - X * X))
 begin
-  result := Math.ArcSin(x);
+  Result := Math.ArcSin(X);
 end;
 
 // ArcTan2 (Extended)
 //
-function ArcTan2(const y, x: Extended): Extended;
+function ArcTan2(const Y, X: Extended): Extended;
 begin
-  result := Math.ArcTan2(y, x);
+  Result := Math.ArcTan2(Y, X);
 end;
 
 // ArcTan2 (Single)
 //
-function ArcTan2(const y, x: single): single;
+function ArcTan2(const Y, X: Single): Single;
 begin
-  result := Math.ArcTan2(y, x);
+  Result := Math.ArcTan2(Y, X);
 end;
 
 // FastArcTan2
 //
-function FastArcTan2(y, x: single): single;
+function FastArcTan2(Y, X: Single): Single;
 // accuracy of about 0.07 rads
 const
-  cEpsilon: single = 1E-10;
+  cEpsilon: Single = 1E-10;
 var
-  abs_y: single;
+  abs_y: Single;
 begin
-  abs_y := Abs(y) + cEpsilon; // prevent 0/0 condition
-  if y < 0 then begin
-      if x >= 0 then
-          result := cPIdiv4 * (x - abs_y) / (x + abs_y) - cPIdiv4
+  abs_y := Abs(Y) + cEpsilon; // prevent 0/0 condition
+  if Y < 0 then begin
+      if X >= 0 then
+          Result := cPIdiv4 * (X - abs_y) / (X + abs_y) - cPIdiv4
       else
-          result := cPIdiv4 * (x + abs_y) / (abs_y - x) - c3PIdiv4;
+          Result := cPIdiv4 * (X + abs_y) / (abs_y - X) - c3PIdiv4;
     end
   else begin
-      if x >= 0 then
-          result := cPIdiv4 - cPIdiv4 * (x - abs_y) / (x + abs_y)
+      if X >= 0 then
+          Result := cPIdiv4 - cPIdiv4 * (X - abs_y) / (X + abs_y)
       else
-          result := c3PIdiv4 - cPIdiv4 * (x + abs_y) / (abs_y - x);
+          Result := c3PIdiv4 - cPIdiv4 * (X + abs_y) / (abs_y - X);
     end;
 end;
 
 // Tan (Extended)
 //
-function Tan(const x: Extended): Extended;
+function Tan(const X: Extended): Extended;
 begin
-  result := Math.Tan(x);
+  Result := Math.Tan(X);
 end;
 
 // Tan (Single)
 //
-function Tan(const x: single): single;
+function Tan(const X: Single): Single;
 begin
-  result := Math.Tan(x);
+  Result := Math.Tan(X);
 end;
 
 // CoTan (Extended)
 //
-function CoTan(const x: Extended): Extended;
+function CoTan(const X: Extended): Extended;
 begin
-  result := Math.CoTan(x);
+  Result := Math.CoTan(X);
 end;
 
 // CoTan (Single)
 //
-function CoTan(const x: single): single;
+function CoTan(const X: Single): Single;
 begin
-  result := Math.CoTan(x);
+  Result := Math.CoTan(X);
 end;
 
 // Sinh
 //
-function Sinh(const x: single): single;
+function Sinh(const X: Single): Single;
 begin
-  result := 0.5 * (Exp(x) - Exp(-x));
+  Result := 0.5 * (Exp(X) - Exp(-X));
 end;
 
 // Sinh
 //
-function Sinh(const x: double): double;
+function Sinh(const X: Double): Double;
 begin
-  result := 0.5 * (Exp(x) - Exp(-x));
+  Result := 0.5 * (Exp(X) - Exp(-X));
 end;
 
 // Cosh
 //
-function Cosh(const x: single): single;
+function Cosh(const X: Single): Single;
 begin
-  result := 0.5 * (Exp(x) + Exp(-x));
+  Result := 0.5 * (Exp(X) + Exp(-X));
 end;
 
 // Cosh
 //
-function Cosh(const x: double): double;
+function Cosh(const X: Double): Double;
 begin
-  result := 0.5 * (Exp(x) + Exp(-x));
+  Result := 0.5 * (Exp(X) + Exp(-X));
 end;
 
 // RSqrt
 //
-function RSqrt(v: single): single;
+function RSqrt(v: Single): Single;
 begin
-  result := 1 / Sqrt(v);
+  Result := 1 / Sqrt(v);
 end;
 
 // ISqrt
 //
 function ISqrt(i: Integer): Integer;
 begin
-  result := Round(Sqrt(i));
+  Result := Round(Sqrt(i));
 end;
 
 // ILength
 //
-function ILength(x, y: Integer): Integer;
+function ILength(X, Y: Integer): Integer;
 begin
-  result := Round(Sqrt(x * x + y * y));
+  Result := Round(Sqrt(X * X + Y * Y));
 end;
 
 // ILength
 //
-function ILength(x, y, z: Integer): Integer;
+function ILength(X, Y, Z: Integer): Integer;
 begin
-  result := Round(Sqrt(x * x + y * y + z * z));
+  Result := Round(Sqrt(X * X + Y * Y + Z * Z));
 end;
 
 // RLength
 //
-function RLength(x, y: single): single;
+function RLength(X, Y: Single): Single;
 begin
-  result := 1 / Sqrt(x * x + y * y);
+  Result := 1 / Sqrt(X * X + Y * Y);
 end;
 
 // RandomPointOnSphere
 //
 procedure RandomPointOnSphere(var p: TAffineVector);
 var
-  T, w: single;
+  T, w: Single;
 begin
   p[2] := 2 * Random - 1;
-  T := 2 * PI * Random;
+  T := 2 * pi * Random;
   w := Sqrt(1 - p[2] * p[2]);
   GeometryLib.SinCos(T, w, p[1], p[0]);
 end;
 
 // RoundInt (single)
 //
-function RoundInt(v: single): single;
+function RoundInt(v: Single): Single;
 begin
-  result := Int(v + cOneDotFive);
+  Result := Int(v + cOneDotFive);
 end;
 
 // RoundInt (extended)
 //
 function RoundInt(v: Extended): Extended;
 begin
-  result := Int(v + 0.5);
+  Result := Int(v + 0.5);
 end;
 
-function Trunc(x: Extended): Int64;
+function Trunc(X: Extended): Int64;
 begin
-  result := System.Trunc(x);
+  Result := System.Trunc(X);
 end;
 
-function Round(x: Extended): Int64;
+function Round(X: Extended): Int64;
 begin
-  result := System.Round(x);
+  Result := System.Round(X);
 end;
 
-function Frac(x: Extended): Extended;
+function Frac(X: Extended): Extended;
 begin
-  result := System.Frac(x);
+  Result := System.Frac(X);
 end;
 
 // Ceil64 (Extended)
@@ -5439,19 +5433,19 @@ end;
 function Ceil64(v: Extended): Int64; overload;
 begin
   if Frac(v) > 0 then
-      result := Trunc(v) + 1
+      Result := Trunc(v) + 1
   else
-      result := Trunc(v);
+      Result := Trunc(v);
 end;
 
 // Ceil (Single)
 //
-function Ceil(v: single): Integer; overload;
+function Ceil(v: Single): Integer; overload;
 begin
   if Frac(v) > 0 then
-      result := Trunc(v) + 1
+      Result := Trunc(v) + 1
   else
-      result := Trunc(v);
+      Result := Trunc(v);
 end;
 
 // Floor64 (Extended)
@@ -5459,75 +5453,75 @@ end;
 function Floor64(v: Extended): Int64; overload;
 begin
   if v < 0 then
-      result := Trunc(v) - 1
+      Result := Trunc(v) - 1
   else
-      result := Trunc(v);
+      Result := Trunc(v);
 end;
 
 // Floor (Single)
 //
-function Floor(v: single): Integer; overload;
+function Floor(v: Single): Integer; overload;
 begin
   if v < 0 then
-      result := Trunc(v) - 1
+      Result := Trunc(v) - 1
   else
-      result := Trunc(v);
+      Result := Trunc(v);
 end;
 
 // Sign
 //
-function Sign(x: single): Integer;
+function Sign(X: Single): Integer;
 begin
-  if x < 0 then
-      result := -1
-  else if x > 0 then
-      result := 1
+  if X < 0 then
+      Result := -1
+  else if X > 0 then
+      Result := 1
   else
-      result := 0;
+      Result := 0;
 end;
 
 // SignStrict
 //
-function SignStrict(x: single): Integer;
+function SignStrict(X: Single): Integer;
 begin
-  if x < 0 then
-      result := -1
+  if X < 0 then
+      Result := -1
   else
-      result := 1
+      Result := 1
 end;
 
 // ScaleAndRound
 //
-function ScaleAndRound(i: Integer; var S: single): Integer;
+function ScaleAndRound(i: Integer; var s: Single): Integer;
 begin
-  result := Round(i * S);
+  Result := Round(i * s);
 end;
 
 // IsInRange (single)
 //
-function IsInRange(const x, a, b: single): Boolean;
+function IsInRange(const X, A, b: Single): Boolean;
 begin
-  if a < b then
-      result := (a <= x) and (x <= b)
+  if A < b then
+      Result := (A <= X) and (X <= b)
   else
-      result := (b <= x) and (x <= a);
+      Result := (b <= X) and (X <= A);
 end;
 
 // IsInRange (double)
 //
-function IsInRange(const x, a, b: double): Boolean;
+function IsInRange(const X, A, b: Double): Boolean;
 begin
-  if a < b then
-      result := (a <= x) and (x <= b)
+  if A < b then
+      Result := (A <= X) and (X <= b)
   else
-      result := (b <= x) and (x <= a);
+      Result := (b <= X) and (X <= A);
 end;
 
 // IsInCube (affine)
 //
 function IsInCube(const p, d: TAffineVector): Boolean; overload;
 begin
-  result := ((p[0] >= -d[0]) and (p[0] <= d[0]))
+  Result := ((p[0] >= -d[0]) and (p[0] <= d[0]))
     and ((p[1] >= -d[1]) and (p[1] <= d[1]))
     and ((p[2] >= -d[2]) and (p[2] <= d[2]));
 end;
@@ -5536,14 +5530,14 @@ end;
 //
 function IsInCube(const p, d: TVector): Boolean; overload;
 begin
-  result := ((p[0] >= -d[0]) and (p[0] <= d[0]))
+  Result := ((p[0] >= -d[0]) and (p[0] <= d[0]))
     and ((p[1] >= -d[1]) and (p[1] <= d[1]))
     and ((p[2] >= -d[2]) and (p[2] <= d[2]));
 end;
 
 // MinFloat (single)
 //
-function MinFloat(values: PSingleArray; nbItems: Integer): single;
+function MinFloat(values: PSingleArray; nbItems: Integer): Single;
 var
   i, k: Integer;
 begin
@@ -5552,15 +5546,15 @@ begin
       for i := 1 to nbItems - 1 do
         if values^[i] < values^[k] then
             k := i;
-      result := values^[k];
+      Result := values^[k];
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 // MinFloat (double)
 //
-function MinFloat(values: PDoubleArray; nbItems: Integer): double;
+function MinFloat(values: PDoubleArray; nbItems: Integer): Double;
 var
   i, k: Integer;
 begin
@@ -5569,89 +5563,89 @@ begin
       for i := 1 to nbItems - 1 do
         if values^[i] < values^[k] then
             k := i;
-      result := values^[k];
+      Result := values^[k];
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 // MinFloat (array)
 //
-function MinFloat(const v: array of single): single;
+function MinFloat(const v: array of Single): Single;
 var
   i: Integer;
 begin
-  if Length(v) > 0 then begin
-      result := v[0];
+  if length(v) > 0 then begin
+      Result := v[0];
       for i := 1 to high(v) do
-        if v[i] < result then
-            result := v[i];
+        if v[i] < Result then
+            Result := v[i];
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 // MinFloat (single 2)
 //
-function MinFloat(const V1, V2: single): single;
+function MinFloat(const v1, v2: Single): Single;
 begin
-  if V1 < V2 then
-      result := V1
+  if v1 < v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MinFloat (double 2)
 //
-function MinFloat(const V1, V2: double): double;
+function MinFloat(const v1, v2: Double): Double;
 begin
-  if V1 < V2 then
-      result := V1
+  if v1 < v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MinFloat
 //
-function MinFloat(const V1, V2, V3: single): single;
+function MinFloat(const v1, v2, v3: Single): Single;
 begin
-  if V1 <= V2 then
-    if V1 <= V3 then
-        result := V1
-    else if V3 <= V2 then
-        result := V3
+  if v1 <= v2 then
+    if v1 <= v3 then
+        Result := v1
+    else if v3 <= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 <= V3 then
-      result := V2
-  else if V3 <= V1 then
-      result := V3
+        Result := v2
+  else if v2 <= v3 then
+      Result := v2
+  else if v3 <= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MinFloat (double)
 //
-function MinFloat(const V1, V2, V3: double): double;
+function MinFloat(const v1, v2, v3: Double): Double;
 begin
-  if V1 <= V2 then
-    if V1 <= V3 then
-        result := V1
-    else if V3 <= V2 then
-        result := V3
+  if v1 <= v2 then
+    if v1 <= v3 then
+        Result := v1
+    else if v3 <= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 <= V3 then
-      result := V2
-  else if V3 <= V1 then
-      result := V3
+        Result := v2
+  else if v2 <= v3 then
+      Result := v2
+  else if v3 <= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MaxFloat (single)
 //
-function MaxFloat(values: PSingleArray; nbItems: Integer): single; overload;
+function MaxFloat(values: PSingleArray; nbItems: Integer): Single; overload;
 var
   i, k: Integer;
 begin
@@ -5660,15 +5654,15 @@ begin
       for i := 1 to nbItems - 1 do
         if values^[i] > values^[k] then
             k := i;
-      result := values^[k];
+      Result := values^[k];
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 // MaxFloat (double)
 //
-function MaxFloat(values: PDoubleArray; nbItems: Integer): double; overload;
+function MaxFloat(values: PDoubleArray; nbItems: Integer): Double; overload;
 var
   i, k: Integer;
 begin
@@ -5677,276 +5671,276 @@ begin
       for i := 1 to nbItems - 1 do
         if values^[i] > values^[k] then
             k := i;
-      result := values^[k];
+      Result := values^[k];
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 // MaxFloat
 //
-function MaxFloat(const v: array of single): single;
+function MaxFloat(const v: array of Single): Single;
 var
   i: Integer;
 begin
-  if Length(v) > 0 then begin
-      result := v[0];
+  if length(v) > 0 then begin
+      Result := v[0];
       for i := 1 to high(v) do
-        if v[i] > result then
-            result := v[i];
+        if v[i] > Result then
+            Result := v[i];
     end
   else
-      result := 0;
+      Result := 0;
 end;
 
 // MaxFloat
 //
-function MaxFloat(const V1, V2: single): single;
+function MaxFloat(const v1, v2: Single): Single;
 begin
-  if V1 > V2 then
-      result := V1
+  if v1 > v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MaxFloat
 //
-function MaxFloat(const V1, V2: double): double;
+function MaxFloat(const v1, v2: Double): Double;
 begin
-  if V1 > V2 then
-      result := V1
+  if v1 > v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MaxFloat
 //
-function MaxFloat(const V1, V2, V3: single): single;
+function MaxFloat(const v1, v2, v3: Single): Single;
 begin
-  if V1 >= V2 then
-    if V1 >= V3 then
-        result := V1
-    else if V3 >= V2 then
-        result := V3
+  if v1 >= v2 then
+    if v1 >= v3 then
+        Result := v1
+    else if v3 >= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 >= V3 then
-      result := V2
-  else if V3 >= V1 then
-      result := V3
+        Result := v2
+  else if v2 >= v3 then
+      Result := v2
+  else if v3 >= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MaxFloat
 //
-function MaxFloat(const V1, V2, V3: double): double;
+function MaxFloat(const v1, v2, v3: Double): Double;
 begin
-  if V1 >= V2 then
-    if V1 >= V3 then
-        result := V1
-    else if V3 >= V2 then
-        result := V3
+  if v1 >= v2 then
+    if v1 >= v3 then
+        Result := v1
+    else if v3 >= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 >= V3 then
-      result := V2
-  else if V3 >= V1 then
-      result := V3
+        Result := v2
+  else if v2 >= v3 then
+      Result := v2
+  else if v3 >= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MinInteger (2 int)
 //
-function MinInteger(const V1, V2: Integer): Integer;
+function MinInteger(const v1, v2: Integer): Integer;
 begin
-  if V1 < V2 then
-      result := V1
+  if v1 < v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MinInteger (2 card)
 //
-function MinInteger(const V1, V2: Cardinal): Cardinal;
+function MinInteger(const v1, v2: Cardinal): Cardinal;
 begin
-  if V1 < V2 then
-      result := V1
+  if v1 < v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MinInteger
 //
-function MinInteger(const V1, V2, V3: Integer): Integer;
+function MinInteger(const v1, v2, v3: Integer): Integer;
 begin
-  if V1 <= V2 then
-    if V1 <= V3 then
-        result := V1
-    else if V3 <= V2 then
-        result := V3
+  if v1 <= v2 then
+    if v1 <= v3 then
+        Result := v1
+    else if v3 <= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 <= V3 then
-      result := V2
-  else if V3 <= V1 then
-      result := V3
+        Result := v2
+  else if v2 <= v3 then
+      Result := v2
+  else if v3 <= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MinInteger
 //
-function MinInteger(const V1, V2, V3: Cardinal): Cardinal;
+function MinInteger(const v1, v2, v3: Cardinal): Cardinal;
 begin
-  if V1 <= V2 then
-    if V1 <= V3 then
-        result := V1
-    else if V3 <= V2 then
-        result := V3
+  if v1 <= v2 then
+    if v1 <= v3 then
+        Result := v1
+    else if v3 <= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 <= V3 then
-      result := V2
-  else if V3 <= V1 then
-      result := V3
+        Result := v2
+  else if v2 <= v3 then
+      Result := v2
+  else if v3 <= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MaxInteger (2 int)
 //
-function MaxInteger(const V1, V2: Integer): Integer;
+function MaxInteger(const v1, v2: Integer): Integer;
 begin
-  if V1 > V2 then
-      result := V1
+  if v1 > v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MaxInteger (2 card)
 //
-function MaxInteger(const V1, V2: Cardinal): Cardinal;
+function MaxInteger(const v1, v2: Cardinal): Cardinal;
 begin
-  if V1 > V2 then
-      result := V1
+  if v1 > v2 then
+      Result := v1
   else
-      result := V2;
+      Result := v2;
 end;
 
 // MaxInteger
 //
-function MaxInteger(const V1, V2, V3: Integer): Integer;
+function MaxInteger(const v1, v2, v3: Integer): Integer;
 begin
-  if V1 >= V2 then
-    if V1 >= V3 then
-        result := V1
-    else if V3 >= V2 then
-        result := V3
+  if v1 >= v2 then
+    if v1 >= v3 then
+        Result := v1
+    else if v3 >= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 >= V3 then
-      result := V2
-  else if V3 >= V1 then
-      result := V3
+        Result := v2
+  else if v2 >= v3 then
+      Result := v2
+  else if v3 >= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
 // MaxInteger
 //
-function MaxInteger(const V1, V2, V3: Cardinal): Cardinal;
+function MaxInteger(const v1, v2, v3: Cardinal): Cardinal;
 begin
-  if V1 >= V2 then
-    if V1 >= V3 then
-        result := V1
-    else if V3 >= V2 then
-        result := V3
+  if v1 >= v2 then
+    if v1 >= v3 then
+        Result := v1
+    else if v3 >= v2 then
+        Result := v3
     else
-        result := V2
-  else if V2 >= V3 then
-      result := V2
-  else if V3 >= V1 then
-      result := V3
+        Result := v2
+  else if v2 >= v3 then
+      Result := v2
+  else if v3 >= v1 then
+      Result := v3
   else
-      result := V1;
+      Result := v1;
 end;
 
-function ClampInteger(const value, min, max: Integer): Integer;
+function ClampInteger(const Value, Min, Max: Integer): Integer;
 begin
-  result := MinInteger(MaxInteger(value, min), max);
+  Result := MinInteger(MaxInteger(Value, Min), Max);
 end;
 
-function ClampInteger(const value, min, max: Cardinal): Cardinal;
+function ClampInteger(const Value, Min, Max: Cardinal): Cardinal;
 begin
-  result := MinInteger(MaxInteger(value, min), max);
+  Result := MinInteger(MaxInteger(Value, Min), Max);
 end;
 
 // TriangleArea
 //
-function TriangleArea(const p1, p2, p3: TAffineVector): single;
+function TriangleArea(const p1, p2, p3: TAffineVector): Single;
 begin
-  result := 0.5 * VectorLength(VectorCrossProduct(VectorSubtract(p2, p1),
+  Result := 0.5 * VectorLength(VectorCrossProduct(VectorSubtract(p2, p1),
     VectorSubtract(p3, p1)));
 end;
 
 // PolygonArea
 //
-function PolygonArea(const p: PAffineVectorArray; nSides: Integer): single;
+function PolygonArea(const p: PAffineVectorArray; nSides: Integer): Single;
 var
-  r: TAffineVector;
+  R: TAffineVector;
   i: Integer;
   p1, p2, p3: PAffineVector;
 begin
-  result := 0;
+  Result := 0;
   if nSides > 2 then begin
-      RstVector(r);
+      RstVector(R);
       p1 := @p[0];
       p2 := @p[1];
       for i := 2 to nSides - 1 do begin
           p3 := @p[i];
-          AddVector(r, VectorCrossProduct(VectorSubtract(p2^, p1^),
+          AddVector(R, VectorCrossProduct(VectorSubtract(p2^, p1^),
             VectorSubtract(p3^, p1^)));
           p2 := p3;
         end;
-      result := VectorLength(r) * 0.5;
+      Result := VectorLength(R) * 0.5;
     end;
 end;
 
 // TriangleSignedArea
 //
-function TriangleSignedArea(const p1, p2, p3: TAffineVector): single;
+function TriangleSignedArea(const p1, p2, p3: TAffineVector): Single;
 begin
-  result := 0.5 * ((p2[0] - p1[0]) * (p3[1] - p1[1])
+  Result := 0.5 * ((p2[0] - p1[0]) * (p3[1] - p1[1])
     - (p3[0] - p1[0]) * (p2[1] - p1[1]));
 end;
 
 // PolygonSignedArea
 //
-function PolygonSignedArea(const p: PAffineVectorArray; nSides: Integer): single;
+function PolygonSignedArea(const p: PAffineVectorArray; nSides: Integer): Single;
 var
   i: Integer;
   p1, p2, p3: PAffineVector;
 begin
-  result := 0;
+  Result := 0;
   if nSides > 2 then begin
       p1 := @(p^[0]);
       p2 := @(p^[1]);
       for i := 2 to nSides - 1 do begin
           p3 := @(p^[i]);
-          result := result + (p2^[0] - p1^[0]) * (p3^[1] - p1^[1])
+          Result := Result + (p2^[0] - p1^[0]) * (p3^[1] - p1^[1])
             - (p3^[0] - p1^[0]) * (p2^[1] - p1^[1]);
           p2 := p3;
         end;
-      result := result * 0.5;
+      Result := Result * 0.5;
     end;
 end;
 
 // ScaleFloatArray (raw)
 //
 procedure ScaleFloatArray(values: PSingleArray; nb: Integer;
-  var factor: single);
+  var factor: Single);
 var
   i: Integer;
 begin
@@ -5957,30 +5951,30 @@ end;
 // ScaleFloatArray (array)
 //
 procedure ScaleFloatArray(var values: TSingleArray;
-  factor: single);
+  factor: Single);
 begin
-  if Length(values) > 0 then
-      ScaleFloatArray(@values[0], Length(values), factor);
+  if length(values) > 0 then
+      ScaleFloatArray(@values[0], length(values), factor);
 end;
 
 // OffsetFloatArray (raw)
 //
 procedure OffsetFloatArray(values: PSingleArray; nb: Integer;
-  var delta: single);
+  var Delta: Single);
 var
   i: Integer;
 begin
   for i := 0 to nb - 1 do
-      values^[i] := values^[i] + delta;
+      values^[i] := values^[i] + Delta;
 end;
 
 // ScaleFloatArray (array)
 //
-procedure OffsetFloatArray(var values: array of single;
-  delta: single);
+procedure OffsetFloatArray(var values: array of Single;
+  Delta: Single);
 begin
-  if Length(values) > 0 then
-      ScaleFloatArray(@values[0], Length(values), delta);
+  if length(values) > 0 then
+      ScaleFloatArray(@values[0], length(values), Delta);
 end;
 
 // OffsetFloatArray (raw, raw)
@@ -5995,176 +5989,176 @@ end;
 
 // MaxXYZComponent
 //
-function MaxXYZComponent(const v: TVector): single; overload;
+function MaxXYZComponent(const v: TVector): Single; overload;
 begin
-  result := MaxFloat(v[0], v[1], v[2]);
+  Result := MaxFloat(v[0], v[1], v[2]);
 end;
 
 // MaxXYZComponent
 //
-function MaxXYZComponent(const v: TAffineVector): single; overload;
+function MaxXYZComponent(const v: TAffineVector): Single; overload;
 begin
-  result := MaxFloat(v[0], v[1], v[2]);
+  Result := MaxFloat(v[0], v[1], v[2]);
 end;
 
 // MinXYZComponent
 //
-function MinXYZComponent(const v: TVector): single; overload;
+function MinXYZComponent(const v: TVector): Single; overload;
 begin
   if v[0] <= v[1] then
     if v[0] <= v[2] then
-        result := v[0]
+        Result := v[0]
     else if v[2] <= v[1] then
-        result := v[2]
+        Result := v[2]
     else
-        result := v[1]
+        Result := v[1]
   else if v[1] <= v[2] then
-      result := v[1]
+      Result := v[1]
   else if v[2] <= v[0] then
-      result := v[2]
+      Result := v[2]
   else
-      result := v[0];
+      Result := v[0];
 end;
 
 // MinXYZComponent
 //
-function MinXYZComponent(const v: TAffineVector): single; overload;
+function MinXYZComponent(const v: TAffineVector): Single; overload;
 begin
-  result := MinFloat(v[0], v[1], v[2]);
+  Result := MinFloat(v[0], v[1], v[2]);
 end;
 
 // MaxAbsXYZComponent
 //
-function MaxAbsXYZComponent(v: TVector): single;
+function MaxAbsXYZComponent(v: TVector): Single;
 begin
   AbsVector(v);
-  result := MaxXYZComponent(v);
+  Result := MaxXYZComponent(v);
 end;
 
 // MinAbsXYZComponent
 //
-function MinAbsXYZComponent(v: TVector): single;
+function MinAbsXYZComponent(v: TVector): Single;
 begin
   AbsVector(v);
-  result := MinXYZComponent(v);
+  Result := MinXYZComponent(v);
 end;
 
 // MaxVector (hmg)
 //
-procedure MaxVector(var v: TVector; const V1: TVector);
+procedure MaxVector(var v: TVector; const v1: TVector);
 begin
-  if V1[0] > v[0] then
-      v[0] := V1[0];
-  if V1[1] > v[1] then
-      v[1] := V1[1];
-  if V1[2] > v[2] then
-      v[2] := V1[2];
-  if V1[3] > v[3] then
-      v[3] := V1[3];
+  if v1[0] > v[0] then
+      v[0] := v1[0];
+  if v1[1] > v[1] then
+      v[1] := v1[1];
+  if v1[2] > v[2] then
+      v[2] := v1[2];
+  if v1[3] > v[3] then
+      v[3] := v1[3];
 end;
 
 // MaxVector (affine)
 //
-procedure MaxVector(var v: TAffineVector; const V1: TAffineVector); overload;
+procedure MaxVector(var v: TAffineVector; const v1: TAffineVector); overload;
 begin
-  if V1[0] > v[0] then
-      v[0] := V1[0];
-  if V1[1] > v[1] then
-      v[1] := V1[1];
-  if V1[2] > v[2] then
-      v[2] := V1[2];
+  if v1[0] > v[0] then
+      v[0] := v1[0];
+  if v1[1] > v[1] then
+      v[1] := v1[1];
+  if v1[2] > v[2] then
+      v[2] := v1[2];
 end;
 
 // MinVector (hmg)
 //
-procedure MinVector(var v: TVector; const V1: TVector);
+procedure MinVector(var v: TVector; const v1: TVector);
 begin
-  if V1[0] < v[0] then
-      v[0] := V1[0];
-  if V1[1] < v[1] then
-      v[1] := V1[1];
-  if V1[2] < v[2] then
-      v[2] := V1[2];
-  if V1[3] < v[3] then
-      v[3] := V1[3];
+  if v1[0] < v[0] then
+      v[0] := v1[0];
+  if v1[1] < v[1] then
+      v[1] := v1[1];
+  if v1[2] < v[2] then
+      v[2] := v1[2];
+  if v1[3] < v[3] then
+      v[3] := v1[3];
 end;
 
 // MinVector (affine)
 //
-procedure MinVector(var v: TAffineVector; const V1: TAffineVector);
+procedure MinVector(var v: TAffineVector; const v1: TAffineVector);
 begin
-  if V1[0] < v[0] then
-      v[0] := V1[0];
-  if V1[1] < v[1] then
-      v[1] := V1[1];
-  if V1[2] < v[2] then
-      v[2] := V1[2];
+  if v1[0] < v[0] then
+      v[0] := v1[0];
+  if v1[1] < v[1] then
+      v[1] := v1[1];
+  if v1[2] < v[2] then
+      v[2] := v1[2];
 end;
 
 // SortArrayAscending (extended)
 //
-procedure SortArrayAscending(var a: array of Extended);
+procedure SortArrayAscending(var A: array of Extended);
 var
   i, J, M: Integer;
-  buf: Extended;
+  Buf: Extended;
 begin
-  for i := low(a) to high(a) - 1 do begin
+  for i := low(A) to high(A) - 1 do begin
       M := i;
-      for J := i + 1 to high(a) do
-        if a[J] < a[M] then
+      for J := i + 1 to high(A) do
+        if A[J] < A[M] then
             M := J;
       if M <> i then begin
-          buf := a[M];
-          a[M] := a[i];
-          a[i] := buf;
+          Buf := A[M];
+          A[M] := A[i];
+          A[i] := Buf;
         end;
     end;
 end;
 
 // ClampValue (min-max)
 //
-function ClampValue(const aValue, aMin, aMax: single): single;
+function ClampValue(const AValue, aMin, aMax: Single): Single;
 begin
-  if aValue < aMin then
-      result := aMin
-  else if aValue > aMax then
-      result := aMax
+  if AValue < aMin then
+      Result := aMin
+  else if AValue > aMax then
+      Result := aMax
   else
-      result := aValue;
+      Result := AValue;
 end;
 
 // ClampValue (min-)
 //
-function ClampValue(const aValue, aMin: single): single;
+function ClampValue(const AValue, aMin: Single): Single;
 begin
-  if aValue < aMin then
-      result := aMin
+  if AValue < aMin then
+      Result := aMin
   else
-      result := aValue;
+      Result := AValue;
 end;
 
 // MakeAffineDblVector
 //
-function MakeAffineDblVector(var v: array of double): TAffineDblVector;
+function MakeAffineDblVector(var v: array of Double): TAffineDblVector;
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
 end;
 
 // MakeDblVector
 //
-function MakeDblVector(var v: array of double): THomogeneousDblVector;
+function MakeDblVector(var v: array of Double): THomogeneousDblVector;
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
-  result[3] := v[3];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
+  Result[3] := v[3];
 end;
 
 // PointInPolygon
 //
-function PointInPolygon(var xp, yp: array of single; x, y: single): Boolean;
+function PointInPolygon(var xp, yp: array of Single; X, Y: Single): Boolean;
 // The code below is from Wm. Randolph Franklin <wrf@ecse.rpi.edu>
 // with some minor modifications for speed.  It returns 1 for strictly
 // interior points, 0 for strictly exterior, and 0 or 1 for points on
@@ -6172,13 +6166,13 @@ function PointInPolygon(var xp, yp: array of single; x, y: single): Boolean;
 var
   i, J: Integer;
 begin
-  result := False;
+  Result := False;
   if high(xp) = high(yp) then begin
       J := high(xp);
       for i := 0 to high(xp) do begin
-          if ((((yp[i] <= y) and (y < yp[J])) or ((yp[J] <= y) and (y < yp[i])))
-            and (x < (xp[J] - xp[i]) * (y - yp[i]) / (yp[J] - yp[i]) + xp[i])) then
-              result := not result;
+          if ((((yp[i] <= Y) and (Y < yp[J])) or ((yp[J] <= Y) and (Y < yp[i])))
+            and (X < (xp[J] - xp[i]) * (Y - yp[i]) / (yp[J] - yp[i]) + xp[i])) then
+              Result := not Result;
           J := i;
         end;
     end;
@@ -6186,9 +6180,9 @@ end;
 
 // DivMod
 //
-procedure DivMod(Dividend: Integer; Divisor: Word; var result, Remainder: Word);
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
 begin
-  result := Dividend div Divisor;
+  Result := Dividend div Divisor;
   Remainder := Dividend mod Divisor;
 end;
 
@@ -6241,50 +6235,50 @@ function ConvertRotation(const Angles: TAffineVector): TVector;
 var
   Axis1, Axis2: TVector3f;
   M, m1, m2: TMatrix;
-  cost, cost1, sint, s1, s2, s3: single;
+  cost, cost1, sint, s1, s2, s3: Single;
   i: Integer;
 begin
   // see if we are only rotating about a single Axis
-  if Abs(Angles[x]) < EPSILON then begin
-      if Abs(Angles[y]) < EPSILON then begin
-          SetVector(result, 0, 0, 1, Angles[z]);
+  if Abs(Angles[X]) < Epsilon then begin
+      if Abs(Angles[Y]) < Epsilon then begin
+          SetVector(Result, 0, 0, 1, Angles[Z]);
           Exit;
         end
-      else if Abs(Angles[z]) < EPSILON then begin
-          SetVector(result, 0, 1, 0, Angles[y]);
+      else if Abs(Angles[Z]) < Epsilon then begin
+          SetVector(Result, 0, 1, 0, Angles[Y]);
           Exit;
         end
     end
-  else if (Abs(Angles[y]) < EPSILON) and (Abs(Angles[z]) < EPSILON) then begin
-      SetVector(result, 1, 0, 0, Angles[x]);
+  else if (Abs(Angles[Y]) < Epsilon) and (Abs(Angles[Z]) < Epsilon) then begin
+      SetVector(Result, 1, 0, 0, Angles[X]);
       Exit;
     end;
 
   // make the rotation matrix
   Axis1 := XVector;
-  M := CreateRotationMatrix(Axis1, Angles[x]);
+  M := CreateRotationMatrix(Axis1, Angles[X]);
 
   Axis2 := YVector;
-  m2 := CreateRotationMatrix(Axis2, Angles[y]);
+  m2 := CreateRotationMatrix(Axis2, Angles[Y]);
   m1 := MatrixMultiply(M, m2);
 
   Axis2 := ZVector;
-  m2 := CreateRotationMatrix(Axis2, Angles[z]);
+  m2 := CreateRotationMatrix(Axis2, Angles[Z]);
   M := MatrixMultiply(m1, m2);
 
-  cost := ((M[x, x] + M[y, y] + M[z, z]) - 1) / 2;
+  cost := ((M[X, X] + M[Y, Y] + M[Z, Z]) - 1) / 2;
   if cost < -1 then
       cost := -1
-  else if cost > 1 - EPSILON then begin
+  else if cost > 1 - Epsilon then begin
       // Bad Angle - this would cause a crash
-      SetVector(result, XHmgVector);
+      SetVector(Result, XHmgVector);
       Exit;
     end;
 
   cost1 := 1 - cost;
-  SetVector(result, Sqrt((M[x, x] - cost) / cost1),
-    Sqrt((M[y, y] - cost) / cost1),
-    Sqrt((M[z, z] - cost) / cost1),
+  SetVector(Result, Sqrt((M[X, X] - cost) / cost1),
+    Sqrt((M[Y, Y] - cost) / cost1),
+    Sqrt((M[Z, Z] - cost) / cost1),
     GeometryLib.ArcCos(cost));
 
   sint := 2 * Sqrt(1 - cost * cost); // This is actually 2 Sin(t)
@@ -6303,13 +6297,13 @@ begin
           s3 := -1
       else
           s3 := 1;
-      if (Abs(s1 * result[x] * sint - M[y, z] + M[z, y]) < EPSILON2)
-        and (Abs(s2 * result[y] * sint - M[z, x] + M[x, z]) < EPSILON2)
-        and (Abs(s3 * result[z] * sint - M[x, y] + M[y, x]) < EPSILON2) then begin
+      if (Abs(s1 * Result[X] * sint - M[Y, Z] + M[Z, Y]) < EPSILON2)
+        and (Abs(s2 * Result[Y] * sint - M[Z, X] + M[X, Z]) < EPSILON2)
+        and (Abs(s3 * Result[Z] * sint - M[X, Y] + M[Y, X]) < EPSILON2) then begin
           // We found the right combination of signs
-          result[x] := result[x] * s1;
-          result[y] := result[y] * s2;
-          result[z] := result[z] * s3;
+          Result[X] := Result[X] * s1;
+          Result[Y] := Result[Y] * s2;
+          Result[Z] := Result[Z] * s3;
           Exit;
         end;
     end;
@@ -6317,12 +6311,12 @@ end;
 
 // QuaternionSlerp
 //
-function QuaternionSlerp(const QStart, QEnd: TQuaternion; Spin: Integer; T: single): TQuaternion;
+function QuaternionSlerp(const QStart, QEnd: TQuaternion; Spin: Integer; T: Single): TQuaternion;
 var
   beta,           // complementary interp parameter
   Theta,          // Angle between A and B
   sint, cost,     // sine, cosine of theta
-  phi: single;    // theta plus spins
+  Phi: Single;    // theta plus spins
   bflip: Boolean; // use negativ t?
 begin
   // cosine theta
@@ -6340,41 +6334,41 @@ begin
   // just linear interpolate between QStart and QEnd.
   // Can't do spins, since we don't know what direction to spin.
 
-  if (1 - cost) < EPSILON then
+  if (1 - cost) < Epsilon then
       beta := 1 - T
   else begin
       // normal case
       Theta := GeometryLib.ArcCos(cost);
-      phi := Theta + Spin * PI;
+      Phi := Theta + Spin * pi;
       sint := Sin(Theta);
-      beta := Sin(Theta - T * phi) / sint;
-      T := Sin(T * phi) / sint;
+      beta := Sin(Theta - T * Phi) / sint;
+      T := Sin(T * Phi) / sint;
     end;
 
   if bflip then
       T := -T;
 
   // interpolate
-  result.ImagPart[x] := beta * QStart.ImagPart[x] + T * QEnd.ImagPart[x];
-  result.ImagPart[y] := beta * QStart.ImagPart[y] + T * QEnd.ImagPart[y];
-  result.ImagPart[z] := beta * QStart.ImagPart[z] + T * QEnd.ImagPart[z];
-  result.RealPart := beta * QStart.RealPart + T * QEnd.RealPart;
+  Result.ImagPart[X] := beta * QStart.ImagPart[X] + T * QEnd.ImagPart[X];
+  Result.ImagPart[Y] := beta * QStart.ImagPart[Y] + T * QEnd.ImagPart[Y];
+  Result.ImagPart[Z] := beta * QStart.ImagPart[Z] + T * QEnd.ImagPart[Z];
+  Result.RealPart := beta * QStart.RealPart + T * QEnd.RealPart;
 end;
 
 // QuaternionSlerp
 //
-function QuaternionSlerp(const source, dest: TQuaternion; const T: single): TQuaternion;
+function QuaternionSlerp(const Source, dest: TQuaternion; const T: Single): TQuaternion;
 var
-  to1: array [0 .. 4] of single;
+  to1: array [0 .. 4] of Single;
   omega, cosom, sinom, scale0, scale1: Extended;
   // t goes from 0 to 1
   // absolute rotations
 begin
   // calc cosine
-  cosom := source.ImagPart[0] * dest.ImagPart[0]
-    + source.ImagPart[1] * dest.ImagPart[1]
-    + source.ImagPart[2] * dest.ImagPart[2]
-    + source.RealPart * dest.RealPart;
+  cosom := Source.ImagPart[0] * dest.ImagPart[0]
+    + Source.ImagPart[1] * dest.ImagPart[1]
+    + Source.ImagPart[2] * dest.ImagPart[2]
+    + Source.RealPart * dest.RealPart;
   // adjust signs (if necessary)
   if cosom < 0 then begin
       cosom := -cosom;
@@ -6402,11 +6396,11 @@ begin
       scale1 := T;
     end;
   // calculate final values
-  result.ImagPart[0] := scale0 * source.ImagPart[0] + scale1 * to1[0];
-  result.ImagPart[1] := scale0 * source.ImagPart[1] + scale1 * to1[1];
-  result.ImagPart[2] := scale0 * source.ImagPart[2] + scale1 * to1[2];
-  result.RealPart := scale0 * source.RealPart + scale1 * to1[3];
-  NormalizeQuaternion(result);
+  Result.ImagPart[0] := scale0 * Source.ImagPart[0] + scale1 * to1[0];
+  Result.ImagPart[1] := scale0 * Source.ImagPart[1] + scale1 * to1[1];
+  Result.ImagPart[2] := scale0 * Source.ImagPart[2] + scale1 * to1[2];
+  Result.RealPart := scale0 * Source.RealPart + scale1 * to1[3];
+  NormalizeQuaternion(Result);
 end;
 
 // VectorDblToFlt
@@ -6414,10 +6408,10 @@ end;
 function VectorDblToFlt(const v: THomogeneousDblVector): THomogeneousVector;
 // converts a vector containing double sized values into a vector with single sized values
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
-  result[3] := v[3];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
+  Result[3] := v[3];
 end;
 
 // VectorAffineDblToFlt
@@ -6425,9 +6419,9 @@ end;
 function VectorAffineDblToFlt(const v: TAffineDblVector): TAffineVector;
 // converts a vector containing double sized values into a vector with single sized values
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
 end;
 
 // VectorAffineFltToDbl
@@ -6435,9 +6429,9 @@ end;
 function VectorAffineFltToDbl(const v: TAffineVector): TAffineDblVector;
 // converts a vector containing single sized values into a vector with double sized values
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
 end;
 
 // VectorFltToDbl
@@ -6445,54 +6439,54 @@ end;
 function VectorFltToDbl(const v: TVector): THomogeneousDblVector;
 // converts a vector containing single sized values into a vector with double sized values
 begin
-  result[0] := v[0];
-  result[1] := v[1];
-  result[2] := v[2];
-  result[3] := v[3];
+  Result[0] := v[0];
+  Result[1] := v[1];
+  Result[2] := v[2];
+  Result[3] := v[3];
 end;
 
 // ----------------- coordinate system manipulation functions -----------------------------------------------------------
 
 // Turn (Y axis)
 //
-function Turn(const Matrix: TMatrix; angle: single): TMatrix;
+function Turn(const Matrix: TMatrix; angle: Single): TMatrix;
 begin
-  result := MatrixMultiply(Matrix, CreateRotationMatrix(AffineVectorMake(Matrix[1][0], Matrix[1][1], Matrix[1][2]), angle));
+  Result := MatrixMultiply(Matrix, CreateRotationMatrix(AffineVectorMake(Matrix[1][0], Matrix[1][1], Matrix[1][2]), angle));
 end;
 
 // Turn (direction)
 //
-function Turn(const Matrix: TMatrix; const MasterUp: TAffineVector; angle: single): TMatrix;
+function Turn(const Matrix: TMatrix; const MasterUp: TAffineVector; angle: Single): TMatrix;
 begin
-  result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterUp, angle));
+  Result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterUp, angle));
 end;
 
 // Pitch (X axis)
 //
-function Pitch(const Matrix: TMatrix; angle: single): TMatrix;
+function Pitch(const Matrix: TMatrix; angle: Single): TMatrix;
 begin
-  result := MatrixMultiply(Matrix, CreateRotationMatrix(AffineVectorMake(Matrix[0][0], Matrix[0][1], Matrix[0][2]), angle));
+  Result := MatrixMultiply(Matrix, CreateRotationMatrix(AffineVectorMake(Matrix[0][0], Matrix[0][1], Matrix[0][2]), angle));
 end;
 
 // Pitch (direction)
 //
-function Pitch(const Matrix: TMatrix; const MasterRight: TAffineVector; angle: single): TMatrix; overload;
+function Pitch(const Matrix: TMatrix; const MasterRight: TAffineVector; angle: Single): TMatrix; overload;
 begin
-  result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterRight, angle));
+  Result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterRight, angle));
 end;
 
 // Roll (Z axis)
 //
-function Roll(const Matrix: TMatrix; angle: single): TMatrix;
+function Roll(const Matrix: TMatrix; angle: Single): TMatrix;
 begin
-  result := MatrixMultiply(Matrix, CreateRotationMatrix(AffineVectorMake(Matrix[2][0], Matrix[2][1], Matrix[2][2]), angle));
+  Result := MatrixMultiply(Matrix, CreateRotationMatrix(AffineVectorMake(Matrix[2][0], Matrix[2][1], Matrix[2][2]), angle));
 end;
 
 // Roll (direction)
 //
-function Roll(const Matrix: TMatrix; const MasterDirection: TAffineVector; angle: single): TMatrix; overload;
+function Roll(const Matrix: TMatrix; const MasterDirection: TAffineVector; angle: Single): TMatrix; overload;
 begin
-  result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterDirection, angle));
+  Result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterDirection, angle));
 end;
 
 // RayCastPlaneIntersect (plane defined by point+normal)
@@ -6502,40 +6496,40 @@ function RayCastPlaneIntersect(const rayStart, rayVector: TVector;
   intersectPoint: PVector = nil): Boolean;
 var
   sp: TVector;
-  T, d: single;
+  T, d: Single;
 begin
   d := VectorDotProduct(rayVector, planeNormal);
-  result := ((d > EPSILON2) or (d < -EPSILON2));
-  if result and Assigned(intersectPoint) then begin
+  Result := ((d > EPSILON2) or (d < -EPSILON2));
+  if Result and Assigned(intersectPoint) then begin
       VectorSubtract(planePoint, rayStart, sp);
       d := 1 / d; // will keep one FPU unit busy during dot product calculation
       T := VectorDotProduct(sp, planeNormal) * d;
       if T > 0 then
           VectorCombine(rayStart, rayVector, T, intersectPoint^)
       else
-          result := False;
+          Result := False;
     end;
 end;
 
 // RayCastPlaneXZIntersect
 //
 function RayCastPlaneXZIntersect(const rayStart, rayVector: TVector;
-  const planeY: single;
+  const planeY: Single;
   intersectPoint: PVector = nil): Boolean;
 var
-  T: single;
+  T: Single;
 begin
   if rayVector[1] = 0 then
-      result := False
+      Result := False
   else begin
       T := (rayStart[1] - planeY) / rayVector[1];
       if T < 0 then begin
           if Assigned(intersectPoint) then
               VectorCombine(rayStart, rayVector, T, intersectPoint^);
-          result := True;
+          Result := True;
         end
       else
-          result := False;
+          Result := False;
     end;
 end;
 
@@ -6547,36 +6541,36 @@ function RayCastTriangleIntersect(const rayStart, rayVector: TVector;
   intersectNormal: PVector = nil): Boolean;
 var
   pvec: TAffineVector;
-  V1, V2, qvec, tvec: TVector;
-  T, u, v, det, invDet: single;
+  v1, v2, qvec, tvec: TVector;
+  T, u, v, det, invDet: Single;
 begin
-  VectorSubtract(p2, p1, V1);
-  VectorSubtract(p3, p1, V2);
-  VectorCrossProduct(rayVector, V2, pvec);
-  det := VectorDotProduct(V1, pvec);
+  VectorSubtract(p2, p1, v1);
+  VectorSubtract(p3, p1, v2);
+  VectorCrossProduct(rayVector, v2, pvec);
+  det := VectorDotProduct(v1, pvec);
   if ((det < EPSILON2) and (det > -EPSILON2)) then begin // vector is parallel to triangle's plane
-      result := False;
+      Result := False;
       Exit;
     end;
   invDet := cOne / det;
   VectorSubtract(rayStart, p1, tvec);
   u := VectorDotProduct(tvec, pvec) * invDet;
   if (u < 0) or (u > 1) then
-      result := False
+      Result := False
   else begin
-      qvec := VectorCrossProduct(tvec, V1);
+      qvec := VectorCrossProduct(tvec, v1);
       v := VectorDotProduct(rayVector, qvec) * invDet;
-      result := (v >= 0) and (u + v <= 1);
-      if result then begin
-          T := VectorDotProduct(V2, qvec) * invDet;
+      Result := (v >= 0) and (u + v <= 1);
+      if Result then begin
+          T := VectorDotProduct(v2, qvec) * invDet;
           if T > 0 then begin
               if intersectPoint <> nil then
                   VectorCombine(rayStart, rayVector, T, intersectPoint^);
               if intersectNormal <> nil then
-                  VectorCrossProduct(V1, V2, intersectNormal^);
+                  VectorCrossProduct(v1, v2, intersectNormal^);
             end
           else
-              result := False;
+              Result := False;
         end;
     end;
 end;
@@ -6584,38 +6578,38 @@ end;
 // RayCastMinDistToPoint
 //
 function RayCastMinDistToPoint(const rayStart, rayVector: TVector;
-  const point: TVector): single;
+  const Point: TVector): Single;
 var
-  proj: single;
+  proj: Single;
 begin
-  proj := PointProject(point, rayStart, rayVector);
+  proj := PointProject(Point, rayStart, rayVector);
   if proj <= 0 then
       proj := 0; // rays don't go backward!
-  result := VectorDistance(point, VectorCombine(rayStart, rayVector, 1, proj));
+  Result := VectorDistance(Point, VectorCombine(rayStart, rayVector, 1, proj));
 end;
 
 // RayCastIntersectsSphere
 //
 function RayCastIntersectsSphere(const rayStart, rayVector: TVector;
   const sphereCenter: TVector;
-  const SphereRadius: single): Boolean;
+  const SphereRadius: Single): Boolean;
 var
-  proj: single;
+  proj: Single;
 begin
   proj := PointProject(sphereCenter, rayStart, rayVector);
   if proj <= 0 then
       proj := 0; // rays don't go backward!
-  result := (VectorDistance2(sphereCenter, VectorCombine(rayStart, rayVector, 1, proj)) <= Sqr(SphereRadius));
+  Result := (VectorDistance2(sphereCenter, VectorCombine(rayStart, rayVector, 1, proj)) <= Sqr(SphereRadius));
 end;
 
 // RayCastSphereIntersect
 //
 function RayCastSphereIntersect(const rayStart, rayVector: TVector;
   const sphereCenter: TVector;
-  const SphereRadius: single;
+  const SphereRadius: Single;
   var i1, i2: TVector): Integer;
 var
-  proj, d2: single;
+  proj, d2: Single;
   id2: Integer;
   projPoint: TVector;
 begin
@@ -6627,7 +6621,7 @@ begin
       if id2 = 0 then begin
           if PInteger(@proj)^ > 0 then begin
               VectorCombine(rayStart, rayVector, proj, i1);
-              result := 1;
+              Result := 1;
               Exit;
             end;
         end
@@ -6636,17 +6630,17 @@ begin
           if proj >= d2 then begin
               VectorCombine(rayStart, rayVector, proj - d2, i1);
               VectorCombine(rayStart, rayVector, proj + d2, i2);
-              result := 2;
+              Result := 2;
               Exit;
             end
           else if proj + d2 >= 0 then begin
               VectorCombine(rayStart, rayVector, proj + d2, i1);
-              result := 1;
+              Result := 1;
               Exit;
             end;
         end;
     end;
-  result := 0;
+  Result := 0;
 end;
 
 // RayCastBoxIntersect
@@ -6660,22 +6654,22 @@ var
   isMiddle: array [0 .. 2] of Boolean;
 begin
   // Find plane.
-  result := True;
+  Result := True;
   for i := 0 to 2 do
     if rayStart[i] < aMinExtent[i] then begin
         plane[i] := aMinExtent[i];
         isMiddle[i] := False;
-        result := False;
+        Result := False;
       end
     else if rayStart[i] > aMaxExtent[i] then begin
         plane[i] := aMaxExtent[i];
         isMiddle[i] := False;
-        result := False;
+        Result := False;
       end
     else begin
         isMiddle[i] := True;
       end;
-  if result then begin
+  if Result then begin
       // rayStart inside box.
       if intersectPoint <> nil
       then
@@ -6695,20 +6689,20 @@ begin
                 if MaxDist[planeInd] < MaxDist[i]
                 then
                     planeInd := i;
-                result := True;
+                Result := True;
               end;
           end;
       // Inside box ?
-      if result then begin
+      if Result then begin
           for i := 0 to 2 do
             if planeInd = i
             then
                 ResAFV[i] := plane[i]
             else begin
                 ResAFV[i] := rayStart[i] + MaxDist[planeInd] * rayVector[i];
-                result := (ResAFV[i] >= aMinExtent[i])
+                Result := (ResAFV[i] >= aMinExtent[i])
                   and (ResAFV[i] <= aMaxExtent[i]);
-                if not result then
+                if not Result then
                     Exit;
               end;
           if intersectPoint <> nil
@@ -6720,43 +6714,43 @@ end;
 
 // SphereVisibleRadius
 //
-function SphereVisibleRadius(distance, radius: single): single;
+function SphereVisibleRadius(Distance, radius: Single): Single;
 var
-  d2, r2, ir, tr: single;
+  d2, r2, IR, tr: Single;
 begin
-  d2 := distance * distance;
+  d2 := Distance * Distance;
   r2 := radius * radius;
-  ir := Sqrt(d2 - r2);
-  tr := (d2 + r2 - Sqr(ir)) / (2 * ir);
+  IR := Sqrt(d2 - r2);
+  tr := (d2 + r2 - Sqr(IR)) / (2 * IR);
 
-  result := Sqrt(r2 + Sqr(tr));
+  Result := Sqrt(r2 + Sqr(tr));
 end;
 
 // IntersectLinePlane
 //
-function IntersectLinePlane(const point, direction: TVector;
+function IntersectLinePlane(const Point, direction: TVector;
   const plane: THmgPlane;
   intersectPoint: PVector = nil): Integer;
 var
-  a, b: Extended;
-  T: single;
+  A, b: Extended;
+  T: Single;
 begin
-  a := VectorDotProduct(plane, direction); // direction projected to plane normal
-  b := PlaneEvaluatePoint(plane, point);   // distance to plane
-  if a = 0 then begin                      // direction is parallel to plane
+  A := VectorDotProduct(plane, direction); // direction projected to plane normal
+  b := PlaneEvaluatePoint(plane, Point);   // distance to plane
+  if A = 0 then begin                      // direction is parallel to plane
       if b = 0 then
-          result := -1 // line is inside plane
+          Result := -1 // line is inside plane
       else
-          result := 0; // line is outside plane
+          Result := 0; // line is outside plane
     end
   else begin
       if Assigned(intersectPoint) then begin
-          T := -b / a; // parameter of intersection
-          intersectPoint^ := point;
+          T := -b / A; // parameter of intersection
+          intersectPoint^ := Point;
           // calculate intersection = p + t*d
           CombineVector(intersectPoint^, direction, T);
         end;
-      result := 1;
+      Result := 1;
     end;
 end;
 
@@ -6771,70 +6765,70 @@ var
 begin
   // Triangle edge (p2, p1) - Box intersection
   VectorSubtract(p2, p1, RayDir);
-  result := RayCastBoxIntersect(p1, RayDir, aMinExtent, aMaxExtent, @iPoint);
-  if result then
-      result := VectorNorm(VectorSubtract(p1, iPoint))
+  Result := RayCastBoxIntersect(p1, RayDir, aMinExtent, aMaxExtent, @iPoint);
+  if Result then
+      Result := VectorNorm(VectorSubtract(p1, iPoint))
       < VectorNorm(VectorSubtract(p1, p2));
-  if result then
+  if Result then
       Exit;
 
   // Triangle edge (p3, p1) - Box intersection
   VectorSubtract(p3, p1, RayDir);
-  result := RayCastBoxIntersect(p1, RayDir, aMinExtent, aMaxExtent, @iPoint);
-  if result then
-      result := VectorNorm(VectorSubtract(p1, iPoint))
+  Result := RayCastBoxIntersect(p1, RayDir, aMinExtent, aMaxExtent, @iPoint);
+  if Result then
+      Result := VectorNorm(VectorSubtract(p1, iPoint))
       < VectorNorm(VectorSubtract(p1, p3));
-  if result then
+  if Result then
       Exit;
 
   // Triangle edge (p2, p3) - Box intersection
   VectorSubtract(p2, p3, RayDir);
-  result := RayCastBoxIntersect(p3, RayDir, aMinExtent, aMaxExtent, @iPoint);
-  if result then
-      result := VectorNorm(VectorSubtract(p3, iPoint))
+  Result := RayCastBoxIntersect(p3, RayDir, aMinExtent, aMaxExtent, @iPoint);
+  if Result then
+      Result := VectorNorm(VectorSubtract(p3, iPoint))
       < VectorNorm(VectorSubtract(p3, p2));
-  if result then
+  if Result then
       Exit;
 
   // Triangle - Box diagonal 1 intersection
   BoxDiagPt := VectorMake(aMinExtent);
   VectorSubtract(aMaxExtent, aMinExtent, BoxDiagDir);
-  result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
-  if result then
-      result := VectorNorm(VectorSubtract(BoxDiagPt, iPnt))
+  Result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
+  if Result then
+      Result := VectorNorm(VectorSubtract(BoxDiagPt, iPnt))
       < VectorNorm(VectorSubtract(aMaxExtent, aMinExtent));
-  if result then
+  if Result then
       Exit;
 
   // Triangle - Box diagonal 2 intersection
   BoxDiagPt := VectorMake(aMinExtent[0], aMinExtent[1], aMaxExtent[2]);
   BoxDiagPt2 := VectorMake(aMaxExtent[0], aMaxExtent[1], aMinExtent[2]);
   VectorSubtract(BoxDiagPt2, BoxDiagPt, BoxDiagDir);
-  result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
-  if result then
-      result := VectorNorm(VectorSubtract(BoxDiagPt, iPnt))
+  Result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
+  if Result then
+      Result := VectorNorm(VectorSubtract(BoxDiagPt, iPnt))
       < VectorNorm(VectorSubtract(BoxDiagPt, BoxDiagPt2));
-  if result then
+  if Result then
       Exit;
 
   // Triangle - Box diagonal 3 intersection
   BoxDiagPt := VectorMake(aMinExtent[0], aMaxExtent[1], aMinExtent[2]);
   BoxDiagPt2 := VectorMake(aMaxExtent[0], aMinExtent[1], aMaxExtent[2]);
   VectorSubtract(BoxDiagPt, BoxDiagPt, BoxDiagDir);
-  result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
-  if result then
-      result := VectorLength(VectorSubtract(BoxDiagPt, iPnt))
+  Result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
+  if Result then
+      Result := VectorLength(VectorSubtract(BoxDiagPt, iPnt))
       < VectorLength(VectorSubtract(BoxDiagPt, BoxDiagPt));
-  if result then
+  if Result then
       Exit;
 
   // Triangle - Box diagonal 4 intersection
   BoxDiagPt := VectorMake(aMaxExtent[0], aMinExtent[1], aMinExtent[2]);
   BoxDiagPt2 := VectorMake(aMinExtent[0], aMaxExtent[1], aMaxExtent[2]);
   VectorSubtract(BoxDiagPt, BoxDiagPt, BoxDiagDir);
-  result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
-  if result then
-      result := VectorLength(VectorSubtract(BoxDiagPt, iPnt))
+  Result := RayCastTriangleIntersect(BoxDiagPt, BoxDiagDir, p1, p2, p3, @iPnt);
+  if Result then
+      Result := VectorLength(VectorSubtract(BoxDiagPt, iPnt))
       < VectorLength(VectorSubtract(BoxDiagPt, BoxDiagPt));
 end;
 
@@ -6842,29 +6836,29 @@ end;
 //
 function IntersectSphereBox(
   const SpherePos: TVector;
-  const SphereRadius: single;
+  const SphereRadius: Single;
   const BoxMatrix: TMatrix; // Up Direction and Right must be normalized!
   // Use CubDepht, CubeHeight and CubeWidth
   // for scale TGLCube.
   const BoxScale: TAffineVector
   ; intersectPoint: PAffineVector = nil
   ; normal: PAffineVector = nil
-  ; depth: PSingle = nil
+  ; Depth: PSingle = nil
   ): Boolean;
 
   function dDOTByColumn(const v: TAffineVector; const M: TMatrix;
-    const aColumn: Integer): single;
+    const aColumn: Integer): Single;
   begin
-    result := v[0] * M[0, aColumn]
+    Result := v[0] * M[0, aColumn]
       + v[1] * M[1, aColumn]
       + v[2] * M[2, aColumn];
   end;
 
   function dDotByRow(const v: TAffineVector;
-    const M: TMatrix; const aRow: Integer): single;
+    const M: TMatrix; const aRow: Integer): Single;
   begin
     // Equal with: Result := VectorDotProduct(v, AffineVectorMake(m[aRow]));
-    result := v[0] * M[aRow, 0]
+    Result := v[0] * M[aRow, 0]
       + v[1] * M[aRow, 1]
       + v[2] * M[aRow, 2];
   end;
@@ -6872,23 +6866,23 @@ function IntersectSphereBox(
   function dDotMatrByColumn(const v: TAffineVector;
     const M: TMatrix): TAffineVector;
   begin
-    result[0] := dDOTByColumn(v, M, 0);
-    result[1] := dDOTByColumn(v, M, 1);
-    result[2] := dDOTByColumn(v, M, 2);
+    Result[0] := dDOTByColumn(v, M, 0);
+    Result[1] := dDOTByColumn(v, M, 1);
+    Result[2] := dDOTByColumn(v, M, 2);
   end;
 
   function dDotMatrByRow(const v: TAffineVector;
     const M: TMatrix): TAffineVector;
   begin
-    result[0] := dDotByRow(v, M, 0);
-    result[1] := dDotByRow(v, M, 1);
-    result[2] := dDotByRow(v, M, 2);
+    Result[0] := dDotByRow(v, M, 0);
+    Result[1] := dDotByRow(v, M, 1);
+    Result[2] := dDotByRow(v, M, 2);
   end;
 
 var
-  tmp, l, T, p, Q, r: TAffineVector;
+  tmp, L, T, p, q, R: TAffineVector;
   FaceDistance,
-    MinDistance, Depth1: single;
+    MinDistance, Depth1: Single;
   mini, i: Integer;
   isSphereCenterInsideBox: Boolean;
 begin
@@ -6904,24 +6898,24 @@ begin
 
   isSphereCenterInsideBox := True;
   for i := 0 to 2 do begin
-      l[i] := 0.5 * BoxScale[i];
+      L[i] := 0.5 * BoxScale[i];
       T[i] := dDotByRow(p, BoxMatrix, i);
-      if T[i] < -l[i] then begin
-          T[i] := -l[i];
+      if T[i] < -L[i] then begin
+          T[i] := -L[i];
           isSphereCenterInsideBox := False;
         end
-      else if T[i] > l[i] then begin
-          T[i] := l[i];
+      else if T[i] > L[i] then begin
+          T[i] := L[i];
           isSphereCenterInsideBox := False;
         end;
     end;
 
   if isSphereCenterInsideBox then begin
 
-      MinDistance := l[0] - Abs(T[0]);
+      MinDistance := L[0] - Abs(T[0]);
       mini := 0;
       for i := 1 to 2 do begin
-          FaceDistance := l[i] - Abs(T[i]);
+          FaceDistance := L[i] - Abs(T[i]);
           if FaceDistance < MinDistance then begin
               MinDistance := FaceDistance;
               mini := i;
@@ -6940,27 +6934,27 @@ begin
           normal^ := dDotMatrByRow(tmp, BoxMatrix);
         end;
 
-      if depth <> nil then
-          depth^ := MinDistance + SphereRadius;
+      if Depth <> nil then
+          Depth^ := MinDistance + SphereRadius;
 
-      result := True;
+      Result := True;
     end
   else begin
-      Q := dDotMatrByColumn(T, BoxMatrix);
-      r := VectorSubtract(p, Q);
-      Depth1 := SphereRadius - VectorLength(r);
+      q := dDotMatrByColumn(T, BoxMatrix);
+      R := VectorSubtract(p, q);
+      Depth1 := SphereRadius - VectorLength(R);
       if Depth1 < 0 then begin
-          result := False;
+          Result := False;
         end
       else begin
           if intersectPoint <> nil then
-              intersectPoint^ := VectorAdd(Q, AffineVectorMake(BoxMatrix[3]));
+              intersectPoint^ := VectorAdd(q, AffineVectorMake(BoxMatrix[3]));
           if normal <> nil then begin
-              normal^ := VectorNormalize(r);
+              normal^ := VectorNormalize(R);
             end;
-          if depth <> nil then
-              depth^ := Depth1;
-          result := True;
+          if Depth <> nil then
+              Depth^ := Depth1;
+          Result := True;
         end;
     end;
 end;
@@ -6969,7 +6963,7 @@ end;
 //
 function ExtractFrustumFromModelViewProjection(const modelViewProj: TMatrix): TFrustum;
 begin
-  with result do begin
+  with Result do begin
       // extract left plane
       pLeft[0] := modelViewProj[0][3] + modelViewProj[0][0];
       pLeft[1] := modelViewProj[1][3] + modelViewProj[1][0];
@@ -7011,13 +7005,13 @@ end;
 
 // IsVolumeClipped
 //
-function IsVolumeClipped(const objPos: TAffineVector; const objRadius: single;
+function IsVolumeClipped(const objPos: TAffineVector; const objRadius: Single;
   const Frustum: TFrustum): Boolean;
 var
-  negRadius: single;
+  negRadius: Single;
 begin
   negRadius := -objRadius;
-  result := (PlaneEvaluatePoint(Frustum.pLeft, objPos) < negRadius)
+  Result := (PlaneEvaluatePoint(Frustum.pLeft, objPos) < negRadius)
     or (PlaneEvaluatePoint(Frustum.pTop, objPos) < negRadius)
     or (PlaneEvaluatePoint(Frustum.pRight, objPos) < negRadius)
     or (PlaneEvaluatePoint(Frustum.pBottom, objPos) < negRadius)
@@ -7027,20 +7021,20 @@ end;
 
 // IsVolumeClipped
 //
-function IsVolumeClipped(const objPos: TVector; const objRadius: single;
+function IsVolumeClipped(const objPos: TVector; const objRadius: Single;
   const Frustum: TFrustum): Boolean;
 begin
-  result := IsVolumeClipped(PAffineVector(@objPos)^, objRadius, Frustum);
+  Result := IsVolumeClipped(PAffineVector(@objPos)^, objRadius, Frustum);
 end;
 
 // IsVolumeClipped
 //
-function IsVolumeClipped(const min, max: TAffineVector;
+function IsVolumeClipped(const Min, Max: TAffineVector;
   const Frustum: TFrustum): Boolean;
 begin
   // change box to sphere
-  result := IsVolumeClipped(VectorScale(VectorAdd(min, max), 0.5),
-    VectorDistance(min, max) * 0.5, Frustum);
+  Result := IsVolumeClipped(VectorScale(VectorAdd(Min, Max), 0.5),
+    VectorDistance(Min, Max) * 0.5, Frustum);
 end;
 
 // MakeParallelProjectionMatrix
@@ -7049,41 +7043,41 @@ function MakeParallelProjectionMatrix(const plane: THmgPlane;
   const dir: TVector): TMatrix;
 // Based on material from a course by William D. Shoaff (www.cs.fit.edu)
 var
-  dot, invDot: single;
+  dot, invDot: Single;
 begin
   dot := plane[0] * dir[0] + plane[1] * dir[1] + plane[2] * dir[2];
   if Abs(dot) < 1E-5 then begin
-      result := IdentityHmgMatrix;
+      Result := IdentityHmgMatrix;
       Exit;
     end;
   invDot := 1 / dot;
 
-  result[0][0] := (plane[1] * dir[1] + plane[2] * dir[2]) * invDot;
-  result[1][0] := (-plane[1] * dir[0]) * invDot;
-  result[2][0] := (-plane[2] * dir[0]) * invDot;
-  result[3][0] := (-plane[3] * dir[0]) * invDot;
+  Result[0][0] := (plane[1] * dir[1] + plane[2] * dir[2]) * invDot;
+  Result[1][0] := (-plane[1] * dir[0]) * invDot;
+  Result[2][0] := (-plane[2] * dir[0]) * invDot;
+  Result[3][0] := (-plane[3] * dir[0]) * invDot;
 
-  result[0][1] := (-plane[0] * dir[1]) * invDot;
-  result[1][1] := (plane[0] * dir[0] + plane[2] * dir[2]) * invDot;
-  result[2][1] := (-plane[2] * dir[1]) * invDot;
-  result[3][1] := (-plane[3] * dir[1]) * invDot;
+  Result[0][1] := (-plane[0] * dir[1]) * invDot;
+  Result[1][1] := (plane[0] * dir[0] + plane[2] * dir[2]) * invDot;
+  Result[2][1] := (-plane[2] * dir[1]) * invDot;
+  Result[3][1] := (-plane[3] * dir[1]) * invDot;
 
-  result[0][2] := (-plane[0] * dir[2]) * invDot;
-  result[1][2] := (-plane[1] * dir[2]) * invDot;
-  result[2][2] := (plane[0] * dir[0] + plane[1] * dir[1]) * invDot;
-  result[3][2] := (-plane[3] * dir[2]) * invDot;
+  Result[0][2] := (-plane[0] * dir[2]) * invDot;
+  Result[1][2] := (-plane[1] * dir[2]) * invDot;
+  Result[2][2] := (plane[0] * dir[0] + plane[1] * dir[1]) * invDot;
+  Result[3][2] := (-plane[3] * dir[2]) * invDot;
 
-  result[0][3] := 0;
-  result[1][3] := 0;
-  result[2][3] := 0;
-  result[3][3] := 1;
+  Result[0][3] := 0;
+  Result[1][3] := 0;
+  Result[2][3] := 0;
+  Result[3][3] := 1;
 end;
 
 // MakeShadowMatrix
 //
 function MakeShadowMatrix(const planePoint, planeNormal, lightPos: TVector): TMatrix;
 var
-  planeNormal3, dot: single;
+  planeNormal3, dot: Single;
 begin
   // Find the last coefficient by back substitutions
   planeNormal3 := -(planeNormal[0] * planePoint[0]
@@ -7096,76 +7090,76 @@ begin
     + planeNormal3 * lightPos[3];
   // Now do the projection
   // First column
-  result[0][0] := dot - lightPos[0] * planeNormal[0];
-  result[1][0] := -lightPos[0] * planeNormal[1];
-  result[2][0] := -lightPos[0] * planeNormal[2];
-  result[3][0] := -lightPos[0] * planeNormal3;
+  Result[0][0] := dot - lightPos[0] * planeNormal[0];
+  Result[1][0] := -lightPos[0] * planeNormal[1];
+  Result[2][0] := -lightPos[0] * planeNormal[2];
+  Result[3][0] := -lightPos[0] * planeNormal3;
   // Second column
-  result[0][1] := -lightPos[1] * planeNormal[0];
-  result[1][1] := dot - lightPos[1] * planeNormal[1];
-  result[2][1] := -lightPos[1] * planeNormal[2];
-  result[3][1] := -lightPos[1] * planeNormal3;
+  Result[0][1] := -lightPos[1] * planeNormal[0];
+  Result[1][1] := dot - lightPos[1] * planeNormal[1];
+  Result[2][1] := -lightPos[1] * planeNormal[2];
+  Result[3][1] := -lightPos[1] * planeNormal3;
   // Third Column
-  result[0][2] := -lightPos[2] * planeNormal[0];
-  result[1][2] := -lightPos[2] * planeNormal[1];
-  result[2][2] := dot - lightPos[2] * planeNormal[2];
-  result[3][2] := -lightPos[2] * planeNormal3;
+  Result[0][2] := -lightPos[2] * planeNormal[0];
+  Result[1][2] := -lightPos[2] * planeNormal[1];
+  Result[2][2] := dot - lightPos[2] * planeNormal[2];
+  Result[3][2] := -lightPos[2] * planeNormal3;
   // Fourth Column
-  result[0][3] := -lightPos[3] * planeNormal[0];
-  result[1][3] := -lightPos[3] * planeNormal[1];
-  result[2][3] := -lightPos[3] * planeNormal[2];
-  result[3][3] := dot - lightPos[3] * planeNormal3;
+  Result[0][3] := -lightPos[3] * planeNormal[0];
+  Result[1][3] := -lightPos[3] * planeNormal[1];
+  Result[2][3] := -lightPos[3] * planeNormal[2];
+  Result[3][3] := dot - lightPos[3] * planeNormal3;
 end;
 
 // MakeReflectionMatrix
 //
 function MakeReflectionMatrix(const planePoint, planeNormal: TAffineVector): TMatrix;
 var
-  pv2: single;
+  pv2: Single;
 begin
   // Precalcs
   pv2 := 2 * VectorDotProduct(planePoint, planeNormal);
   // 1st column
-  result[0][0] := 1 - 2 * Sqr(planeNormal[0]);
-  result[0][1] := -2 * planeNormal[0] * planeNormal[1];
-  result[0][2] := -2 * planeNormal[0] * planeNormal[2];
-  result[0][3] := 0;
+  Result[0][0] := 1 - 2 * Sqr(planeNormal[0]);
+  Result[0][1] := -2 * planeNormal[0] * planeNormal[1];
+  Result[0][2] := -2 * planeNormal[0] * planeNormal[2];
+  Result[0][3] := 0;
   // 2nd column
-  result[1][0] := -2 * planeNormal[1] * planeNormal[0];
-  result[1][1] := 1 - 2 * Sqr(planeNormal[1]);
-  result[1][2] := -2 * planeNormal[1] * planeNormal[2];
-  result[1][3] := 0;
+  Result[1][0] := -2 * planeNormal[1] * planeNormal[0];
+  Result[1][1] := 1 - 2 * Sqr(planeNormal[1]);
+  Result[1][2] := -2 * planeNormal[1] * planeNormal[2];
+  Result[1][3] := 0;
   // 3rd column
-  result[2][0] := -2 * planeNormal[2] * planeNormal[0];
-  result[2][1] := -2 * planeNormal[2] * planeNormal[1];
-  result[2][2] := 1 - 2 * Sqr(planeNormal[2]);
-  result[2][3] := 0;
+  Result[2][0] := -2 * planeNormal[2] * planeNormal[0];
+  Result[2][1] := -2 * planeNormal[2] * planeNormal[1];
+  Result[2][2] := 1 - 2 * Sqr(planeNormal[2]);
+  Result[2][3] := 0;
   // 4th column
-  result[3][0] := pv2 * planeNormal[0];
-  result[3][1] := pv2 * planeNormal[1];
-  result[3][2] := pv2 * planeNormal[2];
-  result[3][3] := 1;
+  Result[3][0] := pv2 * planeNormal[0];
+  Result[3][1] := pv2 * planeNormal[1];
+  Result[3][2] := pv2 * planeNormal[2];
+  Result[3][3] := 1;
 end;
 
 // PackRotationMatrix
 //
 function PackRotationMatrix(const mat: TMatrix): TPackedRotationMatrix;
 var
-  Q: TQuaternion;
+  q: TQuaternion;
 const
-  cFact: single = 32767;
+  cFact: Single = 32767;
 begin
-  Q := QuaternionFromMatrix(mat);
-  NormalizeQuaternion(Q);
-  if Q.RealPart < 0 then begin
-      result[0] := Round(-Q.ImagPart[0] * cFact);
-      result[1] := Round(-Q.ImagPart[1] * cFact);
-      result[2] := Round(-Q.ImagPart[2] * cFact);
+  q := QuaternionFromMatrix(mat);
+  NormalizeQuaternion(q);
+  if q.RealPart < 0 then begin
+      Result[0] := Round(-q.ImagPart[0] * cFact);
+      Result[1] := Round(-q.ImagPart[1] * cFact);
+      Result[2] := Round(-q.ImagPart[2] * cFact);
     end
   else begin
-      result[0] := Round(Q.ImagPart[0] * cFact);
-      result[1] := Round(Q.ImagPart[1] * cFact);
-      result[2] := Round(Q.ImagPart[2] * cFact);
+      Result[0] := Round(q.ImagPart[0] * cFact);
+      Result[1] := Round(q.ImagPart[1] * cFact);
+      Result[2] := Round(q.ImagPart[2] * cFact);
     end;
 end;
 
@@ -7173,34 +7167,34 @@ end;
 //
 function UnPackRotationMatrix(const packedMatrix: TPackedRotationMatrix): TMatrix;
 var
-  Q: TQuaternion;
+  q: TQuaternion;
 const
-  cFact: single = 1 / 32767;
+  cFact: Single = 1 / 32767;
 begin
-  Q.ImagPart[0] := packedMatrix[0] * cFact;
-  Q.ImagPart[1] := packedMatrix[1] * cFact;
-  Q.ImagPart[2] := packedMatrix[2] * cFact;
-  Q.RealPart := 1 - VectorNorm(Q.ImagPart);
-  if Q.RealPart < 0 then
-      Q.RealPart := 0
+  q.ImagPart[0] := packedMatrix[0] * cFact;
+  q.ImagPart[1] := packedMatrix[1] * cFact;
+  q.ImagPart[2] := packedMatrix[2] * cFact;
+  q.RealPart := 1 - VectorNorm(q.ImagPart);
+  if q.RealPart < 0 then
+      q.RealPart := 0
   else
-      Q.RealPart := Sqrt(Q.RealPart);
-  result := QuaternionToMatrix(Q);
+      q.RealPart := Sqrt(q.RealPart);
+  Result := QuaternionToMatrix(q);
 end;
 
 // BarycentricCoordinates
 //
-function BarycentricCoordinates(const V1, V2, V3, p: TAffineVector; var u, v: single): Boolean;
+function BarycentricCoordinates(const v1, v2, v3, p: TAffineVector; var u, v: Single): Boolean;
 var
   a1, a2: Integer;
   n, e1, e2, pt: TAffineVector;
 begin
   // calculate edges
-  VectorSubtract(V1, V3, e1);
-  VectorSubtract(V2, V3, e2);
+  VectorSubtract(v1, v3, e1);
+  VectorSubtract(v2, v3, e2);
 
   // calculate p relative to v3
-  VectorSubtract(p, V3, pt);
+  VectorSubtract(p, v3, pt);
 
   // find the dominant axis
   n := VectorCrossProduct(e1, e2);
@@ -7230,418 +7224,418 @@ begin
   u := (pt[a2] * e2[a1] - pt[a1] * e2[a2]) / (e1[a2] * e2[a1] - e1[a1] * e2[a2]);
   v := (pt[a2] * e1[a1] - pt[a1] * e1[a2]) / (e2[a2] * e1[a1] - e2[a1] * e1[a2]);
 
-  result := (u >= 0) and (v >= 0) and (u + v <= 1);
+  Result := (u >= 0) and (v >= 0) and (u + v <= 1);
 end;
 
 { ***************************************************************************** }
 
 // VectorMake functions
 // 2x
-function Vector2fMake(const x, y: single): TVector2f;
+function Vector2fMake(const X, Y: Single): TVector2f;
 begin
-  result[0] := x;
-  result[1] := y;
+  Result[0] := X;
+  Result[1] := Y;
 end;
 
-function Vector2iMake(const x, y: Integer): TVector2i;
+function Vector2iMake(const X, Y: Integer): TVector2i;
 begin
-  result[0] := x;
-  result[1] := y;
+  Result[0] := X;
+  Result[1] := Y;
 end;
 
-function Vector2sMake(const x, y: smallint): TVector2s;
+function Vector2sMake(const X, Y: SmallInt): TVector2s;
 begin
-  result[0] := x;
-  result[1] := y;
+  Result[0] := X;
+  Result[1] := Y;
 end;
 
-function Vector2dMake(const x, y: double): TVector2d;
+function Vector2dMake(const X, Y: Double): TVector2d;
 begin
-  result[0] := x;
-  result[1] := y;
+  Result[0] := X;
+  Result[1] := Y;
 end;
 
-function Vector2bMake(const x, y: byte): TVector2b;
+function Vector2bMake(const X, Y: Byte): TVector2b;
 begin
-  result[0] := x;
-  result[1] := y;
+  Result[0] := X;
+  Result[1] := Y;
 end;
 
 // **************
 
 function Vector2fMake(const Vector: TVector3f): TVector2f;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2iMake(const Vector: TVector3i): TVector2i;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2sMake(const Vector: TVector3s): TVector2s;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2dMake(const Vector: TVector3d): TVector2d;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2bMake(const Vector: TVector3b): TVector2b;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 // **********
 
 function Vector2fMake(const Vector: TVector4f): TVector2f;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2iMake(const Vector: TVector4i): TVector2i;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2sMake(const Vector: TVector4s): TVector2s;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2dMake(const Vector: TVector4d): TVector2d;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 function Vector2bMake(const Vector: TVector4b): TVector2b;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
 end;
 
 { ***************************************************************************** }
 
 // 3x
-function Vector3fMake(const x, y, z: single): TVector3f;
+function Vector3fMake(const X, Y, Z: Single): TVector3f;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
 end;
 
-function Vector3iMake(const x, y, z: Integer): TVector3i;
+function Vector3iMake(const X, Y, Z: Integer): TVector3i;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
 end;
 
-function Vector3sMake(const x, y, z: smallint): TVector3s;
+function Vector3sMake(const X, Y, Z: SmallInt): TVector3s;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
 end;
 
-function Vector3dMake(const x, y, z: double): TVector3d;
+function Vector3dMake(const X, Y, Z: Double): TVector3d;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
 end;
 
-function Vector3bMake(const x, y, z: byte): TVector3b;
+function Vector3bMake(const X, Y, Z: Byte): TVector3b;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
 end;
 
 // *******
 
-function Vector3fMake(const Vector: TVector2f; const z: single): TVector3f;
+function Vector3fMake(const Vector: TVector2f; const Z: Single): TVector3f;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
 end;
 
-function Vector3iMake(const Vector: TVector2i; const z: Integer): TVector3i;
+function Vector3iMake(const Vector: TVector2i; const Z: Integer): TVector3i;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
 end;
 
-function Vector3sMake(const Vector: TVector2s; const z: smallint): TVector3s;
+function Vector3sMake(const Vector: TVector2s; const Z: SmallInt): TVector3s;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
 end;
 
-function Vector3dMake(const Vector: TVector2d; const z: double): TVector3d;
+function Vector3dMake(const Vector: TVector2d; const Z: Double): TVector3d;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
 end;
 
-function Vector3bMake(const Vector: TVector2b; const z: byte): TVector3b;
+function Vector3bMake(const Vector: TVector2b; const Z: Byte): TVector3b;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
 end;
 
 // *******
 
 function Vector3fMake(const Vector: TVector4f): TVector3f;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
 end;
 
 function Vector3iMake(const Vector: TVector4i): TVector3i;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
 end;
 
 function Vector3sMake(const Vector: TVector4s): TVector3s;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
 end;
 
 function Vector3dMake(const Vector: TVector4d): TVector3d;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
 end;
 
 function Vector3bMake(const Vector: TVector4b): TVector3b;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
 end;
 
 { ***************************************************************************** }
 
 // 4x
-function Vector4fMake(const x, y, z, w: single): TVector4f;
+function Vector4fMake(const X, Y, Z, w: Single): TVector4f;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := w;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4iMake(const x, y, z, w: Integer): TVector4i;
+function Vector4iMake(const X, Y, Z, w: Integer): TVector4i;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := w;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4sMake(const x, y, z, w: smallint): TVector4s;
+function Vector4sMake(const X, Y, Z, w: SmallInt): TVector4s;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := w;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4dMake(const x, y, z, w: double): TVector4d;
+function Vector4dMake(const X, Y, Z, w: Double): TVector4d;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := w;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4bMake(const x, y, z, w: byte): TVector4b;
+function Vector4bMake(const X, Y, Z, w: Byte): TVector4b;
 begin
-  result[0] := x;
-  result[1] := y;
-  result[2] := z;
-  result[3] := w;
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
 // ********
 
-function Vector4fMake(const Vector: TVector3f; const w: single): TVector4f;
+function Vector4fMake(const Vector: TVector3f; const w: Single): TVector4f;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
+  Result[3] := w;
 end;
 
 function Vector4iMake(const Vector: TVector3i; const w: Integer): TVector4i;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
+  Result[3] := w;
 end;
 
-function Vector4sMake(const Vector: TVector3s; const w: smallint): TVector4s;
+function Vector4sMake(const Vector: TVector3s; const w: SmallInt): TVector4s;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
+  Result[3] := w;
 end;
 
-function Vector4dMake(const Vector: TVector3d; const w: double): TVector4d;
+function Vector4dMake(const Vector: TVector3d; const w: Double): TVector4d;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
+  Result[3] := w;
 end;
 
-function Vector4bMake(const Vector: TVector3b; const w: byte): TVector4b;
+function Vector4bMake(const Vector: TVector3b; const w: Byte): TVector4b;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := Vector[2];
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Vector[2];
+  Result[3] := w;
 end;
 
 // *******
 
-function Vector4fMake(const Vector: TVector2f; const z: single; const w: single): TVector4f;
+function Vector4fMake(const Vector: TVector2f; const Z: Single; const w: Single): TVector4f;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4iMake(const Vector: TVector2i; const z: Integer; const w: Integer): TVector4i;
+function Vector4iMake(const Vector: TVector2i; const Z: Integer; const w: Integer): TVector4i;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4sMake(const Vector: TVector2s; const z: smallint; const w: smallint): TVector4s;
+function Vector4sMake(const Vector: TVector2s; const Z: SmallInt; const w: SmallInt): TVector4s;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4dMake(const Vector: TVector2d; const z: double; const w: double): TVector4d;
+function Vector4dMake(const Vector: TVector2d; const Z: Double; const w: Double): TVector4d;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
-function Vector4bMake(const Vector: TVector2b; const z: byte; const w: byte): TVector4b;
+function Vector4bMake(const Vector: TVector2b; const Z: Byte; const w: Byte): TVector4b;
 begin
-  result[0] := Vector[0];
-  result[1] := Vector[1];
-  result[2] := z;
-  result[3] := w;
+  Result[0] := Vector[0];
+  Result[1] := Vector[1];
+  Result[2] := Z;
+  Result[3] := w;
 end;
 
 { ***************************************************************************** }
 
 // 2
-function VectorEquals(const V1, V2: TVector2f): Boolean;
+function VectorEquals(const v1, v2: TVector2f): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]);
 end;
 
-function VectorEquals(const V1, V2: TVector2i): Boolean;
+function VectorEquals(const v1, v2: TVector2i): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]);
 end;
 
-function VectorEquals(const V1, V2: TVector2d): Boolean;
+function VectorEquals(const v1, v2: TVector2d): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]);
 end;
 
-function VectorEquals(const V1, V2: TVector2s): Boolean;
+function VectorEquals(const v1, v2: TVector2s): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]);
 end;
 
-function VectorEquals(const V1, V2: TVector2b): Boolean;
+function VectorEquals(const v1, v2: TVector2b): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]);
 end;
 
 { ***************************************************************************** }
 
 // 3
-function VectorEquals(const V1, V2: TVector3i): Boolean;
+function VectorEquals(const v1, v2: TVector3i): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]);
 end;
 
-function VectorEquals(const V1, V2: TVector3d): Boolean;
+function VectorEquals(const v1, v2: TVector3d): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]);
 end;
 
-function VectorEquals(const V1, V2: TVector3s): Boolean;
+function VectorEquals(const v1, v2: TVector3s): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]);
 end;
 
-function VectorEquals(const V1, V2: TVector3b): Boolean;
+function VectorEquals(const v1, v2: TVector3b): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]);
 end;
 
 { ***************************************************************************** }
 
 // 4
-function VectorEquals(const V1, V2: TVector4i): Boolean;
+function VectorEquals(const v1, v2: TVector4i): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]) and (V1[3] = V2[3]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]) and (v1[3] = v2[3]);
 end;
 
-function VectorEquals(const V1, V2: TVector4d): Boolean;
+function VectorEquals(const v1, v2: TVector4d): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]) and (V1[3] = V2[3]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]) and (v1[3] = v2[3]);
 end;
 
-function VectorEquals(const V1, V2: TVector4s): Boolean;
+function VectorEquals(const v1, v2: TVector4s): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]) and (V1[3] = V2[3]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]) and (v1[3] = v2[3]);
 end;
 
-function VectorEquals(const V1, V2: TVector4b): Boolean;
+function VectorEquals(const v1, v2: TVector4b): Boolean;
 begin
-  result := (V1[0] = V2[0]) and (V1[1] = V2[1]) and (V1[2] = V2[2]) and (V1[3] = V2[3]);
+  Result := (v1[0] = v2[0]) and (v1[1] = v2[1]) and (v1[2] = v2[2]) and (v1[3] = v2[3]);
 end;
 
 { ***************************************************************************** }
@@ -7649,7 +7643,7 @@ end;
 // 3x3f
 function MatrixEquals(const Matrix1, Matrix2: TMatrix3f): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]);
 end;
@@ -7657,7 +7651,7 @@ end;
 // 3x3i
 function MatrixEquals(const Matrix1, Matrix2: TMatrix3i): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]);
 end;
@@ -7665,7 +7659,7 @@ end;
 // 3x3d
 function MatrixEquals(const Matrix1, Matrix2: TMatrix3d): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]);
 end;
@@ -7673,7 +7667,7 @@ end;
 // 3x3s
 function MatrixEquals(const Matrix1, Matrix2: TMatrix3s): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]);
 end;
@@ -7681,7 +7675,7 @@ end;
 // 3x3b
 function MatrixEquals(const Matrix1, Matrix2: TMatrix3b): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]);
 end;
@@ -7691,7 +7685,7 @@ end;
 // 4x4f
 function MatrixEquals(const Matrix1, Matrix2: TMatrix4f): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]) and
     VectorEquals(Matrix1[3], Matrix2[3]);
@@ -7700,7 +7694,7 @@ end;
 // 4x4i
 function MatrixEquals(const Matrix1, Matrix2: TMatrix4i): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]) and
     VectorEquals(Matrix1[3], Matrix2[3]);
@@ -7709,7 +7703,7 @@ end;
 // 4x4d
 function MatrixEquals(const Matrix1, Matrix2: TMatrix4d): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]) and
     VectorEquals(Matrix1[3], Matrix2[3]);
@@ -7718,7 +7712,7 @@ end;
 // 4x4s
 function MatrixEquals(const Matrix1, Matrix2: TMatrix4s): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]) and
     VectorEquals(Matrix1[3], Matrix2[3]);
@@ -7727,7 +7721,7 @@ end;
 // 4x4b
 function MatrixEquals(const Matrix1, Matrix2: TMatrix4b): Boolean;
 begin
-  result := VectorEquals(Matrix1[0], Matrix2[0]) and
+  Result := VectorEquals(Matrix1[0], Matrix2[0]) and
     VectorEquals(Matrix1[1], Matrix2[1]) and
     VectorEquals(Matrix1[2], Matrix2[2]) and
     VectorEquals(Matrix1[3], Matrix2[3]);
@@ -7739,28 +7733,28 @@ end;
 // 3f
 function VectorMoreThen(const SourceVector, ComparedVector: TVector3f): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedVector[0]) and
+  Result := (SourceVector[0] > ComparedVector[0]) and
     (SourceVector[1] > ComparedVector[1]) and
     (SourceVector[2] > ComparedVector[2]);
 end;
 
 function VectorMoreEqualThen(const SourceVector, ComparedVector: TVector3f): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedVector[0]) and
+  Result := (SourceVector[0] >= ComparedVector[0]) and
     (SourceVector[1] >= ComparedVector[1]) and
     (SourceVector[2] >= ComparedVector[2]);
 end;
 
 function VectorLessThen(const SourceVector, ComparedVector: TVector3f): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedVector[0]) and
+  Result := (SourceVector[0] < ComparedVector[0]) and
     (SourceVector[1] < ComparedVector[1]) and
     (SourceVector[2] < ComparedVector[2]);
 end;
 
 function VectorLessEqualThen(const SourceVector, ComparedVector: TVector3f): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedVector[0]) and
+  Result := (SourceVector[0] <= ComparedVector[0]) and
     (SourceVector[1] <= ComparedVector[1]) and
     (SourceVector[2] <= ComparedVector[2]);
 end;
@@ -7768,7 +7762,7 @@ end;
 // 4f
 function VectorMoreThen(const SourceVector, ComparedVector: TVector4f): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedVector[0]) and
+  Result := (SourceVector[0] > ComparedVector[0]) and
     (SourceVector[1] > ComparedVector[1]) and
     (SourceVector[2] > ComparedVector[2]) and
     (SourceVector[3] > ComparedVector[3]);
@@ -7776,7 +7770,7 @@ end;
 
 function VectorMoreEqualThen(const SourceVector, ComparedVector: TVector4f): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedVector[0]) and
+  Result := (SourceVector[0] >= ComparedVector[0]) and
     (SourceVector[1] >= ComparedVector[1]) and
     (SourceVector[2] >= ComparedVector[2]) and
     (SourceVector[3] >= ComparedVector[3]);
@@ -7784,7 +7778,7 @@ end;
 
 function VectorLessThen(const SourceVector, ComparedVector: TVector4f): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedVector[0]) and
+  Result := (SourceVector[0] < ComparedVector[0]) and
     (SourceVector[1] < ComparedVector[1]) and
     (SourceVector[2] < ComparedVector[2]) and
     (SourceVector[3] < ComparedVector[3]);
@@ -7792,7 +7786,7 @@ end;
 
 function VectorLessEqualThen(const SourceVector, ComparedVector: TVector4f): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedVector[0]) and
+  Result := (SourceVector[0] <= ComparedVector[0]) and
     (SourceVector[1] <= ComparedVector[1]) and
     (SourceVector[2] <= ComparedVector[2]) and
     (SourceVector[3] <= ComparedVector[3]);
@@ -7802,28 +7796,28 @@ end;
 // Vector comparison functions:
 function VectorMoreThen(const SourceVector, ComparedVector: TVector3i): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedVector[0]) and
+  Result := (SourceVector[0] > ComparedVector[0]) and
     (SourceVector[1] > ComparedVector[1]) and
     (SourceVector[2] > ComparedVector[2]);
 end;
 
 function VectorMoreEqualThen(const SourceVector, ComparedVector: TVector3i): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedVector[0]) and
+  Result := (SourceVector[0] >= ComparedVector[0]) and
     (SourceVector[1] >= ComparedVector[1]) and
     (SourceVector[2] >= ComparedVector[2]);
 end;
 
 function VectorLessThen(const SourceVector, ComparedVector: TVector3i): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedVector[0]) and
+  Result := (SourceVector[0] < ComparedVector[0]) and
     (SourceVector[1] < ComparedVector[1]) and
     (SourceVector[2] < ComparedVector[2]);
 end;
 
 function VectorLessEqualThen(const SourceVector, ComparedVector: TVector3i): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedVector[0]) and
+  Result := (SourceVector[0] <= ComparedVector[0]) and
     (SourceVector[1] <= ComparedVector[1]) and
     (SourceVector[2] <= ComparedVector[2]);
 end;
@@ -7831,7 +7825,7 @@ end;
 // 4i
 function VectorMoreThen(const SourceVector, ComparedVector: TVector4i): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedVector[0]) and
+  Result := (SourceVector[0] > ComparedVector[0]) and
     (SourceVector[1] > ComparedVector[1]) and
     (SourceVector[2] > ComparedVector[2]) and
     (SourceVector[3] > ComparedVector[3]);
@@ -7839,7 +7833,7 @@ end;
 
 function VectorMoreEqualThen(const SourceVector, ComparedVector: TVector4i): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedVector[0]) and
+  Result := (SourceVector[0] >= ComparedVector[0]) and
     (SourceVector[1] >= ComparedVector[1]) and
     (SourceVector[2] >= ComparedVector[2]) and
     (SourceVector[3] >= ComparedVector[3]);
@@ -7847,7 +7841,7 @@ end;
 
 function VectorLessThen(const SourceVector, ComparedVector: TVector4i): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedVector[0]) and
+  Result := (SourceVector[0] < ComparedVector[0]) and
     (SourceVector[1] < ComparedVector[1]) and
     (SourceVector[2] < ComparedVector[2]) and
     (SourceVector[3] < ComparedVector[3]);
@@ -7855,7 +7849,7 @@ end;
 
 function VectorLessEqualThen(const SourceVector, ComparedVector: TVector4i): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedVector[0]) and
+  Result := (SourceVector[0] <= ComparedVector[0]) and
     (SourceVector[1] <= ComparedVector[1]) and
     (SourceVector[2] <= ComparedVector[2]) and
     (SourceVector[3] <= ComparedVector[3]);
@@ -7865,28 +7859,28 @@ end;
 // Vector comparison functions:
 function VectorMoreThen(const SourceVector, ComparedVector: TVector3s): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedVector[0]) and
+  Result := (SourceVector[0] > ComparedVector[0]) and
     (SourceVector[1] > ComparedVector[1]) and
     (SourceVector[2] > ComparedVector[2]);
 end;
 
 function VectorMoreEqualThen(const SourceVector, ComparedVector: TVector3s): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedVector[0]) and
+  Result := (SourceVector[0] >= ComparedVector[0]) and
     (SourceVector[1] >= ComparedVector[1]) and
     (SourceVector[2] >= ComparedVector[2]);
 end;
 
 function VectorLessThen(const SourceVector, ComparedVector: TVector3s): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedVector[0]) and
+  Result := (SourceVector[0] < ComparedVector[0]) and
     (SourceVector[1] < ComparedVector[1]) and
     (SourceVector[2] < ComparedVector[2]);
 end;
 
 function VectorLessEqualThen(const SourceVector, ComparedVector: TVector3s): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedVector[0]) and
+  Result := (SourceVector[0] <= ComparedVector[0]) and
     (SourceVector[1] <= ComparedVector[1]) and
     (SourceVector[2] <= ComparedVector[2]);
 end;
@@ -7894,7 +7888,7 @@ end;
 // 4s
 function VectorMoreThen(const SourceVector, ComparedVector: TVector4s): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedVector[0]) and
+  Result := (SourceVector[0] > ComparedVector[0]) and
     (SourceVector[1] > ComparedVector[1]) and
     (SourceVector[2] > ComparedVector[2]) and
     (SourceVector[3] > ComparedVector[3]);
@@ -7902,7 +7896,7 @@ end;
 
 function VectorMoreEqualThen(const SourceVector, ComparedVector: TVector4s): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedVector[0]) and
+  Result := (SourceVector[0] >= ComparedVector[0]) and
     (SourceVector[1] >= ComparedVector[1]) and
     (SourceVector[2] >= ComparedVector[2]) and
     (SourceVector[3] >= ComparedVector[3]);
@@ -7910,7 +7904,7 @@ end;
 
 function VectorLessThen(const SourceVector, ComparedVector: TVector4s): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedVector[0]) and
+  Result := (SourceVector[0] < ComparedVector[0]) and
     (SourceVector[1] < ComparedVector[1]) and
     (SourceVector[2] < ComparedVector[2]) and
     (SourceVector[3] < ComparedVector[3]);
@@ -7918,7 +7912,7 @@ end;
 
 function VectorLessEqualThen(const SourceVector, ComparedVector: TVector4s): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedVector[0]) and
+  Result := (SourceVector[0] <= ComparedVector[0]) and
     (SourceVector[1] <= ComparedVector[1]) and
     (SourceVector[2] <= ComparedVector[2]) and
     (SourceVector[3] <= ComparedVector[3]);
@@ -7926,186 +7920,186 @@ end;
 
 // ComparedNumber
 // 3f
-function VectorMoreThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedNumber) and
+  Result := (SourceVector[0] > ComparedNumber) and
     (SourceVector[1] > ComparedNumber) and
     (SourceVector[2] > ComparedNumber);
 end;
 
-function VectorMoreEqualThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedNumber) and
+  Result := (SourceVector[0] >= ComparedNumber) and
     (SourceVector[1] >= ComparedNumber) and
     (SourceVector[2] >= ComparedNumber);
 end;
 
-function VectorLessThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedNumber) and
+  Result := (SourceVector[0] < ComparedNumber) and
     (SourceVector[1] < ComparedNumber) and
     (SourceVector[2] < ComparedNumber);
 end;
 
-function VectorLessEqualThen(const SourceVector: TVector3f; const ComparedNumber: single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector3f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedNumber) and
+  Result := (SourceVector[0] <= ComparedNumber) and
     (SourceVector[1] <= ComparedNumber) and
     (SourceVector[2] <= ComparedNumber);
 end;
 
 // 4f
-function VectorMoreThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedNumber) and
+  Result := (SourceVector[0] > ComparedNumber) and
     (SourceVector[1] > ComparedNumber) and
     (SourceVector[2] > ComparedNumber) and
     (SourceVector[3] > ComparedNumber);
 end;
 
-function VectorMoreEqualThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedNumber) and
+  Result := (SourceVector[0] >= ComparedNumber) and
     (SourceVector[1] >= ComparedNumber) and
     (SourceVector[2] >= ComparedNumber) and
     (SourceVector[3] >= ComparedNumber);
 end;
 
-function VectorLessThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedNumber) and
+  Result := (SourceVector[0] < ComparedNumber) and
     (SourceVector[1] < ComparedNumber) and
     (SourceVector[2] < ComparedNumber) and
     (SourceVector[3] < ComparedNumber);
 end;
 
-function VectorLessEqualThen(const SourceVector: TVector4f; const ComparedNumber: single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector4f; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedNumber) and
+  Result := (SourceVector[0] <= ComparedNumber) and
     (SourceVector[1] <= ComparedNumber) and
     (SourceVector[2] <= ComparedNumber) and
     (SourceVector[3] <= ComparedNumber);
 end;
 
 // 3i
-function VectorMoreThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedNumber) and
+  Result := (SourceVector[0] > ComparedNumber) and
     (SourceVector[1] > ComparedNumber) and
     (SourceVector[2] > ComparedNumber);
 end;
 
-function VectorMoreEqualThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedNumber) and
+  Result := (SourceVector[0] >= ComparedNumber) and
     (SourceVector[1] >= ComparedNumber) and
     (SourceVector[2] >= ComparedNumber);
 end;
 
-function VectorLessThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedNumber) and
+  Result := (SourceVector[0] < ComparedNumber) and
     (SourceVector[1] < ComparedNumber) and
     (SourceVector[2] < ComparedNumber);
 end;
 
-function VectorLessEqualThen(const SourceVector: TVector3i; const ComparedNumber: single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector3i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedNumber) and
+  Result := (SourceVector[0] <= ComparedNumber) and
     (SourceVector[1] <= ComparedNumber) and
     (SourceVector[2] <= ComparedNumber);
 end;
 
 // 4i
-function VectorMoreThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedNumber) and
+  Result := (SourceVector[0] > ComparedNumber) and
     (SourceVector[1] > ComparedNumber) and
     (SourceVector[2] > ComparedNumber) and
     (SourceVector[3] > ComparedNumber);
 end;
 
-function VectorMoreEqualThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedNumber) and
+  Result := (SourceVector[0] >= ComparedNumber) and
     (SourceVector[1] >= ComparedNumber) and
     (SourceVector[2] >= ComparedNumber) and
     (SourceVector[3] >= ComparedNumber);
 end;
 
-function VectorLessThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedNumber) and
+  Result := (SourceVector[0] < ComparedNumber) and
     (SourceVector[1] < ComparedNumber) and
     (SourceVector[2] < ComparedNumber) and
     (SourceVector[3] < ComparedNumber);
 end;
 
-function VectorLessEqualThen(const SourceVector: TVector4i; const ComparedNumber: single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector4i; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedNumber) and
+  Result := (SourceVector[0] <= ComparedNumber) and
     (SourceVector[1] <= ComparedNumber) and
     (SourceVector[2] <= ComparedNumber) and
     (SourceVector[3] <= ComparedNumber);
 end;
 
 // 3s
-function VectorMoreThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedNumber) and
+  Result := (SourceVector[0] > ComparedNumber) and
     (SourceVector[1] > ComparedNumber) and
     (SourceVector[2] > ComparedNumber);
 end;
 
-function VectorMoreEqualThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedNumber) and
+  Result := (SourceVector[0] >= ComparedNumber) and
     (SourceVector[1] >= ComparedNumber) and
     (SourceVector[2] >= ComparedNumber);
 end;
 
-function VectorLessThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedNumber) and
+  Result := (SourceVector[0] < ComparedNumber) and
     (SourceVector[1] < ComparedNumber) and
     (SourceVector[2] < ComparedNumber);
 end;
 
-function VectorLessEqualThen(const SourceVector: TVector3s; const ComparedNumber: single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector3s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedNumber) and
+  Result := (SourceVector[0] <= ComparedNumber) and
     (SourceVector[1] <= ComparedNumber) and
     (SourceVector[2] <= ComparedNumber);
 end;
 
 // 4s
-function VectorMoreThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
+function VectorMoreThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] > ComparedNumber) and
+  Result := (SourceVector[0] > ComparedNumber) and
     (SourceVector[1] > ComparedNumber) and
     (SourceVector[2] > ComparedNumber) and
     (SourceVector[3] > ComparedNumber);
 end;
 
-function VectorMoreEqualThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
+function VectorMoreEqualThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] >= ComparedNumber) and
+  Result := (SourceVector[0] >= ComparedNumber) and
     (SourceVector[1] >= ComparedNumber) and
     (SourceVector[2] >= ComparedNumber) and
     (SourceVector[3] >= ComparedNumber);
 end;
 
-function VectorLessThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
+function VectorLessThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] < ComparedNumber) and
+  Result := (SourceVector[0] < ComparedNumber) and
     (SourceVector[1] < ComparedNumber) and
     (SourceVector[2] < ComparedNumber) and
     (SourceVector[3] < ComparedNumber);
 end;
 
-function VectorLessEqualThen(const SourceVector: TVector4s; const ComparedNumber: single): Boolean; overload;
+function VectorLessEqualThen(const SourceVector: TVector4s; const ComparedNumber: Single): Boolean; overload;
 begin
-  result := (SourceVector[0] <= ComparedNumber) and
+  Result := (SourceVector[0] <= ComparedNumber) and
     (SourceVector[1] <= ComparedNumber) and
     (SourceVector[2] <= ComparedNumber) and
     (SourceVector[3] <= ComparedNumber);
@@ -8114,29 +8108,29 @@ end;
 { : Determine if 2 rectanges intersect. }
 function RectanglesIntersect(const ACenterOfRect1, ACenterOfRect2, ASizeOfRect1, ASizeOfRect2: TVector2f): Boolean;
 begin
-  result := (Abs(ACenterOfRect1[0] - ACenterOfRect2[0]) < (ASizeOfRect1[0] + ASizeOfRect2[0]) / 2) and
+  Result := (Abs(ACenterOfRect1[0] - ACenterOfRect2[0]) < (ASizeOfRect1[0] + ASizeOfRect2[0]) / 2) and
     (Abs(ACenterOfRect1[1] - ACenterOfRect2[1]) < (ASizeOfRect1[1] + ASizeOfRect2[1]) / 2);
 end;
 
 { : Determine if BigRect completely contains SmallRect. }
 function RectangleContains(const ACenterOfBigRect1, ACenterOfSmallRect2,
-  ASizeOfBigRect1, ASizeOfSmallRect2: TVector2f; const AEps: single = 0.0): Boolean;
+  ASizeOfBigRect1, ASizeOfSmallRect2: TVector2f; const AEps: Single = 0.0): Boolean;
 begin
-  result := (Abs(ACenterOfBigRect1[0] - ACenterOfSmallRect2[0]) + ASizeOfSmallRect2[0] / 2 - ASizeOfBigRect1[0] / 2 < AEps) and
+  Result := (Abs(ACenterOfBigRect1[0] - ACenterOfSmallRect2[0]) + ASizeOfSmallRect2[0] / 2 - ASizeOfBigRect1[0] / 2 < AEps) and
     (Abs(ACenterOfBigRect1[1] - ACenterOfSmallRect2[1]) + ASizeOfSmallRect2[1] / 2 - ASizeOfBigRect1[1] / 2 < AEps);
 end;
 
 function MoveObjectAround(const AMovingObjectPosition, AMovingObjectUp, ATargetPosition: TVector;
-  pitchDelta, turnDelta: single): TVector;
+  pitchDelta, turnDelta: Single): TVector;
 var
   originalT2C, normalT2C, normalCameraRight: TVector;
-  pitchNow, dist: single;
+  pitchNow, Dist: Single;
 begin
   // normalT2C points away from the direction the camera is looking
   originalT2C := VectorSubtract(AMovingObjectPosition,
     ATargetPosition);
   SetVector(normalT2C, originalT2C);
-  dist := VectorLength(normalT2C);
+  Dist := VectorLength(normalT2C);
   NormalizeVector(normalT2C);
   // normalRight points to the camera's right
   // the camera is pitching around this axis.
@@ -8148,31 +8142,31 @@ begin
   // calculate the current pitch.
   // 0 is looking down and PI is looking up
   pitchNow := GeometryLib.ArcCos(VectorDotProduct(AMovingObjectUp, normalT2C));
-  pitchNow := ClampValue(pitchNow + GeometryLib.DegToRad(pitchDelta), 0 + 0.025, PI -
+  pitchNow := ClampValue(pitchNow + GeometryLib.DegToRad(pitchDelta), 0 + 0.025, pi -
     0.025);
   // create a new vector pointing up and then rotate it down
   // into the new position
   SetVector(normalT2C, AMovingObjectUp);
   RotateVector(normalT2C, normalCameraRight, -pitchNow);
   RotateVector(normalT2C, AMovingObjectUp, -GeometryLib.DegToRad(turnDelta));
-  ScaleVector(normalT2C, dist);
-  result := VectorAdd(AMovingObjectPosition, VectorSubtract(normalT2C,
+  ScaleVector(normalT2C, Dist);
+  Result := VectorAdd(AMovingObjectPosition, VectorSubtract(normalT2C,
     originalT2C));
 end;
 
 { : Calcualtes Angle between 2 Vectors: (A-CenterPoint) and (B-CenterPoint). In radians. }
-function AngleBetweenVectors(const a, b, ACenterPoint: TVector): single;
+function AngleBetweenVectors(const A, b, ACenterPoint: TVector): Single;
 begin
-  result := GeometryLib.ArcCos(VectorAngleCosine(
-    VectorNormalize(VectorSubtract(a, ACenterPoint)),
+  Result := GeometryLib.ArcCos(VectorAngleCosine(
+    VectorNormalize(VectorSubtract(A, ACenterPoint)),
     VectorNormalize(VectorSubtract(b, ACenterPoint))));
 end;
 
 { : Calcualtes Angle between 2 Vectors: (A-CenterPoint) and (B-CenterPoint). In radians. }
-function AngleBetweenVectors(const a, b, ACenterPoint: TAffineVector): single;
+function AngleBetweenVectors(const A, b, ACenterPoint: TAffineVector): Single;
 begin
-  result := GeometryLib.ArcCos(VectorAngleCosine(
-    VectorNormalize(VectorSubtract(a, ACenterPoint)),
+  Result := GeometryLib.ArcCos(VectorAngleCosine(
+    VectorNormalize(VectorSubtract(A, ACenterPoint)),
     VectorNormalize(VectorSubtract(b, ACenterPoint))));
 end;
 
@@ -8184,15 +8178,15 @@ end;
   ADistance + not AFromCenterSpot - distance, which object should shift from his current position away from center.
 }
 function ShiftObjectFromCenter(const AOriginalPosition: TVector;
-  const ACenter: TVector; const ADistance: single; const AFromCenterSpot: Boolean): TVector;
+  const ACenter: TVector; const aDistance: Single; const AFromCenterSpot: Boolean): TVector;
 var
   lDirection: TVector;
 begin
   lDirection := VectorNormalize(VectorSubtract(AOriginalPosition, ACenter));
   if AFromCenterSpot then
-      result := VectorAdd(ACenter, VectorScale(lDirection, ADistance))
+      Result := VectorAdd(ACenter, VectorScale(lDirection, aDistance))
   else
-      result := VectorAdd(AOriginalPosition, VectorScale(lDirection, ADistance))
+      Result := VectorAdd(AOriginalPosition, VectorScale(lDirection, aDistance))
 end;
 
 { : AOriginalPosition - Object initial position.
@@ -8203,15 +8197,15 @@ end;
   ADistance + not AFromCenterSpot - distance, which object should shift from his current position away from center.
 }
 function ShiftObjectFromCenter(const AOriginalPosition: TAffineVector;
-  const ACenter: TAffineVector; const ADistance: single; const AFromCenterSpot: Boolean): TAffineVector;
+  const ACenter: TAffineVector; const aDistance: Single; const AFromCenterSpot: Boolean): TAffineVector;
 var
   lDirection: TAffineVector;
 begin
   lDirection := VectorNormalize(VectorSubtract(AOriginalPosition, ACenter));
   if AFromCenterSpot then
-      result := VectorAdd(ACenter, VectorScale(lDirection, ADistance))
+      Result := VectorAdd(ACenter, VectorScale(lDirection, aDistance))
   else
-      result := VectorAdd(AOriginalPosition, VectorScale(lDirection, ADistance))
+      Result := VectorAdd(AOriginalPosition, VectorScale(lDirection, aDistance))
 end;
 
 // --------------------------------------------------------------
@@ -8223,4 +8217,5 @@ initialization
 // --------------------------------------------------------------
 // --------------------------------------------------------------
 
-end.
+end. 
+ 

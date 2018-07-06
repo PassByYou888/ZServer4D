@@ -1,4 +1,4 @@
-ï»¿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * ics support                                                                * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Client_ICS;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -32,7 +34,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -57,7 +59,7 @@ type
     procedure DataAvailable(Sender: TObject; ErrCode: Word);
     procedure SessionClosed(Sender: TObject; ErrCode: Word);
     procedure SessionConnectedAndCreateContext(Sender: TObject; ErrCode: Word);
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -65,13 +67,13 @@ type
     procedure TriggerDoConnectFailed; override;
     procedure TriggerDoConnectFinished; override;
 
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
     function Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTickValue): Boolean; overload;
     function Connect(Host, Port: SystemString): Boolean; overload;
-    function Connect(Addr: SystemString; Port: Word): Boolean; overload; override;
+    function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     procedure Disconnect; override;
 
     function Connected: Boolean; override;
@@ -101,7 +103,7 @@ end;
 
 function TPeerClientIntfForICS.GetPeerIP: SystemString;
 begin
-  Result := Context.FDriver.Addr;
+  Result := Context.FDriver.addr;
 end;
 
 procedure TPeerClientIntfForICS.ContinueResultSend;
@@ -110,7 +112,7 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if Connected then
       Context.FDriver.Send(buff, Size);
@@ -158,17 +160,17 @@ procedure TCommunicationFramework_Client_ICS.SessionClosed(Sender: TObject; ErrC
 begin
   if FAsyncConnecting then
       TriggerDoConnectFailed;
-  FClient.Print('client disonnect for %s:%s', [FDriver.Addr, FDriver.Port]);
+  FClient.Print('client disonnect for %s:%s', [FDriver.addr, FDriver.Port]);
   DoDisconnect(FClient);
 end;
 
 procedure TCommunicationFramework_Client_ICS.SessionConnectedAndCreateContext(Sender: TObject; ErrCode: Word);
 begin
-  FClient.Print('client connected %s:%s', [FDriver.Addr, FDriver.Port]);
+  FClient.Print('client connected %s:%s', [FDriver.addr, FDriver.Port]);
   DoConnected(FClient);
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
 var
   AStopTime: TTimeTickValue;
 begin
@@ -182,7 +184,7 @@ begin
 
   FDriver.Proto := 'tcp';
   FDriver.Port := IntToStr(Port);
-  FDriver.Addr := Addr;
+  FDriver.addr := addr;
 
   try
       FDriver.Connect;
@@ -197,8 +199,8 @@ begin
   FDriver := TClientICSContextIntf.Create(nil);
   FDriver.MultiThreaded := False;
   FDriver.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  FDriver.KeepAliveTime := 1 * 1000;     // ä»Žå¿ƒè·³æ£€æŸ¥åˆ°æ–­å¼€çš„ç©ºé—²æ—¶é—´
-  FDriver.KeepAliveInterval := 1 * 1000; // å¿ƒè·³æ£€æŸ¥é—´éš”
+  FDriver.KeepAliveTime := 1 * 1000;     // ´ÓÐÄÌø¼ì²éµ½¶Ï¿ªµÄ¿ÕÏÐÊ±¼ä
+  FDriver.KeepAliveInterval := 1 * 1000; // ÐÄÌø¼ì²é¼ä¸ô
   FDriver.OnDataAvailable := DataAvailable;
   FDriver.OnSessionClosed := SessionClosed;
   FClient := TPeerClientIntfForICS.Create(Self, Self);
@@ -263,19 +265,19 @@ begin
   FAsyncConnecting := False;
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
-  AsyncConnect(Addr, Port, OnResult, nil, nil);
+  AsyncConnect(addr, Port, OnResult, nil, nil);
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
-  AsyncConnect(Addr, Port, nil, OnResult, nil);
+  AsyncConnect(addr, Port, nil, OnResult, nil);
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_ICS.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
-  AsyncConnect(Addr, Port, nil, nil, OnResult);
+  AsyncConnect(addr, Port, nil, nil, OnResult);
 end;
 
 function TCommunicationFramework_Client_ICS.Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTickValue): Boolean;
@@ -292,13 +294,13 @@ begin
 
   FDriver.Proto := 'tcp';
   FDriver.Port := Port;
-  FDriver.Addr := Host;
+  FDriver.addr := Host;
 
   try
       FDriver.Connect;
   except
     Result := False;
-    exit;
+    Exit;
   end;
 
   AStopTime := GetTimeTickCount + AWaitTimeOut;
@@ -308,9 +310,9 @@ begin
       ProgressBackground;
 
       if (GetTimeTickCount >= AStopTime) then
-          break;
+          Break;
       if FDriver.State in [wsClosed] then
-          break;
+          Break;
 
       TThread.Sleep(1);
     end;
@@ -327,10 +329,10 @@ begin
       if (GetTimeTickCount >= AStopTime) then
         begin
           FDriver.Close;
-          exit(Connect(Host, Port, AWaitTimeOut));
+          Exit(Connect(Host, Port, AWaitTimeOut));
         end;
       if FDriver.State in [wsClosed] then
-          break;
+          Break;
 
       TThread.Sleep(1);
     end;
@@ -338,7 +340,7 @@ begin
   Result := (RemoteInited);
 
   if Result then
-      FClient.Print('client connected %s:%s', [FDriver.Addr, FDriver.Port]);
+      FClient.Print('client connected %s:%s', [FDriver.addr, FDriver.Port]);
 end;
 
 function TCommunicationFramework_Client_ICS.Connect(Host, Port: SystemString): Boolean;
@@ -346,9 +348,9 @@ begin
   Result := Connect(Host, Port, 5000);
 end;
 
-function TCommunicationFramework_Client_ICS.Connect(Addr: SystemString; Port: Word): Boolean;
+function TCommunicationFramework_Client_ICS.Connect(addr: SystemString; Port: Word): Boolean;
 begin
-  Result := Connect(Addr, IntToStr(Port), 5000);
+  Result := Connect(addr, IntToStr(Port), 5000);
 end;
 
 procedure TCommunicationFramework_Client_ICS.Disconnect;
@@ -373,7 +375,7 @@ begin
   if not Connected then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   FClient.PostQueueData(v);
@@ -397,4 +399,4 @@ initialization
 
 finalization
 
-end.
+end. 

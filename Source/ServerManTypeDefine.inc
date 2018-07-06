@@ -1,4 +1,4 @@
-﻿// define global service type
+// define global service type
 type
   TServerType = (stUnknow,
     stManager,      // Infinite deploy

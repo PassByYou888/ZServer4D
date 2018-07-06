@@ -4,12 +4,14 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 unit CommunicationTest;
 
 interface
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 
 uses SysUtils, CommunicationFramework, DataFrameEngine,
@@ -33,17 +35,17 @@ type
     procedure Cmd_TestDirectConsole(Sender: TPeerIO; InData: SystemString);
     procedure Cmd_TestBigStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
     procedure Cmd_BigStreamPostInfo(Sender: TPeerIO; InData: SystemString);
-    procedure Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+    procedure Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
     procedure Cmd_RemoteInfo(Sender: TPeerIO; InData: SystemString);
 
     // server test command result
     procedure CmdResult_TestConsole(Sender: TPeerIO; ResultData: SystemString);
     procedure CmdResult_TestStream(Sender: TPeerIO; ResultData: TDataFrameEngine);
 
-    procedure RegCmd(intf: TCommunicationFramework);
-    procedure ExecuteTest(intf: TPeerIO);
-    procedure ExecuteAsyncTest(intf: TPeerIO);
-    procedure ExecuteAsyncTestWithBigStream(intf: TPeerIO);
+    procedure RegCmd(Intf: TCommunicationFramework);
+    procedure ExecuteTest(Intf: TPeerIO);
+    procedure ExecuteAsyncTest(Intf: TPeerIO);
+    procedure ExecuteAsyncTestWithBigStream(Intf: TPeerIO);
 
     property LastReg: TCommunicationFramework read FLastReg;
   end;
@@ -54,7 +56,7 @@ var
   TestStreamData: TMemoryStream64 = nil;
   TestStreamMD5 : SystemString;
   TestBuff      : PByte;
-  TestBuffSize  : NativeInt;
+  TestBuffSize  : nativeInt;
   TestBuffMD5   : SystemString;
 
 constructor TCommunicationTestIntf.Create;
@@ -123,7 +125,7 @@ begin
   Sender.UserDefine.BigStreamBatchList.Clear;
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+procedure TCommunicationTestIntf.Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
 begin
   if umlMD5Char(InData, DataSize).Text <> TestBuffMD5 then
       Sender.Print('TestCompleteBuffer failed!');
@@ -146,104 +148,104 @@ begin
       Sender.Print('TestResultStream Data failed!');
 end;
 
-procedure TCommunicationTestIntf.RegCmd(intf: TCommunicationFramework);
+procedure TCommunicationTestIntf.RegCmd(Intf: TCommunicationFramework);
 begin
   {$IFDEF FPC}
-  intf.RegisterStream('TestStream').OnExecute := @Cmd_TestStream;
-  intf.RegisterConsole('TestConsole').OnExecute := @Cmd_TestConsole;
-  intf.RegisterDirectStream('TestDirectStream').OnExecute := @Cmd_TestDirectStream;
-  intf.RegisterDirectConsole('TestDirectConsole').OnExecute := @Cmd_TestDirectConsole;
-  intf.RegisterBigStream('TestBigStream').OnExecute := @Cmd_TestBigStream;
-  intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := @Cmd_BigStreamPostInfo;
-  intf.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := @Cmd_TestCompleteBuffer;
-  intf.RegisterDirectConsole('RemoteInfo').OnExecute := @Cmd_RemoteInfo;
+  Intf.RegisterStream('TestStream').OnExecute := @Cmd_TestStream;
+  Intf.RegisterConsole('TestConsole').OnExecute := @Cmd_TestConsole;
+  Intf.RegisterDirectStream('TestDirectStream').OnExecute := @Cmd_TestDirectStream;
+  Intf.RegisterDirectConsole('TestDirectConsole').OnExecute := @Cmd_TestDirectConsole;
+  Intf.RegisterBigStream('TestBigStream').OnExecute := @Cmd_TestBigStream;
+  Intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := @Cmd_BigStreamPostInfo;
+  Intf.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := @Cmd_TestCompleteBuffer;
+  Intf.RegisterDirectConsole('RemoteInfo').OnExecute := @Cmd_RemoteInfo;
   {$ELSE}
-  intf.RegisterStream('TestStream').OnExecute := Cmd_TestStream;
-  intf.RegisterConsole('TestConsole').OnExecute := Cmd_TestConsole;
-  intf.RegisterDirectStream('TestDirectStream').OnExecute := Cmd_TestDirectStream;
-  intf.RegisterDirectConsole('TestDirectConsole').OnExecute := Cmd_TestDirectConsole;
-  intf.RegisterBigStream('TestBigStream').OnExecute := Cmd_TestBigStream;
-  intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := Cmd_BigStreamPostInfo;
-  intf.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := Cmd_TestCompleteBuffer;
-  intf.RegisterDirectConsole('RemoteInfo').OnExecute := Cmd_RemoteInfo;
+  Intf.RegisterStream('TestStream').OnExecute := Cmd_TestStream;
+  Intf.RegisterConsole('TestConsole').OnExecute := Cmd_TestConsole;
+  Intf.RegisterDirectStream('TestDirectStream').OnExecute := Cmd_TestDirectStream;
+  Intf.RegisterDirectConsole('TestDirectConsole').OnExecute := Cmd_TestDirectConsole;
+  Intf.RegisterBigStream('TestBigStream').OnExecute := Cmd_TestBigStream;
+  Intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := Cmd_BigStreamPostInfo;
+  Intf.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := Cmd_TestCompleteBuffer;
+  Intf.RegisterDirectConsole('RemoteInfo').OnExecute := Cmd_RemoteInfo;
   {$ENDIF}
-  FLastReg := intf;
+  FLastReg := Intf;
 end;
 
-procedure TCommunicationTestIntf.ExecuteTest(intf: TPeerIO);
+procedure TCommunicationTestIntf.ExecuteTest(Intf: TPeerIO);
 var
   tmpdf: TDataFrameEngine;
 begin
   {$IFDEF FPC}
-  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
+  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
+  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
   {$ELSE}
-  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
+  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
+  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
   {$ENDIF}
-  intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
-  intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
-  intf.SendBigStream('TestBigStream', TestStreamData, False);
-  intf.SendDirectConsoleCmd('BigStreamPostInfo', umlStreamMD5String(TestStreamData).Text);
-  intf.SendCompleteBuffer('TestCompleteBuffer', TestBuff, TestBuffSize, False);
+  Intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
+  Intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
+  Intf.SendBigStream('TestBigStream', TestStreamData, False);
+  Intf.SendDirectConsoleCmd('BigStreamPostInfo', umlStreamMD5String(TestStreamData).Text);
+  Intf.SendCompleteBuffer('TestCompleteBuffer', TestBuff, TestBuffSize, False);
 
-  if intf.OwnerFramework is TCommunicationFrameworkClient then
+  if Intf.OwnerFramework is TCommunicationFrameworkClient then
     begin
-      if intf.WaitSendConsoleCmd('TestConsole', FPrepareSendConsole, 0) <> FPrepareResultConsole then
-          intf.Print('wait Mode:TestResultConsole Data failed!');
+      if Intf.WaitSendConsoleCmd('TestConsole', FPrepareSendConsole, 0) <> FPrepareResultConsole then
+          Intf.Print('wait Mode:TestResultConsole Data failed!');
 
       tmpdf := TDataFrameEngine.Create;
-      intf.WaitSendStreamCmd('TestStream', FPrepareSendDataFrame, tmpdf, 0);
+      Intf.WaitSendStreamCmd('TestStream', FPrepareSendDataFrame, tmpdf, 0);
       if not tmpdf.Compare(FPrepareResultDataFrame) then
-          intf.Print('wait Mode:TestResultStream Data failed!');
+          Intf.Print('wait Mode:TestResultStream Data failed!');
       DisposeObject(tmpdf);
     end;
 
-  intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
+  Intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(Intf.ID) + '] test over!');
 end;
 
-procedure TCommunicationTestIntf.ExecuteAsyncTest(intf: TPeerIO);
+procedure TCommunicationTestIntf.ExecuteAsyncTest(Intf: TPeerIO);
 begin
   {$IFDEF FPC}
-  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
+  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
+  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
   {$ELSE}
-  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
+  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
+  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
   {$ENDIF}
-  intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
-  intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
+  Intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
+  Intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
 
-  intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
+  Intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(Intf.ID) + '] test over!');
 end;
 
-procedure TCommunicationTestIntf.ExecuteAsyncTestWithBigStream(intf: TPeerIO);
+procedure TCommunicationTestIntf.ExecuteAsyncTestWithBigStream(Intf: TPeerIO);
 begin
   {$IFDEF FPC}
-  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
+  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, @CmdResult_TestConsole);
+  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, @CmdResult_TestStream);
   {$ELSE}
-  intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
-  intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
+  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, CmdResult_TestConsole);
+  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, CmdResult_TestStream);
   {$ENDIF}
-  intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
-  intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
+  Intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
+  Intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
 
-  intf.SendBigStream('TestBigStream', TestStreamData, False);
-  intf.SendDirectConsoleCmd('BigStreamPostInfo', TestStreamMD5);
-  intf.SendCompleteBuffer('TestCompleteBuffer', TestBuff, TestBuffSize, False);
+  Intf.SendBigStream('TestBigStream', TestStreamData, False);
+  Intf.SendDirectConsoleCmd('BigStreamPostInfo', TestStreamMD5);
+  Intf.SendCompleteBuffer('TestCompleteBuffer', TestBuff, TestBuffSize, False);
 
-  intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(intf.ID) + '] test over!');
+  Intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(Intf.ID) + '] test over!');
 end;
 
-procedure MakeRndBuff(v: Integer; p: Pointer; siz: NativeInt);
+procedure MakeRndBuff(v: Integer; p: Pointer; siz: nativeInt);
 var
-  seed: Integer;
+  Seed: Integer;
   i   : Integer;
 begin
-  seed := v;
+  Seed := v;
   for i := 0 to (siz div 4) - 1 do
-      PInteger(Pointer(NativeUInt(p) + (i * 4)))^ := TMISC.Ran03(seed);
+      PInteger(Pointer(nativeUInt(p) + (i * 4)))^ := TMISC.Ran03(Seed);
 end;
 
 initialization
@@ -264,4 +266,4 @@ DisposeObject(TestStreamData);
 TestStreamData := nil;
 FreeMem(TestBuff, TestBuffSize);
 
-end.
+end. 

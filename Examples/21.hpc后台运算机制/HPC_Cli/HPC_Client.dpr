@@ -9,6 +9,6 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  AApplication.CreateForm(TDoubleTunnelClientForm, DoubleTunnelClientForm);
-  pplication.Run;
+  Application.CreateForm(TDoubleTunnelClientForm, DoubleTunnelClientForm);
+  Application.Run;
 end.

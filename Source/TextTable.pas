@@ -6,11 +6,13 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 
 unit TextTable;
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
@@ -29,7 +31,7 @@ type
     Picked: Boolean;
 
     // encode and import info
-    Index: Integer;
+    index: Integer;
     DefineText: SystemString;
 
     // text style
@@ -56,7 +58,7 @@ type
   protected
     FList: TCoreClassList;
 
-    function GetItems(Index: Integer): PTextTableItem;
+    function GetItems(index: Integer): PTextTableItem;
   public
     constructor Create;
     destructor Destroy; override;
@@ -64,14 +66,14 @@ type
     procedure Clear;
     function Count: Integer;
     property Items[index: Integer]: PTextTableItem read GetItems; default;
-    procedure Delete(Index: Integer);
+    procedure Delete(index: Integer);
 
     function GetMaxIndexNo: Integer;
 
     function GetOrigin(const s: SystemString): PTextTableItem;
-    property Origin[const s: SystemString]: PTextTableItem read GetOrigin;
+    property origin[const s: SystemString]: PTextTableItem read GetOrigin;
 
-    procedure AddCopy(var t: TTextTableItem);
+    procedure AddCopy(var T: TTextTableItem);
     procedure AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
@@ -79,8 +81,8 @@ type
     procedure AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddDelphiFormText(AOriginText, ACategory: SystemString; APicked: Boolean);
 
-    procedure ChangeDefineText(Index: Integer; newDefine: umlString);
-    function ExistsIndex(Index: Integer): Boolean;
+    procedure ChangeDefineText(index: Integer; newDefine: U_String);
+    function ExistsIndex(index: Integer): Boolean;
 
     function Search(AOriginText: SystemString): PTextTableItem;
 
@@ -153,7 +155,7 @@ begin
   DisposeObject(df);
 end;
 
-function TTextTable.GetItems(Index: Integer): PTextTableItem;
+function TTextTable.GetItems(index: Integer): PTextTableItem;
 begin
   Result := FList[index];
 end;
@@ -189,7 +191,7 @@ begin
   Result := FList.Count;
 end;
 
-procedure TTextTable.Delete(Index: Integer);
+procedure TTextTable.Delete(index: Integer);
 var
   p: PTextTableItem;
 begin
@@ -207,8 +209,8 @@ begin
   for i := 0 to FList.Count - 1 do
     begin
       p := PTextTableItem(FList[i]);
-      if p^.Index > Result then
-          Result := p^.Index;
+      if p^.index > Result then
+          Result := p^.index;
     end;
 end;
 
@@ -226,15 +228,15 @@ begin
     end;
 end;
 
-procedure TTextTable.AddCopy(var t: TTextTableItem);
+procedure TTextTable.AddCopy(var T: TTextTableItem);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(t.OriginText);
+  p := GetOrigin(T.OriginText);
   if p = nil then
     begin
-      New(p);
-      p^ := t;
+      new(p);
+      p^ := T;
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -251,11 +253,11 @@ begin
   p := GetOrigin(AOriginText);
   if p = nil then
     begin
-      New(p);
+      new(p);
       p^.OriginText := AOriginText;
       p^.Category := ACategory;
       p^.Picked := APicked;
-      p^.Index := GetMaxIndexNo + 1;
+      p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsNormalText;
       p^.OriginHash := FastHashSystemString(@AOriginText);
@@ -276,11 +278,11 @@ begin
   p := GetOrigin(AOriginText);
   if p = nil then
     begin
-      New(p);
+      new(p);
       p^.OriginText := AOriginText;
       p^.Category := ACategory;
       p^.Picked := APicked;
-      p^.Index := GetMaxIndexNo + 1;
+      p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsPascalText;
       p^.OriginHash := FastHashSystemString(@AOriginText);
@@ -301,11 +303,11 @@ begin
   p := GetOrigin(AOriginText);
   if p = nil then
     begin
-      New(p);
+      new(p);
       p^.OriginText := AOriginText;
       p^.Category := ACategory;
       p^.Picked := APicked;
-      p^.Index := GetMaxIndexNo + 1;
+      p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsPascalComment;
       p^.OriginHash := FastHashSystemString(@AOriginText);
@@ -326,11 +328,11 @@ begin
   p := GetOrigin(AOriginText);
   if p = nil then
     begin
-      New(p);
+      new(p);
       p^.OriginText := AOriginText;
       p^.Category := ACategory;
       p^.Picked := APicked;
-      p^.Index := GetMaxIndexNo + 1;
+      p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsCText;
       p^.OriginHash := FastHashSystemString(@AOriginText);
@@ -351,11 +353,11 @@ begin
   p := GetOrigin(AOriginText);
   if p = nil then
     begin
-      New(p);
+      new(p);
       p^.OriginText := AOriginText;
       p^.Category := ACategory;
       p^.Picked := APicked;
-      p^.Index := GetMaxIndexNo + 1;
+      p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsCComment;
       p^.OriginHash := FastHashSystemString(@AOriginText);
@@ -376,11 +378,11 @@ begin
   p := GetOrigin(AOriginText);
   if p = nil then
     begin
-      New(p);
+      new(p);
       p^.OriginText := AOriginText;
       p^.Category := ACategory;
       p^.Picked := APicked;
-      p^.Index := GetMaxIndexNo + 1;
+      p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsDFMText;
       p^.OriginHash := FastHashSystemString(@AOriginText);
@@ -394,7 +396,7 @@ begin
     end;
 end;
 
-procedure TTextTable.ChangeDefineText(Index: Integer; newDefine: umlString);
+procedure TTextTable.ChangeDefineText(index: Integer; newDefine: U_String);
 var
   i: Integer;
   p: PTextTableItem;
@@ -407,7 +409,7 @@ begin
   for i := 0 to FList.Count - 1 do
     begin
       p := FList[i];
-      if (p^.Picked) and (p^.Index = index) then
+      if (p^.Picked) and (p^.index = index) then
         begin
           case p^.TextStyle of
             tsPascalText: p^.DefineText := TTextParsing.TranslateTextToPascalDecl(newDefine);
@@ -423,13 +425,13 @@ begin
     end;
 end;
 
-function TTextTable.ExistsIndex(Index: Integer): Boolean;
+function TTextTable.ExistsIndex(index: Integer): Boolean;
 var
   i: Integer;
 begin
   Result := True;
   for i := 0 to FList.Count - 1 do
-    if index = PTextTableItem(FList[i])^.Index then
+    if index = PTextTableItem(FList[i])^.index then
         Exit;
   Result := False;
 end;
@@ -437,8 +439,8 @@ end;
 function TTextTable.Search(AOriginText: SystemString): PTextTableItem;
 var
   hash: THash;
-  i   : Integer;
-  p   : PTextTableItem;
+  i: Integer;
+  p: PTextTableItem;
 begin
   hash := FastHashSystemString(@AOriginText);
   for i := 0 to FList.Count - 1 do
@@ -456,8 +458,8 @@ procedure TTextTable.SaveToStream(stream: TCoreClassStream);
 var
   ms: TMemoryStream64;
   df: TDataFrameEngine;
-  i : Integer;
-  p : PTextTableItem;
+  i: Integer;
+  p: PTextTableItem;
 begin
   ms := TMemoryStream64.Create;
   df := TDataFrameEngine.Create;
@@ -481,10 +483,10 @@ end;
 
 procedure TTextTable.LoadFromStream(stream: TCoreClassStream);
 var
-  ms  : TMemoryStream64;
-  df  : TDataFrameEngine;
-  i, c: Integer;
-  p   : PTextTableItem;
+  ms: TMemoryStream64;
+  df: TDataFrameEngine;
+  i, C: Integer;
+  p: PTextTableItem;
 begin
   Clear;
 
@@ -492,11 +494,11 @@ begin
   df := TDataFrameEngine.Create;
   df.DecodeFrom(stream);
 
-  c := df.Reader.ReadInteger;
+  C := df.Reader.ReadInteger;
 
-  for i := 0 to c - 1 do
+  for i := 0 to C - 1 do
     begin
-      New(p);
+      new(p);
       df.Reader.ReadStream(ms);
       ms.Position := 0;
       p^.LoadFromStream(ms);
@@ -511,10 +513,10 @@ end;
 procedure TTextTable.ExportToTextStream(stream: TCoreClassStream);
 var
   expList: THashList;
-  i      : Integer;
-  p      : PTextTableItem;
-  ns     : TCoreClassStringList;
-  n      : TPascalString;
+  i: Integer;
+  p: PTextTableItem;
+  ns: TCoreClassStringList;
+  n: TPascalString;
 begin
   expList := THashList.Create;
   ns := TCoreClassStringList.Create;
@@ -526,12 +528,12 @@ begin
           begin
             expList.Add(p^.OriginText, p, False);
             case p^.TextStyle of
-              tsPascalText: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]));
-              tsCText: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclToText(p^.DefineText).Text]));
-              tsPascalComment: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclCommentToText(p^.DefineText).Text]));
-              tsCComment: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslateC_DeclCommentToText(p^.DefineText).Text]));
-              tsDFMText: ns.Add(Format('%d=%s', [p^.Index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]));
-              else ns.Add(Format('%d=%s', [p^.Index, p^.DefineText]));
+              tsPascalText: ns.Add(Format('%d=%s', [p^.index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]));
+              tsCText: ns.Add(Format('%d=%s', [p^.index, TTextParsing.TranslateC_DeclToText(p^.DefineText).Text]));
+              tsPascalComment: ns.Add(Format('%d=%s', [p^.index, TTextParsing.TranslatePascalDeclCommentToText(p^.DefineText).Text]));
+              tsCComment: ns.Add(Format('%d=%s', [p^.index, TTextParsing.TranslateC_DeclCommentToText(p^.DefineText).Text]));
+              tsDFMText: ns.Add(Format('%d=%s', [p^.index, TTextParsing.TranslatePascalDeclToText(p^.DefineText).Text]));
+              else ns.Add(Format('%d=%s', [p^.index, p^.DefineText]));
             end;
           end;
     end;
@@ -542,54 +544,55 @@ end;
 
 procedure TTextTable.ImportFromTextStream(stream: TCoreClassStream);
 var
-  ns          : TCoreClassStringList;
-  t           : TTextParsing;
-  CurrentItem : Integer;
-  cp          : Integer;
+  ns: TCoreClassStringList;
+  T: TTextParsing;
+  CurrentItem: Integer;
+  cp: Integer;
   nbPos, nePos: Integer;
-  numText     : umlString;
-  num         : Integer;
-  n           : umlString;
+  numText: U_String;
+  Num: Integer;
+  n: U_String;
 begin
   ns := TCoreClassStringList.Create;
   ns.LoadFromStream(stream);
-  t := TTextParsing.Create(ns.Text, TTextStyle.tsText, nil);
+  T := TTextParsing.Create(ns.Text, TTextStyle.tsText, nil);
 
   cp := 1;
   n := '';
-  num := -1;
+  Num := -1;
   CurrentItem := -1;
-  while cp <= t.Len do
+  while cp <= T.Len do
     begin
-      if ((cp = 1) or (CharIn(t.GetChar(cp - 1), ns.LineBreak))) and (t.IsNumber(cp)) then
+      if ((cp = 1) or (CharIn(T.GetChar(cp - 1), ns.LineBreak))) and (T.isNumber(cp)) then
         begin
           nbPos := cp;
-          nePos := t.GetNumberEndPos(nbPos);
-          numText := t.GetStr(nbPos, nePos);
-          if CharIn(t.GetChar(nePos), ':=') then
+          nePos := T.GetNumberEndPos(nbPos);
+          numText := T.GetStr(nbPos, nePos);
+          if CharIn(T.GetChar(nePos), ':=') then
             case umlGetNumTextType(numText) of
               ntUInt64, ntWord, ntByte, ntUInt:
                 begin
-                  num := umlStrToInt(numText.Text, 0);
-                  if n.Len >= Length(ns.LineBreak) then
-                      n.Len := n.Len - Length(ns.LineBreak);
+                  Num := umlStrToInt(numText.Text, 0);
+                  if n.Len >= length(ns.LineBreak) then
+                      n.Len := n.Len - length(ns.LineBreak);
                   ChangeDefineText(CurrentItem, n);
                   n := '';
-                  CurrentItem := num;
+                  CurrentItem := Num;
                   cp := nePos + 1;
-                  continue;
+                  Continue;
                 end;
             end;
         end;
-      n := n + t.GetChar(cp);
+      n := n + T.GetChar(cp);
       Inc(cp);
     end;
-  if n.Len >= Length(ns.LineBreak) then
-      n.Len := n.Len - Length(ns.LineBreak);
+  if n.Len >= length(ns.LineBreak) then
+      n.Len := n.Len - length(ns.LineBreak);
   ChangeDefineText(CurrentItem, n.Text);
 
   DisposeObject(ns);
-  DisposeObject(t);
+  DisposeObject(T);
 end;
 
-end.
+end. 
+ 

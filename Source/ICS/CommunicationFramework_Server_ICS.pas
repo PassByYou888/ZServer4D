@@ -1,4 +1,4 @@
-ï»¿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * ics support                                                                * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Server_ICS;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -49,7 +51,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -71,7 +73,7 @@ type
     // thread sync interface
     procedure WndProc(var MsgRec: TMessage); override;
 
-    procedure ClientDataAvailable(Sender: TObject; Error: Word);
+    procedure ClientDataAvailable(Sender: TObject; error: Word);
     procedure ClientBgException(Sender: TObject; E: Exception; var CanClose: Boolean);
     procedure ClientSendData(Sender: TObject; BytesSent: Integer);
   public
@@ -90,9 +92,9 @@ type
     FBindPort      : Word;
     FStartedService: Boolean;
 
-    procedure ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; Error: Word);
+    procedure ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; error: Word);
     procedure ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
-    procedure ClientDisconnectEvent(Sender: TObject; Client: TCustomICSContext; Error: Word);
+    procedure ClientDisconnectEvent(Sender: TObject; Client: TCustomICSContext; error: Word);
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -104,11 +106,11 @@ type
 
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
-    property Driver: TCustomICSSocketServer read FDriver;
+    property driver: TCustomICSSocketServer read FDriver;
     property BindHost: SystemString read FBindHost;
     property BindPort: Word read FBindPort;
   end;
@@ -179,7 +181,7 @@ begin
             if not GetMessage(MsgRec, FContext.Handle, 0, 0) then
               begin
                 FClientLoopMessageTerminated := True;
-                break;
+                Break;
               end;
             TranslateMessage(MsgRec);
             DispatchMessage(MsgRec)
@@ -208,7 +210,7 @@ begin
                     if FContext.State in [wsConnected] then
                         FContext.CloseDelayed
                     else
-                        break;
+                        Break;
                   end;
               end
             else
@@ -235,7 +237,7 @@ begin
                     else
                       begin
                         FClientLoopMessageTerminated := True;
-                        break;
+                        Break;
                       end;
                   except
                       FClientLoopMessageTerminated := True;
@@ -312,7 +314,7 @@ begin
     end;
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if Connected then
     if Size > 0 then
@@ -362,7 +364,7 @@ begin
       inherited WndProc(MsgRec);
 end;
 
-procedure TICSContext.ClientDataAvailable(Sender: TObject; Error: Word);
+procedure TICSContext.ClientDataAvailable(Sender: TObject; error: Word);
 var
   BuffCount: Integer;
   buff     : TBytes;
@@ -482,18 +484,18 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; Error: Word);
+procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; error: Word);
 begin
   DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
   Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  Client.KeepAliveTime := 1 * 1000;     // ä»Žå¿ƒè·³æ£€æŸ¥åˆ°æ–­å¼€çš„ç©ºé—²æ—¶é—´
-  Client.KeepAliveInterval := 1 * 1000; // å¿ƒè·³æ£€æŸ¥é—´éš”
+  Client.KeepAliveTime := 1 * 1000;     // ´ÓÐÄÌø¼ì²éµ½¶Ï¿ªµÄ¿ÕÏÐÊ±¼ä
+  Client.KeepAliveInterval := 1 * 1000; // ÐÄÌø¼ì²é¼ä¸ô
 end;
 
 procedure TCommunicationFramework_Server_ICS.ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
 var
   cli: TICSContext;
-  t  : TTimeTickValue;
+  T  : TTimeTickValue;
 begin
   if Count > 500 then
     begin
@@ -515,14 +517,14 @@ begin
     cli.FClientIntf := TPeerClientIntfForICS.Create(Self, cli);
     cli.FClientIntf.FContext := cli;
 
-    t := GetTimeTickCount + 5000;
+    T := GetTimeTickCount + 5000;
     while (cli.FICSSocketThread <> nil) and (not cli.FICSSocketThread.FThreadAttached) do
       begin
         TThread.Sleep(1);
-        if GetTimeTickCount > t then
-            break;
+        if GetTimeTickCount > T then
+            Break;
         if cli.ThreadAttachAborted then
-            break;
+            Break;
       end;
 
     if cli.ThreadAttachAborted then
@@ -532,7 +534,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_Server_ICS.ClientDisconnectEvent(Sender: TObject; Client: TCustomICSContext; Error: Word);
+procedure TCommunicationFramework_Server_ICS.ClientDisconnectEvent(Sender: TObject; Client: TCustomICSContext; error: Word);
 var
   cli: TICSContext;
 begin
@@ -596,7 +598,7 @@ begin
     // open listen
     FDriver.Proto := 'tcp';
     FDriver.Port := IntToStr(Port);
-    FDriver.Addr := Host;
+    FDriver.addr := Host;
 
     FDriver.Listen;
     Result := True;
@@ -655,13 +657,13 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
-procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
@@ -678,4 +680,5 @@ finalization
 DeleteCriticalSection(sThSection);
 DisposeObject(ICSThreadList);
 
-end.
+end. 
+ 

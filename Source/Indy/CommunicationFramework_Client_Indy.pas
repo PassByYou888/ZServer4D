@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Client_Indy;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -34,7 +36,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -51,7 +53,7 @@ type
     FOnAsyncConnectNotifyMethod: TStateMethod;
     FOnAsyncConnectNotifyProc  : TStateProc;
 
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc); overload;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -64,10 +66,10 @@ type
     procedure ProgressBackground; override;
     procedure TriggerQueueData(v: PQueueData); override;
 
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
-    function Connect(Addr: SystemString; Port: Word): Boolean; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    function Connect(addr: SystemString; Port: Word): Boolean; override;
     procedure Disconnect; override;
   end;
 
@@ -83,7 +85,7 @@ var
   cli: TIdTCPClient;
 begin
   cli := TIdTCPClient.Create(nil);
-  cli.host := hostName;
+  cli.Host := hostName;
   cli.Port := Port;
   cli.BoundIP := '';
   cli.BoundPort := 0;
@@ -103,7 +105,7 @@ begin
   except
   end;
 
-  disposeObject(cli);
+  DisposeObject(cli);
 end;
 
 function ToIDBytes(p: PByte; Size: Integer): TIdBytes; inline;
@@ -127,10 +129,10 @@ begin
   Context.Disconnect;
 end;
 
-procedure TClientIntf.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TClientIntf.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if Size > 0 then
-      Context.IOHandler.Write(ToIDBytes(buff, Size));
+      Context.IOHandler.write(ToIDBytes(buff, Size));
 end;
 
 procedure TClientIntf.WriteBufferOpen;
@@ -150,27 +152,27 @@ end;
 
 function TClientIntf.GetPeerIP: SystemString;
 begin
-  Result := Context.host;
+  Result := Context.Host;
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnect(Addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
+procedure TCommunicationFramework_Client_Indy.AsyncConnect(addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
 begin
   Disconnect;
 
-  disposeObject(ClientIntf);
+  DisposeObject(ClientIntf);
 
   FDriver := TIdTCPClient.Create(nil);
   ClientIntf := TClientIntf.Create(Self, FDriver);
   FProgressing := False;
 
-  if IsIPV4(Addr) then
+  if IsIPv4(addr) then
       FDriver.IPVersion := TIdIPVersion.Id_IPv4
-  else if IsIPV6(Addr) then
+  else if IsIPV6(addr) then
       FDriver.IPVersion := TIdIPVersion.Id_IPv6
   else
       FDriver.IPVersion := DefaultIPVersion;
 
-  FDriver.host := Addr;
+  FDriver.Host := addr;
   FDriver.Port := Port;
   FDriver.BoundIP := '';
   FDriver.BoundPort := 0;
@@ -187,7 +189,7 @@ begin
     FDriver.Connect;
     ProgressBackground;
   except
-    if (IsIPV4(Addr)) or (IsIPV6(Addr)) then
+    if (IsIPv4(addr)) or (IsIPV6(addr)) then
       begin
         FDriver := TIdTCPClient.Create(nil);
         FDriver.IPVersion := DefaultIPVersion;
@@ -195,12 +197,12 @@ begin
         FDriver.ReadTimeout := -1;
         FDriver.UseNagle := False;
 
-        disposeObject(ClientIntf);
+        DisposeObject(ClientIntf);
         ClientIntf := TClientIntf.Create(Self, FDriver);
 
         TriggerDoConnectFailed;
 
-        exit;
+        Exit;
       end
     else
       begin
@@ -213,7 +215,7 @@ begin
           FDriver.Connect;
           ProgressBackground;
         except
-          if (not IsIPV4(Addr)) and (not IsIPV6(Addr)) then
+          if (not IsIPv4(addr)) and (not IsIPV6(addr)) then
             begin
               if DefaultIPVersion = TIdIPVersion.Id_IPv4 then
                   DefaultIPVersion := TIdIPVersion.Id_IPv6
@@ -227,12 +229,12 @@ begin
           FDriver.ReadTimeout := -1;
           FDriver.UseNagle := False;
 
-          disposeObject(ClientIntf);
+          DisposeObject(ClientIntf);
           ClientIntf := TClientIntf.Create(Self, FDriver);
 
           TriggerDoConnectFailed;
 
-          exit;
+          Exit;
         end;
       end;
   end;
@@ -240,7 +242,7 @@ begin
   if not FDriver.Connected then
     begin
       TriggerDoConnectFailed;
-      exit;
+      Exit;
     end;
 
   DoConnected(ClientIntf);
@@ -278,7 +280,7 @@ begin
   end;
 
   try
-      disposeObject(ClientIntf);
+      DisposeObject(ClientIntf);
   except
   end;
 
@@ -334,7 +336,7 @@ begin
     FDriver.ReadTimeout := -1;
     FDriver.UseNagle := False;
 
-    disposeObject(ClientIntf);
+    DisposeObject(ClientIntf);
 
     ClientIntf := TClientIntf.Create(Self, FDriver);
     Result := False;
@@ -348,11 +350,11 @@ end;
 
 procedure TCommunicationFramework_Client_Indy.ProgressBackground;
 var
-  t   : TTimeTickValue;
+  T   : TTimeTickValue;
   iBuf: TIdBytes;
 begin
   if FProgressing then
-      exit;
+      Exit;
 
   if Connected then
     begin
@@ -364,14 +366,14 @@ begin
           begin
             FDriver.IOHandler.InputBuffer.ExtractToBytes(iBuf);
             FDriver.IOHandler.InputBuffer.Clear;
-            ClientIntf.SaveReceiveBuffer(@iBuf[0], Length(iBuf));
+            ClientIntf.SaveReceiveBuffer(@iBuf[0], length(iBuf));
             SetLength(iBuf, 0);
             try
                 ClientIntf.FillRecvBuffer(nil, False, False);
             except
               ClientIntf.Disconnect;
               FProgressing := False;
-              exit;
+              Exit;
             end;
             inherited ProgressBackground;
             FDriver.IOHandler.CheckForDataOnSource(5);
@@ -381,30 +383,30 @@ begin
           if Connected then
             begin
               ClientIntf.ProcessAllSendCmd(nil, False, False);
-              t := GetTimeTickCount + 15000;
+              T := GetTimeTickCount + 15000;
               while (ClientIntf <> nil) and (Connected) and (ClientIntf.WaitOnResult) do
                 begin
                   FDriver.IOHandler.CheckForDataOnSource(5);
                   if FDriver.IOHandler.InputBuffer.Size > 0 then
                     begin
-                      t := GetTimeTickCount + 15000;
+                      T := GetTimeTickCount + 15000;
 
                       FDriver.IOHandler.InputBuffer.ExtractToBytes(iBuf);
                       FDriver.IOHandler.InputBuffer.Clear;
-                      ClientIntf.SaveReceiveBuffer(@iBuf[0], Length(iBuf));
+                      ClientIntf.SaveReceiveBuffer(@iBuf[0], length(iBuf));
                       SetLength(iBuf, 0);
                       try
                           ClientIntf.FillRecvBuffer(nil, False, False);
                       except
                         ClientIntf.Disconnect;
                         FProgressing := False;
-                        exit;
+                        Exit;
                       end;
                     end
-                  else if GetTimeTickCount > t then
+                  else if GetTimeTickCount > T then
                     begin
                       ClientIntf.Disconnect;
-                      break;
+                      Break;
                     end;
                   inherited ProgressBackground;
                 end;
@@ -413,7 +415,7 @@ begin
         except
           ClientIntf.Disconnect;
           FProgressing := False;
-          exit;
+          Exit;
         end;
 
       finally
@@ -439,43 +441,43 @@ begin
       DisposeQueueData(v);
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_Indy.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
-  AsyncConnect(Addr, Port, OnResult, nil, nil);
+  AsyncConnect(addr, Port, OnResult, nil, nil);
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_Indy.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
-  AsyncConnect(Addr, Port, nil, OnResult, nil);
+  AsyncConnect(addr, Port, nil, OnResult, nil);
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_Indy.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
-  AsyncConnect(Addr, Port, nil, nil, OnResult);
+  AsyncConnect(addr, Port, nil, nil, OnResult);
 end;
 
-function TCommunicationFramework_Client_Indy.Connect(Addr: SystemString; Port: Word): Boolean;
+function TCommunicationFramework_Client_Indy.Connect(addr: SystemString; Port: Word): Boolean;
 var
-  t: TTimeTickValue;
+  T: TTimeTickValue;
 begin
   Result := False;
 
   Disconnect;
 
-  disposeObject(ClientIntf);
+  DisposeObject(ClientIntf);
 
   FDriver := TIdTCPClient.Create(nil);
   ClientIntf := TClientIntf.Create(Self, FDriver);
   FProgressing := False;
 
-  if IsIPV4(Addr) then
+  if IsIPv4(addr) then
       FDriver.IPVersion := TIdIPVersion.Id_IPv4
-  else if IsIPV6(Addr) then
+  else if IsIPV6(addr) then
       FDriver.IPVersion := TIdIPVersion.Id_IPv6
   else
       FDriver.IPVersion := DefaultIPVersion;
 
-  FDriver.host := Addr;
+  FDriver.Host := addr;
   FDriver.Port := Port;
   FDriver.BoundIP := '';
   FDriver.BoundPort := 0;
@@ -492,7 +494,7 @@ begin
     FDriver.Connect;
     ProgressBackground;
   except
-    if (IsIPV4(Addr)) or (IsIPV6(Addr)) then
+    if (IsIPv4(addr)) or (IsIPV6(addr)) then
       begin
         FDriver := TIdTCPClient.Create(nil);
         FDriver.IPVersion := DefaultIPVersion;
@@ -500,9 +502,9 @@ begin
         FDriver.ReadTimeout := -1;
         FDriver.UseNagle := False;
 
-        disposeObject(ClientIntf);
+        DisposeObject(ClientIntf);
         ClientIntf := TClientIntf.Create(Self, FDriver);
-        exit;
+        Exit;
       end
     else
       begin
@@ -515,7 +517,7 @@ begin
           FDriver.Connect;
           ProgressBackground;
         except
-          if (not IsIPV4(Addr)) and (not IsIPV6(Addr)) then
+          if (not IsIPv4(addr)) and (not IsIPV6(addr)) then
             begin
               if DefaultIPVersion = TIdIPVersion.Id_IPv4 then
                   DefaultIPVersion := TIdIPVersion.Id_IPv6
@@ -529,20 +531,20 @@ begin
           FDriver.ReadTimeout := -1;
           FDriver.UseNagle := False;
 
-          disposeObject(ClientIntf);
+          DisposeObject(ClientIntf);
           ClientIntf := TClientIntf.Create(Self, FDriver);
-          exit;
+          Exit;
         end;
       end;
   end;
 
   if not FDriver.Connected then
-      exit;
+      Exit;
 
   DoConnected(ClientIntf);
 
-  t := GetTimeTickCount + 3000;
-  while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount < t) do
+  T := GetTimeTickCount + 3000;
+  while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount < T) do
     begin
       ProgressBackground;
       FDriver.IOHandler.CheckForDataOnSource(100);
@@ -554,7 +556,7 @@ end;
 procedure TCommunicationFramework_Client_Indy.Disconnect;
 begin
   if not Connected then
-      exit;
+      Exit;
 
   FDriver.Disconnect;
 end;
@@ -565,4 +567,4 @@ DefaultIPVersion := TIdIPVersion.Id_IPv4;
 
 finalization
 
-end.
+end. 

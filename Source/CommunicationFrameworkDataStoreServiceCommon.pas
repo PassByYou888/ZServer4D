@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFrameworkDataStoreServiceCommon;
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
@@ -134,7 +136,6 @@ type
   {$IFNDEF FPC}
   TStorePosTransformNotifyProc = reference to procedure(const TransformBuff: PZDBStorePosTransformArray);
   {$ENDIF}
-
   PStorePosTransformNotify = ^TStorePosTransformNotify;
 
   TStorePosTransformNotify = packed record
@@ -145,6 +146,7 @@ type
     {$ENDIF}
     procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
   end;
+
   //
   TPipeState = packed record
     WriteOutputDB, Activted, SyncToClient, MemoryMode, Paused: Boolean;
@@ -315,3 +317,4 @@ end;
 initialization
 
 end.
+ 

@@ -31,6 +31,10 @@ object zsGatewayConfigureForm: TzsGatewayConfigureForm
     TabOrder = 4
     object ServTabSheet: TTabSheet
       Caption = 'NAT Service'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label2: TLabel
         Left = 51
         Top = 41

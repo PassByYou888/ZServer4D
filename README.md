@@ -21,6 +21,8 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 支持中心化网络群集，支持中心化网络群集一键对接
 
+全面支持Linux服务器开发(fpc方向)
+
 内置NoSQL并行化内核，良好支持大数据，良好支持聚类分析，支持分布式数据库负载，支持分布式数据查询结果汇集（NoSQL技术体系从11月初开始一直处于整理中，工程较大，可能短期不能完成，但是未来会以开源形式为Delphi国内带来前沿的数据库支持体系）
 
 (NoSQL并行化内核已经完成，聚类分析和分布式负载已完成50%文档)
@@ -58,7 +60,9 @@ OSX: Indy(C/S OK)，ICS(未测试), CrossSocket(C/S OK)
 
 [怎样开发基于ZS的底层通讯IO接口](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZServer4D%E5%BC%80%E5%8F%91%E5%BA%95%E5%B1%82%E9%80%9A%E8%AE%AFIO%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%96%B9%E6%B3%95.pdf)
 
-[部署Ubuntu服务器的开发环境](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E9%83%A8%E7%BD%B2Ubuntu%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84Delphi%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.pdf)
+[部署Ubuntu服务器的开发环境(delphi方向)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E9%83%A8%E7%BD%B2Ubuntu%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84Delphi%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.pdf)
+
+[Linux桌面开发指南(fpc方向)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/Linux%E6%A1%8C%E9%9D%A2%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.pdf)
 
 [BatchStream机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/BatchStream%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
 
@@ -98,7 +102,7 @@ OSX: Indy(C/S OK)，ICS(未测试), CrossSocket(C/S OK)
 
 ## 通讯接口支持(FreePascal with Lazarus 计划支持中)
 
-1.synapse4(open source) 计划支持
+1.synapse4(open source) 下次更新就开始支持它
 
 支持ssl的优秀开源项目
 
@@ -154,27 +158,19 @@ ZServer4D内置的客户端采用的是用完抛弃的工作方式，会有少�
 
 ## 最后一更新日志
 
-### 2018-5-26 基于云服务器的开发工艺在本次已经升级
-
-- 删除了云服务器模型1.0及其Demo
-- 原商业云服务器框架2.0被移动至Demo中
-- 新版本云服务器模型并入到了 ServiceApiModel 中
-- 新版本的云服务器模型具备低门槛的技术基因，支持了在Linux系统架设云服务器后台，整个模型只有一个300行代码的群集调度服务器，外加两个附属Demo和一份调度服务器的用法详解文档
-- 新增一个HPC服务器的使用Demo
-- 新增技术文档，BatchStream机制详解.pdf
-- 新增技术文档，HPC服务器的工作机制详解.pdf
-- 新增技术文档，延迟反馈机制详解.pdf
-- 新增技术文档，云调度服务器用法详解.pdf
+### 2018-7-6
+- 大幅修正底层库的命名规则
+- 对fpc/86/64平台支持，全部基础库支持Linux下的无故障编译和运行
+- 对fpc编译器3.1.1全面支持
+- 新增大小字节序支持
+- 修复对32位fpc编译器不认for用Int64的问题
+- 修复字符串在fpc编译器运行于linux发生异常的问题
+- 新增pascal预编译工具，将pascal代码规范成c风格的全部统一大小写，全面兼容Linux区分大小写文件名的机制
+- 本次更新未对树莓派支持
+- 本次更新未对fpc的跨平台服务器体系支持(synapse)
+- 本次更新未对双通道的用户身份验证事件的回调做支持
 - 本次更新未对反向代理更新，反向代理工具系列将留在下次更新一并升级
 
 
 [更多更新日志](https://github.com/PassByYou888/ZServer4D/update.md)
-
-
-## 捐赠
-
-**如果你支持zServer开发，请向作者捐款，希望捐赠后能留下真实姓名和联系方式，开发建议请发至作者邮箱** [600585@qq.com](mailto:600585@qq.com "600585@qq.com")
-
-![](alipay.jpg)
-
 

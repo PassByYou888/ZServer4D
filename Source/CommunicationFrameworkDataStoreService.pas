@@ -1,4 +1,4 @@
-﻿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * DataStore Service                                                          * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,6 +7,8 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -16,7 +18,7 @@ unit CommunicationFrameworkDataStoreService;
 
 interface
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
@@ -72,8 +74,8 @@ type
     procedure StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
     procedure CreateDB(ActiveDB: TZDBStoreEngine); virtual;
     procedure CloseDB(ActiveDB: TZDBStoreEngine); virtual;
-    procedure InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; id: Cardinal; CompletePos: Int64); virtual;
-    procedure AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; id: Cardinal; CompletePos: Int64); virtual;
+    procedure InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
+    procedure AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
     procedure ModifyData(Sender: TZDBStoreEngine; const StorePos: Int64; buff: TCoreClassStream); virtual;
     procedure DeleteData(Sender: TZDBStoreEngine; const StorePos: Int64); virtual;
   protected
@@ -98,9 +100,9 @@ type
     procedure Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
-    procedure Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
-    procedure Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+    procedure Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
+    procedure Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
+    procedure Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
 
     procedure Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
@@ -160,7 +162,7 @@ type
 
     procedure Progress; override;
 
-    procedure InitDB(inMem: Boolean; dbN: SystemString); virtual;
+    procedure InitDB(InMem: Boolean; dbN: SystemString); virtual;
     procedure CloseDB(dbN: SystemString; CloseAndDeleted: Boolean); virtual;
 
     procedure CopyDB(dbN, copyToN: SystemString); overload;
@@ -179,43 +181,43 @@ type
     procedure CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
     {$ENDIF FPC}
     //
-    procedure ReplaceDB(dbN, ReplaceN: SystemString); virtual;
+    procedure ReplaceDB(dbN, replaceN: SystemString); virtual;
     procedure ResetData(dbN: SystemString); virtual;
 
     procedure QuietQueryDB(RegistedQueryName: SystemString; ReverseQuery: Boolean; dbN, outDBN: SystemString; MaxWait: Double; MaxQueryResult: Int64); virtual;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList); overload; virtual;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList; // service ref remote parameter
       OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList;                                           // service ref remote parameter
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
       OnQueryCall: TUserFillQueryDataCall; OnDoneCall: TUserQueryDoneNotifyCall); overload;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList; // service ref remote parameter
       OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList;                                           // service ref remote parameter
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
       OnQueryMethod: TUserFillQueryDataMethod; OnDoneMethod: TUserQueryDoneNotifyMethod); overload;
 
     {$IFNDEF FPC}
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList; // service ref remote parameter
       OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList;                                           // service ref remote parameter
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
@@ -284,8 +286,8 @@ type
     {$ENDIF}
     //
     // safe post support
-    procedure PostAssembleStream(dbN: SystemString; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure PostAssembleStreamCopy(dbN: SystemString; Stream: TCoreClassStream; dID: Cardinal);
+    procedure PostAssembleStream(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure PostAssembleStreamCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
     procedure PostAssembleStream(dbN: SystemString; DataSource: TDataFrameEngine); overload;
     procedure PostAssembleStream(dbN: SystemString; DataSource: THashVariantList); overload;
     procedure PostAssembleStream(dbN: SystemString; DataSource: TSectionTextData); overload;
@@ -293,8 +295,8 @@ type
     procedure PostAssembleStream(dbN: SystemString; DataSource: TPascalString); overload;
     //
     // safe insert support
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
+    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -302,8 +304,8 @@ type
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
     //
     // safe modify support
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
-    procedure ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream);
+    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
+    procedure ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream);
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -320,8 +322,8 @@ type
     procedure DeleteData(dbN: SystemString; dStorePos: Int64); virtual;
     //
     // fast post support
-    procedure FastPostCompleteBuffer(dbN: SystemString; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure FastPostCompleteBufferCopy(dbN: SystemString; Stream: TCoreClassStream; dID: Cardinal);
+    procedure FastPostCompleteBuffer(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastPostCompleteBufferCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TDataFrameEngine); overload;
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: THashVariantList); overload;
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TSectionTextData); overload;
@@ -329,8 +331,8 @@ type
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TPascalString); overload;
     //
     // fast insert support
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
+    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -338,8 +340,8 @@ type
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
     //
     // fast modify support
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
+    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -430,24 +432,24 @@ end;
 procedure TDataStoreService.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
 var
   pl: TTDataStoreService_DBPipeline;
-  destStream: TMemoryStream64;
+  DestStream: TMemoryStream64;
 begin
   pl := TTDataStoreService_DBPipeline(pipe);
   if not pl.SyncToClient then
-      exit;
+      Exit;
 
   if not SendTunnel.Exists(pl.SendTunnel) then
-      exit;
+      Exit;
 
-  destStream := TMemoryStream64.Create;
+  DestStream := TMemoryStream64.Create;
   FragmentSource.Position := 0;
 
-  CompressStream(FragmentSource, destStream);
+  CompressStream(FragmentSource, DestStream);
 
-  SequEncrypt(destStream.Memory, destStream.Size, True, True);
+  SequEncrypt(DestStream.Memory, DestStream.Size, True, True);
 
   ClearBatchStream(pl.SendTunnel.Owner);
-  PostBatchStream(pl.SendTunnel.Owner, destStream, True);
+  PostBatchStream(pl.SendTunnel.Owner, DestStream, True);
   Send_CompletedFragmentBigStream(pl);
   ClearBatchStream(pl.SendTunnel.Owner);
 end;
@@ -459,7 +461,7 @@ begin
   pl := TTDataStoreService_DBPipeline(pipe);
 
   if not FSendTunnel.Exists(pl.SendTunnel) then
-      exit;
+      Exit;
 
   Send_CompletedQuery(pl);
 end;
@@ -470,7 +472,7 @@ var
   de: TDataFrameEngine;
 begin
   if Data = nil then
-      exit;
+      Exit;
   p := POnStorePosTransformTrigger(Data);
   if (p^.BackcallPtr <> 0) and (FSendTunnel.Exists(p^.Client_SendTunnel_ID)) then
       Send_CompletedStorePosTransform(SendTunnel.ClientFromID[p^.Client_SendTunnel_ID], p^.BackcallPtr, TransformBuff);
@@ -485,11 +487,11 @@ procedure TDataStoreService.CloseDB(ActiveDB: TZDBStoreEngine);
 begin
 end;
 
-procedure TDataStoreService.InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; id: Cardinal; CompletePos: Int64);
+procedure TDataStoreService.InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
 begin
 end;
 
-procedure TDataStoreService.AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; id: Cardinal; CompletePos: Int64);
+procedure TDataStoreService.AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
 begin
 end;
 
@@ -509,7 +511,7 @@ end;
 procedure TDataStoreService.DownloadQueryWithIDFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
 begin
   try
-      Allowed := qState.id = dPipe.UserVariant;
+      Allowed := qState.ID = dPipe.UserVariant;
   except
       Allowed := False;
   end;
@@ -524,24 +526,24 @@ begin
     begin
       pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryPipelineList[i]);
       if pl.RecvTunnel = UserDefineIO.Owner.UserDefine then
-          pl.Stop;
+          pl.stop;
     end;
   inherited UserOut(UserDefineIO);
 end;
 
 procedure TDataStoreService.Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
-  inMem: Boolean;
+  RT: TDataStoreService_PeerClientRecvTunnel;
+  InMem: Boolean;
   dbN: SystemString;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
-  inMem := InData.Reader.ReadBool;
+  InMem := InData.Reader.ReadBool;
   dbN := InData.Reader.ReadString;
-  if inMem then
+  if InMem then
       FZDBLocal.InitMemoryDB(dbN)
   else
       FZDBLocal.InitDB(dbN, False);
@@ -549,13 +551,13 @@ end;
 
 procedure TDataStoreService.Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   CloseAndDeleted: Boolean;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   CloseAndDeleted := InData.Reader.ReadBool;
@@ -568,21 +570,21 @@ end;
 
 procedure TDataStoreService.Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN, copy2N: SystemString;
   BackcallPtr: UInt64;
   p: POnStorePosTransformTrigger;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   copy2N := InData.Reader.ReadString;
   BackcallPtr := InData.Reader.ReadPointer;
 
   new(p);
-  p^.Client_SendTunnel_ID := rt.SendTunnelID;
+  p^.Client_SendTunnel_ID := RT.SendTunnelID;
   p^.BackcallPtr := BackcallPtr;
   {$IFDEF FPC}
   FZDBLocal.CopyDB(dbN, copy2N, p, @StorePosTransform);
@@ -593,20 +595,20 @@ end;
 
 procedure TDataStoreService.Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   BackcallPtr: UInt64;
   p: POnStorePosTransformTrigger;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   BackcallPtr := InData.Reader.ReadPointer;
 
   new(p);
-  p^.Client_SendTunnel_ID := rt.SendTunnelID;
+  p^.Client_SendTunnel_ID := RT.SendTunnelID;
   p^.BackcallPtr := BackcallPtr;
   {$IFDEF FPC}
   FZDBLocal.CompressDB(dbN, p, @StorePosTransform);
@@ -617,26 +619,26 @@ end;
 
 procedure TDataStoreService.Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
-  dbN, ReplaceN: SystemString;
+  RT: TDataStoreService_PeerClientRecvTunnel;
+  dbN, replaceN: SystemString;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
-  ReplaceN := InData.Reader.ReadString;
-  FZDBLocal.ReplaceDB(dbN, ReplaceN);
+  replaceN := InData.Reader.ReadString;
+  FZDBLocal.ReplaceDB(dbN, replaceN);
 end;
 
 procedure TDataStoreService.Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   FZDBLocal.ResetData(dbN);
@@ -644,9 +646,9 @@ end;
 
 procedure TDataStoreService.Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   RegedQueryName: SystemString;
-  SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean;
+  SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean;
   dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double;
   MaxQueryResult: Int64;
@@ -656,14 +658,14 @@ var
   pl: TTDataStoreService_DBPipeline;
   qc: TTDataStoreService_QueryCall;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   RegedQueryName := InData.Reader.ReadString;
   SyncToClient := InData.Reader.ReadBool;
   WriteResultToOutputDB := InData.Reader.ReadBool;
-  inMem := InData.Reader.ReadBool;
+  InMem := InData.Reader.ReadBool;
   ReverseQuery := InData.Reader.ReadBool;
   dbN := InData.Reader.ReadString;
   outDBN := InData.Reader.ReadString;
@@ -672,26 +674,26 @@ begin
   MaxQueryResult := InData.Reader.ReadInt64;
 
   if not FZDBLocal.ExistsDB(dbN) then
-      exit;
+      Exit;
 
   qc := TTDataStoreService_QueryCall(FQueryCallPool[RegedQueryName]);
 
-  if inMem then
+  if InMem then
       AutoDestoryOutputDB := True
   else
       AutoDestoryOutputDB := False;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN,
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN,
     AutoDestoryOutputDB, FPerQueryPipelineDelayFreeTime, fragmentReponseTime, MaxWait, 0, MaxQueryResult));
-  pl.SendTunnel := rt.SendTunnelDefine;
-  pl.RecvTunnel := rt;
+  pl.SendTunnel := RT.SendTunnelDefine;
+  pl.RecvTunnel := RT;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := SyncToClient;
   pl.RegistedQuery := RegedQueryName;
   pl.WriteFragmentBuffer := pl.SyncToClient;
 
   if InData.Reader.NotEnd then
-      InData.Reader.ReadVariantList(pl.Values);
+      InData.Reader.ReadVariantList(pl.values);
 
   if qc <> nil then
     begin
@@ -706,29 +708,29 @@ begin
       pl.OnDataFilterMethod := DownloadQueryFilterMethod;
       {$ENDIF}
     end;
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
 procedure TDataStoreService.Command_DownloadDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   ReverseQuery: Boolean;
   dbN: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   ReverseQuery := InData.Reader.ReadBool;
   dbN := InData.Reader.ReadString;
 
   if not FZDBLocal.ExistsDB(dbN) then
-      exit;
+      Exit;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dbN, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
-  pl.SendTunnel := rt.SendTunnelDefine;
-  pl.RecvTunnel := rt;
+  pl.SendTunnel := RT.SendTunnelDefine;
+  pl.RecvTunnel := RT;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := True;
   pl.WriteFragmentBuffer := pl.SyncToClient;
@@ -738,31 +740,31 @@ begin
   {$ELSE}
   pl.OnDataFilterMethod := DownloadQueryFilterMethod;
   {$ENDIF}
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
 procedure TDataStoreService.Command_DownloadDBWithID(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   ReverseQuery: Boolean;
   dbN: SystemString;
   downloadWithID: Cardinal;
   pl: TTDataStoreService_DBPipeline;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   ReverseQuery := InData.Reader.ReadBool;
   dbN := InData.Reader.ReadString;
   downloadWithID := InData.Reader.ReadCardinal;
 
   if not FZDBLocal.ExistsDB(dbN) then
-      exit;
+      Exit;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dbN, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
-  pl.SendTunnel := rt.SendTunnelDefine;
-  pl.RecvTunnel := rt;
+  pl.SendTunnel := RT.SendTunnelDefine;
+  pl.RecvTunnel := RT;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := True;
   pl.WriteFragmentBuffer := pl.SyncToClient;
@@ -775,207 +777,207 @@ begin
   {$ELSE}
   pl.OnDataFilterMethod := DownloadQueryWithIDFilterMethod;
   {$ENDIF}
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
 procedure TDataStoreService.Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   StorePos: Int64;
   BackcallPtr: UInt64;
-  m, cm: TMemoryStream64;
+  M, CM: TMemoryStream64;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   StorePos := InData.Reader.ReadInt64;
   BackcallPtr := InData.Reader.ReadPointer;
 
-  m := TMemoryStream64.Create;
-  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, m) then
+  M := TMemoryStream64.Create;
+  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, M) then
     begin
       Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
-      disposeObject(m);
-      exit;
+      DisposeObject(M);
+      Exit;
     end;
-  cm := TMemoryStream64.Create;
-  m.Position := 0;
-  CompressStream(m, cm);
-  disposeObject(m);
+  CM := TMemoryStream64.Create;
+  M.Position := 0;
+  CompressStream(M, CM);
+  DisposeObject(M);
 
-  SequEncrypt(cm.Memory, cm.Size, True, True);
+  SequEncrypt(CM.Memory, CM.Size, True, True);
 
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
-  PostBatchStream(rt.SendTunnelDefine.Owner, cm, True);
-  Send_CompletedDownloadAssemble(rt.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
+  PostBatchStream(RT.SendTunnelDefine.Owner, CM, True);
+  Send_CompletedDownloadAssemble(RT.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
 procedure TDataStoreService.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   StorePos: Int64;
   BackcallPtr: UInt64;
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   StorePos := InData.Reader.ReadInt64;
   BackcallPtr := InData.Reader.ReadPointer;
 
-  m := TMemoryStream64.Create;
-  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, m) then
+  M := TMemoryStream64.Create;
+  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, M) then
     begin
       Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
-      disposeObject(m);
-      exit;
+      DisposeObject(M);
+      Exit;
     end;
 
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
-  PostBatchStream(rt.SendTunnelDefine.Owner, m, True);
-  Send_CompletedFastDownloadAssemble(rt.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
-  ClearBatchStream(rt.SendTunnelDefine.Owner);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
+  PostBatchStream(RT.SendTunnelDefine.Owner, M, True);
+  Send_CompletedFastDownloadAssemble(RT.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+procedure TDataStoreService.Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: TPascalString;
   itmID: Cardinal;
   StorePos: Int64;
   output: Pointer;
-  outputSiz: NativeUInt;
+  outputSiz: nativeUInt;
   m64: TMemoryStream64;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
-  inc(rt.FPostPerformaceCounter);
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
+  Inc(RT.FPostPerformaceCounter);
 
   DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.PostData(dbN, m64, itmID);
-  disposeObject(m64);
+  DisposeObject(m64);
 end;
 
-procedure TDataStoreService.Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+procedure TDataStoreService.Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: TPascalString;
   itmID: Cardinal;
   StorePos: Int64;
   output: Pointer;
-  outputSiz: NativeUInt;
+  outputSiz: nativeUInt;
   m64: TMemoryStream64;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
-  inc(rt.FPostPerformaceCounter);
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
+  Inc(RT.FPostPerformaceCounter);
 
   DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.InsertData(dbN, StorePos, m64, itmID);
-  disposeObject(m64);
+  DisposeObject(m64);
 end;
 
-procedure TDataStoreService.Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+procedure TDataStoreService.Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: TPascalString;
   itmID: Cardinal;
   StorePos: Int64;
   output: Pointer;
-  outputSiz: NativeUInt;
+  outputSiz: nativeUInt;
   m64: TMemoryStream64;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
-  inc(rt.FPostPerformaceCounter);
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
+  Inc(RT.FPostPerformaceCounter);
 
   DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.SetData(dbN, StorePos, m64);
-  disposeObject(m64);
+  DisposeObject(m64);
 end;
 
 procedure TDataStoreService.Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   dID: Cardinal;
   p: PBigStreamBatchPostData;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
-  if rt.BigStreamBatchList.Count <= 0 then
-      exit;
+  if RT.BigStreamBatchList.Count <= 0 then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   dID := InData.Reader.ReadCardinal;
 
-  p := rt.BigStreamBatchList.Last;
+  p := RT.BigStreamBatchList.Last;
   SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
   p^.DBStorePos := FZDBLocal.PostData(dbN, p^.Source, dID);
-  inc(rt.FPostPerformaceCounter);
+  Inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   dStorePos: Int64;
   dID: Cardinal;
   p: PBigStreamBatchPostData;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
-  if rt.BigStreamBatchList.Count <= 0 then
-      exit;
+  if RT.BigStreamBatchList.Count <= 0 then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   dID := InData.Reader.ReadCardinal;
 
-  p := rt.BigStreamBatchList.Last;
+  p := RT.BigStreamBatchList.Last;
   SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
   p^.DBStorePos := FZDBLocal.InsertData(dbN, dStorePos, p^.Source, dID);
-  inc(rt.FPostPerformaceCounter);
+  Inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   dStorePos: Int64;
   p: PBigStreamBatchPostData;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
-  if rt.BigStreamBatchList.Count <= 0 then
-      exit;
+  if RT.BigStreamBatchList.Count <= 0 then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
 
-  p := rt.BigStreamBatchList.Last;
+  p := RT.BigStreamBatchList.Last;
   SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
 
   if FZDBLocal.SetData(dbN, dStorePos, p^.Source) then
@@ -985,55 +987,55 @@ begin
   else
     begin
     end;
-  inc(rt.FPostPerformaceCounter);
+  Inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService.Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   dbN: SystemString;
   dStorePos: Int64;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   FZDBLocal.DeleteData(dbN, dStorePos);
-  inc(rt.FPostPerformaceCounter);
+  Inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService.Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   lst: TCoreClassListForObj;
   i: Integer;
   db: TZDBStoreEngine;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   lst := TCoreClassListForObj.Create;
   FZDBLocal.GetDBList(lst);
   for i := 0 to lst.Count - 1 do
     begin
       db := TZDBStoreEngine(lst[i]);
-      OutData.WriteString(db.name);
+      OutData.WriteString(db.Name);
     end;
-  disposeObject(lst);
+  DisposeObject(lst);
 end;
 
 procedure TDataStoreService.Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   i: Integer;
   pl: TTDataStoreService_DBPipeline;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
   for i := 0 to FZDBLocal.QueryPipelineList.Count - 1 do
     begin
       pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryPipelineList[i]);
@@ -1045,29 +1047,29 @@ end;
 
 procedure TDataStoreService.Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
   pl: TTDataStoreService_DBPipeline;
   ps: TPipeState;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   pipeN := InData.Reader.ReadString;
   if not FZDBLocal.ExistsPipeline(pipeN) then
-      exit;
+      Exit;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
   if pl = nil then
-      exit;
+      Exit;
 
   if not pl.Activted then
-      exit;
+      Exit;
   if pl.SourceDB = nil then
-      exit;
+      Exit;
   if pl.OutputDB = nil then
-      exit;
+      Exit;
 
   ps.Init;
   ps.WriteOutputDB := (pl.WriteResultToOutputDB);
@@ -1093,36 +1095,36 @@ end;
 
 procedure TDataStoreService.Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   pipeN := InData.Reader.ReadString;
   if not FZDBLocal.ExistsPipeline(pipeN) then
-      exit;
+      Exit;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
   if pl <> nil then
-      pl.Stop;
+      pl.stop;
 end;
 
 procedure TDataStoreService.Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   pipeN := InData.Reader.ReadString;
   if not FZDBLocal.ExistsPipeline(pipeN) then
-      exit;
+      Exit;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
   if pl <> nil then
@@ -1131,17 +1133,17 @@ end;
 
 procedure TDataStoreService.Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
   pipeN: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
-  rt := GetDataStoreUserDefine(Sender);
-  if not rt.LinkOk then
-      exit;
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      Exit;
 
   pipeN := InData.Reader.ReadString;
   if not FZDBLocal.ExistsPipeline(pipeN) then
-      exit;
+      Exit;
 
   pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
   if pl <> nil then
@@ -1158,7 +1160,7 @@ begin
   de.WriteString(pipe.PipelineName);
   de.WritePointer(pipe.BackcallPtr);
   pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedFragmentBigStream', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreService.Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
@@ -1172,7 +1174,7 @@ begin
   de.WritePointer(pipe.BackcallPtr);
   de.WriteInt64(pipe.QueryResultCounter);
   pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedQuery', de);
-  disposeObject(de);
+  DisposeObject(de);
   ClearBatchStream(pipe.SendTunnel.Owner);
 end;
 
@@ -1185,7 +1187,7 @@ begin
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
   ASendCli.SendDirectStreamCmd('CompletedDownloadAssemble', de);
-  disposeObject(de);
+  DisposeObject(de);
   ClearBatchStream(ASendCli);
 end;
 
@@ -1198,7 +1200,7 @@ begin
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
   ASendCli.SendDirectStreamCmd('CompletedFastDownloadAssemble', de);
-  disposeObject(de);
+  DisposeObject(de);
   ClearBatchStream(ASendCli);
 end;
 
@@ -1206,21 +1208,21 @@ procedure TDataStoreService.Send_CompletedStorePosTransform(ASendCli: TPeerIO; c
 var
   de: TDataFrameEngine;
   i: Integer;
-  arr: TDataFrameArrayInt64;
+  Arr: TDataFrameArrayInt64;
 begin
   de := TDataFrameEngine.Create;
   de.WritePointer(BackcallPtr);
 
-  arr := de.WriteArrayInt64;
+  Arr := de.WriteArrayInt64;
   for i := 0 to length(TransformBuff^) - 1 do
-      arr.Add(TransformBuff^[i].OriginPos);
+      Arr.Add(TransformBuff^[i].OriginPos);
 
-  arr := de.WriteArrayInt64;
+  Arr := de.WriteArrayInt64;
   for i := 0 to length(TransformBuff^) - 1 do
-      arr.Add(TransformBuff^[i].NewPos);
+      Arr.Add(TransformBuff^[i].NewPos);
 
   ASendCli.SendDirectStreamCmd('CompletedStorePosTransform', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 constructor TDataStoreService.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
@@ -1240,7 +1242,7 @@ end;
 
 destructor TDataStoreService.Destroy;
 begin
-  disposeObject([FZDBLocal, FQueryCallPool]);
+  DisposeObject([FZDBLocal, FQueryCallPool]);
   inherited Destroy;
 end;
 
@@ -1384,14 +1386,14 @@ function TDataStoreService.PostCounterOfPerSec: Double;
 var
   IDPool: TClientIDPool;
   pcid: Cardinal;
-  rt: TDataStoreService_PeerClientRecvTunnel;
+  RT: TDataStoreService_PeerClientRecvTunnel;
 begin
   Result := 0;
   FRecvTunnel.GetClientIDPool(IDPool);
   for pcid in IDPool do
     begin
-      rt := GetDataStoreUserDefine(FRecvTunnel.ClientFromID[pcid]);
-      Result := Result + rt.FPostCounterOfPerSec;
+      RT := GetDataStoreUserDefine(FRecvTunnel.ClientFromID[pcid]);
+      Result := Result + RT.FPostCounterOfPerSec;
     end;
 end;
 
@@ -1399,68 +1401,68 @@ procedure TDataStoreClient.Command_CompletedFragmentBigStream(Sender: TPeerIO; I
 var
   dbN, outN, pipeN: SystemString;
   BackcallPtr: PDataStoreClientQueryNotify;
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
   outN := InData.Reader.ReadString;
   pipeN := InData.Reader.ReadString;
   BackcallPtr := PDataStoreClientQueryNotify(InData.Reader.ReadPointer);
 
-  m := TMemoryStream64.Create;
+  M := TMemoryStream64.Create;
 
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
     begin
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
       SequEncrypt(Sender.UserDefine.BigStreamBatchList.Last^.Source.Memory, Sender.UserDefine.BigStreamBatchList.Last^.Source.Size, False, True);
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
-      DecompressStream(Sender.UserDefine.BigStreamBatchList.Last^.Source, m);
+      DecompressStream(Sender.UserDefine.BigStreamBatchList.Last^.Source, M);
       Sender.UserDefine.BigStreamBatchList.DeleteLast;
     end;
 
-  if (BackcallPtr <> nil) and (m.Size > 0) then
+  if (BackcallPtr <> nil) and (M.Size > 0) then
     begin
       try
-        m.Position := 0;
+        M.Position := 0;
         if Assigned(BackcallPtr^.OnUserQueryCall) then
           begin
-            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, m, BackcallPtr^.OnUserQueryCall);
-            m.Position := 0;
+            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, M, BackcallPtr^.OnUserQueryCall);
+            M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnUserQueryMethod) then
           begin
-            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, m, BackcallPtr^.OnUserQueryMethod);
-            m.Position := 0;
+            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, M, BackcallPtr^.OnUserQueryMethod);
+            M.Position := 0;
           end;
         {$IFNDEF FPC}
         if Assigned(BackcallPtr^.OnUserQueryProc) then
           begin
-            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, m, BackcallPtr^.OnUserQueryProc);
-            m.Position := 0;
+            FillFragmentSource(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, M, BackcallPtr^.OnUserQueryProc);
+            M.Position := 0;
           end;
         {$ENDIF}
         //
         if Assigned(BackcallPtr^.OnQueryCall) then
           begin
-            FillFragmentSource(dbN, pipeN, m, BackcallPtr^.OnQueryCall);
-            m.Position := 0;
+            FillFragmentSource(dbN, pipeN, M, BackcallPtr^.OnQueryCall);
+            M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnQueryMethod) then
           begin
-            FillFragmentSource(dbN, pipeN, m, BackcallPtr^.OnQueryMethod);
-            m.Position := 0;
+            FillFragmentSource(dbN, pipeN, M, BackcallPtr^.OnQueryMethod);
+            M.Position := 0;
           end;
         {$IFNDEF FPC}
         if Assigned(BackcallPtr^.OnQueryProc) then
           begin
-            FillFragmentSource(dbN, pipeN, m, BackcallPtr^.OnQueryProc);
-            m.Position := 0;
+            FillFragmentSource(dbN, pipeN, M, BackcallPtr^.OnQueryProc);
+            M.Position := 0;
           end;
         {$ENDIF}
       except
       end;
     end;
 
-  disposeObject(m);
+  DisposeObject(M);
 end;
 
 procedure TDataStoreClient.Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -1507,64 +1509,64 @@ var
   dbN: SystemString;
   dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  m, cm: TMemoryStream64;
+  M, CM: TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   BackcallPtr := PDataStoreClientDownloadNotify(InData.Reader.ReadPointer);
 
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
-      m := Sender.UserDefine.BigStreamBatchList.Last^.Source
+      M := Sender.UserDefine.BigStreamBatchList.Last^.Source
   else
-      m := nil;
+      M := nil;
 
   if BackcallPtr <> nil then
     begin
-      if m <> nil then
+      if M <> nil then
         begin
-          cm := TMemoryStream64.Create;
-          SequEncrypt(m.Memory, m.Size, False, True);
-          DecompressStream(m, cm);
+          CM := TMemoryStream64.Create;
+          SequEncrypt(M.Memory, M.Size, False, True);
+          DecompressStream(M, CM);
           Sender.UserDefine.BigStreamBatchList.DeleteLast;
 
           try
-            cm.Position := 0;
+            CM.Position := 0;
             if Assigned(BackcallPtr^.OnUserDoneCall) then
               begin
-                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, cm);
-                cm.Position := 0;
+                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, CM);
+                CM.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnUserDoneMethod) then
               begin
-                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, cm);
-                cm.Position := 0;
+                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, CM);
+                CM.Position := 0;
               end;
             {$IFNDEF FPC}
             if Assigned(BackcallPtr^.OnUserDoneProc) then
               begin
-                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, cm);
-                cm.Position := 0;
+                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, CM);
+                CM.Position := 0;
               end;
             {$ENDIF}
             //
             if Assigned(BackcallPtr^.OnDoneCall) then
               begin
-                BackcallPtr^.OnDoneCall(dbN, dStorePos, cm);
-                cm.Position := 0;
+                BackcallPtr^.OnDoneCall(dbN, dStorePos, CM);
+                CM.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnDoneMethod) then
               begin
-                BackcallPtr^.OnDoneMethod(dbN, dStorePos, cm);
-                cm.Position := 0;
+                BackcallPtr^.OnDoneMethod(dbN, dStorePos, CM);
+                CM.Position := 0;
               end;
             {$IFNDEF FPC}
             if Assigned(BackcallPtr^.OnDoneProc) then
               begin
-                BackcallPtr^.OnDoneProc(dbN, dStorePos, cm);
-                cm.Position := 0;
+                BackcallPtr^.OnDoneProc(dbN, dStorePos, CM);
+                CM.Position := 0;
               end;
             {$ENDIF}
-            disposeObject(cm);
+            DisposeObject(CM);
           except
           end;
         end;
@@ -1577,56 +1579,56 @@ var
   dbN: SystemString;
   dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   BackcallPtr := PDataStoreClientDownloadNotify(InData.Reader.ReadPointer);
 
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
-      m := Sender.UserDefine.BigStreamBatchList.Last^.Source
+      M := Sender.UserDefine.BigStreamBatchList.Last^.Source
   else
-      m := nil;
+      M := nil;
 
   if BackcallPtr <> nil then
     begin
-      if m <> nil then
+      if M <> nil then
         begin
           try
-            m.Position := 0;
+            M.Position := 0;
             if Assigned(BackcallPtr^.OnUserDoneCall) then
               begin
-                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, m);
-                m.Position := 0;
+                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, M);
+                M.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnUserDoneMethod) then
               begin
-                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, m);
-                m.Position := 0;
+                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, M);
+                M.Position := 0;
               end;
             {$IFNDEF FPC}
             if Assigned(BackcallPtr^.OnUserDoneProc) then
               begin
-                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, m);
-                m.Position := 0;
+                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, M);
+                M.Position := 0;
               end;
             {$ENDIF}
             //
             if Assigned(BackcallPtr^.OnDoneCall) then
               begin
-                BackcallPtr^.OnDoneCall(dbN, dStorePos, m);
-                m.Position := 0;
+                BackcallPtr^.OnDoneCall(dbN, dStorePos, M);
+                M.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnDoneMethod) then
               begin
-                BackcallPtr^.OnDoneMethod(dbN, dStorePos, m);
-                m.Position := 0;
+                BackcallPtr^.OnDoneMethod(dbN, dStorePos, M);
+                M.Position := 0;
               end;
             {$IFNDEF FPC}
             if Assigned(BackcallPtr^.OnDoneProc) then
               begin
-                BackcallPtr^.OnDoneProc(dbN, dStorePos, m);
-                m.Position := 0;
+                BackcallPtr^.OnDoneProc(dbN, dStorePos, M);
+                M.Position := 0;
               end;
             {$ENDIF}
           except
@@ -1640,20 +1642,20 @@ end;
 procedure TDataStoreClient.Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   BackcallPtr: PStorePosTransformNotify;
-  arr: TDataFrameArrayInt64;
+  Arr: TDataFrameArrayInt64;
   i: Integer;
   TransformBuff: TZDBStorePosTransformArray;
 begin
   BackcallPtr := PStorePosTransformNotify(InData.Reader.ReadPointer);
 
-  arr := InData.Reader.ReadArrayInt64;
-  SetLength(TransformBuff, arr.Count);
-  for i := 0 to arr.Count - 1 do
-      TransformBuff[i].OriginPos := arr[i];
+  Arr := InData.Reader.ReadArrayInt64;
+  SetLength(TransformBuff, Arr.Count);
+  for i := 0 to Arr.Count - 1 do
+      TransformBuff[i].OriginPos := Arr[i];
 
-  arr := InData.Reader.ReadArrayInt64;
-  for i := 0 to arr.Count - 1 do
-      TransformBuff[i].NewPos := arr[i];
+  Arr := InData.Reader.ReadArrayInt64;
+  for i := 0 to Arr.Count - 1 do
+      TransformBuff[i].NewPos := Arr[i];
 
   if BackcallPtr <> nil then
     begin
@@ -1714,17 +1716,17 @@ begin
   inherited Progress;
 end;
 
-procedure TDataStoreClient.InitDB(inMem: Boolean; dbN: SystemString);
+procedure TDataStoreClient.InitDB(InMem: Boolean; dbN: SystemString);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
-  de.WriteBool(inMem);
+  de.WriteBool(InMem);
   de.WriteString(dbN);
 
   SendTunnel.SendDirectStreamCmd('InitDB', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.CloseDB(dbN: SystemString; CloseAndDeleted: Boolean);
@@ -1735,7 +1737,7 @@ begin
   de.WriteString(dbN);
   de.WriteBool(CloseAndDeleted);
   SendTunnel.SendDirectStreamCmd('CloseDB', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.CopyDB(dbN, copyToN: SystemString);
@@ -1752,7 +1754,7 @@ begin
   de.WriteString(copyToN);
   de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd('CopyDB', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.CopyDB_C(dbN, copyToN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
@@ -1803,7 +1805,7 @@ begin
   de.WriteString(dbN);
   de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd('CompressDB', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.CompressDB_C(dbN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
@@ -1841,15 +1843,15 @@ end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient.ReplaceDB(dbN, ReplaceN: SystemString);
+procedure TDataStoreClient.ReplaceDB(dbN, replaceN: SystemString);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
-  de.WriteString(ReplaceN);
+  de.WriteString(replaceN);
   SendTunnel.SendDirectStreamCmd('ReplaceDB', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.ResetData(dbN: SystemString);
@@ -1859,7 +1861,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   SendTunnel.SendDirectStreamCmd('ResetData', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.QuietQueryDB(RegistedQueryName: SystemString; ReverseQuery: Boolean; dbN, outDBN: SystemString; MaxWait: Double; MaxQueryResult: Int64);
@@ -1882,10 +1884,10 @@ begin
 
   SendTunnel.SendDirectStreamCmd('QueryDB', de);
 
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList);
 var
   de: TDataFrameEngine;
@@ -1895,7 +1897,7 @@ begin
   de.WriteString(RegistedQueryName);
   de.WriteBool(SyncToClient); // sync to client
   de.WriteBool(WriteResultToOutputDB);
-  de.WriteBool(inMem);
+  de.WriteBool(InMem);
   de.WriteBool(ReverseQuery);
   de.WriteString(dbN);
   de.WriteString(outDBN);
@@ -1908,10 +1910,10 @@ begin
 
   SendTunnel.SendDirectStreamCmd('QueryDB', de);
 
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
@@ -1921,10 +1923,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList;                                           // service ref remote parameter
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
@@ -1939,10 +1941,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserQueryCall := OnQueryCall;
   p^.OnUserDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
@@ -1952,10 +1954,10 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList;                                           // service ref remote parameter
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
@@ -1970,13 +1972,13 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserQueryMethod := OnQueryMethod;
   p^.OnUserDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
@@ -1986,10 +1988,10 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList;                                           // service ref remote parameter
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; // local event parameter
@@ -2004,7 +2006,7 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserQueryProc := OnQueryProc;
   p^.OnUserDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, inMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
 {$ENDIF}
@@ -2060,7 +2062,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('DownloadDB', de);
 
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.DownloadDB(ReverseQuery: Boolean; dbN: SystemString; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
@@ -2114,7 +2116,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('DownloadDBWithID', de);
 
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
@@ -2172,7 +2174,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('RequestDownloadAssembleStream', de);
 
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.DownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
@@ -2278,7 +2280,7 @@ begin
 
   SendTunnel.SendDirectStreamCmd('RequestFastDownloadAssembleStream', de);
 
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.FastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
@@ -2372,56 +2374,56 @@ end;
 {$ENDIF}
 
 
-procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   de: TDataFrameEngine;
 begin
-  SequEncrypt(Stream.Memory, Stream.Size, True, True);
-  PostBatchStream(Stream, DoneTimeFree);
+  SequEncrypt(stream.Memory, stream.Size, True, True);
+  PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd('CompletedPostAssembleStream', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
-procedure TDataStoreClient.PostAssembleStreamCopy(dbN: SystemString; Stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient.PostAssembleStreamCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  Stream.Position := 0;
-  m.CopyFrom(Stream, Stream.Size);
-  m.Position := 0;
-  PostAssembleStream(dbN, m, dID, True);
+  M := TMemoryStream64.Create;
+  stream.Position := 0;
+  M.CopyFrom(stream, stream.Size);
+  M.Position := 0;
+  PostAssembleStream(dbN, M, dID, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; DataSource: TDataFrameEngine);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.EncodeTo(m, True);
-  PostAssembleStream(dbN, m, c_DF, True);
+  M := TMemoryStream64.Create;
+  DataSource.EncodeTo(M, True);
+  PostAssembleStream(dbN, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; DataSource: THashVariantList);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  PostAssembleStream(dbN, m, c_VL, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  PostAssembleStream(dbN, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; DataSource: TSectionTextData);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  PostAssembleStream(dbN, m, c_TE, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  PostAssembleStream(dbN, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
@@ -2429,75 +2431,75 @@ end;
 
 procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; DataSource: TJsonObject);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  PostAssembleStream(dbN, m, c_Json, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  PostAssembleStream(dbN, M, c_Json, True);
 end;
 {$ENDIF}
 
 
 procedure TDataStoreClient.PostAssembleStream(dbN: SystemString; DataSource: TPascalString);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  TDBEnginePascalString.SavePascalStringToStream(@DataSource, m);
-  PostAssembleStream(dbN, m, c_PascalString, True);
+  M := TMemoryStream64.Create;
+  TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
+  PostAssembleStream(dbN, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   de: TDataFrameEngine;
 begin
-  SequEncrypt(Stream.Memory, Stream.Size, True, True);
-  PostBatchStream(Stream, DoneTimeFree);
+  SequEncrypt(stream.Memory, stream.Size, True, True);
+  PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd('CompletedInsertAssembleStream', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
-procedure TDataStoreClient.InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient.InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  Stream.Position := 0;
-  m.CopyFrom(Stream, Stream.Size);
-  m.Position := 0;
-  InsertAssembleStream(dbN, dStorePos, m, dID, True);
+  M := TMemoryStream64.Create;
+  stream.Position := 0;
+  M.CopyFrom(stream, stream.Size);
+  M.Position := 0;
+  InsertAssembleStream(dbN, dStorePos, M, dID, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.EncodeTo(m, True);
-  InsertAssembleStream(dbN, dStorePos, m, c_DF, True);
+  M := TMemoryStream64.Create;
+  DataSource.EncodeTo(M, True);
+  InsertAssembleStream(dbN, dStorePos, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  InsertAssembleStream(dbN, dStorePos, m, c_VL, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  InsertAssembleStream(dbN, dStorePos, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  InsertAssembleStream(dbN, dStorePos, m, c_TE, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  InsertAssembleStream(dbN, dStorePos, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
@@ -2505,75 +2507,75 @@ end;
 
 procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m, False, TEncoding.UTF8, True);
-  InsertAssembleStream(dbN, dStorePos, m, c_Json, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  InsertAssembleStream(dbN, dStorePos, M, c_Json, True);
 end;
 {$ENDIF}
 
 
 procedure TDataStoreClient.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  TDBEnginePascalString.SavePascalStringToStream(@DataSource, m);
-  InsertAssembleStream(dbN, dStorePos, m, c_PascalString, True);
+  M := TMemoryStream64.Create;
+  TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
+  InsertAssembleStream(dbN, dStorePos, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; DoneTimeFree: Boolean);
+procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean);
 var
   de: TDataFrameEngine;
 begin
-  SequEncrypt(Stream.Memory, Stream.Size, True, True);
+  SequEncrypt(stream.Memory, stream.Size, True, True);
 
-  PostBatchStream(Stream, DoneTimeFree);
+  PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd('CompletedModifyAssembleStream', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
-procedure TDataStoreClient.ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream);
+procedure TDataStoreClient.ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  Stream.Position := 0;
-  m.CopyFrom(Stream, Stream.Size);
-  m.Position := 0;
-  ModifyAssembleStream(dbN, dStorePos, m, True);
+  M := TMemoryStream64.Create;
+  stream.Position := 0;
+  M.CopyFrom(stream, stream.Size);
+  M.Position := 0;
+  ModifyAssembleStream(dbN, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.EncodeTo(m, True);
-  ModifyAssembleStream(dbN, dStorePos, m, True);
+  M := TMemoryStream64.Create;
+  DataSource.EncodeTo(M, True);
+  ModifyAssembleStream(dbN, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  ModifyAssembleStream(dbN, dStorePos, m, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  ModifyAssembleStream(dbN, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  ModifyAssembleStream(dbN, dStorePos, m, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  ModifyAssembleStream(dbN, dStorePos, M, True);
 end;
 
 {$IFNDEF FPC}
@@ -2581,22 +2583,22 @@ end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m, False, TEncoding.UTF8, True);
-  ModifyAssembleStream(dbN, dStorePos, m, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  ModifyAssembleStream(dbN, dStorePos, M, True);
 end;
 {$ENDIF}
 
 
 procedure TDataStoreClient.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  TDBEnginePascalString.SavePascalStringToStream(@DataSource, m);
-  ModifyAssembleStream(dbN, dStorePos, m, True);
+  M := TMemoryStream64.Create;
+  TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
+  ModifyAssembleStream(dbN, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.GetPostAssembleStreamState(OnResult: TStreamMethod);
@@ -2627,57 +2629,57 @@ begin
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd('DeleteData', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
-procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
-  siz: NativeUInt;
+  siz: nativeUInt;
 begin
-  p := EncodeOneBuff(dbN, dID, 0, Stream.Memory, Stream.Size, siz);
+  p := EncodeOneBuff(dbN, dID, 0, stream.Memory, stream.Size, siz);
   SendTunnel.SendCompleteBuffer('FastPostCompleteBuffer', p, siz, True);
 
   if DoneTimeFree then
-      disposeObject(Stream);
+      DisposeObject(stream);
 end;
 
-procedure TDataStoreClient.FastPostCompleteBufferCopy(dbN: SystemString; Stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient.FastPostCompleteBufferCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  Stream.Position := 0;
-  m.CopyFrom(Stream, Stream.Size);
-  m.Position := 0;
-  FastPostCompleteBuffer(dbN, m, dID, True);
+  M := TMemoryStream64.Create;
+  stream.Position := 0;
+  M.CopyFrom(stream, stream.Size);
+  M.Position := 0;
+  FastPostCompleteBuffer(dbN, M, dID, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; DataSource: TDataFrameEngine);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.EncodeTo(m, True);
-  FastPostCompleteBuffer(dbN, m, c_DF, True);
+  M := TMemoryStream64.Create;
+  DataSource.EncodeTo(M, True);
+  FastPostCompleteBuffer(dbN, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; DataSource: THashVariantList);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastPostCompleteBuffer(dbN, m, c_VL, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastPostCompleteBuffer(dbN, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; DataSource: TSectionTextData);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastPostCompleteBuffer(dbN, m, c_TE, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastPostCompleteBuffer(dbN, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
@@ -2685,162 +2687,162 @@ end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; DataSource: TJsonObject);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastPostCompleteBuffer(dbN, m, c_Json, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastPostCompleteBuffer(dbN, M, c_Json, True);
 end;
 {$ENDIF}
 
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dbN: SystemString; DataSource: TPascalString);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  TDBEnginePascalString.SavePascalStringToStream(@DataSource, m);
-  FastPostCompleteBuffer(dbN, m, c_PascalString, True);
+  M := TMemoryStream64.Create;
+  TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
+  FastPostCompleteBuffer(dbN, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
-  siz: NativeUInt;
+  siz: nativeUInt;
 begin
-  p := EncodeOneBuff(dbN, dID, dStorePos, Stream.Memory, Stream.Size, siz);
+  p := EncodeOneBuff(dbN, dID, dStorePos, stream.Memory, stream.Size, siz);
   SendTunnel.SendCompleteBuffer('FastInsertCompleteBuffer', p, siz, True);
 
   if DoneTimeFree then
-      disposeObject(Stream);
+      DisposeObject(stream);
 end;
 
-procedure TDataStoreClient.FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient.FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  Stream.Position := 0;
-  m.CopyFrom(Stream, Stream.Size);
-  m.Position := 0;
-  FastInsertCompleteBuffer(dbN, dStorePos, m, dID, True);
+  M := TMemoryStream64.Create;
+  stream.Position := 0;
+  M.CopyFrom(stream, stream.Size);
+  M.Position := 0;
+  FastInsertCompleteBuffer(dbN, dStorePos, M, dID, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.EncodeTo(m, True);
-  FastInsertCompleteBuffer(dbN, dStorePos, m, c_DF, True);
+  M := TMemoryStream64.Create;
+  DataSource.EncodeTo(M, True);
+  FastInsertCompleteBuffer(dbN, dStorePos, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastInsertCompleteBuffer(dbN, dStorePos, m, c_VL, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastInsertCompleteBuffer(dbN, dStorePos, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastInsertCompleteBuffer(dbN, dStorePos, m, c_TE, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastInsertCompleteBuffer(dbN, dStorePos, M, c_TE, True);
 end;
 
 {$IFNDEF FPC} procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m, False, TEncoding.UTF8, True);
-  FastInsertCompleteBuffer(dbN, dStorePos, m, c_Json, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  FastInsertCompleteBuffer(dbN, dStorePos, M, c_Json, True);
 end;
 {$ENDIF}
 
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  TDBEnginePascalString.SavePascalStringToStream(@DataSource, m);
-  FastInsertCompleteBuffer(dbN, dStorePos, m, c_PascalString, True);
+  M := TMemoryStream64.Create;
+  TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
+  FastInsertCompleteBuffer(dbN, dStorePos, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; Stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
-  siz: NativeUInt;
+  siz: nativeUInt;
 begin
-  p := EncodeOneBuff(dbN, dID, dStorePos, Stream.Memory, Stream.Size, siz);
+  p := EncodeOneBuff(dbN, dID, dStorePos, stream.Memory, stream.Size, siz);
   SendTunnel.SendCompleteBuffer('FastModifyCompleteBuffer', p, siz, True);
 
   if DoneTimeFree then
-      disposeObject(Stream);
+      DisposeObject(stream);
 end;
 
-procedure TDataStoreClient.FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; Stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient.FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  Stream.Position := 0;
-  m.CopyFrom(Stream, Stream.Size);
-  m.Position := 0;
-  FastModifyCompleteBuffer(dbN, dStorePos, m, dID, True);
+  M := TMemoryStream64.Create;
+  stream.Position := 0;
+  M.CopyFrom(stream, stream.Size);
+  M.Position := 0;
+  FastModifyCompleteBuffer(dbN, dStorePos, M, dID, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.EncodeTo(m, True);
-  FastModifyCompleteBuffer(dbN, dStorePos, m, c_DF, True);
+  M := TMemoryStream64.Create;
+  DataSource.EncodeTo(M, True);
+  FastModifyCompleteBuffer(dbN, dStorePos, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastModifyCompleteBuffer(dbN, dStorePos, m, c_VL, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastModifyCompleteBuffer(dbN, dStorePos, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m);
-  FastModifyCompleteBuffer(dbN, dStorePos, m, c_TE, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastModifyCompleteBuffer(dbN, dStorePos, M, c_TE, True);
 end;
 
 {$IFNDEF FPC} procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  DataSource.SaveToStream(m, False, TEncoding.UTF8, True);
-  FastModifyCompleteBuffer(dbN, dStorePos, m, c_Json, True);
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  FastModifyCompleteBuffer(dbN, dStorePos, M, c_Json, True);
 end;
 {$ENDIF}
 
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  m := TMemoryStream64.Create;
-  TDBEnginePascalString.SavePascalStringToStream(@DataSource, m);
-  FastModifyCompleteBuffer(dbN, dStorePos, m, c_PascalString, True);
+  M := TMemoryStream64.Create;
+  TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
+  FastModifyCompleteBuffer(dbN, dStorePos, M, c_PascalString, True);
 end;
 
 procedure TDataStoreClient.GetDBList(OnResult: TStreamMethod);
@@ -2849,7 +2851,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetDBList', de, OnResult);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryList(OnResult: TStreamMethod);
@@ -2858,7 +2860,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetQueryList', de, OnResult);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryState(pipeN: SystemString; OnResult: TStreamMethod);
@@ -2868,7 +2870,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendStreamCmd('GetQueryState', de, OnResult);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.QueryStop(pipeN: SystemString);
@@ -2878,7 +2880,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendDirectStreamCmd('QueryStop', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.QueryPause(pipeN: SystemString);
@@ -2888,7 +2890,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendDirectStreamCmd('QueryPause', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.QueryPlay(pipeN: SystemString);
@@ -2898,7 +2900,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendDirectStreamCmd('QueryPlay', de);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 {$IFNDEF FPC}
@@ -2910,7 +2912,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetDBList', de, OnResult);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryList(OnResult: TStreamProc);
@@ -2919,7 +2921,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmd('GetQueryList', de, OnResult);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryState(pipeN: SystemString; OnResult: TStreamProc);
@@ -2929,8 +2931,8 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
   SendTunnel.SendStreamCmd('GetQueryState', de, OnResult);
-  disposeObject(de);
+  DisposeObject(de);
 end;
 {$ENDIF}
 
-end.
+end. 

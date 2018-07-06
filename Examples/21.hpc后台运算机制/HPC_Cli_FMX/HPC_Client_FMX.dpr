@@ -10,6 +10,6 @@ uses
 begin
   Application.Initialize;
   Application.FormFactor.Orientations := [TFormOrientation.Landscape, TFormOrientation.InvertedLandscape];
-  AApplication.CreateForm(TFMXDoubleClientForm, FMXDoubleClientForm);
-  pplication.Run;
+  Application.CreateForm(TFMXDoubleClientForm, FMXDoubleClientForm);
+  Application.Run;
 end.

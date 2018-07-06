@@ -30,7 +30,6 @@ type
   private
     f: TAuthDoubleServerForm;
   protected
-    procedure UserLogin(UserID, UserPasswd: string); override;
     procedure UserRegistedSuccess(UserID: string); override;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel); override;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel); override;
@@ -126,11 +125,6 @@ procedure TMyService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvT
 begin
   inherited UserLinkSuccess(UserDefineIO);
   DoStatus('user link success!');
-end;
-
-procedure TMyService.UserLogin(UserID, UserPasswd: string);
-begin
-  inherited UserLogin(UserID, UserPasswd);
 end;
 
 procedure TMyService.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel);

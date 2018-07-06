@@ -41,7 +41,7 @@ implementation
 
 procedure TStringTranslateForm.Button1Click(Sender: TObject);
 var
-  s, n  : umlString;
+  s, n  : u_String;
   c     : Char;
   output: string;
 begin

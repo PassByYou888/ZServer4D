@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ActnList, Menus,
-  ObjectData, ObjectDataManager, FileCtrl,
+  PascalStrings, ObjectData, ObjectDataManager, FileCtrl,
   ObjectDataTreeFrameUnit, ItemStream, System.Actions;
 
 type
@@ -23,18 +23,18 @@ type
     PopupMenu: TPopupMenu;
     CreateDirectory1: TMenuItem;
     Rename1: TMenuItem;
-    ImportFile1: TMenuItem;
+    Importfile1: TMenuItem;
     ExportTo1: TMenuItem;
     Remove1: TMenuItem;
-    N3: TMenuItem;
+    n3: TMenuItem;
     procedure ActionAddResourceExecute(Sender: TObject);
     procedure ActionCreateDirExecute(Sender: TObject);
     procedure ActionExportExecute(Sender: TObject);
     procedure ActionRemoveExecute(Sender: TObject);
     procedure ActionRenameExecute(Sender: TObject);
-    procedure ListViewEdited(Sender: TObject; Item: TListItem; var S: string);
+    procedure ListViewEdited(Sender: TObject; Item: TListItem; var s: string);
     procedure ListViewEditing(Sender: TObject; Item: TListItem; var AllowEdit: Boolean);
-    procedure ListViewKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ListViewKeyUp(Sender: TObject; var key: Word; Shift: TShiftState);
   private
     { Private declarations }
     FDefaultFolderImageIndex: Integer;
@@ -47,7 +47,7 @@ type
     procedure SetResourceData(Value: TObjectDataManager);
     function GetCurrentObjectDataPath: string;
     procedure SetCurrentObjectDataPath(const Value: string);
-    procedure OpenObjectDataPath(aPath: string);
+    procedure OpenObjectDataPath(APath: string);
 
     procedure SetFileFilter(const Value: string);
     function GetMultiSelect: Boolean;
@@ -56,11 +56,11 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure UpdateItemList(aPath: string);
+    procedure UpdateItemList(APath: string);
 
     procedure ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var aShowMsg: Boolean);
     procedure ImportFromFile(aFileName: string; var aShowMsg: Boolean);
-    procedure ImportFromStreamData(aItemName: string; Stream: TStream; var aShowMsg: Boolean);
+    procedure ImportFromStreamData(aItemName: string; stream: TStream; var aShowMsg: Boolean);
 
     property ResourceData: TObjectDataManager read FResourceData write SetResourceData;
 
@@ -68,7 +68,7 @@ type
     property ResourceTreeFrame: TObjectDataTreeFrame read FResourceTreeFrame write FResourceTreeFrame;
     property IsModify: Boolean read FIsModify write FIsModify;
 
-    property FileFilter: string read FFileFilter write SetFileFilter;
+    property fileFilter: string read FFileFilter write SetFileFilter;
     property MultiSelect: Boolean read GetMultiSelect write SetMultiSelect;
     property DefaultFolderImageIndex: Integer read FDefaultFolderImageIndex;
   end;
@@ -136,7 +136,7 @@ begin
         begin
           with ListView.Items[RepaInt] do
             begin
-              if Selected then
+              if selected then
                 begin
                   if ImageIndex = FDefaultFolderImageIndex then
                     begin
@@ -168,7 +168,7 @@ begin
         begin
           with ListView.Items[RepaInt] do
             begin
-              if Selected then
+              if selected then
                 begin
                   if ImageIndex = FDefaultFolderImageIndex then
                     begin
@@ -190,11 +190,11 @@ procedure TObjectDataManagerFrame.ActionRenameExecute(Sender: TObject);
 begin
   if ListView.IsEditing then
       Exit;
-  if ListView.Selected <> nil then
-      ListView.Selected.EditCaption;
+  if ListView.selected <> nil then
+      ListView.selected.EditCaption;
 end;
 
-procedure TObjectDataManagerFrame.ListViewEdited(Sender: TObject; Item: TListItem; var S: string);
+procedure TObjectDataManagerFrame.ListViewEdited(Sender: TObject; Item: TListItem; var s: string);
 var
   aFieldPos: Int64;
   aItemHnd : TItemHandle;
@@ -203,22 +203,22 @@ begin
       Exit;
   if (Item.ImageIndex = FDefaultFolderImageIndex) and (Item.Caption = '') then
     begin
-      if not FResourceData.CreateField(CurrentObjectDataPath + '/' + S, '') then
+      if not FResourceData.CreateField(CurrentObjectDataPath + '/' + s, '') then
           Item.Free;
-      DoStatus(Format('create new directory "%s"', [CurrentObjectDataPath + '/' + S]));
+      DoStatus(Format('create new directory "%s"', [CurrentObjectDataPath + '/' + s]));
     end
   else if (Item.ImageIndex = FDefaultFolderImageIndex) and (FResourceData.GetPathField(CurrentObjectDataPath + '/' + Item.Caption, aFieldPos)) then
     begin
-      DoStatus(Format('ReName directory "%s" to "%s" .', [Item.Caption, S]));
-      if not FResourceData.FieldReName(aFieldPos, S, '') then
+      DoStatus(Format('ReName directory "%s" to "%s" .', [Item.Caption, s]));
+      if not FResourceData.FieldReName(aFieldPos, s, '') then
           Item.Free;
     end
   else if (FResourceData.GetPathField(CurrentObjectDataPath, aFieldPos)) then
     begin
       if FResourceData.ItemOpen(CurrentObjectDataPath, Item.Caption, aItemHnd) then
         begin
-          DoStatus(Format('ReName Item "%s" to "%s" .', [Item.Caption, S]));
-          if not FResourceData.ItemReName(aFieldPos, aItemHnd, S, '') then
+          DoStatus(Format('ReName Item "%s" to "%s" .', [Item.Caption, s]));
+          if not FResourceData.ItemReName(aFieldPos, aItemHnd, s, '') then
               Item.Free;
         end;
     end;
@@ -232,11 +232,11 @@ begin
   AllowEdit := True;
 end;
 
-procedure TObjectDataManagerFrame.ListViewKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TObjectDataManagerFrame.ListViewKeyUp(Sender: TObject; var key: Word; Shift: TShiftState);
 begin
   if (Sender as TListView).IsEditing then
       Exit;
-  case Key of
+  case key of
     VK_DELETE:
       ActionRemoveExecute(ActionRemove);
     VK_F5:
@@ -267,9 +267,9 @@ begin
   FResourceTreeFrame.CurrentObjectDataPath := Value;
 end;
 
-procedure TObjectDataManagerFrame.OpenObjectDataPath(aPath: string);
+procedure TObjectDataManagerFrame.OpenObjectDataPath(APath: string);
 begin
-  UpdateItemList(aPath);
+  UpdateItemList(APath);
 end;
 
 procedure TObjectDataManagerFrame.SetFileFilter(const Value: string);
@@ -313,19 +313,19 @@ begin
   inherited;
 end;
 
-procedure TObjectDataManagerFrame.UpdateItemList(aPath: string);
+procedure TObjectDataManagerFrame.UpdateItemList(APath: string);
 var
   aItemSR : TItemSearch;
   aFieldSR: TFieldSearch;
-  filter  : umlArrayString;
+  Filter  : TArrayPascalString;
 begin
-  umlGetSplitArray(FFileFilter, filter, '|;');
+  umlGetSplitArray(FFileFilter, Filter, '|;');
   ListView.Items.BeginUpdate;
   ListView.Items.Clear;
-  CurrentObjectDataPath := aPath;
+  CurrentObjectDataPath := APath;
   if FResourceData <> nil then
     begin
-      if FResourceData.FieldFindFirst(aPath, '*', aFieldSR) then
+      if FResourceData.FieldFindFirst(APath, '*', aFieldSR) then
         begin
           repeat
             with ListView.Items.Add do
@@ -340,10 +340,10 @@ begin
           until not FResourceData.FieldFindNext(aFieldSR);
         end;
 
-      if FResourceData.ItemFindFirst(aPath, '*', aItemSR) then
+      if FResourceData.ItemFindFirst(APath, '*', aItemSR) then
         begin
           repeat
-            if umlMultipleMatch(filter, aItemSR.Name) then
+            if umlMultipleMatch(Filter, aItemSR.Name) then
               begin
                 with ListView.Items.Add do
                   begin
@@ -366,7 +366,7 @@ end;
 procedure TObjectDataManagerFrame.ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var aShowMsg: Boolean);
 var
   aItemHnd: TItemHandle;
-  S       : TItemStream;
+  s       : TItemStream;
   aFS     : TFileStream;
 begin
   if FResourceData <> nil then
@@ -376,7 +376,7 @@ begin
 
       if (aShowMsg) and (umlFileExists(umlCombineFileName(aToDirectory, aToName))) then
         begin
-          case MessageDlg(Format('File "%s" alread exists, overwirte?', [ExtractFileName(aToName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
+          case MessageDlg(Format('File "%s" alread exists, overwirte?', [ExtractFilename(aToName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
             mrNo:
               Exit;
             mrAll:
@@ -385,11 +385,11 @@ begin
         end;
       if FResourceData.ItemOpen(aDBPath, aDBItem, aItemHnd) then
         begin
-          S := TItemStream.Create(FResourceData, aItemHnd);
+          s := TItemStream.Create(FResourceData, aItemHnd);
           aFS := TFileStream.Create(umlCombineFileName(aToDirectory, aToName), fmCreate);
-          aFS.CopyFrom(S, S.Size);
+          aFS.CopyFrom(s, s.Size);
           aFS.Free;
-          S.Free;
+          s.Free;
           DoStatus('export file:%s', [umlCombineFileName(aToDirectory, aToName).Text]);
         end;
     end;
@@ -402,9 +402,9 @@ var
 begin
   if FResourceData <> nil then
     begin
-      if (aShowMsg) and (FResourceData.ItemExists(CurrentObjectDataPath, ExtractFileName(aFileName))) then
+      if (aShowMsg) and (FResourceData.ItemExists(CurrentObjectDataPath, ExtractFilename(aFileName))) then
         begin
-          case MessageDlg(Format('Item "%s" alread exists, overwirte?', [ExtractFileName(aFileName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
+          case MessageDlg(Format('Item "%s" alread exists, overwirte?', [ExtractFilename(aFileName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
             mrNo:
               Exit;
             mrAll:
@@ -412,7 +412,7 @@ begin
           end;
         end;
       aFS := TFileStream.Create(aFileName, fmOpenRead);
-      if FResourceData.ItemCreate(CurrentObjectDataPath, ExtractFileName(aFileName), '', aItemHnd) then
+      if FResourceData.ItemCreate(CurrentObjectDataPath, ExtractFilename(aFileName), '', aItemHnd) then
         begin
           with TItemStream.Create(FResourceData, aItemHnd) do
             begin
@@ -426,7 +426,7 @@ begin
     end;
 end;
 
-procedure TObjectDataManagerFrame.ImportFromStreamData(aItemName: string; Stream: TStream; var aShowMsg: Boolean);
+procedure TObjectDataManagerFrame.ImportFromStreamData(aItemName: string; stream: TStream; var aShowMsg: Boolean);
 var
   aItemHnd: TItemHandle;
 begin
@@ -443,11 +443,11 @@ begin
         end;
       if FResourceData.ItemCreate(CurrentObjectDataPath, aItemName, '', aItemHnd) then
         begin
-          Stream.Position := 0;
+          stream.Position := 0;
           DoStatus(aItemHnd.Name);
           with TItemStream.Create(FResourceData, aItemHnd) do
             begin
-              CopyFrom(Stream, Stream.Size);
+              CopyFrom(stream, stream.Size);
               CloseHandle;
               Free;
             end;
@@ -460,4 +460,4 @@ initialization
 
 finalization
 
-end.
+end. 

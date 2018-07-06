@@ -15,7 +15,7 @@ type
     TreeView: TTreeView;
     procedure TreeViewExpanding(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
     procedure TreeViewChange(Sender: TObject; Node: TTreeNode);
-    procedure TreeViewKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure TreeViewKeyUp(Sender: TObject; var key: Word; Shift: TShiftState);
   private
     DefaultFolderImageIndex: Integer;
     FCurrentObjectDataPath : string;
@@ -54,7 +54,7 @@ end;
 
 procedure TObjectDataTreeFrame.TreeViewChange(Sender: TObject; Node: TTreeNode);
 begin
-  if (Node.Selected) and (not(Sender as TTreeView).IsEditing) then
+  if (Node.selected) and (not(Sender as TTreeView).IsEditing) then
     begin
       FCurrentObjectDataPath := GetNodeObjDataPath(Node, '/');
       if FCurrentObjectDataPath = '' then
@@ -85,9 +85,9 @@ begin
       with _RootNode do
         begin
           ImageIndex := DefaultFolderImageIndex;
-          SelectedIndex := DefaultFolderImageIndex;
+          selectedIndex := DefaultFolderImageIndex;
           StateIndex := DefaultFolderImageIndex;
-          Selected := True;
+          selected := True;
           Data := nil;
         end;
       UpdateFieldList(_RootNode, '/');
@@ -102,7 +102,7 @@ begin
     begin
       if ObjectDataEngine.DirectoryExists(FCurrentObjectDataPath) then
         with GetPathTreeNode('/Root/' + Value, '/', TreeView, nil) do
-            Selected := True;
+            selected := True;
     end;
 end;
 
@@ -133,7 +133,7 @@ begin
         begin
           ImageIndex := DefaultFolderImageIndex;
           StateIndex := -1;
-          SelectedIndex := DefaultFolderImageIndex;
+          selectedIndex := DefaultFolderImageIndex;
           Data := nil;
         end;
       Result := GetPathTreeNode(umlDeleteFirstStr(_Value, _Split), _Split, _TreeView, Result);
@@ -157,7 +157,7 @@ begin
         begin
           ImageIndex := DefaultFolderImageIndex;
           StateIndex := -1;
-          SelectedIndex := DefaultFolderImageIndex;
+          selectedIndex := DefaultFolderImageIndex;
           Data := nil;
         end;
       Result := GetPathTreeNode(umlDeleteFirstStr(_Value, _Split), _Split, _TreeView, Result);
@@ -166,7 +166,7 @@ end;
 
 function TObjectDataTreeFrame.GetNodeObjDataPath(_DestNode: TTreeNode; _Split: string): string;
 begin
-  if _DestNode.Level > 0 then
+  if _DestNode.level > 0 then
       Result := GetNodeObjDataPath(_DestNode.Parent, _Split) + _Split + _DestNode.Text
   else
       Result := '';
@@ -199,7 +199,7 @@ begin
               begin
                 HasChildren := ObjectDataEngine.FastFieldExists(_FieldSR.HeaderPOS, '*');
                 ImageIndex := DefaultFolderImageIndex;
-                SelectedIndex := DefaultFolderImageIndex;
+                selectedIndex := DefaultFolderImageIndex;
                 StateIndex := DefaultFolderImageIndex;
                 Data := nil;
               end;
@@ -219,12 +219,12 @@ begin
   SetCurrentObjectDataPath(_N);
 end;
 
-procedure TObjectDataTreeFrame.TreeViewKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TObjectDataTreeFrame.TreeViewKeyUp(Sender: TObject; var key: Word; Shift: TShiftState);
 begin
-  case Key of
+  case key of
     VK_F5:
       RefreshList;
   end;
 end;
 
-end.
+end. 

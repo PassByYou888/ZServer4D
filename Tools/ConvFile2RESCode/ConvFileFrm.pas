@@ -52,9 +52,9 @@ type
     DefName: string;
     FullName: string;
     PrefixFileName: string;
-    Stream: TStream;
-    DesKey: TDESKey;
-    MD5: TMD5;
+    stream: TStream;
+    deskey: TDESKey;
+    md5: TMD5;
   end;
 
   PFileData = ^TFileData;
@@ -69,7 +69,7 @@ type
         if not TFile.Exists(SourFileList[i]) then
           begin
             MessageDlg(Format('file no exists:%s', [TPath.GetFileName(SourFileList[i])]), mtError, [mbYes], 0);
-            exit;
+            Exit;
           end;
       end;
     Result := True;
@@ -88,12 +88,12 @@ type
         begin
           p := FileList[i];
           if SameText(n, p^.DefName) then
-              exit(True);
+              Exit(True);
         end;
       Result := False;
     end;
 
-    function MakeDefName(n: umlString): string;
+    function MakeDefName(n: U_String): string;
     var
       i: Integer;
     begin
@@ -105,7 +105,7 @@ type
         end;
 
       if not ExistsDefName(Result) then
-          exit;
+          Exit;
 
       i := 1;
 
@@ -122,40 +122,40 @@ type
       KeyStream: TMemoryStream64;
     begin
       fs := TCoreClassFileStream.Create(p^.FullName, fmOpenRead or fmShareDenyWrite);
-      p^.MD5 := umlStreamMD5(fs);
+      p^.md5 := umlStreamMD5(fs);
       fs.Position := 0;
 
-      p^.Stream := TMemoryStream64.Create;
+      p^.stream := TMemoryStream64.Create;
       if UseCompress then
-          MaxCompressStream(fs, p^.Stream)
+          MaxCompressStream(fs, p^.stream)
       else
-          p^.Stream.CopyFrom(fs, fs.Size);
+          p^.stream.CopyFrom(fs, fs.Size);
       DisposeObject(fs);
 
-      p^.Stream.Position := 0;
+      p^.stream.Position := 0;
 
       if UseRandomDESKey then
         begin
           for i := 0 to 7 do
-              p^.DesKey[i] := umlRandomRange(0, $FF);
+              p^.deskey[i] := umlRandomRange(0, $FF);
           KeyStream := TMemoryStream64.Create;
-          umlDES(p^.Stream, KeyStream, p^.DesKey, True);
-          DisposeObject(p^.Stream);
-          p^.Stream := KeyStream;
+          umlDES(p^.stream, KeyStream, p^.deskey, True);
+          DisposeObject(p^.stream);
+          p^.stream := KeyStream;
         end
       else
         begin
           for i := 0 to 7 do
-              p^.DesKey[i] := 0;
+              p^.deskey[i] := 0;
         end;
     end;
 
   var
     buff: TBytes;
     Line: string;
-    i, j: Integer;
+    i, J: Integer;
     p: PFileData;
-    TempStream: TStream;
+    tempstream: TStream;
   begin
     FileList := TCoreClassList.Create;
 
@@ -168,13 +168,13 @@ type
 
     for i := 0 to SourFileList.Count - 1 do
       begin
-        New(p);
+        new(p);
         p^.FullName := SourFileList[i];
         p^.PrefixFileName := KillFileExt(TPath.GetFileName(p^.FullName));
         p^.DefName := MakeDefName(p^.PrefixFileName);
 
         BuildStream(p);
-        OutputCodes.Add(Format('// %s Origin MD5:%s', [TPath.GetFileName(p^.FullName), umlMD52Str(p^.MD5).Text]));
+        OutputCodes.Add(Format('// %s Origin MD5:%s', [TPath.GetFileName(p^.FullName), umlMD52Str(p^.md5).Text]));
         OutputCodes.Add(Format('procedure Get_%s_Stream(Output: TStream);', [p^.DefName]));
         FileList.Add(p);
       end;
@@ -189,7 +189,7 @@ type
     for i := 0 to FileList.Count - 1 do
       begin
         p := FileList[i];
-        OutputCodes.Add(Format('  T_%s_PackageBuffer = array [0..%d] of byte;', [p^.DefName, p^.Stream.Size - 1]));
+        OutputCodes.Add(Format('  T_%s_PackageBuffer = array [0..%d] of byte;', [p^.DefName, p^.stream.Size - 1]));
       end;
 
     OutputCodes.Add(Format('', []));
@@ -200,19 +200,19 @@ type
         OutputCodes.Add(Format('  // compiled %s package', [TPath.GetFileName(p^.FullName)]));
         OutputCodes.Add(Format('  C_%sPackageBuffer : T_%s_PackageBuffer = (', [p^.DefName, p^.DefName]));
 
-        SetLength(buff, p^.Stream.Size);
-        p^.Stream.Position := 0;
-        p^.Stream.ReadBuffer(buff[0], p^.Stream.Size);
+        SetLength(buff, p^.stream.Size);
+        p^.stream.Position := 0;
+        p^.stream.ReadBuffer(buff[0], p^.stream.Size);
         Line := '';
-        for j := low(buff) to high(buff) do
+        for J := low(buff) to high(buff) do
           begin
             if Line <> '' then
-                Line := Line + ',' + Format('$%s', [IntToHex(buff[j], 2)])
+                Line := Line + ',' + Format('$%s', [IntToHex(buff[J], 2)])
             else
-                Line := Format('$%s', [IntToHex(buff[j], 2)]);
-            if Length(Line) > MaxLineLength then
+                Line := Format('$%s', [IntToHex(buff[J], 2)]);
+            if length(Line) > MaxLineLength then
               begin
-                if j < high(buff) then
+                if J < high(buff) then
                     OutputCodes.Add('   ' + Line + ',')
                 else
                     OutputCodes.Add('   ' + Line + ');');
@@ -280,7 +280,7 @@ type
         OutputCodes.Add(Format('procedure Get_%s_Stream(Output: TStream);', [p^.DefName]));
         if UseRandomDESKey then
             OutputCodes.Add(Format('const DESKey_%s: TDESKey = (%d, %d, %d, %d, %d, %d, %d, %d);',
-            [p^.DefName, p^.DesKey[0], p^.DesKey[1], p^.DesKey[2], p^.DesKey[3], p^.DesKey[4], p^.DesKey[5], p^.DesKey[6], p^.DesKey[7]]));
+            [p^.DefName, p^.deskey[0], p^.deskey[1], p^.deskey[2], p^.deskey[3], p^.deskey[4], p^.deskey[5], p^.deskey[6], p^.deskey[7]]));
         OutputCodes.Add(Format('var', []));
         if UseCompress or UseRandomDESKey then
           begin
@@ -293,13 +293,13 @@ type
 
         if (not UseRandomDESKey) and (not UseCompress) then
           begin
-            OutputCodes.Add(Format('  Output.WriteBuffer(Buff[0], %d);', [p^.Stream.Size]));
+            OutputCodes.Add(Format('  Output.WriteBuffer(Buff[0], %d);', [p^.stream.Size]));
             OutputCodes.Add(Format('  Output.Position := 0;', []));
           end
         else
           begin
             OutputCodes.Add(Format('  Source := TMemoryStream.Create;', []));
-            OutputCodes.Add(Format('  Source.WriteBuffer(Buff[0], %d);', [p^.Stream.Size]));
+            OutputCodes.Add(Format('  Source.WriteBuffer(Buff[0], %d);', [p^.stream.Size]));
             OutputCodes.Add(Format('  Source.Position := 0;', []));
 
             if UseCompress then
@@ -344,7 +344,7 @@ type
       begin
         p := FileList[i];
         OutputCodes.Add(Format('  RegisterFileStream(' + '''' + '%s' + '''' + ', Get_%s_Stream, ' + '''' + '%s' + '''' + ');',
-          [umlMD52Str(p^.MD5).Text, p^.DefName, TPath.GetFileName(p^.FullName)]));
+          [umlMD52Str(p^.md5).Text, p^.DefName, TPath.GetFileName(p^.FullName)]));
       end;
     OutputCodes.Add(Format('*)', []));
     OutputCodes.Add(Format('end.', []));
@@ -353,7 +353,7 @@ type
     for i := 0 to FileList.Count - 1 do
       begin
         p := FileList[i];
-        DisposeObject(p^.Stream);
+        DisposeObject(p^.stream);
         Dispose(p);
       end;
     DisposeObject(FileList);
@@ -365,7 +365,7 @@ begin
   Result := False;
   OutputCodes.Clear;
   if not CheckFiles then
-      exit;
+      Exit;
 
   DESSour := TCoreClassStringList.Create;
   tmpStream := TMemoryStream64.Create;
@@ -385,7 +385,7 @@ var
   i: Integer;
 begin
   if not OpenDialog.Execute then
-      exit;
+      Exit;
   for i := 0 to OpenDialog.Files.Count - 1 do
       FilesMemo.Lines.Add(OpenDialog.Files[i]);
 end;
@@ -393,7 +393,7 @@ end;
 procedure TConvFileForm.ExecuteConvertButtonClick(Sender: TObject);
 begin
   if not SaveDialog.Execute then
-      exit;
+      Exit;
 
   if ConvertBinaryToPascalSource(FilesMemo.Lines, FCodes, SaveDialog.FileName,
     umlStrToInt(LineLenEdit.Text, 200), UsedDESCheckBox.Checked, UsedZCompressCheckBox.Checked) then
@@ -408,4 +408,4 @@ begin
   FCodes := TCoreClassStringList.Create;
 end;
 
-end.
+end. 

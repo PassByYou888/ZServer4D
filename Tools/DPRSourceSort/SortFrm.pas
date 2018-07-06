@@ -13,6 +13,8 @@ type
     Memo1: TMemo;
     Layout1: TLayout;
     SortButton: TButton;
+    StyleBook1: TStyleBook;
+    OpenDialog: TOpenDialog;
     procedure SortButtonClick(Sender: TObject);
   private
     { Private declarations }
@@ -33,21 +35,21 @@ uses PascalStrings, UnicodeMixedLib, CoreClasses, TextParsing;
 procedure SortDPRUsesStrings(Code: TCoreClassStrings);
 type
   TData = record
-    Sour: umlString;
-    SortKey: umlString;
+    sour: U_String;
+    SortKey: U_String;
   end;
 
-  PData = ^TData;
+  pData = ^TData;
 
   TValueRelationship = -1 .. 1;
 
   function ListSortCompare(Item1, Item2: Pointer): Integer; inline;
   const
-    LessThanValue = low(TValueRelationship);
-    EqualsValue = 0;
+    LessThanValue    = low(TValueRelationship);
+    EqualsValue      = 0;
     GreaterThanValue = high(TValueRelationship);
   var
-    p1, p2: PData;
+    p1, p2  : pData;
     ph1, ph2: string;
   begin
     p1 := Item1;
@@ -65,88 +67,88 @@ type
         Result := GreaterThanValue;
   end;
 
-  procedure QuickSortList(var SortList: TCoreClassPointerList; l, r: Integer);
+  procedure QuickSortList(var SortList: TCoreClassPointerList; L, R: Integer);
   var
-    i, j: Integer;
-    p, t: Pointer;
+    i, J: Integer;
+    p, T: Pointer;
   begin
     repeat
-      i := l;
-      j := r;
-      p := SortList[(l + r) shr 1];
+      i := L;
+      J := R;
+      p := SortList[(L + R) shr 1];
       repeat
         while ListSortCompare(SortList[i], p) < 0 do
             Inc(i);
-        while ListSortCompare(SortList[j], p) > 0 do
-            Dec(j);
-        if i <= j then
+        while ListSortCompare(SortList[J], p) > 0 do
+            Dec(J);
+        if i <= J then
           begin
-            if i <> j then
+            if i <> J then
               begin
-                t := SortList[i];
-                SortList[i] := SortList[j];
-                SortList[j] := t;
+                T := SortList[i];
+                SortList[i] := SortList[J];
+                SortList[J] := T;
               end;
             Inc(i);
-            Dec(j);
+            Dec(J);
           end;
-      until i > j;
-      if l < j then
-          QuickSortList(SortList, l, j);
-      l := i;
-    until i >= r;
+      until i > J;
+      if L < J then
+          QuickSortList(SortList, L, J);
+      L := i;
+    until i >= R;
   end;
 
 var
-  i, j: Integer;
-  p: PData;
-  l: TCoreClassList;
-  n: umlString;
-  t: TTextParsing;
-  LastKey: umlString;
-  preProcessHeader: umlString;
-  token: TTokenData;
+  i, J            : Integer;
+  p               : pData;
+  L               : TCoreClassList;
+  n               : U_String;
+  T               : TTextParsing;
+  LastKey         : U_String;
+  preProcessHeader: U_String;
+  token           : TTokenData;
 begin
   preProcessHeader := '';
-  l := TCoreClassList.Create;
+  L := TCoreClassList.Create;
   for i := 0 to Code.Count - 1 do
     begin
       n := umlTrimSpace(Code[i]);
       if (n.Len > 0) then
         begin
-          t := TTextParsing.Create(n, tsPascal, nil);
-          if (t.TokenStatistics[ttTextDecl] = 1) then
+          T := TTextParsing.Create(n, tsPascal, nil);
+          if (T.TokenStatistics[ttTextDecl] = 1) then
             begin
               new(p);
-              p^.Sour := n;
-              if p^.Sour.Last <> ',' then
+              p^.sour := n;
+              if p^.sour.Last <> ',' then
                 begin
-                  if p^.Sour.Last = ';' then
-                      p^.Sour.Last := ','
+                  if p^.sour.Last = ';' then
+                      p^.sour.Last := ','
                   else
-                      p^.Sour.Append(',');
+                      p^.sour.Append(',');
                 end;
 
-              token := t.TokenIndex[ttTextDecl, 0]^;
-              p^.SortKey := t.GetTextBody(t.GetStr(token.bPos, token.ePos));
+              token := T.TokenIndex[ttTextDecl, 0]^;
+              p^.SortKey := T.GetTextBody(T.GetStr(token.bPos, token.ePos));
 
               if umlExistsLimitChar(p^.SortKey, '\') then
                   p^.SortKey := umlDeleteLastStr(p^.SortKey, '\')
               else
                   p^.SortKey := '';
 
-              l.Add(p);
+              L.Add(p);
             end
           else
             begin
-              if t.TokenStatistics[ttAscii] > 0 then
+              if T.TokenStatistics[ttAscii] > 0 then
                   preProcessHeader := preProcessHeader + '  ' + n + #13#10;
             end;
-          DisposeObject(t);
+          DisposeObject(T);
         end;
     end;
 
-  QuickSortList(l.ListData^, 0, l.Count - 1);
+  QuickSortList(L.ListData^, 0, L.Count - 1);
 
   Code.Clear;
   Code.BeginUpdate;
@@ -157,9 +159,9 @@ begin
       Code.Add(preProcessHeader.Text);
     end;
   Code.Add('  (* project root unit *)');
-  for i := 0 to l.Count - 1 do
+  for i := 0 to L.Count - 1 do
     begin
-      p := l[i];
+      p := L[i];
       n := p^.SortKey;
       if not LastKey.Same(n) then
         begin
@@ -168,20 +170,20 @@ begin
           LastKey := n;
         end;
 
-      Code.Add('  ' + p^.Sour);
+      Code.Add('  ' + p^.sour);
       Dispose(p);
     end;
   Code.EndUpdate;
 
-  l.Free;
+  L.Free;
 end;
 
-function ParseAndSortDPRSource(sourceCode: umlString): umlString;
+function ParseAndSortDPRSource(sourceCode: U_String): U_String;
 var
-  SourceOutput, UsesOutput: umlString;
-  InitedUnit, InitedUses: Boolean;
+  SourceOutput, UsesOutput: U_String;
+  InitedUnit, InitedUses  : Boolean;
 
-  procedure AppendCode(s: umlString);
+  procedure AppendCode(s: U_String);
   begin
     if InitedUses then
         UsesOutput.Append(s)
@@ -207,60 +209,60 @@ var
   end;
 
 var
-  t: TTextParsing;
-  cp: Integer;
+  T   : TTextParsing;
+  cp  : Integer;
   ePos: Integer;
-  s: umlString;
+  s   : U_String;
 begin
   SourceOutput := '';
-  t := TTextParsing.Create(sourceCode, tsPascal, nil);
+  T := TTextParsing.Create(sourceCode, tsPascal);
 
   InitedUnit := False;
   InitedUses := False;
 
   cp := 1;
 
-  while cp <= t.ParsingData.Len do
+  while cp <= T.ParsingData.Len do
     begin
-      if t.IsTextDecl(cp) then
+      if T.isTextDecl(cp) then
         begin
-          ePos := t.GetTextDeclEndPos(cp);
-          s := t.GetStr(cp, ePos);
+          ePos := T.GetTextDeclEndPos(cp);
+          s := T.GetStr(cp, ePos);
           AppendCode(s);
           cp := ePos
         end
-      else if t.IsComment(cp) then
+      else if T.isComment(cp) then
         begin
-          ePos := t.GetCommentEndPos(cp);
-          s := t.GetStr(cp, ePos);
+          ePos := T.GetCommentEndPos(cp);
+          s := T.GetStr(cp, ePos);
           AppendCode(s);
           cp := ePos;
         end
-      else if t.IsNumber(cp) then
+      else if T.isNumber(cp) then
         begin
-          ePos := t.GetNumberEndPos(cp);
-          s := t.GetStr(cp, ePos);
+          ePos := T.GetNumberEndPos(cp);
+          s := T.GetStr(cp, ePos);
           AppendCode(s);
           cp := ePos;
         end
-      else if t.IsSymbol(cp) then
+      else if T.isSymbol(cp) then
         begin
-          ePos := t.GetSymbolEndPos(cp);
+          ePos := T.GetSymbolEndPos(cp);
           if (InitedUnit) and (InitedUses) then
-            if t.ParsingData.Text[cp] = ';' then
+            if T.ParsingData.Text[cp] = ';' then
               begin
                 InitedUses := False;
                 EndParseUses;
               end;
 
-          s := t.GetStr(cp, ePos);
+          s := T.GetStr(cp, ePos);
           AppendCode(s);
           cp := ePos;
         end
-      else if t.IsAscii(cp) then
+      else if T.isAscii(cp) then
         begin
-          ePos := t.GetAsciiEndPos(cp);
-          s := t.GetStr(cp, ePos);
+          ePos := T.GetAsciiEndPos(cp);
+          s := T.GetStr(cp, ePos);
           AppendCode(s);
           cp := ePos;
 
@@ -281,12 +283,12 @@ begin
         end
       else
         begin
-          AppendCode(t.ParsingData.Text[cp]);
+          AppendCode(T.GetChar(cp));
           Inc(cp);
         end;
     end;
 
-  DisposeObject(t);
+  DisposeObject(T);
   Result := SourceOutput;
 end;
 
@@ -295,4 +297,4 @@ begin
   Memo1.Text := ParseAndSortDPRSource(Memo1.Text);
 end;
 
-end.
+end. 

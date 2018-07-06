@@ -25,7 +25,7 @@ type
     TDataStoreClient_NoAuth: 无身份证验证的数据库框架
     TDataStoreClient: 有身份验证双通道数据库框架
   *)
-  TMyCloudClient = class(TCommunicationFramework_DoubleTunnelClient)
+  TMyCloudClient = class(TCommunicationFramework_DoubleTunnelClient_NoAuth)
   protected
   public
     NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFrameworkClient;

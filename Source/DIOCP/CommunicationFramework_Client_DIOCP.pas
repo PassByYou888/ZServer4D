@@ -1,4 +1,4 @@
-﻿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * DIOCP Support                                                              * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Client_DIOCP;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -34,7 +36,7 @@ type
     procedure OnConnected; override;
     procedure OnDisconnected; override;
     procedure OnConnectFail; override;
-    procedure OnRecvBuffer(buf: Pointer; len: Cardinal; ErrCode: WORD); override;
+    procedure OnRecvBuffer(Buf: Pointer; Len: Cardinal; ErrCode: Word); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -50,7 +52,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -70,7 +72,7 @@ type
     procedure DCDoConnected(Sender: TIocpClientContextIntf_WithDCli);
     procedure DCDoDisconnect(Sender: TIocpClientContextIntf_WithDCli);
     procedure DCDoConnectFailed(Sender: TIocpClientContextIntf_WithDCli);
-    procedure DCDoRecvBuffer(buf: Pointer; len: Cardinal; ErrCode: WORD);
+    procedure DCDoRecvBuffer(Buf: Pointer; Len: Cardinal; ErrCode: Word);
 
     procedure DoConnected(Sender: TPeerIO); override;
     procedure DoDisconnect(Sender: TPeerIO); override;
@@ -86,11 +88,11 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    procedure AsyncConnect(Addr: SystemString; Port: WORD; OnResult: TStateCall); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: WORD; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: WORD; OnResult: TStateProc); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
-    function Connect(Addr: SystemString; Port: WORD): Boolean; overload; override;
+    function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     procedure Disconnect; override;
   end;
 
@@ -114,10 +116,10 @@ begin
   OwnerFramework.DCDoConnectFailed(Self);
 end;
 
-procedure TIocpClientContextIntf_WithDCli.OnRecvBuffer(buf: Pointer; len: Cardinal; ErrCode: WORD);
+procedure TIocpClientContextIntf_WithDCli.OnRecvBuffer(Buf: Pointer; Len: Cardinal; ErrCode: Word);
 begin
-  OwnerFramework.DCDoRecvBuffer(buf, len, ErrCode);
-  inherited OnRecvBuffer(buf, len, ErrCode);
+  OwnerFramework.DCDoRecvBuffer(Buf, Len, ErrCode);
+  inherited OnRecvBuffer(Buf, Len, ErrCode);
 end;
 
 constructor TIocpClientContextIntf_WithDCli.Create;
@@ -172,10 +174,10 @@ begin
       Link.Close;
 end;
 
-procedure TPeerIOWithDIOCPClient.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TPeerIOWithDIOCPClient.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
-      exit;
+      Exit;
 
   if Size > 0 then
       SendingStream.WritePtr(buff, Size);
@@ -203,7 +205,7 @@ end;
 function TPeerIOWithDIOCPClient.GetPeerIP: SystemString;
 begin
   if Connected then
-      Result := Link.host + ' ' + IntToStr(Link.Port)
+      Result := Link.Host + ' ' + IntToStr(Link.Port)
   else
       Result := '';
 end;
@@ -216,26 +218,26 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoConnected(Sender: TIocpClientContextIntf_WithDCli);
 begin
-  Sender.Link.Print('connected addr: %s port: %d', [Sender.host, Sender.Port]);
+  Sender.Link.Print('connected addr: %s port: %d', [Sender.Host, Sender.Port]);
   DoConnected(Sender.Link);
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoDisconnect(Sender: TIocpClientContextIntf_WithDCli);
 begin
-  Sender.Link.Print('disconnect with %s port: %d', [Sender.host, Sender.Port]);
+  Sender.Link.Print('disconnect with %s port: %d', [Sender.Host, Sender.Port]);
   DoDisconnect(Sender.Link);
   TriggerDoConnectFailed;
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoConnectFailed(Sender: TIocpClientContextIntf_WithDCli);
 begin
-  Sender.Link.Print('connect failed form addr: %s port: %d', [Sender.host, Sender.Port]);
+  Sender.Link.Print('connect failed form addr: %s port: %d', [Sender.Host, Sender.Port]);
   TriggerDoConnectFailed;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.DCDoRecvBuffer(buf: Pointer; len: Cardinal; ErrCode: WORD);
+procedure TCommunicationFramework_Client_DIOCP.DCDoRecvBuffer(Buf: Pointer; Len: Cardinal; ErrCode: Word);
 begin
-  DCIntf.Link.SaveReceiveBuffer(buf, len);
+  DCIntf.Link.SaveReceiveBuffer(Buf, Len);
   DCIntf.Link.FillRecvBuffer(TThread.CurrentThread, True, True);
 end;
 
@@ -327,7 +329,7 @@ begin
   if not Connected then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   ClientIO.PostQueueData(v);
@@ -340,7 +342,7 @@ begin
   CheckSynchronize;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(Addr: SystemString; Port: WORD; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -356,12 +358,12 @@ begin
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
 
-  DCIntf.host := Addr;
+  DCIntf.Host := addr;
   DCIntf.Port := Port;
   DCIntf.ConnectASync;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(Addr: SystemString; Port: WORD; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -377,12 +379,12 @@ begin
   FOnAsyncConnectNotifyMethod := OnResult;
   FOnAsyncConnectNotifyProc := nil;
 
-  DCIntf.host := Addr;
+  DCIntf.Host := addr;
   DCIntf.Port := Port;
   DCIntf.ConnectASync;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(Addr: SystemString; Port: WORD; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -398,14 +400,14 @@ begin
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := OnResult;
 
-  DCIntf.host := Addr;
+  DCIntf.Host := addr;
   DCIntf.Port := Port;
   DCIntf.ConnectASync;
 end;
 
-function TCommunicationFramework_Client_DIOCP.Connect(Addr: SystemString; Port: WORD): Boolean;
+function TCommunicationFramework_Client_DIOCP.Connect(addr: SystemString; Port: Word): Boolean;
 var
-  t: TTimeTickValue;
+  T: TTimeTickValue;
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -425,18 +427,18 @@ begin
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
 
-  DCIntf.host := Addr;
+  DCIntf.Host := addr;
   DCIntf.Port := Port;
   try
       DCIntf.Connect;
   except
     Result := False;
-    exit;
+    Exit;
   end;
 
-  t := GetTimeTick + 5000;
+  T := GetTimeTick + 5000;
 
-  while DCIntf.Active and (not DCIntf.Link.RemoteExecutedForConnectInit) and (GetTimeTick < t) do
+  while DCIntf.Active and (not DCIntf.Link.RemoteExecutedForConnectInit) and (GetTimeTick < T) do
       ProgressBackground;
 end;
 
@@ -454,4 +456,4 @@ initialization
 
 finalization
 
-end.
+end. 

@@ -6,6 +6,8 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -14,7 +16,7 @@
 
 unit LibraryManager;
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
@@ -30,9 +32,9 @@ type
     FRootDir: SystemString;
   private
   protected
-    function GetItems(Index: Integer): THashStreamList;
-    function GetNameItems(aName: SystemString): THashStreamList;
-    function GetPathItems(aPath: SystemString): PHashStreamListData;
+    function GetItems(index: Integer): THashStreamList;
+    function GetNameItems(AName: SystemString): THashStreamList;
+    function GetPathItems(APath: SystemString): PHashStreamListData;
   public
     constructor Create(aDataEngine: TObjectDataManager; aRootDir: SystemString);
     destructor Destroy; override;
@@ -43,16 +45,16 @@ type
     procedure ChangeRoot(NewRoot: SystemString);
 
     function TotalCount: Integer;
-    function New(aName, aDescription: SystemString): THashStreamList;
-    function Delete(aName: SystemString; ForceRefresh: Boolean): Boolean;
+    function new(AName, aDescription: SystemString): THashStreamList;
+    function Delete(AName: SystemString; ForceRefresh: Boolean): Boolean;
     function ReName(aOLDName, NewName, aDescription: SystemString; ForceRefresh: Boolean): Boolean;
-    function Exists(aName: SystemString): Boolean;
+    function Exists(AName: SystemString): Boolean;
 
     property Items[index: Integer]: THashStreamList read GetItems;
-    property NameItems[aName: SystemString]: THashStreamList read GetNameItems; default;
-    property PathItems[aPath: SystemString]: PHashStreamListData read GetPathItems;
+    property NameItems[AName: SystemString]: THashStreamList read GetNameItems; default;
+    property PathItems[APath: SystemString]: PHashStreamListData read GetPathItems;
     property DBEngine: TObjectDataManager read FDBEngine;
-    property Root: THashStreamList read FRoot;
+    property ROOT: THashStreamList read FRoot;
   end;
 
 implementation
@@ -99,26 +101,26 @@ begin
     end;
 end;
 
-function TLibraryManager.GetItems(Index: Integer): THashStreamList;
+function TLibraryManager.GetItems(index: Integer): THashStreamList;
 begin
   Result := THashStreamList(FList[index]);
 end;
 
-function TLibraryManager.GetNameItems(aName: SystemString): THashStreamList;
+function TLibraryManager.GetNameItems(AName: SystemString): THashStreamList;
 var
   i: Integer;
 begin
-  Result := Root;
+  Result := ROOT;
   if Count > 0 then
     for i := 0 to Count - 1 do
-      if umlMultipleMatch(True, aName, Items[i].Name) then
+      if umlMultipleMatch(True, AName, Items[i].Name) then
         begin
           Result := Items[i];
           Break;
         end;
 end;
 
-function TLibraryManager.GetPathItems(aPath: SystemString): PHashStreamListData;
+function TLibraryManager.GetPathItems(APath: SystemString): PHashStreamListData;
 var
   i: Integer;
   slst: THashStreamList;
@@ -127,11 +129,11 @@ begin
   Result := nil;
   if Count > 0 then
     begin
-      if umlGetIndexStrCount(aPath, PathDelim) > 1 then
-          PhPrefix := umlGetFirstStr(aPath, PathDelim).Text
+      if umlGetIndexStrCount(APath, PathDelim) > 1 then
+          PhPrefix := umlGetFirstStr(APath, PathDelim).Text
       else
           PhPrefix := '';
-      phPostfix := umlGetLastStr(aPath, PathDelim).Text;
+      phPostfix := umlGetLastStr(APath, PathDelim).Text;
       for i := 0 to Count - 1 do
         begin
           if umlMultipleMatch(True, PhPrefix, Items[i].Name) then
@@ -249,18 +251,18 @@ begin
         Result := Result + Items[i].Count;
 end;
 
-function TLibraryManager.New(aName, aDescription: SystemString): THashStreamList;
+function TLibraryManager.new(AName, aDescription: SystemString): THashStreamList;
 var
   fPos: Int64;
   n, d: SystemString;
   fSearchHnd: TFieldSearch;
 begin
   Result := nil;
-  if not umlMultipleMatch(True, aName, Root.Name) then
+  if not umlMultipleMatch(True, AName, ROOT.Name) then
     begin
-      if FDBEngine.CreateField((FRootDir + '/' + aName), aDescription) then
+      if FDBEngine.CreateField((FRootDir + '/' + AName), aDescription) then
         begin
-          if FDBEngine.FieldFindFirst(FRootDir, aName, fSearchHnd) then
+          if FDBEngine.FieldFindFirst(FRootDir, AName, fSearchHnd) then
             begin
               n := fSearchHnd.Name;
               d := fSearchHnd.Description;
@@ -274,13 +276,13 @@ begin
     end
   else
     begin
-      Result := Root;
+      Result := ROOT;
     end;
 end;
 
-function TLibraryManager.Delete(aName: SystemString; ForceRefresh: Boolean): Boolean;
+function TLibraryManager.Delete(AName: SystemString; ForceRefresh: Boolean): Boolean;
 begin
-  Result := FDBEngine.FieldDelete(FRootDir, aName);
+  Result := FDBEngine.FieldDelete(FRootDir, AName);
   if (ForceRefresh) and (Result) then
       Refresh;
 end;
@@ -300,7 +302,7 @@ begin
     end;
 end;
 
-function TLibraryManager.Exists(aName: SystemString): Boolean;
+function TLibraryManager.Exists(AName: SystemString): Boolean;
 var
   i: Integer;
 begin
@@ -308,7 +310,7 @@ begin
   if Count > 0 then
     for i := 0 to Count - 1 do
       begin
-        if umlMultipleMatch(True, aName, Items[i].Name) then
+        if umlMultipleMatch(True, AName, Items[i].Name) then
           begin
             Result := True;
             Exit;
@@ -322,4 +324,5 @@ finalization
 
 FreeLibManCloneAutoFreeList;
 
-end.
+end. 
+ 

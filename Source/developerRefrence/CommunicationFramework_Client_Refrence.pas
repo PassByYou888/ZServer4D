@@ -6,6 +6,9 @@
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -13,7 +16,7 @@
 
 unit CommunicationFramework_Client_Refrence;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -30,7 +33,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -58,13 +61,13 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    procedure AsyncConnect(Addr: SystemString; Port: Word); overload;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word); overload;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
-    function Connect(Addr: SystemString; Port: Word): Boolean; overload; override;
-    function Connect(host: SystemString; Port: SystemString): Boolean; overload;
+    function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
+    function Connect(Host: SystemString; Port: SystemString): Boolean; overload;
     procedure Disconnect; override;
   end;
 
@@ -89,10 +92,10 @@ procedure TPeerIOWithRefrenceClient.Disconnect;
 begin
 end;
 
-procedure TPeerIOWithRefrenceClient.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TPeerIOWithRefrenceClient.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
-      exit;
+      Exit;
 end;
 
 procedure TPeerIOWithRefrenceClient.WriteBufferOpen;
@@ -192,7 +195,7 @@ begin
   if not Connected then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   ClientIO.PostQueueData(v);
@@ -204,32 +207,32 @@ begin
   inherited ProgressBackground;
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(Addr: SystemString; Port: Word);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word);
 begin
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(Addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
 end;
 
-function TCommunicationFramework_Client_Refrence.Connect(Addr: SystemString; Port: Word): Boolean;
+function TCommunicationFramework_Client_Refrence.Connect(addr: SystemString; Port: Word): Boolean;
 begin
 end;
 
-function TCommunicationFramework_Client_Refrence.Connect(host: SystemString; Port: SystemString): Boolean;
+function TCommunicationFramework_Client_Refrence.Connect(Host: SystemString; Port: SystemString): Boolean;
 begin
-  Result := Connect(host, umlStrToInt(Port, 0));
+  Result := Connect(Host, umlStrToInt(Port, 0));
 end;
 
 procedure TCommunicationFramework_Client_Refrence.Disconnect;
@@ -246,4 +249,4 @@ initialization
 
 finalization
 
-end.
+end. 

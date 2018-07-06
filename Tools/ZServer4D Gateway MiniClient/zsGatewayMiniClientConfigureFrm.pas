@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls,
   System.IOUtils,
-  ShellApi, TLHelp32,
+  shellapi, TLHelp32,
   CoreClasses, MemoryStream64, ObjectDataManager, TextDataEngine, UnicodeMixedLib,
   PascalStrings, DoStatusIO, ItemStream, NotifyObjectBase, DataFrameEngine,
   CommunicationFramework,
@@ -17,11 +17,11 @@ uses
 type
   TExecThread = class(TThread)
   public
-    FileName                       : umlString;
-    ExecCode                       : DWORD;
-    SA                             : TSecurityAttributes;
-    SI                             : TStartupInfo;
-    PI                             : TProcessInformation;
+    FileName: U_String;
+    ExecCode: DWord;
+    SA: TSecurityAttributes;
+    SI: TStartupInfo;
+    pi: TProcessInformation;
     StdOutPipeRead, StdOutPipeWrite: THandle;
 
     procedure Execute; override;
@@ -68,11 +68,11 @@ type
     { Private declarations }
   public
     { Public declarations }
-    DBEng                  : TObjectDataManagerOfCache;
-    cliTh                  : TExecThread;
-    ProgressPost           : TNProgressPostWithCadencer;
-    ConfigureClient        : TCommunicationFrameworkClient;
-    NatPort, WebPort, Token: string;
+    dbEng: TObjectDataManagerOfCache;
+    cliTh: TExecThread;
+    ProgressPost: TNProgressPostWithCadencer;
+    ConfigureClient: TCommunicationFrameworkClient;
+    NatPort, WebPort, token: string;
 
     procedure DoStatusMethod(AText: SystemString; const ID: Integer);
 
@@ -82,25 +82,26 @@ type
 
 var
   zsGatewayMiniClientConfigureForm: TzsGatewayMiniClientConfigureForm = nil;
-  ExecThreadList                  : TCoreClassListForObj              = nil;
-  DefaultPath                     : string                            = '';
+  ExecThreadList: TCoreClassListForObj                                = nil;
+  DefaultPath: string                                                 = '';
 
-function FindProcessCount(AFileName: string): Integer;
-function FindProcess(AFileName: string): Boolean;
-procedure EndProcess(AFileName: string);
-function WinExecFile(fn: umlString): TExecThread;
+function FindProcessCount(aFileName: string): Integer;
+function FindProcess(aFileName: string): Boolean;
+procedure EndProcess(aFileName: string);
+
+function WinExecFile(fn: U_String): TExecThread;
 
 implementation
 
 {$R *.dfm}
 
 
-function FindProcessCount(AFileName: string): Integer;
+function FindProcessCount(aFileName: string): Integer;
 var
-  hSnapshot : THandle;         // 用于获得进程列表
-  lppe      : TProcessEntry32; // 用于查找进程
-  Found     : Boolean;         // 用于判断进程遍历是否完成
-  KillHandle: THandle;         // 用于杀死进程
+  hSnapshot: THandle;    // 用于获得进程列表
+  lppe: TProcessEntry32; // 用于查找进程
+  Found: Boolean;        // 用于判断进程遍历是否完成
+  KillHandle: THandle;   // 用于杀死进程
 begin
   Result := 0;
   hSnapshot := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); // 获得系统进程列表
@@ -108,18 +109,18 @@ begin
   Found := Process32First(hSnapshot, lppe);                     // 将进程列表的第一个进程信息读入ppe记录中
   while Found do
     begin
-      if SameText(ExtractFileName(lppe.szExeFile), AFileName) or SameText(lppe.szExeFile, AFileName) then
-          inc(Result);
+      if SameText(ExtractFilename(lppe.szExeFile), aFileName) or SameText(lppe.szExeFile, aFileName) then
+          Inc(Result);
       Found := Process32Next(hSnapshot, lppe); // 将进程列表的下一个进程信息读入lppe记录中
     end;
 end;
 
-function FindProcess(AFileName: string): Boolean;
+function FindProcess(aFileName: string): Boolean;
 var
-  hSnapshot : THandle;         // 用于获得进程列表
-  lppe      : TProcessEntry32; // 用于查找进程
-  Found     : Boolean;         // 用于判断进程遍历是否完成
-  KillHandle: THandle;         // 用于杀死进程
+  hSnapshot: THandle;    // 用于获得进程列表
+  lppe: TProcessEntry32; // 用于查找进程
+  Found: Boolean;        // 用于判断进程遍历是否完成
+  KillHandle: THandle;   // 用于杀死进程
 begin
   Result := False;
   hSnapshot := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); // 获得系统进程列表
@@ -127,7 +128,7 @@ begin
   Found := Process32First(hSnapshot, lppe);                     // 将进程列表的第一个进程信息读入ppe记录中
   while Found do
     begin
-      if SameText(ExtractFileName(lppe.szExeFile), AFileName) or SameText(lppe.szExeFile, AFileName) then
+      if SameText(ExtractFilename(lppe.szExeFile), aFileName) or SameText(lppe.szExeFile, aFileName) then
         begin
           Result := True;
         end;
@@ -135,11 +136,11 @@ begin
     end;
 end;
 
-procedure EndProcess(AFileName: string);
+procedure EndProcess(aFileName: string);
 const
   PROCESS_TERMINATE = $0001;
 var
-  ContinueLoop   : BOOL;
+  ContinueLoop: BOOL;
   FSnapShotHandle: THandle;
   FProcessEntry32: TProcessEntry32;
 begin
@@ -148,13 +149,13 @@ begin
   ContinueLoop := Process32First(FSnapShotHandle, FProcessEntry32);
   while Integer(ContinueLoop) <> 0 do
     begin
-      if SameText(ExtractFileName(FProcessEntry32.szExeFile), AFileName) or SameText(FProcessEntry32.szExeFile, AFileName) then
+      if SameText(ExtractFilename(FProcessEntry32.szExeFile), aFileName) or SameText(FProcessEntry32.szExeFile, aFileName) then
           TerminateProcess(OpenProcess(PROCESS_TERMINATE, BOOL(0), FProcessEntry32.th32ProcessID), 0);
       ContinueLoop := Process32Next(FSnapShotHandle, FProcessEntry32);
     end;
 end;
 
-function WinExecFile(fn: umlString): TExecThread;
+function WinExecFile(fn: U_String): TExecThread;
 begin
   Result := TExecThread.Create(True);
   Result.FileName := fn;
@@ -163,11 +164,11 @@ end;
 
 procedure TExecThread.Execute;
 const
-  Buffsize   = 65535;
+  BuffSize   = 65535;
   HideWindow = True;
 var
-  WasOK    : Boolean;
-  Buffer   : array [0 .. Buffsize] of Char;
+  WasOK: Boolean;
+  buffer: array [0 .. BuffSize] of Char;
   BytesRead: Cardinal;
 begin
   FreeOnTerminate := True;
@@ -200,7 +201,7 @@ begin
     with SI do
       begin
         FillChar(SI, SizeOf(SI), 0);
-        cb := SizeOf(SI);
+        CB := SizeOf(SI);
         dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
         if HideWindow then
           begin
@@ -215,7 +216,7 @@ begin
           end;
       end;
 
-    WasOK := CreateProcess(nil, PChar(FileName.Text), nil, nil, True, 0, nil, nil, SI, PI);
+    WasOK := CreateProcess(nil, PChar(FileName.Text), nil, nil, True, 0, nil, nil, SI, pi);
     {
       Now that the handle has been inherited, close write to be safe.We don't
       want to read or write to it accidentally
@@ -232,28 +233,28 @@ begin
               { get all output until DOS app finishes }
               repeat
                 { read block of characters (might contain carriage returns and line feeds) }
-                WasOK := ReadFile(StdOutPipeRead, Buffer, Buffsize, BytesRead, nil);
+                WasOK := ReadFile(StdOutPipeRead, buffer, BuffSize, BytesRead, nil);
                 { has anything been read? }
                 if (WasOK) and (BytesRead > 0) then
                   begin
                     { finish buffer to PChar }
-                    Buffer[BytesRead + 1] := #0;
-                    OemToAnsi(@Buffer, @Buffer);
+                    buffer[BytesRead + 1] := #0;
+                    OemToAnsi(@buffer, @buffer);
                     { combine the buffer with the rest of the last run }
                     TThread.Synchronize(Self, procedure
                       begin
-                        DoStatus(StrPas(PAnsiChar(@Buffer)));
+                        DoStatus(StrPas(PAnsiChar(@buffer)));
                       end);
                   end;
               until (not WasOK) or (BytesRead = 0);
             end;
           { wait for console app to finish (should be already at this point) }
-          WaitForSingleObject(PI.hProcess, INFINITE);
-          GetExitCodeProcess(PI.hProcess, ExecCode);
+          WaitForSingleObject(pi.hProcess, Infinite);
+          GetExitCodeProcess(pi.hProcess, ExecCode);
         finally
           { Close all remaining handles }
-          CloseHandle(PI.hThread);
-          CloseHandle(PI.hProcess);
+          CloseHandle(pi.hThread);
+          CloseHandle(pi.hProcess);
         end;
       end
     else
@@ -274,7 +275,7 @@ begin
             if ExecThreadList[i] = Self then
                 ExecThreadList.Delete(i)
             else
-                inc(i);
+                Inc(i);
           end;
 
         if zsGatewayMiniClientConfigureForm.cliTh = Self then
@@ -303,7 +304,7 @@ end;
 
 procedure TzsGatewayMiniClientConfigureForm.FormCreate(Sender: TObject);
 var
-  c64: TResourceStream;
+  C64: TResourceStream;
   m64: TMemoryStream64;
 begin
   if FindProcess('_fc.exe') then
@@ -312,18 +313,18 @@ begin
   umlDeleteFile(umlCombineFileName(DefaultPath, '_fc.exe'));
 
   AddDoStatusHook(Self, DoStatusMethod);
-  {$IFDEF CPU64}
+{$IFDEF CPU64}
   x64RadioButton.Checked := True;
-  {$ELSE}
+{$ELSE}
   X86RadioButton.Checked := True;
-  {$IFEND}
+{$IFEND}
   //
-  c64 := TResourceStream.Create(hInstance, 'FRPClientPackage', RT_RCDATA);
+  C64 := TResourceStream.Create(HInstance, 'FRPClientPackage', RT_RCDATA);
   m64 := TMemoryStream64.Create;
-  DecompressStream(c64, m64);
+  DecompressStream(C64, m64);
   m64.Position := 0;
-  DBEng := TObjectDataManagerOfCache.CreateAsStream(m64, '', 0, True, False, True);
-  DisposeObject(c64);
+  dbEng := TObjectDataManagerOfCache.CreateAsStream(m64, '', 0, True, False, True);
+  DisposeObject(C64);
 
   ExecThreadList := TCoreClassListForObj.Create;
 
@@ -336,27 +337,27 @@ begin
 
   NatPort := '';
   WebPort := '';
-  Token := '';
+  token := '';
 
   sysProcessTimer.Enabled := True;
-  NetworkTimer.Enabled:=True;
+  NetworkTimer.Enabled := True;
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.FormDestroy(Sender: TObject);
 begin
-  DisposeObject([DBEng, ExecThreadList, ProgressPost, ConfigureClient]);
+  DisposeObject([dbEng, ExecThreadList, ProgressPost, ConfigureClient]);
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.GetConfigureButtonClick(Sender: TObject);
 begin
-  Hide;
+  hide;
   ConfigureClient.AsyncConnect(RemoteIPEdit.Text, umlStrToInt(RemotePortEdit.Text, 4797),
     procedure(const cState: Boolean)
     begin
       if not cState then
         begin
           show;
-          exit;
+          Exit;
         end;
 
       ConfigureClient.SendStreamCmd('GetConfigure', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
@@ -371,8 +372,8 @@ begin
 
           NatPort := te.GetDefaultValue('Options', 'NatPortEdit', NatPort);
           WebPort := te.GetDefaultValue('Options', 'WebPortEdit', WebPort);
-          Token := te.GetDefaultValue('Options', 'TokenEdit', Token);
-          TokenEdit.Text := Token;
+          token := te.GetDefaultValue('Options', 'TokenEdit', token);
+          TokenEdit.Text := token;
 
           ns := te.Names['NATListens'];
 
@@ -397,7 +398,7 @@ begin
             'Remote NAT Listen port:%s' + #13#10 +
             'Remote Web Watch Listen port:%s' + #13#10 +
             'Remote token: %s',
-            [NatPort, WebPort, Token]);
+            [NatPort, WebPort, token]);
 
           DisposeObject(te);
 
@@ -413,7 +414,7 @@ end;
 
 procedure TzsGatewayMiniClientConfigureForm.MinimizedToTaskButtonClick(Sender: TObject);
 begin
-  Hide;
+  hide;
   TrayIcon.Visible := True;
 end;
 
@@ -422,10 +423,10 @@ var
   s: string;
 begin
   if ListView.SelCount <> 1 then
-      exit;
-  s := ListView.Selected.SubItems[1];
+      Exit;
+  s := ListView.selected.SubItems[1];
   if InputQuery('Modify local port', 'local port:', s) then
-      ListView.Selected.SubItems[1] := s;
+      ListView.selected.SubItems[1] := s;
 end;
 
 procedure TzsGatewayMiniClientConfigureForm.NetworkTimerTimer(Sender: TObject);
@@ -448,8 +449,8 @@ end;
 procedure TzsGatewayMiniClientConfigureForm.StartClientListenButtonClick(Sender: TObject);
 var
   itmStream: TItemStream;
-  m64      : TMemoryStream64;
-  ns       : TCoreClassStringList;
+  m64: TMemoryStream64;
+  ns: TCoreClassStringList;
 begin
   if cliTh <> nil then
     begin
@@ -458,13 +459,13 @@ begin
       StartClientListenButton.Caption := 'Start NAT Client';
       umlDeleteFile(umlCombineFileName(DefaultPath, '_fc.ini'));
       umlDeleteFile(umlCombineFileName(DefaultPath, '_fc.exe'));
-      exit;
+      Exit;
     end;
 
   if x64RadioButton.Checked then
-      itmStream := TItemStream.Create(DBEng, '/frp64', 'frpc.exe')
+      itmStream := TItemStream.Create(dbEng, '/frp64', 'frpc.exe')
   else
-      itmStream := TItemStream.Create(DBEng, '/frp86', 'frpc.exe');
+      itmStream := TItemStream.Create(dbEng, '/frp86', 'frpc.exe');
 
   m64 := TMemoryStream64.Create;
   m64.CopyFrom(itmStream, itmStream.Size);
@@ -501,7 +502,7 @@ begin
           th := TExecThread(ExecThreadList[0]);
           th.Suspended := True;
           ExecThreadList.Delete(0);
-          TerminateProcess(th.PI.hProcess, 0);
+          TerminateProcess(th.pi.hProcess, 0);
           th.Terminate;
         end;
     end
@@ -514,12 +515,12 @@ begin
             begin
               th.Suspended := True;
               ExecThreadList.Delete(i);
-              TerminateProcess(th.PI.hProcess, 0);
+              TerminateProcess(th.pi.hProcess, 0);
               th.Terminate;
-              break;
+              Break;
             end
           else
-              inc(i);
+              Inc(i);
         end;
     end;
   Memo.Visible := ExecThreadList.Count > 0;
@@ -570,8 +571,8 @@ begin
   ns.Add('[common]');
   ns.Add(Format('server_addr = %s', [RemoteIPEdit.Text]));
   ns.Add(Format('server_port = %s', [NatPort]));
-  ns.Add(Format('auth_token = %s', [Token]));
-  ns.Add(Format('privilege_token = %s', [Token]));
+  ns.Add(Format('auth_token = %s', [token]));
+  ns.Add(Format('privilege_token = %s', [token]));
 
   for i := 0 to ListView.Items.Count - 1 do
     if (ListView.Items[i].Checked) and (ListView.Items[i].SubItems.Count > 0) then
@@ -596,4 +597,4 @@ DefaultPath := System.IOUtils.TPath.GetTempPath;
 
 finalization
 
-end.
+end. 

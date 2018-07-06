@@ -51,7 +51,7 @@ type
 
     FTotalRead, FTotalWrite: Int64;
 
-    FOpenFile: umlString;
+    FOpenFile: U_String;
     procedure DoStatusNear(AText: SystemString; const ID: Integer);
     procedure TriggerWrite64(Count: Int64);
     procedure TriggerRead64(Count: Int64);
@@ -103,7 +103,7 @@ end;
 
 procedure TFilePackageWithZDBMainForm.CompressAsButtonClick(Sender: TObject);
 var
-  m64, c64: TMemoryStream64;
+  m64, C64: TMemoryStream64;
   fn      : string;
 begin
   if not SaveAsCompressedDialog.Execute then
@@ -112,20 +112,20 @@ begin
   fn := SaveAsCompressedDialog.FileName;
 
   m64 := TMemoryStream64.Create;
-  c64 := TMemoryStream64.Create;
+  C64 := TMemoryStream64.Create;
   try
     FDBEng.SaveToStream(m64);
     m64.Position := 0;
     MD5Edit.Text := umlStreamMD5String(m64);
 
     m64.Position := 0;
-    MaxCompressStream(m64, c64);
+    MaxCompressStream(m64, C64);
 
-    c64.SaveToFile(fn);
+    C64.SaveToFile(fn);
 
-    DoStatus('save as Compressed DB:%s (source:%s compressed:%s)', [fn, umlSizeToStr(m64.Size).Text, umlSizeToStr(c64.Size).Text]);
+    DoStatus('save as Compressed DB:%s (source:%s compressed:%s)', [fn, umlSizeToStr(m64.Size).Text, umlSizeToStr(C64.Size).Text]);
   finally
-      DisposeObject([m64, c64]);
+      DisposeObject([m64, C64]);
   end;
 end;
 
@@ -157,7 +157,7 @@ end;
 
 procedure TFilePackageWithZDBMainForm.OpenButtonClick(Sender: TObject);
 var
-  m64, c64: TMemoryStream64;
+  m64, C64: TMemoryStream64;
 begin
   if not OpenDialog.Execute then
       Exit;
@@ -170,22 +170,22 @@ begin
 
   if umlMultipleMatch(True, '*.OXC', FOpenFile) then
     begin
-      c64 := TMemoryStream64.Create;
+      C64 := TMemoryStream64.Create;
       m64 := TMemoryStream64OfReadWriteTrigger.Create(Self);
       try
-        c64.LoadFromFile(FOpenFile);
-        c64.Position := 0;
-        DecompressStream(c64, m64);
+        C64.LoadFromFile(FOpenFile);
+        C64.Position := 0;
+        DecompressStream(C64, m64);
         m64.Position := 0;
         FOpenFile := umlChangeFileExt(FOpenFile, '.OX').Text;
       except
-        DisposeObject(c64);
-        c64 := nil;
+        DisposeObject(C64);
+        C64 := nil;
         m64.Clear;
         m64.LoadFromFile(FOpenFile);
         m64.Position := 0;
       end;
-      DisposeObject(c64);
+      DisposeObject(C64);
     end
   else
     begin
@@ -246,12 +246,12 @@ end;
 
 procedure TFilePackageWithZDBMainForm.TriggerRead64(Count: Int64);
 begin
-  inc(FTotalRead, Count);
+  Inc(FTotalRead, Count);
 end;
 
 procedure TFilePackageWithZDBMainForm.TriggerWrite64(Count: Int64);
 begin
-  inc(FTotalWrite, Count);
+  Inc(FTotalWrite, Count);
 end;
 
 procedure TFilePackageWithZDBMainForm.SaveAsButtonClick(Sender: TObject);
@@ -275,4 +275,4 @@ begin
   DoStatus('save DB:%s', [FOpenFile.Text]);
 end;
 
-end.
+end. 

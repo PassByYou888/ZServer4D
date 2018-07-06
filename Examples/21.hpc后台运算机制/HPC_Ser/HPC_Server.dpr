@@ -9,6 +9,6 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  AApplication.CreateForm(TDoubleServerForm, DoubleServerForm);
-  pplication.Run;
+  Application.CreateForm(TDoubleServerForm, DoubleServerForm);
+  Application.Run;
 end.

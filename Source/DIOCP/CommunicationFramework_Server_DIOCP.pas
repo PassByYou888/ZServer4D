@@ -1,4 +1,4 @@
-ï»¿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * DIOCP Support                                                              * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Server_DIOCP;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -45,7 +47,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -62,8 +64,8 @@ type
     procedure DIOCP_IOConnected(pvClientContext: TIocpClientContext);
     procedure DIOCP_IODisconnect(pvClientContext: TIocpClientContext);
     procedure DIOCP_IOSend(pvContext: TIocpClientContext; pvRequest: TIocpSendRequest);
-    procedure DIOCP_IOSendCompleted(pvContext: TIocpClientContext; pvBuff: Pointer; len: Cardinal; pvBufferTag: Integer; pvTagData: Pointer; pvErrorCode: Integer);
-    procedure DIOCP_IOReceive(pvClientContext: TIocpClientContext; buf: Pointer; len: Cardinal; errCode: Integer);
+    procedure DIOCP_IOSendCompleted(pvContext: TIocpClientContext; pvBuff: Pointer; Len: Cardinal; pvBufferTag: Integer; pvTagData: Pointer; pvErrorCode: Integer);
+    procedure DIOCP_IOReceive(pvClientContext: TIocpClientContext; Buf: Pointer; Len: Cardinal; ErrCode: Integer);
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -74,8 +76,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
   end;
 
 implementation
@@ -112,8 +114,8 @@ destructor TPeerIOWithDIOCPServer.Destroy;
 begin
   if Link <> nil then
     begin
-      // ç³»ç»Ÿç»¿è‰²åŒ–ï¼Œæˆ‘åœ¨ç ´åå¯¹è±¡æ—¶ï¼Œä¸æ˜¯ç›´æ¥closeï¼Œè€Œæ˜¯postä¸€ä¸ªæ¶ˆæ¯å‡ºå»
-      // è¿™æ ·ä¼šå¯¼è‡´æ–­çº¿äº§ç”Ÿä¸€ä¸ªå°å¹…å»¶è¿Ÿï¼Œè¿™é‡Œä¸å½±å“æ€§èƒ½
+      // ÏµÍ³ÂÌÉ«»¯£¬ÎÒÔÚÆÆ»µ¶ÔÏóÊ±£¬²»ÊÇÖ±½Óclose£¬¶øÊÇpostÒ»¸öÏûÏ¢³öÈ¥
+      // ÕâÑù»áµ¼ÖÂ¶ÏÏß²úÉúÒ»¸öĞ¡·ùÑÓ³Ù£¬ÕâÀï²»Ó°ÏìĞÔÄÜ
       Link.PostWSACloseRequest;
       Link.Link := nil;
     end;
@@ -132,10 +134,10 @@ begin
   Link.PostWSACloseRequest;
 end;
 
-procedure TPeerIOWithDIOCPServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TPeerIOWithDIOCPServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
-      exit;
+      Exit;
 
   if Size > 0 then
       SendingStream.WritePtr(buff, Size);
@@ -150,11 +152,11 @@ procedure TPeerIOWithDIOCPServer.WriteBufferFlush;
 begin
   if SendingStream.Size > 0 then
     begin
-      inc(lastSendBufferTag);
+      Inc(lastSendBufferTag);
       WasSending := True;
-      // å› ä¸ºDIOCPçš„å‘é€æ˜¯åŸºäºæ•°æ®é˜Ÿåˆ—çš„
-      // æŠŠæ‰€æœ‰çš„é¢„ç½®æ•°æ®ä»¥é˜Ÿåˆ—æ–¹å¼fillåå†å‘é€
-      // è¿™é‡Œæˆ‘ç”¨flushæ–¹å¼åç½®åŒ–å‘é€æ•°æ®ï¼Œåšåˆ°æ¯æ¬¡å‘é€å‡ºå»çš„æ˜¯ä¸€ä¸ªå—ï¼Œä¸€èˆ¬æ¥è¯´ï¼Œè¿™é‡Œè¢«zsè§¦å‘æ—¶ï¼Œéƒ½æ˜¯ä¸€ä¸ªipåŒ…å·¦å³çš„å¤§å°ï¼Œä¸æ˜¯ç¢ç‰‡
+      // ÒòÎªDIOCPµÄ·¢ËÍÊÇ»ùÓÚÊı¾İ¶ÓÁĞµÄ
+      // °ÑËùÓĞµÄÔ¤ÖÃÊı¾İÒÔ¶ÓÁĞ·½Ê½fillºóÔÙ·¢ËÍ
+      // ÕâÀïÎÒÓÃflush·½Ê½ºóÖÃ»¯·¢ËÍÊı¾İ£¬×öµ½Ã¿´Î·¢ËÍ³öÈ¥µÄÊÇÒ»¸ö¿é£¬Ò»°ãÀ´Ëµ£¬ÕâÀï±»zs´¥·¢Ê±£¬¶¼ÊÇÒ»¸öip°ü×óÓÒµÄ´óĞ¡£¬²»ÊÇËéÆ¬
       Link.PostWSASendRequest(SendingStream.Memory, SendingStream.Size, True, lastSendBufferTag);
       SendingStream.Clear;
     end;
@@ -195,7 +197,7 @@ var
   peerio: TPeerIOWithDIOCPServer;
 begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
-      exit;
+      Exit;
 
   peerio := TIocpClientContextIntf_WithDServ(pvClientContext).Link;
   TIocpClientContextIntf_WithDServ(pvClientContext).Link := nil;
@@ -206,26 +208,26 @@ procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOSend(pvContext: TIocpClie
 begin
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOSendCompleted(pvContext: TIocpClientContext; pvBuff: Pointer; len: Cardinal; pvBufferTag: Integer; pvTagData: Pointer; pvErrorCode: Integer);
+procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOSendCompleted(pvContext: TIocpClientContext; pvBuff: Pointer; Len: Cardinal; pvBufferTag: Integer; pvTagData: Pointer; pvErrorCode: Integer);
 var
   peerio: TPeerIOWithDIOCPServer;
 begin
   if TIocpClientContextIntf_WithDServ(pvContext).Link = nil then
-      exit;
+      Exit;
   peerio := TIocpClientContextIntf_WithDServ(pvContext).Link;
   if peerio.lastSendBufferTag = pvBufferTag then
       peerio.WasSending := False;
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOReceive(pvClientContext: TIocpClientContext; buf: Pointer; len: Cardinal; errCode: Integer);
+procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOReceive(pvClientContext: TIocpClientContext; Buf: Pointer; Len: Cardinal; ErrCode: Integer);
 begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
-      exit;
+      Exit;
 
-  // zså†…æ ¸åœ¨æ–°ç‰ˆæœ¬å·²ç»å®Œå…¨æ”¯æŒäº†100%çš„å¼‚æ­¥è§£ææ•°æ®
-  // ç»è¿‡ç®€å•åˆ†æï¼Œè¿™ä¸ªäº‹ä»¶è¢«ä¸Šé”ä¿æŠ¤äº†ï¼Œä¼¼ä¹è°ƒåº¦æœ‰ç‚¹å»¶è¿Ÿ
-  // è¿™é‡Œçš„æ€§èƒ½çƒ­ç‚¹ä¸å¤ªå¥½æ‰¾ï¼Œdiocpçš„ç“¶é¢ˆä¸»è¦æ˜¯å¡åœ¨è¿™ä¸€æ­¥
-  TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(buf, len);
+  // zsÄÚºËÔÚĞÂ°æ±¾ÒÑ¾­ÍêÈ«Ö§³ÖÁË100%µÄÒì²½½âÎöÊı¾İ
+  // ¾­¹ı¼òµ¥·ÖÎö£¬Õâ¸öÊÂ¼ş±»ÉÏËø±£»¤ÁË£¬ËÆºõµ÷¶ÈÓĞµãÑÓ³Ù
+  // ÕâÀïµÄĞÔÄÜÈÈµã²»Ì«ºÃÕÒ£¬diocpµÄÆ¿¾±Ö÷ÒªÊÇ¿¨ÔÚÕâÒ»²½
+  TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(Buf, Len);
   TIocpClientContextIntf_WithDServ(pvClientContext).Link.FillRecvBuffer(TThread.CurrentThread, True, True);
 end;
 
@@ -278,7 +280,7 @@ begin
   if not Exists(v^.Client) then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   v^.Client.PostQueueData(v);
@@ -291,13 +293,13 @@ begin
   CheckSynchronize;
 end;
 
-function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
@@ -306,4 +308,4 @@ initialization
 
 finalization
 
-end.
+end. 

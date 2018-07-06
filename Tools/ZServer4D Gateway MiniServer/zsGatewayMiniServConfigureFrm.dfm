@@ -38,6 +38,10 @@ object zsGatewayMiniServConfigureForm: TzsGatewayMiniServConfigureForm
     TabOrder = 6
     object ServTabSheet: TTabSheet
       Caption = 'Local NAT Service'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label2: TLabel
         Left = 19
         Top = 17

@@ -4,9 +4,11 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 type
-  MPtrUInt  = NativeUInt;
+  MPtrUInt  = nativeUInt;
   MPtr      = Pointer;
   PMPtrUInt = ^MPtrUInt;
 
@@ -32,7 +34,7 @@ begin
 
   try
     CurrentHookThread := TCoreClassThread.CurrentThread;
-    if Length(HookPtrList.ListBuffer^) <> cacheLen then
+    if length(HookPtrList.ListBuffer^) <> cacheLen then
         HookPtrList.SetHashBlockCount(cacheLen)
     else
         HookPtrList.FastClear;
@@ -50,7 +52,7 @@ begin
   CurrentHookThread := nil;
 end;
 
-function GetHookMemorySize: NativeUInt;
+function GetHookMemorySize: nativeUInt;
 var
   bak: Boolean;
 begin
@@ -63,7 +65,7 @@ begin
   end;
 end;
 
-function GetHookMemorySize(p: Pointer): NativeUInt;
+function GetHookMemorySize(p: Pointer): nativeUInt;
 var
   bak: Boolean;
 begin
@@ -102,11 +104,11 @@ begin
   end;
 end;
 
-function Hash_GetMem(Size: NativeInt): MPtr;
+function Hash_GetMem(Size: nativeInt): MPtr;
 begin
   Result := OriginMM.GetMem(Size);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
-      exit;
+      Exit;
   MemoryHooked := False;
   MHGlobalHookEnabled := False;
   try
@@ -122,7 +124,7 @@ function Hash_FreeMem(p: MPtr): Integer;
 begin
   Result := OriginMM.FreeMem(p);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) or (p = nil) then
-      exit;
+      Exit;
   MemoryHooked := False;
   MHGlobalHookEnabled := False;
   try
@@ -134,11 +136,11 @@ begin
   end;
 end;
 
-function Hash_ReallocMem(p: MPtr; Size: NativeInt): MPtr;
+function Hash_ReallocMem(p: MPtr; Size: nativeInt): MPtr;
 begin
   Result := OriginMM.ReallocMem(p, Size);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) then
-      exit;
+      Exit;
   MemoryHooked := False;
   MHGlobalHookEnabled := False;
   try
@@ -159,16 +161,16 @@ begin
   end;
 end;
 
-function Hash_AllocMem(Size: NativeInt): MPtr;
+function Hash_AllocMem(Size: nativeInt): MPtr;
 begin
   Result := OriginMM.AllocMem(Size);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
-      exit;
+      Exit;
   MemoryHooked := False;
   MHGlobalHookEnabled := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
-        HookPtrList.Add(Result, Size);
+        HookPtrList.Add(Result, Size, True);
   finally
     MemoryHooked := True;
     MHGlobalHookEnabled := True;
@@ -198,4 +200,4 @@ begin
   MemoryHooked := False;
   SetMemoryManager(OriginMM);
   DisposeObject(HookPtrList);
-end;
+end; 

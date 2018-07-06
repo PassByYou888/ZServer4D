@@ -1,4 +1,4 @@
-ï»¿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * CrossSocket support                                                        * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,18 +7,20 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Server_CrossSocket;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
 uses SysUtils, Classes,
-  Net.CrossSocket, Net.SocketAPI, Net.CrossSocket.Base, Net.CrossServer,
+  NET.CrossSocket, NET.SocketAPI, NET.CrossSocket.Base, NET.CrossServer,
   PascalStrings, DoStatusIO,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64,
   DataFrameEngine;
@@ -42,7 +44,7 @@ type
     function Connected: Boolean; override;
     procedure Disconnect; override;
     procedure SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -51,7 +53,7 @@ type
     procedure Progress; override;
   end;
 
-  // å› ä¸ºcrossSocketåœ¨åº•å±‚å¯¹å¤–éƒ¨æ”¯æŒçš„æ¥å£æœ‰ç‚¹å°‘ï¼Œå¤§æ”¹æ¥å£æ¯”è¾ƒéº»çƒ¦ï¼Œæš‚æ—¶æç½®ä¸€ä¸‹ï¼Œè¿‡æ®µæ—¶é—´ç©ºäº†å†æ¥åš
+  // ÒòÎªcrossSocketÔÚµ×²ã¶ÔÍâ²¿Ö§³ÖµÄ½Ó¿ÚÓĞµãÉÙ£¬´ó¸Ä½Ó¿Ú±È½ÏÂé·³£¬ÔİÊ±¸éÖÃÒ»ÏÂ£¬¹ı¶ÎÊ±¼ä¿ÕÁËÔÙÀ´×ö
   TDriverEngine = TCrossSocket;
 
   TCommunicationFramework_Server_CrossSocket = class(TCommunicationFrameworkServer)
@@ -63,8 +65,8 @@ type
   protected
     procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
-    procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
-    procedure DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
+    procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
+    procedure DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
   public
     constructor Create; overload; override;
     constructor Create(maxThPool: Word); overload;
@@ -76,11 +78,11 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure ProgressBackground; override;
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
-    property Driver: TDriverEngine read FDriver;
+    property driver: TDriverEngine read FDriver;
     property BindPort: Word read FBindPort;
     property BindHost: SystemString read FBindHost;
   end;
@@ -105,12 +107,12 @@ begin
   FreeDelayBuffPool;
 
   for i := 0 to SendBuffQueue.Count - 1 do
-      disposeObject(SendBuffQueue[i]);
+      DisposeObject(SendBuffQueue[i]);
 
-  disposeObject(SendBuffQueue);
+  DisposeObject(SendBuffQueue);
 
-  disposeObject(CurrentBuff);
-  disposeObject(DelayBuffPool);
+  DisposeObject(CurrentBuff);
+  DisposeObject(DelayBuffPool);
   inherited Destroy;
 end;
 
@@ -119,7 +121,7 @@ var
   i: Integer;
 begin
   for i := 0 to DelayBuffPool.Count - 1 do
-      disposeObject(DelayBuffPool[i]);
+      DisposeObject(DelayBuffPool[i]);
   DelayBuffPool.Clear;
 end;
 
@@ -149,16 +151,16 @@ procedure TContextIntfForServer.SendBuffResult(AConnection: ICrossConnection; AS
 begin
   LastActiveTime := GetTimeTickCount;
 
-  // ä¸ºé¿å…ä½¿ç”¨éé¡µé¢äº¤æ¢å†…å­˜ï¼Œå°†ioå†…æ ¸å‘é€è¿›åº¦åŒæ­¥åˆ°ä¸»çº¿ç¨‹æ¥å‘
+  // Îª±ÜÃâÊ¹ÓÃ·ÇÒ³Ãæ½»»»ÄÚ´æ£¬½«ioÄÚºË·¢ËÍ½ø¶ÈÍ¬²½µ½Ö÷Ïß³ÌÀ´·¢
   TThread.Synchronize(nil,
     procedure
     var
       i: Integer;
-      m: TMemoryStream64;
+      M: TMemoryStream64;
       isConn: Boolean;
     begin
-      // ç”±äºlinuxä¸‹çš„Sendä¸ä¼šcopyç¼“å†²åŒºå‰¯æœ¬ï¼Œæˆ‘ä»¬éœ€è¦å»¶è¿Ÿé‡Šæ”¾è‡ªå·±çš„ç¼“å†²åŒº
-      // å‘é€å®ŒæˆçŠ¶æ€è¿”å›æ—¶ï¼Œæˆ‘ä»¬é‡Šæ”¾æ‰€æœ‰ä¸´æ—¶ç¼“å†²åŒº
+      // ÓÉÓÚlinuxÏÂµÄSend²»»ácopy»º³åÇø¸±±¾£¬ÎÒÃÇĞèÒªÑÓ³ÙÊÍ·Å×Ô¼ºµÄ»º³åÇø
+      // ·¢ËÍÍê³É×´Ì¬·µ»ØÊ±£¬ÎÒÃÇÊÍ·ÅËùÓĞÁÙÊ±»º³åÇø
       FreeDelayBuffPool;
 
       isConn := False;
@@ -168,17 +170,17 @@ begin
           begin
             if SendBuffQueue.Count > 0 then
               begin
-                m := TMemoryStream64(SendBuffQueue[0]);
+                M := TMemoryStream64(SendBuffQueue[0]);
 
-                // WSASendååå‘é€æ—¶ï¼Œä¼šå¤åˆ¶ä¸€ä»½å‰¯æœ¬ï¼Œè¿™é‡Œæœ‰å†…å­˜æ‹·è´ï¼Œæ‹·è´é™åˆ¶ä¸º32kï¼Œå·²åœ¨åº•å±‚æ¡†æ¶åšäº†ç¢ç‰‡é¢„è£å‰ª
-                // æ³¨æ„ï¼šäº‹ä»¶å¼å›è°ƒå‘é€çš„buffæ€»é‡æœ€åä¼šæ ¹æ®å †æ ˆå¤§å°å†³å®š
-                // æ„Ÿè°¢ak47 qq512757165 çš„æµ‹è¯•æŠ¥å‘Š
-                Context.SendBuf(m.Memory, m.Size, SendBuffResult);
+                // WSASendÍÌÍÂ·¢ËÍÊ±£¬»á¸´ÖÆÒ»·İ¸±±¾£¬ÕâÀïÓĞÄÚ´æ¿½±´£¬¿½±´ÏŞÖÆÎª32k£¬ÒÑÔÚµ×²ã¿ò¼Ü×öÁËËéÆ¬Ô¤²Ã¼ô
+                // ×¢Òâ£ºÊÂ¼şÊ½»Øµ÷·¢ËÍµÄbuff×ÜÁ¿×îºó»á¸ù¾İ¶ÑÕ»´óĞ¡¾ö¶¨
+                // ¸ĞĞ»ak47 qq512757165 µÄ²âÊÔ±¨¸æ
+                Context.SendBuf(M.Memory, M.Size, SendBuffResult);
 
-                // ç”±äºlinuxä¸‹çš„Sendä¸ä¼šcopyç¼“å†²åŒºå‰¯æœ¬ï¼Œæˆ‘ä»¬éœ€è¦å»¶è¿Ÿé‡Šæ”¾è‡ªå·±çš„ç¼“å†²åŒº
-                DelayBuffPool.Add(m);
+                // ÓÉÓÚlinuxÏÂµÄSend²»»ácopy»º³åÇø¸±±¾£¬ÎÒÃÇĞèÒªÑÓ³ÙÊÍ·Å×Ô¼ºµÄ»º³åÇø
+                DelayBuffPool.Add(M);
 
-                // é‡Šæ”¾é˜Ÿåˆ—
+                // ÊÍ·Å¶ÓÁĞ
                 SendBuffQueue.Delete(0);
               end
             else
@@ -188,9 +190,9 @@ begin
           end
         else
           begin
-            // é‡Šæ”¾é˜Ÿåˆ—ç©ºé—´
+            // ÊÍ·Å¶ÓÁĞ¿Õ¼ä
             for i := 0 to SendBuffQueue.Count - 1 do
-                disposeObject(SendBuffQueue[i]);
+                DisposeObject(SendBuffQueue[i]);
             SendBuffQueue.Clear;
 
             Sending := False;
@@ -208,23 +210,23 @@ begin
     end);
 end;
 
-procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
-      exit;
+      Exit;
 
   LastActiveTime := GetTimeTickCount;
 
-  // é¿å…å¤§é‡é›¶ç¢æ•°æ®æ¶ˆè€—ç³»ç»Ÿèµ„æºï¼Œè¿™é‡Œéœ€è¦åšä¸ªç¢ç‰‡æ”¶é›†
-  // åœ¨flushä¸­å®ç°ç²¾ç¡®å¼‚æ­¥å‘é€å’Œæ ¡éªŒ
+  // ±ÜÃâ´óÁ¿ÁãËéÊı¾İÏûºÄÏµÍ³×ÊÔ´£¬ÕâÀïĞèÒª×ö¸öËéÆ¬ÊÕ¼¯
+  // ÔÚflushÖĞÊµÏÖ¾«È·Òì²½·¢ËÍºÍĞ£Ñé
   if Size > 0 then
-      CurrentBuff.Write(Pointer(buff)^, Size);
+      CurrentBuff.write(Pointer(buff)^, Size);
 end;
 
 procedure TContextIntfForServer.WriteBufferOpen;
 begin
   if not Connected then
-      exit;
+      Exit;
   LastActiveTime := GetTimeTickCount;
   CurrentBuff.Clear;
 end;
@@ -234,16 +236,16 @@ var
   ms: TMemoryStream64;
 begin
   if not Connected then
-      exit;
+      Exit;
   LastActiveTime := GetTimeTickCount;
 
-  // åœ¨ubuntu 16.04 TLSä¸‹ï¼Œæ¥æ”¶çº¿ç¨‹åœ¨ç¨‹åºè¿è¡Œæ—¶ï¼Œæˆ‘ä»¬è°ƒç”¨å‘é€apiï¼Œè¿™æ—¶å‡ºå»çš„æ•°æ®ä¼šé”™è¯¯
-  // æˆ‘ä»¬å°†æœºåˆ¶æ”¹ä¸ºæ£€æŸ¥åå‘é€,æ£€æŸ¥æ˜¯å¦æ­£åœ¨æ¥æ”¶çº¿ç¨‹å·¥ä½œ:é¿å…åŒå·¥æ–¹å¼å·¥ä½œ
+  // ÔÚubuntu 16.04 TLSÏÂ£¬½ÓÊÕÏß³ÌÔÚ³ÌĞòÔËĞĞÊ±£¬ÎÒÃÇµ÷ÓÃ·¢ËÍapi£¬ÕâÊ±³öÈ¥µÄÊı¾İ»á´íÎó
+  // ÎÒÃÇ½«»úÖÆ¸ÄÎª¼ì²éºó·¢ËÍ,¼ì²éÊÇ·ñÕıÔÚ½ÓÊÕÏß³Ì¹¤×÷:±ÜÃâË«¹¤·½Ê½¹¤×÷
   if Sending or ReceiveProcessing then
     begin
       if CurrentBuff.Size > 0 then
         begin
-          // å®Œæˆä¼˜åŒ–
+          // Íê³ÉÓÅ»¯
           ms := CurrentBuff;
           ms.Position := 0;
           SendBuffQueue.Add(ms);
@@ -252,13 +254,13 @@ begin
     end
   else
     begin
-      // WSASendååå‘é€æ—¶ï¼Œä¼šå¤åˆ¶ä¸€ä»½å‰¯æœ¬ï¼Œè¿™é‡Œæœ‰å†…å­˜æ‹·è´ï¼Œæ‹·è´é™åˆ¶ä¸º32kï¼Œå·²åœ¨åº•å±‚æ¡†æ¶åšäº†ç¢ç‰‡é¢„è£å‰ª
-      // æ³¨æ„ï¼šäº‹ä»¶å¼å›è°ƒå‘é€çš„buffæ€»é‡æœ€åä¼šæ ¹æ®å †æ ˆå¤§å°å†³å®š
-      // æ„Ÿè°¢ak47 qq512757165 çš„æµ‹è¯•æŠ¥å‘Š
+      // WSASendÍÌÍÂ·¢ËÍÊ±£¬»á¸´ÖÆÒ»·İ¸±±¾£¬ÕâÀïÓĞÄÚ´æ¿½±´£¬¿½±´ÏŞÖÆÎª32k£¬ÒÑÔÚµ×²ã¿ò¼Ü×öÁËËéÆ¬Ô¤²Ã¼ô
+      // ×¢Òâ£ºÊÂ¼şÊ½»Øµ÷·¢ËÍµÄbuff×ÜÁ¿×îºó»á¸ù¾İ¶ÑÕ»´óĞ¡¾ö¶¨
+      // ¸ĞĞ»ak47 qq512757165 µÄ²âÊÔ±¨¸æ
       Sending := True;
       Context.SendBuf(CurrentBuff.Memory, CurrentBuff.Size, SendBuffResult);
 
-      // ç”±äºlinuxä¸‹çš„Sendä¸ä¼šcopyç¼“å†²åŒºå‰¯æœ¬ï¼Œæˆ‘ä»¬éœ€è¦å»¶è¿Ÿé‡Šæ”¾è‡ªå·±çš„ç¼“å†²åŒº
+      // ÓÉÓÚlinuxÏÂµÄSend²»»ácopy»º³åÇø¸±±¾£¬ÎÒÃÇĞèÒªÑÓ³ÙÊÍ·Å×Ô¼ºµÄ»º³åÇø
       DelayBuffPool.Add(CurrentBuff);
       CurrentBuff := TMemoryStream64.Create;
     end;
@@ -267,7 +269,7 @@ end;
 procedure TContextIntfForServer.WriteBufferClose;
 begin
   if not Connected then
-      exit;
+      Exit;
   CurrentBuff.Clear;
 end;
 
@@ -289,36 +291,36 @@ end;
 
 procedure TContextIntfForServer.Progress;
 var
-  m: TMemoryStream64;
+  M: TMemoryStream64;
 begin
-  // æ£€æŸ¥ç©ºé—²
+  // ¼ì²é¿ÕÏĞ
   if (OwnerFramework.IdleTimeout > 0) and (GetTimeTickCount - LastActiveTime > OwnerFramework.IdleTimeout) then
     begin
       Disconnect;
-      exit;
+      Exit;
     end;
 
   inherited Progress;
 
   ProcessAllSendCmd(nil, False, False);
 
-  // åœ¨ubuntu 16.04 TLSä¸‹ï¼Œæ¥æ”¶çº¿ç¨‹åœ¨ç¨‹åºè¿è¡Œæ—¶ï¼Œæˆ‘ä»¬è°ƒç”¨å‘é€apiï¼Œè¿™æ—¶å‡ºå»çš„æ•°æ®ä¼šé”™è¯¯
-  // æˆ‘ä»¬å°†æœºåˆ¶æ”¹ä¸ºæ£€æŸ¥åå‘é€,æ£€æŸ¥æ˜¯å¦æ­£åœ¨æ¥æ”¶çº¿ç¨‹å·¥ä½œ:é¿å…åŒå·¥æ–¹å¼å·¥ä½œ
+  // ÔÚubuntu 16.04 TLSÏÂ£¬½ÓÊÕÏß³ÌÔÚ³ÌĞòÔËĞĞÊ±£¬ÎÒÃÇµ÷ÓÃ·¢ËÍapi£¬ÕâÊ±³öÈ¥µÄÊı¾İ»á´íÎó
+  // ÎÒÃÇ½«»úÖÆ¸ÄÎª¼ì²éºó·¢ËÍ,¼ì²éÊÇ·ñÕıÔÚ½ÓÊÕÏß³Ì¹¤×÷:±ÜÃâË«¹¤·½Ê½¹¤×÷
   if (not Sending) and (SendBuffQueue.Count > 0) then
     begin
       Sending := True;
       LastActiveTime := GetTimeTickCount;
-      m := TMemoryStream64(SendBuffQueue[0]);
-      // é‡Šæ”¾é˜Ÿåˆ—
+      M := TMemoryStream64(SendBuffQueue[0]);
+      // ÊÍ·Å¶ÓÁĞ
       SendBuffQueue.Delete(0);
 
-      // WSASendååå‘é€æ—¶ï¼Œä¼šå¤åˆ¶ä¸€ä»½å‰¯æœ¬ï¼Œè¿™é‡Œæœ‰å†…å­˜æ‹·è´ï¼Œæ‹·è´é™åˆ¶ä¸º32kï¼Œå·²åœ¨åº•å±‚æ¡†æ¶åšäº†ç¢ç‰‡é¢„è£å‰ª
-      // æ³¨æ„ï¼šäº‹ä»¶å¼å›è°ƒå‘é€çš„buffæ€»é‡æœ€åä¼šæ ¹æ®å †æ ˆå¤§å°å†³å®š
+      // WSASendÍÌÍÂ·¢ËÍÊ±£¬»á¸´ÖÆÒ»·İ¸±±¾£¬ÕâÀïÓĞÄÚ´æ¿½±´£¬¿½±´ÏŞÖÆÎª32k£¬ÒÑÔÚµ×²ã¿ò¼Ü×öÁËËéÆ¬Ô¤²Ã¼ô
+      // ×¢Òâ£ºÊÂ¼şÊ½»Øµ÷·¢ËÍµÄbuff×ÜÁ¿×îºó»á¸ù¾İ¶ÑÕ»´óĞ¡¾ö¶¨
       { Thank you for the test report of AK47 qq512757165 }
-      Context.SendBuf(m.Memory, m.Size, SendBuffResult);
+      Context.SendBuf(M.Memory, M.Size, SendBuffResult);
 
-      // ç”±äºlinuxä¸‹çš„Sendä¸ä¼šcopyç¼“å†²åŒºå‰¯æœ¬ï¼Œæˆ‘ä»¬éœ€è¦å»¶è¿Ÿé‡Šæ”¾è‡ªå·±çš„ç¼“å†²åŒº
-      DelayBuffPool.Add(m);
+      // ÓÉÓÚlinuxÏÂµÄSend²»»ácopy»º³åÇø¸±±¾£¬ÎÒÃÇĞèÒªÑÓ³ÙÊÍ·Å×Ô¼ºµÄ»º³åÇø
+      DelayBuffPool.Add(M);
     end;
 end;
 
@@ -344,49 +346,49 @@ begin
           try
             cli.ClientIntf := nil;
             AConnection.UserObject := nil;
-            disposeObject(cli);
+            DisposeObject(cli);
           except
           end;
         end;
     end);
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
+procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
   cli: TContextIntfForServer;
 begin
   if ALen <= 0 then
-      exit;
+      Exit;
 
   if AConnection.UserObject = nil then
-      exit;
+      Exit;
 
   try
     cli := AConnection.UserObject as TContextIntfForServer;
     if cli.ClientIntf = nil then
-        exit;
+        Exit;
 
     cli.LastActiveTime := GetTimeTickCount;
 
-    // zså†…æ ¸åœ¨æ–°ç‰ˆæœ¬å·²ç»å®Œå…¨æ”¯æŒäº†100%çš„å¼‚æ­¥è§£ææ•°æ®
-    // åœ¨zså†…æ ¸çš„æ–°ç‰ˆæœ¬ä¸­ï¼ŒCrossSocketæ˜¯100%çš„å¼‚æ­¥æ¡†æ¶ï¼Œä¸å†æ˜¯åŠå¼‚æ­¥åŒ–å¤„ç†æ•°æ®æµ
+    // zsÄÚºËÔÚĞÂ°æ±¾ÒÑ¾­ÍêÈ«Ö§³ÖÁË100%µÄÒì²½½âÎöÊı¾İ
+    // ÔÚzsÄÚºËµÄĞÂ°æ±¾ÖĞ£¬CrossSocketÊÇ100%µÄÒì²½¿ò¼Ü£¬²»ÔÙÊÇ°ëÒì²½»¯´¦ÀíÊı¾İÁ÷
     // by 2018-1-29
-    cli.SaveReceiveBuffer(ABuf, ALen);
+    cli.SaveReceiveBuffer(aBuf, ALen);
     cli.FillRecvBuffer(TThread.CurrentThread, True, True);
   except
   end;
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer);
+procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
   cli: TContextIntfForServer;
 begin
   if AConnection.UserObject = nil then
-      exit;
+      Exit;
 
   cli := AConnection.UserObject as TContextIntfForServer;
   if cli.ClientIntf = nil then
-      exit;
+      Exit;
   cli.LastActiveTime := GetTimeTickCount;
 end;
 
@@ -420,7 +422,7 @@ destructor TCommunicationFramework_Server_CrossSocket.Destroy;
 begin
   StopService;
   try
-      disposeObject(FDriver);
+      DisposeObject(FDriver);
   except
   end;
   inherited Destroy;
@@ -428,26 +430,26 @@ end;
 
 function TCommunicationFramework_Server_CrossSocket.StartService(Host: SystemString; Port: Word): Boolean;
 var
-  completed, successed: Boolean;
+  Completed, Successed: Boolean;
 begin
   StopService;
 
-  completed := False;
-  successed := False;
+  Completed := False;
+  Successed := False;
   try
     ICrossSocket(FDriver).Listen(Host, Port,
       procedure(Listen: ICrossListen; ASuccess: Boolean)
       begin
-        completed := True;
-        successed := ASuccess;
+        Completed := True;
+        Successed := ASuccess;
       end);
 
-    while not completed do
+    while not Completed do
         CheckSynchronize(5);
 
     FBindPort := Port;
     FBindHost := Host;
-    Result := successed;
+    Result := Successed;
     FStartedService := Result;
   except
       Result := False;
@@ -477,7 +479,7 @@ begin
   if not Exists(v^.Client) then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   v^.Client.PostQueueData(v);
@@ -491,13 +493,13 @@ begin
   CheckSynchronize;
 end;
 
-function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
@@ -506,4 +508,4 @@ initialization
 
 finalization
 
-end.
+end. 

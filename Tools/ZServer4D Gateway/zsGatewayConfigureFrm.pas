@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls,
   System.IOUtils,
-  ShellApi, TLHelp32,
+  shellapi, TLHelp32,
   CoreClasses, MemoryStream64, ObjectDataManager, TextDataEngine, UnicodeMixedLib,
   PascalStrings, DoStatusIO, ItemStream, NotifyObjectBase,
   CommunicationFramework_Server_ICSCustomSocket;
@@ -15,11 +15,11 @@ uses
 type
   TExecThread = class(TThread)
   public
-    FileName                       : umlString;
-    ExecCode                       : DWORD;
-    SA                             : TSecurityAttributes;
-    SI                             : TStartupInfo;
-    PI                             : TProcessInformation;
+    FileName: U_String;
+    ExecCode: DWord;
+    SA: TSecurityAttributes;
+    SI: TStartupInfo;
+    pi: TProcessInformation;
     StdOutPipeRead, StdOutPipeWrite: THandle;
 
     procedure Execute; override;
@@ -46,7 +46,7 @@ type
     X86RadioButton: TRadioButton;
     x64RadioButton: TRadioButton;
     Memo: TMemo;
-    saveButton: TButton;
+    SaveButton: TButton;
     Timer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -58,17 +58,17 @@ type
     procedure BrowseButtonClick(Sender: TObject);
     procedure StartServerListenButtonClick(Sender: TObject);
     procedure AboutButtonClick(Sender: TObject);
-    procedure saveButtonClick(Sender: TObject);
+    procedure SaveButtonClick(Sender: TObject);
     procedure StartClientListenButtonClick(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
-    DBEng        : TObjectDataManagerOfCache;
-    Configure    : TSectionTextData;
+    dbEng: TObjectDataManagerOfCache;
+    Configure: TSectionTextData;
     servTh, cliTh: TExecThread;
-    ProgressPost : TNProgressPostWithCadencer;
+    ProgressPost: TNProgressPostWithCadencer;
 
     procedure LoadConfig;
     procedure SaveConfig;
@@ -82,26 +82,26 @@ type
 
 var
   zsGatewayConfigureForm: TzsGatewayConfigureForm = nil;
-  ExecThreadList        : TCoreClassListForObj    = nil;
-  DefaultPath           : string                  = '';
-  LocalPath             : string                  = '';
+  ExecThreadList: TCoreClassListForObj            = nil;
+  DefaultPath: string                             = '';
+  LocalPath: string                               = '';
 
-function FindProcessCount(AFileName: string): Integer;
-function FindProcess(AFileName: string): Boolean;
-procedure EndProcess(AFileName: string);
-function WinExecFile(fn: umlString): TExecThread;
+function FindProcessCount(aFileName: string): Integer;
+function FindProcess(aFileName: string): Boolean;
+procedure EndProcess(aFileName: string);
+function WinExecFile(fn: U_String): TExecThread;
 
 implementation
 
 {$R *.dfm}
 
 
-function FindProcessCount(AFileName: string): Integer;
+function FindProcessCount(aFileName: string): Integer;
 var
-  hSnapshot : THandle;         // 用于获得进程列表
-  lppe      : TProcessEntry32; // 用于查找进程
-  Found     : Boolean;         // 用于判断进程遍历是否完成
-  KillHandle: THandle;         // 用于杀死进程
+  hSnapshot: THandle;    // 用于获得进程列表
+  lppe: TProcessEntry32; // 用于查找进程
+  Found: Boolean;        // 用于判断进程遍历是否完成
+  KillHandle: THandle;   // 用于杀死进程
 begin
   Result := 0;
   hSnapshot := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); // 获得系统进程列表
@@ -109,18 +109,18 @@ begin
   Found := Process32First(hSnapshot, lppe);                     // 将进程列表的第一个进程信息读入ppe记录中
   while Found do
     begin
-      if SameText(ExtractFileName(lppe.szExeFile), AFileName) or SameText(lppe.szExeFile, AFileName) then
-          inc(Result);
+      if SameText(ExtractFilename(lppe.szExeFile), aFileName) or SameText(lppe.szExeFile, aFileName) then
+          Inc(Result);
       Found := Process32Next(hSnapshot, lppe); // 将进程列表的下一个进程信息读入lppe记录中
     end;
 end;
 
-function FindProcess(AFileName: string): Boolean;
+function FindProcess(aFileName: string): Boolean;
 var
-  hSnapshot : THandle;         // 用于获得进程列表
-  lppe      : TProcessEntry32; // 用于查找进程
-  Found     : Boolean;         // 用于判断进程遍历是否完成
-  KillHandle: THandle;         // 用于杀死进程
+  hSnapshot: THandle;    // 用于获得进?塘斜?
+  lppe: TProcessEntry32; // 用于查找进程
+  Found: Boolean;        // 用于判断进程遍历是否完成
+  KillHandle: THandle;   // 用于杀死进程
 begin
   Result := False;
   hSnapshot := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); // 获得系统进程列表
@@ -128,7 +128,7 @@ begin
   Found := Process32First(hSnapshot, lppe);                     // 将进程列表的第一个进程信息读入ppe记录中
   while Found do
     begin
-      if SameText(ExtractFileName(lppe.szExeFile), AFileName) or SameText(lppe.szExeFile, AFileName) then
+      if SameText(ExtractFilename(lppe.szExeFile), aFileName) or SameText(lppe.szExeFile, aFileName) then
         begin
           Result := True;
         end;
@@ -136,11 +136,11 @@ begin
     end;
 end;
 
-procedure EndProcess(AFileName: string);
+procedure EndProcess(aFileName: string);
 const
   PROCESS_TERMINATE = $0001;
 var
-  ContinueLoop   : BOOL;
+  ContinueLoop: BOOL;
   FSnapShotHandle: THandle;
   FProcessEntry32: TProcessEntry32;
 begin
@@ -149,13 +149,13 @@ begin
   ContinueLoop := Process32First(FSnapShotHandle, FProcessEntry32);
   while Integer(ContinueLoop) <> 0 do
     begin
-      if SameText(ExtractFileName(FProcessEntry32.szExeFile), AFileName) or SameText(FProcessEntry32.szExeFile, AFileName) then
+      if SameText(ExtractFilename(FProcessEntry32.szExeFile), aFileName) or SameText(FProcessEntry32.szExeFile, aFileName) then
           TerminateProcess(OpenProcess(PROCESS_TERMINATE, BOOL(0), FProcessEntry32.th32ProcessID), 0);
       ContinueLoop := Process32Next(FSnapShotHandle, FProcessEntry32);
     end;
 end;
 
-function WinExecFile(fn: umlString): TExecThread;
+function WinExecFile(fn: U_String): TExecThread;
 begin
   Result := TExecThread.Create(True);
   Result.FileName := fn;
@@ -164,11 +164,11 @@ end;
 
 procedure TExecThread.Execute;
 const
-  Buffsize   = 65535;
+  BuffSize   = 65535;
   HideWindow = True;
 var
-  WasOK    : Boolean;
-  Buffer   : array [0 .. Buffsize] of Char;
+  WasOK: Boolean;
+  buffer: array [0 .. BuffSize] of Char;
   BytesRead: Cardinal;
 begin
   FreeOnTerminate := True;
@@ -201,7 +201,7 @@ begin
     with SI do
       begin
         FillChar(SI, SizeOf(SI), 0);
-        cb := SizeOf(SI);
+        CB := SizeOf(SI);
         dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
         if HideWindow then
           begin
@@ -216,7 +216,7 @@ begin
           end;
       end;
 
-    WasOK := CreateProcess(nil, PChar(FileName.Text), nil, nil, True, 0, nil, nil, SI, PI);
+    WasOK := CreateProcess(nil, PChar(FileName.Text), nil, nil, True, 0, nil, nil, SI, pi);
     {
       Now that the handle has been inherited, close write to be safe.We don't
       want to read or write to it accidentally
@@ -233,28 +233,28 @@ begin
               { get all output until DOS app finishes }
               repeat
                 { read block of characters (might contain carriage returns and line feeds) }
-                WasOK := ReadFile(StdOutPipeRead, Buffer, Buffsize, BytesRead, nil);
+                WasOK := ReadFile(StdOutPipeRead, buffer, BuffSize, BytesRead, nil);
                 { has anything been read? }
                 if (WasOK) and (BytesRead > 0) then
                   begin
                     { finish buffer to PChar }
-                    Buffer[BytesRead + 1] := #0;
-                    OemToAnsi(@Buffer, @Buffer);
+                    buffer[BytesRead + 1] := #0;
+                    OemToAnsi(@buffer, @buffer);
                     { combine the buffer with the rest of the last run }
                     TThread.Synchronize(Self, procedure
                       begin
-                        DoStatus(StrPas(PAnsiChar(@Buffer)));
+                        DoStatus(StrPas(PAnsiChar(@buffer)));
                       end);
                   end;
               until (not WasOK) or (BytesRead = 0);
             end;
           { wait for console app to finish (should be already at this point) }
-          WaitForSingleObject(PI.hProcess, INFINITE);
-          GetExitCodeProcess(PI.hProcess, ExecCode);
+          WaitForSingleObject(pi.hProcess, Infinite);
+          GetExitCodeProcess(pi.hProcess, ExecCode);
         finally
           { Close all remaining handles }
-          CloseHandle(PI.hThread);
-          CloseHandle(PI.hProcess);
+          CloseHandle(pi.hThread);
+          CloseHandle(pi.hProcess);
         end;
       end
     else
@@ -275,7 +275,7 @@ begin
             if ExecThreadList[i] = Self then
                 ExecThreadList.Delete(i)
             else
-                inc(i);
+                Inc(i);
           end;
 
         if zsGatewayConfigureForm.servTh = Self then
@@ -311,7 +311,7 @@ end;
 
 procedure TzsGatewayConfigureForm.FormCreate(Sender: TObject);
 var
-  c64: TResourceStream;
+  C64: TResourceStream;
   m64: TMemoryStream64;
 begin
   if FindProcess('_zsfc.exe') then
@@ -325,18 +325,18 @@ begin
   umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfs.exe'));
 
   AddDoStatusHook(Self, DoStatusMethod);
-  {$IFDEF CPU64}
+{$IFDEF CPU64}
   x64RadioButton.Checked := True;
-  {$ELSE}
+{$ELSE}
   X86RadioButton.Checked := True;
-  {$IFEND}
+{$IFEND}
   //
-  c64 := TResourceStream.Create(hInstance, 'frpFilePackage', RT_RCDATA);
+  C64 := TResourceStream.Create(HInstance, 'frpFilePackage', RT_RCDATA);
   m64 := TMemoryStream64.Create;
-  DecompressStream(c64, m64);
+  DecompressStream(C64, m64);
   m64.Position := 0;
-  DBEng := TObjectDataManagerOfCache.CreateAsStream(m64, '', 0, True, False, True);
-  DisposeObject(c64);
+  dbEng := TObjectDataManagerOfCache.CreateAsStream(m64, '', 0, True, False, True);
+  DisposeObject(C64);
 
   RandomTokenButtonClick(RandomTokenButton);
 
@@ -355,7 +355,7 @@ end;
 
 procedure TzsGatewayConfigureForm.FormDestroy(Sender: TObject);
 begin
-  DisposeObject([DBEng, Configure, ExecThreadList, ProgressPost]);
+  DisposeObject([dbEng, Configure, ExecThreadList, ProgressPost]);
 end;
 
 procedure TzsGatewayConfigureForm.AboutButtonClick(Sender: TObject);
@@ -372,9 +372,9 @@ begin
   for i := 0 to ListView.Items.Count - 1 do
     begin
       if SameText(n, ListView.Items[i].Caption) then
-          exit;
+          Exit;
       if (ListView.Items[i].SubItems.Count > 0) and (SameText(SharePortComboBox.Text, ListView.Items[i].SubItems[0])) then
-          exit;
+          Exit;
     end;
 
   with ListView.Items.Add do
@@ -398,20 +398,20 @@ procedure TzsGatewayConfigureForm.RandomTokenButtonClick(Sender: TObject);
 var
   n: string;
   i: Integer;
-  c: SystemChar;
+  C: SystemChar;
 begin
   n := '';
   for i := 1 to 16 do
     begin
       repeat
-          c := SystemChar(umlRandomRange(32, 128));
-      until charIn(c, [c1to9, cLoAtoZ, cHiAtoZ]);
-      n := n + c;
+          C := SystemChar(umlRandomRange(32, 128));
+      until CharIn(C, [c1to9, cLoAtoZ, cHiAtoZ]);
+      n := n + C;
     end;
   TokenEdit.Text := n;
 end;
 
-procedure TzsGatewayConfigureForm.saveButtonClick(Sender: TObject);
+procedure TzsGatewayConfigureForm.SaveButtonClick(Sender: TObject);
 begin
   SaveConfig;
 end;
@@ -419,8 +419,8 @@ end;
 procedure TzsGatewayConfigureForm.StartClientListenButtonClick(Sender: TObject);
 var
   itmStream: TItemStream;
-  m64      : TMemoryStream64;
-  ns       : TCoreClassStringList;
+  m64: TMemoryStream64;
+  ns: TCoreClassStringList;
 begin
   if cliTh <> nil then
     begin
@@ -429,15 +429,15 @@ begin
       StartClientListenButton.Caption := 'Start NAT Client';
       umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfc.ini'));
       umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfc.exe'));
-      exit;
+      Exit;
     end;
 
   SaveConfig;
 
   if x64RadioButton.Checked then
-      itmStream := TItemStream.Create(DBEng, '/frp64', 'frpc.exe')
+      itmStream := TItemStream.Create(dbEng, '/frp64', 'frpc.exe')
   else
-      itmStream := TItemStream.Create(DBEng, '/frp86', 'frpc.exe');
+      itmStream := TItemStream.Create(dbEng, '/frp86', 'frpc.exe');
 
   m64 := TMemoryStream64.Create;
   m64.CopyFrom(itmStream, itmStream.Size);
@@ -466,8 +466,8 @@ end;
 procedure TzsGatewayConfigureForm.StartServerListenButtonClick(Sender: TObject);
 var
   itmStream: TItemStream;
-  m64      : TMemoryStream64;
-  ns       : TCoreClassStringList;
+  m64: TMemoryStream64;
+  ns: TCoreClassStringList;
 begin
   if servTh <> nil then
     begin
@@ -476,15 +476,15 @@ begin
       StartServerListenButton.Caption := 'Start NAT Service';
       umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfs.ini'));
       umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfs.exe'));
-      exit;
+      Exit;
     end;
 
   SaveConfig;
 
   if x64RadioButton.Checked then
-      itmStream := TItemStream.Create(DBEng, '/frp64', 'frps.exe')
+      itmStream := TItemStream.Create(dbEng, '/frp64', 'frps.exe')
   else
-      itmStream := TItemStream.Create(DBEng, '/frp86', 'frps.exe');
+      itmStream := TItemStream.Create(dbEng, '/frp86', 'frps.exe');
 
   m64 := TMemoryStream64.Create;
   m64.CopyFrom(itmStream, itmStream.Size);
@@ -521,7 +521,7 @@ begin
           th := TExecThread(ExecThreadList[0]);
           th.Suspended := True;
           ExecThreadList.Delete(0);
-          TerminateProcess(th.PI.hProcess, 0);
+          TerminateProcess(th.pi.hProcess, 0);
           th.Terminate;
         end;
     end
@@ -534,12 +534,12 @@ begin
             begin
               th.Suspended := True;
               ExecThreadList.Delete(i);
-              TerminateProcess(th.PI.hProcess, 0);
+              TerminateProcess(th.pi.hProcess, 0);
               th.Terminate;
-              break;
+              Break;
             end
           else
-              inc(i);
+              Inc(i);
         end;
     end;
   Memo.Visible := ExecThreadList.Count > 0;
@@ -574,8 +574,8 @@ end;
 procedure TzsGatewayConfigureForm.LoadConfig;
 var
   ns: TCoreClassStrings;
-  i : Integer;
-  n : string;
+  i: Integer;
+  n: string;
 begin
   if umlFileExists(umlCombineFileName(LocalPath, 'zsGatewayConfigure.ini')) then
     begin
@@ -612,7 +612,7 @@ end;
 procedure TzsGatewayConfigureForm.SaveConfig;
 var
   ns: TCoreClassStrings;
-  i : Integer;
+  i: Integer;
 begin
   Configure.Names['RemoteIP'].Assign(IPComboBox.Items);
   Configure.Names['SharePort'].Assign(SharePortComboBox.Items);
@@ -704,8 +704,8 @@ end;
 initialization
 
 DefaultPath := System.IOUtils.TPath.GetTempPath;
-LocalPath := umlGetFilePath(Application.ExeName);
+LocalPath := umlGetFilePath(Application.Exename);
 
 finalization
 
-end.
+end. 

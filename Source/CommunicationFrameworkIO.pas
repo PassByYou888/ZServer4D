@@ -1,4 +1,4 @@
-﻿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * single tunnel IO framework(incl auth service)                              * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,6 +7,8 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -16,7 +18,7 @@ unit CommunicationFrameworkIO;
 
 interface
 
-{$I zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib,
@@ -29,11 +31,11 @@ type
   TPeerClientUserDefineForIO = class(TPeerClientUserDefine)
   public
     UserFlag, UserID: SystemString;
-    UserPath        : SystemString;
-    UserConfigFile  : TSectionTextData;
-    UserAuthService : TCommunicationFramework_UserAuthService;
-    UserDBIntf      : THashVariantList;
-    LoginSuccessed  : Boolean;
+    UserPath: SystemString;
+    UserConfigFile: TSectionTextData;
+    UserAuthService: TCommunicationFramework_UserAuthService;
+    UserDBIntf: THashVariantList;
+    LoginSuccessed: Boolean;
 
     constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
@@ -44,11 +46,11 @@ type
 
   TCommunicationFramework_UserAuthService = class(TCoreClassObject)
   protected
-    FRootPath          : SystemString;
-    FUserDB            : TSectionTextData;
+    FRootPath: SystemString;
+    FUserDB: TSectionTextData;
     FCanRegisterNewUser: Boolean;
-    FCanSaveUserInfo   : Boolean;
-    FLoginUserList     : THashVariantList;
+    FCanSaveUserInfo: Boolean;
+    FLoginUserList: THashVariantList;
   protected
     procedure Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
@@ -92,8 +94,8 @@ type
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
 
-    function UserLogin(UserID, Passwd: SystemString): Boolean;
-    function RegisterUser(UserID, Passwd: SystemString): Boolean;
+    function UserLogin(UserID, passwd: SystemString): Boolean;
+    function RegisterUser(UserID, passwd: SystemString): Boolean;
   end;
 
 implementation
@@ -145,7 +147,7 @@ end;
 procedure TCommunicationFramework_UserAuthService.Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   UserID, UserPasswd: SystemString;
-  UserDefineIO      : TPeerClientUserDefineForIO;
+  UserDefineIO: TPeerClientUserDefineForIO;
 begin
   UserID := InData.Reader.ReadString;
   UserPasswd := InData.Reader.ReadString;
@@ -198,7 +200,7 @@ end;
 procedure TCommunicationFramework_UserAuthService.Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   UserID, UserPasswd: SystemString;
-  UserDefineIO      : TPeerClientUserDefineForIO;
+  UserDefineIO: TPeerClientUserDefineForIO;
 begin
   if not FCanRegisterNewUser then
     begin
@@ -382,7 +384,7 @@ procedure TCommunicationFramework_UserAuthClient.UnRegisterCommand;
 begin
 end;
 
-function TCommunicationFramework_UserAuthClient.UserLogin(UserID, Passwd: SystemString): Boolean;
+function TCommunicationFramework_UserAuthClient.UserLogin(UserID, passwd: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
@@ -391,7 +393,7 @@ begin
   resDE := TDataFrameEngine.Create;
 
   sendDE.WriteString(UserID);
-  sendDE.WriteString(Passwd);
+  sendDE.WriteString(passwd);
   Client.WaitSendStreamCmd('UserLogin', sendDE, resDE, 10000);
 
   if resDE.Count > 0 then
@@ -404,7 +406,7 @@ begin
   DisposeObject(resDE);
 end;
 
-function TCommunicationFramework_UserAuthClient.RegisterUser(UserID, Passwd: SystemString): Boolean;
+function TCommunicationFramework_UserAuthClient.RegisterUser(UserID, passwd: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
@@ -413,7 +415,7 @@ begin
   resDE := TDataFrameEngine.Create;
 
   sendDE.WriteString(UserID);
-  sendDE.WriteString(Passwd);
+  sendDE.WriteString(passwd);
   Client.WaitSendStreamCmd('RegisterUser', sendDE, resDE, 10000);
 
   if resDE.Count > 0 then
@@ -426,4 +428,4 @@ begin
   DisposeObject(resDE);
 end;
 
-end.
+end. 

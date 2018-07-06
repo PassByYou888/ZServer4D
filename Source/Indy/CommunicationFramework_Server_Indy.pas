@@ -7,6 +7,8 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -16,7 +18,7 @@ unit CommunicationFramework_Server_Indy;
   update history
 *)
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -46,7 +48,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -87,10 +89,10 @@ type
 
     procedure Indy_Execute(AContext: TIdContext);
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
 
-    property Driver: TIdTCPServer read FDriver;
+    property driver: TIdTCPServer read FDriver;
   end;
 
 implementation
@@ -128,7 +130,7 @@ begin
       LockObject(RealSendBuff);
       try
         Context.Connection.IOHandler.WriteBufferOpen;
-        Context.Connection.IOHandler.Write(ToIDBytes(RealSendBuff.Memory, RealSendBuff.Size));
+        Context.Connection.IOHandler.write(ToIDBytes(RealSendBuff.Memory, RealSendBuff.Size));
         Context.Connection.IOHandler.WriteBufferFlush;
         Context.Connection.IOHandler.WriteBufferClose;
       except
@@ -152,13 +154,13 @@ begin
   Context.Connection.Disconnect;
 end;
 
-procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if Size > 0 then
     begin
       if RealSend then
         begin
-          Context.Connection.IOHandler.Write(ToIDBytes(buff, Size));
+          Context.Connection.IOHandler.write(ToIDBytes(buff, Size));
           Context.LastTimeTick := GetTimeTickCount;
         end
       else
@@ -314,185 +316,185 @@ end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Connect(AContext: TIdContext);
 var
-  c: TCommunicationFramework_Server_Context;
+  C: TCommunicationFramework_Server_Context;
 begin
-  c := TCommunicationFramework_Server_Context(AContext);
-  c.ClientIntf := TContextIntfForServer.Create(Self, c);
-  DoConnected(c.ClientIntf);
-  c.Binding.SetKeepAliveValues(True, 2000, 2);
+  C := TCommunicationFramework_Server_Context(AContext);
+  C.ClientIntf := TContextIntfForServer.Create(Self, C);
+  DoConnected(C.ClientIntf);
+  C.Binding.SetKeepAliveValues(True, 2000, 2);
 end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_ContextCreated(AContext: TIdContext);
 var
-  c: TCommunicationFramework_Server_Context;
+  C: TCommunicationFramework_Server_Context;
 begin
-  c := TCommunicationFramework_Server_Context(AContext);
+  C := TCommunicationFramework_Server_Context(AContext);
 end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Disconnect(AContext: TIdContext);
 var
-  c: TCommunicationFramework_Server_Context;
+  C: TCommunicationFramework_Server_Context;
 begin
-  c := TCommunicationFramework_Server_Context(AContext);
-  DoDisconnect(c.ClientIntf);
-  if c.ClientIntf <> nil then
+  C := TCommunicationFramework_Server_Context(AContext);
+  DoDisconnect(C.ClientIntf);
+  if C.ClientIntf <> nil then
     begin
-      DisposeObject(c.ClientIntf);
-      c.ClientIntf := nil;
+      DisposeObject(C.ClientIntf);
+      C.ClientIntf := nil;
     end;
 end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Exception(AContext: TIdContext; AException: Exception);
 var
-  c: TCommunicationFramework_Server_Context;
+  C: TCommunicationFramework_Server_Context;
 begin
-  c := TCommunicationFramework_Server_Context(AContext);
-  if c.ClientIntf <> nil then
+  C := TCommunicationFramework_Server_Context(AContext);
+  if C.ClientIntf <> nil then
     begin
-      DisposeObject(c.ClientIntf);
-      c.ClientIntf := nil;
+      DisposeObject(C.ClientIntf);
+      C.ClientIntf := nil;
     end;
 end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Execute(AContext: TIdContext);
 var
-  t   : TTimeTickValue;
-  c   : TCommunicationFramework_Server_Context;
+  T   : TTimeTickValue;
+  C   : TCommunicationFramework_Server_Context;
   iBuf: TIdBytes;
 begin
-  c := TCommunicationFramework_Server_Context(AContext);
+  C := TCommunicationFramework_Server_Context(AContext);
 
-  if c.ClientIntf = nil then
-      exit;
+  if C.ClientIntf = nil then
+      Exit;
 
   TCoreClassThread.Synchronize(TIdYarnOfThread(AContext.Yarn).Thread,
     procedure
     begin
-      c.ClientIntf.RealSend := False;
-      c.ClientIntf.Progress;
-      c.ClientIntf.RealSend := True;
-      c.ClientIntf.ProcesRealSendBuff;
-      c.ClientIntf.RealSend := False;
+      C.ClientIntf.RealSend := False;
+      C.ClientIntf.Progress;
+      C.ClientIntf.RealSend := True;
+      C.ClientIntf.ProcesRealSendBuff;
+      C.ClientIntf.RealSend := False;
     end);
 
   try
-    c.ClientIntf.ProcessAllSendCmd(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
+    C.ClientIntf.ProcessAllSendCmd(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
 
-    t := GetTimeTickCount + 5000;
-    while (c.ClientIntf <> nil) and (c.Connection.Connected) and (c.ClientIntf.WaitOnResult) do
+    T := GetTimeTickCount + 5000;
+    while (C.ClientIntf <> nil) and (C.Connection.Connected) and (C.ClientIntf.WaitOnResult) do
       begin
         TCoreClassThread.Synchronize(TIdYarnOfThread(AContext.Yarn).Thread,
           procedure
           begin
-            c.ClientIntf.RealSend := False;
-            c.ClientIntf.Progress;
-            c.ClientIntf.RealSend := True;
-            c.ClientIntf.ProcesRealSendBuff;
-            c.ClientIntf.RealSend := False;
+            C.ClientIntf.RealSend := False;
+            C.ClientIntf.Progress;
+            C.ClientIntf.RealSend := True;
+            C.ClientIntf.ProcesRealSendBuff;
+            C.ClientIntf.RealSend := False;
           end);
 
-        c.Connection.IOHandler.CheckForDataOnSource(10);
-        if c.Connection.IOHandler.InputBuffer.Size > 0 then
+        C.Connection.IOHandler.CheckForDataOnSource(10);
+        if C.Connection.IOHandler.InputBuffer.Size > 0 then
           begin
-            t := GetTimeTickCount + 5000;
-            c.LastTimeTick := GetTimeTickCount;
-            c.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
-            c.Connection.IOHandler.InputBuffer.Clear;
-            c.ClientIntf.SaveReceiveBuffer(@iBuf[0], Length(iBuf));
+            T := GetTimeTickCount + 5000;
+            C.LastTimeTick := GetTimeTickCount;
+            C.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
+            C.Connection.IOHandler.InputBuffer.Clear;
+            C.ClientIntf.SaveReceiveBuffer(@iBuf[0], length(iBuf));
             SetLength(iBuf, 0);
             try
-                c.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
+                C.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
             except
-              if c.ClientIntf <> nil then
+              if C.ClientIntf <> nil then
                 begin
-                  DisposeObject(c.ClientIntf);
-                  c.ClientIntf := nil;
+                  DisposeObject(C.ClientIntf);
+                  C.ClientIntf := nil;
                 end;
             end;
           end
-        else if GetTimeTickCount > t then
+        else if GetTimeTickCount > T then
           begin
-            if c.ClientIntf <> nil then
+            if C.ClientIntf <> nil then
               begin
-                DisposeObject(c.ClientIntf);
-                c.ClientIntf := nil;
+                DisposeObject(C.ClientIntf);
+                C.ClientIntf := nil;
               end;
-            break;
+            Break;
           end;
       end;
   except
-    if c.ClientIntf <> nil then
+    if C.ClientIntf <> nil then
       begin
-        DisposeObject(c.ClientIntf);
-        c.ClientIntf := nil;
+        DisposeObject(C.ClientIntf);
+        C.ClientIntf := nil;
       end;
   end;
 
-  if c.ClientIntf = nil then
-      exit;
-  c.ClientIntf.RealSend := False;
+  if C.ClientIntf = nil then
+      Exit;
+  C.ClientIntf.RealSend := False;
 
   try
-    c.Connection.IOHandler.CheckForDataOnSource(10);
-    while c.Connection.IOHandler.InputBuffer.Size > 0 do
+    C.Connection.IOHandler.CheckForDataOnSource(10);
+    while C.Connection.IOHandler.InputBuffer.Size > 0 do
       begin
-        c.LastTimeTick := GetTimeTickCount;
-        c.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
-        c.Connection.IOHandler.InputBuffer.Clear;
-        c.ClientIntf.SaveReceiveBuffer(@iBuf[0], Length(iBuf));
+        C.LastTimeTick := GetTimeTickCount;
+        C.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
+        C.Connection.IOHandler.InputBuffer.Clear;
+        C.ClientIntf.SaveReceiveBuffer(@iBuf[0], length(iBuf));
         SetLength(iBuf, 0);
         try
-          c.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
-          c.Connection.IOHandler.CheckForDataOnSource(10);
+          C.ClientIntf.FillRecvBuffer(TIdYarnOfThread(AContext.Yarn).Thread, True, True);
+          C.Connection.IOHandler.CheckForDataOnSource(10);
         except
-          if c.ClientIntf <> nil then
+          if C.ClientIntf <> nil then
             begin
-              DisposeObject(c.ClientIntf);
-              c.ClientIntf := nil;
+              DisposeObject(C.ClientIntf);
+              C.ClientIntf := nil;
             end;
         end;
       end;
-    if c.ClientIntf = nil then
-        exit;
+    if C.ClientIntf = nil then
+        Exit;
   except
-    if c.ClientIntf <> nil then
+    if C.ClientIntf <> nil then
       begin
-        DisposeObject(c.ClientIntf);
-        c.ClientIntf := nil;
+        DisposeObject(C.ClientIntf);
+        C.ClientIntf := nil;
       end;
   end;
 
-  if c.ClientIntf = nil then
-      exit;
+  if C.ClientIntf = nil then
+      Exit;
 
-  c.ClientIntf.RealSend := False;
+  C.ClientIntf.RealSend := False;
 
   TCoreClassThread.Synchronize(TIdYarnOfThread(AContext.Yarn).Thread,
     procedure
     begin
       if IdleTimeout > 0 then
         begin
-          if GetTimeTickCount - c.LastTimeTick > IdleTimeout then
+          if GetTimeTickCount - C.LastTimeTick > IdleTimeout then
             begin
-              if c.ClientIntf <> nil then
+              if C.ClientIntf <> nil then
                 begin
-                  DisposeObject(c.ClientIntf);
-                  c.ClientIntf := nil;
+                  DisposeObject(C.ClientIntf);
+                  C.ClientIntf := nil;
                 end;
             end;
         end;
     end);
 end;
 
-function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
-procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
-end.
+end. 

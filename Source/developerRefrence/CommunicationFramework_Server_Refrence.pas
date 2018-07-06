@@ -6,6 +6,9 @@
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
@@ -13,7 +16,7 @@
 
 unit CommunicationFramework_Server_Refrence;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -29,7 +32,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -51,9 +54,9 @@ type
     procedure ProgressBackground; override;
 
     function WaitSendConsoleCmd(Client: TPeerIO;
-      const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString; override;
+      const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
     procedure WaitSendStreamCmd(Client: TPeerIO;
-      const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue); override;
+      const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
   end;
 
 implementation
@@ -76,10 +79,10 @@ procedure TPeerIOWithRefrenceServer.Disconnect;
 begin
 end;
 
-procedure TPeerIOWithRefrenceServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TPeerIOWithRefrenceServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
-      exit;
+      Exit;
 end;
 
 procedure TPeerIOWithRefrenceServer.WriteBufferOpen;
@@ -126,7 +129,7 @@ begin
   if not Exists(v^.Client) then
     begin
       DisposeQueueData(v);
-      exit;
+      Exit;
     end;
 
   v^.Client.PostQueueData(v);
@@ -139,14 +142,14 @@ begin
 end;
 
 function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(Client: TPeerIO;
-  const Cmd, ConsoleData: SystemString; TimeOut: TTimeTickValue): SystemString;
+  const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport');
 end;
 
 procedure TCommunicationFramework_Server_Refrence.WaitSendStreamCmd(Client: TPeerIO;
-  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; TimeOut: TTimeTickValue);
+  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;
@@ -155,4 +158,4 @@ initialization
 
 finalization
 
-end.
+end. 

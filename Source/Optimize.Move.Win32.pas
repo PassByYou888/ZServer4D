@@ -1,3 +1,10 @@
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/ZServer4D                                  * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ ****************************************************************************** }
+
 (*
   Optimize.Move -- optimizing System.Move routine for SIMD
   instruction sets at runtime.
@@ -27,6 +34,7 @@ interface
 
 implementation
 
+{$IFNDEF FPC}
 {$IFDEF WIN32}
 uses
   Windows, SysUtils;
@@ -53,37 +61,37 @@ begin
   { Request the opcode support }
   asm
     { Save registers }
-    PUSH EAX
-    PUSH EBX
-    PUSH ECX
-    PUSH EDX
+    Push eax
+    Push ebx
+    Push ecx
+    Push edx
 
     { Set the function 1 and clear others }
-    MOV EAX, [FuncId]
-    XOR EBX, EBX
-    XOR ECX, ECX
-    XOR EDX, EDX
+    mov eax, [FuncId]
+    xor ebx, ebx
+    xor ecx, ecx
+    xor edx, edx
 
     { Call CPUID }
     CPUID
 
     { Store the registers we need }
-    MOV [Regs.rEAX], EAX
-    MOV [Regs.rEBX], EBX
-    MOV [Regs.rECX], ECX
-    MOV [Regs.rEDX], EDX
+    mov [Regs.rEAX], eax
+    mov [Regs.rEBX], ebx
+    mov [Regs.rECX], ecx
+    mov [Regs.rEDX], edx
 
     { Restore registers }
-    POP EDX
-    POP ECX
-    POP EBX
-    POP EAX
+    Pop edx
+    Pop ecx
+    Pop ebx
+    Pop eax
   end;
 
   Result := Regs;
 end;
 
-function CPUIIDSupports(const FuncId: Integer; const Extended: Boolean = false): Boolean;
+function CPUIIDSupports(const FuncId: Integer; const Extended: Boolean = False): Boolean;
 begin
   if Extended then
       Result := CPUID($80000000).rEAX >= FuncId
@@ -138,7 +146,7 @@ var
   Regs: TCPUIDRegs;
   CfgD: packed array [0 .. 15] of Byte absolute Regs;
 
-  I, J      : Integer;
+  i, J      : Integer;
   QueryCount: Byte;
 begin
   { Unknown cache size }
@@ -154,7 +162,7 @@ begin
   { Query count }
   QueryCount := Regs.rEAX and $FF;
 
-  for I := 1 to QueryCount do
+  for i := 1 to QueryCount do
     begin
       for J := 1 to 15 do
         begin
@@ -184,7 +192,7 @@ begin
         end;
 
       { Re-Request cache support }
-      if I < QueryCount then
+      if i < QueryCount then
           Regs := CPUID($00000002);
 
     end;
@@ -197,7 +205,7 @@ begin
   Result := 0;
 
   { Check for cache support }
-  if not CPUIIDSupports($80000006, true) then
+  if not CPUIIDSupports($80000006, True) then
       Exit;
 
   { CPUID: $80000005 }
@@ -244,7 +252,7 @@ var
 
 begin
 
-  Result := false;
+  Result := False;
 
   try
     { Change the code protection to write }
@@ -260,7 +268,7 @@ begin
     __Jump^ := $E9;
 
     { Insert the jump address = (OLD - NEW - SIZEOFJUMP) }
-    __Addr := Ptr(Integer(OldMethod) + 1);
+    __Addr := PTR(Integer(OldMethod) + 1);
     __Addr^ := Integer(NewMethod) - Integer(OldMethod) - SizeOfJump;
   finally
     { Change the protection back to what it was }
@@ -268,7 +276,7 @@ begin
   end;
 
   { Set status to success }
-  Result := true;
+  Result := True;
 end;
 
 const
@@ -276,15 +284,15 @@ const
 
 procedure SmallForwardMove;
 asm
-  jmp     dword ptr [@@FwdJumpTable+ecx*4]
-  nop { Align Jump Table }
+  jmp     DWord PTR [@@FwdJumpTable+ecx*4]
+  Nop { Align Jump Table }
 @@FwdJumpTable:
-  dd      @@Done { Removes need to test for zero size move }
-  dd      @@Fwd01, @@Fwd02, @@Fwd03, @@Fwd04, @@Fwd05, @@Fwd06, @@Fwd07, @@Fwd08
-  dd      @@Fwd09, @@Fwd10, @@Fwd11, @@Fwd12, @@Fwd13, @@Fwd14, @@Fwd15, @@Fwd16
-  dd      @@Fwd17, @@Fwd18, @@Fwd19, @@Fwd20, @@Fwd21, @@Fwd22, @@Fwd23, @@Fwd24
-  dd      @@Fwd25, @@Fwd26, @@Fwd27, @@Fwd28, @@Fwd29, @@Fwd30, @@Fwd31, @@Fwd32
-  dd      @@Fwd33, @@Fwd34, @@Fwd35, @@Fwd36
+  DD      @@Done { Removes need to test for zero size move }
+  DD      @@Fwd01, @@Fwd02, @@Fwd03, @@Fwd04, @@Fwd05, @@Fwd06, @@Fwd07, @@Fwd08
+  DD      @@Fwd09, @@Fwd10, @@Fwd11, @@Fwd12, @@Fwd13, @@Fwd14, @@Fwd15, @@Fwd16
+  DD      @@Fwd17, @@Fwd18, @@Fwd19, @@Fwd20, @@Fwd21, @@Fwd22, @@Fwd23, @@Fwd24
+  DD      @@Fwd25, @@Fwd26, @@Fwd27, @@Fwd28, @@Fwd29, @@Fwd30, @@Fwd31, @@Fwd32
+  DD      @@Fwd33, @@Fwd34, @@Fwd35, @@Fwd36
 @@Fwd36:
   mov     ecx, [eax-36]
   mov     [edx-36], ecx
@@ -313,7 +321,7 @@ asm
   mov     ecx, [eax-4]
   mov     [edx-4], ecx
   ret
-  nop
+  Nop
 @@Fwd35:
   mov     ecx, [eax-35]
   mov     [edx-35], ecx
@@ -341,11 +349,11 @@ asm
   mov     ecx, [eax-4]
   mov     [edx-4], ecx
   ret
-  nop
+  Nop
 @@Fwd03:
-  movzx   ecx, word ptr [eax-3]
-  mov     [edx-3], cx
-  movzx   ecx, byte ptr [eax-1]
+  movzx   ecx, Word PTR [eax-3]
+  mov     [edx-3], Cx
+  movzx   ecx, Byte PTR [eax-1]
   mov     [edx-1], cl
   ret
 @@Fwd34:
@@ -373,12 +381,12 @@ asm
   mov     ecx, [eax-6]
   mov     [edx-6], ecx
 @@Fwd02:
-  movzx   ecx, word ptr [eax-2]
-  mov     [edx-2], cx
+  movzx   ecx, Word PTR [eax-2]
+  mov     [edx-2], Cx
   ret
-  nop
-  nop
-  nop
+  Nop
+  Nop
+  Nop
 @@Fwd33:
   mov     ecx, [eax-33]
   mov     [edx-33], ecx
@@ -404,7 +412,7 @@ asm
   mov     ecx, [eax-5]
   mov     [edx-5], ecx
 @@Fwd01:
-  movzx   ecx, byte ptr [eax-1]
+  movzx   ecx, Byte PTR [eax-1]
   mov     [edx-1], cl
   ret
 @@Done:
@@ -415,15 +423,15 @@ end;
 { On Entry, ECX = Count, EAX = Source, EDX = Dest.  Destroys ECX }
 procedure SmallBackwardMove;
 asm
-  jmp     dword ptr [@@BwdJumpTable+ecx*4]
-  nop { Align Jump Table }
+  jmp     DWord PTR [@@BwdJumpTable+ecx*4]
+  Nop { Align Jump Table }
 @@BwdJumpTable:
-  dd      @@Done { Removes need to test for zero size move }
-  dd      @@Bwd01, @@Bwd02, @@Bwd03, @@Bwd04, @@Bwd05, @@Bwd06, @@Bwd07, @@Bwd08
-  dd      @@Bwd09, @@Bwd10, @@Bwd11, @@Bwd12, @@Bwd13, @@Bwd14, @@Bwd15, @@Bwd16
-  dd      @@Bwd17, @@Bwd18, @@Bwd19, @@Bwd20, @@Bwd21, @@Bwd22, @@Bwd23, @@Bwd24
-  dd      @@Bwd25, @@Bwd26, @@Bwd27, @@Bwd28, @@Bwd29, @@Bwd30, @@Bwd31, @@Bwd32
-  dd      @@Bwd33, @@Bwd34, @@Bwd35, @@Bwd36
+  DD      @@Done { Removes need to test for zero size move }
+  DD      @@Bwd01, @@Bwd02, @@Bwd03, @@Bwd04, @@Bwd05, @@Bwd06, @@Bwd07, @@Bwd08
+  DD      @@Bwd09, @@Bwd10, @@Bwd11, @@Bwd12, @@Bwd13, @@Bwd14, @@Bwd15, @@Bwd16
+  DD      @@Bwd17, @@Bwd18, @@Bwd19, @@Bwd20, @@Bwd21, @@Bwd22, @@Bwd23, @@Bwd24
+  DD      @@Bwd25, @@Bwd26, @@Bwd27, @@Bwd28, @@Bwd29, @@Bwd30, @@Bwd31, @@Bwd32
+  DD      @@Bwd33, @@Bwd34, @@Bwd35, @@Bwd36
 @@Bwd36:
   mov     ecx, [eax+32]
   mov     [edx+32], ecx
@@ -452,9 +460,9 @@ asm
   mov     ecx, [eax]
   mov     [edx], ecx
   ret
-  nop
-  nop
-  nop
+  Nop
+  Nop
+  Nop
 @@Bwd35:
   mov     ecx, [eax+31]
   mov     [edx+31], ecx
@@ -482,17 +490,17 @@ asm
   mov     ecx, [eax]
   mov     [edx], ecx
   ret
-  nop
-  nop
-  nop
+  Nop
+  Nop
+  Nop
 @@Bwd03:
-  movzx   ecx, word ptr [eax+1]
-  mov     [edx+1], cx
-  movzx   ecx, byte ptr [eax]
+  movzx   ecx, Word PTR [eax+1]
+  mov     [edx+1], Cx
+  movzx   ecx, Byte PTR [eax]
   mov     [edx], cl
   ret
-  nop
-  nop
+  Nop
+  Nop
 @@Bwd34:
   mov     ecx, [eax+30]
   mov     [edx+30], ecx
@@ -518,10 +526,10 @@ asm
   mov     ecx, [eax+2]
   mov     [edx+2], ecx
 @@Bwd02:
-  movzx   ecx, word ptr [eax]
-  mov     [edx], cx
+  movzx   ecx, Word PTR [eax]
+  mov     [edx], Cx
   ret
-  nop
+  Nop
 @@Bwd33:
   mov     ecx, [eax+29]
   mov     [edx+29], ecx
@@ -547,7 +555,7 @@ asm
   mov     ecx, [eax+1]
   mov     [edx+1], ecx
 @@Bwd01:
-  movzx   ecx, byte ptr[eax]
+  movzx   ecx, Byte PTR[eax]
   mov     [edx], cl
   ret
 @@Done:
@@ -557,45 +565,45 @@ end;
 { Move ECX Bytes from EAX to EDX, where EAX > EDX and ECX > 36 (TINYSIZE) }
 procedure Forwards_IA32;
 asm
-  fild    qword ptr [eax] { First 8 }
+  fild    qword PTR [eax] { First 8 }
   lea     eax, [eax+ecx-8]
   lea     ecx, [edx+ecx-8]
-  push    edx
-  push    ecx
-  fild    qword ptr [eax] { Last 8 }
-  neg     ecx             { QWORD Align Writes }
+  Push    edx
+  Push    ecx
+  fild    qword PTR [eax] { Last 8 }
+  Neg     ecx             { QWORD Align Writes }
   and     edx, -8
   lea     ecx, [ecx+edx+8]
-  pop     edx
+  Pop     edx
 @@Loop:
-  fild    qword ptr [eax+ecx]
-  fistp   qword ptr [edx+ecx]
-  add     ecx, 8
+  fild    qword PTR [eax+ecx]
+  fistp   qword PTR [edx+ecx]
+  Add     ecx, 8
   jl      @@Loop
-  pop     eax
-  fistp   qword ptr [edx] { Last 8 }
-  fistp   qword ptr [eax] { First 8 }
+  Pop     eax
+  fistp   qword PTR [edx] { Last 8 }
+  fistp   qword PTR [eax] { First 8 }
 end;
 
 { ------------------------------------------------------------------------- }
 { Move ECX Bytes from EAX to EDX, where EAX < EDX and ECX > 36 (TINYSIZE) }
 procedure Backwards_IA32;
 asm
-  sub     ecx, 8
-  fild    qword ptr [eax+ecx] { Last 8 }
-  fild    qword ptr [eax]     { First 8 }
-  add     ecx, edx            { QWORD Align Writes }
-  push    ecx
+  Sub     ecx, 8
+  fild    qword PTR [eax+ecx] { Last 8 }
+  fild    qword PTR [eax]     { First 8 }
+  Add     ecx, edx            { QWORD Align Writes }
+  Push    ecx
   and     ecx, -8
-  sub     ecx, edx
+  Sub     ecx, edx
 @@Loop:
-  fild    qword ptr [eax+ecx]
-  fistp   qword ptr [edx+ecx]
-  sub     ecx, 8
+  fild    qword PTR [eax+ecx]
+  fistp   qword PTR [edx+ecx]
+  Sub     ecx, 8
   jg      @@Loop
-  pop     eax
-  fistp   qword ptr [edx] { First 8 }
-  fistp   qword ptr [eax] { Last 8 }
+  Pop     eax
+  fistp   qword PTR [edx] { First 8 }
+  fistp   qword PTR [eax] { Last 8 }
 end;
 
 { ------------------------------------------------------------------------- }
@@ -609,91 +617,91 @@ const
     jl      Forwards_IA32
     cmp     ecx, LARGESIZE
     jge     @@FwdLargeMove
-    push    ebx
+    Push    ebx
     mov     ebx, edx
-    movq    mm0, [eax] { First 8 Bytes }
-    add     eax, ecx   { QWORD Align Writes }
-    add     ecx, edx
+    movq    MM0, [eax] { First 8 Bytes }
+    Add     eax, ecx   { QWORD Align Writes }
+    Add     ecx, edx
     and     edx, -8
-    add     edx, 40
-    sub     ecx, edx
-    add     edx, ecx
-    neg     ecx
-    nop { Align Loop }
+    Add     edx, 40
+    Sub     ecx, edx
+    Add     edx, ecx
+    Neg     ecx
+    Nop { Align Loop }
   @@FwdLoopMMX:
-    movq    mm1, [eax+ecx-32]
+    movq    MM1, [eax+ecx-32]
     movq    mm2, [eax+ecx-24]
     movq    mm3, [eax+ecx-16]
     movq    mm4, [eax+ecx- 8]
-    movq    [edx+ecx-32], mm1
+    movq    [edx+ecx-32], MM1
     movq    [edx+ecx-24], mm2
     movq    [edx+ecx-16], mm3
     movq    [edx+ecx- 8], mm4
-    add     ecx, 32
+    Add     ecx, 32
     jle     @@FwdLoopMMX
-    movq    [ebx], mm0 { First 8 Bytes }
+    movq    [ebx], MM0 { First 8 Bytes }
     emms
-    pop     ebx
-    neg     ecx
-    add     ecx, 32
+    Pop     ebx
+    Neg     ecx
+    Add     ecx, 32
     jmp     SmallForwardMove
-    nop { Align Loop }
-    nop
+    Nop { Align Loop }
+    Nop
   @@FwdLargeMove:
-    push    ebx
+    Push    ebx
     mov     ebx, ecx
-    test    edx, 15
+    Test    edx, 15
     jz      @@FwdAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
-    sub     ecx, edx
-    add     eax, ecx
-    add     edx, ecx
-    sub     ebx, ecx
+    Sub     ecx, edx
+    Add     eax, ecx
+    Add     edx, ecx
+    Sub     ebx, ecx
     call    SmallForwardMove
   @@FwdAligned:
     mov     ecx, ebx
     and     ecx, -16
-    sub     ebx, ecx { EBX = Remainder }
-    push    esi
-    push    edi
+    Sub     ebx, ecx { EBX = Remainder }
+    Push    esi
+    Push    edi
     mov     esi, eax          { ESI = Source }
     mov     edi, edx          { EDI = Dest }
     mov     eax, ecx          { EAX = Count }
     and     eax, -64          { EAX = No of Bytes to Blocks Moves }
     and     ecx, $3F          { ECX = Remaining Bytes to Move (0..63) }
-    add     esi, eax
-    add     edi, eax
-    neg     eax
+    Add     esi, eax
+    Add     edi, eax
+    Neg     eax
   @@MMXcopyloop:
-    movq    mm0, [esi+eax   ]
-    movq    mm1, [esi+eax+ 8]
+    movq    MM0, [esi+eax   ]
+    movq    MM1, [esi+eax+ 8]
     movq    mm2, [esi+eax+16]
     movq    mm3, [esi+eax+24]
     movq    mm4, [esi+eax+32]
     movq    mm5, [esi+eax+40]
     movq    mm6, [esi+eax+48]
     movq    mm7, [esi+eax+56]
-    movq    [edi+eax   ], mm0
-    movq    [edi+eax+ 8], mm1
+    movq    [edi+eax   ], MM0
+    movq    [edi+eax+ 8], MM1
     movq    [edi+eax+16], mm2
     movq    [edi+eax+24], mm3
     movq    [edi+eax+32], mm4
     movq    [edi+eax+40], mm5
     movq    [edi+eax+48], mm6
     movq    [edi+eax+56], mm7
-    add     eax, 64
+    Add     eax, 64
     jnz     @@MMXcopyloop
     emms                   { Empty MMX State }
-    add     ecx, ebx
+    Add     ecx, ebx
     shr     ecx, 2
-    rep     movsd
+    Rep     movsd
     mov     ecx, ebx
     and     ecx, 3
-    rep     movsb
-    pop     edi
-    pop     esi
-    pop     ebx
+    Rep     movsb
+    Pop     edi
+    Pop     esi
+    Pop     ebx
 end;
 
 { ------------------------------------------------------------------------- }
@@ -704,28 +712,28 @@ const
   asm
     cmp     ecx, SMALLSIZE { Size at which using MMX becomes worthwhile }
     jl      Backwards_IA32
-    push    ebx
-    movq    mm0, [eax+ecx-8] { Get Last QWORD }
+    Push    ebx
+    movq    MM0, [eax+ecx-8] { Get Last QWORD }
     lea     ebx, [edx+ecx]   { QWORD Align Writes }
     and     ebx, 7
-    sub     ecx, ebx
-    add     ebx, ecx
-    sub     ecx, 32
+    Sub     ecx, ebx
+    Add     ebx, ecx
+    Sub     ecx, 32
   @@BwdLoopMMX:
-    movq    mm1, [eax+ecx   ]
+    movq    MM1, [eax+ecx   ]
     movq    mm2, [eax+ecx+ 8]
     movq    mm3, [eax+ecx+16]
     movq    mm4, [eax+ecx+24]
     movq    [edx+ecx+24], mm4
     movq    [edx+ecx+16], mm3
     movq    [edx+ecx+ 8], mm2
-    movq    [edx+ecx   ], mm1
-    sub     ecx, 32
+    movq    [edx+ecx   ], MM1
+    Sub     ecx, 32
     jge     @@BwdLoopMMX
-    movq    [edx+ebx-8], mm0 { Last QWORD }
+    movq    [edx+ebx-8], MM0 { Last QWORD }
     emms
-    add     ecx, 32
-    pop     ebx
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallBackwardMove
 end;
 
@@ -733,11 +741,11 @@ end;
 procedure LargeAlignedSSEMove;
 asm
 @@Loop:
-  movaps  xmm0, [eax+ecx]
+  movaps  XMM0, [eax+ecx]
   movaps  xmm1, [eax+ecx+16]
   movaps  xmm2, [eax+ecx+32]
   movaps  xmm3, [eax+ecx+48]
-  movaps  [edx+ecx], xmm0
+  movaps  [edx+ecx], XMM0
   movaps  [edx+ecx+16], xmm1
   movaps  [edx+ecx+32], xmm2
   movaps  [edx+ecx+48], xmm3
@@ -749,7 +757,7 @@ asm
   movaps  [edx+ecx+80], xmm5
   movaps  [edx+ecx+96], xmm6
   movaps  [edx+ecx+112], xmm7
-  add     ecx, 128
+  Add     ecx, 128
   js      @@Loop
 end;
 
@@ -757,11 +765,11 @@ end;
 procedure LargeUnalignedSSEMove;
 asm
 @@Loop:
-  movups  xmm0, [eax+ecx]
+  movups  XMM0, [eax+ecx]
   movups  xmm1, [eax+ecx+16]
   movups  xmm2, [eax+ecx+32]
   movups  xmm3, [eax+ecx+48]
-  movaps  [edx+ecx], xmm0
+  movaps  [edx+ecx], XMM0
   movaps  [edx+ecx+16], xmm1
   movaps  [edx+ecx+32], xmm2
   movaps  [edx+ecx+48], xmm3
@@ -773,7 +781,7 @@ asm
   movaps  [edx+ecx+80], xmm5
   movaps  [edx+ecx+96], xmm6
   movaps  [edx+ecx+112], xmm7
-  add     ecx, 128
+  Add     ecx, 128
   js      @@Loop
 end;
 
@@ -785,11 +793,11 @@ const
   @@Loop:
     prefetchnta [eax+ecx+Prefetch]
     prefetchnta [eax+ecx+Prefetch+64]
-    movaps  xmm0, [eax+ecx]
+    movaps  XMM0, [eax+ecx]
     movaps  xmm1, [eax+ecx+16]
     movaps  xmm2, [eax+ecx+32]
     movaps  xmm3, [eax+ecx+48]
-    movntps [edx+ecx], xmm0
+    movntps [edx+ecx], XMM0
     movntps [edx+ecx+16], xmm1
     movntps [edx+ecx+32], xmm2
     movntps [edx+ecx+48], xmm3
@@ -801,7 +809,7 @@ const
     movntps [edx+ecx+80], xmm5
     movntps [edx+ecx+96], xmm6
     movntps [edx+ecx+112], xmm7
-    add     ecx, 128
+    Add     ecx, 128
     js      @@Loop
     sfence
 end;
@@ -814,11 +822,11 @@ const
   @@Loop:
     prefetchnta [eax+ecx+Prefetch]
     prefetchnta [eax+ecx+Prefetch+64]
-    movups  xmm0, [eax+ecx]
+    movups  XMM0, [eax+ecx]
     movups  xmm1, [eax+ecx+16]
     movups  xmm2, [eax+ecx+32]
     movups  xmm3, [eax+ecx+48]
-    movntps [edx+ecx], xmm0
+    movntps [edx+ecx], XMM0
     movntps [edx+ecx+16], xmm1
     movntps [edx+ecx+32], xmm2
     movntps [edx+ecx+48], xmm3
@@ -830,7 +838,7 @@ const
     movntps [edx+ecx+80], xmm5
     movntps [edx+ecx+96], xmm6
     movntps [edx+ecx+112], xmm7
-    add     ecx, 128
+    Add     ecx, 128
     js      @@Loop
     sfence
 end;
@@ -839,15 +847,15 @@ end;
 { Dest MUST be 16-Byes Aligned, Count MUST be multiple of 16 }
 procedure LargeSSEMove;
 asm
-  push    ebx
+  Push    ebx
   mov     ebx, ecx
   and     ecx, -128             { No of Bytes to Block Move (Multiple of 128) }
-  add     eax, ecx              { End of Source Blocks }
-  add     edx, ecx              { End of Dest Blocks }
-  neg     ecx
+  Add     eax, ecx              { End of Source Blocks }
+  Add     edx, ecx              { End of Dest Blocks }
+  Neg     ecx
   cmp     ecx, CacheLimit       { Count > Limit - Use Prefetch }
   jl      @@Huge
-  test    eax, 15               { Check if Both Source/Dest are Aligned }
+  Test    eax, 15               { Check if Both Source/Dest are Aligned }
   jnz     @@LargeUnaligned
   call    LargeAlignedSSEMove   { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -855,7 +863,7 @@ asm
   call    LargeUnalignedSSEMove
   jmp     @@Remainder
 @@Huge:
-  test    eax, 15               { Check if Both Source/Dest Aligned }
+  Test    eax, 15               { Check if Both Source/Dest Aligned }
   jnz     @@HugeUnaligned
   call    HugeAlignedSSEMove    { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -864,16 +872,16 @@ asm
 @@Remainder:
   and     ebx, $7F              { Remainder (0..112 - Multiple of 16) }
   jz      @@Done
-  add     eax, ebx
-  add     edx, ebx
-  neg     ebx
+  Add     eax, ebx
+  Add     edx, ebx
+  Neg     ebx
 @@RemainderLoop:
-  movups  xmm0, [eax+ebx]
-  movaps  [edx+ebx], xmm0
-  add     ebx, 16
+  movups  XMM0, [eax+ebx]
+  movaps  [edx+ebx], XMM0
+  Add     ebx, 16
   jnz     @@RemainderLoop
 @@Done:
-  pop     ebx
+  Pop     ebx
 end;
 
 { ------------------------------------------------------------------------- }
@@ -885,58 +893,58 @@ const
   asm
     cmp     ecx, SMALLSIZE
     jle     Forwards_IA32
-    push    ebx
+    Push    ebx
     cmp     ecx, LARGESIZE
     jge     @@FwdLargeMove
-    movups  xmm0, [eax] { First 16 Bytes }
+    movups  XMM0, [eax] { First 16 Bytes }
     mov     ebx, edx
-    add     eax, ecx { Align Writes }
-    add     ecx, edx
+    Add     eax, ecx { Align Writes }
+    Add     ecx, edx
     and     edx, -16
-    add     edx, 48
-    sub     ecx, edx
-    add     edx, ecx
-    neg     ecx
-    nop { Align Loop }
+    Add     edx, 48
+    Sub     ecx, edx
+    Add     edx, ecx
+    Neg     ecx
+    Nop { Align Loop }
   @@FwdLoopSSE:
     movups  xmm1, [eax+ecx-32]
     movups  xmm2, [eax+ecx-16]
     movaps  [edx+ecx-32], xmm1
     movaps  [edx+ecx-16], xmm2
-    add     ecx, 32
+    Add     ecx, 32
     jle     @@FwdLoopSSE
-    movups  [ebx], xmm0 { First 16 Bytes }
-    neg     ecx
-    add     ecx, 32
-    pop     ebx
+    movups  [ebx], XMM0 { First 16 Bytes }
+    Neg     ecx
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallForwardMove
   @@FwdLargeMove:
     mov     ebx, ecx
-    test    edx, 15
+    Test    edx, 15
     jz      @@FwdLargeAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
-    sub     ecx, edx
-    add     eax, ecx
-    add     edx, ecx
-    sub     ebx, ecx
+    Sub     ecx, edx
+    Add     eax, ecx
+    Add     edx, ecx
+    Sub     ebx, ecx
     call    SmallForwardMove
     mov     ecx, ebx
   @@FwdLargeAligned:
     and     ecx, -16
-    sub     ebx, ecx { EBX = Remainder }
-    push    edx
-    push    eax
-    push    ecx
+    Sub     ebx, ecx { EBX = Remainder }
+    Push    edx
+    Push    eax
+    Push    ecx
     call    LargeSSEMove
-    pop     ecx
-    pop     eax
-    pop     edx
-    add     ecx, ebx
-    add     eax, ecx
-    add     edx, ecx
+    Pop     ecx
+    Pop     eax
+    Pop     edx
+    Add     ecx, ebx
+    Add     eax, ecx
+    Add     edx, ecx
     mov     ecx, ebx
-    pop     ebx
+    Pop     ebx
     jmp     SmallForwardMove
 end;
 
@@ -948,23 +956,23 @@ const
   asm
     cmp     ecx, SMALLSIZE
     jle     Backwards_IA32
-    push    ebx
-    movups  xmm0, [eax+ecx-16] { Last 16 Bytes }
+    Push    ebx
+    movups  XMM0, [eax+ecx-16] { Last 16 Bytes }
     lea     ebx, [edx+ecx]     { Align Writes }
     and     ebx, 15
-    sub     ecx, ebx
-    add     ebx, ecx
-    sub     ecx, 32
+    Sub     ecx, ebx
+    Add     ebx, ecx
+    Sub     ecx, 32
   @@BwdLoop:
     movups  xmm1, [eax+ecx]
     movups  xmm2, [eax+ecx+16]
     movaps  [edx+ecx], xmm1
     movaps  [edx+ecx+16], xmm2
-    sub     ecx, 32
+    Sub     ecx, 32
     jge     @@BwdLoop
-    movups  [edx+ebx-16], xmm0  { Last 16 Bytes }
-    add     ecx, 32
-    pop     ebx
+    movups  [edx+ebx-16], XMM0  { Last 16 Bytes }
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallBackwardMove
 end;
 
@@ -972,11 +980,11 @@ end;
 procedure LargeAlignedSSE2Move; { Also used in SSE3 Move }
 asm
 @@Loop:
-  movdqa  xmm0, [eax+ecx]
+  movdqa  XMM0, [eax+ecx]
   movdqa  xmm1, [eax+ecx+16]
   movdqa  xmm2, [eax+ecx+32]
   movdqa  xmm3, [eax+ecx+48]
-  movdqa  [edx+ecx], xmm0
+  movdqa  [edx+ecx], XMM0
   movdqa  [edx+ecx+16], xmm1
   movdqa  [edx+ecx+32], xmm2
   movdqa  [edx+ecx+48], xmm3
@@ -988,7 +996,7 @@ asm
   movdqa  [edx+ecx+80], xmm5
   movdqa  [edx+ecx+96], xmm6
   movdqa  [edx+ecx+112], xmm7
-  add     ecx, 128
+  Add     ecx, 128
   js      @@Loop
 end;
 
@@ -996,11 +1004,11 @@ end;
 procedure LargeUnalignedSSE2Move;
 asm
 @@Loop:
-  movdqu  xmm0, [eax+ecx]
+  movdqu  XMM0, [eax+ecx]
   movdqu  xmm1, [eax+ecx+16]
   movdqu  xmm2, [eax+ecx+32]
   movdqu  xmm3, [eax+ecx+48]
-  movdqa  [edx+ecx], xmm0
+  movdqa  [edx+ecx], XMM0
   movdqa  [edx+ecx+16], xmm1
   movdqa  [edx+ecx+32], xmm2
   movdqa  [edx+ecx+48], xmm3
@@ -1012,7 +1020,7 @@ asm
   movdqa  [edx+ecx+80], xmm5
   movdqa  [edx+ecx+96], xmm6
   movdqa  [edx+ecx+112], xmm7
-  add     ecx, 128
+  Add     ecx, 128
   js      @@Loop
 end;
 
@@ -1024,11 +1032,11 @@ const
   @@Loop:
     prefetchnta [eax+ecx+Prefetch]
     prefetchnta [eax+ecx+Prefetch+64]
-    movdqa  xmm0, [eax+ecx]
+    movdqa  XMM0, [eax+ecx]
     movdqa  xmm1, [eax+ecx+16]
     movdqa  xmm2, [eax+ecx+32]
     movdqa  xmm3, [eax+ecx+48]
-    movntdq [edx+ecx], xmm0
+    movntdq [edx+ecx], XMM0
     movntdq [edx+ecx+16], xmm1
     movntdq [edx+ecx+32], xmm2
     movntdq [edx+ecx+48], xmm3
@@ -1040,7 +1048,7 @@ const
     movntdq [edx+ecx+80], xmm5
     movntdq [edx+ecx+96], xmm6
     movntdq [edx+ecx+112], xmm7
-    add     ecx, 128
+    Add     ecx, 128
     js      @@Loop
     sfence
 end;
@@ -1053,11 +1061,11 @@ const
   @@Loop:
     prefetchnta [eax+ecx+Prefetch]
     prefetchnta [eax+ecx+Prefetch+64]
-    movdqu  xmm0, [eax+ecx]
+    movdqu  XMM0, [eax+ecx]
     movdqu  xmm1, [eax+ecx+16]
     movdqu  xmm2, [eax+ecx+32]
     movdqu  xmm3, [eax+ecx+48]
-    movntdq [edx+ecx], xmm0
+    movntdq [edx+ecx], XMM0
     movntdq [edx+ecx+16], xmm1
     movntdq [edx+ecx+32], xmm2
     movntdq [edx+ecx+48], xmm3
@@ -1069,7 +1077,7 @@ const
     movntdq [edx+ecx+80], xmm5
     movntdq [edx+ecx+96], xmm6
     movntdq [edx+ecx+112], xmm7
-    add     ecx, 128
+    Add     ecx, 128
     js      @@Loop
     sfence
 end; { HugeUnalignedSSE2Move }
@@ -1078,15 +1086,15 @@ end; { HugeUnalignedSSE2Move }
 { Dest MUST be 16-Byes Aligned, Count MUST be multiple of 16 }
 procedure LargeSSE2Move;
 asm
-  push    ebx
+  Push    ebx
   mov     ebx, ecx
   and     ecx, -128             { No of Bytes to Block Move (Multiple of 128) }
-  add     eax, ecx              { End of Source Blocks }
-  add     edx, ecx              { End of Dest Blocks }
-  neg     ecx
+  Add     eax, ecx              { End of Source Blocks }
+  Add     edx, ecx              { End of Dest Blocks }
+  Neg     ecx
   cmp     ecx, CacheLimit       { Count > Limit - Use Prefetch }
   jl      @@Huge
-  test    eax, 15               { Check if Both Source/Dest are Aligned }
+  Test    eax, 15               { Check if Both Source/Dest are Aligned }
   jnz     @@LargeUnaligned
   call    LargeAlignedSSE2Move  { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1094,7 +1102,7 @@ asm
   call    LargeUnalignedSSE2Move
   jmp     @@Remainder
 @@Huge:
-  test    eax, 15               { Check if Both Source/Dest Aligned }
+  Test    eax, 15               { Check if Both Source/Dest Aligned }
   jnz     @@HugeUnaligned
   call    HugeAlignedSSE2Move   { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1103,16 +1111,16 @@ asm
 @@Remainder:
   and     ebx, $7F              { Remainder (0..112 - Multiple of 16) }
   jz      @@Done
-  add     eax, ebx
-  add     edx, ebx
-  neg     ebx
+  Add     eax, ebx
+  Add     edx, ebx
+  Neg     ebx
 @@RemainderLoop:
-  movdqu  xmm0, [eax+ebx]
-  movdqa  [edx+ebx], xmm0
-  add     ebx, 16
+  movdqu  XMM0, [eax+ebx]
+  movdqa  [edx+ebx], XMM0
+  Add     ebx, 16
   jnz     @@RemainderLoop
 @@Done:
-  pop     ebx
+  Pop     ebx
 end;
 
 { ------------------------------------------------------------------------- }
@@ -1124,57 +1132,57 @@ const
   asm
     cmp     ecx, SMALLSIZE
     jle     Forwards_IA32
-    push    ebx
+    Push    ebx
     cmp     ecx, LARGESIZE
     jge     @@FwdLargeMove
-    movdqu  xmm0, [eax] { First 16 Bytes }
+    movdqu  XMM0, [eax] { First 16 Bytes }
     mov     ebx, edx
-    add     eax, ecx { Align Writes }
-    add     ecx, edx
+    Add     eax, ecx { Align Writes }
+    Add     ecx, edx
     and     edx, -16
-    add     edx, 48
-    sub     ecx, edx
-    add     edx, ecx
-    neg     ecx
+    Add     edx, 48
+    Sub     ecx, edx
+    Add     edx, ecx
+    Neg     ecx
   @@FwdLoopSSE2:
     movdqu  xmm1, [eax+ecx-32]
     movdqu  xmm2, [eax+ecx-16]
     movdqa  [edx+ecx-32], xmm1
     movdqa  [edx+ecx-16], xmm2
-    add     ecx, 32
+    Add     ecx, 32
     jle     @@FwdLoopSSE2
-    movdqu  [ebx], xmm0 { First 16 Bytes }
-    neg     ecx
-    add     ecx, 32
-    pop     ebx
+    movdqu  [ebx], XMM0 { First 16 Bytes }
+    Neg     ecx
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallForwardMove
   @@FwdLargeMove:
     mov     ebx, ecx
-    test    edx, 15
+    Test    edx, 15
     jz      @@FwdLargeAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
-    sub     ecx, edx
-    add     eax, ecx
-    add     edx, ecx
-    sub     ebx, ecx
+    Sub     ecx, edx
+    Add     eax, ecx
+    Add     edx, ecx
+    Sub     ebx, ecx
     call    SmallForwardMove
     mov     ecx, ebx
   @@FwdLargeAligned:
     and     ecx, -16
-    sub     ebx, ecx { EBX = Remainder }
-    push    edx
-    push    eax
-    push    ecx
+    Sub     ebx, ecx { EBX = Remainder }
+    Push    edx
+    Push    eax
+    Push    ecx
     call    LargeSSE2Move
-    pop     ecx
-    pop     eax
-    pop     edx
-    add     ecx, ebx
-    add     eax, ecx
-    add     edx, ecx
+    Pop     ecx
+    Pop     eax
+    Pop     edx
+    Add     ecx, ebx
+    Add     eax, ecx
+    Add     edx, ecx
     mov     ecx, ebx
-    pop     ebx
+    Pop     ebx
     jmp     SmallForwardMove
 end;
 
@@ -1186,24 +1194,24 @@ const
   asm
     cmp     ecx, SMALLSIZE
     jle     Backwards_IA32
-    push    ebx
-    movdqu  xmm0, [eax+ecx-16] { Last 16 Bytes }
+    Push    ebx
+    movdqu  XMM0, [eax+ecx-16] { Last 16 Bytes }
     lea     ebx, [edx+ecx]     { Align Writes }
     and     ebx, 15
-    sub     ecx, ebx
-    add     ebx, ecx
-    sub     ecx, 32
-    add     edi, 0 { 3-Byte NOP Equivalent to Align Loop }
+    Sub     ecx, ebx
+    Add     ebx, ecx
+    Sub     ecx, 32
+    Add     edi, 0 { 3-Byte NOP Equivalent to Align Loop }
   @@BwdLoop:
     movdqu  xmm1, [eax+ecx]
     movdqu  xmm2, [eax+ecx+16]
     movdqa  [edx+ecx], xmm1
     movdqa  [edx+ecx+16], xmm2
-    sub     ecx, 32
+    Sub     ecx, 32
     jge     @@BwdLoop
-    movdqu  [edx+ebx-16], xmm0  { Last 16 Bytes }
-    add     ecx, 32
-    pop     ebx
+    movdqu  [edx+ebx-16], XMM0  { Last 16 Bytes }
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallBackwardMove
 end;
 
@@ -1211,11 +1219,11 @@ end;
 procedure LargeUnalignedSSE3Move;
 asm
 @@Loop:
-  lddqu   xmm0, [eax+ecx]
+  lddqu   XMM0, [eax+ecx]
   lddqu   xmm1, [eax+ecx+16]
   lddqu   xmm2, [eax+ecx+32]
   lddqu   xmm3, [eax+ecx+48]
-  movdqa  [edx+ecx], xmm0
+  movdqa  [edx+ecx], XMM0
   movdqa  [edx+ecx+16], xmm1
   movdqa  [edx+ecx+32], xmm2
   movdqa  [edx+ecx+48], xmm3
@@ -1227,7 +1235,7 @@ asm
   movdqa  [edx+ecx+80], xmm5
   movdqa  [edx+ecx+96], xmm6
   movdqa  [edx+ecx+112], xmm7
-  add     ecx, 128
+  Add     ecx, 128
   js      @@Loop
 end;
 
@@ -1239,11 +1247,11 @@ const
   @@Loop:
     prefetchnta [eax+ecx+Prefetch]
     prefetchnta [eax+ecx+Prefetch+64]
-    lddqu   xmm0, [eax+ecx]
+    lddqu   XMM0, [eax+ecx]
     lddqu   xmm1, [eax+ecx+16]
     lddqu   xmm2, [eax+ecx+32]
     lddqu   xmm3, [eax+ecx+48]
-    movntdq [edx+ecx], xmm0
+    movntdq [edx+ecx], XMM0
     movntdq [edx+ecx+16], xmm1
     movntdq [edx+ecx+32], xmm2
     movntdq [edx+ecx+48], xmm3
@@ -1255,24 +1263,24 @@ const
     movntdq [edx+ecx+80], xmm5
     movntdq [edx+ecx+96], xmm6
     movntdq [edx+ecx+112], xmm7
-    add     ecx, 128
+    Add     ecx, 128
     js      @@Loop
     sfence
 end;
 
 { ------------------------------------------------------------------------- }
 { Dest MUST be 16-Byes Aligned, Count MUST be multiple of 16 }
-procedure LargeSSE3Move(const Source; var Dest; Count: Integer);
+procedure LargeSSE3Move(const Source; var dest; Count: Integer);
 asm
-  push    ebx
+  Push    ebx
   mov     ebx, ecx
   and     ecx, -128             { No of Bytes to Block Move (Multiple of 128) }
-  add     eax, ecx              { End of Source Blocks }
-  add     edx, ecx              { End of Dest Blocks }
-  neg     ecx
+  Add     eax, ecx              { End of Source Blocks }
+  Add     edx, ecx              { End of Dest Blocks }
+  Neg     ecx
   cmp     ecx, CacheLimit       { Count > Limit - Use Prefetch }
   jl      @@Huge
-  test    eax, 15               { Check if Both Source/Dest are Aligned }
+  Test    eax, 15               { Check if Both Source/Dest are Aligned }
   jnz     @@LargeUnaligned
   call    LargeAlignedSSE2Move  { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1280,7 +1288,7 @@ asm
   call    LargeUnalignedSSE3Move
   jmp     @@Remainder
 @@Huge:
-  test    eax, 15               { Check if Both Source/Dest Aligned }
+  Test    eax, 15               { Check if Both Source/Dest Aligned }
   jnz     @@HugeUnaligned
   call    HugeAlignedSSE2Move   { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1289,16 +1297,16 @@ asm
 @@Remainder:
   and     ebx, $7F              { Remainder (0..112 - Multiple of 16) }
   jz      @@Done
-  add     eax, ebx
-  add     edx, ebx
-  neg     ebx
+  Add     eax, ebx
+  Add     edx, ebx
+  Neg     ebx
 @@RemainderLoop:
-  lddqu   xmm0, [eax+ebx]
-  movdqa  [edx+ebx], xmm0
-  add     ebx, 16
+  lddqu   XMM0, [eax+ebx]
+  movdqa  [edx+ebx], XMM0
+  Add     ebx, 16
   jnz     @@RemainderLoop
 @@Done:
-  pop     ebx
+  Pop     ebx
 end;
 
 { ------------------------------------------------------------------------- }
@@ -1310,57 +1318,57 @@ const
   asm
     cmp     ecx, SMALLSIZE
     jle     Forwards_IA32
-    push    ebx
+    Push    ebx
     cmp     ecx, LARGESIZE
     jge     @@FwdLargeMove
-    lddqu   xmm0, [eax] { First 16 Bytes }
+    lddqu   XMM0, [eax] { First 16 Bytes }
     mov     ebx, edx
-    add     eax, ecx { Align Writes }
-    add     ecx, edx
+    Add     eax, ecx { Align Writes }
+    Add     ecx, edx
     and     edx, -16
-    add     edx, 48
-    sub     ecx, edx
-    add     edx, ecx
-    neg     ecx
+    Add     edx, 48
+    Sub     ecx, edx
+    Add     edx, ecx
+    Neg     ecx
   @@FwdLoopSSE3:
     lddqu   xmm1, [eax+ecx-32]
     lddqu   xmm2, [eax+ecx-16]
     movdqa  [edx+ecx-32], xmm1
     movdqa  [edx+ecx-16], xmm2
-    add     ecx, 32
+    Add     ecx, 32
     jle     @@FwdLoopSSE3
-    movdqu  [ebx], xmm0 { First 16 Bytes }
-    neg     ecx
-    add     ecx, 32
-    pop     ebx
+    movdqu  [ebx], XMM0 { First 16 Bytes }
+    Neg     ecx
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallForwardMove
   @@FwdLargeMove:
     mov     ebx, ecx
-    test    edx, 15
+    Test    edx, 15
     jz      @@FwdLargeAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
-    sub     ecx, edx
-    add     eax, ecx
-    add     edx, ecx
-    sub     ebx, ecx
+    Sub     ecx, edx
+    Add     eax, ecx
+    Add     edx, ecx
+    Sub     ebx, ecx
     call    SmallForwardMove
     mov     ecx, ebx
   @@FwdLargeAligned:
     and     ecx, -16
-    sub     ebx, ecx { EBX = Remainder }
-    push    edx
-    push    eax
-    push    ecx
+    Sub     ebx, ecx { EBX = Remainder }
+    Push    edx
+    Push    eax
+    Push    ecx
     call    LargeSSE3Move
-    pop     ecx
-    pop     eax
-    pop     edx
-    add     ecx, ebx
-    add     eax, ecx
-    add     edx, ecx
+    Pop     ecx
+    Pop     eax
+    Pop     edx
+    Add     ecx, ebx
+    Add     eax, ecx
+    Add     edx, ecx
     mov     ecx, ebx
-    pop     ebx
+    Pop     ebx
     jmp     SmallForwardMove
 end;
 
@@ -1372,35 +1380,35 @@ const
   asm
     cmp     ecx, SMALLSIZE
     jle     Backwards_IA32
-    push    ebx
-    lddqu   xmm0, [eax+ecx-16] { Last 16 Bytes }
+    Push    ebx
+    lddqu   XMM0, [eax+ecx-16] { Last 16 Bytes }
     lea     ebx, [edx+ecx]     { Align Writes }
     and     ebx, 15
-    sub     ecx, ebx
-    add     ebx, ecx
-    sub     ecx, 32
-    add     edi, 0 { 3-Byte NOP Equivalent to Align Loop }
+    Sub     ecx, ebx
+    Add     ebx, ecx
+    Sub     ecx, 32
+    Add     edi, 0 { 3-Byte NOP Equivalent to Align Loop }
   @@BwdLoop:
     lddqu   xmm1, [eax+ecx]
     lddqu   xmm2, [eax+ecx+16]
     movdqa  [edx+ecx], xmm1
     movdqa  [edx+ecx+16], xmm2
-    sub     ecx, 32
+    Sub     ecx, 32
     jge     @@BwdLoop
-    movdqu  [edx+ebx-16], xmm0  { Last 16 Bytes }
-    add     ecx, 32
-    pop     ebx
+    movdqu  [edx+ebx-16], XMM0  { Last 16 Bytes }
+    Add     ecx, 32
+    Pop     ebx
     jmp     SmallBackwardMove
 end;
 
-procedure MoveMMX(const Source; var Dest; Count: Integer);
+procedure MoveMMX(const Source; var dest; Count: Integer);
 asm
   cmp     ecx, TINYSIZE
   ja      @@Large { Count > TINYSIZE or Count < 0 }
   cmp     eax, edx
   jbe     @@SmallCheck
-  add     eax, ecx
-  add     edx, ecx
+  Add     eax, ecx
+  Add     edx, ecx
   jmp     SmallForwardMove
 @@SmallCheck:
   jne     SmallBackwardMove
@@ -1409,8 +1417,8 @@ asm
   jng     @@Done { For Compatibility with Delphi's move for Count < 0 }
   cmp     eax, edx
   ja      Forwards_MMX
-  je      @@Done { For Compatibility with Delphi's move for Source = Dest }
-  sub     edx, ecx
+  JE      @@Done { For Compatibility with Delphi's move for Source = Dest }
+  Sub     edx, ecx
   cmp     eax, edx
   lea     edx, [edx+ecx]
   jna     Forwards_MMX
@@ -1418,14 +1426,14 @@ asm
 @@Done:
 end;
 
-procedure MoveSSE(const Source; var Dest; Count: Integer);
+procedure MoveSSE(const Source; var dest; Count: Integer);
 asm
   cmp     ecx, TINYSIZE
   ja      @@Large { Count > TINYSIZE or Count < 0 }
   cmp     eax, edx
   jbe     @@SmallCheck
-  add     eax, ecx
-  add     edx, ecx
+  Add     eax, ecx
+  Add     edx, ecx
   jmp     SmallForwardMove
 @@SmallCheck:
   jne     SmallBackwardMove
@@ -1434,8 +1442,8 @@ asm
   jng     @@Done { For Compatibility with Delphi's move for Count < 0 }
   cmp     eax, edx
   ja      Forwards_SSE
-  je      @@Done { For Compatibility with Delphi's move for Source = Dest }
-  sub     edx, ecx
+  JE      @@Done { For Compatibility with Delphi's move for Source = Dest }
+  Sub     edx, ecx
   cmp     eax, edx
   lea     edx, [edx+ecx]
   jna     Forwards_SSE
@@ -1443,14 +1451,14 @@ asm
 @@Done:
 end;
 
-procedure MoveSSE2(const Source; var Dest; Count: Integer);
+procedure MoveSSE2(const Source; var dest; Count: Integer);
 asm
   cmp     ecx, TINYSIZE
   ja      @@Large { Count > TINYSIZE or Count < 0 }
   cmp     eax, edx
   jbe     @@SmallCheck
-  add     eax, ecx
-  add     edx, ecx
+  Add     eax, ecx
+  Add     edx, ecx
   jmp     SmallForwardMove
 @@SmallCheck:
   jne     SmallBackwardMove
@@ -1459,8 +1467,8 @@ asm
   jng     @@Done { For Compatibility with Delphi's move for Count < 0 }
   cmp     eax, edx
   ja      Forwards_SSE2
-  je      @@Done { For Compatibility with Delphi's move for Source = Dest }
-  sub     edx, ecx
+  JE      @@Done { For Compatibility with Delphi's move for Source = Dest }
+  Sub     edx, ecx
   cmp     eax, edx
   lea     edx, [edx+ecx]
   jna     Forwards_SSE2
@@ -1468,14 +1476,14 @@ asm
 @@Done:
 end;
 
-procedure MoveSSE3(const Source; var Dest; Count: Integer);
+procedure MoveSSE3(const Source; var dest; Count: Integer);
 asm
   cmp     ecx, TINYSIZE
   ja      @@Large { Count > TINYSIZE or Count < 0 }
   cmp     eax, edx
   jbe     @@SmallCheck
-  add     eax, ecx
-  add     edx, ecx
+  Add     eax, ecx
+  Add     edx, ecx
   jmp     SmallForwardMove
 @@SmallCheck:
   jne     SmallBackwardMove
@@ -1484,8 +1492,8 @@ asm
   jng     @@Done { For Compatibility with Delphi's move for Count < 0 }
   cmp     eax, edx
   ja      Forwards_SSE3
-  je      @@Done { For Compatibility with Delphi's move for Source = Dest }
-  sub     edx, ecx
+  JE      @@Done { For Compatibility with Delphi's move for Source = Dest }
+  Sub     edx, ecx
   cmp     eax, edx
   lea     edx, [edx+ecx]
   jna     Forwards_SSE3
@@ -1509,5 +1517,7 @@ else if sisMMX in SimdSupported then
     PatchMethod(@System.Move, @MoveMMX); { MMX version }
 
 {$ENDIF}
+{$ENDIF FPC}
 
-end.
+end. 
+ 

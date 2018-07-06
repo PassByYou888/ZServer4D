@@ -1,4 +1,4 @@
-﻿{ ****************************************************************************** }
+{ ****************************************************************************** }
 { * ics support                                                                * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -7,13 +7,15 @@
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
   update history
 *)
 unit CommunicationFramework_Server_ICSCustomSocket;
 
-{$I ..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -31,7 +33,7 @@ type
     property BufSize;
     property Text;
     property AllSent;
-    property Addr;
+    property addr;
     property Port;
     property Proto;
     property LocalAddr;
@@ -78,7 +80,7 @@ type
   TCustomICSContextClass = class of TCustomICSContext;
 
   TCustomICSContextCreate  = procedure(Sender: TObject; Client: TCustomICSContext) of object;
-  TCustomICSContextConnect = procedure(Sender: TObject; Client: TCustomICSContext; Error: Word) of object;
+  TCustomICSContextConnect = procedure(Sender: TObject; Client: TCustomICSContext; error: Word) of object;
 
   TCustomICSContext = class(TCustomICSContextIntf)
   protected
@@ -96,8 +98,8 @@ type
 
   TCustomICSSocketServer = class(TCustomICSContextIntf)
   protected
-    FCloseCLOSEDMsgID           : uint;
-    FCLIENT_THREAD_PROCESS_MSGID: uint;
+    FCloseCLOSEDMsgID           : UINT;
+    FCLIENT_THREAD_PROCESS_MSGID: UINT;
 
     FClientClass       : TCustomICSContextClass;
     FOnClientCreate    : TCustomICSContextCreate;
@@ -105,12 +107,12 @@ type
     FOnClientDisconnect: TCustomICSContextConnect;
 
     procedure WndProc(var MsgRec: TMessage); override;
-    procedure Notification(AComponent: TComponent; operation: TOperation); override;
-    procedure TriggerSessionAvailable(Error: Word); override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure TriggerSessionAvailable(error: Word); override;
     procedure TriggerClientCreate(Client: TCustomICSContext); virtual;
-    procedure TriggerClientConnect(Client: TCustomICSContext; Error: Word); virtual;
-    procedure TriggerClientDisconnect(Client: TCustomICSContext; Error: Word); virtual;
-    procedure WMClientClosed(var msg: TMessage);
+    procedure TriggerClientConnect(Client: TCustomICSContext; error: Word); virtual;
+    procedure TriggerClientDisconnect(Client: TCustomICSContext; error: Word); virtual;
+    procedure WMClientClosed(var Msg: TMessage);
   public
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
@@ -120,7 +122,7 @@ type
     property OnClientDisconnect: TCustomICSContextConnect read FOnClientDisconnect write FOnClientDisconnect;
     property OnClientConnect: TCustomICSContextConnect read FOnClientConnect write FOnClientConnect;
     property OnClientCreate: TCustomICSContextCreate read FOnClientCreate write FOnClientCreate;
-    property CLIENT_THREAD_PROCESS_MSGID: uint read FCLIENT_THREAD_PROCESS_MSGID;
+    property CLIENT_THREAD_PROCESS_MSGID: UINT read FCLIENT_THREAD_PROCESS_MSGID;
   end;
 
 function WSAInfo: string;
@@ -163,18 +165,18 @@ var
 
 procedure ProcessICSMessages;
 var
-  msg: TMsg;
+  Msg: TMsg;
 begin
   if ICSMessageProcessing then
-      exit;
+      Exit;
 
   ICSMessageProcessing := True;
   try
-    while PeekMessage(msg, 0, 0, 0, PM_REMOVE) do
+    while PeekMessage(Msg, 0, 0, 0, PM_REMOVE) do
       begin
         try
-          TranslateMessage(msg);
-          DispatchMessage(msg);
+          TranslateMessage(Msg);
+          DispatchMessage(Msg);
         except
         end;
       end;
@@ -210,7 +212,7 @@ procedure TCustomICSSocketServer.WndProc(var MsgRec: TMessage);
 begin
   with MsgRec do
     begin
-      if msg = FCloseCLOSEDMsgID then
+      if Msg = FCloseCLOSEDMsgID then
         begin
           { We *MUST* handle all exception to avoid application shutdown }
           try
@@ -229,39 +231,39 @@ end;
 { Called by destructor when child component (a clients) is create or }
 { destroyed. }
 
-procedure TCustomICSSocketServer.Notification(AComponent: TComponent; operation: TOperation);
+procedure TCustomICSSocketServer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  inherited Notification(AComponent, operation);
+  inherited Notification(AComponent, Operation);
 end;
 
 { * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
 { Called when a session is available, that is when a client is connecting }
 
-procedure TCustomICSSocketServer.TriggerSessionAvailable(Error: Word);
+procedure TCustomICSSocketServer.TriggerSessionAvailable(error: Word);
 var
   Client    : TCustomICSContext;
   NewHSocket: TSocket;
 begin
   { Call parent event handler }
-  inherited TriggerSessionAvailable(Error);
+  inherited TriggerSessionAvailable(error);
   { In case of error, do nothing }
-  if Error <> 0 then
-      exit;
+  if error <> 0 then
+      Exit;
 
   NewHSocket := Accept;
   Client := FClientClass.Create(Self);
   TriggerClientCreate(Client);
   Client.Server := Self;
   Client.Dup(NewHSocket);
-  TriggerClientConnect(Client, Error);
+  TriggerClientConnect(Client, error);
 end;
 
 { * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
 
-procedure TCustomICSSocketServer.TriggerClientConnect(Client: TCustomICSContext; Error: Word);
+procedure TCustomICSSocketServer.TriggerClientConnect(Client: TCustomICSContext; error: Word);
 begin
   if Assigned(FOnClientConnect) then
-      FOnClientConnect(Self, Client, Error);
+      FOnClientConnect(Self, Client, error);
 end;
 
 { * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
@@ -274,22 +276,22 @@ end;
 
 { * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
 
-procedure TCustomICSSocketServer.TriggerClientDisconnect(Client: TCustomICSContext; Error: Word);
+procedure TCustomICSSocketServer.TriggerClientDisconnect(Client: TCustomICSContext; error: Word);
 begin
   if Assigned(FOnClientDisconnect) then
-      FOnClientDisconnect(Self, Client, Error);
+      FOnClientDisconnect(Self, Client, error);
 end;
 
 { * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
 { Client has closed. Remove it from client list and destroy component. }
 
-procedure TCustomICSSocketServer.WMClientClosed(var msg: TMessage);
+procedure TCustomICSSocketServer.WMClientClosed(var Msg: TMessage);
 var
   Client: TCustomICSContext;
 begin
-  Client := TCustomICSContext(msg.LParam);
+  Client := TCustomICSContext(Msg.LPARAM);
   try
-      TriggerClientDisconnect(Client, msg.WParam);
+      TriggerClientDisconnect(Client, Msg.WParam);
   finally
     { Calling Destroy will automatically remove client from list because }
     { we installed a notification handler. }
@@ -314,7 +316,7 @@ begin
       FSessionClosedFlag := True;
       inherited TriggerSessionClosed(ErrCode);
       if Assigned(FServer) then
-          PostMessage(Server.Handle, Server.FCloseCLOSEDMsgID, ErrCode, NativeInt(Self));
+          PostMessage(Server.Handle, Server.FCloseCLOSEDMsgID, ErrCode, nativeInt(Self));
     end;
 end;
 
@@ -348,4 +350,5 @@ begin
   FPeerPort := inherited GetPeerPort;
 end;
 
-end.
+end. 
+ 
