@@ -100,9 +100,9 @@ type
     procedure Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
-    procedure Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
-    procedure Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
+    procedure Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+    procedure Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+    procedure Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 
     procedure Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
@@ -846,7 +846,7 @@ begin
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService_NoAuth.Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
+procedure TDataStoreService_NoAuth.Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_NoAuth;
   dbN: TPascalString;
@@ -859,7 +859,7 @@ begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
       Exit;
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 
   DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
@@ -868,7 +868,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure TDataStoreService_NoAuth.Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
+procedure TDataStoreService_NoAuth.Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_NoAuth;
   dbN: TPascalString;
@@ -881,7 +881,7 @@ begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
       Exit;
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 
   DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
@@ -890,7 +890,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure TDataStoreService_NoAuth.Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
+procedure TDataStoreService_NoAuth.Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_NoAuth;
   dbN: TPascalString;
@@ -903,7 +903,7 @@ begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
       Exit;
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 
   DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
@@ -932,7 +932,7 @@ begin
   p := RT.BigStreamBatchList.Last;
   SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
   p^.DBStorePos := FZDBLocal.PostData(dbN, p^.Source, dID);
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService_NoAuth.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -957,7 +957,7 @@ begin
   p := RT.BigStreamBatchList.Last;
   SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
   p^.DBStorePos := FZDBLocal.InsertData(dbN, dStorePos, p^.Source, dID);
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService_NoAuth.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -987,7 +987,7 @@ begin
   else
     begin
     end;
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService_NoAuth.Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -1003,7 +1003,7 @@ begin
   dbN := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   FZDBLocal.DeleteData(dbN, dStorePos);
-  Inc(RT.FPostPerformaceCounter);
+  inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService_NoAuth.Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -2936,3 +2936,5 @@ end;
 {$ENDIF}
 
 end. 
+ 
+ 

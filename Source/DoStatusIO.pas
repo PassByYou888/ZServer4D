@@ -37,8 +37,8 @@ procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
 
-procedure DoStatus(const v: Pointer; siz, width: nativeInt); overload;
-procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: nativeInt); overload;
+procedure DoStatus(const v: Pointer; siz, width: NativeInt); overload;
+procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(const v: TMemoryStream64); overload;
 procedure DoStatus(const v: TCoreClassStrings); overload;
 procedure DoStatus(const v: Int64); overload;
@@ -65,7 +65,7 @@ var
 
 implementation
 
-procedure bufHashToString(hash: Pointer; Size: nativeInt; var output: TPascalString);
+procedure bufHashToString(hash: Pointer; Size: NativeInt; var output: TPascalString);
 const
   HexArr: array [0 .. 15] of SystemChar = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
 var
@@ -79,7 +79,7 @@ begin
     end;
 end;
 
-procedure DoStatus(const v: Pointer; siz, width: nativeInt);
+procedure DoStatus(const v: Pointer; siz, width: NativeInt);
 var
   s: TPascalString;
   i: Integer;
@@ -104,7 +104,7 @@ begin
       DoStatus(n);
 end;
 
-procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: nativeInt);
+procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt);
 var
   s: TPascalString;
   i: Integer;
@@ -142,9 +142,9 @@ begin
           n := n + ',' + IntToStr(p^)
       else
           n := IntToStr(p^);
-      Inc(p);
+      inc(p);
     end;
-  DoStatus(IntToHex(nativeInt(v), SizeOf(Pointer)) + ':' + n);
+  DoStatus(IntToHex(NativeInt(v), SizeOf(Pointer)) + ':' + n);
 end;
 
 procedure DoStatus(const v: TCoreClassStrings);
@@ -247,13 +247,13 @@ begin
                 ReservedStatus.Add(ps);
               end;
             repeat
-                Inc(i);
+                inc(i);
             until (i > L) or (not CharIn(v[i], [#13, #10]));
           end
         else
           begin
             LastDoStatusNoLn.Append(v[i]);
-            Inc(i);
+            inc(i);
           end;
       end;
   finally
@@ -355,24 +355,24 @@ end;
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 var
-  _Data: PDoStatusData;
+  p: PDoStatusData;
 begin
-  new(_Data);
-  _Data^.TokenObj := TokenObj;
-  _Data^.OnStatusNear := CallProc;
-  _Data^.OnStatusFar := nil;
-  HookDoStatus.Add(_Data);
+  new(p);
+  p^.TokenObj := TokenObj;
+  p^.OnStatusNear := CallProc;
+  p^.OnStatusFar := nil;
+  HookDoStatus.Add(p);
 end;
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 var
-  _Data: PDoStatusData;
+  p: PDoStatusData;
 begin
-  new(_Data);
-  _Data^.TokenObj := TokenObj;
-  _Data^.OnStatusNear := nil;
-  _Data^.OnStatusFar := CallProc;
-  HookDoStatus.Add(_Data);
+  new(p);
+  p^.TokenObj := TokenObj;
+  p^.OnStatusNear := nil;
+  p^.OnStatusFar := CallProc;
+  HookDoStatus.Add(p);
 end;
 
 procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
@@ -390,7 +390,7 @@ begin
           HookDoStatus.Delete(i);
         end
       else
-          Inc(i);
+          inc(i);
     end;
 end;
 
@@ -493,3 +493,5 @@ finalization
 _DoFree;
 
 end. 
+ 
+ 

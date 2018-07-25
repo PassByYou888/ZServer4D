@@ -146,7 +146,7 @@ var
   Regs: TCPUIDRegs;
   CfgD: packed array [0 .. 15] of Byte absolute Regs;
 
-  i, J      : Integer;
+  i, j      : Integer;
   QueryCount: Byte;
 begin
   { Unknown cache size }
@@ -164,9 +164,9 @@ begin
 
   for i := 1 to QueryCount do
     begin
-      for J := 1 to 15 do
+      for j := 1 to 15 do
         begin
-          case CfgD[J] of
+          case CfgD[j] of
             $39: Result := 128;
             $3B: Result := 128;
             $3C: Result := 256;
@@ -650,7 +650,7 @@ const
   @@FwdLargeMove:
     Push    ebx
     mov     ebx, ecx
-    Test    edx, 15
+    test    edx, 15
     jz      @@FwdAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
@@ -855,7 +855,7 @@ asm
   Neg     ecx
   cmp     ecx, CacheLimit       { Count > Limit - Use Prefetch }
   jl      @@Huge
-  Test    eax, 15               { Check if Both Source/Dest are Aligned }
+  test    eax, 15               { Check if Both Source/Dest are Aligned }
   jnz     @@LargeUnaligned
   call    LargeAlignedSSEMove   { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -863,7 +863,7 @@ asm
   call    LargeUnalignedSSEMove
   jmp     @@Remainder
 @@Huge:
-  Test    eax, 15               { Check if Both Source/Dest Aligned }
+  test    eax, 15               { Check if Both Source/Dest Aligned }
   jnz     @@HugeUnaligned
   call    HugeAlignedSSEMove    { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -920,7 +920,7 @@ const
     jmp     SmallForwardMove
   @@FwdLargeMove:
     mov     ebx, ecx
-    Test    edx, 15
+    test    edx, 15
     jz      @@FwdLargeAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
@@ -1094,7 +1094,7 @@ asm
   Neg     ecx
   cmp     ecx, CacheLimit       { Count > Limit - Use Prefetch }
   jl      @@Huge
-  Test    eax, 15               { Check if Both Source/Dest are Aligned }
+  test    eax, 15               { Check if Both Source/Dest are Aligned }
   jnz     @@LargeUnaligned
   call    LargeAlignedSSE2Move  { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1102,7 +1102,7 @@ asm
   call    LargeUnalignedSSE2Move
   jmp     @@Remainder
 @@Huge:
-  Test    eax, 15               { Check if Both Source/Dest Aligned }
+  test    eax, 15               { Check if Both Source/Dest Aligned }
   jnz     @@HugeUnaligned
   call    HugeAlignedSSE2Move   { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1158,7 +1158,7 @@ const
     jmp     SmallForwardMove
   @@FwdLargeMove:
     mov     ebx, ecx
-    Test    edx, 15
+    test    edx, 15
     jz      @@FwdLargeAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
@@ -1280,7 +1280,7 @@ asm
   Neg     ecx
   cmp     ecx, CacheLimit       { Count > Limit - Use Prefetch }
   jl      @@Huge
-  Test    eax, 15               { Check if Both Source/Dest are Aligned }
+  test    eax, 15               { Check if Both Source/Dest are Aligned }
   jnz     @@LargeUnaligned
   call    LargeAlignedSSE2Move  { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1288,7 +1288,7 @@ asm
   call    LargeUnalignedSSE3Move
   jmp     @@Remainder
 @@Huge:
-  Test    eax, 15               { Check if Both Source/Dest Aligned }
+  test    eax, 15               { Check if Both Source/Dest Aligned }
   jnz     @@HugeUnaligned
   call    HugeAlignedSSE2Move   { Both Source and Dest 16-Byte Aligned }
   jmp     @@Remainder
@@ -1344,7 +1344,7 @@ const
     jmp     SmallForwardMove
   @@FwdLargeMove:
     mov     ebx, ecx
-    Test    edx, 15
+    test    edx, 15
     jz      @@FwdLargeAligned
     lea     ecx, [edx+15] { 16 byte Align Destination }
     and     ecx, -16
@@ -1520,4 +1520,6 @@ else if sisMMX in SimdSupported then
 {$ENDIF FPC}
 
 end. 
+ 
+ 
  

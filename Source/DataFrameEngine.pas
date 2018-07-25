@@ -193,7 +193,7 @@ type
     procedure Add(v: Integer);
     procedure Delete(idx: Integer);
     function Count: Integer;
-    procedure WriteArray(const A: array of Integer);
+    procedure WriteArray(const a: array of Integer);
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
@@ -220,7 +220,7 @@ type
     procedure Add(v: ShortInt);
     procedure Delete(idx: Integer);
     function Count: Integer;
-    procedure WriteArray(const A: array of ShortInt);
+    procedure WriteArray(const a: array of ShortInt);
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
@@ -251,8 +251,8 @@ type
     procedure AddWord(v: Word);
     procedure Delete(idx: Integer);
     function Count: Integer;
-    procedure WriteArray(const A: array of Byte);
-    procedure SetArray(const A: array of Byte);
+    procedure WriteArray(const a: array of Byte);
+    procedure SetArray(const a: array of Byte);
     procedure SetBuff(p: PByte; Size: Integer);
     procedure GetBuff(p: PByte);
 
@@ -280,7 +280,7 @@ type
     procedure Add(v: Single);
     procedure Delete(idx: Integer);
     function Count: Integer;
-    procedure WriteArray(const A: array of Single);
+    procedure WriteArray(const a: array of Single);
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
@@ -307,7 +307,7 @@ type
     procedure Add(v: Double);
     procedure Delete(idx: Integer);
     function Count: Integer;
-    procedure WriteArray(const A: array of Double);
+    procedure WriteArray(const a: array of Double);
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
@@ -334,7 +334,7 @@ type
     procedure Add(v: Int64);
     procedure Delete(idx: Integer);
     function Count: Integer;
-    procedure WriteArray(const A: array of Int64);
+    procedure WriteArray(const a: array of Int64);
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
@@ -1042,7 +1042,7 @@ end;
 
 procedure TDataFrameSingle.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := jarry.F[idx];
+  FBuffer := jarry.f[idx];
 end;
 
 procedure TDataFrameSingle.SaveToJson(jarry: TJsonArray; idx: Integer);
@@ -1083,7 +1083,7 @@ end;
 
 procedure TDataFrameDouble.LoadFromJson(jarry: TJsonArray; idx: Integer);
 begin
-  FBuffer := jarry.F[idx];
+  FBuffer := jarry.f[idx];
 end;
 
 procedure TDataFrameDouble.SaveToJson(jarry: TJsonArray; idx: Integer);
@@ -1144,12 +1144,12 @@ begin
   Result := FBuffer.Count;
 end;
 
-procedure TDataFrameArrayInteger.WriteArray(const A: array of Integer);
+procedure TDataFrameArrayInteger.WriteArray(const a: array of Integer);
 var
   i: Integer;
 begin
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayInteger.LoadFromStream(stream: TMemoryStream64);
@@ -1188,7 +1188,7 @@ var
   ja: TJsonArray;
   i: Integer;
 begin
-  ja := jarry.A[idx];
+  ja := jarry.a[idx];
   for i := 0 to ja.Count - 1 do
       Add(ja.i[i]);
 end;
@@ -1266,12 +1266,12 @@ begin
   Result := FBuffer.Count;
 end;
 
-procedure TDataFrameArrayShortInt.WriteArray(const A: array of ShortInt);
+procedure TDataFrameArrayShortInt.WriteArray(const a: array of ShortInt);
 var
   i: Integer;
 begin
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayShortInt.LoadFromStream(stream: TMemoryStream64);
@@ -1310,7 +1310,7 @@ var
   ja: TJsonArray;
   i: Integer;
 begin
-  ja := jarry.A[idx];
+  ja := jarry.a[idx];
   for i := 0 to ja.Count - 1 do
       Add(ja.i[i]);
 end;
@@ -1384,7 +1384,7 @@ begin
   for i := 0 to Size - 1 do
     begin
       Add(p^);
-      Inc(p);
+      inc(p);
     end;
 end;
 
@@ -1419,21 +1419,21 @@ begin
   Result := FBuffer.Count;
 end;
 
-procedure TDataFrameArrayByte.WriteArray(const A: array of Byte);
+procedure TDataFrameArrayByte.WriteArray(const a: array of Byte);
 var
   i: Integer;
 begin
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
-procedure TDataFrameArrayByte.SetArray(const A: array of Byte);
+procedure TDataFrameArrayByte.SetArray(const a: array of Byte);
 var
   i: Integer;
 begin
   Clear;
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayByte.SetBuff(p: PByte; Size: Integer);
@@ -1449,7 +1449,7 @@ begin
   for i := 0 to Count - 1 do
     begin
       p^ := PByte(FBuffer[i])^;
-      Inc(p);
+      inc(p);
     end;
 end;
 
@@ -1489,7 +1489,7 @@ var
   ja: TJsonArray;
   i: Integer;
 begin
-  ja := jarry.A[idx];
+  ja := jarry.a[idx];
   for i := 0 to ja.Count - 1 do
       Add(ja.i[i]);
 end;
@@ -1577,12 +1577,12 @@ begin
   Result := FBuffer.Count;
 end;
 
-procedure TDataFrameArraySingle.WriteArray(const A: array of Single);
+procedure TDataFrameArraySingle.WriteArray(const a: array of Single);
 var
   i: Integer;
 begin
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArraySingle.LoadFromStream(stream: TMemoryStream64);
@@ -1621,9 +1621,9 @@ var
   ja: TJsonArray;
   i: Integer;
 begin
-  ja := jarry.A[idx];
+  ja := jarry.a[idx];
   for i := 0 to ja.Count - 1 do
-      Add(ja.F[i]);
+      Add(ja.f[i]);
 end;
 
 procedure TDataFrameArraySingle.SaveToJson(jarry: TJsonArray; idx: Integer);
@@ -1689,12 +1689,12 @@ begin
   Result := FBuffer.Count;
 end;
 
-procedure TDataFrameArrayDouble.WriteArray(const A: array of Double);
+procedure TDataFrameArrayDouble.WriteArray(const a: array of Double);
 var
   i: Integer;
 begin
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayDouble.LoadFromStream(stream: TMemoryStream64);
@@ -1733,9 +1733,9 @@ var
   ja: TJsonArray;
   i: Integer;
 begin
-  ja := jarry.A[idx];
+  ja := jarry.a[idx];
   for i := 0 to ja.Count - 1 do
-      Add(ja.F[i]);
+      Add(ja.f[i]);
 end;
 
 procedure TDataFrameArrayDouble.SaveToJson(jarry: TJsonArray; idx: Integer);
@@ -1811,12 +1811,12 @@ begin
   Result := FBuffer.Count;
 end;
 
-procedure TDataFrameArrayInt64.WriteArray(const A: array of Int64);
+procedure TDataFrameArrayInt64.WriteArray(const a: array of Int64);
 var
   i: Integer;
 begin
-  for i := low(A) to high(A) do
-      Add(A[i]);
+  for i := low(a) to high(a) do
+      Add(a[i]);
 end;
 
 procedure TDataFrameArrayInt64.LoadFromStream(stream: TMemoryStream64);
@@ -1855,7 +1855,7 @@ var
   ja: TJsonArray;
   i: Integer;
 begin
-  ja := jarry.A[idx];
+  ja := jarry.a[idx];
   for i := 0 to ja.Count - 1 do
       Add(ja.L[i]);
 end;
@@ -1983,12 +1983,12 @@ end;
 
 procedure TDataFrameVariant.LoadFromStream(stream: TMemoryStream64);
 var
-  R: TCoreClassReader;
+  r: TCoreClassReader;
 begin
-  R := TCoreClassReader.Create(stream, 1024 * 4);
-  R.IgnoreChildren := True;
-  FBuffer := R.ReadVariant;
-  DisposeObject(R);
+  r := TCoreClassReader.Create(stream, 1024 * 4);
+  r.IgnoreChildren := True;
+  FBuffer := r.ReadVariant;
+  DisposeObject(r);
 end;
 
 procedure TDataFrameVariant.SaveToStream(stream: TMemoryStream64);
@@ -2136,37 +2136,37 @@ end;
 
 procedure TDataFrameEngineReader.GoNext;
 begin
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadString: SystemString;
 begin
   Result := FOwner.ReadString(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadInteger: Integer;
 begin
   Result := FOwner.ReadInteger(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadCardinal: Cardinal;
 begin
   Result := FOwner.ReadCardinal(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadWord: Word;
 begin
   Result := FOwner.ReadWord(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadBool: Boolean;
 begin
   Result := FOwner.ReadBool(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadBoolean: Boolean;
@@ -2177,127 +2177,127 @@ end;
 function TDataFrameEngineReader.ReadByte: Byte;
 begin
   Result := FOwner.ReadByte(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadSingle: Single;
 begin
   Result := FOwner.ReadSingle(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadDouble: Double;
 begin
   Result := FOwner.ReadDouble(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadArrayInteger: TDataFrameArrayInteger;
 begin
   Result := FOwner.ReadArrayInteger(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadArrayShortInt: TDataFrameArrayShortInt;
 begin
   Result := FOwner.ReadArrayShortInt(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadArrayByte: TDataFrameArrayByte;
 begin
   Result := FOwner.ReadArrayByte(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadMD5: UnicodeMixedLib.TMD5;
 begin
   Result := FOwner.ReadMD5(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadArraySingle: TDataFrameArraySingle;
 begin
   Result := FOwner.ReadArraySingle(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadArrayDouble: TDataFrameArrayDouble;
 begin
   Result := FOwner.ReadArrayDouble(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadArrayInt64: TDataFrameArrayInt64;
 begin
   Result := FOwner.ReadArrayInt64(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadStream(output: TCoreClassStream);
 begin
   FOwner.ReadStream(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVariant: Variant;
 begin
   Result := FOwner.ReadVariant(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadInt64: Int64;
 begin
   Result := FOwner.ReadInt64(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadUInt64: UInt64;
 begin
   Result := FOwner.ReadUInt64(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadStrings(output: TCoreClassStrings);
 begin
   FOwner.ReadStrings(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadListStrings(output: TListString);
 begin
   FOwner.ReadListStrings(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadPascalStrings(output: TListPascalString);
 begin
   FOwner.ReadPascalStrings(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadDataFrame(output: TDataFrameEngine);
 begin
   FOwner.ReadDataFrame(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadHashStringList(output: THashStringList);
 begin
   FOwner.ReadHashStringList(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadVariantList(output: THashVariantList);
 begin
   FOwner.ReadVariantList(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadSectionText(output: TSectionTextData);
 begin
   FOwner.ReadSectionText(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.ReadTextSection(output: TSectionTextData);
@@ -2311,7 +2311,7 @@ end;
 procedure TDataFrameEngineReader.ReadJson(output: TJsonObject);
 begin
   FOwner.ReadJson(FIndex, output);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 {$ENDIF}
 
@@ -2319,103 +2319,103 @@ end;
 function TDataFrameEngineReader.ReadRect: TRect;
 begin
   Result := FOwner.ReadRect(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadRectf: TRectf;
 begin
   Result := FOwner.ReadRectf(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadPoint: TPoint;
 begin
   Result := FOwner.ReadPoint(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadPointf: TPointf;
 begin
   Result := FOwner.ReadPointf(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVector: TVector;
 begin
   Result := FOwner.ReadVector(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadAffineVector: TAffineVector;
 begin
   Result := FOwner.ReadAffineVector(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVec3: TVec3;
 begin
   Result := FOwner.ReadVec3(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVec4: TVec4;
 begin
   Result := FOwner.ReadVec4(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVector3: TVector3;
 begin
   Result := FOwner.ReadVector3(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVector4: TVector4;
 begin
   Result := FOwner.ReadVector4(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadMat4: TMat4;
 begin
   Result := FOwner.ReadMat4(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadMatrix4: TMatrix4;
 begin
   Result := FOwner.ReadMatrix4(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.Read2DPoint: T2DPoint;
 begin
   Result := FOwner.Read2DPoint(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadVec2: TVec2;
 begin
   Result := FOwner.ReadVec2(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadRectV2: TRectV2;
 begin
   Result := FOwner.ReadRectV2(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngineReader.ReadPointer: UInt64;
 begin
   Result := FOwner.ReadPointer(FIndex);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 procedure TDataFrameEngineReader.read(var aBuf; aCount: Int64);
 begin
   FOwner.read(FIndex, aBuf, aCount);
-  Inc(FIndex);
+  inc(FIndex);
 end;
 
 function TDataFrameEngine.DataTypeToByte(v: TRunTimeDataType): Byte;
@@ -2597,7 +2597,7 @@ begin
   while cnt > 0 do
     begin
       Result := Result and DeleteLast;
-      Dec(cnt);
+      dec(cnt);
     end;
 end;
 
@@ -2938,8 +2938,8 @@ procedure TDataFrameEngine.WritePoint(v: TPoint);
 begin
   with WriteArrayInteger do
     begin
-      Add(v.X);
-      Add(v.Y);
+      Add(v.x);
+      Add(v.y);
     end;
 end;
 
@@ -2947,8 +2947,8 @@ procedure TDataFrameEngine.WritePointf(v: TPointf);
 begin
   with WriteArraySingle do
     begin
-      Add(v.X);
-      Add(v.Y);
+      Add(v.x);
+      Add(v.y);
     end;
 end;
 
@@ -3718,13 +3718,13 @@ end;
 
 function TDataFrameEngine.ReadMat4(idx: Integer): TMat4;
 var
-  i, J: Integer;
+  i, j: Integer;
 begin
   with ReadArraySingle(idx) do
     begin
       for i := 0 to 3 do
-        for J := 0 to 3 do
-            Result[i][J] := buffer[i * 4 + J];
+        for j := 0 to 3 do
+            Result[i][j] := buffer[i * 4 + j];
     end;
 end;
 
@@ -3879,72 +3879,72 @@ end;
 
 procedure TDataFrameEngine.EncodeAsPublicJson(output: TCoreClassStream);
 var
-  J: TJsonObject;
+  j: TJsonObject;
   i: Integer;
 begin
-  J := TJsonObject.Create;
-  J.s['help'] := 'This JSON with TDataFrameEngine encode';
+  j := TJsonObject.Create;
+  j.s['help'] := 'This JSON with TDataFrameEngine encode';
 
   for i := 0 to Count - 1 do
     begin
-      J.A['Ref'].Add(TDataFrameBase(FDataList[i]).FID);
-      TDataFrameBase(FDataList[i]).SaveToJson(J.A['Data'], i);
+      j.a['Ref'].Add(TDataFrameBase(FDataList[i]).FID);
+      TDataFrameBase(FDataList[i]).SaveToJson(j.a['Data'], i);
     end;
 
-  J.SaveToStream(output, False, TEncoding.UTF8, True);
+  j.SaveToStream(output, False, TEncoding.UTF8, True);
 
-  DisposeObject(J);
+  DisposeObject(j);
 end;
 
 procedure TDataFrameEngine.EncodeAsJson(output: TCoreClassStream);
 var
-  J: TJsonObject;
+  j: TJsonObject;
   i: Integer;
   b: TDataFrameBase;
 begin
-  J := TJsonObject.Create;
+  j := TJsonObject.Create;
 
   for i := 0 to Count - 1 do
     begin
       b := TDataFrameBase(FDataList[i]);
-      b.SaveToJson(J.A['Data'], i);
-      J.A['Ref'].Add(b.FID);
+      b.SaveToJson(j.a['Data'], i);
+      j.a['Ref'].Add(b.FID);
     end;
 
-  J.SaveToStream(output, True, TEncoding.UTF8, True);
+  j.SaveToStream(output, True, TEncoding.UTF8, True);
 
-  DisposeObject(J);
+  DisposeObject(j);
 end;
 
 procedure TDataFrameEngine.DecodeFromJson(stream: TCoreClassStream);
 var
-  J: TJsonObject;
-  T: Byte;
+  j: TJsonObject;
+  t: Byte;
   i: Integer;
   b: TDataFrameBase;
 begin
   Clear;
-  J := TJsonObject.Create;
+  j := TJsonObject.Create;
   try
-      J.LoadFromStream(stream, TEncoding.UTF8, True);
+      j.LoadFromStream(stream, TEncoding.UTF8, True);
   except
-    DisposeObject(J);
+    DisposeObject(j);
     Exit;
   end;
 
   try
-    for i := 0 to J.A['Ref'].Count - 1 do
+    for i := 0 to j.a['Ref'].Count - 1 do
       begin
-        T := J.A['Ref'].i[i];
-        b := AddData(ByteToDataType(T));
-        b.LoadFromJson(J.A['Data'], i);
+        t := j.a['Ref'].i[i];
+        b := AddData(ByteToDataType(t));
+        b.LoadFromJson(j.a['Data'], i);
       end;
   except
-    DisposeObject(J);
+    DisposeObject(j);
     Exit;
   end;
 
-  DisposeObject(J);
+  DisposeObject(j);
 end;
 {$ENDIF}
 
@@ -4993,4 +4993,6 @@ begin
 end;
 
 end. 
+ 
+ 
  

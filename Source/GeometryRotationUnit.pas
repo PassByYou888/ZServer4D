@@ -26,10 +26,10 @@ uses
 procedure NormalizeMat(var M: TMatrix);
 procedure MulRMat(var M: TMatrix; const ScaleXYZ: TAffineVector);
 
-procedure DecodeOrderAngle(lvec, uvec, dvec: TAffineVector; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure DecodeOrderAngle(lvec, uvec, dvec: TVector; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure DecodeOrderAngle(uvec, dvec: TVector; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure DecodeOrderAngle(M: TMatrix; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(lvec, uvec, dvec: TAffineVector; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(lvec, uvec, dvec: TVector; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(uvec, dvec: TVector; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DecodeOrderAngle(M: TMatrix; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function ComputePitch(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function ComputePitch(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -44,18 +44,18 @@ function ComputeRoll(uvec, dvec: TVector): Single; overload; {$IFDEF INLINE_ASM}
 function ComputeRoll(M: TMatrix): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure StepPitch(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure StepPitch(uvec, dvec: TVector; angle: Single; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure StepPitch(M: TMatrix; angle: Single; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepPitch(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepPitch(M: TMatrix; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure StepPitch(var M: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure StepTurn(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure StepTurn(uvec, dvec: TVector; angle: Single; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure StepTurn(M: TMatrix; angle: Single; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepTurn(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepTurn(M: TMatrix; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure StepTurn(var M: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure StepRoll(var uvec, dvec: TVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure StepRoll(uvec, dvec: TVector; angle: Single; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure StepRoll(M: TMatrix; angle: Single; var p, T, R: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepRoll(uvec, dvec: TVector; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure StepRoll(M: TMatrix; angle: Single; var p, t, r: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure StepRoll(var M: TMatrix; ScaleXYZ: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure SetPitch(var uvec, dvec: TAffineVector; angle: Single); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -98,7 +98,7 @@ begin
   M[2][0] := M[2][3] * ScaleXYZ[2];
 end;
 
-procedure DecodeOrderAngle(lvec, uvec, dvec: TAffineVector; var p, T, R: Single);
+procedure DecodeOrderAngle(lvec, uvec, dvec: TAffineVector; var p, t, r: Single);
 var
   sinTurn, cosTurn, sinPitch, cosPitch, sinRoll, cosRoll: Single;
 begin
@@ -121,27 +121,27 @@ begin
     end;
 
   p := RadToDeg(ArcTan2(sinPitch, cosPitch));
-  T := -RadToDeg(ArcTan2(sinTurn, cosTurn));
-  R := -RadToDeg(ArcTan2(sinRoll, cosRoll));
+  t := -RadToDeg(ArcTan2(sinTurn, cosTurn));
+  r := -RadToDeg(ArcTan2(sinRoll, cosRoll));
 end;
 
-procedure DecodeOrderAngle(lvec, uvec, dvec: TVector; var p, T, R: Single);
+procedure DecodeOrderAngle(lvec, uvec, dvec: TVector; var p, t, r: Single);
 begin
-  DecodeOrderAngle(PAffineVector(@lvec)^, PAffineVector(@uvec)^, PAffineVector(@dvec)^, p, T, R);
+  DecodeOrderAngle(PAffineVector(@lvec)^, PAffineVector(@uvec)^, PAffineVector(@dvec)^, p, t, r);
 end;
 
-procedure DecodeOrderAngle(uvec, dvec: TVector; var p, T, R: Single);
+procedure DecodeOrderAngle(uvec, dvec: TVector; var p, t, r: Single);
 var
   lvec: TVector;
 begin
   lvec := VectorCrossProduct(uvec, dvec);
   NormalizeVector(lvec);
-  DecodeOrderAngle(lvec, uvec, dvec, p, T, R);
+  DecodeOrderAngle(lvec, uvec, dvec, p, t, r);
 end;
 
-procedure DecodeOrderAngle(M: TMatrix; var p, T, R: Single);
+procedure DecodeOrderAngle(M: TMatrix; var p, t, r: Single);
 begin
-  DecodeOrderAngle(M[0], M[1], M[2], p, T, R);
+  DecodeOrderAngle(M[0], M[1], M[2], p, t, r);
 end;
 
 function ComputePitch(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -225,16 +225,16 @@ begin
   NormalizeVector(dvec);
 end;
 
-procedure StepPitch(uvec, dvec: TVector; angle: Single; var p, T, R: Single);
+procedure StepPitch(uvec, dvec: TVector; angle: Single; var p, t, r: Single);
 begin
   StepPitch(uvec, dvec, angle);
-  DecodeOrderAngle(uvec, dvec, p, T, R);
+  DecodeOrderAngle(uvec, dvec, p, t, r);
 end;
 
-procedure StepPitch(M: TMatrix; angle: Single; var p, T, R: Single);
+procedure StepPitch(M: TMatrix; angle: Single; var p, t, r: Single);
 begin
   StepPitch(M, XYZVector, angle);
-  DecodeOrderAngle(M, p, T, R);
+  DecodeOrderAngle(M, p, t, r);
 end;
 
 procedure StepPitch(var M: TMatrix; ScaleXYZ: TAffineVector; angle: Single);
@@ -260,16 +260,16 @@ begin
   NormalizeVector(dvec);
 end;
 
-procedure StepTurn(uvec, dvec: TVector; angle: Single; var p, T, R: Single);
+procedure StepTurn(uvec, dvec: TVector; angle: Single; var p, t, r: Single);
 begin
   StepTurn(uvec, dvec, angle);
-  DecodeOrderAngle(uvec, dvec, p, T, R);
+  DecodeOrderAngle(uvec, dvec, p, t, r);
 end;
 
-procedure StepTurn(M: TMatrix; angle: Single; var p, T, R: Single);
+procedure StepTurn(M: TMatrix; angle: Single; var p, t, r: Single);
 begin
   StepTurn(M, XYZVector, angle);
-  DecodeOrderAngle(M, p, T, R);
+  DecodeOrderAngle(M, p, t, r);
 end;
 
 procedure StepTurn(var M: TMatrix; ScaleXYZ: TAffineVector; angle: Single);
@@ -295,16 +295,16 @@ begin
   NormalizeVector(dvec);
 end;
 
-procedure StepRoll(uvec, dvec: TVector; angle: Single; var p, T, R: Single);
+procedure StepRoll(uvec, dvec: TVector; angle: Single; var p, t, r: Single);
 begin
   StepRoll(uvec, dvec, angle);
-  DecodeOrderAngle(uvec, dvec, p, T, R);
+  DecodeOrderAngle(uvec, dvec, p, t, r);
 end;
 
-procedure StepRoll(M: TMatrix; angle: Single; var p, T, R: Single);
+procedure StepRoll(M: TMatrix; angle: Single; var p, t, r: Single);
 begin
   StepRoll(M, XYZVector, angle);
-  DecodeOrderAngle(M, p, T, R);
+  DecodeOrderAngle(M, p, t, r);
 end;
 
 procedure StepRoll(var M: TMatrix; ScaleXYZ: TAffineVector; angle: Single);
@@ -412,3 +412,5 @@ begin
 end;
 
 end. 
+ 
+ 

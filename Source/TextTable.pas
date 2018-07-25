@@ -73,7 +73,7 @@ type
     function GetOrigin(const s: SystemString): PTextTableItem;
     property origin[const s: SystemString]: PTextTableItem read GetOrigin;
 
-    procedure AddCopy(var T: TTextTableItem);
+    procedure AddCopy(var t: TTextTableItem);
     procedure AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
     procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
@@ -228,15 +228,15 @@ begin
     end;
 end;
 
-procedure TTextTable.AddCopy(var T: TTextTableItem);
+procedure TTextTable.AddCopy(var t: TTextTableItem);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(T.OriginText);
+  p := GetOrigin(t.OriginText);
   if p = nil then
     begin
       new(p);
-      p^ := T;
+      p^ := t;
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -485,7 +485,7 @@ procedure TTextTable.LoadFromStream(stream: TCoreClassStream);
 var
   ms: TMemoryStream64;
   df: TDataFrameEngine;
-  i, C: Integer;
+  i, c: Integer;
   p: PTextTableItem;
 begin
   Clear;
@@ -494,9 +494,9 @@ begin
   df := TDataFrameEngine.Create;
   df.DecodeFrom(stream);
 
-  C := df.Reader.ReadInteger;
+  c := df.Reader.ReadInteger;
 
-  for i := 0 to C - 1 do
+  for i := 0 to c - 1 do
     begin
       new(p);
       df.Reader.ReadStream(ms);
@@ -545,7 +545,7 @@ end;
 procedure TTextTable.ImportFromTextStream(stream: TCoreClassStream);
 var
   ns: TCoreClassStringList;
-  T: TTextParsing;
+  t: TTextParsing;
   CurrentItem: Integer;
   cp: Integer;
   nbPos, nePos: Integer;
@@ -555,20 +555,20 @@ var
 begin
   ns := TCoreClassStringList.Create;
   ns.LoadFromStream(stream);
-  T := TTextParsing.Create(ns.Text, TTextStyle.tsText, nil);
+  t := TTextParsing.Create(ns.Text, TTextStyle.tsText, nil);
 
   cp := 1;
   n := '';
   Num := -1;
   CurrentItem := -1;
-  while cp <= T.Len do
+  while cp <= t.Len do
     begin
-      if ((cp = 1) or (CharIn(T.GetChar(cp - 1), ns.LineBreak))) and (T.isNumber(cp)) then
+      if ((cp = 1) or (CharIn(t.GetChar(cp - 1), ns.LineBreak))) and (t.isNumber(cp)) then
         begin
           nbPos := cp;
-          nePos := T.GetNumberEndPos(nbPos);
-          numText := T.GetStr(nbPos, nePos);
-          if CharIn(T.GetChar(nePos), ':=') then
+          nePos := t.GetNumberEndPos(nbPos);
+          numText := t.GetStr(nbPos, nePos);
+          if CharIn(t.GetChar(nePos), ':=') then
             case umlGetNumTextType(numText) of
               ntUInt64, ntWord, ntByte, ntUInt:
                 begin
@@ -583,16 +583,18 @@ begin
                 end;
             end;
         end;
-      n := n + T.GetChar(cp);
-      Inc(cp);
+      n := n + t.GetChar(cp);
+      inc(cp);
     end;
   if n.Len >= length(ns.LineBreak) then
       n.Len := n.Len - length(ns.LineBreak);
   ChangeDefineText(CurrentItem, n.Text);
 
   DisposeObject(ns);
-  DisposeObject(T);
+  DisposeObject(t);
 end;
 
 end. 
+ 
+ 
  

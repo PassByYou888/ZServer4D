@@ -66,7 +66,7 @@ type
     procedure PrintDebug(const detail: Boolean; const prefix: SystemString = ''); {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Decl: SystemString;
 
-    function GetCount(T: TExpressionDeclTypes): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCount(t: TExpressionDeclTypes): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetSymbolCount(Operations: TSymbolOperations): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function AvailValueCount: Integer;
     function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -264,7 +264,7 @@ type
 var
   cnt: array [TValSym] of Integer;
   v  : TValSym;
-  C  : SystemChar;
+  c  : SystemChar;
   i  : Integer;
 begin
   if s.Same('true') or s.Same('false') then
@@ -275,36 +275,36 @@ begin
 
   for i := 1 to s.Len do
     begin
-      C := s[i];
-      if CharIn(C, [c0to9]) then
+      c := s[i];
+      if CharIn(c, [c0to9]) then
         begin
-          Inc(cnt[vsNum]);
+          inc(cnt[vsNum]);
           if cnt[vsDot] > 0 then
-              Inc(cnt[vsDotAfterNum]);
+              inc(cnt[vsDotAfterNum]);
         end
-      else if CharIn(C, [cLoAtoF, cHiAtoF]) then
+      else if CharIn(c, [cLoAtoF, cHiAtoF]) then
         begin
-          Inc(cnt[vsAtoF]);
-          if CharIn(C, 'eE') then
-              Inc(cnt[vsE]);
+          inc(cnt[vsAtoF]);
+          if CharIn(c, 'eE') then
+              inc(cnt[vsE]);
         end
-      else if C = '.' then
+      else if c = '.' then
         begin
-          Inc(cnt[vsDot]);
+          inc(cnt[vsDot]);
           cnt[vsDotBeforNum] := cnt[vsNum];
         end
-      else if CharIn(C, '-') then
+      else if CharIn(c, '-') then
         begin
-          Inc(cnt[vsSymSub]);
-          Inc(cnt[vsSymAddSub]);
+          inc(cnt[vsSymSub]);
+          inc(cnt[vsSymAddSub]);
         end
-      else if CharIn(C, '+') then
+      else if CharIn(c, '+') then
         begin
-          Inc(cnt[vsSymAdd]);
-          Inc(cnt[vsSymAddSub]);
+          inc(cnt[vsSymAdd]);
+          inc(cnt[vsSymAddSub]);
         end
-      else if CharIn(C, '$') and (i = 1) then
-          Inc(cnt[vsSymDollar])
+      else if CharIn(c, '$') and (i = 1) then
+          inc(cnt[vsSymDollar])
       else
           Exit(nttUnknow);
     end;
@@ -439,7 +439,7 @@ function ParseOperationState(ParsingEng: TTextParsing;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation;
 
 var
-  C   : SystemChar;
+  c   : SystemChar;
   Decl: TPascalString;
   p   : PExpressionListData;
 begin
@@ -455,30 +455,30 @@ begin
           Continue;
         end;
 
-      C := ParsingEng.ParsingData.Text[cPos];
+      c := ParsingEng.ParsingData.Text[cPos];
       bPos := cPos;
 
-      if (CharIn(C, ';')) then
+      if (CharIn(c, ';')) then
         begin
-          Inc(cPos);
+          inc(cPos);
           Result := soEolSymbol;
           Exit;
         end;
 
-      if (CharIn(C, ',')) then
+      if (CharIn(c, ',')) then
         begin
-          Inc(cPos);
+          inc(cPos);
           pStates := pStates - [esWaitOp] + [esWaitValue];
           Result := soCommaSymbol;
           Exit;
         end;
 
-      if CharIn(C, ')') then
+      if CharIn(c, ')') then
         begin
-          Inc(cPos);
+          inc(cPos);
           if (esWaitIndentEnd in pStates) then
             begin
-              Dec(BlockIndent);
+              dec(BlockIndent);
               if BlockIndent < 0 then
                 begin
                   pStates := pStates - [esWaitOp, esWaitIndentEnd];
@@ -500,12 +500,12 @@ begin
             end;
         end;
 
-      if CharIn(C, ']') then
+      if CharIn(c, ']') then
         begin
-          Inc(cPos);
+          inc(cPos);
           if (esWaitPropParamIndentEnd in pStates) then
             begin
-              Dec(PropIndent);
+              dec(PropIndent);
               if PropIndent < 0 then
                 begin
                   pStates := pStates - [esWaitOp, esWaitPropParamIndentEnd];
@@ -527,10 +527,10 @@ begin
             end;
         end;
 
-      if CharIn(C, '(') then
+      if CharIn(c, '(') then
         begin
-          Inc(cPos);
-          Inc(BlockIndent);
+          inc(cPos);
+          inc(BlockIndent);
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue, esWaitIndentEnd];
 
@@ -538,10 +538,10 @@ begin
           Exit;
         end;
 
-      if CharIn(C, '[') then
+      if CharIn(c, '[') then
         begin
-          Inc(cPos);
-          Inc(PropIndent);
+          inc(cPos);
+          inc(PropIndent);
           Result := soPropIndentBegin;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue, esWaitPropParamIndentEnd];
@@ -550,7 +550,7 @@ begin
 
       if (ParsingEng.ComparePosStr(cPos, '>=')) or (ParsingEng.ComparePosStr(cPos, '=>')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soEqualOrGreaterThan;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -558,7 +558,7 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '<=')) or (ParsingEng.ComparePosStr(cPos, '=<')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soEqualOrLessThan;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -566,7 +566,7 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '<>')) or (ParsingEng.ComparePosStr(cPos, '><')) or (ParsingEng.ComparePosStr(cPos, '!=')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soNotEqual;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -574,7 +574,7 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '==')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soEqual;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -582,7 +582,7 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '&&')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soAnd;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -590,7 +590,7 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '||')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soOr;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -598,7 +598,7 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '<<')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soShl;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
@@ -606,42 +606,42 @@ begin
         end;
       if (ParsingEng.ComparePosStr(cPos, '>>')) then
         begin
-          Inc(cPos, 2);
+          inc(cPos, 2);
           Result := soShr;
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
           Exit;
         end;
 
-      if CharIn(C, '+-*/^=><.,&|%') then
+      if CharIn(c, '+-*/^=><.,&|%') then
         begin
-          if C = '+' then
+          if c = '+' then
               Result := soAdd
-          else if C = '-' then
+          else if c = '-' then
               Result := soSub
-          else if C = '*' then
+          else if c = '*' then
               Result := soMul
-          else if C = '/' then
+          else if c = '/' then
               Result := soDiv
-          else if C = '^' then
+          else if c = '^' then
               Result := soPow
-          else if C = '=' then
+          else if c = '=' then
               Result := soEqual
-          else if C = '>' then
+          else if c = '>' then
               Result := soGreaterThan
-          else if C = '<' then
+          else if c = '<' then
               Result := soLessThan
-          else if C = '.' then
+          else if c = '.' then
               Result := soDotSymbol
-          else if C = ',' then
+          else if c = ',' then
               Result := soCommaSymbol
-          else if C = '&' then
+          else if c = '&' then
               Result := soAnd
-          else if C = '|' then
+          else if c = '|' then
               Result := soOr
-          else if C = '%' then
+          else if c = '%' then
               Result := soMod;
-          Inc(cPos);
+          inc(cPos);
           pStates := pStates - [esWaitOp];
           pStates := pStates + [esWaitValue];
           Exit;
@@ -693,7 +693,7 @@ begin
           Exit;
         end;
 
-      Inc(cPos);
+      inc(cPos);
     end;
   pStates := [];
   Result := soEolSymbol;
@@ -834,7 +834,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
               begin
                 if (p2^.DeclType = edtSymbol) and (p2^.Symbol in [soBlockIndentBegin, soPropIndentBegin]) then
                   begin
-                    Inc(ExpIndex, 2);
+                    inc(ExpIndex, 2);
                     p := LocalExp.AddFunc(p1^.Value, p1^.charPos);
                     FillProc(ExpIndex, Exps, p^.Expression);
                     Continue;
@@ -843,7 +843,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
             else
               begin
                 Result.AddFunc(p1^.Value, p1^.charPos);
-                Inc(ExpIndex);
+                inc(ExpIndex);
                 Continue;
               end;
           end;
@@ -852,7 +852,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
           begin
             if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
-                Inc(ExpIndex);
+                inc(ExpIndex);
                 ResExp := FillProc(ExpIndex, Exps, nil);
                 if ResExp <> nil then
                     LocalExp.AddExpressionAsValue(True, ResExp, soBlockIndentBegin, p1^.Symbol, p1^.charPos);
@@ -860,7 +860,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
               end;
             if p1^.Symbol in [soBlockIndentEnd, soPropIndentEnd] then
               begin
-                Inc(ExpIndex);
+                inc(ExpIndex);
                 Exit;
               end;
             if (p1^.Symbol in [soCommaSymbol]) then
@@ -873,13 +873,13 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
 
                 LocalExp := procExp.AddExpressionAsValue(True, TSymbolExpression.Create, soParameter, 'param_' + IntToStr(procExp.Count + 1),
                   Exps[ExpIndex]^.charPos)^.Expression;
-                Inc(ExpIndex);
+                inc(ExpIndex);
                 Continue;
               end;
           end;
 
         LocalExp.AddCopy(p1^);
-        Inc(ExpIndex);
+        inc(ExpIndex);
       end;
   end;
 
@@ -1055,7 +1055,7 @@ begin
               Continue;
         end;
 
-      Inc(cPos);
+      inc(cPos);
     end;
 
   if (BlockIndent + PropIndent = 0) then
@@ -1230,7 +1230,7 @@ var
 
         if (p1^.DeclType in AllExpressionValueType) then
           begin
-            Inc(SymbolIndex);
+            inc(SymbolIndex);
             if SymbolIndex >= Exps.Count then
               begin
                 newExpression.Add(p1^);
@@ -1264,7 +1264,7 @@ var
                         newExpression.Add(p1^);
                         newExpression.Add(p2^);
 
-                        Inc(SymbolIndex);
+                        inc(SymbolIndex);
                         ProcessSymbol(p2^.Symbol);
                         newExpression.AddSymbol(soBlockIndentEnd, p2^.charPos);
 
@@ -1296,7 +1296,7 @@ var
           end
         else if (p1^.DeclType = edtSymbol) then
           begin
-            Inc(SymbolIndex);
+            inc(SymbolIndex);
             if SymbolIndex >= Exps.Count then
               begin
                 newExpression.Add(p1^);
@@ -1339,7 +1339,7 @@ var
               end;
           end;
 
-        Inc(SymbolIndex);
+        inc(SymbolIndex);
       end;
   end;
 
@@ -1404,7 +1404,7 @@ var
           begin
             if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
-                Inc(SymbolIndex);
+                inc(SymbolIndex);
 
                 ResExp := ProcessIndent(p1^.Symbol);
                 LocalExp.AddExpressionAsValue(True, ResExp, p1^.Symbol, SymbolOperationTextDecl[p1^.Symbol].Decl, p1^.charPos);
@@ -1434,11 +1434,11 @@ var
             if p1^.DeclType = edtProcExp then
               begin
                 LocalExp.Add(p1^);
-                Inc(SymbolIndex);
+                inc(SymbolIndex);
                 Continue;
               end;
 
-            Inc(SymbolIndex);
+            inc(SymbolIndex);
             if SymbolIndex >= Exps.Count then
               begin
                 LocalExp.Add(p1^);
@@ -1458,7 +1458,7 @@ var
                       end;
 
                     LocalExp.Add(p1^);
-                    Inc(SymbolIndex);
+                    inc(SymbolIndex);
 
                     ResExp := ProcessIndent(p2^.Symbol);
                     LocalExp.AddExpressionAsValue(True, ResExp, p2^.Symbol, SymbolOperationTextDecl[p2^.Symbol].Decl, p2^.charPos);
@@ -1494,13 +1494,13 @@ var
               end;
           end;
 
-        Inc(SymbolIndex);
+        inc(SymbolIndex);
       end;
   end;
 
   function ProcessPriority(_e: TSymbolExpression): TSymbolExpression;
   var
-    i, J     : Integer;
+    i, j     : Integer;
     E, ResExp: TSymbolExpression;
     p, funcP : PExpressionListData;
   begin
@@ -1552,11 +1552,11 @@ var
           begin
             funcP := Result.AddFunc(VarToStr(p^.Value), p^.charPos);
             if (p^.Expression.Count > 0) and (p^.Expression.First^.Expression.Count > 0) then
-              for J := 0 to p^.Expression.Count - 1 do
+              for j := 0 to p^.Expression.Count - 1 do
                 begin
-                  ResExp := RebuildAllSymbol(p^.Expression[J]^.Expression);
+                  ResExp := RebuildAllSymbol(p^.Expression[j]^.Expression);
                   if ResExp <> nil then
-                      funcP^.Expression.AddExpressionAsValue(True, ResExp, soParameter, VarToStr(p^.Expression[J]^.Value), p^.Expression[J]^.charPos);
+                      funcP^.Expression.AddExpressionAsValue(True, ResExp, soParameter, VarToStr(p^.Expression[j]^.Value), p^.Expression[j]^.charPos);
                 end;
           end
         else
@@ -1670,7 +1670,7 @@ var
           begin
             if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
-                Inc(SymbolIndex);
+                inc(SymbolIndex);
                 ResOp := ProcessIndent(p1^.Symbol);
                 if ResOp <> nil then
                   begin
@@ -1743,11 +1743,11 @@ var
                     LocalOp := NewOpValue(uName);
                     LocalOp.AddLink(ProcOp);
                   end;
-                Inc(SymbolIndex);
+                inc(SymbolIndex);
                 Continue;
               end;
 
-            Inc(SymbolIndex);
+            inc(SymbolIndex);
             if SymbolIndex >= NewSymbExps.Count then
               begin
                 if LocalOp <> nil then
@@ -1779,7 +1779,7 @@ var
                       begin
                       end;
 
-                    Inc(SymbolIndex);
+                    inc(SymbolIndex);
                     ResOp := ProcessIndent(p2^.Symbol);
 
                   end
@@ -1826,7 +1826,7 @@ var
               end;
           end;
 
-        Inc(SymbolIndex);
+        inc(SymbolIndex);
       end;
   end;
 
@@ -2241,7 +2241,7 @@ end;
 
 function TSymbolExpression.Decl: SystemString;
 var
-  i, J: Integer;
+  i, j: Integer;
   p   : PExpressionListData;
 begin
   Result := '';
@@ -2256,12 +2256,12 @@ begin
         edtProcExp:
           begin
             Result := Result + VarToStr(p^.Value) + '(';
-            for J := 0 to p^.Expression.Count - 1 do
+            for j := 0 to p^.Expression.Count - 1 do
               begin
-                if J = 0 then
-                    Result := Result + p^.Expression[J]^.Expression.Decl
+                if j = 0 then
+                    Result := Result + p^.Expression[j]^.Expression.Decl
                 else
-                    Result := Result + ',' + p^.Expression[J]^.Expression.Decl;
+                    Result := Result + ',' + p^.Expression[j]^.Expression.Decl;
               end;
             Result := Result + ')';
           end;
@@ -2302,7 +2302,7 @@ begin
     end;
 end;
 
-function TSymbolExpression.GetCount(T: TExpressionDeclTypes): Integer;
+function TSymbolExpression.GetCount(t: TExpressionDeclTypes): Integer;
 var
   i: Integer;
   p: PExpressionListData;
@@ -2311,8 +2311,8 @@ begin
   for i := 0 to FList.Count - 1 do
     begin
       p := FList[i];
-      if p^.DeclType in T then
-          Inc(Result);
+      if p^.DeclType in t then
+          inc(Result);
     end;
 end;
 
@@ -2328,7 +2328,7 @@ begin
       if p^.DeclType = edtSymbol then
         begin
           if p^.Symbol in Operations then
-              Inc(Result);
+              inc(Result);
         end;
     end;
 end;
@@ -2697,4 +2697,6 @@ finalization
 DisposeObject([OpCache, SpecialAsciiToken]);
 
 end. 
+ 
+ 
  

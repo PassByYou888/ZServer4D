@@ -116,16 +116,16 @@ begin
   PCardinal(@Digest[8])^ := $98BADCFE;
   PCardinal(@Digest[12])^ := $10325476;
 
-  Inc(Lo, bufSiz shl 3);
-  Inc(Hi, bufSiz shr 29);
+  inc(Lo, bufSiz shl 3);
+  inc(Hi, bufSiz shr 29);
 
   p := buffPtr;
 
   while bufSiz >= $40 do
     begin
       MD5_Transform(Digest, p^);
-      Inc(p, $40);
-      Dec(bufSiz, $40);
+      inc(p, $40);
+      dec(bufSiz, $40);
     end;
   if bufSiz > 0 then
       CopyPtr(p, @WorkBuf[0], bufSiz);
@@ -183,8 +183,8 @@ begin
   bufSiz := EndPos - StartPos;
   Rest := 0;
 
-  Inc(Lo, bufSiz shl 3);
-  Inc(Hi, bufSiz shr 29);
+  inc(Lo, bufSiz shl 3);
+  inc(Hi, bufSiz shr 29);
 
   DeltaBuf := GetMemory(deltaSize);
   stream.Position := StartPos;
@@ -207,9 +207,9 @@ begin
             p := DeltaBuf;
           end;
         MD5_Transform(Digest, p^);
-        Inc(p, $40);
-        Dec(bufSiz, $40);
-        Dec(Rest, $40);
+        inc(p, $40);
+        dec(bufSiz, $40);
+        dec(Rest, $40);
       end;
 
   if bufSiz > 0 then
@@ -249,3 +249,5 @@ end;
 {$ENDIF Defined(MSWINDOWS) and Defined(Delphi)}
 
 end. 
+ 
+ 

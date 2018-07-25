@@ -68,7 +68,7 @@ begin
                 p := PCriticalLock(CriticalList[i]);
                 pi := i;
               end;
-            Inc(i);
+            inc(i);
           end;
       end;
     if output = nil then
@@ -116,3 +116,5 @@ begin
   p^.Obj := nil;
   p^.Critical.Release;
 end; 
+ 
+ 

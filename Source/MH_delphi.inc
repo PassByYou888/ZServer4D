@@ -104,7 +104,7 @@ begin
   end;
 end;
 
-function Hash_GetMem(Size: nativeInt): MPtr;
+function Hash_GetMem(Size: NativeInt): MPtr;
 begin
   Result := OriginMM.GetMem(Size);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
@@ -136,7 +136,7 @@ begin
   end;
 end;
 
-function Hash_ReallocMem(p: MPtr; Size: nativeInt): MPtr;
+function Hash_ReallocMem(p: MPtr; Size: NativeInt): MPtr;
 begin
   Result := OriginMM.ReallocMem(p, Size);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) then
@@ -161,7 +161,7 @@ begin
   end;
 end;
 
-function Hash_AllocMem(Size: nativeInt): MPtr;
+function Hash_AllocMem(Size: NativeInt): MPtr;
 begin
   Result := OriginMM.AllocMem(Size);
   if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
@@ -201,3 +201,5 @@ begin
   SetMemoryManager(OriginMM);
   DisposeObject(HookPtrList);
 end; 
+ 
+ 

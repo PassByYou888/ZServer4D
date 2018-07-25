@@ -110,11 +110,11 @@ type
     procedure BeforeDestruction; override;
   end;
 
-  TGenericsList<T>=class(System.Generics.Collections.TList<T>)
+  TGenericsList<t>=class(System.Generics.Collections.TList<t>)
     function ListData: Pointer;
   end;
 
-  TGenericsObjectList<T:class>=class(System.Generics.Collections.TList<T>)
+  TGenericsObjectList<t:class>=class(System.Generics.Collections.TList<t>)
     function ListData: Pointer;
   end;
 
@@ -316,17 +316,7 @@ end;
 
 procedure FreeObject(const Obj: TObject);
 begin
-  if Obj <> nil then
-    begin
-      try
-        {$IFDEF AUTOREFCOUNT}
-        Obj.DisposeOf;
-        {$ELSE}
-        Obj.Free;
-        {$ENDIF}
-      except
-      end;
-    end;
+  DisposeObject(Obj);
 end;
 
 procedure FreeObject(const objs: array of TObject);
@@ -396,7 +386,7 @@ end;
 
 procedure FillPtrByte(const dest: Pointer; Count: nativeUInt; const Value: Byte);
 var
-  index: nativeInt;
+  index: NativeInt;
   v    : UInt64;
   PB   : PByte;
 begin
@@ -410,7 +400,7 @@ begin
       for index := (Count shr 3) - 1 downto 0 do
         begin
           PUInt64(PB)^ := v;
-          Inc(PB, 8);
+          inc(PB, 8);
         end;
       { Get the remainder (mod 8) }
       Count := Count and $7;
@@ -421,7 +411,7 @@ begin
     for index := Count - 1 downto 0 do
       begin
         PB^ := Value;
-        Inc(PB);
+        inc(PB);
       end;
 end;
 
@@ -672,12 +662,12 @@ procedure TCoreClassInterfacedObject.BeforeDestruction;
 begin
 end;
 
-function TGenericsList<T>.ListData: Pointer;
+function TGenericsList<t>.ListData: Pointer;
 begin
   Result := @(inherited List);
 end;
 
-function TGenericsObjectList<T>.ListData: Pointer;
+function TGenericsObjectList<t>.ListData: Pointer;
 begin
   Result := @(inherited List);
 end;
@@ -801,5 +791,7 @@ finalization
   MHGlobalHookEnabled := False;
 end.
 
+ 
+ 
  
  

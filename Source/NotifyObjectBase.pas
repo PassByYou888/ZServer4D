@@ -152,7 +152,7 @@ begin
       if FSaveRegisted[i] = TNotifyBase(p) then
           FSaveRegisted.Delete(i)
       else
-          Inc(i);
+          inc(i);
     end;
 end;
 
@@ -194,7 +194,7 @@ begin
       if FNotifyList[i] = TNotifyBase(v) then
           FNotifyList.Delete(i)
       else
-          Inc(i);
+          inc(i);
     end;
   v.DeleteSaveNotifyIntf(Self);
 end;
@@ -210,7 +210,7 @@ begin
           TNotifyBase(FNotifyList[i]).NotifyExecute(Self, State);
       except
       end;
-      Inc(i);
+      inc(i);
     end;
 end;
 
@@ -253,7 +253,7 @@ begin
           if FOwner.FPostExecuteList[i] = Self then
               FOwner.FPostExecuteList.Delete(i)
           else
-              Inc(i);
+              inc(i);
         end;
       FOwner := nil;
     end;
@@ -429,7 +429,7 @@ begin
           FPostExecuteList.Delete(i);
         end
       else
-          Inc(i);
+          inc(i);
     end;
 end;
 
@@ -460,7 +460,7 @@ begin
           FPostExecuteList.Delete(i);
         end
       else
-          Inc(i);
+          inc(i);
     end;
 
   i := 0;
@@ -481,7 +481,7 @@ begin
       except
       end;
 
-      Inc(i);
+      inc(i);
       if FBreakProgress then
           Break;
     end;
@@ -525,4 +525,6 @@ begin
 end;
 
 end. 
+ 
+ 
  

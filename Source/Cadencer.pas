@@ -247,7 +247,7 @@ begin
       if SleepLength >= 0 then
           TCoreClassThread.Sleep(SleepLength);
     end;
-  Inc(FProgressing);
+  inc(FProgressing);
   try
     if Enabled then begin
         // One of the processed messages might have disabled us
@@ -292,7 +292,7 @@ begin
           end;
       end;
   finally
-      Dec(FProgressing);
+      dec(FProgressing);
   end;
 end;
 
@@ -325,4 +325,6 @@ initialization
 finalization
 
 end.
+ 
+ 
  

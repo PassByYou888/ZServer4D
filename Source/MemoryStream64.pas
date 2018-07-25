@@ -54,9 +54,9 @@ type
     function PositionAsPtr: Pointer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     //
     procedure LoadFromStream(stream: TCoreClassStream); virtual;
-    procedure LoadFromFile(const fileName: SystemString);
+    procedure LoadFromFile(const FileName: SystemString);
     procedure SaveToStream(stream: TCoreClassStream); virtual;
-    procedure SaveToFile(const fileName: SystemString);
+    procedure SaveToFile(const FileName: SystemString);
 
     procedure SetSize(const NewSize: Int64); overload; override;
     procedure SetSize(NewSize: longint); overload; override;
@@ -139,7 +139,7 @@ function MaxCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boo
 function FastCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function CompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function DecompressStream(DataPtr: Pointer; siz: nativeInt; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function DecompressStream(DataPtr: Pointer; siz: NativeInt; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function DecompressStreamToPtr(sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
@@ -238,9 +238,9 @@ const
   ChunkSize = 64 * 1024 * 1024;
 var
   p: Pointer;
-  J: nativeInt;
-  Num: nativeInt;
-  Rest: nativeInt;
+  j: NativeInt;
+  Num: NativeInt;
+  Rest: NativeInt;
 begin
   if FProtectedMode then
       Exit;
@@ -258,7 +258,7 @@ begin
           Rest := stream.Size mod ChunkSize;
 
           { Process full chunks }
-          for J := 0 to Num - 1 do
+          for j := 0 to Num - 1 do
             begin
               stream.ReadBuffer(p^, ChunkSize);
               p := Pointer(nativeUInt(p) + ChunkSize);
@@ -276,11 +276,11 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.LoadFromFile(const fileName: SystemString);
+procedure TMemoryStream64.LoadFromFile(const FileName: SystemString);
 var
   stream: TCoreClassStream;
 begin
-  stream := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
+  stream := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
   try
       LoadFromStream(stream);
   finally
@@ -293,9 +293,9 @@ const
   ChunkSize = 64 * 1024 * 1024;
 var
   p: Pointer;
-  J: nativeInt;
-  Num: nativeInt;
-  Rest: nativeInt;
+  j: NativeInt;
+  Num: NativeInt;
+  Rest: NativeInt;
 begin
   if Size > 0 then
     begin
@@ -308,7 +308,7 @@ begin
           Rest := Size mod ChunkSize;
 
           { Process full chunks }
-          for J := 0 to Num - 1 do
+          for j := 0 to Num - 1 do
             begin
               stream.WriteBuffer(p^, ChunkSize);
               p := Pointer(nativeUInt(p) + ChunkSize);
@@ -326,11 +326,11 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.SaveToFile(const fileName: SystemString);
+procedure TMemoryStream64.SaveToFile(const FileName: SystemString);
 var
   stream: TCoreClassStream;
 begin
-  stream := TCoreClassFileStream.Create(fileName, fmCreate);
+  stream := TCoreClassFileStream.Create(FileName, fmCreate);
   try
       SaveToStream(stream);
   finally
@@ -439,7 +439,7 @@ begin
           if Result > Count then
               Result := Count;
           System.Move(PByte(nativeUInt(FMemory) + FPosition)^, buffer, Result);
-          Inc(FPosition, Result);
+          inc(FPosition, Result);
           Exit;
         end;
     end;
@@ -473,7 +473,7 @@ begin
               p := Count;
 
           System.Move(PByte(nativeUInt(FMemory) + FPosition)^, buffer[Offset], p);
-          Inc(FPosition, p);
+          inc(FPosition, p);
           Result := p;
           Exit;
         end;
@@ -487,7 +487,7 @@ function TMemoryStream64.Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
 begin
   case origin of
     TSeekOrigin.soBeginning: FPosition := Offset;
-    TSeekOrigin.soCurrent: Inc(FPosition, Offset);
+    TSeekOrigin.soCurrent: inc(FPosition, Offset);
     TSeekOrigin.soEnd: FPosition := FSize + Offset;
   end;
   Result := FPosition;
@@ -532,7 +532,7 @@ begin
             n := CCount;
         Source.read((@buffer[0])^, n);
         WritePtr((@buffer[0]), n);
-        Dec(CCount, n);
+        dec(CCount, n);
       end;
   finally
       SetLength(buffer, 0);
@@ -660,7 +660,7 @@ begin
   end;
 end;
 
-function DecompressStream(DataPtr: Pointer; siz: nativeInt; DeTo: TCoreClassStream): Boolean;
+function DecompressStream(DataPtr: Pointer; siz: NativeInt; DeTo: TCoreClassStream): Boolean;
 var
   m64: TMemoryStream64;
 begin
@@ -712,4 +712,6 @@ initialization
 finalization
 
 end. 
+ 
+ 
  

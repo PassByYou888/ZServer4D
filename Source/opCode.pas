@@ -308,14 +308,14 @@ begin
     end;
 end;
 
-procedure RegisterOp(C: opClass);
+procedure RegisterOp(c: opClass);
 var
   p: POpRegData;
 begin
-  if GetRegistedOp(C.ClassName) <> nil then
-      raise Exception.Create('same op ' + C.ClassName);
+  if GetRegistedOp(c.ClassName) <> nil then
+      raise Exception.Create('same op ' + c.ClassName);
   new(p);
-  p^.opClass := C;
+  p^.opClass := c;
   p^.OpName := p^.opClass.ClassName;
   p^.hash := FastHashPascalString(@p^.OpName);
   OpList.Add(p);
@@ -1008,7 +1008,7 @@ function op_Add.DoExecute(opRT: TOpCustomRunTime): Variant;
 
 var
   i: Integer;
-  N1, N2: TPascalString;
+  n1, n2: TPascalString;
 begin
   if Count = 0 then
       Exit(Null);
@@ -1017,15 +1017,15 @@ begin
   if Fast_VarIsStr(Result) then
     begin
       // optimized
-      N1 := VarToStr(Result);
+      n1 := VarToStr(Result);
       for i := 1 to Count - 1 do
         begin
           try
-              N1.Append(VarToStr(Param[i]^.Value));
+              n1.Append(VarToStr(Param[i]^.Value));
           except
           end;
         end;
-      Result := N1.Text;
+      Result := n1.Text;
     end
   else
     begin
@@ -1035,10 +1035,10 @@ begin
             if Fast_VarIsStr(Result) then
               begin
                 // SystemString combine
-                N1 := VarToStr(Result);
-                if not umlIsNumber(N1) then
+                n1 := VarToStr(Result);
+                if not umlIsNumber(n1) then
                   begin
-                    Result := N1 + VarToStr(Param[i]^.Value);
+                    Result := n1 + VarToStr(Param[i]^.Value);
                     Continue;
                   end
               end;
@@ -1046,10 +1046,10 @@ begin
             if Fast_VarIsStr(Param[i]^.Value) then
               begin
                 // SystemString combine
-                N2 := VarToStr(Param[i]^.Value);
-                if not umlIsNumber(N2) then
+                n2 := VarToStr(Param[i]^.Value);
+                if not umlIsNumber(n2) then
                   begin
-                    Result := VarToStr(Result) + N2;
+                    Result := VarToStr(Result) + n2;
                     Continue;
                   end
               end;
@@ -1295,4 +1295,6 @@ DisposeObject(DefaultOpRT);
 _FreeOp;
 
 end.
+ 
+ 
  

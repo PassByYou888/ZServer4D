@@ -81,11 +81,11 @@ type
     procedure LoadFromStream(stream: TCoreClassStream);
     procedure SaveToStream(stream: TCoreClassStream);
 
-    procedure LoadFromFile(fileName: SystemString);
-    procedure SaveToFile(fileName: SystemString);
+    procedure LoadFromFile(FileName: SystemString);
+    procedure SaveToFile(FileName: SystemString);
 
     // total item count
-    function TotalCount: nativeInt;
+    function TotalCount: NativeInt;
     function MaxSectionNameLen: Integer;
     function MinSectionNameLen: Integer;
 
@@ -386,7 +386,7 @@ begin
                   if (ln.Len > 0) and (not CharIn(ln.First, [';'])) then
                       FComment.Append(ln);
                 end;
-              Inc(i);
+              inc(i);
             end;
           if Result then
               AddDataSection(nsect, ntLst);
@@ -452,7 +452,7 @@ begin
                   if (ln.Len > 0) and (not CharIn(ln.First, [';'])) then
                       FComment.Append(ln);
                 end;
-              Inc(i);
+              inc(i);
             end;
           if Result then
               AddDataSection(nsect, ntLst);
@@ -639,13 +639,13 @@ begin
   DisposeObject(n);
 end;
 
-procedure THashTextEngine.LoadFromFile(fileName: SystemString);
+procedure THashTextEngine.LoadFromFile(FileName: SystemString);
 var
   ns: TMemoryStream64;
 begin
   try
     ns := TMemoryStream64.Create;
-    ns.LoadFromFile(fileName);
+    ns.LoadFromFile(FileName);
   except
     DisposeObject(ns);
     Exit;
@@ -658,20 +658,20 @@ begin
   end;
 end;
 
-procedure THashTextEngine.SaveToFile(fileName: SystemString);
+procedure THashTextEngine.SaveToFile(FileName: SystemString);
 var
   ns: TMemoryStream64;
 begin
   ns := TMemoryStream64.Create;
   try
     SaveToStream(ns);
-    ns.SaveToFile(fileName);
+    ns.SaveToFile(FileName);
   finally
       DisposeObject(ns);
   end;
 end;
 
-function THashTextEngine.TotalCount: nativeInt;
+function THashTextEngine.TotalCount: NativeInt;
 var
   i: Integer;
   tmpSecLst: TListString;
@@ -685,7 +685,7 @@ begin
     for i := 0 to tmpSecLst.Count - 1 do
       begin
         if not FSectionVariantList.Exists(tmpSecLst[i]) then
-            Inc(Result, TCoreClassStrings(tmpSecLst.Objects[i]).Count);
+            inc(Result, TCoreClassStrings(tmpSecLst.Objects[i]).Count);
       end;
   DisposeObject(tmpSecLst);
 
@@ -694,7 +694,7 @@ begin
   FSectionVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
-        Inc(Result, THashVariantList(tmpSecLst.Objects[i]).Count);
+        inc(Result, THashVariantList(tmpSecLst.Objects[i]).Count);
   DisposeObject(tmpSecLst);
 end;
 
@@ -805,4 +805,6 @@ begin
 end;
 
 end. 
+ 
+ 
  

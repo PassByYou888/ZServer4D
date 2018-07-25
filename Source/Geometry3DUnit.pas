@@ -111,13 +111,13 @@ type
     class operator Explicit(Value: TVector4): TVec3;
     class operator Explicit(Value: TVector4): T2DPoint;
 {$ENDIF}
-    procedure SetRGBA(const R, g, b, A: Single); overload;
+    procedure SetRGBA(const r, g, b, a: Single); overload;
     procedure SetLocation(const fx, fy, fz, fw: Single); overload;
     procedure SetLocation(const fx, fy, fz: Single); overload;
     function Distance4D(const v2: TVector4): Single;
     function Distance3D(const v2: TVector4): Single;
     function Distance2D(const v2: TVector4): Single;
-    function Lerp(const v2: TVector4; const T: Single): TVector4;
+    function Lerp(const v2: TVector4; const t: Single): TVector4;
     function LerpDistance(const v2: TVector4; const d: Single): TVector4;
     function Norm: Single;
     function length: Single;
@@ -187,7 +187,7 @@ type
     procedure SetLocation(const fx, fy, fz: Single); overload;
     function Distance3D(const v2: TVector3): Single;
     function Distance2D(const v2: TVector3): Single;
-    function Lerp(const v2: TVector3; const T: Single): TVector3;
+    function Lerp(const v2: TVector3; const t: Single): TVector3;
     function LerpDistance(const v2: TVector3; const d: Single): TVector3;
     function Norm: Single;
     function length: Single;
@@ -214,25 +214,25 @@ type
     function PointIn(const p: TVector3): Boolean;
   end;
 
-function Vector4(X, Y, Z, w: Single): TVector4; overload;
-function Vector4(X, Y, Z: Single): TVector4; overload;
+function Vector4(x, y, z, w: Single): TVector4; overload;
+function Vector4(x, y, z: Single): TVector4; overload;
 function Vector4(v: TVec3): TVector4; overload;
 function Vector4(v: TVec4): TVector4; overload;
 
-function Vector3(X, Y, Z: Single): TVector3; overload;
+function Vector3(x, y, z: Single): TVector3; overload;
 function Vector3(v: TVec3): TVector3; overload;
 function Vector3(v: TVec4): TVector3; overload;
 
-function Vec3(const X, Y, Z: Single): TVec3; overload;
+function Vec3(const x, y, z: Single): TVec3; overload;
 function Vec3(const v: TVec4): TVec3; overload;
 function Vec3(const v: TVector3): TVec3; overload;
 function Vec3(const v: TVec2): TVec3; overload;
-function Vec3(const v: TVec2; Z: Single): TVec3; overload;
+function Vec3(const v: TVec2; z: Single): TVec3; overload;
 
-function Vec4(const X, Y, Z: Single): TVec4; overload;
-function Vec4(const X, Y, Z, w: Single): TVec4; overload;
+function Vec4(const x, y, z: Single): TVec4; overload;
+function Vec4(const x, y, z, w: Single): TVec4; overload;
 function Vec4(const v: TVec3): TVec4; overload;
-function Vec4(const v: TVec3; const Z: Single): TVec4; overload;
+function Vec4(const v: TVec3; const z: Single): TVec4; overload;
 function Vec4(const v: TVector3): TVec4; overload;
 
 function vec2(const v: TVec3): TVec2; overload;
@@ -259,7 +259,7 @@ function GetMin(const arry: array of Integer): Integer; overload;
 function GetMax(const arry: array of TGeoFloat): TGeoFloat; overload;
 function GetMax(const arry: array of Integer): Integer; overload;
 
-function FinalAngle4FMX(const A: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FinalAngle4FMX(const a: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function CalcAngle(const v1, v2: T2DPoint): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function AngleDistance(const sour, dest: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function SmoothAngle(const sour, dest, Delta: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -289,69 +289,69 @@ function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; v
 
 {$IFDEF FPC}
 
-operator := (const s: Single)R: TMatrix4;
-operator := (const s: TMatrix4)R: TMat4;
-operator := (const s: TMat4)R: TMatrix4;
+operator := (const s: Single)r: TMatrix4;
+operator := (const s: TMatrix4)r: TMat4;
+operator := (const s: TMat4)r: TMatrix4;
 
-operator := (const s: Single)R: TVector4;
-operator := (const s: TVector4)R: TVec4;
-operator := (const s: TVec4)R: TVector4;
+operator := (const s: Single)r: TVector4;
+operator := (const s: TVector4)r: TVec4;
+operator := (const s: TVec4)r: TVector4;
 
-operator := (const s: Single)R: TVector3;
-operator := (const s: TVector3)R: TVec3;
-operator := (const s: TVec3)R: TVector3;
+operator := (const s: Single)r: TVector3;
+operator := (const s: TVector3)r: TVec3;
+operator := (const s: TVec3)r: TVector3;
 
-operator * (const A: TMatrix4; const b: TMatrix4): TMatrix4;
+operator * (const a: TMatrix4; const b: TMatrix4): TMatrix4;
 
-operator * (const A: Single; const b: TVector4): TVector4;
-operator * (const A: TVector4; const b: Single): TVector4;
-operator * (const A: TVector4; const b: TVector4): TVector4;
+operator * (const a: Single; const b: TVector4): TVector4;
+operator * (const a: TVector4; const b: Single): TVector4;
+operator * (const a: TVector4; const b: TVector4): TVector4;
 
-operator * (const A: Single; const b: TVector3): TVector3;
-operator * (const A: TVector3; const b: Single): TVector3;
-operator * (const A: TVector3; const b: TVector3): TVector3;
+operator * (const a: Single; const b: TVector3): TVector3;
+operator * (const a: TVector3; const b: Single): TVector3;
+operator * (const a: TVector3; const b: TVector3): TVector3;
 
-operator / (const A: Single; const b: TVector4): TVector4;
-operator / (const A: TVector4; const b: Single): TVector4;
-operator / (const A: TVector4; const b: TVector4): TVector4;
+operator / (const a: Single; const b: TVector4): TVector4;
+operator / (const a: TVector4; const b: Single): TVector4;
+operator / (const a: TVector4; const b: TVector4): TVector4;
 
-operator / (const A: Single; const b: TVector3): TVector3;
-operator / (const A: TVector3; const b: Single): TVector3;
-operator / (const A: TVector3; const b: TVector3): TVector3;
+operator / (const a: Single; const b: TVector3): TVector3;
+operator / (const a: TVector3; const b: Single): TVector3;
+operator / (const a: TVector3; const b: TVector3): TVector3;
 
-operator + (const A: Single; const b: TVector4): TVector4;
-operator + (const A: TVector4; const b: Single): TVector4;
-operator + (const A: TVector4; const b: TVector4): TVector4;
+operator + (const a: Single; const b: TVector4): TVector4;
+operator + (const a: TVector4; const b: Single): TVector4;
+operator + (const a: TVector4; const b: TVector4): TVector4;
 
-operator + (const A: Single; const b: TVector3): TVector3;
-operator + (const A: TVector3; const b: Single): TVector3;
-operator + (const A: TVector3; const b: TVector3): TVector3;
+operator + (const a: Single; const b: TVector3): TVector3;
+operator + (const a: TVector3; const b: Single): TVector3;
+operator + (const a: TVector3; const b: TVector3): TVector3;
 
-operator - (const A: Single; const b: TVector4): TVector4;
-operator - (const A: TVector4; const b: Single): TVector4;
-operator - (const A: TVector4; const b: TVector4): TVector4;
+operator - (const a: Single; const b: TVector4): TVector4;
+operator - (const a: TVector4; const b: Single): TVector4;
+operator - (const a: TVector4; const b: TVector4): TVector4;
 
-operator - (const A: Single; const b: TVector3): TVector3;
-operator - (const A: TVector3; const b: Single): TVector3;
-operator - (const A: TVector3; const b: TVector3): TVector3;
+operator - (const a: Single; const b: TVector3): TVector3;
+operator - (const a: TVector3; const b: Single): TVector3;
+operator - (const a: TVector3; const b: TVector3): TVector3;
 
 {$ENDIF}
 
 implementation
 
-function Vector4(X, Y, Z, w: Single): TVector4;
+function Vector4(x, y, z, w: Single): TVector4;
 begin
-  Result.Link[0] := X;
-  Result.Link[1] := Y;
-  Result.Link[2] := Z;
+  Result.Link[0] := x;
+  Result.Link[1] := y;
+  Result.Link[2] := z;
   Result.Link[3] := w;
 end;
 
-function Vector4(X, Y, Z: Single): TVector4;
+function Vector4(x, y, z: Single): TVector4;
 begin
-  Result.Link[0] := X;
-  Result.Link[1] := Y;
-  Result.Link[2] := Z;
+  Result.Link[0] := x;
+  Result.Link[1] := y;
+  Result.Link[2] := z;
   Result.Link[3] := 0;
 end;
 
@@ -368,11 +368,11 @@ begin
   Result.Link := v;
 end;
 
-function Vector3(X, Y, Z: Single): TVector3;
+function Vector3(x, y, z: Single): TVector3;
 begin
-  Result.Link[0] := X;
-  Result.Link[1] := Y;
-  Result.Link[2] := Z;
+  Result.Link[0] := x;
+  Result.Link[1] := y;
+  Result.Link[2] := z;
 end;
 
 function Vector3(v: TVec3): TVector3;
@@ -387,9 +387,9 @@ begin
   Result.Link[2] := v[2];
 end;
 
-function Vec3(const X, Y, Z: Single): TVec3;
+function Vec3(const x, y, z: Single): TVec3;
 begin
-  Result := AffineVectorMake(X, Y, Z);
+  Result := AffineVectorMake(x, y, z);
 end;
 
 function Vec3(const v: TVec4): TVec3;
@@ -411,21 +411,21 @@ begin
   Result[2] := 0;
 end;
 
-function Vec3(const v: TVec2; Z: Single): TVec3;
+function Vec3(const v: TVec2; z: Single): TVec3;
 begin
   Result[0] := v[0];
   Result[1] := v[1];
-  Result[2] := Z;
+  Result[2] := z;
 end;
 
-function Vec4(const X, Y, Z: Single): TVec4;
+function Vec4(const x, y, z: Single): TVec4;
 begin
-  Result := VectorMake(X, Y, Z, 0);
+  Result := VectorMake(x, y, z, 0);
 end;
 
-function Vec4(const X, Y, Z, w: Single): TVec4;
+function Vec4(const x, y, z, w: Single): TVec4;
 begin
-  Result := VectorMake(X, Y, Z, w);
+  Result := VectorMake(x, y, z, w);
 end;
 
 function Vec4(const v: TVec3): TVec4;
@@ -433,9 +433,9 @@ begin
   Result := VectorMake(v);
 end;
 
-function Vec4(const v: TVec3; const Z: Single): TVec4;
+function Vec4(const v: TVec3; const z: Single): TVec4;
 begin
-  Result := VectorMake(v, Z);
+  Result := VectorMake(v, z);
 end;
 
 function Vec4(const v: TVector3): TVec4;
@@ -637,9 +637,9 @@ begin
         Result := arry[i];
 end;
 
-function FinalAngle4FMX(const A: TGeoFloat): TGeoFloat;
+function FinalAngle4FMX(const a: TGeoFloat): TGeoFloat;
 begin
-  Result := NormalizeDegAngle((-A - 90) + 180);
+  Result := NormalizeDegAngle((-a - 90) + 180);
 end;
 
 function CalcAngle(const v1, v2: T2DPoint): TGeoFloat;
@@ -959,11 +959,11 @@ end;
 
 class operator TMatrix4.Implicit(Value: Single): TMatrix4;
 var
-  i, J: Integer;
+  i, j: Integer;
 begin
   for i := 0 to 3 do
-    for J := 0 to 3 do
-        Result.Link[i, J] := Value;
+    for j := 0 to 3 do
+        Result.Link[i, j] := Value;
 end;
 
 class operator TMatrix4.Implicit(Value: TMat4): TMatrix4;
@@ -976,20 +976,20 @@ end;
 
 function TMatrix4.Swap: TMatrix4;
 var
-  i, J: Integer;
+  i, j: Integer;
 begin
   for i := 0 to 3 do
-    for J := 0 to 3 do
-        Result.Link[J, i] := Link[i, J];
+    for j := 0 to 3 do
+        Result.Link[j, i] := Link[i, j];
 end;
 
 function TMatrix4.Lerp(M: TMatrix4; Delta: Single): TMatrix4;
 var
-  i, J: Integer;
+  i, j: Integer;
 begin
-  for J := 0 to 3 do
+  for j := 0 to 3 do
     for i := 0 to 3 do
-        Result.Link[i][J] := Link[i][J] + (M.Link[i][J] - Link[i][J]) * Delta;
+        Result.Link[i][j] := Link[i][j] + (M.Link[i][j] - Link[i][j]) * Delta;
 end;
 
 function TMatrix4.AffineMatrix: TAffineMatrix;
@@ -1302,12 +1302,12 @@ end;
 {$ENDIF}
 
 
-procedure TVector4.SetRGBA(const R, g, b, A: Single);
+procedure TVector4.SetRGBA(const r, g, b, a: Single);
 begin
-  Link[0] := R;
+  Link[0] := r;
   Link[1] := g;
   Link[2] := b;
-  Link[3] := A;
+  Link[3] := a;
 end;
 
 procedure TVector4.SetLocation(const fx, fy, fz, fw: Single);
@@ -1340,12 +1340,12 @@ begin
   Result := Sqrt(Sqr(v2.Link[0] - Link[0]) + Sqr(v2.Link[1] - Link[1]));
 end;
 
-function TVector4.Lerp(const v2: TVector4; const T: Single): TVector4;
+function TVector4.Lerp(const v2: TVector4; const t: Single): TVector4;
 begin
-  Result.Link[0] := Link[0] + (v2.Link[0] - Link[0]) * T;
-  Result.Link[1] := Link[1] + (v2.Link[1] - Link[1]) * T;
-  Result.Link[2] := Link[2] + (v2.Link[2] - Link[2]) * T;
-  Result.Link[3] := Link[3] + (v2.Link[3] - Link[3]) * T;
+  Result.Link[0] := Link[0] + (v2.Link[0] - Link[0]) * t;
+  Result.Link[1] := Link[1] + (v2.Link[1] - Link[1]) * t;
+  Result.Link[2] := Link[2] + (v2.Link[2] - Link[2]) * t;
+  Result.Link[3] := Link[3] + (v2.Link[3] - Link[3]) * t;
 end;
 
 function TVector4.LerpDistance(const v2: TVector4; const d: Single): TVector4;
@@ -1639,11 +1639,11 @@ begin
   Result := Sqrt(Sqr(v2.Link[0] - Link[0]) + Sqr(v2.Link[1] - Link[1]));
 end;
 
-function TVector3.Lerp(const v2: TVector3; const T: Single): TVector3;
+function TVector3.Lerp(const v2: TVector3; const t: Single): TVector3;
 begin
-  Result.Link[0] := Link[0] + (v2.Link[0] - Link[0]) * T;
-  Result.Link[1] := Link[1] + (v2.Link[1] - Link[1]) * T;
-  Result.Link[2] := Link[2] + (v2.Link[2] - Link[2]) * T;
+  Result.Link[0] := Link[0] + (v2.Link[0] - Link[0]) * t;
+  Result.Link[1] := Link[1] + (v2.Link[1] - Link[1]) * t;
+  Result.Link[2] := Link[2] + (v2.Link[2] - Link[2]) * t;
 end;
 
 function TVector3.LerpDistance(const v2: TVector3; const d: Single): TVector3;
@@ -1783,247 +1783,249 @@ end;
 {$IFDEF FPC}
 
 
-operator := (const s: Single)R: TMatrix4;
+operator := (const s: Single)r: TMatrix4;
 var
-  i, J: Integer;
+  i, j: Integer;
 begin
   for i := 0 to 3 do
-    for J := 0 to 3 do
-        R.Link[i, J] := s;
+    for j := 0 to 3 do
+        r.Link[i, j] := s;
 end;
 
-operator := (const s: TMatrix4)R: TMat4;
+operator := (const s: TMatrix4)r: TMat4;
 begin
-  R := s.Link;
+  r := s.Link;
 end;
 
-operator := (const s: TMat4)R: TMatrix4;
+operator := (const s: TMat4)r: TMatrix4;
 begin
-  R.Link := s;
+  r.Link := s;
 end;
 
-operator := (const s: Single)R: TVector4;
+operator := (const s: Single)r: TVector4;
 begin
-  R.Link[0] := s;
-  R.Link[1] := s;
-  R.Link[2] := s;
-  R.Link[3] := s;
+  r.Link[0] := s;
+  r.Link[1] := s;
+  r.Link[2] := s;
+  r.Link[3] := s;
 end;
 
-operator := (const s: TVector4)R: TVec4;
+operator := (const s: TVector4)r: TVec4;
 begin
-  R := s.Link;
+  r := s.Link;
 end;
 
-operator := (const s: TVec4)R: TVector4;
+operator := (const s: TVec4)r: TVector4;
 begin
-  R.Link := s;
+  r.Link := s;
 end;
 
-operator := (const s: Single)R: TVector3;
+operator := (const s: Single)r: TVector3;
 begin
-  R.Link[0] := s;
-  R.Link[1] := s;
-  R.Link[2] := s;
+  r.Link[0] := s;
+  r.Link[1] := s;
+  r.Link[2] := s;
 end;
 
-operator := (const s: TVector3)R: TVec3;
+operator := (const s: TVector3)r: TVec3;
 begin
-  R := s.Link;
+  r := s.Link;
 end;
 
-operator := (const s: TVec3)R: TVector3;
+operator := (const s: TVec3)r: TVector3;
 begin
-  R.Link := s;
+  r.Link := s;
 end;
 
-operator * (const A: TMatrix4; const b: TMatrix4): TMatrix4;
+operator * (const a: TMatrix4; const b: TMatrix4): TMatrix4;
 begin
-  Result := GeometryLib.MatrixMultiply(A, b);
+  Result := GeometryLib.MatrixMultiply(a, b);
 end;
 
-operator * (const A: Single; const b: TVector4): TVector4;
+operator * (const a: Single; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A * b.Link[0];
-  Result.Link[1] := A * b.Link[1];
-  Result.Link[2] := A * b.Link[2];
-  Result.Link[3] := A * b.Link[3];
+  Result.Link[0] := a * b.Link[0];
+  Result.Link[1] := a * b.Link[1];
+  Result.Link[2] := a * b.Link[2];
+  Result.Link[3] := a * b.Link[3];
 end;
 
-operator * (const A: TVector4; const b: Single): TVector4;
+operator * (const a: TVector4; const b: Single): TVector4;
 begin
-  Result.Link[0] := A.Link[0] * b;
-  Result.Link[1] := A.Link[1] * b;
-  Result.Link[2] := A.Link[2] * b;
-  Result.Link[3] := A.Link[3] * b;
+  Result.Link[0] := a.Link[0] * b;
+  Result.Link[1] := a.Link[1] * b;
+  Result.Link[2] := a.Link[2] * b;
+  Result.Link[3] := a.Link[3] * b;
 end;
 
-operator * (const A: TVector4; const b: TVector4): TVector4;
+operator * (const a: TVector4; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A.Link[0] * b.Link[0];
-  Result.Link[1] := A.Link[1] * b.Link[1];
-  Result.Link[2] := A.Link[2] * b.Link[2];
-  Result.Link[3] := A.Link[3] * b.Link[3];
+  Result.Link[0] := a.Link[0] * b.Link[0];
+  Result.Link[1] := a.Link[1] * b.Link[1];
+  Result.Link[2] := a.Link[2] * b.Link[2];
+  Result.Link[3] := a.Link[3] * b.Link[3];
 end;
 
-operator * (const A: Single; const b: TVector3): TVector3;
+operator * (const a: Single; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A * b.Link[0];
-  Result.Link[1] := A * b.Link[1];
-  Result.Link[2] := A * b.Link[2];
+  Result.Link[0] := a * b.Link[0];
+  Result.Link[1] := a * b.Link[1];
+  Result.Link[2] := a * b.Link[2];
 end;
 
-operator * (const A: TVector3; const b: Single): TVector3;
+operator * (const a: TVector3; const b: Single): TVector3;
 begin
-  Result.Link[0] := A.Link[0] * b;
-  Result.Link[1] := A.Link[1] * b;
-  Result.Link[2] := A.Link[2] * b;
+  Result.Link[0] := a.Link[0] * b;
+  Result.Link[1] := a.Link[1] * b;
+  Result.Link[2] := a.Link[2] * b;
 end;
 
-operator * (const A: TVector3; const b: TVector3): TVector3;
+operator * (const a: TVector3; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A.Link[0] * b.Link[0];
-  Result.Link[1] := A.Link[1] * b.Link[1];
-  Result.Link[2] := A.Link[2] * b.Link[2];
+  Result.Link[0] := a.Link[0] * b.Link[0];
+  Result.Link[1] := a.Link[1] * b.Link[1];
+  Result.Link[2] := a.Link[2] * b.Link[2];
 end;
 
-operator / (const A: Single; const b: TVector4): TVector4;
+operator / (const a: Single; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A / b.Link[0];
-  Result.Link[1] := A / b.Link[1];
-  Result.Link[2] := A / b.Link[2];
-  Result.Link[3] := A / b.Link[3];
+  Result.Link[0] := a / b.Link[0];
+  Result.Link[1] := a / b.Link[1];
+  Result.Link[2] := a / b.Link[2];
+  Result.Link[3] := a / b.Link[3];
 end;
 
-operator / (const A: TVector4; const b: Single): TVector4;
+operator / (const a: TVector4; const b: Single): TVector4;
 begin
-  Result.Link[0] := A.Link[0] / b;
-  Result.Link[1] := A.Link[1] / b;
-  Result.Link[2] := A.Link[2] / b;
-  Result.Link[3] := A.Link[3] / b;
+  Result.Link[0] := a.Link[0] / b;
+  Result.Link[1] := a.Link[1] / b;
+  Result.Link[2] := a.Link[2] / b;
+  Result.Link[3] := a.Link[3] / b;
 end;
 
-operator / (const A: TVector4; const b: TVector4): TVector4;
+operator / (const a: TVector4; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A.Link[0] / b.Link[0];
-  Result.Link[1] := A.Link[1] / b.Link[1];
-  Result.Link[2] := A.Link[2] / b.Link[2];
-  Result.Link[3] := A.Link[3] / b.Link[3];
+  Result.Link[0] := a.Link[0] / b.Link[0];
+  Result.Link[1] := a.Link[1] / b.Link[1];
+  Result.Link[2] := a.Link[2] / b.Link[2];
+  Result.Link[3] := a.Link[3] / b.Link[3];
 end;
 
-operator / (const A: Single; const b: TVector3): TVector3;
+operator / (const a: Single; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A / b.Link[0];
-  Result.Link[1] := A / b.Link[1];
-  Result.Link[2] := A / b.Link[2];
+  Result.Link[0] := a / b.Link[0];
+  Result.Link[1] := a / b.Link[1];
+  Result.Link[2] := a / b.Link[2];
 end;
 
-operator / (const A: TVector3; const b: Single): TVector3;
+operator / (const a: TVector3; const b: Single): TVector3;
 begin
-  Result.Link[0] := A.Link[0] / b;
-  Result.Link[1] := A.Link[1] / b;
-  Result.Link[2] := A.Link[2] / b;
+  Result.Link[0] := a.Link[0] / b;
+  Result.Link[1] := a.Link[1] / b;
+  Result.Link[2] := a.Link[2] / b;
 end;
 
-operator / (const A: TVector3; const b: TVector3): TVector3;
+operator / (const a: TVector3; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A.Link[0] / b.Link[0];
-  Result.Link[1] := A.Link[1] / b.Link[1];
-  Result.Link[2] := A.Link[2] / b.Link[2];
+  Result.Link[0] := a.Link[0] / b.Link[0];
+  Result.Link[1] := a.Link[1] / b.Link[1];
+  Result.Link[2] := a.Link[2] / b.Link[2];
 end;
 
-operator + (const A: Single; const b: TVector4): TVector4;
+operator + (const a: Single; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A + b.Link[0];
-  Result.Link[1] := A + b.Link[1];
-  Result.Link[2] := A + b.Link[2];
-  Result.Link[3] := A + b.Link[3];
+  Result.Link[0] := a + b.Link[0];
+  Result.Link[1] := a + b.Link[1];
+  Result.Link[2] := a + b.Link[2];
+  Result.Link[3] := a + b.Link[3];
 end;
 
-operator + (const A: TVector4; const b: Single): TVector4;
+operator + (const a: TVector4; const b: Single): TVector4;
 begin
-  Result.Link[0] := A.Link[0] + b;
-  Result.Link[1] := A.Link[1] + b;
-  Result.Link[2] := A.Link[2] + b;
-  Result.Link[3] := A.Link[3] + b;
+  Result.Link[0] := a.Link[0] + b;
+  Result.Link[1] := a.Link[1] + b;
+  Result.Link[2] := a.Link[2] + b;
+  Result.Link[3] := a.Link[3] + b;
 end;
 
-operator + (const A: TVector4; const b: TVector4): TVector4;
+operator + (const a: TVector4; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A.Link[0] + b.Link[0];
-  Result.Link[1] := A.Link[1] + b.Link[1];
-  Result.Link[2] := A.Link[2] + b.Link[2];
-  Result.Link[3] := A.Link[3] + b.Link[3];
+  Result.Link[0] := a.Link[0] + b.Link[0];
+  Result.Link[1] := a.Link[1] + b.Link[1];
+  Result.Link[2] := a.Link[2] + b.Link[2];
+  Result.Link[3] := a.Link[3] + b.Link[3];
 end;
 
-operator + (const A: Single; const b: TVector3): TVector3;
+operator + (const a: Single; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A + b.Link[0];
-  Result.Link[1] := A + b.Link[1];
-  Result.Link[2] := A + b.Link[2];
+  Result.Link[0] := a + b.Link[0];
+  Result.Link[1] := a + b.Link[1];
+  Result.Link[2] := a + b.Link[2];
 end;
 
-operator + (const A: TVector3; const b: Single): TVector3;
+operator + (const a: TVector3; const b: Single): TVector3;
 begin
-  Result.Link[0] := A.Link[0] + b;
-  Result.Link[1] := A.Link[1] + b;
-  Result.Link[2] := A.Link[2] + b;
+  Result.Link[0] := a.Link[0] + b;
+  Result.Link[1] := a.Link[1] + b;
+  Result.Link[2] := a.Link[2] + b;
 end;
 
-operator + (const A: TVector3; const b: TVector3): TVector3;
+operator + (const a: TVector3; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A.Link[0] + b.Link[0];
-  Result.Link[1] := A.Link[1] + b.Link[1];
-  Result.Link[2] := A.Link[2] + b.Link[2];
+  Result.Link[0] := a.Link[0] + b.Link[0];
+  Result.Link[1] := a.Link[1] + b.Link[1];
+  Result.Link[2] := a.Link[2] + b.Link[2];
 end;
 
-operator - (const A: Single; const b: TVector4): TVector4;
+operator - (const a: Single; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A - b.Link[0];
-  Result.Link[1] := A - b.Link[1];
-  Result.Link[2] := A - b.Link[2];
-  Result.Link[3] := A - b.Link[3];
+  Result.Link[0] := a - b.Link[0];
+  Result.Link[1] := a - b.Link[1];
+  Result.Link[2] := a - b.Link[2];
+  Result.Link[3] := a - b.Link[3];
 end;
 
-operator - (const A: TVector4; const b: Single): TVector4;
+operator - (const a: TVector4; const b: Single): TVector4;
 begin
-  Result.Link[0] := A.Link[0] - b;
-  Result.Link[1] := A.Link[1] - b;
-  Result.Link[2] := A.Link[2] - b;
-  Result.Link[3] := A.Link[3] - b;
+  Result.Link[0] := a.Link[0] - b;
+  Result.Link[1] := a.Link[1] - b;
+  Result.Link[2] := a.Link[2] - b;
+  Result.Link[3] := a.Link[3] - b;
 end;
 
-operator - (const A: TVector4; const b: TVector4): TVector4;
+operator - (const a: TVector4; const b: TVector4): TVector4;
 begin
-  Result.Link[0] := A.Link[0] - b.Link[0];
-  Result.Link[1] := A.Link[1] - b.Link[1];
-  Result.Link[2] := A.Link[2] - b.Link[2];
-  Result.Link[3] := A.Link[3] - b.Link[3];
+  Result.Link[0] := a.Link[0] - b.Link[0];
+  Result.Link[1] := a.Link[1] - b.Link[1];
+  Result.Link[2] := a.Link[2] - b.Link[2];
+  Result.Link[3] := a.Link[3] - b.Link[3];
 end;
 
-operator - (const A: Single; const b: TVector3): TVector3;
+operator - (const a: Single; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A - b.Link[0];
-  Result.Link[1] := A - b.Link[1];
-  Result.Link[2] := A - b.Link[2];
+  Result.Link[0] := a - b.Link[0];
+  Result.Link[1] := a - b.Link[1];
+  Result.Link[2] := a - b.Link[2];
 end;
 
-operator - (const A: TVector3; const b: Single): TVector3;
+operator - (const a: TVector3; const b: Single): TVector3;
 begin
-  Result.Link[0] := A.Link[0] - b;
-  Result.Link[1] := A.Link[1] - b;
-  Result.Link[2] := A.Link[2] - b;
+  Result.Link[0] := a.Link[0] - b;
+  Result.Link[1] := a.Link[1] - b;
+  Result.Link[2] := a.Link[2] - b;
 end;
 
-operator - (const A: TVector3; const b: TVector3): TVector3;
+operator - (const a: TVector3; const b: TVector3): TVector3;
 begin
-  Result.Link[0] := A.Link[0] - b.Link[0];
-  Result.Link[1] := A.Link[1] - b.Link[1];
-  Result.Link[2] := A.Link[2] - b.Link[2];
+  Result.Link[0] := a.Link[0] - b.Link[0];
+  Result.Link[1] := a.Link[1] - b.Link[1];
+  Result.Link[2] := a.Link[2] - b.Link[2];
 end;
 
 {$ENDIF}
 
 
 end. 
+ 
+ 
  

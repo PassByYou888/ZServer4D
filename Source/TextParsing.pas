@@ -60,7 +60,7 @@ type
     TokenStatistics: TTokenStatistics;
     SpecialSymbol: TListPascalString;
 
-    function ComparePosStr(const cOffset: Integer; const T: TPascalString): Boolean; overload; inline;
+    function ComparePosStr(const cOffset: Integer; const t: TPascalString): Boolean; overload; inline;
     function ComparePosStr(const cOffset: Integer; const p: PPascalString): Boolean; overload; inline;
     { }
     function CompareCommentGetEndPos(const cOffset: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -102,9 +102,9 @@ type
     function isTextOrComment(const cOffset: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function isCommentOrText(const cOffset: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function isWordSplitChar(const C: SystemChar; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function isWordSplitChar(const C: SystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function isWordSplitChar(const C: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(const c: SystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
     function GetWordBeginPos(const cOffset: Integer; SplitTokenC: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetWordBeginPos(const cOffset: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -117,12 +117,12 @@ type
       BeginDefaultChar: Boolean; BeginSplitCharSet: TPascalString;
       EndDefaultChar: Boolean; EndSplitCharSet: TPascalString): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     { }
-    function CompareTokenText(const cOffset: Integer; T: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function CompareTokenChar(const cOffset: Integer; const C: array of SystemChar): Boolean;
+    function CompareTokenText(const cOffset: Integer; t: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function CompareTokenChar(const cOffset: Integer; const c: array of SystemChar): Boolean;
     function GetToken(const cOffset: Integer): PTokenData;
     property TokenPos[const cOffset: Integer]: PTokenData read GetToken;
-    function GetTokenIndex(T: TTokenType; idx: Integer): PTokenData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    property TokenIndex[T: TTokenType; idx: Integer]: PTokenData read GetTokenIndex;
+    function GetTokenIndex(t: TTokenType; idx: Integer): PTokenData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    property TokenIndex[t: TTokenType; idx: Integer]: PTokenData read GetTokenIndex;
     function TokenCount: Integer;
     function GetTokens(idx: Integer): PTokenData;
     property Tokens[idx: Integer]: PTokenData read GetTokens;
@@ -191,27 +191,27 @@ const
 type
   TCTranslateStruct = packed record
     s: SystemChar;
-    C: SystemString;
+    c: SystemString;
   end;
 
 const
   CTranslateTable: array [0 .. 11] of TCTranslateStruct = (
-    (s: #007; C: '\a'),
-    (s: #008; C: '\b'),
-    (s: #012; C: '\f'),
-    (s: #010; C: '\n'),
-    (s: #013; C: '\r'),
-    (s: #009; C: '\t'),
-    (s: #011; C: '\v'),
-    (s: #092; C: '\\'),
-    (s: #063; C: '\?'),
-    (s: #039; C: '\'#39),
-    (s: #034; C: '\"'),
-    (s: #000; C: '\0'));
+    (s: #007; c: '\a'),
+    (s: #008; c: '\b'),
+    (s: #012; c: '\f'),
+    (s: #010; c: '\n'),
+    (s: #013; c: '\r'),
+    (s: #009; c: '\t'),
+    (s: #011; c: '\v'),
+    (s: #092; c: '\\'),
+    (s: #063; c: '\?'),
+    (s: #039; c: '\'#39),
+    (s: #034; c: '\"'),
+    (s: #000; c: '\0'));
 
-function TTextParsing.ComparePosStr(const cOffset: Integer; const T: TPascalString): Boolean;
+function TTextParsing.ComparePosStr(const cOffset: Integer; const t: TPascalString): Boolean;
 begin
-  Result := ParsingData.Text.ComparePos(cOffset, T);
+  Result := ParsingData.Text.ComparePos(cOffset, t);
 end;
 
 function TTextParsing.ComparePosStr(const cOffset: Integer; const p: PPascalString): Boolean;
@@ -235,56 +235,56 @@ begin
 
   if ComparePosStr(Result, '//') then
     begin
-      Inc(Result, 2);
+      inc(Result, 2);
       while ParsingData.Text[Result] <> #10 do
         begin
           if Result + 1 > L then
               Break;
-          Inc(Result);
+          inc(Result);
         end;
     end
   else if (TextStyle = tsC) and (ComparePosStr(Result, '#')) then
     begin
-      Inc(Result, 1);
+      inc(Result, 1);
       while ParsingData.Text[Result] <> #10 do
         begin
           if Result + 1 > L then
               Break;
-          Inc(Result);
+          inc(Result);
         end;
     end
   else if (TextStyle = tsC) and (ComparePosStr(Result, '/*')) then
     begin
-      Inc(Result, 2);
+      inc(Result, 2);
       while not ComparePosStr(Result, '*/') do
         begin
           if Result + 1 > L then
               Break;
-          Inc(Result);
+          inc(Result);
         end;
-      Inc(Result, 2);
+      inc(Result, 2);
     end
   else if (TextStyle = tsPascal) and (ComparePosStr(Result, '{')) then
     begin
-      Inc(Result, 1);
+      inc(Result, 1);
       while ParsingData.Text[Result] <> '}' do
         begin
           if Result + 1 > L then
               Break;
-          Inc(Result);
+          inc(Result);
         end;
-      Inc(Result, 1);
+      inc(Result, 1);
     end
   else if (TextStyle = tsPascal) and (ComparePosStr(Result, '(*')) then
     begin
-      Inc(Result, 2);
+      inc(Result, 2);
       while not ComparePosStr(Result, '*)') do
         begin
           if Result + 1 > L then
               Break;
-          Inc(Result);
+          inc(Result);
         end;
-      Inc(Result, 2);
+      inc(Result, 2);
     end;
 end;
 
@@ -308,73 +308,73 @@ begin
           cPos := CompareTextDeclGetEndPos(cPos + 4);
           Exit;
         end;
-      Inc(cPos, 1);
+      inc(cPos, 1);
       while ParsingData.Text[cPos] <> #39 do
         begin
           if cPos + 1 > L then
               Break;
           if ParsingData.Text[cPos] = #10 then
               Exit(cPos);
-          Inc(cPos);
+          inc(cPos);
         end;
-      Inc(cPos, 1);
+      inc(cPos, 1);
     end;
 
   if (cPos + 1 < L) and (TextStyle = tsC) and (ParsingData.Text[cPos] = #39) then
     begin
-      Inc(cPos, 1);
+      inc(cPos, 1);
       while ParsingData.Text[cPos] <> #39 do
         begin
           if ComparePosStr(cPos, '\' + #39) then
-              Inc(cPos, 1);
+              inc(cPos, 1);
           if cPos + 1 > L then
               Break;
           if ParsingData.Text[cPos] = #10 then
               Exit(cPos);
-          Inc(cPos);
+          inc(cPos);
         end;
-      Inc(cPos, 1);
+      inc(cPos, 1);
     end;
 
   if (cPos + 1 < L) and (TextStyle = tsC) and (ParsingData.Text[cPos] = '"') then
     begin
-      Inc(cPos, 1);
+      inc(cPos, 1);
       while ParsingData.Text[cPos] <> '"' do
         begin
           if ComparePosStr(cPos, '\"') then
-              Inc(cPos, 1);
+              inc(cPos, 1);
           if cPos + 1 > L then
               Break;
           if ParsingData.Text[cPos] = #10 then
               Exit(cPos);
-          Inc(cPos);
+          inc(cPos);
         end;
-      Inc(cPos, 1);
+      inc(cPos, 1);
     end;
 
   if (cPos + 1 < L) and (TextStyle = tsPascal) and (ParsingData.Text[cPos] = '#') then
     begin
       repeat
-        Inc(cPos, 1);
+        inc(cPos, 1);
 
         while isWordSplitChar(ParsingData.Text[cPos]) do
           begin
             if cPos + 1 > L then
                 Exit(cPos);
-            Inc(cPos);
+            inc(cPos);
           end;
         while CharIn(ParsingData.Text[cPos], [c0to9], '$') do
           begin
             if cPos + 1 > L then
                 Exit(cPos);
-            Inc(cPos);
+            inc(cPos);
           end;
         tmpPos := cPos;
         while isWordSplitChar(ParsingData.Text[cPos]) do
           begin
             if cPos + 1 > L then
                 Exit(cPos);
-            Inc(cPos);
+            inc(cPos);
           end;
       until not ComparePosStr(cPos, '#');
       cPos := CompareTextDeclGetEndPos(tmpPos);
@@ -452,7 +452,7 @@ begin
             end
           else
             begin
-              Inc(bPos);
+              inc(bPos);
               ePos := bPos;
             end;
         end;
@@ -473,7 +473,7 @@ begin
           LastTokenData^.tokenType := ttSpecialSymbol;
           LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
-          Inc(TokenStatistics[LastTokenData^.tokenType]);
+          inc(TokenStatistics[LastTokenData^.tokenType]);
 
           bPos := ePos
         end
@@ -488,7 +488,7 @@ begin
           LastTokenData^.tokenType := ttTextDecl;
           LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
-          Inc(TokenStatistics[LastTokenData^.tokenType]);
+          inc(TokenStatistics[LastTokenData^.tokenType]);
 
           bPos := ePos
         end
@@ -503,7 +503,7 @@ begin
           LastTokenData^.tokenType := ttComment;
           LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
-          Inc(TokenStatistics[LastTokenData^.tokenType]);
+          inc(TokenStatistics[LastTokenData^.tokenType]);
 
           bPos := ePos;
         end
@@ -518,7 +518,7 @@ begin
           LastTokenData^.tokenType := ttNumber;
           LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
-          Inc(TokenStatistics[LastTokenData^.tokenType]);
+          inc(TokenStatistics[LastTokenData^.tokenType]);
 
           bPos := ePos;
         end
@@ -533,7 +533,7 @@ begin
           LastTokenData^.tokenType := ttSymbol;
           LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
-          Inc(TokenStatistics[LastTokenData^.tokenType]);
+          inc(TokenStatistics[LastTokenData^.tokenType]);
 
           bPos := ePos;
         end
@@ -548,7 +548,7 @@ begin
           LastTokenData^.tokenType := ttAscii;
           LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
           ParsingData.Cache.TokenDataList.Add(LastTokenData);
-          Inc(TokenStatistics[LastTokenData^.tokenType]);
+          inc(TokenStatistics[LastTokenData^.tokenType]);
 
           bPos := ePos;
         end
@@ -565,7 +565,7 @@ begin
               LastTokenData^.tokenType := ttUnknow;
               LastTokenData^.idx := ParsingData.Cache.TokenDataList.Count;
               ParsingData.Cache.TokenDataList.Add(LastTokenData);
-              Inc(TokenStatistics[LastTokenData^.tokenType]);
+              inc(TokenStatistics[LastTokenData^.tokenType]);
             end
           else
             begin
@@ -685,7 +685,7 @@ begin
           cPos := GetAsciiBeginPos(cPos);
           Break;
         end;
-      Inc(cPos);
+      inc(cPos);
     end;
 
   Result := cPos;
@@ -730,7 +730,7 @@ begin
           cPos := GetAsciiEndPos(cPos);
           Break;
         end;
-      Inc(cPos);
+      inc(cPos);
     end;
 
   Result := cPos;
@@ -786,7 +786,7 @@ end;
 
 function TTextParsing.isNumber(const cOffset: Integer; var NumberBegin: Integer; var IsHex: Boolean): Boolean;
 var
-  C: SystemChar;
+  c: SystemChar;
   L: Integer;
   cPos, bkPos: Integer;
   NC: Integer;
@@ -812,7 +812,7 @@ begin
       begin
         // pascal style hex
         IsHex := True;
-        Inc(cPos);
+        inc(cPos);
         if cPos > L then
             Exit;
       end
@@ -820,7 +820,7 @@ begin
       begin
         // c style hex
         IsHex := True;
-        Inc(cPos, 2);
+        inc(cPos, 2);
         if cPos > L then
             Exit;
       end;
@@ -837,22 +837,22 @@ begin
 
           if cPos > L then
               Break;
-          C := ParsingData.Text[cPos];
+          c := ParsingData.Text[cPos];
 
-          if isWordSplitChar(C, True, SymbolTable) then
+          if isWordSplitChar(c, True, SymbolTable) then
             begin
               if NC > 0 then
                   Break;
             end
-          else if CharIn(C, cHex) then
-              Inc(NC)
+          else if CharIn(c, cHex) then
+              inc(NC)
           else
             begin
               Result := False;
               Exit;
             end;
 
-          Inc(cPos);
+          inc(cPos);
         end;
 
       Result := NC > 0;
@@ -860,8 +860,8 @@ begin
       Exit;
     end;
 
-  C := ParsingData.Text[cPos];
-  if CharIn(C, c0to9) then
+  c := ParsingData.Text[cPos];
+  if CharIn(c, c0to9) then
     begin
       bkPos := cPos;
       NC := 0;
@@ -871,29 +871,29 @@ begin
 
           if cPos > L then
               Break;
-          C := ParsingData.Text[cPos];
+          c := ParsingData.Text[cPos];
 
-          if isWordSplitChar(C, True, SymbolTable) then
+          if isWordSplitChar(c, True, SymbolTable) then
             begin
               if NC > 0 then
                   Break;
             end
-          else if CharIn(C, cAtoZ) then
+          else if CharIn(c, cAtoZ) then
             begin
               Result := False;
               Exit;
             end
-          else if CharIn(C, c0to9) then
-              Inc(NC);
+          else if CharIn(c, c0to9) then
+              inc(NC);
 
-          Inc(cPos);
+          inc(cPos);
         end;
 
       Result := NC > 0;
       NumberBegin := bkPos;
       Exit;
     end
-  else if CharIn(C, '+-.') then
+  else if CharIn(c, '+-.') then
     begin
       bkPos := cPos;
       NC := 0;
@@ -903,27 +903,27 @@ begin
 
           if cPos > L then
               Break;
-          C := ParsingData.Text[cPos];
+          c := ParsingData.Text[cPos];
 
-          if CharIn(C, '+-') then
+          if CharIn(c, '+-') then
             begin
               if NC > 0 then
                   Break;
             end
-          else if isWordSplitChar(C, True, SymbolTable) then
+          else if isWordSplitChar(c, True, SymbolTable) then
             begin
               if NC > 0 then
                   Break
             end
-          else if CharIn(C, cAtoZ) then
+          else if CharIn(c, cAtoZ) then
             begin
               Result := False;
               Exit;
             end
-          else if CharIn(C, c0to9) then
-              Inc(NC);
+          else if CharIn(c, c0to9) then
+              inc(NC);
 
-          Inc(cPos);
+          inc(cPos);
         end;
 
       Result := NC > 0;
@@ -937,7 +937,7 @@ var
   IsHex: Boolean;
   L: Integer;
   cPos: Integer;
-  C: SystemChar;
+  c: SystemChar;
   NC: Integer;
   dotC: Integer;
   eC: Integer;
@@ -957,41 +957,41 @@ begin
       while True do
         begin
           Result := GetTextDeclEndPos(GetCommentEndPos(Result));
-          C := ParsingData.Text[Result];
+          c := ParsingData.Text[Result];
 
-          if (not CharIn(C, [c0to9])) then
+          if (not CharIn(c, [c0to9])) then
             begin
-              if CharIn(C, '+-') then
+              if CharIn(c, '+-') then
                 begin
                   if NC > 0 then
                     begin
                       if eC = 1 then
-                          Inc(eC)
+                          inc(eC)
                       else
                           Exit;
                     end;
                 end
-              else if (not IsHex) and CharIn(C, '.') then
+              else if (not IsHex) and CharIn(c, '.') then
                 begin
                   if (dotC > 1) then
                       Exit;
-                  Inc(dotC);
+                  inc(dotC);
                 end
-              else if (not IsHex) and CharIn(C, 'eE') then
+              else if (not IsHex) and CharIn(c, 'eE') then
                 begin
                   if (eC > 1) then
                       Exit;
-                  Inc(eC);
+                  inc(eC);
                 end
-              else if (IsHex and (CharIn(C, [cLoAtoF, cHiAtoF]))) then
-                  Inc(NC)
+              else if (IsHex and (CharIn(c, [cLoAtoF, cHiAtoF]))) then
+                  inc(NC)
               else
                   Exit;
             end
           else
-              Inc(NC);
+              inc(NC);
 
-          Inc(Result);
+          inc(Result);
           if Result > L then
               Exit;
         end;
@@ -1054,7 +1054,7 @@ function TTextParsing.GetTextDeclPos(const cOffset: Integer; var charBeginPos, c
   end;
 
 var
-  cPos, L, R, M: Integer;
+  cPos, L, r, M: Integer;
 begin
   cPos := cOffset;
   if cPos < 1 then
@@ -1068,10 +1068,10 @@ begin
   Result := False;
 
   L := 0;
-  R := ParsingData.Cache.TextDecls.Count - 1;
-  while L <= R do
+  r := ParsingData.Cache.TextDecls.Count - 1;
+  while L <= r do
     begin
-      M := (L + R) div 2;
+      M := (L + r) div 2;
       case CompLst(M) of
         0:
           begin
@@ -1084,7 +1084,7 @@ begin
             Exit;
           end;
         -1: L := M + 1;
-        1: R := M - 1;
+        1: r := M - 1;
         else raise Exception.Create('struct error');
       end;
     end;
@@ -1173,7 +1173,7 @@ function TTextParsing.GetCommentPos(const cOffset: Integer; var charBeginPos, ch
   end;
 
 var
-  cPos, L, R, M: Integer;
+  cPos, L, r, M: Integer;
 begin
   cPos := cOffset;
   if cPos < 1 then
@@ -1187,10 +1187,10 @@ begin
   Result := False;
 
   L := 0;
-  R := ParsingData.Cache.CommentDecls.Count - 1;
-  while L <= R do
+  r := ParsingData.Cache.CommentDecls.Count - 1;
+  while L <= r do
     begin
-      M := (L + R) div 2;
+      M := (L + r) div 2;
       case CompLst(M) of
         0:
           begin
@@ -1203,7 +1203,7 @@ begin
             Exit;
           end;
         -1: L := M + 1;
-        1: R := M - 1;
+        1: r := M - 1;
         else raise Exception.Create('struct error');
       end;
     end;
@@ -1229,7 +1229,7 @@ begin
         end
       else
         begin
-          Inc(cPos);
+          inc(cPos);
         end;
     end;
   if oriPos <= ParsingData.Len then
@@ -1246,22 +1246,22 @@ begin
   Result := isComment(cOffset) or isTextDecl(cOffset);
 end;
 
-function TTextParsing.isWordSplitChar(const C: SystemChar; SplitTokenC: TPascalString): Boolean;
+function TTextParsing.isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean;
 begin
-  Result := isWordSplitChar(C, True, SplitTokenC);
+  Result := isWordSplitChar(c, True, SplitTokenC);
 end;
 
-function TTextParsing.isWordSplitChar(const C: SystemChar): Boolean;
+function TTextParsing.isWordSplitChar(const c: SystemChar): Boolean;
 begin
-  Result := isWordSplitChar(C, True, '');
+  Result := isWordSplitChar(c, True, '');
 end;
 
-function TTextParsing.isWordSplitChar(const C: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean;
+function TTextParsing.isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean;
 begin
   if DefaultChar then
-      Result := CharIn(C, [c0to32], SplitTokenC)
+      Result := CharIn(c, [c0to32], SplitTokenC)
   else
-      Result := CharIn(C, SplitTokenC);
+      Result := CharIn(c, SplitTokenC);
 end;
 
 function TTextParsing.GetWordBeginPos(const cOffset: Integer; SplitTokenC: TPascalString): Integer;
@@ -1298,7 +1298,7 @@ begin
       begin
         if cPos >= L then
             Break;
-        Inc(cPos);
+        inc(cPos);
       end;
   until not isComment(cPos);
 
@@ -1307,11 +1307,11 @@ begin
     begin
       if Result - 1 <= 0 then
           Break;
-      Dec(Result);
+      dec(Result);
     end;
 
   if isWordSplitChar(ParsingData.Text[Result], SplitTokenC) then
-      Inc(Result);
+      inc(Result);
 end;
 
 function TTextParsing.GetWordEndPos(const cOffset: Integer; SplitTokenC: TPascalString): Integer;
@@ -1345,13 +1345,13 @@ begin
 
   while (not isWordSplitChar(ParsingData.Text[Result], EndDefaultChar, EndSplitCharSet)) do
     begin
-      Inc(Result);
+      inc(Result);
       if Result > L then
           Break;
     end;
 end;
 
-function TTextParsing.CompareTokenText(const cOffset: Integer; T: TPascalString): Boolean;
+function TTextParsing.CompareTokenText(const cOffset: Integer; t: TPascalString): Boolean;
 var
   p: PTokenData;
 begin
@@ -1359,10 +1359,10 @@ begin
   p := GetToken(cOffset);
   if p = nil then
       Exit;
-  Result := p^.Text.Same(T);
+  Result := p^.Text.Same(t);
 end;
 
-function TTextParsing.CompareTokenChar(const cOffset: Integer; const C: array of SystemChar): Boolean;
+function TTextParsing.CompareTokenChar(const cOffset: Integer; const c: array of SystemChar): Boolean;
 var
   p: PTokenData;
 begin
@@ -1372,7 +1372,7 @@ begin
       Exit;
   if p^.Text.Len <> 1 then
       Exit;
-  Result := CharIn(p^.Text.First, C);
+  Result := CharIn(p^.Text.First, c);
 end;
 
 function TTextParsing.GetToken(const cOffset: Integer): PTokenData;
@@ -1392,7 +1392,7 @@ function TTextParsing.GetToken(const cOffset: Integer): PTokenData;
   end;
 
 var
-  L, R, M: Integer;
+  L, r, M: Integer;
 begin
   Result := nil;
 
@@ -1403,35 +1403,35 @@ begin
       RebuildParsingCache;
 
   L := 0;
-  R := ParsingData.Cache.TokenDataList.Count - 1;
-  while L <= R do
+  r := ParsingData.Cache.TokenDataList.Count - 1;
+  while L <= r do
     begin
-      M := (L + R) div 2;
+      M := (L + r) div 2;
       case CompLst(M) of
         0: Exit(PTokenData(ParsingData.Cache.TokenDataList[M]));
         -1: L := M + 1;
-        1: R := M - 1;
+        1: r := M - 1;
         else raise Exception.Create('struct error');
       end;
     end;
 end;
 
-function TTextParsing.GetTokenIndex(T: TTokenType; idx: Integer): PTokenData;
+function TTextParsing.GetTokenIndex(t: TTokenType; idx: Integer): PTokenData;
 var
-  i, C: Integer;
+  i, c: Integer;
   p: PTokenData;
 begin
   Result := nil;
-  C := 0;
+  c := 0;
   for i := 0 to ParsingData.Cache.TokenDataList.Count - 1 do
     begin
       p := PTokenData(ParsingData.Cache.TokenDataList[i]);
-      if p^.tokenType = T then
+      if p^.tokenType = t then
         begin
-          if C = idx then
+          if c = idx then
               Exit(p)
           else
-              Inc(C);
+              inc(c);
         end;
     end;
 end;
@@ -1467,7 +1467,7 @@ begin
 
   while isWordSplitChar(ParsingData.Text[cPos]) or (isTextOrComment(cPos)) do
     begin
-      Inc(cPos);
+      inc(cPos);
       if cPos > L then
           Exit(False);
     end;
@@ -1492,7 +1492,7 @@ function TTextParsing.SplitChar(const cOffset: Integer; var LastPos: Integer; co
     L := length(SplitOutput);
     SetLength(SplitOutput, L + 1);
     SplitOutput[L] := s;
-    Inc(Result);
+    inc(Result);
   end;
 
 type
@@ -1500,7 +1500,7 @@ type
 
 var
   L: Integer;
-  C: SystemChar;
+  c: SystemChar;
   cPos, bPos, ePos: Integer;
   LastSym: TLastSym;
 begin
@@ -1529,8 +1529,8 @@ begin
           cPos := GetTextDeclEndPos(cPos);
           Continue;
         end;
-      C := ParsingData.Text[cPos];
-      if isWordSplitChar(C, True, SplitTokenC) then
+      c := ParsingData.Text[cPos];
+      if isWordSplitChar(c, True, SplitTokenC) then
         begin
           if LastSym = lsBody then
             begin
@@ -1538,10 +1538,10 @@ begin
               AddS(GetStr(bPos, ePos));
               LastSym := lsNone;
             end;
-          Inc(cPos);
+          inc(cPos);
           Continue;
         end;
-      if (isWordSplitChar(C, False, SplitEndTokenC)) then
+      if (isWordSplitChar(c, False, SplitEndTokenC)) then
         begin
           if LastSym = lsBody then
             begin
@@ -1558,7 +1558,7 @@ begin
           bPos := cPos;
           LastSym := lsBody;
         end;
-      Inc(cPos);
+      inc(cPos);
     end;
 
   if LastSym = lsBody then
@@ -1572,9 +1572,9 @@ end;
 
 function TTextParsing.SplitChar(const cOffset: Integer; const SplitTokenC, SplitEndTokenC: TPascalString; var SplitOutput: TArrayPascalString): Integer;
 var
-  T: Integer;
+  t: Integer;
 begin
-  Result := SplitChar(cOffset, T, SplitTokenC, SplitEndTokenC, SplitOutput);
+  Result := SplitChar(cOffset, t, SplitTokenC, SplitEndTokenC, SplitOutput);
 end;
 
 function TTextParsing.SplitString(const cOffset: Integer; var LastPos: Integer; const SplitTokenS, SplitEndTokenS: TPascalString; var SplitOutput: TArrayPascalString): Integer;
@@ -1588,7 +1588,7 @@ function TTextParsing.SplitString(const cOffset: Integer; var LastPos: Integer; 
     L := length(SplitOutput);
     SetLength(SplitOutput, L + 1);
     SplitOutput[L] := s;
-    Inc(Result);
+    inc(Result);
   end;
 
 type
@@ -1596,7 +1596,7 @@ type
 
 var
   L: Integer;
-  C: SystemChar;
+  c: SystemChar;
   cPos, bPos, ePos: Integer;
   LastSym: TLastSym;
 begin
@@ -1633,7 +1633,7 @@ begin
               AddS(GetStr(bPos, ePos));
               LastSym := lsNone;
             end;
-          Inc(cPos, SplitTokenS.Len);
+          inc(cPos, SplitTokenS.Len);
           Continue;
         end;
       if ComparePosStr(cPos, SplitEndTokenS) then
@@ -1653,7 +1653,7 @@ begin
           bPos := cPos;
           LastSym := lsBody;
         end;
-      Inc(cPos);
+      inc(cPos);
     end;
 
   if LastSym = lsBody then
@@ -1667,9 +1667,9 @@ end;
 
 function TTextParsing.SplitString(const cOffset: Integer; const SplitTokenS, SplitEndTokenS: TPascalString; var SplitOutput: TArrayPascalString): Integer;
 var
-  T: Integer;
+  t: Integer;
 begin
-  Result := SplitString(cOffset, T, SplitTokenS, SplitEndTokenS, SplitOutput);
+  Result := SplitString(cOffset, t, SplitTokenS, SplitEndTokenS, SplitOutput);
 end;
 
 function TTextParsing.GetStr(const bPos, ePos: Integer): TPascalString;
@@ -1703,12 +1703,12 @@ begin
     begin
       if ParsingData.Text[i] = #10 then
         begin
-          Inc(Result.Y);
-          Result.X := 0;
+          inc(Result.y);
+          Result.x := 0;
         end
       else if not CharIn(ParsingData.Text[i], [#13]) then
         begin
-          Inc(Result.X);
+          inc(Result.x);
         end;
     end;
 end;
@@ -1800,7 +1800,7 @@ begin
           cp := ePos;
         end
       else
-          Inc(cp);
+          inc(cp);
     end;
 end;
 
@@ -1820,30 +1820,30 @@ begin
       if Text.ComparePos(cPos, #39#39#39#39) then
         begin
           Result.Append(#39);
-          Inc(cPos, 4);
+          inc(cPos, 4);
         end
       else if Text[cPos] = #39 then
         begin
           VIsTextDecl := not VIsTextDecl;
-          Inc(cPos);
+          inc(cPos);
         end
       else
         begin
           if VIsTextDecl then
             begin
               Result.Append(Text[cPos]);
-              Inc(cPos);
+              inc(cPos);
             end
           else if Text[cPos] = '#' then
             begin
               nText := '';
-              Inc(cPos);
+              inc(cPos);
               while cPos <= Text.Len do
                 begin
                   if not CharIn(Text[cPos], ' #' + #39#13#10) then
                     begin
                       nText.Append(Text[cPos]);
-                      Inc(cPos);
+                      inc(cPos);
                     end
                   else
                       Break;
@@ -1851,7 +1851,7 @@ begin
               Result.Append(SystemChar(StrToIntDef(nText.Text, 0)));
             end
           else
-              Inc(cPos);
+              inc(cPos);
         end;
     end;
 end;
@@ -1859,7 +1859,7 @@ end;
 class function TTextParsing.TranslateTextToPascalDecl(const Text: TPascalString): TPascalString;
 var
   cPos: Integer;
-  C: SystemChar;
+  c: SystemChar;
   LastIsOrdChar: Boolean;
   ordCharInfo: TPascalString;
 begin
@@ -1878,25 +1878,25 @@ begin
   LastIsOrdChar := False;
   for cPos := 1 to Text.Len do
     begin
-      C := Text[cPos];
-      if CharIn(C, ordCharInfo) then
+      c := Text[cPos];
+      if CharIn(c, ordCharInfo) then
         begin
           if Result.Len = 0 then
-              Result := '#' + IntToStr(Ord(C))
+              Result := '#' + IntToStr(Ord(c))
           else if LastIsOrdChar then
-              Result.Append('#' + IntToStr(Ord(C)))
+              Result.Append('#' + IntToStr(Ord(c)))
           else
-              Result.Append(#39 + '#' + IntToStr(Ord(C)));
+              Result.Append(#39 + '#' + IntToStr(Ord(c)));
           LastIsOrdChar := True;
         end
       else
         begin
           if Result.Len = 0 then
-              Result := #39 + C
+              Result := #39 + c
           else if LastIsOrdChar then
-              Result.Append(#39 + C)
+              Result.Append(#39 + c)
           else
-              Result.Append(C);
+              Result.Append(c);
 
           LastIsOrdChar := False;
         end;
@@ -1909,7 +1909,7 @@ end;
 class function TTextParsing.TranslateTextToPascalDeclWithUnicode(const Text: TPascalString): TPascalString;
 var
   cPos: Integer;
-  C: SystemChar;
+  c: SystemChar;
   LastIsOrdChar: Boolean;
   ordCharInfo: TPascalString;
 begin
@@ -1928,25 +1928,25 @@ begin
   LastIsOrdChar := False;
   for cPos := 1 to Text.Len do
     begin
-      C := Text[cPos];
-      if CharIn(C, ordCharInfo) or (Ord(C) >= $80) then
+      c := Text[cPos];
+      if CharIn(c, ordCharInfo) or (Ord(c) >= $80) then
         begin
           if Result.Len = 0 then
-              Result := '#' + IntToStr(Ord(C))
+              Result := '#' + IntToStr(Ord(c))
           else if LastIsOrdChar then
-              Result.Append('#' + IntToStr(Ord(C)))
+              Result.Append('#' + IntToStr(Ord(c)))
           else
-              Result.Append(#39 + '#' + IntToStr(Ord(C)));
+              Result.Append(#39 + '#' + IntToStr(Ord(c)));
           LastIsOrdChar := True;
         end
       else
         begin
           if Result.Len = 0 then
-              Result := #39 + C
+              Result := #39 + c
           else if LastIsOrdChar then
-              Result.Append(#39 + C)
+              Result.Append(#39 + c)
           else
-              Result.Append(C);
+              Result.Append(c);
 
           LastIsOrdChar := False;
         end;
@@ -1974,16 +1974,16 @@ begin
       if Text[cPos] = '"' then
         begin
           VIsTextDecl := not VIsTextDecl;
-          Inc(cPos);
+          inc(cPos);
         end
       else
         begin
           wasC := False;
           for i := low(CTranslateTable) to high(CTranslateTable) do
             begin
-              if Text.ComparePos(cPos, CTranslateTable[i].C) then
+              if Text.ComparePos(cPos, CTranslateTable[i].c) then
                 begin
-                  Inc(cPos, length(CTranslateTable[i].C));
+                  inc(cPos, length(CTranslateTable[i].c));
                   Result.Append(CTranslateTable[i].s);
                   wasC := True;
                   Break;
@@ -1993,29 +1993,29 @@ begin
             begin
               if (VIsTextDecl) then
                   Result.Append(Text[cPos]);
-              Inc(cPos);
+              inc(cPos);
             end;
         end;
     end;
 end;
 
 class function TTextParsing.TranslateTextToC_Decl(const Text: TPascalString): TPascalString;
-  function GetCStyle(const C: SystemChar): SystemString; inline;
+  function GetCStyle(const c: SystemChar): SystemString; inline;
   var
     i: Integer;
   begin
     Result := '';
     for i := low(CTranslateTable) to high(CTranslateTable) do
-      if C = CTranslateTable[i].s then
+      if c = CTranslateTable[i].s then
         begin
-          Result := CTranslateTable[i].C;
+          Result := CTranslateTable[i].c;
           Break;
         end;
   end;
 
 var
   cPos: Integer;
-  C: SystemChar;
+  c: SystemChar;
   LastIsOrdChar: Boolean;
   n: SystemString;
 begin
@@ -2029,17 +2029,17 @@ begin
   LastIsOrdChar := False;
   for cPos := 1 to Text.Len do
     begin
-      C := Text[cPos];
+      c := Text[cPos];
 
       if Result.Len = 0 then
-          Result := '"' + C
+          Result := '"' + c
       else
         begin
-          n := GetCStyle(C);
+          n := GetCStyle(c);
           if n <> '' then
               Result.Append(n)
           else
-              Result.Append(C);
+              Result.Append(c);
         end;
     end;
 
@@ -2244,3 +2244,5 @@ begin
 end;
 
 end.
+ 
+ 
