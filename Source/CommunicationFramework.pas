@@ -4306,7 +4306,7 @@ end;
 procedure TPeerIO.PrintCommand(v: SystemString; Args: SystemString);
 begin
   try
-    if (not OwnerFramework.FQuietMode) and (not IsSystemCMD(Args)) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
+    if (not OwnerFramework.FQuietMode) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
         Print(Format(v, [Args]))
     else
         inc(OwnerFramework.Statistics[TStatisticsType.stPrint]);
@@ -4318,7 +4318,7 @@ end;
 procedure TPeerIO.PrintParam(v: SystemString; Args: SystemString);
 begin
   try
-    if (not IsSystemCMD(Args)) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
+    if (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
         Print(Format(v, [Args]));
   except
       Print(Format(v, [Args]));
@@ -5378,7 +5378,7 @@ end;
 procedure TCommunicationFramework.PrintParam(v: SystemString; Args: SystemString);
 begin
   try
-    if (not IsSystemCMD(Args)) and (FPrintParams.GetDefaultValue(Args, True) = True) then
+    if (FPrintParams.GetDefaultValue(Args, True) = True) then
         DoPrint(Format(v, [Args]));
   except
       DoPrint(Format(v, [Args]));

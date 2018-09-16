@@ -387,6 +387,6 @@ finalization
 
 DisposeObject(UserConfig);
 GlobalProgressThreadRuning := False;
-ProgressBackgroundProc := DefaultProgressBackgroundProc;
+ProgressBackgroundProc := nil;
 
 end.

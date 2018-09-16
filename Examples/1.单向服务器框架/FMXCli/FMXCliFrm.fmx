@@ -28,8 +28,8 @@ object FMXClientForm: TFMXClientForm
     TabOrder = 0
     Left = 136
     Top = 38
-    Viewport.Width = 468.000000000000000000
-    Viewport.Height = 311.000000000000000000
+    Viewport.Width = 472.000000000000000000
+    Viewport.Height = 315.000000000000000000
   end
   object connectButton: TButton
     Position.X = 8.000000000000000000
@@ -44,7 +44,7 @@ object FMXClientForm: TFMXClientForm
   object HostEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
     TabOrder = 5
-    Text = '192.168.2.77'
+    Text = '127.0.0.1'
     Position.X = 8.000000000000000000
     Position.Y = 8.000000000000000000
     Size.Width = 113.000000000000000000

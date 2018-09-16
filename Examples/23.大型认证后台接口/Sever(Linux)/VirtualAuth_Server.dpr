@@ -26,7 +26,10 @@ begin
   AuthIO := TVirtualAuthIO(Sender.Data1);
   // 在访问其他服务器的过程中，我们等待验证的用户可能已经断线，因此我们需要判断一下
   if not AuthIO.Online then
+    begin
       AuthIO.Bye; // TVirtualAuthIO中的bye等同于Free，如果我们不Bye，会造成内存泄漏
+      exit;
+    end;
 
   // TVirtualAuthIO中的Accept和Reject方法只能被调用一次，完成后它会被自动释放
   if SameText(AuthIO.UserID, 'Test') and SameText(AuthIO.Passwd, 'Test') then

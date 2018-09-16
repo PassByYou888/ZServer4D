@@ -39,8 +39,8 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
     TabOrder = 0
     Left = 136
     Top = 38
-    Viewport.Width = 509.000000000000000000
-    Viewport.Height = 303.000000000000000000
+    Viewport.Width = 513.000000000000000000
+    Viewport.Height = 323.000000000000000000
   end
   object connectButton: TButton
     StyledSettings = [Family, Style, FontColor]
@@ -57,7 +57,7 @@ object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
   object HostEdit: TEdit
     Touch.InteractiveGestures = [LongTap, DoubleTap]
     TabOrder = 7
-    Text = '192.168.2.77'
+    Text = '127.0.0.1'
     Position.X = 8.000000000000000000
     Position.Y = 8.000000000000000000
     Size.Width = 233.000000000000000000

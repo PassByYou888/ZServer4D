@@ -81,7 +81,6 @@ object ZDBBatchDataServiceForm: TZDBBatchDataServiceForm
     ScrollBars = ssBoth
     TabOrder = 0
     WordWrap = False
-    ExplicitWidth = 728
   end
   object WatchMemo: TMemo
     Left = 937
@@ -91,7 +90,6 @@ object ZDBBatchDataServiceForm: TZDBBatchDataServiceForm
     Align = alRight
     ReadOnly = True
     TabOrder = 1
-    ExplicitLeft = 728
   end
   object Timer1: TTimer
     Interval = 10

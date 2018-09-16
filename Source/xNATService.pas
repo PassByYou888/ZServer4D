@@ -410,6 +410,8 @@ begin
   for i := ShareListenList.Count - 1 downto 0 do
     begin
       shLt := ShareListenList[i] as TXServiceListen;
+      Sender.p2pVM.MaxVMFragmentSize := umlStrToInt(MaxVMFragment, Sender.p2pVM.MaxVMFragmentSize);
+      Sender.p2pVM.MaxRealBuffer := umlStrToInt(MaxRealBuffer, Sender.p2pVM.MaxRealBuffer);
       Sender.p2pVM.InstallLogicFramework(shLt.RecvTunnel);
       Sender.p2pVM.InstallLogicFramework(shLt.SendTunnel);
     end;

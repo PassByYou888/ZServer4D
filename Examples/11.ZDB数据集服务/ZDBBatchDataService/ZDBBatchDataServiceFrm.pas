@@ -22,6 +22,7 @@ uses
 type
   TMyDataStoreService = class(TDataStoreService_VirtualAuth)
   protected
+    procedure UserAuth(Sender: TVirtualAuthIO); override;
     procedure UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); override;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); override;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); override;
@@ -44,7 +45,7 @@ type
   public
     { Public declarations }
     RecvTunnel, SendTunnel: TCommunicationFrameworkServer;
-    DBService             : TMyDataStoreService;
+    DBService: TMyDataStoreService;
     procedure DoStatusNear(AText: string; const ID: Integer);
   end;
 
@@ -60,6 +61,11 @@ procedure TMyDataStoreService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefin
 begin
   DoStatus('用户 %s 建立交互链接成功', [UserDefineIO.UserID]);
   inherited;
+end;
+
+procedure TMyDataStoreService.UserAuth(Sender: TVirtualAuthIO);
+begin
+  Sender.Accept;
 end;
 
 procedure TMyDataStoreService.UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
@@ -87,9 +93,9 @@ end;
 
 procedure TZDBBatchDataServiceForm.MyCustomJsonQuery(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
 var
-  key  : string;
+  key: string;
   value: string;
-  j    : TDBEngineJson;
+  j: TDBEngineJson;
 begin
   // query是高吞吐率的触发频率，每秒调用事件会产生数百万次
   // 编写query，一定要注意优化程序，以最少的代码实现条件对比
@@ -117,9 +123,9 @@ end;
 
 procedure TZDBBatchDataServiceForm.MyCustomJsonAnalysisQuery(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
 var
-  key  : string;
+  key: string;
   value: Integer;
-  j    : TDBEngineJson;
+  j: TDBEngineJson;
 begin
   // query是高吞吐率的触发频率，每秒调用事件会产生数百万次
   // 编写query，一定要注意优化程序，以最少的代码实现条件对比
@@ -181,10 +187,10 @@ end;
 
 procedure TZDBBatchDataServiceForm.Timer2Timer(Sender: TObject);
 var
-  I  : Integer;
+  I: Integer;
   lst: TCoreClassListForObj;
-  db : TZDBStoreEngine;
-  pl : TZDBPipeline;
+  db: TZDBStoreEngine;
+  pl: TZDBPipeline;
 begin
   lst := TCoreClassListForObj.Create;
   DBService.ZDBLocal.GetDBList(lst);

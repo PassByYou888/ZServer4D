@@ -379,7 +379,11 @@ end;
 procedure TXNATClient.PhysicsOpenVM_Result(const cState: Boolean);
 begin
   if cState then
+    begin
+      PhysicsEngine.ClientIO.p2pVMTunnel.MaxVMFragmentSize := umlStrToInt(MaxVMFragment, PhysicsEngine.ClientIO.p2pVMTunnel.MaxVMFragmentSize);
+      PhysicsEngine.ClientIO.p2pVMTunnel.MaxRealBuffer := umlStrToInt(MaxRealBuffer, PhysicsEngine.ClientIO.p2pVMTunnel.MaxRealBuffer);
       PhysicsEngine.SendStreamCmd('IPV6ListenState', nil, {$IFDEF FPC}@{$ENDIF FPC}IPV6ListenState_Result);
+    end;
 end;
 
 procedure TXNATClient.IPV6ListenState_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);

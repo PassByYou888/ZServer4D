@@ -853,7 +853,9 @@ end;
 
 procedure _Log(const S: string); overload;
 begin
+  {$IFDEF DEBUG}
   DoStatus(s);
+  {$ENDIF}
 end;
 
 procedure _Log(const Fmt: string; const Args: array of const); overload;

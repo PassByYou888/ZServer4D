@@ -465,7 +465,7 @@ begin
     begin
       ms := TMemoryStream64.Create;
       if PackUserAsStream(LogicCli.UserID, ms) then
-          LogicCli.UploadDBClient.PostFile(LogicCli.UserID + '.loginPackage', ms)
+          LogicCli.UploadDBClient.PostFile(LogicCli.UserID + '.loginPackage', ms, True)
       else
           DisposeObject(ms);
     end;
@@ -500,7 +500,7 @@ begin
         begin
           ms := TMemoryStream64.Create;
           if PackUserAsStream(Sender.OutData.ReadString(1), ms) then
-              LogicCli.UploadDBClient.PostFile(umlGetFileName(Sender.fileName), ms)
+              LogicCli.UploadDBClient.PostFile(umlGetFileName(Sender.fileName), ms, True)
           else
               DisposeObject(ms);
         end;
@@ -551,7 +551,7 @@ begin
         begin
           ms := TMemoryStream64.Create;
           if PackUserAsStream(UserID, ms) then
-              Sender[Sender.Count - 1]^.client.PostFile(UserID + '.loginPackage', ms)
+              Sender[Sender.Count - 1]^.client.PostFile(UserID + '.loginPackage', ms, True)
           else
               DisposeObject(ms);
 
@@ -895,7 +895,7 @@ begin
   LogicFileDB := TObjectDataManagerOfCache.CreateAsStream(umlGetResourceStream('LogicFile.ox'), '', 0, True, False, True);
   FileMD5Cache := THashList.Create;
   FileMD5Cache.AutoFreeData := True;
-  FileMD5Cache.OnDataFreeProc := MD5CacheDataNotifyProc;
+  FileMD5Cache.OnFreePtr := MD5CacheDataNotifyProc;
 
   PortraitStream := TMemoryStream64.Create;
 
