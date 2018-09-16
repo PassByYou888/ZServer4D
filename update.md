@@ -1,5 +1,51 @@
 # 更新日志
 
+### 2018-9-15
+
+本次更新，大幅提升底层库的稳定性
+================
+
+**重大更新**
+
+- 新接口，同时支持fpc+delphi:新增基于Synapse的通讯接口
+- 内网穿透核心技术，同时支持fpc+delphi:新增内网穿透的开发库，由xNatService.pas,xNatClient.pas,xNATPhysics.pas三个小库组成，只需5行代码即可驱动，可使用ZServer支持的任意通讯接口工作。已通过5万ip/每分钟连续4小时的压力穿透测试。
+- IoT物联网，只限fpc：对IoT平台的支持，基于fpc在各平台完整支持了Synapse通讯接口，包括：ARM Linux(IoT需求)，Linux x86+x64，OSX x86+x64，Win x86+x64
+- 稳定和安全，大规模取替底层库使用inline的机制
+
+**CommunicationFramework.pas库及周边支持**
+
+- 优化，稳定性提升，深度考虑安全性
+- 安全，重做了p2pVM的验证系统（每个p2pVM握手时，都会用不同的验证方式）
+- 安全，p2pVM第一次握手时，必须有验证码
+- 工艺，新增2种协议模式：cpZServer(原来的通讯协议),cpCustom(外部自定义的通讯协议)
+- 工艺，重做外部自定义通讯协议的开发工艺：开发自定义通讯协议时，不用再考虑同步异步问题
+- 工艺，ProgressBackground全部统一替换成Progress
+- 工艺，TCommunicationFrameworkServer服务器触发DoClientConnectAfter会区分协议，cpZServer,cpCustom会有各自处理机制
+- 安全，在TCommunicationFramework中以性能换取了Progress的稳定性，客户端+服务器在高并发环境下不会再在这个地方出现异常报告了
+- 周边：极小概率bug，修复CrossSocket的连接池释放时发生异常的问题(delphi)
+- 周边：控制台模式服务器bug，修复ICS,Syanpse,Indy服务器在Console应用模式中不触发线程同步的问题(delphi)
+- 周边：小概率bug，修复ICS服务器使用StopService偶发性的出现卡死的bug
+- 周边：合并了最新更新的CrossSocket内核
+- 周边：优化，在MemoryStream64.pas库中对ZLib使用解压时，会预先分配内存或则文件空间，避免因为MemoryManager频繁Realloc造成性能耗损(在FPC方向程序中，性能可以相对提供10%)
+
+
+**TextParsing.pas库及其周边支持**
+
+- 大幅提升的解析性能，使用不变，相较以前，性能向前提升90%
+- 新增可替代蚂蚁机制的文本探头技术
+- 优化大规模解析程序的复杂度：降低50%
+- 修复对123{abc}这种写法的误判行为
+
+**TextDataEngine.pas库**
+
+- 重做数据结构支持，使用与以前不变
+- 新增了对THashStringList的内置支持(相对THashVariantList，性能更加优异)
+- 对已生成的Hash会使用安全校验措施
+
+**百度翻译api服务器**
+
+- 由于百度不再提供免费翻译api，我们首次运行百度翻译api服务器时，会生成一个配置文件，它会指引你如何注册翻译api的账号
+
 ### 2018-7-6
 - 大幅修正底层库的命名规则
 - 对fpc/86/64平台支持，全部基础库支持Linux下的无故障编译和运行
