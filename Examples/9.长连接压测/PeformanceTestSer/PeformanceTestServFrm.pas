@@ -170,7 +170,7 @@ end;
 
 procedure TEZServerForm.TimerTimer(Sender: TObject);
 begin
-  server.ProgressBackground;
+  server.Progress;
   Caption := Format('online client:%d', [server.Count]);
 end;
 

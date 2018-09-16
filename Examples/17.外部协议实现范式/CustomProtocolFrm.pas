@@ -7,7 +7,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
 
   CommunicationFramework, PascalStrings,
-  CommunicationFramework_Server_CrossSocket, DoStatusIO, MemoryStream64, CoreClasses,
+  CommunicationFramework_Server_CrossSocket, CommunicationFramework_Client_CrossSocket,
+  DoStatusIO, MemoryStream64, CoreClasses,
 
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdGlobal;
 
@@ -29,26 +30,44 @@ type
   public
     // 从服务器获取外部定制化处理缓冲区接口
     // 这里的buffer全部是碎片化缓冲区
-    procedure FillCustomBuffer(Sender: TPeerClient; const Th: TCoreClassThread; const Buffer: PByte; const Size: NativeInt; var Done: Boolean); override;
+    procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt); override;
+  end;
+
+  TMyClient = class(TCommunicationFramework_Client_CrossSocket)
+  public
+    myBuffer: TMemoryStream64;
+
+    constructor Create; override;
+    destructor Destroy; override;
+    // 从服务器获取外部定制化处理缓冲区接口
+    // 这里的buffer全部是碎片化缓冲区
+    procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt); override;
   end;
 
   TCustomProtocolForm = class(TForm)
     Memo: TMemo;
     Timer: TTimer;
     Panel1: TPanel;
-    connectButton: TButton;
-    WriteStringButton: TButton;
+    connectOnIndyButton: TButton;
+    SendDataOnIndyButton: TButton;
     IdTCPClient1: TIdTCPClient;
+    connectOnZServerButton: TButton;
+    SendDataOnZServerButton: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure connectButtonClick(Sender: TObject);
-    procedure WriteStringButtonClick(Sender: TObject);
+    procedure connectOnIndyButtonClick(Sender: TObject);
+    procedure connectOnZServerButtonClick(Sender: TObject);
+    procedure SendDataOnIndyButtonClick(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure SendDataOnZServerButtonClick(Sender: TObject);
   private
-    { Private declarations }
   public
-    { Public declarations }
+    // 自定义协议的服务器
     myServer: TMyServer;
+
+    // 自定义协议的客户端
+    myClient: TMyClient;
+
     procedure DoStatusMethod(AText: SystemString; const ID: Integer);
   end;
 
@@ -93,38 +112,49 @@ begin
     end;
 end;
 
-procedure TMyServer.FillCustomBuffer(Sender: TPeerClient; const Th: TCoreClassThread; const Buffer: PByte; const Size: NativeInt; var Done: Boolean);
+procedure TMyServer.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);
 begin
   // 从服务器获取外部定制化处理缓冲区接口
   // 这里的buffer全部是碎片化缓冲区
-
-  // 我们做自己的定制化协议 done要设置为是true
-  Done := True;
-
-  if Size <= 0 then
-      exit;
-
-  // 根据线程状态判断是否同步化处理碎片缓冲区
-  if Th <> nil then
-      Th.Synchronize(Th,
-      procedure
-      begin
-        // 我们将碎片缓冲区追加写入到myBuffer
-        TMyPeerClientUserSpecial(Sender.UserSpecial).myBuffer.WritePtr(Buffer, Size);
-      end)
-  else
-    begin
-      // 我们将碎片缓冲区追加写入到myBuffer
-      TMyPeerClientUserSpecial(Sender.UserSpecial).myBuffer.WritePtr(Buffer, Size);
-    end;
+  // 我们将碎片缓冲区追加写入到myBuffer
+  TMyPeerClientUserSpecial(Sender.UserSpecial).myBuffer.WritePtr(buffer, Size);
 end;
 
-procedure TCustomProtocolForm.connectButtonClick(Sender: TObject);
+constructor TMyClient.Create;
+begin
+  inherited Create;
+  myBuffer := TMemoryStream64.Create;
+end;
+
+destructor TMyClient.Destroy;
+begin
+  DisposeObject(myBuffer);
+  inherited Destroy;
+end;
+
+procedure TMyClient.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt);
+begin
+  // 从服务器获取外部定制化处理缓冲区接口
+  // 这里的buffer全部是碎片化缓冲区
+  // 我们将碎片缓冲区追加写入到myBuffer
+  myBuffer.WritePtr(buffer, Size);
+end;
+
+procedure TCustomProtocolForm.connectOnIndyButtonClick(Sender: TObject);
 begin
   IdTCPClient1.Connect;
 
   if IdTCPClient1.Connected then
-      DoStatus('connect ok!');
+      DoStatus('connect on indy ok!');
+end;
+
+procedure TCustomProtocolForm.connectOnZServerButtonClick(Sender: TObject);
+begin
+  myClient.AsyncConnect('127.0.0.1', 9989, procedure(const cState: Boolean)
+    begin
+      if cState then
+          DoStatus('ZServer自定义客户端连接成功');
+    end);
 end;
 
 procedure TCustomProtocolForm.DoStatusMethod(AText: SystemString; const ID: Integer);
@@ -135,22 +165,29 @@ end;
 procedure TCustomProtocolForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   DisposeObject(myServer);
+  DisposeObject(myClient);
 end;
 
 procedure TCustomProtocolForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusMethod);
   myServer := TMyServer.Create;
+  // 使用自定义通讯协议
+  myServer.Protocol := cpCustom;
   // 指定客户端的p2p实例接口
   myServer.PeerClientUserSpecialClass := TMyPeerClientUserSpecial;
   myServer.StartService('', 9989);
+
+  myClient := TMyClient.Create;
+  myClient.Protocol := cpCustom;
 end;
 
 procedure TCustomProtocolForm.TimerTimer(Sender: TObject);
 var
   iBuf: TIdBytes;
 begin
-  myServer.ProgressBackground;
+  myServer.Progress;
+  myClient.Progress;
 
   if IdTCPClient1.Connected then
     begin
@@ -163,18 +200,36 @@ begin
           DoStatus(format('response ', []), @iBuf[0], length(iBuf), 16);
         end;
     end;
+
+  if myClient.Connected then
+    begin
+      if myClient.myBuffer.Size > 0 then
+        begin
+          DoStatus(format('response ', []), myClient.myBuffer.Memory, myClient.myBuffer.Size, 16);
+          myClient.myBuffer.Clear;
+        end;
+    end;
 end;
 
-procedure TCustomProtocolForm.WriteStringButtonClick(Sender: TObject);
+procedure TCustomProtocolForm.SendDataOnIndyButtonClick(Sender: TObject);
 var
   d: UInt64;
 begin
-  d := $FFFFFF1234567890;
+  d := ($ABCDEF1234567890);
   // 我们用indy接口往服务器发送一个uint变量
   IdTCPClient1.IOHandler.WriteBufferOpen;
-  IdTCPClient1.IOHandler.Write(d);
+  // 这里要注意一下:如果开转换参数，indy使用的大端字节序的转换(早期indy版本为了兼容非intel架构的设计)，所以，我们要关闭转换
+  IdTCPClient1.IOHandler.Write(d, False);
   IdTCPClient1.IOHandler.WriteBufferFlush;
   IdTCPClient1.IOHandler.WriteBufferClose;
+end;
+
+procedure TCustomProtocolForm.SendDataOnZServerButtonClick(Sender: TObject);
+var
+  d: UInt64;
+begin
+  d := ($ABCDEF1234567890);
+  myClient.WriteBuffer(@d, SizeOf(d));
 end;
 
 end.

@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{AAE143CD-3E09-4A3D-AF8C-7D73DCA547A6}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Sever(Linux)\VirtualAuth_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Client\VirtualAuth_Client.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="VirtualAuth_Server">
+        <MSBuild Projects="Sever(Linux)\VirtualAuth_Server.dproj"/>
+    </Target>
+    <Target Name="VirtualAuth_Server:Clean">
+        <MSBuild Projects="Sever(Linux)\VirtualAuth_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VirtualAuth_Server:Make">
+        <MSBuild Projects="Sever(Linux)\VirtualAuth_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VirtualAuth_Client">
+        <MSBuild Projects="Client\VirtualAuth_Client.dproj"/>
+    </Target>
+    <Target Name="VirtualAuth_Client:Clean">
+        <MSBuild Projects="Client\VirtualAuth_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VirtualAuth_Client:Make">
+        <MSBuild Projects="Client\VirtualAuth_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="VirtualAuth_Server;VirtualAuth_Client"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="VirtualAuth_Server:Clean;VirtualAuth_Client:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="VirtualAuth_Server:Make;VirtualAuth_Client:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -99,7 +99,7 @@ var
 begin
   for i := low(client) to high(client) do
     if client[i].Connected then
-        client[i].ProgressBackground;
+        client[i].Progress;
 end;
 
 procedure TEZClientForm.TestCommandButtonClick(Sender: TObject);

@@ -315,7 +315,7 @@ type
     OnCall: TStateCall;
     OnMethod: TStateMethod;
 {$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   PGetFileInfoStruct_NoAuth = ^TGetFileInfoStruct_NoAuth;
@@ -901,8 +901,8 @@ end;
 procedure TCommunicationFramework_DoubleTunnelService_NoAuth.Progress;
 begin
   FCadencerEngine.Progress;
-  FRecvTunnel.ProgressBackground;
-  FSendTunnel.ProgressBackground;
+  FRecvTunnel.Progress;
+  FSendTunnel.Progress;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_NoAuth.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
@@ -1558,8 +1558,8 @@ begin
   FCadencerEngine.Progress;
 
   try
-    FRecvTunnel.ProgressBackground;
-    FSendTunnel.ProgressBackground;
+    FRecvTunnel.Progress;
+    FSendTunnel.Progress;
     if not Connected then
         FLinkOk := False;
   except

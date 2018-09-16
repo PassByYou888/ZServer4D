@@ -386,7 +386,7 @@ var
   i: Integer;
 begin
   for i := NatList.Count - 1 downto 0 do
-      NatList[i]^.ConfigureClient.ProgressBackground;
+      NatList[i]^.ConfigureClient.Progress;
 end;
 
 procedure TZSGatewayMultiClientConfigureForm.sysProcessTimerTimer(Sender: TObject);

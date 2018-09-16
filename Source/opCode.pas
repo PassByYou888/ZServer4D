@@ -106,9 +106,9 @@ type
     procedure SaveToStream(stream: TCoreClassStream);
     class function LoadFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
 
-    function AddValue(v: Variant): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddValueT(v: Variant; VT: TOpValueType): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function AddLink(Obj: TOpCode): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function AddValue(v: Variant): Integer; overload;
+    function AddValueT(v: Variant; VT: TOpValueType): Integer; overload;
+    function AddLink(Obj: TOpCode): Integer;
     { }
     function CloneNewSelf: TOpCode;
 
@@ -299,7 +299,7 @@ var
   hash: Cardinal;
 begin
   Result := nil;
-  hash := FastHashPascalString(@Name);
+  hash := FastHashPPascalString(@Name);
   for i := 0 to OpList.Count - 1 do
     begin
       p := OpList[i];
@@ -317,7 +317,7 @@ begin
   new(p);
   p^.opClass := c;
   p^.OpName := p^.opClass.ClassName;
-  p^.hash := FastHashPascalString(@p^.OpName);
+  p^.hash := FastHashPPascalString(@p^.OpName);
   OpList.Add(p);
 end;
 
@@ -1295,6 +1295,3 @@ DisposeObject(DefaultOpRT);
 _FreeOp;
 
 end.
- 
- 
- 

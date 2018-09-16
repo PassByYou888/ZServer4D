@@ -84,9 +84,9 @@ type
 
   TCustomICSContext = class(TCustomICSContextIntf)
   protected
-    FServer           : TCustomICSSocketServer;
-    FPeerAddr         : string;
-    FPeerPort         : string;
+    FServer: TCustomICSSocketServer;
+    FPeerAddr: string;
+    FPeerPort: string;
     FSessionClosedFlag: Boolean;
   public
     procedure TriggerSessionClosed(ErrCode: Word); override;
@@ -98,12 +98,12 @@ type
 
   TCustomICSSocketServer = class(TCustomICSContextIntf)
   protected
-    FCloseCLOSEDMsgID           : UINT;
-    FCLIENT_THREAD_PROCESS_MSGID: UINT;
+    FCloseCLOSEDMsgID: uint;
+    FCLIENT_THREAD_PROCESS_MSGID: uint;
 
-    FClientClass       : TCustomICSContextClass;
-    FOnClientCreate    : TCustomICSContextCreate;
-    FOnClientConnect   : TCustomICSContextConnect;
+    FClientClass: TCustomICSContextClass;
+    FOnClientCreate: TCustomICSContextCreate;
+    FOnClientConnect: TCustomICSContextConnect;
     FOnClientDisconnect: TCustomICSContextConnect;
 
     procedure WndProc(var MsgRec: TMessage); override;
@@ -122,7 +122,7 @@ type
     property OnClientDisconnect: TCustomICSContextConnect read FOnClientDisconnect write FOnClientDisconnect;
     property OnClientConnect: TCustomICSContextConnect read FOnClientConnect write FOnClientConnect;
     property OnClientCreate: TCustomICSContextCreate read FOnClientCreate write FOnClientCreate;
-    property CLIENT_THREAD_PROCESS_MSGID: UINT read FCLIENT_THREAD_PROCESS_MSGID;
+    property CLIENT_THREAD_PROCESS_MSGID: uint read FCLIENT_THREAD_PROCESS_MSGID;
   end;
 
 function WSAInfo: string;
@@ -135,7 +135,7 @@ implementation
 
 function WSAInfo: string;
 var
-  _D   : TWSADATA;
+  _D: TWSADATA;
   ipLst: TStrings;
 begin
   _D := WinsockInfo;
@@ -241,7 +241,7 @@ end;
 
 procedure TCustomICSSocketServer.TriggerSessionAvailable(error: Word);
 var
-  Client    : TCustomICSContext;
+  Client: TCustomICSContext;
   NewHSocket: TSocket;
 begin
   { Call parent event handler }
@@ -289,7 +289,7 @@ procedure TCustomICSSocketServer.WMClientClosed(var Msg: TMessage);
 var
   Client: TCustomICSContext;
 begin
-  Client := TCustomICSContext(Msg.LPARAM);
+  Client := TCustomICSContext(Msg.LParam);
   try
       TriggerClientDisconnect(Client, Msg.WParam);
   finally
@@ -316,7 +316,7 @@ begin
       FSessionClosedFlag := True;
       inherited TriggerSessionClosed(ErrCode);
       if Assigned(FServer) then
-          PostMessage(Server.Handle, Server.FCloseCLOSEDMsgID, ErrCode, nativeInt(Self));
+          PostMessage(Server.Handle, Server.FCloseCLOSEDMsgID, ErrCode, NativeInt(Self));
     end;
 end;
 
@@ -350,5 +350,4 @@ begin
   FPeerPort := inherited GetPeerPort;
 end;
 
-end. 
- 
+end.

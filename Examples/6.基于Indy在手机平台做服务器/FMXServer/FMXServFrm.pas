@@ -125,7 +125,7 @@ end;
 
 procedure TFMXClientForm.Timer1Timer(Sender: TObject);
 begin
-  server.ProgressBackground;
+  server.Progress;
 end;
 
 end.

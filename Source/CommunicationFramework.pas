@@ -11,8 +11,9 @@
 { ****************************************************************************** }
 (*
   update history
-  2017-11-28  support anonymous function
+  2018-9-11 vm auth model, user protocol model
   2017-12-6 added TBigStreamBatchList
+  2017-11-28  support anonymous function
 *)
 
 unit CommunicationFramework;
@@ -34,41 +35,41 @@ type
   TIPV6 = array [0 .. 7] of Word;
   PIPV6 = ^TIPV6;
 
-  TConsoleMethod     = procedure(Sender: TPeerIO; ResultData: SystemString) of object;
-  TStreamMethod      = procedure(Sender: TPeerIO; ResultData: TDataFrameEngine) of object;
+  TConsoleMethod = procedure(Sender: TPeerIO; ResultData: SystemString) of object;
+  TStreamMethod = procedure(Sender: TPeerIO; ResultData: TDataFrameEngine) of object;
   TStreamParamMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine) of object;
 
-  TStateCall   = procedure(const State: Boolean);
+  TStateCall = procedure(const State: Boolean);
   TStateMethod = procedure(const State: Boolean) of object;
 
-  TNotifyCall   = procedure();
+  TNotifyCall = procedure();
   TNotifyMethod = procedure() of object;
 
 {$IFNDEF FPC}
-  TConsoleProc     = reference to procedure(Sender: TPeerIO; ResultData: SystemString);
-  TStreamProc      = reference to procedure(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  TConsoleProc = reference to procedure(Sender: TPeerIO; ResultData: SystemString);
+  TStreamProc = reference to procedure(Sender: TPeerIO; ResultData: TDataFrameEngine);
   TStreamParamProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
-  TStateProc       = reference to procedure(const State: Boolean);
-  TNotifyProc      = reference to procedure();
-{$ENDIF}
+  TStateProc = reference to procedure(const State: Boolean);
+  TNotifyProc = reference to procedure();
+{$ENDIF FPC}
   TQueueState = (qsUnknow, qsSendConsoleCMD, qsSendStreamCMD, qsSendDirectConsoleCMD, qsSendDirectStreamCMD, qsSendBigStream, qsSendCompleteBuffer);
 
   TQueueData = packed record
     State: TQueueState;
-    Client: TPeerIO;
+    ClientID: Cardinal;
     Cmd: SystemString;
     Cipher: TCipherStyle;
 
     ConsoleData: SystemString;
     OnConsoleMethod: TConsoleMethod;
-{$IFNDEF FPC} OnConsoleProc: TConsoleProc; {$ENDIF}
+{$IFNDEF FPC} OnConsoleProc: TConsoleProc; {$ENDIF FPC}
     StreamData: TCoreClassStream;
     OnStreamMethod: TStreamMethod;
     OnStreamParamMethod: TStreamParamMethod;
 {$IFNDEF FPC}
     OnStreamProc: TStreamProc;
     OnStreamParamProc: TStreamParamProc;
-{$ENDIF}
+{$ENDIF FPC}
     BigStreamStartPos: Int64;
     BigStream: TCoreClassStream;
 
@@ -83,123 +84,123 @@ type
 
   PQueueData = ^TQueueData;
 
-  TCommandStreamCall         = procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
-  TCommandConsoleCall        = procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
-  TCommandDirectStreamCall   = procedure(Sender: TPeerIO; InData: TDataFrameEngine);
-  TCommandDirectConsoleCall  = procedure(Sender: TPeerIO; InData: SystemString);
-  TCommandBigStreamCall      = procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+  TCommandStreamCall = procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+  TCommandConsoleCall = procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
+  TCommandDirectStreamCall = procedure(Sender: TPeerIO; InData: TDataFrameEngine);
+  TCommandDirectConsoleCall = procedure(Sender: TPeerIO; InData: SystemString);
+  TCommandBigStreamCall = procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
   TCommandCompleteBufferCall = procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 
-  TCommandStreamMethod         = procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine) of object;
-  TCommandConsoleMethod        = procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString) of object;
-  TCommandDirectStreamMethod   = procedure(Sender: TPeerIO; InData: TDataFrameEngine) of object;
-  TCommandDirectConsoleMethod  = procedure(Sender: TPeerIO; InData: SystemString) of object;
-  TCommandBigStreamMethod      = procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64) of object;
+  TCommandStreamMethod = procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine) of object;
+  TCommandConsoleMethod = procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString) of object;
+  TCommandDirectStreamMethod = procedure(Sender: TPeerIO; InData: TDataFrameEngine) of object;
+  TCommandDirectConsoleMethod = procedure(Sender: TPeerIO; InData: SystemString) of object;
+  TCommandBigStreamMethod = procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64) of object;
   TCommandCompleteBufferMethod = procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt) of object;
 
 {$IFNDEF FPC}
-  TCommandStreamProc         = reference to procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
-  TCommandConsoleProc        = reference to procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
-  TCommandDirectStreamProc   = reference to procedure(Sender: TPeerIO; InData: TDataFrameEngine);
-  TCommandDirectConsoleProc  = reference to procedure(Sender: TPeerIO; InData: SystemString);
-  TCommandBigStreamProc      = reference to procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+  TCommandStreamProc = reference to procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+  TCommandConsoleProc = reference to procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
+  TCommandDirectStreamProc = reference to procedure(Sender: TPeerIO; InData: TDataFrameEngine);
+  TCommandDirectConsoleProc = reference to procedure(Sender: TPeerIO; InData: SystemString);
+  TCommandBigStreamProc = reference to procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
   TCommandCompleteBufferProc = reference to procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
-{$ENDIF}
+{$ENDIF FPC}
 
   TCommandStream = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall: TCommandStreamCall;
     FOnExecuteMethod: TCommandStreamMethod;
-{$IFNDEF FPC} FOnExecuteProc: TCommandStreamProc; {$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc: TCommandStreamProc; {$ENDIF FPC}
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerIO; InData, OutData: TDataFrameEngine): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Execute(Sender: TPeerIO; InData, OutData: TDataFrameEngine): Boolean;
     property OnExecute: TCommandStreamMethod read FOnExecuteMethod write FOnExecuteMethod;
     property OnExecuteCall: TCommandStreamCall read FOnExecuteCall write FOnExecuteCall;
     property OnExecuteMethod: TCommandStreamMethod read FOnExecuteMethod write FOnExecuteMethod;
-{$IFNDEF FPC} property OnExecuteProc: TCommandStreamProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF}
+{$IFNDEF FPC} property OnExecuteProc: TCommandStreamProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF FPC}
   end;
 
   TCommandConsole = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall: TCommandConsoleCall;
     FOnExecuteMethod: TCommandConsoleMethod;
-{$IFNDEF FPC} FOnExecuteProc: TCommandConsoleProc; {$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc: TCommandConsoleProc; {$ENDIF FPC}
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerIO; InData: SystemString; var OutData: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Execute(Sender: TPeerIO; InData: SystemString; var OutData: SystemString): Boolean;
     property OnExecute: TCommandConsoleMethod read FOnExecuteMethod write FOnExecuteMethod;
     property OnExecuteCall: TCommandConsoleCall read FOnExecuteCall write FOnExecuteCall;
     property OnExecuteMethod: TCommandConsoleMethod read FOnExecuteMethod write FOnExecuteMethod;
-{$IFNDEF FPC} property OnExecuteProc: TCommandConsoleProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF}
+{$IFNDEF FPC} property OnExecuteProc: TCommandConsoleProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF FPC}
   end;
 
   TCommandDirectStream = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall: TCommandDirectStreamCall;
     FOnExecuteMethod: TCommandDirectStreamMethod;
-{$IFNDEF FPC} FOnExecuteProc: TCommandDirectStreamProc; {$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc: TCommandDirectStreamProc; {$ENDIF FPC}
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerIO; InData: TDataFrameEngine): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Execute(Sender: TPeerIO; InData: TDataFrameEngine): Boolean;
     property OnExecute: TCommandDirectStreamMethod read FOnExecuteMethod write FOnExecuteMethod;
     property OnExecuteCall: TCommandDirectStreamCall read FOnExecuteCall write FOnExecuteCall;
     property OnExecuteMethod: TCommandDirectStreamMethod read FOnExecuteMethod write FOnExecuteMethod;
-{$IFNDEF FPC} property OnExecuteProc: TCommandDirectStreamProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF}
+{$IFNDEF FPC} property OnExecuteProc: TCommandDirectStreamProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF FPC}
   end;
 
   TCommandDirectConsole = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall: TCommandDirectConsoleCall;
     FOnExecuteMethod: TCommandDirectConsoleMethod;
-{$IFNDEF FPC} FOnExecuteProc: TCommandDirectConsoleProc; {$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc: TCommandDirectConsoleProc; {$ENDIF FPC}
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerIO; InData: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Execute(Sender: TPeerIO; InData: SystemString): Boolean;
     property OnExecute: TCommandDirectConsoleMethod read FOnExecuteMethod write FOnExecuteMethod;
     property OnExecuteCall: TCommandDirectConsoleCall read FOnExecuteCall write FOnExecuteCall;
     property OnExecuteMethod: TCommandDirectConsoleMethod read FOnExecuteMethod write FOnExecuteMethod;
-{$IFNDEF FPC} property OnExecuteProc: TCommandDirectConsoleProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF}
+{$IFNDEF FPC} property OnExecuteProc: TCommandDirectConsoleProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF FPC}
   end;
 
   TCommandBigStream = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall: TCommandBigStreamCall;
     FOnExecuteMethod: TCommandBigStreamMethod;
-{$IFNDEF FPC} FOnExecuteProc: TCommandBigStreamProc; {$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc: TCommandBigStreamProc; {$ENDIF FPC}
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Execute(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean;
     property OnExecute: TCommandBigStreamMethod read FOnExecuteMethod write FOnExecuteMethod;
     property OnExecuteCall: TCommandBigStreamCall read FOnExecuteCall write FOnExecuteCall;
     property OnExecuteMethod: TCommandBigStreamMethod read FOnExecuteMethod write FOnExecuteMethod;
-{$IFNDEF FPC} property OnExecuteProc: TCommandBigStreamProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF}
+{$IFNDEF FPC} property OnExecuteProc: TCommandBigStreamProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF FPC}
   end;
 
   TCommandCompleteBuffer = class(TCoreClassInterfacedObject)
   protected
     FOnExecuteCall: TCommandCompleteBufferCall;
     FOnExecuteMethod: TCommandCompleteBufferMethod;
-{$IFNDEF FPC} FOnExecuteProc: TCommandCompleteBufferProc; {$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc: TCommandCompleteBufferProc; {$ENDIF FPC}
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Execute(Sender: TPeerIO; InData: PByte; DataSize: NativeInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Execute(Sender: TPeerIO; InData: PByte; DataSize: NativeInt): Boolean;
     property OnExecute: TCommandCompleteBufferMethod read FOnExecuteMethod write FOnExecuteMethod;
     property OnExecuteCall: TCommandCompleteBufferCall read FOnExecuteCall write FOnExecuteCall;
     property OnExecuteMethod: TCommandCompleteBufferMethod read FOnExecuteMethod write FOnExecuteMethod;
-{$IFNDEF FPC} property OnExecuteProc: TCommandCompleteBufferProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF}
+{$IFNDEF FPC} property OnExecuteProc: TCommandCompleteBufferProc read FOnExecuteProc write FOnExecuteProc; {$ENDIF FPC}
   end;
 
   TCommunicationFramework = class;
@@ -214,9 +215,9 @@ type
     index: Integer;
     DBStorePos: Int64;
 
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Encode(d: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Decode(d: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
+    procedure Encode(d: TDataFrameEngine);
+    procedure Decode(d: TDataFrameEngine);
   end;
 
   TBigStreamBatchList = class(TCoreClassInterfacedObject)
@@ -229,13 +230,13 @@ type
     constructor Create(AOwner: TPeerIO);
     destructor Destroy; override;
 
-    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Clear;
+    function Count: Integer;
     property Items[const index: Integer]: PBigStreamBatchPostData read GetItems; default;
-    function NewPostData: PBigStreamBatchPostData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Last: PBigStreamBatchPostData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DeleteLast; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Delete(const index: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function NewPostData: PBigStreamBatchPostData;
+    function Last: PBigStreamBatchPostData;
+    procedure DeleteLast;
+    procedure Delete(const index: Integer);
   end;
 
   TPeerClientUserDefine = class(TCoreClassInterfacedObject)
@@ -270,14 +271,14 @@ type
 
   TPeerClientUserSpecialClass = class of TPeerClientUserSpecial;
 
-  TInternalSendByteBuffer       = procedure(const Sender: TPeerIO; const buff: PByte; siz: NativeInt) of object;
-  TInternalSaveReceiveBuffer    = procedure(const Sender: TPeerIO; const buff: Pointer; siz: Int64) of object;
+  TInternalSendByteBuffer = procedure(const Sender: TPeerIO; const buff: PByte; siz: NativeInt) of object;
+  TInternalSaveReceiveBuffer = procedure(const Sender: TPeerIO; const buff: Pointer; siz: Int64) of object;
   TInternalProcessReceiveBuffer = procedure(const Sender: TPeerIO; const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean) of object;
-  TInternalProcessAllSendCmd    = procedure(const Sender: TPeerIO; const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean) of object;
-  TInternalClientCreate         = procedure(const Sender: TPeerIO) of object;
-  TInternalClientDestory        = procedure(const Sender: TPeerIO) of object;
+  TInternalProcessAllSendCmd = procedure(const Sender: TPeerIO; const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean) of object;
+  TInternalClientCreate = procedure(const Sender: TPeerIO) of object;
+  TInternalClientDestory = procedure(const Sender: TPeerIO) of object;
 
-  TCommunicationFrameworkWithP2PVM        = class;
+  TCommunicationFrameworkWithP2PVM = class;
   TCommunicationFrameworkWithP2PVM_Server = class;
   TCommunicationFrameworkWithP2PVM_Client = class;
 
@@ -334,6 +335,8 @@ type
   protected
     // private vm and protocol stack support
     FP2PVMTunnel: TCommunicationFrameworkWithP2PVM;
+    // vm auth token buffer
+    FP2PAuthToken: TBytes;
     // vm hook
     OnInternalSendByteBuffer: TInternalSendByteBuffer;
     OnInternalSaveReceiveBuffer: TInternalSaveReceiveBuffer;
@@ -342,10 +345,14 @@ type
     OnCreate: TInternalClientCreate;
     OnDestroy: TInternalClientDestory;
   protected
-    // p2p vm auth result support
+    // p2p vm: auth model result
+    OnVMBuildAuthModelResultCall: TStateCall;
+    OnVMBuildAuthModelResultMethod: TStateMethod;
+{$IFNDEF FPC} OnVMBuildAuthModelResultProc: TStateProc; {$ENDIF FPC}
+    // p2p vm: auth result
     OnVMAuthResultCall: TStateCall;
     OnVMAuthResultMethod: TStateMethod;
-{$IFNDEF FPC} OnVMAuthResultProc: TStateProc; {$ENDIF}
+{$IFNDEF FPC} OnVMAuthResultProc: TStateProc; {$ENDIF FPC}
     procedure P2PVMAuthSuccess(Sender: TCommunicationFrameworkWithP2PVM);
   protected
     // user
@@ -361,25 +368,25 @@ type
     function GetUserObjects: THashObjectList;
     function GetUserAutoFreeObjects: THashObjectList;
   protected
-    procedure InternalSendByteBuffer(const buff: PByte; siz: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendByteBuffer(const buff: PByte; siz: NativeInt);
     //
-    procedure SendInteger(v: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendCardinal(v: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendInt64(v: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendByte(v: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendWord(v: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendVerifyCode(buff: Pointer; siz: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendInteger(v: Integer);
+    procedure SendCardinal(v: Cardinal);
+    procedure SendInt64(v: Int64);
+    procedure SendByte(v: Byte);
+    procedure SendWord(v: Word);
+    procedure SendVerifyCode(buff: Pointer; siz: NativeInt);
+    procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherStyle);
+    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle);
     //
-    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendBigStreamBuff(var Queue: TQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalSendCompleteBufferBuff(var Queue: TQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
+    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
+    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
+    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
+    procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64);
+    procedure InternalSendBigStreamBuff(var Queue: TQueueData);
+    procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz: NativeInt);
+    procedure InternalSendCompleteBufferBuff(var Queue: TQueueData);
     //
     procedure Sync_InternalSendResultData;
     procedure Sync_InternalSendConsoleCmd;
@@ -393,20 +400,20 @@ type
     procedure Sync_ExecuteStream;
     procedure Sync_ExecuteDirectConsole;
     procedure Sync_ExecuteDirectStream;
-    procedure ExecuteDataFrame(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean; CommDataType: Byte; DataFrame: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ExecuteDataFrame(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean; CommDataType: Byte; DataFrame: TDataFrameEngine);
     { }
     procedure Sync_ExecuteBigStream;
-    function FillBigStreamBuffer(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FillBigStreamBuffer(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean): Boolean;
     { }
     procedure Sync_ExecuteCompleteBuffer;
-    function FillCompleteBufferBuffer(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FillCompleteBufferBuffer(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean): Boolean;
     { }
     procedure Sync_ExecuteResult;
-    function FillWaitOnResultBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FillWaitOnResultBuffer(ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean): Boolean;
     { }
-    procedure InternalSaveReceiveBuffer(const buff: Pointer; siz: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalProcessReceiveBuffer(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure InternalProcessAllSendCmd(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InternalSaveReceiveBuffer(const buff: Pointer; siz: Int64);
+    procedure InternalProcessReceiveBuffer(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
+    procedure InternalProcessAllSendCmd(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
     { }
     procedure InternalCloseP2PVMTunnel;
   public
@@ -424,39 +431,43 @@ type
     procedure CreateAfter; virtual;
     destructor Destroy; override;
 
+    { p2pVM Tunnel support }
     property p2pVM: TCommunicationFrameworkWithP2PVM read FP2PVMTunnel;
     property p2pVMTunnel: TCommunicationFrameworkWithP2PVM read FP2PVMTunnel;
-    procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean); overload;
-    procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean); overload;
-    procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; OnResult: TStateCall); overload;
-    procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; OnResult: TStateMethod); overload;
-{$IFNDEF FPC} procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; OnResult: TStateProc); overload; {$ENDIF}
-    procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; OnResult: TStateCall); overload;
-    procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; OnResult: TStateMethod); overload;
-{$IFNDEF FPC} procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; OnResult: TStateProc); overload; {$ENDIF}
+    { p2pVM build safe Auth token }
+    procedure BuildP2PAuthToken; overload;
+    procedure BuildP2PAuthToken(const OnResult: TStateCall); overload;
+    procedure BuildP2PAuthToken(const OnResult: TStateMethod); overload;
+{$IFNDEF FPC} procedure BuildP2PAuthToken(const OnResult: TStateProc); overload; {$ENDIF FPC}
+    { p2pVM Open Tunnel }
+    procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString); overload;
+    procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString); overload;
+    procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateCall); overload;
+    procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateMethod); overload;
+{$IFNDEF FPC} procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateProc); overload; {$ENDIF FPC}
+    procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateCall); overload;
+    procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateMethod); overload;
+{$IFNDEF FPC} procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateProc); overload; {$ENDIF FPC}
     procedure OpenP2PVMTunnel; overload;
+    { p2pVM Close Tunnel }
     procedure CloseP2PVMTunnel;
 
-    procedure Print(v: SystemString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Print(v: SystemString); overload;
     procedure Print(v: SystemString; const Args: array of const); overload;
-    procedure PrintCommand(v: SystemString; Args: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure PrintParam(v: SystemString; Args: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure PrintCommand(v: SystemString; Args: SystemString);
+    procedure PrintParam(v: SystemString; Args: SystemString);
     //
     procedure Progress; virtual;
     //
-    procedure SaveReceiveBuffer(const p: Pointer; siz: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure FillRecvBuffer(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ProcessAllSendCmd(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure PostQueueData(p: PQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SaveReceiveBuffer(const p: Pointer; siz: Int64);
+    procedure FillRecvBuffer(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
+    procedure ProcessAllSendCmd(const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
+    procedure PostQueueData(p: PQueueData);
     //
-    procedure WriteCustomBuffer(const buffer: PByte; const Size: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteCustomBuffer(const buffer: PByte; const Size: NativeInt);
     //
     procedure PauseResultSend; virtual;
     procedure ContinueResultSend; virtual;
-
-    property CurrentBigStreamCommand: SystemString read FBigStreamCmd;
-    property CurrentCommand: SystemString read FInCmd;
-
     // ContinueResultSend use it
     property InText: SystemString read FInText;
     property OutText: SystemString read FOutText write FOutText;
@@ -465,6 +476,8 @@ type
     function ResultSendIsPaused: Boolean;
 
     // state
+    property CurrentBigStreamCommand: SystemString read FBigStreamCmd;
+    property CurrentCommand: SystemString read FInCmd;
     property WaitOnResult: Boolean read FWaitOnResult;
     property AllSendProcessing: Boolean read FAllSendProcessing;
     property BigStreamReceiveing: Boolean read FBigStreamReceiveProcessing;
@@ -472,17 +485,17 @@ type
     property ReceiveProcessing: Boolean read FReceiveProcessing;
     property ReceiveCommandRuning: Boolean read FReceiveCommandRuning;
     property ReceiveResultRuning: Boolean read FReceiveResultRuning;
-    function GetBigStreamReceiveState(var Total, Complete: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetBigStreamSendingState(var Total, Complete: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetBigStreamReceiveState(var Total, Complete: Int64): Boolean;
+    function GetBigStreamSendingState(var Total, Complete: Int64): Boolean;
     //
     // framework
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
     property ClientIntf: TCoreClassObject read FClientIntf write FClientIntf;
     property ID: Cardinal read FID;
     property CipherKey: TCipherKeyBuffer read FCipherKey;
-    function CipherKeyPtr: PCipherKeyBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function CipherKeyPtr: PCipherKeyBuffer;
     property SendCipherStyle: TCipherStyle read FSendDataCipherStyle write FSendDataCipherStyle;
-    property RemoteExecutedForConnectInit: Boolean read FRemoteExecutedForConnectInit;
+    property RemoteExecutedForConnectInit: Boolean read FRemoteExecutedForConnectInit write FRemoteExecutedForConnectInit;
 
     // remote
     property PeerIP: SystemString read GetPeerIP;
@@ -497,15 +510,15 @@ type
     property UserSpecial: TPeerClientUserSpecial read FUserSpecial;
 
     // hash code
-    procedure GenerateHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function VerifyHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var Code: TBytes): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure GenerateHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
+    function VerifyHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
     //
     // encrypt
-    procedure Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
     //
     // timeout
-    function StopCommunicationTime: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure SetLastCommunicationTimeAsCurrent; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function StopCommunicationTime: TTimeTickValue;
+    procedure SetLastCommunicationTimeAsCurrent;
     //
     // queue data
     property CurrentQueueData: PQueueData read FCurrentQueueData;
@@ -522,7 +535,7 @@ type
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine; OnResult: TStreamProc); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-{$ENDIF}
+{$ENDIF FPC}
     //
     // direct send cmd
     procedure SendDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
@@ -544,10 +557,10 @@ type
 
   TPeerIOClass = class of TPeerIO;
 
-  TPeerClient      = TPeerIO;
+  TPeerClient = TPeerIO;
   TPeerClientClass = TPeerIOClass;
 
-  TPeerClientNotify    = procedure(Sender: TPeerIO) of object;
+  TPeerClientNotify = procedure(Sender: TPeerIO) of object;
   TPeerClientCMDNotify = procedure(Sender: TPeerIO; Cmd: SystemString; var Allow: Boolean) of object;
 
   TStatisticsType = (
@@ -562,13 +575,24 @@ type
     stLock, stUnLock,
     stPrint, stIDCounter);
 
-  TPerClientListCall             = procedure(PeerClient: TPeerIO);
-  TPerClientListMethod           = procedure(PeerClient: TPeerIO) of object;
-{$IFNDEF FPC} TPerClientListProc = reference to procedure(PeerClient: TPeerIO); {$ENDIF}
-  TClientIDPool                  = array of Cardinal;
+  TPerClientListCall = procedure(PeerClient: TPeerIO);
+  TPerClientListMethod = procedure(PeerClient: TPeerIO) of object;
+{$IFNDEF FPC} TPerClientListProc = reference to procedure(PeerClient: TPeerIO); {$ENDIF FPC}
+  TIO_IDArray = array of Cardinal;
+  TClientIDPool = TIO_IDArray;
+
+  ICommunicationFrameworkVMInterface = interface
+    procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
+    procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
+    procedure p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
+    procedure p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
+    procedure p2pVMTunnelClose(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
+  end;
+
+  TCommunicationProtocol = (cpZServer, cpCustom);
 
   TCommunicationFramework = class(TCoreClassInterfacedObject)
-  private
+  protected
     FCommandList: THashObjectList;
     FPerClientHashList: TUInt32HashObjectList;
     FIDCounter: Cardinal;
@@ -593,6 +617,8 @@ type
     FFrameworkIsClient: Boolean;
     FFrameworkInfo: SystemString;
     FCMDWithThreadRuning: Integer;
+    FVMInterface: ICommunicationFrameworkVMInterface;
+    FProtocol: TCommunicationProtocol;
   protected
     procedure DoPrint(const v: SystemString); virtual;
 
@@ -608,6 +634,10 @@ type
 
     procedure DelayExecuteOnResultState(Sender: TNPostExecute);
     procedure DelayExecuteOnCompleteBufferState(Sender: TNPostExecute);
+
+    procedure Internal_ProgressPerClient(PeerClient: TPeerIO);
+    // user protocol support
+    procedure FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Customed: Boolean); virtual;
   protected
     // private vm and protocol stack support
     procedure InternalSendByteBuffer(const Sender: TPeerIO; const buff: PByte; siz: NativeInt); virtual;
@@ -617,6 +647,8 @@ type
     procedure InternalClientCreate(const Sender: TPeerIO); virtual;
     procedure InternalClientDestroy(const Sender: TPeerIO); virtual;
 
+    procedure CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure Command_InitP2PTunnel(Sender: TPeerIO; InData: SystemString);
     procedure Command_CloseP2PTunnel(Sender: TPeerIO; InData: SystemString);
 
@@ -634,10 +666,12 @@ type
     destructor Destroy; override;
 
     // user protocol support
-    procedure FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Done: Boolean); virtual;
-    procedure WriteCustomBuffer(Client: TPeerIO; const buffer: PByte; const Size: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    property Protocol: TCommunicationProtocol read FProtocol write FProtocol;
+    procedure WriteCustomBuffer(Client: TPeerIO; const buffer: PByte; const Size: NativeInt);
     //
     // p2pVM backcall interface
+    property VMInterface: ICommunicationFrameworkVMInterface read FVMInterface write FVMInterface;
+    procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean); virtual;
     procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
     procedure p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
     procedure p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
@@ -660,40 +694,37 @@ type
     property FrameworkInfo: SystemString read FFrameworkInfo;
 
     // mainLoop
-    procedure ProgressBackground; virtual;
+    procedure Progress; virtual;
 
     // seealso filler allclient,safe works
     procedure ProgressPerClient(OnProgress: TPerClientListCall); overload;
     procedure ProgressPerClient(OnProgress: TPerClientListMethod); overload;
-{$IFNDEF FPC}
-    procedure ProgressPerClient(OnProgress: TPerClientListProc); overload;
-{$ENDIF}
+{$IFNDEF FPC} procedure ProgressPerClient(OnProgress: TPerClientListProc); overload; {$ENDIF FPC}
     //
     // seealso filler allclient,fast
     procedure FastProgressPerClient(OnProgress: TPerClientListCall); overload;
     procedure FastProgressPerClient(OnProgress: TPerClientListMethod); overload;
-{$IFNDEF FPC}
-    procedure FastProgressPerClient(OnProgress: TPerClientListProc); overload;
-{$ENDIF}
+{$IFNDEF FPC} procedure FastProgressPerClient(OnProgress: TPerClientListProc); overload; {$ENDIF FPC}
     //
-    // client idPool
-    procedure GetClientIDPool(out IDPool: TClientIDPool); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // PeerIO id array
+    procedure GetIO_IDArray(out IO_IDArray: TIO_IDArray);
     //
     // block mainLoop,only work in client
     procedure ProgressWaitSendOfClient(Client: TPeerIO); virtual;
     //
     // print
-    procedure PrintParam(v: SystemString; Args: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure PrintParam(v: SystemString; Args: SystemString);
     //
     // register command with server/client
-    function DeleteRegistedCMD(Cmd: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function UnRegisted(Cmd: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterConsole(Cmd: SystemString): TCommandConsole; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterStream(Cmd: SystemString): TCommandStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterDirectStream(Cmd: SystemString): TCommandDirectStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterDirectConsole(Cmd: SystemString): TCommandDirectConsole; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterBigStream(Cmd: SystemString): TCommandBigStream; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function DeleteRegistedCMD(Cmd: SystemString): Boolean;
+    function UnRegisted(Cmd: SystemString): Boolean;
+    function RegisterConsole(Cmd: SystemString): TCommandConsole;
+    function RegisterStream(Cmd: SystemString): TCommandStream;
+    function RegisterDirectStream(Cmd: SystemString): TCommandDirectStream;
+    function RegisterDirectConsole(Cmd: SystemString): TCommandDirectConsole;
+    function RegisterBigStream(Cmd: SystemString): TCommandBigStream;
+    function RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBuffer;
+    procedure PrintRegistedCMD;
     //
     // execute command with internal
     function ExecuteConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString; var OutData: SystemString): Boolean; virtual;
@@ -702,10 +733,11 @@ type
     function ExecuteDirectConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString): Boolean; virtual;
     function ExecuteBigStream(Sender: TPeerIO; Cmd: SystemString; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean; virtual;
     function ExecuteCompleteBuffer(Sender: TPeerIO; Cmd: SystemString; InData: PByte; DataSize: NativeInt): Boolean; virtual;
+    function ExistsRegistedCmd(Cmd: SystemString): Boolean;
     //
     // misc
-    function FirstClient: TPeerIO; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function LastClient: TPeerIO; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function FirstClient: TPeerIO;
+    function LastClient: TPeerIO;
     property OnConnected: TPeerClientNotify read FOnConnected write FOnConnected;
     property OnDisconnect: TPeerClientNotify read FOnDisconnect write FOnDisconnect;
     property OnExecuteCommand: TPeerClientCMDNotify read FOnExecuteCommand write FOnExecuteCommand;
@@ -728,9 +760,14 @@ type
     // hash pool
     property PerClientHashList: TUInt32HashObjectList read FPerClientHashList;
 
-    // custom class
+    // custom struct: user custom instance one
     property PeerClientUserDefineClass: TPeerClientUserDefineClass read FPeerClientUserDefineClass write FPeerClientUserDefineClass;
+    property UserDefineClass: TPeerClientUserDefineClass read FPeerClientUserDefineClass write FPeerClientUserDefineClass;
+    property ExternalDefineClass: TPeerClientUserDefineClass read FPeerClientUserDefineClass write FPeerClientUserDefineClass;
+    // custom special struct: user custom instance two
     property PeerClientUserSpecialClass: TPeerClientUserSpecialClass read FPeerClientUserSpecialClass write FPeerClientUserSpecialClass;
+    property UserSpecialClass: TPeerClientUserSpecialClass read FPeerClientUserSpecialClass write FPeerClientUserSpecialClass;
+    property ExternalSpecialClass: TPeerClientUserSpecialClass read FPeerClientUserSpecialClass write FPeerClientUserSpecialClass;
 
     // misc
     property IDCounter: Cardinal read FIDCounter write FIDCounter;
@@ -744,15 +781,25 @@ type
     function CanSendCommand(Sender: TPeerIO; Cmd: SystemString): Boolean; override;
     function CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean; override;
 
-    procedure Command_ConnectedInit(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_CipherModel(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_Wait(Sender: TPeerIO; InData: SystemString; var OutData: SystemString); virtual;
 
     procedure InternalClientCreate(const Sender: TPeerIO); override;
     procedure InternalClientDestroy(const Sender: TPeerIO); override;
+  protected
+    FillSync_Sender: TPeerIO;
+    FillSync_Buffer: PByte;
+    FillSync_BufferSize: NativeInt;
+    procedure SyncFillCustomBuffer;
+    procedure FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Customed: Boolean); override;
   public
-    constructor Create; overload; virtual;
-    constructor Create(HashPoolLen: Integer); overload; virtual;
+    constructor Create; virtual;
+    constructor CreateCustomHashPool(HashPoolLen: Integer); virtual;
     destructor Destroy; override;
+
+    // OnReceiveBuffer work on Protocol is cpCustom
+    procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt); virtual;
+    procedure WriteBuffer(Client: TPeerIO; const buffer: PByte; const Size: NativeInt);
 
     // external service method
     procedure StopService; virtual;
@@ -776,7 +823,7 @@ type
     procedure SendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData: TDataFrameEngine; OnResult: TStreamProc); overload;
     procedure SendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData: TDataFrameEngine; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-{$ENDIF}
+{$ENDIF FPC}
     // send direct cmd
     procedure SendDirectConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString); overload;
     procedure SendDirectStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData: TCoreClassStream; DoneAutoFree: Boolean); overload;
@@ -806,7 +853,7 @@ type
     procedure SendStreamCmd(ClientID: Cardinal; const Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmd(ClientID: Cardinal; const Cmd: SystemString; StreamData: TDataFrameEngine; OnResult: TStreamProc); overload;
     procedure SendStreamCmd(ClientID: Cardinal; const Cmd: SystemString; StreamData: TDataFrameEngine; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-{$ENDIF}
+{$ENDIF FPC}
     // direct send used client ID
     procedure SendDirectConsoleCmd(ClientID: Cardinal; const Cmd, ConsoleData: SystemString); overload;
     procedure SendDirectStreamCmd(ClientID: Cardinal; const Cmd: SystemString; StreamData: TCoreClassStream; DoneAutoFree: Boolean); overload;
@@ -828,7 +875,7 @@ type
     procedure BroadcastDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
     procedure BroadcastSendDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
 
-    function Count: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Count: Integer;
     function Exists(cli: TCoreClassObject): Boolean; overload;
     function Exists(cli: TPeerIO): Boolean; overload;
     function Exists(cli: TPeerClientUserDefine): Boolean; overload;
@@ -858,7 +905,7 @@ type
 
     procedure DoPrint(const v: SystemString); override;
 
-    procedure StreamResult_ConnectedInit(Sender: TPeerIO; ResultData: TDataFrameEngine); virtual;
+    procedure StreamResult_CipherModel(Sender: TPeerIO; ResultData: TDataFrameEngine);
     procedure DoConnected(Sender: TPeerIO); override;
     procedure DoDisconnect(Sender: TPeerIO); override;
 
@@ -866,23 +913,30 @@ type
     function CanSendCommand(Sender: TPeerIO; Cmd: SystemString): Boolean; override;
     function CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean; override;
   protected
+    FillSync_Buffer: PByte;
+    FillSync_BufferSize: NativeInt;
+    procedure SyncFillCustomBuffer;
+    procedure FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Customed: Boolean); override;
+  protected
     // async wait support
     FWaiting: Boolean;
     FWaitingTimeOut: TTimeTickValue;
     FOnWaitResultCall: TStateCall;
     FOnWaitResultMethod: TStateMethod;
-{$IFNDEF FPC}
-    FOnWaitResultProc: TStateProc;
-{$ENDIF}
+{$IFNDEF FPC} FOnWaitResultProc: TStateProc; {$ENDIF FPC}
     procedure ConsoleResult_Wait(Sender: TPeerIO; ResultData: SystemString);
   public
     constructor Create; virtual;
 
+    // OnReceiveBuffer work on Protocol is cpCustom
+    procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt); virtual;
+    procedure WriteBuffer(const buffer: PByte; const Size: NativeInt);
+
     // mainLoop
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     // external client support,intf
-    procedure TriggerDoDisconnect; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure TriggerDoDisconnect;
     // external client support,state
     function Connected: Boolean; virtual;
     // external client support,intf
@@ -897,7 +951,7 @@ type
     property AsyncConnectTimeout: TTimeTickValue read FAsyncConnectTimeout write FAsyncConnectTimeout;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; virtual;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; virtual;
-{$IFNDEF FPC} procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; virtual; {$ENDIF}
+{$IFNDEF FPC} procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; virtual; {$ENDIF FPC}
     function Connect(addr: SystemString; Port: Word): Boolean; virtual;
     procedure Disconnect; virtual;
 
@@ -906,12 +960,12 @@ type
     // async KeepAlive
     function Wait(ATimeOut: TTimeTickValue; OnResult: TStateCall): Boolean; overload;
     function Wait(ATimeOut: TTimeTickValue; OnResult: TStateMethod): Boolean; overload;
-{$IFNDEF FPC} function Wait(ATimeOut: TTimeTickValue; OnResult: TStateProc): Boolean; overload; {$ENDIF}
+{$IFNDEF FPC} function Wait(ATimeOut: TTimeTickValue; OnResult: TStateProc): Boolean; overload; {$ENDIF FPC}
     //
-    function WaitSendBusy: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function LastQueueData: PQueueData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function LastQueueCmd: SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function QueueCmdCount: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WaitSendBusy: Boolean;
+    function LastQueueData: PQueueData;
+    function LastQueueCmd: SystemString;
+    function QueueCmdCount: Integer;
     //
     // send cmd method
     procedure SendConsoleCmd(Cmd: SystemString; ConsoleData: SystemString; OnResult: TConsoleMethod); overload;
@@ -925,7 +979,7 @@ type
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TCoreClassStream; OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine; OnResult: TStreamProc); overload;
     procedure SendStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-{$ENDIF}
+{$ENDIF FPC}
     // send direct cmd
     procedure SendDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
     procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TCoreClassStream; DoneAutoFree: Boolean); overload;
@@ -947,9 +1001,9 @@ type
     // remote service ID
     // success ID > 0
     // failed! ID = 0
-    function RemoteID: Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RemoteKey: TCipherKeyBuffer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function RemoteInited: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RemoteID: Cardinal;
+    function RemoteKey: TCipherKeyBuffer;
+    function RemoteInited: Boolean;
   end;
 
   TCommunicationFrameworkClientClass = class of TCommunicationFrameworkClient;
@@ -964,9 +1018,9 @@ type
     pkType: Byte;
     buff: PByte;
   private
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FillReceiveBuff(stream: TMemoryStream64): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure BuildSendBuff(stream: TMemoryStream64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
+    function FillReceiveBuff(stream: TMemoryStream64): Integer;
+    procedure BuildSendBuff(stream: TMemoryStream64);
   end;
 
   TPeerClientWithP2PVM = class(TPeerIO)
@@ -1019,19 +1073,19 @@ type
 
     procedure ProgressDisconnectClient(PeerClient: TPeerIO);
     // internal Listen state
-    function ListenCount: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetListen(const index: Integer): Pp2pVMListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FindListen(const ipv6: TIPV6; const Port: Word): Pp2pVMListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FindListening(const ipv6: TIPV6; const Port: Word): Pp2pVMListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DeleteListen(const ipv6: TIPV6; const Port: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ClearListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListenCount: Integer;
+    function GetListen(const index: Integer): Pp2pVMListen;
+    function FindListen(const ipv6: TIPV6; const Port: Word): Pp2pVMListen;
+    function FindListening(const ipv6: TIPV6; const Port: Word): Pp2pVMListen;
+    procedure DeleteListen(const ipv6: TIPV6; const Port: Word);
+    procedure ClearListen;
   public
     constructor Create; overload; override;
     constructor Create(HashPoolLen: Integer; frameworkID: Cardinal); overload; virtual;
     destructor Destroy; override;
 
     // mainLoop
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     // intf
     procedure TriggerQueueData(v: PQueueData); override;
@@ -1063,9 +1117,7 @@ type
 
     FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
-{$IFNDEF FPC}
-    FOnAsyncConnectNotifyProc: TStateProc;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc: TStateProc; {$ENDIF FPC}
   public
     constructor Create; overload; override;
     constructor Create(frameworkID: Cardinal); overload;
@@ -1076,13 +1128,13 @@ type
 
     function Connected: Boolean; override;
     function ClientIO: TPeerIO; override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
     procedure TriggerQueueData(v: PQueueData); override;
 
     procedure AsyncConnect(addr: SystemString; Port: Word); overload;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-{$IFNDEF FPC} procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override; {$ENDIF}
+{$IFNDEF FPC} procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override; {$ENDIF FPC}
     function Connect(addr: SystemString; Port: Word): Boolean; override;
     procedure Disconnect; override;
 
@@ -1093,34 +1145,31 @@ type
     property VMClient: TPeerClientWithP2PVM read FVMClient;
   end;
 
-  TCommunicationFrameworkListCall   = procedure(PeerFramework: TCommunicationFramework);
+  TCommunicationFrameworkListCall = procedure(PeerFramework: TCommunicationFramework);
   TCommunicationFrameworkListMethod = procedure(PeerFramework: TCommunicationFramework) of object;
-{$IFNDEF FPC}
-  TCommunicationFrameworkListProc = reference to procedure(PeerFramework: TCommunicationFramework);
-{$ENDIF}
-
-  TOnEcho = packed record
-    OnEchoCall: TStateCall;
-    OnEchoMethod: TStateMethod;
-{$IFNDEF FPC} OnEchoProc: TStateProc; {$ENDIF}
-    Timeout: TTimeTickValue;
-  end;
-
-  POnEcho = ^TOnEcho;
-
+{$IFNDEF FPC} TCommunicationFrameworkListProc = reference to procedure(PeerFramework: TCommunicationFramework); {$ENDIF FPC}
   TP2PVMAuthSuccessMethod = procedure(Sender: TCommunicationFrameworkWithP2PVM) of object;
 
   TCommunicationFrameworkWithP2PVM = class(TCoreClassInterfacedObject)
+  private type
+    TOnEcho = packed record
+      OnEchoCall: TStateCall;
+      OnEchoMethod: TStateMethod;
+{$IFNDEF FPC} OnEchoProc: TStateProc; {$ENDIF FPC}
+      Timeout: TTimeTickValue;
+    end;
+
+    POnEcho = ^TOnEcho;
   private const
-    c_p2pVM_echoing             = $01;
-    c_p2pVM_echo                = $02;
-    c_p2pVM_AuthSuccessed       = $09;
-    c_p2pVM_Listen              = $10;
-    c_p2pVM_ListenState         = $11;
-    c_p2pVM_Connecting          = $20;
-    c_p2pVM_ConnectedReponse    = $21;
-    c_p2pVM_Disconnect          = $40;
-    c_p2pVM_LogicFragmentData   = $54;
+    c_p2pVM_echoing = $01;
+    c_p2pVM_echo = $02;
+    c_p2pVM_AuthSuccessed = $09;
+    c_p2pVM_Listen = $10;
+    c_p2pVM_ListenState = $11;
+    c_p2pVM_Connecting = $20;
+    c_p2pVM_ConnectedReponse = $21;
+    c_p2pVM_Disconnect = $40;
+    c_p2pVM_LogicFragmentData = $54;
     c_p2pVM_PhysicsFragmentData = $64;
   private
     FPhysicsTunnel: TPeerIO;
@@ -1144,18 +1193,18 @@ type
     procedure Hook_ProcessReceiveBuffer(const Sender: TPeerIO; const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
     procedure Hook_ClientDestroy(const Sender: TPeerIO);
 
-    procedure SendVMBuffer(const buff: Pointer; const siz: NativeInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DisconnectWithVM(c: TPeerIO); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SendVMBuffer(const buff: Pointer; const siz: NativeInt);
+    procedure DisconnectWithVM(c: TPeerIO);
     //
-    procedure ReceivedEchoing(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedEcho(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedListen(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedListenState(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedConnecting(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedConnectedReponse(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedDisconnect(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedLogicFragmentData(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ReceivedOriginFragmentData(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure ReceivedEchoing(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedEcho(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedListen(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedListenState(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedConnecting(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedConnectedReponse(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedDisconnect(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedLogicFragmentData(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
+    procedure ReceivedOriginFragmentData(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
     //
     procedure DoProcessPerClientFragmentSend(PeerClient: TPeerIO);
     procedure DoPerClientClose(PeerClient: TPeerIO);
@@ -1163,19 +1212,19 @@ type
     constructor Create(HashPoolLen: Integer);
     destructor Destroy; override;
 
-    procedure Progress; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Progress;
     //
-    procedure ProgressCommunicationFramework(OnProgress: TCommunicationFrameworkListCall); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ProgressCommunicationFramework(OnProgress: TCommunicationFrameworkListMethod); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-{$IFNDEF FPC} procedure ProgressCommunicationFramework(OnProgress: TCommunicationFrameworkListProc); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}    {$ENDIF}
+    procedure ProgressCommunicationFramework(OnProgress: TCommunicationFrameworkListCall); overload;
+    procedure ProgressCommunicationFramework(OnProgress: TCommunicationFrameworkListMethod); overload;
+{$IFNDEF FPC} procedure ProgressCommunicationFramework(OnProgress: TCommunicationFrameworkListProc); overload; {$ENDIF FPC}
     //
     // p2p VM physics tunnel support
-    procedure OpenP2PVMTunnel(c: TPeerIO); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure CloseP2PVMTunnel; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure OpenP2PVMTunnel(c: TPeerIO);
+    procedure CloseP2PVMTunnel;
     //
     // p2p VM logic CommunicationFramework support
-    procedure InstallLogicFramework(c: TCommunicationFramework); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure UninstallLogicFramework(c: TCommunicationFramework); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure InstallLogicFramework(c: TCommunicationFramework);
+    procedure UninstallLogicFramework(c: TCommunicationFramework);
     function CreateLogicClient: TCommunicationFrameworkWithP2PVM_Client;
     //
     // p2p VM Peformance support
@@ -1185,49 +1234,50 @@ type
     property QuietMode: Boolean read FQuietMode write FQuietMode;
 
     // p2p VM safe Support
-    procedure AuthWaiting; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure AuthVM; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure AuthWaiting;
+    procedure AuthVM; overload;
     property WasAuthed: Boolean read FAuthed;
-    procedure AuthSuccessed; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure AuthSuccessed;
     //
     // p2p VM echo support and keepalive
-    procedure echoing(const OnEchoPtr: POnEcho; Timeout: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure echoing(OnResult: TStateCall; Timeout: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure echoing(OnResult: TStateMethod; Timeout: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-{$IFNDEF FPC} procedure echoing(OnResult: TStateProc; Timeout: TTimeTickValue); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF} {$ENDIF}
+    procedure echoing(const OnEchoPtr: POnEcho; Timeout: TTimeTickValue); overload;
+    procedure echoing(OnResult: TStateCall; Timeout: TTimeTickValue); overload;
+    procedure echoing(OnResult: TStateMethod; Timeout: TTimeTickValue); overload;
+{$IFNDEF FPC} procedure echoing(OnResult: TStateProc; Timeout: TTimeTickValue); overload; {$ENDIF FPC}
     procedure echoBuffer(const buff: Pointer; const siz: NativeInt);
     //
     // p2p VM simulate with network listen
-    procedure Listen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Listen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
+    procedure ListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
     //
     // p2p VM simulate connecting
-    procedure Connecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Disconnect(const Remote_frameworkID, Remote_p2pID: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Connecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
+    procedure ConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
+    procedure Disconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
     //
     // p2p VM Listen Query
-    function ListenCount: Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetListen(const index: Integer): Pp2pVMListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FindListen(const ipv6: TIPV6; const Port: Word): Pp2pVMListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function FindListening(const ipv6: TIPV6; const Port: Word): Pp2pVMListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DeleteListen(const ipv6: TIPV6; const Port: Word); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ClearListen; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ListenCount: Integer;
+    function GetListen(const index: Integer): Pp2pVMListen;
+    function FindListen(const ipv6: TIPV6; const Port: Word): Pp2pVMListen;
+    function FindListening(const ipv6: TIPV6; const Port: Word): Pp2pVMListen;
+    procedure DeleteListen(const ipv6: TIPV6; const Port: Word);
+    procedure ClearListen;
     //
     // p2p VM operaton
-    procedure CloseAllClientIO; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure CloseAllServerIO; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure CloseAllClientIO;
+    procedure CloseAllServerIO;
   end;
 
   TProgressBackgroundProc = procedure();
+  TProgressBackgroundMethod = procedure() of object;
 
-var
+const
   // communication data token
-  c_DefaultConsoleToken: Byte        = $F1;
-  c_DefaultStreamToken: Byte         = $2F;
-  c_DefaultDirectConsoleToken: Byte  = $F3;
-  c_DefaultDirectStreamToken: Byte   = $4F;
-  c_DefaultBigStreamToken: Byte      = $F5;
+  c_DefaultConsoleToken: Byte = $F1;
+  c_DefaultStreamToken: Byte = $2F;
+  c_DefaultDirectConsoleToken: Byte = $F3;
+  c_DefaultDirectStreamToken: Byte = $4F;
+  c_DefaultBigStreamToken: Byte = $F5;
   c_DefaultCompleteBufferToken: Byte = $6F;
 
   // user custom header verify token
@@ -1235,38 +1285,48 @@ var
   // user custom tail verify token
   c_DataTailToken: Cardinal = $F1F1F1F1;
 
+  // system command
+  C_BuildP2PAuthToken: SystemString = 'BuildP2PAuthToken';
+  C_InitP2PTunnel: SystemString = 'InitP2PTunnel';
+  C_CloseP2PTunnel: SystemString = 'CloseP2PTunnel';
+  C_CipherModel: SystemString = 'CipherModel';
+  C_Wait: SystemString = 'Wait';
+
+  // vm auth token size
+  C_VMAuthSize: Integer = 2048;
+
   // dostatus id
   c_DefaultDoStatusID: Integer = $0FFFFFFF;
 
-  // p2p VM auth
-  P2PVMAuthToken: TBytes;
-
+var
   // global progress backcall
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
+  ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
 
-procedure DefaultProgressBackgroundProc;
-procedure DisposeQueueData(v: PQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure InitQueueData(var v: TQueueData); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function NewQueueData: PQueueData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DisposeQueueData(v: PQueueData);
+procedure InitQueueData(var v: TQueueData);
+function NewQueueData: PQueueData;
 
-function BuildP2PVMPackage(buffSiz, frameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPackage; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure FreeP2PVMPackage(p: Pp2pVMFragmentPackage); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BuildP2PVMPackage(buffSiz, frameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPackage;
+procedure FreeP2PVMPackage(p: Pp2pVMFragmentPackage);
 
-function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function IPv4ToStr(const AIcsIPv4Addr: TIPV4): U_String; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function IPv6ToStr(const IPv6Addr: TIPV6): U_String; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function IsIPv4(const s: U_String): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function IsIPV6(const s: U_String): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function IsSystemCMD(const Cmd: U_String): Boolean;
 
-function CompareIPV4(const IP1, ip2: TIPV4): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CompareIPV6(const IP1, ip2: TIPV6): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
+function IPv4ToStr(const AIcsIPv4Addr: TIPV4): U_String;
+function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6; overload;
+function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6; overload;
+function IPv6ToStr(const IPv6Addr: TIPV6): U_String;
+function IsIPv4(const s: U_String): Boolean;
+function IsIPV6(const s: U_String): Boolean;
 
-function TranslateBindAddr(const addr: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CompareIPV4(const IP1, ip2: TIPV4): Boolean;
+function CompareIPV6(const IP1, ip2: TIPV6): Boolean;
 
-procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure DoExecuteResult(c: TPeerIO; const QueuePtr: PQueueData; const AResultText: SystemString; AResultDF: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function TranslateBindAddr(const addr: SystemString): SystemString;
+
+procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure DoExecuteResult(c: TPeerIO; const QueuePtr: PQueueData; const AResultText: SystemString; AResultDF: TDataFrameEngine);
 
 {$IFNDEF FPC}
 function WaitSendConsoleCmdInThread(th: TCoreClassThread; Cf: TCommunicationFrameworkClient; Cmd: SystemString; ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
@@ -1278,17 +1338,15 @@ procedure WaitSendStreamCmdInThread(th: TCoreClassThread; Cf: TCommunicationFram
 type
   TStreamCmdThread = class;
 
-  TRunWithThreadStreamCall             = procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine);
-  TRunWithThreadStreamMethod           = procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine) of object;
+  TRunWithThreadStreamCall = procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine);
+  TRunWithThreadStreamMethod = procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine) of object;
 {$IFNDEF FPC} TRunWithThreadStreamProc = reference to procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine); {$ENDIF FPC}
 
   TStreamCmdThread = class(TCoreClassThread)
   protected
     OnRunWithThreadCall: TRunWithThreadStreamCall;
     OnRunWithThreadMethod: TRunWithThreadStreamMethod;
-{$IFNDEF FPC}
-    OnRunWithThreadProc: TRunWithThreadStreamProc;
-{$ENDIF FPC}
+{$IFNDEF FPC} OnRunWithThreadProc: TRunWithThreadStreamProc; {$ENDIF FPC}
     procedure Execute; override;
     procedure Done_Sync;
   public
@@ -1367,10 +1425,6 @@ begin
   Done := True;
 end;
 
-procedure DefaultProgressBackgroundProc;
-begin
-end;
-
 procedure DisposeQueueData(v: PQueueData);
 begin
   if v^.DoneAutoFree then
@@ -1399,21 +1453,19 @@ end;
 procedure InitQueueData(var v: TQueueData);
 begin
   v.State := qsUnknow;
-  v.Client := nil;
+  v.ClientID := 0;
   v.Cmd := '';
   v.Cipher := TCipherStyle.csNone;
   v.ConsoleData := '';
   v.OnConsoleMethod := nil;
-{$IFNDEF FPC}
-  v.OnConsoleProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} v.OnConsoleProc := nil; {$ENDIF FPC}
   v.StreamData := nil;
   v.OnStreamMethod := nil;
   v.OnStreamParamMethod := nil;
 {$IFNDEF FPC}
   v.OnStreamProc := nil;
   v.OnStreamParamProc := nil;
-{$ENDIF}
+{$ENDIF FPC}
   v.BigStreamStartPos := 0;
   v.BigStream := nil;
   v.buffer := nil;
@@ -1454,6 +1506,11 @@ begin
   if (p^.buff <> nil) and (p^.buffSiz > 0) then
       FreeMem(p^.buff, p^.buffSiz);
   Dispose(p);
+end;
+
+function IsSystemCMD(const Cmd: U_String): Boolean;
+begin
+  Result := Cmd.Same(C_CipherModel, C_BuildP2PAuthToken, C_InitP2PTunnel, C_CloseP2PTunnel, C_Wait);
 end;
 
 function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
@@ -1512,7 +1569,7 @@ end;
 
 function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6;
 const
-  Colon   = ':';
+  Colon = ':';
   Percent = '%';
 var
   n: U_String;
@@ -1834,7 +1891,7 @@ begin
         except
         end;
       end;
-{$ENDIF}
+{$ENDIF FPC}
     if Assigned(QueuePtr^.OnStreamMethod) then
       begin
         c.PrintCommand('execute stream on result cmd: %s', QueuePtr^.Cmd);
@@ -1880,7 +1937,7 @@ begin
         except
         end;
       end;
-{$ENDIF}
+{$ENDIF FPC}
   finally
       c.FReceiveResultRuning := False;
   end;
@@ -1922,7 +1979,7 @@ begin
       TCoreClassThread.Synchronize(th,
         procedure
         begin
-          Cf.ProgressBackground;
+          Cf.Progress;
         end);
 
       if not Cf.Connected then
@@ -1947,7 +2004,7 @@ begin
         TCoreClassThread.Synchronize(th,
           procedure
           begin
-            Cf.ProgressBackground;
+            Cf.Progress;
           end);
 
         if not Cf.Connected then
@@ -2006,7 +2063,7 @@ begin
           TCoreClassThread.Synchronize(th,
             procedure
             begin
-              Cf.ProgressBackground;
+              Cf.Progress;
             end);
           if not Cf.Connected then
               Exit;
@@ -2030,7 +2087,7 @@ begin
         TCoreClassThread.Synchronize(th,
           procedure
           begin
-            Cf.ProgressBackground;
+            Cf.Progress;
           end);
         if not Cf.Connected then
             Break;
@@ -2052,7 +2109,7 @@ begin
   except
   end;
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TStreamCmdThread.Execute;
@@ -2207,9 +2264,7 @@ begin
 
   FOnExecuteCall := nil;
   FOnExecuteMethod := nil;
-{$IFNDEF FPC}
-  FOnExecuteProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc := nil; {$ENDIF FPC}
 end;
 
 destructor TCommandStream.Destroy;
@@ -2228,7 +2283,7 @@ begin
 {$IFNDEF FPC}
     else if Assigned(FOnExecuteProc) then
         FOnExecuteProc(Sender, InData, OutData)
-{$ENDIF}
+{$ENDIF FPC}
     else
         Result := False;
   except
@@ -2242,9 +2297,7 @@ begin
 
   FOnExecuteCall := nil;
   FOnExecuteMethod := nil;
-{$IFNDEF FPC}
-  FOnExecuteProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc := nil; {$ENDIF FPC}
 end;
 
 destructor TCommandConsole.Destroy;
@@ -2263,7 +2316,7 @@ begin
 {$IFNDEF FPC}
     else if Assigned(FOnExecuteProc) then
         FOnExecuteProc(Sender, InData, OutData)
-{$ENDIF}
+{$ENDIF FPC}
     else
         Result := False;
   except
@@ -2277,9 +2330,7 @@ begin
 
   FOnExecuteCall := nil;
   FOnExecuteMethod := nil;
-{$IFNDEF FPC}
-  FOnExecuteProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnExecuteProc := nil; {$ENDIF FPC}
 end;
 
 destructor TCommandDirectStream.Destroy;
@@ -2298,7 +2349,7 @@ begin
 {$IFNDEF FPC}
     else if Assigned(FOnExecuteProc) then
         FOnExecuteProc(Sender, InData)
-{$ENDIF}
+{$ENDIF FPC}
     else
         Result := False;
   except
@@ -2314,7 +2365,7 @@ begin
   FOnExecuteMethod := nil;
 {$IFNDEF FPC}
   FOnExecuteProc := nil;
-{$ENDIF}
+{$ENDIF FPC}
 end;
 
 destructor TCommandDirectConsole.Destroy;
@@ -2333,7 +2384,7 @@ begin
 {$IFNDEF FPC}
     else if Assigned(FOnExecuteProc) then
         FOnExecuteProc(Sender, InData)
-{$ENDIF}
+{$ENDIF FPC}
     else
         Result := False;
   except
@@ -2349,7 +2400,7 @@ begin
   FOnExecuteMethod := nil;
 {$IFNDEF FPC}
   FOnExecuteProc := nil;
-{$ENDIF}
+{$ENDIF FPC}
 end;
 
 destructor TCommandBigStream.Destroy;
@@ -2368,7 +2419,7 @@ begin
 {$IFNDEF FPC}
     else if Assigned(FOnExecuteProc) then
         FOnExecuteProc(Sender, InData, BigStreamTotal, BigStreamCompleteSize)
-{$ENDIF}
+{$ENDIF FPC}
     else
         Result := False;
   except
@@ -2384,7 +2435,7 @@ begin
   FOnExecuteMethod := nil;
 {$IFNDEF FPC}
   FOnExecuteProc := nil;
-{$ENDIF}
+{$ENDIF FPC}
 end;
 
 destructor TCommandCompleteBuffer.Destroy;
@@ -2403,7 +2454,7 @@ begin
 {$IFNDEF FPC}
     else if Assigned(FOnExecuteProc) then
         FOnExecuteProc(Sender, InData, DataSize)
-{$ENDIF}
+{$ENDIF FPC}
     else
         Result := False;
   except
@@ -3464,7 +3515,7 @@ var
   dHead, dTail: Cardinal;
   dID: Byte;
   dSize: Cardinal;
-  dHashStyle: THashStyle;
+  dHashStyle: Byte;
   dHashSiz: Word;
   dHash: TBytes;
   dCipherStyle: Byte;
@@ -3704,7 +3755,7 @@ begin
               Break;
             end;
 
-            if not VerifyHashCode(dHashStyle, tmpStream.Memory, tmpStream.Size, dHash) then
+            if not VerifyHashCode(THashStyle(dHashStyle), tmpStream.Memory, tmpStream.Size, dHash) then
               begin
                 Print('verify data error!');
                 DisposeObject(tmpStream);
@@ -3890,6 +3941,7 @@ begin
       FP2PVMTunnel.CloseP2PVMTunnel;
       DisposeObject(FP2PVMTunnel);
       FP2PVMTunnel := nil;
+      SetLength(FP2PAuthToken, 0);
     end;
 end;
 
@@ -3979,6 +4031,8 @@ begin
   inc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
   FP2PVMTunnel := nil;
+  SetLength(FP2PAuthToken, $FF);
+  FillPtrByte(@FP2PAuthToken[0], length(FP2PAuthToken), $0);
 
   OnInternalSendByteBuffer := {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.InternalSendByteBuffer;
   OnInternalSaveReceiveBuffer := {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.InternalSaveReceiveBuffer;
@@ -3987,11 +4041,12 @@ begin
   OnCreate := {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.InternalClientCreate;
   OnDestroy := {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.InternalClientDestroy;
   //
+  OnVMBuildAuthModelResultCall := nil;
+  OnVMBuildAuthModelResultMethod := nil;
+{$IFNDEF FPC} OnVMBuildAuthModelResultProc := nil; {$ENDIF FPC}
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := nil;
-{$IFNDEF FPC}
-  OnVMAuthResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} OnVMAuthResultProc := nil; {$ENDIF FPC}
   FUserData := nil;
   FUserValue := Null;
   FUserVariants := nil;
@@ -4087,7 +4142,44 @@ begin
   inherited Destroy;
 end;
 
-procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean);
+procedure TPeerIO.BuildP2PAuthToken;
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteInteger(umlRandomRange(-maxInt, maxInt));
+  SendStreamCmd(C_BuildP2PAuthToken, de, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.CommandResult_BuildP2PAuthToken);
+  DisposeObject(de);
+  ProcessAllSendCmd(nil, False, False);
+  OnVMBuildAuthModelResultCall := nil;
+  OnVMBuildAuthModelResultMethod := nil;
+{$IFNDEF FPC} OnVMBuildAuthModelResultProc := nil; {$ENDIF FPC}
+end;
+
+procedure TPeerIO.BuildP2PAuthToken(const OnResult: TStateCall);
+begin
+  BuildP2PAuthToken;
+  OnVMBuildAuthModelResultCall := OnResult;
+end;
+
+procedure TPeerIO.BuildP2PAuthToken(const OnResult: TStateMethod);
+begin
+  BuildP2PAuthToken;
+  OnVMBuildAuthModelResultMethod := OnResult;
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TPeerIO.BuildP2PAuthToken(const OnResult: TStateProc);
+begin
+  BuildP2PAuthToken;
+  OnVMBuildAuthModelResultProc := OnResult;
+end;
+{$ENDIF FPC}
+
+
+procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString);
 begin
   if FP2PVMTunnel = nil then
     begin
@@ -4100,105 +4192,99 @@ begin
       FP2PVMTunnel.OnAuthSuccessOnesNotify := {$IFDEF FPC}@{$ENDIF FPC}P2PVMAuthSuccess;
       OnVMAuthResultCall := nil;
       OnVMAuthResultMethod := nil;
-{$IFNDEF FPC}
-      OnVMAuthResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} OnVMAuthResultProc := nil; {$ENDIF FPC}
       if SendRemoteRequest then
         begin
-          SendDirectConsoleCmd('InitP2PTunnel', '');
+          SendDirectConsoleCmd(C_InitP2PTunnel, AuthToken);
           ProcessAllSendCmd(nil, False, False);
         end;
     end;
 end;
 
-procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean);
+procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString);
 begin
   if FOwnerFramework.FFrameworkIsClient then
-      OpenP2PVMTunnel(8192, SendRemoteRequest)
+      OpenP2PVMTunnel(8192, SendRemoteRequest, AuthToken)
   else
-      OpenP2PVMTunnel(16, SendRemoteRequest);
+      OpenP2PVMTunnel(16, SendRemoteRequest, AuthToken);
 end;
 
-procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; OnResult: TStateCall);
+procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateCall);
 begin
-  OpenP2PVMTunnel(SendRemoteRequest);
+  OpenP2PVMTunnel(SendRemoteRequest, AuthToken);
   OnVMAuthResultCall := OnResult;
   OnVMAuthResultMethod := nil;
-{$IFNDEF FPC}
-  OnVMAuthResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} OnVMAuthResultProc := nil; {$ENDIF FPC}
   FOwnerFramework.ProgressPost.PostExecute(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
-procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; OnResult: TStateMethod);
+procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateMethod);
 begin
-  OpenP2PVMTunnel(SendRemoteRequest);
+  OpenP2PVMTunnel(SendRemoteRequest, AuthToken);
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := OnResult;
-{$IFNDEF FPC}
-  OnVMAuthResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} OnVMAuthResultProc := nil; {$ENDIF FPC}
   FOwnerFramework.ProgressPost.PostExecute(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; OnResult: TStateProc);
+procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateProc);
 begin
-  OpenP2PVMTunnel(SendRemoteRequest);
+  OpenP2PVMTunnel(SendRemoteRequest, AuthToken);
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := nil;
   OnVMAuthResultProc := OnResult;
   FOwnerFramework.ProgressPost.PostExecute(3.0, FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
-procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; OnResult: TStateCall);
+procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateCall);
 begin
-  OpenP2PVMTunnel(vmHashPoolLen, SendRemoteRequest);
+  OpenP2PVMTunnel(vmHashPoolLen, SendRemoteRequest, AuthToken);
   OnVMAuthResultCall := OnResult;
   OnVMAuthResultMethod := nil;
 {$IFNDEF FPC}
   OnVMAuthResultProc := nil;
-{$ENDIF}
+{$ENDIF FPC}
   FOwnerFramework.ProgressPost.PostExecute(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
-procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; OnResult: TStateMethod);
+procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateMethod);
 begin
-  OpenP2PVMTunnel(vmHashPoolLen, SendRemoteRequest);
+  OpenP2PVMTunnel(vmHashPoolLen, SendRemoteRequest, AuthToken);
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := OnResult;
 {$IFNDEF FPC}
   OnVMAuthResultProc := nil;
-{$ENDIF}
+{$ENDIF FPC}
   FOwnerFramework.ProgressPost.PostExecute(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; OnResult: TStateProc);
+procedure TPeerIO.OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateProc);
 begin
-  OpenP2PVMTunnel(vmHashPoolLen, SendRemoteRequest);
+  OpenP2PVMTunnel(vmHashPoolLen, SendRemoteRequest, AuthToken);
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := nil;
   OnVMAuthResultProc := OnResult;
   FOwnerFramework.ProgressPost.PostExecute(3.0, FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TPeerIO.OpenP2PVMTunnel;
 begin
-  OpenP2PVMTunnel(False);
+  OpenP2PVMTunnel(False, '');
 end;
 
 procedure TPeerIO.CloseP2PVMTunnel;
 begin
-  SendDirectConsoleCmd('CloseP2PTunnel', '');
+  SendDirectConsoleCmd(C_CloseP2PTunnel, '');
 end;
 
 procedure TPeerIO.Print(v: SystemString);
@@ -4220,7 +4306,7 @@ end;
 procedure TPeerIO.PrintCommand(v: SystemString; Args: SystemString);
 begin
   try
-    if (not OwnerFramework.FQuietMode) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
+    if (not OwnerFramework.FQuietMode) and (not IsSystemCMD(Args)) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
         Print(Format(v, [Args]))
     else
         inc(OwnerFramework.Statistics[TStatisticsType.stPrint]);
@@ -4232,7 +4318,7 @@ end;
 procedure TPeerIO.PrintParam(v: SystemString; Args: SystemString);
 begin
   try
-    if (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
+    if (not IsSystemCMD(Args)) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
         Print(Format(v, [Args]));
   except
       Print(Format(v, [Args]));
@@ -4334,11 +4420,15 @@ end;
 
 procedure TPeerIO.PostQueueData(p: PQueueData);
 begin
-  FOwnerFramework.CmdSendStatistics.IncValue(p^.Cmd, 1);
-
-  LockObject(FQueueList); // atomic lock
-  FQueueList.Add(p);
-  UnLockObject(FQueueList); // atomic lock
+  if FOwnerFramework.Protocol = cpZServer then
+    begin
+      FOwnerFramework.CmdSendStatistics.IncValue(p^.Cmd, 1);
+      LockObject(FQueueList); // atomic lock
+      FQueueList.Add(p);
+      UnLockObject(FQueueList); // atomic lock
+    end
+  else
+      DisposeQueueData(p);
 end;
 
 procedure TPeerIO.WriteCustomBuffer(const buffer: PByte; const Size: NativeInt);
@@ -4455,13 +4545,13 @@ begin
   Result := @FCipherKey;
 end;
 
-procedure TPeerIO.GenerateHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
+procedure TPeerIO.GenerateHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
 begin
   TCipher.GenerateHashByte(hs, buff, siz, output);
   inc(FOwnerFramework.Statistics[TStatisticsType.stGenerateHash]);
 end;
 
-function TPeerIO.VerifyHashCode(hs: THashStyle; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
+function TPeerIO.VerifyHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
 var
   buffCode: TBytes;
 begin
@@ -4560,7 +4650,7 @@ begin
   else if FOwnerFramework.InheritsFrom(TCommunicationFrameworkClient) then
       TCommunicationFrameworkClient(FOwnerFramework).SendStreamCmd(Cmd, StreamData, Param1, Param2, OnResult);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TPeerIO.SendDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
@@ -4730,6 +4820,15 @@ begin
   DisposeObject(CompleteBuff);
 end;
 
+procedure TCommunicationFramework.Internal_ProgressPerClient(PeerClient: TPeerIO);
+begin
+  PeerClient.Progress;
+end;
+
+procedure TCommunicationFramework.FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Customed: Boolean);
+begin
+end;
+
 procedure TCommunicationFramework.InternalSendByteBuffer(const Sender: TPeerIO; const buff: PByte; siz: NativeInt);
 const
   FlushBuffSize = 16 * 1024; // flush size = 16k byte
@@ -4762,25 +4861,28 @@ end;
 
 procedure TCommunicationFramework.InternalSaveReceiveBuffer(const Sender: TPeerIO; const buff: Pointer; siz: Int64);
 begin
-  Sender.InternalSaveReceiveBuffer(buff, siz);
+  if siz > 0 then
+      Sender.InternalSaveReceiveBuffer(buff, siz);
 end;
 
 procedure TCommunicationFramework.InternalProcessReceiveBuffer(const Sender: TPeerIO; const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
 var
-  FillDone: Boolean;
+  Customed: Boolean;
 begin
+  if Sender.FReceivedBuffer.Size <= 0 then
+      Exit;
   LockObject(Sender); // atomic lock
-  FillDone := False;
+  Customed := FProtocol = cpCustom;
 
   try
     if RecvSync and (ACurrentActiveThread <> nil) then
-        FillCustomBuffer(Sender, ACurrentActiveThread, Sender.FReceivedBuffer.Memory, Sender.FReceivedBuffer.Size, FillDone)
+        FillCustomBuffer(Sender, ACurrentActiveThread, Sender.FReceivedBuffer.Memory, Sender.FReceivedBuffer.Size, Customed)
     else
-        FillCustomBuffer(Sender, nil, Sender.FReceivedBuffer.Memory, Sender.FReceivedBuffer.Size, FillDone);
+        FillCustomBuffer(Sender, nil, Sender.FReceivedBuffer.Memory, Sender.FReceivedBuffer.Size, Customed);
   except
   end;
 
-  if FillDone then
+  if Customed then
     begin
       Sender.FReceivedBuffer.Clear;
       UnLockObject(Sender); // atomic lock
@@ -4805,9 +4907,62 @@ procedure TCommunicationFramework.InternalClientDestroy(const Sender: TPeerIO);
 begin
 end;
 
-procedure TCommunicationFramework.Command_InitP2PTunnel(Sender: TPeerIO; InData: SystemString);
+procedure TCommunicationFramework.CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
+var
+  i: Integer;
+  arr: TDataFrameArrayInteger;
 begin
-  Sender.OpenP2PVMTunnel(16, False);
+  arr := ResultData.ReadArrayInteger(0);
+  SetLength(Sender.FP2PAuthToken, arr.Count * 4);
+  for i := 0 to arr.Count - 1 do
+      PInteger(@Sender.FP2PAuthToken[i * 4])^ := arr[i];
+
+  try
+    if Assigned(Sender.OnVMBuildAuthModelResultCall) then
+        Sender.OnVMBuildAuthModelResultCall(True);
+    if Assigned(Sender.OnVMBuildAuthModelResultMethod) then
+        Sender.OnVMBuildAuthModelResultMethod(True);
+{$IFNDEF FPC}
+    if Assigned(Sender.OnVMBuildAuthModelResultProc) then
+        Sender.OnVMBuildAuthModelResultProc(True);
+{$ENDIF FPC}
+  except
+  end;
+
+  Sender.OnVMBuildAuthModelResultCall := nil;
+  Sender.OnVMBuildAuthModelResultMethod := nil;
+{$IFNDEF FPC} Sender.OnVMBuildAuthModelResultProc := nil; {$ENDIF FPC}
+end;
+
+procedure TCommunicationFramework.Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+var
+  i: Integer;
+  seed: Integer;
+  arr: TDataFrameArrayInteger;
+begin
+  // build auth buffer
+  seed := InData.Reader.ReadInteger;
+  arr := OutData.WriteArrayInteger;
+  for i := C_VMAuthSize - 1 downto 0 do
+      arr.Add(TMISC.Ran03(seed));
+
+  SetLength(Sender.FP2PAuthToken, arr.Count * 4);
+  for i := 0 to arr.Count - 1 do
+      PInteger(@Sender.FP2PAuthToken[i * 4])^ := arr[i];
+end;
+
+procedure TCommunicationFramework.Command_InitP2PTunnel(Sender: TPeerIO; InData: SystemString);
+var
+  Accept: Boolean;
+begin
+  if Sender.FP2PVMTunnel <> nil then
+      Exit;
+
+  Accept := True;
+  p2pVMTunnelAuth(Sender, InData, Accept);
+  if not Accept then
+      Exit;
+  Sender.OpenP2PVMTunnel(16, False, '');
   Sender.p2pVMTunnel.AuthVM;
   p2pVMTunnelOpenBefore(Sender, Sender.p2pVMTunnel);
 end;
@@ -4833,15 +4988,13 @@ begin
 {$IFNDEF FPC}
     if Assigned(PC.OnVMAuthResultProc) then
         PC.OnVMAuthResultProc(True);
-{$ENDIF}
+{$ENDIF FPC}
   except
   end;
 
   PC.OnVMAuthResultCall := nil;
   PC.OnVMAuthResultMethod := nil;
-{$IFNDEF FPC}
-  PC.OnVMAuthResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} PC.OnVMAuthResultProc := nil; {$ENDIF FPC}
   p2pVMTunnelOpenAfter(PC, PC.p2pVMTunnel);
 end;
 
@@ -4873,15 +5026,13 @@ begin
 {$IFNDEF FPC}
     if Assigned(PC.OnVMAuthResultProc) then
         PC.OnVMAuthResultProc(False);
-{$ENDIF}
+{$ENDIF FPC}
   except
   end;
 
   PC.OnVMAuthResultCall := nil;
   PC.OnVMAuthResultMethod := nil;
-{$IFNDEF FPC}
-  PC.OnVMAuthResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} PC.OnVMAuthResultProc := nil; {$ENDIF FPC}
 end;
 
 constructor TCommunicationFramework.Create(HashPoolLen: Integer);
@@ -4921,14 +5072,19 @@ begin
 
   FCMDWithThreadRuning := 0;
 
+  FVMInterface := nil;
+
+  FProtocol := cpZServer;
+
   for st := low(TStatisticsType) to high(TStatisticsType) do
       Statistics[st] := 0;
   CmdRecvStatistics := THashVariantList.Create(128);
   CmdSendStatistics := THashVariantList.Create(128);
   CmdMaxExecuteConsumeStatistics := THashVariantList.Create(128);
 
-  RegisterDirectConsole('InitP2PTunnel').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_InitP2PTunnel;
-  RegisterDirectConsole('CloseP2PTunnel').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CloseP2PTunnel;
+  RegisterStream(C_BuildP2PAuthToken).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_BuildP2PAuthToken;
+  RegisterDirectConsole(C_InitP2PTunnel).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_InitP2PTunnel;
+  RegisterDirectConsole(C_CloseP2PTunnel).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CloseP2PTunnel;
 
   SwitchDefaultPerformance;
 
@@ -4941,8 +5097,9 @@ end;
 
 destructor TCommunicationFramework.Destroy;
 begin
-  DeleteRegistedCMD('InitP2PTunnel');
-  DeleteRegistedCMD('CloseP2PTunnel');
+  DeleteRegistedCMD(C_BuildP2PAuthToken);
+  DeleteRegistedCMD(C_InitP2PTunnel);
+  DeleteRegistedCMD(C_CloseP2PTunnel);
   DisposeObject(FCommandList);
   DisposeObject(FPerClientHashList);
   DisposeObject(FPrintParams);
@@ -4951,29 +5108,39 @@ begin
   inherited Destroy;
 end;
 
-procedure TCommunicationFramework.FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Done: Boolean);
-begin
-end;
-
 procedure TCommunicationFramework.WriteCustomBuffer(Client: TPeerIO; const buffer: PByte; const Size: NativeInt);
 begin
   Client.WriteCustomBuffer(buffer, Size);
 end;
 
+procedure TCommunicationFramework.p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
+begin
+  if FVMInterface <> nil then
+      FVMInterface.p2pVMTunnelAuth(Sender, Token, Accept);
+end;
+
 procedure TCommunicationFramework.p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin
+  if FVMInterface <> nil then
+      FVMInterface.p2pVMTunnelOpenBefore(Sender, p2pVMTunnel);
 end;
 
 procedure TCommunicationFramework.p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin
+  if FVMInterface <> nil then
+      FVMInterface.p2pVMTunnelOpen(Sender, p2pVMTunnel);
 end;
 
 procedure TCommunicationFramework.p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin
+  if FVMInterface <> nil then
+      FVMInterface.p2pVMTunnelOpen(Sender, p2pVMTunnel);
 end;
 
 procedure TCommunicationFramework.p2pVMTunnelClose(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin
+  if FVMInterface <> nil then
+      FVMInterface.p2pVMTunnelOpen(Sender, p2pVMTunnel);
 end;
 
 procedure TCommunicationFramework.SwitchMaxPerformance;
@@ -5012,10 +5179,7 @@ begin
   inc(Statistics[TStatisticsType.stUnLock]);
 end;
 
-procedure TCommunicationFramework.ProgressBackground;
-var
-  i: Integer;
-  p: PUInt32HashListObjectStruct;
+procedure TCommunicationFramework.Progress;
 begin
   try
     if Assigned(ProgressBackgroundProc) then
@@ -5023,20 +5187,13 @@ begin
   except
   end;
 
-  if (FPerClientHashList.Count > 0) then
-    begin
-      i := 0;
-      p := FPerClientHashList.FirstPtr;
-      while i < FPerClientHashList.Count do
-        begin
-          try
-              TPeerIO(p^.Data).Progress;
-          except
-          end;
-          inc(i);
-          p := p^.Next;
-        end;
-    end;
+  try
+    if Assigned(ProgressBackgroundMethod) then
+        ProgressBackgroundMethod;
+  except
+  end;
+
+  ProgressPerClient({$IFDEF FPC}@{$ENDIF FPC}Internal_ProgressPerClient);
 
   try
       ProgressPost.Progress;
@@ -5048,14 +5205,14 @@ end;
 
 procedure TCommunicationFramework.ProgressPerClient(OnProgress: TPerClientListCall);
 var
-  IDPool: TClientIDPool;
+  IO_IDArray: TIO_IDArray;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
   if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
     begin
-      GetClientIDPool(IDPool);
-      for pframeworkID in IDPool do
+      GetIO_IDArray(IO_IDArray);
+      for pframeworkID in IO_IDArray do
         begin
           c := TPeerIO(FPerClientHashList[pframeworkID]);
           if c <> nil then
@@ -5071,14 +5228,14 @@ end;
 
 procedure TCommunicationFramework.ProgressPerClient(OnProgress: TPerClientListMethod);
 var
-  IDPool: TClientIDPool;
+  IO_IDArray: TIO_IDArray;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
   if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
     begin
-      GetClientIDPool(IDPool);
-      for pframeworkID in IDPool do
+      GetIO_IDArray(IO_IDArray);
+      for pframeworkID in IO_IDArray do
         begin
           c := TPeerIO(FPerClientHashList[pframeworkID]);
           if c <> nil then
@@ -5097,14 +5254,14 @@ end;
 
 procedure TCommunicationFramework.ProgressPerClient(OnProgress: TPerClientListProc);
 var
-  IDPool: TClientIDPool;
+  IO_IDArray: TIO_IDArray;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
   if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
     begin
-      GetClientIDPool(IDPool);
-      for pframeworkID in IDPool do
+      GetIO_IDArray(IO_IDArray);
+      for pframeworkID in IO_IDArray do
         begin
           c := TPeerIO(FPerClientHashList[pframeworkID]);
           if c <> nil then
@@ -5117,7 +5274,7 @@ begin
         end;
     end;
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TCommunicationFramework.FastProgressPerClient(OnProgress: TPerClientListCall);
@@ -5186,37 +5343,42 @@ begin
     end;
 end;
 
-{$ENDIF}
+{$ENDIF FPC}
 
 
-procedure TCommunicationFramework.GetClientIDPool(out IDPool: TClientIDPool);
+procedure TCommunicationFramework.GetIO_IDArray(out IO_IDArray: TIO_IDArray);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  SetLength(IDPool, FPerClientHashList.Count);
-  if (FPerClientHashList.Count > 0) then
-    begin
-      i := 0;
-      p := FPerClientHashList.FirstPtr;
-      while i < FPerClientHashList.Count do
-        begin
-          IDPool[i] := TPeerIO(p^.Data).FID;
-          inc(i);
-          p := p^.Next;
-        end;
-    end;
+  LockObject(FPerClientHashList); // atomic lock
+  try
+    SetLength(IO_IDArray, FPerClientHashList.Count);
+    if (FPerClientHashList.Count > 0) then
+      begin
+        i := 0;
+        p := FPerClientHashList.FirstPtr;
+        while i < FPerClientHashList.Count do
+          begin
+            IO_IDArray[i] := TPeerIO(p^.Data).FID;
+            inc(i);
+            p := p^.Next;
+          end;
+      end;
+  except
+  end;
+  UnLockObject(FPerClientHashList); // atomic lock
 end;
 
 procedure TCommunicationFramework.ProgressWaitSendOfClient(Client: TPeerIO);
 begin
-  ProgressBackground;
+  Progress;
 end;
 
 procedure TCommunicationFramework.PrintParam(v: SystemString; Args: SystemString);
 begin
   try
-    if (FPrintParams.GetDefaultValue(Args, True) = True) then
+    if (not IsSystemCMD(Args)) and (FPrintParams.GetDefaultValue(Args, True) = True) then
         DoPrint(Format(v, [Args]));
   except
       DoPrint(Format(v, [Args]));
@@ -5373,6 +5535,16 @@ begin
   CmdMaxExecuteConsumeStatistics[Cmd] := 0;
 end;
 
+procedure TCommunicationFramework.PrintRegistedCMD;
+var
+  l: TListPascalString;
+begin
+  l := TListPascalString.Create;
+  FCommandList.GetNameList(l);
+  DoStatus(l);
+  DisposeObject(l);
+end;
+
 function TCommunicationFramework.ExecuteConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString; var OutData: SystemString): Boolean;
 var
   b: TCoreClassObject;
@@ -5501,6 +5673,11 @@ begin
   Result := TCommandCompleteBuffer(b).Execute(Sender, InData, DataSize);
 end;
 
+function TCommunicationFramework.ExistsRegistedCmd(Cmd: SystemString): Boolean;
+begin
+  Result := FCommandList.Exists(Cmd);
+end;
+
 function TCommunicationFramework.FirstClient: TPeerIO;
 begin
   Result := TPeerIO(FPerClientHashList.First);
@@ -5518,10 +5695,8 @@ end;
 
 function TCommunicationFrameworkServer.CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean;
 begin
-  if umlMultipleMatch('ConnectedInit', Cmd) then
-    begin
-      Result := True;
-    end
+  if IsSystemCMD(Cmd) then
+      Result := True
   else
       Result := inherited CanExecuteCommand(Sender, Cmd);
 end;
@@ -5533,15 +5708,13 @@ end;
 
 function TCommunicationFrameworkServer.CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean;
 begin
-  if umlMultipleMatch('ConnectedInit', Cmd) then
-    begin
-      Result := True;
-    end
+  if IsSystemCMD(Cmd) then
+      Result := True
   else
       Result := inherited CanRegCommand(Sender, Cmd);
 end;
 
-procedure TCommunicationFrameworkServer.Command_ConnectedInit(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFrameworkServer.Command_CipherModel(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 begin
   try
       Sender.UserDefine.FWorkPlatform := TExecutePlatform(InData.Reader.ReadInteger);
@@ -5566,6 +5739,8 @@ procedure TCommunicationFrameworkServer.InternalClientCreate(const Sender: TPeer
 begin
   DoClientConnectBefore(Sender);
   inherited InternalClientCreate(Sender);
+  if FProtocol = cpCustom then
+      DoClientConnectAfter(Sender);
 end;
 
 procedure TCommunicationFrameworkServer.InternalClientDestroy(const Sender: TPeerIO);
@@ -5574,25 +5749,32 @@ begin
   inherited InternalClientDestroy(Sender);
 end;
 
-constructor TCommunicationFrameworkServer.Create;
+procedure TCommunicationFrameworkServer.SyncFillCustomBuffer;
 begin
-  inherited Create(10 * 10000);
-  RegisterStream('ConnectedInit').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ConnectedInit;
-  RegisterConsole('Wait').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_Wait;
-
-  PrintParams['Wait'] := False;
-
-  FFrameworkIsServer := True;
-  FFrameworkIsClient := False;
+  OnReceiveBuffer(FillSync_Sender, FillSync_Buffer, FillSync_BufferSize);
 end;
 
-constructor TCommunicationFrameworkServer.Create(HashPoolLen: Integer);
+procedure TCommunicationFrameworkServer.FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Customed: Boolean);
+begin
+  if Protocol = cpCustom then
+    begin
+      FillSync_Sender := Sender;
+      FillSync_Buffer := buffer;
+      FillSync_BufferSize := Size;
+      SyncMethod(th, th <> nil, {$IFDEF FPC}@{$ENDIF FPC}SyncFillCustomBuffer);
+    end;
+end;
+
+constructor TCommunicationFrameworkServer.Create;
+begin
+  CreateCustomHashPool(10 * 10000);
+end;
+
+constructor TCommunicationFrameworkServer.CreateCustomHashPool(HashPoolLen: Integer);
 begin
   inherited Create(HashPoolLen);
-  RegisterStream('ConnectedInit').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ConnectedInit;
-  RegisterConsole('Wait').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_Wait;
-
-  PrintParams['Wait'] := False;
+  RegisterStream(C_CipherModel).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CipherModel;
+  RegisterConsole(C_Wait).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_Wait;
 
   FFrameworkIsServer := True;
   FFrameworkIsClient := False;
@@ -5603,9 +5785,18 @@ begin
   while FCMDWithThreadRuning > 0 do
       CheckThreadSynchronize(10);
 
-  DeleteRegistedCMD('ConnectedInit');
-  DeleteRegistedCMD('Wait');
+  DeleteRegistedCMD(C_CipherModel);
+  DeleteRegistedCMD(C_Wait);
   inherited Destroy;
+end;
+
+procedure TCommunicationFrameworkServer.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);
+begin
+end;
+
+procedure TCommunicationFrameworkServer.WriteBuffer(Client: TPeerIO; const buffer: PByte; const Size: NativeInt);
+begin
+  WriteCustomBuffer(Client, buffer, Size);
 end;
 
 procedure TCommunicationFrameworkServer.StopService;
@@ -5645,7 +5836,7 @@ begin
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.ConsoleData := ConsoleData;
@@ -5666,7 +5857,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := DoneAutoFree;
@@ -5687,7 +5878,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := True;
@@ -5712,7 +5903,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := True;
@@ -5743,7 +5934,7 @@ begin
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.ConsoleData := ConsoleData;
@@ -5764,7 +5955,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := DoneAutoFree;
@@ -5785,7 +5976,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := True;
@@ -5810,7 +6001,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := True;
@@ -5825,7 +6016,7 @@ begin
   TriggerQueueData(p);
   Client.PrintCommand('Send Stream cmd: %s', Cmd);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TCommunicationFrameworkServer.SendDirectConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString);
@@ -5839,7 +6030,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectConsoleCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.ConsoleData := ConsoleData;
@@ -5858,7 +6049,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := DoneAutoFree;
@@ -5878,7 +6069,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.DoneAutoFree := True;
@@ -6017,7 +6208,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendBigStream;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.BigStreamStartPos := StartPos;
@@ -6043,7 +6234,7 @@ begin
       Exit;
   p := NewQueueData;
   p^.State := TQueueState.qsSendCompleteBuffer;
-  p^.Client := Client;
+  p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
   p^.Cipher := Client.FSendDataCipherStyle;
   p^.buffer := buff;
@@ -6097,7 +6288,7 @@ procedure TCommunicationFrameworkServer.SendStreamCmd(ClientID: Cardinal; const 
 begin
   SendStreamCmd(ClientFromID[ClientID], Cmd, StreamData, Param1, Param2, OnResult);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TCommunicationFrameworkServer.SendDirectConsoleCmd(ClientID: Cardinal; const Cmd, ConsoleData: SystemString);
@@ -6270,9 +6461,9 @@ begin
   inherited DoPrint('client ' + v);
 end;
 
-procedure TCommunicationFrameworkClient.StreamResult_ConnectedInit(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFrameworkClient.StreamResult_CipherModel(Sender: TPeerIO; ResultData: TDataFrameEngine);
 var
-  Arr: TDataFrameArrayByte;
+  arr: TDataFrameArrayByte;
 begin
   if ResultData.Count > 0 then
     begin
@@ -6281,14 +6472,14 @@ begin
       Sender.FID := ResultData.Reader.ReadCardinal;
       FPerClientHashList.Add(Sender.FID, Sender, True);
       // index 1: used Encrypt
-      Sender.FSendDataCipherStyle := TCipherStyle(ResultData.Reader.ReadByte);
+      Sender.SendCipherStyle := TCipherStyle(ResultData.Reader.ReadByte);
 
       // index 2:Encrypt CipherKey
-      Arr := ResultData.Reader.ReadArrayByte;
-      SetLength(Sender.FCipherKey, Arr.Count);
-      Arr.GetBuff(@Sender.FCipherKey[0]);
+      arr := ResultData.Reader.ReadArrayByte;
+      SetLength(Sender.FCipherKey, arr.Count);
+      arr.GetBuff(@Sender.FCipherKey[0]);
 
-      Sender.FRemoteExecutedForConnectInit := True;
+      Sender.RemoteExecutedForConnectInit := True;
 
       if FConnectInitWaiting then
           TriggerDoConnectFinished;
@@ -6307,22 +6498,41 @@ var
   de: TDataFrameEngine;
 begin
   FConnectInitWaiting := True;
-  FConnectInitWaitingTimeout := GetTimeTick + FAsyncConnectTimeout;
-
-  ClientIO.FSendDataCipherStyle := TCipherStyle.csNone;
-  de := TDataFrameEngine.Create;
-  de.WriteInteger(Integer(CurrentPlatform));
-  SendStreamCmd('ConnectedInit', de, {$IFDEF FPC}@{$ENDIF FPC}StreamResult_ConnectedInit);
-  DisposeObject(de);
-
-  inherited DoConnected(Sender);
-
-  if FNotyifyInterface <> nil then
+  if Protocol = cpZServer then
     begin
-      try
-          FNotyifyInterface.ClientConnected(Self);
-      except
-      end;
+      FConnectInitWaitingTimeout := GetTimeTick + FAsyncConnectTimeout;
+
+      ClientIO.SendCipherStyle := TCipherStyle.csNone;
+      de := TDataFrameEngine.Create;
+      de.WriteInteger(Integer(CurrentPlatform));
+      SendStreamCmd(C_CipherModel, de, {$IFDEF FPC}@{$ENDIF FPC}StreamResult_CipherModel);
+      DisposeObject(de);
+
+      inherited DoConnected(Sender);
+
+      if FNotyifyInterface <> nil then
+        begin
+          try
+              FNotyifyInterface.ClientConnected(Self);
+          except
+          end;
+        end;
+    end
+  else
+    begin
+      ClientIO.SendCipherStyle := TCipherStyle.csNone;
+      inherited DoConnected(Sender);
+      if FNotyifyInterface <> nil then
+        begin
+          try
+              FNotyifyInterface.ClientConnected(Self);
+          except
+          end;
+        end;
+
+      Sender.RemoteExecutedForConnectInit := True;
+      TriggerDoConnectFinished;
+      FConnectInitWaiting := False;
     end;
 end;
 
@@ -6339,12 +6549,7 @@ begin
 
   try
     if FNotyifyInterface <> nil then
-      begin
-        try
-            FNotyifyInterface.ClientDisconnect(Self);
-        except
-        end;
-      end;
+        FNotyifyInterface.ClientDisconnect(Self);
   except
   end;
 end;
@@ -6356,10 +6561,8 @@ end;
 
 function TCommunicationFrameworkClient.CanSendCommand(Sender: TPeerIO; Cmd: SystemString): Boolean;
 begin
-  if umlMultipleMatch('ConnectedInit', Cmd) then
-    begin
-      Result := True;
-    end
+  if IsSystemCMD(Cmd) then
+      Result := True
   else
       Result := inherited CanSendCommand(Sender, Cmd);
 end;
@@ -6367,6 +6570,21 @@ end;
 function TCommunicationFrameworkClient.CanRegCommand(Sender: TCommunicationFramework; Cmd: SystemString): Boolean;
 begin
   Result := inherited CanRegCommand(Sender, Cmd);
+end;
+
+procedure TCommunicationFrameworkClient.SyncFillCustomBuffer;
+begin
+  OnReceiveBuffer(FillSync_Buffer, FillSync_BufferSize);
+end;
+
+procedure TCommunicationFrameworkClient.FillCustomBuffer(Sender: TPeerIO; const th: TCoreClassThread; const buffer: PByte; const Size: NativeInt; var Customed: Boolean);
+begin
+  if Protocol = cpCustom then
+    begin
+      FillSync_Buffer := buffer;
+      FillSync_BufferSize := Size;
+      SyncMethod(th, th <> nil, {$IFDEF FPC}@{$ENDIF FPC}SyncFillCustomBuffer);
+    end;
 end;
 
 procedure TCommunicationFrameworkClient.ConsoleResult_Wait(Sender: TPeerIO; ResultData: SystemString);
@@ -6377,21 +6595,19 @@ begin
       FWaitingTimeOut := 0;
       try
         if Assigned(FOnWaitResultCall) then
-            FOnWaitResultCall(False);
+            FOnWaitResultCall(True);
         if Assigned(FOnWaitResultMethod) then
-            FOnWaitResultMethod(False);
+            FOnWaitResultMethod(True);
 {$IFNDEF FPC}
         if Assigned(FOnWaitResultProc) then
-            FOnWaitResultProc(False);
-{$ENDIF}
+            FOnWaitResultProc(True);
+{$ENDIF FPC}
       except
       end;
 
       FOnWaitResultCall := nil;
       FOnWaitResultMethod := nil;
-{$IFNDEF FPC}
-      FOnWaitResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
     end;
 end;
 
@@ -6407,16 +6623,23 @@ begin
   FAsyncConnectTimeout := 2000;
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := nil;
-{$IFNDEF FPC}
-  FOnWaitResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
   FFrameworkIsServer := False;
   FFrameworkIsClient := True;
 end;
 
-procedure TCommunicationFrameworkClient.ProgressBackground;
+procedure TCommunicationFrameworkClient.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt);
 begin
-  inherited ProgressBackground;
+end;
+
+procedure TCommunicationFrameworkClient.WriteBuffer(const buffer: PByte; const Size: NativeInt);
+begin
+  WriteCustomBuffer(ClientIO, buffer, Size);
+end;
+
+procedure TCommunicationFrameworkClient.Progress;
+begin
+  inherited Progress;
 
   if (FConnectInitWaiting) and (GetTimeTick > FConnectInitWaitingTimeout) then
     begin
@@ -6446,15 +6669,13 @@ begin
 {$IFNDEF FPC}
         if Assigned(FOnWaitResultProc) then
             FOnWaitResultProc(False);
-{$ENDIF}
+{$ENDIF FPC}
       except
       end;
 
       FOnWaitResultCall := nil;
       FOnWaitResultMethod := nil;
-{$IFNDEF FPC}
-      FOnWaitResultProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
     end;
 end;
 
@@ -6516,7 +6737,7 @@ begin
   if Assigned(OnResult) then
       OnResult(r);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 function TCommunicationFrameworkClient.Connect(addr: SystemString; Port: Word): Boolean;
@@ -6537,7 +6758,7 @@ begin
   if (not Connected) then
       Exit;
 
-  Result := WaitSendConsoleCmd('Wait', '', ATimeOut);
+  Result := WaitSendConsoleCmd(C_Wait, '', ATimeOut);
 end;
 
 function TCommunicationFrameworkClient.Wait(ATimeOut: TTimeTickValue; OnResult: TStateCall): Boolean;
@@ -6554,10 +6775,8 @@ begin
   FWaitingTimeOut := GetTimeTick + ATimeOut;
   FOnWaitResultCall := OnResult;
   FOnWaitResultMethod := nil;
-{$IFNDEF FPC}
-  FOnWaitResultProc := nil;
-{$ENDIF}
-  SendConsoleCmd('Wait', '', {$IFDEF FPC}@{$ENDIF FPC}ConsoleResult_Wait);
+{$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
+  SendConsoleCmd(C_Wait, '', {$IFDEF FPC}@{$ENDIF FPC}ConsoleResult_Wait);
   Result := True;
 end;
 
@@ -6575,10 +6794,8 @@ begin
   FWaitingTimeOut := GetTimeTick + ATimeOut;
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := OnResult;
-{$IFNDEF FPC}
-  FOnWaitResultProc := nil;
-{$ENDIF}
-  SendConsoleCmd('Wait', '', {$IFDEF FPC}@{$ENDIF FPC}ConsoleResult_Wait);
+{$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
+  SendConsoleCmd(C_Wait, '', {$IFDEF FPC}@{$ENDIF FPC}ConsoleResult_Wait);
 
   Result := True;
 end;
@@ -6601,10 +6818,10 @@ begin
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := nil;
   FOnWaitResultProc := OnResult;
-  SendConsoleCmd('Wait', '', ConsoleResult_Wait);
+  SendConsoleCmd(C_Wait, '', ConsoleResult_Wait);
   Result := True;
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 function TCommunicationFrameworkClient.WaitSendBusy: Boolean;
@@ -6845,7 +7062,7 @@ begin
   TriggerQueueData(p);
   ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TCommunicationFrameworkClient.SendDirectConsoleCmd(Cmd, ConsoleData: SystemString);
@@ -7134,7 +7351,10 @@ begin
   frameworkID := PCardinal(stream.PositionAsPtr(4))^;
   p2pID := PCardinal(stream.PositionAsPtr(8))^;
   pkType := PByte(stream.PositionAsPtr(12))^;
-  buff := stream.PositionAsPtr(13);
+  if buffSiz > 0 then
+      buff := stream.PositionAsPtr(13)
+  else
+      buff := nil;
   Result := buffSiz + 13;
 end;
 
@@ -7144,7 +7364,8 @@ begin
   stream.WritePtr(@frameworkID, 4);
   stream.WritePtr(@p2pID, 4);
   stream.WritePtr(@pkType, 1);
-  stream.WritePtr(buff, buffSiz);
+  if buffSiz > 0 then
+      stream.WritePtr(buff, buffSiz);
 end;
 
 procedure TPeerClientWithP2PVM.CreateAfter;
@@ -7288,7 +7509,7 @@ begin
       SenderVM.ConnectedReponse(LocalVMc.FRemote_frameworkID, LocalVMc.FRemote_p2pID, frameworkID, LocalVMc.ID);
 
       if not FQuietMode then
-          DoStatus('connecting with %s port:%d', [IPv6ToStr(ipv6).Text, Port]);
+          DoStatus('Virtual connecting with "%s port:%d"', [IPv6ToStr(ipv6).Text, Port]);
     end;
 end;
 
@@ -7297,9 +7518,9 @@ begin
   if not FQuietMode then
     begin
       if State then
-          DoStatus('Addr: "%s Port:%d" Listen is open', [IPv6ToStr(ipv6).Text, Port])
+          DoStatus('Virtual Addr: "%s Port:%d" Listen is open', [IPv6ToStr(ipv6).Text, Port])
       else
-          DoStatus('Addr: "%s Port:%d" Listen close!', [IPv6ToStr(ipv6).Text, Port]);
+          DoStatus('Virtual Addr: "%s Port:%d" Listen close!', [IPv6ToStr(ipv6).Text, Port]);
     end;
 end;
 
@@ -7383,7 +7604,7 @@ end;
 
 constructor TCommunicationFrameworkWithP2PVM_Server.Create;
 begin
-  inherited Create(10 * 10000);
+  inherited CreateCustomHashPool(10 * 10000);
   FFrameworkListenPool := TCoreClassList.Create;
   FLinkVMPool := TUInt32HashObjectList.Create;
   FFrameworkWithVM_ID := 0;
@@ -7392,7 +7613,7 @@ end;
 
 constructor TCommunicationFrameworkWithP2PVM_Server.Create(HashPoolLen: Integer; frameworkID: Cardinal);
 begin
-  inherited Create(HashPoolLen);
+  inherited CreateCustomHashPool(HashPoolLen);
   FFrameworkListenPool := TCoreClassList.Create;
   FLinkVMPool := TUInt32HashObjectList.Create;
   FFrameworkWithVM_ID := frameworkID;
@@ -7427,15 +7648,21 @@ begin
   inherited Destroy;
 end;
 
-procedure TCommunicationFrameworkWithP2PVM_Server.ProgressBackground;
+procedure TCommunicationFrameworkWithP2PVM_Server.Progress;
 begin
-  inherited ProgressBackground;
+  inherited Progress;
 end;
 
 procedure TCommunicationFrameworkWithP2PVM_Server.TriggerQueueData(v: PQueueData);
+var
+  c: TPeerIO;
 begin
-  v^.Client.PostQueueData(v);
-  v^.Client.ProcessAllSendCmd(nil, False, False);
+  c := ClientFromID[v^.ClientID];
+  if c <> nil then
+    begin
+      c.PostQueueData(v);
+      c.ProcessAllSendCmd(nil, False, False);
+    end;
 end;
 
 procedure TCommunicationFrameworkWithP2PVM_Server.CloseAllClient;
@@ -7598,9 +7825,7 @@ begin
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
 end;
 
 constructor TCommunicationFrameworkWithP2PVM_Client.Create(frameworkID: Cardinal);
@@ -7614,9 +7839,7 @@ begin
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
 end;
 
 destructor TCommunicationFrameworkWithP2PVM_Client.Destroy;
@@ -7641,15 +7864,13 @@ begin
 {$IFNDEF FPC}
     if Assigned(FOnAsyncConnectNotifyProc) then
         FOnAsyncConnectNotifyProc(False);
-{$ENDIF}
+{$ENDIF FPC}
   except
   end;
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
 end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.TriggerDoConnectFinished;
@@ -7664,15 +7885,13 @@ begin
 {$IFNDEF FPC}
     if Assigned(FOnAsyncConnectNotifyProc) then
         FOnAsyncConnectNotifyProc(True);
-{$ENDIF}
+{$ENDIF FPC}
   except
   end;
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
 end;
 
 function TCommunicationFrameworkWithP2PVM_Client.Connected: Boolean;
@@ -7685,9 +7904,9 @@ begin
   Result := FVMClient;
 end;
 
-procedure TCommunicationFrameworkWithP2PVM_Client.ProgressBackground;
+procedure TCommunicationFrameworkWithP2PVM_Client.Progress;
 begin
-  inherited ProgressBackground;
+  inherited Progress;
 end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.TriggerQueueData(v: PQueueData);
@@ -7713,9 +7932,7 @@ begin
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
   if (FLinkVM = nil) or (FLinkVM.FPhysicsTunnel = nil) then
     begin
       if not FQuietMode then
@@ -7769,9 +7986,7 @@ begin
 
   FOnAsyncConnectNotifyCall := OnResult;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
   if (FLinkVM = nil) or (FLinkVM.FPhysicsTunnel = nil) then
     begin
       if not FQuietMode then
@@ -7825,9 +8040,7 @@ begin
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := OnResult;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
   if (FLinkVM = nil) or (FLinkVM.FPhysicsTunnel = nil) then
     begin
       if not FQuietMode then
@@ -7926,7 +8139,7 @@ begin
 
   FLinkVM.Connecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 function TCommunicationFrameworkWithP2PVM_Client.Connect(addr: SystemString; Port: Word): Boolean;
@@ -7942,9 +8155,7 @@ begin
   FVMConnected := False;
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
-{$IFNDEF FPC}
-  FOnAsyncConnectNotifyProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} FOnAsyncConnectNotifyProc := nil; {$ENDIF FPC}
   if (FLinkVM = nil) or (FLinkVM.FPhysicsTunnel = nil) then
     begin
       if not FQuietMode then
@@ -8010,7 +8221,7 @@ begin
   if FLinkVM <> nil then
     begin
       if FLinkVM.FPhysicsTunnel <> nil then
-          FLinkVM.FPhysicsTunnel.OwnerFramework.ProgressBackground;
+          FLinkVM.FPhysicsTunnel.OwnerFramework.Progress;
 
       FLinkVM.Progress;
     end;
@@ -8063,10 +8274,13 @@ var
   fPk: Tp2pVMFragmentPackage;
   rPos: Integer;
 begin
-  // safe auth support
+  if FReceiveStream.Size <= 0 then
+      Exit;
+  // p2p auth
   if not FAuthed then
     begin
-      if (FAuthWaiting) and (FReceiveStream.Size >= length(P2PVMAuthToken)) and (CompareMemory(@P2PVMAuthToken[0], FReceiveStream.Memory, length(P2PVMAuthToken))) then
+      if (FAuthWaiting) and (FReceiveStream.Size >= length(FPhysicsTunnel.FP2PAuthToken)) and
+        (CompareMemory(@FPhysicsTunnel.FP2PAuthToken[0], FReceiveStream.Memory, length(FPhysicsTunnel.FP2PAuthToken))) then
         begin
           FSendStream.Clear;
 
@@ -8088,7 +8302,7 @@ begin
           AuthSuccessed;
 
           // fill fragment buffer
-          p64 := length(P2PVMAuthToken);
+          p64 := length(FPhysicsTunnel.FP2PAuthToken);
           SourStream := TMemoryStream64.Create;
           FReceiveStream.Position := p64;
           if FReceiveStream.Size - FReceiveStream.Position > 0 then
@@ -8103,7 +8317,7 @@ begin
           Exit
       else
         begin
-          // protocol safe support
+          // save fragment
           FPhysicsTunnel.FOwnerFramework.InternalSaveReceiveBuffer(FPhysicsTunnel, FReceiveStream.Memory, FReceiveStream.Size);
           FReceiveStream.Clear;
           FPhysicsTunnel.FOwnerFramework.InternalProcessReceiveBuffer(FPhysicsTunnel, nil, False, False);
@@ -8251,7 +8465,7 @@ begin
 {$IFNDEF FPC}
             if Assigned(echoPtr^.OnEchoProc) then
                 echoPtr^.OnEchoProc(True);
-{$ENDIF}
+{$ENDIF FPC}
           except
           end;
 
@@ -8338,7 +8552,7 @@ begin
   if siz <> SizeOf(TBuf) then
     begin
       if not FQuietMode then
-          DoStatus('listen state protocol with buffer error!');
+          DoStatus('Virtual listen state protocol with buffer error!');
       if buff <> nil then
         if not FQuietMode then
             DoStatus(buff, siz, 40);
@@ -8352,7 +8566,7 @@ begin
   if p2pID <> 0 then
     begin
       if not FQuietMode then
-          DoStatus('listen state protocol error! PeerClient ID:%d', [p2pID]);
+          DoStatus('Virtual listen state protocol error! PeerClient ID:%d', [p2pID]);
       Exit;
     end;
 
@@ -8373,13 +8587,13 @@ begin
           LP^.Listening := True;
         end;
       if not FQuietMode then
-          DoStatus('Remote Listen state Activted "%s port:%d"', [IPv6ToStr(ipv6).Text, Port]);
+          DoStatus('Virtual Remote Listen state Activted "%s port:%d"', [IPv6ToStr(ipv6).Text, Port]);
     end
   else
     begin
       DeleteListen(ipv6, Port);
       if not FQuietMode then
-          DoStatus('Remote Listen state Close "%s port:%d"', [IPv6ToStr(ipv6).Text, Port]);
+          DoStatus('Virtual Remote Listen state Close "%s port:%d"', [IPv6ToStr(ipv6).Text, Port]);
     end;
 
   c := TCommunicationFramework(FFrameworkPool[frameworkID]);
@@ -8655,7 +8869,7 @@ begin
 {$IFNDEF FPC}
             if Assigned(OnEchoPtr^.OnEchoProc) then
                 OnEchoPtr^.OnEchoProc(False);
-{$ENDIF}
+{$ENDIF FPC}
           except
           end;
 
@@ -8771,7 +8985,7 @@ begin
     end;
 end;
 
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TCommunicationFrameworkWithP2PVM.OpenP2PVMTunnel(c: TPeerIO);
@@ -8966,7 +9180,7 @@ begin
   if not FAuthed then
     if not FAuthSending then
       begin
-        FSendStream.WritePtr(@P2PVMAuthToken[0], length(P2PVMAuthToken));
+        FSendStream.WritePtr(@FPhysicsTunnel.FP2PAuthToken[0], length(FPhysicsTunnel.FP2PAuthToken));
         FAuthSending := True;
         FAuthWaiting := True;
       end;
@@ -9010,7 +9224,7 @@ begin
 {$IFNDEF FPC}
             if Assigned(OnEchoPtr^.OnEchoProc) then
                 OnEchoPtr^.OnEchoProc(False);
-{$ENDIF}
+{$ENDIF FPC}
           except
           end;
 
@@ -9036,9 +9250,7 @@ begin
   new(p);
   p^.OnEchoCall := OnResult;
   p^.OnEchoMethod := nil;
-{$IFNDEF FPC}
-  p^.OnEchoProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} p^.OnEchoProc := nil; {$ENDIF FPC}
   p^.Timeout := GetTimeTick + Timeout;
   echoing(p, Timeout);
 end;
@@ -9050,9 +9262,7 @@ begin
   new(p);
   p^.OnEchoCall := nil;
   p^.OnEchoMethod := OnResult;
-{$IFNDEF FPC}
-  p^.OnEchoProc := nil;
-{$ENDIF}
+{$IFNDEF FPC} p^.OnEchoProc := nil; {$ENDIF FPC}
   p^.Timeout := GetTimeTick + Timeout;
   echoing(p, Timeout);
 end;
@@ -9071,7 +9281,7 @@ begin
   p^.Timeout := GetTimeTick + Timeout;
   echoing(p, Timeout);
 end;
-{$ENDIF}
+{$ENDIF FPC}
 
 
 procedure TCommunicationFrameworkWithP2PVM.echoBuffer(const buff: Pointer; const siz: NativeInt);
@@ -9310,25 +9520,11 @@ begin
     end;
 end;
 
-procedure Buildp2pVMAuthToken;
-var
-  i: Integer;
-  Seed: Integer;
-begin
-  SetLength(P2PVMAuthToken, 1024); // 1k auth buffer
-  Seed := $0F0000FF;
-  for i := 0 to (length(P2PVMAuthToken) div 4) - 1 do
-      PInteger(@P2PVMAuthToken[i * 4])^ := TMISC.Ran03(Seed);
-end;
-
 initialization
 
-Buildp2pVMAuthToken;
-
-ProgressBackgroundProc := {$IFDEF FPC}@{$ENDIF FPC}DefaultProgressBackgroundProc;
+ProgressBackgroundProc := nil;
+ProgressBackgroundMethod := nil;
 
 finalization
-
-SetLength(P2PVMAuthToken, 0);
 
 end.

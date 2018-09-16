@@ -16,7 +16,7 @@
 
 unit CommunicationFramework_Server_Refrence;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -38,6 +38,7 @@ type
     procedure WriteBufferClose; override;
     function GetPeerIP: SystemString; override;
     function WriteBufferEmpty: Boolean; override;
+    procedure Progress; override;
   end;
 
   TCommunicationFramework_Server_Refrence = class(TCommunicationFrameworkServer)
@@ -51,7 +52,7 @@ type
     procedure StopService; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     function WaitSendConsoleCmd(Client: TPeerIO;
       const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
@@ -105,6 +106,12 @@ function TPeerIOWithRefrenceServer.WriteBufferEmpty: Boolean;
 begin
 end;
 
+procedure TPeerIOWithRefrenceServer.Progress;
+begin
+  inherited Progress;
+  ProcessAllSendCmd(nil, False, False);
+end;
+
 constructor TCommunicationFramework_Server_Refrence.Create;
 begin
   inherited Create;
@@ -125,20 +132,22 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_Refrence.TriggerQueueData(v: PQueueData);
+var
+  c: TPeerIO;
 begin
-  if not Exists(v^.Client) then
+  c := ClientFromID[v^.ClientID];
+  if c <> nil then
     begin
+      c.PostQueueData(v);
+      c.ProcessAllSendCmd(nil, False, False);
+    end
+  else
       DisposeQueueData(v);
-      Exit;
-    end;
-
-  v^.Client.PostQueueData(v);
-  v^.Client.ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Server_Refrence.ProgressBackground;
+procedure TCommunicationFramework_Server_Refrence.Progress;
 begin
-  inherited ProgressBackground;
+  inherited Progress;
 end;
 
 function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(Client: TPeerIO;
@@ -158,4 +167,4 @@ initialization
 
 finalization
 
-end. 
+end.

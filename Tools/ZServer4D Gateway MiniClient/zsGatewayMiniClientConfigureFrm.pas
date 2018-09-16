@@ -431,7 +431,7 @@ end;
 
 procedure TzsGatewayMiniClientConfigureForm.NetworkTimerTimer(Sender: TObject);
 begin
-  ConfigureClient.ProgressBackground;
+  ConfigureClient.Progress;
   ProgressPost.Progress;
 end;
 

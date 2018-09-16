@@ -67,7 +67,7 @@ end;
 
 procedure TManagerQueryBase.Progress;
 begin
-  Client.ProgressBackground;
+  Client.Progress;
 end;
 
 procedure TManagerQueryBase.Connect(Addr: string; Port: Word);

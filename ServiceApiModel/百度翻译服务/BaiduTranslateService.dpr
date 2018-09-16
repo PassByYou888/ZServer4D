@@ -2,9 +2,6 @@
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
 { ****************************************************************************** }
 
 program BaiduTranslateService;
@@ -30,6 +27,7 @@ uses
   JsonDataObjects,
   ZDBLocalManager,
   ZDBEngine,
+  ListEngine,
   BaiduTranslateAPI in 'BaiduTranslateAPI.pas',
   BaiduTranslateClient in 'Client.Lib\BaiduTranslateClient.pas';
 
@@ -59,14 +57,14 @@ type
 
 procedure TMyServer.DoClientConnectAfter(Sender: TPeerIO);
 begin
-  DoStatus('id: %d ip:%s connected', [Sender.id, Sender.PeerIP]);
+  DoStatus('id: %d ip:%s connected', [Sender.ID, Sender.PeerIP]);
   Sender.UserVariants['LastIP'] := Sender.PeerIP;
   inherited DoClientConnectAfter(Sender);
 end;
 
 procedure TMyServer.DoClientDisconnect(Sender: TPeerIO);
 begin
-  DoStatus('id: %d ip: %s disconnect', [Sender.id, VarToStr(Sender.UserVariants['LastIP'])]);
+  DoStatus('id: %d ip: %s disconnect', [Sender.ID, VarToStr(Sender.UserVariants['LastIP'])]);
   inherited DoClientDisconnect(Sender);
 end;
 
@@ -74,9 +72,9 @@ procedure cmd_BaiduTranslate(Sender: TPeerIO; InData, OutData: TDataFrameEngine)
 type
   PDelayReponseSource = ^TDelayReponseSource;
 
-  TDelayReponseSource = record
+  TDelayReponseSource = packed record
     serv: TMyServer;
-    id: Cardinal;
+    ID: Cardinal;
     sourLan, destLan: TTranslateLanguage;
     s: TPascalString;
     UsedCache: Boolean;
@@ -96,7 +94,7 @@ begin
   if BaiduTranslateTh > BaiduTranslate_MaxSafeThread then
     begin
       OutData.WriteBool(False);
-      exit;
+      Exit;
     end;
 
   // 开启延迟响应模式，ZS延迟的技术体系和作用，请自行在标准演示中了解相关Demo
@@ -105,16 +103,15 @@ begin
   // 我们创建一个回调的数据结构，用于延迟的安全释放，不会泄漏
   new(sp);
   sp^.serv := TMyServer(Sender.OwnerFramework);
-  sp^.id := Sender.id;
+  sp^.ID := Sender.ID;
   // 发自客户端的翻译数据
   sp^.sourLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的源语言
   sp^.destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
   sp^.s := InData.Reader.ReadString;                         // 这里不做字符串修正，把字符串修正改在客户端去做
   sp^.UsedCache := InData.Reader.ReadBool;                   // 是否使用cache数据库
-  sp^.Hash64 := FastHash64PascalString(@sp^.s);              // 高速hash
+  sp^.Hash64 := FastHash64PPascalString(@sp^.s);              // 高速hash
 
-  // 从cache数据库查询我们的翻译
-  // 因为超过200万条翻译，就必须给百度交钱
+  // 从cache数据库查询我们的翻译，效率更好
   MiniDB.QueryDB(
     False,     // 查询结果写入到返回表
     True,      // 查询的返回表是内存表，如果是False就是一个实体的文件表
@@ -130,7 +127,7 @@ begin
       procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     var
         p: PDelayReponseSource;
-        j: TJsonObject;
+        J: TJsonObject;
         cli: TPeerIO;
     begin
         // 查询过滤器回调
@@ -139,28 +136,28 @@ begin
         // 如果客户端UsedCache为假，我们直接结束查询，并且跳到查询完成事件中去
         if not p^.UsedCache then
         begin
-            dPipe.Stop;
-            exit;
+            dPipe.stop;
+            Exit;
         end;
 
         // 这一步是ZDB的重要加速机制，json的实例是被退火引擎管理的，当数据库繁忙时，json不会被释放，是作为cache在内存中
-        j := qState.DBEng.GetJson(qState);
+        J := qState.dbEng.GetJson(qState);
 
         Allowed :=
-        (p^.Hash64 = j.U['h']) // 我们用hash来提高遍历速度
-        and (TTranslateLanguage(j.I['sl']) = p^.sourLan) and (TTranslateLanguage(j.I['dl']) = p^.destLan)
-        and (p^.s.Same(TPascalString(j.s['s'])));
+        (p^.Hash64 = J.u['h']) // 我们用hash来提高遍历速度
+        and (TTranslateLanguage(J.i['sl']) = p^.sourLan) and (TTranslateLanguage(J.i['dl']) = p^.destLan)
+        and (p^.s.Same(TPascalString(J.s['s'])));
 
         if Allowed then
         begin
-            cli := p^.serv.ClientFromID[p^.id];
+            cli := p^.serv.ClientFromID[p^.ID];
 
             // 在延迟技术体系中，客户端可能发送完请求就断线了
             // 如果断线，cli就是nil
             if cli <> nil then
             begin
                 cli.OutDataFrame.WriteBool(True);       // 翻译成功状态
-                cli.OutDataFrame.WriteString(j.s['d']); // 翻译完成的目标语言
+                cli.OutDataFrame.WriteString(J.s['d']); // 翻译完成的目标语言
                 cli.OutDataFrame.WriteBool(True);       // 翻译是否来自cache数据库
                 cli.ContinueResultSend;
             end;
@@ -176,8 +173,8 @@ begin
       // 如果找到了一条反馈，dPipe.QueryResultCounter就会是1，现在我们释放刚才申请的内存
       if dPipe.QueryResultCounter > 0 then
         begin
-          dispose(p);
-          exit;
+          Dispose(p);
+          Exit;
         end;
 
       // 如果在Cache数据库中没有找到，我们调用百度api，并且将翻译结果保存到cahce数据库
@@ -189,7 +186,7 @@ begin
           p: PDelayReponseSource;
         begin
           p := UserData;
-          cli := TPeerIO(PDelayReponseSource(UserData)^.serv.ClientFromID[PDelayReponseSource(UserData)^.id]);
+          cli := TPeerIO(PDelayReponseSource(UserData)^.serv.ClientFromID[PDelayReponseSource(UserData)^.ID]);
           // 在延迟技术体系中，客户端可能发送完请求就断线了
           // 如果断线，cli就是nil
           if cli <> nil then
@@ -206,9 +203,9 @@ begin
                       // 将查询结果记录到数据库
                       // 因为超过200万条翻译，就必须给百度交钱
                       js := TJsonObject.Create;
-                      js.I['sl'] := Integer(p^.sourLan);
-                      js.I['dl'] := Integer(p^.destLan);
-                      js.U['h'] := FastHash64PascalString(@p^.s);
+                      js.i['sl'] := Integer(p^.sourLan);
+                      js.i['dl'] := Integer(p^.destLan);
+                      js.u['h'] := FastHash64PPascalString(@p^.s);
                       js.F['t'] := Now;
                       js.s['s'] := p^.s.Text;
                       js.s['d'] := dest.Text;
@@ -217,17 +214,17 @@ begin
                       MiniDB.PostData('History', js);
 
                       // 在ubuntu服务器模式下，无法显示中文
-                      {$IFNDEF Linux}
+{$IFNDEF Linux}
                       DoStatus('new cache %s', [js.ToString]);
-                      {$IFEND}
-                      disposeObject(js);
+{$IFEND}
+                      DisposeObject(js);
                     end;
                 end;
 
               // 继续响应
               cli.ContinueResultSend;
             end;
-          dispose(p);
+          Dispose(p);
         end);
     end).UserPointer := sp;
 end;
@@ -237,20 +234,20 @@ end;
 procedure cmd_UpdateTranslate(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   sourLan, destLan: TTranslateLanguage;
-  s, d            : TPascalString;
-  Hash64          : THash64;
-  js              : TJsonObject;
+  s, d: TPascalString;
+  Hash64: THash64;
+  js: TJsonObject;
 begin
   sourLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的源语言
   destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
   s := InData.Reader.ReadString;                         // 源文
   d := InData.Reader.ReadString;                         // 翻译
-  Hash64 := FastHash64PascalString(@s);                  // 高速hash
+  Hash64 := FastHash64PPascalString(@s);                  // 高速hash
 
   js := TJsonObject.Create;
-  js.I['sl'] := Integer(sourLan);
-  js.I['dl'] := Integer(destLan);
-  js.U['h'] := Hash64;
+  js.i['sl'] := Integer(sourLan);
+  js.i['dl'] := Integer(destLan);
+  js.u['h'] := Hash64;
   js.F['t'] := Now;
   js.s['s'] := s.Text;
   js.s['d'] := d.Text;
@@ -258,16 +255,42 @@ begin
   MiniDB.PostData('History', js);
 
   // 在ubuntu服务器模式下，无法显示中文
-  {$IFNDEF Linux}
+{$IFNDEF Linux}
   DoStatus('update cache %s', [js.ToString]);
-  {$IFEND}
-  disposeObject(js);
+{$IFEND}
+  DisposeObject(js);
+end;
+
+procedure Init_BaiduTranslateAccound;
+var
+  cfg: THashStringList;
+begin
+  // 使用下列地址申请百度翻译
+  // http://api.fanyi.baidu.com
+
+  cfg := THashStringList.Create;
+  if umlFileExists(umlCombineFileName(umlCurrentPath(), 'baidu.cfg')) then
+    begin
+      cfg.LoadFromFile(umlCombineFileName(umlCurrentPath(), 'baidu.cfg'));
+      BaiduTranslate_Appid := cfg.GetDefaultValue('AppID', BaiduTranslate_Appid);
+      BaiduTranslate_Key := cfg.GetDefaultValue('Key', BaiduTranslate_Key);
+    end
+  else
+    begin
+      cfg.SetDefaultValue('AppID', BaiduTranslate_Appid);
+      cfg.SetDefaultValue('Key', BaiduTranslate_Key);
+      cfg.SaveToFile(umlCombineFileName(umlCurrentPath(), 'baidu.cfg'));
+    end;
+  DisposeObject(cfg);
 end;
 
 var
   server_1, server_2: TMyServer;
 
 begin
+  // 初始化百度翻译账号
+  Init_BaiduTranslateAccound;
+
   MiniDB := TZDBLocalManager.Create;
   // 因为创建文件形式的数据库，对于这种经常ctrl+f2的强退，数据库很容易损坏
   MiniDB.InitDB('History');
@@ -313,8 +336,8 @@ begin
   while True do
     begin
       MiniDB.Progress;
-      server_1.ProgressBackground;
-      server_2.ProgressBackground;
+      server_1.Progress;
+      server_2.Progress;
 
       // 绿色环保，避免多余开销
       if server_1.Count + server_2.Count > 0 then

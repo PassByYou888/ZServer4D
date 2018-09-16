@@ -49,9 +49,9 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: nativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function PositionAsPtr(const APosition: Int64): Pointer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function PositionAsPtr: Pointer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: nativeUInt);
+    function PositionAsPtr(const APosition: Int64): Pointer; overload;
+    function PositionAsPtr: Pointer; overload;
     //
     procedure LoadFromStream(stream: TCoreClassStream); virtual;
     procedure LoadFromFile(const FileName: SystemString);
@@ -62,12 +62,12 @@ type
     procedure SetSize(NewSize: longint); overload; override;
 
     function Write64(const buffer; Count: Int64): Int64; virtual;
-    function WritePtr(const p: Pointer; Count: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function WritePtr(const p: Pointer; Count: Int64): Int64;
     function write(const buffer; Count: longint): longint; overload; override;
 {$IFNDEF FPC} function write(const buffer: TBytes; Offset, Count: longint): longint; overload; override; {$ENDIF}
     //
     function Read64(var buffer; Count: Int64): Int64; virtual;
-    function ReadPtr(const p: Pointer; Count: Int64): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ReadPtr(const p: Pointer; Count: Int64): Int64;
     function read(var buffer; Count: longint): longint; overload; override;
 {$IFNDEF FPC} function read(buffer: TBytes; Offset, Count: longint): longint; overload; override; {$ENDIF}
     //
@@ -135,14 +135,13 @@ type
 {$ENDIF}
   //
   // zlib
-function MaxCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MaxCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+function FastCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+function CompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 
-function DecompressStream(DataPtr: Pointer; siz: NativeInt; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecompressStreamToPtr(sour: TCoreClassStream; var DeTo: Pointer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
+function DecompressStream(DataPtr: Pointer; siz: NativeInt; dest: TCoreClassStream): Boolean; overload;
+function DecompressStream(sour: TCoreClassStream; dest: TCoreClassStream): Boolean; overload;
+function DecompressStreamToPtr(sour: TCoreClassStream; var dest: Pointer): Boolean;
 
 implementation
 
@@ -602,7 +601,7 @@ end;
 
 function MaxCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 var
-  cp: TCompressionStream;
+  cStream: TCompressionStream;
   sizevalue: Int64;
 begin
   Result := False;
@@ -612,9 +611,9 @@ begin
     if sour.Size > 0 then
       begin
         sour.Position := 0;
-        cp := TCompressionStream.Create(clMax, ComTo);
-        Result := cp.CopyFrom(sour, sizevalue) = sizevalue;
-        DisposeObject(cp);
+        cStream := TCompressionStream.Create(clMax, ComTo);
+        Result := cStream.CopyFrom(sour, sizevalue) = sizevalue;
+        DisposeObject(cStream);
       end;
   except
   end;
@@ -622,7 +621,7 @@ end;
 
 function FastCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 var
-  cp: TCompressionStream;
+  cStream: TCompressionStream;
   sizevalue: Int64;
 begin
   Result := False;
@@ -632,9 +631,9 @@ begin
     if sour.Size > 0 then
       begin
         sour.Position := 0;
-        cp := TCompressionStream.Create(clFastest, ComTo);
-        Result := cp.CopyFrom(sour, sizevalue) = sizevalue;
-        DisposeObject(cp);
+        cStream := TCompressionStream.Create(clFastest, ComTo);
+        Result := cStream.CopyFrom(sour, sizevalue) = sizevalue;
+        DisposeObject(cStream);
       end;
   except
   end;
@@ -642,7 +641,7 @@ end;
 
 function CompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 var
-  cp: TCompressionStream;
+  cStream: TCompressionStream;
   sizevalue: Int64;
 begin
   Result := False;
@@ -652,56 +651,60 @@ begin
     if sour.Size > 0 then
       begin
         sour.Position := 0;
-        cp := TCompressionStream.Create(clDefault, ComTo);
-        Result := cp.CopyFrom(sour, sizevalue) = sizevalue;
-        DisposeObject(cp);
+        cStream := TCompressionStream.Create(clDefault, ComTo);
+        Result := cStream.CopyFrom(sour, sizevalue) = sizevalue;
+        DisposeObject(cStream);
       end;
   except
   end;
 end;
 
-function DecompressStream(DataPtr: Pointer; siz: NativeInt; DeTo: TCoreClassStream): Boolean;
+function DecompressStream(DataPtr: Pointer; siz: NativeInt; dest: TCoreClassStream): Boolean;
 var
   m64: TMemoryStream64;
 begin
   m64 := TMemoryStream64.Create;
   m64.SetPointer(DataPtr, siz);
-  Result := DecompressStream(m64, DeTo);
+  Result := DecompressStream(m64, dest);
   DisposeObject(m64);
 end;
 
-function DecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
+function DecompressStream(sour: TCoreClassStream; dest: TCoreClassStream): Boolean;
 var
-  DC: TDecompressionStream;
-  DeSize: Int64;
+  dcStream: TDecompressionStream;
+  dSiz: Int64;
+  iPos: Int64;
 begin
   Result := False;
-  sour.ReadBuffer(DeSize, 8);
-  if DeSize > 0 then
+  sour.ReadBuffer(dSiz, 8);
+  if dSiz > 0 then
     begin
+      iPos := dest.Position;
+      dest.Size := iPos + dSiz;
+      dest.Position := iPos;
       try
-        DC := TDecompressionStream.Create(sour);
-        Result := DeTo.CopyFrom(DC, DeSize) = DeSize;
-        DisposeObject(DC);
+        dcStream := TDecompressionStream.Create(sour);
+        Result := dest.CopyFrom(dcStream, dSiz) = dSiz;
+        DisposeObject(dcStream);
       except
       end;
     end;
 end;
 
-function DecompressStreamToPtr(sour: TCoreClassStream; var DeTo: Pointer): Boolean;
+function DecompressStreamToPtr(sour: TCoreClassStream; var dest: Pointer): Boolean;
 var
-  DC: TDecompressionStream;
-  DeSize: Int64;
+  dcStream: TDecompressionStream;
+  dSiz: Int64;
 begin
   Result := False;
   try
-    sour.ReadBuffer(DeSize, 8);
-    if DeSize > 0 then
+    sour.ReadBuffer(dSiz, 8);
+    if dSiz > 0 then
       begin
-        DC := TDecompressionStream.Create(sour);
-        DeTo := System.GetMemory(DeSize);
-        Result := DC.read(DeTo^, DeSize) = DeSize;
-        DisposeObject(DC);
+        dcStream := TDecompressionStream.Create(sour);
+        dest := System.GetMemory(dSiz);
+        Result := dcStream.read(dest^, dSiz) = dSiz;
+        DisposeObject(dcStream);
       end;
   except
   end;
@@ -711,7 +714,4 @@ initialization
 
 finalization
 
-end. 
- 
- 
- 
+end.

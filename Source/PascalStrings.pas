@@ -18,10 +18,9 @@
 
 unit PascalStrings;
 
-interface
-
 {$INCLUDE zDefine.inc}
 
+interface
 
 uses SysUtils;
 
@@ -80,35 +79,39 @@ type
     class operator Explicit(Value: TPascalString): Variant;
 {$ENDIF}
     function Copy(index, Count: NativeInt): TPascalString;
-    function Same(const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Same(const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(const Offset: Integer; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(const Offset: Integer; const t: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetPos(const s: TPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetPos(const s: PPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Same(const p: PPascalString): Boolean; overload;
+    function Same(const t: TPascalString): Boolean; overload;
+    function Same(const t1, t2: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5: TPascalString): Boolean; overload;
+    function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload;
+    function ComparePos(const Offset: Integer; const p: PPascalString): Boolean; overload;
+    function ComparePos(const Offset: Integer; const t: TPascalString): Boolean; overload;
+    function GetPos(const s: TPascalString; const Offset: Integer = 1): Integer; overload;
+    function GetPos(const s: PPascalString; const Offset: Integer = 1): Integer; overload;
     function Exists(c: SystemChar): Boolean; overload;
     function Exists(c: array of SystemChar): Boolean; overload;
     function Exists(const s: TPascalString): Boolean; overload;
     function GetCharCount(c: SystemChar): Integer;
     //
-    function hash: THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Hash64: THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function hash: THash;
+    function Hash64: THash64;
     //
     property Last: SystemChar read GetLast write SetLast;
     property First: SystemChar read GetFirst write SetFirst;
 
-    procedure DeleteLast; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DeleteFirst; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Delete(idx, cnt: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeleteLast;
+    procedure DeleteFirst;
+    procedure Delete(idx, cnt: Integer);
+    procedure Clear;
     procedure Append(t: TPascalString); overload;
     procedure Append(c: SystemChar); overload;
-    function GetString(bPos, ePos: NativeInt): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Insert(AText: SystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetString(bPos, ePos: NativeInt): TPascalString;
+    procedure Insert(AText: SystemString; idx: Integer);
     //
     procedure FastAsText(var output: SystemString);
-    procedure FastGetBytes(var output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure FastGetBytes(var output: TBytes);
     //
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
@@ -138,22 +141,22 @@ type
   PArrayPascalStringPtr = ^TArrayPascalStringPtr;
 
 function CharIn(c: SystemChar; const SomeChars: array of SystemChar): Boolean; overload;
-function CharIn(c: SystemChar; const SomeChar: SystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CharIn(c: SystemChar; const s: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CharIn(c: SystemChar; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CharIn(c: SystemChar; const SomeCharsets: TOrdChars): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const p: PPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CharIn(c: SystemChar; const SomeChar: SystemChar): Boolean; overload;
+function CharIn(c: SystemChar; const s: TPascalString): Boolean; overload;
+function CharIn(c: SystemChar; const p: PPascalString): Boolean; overload;
+function CharIn(c: SystemChar; const SomeCharsets: TOrdChars): Boolean; overload;
+function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean; overload;
+function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload;
+function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const p: PPascalString): Boolean; overload;
 
-function FastHashSystemString(const s: PSystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastHash64SystemString(const s: PSystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHashPSystemString(const s: PSystemString): THash; overload;
+function FastHash64PSystemString(const s: PSystemString): THash64; overload;
 
-function FastHashSystemString(const s: SystemString): THash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastHash64SystemString(const s: SystemString): THash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHashSystemString(const s: SystemString): THash; overload;
+function FastHash64SystemString(const s: SystemString): THash64; overload;
 
-function FastHashPascalString(const s: PPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FastHash64PascalString(const s: PPascalString): THash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FastHashPPascalString(const s: PPascalString): THash;
+function FastHash64PPascalString(const s: PPascalString): THash64;
 
 function PFormat(const Fmt: SystemString; const Args: array of const): SystemString;
 
@@ -232,7 +235,7 @@ implementation
 
 uses CoreClasses, Variants;
 
-procedure CombineCharsPP(const c1, c2: TArrayChar; var output: TArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPP(const c1, c2: TArrayChar; var output: TArrayChar);
 var
   LL, rl: Integer;
 begin
@@ -245,7 +248,7 @@ begin
       CopyPtr(@c2[0], @output[LL], rl * SystemCharSize);
 end;
 
-procedure CombineCharsSP(const c1: SystemString; const c2: TArrayChar; var output: TArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsSP(const c1: SystemString; const c2: TArrayChar; var output: TArrayChar);
 var
   LL, rl: Integer;
 begin
@@ -258,7 +261,7 @@ begin
       CopyPtr(@c2[0], @output[LL], rl * SystemCharSize);
 end;
 
-procedure CombineCharsPS(const c1: TArrayChar; const c2: SystemString; var output: TArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPS(const c1: TArrayChar; const c2: SystemString; var output: TArrayChar);
 var
   LL, rl: Integer;
 begin
@@ -271,7 +274,7 @@ begin
       CopyPtr(@c2[FirstCharPos], @output[LL], rl * SystemCharSize);
 end;
 
-procedure CombineCharsCP(const c1: SystemChar; const c2: TArrayChar; var output: TArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsCP(const c1: SystemChar; const c2: TArrayChar; var output: TArrayChar);
 var
   rl: Integer;
 begin
@@ -282,7 +285,7 @@ begin
       CopyPtr(@c2[0], @output[1], rl * SystemCharSize);
 end;
 
-procedure CombineCharsPC(const c1: TArrayChar; const c2: SystemChar; var output: TArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPC(const c1: TArrayChar; const c2: SystemChar; var output: TArrayChar);
 var
   LL: Integer;
 begin
@@ -388,7 +391,7 @@ begin
   Result.Bytes := s;
 end;
 
-function FastHashSystemString(const s: PSystemString): THash;
+function FastHashPSystemString(const s: PSystemString): THash;
 var
   i: Integer;
   c: SystemChar;
@@ -408,7 +411,7 @@ begin
     end;
 end;
 
-function FastHash64SystemString(const s: PSystemString): THash64;
+function FastHash64PSystemString(const s: PSystemString): THash64;
 var
   i: Integer;
   c: SystemChar;
@@ -430,15 +433,15 @@ end;
 
 function FastHashSystemString(const s: SystemString): THash;
 begin
-  Result := FastHashSystemString(@s);
+  Result := FastHashPSystemString(@s);
 end;
 
 function FastHash64SystemString(const s: SystemString): THash64;
 begin
-  Result := FastHash64SystemString(@s);
+  Result := FastHash64PSystemString(@s);
 end;
 
-function FastHashPascalString(const s: PPascalString): THash;
+function FastHashPPascalString(const s: PPascalString): THash;
 var
   i: Integer;
   c: SystemChar;
@@ -453,7 +456,7 @@ begin
     end;
 end;
 
-function FastHash64PascalString(const s: PPascalString): THash64;
+function FastHash64PPascalString(const s: PPascalString): THash64;
 var
   i: Integer;
   c: SystemChar;
@@ -1521,6 +1524,26 @@ begin
     end;
 end;
 
+function TPascalString.Same(const t1, t2: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2);
+end;
+
+function TPascalString.Same(const t1, t2, t3: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3);
+end;
+
+function TPascalString.Same(const t1, t2, t3, t4: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4);
+end;
+
+function TPascalString.Same(const t1, t2, t3, t4, t5: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5);
+end;
+
 function TPascalString.Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean;
 var
   i: Integer;
@@ -1531,7 +1554,6 @@ begin
       Exit;
   for i := 0 to Len - 1 do
     begin
-
       s := buff[i];
       if IgnoreCase then
         if CharIn(s, cHiAtoZ) then
@@ -1660,12 +1682,12 @@ end;
 
 function TPascalString.hash: THash;
 begin
-  Result := FastHashPascalString(@Self);
+  Result := FastHashPPascalString(@Self);
 end;
 
 function TPascalString.Hash64: THash64;
 begin
-  Result := FastHash64PascalString(@Self);
+  Result := FastHash64PPascalString(@Self);
 end;
 
 procedure TPascalString.DeleteLast;
@@ -1882,6 +1904,3 @@ initialization
 finalization
 
 end.
- 
- 
- 

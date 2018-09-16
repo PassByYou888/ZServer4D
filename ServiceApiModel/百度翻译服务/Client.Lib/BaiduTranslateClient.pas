@@ -271,7 +271,7 @@ var
   p2: TBaiduTranslateClient.PUserDef;
   n : TPascalString;
 begin
-  BaiduTranslate_Client.ProgressBackground;
+  BaiduTranslate_Client.Progress;
 
   if BaiduTranslate_Client.Connected then
     begin

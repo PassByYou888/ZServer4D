@@ -473,7 +473,7 @@ type
     OnCall: TStateCall;
     OnMethod: TStateMethod;
 {$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   PGetFileInfoStruct = ^TGetFileInfoStruct;
@@ -485,7 +485,7 @@ type
     OnCompleteCall: TGetFileInfoCall;
     OnCompleteMethod: TGetFileInfoMethod;
 {$IFNDEF FPC} OnCompleteProc: TGetFileInfoProc; {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   PFileMD5Struct = ^TFileMD5Struct;
@@ -498,7 +498,7 @@ type
     OnCompleteCall: TFileMD5Call;
     OnCompleteMethod: TFileMD5Method;
 {$IFNDEF FPC} OnCompleteProc: TFileMD5Proc; {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   PRemoteFileBackcall = ^TRemoteFileBackcall;
@@ -509,7 +509,7 @@ type
     OnCompleteCall: TFileCompleteCall;
     OnCompleteMethod: TFileCompleteMethod;
 {$IFNDEF FPC} OnCompleteProc: TFileCompleteProc; {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
 procedure TPostBatchBackcallData.Init;
@@ -1786,8 +1786,8 @@ end;
 procedure TCommunicationFramework_DoubleTunnelService.Progress;
 begin
   FCadencerEngine.Progress;
-  FRecvTunnel.ProgressBackground;
-  FSendTunnel.ProgressBackground;
+  FRecvTunnel.Progress;
+  FSendTunnel.Progress;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
@@ -1805,7 +1805,7 @@ begin
     begin
       FUserDB.LoadFromFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-      FRecvTunnel.GetClientIDPool(IDPool);
+      FRecvTunnel.GetIO_IDArray(IDPool);
       for pcid in IDPool do
         begin
           cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
@@ -1823,7 +1823,7 @@ var
 begin
   FUserDB.SaveToFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-  FRecvTunnel.GetClientIDPool(IDPool);
+  FRecvTunnel.GetIO_IDArray(IDPool);
   for pcid in IDPool do
     begin
       cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
@@ -2840,8 +2840,8 @@ begin
   try
     FCadencerEngine.Progress;
 
-    FRecvTunnel.ProgressBackground;
-    FSendTunnel.ProgressBackground;
+    FRecvTunnel.Progress;
+    FSendTunnel.Progress;
 
     if not Connected then
         FLinkOk := False;

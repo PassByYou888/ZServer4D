@@ -67,7 +67,7 @@ type
     FFragmentBuffer: TMemoryStream64;
     FActivted: Boolean;
     FQueryTask: TQueryTask;
-    FPerformaceCounter: nativeInt;
+    FPerformaceCounter: NativeInt;
     FLastPerformaceTime: TTimeTickValue;
     FQueryCounterOfPerSec: Double;
     FRealTimePostFragmentData: Boolean;
@@ -77,8 +77,8 @@ type
     procedure Query(var qState: TQueryState);
     procedure QueryDone();
 
-    procedure WriteToOutput(DBEng: TDBStoreBase; StorePos: Int64; ID: Cardinal);
-    procedure PostFragmentData(forcePost: Boolean); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure WriteToOutput(dbEng: TDBStoreBase; StorePos: Int64; ID: Cardinal);
+    procedure PostFragmentData(forcePost: Boolean);
   public
     Owner: TZDBLocalManager;
     SourceDB: TZDBStoreEngine;
@@ -127,11 +127,11 @@ type
     function GetStorePosTransform(const index: Integer): PZDBStorePosTransform;
     property StorePosTransform[const index: Integer]: PZDBStorePosTransform read GetStorePosTransform;
 
-    procedure stop; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Pause; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Play; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Paused: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function QueryConsumTime: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure stop;
+    procedure Pause;
+    procedure Play;
+    function Paused: Boolean;
+    function QueryConsumTime: Double;
     property Activted: Boolean read FActivted;
     property QueryCounterOfPerSec: Double read FQueryCounterOfPerSec;
     property RealTimePostFragmentData: Boolean read FRealTimePostFragmentData write FRealTimePostFragmentData;
@@ -227,8 +227,8 @@ type
     procedure Recache;
 
     // container operation
-    function GenerateTaskName: SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GenerateNewTaskName: SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GenerateTaskName: SystemString;
+    function GenerateNewTaskName: SystemString;
     function GetPipeline(pipeName: SystemString): TZDBPipeline;
     function GetDB(dn: SystemString): TZDBStoreEngine;
     function GetDBName(dn: SystemString): TZDBStoreEngine;
@@ -310,13 +310,13 @@ type
 {$ENDIF}
     //
     // delete operation
-    procedure DeleteData(dn: SystemString; StorePos: Int64); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeleteData(dn: SystemString; StorePos: Int64);
     //
-    // manual getData
-    function GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TMemoryStream64InCache; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // getData
+    function GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TMemoryStream64InCache;
     //
     // modify operation
-    function SetData(dn: SystemString; StorePos: Int64; dSour: TMemoryStream64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function SetData(dn: SystemString; StorePos: Int64; dSour: TMemoryStream64): Boolean;
   end;
 
   TFillQueryDataCall   = procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
@@ -334,33 +334,33 @@ type
     dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
 {$ENDIF}
 
-function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString;
 
 // fill and store
-procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStoreBase); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-{$IFNDEF FPC} procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}{$ENDIF}
+procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStoreBase);
+procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall); overload;
+procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod); overload;
+{$IFNDEF FPC} procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload; {$ENDIF}
 
 // fill and trigger
 procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall); overload;
 procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod); overload;
 {$IFNDEF FPC} procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}{$ENDIF}
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc); overload; {$ENDIF}
 // one fragment operation
-function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecodeOneFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecodeOneNewFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DecodeOneNewFragment(DataSour: TMemoryStream64): TMemoryStream64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
+function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload;
+function DecodeOneFragment(DataSour: TMemoryStream64): TMemoryStream64; overload;
+function DecodeOneNewFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload;
+function DecodeOneNewFragment(DataSour: TMemoryStream64): TMemoryStream64; overload;
 
 // encrypt as completeBuffer
 function EncodeOneBuff(const dbN: TPascalString; const ID: Cardinal; const StorePos: Int64;
-  buff: Pointer; buffSiz: nativeUInt; var outputSiz: nativeUInt): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  buff: Pointer; buffSiz: nativeUInt; var outputSiz: nativeUInt): Pointer;
 procedure DecodeOneBuff(buff: Pointer; buffSiz: nativeUInt;
-  var dbN: TPascalString; var ID: Cardinal; var StorePos: Int64; var output: Pointer; var outputSiz: nativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  var dbN: TPascalString; var ID: Cardinal; var StorePos: Int64; var output: Pointer; var outputSiz: nativeUInt);
 
 
 implementation
@@ -768,14 +768,14 @@ var
     if AlreadWrite then
         Exit;
 
-    WriteToOutput(qState.DBEng, qState.StorePos, qState.ID);
+    WriteToOutput(qState.dbEng, qState.StorePos, qState.ID);
     AlreadWrite := True;
-    Inc(FQueryResultCounter);
+    inc(FQueryResultCounter);
   end;
 
 begin
   lastTime := GetTimeTick;
-  Inc(FPerformaceCounter);
+  inc(FPerformaceCounter);
 
   FActivted := True;
 
@@ -818,7 +818,7 @@ begin
   except
   end;
 {$ENDIF}
-  Inc(FQueryCounter);
+  inc(FQueryCounter);
 
   FCurrentFragmentTime := FCurrentFragmentTime + qState.deltaTime;
   if (AlreadWrite) and (FCurrentFragmentTime >= Trunc(FragmentWaitTime * 1000)) then
@@ -894,7 +894,7 @@ begin
   FLastPerformaceTime := GetTimeTick;
 end;
 
-procedure TZDBPipeline.WriteToOutput(DBEng: TDBStoreBase; StorePos: Int64; ID: Cardinal);
+procedure TZDBPipeline.WriteToOutput(dbEng: TDBStoreBase; StorePos: Int64; ID: Cardinal);
 var
   itmStream: TMemoryStream64;
   siz: Int64;
@@ -902,7 +902,7 @@ begin
   if (not WriteResultToOutputDB) and (not WriteFragmentBuffer) then
       Exit;
 
-  itmStream := DBEng.GetCacheStream(StorePos, ID);
+  itmStream := dbEng.GetCacheStream(StorePos, ID);
 
   if WriteResultToOutputDB then
     begin
@@ -1011,7 +1011,7 @@ begin
       if Owner.FQueryPipelineList[i] = Self then
           Owner.FQueryPipelineList.Delete(i)
       else
-          Inc(i);
+          inc(i);
     end;
 
   Owner.FQueryPipelinePool.Delete(PipelineName);
@@ -1656,7 +1656,7 @@ end;
 function TZDBLocalManager.GenerateNewTaskName: SystemString;
 begin
   Result := GenerateTaskName;
-  Inc(FTaskCounter);
+  inc(FTaskCounter);
 end;
 
 function TZDBLocalManager.GetPipeline(pipeName: SystemString): TZDBPipeline;
@@ -1902,7 +1902,7 @@ begin
   d := GetDB(dn);
   if d = nil then
       d := InitMemoryDB(dn);
-  M := qState.DBEng.GetCacheStream(qState.StorePos, qState.ID);
+  M := qState.dbEng.GetCacheStream(qState.StorePos, qState.ID);
   if M <> nil then
     begin
       Result := d.AddData(M, M.CacheID);
@@ -2164,4 +2164,6 @@ end;
 initialization
 
 end. 
+ 
+ 
  

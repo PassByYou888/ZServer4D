@@ -125,7 +125,7 @@ end;
 
 procedure TDRServerForm.Timer1Timer(Sender: TObject);
 begin
-  server.ProgressBackground;
+  server.Progress;
   cadencerEng.Progress;
 end;
 

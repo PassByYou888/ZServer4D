@@ -164,7 +164,7 @@ type
   end;
 
 
-  TExecutePlatform = (epWin32, epWin64, epOSX, epIOS, epIOSSIM, epANDROID, epLinux64, epUnknow);
+  TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID, epLinux64, epLinux32, epUnknow);
 
 const
   {$IF Defined(WIN32)}
@@ -172,7 +172,11 @@ const
   {$ELSEIF Defined(WIN64)}
   CurrentPlatform = TExecutePlatform.epWin64;
   {$ELSEIF Defined(OSX)}
-  CurrentPlatform = TExecutePlatform.epOSX;
+    {$IFDEF CPU64}
+      CurrentPlatform = TExecutePlatform.epOSX32;
+    {$ELSE CPU64}
+      CurrentPlatform = TExecutePlatform.epOSX64;
+    {$IFEND CPU64}
   {$ELSEIF Defined(IOS)}
     {$IFDEF CPUARM}
     CurrentPlatform = TExecutePlatform.epIOS;
@@ -182,21 +186,25 @@ const
   {$ELSEIF Defined(ANDROID)}
   CurrentPlatform = TExecutePlatform.epANDROID;
   {$ELSEIF Defined(Linux)}
-  CurrentPlatform = TExecutePlatform.epLinux64;
+    {$IFDEF CPU64}
+      CurrentPlatform = TExecutePlatform.epLinux64;
+    {$ELSE CPU64}
+      CurrentPlatform = TExecutePlatform.epLinux32;
+    {$IFEND CPU64}
   {$ELSE}
   CurrentPlatform = TExecutePlatform.epUnknow;
   {$IFEND}
 
 // NoP = No Operation. It's the empty function, whose purpose is only for the
-// debugging, or for the piece of code where intentionaly nothing is planned
-// to be.
+// debugging, or for the piece of code where intentionaly nothing is planned to be.
 procedure Nop;
 
-function CheckThreadSynchronize(Timeout: Integer): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CheckThreadSynchronize; overload;
+function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 
-procedure DisposeObject(const Obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
-procedure FreeObject(const Obj: TObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure FreeObject(const Obj: TObject); overload;
 procedure FreeObject(const objs: array of TObject); overload;
 
 procedure LockID(const ID:Byte);
@@ -205,14 +213,14 @@ procedure UnLockID(const ID:Byte);
 procedure LockObject(Obj:TObject);
 procedure UnLockObject(Obj:TObject);
 
-procedure FillPtrByte(const dest:Pointer; Count: nativeUInt; const Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CompareMemory(const p1, p2: Pointer; const MLen: nativeUInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure CopyPtr(const sour, dest:Pointer; Count: nativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure FillPtrByte(const dest:Pointer; Count: nativeUInt; const Value: Byte);
+function CompareMemory(const p1, p2: Pointer; const MLen: nativeUInt): Boolean;
+procedure CopyPtr(const sour, dest:Pointer; Count: nativeUInt);
 
-procedure RaiseInfo(const n: SystemString); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure RaiseInfo(const n: SystemString); overload;
 procedure RaiseInfo(const n: SystemString; const Args: array of const); overload;
 
-function IsMobile: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function IsMobile: Boolean;
 
 function GetTimeTickCount: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function GetTimeTick: TTimeTickValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -243,42 +251,43 @@ function SAR64(const AValue: Int64; Shift: Byte): Int64; {$IFDEF INLINE_ASM} inl
 
 function MemoryAlign(addr: Pointer; alignment: nativeUInt): Pointer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function Endian(const AValue: SmallInt): SmallInt; overload; inline;
-function Endian(const AValue: Word): Word; overload; inline;
-function Endian(const AValue: Integer): Integer; overload; inline;
-function Endian(const AValue: Cardinal): Cardinal; overload; inline;
-function Endian(const AValue: Int64): Int64; overload; inline;
-function Endian(const AValue: UInt64): UInt64; overload; inline;
+function Endian(const AValue: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Endian(const AValue: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Endian(const AValue: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Endian(const AValue: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Endian(const AValue: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Endian(const AValue: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function BE2N(const AValue: SmallInt): SmallInt; overload; inline;
-function BE2N(const AValue: Word): Word; overload; inline;
-function BE2N(const AValue: Integer): Integer; overload; inline;
-function BE2N(const AValue: Cardinal): Cardinal; overload; inline;
-function BE2N(const AValue: Int64): Int64; overload; inline;
-function BE2N(const AValue: UInt64): UInt64; overload; inline;
+function BE2N(const AValue: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BE2N(const AValue: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BE2N(const AValue: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BE2N(const AValue: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BE2N(const AValue: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BE2N(const AValue: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function LE2N(const AValue: SmallInt): SmallInt; overload; inline;
-function LE2N(const AValue: Word): Word; overload; inline;
-function LE2N(const AValue: Integer): Integer; overload; inline;
-function LE2N(const AValue: Cardinal): Cardinal; overload; inline;
-function LE2N(const AValue: Int64): Int64; overload; inline;
-function LE2N(const AValue: UInt64): UInt64; overload; inline;
+function LE2N(const AValue: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LE2N(const AValue: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LE2N(const AValue: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LE2N(const AValue: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LE2N(const AValue: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LE2N(const AValue: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function N2BE(const AValue: SmallInt): SmallInt; overload; inline;
-function N2BE(const AValue: Word): Word; overload; inline;
-function N2BE(const AValue: Integer): Integer; overload; inline;
-function N2BE(const AValue: Cardinal): Cardinal; overload; inline;
-function N2BE(const AValue: Int64): Int64; overload; inline;
-function N2BE(const AValue: UInt64): UInt64; overload; inline;
+function N2BE(const AValue: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2BE(const AValue: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2BE(const AValue: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2BE(const AValue: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2BE(const AValue: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2BE(const AValue: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function N2LE(const AValue: SmallInt): SmallInt; overload; inline;
-function N2LE(const AValue: Word): Word; overload; inline;
-function N2LE(const AValue: Integer): Integer; overload; inline;
-function N2LE(const AValue: Cardinal): Cardinal; overload; inline;
-function N2LE(const AValue: Int64): Int64; overload; inline;
-function N2LE(const AValue: UInt64): UInt64; overload; inline;
+function N2LE(const AValue: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2LE(const AValue: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2LE(const AValue: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2LE(const AValue: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2LE(const AValue: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function N2LE(const AValue: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-threadvar MHGlobalHookEnabled: Boolean;
+threadvar
+  MHGlobalHookEnabled: Boolean;
 
 implementation
 
@@ -286,9 +295,25 @@ procedure Nop;
 begin
 end;
 
+var
+  CheckThreadSynchronizeing: Boolean;
+
+procedure CheckThreadSynchronize;
+begin
+  CheckThreadSynchronize(0);
+end;
+
 function CheckThreadSynchronize(Timeout: Integer): Boolean;
 begin
-  Result := CheckSynchronize(Timeout);
+  if not CheckThreadSynchronizeing then
+    begin
+      CheckThreadSynchronizeing := True;
+      try
+        Result := CheckSynchronize(Timeout);
+      finally
+        CheckThreadSynchronizeing := False;
+      end;
+    end;
 end;
 
 procedure DisposeObject(const Obj: TObject);
@@ -782,6 +807,7 @@ initialization
   InitCriticalLock;
   InitLockIDBuff;
   MHGlobalHookEnabled := True;
+  CheckThreadSynchronizeing := False;
 
   // float check
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
@@ -791,7 +817,3 @@ finalization
   MHGlobalHookEnabled := False;
 end.
 
- 
- 
- 
- 

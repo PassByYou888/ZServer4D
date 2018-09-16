@@ -349,7 +349,7 @@ type
 
     class function GetBytesKey(const KeyBuffPtr: PCipherKeyBuffer; var key: TBytes): Boolean; overload;
 
-    class procedure EncryptTail(TailPtr: Pointer; TailSize: NativeInt); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure EncryptTail(TailPtr: Pointer; TailSize: NativeInt);
     class function OLDDES(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 
     class function DES64(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -365,7 +365,7 @@ type
     class function XXTea512(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function RC6(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 
-    class procedure BlockCBC(sour: Pointer; Size: NativeInt; boxBuff: Pointer; boxSiz: NativeInt); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure BlockCBC(sour: Pointer; Size: NativeInt; boxBuff: Pointer; boxSiz: NativeInt);
     class function EncryptBuffer(cs: TCipherStyle; sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 
     class function EncryptBufferCBC(cs: TCipherStyle; sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -489,15 +489,15 @@ type
   { Blowfish Cipher }
   TBlowfish = class(TCoreClassObject)
   public
-    class procedure EncryptBF(const Context: TBFContext; var Block: TBFBlock; Encrypt: Boolean); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure EncryptBF(const Context: TBFContext; var Block: TBFBlock; Encrypt: Boolean);
     class procedure InitEncryptBF(key: TKey128; var Context: TBFContext);
   end;
 
   { DES Cipher }
   TDES = class(TCoreClassObject)
   strict private
-    class procedure JoinBlock(const L, r: DWord; var Block: TDESBlock); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure SplitBlock(const Block: TDESBlock; var L, r: DWord); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure JoinBlock(const L, r: DWord; var Block: TDESBlock);
+    class procedure SplitBlock(const Block: TDESBlock; var L, r: DWord);
   private
   public
     class procedure EncryptDES(const Context: TDESContext; var Block: TDESBlock);
@@ -557,10 +557,10 @@ type
   { Random Number Cipher }
   TRNG = class(TCoreClassObject)
   public
-    class procedure EncryptRNG32(var Context: TRNG32Context; var Buf; BufSize: Integer); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure EncryptRNG64(var Context: TRNG64Context; var Buf; BufSize: Integer); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure InitEncryptRNG32(key: DWord; var Context: TRNG32Context); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure InitEncryptRNG64(KeyHi, KeyLo: DWord; var Context: TRNG64Context); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure EncryptRNG32(var Context: TRNG32Context; var Buf; BufSize: Integer);
+    class procedure EncryptRNG64(var Context: TRNG64Context; var Buf; BufSize: Integer);
+    class procedure InitEncryptRNG32(key: DWord; var Context: TRNG32Context);
+    class procedure InitEncryptRNG64(KeyHi, KeyLo: DWord; var Context: TRNG64Context);
   end;
 
   { LSC Stream Cipher }
@@ -575,24 +575,24 @@ type
   { Misc public utilities }
   TMISC = class(TCoreClassObject)
   private
-    class procedure Mix128(var x: T128Bit); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Ran0Prim(var Seed: Integer; IA, IQ, IR: Integer): Integer; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Random64(var Seed: TInt64): Integer; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure Transform(var OutputBuffer: TTransformOutput; var InBuf: TTransformInput); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure Mix128(var x: T128Bit); static;
+    class function Ran0Prim(var Seed: Integer; IA, IQ, IR: Integer): Integer; static;
+    class function Random64(var Seed: TInt64): Integer; static;
+    class procedure Transform(var OutputBuffer: TTransformOutput; var InBuf: TTransformInput); static;
   public
-    class procedure GenerateRandomKey(var key; KeySize: Integer); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure HashELF(var Digest: DWord; const Buf; BufSize: nativeUInt); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure HashMix128(var Digest: DWord; const Buf; BufSize: nativeUInt); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Ran01(var Seed: Integer): Integer; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Ran02(var Seed: Integer): Integer; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Ran03(var Seed: Integer): Integer; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Random32Byte(var Seed: Integer): Byte; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function Random64Byte(var Seed: TInt64): Byte; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function RolX(i, c: DWord): DWord; static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure ByteBuffHashELF(var Digest: DWord; const ABytes: TBytes); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure ByteBuffHashMix128(var Digest: DWord; const ABytes: TBytes); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure XorMem(var Mem1; const Mem2; Count: NativeInt); static; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure GenerateRandomKey(var key; KeySize: Integer); static;
+    class procedure HashELF(var Digest: DWord; const Buf; BufSize: nativeUInt); static;
+    class procedure HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt); static;
+    class procedure HashMix128(var Digest: DWord; const Buf; BufSize: nativeUInt); static;
+    class function Ran01(var Seed: Integer): Integer; static;
+    class function Ran02(var Seed: Integer): Integer; static;
+    class function Ran03(var Seed: Integer): Integer; static;
+    class function Random32Byte(var Seed: Integer): Byte; static;
+    class function Random64Byte(var Seed: TInt64): Byte; static;
+    class function RolX(i, c: DWord): DWord; static;
+    class procedure ByteBuffHashELF(var Digest: DWord; const ABytes: TBytes); static;
+    class procedure ByteBuffHashMix128(var Digest: DWord; const ABytes: TBytes); static;
+    class procedure XorMem(var Mem1; const Mem2; Count: NativeInt); static;
   end;
 
   // Twofish
@@ -619,12 +619,11 @@ type
   end;
 
 procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox);
-procedure DCP_twofish_EncryptECB(var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox; const InData: T128Bit; var OutData: T128Bit); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure DCP_twofish_DecryptECB(var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox; const InData: T128Bit; var OutData: T128Bit); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+procedure DCP_twofish_EncryptECB(var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox; const InData: T128Bit; var OutData: T128Bit);
+procedure DCP_twofish_DecryptECB(var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox; const InData: T128Bit; var OutData: T128Bit);
 
-procedure XXTEAEncrypt(var key: TKey128; var Block: TXXTEABlock); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-procedure XXTEADecrypt(var key: TKey128; var Block: TXXTEABlock); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-
+procedure XXTEAEncrypt(var key: TKey128; var Block: TXXTEABlock);
+procedure XXTEADecrypt(var key: TKey128; var Block: TXXTEABlock);
 
 const
   cRC6_NumRounds = 20; { number of rounds must be between 16-24 }
@@ -638,11 +637,11 @@ type
 
   TRC6 = class(TCoreClassObject)
   public
-    class function LRot32(x, c: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class function RRot32(x, c: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class function LRot32(x, c: DWord): DWord;
+    class function RRot32(x, c: DWord): DWord;
     class procedure InitKey(buff: Pointer; Size: Integer; var KeyContext: TRC6Key);
-    class procedure Encrypt(var KeyContext: TRC6Key; var Data: TRC6Block); {$IFDEF INLINE_ASM}inline; {$ENDIF}
-    class procedure Decrypt(var KeyContext: TRC6Key; var Data: TRC6Block); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+    class procedure Encrypt(var KeyContext: TRC6Key; var Data: TRC6Block);
+    class procedure Decrypt(var KeyContext: TRC6Key; var Data: TRC6Block);
   end;
 
 implementation
@@ -4799,22 +4798,22 @@ var
   c: DWord;
   d: DWord;
 
-  procedure FF(var a: DWord; const b, c, d, x, s, AC: DWord); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  procedure FF(var a: DWord; const b, c, d, x, s, AC: DWord);
   begin
     a := RolX(a + ((b and c) or (not b and d)) + x + AC, s) + b;
   end;
 
-  procedure GG(var a: DWord; const b, c, d, x, s, AC: DWord); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  procedure GG(var a: DWord; const b, c, d, x, s, AC: DWord);
   begin
     a := RolX(a + ((b and d) or (c and not d)) + x + AC, s) + b;
   end;
 
-  procedure HH(var a: DWord; const b, c, d, x, s, AC: DWord); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  procedure HH(var a: DWord; const b, c, d, x, s, AC: DWord);
   begin
     a := RolX(a + (b xor c xor d) + x + AC, s) + b;
   end;
 
-  procedure II(var a: DWord; const b, c, d, x, s, AC: DWord); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  procedure II(var a: DWord; const b, c, d, x, s, AC: DWord);
   begin
     a := RolX(a + (c xor (b or not d)) + x + AC, s) + b;
   end;
@@ -4928,7 +4927,7 @@ begin
 end;
 
 procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubKeys; var SBox: TDCPTFSBox);
-  function RS_MDS_Encode(lK0, lK1: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  function RS_MDS_Encode(lK0, lK1: DWord): DWord;
   var
     lR, nJ, lG2, lG3: DWord;
     BB: Byte;
@@ -4964,7 +4963,7 @@ procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubK
     Result := lR;
   end;
 
-  function f32(x: DWord; const K32: T128Bit; Len: DWord): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  function f32(x: DWord; const K32: T128Bit; Len: DWord): DWord;
   var
     t0, t1, t2, t3: DWord;
   begin
@@ -4992,7 +4991,7 @@ procedure DCP_twofish_InitKey(const key; Size: Cardinal; var SubKeys: TDCPTFSubK
       twofish_SBox[3, DCPTF_p8x8[1, DCPTF_p8x8[1, t3] xor ((K32[1] shr 24))] xor ((K32[0] shr 24))];
   end;
 
-  procedure Xor256(var Dst: TDCPTF2048; const Src: TDCPTF2048; v: Byte); {$IFDEF INLINE_ASM}inline; {$ENDIF}
+  procedure Xor256(var Dst: TDCPTF2048; const Src: TDCPTF2048; v: Byte);
   var
     i, j: DWord;
     PDst, PSrc: PDWord;
@@ -5354,7 +5353,7 @@ begin
     end;
 end;
 
-function XXTeaMX(Sum, y, z, p, E: DWord; const k: PDWordArray): DWord; {$IFDEF INLINE_ASM}inline; {$ENDIF}
+function XXTeaMX(Sum, y, z, p, E: DWord; const k: PDWordArray): DWord;
 begin
   Result := (((z shr 5) xor (y shl 2)) + ((y shr 3) xor (z shl 4))) xor ((Sum xor y) + (k^[p and 3 xor E] xor z));
 end;

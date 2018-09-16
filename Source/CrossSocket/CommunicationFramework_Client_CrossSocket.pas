@@ -15,7 +15,7 @@
 *)
 unit CommunicationFramework_Client_CrossSocket;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -29,7 +29,7 @@ uses SysUtils, Classes,
 type
   TCommunicationFramework_Client_CrossSocket = class;
 
-  TContextIntfForClient = class(TContextIntfForServer)
+  TContextIntfForClient = class(TPeerIOWithCrossSocketServer)
   public
     OwnerClient: TCommunicationFramework_Client_CrossSocket;
   end;
@@ -56,7 +56,7 @@ type
     function Connected: Boolean; override;
     function ClientIO: TPeerIO; override;
     procedure TriggerQueueData(v: PQueueData); override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     procedure AsyncConnect(addr: SystemString; Port: Word); overload;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
@@ -70,10 +70,10 @@ type
 
   TGlobalCrossSocketClientPool = class
   private
-    driver: TDriverEngine;
     LastCompleted, LastResult: Boolean;
     LastConnection: ICrossConnection;
   public
+    driver: TDriverEngine;
     AutoReconnect: Boolean;
 
     constructor Create;
@@ -125,6 +125,8 @@ end;
 destructor TCommunicationFramework_Client_CrossSocket.Destroy;
 begin
   Disconnect;
+  if (ClientIO <> nil) then
+      TContextIntfForClient(ClientIO).OwnerClient := nil;
   inherited Destroy;
 end;
 
@@ -188,7 +190,7 @@ begin
   ClientIOIntf.FillRecvBuffer(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Client_CrossSocket.ProgressBackground;
+procedure TCommunicationFramework_Client_CrossSocket.Progress;
 begin
   if not Connected then
     begin
@@ -213,9 +215,12 @@ begin
   except
   end;
 
-  inherited ProgressBackground;
+  try
+      CoreClasses.CheckThreadSynchronize;
+  except
+  end;
 
-  CheckSynchronize;
+  inherited Progress;
 end;
 
 procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(addr: SystemString; Port: Word);
@@ -301,16 +306,14 @@ begin
           if cli.OwnerClient <> nil then
             begin
               try
-                  cli.OwnerClient.DoDisconnect(cli);
+                cli.OwnerClient.DoDisconnect(cli);
+
+                DisposeObject(cli);
+                cli.OwnerClient.ClientIOIntf := nil;
               except
               end;
             end;
 
-          if cli.OwnerClient.ClientIOIntf <> nil then
-            begin
-              DisposeObject(cli.OwnerClient.ClientIOIntf);
-              cli.OwnerClient.ClientIOIntf := nil;
-            end;
         end;
     end);
 end;
@@ -381,7 +384,7 @@ begin
       while BuildIntf.ClientIOIntf <> nil do
         begin
           CheckSynchronize(10);
-          BuildIntf.ProgressBackground;
+          BuildIntf.Progress;
         end;
     end;
 
@@ -414,7 +417,7 @@ begin
   dt := GetTimeTick + 1000;
   while (LastCompleted) and (LastResult) and (not BuildIntf.RemoteInited) do
     begin
-      BuildIntf.ProgressBackground;
+      BuildIntf.Progress;
       if GetTimeTick > dt then
         begin
           if LastConnection <> nil then
@@ -443,7 +446,7 @@ begin
         while BuildIntf.ClientIOIntf <> nil do
           begin
             try
-                BuildIntf.ProgressBackground;
+                BuildIntf.Progress;
             except
             end;
           end;
@@ -498,4 +501,4 @@ finalization
 DisposeObject(ClientPool);
 ClientPool := nil;
 
-end. 
+end.

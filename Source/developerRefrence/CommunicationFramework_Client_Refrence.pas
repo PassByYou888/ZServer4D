@@ -16,7 +16,7 @@
 
 unit CommunicationFramework_Client_Refrence;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -39,13 +39,14 @@ type
     procedure WriteBufferClose; override;
     function GetPeerIP: SystemString; override;
     function WriteBufferEmpty: Boolean; override;
+    procedure Progress; override;
   end;
 
   TCommunicationFramework_Client_Refrence = class(TCommunicationFrameworkClient)
   private
-    FOnAsyncConnectNotifyCall  : TStateCall;
+    FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
-    FOnAsyncConnectNotifyProc  : TStateProc;
+    FOnAsyncConnectNotifyProc: TStateProc;
   protected
     procedure DoConnected(Sender: TPeerIO); override;
     procedure DoDisconnect(Sender: TPeerIO); override;
@@ -59,7 +60,7 @@ type
     function Connected: Boolean; override;
     function ClientIO: TPeerIO; override;
     procedure TriggerQueueData(v: PQueueData); override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     procedure AsyncConnect(addr: SystemString; Port: Word); overload;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
@@ -116,6 +117,12 @@ end;
 
 function TPeerIOWithRefrenceClient.WriteBufferEmpty: Boolean;
 begin
+end;
+
+procedure TPeerIOWithRefrenceClient.Progress;
+begin
+  inherited Progress;
+  ProcessAllSendCmd(nil, False, False);
 end;
 
 procedure TCommunicationFramework_Client_Refrence.DoConnected(Sender: TPeerIO);
@@ -202,9 +209,9 @@ begin
   ClientIO.ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Client_Refrence.ProgressBackground;
+procedure TCommunicationFramework_Client_Refrence.Progress;
 begin
-  inherited ProgressBackground;
+  inherited Progress;
 end;
 
 procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word);
@@ -249,4 +256,4 @@ initialization
 
 finalization
 
-end. 
+end.

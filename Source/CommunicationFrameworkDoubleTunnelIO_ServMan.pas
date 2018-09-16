@@ -30,7 +30,7 @@ const
   DEFAULT_MANAGERSERVICE_SENDPORT: Word   = 13335;
   CDEFAULT_MANAGERSERVICE_QUERYPORT: Word = 10888;
 
-  {$INCLUDE ServerManTypeDefine.inc}
+{$INCLUDE ServerManTypeDefine.inc}
 
 
 type
@@ -187,11 +187,11 @@ begin
     begin
       Data1 := Sender;
       Data2 := te;
-      {$IFDEF FPC}
+{$IFDEF FPC}
       OnExecuteMethod := @PostExecute_RegServer;
-      {$ELSE}
+{$ELSE}
       OnExecuteMethod := PostExecute_RegServer;
-      {$ENDIF}
+{$ENDIF}
     end;
 end;
 
@@ -208,7 +208,7 @@ begin
   ServerType := TServerType(Sender.DataEng.Reader.ReadByte);
 
   ns := TCoreClassStringList.Create;
-  Owner.ServerConfig.ReBuildList;
+  Owner.ServerConfig.Rebuild;
   Owner.ServerConfig.GetSectionList(ns);
 
   for i := 0 to ns.Count - 1 do
@@ -220,7 +220,7 @@ begin
     end;
 
   DisposeObject(ns);
-  Owner.ServerConfig.ReBuildList;
+  Owner.ServerConfig.Rebuild;
 
   if Assigned(Owner.NotifyIntf) then
       Owner.NotifyIntf.ServerOffline(Self, RegAddr, ServerType);
@@ -228,11 +228,11 @@ end;
 
 procedure TServerManager_Client.Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
 begin
-  {$IFDEF FPC}
+{$IFDEF FPC}
   ProgressEngine.PostExecute(InData, @PostExecute_Offline);
-  {$ELSE}
+{$ELSE}
   ProgressEngine.PostExecute(InData, PostExecute_Offline);
-  {$ENDIF}
+{$ENDIF}
 end;
 
 constructor TServerManager_Client.Create(AOwner: TServerManager_ClientPool);
@@ -267,13 +267,13 @@ end;
 procedure TServerManager_Client.RegisterCommand;
 begin
   inherited RegisterCommand;
-  {$IFDEF FPC}
+{$IFDEF FPC}
   NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := @Command_RegServer;
   NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := @Command_Offline;
-  {$ELSE}
+{$ELSE}
   NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := Command_RegServer;
   NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := Command_Offline;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 procedure TServerManager_Client.UnRegisterCommand;
@@ -582,11 +582,11 @@ begin
     begin
       DataEng.WriteString(cli.RegAddr);
       DataEng.WriteByte(Byte(cli.ServerType));
-      {$IFDEF FPC}
+{$IFDEF FPC}
       OnExecuteMethod := @PostExecute_ServerOffline;
-      {$ELSE}
+{$ELSE}
       OnExecuteMethod := PostExecute_ServerOffline;
-      {$ENDIF}
+{$ENDIF}
     end;
 
   if cli.ServerType = TServerType.stManager then
@@ -604,11 +604,11 @@ begin
       DisposeObject(ns);
 
       // sync all client
-      {$IFDEF FPC}
+{$IFDEF FPC}
       ProgressEngine.PostExecute(nil, @PostExecute_RegServer);
-      {$ELSE}
+{$ELSE}
       ProgressEngine.PostExecute(nil, PostExecute_RegServer);
-      {$ENDIF}
+{$ENDIF}
     end;
 
   inherited UserOut(UserDefineIO);
@@ -628,7 +628,7 @@ var
   c: TServerManager_RecvTunnelData;
 begin
   // fixed local connect info
-  FRecvTunnel.GetClientIDPool(IDPool);
+  FRecvTunnel.GetIO_IDArray(IDPool);
   for pid in IDPool do
     begin
       peer := RecvTunnel.ClientFromID[pid];
@@ -675,7 +675,7 @@ begin
   cli.SuccessEnabled := True;
 
   try
-    FRecvTunnel.GetClientIDPool(IDPool);
+    FRecvTunnel.GetIO_IDArray(IDPool);
     for pid in IDPool do
       begin
         peer := RecvTunnel.ClientFromID[pid];
@@ -705,11 +705,11 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('exists %s same server configure!!', [cli.MakeRegName]));
-      {$IFDEF FPC}
+{$IFDEF FPC}
       with ProgressEngine.PostExecute(InData, @PostExecute_Disconnect) do
-      {$ELSE}
+{$ELSE}
       with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
-        {$ENDIF}
+{$ENDIF}
         begin
           Data1 := Sender;
           Data2 := cli;
@@ -780,7 +780,7 @@ var
   sendDE: TDataFrameEngine;
 begin
   existedSameOnlineServer := False;
-  FRecvTunnel.GetClientIDPool(IDPool);
+  FRecvTunnel.GetIO_IDArray(IDPool);
   for pid in IDPool do
     begin
       peer := RecvTunnel.ClientFromID[pid];
@@ -806,7 +806,7 @@ begin
               ServerConfig.Delete(ns[i]);
         end;
       DisposeObject(ns);
-      ServerConfig.ReBuildList;
+      ServerConfig.Rebuild;
     end;
 
   // sync all client
@@ -821,7 +821,7 @@ begin
         end;
     end;
 
-  ServerConfig.ReBuildList;
+  ServerConfig.Rebuild;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
@@ -854,13 +854,13 @@ end;
 procedure TServerManager.RegisterCommand;
 begin
   inherited RegisterCommand;
-  {$IFDEF FPC}
+{$IFDEF FPC}
   FRecvTunnel.RegisterStream('EnabledServer').OnExecute := @Command_EnabledServer;
   FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := @Command_AntiIdle;
-  {$ELSE}
+{$ELSE}
   FRecvTunnel.RegisterStream('EnabledServer').OnExecute := Command_EnabledServer;
   FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := Command_AntiIdle;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 procedure TServerManager.UnRegisterCommand;
@@ -883,7 +883,7 @@ begin
   if GetTimeTick - LastTimeTick > 5000 then
     begin
       try
-        FRecvTunnel.GetClientIDPool(IDPool);
+        FRecvTunnel.GetIO_IDArray(IDPool);
         for pid in IDPool do
           begin
             peer := RecvTunnel.ClientFromID[pid];
@@ -904,7 +904,4 @@ begin
     end;
 end;
 
-end. 
- 
- 
- 
+end.

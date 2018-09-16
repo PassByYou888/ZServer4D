@@ -15,7 +15,7 @@
 *)
 unit CommunicationFramework_Server_CrossSocket;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -26,7 +26,7 @@ uses SysUtils, Classes,
   DataFrameEngine;
 
 type
-  TContextIntfForServer = class(TPeerIO)
+  TPeerIOWithCrossSocketServer = class(TPeerIO)
   public
     LastPeerIP: SystemString;
     LastActiveTime: TTimeTickValue;
@@ -38,13 +38,13 @@ type
     procedure CreateAfter; override;
     destructor Destroy; override;
 
-    procedure FreeDelayBuffPool; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Context: TCrossConnection; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure FreeDelayBuffPool;
+    function Context: TCrossConnection;
     //
     function Connected: Boolean; override;
     procedure Disconnect; override;
     procedure SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
-    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -68,15 +68,15 @@ type
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
   public
-    constructor Create; overload; override;
-    constructor Create(maxThPool: Word); overload;
+    constructor Create; override;
+    constructor CreateTh(maxThPool: Word);
     destructor Destroy; override;
 
     function StartService(Host: SystemString; Port: Word): Boolean; override;
     procedure StopService; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
     procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
@@ -89,7 +89,7 @@ type
 
 implementation
 
-procedure TContextIntfForServer.CreateAfter;
+procedure TPeerIOWithCrossSocketServer.CreateAfter;
 begin
   inherited CreateAfter;
   LastPeerIP := '';
@@ -100,7 +100,7 @@ begin
   DelayBuffPool := TCoreClassListForObj.Create;
 end;
 
-destructor TContextIntfForServer.Destroy;
+destructor TPeerIOWithCrossSocketServer.Destroy;
 var
   i: Integer;
 begin
@@ -116,7 +116,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TContextIntfForServer.FreeDelayBuffPool;
+procedure TPeerIOWithCrossSocketServer.FreeDelayBuffPool;
 var
   i: Integer;
 begin
@@ -125,29 +125,29 @@ begin
   DelayBuffPool.Clear;
 end;
 
-function TContextIntfForServer.Context: TCrossConnection;
+function TPeerIOWithCrossSocketServer.Context: TCrossConnection;
 begin
   Result := ClientIntf as TCrossConnection;
 end;
 
-function TContextIntfForServer.Connected: Boolean;
+function TPeerIOWithCrossSocketServer.Connected: Boolean;
 begin
   Result := (ClientIntf <> nil) and
     (Context.ConnectStatus = TConnectStatus.csConnected);
 end;
 
-procedure TContextIntfForServer.Disconnect;
+procedure TPeerIOWithCrossSocketServer.Disconnect;
 begin
   if ClientIntf <> nil then
     begin
       try
-        Context.Disconnect;
+          Context.Disconnect;
       except
       end;
     end;
 end;
 
-procedure TContextIntfForServer.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+procedure TPeerIOWithCrossSocketServer.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
 begin
   LastActiveTime := GetTimeTickCount;
 
@@ -210,7 +210,7 @@ begin
     end);
 end;
 
-procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TPeerIOWithCrossSocketServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if not Connected then
       Exit;
@@ -223,7 +223,7 @@ begin
       CurrentBuff.write(Pointer(buff)^, Size);
 end;
 
-procedure TContextIntfForServer.WriteBufferOpen;
+procedure TPeerIOWithCrossSocketServer.WriteBufferOpen;
 begin
   if not Connected then
       Exit;
@@ -231,7 +231,7 @@ begin
   CurrentBuff.Clear;
 end;
 
-procedure TContextIntfForServer.WriteBufferFlush;
+procedure TPeerIOWithCrossSocketServer.WriteBufferFlush;
 var
   ms: TMemoryStream64;
 begin
@@ -266,14 +266,14 @@ begin
     end;
 end;
 
-procedure TContextIntfForServer.WriteBufferClose;
+procedure TPeerIOWithCrossSocketServer.WriteBufferClose;
 begin
   if not Connected then
       Exit;
   CurrentBuff.Clear;
 end;
 
-function TContextIntfForServer.GetPeerIP: SystemString;
+function TPeerIOWithCrossSocketServer.GetPeerIP: SystemString;
 begin
   if Connected then
     begin
@@ -284,12 +284,12 @@ begin
       Result := LastPeerIP;
 end;
 
-function TContextIntfForServer.WriteBufferEmpty: Boolean;
+function TPeerIOWithCrossSocketServer.WriteBufferEmpty: Boolean;
 begin
   Result := not Sending;
 end;
 
-procedure TContextIntfForServer.Progress;
+procedure TPeerIOWithCrossSocketServer.Progress;
 var
   M: TMemoryStream64;
 begin
@@ -326,9 +326,9 @@ end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);
 var
-  cli: TContextIntfForServer;
+  cli: TPeerIOWithCrossSocketServer;
 begin
-  cli := TContextIntfForServer.Create(Self, AConnection.ConnectionIntf);
+  cli := TPeerIOWithCrossSocketServer.Create(Self, AConnection.ConnectionIntf);
   cli.LastActiveTime := GetTimeTickCount;
   AConnection.UserObject := cli;
 end;
@@ -338,9 +338,9 @@ begin
   TThread.Synchronize(TThread.CurrentThread,
     procedure
     var
-      cli: TContextIntfForServer;
+      cli: TPeerIOWithCrossSocketServer;
     begin
-      cli := AConnection.UserObject as TContextIntfForServer;
+      cli := AConnection.UserObject as TPeerIOWithCrossSocketServer;
       if cli <> nil then
         begin
           try
@@ -355,7 +355,7 @@ end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
-  cli: TContextIntfForServer;
+  cli: TPeerIOWithCrossSocketServer;
 begin
   if ALen <= 0 then
       Exit;
@@ -364,7 +364,7 @@ begin
       Exit;
 
   try
-    cli := AConnection.UserObject as TContextIntfForServer;
+    cli := AConnection.UserObject as TPeerIOWithCrossSocketServer;
     if cli.ClientIntf = nil then
         Exit;
 
@@ -381,12 +381,12 @@ end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
-  cli: TContextIntfForServer;
+  cli: TPeerIOWithCrossSocketServer;
 begin
   if AConnection.UserObject = nil then
       Exit;
 
-  cli := AConnection.UserObject as TContextIntfForServer;
+  cli := AConnection.UserObject as TPeerIOWithCrossSocketServer;
   if cli.ClientIntf = nil then
       Exit;
   cli.LastActiveTime := GetTimeTickCount;
@@ -394,18 +394,10 @@ end;
 
 constructor TCommunicationFramework_Server_CrossSocket.Create;
 begin
-  inherited Create;
-  FDriver := TDriverEngine.Create(4);
-  FDriver.OnConnected := DoConnected;
-  FDriver.OnDisconnected := DoDisconnect;
-  FDriver.OnReceived := DoReceived;
-  FDriver.OnSent := DoSent;
-  FStartedService := False;
-  FBindPort := 0;
-  FBindHost := '';
+  CreateTh(4);
 end;
 
-constructor TCommunicationFramework_Server_CrossSocket.Create(maxThPool: Word);
+constructor TCommunicationFramework_Server_CrossSocket.CreateTh(maxThPool: Word);
 begin
   inherited Create;
   FDriver := TDriverEngine.Create(maxThPool);
@@ -469,6 +461,8 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.TriggerQueueData(v: PQueueData);
+var
+  c: TPeerIO;
 begin
   (*
     TThread.Synchronize(nil,
@@ -476,21 +470,24 @@ begin
     begin
     end);
   *)
-  if not Exists(v^.Client) then
+  c := ClientFromID[v^.ClientID];
+  if c <> nil then
     begin
+      c.PostQueueData(v);
+      c.ProcessAllSendCmd(nil, False, False);
+    end
+  else
       DisposeQueueData(v);
-      Exit;
-    end;
-
-  v^.Client.PostQueueData(v);
-  v^.Client.ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.ProgressBackground;
+procedure TCommunicationFramework_Server_CrossSocket.Progress;
 begin
-  inherited ProgressBackground;
+  inherited Progress;
 
-  CheckSynchronize;
+  try
+      CoreClasses.CheckThreadSynchronize;
+  except
+  end;
 end;
 
 function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
@@ -508,4 +505,4 @@ initialization
 
 finalization
 
-end. 
+end.

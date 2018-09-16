@@ -25,7 +25,7 @@ type
   end;
 
   TClientArry = array [0 .. MaxClient - 1] of TMyClient;
-  TTestArry   = array [0 .. MaxClient - 1] of TCommunicationTestIntf;
+  TTestArry = array [0 .. MaxClient - 1] of TCommunicationTestIntf;
 
   TVMCliForm = class(TForm)
     ProgressTimer: TTimer;
@@ -56,8 +56,8 @@ type
     { Private declarations }
   public
     { Public declarations }
-    ClientTunnel    : TCommunicationFramework_Client_ICS;
-    ClientWithVM    : TClientArry;
+    ClientTunnel: TCommunicationFramework_Client_ICS;
+    ClientWithVM: TClientArry;
     ClientWithVMTest: TTestArry;
 
     procedure cmd_SimulateKeepAlivte(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -80,22 +80,26 @@ begin
       if cState then
         begin
           DoStatus('VM正在握手...');
-          ClientTunnel.ClientIO.OpenP2PVMTunnel(10000 * 10, True,
-            procedure(const vState: Boolean)
-            var
-              i: Integer;
+          ClientTunnel.ClientIO.BuildP2PAuthToken(procedure(const cBuildAuthState: Boolean)
             begin
-              ClientTunnel.ClientIO.p2pVMTunnel.MaxVMFragmentSize := 8192;
-              ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 8 * 1024 * 1024;
-              ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
+              if cBuildAuthState then
+                  ClientTunnel.ClientIO.OpenP2PVMTunnel(10000 * 10, True, '',
+                  procedure(const vState: Boolean)
+                  var
+                    i: Integer;
+                  begin
+                    ClientTunnel.ClientIO.p2pVMTunnel.MaxVMFragmentSize := 8192;
+                    ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 8 * 1024 * 1024;
+                    ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
 
-              for i := low(ClientWithVM) to high(ClientWithVM) do
-                begin
-                  ClientWithVM[i].QuietMode := False;
-                  ClientTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(ClientWithVM[i]);
-                end;
+                    for i := low(ClientWithVM) to high(ClientWithVM) do
+                      begin
+                        ClientWithVM[i].QuietMode := False;
+                        ClientTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(ClientWithVM[i]);
+                      end;
 
-              DoStatus('VM已握手');
+                    DoStatus('VM已握手');
+                  end);
             end);
         end;
     end);
@@ -121,13 +125,13 @@ end;
 
 procedure TVMCliForm.ProgressTimerTimer(Sender: TObject);
 var
-  i                                    : Integer;
+  i: Integer;
   TotalCli, connectingCli, ConnectedCli: Integer;
 begin
-  ClientTunnel.ProgressBackground;
+  ClientTunnel.Progress;
 
   for i := low(ClientWithVM) to high(ClientWithVM) do
-      ClientWithVM[i].ProgressBackground;
+      ClientWithVM[i].Progress;
 
   TotalCli := 0;
   connectingCli := 0;
@@ -215,10 +219,10 @@ procedure TVMCliForm.PrintStateTimerTimer(Sender: TObject);
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
-    n   : string;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
+    n: string;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;

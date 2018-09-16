@@ -15,7 +15,7 @@
 *)
 unit CommunicationFramework_Client_ICS;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -34,7 +34,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -81,7 +81,7 @@ type
 
     procedure TriggerQueueData(v: PQueueData); override;
 
-    procedure ProgressBackground; override;
+    procedure Progress; override;
   end;
 
 implementation
@@ -112,7 +112,7 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Connected then
       Context.FDriver.Send(buff, Size);
@@ -171,8 +171,6 @@ begin
 end;
 
 procedure TCommunicationFramework_Client_ICS.AsyncConnect(addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
-var
-  AStopTime: TTimeTickValue;
 begin
   Disconnect;
 
@@ -199,8 +197,8 @@ begin
   FDriver := TClientICSContextIntf.Create(nil);
   FDriver.MultiThreaded := False;
   FDriver.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  FDriver.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
-  FDriver.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
+  FDriver.KeepAliveTime := 1 * 1000;
+  FDriver.KeepAliveInterval := 1 * 1000;
   FDriver.OnDataAvailable := DataAvailable;
   FDriver.OnSessionClosed := SessionClosed;
   FClient := TPeerClientIntfForICS.Create(Self, Self);
@@ -300,14 +298,14 @@ begin
       FDriver.Connect;
   except
     Result := False;
-    Exit;
+    exit;
   end;
 
   AStopTime := GetTimeTickCount + AWaitTimeOut;
 
   while not(FDriver.State in [wsConnected]) do
     begin
-      ProgressBackground;
+      Progress;
 
       if (GetTimeTickCount >= AStopTime) then
           Break;
@@ -324,12 +322,12 @@ begin
 
   while (not RemoteInited) and (FDriver.State in [wsConnected]) do
     begin
-      ProgressBackground;
+      Progress;
 
       if (GetTimeTickCount >= AStopTime) then
         begin
           FDriver.Close;
-          Exit(Connect(Host, Port, AWaitTimeOut));
+          Break;
         end;
       if FDriver.State in [wsClosed] then
           Break;
@@ -375,19 +373,19 @@ begin
   if not Connected then
     begin
       DisposeQueueData(v);
-      Exit;
+      exit;
     end;
 
   FClient.PostQueueData(v);
   FClient.ProcessAllSendCmd(nil, False, False);
-  inherited ProgressBackground;
+  inherited Progress;
 end;
 
-procedure TCommunicationFramework_Client_ICS.ProgressBackground;
+procedure TCommunicationFramework_Client_ICS.Progress;
 begin
   FClient.ProcessAllSendCmd(nil, False, False);
 
-  inherited ProgressBackground;
+  inherited Progress;
 
   try
       FDriver.ProcessMessages;
@@ -399,4 +397,4 @@ initialization
 
 finalization
 
-end. 
+end.

@@ -91,7 +91,7 @@ type
     OnUserDoneProc: TUserQueryDoneNotifyProc;
     {$ENDIF}
     //
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   TUserDownloadDoneNotifyCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
@@ -127,7 +127,7 @@ type
     {$IFNDEF FPC}
     OnDoneProc: TDownloadDoneNotifyProc;
     {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   // client storePos transform
@@ -144,7 +144,7 @@ type
     {$IFNDEF FPC}
     OnDoneProc: TStorePosTransformNotifyProc;
     {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   //
@@ -154,9 +154,9 @@ type
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;
     SourceDB, OutputDB, PipelineName, RegistedQuery: SystemString;
     //
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Encode(d: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Decode(d: TDataFrameEngine); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
+    procedure Encode(d: TDataFrameEngine);
+    procedure Decode(d: TDataFrameEngine);
   end;
 
   TPipeInfo = TPipeState;

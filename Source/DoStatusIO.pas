@@ -17,14 +17,15 @@ unit DoStatusIO;
 interface
 
 uses
-  {$IF Defined(WIN32) or Defined(WIN64)}
+{$IF Defined(WIN32) or Defined(WIN64)}
   Windows,
-  {$ELSEIF not Defined(Linux)}
-  {$IFNDEF FPC}
+{$ELSEIF not Defined(Linux)}
+{$IFNDEF FPC}
   FMX.Types,
-  {$IFEND FPC}
-  {$IFEND}
-  SysUtils, Classes, PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses, MemoryStream64;
+{$IFEND FPC}
+{$IFEND}
+  SysUtils, Classes, PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses,
+  MemoryStream64, ListEngine;
 
 type
   TDoStatusMethod = procedure(AText: SystemString; const ID: Integer) of object;
@@ -41,6 +42,7 @@ procedure DoStatus(const v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(const v: TMemoryStream64); overload;
 procedure DoStatus(const v: TCoreClassStrings); overload;
+procedure DoStatus(const v: TListPascalString); overload;
 procedure DoStatus(const v: Int64); overload;
 procedure DoStatus(const v: Integer); overload;
 procedure DoStatus(const v: Single); overload;
@@ -150,9 +152,31 @@ end;
 procedure DoStatus(const v: TCoreClassStrings);
 var
   i: Integer;
+  o: TCoreClassObject;
 begin
   for i := 0 to v.Count - 1 do
-      DoStatus(v[i]);
+    begin
+      o := v.Objects[i];
+      if o <> nil then
+          DoStatus('%s<%s>', [v[i], o.ClassName])
+      else
+          DoStatus(v[i]);
+    end;
+end;
+
+procedure DoStatus(const v: TListPascalString);
+var
+  i: Integer;
+  o: TCoreClassObject;
+begin
+  for i := 0 to v.Count - 1 do
+    begin
+      o := v.Objects[i];
+      if o <> nil then
+          DoStatus('%s<%s>', [v[i].Text, o.ClassName])
+      else
+          DoStatus(v[i].Text);
+    end;
 end;
 
 procedure DoStatus(const v: Int64);
@@ -296,16 +320,16 @@ begin
         end;
     end;
 
-  {$IFNDEF FPC}
+{$IFNDEF FPC}
   if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
     begin
-      {$IF Defined(WIN32) or Defined(WIN64)}
+{$IF Defined(WIN32) or Defined(WIN64)}
       OutputDebugString(PWideChar('"' + Text_Ptr^ + '"'));
-      {$ELSEIF not Defined(Linux)}
+{$ELSEIF not Defined(Linux)}
       FMX.Types.Log.d('"' + Text_Ptr^ + '"');
-      {$IFEND}
+{$IFEND}
     end;
-  {$IFEND FPC}
+{$IFEND FPC}
   if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
       Writeln(Text_Ptr^);
 end;
@@ -492,6 +516,4 @@ finalization
 
 _DoFree;
 
-end. 
- 
- 
+end.

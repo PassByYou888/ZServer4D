@@ -15,7 +15,7 @@
 *)
 unit CommunicationFramework_Client_DIOCP;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -30,7 +30,7 @@ type
 
   TIocpClientContextIntf_WithDCli = class(TIocpRemoteContext)
   private
-    Link          : TPeerIOWithDIOCPClient;
+    Link: TPeerIOWithDIOCPClient;
     OwnerFramework: TCommunicationFramework_Client_DIOCP;
   protected
     procedure OnConnected; override;
@@ -44,7 +44,7 @@ type
 
   TPeerIOWithDIOCPClient = class(TPeerIO)
   private
-    Link         : TIocpClientContextIntf_WithDCli;
+    Link: TIocpClientContextIntf_WithDCli;
     SendingStream: TMemoryStream64;
   public
     procedure CreateAfter; override;
@@ -52,7 +52,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -63,11 +63,11 @@ type
   TCommunicationFramework_Client_DIOCP = class(TCommunicationFrameworkClient)
   private
     DIOCPClientPool: TDiocpTcpClient;
-    DCIntf         : TIocpClientContextIntf_WithDCli;
+    DCIntf: TIocpClientContextIntf_WithDCli;
 
-    FOnAsyncConnectNotifyCall  : TStateCall;
+    FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
-    FOnAsyncConnectNotifyProc  : TStateProc;
+    FOnAsyncConnectNotifyProc: TStateProc;
   protected
     procedure DCDoConnected(Sender: TIocpClientContextIntf_WithDCli);
     procedure DCDoDisconnect(Sender: TIocpClientContextIntf_WithDCli);
@@ -86,7 +86,7 @@ type
     function Connected: Boolean; override;
     function ClientIO: TPeerIO; override;
     procedure TriggerQueueData(v: PQueueData); override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
     procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
@@ -174,7 +174,7 @@ begin
       Link.Close;
 end;
 
-procedure TPeerIOWithDIOCPClient.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TPeerIOWithDIOCPClient.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if not Connected then
       Exit;
@@ -336,9 +336,9 @@ begin
   ClientIO.ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.ProgressBackground;
+procedure TCommunicationFramework_Client_DIOCP.Progress;
 begin
-  inherited ProgressBackground;
+  inherited Progress;
   CheckSynchronize;
 end;
 
@@ -407,7 +407,7 @@ end;
 
 function TCommunicationFramework_Client_DIOCP.Connect(addr: SystemString; Port: Word): Boolean;
 var
-  T: TTimeTickValue;
+  t: TTimeTickValue;
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -436,10 +436,10 @@ begin
     Exit;
   end;
 
-  T := GetTimeTick + 5000;
+  t := GetTimeTick + 5000;
 
-  while DCIntf.Active and (not DCIntf.Link.RemoteExecutedForConnectInit) and (GetTimeTick < T) do
-      ProgressBackground;
+  while DCIntf.Active and (not DCIntf.Link.RemoteExecutedForConnectInit) and (GetTimeTick < t) do
+      Progress;
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.Disconnect;
@@ -456,4 +456,4 @@ initialization
 
 finalization
 
-end. 
+end.

@@ -70,7 +70,7 @@ end;
 
 procedure TManagerQuery.Progress;
 begin
-  ClientIntf.ProgressBackground;
+  ClientIntf.Progress;
 end;
 
 procedure TManagerQuery.Connect(Addr: string; Port: WORD);

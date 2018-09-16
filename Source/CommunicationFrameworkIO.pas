@@ -303,7 +303,7 @@ end;
 
 procedure TCommunicationFramework_UserAuthService.Progress;
 begin
-  Communication.ProgressBackground;
+  Communication.Progress;
 end;
 
 procedure TCommunicationFramework_UserAuthService.RegisterCommand;
@@ -373,7 +373,7 @@ end;
 
 procedure TCommunicationFramework_UserAuthClient.Progress;
 begin
-  Client.ProgressBackground;
+  Client.Progress;
 end;
 
 procedure TCommunicationFramework_UserAuthClient.RegisterCommand;

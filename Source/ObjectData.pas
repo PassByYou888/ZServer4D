@@ -71,8 +71,7 @@ type
     ID, PositionID: Byte;
     UserProperty: Cardinal; // external define
     Name: U_String;
-    Return: Integer;       // nowrite
-    MemorySiz: nativeUInt; // nowrite
+    Return: Integer; // nowrite
   end;
 
   TObjectDataHeaderWriteProc = procedure(fPos: Int64; var wVal: THeader) of object;
@@ -84,8 +83,7 @@ type
     IDFlags: Byte;
     CurrentBlockPOS, NextBlockPOS, PrevBlockPOS, DataBlockPOS: Int64;
     Size: Int64;
-    Return: Integer;       // nowrite
-    MemorySiz: nativeUInt; // nowrite
+    Return: Integer; // nowrite
   end;
 
   TObjectDataItemBlockWriteProc = procedure(fPos: Int64; var wVal: TItemBlock) of object;
@@ -105,7 +103,6 @@ type
     CurrentItemBlock: TItemBlock; // nowrite
     DataWrited: Boolean;          // nowrite
     Return: Integer;              // nowrite
-    MemorySiz: nativeUInt;        // nowrite
   end;
 
   TObjectDataItemWriteProc = procedure(fPos: Int64; var wVal: TItem) of object;
@@ -119,8 +116,7 @@ type
     Description: U_String;
     HeaderCount: Int64;
     FirstHeaderPOS, LastHeaderPOS: Int64;
-    Return: Integer;       // nowrite
-    MemorySiz: nativeUInt; // nowrite
+    Return: Integer; // nowrite
   end;
 
   TObjectDataFieldWriteProc = procedure(fPos: Int64; var wVal: TField) of object;
@@ -161,7 +157,6 @@ type
     OnOnlyWriteFieldRec: TObjectDataFieldWriteProc;
     OnOnlyReadFieldRec: TObjectDataFieldReadProc;
     Return: Integer;
-    MemorySiz: nativeUInt; // nowrite
   end;
 
   TTMDBItemHandle = packed record
@@ -577,7 +572,6 @@ begin
   SenderHeader.UserProperty := 0;
   SenderHeader.Name := '';
   SenderHeader.Return := db_Header_ok;
-  SenderHeader.MemorySiz := 0;
 end;
 
 procedure Init_TItemBlock(var SenderItemBlock: TItemBlock);
@@ -589,7 +583,6 @@ begin
   SenderItemBlock.DataBlockPOS := 0;
   SenderItemBlock.Size := 0;
   SenderItemBlock.Return := db_Item_ok;
-  SenderItemBlock.MemorySiz := 0;
 end;
 
 procedure Init_TItem(var SenderItem: TItem);
@@ -606,7 +599,6 @@ begin
   Init_TItemBlock(SenderItem.CurrentItemBlock);
   SenderItem.DataWrited := False;
   SenderItem.Return := db_Item_ok;
-  SenderItem.MemorySiz := 0;
 end;
 
 procedure Init_TField(var SenderField: TField);
@@ -618,7 +610,6 @@ begin
   SenderField.LastHeaderPOS := 0;
   Init_THeader(SenderField.RHeader);
   SenderField.Return := db_Field_ok;
-  SenderField.MemorySiz := 0;
 end;
 
 procedure Init_TFieldSearch(var SenderFieldSearch: TFieldSearch);
@@ -665,7 +656,6 @@ begin
   SenderTMDB.OnOnlyReadFieldRec := nil;
 
   SenderTMDB.Return := db_Pack_ok;
-  SenderTMDB.MemorySiz := 0;
 end;
 
 procedure Init_TTMDBItemHandle(var SenderTMDBItemHandle: TTMDBItemHandle);
@@ -2353,40 +2343,40 @@ end;
 
 function dbField_GetFirstHeader(const fPos: Int64; var IOHnd: TIOHnd): THeader;
 var
-  F: TField;
+  f: TField;
 begin
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
       Exit;
-  dbHeader_ReadRec(F.FirstHeaderPOS, IOHnd, Result);
+  dbHeader_ReadRec(f.FirstHeaderPOS, IOHnd, Result);
 end;
 
 function dbField_GetLastHeader(const fPos: Int64; var IOHnd: TIOHnd): THeader;
 var
-  F: TField;
+  f: TField;
 begin
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
       Exit;
-  dbHeader_ReadRec(F.LastHeaderPOS, IOHnd, Result);
+  dbHeader_ReadRec(f.LastHeaderPOS, IOHnd, Result);
 end;
 
 function dbField_OnlyFindFirstName(const Name: U_String; const fPos: Int64; var IOHnd: TIOHnd; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   SenderFieldSearch.InitFlags := False;
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
     begin
-      SenderFieldSearch.Return := F.Return;
+      SenderFieldSearch.Return := f.Return;
       Result := False;
       Exit;
     end;
-  if F.HeaderCount = 0 then
+  if f.HeaderCount = 0 then
     begin
       SenderFieldSearch.Return := db_Header_NotFindHeader;
       Result := False;
       Exit;
     end;
-  if dbHeader_FindNext(Name, F.FirstHeaderPOS, F.LastHeaderPOS, IOHnd, SenderFieldSearch.RHeader) = False then
+  if dbHeader_FindNext(Name, f.FirstHeaderPOS, f.LastHeaderPOS, IOHnd, SenderFieldSearch.RHeader) = False then
     begin
       SenderFieldSearch.Return := SenderFieldSearch.RHeader.Return;
       Result := False;
@@ -2394,7 +2384,7 @@ begin
     end;
   SenderFieldSearch.InitFlags := True;
   SenderFieldSearch.PositionID := SenderFieldSearch.RHeader.PositionID;
-  SenderFieldSearch.OverPOS := F.LastHeaderPOS;
+  SenderFieldSearch.OverPOS := f.LastHeaderPOS;
   SenderFieldSearch.StartPos := SenderFieldSearch.RHeader.NextHeader;
   SenderFieldSearch.Name := Name;
   SenderFieldSearch.ID := SenderFieldSearch.RHeader.ID;
@@ -2435,22 +2425,22 @@ end;
 
 function dbField_OnlyFindLastName(const Name: U_String; const fPos: Int64; var IOHnd: TIOHnd; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   SenderFieldSearch.InitFlags := False;
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
     begin
-      SenderFieldSearch.Return := F.Return;
+      SenderFieldSearch.Return := f.Return;
       Result := False;
       Exit;
     end;
-  if F.HeaderCount = 0 then
+  if f.HeaderCount = 0 then
     begin
       SenderFieldSearch.Return := db_Header_NotFindHeader;
       Result := False;
       Exit;
     end;
-  if dbHeader_FindPrev(Name, F.LastHeaderPOS, F.FirstHeaderPOS, IOHnd, SenderFieldSearch.RHeader) = False then
+  if dbHeader_FindPrev(Name, f.LastHeaderPOS, f.FirstHeaderPOS, IOHnd, SenderFieldSearch.RHeader) = False then
     begin
       SenderFieldSearch.Return := SenderFieldSearch.RHeader.Return;
       Result := False;
@@ -2458,7 +2448,7 @@ begin
     end;
   SenderFieldSearch.InitFlags := True;
   SenderFieldSearch.PositionID := SenderFieldSearch.RHeader.PositionID;
-  SenderFieldSearch.OverPOS := F.FirstHeaderPOS;
+  SenderFieldSearch.OverPOS := f.FirstHeaderPOS;
   SenderFieldSearch.StartPos := SenderFieldSearch.RHeader.PrevHeader;
   SenderFieldSearch.Name := Name;
   SenderFieldSearch.ID := SenderFieldSearch.RHeader.ID;
@@ -2499,23 +2489,23 @@ end;
 
 function dbField_FindFirst(const Name: U_String; const ID: Byte; const fPos: Int64; var IOHnd: TIOHnd; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   SenderFieldSearch.InitFlags := False;
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
     begin
-      SenderFieldSearch.Return := F.Return;
+      SenderFieldSearch.Return := f.Return;
       Result := False;
       Exit;
     end;
-  if F.HeaderCount = 0 then
+  if f.HeaderCount = 0 then
     begin
       SenderFieldSearch.Return := db_Header_NotFindHeader;
       Result := False;
       Exit;
     end;
-  SenderFieldSearch.OverPOS := F.LastHeaderPOS;
-  SenderFieldSearch.StartPos := F.FirstHeaderPOS;
+  SenderFieldSearch.OverPOS := f.LastHeaderPOS;
+  SenderFieldSearch.StartPos := f.FirstHeaderPOS;
   while dbHeader_FindNext(Name, SenderFieldSearch.StartPos, SenderFieldSearch.OverPOS, IOHnd, SenderFieldSearch.RHeader) do
     begin
       SenderFieldSearch.StartPos := SenderFieldSearch.RHeader.NextHeader;
@@ -2584,23 +2574,23 @@ end;
 
 function dbField_FindLast(const Name: U_String; const ID: Byte; const fPos: Int64; var IOHnd: TIOHnd; var SenderFieldSearch: TFieldSearch): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   SenderFieldSearch.InitFlags := False;
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
     begin
-      SenderFieldSearch.Return := F.Return;
+      SenderFieldSearch.Return := f.Return;
       Result := False;
       Exit;
     end;
-  if F.HeaderCount = 0 then
+  if f.HeaderCount = 0 then
     begin
       SenderFieldSearch.Return := db_Header_NotFindHeader;
       Result := False;
       Exit;
     end;
-  SenderFieldSearch.OverPOS := F.FirstHeaderPOS;
-  SenderFieldSearch.StartPos := F.LastHeaderPOS;
+  SenderFieldSearch.OverPOS := f.FirstHeaderPOS;
+  SenderFieldSearch.StartPos := f.LastHeaderPOS;
   while dbHeader_FindPrev(Name, SenderFieldSearch.StartPos, SenderFieldSearch.OverPOS, IOHnd, SenderFieldSearch.RHeader) do
     begin
       SenderFieldSearch.StartPos := SenderFieldSearch.RHeader.PrevHeader;
@@ -2925,34 +2915,34 @@ end;
 
 function dbField_CreateHeader(const Name: U_String; const ID: Byte; const fPos: Int64; var IOHnd: TIOHnd; var SenderHeader: THeader): Boolean;
 var
-  F: TField;
+  f: TField;
   _Header: THeader;
 begin
-  if dbField_ReadRec(fPos, IOHnd, F) = False then
+  if dbField_ReadRec(fPos, IOHnd, f) = False then
     begin
-      SenderHeader.Return := F.Return;
+      SenderHeader.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderHeader.ID := ID;
   SenderHeader.Name := Name;
-  case F.HeaderCount of
+  case f.HeaderCount of
     0:
       begin
-        F.HeaderCount := 1;
-        F.FirstHeaderPOS := umlFileGetSize(IOHnd);
-        F.LastHeaderPOS := F.FirstHeaderPOS;
-        F.RHeader.LastModifyTime := umlDefaultTime;
+        f.HeaderCount := 1;
+        f.FirstHeaderPOS := umlFileGetSize(IOHnd);
+        f.LastHeaderPOS := f.FirstHeaderPOS;
+        f.RHeader.LastModifyTime := umlDefaultTime;
         SenderHeader.PositionID := db_Header_OnlyPositionFlags;
-        SenderHeader.NextHeader := F.LastHeaderPOS;
-        SenderHeader.PrevHeader := F.FirstHeaderPOS;
-        SenderHeader.CurrentHeader := F.FirstHeaderPOS;
+        SenderHeader.NextHeader := f.LastHeaderPOS;
+        SenderHeader.PrevHeader := f.FirstHeaderPOS;
+        SenderHeader.CurrentHeader := f.FirstHeaderPOS;
         SenderHeader.CreateTime := umlDefaultTime;
         SenderHeader.LastModifyTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
-        if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+        if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
           begin
-            SenderHeader.Return := F.Return;
+            SenderHeader.Return := f.Return;
             Result := False;
             Exit;
           end;
@@ -2965,10 +2955,10 @@ begin
     1:
       begin
         SenderHeader.CurrentHeader := umlFileGetSize(IOHnd);
-        SenderHeader.NextHeader := F.FirstHeaderPOS;
-        SenderHeader.PrevHeader := F.FirstHeaderPOS;
+        SenderHeader.NextHeader := f.FirstHeaderPOS;
+        SenderHeader.PrevHeader := f.FirstHeaderPOS;
 
-        if dbHeader_ReadRec(F.FirstHeaderPOS, IOHnd, _Header) = False then
+        if dbHeader_ReadRec(f.FirstHeaderPOS, IOHnd, _Header) = False then
           begin
             SenderHeader.Return := _Header.Return;
             Result := False;
@@ -2977,22 +2967,22 @@ begin
         _Header.PrevHeader := SenderHeader.CurrentHeader;
         _Header.NextHeader := SenderHeader.CurrentHeader;
         _Header.PositionID := db_Header_FirstPositionFlags;
-        if dbHeader_WriteRec(F.FirstHeaderPOS, IOHnd, _Header) = False then
+        if dbHeader_WriteRec(f.FirstHeaderPOS, IOHnd, _Header) = False then
           begin
             SenderHeader.Return := _Header.Return;
             Result := False;
             Exit;
           end;
-        F.HeaderCount := F.HeaderCount + 1;
-        F.LastHeaderPOS := SenderHeader.CurrentHeader;
-        F.RHeader.LastModifyTime := umlDefaultTime;
+        f.HeaderCount := f.HeaderCount + 1;
+        f.LastHeaderPOS := SenderHeader.CurrentHeader;
+        f.RHeader.LastModifyTime := umlDefaultTime;
         SenderHeader.CreateTime := umlDefaultTime;
         SenderHeader.LastModifyTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         SenderHeader.PositionID := db_Header_LastPositionFlags;
-        if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+        if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
           begin
-            SenderHeader.Return := F.Return;
+            SenderHeader.Return := f.Return;
             Result := False;
             Exit;
           end;
@@ -3007,7 +2997,7 @@ begin
         SenderHeader.CurrentHeader := umlFileGetSize(IOHnd);
 
         // modify first header
-        if dbHeader_ReadRec(F.FirstHeaderPOS, IOHnd, _Header) = False then
+        if dbHeader_ReadRec(f.FirstHeaderPOS, IOHnd, _Header) = False then
           begin
             SenderHeader.Return := _Header.Return;
             Result := False;
@@ -3015,7 +3005,7 @@ begin
           end;
         _Header.PrevHeader := SenderHeader.CurrentHeader;
         SenderHeader.NextHeader := _Header.CurrentHeader;
-        if dbHeader_WriteRec(F.FirstHeaderPOS, IOHnd, _Header) = False then
+        if dbHeader_WriteRec(f.FirstHeaderPOS, IOHnd, _Header) = False then
           begin
             SenderHeader.Return := _Header.Return;
             Result := False;
@@ -3023,32 +3013,32 @@ begin
           end;
 
         // moidfy last header
-        if dbHeader_ReadRec(F.LastHeaderPOS, IOHnd, _Header) = False then
+        if dbHeader_ReadRec(f.LastHeaderPOS, IOHnd, _Header) = False then
           begin
             SenderHeader.Return := _Header.Return;
             Result := False;
             Exit;
           end;
         _Header.NextHeader := SenderHeader.CurrentHeader;
-        SenderHeader.PrevHeader := F.LastHeaderPOS;
+        SenderHeader.PrevHeader := f.LastHeaderPOS;
         _Header.PositionID := db_Header_MediumPositionFlags;
-        if dbHeader_WriteRec(F.LastHeaderPOS, IOHnd, _Header) = False then
+        if dbHeader_WriteRec(f.LastHeaderPOS, IOHnd, _Header) = False then
           begin
             SenderHeader.Return := _Header.Return;
             Result := False;
             Exit;
           end;
 
-        F.HeaderCount := F.HeaderCount + 1;
-        F.LastHeaderPOS := SenderHeader.CurrentHeader;
-        F.RHeader.LastModifyTime := umlDefaultTime;
+        f.HeaderCount := f.HeaderCount + 1;
+        f.LastHeaderPOS := SenderHeader.CurrentHeader;
+        f.RHeader.LastModifyTime := umlDefaultTime;
         SenderHeader.CreateTime := umlDefaultTime;
         SenderHeader.LastModifyTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         SenderHeader.PositionID := db_Header_LastPositionFlags;
-        if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+        if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
           begin
-            SenderHeader.Return := F.Return;
+            SenderHeader.Return := f.Return;
             Result := False;
             Exit;
           end;
@@ -3065,13 +3055,13 @@ end;
 
 function dbField_InsertNewHeader(const Name: U_String; const ID: Byte; const FieldPos, InsertHeaderPos: Int64; var IOHnd: TIOHnd; var NewHeader: THeader): Boolean;
 var
-  F: TField;
+  f: TField;
 
   Curr, Prev: THeader;
 begin
-  if dbField_ReadRec(FieldPos, IOHnd, F) = False then
+  if dbField_ReadRec(FieldPos, IOHnd, f) = False then
     begin
-      NewHeader.Return := F.Return;
+      NewHeader.Return := f.Return;
       Result := False;
       Exit;
     end;
@@ -3083,7 +3073,7 @@ begin
       Exit;
     end;
 
-  F.RHeader.LastModifyTime := umlDefaultTime;
+  f.RHeader.LastModifyTime := umlDefaultTime;
 
   NewHeader.CurrentHeader := umlFileGetSize(IOHnd);
   NewHeader.DataMainPOS := NewHeader.CurrentHeader + db_Header_Size;
@@ -3097,20 +3087,20 @@ begin
   case Curr.PositionID of
     db_Header_FirstPositionFlags:
       begin
-        if F.HeaderCount > 1 then
+        if f.HeaderCount > 1 then
           begin
             // moidfy field
-            F.HeaderCount := F.HeaderCount + 1;
-            F.FirstHeaderPOS := NewHeader.CurrentHeader;
-            if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+            f.HeaderCount := f.HeaderCount + 1;
+            f.FirstHeaderPOS := NewHeader.CurrentHeader;
+            if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
               begin
-                NewHeader.Return := F.Return;
+                NewHeader.Return := f.Return;
                 Result := False;
                 Exit;
               end;
 
             // write newheader
-            NewHeader.PrevHeader := F.LastHeaderPOS;
+            NewHeader.PrevHeader := f.LastHeaderPOS;
             NewHeader.NextHeader := Curr.CurrentHeader;
             NewHeader.PositionID := db_Header_FirstPositionFlags;
             if dbHeader_WriteRec(NewHeader.CurrentHeader, IOHnd, NewHeader) = False then
@@ -3129,21 +3119,21 @@ begin
                 Exit;
               end;
           end
-        else if F.HeaderCount = 1 then
+        else if f.HeaderCount = 1 then
           begin
             // modify field
-            F.HeaderCount := F.HeaderCount + 1;
-            F.FirstHeaderPOS := NewHeader.CurrentHeader;
-            F.LastHeaderPOS := Curr.CurrentHeader;
-            if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+            f.HeaderCount := f.HeaderCount + 1;
+            f.FirstHeaderPOS := NewHeader.CurrentHeader;
+            f.LastHeaderPOS := Curr.CurrentHeader;
+            if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
               begin
-                NewHeader.Return := F.Return;
+                NewHeader.Return := f.Return;
                 Result := False;
                 Exit;
               end;
 
             // write newheader
-            NewHeader.PrevHeader := F.LastHeaderPOS;
+            NewHeader.PrevHeader := f.LastHeaderPOS;
             NewHeader.NextHeader := Curr.CurrentHeader;
             NewHeader.PositionID := db_Header_FirstPositionFlags;
             if dbHeader_WriteRec(NewHeader.CurrentHeader, IOHnd, NewHeader) = False then
@@ -3181,10 +3171,10 @@ begin
           end;
 
         // modify field
-        F.HeaderCount := F.HeaderCount + 1;
-        if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+        f.HeaderCount := f.HeaderCount + 1;
+        if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
           begin
-            NewHeader.Return := F.Return;
+            NewHeader.Return := f.Return;
             Result := False;
             Exit;
           end;
@@ -3220,7 +3210,7 @@ begin
       end;
     db_Header_LastPositionFlags:
       begin
-        if F.HeaderCount > 1 then
+        if f.HeaderCount > 1 then
           begin
             // read prev header
             if dbHeader_ReadRec(Curr.PrevHeader, IOHnd, Prev) = False then
@@ -3231,10 +3221,10 @@ begin
               end;
 
             // modify field
-            F.HeaderCount := F.HeaderCount + 1;
-            if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+            f.HeaderCount := f.HeaderCount + 1;
+            if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
               begin
-                NewHeader.Return := F.Return;
+                NewHeader.Return := f.Return;
                 Result := False;
                 Exit;
               end;
@@ -3268,21 +3258,21 @@ begin
                 Exit;
               end;
           end
-        else if F.HeaderCount = 1 then
+        else if f.HeaderCount = 1 then
           begin
             // modify field
-            F.HeaderCount := F.HeaderCount + 1;
-            F.FirstHeaderPOS := NewHeader.CurrentHeader;
-            F.LastHeaderPOS := Curr.CurrentHeader;
-            if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+            f.HeaderCount := f.HeaderCount + 1;
+            f.FirstHeaderPOS := NewHeader.CurrentHeader;
+            f.LastHeaderPOS := Curr.CurrentHeader;
+            if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
               begin
-                NewHeader.Return := F.Return;
+                NewHeader.Return := f.Return;
                 Result := False;
                 Exit;
               end;
 
             // write newheader
-            NewHeader.PrevHeader := F.LastHeaderPOS;
+            NewHeader.PrevHeader := f.LastHeaderPOS;
             NewHeader.NextHeader := Curr.CurrentHeader;
             NewHeader.PositionID := db_Header_FirstPositionFlags;
             if dbHeader_WriteRec(NewHeader.CurrentHeader, IOHnd, NewHeader) = False then
@@ -3312,18 +3302,18 @@ begin
     db_Header_OnlyPositionFlags:
       begin
         // modify field
-        F.HeaderCount := F.HeaderCount + 1;
-        F.FirstHeaderPOS := NewHeader.CurrentHeader;
-        F.LastHeaderPOS := Curr.CurrentHeader;
-        if dbField_WriteRec(F.RHeader.CurrentHeader, IOHnd, F) = False then
+        f.HeaderCount := f.HeaderCount + 1;
+        f.FirstHeaderPOS := NewHeader.CurrentHeader;
+        f.LastHeaderPOS := Curr.CurrentHeader;
+        if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
           begin
-            NewHeader.Return := F.Return;
+            NewHeader.Return := f.Return;
             Result := False;
             Exit;
           end;
 
         // write newheader
-        NewHeader.PrevHeader := F.LastHeaderPOS;
+        NewHeader.PrevHeader := f.LastHeaderPOS;
         NewHeader.NextHeader := Curr.CurrentHeader;
         NewHeader.PositionID := db_Header_FirstPositionFlags;
         if dbHeader_WriteRec(NewHeader.CurrentHeader, IOHnd, NewHeader) = False then
@@ -4325,13 +4315,13 @@ end;
 
 function dbPack_CopyAllToDestPath(var SenderTMDB: TTMDB; var DestTMDB: TTMDB; destPath: U_String): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   Result := False;
   dbPack_CreateField(destPath, '', DestTMDB);
-  if dbPack_GetField(destPath, F, DestTMDB) then
+  if dbPack_GetField(destPath, f, DestTMDB) then
     begin
-      Result := dbPack_CopyFieldTo('*', SenderTMDB, SenderTMDB.DefaultFieldPOS, DestTMDB, F.RHeader.CurrentHeader);
+      Result := dbPack_CopyFieldTo('*', SenderTMDB, SenderTMDB.DefaultFieldPOS, DestTMDB, f.RHeader.CurrentHeader);
     end;
 end;
 
@@ -4342,7 +4332,7 @@ end;
 
 function dbPack_AutoCheckRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbPack_TestNameStr(Name) = False then
     begin
@@ -4352,7 +4342,7 @@ begin
       Exit;
     end;
 
-  if dbPack_GetRootField(Name, F, SenderTMDB) = False then
+  if dbPack_GetRootField(Name, f, SenderTMDB) = False then
     begin
       if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, SenderField.RHeader) = False then
         begin
@@ -4373,7 +4363,7 @@ begin
     end
   else
     begin
-      SenderField := F;
+      SenderField := f;
     end;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
@@ -4491,7 +4481,7 @@ end;
 
 function dbPack_CreateRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbPack_TestNameStr(Name) = False then
     begin
@@ -4506,18 +4496,18 @@ begin
       Result := False;
       Exit;
     end;
-  if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, F.RHeader) = False then
+  if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
-  F.Description := Description;
-  F.HeaderCount := 0;
-  F.UpLevelFieldPOS := -1;
-  if dbField_OnlyWriteFieldRec(F.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  f.Description := Description;
+  f.HeaderCount := 0;
+  f.UpLevelFieldPOS := -1;
+  if dbField_OnlyWriteFieldRec(f.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
@@ -4527,7 +4517,7 @@ end;
 
 function dbPack_CreateAndSetRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbPack_TestNameStr(Name) = False then
     begin
@@ -4542,29 +4532,29 @@ begin
       Result := False;
       Exit;
     end;
-  if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, F.RHeader) = False then
+  if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
-  F.Description := Description;
-  F.HeaderCount := 0;
-  F.UpLevelFieldPOS := -1;
-  if dbField_OnlyWriteFieldRec(F.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  f.Description := Description;
+  f.HeaderCount := 0;
+  f.UpLevelFieldPOS := -1;
+  if dbField_OnlyWriteFieldRec(f.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
-  SenderTMDB.DefaultFieldPOS := F.RHeader.CurrentHeader;
+  SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
 function dbPack_CreateField(const pathName, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   fs: TFieldSearch;
   i, PC: Integer;
   TempPathStr, TempPathName: U_String;
@@ -4575,9 +4565,9 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
@@ -4603,22 +4593,22 @@ begin
               Result := False;
               Exit;
             end;
-          case dbField_FindFirst(TempPathStr, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) of
+          case dbField_FindFirst(TempPathStr, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) of
             False:
               begin
-                F.Description := Description;
-                if dbField_CreateField(TempPathStr, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+                f.Description := Description;
+                if dbField_CreateField(TempPathStr, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
                   begin
-                    SenderTMDB.Return := F.Return;
+                    SenderTMDB.Return := f.Return;
                     Result := False;
                     Exit;
                   end;
               end;
             True:
               begin
-                if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+                if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
                   begin
-                    SenderTMDB.Return := F.Return;
+                    SenderTMDB.Return := f.Return;
                     Result := False;
                     Exit;
                   end;
@@ -4633,15 +4623,15 @@ end;
 function dbPack_SetFieldName(const pathName, OriginFieldName, NewFieldName, FieldDescription: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
-  F: TField;
+  f: TField;
   OriginField: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirst(OriginFieldName, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
+  if dbField_FindFirst(OriginFieldName, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
     begin
       SenderTMDB.Return := TempSR.Return;
       Result := False;
@@ -4668,15 +4658,15 @@ end;
 function dbPack_SetItemName(const pathName, OriginItemName, NewItemName, ItemDescription: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
-  F: TField;
+  f: TField;
   OriginItem: TItem;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirst(OriginItemName, db_Header_Item_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
+  if dbField_FindFirst(OriginItemName, db_Header_Item_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
     begin
       SenderTMDB.Return := TempSR.Return;
       Result := False;
@@ -4703,30 +4693,30 @@ end;
 function dbPack_DeleteField(const pathName, FilterName: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirst(FilterName, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
+  if dbField_FindFirst(FilterName, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
     begin
       SenderTMDB.Return := TempSR.Return;
       Result := False;
       Exit;
     end;
-  if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+  if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
-  while dbField_FindFirst(FilterName, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) do
+  while dbField_FindFirst(FilterName, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) do
     begin
-      if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+      if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
         begin
-          SenderTMDB.Return := F.Return;
+          SenderTMDB.Return := f.Return;
           Result := False;
           Exit;
         end;
@@ -4738,30 +4728,30 @@ end;
 function dbPack_DeleteHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirst(FilterName, ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
+  if dbField_FindFirst(FilterName, ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
     begin
       SenderTMDB.Return := TempSR.Return;
       Result := False;
       Exit;
     end;
-  if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+  if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
-  while dbField_FindFirst(FilterName, ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) do
+  while dbField_FindFirst(FilterName, ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) do
     begin
-      if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+      if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
         begin
-          SenderTMDB.Return := F.Return;
+          SenderTMDB.Return := f.Return;
           Result := False;
           Exit;
         end;
@@ -4955,7 +4945,7 @@ end;
 
 function dbPack_SetCurrentRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if SenderTMDB.RootHeaderCount = 0 then
     begin
@@ -4963,16 +4953,16 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
 
-  if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+  if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
     begin
-      SenderTMDB.DefaultFieldPOS := F.RHeader.CurrentHeader;
+      SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
       Exit;
@@ -4984,32 +4974,32 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(F.RHeader.NextHeader, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(f.RHeader.NextHeader, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
 
-  if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+  if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
     begin
-      SenderTMDB.DefaultFieldPOS := F.RHeader.CurrentHeader;
+      SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
       Exit;
     end;
 
-  while F.RHeader.CurrentHeader <> SenderTMDB.DefaultFieldPOS do
+  while f.RHeader.CurrentHeader <> SenderTMDB.DefaultFieldPOS do
     begin
-      if dbHeader_ReadRec(F.RHeader.NextHeader, SenderTMDB.IOHnd, F.RHeader) = False then
+      if dbHeader_ReadRec(f.RHeader.NextHeader, SenderTMDB.IOHnd, f.RHeader) = False then
         begin
-          SenderTMDB.Return := F.RHeader.Return;
+          SenderTMDB.Return := f.RHeader.Return;
           Result := False;
           Exit;
         end;
-      if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+      if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
         begin
-          SenderTMDB.DefaultFieldPOS := F.RHeader.CurrentHeader;
+          SenderTMDB.DefaultFieldPOS := f.RHeader.CurrentHeader;
           SenderTMDB.Return := db_Pack_ok;
           Result := True;
           Exit;
@@ -5021,7 +5011,7 @@ end;
 
 function dbPack_SetCurrentField(const pathName: U_String; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   fs: TFieldSearch;
   i, PC: Integer;
   TempPathStr, TempPathName: U_String;
@@ -5032,16 +5022,16 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
 
   if umlGetLength(pathName) = 0 then
     begin
-      SenderTMDB.CurrentFieldPOS := F.RHeader.CurrentHeader;
+      SenderTMDB.CurrentFieldPOS := f.RHeader.CurrentHeader;
       SenderTMDB.CurrentFieldLevel := 1;
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
@@ -5062,21 +5052,21 @@ begin
               Result := False;
               Exit;
             end;
-          if dbField_FindFirst(TempPathStr, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) = False then
+          if dbField_FindFirst(TempPathStr, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) = False then
             begin
               SenderTMDB.Return := fs.Return;
               Result := False;
               Exit;
             end;
-          if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+          if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
             begin
-              SenderTMDB.Return := F.Return;
+              SenderTMDB.Return := f.Return;
               Result := False;
               Exit;
             end;
         end;
     end;
-  SenderTMDB.CurrentFieldPOS := F.RHeader.CurrentHeader;
+  SenderTMDB.CurrentFieldPOS := f.RHeader.CurrentHeader;
   SenderTMDB.CurrentFieldLevel := PC;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
@@ -5084,10 +5074,10 @@ end;
 
 function dbPack_GetRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   Init_TField(SenderField);
-  Init_TField(F);
+  Init_TField(f);
 
   if SenderTMDB.RootHeaderCount = 0 then
     begin
@@ -5096,18 +5086,18 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       SenderField.Return := SenderTMDB.Return;
       Result := False;
       Exit;
     end;
 
-  if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+  if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
-      SenderField := F;
+      SenderField := f;
       Result := True;
       Exit;
     end;
@@ -5119,35 +5109,35 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(F.RHeader.NextHeader, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(f.RHeader.NextHeader, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       SenderField.Return := SenderTMDB.Return;
       Result := False;
       Exit;
     end;
 
-  if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+  if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
-      SenderField := F;
+      SenderField := f;
       Result := True;
       Exit;
     end;
 
-  while F.RHeader.CurrentHeader <> SenderTMDB.DefaultFieldPOS do
+  while f.RHeader.CurrentHeader <> SenderTMDB.DefaultFieldPOS do
     begin
-      if dbHeader_ReadRec(F.RHeader.NextHeader, SenderTMDB.IOHnd, F.RHeader) = False then
+      if dbHeader_ReadRec(f.RHeader.NextHeader, SenderTMDB.IOHnd, f.RHeader) = False then
         begin
-          SenderTMDB.Return := F.RHeader.Return;
+          SenderTMDB.Return := f.RHeader.Return;
           SenderField.Return := SenderTMDB.Return;
           Result := False;
           Exit;
         end;
-      if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+      if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
         begin
           SenderTMDB.Return := db_Pack_ok;
-          SenderField := F;
+          SenderField := f;
           Result := True;
           Exit;
         end;
@@ -5159,7 +5149,7 @@ end;
 
 function dbPack_GetField(const pathName: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   fs: TFieldSearch;
   i, PC: Integer;
   TempPathStr, TempPathName: U_String;
@@ -5170,16 +5160,16 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
 
   if umlGetLength(pathName) = 0 then
     begin
-      SenderField := F;
+      SenderField := f;
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
       Exit;
@@ -5200,77 +5190,77 @@ begin
               Result := False;
               Exit;
             end;
-          if dbField_FindFirst(TempPathStr, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) = False then
+          if dbField_FindFirst(TempPathStr, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) = False then
             begin
               SenderTMDB.Return := fs.Return;
               Result := False;
               Exit;
             end;
-          if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+          if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
             begin
-              SenderTMDB.Return := F.Return;
+              SenderTMDB.Return := f.Return;
               Result := False;
               Exit;
             end;
         end;
     end;
-  SenderField := F;
+  SenderField := f;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
 function dbPack_GetPath(const FieldPos, RootFieldPos: Int64; var SenderTMDB: TTMDB; var RetPath: U_String): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
 
-  if dbHeader_ReadRec(FieldPos, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(FieldPos, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
 
-  if F.RHeader.ID <> db_Header_Field_ID then
+  if f.RHeader.ID <> db_Header_Field_ID then
     begin
       SenderTMDB.Return := db_Field_SetPosError;
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(F.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(f.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
 
-  if F.RHeader.CurrentHeader = RootFieldPos then
+  if f.RHeader.CurrentHeader = RootFieldPos then
     begin
       RetPath := db_Path_Delimiter;
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
       Exit;
     end;
-  RetPath := F.RHeader.Name + db_Path_Delimiter;
+  RetPath := f.RHeader.Name + db_Path_Delimiter;
 
-  while dbField_ReadRec(F.UpLevelFieldPOS, SenderTMDB.IOHnd, F) do
+  while dbField_ReadRec(f.UpLevelFieldPOS, SenderTMDB.IOHnd, f) do
     begin
-      if F.RHeader.CurrentHeader = RootFieldPos then
+      if f.RHeader.CurrentHeader = RootFieldPos then
         begin
           RetPath := db_Path_Delimiter + RetPath;
           SenderTMDB.Return := db_Pack_ok;
           Result := True;
           Exit;
         end;
-      RetPath := F.RHeader.Name + db_Path_Delimiter + RetPath;
+      RetPath := f.RHeader.Name + db_Path_Delimiter + RetPath;
     end;
-  SenderTMDB.Return := F.Return;
+  SenderTMDB.Return := f.Return;
   Result := False;
 end;
 
 function dbPack_NewItem(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   fs: TFieldSearch;
   i, PC: Integer;
   TempPathStr, TempPathName: U_String;
@@ -5281,9 +5271,9 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
@@ -5305,22 +5295,22 @@ begin
                   Result := False;
                   Exit;
                 end;
-              case dbField_FindFirst(TempPathStr, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) of
+              case dbField_FindFirst(TempPathStr, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) of
                 False:
                   begin
-                    F.Description := db_Pack_DefaultDescription;
-                    if dbField_CreateField(TempPathStr, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+                    f.Description := db_Pack_DefaultDescription;
+                    if dbField_CreateField(TempPathStr, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
                       begin
-                        SenderTMDB.Return := F.Return;
+                        SenderTMDB.Return := f.Return;
                         Result := False;
                         Exit;
                       end;
                   end;
                 True:
                   begin
-                    if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+                    if dbField_ReadRec(fs.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
                       begin
-                        SenderTMDB.Return := F.Return;
+                        SenderTMDB.Return := f.Return;
                         Result := False;
                         Exit;
                       end;
@@ -5336,7 +5326,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirstItem(ItemName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) then
+  if dbField_FindFirstItem(ItemName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, fs) then
     begin
       if SenderTMDB.OverWriteItem = False then
         begin
@@ -5349,16 +5339,16 @@ begin
         end
       else
         begin
-          if dbField_DeleteHeader(fs.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+          if dbField_DeleteHeader(fs.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
             begin
-              SenderTMDB.Return := F.Return;
+              SenderTMDB.Return := f.Return;
               Result := False;
               Exit;
             end;
         end;
     end;
   SenderItem.Description := ItemDescription;
-  if dbField_CreateItem(ItemName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderItem) = False then
+  if dbField_CreateItem(ItemName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderItem) = False then
     begin
       SenderTMDB.Return := SenderItem.Return;
       Result := False;
@@ -5371,30 +5361,30 @@ end;
 function dbPack_DeleteItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirstItem(FilterName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
+  if dbField_FindFirstItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) = False then
     begin
       SenderTMDB.Return := TempSR.Return;
       Result := False;
       Exit;
     end;
-  if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+  if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
-  while dbField_FindFirstItem(FilterName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) do
+  while dbField_FindFirstItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, TempSR) do
     begin
-      if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, F) = False then
+      if dbField_DeleteHeader(TempSR.RHeader.CurrentHeader, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, f) = False then
         begin
-          SenderTMDB.Return := F.Return;
+          SenderTMDB.Return := f.Return;
           Result := False;
           Exit;
         end;
@@ -5405,15 +5395,15 @@ end;
 
 function dbPack_GetItem(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   _FieldSR: TFieldSearch;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirstItem(ItemName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, _FieldSR) = False then
+  if dbField_FindFirstItem(ItemName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, _FieldSR) = False then
     begin
       SenderTMDB.Return := db_Pack_OpenItemError;
       Result := False;
@@ -5930,7 +5920,7 @@ end;
 
 function dbPack_ExistsRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if SenderTMDB.RootHeaderCount = 0 then
     begin
@@ -5938,14 +5928,14 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(SenderTMDB.DefaultFieldPOS, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
 
-  if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+  if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
@@ -5958,29 +5948,29 @@ begin
       Result := False;
       Exit;
     end;
-  if dbHeader_ReadRec(F.RHeader.NextHeader, SenderTMDB.IOHnd, F.RHeader) = False then
+  if dbHeader_ReadRec(f.RHeader.NextHeader, SenderTMDB.IOHnd, f.RHeader) = False then
     begin
-      SenderTMDB.Return := F.RHeader.Return;
+      SenderTMDB.Return := f.RHeader.Return;
       Result := False;
       Exit;
     end;
 
-  if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+  if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
     begin
       SenderTMDB.Return := db_Pack_ok;
       Result := True;
       Exit;
     end;
 
-  while F.RHeader.CurrentHeader <> SenderTMDB.DefaultFieldPOS do
+  while f.RHeader.CurrentHeader <> SenderTMDB.DefaultFieldPOS do
     begin
-      if dbHeader_ReadRec(F.RHeader.NextHeader, SenderTMDB.IOHnd, F.RHeader) = False then
+      if dbHeader_ReadRec(f.RHeader.NextHeader, SenderTMDB.IOHnd, f.RHeader) = False then
         begin
-          SenderTMDB.Return := F.RHeader.Return;
+          SenderTMDB.Return := f.RHeader.Return;
           Result := False;
           Exit;
         end;
-      if (dbMultipleMatch(Name, F.RHeader.Name) = True) and (F.RHeader.ID = db_Header_Field_ID) then
+      if (dbMultipleMatch(Name, f.RHeader.Name) = True) and (f.RHeader.ID = db_Header_Field_ID) then
         begin
           SenderTMDB.Return := db_Pack_ok;
           Result := True;
@@ -5993,14 +5983,14 @@ end;
 
 function dbPack_FindFirstHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirst(FilterName, ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
+  if dbField_FindFirst(FilterName, ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
@@ -6036,14 +6026,14 @@ end;
 
 function dbPack_FindLastHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindLast(FilterName, ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
+  if dbField_FindLast(FilterName, ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
@@ -6079,15 +6069,15 @@ end;
 
 function dbPack_FindFirstItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   itm: TItem;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirstItem(FilterName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch, itm) = False then
+  if dbField_FindFirstItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
@@ -6125,15 +6115,15 @@ end;
 
 function dbPack_FindLastItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
   itm: TItem;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindLastItem(FilterName, ItemExtID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch, itm) = False then
+  if dbField_FindLastItem(FilterName, ItemExtID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch, itm) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
@@ -6251,28 +6241,28 @@ end;
 
 function dbPack_FindFirstField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindFirst(FilterName, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
+  if dbField_FindFirst(FilterName, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6281,7 +6271,7 @@ end;
 
 function dbPack_FindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbField_FindNext(SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6289,15 +6279,15 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6306,28 +6296,28 @@ end;
 
 function dbPack_FindLastField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
-  if dbPack_GetField(pathName, F, SenderTMDB) = False then
+  if dbPack_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbField_FindLast(FilterName, db_Header_Field_ID, F.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
+  if dbField_FindLast(FilterName, db_Header_Field_ID, f.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
       SenderTMDB.Return := SenderSearch.FieldSearch.Return;
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6336,7 +6326,7 @@ end;
 
 function dbPack_FindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbField_FindPrev(SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6344,15 +6334,15 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6361,7 +6351,7 @@ end;
 
 function dbPack_FastFindFirstField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbField_FindFirst(FilterName, db_Header_Field_ID, FieldPos, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6369,15 +6359,15 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6386,7 +6376,7 @@ end;
 
 function dbPack_FastFindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbField_FindNext(SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6394,15 +6384,15 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6411,7 +6401,7 @@ end;
 
 function dbPack_FastFindLastField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbField_FindLast(FilterName, db_Header_Field_ID, FieldPos, SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6419,15 +6409,15 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6436,7 +6426,7 @@ end;
 
 function dbPack_FastFindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
   if dbField_FindPrev(SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6444,15 +6434,15 @@ begin
       Result := False;
       Exit;
     end;
-  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, F) = False then
+  if dbField_OnlyReadFieldRec(SenderSearch.FieldSearch.RHeader.DataMainPOS, SenderTMDB.IOHnd, f) = False then
     begin
-      SenderTMDB.Return := F.Return;
+      SenderTMDB.Return := f.Return;
       Result := False;
       Exit;
     end;
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
-  SenderSearch.Description := F.Description;
-  SenderSearch.HeaderCount := F.HeaderCount;
+  SenderSearch.Description := f.Description;
+  SenderSearch.HeaderCount := f.HeaderCount;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
@@ -6623,4 +6613,4 @@ begin
   end;
 end;
 
-end. 
+end.

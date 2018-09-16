@@ -24,7 +24,22 @@ uses CoreClasses,
 
 type
   TCommunicationFramework_DoubleTunnelService_VirtualAuth = class;
-  TPeerClientUserDefineForRecvTunnel_VirtualAuth          = class;
+  TPeerClientUserDefineForRecvTunnel_VirtualAuth = class;
+
+  TVirtualAuthIO = class(TCoreClassObject)
+  private
+    Owner: TCommunicationFramework_DoubleTunnelService_VirtualAuth;
+    RecvIO_ID: Cardinal;
+    AuthResult: TDataFrameEngine;
+    Done: Boolean;
+    UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+  public
+    UserID, Passwd: SystemString;
+    function Online: Boolean;
+    procedure Accept;
+    procedure Reject;
+    procedure Bye;
+  end;
 
   TPeerClientUserDefineForSendTunnel_VirtualAuth = class(TPeerClientUserDefine)
   public
@@ -46,7 +61,7 @@ type
     SendTunnel: TPeerClientUserDefineForSendTunnel_VirtualAuth;
     SendTunnelID: Cardinal;
     DoubleTunnelService: TCommunicationFramework_DoubleTunnelService_VirtualAuth;
-    UserID, passwd: SystemString;
+    UserID, Passwd: SystemString;
     LoginSuccessed: Boolean;
     WaitLink: Boolean;
 
@@ -56,15 +71,19 @@ type
     function LinkOk: Boolean;
   end;
 
+  TOnUserAuth = procedure(Sender: TVirtualAuthIO) of object;
+
   TCommunicationFramework_DoubleTunnelService_VirtualAuth = class(TCoreClassInterfacedObject)
   protected
     FRecvTunnel, FSendTunnel: TCommunicationFrameworkServer;
+    FOnUserAuth: TOnUserAuth;
     FLoginUserDefineIOList: THashObjectList;
     FCanStatus: Boolean;
     FCadencerEngine: TCadencer;
     FProgressEngine: TNProgressPost;
     FFileReceiveDirectory: SystemString;
   protected
+    procedure UserAuth(Sender: TVirtualAuthIO); virtual;
     procedure UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
@@ -122,6 +141,8 @@ type
     property ProgressEngine: TNProgressPost read FProgressEngine;
     property FileReceiveDirectory: SystemString read FFileReceiveDirectory;
 
+    property OnUserAuth: TOnUserAuth read FOnUserAuth write FOnUserAuth;
+
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
   end;
@@ -156,7 +177,7 @@ type
     const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
   TFileMD5Method_VirtualAuth = procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
     const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5) of object;
-  TFileCompleteCall_VirtualAuth   = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
+  TFileCompleteCall_VirtualAuth = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
   TFileCompleteMethod_VirtualAuth = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString) of object;
 
 {$IFNDEF FPC}
@@ -240,12 +261,12 @@ type
     procedure Disconnect; virtual;
 
     // block mode userlogin
-    function UserLogin(UserID, passwd: SystemString): Boolean; overload; virtual;
+    function UserLogin(UserID, Passwd: SystemString): Boolean; overload; virtual;
     // block mode TunnelLink
     function TunnelLink: Boolean; overload; virtual;
     // unblock mode TunnelLink
 {$IFNDEF FPC}
-    procedure UserLogin(UserID, passwd: SystemString; OnProc: TStateProc); overload; virtual;
+    procedure UserLogin(UserID, Passwd: SystemString; OnProc: TStateProc); overload; virtual;
     procedure TunnelLink(OnProc: TStateProc); overload; virtual;
 {$ENDIF}
     // unblock mode SyncCadencer
@@ -325,7 +346,7 @@ type
     OnCall: TStateCall;
     OnMethod: TStateMethod;
 {$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
-    procedure Init; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Init;
   end;
 
   PGetFileInfoStruct_VirtualAuth = ^TGetFileInfoStruct_VirtualAuth;
@@ -368,6 +389,94 @@ begin
 {$IFNDEF FPC} OnProc := nil; {$ENDIF}
 end;
 
+function TVirtualAuthIO.Online: Boolean;
+begin
+  Result := Owner.RecvTunnel.Exists(RecvIO_ID);
+end;
+
+procedure TVirtualAuthIO.Accept;
+var
+  IO: TPeerIO;
+begin
+  if AuthResult <> nil then
+    begin
+      UserDefineIO.UserID := UserID;
+      UserDefineIO.Passwd := Passwd;
+      UserDefineIO.DoubleTunnelService := Owner;
+      UserDefineIO.LoginSuccessed := True;
+      UserDefineIO.WaitLink := True;
+      Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
+      AuthResult.WriteBool(True);
+      AuthResult.WriteString(Format('success Login:%s', [UserID]));
+      Owner.UserLoginSuccess(UserDefineIO);
+      Done := True;
+      exit;
+    end
+  else if Online then
+    begin
+      IO := Owner.RecvTunnel.ClientFromID[RecvIO_ID];
+      if (IO.ResultSendIsPaused) then
+        begin
+          UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
+
+          UserDefineIO.UserID := UserID;
+          UserDefineIO.Passwd := Passwd;
+          UserDefineIO.DoubleTunnelService := Owner;
+          UserDefineIO.LoginSuccessed := True;
+          UserDefineIO.WaitLink := True;
+          Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
+          IO.OutDataFrame.WriteBool(True);
+          IO.OutDataFrame.WriteString(Format('success Login:%s', [UserID]));
+          IO.ContinueResultSend;
+          Owner.UserLoginSuccess(UserDefineIO);
+        end;
+    end;
+  DisposeObject(Self);
+end;
+
+procedure TVirtualAuthIO.Reject;
+var
+  IO: TPeerIO;
+begin
+  if AuthResult <> nil then
+    begin
+      UserDefineIO.UserID := UserID;
+      UserDefineIO.Passwd := Passwd;
+      UserDefineIO.DoubleTunnelService := Owner;
+      UserDefineIO.LoginSuccessed := False;
+      UserDefineIO.WaitLink := False;
+      Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
+      AuthResult.WriteBool(False);
+      AuthResult.WriteString(Format('Reject user:%s', [UserID]));
+      Done := True;
+      exit;
+    end
+  else if Online then
+    begin
+      IO := Owner.RecvTunnel.ClientFromID[RecvIO_ID];
+      if (IO.ResultSendIsPaused) then
+        begin
+          UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
+
+          UserDefineIO.UserID := UserID;
+          UserDefineIO.Passwd := Passwd;
+          UserDefineIO.DoubleTunnelService := Owner;
+          UserDefineIO.LoginSuccessed := False;
+          UserDefineIO.WaitLink := False;
+          Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
+          IO.OutDataFrame.WriteBool(False);
+          IO.OutDataFrame.WriteString(Format('Reject user:%s', [UserID]));
+          IO.ContinueResultSend;
+        end;
+    end;
+  DisposeObject(Self);
+end;
+
+procedure TVirtualAuthIO.Bye;
+begin
+  DisposeObject(Self);
+end;
+
 constructor TPeerClientUserDefineForSendTunnel_VirtualAuth.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
@@ -400,7 +509,7 @@ begin
   FCurrentFileStream := nil;
   FCurrentReceiveFileName := '';
   UserID := '';
-  passwd := '';
+  Passwd := '';
   LoginSuccessed := False;
   WaitLink := False;
 end;
@@ -433,6 +542,12 @@ begin
   Result := DoubleTunnelService <> nil;
 end;
 
+procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserAuth(Sender: TVirtualAuthIO);
+begin
+  if Assigned(FOnUserAuth) then
+      FOnUserAuth(Sender);
+end;
+
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
 begin
 end;
@@ -454,6 +569,7 @@ var
   SendTunnelID: Cardinal;
   UserID, UserPasswd: SystemString;
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+  AuthIO: TVirtualAuthIO;
 begin
   SendTunnelID := InData.Reader.ReadCardinal;
   UserID := InData.Reader.ReadString;
@@ -465,29 +581,40 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('send tunnel Illegal:%d', [SendTunnelID]));
-      Exit;
+      exit;
     end;
 
   if FLoginUserDefineIOList.Exists(UserID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user "%s" already login', [UserID]));
-      Exit;
+      exit;
     end;
 
-  UserDefineIO.UserID := UserID;
-  UserDefineIO.passwd := UserPasswd;
-  UserDefineIO.DoubleTunnelService := Self;
-  UserDefineIO.LoginSuccessed := True;
+  AuthIO := TVirtualAuthIO.Create;
+  AuthIO.Owner := Self;
+  AuthIO.RecvIO_ID := Sender.ID;
+  AuthIO.AuthResult := OutData;
+  AuthIO.Done := False;
+  AuthIO.UserDefineIO := UserDefineIO;
+  AuthIO.UserID := UserID;
+  AuthIO.Passwd := UserPasswd;
 
-  UserDefineIO.WaitLink := True;
+  try
+      UserAuth(AuthIO);
+  except
+  end;
 
-  FLoginUserDefineIOList[UserID] := UserDefineIO;
-
-  OutData.WriteBool(True);
-  OutData.WriteString(Format('success Login:%s', [UserID]));
-
-  UserLoginSuccess(UserDefineIO);
+  if AuthIO.Done then
+    begin
+      DisposeObject(AuthIO);
+    end
+  else
+    begin
+      AuthIO.UserDefineIO := nil;
+      AuthIO.AuthResult := nil;
+      Sender.PauseResultSend;
+    end;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -504,28 +631,28 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('need login or register', []));
-      Exit;
+      exit;
     end;
 
   if not FSendTunnel.Exists(SendID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('send tunnel Illegal:%d', [SendID]));
-      Exit;
+      exit;
     end;
 
   if not FRecvTunnel.Exists(RecvID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('recv tunnel Illegal:%d', [RecvID]));
-      Exit;
+      exit;
     end;
 
   if Sender.ID <> RecvID then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('recv tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
-      Exit;
+      exit;
     end;
 
   UserDefineIO.SendTunnel := FSendTunnel.ClientFromID[SendID].UserDefine as TPeerClientUserDefineForSendTunnel_VirtualAuth;
@@ -555,14 +682,14 @@ var
 begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
-      Exit;
+      exit;
 
   fileName := InData.Reader.ReadString;
   fullfn := umlCombineFileName(FFileReceiveDirectory, fileName);
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      Exit;
+      exit;
     end;
   OutData.WriteBool(True);
   OutData.WriteString(fileName);
@@ -576,7 +703,7 @@ var
 begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
-      Exit;
+      exit;
 
   fileName := InData.Reader.ReadString;
 
@@ -603,7 +730,7 @@ var
 begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
-      Exit;
+      exit;
 
   fileName := InData.Reader.ReadString;
   StartPos := InData.Reader.ReadInt64;
@@ -613,7 +740,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      Exit;
+      exit;
     end;
 
   try
@@ -621,7 +748,7 @@ begin
   except
     OutData.WriteBool(False);
     DisposeObject(fs);
-    Exit;
+    exit;
   end;
 
   if (EndPos > fs.Size) then
@@ -649,7 +776,7 @@ var
 begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
-      Exit;
+      exit;
 
   fileName := InData.Reader.ReadString;
   StartPos := InData.Reader.ReadInt64;
@@ -661,13 +788,13 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('filename invailed %s', [fileName]));
-      Exit;
+      exit;
     end;
 
   try
       fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
   except
-      Exit;
+      exit;
   end;
 
   sendDE := TDataFrameEngine.Create;
@@ -705,7 +832,7 @@ begin
   if not UserDefineIO.LinkOk then
     begin
       Sender.Disconnect;
-      Exit;
+      exit;
     end;
 
   if UserDefineIO.FCurrentFileStream <> nil then
@@ -749,7 +876,7 @@ begin
   if not UserDefineIO.LinkOk then
     begin
       Sender.Disconnect;
-      Exit;
+      exit;
     end;
 
   if UserDefineIO.FCurrentFileStream <> nil then
@@ -770,7 +897,7 @@ begin
   if not UserDefineIO.LinkOk then
     begin
       Sender.Disconnect;
-      Exit;
+      exit;
     end;
 
   ClientMD5 := InData.Reader.ReadMD5;
@@ -802,7 +929,7 @@ var
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
   p := RT.BigStreamBatchList.NewPostData;
   p^.RemoteMD5 := InData.Reader.ReadMD5;
   p^.CompletedBackcallPtr := InData.Reader.ReadPointer;
@@ -816,7 +943,7 @@ var
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
     begin
@@ -847,7 +974,7 @@ var
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
   RT.BigStreamBatchList.Clear;
 end;
 
@@ -861,7 +988,7 @@ var
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   rMD5 := InData.Reader.ReadMD5;
   sMD5 := InData.Reader.ReadMD5;
@@ -871,7 +998,7 @@ begin
   MD5Verify := umlMD5Compare(rMD5, sMD5);
 
   if backCallValPtr = nil then
-      Exit;
+      exit;
 
   try
     if Assigned(backCallValPtr^.OnCall) then
@@ -908,7 +1035,7 @@ var
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   for i := 0 to RT.BigStreamBatchList.Count - 1 do
     begin
@@ -927,6 +1054,8 @@ begin
   FRecvTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   FSendTunnel := ASendTunnel;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel_VirtualAuth;
+
+  FOnUserAuth := nil;
 
   FLoginUserDefineIOList := THashObjectList.Create(False, 8192);
 
@@ -972,8 +1101,8 @@ end;
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.Progress;
 begin
   FCadencerEngine.Progress;
-  FRecvTunnel.ProgressBackground;
-  FSendTunnel.ProgressBackground;
+  FRecvTunnel.Progress;
+  FSendTunnel.Progress;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
@@ -1379,7 +1508,7 @@ begin
   if ResultData.Count > 0 then
     begin
       if ResultData.Reader.ReadBool then
-          Exit;
+          exit;
       Sender.Print('get file failed:%s', [ResultData.Reader.ReadString]);
     end;
 
@@ -1393,7 +1522,7 @@ var
   p: PBigStreamBatchPostData;
 begin
   if not LinkOk then
-      Exit;
+      exit;
   RT := Sender.UserDefine as TClientUserDefineForRecvTunnel_VirtualAuth;
   p := RT.BigStreamBatchList.NewPostData;
   p^.RemoteMD5 := InData.Reader.ReadMD5;
@@ -1407,7 +1536,7 @@ var
   de: TDataFrameEngine;
 begin
   if not LinkOk then
-      Exit;
+      exit;
   RT := Sender.UserDefine as TClientUserDefineForRecvTunnel_VirtualAuth;
 
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
@@ -1440,7 +1569,7 @@ var
   de: TDataFrameEngine;
 begin
   if not LinkOk then
-      Exit;
+      exit;
   RT := Sender.UserDefine as TClientUserDefineForRecvTunnel_VirtualAuth;
   RT.BigStreamBatchList.Clear;
 end;
@@ -1454,7 +1583,7 @@ var
   MD5Verify: Boolean;
 begin
   if not LinkOk then
-      Exit;
+      exit;
   RT := Sender.UserDefine as TClientUserDefineForRecvTunnel_VirtualAuth;
 
   rMD5 := InData.Reader.ReadMD5;
@@ -1465,7 +1594,7 @@ begin
   MD5Verify := umlMD5Compare(rMD5, sMD5);
 
   if backCallValPtr = nil then
-      Exit;
+      exit;
 
   try
     if Assigned(backCallValPtr^.OnCall) then
@@ -1501,7 +1630,7 @@ var
   de: TDataFrameEngine;
 begin
   if not LinkOk then
-      Exit;
+      exit;
   RT := Sender.UserDefine as TClientUserDefineForRecvTunnel_VirtualAuth;
 
   for i := 0 to RT.BigStreamBatchList.Count - 1 do
@@ -1537,7 +1666,7 @@ begin
 {$IFNDEF FPC}
       FAsyncOnResultProc := nil;
 {$ENDIF}
-      Exit;
+      exit;
     end;
 
   RecvTunnel.AsyncConnect(FAsyncConnectAddr, FAsyncConnRecvPort, {$IFDEF FPC}@{$ENDIF FPC}AsyncRecvConnectResult);
@@ -1643,8 +1772,8 @@ begin
   FCadencerEngine.Progress;
 
   try
-    FRecvTunnel.ProgressBackground;
-    FSendTunnel.ProgressBackground;
+    FRecvTunnel.Progress;
+    FSendTunnel.Progress;
     if not Connected then
         FLinkOk := False;
   except
@@ -1666,12 +1795,12 @@ begin
   if not FSendTunnel.Connect(addr, SendPort) then
     begin
       DoStatus('connect %s failed!', [addr]);
-      Exit;
+      exit;
     end;
   if not FRecvTunnel.Connect(addr, RecvPort) then
     begin
       DoStatus('connect %s failed!', [addr]);
-      Exit;
+      exit;
     end;
 
   t := GetTimeTick + 10000;
@@ -1747,21 +1876,21 @@ begin
 {$ENDIF}
 end;
 
-function TCommunicationFramework_DoubleTunnelClient_VirtualAuth.UserLogin(UserID, passwd: SystemString): Boolean;
+function TCommunicationFramework_DoubleTunnelClient_VirtualAuth.UserLogin(UserID, Passwd: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
   Result := False;
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
   sendDE := TDataFrameEngine.Create;
   resDE := TDataFrameEngine.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
-  sendDE.WriteString(passwd);
+  sendDE.WriteString(Passwd);
   FSendTunnel.WaitSendStreamCmd('UserLogin', sendDE, resDE, FWaitCommandTimeout * 2);
 
   if resDE.Count > 0 then
@@ -1779,13 +1908,13 @@ var
   sendDE, resDE: TDataFrameEngine;
 begin
   if FLinkOk then
-      Exit(True);
+      exit(True);
   FLinkOk := False;
   Result := False;
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   SyncCadencer;
 
@@ -1821,19 +1950,19 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.UserLogin(UserID, passwd: SystemString; OnProc: TStateProc);
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.UserLogin(UserID, Passwd: SystemString; OnProc: TStateProc);
 var
   sendDE: TDataFrameEngine;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
   sendDE := TDataFrameEngine.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
-  sendDE.WriteString(passwd);
+  sendDE.WriteString(Passwd);
   FSendTunnel.SendStreamCmd('UserLogin', sendDE,
     procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
@@ -1857,13 +1986,13 @@ var
   sendDE: TDataFrameEngine;
 begin
   if FLinkOk then
-      Exit;
+      exit;
 
   FLinkOk := False;
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   SyncCadencer;
 
@@ -1923,9 +2052,9 @@ var
   sendDE: TDataFrameEngine;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(RemoteFilename);
@@ -1938,9 +2067,9 @@ var
   sendDE: TDataFrameEngine;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(RemoteFilename);
@@ -1957,9 +2086,9 @@ var
   p: PGetFileInfoStruct_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fileName);
@@ -1982,9 +2111,9 @@ var
   p: PGetFileInfoStruct_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fileName);
@@ -2010,9 +2139,9 @@ var
   p: PGetFileInfoStruct_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fileName);
@@ -2040,9 +2169,9 @@ var
   p: PFileMD5Struct_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fileName);
@@ -2070,9 +2199,9 @@ var
   p: PFileMD5Struct_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fileName);
@@ -2100,9 +2229,9 @@ var
   p: PFileMD5Struct_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fileName);
@@ -2160,9 +2289,9 @@ var
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
 
@@ -2187,9 +2316,9 @@ var
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
 
@@ -2214,9 +2343,9 @@ var
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
 
@@ -2244,9 +2373,9 @@ var
 begin
   Result := False;
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   sendDE := TDataFrameEngine.Create;
   resDE := TDataFrameEngine.Create;
@@ -2275,11 +2404,11 @@ var
   MD5: UnicodeMixedLib.TMD5;
 begin
   if not umlFileExists(fileName) then
-      Exit;
+      exit;
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
 
@@ -2308,11 +2437,11 @@ var
   MD5: UnicodeMixedLib.TMD5;
 begin
   if not umlFileExists(fileName) then
-      Exit;
+      exit;
   if not FSendTunnel.Connected then
-      Exit;
+      exit;
   if not FRecvTunnel.Connected then
-      Exit;
+      exit;
 
   fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
 
@@ -2342,7 +2471,7 @@ begin
   if (not FSendTunnel.Connected) or (not FRecvTunnel.Connected) then
     begin
       DisposeObject(stream);
-      Exit;
+      exit;
     end;
 
   sendDE := TDataFrameEngine.Create;
@@ -2372,7 +2501,7 @@ begin
   if (not FSendTunnel.Connected) or (not FRecvTunnel.Connected) then
     begin
       DisposeObject(stream);
-      Exit;
+      exit;
     end;
 
   sendDE := TDataFrameEngine.Create;

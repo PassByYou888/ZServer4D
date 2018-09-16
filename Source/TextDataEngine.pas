@@ -39,25 +39,28 @@ type
   THashTextEngine = class(TCoreClassObject)
   private
     FComment: TCoreClassStrings;
-    FSectionTextList, FSectionVariantList: THashObjectList;
+    FSectionList, FSectionHashVariantList, FSectionHashStringList: THashObjectList;
     FAutoUpdateDefaultValue: Boolean;
-    FMaxSectionListHash, FMaxVariantListHash: Integer;
+    FMaxSectionHash, FMaxListHash: Integer;
 
     function GetNames(n: SystemString): TCoreClassStrings;
     procedure SetNames(n: SystemString; const Value: TCoreClassStrings);
-    function GetHit(SName, VName: SystemString): Variant;
-    procedure SetHit(SName, VName: SystemString; const Value: Variant);
-    function GetVariantList(n: SystemString): THashVariantList;
-    procedure SetVariantList(n: SystemString; const Value: THashVariantList);
+    function GetHitVariant(SName, VName: SystemString): Variant;
+    procedure SetHitVariant(SName, VName: SystemString; const Value: Variant);
+    function GetHitString(SName, VName: SystemString): SystemString;
+    procedure SetHitString(SName, VName: SystemString; const Value: SystemString);
+
+    function GetHVariantList(n: SystemString): THashVariantList;
+    function GetHStringList(n: SystemString): THashStringList;
     // return override state
     procedure AddDataSection(aSection: SystemString; TextList: TCoreClassStrings);
   public
     constructor Create; overload;
-    constructor Create(AMaxSectionListHash: Integer); overload;
-    constructor Create(AMaxSectionListHash, AMaxVariantListHash: Integer); overload;
+    constructor Create(AMaxSectionHash: Integer); overload;
+    constructor Create(AMaxSectionHash, AMaxListHash: Integer); overload;
     destructor Destroy; override;
 
-    procedure ReBuildList;
+    procedure Rebuild;
     procedure Clear;
     procedure Delete(n: SystemString);
 
@@ -65,6 +68,9 @@ type
 
     function GetDefaultValue(const SectionName, KeyName: SystemString; const DefaultValue: Variant): Variant;
     procedure SetDefaultValue(const SectionName, KeyName: SystemString; const Value: Variant);
+
+    function GetDefaultText(const SectionName, KeyName: SystemString; const DefaultValue: SystemString): SystemString;
+    procedure SetDefaultText(const SectionName, KeyName: SystemString; const Value: SystemString);
 
     // import section
     function DataImport(TextList: TCoreClassStrings): Boolean; overload;
@@ -84,7 +90,6 @@ type
     procedure LoadFromFile(FileName: SystemString);
     procedure SaveToFile(FileName: SystemString);
 
-    // total item count
     function TotalCount: NativeInt;
     function MaxSectionNameLen: Integer;
     function MinSectionNameLen: Integer;
@@ -96,15 +101,24 @@ type
     procedure GetSectionList(dest: TCoreClassStrings); overload;
     procedure GetSectionList(dest: TListString); overload;
     procedure GetSectionList(dest: TListPascalString); overload;
-    function GetSectionObjectName(_Obj: THashVariantList): SystemString;
+    function GetSectionObjectName(_Obj: THashVariantList): SystemString; overload;
+    function GetSectionObjectName(_Obj: THashStringList): SystemString; overload;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
+
     property Comment: TCoreClassStrings read FComment write FComment;
-    property Hit[SName, VName: SystemString]: Variant read GetHit write SetHit; default;
+
+    property Hit[SName, VName: SystemString]: Variant read GetHitVariant write SetHitVariant; default;
+    property HitVariant[SName, VName: SystemString]: Variant read GetHitVariant write SetHitVariant;
+    property HitString[SName, VName: SystemString]: SystemString read GetHitString write SetHitString;
+
     property Names[n: SystemString]: TCoreClassStrings read GetNames write SetNames;
-    property Texts[n: SystemString]: TCoreClassStrings read GetNames write SetNames;
     property Strings[n: SystemString]: TCoreClassStrings read GetNames write SetNames;
-    property VariantList[n: SystemString]: THashVariantList read GetVariantList write SetVariantList;
+
+    property VariantList[n: SystemString]: THashVariantList read GetHVariantList;
+    property HVariantList[n: SystemString]: THashVariantList read GetHVariantList;
+    property StringList[n: SystemString]: THashStringList read GetHStringList;
+    property HStringList[n: SystemString]: THashStringList read GetHStringList;
   end;
 
 implementation
@@ -115,20 +129,20 @@ function THashTextEngine.GetNames(n: SystemString): TCoreClassStrings;
 var
   h: THashVariantTextStream;
 begin
-  if not FSectionTextList.Exists(n) then
-      FSectionTextList[n] := TCoreClassStringList.Create;
+  if not FSectionList.Exists(n) then
+      FSectionList[n] := TCoreClassStringList.Create;
 
-  if FSectionVariantList.Exists(n) then
+  if FSectionHashVariantList.Exists(n) then
     begin
       Result := TCoreClassStringList.Create;
-      h := THashVariantTextStream.Create(THashVariantList(FSectionVariantList[n]));
+      h := THashVariantTextStream.Create(THashVariantList(FSectionHashVariantList[n]));
       h.DataExport(Result);
       DisposeObject(h);
 
-      FSectionTextList[n] := Result;
+      FSectionList[n] := Result;
     end;
 
-  Result := TCoreClassStrings(FSectionTextList[n]);
+  Result := TCoreClassStrings(FSectionList[n]);
 end;
 
 procedure THashTextEngine.SetNames(n: SystemString; const Value: TCoreClassStrings);
@@ -137,18 +151,18 @@ var
 begin
   ns := TCoreClassStringList.Create;
   ns.Assign(Value);
-  FSectionTextList[n] := ns;
-  FSectionVariantList.Delete(n);
+  FSectionList[n] := ns;
+  FSectionHashVariantList.Delete(n);
 end;
 
-function THashTextEngine.GetHit(SName, VName: SystemString): Variant;
+function THashTextEngine.GetHitVariant(SName, VName: SystemString): Variant;
 var
   nsl: TCoreClassStrings;
   vl: THashVariantList;
-  VT: THashVariantTextStream;
+  vt: THashVariantTextStream;
 begin
   Result := Null;
-  vl := THashVariantList(FSectionVariantList[SName]);
+  vl := THashVariantList(FSectionHashVariantList[SName]);
   if vl = nil then
     begin
       nsl := Names[SName];
@@ -156,75 +170,135 @@ begin
           Exit;
       if nsl.Count = 0 then
           Exit;
-      vl := THashVariantList.Create(FMaxVariantListHash);
+      vl := THashVariantList.Create(FMaxListHash);
       vl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
 
-      VT := THashVariantTextStream.Create(vl);
-      VT.DataImport(nsl);
-      DisposeObject(VT);
+      vt := THashVariantTextStream.Create(vl);
+      vt.DataImport(nsl);
+      DisposeObject(vt);
 
-      FSectionVariantList[SName] := vl;
+      FSectionHashVariantList[SName] := vl;
     end;
   Result := vl[VName];
 end;
 
-procedure THashTextEngine.SetHit(SName, VName: SystemString; const Value: Variant);
+procedure THashTextEngine.SetHitVariant(SName, VName: SystemString; const Value: Variant);
 var
   nsl: TCoreClassStrings;
   vl: THashVariantList;
-  VT: THashVariantTextStream;
+  vt: THashVariantTextStream;
 begin
-  vl := THashVariantList(FSectionVariantList[SName]);
+  vl := THashVariantList(FSectionHashVariantList[SName]);
   if vl = nil then
     begin
-      vl := THashVariantList.Create(FMaxVariantListHash);
+      vl := THashVariantList.Create(FMaxListHash);
       vl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
 
       nsl := Names[SName];
       if nsl <> nil then
         begin
-          VT := THashVariantTextStream.Create(vl);
-          VT.DataImport(nsl);
-          DisposeObject(VT);
+          vt := THashVariantTextStream.Create(vl);
+          vt.DataImport(nsl);
+          DisposeObject(vt);
         end;
-      FSectionVariantList[SName] := vl;
+      FSectionHashVariantList[SName] := vl;
     end;
   vl[VName] := Value;
 end;
 
-function THashTextEngine.GetVariantList(n: SystemString): THashVariantList;
+function THashTextEngine.GetHitString(SName, VName: SystemString): SystemString;
 var
   nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
+  sl: THashStringList;
+  st: THashStringTextStream;
 begin
-  Result := THashVariantList(FSectionVariantList[n]);
+  Result := '';
+  sl := THashStringList(FSectionHashStringList[SName]);
+  if sl = nil then
+    begin
+      nsl := Names[SName];
+      if nsl = nil then
+          Exit;
+      if nsl.Count = 0 then
+          Exit;
+      sl := THashStringList.Create(FMaxListHash);
+      sl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
+
+      st := THashStringTextStream.Create(sl);
+      st.DataImport(nsl);
+      DisposeObject(st);
+
+      FSectionHashStringList[SName] := sl;
+    end;
+  Result := sl[VName];
+end;
+
+procedure THashTextEngine.SetHitString(SName, VName: SystemString; const Value: SystemString);
+var
+  nsl: TCoreClassStrings;
+  sl: THashStringList;
+  st: THashStringTextStream;
+begin
+  sl := THashStringList(FSectionHashStringList[SName]);
+  if sl = nil then
+    begin
+      sl := THashStringList.Create(FMaxListHash);
+      sl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
+
+      nsl := Names[SName];
+      if nsl <> nil then
+        begin
+          st := THashStringTextStream.Create(sl);
+          st.DataImport(nsl);
+          DisposeObject(st);
+        end;
+      FSectionHashStringList[SName] := sl;
+    end;
+  sl[VName] := Value;
+end;
+
+function THashTextEngine.GetHVariantList(n: SystemString): THashVariantList;
+var
+  nsl: TCoreClassStrings;
+  vt: THashVariantTextStream;
+begin
+  Result := THashVariantList(FSectionHashVariantList[n]);
   if Result = nil then
     begin
-      Result := THashVariantList.Create(FMaxVariantListHash);
+      Result := THashVariantList.Create(FMaxListHash);
       Result.AutoUpdateDefaultValue := FAutoUpdateDefaultValue;
       nsl := Names[n];
       if nsl <> nil then
         begin
-          VT := THashVariantTextStream.Create(Result);
-          VT.DataImport(nsl);
-          DisposeObject(VT);
+          vt := THashVariantTextStream.Create(Result);
+          vt.DataImport(nsl);
+          DisposeObject(vt);
         end;
 
-      FSectionVariantList[n] := Result;
+      FSectionHashVariantList[n] := Result;
     end;
 end;
 
-procedure THashTextEngine.SetVariantList(n: SystemString; const Value: THashVariantList);
+function THashTextEngine.GetHStringList(n: SystemString): THashStringList;
 var
-  h: THashVariantTextStream;
+  nsl: TCoreClassStrings;
+  st: THashStringTextStream;
 begin
-  FSectionVariantList[n] := Value;
-  if not FSectionTextList.Exists(n) then
-      FSectionTextList[n] := TCoreClassStringList.Create;
-  h := THashVariantTextStream.Create(Value);
-  TCoreClassStrings(FSectionTextList[n]).Clear;
-  h.DataExport(TCoreClassStrings(FSectionTextList[n]));
-  DisposeObject(h);
+  Result := THashStringList(FSectionHashStringList[n]);
+  if Result = nil then
+    begin
+      Result := THashStringList.Create(FMaxListHash);
+      Result.AutoUpdateDefaultValue := FAutoUpdateDefaultValue;
+      nsl := Names[n];
+      if nsl <> nil then
+        begin
+          st := THashStringTextStream.Create(Result);
+          st.DataImport(nsl);
+          DisposeObject(st);
+        end;
+
+      FSectionHashStringList[n] := Result;
+    end;
 end;
 
 procedure THashTextEngine.AddDataSection(aSection: SystemString; TextList: TCoreClassStrings);
@@ -234,93 +308,101 @@ begin
   while (TextList.Count > 0) and (TextList[TextList.Count - 1] = '') do
       TextList.Delete(TextList.Count - 1);
 
-  FSectionTextList.Add(aSection, TextList);
+  FSectionList.Add(aSection, TextList);
 end;
 
 constructor THashTextEngine.Create;
 begin
-  inherited Create;
-  FMaxSectionListHash := 10;
-  FMaxVariantListHash := 10;
-  FComment := TCoreClassStringList.Create;
-  FSectionTextList := THashObjectList.Create(True, FMaxSectionListHash);
-  FSectionVariantList := THashObjectList.Create(True, FMaxSectionListHash);
-  FAutoUpdateDefaultValue := False;
+  Create(10, 10);
 end;
 
-constructor THashTextEngine.Create(AMaxSectionListHash: Integer);
+constructor THashTextEngine.Create(AMaxSectionHash: Integer);
 begin
-  inherited Create;
-  FMaxSectionListHash := AMaxSectionListHash;
-  FMaxVariantListHash := 16;
-
-  FComment := TCoreClassStringList.Create;
-  FSectionTextList := THashObjectList.Create(True, FMaxSectionListHash);
-  FSectionVariantList := THashObjectList.Create(True, FMaxSectionListHash);
-  FAutoUpdateDefaultValue := False;
+  Create(AMaxSectionHash, 16);
 end;
 
-constructor THashTextEngine.Create(AMaxSectionListHash, AMaxVariantListHash: Integer);
+constructor THashTextEngine.Create(AMaxSectionHash, AMaxListHash: Integer);
 begin
   inherited Create;
-  FMaxSectionListHash := AMaxSectionListHash;
-  FMaxVariantListHash := AMaxVariantListHash;
+  FMaxSectionHash := AMaxSectionHash;
+  FMaxListHash := AMaxListHash;
 
   FComment := TCoreClassStringList.Create;
-  FSectionTextList := THashObjectList.Create(True, FMaxSectionListHash);
-  FSectionVariantList := THashObjectList.Create(True, FMaxSectionListHash);
+  FSectionList := THashObjectList.Create(True, FMaxSectionHash);
+  FSectionHashVariantList := THashObjectList.Create(True, FMaxSectionHash);
+  FSectionHashStringList := THashObjectList.Create(True, FMaxSectionHash);
   FAutoUpdateDefaultValue := False;
 end;
 
 destructor THashTextEngine.Destroy;
 begin
   Clear;
-  DisposeObject(FSectionTextList);
-  DisposeObject(FSectionVariantList);
+  DisposeObject(FSectionList);
+  DisposeObject(FSectionHashVariantList);
+  DisposeObject(FSectionHashStringList);
   DisposeObject(FComment);
   inherited Destroy;
 end;
 
-procedure THashTextEngine.ReBuildList;
+procedure THashTextEngine.Rebuild;
 var
   i: Integer;
-  tmpSecLst: TListString;
+  tmpSecLst: TListPascalString;
   nsl: TCoreClassStrings;
-  h: THashVariantTextStream;
+  hv: THashVariantTextStream;
+  hs: THashStringTextStream;
 begin
-  tmpSecLst := TListString.Create;
+  tmpSecLst := TListPascalString.Create;
 
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        nsl := TCoreClassStringList.Create;
-        h := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        h.DataExport(nsl);
-        DisposeObject(h);
-        FSectionTextList[tmpSecLst[i]] := nsl;
-      end;
+  if FSectionHashVariantList.Count > 0 then
+    begin
+      FSectionHashVariantList.GetListData(tmpSecLst);
+      for i := 0 to tmpSecLst.Count - 1 do
+        begin
+          nsl := TCoreClassStringList.Create;
+          hv := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
+          hv.DataExport(nsl);
+          DisposeObject(hv);
+          FSectionList[tmpSecLst[i]] := nsl;
+        end;
+      FSectionHashVariantList.Clear;
+    end;
 
-  FSectionVariantList.Clear;
+  if FSectionHashStringList.Count > 0 then
+    begin
+      FSectionHashStringList.GetListData(tmpSecLst);
+      for i := 0 to tmpSecLst.Count - 1 do
+        begin
+          nsl := TCoreClassStringList.Create;
+          hs := THashStringTextStream.Create(THashStringList(tmpSecLst.Objects[i]));
+          hs.DataExport(nsl);
+          DisposeObject(hs);
+          FSectionList[tmpSecLst[i]] := nsl;
+        end;
+      FSectionHashStringList.Clear;
+    end;
+
   DisposeObject(tmpSecLst);
 end;
 
 procedure THashTextEngine.Clear;
 begin
-  FSectionTextList.Clear;
-  FSectionVariantList.Clear;
+  FSectionList.Clear;
+  FSectionHashVariantList.Clear;
+  FSectionHashStringList.Clear;
   FComment.Clear;
 end;
 
 procedure THashTextEngine.Delete(n: SystemString);
 begin
-  FSectionTextList.Delete(n);
-  FSectionVariantList.Delete(n);
+  FSectionList.Delete(n);
+  FSectionHashVariantList.Delete(n);
+  FSectionHashStringList.Delete(n);
 end;
 
 function THashTextEngine.Exists(n: SystemString): Boolean;
 begin
-  Result := FSectionTextList.Exists(n) or FSectionVariantList.Exists(n);
+  Result := FSectionList.Exists(n) or FSectionHashVariantList.Exists(n) or FSectionHashStringList.Exists(n);
 end;
 
 function THashTextEngine.GetDefaultValue(const SectionName, KeyName: SystemString; const DefaultValue: Variant): Variant;
@@ -333,30 +415,26 @@ begin
   Hit[SectionName, KeyName] := Value;
 end;
 
+function THashTextEngine.GetDefaultText(const SectionName, KeyName: SystemString; const DefaultValue: SystemString): SystemString;
+begin
+  Result := HStringList[SectionName].GetDefaultValue(KeyName, DefaultValue);
+end;
+
+procedure THashTextEngine.SetDefaultText(const SectionName, KeyName: SystemString; const Value: SystemString);
+begin
+  HitString[SectionName, KeyName] := Value;
+end;
+
 function THashTextEngine.DataImport(TextList: TCoreClassStrings): Boolean;
 var
   i: Integer;
   ln: U_String;
   nsect: SystemString;
   ntLst: TCoreClassStrings;
-  tmpSecLst: TListString;
-  nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
   // merge section
-  tmpSecLst := TListString.Create;
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
-  DisposeObject(tmpSecLst);
-  FSectionVariantList.Clear;
+  Rebuild;
+
   // import new section
   ntLst := nil;
   nsect := '';
@@ -405,24 +483,10 @@ var
   ln: U_String;
   nsect: SystemString;
   ntLst: TCoreClassStrings;
-  tmpSecLst: TListString;
-  nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
   // merge section
-  tmpSecLst := TListString.Create;
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
-  DisposeObject(tmpSecLst);
-  FSectionVariantList.Clear;
+  Rebuild;
+
   // import new section
   ntLst := nil;
   nsect := '';
@@ -434,7 +498,7 @@ begin
           i := 0;
           while i < TextList.Count do
             begin
-              ln := umlTrimChar(TextList[i], ' ');
+              ln := TextList[i].TrimChar(' ');
               if (ln.Len > 0) and (ln.First = '[') and (ln.Last = ']') then
                 begin
                   if Result then
@@ -468,27 +532,18 @@ end;
 procedure THashTextEngine.DataExport(TextList: TCoreClassStrings);
 var
   i: Integer;
-  tmpSecLst: TListString;
+  tmpSecLst: TListPascalString;
   nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
+  Rebuild;
+
   TextList.AddStrings(FComment);
   if FComment.Count > 0 then
       TextList.Append('');
-  tmpSecLst := TListString.Create;
 
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
+  tmpSecLst := TListPascalString.Create;
 
-  FSectionTextList.GetListData(tmpSecLst);
+  FSectionList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
       if (tmpSecLst.Objects[i] is TCoreClassStrings) then
@@ -508,27 +563,18 @@ end;
 procedure THashTextEngine.DataExport(TextList: TListPascalString);
 var
   i: Integer;
-  tmpSecLst: TListString;
+  tmpSecLst: TListPascalString;
   nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
+  Rebuild;
+
   TextList.AddStrings(FComment);
   if FComment.Count > 0 then
       TextList.Append('');
-  tmpSecLst := TListString.Create;
 
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
+  tmpSecLst := TListPascalString.Create;
 
-  FSectionTextList.GetListData(tmpSecLst);
+  FSectionList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
       if (tmpSecLst.Objects[i] is TCoreClassStrings) then
@@ -536,7 +582,7 @@ begin
           nsl := TCoreClassStrings(tmpSecLst.Objects[i]);
           if nsl <> nil then
             begin
-              TextList.Append('[' + tmpSecLst[i] + ']');
+              TextList.Append('[' + tmpSecLst[i].Text + ']');
               TextList.AddStrings(nsl);
               TextList.Append('');
             end;
@@ -550,13 +596,13 @@ var
   ns: TCoreClassStringList;
 begin
   try
-    ReBuildList;
+    Rebuild;
     ns := TCoreClassStringList.Create;
-    sour.ReBuildList;
+    sour.Rebuild;
     sour.DataExport(ns);
     DataImport(ns);
     DisposeObject(ns);
-    ReBuildList;
+    Rebuild;
   except
   end;
 end;
@@ -567,7 +613,7 @@ var
 begin
   try
     ns := TCoreClassStringList.Create;
-    sour.ReBuildList;
+    sour.Rebuild;
     sour.DataExport(ns);
     Clear;
     DataImport(ns);
@@ -583,13 +629,13 @@ var
   n: SystemString;
 begin
   Result := False;
-  ReBuildList;
-  sour.ReBuildList;
+  Rebuild;
+  sour.Rebuild;
 
   // if Comment.Text <> sour.Comment.Text then
   // Exit;
 
-  if FSectionTextList.Count <> sour.FSectionTextList.Count then
+  if FSectionList.Count <> sour.FSectionList.Count then
       Exit;
 
   ns := TCoreClassStringList.Create;
@@ -674,38 +720,40 @@ end;
 function THashTextEngine.TotalCount: NativeInt;
 var
   i: Integer;
-  tmpSecLst: TListString;
-  nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
+  tmpSecLst: TListPascalString;
 begin
   Result := 0;
-  tmpSecLst := TListString.Create;
-  FSectionTextList.GetListData(tmpSecLst);
+  tmpSecLst := TListPascalString.Create;
+
+  FSectionList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        if not FSectionVariantList.Exists(tmpSecLst[i]) then
-            inc(Result, TCoreClassStrings(tmpSecLst.Objects[i]).Count);
-      end;
-  DisposeObject(tmpSecLst);
+      if (not FSectionHashVariantList.Exists(tmpSecLst[i])) and (not FSectionHashStringList.Exists(tmpSecLst[i])) then
+          inc(Result, TCoreClassStrings(tmpSecLst.Objects[i]).Count);
 
-  // merge section
-  tmpSecLst := TListString.Create;
-  FSectionVariantList.GetListData(tmpSecLst);
+  FSectionHashVariantList.GetListData(tmpSecLst);
   if tmpSecLst.Count > 0 then
     for i := 0 to tmpSecLst.Count - 1 do
         inc(Result, THashVariantList(tmpSecLst.Objects[i]).Count);
+
+  FSectionHashStringList.GetListData(tmpSecLst);
+  if tmpSecLst.Count > 0 then
+    for i := 0 to tmpSecLst.Count - 1 do
+        inc(Result, THashStringList(tmpSecLst.Objects[i]).Count);
+
   DisposeObject(tmpSecLst);
 end;
 
 function THashTextEngine.MaxSectionNameLen: Integer;
 begin
-  Result := umlMax(FSectionTextList.HashList.MaxNameLen, FSectionVariantList.HashList.MaxNameLen);
+  Result := umlMax(FSectionList.HashList.MaxNameLen,
+    umlMax(FSectionHashVariantList.HashList.MaxNameLen, FSectionHashStringList.HashList.MaxNameLen));
 end;
 
 function THashTextEngine.MinSectionNameLen: Integer;
 begin
-  Result := umlMin(FSectionTextList.HashList.MinNameLen, FSectionVariantList.HashList.MinNameLen);
+  Result := umlMin(FSectionList.HashList.MinNameLen,
+    umlMin(FSectionHashVariantList.HashList.MinNameLen, FSectionHashStringList.HashList.MinNameLen));
 end;
 
 function THashTextEngine.GetAsText: SystemString;
@@ -720,91 +768,42 @@ end;
 
 procedure THashTextEngine.SetAsText(const Value: SystemString);
 var
-  ns: TCoreClassStringList;
+  ns: TListPascalString;
 begin
   Clear;
 
-  ns := TCoreClassStringList.Create;
+  ns := TListPascalString.Create;
   ns.Text := Value;
   DataImport(ns);
   DisposeObject(ns);
 end;
 
 procedure THashTextEngine.GetSectionList(dest: TCoreClassStrings);
-var
-  i: Integer;
-  tmpSecLst: TListString;
-  nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
-  tmpSecLst := TListString.Create;
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
-  DisposeObject(tmpSecLst);
-
-  FSectionTextList.GetListData(dest);
+  Rebuild;
+  FSectionList.GetListData(dest);
 end;
 
 procedure THashTextEngine.GetSectionList(dest: TListString);
-var
-  i: Integer;
-  tmpSecLst: TListString;
-  nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
-  tmpSecLst := TListString.Create;
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
-  DisposeObject(tmpSecLst);
-
-  FSectionTextList.GetNameList(dest);
+  Rebuild;
+  FSectionList.GetListData(dest);
 end;
 
 procedure THashTextEngine.GetSectionList(dest: TListPascalString);
-var
-  i: Integer;
-  tmpSecLst: TListString;
-  nsl: TCoreClassStrings;
-  VT: THashVariantTextStream;
 begin
-  tmpSecLst := TListString.Create;
-  FSectionVariantList.GetListData(tmpSecLst);
-  if tmpSecLst.Count > 0 then
-    for i := 0 to tmpSecLst.Count - 1 do
-      begin
-        VT := THashVariantTextStream.Create(THashVariantList(tmpSecLst.Objects[i]));
-        nsl := TCoreClassStringList.Create;
-        FSectionTextList[tmpSecLst[i]] := nsl;
-        VT.DataExport(nsl);
-        DisposeObject(VT);
-      end;
-  DisposeObject(tmpSecLst);
-
-  FSectionTextList.GetNameList(dest);
+  Rebuild;
+  FSectionList.GetListData(dest);
 end;
 
 function THashTextEngine.GetSectionObjectName(_Obj: THashVariantList): SystemString;
 begin
-  Result := FSectionVariantList.GetObjAsName(_Obj);
+  Result := FSectionHashVariantList.GetObjAsName(_Obj);
 end;
 
-end. 
- 
- 
- 
+function THashTextEngine.GetSectionObjectName(_Obj: THashStringList): SystemString;
+begin
+  Result := FSectionHashStringList.GetObjAsName(_Obj);
+end;
+
+end.

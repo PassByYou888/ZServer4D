@@ -199,12 +199,16 @@ function NormalizeDegAngle(const angle: TGeoFloat): TGeoFloat; {$IFDEF INLINE_AS
 
 // axis to pt angle
 function PointAngle(const axis, pt: TVec2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2Angle(const axis, pt: TVec2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 // null point to pt angle
 function PointAngle(const pt: TVec2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2Angle(const pt: TVec2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function AngleDistance(const s, a: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointRotation(const axis: TVec2; const Dist, angle: TGeoFloat): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointRotation(const axis, pt: TVec2; const angle: TGeoFloat): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2Rotation(const axis: TVec2; const Dist, angle: TGeoFloat): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2Rotation(const axis, pt: TVec2; const angle: TGeoFloat): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
 function CircleInCircle(const cp1, cp2: TVec2; const r1, r2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function CircleInRect(const cp: TVec2; const radius: TGeoFloat; r: TRectV2): Boolean;
@@ -272,12 +276,17 @@ function MakeRectf(const r: TRectV2): TRectf; {$IFDEF INLINE_ASM} inline; {$ENDI
 
 function RectWidth(const r: TRectV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectHeight(const r: TRectV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectWidth(const r: TRect): TGeoInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectHeight(const r: TRect): TGeoInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectWidth(const r: TRectf): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectHeight(const r: TRectf): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function RectArea(const r: TRectV2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectSize(const r: TRectV2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectFit(const r, b: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectFit(const width, height: TGeoFloat; const b: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function BoundRect(const buff: TArrayVec2): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function BoundRect(const p1, p2, p3: TVec2): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function BoundRect(const p1, p2, p3, p4: TVec2): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function BoundRect(const r1, r2: TRectV2): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function BuffCentroid(const buff: TArrayVec2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -635,15 +644,19 @@ type
     function IsZero: Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Rotation(angle: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Rotation(axis: TVec2; angle: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ScaleToRect(Area: TRectV2; endge: TGeoFloat): TV2Rect4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Add(v: TVec2): TV2Rect4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Sub(v: TVec2): TV2Rect4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Mul(v: TVec2): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Mul(v: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Mul(x, y: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function FDiv(v: TVec2): TV2Rect4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function MoveTo(Position: TVec2): TV2Rect4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function BoundRect: TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function BoundRectf: TRectf; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Centroid: TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Transform(v2: TVec2): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Transform(x, y: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function Init(r: TRectV2; Ang: TGeoFloat): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function Init(r: TRectf; Ang: TGeoFloat): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function Init(r: TRect; Ang: TGeoFloat): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -1342,9 +1355,19 @@ begin
   Result := NormalizeDegAngle(RadToDeg(ArcTan2(axis[1] - pt[1], axis[0] - pt[0])));
 end;
 
+function Vec2Angle(const axis, pt: TVec2): TGeoFloat;
+begin
+  Result := NormalizeDegAngle(RadToDeg(ArcTan2(axis[1] - pt[1], axis[0] - pt[0])));
+end;
+
 function PointAngle(const pt: TVec2): TGeoFloat;
 begin
   Result := PointAngle(NULLPoint, pt);
+end;
+
+function Vec2Angle(const pt: TVec2): TGeoFloat;
+begin
+  Result := Vec2Angle(NULLPoint, pt);
 end;
 
 function AngleDistance(const s, a: TGeoFloat): TGeoFloat;
@@ -1363,6 +1386,17 @@ end;
 function PointRotation(const axis, pt: TVec2; const angle: TGeoFloat): TVec2;
 begin
   Result := PointRotation(axis, PointDistance(axis, pt), angle);
+end;
+
+function Vec2Rotation(const axis: TVec2; const Dist, angle: TGeoFloat): TVec2;
+begin
+  Result[0] := axis[0] - (Cos(DegToRad(angle)) * Dist);
+  Result[1] := axis[1] - (Sin(DegToRad(angle)) * Dist);
+end;
+
+function Vec2Rotation(const axis, pt: TVec2; const angle: TGeoFloat): TVec2;
+begin
+  Result := Vec2Rotation(axis, Vec2Distance(axis, pt), angle);
 end;
 
 function CircleInCircle(const cp1, cp2: TVec2; const r1, r2: TGeoFloat): Boolean;
@@ -1772,6 +1806,38 @@ begin
       Result := r[0][1] - r[1][1];
 end;
 
+function RectWidth(const r: TRect): TGeoInt;
+begin
+  if r.Right > r.Left then
+      Result := r.Right - r.Left
+  else
+      Result := r.Left - r.Right;
+end;
+
+function RectHeight(const r: TRect): TGeoInt;
+begin
+  if r.Bottom > r.Top then
+      Result := r.Bottom - r.Top
+  else
+      Result := r.Top - r.Bottom;
+end;
+
+function RectWidth(const r: TRectf): TGeoFloat;
+begin
+  if r.Right > r.Left then
+      Result := r.Right - r.Left
+  else
+      Result := r.Left - r.Right;
+end;
+
+function RectHeight(const r: TRectf): TGeoFloat;
+begin
+  if r.Bottom > r.Top then
+      Result := r.Bottom - r.Top
+  else
+      Result := r.Top - r.Bottom;
+end;
+
 function RectArea(const r: TRectV2): TGeoFloat;
 begin
   Result := RectWidth(r) * RectHeight(r);
@@ -1840,6 +1906,17 @@ begin
           MaxY := t[1];
     end;
   Result := MakeRectV2(MinX, MinY, MaxX, MaxY);
+end;
+
+function BoundRect(const p1, p2, p3: TVec2): TRectV2;
+var
+  buff: TArrayVec2;
+begin
+  SetLength(buff, 3);
+  buff[0] := p1;
+  buff[1] := p2;
+  buff[2] := p3;
+  Result := BoundRect(buff);
 end;
 
 function BoundRect(const p1, p2, p3, p4: TVec2): TRectV2;
@@ -5715,6 +5792,15 @@ begin
   Result.LeftBottom := PointRotation(axis, LeftBottom, PointAngle(axis, LeftBottom) + angle);
 end;
 
+function TV2Rect4.ScaleToRect(Area: TRectV2; endge: TGeoFloat): TV2Rect4;
+var
+  a: TRectV2;
+begin
+  a := BoundRect;
+  Result := Mul((RectWidth(Area) - endge) / RectWidth(a), (RectHeight(Area) - endge) / RectHeight(a));
+  Result := Result.Transform(Vec2Sub(RectCentre(Area), Result.Centroid));
+end;
+
 function TV2Rect4.Add(v: TVec2): TV2Rect4;
 begin
   Result.LeftTop := Vec2Add(LeftTop, v);
@@ -5747,6 +5833,14 @@ begin
   Result.LeftBottom := Vec2Mul(LeftBottom, v);
 end;
 
+function TV2Rect4.Mul(x, y: TGeoFloat): TV2Rect4;
+begin
+  Result.LeftTop := Vec2Mul(LeftTop, x, y);
+  Result.RightTop := Vec2Mul(RightTop, x, y);
+  Result.RightBottom := Vec2Mul(RightBottom, x, y);
+  Result.LeftBottom := Vec2Mul(LeftBottom, x, y);
+end;
+
 function TV2Rect4.FDiv(v: TVec2): TV2Rect4;
 begin
   Result.LeftTop := Vec2Div(LeftTop, v);
@@ -5773,6 +5867,22 @@ end;
 function TV2Rect4.Centroid: TVec2;
 begin
   Result := Geometry2DUnit.BuffCentroid(LeftTop, RightTop, RightBottom, LeftBottom);
+end;
+
+function TV2Rect4.Transform(v2: TVec2): TV2Rect4;
+begin
+  Result.LeftTop := Vec2Add(LeftTop, v2);
+  Result.RightTop := Vec2Add(RightTop, v2);
+  Result.RightBottom := Vec2Add(RightBottom, v2);
+  Result.LeftBottom := Vec2Add(LeftBottom, v2);
+end;
+
+function TV2Rect4.Transform(x, y: TGeoFloat): TV2Rect4;
+begin
+  Result.LeftTop := Vec2Add(LeftTop, x, y);
+  Result.RightTop := Vec2Add(RightTop, x, y);
+  Result.RightBottom := Vec2Add(RightBottom, x, y);
+  Result.LeftBottom := Vec2Add(LeftBottom, x, y);
 end;
 
 class function TV2Rect4.Init(r: TRectV2; Ang: TGeoFloat): TV2Rect4;

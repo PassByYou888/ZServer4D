@@ -1389,7 +1389,7 @@ var
   RT: TDataStoreService_PeerClientRecvTunnel_NoAuth;
 begin
   Result := 0;
-  FRecvTunnel.GetClientIDPool(IDPool);
+  FRecvTunnel.GetIO_IDArray(IDPool);
   for pcid in IDPool do
     begin
       RT := GetDataStoreUserDefine(FRecvTunnel.ClientFromID[pcid]);

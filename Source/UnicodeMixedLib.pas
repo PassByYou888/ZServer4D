@@ -24,14 +24,18 @@
 
 unit UnicodeMixedLib;
 
-interface
-
 {$INCLUDE zDefine.inc}
 
-uses SysUtils, Types, Variants,
-  CoreClasses,
-  PascalStrings,
-  ListEngine;
+interface
+
+uses
+{$IFDEF FPC}
+  Dynlibs,
+{$ELSE FPC}
+{$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
+  System.IOUtils,
+{$ENDIF FPC}
+  SysUtils, Types, Variants, CoreClasses, PascalStrings, ListEngine;
 
 const
   C_Address_Size   = SizeOf(Pointer);
@@ -108,41 +112,41 @@ type
   U_ByteArray = array [0 .. MaxInt div SizeOf(Byte) - 1] of Byte;
   P_ByteArray = ^U_ByteArray;
 
-function umlBytesOf(const s: TPascalString): TBytes; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStringOf(const s: TBytes): TPascalString; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlBytesOf(const s: TPascalString): TBytes;
+function umlStringOf(const s: TBytes): TPascalString; overload;
 
-function FixedLengthString2Pascal(var s: U_FixedLengthString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function Pascal2FixedLengthString(var s: TPascalString): U_FixedLengthString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FixedLengthString2Pascal(var s: U_FixedLengthString): TPascalString;
+function Pascal2FixedLengthString(var s: TPascalString): U_FixedLengthString;
 
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
 function umlPos(const SubStr, Str: TPascalString; const Offset: Integer = 1): Integer;
 
-function umlVarToStr(const v: Variant): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStrToVar(const s: TPascalString): Variant; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlVarToStr(const v: Variant): TPascalString;
+function umlStrToVar(const s: TPascalString): Variant;
 
-function umlMax(const v1, v2: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Byte): Byte; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: ShortInt): ShortInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Double): Double; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMax(const v1, v2: Single): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMax(const v1, v2: UInt64): UInt64; overload;
+function umlMax(const v1, v2: Cardinal): Cardinal; overload;
+function umlMax(const v1, v2: Word): Word; overload;
+function umlMax(const v1, v2: Byte): Byte; overload;
+function umlMax(const v1, v2: Int64): Int64; overload;
+function umlMax(const v1, v2: Integer): Integer; overload;
+function umlMax(const v1, v2: SmallInt): SmallInt; overload;
+function umlMax(const v1, v2: ShortInt): ShortInt; overload;
+function umlMax(const v1, v2: Double): Double; overload;
+function umlMax(const v1, v2: Single): Single; overload;
 
-function umlMin(const v1, v2: UInt64): UInt64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Cardinal): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Word): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Byte): Byte; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Int64): Int64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Integer): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: SmallInt): SmallInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: ShortInt): ShortInt; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Double): Double; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMin(const v1, v2: Single): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMin(const v1, v2: UInt64): UInt64; overload;
+function umlMin(const v1, v2: Cardinal): Cardinal; overload;
+function umlMin(const v1, v2: Word): Word; overload;
+function umlMin(const v1, v2: Byte): Byte; overload;
+function umlMin(const v1, v2: Int64): Int64; overload;
+function umlMin(const v1, v2: Integer): Integer; overload;
+function umlMin(const v1, v2: SmallInt): SmallInt; overload;
+function umlMin(const v1, v2: ShortInt): ShortInt; overload;
+function umlMin(const v1, v2: Double): Double; overload;
+function umlMin(const v1, v2: Single): Single; overload;
 
-function umlDeltaNumber(const v, Delta: NativeInt): NativeInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDeltaNumber(const v, Delta: NativeInt): NativeInt;
 
 function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 
@@ -151,7 +155,7 @@ function umlSameVarValue(const v1, v2: Variant): Boolean;
 function umlRandomRange(const aMin, aMax: Integer): Integer;
 function umlRandomRangeF(const aMin, aMax: Single): Single;
 function umlRandomRangeD(const aMin, aMax: Double): Double;
-function umlDefaultTime: Double; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDefaultTime: Double;
 function umlDefaultAttrib: Integer;
 function umlBoolToStr(const Value: Boolean): TPascalString;
 function umlStrToBool(const Value: TPascalString): Boolean;
@@ -181,33 +185,33 @@ function umlGetFilePath(const s: TPascalString): TPascalString;
 function umlChangeFileExt(const s, ext: TPascalString): TPascalString;
 function umlGetFileExt(const s: TPascalString): TPascalString;
 
-procedure InitIOHnd(var IOHnd: TIOHnd); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileCreateAsStream(const Name: TPascalString; stream: U_Stream; var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileOpenAsStream(const Name: TPascalString; stream: U_Stream; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileCreate(const Name: TPascalString; var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileOpen(const Name: TPascalString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileClose(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileUpdate(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileTest(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure InitIOHnd(var IOHnd: TIOHnd);
+function umlFileCreateAsStream(const Name: TPascalString; stream: U_Stream; var IOHnd: TIOHnd): Boolean;
+function umlFileOpenAsStream(const Name: TPascalString; stream: U_Stream; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean;
+function umlFileCreate(const Name: TPascalString; var IOHnd: TIOHnd): Boolean;
+function umlFileOpen(const Name: TPascalString; var IOHnd: TIOHnd; _OnlyRead: Boolean): Boolean;
+function umlFileClose(var IOHnd: TIOHnd): Boolean;
+function umlFileUpdate(var IOHnd: TIOHnd): Boolean;
+function umlFileTest(var IOHnd: TIOHnd): Boolean;
 
-procedure umlResetPrepareRead(var IOHnd: TIOHnd); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var buff): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileRead(var IOHnd: TIOHnd; const Size: Int64; var buff): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlBlockRead(var IOHnd: TIOHnd; var buff; Size: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure umlResetPrepareRead(var IOHnd: TIOHnd);
+function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var buff): Boolean;
+function umlFileRead(var IOHnd: TIOHnd; const Size: Int64; var buff): Boolean;
+function umlBlockRead(var IOHnd: TIOHnd; var buff; Size: Int64): Boolean;
 
-function umlFilePrepareWrite(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileFlushWrite(var IOHnd: TIOHnd): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var buff): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlBlockWrite(var IOHnd: TIOHnd; var buff; const Size: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFilePrepareWrite(var IOHnd: TIOHnd): Boolean;
+function umlFileFlushWrite(var IOHnd: TIOHnd): Boolean;
+function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var buff): Boolean;
+function umlBlockWrite(var IOHnd: TIOHnd; var buff; const Size: Int64): Boolean;
 
-function umlFileWriteStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileReadStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileWriteStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
+function umlFileReadStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
 
-function umlFileSeek(var IOHnd: TIOHnd; APos: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileGetPOS(var IOHnd: TIOHnd): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFilePOS(var IOHnd: TIOHnd): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileGetSize(var IOHnd: TIOHnd): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlFileSize(var IOHnd: TIOHnd): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlFileSeek(var IOHnd: TIOHnd; APos: Int64): Boolean;
+function umlFileGetPOS(var IOHnd: TIOHnd): Int64;
+function umlFilePOS(var IOHnd: TIOHnd): Int64;
+function umlFileGetSize(var IOHnd: TIOHnd): Int64;
+function umlFileSize(var IOHnd: TIOHnd): Int64;
 
 function umlGetFileTime(const FileName: TPascalString): TDateTime;
 procedure umlSetFileTime(const FileName: TPascalString; newTime: TDateTime);
@@ -230,33 +234,35 @@ function umlGetLength(const aStr: TPascalString): Integer; overload;
 function umlGetLength(var aStr: U_Bytes): Integer; overload;
 function umlGetLength(const aStr: TArrayPascalString): Integer; overload;
 
-function umlUpperCase(const Str: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlLowerCase(const Str: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlCopyStr(const aStr: TPascalString; MainPosition, LastPosition: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlSameText(const s1, s2: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlUpperCase(const Str: TPascalString): TPascalString;
+function umlLowerCase(const Str: TPascalString): TPascalString;
+function umlCopyStr(const aStr: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
+function umlSameText(const s1, s2: TPascalString): Boolean;
 
 function umlDeleteChar(const SText, Ch: TPascalString): TPascalString; overload;
 function umlDeleteChar(const SText: TPascalString; const SomeChars: array of SystemChar): TPascalString; overload;
 function umlDeleteChar(const SText: TPascalString; const SomeCharsets: TOrdChars): TPascalString; overload;
 function umlGetNumberCharInText(const n: TPascalString): TPascalString;
 
-function umlMatchLimitChar(CharValue: U_Char; LimitValue: P_String): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMatchLimitChar(CharValue: U_Char; LimitValue: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlExistsLimitChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlExistsChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMatchLimitChar(CharValue: U_Char; LimitValue: P_String): Boolean; overload;
+function umlMatchLimitChar(CharValue: U_Char; LimitValue: TPascalString): Boolean; overload;
+function umlExistsLimitChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean;
+function umlExistsChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean;
 
-function umlTrimChar(const s, limitS: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlTrimChar(const s, limitS: TPascalString): TPascalString;
 
-function umlGetFirstStr(const aStr, limitS: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetLastStr(const aStr, limitS: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlDeleteFirstStr(const aStr, limitS: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlDeleteLastStr(const aStr, limitS: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetIndexStrCount(const aStr, limitS: TPascalString): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlGetIndexStr(const aStr: TPascalString; limitS: TPascalString; index: Integer): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlGetFirstStr(const aStr, limitS: TPascalString): TPascalString;
+function umlGetLastStr(const aStr, limitS: TPascalString): TPascalString;
+function umlDeleteFirstStr(const aStr, limitS: TPascalString): TPascalString;
+function umlDeleteLastStr(const aStr, limitS: TPascalString): TPascalString;
+function umlGetIndexStrCount(const aStr, limitS: TPascalString): Integer;
+function umlGetIndexStr(const aStr: TPascalString; limitS: TPascalString; index: Integer): TPascalString;
 
-procedure umlGetSplitArray(const _SourText: TPascalString; var _DestArray: TArrayPascalString; const _SplitChar: TPascalString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function TArrayPascalStringToText(var _Ary: TArrayPascalString; const _SplitChar: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStringsToText(_List: TCoreClassStrings; const _SplitChar: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure umlGetSplitArray(const sour: TPascalString; var dest: TArrayPascalString; const splitC: TPascalString); overload;
+procedure umlGetSplitArray(const sour: TPascalString; var dest: U_StringArray; const splitC: TPascalString); overload;
+function ArrayStringToText(var ary: TArrayPascalString; const splitC: TPascalString): TPascalString;
+function umlStringsToText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString; overload;
+function umlStringsToText(lst: TListPascalString; const splitC: TPascalString): TPascalString; overload;
 
 function umlGetFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
 function umlDeleteFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
@@ -298,22 +304,20 @@ function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer; overload;
 function umlStrToInt(const _V: TPascalString; _Def: Double): Integer; overload;
 function umlStrToFloat(const _V: TPascalString; _Def: Double): Double; overload;
 
-function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMultipleMatch(const SourceStr, TargetStr: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlMultipleMatch(const ValueCheck: TArrayPascalString; Value: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlSearchMatch(const SourceStr, TargetStr: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlSearchMatch(const ValueCheck: TArrayPascalString; Value: TPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean; overload;
+function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr: TPascalString): Boolean; overload;
+function umlMultipleMatch(const SourceStr, TargetStr: TPascalString): Boolean; overload;
+function umlMultipleMatch(const ValueCheck: array of TPascalString; const Value: TPascalString): Boolean; overload;
+function umlSearchMatch(const SourceStr, TargetStr: TPascalString): Boolean; overload;
+function umlSearchMatch(const ValueCheck: TArrayPascalString; Value: TPascalString): Boolean; overload;
 
 { Decode Double }
 function umlDeTimeCodeToStr(NowDateTime: TDateTime): TPascalString;
 
-{ StringReplace replaces occurances of <oldpattern> with <newpattern> in a given TPascalString.
-  Assumes the TPascalString may contain Multibyte characters }
 function umlStringReplace(const s, OldPattern, NewPattern: TPascalString; IgnoreCase: Boolean): TPascalString;
 function umlCharReplace(const s: TPascalString; OldPattern, NewPattern: U_Char): TPascalString;
 
-function umlEncodeText2HTML(const psSrc: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlEncodeText2HTML(const psSrc: TPascalString): TPascalString;
 
 function umlURLEncode(const AValue: TPascalString): TPascalString;
 
@@ -348,11 +352,10 @@ function umlStringMD5(const Value: TPascalString): TMD5; overload;
 function umlStringMD5Char(const Value: TPascalString): TPascalString; overload;
 function umlMD52Str(md5: TMD5): TPascalString;
 function umlMD52String(md5: TMD5): TPascalString;
-function umlMD5Compare(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlCompareMD5(const m1, m2: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlIsNullMD5(M: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlWasNullMD5(M: TMD5): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
+function umlMD5Compare(const m1, m2: TMD5): Boolean;
+function umlCompareMD5(const m1, m2: TMD5): Boolean;
+function umlIsNullMD5(M: TMD5): Boolean;
+function umlWasNullMD5(M: TMD5): Boolean;
 
 const
   CRC16Table: array [0 .. 255] of Word = (
@@ -382,11 +385,10 @@ const
     $81C1, $8081, $4040
     );
 
-function umlCRC16(const Value: PByte; const Count: nativeUInt): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStringCRC16(const Value: TPascalString): Word; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStreamCRC16(stream: U_Stream; StartPos, EndPos: Int64): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStreamCRC16(stream: U_Stream): Word; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
+function umlCRC16(const Value: PByte; const Count: nativeUInt): Word;
+function umlStringCRC16(const Value: TPascalString): Word;
+function umlStreamCRC16(stream: U_Stream; StartPos, EndPos: Int64): Word; overload;
+function umlStreamCRC16(stream: U_Stream): Word; overload;
 
 const
   CRC32Table: array [0 .. 255] of Cardinal = (
@@ -429,11 +431,10 @@ const
     $B40BBE37, $C30C8EA1, $5A05DF1B, $2D02EF8D
     );
 
-function umlCRC32(const Value: PByte; const Count: nativeUInt): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlString2CRC32(const Value: TPascalString): Cardinal; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStreamCRC32(stream: U_Stream; StartPos, EndPos: Int64): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function umlStreamCRC32(stream: U_Stream): Cardinal; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
+function umlCRC32(const Value: PByte; const Count: nativeUInt): Cardinal;
+function umlString2CRC32(const Value: TPascalString): Cardinal;
+function umlStreamCRC32(stream: U_Stream; StartPos, EndPos: Int64): Cardinal; overload;
+function umlStreamCRC32(stream: U_Stream): Cardinal; overload;
 
 type
   TDESKey = array [0 .. 7] of Byte;
@@ -448,12 +449,12 @@ procedure umlDES(DataPtr: Pointer; Size: Cardinal; const key: TDESKey; Encrypt: 
 procedure umlDES(DataPtr: Pointer; Size: Cardinal; const key: TPascalString; Encrypt: Boolean); overload;
 procedure umlDES(Input, output: U_Stream; const key: TDESKey; Encrypt: Boolean); overload;
 procedure umlDES(Input, output: U_Stream; const key: TPascalString; Encrypt: Boolean); overload;
-function umlDESCompare(const d1, d2: TDESKey): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlDESCompare(const d1, d2: TDESKey): Boolean;
 
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TDESKey; Encrypt: Boolean); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TPascalString; Encrypt: Boolean); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TDESKey; Encrypt: Boolean); overload;
+procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TPascalString; Encrypt: Boolean); overload;
 
-function umlTrimSpace(const s: TPascalString): TPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function umlTrimSpace(const s: TPascalString): TPascalString;
 
 function umlSeparatorText(AText: TPascalString; dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer; overload;
 function umlSeparatorText(AText: TPascalString; dest: THashVariantList; SeparatorChar: TPascalString): Integer; overload;
@@ -461,16 +462,21 @@ function umlSeparatorText(AText: TPascalString; dest: TListPascalString; Separat
 
 function umlStringsMatchText(OriginValue: TCoreClassStrings; DestValue: TPascalString; IgnoreCase: Boolean): Boolean;
 
+function umlStringsInExists(dest: TListPascalString; SText: TPascalString; IgnoreCase: Boolean): Boolean; overload;
 function umlStringsInExists(dest: TCoreClassStrings; SText: TPascalString; IgnoreCase: Boolean): Boolean; overload;
 function umlStringsInExists(dest: TCoreClassStrings; SText: TPascalString): Boolean; overload;
+
+function umlTextInStrings(const SText: TPascalString; dest: TListPascalString; IgnoreCase: Boolean): Boolean; overload;
 function umlTextInStrings(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Boolean; overload;
 function umlTextInStrings(const SText: TPascalString; dest: TCoreClassStrings): Boolean; overload;
 
+function umlAddNewStrTo(SourceStr: TPascalString; dest: TListPascalString; IgnoreCase: Boolean): Boolean; overload;
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Boolean; overload;
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings): Boolean; overload;
 function umlDeleteStrings(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
 function umlDeleteStringsNot(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
-function umlMergeStrings(Source, dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
+function umlMergeStrings(Source, dest: TCoreClassStrings; IgnoreCase: Boolean): Integer; overload;
+function umlMergeStrings(Source, dest: TListPascalString; IgnoreCase: Boolean): Integer; overload;
 
 function umlConverStrToFileName(const Value: TPascalString): TPascalString;
 
@@ -479,7 +485,9 @@ function umlSplitTextTrimSpaceMatch(const SText, Limit, MatchText: TPascalString
 function umlSplitDeleteText(const SText, Limit, MatchText: TPascalString; IgnoreCase: Boolean): TPascalString;
 function umlSplitTextAsList(const SText, Limit: TPascalString; AsLst: TCoreClassStrings): Boolean;
 function umlSplitTextAsListAndTrimSpace(const SText, Limit: TPascalString; AsLst: TCoreClassStrings): Boolean;
-function umlListAsSplitText(const List: TCoreClassStrings; Limit: TPascalString): TPascalString;
+
+function umlListAsSplitText(const List: TCoreClassStrings; Limit: TPascalString): TPascalString; overload;
+function umlListAsSplitText(const List: TListPascalString; Limit: TPascalString): TPascalString; overload;
 
 function umlUpdateComponentName(const Name: TPascalString): TPascalString;
 function umlMakeComponentName(Owner: TCoreClassComponent; RefrenceName: TPascalString): TPascalString;
@@ -488,8 +496,7 @@ procedure umlReadComponent(stream: TCoreClassStream; comp: TCoreClassComponent);
 procedure umlWriteComponent(stream: TCoreClassStream; comp: TCoreClassComponent);
 procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 
-function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
+function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
 
 type
   TCSVCall             = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
@@ -500,6 +507,9 @@ procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVCall);
 procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVMethod);
 {$IFNDEF FPC} procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVProc); {$ENDIF FPC}
 
+function GetExtLib(LibName: SystemString): HMODULE;
+function FreeExtLib(LibName: SystemString): Boolean;
+function GetExtProc(const LibName, ProcName: SystemString): Pointer;
 
 implementation
 
@@ -2363,53 +2373,90 @@ begin
   Result := umlGetFirstStr(Result, limitS);
 end;
 
-procedure umlGetSplitArray(const _SourText: TPascalString; var _DestArray: TArrayPascalString; const _SplitChar: TPascalString);
+procedure umlGetSplitArray(const sour: TPascalString; var dest: TArrayPascalString; const splitC: TPascalString);
 var
-  i, _IndexCount: Integer;
+  i, idxCount: Integer;
   SText: TPascalString;
 begin
-  SText := _SourText;
-  _IndexCount := umlGetIndexStrCount(SText, _SplitChar);
-  if (_IndexCount = 0) and (_SourText.Len > 0) then
+  SText := sour;
+  idxCount := umlGetIndexStrCount(SText, splitC);
+  if (idxCount = 0) and (sour.Len > 0) then
     begin
-      SetLength(_DestArray, 1);
-      _DestArray[0] := _SourText;
+      SetLength(dest, 1);
+      dest[0] := sour;
     end
   else
     begin
-      SetLength(_DestArray, _IndexCount);
-      i := low(_DestArray);
-      while i < _IndexCount do
+      SetLength(dest, idxCount);
+      i := low(dest);
+      while i < idxCount do
         begin
-          _DestArray[i] := umlGetFirstStr(SText, _SplitChar);
-          SText := umlDeleteFirstStr(SText, _SplitChar);
+          dest[i] := umlGetFirstStr(SText, splitC);
+          SText := umlDeleteFirstStr(SText, splitC);
           inc(i);
         end;
     end;
 end;
 
-function TArrayPascalStringToText(var _Ary: TArrayPascalString; const _SplitChar: TPascalString): TPascalString;
+procedure umlGetSplitArray(const sour: TPascalString; var dest: U_StringArray; const splitC: TPascalString);
 var
-  i: Integer;
+  i, idxCount: Integer;
+  SText: TPascalString;
 begin
-  Result := '';
-  for i := low(_Ary) to high(_Ary) do
-    if i < high(_Ary) then
-        Result := Result + _Ary[i] + _SplitChar
-    else
-        Result := Result + _Ary[i];
+  SText := sour;
+  idxCount := umlGetIndexStrCount(SText, splitC);
+  if (idxCount = 0) and (sour.Len > 0) then
+    begin
+      SetLength(dest, 1);
+      dest[0] := sour;
+    end
+  else
+    begin
+      SetLength(dest, idxCount);
+      i := low(dest);
+      while i < idxCount do
+        begin
+          dest[i] := umlGetFirstStr(SText, splitC);
+          SText := umlDeleteFirstStr(SText, splitC);
+          inc(i);
+        end;
+    end;
 end;
 
-function umlStringsToText(_List: TCoreClassStrings; const _SplitChar: TPascalString): TPascalString;
+function ArrayStringToText(var ary: TArrayPascalString; const splitC: TPascalString): TPascalString;
 var
   i: Integer;
 begin
   Result := '';
-  for i := 0 to _List.Count - 1 do
-    if i > 0 then
-        Result := Result + _SplitChar + _List[i]
+  for i := low(ary) to high(ary) do
+    if i < high(ary) then
+        Result := Result + ary[i] + splitC
     else
-        Result := _List[i];
+        Result := Result + ary[i];
+end;
+
+function umlStringsToText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to lst.Count - 1 do
+    if i > 0 then
+        Result.Append(splitC.Text + lst[i])
+    else
+        Result := lst[i];
+end;
+
+function umlStringsToText(lst: TListPascalString; const splitC: TPascalString): TPascalString;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to lst.Count - 1 do
+    if i > 0 then
+        Result.Append(splitC.Text + lst[i])
+    else
+        Result := lst[i];
 end;
 
 function umlGetFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
@@ -2685,14 +2732,22 @@ begin
         begin
           inc(cnt[vsSymSub]);
           inc(cnt[vsSymAddSub]);
+          if i <> 1 then
+              exit(ntUnknow);
         end
       else if CharIn(c, '+') then
         begin
           inc(cnt[vsSymAdd]);
           inc(cnt[vsSymAddSub]);
+          if i <> 1 then
+              exit(ntUnknow);
         end
       else if CharIn(c, '$') and (i = 1) then
-          inc(cnt[vsSymDollar])
+        begin
+          inc(cnt[vsSymDollar]);
+          if i <> 1 then
+              exit(ntUnknow);
+        end
       else
           exit(ntUnknow);
     end;
@@ -3176,12 +3231,12 @@ begin
       Result := True;
 end;
 
-function umlMultipleMatch(const ValueCheck: TArrayPascalString; Value: TPascalString): Boolean;
+function umlMultipleMatch(const ValueCheck: array of TPascalString; const Value: TPascalString): Boolean;
 var
   i: Integer;
 begin
   Result := False;
-  if umlGetLength(Value) > 0 then
+  if Value.Len > 0 then
     begin
       if high(ValueCheck) >= 0 then
         begin
@@ -3991,11 +4046,17 @@ end;
 function umlCRC16(const Value: PByte; const Count: nativeUInt): Word;
 var
   i: nativeUInt;
-  PB: P_ByteArray absolute Value;
+  p: PByte;
 begin
+  p := Value;
   Result := 0;
-  for i := 0 to Count - 1 do
-      Result := (Result shr 8) xor CRC16Table[PB^[i] xor (Result and $FF)];
+  i := 0;
+  while i < Count do
+    begin
+      Result := (Result shr 8) xor CRC16Table[p^ xor (Result and $00FF)];
+      inc(i);
+      inc(p);
+    end;
 end;
 
 function umlStringCRC16(const Value: TPascalString): Word;
@@ -4009,16 +4070,18 @@ end;
 function umlStreamCRC16(stream: U_Stream; StartPos, EndPos: Int64): Word;
 const
   ChunkSize = 1024 * 1024;
-  procedure CRC16BUpdate(var crc: Word; const Buf: Pointer; Len: nativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure CRC16BUpdate(var crc: Word; const Buf: Pointer; Len: nativeUInt);
   var
     p: PByte;
     i: Integer;
   begin
     p := Buf;
-    for i := 0 to Len - 1 do
+    i := 0;
+    while i < Len do
       begin
-        crc := (crc shr 8) xor CRC16Table[p^ xor (crc and $FF)];
+        crc := (crc shr 8) xor CRC16Table[p^ xor (crc and $00FF)];
         inc(p);
+        inc(i);
       end;
   end;
 
@@ -4074,11 +4137,17 @@ end;
 function umlCRC32(const Value: PByte; const Count: nativeUInt): Cardinal;
 var
   i: nativeUInt;
-  PB: P_ByteArray absolute Value;
+  p: PByte;
 begin
+  p := Value;
   Result := $FFFFFFFF;
-  for i := 0 to Count - 1 do
-      Result := ((Result shr 8) and $00FFFFFF) xor CRC32Table[(Result xor PB^[i]) and $FF];
+  i := 0;
+  while i < Count do
+    begin
+      Result := ((Result shr 8) and $00FFFFFF) xor CRC32Table[(Result xor p^) and $000000FF];
+      inc(i);
+      inc(p);
+    end;
   Result := Result xor $FFFFFFFF;
 end;
 
@@ -4094,16 +4163,18 @@ function umlStreamCRC32(stream: U_Stream; StartPos, EndPos: Int64): Cardinal;
 const
   ChunkSize = 1024 * 1024;
 
-  procedure CRC32BUpdate(var crc: Cardinal; const Buf: Pointer; Len: nativeUInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure CRC32BUpdate(var crc: Cardinal; const Buf: Pointer; Len: nativeUInt);
   var
     p: PByte;
     i: Integer;
   begin
     p := Buf;
-    for i := 0 to Len - 1 do
+    i := 0;
+    while i < Len do
       begin
-        crc := ((crc shr 8) and $00FFFFFF) xor CRC32Table[(crc xor p^) and $FF];
+        crc := ((crc shr 8) and $00FFFFFF) xor CRC32Table[(crc xor p^) and $000000FF];
         inc(p);
+        inc(i);
       end;
   end;
 
@@ -4280,7 +4351,7 @@ const
     (7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8),
     (2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11)));
 
-  function GetBit(const Bits: TDESKey; const index: Byte): Byte; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function GetBit(const Bits: TDESKey; const index: Byte): Byte;
   var
     idx: Byte;
   begin
@@ -4291,7 +4362,7 @@ const
         Result := 0;
   end;
 
-  procedure SetBit(var Bits: TDESKey; index, Value: Byte); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure SetBit(var Bits: TDESKey; index, Value: Byte);
   var
     Bit: Byte;
   begin
@@ -4303,7 +4374,7 @@ const
     end;
   end;
 
-  procedure f(var FR: TArrayOf32Bytes; var FK: TArrayOf48Bytes; var TotalOut: TArrayOf32Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure f(var FR: TArrayOf32Bytes; var FK: TArrayOf48Bytes; var TotalOut: TArrayOf32Bytes);
   var
     Temp1: TArrayOf48Bytes;
     Temp2: TArrayOf32Bytes;
@@ -4332,7 +4403,7 @@ const
         TotalOut[n] := Temp2[p[n]];
   end;
 
-  procedure Shift(var SubKeyPart: TArrayOf28Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure Shift(var SubKeyPart: TArrayOf28Bytes);
   var
     n, b: Byte;
   begin
@@ -4342,7 +4413,7 @@ const
     SubKeyPart[28] := b;
   end;
 
-  procedure SubKey(var DesData: TDesData; Round: Byte; var SubKey: TArrayOf48Bytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure SubKey(var DesData: TDesData; Round: Byte; var SubKey: TArrayOf48Bytes);
   var
     n, b: Byte;
   begin
@@ -4419,7 +4490,7 @@ procedure umlDES(DataPtr: Pointer; Size: Cardinal; const key: TPascalString; Enc
 var
   h64: THash64;
 begin
-  h64 := FastHash64PascalString(@key);
+  h64 := FastHash64PPascalString(@key);
   umlDES(DataPtr, Size, PDESKey(@h64)^, Encrypt);
 end;
 
@@ -4495,7 +4566,7 @@ procedure umlDES(Input, output: U_Stream; const key: TPascalString; Encrypt: Boo
 var
   h64: THash64;
 begin
-  h64 := FastHash64PascalString(@key);
+  h64 := FastHash64PPascalString(@key);
   umlDES(Input, output, PDESKey(@h64)^, Encrypt);
 end;
 
@@ -4529,7 +4600,7 @@ procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TPascalStri
 var
   h64: THash64;
 begin
-  h64 := FastHash64PascalString(@key);
+  h64 := FastHash64PPascalString(@key);
   umlFastSymbol(DataPtr, Size, PDESKey(@h64)^, Encrypt);
 end;
 
@@ -4648,16 +4719,42 @@ begin
     end;
 end;
 
-function umlStringsInExists(dest: TCoreClassStrings; SText: TPascalString; IgnoreCase: Boolean): Boolean;
+function umlStringsInExists(dest: TListPascalString; SText: TPascalString; IgnoreCase: Boolean): Boolean;
 var
   i: Integer;
-  _NS: TPascalString;
+  ns: TPascalString;
 begin
   Result := False;
   if IgnoreCase then
-      _NS := umlUpperCase(SText)
+      ns := umlUpperCase(SText)
   else
-      _NS := SText;
+      ns := SText;
+  if Assigned(dest) then
+    begin
+      if dest.Count > 0 then
+        begin
+          for i := 0 to dest.Count - 1 do
+            begin
+              if ((not IgnoreCase) and (SText = dest[i])) or ((IgnoreCase) and (umlSameText(SText, dest[i]))) then
+                begin
+                  Result := True;
+                  exit;
+                end;
+            end;
+        end;
+    end;
+end;
+
+function umlStringsInExists(dest: TCoreClassStrings; SText: TPascalString; IgnoreCase: Boolean): Boolean;
+var
+  i: Integer;
+  ns: TPascalString;
+begin
+  Result := False;
+  if IgnoreCase then
+      ns := umlUpperCase(SText)
+  else
+      ns := SText;
   if Assigned(dest) then
     begin
       if dest.Count > 0 then
@@ -4679,6 +4776,11 @@ begin
   Result := umlStringsInExists(dest, SText, True);
 end;
 
+function umlTextInStrings(const SText: TPascalString; dest: TListPascalString; IgnoreCase: Boolean): Boolean;
+begin
+  Result := umlStringsInExists(dest, SText, IgnoreCase);
+end;
+
 function umlTextInStrings(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Boolean;
 begin
   Result := umlStringsInExists(dest, SText, IgnoreCase);
@@ -4687,6 +4789,13 @@ end;
 function umlTextInStrings(const SText: TPascalString; dest: TCoreClassStrings): Boolean;
 begin
   Result := umlStringsInExists(dest, SText);
+end;
+
+function umlAddNewStrTo(SourceStr: TPascalString; dest: TListPascalString; IgnoreCase: Boolean): Boolean;
+begin
+  Result := not umlStringsInExists(dest, SourceStr, IgnoreCase);
+  if Result then
+      dest.Append(SourceStr.Text);
 end;
 
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Boolean;
@@ -4756,7 +4865,24 @@ var
   i: Integer;
 begin
   Result := 0;
-  if (not Assigned(Source)) or (not Assigned(dest)) then
+  if (Source = nil) or (dest = nil) then
+      exit;
+  if Source.Count > 0 then
+    begin
+      for i := 0 to Source.Count - 1 do
+        begin
+          umlAddNewStrTo(Source[i], dest, IgnoreCase);
+          inc(Result);
+        end;
+    end;
+end;
+
+function umlMergeStrings(Source, dest: TListPascalString; IgnoreCase: Boolean): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  if (Source = nil) or (dest = nil) then
       exit;
   if Source.Count > 0 then
     begin
@@ -4932,6 +5058,18 @@ begin
         Result := Result + Limit + List[i];
 end;
 
+function umlListAsSplitText(const List: TListPascalString; Limit: TPascalString): TPascalString;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to List.Count - 1 do
+    if Result = '' then
+        Result := List[i]
+    else
+        Result.Append(Limit + List[i]);
+end;
+
 function umlUpdateComponentName(const Name: TPascalString): TPascalString;
 var
   i: Integer;
@@ -5005,7 +5143,7 @@ begin
 end;
 
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
-  function IfOut(Cur, Delta, dest: Single): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function IfOut(Cur, Delta, dest: Single): Boolean;
   begin
     if Cur > dest then
         Result := Cur - Delta < dest
@@ -5013,7 +5151,7 @@ function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; v
         Result := Cur + Delta > dest;
   end;
 
-  function GetOutValue(Cur, Delta, dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function GetOutValue(Cur, Delta, dest: Single): Single;
   begin
     if IfOut(Cur, Delta, dest) then
       begin
@@ -5026,7 +5164,7 @@ function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; v
         Result := 0;
   end;
 
-  function GetDeltaValue(Cur, Delta, dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function GetDeltaValue(Cur, Delta, dest: Single): Single;
   begin
     if Cur > dest then
         Result := Cur - Delta
@@ -5238,8 +5376,69 @@ end;
 {$ENDIF FPC}
 
 
+var
+  ExLibs: THashVariantList = nil;
+
+function GetExtLib(LibName: SystemString): HMODULE;
+begin
+  Result := 0;
+{$IF not(Defined(IOS) and Defined(CPUARM))}
+  if ExLibs = nil then
+      ExLibs := THashVariantList.Create;
+  if not ExLibs.Exists(LibName) then
+    begin
+{$IFNDEF FPC}
+{$IFDEF ANDROID}
+      Result := LoadLibrary(PChar(umlCombineFileName(System.IOUtils.TPath.GetLibraryPath, LibName).Text));
+{$ELSE ANDROID}
+      Result := LoadLibrary(PChar(LibName));
+{$ENDIF ANDROID}
+{$ELSE FPC}
+      Result := LoadLibrary(PChar(LibName));
+{$ENDIF FPC}
+      ExLibs.Add(LibName, Result);
+    end
+  else
+      Result := ExLibs[LibName];
+
+  if Result = 0 then
+      RaiseInfo('LoadLibrary fialed:%s', [LibName]);
+{$IFEND}
+end;
+
+function FreeExtLib(LibName: SystemString): Boolean;
+begin
+  Result := False;
+{$IF not(Defined(IOS) and Defined(CPUARM))}
+  if ExLibs = nil then
+      ExLibs := THashVariantList.Create;
+  if ExLibs.Exists(LibName) then
+    begin
+      FreeLibrary(HMODULE(ExLibs[LibName]));
+      ExLibs.Delete(LibName);
+      Result := True;
+    end;
+{$IFEND}
+end;
+
+function GetExtProc(const LibName, ProcName: SystemString): Pointer;
+begin
+{$IF not(Defined(IOS) and Defined(CPUARM))}
+  Result := GetProcAddress(GetExtLib(LibName), PChar(ProcName));
+  if Result = nil then
+      RaiseInfo('external libray error: %s - %s', [LibName, ProcName]);
+
+{$ELSE}
+  Result := nil;
+{$IFEND}
+end;
+
 initialization
 
+
 finalization
+
+if ExLibs <> nil then
+    DisposeObject(ExLibs);
 
 end.

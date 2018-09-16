@@ -4,7 +4,6 @@
 { * https://github.com/PassByYou888/zExpression                                * }
 { * https://github.com/PassByYou888/zTranslate                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
 { ****************************************************************************** }
 unit BaiduTranslateAPI;
 
@@ -22,7 +21,7 @@ var
   // 百度翻译接口可以用于客户端，也可以用于FMX
   // 但是在客户端直接使用翻译容易造成密钥丢失，以及无法记录用户的翻译历史和加速翻译，并且翻译量容易超标，造成不可控制的被扣费
 
-  // 百度的公共测试密钥
+  // 百度翻译的密钥
   BaiduTranslate_Appid: string = '2015063000000001';
   BaiduTranslate_Key  : string = '12345678';
 
@@ -68,7 +67,7 @@ type
 
 procedure BaiduTranslateWithHTTP(UsedSSL: Boolean;
   sourLanguage, desLanguage: TTranslateLanguage;
-  text: TPascalString;
+  Text: TPascalString;
   UserData: Pointer;
   OnResult: TTranslateCompleteProc);
 
@@ -95,22 +94,22 @@ type
 
   THTTPGetTh = class(TThread)
     syncIntf: THTTPSyncIntf;
-    procedure execute; override;
+    procedure Execute; override;
   end;
 
 procedure THTTPSyncIntf.AsyncGet;
 var
   js       : TJsonObject; // 高频率翻译这种东西，我们要用JsonDataObjects，它的缺陷是不支持fpc，但是它稳定和快速
   ja       : TJsonArray;
-  I        : Integer;
+  i        : Integer;
   Success  : Boolean;
-  sour, dst: TPascalString;
+  sour, Dst: TPascalString;
 begin
   try
     HTTP.ReadTimeout := 2000;
     HTTP.Get(url, m64);
   except
-    inc(RepleatGet);
+    Inc(RepleatGet);
 
     // 由于网络质量，https经常会发生断线和异常情况，我们在这里用最大重复5次的方式反复获取，直到成功
     if RepleatGet < 5 then
@@ -125,7 +124,7 @@ begin
             OnResult(UserData, False, '', '');
           end);
       end;
-    exit;
+    Exit;
   end;
   m64.Position := 0;
   js := TJsonObject.Create;
@@ -134,12 +133,12 @@ begin
   except
     DisposeObject([js]);
     OnResult(UserData, False, '', '');
-    exit;
+    Exit;
   end;
 
   Success := False;
   sour := '';
-  dst := '';
+  Dst := '';
 
   try
     // 对翻译结果做安全检查
@@ -148,18 +147,18 @@ begin
         ja := js.A['trans_result'];
         if ja.Count > 0 then
           begin
-            for I := 0 to ja.Count - 1 do
+            for i := 0 to ja.Count - 1 do
               begin
                 Success := True;
-                if I = 0 then
+                if i = 0 then
                   begin
-                    sour := ja[I].S['src'];
-                    dst := ja[I].S['dst'];
+                    sour := ja[i].s['src'];
+                    Dst := ja[i].s['dst'];
                   end
                 else
                   begin
-                    sour.Append(#13#10 + ja[I].S['src']);
-                    dst.Append(#13#10 + ja[I].S['dst']);
+                    sour.Append(#13#10 + ja[i].s['src']);
+                    Dst.Append(#13#10 + ja[i].s['dst']);
                   end;
               end;
           end;
@@ -171,13 +170,13 @@ begin
       begin
         OnResult(UserData, False, '', '');
       end);
-    exit;
+    Exit;
   end;
 
   th.Synchronize(
     procedure
     begin
-      OnResult(UserData, Success, sour, dst);
+      OnResult(UserData, Success, sour, Dst);
     end);
 
   DisposeObject([js]);
@@ -185,9 +184,9 @@ begin
   DisposeObject([m64]);
 end;
 
-procedure THTTPGetTh.execute;
+procedure THTTPGetTh.Execute;
 begin
-  inc(BaiduTranslateTh);
+  Inc(BaiduTranslateTh);
   FreeOnTerminate := True;
   syncIntf.HTTP := TIdCustomHTTP.Create(nil);
   try
@@ -199,14 +198,14 @@ begin
     except
     end;
     DisposeObject(syncIntf);
-    dec(BaiduTranslateTh);
+    Dec(BaiduTranslateTh);
   end;
 end;
 
-function TranslateLanguage2Token(t: TTranslateLanguage): TPascalString; inline;
+function TranslateLanguage2Token(T: TTranslateLanguage): TPascalString; inline;
 begin
   // 我已备注各个翻译标记
-  case t of
+  case T of
     tL_auto: Result := 'auto'; // auto会根据http的请求编码决定翻译语言，其它不会
     tL_zh: Result := 'zh';     // 中文
     tL_en: Result := 'en';     // 英语
@@ -241,45 +240,45 @@ begin
   end;
 end;
 
-procedure BaiduTranslateWithHTTP(UsedSSL: Boolean; sourLanguage, desLanguage: TTranslateLanguage; text: TPascalString; UserData: Pointer; OnResult: TTranslateCompleteProc);
+procedure BaiduTranslateWithHTTP(UsedSSL: Boolean; sourLanguage, desLanguage: TTranslateLanguage; Text: TPascalString; UserData: Pointer; OnResult: TTranslateCompleteProc);
 var
   salt    : Integer;
   httpurl : TPascalString;
   soursign: TPascalString;
   lasturl : TPascalString;
-  intf    : THTTPSyncIntf;
+  Intf    : THTTPSyncIntf;
   th      : THTTPGetTh;
 begin
-  if text.Len > 2000 then
+  if Text.Len > 2000 then
     begin
       OnResult(UserData, False, '', '');
-      exit;
+      Exit;
     end;
   salt := umlRandomRange(32767, 1024 * 1024 * 2);
-  soursign := BaiduTranslate_Appid + text + intToStr(salt) + BaiduTranslate_Key;
+  soursign := BaiduTranslate_Appid + Text + IntToStr(salt) + BaiduTranslate_Key;
 
   if UsedSSL then
       httpurl := 'https://api.fanyi.baidu.com/api/trans/vip/translate'
   else
       httpurl := 'http://api.fanyi.baidu.com/api/trans/vip/translate';
 
-  lasturl.text := httpurl + '?' +
-    'q=' + umlURLEncode(text) +
+  lasturl.Text := httpurl + '?' +
+    'q=' + umlURLEncode(Text) +
     '&from=' + TranslateLanguage2Token(sourLanguage) +
     '&to=' + TranslateLanguage2Token(desLanguage) +
     '&appid=' + BaiduTranslate_Appid +
-    '&salt=' + intToStr(salt) +
+    '&salt=' + IntToStr(salt) +
     '&sign=' + umlStringMD5Char(soursign);
-  intf := THTTPSyncIntf.Create;
-  intf.th := THTTPGetTh.Create;
-  intf.th.syncIntf := intf;
-  intf.url := lasturl;
-  intf.HTTP := nil;
-  intf.m64 := TMemoryStream64.Create;
-  intf.UserData := UserData;
-  intf.RepleatGet := 0;
-  intf.OnResult := OnResult;
-  intf.th.Suspended := False;
+  Intf := THTTPSyncIntf.Create;
+  Intf.th := THTTPGetTh.Create;
+  Intf.th.syncIntf := Intf;
+  Intf.url := lasturl;
+  Intf.HTTP := nil;
+  Intf.m64 := TMemoryStream64.Create;
+  Intf.UserData := UserData;
+  Intf.RepleatGet := 0;
+  Intf.OnResult := OnResult;
+  Intf.th.Suspended := False;
 end;
 
-end.
+end. 

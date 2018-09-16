@@ -295,14 +295,14 @@ type
     function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
   end;
 
-function CoreCompressStream(Compressor: TCompressor; sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CoreDecompressStream(Compressor: TCompressor; sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function CoreCompressStream(Compressor: TCompressor; sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+function CoreDecompressStream(Compressor: TCompressor; sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
 
-function DeflateCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function DeflateDecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function DeflateCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+function DeflateDecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
 
-function BRRCCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function BRRCDecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function BRRCCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
+function BRRCDecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
 
 
 implementation
@@ -685,7 +685,7 @@ begin
 end;
 
 constructor TCompressorDeflate.Create;
-  procedure BuildFixedTrees(var aLT, aDT: TTree); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure BuildFixedTrees(var aLT, aDT: TTree);
   var
     i: TCCInt32;
   begin
@@ -710,7 +710,7 @@ constructor TCompressorDeflate.Create;
     for i := 0 to 31 do
         aDT.Translation[i] := i;
   end;
-  procedure BuildBitsBase(aBits: PCCUInt8Array; aBase: PCCUInt16; aDelta, aFirst: TCCInt32); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure BuildBitsBase(aBits: PCCUInt8Array; aBase: PCCUInt16; aDelta, aFirst: TCCInt32);
   var
     i, Sum: TCCInt32;
   begin
@@ -785,7 +785,7 @@ var
         dec(CountOutputBits, 8);
       end;
   end;
-  procedure DoOutputLiteral(const AValue: TCCUInt8); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure DoOutputLiteral(const AValue: TCCUInt8);
   begin
     case AValue of
       0 .. 143: DoOutputBits(MirrorBytes[$30 + AValue], 8);
@@ -828,7 +828,7 @@ var
     DoOutputBits(0, 7); // Close block
     DoOutputBits(0, 7); // Make sure all bits are flushed
   end;
-  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32;
   const
     Base               = 65521;
     MaximumCountAtOnce = 5552;
@@ -1026,7 +1026,7 @@ var
   Source, SourceEnd: PCCUInt8;
   dest             : PCCUInt8;
   DestLen          : TCCSizeUInt;
-  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32;
   const
     Base = 65521;
     NMAX = 5552;
@@ -1055,7 +1055,7 @@ var
       end;
     Result := (s2 shl 16) or s1;
   end;
-  procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32);
   var
     Offsets: TOffsets;
     i      : TCCInt32;
@@ -1092,7 +1092,7 @@ var
     Result := Tag and 1;
     Tag := Tag shr 1;
   end;
-  function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function ReadBits(aNum, aBase: TCCUInt32): TCCUInt32;
   var
     Limit, Mask: TCCUInt32;
   begin
@@ -1110,7 +1110,7 @@ var
       end;
     inc(Result, aBase);
   end;
-  function DecodeSymbol(const aTree: TTree): TCCUInt32; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function DecodeSymbol(const aTree: TTree): TCCUInt32;
   var
     Sum, c, L: TCCInt32;
   begin

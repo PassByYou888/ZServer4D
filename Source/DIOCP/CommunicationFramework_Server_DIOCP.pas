@@ -15,7 +15,7 @@
 *)
 unit CommunicationFramework_Server_DIOCP;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -37,17 +37,17 @@ type
 
   TPeerIOWithDIOCPServer = class(TPeerIO)
   private
-    Link             : TIocpClientContextIntf_WithDServ;
+    Link: TIocpClientContextIntf_WithDServ;
     lastSendBufferTag: Integer;
-    WasSending       : Boolean;
-    SendingStream    : TMemoryStream64;
+    WasSending: Boolean;
+    SendingStream: TMemoryStream64;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -74,7 +74,7 @@ type
     procedure StopService; override;
 
     procedure TriggerQueueData(v: PQueueData); override;
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
     procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
@@ -114,7 +114,7 @@ destructor TPeerIOWithDIOCPServer.Destroy;
 begin
   if Link <> nil then
     begin
-      // 系统绿色化，我在破坏对象时，不是直接close，而是post一个消息出去
+      // 系统绿色化，我在破坏对象时，不是直接close，而是post一个消息
       // 这样会导致断线产生一个小幅延迟，这里不影响性能
       Link.PostWSACloseRequest;
       Link.Link := nil;
@@ -134,7 +134,7 @@ begin
   Link.PostWSACloseRequest;
 end;
 
-procedure TPeerIOWithDIOCPServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TPeerIOWithDIOCPServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if not Connected then
       Exit;
@@ -152,11 +152,11 @@ procedure TPeerIOWithDIOCPServer.WriteBufferFlush;
 begin
   if SendingStream.Size > 0 then
     begin
-      Inc(lastSendBufferTag);
+      inc(lastSendBufferTag);
       WasSending := True;
-      // 因为DIOCP的发送是基于数据队列的
-      // 把所有的预置数据以队列方式fill后再发送
-      // 这里我用flush方式后置化发送数据，做到每次发送出去的是一个块，一般来说，这里被zs触发时，都是一个ip包左右的大小，不是碎片
+      // 因为DIOCP的发送是基于数据队列
+      // 把所有的预置数据以队列方式fill后再发
+      // 这里我用flush方式后置化发送数据，做到每次发送出去的是一个块，一般来说，这里被zs触发时，都是一个ip包左右的大小
       Link.PostWSASendRequest(SendingStream.Memory, SendingStream.Size, True, lastSendBufferTag);
       SendingStream.Clear;
     end;
@@ -224,7 +224,7 @@ begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
       Exit;
 
-  // zs内核在新版本已经完全支持了100%的异步解析数据
+  // zs内核在新版本已经完全支持亿00%的异步解析
   // 经过简单分析，这个事件被上锁保护了，似乎调度有点延迟
   // 这里的性能热点不太好找，diocp的瓶颈主要是卡在这一步
   TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(Buf, Len);
@@ -276,21 +276,27 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_DIOCP.TriggerQueueData(v: PQueueData);
+var
+  c: TPeerIO;
 begin
-  if not Exists(v^.Client) then
+  c := ClientFromID[v^.ClientID];
+  if c <> nil then
     begin
+      c.PostQueueData(v);
+      c.ProcessAllSendCmd(nil, False, False);
+    end
+  else
       DisposeQueueData(v);
-      Exit;
-    end;
-
-  v^.Client.PostQueueData(v);
-  v^.Client.ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.ProgressBackground;
+procedure TCommunicationFramework_Server_DIOCP.Progress;
 begin
-  inherited ProgressBackground;
-  CheckSynchronize;
+  inherited Progress;
+
+  try
+      CoreClasses.CheckThreadSynchronize;
+  except
+  end;
 end;
 
 function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
@@ -308,4 +314,4 @@ initialization
 
 finalization
 
-end. 
+end.

@@ -97,7 +97,7 @@ begin
       if _LibManCloneAutoFreeList[i] = p then
           _LibManCloneAutoFreeList.Delete(i)
       else
-          Inc(i);
+          inc(i);
     end;
 end;
 
@@ -325,4 +325,6 @@ finalization
 FreeLibManCloneAutoFreeList;
 
 end. 
+ 
+ 
  

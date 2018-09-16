@@ -12,9 +12,9 @@
 
 unit UPascalStrings;
 
-interface
-
 {$INCLUDE zDefine.inc}
+
+interface
 
 
 uses SysUtils, PascalStrings;
@@ -81,35 +81,39 @@ type
     class operator Explicit(Value: USystemChar): TUPascalString;
 {$ENDIF}
     function Copy(index, Count: NativeInt): TUPascalString;
-    function Same(const p: PUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Same(const t: TUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(const Offset: Integer; const p: PUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ComparePos(const Offset: Integer; const t: TUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetPos(const s: TUPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetPos(const s: PUPascalString; const Offset: Integer = 1): Integer; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Same(const p: PUPascalString): Boolean; overload;
+    function Same(const t: TUPascalString): Boolean; overload;
+    function Same(const t1, t2: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5: TUPascalString): Boolean; overload;
+    function Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean; overload;
+    function ComparePos(const Offset: Integer; const p: PUPascalString): Boolean; overload;
+    function ComparePos(const Offset: Integer; const t: TUPascalString): Boolean; overload;
+    function GetPos(const s: TUPascalString; const Offset: Integer = 1): Integer; overload;
+    function GetPos(const s: PUPascalString; const Offset: Integer = 1): Integer; overload;
     function Exists(c: USystemChar): Boolean; overload;
     function Exists(c: array of USystemChar): Boolean; overload;
     function Exists(const s: TUPascalString): Boolean; overload;
     function GetCharCount(c: USystemChar): Integer;
     //
-    function hash: TUHash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Hash64: TUHash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function hash: TUHash;
+    function Hash64: TUHash64;
     //
     property Last: USystemChar read GetLast write SetLast;
     property First: USystemChar read GetFirst write SetFirst;
 
-    procedure DeleteLast; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure DeleteFirst; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Delete(idx, cnt: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure DeleteLast;
+    procedure DeleteFirst;
+    procedure Delete(idx, cnt: Integer);
+    procedure Clear;
     procedure Append(t: TUPascalString); overload;
     procedure Append(c: USystemChar); overload;
-    function GetString(bPos, ePos: NativeInt): TUPascalString; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Insert(AText: USystemString; idx: Integer); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetString(bPos, ePos: NativeInt): TUPascalString;
+    procedure Insert(AText: USystemString; idx: Integer);
     //
     procedure FastAsText(var output: USystemString);
-    procedure FastGetBytes(var output: TBytes); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure FastGetBytes(var output: TBytes);
     //
     property Text: USystemString read GetText write SetText;
     function LowerText: USystemString;
@@ -139,22 +143,22 @@ type
   PUArrayPascalStringPtr = ^TUArrayPascalStringPtr;
 
 function UCharIn(c: USystemChar; const SomeChars: array of USystemChar): Boolean; overload;
-function UCharIn(c: USystemChar; const SomeChar: USystemChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UCharIn(c: USystemChar; const s: TUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UCharIn(c: USystemChar; const p: PUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UCharIn(c: USystemChar; const SomeCharset: TUOrdChar): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars; const SomeChars: TUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars; const p: PUPascalString): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function UCharIn(c: USystemChar; const SomeChar: USystemChar): Boolean; overload;
+function UCharIn(c: USystemChar; const s: TUPascalString): Boolean; overload;
+function UCharIn(c: USystemChar; const p: PUPascalString): Boolean; overload;
+function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars): Boolean; overload;
+function UCharIn(c: USystemChar; const SomeCharset: TUOrdChar): Boolean; overload;
+function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars; const SomeChars: TUPascalString): Boolean; overload;
+function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars; const p: PUPascalString): Boolean; overload;
 
-function UFastHashSystemString(const s: PSystemString): TUHash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UFastHash64SystemString(const s: PSystemString): TUHash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function UFastHashPSystemString(const s: PSystemString): TUHash; overload;
+function UFastHash64PSystemString(const s: PSystemString): TUHash64; overload;
 
-function UFastHashSystemString(const s: SystemString): TUHash; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UFastHash64SystemString(const s: SystemString): TUHash64; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function UFastHashSystemString(const s: SystemString): TUHash; overload;
+function UFastHash64SystemString(const s: SystemString): TUHash64; overload;
 
-function UFastHashPascalString(const s: PPascalString): TUHash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function UFastHash64PascalString(const s: PPascalString): TUHash64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function UFastHashPPascalString(const s: PPascalString): TUHash;
+function UFastHash64PPascalString(const s: PPascalString): TUHash64;
 
 function UFormat(const Fmt: USystemString; const Args: array of const): USystemString;
 
@@ -235,7 +239,7 @@ implementation
 
 uses CoreClasses, Variants;
 
-procedure CombineCharsPP(const c1, c2: TUArrayChar; var output: TUArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPP(const c1, c2: TUArrayChar; var output: TUArrayChar);
 var
   LL, rl: Integer;
 begin
@@ -248,7 +252,7 @@ begin
       CopyPtr(@c2[0], @output[LL], rl * USystemCharSize);
 end;
 
-procedure CombineCharsSP(const c1: USystemString; const c2: TUArrayChar; var output: TUArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsSP(const c1: USystemString; const c2: TUArrayChar; var output: TUArrayChar);
 var
   LL, rl: Integer;
 begin
@@ -261,7 +265,7 @@ begin
       CopyPtr(@c2[0], @output[LL], rl * USystemCharSize);
 end;
 
-procedure CombineCharsPS(const c1: TUArrayChar; const c2: USystemString; var output: TUArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPS(const c1: TUArrayChar; const c2: USystemString; var output: TUArrayChar);
 var
   LL, rl: Integer;
 begin
@@ -274,7 +278,7 @@ begin
       CopyPtr(@c2[UFirstCharPos], @output[LL], rl * USystemCharSize);
 end;
 
-procedure CombineCharsCP(const c1: USystemChar; const c2: TUArrayChar; var output: TUArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsCP(const c1: USystemChar; const c2: TUArrayChar; var output: TUArrayChar);
 var
   rl: Integer;
 begin
@@ -285,7 +289,7 @@ begin
       CopyPtr(@c2[0], @output[1], rl * USystemCharSize);
 end;
 
-procedure CombineCharsPC(const c1: TUArrayChar; const c2: USystemChar; var output: TUArrayChar); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure CombineCharsPC(const c1: TUArrayChar; const c2: USystemChar; var output: TUArrayChar);
 var
   LL: Integer;
 begin
@@ -381,7 +385,7 @@ begin
       Result := UCharIn(c, p);
 end;
 
-function UFastHashSystemString(const s: PSystemString): TUHash;
+function UFastHashPSystemString(const s: PSystemString): TUHash;
 var
   i: Integer;
   c: USystemChar;
@@ -401,7 +405,7 @@ begin
     end;
 end;
 
-function UFastHash64SystemString(const s: PSystemString): TUHash64;
+function UFastHash64PSystemString(const s: PSystemString): TUHash64;
 var
   i: Integer;
   c: USystemChar;
@@ -423,15 +427,15 @@ end;
 
 function UFastHashSystemString(const s: SystemString): TUHash;
 begin
-  Result := UFastHashSystemString(@s);
+  Result := UFastHashPSystemString(@s);
 end;
 
 function UFastHash64SystemString(const s: SystemString): TUHash64;
 begin
-  Result := UFastHash64SystemString(@s);
+  Result := UFastHash64PSystemString(@s);
 end;
 
-function UFastHashPascalString(const s: PPascalString): TUHash;
+function UFastHashPPascalString(const s: PPascalString): TUHash;
 var
   i: Integer;
   c: USystemChar;
@@ -446,7 +450,7 @@ begin
     end;
 end;
 
-function UFastHash64PascalString(const s: PPascalString): TUHash64;
+function UFastHash64PPascalString(const s: PPascalString): TUHash64;
 var
   i: Integer;
   c: USystemChar;
@@ -1548,6 +1552,26 @@ begin
     end;
 end;
 
+function TUPascalString.Same(const t1, t2: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2);
+end;
+
+function TUPascalString.Same(const t1, t2, t3: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3);
+end;
+
+function TUPascalString.Same(const t1, t2, t3, t4: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4);
+end;
+
+function TUPascalString.Same(const t1, t2, t3, t4, t5: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5);
+end;
+
 function TUPascalString.Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean;
 var
   i: Integer;
@@ -1558,7 +1582,6 @@ begin
       Exit;
   for i := 0 to Len - 1 do
     begin
-
       s := buff[i];
       if IgnoreCase then
         if UCharIn(s, ucHiAtoZ) then
@@ -1677,12 +1700,12 @@ end;
 
 function TUPascalString.hash: TUHash;
 begin
-  Result := UFastHashPascalString(@Self);
+  Result := UFastHashPPascalString(@Self);
 end;
 
 function TUPascalString.Hash64: TUHash64;
 begin
-  Result := UFastHash64PascalString(@Self);
+  Result := UFastHash64PPascalString(@Self);
 end;
 
 function TUPascalString.GetCharCount(c: USystemChar): Integer;
@@ -1909,6 +1932,3 @@ initialization
 finalization
 
 end.
- 
- 
- 

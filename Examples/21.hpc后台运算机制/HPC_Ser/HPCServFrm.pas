@@ -98,7 +98,7 @@ begin
       Threading.TParallel.&For(0, 100000, procedure(pass: Integer)
         begin
           // 在并行处理中，因为emb的设计问题，我们无法使用 TThread.Synchronize 方法
-          // 在并行处理中，我们是可以使用zServer内核原子锁
+          // 在并行处理中，我们可以使用zServer内核原子锁
           LockObject(Sender);
           UnLockObject(Sender);
 

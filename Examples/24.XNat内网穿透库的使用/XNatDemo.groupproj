@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{DAAF4D70-EF95-41E4-81CD-EA0DFFBFF4A7}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="公网服务器\XInternet.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="内网服务器\XLan.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="XInternet">
+        <MSBuild Projects="公网服务器\XInternet.dproj"/>
+    </Target>
+    <Target Name="XInternet:Clean">
+        <MSBuild Projects="公网服务器\XInternet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XInternet:Make">
+        <MSBuild Projects="公网服务器\XInternet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLan">
+        <MSBuild Projects="内网服务器\XLan.dproj"/>
+    </Target>
+    <Target Name="XLan:Clean">
+        <MSBuild Projects="内网服务器\XLan.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLan:Make">
+        <MSBuild Projects="内网服务器\XLan.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="XInternet;XLan"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="XInternet:Clean;XLan:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="XInternet:Make;XLan:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

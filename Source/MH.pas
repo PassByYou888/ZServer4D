@@ -26,17 +26,17 @@ uses ListEngine;
 procedure BeginMemoryHook_1;
 procedure EndMemoryHook_1;
 function GetHookMemorySize_1: nativeUInt;
-function GetHookPtrList_1: TPointerHashNativeUIntList; inline;
+function GetHookPtrList_1: TPointerHashNativeUIntList;
 
 procedure BeginMemoryHook_2;
 procedure EndMemoryHook_2;
 function GetHookMemorySize_2: nativeUInt;
-function GetHookPtrList_2: TPointerHashNativeUIntList; inline;
+function GetHookPtrList_2: TPointerHashNativeUIntList;
 
 procedure BeginMemoryHook_3;
 procedure EndMemoryHook_3;
 function GetHookMemorySize_3: nativeUInt;
-function GetHookPtrList_3: TPointerHashNativeUIntList; inline;
+function GetHookPtrList_3: TPointerHashNativeUIntList;
 
 type
   TMemoryHookedState = array [0 .. 3] of Boolean;

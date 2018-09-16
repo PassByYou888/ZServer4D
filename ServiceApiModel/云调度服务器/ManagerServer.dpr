@@ -155,7 +155,7 @@ end;
 procedure TManagerServer.Progress;
 begin
   ManagerService.Progress;
-  AccessService.ProgressBackground;
+  AccessService.Progress;
 
   if RecvService.Count + SendService.Count + AccessService.Count > 0 then
       CoreClasses.CheckThreadSynchronize(1)

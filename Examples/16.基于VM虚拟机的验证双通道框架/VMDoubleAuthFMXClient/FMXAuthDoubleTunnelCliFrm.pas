@@ -51,7 +51,7 @@ type
     // zs正常的通讯框架
     RecvTunnel: TCommunicationFrameworkWithP2PVM_Client;
     SendTunnel: TCommunicationFrameworkWithP2PVM_Client;
-    client    : TCommunicationFramework_DoubleTunnelClient;
+    client: TCommunicationFramework_DoubleTunnelClient;
   end;
 
 var
@@ -107,16 +107,20 @@ begin
   if not VMTunnel.Connect(HostEdit.Text, 9899) then
       exit;
 
-  VMTunnel.ClientIO.OpenP2PVMTunnel(True, procedure(const VMauthState: Boolean)
+  VMTunnel.ClientIO.BuildP2PAuthToken(procedure(const BuildAuthState: Boolean)
     begin
-      // 如果VM隧道握手成功
-      if VMauthState then
-        begin
-          // 将客户端框架绑定到隧道中
-          // 这里有两个客户端，我们都绑定进去
-          VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(SendTunnel);
-          VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
-        end
+      if BuildAuthState then
+          VMTunnel.ClientIO.OpenP2PVMTunnel(True, '', procedure(const VMauthState: Boolean)
+          begin
+            // 如果VM隧道握手成功
+            if VMauthState then
+              begin
+                // 将客户端框架绑定到隧道中
+                // 这里有两个客户端，我们都绑定进去
+                VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(SendTunnel);
+                VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
+              end
+          end);
     end);
 end;
 
@@ -252,7 +256,7 @@ end;
 
 procedure TFMXAuthDoubleClientForm.Timer1Timer(Sender: TObject);
 begin
-  VMTunnel.ProgressBackground;
+  VMTunnel.Progress;
   client.Progress;
   timeLabel.Text := Format('sync time:%f', [client.CadencerEngine.UpdateCurrentTime]);
 end;

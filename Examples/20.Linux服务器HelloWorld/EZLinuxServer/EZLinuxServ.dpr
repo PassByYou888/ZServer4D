@@ -133,7 +133,7 @@ begin
   // 进入主循环
   while true do
     begin
-      server.ProgressBackground;
+      server.Progress;
 
       // 延迟同步检查
       System.Classes.CheckSynchronize(10)

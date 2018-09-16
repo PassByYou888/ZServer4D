@@ -78,7 +78,7 @@ end;
 
 procedure TFMXDRClientForm.Timer1Timer(Sender: TObject);
 begin
-  client.ProgressBackground;
+  client.Progress;
 end;
 
 end.

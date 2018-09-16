@@ -70,12 +70,13 @@ type
     function Close: Boolean;
     function ErrorNo: Int64;
     function Modify: Boolean;
-    function Size: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function IORead: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function IOWrite: Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function Size: Int64;
+    function IOReadSize: Int64;
+    function IOWriteSize: Int64;
     procedure SetID(const ID: Byte);
     procedure Update;
 
+    // field
     function CreateField(const DirName, DirDescription: SystemString): Boolean;
     function CreateRootField(const RootName: SystemString): Boolean;
     function DirectoryExists(const DirName: SystemString): Boolean;
@@ -101,13 +102,12 @@ type
     function GetPathField(const DBPath: SystemString; var dest: Int64): Boolean;
     function GetPathFieldPos(const DBPath: SystemString): Int64;
     function GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
-
     function GetItemSize(const DBPath, DBItem: SystemString): Int64;
 
-    // fast lowlevel
-    function GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function GetHeader(hPos: Int64; var h: THeader): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // fast on lowlevel api support
+    function GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
+    function GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
+    function GetHeader(hPos: Int64; var h: THeader): Boolean;
     function ItemAutoOpenOrCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
     function ItemUpdate(var ItemHnd: TItemHandle): Boolean;
     function ItemClose(var ItemHnd: TItemHandle): Boolean;
@@ -123,26 +123,27 @@ type
     function ItemFastFindLast(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemFastOpen(const APos: Int64; var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemFastOpen(const APos: Int64; var ItemHnd: TItemHandle): Boolean;
     function ItemFastResetBody(const APos: Int64): Boolean;
-    function ItemFindFirst(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemFindLast(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ItemFindFirst(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFindLast(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
     function ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
-
-    function ItemRead(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemSeekStart(var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemSeekLast(var ItemHnd: TItemHandle): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemGetPos(var ItemHnd: TItemHandle): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemGetSize(var ItemHnd: TItemHandle): Int64; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ItemWrite(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    // item block operation
+    function ItemRead(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
+    function ItemSeekStart(var ItemHnd: TItemHandle): Boolean;
+    function ItemSeekLast(var ItemHnd: TItemHandle): Boolean;
+    function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean;
+    function ItemGetPos(var ItemHnd: TItemHandle): Int64;
+    function ItemGetSize(var ItemHnd: TItemHandle): Int64;
+    function ItemWrite(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
+    // recursion support
     function RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 
-    function ObjectDataHandlePtr: PTMDB; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function ObjectDataHandlePtr: PTMDB;
     property AutoFreeHandle: Boolean read GetAutoFreeHandle write SetAutoFreeHandle;
     property IsOnlyRead: Boolean read FOnlyRead;
     property NeedCreateNew: Boolean read FNeedCreateNew;
@@ -175,8 +176,8 @@ type
       DataWrited: Boolean;
       Return: Integer;
       MemorySiz: nativeUInt;
-      procedure write(var wVal: TItem); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-      procedure read(var rVal: TItem); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      procedure write(var wVal: TItem);
+      procedure read(var rVal: TItem);
     end;
 
     PObjectDataCacheField = ^TObjectDataCacheField;
@@ -189,8 +190,8 @@ type
       LastHeaderPOS: Int64;
       Return: Integer;
       MemorySiz: nativeUInt;
-      procedure write(var wVal: TField); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-      procedure read(var rVal: TField); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      procedure write(var wVal: TField);
+      procedure read(var rVal: TField);
     end;
   private
     FHeaderCache, FItemBlockCache, FItemCache, FFieldCache: TInt64HashPointerList;
@@ -272,13 +273,13 @@ const
   UserRootName = 'User';
 
 var
-  _ObjectDataMarshal: TObjectDataMarshal = nil;
+  I_ObjectDataMarshal: TObjectDataMarshal = nil;
 
 function ObjectDataMarshal: TObjectDataMarshal;
 begin
-  if _ObjectDataMarshal = nil then
-      _ObjectDataMarshal := TObjectDataMarshal.Create(0);
-  Result := _ObjectDataMarshal;
+  if I_ObjectDataMarshal = nil then
+      I_ObjectDataMarshal := TObjectDataMarshal.Create(0);
+  Result := I_ObjectDataMarshal;
 end;
 
 function TObjectDataManager.GetAutoFreeHandle: Boolean;
@@ -547,12 +548,12 @@ begin
   Result := FObjectDataHandle.IOHnd.Size;
 end;
 
-function TObjectDataManager.IORead: Int64;
+function TObjectDataManager.IOReadSize: Int64;
 begin
   Result := FObjectDataHandle.IOHnd.IORead;
 end;
 
-function TObjectDataManager.IOWrite: Int64;
+function TObjectDataManager.IOWriteSize: Int64;
 begin
   Result := FObjectDataHandle.IOHnd.IOWrite;
 end;
@@ -756,22 +757,22 @@ end;
 
 function TObjectDataManager.GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
-  Result := (dbField_ReadRec(FieldPos, FObjectDataHandle.IOHnd, F)) and (F.HeaderCount > 0);
+  Result := (dbField_ReadRec(FieldPos, FObjectDataHandle.IOHnd, f)) and (f.HeaderCount > 0);
   if Result then
     begin
-      Result := GetHeader(F.FirstHeaderPOS, h);
+      Result := GetHeader(f.FirstHeaderPOS, h);
     end;
 end;
 
 function TObjectDataManager.GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
 var
-  F: TField;
+  f: TField;
 begin
-  Result := (dbField_ReadRec(FieldPos, FObjectDataHandle.IOHnd, F)) and (F.HeaderCount > 0);
+  Result := (dbField_ReadRec(FieldPos, FObjectDataHandle.IOHnd, f)) and (f.HeaderCount > 0);
   if Result then
-      Result := GetHeader(F.LastHeaderPOS, h);
+      Result := GetHeader(f.LastHeaderPOS, h);
 end;
 
 function TObjectDataManager.GetHeader(hPos: Int64; var h: THeader): Boolean;
@@ -1529,7 +1530,7 @@ begin
     if Items[i] = db then
         Delete(i)
     else
-        Inc(i);
+        inc(i);
 end;
 
 procedure TObjectDataMarshal.Clear;
@@ -1573,7 +1574,7 @@ begin
                   FLibList.Delete(RepaInt);
                 end
               else
-                  Inc(RepaInt);
+                  inc(RepaInt);
             end;
         end
       else
@@ -1589,7 +1590,7 @@ begin
                       FLibList.Delete(RepaInt);
                     end
                   else
-                      Inc(RepaInt);
+                      inc(RepaInt);
                 end;
             end
           else
@@ -1603,7 +1604,7 @@ begin
                       FLibList.Delete(RepaInt);
                     end
                   else
-                      Inc(RepaInt);
+                      inc(RepaInt);
                 end;
             end;
         end;
@@ -1643,10 +1644,10 @@ ObjectDataMarshal();
 
 finalization
 
-if _ObjectDataMarshal <> nil then
+if I_ObjectDataMarshal <> nil then
   begin
-    DisposeObject(_ObjectDataMarshal);
-    _ObjectDataMarshal := nil;
+    DisposeObject(I_ObjectDataMarshal);
+    I_ObjectDataMarshal := nil;
   end;
 
-end. 
+end.

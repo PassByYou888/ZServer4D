@@ -260,8 +260,8 @@ begin
       p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsNormalText;
-      p^.OriginHash := FastHashSystemString(@AOriginText);
-      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -285,8 +285,8 @@ begin
       p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsPascalText;
-      p^.OriginHash := FastHashSystemString(@AOriginText);
-      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -310,8 +310,8 @@ begin
       p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsPascalComment;
-      p^.OriginHash := FastHashSystemString(@AOriginText);
-      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -335,8 +335,8 @@ begin
       p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsCText;
-      p^.OriginHash := FastHashSystemString(@AOriginText);
-      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -360,8 +360,8 @@ begin
       p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsCComment;
-      p^.OriginHash := FastHashSystemString(@AOriginText);
-      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -385,8 +385,8 @@ begin
       p^.index := GetMaxIndexNo + 1;
       p^.DefineText := AOriginText;
       p^.TextStyle := tsDFMText;
-      p^.OriginHash := FastHashSystemString(@AOriginText);
-      p^.DefineHash := FastHashSystemString(@p^.DefineText);
+      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
     end
@@ -420,7 +420,7 @@ begin
             else p^.DefineText := newDefine;
           end;
 
-          p^.DefineHash := FastHashSystemString(@p^.DefineText);
+          p^.DefineHash := FastHashPSystemString(@p^.DefineText);
         end;
     end;
 end;
@@ -442,7 +442,7 @@ var
   i: Integer;
   p: PTextTableItem;
 begin
-  hash := FastHashSystemString(@AOriginText);
+  hash := FastHashPSystemString(@AOriginText);
   for i := 0 to FList.Count - 1 do
     begin
       p := FList[i];
@@ -594,7 +594,4 @@ begin
   DisposeObject(t);
 end;
 
-end. 
- 
- 
- 
+end.

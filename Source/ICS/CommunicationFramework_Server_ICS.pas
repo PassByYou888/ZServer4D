@@ -15,7 +15,7 @@
 *)
 unit CommunicationFramework_Server_ICS;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 
@@ -27,7 +27,7 @@ uses Windows, SysUtils, Classes, Messages,
 
 type
   TCommunicationFramework_Server_ICS = class;
-  TICSContext                        = class;
+  TICSContext = class;
 
   TICSSocketThread_Server = class(TThread)
     FContext: TICSContext;
@@ -35,7 +35,7 @@ type
     FClientLoopMessageTerminated: Boolean;
     FCommunicationFramework: TCommunicationFramework_Server_ICS;
     LastProcessHandle: THandle;
-    LastProcessMsgID: UINT;
+    LastProcessMsgID: uint;
 
     constructor Create(CreateSuspended: Boolean);
     destructor Destroy; override;
@@ -51,7 +51,7 @@ type
 
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
     procedure WriteBufferClose; override;
@@ -62,13 +62,13 @@ type
 
   TICSContext = class(TCustomICSContext)
   protected
-    FTRIGGER_THREAD_PROCESS_MSGID: UINT;
-    FICSSocketThread             : TICSSocketThread_Server;
-    FClientIntf                  : TPeerClientIntfForICS;
-    FLastActiveTime              : TTimeTickValue;
-    FClientThreadPause           : Boolean;
-    FTimeOut                     : TTimeTickValue;
-    ThreadAttachAborted          : Boolean;
+    FTRIGGER_THREAD_PROCESS_MSGID: uint;
+    FICSSocketThread: TICSSocketThread_Server;
+    FClientIntf: TPeerClientIntfForICS;
+    FLastActiveTime: TTimeTickValue;
+    FClientThreadPause: Boolean;
+    FTimeOut: TTimeTickValue;
+    ThreadAttachAborted: Boolean;
   protected
     // thread sync interface
     procedure WndProc(var MsgRec: TMessage); override;
@@ -87,9 +87,9 @@ type
 
   TCommunicationFramework_Server_ICS = class(TCommunicationFrameworkServer)
   private
-    FDriver        : TCustomICSSocketServer;
-    FBindHost      : SystemString;
-    FBindPort      : Word;
+    FDriver: TCustomICSSocketServer;
+    FBindHost: SystemString;
+    FBindPort: Word;
     FStartedService: Boolean;
 
     procedure ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; error: Word);
@@ -104,7 +104,7 @@ type
 
     procedure TriggerQueueData(v: PQueueData); override;
 
-    procedure ProgressBackground; override;
+    procedure Progress; override;
 
     function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
     procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
@@ -117,8 +117,8 @@ type
 
 var
   ICSThreadCount, ICSCreatedClientCount: Integer;
-  sThSection                           : TRTLCriticalSection;
-  ICSThreadList                        : TCoreClassListForObj;
+  sThSection: TRTLCriticalSection;
+  ICSThreadList: TCoreClassListForObj;
 
 implementation
 
@@ -149,7 +149,7 @@ end;
 procedure TICSSocketThread_Server.Execute;
 var
   MsgRec: TMsg;
-  i     : Integer;
+  i: Integer;
 begin
   FContext.ThreadAttachAborted := False;
   try
@@ -271,7 +271,7 @@ begin
         if ICSThreadList[i] = Self then
             ICSThreadList.Delete(i)
         else
-            Inc(i);
+            inc(i);
       end;
     ICSThreadCount := ICSThreadList.Count;
   finally
@@ -314,7 +314,7 @@ begin
     end;
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Connected then
     if Size > 0 then
@@ -367,7 +367,7 @@ end;
 procedure TICSContext.ClientDataAvailable(Sender: TObject; error: Word);
 var
   BuffCount: Integer;
-  buff     : TBytes;
+  buff: TBytes;
 begin
   FLastActiveTime := GetTimeTickCount;
 
@@ -419,7 +419,7 @@ begin
   OnSendData := ClientSendData;
 
   MultiThreaded := True;
-  Inc(ICSCreatedClientCount);
+  inc(ICSCreatedClientCount);
 end;
 
 destructor TICSContext.Destroy;
@@ -444,7 +444,7 @@ begin
       FClientIntf := nil;
     end;
 
-  Dec(ICSCreatedClientCount);
+  dec(ICSCreatedClientCount);
 
   try
       inherited Destroy;
@@ -488,14 +488,14 @@ procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject;
 begin
   DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
   Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  Client.KeepAliveTime := 1 * 1000;     // 从心跳检查到断开的空闲时间
-  Client.KeepAliveInterval := 1 * 1000; // 心跳检查间隔
+  Client.KeepAliveTime := 1 * 1000;
+  Client.KeepAliveInterval := 1 * 1000;
 end;
 
 procedure TCommunicationFramework_Server_ICS.ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
 var
   cli: TICSContext;
-  T  : TTimeTickValue;
+  t: TTimeTickValue;
 begin
   if Count > 500 then
     begin
@@ -517,11 +517,11 @@ begin
     cli.FClientIntf := TPeerClientIntfForICS.Create(Self, cli);
     cli.FClientIntf.FContext := cli;
 
-    T := GetTimeTickCount + 5000;
+    t := GetTimeTickCount + 5000;
     while (cli.FICSSocketThread <> nil) and (not cli.FICSSocketThread.FThreadAttached) do
       begin
         TThread.Sleep(1);
-        if GetTimeTickCount > T then
+        if GetTimeTickCount > t then
             Break;
         if cli.ThreadAttachAborted then
             Break;
@@ -613,13 +613,13 @@ end;
 
 procedure TCommunicationFramework_Server_ICS.StopService;
 begin
-  while Count > 0 do
+  if Count > 0 then
     begin
       ProgressPerClient(procedure(cli: TPeerIO)
         begin
           cli.Disconnect;
         end);
-      ProgressBackground;
+      Progress;
     end;
 
   try
@@ -632,27 +632,35 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_ICS.TriggerQueueData(v: PQueueData);
+var
+  c: TPeerIO;
 begin
-  if Exists(v^.Client) then
+  c := ClientFromID[v^.ClientID];
+  if c <> nil then
     begin
-      v^.Client.PostQueueData(v);
-      TPeerClientIntfForICS(v.Client).FContext.FICSSocketThread.ProcessThreadTrigger;
+      c.PostQueueData(v);
+      TPeerClientIntfForICS(c).FContext.FICSSocketThread.ProcessThreadTrigger;
     end
   else
       DisposeQueueData(v);
 end;
 
-procedure TCommunicationFramework_Server_ICS.ProgressBackground;
+procedure TCommunicationFramework_Server_ICS.Progress;
 begin
   ProgressPerClient(procedure(cli: TPeerIO)
     begin
       TPeerClientIntfForICS(cli).FContext.ProcessClientActiveTime;
     end);
 
-  inherited ProgressBackground;
+  inherited Progress;
 
   try
       FDriver.ProcessMessages;
+  except
+  end;
+
+  try
+      CoreClasses.CheckThreadSynchronize;
   except
   end;
 end;
@@ -680,5 +688,4 @@ finalization
 DeleteCriticalSection(sThSection);
 DisposeObject(ICSThreadList);
 
-end. 
- 
+end.

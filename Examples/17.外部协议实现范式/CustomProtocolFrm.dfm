@@ -42,23 +42,41 @@ object CustomProtocolForm: TCustomProtocolForm
     Align = alTop
     BorderStyle = bsSingle
     TabOrder = 1
-    object connectButton: TButton
+    object connectOnIndyButton: TButton
       Left = 16
-      Top = 16
-      Width = 75
+      Top = 15
+      Width = 105
       Height = 25
-      Caption = 'connect'
+      Caption = 'connect on indy'
       TabOrder = 0
-      OnClick = connectButtonClick
+      OnClick = connectOnIndyButtonClick
     end
-    object WriteStringButton: TButton
-      Left = 104
-      Top = 16
-      Width = 169
+    object SendDataOnIndyButton: TButton
+      Left = 127
+      Top = 15
+      Width = 122
       Height = 25
-      Caption = 'write String with INDY'
+      Caption = 'send data on indy'
       TabOrder = 1
-      OnClick = WriteStringButtonClick
+      OnClick = SendDataOnIndyButtonClick
+    end
+    object connectOnZServerButton: TButton
+      Left = 336
+      Top = 15
+      Width = 121
+      Height = 25
+      Caption = 'connect on ZServer'
+      TabOrder = 2
+      OnClick = connectOnZServerButtonClick
+    end
+    object SendDataOnZServerButton: TButton
+      Left = 463
+      Top = 15
+      Width = 138
+      Height = 25
+      Caption = 'send data on ZServer'
+      TabOrder = 3
+      OnClick = SendDataOnZServerButtonClick
     end
   end
   object Timer: TTimer

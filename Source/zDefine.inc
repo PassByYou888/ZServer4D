@@ -11,6 +11,7 @@
   {$MODE objfpc}
   {$MODESWITCH AdvancedRecords}
   {$NOTES OFF}
+  {$STACKFRAMES OFF}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -27,8 +28,10 @@
   {$DEFINE OptimizationMemoryStreamMD5}
   {$DEFINE CriticalSimulateAtomic}
   {$DEFINE release}
+  {$UNDEF debug}
   {$DEFINE INLINE_ASM}
-{$ELSE}
+  {$R-} { range check }
+{$ELSE FPC}
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
 
@@ -54,12 +57,20 @@
   {$ENDIF}
 
   {$IFDEF release}
+  {$ELSE}
+  {$ENDIF}
+
+  {$IFDEF release}
     {$DEFINE INLINE_ASM}
   {$ELSE}
     {$UNDEF INLINE_ASM}
   {$ENDIF}
 
-{$ENDIF}
+  // {$DEFINE NatTunnel_On_ICS}
+  {$DEFINE NatTunnel_On_CrossSocket}
+  // {$DEFINE NatTunnel_On_DIOCP}
+  // {$DEFINE NatTunnel_On_Indy}
+{$ENDIF FPC}
 
 {$WARNINGS OFF}
 {$HINTS OFF}
@@ -69,6 +80,7 @@
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
 {$I+} { Input output checking }
+{$J+} { Writeable typed constants }
 {$R-} { range check }
 
 {$UNDEF CPU64}

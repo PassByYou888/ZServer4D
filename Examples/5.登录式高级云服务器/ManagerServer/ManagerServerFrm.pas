@@ -86,7 +86,7 @@ procedure TManagerServerForm.ProgressTimerTimer(Sender: TObject);
 begin
   try
     ManagerService.Progress;
-    AccessService.ProgressBackground;
+    AccessService.Progress;
     ProcessICSMessages;
 
     try
