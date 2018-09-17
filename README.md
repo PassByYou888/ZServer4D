@@ -3,7 +3,7 @@
  
 ## 介绍
 
-支持运行平台Android,IOS,Win32/64,Linux,OSX,物联网IOT(ARM Linux 18.04或则更高版，包括树莓1-3代，香橙，高通，三星)
+支持运行平台Android,IOS,Win32/64,Linux,OSX,物联网IOT(ARM Ubuntu18.04或则更高版，包括树莓1-3代，香橙，高通，三星)
 
 支持编译器：FPC3.0.4以及DelphiXE10.2和以后的版本
 
