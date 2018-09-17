@@ -342,7 +342,7 @@ uses SysUtils;
 type
   PPostBatchBackcallData_VirtualAuth = ^TPostBatchBackcallData_VirtualAuth;
 
-  TPostBatchBackcallData_VirtualAuth = packed record
+  TPostBatchBackcallData_VirtualAuth = record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
 {$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
@@ -351,7 +351,7 @@ type
 
   PGetFileInfoStruct_VirtualAuth = ^TGetFileInfoStruct_VirtualAuth;
 
-  TGetFileInfoStruct_VirtualAuth = packed record
+  TGetFileInfoStruct_VirtualAuth = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     fileName: SystemString;
@@ -362,7 +362,7 @@ type
 
   PFileMD5Struct_VirtualAuth = ^TFileMD5Struct_VirtualAuth;
 
-  TFileMD5Struct_VirtualAuth = packed record
+  TFileMD5Struct_VirtualAuth = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     fileName: SystemString;
@@ -374,7 +374,7 @@ type
 
   PRemoteFileBackcall_VirtualAuth = ^TRemoteFileBackcall_VirtualAuth;
 
-  TRemoteFileBackcall_VirtualAuth = packed record
+  TRemoteFileBackcall_VirtualAuth = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall_VirtualAuth;

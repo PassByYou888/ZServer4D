@@ -62,7 +62,7 @@ type
   //
   PDataStoreClientQueryNotify = ^TDataStoreClientQueryNotify;
 
-  TDataStoreClientQueryNotify = packed record
+  TDataStoreClientQueryNotify = record
     UserPointer: Pointer;
     UserObject: TCoreClassObject;
     UserVariant: Variant;
@@ -111,7 +111,7 @@ type
   //
   PDataStoreClientDownloadNotify = ^TDataStoreClientDownloadNotify;
 
-  TDataStoreClientDownloadNotify = packed record
+  TDataStoreClientDownloadNotify = record
     UserPointer: Pointer;
     UserObject: TCoreClassObject;
     UserVariant: Variant;
@@ -138,7 +138,7 @@ type
   {$ENDIF}
   PStorePosTransformNotify = ^TStorePosTransformNotify;
 
-  TStorePosTransformNotify = packed record
+  TStorePosTransformNotify = record
     OnDoneCall: TStorePosTransformNotifyCall;
     OnDoneMethod: TStorePosTransformNotifyMethod;
     {$IFNDEF FPC}
@@ -148,7 +148,7 @@ type
   end;
 
   //
-  TPipeState = packed record
+  TPipeState = record
     WriteOutputDB, Activted, SyncToClient, MemoryMode, Paused: Boolean;
     DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;

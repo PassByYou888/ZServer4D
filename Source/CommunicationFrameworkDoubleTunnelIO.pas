@@ -469,7 +469,7 @@ uses SysUtils;
 type
   PPostBatchBackcallData = ^TPostBatchBackcallData;
 
-  TPostBatchBackcallData = packed record
+  TPostBatchBackcallData = record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
 {$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
@@ -478,7 +478,7 @@ type
 
   PGetFileInfoStruct = ^TGetFileInfoStruct;
 
-  TGetFileInfoStruct = packed record
+  TGetFileInfoStruct = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     fileName: SystemString;
@@ -490,7 +490,7 @@ type
 
   PFileMD5Struct = ^TFileMD5Struct;
 
-  TFileMD5Struct = packed record
+  TFileMD5Struct = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     fileName: SystemString;
@@ -503,7 +503,7 @@ type
 
   PRemoteFileBackcall = ^TRemoteFileBackcall;
 
-  TRemoteFileBackcall = packed record
+  TRemoteFileBackcall = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall;

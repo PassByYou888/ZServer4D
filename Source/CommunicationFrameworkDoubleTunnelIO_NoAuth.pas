@@ -311,7 +311,7 @@ uses SysUtils;
 type
   PPostBatchBackcallData_NoAuth = ^TPostBatchBackcallData_NoAuth;
 
-  TPostBatchBackcallData_NoAuth = packed record
+  TPostBatchBackcallData_NoAuth = record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
 {$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
@@ -320,7 +320,7 @@ type
 
   PGetFileInfoStruct_NoAuth = ^TGetFileInfoStruct_NoAuth;
 
-  TGetFileInfoStruct_NoAuth = packed record
+  TGetFileInfoStruct_NoAuth = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     fileName: SystemString;
@@ -331,7 +331,7 @@ type
 
   PFileMD5Struct_NoAuth = ^TFileMD5Struct_NoAuth;
 
-  TFileMD5Struct_NoAuth = packed record
+  TFileMD5Struct_NoAuth = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     fileName: SystemString;
@@ -343,7 +343,7 @@ type
 
   PRemoteFileBackcall_NoAuth = ^TRemoteFileBackcall_NoAuth;
 
-  TRemoteFileBackcall_NoAuth = packed record
+  TRemoteFileBackcall_NoAuth = record
     UserData: Pointer;
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall_NoAuth;

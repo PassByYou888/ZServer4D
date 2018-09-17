@@ -9,6 +9,9 @@
         <Projects Include="内网服务器\XLan.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="内网服务器(移动平台)\XLanMobile.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,14 +38,23 @@
     <Target Name="XLan:Make">
         <MSBuild Projects="内网服务器\XLan.dproj" Targets="Make"/>
     </Target>
+    <Target Name="XLanMobile">
+        <MSBuild Projects="内网服务器(移动平台)\XLanMobile.dproj"/>
+    </Target>
+    <Target Name="XLanMobile:Clean">
+        <MSBuild Projects="内网服务器(移动平台)\XLanMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLanMobile:Make">
+        <MSBuild Projects="内网服务器(移动平台)\XLanMobile.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="XInternet;XLan"/>
+        <CallTarget Targets="XInternet;XLan;XLanMobile"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="XInternet:Clean;XLan:Clean"/>
+        <CallTarget Targets="XInternet:Clean;XLan:Clean;XLanMobile:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="XInternet:Make;XLan:Make"/>
+        <CallTarget Targets="XInternet:Make;XLan:Make;XLanMobile:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

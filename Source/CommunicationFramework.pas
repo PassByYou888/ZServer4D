@@ -36,7 +36,7 @@ type
   PIPV6 = ^TIPV6;
 
   TConsoleMethod = procedure(Sender: TPeerIO; ResultData: SystemString) of object;
-  TStreamMethod = procedure(Sender: TPeerIO; ResultData: TDataFrameEngine) of object;
+  TStreamMethod =  procedure(Sender: TPeerIO; ResultData: TDataFrameEngine) of object;
   TStreamParamMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine) of object;
 
   TStateCall = procedure(const State: Boolean);
@@ -54,7 +54,7 @@ type
 {$ENDIF FPC}
   TQueueState = (qsUnknow, qsSendConsoleCMD, qsSendStreamCMD, qsSendDirectConsoleCMD, qsSendDirectStreamCMD, qsSendBigStream, qsSendCompleteBuffer);
 
-  TQueueData = packed record
+  TQueueData = record
     State: TQueueState;
     ClientID: Cardinal;
     Cmd: SystemString;
@@ -207,7 +207,7 @@ type
 
   PBigStreamBatchPostData = ^TBigStreamBatchPostData;
 
-  TBigStreamBatchPostData = packed record
+  TBigStreamBatchPostData = record
     Source: TMemoryStream64;
     CompletedBackcallPtr: UInt64;
     RemoteMD5: UnicodeMixedLib.TMD5;
@@ -1010,7 +1010,7 @@ type
 
   Pp2pVMFragmentPackage = ^Tp2pVMFragmentPackage;
 
-  Tp2pVMFragmentPackage = packed record
+  Tp2pVMFragmentPackage = record
   public
     buffSiz: Cardinal;
     frameworkID: Cardinal;
@@ -1054,7 +1054,7 @@ type
   // p2p VM listen service
   Pp2pVMListen = ^Tp2pVMListen;
 
-  Tp2pVMListen = packed record
+  Tp2pVMListen = record
     frameworkID: Cardinal;
     ListenHost: TIPV6;
     ListenPort: Word;
@@ -1152,7 +1152,7 @@ type
 
   TCommunicationFrameworkWithP2PVM = class(TCoreClassInterfacedObject)
   private type
-    TOnEcho = packed record
+    TOnEcho = record
       OnEchoCall: TStateCall;
       OnEchoMethod: TStateMethod;
 {$IFNDEF FPC} OnEchoProc: TStateProc; {$ENDIF FPC}
@@ -1271,7 +1271,7 @@ type
   TProgressBackgroundProc = procedure();
   TProgressBackgroundMethod = procedure() of object;
 
-const
+var
   // communication data token
   c_DefaultConsoleToken: Byte = $F1;
   c_DefaultStreamToken: Byte = $2F;
@@ -1285,18 +1285,19 @@ const
   // user custom tail verify token
   c_DataTailToken: Cardinal = $F1F1F1F1;
 
-  // system command
-  C_BuildP2PAuthToken: SystemString = 'BuildP2PAuthToken';
-  C_InitP2PTunnel: SystemString = 'InitP2PTunnel';
-  C_CloseP2PTunnel: SystemString = 'CloseP2PTunnel';
-  C_CipherModel: SystemString = 'CipherModel';
-  C_Wait: SystemString = 'Wait';
+  // dostatus id
+  c_DefaultDoStatusID: Integer = $0FFFFFFF;
 
   // vm auth token size
   C_VMAuthSize: Integer = 2048;
 
-  // dostatus id
-  c_DefaultDoStatusID: Integer = $0FFFFFFF;
+const
+  // system command
+  C_BuildP2PAuthToken = 'BuildP2PAuthToken';
+  C_InitP2PTunnel = 'InitP2PTunnel';
+  C_CloseP2PTunnel = 'CloseP2PTunnel';
+  C_CipherModel = 'CipherModel';
+  C_Wait = 'Wait';
 
 var
   // global progress backcall
@@ -9060,7 +9061,7 @@ begin
   end;
 
   if not FQuietMode then
-      DoStatus('Close VM P2P Tunnel' + FPhysicsTunnel.PeerIP);
+      DoStatus('Close VM P2P Tunnel ' + FPhysicsTunnel.PeerIP);
 
   FPhysicsTunnel := nil;
 end;
