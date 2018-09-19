@@ -18,19 +18,15 @@
 
 unit DataFrameEngine;
 
+{$INCLUDE zDefine.inc}
+
 interface
 
 uses SysUtils, CoreClasses, Types, Variants,
   ListEngine, MemoryStream64, DoStatusIO,
   GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
-  {$IFNDEF FPC}
-  JsonDataObjects,
-  {$ENDIF}
-  CoreCompress,
-  UnicodeMixedLib, PascalStrings;
-
-{$INCLUDE zDefine.inc}
-
+{$IFNDEF FPC} JsonDataObjects, {$ENDIF}
+  CoreCompress, UnicodeMixedLib, PascalStrings;
 
 type
   TDataFrameBase = class(TCoreClassObject)
@@ -42,10 +38,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); virtual; abstract;
     procedure SaveToStream(stream: TMemoryStream64); virtual; abstract;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); virtual; abstract;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); virtual; abstract;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; virtual; abstract;
   end;
 
@@ -59,10 +55,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: SystemString read FBuffer write FBuffer;
@@ -78,10 +74,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Integer read FBuffer write FBuffer;
@@ -97,10 +93,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Cardinal read FBuffer write FBuffer;
@@ -116,10 +112,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Word read FBuffer write FBuffer;
@@ -135,10 +131,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Byte read FBuffer write FBuffer;
@@ -154,10 +150,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Single read FBuffer write FBuffer;
@@ -173,10 +169,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Double read FBuffer write FBuffer;
@@ -197,10 +193,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer(idx: Integer): Integer;
@@ -224,10 +220,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer(idx: Integer): ShortInt;
@@ -258,10 +254,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer(idx: Integer): Byte;
@@ -284,10 +280,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer(idx: Integer): Single;
@@ -311,10 +307,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer(idx: Integer): Double;
@@ -338,10 +334,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer(idx: Integer): Int64;
@@ -361,10 +357,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     function GetBuffer: TCoreClassStream;
@@ -382,10 +378,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Variant read FBuffer write FBuffer;
@@ -401,10 +397,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: Int64 read FBuffer write FBuffer;
@@ -420,10 +416,10 @@ type
 
     procedure LoadFromStream(stream: TMemoryStream64); override;
     procedure SaveToStream(stream: TMemoryStream64); override;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure LoadFromJson(jarry: TJsonArray; idx: Integer); override;
     procedure SaveToJson(jarry: TJsonArray; idx: Integer); override;
-    {$ENDIF}
+{$ENDIF}
     function ComputeEncodeSize: Integer; override;
 
     property buffer: UInt64 read FBuffer write FBuffer;
@@ -476,7 +472,7 @@ type
     procedure ReadVariantList(output: THashVariantList);    { inline }
     procedure ReadSectionText(output: TSectionTextData);    { inline }
     procedure ReadTextSection(output: TSectionTextData);    { inline }
-    {$IFNDEF FPC} procedure ReadJson(output: TJsonObject); { inline }    {$ENDIF}
+{$IFNDEF FPC} procedure ReadJson(output: TJsonObject); { inline }    {$ENDIF}
     function ReadRect: TRect;                 { inline }
     function ReadRectf: TRectf;               { inline }
     function ReadPoint: TPoint;               { inline }
@@ -555,7 +551,7 @@ type
     procedure WriteVariantList(v: THashVariantList);         { inline }
     procedure WriteSectionText(v: TSectionTextData);         { inline }
     procedure WriteTextSection(v: TSectionTextData);         { inline }
-    {$IFNDEF FPC} procedure WriteJson(v: TJsonObject); { inline }    {$ENDIF}
+{$IFNDEF FPC} procedure WriteJson(v: TJsonObject); { inline }    {$ENDIF}
     procedure WriteFile(fn: SystemString);         { inline }
     procedure WriteRect(v: TRect);                 { inline }
     procedure WriteRectf(v: TRectf);               { inline }
@@ -605,7 +601,7 @@ type
     procedure ReadVariantList(idx: Integer; output: THashVariantList);    { inline }
     procedure ReadSectionText(idx: Integer; output: TSectionTextData);    { inline }
     procedure ReadTextSection(idx: Integer; output: TSectionTextData);    { inline }
-    {$IFNDEF FPC} procedure ReadJson(idx: Integer; output: TJsonObject); { inline }    {$ENDIF}
+{$IFNDEF FPC} procedure ReadJson(idx: Integer; output: TJsonObject); { inline }    {$ENDIF}
     function ReadRect(idx: Integer): TRect;                 { inline }
     function ReadRectf(idx: Integer): TRectf;               { inline }
     function ReadPoint(idx: Integer): TPoint;               { inline }
@@ -633,11 +629,11 @@ type
     function EncodeTo(output: TCoreClassStream): Integer; overload;
 
     // json support
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     procedure EncodeAsPublicJson(output: TCoreClassStream);
     procedure EncodeAsJson(output: TCoreClassStream);
     procedure DecodeFromJson(stream: TCoreClassStream);
-    {$ENDIF}
+{$ENDIF}
     //
     // ZLib compressor
     function EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
@@ -707,7 +703,7 @@ type
     procedure WriteHashStringList(v: THashStringList);       { virtual; }
     procedure WriteVariantList(v: THashVariantList);         { virtual; }
     procedure WriteSectionText(v: TSectionTextData);         { virtual; }
-    {$IFNDEF FPC} procedure WriteJson(v: TJsonObject); { virtual; }    {$ENDIF}
+{$IFNDEF FPC} procedure WriteJson(v: TJsonObject); { virtual; }    {$ENDIF}
     procedure WriteRect(v: TRect);                 { virtual; }
     procedure WriteRectf(v: TRectf);               { virtual; }
     procedure WritePoint(v: TPoint);               { virtual; }
@@ -760,7 +756,7 @@ type
     procedure ReadHashStringList(output: THashStringList);    { virtual; }
     procedure ReadVariantList(output: THashVariantList);      { virtual; }
     procedure ReadSectionText(output: TSectionTextData);      { virtual; }
-    {$IFNDEF FPC} procedure ReadJson(output: TJsonObject); { virtual; }    {$ENDIF}
+{$IFNDEF FPC} procedure ReadJson(output: TJsonObject); { virtual; }    {$ENDIF}
     function ReadRect: TRect;                 { virtual; }
     function ReadRectf: TRectf;               { virtual; }
     function ReadPoint: TPoint;               { virtual; }
@@ -2785,11 +2781,11 @@ var
   d: TMemoryStream64;
 begin
   d := TMemoryStream64.Create;
-  {$IFDEF FPC}
+{$IFDEF FPC}
   v.SaveToStream(d);
-  {$ELSE}
+{$ELSE}
   v.SaveToStream(d, TEncoding.UTF8);
-  {$ENDIF}
+{$ENDIF}
   d.Position := 0;
   WriteStream(d);
   DisposeObject(d);
@@ -3142,11 +3138,11 @@ begin
   else if _Obj is TDataFrameInt64 then
       Result := IntToStr(TDataFrameInt64(_Obj).buffer)
   else if _Obj is TDataFrameUInt64 then
-    {$IFDEF FPC}
+{$IFDEF FPC}
     Result := IntToStr(TDataFrameUInt64(_Obj).buffer)
-    {$ELSE}
+{$ELSE}
     Result := UIntToStr(TDataFrameUInt64(_Obj).buffer)
-    {$ENDIF}
+{$ENDIF}
   else
       Result := '';
 end;
@@ -3523,11 +3519,11 @@ begin
   ReadStream(idx, d);
   d.Position := 0;
 
-  {$IFDEF FPC}
+{$IFDEF FPC}
   output.LoadFromStream(d);
-  {$ELSE}
+{$ELSE}
   output.LoadFromStream(d, TEncoding.UTF8);
-  {$ENDIF}
+{$ENDIF}
   DisposeObject(d);
 end;
 
@@ -4992,7 +4988,4 @@ begin
   FEngine.Reader.read(aBuf, aCount);
 end;
 
-end. 
- 
- 
- 
+end.

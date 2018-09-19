@@ -658,11 +658,6 @@ begin
       FDriver.ProcessMessages;
   except
   end;
-
-  try
-      CoreClasses.CheckThreadSynchronize;
-  except
-  end;
 end;
 
 function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;

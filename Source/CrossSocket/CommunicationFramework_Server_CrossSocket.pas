@@ -437,7 +437,7 @@ begin
       end);
 
     while not Completed do
-        CheckSynchronize(5);
+        CheckThreadSynchronize(5);
 
     FBindPort := Port;
     FBindHost := Host;
@@ -483,11 +483,6 @@ end;
 procedure TCommunicationFramework_Server_CrossSocket.Progress;
 begin
   inherited Progress;
-
-  try
-      CoreClasses.CheckThreadSynchronize;
-  except
-  end;
 end;
 
 function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;

@@ -42,7 +42,7 @@ type
 
   TSymbolExpression = class;
 
-  TExpressionListData = packed record
+  TExpressionListData = record
     DeclType: TExpressionDeclType; // declaration
     charPos: Integer;              // char pos
     Symbol: TSymbolOperation;      // symbol
@@ -221,7 +221,7 @@ const
     soShl, soShr]);
 
 type
-  TSymbolOperationType = packed record
+  TSymbolOperationType = record
     State: TSymbolOperation;
     Decl: SystemString;
   end;

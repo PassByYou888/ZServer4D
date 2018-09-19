@@ -31,6 +31,7 @@
   {$UNDEF debug}
   {$DEFINE INLINE_ASM}
   {$R-} { range check }
+  {$O+} { optimization }
 {$ELSE FPC}
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -57,13 +58,19 @@
   {$ENDIF}
 
   {$IFDEF release}
-  {$ELSE}
-  {$ENDIF}
-
-  {$IFDEF release}
     {$DEFINE INLINE_ASM}
+    {$R-} { range check }
+    {$I-} { Input output checking }
+    {$IFDEF MSWINDOWS}
+      {$O+} { optimization }
+    {$ELSE MSWINDOWS}
+      {$O-} { optimization }
+    {$ENDIF MSWINDOWS}
   {$ELSE}
     {$UNDEF INLINE_ASM}
+    {$R-} { range check }
+    {$I-} { Input output checking }
+    {$O-} { optimization }
   {$ENDIF}
 
   // {$DEFINE NatTunnel_On_ICS}
@@ -76,12 +83,9 @@
 {$HINTS OFF}
 {$H+} { long string }
 {$A+} { Word Align Data }
-{$O-} { optimization }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$I+} { Input output checking }
 {$J+} { Writeable typed constants }
-{$R-} { range check }
 
 {$UNDEF CPU64}
 

@@ -17,7 +17,6 @@ uses
   System.Variants,
   PascalStrings,
   CommunicationFramework,
-  CommunicationFramework_Server_Indy,
   CommunicationFramework_Server_CrossSocket,
   DoStatusIO,
   CoreClasses,
@@ -32,7 +31,7 @@ uses
   BaiduTranslateClient in 'Client.Lib\BaiduTranslateClient.pas';
 
 (*
-  百度翻译服务器使用delphi xe10.1.2所编写
+  百度翻译服务器使用delphi xe10.2所编写
   如果要在linux下使用，请更换delphi xe10.2.2或以上版本，如果我们在平台下拉项会找不到linux，就新建一个console工程，将代码复制过去即可
 
   百度翻译的http查询是在线程中干的
@@ -109,7 +108,7 @@ begin
   sp^.destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
   sp^.s := InData.Reader.ReadString;                         // 这里不做字符串修正，把字符串修正改在客户端去做
   sp^.UsedCache := InData.Reader.ReadBool;                   // 是否使用cache数据库
-  sp^.Hash64 := FastHash64PPascalString(@sp^.s);              // 高速hash
+  sp^.Hash64 := FastHash64PPascalString(@sp^.s);             // 高速hash
 
   // 从cache数据库查询我们的翻译，效率更好
   MiniDB.QueryDB(
@@ -242,7 +241,7 @@ begin
   destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
   s := InData.Reader.ReadString;                         // 源文
   d := InData.Reader.ReadString;                         // 翻译
-  Hash64 := FastHash64PPascalString(@s);                  // 高速hash
+  Hash64 := FastHash64PPascalString(@s);                 // 高速hash
 
   js := TJsonObject.Create;
   js.i['sl'] := Integer(sourLan);
@@ -341,10 +340,10 @@ begin
 
       // 绿色环保，避免多余开销
       if server_1.Count + server_2.Count > 0 then
-          System.Classes.CheckSynchronize(1)
+          CoreClasses.CheckThreadSynchronize(1)
       else
         begin
-          System.Classes.CheckSynchronize(100);
+          CoreClasses.CheckThreadSynchronize(100);
         end;
     end;
 

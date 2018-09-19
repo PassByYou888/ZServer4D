@@ -974,7 +974,7 @@ function USmithWatermanCompareLongString(const t1, t2: TUPascalString; const Min
 type
   PSRec = ^TSRec;
 
-  TSRec = packed record
+  TSRec = record
     s: TUPascalString;
   end;
 

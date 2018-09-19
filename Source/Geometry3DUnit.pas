@@ -25,7 +25,7 @@ type
   TVec4 = TVector;
   TVec3 = TAffineVector;
 
-  TMatrix4 = packed record
+  TMatrix4 = record
     Link: TMat4;
   public
 {$IFNDEF FPC}
@@ -50,7 +50,7 @@ type
     function Turn(angle: Single): TMatrix4;
   end;
 
-  TVector4 = packed record
+  TVector4 = record
     Link: TVec4;
   private
     function GetVec3: TVec3;
@@ -127,7 +127,7 @@ type
     function Cross(const v2: TVec4): TVector4; overload;
   end;
 
-  TVector3 = packed record
+  TVector3 = record
     Link: TVec3;
   private
     function GetVec2: TVec2;
@@ -198,7 +198,7 @@ type
     function Vec4: TVector4; overload;
   end;
 
-  TAABB = packed record
+  TAABB = record
     Min, Max: TAffineVector;
   public
     { : Resize the AABB if necessary to include p. }

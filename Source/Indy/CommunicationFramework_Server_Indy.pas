@@ -261,7 +261,7 @@ begin
   try
     while Count > 0 do
       begin
-        CheckSynchronize(1);
+        CheckThreadSynchronize(1);
       end;
   except
   end;
@@ -279,11 +279,6 @@ end;
 procedure TCommunicationFramework_Server_Indy.Progress;
 begin
   inherited Progress;
-
-  try
-      CoreClasses.CheckThreadSynchronize;
-  except
-  end;
 end;
 
 procedure TCommunicationFramework_Server_Indy.TriggerQueueData(v: PQueueData);
@@ -306,7 +301,7 @@ begin
       except
       end;
 
-      CheckSynchronize;
+      CheckThreadSynchronize;
     end;
 end;
 

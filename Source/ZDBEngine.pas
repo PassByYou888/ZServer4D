@@ -251,7 +251,7 @@ type
 
   PQueryState = ^TQueryState;
 
-  TQueryState = packed record
+  TQueryState = record
     dbEng: TDBStoreBase;
     StorePos: Int64;
     QueryHnd: PHeader;
@@ -328,7 +328,7 @@ type
 
   PRemoveQueueData = ^TRemoveQueueData;
 
-  TRemoveQueueData = packed record
+  TRemoveQueueData = record
     OnRemoveCall: TRemoveCall;
     OnRemoveMethod: TRemoveMethod;
 {$IFNDEF FPC}
@@ -2077,7 +2077,7 @@ begin
 
   // wait thread
   while not FQueryThreadTerminate do
-      Classes.CheckSynchronize;
+      CheckThreadSynchronize;
 
   for i := 0 to FQueryQueue.Count - 1 do
       DisposeObject(FQueryQueue[i]);
@@ -2886,7 +2886,7 @@ end;
 procedure TDBStoreBase.WaitQueryThread;
 begin
   while not FQueryThread.Paused do
-      Classes.CheckSynchronize;
+      CheckThreadSynchronize;
 end;
 
 procedure TDBStoreBase.WaitQueryThread(waitTime: TTimeTickValue);
@@ -2895,7 +2895,7 @@ var
 begin
   st := GetTimeTick + waitTime;
   while (not FQueryThread.Paused) and (waitTime > 0) and (GetTimeTick < st) do
-      Classes.CheckSynchronize;
+      CheckThreadSynchronize;
 end;
 
 function TDBStoreBase.QueryProcessing: Boolean;

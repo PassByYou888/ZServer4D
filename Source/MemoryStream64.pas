@@ -143,9 +143,11 @@ function DecompressStream(DataPtr: Pointer; siz: NativeInt; dest: TCoreClassStre
 function DecompressStream(sour: TCoreClassStream; dest: TCoreClassStream): Boolean; overload;
 function DecompressStreamToPtr(sour: TCoreClassStream; var dest: Pointer): Boolean;
 
+procedure DoStatus(const v: TMemoryStream64); overload;
+
 implementation
 
-uses UnicodeMixedLib;
+uses UnicodeMixedLib, DoStatusIO;
 
 procedure TMemoryStream64.SetPointer(buffPtr: Pointer; const BuffSize: nativeUInt);
 begin
@@ -709,6 +711,25 @@ begin
   except
   end;
 end;
+
+procedure DoStatus(const v: TMemoryStream64);
+var
+  p: PByte;
+  i: Integer;
+  n: SystemString;
+begin
+  p := v.Memory;
+  for i := 0 to v.Size - 1 do
+    begin
+      if n <> '' then
+          n := n + ',' + IntToStr(p^)
+      else
+          n := IntToStr(p^);
+      inc(p);
+    end;
+  DoStatus(IntToHex(NativeInt(v), SizeOf(Pointer)) + ':' + n);
+end;
+
 
 initialization
 

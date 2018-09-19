@@ -27,7 +27,13 @@ begin
     XServ.OpenTunnel;
 
     while true do
+      begin
         XServ.Progress;
+        try
+            CoreClasses.CheckThreadSynchronize;
+        except
+        end;
+      end;
 
   except
     on E: Exception do

@@ -22,7 +22,7 @@ uses SysUtils, CoreClasses, DataFrameEngine, ListEngine, UnicodeMixedLib,
 type
   TTranlateStyle = (tsPascalText, tsPascalComment, tsCText, tsCComment, tsNormalText, tsDFMText);
 
-  TTextTableItem = packed record
+  TTextTableItem = record
     // origin info
     OriginText: SystemString;
     Category: SystemString;

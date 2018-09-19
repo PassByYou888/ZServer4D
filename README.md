@@ -47,6 +47,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 - Ubuntu18.04 x86+x64 Server:only fpc3.0.4 Synapse(C/S OK) 
 - Ubuntu18.04 arm32+arm neon Server:only fpc3.0.4 Synapse(C/S OK)
 - Ubuntu18.04 arm32+arm neon desktop:only fpc3.0.4 compile ok,no test on run.  
+- Ubuntu16.04 Mate arm32 desktop:only fpc3.0.4 compile ok, test passed  
 
 
 ## 文档
@@ -158,6 +159,23 @@ ZServer4D内置的客户端接口，某些库采用的是用完抛弃的设计�
 
 
 ## 最后一更新日志
+
+### 2018-9-18
+
+新平台，新平台测试通过，在新平台树莓派3B+，操作系统 Ubuntu16.04 Mate 下测试成功
+
+新增几个技术文档
+
+**DoStatusIO.pas库**
+
+- 优化，干掉后来线程刷新，改用DoStatus方法替代线程，最简单的使用方法:在你的主循环中，加一句DoStatus不要给参数
+- 优化，减少对某些库的依赖性
+
+**其它优化**
+
+- 优化，FPC3.0.4编译出来的程序，整体性能向前提升10%
+- 优化，Delphi编译出来的程序，整体性能向前提升10%
+- 优化，精细调整服务器主循环：特别说明，在Console模式下后台服务器程序中，必须加上线程同步检查：CheckThreadSynchronize，否则系统Console后台不能正常工作
 
 ### 2018-9-15
 

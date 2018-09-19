@@ -95,7 +95,7 @@ type
 
   PTexPoint = ^TTexPoint;
 
-  TTexPoint = packed record
+  TTexPoint = record
     s, t: Single;
   end;
 
@@ -210,7 +210,7 @@ type
   // q = ([x, y, z], w)
   PQuaternion = ^TQuaternion;
 
-  TQuaternion = packed record
+  TQuaternion = record
     ImagPart: TAffineVector;
     RealPart: Single;
   end;
@@ -218,11 +218,11 @@ type
   PQuaternionArray = ^TQuaternionArray;
   TQuaternionArray = array [0 .. MaxInt shr 5] of TQuaternion;
 
-  TRectangle = packed record
+  TRectangle = record
     Left, Top, width, height: Integer;
   end;
 
-  TFrustum = packed record
+  TFrustum = record
     pLeft, pTop, pRight, pBottom, pNear, pFar: THmgPlane;
   end;
 

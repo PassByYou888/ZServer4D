@@ -136,7 +136,10 @@ begin
       server.Progress;
 
       // ÑÓ³ÙÍ¬²½¼ì²é
-      System.Classes.CheckSynchronize(10)
+      try
+          CoreClasses.CheckThreadSynchronize(10);
+      except
+      end;
     end;
 
 end.

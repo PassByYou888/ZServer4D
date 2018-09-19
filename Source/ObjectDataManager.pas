@@ -164,7 +164,7 @@ type
 
     PObjectDataCacheItem = ^TObjectDataCacheItem;
 
-    TObjectDataCacheItem = packed record
+    TObjectDataCacheItem = record
       Description: U_String;
       ExtID: Byte;
       FirstBlockPOS: Int64;
@@ -182,7 +182,7 @@ type
 
     PObjectDataCacheField = ^TObjectDataCacheField;
 
-    TObjectDataCacheField = packed record
+    TObjectDataCacheField = record
       UpLevelFieldPOS: Int64;
       Description: U_String;
       HeaderCount: Int64;

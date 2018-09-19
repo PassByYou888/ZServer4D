@@ -345,11 +345,6 @@ end;
 procedure TCommunicationFramework_Server_Synapse.Progress;
 begin
   inherited Progress;
-
-  try
-      CoreClasses.CheckThreadSynchronize;
-  except
-  end;
 end;
 
 procedure TCommunicationFramework_Server_Synapse.CloseAll;

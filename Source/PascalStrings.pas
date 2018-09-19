@@ -966,7 +966,7 @@ function SmithWatermanCompareLongString(const t1, t2: TPascalString; const MinDi
 type
   PSRec = ^TSRec;
 
-  TSRec = packed record
+  TSRec = record
     s: TPascalString;
   end;
 

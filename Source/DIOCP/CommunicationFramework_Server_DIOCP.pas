@@ -292,11 +292,6 @@ end;
 procedure TCommunicationFramework_Server_DIOCP.Progress;
 begin
   inherited Progress;
-
-  try
-      CoreClasses.CheckThreadSynchronize;
-  except
-  end;
 end;
 
 function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;

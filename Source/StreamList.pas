@@ -24,7 +24,7 @@ uses SysUtils, ObjectDataManager, ItemStream, CoreClasses, PascalStrings, ListEn
 type
   THashStreamList = class;
 
-  THashStreamListData = packed record
+  THashStreamListData = record
     qHash: THash;
     LowerCaseName, OriginName: SystemString;
     stream: TItemStream;

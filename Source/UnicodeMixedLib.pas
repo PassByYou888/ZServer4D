@@ -86,7 +86,7 @@ type
 
   U_Stream = TCoreClassStream;
 
-  TIOHnd = packed record
+  TIOHnd = record
     IsOnlyRead: Boolean;
     OpenFlags: Boolean;
     AutoFree: Boolean;
@@ -104,7 +104,7 @@ type
     Return: Integer;
   end;
 
-  U_FixedLengthString = packed record
+  U_FixedLengthString = record
     Len: Byte;
     Data: packed array [0 .. C_FixedLengthStringSize] of Byte;
   end;
@@ -3410,7 +3410,7 @@ begin
 end;
 
 type
-  TByte4 = packed record
+  TByte4 = record
     b1: Byte;
     b2: Byte;
     b3: Byte;
@@ -3419,7 +3419,7 @@ type
 
   PByte4 = ^TByte4;
 
-  TByte3 = packed record
+  TByte3 = record
     b1: Byte;
     b2: Byte;
     b3: Byte;
@@ -4239,7 +4239,7 @@ type
   TArrayOf56Bytes = array [1 .. 56] of Byte;
   TArrayOf64Bytes = array [1 .. 64] of Byte;
 
-  TDesData = packed record
+  TDesData = record
     InputValue: TArrayOf64Bytes;
     OutputValue: TArrayOf64Bytes;
     RoundKeys: array [1 .. 16] of TArrayOf48Bytes;

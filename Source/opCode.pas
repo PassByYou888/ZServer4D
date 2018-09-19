@@ -31,7 +31,7 @@ type
 
   POpData = ^opData;
 
-  opData = packed record
+  opData = record
     Op: TOpCode;
     Value: Variant;
     ValueType: TOpValueType;
@@ -263,7 +263,7 @@ implementation
 type
   PopRTproc = ^TopRTproc;
 
-  TopRTproc = packed record
+  TopRTproc = record
     Param: TOpParam;
     Name: SystemString;
     OnOpCall: TOnOpCall;
@@ -272,7 +272,7 @@ type
     procedure Init;
   end;
 
-  opRegData = packed record
+  opRegData = record
     opClass: opClass;
     OpName: TPascalString;
     hash: Cardinal;

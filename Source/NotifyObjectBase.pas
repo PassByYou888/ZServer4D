@@ -24,7 +24,7 @@ uses Variants, CoreClasses, DataFrameEngine, Cadencer;
 type
   TNotifyBase = class(TCoreClassInterfacedObject)
   protected
-    FNotifyList  : TCoreClassListForObj;
+    FNotifyList: TCoreClassListForObj;
     FSaveRegisted: TCoreClassListForObj;
     procedure DeleteSaveNotifyIntf(p: TNotifyBase);
   public
@@ -42,19 +42,17 @@ type
   end;
 
   TNProgressPost = class;
-  TNPostExecute  = class;
+  TNPostExecute = class;
 
-  TNPostExecuteCall   = procedure(Sender: TNPostExecute);
+  TNPostExecuteCall = procedure(Sender: TNPostExecute);
   TNPostExecuteMethod = procedure(Sender: TNPostExecute) of object;
 
-  {$IFNDEF FPC}
-  TNPostExecuteProc = reference to procedure(Sender: TNPostExecute);
-  {$ENDIF}
+{$IFNDEF FPC} TNPostExecuteProc = reference to procedure(Sender: TNPostExecute); {$ENDIF}
 
-  TNPostExecute = class(TCoreClassInterfacedObject)
+  TNPostExecute = class(TCoreClassObject)
   private
-    FOwner       : TNProgressPost;
-    FDataEng     : TDataFrameEngine;
+    FOwner: TNProgressPost;
+    FDataEng: TDataFrameEngine;
     ProcessedTime: Double;
   public
     Data1: TCoreClassObject;
@@ -64,13 +62,11 @@ type
     Data5: Pointer;
     Delay: Double;
 
-    OnExecuteCall  : TNPostExecuteCall;
+    OnExecuteCall: TNPostExecuteCall;
     OnExecuteMethod: TNPostExecuteMethod;
-    {$IFNDEF FPC}
-    OnExecuteProc: TNPostExecuteProc;
-    {$ENDIF}
+{$IFNDEF FPC} OnExecuteProc: TNPostExecuteProc; {$ENDIF}
     property DataEng: TDataFrameEngine read FDataEng;
-    property Owner  : TNProgressPost read FOwner;
+    property Owner: TNProgressPost read FOwner;
 
     constructor Create; virtual;
     destructor Destroy; override;
@@ -82,12 +78,12 @@ type
   TNProgressPost = class(TCoreClassInterfacedObject)
   protected
     FPostProcessIsRun: Boolean;
-    FPostExecuteList : TCoreClassListForObj;
-    FPostClass       : TNPostExecuteClass;
-    FBusy            : Boolean;
-    FCurrentExecute  : TNPostExecute;
-    FBreakProgress   : Boolean;
-    FPaused          : Boolean;
+    FPostExecuteList: TCoreClassListForObj;
+    FPostClass: TNPostExecuteClass;
+    FBusy: Boolean;
+    FCurrentExecute: TNPostExecute;
+    FBreakProgress: Boolean;
+    FPaused: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -108,11 +104,11 @@ type
     function PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
     function PostExecute(Delay: Double; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
 
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     function PostExecute(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecute(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecute(Delay: Double; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
-    {$ENDIF}
+{$ENDIF}
     procedure Delete(p: TNPostExecute); overload; virtual;
 
     procedure Progress(deltaTime: Double);
@@ -233,9 +229,9 @@ begin
 
   OnExecuteCall := nil;
   OnExecuteMethod := nil;
-  {$IFNDEF FPC}
+{$IFNDEF FPC}
   OnExecuteProc := nil;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 destructor TNPostExecute.Destroy;
@@ -281,7 +277,7 @@ begin
       end;
     end;
 
-  {$IFNDEF FPC}
+{$IFNDEF FPC}
   if Assigned(OnExecuteProc) then
     begin
       FDataEng.Reader.index := 0;
@@ -290,7 +286,7 @@ begin
       except
       end;
     end;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 constructor TNProgressPost.Create;
@@ -316,15 +312,20 @@ procedure TNProgressPost.ResetPost;
 var
   i: Integer;
 begin
+  LockObject(FPostExecuteList); // atom
   try
-    for i := 0 to FPostExecuteList.Count - 1 do
-      begin
-        TNPostExecute(FPostExecuteList[i]).FOwner := nil;
-        DisposeObject(FPostExecuteList[i]);
-      end;
+    try
+      for i := 0 to FPostExecuteList.Count - 1 do
+        begin
+          TNPostExecute(FPostExecuteList[i]).FOwner := nil;
+          DisposeObject(FPostExecuteList[i]);
+        end;
 
-    FPostExecuteList.Clear;
-  except
+      FPostExecuteList.Clear;
+    except
+    end;
+  finally
+      UnLockObject(FPostExecuteList); // atom
   end;
   FBreakProgress := True;
 end;
@@ -333,7 +334,12 @@ function TNProgressPost.PostExecute: TNPostExecute;
 begin
   Result := FPostClass.Create;
   Result.FOwner := Self;
-  FPostExecuteList.Add(Result);
+  LockObject(FPostExecuteList); // atom
+  try
+      FPostExecuteList.Add(Result);
+  finally
+      UnLockObject(FPostExecuteList); // atom
+  end;
 end;
 
 function TNProgressPost.PostExecute(DataEng: TDataFrameEngine): TNPostExecute;
@@ -419,18 +425,23 @@ procedure TNProgressPost.Delete(p: TNPostExecute);
 var
   i: Integer;
 begin
-  i := 0;
-  while i < FPostExecuteList.Count do
-    begin
-      if FPostExecuteList[i] = p then
-        begin
-          TNPostExecute(FPostExecuteList[i]).FOwner := nil;
-          DisposeObject(FPostExecuteList[i]);
-          FPostExecuteList.Delete(i);
-        end
-      else
-          inc(i);
-    end;
+  LockObject(FPostExecuteList); // atom
+  try
+    i := 0;
+    while i < FPostExecuteList.Count do
+      begin
+        if FPostExecuteList[i] = p then
+          begin
+            TNPostExecute(FPostExecuteList[i]).FOwner := nil;
+            DisposeObject(FPostExecuteList[i]);
+            FPostExecuteList.Delete(i);
+          end
+        else
+            inc(i);
+      end;
+  finally
+      UnLockObject(FPostExecuteList); // atom
+  end;
 end;
 
 procedure TNProgressPost.Progress(deltaTime: Double);
@@ -449,19 +460,24 @@ begin
 
   L := TCoreClassListForObj.Create;
 
+  LockObject(FPostExecuteList); // atom
   i := 0;
-  while i < FPostExecuteList.Count do
-    begin
-      p := FPostExecuteList[i] as TNPostExecute;
-      p.ProcessedTime := p.ProcessedTime + deltaTime;
-      if p.ProcessedTime >= p.Delay then
-        begin
-          L.Add(p);
-          FPostExecuteList.Delete(i);
-        end
-      else
-          inc(i);
-    end;
+  try
+    while i < FPostExecuteList.Count do
+      begin
+        p := FPostExecuteList[i] as TNPostExecute;
+        p.ProcessedTime := p.ProcessedTime + deltaTime;
+        if p.ProcessedTime >= p.Delay then
+          begin
+            L.Add(p);
+            FPostExecuteList.Delete(i);
+          end
+        else
+            inc(i);
+      end;
+  finally
+      UnLockObject(FPostExecuteList); // atom
+  end;
 
   i := 0;
   while (i < L.Count) do
@@ -524,7 +540,4 @@ begin
   FCadencerEng.Progress;
 end;
 
-end. 
- 
- 
- 
+end.

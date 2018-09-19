@@ -42,7 +42,7 @@ type
 
   PHashListData = ^THashListData;
 
-  THashListData = packed record
+  THashListData = record
     qHash: THash;
     LowerCaseName, OriginName: SystemString;
     Data: Pointer;
@@ -129,7 +129,7 @@ type
 
   PInt64HashListObjectStruct = ^TInt64HashListObjectStruct;
 
-  TInt64HashListObjectStruct = packed record
+  TInt64HashListObjectStruct = record
     qHash: THash;
     i64: Int64;
     Data: TCoreClassObject;
@@ -195,7 +195,7 @@ type
 
   PInt64HashListPointerStruct = ^TInt64HashListPointerStruct;
 
-  TInt64HashListPointerStruct = packed record
+  TInt64HashListPointerStruct = record
     qHash: THash;
     i64: Int64;
     Data: Pointer;
@@ -259,7 +259,7 @@ type
 
   PUInt32HashListObjectStruct = ^TUInt32HashListObjectStruct;
 
-  TUInt32HashListObjectStruct = packed record
+  TUInt32HashListObjectStruct = record
     qHash: THash;
     u32: UInt32;
     Data: TCoreClassObject;
@@ -327,7 +327,7 @@ type
 
   PPointerHashListNativeUIntStruct = ^TPointerHashListNativeUIntStruct;
 
-  TPointerHashListNativeUIntStruct = packed record
+  TPointerHashListNativeUIntStruct = record
     qHash: THash;
     NPtr: Pointer;
     Data: NativeUInt;
@@ -401,7 +401,7 @@ type
 
   THashObjectChangeEvent = procedure(Sender: THashObjectList; Name: SystemString; _OLD, _New: TCoreClassObject) of object;
 
-  THashObjectListData = packed record
+  THashObjectListData = record
     Obj: TCoreClassObject;
     OnChnage: THashObjectChangeEvent;
   end;
@@ -480,7 +480,7 @@ type
 
   THashStringChangeEvent = procedure(Sender: THashStringList; Name: SystemString; _OLD, _New: SystemString) of object;
 
-  THashStringListData = packed record
+  THashStringListData = record
     v: SystemString;
     OnChnage: THashStringChangeEvent;
   end;
@@ -601,7 +601,7 @@ type
 
   THashVariantChangeEvent = procedure(Sender: THashVariantList; Name: SystemString; _OLD, _New: Variant) of object;
 
-  THashVariantListData = packed record
+  THashVariantListData = record
     v: Variant;
     OnChnage: THashVariantChangeEvent;
   end;
@@ -747,7 +747,7 @@ type
     property VariantList: THashVariantList read FVariantList write FVariantList;
   end;
 
-  TListCardinalData = packed record
+  TListCardinalData = record
     Data: Cardinal;
   end;
 
@@ -775,7 +775,7 @@ type
     property Items[idx: Integer]: Cardinal read GetItems write SetItems; default;
   end;
 
-  TListInt64Data = packed record
+  TListInt64Data = record
     Data: Int64;
   end;
 
@@ -807,7 +807,7 @@ type
     property List: TCoreClassList read FList;
   end;
 
-  TListNativeIntData = packed record
+  TListNativeIntData = record
     Data: NativeInt;
   end;
 
@@ -835,7 +835,7 @@ type
     property Items[idx: Integer]: NativeInt read GetItems write SetItems; default;
   end;
 
-  TListIntegerData = packed record
+  TListIntegerData = record
     Data: Integer;
   end;
 
@@ -863,7 +863,7 @@ type
     property Items[idx: Integer]: Integer read GetItems write SetItems; default;
   end;
 
-  TListDoubleData = packed record
+  TListDoubleData = record
     Data: Double;
   end;
 
@@ -889,7 +889,7 @@ type
     property Items[idx: Integer]: Double read GetItems write SetItems; default;
   end;
 
-  TListPointerData = packed record
+  TListPointerData = record
     Data: Pointer;
   end;
 
@@ -918,7 +918,7 @@ type
 
   TPointerList = TListPointer;
 
-  TListStringData = packed record
+  TListStringData = record
     Data: SystemString;
     Obj: TCoreClassObject;
     hash: THash;
@@ -957,7 +957,7 @@ type
     property Objects[idx: Integer]: TCoreClassObject read GetObjects write SetObjects;
   end;
 
-  TListPascalStringData = packed record
+  TListPascalStringData = record
     Data: TPascalString;
     Obj: TCoreClassObject;
     hash: THash;
@@ -1022,7 +1022,7 @@ type
   TPascalStringList = TListPascalString;
   TPascalStringHashList = THashStringList;
 
-  TListVariantData = packed record
+  TListVariantData = record
     Data: Variant;
   end;
 
@@ -1049,7 +1049,7 @@ type
     property Items[idx: Integer]: Variant read GetItems write SetItems; default;
   end;
 
-  TVariantToDataListData = packed record
+  TVariantToDataListData = record
     ID: Variant;
     Data: Pointer;
   end;
@@ -1082,7 +1082,7 @@ type
     property OnFreePtr: TOnPtr read FOnFreePtr write FOnFreePtr;
   end;
 
-  TVariantToVariantListData = packed record
+  TVariantToVariantListData = record
     v: Variant;
   end;
 
@@ -1111,7 +1111,7 @@ type
     property Items[ID: Variant]: Variant read GetItems write SetItems; default;
   end;
 
-  TVariantToObjectListData = packed record
+  TVariantToObjectListData = record
     Obj: TCoreClassObject;
   end;
 
@@ -1146,7 +1146,7 @@ type
 {$IFNDEF FPC} TBackcallNotifyProc = reference to procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant); {$ENDIF}
   PBackcallData = ^TBackcallData;
 
-  TBackcallData = packed record
+  TBackcallData = record
     FlagObject: TCoreClassObject;
     NotifyCall: TBackcallNotifyCall;
     NotifyMethod: TBackcallNotifyMethod;
@@ -1190,6 +1190,8 @@ function MakeHashI64(const i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$END
 function MakeHashU32(const c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakeHashP(const p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+procedure DoStatus(const v: TListPascalString); overload;
+procedure DoStatus(const v: TListString); overload;
 
 implementation
 
@@ -1232,6 +1234,36 @@ end;
 function MakeHashP(const p: Pointer): THash;
 begin
   Result := umlCRC32(@p, C_Pointer_Size);
+end;
+
+procedure DoStatus(const v: TListPascalString);
+var
+  i: Integer;
+  o: TCoreClassObject;
+begin
+  for i := 0 to v.Count - 1 do
+    begin
+      o := v.Objects[i];
+      if o <> nil then
+          DoStatus('%s<%s>', [v[i].Text, o.ClassName])
+      else
+          DoStatus(v[i].Text);
+    end;
+end;
+
+procedure DoStatus(const v: TListString);
+var
+  i: Integer;
+  o: TCoreClassObject;
+begin
+  for i := 0 to v.Count - 1 do
+    begin
+      o := v.Objects[i];
+      if o <> nil then
+          DoStatus('%s<%s>', [v[i], o.ClassName])
+      else
+          DoStatus(v[i]);
+    end;
 end;
 
 function THashList.GetListTable(hash: THash; AutoCreate: Boolean): TCoreClassList;

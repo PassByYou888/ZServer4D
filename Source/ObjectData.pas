@@ -64,7 +64,7 @@ const
 type
   PHeader = ^THeader;
 
-  THeader = packed record
+  THeader = record
     CurrentHeader: Int64; // nowrite
     NextHeader, PrevHeader, DataMainPOS: Int64;
     CreateTime, LastModifyTime: Double;
@@ -79,7 +79,7 @@ type
 
   PItemBlock = ^TItemBlock;
 
-  TItemBlock = packed record
+  TItemBlock = record
     IDFlags: Byte;
     CurrentBlockPOS, NextBlockPOS, PrevBlockPOS, DataBlockPOS: Int64;
     Size: Int64;
@@ -91,7 +91,7 @@ type
 
   PItem = ^TItem;
 
-  TItem = packed record
+  TItem = record
     RHeader: THeader;
     Description: U_String;
     ExtID: Byte;
@@ -110,7 +110,7 @@ type
 
   PField = ^TField;
 
-  TField = packed record
+  TField = record
     RHeader: THeader;
     UpLevelFieldPOS: Int64;
     Description: U_String;
@@ -122,7 +122,7 @@ type
   TObjectDataFieldWriteProc = procedure(fPos: Int64; var wVal: TField) of object;
   TObjectDataFieldReadProc  = procedure(fPos: Int64; var rVal: TField; var Done: Boolean) of object;
 
-  TFieldSearch = packed record
+  TFieldSearch = record
     RHeader: THeader;
     InitFlags: Boolean;
     Name: U_String;
@@ -134,7 +134,7 @@ type
 
   PTMDB = ^TTMDB;
 
-  TTMDB = packed record
+  TTMDB = record
     FileDescription: U_String;
     MajorVer, MinorVer: SmallInt;
     CreateTime, LastModifyTime: Double;
@@ -159,7 +159,7 @@ type
     Return: Integer;
   end;
 
-  TTMDBItemHandle = packed record
+  TTMDBItemHandle = record
     Item: TItem;
     Path: U_String;
     Name: U_String;
@@ -169,7 +169,7 @@ type
     OpenFlags: Boolean;
   end;
 
-  TTMDBSearchHeader = packed record
+  TTMDBSearchHeader = record
     Name: U_String;
     ID: Byte;
     CreateTime, LastModifyTime: Double;
@@ -178,7 +178,7 @@ type
     FieldSearch: TFieldSearch;
   end;
 
-  TTMDBSearchItem = packed record
+  TTMDBSearchItem = record
     Name: U_String;
     Description: U_String;
     ExtID: Byte;
@@ -188,7 +188,7 @@ type
     FieldSearch: TFieldSearch;
   end;
 
-  TTMDBSearchField = packed record
+  TTMDBSearchField = record
     Name: U_String;
     Description: U_String;
     HeaderCount: Int64;
@@ -197,7 +197,7 @@ type
     FieldSearch: TFieldSearch;
   end;
 
-  TTMDBDescriptionHandle = packed record
+  TTMDBDescriptionHandle = record
     StructVarID: Byte;
     StructDescription: U_String;
     StructNextPos, StructCurrentPos, StructPublicPos: Int64;
@@ -205,14 +205,14 @@ type
     StructPositionID: Byte;
   end;
 
-  TTMDBItemStruct = packed record
+  TTMDBItemStruct = record
     Description: U_String;
     StructCount: Int64;
     StructFirstPos, StructLastPos, ItemStructCurrentPos: Int64;
     DescriptionHandle: TTMDBDescriptionHandle;
   end;
 
-  TTMDBRecursionSearch = packed record
+  TTMDBRecursionSearch = record
     ReturnHeader: THeader;
     CurrentField: TField;
     InitPath: U_String;

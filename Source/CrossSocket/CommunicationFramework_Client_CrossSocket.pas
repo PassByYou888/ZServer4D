@@ -215,12 +215,12 @@ begin
   except
   end;
 
+  inherited Progress;
+
   try
       CoreClasses.CheckThreadSynchronize;
   except
   end;
-
-  inherited Progress;
 end;
 
 procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(addr: SystemString; Port: Word);
@@ -383,7 +383,7 @@ begin
       end;
       while BuildIntf.ClientIOIntf <> nil do
         begin
-          CheckSynchronize(10);
+          CheckThreadSynchronize(10);
           BuildIntf.Progress;
         end;
     end;
@@ -401,7 +401,7 @@ begin
 
   dt := GetTimeTick + 1000;
   while (not LastCompleted) and (GetTimeTick < dt) do
-      CheckSynchronize(5);
+      CheckThreadSynchronize(5);
 
   if LastResult then
     begin

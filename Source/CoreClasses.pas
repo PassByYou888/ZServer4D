@@ -291,6 +291,8 @@ threadvar
 
 implementation
 
+uses DoStatusIO;
+
 procedure Nop;
 begin
 end;
@@ -305,6 +307,7 @@ end;
 
 function CheckThreadSynchronize(Timeout: Integer): Boolean;
 begin
+  DoStatus;
   if not CheckThreadSynchronizeing then
     begin
       CheckThreadSynchronizeing := True;

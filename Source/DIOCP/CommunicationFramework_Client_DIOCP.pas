@@ -339,7 +339,10 @@ end;
 procedure TCommunicationFramework_Client_DIOCP.Progress;
 begin
   inherited Progress;
-  CheckSynchronize;
+  try
+      CoreClasses.CheckThreadSynchronize;
+  except
+  end;
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);

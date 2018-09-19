@@ -107,6 +107,7 @@
             <Form>DoubleTunnelClientForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <None Include="..\..\20.Linux服务器HelloWorld\EZLinuxServer\EZLinuxServ.dpr"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -138,6 +139,12 @@
                 <DeployFile LocalName="Win32\Debug\HPC_Client.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>HPC_Client.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\..\20.Linux服务器HelloWorld\EZLinuxServer\EZLinuxServ.dpr" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

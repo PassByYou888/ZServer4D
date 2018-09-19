@@ -21,7 +21,7 @@ unit MH;
 
 interface
 
-uses ListEngine;
+uses CoreClasses, SyncObjs, ListEngine;
 
 procedure BeginMemoryHook_1;
 procedure EndMemoryHook_1;
@@ -129,23 +129,27 @@ begin
 end;
 
 var
+  MHStatusCritical: TCriticalSection;
   OriginDoStatusHook: TDoStatusCall;
 
 procedure InternalDoStatus(Text: SystemString; const ID: Integer);
 var
   hs: TMemoryHookedState;
 begin
+  MHStatusCritical.Acquire;
   hs := GetMHState;
   SetMHState(cDisable_MemoryHookedState);
   try
       OriginDoStatusHook(Text, ID);
   finally
-      SetMHState(hs);
+    SetMHState(hs);
+    MHStatusCritical.Release;
   end;
 end;
 
 initialization
 
+MHStatusCritical := TCriticalSection.Create;
 OriginDoStatusHook := OnDoStatusHook;
 {$IFDEF FPC}
 OnDoStatusHook := @InternalDoStatus;
@@ -155,7 +159,7 @@ OnDoStatusHook := InternalDoStatus;
 
 finalization
 
+DisposeObject(MHStatusCritical);
 OnDoStatusHook := OriginDoStatusHook;
 
-end. 
- 
+end.

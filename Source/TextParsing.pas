@@ -26,14 +26,14 @@ type
 
   TTokenStatistics = array [TTokenType] of Integer;
 
-  TTextPos = packed record
+  TTextPos = record
     bPos, ePos: Integer;
     Text: TPascalString;
   end;
 
   PTextPos = ^TTextPos;
 
-  TTokenData = packed record
+  TTokenData = record
     bPos, ePos: Integer;
     Text: TPascalString;
     tokenType: TTokenType;
@@ -42,13 +42,13 @@ type
 
   PTokenData = ^TTokenData;
 
-  TTextParsingCache = packed record
+  TTextParsingCache = record
     CommentDecls, TextDecls: TCoreClassList; // PTextPos
     TokenDataList: TCoreClassList;           // PTokenData
     CharToken: array of PTokenData;
   end;
 
-  TTextParsingData = packed record
+  TTextParsingData = record
     Cache: TTextParsingCache;
     Text: TPascalString;
     Len: Integer;
@@ -199,7 +199,7 @@ const
   NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0, 0);
 
 type
-  TCTranslateStruct = packed record
+  TCTranslateStruct = record
     s: SystemChar;
     c: SystemString;
   end;

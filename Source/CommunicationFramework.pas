@@ -5784,7 +5784,7 @@ end;
 destructor TCommunicationFrameworkServer.Destroy;
 begin
   while FCMDWithThreadRuning > 0 do
-      CheckThreadSynchronize(10);
+      CheckThreadSynchronize(1);
 
   DeleteRegistedCMD(C_CipherModel);
   DeleteRegistedCMD(C_Wait);

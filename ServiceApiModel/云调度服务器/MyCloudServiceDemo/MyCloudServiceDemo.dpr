@@ -28,8 +28,6 @@ uses
   NotifyObjectBase,
   TextDataEngine,
   CommunicationFramework,
-  CommunicationFramework_Server_Indy,
-  CommunicationFramework_Client_Indy,
   CommunicationFramework_Server_CrossSocket,
   CommunicationFramework_Client_CrossSocket,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth,
@@ -122,7 +120,7 @@ begin
   inherited Progress;
 
   // 绿色节能机制
-  if RecvService.Count + SendService.Count > 0 then
+  if RecvService.Count + SendService.Count + ManagerClient.Count > 0 then
       CoreClasses.CheckThreadSynchronize(1)
   else
       CoreClasses.CheckThreadSynchronize(100);

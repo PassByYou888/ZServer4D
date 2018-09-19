@@ -72,6 +72,10 @@ begin
         begin
           TCoreClassThread.Sleep(1);
           Service.Progress;
+          try
+              CoreClasses.CheckThreadSynchronize;
+          except
+          end;
         end;
     end
   else
