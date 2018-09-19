@@ -57,7 +57,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 ## 文档
 
-[编译指南](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/zServer4D%E7%BC%96%E8%AF%91%E6%8C%87%E5%8D%97.pdf) [CodeTyphon多架构及多平台开发陷进](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8CodeTyphon%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8ZServer4D.pdf) [在Lazarus或则CodeTyphon编译时出现缺失mtprocs库的解决办法](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8Lazarus%E6%88%96%E5%88%99CodeTyphon%E7%BC%96%E8%AF%91%E6%97%B6%E5%87%BA%E7%8E%B0%E7%BC%BA%E5%A4%B1mtprocs%E5%BA%93%E7%9A%84%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95.pdf)
+[编译指南](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/zServer4D%E7%BC%96%E8%AF%91%E6%8C%87%E5%8D%97.pdf) [CodeTyphon多架构及多平台开发陷阱](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8CodeTyphon%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8ZServer4D.pdf) [在Lazarus或则CodeTyphon编译时出现缺失mtprocs库的解决办法](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8Lazarus%E6%88%96%E5%88%99CodeTyphon%E7%BC%96%E8%AF%91%E6%97%B6%E5%87%BA%E7%8E%B0%E7%BC%BA%E5%A4%B1mtprocs%E5%BA%93%E7%9A%84%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95.pdf)
 
 [日常问题](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB.pdf)  [库说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZServer4D%E5%8D%95%E5%85%83%E5%BA%93%E8%AF%B4%E6%98%8E.pdf)
 
