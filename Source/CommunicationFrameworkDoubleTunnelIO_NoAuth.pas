@@ -16,10 +16,9 @@
 
 unit CommunicationFrameworkDoubleTunnelIO_NoAuth;
 
-interface
-
 {$INCLUDE zDefine.inc}
 
+interface
 
 uses CoreClasses,
   ListEngine, UnicodeMixedLib,

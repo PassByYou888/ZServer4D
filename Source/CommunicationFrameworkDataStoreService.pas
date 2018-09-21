@@ -16,9 +16,9 @@
 
 unit CommunicationFrameworkDataStoreService;
 
-interface
-
 {$INCLUDE zDefine.inc}
+
+interface
 
 
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,

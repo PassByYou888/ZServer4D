@@ -18,9 +18,9 @@
 
 unit CommunicationFrameworkDoubleTunnelIO;
 
-interface
-
 {$INCLUDE zDefine.inc}
+
+interface
 
 
 uses CoreClasses,

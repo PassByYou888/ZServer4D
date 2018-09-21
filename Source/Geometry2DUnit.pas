@@ -21,19 +21,19 @@ uses Classes, SysUtils, Math, Types, CoreClasses;
 type
   TGeoFloat = Single;
   TGeoInt   = Integer;
-  TVec2     = packed array [0 .. 1] of TGeoFloat;
+  TVec2     = array [0 .. 1] of TGeoFloat;
   PVec2     = ^TVec2;
   T2DPoint  = TVec2;
   P2DPoint  = PVec2;
   TPoint2   = T2DPoint;
 
-  TArrayVec2 = packed array of TVec2;
+  TArrayVec2 = array of TVec2;
   PArrayVec2 = ^TArrayVec2;
 
   TArray2DPoint = TArrayVec2;
   PArray2DPoint = PArrayVec2;
 
-  TRectV2 = packed array [0 .. 1] of TVec2;
+  TRectV2 = array [0 .. 1] of TVec2;
   PRectV2 = ^TRectV2;
   TRect2  = TRectV2;
   TRect2D = TRectV2;

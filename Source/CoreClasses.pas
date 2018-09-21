@@ -78,6 +78,7 @@ type
   TCoreClassComponent  = TComponent;
 
   {$IFDEF FPC}
+  PUInt64 = ^UInt64;
   TCoreClassInterfacedObject = class(TInterfacedObject)
   protected
     function _AddRef: longint; {$IFNDEF WINDOWS} cdecl {$ELSE} stdcall {$ENDIF};
@@ -358,7 +359,7 @@ end;
 {$INCLUDE CoreAtomic.inc}
 
 var
-  LockIDBuff: packed array [0..$FF] of TCoreClassPersistent;
+  LockIDBuff: array [0..$FF] of TCoreClassPersistent;
 
 procedure InitLockIDBuff;
 var
@@ -425,10 +426,12 @@ begin
       v := Value or (Value shl 8) or (Value shl 16) or (Value shl 24);
       v := v or (v shl 32);
 
-      for index := (Count shr 3) - 1 downto 0 do
+      index := (Count shr 3) - 1;
+      while index >= 0 do
         begin
           PUInt64(PB)^ := v;
           inc(PB, 8);
+          dec(index);
         end;
       { Get the remainder (mod 8) }
       Count := Count and $7;

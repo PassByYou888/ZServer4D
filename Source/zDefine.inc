@@ -100,3 +100,30 @@
 {$IFNDEF CPU64}
   {$DEFINE CPU32}
 {$ENDIF}
+
+(*
+  {$IFDEF FPC}
+  {$ELSE FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}@{$ENDIF FPC}
+
+  {$IFNDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF parallel}
+  {$ELSE parallel}
+  {$ENDIF parallel}
+
+  {$IFNDEF parallel}
+  {$ENDIF parallel}
+
+  {$Region 'RegionName'}
+  {$EndRegion 'RegionName'}
+*)
+
+
+ 

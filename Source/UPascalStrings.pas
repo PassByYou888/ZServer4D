@@ -29,7 +29,7 @@ type
 {$ENDIF FPC}
   PUSystemString = ^USystemString;
   PUPascalString = ^TUPascalString;
-  TUArrayChar    = packed array of USystemChar;
+  TUArrayChar    = array of USystemChar;
   TUOrdChar      = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ);
   TUOrdChars     = set of TUOrdChar;
   TUHash         = Cardinal;

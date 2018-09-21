@@ -27,7 +27,7 @@ type
 
   TOpCode = class;
 
-  TOpParam = packed array of Variant;
+  TOpParam = array of Variant;
 
   POpData = ^opData;
 

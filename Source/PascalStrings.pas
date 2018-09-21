@@ -31,7 +31,7 @@ type
   THash64       = UInt64;
   PSystemString = ^SystemString;
   PPascalString = ^TPascalString;
-  TArrayChar    = packed array of SystemChar;
+  TArrayChar    = array of SystemChar;
   TOrdChar      = (c0to9, c1to9, c0to32, c0to32no10, cLoAtoF, cHiAtoF, cLoAtoZ, cHiAtoZ, cHex, cAtoF, cAtoZ);
   TOrdChars     = set of TOrdChar;
 

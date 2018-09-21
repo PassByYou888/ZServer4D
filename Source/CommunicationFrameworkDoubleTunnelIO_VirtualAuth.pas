@@ -12,10 +12,9 @@
 
 unit CommunicationFrameworkDoubleTunnelIO_VirtualAuth;
 
-interface
-
 {$INCLUDE zDefine.inc}
 
+interface
 
 uses CoreClasses,
   ListEngine, UnicodeMixedLib,

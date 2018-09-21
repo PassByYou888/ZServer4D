@@ -78,7 +78,7 @@ type
   U_String       = TPascalString;
   P_String       = PPascalString;
   U_Char         = SystemChar;
-  U_StringArray  = packed array of U_SystemString;
+  U_StringArray  = array of U_SystemString;
 
   U_Bytes = TBytes;
 
@@ -106,7 +106,7 @@ type
 
   U_FixedLengthString = record
     Len: Byte;
-    Data: packed array [0 .. C_FixedLengthStringSize] of Byte;
+    Data: array [0 .. C_FixedLengthStringSize] of Byte;
   end;
 
   U_ByteArray = array [0 .. MaxInt div SizeOf(Byte) - 1] of Byte;

@@ -11,10 +11,9 @@
 { ****************************************************************************** }
 unit CommunicationFrameworkDoubleTunnelIO_ServMan;
 
-interface
-
 {$INCLUDE zDefine.inc}
 
+interface
 
 uses
   SysUtils, TypInfo,

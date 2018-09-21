@@ -616,7 +616,7 @@ procedure TCompressor.DecompressStream(sour, DecompressTo: TCoreClassStream);
 var
   siz, cSiz, DecompressOriginPos: Int64;
   bufSiz, deBufSiz              : Word;
-  buff, debuff                  : packed array of Byte;
+  buff, debuff                  : array of Byte;
 begin
   LockObject(Self);
   try

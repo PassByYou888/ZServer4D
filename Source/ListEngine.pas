@@ -34,7 +34,7 @@ uses SysUtils, Classes, Variants, CoreClasses, PascalStrings;
 type
   TCounter = NativeUInt;
 
-  TListBuffer = packed array of TCoreClassList;
+  TListBuffer = array of TCoreClassList;
   PListBuffer = ^TListBuffer;
 
   THashObjectList = class;
