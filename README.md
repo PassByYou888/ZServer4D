@@ -53,6 +53,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 - Ubuntu18.04 arm32+arm neon Server:only fpc3.0.4 Synapse(C/S OK)
 - Ubuntu18.04 arm32+arm neon desktop:only fpc3.0.4 compile ok,no test on run.  
 - Ubuntu16.04 Mate arm32 desktop:only fpc3.0.4 compile ok, test passed  
+- Raspberry Pi 3 Debian linux armv7 desktop,only fpc 3.0.4,test passed.
 
 
 ## 文档
@@ -154,6 +155,10 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 
 ## 最后一更新日志
+
+## 2018-9-21
+
+兼容 fpc 3.0.0，可正常编译，建议使用fpc 3.0.4 or last
 
 ### 2018-9-18
 
