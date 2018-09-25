@@ -367,13 +367,17 @@ end;
 procedure TXNATClient.PhysicsConnect_Result(const cState: Boolean);
 begin
   if cState then
-      PhysicsEngine.ClientIO.BuildP2PAuthToken({$IFDEF FPC}@{$ENDIF FPC}PhysicsVMBuildAuthToken_Result);
+      PhysicsEngine.ClientIO.BuildP2PAuthToken({$IFDEF FPC}@{$ENDIF FPC}PhysicsVMBuildAuthToken_Result)
+  else
+    WaitAsyncConnecting := False;
 end;
 
 procedure TXNATClient.PhysicsVMBuildAuthToken_Result(const cState: Boolean);
 begin
   if cState then
-      PhysicsEngine.ClientIO.OpenP2pVMTunnel(True, AuthToken, {$IFDEF FPC}@{$ENDIF FPC}PhysicsOpenVM_Result);
+      PhysicsEngine.ClientIO.OpenP2pVMTunnel(True, AuthToken, {$IFDEF FPC}@{$ENDIF FPC}PhysicsOpenVM_Result)
+  else
+    WaitAsyncConnecting := False;
 end;
 
 procedure TXNATClient.PhysicsOpenVM_Result(const cState: Boolean);
@@ -383,7 +387,9 @@ begin
       PhysicsEngine.ClientIO.p2pVMTunnel.MaxVMFragmentSize := umlStrToInt(MaxVMFragment, PhysicsEngine.ClientIO.p2pVMTunnel.MaxVMFragmentSize);
       PhysicsEngine.ClientIO.p2pVMTunnel.MaxRealBuffer := umlStrToInt(MaxRealBuffer, PhysicsEngine.ClientIO.p2pVMTunnel.MaxRealBuffer);
       PhysicsEngine.SendStreamCmd('IPV6ListenState', nil, {$IFDEF FPC}@{$ENDIF FPC}IPV6ListenState_Result);
-    end;
+    end
+  else
+    WaitAsyncConnecting := False;
 end;
 
 procedure TXNATClient.IPV6ListenState_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
