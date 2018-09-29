@@ -64,7 +64,7 @@ begin
   // 这样干是将时间的延迟率降低到最小
   client.SendTunnel.SyncOnResult := True;
   client.SyncCadencer;
-  client.SendTunnel.Wait(1000, procedure(const cState: Boolean)
+  client.SendTunnel.WaitP(1000, procedure(const cState: Boolean)
     begin
       // 因为打开了SyncOnResult后，匿名函数会出现嵌套死锁
       // 我们现在关闭它，以保证匿名函数的嵌套执行
@@ -109,7 +109,7 @@ begin
   // 异步方式发送，并且接收Stream指令，反馈以proc回调触发
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
-  client.SendTunnel.SendStreamCmd('helloWorld_Stream_Result', SendDe,
+  client.SendTunnel.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       if ResultData.Count > 0 then
@@ -177,11 +177,11 @@ begin
   if client.Connected then
     begin
       // 嵌套式匿名函数支持
-      client.UserLogin(UserEdit.Text, PasswdEdit.Text,
+      client.UserLoginP(UserEdit.Text, PasswdEdit.Text,
         procedure(const State: Boolean)
         begin
           if State then
-              client.TunnelLink(
+              client.TunnelLinkP(
               procedure(const State: Boolean)
               begin
                 DoStatus('double tunnel link success!');
@@ -193,18 +193,18 @@ end;
 procedure TAuthDoubleTunnelClientForm.AsyncConnectButtonClick(Sender: TObject);
 begin
   // 方法2，异步式双通道链接
-  client.AsyncConnect(HostEdit.Text, 9816, 9815,
+  client.AsyncConnectP(HostEdit.Text, 9816, 9815,
     procedure(const cState: Boolean)
     begin
       if cState then
         begin
           // 嵌套式匿名函数支持
-          client.UserLogin(UserEdit.Text, PasswdEdit.Text,
+          client.UserLoginP(UserEdit.Text, PasswdEdit.Text,
             procedure(const lState: Boolean)
             begin
               if lState then
                 begin
-                  client.TunnelLink(
+                  client.TunnelLinkP(
                     procedure(const tState: Boolean)
                     begin
                       if tState then

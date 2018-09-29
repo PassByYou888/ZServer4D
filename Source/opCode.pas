@@ -37,7 +37,7 @@ type
     ValueType: TOpValueType;
   end;
 
-  TOnOpCall   = function(var Param: TOpParam): Variant;
+  TOnOpCall = function(var Param: TOpParam): Variant;
   TOnOpMethod = function(var Param: TOpParam): Variant of object;
 {$IFNDEF FPC}
   TOnOpProc = reference to function(var Param: TOpParam): Variant;
@@ -79,9 +79,9 @@ type
     constructor Create(maxHashLen: Integer); overload; virtual;
     destructor Destroy; override;
 
-    procedure RegOp(ProcName: SystemString; OnProc: TOnOpCall); overload;
-    procedure RegOp(ProcName: SystemString; OnProc: TOnOpMethod); overload;
-{$IFNDEF FPC} procedure RegOp(ProcName: SystemString; OnProc: TOnOpProc); overload; {$ENDIF FPC}
+    procedure RegOpC(ProcName: SystemString; OnProc: TOnOpCall); overload;
+    procedure RegOpM(ProcName: SystemString; OnProc: TOnOpMethod); overload;
+{$IFNDEF FPC} procedure RegOpP(ProcName: SystemString; OnProc: TOnOpProc); overload; {$ENDIF FPC}
   end;
 
   opClass = class of TOpCode;
@@ -629,29 +629,29 @@ end;
 procedure TOpCustomRunTime.InternalReg;
 begin
   ProcList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}FreeNotifyProc;
-  RegOp('Int', {$IFDEF FPC}@{$ENDIF FPC}DoInt);
-  RegOp('Frac', {$IFDEF FPC}@{$ENDIF FPC}DoFrac);
-  RegOp('Exp', {$IFDEF FPC}@{$ENDIF FPC}DoExp);
-  RegOp('Cos', {$IFDEF FPC}@{$ENDIF FPC}DoCos);
-  RegOp('Sin', {$IFDEF FPC}@{$ENDIF FPC}DoSin);
-  RegOp('Ln', {$IFDEF FPC}@{$ENDIF FPC}DoLn);
-  RegOp('ArcTan', {$IFDEF FPC}@{$ENDIF FPC}DoArcTan);
-  RegOp('Sqrt', {$IFDEF FPC}@{$ENDIF FPC}DoSqrt);
-  RegOp('Tan', {$IFDEF FPC}@{$ENDIF FPC}DoTan);
-  RegOp('Round', {$IFDEF FPC}@{$ENDIF FPC}DoRound);
-  RegOp('Trunc', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc);
+  RegOpM('Int', {$IFDEF FPC}@{$ENDIF FPC}DoInt);
+  RegOpM('Frac', {$IFDEF FPC}@{$ENDIF FPC}DoFrac);
+  RegOpM('Exp', {$IFDEF FPC}@{$ENDIF FPC}DoExp);
+  RegOpM('Cos', {$IFDEF FPC}@{$ENDIF FPC}DoCos);
+  RegOpM('Sin', {$IFDEF FPC}@{$ENDIF FPC}DoSin);
+  RegOpM('Ln', {$IFDEF FPC}@{$ENDIF FPC}DoLn);
+  RegOpM('ArcTan', {$IFDEF FPC}@{$ENDIF FPC}DoArcTan);
+  RegOpM('Sqrt', {$IFDEF FPC}@{$ENDIF FPC}DoSqrt);
+  RegOpM('Tan', {$IFDEF FPC}@{$ENDIF FPC}DoTan);
+  RegOpM('Round', {$IFDEF FPC}@{$ENDIF FPC}DoRound);
+  RegOpM('Trunc', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc);
 
-  RegOp('Str', {$IFDEF FPC}@{$ENDIF FPC}DoStr);
+  RegOpM('Str', {$IFDEF FPC}@{$ENDIF FPC}DoStr);
 
-  RegOp('Bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool);
-  RegOp('True', {$IFDEF FPC}@{$ENDIF FPC}DoTrue);
-  RegOp('False', {$IFDEF FPC}@{$ENDIF FPC}DoFalse);
-  RegOp('Random', {$IFDEF FPC}@{$ENDIF FPC}DoRandom);
+  RegOpM('Bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool);
+  RegOpM('True', {$IFDEF FPC}@{$ENDIF FPC}DoTrue);
+  RegOpM('False', {$IFDEF FPC}@{$ENDIF FPC}DoFalse);
+  RegOpM('Random', {$IFDEF FPC}@{$ENDIF FPC}DoRandom);
 
-  RegOp('GetFirst', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst);
-  RegOp('DeleteFirst', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteFirst);
-  RegOp('GetLast', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast);
-  RegOp('DeleteLast', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteLast);
+  RegOpM('GetFirst', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst);
+  RegOpM('DeleteFirst', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteFirst);
+  RegOpM('GetLast', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast);
+  RegOpM('DeleteLast', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteLast);
 end;
 
 constructor TOpCustomRunTime.Create;
@@ -676,7 +676,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TOpCustomRunTime.RegOp(ProcName: SystemString; OnProc: TOnOpCall);
+procedure TOpCustomRunTime.RegOpC(ProcName: SystemString; OnProc: TOnOpCall);
 var
   p: PopRTproc;
 begin
@@ -687,7 +687,7 @@ begin
   ProcList.Add(ProcName, p, True);
 end;
 
-procedure TOpCustomRunTime.RegOp(ProcName: SystemString; OnProc: TOnOpMethod);
+procedure TOpCustomRunTime.RegOpM(ProcName: SystemString; OnProc: TOnOpMethod);
 var
   p: PopRTproc;
 begin
@@ -701,7 +701,7 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TOpCustomRunTime.RegOp(ProcName: SystemString; OnProc: TOnOpProc);
+procedure TOpCustomRunTime.RegOpP(ProcName: SystemString; OnProc: TOnOpProc);
 var
   p: PopRTproc;
 begin

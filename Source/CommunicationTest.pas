@@ -20,9 +20,9 @@ uses SysUtils, CommunicationFramework, DataFrameEngine,
 type
   TCommunicationTestIntf = class(TCoreClassObject)
   private
-    FPrepareSendConsole, FPrepareResultConsole    : SystemString;
+    FPrepareSendConsole, FPrepareResultConsole: SystemString;
     FPrepareSendDataFrame, FPrepareResultDataFrame: TDataFrameEngine;
-    FLastReg                                      : TCommunicationFramework;
+    FLastReg: TCommunicationFramework;
   public
     constructor Create;
     destructor Destroy; override;
@@ -53,10 +53,10 @@ implementation
 
 var
   TestStreamData: TMemoryStream64 = nil;
-  TestStreamMD5 : SystemString;
-  TestBuff      : PByte;
-  TestBuffSize  : NativeInt;
-  TestBuffMD5   : SystemString;
+  TestStreamMD5: SystemString;
+  TestBuff: PByte;
+  TestBuffSize: NativeInt;
+  TestBuffMD5: SystemString;
 
 constructor TCommunicationTestIntf.Create;
 var
@@ -165,8 +165,8 @@ procedure TCommunicationTestIntf.ExecuteTest(Intf: TPeerIO);
 var
   tmpdf: TDataFrameEngine;
 begin
-  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
-  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
+  Intf.SendConsoleCmdM('TestConsole', FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
+  Intf.SendStreamCmdM('TestStream', FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
   Intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
   Intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
   Intf.SendBigStream('TestBigStream', TestStreamData, False);
@@ -190,8 +190,8 @@ end;
 
 procedure TCommunicationTestIntf.ExecuteAsyncTest(Intf: TPeerIO);
 begin
-  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
-  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
+  Intf.SendConsoleCmdM('TestConsole', FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
+  Intf.SendStreamCmdM('TestStream', FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
   Intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
   Intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
 
@@ -200,8 +200,8 @@ end;
 
 procedure TCommunicationTestIntf.ExecuteAsyncTestWithBigStream(Intf: TPeerIO);
 begin
-  Intf.SendConsoleCmd('TestConsole', FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
-  Intf.SendStreamCmd('TestStream', FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
+  Intf.SendConsoleCmdM('TestConsole', FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
+  Intf.SendStreamCmdM('TestStream', FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
   Intf.SendDirectConsoleCmd('TestDirectConsole', FPrepareSendConsole);
   Intf.SendDirectStreamCmd('TestDirectStream', FPrepareSendDataFrame);
 
@@ -215,7 +215,7 @@ end;
 procedure MakeRndBuff(v: Integer; p: Pointer; siz: NativeInt);
 var
   Seed: Integer;
-  i   : Integer;
+  i: Integer;
 begin
   Seed := v;
   for i := 0 to (siz div 4) - 1 do
@@ -240,6 +240,4 @@ DisposeObject(TestStreamData);
 TestStreamData := nil;
 FreeMem(TestBuff, TestBuffSize);
 
-end. 
- 
- 
+end.

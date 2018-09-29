@@ -133,12 +133,12 @@ begin
   Memo5.Lines.Add('基本使用demo');
   // rt为ze的运行函数支持库
   rt := TOpCustomRunTime.Create;
-  rt.RegOp('myAddFunction', function(var Param: TOpParam): Variant
+  rt.RegOpP('myAddFunction', function(var Param: TOpParam): Variant
     // (a+b)*0.5
     begin
       Result := (Param[0] + Param[1]) * 0.5;
     end);
-  rt.RegOp('myStringFunction', function(var Param: TOpParam): Variant
+  rt.RegOpP('myStringFunction', function(var Param: TOpParam): Variant
     begin
       Result := Format('字符串长度为:%d', [Length(VarToStr(Param[0]) + VarToStr(Param[1]))]);
     end);
@@ -170,12 +170,12 @@ begin
   Memo5.Lines.Add('高速载入与执行demo');
   // rt为ze的运行函数支持库
   rt := TOpCustomRunTime.Create;
-  rt.RegOp('myAddFunction', function(var Param: TOpParam): Variant
+  rt.RegOpP('myAddFunction', function(var Param: TOpParam): Variant
     // (a+b)*0.5
     begin
       Result := (Param[0] + Param[1]) * 0.5;
     end);
-  rt.RegOp('myStringFunction', function(var Param: TOpParam): Variant
+  rt.RegOpP('myStringFunction', function(var Param: TOpParam): Variant
     begin
       Result := Format('字符串长度为:%d', [Length(VarToStr(Param[0]) + VarToStr(Param[1]))]);
     end);
@@ -333,7 +333,7 @@ begin
   if state = sFalse then
     begin
       rt := TOpCustomRunTime.Create;
-      rt.RegOp('writeln', function(var Param: TOpParam): Variant
+      rt.RegOpP('writeln', function(var Param: TOpParam): Variant
         begin
           Memo5.Lines.Add(VarToStr(Param[0]));
           Result := 0;
@@ -401,7 +401,7 @@ begin
   Memo5.Lines.Add('简单演示用脚本来封装zExpression');
   // rt为ze的运行函数支持库
   rt := TOpCustomRunTime.Create;
-  rt.RegOp('OverFunction', function(var Param: TOpParam): Variant
+  rt.RegOpP('OverFunction', function(var Param: TOpParam): Variant
     begin
       Result := '谢谢';
     end);
@@ -492,12 +492,12 @@ begin
   end;
 
   rt := TOpCustomRunTime.Create;
-  rt.RegOp('dynamic', function(var Param: TOpParam): Variant
+  rt.RegOpP('dynamic', function(var Param: TOpParam): Variant
     begin
       Result := dynvar;
       inc(dynvar);
     end);
-  rt.RegOp('myvar1', function(var Param: TOpParam): Variant
+  rt.RegOpP('myvar1', function(var Param: TOpParam): Variant
     begin
       // 对myvar1进行动态复用
       Result := HashVars['myvar1'];
@@ -574,12 +574,12 @@ begin
 
   // rt为ze的运行函数支持库
   rt := TOpCustomRunTime.Create;
-  rt.RegOp('@@a&&', function(var Param: TOpParam): Variant
+  rt.RegOpP('@@a&&', function(var Param: TOpParam): Variant
     // (a+b)*0.5
     begin
       Result := (Param[0] + Param[1]) * 0.5;
     end);
-  rt.RegOp('@@combineString&&', function(var Param: TOpParam): Variant
+  rt.RegOpP('@@combineString&&', function(var Param: TOpParam): Variant
     // (a+b)*0.5
     begin
       Result := VarToStr(Param[0]) + VarToStr(Param[1]);

@@ -70,7 +70,7 @@ begin
   if client.Connected then
     begin
       // 异步方式合并两个通道
-      client.TunnelLink(
+      client.TunnelLinkP(
         procedure(const State: Boolean)
         begin
           if State then
@@ -130,7 +130,7 @@ begin
   // 异步方式发送，并且接收Stream指令，反馈以proc回调触发
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
-  client.SendTunnel.SendStreamCmd('helloWorld_Stream_Result', SendDe,
+  client.SendTunnel.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       if ResultData.Count > 0 then

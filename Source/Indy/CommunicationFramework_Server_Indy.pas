@@ -250,7 +250,7 @@ end;
 
 destructor TCommunicationFramework_Server_Indy.Destroy;
 begin
-  ProgressPerClient(procedure(cli: TPeerIO)
+  ProgressPerClientP(procedure(cli: TPeerIO)
     begin
       try
           cli.Disconnect;

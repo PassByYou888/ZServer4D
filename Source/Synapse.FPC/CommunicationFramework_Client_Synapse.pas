@@ -180,7 +180,7 @@ constructor TCommunicationFramework_Client_Synapse.Create;
 begin
   inherited Create;
   Sock := TTCPBlockSocket.Create;
-  Sock.Family := TSocketFamily.SF_Any;
+  Sock.Family := TSocketFamily.SF_IP4;
   Sock.CreateSocket;
   InternalClient := TPeerIOWithSynapseClient.Create(Self, Sock);
   SockConnected := False;
@@ -280,11 +280,23 @@ function TCommunicationFramework_Client_Synapse.Connect(addr: SystemString; Port
 var
   AStopTime: TTimeTickValue;
 begin
+  Result := False;
   try
     Sock.Connect(addr, IntToStr(Port));
     SockConnected := Sock.LastError = 0;
     if not SockConnected then
-        Exit;
+      begin
+        Sock.CloseSocket;
+        if Sock.Family = TSocketFamily.SF_IP4 then
+            Sock.Family := TSocketFamily.SF_IP6
+        else
+          Sock.Family := TSocketFamily.SF_IP4;
+        Sock.CreateSocket;
+        Sock.Connect(addr, IntToStr(Port));
+        SockConnected := Sock.LastError = 0;
+        if not SockConnected then
+            Exit;
+      end;
 
     DoConnected(InternalClient);
 

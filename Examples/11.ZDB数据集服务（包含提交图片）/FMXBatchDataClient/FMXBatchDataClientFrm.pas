@@ -111,7 +111,7 @@ begin
   // 统计和分析可以在服务器静态执行（无碎片缓冲区反馈，这对统计大型数据库，作用很明显）
   // 当服务器安静的执行完成统计和分析后，我们通过事件，进行step to step的操作，ZDB完全兼容和支持匿名函数机制
   // 是不是感觉和单机一样？
-  DBClient.QueryDB(
+  DBClient.QueryDBP(
     'MyCustomAnalysis',      // MyCustomAnalysis 在服务器注册和实现
     False,                   // 缓冲碎片是否同步到客户端，因为我们的统计追求的是结果，这里不需要同步，让服务器去干，我们只需要在完成事件中指定统计完成后干什么事
     True,                    // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
@@ -133,7 +133,7 @@ begin
       // 我们在改事件中可以反复对改数据库进行再次统计，再次查询，以得到我们需要的结果
       // 但是这里不做多次查询了，直接将统计结果下载到本地并且显示
       if TotalResult > 0 then
-          DBClient.DownloadDB(False, outN,
+          DBClient.DownloadDBP(False, outN,
           procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
           var
             js: TJsonObject;
@@ -280,7 +280,7 @@ begin
   DBClient.BeginAssembleStream;                                   // BeginAssembleStream的作用是清空Batch提交Stream到数据服务器的暂存buffer
   DBClient.PostAssembleStream(JsonDestDBEdit.Text, m, 111, True); // 将Stream立即提交到数据服务器
   // 从远程数据库获取最后提交img的数据库存储信息
-  DBClient.GetBatchStreamState(
+  DBClient.GetBatchStreamStateP(
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     var
       bpInfo: TBigStreamBatchPostData;
@@ -314,13 +314,13 @@ begin
   if not RecvTunnel.Connect(ServerEdit.Text, 10098) then
       exit;
 
-  DBClient.UserLogin(UserIDEdit.Text, PasswdEdit.Text,
+  DBClient.UserLoginP(UserIDEdit.Text, PasswdEdit.Text,
     procedure(const State: Boolean)
     begin
       if State then
         begin
           DoStatus('登录成功');
-          DBClient.TunnelLink(
+          DBClient.TunnelLinkP(
             procedure(const State: Boolean)
             begin
               if State then
@@ -348,7 +348,7 @@ begin
 
   ResultListBox.Clear;
   //
-  DBClient.QueryDB('MyCustomQuery', // MyCustomQuery在服务器注册和实现
+  DBClient.QueryDBP('MyCustomQuery', // MyCustomQuery在服务器注册和实现
   True,                             // 缓冲碎片是否同步到客户端
   False,                            // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
   True,                             // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
@@ -376,7 +376,7 @@ begin
 
       // DownloadAssembleStream 这个方法在数据服务器会先被最大化压缩和加密，然后再下载，此方法适用于公网通讯下载，如手机端，pc访问互联网服务器
       // FastDownloadAssembleStream和DownloadAssembleStream一样，但是FastDownloadAssembleStream不会做数据处理，它的速度更快，此方法主要用于服务器间的通讯
-      DBClient.FastDownloadAssembleStream(JsonDestDBEdit.Text, js.L['StorePos'],
+      DBClient.FastDownloadAssembleStreamP(JsonDestDBEdit.Text, js.L['StorePos'],
         procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64)
         var
           img: TImage;

@@ -74,16 +74,16 @@ implementation
 procedure TVMCliForm.CreateVMButtonClick(Sender: TObject);
 begin
   // VM.CloseP2PVMTunnel;
-  ClientTunnel.AsyncConnect(AddrEdit.Text, 9988, procedure(const cState: Boolean)
+  ClientTunnel.AsyncConnectP(AddrEdit.Text, 9988, procedure(const cState: Boolean)
     begin
       DoStatus('VM隧道已链接...');
       if cState then
         begin
           DoStatus('VM正在握手...');
-          ClientTunnel.ClientIO.BuildP2PAuthToken(procedure(const cBuildAuthState: Boolean)
+          ClientTunnel.ClientIO.BuildP2PAuthTokenP(procedure(const cBuildAuthState: Boolean)
             begin
               if cBuildAuthState then
-                  ClientTunnel.ClientIO.OpenP2PVMTunnel(10000 * 10, True, '',
+                  ClientTunnel.ClientIO.OpenP2PVMTunnelP(10000 * 10, True, '',
                   procedure(const vState: Boolean)
                   var
                     i: Integer;

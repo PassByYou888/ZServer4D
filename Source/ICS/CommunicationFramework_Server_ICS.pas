@@ -615,7 +615,7 @@ procedure TCommunicationFramework_Server_ICS.StopService;
 begin
   if Count > 0 then
     begin
-      ProgressPerClient(procedure(cli: TPeerIO)
+      ProgressPerClientP(procedure(cli: TPeerIO)
         begin
           cli.Disconnect;
         end);
@@ -647,7 +647,7 @@ end;
 
 procedure TCommunicationFramework_Server_ICS.Progress;
 begin
-  ProgressPerClient(procedure(cli: TPeerIO)
+  ProgressPerClientP(procedure(cli: TPeerIO)
     begin
       TPeerClientIntfForICS(cli).FContext.ProcessClientActiveTime;
     end);

@@ -56,7 +56,7 @@ begin
   // 这里我们会发现泄漏
   DoStatus('leakproc函数分配了 %d 字节的内存', [MH.GetHookMemorySize_1]);
 
-  MH.GetHookPtrList_1.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH.GetHookPtrList_1.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       DoStatus('泄漏的地址:0x%s', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2)]);
       DoStatus(NPtr, uData, 80);
@@ -93,7 +93,7 @@ begin
   // 这里我们会发现泄漏
   DoStatus('TMyRec总分分配了 %d 次内存，占用 %d 字节空间，', [MH.GetHookPtrList_1.Count, MH.GetHookMemorySize_1]);
 
-  MH.GetHookPtrList_1.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH.GetHookPtrList_1.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       DoStatus('泄漏的地址:0x%s', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2)]);
       DoStatus(NPtr, uData, 80);
@@ -139,7 +139,7 @@ begin
       p^.p^.s1 := '54321';
       MH_2.EndMemoryHook;
 
-      MH_2.HookPtrList.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+      MH_2.HookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
         begin
           // 现在我们可以释放该地址
           FreeMem(NPtr);
@@ -196,7 +196,7 @@ begin
   DoStatus('总共内存分配 %d 次 占用 %s 空间，地址跨度为：%s ', [MH_3.HookPtrList.Count, umlSizeToStr(MH_3.GetHookMemorySize).Text,
     umlSizeToStr(NativeUInt(MH_3.GetHookMemoryMaximumPtr) - NativeUInt(MH_3.GetHookMemoryMinimizePtr)).Text]);
 
-  MH_3.HookPtrList.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH_3.HookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       // 现在我们可以释放该地址
       FreeMem(NPtr);
@@ -226,7 +226,7 @@ begin
 
   MH_1.EndMemoryHook;
 
-  MH_1.HookPtrList.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH_1.HookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       // 现在我们可以释放该地址
       DoStatus(NPtr, uData, 80);

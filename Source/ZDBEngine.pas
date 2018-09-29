@@ -43,7 +43,7 @@ var
 type
   TDBStoreBase = class;
 
-  TStoreArray = packed array of Int64;
+  TStoreArray = array of Int64;
   PStoreArray = ^TStoreArray;
 
   // Base Data Struct
@@ -496,22 +496,22 @@ type
       const OnQueryCall: TQueryCall;
       const OnQueryMethod: TQueryMethod); overload;
 
-    procedure WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQueryCall); overload;
-    procedure WaitQuery(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod); overload;
-    procedure WaitQuery(const OnQueryCall: TQueryCall); overload;
-    procedure WaitQuery(const OnQueryMethod: TQueryMethod); overload;
+    procedure WaitQueryC(ReverseQuery: Boolean; const OnQueryCall: TQueryCall); overload;
+    procedure WaitQueryM(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod); overload;
+    procedure WaitQueryC(const OnQueryCall: TQueryCall); overload;
+    procedure WaitQueryM(const OnQueryMethod: TQueryMethod); overload;
 {$ELSE}
     procedure WaitQuery(ReverseQuery: Boolean;
       const OnQueryCall: TQueryCall;
       const OnQueryProc: TQueryProc;
       const OnQueryMethod: TQueryMethod); overload;
 
-    procedure WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQueryCall); overload;
-    procedure WaitQuery(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod); overload;
-    procedure WaitQuery(ReverseQuery: Boolean; const OnQueryProc: TQueryProc); overload;
-    procedure WaitQuery(const OnQueryCall: TQueryCall); overload;
-    procedure WaitQuery(const OnQueryProc: TQueryProc); overload;
-    procedure WaitQuery(const OnQueryMethod: TQueryMethod); overload;
+    procedure WaitQueryC(ReverseQuery: Boolean; const OnQueryCall: TQueryCall); overload;
+    procedure WaitQueryM(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod); overload;
+    procedure WaitQueryP(ReverseQuery: Boolean; const OnQueryProc: TQueryProc); overload;
+    procedure WaitQueryC(const OnQueryCall: TQueryCall); overload;
+    procedure WaitQueryP(const OnQueryProc: TQueryProc); overload;
+    procedure WaitQueryM(const OnQueryMethod: TQueryMethod); overload;
 {$ENDIF}
     //
     // background query
@@ -520,32 +520,35 @@ type
       const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall;
       const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
 
-    function Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
 {$ELSE}
     function Query(const TaskTag: SystemString; const ReverseQuery: Boolean;
       const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall;
       const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc;
       const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
 
-    function Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const TaskTag: SystemString; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
-    function Query(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
-    function Query(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function Query(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-    function Query(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
+    function QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryP(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
+
+    function QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryP(const TaskTag: SystemString; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
+
+    function QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryP(const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
+
+    function QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
+    function QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
+    function QueryP(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
 {$ENDIF}
     procedure WaitQueryThread; overload;
     procedure WaitQueryThread(waitTime: TTimeTickValue); overload;
@@ -2687,7 +2690,7 @@ end;
 {$ENDIF}
 
 
-procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQueryCall);
+procedure TDBStoreBase.WaitQueryC(ReverseQuery: Boolean; const OnQueryCall: TQueryCall);
 begin
 {$IFDEF FPC}
   WaitQuery(ReverseQuery, OnQueryCall, nil);
@@ -2696,7 +2699,7 @@ begin
 {$ENDIF}
 end;
 
-procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod);
+procedure TDBStoreBase.WaitQueryM(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod);
 begin
 {$IFDEF FPC}
   WaitQuery(ReverseQuery, nil, OnQueryMethod);
@@ -2708,29 +2711,29 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryProc: TQueryProc);
+procedure TDBStoreBase.WaitQueryP(ReverseQuery: Boolean; const OnQueryProc: TQueryProc);
 begin
   WaitQuery(ReverseQuery, nil, OnQueryProc, nil);
 end;
 {$ENDIF}
 
 
-procedure TDBStoreBase.WaitQuery(const OnQueryCall: TQueryCall);
+procedure TDBStoreBase.WaitQueryC(const OnQueryCall: TQueryCall);
 begin
-  WaitQuery(False, OnQueryCall);
+  WaitQueryC(False, OnQueryCall);
 end;
 
-procedure TDBStoreBase.WaitQuery(const OnQueryMethod: TQueryMethod);
+procedure TDBStoreBase.WaitQueryM(const OnQueryMethod: TQueryMethod);
 begin
-  WaitQuery(False, OnQueryMethod);
+  WaitQueryM(False, OnQueryMethod);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDBStoreBase.WaitQuery(const OnQueryProc: TQueryProc);
+procedure TDBStoreBase.WaitQueryP(const OnQueryProc: TQueryProc);
 begin
-  WaitQuery(False, OnQueryProc);
+  WaitQueryP(False, OnQueryProc);
 end;
 
 {$ENDIF}
@@ -2756,44 +2759,44 @@ begin
   FQueryThreadLastActivtedTime := Now;
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, OnQueryCall, OnQueryDoneCall, nil, nil);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, nil, nil, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
-  Result := Query(TaskTag, False, OnQueryCall, OnQueryDoneCall);
+  Result := QueryC(TaskTag, False, OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
-  Result := Query(TaskTag, False, OnQueryMethod, OnQueryDoneMethod);
+  Result := QueryM(TaskTag, False, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.Query(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
-  Result := Query('', OnQueryCall, OnQueryDoneCall);
+  Result := QueryC('', OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.Query(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
-  Result := Query('', OnQueryMethod, OnQueryDoneMethod);
+  Result := QueryM('', OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.Query(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
-  Result := Query('', ReverseQuery, OnQueryCall, OnQueryDoneCall);
+  Result := QueryC('', ReverseQuery, OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.Query(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
-  Result := Query('', ReverseQuery, OnQueryMethod, OnQueryDoneMethod);
+  Result := QueryM('', ReverseQuery, OnQueryMethod, OnQueryDoneMethod);
 end;
 
 {$ELSE}
@@ -2820,64 +2823,64 @@ begin
   FQueryThreadLastActivtedTime := Now;
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, OnQueryCall, OnQueryDoneCall, nil, nil, nil, nil);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStoreBase.QueryP(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, nil, nil, OnQueryProc, OnQueryDoneProc, nil, nil);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, nil, nil, nil, nil, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
-  Result := Query(TaskTag, False, OnQueryCall, OnQueryDoneCall);
+  Result := QueryC(TaskTag, False, OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStoreBase.QueryP(const TaskTag: SystemString; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
-  Result := Query(TaskTag, False, OnQueryProc, OnQueryDoneProc);
+  Result := QueryP(TaskTag, False, OnQueryProc, OnQueryDoneProc);
 end;
 
-function TDBStoreBase.Query(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
-  Result := Query(TaskTag, False, OnQueryMethod, OnQueryDoneMethod);
+  Result := QueryM(TaskTag, False, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.Query(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
-  Result := Query('', OnQueryCall, OnQueryDoneCall);
+  Result := QueryC('', OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.Query(const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStoreBase.QueryP(const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
-  Result := Query('', OnQueryProc, OnQueryDoneProc);
+  Result := QueryP('', OnQueryProc, OnQueryDoneProc);
 end;
 
-function TDBStoreBase.Query(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStoreBase.QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
-  Result := Query('', ReverseQuery, OnQueryCall, OnQueryDoneCall);
+  Result := QueryC('', ReverseQuery, OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.Query(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
-  Result := Query('', ReverseQuery, OnQueryMethod, OnQueryDoneMethod);
+  Result := QueryM('', ReverseQuery, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.Query(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStoreBase.QueryP(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
-  Result := Query('', ReverseQuery, OnQueryProc, OnQueryDoneProc);
+  Result := QueryP('', ReverseQuery, OnQueryProc, OnQueryDoneProc);
 end;
 
-function TDBStoreBase.Query(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStoreBase.QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
-  Result := Query('', OnQueryMethod, OnQueryDoneMethod);
+  Result := QueryM('', OnQueryMethod, OnQueryDoneMethod);
 end;
 
 {$ENDIF}

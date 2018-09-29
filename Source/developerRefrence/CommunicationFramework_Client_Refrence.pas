@@ -63,9 +63,9 @@ type
     procedure Progress; override;
 
     procedure AsyncConnect(addr: SystemString; Port: Word); overload;
-    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
     function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     function Connect(Host: SystemString; Port: SystemString): Boolean; overload;
@@ -221,15 +221,15 @@ begin
   FOnAsyncConnectNotifyProc := nil;
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
 end;
 

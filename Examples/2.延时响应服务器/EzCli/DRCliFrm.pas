@@ -62,7 +62,7 @@ var
 begin
   // 异步方式发送，并且接收Stream指令，反馈以proc回调触发
   SendDe := TDataFrameEngine.Create;
-  client.SendStreamCmd('DelayResponse', SendDe,
+  client.SendStreamCmdP('DelayResponse', SendDe,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       while ResultData.Reader.NotEnd do

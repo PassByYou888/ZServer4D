@@ -263,7 +263,7 @@ begin
 
   doStatus('db count:', [DBEng.Count]);
 
-  DBEng.WaitQuery(False,
+  DBEng.WaitQueryP(False,
     procedure(var qs: TQueryState)
     begin
       if qs.IsString then
@@ -279,7 +279,7 @@ begin
   doStatus('');
   doStatus('');
 
-  DBEng.WaitQuery(False,
+  DBEng.WaitQueryP(False,
     procedure(var qs: TQueryState)
     begin
       if qs.IsString then
@@ -317,7 +317,7 @@ begin
       doStatus('');
       doStatus('');
       doStatus('');
-      dPipe.SourceDB.WaitQuery(False,
+      dPipe.SourceDB.WaitQueryP(False,
         procedure(var qState: TQueryState)
         begin
           if qState.IsString then
@@ -431,7 +431,7 @@ begin
   DBEng := zdb.InitMemoryDB('testdb');
   doStatus('db count:', [DBEng.Count]);
 
-  DBEng.WaitQuery(False,
+  DBEng.WaitQueryP(False,
     procedure(var qs: TQueryState)
     begin
       if qs.IsString then
@@ -443,7 +443,7 @@ begin
   doStatus('');
   doStatus('');
 
-  DBEng.WaitQuery(False,
+  DBEng.WaitQueryP(False,
     procedure(var qs: TQueryState)
     begin
       if qs.IsString then

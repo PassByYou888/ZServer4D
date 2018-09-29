@@ -13,7 +13,6 @@
   update history
 *)
 
-
 unit LibraryManager;
 
 {$INCLUDE zDefine.inc}
@@ -324,7 +323,4 @@ finalization
 
 FreeLibManCloneAutoFreeList;
 
-end. 
- 
- 
- 
+end.

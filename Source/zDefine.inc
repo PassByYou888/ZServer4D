@@ -73,10 +73,23 @@
     {$O-} { optimization }
   {$ENDIF}
 
-  // {$DEFINE NatTunnel_On_ICS}
-  {$DEFINE NatTunnel_On_CrossSocket}
-  // {$DEFINE NatTunnel_On_DIOCP}
-  // {$DEFINE NatTunnel_On_Indy}
+  {$IF Defined(Android) or Defined(IOS)}
+    {$DEFINE NatTunnel_On_Indy}
+    {$DEFINE HostQuery_On_Indy}
+  {$ELSE}
+    // xNat Physics interface
+    // {$DEFINE NatTunnel_On_ICS}
+    {$DEFINE NatTunnel_On_CrossSocket}
+    // {$DEFINE NatTunnel_On_DIOCP}
+    // {$DEFINE NatTunnel_On_Indy}
+
+
+    // HostQuery Physics interface
+    // {$DEFINE HostQuery_On_ICS}
+    {$DEFINE HostQuery_On_CrossSocket}
+    // {$DEFINE HostQuery_On_DIOCP}
+    // {$DEFINE HostQuery_On_Indy}
+  {$IFEND}
 {$ENDIF FPC}
 
 {$WARNINGS OFF}
@@ -100,30 +113,3 @@
 {$IFNDEF CPU64}
   {$DEFINE CPU32}
 {$ENDIF}
-
-(*
-  {$IFDEF FPC}
-  {$ELSE FPC}
-  {$ENDIF FPC}
-
-  {$IFDEF FPC}
-  {$ENDIF FPC}
-
-  {$IFDEF FPC}@{$ENDIF FPC}
-
-  {$IFNDEF FPC}
-  {$ENDIF FPC}
-
-  {$IFDEF parallel}
-  {$ELSE parallel}
-  {$ENDIF parallel}
-
-  {$IFNDEF parallel}
-  {$ENDIF parallel}
-
-  {$Region 'RegionName'}
-  {$EndRegion 'RegionName'}
-*)
-
-
- 

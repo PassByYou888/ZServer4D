@@ -21,10 +21,10 @@ type
     stLearn,        // Infinite deploy
     stImage,        // Infinite deploy
     stWave,         // Infinite deploy
-    stOCR           // Infinite deploy
+    stOCR,          // Infinite deploy
+    stEmulator      // Infinite deploy
     );
   TServerTypes = set of TServerType;
 
 const
   climitationsServerType: TServerTypes = [stDatabase, stDataStore];
- 

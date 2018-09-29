@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * ObjectDBManager                                                            * }
+{ * Object Data Manager, base on ObjectData, write by qq600585                 * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
@@ -22,14 +22,14 @@ interface
 uses CoreClasses, ObjectData, UnicodeMixedLib, PascalStrings, ListEngine;
 
 type
-  TItemHandle          = TTMDBItemHandle;
-  PItemHandle          = ^TItemHandle;
-  PFieldHandle         = ^TFieldHandle;
-  TFieldHandle         = TField;
-  PItemSearch          = ^TItemSearch;
-  TItemSearch          = TTMDBSearchItem;
-  PFieldSearch         = ^TFieldSearch;
-  TFieldSearch         = TTMDBSearchField;
+  TItemHandle = TTMDBItemHandle;
+  PItemHandle = ^TItemHandle;
+  PFieldHandle = ^TFieldHandle;
+  TFieldHandle = TField;
+  PItemSearch = ^TItemSearch;
+  TItemSearch = TTMDBSearchItem;
+  PFieldSearch = ^TFieldSearch;
+  TFieldSearch = TTMDBSearchField;
   PItemRecursionSearch = ^TItemRecursionSearch;
   TItemRecursionSearch = TTMDBRecursionSearch;
 
@@ -104,7 +104,7 @@ type
     function GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
     function GetItemSize(const DBPath, DBItem: SystemString): Int64;
 
-    // fast on lowlevel api support
+    // fast api support
     function GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
     function GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
     function GetHeader(hPos: Int64; var h: THeader): Boolean;
@@ -131,7 +131,8 @@ type
     function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
     function ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
-    // item block operation
+
+    // block operation
     function ItemRead(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
     function ItemSeekStart(var ItemHnd: TItemHandle): Boolean;
     function ItemSeekLast(var ItemHnd: TItemHandle): Boolean;
@@ -139,6 +140,7 @@ type
     function ItemGetPos(var ItemHnd: TItemHandle): Int64;
     function ItemGetSize(var ItemHnd: TItemHandle): Int64;
     function ItemWrite(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
+
     // recursion support
     function RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
@@ -159,7 +161,7 @@ type
 
   TObjectDataManagerOfCache = class(TObjectDataManager)
   private type
-    PObjectDataCacheHeader    = PHeader;
+    PObjectDataCacheHeader = PHeader;
     PObjectDataCacheItemBlock = PItemBlock;
 
     PObjectDataCacheItem = ^TObjectDataCacheItem;
@@ -269,7 +271,7 @@ implementation
 uses ItemStream, Types;
 
 const
-  MaxBuffSize  = 65535;
+  MaxBuffSize = 65535;
   UserRootName = 'User';
 
 var

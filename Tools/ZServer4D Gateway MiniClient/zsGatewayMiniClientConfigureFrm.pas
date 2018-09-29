@@ -351,7 +351,7 @@ end;
 procedure TzsGatewayMiniClientConfigureForm.GetConfigureButtonClick(Sender: TObject);
 begin
   hide;
-  ConfigureClient.AsyncConnect(RemoteIPEdit.Text, umlStrToInt(RemotePortEdit.Text, 4797),
+  ConfigureClient.AsyncConnectP(RemoteIPEdit.Text, umlStrToInt(RemotePortEdit.Text, 4797),
     procedure(const cState: Boolean)
     begin
       if not cState then
@@ -360,7 +360,7 @@ begin
           Exit;
         end;
 
-      ConfigureClient.SendStreamCmd('GetConfigure', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+      ConfigureClient.SendStreamCmdP('GetConfigure', nil, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
         var
           te: TSectionTextData;
           ns: TStrings;
@@ -485,7 +485,7 @@ begin
 
   StartClientListenButton.Caption := 'Stop NAT Client';
 
-  ProgressPost.PostExecute(2.0, procedure(Sender: TNPostExecute)
+  ProgressPost.PostExecuteP(2.0, procedure(Sender: TNPostExecute)
     begin
       umlDeleteFile(umlCombineFileName(DefaultPath, '_fc.ini'));
     end);

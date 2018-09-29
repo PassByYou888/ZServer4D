@@ -135,7 +135,7 @@ begin
         // 查询所有在管理中心注册的服务器，返回所有服务器
         sendDE := TDataFrameEngine.Create;
         sendDE.WriteByte(Byte(QueryType));
-        ClientIntf.SendStreamCmd('Query', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+        ClientIntf.SendStreamCmdP('Query', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
           var
             vl: THashVariantList;
             a: TQueryResultInfo;
@@ -182,7 +182,7 @@ begin
         // 查询所有在管理中心注册的服务器，返回最小负载
         sendDE := TDataFrameEngine.Create;
         sendDE.WriteByte(Byte(QueryType));
-        ClientIntf.SendStreamCmd('QueryMinLoad', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+        ClientIntf.SendStreamCmdP('QueryMinLoad', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
           var
             vl: THashVariantList;
             a: TQueryResultInfo;

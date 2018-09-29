@@ -8003,7 +8003,5 @@ initialization
   UniqueString(sFalse);
   JSONFormatSettings.DecimalSeparator := '.';
 
-end. 
- 
- 
- 
+end.
+

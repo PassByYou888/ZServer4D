@@ -21,12 +21,11 @@ uses
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework, DoStatusIO, UnicodeMixedLib,
   DataFrameEngine,
-
   NotifyObjectBase, CoreCipher, PascalStrings, MemoryStream64;
 
 const
-  DEFAULT_MANAGERSERVICE_RECVPORT: Word   = 13336;
-  DEFAULT_MANAGERSERVICE_SENDPORT: Word   = 13335;
+  DEFAULT_MANAGERSERVICE_RECVPORT: Word = 13336;
+  DEFAULT_MANAGERSERVICE_SENDPORT: Word = 13335;
   CDEFAULT_MANAGERSERVICE_QUERYPORT: Word = 10888;
 
 {$INCLUDE ServerManTypeDefine.inc}
@@ -34,8 +33,8 @@ const
 
 type
   TServerManager_ClientPool = class;
-  TServerManager_Client     = class;
-  TServerManager            = class;
+  TServerManager_Client = class;
+  TServerManager = class;
 
   IServerManager_ClientPoolNotify = interface
     procedure ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
@@ -186,11 +185,7 @@ begin
     begin
       Data1 := Sender;
       Data2 := te;
-{$IFDEF FPC}
-      OnExecuteMethod := @PostExecute_RegServer;
-{$ELSE}
-      OnExecuteMethod := PostExecute_RegServer;
-{$ENDIF}
+      OnExecuteMethod := {$IFDEF FPC}@{$ENDIF FPC}PostExecute_RegServer;
     end;
 end;
 
@@ -227,11 +222,7 @@ end;
 
 procedure TServerManager_Client.Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
 begin
-{$IFDEF FPC}
-  ProgressEngine.PostExecute(InData, @PostExecute_Offline);
-{$ELSE}
-  ProgressEngine.PostExecute(InData, PostExecute_Offline);
-{$ENDIF}
+  ProgressEngine.PostExecuteM(InData, {$IFDEF FPC}@{$ENDIF FPC}PostExecute_Offline);
 end;
 
 constructor TServerManager_Client.Create(AOwner: TServerManager_ClientPool);
@@ -266,13 +257,8 @@ end;
 procedure TServerManager_Client.RegisterCommand;
 begin
   inherited RegisterCommand;
-{$IFDEF FPC}
-  NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := @Command_RegServer;
-  NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := @Command_Offline;
-{$ELSE}
-  NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := Command_RegServer;
-  NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := Command_Offline;
-{$ENDIF}
+  NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RegServer;
+  NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_Offline;
 end;
 
 procedure TServerManager_Client.UnRegisterCommand;
@@ -581,11 +567,7 @@ begin
     begin
       DataEng.WriteString(cli.RegAddr);
       DataEng.WriteByte(Byte(cli.ServerType));
-{$IFDEF FPC}
-      OnExecuteMethod := @PostExecute_ServerOffline;
-{$ELSE}
-      OnExecuteMethod := PostExecute_ServerOffline;
-{$ENDIF}
+      OnExecuteMethod := {$IFDEF FPC}@{$ENDIF FPC}PostExecute_ServerOffline;
     end;
 
   if cli.ServerType = TServerType.stManager then
@@ -603,11 +585,7 @@ begin
       DisposeObject(ns);
 
       // sync all client
-{$IFDEF FPC}
-      ProgressEngine.PostExecute(nil, @PostExecute_RegServer);
-{$ELSE}
-      ProgressEngine.PostExecute(nil, PostExecute_RegServer);
-{$ENDIF}
+      ProgressEngine.PostExecuteM(nil, {$IFDEF FPC}@{$ENDIF FPC}PostExecute_RegServer);
     end;
 
   inherited UserOut(UserDefineIO);
@@ -704,11 +682,7 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('exists %s same server configure!!', [cli.MakeRegName]));
-{$IFDEF FPC}
-      with ProgressEngine.PostExecute(InData, @PostExecute_Disconnect) do
-{$ELSE}
-      with ProgressEngine.PostExecute(InData, PostExecute_Disconnect) do
-{$ENDIF}
+      with ProgressEngine.PostExecuteM(InData, {$IFDEF FPC}@{$ENDIF FPC}PostExecute_Disconnect) do
         begin
           Data1 := Sender;
           Data2 := cli;
@@ -853,13 +827,8 @@ end;
 procedure TServerManager.RegisterCommand;
 begin
   inherited RegisterCommand;
-{$IFDEF FPC}
-  FRecvTunnel.RegisterStream('EnabledServer').OnExecute := @Command_EnabledServer;
-  FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := @Command_AntiIdle;
-{$ELSE}
-  FRecvTunnel.RegisterStream('EnabledServer').OnExecute := Command_EnabledServer;
-  FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := Command_AntiIdle;
-{$ENDIF}
+  FRecvTunnel.RegisterStream('EnabledServer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_EnabledServer;
+  FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_AntiIdle;
 end;
 
 procedure TServerManager.UnRegisterCommand;

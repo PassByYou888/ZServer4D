@@ -84,7 +84,7 @@ begin
   // 此事件用于在服务器异步模拟与另一台服务器的通讯延迟
   // 假设另一台服务器在1.5秒以后，才响应了数据，这时候以异步方式处理完成命令后再继续给客户端反馈回去
   // 在延迟过程中队列中的指令都会处于等待状态
-  with ProgressPost.PostExecute(1.5, PostExecute_DelayResponse) do
+  with ProgressPost.PostExecuteM(1.5, PostExecute_DelayResponse) do
     begin
       // 延迟需要记录下当前客户端的唯一ID
       Data3 := Sender.ID;

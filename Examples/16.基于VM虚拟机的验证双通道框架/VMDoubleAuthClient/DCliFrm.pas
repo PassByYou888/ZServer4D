@@ -74,7 +74,7 @@ begin
   // 这样干是将时间的延迟率降低到最小
   client.SendTunnel.SyncOnResult := True;
   client.SyncCadencer;
-  client.SendTunnel.Wait(1000, procedure(const cState: Boolean)
+  client.SendTunnel.WaitP(1000, procedure(const cState: Boolean)
     begin
       // 因为打开了SyncOnResult后，匿名函数会出现嵌套死锁
       // 我们现在关闭它，以保证匿名函数的嵌套执行
@@ -125,7 +125,7 @@ begin
   // 异步方式发送，并且接收Stream指令，反馈以proc回调触发
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
-  client.SendTunnel.SendStreamCmd('helloWorld_Stream_Result', SendDe,
+  client.SendTunnel.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       if ResultData.Count > 0 then
@@ -148,7 +148,7 @@ begin
   SendTunnel.Connect('::', 2);
   RecvTunnel.Connect('::', 1);
 
-  client.RegisterUser(UserEdit.Text, PasswdEdit.Text, procedure(const rState: Boolean)
+  client.RegisterUserP(UserEdit.Text, PasswdEdit.Text, procedure(const rState: Boolean)
     begin
       client.Disconnect;
     end);
@@ -188,11 +188,11 @@ begin
   if client.Connected then
     begin
       // 嵌套式匿名函数支持
-      client.UserLogin(UserEdit.Text, PasswdEdit.Text,
+      client.UserLoginP(UserEdit.Text, PasswdEdit.Text,
         procedure(const State: Boolean)
         begin
           if State then
-              client.TunnelLink(
+              client.TunnelLinkP(
               procedure(const State: Boolean)
               begin
                 DoStatus('double tunnel link success!');
@@ -203,13 +203,13 @@ end;
 
 procedure TAuthDoubleTunnelClientForm.connectTunnelButtonClick(Sender: TObject);
 begin
-  VMTunnel.AsyncConnect(HostEdit.Text, 9899, procedure(const cState: Boolean)
+  VMTunnel.AsyncConnectP(HostEdit.Text, 9899, procedure(const cState: Boolean)
     begin
       if cState then
-          VMTunnel.ClientIO.BuildP2PAuthToken(procedure(const VMauthState: Boolean)
+          VMTunnel.ClientIO.BuildP2PAuthTokenP(procedure(const VMauthState: Boolean)
           begin
             if VMauthState then
-                VMTunnel.ClientIO.OpenP2PVMTunnel(True, '', procedure(const VMauthState: Boolean)
+                VMTunnel.ClientIO.OpenP2PVMTunnelP(True, '', procedure(const VMauthState: Boolean)
                 begin
                   if VMauthState then
                     begin
@@ -226,20 +226,20 @@ end;
 procedure TAuthDoubleTunnelClientForm.AsyncConnectButtonClick(Sender: TObject);
 begin
   // 异步式双通道链接
-  client.AsyncConnect('::', 1, 2,
+  client.AsyncConnectP('::', 1, 2,
     procedure(const cState: Boolean)
     begin
       if cState then
         begin
           DoStatus('connected success!');
           // 嵌套式匿名函数支持
-          client.UserLogin(UserEdit.Text, PasswdEdit.Text,
+          client.UserLoginP(UserEdit.Text, PasswdEdit.Text,
             procedure(const lState: Boolean)
             begin
               if lState then
                 begin
                   DoStatus('login successed!');
-                  client.TunnelLink(
+                  client.TunnelLinkP(
                     procedure(const tState: Boolean)
                     begin
                       if tState then

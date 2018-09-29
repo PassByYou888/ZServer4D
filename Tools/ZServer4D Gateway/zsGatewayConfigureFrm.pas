@@ -457,7 +457,7 @@ begin
 
   StartClientListenButton.Caption := 'Stop NAT Client';
 
-  ProgressPost.PostExecute(2.0, procedure(Sender: TNPostExecute)
+  ProgressPost.PostExecuteP(2.0, procedure(Sender: TNPostExecute)
     begin
       umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfc.ini'));
     end);
@@ -504,7 +504,7 @@ begin
 
   StartServerListenButton.Caption := 'Stop NAT Service';
 
-  ProgressPost.PostExecute(2.0, procedure(Sender: TNPostExecute)
+  ProgressPost.PostExecuteP(2.0, procedure(Sender: TNPostExecute)
     begin
       umlDeleteFile(umlCombineFileName(DefaultPath, '_zsfs.ini'));
     end);

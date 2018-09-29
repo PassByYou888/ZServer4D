@@ -74,7 +74,7 @@ end;
 procedure TMyService.cmd_helloWorld_Stream_Result(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 begin
   // hpc延迟后台运算机制演示，机制非常简单，可以大规模堆砌工程化代码
-  CommunicationFramework.RunStreamWithDelayThread(Sender, nil, nil, InData, OutData,
+  CommunicationFramework.RunStreamWithDelayThreadP(Sender, nil, nil, InData, OutData,
     procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine)
     begin
       // 如果在你的后台服务器框架有调度中心服务器：ManagerServer
@@ -162,7 +162,7 @@ end;
 
 procedure TDoubleServerForm.GetClientValueButtonClick(Sender: TObject);
 begin
-  SendTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
+  SendTunnel.ProgressPerClientP(procedure(PeerClient: TPeerClient)
     var
       c: TPeerClient;
       de: TDataFrameEngine;
@@ -170,7 +170,7 @@ begin
       c := PeerClient;
       de := TDataFrameEngine.Create;
       de.WriteString('change caption as hello World,from server!');
-      c.SendStreamCmd('GetClientValue', de,
+      c.SendStreamCmdP('GetClientValue', de,
         procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
         begin
           if ResultData.Count > 0 then

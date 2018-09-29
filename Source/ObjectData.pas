@@ -23,43 +23,43 @@ interface
 uses UnicodeMixedLib;
 
 const
-  DB_Version_Size  = C_Word_Size;
-  DB_Time_Size     = C_Double_Size;
-  DB_Counter_Size  = C_Int64_Size;
+  DB_Version_Size = C_Word_Size;
+  DB_Time_Size = C_Double_Size;
+  DB_Counter_Size = C_Int64_Size;
   DB_DataSize_Size = C_Int64_Size;
   DB_Position_Size = C_Int64_Size;
-  DB_ID_Size       = C_Byte_Size;
+  DB_ID_Size = C_Byte_Size;
   DB_Property_Size = C_Cardinal_Size;
-  DB_Level_Size    = C_Word_Size;
+  DB_Level_Size = C_Word_Size;
 
-  db_Pack_MajorVersion   = 2;
-  db_Pack_MinorVersion   = 1;
+  db_Pack_MajorVersion = 2;
+  db_Pack_MinorVersion = 1;
   db_Max_Secursion_Level = 128;
 
-  db_Pack_FileDescription    = 'ObjectDataV2.0';
+  db_Pack_FileDescription = 'ObjectDataV2.0';
   db_Pack_DefaultDescription = 'Field';
 
   db_Path_Delimiter = '/';
 
-  db_String_Length  = C_FixedLengthStringSize + C_FixedLengthStringSize;
-  db_Header_Size    = (db_String_Length * 1) + (DB_Position_Size * 4) + (DB_Time_Size * 2) + (DB_ID_Size * 2) + (DB_Property_Size * 1);
-  db_Item_Size      = (db_String_Length * 1) + (DB_ID_Size * 1) + (DB_Position_Size * 2) + (DB_DataSize_Size * 1) + (DB_Counter_Size * 1);
+  db_String_Length = C_FixedLengthStringSize + C_FixedLengthStringSize;
+  db_Header_Size = (db_String_Length * 1) + (DB_Position_Size * 4) + (DB_Time_Size * 2) + (DB_ID_Size * 2) + (DB_Property_Size * 1);
+  db_Item_Size = (db_String_Length * 1) + (DB_ID_Size * 1) + (DB_Position_Size * 2) + (DB_DataSize_Size * 1) + (DB_Counter_Size * 1);
   db_Item_BlockSize = (DB_ID_Size * 1) + (DB_Position_Size * 4) + (DB_DataSize_Size * 1);
-  db_Field_Size     = (db_String_Length * 1) + (DB_Counter_Size * 1) + (DB_Position_Size * 3);
-  db_Pack_Size      = (db_String_Length * 1) + (DB_Version_Size * 2) + (DB_Time_Size * 2) + (DB_Counter_Size * 1) + (DB_Position_Size * 4) + (DB_Level_Size * 1);
+  db_Field_Size = (db_String_Length * 1) + (DB_Counter_Size * 1) + (DB_Position_Size * 3);
+  db_Pack_Size = (db_String_Length * 1) + (DB_Version_Size * 2) + (DB_Time_Size * 2) + (DB_Counter_Size * 1) + (DB_Position_Size * 4) + (DB_Level_Size * 1);
 
   db_Header_Field_ID = 21;
-  db_Header_Item_ID  = 22;
+  db_Header_Item_ID = 22;
 
-  db_Header_FirstPositionFlags  = 11;
+  db_Header_FirstPositionFlags = 11;
   db_Header_MediumPositionFlags = 12;
-  db_Header_LastPositionFlags   = 13;
-  db_Header_OnlyPositionFlags   = 14;
+  db_Header_LastPositionFlags = 13;
+  db_Header_OnlyPositionFlags = 14;
 
-  db_item_OnlyPositionFlags   = 33;
-  db_item_FirstPositionFlags  = 34;
+  db_item_OnlyPositionFlags = 33;
+  db_item_FirstPositionFlags = 34;
   db_item_MediumPositionFlags = 35;
-  db_item_LastPositionFlags   = 36;
+  db_item_LastPositionFlags = 36;
 
 type
   PHeader = ^THeader;
@@ -75,7 +75,7 @@ type
   end;
 
   TObjectDataHeaderWriteProc = procedure(fPos: Int64; var wVal: THeader) of object;
-  TObjectDataHeaderReadProc  = procedure(fPos: Int64; var rVal: THeader; var Done: Boolean) of object;
+  TObjectDataHeaderReadProc = procedure(fPos: Int64; var rVal: THeader; var Done: Boolean) of object;
 
   PItemBlock = ^TItemBlock;
 
@@ -87,7 +87,7 @@ type
   end;
 
   TObjectDataItemBlockWriteProc = procedure(fPos: Int64; var wVal: TItemBlock) of object;
-  TObjectDataItemBlockReadProc  = procedure(fPos: Int64; var rVal: TItemBlock; var Done: Boolean) of object;
+  TObjectDataItemBlockReadProc = procedure(fPos: Int64; var rVal: TItemBlock; var Done: Boolean) of object;
 
   PItem = ^TItem;
 
@@ -106,7 +106,7 @@ type
   end;
 
   TObjectDataItemWriteProc = procedure(fPos: Int64; var wVal: TItem) of object;
-  TObjectDataItemReadProc  = procedure(fPos: Int64; var rVal: TItem; var Done: Boolean) of object;
+  TObjectDataItemReadProc = procedure(fPos: Int64; var rVal: TItem; var Done: Boolean) of object;
 
   PField = ^TField;
 
@@ -120,7 +120,7 @@ type
   end;
 
   TObjectDataFieldWriteProc = procedure(fPos: Int64; var wVal: TField) of object;
-  TObjectDataFieldReadProc  = procedure(fPos: Int64; var rVal: TField; var Done: Boolean) of object;
+  TObjectDataFieldReadProc = procedure(fPos: Int64; var rVal: TField; var Done: Boolean) of object;
 
   TFieldSearch = record
     RHeader: THeader;
@@ -415,120 +415,120 @@ function dbPack_RecursionSearchNext(var SenderRecursionSearch: TTMDBRecursionSea
 
 const
   { return code }
-  db_Header_ok                          = 300;
-  db_Header_SetPosError                 = -301;
-  db_Header_WritePosError               = -303;
-  db_Header_WriteNextPosError           = -304;
-  db_Header_WritePrevPosError           = -305;
-  db_Header_WritePubMainPosError        = -306;
-  db_Header_WriteIDError                = -307;
-  db_Header_WritePositionIDError        = -311;
-  db_Header_WriteNameError              = -308;
-  db_Header_WriteCreateTimeError        = -309;
-  db_Header_WriteLastEditTimeError      = -310;
-  db_Header_WriteUserPropertyIDError    = -332;
-  db_Header_ReadPosError                = -321;
-  db_Header_ReadNextPosError            = -322;
-  db_Header_ReadPrevPosError            = -323;
-  db_Header_ReadPubMainPosError         = -324;
-  db_Header_ReadIDError                 = -325;
-  db_Header_ReadPositionIDError         = -312;
-  db_Header_ReadNameError               = -326;
-  db_Header_ReadCreateTimeError         = -327;
-  db_Header_ReadLastEditTimeError       = -328;
-  db_Header_ReadUserPropertyIDError     = -331;
-  db_Header_NotFindHeader               = -320;
-  db_Item_ok                            = 200;
-  db_Item_SetPosError                   = -201;
-  db_Item_WriteRecDescriptionError      = -204;
-  db_Item_WriteRecExterIDError          = -205;
-  db_Item_WriteFirstBlockPOSError       = -206;
-  db_Item_WriteLastBlockPOSError        = -207;
-  db_Item_WriteRecBuffSizeError         = -208;
-  db_Item_WriteBlockCountError          = -209;
-  db_Item_ReadRecDescriptionError       = -214;
-  db_Item_ReadRecExterIDError           = -215;
-  db_Item_ReadFirstBlockPOSError        = -216;
-  db_Item_ReadLastBlockPOSError         = -217;
-  db_Item_ReadRecBuffSizeError          = -218;
-  db_Item_ReadBlockCountError           = -219;
-  db_Item_WriteItemBlockIDFlagsError    = -220;
-  db_Item_WriteCurrentBlockPOSError     = -221;
-  db_Item_WriteNextBlockPOSError        = -222;
-  db_Item_WritePrevBlockPOSError        = -223;
-  db_Item_WriteDataBlockPOSError        = -224;
-  db_Item_WriteDataBuffSizeError        = -225;
-  db_Item_ReadItemBlockIDFlagsError     = -230;
-  db_Item_ReadCurrentBlockPOSError      = -231;
-  db_Item_ReadNextBlockPOSError         = -232;
-  db_Item_ReadPrevBlockPOSError         = -233;
-  db_Item_ReadDataBlockPOSError         = -234;
-  db_Item_ReadDataBuffSizeError         = -235;
-  db_Item_BlockPositionError            = -240;
-  db_Item_BlockOverrate                 = -241;
-  db_Item_BlockReadError                = -242;
-  db_Item_BlockWriteError               = -243;
-  db_Field_ok                           = 100;
-  db_Field_SetPosError                  = -101;
-  db_Field_WriteHeaderFieldPosError     = -103;
-  db_Field_WriteDescriptionError        = -104;
-  db_Field_WriteCountError              = -106;
-  db_Field_WriteFirstPosError           = -107;
-  db_Field_WriteLastPosError            = -108;
-  db_Field_ReadHeaderFieldPosError      = -110;
-  db_Field_ReadDescriptionError         = -111;
-  db_Field_ReadCountError               = -112;
-  db_Field_ReadFirstPosError            = -113;
-  db_Field_ReadLastPosError             = -114;
-  db_Field_NotInitSearch                = -121;
-  db_Field_DeleteHeaderError            = -124;
-  db_Pack_ok                            = 400;
-  db_Pack_RepOpenPackError              = -401;
-  db_Pack_CreatePackError               = -402;
+  db_Header_ok = 300;
+  db_Header_SetPosError = -301;
+  db_Header_WritePosError = -303;
+  db_Header_WriteNextPosError = -304;
+  db_Header_WritePrevPosError = -305;
+  db_Header_WritePubMainPosError = -306;
+  db_Header_WriteIDError = -307;
+  db_Header_WritePositionIDError = -311;
+  db_Header_WriteNameError = -308;
+  db_Header_WriteCreateTimeError = -309;
+  db_Header_WriteLastEditTimeError = -310;
+  db_Header_WriteUserPropertyIDError = -332;
+  db_Header_ReadPosError = -321;
+  db_Header_ReadNextPosError = -322;
+  db_Header_ReadPrevPosError = -323;
+  db_Header_ReadPubMainPosError = -324;
+  db_Header_ReadIDError = -325;
+  db_Header_ReadPositionIDError = -312;
+  db_Header_ReadNameError = -326;
+  db_Header_ReadCreateTimeError = -327;
+  db_Header_ReadLastEditTimeError = -328;
+  db_Header_ReadUserPropertyIDError = -331;
+  db_Header_NotFindHeader = -320;
+  db_Item_ok = 200;
+  db_Item_SetPosError = -201;
+  db_Item_WriteRecDescriptionError = -204;
+  db_Item_WriteRecExterIDError = -205;
+  db_Item_WriteFirstBlockPOSError = -206;
+  db_Item_WriteLastBlockPOSError = -207;
+  db_Item_WriteRecBuffSizeError = -208;
+  db_Item_WriteBlockCountError = -209;
+  db_Item_ReadRecDescriptionError = -214;
+  db_Item_ReadRecExterIDError = -215;
+  db_Item_ReadFirstBlockPOSError = -216;
+  db_Item_ReadLastBlockPOSError = -217;
+  db_Item_ReadRecBuffSizeError = -218;
+  db_Item_ReadBlockCountError = -219;
+  db_Item_WriteItemBlockIDFlagsError = -220;
+  db_Item_WriteCurrentBlockPOSError = -221;
+  db_Item_WriteNextBlockPOSError = -222;
+  db_Item_WritePrevBlockPOSError = -223;
+  db_Item_WriteDataBlockPOSError = -224;
+  db_Item_WriteDataBuffSizeError = -225;
+  db_Item_ReadItemBlockIDFlagsError = -230;
+  db_Item_ReadCurrentBlockPOSError = -231;
+  db_Item_ReadNextBlockPOSError = -232;
+  db_Item_ReadPrevBlockPOSError = -233;
+  db_Item_ReadDataBlockPOSError = -234;
+  db_Item_ReadDataBuffSizeError = -235;
+  db_Item_BlockPositionError = -240;
+  db_Item_BlockOverrate = -241;
+  db_Item_BlockReadError = -242;
+  db_Item_BlockWriteError = -243;
+  db_Field_ok = 100;
+  db_Field_SetPosError = -101;
+  db_Field_WriteHeaderFieldPosError = -103;
+  db_Field_WriteDescriptionError = -104;
+  db_Field_WriteCountError = -106;
+  db_Field_WriteFirstPosError = -107;
+  db_Field_WriteLastPosError = -108;
+  db_Field_ReadHeaderFieldPosError = -110;
+  db_Field_ReadDescriptionError = -111;
+  db_Field_ReadCountError = -112;
+  db_Field_ReadFirstPosError = -113;
+  db_Field_ReadLastPosError = -114;
+  db_Field_NotInitSearch = -121;
+  db_Field_DeleteHeaderError = -124;
+  db_Pack_ok = 400;
+  db_Pack_RepOpenPackError = -401;
+  db_Pack_CreatePackError = -402;
   db_Pack_WriteFileDescriptionNameError = -460;
-  db_Pack_WriteNameError                = -403;
-  db_Pack_WriteDescriptionError         = -404;
-  db_Pack_PositionSeekError             = -405;
-  db_Pack_WriteMajorVersionError        = -406;
-  db_Pack_WriteMinorVersionError        = -407;
-  db_Pack_WriteCreateTimeError          = -408;
-  db_Pack_WriteLastEditTimeError        = -409;
-  db_Pack_WriteHeaderCountError         = -410;
-  db_Pack_WriteDefaultPositionError     = -411;
-  db_Pack_WriteFirstPositionError       = -412;
-  db_Pack_WriteLastPositionError        = -413;
-  db_Pack_ReadFileDescriptionNameError  = -461;
-  db_Pack_ReadNameError                 = -414;
-  db_Pack_ReadDescriptionError          = -415;
-  db_Pack_ReadMajorVersionError         = -416;
-  db_Pack_ReadMinorVersionError         = -417;
-  db_Pack_ReadCreateTimeError           = -418;
-  db_Pack_ReadLastEditTimeError         = -419;
-  db_Pack_ReadHeaderCountError          = -420;
-  db_Pack_ReadDefaultPositionError      = -421;
-  db_Pack_ReadFirstPositionError        = -422;
-  db_Pack_ReadLastPositionError         = -423;
-  db_Pack_RepCreatePackError            = -424;
-  db_Pack_OpenPackError                 = -425;
-  db_Pack_ClosePackError                = -426;
-  db_Pack_WriteCurrentPositionError     = -427;
-  db_Pack_WriteCurrentLevelError        = -428;
-  db_Pack_ReadCurrentPositionError      = -429;
-  db_Pack_ReadCurrentLevelError         = -430;
-  db_Pack_PathNameError                 = -440;
-  db_Pack_RepeatCreateItemError         = -450;
-  db_Pack_OpenItemError                 = -451;
-  db_Pack_ItemNameError                 = -452;
-  db_Pack_RepeatOpenItemError           = -453;
-  db_Pack_CloseItemError                = -454;
-  db_Pack_ItemStructNotFindDescription  = -455;
-  db_Pack_RecursionSearchOver           = -456;
-  db_FileBufferError                    = -500;
+  db_Pack_WriteNameError = -403;
+  db_Pack_WriteDescriptionError = -404;
+  db_Pack_PositionSeekError = -405;
+  db_Pack_WriteMajorVersionError = -406;
+  db_Pack_WriteMinorVersionError = -407;
+  db_Pack_WriteCreateTimeError = -408;
+  db_Pack_WriteLastEditTimeError = -409;
+  db_Pack_WriteHeaderCountError = -410;
+  db_Pack_WriteDefaultPositionError = -411;
+  db_Pack_WriteFirstPositionError = -412;
+  db_Pack_WriteLastPositionError = -413;
+  db_Pack_ReadFileDescriptionNameError = -461;
+  db_Pack_ReadNameError = -414;
+  db_Pack_ReadDescriptionError = -415;
+  db_Pack_ReadMajorVersionError = -416;
+  db_Pack_ReadMinorVersionError = -417;
+  db_Pack_ReadCreateTimeError = -418;
+  db_Pack_ReadLastEditTimeError = -419;
+  db_Pack_ReadHeaderCountError = -420;
+  db_Pack_ReadDefaultPositionError = -421;
+  db_Pack_ReadFirstPositionError = -422;
+  db_Pack_ReadLastPositionError = -423;
+  db_Pack_RepCreatePackError = -424;
+  db_Pack_OpenPackError = -425;
+  db_Pack_ClosePackError = -426;
+  db_Pack_WriteCurrentPositionError = -427;
+  db_Pack_WriteCurrentLevelError = -428;
+  db_Pack_ReadCurrentPositionError = -429;
+  db_Pack_ReadCurrentLevelError = -430;
+  db_Pack_PathNameError = -440;
+  db_Pack_RepeatCreateItemError = -450;
+  db_Pack_OpenItemError = -451;
+  db_Pack_ItemNameError = -452;
+  db_Pack_RepeatOpenItemError = -453;
+  db_Pack_CloseItemError = -454;
+  db_Pack_ItemStructNotFindDescription = -455;
+  db_Pack_RecursionSearchOver = -456;
+  db_FileBufferError = -500;
 
 var
   TreeMDBHeaderNameMultipleCharacter: U_SystemString = '?';
-  TreeMDBHeaderNameMultipleString: U_SystemString    = '*';
-  db_FieldPathLimitChar: U_SystemString              = '/\';
+  TreeMDBHeaderNameMultipleString: U_SystemString = '*';
+  db_FieldPathLimitChar: U_SystemString = '/\';
 
 implementation
 

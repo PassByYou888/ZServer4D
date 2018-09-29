@@ -75,7 +75,7 @@ begin
   de1 := TDataFrameEngine.Create;
 
   // 基于匿名函数的一级嵌套
-  client.SendStreamCmd('DelayResponse', de1,
+  client.SendStreamCmdP('DelayResponse', de1,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     var
       de2: TDataFrameEngine;
@@ -86,7 +86,7 @@ begin
       de2 := TDataFrameEngine.Create;
 
       // 基于匿名函数的二级嵌套
-      client.SendStreamCmd('DelayResponse', de2, nil, nil,
+      client.SendStreamCmdP('DelayResponse', de2, nil, nil,
         procedure(Sender: TPeerClient; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine)
         var
           de3: TDataFrameEngine;
@@ -96,7 +96,7 @@ begin
           de3 := TDataFrameEngine.Create;
 
           // 基于匿名函数的三级嵌套
-          client.SendStreamCmd('DelayResponse', de3,
+          client.SendStreamCmdP('DelayResponse', de3,
             procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
             begin
               while ResultData.Reader.NotEnd do

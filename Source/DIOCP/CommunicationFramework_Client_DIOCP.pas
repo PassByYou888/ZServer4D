@@ -88,9 +88,9 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure Progress; override;
 
-    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
     function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     procedure Disconnect; override;
@@ -345,7 +345,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -366,7 +366,7 @@ begin
   DCIntf.ConnectASync;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);
@@ -387,7 +387,7 @@ begin
   DCIntf.ConnectASync;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnect(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
   DCIntf.Link.Link := nil;
   DisposeObject(DCIntf.Link);

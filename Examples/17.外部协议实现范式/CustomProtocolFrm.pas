@@ -150,7 +150,7 @@ end;
 
 procedure TCustomProtocolForm.connectOnZServerButtonClick(Sender: TObject);
 begin
-  myClient.AsyncConnect('127.0.0.1', 9989, procedure(const cState: Boolean)
+  myClient.AsyncConnectP('127.0.0.1', 9989, procedure(const cState: Boolean)
     begin
       if cState then
           DoStatus('ZServer自定义客户端连接成功');

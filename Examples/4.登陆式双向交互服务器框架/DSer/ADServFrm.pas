@@ -190,7 +190,7 @@ end;
 
 procedure TAuthDoubleServerForm.GetClientValueButtonClick(Sender: TObject);
 begin
-  SendTunnel.ProgressPerClient(procedure(PeerClient: TPeerClient)
+  SendTunnel.ProgressPerClientP(procedure(PeerClient: TPeerClient)
     var
       c: TPeerClient;
       de: TDataFrameEngine;
@@ -205,7 +205,7 @@ begin
 
       de := TDataFrameEngine.Create;
       de.WriteString('change caption as hello World,from server!');
-      c.SendStreamCmd('GetClientValue', de,
+      c.SendStreamCmdP('GetClientValue', de,
         procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
         begin
           if ResultData.Count > 0 then

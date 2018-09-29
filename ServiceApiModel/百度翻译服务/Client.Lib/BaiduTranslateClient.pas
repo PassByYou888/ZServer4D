@@ -158,7 +158,7 @@ begin
   de.WriteByte(Byte(p^.desLanguage));
   de.WriteString(umlTrimSpace(p^.text));
   de.WriteBool(p^.UsedCache);
-  SendStreamCmd('BaiduTranslate', de, p, nil, BaiduTranslate_Result);
+  SendStreamCmdM('BaiduTranslate', de, p, nil, BaiduTranslate_Result);
   DisposeObject(de);
 end;
 
@@ -278,7 +278,7 @@ begin
       if BaiduTranslate_Client.ClientIO <> nil then
         if BaiduTranslate_Client.ClientIO.StopCommunicationTime > 5000 then
           begin
-            BaiduTranslate_Client.Wait(2000, procedure(const cState: Boolean)
+            BaiduTranslate_Client.WaitP(2000, procedure(const cState: Boolean)
               begin
               end)
           end;

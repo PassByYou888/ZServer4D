@@ -111,7 +111,7 @@ begin
   sp^.Hash64 := FastHash64PPascalString(@sp^.s);             // 高速hash
 
   // 从cache数据库查询我们的翻译，效率更好
-  MiniDB.QueryDB(
+  MiniDB.QueryDBP(
     False,     // 查询结果写入到返回表
     True,      // 查询的返回表是内存表，如果是False就是一个实体的文件表
     True,      // 从最后开始查询

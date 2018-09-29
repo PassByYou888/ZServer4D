@@ -46,7 +46,7 @@ type
     FDescription: SystemString;
     FDBEngine: TObjectDataManager;
     FFieldPos: Int64;
-    FAryList: packed array of TCoreClassList;
+    FAryList: array of TCoreClassList;
     FData: Pointer;
 
     function GetListTable(hash: THash; AutoCreate: Boolean): TCoreClassList;

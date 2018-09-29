@@ -88,7 +88,7 @@ begin
   // 异步方式发送，并且接收Stream指令，反馈以proc回调触发
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
-  client.SendTunnel.SendStreamCmd('helloWorld_Stream_Result', SendDe,
+  client.SendTunnel.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       if ResultData.Count > 0 then
@@ -137,7 +137,7 @@ begin
   if client.Connected then
     begin
       // 异步方式合并两个通道
-      client.TunnelLink(
+      client.TunnelLinkP(
         procedure(const State: Boolean)
         begin
           if State then
@@ -157,12 +157,12 @@ end;
 procedure TDoubleTunnelClientForm.AsyncConnectButtonClick(Sender: TObject);
 begin
   // 方法2，异步式双通道链接
-  client.AsyncConnect(HostEdit.Text, 9816, 9815,
+  client.AsyncConnectP(HostEdit.Text, 9816, 9815,
     procedure(const cState: Boolean)
     begin
       if cState then
         // 异步方式合并两个通道
-          client.TunnelLink(
+          client.TunnelLinkP(
           procedure(const tState: Boolean)
           begin
             if tState then

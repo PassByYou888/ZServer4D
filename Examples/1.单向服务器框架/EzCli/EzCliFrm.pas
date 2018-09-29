@@ -88,13 +88,13 @@ begin
   // 异步方式发送，并且接收Stream指令，反馈以方法回调触发
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
-  client.SendStreamCmd('helloWorld_Stream_Result', SendDe, BackCall_helloWorld_Stream_Result);
+  client.SendStreamCmdM('helloWorld_Stream_Result', SendDe, BackCall_helloWorld_Stream_Result);
   DisposeObject([SendDe]);
 
   // 异步方式发送，并且接收Stream指令，反馈以proc回调触发
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
-  client.SendStreamCmd('helloWorld_Stream_Result', SendDe,
+  client.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       if ResultData.Count > 0 then
@@ -211,7 +211,7 @@ begin
   // DoStatus('链接失败');
 
   // 方法2，异步高速链接
-  client.AsyncConnect(HostEdit.Text, 9818, procedure(const cState: Boolean)
+  client.AsyncConnectP(HostEdit.Text, 9818, procedure(const cState: Boolean)
     begin
       if cState then
         begin

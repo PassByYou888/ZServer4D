@@ -349,7 +349,7 @@ end;
 
 procedure TCommunicationFramework_Server_Synapse.CloseAll;
 begin
-  ProgressPerClient({$IFDEF FPC}@{$ENDIF FPC}All_Disconnect);
+  ProgressPerClientM({$IFDEF FPC}@{$ENDIF FPC}All_Disconnect);
 end;
 
 function TCommunicationFramework_Server_Synapse.WaitSendConsoleCmd(Client: TPeerIO;

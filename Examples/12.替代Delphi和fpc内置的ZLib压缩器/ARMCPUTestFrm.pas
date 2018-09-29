@@ -177,7 +177,7 @@ begin
   // 这里我们会发现泄漏
   DoStatus('TMyRec总分分配了 %d 次内存，占用 %d 字节空间，', [MH.GetHookPtrList_1.Count, MH.GetHookMemorySize_1]);
 
-  MH.GetHookPtrList_1.Progress(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH.GetHookPtrList_1.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       DoStatus('泄漏的地址:0x%s', [IntToHex(NativeUInt(NPtr), sizeof(Pointer) * 2)]);
       DoStatus(NPtr, uData, 80);

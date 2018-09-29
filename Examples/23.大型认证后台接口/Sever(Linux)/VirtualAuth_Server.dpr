@@ -50,7 +50,7 @@ begin
     Sender.Reject; // 拒绝用户登录
   *)
   // 第二种工作模式是延迟认证，在第二种模式中，我们什么都不用做，保存TVirtualAuthIO的实例，待认远程证完成，我们再反馈给客户端
-  with ProgressEngine.PostExecute(3.0, OtherServerReponse) do
+  with ProgressEngine.PostExecuteC(3.0, OtherServerReponse) do
       Data1 := Sender;
 end;
 
