@@ -168,6 +168,7 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 2018-9-29
 
+- 修复:在DataFrameEngine重做了Variant类型的读写支持，统一多平台兼容性，不再使用RT库自带的Variant写入方法
 - 修复:FPC中Enum为4 byte定义会丢失符号位的问题
 - 修复:Synapse的接口在连接失败时，会尝试切换IPV4+IPV6重新连接
 - 修复:Syanpse客户端在连接失败时不返回状态
