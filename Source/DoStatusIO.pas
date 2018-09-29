@@ -32,7 +32,7 @@ type
 
 procedure DoStatus(Text: SystemString; const ID: Integer); overload;
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod); overload;
-procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusCall); overload;
+procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall); overload;
 procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
@@ -366,7 +366,7 @@ begin
   HookDoStatus.Add(p);
 end;
 
-procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
+procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 var
   p: PDoStatusData;
 begin
