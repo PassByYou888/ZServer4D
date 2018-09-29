@@ -31,8 +31,9 @@ type
   TDoStatusCall = procedure(AText: SystemString; const ID: Integer);
 
 procedure DoStatus(Text: SystemString; const ID: Integer); overload;
-procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod); overload;
-procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall); overload;
+procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
+procedure AddDoStatusHookM(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
+procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
@@ -356,6 +357,11 @@ begin
 end;
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
+begin
+  AddDoStatusHookM(TokenObj, CallProc);
+end;
+
+procedure AddDoStatusHookM(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 var
   p: PDoStatusData;
 begin
