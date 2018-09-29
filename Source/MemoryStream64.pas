@@ -75,6 +75,34 @@ type
     property Memory: Pointer read FMemory;
 
     function CopyFrom(const Source: TCoreClassStream; CCount: Int64): Int64; virtual;
+
+    procedure WriteBool(const buff: Boolean);
+    procedure WriteInt8(const buff: ShortInt);
+    procedure WriteInt16(const buff: SmallInt);
+    procedure WriteInt32(const buff: Integer);
+    procedure WriteInt64(const buff: Int64);
+    procedure WriteUInt8(const buff: Byte);
+    procedure WriteUInt16(const buff: Word);
+    procedure WriteUInt32(const buff: Cardinal);
+    procedure WriteUInt64(const buff: UInt64);
+    procedure WriteSingle(const buff: Single);
+    procedure WriteDouble(const buff: Double);
+    procedure WriteCurrency(const buff: Currency);
+    procedure WriteString(const buff: TPascalString);
+
+    function ReadBool: Boolean;
+    function ReadInt8: ShortInt;
+    function ReadInt16: SmallInt;
+    function ReadInt32: Integer;
+    function ReadInt64: Int64;
+    function ReadUInt8: Byte;
+    function ReadUInt16: Word;
+    function ReadUInt32: Cardinal;
+    function ReadUInt64: UInt64;
+    function ReadSingle: Single;
+    function ReadDouble: Double;
+    function ReadCurrency: Currency;
+    function ReadString: TPascalString;
   end;
 
   IMemoryStream64WriteTrigger = interface
@@ -131,7 +159,7 @@ type
 {$ELSE}
 
   TDecompressionStream = ZLib.TZDecompressionStream;
-  TCompressionStream   = ZLib.TZCompressionStream;
+  TCompressionStream = ZLib.TZCompressionStream;
 {$ENDIF}
   //
   // zlib
@@ -540,6 +568,148 @@ begin
   end;
 end;
 
+procedure TMemoryStream64.WriteBool(const buff: Boolean);
+begin
+  WritePtr(@buff, 1);
+end;
+
+procedure TMemoryStream64.WriteInt8(const buff: ShortInt);
+begin
+  WritePtr(@buff, 1);
+end;
+
+procedure TMemoryStream64.WriteInt16(const buff: SmallInt);
+begin
+  WritePtr(@buff, 2);
+end;
+
+procedure TMemoryStream64.WriteInt32(const buff: Integer);
+begin
+  WritePtr(@buff, 4);
+end;
+
+procedure TMemoryStream64.WriteInt64(const buff: Int64);
+begin
+  WritePtr(@buff, 8);
+end;
+
+procedure TMemoryStream64.WriteUInt8(const buff: Byte);
+begin
+  WritePtr(@buff, 1);
+end;
+
+procedure TMemoryStream64.WriteUInt16(const buff: Word);
+begin
+  WritePtr(@buff, 2);
+end;
+
+procedure TMemoryStream64.WriteUInt32(const buff: Cardinal);
+begin
+  WritePtr(@buff, 4);
+end;
+
+procedure TMemoryStream64.WriteUInt64(const buff: UInt64);
+begin
+  WritePtr(@buff, 8);
+end;
+
+procedure TMemoryStream64.WriteSingle(const buff: Single);
+begin
+  WritePtr(@buff, 4);
+end;
+
+procedure TMemoryStream64.WriteDouble(const buff: Double);
+begin
+  WritePtr(@buff, 8);
+end;
+
+procedure TMemoryStream64.WriteCurrency(const buff: Currency);
+begin
+  WriteDouble(buff);
+end;
+
+procedure TMemoryStream64.WriteString(const buff: TPascalString);
+var
+  b: TBytes;
+begin
+  b := buff.Bytes;
+  WriteUInt32(length(b));
+  WritePtr(@b[0], length(b));
+  SetLength(b, 0);
+end;
+
+function TMemoryStream64.ReadBool: Boolean;
+begin
+  ReadPtr(@Result, 1);
+end;
+
+function TMemoryStream64.ReadInt8: ShortInt;
+begin
+  ReadPtr(@Result, 1);
+end;
+
+function TMemoryStream64.ReadInt16: SmallInt;
+begin
+  ReadPtr(@Result, 2);
+end;
+
+function TMemoryStream64.ReadInt32: Integer;
+begin
+  ReadPtr(@Result, 4);
+end;
+
+function TMemoryStream64.ReadInt64: Int64;
+begin
+  ReadPtr(@Result, 8);
+end;
+
+function TMemoryStream64.ReadUInt8: Byte;
+begin
+  ReadPtr(@Result, 1);
+end;
+
+function TMemoryStream64.ReadUInt16: Word;
+begin
+  ReadPtr(@Result, 2);
+end;
+
+function TMemoryStream64.ReadUInt32: Cardinal;
+begin
+  ReadPtr(@Result, 4);
+end;
+
+function TMemoryStream64.ReadUInt64: UInt64;
+begin
+  ReadPtr(@Result, 8);
+end;
+
+function TMemoryStream64.ReadSingle: Single;
+begin
+  ReadPtr(@Result, 4);
+end;
+
+function TMemoryStream64.ReadDouble: Double;
+begin
+  ReadPtr(@Result, 8);
+end;
+
+function TMemoryStream64.ReadCurrency: Currency;
+begin
+  Result := ReadDouble();
+end;
+
+function TMemoryStream64.ReadString: TPascalString;
+var
+  l: Cardinal;
+  b: TBytes;
+begin
+  l := ReadUInt32;
+  SetLength(b, l);
+  ReadPtr(@b[0], l);
+  Result.Bytes := b;
+  SetLength(b, 0);
+end;
+
 constructor TMemoryStream64OfWriteTrigger.Create(ATrigger: IMemoryStream64WriteTrigger);
 begin
   inherited Create;
@@ -729,7 +899,6 @@ begin
     end;
   DoStatus(IntToHex(NativeInt(v), SizeOf(Pointer)) + ':' + n);
 end;
-
 
 initialization
 

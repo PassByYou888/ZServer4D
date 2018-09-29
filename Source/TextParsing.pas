@@ -21,7 +21,7 @@ uses Types, CoreClasses, PascalStrings, UnicodeMixedLib, ListEngine;
 type
   TTextStyle = (tsPascal, tsC, tsText);
 
-  TTokenType  = (ttTextDecl, ttComment, ttNumber, ttSymbol, ttAscii, ttSpecialSymbol, ttUnknow);
+  TTokenType = (ttTextDecl, ttComment, ttNumber, ttSymbol, ttAscii, ttSpecialSymbol, ttUnknow);
   TTokenTypes = set of TTokenType;
 
   TTokenStatistics = array [TTokenType] of Integer;
@@ -183,6 +183,8 @@ type
     { external }
     procedure Init; virtual;
     function Parsing: Boolean; virtual;
+    { debug }
+    procedure Print;
   end;
 
   TTextParsingClass = class of TTextParsing;
@@ -194,6 +196,8 @@ var
   V_SpacerSymbol: SystemString = C_SpacerSymbol;
 
 implementation
+
+uses DoStatusIO, TypInfo;
 
 const
   NullTokenStatistics: TTokenStatistics = (0, 0, 0, 0, 0, 0, 0);
@@ -737,7 +741,7 @@ begin
         begin
           Result := p^.tokenType = TTokenType.ttSpecialSymbol;
           if Result then
-              speicalSymbolEndPos := p^.bPos;
+              speicalSymbolEndPos := p^.ePos;
           exit;
         end;
     end;
@@ -2544,6 +2548,18 @@ end;
 function TTextParsing.Parsing: Boolean;
 begin
   Result := False;
+end;
+
+procedure TTextParsing.Print;
+var
+  i: Integer;
+  pt: PTokenData;
+begin
+  for i := 0 to ParsingData.Cache.TokenDataList.Count - 1 do
+    begin
+      pt := ParsingData.Cache.TokenDataList[i];
+      DoStatus(PFormat('index: %d type: %s value: %s', [i, GetEnumName(TypeInfo(TTokenType), Ord(pt^.tokenType)), pt^.Text.Text]));
+    end;
 end;
 
 end.

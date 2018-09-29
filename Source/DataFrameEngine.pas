@@ -1979,22 +1979,52 @@ end;
 
 procedure TDataFrameVariant.LoadFromStream(stream: TMemoryStream64);
 var
-  r: TCoreClassReader;
+  vt_ord: Word;
+  vt: TVarType;
 begin
-  r := TCoreClassReader.Create(stream, 1024 * 4);
-  r.IgnoreChildren := True;
-  FBuffer := r.ReadVariant;
-  DisposeObject(r);
+  vt := TVarType(stream.ReadUInt16);
+  case vt of
+    varSmallInt: FBuffer := stream.ReadInt16;
+    varInteger: FBuffer := stream.ReadInt32;
+    varSingle: FBuffer := stream.ReadSingle;
+    varDouble: FBuffer := stream.ReadDouble;
+    varCurrency: FBuffer := stream.ReadCurrency;
+    varBoolean: FBuffer := stream.ReadBool;
+    varShortInt: FBuffer := stream.ReadInt8;
+    varByte: FBuffer := stream.ReadUInt8;
+    varWord: FBuffer := stream.ReadUInt16;
+    varLongWord: FBuffer := stream.ReadUInt32;
+    varInt64: FBuffer := stream.ReadInt64;
+    varUInt64: FBuffer := stream.ReadUInt64;
+    varOleStr, varString, varUString: FBuffer := stream.ReadString;
+    else
+      RaiseInfo('error variant type');
+  end;
 end;
 
 procedure TDataFrameVariant.SaveToStream(stream: TMemoryStream64);
 var
-  w: TCoreClassWriter;
+  vt: TVarType;
 begin
-  w := TCoreClassWriter.Create(stream, 1024 * 4);
-  w.IgnoreChildren := True;
-  w.WriteVariant(FBuffer);
-  DisposeObject(w);
+  vt := VarType(FBuffer);
+  stream.WriteUInt16(Word(vt));
+  case vt of
+    varSmallInt: stream.WriteInt16(FBuffer);
+    varInteger: stream.WriteInt32(FBuffer);
+    varSingle: stream.WriteSingle(FBuffer);
+    varDouble: stream.WriteDouble(FBuffer);
+    varCurrency: stream.WriteCurrency(FBuffer);
+    varBoolean: stream.WriteBool(FBuffer);
+    varShortInt: stream.WriteInt8(FBuffer);
+    varByte: stream.WriteUInt8(FBuffer);
+    varWord: stream.WriteUInt16(FBuffer);
+    varLongWord: stream.WriteUInt32(FBuffer);
+    varInt64: stream.WriteInt64(FBuffer);
+    varUInt64: stream.WriteUInt64(FBuffer);
+    varOleStr, varString, varUString: stream.WriteString(FBuffer);
+    else
+      RaiseInfo('error variant type');
+  end;
 end;
 
 {$IFNDEF FPC}
