@@ -107,20 +107,19 @@ begin
   if not VMTunnel.Connect(HostEdit.Text, 9899) then
       exit;
 
-  VMTunnel.ClientIO.BuildP2PAuthTokenP(procedure(const BuildAuthState: Boolean)
+  VMTunnel.ClientIO.BuildP2PAuthTokenP(procedure
     begin
-      if BuildAuthState then
-          VMTunnel.ClientIO.OpenP2PVMTunnelP(True, '', procedure(const VMauthState: Boolean)
-          begin
-            // 如果VM隧道握手成功
-            if VMauthState then
-              begin
-                // 将客户端框架绑定到隧道中
-                // 这里有两个客户端，我们都绑定进去
-                VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(SendTunnel);
-                VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
-              end
-          end);
+      VMTunnel.ClientIO.OpenP2PVMTunnelP(True, '', procedure(const VMauthState: Boolean)
+        begin
+          // 如果VM隧道握手成功
+          if VMauthState then
+            begin
+              // 将客户端框架绑定到隧道中
+              // 这里有两个客户端，我们都绑定进去
+              VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(SendTunnel);
+              VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
+            end
+        end);
     end);
 end;
 

@@ -38,47 +38,47 @@ uses
   SysUtils, Types, Variants, CoreClasses, PascalStrings, ListEngine;
 
 const
-  C_Address_Size   = SizeOf(Pointer);
-  C_Pointer_Size   = C_Address_Size;
-  C_Integer_Size   = 4;
-  C_Int64_Size     = 8;
-  C_UInt64_Size    = 8;
-  C_Single_Size    = 4;
-  C_Double_Size    = 8;
+  C_Address_Size = SizeOf(Pointer);
+  C_Pointer_Size = C_Address_Size;
+  C_Integer_Size = 4;
+  C_Int64_Size = 8;
+  C_UInt64_Size = 8;
+  C_Single_Size = 4;
+  C_Double_Size = 8;
   C_Small_Int_Size = 2;
-  C_Byte_Size      = 1;
+  C_Byte_Size = 1;
   C_Short_Int_Size = 1;
-  C_Word_Size      = 2;
-  C_DWord_Size     = 4;
-  C_Cardinal_Size  = 4;
-  C_Boolean_Size   = 1;
-  C_Bool_Size      = 1;
-  C_MD5_Size       = 16;
-  C_DES_Size       = 8;
+  C_Word_Size = 2;
+  C_DWord_Size = 4;
+  C_Cardinal_Size = 4;
+  C_Boolean_Size = 1;
+  C_Bool_Size = 1;
+  C_MD5_Size = 16;
+  C_DES_Size = 8;
 
-  C_PrepareReadCacheSize  = 512;
+  C_PrepareReadCacheSize = 512;
   C_MaxBufferFragmentSize = $F000;
 
-  C_SeekError       = -910;
-  C_FileWriteError  = -909;
-  C_FileReadError   = -908;
+  C_SeekError = -910;
+  C_FileWriteError = -909;
+  C_FileReadError = -908;
   C_FileHandleError = -907;
-  C_OpenFileError   = -905;
-  C_NotOpenFile     = -904;
+  C_OpenFileError = -905;
+  C_NotOpenFile = -904;
   C_CreateFileError = -903;
-  C_FileIsActive    = -902;
-  C_NotFindFile     = -901;
-  C_NotError        = -900;
+  C_FileIsActive = -902;
+  C_NotFindFile = -901;
+  C_NotError = -900;
 
-  C_FixedLengthStringSize       = 64;
+  C_FixedLengthStringSize = 64;
   C_FixedLengthStringHeaderSize = 1;
 
 type
   U_SystemString = SystemString;
-  U_String       = TPascalString;
-  P_String       = PPascalString;
-  U_Char         = SystemChar;
-  U_StringArray  = array of U_SystemString;
+  U_String = TPascalString;
+  P_String = PPascalString;
+  U_Char = SystemChar;
+  U_StringArray = array of U_SystemString;
 
   U_Bytes = TBytes;
 
@@ -121,7 +121,8 @@ function Pascal2FixedLengthString(var s: TPascalString): U_FixedLengthString;
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
 function umlPos(const SubStr, Str: TPascalString; const Offset: Integer = 1): Integer;
 
-function umlVarToStr(const v: Variant): TPascalString;
+function umlVarToStr(const v: Variant; const Base64Conver: Boolean): TPascalString; overload;
+function umlVarToStr(const v: Variant): TPascalString; overload;
 function umlStrToVar(const s: TPascalString): Variant;
 
 function umlMax(const v1, v2: UInt64): UInt64; overload;
@@ -225,7 +226,6 @@ function umlDeleteFile(const FileName: TPascalString): Boolean; overload;
 function umlCopyFile(const SourFile, DestFile: TPascalString): Boolean;
 function umlRenameFile(const OldName, NewName: TPascalString): Boolean;
 
-{ TPascalString }
 procedure umlSetLength(var aStr: TPascalString; Len: Integer); overload;
 procedure umlSetLength(var aStr: U_Bytes; Len: Integer); overload;
 procedure umlSetLength(var aStr: TArrayPascalString; Len: Integer); overload;
@@ -276,7 +276,7 @@ function umlDeleteText(const sour: TPascalString; const bToken, eToken: TArrayPa
 function umlGetTextContent(const sour: TPascalString; const bToken, eToken: TArrayPascalString): TPascalString;
 
 type
-  TTextType  = (ntBool, ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt, ntSingle, ntDouble, ntCurrency, ntUnknow);
+  TTextType = (ntBool, ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt, ntSingle, ntDouble, ntCurrency, ntUnknow);
   TTextTypes = set of TTextType;
 function umlGetNumTextType(const s: TPascalString): TTextType;
 
@@ -451,8 +451,8 @@ procedure umlDES(Input, output: U_Stream; const key: TDESKey; Encrypt: Boolean);
 procedure umlDES(Input, output: U_Stream; const key: TPascalString; Encrypt: Boolean); overload;
 function umlDESCompare(const d1, d2: TDESKey): Boolean;
 
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TDESKey; Encrypt: Boolean); overload;
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TPascalString; Encrypt: Boolean); overload;
+procedure umlFastSymbol(DataPtr: Pointer; Size: NativeInt; const key: TDESKey; Encrypt: Boolean); overload;
+procedure umlFastSymbol(DataPtr: Pointer; Size: NativeInt; const key: TPascalString; Encrypt: Boolean); overload;
 
 function umlTrimSpace(const s: TPascalString): TPascalString;
 
@@ -499,8 +499,8 @@ procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
 
 type
-  TCSVCall             = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
-  TCSVMethod           = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) of object;
+  TCSVCall = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
+  TCSVMethod = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) of object;
 {$IFNDEF FPC} TCSVProc = reference to procedure(const sour: TPascalString; const king, Data: TArrayPascalString); {$ENDIF FPC}
 
 procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVCall);
@@ -565,37 +565,21 @@ begin
   Result := Str.GetPos(SubStr, Offset);
 end;
 
-function umlVarToStr(const v: Variant): TPascalString;
+function umlVarToStr(const v: Variant; const Base64Conver: Boolean): TPascalString; overload;
 var
   n, b64: TPascalString;
 begin
   try
     case VarType(v) of
-      varSmallInt, varInteger, varShortInt, varByte, varWord, varLongWord:
-        begin
-          Result := IntToStr(v);
-        end;
-      varInt64:
-        begin
-          Result := IntToStr(Int64(v));
-        end;
-      varUInt64:
-        begin
-{$IFDEF FPC}
-          Result := IntToStr(UInt64(v));
-{$ELSE}
-          Result := UIntToStr(UInt64(v));
-{$ENDIF}
-        end;
-      varSingle, varDouble, varCurrency, varDate:
-        begin
-          Result := FloatToStr(v);
-        end;
+      varSmallInt, varInteger, varShortInt, varByte, varWord, varLongWord: Result := IntToStr(v);
+      varInt64: Result := IntToStr(Int64(v));
+      varUInt64: {$IFDEF FPC} Result := IntToStr(UInt64(v)); {$ELSE} Result := UIntToStr(UInt64(v)); {$ENDIF}
+      varSingle, varDouble, varCurrency, varDate: Result := FloatToStr(v);
       varOleStr, varString, varUString:
         begin
           n.Text := VarToStr(v);
 
-          if umlExistsLimitChar(n, #10#13#9#8#0) then
+          if Base64Conver and umlExistsLimitChar(n, #10#13#9#8#0) then
             begin
               umlEncodeLineBASE64(n, b64);
               Result := '___base64:' + b64.Text;
@@ -603,10 +587,7 @@ begin
           else
               Result := n.Text;
         end;
-      varBoolean:
-        begin
-          Result := BoolToStr(v, True);
-        end;
+      varBoolean: Result := umlBoolToStr(v);
       else
         Result := VarToStr(v);
     end;
@@ -617,6 +598,11 @@ begin
         Result := '';
     end;
   end;
+end;
+
+function umlVarToStr(const v: Variant): TPascalString;
+begin
+  Result := umlVarToStr(v, True);
 end;
 
 function umlStrToVar(const s: TPascalString): Variant;
@@ -634,14 +620,10 @@ begin
     else
       begin
         case umlGetNumTextType(n) of
-          ntBool: Result := StrToBool(n.Text);
+          ntBool: Result := umlStrToBool(n);
           ntInt: Result := StrToInt(n.Text);
           ntInt64: Result := StrToInt64(n.Text);
-{$IFDEF FPC}
-          ntUInt64: Result := StrToQWord(n.Text);
-{$ELSE}
-          ntUInt64: Result := StrToUInt64(n.Text);
-{$ENDIF}
+{$IFDEF FPC} ntUInt64: Result := StrToQWord(n.Text); {$ELSE} ntUInt64: Result := StrToUInt64(n.Text); {$ENDIF}
           ntWord: Result := StrToInt(n.Text);
           ntByte: Result := StrToInt(n.Text);
           ntSmallInt: Result := StrToInt(n.Text);
@@ -2732,15 +2714,11 @@ begin
         begin
           inc(cnt[vsSymSub]);
           inc(cnt[vsSymAddSub]);
-          if i <> 1 then
-              exit(ntUnknow);
         end
       else if CharIn(c, '+') then
         begin
           inc(cnt[vsSymAdd]);
           inc(cnt[vsSymAddSub]);
-          if i <> 1 then
-              exit(ntUnknow);
         end
       else if CharIn(c, '$') and (i = 1) then
         begin
@@ -3503,7 +3481,7 @@ end;
 
 procedure umlBase64Encode(const InputBuffer: Pointer; const InputByteCount: NativeInt; const OutputBuffer: Pointer);
 const
-  EQUAL_SIGN  = Byte('=');
+  EQUAL_SIGN = Byte('=');
   BUFFER_SIZE = $3000;
 
   umlBase64_ENCODE_TABLE: array [0 .. 63] of Byte = (065, 066, 067, 068, 069, 070, 071, 072, 073, 074, 075, 076, 077, 078, 079, 080, 081, 082, 083, 084, 085, 086, 087, 088, 089,
@@ -3713,7 +3691,7 @@ procedure umlTransformMD5(var Accu; var Buf); inline;
 
 type
   TDigestCardinal = array [0 .. 3] of Cardinal;
-  TCardinalBuf    = array [0 .. 15] of Cardinal;
+  TCardinalBuf = array [0 .. 15] of Cardinal;
 var
   a, b, c, d: Cardinal;
 begin
@@ -3738,7 +3716,6 @@ begin
   d := FF(d, a, b, c, TCardinalBuf(Buf)[13], 12, $FD987193); { 14 }
   c := FF(c, d, a, b, TCardinalBuf(Buf)[14], 17, $A679438E); { 15 }
   b := FF(b, c, d, a, TCardinalBuf(Buf)[15], 22, $49B40821); { 16 }
-
   a := GG(a, b, c, d, TCardinalBuf(Buf)[1], 5, $F61E2562);   { 17 }
   d := GG(d, a, b, c, TCardinalBuf(Buf)[6], 9, $C040B340);   { 18 }
   c := GG(c, d, a, b, TCardinalBuf(Buf)[11], 14, $265E5A51); { 19 }
@@ -3755,7 +3732,6 @@ begin
   d := GG(d, a, b, c, TCardinalBuf(Buf)[2], 9, $FCEFA3F8);   { 30 }
   c := GG(c, d, a, b, TCardinalBuf(Buf)[7], 14, $676F02D9);  { 31 }
   b := GG(b, c, d, a, TCardinalBuf(Buf)[12], 20, $8D2A4C8A); { 32 }
-
   a := HH(a, b, c, d, TCardinalBuf(Buf)[5], 4, $FFFA3942);   { 33 }
   d := HH(d, a, b, c, TCardinalBuf(Buf)[8], 11, $8771F681);  { 34 }
   c := HH(c, d, a, b, TCardinalBuf(Buf)[11], 16, $6D9D6122); { 35 }
@@ -3772,7 +3748,6 @@ begin
   d := HH(d, a, b, c, TCardinalBuf(Buf)[12], 11, $E6DB99E5); { 46 }
   c := HH(c, d, a, b, TCardinalBuf(Buf)[15], 16, $1FA27CF8); { 47 }
   b := HH(b, c, d, a, TCardinalBuf(Buf)[2], 23, $C4AC5665);  { 48 }
-
   a := II(a, b, c, d, TCardinalBuf(Buf)[0], 6, $F4292244);   { 49 }
   d := II(d, a, b, c, TCardinalBuf(Buf)[7], 10, $432AFF97);  { 50 }
   c := II(c, d, a, b, TCardinalBuf(Buf)[14], 15, $AB9423A7); { 51 }
@@ -3808,8 +3783,8 @@ var
   Digest: TMD5;
   Lo, Hi: Cardinal;
   p: PByte;
-  WorkLen: Byte;
-  WorkBuf: array [0 .. 63] of Byte;
+  ChunkIndex: Byte;
+  ChunkBuff: array [0 .. 63] of Byte;
 begin
   Lo := 0;
   Hi := 0;
@@ -3830,22 +3805,22 @@ begin
       dec(bufSiz, $40);
     end;
   if bufSiz > 0 then
-      CopyPtr(p, @WorkBuf[0], bufSiz);
+      CopyPtr(p, @ChunkBuff[0], bufSiz);
 
   Result := PMD5(@Digest[0])^;
-  WorkBuf[bufSiz] := $80;
-  WorkLen := bufSiz + 1;
-  if WorkLen > $38 then
+  ChunkBuff[bufSiz] := $80;
+  ChunkIndex := bufSiz + 1;
+  if ChunkIndex > $38 then
     begin
-      if WorkLen < $40 then
-          FillPtrByte(@WorkBuf[WorkLen], $40 - WorkLen, 0);
-      umlTransformMD5(Result, WorkBuf);
-      WorkLen := 0
+      if ChunkIndex < $40 then
+          FillPtrByte(@ChunkBuff[ChunkIndex], $40 - ChunkIndex, 0);
+      umlTransformMD5(Result, ChunkBuff);
+      ChunkIndex := 0
     end;
-  FillPtrByte(@WorkBuf[WorkLen], $38 - WorkLen, 0);
-  PCardinal(@WorkBuf[$38])^ := Lo;
-  PCardinal(@WorkBuf[$3C])^ := Hi;
-  umlTransformMD5(Result, WorkBuf);
+  FillPtrByte(@ChunkBuff[ChunkIndex], $38 - ChunkIndex, 0);
+  PCardinal(@ChunkBuff[$38])^ := Lo;
+  PCardinal(@ChunkBuff[$3C])^ := Hi;
+  umlTransformMD5(Result, ChunkBuff);
 end;
 {$IFEND}
 
@@ -3878,8 +3853,8 @@ var
   bufSiz: Int64;
   Rest: Cardinal;
   p: PByte;
-  WorkLen: Byte;
-  WorkBuf: array [0 .. 63] of Byte;
+  ChunkIndex: Byte;
+  ChunkBuff: array [0 .. 63] of Byte;
 begin
 {$IFDEF OptimizationMemoryStreamMD5}
   if stream is TCoreClassMemoryStream then
@@ -3935,24 +3910,24 @@ begin
       end;
 
   if bufSiz > 0 then
-      CopyPtr(p, @WorkBuf[0], bufSiz);
+      CopyPtr(p, @ChunkBuff[0], bufSiz);
 
   FreeMemory(DeltaBuf);
 
   Result := PMD5(@Digest[0])^;
-  WorkBuf[bufSiz] := $80;
-  WorkLen := bufSiz + 1;
-  if WorkLen > $38 then
+  ChunkBuff[bufSiz] := $80;
+  ChunkIndex := bufSiz + 1;
+  if ChunkIndex > $38 then
     begin
-      if WorkLen < $40 then
-          FillPtrByte(@WorkBuf[WorkLen], $40 - WorkLen, 0);
-      umlTransformMD5(Result, WorkBuf);
-      WorkLen := 0
+      if ChunkIndex < $40 then
+          FillPtrByte(@ChunkBuff[ChunkIndex], $40 - ChunkIndex, 0);
+      umlTransformMD5(Result, ChunkBuff);
+      ChunkIndex := 0
     end;
-  FillPtrByte(@WorkBuf[WorkLen], $38 - WorkLen, 0);
-  PCardinal(@WorkBuf[$38])^ := Lo;
-  PCardinal(@WorkBuf[$3C])^ := Hi;
-  umlTransformMD5(Result, WorkBuf);
+  FillPtrByte(@ChunkBuff[ChunkIndex], $38 - ChunkIndex, 0);
+  PCardinal(@ChunkBuff[$38])^ := Lo;
+  PCardinal(@ChunkBuff[$3C])^ := Hi;
+  umlTransformMD5(Result, ChunkBuff);
 end;
 {$IFEND}
 
@@ -4575,28 +4550,28 @@ begin
   Result := PUInt64(@d1[0])^ = PUInt64(@d2[0])^;
 end;
 
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TDESKey; Encrypt: Boolean);
+procedure umlFastSymbol(DataPtr: Pointer; Size: NativeInt; const key: TDESKey; Encrypt: Boolean);
 var
-  p: nativeUInt;
+  p: NativeInt;
   i: Integer;
   b: PByte;
 begin
   i := 0;
+  b := DataPtr;
   for p := 0 to Size - 1 do
     begin
-      b := Pointer(nativeUInt(DataPtr) + p);
       if Encrypt then
-          b^ := b^ + key[i]
+          inc(b^, key[i])
       else
-          b^ := b^ - key[i];
-
+          dec(b^, key[i]);
+      inc(b);
       inc(i);
       if i >= C_DES_Size then
           i := 0;
     end;
 end;
 
-procedure umlFastSymbol(DataPtr: Pointer; Size: Cardinal; const key: TPascalString; Encrypt: Boolean);
+procedure umlFastSymbol(DataPtr: Pointer; Size: NativeInt; const key: TPascalString; Encrypt: Boolean);
 var
   h64: THash64;
 begin
@@ -5402,7 +5377,7 @@ begin
       Result := ExLibs[LibName];
 
   if Result = 0 then
-      RaiseInfo('LoadLibrary fialed:%s', [LibName]);
+      RaiseInfo('LoadLibrary failed:%s', [LibName]);
 {$IFEND}
 end;
 

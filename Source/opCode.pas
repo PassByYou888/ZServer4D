@@ -109,7 +109,7 @@ type
     function AddValue(v: Variant): Integer; overload;
     function AddValueT(v: Variant; VT: TOpValueType): Integer; overload;
     function AddLink(Obj: TOpCode): Integer;
-    { }
+
     function CloneNewSelf: TOpCode;
 
     property Param[index: Integer]: POpData read GetParam; default;
@@ -544,7 +544,7 @@ function TOpCustomRunTime.DoBool(var Param: TOpParam): Variant;
   begin
     if VarIsStr(v) then
       begin
-        n.Text := VarToStr(v);
+        n := VarToStr(v);
         n := n.DeleteChar(#32#9);
         if n.Same('True') or n.Same('Yes') or n.Same('1') then
             Result := True
@@ -642,15 +642,20 @@ begin
   RegOpM('Trunc', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc);
 
   RegOpM('Str', {$IFDEF FPC}@{$ENDIF FPC}DoStr);
+  RegOpM('String', {$IFDEF FPC}@{$ENDIF FPC}DoStr);
+  RegOpM('Text', {$IFDEF FPC}@{$ENDIF FPC}DoStr);
 
   RegOpM('Bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool);
+  RegOpM('Boolean', {$IFDEF FPC}@{$ENDIF FPC}DoBool);
   RegOpM('True', {$IFDEF FPC}@{$ENDIF FPC}DoTrue);
   RegOpM('False', {$IFDEF FPC}@{$ENDIF FPC}DoFalse);
   RegOpM('Random', {$IFDEF FPC}@{$ENDIF FPC}DoRandom);
 
   RegOpM('GetFirst', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst);
+  RegOpM('First', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst);
   RegOpM('DeleteFirst', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteFirst);
   RegOpM('GetLast', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast);
+  RegOpM('Last', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast);
   RegOpM('DeleteLast', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteLast);
 end;
 

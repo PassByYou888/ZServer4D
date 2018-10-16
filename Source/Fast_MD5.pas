@@ -103,11 +103,11 @@ procedure MD5_Transform(var Accu; const Buf); register; external;
 
 function FastMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5;
 var
-  Digest : TMD5;
-  Lo, Hi : Cardinal;
-  p      : PByte;
-  WorkLen: Byte;
-  WorkBuf: array [0 .. 63] of Byte;
+  Digest: TMD5;
+  Lo, Hi: Cardinal;
+  p: PByte;
+  ChunkIndex: Byte;
+  ChunkBuff: array [0 .. 63] of Byte;
 begin
   Lo := 0;
   Hi := 0;
@@ -128,22 +128,22 @@ begin
       dec(bufSiz, $40);
     end;
   if bufSiz > 0 then
-      CopyPtr(p, @WorkBuf[0], bufSiz);
+      CopyPtr(p, @ChunkBuff[0], bufSiz);
 
   Result := PMD5(@Digest[0])^;
-  WorkBuf[bufSiz] := $80;
-  WorkLen := bufSiz + 1;
-  if WorkLen > $38 then
+  ChunkBuff[bufSiz] := $80;
+  ChunkIndex := bufSiz + 1;
+  if ChunkIndex > $38 then
     begin
-      if WorkLen < $40 then
-          FillPtrByte(@WorkBuf[WorkLen], $40 - WorkLen, 0);
-      MD5_Transform(Result, WorkBuf);
-      WorkLen := 0
+      if ChunkIndex < $40 then
+          FillPtrByte(@ChunkBuff[ChunkIndex], $40 - ChunkIndex, 0);
+      MD5_Transform(Result, ChunkBuff);
+      ChunkIndex := 0
     end;
-  FillPtrByte(@WorkBuf[WorkLen], $38 - WorkLen, 0);
-  PCardinal(@WorkBuf[$38])^ := Lo;
-  PCardinal(@WorkBuf[$3C])^ := Hi;
-  MD5_Transform(Result, WorkBuf);
+  FillPtrByte(@ChunkBuff[ChunkIndex], $38 - ChunkIndex, 0);
+  PCardinal(@ChunkBuff[$38])^ := Lo;
+  PCardinal(@ChunkBuff[$3C])^ := Hi;
+  MD5_Transform(Result, ChunkBuff);
 end;
 
 function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
@@ -151,16 +151,16 @@ const
   deltaSize = $40 * $FFFF;
 
 var
-  Digest  : TMD5;
-  Lo, Hi  : Cardinal;
+  Digest: TMD5;
+  Lo, Hi: Cardinal;
   DeltaBuf: Pointer;
-  bufSiz  : Int64;
-  Rest    : Cardinal;
-  p       : PByte;
-  WorkLen : Byte;
-  WorkBuf : array [0 .. 63] of Byte;
+  bufSiz: Int64;
+  Rest: Cardinal;
+  p: PByte;
+  ChunkIndex: Byte;
+  ChunkBuff: array [0 .. 63] of Byte;
 begin
-  {$IFDEF OptimizationMemoryStreamMD5}
+{$IFDEF OptimizationMemoryStreamMD5}
   if stream is TCoreClassMemoryStream then
     begin
       Result := FastMD5(Pointer(nativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
@@ -171,7 +171,7 @@ begin
       Result := FastMD5(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
       Exit;
     end;
-  {$ENDIF}
+{$ENDIF}
   //
   Lo := 0;
   Hi := 0;
@@ -213,24 +213,24 @@ begin
       end;
 
   if bufSiz > 0 then
-      CopyPtr(p, @WorkBuf[0], bufSiz);
+      CopyPtr(p, @ChunkBuff[0], bufSiz);
 
   FreeMemory(DeltaBuf);
 
   Result := PMD5(@Digest[0])^;
-  WorkBuf[bufSiz] := $80;
-  WorkLen := bufSiz + 1;
-  if WorkLen > $38 then
+  ChunkBuff[bufSiz] := $80;
+  ChunkIndex := bufSiz + 1;
+  if ChunkIndex > $38 then
     begin
-      if WorkLen < $40 then
-          FillPtrByte(@WorkBuf[WorkLen], $40 - WorkLen, 0);
-      MD5_Transform(Result, WorkBuf);
-      WorkLen := 0
+      if ChunkIndex < $40 then
+          FillPtrByte(@ChunkBuff[ChunkIndex], $40 - ChunkIndex, 0);
+      MD5_Transform(Result, ChunkBuff);
+      ChunkIndex := 0
     end;
-  FillPtrByte(@WorkBuf[WorkLen], $38 - WorkLen, 0);
-  PCardinal(@WorkBuf[$38])^ := Lo;
-  PCardinal(@WorkBuf[$3C])^ := Hi;
-  MD5_Transform(Result, WorkBuf);
+  FillPtrByte(@ChunkBuff[ChunkIndex], $38 - ChunkIndex, 0);
+  PCardinal(@ChunkBuff[$38])^ := Lo;
+  PCardinal(@ChunkBuff[$3C])^ := Hi;
+  MD5_Transform(Result, ChunkBuff);
 end;
 
 {$ELSE}
@@ -248,6 +248,4 @@ end;
 
 {$ENDIF Defined(MSWINDOWS) and Defined(Delphi)}
 
-end. 
- 
- 
+end.

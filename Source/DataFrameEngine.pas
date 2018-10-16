@@ -22,7 +22,7 @@ unit DataFrameEngine;
 
 interface
 
-uses SysUtils, CoreClasses, Types, Variants,
+uses SysUtils, CoreClasses, Types,
   ListEngine, MemoryStream64, DoStatusIO,
   GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
 {$IFNDEF FPC} JsonDataObjects, {$ENDIF}
@@ -1996,7 +1996,7 @@ begin
     varLongWord: FBuffer := stream.ReadUInt32;
     varInt64: FBuffer := stream.ReadInt64;
     varUInt64: FBuffer := stream.ReadUInt64;
-    varOleStr, varString, varUString: FBuffer := stream.ReadString;
+    varOleStr, varString, varUString: FBuffer := stream.ReadString.Text;
     else
       RaiseInfo('error variant type');
   end;
@@ -2006,7 +2006,7 @@ procedure TDataFrameVariant.SaveToStream(stream: TMemoryStream64);
 var
   vt: TVarType;
 begin
-  vt := VarType(FBuffer);
+  vt := TVarData(FBuffer).VType;
   stream.WriteUInt16(Word(vt));
   case vt of
     varSmallInt: stream.WriteInt16(FBuffer);
@@ -2037,21 +2037,17 @@ end;
 
 procedure TDataFrameVariant.SaveToJson(jarry: TJsonArray; idx: Integer);
 begin
-  jarry.Add(umlVarToStr(FBuffer).Text);
+  jarry.Add(umlVarToStr(FBuffer, True).Text);
 end;
 {$ENDIF}
 
 
 function TDataFrameVariant.ComputeEncodeSize: Integer;
 var
-  tmp: TCoreClassMemoryStream;
-  w: TCoreClassWriter;
+  tmp: TMemoryStream64;
 begin
-  tmp := TCoreClassMemoryStream.Create;
-  w := TCoreClassWriter.Create(tmp, 1024 * 4);
-  w.IgnoreChildren := True;
-  w.WriteVariant(FBuffer);
-  DisposeObject(w);
+  tmp := TMemoryStream64.Create;
+  SaveToStream(tmp);
   Result := tmp.Size;
   DisposeObject(tmp);
 end;
@@ -3164,7 +3160,7 @@ begin
       Result := Result + ')';
     end
   else if _Obj is TDataFrameVariant then
-      Result := VarToStr(TDataFrameVariant(_Obj).buffer)
+      Result := umlVarToStr(TDataFrameVariant(_Obj).buffer)
   else if _Obj is TDataFrameInt64 then
       Result := IntToStr(TDataFrameInt64(_Obj).buffer)
   else if _Obj is TDataFrameUInt64 then
@@ -4441,7 +4437,7 @@ end;
 procedure TDataFrameEngine.SaveToStream(stream: TCoreClassStream);
 begin
   try
-    if ComputeEncodeSize > 8 * 1024 then
+    if ComputeEncodeSize > 1024 then
         EncodeAsZLib(stream)
     else
         EncodeTo(stream);

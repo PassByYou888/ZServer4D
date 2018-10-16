@@ -98,7 +98,7 @@
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$J+} { Writeable typed constants }
+{$J-} { Writeable typed constants }
 
 {$UNDEF CPU64}
 
@@ -112,4 +112,16 @@
 
 {$IFNDEF CPU64}
   {$DEFINE CPU32}
+{$ENDIF}
+
+{$IFDEF BIG_ENDIAN}
+  {$MESSAGE FATAL 'Big-endian system not supported'}
+{$ENDIF}
+
+{$IFOPT R+}
+  {$DEFINE RangeCheck}
+{$ENDIF}
+
+{$IFOPT Q+}
+  {$DEFINE OverflowCheck}
 {$ENDIF}

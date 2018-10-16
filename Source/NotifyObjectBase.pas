@@ -125,7 +125,7 @@ type
 
   TNProgressPostWithCadencer = class(TNProgressPost, ICadencerProgressInterface)
   protected
-    FCadencerEng: TCadencer;
+    FCadencerEngine: TCadencer;
     procedure CadencerProgress(const deltaTime, newTime: Double);
   public
     constructor Create;
@@ -133,7 +133,7 @@ type
 
     procedure Progress;
 
-    property CadencerEng: TCadencer read FCadencerEng;
+    property CadencerEngine: TCadencer read FCadencerEngine;
   end;
 
 implementation
@@ -527,19 +527,19 @@ end;
 constructor TNProgressPostWithCadencer.Create;
 begin
   inherited Create;
-  FCadencerEng := TCadencer.Create;
-  FCadencerEng.ProgressIntf := Self;
+  FCadencerEngine := TCadencer.Create;
+  FCadencerEngine.ProgressIntf := Self;
 end;
 
 destructor TNProgressPostWithCadencer.Destroy;
 begin
-  DisposeObject(FCadencerEng);
+  DisposeObject(FCadencerEngine);
   inherited Destroy;
 end;
 
 procedure TNProgressPostWithCadencer.Progress;
 begin
-  FCadencerEng.Progress;
+  FCadencerEngine.Progress;
 end;
 
 end.

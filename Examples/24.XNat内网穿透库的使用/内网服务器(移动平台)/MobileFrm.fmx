@@ -8,7 +8,7 @@ object Form1: TForm1
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
+  OnClose = FormClose
   DesignerMasterStyle = 0
   object Memo1: TMemo
     Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]

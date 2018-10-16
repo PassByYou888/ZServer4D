@@ -46,7 +46,7 @@ object EZClientForm: TEZClientForm
     EditLabel.Caption = 'host address '
     LabelPosition = lpLeft
     TabOrder = 2
-    Text = '192.168.11.164'
+    Text = '127.0.0.1'
   end
   object HelloWorldBtn: TButton
     Left = 8

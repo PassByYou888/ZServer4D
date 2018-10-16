@@ -4,7 +4,7 @@ ZSERVER4D是一套高级通讯系统的地基平台，它偏向于开发工艺�
  
 ## 功能
 
-支持运行平台Android,IOS,Win32/64,Linux,OSX,物联网IOT(ARM Ubuntu18.04或则更高版，包括树莓1-3代，香橙，高通，三星)
+支持运行平台Android,IOS,Win32/64,Linux,OSX,物联网IOT(任意版本的linux均能支持，包括树莓1-3代，香橙，高通，三星，小序列cpu mips linux)
 
 支持编译器：FPC3.0.4以及DelphiXE10.2和以后的版本
 
@@ -12,13 +12,23 @@ ZSERVER4D是一套高级通讯系统的地基平台，它偏向于开发工艺�
 
 良好支持轻量云主机，腾讯云，阿里云，亚马逊云，均有数百台使用ZServer4D的服务器在运行中
 
-支持内置的Pascal语系的内网穿透核心库XNat(直接内核支持，非外部支持)
+支持内置的Pascal语系的内网穿透稳定核心库XNat(直接内核支持，非外部支持)
 
 支持基于FRP的内网穿透(外部shell方式支持)，在公司或家里自己架设宅服 [宅服架设说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
 
 ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记录秒切，支持所有IPV6的云主机
 
 内置高级加密系统，一万在线客户端会有一万把密钥，并且能动态定时更换密钥（请参考ZServer4D的附属开源项目 https://github.com/PassByYou888/CoreCipher ）
+
+**支持了5大美国国家标准技术研究所(NIST)高级加密标准算法**
+
+- rc6加密，通讯协议支持 https://en.wikipedia.org/wiki/RC6
+- Twofish加密，通讯协议支持 https://en.wikipedia.org/wiki/Twofish
+- Serpent加密，通讯协议支持 https://en.wikipedia.org/wiki/Serpent_(cipher)
+- Mars加密，通讯协议支持 https://en.wikipedia.org/wiki/MARS_(cipher)
+- Rijndael加密，通讯协议支持 https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
+
+内置抗量子密码支持 https://en.wikipedia.org/wiki/SHA-3
 
 架构设计可以轻松实现IP池和入口网络秒切，非常利于在国内商业环境中防止对手DDos攻击
 
@@ -118,9 +128,9 @@ synapse是支持ssl的优秀开源项目
 
 ## 关于物联网IoT平台
 
-ZServer4D对IoT平台的开发要求必须使用FPC编译器，ZServer4D对物联网的支持的标准系统暂时只有ARM Ubuntu18.04，要求最低FPC编译器版本为3.0.4（需要和它对应的RT内核库）
+ZServer4D对IoT平台的开发要求必须使用FPC编译器，ZServer4D对物联网的支持的标准系统包含一切Linux系统，要求最低FPC编译器版本为3.0.4（需要和它对应的RT内核库）
 
-关于IoT平台的开发测试机：Ubuntu关网提及到的IO小板都可以购买，自己动手diy Linux需要一定的耐心，懒人建议使用CodeTyphon，如果使用Lazarus需要在arm Ubuntu Linux下需要自己动手编译ide+fpc3.0.4（先diy好gcc的环境，再编译Lazarus的工具链，官方wiki有详细说明）
+关于IoT平台的开发测试机：本文提及到的IOT开发板都可以通过网购获取，自己动手diy Linux需要一定的耐心，懒人建议使用CodeTyphon，或则直接apt安装内置的fpc+Lazarus
 
 
 ## 关于处理机架构和大小端字节序
@@ -164,7 +174,30 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 ## 最后一更新日志
 
 
-### 大更新预告:下一次更新会增加沙箱服务器模型，ZS的服务器模型可工在特殊操作系统中
+**大更新预告:下一次更新会增加沙箱服务器模型，该模型提供paas虚化服务器后台的技术体系支持**
+
+**目前已经支持的同构虚拟系统：vmware,virtualBox,HyperV，目前已经支持异构模拟器：QEMU**
+
+### 大更新预告:下一次更新会增加delphi/fpc控件形式的开发工艺，正在开发中
+
+### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务
+
+## 2018-10-16
+
+- 修复:修复zExpression无法对1.0e-2浮点识别的bug
+- 修复:crossSocket接口反复释放的一个严重bug
+- 修复:xNat内创穿透断线重连不稳定的bug，新版本的xNat公网服务器，只会在内网连接后，才会侦听端口，两端运行中现在会极其稳定
+- 优化:xNat在手机也可以做内网穿透服务，优化了wiki或则4G,3G连接不稳定造成的通讯问题
+- 安全:新增傻瓜化使用的抗量子密码支持(sha3)，在密码货币系统非常常见，经过验证已经与wiki一致， https://en.wikipedia.org/wiki/SHA-3
+- 安全:因为sha3有大量的迭代计算，在摩尔定律使用秀儿算法是无法被破解的，同时sha3的计算性能也远远不如fastmd5，也许有数千倍差异，但是，使用sha3来存储和验证密码会万无一失
+
+**重新支持了5大美国国家标准技术研究所(NIST)高级加密标准算法，如下**
+
+- 安全:深度测试rc6加密，通讯协议支持 https://en.wikipedia.org/wiki/RC6
+- 安全:重做Twofish加密，通讯协议支持 https://en.wikipedia.org/wiki/Twofish
+- 安全:通讯协议支持Serpent加密 https://en.wikipedia.org/wiki/Serpent_(cipher)
+- 安全:通讯协议支持Mars加密 https://en.wikipedia.org/wiki/MARS_(cipher)
+- 安全:通讯协议支持Rijndael加密 https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 
 ## 2018-9-29
 

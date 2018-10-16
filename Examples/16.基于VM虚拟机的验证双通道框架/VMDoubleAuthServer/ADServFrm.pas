@@ -9,7 +9,7 @@ uses
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
   CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
-  DataFrameEngine, CommunicationFrameworkDoubleTunnelIO, CommunicationFrameworkDoubleTunnelIO_VirtualAuth;
+  DataFrameEngine, CommunicationFrameworkDoubleTunnelIO;
 
 type
   TAuthDoubleServerForm = class;

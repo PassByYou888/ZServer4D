@@ -312,16 +312,26 @@ type
     //
     procedure Disconnect; virtual;
 
-    // Block mode
+    // sync mode
     function UserLogin(UserID, passwd: SystemString): Boolean; overload; virtual;
     function RegisterUser(UserID, passwd: SystemString): Boolean; overload; virtual;
     function TunnelLink: Boolean; overload; virtual;
 
-    // unblock mode
+    // async mode
+    procedure UserLoginC(UserID, passwd: SystemString; OnProc: TStateCall); virtual;
+    procedure RegisterUserC(UserID, passwd: SystemString; OnProc: TStateCall); virtual;
+    procedure TunnelLinkC(OnProc: TStateCall); virtual;
+
+    // async mode
+    procedure UserLoginM(UserID, passwd: SystemString; OnProc: TStateMethod); virtual;
+    procedure RegisterUserM(UserID, passwd: SystemString; OnProc: TStateMethod); virtual;
+    procedure TunnelLinkM(OnProc: TStateMethod); virtual;
+
 {$IFNDEF FPC}
-    procedure UserLoginP(UserID, passwd: SystemString; OnProc: TStateProc); overload; virtual;
-    procedure RegisterUserP(UserID, passwd: SystemString; OnProc: TStateProc); overload; virtual;
-    procedure TunnelLinkP(OnProc: TStateProc); overload; virtual;
+    // async mode
+    procedure UserLoginP(UserID, passwd: SystemString; OnProc: TStateProc); virtual;
+    procedure RegisterUserP(UserID, passwd: SystemString; OnProc: TStateProc); virtual;
+    procedure TunnelLinkP(OnProc: TStateProc); virtual;
 {$ENDIF}
     procedure SyncCadencer; virtual;
 
@@ -716,7 +726,7 @@ begin
   UnLockObject(FLoginUserList);
 
   try
-    if not ComparePassword(TCipherStyle.csDES64, UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
+    if not CompareQuantumCryptographyPassword(UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
       begin
         OutData.WriteBool(False);
         OutData.WriteString(Format('password error', []));
@@ -816,7 +826,7 @@ begin
   umlCreateDirectory(UserDefineIO.UserPath);
   UserDefineIO.UserDBIntf := FUserDB.VariantList[UserID];
   UserDefineIO.UserDBIntf['UserFlag'] := UserDefineIO.UserFlag;
-  UserDefineIO.UserDBIntf['password'] := GeneratePassword(TCipherStyle.csDES64, UserPasswd).Text;
+  UserDefineIO.UserDBIntf['password'] := GenerateQuantumCryptographyPassword(UserPasswd).Text;
   UserDefineIO.UserDBIntf['RegTime'] := DateTimeToStr(Now);
   UserDefineIO.DoubleTunnelService := Self;
   UserDefineIO.LoginSuccessed := True;
@@ -912,7 +922,7 @@ begin
   newPasswd := InData.Reader.ReadString;
 
   try
-    if not ComparePassword(TCipherStyle.csDES64, oldPasswd, SystemString(FUserDB.GetDefaultValue(UserDefineIO.UserID, 'password', ''))) then
+    if not CompareQuantumCryptographyPassword(oldPasswd, SystemString(FUserDB.GetDefaultValue(UserDefineIO.UserID, 'password', ''))) then
       begin
         OutData.WriteBool(False);
         OutData.WriteString(Format('password error', []));
@@ -924,7 +934,7 @@ begin
     Exit;
   end;
 
-  UserDefineIO.UserDBIntf['password'] := GeneratePassword(TCipherStyle.csDES64, newPasswd).Text;
+  UserDefineIO.UserDBIntf['password'] := GenerateQuantumCryptographyPassword(newPasswd).Text;
   if FCanSaveUserInfo then
       SaveUserDB;
 
@@ -1862,7 +1872,7 @@ begin
 
   AUserDBIntf := FUserDB.VariantList[AUserID];
   AUserDBIntf['UserFlag'] := AUserFlag;
-  AUserDBIntf['password'] := GeneratePassword(TCipherStyle.csDES64, APasswd).Text;
+  AUserDBIntf['password'] := GenerateQuantumCryptographyPassword(APasswd).Text;
 
   if AUserConfigFile <> nil then
     begin
@@ -3045,6 +3055,30 @@ begin
 
   DisposeObject(sendDE);
   DisposeObject(resDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.UserLoginC(UserID, passwd: SystemString; OnProc: TStateCall);
+begin
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserC(UserID, passwd: SystemString; OnProc: TStateCall);
+begin
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkC(OnProc: TStateCall);
+begin
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.UserLoginM(UserID, passwd: SystemString; OnProc: TStateMethod);
+begin
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserM(UserID, passwd: SystemString; OnProc: TStateMethod);
+begin
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkM(OnProc: TStateMethod);
+begin
 end;
 
 {$IFNDEF FPC}

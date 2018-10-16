@@ -167,7 +167,7 @@ begin
     end;
   UnLockObject(FLoginUserList);
 
-  if not ComparePassword(TCipherStyle.csDES64, UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
+  if not CompareQuantumCryptographyPassword(UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('password error', []));
@@ -240,7 +240,7 @@ begin
   umlCreateDirectory(UserDefineIO.UserPath);
   UserDefineIO.UserDBIntf := FUserDB.VariantList[UserID];
   UserDefineIO.UserDBIntf['UserFlag'] := UserDefineIO.UserFlag;
-  UserDefineIO.UserDBIntf['password'] := GeneratePassword(TCipherStyle.csDES64, UserPasswd).Text;
+  UserDefineIO.UserDBIntf['password'] := GenerateQuantumCryptographyPassword(UserPasswd).Text;
   UserDefineIO.UserAuthService := Self;
   UserDefineIO.LoginSuccessed := True;
 

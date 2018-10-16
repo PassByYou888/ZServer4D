@@ -192,15 +192,6 @@ end;
 
 procedure TCommunicationFramework_Client_CrossSocket.Progress;
 begin
-  if not Connected then
-    begin
-      if ClientIOIntf <> nil then
-        begin
-          DisposeObject(ClientIOIntf);
-          ClientIOIntf := nil;
-        end;
-    end;
-
   try
     if (Connected) and (IdleTimeout > 0) and (GetTimeTickCount - ClientIOIntf.LastActiveTime > IdleTimeout) then
         Disconnect;
@@ -307,14 +298,13 @@ begin
             begin
               try
                 cli.OwnerClient.DoDisconnect(cli);
-
-                DisposeObject(cli);
                 cli.OwnerClient.ClientIOIntf := nil;
+                DisposeObject(cli);
               except
               end;
             end;
-
         end;
+      AConnection.UserObject := nil;
     end);
 end;
 
@@ -373,6 +363,9 @@ begin
   LastResult := False;
   LastCompleted := False;
   LastConnection := nil;
+
+  if BuildIntf.ClientIOIntf <> nil then
+      CoreClasses.CheckThreadSynchronize(10);
 
   if BuildIntf.ClientIOIntf <> nil then
     begin
@@ -436,6 +429,8 @@ procedure TGlobalCrossSocketClientPool.BuildAsyncConnect(addr: SystemString; Por
 begin
   try
     if BuildIntf.ClientIOIntf <> nil then
+        CoreClasses.CheckThreadSynchronize(10);
+    if BuildIntf.ClientIOIntf <> nil then
       begin
         try
           if BuildIntf.ClientIOIntf.Context <> nil then
@@ -458,23 +453,22 @@ begin
 
   ICrossSocket(driver).Connect(addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
-    var
-      cli: TContextIntfForClient;
     begin
       if ASuccess then
         begin
-          cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
-          cli.LastActiveTime := GetTimeTickCount;
-          cli.OwnerClient := BuildIntf;
-
-          AConnection.UserObject := cli;
-
-          cli.OwnerClient.ClientIOIntf := cli;
-
           TThread.Synchronize(TThread.CurrentThread,
             procedure
+            var
+              cli: TContextIntfForClient;
             begin
-              BuildIntf.ProgressPost.PostExecuteP(0, procedure(Sender: TNPostExecute)
+              cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
+              cli.LastActiveTime := GetTimeTickCount;
+              cli.OwnerClient := BuildIntf;
+              AConnection.UserObject := cli;
+
+              cli.OwnerClient.ClientIOIntf := cli;
+
+              BuildIntf.ProgressPost.PostExecuteP(1.0, procedure(Sender: TNPostExecute)
                 begin
                   BuildIntf.DoConnected(cli);
                 end);

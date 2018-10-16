@@ -80,26 +80,25 @@ begin
       if cState then
         begin
           DoStatus('VM正在握手...');
-          ClientTunnel.ClientIO.BuildP2PAuthTokenP(procedure(const cBuildAuthState: Boolean)
+          ClientTunnel.ClientIO.BuildP2PAuthTokenP(procedure
             begin
-              if cBuildAuthState then
-                  ClientTunnel.ClientIO.OpenP2PVMTunnelP(10000 * 10, True, '',
-                  procedure(const vState: Boolean)
-                  var
-                    i: Integer;
-                  begin
-                    ClientTunnel.ClientIO.p2pVMTunnel.MaxVMFragmentSize := 8192;
-                    ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 8 * 1024 * 1024;
-                    ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
+              ClientTunnel.ClientIO.OpenP2PVMTunnelP(10000 * 10, True, '',
+                procedure(const vState: Boolean)
+                var
+                  i: Integer;
+                begin
+                  ClientTunnel.ClientIO.p2pVMTunnel.MaxVMFragmentSize := 8192;
+                  ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 8 * 1024 * 1024;
+                  ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
 
-                    for i := low(ClientWithVM) to high(ClientWithVM) do
-                      begin
-                        ClientWithVM[i].QuietMode := False;
-                        ClientTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(ClientWithVM[i]);
-                      end;
+                  for i := low(ClientWithVM) to high(ClientWithVM) do
+                    begin
+                      ClientWithVM[i].QuietMode := False;
+                      ClientTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(ClientWithVM[i]);
+                    end;
 
-                    DoStatus('VM已握手');
-                  end);
+                  DoStatus('VM已握手');
+                end);
             end);
         end;
     end);

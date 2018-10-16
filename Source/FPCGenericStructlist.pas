@@ -33,7 +33,7 @@ interface
 
 {$IFDEF FPC}
 
-uses fgl, h264Types;
+uses fgl;
 
 type
   { Generic list of types that are compared by CompareByte.
@@ -51,7 +51,7 @@ type
   generic TGenericStructList<t> = class(TFPSList)
   private
     type
-      TCompareFunc = function(const Item1, Item2: t): int32_t;
+      TCompareFunc = function(const Item1, Item2: t): Integer;
       TTypeList = array[0..MaxGListSize] of t;
       PTypeList = ^TTypeList;
       pt = ^t;
@@ -63,25 +63,25 @@ type
 
     procedure CopyItem(Src, dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
-    function  Get(index: int32_t): t; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  Get(index: Integer): t; {$ifdef CLASSESINLINE} inline; {$endif}
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
-    function  ItemPtrCompare(Item1, Item2: Pointer): int32_t;
-    procedure Put(index: int32_t; const Item: t); {$ifdef CLASSESINLINE} inline; {$endif}
+    function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
+    procedure Put(index: Integer; const Item: t); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create;
-    function Add(const Item: t): int32_t; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const Item: t): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     {$ifdef HAS_EXTRACT} function Extract(const Item: t): t; {$ifdef CLASSESINLINE} inline; {$endif} {$endif}
     function First: t; {$ifdef CLASSESINLINE} inline; {$endif}
     {$ifdef HAS_ENUMERATOR} function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif} {$endif}
-    function IndexOf(const Item: t): int32_t;
-    procedure Insert(index: int32_t; const Item: t); {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const Item: t): Integer;
+    procedure Insert(index: Integer; const Item: t); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: t; {$ifdef CLASSESINLINE} inline; {$endif}
 {$ifndef OldSyntax}
     procedure Assign(Source: TGenericStructList);
 {$endif OldSyntax}
-    function Remove(const Item: t): int32_t; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Remove(const Item: t): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
-    property Items[index: int32_t]: t read Get write Put; default;
+    property Items[index: Integer]: t read Get write Put; default;
     property List: PTypeList read GetList;
 
     { Pointer to items. Exactly like @link(List), but this points to a single item,
@@ -124,7 +124,7 @@ begin
   Finalize(t(Item^));
 end;
 
-function TGenericStructList.Get(index: int32_t): t;
+function TGenericStructList.Get(index: Integer): t;
 begin
   Result := t(inherited Get(index)^);
 end;
@@ -134,17 +134,17 @@ begin
   Result := PTypeList(FList);
 end;
 
-function TGenericStructList.ItemPtrCompare(Item1, Item2: Pointer): int32_t;
+function TGenericStructList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
 begin
   Result := FOnCompare(t(Item1^), t(Item2^));
 end;
 
-procedure TGenericStructList.Put(index: int32_t; const Item: t);
+procedure TGenericStructList.Put(index: Integer; const Item: t);
 begin
   inherited Put(index, @Item);
 end;
 
-function TGenericStructList.Add(const Item: t): int32_t;
+function TGenericStructList.Add(const Item: t): Integer;
 begin
   Result := inherited Add(@Item);
 end;
@@ -168,12 +168,12 @@ begin
 end;
 {$endif}
 
-function TGenericStructList.IndexOf(const Item: t): int32_t;
+function TGenericStructList.IndexOf(const Item: t): Integer;
 begin
   Result := inherited IndexOf(@Item);
 end;
 
-procedure TGenericStructList.Insert(index: int32_t; const Item: t);
+procedure TGenericStructList.Insert(index: Integer; const Item: t);
 begin
   t(inherited Insert(index)^) := Item;
 end;
@@ -186,7 +186,7 @@ end;
 {$ifndef OldSyntax}
 procedure TGenericStructList.Assign(Source: TGenericStructList);
 var
-  i: int32_t;
+  i: Integer;
 begin
   Clear;
   for i := 0 to Source.Count - 1 do
@@ -194,7 +194,7 @@ begin
 end;
 {$endif OldSyntax}
 
-function TGenericStructList.Remove(const Item: t): int32_t;
+function TGenericStructList.Remove(const Item: t): Integer;
 begin
   Result := IndexOf(Item);
   if Result >= 0 then

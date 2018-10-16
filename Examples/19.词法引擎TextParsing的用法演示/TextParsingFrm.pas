@@ -56,8 +56,8 @@ implementation
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-  t : TTextParsing;
-  i : Integer;
+  t: TTextParsing;
+  i: Integer;
   pt: PTokenData;
 begin
   t := TTextParsing.Create(Memo1.Text, TTextStyle.tsPascal, nil);
@@ -76,8 +76,8 @@ end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 var
-  t : TTextParsing;
-  i : Integer;
+  t: TTextParsing;
+  i: Integer;
   pt: PTokenData;
 begin
   t := TTextParsing.Create(Memo1.Text, TTextStyle.tsC, nil);
@@ -96,8 +96,8 @@ end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 var
-  t : TTextParsing;
-  i : Integer;
+  t: TTextParsing;
+  i: Integer;
   pt: PTokenData;
 
   PrepareProc: Boolean;
@@ -128,7 +128,7 @@ end;
 procedure TForm1.Button4Click(Sender: TObject);
 var
   rt: TOpCustomRunTime;
-  v : Variant;
+  v: Variant;
 begin
   Memo5.Lines.Add('基本使用demo');
   // rt为ze的运行函数支持库
@@ -163,9 +163,9 @@ end;
 procedure TForm1.Button5Click(Sender: TObject);
 var
   tmpSym: TSymbolExpression;
-  op    : TOpCode;
-  rt    : TOpCustomRunTime;
-  m64   : TMemoryStream64;
+  op: TOpCode;
+  rt: TOpCustomRunTime;
+  m64: TMemoryStream64;
 begin
   Memo5.Lines.Add('高速载入与执行demo');
   // rt为ze的运行函数支持库
@@ -211,15 +211,15 @@ type
   TState = (sUnknow, sIF, sTrue, sFalse); // 解析用的简单状态机
 label gFillStruct;
 var
-  t                                      : TTextParsing;     // 词法解析引擎
-  cp, ep                                 : Integer;          // 字坐标
-  wasNumber, wasText, wasAscii, wasSymbol: Boolean;          // 解析文本状态机
-  state                                  : TState;           // 解析结构状态机
-  decl                                   : TPascalString;    // 当前解析词法体，包括
-  ifMatchBody                            : TPascalString;    // 条件布尔判断运行体
-  ifTrueBody                             : TPascalString;    // 条件成立运行体
-  ifFalseBody                            : TPascalString;    // 条件不成立运行体
-  rt                                     : TOpCustomRunTime; // 运行函数库支持
+  t: TTextParsing;                                  // 词法解析引擎
+  cp, ep: Integer;                                  // 字坐标
+  wasNumber, wasText, wasAscii, wasSymbol: Boolean; // 解析文本状态机
+  state: TState;                                    // 解析结构状态机
+  decl: TPascalString;                              // 当前解析词法体，包括
+  ifMatchBody: TPascalString;                       // 条件布尔判断运行体
+  ifTrueBody: TPascalString;                        // 条件成立运行体
+  ifFalseBody: TPascalString;                       // 条件不成立运行体
+  rt: TOpCustomRunTime;                             // 运行函数库支持
 begin
   // 由于pascal的字符串不便于书写在程序中，这里我们c风格字符串
   t := TTextParsing.Create('if 1+1=/* comment */2 then writeln/* comment */("if was true") else writeln/* comment */("if was false");', tsC, nil);
@@ -354,13 +354,13 @@ procedure TForm1.Button7Click(Sender: TObject);
 
   function Macro(var AText: string; const HeadToken, TailToken: string; const rt: TOpCustomRunTime): TPascalString; inline;
   var
-    sour      : TPascalString;
-    ht, tt    : TPascalString;
+    sour: TPascalString;
+    ht, tt: TPascalString;
     bPos, ePos: Integer;
-    KeyText   : SystemString;
-    i         : Integer;
-    tmpSym    : TSymbolExpression;
-    op        : TOpCode;
+    KeyText: SystemString;
+    i: Integer;
+    tmpSym: TSymbolExpression;
+    op: TOpCode;
   begin
     Result := '';
     sour.Text := AText;
@@ -393,9 +393,9 @@ procedure TForm1.Button7Click(Sender: TObject);
   end;
 
 var
-  n : string;
-  i : Integer;
-  t : TTimeTick;
+  n: string;
+  i: Integer;
+  t: TTimeTick;
   rt: TOpCustomRunTime;
 begin
   Memo5.Lines.Add('简单演示用脚本来封装zExpression');
@@ -429,16 +429,16 @@ procedure TForm1.Button8Click(Sender: TObject);
 // 高级Demo，实现内部变量的赋值
 // 这是我从另一个脚本引擎拔出来的范例，内容有点多，但是原理只有三步
 var
-  sourTp, t          : TTextParsing;       // 词法解析引擎
-  setBefore, setAfter: TPascalString;      // 赋值的前置申明，和赋值的后置申明
-  splitVarDecl       : TArrayPascalString; // 切开的表达式体
-  myvars             : TArrayPascalString; // 我们需要赋值的临时变量，以逗号分隔
-  WasAssignment      : Boolean;            // 在表达式中找到了赋值
-  HashVars           : THashVariantList;   // 变量的hash存储结构，这是可以存放到硬盘中的
-  rt                 : TOpCustomRunTime;   // 运行函数库支持
-  op                 : TOpCode;            // 我们用来做cache的op变量
-  i                  : Integer;            // for使用
-  dynvar             : Integer;            // 动态变量
+  sourTp, t: TTextParsing;            // 词法解析引擎
+  setBefore, setAfter: TPascalString; // 赋值的前置申明，和赋值的后置申明
+  splitVarDecl: TArrayPascalString;   // 切开的表达式体
+  myvars: TArrayPascalString;         // 我们需要赋值的临时变量，以逗号分隔
+  WasAssignment: Boolean;             // 在表达式中找到了赋值
+  HashVars: THashVariantList;         // 变量的hash存储结构，这是可以存放到硬盘中的
+  rt: TOpCustomRunTime;               // 运行函数库支持
+  op: TOpCode;                        // 我们用来做cache的op变量
+  i: Integer;                         // for使用
+  dynvar: Integer;                    // 动态变量
 begin
   // 这里有c和pascal两种写法，自行修改备注即可
   sourTp := TTextParsing.Create('myvar1/*这里是备注*/,myvar2,myvar3 = 123+456+" 变量: "+dynamic', tsC, nil); // 词法解析引擎，以c语法为例
@@ -524,7 +524,7 @@ begin
       // 由于opCache机制是自动化进行的，我们在任何时候以const复用变量时都要清空它
       OpCache.Clear;
 
-      Memo5.Lines.Add(VarToStr(EvaluateExpressionValue_P(TTextParsing, tsC, '"静态复用 "+myvar1',
+      Memo5.Lines.Add(VarToStr(EvaluateExpressionValue_P(nil, TTextParsing, tsC, '"静态复用 "+myvar1',
         procedure(const DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant)
         begin
           if HashVars.Exists(DeclName) then
@@ -534,7 +534,7 @@ begin
             end;
         end)));
 
-      Memo5.Lines.Add(VarToStr(EvaluateExpressionValue_P(TTextParsing, tsC, '"静态复用 "+myvar4',
+      Memo5.Lines.Add(VarToStr(EvaluateExpressionValue_P(nil, TTextParsing, tsC, '"静态复用 "+myvar4',
         procedure(const DeclName: SystemString; var ValType: TExpressionDeclType; var Value: Variant)
         begin
           // myvar4是不存在的
@@ -562,13 +562,14 @@ end;
 procedure TForm1.Button9Click(Sender: TObject);
 // 特殊符号函数
 var
+  SpecialAsciiToken: TPascalStringList;
   rt: TOpCustomRunTime;
-  v : Variant;
+  v: Variant;
 begin
   Memo5.Lines.Add('全局的词法探头前缀参量的使用');
 
-  // 全局的特殊符号探头的前后缀参量 凡是前缀有@@符号,均作为ascii来处理
-  SpecialAsciiToken.Clear;
+  // 凡是前缀有@@符号,均作为ascii来处理
+  SpecialAsciiToken := TPascalStringList.Create;
   SpecialAsciiToken.Add('@@');
   SpecialAsciiToken.Add('&&');
 
@@ -586,23 +587,22 @@ begin
     end);
 
   // 带有@@前缀的ascii也可以在后缀带有特殊符号，特殊符号长度不限制
-  v := EvaluateExpressionValue(False, '{ 备注 } @@a&&(1,2)', rt);
+  v := EvaluateExpressionValue(SpecialAsciiToken, False, '{ 备注 } @@a&&(1,2)', rt);
   Memo5.Lines.Add(VarToStr(v));
 
   // 简单字符串表达式，ze的默认文本处理格式为Pascal
-  v := EvaluateExpressionValue(False, '@@combineString&&('#39'abc'#39', '#39'123'#39')', rt);
+  v := EvaluateExpressionValue(SpecialAsciiToken, False, '@@combineString&&('#39'abc'#39', '#39'123'#39')', rt);
   Memo5.Lines.Add(VarToStr(v));
 
   // 简单字符串表达式，我们使用c的文本格式
-  v := EvaluateExpressionValue(tsC, '@@combineString&&("abc", "123")', rt);
+  v := EvaluateExpressionValue(SpecialAsciiToken, tsC, '@@combineString&&("abc", "123")', rt);
   Memo5.Lines.Add(VarToStr(v));
-  v := EvaluateExpressionValue(tsC, '@@combineString&&('#39'abc'#39', '#39'123'#39')', rt);
+  v := EvaluateExpressionValue(SpecialAsciiToken, tsC, '@@combineString&&('#39'abc'#39', '#39'123'#39')', rt);
   Memo5.Lines.Add(VarToStr(v));
 
   DisposeObject(rt);
 
-  // 复原全局的特殊符号探头的前后缀参量
-  SpecialAsciiToken.Clear;
+  DisposeObject(SpecialAsciiToken);
 end;
 
 end.

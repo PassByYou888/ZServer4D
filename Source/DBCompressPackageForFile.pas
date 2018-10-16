@@ -48,13 +48,13 @@ function VerifyFileInDBFile(dbFile: SystemString): Integer;
 
 var
   DBPackageMD5VerifyFileName: SystemString = '______md5info.txt';
-  DBPackageFileCompressed: Boolean         = True;
+  DBPackageFileCompressed: Boolean = True;
 
 implementation
 
 uses MemoryStream64;
 
-procedure PackStream(sour, GenPack: TCoreClassStream);
+procedure EncryptStream(sour, GenPack: TCoreClassStream);
 begin
   if DBPackageFileCompressed then
       MaxCompressStream(sour, GenPack)
@@ -62,7 +62,7 @@ begin
       GenPack.CopyFrom(sour, sour.Size);
 end;
 
-procedure UnPackStream(sour, UnPackTo: TCoreClassStream);
+procedure DecryptStream(sour, UnPackTo: TCoreClassStream);
 begin
   if DBPackageFileCompressed then
       DecompressStream(sour, UnPackTo)
@@ -117,7 +117,7 @@ begin
 
         stream.Position := 0;
 
-        PackStream(stream, itmStream);
+        EncryptStream(stream, itmStream);
 
         DoStatus('%s %s ->  %s compressed:%d%%',
           [itmHnd.Name.Text,
@@ -206,7 +206,7 @@ procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataM
                   md5List.Add(itmHnd.Name, md5);
 
                   fs.Position := 0;
-                  PackStream(fs, itmStream);
+                  EncryptStream(fs, itmStream);
 
                   DoStatus('%s %s ->  %s compressed:%d%%',
                     [itmHnd.Name.Text,
@@ -293,7 +293,7 @@ begin
           if itmHnd.Name.Same(DBPackageMD5VerifyFileName) then
               ExtractToStream.CopyFrom(itmStream, itmStream.Size)
           else
-              UnPackStream(itmStream, ExtractToStream);
+              DecryptStream(itmStream, ExtractToStream);
 
           DoStatus('extract %s %s done!', [FileName, umlSizeToStr(ExtractToStream.Size).Text]);
 
@@ -385,7 +385,7 @@ procedure ExtractDBToPath(dbEng: TObjectDataManager; ExtractToDir: SystemString;
                   fs := TCoreClassFileStream.Create(fn, fmCreate);
                   itmStream := TItemStream.Create(dbEng, itmHnd);
 
-                  UnPackStream(itmStream, fs);
+                  DecryptStream(itmStream, fs);
                   DoStatus('extract %s %s ok!', [fn, umlSizeToStr(fs.Size).Text]);
 
                   DisposeObject(fs);
@@ -468,7 +468,7 @@ var
                   itmStream := TItemStream.Create(dbEng, itmHnd);
 
                   ms := TMemoryStream64.Create;
-                  UnPackStream(itmStream, ms);
+                  DecryptStream(itmStream, ms);
                   ms.Position := 0;
                   md5 := umlStreamMD5String(ms);
                   if not md5.Same(md5List[itmHnd.Name]) then
@@ -536,7 +536,4 @@ begin
   ObjectDataMarshal.CloseDB(dbEng);
 end;
 
-end. 
- 
- 
- 
+end.

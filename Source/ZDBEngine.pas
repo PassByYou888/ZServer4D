@@ -269,19 +269,19 @@ type
     function IsOther: Boolean;
   end;
 
-  TQueryCall   = procedure(var qState: TQueryState);
+  TQueryCall = procedure(var qState: TQueryState);
   TQueryMethod = procedure(var qState: TQueryState) of object;
 
-  TQueryDoneCall   = procedure();
+  TQueryDoneCall = procedure();
   TQueryDoneMethod = procedure() of object;
 
-  TRemoveCall   = procedure(StorePos: Int64; RemoveSuccesed: Boolean);
+  TRemoveCall = procedure(StorePos: Int64; RemoveSuccesed: Boolean);
   TRemoveMethod = procedure(StorePos: Int64; RemoveSuccesed: Boolean) of object;
 
 {$IFNDEF FPC}
-  TQueryProc     = reference to procedure(var qState: TQueryState);
+  TQueryProc = reference to procedure(var qState: TQueryState);
   TQueryDoneProc = reference to procedure();
-  TRemoveProc    = reference to procedure(StorePos: Int64; RemoveSuccesed: Boolean);
+  TRemoveProc = reference to procedure(StorePos: Int64; RemoveSuccesed: Boolean);
 {$ENDIF}
 
   TQueryTask = class(TCoreClassObject)
@@ -415,19 +415,12 @@ type
     FResultPascalString: TDBEnginePascalString;
 
     procedure ReadHeaderInfo;
-
     procedure ThreadFreeEvent(Sender: TObject);
-
     procedure DoCreateInit; virtual;
-
     procedure InstanceCacheObjectFreeProc(Obj: TCoreClassObject);
-    { }
     procedure ProcessNewInstanceCache(StorePos: Int64; Obj: TCoreClassObject; siz: NativeInt);
-    { }
     procedure StreamCacheObjectFreeProc(Obj: TCoreClassObject);
-    { }
     procedure ProcessNewStreamCache(M: TMemoryStream64InCache);
-    { }
     function DeleteData(const StorePos: Int64): Boolean;
   public
     constructor Create(dbFile: SystemString; OnlyRead: Boolean);
@@ -453,7 +446,7 @@ type
     function IsReadOnly: Boolean;
     procedure ResetDB;
     function RenameDB(NewName: SystemString): Boolean;
-    { }
+
     property DBEngine: TObjectDataManagerOfCache read FDBEngine;
     property Count: Int64 read FCount;
 
@@ -620,14 +613,13 @@ type
   end;
 
 var
-  c_DF: Cardinal           = $FFFFFFF0;
-  c_VL: Cardinal           = $FFFFFFF1;
-  c_TE: Cardinal           = $FFFFFFF2;
-  c_Json: Cardinal         = $FFFFFFF3;
+  c_DF: Cardinal = $FFFFFFF0;
+  c_VL: Cardinal = $FFFFFFF1;
+  c_TE: Cardinal = $FFFFFFF2;
+  c_Json: Cardinal = $FFFFFFF3;
   c_PascalString: Cardinal = $FFFFFFF4;
 
 procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
-
 
 implementation
 
@@ -3614,6 +3606,3 @@ DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;   // 128M
 finalization
 
 end.
- 
- 
- 

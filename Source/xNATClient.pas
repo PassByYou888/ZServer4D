@@ -16,7 +16,8 @@ unit xNATClient;
 interface
 
 uses CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib, ListEngine, TextDataEngine,
-  CoreCipher, zExpression, DataFrameEngine, MemoryStream64, CommunicationFramework, xNATPhysics;
+  CoreCipher, DataFrameEngine, MemoryStream64, CommunicationFramework, NotifyObjectBase,
+  xNATPhysics;
 
 type
   TXNATClient = class;
@@ -40,12 +41,17 @@ type
     SendTunnel_IPV6: TPascalString;
     SendTunnel_Port: Word;
 
+    Remote_ListenAddr, Remote_ListenPort: TPascalString;
+
     XClientTunnel: TXNATClient;
 
     procedure Init;
-    procedure ReadConf(conf_Section: TPascalString; intf: THashStringList);
     procedure SendTunnel_ConnectResult(const cState: Boolean);
     procedure RecvTunnel_ConnectResult(const cState: Boolean);
+
+    procedure RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure delay_RequestListen(Sender: TNPostExecute);
+
     procedure Open;
 
     procedure cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -77,12 +83,13 @@ type
     HashMapping: THashObjectList;
     Activted: Boolean;
     WaitAsyncConnecting: Boolean;
+    WaitAsyncConnecting_BeginTime: TTimeTick;
     PhysicsEngine: TXPhysicsClient;
   protected
     procedure PhysicsConnect_Result(const cState: Boolean);
-    procedure PhysicsVMBuildAuthToken_Result(const cState: Boolean);
+    procedure PhysicsVMBuildAuthToken_Result;
     procedure PhysicsOpenVM_Result(const cState: Boolean);
-    procedure IPV6ListenState_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure IPV6Listen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
   public
     // tunnel parameter
     RemoteTunnelAddr: TPascalString;
@@ -91,7 +98,6 @@ type
     MaxVMFragment, MaxRealBuffer: TPascalString;
 
     constructor Create;
-    constructor CreateOnFile(conf_file: TPascalString);
     destructor Destroy; override;
     procedure AddMapping(const Addr, Port, Mapping: TPascalString);
     procedure OpenTunnel;
@@ -116,21 +122,21 @@ begin
   SendTunnel := nil;
   SendTunnel_IPV6 := '';
   SendTunnel_Port := 0;
+  Remote_ListenAddr := '';
+  Remote_ListenPort := '0';
   XClientTunnel := nil;
-end;
-
-procedure TXClientMapping.ReadConf(conf_Section: TPascalString; intf: THashStringList);
-begin
-  Init;
-  Addr := Evl(intf.GetDefaultValue('Host', Addr), Addr);
-  Port := Evl(intf.GetDefaultValue('Port', Port), Port);
-  Mapping := Evl(intf.GetDefaultValue('Mapping', conf_Section), conf_Section);
 end;
 
 procedure TXClientMapping.SendTunnel_ConnectResult(const cState: Boolean);
 begin
   if cState then
-      DoStatus('[%s] Send Tunnel connect success.', [Mapping.Text])
+    begin
+      DoStatus('[%s] Send Tunnel connect success.', [Mapping.Text]);
+      if not RecvTunnel.Connected then
+          RecvTunnel.AsyncConnectM(RecvTunnel_IPV6, RecvTunnel_Port, {$IFDEF FPC}@{$ENDIF FPC}RecvTunnel_ConnectResult)
+      else
+          RecvTunnel_ConnectResult(True);
+    end
   else
       DoStatus('error: [%s] Send Tunnel connect failed!', [Mapping.Text]);
 end;
@@ -138,9 +144,31 @@ end;
 procedure TXClientMapping.RecvTunnel_ConnectResult(const cState: Boolean);
 begin
   if cState then
-      DoStatus('[%s] Receive Tunnel connect success.', [Mapping.Text])
+    begin
+      DoStatus('[%s] Receive Tunnel connect success.', [Mapping.Text]);
+      SendTunnel.ProgressPost.PostExecuteM(0, {$IFDEF FPC}@{$ENDIF FPC}delay_RequestListen);
+    end
   else
       DoStatus('error: [%s] Receive Tunnel connect failed!', [Mapping.Text]);
+end;
+
+procedure TXClientMapping.RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+begin
+  if ResultData.Reader.ReadBool then
+      DoStatus('success: remote listen %s -> mapping local %s', [Remote_ListenPort.Text, Port.Text])
+  else
+      DoStatus('failed: remote listen %s alread used', [Remote_ListenPort.Text]);
+end;
+
+procedure TXClientMapping.delay_RequestListen(Sender: TNPostExecute);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteCardinal(SendTunnel.RemoteID);
+  de.WriteCardinal(RecvTunnel.RemoteID);
+  SendTunnel.SendStreamCmdM('RequestListen', de, {$IFDEF FPC}@{$ENDIF FPC}RequestListen_Result);
+  disposeObject(de);
 end;
 
 procedure TXClientMapping.Open;
@@ -172,10 +200,17 @@ begin
       RecvTunnel.RegisterCompleteBuffer('data').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_data;
 
   if not SendTunnel.Connected then
-      SendTunnel.AsyncConnectM(SendTunnel_IPV6, SendTunnel_Port, {$IFDEF FPC}@{$ENDIF FPC}SendTunnel_ConnectResult);
+      SendTunnel.AsyncConnectM(SendTunnel_IPV6, SendTunnel_Port, {$IFDEF FPC}@{$ENDIF FPC}SendTunnel_ConnectResult)
+  else
+      SendTunnel_ConnectResult(True);
 
-  if not RecvTunnel.Connected then
-      RecvTunnel.AsyncConnectM(RecvTunnel_IPV6, RecvTunnel_Port, {$IFDEF FPC}@{$ENDIF FPC}RecvTunnel_ConnectResult);
+  SendTunnel.PrintParams['connect_reponse'] := False;
+  SendTunnel.PrintParams['disconnect_reponse'] := False;
+  SendTunnel.PrintParams['data'] := False;
+
+  RecvTunnel.PrintParams['connect_request'] := False;
+  RecvTunnel.PrintParams['disconnect_request'] := False;
+  RecvTunnel.PrintParams['data'] := False;
 end;
 
 procedure TXClientMapping.cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -372,12 +407,28 @@ begin
       WaitAsyncConnecting := False;
 end;
 
-procedure TXNATClient.PhysicsVMBuildAuthToken_Result(const cState: Boolean);
+procedure TXNATClient.PhysicsVMBuildAuthToken_Result;
 begin
-  if cState then
-      PhysicsEngine.ClientIO.OpenP2pVMTunnelM(True, AuthToken, {$IFDEF FPC}@{$ENDIF FPC}PhysicsOpenVM_Result)
-  else
-      WaitAsyncConnecting := False;
+  {
+    QuantumCryptographyPassword: used sha-3 shake256 cryptography as 512 bits password
+
+    SHA-3 (Secure Hash Algorithm 3) is the latest member of the Secure Hash Algorithm family of standards,
+    released by NIST on August 5, 2015.[4][5] Although part of the same series of standards,
+    SHA-3 is internally quite different from the MD5-like structure of SHA-1 and SHA-2.
+
+    Keccak is based on a novel approach called sponge construction.
+    Sponge construction is based on a wide random function or random permutation, and allows inputting ("absorbing" in sponge terminology) any amount of data,
+    and outputting ("squeezing") any amount of data,
+    while acting as a pseudorandom function with regard to all previous inputs. This leads to great flexibility.
+
+    NIST does not currently plan to withdraw SHA-2 or remove it from the revised Secure Hash Standard.
+    The purpose of SHA-3 is that it can be directly substituted for SHA-2 in current applications if necessary,
+    and to significantly improve the robustness of NIST's overall hash algorithm toolkit
+
+    ref wiki
+    https://en.wikipedia.org/wiki/SHA-3
+  }
+  PhysicsEngine.ClientIO.OpenP2pVMTunnelM(True, GenerateQuantumCryptographyPassword(AuthToken), {$IFDEF FPC}@{$ENDIF FPC}PhysicsOpenVM_Result)
 end;
 
 procedure TXNATClient.PhysicsOpenVM_Result(const cState: Boolean);
@@ -386,15 +437,16 @@ begin
     begin
       PhysicsEngine.ClientIO.p2pVMTunnel.MaxVMFragmentSize := umlStrToInt(MaxVMFragment, PhysicsEngine.ClientIO.p2pVMTunnel.MaxVMFragmentSize);
       PhysicsEngine.ClientIO.p2pVMTunnel.MaxRealBuffer := umlStrToInt(MaxRealBuffer, PhysicsEngine.ClientIO.p2pVMTunnel.MaxRealBuffer);
-      PhysicsEngine.SendStreamCmdM('IPV6ListenState', nil, {$IFDEF FPC}@{$ENDIF FPC}IPV6ListenState_Result);
+      PhysicsEngine.SendStreamCmdM('IPV6Listen', nil, {$IFDEF FPC}@{$ENDIF FPC}IPV6Listen_Result);
     end
   else
       WaitAsyncConnecting := False;
 end;
 
-procedure TXNATClient.IPV6ListenState_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TXNATClient.IPV6Listen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
 var
   Mapping: TPascalString;
+  Remote_ListenAddr, Remote_ListenPort: TPascalString;
   RecvTunnel_IPV6: TPascalString;
   RecvTunnel_Port: Word;
   SendTunnel_IPV6: TPascalString;
@@ -404,6 +456,8 @@ begin
   while ResultData.Reader.NotEnd do
     begin
       Mapping := ResultData.Reader.ReadString;
+      Remote_ListenAddr := ResultData.Reader.ReadString;
+      Remote_ListenPort := ResultData.Reader.ReadString;
       SendTunnel_IPV6 := ResultData.Reader.ReadString;
       SendTunnel_Port := ResultData.Reader.ReadWord;
       RecvTunnel_IPV6 := ResultData.Reader.ReadString;
@@ -415,6 +469,8 @@ begin
           tunMp.RecvTunnel_Port := RecvTunnel_Port;
           tunMp.SendTunnel_IPV6 := SendTunnel_IPV6;
           tunMp.SendTunnel_Port := SendTunnel_Port;
+          tunMp.Remote_ListenAddr := Remote_ListenAddr;
+          tunMp.Remote_ListenPort := Remote_ListenPort;
           tunMp.Open;
         end;
     end;
@@ -435,45 +491,6 @@ begin
   Activted := False;
   WaitAsyncConnecting := False;
   PhysicsEngine := nil;
-end;
-
-constructor TXNATClient.CreateOnFile(conf_file: TPascalString);
-var
-  Conf: THashTextEngine;
-  nLst: TListPascalString;
-  i: Integer;
-  n: TPascalString;
-  tunMp: TXClientMapping;
-begin
-  Create;
-
-  Conf := THashTextEngine.Create;
-  if umlFileExists(conf_file) then
-      Conf.LoadFromFile(conf_file);
-
-  // parameter
-  RemoteTunnelAddr := Evl(Conf.GetDefaultText('Main', 'Host', RemoteTunnelAddr), RemoteTunnelAddr);
-  RemoteTunnelPort := Evl(Conf.GetDefaultText('Main', 'Port', RemoteTunnelPort), RemoteTunnelPort);
-  AuthToken := Evl(Conf.GetDefaultText('Main', 'AuthToken', AuthToken), AuthToken);
-  MaxVMFragment := Evl(Conf.GetDefaultText('Main', 'MTU', MaxVMFragment), MaxVMFragment);
-  MaxRealBuffer := Evl(Conf.GetDefaultText('Main', 'Buffer', MaxRealBuffer), MaxRealBuffer);
-
-  nLst := TListPascalString.Create;
-  Conf.GetSectionList(nLst);
-  for i := 0 to nLst.Count - 1 do
-    begin
-      n := nLst[i];
-      if not n.Same('Main') then
-        begin
-          tunMp := TXClientMapping.Create;
-          tunMp.ReadConf(n, Conf.HStringList[n]);
-          tunMp.XClientTunnel := Self;
-          MappingList.Add(tunMp);
-          HashMapping.Add(tunMp.Mapping, tunMp);
-        end;
-    end;
-  disposeObject(nLst);
-  disposeObject(Conf);
 end;
 
 destructor TXNATClient.Destroy;
@@ -510,12 +527,18 @@ end;
 
 procedure TXNATClient.OpenTunnel;
 begin
+  Activted := True;
+
   if PhysicsEngine = nil then
+    begin
       PhysicsEngine := TXPhysicsClient.Create;
+      PhysicsEngine.SwitchMaxSafe;
+    end;
 
   if not PhysicsEngine.Connected then
     begin
       WaitAsyncConnecting := True;
+      WaitAsyncConnecting_BeginTime := GetTimeTick;
       PhysicsEngine.AsyncConnectM(RemoteTunnelAddr, umlStrToInt(RemoteTunnelPort), {$IFDEF FPC}@{$ENDIF FPC}PhysicsConnect_Result);
     end;
 end;
@@ -528,14 +551,19 @@ var
 begin
   if PhysicsEngine <> nil then
     begin
-      if Activted and (not PhysicsEngine.Connected) then
-        if not WaitAsyncConnecting then
-            OpenTunnel;
+      if WaitAsyncConnecting and (GetTimeTick - WaitAsyncConnecting_BeginTime > 15000) then
+          WaitAsyncConnecting := False;
 
-      try
-          PhysicsEngine.Progress;
-      except
-      end;
+      if Activted and (not PhysicsEngine.Connected) then
+        begin
+          if not WaitAsyncConnecting then
+            begin
+              TCoreClassThread.Sleep(500);
+              OpenTunnel;
+            end;
+        end;
+
+      PhysicsEngine.Progress;
     end;
 
   i := 0;

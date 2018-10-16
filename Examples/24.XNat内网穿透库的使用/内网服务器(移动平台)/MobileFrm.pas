@@ -13,7 +13,7 @@ type
   TForm1 = class(TForm)
     Memo1: TMemo;
     Timer1: TTimer;
-    procedure FormDestroy(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
@@ -32,11 +32,6 @@ implementation
 {$R *.fmx}
 
 
-procedure TForm1.FormDestroy(Sender: TObject);
-begin
-  DisposeObject(XCli);
-end;
-
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusIntf);
@@ -53,6 +48,11 @@ procedure TForm1.DoStatusIntf(AText: SystemString; const ID: Integer);
 begin
   Memo1.Lines.Add(AText);
   Memo1.GoToLineEnd;
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DisposeObject(XCli);
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);

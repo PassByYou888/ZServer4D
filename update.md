@@ -1,5 +1,22 @@
 # 更新日志
 
+## 2018-10-16
+
+- 修复:修复zExpression无法对1.0e-2浮点识别的bug
+- 修复:crossSocket接口反复释放的一个严重bug
+- 修复:xNat内创穿透断线重连不稳定的bug，新版本的xNat公网服务器，只会在内网连接后，才会侦听端口，两端运行中现在会极其稳定
+- 优化:xNat在手机也可以做内网穿透服务，优化了wiki或则4G,3G连接不稳定造成的通讯问题
+- 安全:新增傻瓜化使用的抗量子密码支持(sha3)，在密码货币系统非常常见，经过验证已经与wiki一致， https://en.wikipedia.org/wiki/SHA-3
+- 安全:因为sha3有大量的迭代计算，在摩尔定律使用秀儿算法是无法被破解的，同时sha3的计算性能也远远不如fastmd5，也许有数千倍差异，但是，使用sha3来存储和验证密码会万无一失
+
+**重新支持了5大美国国家标准技术研究所(NIST)高级加密标准算法，如下**
+
+- 安全:深度测试rc6加密，通讯协议支持 https://en.wikipedia.org/wiki/RC6
+- 安全:重做Twofish加密，通讯协议支持 https://en.wikipedia.org/wiki/Twofish
+- 安全:通讯协议支持Serpent加密 https://en.wikipedia.org/wiki/Serpent_(cipher)
+- 安全:通讯协议支持Mars加密 https://en.wikipedia.org/wiki/MARS_(cipher)
+- 安全:通讯协议支持Rijndael加密 https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
+
 ## 2018-9-29
 
 - 修复:FPC中Enum为4 byte定义会丢失符号位的问题

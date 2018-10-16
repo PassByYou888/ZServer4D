@@ -19,74 +19,61 @@ uses Math, Types, CoreClasses;
 
 type
   PPCCInt8 = ^PCCInt8;
-  PCCInt8  = ^TCCInt8;
-  TCCInt8  = ShortInt;
+  PCCInt8 = ^TCCInt8;
+  TCCInt8 = ShortInt;
 
   PPCCUInt8 = ^PCCUInt8;
-  PCCUInt8  = ^TCCUInt8;
-  TCCUInt8  = Byte;
+  PCCUInt8 = ^TCCUInt8;
+  TCCUInt8 = Byte;
 
-  PPCCInt16 = ^PCCInt16;
-  PCCInt16  = ^TCCInt16;
-  TCCInt16  = SmallInt;
+  PCCInt16 = ^TCCInt16;
+  TCCInt16 = SmallInt;
 
-  PPCCUInt16 = ^PCCUInt16;
-  PCCUInt16  = ^TCCUInt16;
-  TCCUInt16  = Word;
+  PCCUInt16 = ^TCCUInt16;
+  TCCUInt16 = Word;
 
-  PPCCInt32 = ^PCCInt32;
-  PCCInt32  = ^TCCInt32;
-  TCCInt32  = Integer;
+  PCCInt32 = ^TCCInt32;
+  TCCInt32 = Integer;
 
-  PPCCUInt32 = ^PCCUInt32;
-  PCCUInt32  = ^TCCUInt32;
-  TCCUInt32  = Cardinal;
+  PCCUInt32 = ^TCCUInt32;
+  TCCUInt32 = Cardinal;
 
-  PPCCInt64 = ^PCCInt64;
-  PCCInt64  = ^TCCInt64;
-  TCCInt64  = Int64;
+  PCCInt64 = ^TCCInt64;
+  TCCInt64 = Int64;
 
-  PPCCUInt64 = ^PCCUInt64;
-  PCCUInt64  = ^TCCUInt64;
-  TCCUInt64  = UInt64;
+  PCCUInt64 = ^TCCUInt64;
+  TCCUInt64 = UInt64;
 
-  PPCCPointer = ^PCCPointer;
-  PCCPointer  = ^TCCPointer;
-  TCCPointer  = Pointer;
+  PCCPtr = ^TCCPtr;
+  TCCPtr = Pointer;
 
   TCCPtrUInt = nativeUInt;
-  TCCPtrInt  = NativeInt;
+  TCCPtrInt = NativeInt;
 
-  PPCCPtrUInt = ^PCCPtrUInt;
-  PPCCPtrInt  = ^PCCPtrInt;
-  PCCPtrUInt  = ^TCCPtrUInt;
-  PCCPtrInt   = ^TCCPtrInt;
+  PPCCPtrInt = ^PCCPtrInt;
+  PCCPtrUInt = ^TCCPtrUInt;
+  PCCPtrInt = ^TCCPtrInt;
 
-  PPCCSizeUInt = ^PCCSizeUInt;
-  PCCSizeUInt  = ^TCCSizeUInt;
-  TCCSizeUInt  = TCCPtrUInt;
+  PCCSizeUInt = ^TCCSizeUInt;
+  TCCSizeUInt = TCCPtrUInt;
 
-  PPCCSizeInt = ^PCCSizeInt;
-  PCCSizeInt  = ^TCCSizeInt;
-  TCCSizeInt  = TCCPtrInt;
+  PCCSizeInt = ^TCCSizeInt;
+  TCCSizeInt = TCCPtrInt;
 
-  PPCCNativeUInt = ^PCCNativeUInt;
-  PCCNativeUInt  = ^TCCNativeUInt;
-  TCCNativeUInt  = TCCPtrUInt;
+  PCCNativeUInt = ^TCCNativeUInt;
+  TCCNativeUInt = TCCPtrUInt;
 
-  PPCCNativeInt = ^PCCNativeInt;
-  PCCNativeInt  = ^TCCNativeInt;
-  TCCNativeInt  = TCCPtrInt;
+  PCCNativeInt = ^TCCNativeInt;
+  TCCNativeInt = TCCPtrInt;
 
-  PPCCSize = ^PCCSizeUInt;
-  PCCSize  = ^TCCSizeUInt;
-  TCCSize  = TCCPtrUInt;
+  PCCSize = ^TCCSizeUInt;
+  TCCSize = TCCPtrUInt;
 
   PCCUInt8Array = ^TCCUInt8Array;
   TCCUInt8Array = array [0 .. MaxInt div SizeOf(TCCUInt8) - 1] of TCCUInt8;
 
   PPCCUInt64Record = ^PCCUInt64Record;
-  PCCUInt64Record  = ^TCCUInt64Record;
+  PCCUInt64Record = ^TCCUInt64Record;
 
   TCCUInt64Record = packed record
     case Boolean of
@@ -98,8 +85,8 @@ type
   public
     constructor Create; reintroduce; virtual;
     destructor Destroy; override;
-    function Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; virtual;
-    function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; virtual;
+    function Compress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt; virtual;
+    function Decompress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt; virtual;
 
     procedure CompressStream(sour: TCoreClassStream; StartPos, EndPos: NativeInt; CompressTo: TCoreClassStream);
     procedure DecompressStream(sour, DecompressTo: TCoreClassStream);
@@ -110,86 +97,47 @@ type
   TCompressorDeflate = class(TCompressor)
   protected
     const
-    HashBits           = 16;
-    HashSize           = 1 shl HashBits;
-    HashMask           = HashSize - 1;
-    HashShift          = 32 - HashBits;
-    WindowSize         = 32768;
-    WindowMask         = WindowSize - 1;
-    MinMatch           = 3;
-    MaxMatch           = 258;
-    MaxOffset          = 32768;
-    HashRef_ENDIAN_B30 = {$IF defined(FPC_BIG_ENDIAN)}$FFFFFF00{$ELSE}$00FFFFFF{$IFEND};
+    HashBits = 16;
+    HashSize = 1 shl HashBits;
+    HashMask = HashSize - 1;
+    HashShift = 32 - HashBits;
+    WindowSize = 32768;
+    WindowMask = WindowSize - 1;
+    MinMatch = 3;
+    MaxMatch = 258;
+    MaxOffset = 32768;
+    HashRef_ENDIAN_B30 = {$IF defined(BIG_ENDIAN)}$FFFFFF00{$ELSE}$00FFFFFF{$IFEND};
 
   const
-    {$IFNDEF BIG_ENDIAN}
+{$IFNDEF BIG_ENDIAN}
     MultiplyDeBruijnBytePosition: array [0 .. 31] of TCCUInt8 = (0, 0, 3, 0, 3, 1, 3, 0, 3, 2, 2, 1, 3, 2, 0, 1, 3, 3, 1, 2, 2, 2, 2, 0, 3, 1, 2, 0, 1, 0, 1, 1);
-    {$ENDIF}
+{$ENDIF}
     //
     LengthCodes: array [0 .. 28, 0 .. 3] of TCCUInt32 =
       ( // Code, ExtraBits, Min, Max
-      (257, 0, 3, 3),
-      (258, 0, 4, 4),
-      (259, 0, 5, 5),
-      (260, 0, 6, 6),
-      (261, 0, 7, 7),
-      (262, 0, 8, 8),
-      (263, 0, 9, 9),
-      (264, 0, 10, 10),
-      (265, 1, 11, 12),
-      (266, 1, 13, 14),
-      (267, 1, 15, 16),
-      (268, 1, 17, 18),
-      (269, 2, 19, 22),
-      (270, 2, 23, 26),
-      (271, 2, 27, 30),
-      (272, 2, 31, 34),
-      (273, 3, 35, 42),
-      (274, 3, 43, 50),
-      (275, 3, 51, 58),
-      (276, 3, 59, 66),
-      (277, 4, 67, 82),
-      (278, 4, 83, 98),
-      (279, 4, 99, 114),
-      (280, 4, 115, 130),
-      (281, 5, 131, 162),
-      (282, 5, 163, 194),
-      (283, 5, 195, 226),
-      (284, 5, 227, 257),
-      (285, 0, 258, 258)
+      (257, 0, 3, 3), (258, 0, 4, 4), (259, 0, 5, 5),
+      (260, 0, 6, 6), (261, 0, 7, 7), (262, 0, 8, 8),
+      (263, 0, 9, 9), (264, 0, 10, 10), (265, 1, 11, 12),
+      (266, 1, 13, 14), (267, 1, 15, 16), (268, 1, 17, 18),
+      (269, 2, 19, 22), (270, 2, 23, 26), (271, 2, 27, 30),
+      (272, 2, 31, 34), (273, 3, 35, 42), (274, 3, 43, 50),
+      (275, 3, 51, 58), (276, 3, 59, 66), (277, 4, 67, 82),
+      (278, 4, 83, 98), (279, 4, 99, 114), (280, 4, 115, 130),
+      (281, 5, 131, 162), (282, 5, 163, 194), (283, 5, 195, 226),
+      (284, 5, 227, 257), (285, 0, 258, 258)
       );
     DistanceCodes: array [0 .. 29, 0 .. 3] of TCCUInt32 =
       ( // Code, ExtraBits, Min, Max
-      (0, 0, 1, 1),
-      (1, 0, 2, 2),
-      (2, 0, 3, 3),
-      (3, 0, 4, 4),
-      (4, 1, 5, 6),
-      (5, 1, 7, 8),
-      (6, 2, 9, 12),
-      (7, 2, 13, 16),
-      (8, 3, 17, 24),
-      (9, 3, 25, 32),
-      (10, 4, 33, 48),
-      (11, 4, 49, 64),
-      (12, 5, 65, 96),
-      (13, 5, 97, 128),
-      (14, 6, 129, 192),
-      (15, 6, 193, 256),
-      (16, 7, 257, 384),
-      (17, 7, 385, 512),
-      (18, 8, 513, 768),
-      (19, 8, 769, 1024),
-      (20, 9, 1025, 1536),
-      (21, 9, 1537, 2048),
-      (22, 10, 2049, 3072),
-      (23, 10, 3073, 4096),
-      (24, 11, 4097, 6144),
-      (25, 11, 6145, 8192),
-      (26, 12, 8193, 12288),
-      (27, 12, 12289, 16384),
-      (28, 13, 16385, 24576),
-      (29, 13, 24577, 32768)
+      (0, 0, 1, 1), (1, 0, 2, 2), (2, 0, 3, 3),
+      (3, 0, 4, 4), (4, 1, 5, 6), (5, 1, 7, 8),
+      (6, 2, 9, 12), (7, 2, 13, 16), (8, 3, 17, 24),
+      (9, 3, 25, 32), (10, 4, 33, 48), (11, 4, 49, 64),
+      (12, 5, 65, 96), (13, 5, 97, 128), (14, 6, 129, 192),
+      (15, 6, 193, 256), (16, 7, 257, 384), (17, 7, 385, 512),
+      (18, 8, 513, 768), (19, 8, 769, 1024), (20, 9, 1025, 1536),
+      (21, 9, 1537, 2048), (22, 10, 2049, 3072), (23, 10, 3073, 4096),
+      (24, 11, 4097, 6144), (25, 11, 6145, 8192), (26, 12, 8193, 12288),
+      (27, 12, 12289, 16384), (28, 13, 16385, 24576), (29, 13, 24577, 32768)
       );
     MirrorBytes: array [TCCUInt8] of TCCUInt8 =
       (
@@ -229,51 +177,51 @@ type
     CLCIndex: array [0 .. 18] of TCCUInt8 = (16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15);
 
   type
-    PHashTable  = ^THashTable;
-    THashTable  = array [0 .. HashSize - 1] of PCCUInt8;
+    PHashTable = ^THashTable;
+    THashTable = array [0 .. HashSize - 1] of PCCUInt8;
     PChainTable = ^TChainTable;
-    TChainTable = array [0 .. WindowSize - 1] of TCCPointer;
-    PTree       = ^TTree;
+    TChainTable = array [0 .. WindowSize - 1] of TCCPtr;
+    PTree = ^TTree;
 
     TTree = packed record
       Table: array [0 .. 15] of TCCUInt16;
       Translation: array [0 .. 287] of TCCUInt16;
     end;
 
-    PBuffer  = ^TBuffer;
-    TBuffer  = array [0 .. 65535] of TCCUInt8;
+    PBuffer = ^TBuffer;
+    TBuffer = array [0 .. 65535] of TCCUInt8;
     PLengths = ^TLengths;
     TLengths = array [0 .. 288 + 32 - 1] of TCCUInt8;
     POffsets = ^TOffsets;
     TOffsets = array [0 .. 15] of TCCUInt16;
-    TBits    = array [0 .. 29] of TCCUInt8;
-    PBits    = ^TBits;
-    TBase    = array [0 .. 29] of TCCUInt16;
-    PBase    = ^TBase;
+    TBits = array [0 .. 29] of TCCUInt8;
+    PBits = ^TBits;
+    TBase = array [0 .. 29] of TCCUInt16;
+    PBase = ^TBase;
   private
-    fHashTable               : THashTable;
-    fChainTable              : TChainTable;
-    fLengthCodesLookUpTable  : array [0 .. 258] of TCCInt32;
+    fHashTable: THashTable;
+    fChainTable: TChainTable;
+    fLengthCodesLookUpTable: array [0 .. 258] of TCCInt32;
     fDistanceCodesLookUpTable: array [0 .. 32768] of TCCInt32;
-    fSymbolLengthTree        : TTree;
-    fDistanceTree            : TTree;
-    fFixedSymbolLengthTree   : TTree;
-    fFixedDistanceTree       : TTree;
-    fLengthBits              : TBits;
-    fDistanceBits            : TBits;
-    fLengthBase              : TBase;
-    fDistanceBase            : TBase;
-    fCodeTree                : TTree;
-    fLengths                 : TLengths;
-    fWithHeader              : Boolean;
-    fGreedy                  : Boolean;
-    fSkipStrength            : TCCUInt32;
-    fMaxSteps                : TCCUInt32;
+    fSymbolLengthTree: TTree;
+    fDistanceTree: TTree;
+    fFixedSymbolLengthTree: TTree;
+    fFixedDistanceTree: TTree;
+    fLengthBits: TBits;
+    fDistanceBits: TBits;
+    fLengthBase: TBase;
+    fDistanceBase: TBase;
+    fCodeTree: TTree;
+    fLengths: TLengths;
+    fWithHeader: Boolean;
+    fGreedy: Boolean;
+    fSkipStrength: TCCUInt32;
+    fMaxSteps: TCCUInt32;
   public
     constructor Create; override;
     destructor Destroy; override;
-    function Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
-    function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
+    function Compress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
+    function Decompress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
 
     property WithHeader: Boolean read fWithHeader write fWithHeader;
     property Greedy: Boolean read fGreedy write fGreedy;
@@ -284,15 +232,15 @@ type
   TCompressorBRRC = class(TCompressor)
   private
     const
-    FlagModel    = 0;
+    FlagModel = 0;
     LiteralModel = 2;
-    SizeModels   = 258;
+    SizeModels = 258;
   private
   public
     constructor Create; override;
     destructor Destroy; override;
-    function Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
-    function Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
+    function Compress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
+    function Decompress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt; override;
   end;
 
 function CoreCompressStream(Compressor: TCompressor; sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
@@ -303,7 +251,6 @@ function DeflateDecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream)
 
 function BRRCCompressStream(sour: TCoreClassStream; ComTo: TCoreClassStream): Boolean;
 function BRRCDecompressStream(sour: TCoreClassStream; DeTo: TCoreClassStream): Boolean;
-
 
 implementation
 
@@ -367,13 +314,13 @@ end;
 
 procedure BytewiseMemoryMove(const aSource; var aDestination; const aLength: TCCSizeUInt);
 var
-  index              : TCCSizeUInt;
+  index: TCCSizeUInt;
   Source, Destination: PCCUInt8Array;
 begin
   if aLength > 0 then
     begin
-      Source := TCCPointer(@aSource);
-      Destination := TCCPointer(@aDestination);
+      Source := TCCPtr(@aSource);
+      Destination := TCCPtr(@aDestination);
       for index := 0 to aLength - 1 do
         begin
           Destination^[index] := Source^[index];
@@ -385,7 +332,7 @@ procedure RLELikeSideEffectAwareMemoryMove(const aSource; var aDestination; cons
 begin
   if aLength > 0 then
     begin
-      if (TCCSizeUInt(TCCPointer(@aSource)) + aLength) <= TCCSizeUInt(TCCPointer(@aDestination)) then
+      if (TCCSizeUInt(TCCPtr(@aSource)) + aLength) <= TCCSizeUInt(TCCPtr(@aDestination)) then
         // Non-overlapping, so we an use an optimized memory move function
           CopyPtr(@aSource, @aDestination, aLength)
       else
@@ -394,15 +341,17 @@ begin
     end;
 end;
 
+{$IFDEF RangeCheck}{$R-}{$ENDIF}
+
 {$IFNDEF fpc}
 
 
 function BSRDWord(Value: TCCUInt32): TCCUInt32;
 
 const
-  BSRDebruijn32Multiplicator                      = TCCUInt32($07C4ACDD);
-  BSRDebruijn32Shift                              = 27;
-  BSRDebruijn32Mask                               = 31;
+  BSRDebruijn32Multiplicator = TCCUInt32($07C4ACDD);
+  BSRDebruijn32Shift = 27;
+  BSRDebruijn32Mask = 31;
   BSRDebruijn32Table: array [0 .. 31] of TCCInt32 = (0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31);
 begin
   if Value = 0 then
@@ -444,31 +393,31 @@ begin
   inherited Destroy;
 end;
 
-function TCompressor.Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
+function TCompressor.Compress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 begin
   Result := 0;
 end;
 
-function TCompressor.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
+function TCompressor.Decompress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 begin
   Result := 0;
 end;
 
 procedure TCompressor.CompressStream(sour: TCoreClassStream; StartPos, EndPos: NativeInt; CompressTo: TCoreClassStream);
 const
-  ChunkSize       = $FFFF - $2000;
+  ChunkSize = $FFFF - $2000;
   PrepareBuffSize = $FFFF;
 type
   TPrepareBuff = array [0 .. PrepareBuffSize + 2] of Byte;
   PPrepareBuff = ^TPrepareBuff;
 
 var
-  buff          : array [0 .. ChunkSize] of Byte;
+  buff: array [0 .. ChunkSize] of Byte;
   PrepareBuffPtr: PPrepareBuff;
-  siz           : Int64;
-  j             : NativeInt;
-  Num           : NativeInt;
-  Rest          : NativeInt;
+  siz: Int64;
+  j: NativeInt;
+  Num: NativeInt;
+  Rest: NativeInt;
 
   CompressOriginPos, CompressToSiz: Int64;
 begin
@@ -615,8 +564,8 @@ end;
 procedure TCompressor.DecompressStream(sour, DecompressTo: TCoreClassStream);
 var
   siz, cSiz, DecompressOriginPos: Int64;
-  bufSiz, deBufSiz              : Word;
-  buff, debuff                  : array of Byte;
+  bufSiz, deBufSiz: Word;
+  buff, debuff: array of Byte;
 begin
   LockObject(Self);
   try
@@ -745,8 +694,8 @@ begin
   FillPtrByte(@fFixedSymbolLengthTree, SizeOf(TTree), 0);
   FillPtrByte(@fFixedDistanceTree, SizeOf(TTree), 0);
   BuildFixedTrees(fFixedSymbolLengthTree, fFixedDistanceTree);
-  BuildBitsBase(TCCPointer(@fLengthBits[0]), PCCUInt16(TCCPointer(@fLengthBase[0])), 4, 3);
-  BuildBitsBase(TCCPointer(@fDistanceBits[0]), PCCUInt16(TCCPointer(@fDistanceBase[0])), 2, 1);
+  BuildBitsBase(TCCPtr(@fLengthBits[0]), PCCUInt16(TCCPtr(@fLengthBase[0])), 4, 3);
+  BuildBitsBase(TCCPtr(@fDistanceBits[0]), PCCUInt16(TCCPtr(@fDistanceBase[0])), 2, 1);
   fLengthBits[28] := 0;
   fLengthBase[28] := 258;
   fWithHeader := False;
@@ -760,11 +709,11 @@ begin
   inherited Destroy;
 end;
 
-function TCompressorDeflate.Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
+function TCompressorDeflate.Compress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 var
   OutputBits, CountOutputBits: TCCUInt32;
-  DestLen                    : TCCSizeUInt;
-  OK                         : Boolean;
+  DestLen: TCCSizeUInt;
+  OK: Boolean;
   procedure DoOutputBits(const aBits, aCountBits: TCCUInt32);
   begin
     Assert((CountOutputBits + aCountBits) <= 32);
@@ -828,12 +777,12 @@ var
     DoOutputBits(0, 7); // Close block
     DoOutputBits(0, 7); // Make sure all bits are flushed
   end;
-  function Adler32(const aData: TCCPointer; const aLength: TCCUInt32): TCCUInt32;
+  function Adler32(const aData: TCCPtr; const aLength: TCCUInt32): TCCUInt32;
   const
-    Base               = 65521;
+    Base = 65521;
     MaximumCountAtOnce = 5552;
   var
-    Buf                        : PCCUInt8;
+    Buf: PCCUInt8;
     Remain, s1, s2, ToDo, index: TCCUInt32;
   begin
     s1 := 1;
@@ -863,7 +812,7 @@ var
   CurrentPointer, EndPointer, EndSearchPointer, Head, CurrentPossibleMatch: PCCUInt8;
   BestMatchDistance, BestMatchLength, MatchLength, CheckSum, Step, Difference, Offset,
     UnsuccessfulFindMatchAttempts: TCCUInt32;
-  HashTableItem                  : PPCCUInt8;
+  HashTableItem: PPCCUInt8;
 begin
   OK := True;
   DestLen := 0;
@@ -878,12 +827,12 @@ begin
   FillPtrByte(@fHashTable, SizeOf(THashTable), 0);
   FillPtrByte(@fChainTable, SizeOf(TChainTable), 0);
   CurrentPointer := aInData;
-  EndPointer := TCCPointer(TCCPtrUInt(TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)));
-  EndSearchPointer := TCCPointer(TCCPtrUInt((TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)) - TCCPtrUInt(TCCInt64(Max(TCCInt64(MinMatch), TCCInt64(SizeOf(TCCUInt32)))))));
+  EndPointer := TCCPtr(TCCPtrUInt(TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)));
+  EndSearchPointer := TCCPtr(TCCPtrUInt((TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)) - TCCPtrUInt(TCCInt64(Max(TCCInt64(MinMatch), TCCInt64(SizeOf(TCCUInt32)))))));
   UnsuccessfulFindMatchAttempts := TCCUInt32(1) shl fSkipStrength;
   while TCCPtrUInt(CurrentPointer) < TCCPtrUInt(EndSearchPointer) do
     begin
-      HashTableItem := @fHashTable[((((PCCUInt32(TCCPointer(CurrentPointer))^ and TCCUInt32(HashRef_ENDIAN_B30){$IF defined(FPC_BIG_ENDIAN)} shr 8{$IFEND})) * TCCUInt32($1E35A7BD)) shr HashShift) and HashMask];
+      HashTableItem := @fHashTable[((((PCCUInt32(TCCPtr(CurrentPointer))^ and TCCUInt32(HashRef_ENDIAN_B30){$IF defined(BIG_ENDIAN)} shr 8{$IFEND})) * TCCUInt32($1E35A7BD)) shr HashShift) and HashMask];
       Head := HashTableItem^;
       CurrentPossibleMatch := Head;
       BestMatchDistance := 0;
@@ -893,7 +842,7 @@ begin
         (TCCPtrUInt(CurrentPointer) > TCCPtrUInt(CurrentPossibleMatch)) and
         (TCCPtrInt(TCCPtrUInt(TCCPtrUInt(CurrentPointer) - TCCPtrUInt(CurrentPossibleMatch))) < TCCPtrInt(MaxOffset)) do
         begin
-          Difference := PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPointer)^[0]))^ xor PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPossibleMatch)^[0]))^;
+          Difference := PCCUInt32(TCCPtr(@PCCUInt8Array(CurrentPointer)^[0]))^ xor PCCUInt32(TCCPtr(@PCCUInt8Array(CurrentPossibleMatch)^[0]))^;
           if (Difference and TCCUInt32(HashRef_ENDIAN_B30)) = 0 then
             begin
               if (BestMatchLength <= (TCCPtrUInt(EndPointer) - TCCPtrUInt(CurrentPointer))) and
@@ -904,31 +853,25 @@ begin
                   while ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) and (SizeOf(TCCUInt32) - 1)) <> 0) and
                     ((TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength]) < TCCPtrUInt(EndPointer))) and
                     (PCCUInt8Array(CurrentPointer)^[MatchLength] = PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]) do
-                    begin
                       inc(MatchLength);
-                    end;
 
                   while (TCCPtrUInt(@PCCUInt8Array(CurrentPointer)^[MatchLength + (SizeOf(TCCUInt32) - 1)]) < TCCPtrUInt(EndPointer)) do
                     begin
-                      Difference := PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPointer)^[MatchLength]))^ xor PCCUInt32(TCCPointer(@PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]))^;
+                      Difference := PCCUInt32(TCCPtr(@PCCUInt8Array(CurrentPointer)^[MatchLength]))^ xor PCCUInt32(TCCPtr(@PCCUInt8Array(CurrentPossibleMatch)^[MatchLength]))^;
                       if Difference = 0 then
                         begin
                           inc(MatchLength, SizeOf(TCCUInt32));
                         end
                       else
                         begin
-                          {$IF defined(FPC_BIG_ENDIAN)}
+{$IF defined(BIG_ENDIAN)}
                           if (Difference shr 16) <> 0 then
-                            begin
-                              inc(MatchLength, not(Difference shr 24));
-                            end
+                              inc(MatchLength, not(Difference shr 24))
                           else
-                            begin
                               inc(MatchLength, 2 + (not(Difference shr 8)));
-                            end;
-                          {$ELSE}
+{$ELSE}
                           inc(MatchLength, MultiplyDeBruijnBytePosition[TCCUInt32(TCCUInt32(Difference and (-Difference)) * TCCUInt32($077CB531)) shr 27]);
-                          {$IFEND}
+{$IFEND}
                           Break;
                         end;
                     end;
@@ -981,7 +924,7 @@ begin
           dec(BestMatchLength);
           while (BestMatchLength > 0) and (TCCPtrUInt(CurrentPointer) < TCCPtrUInt(EndSearchPointer)) do
             begin
-              HashTableItem := @fHashTable[((((PCCUInt32(TCCPointer(CurrentPointer))^ and TCCUInt32(HashRef_ENDIAN_B30){$IF defined(FPC_BIG_ENDIAN)} shr 8{$IFEND})) * TCCUInt32($1E35A7BD)) shr HashShift) and HashMask];
+              HashTableItem := @fHashTable[((((PCCUInt32(TCCPtr(CurrentPointer))^ and TCCUInt32(HashRef_ENDIAN_B30){$IF defined(BIG_ENDIAN)} shr 8{$IFEND})) * TCCUInt32($1E35A7BD)) shr HashShift) and HashMask];
               Head := HashTableItem^;
               HashTableItem^ := CurrentPointer;
               fChainTable[(TCCPtrUInt(CurrentPointer) - TCCPtrUInt(aInData)) and WindowMask] := Head;
@@ -1020,18 +963,18 @@ begin
       Result := 0;
 end;
 
-function TCompressorDeflate.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
+function TCompressorDeflate.Decompress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 var
-  Tag, BitCount    : TCCUInt32;
+  Tag, BitCount: TCCUInt32;
   Source, SourceEnd: PCCUInt8;
-  dest             : PCCUInt8;
-  DestLen          : TCCSizeUInt;
-  function Adler32(aData: TCCPointer; aLength: TCCUInt32): TCCUInt32;
+  dest: PCCUInt8;
+  DestLen: TCCSizeUInt;
+  function Adler32(aData: TCCPtr; aLength: TCCUInt32): TCCUInt32;
   const
     Base = 65521;
     NMAX = 5552;
   var
-    Buf         : PCCUInt8;
+    Buf: PCCUInt8;
     s1, s2, k, i: TCCUInt32;
   begin
     s1 := 1;
@@ -1058,8 +1001,8 @@ var
   procedure BuildTree(var aTree: TTree; aLengths: PCCUInt8Array; aNum: TCCInt32);
   var
     Offsets: TOffsets;
-    i      : TCCInt32;
-    Sum    : TCCUInt32;
+    i: TCCInt32;
+    Sum: TCCUInt32;
   begin
     for i := 0 to 15 do
         aTree.Table[i] := 0;
@@ -1141,7 +1084,7 @@ var
         clen := ReadBits(3, 0);
         fLengths[CLCIndex[i - 1]] := clen;
       end;
-    BuildTree(fCodeTree, TCCPointer(@fLengths[0]), 19);
+    BuildTree(fCodeTree, TCCPtr(@fLengths[0]), 19);
     Num := 0;
     while Num < (hlit + hdist) do
       begin
@@ -1185,17 +1128,17 @@ var
             end;
         end;
       end;
-    BuildTree(aLT, TCCPointer(@fLengths[0]), hlit);
-    BuildTree(aDT, TCCPointer(@fLengths[hlit]), hdist);
+    BuildTree(aLT, TCCPtr(@fLengths[0]), hlit);
+    BuildTree(aDT, TCCPtr(@fLengths[hlit]), hdist);
   end;
   function InflateBlockData(const aLT, aDT: TTree): Boolean;
   var
-    Symbol               : TCCUInt32;
+    Symbol: TCCUInt32;
     Len, Distance, Offset: TCCInt32;
-    t                    : PCCUInt8;
+    t: PCCUInt8;
   begin
     Result := False;
-    while (TCCPtrUInt(TCCPointer(Source)) < TCCPtrUInt(TCCPointer(SourceEnd))) or (BitCount > 0) do
+    while (TCCPtrUInt(TCCPtr(Source)) < TCCPtrUInt(TCCPtr(SourceEnd))) or (BitCount > 0) do
       begin
         Symbol := DecodeSymbol(aLT);
         if Symbol = 256 then
@@ -1222,7 +1165,7 @@ var
             Offset := ReadBits(fDistanceBits[Distance], fDistanceBase[Distance]);
             if (DestLen + TCCSizeUInt(Len)) <= aOutLimit then
               begin
-                t := TCCPointer(dest);
+                t := TCCPtr(dest);
                 dec(t, Offset);
                 RLELikeSideEffectAwareMemoryMove(t^, dest^, Len);
                 inc(dest, Len);
@@ -1272,7 +1215,7 @@ var
   function Uncompress: Boolean;
   var
     FinalBlock: Boolean;
-    BlockType : TCCUInt32;
+    BlockType: TCCUInt32;
   begin
     BitCount := 0;
     repeat
@@ -1301,7 +1244,7 @@ var
   function UncompressZLIB: Boolean;
   var
     cmf, flg: TCCUInt8;
-    a32     : TCCUInt32;
+    a32: TCCUInt32;
   begin
     Result := False;
     Source := aInData;
@@ -1361,22 +1304,22 @@ begin
   inherited Destroy;
 end;
 
-function TCompressorBRRC.Compress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
+function TCompressorBRRC.Compress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 var
-  {$IFNDEF CPU64}Code, {$ENDIF}Range, Cache, CountFFBytes: TCCUInt32;
-  {$IFDEF CPU64}Code                                     : TCCUInt64; {$ENDIF}
-  Model                                                  : array [0 .. SizeModels - 1] of TCCUInt32;
-  OK, FirstByte{$IFNDEF CPU64}, Carry{$ENDIF}            : Boolean;
-  DestLen                                                : TCCInt32;
+{$IFNDEF CPU64}Code, {$ENDIF}Range, Cache, CountFFBytes: TCCUInt32;
+{$IFDEF CPU64}Code: TCCUInt64; {$ENDIF}
+  Model: array [0 .. SizeModels - 1] of TCCUInt32;
+  OK, FirstByte{$IFNDEF CPU64}, Carry{$ENDIF} : Boolean;
+  DestLen: TCCInt32;
   procedure EncoderShift;
-  {$IFDEF CPU64}
+{$IFDEF CPU64}
   var
     Carry: Boolean;
-    {$ENDIF}
+{$ENDIF}
   begin
-    {$IFDEF CPU64}
-    Carry := PCCUInt64Record(TCCPointer(@Code))^.Hi <> 0; // or (Code shr 32)<>0; or also (Code and TCCUInt64($ffffffff00000000))<>0;
-    {$ENDIF}
+{$IFDEF CPU64}
+    Carry := PCCUInt64Record(TCCPtr(@Code))^.Hi <> 0; // or (Code shr 32)<>0; or also (Code and TCCUInt64($ffffffff00000000))<>0;
+{$ENDIF}
     if (Code < $FF000000) or Carry then
       begin
         if FirstByte then
@@ -1431,13 +1374,13 @@ var
       end
     else
       begin
-        {$IFNDEF CPU64}
+{$IFNDEF CPU64}
         OldCode := Code;
-        {$ENDIF}
+{$ENDIF}
         inc(Code, Bound);
-        {$IFNDEF CPU64}
+{$IFNDEF CPU64}
         Carry := Carry or (Code < OldCode);
-        {$ENDIF}
+{$ENDIF}
         dec(Range, Bound);
         dec(Model[ModelIndex], Model[ModelIndex] shr Move);
       end;
@@ -1469,7 +1412,7 @@ var
 
 var
   CurrentPointer, EndPointer: PCCUInt8;
-  Len, MinDestLen           : TCCInt32;
+  Len, MinDestLen: TCCInt32;
 begin
   DestLen := 0;
   FirstByte := True;
@@ -1482,7 +1425,7 @@ begin
       Model[Len] := 2048;
     end;
   CurrentPointer := aInData;
-  EndPointer := TCCPointer(TCCPtrUInt(TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)));
+  EndPointer := TCCPtr(TCCPtrUInt(TCCPtrUInt(CurrentPointer) + TCCPtrUInt(aInSize)));
   while TCCPtrUInt(CurrentPointer) < TCCPtrUInt(EndPointer) do
     begin
       EncodeBit(FlagModel, 1, 1);
@@ -1506,11 +1449,11 @@ begin
       Result := 0;
 end;
 
-function TCompressorBRRC.Decompress(const aInData: TCCPointer; const aInSize: TCCSizeUInt; const aOutData: TCCPointer; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
+function TCompressorBRRC.Decompress(const aInData: TCCPtr; const aInSize: TCCSizeUInt; const aOutData: TCCPtr; const aOutLimit: TCCSizeUInt): TCCSizeUInt;
 var
   Code, Range, Position: TCCUInt32;
-  Model                : array [0 .. SizeModels - 1] of TCCUInt32;
-  OK                   : Boolean;
+  Model: array [0 .. SizeModels - 1] of TCCUInt32;
+  OK: Boolean;
   function DecodeBit(ModelIndex, Move: TCCInt32): TCCInt32;
   var
     Bound: TCCUInt32;
@@ -1599,7 +1542,6 @@ begin
     end;
 end;
 
-end. 
- 
- 
- 
+{$IFDEF RangeCheck}{$R+}{$ENDIF}
+
+end.

@@ -22,9 +22,9 @@ type
   { : Progression event for time-base animations/simulations.<p>
     deltaTime is the time delta since last progress and newTime is the new
     time after the progress event is completed. }
-  TCadencerProgressMethod             = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
-  TCadencerProgressCall               = procedure(Sender: TObject; const deltaTime, newTime: Double);
-  {$IFNDEF FPC} TCadencerProgressProc = reference to procedure(Sender: TObject; const deltaTime, newTime: Double); {$ENDIF}
+  TCadencerProgressMethod = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
+  TCadencerProgressCall = procedure(Sender: TObject; const deltaTime, newTime: Double);
+{$IFNDEF FPC} TCadencerProgressProc = reference to procedure(Sender: TObject; const deltaTime, newTime: Double); {$ENDIF}
 
   ICadencerProgressInterface = interface
     procedure CadencerProgress(const deltaTime, newTime: Double);
@@ -52,9 +52,9 @@ type
     FMaxDeltaTime, FMinDeltaTime, FFixedDeltaTime: Double;
     FOnProgress: TCadencerProgressMethod;
     FOnProgressCall: TCadencerProgressCall;
-    {$IFNDEF FPC}
+{$IFNDEF FPC}
     FOnProgressProc: TCadencerProgressProc;
-    {$ENDIF FPC}
+{$ENDIF FPC}
     FProgressing: Integer;
     FProgressIntf: ICadencerProgressInterface;
   protected
@@ -131,7 +131,7 @@ type
     { backcall }
     property OnProgress: TCadencerProgressMethod read FOnProgress write FOnProgress;
     property OnProgressCall: TCadencerProgressCall read FOnProgressCall write FOnProgressCall;
-    {$IFNDEF FPC} property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc; {$ENDIF FPC}
+{$IFNDEF FPC} property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc; {$ENDIF FPC}
     { intf }
     property ProgressIntf: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
@@ -220,7 +220,7 @@ begin
   Enabled := True;
   FOnProgress := nil;
   FOnProgressCall := nil;
-  {$IFNDEF FPC} FOnProgressProc := nil; {$ENDIF FPC}
+{$IFNDEF FPC} FOnProgressProc := nil; {$ENDIF FPC}
   FProgressIntf := nil;
 end;
 
@@ -274,11 +274,10 @@ begin
                       if Assigned(FOnProgressCall) then
                           FOnProgressCall(Self, deltaTime, newTime);
 
-                      {$IFNDEF FPC}
+{$IFNDEF FPC}
                       if Assigned(FOnProgressProc) then
                           FOnProgressProc(Self, deltaTime, newTime);
-                      {$ENDIF FPC}
-                      { }
+{$ENDIF FPC}
                       if Assigned(FProgressIntf) then
                           FProgressIntf.CadencerProgress(deltaTime, newTime);
                     except
@@ -325,6 +324,3 @@ initialization
 finalization
 
 end.
- 
- 
- 

@@ -1,7 +1,7 @@
 object DoubleServerForm: TDoubleServerForm
   Left = 0
   Top = 0
-  Caption = 'Double Tunnel Server'
+  Caption = 'HPC Server'
   ClientHeight = 384
   ClientWidth = 634
   Color = clBtnFace

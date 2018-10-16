@@ -58,7 +58,7 @@ type
     State: TQueueState;
     ClientID: Cardinal;
     Cmd: SystemString;
-    Cipher: TCipherStyle;
+    Cipher: TCipherSecurity;
 
     ConsoleData: SystemString;
     OnConsoleMethod: TConsoleMethod;
@@ -220,12 +220,11 @@ type
     procedure Decode(d: TDataFrameEngine);
   end;
 
-  TBigStreamBatchList = class(TCoreClassInterfacedObject)
-  private
-    function GetItems(const index: Integer): PBigStreamBatchPostData;
+  TBigStreamBatchList = class(TCoreClassObject)
   protected
     FOwner: TPeerIO;
     FList: TCoreClassList;
+    function GetItems(const index: Integer): PBigStreamBatchPostData;
   public
     constructor Create(AOwner: TPeerIO);
     destructor Destroy; override;
@@ -314,9 +313,9 @@ type
     FCanPauseResultSend: Boolean;
     FPauseResultSend: Boolean;
     FReceiveTriggerRuning: Boolean;
-    FReceiveDataCipherStyle: TCipherStyle;
+    FReceiveDataCipherSecurity: TCipherSecurity;
     FResultDataBuffer: TMemoryStream64;
-    FSendDataCipherStyle: TCipherStyle;
+    FSendDataCipherSecurity: TCipherSecurity;
     FAllSendProcessing: Boolean;
     FReceiveProcessing: Boolean;
     FQueueList: TCoreClassList;
@@ -346,9 +345,9 @@ type
     OnDestroy: TInternalClientDestory;
   protected
     // p2p vm: auth model result
-    OnVMBuildAuthModelResultCall: TStateCall;
-    OnVMBuildAuthModelResultMethod: TStateMethod;
-{$IFNDEF FPC} OnVMBuildAuthModelResultProc: TStateProc; {$ENDIF FPC}
+    OnVMBuildAuthModelResultCall: TNotifyCall;
+    OnVMBuildAuthModelResultMethod: TNotifyMethod;
+{$IFNDEF FPC} OnVMBuildAuthModelResultProc: TNotifyProc; {$ENDIF FPC}
     // p2p vm: auth result
     OnVMAuthResultCall: TStateCall;
     OnVMAuthResultMethod: TStateMethod;
@@ -376,13 +375,13 @@ type
     procedure SendByte(v: Byte);
     procedure SendWord(v: Word);
     procedure SendVerifyCode(buff: Pointer; siz: NativeInt);
-    procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherStyle);
-    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle);
+    procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherSecurity);
+    procedure SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherSecurity);
 
-    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
-    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
+    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
     procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64);
     procedure InternalSendBigStreamBuff(var Queue: TQueueData);
     procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz: NativeInt);
@@ -436,9 +435,9 @@ type
     property p2pVMTunnel: TCommunicationFrameworkWithP2PVM read FP2PVMTunnel;
     { p2pVM build safe Auth token }
     procedure BuildP2PAuthToken; overload;
-    procedure BuildP2PAuthTokenC(const OnResult: TStateCall); overload;
-    procedure BuildP2PAuthTokenM(const OnResult: TStateMethod); overload;
-{$IFNDEF FPC} procedure BuildP2PAuthTokenP(const OnResult: TStateProc); overload; {$ENDIF FPC}
+    procedure BuildP2PAuthTokenC(const OnResult: TNotifyCall); overload;
+    procedure BuildP2PAuthTokenM(const OnResult: TNotifyMethod); overload;
+{$IFNDEF FPC} procedure BuildP2PAuthTokenP(const OnResult: TNotifyProc); overload; {$ENDIF FPC}
     { p2pVM Open Tunnel }
     procedure OpenP2PVMTunnel(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString); overload;
     procedure OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString); overload;
@@ -499,7 +498,7 @@ type
     property ID: Cardinal read FID;
     property CipherKey: TCipherKeyBuffer read FCipherKey;
     function CipherKeyPtr: PCipherKeyBuffer;
-    property SendCipherStyle: TCipherStyle read FSendDataCipherStyle write FSendDataCipherStyle;
+    property SendCipherSecurity: TCipherSecurity read FSendDataCipherSecurity write FSendDataCipherSecurity;
     property RemoteExecutedForConnectInit: Boolean read FRemoteExecutedForConnectInit write FRemoteExecutedForConnectInit;
 
     // remote
@@ -515,11 +514,11 @@ type
     property UserSpecial: TPeerClientUserSpecial read FUserSpecial;
 
     // hash code
-    procedure GenerateHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
-    function VerifyHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
+    procedure GenerateHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var output: TBytes);
+    function VerifyHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
     //
     // encrypt
-    procedure Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
+    procedure Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
     //
     // timeout
     function StopCommunicationTime: TTimeTickValue;
@@ -614,8 +613,8 @@ type
     FSyncOnResult: Boolean;
     FSyncOnCompleteBuffer: Boolean;
     FQuietMode: Boolean;
-    FCipherStyle: TCipherStyle;
-    FHashStyle: THashStyle;
+    FCipherSecurity: TCipherSecurity;
+    FHashSecurity: THashSecurity;
     FMaxCompleteBufferSize: NativeInt;
     FPrintParams: THashVariantList;
     FProgressPost: TNProgressPostWithCadencer;
@@ -755,10 +754,10 @@ type
     property SyncOnResult: Boolean read FSyncOnResult write FSyncOnResult;
     property SyncOnCompleteBuffer: Boolean read FSyncOnCompleteBuffer write FSyncOnCompleteBuffer;
     property QuietMode: Boolean read FQuietMode write FQuietMode;
-    property CipherStyle: TCipherStyle read FCipherStyle;
+    property CipherSecurity: TCipherSecurity read FCipherSecurity;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
     property SendDataCompressed: Boolean read FSendDataCompressed;
-    property HashStyle: THashStyle read FHashStyle;
+    property HashSecurity: THashSecurity read FHashSecurity;
     property MaxCompleteBufferSize: NativeInt read FMaxCompleteBufferSize write FMaxCompleteBufferSize;
 
     // state
@@ -803,6 +802,8 @@ type
     constructor Create; virtual;
     constructor CreateCustomHashPool(HashPoolLen: Integer); virtual;
     destructor Destroy; override;
+
+    procedure Disconnect(ID: Cardinal);
 
     // OnReceiveBuffer work on Protocol is cpCustom
     procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt); virtual;
@@ -1157,7 +1158,7 @@ type
 {$IFNDEF FPC} TCommunicationFrameworkListProc = reference to procedure(PeerFramework: TCommunicationFramework); {$ENDIF FPC}
   TP2PVMAuthSuccessMethod = procedure(Sender: TCommunicationFrameworkWithP2PVM) of object;
 
-  TCommunicationFrameworkWithP2PVM = class(TCoreClassInterfacedObject)
+  TCommunicationFrameworkWithP2PVM = class(TCoreClassObject)
   private type
     TOnEcho = record
       OnEchoCall: TStateCall;
@@ -1296,7 +1297,7 @@ var
   c_DefaultDoStatusID: Integer = $0FFFFFFF;
 
   // vm auth token size
-  C_VMAuthSize: Integer = 2048;
+  C_VMAuthSize: Integer = 1024;
 
 const
   // system command
@@ -1463,7 +1464,7 @@ begin
   v.State := qsUnknow;
   v.ClientID := 0;
   v.Cmd := '';
-  v.Cipher := TCipherStyle.csNone;
+  v.Cipher := TCipherSecurity.csNone;
   v.ConsoleData := '';
   v.OnConsoleMethod := nil;
 {$IFNDEF FPC} v.OnConsoleProc := nil; {$ENDIF FPC}
@@ -2583,8 +2584,8 @@ end;
 
 destructor TPeerClientUserDefine.Destroy;
 begin
-  inherited Destroy;
   DisposeObject(FBigStreamBatchList);
+  inherited Destroy;
 end;
 
 procedure TPeerClientUserDefine.Progress;
@@ -2670,28 +2671,28 @@ var
   headBuff: array [0 .. 2] of Byte;
   Code: TBytes;
 begin
-  GenerateHashCode(FOwnerFramework.FHashStyle, buff, siz, Code);
+  GenerateHashCode(FOwnerFramework.FHashSecurity, buff, siz, Code);
 
-  headBuff[0] := Byte(FOwnerFramework.FHashStyle);
+  headBuff[0] := Byte(FOwnerFramework.FHashSecurity);
   PWORD(@headBuff[1])^ := length(Code);
   InternalSendByteBuffer(@headBuff[0], 3);
   if length(Code) > 0 then
       InternalSendByteBuffer(@Code[0], length(Code));
 end;
 
-procedure TPeerIO.SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherStyle);
+procedure TPeerIO.SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherSecurity);
 begin
   SendByte(Byte(cs));
   Encrypt(cs, buff, siz, FCipherKey, True);
   InternalSendByteBuffer(buff, siz);
 end;
 
-procedure TPeerIO.SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherStyle);
+procedure TPeerIO.SendEncryptMemoryStream(stream: TMemoryStream64; cs: TCipherSecurity);
 begin
   SendEncryptBuffer(stream.Memory, stream.Size, cs);
 end;
 
-procedure TPeerIO.InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
+procedure TPeerIO.InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
 begin
   WriteBufferOpen;
   SendCardinal(FHeadToken);
@@ -2706,7 +2707,7 @@ begin
   WriteBufferClose;
 end;
 
-procedure TPeerIO.InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
+procedure TPeerIO.InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
 begin
   WriteBufferOpen;
   SendCardinal(FHeadToken);
@@ -2721,7 +2722,7 @@ begin
   WriteBufferClose;
 end;
 
-procedure TPeerIO.InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherStyle);
+procedure TPeerIO.InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
 begin
   WriteBufferOpen;
   SendCardinal(FHeadToken);
@@ -2736,7 +2737,7 @@ begin
   WriteBufferClose;
 end;
 
-procedure TPeerIO.InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherStyle);
+procedure TPeerIO.InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
 begin
   WriteBufferOpen;
   SendCardinal(FHeadToken);
@@ -3119,7 +3120,7 @@ begin
 
       SendVerifyCode(@buff[0], length(buff));
 
-      SendEncryptBuffer(@buff[0], length(buff), FReceiveDataCipherStyle);
+      SendEncryptBuffer(@buff[0], length(buff), FReceiveDataCipherSecurity);
       SendCardinal(FTailToken);
 
       WriteBufferFlush;
@@ -3159,7 +3160,7 @@ begin
 
       SendVerifyCode(m64.Memory, m64.Size);
 
-      SendEncryptBuffer(m64.Memory, m64.Size, FReceiveDataCipherStyle);
+      SendEncryptBuffer(m64.Memory, m64.Size, FReceiveDataCipherSecurity);
       SendCardinal(FTailToken);
       DisposeObject(m64);
 
@@ -3360,10 +3361,10 @@ function TPeerIO.FillWaitOnResultBuffer(ACurrentActiveThread: TCoreClassThread; 
 var
   dHead, dTail: Cardinal;
   dSize: Integer;
-  dHashStyle: Byte;
+  dHashSecurity: Byte;
   dHashSiz: Word;
   dHash: TBytes;
-  dCipherStyle: Byte;
+  dCipherSecurity: Byte;
   tmpStream: TMemoryStream64;
   buff: TBytes;
 begin
@@ -3394,7 +3395,7 @@ begin
   // 2:verify code header
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < 3) then
       Exit;
-  FReceivedBuffer.read(dHashStyle, C_Byte_Size);
+  FReceivedBuffer.read(dHashSecurity, C_Byte_Size);
   FReceivedBuffer.read(dHashSiz, C_Word_Size);
 
   // 3:verify code body
@@ -3407,7 +3408,7 @@ begin
   // 4: use Encrypt state
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < C_Byte_Size) then
       Exit;
-  FReceivedBuffer.read(dCipherStyle, C_Byte_Size);
+  FReceivedBuffer.read(dCipherSecurity, C_Byte_Size);
 
   // 5:process buff and tail token
   if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + C_Cardinal_Size) then
@@ -3425,11 +3426,11 @@ begin
       Exit;
     end;
 
-  FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
+  FReceiveDataCipherSecurity := TCipherSecurity(dCipherSecurity);
 
   try
     if length(buff) > 0 then
-        Encrypt(FReceiveDataCipherStyle, @buff[0], dSize, FCipherKey, False);
+        Encrypt(FReceiveDataCipherSecurity, @buff[0], dSize, FCipherKey, False);
   except
     Print('Encrypt error!');
     Disconnect;
@@ -3437,7 +3438,7 @@ begin
   end;
 
   if length(buff) > 0 then
-    if not VerifyHashCode(THashStyle(dHashStyle), @buff[0], dSize, dHash) then
+    if not VerifyHashCode(THashSecurity(dHashSecurity), @buff[0], dSize, dHash) then
       begin
         Print('verify data error!');
         Disconnect;
@@ -3522,10 +3523,10 @@ var
   dHead, dTail: Cardinal;
   dID: Byte;
   dSize: Cardinal;
-  dHashStyle: Byte;
+  dHashSecurity: Byte;
   dHashSiz: Word;
   dHash: TBytes;
-  dCipherStyle: Byte;
+  dCipherSecurity: Byte;
   tmpStream: TMemoryStream64;
   df: TDataFrameEngine;
   buff: TBytes;
@@ -3719,7 +3720,7 @@ begin
             // 3:verify code header
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < 3) then
                 Break;
-            FReceivedBuffer.read(dHashStyle, C_Byte_Size);
+            FReceivedBuffer.read(dHashSecurity, C_Byte_Size);
             FReceivedBuffer.read(dHashSiz, C_Word_Size);
 
             // 4:verify code body
@@ -3732,7 +3733,7 @@ begin
             // 5: Encrypt style
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < C_Byte_Size) then
                 Break;
-            FReceivedBuffer.read(dCipherStyle, C_Byte_Size);
+            FReceivedBuffer.read(dCipherSecurity, C_Byte_Size);
 
             // 6: process stream
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + C_Cardinal_Size) then
@@ -3750,10 +3751,10 @@ begin
                 Break;
               end;
 
-            FReceiveDataCipherStyle := TCipherStyle(dCipherStyle);
+            FReceiveDataCipherSecurity := TCipherSecurity(dCipherSecurity);
 
             try
-                Encrypt(FReceiveDataCipherStyle, tmpStream.Memory, tmpStream.Size, FCipherKey, False);
+                Encrypt(FReceiveDataCipherSecurity, tmpStream.Memory, tmpStream.Size, FCipherKey, False);
             except
               Print('Encrypt error!');
               DisposeObject(tmpStream);
@@ -3761,7 +3762,7 @@ begin
               Break;
             end;
 
-            if not VerifyHashCode(THashStyle(dHashStyle), tmpStream.Memory, tmpStream.Size, dHash) then
+            if not VerifyHashCode(THashSecurity(dHashSecurity), tmpStream.Memory, tmpStream.Size, dHash) then
               begin
                 Print('verify data error!');
                 DisposeObject(tmpStream);
@@ -4005,16 +4006,16 @@ begin
   FWaitOnResult := False;
   FPauseResultSend := False;
   FReceiveTriggerRuning := False;
-  FReceiveDataCipherStyle := TCipherStyle.csNone;
+  FReceiveDataCipherSecurity := TCipherSecurity.csNone;
   FResultDataBuffer := TMemoryStream64.Create;
-  FSendDataCipherStyle := FOwnerFramework.FCipherStyle;
+  FSendDataCipherSecurity := FOwnerFramework.FCipherSecurity;
   FCanPauseResultSend := False;
   FQueueList := TCoreClassList.Create;
   UpdateLastCommunicationTime;
 
   // generate random key
   TMISC.GenerateRandomKey(kref, C_Int64_Size);
-  TCipher.GenerateKey(FSendDataCipherStyle, @kref, C_Int64_Size, FCipherKey);
+  TCipher.GenerateKey(FSendDataCipherSecurity, @kref, C_Int64_Size, FCipherKey);
 
   FRemoteExecutedForConnectInit := False;
 
@@ -4129,7 +4130,8 @@ begin
       UnLockObject(FQueueList); // atomic lock
   end;
 
-  DisposeObject([FUserDefine, FUserSpecial]);
+  DisposeObject(FUserDefine);
+  DisposeObject(FUserSpecial);
 
   DisposeObject(FQueueList);
   DisposeObject(FReceivedBuffer);
@@ -4162,13 +4164,13 @@ begin
 {$IFNDEF FPC} OnVMBuildAuthModelResultProc := nil; {$ENDIF FPC}
 end;
 
-procedure TPeerIO.BuildP2PAuthTokenC(const OnResult: TStateCall);
+procedure TPeerIO.BuildP2PAuthTokenC(const OnResult: TNotifyCall);
 begin
   BuildP2PAuthToken;
   OnVMBuildAuthModelResultCall := OnResult;
 end;
 
-procedure TPeerIO.BuildP2PAuthTokenM(const OnResult: TStateMethod);
+procedure TPeerIO.BuildP2PAuthTokenM(const OnResult: TNotifyMethod);
 begin
   BuildP2PAuthToken;
   OnVMBuildAuthModelResultMethod := OnResult;
@@ -4177,7 +4179,7 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TPeerIO.BuildP2PAuthTokenP(const OnResult: TStateProc);
+procedure TPeerIO.BuildP2PAuthTokenP(const OnResult: TNotifyProc);
 begin
   BuildP2PAuthToken;
   OnVMBuildAuthModelResultProc := OnResult;
@@ -4221,7 +4223,7 @@ begin
   OnVMAuthResultCall := OnResult;
   OnVMAuthResultMethod := nil;
 {$IFNDEF FPC} OnVMAuthResultProc := nil; {$ENDIF FPC}
-  FOwnerFramework.ProgressPost.PostExecuteM(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
+  FOwnerFramework.ProgressPost.PostExecuteM(5.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
 procedure TPeerIO.OpenP2PVMTunnelM(SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateMethod);
@@ -4230,7 +4232,7 @@ begin
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := OnResult;
 {$IFNDEF FPC} OnVMAuthResultProc := nil; {$ENDIF FPC}
-  FOwnerFramework.ProgressPost.PostExecuteM(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
+  FOwnerFramework.ProgressPost.PostExecuteM(5.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
 {$IFNDEF FPC}
@@ -4242,7 +4244,7 @@ begin
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := nil;
   OnVMAuthResultProc := OnResult;
-  FOwnerFramework.ProgressPost.PostExecuteM(3.0, FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
+  FOwnerFramework.ProgressPost.PostExecuteM(5.0, FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 {$ENDIF FPC}
 
@@ -4255,7 +4257,7 @@ begin
 {$IFNDEF FPC}
   OnVMAuthResultProc := nil;
 {$ENDIF FPC}
-  FOwnerFramework.ProgressPost.PostExecuteM(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
+  FOwnerFramework.ProgressPost.PostExecuteM(5.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
 procedure TPeerIO.OpenP2PVMTunnelM(vmHashPoolLen: Integer; SendRemoteRequest: Boolean; const AuthToken: SystemString; OnResult: TStateMethod);
@@ -4266,7 +4268,7 @@ begin
 {$IFNDEF FPC}
   OnVMAuthResultProc := nil;
 {$ENDIF FPC}
-  FOwnerFramework.ProgressPost.PostExecuteM(3.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
+  FOwnerFramework.ProgressPost.PostExecuteM(5.0, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 
 {$IFNDEF FPC}
@@ -4278,7 +4280,7 @@ begin
   OnVMAuthResultCall := nil;
   OnVMAuthResultMethod := nil;
   OnVMAuthResultProc := OnResult;
-  FOwnerFramework.ProgressPost.PostExecuteM(3.0, FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
+  FOwnerFramework.ProgressPost.PostExecuteM(5.0, FOwnerFramework.VMAuthFailedDelayExecute).Data3 := FID;
 end;
 {$ENDIF FPC}
 
@@ -4472,7 +4474,7 @@ var
   dHead, dTail: Cardinal;
   Len: Integer;
   Code: TBytes;
-  bCipherStyle: Byte;
+  bCipherSecurity: Byte;
 begin
   if not FPauseResultSend then
       Exit;
@@ -4498,13 +4500,13 @@ begin
       Len := buff.Size;
 
       // generate hash source
-      GenerateHashCode(FOwnerFramework.FHashStyle, buff.Memory, buff.Size, Code);
-      headBuff[0] := Byte(FOwnerFramework.FHashStyle);
+      GenerateHashCode(FOwnerFramework.FHashSecurity, buff.Memory, buff.Size, Code);
+      headBuff[0] := Byte(FOwnerFramework.FHashSecurity);
       PWORD(@headBuff[1])^ := length(Code);
 
       // generate encrypt data body
-      bCipherStyle := Byte(FReceiveDataCipherStyle);
-      Encrypt(FReceiveDataCipherStyle, buff.Memory, buff.Size, FCipherKey, True);
+      bCipherSecurity := Byte(FReceiveDataCipherSecurity);
+      Encrypt(FReceiveDataCipherSecurity, buff.Memory, buff.Size, FCipherKey, True);
 
       // result data header
       FResultDataBuffer.WritePtr(@dHead, C_Cardinal_Size);
@@ -4516,7 +4518,7 @@ begin
           FResultDataBuffer.WritePtr(@Code[0], length(Code));
 
       // data body
-      FResultDataBuffer.WritePtr(@bCipherStyle, C_Byte_Size);
+      FResultDataBuffer.WritePtr(@bCipherSecurity, C_Byte_Size);
       FResultDataBuffer.WritePtr(buff.Memory, Len);
 
       // data tail
@@ -4561,13 +4563,13 @@ begin
   Result := @FCipherKey;
 end;
 
-procedure TPeerIO.GenerateHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var output: TBytes);
+procedure TPeerIO.GenerateHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var output: TBytes);
 begin
   TCipher.GenerateHashByte(hs, buff, siz, output);
   inc(FOwnerFramework.Statistics[TStatisticsType.stGenerateHash]);
 end;
 
-function TPeerIO.VerifyHashCode(const hs: THashStyle; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
+function TPeerIO.VerifyHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
 var
   buffCode: TBytes;
 begin
@@ -4579,14 +4581,14 @@ begin
   end;
 end;
 
-procedure TPeerIO.Encrypt(cs: TCipherStyle; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
+procedure TPeerIO.Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
 begin
   if FOwnerFramework.FUsedParallelEncrypt then
       SequEncryptCBC(cs, DataPtr, Size, k, enc, True)
   else
       SequEncryptCBCWithDirect(cs, DataPtr, Size, k, enc, True);
 
-  if cs <> TCipherStyle.csNone then
+  if cs <> TCipherSecurity.csNone then
       inc(FOwnerFramework.Statistics[TStatisticsType.stEncrypt]);
 end;
 
@@ -4946,12 +4948,12 @@ begin
 
   try
     if Assigned(Sender.OnVMBuildAuthModelResultCall) then
-        Sender.OnVMBuildAuthModelResultCall(True);
+        Sender.OnVMBuildAuthModelResultCall();
     if Assigned(Sender.OnVMBuildAuthModelResultMethod) then
-        Sender.OnVMBuildAuthModelResultMethod(True);
+        Sender.OnVMBuildAuthModelResultMethod();
 {$IFNDEF FPC}
     if Assigned(Sender.OnVMBuildAuthModelResultProc) then
-        Sender.OnVMBuildAuthModelResultProc(True);
+        Sender.OnVMBuildAuthModelResultProc();
 {$ENDIF FPC}
   except
   end;
@@ -5081,9 +5083,9 @@ begin
   FSyncOnResult := False;
   FSyncOnCompleteBuffer := False;
   FQuietMode := False;
-  FCipherStyle := TCipherStyle.csNone;
+  FCipherSecurity := TCipherSecurity.csNone;
   FSendDataCompressed := True;
-  FHashStyle := THashStyle.hsNone;
+  FHashSecurity := THashSecurity.hsNone;
   FMaxCompleteBufferSize := 4 * 1024 * 1024; // 4M
   FPeerClientUserDefineClass := TPeerClientUserDefine;
   FPeerClientUserSpecialClass := TPeerClientUserSpecial;
@@ -5173,25 +5175,25 @@ end;
 procedure TCommunicationFramework.SwitchMaxPerformance;
 begin
   FUsedParallelEncrypt := False;
-  FHashStyle := THashStyle.hsNone;
+  FHashSecurity := THashSecurity.hsNone;
   FSendDataCompressed := False;
-  FCipherStyle := TCipherStyle.csNone;
+  FCipherSecurity := TCipherSecurity.csNone;
 end;
 
 procedure TCommunicationFramework.SwitchMaxSafe;
 begin
   FUsedParallelEncrypt := True;
-  FHashStyle := THashStyle.hsFastMD5;
+  FHashSecurity := THashSecurity.hsSHA512;
   FSendDataCompressed := True;
-  FCipherStyle := TCipherStyle.csDES192;
+  FCipherSecurity := TCipherSecurity.csRijndael;
 end;
 
 procedure TCommunicationFramework.SwitchDefaultPerformance;
 begin
   FUsedParallelEncrypt := True;
-  FHashStyle := THashStyle.hsFastMD5;
+  FHashSecurity := THashSecurity.hsFastMD5;
   FSendDataCompressed := True;
-  FCipherStyle := TCipherStyle.csBlowfish;
+  FCipherSecurity := TCipherSecurity.csBlowfish;
 end;
 
 procedure TCommunicationFramework.LockClients;
@@ -5749,7 +5751,7 @@ begin
   end;
 
   OutData.WriteCardinal(Sender.ID);
-  OutData.WriteByte(Byte(FCipherStyle));
+  OutData.WriteByte(Byte(FCipherSecurity));
   OutData.WriteArrayByte.SetBuff(@Sender.FCipherKey[0], length(Sender.FCipherKey));
 
   Sender.FRemoteExecutedForConnectInit := True;
@@ -5817,6 +5819,15 @@ begin
   inherited Destroy;
 end;
 
+procedure TCommunicationFrameworkServer.Disconnect(ID: Cardinal);
+var
+  io_cli: TPeerIO;
+begin
+  io_cli := ClientFromID[ID];
+  if io_cli <> nil then
+      io_cli.Disconnect;
+end;
+
 procedure TCommunicationFrameworkServer.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);
 begin
 end;
@@ -5865,7 +5876,7 @@ begin
   p^.State := TQueueState.qsSendConsoleCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.ConsoleData := ConsoleData;
   p^.OnConsoleMethod := OnResult;
   TriggerQueueData(p);
@@ -5886,7 +5897,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := DoneAutoFree;
   p^.StreamData := StreamData;
   p^.OnStreamMethod := OnResult;
@@ -5907,7 +5918,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -5932,7 +5943,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -5963,7 +5974,7 @@ begin
   p^.State := TQueueState.qsSendConsoleCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.ConsoleData := ConsoleData;
   p^.OnConsoleProc := OnResult;
   TriggerQueueData(p);
@@ -5984,7 +5995,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := DoneAutoFree;
   p^.StreamData := StreamData;
   p^.OnStreamProc := OnResult;
@@ -6005,7 +6016,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -6030,7 +6041,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -6059,7 +6070,7 @@ begin
   p^.State := TQueueState.qsSendDirectConsoleCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.ConsoleData := ConsoleData;
   TriggerQueueData(p);
   Client.PrintCommand('Send DirectConsole cmd: %s', Cmd);
@@ -6078,7 +6089,7 @@ begin
   p^.State := TQueueState.qsSendDirectStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := DoneAutoFree;
   p^.StreamData := StreamData;
   TriggerQueueData(p);
@@ -6098,7 +6109,7 @@ begin
   p^.State := TQueueState.qsSendDirectStreamCMD;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -6237,7 +6248,7 @@ begin
   p^.State := TQueueState.qsSendBigStream;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
   p^.BigStream := BigStream;
   p^.DoneAutoFree := DoneAutoFree;
@@ -6263,7 +6274,7 @@ begin
   p^.State := TQueueState.qsSendCompleteBuffer;
   p^.ClientID := Client.ID;
   p^.Cmd := Cmd;
-  p^.Cipher := Client.FSendDataCipherStyle;
+  p^.Cipher := Client.FSendDataCipherSecurity;
   p^.buffer := buff;
   p^.BufferSize := BuffSize;
   p^.DoneAutoFree := DoneAutoFree;
@@ -6499,7 +6510,7 @@ begin
       Sender.FID := ResultData.Reader.ReadCardinal;
       FPerClientHashList.Add(Sender.FID, Sender, True);
       // index 1: used Encrypt
-      Sender.SendCipherStyle := TCipherStyle(ResultData.Reader.ReadByte);
+      Sender.SendCipherSecurity := TCipherSecurity(ResultData.Reader.ReadByte);
 
       // index 2:Encrypt CipherKey
       arr := ResultData.Reader.ReadArrayByte;
@@ -6529,7 +6540,7 @@ begin
     begin
       FConnectInitWaitingTimeout := GetTimeTick + FAsyncConnectTimeout;
 
-      ClientIO.SendCipherStyle := TCipherStyle.csNone;
+      ClientIO.SendCipherSecurity := TCipherSecurity.csNone;
       de := TDataFrameEngine.Create;
       de.WriteInteger(Integer(CurrentPlatform));
       SendStreamCmdM(C_CipherModel, de, {$IFDEF FPC}@{$ENDIF FPC}StreamResult_CipherModel);
@@ -6547,7 +6558,7 @@ begin
     end
   else
     begin
-      ClientIO.SendCipherStyle := TCipherStyle.csNone;
+      ClientIO.SendCipherSecurity := TCipherSecurity.csNone;
       inherited DoConnected(Sender);
       if FNotyifyInterface <> nil then
         begin
@@ -6900,7 +6911,7 @@ begin
   p^.State := TQueueState.qsSendConsoleCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.ConsoleData := ConsoleData;
   p^.OnConsoleMethod := OnResult;
   TriggerQueueData(p);
@@ -6922,7 +6933,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := DoneAutoFree;
   p^.StreamData := StreamData;
   p^.OnStreamMethod := OnResult;
@@ -6945,7 +6956,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -6972,7 +6983,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -7004,7 +7015,7 @@ begin
   p^.State := TQueueState.qsSendConsoleCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.ConsoleData := ConsoleData;
   p^.OnConsoleProc := OnResult;
   TriggerQueueData(p);
@@ -7026,7 +7037,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := DoneAutoFree;
   p^.StreamData := StreamData;
   p^.OnStreamProc := OnResult;
@@ -7049,7 +7060,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -7076,7 +7087,7 @@ begin
   p^.State := TQueueState.qsSendStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -7107,7 +7118,7 @@ begin
   p^.State := TQueueState.qsSendDirectConsoleCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.ConsoleData := ConsoleData;
   TriggerQueueData(p);
   ClientIO.PrintCommand('Send DirectConsole cmd: %s', Cmd);
@@ -7128,7 +7139,7 @@ begin
   p^.State := TQueueState.qsSendDirectStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := DoneAutoFree;
   p^.StreamData := StreamData;
   TriggerQueueData(p);
@@ -7150,7 +7161,7 @@ begin
   p^.State := TQueueState.qsSendDirectStreamCMD;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
   p^.StreamData := TMemoryStream64.Create;
   if StreamData <> nil then
@@ -7295,7 +7306,7 @@ begin
   p^.State := TQueueState.qsSendBigStream;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
   p^.BigStream := BigStream;
   p^.DoneAutoFree := DoneAutoFree;
@@ -7323,7 +7334,7 @@ begin
   p^.State := TQueueState.qsSendCompleteBuffer;
 
   p^.Cmd := Cmd;
-  p^.Cipher := ClientIO.FSendDataCipherStyle;
+  p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.buffer := buff;
   p^.BufferSize := BuffSize;
   p^.DoneAutoFree := DoneAutoFree;
@@ -7531,6 +7542,8 @@ begin
       LocalVMc.FLinkVM := SenderVM;
       LocalVMc.FRemote_frameworkID := Remote_frameworkID;
       LocalVMc.FRemote_p2pID := 0;
+      LocalVMc.FIP := ipv6;
+      LocalVMc.FPort := Port;
 
       // connected reponse
       SenderVM.ConnectedReponse(LocalVMc.FRemote_frameworkID, LocalVMc.FRemote_p2pID, frameworkID, LocalVMc.ID);
@@ -7631,11 +7644,7 @@ end;
 
 constructor TCommunicationFrameworkWithP2PVM_Server.Create;
 begin
-  inherited CreateCustomHashPool(10 * 10000);
-  FFrameworkListenPool := TCoreClassList.Create;
-  FLinkVMPool := TUInt32HashObjectList.Create;
-  FFrameworkWithVM_ID := 0;
-  StopService;
+  Create(10 * 10000, 0);
 end;
 
 constructor TCommunicationFrameworkWithP2PVM_Server.Create(HashPoolLen: Integer; frameworkID: Cardinal);
@@ -8830,7 +8839,7 @@ begin
 
   FFrameworkListenPool := TCoreClassList.Create;
 
-  FMaxVMFragmentSize := 200;
+  FMaxVMFragmentSize := 3072;
   FMaxRealBuffer := 2048 * 1024; // 2M
 
   FQuietMode := False;
@@ -8936,7 +8945,6 @@ begin
             p := p^.Next;
           end;
       end;
-
   until (FSendStream.Size = lsiz) or (FSendStream.Size > FMaxRealBuffer);
 
   if FSendStream.Size > 0 then
