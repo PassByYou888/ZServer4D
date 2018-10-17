@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   System.IOUtils, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
-  PascalStrings, UnicodeMixedLib, CoreClasses;
+  PascalStrings, UnicodeMixedLib, CoreClasses, CoreCipher;
 
 type
   TConvFileForm = class(TForm)
@@ -13,7 +13,6 @@ type
     Label1: TLabel;
     AddFIlesButton: TButton;
     OpenDialog: TOpenDialog;
-    UsedDESCheckBox: TCheckBox;
     ExecuteConvertButton: TButton;
     SaveDialog: TSaveDialog;
     UsedZCompressCheckBox: TCheckBox;
@@ -36,9 +35,9 @@ implementation
 {$R *.dfm}
 
 
-uses DESSourData, MemoryStream64;
+uses MemoryStream64;
 
-function ConvertBinaryToPascalSource(SourFileList, OutputCodes: TCoreClassStrings; PascalFileName: string; MaxLineLength: Word; UseRandomDESKey, UseCompress: Boolean): Boolean;
+function ConvertBinaryToPascalSource(SourFileList, OutputCodes: TCoreClassStrings; PascalFileName: string; MaxLineLength: Word; UseCompress: Boolean): Boolean;
 var
   DESSour: TCoreClassStringList;
 
@@ -53,7 +52,6 @@ type
     FullName: string;
     PrefixFileName: string;
     stream: TStream;
-    deskey: TDESKey;
     md5: TMD5;
   end;
 
@@ -133,21 +131,6 @@ type
       DisposeObject(fs);
 
       p^.stream.Position := 0;
-
-      if UseRandomDESKey then
-        begin
-          for i := 0 to 7 do
-              p^.deskey[i] := umlRandomRange(0, $FF);
-          KeyStream := TMemoryStream64.Create;
-          umlDES(p^.stream, KeyStream, p^.deskey, True);
-          DisposeObject(p^.stream);
-          p^.stream := KeyStream;
-        end
-      else
-        begin
-          for i := 0 to 7 do
-              p^.deskey[i] := 0;
-        end;
     end;
 
   var
@@ -229,7 +212,7 @@ type
 
     OutputCodes.Add(Format('', []));
 
-    if UseCompress or UseRandomDESKey then
+    if UseCompress then
       begin
         OutputCodes.Add(Format('', []));
         OutputCodes.Add(Format('procedure DisposeObject(const obj: TObject);', []));
@@ -246,12 +229,6 @@ type
         OutputCodes.Add(Format('      end;', []));
         OutputCodes.Add(Format('    end;', []));
         OutputCodes.Add(Format('end;', []));
-        OutputCodes.Add(Format('', []));
-      end;
-
-    if UseRandomDESKey then
-      begin
-        OutputCodes.AddStrings(DESSour);
         OutputCodes.Add(Format('', []));
       end;
 
@@ -278,11 +255,8 @@ type
       begin
         p := FileList[i];
         OutputCodes.Add(Format('procedure Get_%s_Stream(Output: TStream);', [p^.DefName]));
-        if UseRandomDESKey then
-            OutputCodes.Add(Format('const DESKey_%s: TDESKey = (%d, %d, %d, %d, %d, %d, %d, %d);',
-            [p^.DefName, p^.deskey[0], p^.deskey[1], p^.deskey[2], p^.deskey[3], p^.deskey[4], p^.deskey[5], p^.deskey[6], p^.deskey[7]]));
         OutputCodes.Add(Format('var', []));
-        if UseCompress or UseRandomDESKey then
+        if UseCompress then
           begin
             OutputCodes.Add(Format('  Source: TMemoryStream;', []));
             OutputCodes.Add(Format('  PrepareSource: TMemoryStream;', []));
@@ -291,7 +265,7 @@ type
         OutputCodes.Add(Format('begin', []));
         OutputCodes.Add(Format('  Buff := C_%sPackageBuffer;', [p^.DefName]));
 
-        if (not UseRandomDESKey) and (not UseCompress) then
+        if not UseCompress then
           begin
             OutputCodes.Add(Format('  Output.WriteBuffer(Buff[0], %d);', [p^.stream.Size]));
             OutputCodes.Add(Format('  Output.Position := 0;', []));
@@ -304,21 +278,7 @@ type
 
             if UseCompress then
               begin
-                if UseRandomDESKey then
-                  begin
-                    OutputCodes.Add(Format('  PrepareSource := TMemoryStream.Create;', []));
-                    OutputCodes.Add(Format('  DES_Stream(Source, PrepareSource, DESKey_%s, False);', [p^.DefName]));
-                    OutputCodes.Add(Format('  DisposeObject(Source);', []));
-                    OutputCodes.Add(Format('  Source := PrepareSource;', []));
-                    OutputCodes.Add(Format('  Source.Position := 0;', []));
-                  end;
                 OutputCodes.Add(Format('  DecompressStream(Source, Output);', []));
-                OutputCodes.Add(Format('  DisposeObject(Source);', []));
-                OutputCodes.Add(Format('  Output.Position := 0;', []));
-              end
-            else if UseRandomDESKey then
-              begin
-                OutputCodes.Add(Format('  DES_Stream(Source, Output, DESKey_%s, False);', [p^.DefName]));
                 OutputCodes.Add(Format('  DisposeObject(Source);', []));
                 OutputCodes.Add(Format('  Output.Position := 0;', []));
               end;
@@ -359,23 +319,13 @@ type
     DisposeObject(FileList);
   end;
 
-var
-  tmpStream: TMemoryStream64;
 begin
   Result := False;
   OutputCodes.Clear;
   if not CheckFiles then
       Exit;
 
-  DESSour := TCoreClassStringList.Create;
-  tmpStream := TMemoryStream64.Create;
-  Get_desSour_Stream(tmpStream);
-  DESSour.LoadFromStream(tmpStream);
-  DisposeObject(tmpStream);
-
   BuildPackageEntry(KillFileExt(TPath.GetFileName(PascalFileName)));
-
-  DisposeObject(DESSour);
 
   Result := True;
 end;
@@ -396,7 +346,7 @@ begin
       Exit;
 
   if ConvertBinaryToPascalSource(FilesMemo.Lines, FCodes, SaveDialog.FileName,
-    umlStrToInt(LineLenEdit.Text, 200), UsedDESCheckBox.Checked, UsedZCompressCheckBox.Checked) then
+    umlStrToInt(LineLenEdit.Text, 200), UsedZCompressCheckBox.Checked) then
     begin
       FCodes.SaveToFile(SaveDialog.FileName);
       ShowMessage('Pascal source Finished!');
