@@ -8839,7 +8839,7 @@ begin
 
   FFrameworkListenPool := TCoreClassList.Create;
 
-  FMaxVMFragmentSize := 3072;
+  FMaxVMFragmentSize := 200;
   FMaxRealBuffer := 2048 * 1024; // 2M
 
   FQuietMode := False;

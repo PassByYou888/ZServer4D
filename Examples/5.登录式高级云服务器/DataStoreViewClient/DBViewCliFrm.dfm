@@ -46,6 +46,10 @@ object DBViewCliForm: TDBViewCliForm
     TabOrder = 2
     object LogTabSheet: TTabSheet
       Caption = 'Log'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Memo: TMemo
         Left = 0
         Top = 0
@@ -58,6 +62,10 @@ object DBViewCliForm: TDBViewCliForm
     object DBTabSheet: TTabSheet
       Caption = 'DB'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Splitter1: TSplitter
         Left = 201
         Top = 0

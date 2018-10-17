@@ -135,7 +135,7 @@ begin
 
   // 延迟引擎，抛送一个1.5秒后执行的时间
   // 延迟抛送是模拟后台线程，或则跨服务计算，待计算完成，再继续反馈结果
-  ProgressEngine.PostExecute(1.5, InData, Delay_Compute).Data1 := Sender;
+  ProgressEngine.PostExecuteM(1.5, InData, Delay_Compute).Data1 := Sender;
 end;
 
 constructor TFOGComputeService.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);

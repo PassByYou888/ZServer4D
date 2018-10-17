@@ -144,6 +144,30 @@
         <Projects Include="..\24.XNat内网穿透库的使用\内网服务器(移动平台)\XLanMobile.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -575,14 +599,86 @@
     <Target Name="XLanMobile:Make">
         <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器(移动平台)\XLanMobile.dproj" Targets="Make"/>
     </Target>
+    <Target Name="DataStoreViewClient">
+        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FileStoreServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj"/>
+    </Target>
+    <Target Name="FileStoreServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FileStoreServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FOGComputeServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj"/>
+    </Target>
+    <Target Name="FOGComputeServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FOGComputeServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LogicServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj"/>
+    </Target>
+    <Target Name="LogicServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LogicServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ManagerServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
+    </Target>
+    <Target Name="ManagerServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ManagerServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ACFMXClient">
+        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj"/>
+    </Target>
+    <Target Name="ACFMXClient:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ACFMXClient:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DataStoreServer">
+        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj"/>
+    </Target>
+    <Target Name="DataStoreServer:Clean">
+        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreServer:Make">
+        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="AFDRServer;ARMCPUTest;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol;MD5PerformanceTest;TextParsingDemo;EZLinuxServ;ClientToLinuxServer;HPC_Server;HPC_Client;HPC_Client_FMX;VirtualAuth_Server;VirtualAuth_Client;XInternet;XLan;XLanMobile"/>
+        <CallTarget Targets="AFDRServer;ARMCPUTest;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol;MD5PerformanceTest;TextParsingDemo;EZLinuxServ;ClientToLinuxServer;HPC_Server;HPC_Client;HPC_Client_FMX;VirtualAuth_Server;VirtualAuth_Client;XInternet;XLan;XLanMobile;DataStoreViewClient;FileStoreServer;FOGComputeServer;IOSPaymentQueryServer;LogicServer;ManagerServer;ACFMXClient;DataStoreServer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean;MD5PerformanceTest:Clean;TextParsingDemo:Clean;EZLinuxServ:Clean;ClientToLinuxServer:Clean;HPC_Server:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;VirtualAuth_Server:Clean;VirtualAuth_Client:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean"/>
+        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean;MD5PerformanceTest:Clean;TextParsingDemo:Clean;EZLinuxServ:Clean;ClientToLinuxServer:Clean;HPC_Server:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;VirtualAuth_Server:Clean;VirtualAuth_Client:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;DataStoreViewClient:Clean;FileStoreServer:Clean;FOGComputeServer:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;ACFMXClient:Clean;DataStoreServer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make;MD5PerformanceTest:Make;TextParsingDemo:Make;EZLinuxServ:Make;ClientToLinuxServer:Make;HPC_Server:Make;HPC_Client:Make;HPC_Client_FMX:Make;VirtualAuth_Server:Make;VirtualAuth_Client:Make;XInternet:Make;XLan:Make;XLanMobile:Make"/>
+        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make;MD5PerformanceTest:Make;TextParsingDemo:Make;EZLinuxServ:Make;ClientToLinuxServer:Make;HPC_Server:Make;HPC_Client:Make;HPC_Client_FMX:Make;VirtualAuth_Server:Make;VirtualAuth_Client:Make;XInternet:Make;XLan:Make;XLanMobile:Make;DataStoreViewClient:Make;FileStoreServer:Make;FOGComputeServer:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;ACFMXClient:Make;DataStoreServer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

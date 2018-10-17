@@ -31,7 +31,7 @@ uses SysUtils, CoreClasses, Types,
 type
   TDataFrameBase = class(TCoreClassObject)
   protected
-    FID: Byte; // data frame only id
+    FID: Byte; // data frame id
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;

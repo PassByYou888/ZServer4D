@@ -86,7 +86,7 @@ type
     WaitAsyncConnecting_BeginTime: TTimeTick;
     PhysicsEngine: TXPhysicsClient;
   protected
-    procedure PhysicsConnect_Result(const cState: Boolean);
+    procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
     procedure PhysicsVMBuildAuthToken_Result;
     procedure PhysicsOpenVM_Result(const cState: Boolean);
     procedure IPV6Listen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
@@ -399,7 +399,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TXNATClient.PhysicsConnect_Result(const cState: Boolean);
+procedure TXNATClient.PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
 begin
   if cState then
       PhysicsEngine.ClientIO.BuildP2PAuthTokenM({$IFDEF FPC}@{$ENDIF FPC}PhysicsVMBuildAuthToken_Result)
@@ -539,7 +539,7 @@ begin
     begin
       WaitAsyncConnecting := True;
       WaitAsyncConnecting_BeginTime := GetTimeTick;
-      PhysicsEngine.AsyncConnectM(RemoteTunnelAddr, umlStrToInt(RemoteTunnelPort), {$IFDEF FPC}@{$ENDIF FPC}PhysicsConnect_Result);
+      PhysicsEngine.AsyncConnectM(RemoteTunnelAddr, umlStrToInt(RemoteTunnelPort), {$IFDEF FPC}@{$ENDIF FPC}PhysicsConnect_Result_BuildP2PToken);
     end;
 end;
 
@@ -558,7 +558,7 @@ begin
         begin
           if not WaitAsyncConnecting then
             begin
-              TCoreClassThread.Sleep(500);
+              TCoreClassThread.Sleep(100);
               OpenTunnel;
             end;
         end;

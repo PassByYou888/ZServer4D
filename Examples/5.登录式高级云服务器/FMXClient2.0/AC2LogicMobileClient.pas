@@ -83,7 +83,7 @@ end;
 procedure TLogicClientBase.ClientDisconnect(Sender: TCommunicationFrameworkClient);
 begin
   if AutoReconnect then
-      ProgressEngine.PostExecute(0.5, Disconnect_PostExecute);
+      ProgressEngine.PostExecuteM(0.5, Disconnect_PostExecute);
 end;
 
 procedure TLogicClientBase.Command_FileInfo(Sender: TPeerClient; InData: TDataFrameEngine);
@@ -185,12 +185,12 @@ begin
 
   if NetSendTunnelIntf.ClientIO.StopCommunicationTime > 5 * 1000 then
     begin
-      NetSendTunnelIntf.Wait(3000, procedure(const cState: Boolean)
+      NetSendTunnelIntf.WaitP(3000, procedure(const cState: Boolean)
         begin
           if cState then
             begin
-              NetSendTunnelIntf.ClientIO.SetLastCommunicationTimeAsCurrent;
-              NetRecvTunnelIntf.ClientIO.SetLastCommunicationTimeAsCurrent;
+              NetSendTunnelIntf.ClientIO.UpdateLastCommunicationTime;
+              NetRecvTunnelIntf.ClientIO.UpdateLastCommunicationTime;
             end
           else
             begin
@@ -269,7 +269,7 @@ end;
 
 procedure TLogicClientBase.GetLogicFileList(OnResult: TStreamProc);
 begin
-  SendTunnel.SendStreamCmd('GetLogicFileList', nil, OnResult);
+  SendTunnel.SendStreamCmdP('GetLogicFileList', nil, OnResult);
 end;
 
 procedure TLogicClientBase.GetLogicFile(fn: string; OnComplete: TFileDownloadCompleteProc);
@@ -278,7 +278,7 @@ var
 begin
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fn);
-  SendTunnel.SendStreamCmd('GetLogicFileMD5', sendDE,
+  SendTunnel.SendStreamCmdP('GetLogicFileMD5', sendDE,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     var
       sendDE: TDataFrameEngine;
@@ -320,7 +320,7 @@ end;
 
 procedure TLogicClientBase.GetAdvertisementFileList(OnResult: TStreamProc);
 begin
-  SendTunnel.SendStreamCmd('GetAdvertisementFileList', nil, OnResult);
+  SendTunnel.SendStreamCmdP('GetAdvertisementFileList', nil, OnResult);
 end;
 
 procedure TLogicClientBase.GetAdvertisementFile(fn: string; OnComplete: TFileDownloadCompleteProc);
@@ -329,7 +329,7 @@ var
 begin
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(fn);
-  SendTunnel.SendStreamCmd('GetAdvertisementFileMD5', sendDE,
+  SendTunnel.SendStreamCmdP('GetAdvertisementFileMD5', sendDE,
     procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     var
       sendDE: TDataFrameEngine;

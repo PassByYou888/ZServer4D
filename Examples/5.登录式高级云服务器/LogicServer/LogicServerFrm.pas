@@ -333,7 +333,7 @@ begin
           p^.InData := Sender.InData;
           p^.OutData := Sender.OutData;
 
-          LogicCli.DownloadDBClient.GetFile(Sender.fileName, FPublicPath, p, nil, UserLoginFileDownloadComplete);
+          LogicCli.DownloadDBClient.GetFileM(Sender.fileName, FPublicPath, p, nil, UserLoginFileDownloadComplete);
         end
       else
         begin
@@ -815,7 +815,7 @@ begin
           p^.InData := Sender.InData;
           p^.OutData := Sender.OutData;
 
-          cli.GetFile(Sender.fileName, FPublicPath, p, nil, GetUserInfoFileDownloadComplete);
+          cli.GetFileM(Sender.fileName, FPublicPath, p, nil, GetUserInfoFileDownloadComplete);
         end
       else
         begin

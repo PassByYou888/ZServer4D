@@ -378,7 +378,7 @@ type
     class procedure GenerateIntKey(sour: Pointer; Size: NativeInt; var output: TCipherKeyBuffer); overload;
     class procedure GenerateBytesKey(const s: TPascalString; KeySize: DWORD; var output: TCipherKeyBuffer); overload;
     class procedure GenerateBytesKey(sour: Pointer; Size, KeySize: DWORD; var output: TCipherKeyBuffer); overload;
-    class procedure GenerateKey64(const k: TDESKey; var output: TCipherKeyBuffer); overload;
+    class procedure GenerateKey64(const k: TKey64; var output: TCipherKeyBuffer); overload;
     class procedure GenerateKey128(const k1, k2: TKey64; var output: TCipherKeyBuffer); overload;
 
     class procedure GenerateKey(const k: TKey64; var output: TCipherKeyBuffer); overload;
@@ -387,7 +387,6 @@ type
     class procedure GenerateKey(const k: TKey256; var output: TCipherKeyBuffer); overload;
     class procedure GenerateKey(const k1, k2: DWORD; var output: TCipherKeyBuffer); overload;
     class procedure GenerateKey(const k: DWORD; var output: TCipherKeyBuffer); overload;
-    class procedure GenerateKey(const k: TDESKey; var output: TCipherKeyBuffer); overload;
     class procedure GenerateKey(const key: PByte; Size: DWORD; var output: TCipherKeyBuffer); overload;
     class procedure GenerateKey(cs: TCipherSecurity; buffPtr: Pointer; Size: NativeInt; var output: TCipherKeyBuffer); overload;
     class procedure GenerateKey(cs: TCipherSecurity; s: TPascalString; var output: TCipherKeyBuffer); overload;
@@ -400,12 +399,9 @@ type
     class function GetKey(const KeyBuffPtr: PCipherKeyBuffer; var k: TKey256): Boolean; overload;
     class function GetKey(const KeyBuffPtr: PCipherKeyBuffer; var k1, k2: DWORD): Boolean; overload;
     class function GetKey(const KeyBuffPtr: PCipherKeyBuffer; var k: DWORD): Boolean; overload;
-    class function GetKey(const KeyBuffPtr: PCipherKeyBuffer; var k: TDESKey): Boolean; overload;
     class function GetKey(const KeyBuffPtr: PCipherKeyBuffer; var key: TBytes): Boolean; overload;
 
     class procedure EncryptTail(TailPtr: Pointer; TailSize: NativeInt);
-    class function OLDDES(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
-
     class function DES64(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function DES128(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function DES192(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -2737,7 +2733,7 @@ begin
   THashMD.HashLMD((@output[1 + cIntSize])^, KeySize, sour^, Size);
 end;
 
-class procedure TCipher.GenerateKey64(const k: TDESKey; var output: TCipherKeyBuffer);
+class procedure TCipher.GenerateKey64(const k: TKey64; var output: TCipherKeyBuffer);
 begin
   GenerateKey(k, output);
 end;
@@ -2793,13 +2789,6 @@ begin
   SetLength(output, C_Byte_Size + cKeyDWORDSize);
   output[0] := Byte(TCipherKeyStyle.cksIntKey);
   PInteger(@output[1])^ := k;
-end;
-
-class procedure TCipher.GenerateKey(const k: TDESKey; var output: TCipherKeyBuffer);
-begin
-  SetLength(output, C_Byte_Size + cKey64Size);
-  output[0] := Byte(TCipherKeyStyle.cksKey64);
-  PDESKey(@output[1])^ := k;
 end;
 
 class procedure TCipher.GenerateKey(const key: PByte; Size: DWORD; var output: TCipherKeyBuffer);
@@ -2891,14 +2880,6 @@ begin
   k := PDWORD(@KeyBuffPtr^[1])^;
 end;
 
-class function TCipher.GetKey(const KeyBuffPtr: PCipherKeyBuffer; var k: TDESKey): Boolean;
-begin
-  Result := GetKeyStyle(KeyBuffPtr) = TCipherKeyStyle.cksKey64;
-  if not Result then
-      Exit;
-  k := PDESKey(@KeyBuffPtr^[1])^
-end;
-
 class function TCipher.GetKey(const KeyBuffPtr: PCipherKeyBuffer; var key: TBytes): Boolean;
 var
   siz: Integer;
@@ -2914,35 +2895,6 @@ end;
 class procedure TCipher.EncryptTail(TailPtr: Pointer; TailSize: NativeInt);
 begin
   BlockCBC(TailPtr, TailSize, @SystemCBC[0], length(SystemCBC));
-end;
-
-class function TCipher.OLDDES(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
-var
-  k: TDESKey;
-  p: nativeUInt;
-begin
-  Result := False;
-  if Size <= 0 then
-      Exit;
-
-  if Size >= 8 then
-    begin
-      if not GetKey(KeyBuff, k) then
-          Exit;
-
-      p := 0;
-      repeat
-        umlDES(PDESKey(nativeUInt(sour) + p)^, PDESKey(nativeUInt(sour) + p)^, k, Encrypt);
-        p := p + 8;
-      until p + 8 > Size;
-    end
-  else
-      p := 0;
-
-  if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
-
-  Result := True;
 end;
 
 class function TCipher.DES64(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -6459,6 +6411,7 @@ end;
 
 {$IFDEF RangeCheck}{$R-}{$ENDIF}
 {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
+
 class function TSHA3.ComputeX(const x: Integer): Integer;
 begin
   if x < 0 then

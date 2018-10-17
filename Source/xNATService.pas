@@ -76,13 +76,12 @@ type
     // data forward
     procedure cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     // states
-    function GetActivted: Boolean;
     procedure SetActivted(const Value: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
 
-    property Activted: Boolean read GetActivted write SetActivted;
+    property Activted: Boolean read FActivted write SetActivted;
   end;
 
   TXServerUserSpecial = class(TPeerClientUserSpecial)
@@ -387,11 +386,6 @@ begin
 
   if phy_io <> nil then
       Protocol.WriteBuffer(phy_io, destBuff, destSiz);
-end;
-
-function TXServiceListen.GetActivted: Boolean;
-begin
-  Result := FActivted;
 end;
 
 procedure TXServiceListen.SetActivted(const Value: Boolean);

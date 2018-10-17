@@ -282,7 +282,7 @@ begin
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(userID);
 
-  SendTunnel.SendStreamCmd('UserIsLock', sendDE, OnResult);
+  SendTunnel.SendStreamCmdM('UserIsLock', sendDE, OnResult);
 
   DisposeObject(sendDE);
 end;
@@ -329,7 +329,7 @@ begin
       FileLastTime := ResultData.Reader.ReadDouble;
     end;
   if (Owner.AllCompleted) then
-    with Owner.Owner.PostProgress.PostExecute(1, Owner.Owner.PostExecuteProc_StoreFileInfoListComplete) do
+    with Owner.Owner.PostProgress.PostExecuteM(1, Owner.Owner.PostExecuteProc_StoreFileInfoListComplete) do
         Data1 := self.Owner;
 end;
 
@@ -412,7 +412,7 @@ begin
   self.userState := ResultData.Reader.ReadBool;
 
   if (Owner.AllCompleted) then
-    with Owner.Owner.PostProgress.PostExecute(1, Owner.Owner.PostExecuteProc_FileStoreUserStateListComplete) do
+    with Owner.Owner.PostProgress.PostExecuteM(1, Owner.Owner.PostExecuteProc_FileStoreUserStateListComplete) do
         Data1 := self.Owner;
 end;
 
@@ -454,7 +454,7 @@ begin
           FileInfoLst.CompleteTime := FileInfoLst.CompleteTime - deltaTime;
           if FileInfoLst.CompleteTime <= 0 then
             begin
-              with PostProgress.PostExecute(1, PostExecuteProc_StoreFileInfoListComplete) do
+              with PostProgress.PostExecuteM(1, PostExecuteProc_StoreFileInfoListComplete) do
                 begin
                   Data1 := FileInfoLst;
                 end;
@@ -476,7 +476,7 @@ begin
           UserStateLst.CompleteTime := UserStateLst.CompleteTime - deltaTime;
           if UserStateLst.CompleteTime <= 0 then
             begin
-              with PostProgress.PostExecute(1, PostExecuteProc_FileStoreUserStateListComplete) do
+              with PostProgress.PostExecuteM(1, PostExecuteProc_FileStoreUserStateListComplete) do
                 begin
                   Data1 := UserStateLst;
                 end;
@@ -679,7 +679,7 @@ begin
           p^.Owner := l;
           p^.client := c;
           l.Add(p);
-          c.GetFileTime(RemoteFileName, p^.GetFileTime_StreamResult);
+          c.GetFileTimeM(RemoteFileName, p^.GetFileTime_StreamResult);
         end;
     end;
   DBCompleteFileInfoList.Add(l);

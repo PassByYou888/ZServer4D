@@ -108,7 +108,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(exp);
-  SendTunnel.SendStreamCmd('SimulateCompute5Sec', de, OnResult);
+  SendTunnel.SendStreamCmdP('SimulateCompute5Sec', de, OnResult);
   DisposeObject(de);
 end;
 

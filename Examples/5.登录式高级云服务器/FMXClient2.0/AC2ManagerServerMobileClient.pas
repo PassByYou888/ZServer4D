@@ -87,7 +87,7 @@ begin
         // 查询大厅服务器
         sendDE := TDataFrameEngine.Create;
         sendDE.WriteByte(Byte(QueryType));
-        Client.SendStreamCmd('Query', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+        Client.SendStreamCmdP('Query', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
           var
             vl: THashVariantList;
             a: TAddressInfo;
@@ -142,7 +142,7 @@ begin
         // 查询大厅服务器
         sendDE := TDataFrameEngine.Create;
         sendDE.WriteByte(Byte(QueryType));
-        Client.SendStreamCmd('QueryMinLoad', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+        Client.SendStreamCmdP('QueryMinLoad', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
           var
             vl: THashVariantList;
             a: TAddressInfo;

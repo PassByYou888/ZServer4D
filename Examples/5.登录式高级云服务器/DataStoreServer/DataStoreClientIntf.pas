@@ -169,7 +169,7 @@ begin
 
   usrVL := THashVariantList.Create;
   usrVL['UserID'] := UserID;
-  QueryDB('OnlyUserNameQuery', False, False, True, True, cUserLoginInfoDB, '', 0.1, 0, 1,
+  QueryDBP('OnlyUserNameQuery', False, False, True, True, cUserLoginInfoDB, '', 0.1, 0, 1,
     usrVL,
     nil,
     procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64)

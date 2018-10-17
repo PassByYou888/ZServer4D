@@ -225,7 +225,7 @@ begin
 
   FogComputeClient := TFogCompute_DoubleTunnelClient.Create(TCommunicationFramework_Client_Indy);
 
-  GlobalProgressPost.PostExecute(1, CreateAllForm);
+  GlobalProgressPost.PostExecuteC(1, CreateAllForm);
 end;
 
 procedure FreeGlobalResource;

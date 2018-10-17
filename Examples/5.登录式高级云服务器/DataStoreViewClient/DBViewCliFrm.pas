@@ -74,7 +74,7 @@ begin
 
   Enabled := False;
 
-  cli.DownloadDBWithID(True, DBListView.Selected.Caption, ZDBEngine.c_VL,
+  cli.DownloadDBWithIDP(True, DBListView.Selected.Caption, ZDBEngine.c_VL,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
     var
       vl: TDBEngineVL;
@@ -152,7 +152,7 @@ begin
   if not cli.Connected then
       exit;
 
-  cli.GetDBList(procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+  cli.GetDBListP(procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
     begin
       DBListView.Items.BeginUpdate;
       DBListView.Items.Clear;
