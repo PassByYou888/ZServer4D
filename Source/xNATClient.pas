@@ -155,9 +155,9 @@ end;
 procedure TXClientMapping.RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
 begin
   if ResultData.Reader.ReadBool then
-      DoStatus('success: remote listen %s -> mapping local %s', [Remote_ListenPort.Text, Port.Text])
+      DoStatus('success: remote host:%s port:%s mapping to host:%s port:%s', [XClientTunnel.RemoteTunnelAddr.Text, Remote_ListenPort.Text, Addr.Text, Port.Text])
   else
-      DoStatus('failed: remote listen %s alread used', [Remote_ListenPort.Text]);
+      DoStatus('failed: remote host:%s port:%s listen error!', [XClientTunnel.RemoteTunnelAddr.Text, Remote_ListenPort.Text]);
 end;
 
 procedure TXClientMapping.delay_RequestListen(Sender: TNPostExecute);
@@ -532,7 +532,7 @@ begin
   if PhysicsEngine = nil then
     begin
       PhysicsEngine := TXPhysicsClient.Create;
-      PhysicsEngine.SwitchMaxSafe;
+      PhysicsEngine.SwitchMaxSecurity;
     end;
 
   if not PhysicsEngine.Connected then

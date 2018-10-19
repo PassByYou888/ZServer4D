@@ -165,7 +165,7 @@ type
   end;
 
 
-  TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID, epLinux64, epLinux32, epUnknow);
+  TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID32, epANDROID64, epLinux64, epLinux32, epUnknow);
 
 const
   {$IF Defined(WIN32)}
@@ -174,9 +174,9 @@ const
   CurrentPlatform = TExecutePlatform.epWin64;
   {$ELSEIF Defined(OSX)}
     {$IFDEF CPU64}
-      CurrentPlatform = TExecutePlatform.epOSX32;
-    {$ELSE CPU64}
       CurrentPlatform = TExecutePlatform.epOSX64;
+    {$ELSE CPU64}
+      CurrentPlatform = TExecutePlatform.epOSX32;
     {$IFEND CPU64}
   {$ELSEIF Defined(IOS)}
     {$IFDEF CPUARM}
@@ -185,7 +185,11 @@ const
     CurrentPlatform = TExecutePlatform.epIOSSIM;
     {$ENDIF CPUARM}
   {$ELSEIF Defined(ANDROID)}
-  CurrentPlatform = TExecutePlatform.epANDROID;
+    {$IFDEF CPU64}
+    CurrentPlatform = TExecutePlatform.epANDROID64;
+    {$ELSE CPU64}
+    CurrentPlatform = TExecutePlatform.epANDROID32;
+    {$IFEND CPU64}
   {$ELSEIF Defined(Linux)}
     {$IFDEF CPU64}
       CurrentPlatform = TExecutePlatform.epLinux64;
@@ -213,6 +217,15 @@ procedure UnLockID(const ID:Byte);
 
 procedure LockObject(Obj:TObject);
 procedure UnLockObject(Obj:TObject);
+
+procedure AtomInc(var x: Int64); overload;
+procedure AtomInc(var x: Int64; const v: Int64); overload;
+procedure AtomInc(var x: Integer); overload;
+procedure AtomInc(var x: Integer; const v:Integer); overload;
+procedure AtomDec(var x: Int64); overload;
+procedure AtomDec(var x: Int64; const v: Int64); overload;
+procedure AtomDec(var x: Integer); overload;
+procedure AtomDec(var x: Integer; const v:Integer); overload;
 
 procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte); inline;
 function CompareMemory(const p1, p2: Pointer; const MLen: NativeInt): Boolean;
@@ -502,7 +515,7 @@ end;
 function IsMobile: Boolean;
 begin
   case CurrentPlatform of
-    epIOS, epIOSSIM, epANDROID: Result := True;
+    epIOS, epIOSSIM, epANDROID32, epANDROID64: Result := True;
     else Result := False;
   end;
 end;

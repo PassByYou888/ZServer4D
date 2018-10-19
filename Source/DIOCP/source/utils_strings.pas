@@ -23,6 +23,16 @@ unit utils_strings;
 
 interface
 
+{$IFNDEF DEBUG}     // INLINE不好调试
+{$IF defined(FPC) or (RTLVersion>=18))}
+  {$DEFINE HAVE_INLINE}
+{$IFEND HAVE_INLINE}
+{$ENDIF}
+
+// 进行调试
+{.$UNDEF HAVE_INLINE}
+{.$DEFINE DIOCP_DEBUG_HINT}
+
 {$if CompilerVersion>= 28}    // XE7:28
   {$DEFINE USE_NetEncoding}
 {$ifend}
@@ -248,6 +258,8 @@ type
 
     function DecodeUTF8: string;
 
+    function ToString: String;
+
     function ToRAWString: RAWString;
 
     /// <summary>
@@ -264,7 +276,7 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload;  override;
-    function Write(const Buffer; Count: Longint): Integer; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
     procedure SetSize(NewSize: Longint); override;
 
     /// <summary>
@@ -296,16 +308,22 @@ type
 
   TDStringWBuilder = class(TObject)
   private
+    FBlockSize:Integer;
+    FInitiCapacity:Integer;
     FData: TCharWArray;
     FPosition: Integer;
     FCapacity :Integer;
     FLineBreak: DStringW;
     procedure CheckNeedSize(pvSize: LongInt);
+    procedure SetBlockSize(pvBlockSize:Integer);
     function GetLength: Integer;
   public
-    constructor Create;
+    constructor Create;overload;
+    constructor Create(pvInitCapacity, pvBlockSize: Integer); overload;
+
     procedure Clear;
     procedure ClearContent;
+    function DecChar(i: Word): TDStringWBuilder;
     function Append(c: DCharW): TDStringWBuilder; overload;
     function Append(const str: DStringW): TDStringWBuilder; overload;
     function Append(const str, pvLeftStr, pvRightStr: DStringW): TDStringWBuilder;
@@ -314,9 +332,11 @@ type
         overload;
     function Append(v:Integer): TDStringWBuilder; overload;
     function Append(v:Double): TDStringWBuilder; overload;
+    function Append(SWB:TDStringWBuilder):TDStringWBuilder; overload;
     function AppendQuoteStr(const str: DStringW): TDStringWBuilder;
     function AppendSingleQuoteStr(const str: DStringW): TDStringWBuilder;
     function AppendLine(const str: DStringW): TDStringWBuilder;
+
 
     function ToString: DStringW;{$IFDEF UNICODE}override;{$ENDIF}
     property Length: Integer read GetLength;
@@ -365,6 +385,28 @@ function SkipUntilEx(var p:PChar; pvChars: TSysCharSet): Integer;
 function SkipChars(var p:PChar; pvChars: TSysCharSet): Integer;
 
 /// <summary>
+///   跳过N个字符
+/// </summary>
+function SkipN(p: PChar; n: Integer): PChar;
+
+
+/// <summary>
+///   跳过字符
+/// </summary>
+function StrSkipChars(const src :String; pvChars:TSysCharSet): String;
+
+
+/// <summary>
+///   从左边开始获取几个字符串
+/// </summary>
+function LeftStr(const s:string; count:Integer): String;
+
+/// <summary>
+///   从右边开始获取几个字符串
+/// </summary>
+function RightStr(const s:string; count:Integer): String;
+
+/// <summary>
 ///   跳过字符串
 ///   // p = pchar("abcabcefggg");
 ///   // 执行后 p = "efgg"
@@ -380,6 +422,8 @@ function SkipChars(var p:PChar; pvChars: TSysCharSet): Integer;
 /// <param name="pvIgnoreCase"> 忽略大小写 </param>
 function SkipStr(var P:PChar; pvSkipStr: PChar; pvIgnoreCase: Boolean = true):
     Integer;
+
+
 
 
 /// <summary>
@@ -418,6 +462,7 @@ function LeftUntil(var p: PChar; pvChars: TSysCharSet; var vLeftStr: string):
     Integer; overload;
 
 
+
 /// <summary>
 ///   从左边开始截取字符串
 /// </summary>
@@ -453,6 +498,9 @@ function SplitStrings(const s: String; pvStrings: TStrings; pvSpliterChars:
 /// <param name="pvSpliterChars"> 分隔符 </param>
 function SplitToArrayStr(const s: String; pvSpliterChars: TSysCharSet;
     pvSkipSpliterChars: Boolean = false): TArrayStrings;
+
+function SplitNToArrayStr(const s: String; pvSpliterChars: TSysCharSet; pvMaxN:
+    Integer; pvSkipSpliterChars: Boolean = false): TArrayStrings;
 
 
 /// <summary>
@@ -515,6 +563,9 @@ function StringsValueOfName(pvStrings: TStrings; const pvName: string;
 function GetStrValueOfName(const pvStr, pvName: string; pvSplitChars,
     pvEndChars: TSysCharSet): string;
 
+function PosStr(const sub, s: string): Integer;
+
+function PosWStr(const sub, s: DStringW): Integer;
 
 /// <summary>
 ///   查找PSub在P中出现的第一个位置
@@ -530,6 +581,8 @@ function GetStrValueOfName(const pvStr, pvName: string; pvSplitChars,
 /// <param name="PSub"> 要搜(字符串) </param>
 function StrStr(P:PChar; PSub:PChar): PChar;
 
+
+
 /// <summary>
 ///   查找PSub在P中出现的第一个位置
 ///   忽略大小写
@@ -543,6 +596,19 @@ function StrStr(P:PChar; PSub:PChar): PChar;
 /// <param name="P"> 要开始查找(字符串) </param>
 /// <param name="PSub"> 要搜(字符串) </param>
 function StrStrIgnoreCase(P, PSub: PChar): PChar;
+
+
+/// <summary>
+///   填充N个字符
+/// </summary>
+function FillNChr(const ACount: Integer; AChr: Char = ' '): string;
+
+/// <summary>
+///   填充字符串
+///   StrAddPrefix('A01', 5, '0') = 00A01
+/// </summary>
+function StrAddPrefix(const s:string; pvTotalWidth:Integer; pvFillChar:Char):
+    String;
 
 
 /// <summary>
@@ -669,9 +735,12 @@ function GetCurrentThreadID: Cardinal;
 function ObjectHexAddr(pvObj:TObject): String;
 function ObjectIntStrAddr(pvObj:TObject): String;
 
+function ToUtc(pvDateTime:TDateTime): TDateTime;
+
 function DateTimeString(pvDateTime:TDateTime): string; {$IFDEF HAVE_INLINE} inline;{$ENDIF}
 function NowString: String; {$IFDEF HAVE_INLINE} inline;{$ENDIF}
-function DateTimeStrToDateTime(const strDateTime:string):TDateTime;{$IFDEF HAVE_INLINE} inline;{$ENDIF}
+
+function DateTimeStrToDateTime(const strDateTime:string):TDateTime;
 
 function tick_diff(tick_start, tick_end: Cardinal): Cardinal;
 
@@ -693,11 +762,106 @@ function NewMapKeyString(const key:Integer; const s:string): PMAPKeyString;
 
 procedure PrintDebugString(s:string); {$IFDEF HAVE_INLINE} inline;{$ENDIF}
 
-function PosWStr(sub: DStringW; const s: DStringW): Integer;
 
 
+
+
+{$IF RTLVersion<24}
+function AtomicCmpExchange(var Target: Integer; Value: Integer;
+  Comparand: Integer): Integer; {$IFDEF HAVE_INLINE} inline;{$ENDIF}
+function AtomicIncrement(var Target: Integer): Integer;{$IFDEF HAVE_INLINE} inline;{$ENDIF}
+function AtomicDecrement(var Target: Integer): Integer;{$IFDEF HAVE_INLINE} inline;{$ENDIF}
+{$IFEND <XE5}
+
+procedure SpinLock(var Target:Integer; var WaitCounter:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
+procedure SpinLock(var Target:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
+procedure SpinUnLock(var Target:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF}overload;
+
+{$IF RTLVersion < 18}
+function InterlockedIncrement(var Addend: Integer): Integer; stdcall; external kernel32 name 'InterlockedIncrement';
+{$EXTERNALSYM InterlockedIncrement}
+function InterlockedDecrement(var Addend: Integer): Integer; stdcall; external kernel32 name 'InterlockedDecrement';
+{$EXTERNALSYM InterlockedDecrement}
+function InterlockedExchange(var Target: Integer; Value: Integer): Integer; stdcall;external kernel32 name 'InterlockedExchange';
+{$EXTERNALSYM InterlockedExchange}
+function InterlockedCompareExchange(var Destination: Longint; Exchange: Longint; Comperand: Longint): Longint stdcall;external kernel32 name 'InterlockedCompareExchange';
+{$EXTERNALSYM InterlockedCompareExchange}
+
+function InterlockedExchangeAdd(Addend: PLongint; Value: Longint): Longint; overload; external kernel32 name 'InterlockedExchangeAdd';
+function InterlockedExchangeAdd(var Addend: Longint; Value: Longint): Longint; overload; external kernel32 name 'InterlockedExchangeAdd';
+{$IFEND <D2007}
 
 implementation
+
+
+
+procedure SpinLock(var Target:Integer; var WaitCounter:Integer);
+begin
+  while AtomicCmpExchange(Target, 1, 0) <> 0 do
+  begin
+    AtomicIncrement(WaitCounter);
+//    {$IFDEF MSWINDOWS}
+//      SwitchToThread;
+//    {$ELSE}
+//      TThread.Yield;
+//    {$ENDIF}
+    {$IFDEF SPINLOCK_SLEEP}
+    Sleep(1);    // 1 对比0 (线程越多，速度越平均)
+    {$ENDIF}
+  end;
+end;
+
+procedure SpinLock(var Target:Integer);
+begin
+  while AtomicCmpExchange(Target, 1, 0) <> 0 do
+  begin
+    {$IFDEF SPINLOCK_SLEEP}
+    Sleep(1);    // 1 对比0 (线程越多，速度越平均)
+    {$ENDIF}
+  end;
+end;
+
+
+procedure SpinUnLock(var Target:Integer);
+begin
+  if AtomicCmpExchange(Target, 0, 1) <> 1 then
+  begin
+    Assert(False, 'SpinUnLock::AtomicCmpExchange(Target, 0, 1) <> 1');
+  end;
+end;
+
+
+
+{$IF RTLVersion<24}
+function AtomicCmpExchange(var Target: Integer; Value: Integer;
+  Comparand: Integer): Integer; {$IFDEF HAVE_INLINE} inline;{$ENDIF}
+begin
+{$IFDEF MSWINDOWS}
+  Result := InterlockedCompareExchange(Target, Value, Comparand);
+{$ELSE}
+  Result := TInterlocked.CompareExchange(Target, Value, Comparand);
+{$ENDIF}
+end;
+
+function AtomicIncrement(var Target: Integer): Integer;{$IFDEF HAVE_INLINE} inline;{$ENDIF}
+begin
+{$IFDEF MSWINDOWS}
+  Result := InterlockedIncrement(Target);
+{$ELSE}
+  Result := TInterlocked.Increment(Target);
+{$ENDIF}
+end;
+
+function AtomicDecrement(var Target: Integer): Integer; {$IFDEF HAVE_INLINE} inline;{$ENDIF}
+begin
+{$IFDEF MSWINDOWS}
+  Result := InterlockedDecrement(Target);
+{$ELSE}
+  Result := TInterlocked.Decrement(Target);
+{$ENDIF}
+end;
+
+{$IFEND <XE5}
 
 
 
@@ -804,7 +968,11 @@ begin
   l := Length(s);
   SetLength(lvStr, l);
   times := 0;
+  {$IFDEF MSWINDOWS}
   for i := 1 to l do
+  {$ELSE}
+  for i := Low(s) to high(s) do
+  {$ENDIF}
   begin
     if not CharInSet(s[i], pvCharSets) then
     begin
@@ -2120,6 +2288,11 @@ end;
 
 function TDBufferBuilder.DecodeUTF8: string;
 begin
+  if FSize =0 then
+  begin
+    Result := STRING_EMPTY;
+    exit;
+  end;
 {$IFDEF MSWINDOWS}
   Result := Utf8BufferToString(@FData[0], FSize);
 {$ELSE}
@@ -2341,7 +2514,23 @@ begin
 {$ENDIF}
 end;
 
-function TDBufferBuilder.Write(const Buffer; Count: Longint): Integer;
+function TDBufferBuilder.ToString: String;
+begin
+  CheckNeedSize(2);
+  FData[FSize] := 0;
+  FData[FSize + 1] := 0; 
+{$IFDEF MSWINDOWS}
+  {$IF (RTLVersion>=26) and (not Defined(NEXTGEN))}
+  TEncoding.Default.GetString(FData, 0, self.Length);
+  {$ELSE}
+  Result := StrPas(PAnsiChar(@FData[0]));
+  {$IFEND >=XE5}
+{$ELSE}  
+  Result := TEncoding.Default.GetString(FData, 0, self.Length);
+{$ENDIF}
+end;
+
+function TDBufferBuilder.Write(const Buffer; Count: Longint): Longint;
 begin
   if FBufferLocked then
   begin
@@ -2483,7 +2672,13 @@ end;
 
 function DateTimeString(pvDateTime:TDateTime): string;
 begin
-  Result := FormatDateTime('yyyy-MM-dd hh:nn:ss.zzz', pvDateTime);
+  if pvDateTime = 0 then
+  begin
+    Result := '0000-00-00 00:00:00.000'
+  end else
+  begin
+    Result := FormatDateTime('yyyy-MM-dd hh:nn:ss.zzz', pvDateTime);
+  end;
 end;
 
 function NowString: String;
@@ -2595,7 +2790,7 @@ begin
   end;
 end;
 
-function PosWStr(sub: DStringW; const s: DStringW): Integer;
+function PosWStr(const sub, s: DStringW): Integer;
 begin
   Result := Pos(sub, s);
 end;
@@ -2725,6 +2920,152 @@ begin
   end;
 end;
 
+function FillNChr(const ACount: Integer; AChr: Char = ' '): string;
+var
+  i: Integer;
+begin
+  SetLength(Result, ACount);
+  for i := 1 to ACount do
+  begin
+    Result[i] := AChr;
+  end;
+end;
+
+function StrAddPrefix(const s:string; pvTotalWidth:Integer; pvFillChar:Char):
+    String;
+begin
+  Result := FillNChr(pvTotalWidth - length(s), pvFillChar) + s;
+end;
+
+function SplitNToArrayStr(const s: String; pvSpliterChars: TSysCharSet; pvMaxN:
+    Integer; pvSkipSpliterChars: Boolean = false): TArrayStrings;
+var
+  p:PChar;
+  lvValue : String;
+  l, idx, r:Integer;
+begin
+  if (pvMaxN <= 0) then
+  begin
+    Result := SplitToArrayStr(s, pvSpliterChars, pvSkipSpliterChars);
+    Exit;
+  end else if pvMaxN = 1 then
+  begin
+    SetLength(Result, 1);
+    Result[0] := s;
+    Exit;
+  end;
+
+  SetLength(Result, pvMaxN);
+
+  p := PChar(s);
+  l := 0;
+  idx := 0;
+  while True do
+  begin
+    // 跳过开头
+    r := LeftUntil(P, pvSpliterChars, lvValue);
+    if r = -1 then
+    begin    // 没有匹配到
+      if P^ <> #0 then
+      begin  // 最后一个字符
+        // 添加到列表中
+        SetLength(Result, idx + 1);
+        Result[idx] := P;
+        Inc(idx);
+      end;
+      Exit;
+    end else
+    begin
+      Result[idx] := lvValue;
+      Inc(idx);
+      Inc(P);
+    end;
+
+    if (pvSkipSpliterChars) then  // 跳过分隔符？
+      SkipChars(P, pvSpliterChars);
+
+    if (idx + 1) = pvMaxN then
+    begin
+      Result[idx] := P;
+      Inc(idx);
+      Exit;
+    end;
+  end;
+
+  SetLength(Result, idx + 1);
+
+end;
+
+function StrSkipChars(const src :String; pvChars:TSysCharSet): String;
+var
+  lvPtr:PChar;
+begin
+  lvPtr := PChar(src);
+  SkipChars(lvPtr, pvChars);
+  Result := lvPtr;
+end;
+
+function RightStr(const s:string; count:Integer): String;
+var
+  lvPtr :PChar;
+  l:Integer;
+begin
+  l := Length(s);
+  if l < count then
+  begin
+    Result :=s ;
+  end else
+  begin
+    lvPtr := PChar(s);
+    Result := SkipN(lvPtr, l - count);
+  end;
+end;
+
+function SkipN(p: PChar; n: Integer): PChar;
+var
+  i:Integer;
+begin
+  i := 0;
+  while (p^ <> #0) and (i<n) do
+  begin
+    Inc(P);
+    Inc(i);
+  end;
+  Result := P;   
+end;
+
+function LeftStr(const s:string; count:Integer): String;
+begin
+  Result := s;
+  if Length(Result) > count then
+  begin
+    SetLength(Result, count);
+  end;  
+end;
+
+function PosStr(const sub, s: string): Integer;
+begin
+  Result := Pos(sub, s);
+end;
+
+function IncMinute(const AValue: TDateTime;
+  const ANumberOfMinutes: Int64): TDateTime;
+begin
+  Result := ((AValue * MinsPerDay) + ANumberOfMinutes) / MinsPerDay;
+end;
+
+function ToUtc(pvDateTime:TDateTime): TDateTime;
+{$IFDEF MSWINDOWS}
+var
+  pTime: _TIME_ZONE_INFORMATION;
+{$ENDIF}
+begin
+{$IFDEF MSWINDOWS}
+  GetTimeZoneInformation(pTime);//获取时区
+  Result := IncMinute(pvDateTime, pTime.Bias);
+{$ENDIF}
+end;
+
 constructor TDStringWBuilder.Create;
 begin
   inherited Create;
@@ -2733,6 +3074,9 @@ begin
 {$else}
   FLineBreak := #13#10;
 {$ifend}
+  FInitiCapacity := 0;
+  Clear;
+  SetBlockSize(512);
 end;
 
 function TDStringWBuilder.Append(c: DCharW): TDStringWBuilder;
@@ -2803,7 +3147,8 @@ var
 begin
   if FPosition + pvSize > FCapacity then
   begin
-    lvCapacity := (FPosition + pvSize + (BUFFER_BLOCK_SIZE - 1)) AND (not (BUFFER_BLOCK_SIZE - 1));
+    // block的倍数 但是不会比size小
+    lvCapacity := (FPosition + pvSize + (FBlockSize - 1)) AND (not (FBlockSize - 1));
     FCapacity := lvCapacity;
     SetLength(FData, FCapacity);     
   end;
@@ -2815,8 +3160,8 @@ begin
 
   // modify by ymf
   // 2017-01-10 17:36:13
-  FCapacity := 0;
-  SetLength(FData, 0);
+  FCapacity := FInitiCapacity;
+  SetLength(FData, FCapacity);
 end;
 
 procedure TDStringWBuilder.ClearContent;
@@ -2826,6 +3171,33 @@ begin
   begin
     FillChar(FData[0], FCapacity, 0);
   end;
+end;
+
+constructor TDStringWBuilder.Create(pvInitCapacity, pvBlockSize: Integer);
+begin
+  inherited Create;
+{$if CompilerVersion> 18}    // Delphi7 or later
+  FLineBreak := DCharW(13) + DCharW(10);
+{$else}
+  FLineBreak := #13#10;
+{$ifend}
+  FInitiCapacity := pvInitCapacity;
+
+  Clear;
+  if pvBlockSize = 0 then pvBlockSize := 128;
+  SetBlockSize(pvBlockSize);
+end;
+
+function TDStringWBuilder.DecChar(i: Word): TDStringWBuilder;
+begin
+  if i > FPosition then
+  begin
+    FPosition := 0;
+  end else
+  begin
+    Dec(FPosition, i);
+  end;
+  Result := Self;
 end;
 
 function TDStringWBuilder.GetLength: Integer;
@@ -2855,6 +3227,21 @@ begin
   if l <> 0 then pvStream.WriteBuffer(FData[0], l);
 end;
 
+procedure TDStringWBuilder.SetBlockSize(pvBlockSize: Integer);
+var
+  j, i:Integer;
+begin
+  j := pvBlockSize;
+  i := 0;
+  while j > 0 do
+  begin
+    j := j shr 1;
+    Inc(i);
+  end;
+  Dec(i, 2);
+  FBlockSize := 2 shl i;
+end;
+
 function TDStringWBuilder.ToString: DStringW;
 var
   l:Integer;
@@ -2862,6 +3249,21 @@ begin
   l := Length;
   SetLength(Result, l);                
   Move(FData[0], PDCharW(Result)^, l shl 1); 
+end;
+
+function TDStringWBuilder.Append(SWB: TDStringWBuilder): TDStringWBuilder;
+var
+  l:Integer;
+begin
+  Result := Self;
+  l := SWB.Length;
+  if l = 0 then Exit;
+  CheckNeedSize(l);
+
+  Move(SWB.FData[0], FData[FPosition], l shl 1);
+
+
+  Inc(FPosition, l);
 end;
 
 initialization  

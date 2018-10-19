@@ -61,16 +61,12 @@
     {$DEFINE INLINE_ASM}
     {$R-} { range check }
     {$I-} { Input output checking }
-    {$IFDEF MSWINDOWS}
-      {$O+} { optimization }
-    {$ELSE MSWINDOWS}
-      {$O-} { optimization }
-    {$ENDIF MSWINDOWS}
+    {$O+} { optimization }
   {$ELSE}
     {$UNDEF INLINE_ASM}
     {$R-} { range check }
     {$I-} { Input output checking }
-    {$O-} { optimization }
+    {$O+} { optimization }
   {$ENDIF}
 
   {$IF Defined(Android) or Defined(IOS)}
@@ -98,7 +94,7 @@
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$J-} { Writeable typed constants }
+{$J+} { Writeable typed constants }
 
 {$UNDEF CPU64}
 

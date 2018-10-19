@@ -335,22 +335,20 @@ end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
 begin
-  TThread.Synchronize(TThread.CurrentThread,
-    procedure
-    var
-      cli: TPeerIOWithCrossSocketServer;
-    begin
-      cli := AConnection.UserObject as TPeerIOWithCrossSocketServer;
-      if cli <> nil then
-        begin
-          try
-            cli.ClientIntf := nil;
-            AConnection.UserObject := nil;
-            DisposeObject(cli);
-          except
-          end;
+  if AConnection.UserObject is TPeerIOWithCrossSocketServer then
+      TThread.Synchronize(TThread.CurrentThread,
+      procedure
+      var
+        cli: TPeerIOWithCrossSocketServer;
+      begin
+        cli := TPeerIOWithCrossSocketServer(AConnection.UserObject);
+        try
+          cli.ClientIntf := nil;
+          AConnection.UserObject := nil;
+          DisposeObject(cli);
+        except
         end;
-    end);
+      end);
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);

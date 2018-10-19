@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  UnicodeMixedLib, PascalStrings, TextParsing;
+  UnicodeMixedLib, PascalStrings, TextParsing, zExpression;
 
 type
   TStringTranslateForm = class(TForm)
@@ -41,8 +41,8 @@ implementation
 
 procedure TStringTranslateForm.Button1Click(Sender: TObject);
 var
-  s, n  : u_String;
-  c     : Char;
+  s, n: u_String;
+  c: Char;
   output: string;
 begin
   s := umlDeleteChar(Memo1.Text, #32#9#13#10'()[]{}');
@@ -61,9 +61,9 @@ end;
 
 procedure TStringTranslateForm.Button2Click(Sender: TObject);
 var
-  s     : string;
-  c     : Char;
-  cnt   : Integer;
+  s: string;
+  c: Char;
+  cnt: Integer;
   output: string;
 begin
   s := Memo2.Text;
@@ -92,9 +92,9 @@ end;
 
 procedure TStringTranslateForm.Button3Click(Sender: TObject);
 var
-  s     : string;
-  c     : Char;
-  cnt   : Integer;
+  s: string;
+  c: Char;
+  cnt: Integer;
   output: string;
 begin
   s := Memo2.Text;
@@ -136,14 +136,8 @@ begin
 end;
 
 procedure TStringTranslateForm.Button5Click(Sender: TObject);
-var
-  i: Integer;
 begin
-  Memo2.Clear;
-  for i := 0 to Memo1.Lines.Count - 1 do
-    begin
-      Memo2.Lines.Add(TTextParsing.TranslatePascalDeclToText(Memo1.Lines[i]));
-    end;
+  Memo2.Text:=EvaluateExpressionValue(tsPascal, Memo1.Text);
 end;
 
 procedure TStringTranslateForm.Button6Click(Sender: TObject);
@@ -154,21 +148,15 @@ begin
   for i := 0 to Memo2.Lines.Count - 1 do
     begin
       if i = Memo2.Lines.Count - 1 then
-          Memo1.Lines.Add(TTextParsing.TranslateTextToC_Decl(Memo2.Lines[i]) + ';')
+          Memo1.Lines.Add(TTextParsing.TranslateTextToC_Decl(Memo2.Lines[i] + #13#10) + ';')
       else
-          Memo1.Lines.Add(TTextParsing.TranslateTextToC_Decl(Memo2.Lines[i] + #10) + '+');
+          Memo1.Lines.Add(TTextParsing.TranslateTextToC_Decl(Memo2.Lines[i] + #13#10) + '+');
     end;
 end;
 
 procedure TStringTranslateForm.Button7Click(Sender: TObject);
-var
-  i: Integer;
 begin
-  Memo2.Clear;
-  for i := 0 to Memo1.Lines.Count - 1 do
-    begin
-      Memo2.Lines.Add(TTextParsing.TranslateC_DeclToText(Memo1.Lines[i]));
-    end;
+  Memo2.Text:=EvaluateExpressionValue(tsC, Memo1.Text);
 end;
 
 end.

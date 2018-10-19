@@ -1,0 +1,92 @@
+object FMXClientForm: TFMXClientForm
+  Left = 0
+  Top = 0
+  Caption = 'EZ fmx client...'
+  ClientHeight = 315
+  ClientWidth = 612
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'ZServer4D'#26159#19968#27454#26381#21153#22120#20013#38388#20214
+      #27492'Demo'#21482#28436#31034#22522#26412#38142#25509#36890#35759#22788#29702
+      ''
+      #38468#38543#30340#23458#25143#31471#65292#21487#20197#26159#31227#21160#24179#21488#65292#21450#20010#20154#30005#33041#24179#21488)
+    TextSettings.WordWrap = True
+    Align = Client
+    Margins.Left = 140.000000000000000000
+    Size.Width = 472.000000000000000000
+    Size.Height = 315.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 468.000000000000000000
+    Viewport.Height = 311.000000000000000000
+  end
+  object connectButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 48.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 5
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+    StyledSettings = [Family, Style, FontColor]
+  end
+  object HelloWorldBtn: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 121.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'Hello World'
+    OnClick = HelloWorldBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+  object SendMiniStreamButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 121.000000000000000000
+    Size.Height = 65.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'Send Mini Stream'
+    OnClick = SendMiniStreamButtonClick
+  end
+  object Send128MBigStreamButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 232.000000000000000000
+    Size.Width = 121.000000000000000000
+    Size.Height = 65.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Send 16M Stream'
+    OnClick = Send128MBigStreamButtonClick
+  end
+end

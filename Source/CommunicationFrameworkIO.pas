@@ -292,7 +292,7 @@ end;
 
 procedure TCommunicationFramework_UserAuthService.SwitchServiceAsMaxSafe;
 begin
-  Communication.SwitchMaxSafe;
+  Communication.SwitchMaxSecurity;
 end;
 
 procedure TCommunicationFramework_UserAuthService.SwitchServiceAsDefaultPerformance;
@@ -362,7 +362,7 @@ end;
 
 procedure TCommunicationFramework_UserAuthClient.SwitchServiceAsMaxSafe;
 begin
-  Client.SwitchMaxSafe;
+  Client.SwitchMaxSecurity;
 end;
 
 procedure TCommunicationFramework_UserAuthClient.SwitchServiceAsDefaultPerformance;

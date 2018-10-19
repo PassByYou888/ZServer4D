@@ -36,6 +36,10 @@ type
     FPostPerformaceCounter: Integer;
     FLastPostPerformaceTime: TTimeTickValue;
     FPostCounterOfPerSec: Double;
+  private
+    // data security
+    FDataStoreCipherSecurity: TCipherSecurity;
+    FDataStoreCipherKey: TCipherKeyBuffer;
   public
     constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
@@ -44,6 +48,9 @@ type
 
     function SendTunnelDefine: TDataStoreService_PeerClientSendTunnel_VirtualAuth;
     property PostCounterOfPerSec: Double read FPostCounterOfPerSec;
+
+    // data security
+    procedure EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
   end;
 
   TDataStoreService_PeerClientSendTunnel_VirtualAuth = class(TPeerClientUserDefineForSendTunnel_VirtualAuth)
@@ -67,6 +74,7 @@ type
     FQueryCallPool: THashObjectList;
     FPerQueryPipelineDelayFreeTime: Double;
   protected
+    // interface from IZDBLocalManagerNotify
     procedure CreateQuery(pipe: TZDBPipeline); virtual;
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64); virtual;
     procedure QueryDone(pipe: TZDBPipeline); virtual;
@@ -82,6 +90,7 @@ type
     procedure DownloadQueryWithIDFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
 
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); override;
+    procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); override;
 
     procedure Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
@@ -147,6 +156,11 @@ type
 
   TDataStoreClient_VirtualAuth = class(TCommunicationFramework_DoubleTunnelClient_VirtualAuth)
   private
+    FDataStoreCipherSecurity: TCipherSecurity;
+    FDataStoreCipherKey: TCipherKeyBuffer;
+    procedure EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
+    procedure Command_DataStoreSecurity(Sender: TPeerIO; InData: TDataFrameEngine);
+  private
     procedure Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
@@ -168,17 +182,13 @@ type
     procedure CopyDB(dbN, copyToN: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
     procedure CopyDB_C(dbN, copyToN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
     procedure CopyDB_M(dbN, copyToN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
-{$IFNDEF FPC}
-    procedure CopyDB_P(dbN, copyToN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
-{$ENDIF FPC}
+{$IFNDEF FPC} procedure CopyDB_P(dbN, copyToN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload; {$ENDIF FPC}
     //
     procedure CompressDB(dbN: SystemString); overload;
     procedure CompressDB(dbN: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
     procedure CompressDB_C(dbN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
     procedure CompressDB_M(dbN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
-{$IFNDEF FPC}
-    procedure CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
-{$ENDIF FPC}
+{$IFNDEF FPC} procedure CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload; {$ENDIF FPC}
     //
     procedure ReplaceDB(dbN, replaceN: SystemString); virtual;
     procedure ResetData(dbN: SystemString); virtual;
@@ -226,9 +236,7 @@ type
     //
     procedure QueryDBC(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
     procedure QueryDBM(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
-{$IFNDEF FPC}
-    procedure QueryDBP(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
-{$ENDIF}
+{$IFNDEF FPC} procedure QueryDBP(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload; {$ENDIF}
     //
     //
     procedure DownloadDB(ReverseQuery: Boolean; dbN: SystemString; BackcallPtr: PDataStoreClientQueryNotify); overload; virtual;
@@ -278,29 +286,32 @@ type
       OnDoneProc: TUserDownloadDoneNotifyProc); overload;
 {$ENDIF}
     //
-    // safe post support
+    // Security post support
     procedure PostAssembleStream(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure PostAssembleStreamCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
     procedure PostAssembleStream(dbN: SystemString; DataSource: TDataFrameEngine); overload;
     procedure PostAssembleStream(dbN: SystemString; DataSource: THashVariantList); overload;
+    procedure PostAssembleStream(dbN: SystemString; DataSource: THashStringList); overload;
     procedure PostAssembleStream(dbN: SystemString; DataSource: TSectionTextData); overload;
 {$IFNDEF FPC} procedure PostAssembleStream(dbN: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF}
     procedure PostAssembleStream(dbN: SystemString; DataSource: TPascalString); overload;
     //
-    // safe insert support
+    // Security insert support
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
 {$IFNDEF FPC} procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF}
     procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
     //
-    // safe modify support
+    // Security modify support
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
     procedure ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream);
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
 {$IFNDEF FPC} procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF}
     procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
@@ -317,6 +328,7 @@ type
     procedure FastPostCompleteBufferCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TDataFrameEngine); overload;
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: THashVariantList); overload;
+    procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: THashStringList); overload;
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TSectionTextData); overload;
 {$IFNDEF FPC} procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF}
     procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TPascalString); overload;
@@ -326,6 +338,7 @@ type
     procedure FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
 {$IFNDEF FPC} procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF}
     procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
@@ -335,6 +348,7 @@ type
     procedure FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
 {$IFNDEF FPC} procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF}
     procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
@@ -356,13 +370,24 @@ type
 
 implementation
 
-
 constructor TDataStoreService_PeerClientRecvTunnel_VirtualAuth.Create(AOwner: TPeerIO);
+type
+  TCipherDef = array [0 .. 4] of TCipherSecurity;
+const
+  c: TCipherDef = (csRC6, csSerpent, csMars, csRijndael, csTwoFish);
+var
+  kref: TInt64;
 begin
   inherited Create(AOwner);
   FPostPerformaceCounter := 0;
   FLastPostPerformaceTime := GetTimeTick;
   FPostCounterOfPerSec := 0;
+
+  FDataStoreCipherSecurity := c[umlRandomRange(0, 4)];
+
+  // generate random key
+  TMISC.GenerateRandomKey(kref, C_Int64_Size);
+  TCipher.GenerateKey(FDataStoreCipherSecurity, @kref, C_Int64_Size, FDataStoreCipherKey);
 end;
 
 destructor TDataStoreService_PeerClientRecvTunnel_VirtualAuth.Destroy;
@@ -396,6 +421,11 @@ end;
 function TDataStoreService_PeerClientRecvTunnel_VirtualAuth.SendTunnelDefine: TDataStoreService_PeerClientSendTunnel_VirtualAuth;
 begin
   Result := SendTunnel as TDataStoreService_PeerClientSendTunnel_VirtualAuth;
+end;
+
+procedure TDataStoreService_PeerClientRecvTunnel_VirtualAuth.EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
+begin
+  SequEncryptCBC(FDataStoreCipherSecurity, sour, Size, FDataStoreCipherKey, Encrypt, True);
 end;
 
 constructor TDataStoreService_PeerClientSendTunnel_VirtualAuth.Create(AOwner: TPeerIO);
@@ -437,7 +467,7 @@ begin
 
   CompressStream(FragmentSource, DestStream);
 
-  SequEncrypt(DestStream.Memory, DestStream.Size, True, True);
+  TDataStoreService_PeerClientRecvTunnel_VirtualAuth(pl.RecvTunnel).EncryptBuffer(DestStream.Memory, DestStream.Size, True);
 
   ClearBatchStream(pl.SendTunnel.Owner);
   PostBatchStream(pl.SendTunnel.Owner, DestStream, True);
@@ -520,6 +550,22 @@ begin
           pl.stop;
     end;
   inherited UserOut(UserDefineIO);
+end;
+
+procedure TDataStoreService_VirtualAuth.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
+var
+  RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  de: TDataFrameEngine;
+  arr: TDataFrameArrayByte;
+begin
+  RT := UserDefineIO as TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  de := TDataFrameEngine.Create;
+  de.WriteByte(Byte(RT.FDataStoreCipherSecurity));
+  arr := de.WriteArrayByte;
+  arr.AddPtrBuff(@RT.FDataStoreCipherKey[0], length(RT.FDataStoreCipherKey));
+  RT.SendTunnel.Owner.SendDirectStreamCmd('DataStoreSecurity', de);
+  DisposeObject(de);
+  inherited UserLinkSuccess(UserDefineIO);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -799,7 +845,7 @@ begin
   CompressStream(M, CM);
   DisposeObject(M);
 
-  SequEncrypt(CM.Memory, CM.Size, True, True);
+  RT.EncryptBuffer(CM.Memory, CM.Size, True);
 
   ClearBatchStream(RT.SendTunnelDefine.Owner);
   PostBatchStream(RT.SendTunnelDefine.Owner, CM, True);
@@ -921,7 +967,7 @@ begin
   dID := InData.Reader.ReadCardinal;
 
   p := RT.BigStreamBatchList.Last;
-  SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
+  RT.EncryptBuffer(p^.Source.Memory, p^.Source.Size, False);
   p^.DBStorePos := FZDBLocal.PostData(dbN, p^.Source, dID);
   inc(RT.FPostPerformaceCounter);
 end;
@@ -946,7 +992,7 @@ begin
   dID := InData.Reader.ReadCardinal;
 
   p := RT.BigStreamBatchList.Last;
-  SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
+  RT.EncryptBuffer(p^.Source.Memory, p^.Source.Size, False);
   p^.DBStorePos := FZDBLocal.InsertData(dbN, dStorePos, p^.Source, dID);
   inc(RT.FPostPerformaceCounter);
 end;
@@ -969,7 +1015,7 @@ begin
   dStorePos := InData.Reader.ReadInt64;
 
   p := RT.BigStreamBatchList.Last;
-  SequEncrypt(p^.Source.Memory, p^.Source.Size, False, True);
+  RT.EncryptBuffer(p^.Source.Memory, p^.Source.Size, False);
 
   if FZDBLocal.SetData(dbN, dStorePos, p^.Source) then
     begin
@@ -1199,18 +1245,18 @@ procedure TDataStoreService_VirtualAuth.Send_CompletedStorePosTransform(ASendCli
 var
   de: TDataFrameEngine;
   i: Integer;
-  Arr: TDataFrameArrayInt64;
+  arr: TDataFrameArrayInt64;
 begin
   de := TDataFrameEngine.Create;
   de.WritePointer(BackcallPtr);
 
-  Arr := de.WriteArrayInt64;
+  arr := de.WriteArrayInt64;
   for i := 0 to length(TransformBuff^) - 1 do
-      Arr.Add(TransformBuff^[i].OriginPos);
+      arr.Add(TransformBuff^[i].OriginPos);
 
-  Arr := de.WriteArrayInt64;
+  arr := de.WriteArrayInt64;
   for i := 0 to length(TransformBuff^) - 1 do
-      Arr.Add(TransformBuff^[i].NewPos);
+      arr.Add(TransformBuff^[i].NewPos);
 
   ASendCli.SendDirectStreamCmd('CompletedStorePosTransform', de);
   DisposeObject(de);
@@ -1240,67 +1286,36 @@ end;
 procedure TDataStoreService_VirtualAuth.RegisterCommand;
 begin
   inherited RegisterCommand;
-{$IFDEF FPC}
-  FRecvTunnel.RegisterDirectStream('InitDB').OnExecute := @Command_InitDB;
-  FRecvTunnel.RegisterDirectStream('CloseDB').OnExecute := @Command_CloseDB;
 
-  FRecvTunnel.RegisterDirectStream('CopyDB').OnExecute := @Command_CopyDB;
-  FRecvTunnel.RegisterDirectStream('CompressDB').OnExecute := @Command_CompressDB;
-  FRecvTunnel.RegisterDirectStream('ReplaceDB').OnExecute := @Command_ReplaceDB;
-  FRecvTunnel.RegisterDirectStream('ResetData').OnExecute := @Command_ResetData;
+  FRecvTunnel.RegisterDirectStream('InitDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_InitDB;
+  FRecvTunnel.RegisterDirectStream('CloseDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CloseDB;
 
-  FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := @Command_QueryDB;
-  FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := @Command_DownloadDB;
-  FRecvTunnel.RegisterDirectStream('DownloadDBWithID').OnExecute := @Command_DownloadDBWithID;
-  FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := @Command_RequestDownloadAssembleStream;
-  FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := @Command_RequestFastDownloadAssembleStream;
+  FRecvTunnel.RegisterDirectStream('CopyDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CopyDB;
+  FRecvTunnel.RegisterDirectStream('CompressDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompressDB;
+  FRecvTunnel.RegisterDirectStream('ReplaceDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ReplaceDB;
+  FRecvTunnel.RegisterDirectStream('ResetData').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ResetData;
 
-  FRecvTunnel.RegisterCompleteBuffer('FastPostCompleteBuffer').OnExecute := @Command_FastPostCompleteBuffer;
-  FRecvTunnel.RegisterCompleteBuffer('FastInsertCompleteBuffer').OnExecute := @Command_FastInsertCompleteBuffer;
-  FRecvTunnel.RegisterCompleteBuffer('FastModifyCompleteBuffer').OnExecute := @Command_FastModifyCompleteBuffer;
+  FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryDB;
+  FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DownloadDB;
+  FRecvTunnel.RegisterDirectStream('DownloadDBWithID').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DownloadDBWithID;
+  FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RequestDownloadAssembleStream;
+  FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RequestFastDownloadAssembleStream;
 
-  FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := @Command_CompletedPostAssembleStream;
-  FRecvTunnel.RegisterDirectStream('CompletedInsertAssembleStream').OnExecute := @Command_CompletedInsertAssembleStream;
-  FRecvTunnel.RegisterDirectStream('CompletedModifyAssembleStream').OnExecute := @Command_CompletedModifyAssembleStream;
-  FRecvTunnel.RegisterDirectStream('DeleteData').OnExecute := @Command_DeleteData;
+  FRecvTunnel.RegisterCompleteBuffer('FastPostCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastPostCompleteBuffer;
+  FRecvTunnel.RegisterCompleteBuffer('FastInsertCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastInsertCompleteBuffer;
+  FRecvTunnel.RegisterCompleteBuffer('FastModifyCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastModifyCompleteBuffer;
 
-  FRecvTunnel.RegisterStream('GetDBList').OnExecute := @Command_GetDBList;
-  FRecvTunnel.RegisterStream('GetQueryList').OnExecute := @Command_GetQueryList;
-  FRecvTunnel.RegisterStream('GetQueryState').OnExecute := @Command_GetQueryState;
-  FRecvTunnel.RegisterDirectStream('QueryStop').OnExecute := @Command_QueryStop;
-  FRecvTunnel.RegisterDirectStream('QueryPause').OnExecute := @Command_QueryPause;
-  FRecvTunnel.RegisterDirectStream('QueryPlay').OnExecute := @Command_QueryPlay;
-{$ELSE}
-  FRecvTunnel.RegisterDirectStream('InitDB').OnExecute := Command_InitDB;
-  FRecvTunnel.RegisterDirectStream('CloseDB').OnExecute := Command_CloseDB;
+  FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedPostAssembleStream;
+  FRecvTunnel.RegisterDirectStream('CompletedInsertAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedInsertAssembleStream;
+  FRecvTunnel.RegisterDirectStream('CompletedModifyAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedModifyAssembleStream;
+  FRecvTunnel.RegisterDirectStream('DeleteData').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DeleteData;
 
-  FRecvTunnel.RegisterDirectStream('CopyDB').OnExecute := Command_CopyDB;
-  FRecvTunnel.RegisterDirectStream('CompressDB').OnExecute := Command_CompressDB;
-  FRecvTunnel.RegisterDirectStream('ReplaceDB').OnExecute := Command_ReplaceDB;
-  FRecvTunnel.RegisterDirectStream('ResetData').OnExecute := Command_ResetData;
-
-  FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := Command_QueryDB;
-  FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := Command_DownloadDB;
-  FRecvTunnel.RegisterDirectStream('DownloadDBWithID').OnExecute := Command_DownloadDBWithID;
-  FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := Command_RequestDownloadAssembleStream;
-  FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := Command_RequestFastDownloadAssembleStream;
-
-  FRecvTunnel.RegisterCompleteBuffer('FastPostCompleteBuffer').OnExecute := Command_FastPostCompleteBuffer;
-  FRecvTunnel.RegisterCompleteBuffer('FastInsertCompleteBuffer').OnExecute := Command_FastInsertCompleteBuffer;
-  FRecvTunnel.RegisterCompleteBuffer('FastModifyCompleteBuffer').OnExecute := Command_FastModifyCompleteBuffer;
-
-  FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := Command_CompletedPostAssembleStream;
-  FRecvTunnel.RegisterDirectStream('CompletedInsertAssembleStream').OnExecute := Command_CompletedInsertAssembleStream;
-  FRecvTunnel.RegisterDirectStream('CompletedModifyAssembleStream').OnExecute := Command_CompletedModifyAssembleStream;
-  FRecvTunnel.RegisterDirectStream('DeleteData').OnExecute := Command_DeleteData;
-
-  FRecvTunnel.RegisterStream('GetDBList').OnExecute := Command_GetDBList;
-  FRecvTunnel.RegisterStream('GetQueryList').OnExecute := Command_GetQueryList;
-  FRecvTunnel.RegisterStream('GetQueryState').OnExecute := Command_GetQueryState;
-  FRecvTunnel.RegisterDirectStream('QueryStop').OnExecute := Command_QueryStop;
-  FRecvTunnel.RegisterDirectStream('QueryPause').OnExecute := Command_QueryPause;
-  FRecvTunnel.RegisterDirectStream('QueryPlay').OnExecute := Command_QueryPlay;
-{$ENDIF}
+  FRecvTunnel.RegisterStream('GetDBList').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetDBList;
+  FRecvTunnel.RegisterStream('GetQueryList').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetQueryList;
+  FRecvTunnel.RegisterStream('GetQueryState').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetQueryState;
+  FRecvTunnel.RegisterDirectStream('QueryStop').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryStop;
+  FRecvTunnel.RegisterDirectStream('QueryPause').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryPause;
+  FRecvTunnel.RegisterDirectStream('QueryPlay').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryPlay;
 end;
 
 procedure TDataStoreService_VirtualAuth.UnRegisterCommand;
@@ -1388,6 +1403,21 @@ begin
     end;
 end;
 
+procedure TDataStoreClient_VirtualAuth.EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
+begin
+  SequEncryptCBC(FDataStoreCipherSecurity, sour, Size, FDataStoreCipherKey, Encrypt, True);
+end;
+
+procedure TDataStoreClient_VirtualAuth.Command_DataStoreSecurity(Sender: TPeerIO; InData: TDataFrameEngine);
+var
+  arr: TDataFrameArrayByte;
+begin
+  FDataStoreCipherSecurity := TCipherSecurity(InData.Reader.ReadByte);
+  arr := InData.Reader.ReadArrayByte;
+  SetLength(FDataStoreCipherKey, arr.Count);
+  arr.GetBuff(@FDataStoreCipherKey[0]);
+end;
+
 procedure TDataStoreClient_VirtualAuth.Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   dbN, outN, pipeN: SystemString;
@@ -1404,7 +1434,7 @@ begin
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
     begin
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
-      SequEncrypt(Sender.UserDefine.BigStreamBatchList.Last^.Source.Memory, Sender.UserDefine.BigStreamBatchList.Last^.Source.Size, False, True);
+      EncryptBuffer(Sender.UserDefine.BigStreamBatchList.Last^.Source.Memory, Sender.UserDefine.BigStreamBatchList.Last^.Source.Size, False);
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
       DecompressStream(Sender.UserDefine.BigStreamBatchList.Last^.Source, M);
       Sender.UserDefine.BigStreamBatchList.DeleteLast;
@@ -1516,7 +1546,7 @@ begin
       if M <> nil then
         begin
           CM := TMemoryStream64.Create;
-          SequEncrypt(M.Memory, M.Size, False, True);
+          EncryptBuffer(M.Memory, M.Size, False);
           DecompressStream(M, CM);
           Sender.UserDefine.BigStreamBatchList.DeleteLast;
 
@@ -1633,20 +1663,20 @@ end;
 procedure TDataStoreClient_VirtualAuth.Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   BackcallPtr: PStorePosTransformNotify;
-  Arr: TDataFrameArrayInt64;
+  arr: TDataFrameArrayInt64;
   i: Integer;
   TransformBuff: TZDBStorePosTransformArray;
 begin
   BackcallPtr := PStorePosTransformNotify(InData.Reader.ReadPointer);
 
-  Arr := InData.Reader.ReadArrayInt64;
-  SetLength(TransformBuff, Arr.Count);
-  for i := 0 to Arr.Count - 1 do
-      TransformBuff[i].OriginPos := Arr[i];
+  arr := InData.Reader.ReadArrayInt64;
+  SetLength(TransformBuff, arr.Count);
+  for i := 0 to arr.Count - 1 do
+      TransformBuff[i].OriginPos := arr[i];
 
-  Arr := InData.Reader.ReadArrayInt64;
-  for i := 0 to Arr.Count - 1 do
-      TransformBuff[i].NewPos := Arr[i];
+  arr := InData.Reader.ReadArrayInt64;
+  for i := 0 to arr.Count - 1 do
+      TransformBuff[i].NewPos := arr[i];
 
   if BackcallPtr <> nil then
     begin
@@ -1667,6 +1697,8 @@ end;
 constructor TDataStoreClient_VirtualAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
 begin
   inherited Create(ARecvTunnel, ASendTunnel);
+  FDataStoreCipherSecurity := TCipherSecurity.csNone;
+  SetLength(FDataStoreCipherKey, 0);
 end;
 
 destructor TDataStoreClient_VirtualAuth.Destroy;
@@ -1677,19 +1709,12 @@ end;
 procedure TDataStoreClient_VirtualAuth.RegisterCommand;
 begin
   inherited RegisterCommand;
-{$IFDEF FPC}
-  FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := @Command_CompletedFragmentBigStream;
-  FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := @Command_CompletedQuery;
-  FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := @Command_CompletedDownloadAssemble;
-  FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := @Command_CompletedFastDownloadAssemble;
-  FRecvTunnel.RegisterDirectStream('CompletedStorePosTransform').OnExecute := @Command_CompletedStorePosTransform;
-{$ELSE}
-  FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := Command_CompletedFragmentBigStream;
-  FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := Command_CompletedQuery;
-  FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := Command_CompletedDownloadAssemble;
-  FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := Command_CompletedFastDownloadAssemble;
-  FRecvTunnel.RegisterDirectStream('CompletedStorePosTransform').OnExecute := Command_CompletedStorePosTransform;
-{$ENDIF}
+  FRecvTunnel.RegisterDirectStream('DataStoreSecurity').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DataStoreSecurity;
+  FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedFragmentBigStream;
+  FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedQuery;
+  FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedFastDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream('CompletedStorePosTransform').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedStorePosTransform;
 end;
 
 procedure TDataStoreClient_VirtualAuth.UnRegisterCommand;
@@ -2369,7 +2394,7 @@ procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; str
 var
   de: TDataFrameEngine;
 begin
-  SequEncrypt(stream.Memory, stream.Size, True, True);
+  EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
@@ -2408,6 +2433,15 @@ begin
   PostAssembleStream(dbN, M, c_VL, True);
 end;
 
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: THashStringList);
+var
+  M: TMemoryStream64;
+begin
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  PostAssembleStream(dbN, M, c_VT, True);
+end;
+
 procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
@@ -2444,7 +2478,7 @@ procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; d
 var
   de: TDataFrameEngine;
 begin
-  SequEncrypt(stream.Memory, stream.Size, True, True);
+  EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
@@ -2484,6 +2518,15 @@ begin
   InsertAssembleStream(dbN, dStorePos, M, c_VL, True);
 end;
 
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+var
+  M: TMemoryStream64;
+begin
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  InsertAssembleStream(dbN, dStorePos, M, c_VT, True);
+end;
+
 procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
@@ -2520,7 +2563,7 @@ procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; d
 var
   de: TDataFrameEngine;
 begin
-  SequEncrypt(stream.Memory, stream.Size, True, True);
+  EncryptBuffer(stream.Memory, stream.Size, True);
 
   PostBatchStream(stream, DoneTimeFree);
 
@@ -2552,6 +2595,15 @@ begin
 end;
 
 procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
+var
+  M: TMemoryStream64;
+begin
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  ModifyAssembleStream(dbN, dStorePos, M, True);
+end;
+
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
@@ -2664,6 +2716,15 @@ begin
   FastPostCompleteBuffer(dbN, M, c_VL, True);
 end;
 
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: THashStringList);
+var
+  M: TMemoryStream64;
+begin
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastPostCompleteBuffer(dbN, M, c_VT, True);
+end;
+
 procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
@@ -2737,6 +2798,15 @@ begin
   FastInsertCompleteBuffer(dbN, dStorePos, M, c_VL, True);
 end;
 
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+var
+  M: TMemoryStream64;
+begin
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastInsertCompleteBuffer(dbN, dStorePos, M, c_VT, True);
+end;
+
 procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
@@ -2805,6 +2875,15 @@ begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
   FastModifyCompleteBuffer(dbN, dStorePos, M, c_VL, True);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+var
+  M: TMemoryStream64;
+begin
+  M := TMemoryStream64.Create;
+  DataSource.SaveToStream(M);
+  FastModifyCompleteBuffer(dbN, dStorePos, M, c_VT, True);
 end;
 
 procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);

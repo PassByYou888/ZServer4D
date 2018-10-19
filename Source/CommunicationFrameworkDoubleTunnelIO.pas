@@ -133,7 +133,7 @@ type
     destructor Destroy; override;
 
     procedure SwitchAsMaxPerformance;
-    procedure SwitchAsMaxSafe;
+    procedure SwitchAsMaxSecurity;
     procedure SwitchAsDefaultPerformance;
 
     procedure Progress; virtual;
@@ -145,17 +145,17 @@ type
 
     procedure SaveUserDB;
 
-    function RegUser(AUserID, APasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
-    function ExistsUser(AUserID: SystemString): Boolean;
-    function GetUserPath(AUserID: SystemString): SystemString;
-    function GetUserFile(AUserID, AUserFileName: SystemString): SystemString;
-    function GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel;
-    function UserOnline(AUserID: SystemString): Boolean;
+    function RegUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+    function ExistsUser(UsrID: SystemString): Boolean;
+    function GetUserPath(UsrID: SystemString): SystemString;
+    function GetUserFile(UsrID, AUserFileName: SystemString): SystemString;
+    function GetUserDefineIO(UsrID: SystemString): TPeerClientUserDefineForRecvTunnel;
+    function UserOnline(UsrID: SystemString): Boolean;
 
-    function PackUserAsFile(AUserID, aPackFile: SystemString): Boolean;
-    function PackUserAsStream(AUserID: SystemString; PackStream: TCoreClassStream): Boolean;
-    function UnPackFileAsUser(aPackFile: SystemString): Boolean;
-    function UnPackStreamAsUser(aPackStream: TCoreClassStream): Boolean;
+    function PackUserAsFile(UsrID, packageFile: SystemString): Boolean;
+    function PackUserAsStream(UsrID: SystemString; packageStream: TCoreClassStream): Boolean;
+    function UnPackFileAsUser(packageFile: SystemString): Boolean;
+    function UnPackStreamAsUser(packageStream: TCoreClassStream): Boolean;
 
     // only work in direct command
     // if user online immediate execution
@@ -296,7 +296,7 @@ type
     function Connected: Boolean; virtual;
 
     procedure SwitchAsMaxPerformance;
-    procedure SwitchAsMaxSafe;
+    procedure SwitchAsMaxSecurity;
     procedure SwitchAsDefaultPerformance;
 
     procedure Progress; virtual;
@@ -337,7 +337,7 @@ type
 
     // Block style
     function ChnagePassword(oldPasswd, newPasswd: SystemString): Boolean;
-    function CustomNewUser(AUserID, APasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+    function CustomNewUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
 
     procedure ProcessStoreQueueCMD;
 
@@ -1783,10 +1783,10 @@ begin
   FSendTunnel.SwitchMaxPerformance;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService.SwitchAsMaxSafe;
+procedure TCommunicationFramework_DoubleTunnelService.SwitchAsMaxSecurity;
 begin
-  FRecvTunnel.SwitchMaxSafe;
-  FSendTunnel.SwitchMaxSafe;
+  FRecvTunnel.SwitchMaxSecurity;
+  FSendTunnel.SwitchMaxSecurity;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService.SwitchAsDefaultPerformance;
@@ -1844,21 +1844,21 @@ begin
     end;
 end;
 
-function TCommunicationFramework_DoubleTunnelService.RegUser(AUserID, APasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+function TCommunicationFramework_DoubleTunnelService.RegUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
 var
   AUserFlag, AUserPath: SystemString;
   AUserDBIntf: THashVariantList;
   te: TSectionTextData;
 begin
   Result := False;
-  if umlExistsLimitChar(AUserID, '[]:'#13#10#9#8#0) then
+  if umlExistsLimitChar(UsrID, '[]:'#13#10#9#8#0) then
       Exit;
 
-  if FUserDB.Exists(AUserID) then
+  if FUserDB.Exists(UsrID) then
       Exit;
 
   LockObject(FLoginUserList);
-  if FLoginUserList.Exists(AUserID) then
+  if FLoginUserList.Exists(UsrID) then
     begin
       UnLockObject(FLoginUserList);
       Exit;
@@ -1870,20 +1870,20 @@ begin
   AUserPath := umlCombinePath(FRootPath, AUserFlag);
   umlCreateDirectory(AUserPath);
 
-  AUserDBIntf := FUserDB.VariantList[AUserID];
+  AUserDBIntf := FUserDB.VariantList[UsrID];
   AUserDBIntf['UserFlag'] := AUserFlag;
-  AUserDBIntf['password'] := GenerateQuantumCryptographyPassword(APasswd).Text;
+  AUserDBIntf['password'] := GenerateQuantumCryptographyPassword(UsrPasswd).Text;
 
   if AUserConfigFile <> nil then
     begin
-      AUserConfigFile.Hit['UserInfo', 'UserID'] := AUserID;
+      AUserConfigFile.Hit['UserInfo', 'UserID'] := UsrID;
       AUserConfigFile.Hit['UserInfo', 'Password'] := AUserDBIntf['password'];
       AUserConfigFile.SaveToFile(umlCombineFileName(AUserPath, 'User.Config'));
     end
   else
     begin
       te := TSectionTextData.Create;
-      te.Hit['UserInfo', 'UserID'] := AUserID;
+      te.Hit['UserInfo', 'UserID'] := UsrID;
       te.Hit['UserInfo', 'Password'] := AUserDBIntf['password'];
       te.SaveToFile(umlCombineFileName(AUserPath, 'User.Config'));
       DisposeObject(te);
@@ -1892,96 +1892,96 @@ begin
   if FCanSaveUserInfo then
       SaveUserDB;
 
-  UserRegistedSuccess(AUserID);
+  UserRegistedSuccess(UsrID);
   Result := True;
 end;
 
-function TCommunicationFramework_DoubleTunnelService.ExistsUser(AUserID: SystemString): Boolean;
+function TCommunicationFramework_DoubleTunnelService.ExistsUser(UsrID: SystemString): Boolean;
 begin
-  Result := FUserDB.Exists(AUserID);
+  Result := FUserDB.Exists(UsrID);
 end;
 
-function TCommunicationFramework_DoubleTunnelService.GetUserPath(AUserID: SystemString): SystemString;
+function TCommunicationFramework_DoubleTunnelService.GetUserPath(UsrID: SystemString): SystemString;
 var
   AUserFlag: SystemString;
   AUserDBIntf: THashVariantList;
 begin
   Result := '';
-  if not ExistsUser(AUserID) then
+  if not ExistsUser(UsrID) then
       Exit;
 
-  AUserDBIntf := FUserDB.VariantList[AUserID];
+  AUserDBIntf := FUserDB.VariantList[UsrID];
   AUserFlag := AUserDBIntf.GetDefaultValue('UserFlag', '');
   Result := umlCombinePath(FRootPath, AUserFlag);
 end;
 
-function TCommunicationFramework_DoubleTunnelService.GetUserFile(AUserID, AUserFileName: SystemString): SystemString;
+function TCommunicationFramework_DoubleTunnelService.GetUserFile(UsrID, AUserFileName: SystemString): SystemString;
 begin
-  Result := umlCombineFileName(GetUserPath(AUserID), AUserFileName);
+  Result := umlCombineFileName(GetUserPath(UsrID), AUserFileName);
 end;
 
-function TCommunicationFramework_DoubleTunnelService.GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel;
+function TCommunicationFramework_DoubleTunnelService.GetUserDefineIO(UsrID: SystemString): TPeerClientUserDefineForRecvTunnel;
 begin
-  Result := TPeerClientUserDefineForRecvTunnel(FLoginUserDefineIOList[AUserID]);
+  Result := TPeerClientUserDefineForRecvTunnel(FLoginUserDefineIOList[UsrID]);
 end;
 
-function TCommunicationFramework_DoubleTunnelService.UserOnline(AUserID: SystemString): Boolean;
+function TCommunicationFramework_DoubleTunnelService.UserOnline(UsrID: SystemString): Boolean;
 begin
-  Result := GetUserDefineIO(AUserID) <> nil;
+  Result := GetUserDefineIO(UsrID) <> nil;
 end;
 
-function TCommunicationFramework_DoubleTunnelService.PackUserAsFile(AUserID, aPackFile: SystemString): Boolean;
+function TCommunicationFramework_DoubleTunnelService.PackUserAsFile(UsrID, packageFile: SystemString): Boolean;
 var
   cli: TPeerClientUserDefineForRecvTunnel;
 begin
   Result := False;
-  if not ExistsUser(AUserID) then
+  if not ExistsUser(UsrID) then
       Exit;
-  cli := GetUserDefineIO(AUserID);
+  cli := GetUserDefineIO(UsrID);
   if cli <> nil then
       cli.SaveConfigFile;
 
-  BatchImportPathToDBFile(GetUserPath(AUserID), '*', aPackFile);
+  BatchImportPathToDBFile(GetUserPath(UsrID), '*', packageFile);
 
   Result := True;
 end;
 
-function TCommunicationFramework_DoubleTunnelService.PackUserAsStream(AUserID: SystemString; PackStream: TCoreClassStream): Boolean;
+function TCommunicationFramework_DoubleTunnelService.PackUserAsStream(UsrID: SystemString; packageStream: TCoreClassStream): Boolean;
 var
   cli: TPeerClientUserDefineForRecvTunnel;
 begin
   Result := False;
-  if not ExistsUser(AUserID) then
+  if not ExistsUser(UsrID) then
       Exit;
-  cli := GetUserDefineIO(AUserID);
+  cli := GetUserDefineIO(UsrID);
   if cli <> nil then
       cli.SaveConfigFile;
 
-  BatchImportPathToDBStream(GetUserPath(AUserID), '*', PackStream);
+  BatchImportPathToDBStream(GetUserPath(UsrID), '*', packageStream);
 
   Result := True;
 end;
 
-function TCommunicationFramework_DoubleTunnelService.UnPackFileAsUser(aPackFile: SystemString): Boolean;
+function TCommunicationFramework_DoubleTunnelService.UnPackFileAsUser(packageFile: SystemString): Boolean;
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(aPackFile, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(packageFile, fmOpenRead or fmShareDenyWrite);
   Result := UnPackStreamAsUser(fs);
   DisposeObject(fs);
 end;
 
-function TCommunicationFramework_DoubleTunnelService.UnPackStreamAsUser(aPackStream: TCoreClassStream): Boolean;
+function TCommunicationFramework_DoubleTunnelService.UnPackStreamAsUser(packageStream: TCoreClassStream): Boolean;
 var
   dbEng: TObjectDataManager;
   M: TMemoryStream64;
   te: TSectionTextData;
 
-  AUserID, APasswd: SystemString;
+  UsrID, UsrPasswd: SystemString;
   AUserDBIntf: THashVariantList;
 begin
-  aPackStream.Position := 0;
-  dbEng := TObjectDataManager.CreateAsStream(aPackStream, '', ObjectDataMarshal.ID, True, False, False);
+  packageStream.Position := 0;
+  dbEng := TObjectDataManager.CreateAsStream(packageStream, '', ObjectDataMarshal.ID, True, False, False);
   M := TMemoryStream64.Create;
   te := TSectionTextData.Create;
 
@@ -1992,32 +1992,32 @@ begin
         M.Position := 0;
         te.LoadFromStream(M);
 
-        AUserID := te.GetDefaultValue('UserInfo', 'UserID', '');
-        APasswd := te.GetDefaultValue('UserInfo', 'Password', '');
+        UsrID := te.GetDefaultValue('UserInfo', 'UserID', '');
+        UsrPasswd := te.GetDefaultValue('UserInfo', 'Password', '');
 
-        if not UserOnline(AUserID) then
+        if not UserOnline(UsrID) then
           begin
-            if not ExistsUser(AUserID) then
+            if not ExistsUser(UsrID) then
               begin
-                DoStatus('Register new user "%s" From Pack Stream', [AUserID]);
-                RegUser(AUserID, APasswd, nil);
-                ExtractDBToPath(dbEng, GetUserPath(AUserID));
+                DoStatus('Register new user "%s" From Pack Stream', [UsrID]);
+                RegUser(UsrID, UsrPasswd, nil);
+                ExtractDBToPath(dbEng, GetUserPath(UsrID));
                 Result := True;
               end
             else
               begin
-                DoStatus('update user "%s" From Pack Stream', [AUserID]);
-                ExtractDBToPath(dbEng, GetUserPath(AUserID));
+                DoStatus('update user "%s" From Pack Stream', [UsrID]);
+                ExtractDBToPath(dbEng, GetUserPath(UsrID));
 
-                AUserDBIntf := FUserDB.VariantList[AUserID];
-                AUserDBIntf['password'] := APasswd;
+                AUserDBIntf := FUserDB.VariantList[UsrID];
+                AUserDBIntf['password'] := UsrPasswd;
 
                 SaveUserDB;
                 Result := True;
               end;
           end
         else
-            DoStatus('un pack error, User is Online:%s', [AUserID]);
+            DoStatus('un pack error, User is Online:%s', [UsrID]);
       end
     else
         DoStatus('unpack error,no exists file user.config in pack Stream', []);
@@ -2834,10 +2834,10 @@ begin
   FSendTunnel.SwitchMaxPerformance;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient.SwitchAsMaxSafe;
+procedure TCommunicationFramework_DoubleTunnelClient.SwitchAsMaxSecurity;
 begin
-  FRecvTunnel.SwitchMaxSafe;
-  FSendTunnel.SwitchMaxSafe;
+  FRecvTunnel.SwitchMaxSecurity;
+  FSendTunnel.SwitchMaxSecurity;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient.SwitchAsDefaultPerformance;
@@ -3234,7 +3234,7 @@ begin
   DisposeObject(resDE);
 end;
 
-function TCommunicationFramework_DoubleTunnelClient.CustomNewUser(AUserID, APasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+function TCommunicationFramework_DoubleTunnelClient.CustomNewUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
@@ -3246,8 +3246,8 @@ begin
   sendDE := TDataFrameEngine.Create;
   resDE := TDataFrameEngine.Create;
 
-  sendDE.WriteString(AUserID);
-  sendDE.WriteString(APasswd);
+  sendDE.WriteString(UsrID);
+  sendDE.WriteString(UsrPasswd);
   sendDE.WriteSectionText(AUserConfigFile);
 
   FSendTunnel.WaitSendStreamCmd('CustomNewUser', sendDE, resDE, FWaitCommandTimeout);

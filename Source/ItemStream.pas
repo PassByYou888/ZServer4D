@@ -42,8 +42,10 @@ type
 
     function read(var buffer; Count: longint): longint; override;
     function write(const buffer; Count: longint): longint; override;
+
     function Seek(Offset: longint; origin: Word): longint; overload; override;
     function Seek(const Offset: Int64; origin: TSeekOrigin): Int64; overload; override;
+
     procedure SeekStart;
     procedure SeekLast;
     function UpdateHandle: Boolean;

@@ -31,45 +31,62 @@ type
     procedure CreateAfter; override;
     destructor Destroy; override;
 
+    { core interface: return connection state }
     function Connected: Boolean; override;
+
+    { core interface: disconnect imp. }
     procedure Disconnect; override;
+
+    { core interface: kernel triggers when sending data. }
     procedure SendByteBuffer(const buff: PByte; const Size: nativeInt); override;
+    { core interface: kernel will do WriteBufferOpen before sending data. }
     procedure WriteBufferOpen; override;
+    { core interface: kernel will do WriteBufferFlush after sending data. }
     procedure WriteBufferFlush; override;
+    { core interface: kernel will do WriteBufferClose after sending a batch of data. }
     procedure WriteBufferClose; override;
+
+    { core interface: get the IP information. }
     function GetPeerIP: SystemString; override;
+
+    { selected ignore: If your data is in memory and wait been sent, it returns to False. }
+    { selected ignore: if you do not consider high concurrency optimization, you can ignore the interface. }
     function WriteBufferEmpty: Boolean; override;
+
+    { selected ignore: Kernel main loop, you can do ignore the interface }
     procedure Progress; override;
   end;
 
   TCommunicationFramework_Client_Refrence = class(TCommunicationFrameworkClient)
-  private
-    FOnAsyncConnectNotifyCall: TStateCall;
-    FOnAsyncConnectNotifyMethod: TStateMethod;
-    FOnAsyncConnectNotifyProc: TStateProc;
-  protected
-    procedure DoConnected(Sender: TPeerIO); override;
-    procedure DoDisconnect(Sender: TPeerIO); override;
   public
     constructor Create; override;
     destructor Destroy; override;
 
+    { selected ignore, TriggerDoConnectFailed provides callbacks for async connection failures }
     procedure TriggerDoConnectFailed; override;
+    { selected ignore, TriggerDoConnectFinished provides callbacks for successful async connections }
     procedure TriggerDoConnectFinished; override;
 
-    function Connected: Boolean; override;
-    function ClientIO: TPeerIO; override;
-    procedure TriggerQueueData(v: PQueueData); override;
-    procedure Progress; override;
-
-    procedure AsyncConnect(addr: SystemString; Port: Word); overload;
+    { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
     procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
     procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
     procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
-    function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
-    function Connect(Host: SystemString; Port: SystemString): Boolean; overload;
+    { Core interface: Blocking connection, which must be made sure that the encryption protocol has been negotiated before the call returns to state, refer to CrossSocket or Indy's interface imp }
+    function Connect(addr: SystemString; Port: Word): Boolean; override;
+
+    { core interface: return connection state }
+    function Connected: Boolean; override;
+    { core interface: disconnect imp. }
     procedure Disconnect; override;
+    { Core interface: returns the TPeerIO instance of the client. }
+    function ClientIO: TPeerIO; override;
+    { Selected ignore: in the kernel post a queue command, it triggers. }
+    procedure TriggerQueueData(v: PQueueData); override;
+    { core interface: Kernel main loop }
+    procedure Progress; override;
   end;
 
 implementation
@@ -87,6 +104,7 @@ end;
 
 function TPeerIOWithRefrenceClient.Connected: Boolean;
 begin
+  Result := True;
 end;
 
 procedure TPeerIOWithRefrenceClient.Disconnect;
@@ -113,10 +131,12 @@ end;
 
 function TPeerIOWithRefrenceClient.GetPeerIP: SystemString;
 begin
+  Result := '';
 end;
 
 function TPeerIOWithRefrenceClient.WriteBufferEmpty: Boolean;
 begin
+  Result := True;
 end;
 
 procedure TPeerIOWithRefrenceClient.Progress;
@@ -125,23 +145,9 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Client_Refrence.DoConnected(Sender: TPeerIO);
-begin
-  inherited DoConnected(Sender);
-end;
-
-procedure TCommunicationFramework_Client_Refrence.DoDisconnect(Sender: TPeerIO);
-begin
-  inherited DoDisconnect(Sender);
-end;
-
 constructor TCommunicationFramework_Client_Refrence.Create;
 begin
   inherited Create;
-
-  FOnAsyncConnectNotifyCall := nil;
-  FOnAsyncConnectNotifyMethod := nil;
-  FOnAsyncConnectNotifyProc := nil;
 end;
 
 destructor TCommunicationFramework_Client_Refrence.Destroy;
@@ -153,39 +159,31 @@ end;
 procedure TCommunicationFramework_Client_Refrence.TriggerDoConnectFailed;
 begin
   inherited TriggerDoConnectFailed;
-
-  try
-    if Assigned(FOnAsyncConnectNotifyCall) then
-        FOnAsyncConnectNotifyCall(False);
-    if Assigned(FOnAsyncConnectNotifyMethod) then
-        FOnAsyncConnectNotifyMethod(False);
-    if Assigned(FOnAsyncConnectNotifyProc) then
-        FOnAsyncConnectNotifyProc(False);
-  except
-  end;
-
-  FOnAsyncConnectNotifyCall := nil;
-  FOnAsyncConnectNotifyMethod := nil;
-  FOnAsyncConnectNotifyProc := nil;
 end;
 
 procedure TCommunicationFramework_Client_Refrence.TriggerDoConnectFinished;
 begin
   inherited TriggerDoConnectFinished;
+end;
 
-  try
-    if Assigned(FOnAsyncConnectNotifyCall) then
-        FOnAsyncConnectNotifyCall(True);
-    if Assigned(FOnAsyncConnectNotifyMethod) then
-        FOnAsyncConnectNotifyMethod(True);
-    if Assigned(FOnAsyncConnectNotifyProc) then
-        FOnAsyncConnectNotifyProc(True);
-  except
-  end;
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
+begin
+  inherited;
+end;
 
-  FOnAsyncConnectNotifyCall := nil;
-  FOnAsyncConnectNotifyMethod := nil;
-  FOnAsyncConnectNotifyProc := nil;
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
+begin
+  inherited;
+end;
+
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
+begin
+  inherited;
+end;
+
+function TCommunicationFramework_Client_Refrence.Connect(addr: SystemString; Port: Word): Boolean;
+begin
+  Result := False;
 end;
 
 function TCommunicationFramework_Client_Refrence.Connected: Boolean;
@@ -193,8 +191,15 @@ begin
   Result := (ClientIO <> nil) and (ClientIO.Connected);
 end;
 
+procedure TCommunicationFramework_Client_Refrence.Disconnect;
+begin
+  if Connected then
+      ClientIO.Disconnect;
+end;
+
 function TCommunicationFramework_Client_Refrence.ClientIO: TPeerIO;
 begin
+  Result := nil;
 end;
 
 procedure TCommunicationFramework_Client_Refrence.TriggerQueueData(v: PQueueData);
@@ -212,44 +217,6 @@ end;
 procedure TCommunicationFramework_Client_Refrence.Progress;
 begin
   inherited Progress;
-end;
-
-procedure TCommunicationFramework_Client_Refrence.AsyncConnect(addr: SystemString; Port: Word);
-begin
-  FOnAsyncConnectNotifyCall := nil;
-  FOnAsyncConnectNotifyMethod := nil;
-  FOnAsyncConnectNotifyProc := nil;
-end;
-
-procedure TCommunicationFramework_Client_Refrence.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
-begin
-end;
-
-procedure TCommunicationFramework_Client_Refrence.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
-begin
-end;
-
-procedure TCommunicationFramework_Client_Refrence.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
-begin
-end;
-
-function TCommunicationFramework_Client_Refrence.Connect(addr: SystemString; Port: Word): Boolean;
-begin
-end;
-
-function TCommunicationFramework_Client_Refrence.Connect(Host: SystemString; Port: SystemString): Boolean;
-begin
-  Result := Connect(Host, umlStrToInt(Port, 0));
-end;
-
-procedure TCommunicationFramework_Client_Refrence.Disconnect;
-begin
-  if Connected then
-      ClientIO.Disconnect;
-
-  FOnAsyncConnectNotifyCall := nil;
-  FOnAsyncConnectNotifyMethod := nil;
-  FOnAsyncConnectNotifyProc := nil;
 end;
 
 initialization

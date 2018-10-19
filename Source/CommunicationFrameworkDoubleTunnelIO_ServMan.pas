@@ -242,7 +242,7 @@ begin
 
   RegisterCommand;
 
-  SwitchAsMaxSafe;
+  SwitchAsMaxSecurity;
 end;
 
 destructor TServerManager_Client.Destroy;
@@ -814,7 +814,7 @@ begin
 
   LastTimeTick := GetTimeTick;
 
-  SwitchAsMaxSafe;
+  SwitchAsMaxSecurity;
 end;
 
 destructor TServerManager.Destroy;

@@ -47,6 +47,7 @@ type
     FHttpVer: string;
     FMethod: string;
     FURI: string;
+    FURLParams: String;
   public
 
     constructor Create;
@@ -75,6 +76,7 @@ type
     ///   包含参数部分
     /// </summary>
     property URI: string read FURI write FURI;
+    property URLParams: String read FURLParams write FURLParams;
 
 
 
@@ -2150,6 +2152,9 @@ begin
       if length(lvStr) > 0 then
       begin
         lvStart := StrToInt64Def(lvStr, 0);
+      end else
+      begin
+        lvStart := 0;
       end;
       inc(lvPtr);
       if LeftUntil(lvPtr, [',', ' '], lvStr) = 0 then
@@ -2196,6 +2201,9 @@ begin
       Result := -1;
     end;
 
+  end else
+  begin
+    Result := -1;
   end;
 end;
 
@@ -2216,7 +2224,13 @@ procedure THttpHeaderBuilder.Build(outHeader: TStrings);
 var
   i: Integer;
 begin
-  outHeader.Add(Format('%s %s %s', [FMethod, FURI, FHttpVer]));
+  if Length(FURLParams)=0 then
+  begin
+    outHeader.Add(Format('%s %s %s', [FMethod, FURI, FHttpVer]));
+  end else
+  begin
+    outHeader.Add(Format('%s %s %s', [FMethod, FURI + '?' + FURLParams, FHttpVer]));
+  end;
   for i := 0 to FHeaders.Count - 1 do
   begin
     outHeader.Add(FHeaders.Items[i].Name.AsString + ':' + FHeaders.Items[i].AsString)
@@ -2230,6 +2244,7 @@ var
 begin
   lvHeader := TStringList.Create;
   try
+    lvHeader.LineBreak := #13#10;
     Build(lvHeader); 
     Result := lvHeader.Text;
   finally

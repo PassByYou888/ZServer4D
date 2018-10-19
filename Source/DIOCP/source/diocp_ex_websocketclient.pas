@@ -15,7 +15,7 @@ type
     FWsUrl:String;
     FHeaderBuilder: THttpHeaderBuilder;
     /// <summary>
-    ///  WebSocket接收到的整个数据
+    ///  WebSocket接收到的整个数据 
     /// </summary>
     FWebSocketContentBuffer: TDBufferBuilder;
 
@@ -255,6 +255,7 @@ begin
   //    Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
 
    FHeaderBuilder.URI := FURL.URI;
+   FHeaderBuilder.URLParams := FURL.ParamStr;
    //FHeaderBuilder.URI := FWsUrl;
    FHeaderBuilder.Method := 'GET';
 

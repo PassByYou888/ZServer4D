@@ -293,6 +293,7 @@ type
     function PostData(dn: SystemString; dSour: TCoreClassStream; ID: Cardinal): Int64; overload;
     function PostData(dn: SystemString; dSour: TDataFrameEngine): Int64; overload;
     function PostData(dn: SystemString; dSour: THashVariantList): Int64; overload;
+    function PostData(dn: SystemString; dSour: THashStringList): Int64; overload;
     function PostData(dn: SystemString; dSour: TSectionTextData): Int64; overload;
     function PostData(dn: SystemString; dSour: TPascalString): Int64; overload;
 {$IFNDEF FPC}
@@ -303,6 +304,7 @@ type
     function InsertData(dn: SystemString; InsertPos: Int64; dSour: TCoreClassStream; ID: Cardinal): Int64; overload;
     function InsertData(dn: SystemString; InsertPos: Int64; dSour: TDataFrameEngine): Int64; overload;
     function InsertData(dn: SystemString; InsertPos: Int64; dSour: THashVariantList): Int64; overload;
+    function InsertData(dn: SystemString; InsertPos: Int64; dSour: THashStringList): Int64; overload;
     function InsertData(dn: SystemString; InsertPos: Int64; dSour: TSectionTextData): Int64; overload;
     function InsertData(dn: SystemString; InsertPos: Int64; dSour: TPascalString): Int64; overload;
 {$IFNDEF FPC}
@@ -1942,6 +1944,17 @@ begin
   Result := d.AddData(dSour);
 end;
 
+function TZDBLocalManager.PostData(dn: SystemString; dSour: THashStringList): Int64;
+var
+  d: TZDBStoreEngine;
+begin
+  Result := -1;
+  d := GetDB(dn);
+  if d = nil then
+      d := InitMemoryDB(dn);
+  Result := d.AddData(dSour);
+end;
+
 function TZDBLocalManager.PostData(dn: SystemString; dSour: TSectionTextData): Int64;
 var
   d: TZDBStoreEngine;
@@ -2064,6 +2077,21 @@ begin
 end;
 
 function TZDBLocalManager.InsertData(dn: SystemString; InsertPos: Int64; dSour: THashVariantList): Int64;
+var
+  d: TZDBStoreEngine;
+begin
+  Result := -1;
+  d := GetDB(dn);
+  if d = nil then
+    begin
+      d := InitMemoryDB(dn);
+      Result := d.AddData(dSour);
+    end
+  else
+      Result := d.InsertData(InsertPos, dSour);
+end;
+
+function TZDBLocalManager.InsertData(dn: SystemString; InsertPos: Int64; dSour: THashStringList): Int64;
 var
   d: TZDBStoreEngine;
 begin

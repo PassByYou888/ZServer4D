@@ -90,7 +90,7 @@ type
     destructor Destroy; override;
 
     procedure SwitchAsMaxPerformance;
-    procedure SwitchAsMaxSafe;
+    procedure SwitchAsMaxSecurity;
     procedure SwitchAsDefaultPerformance;
 
     procedure Progress; virtual;
@@ -215,7 +215,7 @@ type
     function Connected: Boolean; virtual;
 
     procedure SwitchAsMaxPerformance;
-    procedure SwitchAsMaxSafe;
+    procedure SwitchAsMaxSecurity;
     procedure SwitchAsDefaultPerformance;
 
     procedure Progress; virtual;
@@ -886,10 +886,10 @@ begin
   FSendTunnel.SwitchMaxPerformance;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelService_NoAuth.SwitchAsMaxSafe;
+procedure TCommunicationFramework_DoubleTunnelService_NoAuth.SwitchAsMaxSecurity;
 begin
-  FRecvTunnel.SwitchMaxSafe;
-  FSendTunnel.SwitchMaxSafe;
+  FRecvTunnel.SwitchMaxSecurity;
+  FSendTunnel.SwitchMaxSecurity;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_NoAuth.SwitchAsDefaultPerformance;
@@ -1541,10 +1541,10 @@ begin
   FSendTunnel.SwitchMaxPerformance;
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.SwitchAsMaxSafe;
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.SwitchAsMaxSecurity;
 begin
-  FRecvTunnel.SwitchMaxSafe;
-  FSendTunnel.SwitchMaxSafe;
+  FRecvTunnel.SwitchMaxSecurity;
+  FSendTunnel.SwitchMaxSecurity;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.SwitchAsDefaultPerformance;

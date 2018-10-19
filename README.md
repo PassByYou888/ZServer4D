@@ -20,6 +20,10 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 内置高级加密系统，一万在线客户端会有一万把密钥，并且能动态定时更换密钥（请参考ZServer4D的附属开源项目 https://github.com/PassByYou888/CoreCipher ）
 
+支持去中心化网络群集，支持去中心化网络群集一键对接
+
+内置抗量子密码支持 https://en.wikipedia.org/wiki/SHA-3
+
 **支持了5大美国国家标准技术研究所(NIST)高级加密标准算法**
 
 - rc6加密，通讯协议支持 https://en.wikipedia.org/wiki/RC6
@@ -28,11 +32,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 - Mars加密，通讯协议支持 https://en.wikipedia.org/wiki/MARS_(cipher)
 - Rijndael加密，通讯协议支持 https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 
-内置抗量子密码支持 https://en.wikipedia.org/wiki/SHA-3
-
 架构设计可以轻松实现IP池和入口网络秒切，非常利于在国内商业环境中防止对手DDos攻击
-
-支持去中心化网络群集，支持去中心化网络群集一键对接
 
 全面支持Linux服务器开发(fpc方向)
 
@@ -64,10 +64,11 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 - MIPS(fpc-little endian), soft float, test pass on QEMU 
 - intel X86(fpc-x86), soft float
-- intel X86(delphi+fpc), hard float,ATHLON64,COREI,COREAVX,COREAVX2
+- intel X86(delphi+fpc), hard float,80386,PENTIUM,PENTIUM2,PENTIUM3,PENTIUM4,PENTIUMM,COREI,COREAVX,COREAVX2
 - intel X64(fpc-x86_64), soft float
 - intel X64(delphi+fpc), hard float,ATHLON64,COREI,COREAVX,COREAVX2
-- ARM(fpc-arm32-eabi,hard float):ARMV3,ARMV4,ARMV4T,ARMV5,ARMV5T,ARMV5TE,ARMV5TEJ,ARMV6,ARMV6K,ARMV6T2,ARMV6Z,ARMV6M,ARMV7,ARMV7A,ARMV7R,ARMV7M,ARMV7EM
+- ARM(fpc-arm32-eabi,soft float):ARMV3,ARMV4,ARMV4T,ARMV5,ARMV5T,ARMV5TE,ARMV5TEJ
+- ARM(fpc-arm32-eabi,hard float):ARMV6,ARMV6K,ARMV6T2,ARMV6Z,ARMV6M,ARMV7,ARMV7A,ARMV7R,ARMV7M,ARMV7EM
 - ARM(fpc-arm64-eabi,hard float):ARMV8，aarch64
 
 
@@ -82,7 +83,7 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 [关于XNAT内网穿透库](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/XNat%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E6%A0%B8%E5%BF%83%E5%BA%93.pdf) [宅服架设(FRP外壳支持)](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7ZSGateway%E6%90%AD%E5%BB%BA%E5%AE%85%E6%9C%8D.pdf)
 
 [BigStream机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/BigStream%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf) [多媒体通讯CompleteBuffer](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8ZS%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6CompleteBuffer.pdf) [BatchStream机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/BatchStream%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf) [HPC服务器的工作机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/HPC%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf) [延迟反馈机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%BB%B6%E8%BF%9F%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
-[p2pVM隧道技术](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZS%E4%B8%AD%E7%9A%84p2pVM%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF.pdf)  [p2pVM第二篇机理说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZS%E7%9A%84%20p2pVM%E7%AC%AC%E4%BA%8C%E7%AF%87%E6%9C%BA%E7%90%86%E8%AF%B4%E6%98%8E.pdf) 
+[双通道机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%8F%8C%E9%80%9A%E9%81%93%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf) [p2pVM隧道技术](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/ZS%E4%B8%AD%E7%9A%84p2pVM%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF.pdf)  [p2pVM第二篇机理说明](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZS%E7%9A%84%20p2pVM%E7%AC%AC%E4%BA%8C%E7%AF%87%E6%9C%BA%E7%90%86%E8%AF%B4%E6%98%8E.pdf) 
 
 [云服务器框架](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%95%86%E4%B8%9A%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A1%86%E6%9E%B62.0%20%E6%A1%86%E6%9E%B6%E8%AF%B4%E6%98%8E.pdf) [怎样开发基于ZS的底层通讯IO接口](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8EZServer4D%E5%BC%80%E5%8F%91%E5%BA%95%E5%B1%82%E9%80%9A%E8%AE%AFIO%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%96%B9%E6%B3%95.pdf) [console模式的后台程序开发](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/console%E6%A8%A1%E5%BC%8F%E5%90%8E%E5%8F%B0%E5%BC%80%E5%8F%91.pdf)
 
@@ -181,6 +182,24 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 ### 大更新预告:下一次更新会增加delphi/fpc控件形式的开发工艺，正在开发中
 
 ### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务
+
+## 2018-10-20
+
+
+> 小幅度更新
+
+- 升级:合并了最近更新的DIOCP库
+- 优化:重做地基库中的Base64编码
+- 优化:内核的状态计数器不再直接使用inc操作，全部改用原子模式AtomInc，Delphi为原生的原子整数操作，因为在fpc不支持通用原子函数使用互斥锁解决
+- 优化:Android平台不再考虑对雷电这类使用kvm加速模拟器支持，开发安卓系统，请使用真实设备
+- 优化:调整了几处正常人类看起来不太顺眼的命名
+- 工艺:在底层IO开发参考代码中编写了详细备注，看一眼即可明白接口含义, CommunicationFramework_Client_Refrence.pas,CommunicationFramework_Server_Refrence.pas
+- 工艺:核心库的加密规则调整:不再使用固定加密算法，内核会随机使用一种加密算法进行工作，
+- 工艺:ZDB新增对基础数据结构THashStringList(比THashVariantList更快)支持
+- 工艺:ZDB改进网络服务的数据传输规则:凡是涉及到数据内容传输的地方，均会自动使用NIST认可的加密算法之一对其进行加密
+- 工艺:将Examples中的所有的目录名全部改成英文
+- 升级:本次升级已经测试通过若干已经上线项目，如不出意外，应该是大更新前最后一个小更新
+
 
 ## 2018-10-16
 

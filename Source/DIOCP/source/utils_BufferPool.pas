@@ -42,7 +42,6 @@ uses
 
 const
   block_flag :Word = $1DFB;
-  STRING_EMPTY:String = '';
 
 {$IFDEF DEBUG}
   protect_size = 8;
@@ -156,6 +155,7 @@ procedure ClearBufferPool(buffPool:PBufferPool);
 
 function GetBuffer(ABuffPool:PBufferPool): PByte;{$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
 
+// 获取一块内存, 可以通过AddRef和ReleaseRef进行引用计数释放
 function GetBuffer(pvSize:Integer): Pointer;{$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
 
 procedure FreeBuffer(const pvBuffer:PByte; const pvHint: string; pvReleaseAttachDataAtEnd:Boolean=True);overload; {$IFDEF HAVE_INLINE} inline;{$ENDIF}
@@ -209,11 +209,11 @@ function AtomicIncrement(var Target: Integer): Integer;{$IFDEF HAVE_INLINE} inli
 function AtomicDecrement(var Target: Integer): Integer;{$IFDEF HAVE_INLINE} inline;{$ENDIF}
 {$IFEND <XE5}
 
-procedure SpinLock(var Target:Integer; var WaitCounter:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
-procedure SpinLock(var Target:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
-procedure SpinUnLock(var Target:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF}overload;
 
 
+//procedure SpinLock(var Target:Integer; var WaitCounter:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
+//procedure SpinLock(var Target:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
+//procedure SpinUnLock(var Target:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF}overload;
 
 
 {$if CompilerVersion < 18} //before delphi 2007
@@ -232,10 +232,19 @@ function GetBufferPoolDebugInfo(ABuffPool:PBufferPool): string;
 
 implementation
 
+const
+  STRING_EMPTY:String = '';
+
+
+
 {$IFDEF DIOCP_DEBUG}
 var
   __debug_dna:Integer;
 {$ENDIF}
+
+
+
+
 
 
 procedure PushABlockBuffer(const pvBufBlock: PBufferBlock; const pvOwner:
@@ -374,7 +383,7 @@ begin
   end;   
 end;
 
-procedure SpinLock(var Target:Integer; var WaitCounter:Integer);
+procedure SpinLock(var Target:Integer; var WaitCounter:Integer); {$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
 begin
   while AtomicCmpExchange(Target, 1, 0) <> 0 do
   begin
@@ -390,7 +399,7 @@ begin
   end;
 end;
 
-procedure SpinLock(var Target:Integer);
+procedure SpinLock(var Target:Integer);{$IFDEF HAVE_INLINE} inline;{$ENDIF} overload;
 begin
   while AtomicCmpExchange(Target, 1, 0) <> 0 do
   begin
@@ -401,7 +410,7 @@ begin
 end;
 
 
-procedure SpinUnLock(var Target:Integer);
+procedure SpinUnLock(var Target:Integer);{$IFDEF HAVE_INLINE} inline;{$ENDIF}
 begin
   if AtomicCmpExchange(Target, 0, 1) <> 1 then
   begin
@@ -598,7 +607,7 @@ end;
 
 function AddRef(const pvBuffer:PByte): Integer;
 begin
-  Result := AddRef(pvBuffer, STRING_EMPTY);
+  Result := AddRef(pvBuffer, '');
 end;
 
 function AddRef(const pvBuffer:PByte; const pvHint: string): Integer;
@@ -632,7 +641,7 @@ end;
 
 function ReleaseRef(const pvBuffer: PByte): Integer;
 begin
-  Result := ReleaseRef(pvBuffer, True, STRING_EMPTY);
+  Result := ReleaseRef(pvBuffer, True, '');
 end;
 
 function ReleaseRef(const pvBuffer: PByte; const pvHint: string): Integer;
@@ -821,7 +830,7 @@ end;
 
 procedure FreeBuffer(const pvBuffer:PByte; pvReleaseAttachDataAtEnd:Boolean=True);overload;{$IFDEF HAVE_INLINE} inline;{$ENDIF}
 begin
-  FreeBuffer(pvBuffer, STRING_EMPTY, pvReleaseAttachDataAtEnd);
+  FreeBuffer(pvBuffer, '', pvReleaseAttachDataAtEnd);
 end;
 
 procedure FreeBuffer(const pvBuffer:PByte; const pvHint: string; pvReleaseAttachDataAtEnd:Boolean);
@@ -1025,7 +1034,7 @@ begin
       {$IFDEF DIOCP_DEBUG}r := {$ENDIF}AddRef(FBuffer{$IFDEF DIOCP_DEBUG}, Format('+ FlushBuffer(%d)', [n]){$ENDIF});    // 避免事件中没有使用引用计数，不释放buf
       try
         {$IFNDEF BIG_CONCURRENT}
-        {$IFDEF DEBUG}PrintDebugString(Format('+ FlushBuffer %2x: %d', [Cardinal(FBuffer), r]));{$ENDIF}
+        {$IFDEF DIOCP_DEBUG}PrintDebugString(Format('+ FlushBuffer %2x: %d', [Cardinal(FBuffer), r]));{$ENDIF}
         {$ENDIF}
         FOnBufferWrite(self, FBuffer, FSize);
       finally

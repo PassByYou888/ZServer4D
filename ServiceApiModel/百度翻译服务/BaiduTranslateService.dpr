@@ -296,7 +296,7 @@ begin
 
   server_1 := TMyServer.Create;
   // 使用最强加密系统，3次级DES反复加密结合ECB
-  server_1.SwitchMaxSafe;
+  server_1.SwitchMaxSecurity;
   // 如果在Ubuntu下使用indy服务器，这里必须指定绑定的回环地址
   // if server_IPv4.StartService('0.0.0.0', 59813) then
 
@@ -313,7 +313,7 @@ begin
   // 如果在linux出现ipv6侦听错误，要么自己装ipv6服务和模块，要么就无视它
   server_2 := TMyServer.Create;
   // 使用最强加密系统，3次级DES反复加密结合ECB
-  server_2.SwitchMaxSafe;
+  server_2.SwitchMaxSecurity;
   if server_2.StartService('::', 59814) then
       DoStatus('start service with ipv6:59814 success')
   else

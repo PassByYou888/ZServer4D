@@ -20,12 +20,13 @@ type
   end;
 
 var
-  CoreCritical: TCriticalSection;
+  CoreCritical, incrementCritical: TCriticalSection;
   CriticalList: TCoreClassList;
 
 procedure InitCriticalLock;
 begin
   CoreCritical := TCriticalSection.Create;
+  incrementCritical := TCriticalSection.Create;
   CriticalList := TCoreClassList.Create;
 end;
 
@@ -40,6 +41,7 @@ begin
     end;
 
   DisposeObject(CoreCritical);
+  DisposeObject(incrementCritical);
   DisposeObject(CriticalList);
 end;
 
@@ -109,6 +111,92 @@ begin
   GetCriticalLock(Obj, p);
   p^.Obj := nil;
   p^.Critical.Release;
-end; 
- 
- 
+end;
+
+procedure AtomInc(var x: Int64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Int64; const v: Int64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Integer; const v: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: Int64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: Int64; const v: Int64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: Integer; const v: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x, v);
+{$ENDIF FPC}
+end;

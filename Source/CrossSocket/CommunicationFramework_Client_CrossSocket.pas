@@ -453,22 +453,22 @@ begin
 
   ICrossSocket(driver).Connect(addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
+    var
+      cli: TContextIntfForClient;
     begin
       if ASuccess then
         begin
+          cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
+          cli.LastActiveTime := GetTimeTickCount;
+          cli.OwnerClient := BuildIntf;
+          AConnection.UserObject := cli;
+
+          cli.OwnerClient.ClientIOIntf := cli;
+
           TThread.Synchronize(TThread.CurrentThread,
             procedure
-            var
-              cli: TContextIntfForClient;
             begin
-              cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
-              cli.LastActiveTime := GetTimeTickCount;
-              cli.OwnerClient := BuildIntf;
-              AConnection.UserObject := cli;
-
-              cli.OwnerClient.ClientIOIntf := cli;
-
-              BuildIntf.ProgressPost.PostExecuteP(1.0, procedure(Sender: TNPostExecute)
+              BuildIntf.ProgressPost.PostExecuteP(0, procedure(Sender: TNPostExecute)
                 begin
                   BuildIntf.DoConnected(cli);
                 end);

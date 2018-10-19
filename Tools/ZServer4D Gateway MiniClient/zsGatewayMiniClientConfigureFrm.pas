@@ -333,7 +333,7 @@ begin
 
   ConfigureClient := TCommunicationFramework_Client_CrossSocket.Create;
   ConfigureClient.QuietMode := True;
-  ConfigureClient.SwitchMaxSafe;
+  ConfigureClient.SwitchMaxSecurity;
 
   NatPort := '';
   WebPort := '';

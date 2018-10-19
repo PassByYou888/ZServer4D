@@ -653,8 +653,8 @@ begin
   // regsiter protocol
   if not PhysicsEngine.ExistsRegistedCmd('IPV6Listen') then
       PhysicsEngine.RegisterStream('IPV6Listen').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}IPV6Listen;
-  // max safe protocol
-  PhysicsEngine.SwitchMaxSafe;
+  // Security protocol
+  PhysicsEngine.SwitchMaxSecurity;
   // start service
   if PhysicsEngine.StartService(TunnelListenAddr, umlStrToInt(TunnelListenPort)) then
       DoStatus('Tunnel Open %s:%s successed', [TranslateBindAddr(TunnelListenAddr), TunnelListenPort.Text])

@@ -1,12 +1,12 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{AB0A8AD6-08EC-4069-B8EC-85F7306FA4D6}</ProjectGuid>
+        <ProjectGuid>{4E7184D2-8DBF-408E-BA20-4DFA99C23DD0}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
         <Projects Include="BaiduTranslateService.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="翻译服务ZS客户端\ZSTranslateClient.dproj">
+        <Projects Include="BaiduTranslateClientDemo\ZSTranslateClient.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -27,13 +27,13 @@
         <MSBuild Projects="BaiduTranslateService.dproj" Targets="Make"/>
     </Target>
     <Target Name="ZSTranslateClient">
-        <MSBuild Projects="翻译服务ZS客户端\ZSTranslateClient.dproj"/>
+        <MSBuild Projects="BaiduTranslateClientDemo\ZSTranslateClient.dproj"/>
     </Target>
     <Target Name="ZSTranslateClient:Clean">
-        <MSBuild Projects="翻译服务ZS客户端\ZSTranslateClient.dproj" Targets="Clean"/>
+        <MSBuild Projects="BaiduTranslateClientDemo\ZSTranslateClient.dproj" Targets="Clean"/>
     </Target>
     <Target Name="ZSTranslateClient:Make">
-        <MSBuild Projects="翻译服务ZS客户端\ZSTranslateClient.dproj" Targets="Make"/>
+        <MSBuild Projects="BaiduTranslateClientDemo\ZSTranslateClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="BaiduTranslateService;ZSTranslateClient"/>

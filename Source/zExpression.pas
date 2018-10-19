@@ -201,6 +201,7 @@ function EvaluateExpressionValue(DebugMode: Boolean; const ExpressionText: Syste
 function EvaluateExpressionValue(const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(DebugMode: Boolean; const ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(const ExpressionText: SystemString): Variant; overload;
+function EvaluateExpressionValue(TextStyle: TTextStyle; const ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(TextStyle: TTextStyle; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; DebugMode: Boolean; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
@@ -2193,6 +2194,11 @@ end;
 function EvaluateExpressionValue(const ExpressionText: SystemString): Variant;
 begin
   Result := EvaluateExpressionValue(False, ExpressionText);
+end;
+
+function EvaluateExpressionValue(TextStyle: TTextStyle; const ExpressionText: SystemString): Variant;
+begin
+  Result := EvaluateExpressionValue(nil, False, TextStyle, ExpressionText, DefaultOpRT);
 end;
 
 function EvaluateExpressionValue(TextStyle: TTextStyle; const ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;

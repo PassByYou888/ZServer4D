@@ -1,3 +1,7 @@
+{
+   数据量大建议采用字符串拼接方式拼接JSON。
+   字符串拼接是最有效率的JSON打包方式
+}
 unit utils_dvalue_dataset;
 
 interface
@@ -17,8 +21,13 @@ procedure ConvertCurrentRecordToDValue(pvDataSet: TDataSet; pvJsonRecord:
 
 procedure AddAFieldValue(pvVal: TDValue; pvField: TField);
 
+procedure AssignFieldValue(pvField:TField; pvVal:TDValue;
+    pvIfNullThenEmpty:Boolean);
+
 procedure AppendFromDValueList(pvDataSet: TDataSet; pvDataList: TDValue);
 procedure AssignRecordFromDValue(pvDataSet: TDataSet; pvJsonRecord:TDValue);
+
+function toSQLValue(pvField: TDValue; pvPrecision: Byte = 4): string;
 
 implementation
 
@@ -64,23 +73,8 @@ begin
   begin
     lvField := pvDataSet.Fields[i];
     lvValue := pvJsonRecord.FindByName(lvField.FieldName);
-    if lvValue <> nil then
-    begin
-      case lvField.DataType of
-        ftInteger, ftWord, ftSmallint, ftLargeint:
-          lvField.AsVariant := lvValue.AsInteger;
-        ftBCD, ftFMTBcd, ftFloat, ftCurrency:
-          lvField.AsVariant := lvValue.AsFloat;
-        ftBoolean:
-          lvField.AsVariant := lvValue.AsBoolean;
-        ftDate, ftDateTime, ftTime:
-          begin
-            lvField.AsVariant := StrToDateTime(lvValue.AsString);
-          end
-      else
-        lvField.AsString := lvValue.AsString;
-      end;
-    end;
+    AssignFieldValue(lvField, lvValue, False);
+
   end;
 end;
 
@@ -123,7 +117,7 @@ begin
     ftBoolean:
       pvVal.Add(pvField.FieldName, pvField.AsBoolean);
     ftDate, ftDateTime, ftTime:
-      pvVal.Add(pvField.FieldName, FormatDateTime('yyyy-MM-dd hh:nn.ss.zzz', pvField.AsDateTime));
+      pvVal.Add(pvField.FieldName, FormatDateTime('yyyy-MM-dd hh:nn:ss.zzz', pvField.AsDateTime));
   else
     pvVal.Add(pvField.FieldName, pvField.AsString);
   end;
@@ -141,6 +135,61 @@ begin
     ConvertCurrentRecordToDValue(pvDataSet, lvItem, pvFields);
     pvDataSet.Next;
   end;
+end;
+
+function toSQLValue(pvField: TDValue; pvPrecision: Byte = 4): string;
+var
+  lvFmt:String;
+begin
+  if pvField=nil then
+     Result := 'NULL'
+  else if pvField.Value.DataType in [vdtBoolean] then
+    Result := '1'
+  else if pvField.Value.DataType in [vdtNull, vdtUnset] then
+    Result := 'NULL'
+  else if pvField.Value.DataType in [vdtDateTime] then
+    Result := '''' +  DateTimeToStr(pvField.AsDateTime) + ''''
+  else if pvField.Value.DataType in [vdtFloat, vdtSingle] then
+  begin
+    lvFmt := '%.' + IntToStr(pvPrecision) + 'f';
+    Result := Format(lvFmt, [pvField.AsFloat]);
+  end else if pvField.Value.DataType in [vdtInt64, vdtInteger, vdtUInt64] then
+    Result := pvField.AsString
+
+  else
+    Result := '''' +  pvField.AsString + '''';
+
+
+end;
+
+procedure AssignFieldValue(pvField:TField; pvVal:TDValue;
+    pvIfNullThenEmpty:Boolean);
+begin
+  if pvField = nil then Exit;
+  if pvVal=nil then
+  begin
+    if pvIfNullThenEmpty then pvField.Clear;
+    Exit;
+  end;
+
+  if pvVal <> nil then
+  begin
+    case pvField.DataType of
+      ftInteger, ftWord, ftSmallint, ftLargeint:
+        pvField.AsVariant := pvVal.AsInteger;
+      ftBCD, ftFMTBcd, ftFloat, ftCurrency:
+        pvField.AsVariant := pvVal.AsFloat;
+      ftBoolean:
+        pvField.AsVariant := pvVal.AsBoolean;
+      ftDate, ftDateTime, ftTime:
+        begin
+          pvField.AsVariant := StrToDateTime(pvVal.AsString);
+        end
+    else
+      pvField.AsString := pvVal.AsString;
+    end;
+  end;
+
 end;
 
 end.

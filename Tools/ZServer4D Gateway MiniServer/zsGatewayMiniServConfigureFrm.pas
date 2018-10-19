@@ -343,7 +343,7 @@ begin
   ConfigureService := TCommunicationFramework_Server_CrossSocket.Create;
   ConfigureService.RegisterStream('GetConfigure').OnExecute := cmd_GetConfigure;
   ConfigureService.QuietMode := True;
-  ConfigureService.SwitchMaxSafe;
+  ConfigureService.SwitchMaxSecurity;
 
   EnabledRemoteConfigureCheckBox.OnClick := nil;
   LoadConfig;

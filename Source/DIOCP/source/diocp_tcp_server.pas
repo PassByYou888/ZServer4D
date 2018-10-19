@@ -167,6 +167,8 @@ type
 
     FCreateSN:Integer;
 
+
+
     // 大于0时不会被KickOut
     FBusingCounter: Integer;
 
@@ -1624,13 +1626,13 @@ end;
 procedure TIocpClientContext.InnerLock;
 begin
   //FContextLocker.lock();
-  SpinLock(FInnerLockerFlag);
+  utils_strings.SpinLock(FInnerLockerFlag);
 end;
 
 procedure TIocpClientContext.InnerUnLock;
 begin
   //FContextLocker.unLock;
-  SpinUnLock(FInnerLockerFlag);
+  utils_strings.SpinUnLock(FInnerLockerFlag);
 end;
 
 
@@ -3254,7 +3256,7 @@ end;
 procedure TDiocpTcpServer.SetWorkerCount(const Value: Integer);
 begin
   // 不设置默认引擎工作线程的数量
-  if FIocpEngine = __defaultDiocpEngine then Exit;
+  // if FIocpEngine = __defaultDiocpEngine then Exit;
 
   FIocpEngine.SetWorkerCount(Value);
 end;
@@ -3878,6 +3880,7 @@ var
 begin
   if not FListenSocket.SocketValid then Exit;
   j := 0;
+  i :=0;
   Assert(FOwner <> nil);
 
   try
@@ -5195,7 +5198,7 @@ end;
 
 procedure TDiocpListener.PostAcceptExRequest(pvNum: Integer);
 begin
-  FAcceptorMgr.PostAcceptExRequest(100);
+  FAcceptorMgr.PostAcceptExRequest(pvNum);
 end;
 
 procedure TDiocpListener.Start(pvIocpEngine: TIocpEngine);

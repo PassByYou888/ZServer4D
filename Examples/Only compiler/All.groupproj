@@ -1,171 +1,177 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B1BCAE67-4969-4468-ACCF-517585748152}</ProjectGuid>
+        <ProjectGuid>{F39B5A6A-5BE1-4A77-8FBE-CFB7B687F597}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj">
+        <Projects Include="..\3.DoubleTunnel\DCli\DClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj">
+        <Projects Include="..\14.DM\DMDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\3.双向交互服务器框架\DCli\DClient.dproj">
+        <Projects Include="..\2.DelayModel\EzCli\DRClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj">
+        <Projects Include="..\2.DelayModel\EzSer\DRServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\2.延时响应服务器\EzCli\DRClient.dproj">
+        <Projects Include="..\3.DoubleTunnel\DSer\DServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\2.延时响应服务器\EzSer\DRServer.dproj">
+        <Projects Include="..\1.HelloWorld\EzCli\EzClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\3.双向交互服务器框架\DSer\DServer.dproj">
+        <Projects Include="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\1.单向服务器框架\EzCli\EzClient.dproj">
+        <Projects Include="..\1.HelloWorld\EzSer\EzServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\1.单向服务器框架\EzSer\EzServer.dproj">
+        <Projects Include="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj">
+        <Projects Include="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj">
+        <Projects Include="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClient.dproj">
+        <Projects Include="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FMXBatchPictureDataClient.dproj">
+        <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\1.单向服务器框架\FMXCli\FMXClient.dproj">
+        <Projects Include="..\1.HelloWorld\FMXCli\FMXClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj">
+        <Projects Include="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj">
+        <Projects Include="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj">
+        <Projects Include="..\2.DelayModel\FMXCli\FMXDRClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj">
+        <Projects Include="..\6.MyServerInMobile\FMXServer\FMXServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\13.内存分析钩子的使用\MHDemo.dproj">
+        <Projects Include="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj">
+        <Projects Include="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj">
+        <Projects Include="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj">
+        <Projects Include="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj">
+        <Projects Include="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj">
+        <Projects Include="..\5.Cloud2.0\LogicServer\LogicServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj">
+        <Projects Include="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj">
+        <Projects Include="..\18.MD5Peformance\MD5PerformanceTest.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj">
+        <Projects Include="..\13.MemoryManagerAPIHook\MHDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\11.ZDB数据集服务（包含提交图片）\ZDBBatchDataService\ZDBBatchPictureDataService.dproj">
+        <Projects Include="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\10.ZDB网络服务\ZDBClient\ZDBClientDemo.dproj">
+        <Projects Include="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\8.单机数据库\ZDBLocal.dproj">
+        <Projects Include="..\19.TextParsing\TextParsingDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj">
+        <Projects Include="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj">
+        <Projects Include="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj">
+        <Projects Include="..\15.100KConnectingOnVM\VMClient\VMCli.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj">
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\17.外部协议实现范式\CustomProtocol.dproj">
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj">
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\19.词法引擎TextParsing的用法演示\TextParsingDemo.dproj">
+        <Projects Include="..\15.100KConnectingOnVM\VMServer\VMServ.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\20.Linux服务器HelloWorld\EZLinuxServer\EZLinuxServ.dproj">
+        <Projects Include="..\24.XNat\InternetHold\XInternet.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\20.Linux服务器HelloWorld\ClientToLinuxServer\ClientToLinuxServer.dproj">
+        <Projects Include="..\24.XNat\LanNat\XLan.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj">
+        <Projects Include="..\24.XNat\FMXLanNat\XLanMobile.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj">
+        <Projects Include="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj">
+        <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\23.大型认证后台接口\Sever(Linux)\VirtualAuth_Server.dproj">
+        <Projects Include="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\23.大型认证后台接口\Client\VirtualAuth_Client.dproj">
+        <Projects Include="..\8.ZDBLocal\ZDBLocal.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\24.XNat内网穿透库的使用\公网服务器\XInternet.dproj">
+        <Projects Include="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\24.XNat内网穿透库的使用\内网服务器\XLan.dproj">
+        <Projects Include="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\24.XNat内网穿透库的使用\内网服务器(移动平台)\XLanMobile.dproj">
+        <Projects Include="..\4.DoubleTunnelAuth\DCli\ADClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj">
+        <Projects Include="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj">
+        <Projects Include="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj">
+        <Projects Include="..\4.DoubleTunnelAuth\DSer\ADServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj">
+        <Projects Include="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj">
+        <Projects Include="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj">
+        <Projects Include="..\25.Compressor\ARMCPUTest.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj">
+        <Projects Include="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj">
+        <Projects Include="..\17.CustomProcotol\CustomProtocol.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -176,509 +182,527 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="AFDRServer">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj"/>
-    </Target>
-    <Target Name="AFDRServer:Clean">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AFDRServer:Make">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzSer\AFDRServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ARMCPUTest">
-        <MSBuild Projects="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj"/>
-    </Target>
-    <Target Name="ARMCPUTest:Clean">
-        <MSBuild Projects="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ARMCPUTest:Make">
-        <MSBuild Projects="..\12.替代Delphi和fpc内置的ZLib压缩器\ARMCPUTest.dproj" Targets="Make"/>
-    </Target>
     <Target Name="DClient">
-        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj"/>
+        <MSBuild Projects="..\3.DoubleTunnel\DCli\DClient.dproj"/>
     </Target>
     <Target Name="DClient:Clean">
-        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\3.DoubleTunnel\DCli\DClient.dproj" Targets="Clean"/>
     </Target>
     <Target Name="DClient:Make">
-        <MSBuild Projects="..\3.双向交互服务器框架\DCli\DClient.dproj" Targets="Make"/>
+        <MSBuild Projects="..\3.DoubleTunnel\DCli\DClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="DMDemo">
-        <MSBuild Projects="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj"/>
+        <MSBuild Projects="..\14.DM\DMDemo.dproj"/>
     </Target>
     <Target Name="DMDemo:Clean">
-        <MSBuild Projects="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\14.DM\DMDemo.dproj" Targets="Clean"/>
     </Target>
     <Target Name="DMDemo:Make">
-        <MSBuild Projects="..\14.神经化数模引擎的使用(待实现)\DMDemo.dproj" Targets="Make"/>
+        <MSBuild Projects="..\14.DM\DMDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="DRClient">
-        <MSBuild Projects="..\2.延时响应服务器\EzCli\DRClient.dproj"/>
+        <MSBuild Projects="..\2.DelayModel\EzCli\DRClient.dproj"/>
     </Target>
     <Target Name="DRClient:Clean">
-        <MSBuild Projects="..\2.延时响应服务器\EzCli\DRClient.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\2.DelayModel\EzCli\DRClient.dproj" Targets="Clean"/>
     </Target>
     <Target Name="DRClient:Make">
-        <MSBuild Projects="..\2.延时响应服务器\EzCli\DRClient.dproj" Targets="Make"/>
+        <MSBuild Projects="..\2.DelayModel\EzCli\DRClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="DRServer">
-        <MSBuild Projects="..\2.延时响应服务器\EzSer\DRServer.dproj"/>
+        <MSBuild Projects="..\2.DelayModel\EzSer\DRServer.dproj"/>
     </Target>
     <Target Name="DRServer:Clean">
-        <MSBuild Projects="..\2.延时响应服务器\EzSer\DRServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\2.DelayModel\EzSer\DRServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="DRServer:Make">
-        <MSBuild Projects="..\2.延时响应服务器\EzSer\DRServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\2.DelayModel\EzSer\DRServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="DServer">
-        <MSBuild Projects="..\3.双向交互服务器框架\DSer\DServer.dproj"/>
+        <MSBuild Projects="..\3.DoubleTunnel\DSer\DServer.dproj"/>
     </Target>
     <Target Name="DServer:Clean">
-        <MSBuild Projects="..\3.双向交互服务器框架\DSer\DServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\3.DoubleTunnel\DSer\DServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="DServer:Make">
-        <MSBuild Projects="..\3.双向交互服务器框架\DSer\DServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\3.DoubleTunnel\DSer\DServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="EzClient">
-        <MSBuild Projects="..\1.单向服务器框架\EzCli\EzClient.dproj"/>
+        <MSBuild Projects="..\1.HelloWorld\EzCli\EzClient.dproj"/>
     </Target>
     <Target Name="EzClient:Clean">
-        <MSBuild Projects="..\1.单向服务器框架\EzCli\EzClient.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\1.HelloWorld\EzCli\EzClient.dproj" Targets="Clean"/>
     </Target>
     <Target Name="EzClient:Make">
-        <MSBuild Projects="..\1.单向服务器框架\EzCli\EzClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="EzServer">
-        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj"/>
-    </Target>
-    <Target Name="EzServer:Clean">
-        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="EzServer:Make">
-        <MSBuild Projects="..\1.单向服务器框架\EzSer\EzServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXADClient">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj"/>
-    </Target>
-    <Target Name="FMXADClient:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXADClient:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\FMXDCli\FMXADClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXAFDRClient">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj"/>
-    </Target>
-    <Target Name="FMXAFDRClient:Clean">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXAFDRClient:Make">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\FMXCli\FMXAFDRClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXBatchDataClient">
-        <MSBuild Projects="..\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClient.dproj"/>
-    </Target>
-    <Target Name="FMXBatchDataClient:Clean">
-        <MSBuild Projects="..\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXBatchDataClient:Make">
-        <MSBuild Projects="..\11.ZDB数据集服务\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXBatchPictureDataClient">
-        <MSBuild Projects="..\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FMXBatchPictureDataClient.dproj"/>
-    </Target>
-    <Target Name="FMXBatchPictureDataClient:Clean">
-        <MSBuild Projects="..\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXBatchPictureDataClient:Make">
-        <MSBuild Projects="..\11.ZDB数据集服务（包含提交图片）\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXClient">
-        <MSBuild Projects="..\1.单向服务器框架\FMXCli\FMXClient.dproj"/>
-    </Target>
-    <Target Name="FMXClient:Clean">
-        <MSBuild Projects="..\1.单向服务器框架\FMXCli\FMXClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXClient:Make">
-        <MSBuild Projects="..\1.单向服务器框架\FMXCli\FMXClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXClient2">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj"/>
-    </Target>
-    <Target Name="FMXClient2:Clean">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXClient2:Make">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXCli\FMXClient2.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXDClient">
-        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj"/>
-    </Target>
-    <Target Name="FMXDClient:Clean">
-        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXDClient:Make">
-        <MSBuild Projects="..\3.双向交互服务器框架\FMXDCli\FMXDClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXDRClient">
-        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj"/>
-    </Target>
-    <Target Name="FMXDRClient:Clean">
-        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXDRClient:Make">
-        <MSBuild Projects="..\2.延时响应服务器\FMXCli\FMXDRClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXServer">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj"/>
-    </Target>
-    <Target Name="FMXServer:Clean">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXServer:Make">
-        <MSBuild Projects="..\6.基于Indy在手机平台做服务器\FMXServer\FMXServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="MHDemo">
-        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj"/>
-    </Target>
-    <Target Name="MHDemo:Clean">
-        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="MHDemo:Make">
-        <MSBuild Projects="..\13.内存分析钩子的使用\MHDemo.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="PeformanceTestClient">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj"/>
-    </Target>
-    <Target Name="PeformanceTestClient:Clean">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="PeformanceTestClient:Make">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="performaceTestServer">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj"/>
-    </Target>
-    <Target Name="performaceTestServer:Clean">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="performaceTestServer:Make">
-        <MSBuild Projects="..\9.长连接压测\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VMCli">
-        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj"/>
-    </Target>
-    <Target Name="VMCli:Clean">
-        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VMCli:Make">
-        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置客户端\VMCli.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VMServ">
-        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj"/>
-    </Target>
-    <Target Name="VMServ:Clean">
-        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VMServ:Make">
-        <MSBuild Projects="..\15.基于VM虚拟机的远程通讯\VM内置服务器\VMServ.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VMDoubleAuthClient">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj"/>
-    </Target>
-    <Target Name="VMDoubleAuthClient:Clean">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VMDoubleAuthClient:Make">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VMDoubleAuthFMXClient">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj"/>
-    </Target>
-    <Target Name="VMDoubleAuthFMXClient:Clean">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VMDoubleAuthFMXClient:Make">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VMDoubleAuthServer">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
-    </Target>
-    <Target Name="VMDoubleAuthServer:Clean">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VMDoubleAuthServer:Make">
-        <MSBuild Projects="..\16.基于VM虚拟机的验证双通道框架\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ZDBBatchDataService">
-        <MSBuild Projects="..\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj"/>
-    </Target>
-    <Target Name="ZDBBatchDataService:Clean">
-        <MSBuild Projects="..\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBBatchDataService:Make">
-        <MSBuild Projects="..\11.ZDB数据集服务\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ZDBBatchPictureDataService">
-        <MSBuild Projects="..\11.ZDB数据集服务（包含提交图片）\ZDBBatchDataService\ZDBBatchPictureDataService.dproj"/>
-    </Target>
-    <Target Name="ZDBBatchPictureDataService:Clean">
-        <MSBuild Projects="..\11.ZDB数据集服务（包含提交图片）\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBBatchPictureDataService:Make">
-        <MSBuild Projects="..\11.ZDB数据集服务（包含提交图片）\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ZDBClientDemo">
-        <MSBuild Projects="..\10.ZDB网络服务\ZDBClient\ZDBClientDemo.dproj"/>
-    </Target>
-    <Target Name="ZDBClientDemo:Clean">
-        <MSBuild Projects="..\10.ZDB网络服务\ZDBClient\ZDBClientDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBClientDemo:Make">
-        <MSBuild Projects="..\10.ZDB网络服务\ZDBClient\ZDBClientDemo.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ZDBLocal">
-        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj"/>
-    </Target>
-    <Target Name="ZDBLocal:Clean">
-        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBLocal:Make">
-        <MSBuild Projects="..\8.单机数据库\ZDBLocal.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ZDBServiceDemo">
-        <MSBuild Projects="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj"/>
-    </Target>
-    <Target Name="ZDBServiceDemo:Clean">
-        <MSBuild Projects="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBServiceDemo:Make">
-        <MSBuild Projects="..\10.ZDB网络服务\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ADClient">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj"/>
-    </Target>
-    <Target Name="ADClient:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ADClient:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DCli\ADClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ADServer">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj"/>
-    </Target>
-    <Target Name="ADServer:Clean">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ADServer:Make">
-        <MSBuild Projects="..\4.登陆式双向交互服务器框架\DSer\ADServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="AFDRClient">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj"/>
-    </Target>
-    <Target Name="AFDRClient:Clean">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AFDRClient:Make">
-        <MSBuild Projects="..\7.基于匿名函数的异步通讯\EzCli\AFDRClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="CustomProtocol">
-        <MSBuild Projects="..\17.外部协议实现范式\CustomProtocol.dproj"/>
-    </Target>
-    <Target Name="CustomProtocol:Clean">
-        <MSBuild Projects="..\17.外部协议实现范式\CustomProtocol.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="CustomProtocol:Make">
-        <MSBuild Projects="..\17.外部协议实现范式\CustomProtocol.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="MD5PerformanceTest">
-        <MSBuild Projects="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj"/>
-    </Target>
-    <Target Name="MD5PerformanceTest:Clean">
-        <MSBuild Projects="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="MD5PerformanceTest:Make">
-        <MSBuild Projects="..\18.FastMD5性能测试(by南极土著)\MD5PerformanceTest.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="TextParsingDemo">
-        <MSBuild Projects="..\19.词法引擎TextParsing的用法演示\TextParsingDemo.dproj"/>
-    </Target>
-    <Target Name="TextParsingDemo:Clean">
-        <MSBuild Projects="..\19.词法引擎TextParsing的用法演示\TextParsingDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="TextParsingDemo:Make">
-        <MSBuild Projects="..\19.词法引擎TextParsing的用法演示\TextParsingDemo.dproj" Targets="Make"/>
+        <MSBuild Projects="..\1.HelloWorld\EzCli\EzClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="EZLinuxServ">
-        <MSBuild Projects="..\20.Linux服务器HelloWorld\EZLinuxServer\EZLinuxServ.dproj"/>
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj"/>
     </Target>
     <Target Name="EZLinuxServ:Clean">
-        <MSBuild Projects="..\20.Linux服务器HelloWorld\EZLinuxServer\EZLinuxServ.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj" Targets="Clean"/>
     </Target>
     <Target Name="EZLinuxServ:Make">
-        <MSBuild Projects="..\20.Linux服务器HelloWorld\EZLinuxServer\EZLinuxServ.dproj" Targets="Make"/>
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj" Targets="Make"/>
     </Target>
-    <Target Name="ClientToLinuxServer">
-        <MSBuild Projects="..\20.Linux服务器HelloWorld\ClientToLinuxServer\ClientToLinuxServer.dproj"/>
+    <Target Name="EzServer">
+        <MSBuild Projects="..\1.HelloWorld\EzSer\EzServer.dproj"/>
     </Target>
-    <Target Name="ClientToLinuxServer:Clean">
-        <MSBuild Projects="..\20.Linux服务器HelloWorld\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Clean"/>
+    <Target Name="EzServer:Clean">
+        <MSBuild Projects="..\1.HelloWorld\EzSer\EzServer.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="ClientToLinuxServer:Make">
-        <MSBuild Projects="..\20.Linux服务器HelloWorld\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="HPC_Server">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj"/>
-    </Target>
-    <Target Name="HPC_Server:Clean">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="HPC_Server:Make">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Ser\HPC_Server.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="HPC_Client">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj"/>
-    </Target>
-    <Target Name="HPC_Client:Clean">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="HPC_Client:Make">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli\HPC_Client.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="HPC_Client_FMX">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj"/>
-    </Target>
-    <Target Name="HPC_Client_FMX:Clean">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="HPC_Client_FMX:Make">
-        <MSBuild Projects="..\21.hpc后台运算机制\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VirtualAuth_Server">
-        <MSBuild Projects="..\23.大型认证后台接口\Sever(Linux)\VirtualAuth_Server.dproj"/>
-    </Target>
-    <Target Name="VirtualAuth_Server:Clean">
-        <MSBuild Projects="..\23.大型认证后台接口\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VirtualAuth_Server:Make">
-        <MSBuild Projects="..\23.大型认证后台接口\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VirtualAuth_Client">
-        <MSBuild Projects="..\23.大型认证后台接口\Client\VirtualAuth_Client.dproj"/>
-    </Target>
-    <Target Name="VirtualAuth_Client:Clean">
-        <MSBuild Projects="..\23.大型认证后台接口\Client\VirtualAuth_Client.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VirtualAuth_Client:Make">
-        <MSBuild Projects="..\23.大型认证后台接口\Client\VirtualAuth_Client.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="XInternet">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\公网服务器\XInternet.dproj"/>
-    </Target>
-    <Target Name="XInternet:Clean">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\公网服务器\XInternet.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="XInternet:Make">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\公网服务器\XInternet.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="XLan">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器\XLan.dproj"/>
-    </Target>
-    <Target Name="XLan:Clean">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器\XLan.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="XLan:Make">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器\XLan.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="XLanMobile">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器(移动平台)\XLanMobile.dproj"/>
-    </Target>
-    <Target Name="XLanMobile:Clean">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器(移动平台)\XLanMobile.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="XLanMobile:Make">
-        <MSBuild Projects="..\24.XNat内网穿透库的使用\内网服务器(移动平台)\XLanMobile.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="DataStoreViewClient">
-        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj"/>
-    </Target>
-    <Target Name="DataStoreViewClient:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="DataStoreViewClient:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Make"/>
+    <Target Name="EzServer:Make">
+        <MSBuild Projects="..\1.HelloWorld\EzSer\EzServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="FileStoreServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj"/>
     </Target>
     <Target Name="FileStoreServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="FileStoreServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\FileStoreServer\FileStoreServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXADClient">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj"/>
+    </Target>
+    <Target Name="FMXADClient:Clean">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXADClient:Make">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXAFDRClient">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Clean">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Make">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchDataClient">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Clean">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Make">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Clean">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Make">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXClient">
+        <MSBuild Projects="..\1.HelloWorld\FMXCli\FMXClient.dproj"/>
+    </Target>
+    <Target Name="FMXClient:Clean">
+        <MSBuild Projects="..\1.HelloWorld\FMXCli\FMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXClient:Make">
+        <MSBuild Projects="..\1.HelloWorld\FMXCli\FMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXClient2">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj"/>
+    </Target>
+    <Target Name="FMXClient2:Clean">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXClient2:Make">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXDClient">
+        <MSBuild Projects="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj"/>
+    </Target>
+    <Target Name="FMXDClient:Clean">
+        <MSBuild Projects="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXDClient:Make">
+        <MSBuild Projects="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXDRClient">
+        <MSBuild Projects="..\2.DelayModel\FMXCli\FMXDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXDRClient:Clean">
+        <MSBuild Projects="..\2.DelayModel\FMXCli\FMXDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXDRClient:Make">
+        <MSBuild Projects="..\2.DelayModel\FMXCli\FMXDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXServer">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXServer\FMXServer.dproj"/>
+    </Target>
+    <Target Name="FMXServer:Clean">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXServer\FMXServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXServer:Make">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXServer\FMXServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="FOGComputeServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj"/>
     </Target>
     <Target Name="FOGComputeServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="FOGComputeServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\FOGComputeServer\FOGComputeServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj"/>
+    </Target>
+    <Target Name="HPC_Client:Clean">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client:Make">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client_FMX">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Clean">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Make">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Server">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj"/>
+    </Target>
+    <Target Name="HPC_Server:Clean">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Server:Make">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj" Targets="Make"/>
     </Target>
     <Target Name="IOSPaymentQueryServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj"/>
     </Target>
     <Target Name="IOSPaymentQueryServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="IOSPaymentQueryServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="LogicServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\LogicServer\LogicServer.dproj"/>
     </Target>
     <Target Name="LogicServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\LogicServer\LogicServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="LogicServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\LogicServer\LogicServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\LogicServer\LogicServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="ManagerServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj"/>
     </Target>
     <Target Name="ManagerServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="ManagerServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\ManagerServer\ManagerServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MD5PerformanceTest">
+        <MSBuild Projects="..\18.MD5Peformance\MD5PerformanceTest.dproj"/>
+    </Target>
+    <Target Name="MD5PerformanceTest:Clean">
+        <MSBuild Projects="..\18.MD5Peformance\MD5PerformanceTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MD5PerformanceTest:Make">
+        <MSBuild Projects="..\18.MD5Peformance\MD5PerformanceTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MHDemo">
+        <MSBuild Projects="..\13.MemoryManagerAPIHook\MHDemo.dproj"/>
+    </Target>
+    <Target Name="MHDemo:Clean">
+        <MSBuild Projects="..\13.MemoryManagerAPIHook\MHDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MHDemo:Make">
+        <MSBuild Projects="..\13.MemoryManagerAPIHook\MHDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PeformanceTestClient">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Clean">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Make">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="performaceTestServer">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj"/>
+    </Target>
+    <Target Name="performaceTestServer:Clean">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="performaceTestServer:Make">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TextParsingDemo">
+        <MSBuild Projects="..\19.TextParsing\TextParsingDemo.dproj"/>
+    </Target>
+    <Target Name="TextParsingDemo:Clean">
+        <MSBuild Projects="..\19.TextParsing\TextParsingDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TextParsingDemo:Make">
+        <MSBuild Projects="..\19.TextParsing\TextParsingDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VirtualAuth_Client">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj"/>
+    </Target>
+    <Target Name="VirtualAuth_Client:Clean">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VirtualAuth_Client:Make">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VirtualAuth_Server">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj"/>
+    </Target>
+    <Target Name="VirtualAuth_Server:Clean">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VirtualAuth_Server:Make">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMCli">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj"/>
+    </Target>
+    <Target Name="VMCli:Clean">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMCli:Make">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMServ">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj"/>
+    </Target>
+    <Target Name="VMServ:Clean">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMServ:Make">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XInternet">
+        <MSBuild Projects="..\24.XNat\InternetHold\XInternet.dproj"/>
+    </Target>
+    <Target Name="XInternet:Clean">
+        <MSBuild Projects="..\24.XNat\InternetHold\XInternet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XInternet:Make">
+        <MSBuild Projects="..\24.XNat\InternetHold\XInternet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLan">
+        <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj"/>
+    </Target>
+    <Target Name="XLan:Clean">
+        <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLan:Make">
+        <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLanMobile">
+        <MSBuild Projects="..\24.XNat\FMXLanNat\XLanMobile.dproj"/>
+    </Target>
+    <Target Name="XLanMobile:Clean">
+        <MSBuild Projects="..\24.XNat\FMXLanNat\XLanMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLanMobile:Make">
+        <MSBuild Projects="..\24.XNat\FMXLanNat\XLanMobile.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBBatchDataService">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj"/>
+    </Target>
+    <Target Name="ZDBBatchDataService:Clean">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBBatchDataService:Make">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService:Clean">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService:Make">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBClientDemo">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj"/>
+    </Target>
+    <Target Name="ZDBClientDemo:Clean">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBClientDemo:Make">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBLocal">
+        <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj"/>
+    </Target>
+    <Target Name="ZDBLocal:Clean">
+        <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBLocal:Make">
+        <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBServiceDemo">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj"/>
+    </Target>
+    <Target Name="ZDBServiceDemo:Clean">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBServiceDemo:Make">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="ACFMXClient">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj"/>
     </Target>
     <Target Name="ACFMXClient:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj" Targets="Clean"/>
     </Target>
     <Target Name="ACFMXClient:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\FMXClient2.0\ACFMXClient.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADClient">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DCli\ADClient.dproj"/>
+    </Target>
+    <Target Name="ADClient:Clean">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DCli\ADClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADClient:Make">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DCli\ADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADRestoreClient">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj"/>
+    </Target>
+    <Target Name="ADRestoreClient:Clean">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADRestoreClient:Make">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADRestoreServer">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj"/>
+    </Target>
+    <Target Name="ADRestoreServer:Clean">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADRestoreServer:Make">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADServer">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DSer\ADServer.dproj"/>
+    </Target>
+    <Target Name="ADServer:Clean">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DSer\ADServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADServer:Make">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DSer\ADServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRClient">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj"/>
+    </Target>
+    <Target Name="AFDRClient:Clean">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRClient:Make">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRServer">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj"/>
+    </Target>
+    <Target Name="AFDRServer:Clean">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRServer:Make">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ARMCPUTest">
+        <MSBuild Projects="..\25.Compressor\ARMCPUTest.dproj"/>
+    </Target>
+    <Target Name="ARMCPUTest:Clean">
+        <MSBuild Projects="..\25.Compressor\ARMCPUTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ARMCPUTest:Make">
+        <MSBuild Projects="..\25.Compressor\ARMCPUTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ClientToLinuxServer">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj"/>
+    </Target>
+    <Target Name="ClientToLinuxServer:Clean">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClientToLinuxServer:Make">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CustomProtocol">
+        <MSBuild Projects="..\17.CustomProcotol\CustomProtocol.dproj"/>
+    </Target>
+    <Target Name="CustomProtocol:Clean">
+        <MSBuild Projects="..\17.CustomProcotol\CustomProtocol.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CustomProtocol:Make">
+        <MSBuild Projects="..\17.CustomProcotol\CustomProtocol.dproj" Targets="Make"/>
     </Target>
     <Target Name="DataStoreServer">
-        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj"/>
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj"/>
     </Target>
     <Target Name="DataStoreServer:Clean">
-        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="DataStoreServer:Make">
-        <MSBuild Projects="..\5.登录式高级云服务器\DataStoreServer\DataStoreServer.dproj" Targets="Make"/>
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DataStoreViewClient">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Make">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="AFDRServer;ARMCPUTest;DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EzServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;MHDemo;PeformanceTestClient;performaceTestServer;VMCli;VMServ;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ADClient;ADServer;AFDRClient;CustomProtocol;MD5PerformanceTest;TextParsingDemo;EZLinuxServ;ClientToLinuxServer;HPC_Server;HPC_Client;HPC_Client_FMX;VirtualAuth_Server;VirtualAuth_Client;XInternet;XLan;XLanMobile;DataStoreViewClient;FileStoreServer;FOGComputeServer;IOSPaymentQueryServer;LogicServer;ManagerServer;ACFMXClient;DataStoreServer"/>
+        <CallTarget Targets="DClient;DMDemo;DRClient;DRServer;DServer;EzClient;EZLinuxServ;EzServer;FileStoreServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;FOGComputeServer;HPC_Client;HPC_Client_FMX;HPC_Server;IOSPaymentQueryServer;LogicServer;ManagerServer;MD5PerformanceTest;MHDemo;PeformanceTestClient;performaceTestServer;TextParsingDemo;VirtualAuth_Client;VirtualAuth_Server;VMCli;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;VMServ;XInternet;XLan;XLanMobile;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ACFMXClient;ADClient;ADRestoreClient;ADRestoreServer;ADServer;AFDRClient;AFDRServer;ARMCPUTest;ClientToLinuxServer;CustomProtocol;DataStoreServer;DataStoreViewClient"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AFDRServer:Clean;ARMCPUTest:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EzServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;VMCli:Clean;VMServ:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ADClient:Clean;ADServer:Clean;AFDRClient:Clean;CustomProtocol:Clean;MD5PerformanceTest:Clean;TextParsingDemo:Clean;EZLinuxServ:Clean;ClientToLinuxServer:Clean;HPC_Server:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;VirtualAuth_Server:Clean;VirtualAuth_Client:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;DataStoreViewClient:Clean;FileStoreServer:Clean;FOGComputeServer:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;ACFMXClient:Clean;DataStoreServer:Clean"/>
+        <CallTarget Targets="DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EzClient:Clean;EZLinuxServ:Clean;EzServer:Clean;FileStoreServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;FOGComputeServer:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;HPC_Server:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;MD5PerformanceTest:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;TextParsingDemo:Clean;VirtualAuth_Client:Clean;VirtualAuth_Server:Clean;VMCli:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;VMServ:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ACFMXClient:Clean;ADClient:Clean;ADRestoreClient:Clean;ADRestoreServer:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;ClientToLinuxServer:Clean;CustomProtocol:Clean;DataStoreServer:Clean;DataStoreViewClient:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AFDRServer:Make;ARMCPUTest:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EzServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;VMCli:Make;VMServ:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ADClient:Make;ADServer:Make;AFDRClient:Make;CustomProtocol:Make;MD5PerformanceTest:Make;TextParsingDemo:Make;EZLinuxServ:Make;ClientToLinuxServer:Make;HPC_Server:Make;HPC_Client:Make;HPC_Client_FMX:Make;VirtualAuth_Server:Make;VirtualAuth_Client:Make;XInternet:Make;XLan:Make;XLanMobile:Make;DataStoreViewClient:Make;FileStoreServer:Make;FOGComputeServer:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;ACFMXClient:Make;DataStoreServer:Make"/>
+        <CallTarget Targets="DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EzClient:Make;EZLinuxServ:Make;EzServer:Make;FileStoreServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;FOGComputeServer:Make;HPC_Client:Make;HPC_Client_FMX:Make;HPC_Server:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;MD5PerformanceTest:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;TextParsingDemo:Make;VirtualAuth_Client:Make;VirtualAuth_Server:Make;VMCli:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;VMServ:Make;XInternet:Make;XLan:Make;XLanMobile:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ACFMXClient:Make;ADClient:Make;ADRestoreClient:Make;ADRestoreServer:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;ClientToLinuxServer:Make;CustomProtocol:Make;DataStoreServer:Make;DataStoreViewClient:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -265,8 +265,11 @@ type
   { key style and auto Encrypt }
   TCipherSecurity = (csNone,
     csDES64, csDES128, csDES192,
-    csBlowfish, csLBC, csLQC, csRNG32, csRNG64, csLSC, csTwoFish,
-    csXXTea512, csRC6, csSerpent, csMars, csRijndael);
+    csBlowfish, csLBC, csLQC, csRNG32, csRNG64, csLSC,
+    // mini cipher
+    csXXTea512,
+    // NIST cipher
+    csRC6, csSerpent, csMars, csRijndael, csTwoFish);
 
   TCipherSecuritys = set of TCipherSecurity;
   TCipherSecurityArray = array of TCipherSecurity;
@@ -291,17 +294,17 @@ type
       hs256, hs128, hs64, hs32, hs16, hsELF, hsELF64, hsMix128, hsCRC16, hsCRC32];
 
     CHashName: array [THashSecurity] of SystemString = (
-      'hsNone',
-      'hsFastMD5', 'hsMD5', 'hsSHA1', 'hsSHA256', 'hsSHA512',
-      'hsSHA3_224', 'hsSHA3_256', 'hsSHA3_384', 'hsSHA3_512',
-      'hs256', 'hs128', 'hs64', 'hs32', 'hs16', 'hsELF', 'hsELF64', 'hsMix128', 'hsCRC16', 'hsCRC32');
+      'None',
+      'FastMD5', 'MD5', 'SHA1', 'SHA256', 'SHA512',
+      'SHA3_224', 'SHA3_256', 'SHA3_384', 'SHA3_512',
+      '256', '128', '64', '32', '16', 'ELF', 'ELF64', 'Mix128', 'CRC16', 'CRC32');
 
     CCipherSecurityName: array [TCipherSecurity] of SystemString =
       ('None',
       'DES64', 'DES128', 'DES192',
       'Blowfish', 'LBC', 'LQC', 'RNG32', 'RNG64', 'LSC',
-      'TwoFish',
-      'XXTea512', 'RC6', 'Serpent', 'Mars', 'Rijndael');
+      'XXTea512',
+      'RC6', 'Serpent', 'Mars', 'Rijndael', 'TwoFish');
 
     cCipherKeyStyle: array [TCipherSecurity] of TCipherKeyStyle =
       (
@@ -315,12 +318,12 @@ type
       cksIntKey,     // csRNG32
       cks2IntKey,    // csRNG64
       ckyDynamicKey, // csLSC
-      ckyDynamicKey, // csTwoFish
       cksKey128,     // csXXTea512
       ckyDynamicKey, // csRC6
       ckyDynamicKey, // csSerpent
       ckyDynamicKey, // csMars
-      ckyDynamicKey  // Rijndael
+      ckyDynamicKey, // Rijndael
+      ckyDynamicKey  // csTwoFish
       );
   public
     class function AllCipher: TCipherSecurityArray;
@@ -491,9 +494,6 @@ var
   DefaultParallelDepth: Integer;     // default cpucount * 2
   ParallelTriggerCondition: Integer; // default 1024
 {$ENDIF}
-  { system default key and CipherSecurity }
-  DefaultKey: TCipherKeyBuffer;
-  DefaultCipherSecurity: TCipherSecurity = TCipherSecurity.csBlowfish;
 
 procedure InitSysCBCAndDefaultKey(rand: Int64);
 
@@ -507,7 +507,6 @@ function SequEncryptWithParallel(const ca: TCipherSecurityArray; sour: Pointer; 
 
 function SequEncrypt(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncrypt(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncrypt(sour: Pointer; Size: NativeInt; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 function SequEncryptCBCWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
 function SequEncryptCBCWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
@@ -1765,10 +1764,7 @@ uses DoStatusIO,
   SyncObjs;
 
 const
-  SInvalidFileFormat: SystemString = 'Invalid file format';
-
   { Blowfish lookup tables }
-
   bf_P: array [0 .. (BFRounds + 1)] of DWORD = (
     $243F6A88, $85A308D3, $13198A2E, $03707344,
     $A4093822, $299F31D0, $082EFA98, $EC4E6C89,
@@ -4316,12 +4312,10 @@ begin
   DefaultParallelDepth := CPUCount * 2;
   ParallelTriggerCondition := 1024;
 {$ENDIF}
-  SetLength(SystemCBC, 1024 * 1024);
+  SetLength(SystemCBC, 64 * 1024);
   Seed.i := rand;
   for i := 0 to (length(SystemCBC) div 4) - 1 do
       PInteger(@SystemCBC[i * 4])^ := TMISC.Random64(Seed);
-
-  TCipher.GenerateKey(DefaultCipherSecurity, @rand, SizeOf(rand), DefaultKey);
 end;
 
 function SequEncryptWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
@@ -4404,11 +4398,6 @@ begin
   else
 {$ENDIF}
       Result := SequEncryptWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
-end;
-
-function SequEncrypt(sour: Pointer; Size: NativeInt; Encrypt, ProcessTail: Boolean): Boolean;
-begin
-  Result := SequEncrypt(DefaultCipherSecurity, sour, Size, DefaultKey, Encrypt, ProcessTail);
 end;
 
 function SequEncryptCBCWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
@@ -6411,6 +6400,7 @@ end;
 
 {$IFDEF RangeCheck}{$R-}{$ENDIF}
 {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
+
 
 class function TSHA3.ComputeX(const x: Integer): Integer;
 begin

@@ -2129,7 +2129,7 @@ begin
               inc(cPos);
               while cPos <= Decl.Len do
                 begin
-                  if not CharIn(Decl[cPos], ' #' + #39#13#10) then
+                  if CharIn(Decl[cPos], [cHex], '$') then
                     begin
                       nText.Append(Decl[cPos]);
                       inc(cPos);
