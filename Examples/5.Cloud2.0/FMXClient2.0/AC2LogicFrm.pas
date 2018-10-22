@@ -1,5 +1,5 @@
 unit AC2LogicFrm;
-
+
 interface
 
 uses
@@ -50,6 +50,7 @@ var
 implementation
 
 {$R *.fmx}
+
 
 uses AC2LoginFrm, AC2ClientGlobal, CommonServiceDefine, AC2ProgressFrm, FOGComputeClientIntf;
 
@@ -168,7 +169,7 @@ end;
 
 procedure TAC2LogicForm.DoStatusNear(AText: string; const ID: Integer);
 begin
-  DrawPool(self, DrawIntf).PostScrollText(10, AText, 10, DEColor(1, 1, 1, 1));
+  // DrawPool(self, DrawIntf).PostScrollText(10, AText, 10, DEColor(1, 1, 1, 1));
 end;
 
 procedure TAC2LogicForm.Progress(deltaTime: Double);
@@ -178,3 +179,4 @@ begin
 end;
 
 end.
+

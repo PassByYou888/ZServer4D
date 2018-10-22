@@ -187,6 +187,8 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 > 小幅度更新
 
+- XNAT使用RD远程桌面速度太慢的解决方案：已将后置式的代理转发机制，改为了无延迟的直接转发，负载性能会下降，但是实时性更好
+- 重做XNAT内置的IPV6地址生成方式：现在会雪崩式生成无重复的IPV6地址
 - XNAT新增一个基于Mapping直接构建ServerFramework的接口以及Demo，都在XNAT的演示目录
 - 过去，XNAT的Data交换是后置式的，现在更改为即时交换
 - CompleteBuffer增加一个压缩开关，默认使用FastCompress函数(该函数位于MemorySteam64.pas)
