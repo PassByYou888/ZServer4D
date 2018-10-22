@@ -133,6 +133,7 @@ end;
 procedure TManagerQueryBase.QueryMinLoad(Addr: string; QueryType: TServerType; ResultProc: TQuerySuccess);
 var
   sendDE: TDataFrameEngine;
+  a2: TAddressInfo;
 begin
   ServerList.Clear;
   try
@@ -179,6 +180,12 @@ begin
           end);
 
         DisposeObject(sendDE);
+      end
+    else
+      begin
+        a2.Init;
+        if Assigned(ResultProc) then
+            ResultProc(False, a2);
       end;
   except
   end;

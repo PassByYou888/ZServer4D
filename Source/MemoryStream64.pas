@@ -54,7 +54,7 @@ type
     procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: NativeUInt);
     function PositionAsPtr(const APosition: Int64): Pointer; overload;
     function PositionAsPtr: Pointer; overload;
-    //
+
     procedure LoadFromStream(stream: TCoreClassStream); virtual;
     procedure LoadFromFile(const FileName: SystemString);
     procedure SaveToStream(stream: TCoreClassStream); virtual;

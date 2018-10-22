@@ -20,6 +20,7 @@ unit CommunicationFramework;
 
 {$INCLUDE zDefine.inc}
 
+
 interface
 
 uses Classes, SysUtils, Variants, TypInfo,
@@ -306,8 +307,9 @@ type
     FBigStreamSendState: Int64;
     FBigStreamSendDoneTimeFree: Boolean;
     FCompleteBufferReceiveProcessing: Boolean;
-    FCompleteBufferTotal: Int64;
-    FCompleteBufferCompleted: Int64;
+    FCompleteBufferTotal: Cardinal;
+    FCompleteBufferCompressedSize: Cardinal;
+    FCompleteBufferCompleted: Cardinal;
     FCompleteBufferCmd: SystemString;
     FCompleteBufferReceiveStream: TMemoryStream64;
     FCurrentQueueData: PQueueData;
@@ -334,6 +336,7 @@ type
     FWaitSendBusy: Boolean;
     FReceiveCommandRuning: Boolean;
     FReceiveResultRuning: Boolean;
+    FProgressRunning: Boolean;
   protected
     // private vm and protocol stack support
     FP2PVMTunnel: TCommunicationFrameworkWithP2PVM;
@@ -387,7 +390,7 @@ type
     procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
     procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64);
     procedure InternalSendBigStreamBuff(var Queue: TQueueData);
-    procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz: NativeInt);
+    procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz, compSiz: Cardinal);
     procedure InternalSendCompleteBufferBuff(var Queue: TQueueData);
 
     procedure Sync_InternalSendResultData;
@@ -599,6 +602,8 @@ type
 
   TCommunicationProtocol = (cpZServer, cpCustom);
 
+  TProgressOnCommunicationFramework = procedure(Sender: TCommunicationFramework) of object;
+
   TCommunicationFramework = class(TCoreClassInterfacedObject)
   protected
     FCommandList: THashObjectList;
@@ -612,18 +617,21 @@ type
     FPeerIOUserSpecialClass: TPeerIOUserSpecialClass;
     FIdleTimeout: TTimeTickValue;
     FSendDataCompressed: Boolean;
+    FCompleteBufferCompressed: Boolean;
     FUsedParallelEncrypt: Boolean;
     FSyncOnResult: Boolean;
     FSyncOnCompleteBuffer: Boolean;
     FQuietMode: Boolean;
     FCipherSecurity: TCipherSecurity;
     FHashSecurity: THashSecurity;
-    FMaxCompleteBufferSize: NativeInt;
+    FMaxCompleteBufferSize: Cardinal;
     FPrintParams: THashVariantList;
-    FProgressPost: TNProgressPostWithCadencer;
+    FPostProgress: TNProgressPostWithCadencer;
     FFrameworkIsServer: Boolean;
     FFrameworkIsClient: Boolean;
     FFrameworkInfo: SystemString;
+    FOnProgressRuning: Boolean;
+    FOnProgress: TProgressOnCommunicationFramework;
     FCMDWithThreadRuning: Integer;
     FVMInterface: ICommunicationFrameworkVMInterface;
     FProtocol: TCommunicationProtocol;
@@ -695,25 +703,30 @@ type
     procedure LockClients; virtual;
     procedure UnLockClients; virtual;
     //
-    // delay event support
-    property ProgressPost: TNProgressPostWithCadencer read FProgressPost;
+    // delay run support
+    property ProgressPost: TNProgressPostWithCadencer read FPostProgress;
+    property PostProgress: TNProgressPostWithCadencer read FPostProgress;
+    property PostRun: TNProgressPostWithCadencer read FPostProgress;
+    property PostExecute: TNProgressPostWithCadencer read FPostProgress;
 
+    // framework token
     property FrameworkIsServer: Boolean read FFrameworkIsServer;
     property FrameworkIsClient: Boolean read FFrameworkIsClient;
     property FrameworkInfo: SystemString read FFrameworkInfo;
 
     // mainLoop
     procedure Progress; virtual;
+    property OnProgress: TProgressOnCommunicationFramework read FOnProgress write FOnProgress;
 
     // seealso filler allclient,safe works
-    procedure ProgressPerClientC(OnProgress: TPerClientListCall); overload;
-    procedure ProgressPerClientM(OnProgress: TPerClientListMethod); overload;
-{$IFNDEF FPC} procedure ProgressPerClientP(OnProgress: TPerClientListProc); overload; {$ENDIF FPC}
+    procedure ProgressPerClientC(OnBackcall: TPerClientListCall); overload;
+    procedure ProgressPerClientM(OnBackcall: TPerClientListMethod); overload;
+{$IFNDEF FPC} procedure ProgressPerClientP(OnBackcall: TPerClientListProc); overload; {$ENDIF FPC}
     //
     // seealso filler allclient,fast
-    procedure FastProgressPerClientC(OnProgress: TPerClientListCall); overload;
-    procedure FastProgressPerClientM(OnProgress: TPerClientListMethod); overload;
-{$IFNDEF FPC} procedure FastProgressPerClientP(OnProgress: TPerClientListProc); overload; {$ENDIF FPC}
+    procedure FastProgressPerClientC(OnBackcall: TPerClientListCall); overload;
+    procedure FastProgressPerClientM(OnBackcall: TPerClientListMethod); overload;
+{$IFNDEF FPC} procedure FastProgressPerClientP(OnBackcall: TPerClientListProc); overload; {$ENDIF FPC}
     //
     // PeerIO id array
     procedure GetIO_IDArray(out IO_IDArray: TIO_IDArray);
@@ -759,9 +772,10 @@ type
     property QuietMode: Boolean read FQuietMode write FQuietMode;
     property CipherSecurity: TCipherSecurity read FCipherSecurity;
     property IdleTimeout: TTimeTickValue read GetIdleTimeout write SetIdleTimeout;
-    property SendDataCompressed: Boolean read FSendDataCompressed;
+    property SendDataCompressed: Boolean read FSendDataCompressed write FSendDataCompressed;
+    property CompleteBufferCompressed: Boolean read FCompleteBufferCompressed write FCompleteBufferCompressed;
     property HashSecurity: THashSecurity read FHashSecurity;
-    property MaxCompleteBufferSize: NativeInt read FMaxCompleteBufferSize write FMaxCompleteBufferSize;
+    property MaxCompleteBufferSize: Cardinal read FMaxCompleteBufferSize write FMaxCompleteBufferSize;
 
     // state
     property CMDWithThreadRuning: Integer read FCMDWithThreadRuning;
@@ -895,8 +909,9 @@ type
     function Exists(cli: TPeerIOUserSpecial): Boolean; overload;
 
     function Exists(ClientID: Cardinal): Boolean; overload;
-    function GetClientFromID(ID: Cardinal): TPeerIO;
-    property ClientFromID[ID: Cardinal]: TPeerIO read GetClientFromID;
+    function GetPeerIO_FromID(ID: Cardinal): TPeerIO;
+    property ClientFromID[ID: Cardinal]: TPeerIO read GetPeerIO_FromID;
+    property PeerIO[ID: Cardinal]: TPeerIO read GetPeerIO_FromID; default;
   end;
 
   TCommunicationFrameworkServerClass = class of TCommunicationFrameworkServer;
@@ -1227,9 +1242,9 @@ type
 
     procedure Progress;
     //
-    procedure ProgressCommunicationFrameworkC(OnProgress: TCommunicationFrameworkListCall); overload;
-    procedure ProgressCommunicationFrameworkM(OnProgress: TCommunicationFrameworkListMethod); overload;
-{$IFNDEF FPC} procedure ProgressCommunicationFrameworkP(OnProgress: TCommunicationFrameworkListProc); overload; {$ENDIF FPC}
+    procedure ProgressCommunicationFrameworkC(OnBackcall: TCommunicationFrameworkListCall); overload;
+    procedure ProgressCommunicationFrameworkM(OnBackcall: TCommunicationFrameworkListMethod); overload;
+{$IFNDEF FPC} procedure ProgressCommunicationFrameworkP(OnBackcall: TCommunicationFrameworkListProc); overload; {$ENDIF FPC}
     //
     // p2p VM physics tunnel support
     procedure OpenP2PVMTunnel(c: TPeerIO);
@@ -1317,7 +1332,7 @@ var
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
   ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
 
-procedure DisposeQueueData(v: PQueueData);
+procedure DisposeQueueData(const v: PQueueData);
 procedure InitQueueData(var v: TQueueData);
 function NewQueueData: PQueueData;
 
@@ -1440,7 +1455,7 @@ begin
   Done := True;
 end;
 
-procedure DisposeQueueData(v: PQueueData);
+procedure DisposeQueueData(const v: PQueueData);
 begin
   if v^.DoneAutoFree then
     begin
@@ -2208,7 +2223,7 @@ begin
   if OutData <> nil then
       t.OutData.Assign(OutData);
 
-  inc(Sender.OwnerFramework.FCMDWithThreadRuning);
+  AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
   t.Suspended := False;
 end;
@@ -2236,7 +2251,7 @@ begin
   if OutData <> nil then
       t.OutData.Assign(OutData);
 
-  inc(Sender.OwnerFramework.FCMDWithThreadRuning);
+  AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
   t.Suspended := False;
 end;
@@ -2267,7 +2282,7 @@ begin
   if OutData <> nil then
       t.OutData.Assign(OutData);
 
-  inc(Sender.OwnerFramework.FCMDWithThreadRuning);
+  AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
   t.Suspended := False;
 end;
@@ -2874,27 +2889,41 @@ begin
   end;
 end;
 
-procedure TPeerIO.InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz: NativeInt);
+procedure TPeerIO.InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz, compSiz: Cardinal);
 var
   buff: TBytes;
 begin
-  WriteBufferOpen;
   SendCardinal(FHeadToken);
   SendByte(FCompleteBufferToken);
-  SendInt64(buffSiz);
+  SendCardinal(buffSiz);
+  SendCardinal(compSiz);
   buff := TPascalString(Cmd).Bytes;
   SendCardinal(Cardinal(length(buff)));
   InternalSendByteBuffer(@buff[0], length(buff));
   SendCardinal(FTailToken);
-  WriteBufferFlush;
-  WriteBufferClose;
 end;
 
 procedure TPeerIO.InternalSendCompleteBufferBuff(var Queue: TQueueData);
+var
+  sour, dest: TMemoryStream64;
 begin
-  InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize);
   WriteBufferOpen;
-  InternalSendByteBuffer(Queue.buffer, Queue.BufferSize);
+  if FOwnerFramework.FCompleteBufferCompressed then
+    begin
+      sour := TMemoryStream64.Create;
+      sour.SetPointerWithProtectedMode(Queue.buffer, Queue.BufferSize);
+      dest := TMemoryStream64.Create;
+      FastCompressStream(sour, dest);
+      InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, dest.Size);
+      InternalSendByteBuffer(dest.Memory, dest.Size);
+      DisposeObject(sour);
+      DisposeObject(dest);
+    end
+  else
+    begin
+      InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, 0);
+      InternalSendByteBuffer(Queue.buffer, Queue.BufferSize);
+    end;
   WriteBufferFlush;
   WriteBufferClose;
 end;
@@ -3295,8 +3324,10 @@ end;
 
 function TPeerIO.FillCompleteBufferBuffer(ACurrentActiveThread: TCoreClassThread; const Sync: Boolean): Boolean;
 var
-  leftSize: Int64;
+  leftSize: Cardinal;
   tmpStream: TMemoryStream64;
+
+  dest: TMemoryStream64;
 begin
   leftSize := FCompleteBufferTotal - FCompleteBufferCompleted;
   if leftSize > FReceivedBuffer.Size then
@@ -3317,8 +3348,21 @@ begin
       FCompleteBufferReceiveStream.WritePtr(FReceivedBuffer.Memory, leftSize);
       FCompleteBufferReceiveStream.Position := 0;
 
-      SyncMethod(ACurrentActiveThread, Sync, {$IFDEF FPC}@{$ENDIF FPC}Sync_ExecuteCompleteBuffer);
-      FCompleteBufferReceiveStream.Clear;
+      if FCompleteBufferCompressedSize > 0 then
+        begin
+          dest := TMemoryStream64.Create;
+          DecompressStream(FCompleteBufferReceiveStream, dest);
+          DisposeObject(FCompleteBufferReceiveStream);
+          dest.Position := 0;
+          FCompleteBufferReceiveStream := dest;
+          SyncMethod(ACurrentActiveThread, Sync, {$IFDEF FPC}@{$ENDIF FPC}Sync_ExecuteCompleteBuffer);
+          FCompleteBufferReceiveStream.Clear;
+        end
+      else
+        begin
+          SyncMethod(ACurrentActiveThread, Sync, {$IFDEF FPC}@{$ENDIF FPC}Sync_ExecuteCompleteBuffer);
+          FCompleteBufferReceiveStream.Clear;
+        end;
 
       tmpStream := TMemoryStream64.Create;
       if FReceivedBuffer.Size - leftSize > 0 then
@@ -3328,6 +3372,7 @@ begin
       Result := True;
 
       FCompleteBufferTotal := 0;
+      FCompleteBufferCompressedSize := 0;
       FCompleteBufferCompleted := 0;
       FCompleteBufferCmd := '';
       FCompleteBufferReceiveProcessing := False;
@@ -3538,7 +3583,8 @@ var
   df: TDataFrameEngine;
   buff: TBytes;
   Total: Int64;
-  NeedDisconnected: Boolean;
+  sourSiz, compSiz: Cardinal;
+  BreakAndDisconnect: Boolean;
 begin
   if FAllSendProcessing then
       Exit;
@@ -3555,7 +3601,7 @@ begin
 
   LockObject(Self); // atomic lock
   FReceiveProcessing := True;
-  NeedDisconnected := False;
+  BreakAndDisconnect := False;
   try
     while (FReceivedBuffer.Size > 0) and (Connected) do
       begin
@@ -3614,7 +3660,7 @@ begin
         FReceivedBuffer.read(dHead, C_Cardinal_Size);
         if dHead <> FHeadToken then
           begin
-            NeedDisconnected := True;
+            BreakAndDisconnect := True;
             Break;
           end;
 
@@ -3647,7 +3693,7 @@ begin
             if dTail <> FTailToken then
               begin
                 Print('tail error!');
-                NeedDisconnected := True;
+                BreakAndDisconnect := True;
                 Break;
               end;
 
@@ -3668,40 +3714,41 @@ begin
           end
         else if dID = FCompleteBufferToken then
           begin
-            // 2:complete buff size
-            if (FReceivedBuffer.Size - FReceivedBuffer.Position < C_Int64_Size) then
+            // 1:complete buff size
+            if (FReceivedBuffer.Size - FReceivedBuffer.Position < C_Cardinal_Size * 3) then
                 Break;
-            FReceivedBuffer.read(Total, C_Int64_Size);
-
-            // 3:command len
-            if (FReceivedBuffer.Size - FReceivedBuffer.Position < C_Cardinal_Size) then
-                Break;
+            FReceivedBuffer.read(sourSiz, C_Cardinal_Size);
+            FReceivedBuffer.read(compSiz, C_Cardinal_Size);
             FReceivedBuffer.read(dSize, C_Cardinal_Size);
 
-            // 4:command and tial token
+            // 2:command and tial token
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + C_Cardinal_Size) then
                 Break;
             SetLength(buff, dSize);
             if length(buff) > 0 then
                 FReceivedBuffer.read(buff[0], dSize);
 
-            // 5: process tail token
+            // 3: process tail token
             FReceivedBuffer.read(dTail, C_Cardinal_Size);
             if dTail <> FTailToken then
               begin
                 Print('tail error!');
-                NeedDisconnected := True;
+                BreakAndDisconnect := True;
                 Break;
               end;
 
-            if (FOwnerFramework.FMaxCompleteBufferSize > 0) and (Total > FOwnerFramework.FMaxCompleteBufferSize) then
+            if (FOwnerFramework.FMaxCompleteBufferSize > 0) and (sourSiz > FOwnerFramework.FMaxCompleteBufferSize) then
               begin
                 Print('Oversize of CompleteBuffer cmd: ' + umlStringOf(buff).Text);
-                NeedDisconnected := True;
+                BreakAndDisconnect := True;
                 Break;
               end;
 
-            FCompleteBufferTotal := Total;
+            if compSiz > 0 then
+                FCompleteBufferTotal := compSiz
+            else
+                FCompleteBufferTotal := sourSiz;
+            FCompleteBufferCompressedSize := compSiz;
             FCompleteBufferCompleted := 0;
             FCompleteBufferCmd := umlStringOf(buff).Text;
             FCompleteBufferReceiveProcessing := True;
@@ -3754,7 +3801,7 @@ begin
             if dTail <> FTailToken then
               begin
                 Print('tail error!');
-                NeedDisconnected := True;
+                BreakAndDisconnect := True;
                 Break;
               end;
 
@@ -3765,7 +3812,7 @@ begin
             except
               Print('Encrypt error!');
               DisposeObject(tmpStream);
-              NeedDisconnected := True;
+              BreakAndDisconnect := True;
               Break;
             end;
 
@@ -3773,7 +3820,7 @@ begin
               begin
                 Print('verify data error!');
                 DisposeObject(tmpStream);
-                NeedDisconnected := True;
+                BreakAndDisconnect := True;
                 Break;
               end;
 
@@ -3784,7 +3831,7 @@ begin
             except
               Print('DECode dataFrame error!');
               DisposeObject(tmpStream);
-              NeedDisconnected := True;
+              BreakAndDisconnect := True;
               Break;
             end;
             DisposeObject(tmpStream);
@@ -3808,7 +3855,7 @@ begin
           end
         else
           begin
-            NeedDisconnected := True;
+            BreakAndDisconnect := True;
             Break;
           end;
       end;
@@ -3817,7 +3864,7 @@ begin
     FReceiveProcessing := False;
     UnLockObject(Self); // atomic lock
 
-    if NeedDisconnected then
+    if BreakAndDisconnect then
         Disconnect;
   end;
 end;
@@ -3976,11 +4023,11 @@ begin
   FID := AOwnerFramework.FIDCounter;
 
   // only ID
-  inc(AOwnerFramework.FIDCounter);
+  AtomInc(AOwnerFramework.FIDCounter);
 
   LockObject(FOwnerFramework.FPerClientHashList); // atomic lock
   while (AOwnerFramework.FIDCounter = 0) or (AOwnerFramework.FPerClientHashList.Exists(AOwnerFramework.FIDCounter)) do
-      inc(AOwnerFramework.FIDCounter);
+      AtomInc(AOwnerFramework.FIDCounter);
   UnLockObject(FOwnerFramework.FPerClientHashList); // atomic lock
 
   FHeadToken := c_DataHeadToken;
@@ -4005,6 +4052,7 @@ begin
 
   FCompleteBufferReceiveProcessing := False;
   FCompleteBufferTotal := 0;
+  FCompleteBufferCompressedSize := 0;
   FCompleteBufferCompleted := 0;
   FCompleteBufferCmd := '';
   FCompleteBufferReceiveStream := TMemoryStream64.Create;
@@ -4041,6 +4089,8 @@ begin
   FWaitSendBusy := False;
   FReceiveCommandRuning := False;
   FReceiveResultRuning := False;
+
+  FProgressRunning := False;
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
@@ -4346,6 +4396,13 @@ var
   buff: TBytes;
   SendDone: Boolean;
 begin
+  // anti dead loop
+  if FProgressRunning then
+      Exit;
+
+  // anti dead loop
+  FProgressRunning := True;
+
   if FP2PVMTunnel <> nil then
     begin
       try
@@ -4364,10 +4421,11 @@ begin
   except
   end;
 
-  if FAllSendProcessing then
+  if FAllSendProcessing or FReceiveProcessing then
+    begin
+      FProgressRunning := False;
       Exit;
-  if FReceiveProcessing then
-      Exit;
+    end;
 
   if (FBigStreamSending <> nil) and (WriteBufferEmpty) then
     begin
@@ -4385,11 +4443,12 @@ begin
         FBigStreamSending.Position := FBigStreamSendState;
         FBigStreamSending.read(buff[0], SendBufferSize);
 
-        inc(FBigStreamSendState, SendBufferSize);
+        AtomInc(FBigStreamSendState, SendBufferSize);
 
       except
         UnLockObject(FBigStreamSending); // atomic lock
         Disconnect;
+        FProgressRunning := False;
         Exit;
       end;
 
@@ -4402,6 +4461,7 @@ begin
         WriteBufferClose;
       except
         Disconnect;
+        FProgressRunning := False;
         Exit;
       end;
 
@@ -4416,6 +4476,9 @@ begin
           FillRecvBuffer(nil, False, False);
         end;
     end;
+
+  // anti dead loop
+  FProgressRunning := False;
 end;
 
 procedure TPeerIO.DelayClose;
@@ -5092,6 +5155,7 @@ begin
   FQuietMode := False;
   FCipherSecurity := TCipherSecurity.csNone;
   FSendDataCompressed := True;
+  FCompleteBufferCompressed := False;
   FHashSecurity := THashSecurity.hsNone;
   FMaxCompleteBufferSize := 4 * 1024 * 1024; // 4M
   FPeerIOUserDefineClass := TPeerIOUserDefine;
@@ -5100,11 +5164,14 @@ begin
   FPrintParams := THashVariantList.Create(128);
   FPrintParams.AutoUpdateDefaultValue := True;
 
-  FProgressPost := TNProgressPostWithCadencer.Create;
+  FPostProgress := TNProgressPostWithCadencer.Create;
 
   FFrameworkIsServer := True;
   FFrameworkIsClient := True;
   FFrameworkInfo := ClassName;
+
+  FOnProgressRuning := False;
+  FOnProgress := nil;
 
   FCMDWithThreadRuning := 0;
 
@@ -5139,7 +5206,7 @@ begin
   DisposeObject(FCommandList);
   DisposeObject(FPerClientHashList);
   DisposeObject(FPrintParams);
-  DisposeObject(FProgressPost);
+  DisposeObject(FPostProgress);
   DisposeObject([CmdRecvStatistics, CmdSendStatistics, CmdMaxExecuteConsumeStatistics]);
   inherited Destroy;
 end;
@@ -5225,6 +5292,12 @@ end;
 
 procedure TCommunicationFramework.Progress;
 begin
+  if FOnProgressRuning then
+      Exit;
+
+  // anti Dead loop
+  FOnProgressRuning := True;
+
   try
     if Assigned(ProgressBackgroundProc) then
         ProgressBackgroundProc;
@@ -5243,15 +5316,24 @@ begin
       ProgressPost.Progress;
   except
   end;
+
+  try
+    if Assigned(FOnProgress) then
+        FOnProgress(Self);
+  except
+  end;
+
+  // anti Dead loop
+  FOnProgressRuning := False;
 end;
 
-procedure TCommunicationFramework.ProgressPerClientC(OnProgress: TPerClientListCall);
+procedure TCommunicationFramework.ProgressPerClientC(OnBackcall: TPerClientListCall);
 var
   IO_IDArray: TIO_IDArray;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
-  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+  if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
       GetIO_IDArray(IO_IDArray);
       for pframeworkID in IO_IDArray do
@@ -5260,7 +5342,7 @@ begin
           if c <> nil then
             begin
               try
-                  OnProgress(c);
+                  OnBackcall(c);
               except
               end;
             end;
@@ -5268,13 +5350,13 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework.ProgressPerClientM(OnProgress: TPerClientListMethod);
+procedure TCommunicationFramework.ProgressPerClientM(OnBackcall: TPerClientListMethod);
 var
   IO_IDArray: TIO_IDArray;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
-  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+  if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
       GetIO_IDArray(IO_IDArray);
       for pframeworkID in IO_IDArray do
@@ -5283,7 +5365,7 @@ begin
           if c <> nil then
             begin
               try
-                  OnProgress(c);
+                  OnBackcall(c);
               except
               end;
             end;
@@ -5294,13 +5376,13 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TCommunicationFramework.ProgressPerClientP(OnProgress: TPerClientListProc);
+procedure TCommunicationFramework.ProgressPerClientP(OnBackcall: TPerClientListProc);
 var
   IO_IDArray: TIO_IDArray;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
-  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+  if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
       GetIO_IDArray(IO_IDArray);
       for pframeworkID in IO_IDArray do
@@ -5309,7 +5391,7 @@ begin
           if c <> nil then
             begin
               try
-                  OnProgress(c);
+                  OnBackcall(c);
               except
               end;
             end;
@@ -5319,19 +5401,19 @@ end;
 {$ENDIF FPC}
 
 
-procedure TCommunicationFramework.FastProgressPerClientC(OnProgress: TPerClientListCall);
+procedure TCommunicationFramework.FastProgressPerClientC(OnBackcall: TPerClientListCall);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+  if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
       i := 0;
       p := FPerClientHashList.FirstPtr;
       while i < FPerClientHashList.Count do
         begin
           try
-              OnProgress(TPeerIO(p^.Data));
+              OnBackcall(TPeerIO(p^.Data));
           except
           end;
           inc(i);
@@ -5340,19 +5422,19 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework.FastProgressPerClientM(OnProgress: TPerClientListMethod);
+procedure TCommunicationFramework.FastProgressPerClientM(OnBackcall: TPerClientListMethod);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+  if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
       i := 0;
       p := FPerClientHashList.FirstPtr;
       while i < FPerClientHashList.Count do
         begin
           try
-              OnProgress(TPeerIO(p^.Data));
+              OnBackcall(TPeerIO(p^.Data));
           except
           end;
           inc(i);
@@ -5364,19 +5446,19 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TCommunicationFramework.FastProgressPerClientP(OnProgress: TPerClientListProc);
+procedure TCommunicationFramework.FastProgressPerClientP(OnBackcall: TPerClientListProc);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FPerClientHashList.Count > 0) and (Assigned(OnProgress)) then
+  if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
       i := 0;
       p := FPerClientHashList.FirstPtr;
       while i < FPerClientHashList.Count do
         begin
           try
-              OnProgress(TPeerIO(p^.Data));
+              OnBackcall(TPeerIO(p^.Data));
           except
           end;
           inc(i);
@@ -6502,7 +6584,7 @@ begin
   Result := FPerClientHashList.Exists(ClientID);
 end;
 
-function TCommunicationFrameworkServer.GetClientFromID(ID: Cardinal): TPeerIO;
+function TCommunicationFrameworkServer.GetPeerIO_FromID(ID: Cardinal): TPeerIO;
 begin
   Result := TPeerIO(FPerClientHashList[ID]);
 end;
@@ -8967,19 +9049,19 @@ begin
     end
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkC(OnProgress: TCommunicationFrameworkListCall);
+procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkC(OnBackcall: TCommunicationFrameworkListCall);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FFrameworkPool.Count > 0) and (Assigned(OnProgress)) then
+  if (FFrameworkPool.Count > 0) and (Assigned(OnBackcall)) then
     begin
       i := 0;
       p := FFrameworkPool.FirstPtr;
       while i < FFrameworkPool.Count do
         begin
           try
-              OnProgress(TCommunicationFramework(p^.Data));
+              OnBackcall(TCommunicationFramework(p^.Data));
           except
           end;
           inc(i);
@@ -8988,19 +9070,19 @@ begin
     end;
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkM(OnProgress: TCommunicationFrameworkListMethod);
+procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkM(OnBackcall: TCommunicationFrameworkListMethod);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FFrameworkPool.Count > 0) and (Assigned(OnProgress)) then
+  if (FFrameworkPool.Count > 0) and (Assigned(OnBackcall)) then
     begin
       i := 0;
       p := FFrameworkPool.FirstPtr;
       while i < FFrameworkPool.Count do
         begin
           try
-              OnProgress(TCommunicationFramework(p^.Data));
+              OnBackcall(TCommunicationFramework(p^.Data));
           except
           end;
           inc(i);
@@ -9012,19 +9094,19 @@ end;
 {$IFNDEF FPC}
 
 
-procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkP(OnProgress: TCommunicationFrameworkListProc);
+procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkP(OnBackcall: TCommunicationFrameworkListProc);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FFrameworkPool.Count > 0) and (Assigned(OnProgress)) then
+  if (FFrameworkPool.Count > 0) and (Assigned(OnBackcall)) then
     begin
       i := 0;
       p := FFrameworkPool.FirstPtr;
       while i < FFrameworkPool.Count do
         begin
           try
-              OnProgress(TCommunicationFramework(p^.Data));
+              OnBackcall(TCommunicationFramework(p^.Data));
           except
           end;
           inc(i);

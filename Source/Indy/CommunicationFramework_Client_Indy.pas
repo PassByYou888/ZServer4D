@@ -489,7 +489,7 @@ begin
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
 
-  FDriver.ConnectTimeout := 500;
+  FDriver.ConnectTimeout := 1000;
   try
     FDriver.Connect;
     Progress;

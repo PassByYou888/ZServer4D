@@ -135,28 +135,6 @@ begin
 {$ENDIF FPC}
 end;
 
-procedure AtomInc(var x: Integer);
-begin
-{$IFDEF FPC}
-  CoreCritical.Acquire;
-  inc(x);
-  CoreCritical.Release;
-{$ELSE FPC}
-  System.AtomicIncrement(x);
-{$ENDIF FPC}
-end;
-
-procedure AtomInc(var x: Integer; const v: Integer);
-begin
-{$IFDEF FPC}
-  CoreCritical.Acquire;
-  inc(x, v);
-  CoreCritical.Release;
-{$ELSE FPC}
-  System.AtomicIncrement(x, v);
-{$ENDIF FPC}
-end;
-
 procedure AtomDec(var x: Int64);
 begin
 {$IFDEF FPC}
@@ -179,6 +157,72 @@ begin
 {$ENDIF FPC}
 end;
 
+procedure AtomInc(var x: UInt64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: UInt64; const v: UInt64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: UInt64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: UInt64; const v: UInt64);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Integer; const v: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x, v);
+{$ENDIF FPC}
+end;
+
 procedure AtomDec(var x: Integer);
 begin
 {$IFDEF FPC}
@@ -191,6 +235,50 @@ begin
 end;
 
 procedure AtomDec(var x: Integer; const v: Integer);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Cardinal);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomInc(var x: Cardinal; const v: Cardinal);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  inc(x, v);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicIncrement(x, v);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: Cardinal);
+begin
+{$IFDEF FPC}
+  CoreCritical.Acquire;
+  dec(x);
+  CoreCritical.Release;
+{$ELSE FPC}
+  System.AtomicDecrement(x);
+{$ENDIF FPC}
+end;
+
+procedure AtomDec(var x: Cardinal; const v: Cardinal);
 begin
 {$IFDEF FPC}
   CoreCritical.Acquire;

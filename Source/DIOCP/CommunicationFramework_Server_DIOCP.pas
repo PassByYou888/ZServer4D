@@ -224,7 +224,7 @@ begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
       Exit;
 
-  // zs内核在新版本已经完全支持亿00%的异步解析
+  // zs内核在新版本已经完全支持100%的异步解析
   // 经过简单分析，这个事件被上锁保护了，似乎调度有点延迟
   // 这里的性能热点不太好找，diocp的瓶颈主要是卡在这一步
   TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(Buf, Len);
@@ -292,6 +292,7 @@ end;
 procedure TCommunicationFramework_Server_DIOCP.Progress;
 begin
   inherited Progress;
+  CoreClasses.CheckThreadSynchronize;
 end;
 
 function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;

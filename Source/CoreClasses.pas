@@ -220,12 +220,20 @@ procedure UnLockObject(Obj:TObject);
 
 procedure AtomInc(var x: Int64); overload;
 procedure AtomInc(var x: Int64; const v: Int64); overload;
-procedure AtomInc(var x: Integer); overload;
-procedure AtomInc(var x: Integer; const v:Integer); overload;
 procedure AtomDec(var x: Int64); overload;
 procedure AtomDec(var x: Int64; const v: Int64); overload;
+procedure AtomInc(var x: UInt64); overload;
+procedure AtomInc(var x: UInt64; const v: UInt64); overload;
+procedure AtomDec(var x: UInt64); overload;
+procedure AtomDec(var x: UInt64; const v: UInt64); overload;
+procedure AtomInc(var x: Integer); overload;
+procedure AtomInc(var x: Integer; const v:Integer); overload;
 procedure AtomDec(var x: Integer); overload;
 procedure AtomDec(var x: Integer; const v:Integer); overload;
+procedure AtomInc(var x: Cardinal); overload;
+procedure AtomInc(var x: Cardinal; const v:Cardinal); overload;
+procedure AtomDec(var x: Cardinal); overload;
+procedure AtomDec(var x: Cardinal; const v:Cardinal); overload;
 
 procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte); inline;
 function CompareMemory(const p1, p2: Pointer; const MLen: NativeInt): Boolean;

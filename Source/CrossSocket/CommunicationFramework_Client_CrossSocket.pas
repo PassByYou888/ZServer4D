@@ -392,7 +392,7 @@ begin
 
   TThread.Sleep(10);
 
-  dt := GetTimeTick + 1000;
+  dt := GetTimeTick + 2000;
   while (not LastCompleted) and (GetTimeTick < dt) do
       CheckThreadSynchronize(5);
 
@@ -407,7 +407,7 @@ begin
       BuildIntf.DoConnected(cli);
     end;
 
-  dt := GetTimeTick + 1000;
+  dt := GetTimeTick + 2000;
   while (LastCompleted) and (LastResult) and (not BuildIntf.RemoteInited) do
     begin
       BuildIntf.Progress;

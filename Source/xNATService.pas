@@ -124,6 +124,15 @@ type
     TunnelListenPort: TPascalString;
     AuthToken: TPascalString;
     MaxVMFragment, MaxRealBuffer: TPascalString;
+    {
+      Compression of CompleteBuffer packets using zLib
+      feature of zLib: slow compression and fast decompression.
+      XNAT is used to non compression or non encryption protocol, the option can be opened so upspeed.
+      else. protocol is encrypted or compressed, opening this ProtocolCompressed additional burden on CPU.
+      ProtocolCompressed set closed by default.
+    }
+    ProtocolCompressed: Boolean;
+
     constructor Create;
     destructor Destroy; override;
     procedure AddMapping(const ListenAddr, ListenPort, Mapping: TPascalString);
@@ -131,34 +140,7 @@ type
     procedure Progress;
   end;
 
-procedure BuildBuff(buff: PByte; siz: NativeInt; local_id, remote_id: Cardinal; var NewSiz: NativeInt; var NewBuff: PByte);
-procedure FillBuff(sour: PByte; siz: NativeInt; var local_id, remote_id: Cardinal; var destSiz: NativeInt; var destBuff: PByte);
-
 implementation
-
-procedure BuildBuff(buff: PByte; siz: NativeInt; local_id, remote_id: Cardinal; var NewSiz: NativeInt; var NewBuff: PByte);
-var
-  nb: PByte;
-begin
-  NewSiz := siz + 8;
-  nb := System.GetMemory(NewSiz);
-  NewBuff := nb;
-  PCardinal(nb)^ := local_id;
-  inc(nb, 4);
-  PCardinal(nb)^ := remote_id;
-  inc(nb, 4);
-  CopyPtr(buff, nb, siz);
-end;
-
-procedure FillBuff(sour: PByte; siz: NativeInt; var local_id, remote_id: Cardinal; var destSiz: NativeInt; var destBuff: PByte);
-begin
-  destSiz := siz - 8;
-  local_id := PCardinal(sour)^;
-  inc(sour, 4);
-  remote_id := PCardinal(sour)^;
-  inc(sour, 4);
-  destBuff := sour;
-end;
 
 constructor TXServiceRecvVM_Special.Create(AOwner: TPeerIO);
 begin
@@ -219,16 +201,24 @@ begin
 end;
 
 function TXServiceListen.Open: Boolean;
+var
+  nt: Pointer;
 begin
   // build receive tunnel
   if RecvTunnel = nil then
       RecvTunnel := TXCustomP2PVM_Server.Create;
 
+  // sequence sync
+  RecvTunnel.SyncOnCompleteBuffer := True;
+  RecvTunnel.SyncOnResult := True;
   // mapping interface
   RecvTunnel.OwnerMapping := Self;
   RecvTunnel.UserSpecialClass := TXServiceRecvVM_Special;
+  // compressed complete buffer
+  RecvTunnel.CompleteBufferCompressed := XServerTunnel.ProtocolCompressed;
   // build virtual address
-  PNativeUInt(@RecvTunnel_IPV6)^ := NativeUInt(@RecvTunnel);
+  nt := @RecvTunnel;
+  TSHA3.SHAKE128(@RecvTunnel_IPV6, @nt, SizeOf(nt), 128);
   // build virtual port
   RecvTunnel_Port := umlCRC16(@RecvTunnel_IPV6, SizeOf(TIPV6));
   // disable data status print
@@ -251,11 +241,18 @@ begin
   // build send tunnel
   if SendTunnel = nil then
       SendTunnel := TXCustomP2PVM_Server.Create;
+
+  // sequence sync
+  SendTunnel.SyncOnCompleteBuffer := True;
+  SendTunnel.SyncOnResult := True;
   // mapping interface
   SendTunnel.OwnerMapping := Self;
   SendTunnel.UserSpecialClass := TXServiceSendVM_Special;
+  // compressed complete buffer
+  SendTunnel.CompleteBufferCompressed := XServerTunnel.ProtocolCompressed;
   // build virtual address
-  PNativeUInt(@SendTunnel_IPV6)^ := NativeUInt(@SendTunnel);
+  nt := @SendTunnel;
+  TSHA3.SHAKE128(@SendTunnel_IPV6, @nt, SizeOf(nt), 128);
   // build virtual port
   SendTunnel_Port := umlCRC16(@SendTunnel_IPV6, SizeOf(TIPV6));
   // disable data status print
@@ -385,7 +382,10 @@ begin
   phy_io := Protocol.ClientFromID[local_id];
 
   if phy_io <> nil then
+    begin
       Protocol.WriteBuffer(phy_io, destBuff, destSiz);
+      phy_io.Progress;
+    end;
 end;
 
 procedure TXServiceListen.SetActivted(const Value: Boolean);
@@ -466,7 +466,9 @@ begin
     end;
 
   BuildBuff(buffer, Size, Sender.ID, io.RemoteProtocol_ID, nSiz, nBuff);
-  ShareListen.SendTunnel.SendCompleteBuffer(ShareListen.SendTunnel.FirstClient, 'data', nBuff, nSiz, True);
+  ShareListen.SendTunnel.FirstClient.SendCompleteBuffer('data', nBuff, nSiz, True);
+  ShareListen.SendTunnel.FirstClient.ProcessAllSendCmd(nil, False, False);
+  ShareListen.SendTunnel.FirstClient.Progress;
 end;
 
 procedure TXServerCustomProtocol.DoClientConnectBefore(Sender: TPeerIO);
@@ -484,6 +486,7 @@ begin
 
   de := TDataFrameEngine.Create;
   de.WriteCardinal(Sender.ID);
+  de.WriteString(Sender.PeerIP);
   ShareListen.SendTunnel.SendDirectStreamCmd(ShareListen.SendTunnel.FirstClient, 'connect_request', de);
   DisposeObject(de);
   inherited DoClientConnectAfter(Sender);
@@ -609,6 +612,7 @@ begin
   AuthToken := 'ZServer';
   MaxVMFragment := '200';
   MaxRealBuffer := umlIntToStr(2048 * 1024);
+  ProtocolCompressed := False;
 end;
 
 destructor TXNATService.Destroy;

@@ -3,18 +3,19 @@ unit AC2ClientGlobal;
 interface
 
 uses
-  IdGlobal,
-  CommunicationFramework, CommunicationFramework_Client_Indy,
-  CoreClasses, TextDataEngine,
-  Cadencer,
   FMX.Controls, FMX.Ani, FMX.Forms, FMX.Types, System.UITypes, FMX.Layouts,
   System.Types,
+  IdGlobal,
+  AC2KeepAwakeUnit,
+  CommunicationFramework, xNATPhysics,
+  CoreClasses, TextDataEngine,
+  Cadencer,
   Classes, SysUtils, Geometry2DUnit, NotifyObjectBase,
   AC2ManagerServerMobileClient, CommonServiceDefine, AC2LogicMobileClient,
-  AC2KeepAwakeUnit, FOGComputeClientIntf;
+  FOGComputeClientIntf;
 
 const
-  GlobalScreenWidth  = 960;
+  GlobalScreenWidth = 960;
   GlobalScreenHeight = 540;
 
 type
@@ -42,24 +43,21 @@ type
 
 const
   CopyRightText: string = '所有拷贝版权所有，ZServer4D高级云服务器框架2.0' + #13#10 + '版本:1.0.0 2018-1';
-  AppName: string       = '高级云服务器框架2.0';
-
-const
-  ManagerServerDefaultIPVersion: TIdIPVersion = TIdIPVersion.Id_IPv4; // 系统会自动切换ipv4和ipv6尝试链接，送审苹果，请将地址改成ipv6
+  AppName: string = '高级云服务器框架2.0';
 
 var
-  ManagerServerHost         : string                         = '127.0.0.1'; // 默认的服务器地址，如果是IPV6的本地回环地址写0:0:0:0:0:0:0:1
-  QueryClient               : TManagerQuery                  = nil;         // 调度服务器(Manager Server)
-  LogicClient               : TLogicClient                   = nil;         // 业务客户端(Logic)
-  FogComputeClient          : TFogCompute_DoubleTunnelClient = nil;         // 雾计算客户端(Fog Compute)
-  LastLoginUserID           : string                         = '';          // 最后登录的ID
-  LastLoginUserAlias        : string                         = '';          // 最后登录的用户别名
-  UserConfig                : TSectionTextData               = nil;         // 最后登录的远程用户(只能读取，不能修改)
-  GlobalKeepAwake           : TKeepAwake                     = nil;         // 空闲锁
-  GlobalCadencer            : TCadencer                      = nil;         // Cadencer引擎
-  GlobalProgressThread      : TGlobalProgressThread          = nil;         // 空闲处理线程，主要做全局Progress处理
-  GlobalProgressThreadRuning: Boolean                        = True;        // 执行状态机
-  GlobalProgressPost        : TNProgressPost                 = nil;         // 事件抛送引擎
+  ManagerServerHost: string = '127.0.0.1';                // 默认的服务器地址，如果是IPV6的本地回环地址写0:0:0:0:0:0:0:1
+  QueryClient: TManagerQuery = nil;                       // 调度服务器(Manager Server)
+  LogicClient: TLogicClient = nil;                        // 业务客户端(Logic)
+  FogComputeClient: TFogCompute_DoubleTunnelClient = nil; // 雾计算客户端(Fog Compute)
+  LastLoginUserID: string = '';                           // 最后登录的ID
+  LastLoginUserAlias: string = '';                        // 最后登录的用户别名
+  UserConfig: TSectionTextData = nil;                     // 最后登录的远程用户(只能读取，不能修改)
+  GlobalKeepAwake: TKeepAwake = nil;                      // 空闲锁
+  GlobalCadencer: TCadencer = nil;                        // Cadencer引擎
+  GlobalProgressThread: TGlobalProgressThread = nil;      // 空闲处理线程，主要做全局Progress处理
+  GlobalProgressThreadRuning: Boolean = True;             // 执行状态机
+  GlobalProgressPost: TNProgressPost = nil;               // 事件抛送引擎
 
 procedure KeepAwake;
 procedure AllowSleeping;
@@ -76,20 +74,20 @@ procedure ResetMainLayout(l: TLayout; f: TForm);
 implementation
 
 uses
-  {$IF Defined(WIN32)}
-  {$ELSEIF Defined(WIN64)}
-  {$ELSEIF Defined(OSX)}
-  {$ELSEIF Defined(IOS)}
+{$IF Defined(WIN32)}
+{$ELSEIF Defined(WIN64)}
+{$ELSEIF Defined(OSX)}
+{$ELSEIF Defined(IOS)}
   iOSapi.Helpers,
-  {$ELSEIF Defined(ANDROID)}
+{$ELSEIF Defined(ANDROID)}
   Androidapi.JNI.App,
   Androidapi.JNI.GraphicsContentViewText,
   Androidapi.Helpers,
   FMX.Helpers.Android,
   FMX.Platform.Android,
   Androidapi.JNI.Os, Androidapi.JNI.JavaTypes, Androidapi.JNIBridge,
-  {$ELSE}
-  {$IFEND}
+{$ELSE}
+{$IFEND}
   DoStatusIO, AC2LogicFrm, AC2LoginFrm, AC2ProgressFrm;
 
 {$IF Defined(ANDROID)}
@@ -135,16 +133,16 @@ end;
 
 procedure KeepAwake;
 begin
-  {$IF Defined(ANDROID)}
+{$IF Defined(ANDROID)}
   _KeepAwake;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 procedure AllowSleeping;
 begin
-  {$IF Defined(ANDROID)}
+{$IF Defined(ANDROID)}
   _AllowSleeping;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 procedure TGlobalProgressThread.GlobalCadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
@@ -196,19 +194,19 @@ begin
 
   GlobalCadencer := TCadencer.Create;
 
-  {$IF Defined(WIN32)}
-  {$ELSEIF Defined(WIN64)}
-  {$ELSEIF Defined(OSX)}
-  {$ELSEIF Defined(IOS)}
+{$IF Defined(WIN32)}
+{$ELSEIF Defined(WIN64)}
+{$ELSEIF Defined(OSX)}
+{$ELSEIF Defined(IOS)}
   TiOSHelper.SharedApplication.setIdleTimerDisabled(True);
-  {$ELSEIF Defined(ANDROID)}
+{$ELSEIF Defined(ANDROID)}
   CallInUIThread(
     procedure
     begin
       MainActivity.getWindow.clearFlags(TJWindowManager_LayoutParams.JavaClass.FLAG_KEEP_SCREEN_ON);
     end);
-  {$ELSE}
-  {$IFEND}
+{$ELSE}
+{$IFEND}
   GlobalProgressThreadRuning := True;
   GlobalProgressThread := TGlobalProgressThread.Create(True);
   GlobalCadencer.OnProgress := GlobalProgressThread.GlobalCadencerProgress;
@@ -223,7 +221,7 @@ begin
 
   LogicClient := TLogicClient.Create(AC2LogicForm);
 
-  FogComputeClient := TFogCompute_DoubleTunnelClient.Create(TCommunicationFramework_Client_Indy);
+  FogComputeClient := TFogCompute_DoubleTunnelClient.Create(TXPhysicsClient);
 
   GlobalProgressPost.PostExecuteC(1, CreateAllForm);
 end;
@@ -307,7 +305,7 @@ end;
 
 constructor TManagerQuery.Create;
 begin
-  inherited Create(TCommunicationFramework_Client_Indy.Create);
+  inherited Create(TXPhysicsClient.Create);
 end;
 
 destructor TManagerQuery.Destroy;
@@ -317,12 +315,12 @@ end;
 
 procedure TManagerQuery.Connect(Addr: string; Port: Word);
 begin
-  TCommunicationFramework_Client_Indy(Client).Connect(Addr, Port);
+  TXPhysicsClient(Client).Connect(Addr, Port);
 end;
 
 constructor TLogicClient.Create(ALogicBackCallInterface: ILogicBackCallInterface);
 begin
-  inherited Create(ALogicBackCallInterface, TCommunicationFramework_Client_Indy.Create, TCommunicationFramework_Client_Indy.Create);
+  inherited Create(ALogicBackCallInterface, TXPhysicsClient.Create, TXPhysicsClient.Create);
 end;
 
 destructor TLogicClient.Destroy;
@@ -338,13 +336,13 @@ begin
   Disconnect;
   RegisterCommand;
 
-  TCommunicationFramework_Client_Indy(NetSendTunnelIntf).Connect(Addr, ASendPort);
+  TXPhysicsClient(NetSendTunnelIntf).Connect(Addr, ASendPort);
   if not NetSendTunnelIntf.Connected then
     begin
       DoStatus('connect %s failed!', [Addr]);
       exit;
     end;
-  TCommunicationFramework_Client_Indy(NetRecvTunnelIntf).Connect(Addr, ARecvPort);
+  TXPhysicsClient(NetRecvTunnelIntf).Connect(Addr, ARecvPort);
   if not NetRecvTunnelIntf.Connected then
     begin
       DoStatus('connect %s failed!', [Addr]);
@@ -380,8 +378,6 @@ UserConfig := TSectionTextData.Create;
 GlobalProgressThreadRuning := True;
 
 ProgressBackgroundProc := QPProgressBackground;
-
-CommunicationFramework_Client_Indy.DefaultIPVersion := ManagerServerDefaultIPVersion;
 
 finalization
 

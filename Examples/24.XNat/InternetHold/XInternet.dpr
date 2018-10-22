@@ -20,6 +20,18 @@ var
 begin
   try
     XServ := TXNATService.Create;
+    {
+      穿透协议压缩选项
+      建议使用场景:
+      如果代理的数据已经压缩过，或则使用https这类方式加密过，压缩会无效，甚至压缩后数据更大
+      如果时裸数据协议，比如ftp,不带s的http,tennet，压缩开关可以打开，可以小幅提速
+
+      性能优化思路，ZLib的压缩算法特征是压缩慢，解压非常快，让服务器发送数据时不做压缩，让客户端发送数据全部压缩
+      在TXServiceListen实例中调整 SendTunnel.CompleteBufferCompressed:=False;
+      在TXClientMapping实例中调整 SendTunnel.CompleteBufferCompressed:=True;
+      在TXNAT_MappingOnVirutalServer实例中调整 SendTunnel.CompleteBufferCompressed:=True;
+    }
+    XServ.ProtocolCompressed := True;
 
     XServ.TunnelListenAddr := '0.0.0.0'; // 与内网服务器的通讯参数：协议隧道绑定地址为所有网卡的ipv4，如果是ipv6，写'::'
     XServ.TunnelListenPort := '7890';    // 与内网服务器的通讯参数：协议端口
@@ -36,7 +48,7 @@ begin
     XServ.AddMapping('0.0.0.0', '8021', 'ftp8021'); // 在服务器端需要映射的端口8021，绑定地址为所有网卡的ipv4
     XServ.OpenTunnel;
 
-    while true do
+    while True do
       begin
         XServ.Progress;
         try

@@ -21,7 +21,6 @@ uses CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib, ListEngine, TextDa
 
 type
   TXNATClient = class;
-  TXClientCustomProtocol = class;
 
   TXClientMapping = class(TCoreClassObject)
   private
@@ -67,6 +66,7 @@ type
     procedure DoDisconnect(Sender: TPeerIO); override;
   public
     LocalProtocol_ID, RemoteProtocol_ID: Cardinal;
+    Remote_IP: SystemString;
     Mapping: TXClientMapping;
     Activted: Boolean;
     RequestBuffer: TMemoryStream64;
@@ -96,6 +96,14 @@ type
     RemoteTunnelPort: TPascalString;
     AuthToken: TPascalString;
     MaxVMFragment, MaxRealBuffer: TPascalString;
+    {
+      Compression of CompleteBuffer packets using zLib
+      feature of zLib: slow compression and fast decompression.
+      XNAT is used to non compression or non encryption protocol, the option can be opened so upspeed.
+      else. protocol is encrypted or compressed, opening this ProtocolCompressed additional burden on CPU.
+      ProtocolCompressed set closed by default.
+    }
+    ProtocolCompressed: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -105,8 +113,6 @@ type
   end;
 
 implementation
-
-uses xNATService;
 
 procedure TXClientMapping.Init;
 begin
@@ -184,11 +190,23 @@ begin
   if SendTunnel = nil then
       SendTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
 
+  // uninstall p2pVM
   XClientTunnel.PhysicsEngine.ClientIO.p2pVMTunnel.UninstallLogicFramework(SendTunnel);
   XClientTunnel.PhysicsEngine.ClientIO.p2pVMTunnel.UninstallLogicFramework(RecvTunnel);
 
+  // install p2pVM
   XClientTunnel.PhysicsEngine.ClientIO.p2pVMTunnel.InstallLogicFramework(SendTunnel);
   XClientTunnel.PhysicsEngine.ClientIO.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
+
+  // sequence sync
+  RecvTunnel.SyncOnCompleteBuffer := True;
+  RecvTunnel.SyncOnResult := True;
+  SendTunnel.SyncOnCompleteBuffer := True;
+  SendTunnel.SyncOnResult := True;
+
+  // compressed complete buffer
+  SendTunnel.CompleteBufferCompressed := XClientTunnel.ProtocolCompressed;
+  RecvTunnel.CompleteBufferCompressed := XClientTunnel.ProtocolCompressed;
 
   if not RecvTunnel.ExistsRegistedCmd('connect_request') then
       RecvTunnel.RegisterDirectStream('connect_request').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_connect_request;
@@ -216,15 +234,18 @@ end;
 procedure TXClientMapping.cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   remote_id: Cardinal;
+  Remote_IP: SystemString;
   xCli: TXClientCustomProtocol;
 begin
   remote_id := InData.Reader.ReadCardinal;
+  Remote_IP := InData.Reader.ReadString;
 
   xCli := TXClientCustomProtocol.Create;
   xCli.Protocol := cpCustom;
   while ProtocolHash.Exists(LastProtocolID) do
       inc(LastProtocolID);
   xCli.LocalProtocol_ID := LastProtocolID;
+  xCli.Remote_IP := Remote_IP;
   inc(LastProtocolID);
   ProtocolPool.Add(xCli);
   ProtocolHash.Add(xCli.LocalProtocol_ID, xCli, False);
@@ -265,7 +286,10 @@ begin
 
   phy_io := TXClientCustomProtocol(ProtocolHash[local_id]);
   if phy_io <> nil then
+    begin
       phy_io.WriteBuffer(destBuff, destSiz);
+      phy_io.Progress;
+    end;
 end;
 
 constructor TXClientMapping.Create;
@@ -330,6 +354,8 @@ begin
     begin
       BuildBuff(buffer, Size, LocalProtocol_ID, RemoteProtocol_ID, nSiz, nBuff);
       Mapping.SendTunnel.SendCompleteBuffer('data', nBuff, nSiz, True);
+      Mapping.SendTunnel.ClientIO.ProcessAllSendCmd(nil, False, False);
+      Mapping.SendTunnel.ClientIO.Progress;
     end
   else
     begin
@@ -377,6 +403,7 @@ begin
   inherited Create;
   LocalProtocol_ID := 0;
   RemoteProtocol_ID := 0;
+  Remote_IP := '';
   Mapping := nil;
   Activted := False;
   RequestBuffer := TMemoryStream64.Create;
@@ -486,6 +513,7 @@ begin
   AuthToken := '';
   MaxVMFragment := '1024';
   MaxRealBuffer := umlIntToStr(1024 * 1024 * 2);
+  ProtocolCompressed := False;
   MappingList := TCoreClassListForObj.Create;
   HashMapping := THashObjectList.Create(False);
   Activted := False;

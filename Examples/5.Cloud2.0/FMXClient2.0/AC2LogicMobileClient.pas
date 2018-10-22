@@ -23,10 +23,10 @@ type
 
   TLogicClientBase = class(TCommunicationFramework_DoubleTunnelClient)
   protected
-    FCacheUserInfo                      : THashObjectList;
+    FCacheUserInfo: THashObjectList;
     NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFrameworkClient;
-    LogicBackCallInterface              : ILogicBackCallInterface;
-    LastConnectState                    : Boolean;
+    LogicBackCallInterface: ILogicBackCallInterface;
+    LastConnectState: Boolean;
   protected
     procedure ClientConnected(Sender: TCommunicationFrameworkClient); override;
     procedure Disconnect_PostExecute(Sender: TNPostExecute);
@@ -88,10 +88,10 @@ end;
 
 procedure TLogicClientBase.Command_FileInfo(Sender: TPeerClient; InData: TDataFrameEngine);
 var
-  fn        : string;
-  fsize     : Int64;
+  fn: string;
+  fsize: Int64;
   remoteinfo: string;
-  fullfn    : string;
+  fullfn: string;
 begin
   if FCurrentStream <> nil then
     begin
@@ -115,7 +115,7 @@ end;
 
 procedure TLogicClientBase.cmd_SendLogicFileCompleted(Sender: TPeerClient; InData: TDataFrameEngine);
 var
-  p : PFileDownloadCompleteData;
+  p: PFileDownloadCompleteData;
   ph: string;
   fn: string;
 begin
@@ -177,8 +177,6 @@ begin
 
   if not NetSendTunnelIntf.Connected then
     begin
-      if LastConnectState then
-          NetSendTunnelIntf.TriggerDoDisconnect;
       LastConnectState := False;
       exit;
     end;
@@ -244,7 +242,7 @@ end;
 
 function TLogicClientBase.RegGuestUser(out UserName, UserPasswd: string): Boolean;
 var
-  sendDE  : TDataFrameEngine;
+  sendDE: TDataFrameEngine;
   ResultDE: TDataFrameEngine;
 begin
   Result := False;

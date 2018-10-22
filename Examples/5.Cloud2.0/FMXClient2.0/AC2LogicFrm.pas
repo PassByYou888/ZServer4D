@@ -51,9 +51,7 @@ implementation
 
 {$R *.fmx}
 
-
-uses AC2LoginFrm, AC2ClientGlobal, CommonServiceDefine, AC2ProgressFrm,
-  FOGComputeClientIntf;
+uses AC2LoginFrm, AC2ClientGlobal, CommonServiceDefine, AC2ProgressFrm, FOGComputeClientIntf;
 
 procedure TAC2LogicForm.FormResize(Sender: TObject);
 begin
@@ -143,17 +141,6 @@ end;
 
 procedure TAC2LogicForm.computeButtonClick(Sender: TObject);
 begin
-  if FogComputeClient.Connected then
-    begin
-      ValueEdit.Text := '';
-      ValueEdit.TextPrompt := '远程雾服务器正在计算中...';
-      FogComputeClient.SimulateCompute5Sec(ExpEdit.Text, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
-        begin
-          ValueEdit.Text := ResultData.Reader.ReadString;
-        end);
-      exit;
-    end;
-
   Hide;
   AC2ProgressForm.Show;
 
@@ -181,7 +168,7 @@ end;
 
 procedure TAC2LogicForm.DoStatusNear(AText: string; const ID: Integer);
 begin
-  // DrawPool(self, DrawIntf).PostScrollText(10, AText, 10, DEColor(1, 1, 1, 1));
+  DrawPool(self, DrawIntf).PostScrollText(10, AText, 10, DEColor(1, 1, 1, 1));
 end;
 
 procedure TAC2LogicForm.Progress(deltaTime: Double);

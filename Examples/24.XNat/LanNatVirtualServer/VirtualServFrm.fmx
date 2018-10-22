@@ -1,0 +1,58 @@
+object Form2: TForm2
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 280
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      #22522#20110'XNATService'#21327#35758#30452#25509#26144#23556#20026#26412#22320#26381#21153#22120' Demo'
+      ''
+      #21407#29702':'
+      'XNatService'#26159#20844#32593#26381#21153#22120#65292#23427#20250#22312#20844#32593#20390#21548#19968#20010#25110#22810#20010#25351#23450#30340#31471#21475
+      'LanNatVirtualServer'#26159#22522#20110'XNatClient'#21327#35758#65292#30452#25509#23558'XNATService'#26144#23556#25104#26412#22320#26381#21153
+      ''
+      #20351#29992
+      #26367#25442#24037#31243#20013#30340#21629#21517#21363#21487
+      #35813#26694#26550#22312#31227#21160#25163#26426#24179#21488#20197#21450#22522#20110'ARM'#30340'IOT'#24179#21488#20013#22343#33021#24102#21160#19978#19975#29289#29702#36830#25509
+      ''
+      '2018-10-22'
+      'by qq600585')
+    Align = Client
+    Margins.Left = 95.000000000000000000
+    Size.Width = 545.000000000000000000
+    Size.Height = 280.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 541.000000000000000000
+    Viewport.Height = 276.000000000000000000
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 184
+    Top = 48
+  end
+  object TestButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 48.000000000000000000
+    TabOrder = 3
+    Text = 'Test'
+    OnClick = TestButtonClick
+  end
+  object OpenButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    TabOrder = 2
+    Text = 'Open'
+    OnClick = OpenButtonClick
+  end
+end
