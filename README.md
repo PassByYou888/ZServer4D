@@ -183,6 +183,15 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务
 
+## 2018-10-22
+
+> 小幅度更新
+
+XNAT新增一个基于Mapping直接构建ServerFramework的接口以及Demo，都在XNAT的演示目录
+过去，XNAT的Data交换是后置式的，现在更改为即时交换
+CompleteBuffer增加一个压缩开关，默认使用FastCompress函数(该函数位于MemorySteam64.pas)
+
+
 ## 2018-10-20
 
 
