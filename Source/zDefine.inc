@@ -11,7 +11,7 @@
   {$MODE objfpc}
   {$MODESWITCH AdvancedRecords}
   {$NOTES OFF}
-  {$STACKFRAMES ON}
+  {$STACKFRAMES OFF}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -64,9 +64,9 @@
     {$O+} { optimization }
   {$ELSE}
     {$UNDEF INLINE_ASM}
-    {$R+} { range check }
-    {$I+} { Input output checking }
-    {$O-} { optimization }
+    {$R-} { range check }
+    {$I-} { Input output checking }
+    {$O+} { optimization }
   {$ENDIF}
 
   {$IF Defined(Android) or Defined(IOS)}
@@ -88,8 +88,8 @@
   {$IFEND}
 {$ENDIF FPC}
 
-{$WARNINGS ON}
-{$HINTS ON}
+{$WARNINGS OFF}
+{$HINTS OFF}
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
@@ -121,36 +121,4 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
-
-(*
-  {$IFDEF FPC}
-  {$ELSE FPC}
-  {$ENDIF FPC}
-
-  {$IFDEF FPC}
-  {$ENDIF FPC}
-
-  {$IFDEF FPC}@{$ENDIF FPC}
-
-  {$IFNDEF FPC}
-  {$ENDIF FPC}
-
-  {$IFDEF parallel}
-  {$ELSE parallel}
-  {$ENDIF parallel}
-
-  {$IFNDEF parallel}
-  {$ENDIF parallel}
-
-  {$Region 'RegionName'}
-  {$EndRegion 'RegionName'}
-
-  {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
-  {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
-
-  {$IFDEF RangeCheck}{$R-}{$ENDIF}
-  {$IFDEF RangeCheck}{$R+}{$ENDIF}
-*)
-
-
 

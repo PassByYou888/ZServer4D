@@ -1391,13 +1391,13 @@ end;
 
 function TDataStoreService_NoAuth.PostCounterOfPerSec: Double;
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pcid: Cardinal;
   RT: TDataStoreService_PeerClientRecvTunnel_NoAuth;
 begin
   Result := 0;
-  FRecvTunnel.GetIO_IDArray(IDPool);
-  for pcid in IDPool do
+  FRecvTunnel.GetIO_Array(IO_Array);
+  for pcid in IO_Array do
     begin
       RT := GetDataStoreUserDefine(FRecvTunnel.ClientFromID[pcid]);
       Result := Result + RT.FPostCounterOfPerSec;

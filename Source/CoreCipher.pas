@@ -361,7 +361,7 @@ type
     class procedure GenerateMDHash(sour: Pointer; Size: NativeInt; OutHash: Pointer; HashSize: NativeInt);
 
     class procedure GenerateHashByte(hs: THashSecurity; sour: Pointer; Size: NativeInt; var output: TBytes);
-    class procedure GenerateHashString(sour: Pointer; Size, HashSize: NativeInt; var output: TPascalString);
+    class function GenerateHashString(hs: THashSecurity; sour: Pointer; Size: NativeInt): TPascalString;
 
     class function BufferToHex(const Buf; BufSize: Cardinal): TPascalString;
     class function HexToBuffer(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean;
@@ -2583,13 +2583,13 @@ begin
   end;
 end;
 
-class procedure TCipher.GenerateHashString(sour: Pointer; Size, HashSize: NativeInt; var output: TPascalString);
+class function TCipher.GenerateHashString(hs: THashSecurity; sour: Pointer; Size: NativeInt): TPascalString;
 var
-  v: TBytes;
+  h: TBytes;
 begin
-  SetLength(v, HashSize);
-  GenerateMDHash(sour, Size, @v[0], HashSize);
-  HashToString(@v[0], HashSize, output);
+  GenerateHashByte(hs, sour, Size, h);
+  HashToString(h, Result);
+  SetLength(h, 0);
 end;
 
 class function TCipher.BufferToHex(const Buf; BufSize: Cardinal): TPascalString;

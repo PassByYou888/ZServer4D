@@ -27,6 +27,7 @@ type
   private
     OwnerMapping: TXServiceListen;
     RecvID, SendID: Cardinal;
+    MaxWorkload, CurrentWorkload: Cardinal;
   public
     constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
@@ -63,13 +64,21 @@ type
     SendTunnel_IPV6: TIPV6;
     SendTunnel_Port: Word;
 
+    { Distributed Workload supported }
+    DistributedWorkload: Boolean;
+
     XServerTunnel: TXNATService;
 
     procedure Init;
     function Open: Boolean;
 
-    // seealso double tunnel:link
+    // worker tunnel
+    procedure PickWorkloadTunnel(var rID, sID: Cardinal);
+
+    // requestListen: activted listen and reponse states
     procedure cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    // workload: update workload states
+    procedure cmd_workload(Sender: TPeerIO; InData: TDataFrameEngine);
     // connect forward
     procedure cmd_connect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
     procedure cmd_disconnect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -89,6 +98,7 @@ type
     RemoteProtocol_ID: Cardinal;
     RemoteProtocol_Inited: Boolean;
     RequestBuffer: TMemoryStream64;
+    r_id, s_id: Cardinal; // IO in TXServiceListen
   public
     constructor Create(AOwner: TPeerIO); override;
     destructor Destroy; override;
@@ -136,6 +146,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure AddMapping(const ListenAddr, ListenPort, Mapping: TPascalString);
+    procedure AddNoDistributedMapping(const ListenAddr, ListenPort, Mapping: TPascalString);
     procedure OpenTunnel;
     procedure Progress;
   end;
@@ -148,17 +159,14 @@ begin
   OwnerMapping := nil;
   RecvID := 0;
   SendID := 0;
+  MaxWorkload := 100;
+  CurrentWorkload := 0;
 end;
 
 destructor TXServiceRecvVM_Special.Destroy;
 begin
   if (OwnerMapping <> nil) then
-    begin
-      if (OwnerMapping.Activted) then
-          OwnerMapping.Activted := False;
-
       OwnerMapping.SendTunnel.Disconnect(SendID);
-    end;
 
   inherited Destroy;
 end;
@@ -174,12 +182,7 @@ end;
 destructor TXServiceSendVM_Special.Destroy;
 begin
   if (OwnerMapping <> nil) then
-    begin
-      if (OwnerMapping.Activted) then
-          OwnerMapping.Activted := False;
-
       OwnerMapping.RecvTunnel.Disconnect(RecvID);
-    end;
 
   inherited Destroy;
 end;
@@ -197,6 +200,7 @@ begin
   SendTunnel := nil;
   FillPtrByte(@SendTunnel_IPV6, SizeOf(TIPV6), 0);
   SendTunnel_Port := 0;
+  DistributedWorkload := False;
   XServerTunnel := nil;
 end;
 
@@ -225,9 +229,13 @@ begin
   RecvTunnel.PrintParams['connect_reponse'] := False;
   RecvTunnel.PrintParams['disconnect_reponse'] := False;
   RecvTunnel.PrintParams['data'] := False;
+  RecvTunnel.PrintParams['workload'] := False;
 
   if not RecvTunnel.ExistsRegistedCmd('RequestListen') then
       RecvTunnel.RegisterStream('RequestListen').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_RequestListen;
+
+  if not RecvTunnel.ExistsRegistedCmd('workload') then
+      RecvTunnel.RegisterDirectStream('workload').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_workload;
 
   if not RecvTunnel.ExistsRegistedCmd('connect_reponse') then
       RecvTunnel.RegisterDirectStream('connect_reponse').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_connect_reponse;
@@ -277,59 +285,157 @@ begin
       DoStatus('detect listen bind %s:%s failed!', [TranslateBindAddr(ListenAddr), ListenPort.Text]);
 end;
 
+procedure TXServiceListen.PickWorkloadTunnel(var rID, sID: Cardinal);
+var
+  rVM: TXServiceRecvVM_Special;
+  buff: TIO_Array;
+  id: Cardinal;
+  r_io: TPeerIO;
+  f, d: Double;
+begin
+  rID := 0;
+  sID := 0;
+  if RecvTunnel.Count = 0 then
+      exit;
+  if SendTunnel.Count = 0 then
+      exit;
+
+  rVM := TXServiceRecvVM_Special(RecvTunnel.FirstClient.UserSpecial);
+  f := rVM.CurrentWorkload / rVM.MaxWorkload;
+
+  RecvTunnel.GetIO_Array(buff);
+  for id in buff do
+    begin
+      r_io := RecvTunnel.PeerIO[id];
+      if (r_io <> nil) and (r_io.UserSpecial <> rVM) then
+        begin
+          with TXServiceRecvVM_Special(r_io.UserSpecial) do
+              d := CurrentWorkload / MaxWorkload;
+          if d < f then
+            begin
+              f := d;
+              rVM := TXServiceRecvVM_Special(r_io.UserSpecial);
+            end;
+        end;
+    end;
+
+  if not SendTunnel.Exists(rVM.SendID) then
+      exit;
+
+  rID := rVM.RecvID;
+  sID := rVM.SendID;
+end;
+
 procedure TXServiceListen.cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   RecvID, SendID: Cardinal;
   rVM: TXServiceRecvVM_Special;
   sVM: TXServiceSendVM_Special;
 begin
-  if Activted then
-    begin
-      OutData.WriteBool(False);
-      exit;
-    end;
-
   RecvID := InData.Reader.ReadCardinal;
   SendID := InData.Reader.ReadCardinal;
 
-  if not RecvTunnel.Exists(RecvID) then
+  if DistributedWorkload then
     begin
-      OutData.WriteBool(False);
-      exit;
-    end;
+      if not RecvTunnel.Exists(RecvID) then
+        begin
+          OutData.WriteBool(False);
+          OutData.WriteString(PFormat('receive tunnel ID illegal %d', [RecvID]));
+          exit;
+        end;
 
-  if not SendTunnel.Exists(SendID) then
+      if not SendTunnel.Exists(SendID) then
+        begin
+          OutData.WriteBool(False);
+          OutData.WriteString(PFormat('send tunnel ID illegal %d', [SendID]));
+          exit;
+        end;
+
+      if not Activted then
+        begin
+          Activted := True;
+          if (not Activted) then
+            begin
+              OutData.WriteBool(False);
+              OutData.WriteString(PFormat('remote service illegal bind IP %s port:%s', [ListenAddr.Text, ListenPort.Text]));
+              exit;
+            end;
+        end;
+
+      rVM := TXServiceRecvVM_Special(RecvTunnel.ClientFromID[RecvID].UserSpecial);
+      rVM.OwnerMapping := Self;
+      rVM.RecvID := RecvID;
+      rVM.SendID := SendID;
+
+      sVM := TXServiceSendVM_Special(SendTunnel.ClientFromID[SendID].UserSpecial);
+      sVM.OwnerMapping := Self;
+      sVM.RecvID := RecvID;
+      sVM.SendID := SendID;
+
+      OutData.WriteBool(True);
+      OutData.WriteString(PFormat('bridge XNAT service successed, bind IP %s port:%s', [ListenAddr.Text, ListenPort.Text]));
+    end
+  else
     begin
-      OutData.WriteBool(False);
-      exit;
+      if Activted then
+        begin
+          OutData.WriteBool(False);
+          OutData.WriteString(PFormat('bridge service no support distributed workload', []));
+          exit;
+        end;
+
+      if not RecvTunnel.Exists(RecvID) then
+        begin
+          OutData.WriteBool(False);
+          OutData.WriteString(PFormat('receive tunnel ID illegal %d', [RecvID]));
+          exit;
+        end;
+
+      if not SendTunnel.Exists(SendID) then
+        begin
+          OutData.WriteBool(False);
+          OutData.WriteString(PFormat('send tunnel ID illegal %d', [SendID]));
+          exit;
+        end;
+
+      Activted := True;
+      if (not Activted) then
+        begin
+          OutData.WriteBool(False);
+          OutData.WriteString(PFormat('remote service illegal bind IP %s port:%s', [ListenAddr.Text, ListenPort.Text]));
+          exit;
+        end;
+
+      rVM := TXServiceRecvVM_Special(RecvTunnel.ClientFromID[RecvID].UserSpecial);
+      rVM.OwnerMapping := Self;
+      rVM.RecvID := RecvID;
+      rVM.SendID := SendID;
+
+      sVM := TXServiceSendVM_Special(SendTunnel.ClientFromID[SendID].UserSpecial);
+      sVM.OwnerMapping := Self;
+      sVM.RecvID := RecvID;
+      sVM.SendID := SendID;
+
+      OutData.WriteBool(True);
+      OutData.WriteString(PFormat('bridge XNAT service successed, bind IP %s port:%s', [ListenAddr.Text, ListenPort.Text]));
     end;
+end;
 
-  Activted := True;
-  if not Activted then
-    begin
-      OutData.WriteBool(False);
-      exit;
-    end;
-
-  rVM := TXServiceRecvVM_Special(RecvTunnel.ClientFromID[RecvID].UserSpecial);
-  rVM.OwnerMapping := Self;
-  rVM.RecvID := RecvID;
-  rVM.SendID := SendID;
-
-  sVM := TXServiceSendVM_Special(SendTunnel.ClientFromID[SendID].UserSpecial);
-  sVM.OwnerMapping := Self;
-  sVM.RecvID := RecvID;
-  sVM.SendID := SendID;
-
-  OutData.WriteBool(True);
+procedure TXServiceListen.cmd_workload(Sender: TPeerIO; InData: TDataFrameEngine);
+var
+  rVM: TXServiceRecvVM_Special;
+begin
+  rVM := TXServiceRecvVM_Special(Sender.UserSpecial);
+  rVM.MaxWorkload := InData.Reader.ReadCardinal;
+  rVM.CurrentWorkload := InData.Reader.ReadCardinal;
 end;
 
 procedure TXServiceListen.cmd_connect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   cState: Boolean;
   remote_id, local_id: Cardinal;
-  phy_io: TPeerIO;
-  io: TXServerUserSpecial;
+  phy_io, s_io: TPeerIO;
+  xUserSpec: TXServerUserSpecial;
   nSiz: NativeInt;
   nBuff: PByte;
 begin
@@ -343,15 +449,19 @@ begin
 
   if cState then
     begin
-      io := TXServerUserSpecial(phy_io.UserSpecial);
-      io.RemoteProtocol_ID := remote_id;
-      io.RemoteProtocol_Inited := True;
+      xUserSpec := TXServerUserSpecial(phy_io.UserSpecial);
+      xUserSpec.RemoteProtocol_ID := remote_id;
+      xUserSpec.RemoteProtocol_Inited := True;
 
-      if io.RequestBuffer.Size > 0 then
+      if xUserSpec.RequestBuffer.Size > 0 then
         begin
-          BuildBuff(io.RequestBuffer.Memory, io.RequestBuffer.Size, Sender.ID, io.RemoteProtocol_ID, nSiz, nBuff);
-          SendTunnel.SendCompleteBuffer(SendTunnel.FirstClient, 'data', nBuff, nSiz, True);
-          io.RequestBuffer.Clear;
+          s_io := SendTunnel.PeerIO[xUserSpec.s_id];
+          if s_io <> nil then
+            begin
+              BuildBuff(xUserSpec.RequestBuffer.Memory, xUserSpec.RequestBuffer.Size, Sender.id, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
+              s_io.SendCompleteBuffer('data', nBuff, nSiz, True);
+            end;
+          xUserSpec.RequestBuffer.Clear;
         end;
     end
   else
@@ -367,8 +477,10 @@ begin
   local_id := InData.Reader.ReadCardinal;
   phy_io := Protocol.ClientFromID[local_id];
 
-  if phy_io <> nil then
-      phy_io.Disconnect;
+  if phy_io = nil then
+      exit;
+
+  phy_io.Disconnect;
 end;
 
 procedure TXServiceListen.cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
@@ -438,6 +550,8 @@ begin
   RemoteProtocol_ID := 0;
   RemoteProtocol_Inited := False;
   RequestBuffer := TMemoryStream64.Create;
+  r_id := 0;
+  s_id := 0;
 end;
 
 destructor TXServerUserSpecial.Destroy;
@@ -448,68 +562,92 @@ end;
 
 procedure TXServerCustomProtocol.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);
 var
-  io: TXServerUserSpecial;
+  xUserSpec: TXServerUserSpecial;
   nSiz: NativeInt;
   nBuff: PByte;
+  s_io: TPeerIO;
 begin
-  if ShareListen.SendTunnel.Count <> 1 then
+  if (ShareListen.SendTunnel.Count <> 1) and (not ShareListen.DistributedWorkload) then
     begin
       Sender.Print('share listen "%s:%s" no remote support', [ShareListen.ListenAddr.Text, ShareListen.ListenPort.Text]);
       exit;
     end;
 
-  io := TXServerUserSpecial(Sender.UserSpecial);
-  if not io.RemoteProtocol_Inited then
+  xUserSpec := TXServerUserSpecial(Sender.UserSpecial);
+  if not xUserSpec.RemoteProtocol_Inited then
     begin
-      io.RequestBuffer.WritePtr(buffer, Size);
+      xUserSpec.RequestBuffer.WritePtr(buffer, Size);
       exit;
     end;
 
-  BuildBuff(buffer, Size, Sender.ID, io.RemoteProtocol_ID, nSiz, nBuff);
-  ShareListen.SendTunnel.FirstClient.SendCompleteBuffer('data', nBuff, nSiz, True);
-  ShareListen.SendTunnel.FirstClient.ProcessAllSendCmd(nil, False, False);
-  ShareListen.SendTunnel.FirstClient.Progress;
+  s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
+  if s_io <> nil then
+    begin
+      BuildBuff(buffer, Size, Sender.id, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
+      s_io.SendCompleteBuffer('data', nBuff, nSiz, True);
+      s_io.ProcessAllSendCmd(nil, False, False);
+      s_io.Progress;
+    end;
 end;
 
 procedure TXServerCustomProtocol.DoClientConnectBefore(Sender: TPeerIO);
 var
   de: TDataFrameEngine;
+  xUserSpec: TXServerUserSpecial;
+  s_io: TPeerIO;
 begin
-  if ShareListen.SendTunnel.Count <> 1 then
+  if (ShareListen.SendTunnel.Count <> 1) and (not ShareListen.DistributedWorkload) then
     begin
       Sender.Print('share listen "%s:%s" no remote support', [ShareListen.ListenAddr.Text, ShareListen.ListenPort.Text]);
       exit;
     end;
 
-  if TXServerUserSpecial(Sender.UserSpecial).RemoteProtocol_Inited then
+  xUserSpec := TXServerUserSpecial(Sender.UserSpecial);
+
+  if xUserSpec.RemoteProtocol_Inited then
       exit;
 
-  de := TDataFrameEngine.Create;
-  de.WriteCardinal(Sender.ID);
-  de.WriteString(Sender.PeerIP);
-  ShareListen.SendTunnel.SendDirectStreamCmd(ShareListen.SendTunnel.FirstClient, 'connect_request', de);
-  DisposeObject(de);
-  inherited DoClientConnectAfter(Sender);
+  ShareListen.PickWorkloadTunnel(xUserSpec.r_id, xUserSpec.s_id);
+
+  if ShareListen.SendTunnel.Exists(xUserSpec.s_id) then
+    begin
+      s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
+      de := TDataFrameEngine.Create;
+      de.WriteCardinal(Sender.id);
+      de.WriteString(Sender.PeerIP);
+      s_io.SendDirectStreamCmd('connect_request', de);
+      DisposeObject(de);
+      s_io.Progress;
+    end;
+  inherited DoClientConnectBefore(Sender);
 end;
 
 procedure TXServerCustomProtocol.DoClientDisconnect(Sender: TPeerIO);
 var
   de: TDataFrameEngine;
+  xUserSpec: TXServerUserSpecial;
+  s_io: TPeerIO;
 begin
-  if ShareListen.SendTunnel.Count <> 1 then
+  if (ShareListen.SendTunnel.Count <> 1) and (not ShareListen.DistributedWorkload) then
     begin
       Sender.Print('share listen "%s:%s" no remote support', [ShareListen.ListenAddr.Text, ShareListen.ListenPort.Text]);
       exit;
     end;
 
-  if not TXServerUserSpecial(Sender.UserSpecial).RemoteProtocol_Inited then
+  xUserSpec := TXServerUserSpecial(Sender.UserSpecial);
+  if not xUserSpec.RemoteProtocol_Inited then
       exit;
 
-  de := TDataFrameEngine.Create;
-  de.WriteCardinal(Sender.ID);
-  de.WriteCardinal(TXServerUserSpecial(Sender.UserSpecial).RemoteProtocol_ID);
-  ShareListen.SendTunnel.SendDirectStreamCmd(ShareListen.SendTunnel.FirstClient, 'disconnect_request', de);
-  DisposeObject(de);
+  if ShareListen.SendTunnel.Exists(xUserSpec.s_id) then
+    begin
+      s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
+      de := TDataFrameEngine.Create;
+      de.WriteCardinal(Sender.id);
+      de.WriteCardinal(TXServerUserSpecial(Sender.UserSpecial).RemoteProtocol_ID);
+      s_io.SendDirectStreamCmd('disconnect_request', de);
+      DisposeObject(de);
+      s_io.Progress;
+    end;
   inherited DoClientDisconnect(Sender);
 end;
 
@@ -641,6 +779,20 @@ begin
   shLt.ListenAddr := ListenAddr;
   shLt.ListenPort := ListenPort;
   shLt.Mapping := Mapping;
+  shLt.DistributedWorkload := True;
+  shLt.XServerTunnel := Self;
+  ShareListenList.Add(shLt);
+end;
+
+procedure TXNATService.AddNoDistributedMapping(const ListenAddr, ListenPort, Mapping: TPascalString);
+var
+  shLt: TXServiceListen;
+begin
+  shLt := TXServiceListen.Create;
+  shLt.ListenAddr := ListenAddr;
+  shLt.ListenPort := ListenPort;
+  shLt.Mapping := Mapping;
+  shLt.DistributedWorkload := False;
   shLt.XServerTunnel := Self;
   ShareListenList.Add(shLt);
 end;
@@ -683,6 +835,9 @@ begin
     begin
       shLt := ShareListenList[i] as TXServiceListen;
       try
+        if (shLt.RecvTunnel.Count = 0) and (shLt.SendTunnel.Count = 0) and (shLt.Activted) then
+            shLt.Activted := False;
+
         shLt.Protocol.Progress;
         shLt.RecvTunnel.Progress;
         shLt.SendTunnel.Progress;

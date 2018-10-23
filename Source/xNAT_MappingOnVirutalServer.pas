@@ -57,6 +57,10 @@ type
     SendTunnel_IPV6: TPascalString;
     SendTunnel_Port: Word;
 
+    MaxWorkload: Cardinal;
+    LastUpdateWorkload: Cardinal;
+    LastUpdateTime: TTimeTick;
+
     Remote_ListenAddr, Remote_ListenPort: TPascalString;
 
     XNAT: TXNAT_Mapping;
@@ -76,6 +80,8 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+
+    procedure UpdateWorkload(force: Boolean); virtual;
 
     function StartService(Host: SystemString; Port: Word): Boolean; override;
     procedure StopService; override;
@@ -117,7 +123,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function AddMappingServer(const Mapping: TPascalString): TXNAT_MappingOnVirutalServer;
+    function AddMappingServer(const Mapping: TPascalString; MaxWorkload: Cardinal): TXNAT_MappingOnVirutalServer;
     procedure OpenTunnel;
     procedure Progress;
 
@@ -218,6 +224,11 @@ begin
   SendTunnel := nil;
   SendTunnel_IPV6 := '';
   SendTunnel_Port := 0;
+
+  MaxWorkload := 100;
+  LastUpdateWorkload := 0;
+  LastUpdateTime := GetTimeTick();
+
   Remote_ListenAddr := '';
   Remote_ListenPort := '0';
   XNAT := nil;
@@ -251,7 +262,10 @@ end;
 procedure TXNAT_MappingOnVirutalServer.RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
 begin
   if ResultData.Reader.ReadBool then
-      DoStatus('success: remote host:%s port:%s mapping to local server', [XNAT.RemoteTunnelAddr.Text, Remote_ListenPort.Text])
+    begin
+      DoStatus('success: remote host:%s port:%s mapping to local server', [XNAT.RemoteTunnelAddr.Text, Remote_ListenPort.Text]);
+      UpdateWorkload(True);
+    end
   else
       DoStatus('failed: remote host:%s port:%s listen error!', [XNAT.RemoteTunnelAddr.Text, Remote_ListenPort.Text]);
 end;
@@ -304,6 +318,7 @@ begin
   SendTunnel.PrintParams['connect_reponse'] := False;
   SendTunnel.PrintParams['disconnect_reponse'] := False;
   SendTunnel.PrintParams['data'] := False;
+  SendTunnel.PrintParams['workload'] := False;
 
   RecvTunnel.PrintParams['connect_request'] := False;
   RecvTunnel.PrintParams['disconnect_request'] := False;
@@ -380,6 +395,30 @@ begin
     end;
 
   inherited Destroy;
+end;
+
+procedure TXNAT_MappingOnVirutalServer.UpdateWorkload(force: Boolean);
+var
+  de: TDataFrameEngine;
+begin
+  if SendTunnel = nil then
+      exit;
+  if RecvTunnel = nil then
+      exit;
+  if not SendTunnel.Connected then
+      exit;
+  if (not force) then
+    if (Count = LastUpdateWorkload) or (GetTimeTick() - LastUpdateTime < 1000) then
+        exit;
+
+  de := TDataFrameEngine.Create;
+  de.WriteCardinal(MaxWorkload);
+  de.WriteCardinal(Count);
+  SendTunnel.SendDirectStreamCmd('workload', de);
+  DisposeObject(de);
+
+  LastUpdateWorkload := Count;
+  LastUpdateTime := GetTimeTick();
 end;
 
 function TXNAT_MappingOnVirutalServer.StartService(Host: SystemString; Port: Word): Boolean;
@@ -545,10 +584,11 @@ begin
   inherited Destroy;
 end;
 
-function TXNAT_Mapping.AddMappingServer(const Mapping: TPascalString): TXNAT_MappingOnVirutalServer;
+function TXNAT_Mapping.AddMappingServer(const Mapping: TPascalString; MaxWorkload: Cardinal): TXNAT_MappingOnVirutalServer;
 begin
   Result := TXNAT_MappingOnVirutalServer.Create;
   Result.Mapping := Mapping;
+  Result.MaxWorkload := MaxWorkload;
   Result.XNAT := Self;
   MappingList.Add(Result);
   HashMapping.Add(Result.Mapping, Result);
@@ -597,6 +637,8 @@ begin
   while i < MappingList.Count do
     begin
       tunMp := MappingList[i] as TXNAT_MappingOnVirutalServer;
+
+      tunMp.UpdateWorkload(False);
 
       if tunMp.SendTunnel <> nil then
           tunMp.SendTunnel.Progress;

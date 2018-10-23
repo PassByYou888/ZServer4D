@@ -598,15 +598,15 @@ end;
 
 procedure TServerManager.PostExecute_RegServer(Sender: TNPostExecute);
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pid: Cardinal;
   sendDE: TDataFrameEngine;
   peer: TPeerIO;
   c: TServerManager_RecvTunnelData;
 begin
   // fixed local connect info
-  FRecvTunnel.GetIO_IDArray(IDPool);
-  for pid in IDPool do
+  FRecvTunnel.GetIO_Array(IO_Array);
+  for pid in IO_Array do
     begin
       peer := RecvTunnel.ClientFromID[pid];
       if (peer <> nil) then
@@ -625,7 +625,7 @@ end;
 
 procedure TServerManager.Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pid: Cardinal;
   peer: TPeerIO;
   cli: TServerManager_RecvTunnelData;
@@ -652,8 +652,8 @@ begin
   cli.SuccessEnabled := True;
 
   try
-    FRecvTunnel.GetIO_IDArray(IDPool);
-    for pid in IDPool do
+    FRecvTunnel.GetIO_Array(IO_Array);
+    for pid in IO_Array do
       begin
         peer := RecvTunnel.ClientFromID[pid];
         if (peer <> nil) then
@@ -742,7 +742,7 @@ end;
 
 procedure TServerManager.ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pid: Cardinal;
   peer: TPeerIO;
   ns: TCoreClassStringList;
@@ -753,8 +753,8 @@ var
   sendDE: TDataFrameEngine;
 begin
   existedSameOnlineServer := False;
-  FRecvTunnel.GetIO_IDArray(IDPool);
-  for pid in IDPool do
+  FRecvTunnel.GetIO_Array(IO_Array);
+  for pid in IO_Array do
     begin
       peer := RecvTunnel.ClientFromID[pid];
       if (peer <> nil) then
@@ -783,7 +783,7 @@ begin
     end;
 
   // sync all client
-  for pid in IDPool do
+  for pid in IO_Array do
     begin
       peer := RecvTunnel.ClientFromID[pid];
       if (peer <> nil) then
@@ -840,7 +840,7 @@ end;
 
 procedure TServerManager.Progress;
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pid: Cardinal;
   peer: TPeerIO;
   cli: TServerManager_RecvTunnelData;
@@ -851,8 +851,8 @@ begin
   if GetTimeTick - LastTimeTick > 5000 then
     begin
       try
-        FRecvTunnel.GetIO_IDArray(IDPool);
-        for pid in IDPool do
+        FRecvTunnel.GetIO_Array(IO_Array);
+        for pid in IO_Array do
           begin
             peer := RecvTunnel.ClientFromID[pid];
             if (peer <> nil) then

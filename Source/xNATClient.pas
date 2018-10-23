@@ -40,6 +40,10 @@ type
     SendTunnel_IPV6: TPascalString;
     SendTunnel_Port: Word;
 
+    MaxWorkload: Cardinal;
+    LastUpdateWorkload: Cardinal;
+    LastUpdateTime: TTimeTick;
+
     Remote_ListenAddr, Remote_ListenPort: TPascalString;
 
     XClientTunnel: TXNATClient;
@@ -59,6 +63,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure UpdateWorkload(force: Boolean);
   end;
 
   TXClientCustomProtocol = class(TXPhysicsClient)
@@ -107,7 +112,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    procedure AddMapping(const Addr, Port, Mapping: TPascalString);
+    procedure AddMapping(const Addr, Port, Mapping: TPascalString; MaxWorkload: Cardinal);
     procedure OpenTunnel;
     procedure Progress;
   end;
@@ -128,6 +133,9 @@ begin
   SendTunnel := nil;
   SendTunnel_IPV6 := '';
   SendTunnel_Port := 0;
+  MaxWorkload := 100;
+  LastUpdateWorkload := 0;
+  LastUpdateTime := GetTimeTick();
   Remote_ListenAddr := '';
   Remote_ListenPort := '0';
   XClientTunnel := nil;
@@ -161,7 +169,10 @@ end;
 procedure TXClientMapping.RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
 begin
   if ResultData.Reader.ReadBool then
-      DoStatus('success: remote host:%s port:%s mapping to host:%s port:%s', [XClientTunnel.RemoteTunnelAddr.Text, Remote_ListenPort.Text, Addr.Text, Port.Text])
+    begin
+      DoStatus('success: remote host:%s port:%s mapping to host:%s port:%s', [XClientTunnel.RemoteTunnelAddr.Text, Remote_ListenPort.Text, Addr.Text, Port.Text]);
+      UpdateWorkload(True);
+    end
   else
       DoStatus('failed: remote host:%s port:%s listen error!', [XClientTunnel.RemoteTunnelAddr.Text, Remote_ListenPort.Text]);
 end;
@@ -225,6 +236,7 @@ begin
   SendTunnel.PrintParams['connect_reponse'] := False;
   SendTunnel.PrintParams['disconnect_reponse'] := False;
   SendTunnel.PrintParams['data'] := False;
+  SendTunnel.PrintParams['workload'] := False;
 
   RecvTunnel.PrintParams['connect_request'] := False;
   RecvTunnel.PrintParams['disconnect_request'] := False;
@@ -328,6 +340,30 @@ begin
     end;
 
   inherited Destroy;
+end;
+
+procedure TXClientMapping.UpdateWorkload(force: Boolean);
+var
+  de: TDataFrameEngine;
+begin
+  if SendTunnel = nil then
+      exit;
+  if RecvTunnel = nil then
+      exit;
+  if not SendTunnel.Connected then
+      exit;
+  if (not force) then
+    if (ProtocolHash.Count = LastUpdateWorkload) or (GetTimeTick() - LastUpdateTime < 1000) then
+        exit;
+
+  de := TDataFrameEngine.Create;
+  de.WriteCardinal(MaxWorkload);
+  de.WriteCardinal(ProtocolHash.Count);
+  SendTunnel.SendDirectStreamCmd('workload', de);
+  disposeObject(de);
+
+  LastUpdateWorkload := ProtocolHash.Count;
+  LastUpdateTime := GetTimeTick();
 end;
 
 procedure TXClientCustomProtocol.DoDisconnect(Sender: TPeerIO);
@@ -540,7 +576,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TXNATClient.AddMapping(const Addr, Port, Mapping: TPascalString);
+procedure TXNATClient.AddMapping(const Addr, Port, Mapping: TPascalString; MaxWorkload: Cardinal);
 var
   tunMp: TXClientMapping;
 begin
@@ -548,6 +584,7 @@ begin
   tunMp.Addr := Addr;
   tunMp.Port := Port;
   tunMp.Mapping := Mapping;
+  tunMp.MaxWorkload := MaxWorkload;
   tunMp.XClientTunnel := Self;
   MappingList.Add(tunMp);
   HashMapping.Add(tunMp.Mapping, tunMp);
@@ -598,6 +635,8 @@ begin
   while i < MappingList.Count do
     begin
       tunMp := MappingList[i] as TXClientMapping;
+
+      tunMp.UpdateWorkload(False);
 
       if tunMp.RecvTunnel <> nil then
           tunMp.RecvTunnel.Progress;

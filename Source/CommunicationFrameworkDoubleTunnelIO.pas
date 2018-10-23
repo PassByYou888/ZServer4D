@@ -1809,7 +1809,7 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService.LoadUserDB;
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pcid: Cardinal;
   cli: TPeerClientUserDefineForRecvTunnel;
 begin
@@ -1817,8 +1817,8 @@ begin
     begin
       FUserDB.LoadFromFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-      FRecvTunnel.GetIO_IDArray(IDPool);
-      for pcid in IDPool do
+      FRecvTunnel.GetIO_Array(IO_Array);
+      for pcid in IO_Array do
         begin
           cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
           if (cli <> nil) and (cli.LoginSuccessed) then
@@ -1829,14 +1829,14 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService.SaveUserDB;
 var
-  IDPool: TClientIDPool;
+  IO_Array: TIO_Array;
   pcid: Cardinal;
   cli: TPeerClientUserDefineForRecvTunnel;
 begin
   FUserDB.SaveToFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-  FRecvTunnel.GetIO_IDArray(IDPool);
-  for pcid in IDPool do
+  FRecvTunnel.GetIO_Array(IO_Array);
+  for pcid in IO_Array do
     begin
       cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
       if (cli <> nil) and (cli.LoginSuccessed) then

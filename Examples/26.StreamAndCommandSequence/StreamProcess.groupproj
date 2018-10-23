@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{381A77C5-7DD2-4581-9D01-28C946E1D269}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="StreamServerOnLinux\StreamServerOnLinux.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="StreamClientOnFMX\StreamClientOnFMX.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="StreamServerOnLinux">
+        <MSBuild Projects="StreamServerOnLinux\StreamServerOnLinux.dproj"/>
+    </Target>
+    <Target Name="StreamServerOnLinux:Clean">
+        <MSBuild Projects="StreamServerOnLinux\StreamServerOnLinux.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="StreamServerOnLinux:Make">
+        <MSBuild Projects="StreamServerOnLinux\StreamServerOnLinux.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="StreamClientOnFMX">
+        <MSBuild Projects="StreamClientOnFMX\StreamClientOnFMX.dproj"/>
+    </Target>
+    <Target Name="StreamClientOnFMX:Clean">
+        <MSBuild Projects="StreamClientOnFMX\StreamClientOnFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="StreamClientOnFMX:Make">
+        <MSBuild Projects="StreamClientOnFMX\StreamClientOnFMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="StreamServerOnLinux;StreamClientOnFMX"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="StreamServerOnLinux:Clean;StreamClientOnFMX:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="StreamServerOnLinux:Make;StreamClientOnFMX:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

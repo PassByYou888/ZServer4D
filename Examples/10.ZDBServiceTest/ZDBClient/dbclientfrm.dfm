@@ -37,7 +37,7 @@ object Form1: TForm1
       Top = 17
       Width = 129
       Height = 134
-      Caption = 'build 10k data'
+      Caption = 'build 100k data'
       TabOrder = 1
       OnClick = build100DataButtonClick
     end

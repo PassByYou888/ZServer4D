@@ -234,6 +234,7 @@ type
     function Count: Integer;
     property Items[const index: Integer]: PBigStreamBatchPostData read GetItems; default;
     function NewPostData: PBigStreamBatchPostData;
+    function First: PBigStreamBatchPostData;
     function Last: PBigStreamBatchPostData;
     procedure DeleteLast;
     procedure Delete(const index: Integer);
@@ -589,8 +590,7 @@ type
   TPerClientListCall = procedure(PeerClient: TPeerIO);
   TPerClientListMethod = procedure(PeerClient: TPeerIO) of object;
 {$IFNDEF FPC} TPerClientListProc = reference to procedure(PeerClient: TPeerIO); {$ENDIF FPC}
-  TIO_IDArray = array of Cardinal;
-  TClientIDPool = TIO_IDArray;
+  TIO_Array = array of Cardinal;
 
   ICommunicationFrameworkVMInterface = interface
     procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
@@ -729,7 +729,7 @@ type
 {$IFNDEF FPC} procedure FastProgressPerClientP(OnBackcall: TPerClientListProc); overload; {$ENDIF FPC}
     //
     // PeerIO id array
-    procedure GetIO_IDArray(out IO_IDArray: TIO_IDArray);
+    procedure GetIO_Array(out IO_Array: TIO_Array);
     //
     // block progress
     procedure ProgressWaitSend(Client: TPeerIO); virtual;
@@ -909,9 +909,9 @@ type
     function Exists(cli: TPeerIOUserSpecial): Boolean; overload;
 
     function Exists(ClientID: Cardinal): Boolean; overload;
-    function GetPeerIO_FromID(ID: Cardinal): TPeerIO;
-    property ClientFromID[ID: Cardinal]: TPeerIO read GetPeerIO_FromID;
-    property PeerIO[ID: Cardinal]: TPeerIO read GetPeerIO_FromID; default;
+    function GetPeerIO(ID: Cardinal): TPeerIO;
+    property ClientFromID[ID: Cardinal]: TPeerIO read GetPeerIO;
+    property PeerIO[ID: Cardinal]: TPeerIO read GetPeerIO; default;
   end;
 
   TCommunicationFrameworkServerClass = class of TCommunicationFrameworkServer;
@@ -953,6 +953,7 @@ type
     FOnWaitResultMethod: TStateMethod;
 {$IFNDEF FPC} FOnWaitResultProc: TStateProc; {$ENDIF FPC}
     procedure ConsoleResult_Wait(Sender: TPeerIO; ResultData: SystemString);
+    function FixedTimeout(const t: TTimeTickValue): TTimeTickValue;
   public
     constructor Create; virtual;
 
@@ -1317,7 +1318,7 @@ var
   c_DefaultDoStatusID: Integer = $0FFFFFFF;
 
   // vm auth token size
-  C_VMAuthSize: Integer = 1024;
+  C_VMAuthSize: Integer = 4096;
 
 const
   // system command
@@ -1916,7 +1917,7 @@ begin
 {$IFNDEF FPC}
     if Assigned(QueuePtr^.OnConsoleProc) then
       begin
-        c.PrintCommand('execute console on proc cmd: %s', QueuePtr^.Cmd);
+        c.PrintCommand('execute console on result(proc) cmd: %s', QueuePtr^.Cmd);
         try
             QueuePtr^.OnConsoleProc(c, AResultText);
         except
@@ -1948,7 +1949,7 @@ begin
 {$IFNDEF FPC}
     if Assigned(QueuePtr^.OnStreamProc) then
       begin
-        c.PrintCommand('execute stream on proc cmd: %s', QueuePtr^.Cmd);
+        c.PrintCommand('execute stream on result(proc) cmd: %s', QueuePtr^.Cmd);
         try
           AResultDF.Reader.index := 0;
           QueuePtr^.OnStreamProc(c, AResultDF);
@@ -1957,7 +1958,7 @@ begin
       end;
     if Assigned(QueuePtr^.OnStreamParamProc) then
       begin
-        c.PrintCommand('execute stream on param proc cmd: %s', QueuePtr^.Cmd);
+        c.PrintCommand('execute stream on result(parameter + proc) cmd: %s', QueuePtr^.Cmd);
         try
           AResultDF.Reader.index := 0;
           aInData := TDataFrameEngine.Create;
@@ -2568,6 +2569,11 @@ begin
   Result^.index := FList.Add(Result);
 end;
 
+function TBigStreamBatchList.First: PBigStreamBatchPostData;
+begin
+  Result := PBigStreamBatchPostData(FList[0]);
+end;
+
 function TBigStreamBatchList.Last: PBigStreamBatchPostData;
 begin
   Result := PBigStreamBatchPostData(FList[FList.Count - 1]);
@@ -2963,6 +2969,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+
+  PrintCommand('internal send console cmd:%s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendStreamCmd;
@@ -2988,6 +2996,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+
+  PrintCommand('internal send stream cmd:%s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendDirectConsoleCmd;
@@ -3013,6 +3023,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+
+  PrintCommand('internal send direct console cmd:%s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendDirectStreamCmd;
@@ -3038,18 +3050,24 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
+
+  PrintCommand('internal send direct stream cmd:%s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendBigStreamCmd;
 begin
   InternalSendBigStreamBuff(FSyncPick^);
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
+
+  PrintCommand('internal send bigstream cmd:%s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendCompleteBufferCmd;
 begin
   InternalSendCompleteBufferBuff(FSyncPick^);
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecCompleteBuffer]);
+
+  PrintCommand('internal send complete buffer cmd:%s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_ExecuteConsole;
@@ -3310,7 +3328,7 @@ begin
   else
     begin
       FCompleteBufferReceiveStream.Position := 0;
-      with FOwnerFramework.ProgressPost.PostExecute do
+      with FOwnerFramework.ProgressPost.PostExecute() do
         begin
           Data3 := FID;
           Data4 := FCompleteBufferCmd;
@@ -3398,7 +3416,7 @@ begin
       nQueue^ := FCurrentQueueData^;
       InitQueueData(FCurrentQueueData^);
 
-      with FOwnerFramework.ProgressPost.PostExecute do
+      with FOwnerFramework.ProgressPost.PostExecute() do
         begin
           DataEng.Assign(ResultDataFrame);
           Data4 := FID;
@@ -3911,7 +3929,6 @@ begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stConsole]);
 
               FSyncPick := p;
-              // wait result
               FWaitOnResult := True;
               SyncMethod(ACurrentActiveThread, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendConsoleCmd);
 
@@ -3925,8 +3942,6 @@ begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stStream]);
 
               FSyncPick := p;
-
-              // wait result
               FWaitOnResult := True;
               SyncMethod(ACurrentActiveThread, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendStreamCmd);
 
@@ -5151,7 +5166,7 @@ begin
   FIdleTimeout := 0;
   FUsedParallelEncrypt := True;
   FSyncOnResult := False;
-  FSyncOnCompleteBuffer := False;
+  FSyncOnCompleteBuffer := True;
   FQuietMode := False;
   FCipherSecurity := TCipherSecurity.csNone;
   FSendDataCompressed := True;
@@ -5329,14 +5344,14 @@ end;
 
 procedure TCommunicationFramework.ProgressPerClientC(OnBackcall: TPerClientListCall);
 var
-  IO_IDArray: TIO_IDArray;
+  IO_Array: TIO_Array;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
   if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
-      GetIO_IDArray(IO_IDArray);
-      for pframeworkID in IO_IDArray do
+      GetIO_Array(IO_Array);
+      for pframeworkID in IO_Array do
         begin
           c := TPeerIO(FPerClientHashList[pframeworkID]);
           if c <> nil then
@@ -5352,14 +5367,14 @@ end;
 
 procedure TCommunicationFramework.ProgressPerClientM(OnBackcall: TPerClientListMethod);
 var
-  IO_IDArray: TIO_IDArray;
+  IO_Array: TIO_Array;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
   if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
-      GetIO_IDArray(IO_IDArray);
-      for pframeworkID in IO_IDArray do
+      GetIO_Array(IO_Array);
+      for pframeworkID in IO_Array do
         begin
           c := TPeerIO(FPerClientHashList[pframeworkID]);
           if c <> nil then
@@ -5378,14 +5393,14 @@ end;
 
 procedure TCommunicationFramework.ProgressPerClientP(OnBackcall: TPerClientListProc);
 var
-  IO_IDArray: TIO_IDArray;
+  IO_Array: TIO_Array;
   pframeworkID: Cardinal;
   c: TPeerIO;
 begin
   if (FPerClientHashList.Count > 0) and (Assigned(OnBackcall)) then
     begin
-      GetIO_IDArray(IO_IDArray);
-      for pframeworkID in IO_IDArray do
+      GetIO_Array(IO_Array);
+      for pframeworkID in IO_Array do
         begin
           c := TPeerIO(FPerClientHashList[pframeworkID]);
           if c <> nil then
@@ -5470,21 +5485,21 @@ end;
 {$ENDIF FPC}
 
 
-procedure TCommunicationFramework.GetIO_IDArray(out IO_IDArray: TIO_IDArray);
+procedure TCommunicationFramework.GetIO_Array(out IO_Array: TIO_Array);
 var
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
   LockObject(FPerClientHashList); // atomic lock
   try
-    SetLength(IO_IDArray, FPerClientHashList.Count);
+    SetLength(IO_Array, FPerClientHashList.Count);
     if (FPerClientHashList.Count > 0) then
       begin
         i := 0;
         p := FPerClientHashList.FirstPtr;
         while i < FPerClientHashList.Count do
           begin
-            IO_IDArray[i] := TPeerIO(p^.Data).FID;
+            IO_Array[i] := TPeerIO(p^.Data).FID;
             inc(i);
             p := p^.Next;
           end;
@@ -6584,7 +6599,7 @@ begin
   Result := FPerClientHashList.Exists(ClientID);
 end;
 
-function TCommunicationFrameworkServer.GetPeerIO_FromID(ID: Cardinal): TPeerIO;
+function TCommunicationFrameworkServer.GetPeerIO(ID: Cardinal): TPeerIO;
 begin
   Result := TPeerIO(FPerClientHashList[ID]);
 end;
@@ -6744,6 +6759,14 @@ begin
     end;
 end;
 
+function TCommunicationFrameworkClient.FixedTimeout(const t: TTimeTickValue): TTimeTickValue;
+begin
+  if t = 0 then
+      Result := 1000 * 60 * 5
+  else
+      Result := t;
+end;
+
 constructor TCommunicationFrameworkClient.Create;
 begin
   inherited Create(1);
@@ -6891,7 +6914,7 @@ begin
   if (not Connected) then
       Exit;
 
-  Result := WaitSendConsoleCmd(C_Wait, '', ATimeOut);
+  Result := WaitSendConsoleCmd(C_Wait, '', FixedTimeout(ATimeOut));
 end;
 
 function TCommunicationFrameworkClient.WaitC(ATimeOut: TTimeTickValue; OnResult: TStateCall): Boolean;
@@ -6905,7 +6928,7 @@ begin
       Exit;
 
   FWaiting := True;
-  FWaitingTimeOut := GetTimeTick + ATimeOut;
+  FWaitingTimeOut := GetTimeTick + FixedTimeout(ATimeOut);
   FOnWaitResultCall := OnResult;
   FOnWaitResultMethod := nil;
 {$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
@@ -6924,7 +6947,7 @@ begin
       Exit;
 
   FWaiting := True;
-  FWaitingTimeOut := GetTimeTick + ATimeOut;
+  FWaitingTimeOut := GetTimeTick + FixedTimeout(ATimeOut);
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := OnResult;
 {$IFNDEF FPC} FOnWaitResultProc := nil; {$ENDIF FPC}
@@ -6947,7 +6970,7 @@ begin
       Exit;
 
   FWaiting := True;
-  FWaitingTimeOut := GetTimeTick + ATimeOut;
+  FWaitingTimeOut := GetTimeTick + FixedTimeout(ATimeOut);
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := nil;
   FOnWaitResultProc := OnResult;
