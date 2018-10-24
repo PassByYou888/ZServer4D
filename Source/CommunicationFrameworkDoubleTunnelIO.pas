@@ -577,7 +577,7 @@ begin
   if (DoubleTunnelService <> nil) and (RecvTunnelID > 0) and (RecvTunnel <> nil) then
     begin
       if DoubleTunnelService.FRecvTunnel.Exists(RecvTunnelID) then
-          DoubleTunnelService.FRecvTunnel.ClientFromID[RecvTunnelID].Disconnect;
+          DoubleTunnelService.FRecvTunnel.PeerIO[RecvTunnelID].Disconnect;
     end;
   inherited Destroy;
 end;
@@ -613,7 +613,7 @@ begin
       if (DoubleTunnelService <> nil) and (SendTunnelID > 0) and (SendTunnel <> nil) then
         begin
           if DoubleTunnelService.FSendTunnel.Exists(SendTunnelID) then
-              DoubleTunnelService.FSendTunnel.ClientFromID[SendTunnelID].Disconnect;
+              DoubleTunnelService.FSendTunnel.PeerIO[SendTunnelID].Disconnect;
         end;
 
       LockObject(DoubleTunnelService.FLoginUserList);
@@ -895,7 +895,7 @@ begin
       Exit;
     end;
 
-  UserDefineIO.SendTunnel := FSendTunnel.ClientFromID[SendID].UserDefine as TPeerClientUserDefineForSendTunnel;
+  UserDefineIO.SendTunnel := FSendTunnel.PeerIO[SendID].UserDefine as TPeerClientUserDefineForSendTunnel;
   UserDefineIO.SendTunnelID := SendID;
   UserDefineIO.SendTunnel.RecvTunnel := UserDefineIO;
   UserDefineIO.SendTunnel.RecvTunnelID := RecvID;
@@ -1820,7 +1820,7 @@ begin
       FRecvTunnel.GetIO_Array(IO_Array);
       for pcid in IO_Array do
         begin
-          cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
+          cli := GetUserDefineRecvTunnel(FRecvTunnel.PeerIO[pcid]);
           if (cli <> nil) and (cli.LoginSuccessed) then
               cli.UserDBIntf := FUserDB.VariantList[cli.UserID];
         end;
@@ -1838,7 +1838,7 @@ begin
   FRecvTunnel.GetIO_Array(IO_Array);
   for pcid in IO_Array do
     begin
-      cli := GetUserDefineRecvTunnel(FRecvTunnel.ClientFromID[pcid]);
+      cli := GetUserDefineRecvTunnel(FRecvTunnel.PeerIO[pcid]);
       if (cli <> nil) and (cli.LoginSuccessed) then
           cli.UserDBIntf := FUserDB.VariantList[cli.UserID];
     end;

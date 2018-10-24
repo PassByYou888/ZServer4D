@@ -635,7 +635,7 @@ procedure TCommunicationFramework_Server_ICS.TriggerQueueData(v: PQueueData);
 var
   c: TPeerIO;
 begin
-  c := ClientFromID[v^.ClientID];
+  c := PeerIO[v^.ClientID];
   if c <> nil then
     begin
       c.PostQueueData(v);

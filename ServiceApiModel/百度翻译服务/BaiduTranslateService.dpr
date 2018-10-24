@@ -149,7 +149,7 @@ begin
 
         if Allowed then
         begin
-            cli := p^.serv.ClientFromID[p^.ID];
+            cli := p^.serv.PeerIO[p^.ID];
 
             // 在延迟技术体系中，客户端可能发送完请求就断线了
             // 如果断线，cli就是nil
@@ -185,7 +185,7 @@ begin
           p: PDelayReponseSource;
         begin
           p := UserData;
-          cli := TPeerIO(PDelayReponseSource(UserData)^.serv.ClientFromID[PDelayReponseSource(UserData)^.ID]);
+          cli := TPeerIO(PDelayReponseSource(UserData)^.serv.PeerIO[PDelayReponseSource(UserData)^.ID]);
           // 在延迟技术体系中，客户端可能发送完请求就断线了
           // 如果断线，cli就是nil
           if cli <> nil then

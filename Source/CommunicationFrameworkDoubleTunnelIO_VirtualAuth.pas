@@ -413,7 +413,7 @@ begin
     end
   else if Online then
     begin
-      IO := Owner.RecvTunnel.ClientFromID[RecvIO_ID];
+      IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
       if (IO.ResultSendIsPaused) then
         begin
           UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
@@ -452,7 +452,7 @@ begin
     end
   else if Online then
     begin
-      IO := Owner.RecvTunnel.ClientFromID[RecvIO_ID];
+      IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
       if (IO.ResultSendIsPaused) then
         begin
           UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
@@ -489,7 +489,7 @@ begin
   if (DoubleTunnelService <> nil) and (RecvTunnelID > 0) and (RecvTunnel <> nil) then
     begin
       if DoubleTunnelService.FRecvTunnel.Exists(RecvTunnelID) then
-          DoubleTunnelService.FRecvTunnel.ClientFromID[RecvTunnelID].Disconnect;
+          DoubleTunnelService.FRecvTunnel.PeerIO[RecvTunnelID].Disconnect;
     end;
   inherited Destroy;
 end;
@@ -522,7 +522,7 @@ begin
       if (DoubleTunnelService <> nil) and (SendTunnelID > 0) and (SendTunnel <> nil) then
         begin
           if DoubleTunnelService.FSendTunnel.Exists(SendTunnelID) then
-              DoubleTunnelService.FSendTunnel.ClientFromID[SendTunnelID].Disconnect;
+              DoubleTunnelService.FSendTunnel.PeerIO[SendTunnelID].Disconnect;
         end;
 
       DoubleTunnelService.FLoginUserDefineIOList.Delete(UserID);
@@ -654,7 +654,7 @@ begin
       exit;
     end;
 
-  UserDefineIO.SendTunnel := FSendTunnel.ClientFromID[SendID].UserDefine as TPeerClientUserDefineForSendTunnel_VirtualAuth;
+  UserDefineIO.SendTunnel := FSendTunnel.PeerIO[SendID].UserDefine as TPeerClientUserDefineForSendTunnel_VirtualAuth;
   UserDefineIO.SendTunnelID := SendID;
   UserDefineIO.DoubleTunnelService := Self;
 

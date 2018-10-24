@@ -608,7 +608,7 @@ begin
   FRecvTunnel.GetIO_Array(IO_Array);
   for pid in IO_Array do
     begin
-      peer := RecvTunnel.ClientFromID[pid];
+      peer := RecvTunnel.PeerIO[pid];
       if (peer <> nil) then
         begin
           c := (peer.UserDefine as TServerManager_RecvTunnelData);
@@ -655,7 +655,7 @@ begin
     FRecvTunnel.GetIO_Array(IO_Array);
     for pid in IO_Array do
       begin
-        peer := RecvTunnel.ClientFromID[pid];
+        peer := RecvTunnel.PeerIO[pid];
         if (peer <> nil) then
           begin
             listcli := (peer.UserDefine as TServerManager_RecvTunnelData);
@@ -756,7 +756,7 @@ begin
   FRecvTunnel.GetIO_Array(IO_Array);
   for pid in IO_Array do
     begin
-      peer := RecvTunnel.ClientFromID[pid];
+      peer := RecvTunnel.PeerIO[pid];
       if (peer <> nil) then
         begin
           c := peer.UserDefine as TServerManager_RecvTunnelData;
@@ -785,7 +785,7 @@ begin
   // sync all client
   for pid in IO_Array do
     begin
-      peer := RecvTunnel.ClientFromID[pid];
+      peer := RecvTunnel.PeerIO[pid];
       if (peer <> nil) then
         begin
           c := (peer.UserDefine as TServerManager_RecvTunnelData);
@@ -854,7 +854,7 @@ begin
         FRecvTunnel.GetIO_Array(IO_Array);
         for pid in IO_Array do
           begin
-            peer := RecvTunnel.ClientFromID[pid];
+            peer := RecvTunnel.PeerIO[pid];
             if (peer <> nil) then
               begin
                 cli := peer.UserDefine as TServerManager_RecvTunnelData;

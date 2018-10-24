@@ -164,9 +164,23 @@ begin
 end;
 
 destructor TXServiceRecvVM_Special.Destroy;
+var
+  IO_Array: TIO_Array;
+  p_id: Cardinal;
+  p_io: TPeerIO;
 begin
   if (OwnerMapping <> nil) then
+    begin
       OwnerMapping.SendTunnel.Disconnect(SendID);
+
+      OwnerMapping.Protocol.GetIO_Array(IO_Array);
+      for p_id in IO_Array do
+        begin
+          p_io := OwnerMapping.Protocol.PeerIO[p_id];
+          if TXServerUserSpecial(p_io.UserSpecial).r_id = Owner.ID then
+              p_io.DelayClose(0);
+        end;
+    end;
 
   inherited Destroy;
 end;
@@ -289,7 +303,7 @@ procedure TXServiceListen.PickWorkloadTunnel(var rID, sID: Cardinal);
 var
   rVM: TXServiceRecvVM_Special;
   buff: TIO_Array;
-  id: Cardinal;
+  ID: Cardinal;
   r_io: TPeerIO;
   f, d: Double;
 begin
@@ -304,9 +318,9 @@ begin
   f := rVM.CurrentWorkload / rVM.MaxWorkload;
 
   RecvTunnel.GetIO_Array(buff);
-  for id in buff do
+  for ID in buff do
     begin
-      r_io := RecvTunnel.PeerIO[id];
+      r_io := RecvTunnel.PeerIO[ID];
       if (r_io <> nil) and (r_io.UserSpecial <> rVM) then
         begin
           with TXServiceRecvVM_Special(r_io.UserSpecial) do
@@ -362,12 +376,12 @@ begin
             end;
         end;
 
-      rVM := TXServiceRecvVM_Special(RecvTunnel.ClientFromID[RecvID].UserSpecial);
+      rVM := TXServiceRecvVM_Special(RecvTunnel.PeerIO[RecvID].UserSpecial);
       rVM.OwnerMapping := Self;
       rVM.RecvID := RecvID;
       rVM.SendID := SendID;
 
-      sVM := TXServiceSendVM_Special(SendTunnel.ClientFromID[SendID].UserSpecial);
+      sVM := TXServiceSendVM_Special(SendTunnel.PeerIO[SendID].UserSpecial);
       sVM.OwnerMapping := Self;
       sVM.RecvID := RecvID;
       sVM.SendID := SendID;
@@ -406,12 +420,12 @@ begin
           exit;
         end;
 
-      rVM := TXServiceRecvVM_Special(RecvTunnel.ClientFromID[RecvID].UserSpecial);
+      rVM := TXServiceRecvVM_Special(RecvTunnel.PeerIO[RecvID].UserSpecial);
       rVM.OwnerMapping := Self;
       rVM.RecvID := RecvID;
       rVM.SendID := SendID;
 
-      sVM := TXServiceSendVM_Special(SendTunnel.ClientFromID[SendID].UserSpecial);
+      sVM := TXServiceSendVM_Special(SendTunnel.PeerIO[SendID].UserSpecial);
       sVM.OwnerMapping := Self;
       sVM.RecvID := RecvID;
       sVM.SendID := SendID;
@@ -442,7 +456,7 @@ begin
   cState := InData.Reader.ReadBool;
   remote_id := InData.Reader.ReadCardinal;
   local_id := InData.Reader.ReadCardinal;
-  phy_io := Protocol.ClientFromID[local_id];
+  phy_io := Protocol.PeerIO[local_id];
 
   if phy_io = nil then
       exit;
@@ -458,7 +472,7 @@ begin
           s_io := SendTunnel.PeerIO[xUserSpec.s_id];
           if s_io <> nil then
             begin
-              BuildBuff(xUserSpec.RequestBuffer.Memory, xUserSpec.RequestBuffer.Size, Sender.id, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
+              BuildBuff(xUserSpec.RequestBuffer.Memory, xUserSpec.RequestBuffer.Size, Sender.ID, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
               s_io.SendCompleteBuffer('data', nBuff, nSiz, True);
             end;
           xUserSpec.RequestBuffer.Clear;
@@ -475,7 +489,7 @@ var
 begin
   remote_id := InData.Reader.ReadCardinal;
   local_id := InData.Reader.ReadCardinal;
-  phy_io := Protocol.ClientFromID[local_id];
+  phy_io := Protocol.PeerIO[local_id];
 
   if phy_io = nil then
       exit;
@@ -491,7 +505,7 @@ var
   phy_io: TPeerIO;
 begin
   FillBuff(InData, DataSize, remote_id, local_id, destSiz, destBuff);
-  phy_io := Protocol.ClientFromID[local_id];
+  phy_io := Protocol.PeerIO[local_id];
 
   if phy_io <> nil then
     begin
@@ -583,11 +597,13 @@ begin
   s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
   if s_io <> nil then
     begin
-      BuildBuff(buffer, Size, Sender.id, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
+      BuildBuff(buffer, Size, Sender.ID, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
       s_io.SendCompleteBuffer('data', nBuff, nSiz, True);
       s_io.ProcessAllSendCmd(nil, False, False);
       s_io.Progress;
-    end;
+    end
+  else
+      Sender.DelayClose(1);
 end;
 
 procedure TXServerCustomProtocol.DoClientConnectBefore(Sender: TPeerIO);
@@ -613,7 +629,7 @@ begin
     begin
       s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
       de := TDataFrameEngine.Create;
-      de.WriteCardinal(Sender.id);
+      de.WriteCardinal(Sender.ID);
       de.WriteString(Sender.PeerIP);
       s_io.SendDirectStreamCmd('connect_request', de);
       DisposeObject(de);
@@ -642,7 +658,7 @@ begin
     begin
       s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
       de := TDataFrameEngine.Create;
-      de.WriteCardinal(Sender.id);
+      de.WriteCardinal(Sender.ID);
       de.WriteCardinal(TXServerUserSpecial(Sender.UserSpecial).RemoteProtocol_ID);
       s_io.SendDirectStreamCmd('disconnect_request', de);
       DisposeObject(de);

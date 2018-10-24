@@ -60,7 +60,7 @@ var
 begin
   // 从客户端链表查找ID，如果客户端不存在，返回nil值
   ID := Sender.Data3;
-  c := server.ClientFromID[ID];
+  c := server.PeerIO[ID];
   // 在延迟期间，客户端有可能已经断线
   if c = nil then
       exit;

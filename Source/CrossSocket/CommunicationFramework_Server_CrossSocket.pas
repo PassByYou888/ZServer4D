@@ -468,7 +468,7 @@ begin
     begin
     end);
   *)
-  c := ClientFromID[v^.ClientID];
+  c := PeerIO[v^.ClientID];
   if c <> nil then
     begin
       c.PostQueueData(v);

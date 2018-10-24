@@ -497,7 +497,7 @@ begin
       Exit;
   p := POnStorePosTransformTrigger(Data);
   if (p^.BackcallPtr <> 0) and (FSendTunnel.Exists(p^.Client_SendTunnel_ID)) then
-      Send_CompletedStorePosTransform(SendTunnel.ClientFromID[p^.Client_SendTunnel_ID], p^.BackcallPtr, TransformBuff);
+      Send_CompletedStorePosTransform(SendTunnel.PeerIO[p^.Client_SendTunnel_ID], p^.BackcallPtr, TransformBuff);
   Dispose(p);
 end;
 
@@ -1399,7 +1399,7 @@ begin
   FRecvTunnel.GetIO_Array(IO_Array);
   for pcid in IO_Array do
     begin
-      RT := GetDataStoreUserDefine(FRecvTunnel.ClientFromID[pcid]);
+      RT := GetDataStoreUserDefine(FRecvTunnel.PeerIO[pcid]);
       Result := Result + RT.FPostCounterOfPerSec;
     end;
 end;

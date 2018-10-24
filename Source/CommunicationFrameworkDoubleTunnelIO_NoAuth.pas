@@ -371,7 +371,7 @@ begin
   if (DoubleTunnelService <> nil) and (RecvTunnelID > 0) and (RecvTunnel <> nil) then
     begin
       if DoubleTunnelService.FRecvTunnel.Exists(RecvTunnelID) then
-          DoubleTunnelService.FRecvTunnel.ClientFromID[RecvTunnelID].Disconnect;
+          DoubleTunnelService.FRecvTunnel.PeerIO[RecvTunnelID].Disconnect;
     end;
   inherited Destroy;
 end;
@@ -400,7 +400,7 @@ begin
       if (DoubleTunnelService <> nil) and (SendTunnelID > 0) and (SendTunnel <> nil) then
         begin
           if DoubleTunnelService.FSendTunnel.Exists(SendTunnelID) then
-              DoubleTunnelService.FSendTunnel.ClientFromID[SendTunnelID].Disconnect;
+              DoubleTunnelService.FSendTunnel.PeerIO[SendTunnelID].Disconnect;
         end;
 
       DoubleTunnelService := nil;
@@ -460,7 +460,7 @@ begin
       Exit;
     end;
 
-  UserDefineIO.SendTunnel := FSendTunnel.ClientFromID[SendID].UserDefine as TPeerClientUserDefineForSendTunnel_NoAuth;
+  UserDefineIO.SendTunnel := FSendTunnel.PeerIO[SendID].UserDefine as TPeerClientUserDefineForSendTunnel_NoAuth;
   UserDefineIO.SendTunnelID := SendID;
   UserDefineIO.DoubleTunnelService := Self;
 
