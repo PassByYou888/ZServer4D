@@ -15,7 +15,7 @@ interface
 
 uses SysUtils, CommunicationFramework, DataFrameEngine,
   UnicodeMixedLib, CoreClasses, DoStatusIO, MemoryStream64, PascalStrings,
-  CommunicationFrameworkIO, CoreCipher;
+  CommunicationFrameworkIO, CoreCipher, NotifyObjectBase;
 
 type
   TCommunicationTestIntf = class(TCoreClassObject)
@@ -36,6 +36,8 @@ type
     procedure Cmd_BigStreamPostInfo(Sender: TPeerIO; InData: SystemString);
     procedure Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     procedure Cmd_RemoteInfo(Sender: TPeerIO; InData: SystemString);
+    procedure Delay_RunTestReponse(Sender: TNPostExecute);
+    procedure Cmd_RunTestReponse(Sender: TPeerIO; InData: TDataFrameEngine);
 
     // server test command result
     procedure CmdResult_TestConsole(Sender: TPeerIO; ResultData: SystemString);
@@ -45,6 +47,7 @@ type
     procedure ExecuteTest(Intf: TPeerIO);
     procedure ExecuteAsyncTest(Intf: TPeerIO);
     procedure ExecuteAsyncTestWithBigStream(Intf: TPeerIO);
+    procedure ExecuteTestReponse(Intf: TPeerIO);
 
     property LastReg: TCommunicationFramework read FLastReg;
   end;
@@ -135,6 +138,16 @@ begin
   Sender.Print('remote:' + InData);
 end;
 
+procedure TCommunicationTestIntf.Delay_RunTestReponse(Sender: TNPostExecute);
+begin
+  ExecuteAsyncTestWithBigStream(TPeerIO(Sender.Data1));
+end;
+
+procedure TCommunicationTestIntf.Cmd_RunTestReponse(Sender: TPeerIO; InData: TDataFrameEngine);
+begin
+  Sender.OwnerFramework.PostProgress.PostExecuteM(3, {$IFDEF FPC}@{$ENDIF FPC}Delay_RunTestReponse).Data1 := Sender;
+end;
+
 procedure TCommunicationTestIntf.CmdResult_TestConsole(Sender: TPeerIO; ResultData: SystemString);
 begin
   if ResultData <> FPrepareResultConsole then
@@ -157,6 +170,7 @@ begin
   Intf.RegisterDirectConsole('BigStreamPostInfo').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Cmd_BigStreamPostInfo;
   Intf.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Cmd_TestCompleteBuffer;
   Intf.RegisterDirectConsole('RemoteInfo').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Cmd_RemoteInfo;
+  Intf.RegisterDirectStream('RunTestReponse').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Cmd_RunTestReponse;
 
   FLastReg := Intf;
 end;
@@ -210,6 +224,11 @@ begin
   Intf.SendCompleteBuffer('TestCompleteBuffer', TestBuff, TestBuffSize, False);
 
   Intf.SendDirectConsoleCmd('RemoteInfo', 'client id[' + IntToStr(Intf.ID) + '] test over!');
+end;
+
+procedure TCommunicationTestIntf.ExecuteTestReponse(Intf: TPeerIO);
+begin
+  Intf.SendDirectStreamCmd('RunTestReponse');
 end;
 
 procedure MakeRndBuff(v: Integer; p: Pointer; siz: NativeInt);

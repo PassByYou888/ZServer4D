@@ -101,6 +101,8 @@ var
   p: PCriticalLock;
 begin
   GetCriticalLock(Obj, p);
+  if p^.Critical = nil then
+      p^.Critical := TCriticalSection.Create;
   p^.Critical.Acquire;
 end;
 
@@ -110,7 +112,12 @@ var
 begin
   GetCriticalLock(Obj, p);
   p^.Obj := nil;
-  p^.Critical.Release;
+  try
+      p^.Critical.Release;
+  except
+    DisposeObject(p^.Critical);
+    p^.Critical := nil;
+  end;
 end;
 
 procedure AtomInc(var x: Int64);

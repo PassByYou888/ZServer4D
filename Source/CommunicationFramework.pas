@@ -4526,9 +4526,7 @@ begin
   if FOwnerFramework.Protocol = cpZServer then
     begin
       FOwnerFramework.CmdSendStatistics.IncValue(p^.Cmd, 1);
-      LockObject(FQueueList); // atomic lock
       FQueueList.Add(p);
-      UnLockObject(FQueueList); // atomic lock
     end
   else
       DisposeQueueData(p);
