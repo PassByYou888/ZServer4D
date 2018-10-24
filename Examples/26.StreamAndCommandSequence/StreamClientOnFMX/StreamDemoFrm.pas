@@ -213,7 +213,7 @@ begin
       de: TDataFrameEngine;
     begin
       de := TDataFrameEngine.Create;
-      de.WriteStream(Prepared_Stream);
+      de.write(Prepared_Stream.Memory^, Prepared_Stream.Size);
       de.EncodeTo(m, True);
       disposeObject(de);
     end,

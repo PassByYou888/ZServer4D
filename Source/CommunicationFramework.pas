@@ -4961,9 +4961,9 @@ begin
     begin
       Sender.SendByteBuffer(p, FlushBuffSize);
       inc(p, FlushBuffSize);
-      AtomInc(Statistics[TStatisticsType.stSendSize], FlushBuffSize);
       Sender.WriteBufferFlush;
       dec(siz, FlushBuffSize);
+      AtomInc(Statistics[TStatisticsType.stSendSize], FlushBuffSize);
     end;
 
   if siz > 0 then

@@ -148,20 +148,20 @@ begin
 end;
 
 procedure TPeerIOWithCrossSocketServer.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+var
+  picked_m64: TMemoryStream64;
 begin
-  LastActiveTime := GetTimeTickCount;
-
-  // 为避免使用非页面交换内存，将io内核发送进度同步到主线程来发
-  TThread.Synchronize(nil,
+  // 修复TThread.Synchronize会卡死在kqueue与epoll接口，因为触发该事件前cross底层会lock
+  // 如果在TThread.Synchronize反复再去调用Send方法，就会被lock卡死
+  // 调度队列采用同步方式从发送队列拾取待一块内存，完成后，再从拾取结果检查符合继续发送条件
+  TThread.Synchronize(TThread.CurrentThread,
     procedure
     var
       i: Integer;
-      M: TMemoryStream64;
       isConn: Boolean;
     begin
-      // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
-      // 发送完成状态返回时，我们释放所有临时缓冲区
-      FreeDelayBuffPool;
+      LastActiveTime := GetTimeTickCount;
+      picked_m64 := nil;
 
       isConn := False;
       try
@@ -170,22 +170,18 @@ begin
           begin
             if SendBuffQueue.Count > 0 then
               begin
-                M := TMemoryStream64(SendBuffQueue[0]);
-
-                // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
-                // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
-                // 感谢ak47 qq512757165 的测试报告
-                Context.SendBuf(M.Memory, M.Size, SendBuffResult);
-
                 // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
-                DelayBuffPool.Add(M);
-
+                DelayBuffPool.Add(SendBuffQueue[0]);
+                // 将发送队列拾取出来
+                picked_m64 := TMemoryStream64(SendBuffQueue[0]);
                 // 释放队列
                 SendBuffQueue.Delete(0);
               end
             else
               begin
                 Sending := False;
+                // 发送完成状态返回时，我们释放所有临时缓冲区
+                FreeDelayBuffPool;
               end;
           end
         else
@@ -200,20 +196,23 @@ begin
             if isConn then
               begin
                 Print('send failed!');
-                Disconnect;
+                DelayClose(0);
               end;
           end;
       except
         Print('send failed!');
-        Disconnect;
+        DelayClose(0);
       end;
     end);
+
+  if picked_m64 <> nil then
+      Context.SendBuf(picked_m64.Memory, picked_m64.Size, SendBuffResult);
 end;
 
 procedure TPeerIOWithCrossSocketServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if not Connected then
-      Exit;
+      exit;
 
   LastActiveTime := GetTimeTickCount;
 
@@ -226,7 +225,7 @@ end;
 procedure TPeerIOWithCrossSocketServer.WriteBufferOpen;
 begin
   if not Connected then
-      Exit;
+      exit;
   LastActiveTime := GetTimeTickCount;
   CurrentBuff.Clear;
 end;
@@ -236,7 +235,7 @@ var
   ms: TMemoryStream64;
 begin
   if not Connected then
-      Exit;
+      exit;
   LastActiveTime := GetTimeTickCount;
 
   // 在ubuntu 16.04 TLS下，接收线程在程序运行时，我们调用发送api，这时出去的数据会错误
@@ -269,7 +268,7 @@ end;
 procedure TPeerIOWithCrossSocketServer.WriteBufferClose;
 begin
   if not Connected then
-      Exit;
+      exit;
   CurrentBuff.Clear;
 end;
 
@@ -291,13 +290,13 @@ end;
 
 procedure TPeerIOWithCrossSocketServer.Progress;
 var
-  M: TMemoryStream64;
+  m: TMemoryStream64;
 begin
   // 检查空闲
   if (OwnerFramework.IdleTimeout > 0) and (GetTimeTickCount - LastActiveTime > OwnerFramework.IdleTimeout) then
     begin
       Disconnect;
-      Exit;
+      exit;
     end;
 
   inherited Progress;
@@ -310,17 +309,17 @@ begin
     begin
       Sending := True;
       LastActiveTime := GetTimeTickCount;
-      M := TMemoryStream64(SendBuffQueue[0]);
+      m := TMemoryStream64(SendBuffQueue[0]);
       // 释放队列
       SendBuffQueue.Delete(0);
 
       // WSASend吞吐发送时，会复制一份副本，这里有内存拷贝，拷贝限制为32k，已在底层框架做了碎片预裁剪
       // 注意：事件式回调发送的buff总量最后会根据堆栈大小决定
       { Thank you for the test report of AK47 qq512757165 }
-      Context.SendBuf(M.Memory, M.Size, SendBuffResult);
+      Context.SendBuf(m.Memory, m.Size, SendBuffResult);
 
       // 由于linux下的Send不会copy缓冲区副本，我们需要延迟释放自己的缓冲区
-      DelayBuffPool.Add(M);
+      DelayBuffPool.Add(m);
     end;
 end;
 
@@ -356,15 +355,15 @@ var
   cli: TPeerIOWithCrossSocketServer;
 begin
   if ALen <= 0 then
-      Exit;
+      exit;
 
   if AConnection.UserObject = nil then
-      Exit;
+      exit;
 
   try
     cli := AConnection.UserObject as TPeerIOWithCrossSocketServer;
     if cli.ClientIntf = nil then
-        Exit;
+        exit;
 
     cli.LastActiveTime := GetTimeTickCount;
 
@@ -382,11 +381,11 @@ var
   cli: TPeerIOWithCrossSocketServer;
 begin
   if AConnection.UserObject = nil then
-      Exit;
+      exit;
 
   cli := AConnection.UserObject as TPeerIOWithCrossSocketServer;
   if cli.ClientIntf = nil then
-      Exit;
+      exit;
   cli.LastActiveTime := GetTimeTickCount;
 end;
 
@@ -462,12 +461,6 @@ procedure TCommunicationFramework_Server_CrossSocket.TriggerQueueData(v: PQueueD
 var
   c: TPeerIO;
 begin
-  (*
-    TThread.Synchronize(nil,
-    procedure
-    begin
-    end);
-  *)
   c := PeerIO[v^.ClientID];
   if c <> nil then
     begin
