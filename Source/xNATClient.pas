@@ -279,11 +279,7 @@ begin
   phy_io := TXClientCustomProtocol(ProtocolHash[local_id]);
   if phy_io <> nil then
     begin
-      try
-          phy_io.Disconnect;
-      except
-      end;
-      disposeObject(phy_io);
+      phy_io.Disconnect;
     end;
 end;
 
@@ -300,7 +296,6 @@ begin
   if phy_io <> nil then
     begin
       phy_io.WriteBuffer(destBuff, destSiz);
-      phy_io.Progress;
     end;
 end;
 
@@ -390,8 +385,6 @@ begin
     begin
       BuildBuff(buffer, Size, LocalProtocol_ID, RemoteProtocol_ID, nSiz, nBuff);
       Mapping.SendTunnel.SendCompleteBuffer('data', nBuff, nSiz, True);
-      Mapping.SendTunnel.ClientIO.ProcessAllSendCmd(nil, False, False);
-      Mapping.SendTunnel.ClientIO.Progress;
     end
   else
     begin

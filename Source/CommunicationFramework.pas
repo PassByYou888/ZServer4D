@@ -822,7 +822,8 @@ type
     constructor CreateCustomHashPool(HashPoolLen: Integer); virtual;
     destructor Destroy; override;
 
-    procedure Disconnect(ID: Cardinal);
+    procedure Disconnect(ID: Cardinal); overload;
+    procedure Disconnect(ID: Cardinal; delay: double); overload;
 
     // OnReceiveBuffer work on Protocol is cpCustom
     procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt); virtual;
@@ -3453,7 +3454,7 @@ begin
   if dHead <> FHeadToken then
     begin
       Print('Header Illegal');
-      Disconnect;
+      DelayClose();
       Exit;
     end;
 
@@ -3492,7 +3493,7 @@ begin
   if dTail <> FTailToken then
     begin
       Print('tail token error!');
-      Disconnect;
+      DelayClose();
       Exit;
     end;
 
@@ -3503,7 +3504,7 @@ begin
         Encrypt(FReceiveDataCipherSecurity, @buff[0], dSize, FCipherKey, False);
   except
     Print('Encrypt error!');
-    Disconnect;
+    DelayClose();
     Exit;
   end;
 
@@ -3511,7 +3512,7 @@ begin
     if not VerifyHashCode(THashSecurity(dHashSecurity), @buff[0], dSize, dHash) then
       begin
         Print('verify data error!');
-        Disconnect;
+        DelayClose();
         Exit;
       end;
 
@@ -3526,7 +3527,7 @@ begin
           ResultText := umlStringOf(buff).Text;
       except
         Print('data error!');
-        Disconnect;
+        DelayClose();
         Exit;
       end;
 
@@ -3551,7 +3552,7 @@ begin
             ResultDataFrame.DecodeFromBytes(buff, True);
         except
           Print('data error!');
-          Disconnect;
+          DelayClose();
           Exit;
         end;
 
@@ -3883,7 +3884,7 @@ begin
     UnLockObject(Self); // atomic lock
 
     if BreakAndDisconnect then
-        Disconnect;
+        DelayClose();
   end;
 end;
 
@@ -4462,7 +4463,7 @@ begin
 
       except
         UnLockObject(FBigStreamSending); // atomic lock
-        Disconnect;
+        DelayClose();
         FProgressRunning := False;
         Exit;
       end;
@@ -4475,7 +4476,7 @@ begin
         WriteBufferFlush;
         WriteBufferClose;
       except
-        Disconnect;
+        DelayClose();
         FProgressRunning := False;
         Exit;
       end;
@@ -4498,7 +4499,7 @@ end;
 
 procedure TPeerIO.DelayClose;
 begin
-  DelayClose(3.0);
+  DelayClose(0);
 end;
 
 procedure TPeerIO.DelayClose(const t: double);
@@ -5928,12 +5929,17 @@ begin
 end;
 
 procedure TCommunicationFrameworkServer.Disconnect(ID: Cardinal);
+begin
+  Disconnect(ID, 0);
+end;
+
+procedure TCommunicationFrameworkServer.Disconnect(ID: Cardinal; delay: double);
 var
   io_cli: TPeerIO;
 begin
   io_cli := PeerIO[ID];
   if io_cli <> nil then
-      io_cli.Disconnect;
+      io_cli.DelayClose(delay);
 end;
 
 procedure TCommunicationFrameworkServer.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);

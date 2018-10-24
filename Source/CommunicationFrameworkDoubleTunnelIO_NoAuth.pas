@@ -636,7 +636,7 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 
@@ -680,7 +680,7 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 
@@ -701,7 +701,7 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 

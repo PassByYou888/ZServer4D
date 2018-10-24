@@ -151,9 +151,9 @@ procedure TPeerIOWithCrossSocketServer.SendBuffResult(AConnection: ICrossConnect
 var
   picked_m64: TMemoryStream64;
 begin
-  // 修复TThread.Synchronize会卡死在kqueue与epoll接口，因为触发该事件前cross底层会lock
-  // 如果在TThread.Synchronize反复再去调用Send方法，就会被lock卡死
-  // 调度队列采用同步方式从发送队列拾取待一块内存，完成后，再从拾取结果检查符合继续发送条件
+  // TThread.Synchronize会卡死在kqueue与epoll
+  // 在TThread.Synchronize调用Send方法，将会被lock卡死
+  // 解决方法:调度队列采用同步方式从发送队列拾取待一块内存，再从拾取结果继续发送
   TThread.Synchronize(TThread.CurrentThread,
     procedure
     var

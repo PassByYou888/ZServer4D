@@ -479,7 +479,7 @@ begin
         end;
     end
   else
-      phy_io.Disconnect;
+      phy_io.DelayClose(0);
 end;
 
 procedure TXServiceListen.cmd_disconnect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -494,7 +494,7 @@ begin
   if phy_io = nil then
       exit;
 
-  phy_io.Disconnect;
+  phy_io.DelayClose(0);
 end;
 
 procedure TXServiceListen.cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
@@ -510,7 +510,6 @@ begin
   if phy_io <> nil then
     begin
       Protocol.WriteBuffer(phy_io, destBuff, destSiz);
-      phy_io.Progress;
     end;
 end;
 
@@ -599,11 +598,9 @@ begin
     begin
       BuildBuff(buffer, Size, Sender.ID, xUserSpec.RemoteProtocol_ID, nSiz, nBuff);
       s_io.SendCompleteBuffer('data', nBuff, nSiz, True);
-      s_io.ProcessAllSendCmd(nil, False, False);
-      s_io.Progress;
     end
   else
-      Sender.DelayClose(1);
+      Sender.DelayClose(1.0);
 end;
 
 procedure TXServerCustomProtocol.DoClientConnectBefore(Sender: TPeerIO);

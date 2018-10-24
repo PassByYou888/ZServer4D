@@ -12,21 +12,24 @@
 { ****************************************************************************** }
 
 type
-  PCriticalLock = ^TCriticalLock;
+  TCritical = TCriticalSection;
 
-  TCriticalLock = packed record
+  PCritical_Struct = ^TCritical_Struct;
+
+  TCritical_Struct = record
     Obj: TObject;
-    Critical: TCriticalSection;
+    Critical: TCritical;
   end;
 
 var
-  CoreCritical, incrementCritical: TCriticalSection;
+  CoreCritical: TCritical;
+  incrementCritical: TCritical;
   CriticalList: TCoreClassList;
 
 procedure InitCriticalLock;
 begin
-  CoreCritical := TCriticalSection.Create;
-  incrementCritical := TCriticalSection.Create;
+  CoreCritical := TCritical.Create;
+  incrementCritical := TCritical.Create;
   CriticalList := TCoreClassList.Create;
 end;
 
@@ -36,8 +39,8 @@ var
 begin
   for i := 0 to CriticalList.Count - 1 do
     begin
-      DisposeObject(PCriticalLock(CriticalList[i])^.Critical);
-      Dispose(PCriticalLock(CriticalList[i]));
+      DisposeObject(PCritical_Struct(CriticalList[i])^.Critical);
+      Dispose(PCritical_Struct(CriticalList[i]));
     end;
 
   DisposeObject(CoreCritical);
@@ -45,10 +48,10 @@ begin
   DisposeObject(CriticalList);
 end;
 
-procedure GetCriticalLock(const Obj: TObject; var output: PCriticalLock);
+procedure GetCriticalLock(const Obj: TObject; var output: PCritical_Struct);
 var
   i, pi: Integer;
-  p: PCriticalLock;
+  p: PCritical_Struct;
 begin
   CoreCritical.Acquire;
   try
@@ -58,16 +61,16 @@ begin
     i := 0;
     while i < CriticalList.Count do
       begin
-        if PCriticalLock(CriticalList[i])^.Obj = Obj then
+        if PCritical_Struct(CriticalList[i])^.Obj = Obj then
           begin
-            output := PCriticalLock(CriticalList[i]);
+            output := PCritical_Struct(CriticalList[i]);
             Break;
           end
         else
           begin
-            if (p = nil) and (PCriticalLock(CriticalList[i])^.Obj = nil) then
+            if (p = nil) and (PCritical_Struct(CriticalList[i])^.Obj = nil) then
               begin
-                p := PCriticalLock(CriticalList[i]);
+                p := PCritical_Struct(CriticalList[i]);
                 pi := i;
               end;
             inc(i);
@@ -86,7 +89,7 @@ begin
           begin
             new(p);
             p^.Obj := Obj;
-            p^.Critical := TCriticalSection.Create;
+            p^.Critical := TCritical.Create;
             CriticalList.Insert(0, p);
             output := p;
           end;
@@ -98,25 +101,22 @@ end;
 
 procedure _LockCriticalObj(Obj: TObject);
 var
-  p: PCriticalLock;
+  p: PCritical_Struct;
 begin
   GetCriticalLock(Obj, p);
-  if p^.Critical = nil then
-      p^.Critical := TCriticalSection.Create;
   p^.Critical.Acquire;
 end;
 
 procedure _UnLockCriticalObj(Obj: TObject);
 var
-  p: PCriticalLock;
+  p: PCritical_Struct;
 begin
   GetCriticalLock(Obj, p);
   p^.Obj := nil;
   try
       p^.Critical.Release;
   except
-    DisposeObject(p^.Critical);
-    p^.Critical := nil;
+      p^.Critical := TCritical.Create;
   end;
 end;
 

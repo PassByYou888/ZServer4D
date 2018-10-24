@@ -1445,12 +1445,12 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LoginSuccessed then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
   if UserDefineIO.SendTunnel = nil then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 
@@ -1498,12 +1498,12 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LoginSuccessed then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
   if UserDefineIO.SendTunnel = nil then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 
@@ -1555,12 +1555,12 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LoginSuccessed then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
   if UserDefineIO.SendTunnel = nil then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 
@@ -1581,12 +1581,12 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LoginSuccessed then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
   if UserDefineIO.SendTunnel = nil then
     begin
-      Sender.Disconnect;
+      Sender.DelayClose();
       Exit;
     end;
 
@@ -2361,7 +2361,7 @@ begin
     else
         FCurrentStream := TCoreClassFileStream.Create(fullfn, fmCreate);
   except
-      FRecvTunnel.ClientIO.Disconnect;
+      FRecvTunnel.ClientIO.DelayClose();
   end;
 end;
 

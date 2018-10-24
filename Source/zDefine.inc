@@ -53,10 +53,6 @@
   // if CriticalSimulateAtomic defined so performance to be reduced
   // {$DEFINE CriticalSimulateAtomic}
 
-  {$IFDEF Linux}
-    {$DEFINE CriticalSimulateAtomic}
-  {$ENDIF}
-
   {$IFDEF release}
     {$DEFINE INLINE_ASM}
     {$R-} { range check }
@@ -121,4 +117,3 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
-
