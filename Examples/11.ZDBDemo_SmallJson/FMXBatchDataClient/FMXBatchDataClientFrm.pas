@@ -8,6 +8,7 @@ uses
   FMX.TabControl, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation,
   FMX.Layouts, CommunicationFrameworkDataStoreService, ZDBEngine,
   ZDBLocalManager, CommunicationFramework_Client_Indy,
+  NotifyObjectBase,
   CommunicationFramework, CoreClasses, DoStatusIO, FMX.ScrollBox, FMX.Memo,
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.ListView, PascalStrings, MemoryStream64, UnicodeMixedLib,
@@ -79,7 +80,7 @@ type
   public
     { Public declarations }
     RecvTunnel, SendTunnel: TCommunicationFrameworkClient;
-    DBClient              : TMyDataStoreClient;
+    DBClient: TMyDataStoreClient;
     procedure DoStatusNear(AText: string; const ID: Integer);
   end;
 
@@ -302,6 +303,11 @@ begin
                   // 必须手动检查断线状态
                   // 当连接成功后，我们激活一个计时器，循环检查断线
                   DisconnectCheckTimer.Enabled := True;
+                  DBClient.ProgressEngine.PostExecuteP(1, procedure(Sender: TNPostExecute)
+                    begin
+                      while not DBClient.DataCipherKeyFinished do
+                          DBClient.Progress;
+                    end)
                 end;
             end);
         end;

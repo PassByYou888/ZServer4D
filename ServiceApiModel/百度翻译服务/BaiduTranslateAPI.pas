@@ -9,7 +9,7 @@ unit BaiduTranslateAPI;
 
 interface
 
-uses Classes, CoreClasses, PascalStrings, UnicodeMixedLib, MemoryStream64, JsonDataObjects;
+uses Classes, CoreClasses, PascalStrings, UnicodeMixedLib, MemoryStream64, ZS_JsonDataObjects;
 
 var
   // 使用下列地址申请百度翻译

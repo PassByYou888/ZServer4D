@@ -189,7 +189,12 @@ type
     property PublicPath: SystemString read FPublicPath write FPublicPath;
 
     property CadencerEngine: TCadencer read FCadencerEngine;
+
     property ProgressEngine: TNProgressPost read FProgressEngine;
+    property ProgressPost: TNProgressPost read FProgressEngine;
+    property PostProgress: TNProgressPost read FProgressEngine;
+    property PostRun: TNProgressPost read FProgressEngine;
+    property PostExecute: TNProgressPost read FProgressEngine;
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
@@ -466,7 +471,12 @@ type
 
     property CadencerEngine: TCadencer read FCadencerEngine;
     property ServerDelay: Double read FServerDelay;
+
     property ProgressEngine: TNProgressPost read FProgressEngine;
+    property ProgressPost: TNProgressPost read FProgressEngine;
+    property PostProgress: TNProgressPost read FProgressEngine;
+    property PostRun: TNProgressPost read FProgressEngine;
+    property PostExecute: TNProgressPost read FProgressEngine;
 
     property RecvTunnel: TCommunicationFrameworkClient read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkClient read FSendTunnel;

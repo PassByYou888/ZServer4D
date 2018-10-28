@@ -430,6 +430,7 @@ begin
               begin
                 DoStatus('reconnect call enabled api 2 send cmd:%s %s [n:%s][addr:%s][r:%d][s:%d][w:%d]',
                   [LastManagerServerAddr, serverType2Str(conninfo.ServerType), conninfo.Regname, LastRegAddr, LastRegRecvPort, LastRegSendPort, 0]);
+
                 if c.EnabledServer(conninfo.Regname, conninfo.ManServAddr, conninfo.RegAddr, conninfo.RegRecvPort, conninfo.RegSendPort, conninfo.ServerType) then
                   begin
                     inc(i);

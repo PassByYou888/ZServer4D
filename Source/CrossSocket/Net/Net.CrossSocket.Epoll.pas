@@ -509,57 +509,62 @@ var
   LCallback: TProc<ICrossConnection, Boolean>;
   LSent: Integer;
 begin
+  // 查阅了资料，linux和unit系统级的io函数都会很安静，不会像windows，动不动就给你抛个异常，处于易读性和调试需要，我干掉了改队列缓存操作的try部分
   LConnection := AConnection;
   LEpConnection := LConnection as TEpollConnection;
 
   LEpConnection._Lock;
-  try
+
+  // 队列中没有数据了, 清除 ioWrite 标志
+  if (LEpConnection.FSendQueue.Count <= 0) then
+  begin
+    LEpConnection._UpdateIoEvent([]);
+    LEpConnection._Unlock;
+    Exit;
+  end;
+
+  // 获取Socket发送队列中的第一条数据
+  LSendItem := LEpConnection.FSendQueue.Items[0];
+
+  // 发送数据
+  LSent := PosixSend(LConnection.Socket, LSendItem.Data, LSendItem.Size);
+
+  {$region '全部发送完成'}
+  if (LSent >= LSendItem.Size) then
+  begin
+    // 先保存回调函数, 避免后面删除队列后将其释放
+    LCallback := LSendItem.Callback;
+
+    // 发送成功, 移除已发送成功的数据
+    if (LEpConnection.FSendQueue.Count > 0) then
+      LEpConnection.FSendQueue.Delete(0);
+
     // 队列中没有数据了, 清除 ioWrite 标志
     if (LEpConnection.FSendQueue.Count <= 0) then
-    begin
       LEpConnection._UpdateIoEvent([]);
-      Exit;
-    end;
 
-    // 获取Socket发送队列中的第一条数据
-    LSendItem := LEpConnection.FSendQueue.Items[0];
-
-    // 发送数据
-    LSent := PosixSend(LConnection.Socket, LSendItem.Data, LSendItem.Size);
-
-    {$region '全部发送完成'}
-    if (LSent >= LSendItem.Size) then
-    begin
-      // 先保存回调函数, 避免后面删除队列后将其释放
-      LCallback := LSendItem.Callback;
-
-      // 发送成功, 移除已发送成功的数据
-      if (LEpConnection.FSendQueue.Count > 0) then
-        LEpConnection.FSendQueue.Delete(0);
-
-      // 队列中没有数据了, 清除 ioWrite 标志
-      if (LEpConnection.FSendQueue.Count <= 0) then
-        LEpConnection._UpdateIoEvent([]);
-
-      if Assigned(LCallback) then
-        LCallback(LConnection, True);
-
-      Exit;
-    end;
-    {$endregion}
-
-    {$region '连接断开或发送错误'}
-    // 发送失败的回调会在连接对象的destroy方法中被调用
-    if (LSent < 0) then Exit;
-    {$endregion}
-
-    {$region '部分发送成功,在下一次唤醒发送线程时继续处理剩余部分'}
-    Dec(LSendItem.Size, LSent);
-    Inc(LSendItem.Data, LSent);
-    {$endregion}
-  finally
+    // 由于epoll要管理数据发送队列，每次发送前，队列都要被锁定，当队列操作完成，才去解锁，这里在发送以后，还保持了锁定
+    // 外部程序在回调事件继续发送下一段数据，会导致外面的程序被锁死，如果在外围解决，正解需要抛出一个后置事件，实现太麻烦，直接修改流程
+    // 查阅了资料，linux和unit系统级的io函数都会很安静，不会像windows，动不动就给你抛个异常，处于易读性和调试需要，我干掉了改队列缓存操作的try部分
+    // 其它地方一切正常，by qq600585
     LEpConnection._Unlock;
+
+    if Assigned(LCallback) then
+      LCallback(LConnection, True);
+
+    Exit;
   end;
+  {$endregion}
+
+  // 发送失败的回调会在连接对象的destroy方法中被调用
+  if (LSent > 0) then
+  begin
+    {$region '部分发送成功,在下一次唤醒发送线程时继续处理剩余部分'}
+    dec(LSendItem.Size, LSent);
+    inc(LSendItem.Data, LSent);
+    {$endregion}
+  end;
+  LEpConnection._Unlock;
 end;
 
 

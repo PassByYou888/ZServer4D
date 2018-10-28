@@ -235,6 +235,8 @@ end;
 constructor TCommunicationFramework_Server_Indy.Create;
 begin
   inherited CreateCustomHashPool(128);
+  FEnabledAtomicLockAndMultiThread := True;
+
   FDriver := TIdTCPServer.Create(nil);
   FDriver.UseNagle := False;
   FDriver.MaxConnections := 20;

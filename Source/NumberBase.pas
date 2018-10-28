@@ -54,7 +54,7 @@ type
   end;
 
   TNumberModuleNotifyEvent = procedure();
-  TNumberModuleChangeEvent = procedure(OldValue, NewValue: Variant);
+  TNumberModuleChangeEvent = procedure(const OldValue, NewValue: Variant);
 
   TNumberModule = class(TCoreClassObject)
   private
@@ -125,15 +125,15 @@ type
     destructor Destroy; override;
 
     // value changed
-    procedure UpdateValue; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure UpdateValue;
     // reg hook interface
-    function RegisterCurrentValueHook: TNumberModuleHookInterface; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure CopyHookInterfaceFrom(sour: TNumberModule); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterCurrentValueHook: TNumberModuleHookInterface;
+    procedure CopyHookInterfaceFrom(sour: TNumberModule);
     // reg change after event
-    function RegisterCurrentValueChangeAfterEvent: TNumberModuleEventInterface; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure CopyChangeAfterEventInterfaceFrom(sour: TNumberModule); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function RegisterCurrentValueChangeAfterEvent: TNumberModuleEventInterface;
+    procedure CopyChangeAfterEventInterfaceFrom(sour: TNumberModule);
     // copy
-    procedure Assign(sour: TNumberModule); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Assign(sour: TNumberModule);
     // use hook change
     property CurrentValue: Variant read GetCurrentValue write SetCurrentValue;
     property OriginValue: Variant read GetOriginValue write SetOriginValue;
@@ -186,21 +186,20 @@ type
 
   TNumberModuleList = class(TCoreClassObject)
   protected
-  private
     FList: THashObjectList;
     function GetItems(AName: SystemString): TNumberModule;
   public
     constructor Create;
     destructor Destroy; override;
 
-    procedure Delete(AName: SystemString); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function Exists(AName: SystemString): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    function ExistsIntf(ADM: TNumberModule): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    //
+    procedure Delete(AName: SystemString);
+    function Exists(AName: SystemString): Boolean;
+    function ExistsIntf(ADM: TNumberModule): Boolean;
+    procedure Clear;
+
     function Macro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; out output: SystemString): Boolean;
     function ManualMacro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out output: SystemString): Boolean;
-    //
+
     procedure Assign(Source: TNumberModuleList); // create by 2011-6-17
 
     // can merge current
@@ -221,9 +220,9 @@ type
 
   TNumberProcessStyle = (npsInc, npsDec, npsIncMul, npsDecMul);
 
-  TNumberProcessingData = packed record
-    flag: TCoreClassObject;
-    SeedNumber: Variant;
+  TNumberProcessingData = record
+    token: TCoreClassObject;
+    opValue: Variant;
     Style: TNumberProcessStyle;
     CancelDelayTime: Double;
     Overlap: Boolean;
@@ -243,17 +242,18 @@ type
   protected
     procedure DMCurrentValueHook(Sender: TNumberModuleHookInterface; OldValue: Variant; var NewValue: Variant);
   private
-    function GetCurrentValueCalcData(flag: TCoreClassObject): PDMProcessingData; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    function GetCurrentValueCalcData(token: TCoreClassObject): PDMProcessingData;
   public
     constructor Create(AOwner: TNMAutomatedManager; ADMSource: TNumberModule);
     destructor Destroy; override;
 
-    procedure Progress(deltaTime: Double); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure ChangeProcessStyle(flag: TCoreClassObject; SeedNumber: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer; Priority: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Cancel(flag: TCoreClassObject); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Clear; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    //
     property Owner: TNMAutomatedManager read FOwner write FOwner;
+
+    procedure Progress(deltaTime: Double);
+    procedure ChangeProcessStyle(token: TCoreClassObject;
+      opValue: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
+    procedure Cancel(token: TCoreClassObject);
+    procedure Clear;
   end;
 
   TNMAutomatedManager = class(TCoreClassPersistent)
@@ -265,18 +265,17 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Progress(deltaTime: Double); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    procedure Progress(deltaTime: Double);
     procedure Clear;
 
     procedure PostAutomatedProcess(Style: TNumberProcessStyle;
-      ADMSource: TNumberModule; flag: TCoreClassPersistent;
-      SeedNumber: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      ADMSource: TNumberModule; token: TCoreClassPersistent;
+      opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
     procedure PostAutomatedDelayCancelProcess(Style: TNumberProcessStyle;
-      ADMSource: TNumberModule; flag: TCoreClassPersistent;
-      SeedNumber: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double); {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    //
-    procedure Delete(ADMSource: TNumberModule; flag: TCoreClassObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-    procedure Delete(flag: TCoreClassObject); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+      ADMSource: TNumberModule; token: TCoreClassPersistent;
+      opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
+    procedure Delete(ADMSource: TNumberModule; token: TCoreClassObject); overload;
+    procedure Delete(token: TCoreClassObject); overload;
   end;
 
 implementation
@@ -324,7 +323,7 @@ begin
         if FOwnerList[i] = Self then
             FOwnerList.Delete(i)
         else
-            Inc(i);
+            inc(i);
       end;
   inherited Destroy;
 end;
@@ -350,7 +349,7 @@ begin
         if FOwnerList[i] = Self then
             FOwnerList.Delete(i)
         else
-            Inc(i);
+            inc(i);
       end;
   inherited Destroy;
 end;
@@ -721,11 +720,7 @@ end;
 
 function TNumberModuleList.Macro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; out output: SystemString): Boolean;
 begin
-{$IFDEF FPC}
-  Result := ManualMacro(AText, HeadToken, TailToken, OwnerFlag, @__GetDMAsString, output);
-{$ELSE}
-  Result := ManualMacro(AText, HeadToken, TailToken, OwnerFlag, __GetDMAsString, output);
-{$ENDIF}
+  Result := ManualMacro(AText, HeadToken, TailToken, OwnerFlag, {$IFDEF FPC}@{$ENDIF FPC}__GetDMAsString, output);
 end;
 
 function TNumberModuleList.ManualMacro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out output: SystemString): Boolean;
@@ -810,7 +805,7 @@ begin
         end;
 
       output := output + sour[i];
-      Inc(i);
+      inc(i);
     end;
   DisposeObject(lst);
 end;
@@ -967,10 +962,10 @@ procedure TNMAutomated.DMCurrentValueHook(Sender: TNumberModuleHookInterface; Ol
   procedure ImpStyleValue(p: PDMProcessingData);
   begin
     case p^.Style of
-      npsInc: NewValue := NewValue + p^.SeedNumber;
-      npsDec: NewValue := NewValue - p^.SeedNumber;
-      npsIncMul: NewValue := NewValue + FDMSource.OriginValue * p^.SeedNumber;
-      npsDecMul: NewValue := NewValue - FDMSource.OriginValue * p^.SeedNumber;
+      npsInc: NewValue := NewValue + p^.opValue;
+      npsDec: NewValue := NewValue - p^.opValue;
+      npsIncMul: NewValue := NewValue + FDMSource.OriginValue * p^.opValue;
+      npsDecMul: NewValue := NewValue - FDMSource.OriginValue * p^.opValue;
       else
         Assert(False);
     end;
@@ -996,12 +991,12 @@ begin
     end;
 end;
 
-function TNMAutomated.GetCurrentValueCalcData(flag: TCoreClassObject): PDMProcessingData;
+function TNMAutomated.GetCurrentValueCalcData(token: TCoreClassObject): PDMProcessingData;
 var
   i: Integer;
 begin
   for i := 0 to FCurrentValueCalcList.Count - 1 do
-    if PDMProcessingData(FCurrentValueCalcList[i])^.flag = flag then
+    if PDMProcessingData(FCurrentValueCalcList[i])^.token = token then
       begin
         Result := FCurrentValueCalcList[i];
         Exit;
@@ -1017,11 +1012,7 @@ begin
 
   FCurrentValueHookIntf := FDMSource.RegisterCurrentValueHook;
 
-{$IFDEF FPC}
-  FCurrentValueHookIntf.OnCurrentDMHook := @DMCurrentValueHook;
-{$ELSE}
-  FCurrentValueHookIntf.OnCurrentDMHook := DMCurrentValueHook;
-{$ENDIF}
+  FCurrentValueHookIntf.OnCurrentDMHook := {$IFDEF FPC}@{$ENDIF FPC}DMCurrentValueHook;
   FCurrentValueCalcList := TCoreClassList.Create;
 end;
 
@@ -1052,27 +1043,27 @@ begin
           else
             begin
               p^.CancelDelayTime := p^.CancelDelayTime - deltaTime;
-              Inc(i);
+              inc(i);
             end;
         end
       else
-          Inc(i);
+          inc(i);
     end;
 end;
 
-procedure TNMAutomated.ChangeProcessStyle(flag: TCoreClassObject; SeedNumber: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer;
+procedure TNMAutomated.ChangeProcessStyle(token: TCoreClassObject; opValue: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer;
   Priority: Cardinal);
 var
   p: PDMProcessingData;
 begin
-  p := GetCurrentValueCalcData(flag);
+  p := GetCurrentValueCalcData(token);
   if p = nil then
     begin
       new(p);
       FCurrentValueCalcList.Add(p);
     end;
-  p^.flag := flag;
-  p^.SeedNumber := SeedNumber;
+  p^.token := token;
+  p^.opValue := opValue;
   p^.Style := Style;
   p^.CancelDelayTime := CancelDelayTime;
   p^.Overlap := Overlap;
@@ -1082,7 +1073,7 @@ begin
   FDMSource.UpdateValue;
 end;
 
-procedure TNMAutomated.Cancel(flag: TCoreClassObject);
+procedure TNMAutomated.Cancel(token: TCoreClassObject);
 var
   i: Integer;
   p: PDMProcessingData;
@@ -1093,14 +1084,14 @@ begin
   while i < FCurrentValueCalcList.Count do
     begin
       p := FCurrentValueCalcList[i];
-      if p^.flag = flag then
+      if p^.token = token then
         begin
           Dispose(p);
           FCurrentValueCalcList.Delete(i);
           ANeedUpdate := True;
         end
       else
-          Inc(i);
+          inc(i);
     end;
   if ANeedUpdate then
       FDMSource.UpdateValue;
@@ -1160,33 +1151,33 @@ begin
 end;
 
 procedure TNMAutomatedManager.PostAutomatedProcess(Style: TNumberProcessStyle;
-  ADMSource: TNumberModule; flag: TCoreClassPersistent;
-  SeedNumber: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
+  ADMSource: TNumberModule; token: TCoreClassPersistent;
+  opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
 begin
-  GetOrCreate(ADMSource).ChangeProcessStyle(flag, SeedNumber, Style, 0, Overlap, TypeID, Priority);
+  GetOrCreate(ADMSource).ChangeProcessStyle(token, opValue, Style, 0, Overlap, TypeID, Priority);
 end;
 
 procedure TNMAutomatedManager.PostAutomatedDelayCancelProcess(Style: TNumberProcessStyle;
-  ADMSource: TNumberModule; flag: TCoreClassPersistent;
-  SeedNumber: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
+  ADMSource: TNumberModule; token: TCoreClassPersistent;
+  opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
 begin
-  GetOrCreate(ADMSource).ChangeProcessStyle(flag, SeedNumber, Style, CancelDelayTime, Overlap, TypeID, Priority);
+  GetOrCreate(ADMSource).ChangeProcessStyle(token, opValue, Style, CancelDelayTime, Overlap, TypeID, Priority);
 end;
 
-procedure TNMAutomatedManager.Delete(ADMSource: TNumberModule; flag: TCoreClassObject);
+procedure TNMAutomatedManager.Delete(ADMSource: TNumberModule; token: TCoreClassObject);
 begin
-  GetOrCreate(ADMSource).Cancel(flag);
+  GetOrCreate(ADMSource).Cancel(token);
 end;
 
-procedure TNMAutomatedManager.Delete(flag: TCoreClassObject);
+procedure TNMAutomatedManager.Delete(token: TCoreClassObject);
 var
   i: Integer;
 begin
   for i := 0 to FList.Count - 1 do
-      TNMAutomated(FList[i]).Cancel(flag);
+      TNMAutomated(FList[i]).Cancel(token);
 end;
 
-procedure Test;
+procedure test;
 var
   NL: TNumberModuleList;
   n: SystemString;
@@ -1205,5 +1196,4 @@ initialization
 
 finalization
 
-end. 
- 
+end.

@@ -339,9 +339,9 @@ begin
   th := TCoreClassThread.CurrentThread;
   if (th = nil) or (th.ThreadID <> MainThreadID) then
     begin
-      StatusCritical.Acquire;
       new(ps);
       ps^ := Text;
+      StatusCritical.Acquire;
       ReservedStatus.Add(ps);
       StatusCritical.Release;
       exit;

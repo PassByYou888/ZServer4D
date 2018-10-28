@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  JsonDataObjects,
+  ZS_JsonDataObjects,
   CommunicationFramework,
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,

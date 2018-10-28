@@ -2,7 +2,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
   Left = 0
   Top = 0
   Caption = #25968#25454#38598#23458#25143#31471
-  ClientHeight = 310
+  ClientHeight = 372
   ClientWidth = 661
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -14,7 +14,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
   object TabControl: TTabControl
     Align = Client
     Size.Width = 661.000000000000000000
-    Size.Height = 284.000000000000000000
+    Size.Height = 298.000000000000000000
     Size.PlatformDefault = False
     TabHeight = 49.000000000000000000
     TabIndex = 0
@@ -22,13 +22,13 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
     TabPosition = PlatformDefault
     Sizes = (
       661s
-      235s
+      249s
       661s
-      235s
+      249s
       661s
-      235s
+      249s
       661s
-      235s)
+      249s)
     object LoginTabItem: TTabItem
       CustomIcon = <
         item
@@ -416,7 +416,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
       object ResultListBox: TListBox
         Align = Client
         Size.Width = 661.000000000000000000
-        Size.Height = 235.000000000000000000
+        Size.Height = 249.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
         CanFocus = False
@@ -425,7 +425,7 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
         DefaultItemStyles.GroupHeaderStyle = ''
         DefaultItemStyles.GroupFooterStyle = ''
         Viewport.Width = 657.000000000000000000
-        Viewport.Height = 231.000000000000000000
+        Viewport.Height = 245.000000000000000000
       end
     end
   end
@@ -435,13 +435,13 @@ object FMXBatchDataClientForm: TFMXBatchDataClientForm
     ReadOnly = True
     Align = Bottom
     DisableFocusEffect = True
-    Position.Y = 284.000000000000000000
+    Position.Y = 298.000000000000000000
     Size.Width = 661.000000000000000000
-    Size.Height = 26.000000000000000000
+    Size.Height = 74.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 2
     Viewport.Width = 657.000000000000000000
-    Viewport.Height = 22.000000000000000000
+    Viewport.Height = 70.000000000000000000
   end
   object Timer1: TTimer
     Interval = 10

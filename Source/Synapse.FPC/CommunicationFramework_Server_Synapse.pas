@@ -289,6 +289,8 @@ end;
 constructor TCommunicationFramework_Server_Synapse.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := True;
+
   FListenTh := TSynapseListenTh.Create(True);
   FListenTh.Server := Self;
   FListenTh.Activted := False;

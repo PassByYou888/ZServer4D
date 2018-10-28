@@ -42,7 +42,7 @@ SOFTWARE.
 {$WARN SYMBOL_DEPRECATED OFF} // for StrLen/StrLComp
 {$POINTERMATH ON}
 
-unit JsonDataObjects;
+unit ZS_JsonDataObjects;
 
 {$IFDEF VER200}
   // Delphi 2009's ErrorInsight parser uses the CompilerVersion's memory address instead of 20.0, failing all the

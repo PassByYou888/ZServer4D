@@ -127,7 +127,7 @@ constructor TManagerServer.Create;
 begin
   RecvService := TCommunicationFramework_Server_CrossSocket.Create;
   RecvService.PrintParams['AntiIdle'] := False;
-  // 如果服务器1分钟无响应，就从负载列表剔除
+  // 如果登录进来的客户端1分钟无响应，就踢掉
   RecvService.IdleTimeout := 60 * 1000;
 
   SendService := TCommunicationFramework_Server_CrossSocket.Create;

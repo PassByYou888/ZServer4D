@@ -194,6 +194,8 @@ end;
 constructor TCommunicationFramework_Client_ICS.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := False;
+
   FDriver := TClientICSContextIntf.Create(nil);
   FDriver.MultiThreaded := False;
   FDriver.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;

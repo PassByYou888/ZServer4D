@@ -113,7 +113,13 @@ type
     //
     property CanStatus: Boolean read FCanStatus write FCanStatus;
     property CadencerEngine: TCadencer read FCadencerEngine;
+
     property ProgressEngine: TNProgressPost read FProgressEngine;
+    property ProgressPost: TNProgressPost read FProgressEngine;
+    property PostProgress: TNProgressPost read FProgressEngine;
+    property PostRun: TNProgressPost read FProgressEngine;
+    property PostExecute: TNProgressPost read FProgressEngine;
+
     property FileReceiveDirectory: SystemString read FFileReceiveDirectory;
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
@@ -295,7 +301,13 @@ type
     property WaitCommandTimeout: Cardinal read FWaitCommandTimeout write FWaitCommandTimeout;
 
     property CadencerEngine: TCadencer read FCadencerEngine;
+
     property ProgressEngine: TNProgressPost read FProgressEngine;
+    property ProgressPost: TNProgressPost read FProgressEngine;
+    property PostProgress: TNProgressPost read FProgressEngine;
+    property PostRun: TNProgressPost read FProgressEngine;
+    property PostExecute: TNProgressPost read FProgressEngine;
+
     property ServerDelay: Double read FServerDelay;
 
     function RemoteInited: Boolean;

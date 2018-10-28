@@ -21,15 +21,15 @@ interface
 
 uses Windows, SysUtils, Classes, Messages,
   OverByteIcsWSocket,
-  PascalStrings,
+  PascalStrings, CoreClasses,
   CommunicationFramework_Server_ICSCustomSocket,
-  CommunicationFramework, CoreClasses, DoStatusIO, DataFrameEngine;
+  CommunicationFramework, DoStatusIO, DataFrameEngine;
 
 type
   TCommunicationFramework_Server_ICS = class;
   TICSContext = class;
 
-  TICSSocketThread_Server = class(TThread)
+  TICSSocketThread_Server = class(TCoreClassThread)
     FContext: TICSContext;
     FThreadAttached: Boolean;
     FClientLoopMessageTerminated: Boolean;
@@ -520,7 +520,7 @@ begin
     t := GetTimeTickCount + 5000;
     while (cli.FICSSocketThread <> nil) and (not cli.FICSSocketThread.FThreadAttached) do
       begin
-        TThread.Sleep(1);
+        TCoreClassThread.Sleep(1);
         if GetTimeTickCount > t then
             Break;
         if cli.ThreadAttachAborted then
@@ -568,6 +568,8 @@ end;
 constructor TCommunicationFramework_Server_ICS.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := True;
+
   FDriver := TCustomICSSocketServer.Create(nil);
   FDriver.MultiThreaded := True;
 

@@ -104,7 +104,7 @@ type
     Return: Integer;
   end;
 
-  U_FixedLengthString = record
+  U_FixedLengthString = packed record
     Len: Byte;
     Data: array [0 .. C_FixedLengthStringSize] of Byte;
   end;
@@ -322,6 +322,63 @@ function umlEncodeText2HTML(const psSrc: TPascalString): TPascalString;
 function umlURLEncode(const Data: TPascalString): TPascalString;
 function umlURLDecode(const Data: TPascalString; FormEncoded: Boolean): TPascalString;
 
+type
+  TBase64Context = record
+    Tail: array [0 .. 3] of Byte;
+    TailBytes: Integer;
+    LineWritten: Integer;
+    LineSize: Integer;
+    TrailingEol: Boolean;
+    PutFirstEol: Boolean;
+    LiberalMode: Boolean;
+    fEOL: array [0 .. 3] of Byte;
+    EOLSize: Integer;
+    OutBuf: array [0 .. 3] of Byte;
+    EQUCount: Integer;
+    UseUrlAlphabet: Boolean;
+  end;
+
+  TBase64EOLMarker = (emCRLF, emCR, emLF, emNone);
+
+const
+  BASE64_DECODE_OK = 0;
+  BASE64_DECODE_INVALID_CHARACTER = 1;
+  BASE64_DECODE_WRONG_DATA_SIZE = 2;
+  BASE64_DECODE_NOT_ENOUGH_SPACE = 3;
+
+  Base64Symbols: array [0 .. 63] of Byte = (
+    $41, $42, $43, $44, $45, $46, $47, $48, $49, $4A, $4B, $4C, $4D, $4E, $4F, $50,
+    $51, $52, $53, $54, $55, $56, $57, $58, $59, $5A, $61, $62, $63, $64, $65, $66,
+    $67, $68, $69, $6A, $6B, $6C, $6D, $6E, $6F, $70, $71, $72, $73, $74, $75, $76,
+    $77, $78, $79, $7A, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $2B, $2F);
+
+  Base64Values: array [0 .. 255] of Byte = (
+    $FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FE, $FE, $FF, $FF, $FE, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $3E, $FF, $FF, $FF, $3F,
+    $34, $35, $36, $37, $38, $39, $3A, $3B, $3C, $3D, $FF, $FF, $FF, $FD, $FF, $FF,
+    $FF, $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A, $0B, $0C, $0D, $0E,
+    $0F, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $FF, $FF, $FF, $FF, $FF,
+    $FF, $1A, $1B, $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24, $25, $26, $27, $28,
+    $29, $2A, $2B, $2C, $2D, $2E, $2F, $30, $31, $32, $33, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
+    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF);
+
+function B64EstimateEncodedSize(Ctx: TBase64Context; InSize: Integer): Integer;
+function B64InitializeDecoding(var Ctx: TBase64Context; LiberalMode: Boolean): Boolean;
+function B64InitializeEncoding(var Ctx: TBase64Context; LineSize: Integer; fEOL: TBase64EOLMarker; TrailingEol: Boolean): Boolean;
+function B64Encode(var Ctx: TBase64Context; Buffer: PByte; Size: Integer; OutBuffer: PByte; var OutSize: Integer): Boolean;
+function B64Decode(var Ctx: TBase64Context; Buffer: PByte; Size: Integer; OutBuffer: PByte; var OutSize: Integer): Boolean;
+function B64FinalizeEncoding(var Ctx: TBase64Context; OutBuffer: PByte; var OutSize: Integer): Boolean;
+function B64FinalizeDecoding(var Ctx: TBase64Context; OutBuffer: PByte; var OutSize: Integer): Boolean;
+function umlBase64Encode(InBuffer: PByte; InSize: Integer; OutBuffer: PByte; var OutSize: Integer; WrapLines: Boolean): Boolean;
+function umlBase64Decode(InBuffer: PByte; InSize: Integer; OutBuffer: PByte; var OutSize: Integer; LiberalMode: Boolean): Integer;
 procedure umlBase64EncodeBytes(var sour, dest: TBytes); overload;
 procedure umlBase64DecodeBytes(var sour, dest: TBytes); overload;
 procedure umlBase64EncodeBytes(var sour: TBytes; var dest: TPascalString); overload;
@@ -2861,7 +2918,7 @@ begin
   if OriginParameter = 0 then
       Result := 0
   else
-      Result := (Integer(Round((ProcressParameter * 100.0) / OriginParameter)));
+      Result := Round((ProcressParameter * 100.0) / OriginParameter);
 end;
 
 function umlPercentageToStr(OriginParameter, ProcressParameter: Integer): TPascalString;
@@ -2998,6 +3055,7 @@ begin
   TargetIndex := 1;
   SourceChar := UpperCaseSourceStr[SourceIndex];
   TargetChar := UpperCaseTargetStr[TargetIndex];
+
 CharacterRep_Label:
   while (SourceChar = TargetChar) and (not umlMatchLimitChar(SourceChar, @umlMultipleCharacter)) and (not umlMatchLimitChar(SourceChar, @umlMultipleString)) do
     begin
@@ -3028,6 +3086,7 @@ CharacterRep_Label:
       SourceChar := UpperCaseSourceStr[SourceIndex];
       TargetChar := UpperCaseTargetStr[TargetIndex];
     end;
+
 MultipleCharacterRep_Label:
   while umlMatchLimitChar(SourceChar, @umlMultipleCharacter) do
     begin
@@ -3058,6 +3117,7 @@ MultipleCharacterRep_Label:
       SourceChar := UpperCaseSourceStr[SourceIndex];
       TargetChar := UpperCaseTargetStr[TargetIndex];
     end;
+
 MultipleStringRep_Label:
   if umlMatchLimitChar(SourceChar, @umlMultipleString) then
     begin
@@ -3458,54 +3518,6 @@ begin
   FreeArry(DataArr);
 end;
 
-type
-  TBase64Context = record
-    Tail: array [0 .. 3] of Byte;
-    TailBytes: Integer;
-    LineWritten: Integer;
-    LineSize: Integer;
-    TrailingEol: Boolean;
-    PutFirstEol: Boolean;
-    LiberalMode: Boolean;
-    fEOL: array [0 .. 3] of Byte;
-    EOLSize: Integer;
-    OutBuf: array [0 .. 3] of Byte;
-    EQUCount: Integer;
-    UseUrlAlphabet: Boolean;
-  end;
-
-  TBase64EOLMarker = (emCRLF, emCR, emLF, emNone);
-
-const
-  BASE64_DECODE_OK = 0;
-  BASE64_DECODE_INVALID_CHARACTER = 1;
-  BASE64_DECODE_WRONG_DATA_SIZE = 2;
-  BASE64_DECODE_NOT_ENOUGH_SPACE = 3;
-
-  Base64Symbols: array [0 .. 63] of Byte =
-    ($41, $42, $43, $44, $45, $46, $47, $48, $49, $4A, $4B, $4C, $4D, $4E, $4F, $50,
-    $51, $52, $53, $54, $55, $56, $57, $58, $59, $5A, $61, $62, $63, $64, $65, $66,
-    $67, $68, $69, $6A, $6B, $6C, $6D, $6E, $6F, $70, $71, $72, $73, $74, $75, $76,
-    $77, $78, $79, $7A, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $2B, $2F);
-
-  Base64Values: array [0 .. 255] of Byte =
-    ($FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FE, $FE, $FF, $FF, $FE, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $3E, $FF, $FF, $FF, $3F,
-    $34, $35, $36, $37, $38, $39, $3A, $3B, $3C, $3D, $FF, $FF, $FF, $FD, $FF, $FF,
-    $FF, $0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $A, $B, $C, $D, $E,
-    $F, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $FF, $FF, $FF, $FF, $FF,
-    $FF, $1A, $1B, $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-    $29, $2A, $2B, $2C, $2D, $2E, $2F, $30, $31, $32, $33, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,
-    $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF);
-
 function B64EstimateEncodedSize(Ctx: TBase64Context; InSize: Integer): Integer;
 begin
   Result := ((InSize + 2) div 3) shl 2;
@@ -3769,10 +3781,8 @@ begin
               OutSize := 0;
               exit;
             end;
-
           inc(EQUCount);
         end;
-
       inc(BufPtr);
     end;
 
@@ -3819,8 +3829,7 @@ function B64FinalizeEncoding(var Ctx: TBase64Context; OutBuffer: PByte; var OutS
 var
   EstSize: Integer;
 begin
-  if Ctx.TailBytes > 0
-  then
+  if Ctx.TailBytes > 0 then
       EstSize := 4
   else
       EstSize := 0;
@@ -3840,15 +3849,12 @@ begin
   if Ctx.TailBytes = 0 then
     begin
       { writing trailing EOL }
+      Result := True;
       if (Ctx.EOLSize > 0) and Ctx.TrailingEol then
         begin
           OutSize := Ctx.EOLSize;
-          Result := True;
           CopyPtr(@Ctx.fEOL[0], OutBuffer, Ctx.EOLSize);
-        end
-      else
-          Result := True;
-
+        end;
       exit;
     end;
 
@@ -3932,7 +3938,7 @@ begin
     end;
 end;
 
-function Base64Encode(InBuffer: PByte; InSize: Integer; OutBuffer: PByte; var OutSize: Integer; WrapLines: Boolean): Boolean;
+function umlBase64Encode(InBuffer: PByte; InSize: Integer; OutBuffer: PByte; var OutSize: Integer; WrapLines: Boolean): Boolean;
 var
   Ctx: TBase64Context;
   TmpSize: Integer;
@@ -3960,7 +3966,7 @@ begin
   Result := True;
 end;
 
-function Base64Decode(InBuffer: PByte; InSize: Integer; OutBuffer: PByte; var OutSize: Integer; LiberalMode: Boolean): Integer;
+function umlBase64Decode(InBuffer: PByte; InSize: Integer; OutBuffer: PByte; var OutSize: Integer; LiberalMode: Boolean): Integer;
 var
   i, TmpSize: Integer;
   ExtraSyms: Integer;
@@ -4017,9 +4023,9 @@ begin
 
   Size := 0;
   SetLength(dest, 0);
-  Base64Encode(@sour[0], length(sour), nil, Size, false);
+  umlBase64Encode(@sour[0], length(sour), nil, Size, false);
   SetLength(dest, Size);
-  Base64Encode(@sour[0], length(sour), @dest[0], Size, false);
+  umlBase64Encode(@sour[0], length(sour), @dest[0], Size, false);
   SetLength(dest, Size);
 end;
 
@@ -4034,9 +4040,9 @@ begin
     end;
 
   Size := 0;
-  Base64Decode(@sour[0], length(sour), nil, Size, True);
+  umlBase64Decode(@sour[0], length(sour), nil, Size, True);
   SetLength(dest, Size);
-  Base64Decode(@sour[0], length(sour), @dest[0], Size, True);
+  umlBase64Decode(@sour[0], length(sour), @dest[0], Size, True);
   SetLength(dest, Size);
 end;
 

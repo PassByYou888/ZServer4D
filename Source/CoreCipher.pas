@@ -497,27 +497,27 @@ var
 
 procedure InitSysCBCAndDefaultKey(rand: Int64);
 
-function SequEncryptWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncryptWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 {$IFDEF parallel}
-function SequEncryptWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncryptWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
 {$ENDIF}
 
-function SequEncrypt(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncrypt(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncrypt(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncrypt(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
-function SequEncryptCBCWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncryptCBCWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptCBCWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptCBCWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 {$IFDEF parallel}
-function SequEncryptCBCWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncryptCBCWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptCBCWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptCBCWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
 {$ENDIF}
 
-function SequEncryptCBC(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
-function SequEncryptCBC(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptCBC(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
+function SequEncryptCBC(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean; overload;
 
 function GenerateSequHash(hssArry: THashSecuritys; sour: Pointer; Size: NativeInt): TPascalString; overload;
 procedure GenerateSequHash(hssArry: THashSecuritys; sour: Pointer; Size: NativeInt; output: TListPascalString); overload;
@@ -4318,7 +4318,7 @@ begin
       PInteger(@SystemCBC[i * 4])^ := TMISC.Random64(Seed);
 end;
 
-function SequEncryptWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k: TCipherKeyBuffer;
 begin
@@ -4326,7 +4326,7 @@ begin
   Result := TCipher.EncryptBuffer(cs, sour, Size, @k, Encrypt, ProcessTail);
 end;
 
-function SequEncryptWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   i: Integer;
 begin
@@ -4347,7 +4347,7 @@ end;
 {$IFDEF parallel}
 
 
-function SequEncryptWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k: TCipherKeyBuffer;
   Parallel: TParallelCipher;
@@ -4360,7 +4360,7 @@ begin
   DisposeObject(Parallel);
 end;
 
-function SequEncryptWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   i: Integer;
 begin
@@ -4380,7 +4380,7 @@ end;
 {$ENDIF}
 
 
-function SequEncrypt(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncrypt(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 begin
 {$IFDEF parallel}
   if Size >= ParallelTriggerCondition then
@@ -4390,7 +4390,7 @@ begin
       Result := SequEncryptWithDirect(ca, sour, Size, key, Encrypt, ProcessTail);
 end;
 
-function SequEncrypt(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncrypt(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 begin
 {$IFDEF parallel}
   if Size >= ParallelTriggerCondition then
@@ -4400,7 +4400,7 @@ begin
       Result := SequEncryptWithDirect(cs, sour, Size, key, Encrypt, ProcessTail);
 end;
 
-function SequEncryptCBCWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptCBCWithDirect(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k: TCipherKeyBuffer;
 begin
@@ -4408,7 +4408,7 @@ begin
   Result := TCipher.EncryptBufferCBC(cs, sour, Size, @k, Encrypt, ProcessTail);
 end;
 
-function SequEncryptCBCWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptCBCWithDirect(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   i: Integer;
 begin
@@ -4429,7 +4429,7 @@ end;
 {$IFDEF parallel}
 
 
-function SequEncryptCBCWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptCBCWithParallel(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k: TCipherKeyBuffer;
   Parallel: TParallelCipher;
@@ -4442,7 +4442,7 @@ begin
   DisposeObject(Parallel);
 end;
 
-function SequEncryptCBCWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptCBCWithParallel(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   i: Integer;
 begin
@@ -4462,7 +4462,7 @@ end;
 {$ENDIF}
 
 
-function SequEncryptCBC(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptCBC(const ca: TCipherSecurityArray; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 begin
 {$IFDEF parallel}
   if Size >= ParallelTriggerCondition then
@@ -4472,7 +4472,7 @@ begin
       Result := SequEncryptCBCWithDirect(ca, sour, Size, key, Encrypt, ProcessTail);
 end;
 
-function SequEncryptCBC(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; var key: TBytes; Encrypt, ProcessTail: Boolean): Boolean;
+function SequEncryptCBC(const cs: TCipherSecurity; sour: Pointer; Size: NativeInt; const key: TCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 begin
 {$IFDEF parallel}
   if Size >= ParallelTriggerCondition then

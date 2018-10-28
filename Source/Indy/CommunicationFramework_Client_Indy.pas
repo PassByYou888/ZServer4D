@@ -251,6 +251,7 @@ end;
 constructor TCommunicationFramework_Client_Indy.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := False;
 
   FDriver := TIdTCPClient.Create(nil);
   FDriver.IPVersion := DefaultIPVersion;

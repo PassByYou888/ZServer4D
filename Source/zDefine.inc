@@ -53,6 +53,8 @@
   // if CriticalSimulateAtomic defined so performance to be reduced
   // {$DEFINE CriticalSimulateAtomic}
 
+  // {$DEFINE ANTI_DEAD_ATOMIC_LOCK}
+
   {$IFDEF release}
     {$DEFINE INLINE_ASM}
     {$R-} { range check }

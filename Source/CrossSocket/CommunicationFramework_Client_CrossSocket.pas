@@ -17,6 +17,14 @@ unit CommunicationFramework_Client_CrossSocket;
 
 {$INCLUDE ..\zDefine.inc}
 
+{
+  CrossSocket 客户端的高性能模式，试验阶段!
+  在高性能模式下，多核会被充分调动，但是异步IO会发生的中断情况
+  关闭该选项后，客户端会极其稳定，IO调度会多核，但是数据吞吐全在主线来干
+  该选项对多连接，并发数无任何影响，只影响cpu工作能力
+}
+{$UNDEF CrossSocketClient_HighPerformance}
+
 interface
 
 uses SysUtils, Classes,
@@ -117,6 +125,7 @@ end;
 constructor TCommunicationFramework_Client_CrossSocket.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := {$IFDEF CrossSocketClient_HighPerformance}True; {$ELSE}False; {$ENDIF}
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
@@ -192,20 +201,6 @@ end;
 
 procedure TCommunicationFramework_Client_CrossSocket.Progress;
 begin
-  try
-    if (Connected) and (IdleTimeout > 0) and (GetTimeTickCount - ClientIOIntf.LastActiveTime > IdleTimeout) then
-        Disconnect;
-  except
-  end;
-
-  try
-    if ClientIOIntf <> nil then
-        ClientIOIntf.FillRecvBuffer(nil, False, False);
-    if ClientIOIntf <> nil then
-        ClientIOIntf.ProcessAllSendCmd(nil, False, False);
-  except
-  end;
-
   inherited Progress;
 
   try
@@ -282,7 +277,7 @@ end;
 
 procedure TGlobalCrossSocketClientPool.DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
 begin
-  TThread.Synchronize(TThread.CurrentThread,
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread,
     procedure
     var
       cli: TContextIntfForClient;
@@ -317,27 +312,30 @@ begin
   if not(AConnection.UserObject is TContextIntfForClient) then
       Exit;
 
-  TThread.Synchronize(TThread.CurrentThread,
-    procedure()
+  cli := AConnection.UserObject as TContextIntfForClient;
+
+  if cli = nil then
+      Exit;
+
+  if (cli.ClientIntf = nil) then
+      Exit;
+
+  if cli.OwnerClient.FEnabledAtomicLockAndMultiThread then
     begin
-      try
-        cli := AConnection.UserObject as TContextIntfForClient;
-
-        if cli = nil then
-            Exit;
-
-        if (cli.ClientIntf = nil) then
-            Exit;
-
-        while cli.AllSendProcessing do
-            TThread.Sleep(1);
-
-        cli.LastActiveTime := GetTimeTickCount;
-        cli.SaveReceiveBuffer(aBuf, ALen);
-        cli.FillRecvBuffer(nil, False, False);
-      except
-      end;
-    end);
+      cli.SaveReceiveBuffer(aBuf, ALen);
+      cli.FillRecvBuffer(TCoreClassThread.CurrentThread, True, True);
+    end
+  else
+    begin
+      TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+        begin
+          try
+            cli.SaveReceiveBuffer(aBuf, ALen);
+            cli.FillRecvBuffer(nil, False, False);
+          except
+          end;
+        end);
+    end;
 end;
 
 procedure TGlobalCrossSocketClientPool.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
@@ -351,8 +349,6 @@ begin
 
   if (cli.ClientIntf = nil) then
       Exit;
-
-  cli.LastActiveTime := GetTimeTickCount;
 end;
 
 function TGlobalCrossSocketClientPool.BuildConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
@@ -390,7 +386,7 @@ begin
           LastConnection := AConnection;
     end);
 
-  TThread.Sleep(10);
+  TCoreClassThread.Sleep(10);
 
   dt := GetTimeTick + 2000;
   while (not LastCompleted) and (GetTimeTick < dt) do
@@ -399,7 +395,6 @@ begin
   if LastResult then
     begin
       cli := TContextIntfForClient.Create(BuildIntf, LastConnection.ConnectionIntf);
-      cli.LastActiveTime := GetTimeTickCount;
       cli.OwnerClient := BuildIntf;
 
       LastConnection.UserObject := cli;
@@ -453,25 +448,19 @@ begin
 
   ICrossSocket(driver).Connect(addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
-    var
-      cli: TContextIntfForClient;
     begin
       if ASuccess then
         begin
-          cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
-          cli.LastActiveTime := GetTimeTickCount;
-          cli.OwnerClient := BuildIntf;
-          AConnection.UserObject := cli;
-
-          cli.OwnerClient.ClientIOIntf := cli;
-
-          TThread.Synchronize(TThread.CurrentThread,
+          TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread,
             procedure
+            var
+              cli: TContextIntfForClient;
             begin
-              BuildIntf.ProgressPost.PostExecuteP(0, procedure(Sender: TNPostExecute)
-                begin
-                  BuildIntf.DoConnected(cli);
-                end);
+              cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
+              cli.OwnerClient := BuildIntf;
+              AConnection.UserObject := cli;
+              cli.OwnerClient.ClientIOIntf := cli;
+              BuildIntf.DoConnected(cli);
             end);
         end
       else

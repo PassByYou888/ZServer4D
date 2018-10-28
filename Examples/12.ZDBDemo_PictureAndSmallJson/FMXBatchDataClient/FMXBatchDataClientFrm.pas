@@ -7,6 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.TabControl, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation,
   FMX.DialogService, FMX.Layouts,
+  NotifyObjectBase,
   CommunicationFrameworkDataStoreService, ZDBEngine,
   ZDBLocalManager, CommunicationFramework_Client_Indy,
   CommunicationFramework, CoreClasses, DoStatusIO, FMX.ScrollBox, FMX.Memo,
@@ -14,7 +15,7 @@ uses
   FMX.ListView, PascalStrings, MemoryStream64, UnicodeMixedLib,
   CommunicationFrameworkDataStoreService_VirtualAuth,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth, FileBuffOfCode,
-  FMX.ListBox, FMX.Objects, DataFrameEngine, JsonDataObjects;
+  FMX.ListBox, FMX.Objects, DataFrameEngine, ZS_JsonDataObjects;
 
 type
   TMyDataStoreClient = class(TDataStoreClient_VirtualAuth)
@@ -80,7 +81,7 @@ type
   public
     { Public declarations }
     RecvTunnel, SendTunnel: TCommunicationFrameworkClient;
-    DBClient              : TMyDataStoreClient;
+    DBClient: TMyDataStoreClient;
     procedure DoStatusNear(AText: string; const ID: Integer);
   end;
 
@@ -195,8 +196,8 @@ type
   TGetStreamProc = procedure(Output: TStream);
   procedure RegisterFileStream(MD5Text: string; OnProc: TGetStreamProc; FileName: string);
   var
-    m   : TMemoryStream64;
-    img : TImage;
+    m: TMemoryStream64;
+    img: TImage;
     litm: TListBoxItem;
   begin
     m := TMemoryStream64.Create;
@@ -246,9 +247,9 @@ end;
 
 procedure TFMXBatchDataClientForm.Gen1JsonButtonClick(Sender: TObject);
 var
-  i  : Integer;
+  i: Integer;
   img: TImage;
-  m  : TMemoryStream64;
+  m: TMemoryStream64;
 begin
   if PictureListBox.Selected = nil then
     begin
@@ -332,6 +333,11 @@ begin
                   // 必须手动检查断线状态
                   // 当连接成功后，我们激活一个计时器，循环检查断线
                   DisconnectCheckTimer.Enabled := True;
+                  DBClient.ProgressEngine.PostExecuteP(1, procedure(Sender: TNPostExecute)
+                    begin
+                      while not DBClient.DataCipherKeyFinished do
+                          DBClient.Progress;
+                    end)
                 end;
             end);
         end;
@@ -349,16 +355,16 @@ begin
   ResultListBox.Clear;
   //
   DBClient.QueryDBP('MyCustomQuery', // MyCustomQuery在服务器注册和实现
-  True,                             // 缓冲碎片是否同步到客户端
-  False,                            // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
-  True,                             // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
-  False,                            // 是否反向查询，从最后开始查
-  JsonDestDBEdit.Text,              // 查询的数据库名称
-  '',                               // 查询的Output名称，因为我们不写入Output，又是临时内存，这里可以忽略掉
-  1.0,                              // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
-  0,                                // 最大等待的查询时间，0是无限
-  0,                                // 最大匹配查询的反馈条目数，0是无限
-  vl,                               // 发送给MyCustomQuery用的KeyValue参数
+  True,                              // 缓冲碎片是否同步到客户端
+  False,                             // 是否将查询结果写入到Output数据库，这个Output相当于是select到视图，但是Output会Copy
+  True,                              // output数据为内存数据库，如果是False，查询的output会以一个实体文件进行存储
+  False,                             // 是否反向查询，从最后开始查
+  JsonDestDBEdit.Text,               // 查询的数据库名称
+  '',                                // 查询的Output名称，因为我们不写入Output，又是临时内存，这里可以忽略掉
+  1.0,                               // 碎片缓冲时间,因为查询过于频率，ZDB底层会在该时间内对查询结果进行缓存和压缩，然后再发送过来,0是即时反馈
+  0,                                 // 最大等待的查询时间，0是无限
+  0,                                 // 最大匹配查询的反馈条目数，0是无限
+  vl,                                // 发送给MyCustomQuery用的KeyValue参数
     procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
     var
       js: TJsonObject;
@@ -389,7 +395,7 @@ begin
           img.Parent := litm;
           img.Align := TAlignLayout.Right;
           stream.Position := 0;
-          //DoStatus('download size:%d md5:%s', [m.Size, umlMD5Char(m.Memory, m.Size).Text]);
+          // DoStatus('download size:%d md5:%s', [m.Size, umlMD5Char(m.Memory, m.Size).Text]);
           m.Position := 0;
           img.Bitmap.LoadFromStream(m);
           DisposeObject(m);

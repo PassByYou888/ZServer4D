@@ -1,17 +1,17 @@
 unit dbclientfrm;
-
+
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, System.Rtti,
-  DoStatusIO, CommunicationFrameworkDataStoreService,
+  DoStatusIO, Vcl.ComCtrls, CommunicationFrameworkDataStoreService,
   CommunicationFramework, DataFrameEngine,
   CommunicationFramework_Client_CrossSocket,
   CommunicationFramework_Client_ICS, CommunicationFramework_Client_Indy,
   CoreClasses, ZDBEngine, ZDBLocalManager, MemoryStream64, UnicodeMixedLib,
   PascalStrings, CommunicationFrameworkDataStoreService_NoAuth,
-  CommunicationFrameworkDataStoreServiceCommon, Vcl.ComCtrls;
+  CommunicationFrameworkDataStoreServiceCommon;
 
 type
   TForm1 = class(TForm)
@@ -106,12 +106,12 @@ procedure TForm1.Button1Click(Sender: TObject);
 begin
   if not DataStoreClient.Connect('192.168.2.77', 13888, 13887) then
       exit;
-  DataStoreClient.TunnelLinkP(
-    procedure(const state: Boolean)
+  if DataStoreClient.TunnelLink then
     begin
-      if state then
-          doStatus('connect ok!');
-    end);
+      doStatus('connect ok!');
+      while not DataStoreClient.DataCipherKeyFinished do
+          DataStoreClient.Progress;
+    end;
 end;
 
 procedure TForm1.CompressButtonClick(Sender: TObject);
@@ -245,3 +245,4 @@ begin
 end;
 
 end.
+

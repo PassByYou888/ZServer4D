@@ -23,7 +23,7 @@ interface
 
 uses SysUtils, Classes,
   ListEngine, PascalStrings, UnicodeMixedLib, TextDataEngine,
-{$IFNDEF FPC} JsonDataObjects, {$ENDIF}
+{$IFNDEF FPC} ZS_JsonDataObjects, {$ENDIF}
   CoreClasses, MemoryStream64, ObjectData, ObjectDataManager,
   DataFrameEngine, ItemStream;
 

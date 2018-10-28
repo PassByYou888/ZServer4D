@@ -57,7 +57,7 @@ begin
   }
   XCli.ProtocolCompressed := True;
 
-  XCli.RemoteTunnelAddr := '127.0.0.1';             // 公网服务器的IP
+  XCli.RemoteTunnelAddr := '127.0.0.1';       // 公网服务器的IP
   XCli.RemoteTunnelPort := '7890';                  // 公网服务器的端口号
   XCli.AuthToken := '123456';                       // 协议验证字符串
   server := XCli.AddMappingServer('web8000', 1000); // 将公网服务器的8000端口反向代理到成为本地服务器
@@ -97,7 +97,10 @@ begin
   client.AsyncConnectP('127.0.0.1', 8000, procedure(const cState: Boolean)
     begin
       if cState then
+        begin
           client_test.ExecuteAsyncTestWithBigStream(client.ClientIO);
+          client_test.ExecuteTestReponse(client.ClientIO);
+        end;
       // 如果远程服务器上行流量不够，测试数据无法收发成功，30秒以后会强制断线
       client.WaitP(30 * 1000, procedure(const sState: Boolean)
         begin

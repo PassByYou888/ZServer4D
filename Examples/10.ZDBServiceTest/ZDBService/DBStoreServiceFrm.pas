@@ -9,7 +9,7 @@ uses
   CommunicationFrameworkDoubleTunnelIO,
   CommunicationFrameworkDoubleTunnelIO_NoAuth, DoStatusIO,
   CommunicationFrameworkDataStoreService, ZDBEngine, DataFrameEngine,
-  JsonDataObjects, CommunicationFramework_Client_ICS,
+  ZS_JsonDataObjects, CommunicationFramework_Client_ICS,
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_ICSCustomSocket, CommunicationFramework,
   CommunicationFramework_Server_CrossSocket,

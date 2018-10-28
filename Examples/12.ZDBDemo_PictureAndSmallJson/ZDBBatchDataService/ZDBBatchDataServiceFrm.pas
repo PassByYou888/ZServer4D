@@ -11,7 +11,7 @@ uses
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_ICSCustomSocket,
   CommunicationFramework_Server_Indy, MemoryStream64, DataFrameEngine,
-  JsonDataObjects, CommunicationFramework,
+  ZS_JsonDataObjects, CommunicationFramework,
   CommunicationFrameworkDataStoreService, CoreClasses,
   CommunicationFrameworkDataStoreService_NoAuth,
   CommunicationFrameworkDoubleTunnelIO,

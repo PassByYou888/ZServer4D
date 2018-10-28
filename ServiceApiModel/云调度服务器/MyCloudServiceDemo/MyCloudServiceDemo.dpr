@@ -42,7 +42,7 @@ uses
   MemoryStream64,
   MyCloudClientAPI in 'MyCloudClientAPI.pas';
 
-const
+var
   // 云服务器端口，双通道（自定义）
   DEFAULT_MYSERVICE_RECVPORT: WORD = 11505;
   DEFAULT_MYSERVICE_SENDPORT: WORD = 11506;
@@ -50,13 +50,12 @@ const
   // 云服务器类型（自定义）
   MY_SERVERTYPE: TServerType = TServerType.stLogic;
 
-var
   // 全局变量，绑定的IP，支持IPV6
-  BIND_IP: string = '0.0.0.0';
+  BIND_IP: string;
   // 全局变量，接收通道的端口号
-  RECEIVE_PORT: string = '11505';
+  RECEIVE_PORT: string;
   // 全局变量，发送通道的端口号
-  SEND_PORT: string = '11506';
+  SEND_PORT: string;
 
 type
   (*

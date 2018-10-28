@@ -14,9 +14,9 @@ uses Variants, SysUtils, Types, DateUtils,
 
 const
   cUserLoginInfoDB = 'UserLoginInfo'; // 登录历史信息
-  cUserMessageDB   = 'UserMessageDB'; // 用户留言和消息
-  cLogDB           = 'LogDB';         // Log数据库
-  cFogComputeDB    = 'FogHistoryDB';  // 雾计算历史数据库
+  cUserMessageDB = 'UserMessageDB';   // 用户留言和消息
+  cLogDB = 'LogDB';                   // Log数据库
+  cFogComputeDB = 'FogHistoryDB';     // 雾计算历史数据库
 
 type
   TDataStoreCliConnectInfo = record
@@ -25,15 +25,15 @@ type
   end;
 
   TDataStore_DoubleTunnelClient_GetValue = reference to procedure(Successed: Boolean; Obj: TCoreClassObject; Comment: string; Value: Int64);
-  TObjectStateProc                       = reference to procedure(Obj: TCoreClassObject; const State: Boolean);
-  TQueryReplayStateProc                  = reference to procedure(ReplayData: TDataFrameEngine);
+  TObjectStateProc = reference to procedure(Obj: TCoreClassObject; const State: Boolean);
+  TQueryReplayStateProc = reference to procedure(ReplayData: TDataFrameEngine);
 
   TDataStore_DoubleTunnelClient = class(TDataStoreClient_NoAuth)
   protected
   public
     NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFrameworkClient;
-    ConnectInfo                         : TDataStoreCliConnectInfo;
-    ReconnectTotal                      : Integer;
+    ConnectInfo: TDataStoreCliConnectInfo;
+    ReconnectTotal: Integer;
 
     constructor Create(ClientClass: TCommunicationFrameworkClientClass);
     destructor Destroy; override;
@@ -164,6 +164,8 @@ var
 begin
   if not Connected then
       exit;
+  if not DataCipherKeyFinished then
+      exit;
   if not Assigned(BackcallStateProc) then
       exit;
 
@@ -185,69 +187,86 @@ var
 begin
   if not Connected then
       exit;
-  DisableStatus;
-  try
-    vl := THashVariantList.Create;
-    vl['UserID'] := UserID;
-    vl['Alias'] := UserAlias;
-    vl['comment'] := Comment;
-    vl['Date'] := Date;
-    vl['Time'] := Time;
-    BeginAssembleStream;
-    PostAssembleStream(cUserLoginInfoDB, vl);
-    EndAssembleStream;
-    DisposeObject(vl);
-  finally
-      EnabledStatus
-  end;
+  if not DataCipherKeyFinished then
+      exit;
+
+  PostProgress.PostExecuteP(0, procedure(Sender: TNPostExecute)
+    begin
+      DisableStatus;
+      try
+        vl := THashVariantList.Create;
+        vl['UserID'] := UserID;
+        vl['Alias'] := UserAlias;
+        vl['comment'] := Comment;
+        vl['Date'] := Date;
+        vl['Time'] := Time;
+        BeginAssembleStream;
+        PostAssembleStream(cUserLoginInfoDB, vl);
+        EndAssembleStream;
+        DisposeObject(vl);
+      finally
+          EnabledStatus
+      end;
+    end);
 end;
 
 procedure TDataStore_DoubleTunnelClient.PostLogInfo(LogTyp, LogS: string);
-var
-  vl: THashVariantList;
 begin
   if not Connected then
       exit;
 
-  DisableStatus;
-  try
-    vl := THashVariantList.Create;
-    vl['Date'] := Date;
-    vl['Time'] := Time;
-    vl['Type'] := LogTyp;
-    vl['Log'] := LogS;
-    BeginAssembleStream;
-    PostAssembleStream(cLogDB, vl);
-    EndAssembleStream;
-    DisposeObject(vl);
-  finally
-      EnabledStatus
-  end;
+  if not DataCipherKeyFinished then
+      exit;
+  PostProgress.PostExecuteP(0, procedure(Sender: TNPostExecute)
+    var
+      vl: THashVariantList;
+    begin
+      DisableStatus;
+      try
+        vl := THashVariantList.Create;
+        vl['Date'] := Date;
+        vl['Time'] := Time;
+        vl['Type'] := LogTyp;
+        vl['Log'] := LogS;
+        BeginAssembleStream;
+        PostAssembleStream(cLogDB, vl);
+        EndAssembleStream;
+        DisposeObject(vl);
+      finally
+          EnabledStatus
+      end;
+    end);
 end;
 
 procedure TDataStore_DoubleTunnelClient.PostFogComputeInfo(UserID, UserAlias, Exp, ComputeValue: string);
-var
-  vl: THashVariantList;
 begin
   if not Connected then
       exit;
 
-  DisableStatus;
-  try
-    vl := THashVariantList.Create;
-    vl['Date'] := Date;
-    vl['Time'] := Time;
-    vl['UserID'] := UserID;
-    vl['UserAlias'] := UserAlias;
-    vl['Exp'] := Exp;
-    vl['ComputeValue'] := ComputeValue;
-    BeginAssembleStream;
-    PostAssembleStream(cFogComputeDB, vl);
-    EndAssembleStream;
-    DisposeObject(vl);
-  finally
-      EnabledStatus
-  end;
+  if not DataCipherKeyFinished then
+      exit;
+
+  PostProgress.PostExecuteP(0, procedure(Sender: TNPostExecute)
+    var
+      vl: THashVariantList;
+    begin
+      DisableStatus;
+      try
+        vl := THashVariantList.Create;
+        vl['Date'] := Date;
+        vl['Time'] := Time;
+        vl['UserID'] := UserID;
+        vl['UserAlias'] := UserAlias;
+        vl['Exp'] := Exp;
+        vl['ComputeValue'] := ComputeValue;
+        BeginAssembleStream;
+        PostAssembleStream(cFogComputeDB, vl);
+        EndAssembleStream;
+        DisposeObject(vl);
+      finally
+          EnabledStatus
+      end;
+    end);
 end;
 
 end.

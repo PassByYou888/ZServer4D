@@ -236,7 +236,7 @@ procedure AtomDec(var x: Cardinal); overload;
 procedure AtomDec(var x: Cardinal; const v:Cardinal); overload;
 
 procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte); inline;
-function CompareMemory(const p1, p2: Pointer; const MLen: NativeInt): Boolean;
+function CompareMemory(const p1, p2: Pointer; const Count: NativeInt): Boolean; inline;
 procedure CopyPtr(const sour, dest:Pointer; Count: NativeInt); inline;
 
 procedure RaiseInfo(const n: SystemString); overload;
@@ -244,9 +244,9 @@ procedure RaiseInfo(const n: SystemString; const Args: array of const); overload
 
 function IsMobile: Boolean;
 
-function GetTimeTickCount: TTimeTickValue;
-function GetTimeTick: TTimeTickValue;
-function GetCrashTimeTick: TTimeTickValue;
+function GetTimeTickCount: TTimeTickValue; inline;
+function GetTimeTick: TTimeTickValue; inline;
+function GetCrashTimeTick: TTimeTickValue; inline;
 
 function ROL8(const Value: Byte; Shift: Byte): Byte; inline;
 function ROL16(const Value: Word; Shift: Byte): Word; inline;
@@ -310,6 +310,8 @@ function N2LE(const AValue: UInt64): UInt64; overload;
 
 threadvar
   MHGlobalHookEnabled: Boolean;
+var
+  Core_Run_TimeTick: TTimeTick;
 
 implementation
 
@@ -409,29 +411,40 @@ begin
 end;
 
 procedure LockObject(Obj:TObject);
+{$IFDEF ANTI_DEAD_ATOMIC_LOCK}
+var
+  d: TTimeTick;
+{$ENDIF ANTI_DEAD_ATOMIC_LOCK}
 begin
 {$IFDEF FPC}
   _LockCriticalObj(Obj);
-{$ELSE}
-  {$IFDEF CriticalSimulateAtomic}
+{$ELSE FPC}
+{$IFDEF CriticalSimulateAtomic}
   _LockCriticalObj(Obj);
-  {$ELSE}
+{$ELSE CriticalSimulateAtomic}
+  {$IFDEF ANTI_DEAD_ATOMIC_LOCK}
+  d := GetTimeTick;
+  TMonitor.Enter(Obj, 5000);
+  if GetTimeTick - d > 5000 then
+      RaiseInfo('dead lock');
+  {$ELSE ANTI_DEAD_ATOMIC_LOCK}
   TMonitor.Enter(Obj);
-  {$ENDIF}
-{$ENDIF}
+  {$ENDIF ANTI_DEAD_ATOMIC_LOCK}
+{$ENDIF CriticalSimulateAtomic}
+{$ENDIF FPC}
 end;
 
 procedure UnLockObject(Obj:TObject);
 begin
 {$IFDEF FPC}
   _UnLockCriticalObj(Obj);
-{$ELSE}
+{$ELSE FPC}
   {$IFDEF CriticalSimulateAtomic}
   _UnLockCriticalObj(Obj);
-  {$ELSE}
+  {$ELSE CriticalSimulateAtomic}
   TMonitor.Exit(Obj);
-  {$ENDIF}
-{$ENDIF}
+  {$ENDIF CriticalSimulateAtomic}
+{$ENDIF FPC}
 end;
 
 procedure FillPtrByte(const dest: Pointer; Count: NativeInt; const Value: Byte);
@@ -467,12 +480,48 @@ begin
       end;
 end;
 
-function CompareMemory(const p1, p2: Pointer; const MLen: NativeInt): Boolean;
+function CompareMemory(const p1, p2: Pointer; const Count: NativeInt): Boolean;
+var
+  i: NativeInt;
+  b1, b2: PByte;
 begin;
-  if MLen <= 0 then
-    Result := True
-  else
-    Result := CompareMem(p1, p2, MLen);
+  if Count <= 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
+  Result := False;
+  b1 := p1;
+  b2 := p2;
+  i := Count;
+  while (i >= 8) do
+    begin
+      if PUInt64(b2)^ <> PUInt64(b1)^ then
+        Exit;
+      dec(i, 8);
+      inc(b2, 8);
+      inc(b1, 8);
+    end;
+  if i >= 4 then
+    begin
+      if PCardinal(b2)^ <> PCardinal(b1)^ then
+        Exit;
+      dec(i, 4);
+      inc(b2, 4);
+      inc(b1, 4);
+    end;
+  if i >= 2 then
+    begin
+      if PWORD(b2)^ <> PWORD(b1)^ then
+        Exit;
+      dec(i, 2);
+      inc(b2, 2);
+      inc(b1, 2);
+    end;
+  if i > 0 then
+    if b2^ <> b1^ then
+      Exit;
+  Result := True;
 end;
 
 procedure CopyPtr(const sour, dest: Pointer; Count: NativeInt);
@@ -512,6 +561,7 @@ end;
 
 procedure RaiseInfo(const n: SystemString);
 begin
+  DoStatus('raise exception: ' + n);
   raise Exception.Create(n);
 end;
 
@@ -530,12 +580,12 @@ end;
 
 function GetTimeTickCount: TTimeTickValue;
 begin
-  Result := TCoreClassThread.GetTickCount;
+  Result := TCoreClassThread.GetTickCount();
 end;
 
 function GetTimeTick: TTimeTickValue;
 begin
-  Result := TCoreClassThread.GetTickCount;
+  Result := GetTimeTickCount();
 end;
 
 function GetCrashTimeTick: TTimeTickValue;
@@ -865,6 +915,7 @@ end;
 
 
 initialization
+  Core_Run_TimeTick := TCoreClassThread.GetTickCount();
   InitCriticalLock;
   InitLockIDBuff;
   MHGlobalHookEnabled := True;

@@ -179,6 +179,8 @@ end;
 constructor TCommunicationFramework_Client_Synapse.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := False;
+
   Sock := TTCPBlockSocket.Create;
   Sock.Family := TSocketFamily.SF_IP4;
   Sock.CreateSocket;
@@ -290,7 +292,7 @@ begin
         if Sock.Family = TSocketFamily.SF_IP4 then
             Sock.Family := TSocketFamily.SF_IP6
         else
-          Sock.Family := TSocketFamily.SF_IP4;
+            Sock.Family := TSocketFamily.SF_IP4;
         Sock.CreateSocket;
         Sock.Connect(addr, IntToStr(Port));
         SockConnected := Sock.LastError = 0;

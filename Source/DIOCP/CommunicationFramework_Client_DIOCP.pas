@@ -25,7 +25,7 @@ uses SysUtils, Classes,
   diocp_tcp_client;
 
 type
-  TPeerIOWithDIOCPClient               = class;
+  TPeerIOWithDIOCPClient = class;
   TCommunicationFramework_Client_DIOCP = class;
 
   TIocpClientContextIntf_WithDCli = class(TIocpRemoteContext)
@@ -254,6 +254,7 @@ end;
 constructor TCommunicationFramework_Client_DIOCP.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := True;
 
   DIOCPClientPool := TDiocpTcpClient.Create(nil);
   DIOCPClientPool.RegisterContextClass(TIocpClientContextIntf_WithDCli);

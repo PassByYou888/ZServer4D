@@ -142,6 +142,7 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 var
   key: TBytes;
+  x:Integer;
 begin
   AddDoStatusHookM(Self, Backcall_DoStatus);
   SingleTunnelClient := TXPhysicsClient.Create;
@@ -161,6 +162,13 @@ begin
   DoStatus('prepared stream sha256: ' + TCipher.GenerateHashString(THashSecurity.hsSHA256, Prepared_Stream.Memory, Prepared_Stream.Size));
 
   Timer1.Enabled := True;
+
+  try
+    x:=12;
+    exit;
+  finally
+    x:=11;
+  end;
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);

@@ -23,7 +23,7 @@ interface
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
   DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher, ZDBEngine, ItemStream, CoreCompress,
 {$IFNDEF FPC}
-  SysUtils, JsonDataObjects,
+  SysUtils, ZS_JsonDataObjects,
 {$ENDIF}
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth, CommunicationFrameworkDataStoreServiceCommon, ZDBLocalManager;
 
@@ -174,6 +174,8 @@ type
     procedure UnRegisterCommand; override;
 
     procedure Progress; override;
+
+    function DataCipherKeyFinished: Boolean;
 
     procedure InitDB(InMem: Boolean; dbN: SystemString); virtual;
     procedure CloseDB(dbN: SystemString; CloseAndDeleted: Boolean); virtual;
@@ -1730,6 +1732,11 @@ end;
 procedure TDataStoreClient_VirtualAuth.Progress;
 begin
   inherited Progress;
+end;
+
+function TDataStoreClient_VirtualAuth.DataCipherKeyFinished: Boolean;
+begin
+  Result := (length(FDataStoreCipherKey) > 0) or (Self.FDataStoreCipherSecurity <> csNone);
 end;
 
 procedure TDataStoreClient_VirtualAuth.InitDB(InMem: Boolean; dbN: SystemString);

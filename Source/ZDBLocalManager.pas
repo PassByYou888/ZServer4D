@@ -21,7 +21,7 @@ interface
 uses SysUtils, Variants,
   CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, TextDataEngine,
 {$IFNDEF FPC}
-  JsonDataObjects,
+  ZS_JsonDataObjects,
 {$ENDIF}
   DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher, ZDBEngine, ItemStream;
 

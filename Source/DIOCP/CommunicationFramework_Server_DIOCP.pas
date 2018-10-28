@@ -234,6 +234,8 @@ end;
 constructor TCommunicationFramework_Server_DIOCP.Create;
 begin
   inherited Create;
+  FEnabledAtomicLockAndMultiThread := True;
+
   FDIOCPServer := TDiocpTcpServer.Create(nil);
 
   FDIOCPServer.OnContextConnected := DIOCP_IOConnected;
@@ -279,7 +281,7 @@ procedure TCommunicationFramework_Server_DIOCP.TriggerQueueData(v: PQueueData);
 var
   c: TPeerIO;
 begin
-  c := PeerIO[v^.ClientID];
+  c := peerio[v^.ClientID];
   if c <> nil then
     begin
       c.PostQueueData(v);

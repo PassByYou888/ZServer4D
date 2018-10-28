@@ -23,7 +23,7 @@ uses
   DataFrameEngine,
   UnicodeMixedLib,
   MemoryStream64,
-  JsonDataObjects,
+  ZS_JsonDataObjects,
   ZDBLocalManager,
   ZDBEngine,
   ListEngine,

@@ -17,7 +17,7 @@ uses
   NotifyObjectBase, CommunicationTest, ListEngine;
 
 const
-  MaxClient = 100000;
+  MaxClient = 50000;
 
 type
   TMyClient = class(TCommunicationFrameworkWithP2PVM_Client)
@@ -157,6 +157,7 @@ end;
 procedure TVMCliForm.ConnectVMButtonClick(Sender: TObject);
 var
   i: Integer;
+  cCount: Integer;
 begin
   if not ClientTunnel.Connected then
       exit;
@@ -164,6 +165,7 @@ begin
   StatusCheckBox.Checked := False;
 
   ClientTunnel.ClientIO.p2pVMTunnel.CloseAllClientIO;
+  ClientTunnel.ClientIO.Progress;
 
   for i := low(ClientWithVM) to high(ClientWithVM) do
     begin
