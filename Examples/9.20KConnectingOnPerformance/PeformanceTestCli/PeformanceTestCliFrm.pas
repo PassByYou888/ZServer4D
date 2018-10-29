@@ -101,12 +101,12 @@ begin
   c := 0;
   for i := low(client) to high(client) do
     begin
-      if client[i].Connected then
-          client[i].Progress;
+      client[i].Progress;
+
       if client[i].RemoteInited then
           inc(c);
-      Caption := Format('total connected:%d', [c]);
     end;
+  Caption := Format('total connected:%d', [c]);
 end;
 
 procedure TEZClientForm.TestCommandButtonClick(Sender: TObject);
