@@ -336,12 +336,16 @@ begin
     begin
       CheckThreadSynchronizeing := True;
       try
-        Result := CheckSynchronize(Timeout);
+          Result := CheckSynchronize(Timeout);
       finally
-        CheckThreadSynchronizeing := False;
+          CheckThreadSynchronizeing := False;
       end;
-    end;
+    end
+  else
+    Result := False;
 end;
+
+{$INCLUDE CoreAtomic.inc}
 
 procedure DisposeObject(const Obj: TObject);
 begin
@@ -353,6 +357,9 @@ begin
         {$ELSE}
         Obj.Free;
         {$ENDIF}
+        {$IFDEF CriticalSimulateAtomic}
+        _RecycleLocker(Obj);
+        {$ENDIF CriticalSimulateAtomic}
       except
       end;
     end;
@@ -378,8 +385,6 @@ begin
   for Obj in objs do
       FreeObject(Obj);
 end;
-
-{$INCLUDE CoreAtomic.inc}
 
 var
   LockIDBuff: array [0..$FF] of TCoreClassPersistent;
@@ -411,10 +416,12 @@ begin
 end;
 
 procedure LockObject(Obj:TObject);
+{$IFNDEF CriticalSimulateAtomic}
 {$IFDEF ANTI_DEAD_ATOMIC_LOCK}
 var
   d: TTimeTick;
 {$ENDIF ANTI_DEAD_ATOMIC_LOCK}
+{$ENDIF CriticalSimulateAtomic}
 begin
 {$IFDEF FPC}
   _LockCriticalObj(Obj);
@@ -425,7 +432,7 @@ begin
   {$IFDEF ANTI_DEAD_ATOMIC_LOCK}
   d := GetTimeTick;
   TMonitor.Enter(Obj, 5000);
-  if GetTimeTick - d > 5000 then
+  if GetTimeTick - d >= 5000 then
       RaiseInfo('dead lock');
   {$ELSE ANTI_DEAD_ATOMIC_LOCK}
   TMonitor.Enter(Obj);

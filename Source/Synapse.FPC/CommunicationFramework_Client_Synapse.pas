@@ -316,8 +316,8 @@ begin
 
     Result := RemoteInited;
 
-    if Result then
-        InternalClient.Print('InternalClient connected %s:%d', [addr, Port]);
+    // if Result then
+    // InternalClient.Print('InternalClient connected %s:%d', [addr, Port]);
   except
       Result := False;
   end;

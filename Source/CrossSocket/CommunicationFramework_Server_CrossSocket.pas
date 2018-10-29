@@ -83,8 +83,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure Progress; override;
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
     property driver: TDriverEngine read FDriver;
@@ -159,7 +159,7 @@ begin
 
   isConn := AConnection.ConnectStatus = TConnectStatus.csConnected;
 
-  TCoreClassThread.Synchronize(TCoreClassThread.Current, procedure
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
     var
       i: Integer;
     begin
@@ -408,7 +408,7 @@ procedure TCommunicationFramework_Server_CrossSocket.TriggerQueueData(v: PQueueD
 var
   c: TPeerIO;
 begin
-  c := PeerIO[v^.ClientID];
+  c := PeerIO[v^.IO_ID];
   if c <> nil then
     begin
       c.PostQueueData(v);
@@ -423,13 +423,13 @@ begin
   inherited Progress;
 end;
 
-function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_CrossSocket.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+procedure TCommunicationFramework_Server_CrossSocket.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;

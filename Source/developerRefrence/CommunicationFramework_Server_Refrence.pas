@@ -75,9 +75,9 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
 
     { Selected ignore: recommended no used blocking communication calls on the server, unstable!! }
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
     { Selected ignore: recommended no used blocking communication calls on the server, unstable!! }
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
   end;
 
 implementation
@@ -164,7 +164,7 @@ procedure TCommunicationFramework_Server_Refrence.TriggerQueueData(v: PQueueData
 var
   c: TPeerIO;
 begin
-  c := PeerIO[v^.ClientID];
+  c := PeerIO[v^.IO_ID];
   if c <> nil then
     begin
       c.PostQueueData(v);
@@ -174,14 +174,14 @@ begin
       DisposeQueueData(v);
 end;
 
-function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(Client: TPeerIO;
+function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(p_io: TPeerIO;
   const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport');
 end;
 
-procedure TCommunicationFramework_Server_Refrence.WaitSendStreamCmd(Client: TPeerIO;
+procedure TCommunicationFramework_Server_Refrence.WaitSendStreamCmd(p_io: TPeerIO;
   const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport');

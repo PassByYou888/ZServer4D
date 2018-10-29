@@ -237,8 +237,11 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoRecvBuffer(Buf: Pointer; Len: Cardinal; ErrCode: Word);
 begin
-  DCIntf.Link.SaveReceiveBuffer(Buf, Len);
-  DCIntf.Link.FillRecvBuffer(TThread.CurrentThread, True, True);
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+    begin
+      DCIntf.Link.SaveReceiveBuffer(Buf, Len);
+      DCIntf.Link.FillRecvBuffer(TCoreClassThread.CurrentThread, False, False);
+    end);
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.DoConnected(Sender: TPeerIO);
@@ -254,7 +257,7 @@ end;
 constructor TCommunicationFramework_Client_DIOCP.Create;
 begin
   inherited Create;
-  FEnabledAtomicLockAndMultiThread := True;
+  FEnabledAtomicLockAndMultiThread := False;
 
   DIOCPClientPool := TDiocpTcpClient.Create(nil);
   DIOCPClientPool.RegisterContextClass(TIocpClientContextIntf_WithDCli);

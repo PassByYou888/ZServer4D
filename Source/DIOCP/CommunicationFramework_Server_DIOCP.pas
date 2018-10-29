@@ -76,8 +76,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure Progress; override;
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
   end;
 
 implementation
@@ -188,20 +188,26 @@ end;
 
 procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOConnected(pvClientContext: TIocpClientContext);
 begin
-  TIocpClientContextIntf_WithDServ(pvClientContext).Link := TPeerIOWithDIOCPServer.Create(Self, pvClientContext);
-  TIocpClientContextIntf_WithDServ(pvClientContext).Link.Link := TIocpClientContextIntf_WithDServ(pvClientContext);
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+    begin
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link := TPeerIOWithDIOCPServer.Create(Self, pvClientContext);
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link.Link := TIocpClientContextIntf_WithDServ(pvClientContext);
+    end);
 end;
 
 procedure TCommunicationFramework_Server_DIOCP.DIOCP_IODisconnect(pvClientContext: TIocpClientContext);
-var
-  peerio: TPeerIOWithDIOCPServer;
 begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
       Exit;
 
-  peerio := TIocpClientContextIntf_WithDServ(pvClientContext).Link;
-  TIocpClientContextIntf_WithDServ(pvClientContext).Link := nil;
-  DisposeObject(peerio);
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+    var
+      peerio: TPeerIOWithDIOCPServer;
+    begin
+      peerio := TIocpClientContextIntf_WithDServ(pvClientContext).Link;
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link := nil;
+      DisposeObject(peerio);
+    end);
 end;
 
 procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOSend(pvContext: TIocpClientContext; pvRequest: TIocpSendRequest);
@@ -224,17 +230,20 @@ begin
   if TIocpClientContextIntf_WithDServ(pvClientContext).Link = nil then
       Exit;
 
-  // zs内核在新版本已经完全支持100%的异步解析
-  // 经过简单分析，这个事件被上锁保护了，似乎调度有点延迟
-  // 这里的性能热点不太好找，diocp的瓶颈主要是卡在这一步
-  TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(Buf, Len);
-  TIocpClientContextIntf_WithDServ(pvClientContext).Link.FillRecvBuffer(TThread.CurrentThread, True, True);
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+    begin
+      // zs内核在新版本已经完全支持100%的异步解析
+      // 经过简单分析，这个事件被上锁保护了，似乎调度有点延迟
+      // 这里的性能热点不太好找，diocp的瓶颈主要是卡在这一步
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(Buf, Len);
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link.FillRecvBuffer(TCoreClassThread.CurrentThread, True, True);
+    end);
 end;
 
 constructor TCommunicationFramework_Server_DIOCP.Create;
 begin
   inherited Create;
-  FEnabledAtomicLockAndMultiThread := True;
+  FEnabledAtomicLockAndMultiThread := False;
 
   FDIOCPServer := TDiocpTcpServer.Create(nil);
 
@@ -281,7 +290,7 @@ procedure TCommunicationFramework_Server_DIOCP.TriggerQueueData(v: PQueueData);
 var
   c: TPeerIO;
 begin
-  c := peerio[v^.ClientID];
+  c := peerio[v^.IO_ID];
   if c <> nil then
     begin
       c.PostQueueData(v);
@@ -297,13 +306,13 @@ begin
   CoreClasses.CheckThreadSynchronize;
 end;
 
-function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;

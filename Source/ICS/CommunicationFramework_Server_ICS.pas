@@ -106,8 +106,8 @@ type
 
     procedure Progress; override;
 
-    function WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
 
     property StartedService: Boolean read FStartedService;
     property driver: TCustomICSSocketServer read FDriver;
@@ -194,7 +194,10 @@ begin
         if (not FClientLoopMessageTerminated) and (FContext <> nil) and (FContext.FClientIntf <> nil) and (FContext.State in [wsConnected]) then
           begin
             try
-                FContext.FClientIntf.ProcessAllSendCmd(Self, True, False);
+                TCoreClassThread.Synchronize(Self, procedure
+                begin
+                  FContext.FClientIntf.ProcessAllSendCmd(Self, False, False);
+                end);
             except
                 FClientLoopMessageTerminated := True;
             end;
@@ -380,8 +383,11 @@ begin
   if BuffCount > 0 then
     begin
       try
-        FClientIntf.SaveReceiveBuffer(@buff[0], BuffCount);
-        FClientIntf.FillRecvBuffer(FICSSocketThread, True, False);
+          TCoreClassThread.Synchronize(FICSSocketThread, procedure
+          begin
+            FClientIntf.SaveReceiveBuffer(@buff[0], BuffCount);
+            FClientIntf.FillRecvBuffer(FICSSocketThread, False, False);
+          end);
       except
           Close;
       end;
@@ -486,7 +492,7 @@ end;
 
 procedure TCommunicationFramework_Server_ICS.ClientConnectEvent(Sender: TObject; Client: TCustomICSContext; error: Word);
 begin
-  DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
+  // DoStatus(Format('accept connect %s:%s ', [Client.GetPeerAddr, Client.GetPeerPort]));
   Client.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
   Client.KeepAliveTime := 1 * 1000;
   Client.KeepAliveInterval := 1 * 1000;
@@ -540,9 +546,9 @@ var
 begin
   cli := Client as TICSContext;
 
-  if cli <> nil then
-    if cli.FClientIntf <> nil then
-        cli.FClientIntf.Print('disconnect %s:%s', [Client.GetPeerAddr, Client.GetPeerPort]);
+  // if cli <> nil then
+  // if cli.FClientIntf <> nil then
+  // cli.FClientIntf.Print('disconnect %s:%s', [Client.GetPeerAddr, Client.GetPeerPort]);
 
   if cli.FICSSocketThread <> nil then
     begin
@@ -568,7 +574,7 @@ end;
 constructor TCommunicationFramework_Server_ICS.Create;
 begin
   inherited Create;
-  FEnabledAtomicLockAndMultiThread := True;
+  FEnabledAtomicLockAndMultiThread := False;
 
   FDriver := TCustomICSSocketServer.Create(nil);
   FDriver.MultiThreaded := True;
@@ -637,7 +643,7 @@ procedure TCommunicationFramework_Server_ICS.TriggerQueueData(v: PQueueData);
 var
   c: TPeerIO;
 begin
-  c := PeerIO[v^.ClientID];
+  c := PeerIO[v^.IO_ID];
   if c <> nil then
     begin
       c.PostQueueData(v);
@@ -662,13 +668,13 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(Client: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
-procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(Client: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;

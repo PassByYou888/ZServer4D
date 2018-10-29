@@ -26,7 +26,17 @@
   {$UNDEF FastMD5}
   {$DEFINE parallel}
   {$DEFINE OptimizationMemoryStreamMD5}
+
+  // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
+  // CriticalSimulateAtomic defined so performance to be reduced
   {$DEFINE CriticalSimulateAtomic}
+
+  // used soft Simulate Critical(ring)
+  // SoftCritical defined so performance to be reduced
+  // {$DEFINE SoftCritical}
+
+  // {$DEFINE ANTI_DEAD_ATOMIC_LOCK}
+
   {$DEFINE release}
   {$UNDEF debug}
   {$DEFINE INLINE_ASM}
@@ -50,8 +60,12 @@
   {$DEFINE OptimizationMemoryStreamMD5}
 
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
-  // if CriticalSimulateAtomic defined so performance to be reduced
+  // CriticalSimulateAtomic defined so performance to be reduced
   // {$DEFINE CriticalSimulateAtomic}
+
+  // used soft Simulate Critical(ring)
+  // SoftCritical defined so performance to be reduced
+  // {$DEFINE SoftCritical}
 
   // {$DEFINE ANTI_DEAD_ATOMIC_LOCK}
 
@@ -76,6 +90,7 @@
     {$DEFINE NatTunnel_On_CrossSocket}
     // {$DEFINE NatTunnel_On_DIOCP}
     // {$DEFINE NatTunnel_On_Indy}
+    // {$DEFINE NatTunnel_On_Synapse}
 
 
     // HostQuery Physics interface
@@ -86,8 +101,8 @@
   {$IFEND}
 {$ENDIF FPC}
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$WARNINGS ON}
+{$HINTS ON}
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }

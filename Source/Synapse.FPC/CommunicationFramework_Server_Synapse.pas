@@ -65,7 +65,10 @@ type
     IO: TPeerIOWithSynapseServer;
     Sock: TTCPBlockSocket;
     CurrentSendBuff: TMemoryStream64;
-    procedure PickSendBuff;
+    Recv_Buff: Pointer;
+    Recv_Siz: Integer;
+    procedure Sync_PickBuff;
+    procedure Sync_FillReceivedBuff;
     procedure Execute; override;
   end;
 
@@ -85,9 +88,9 @@ type
 
     procedure CloseAll;
 
-    function WaitSendConsoleCmd(Client: TPeerIO;
+    function WaitSendConsoleCmd(p_io: TPeerIO;
       const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(Client: TPeerIO;
+    procedure WaitSendStreamCmd(p_io: TPeerIO;
       const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
   end;
 
@@ -220,7 +223,7 @@ begin
   Server.FListenTh := nil;
 end;
 
-procedure TSynapseSockTh.PickSendBuff;
+procedure TSynapseSockTh.Sync_PickBuff;
 begin
   if IO.SendBuffQueue.Count > 0 then
     begin
@@ -229,12 +232,15 @@ begin
     end;
 end;
 
+procedure TSynapseSockTh.Sync_FillReceivedBuff;
+begin
+  IO.SaveReceiveBuffer(Recv_Buff, Recv_Siz);
+  IO.FillRecvBuffer(Self, True, True);
+end;
+
 procedure TSynapseSockTh.Execute;
 const
   memSiz: Integer = 1024 * 1024;
-var
-  buff: Pointer;
-  siz: Integer;
 begin
   FreeOnTerminate := True;
   Sock := TTCPBlockSocket.Create;
@@ -242,14 +248,14 @@ begin
   Sock.GetSins;
   Activted := True;
 
-  buff := System.GetMemory(memSiz);
+  Recv_Buff := System.GetMemory(memSiz);
   while Activted do
     begin
       try
         while Activted and (IO.SendBuffQueue.Count > 0) do
           begin
             CurrentSendBuff := nil;
-            SyncMethod(Self, True, {$IFDEF FPC}@{$ENDIF FPC}PickSendBuff);
+            SyncMethod(Self, True, {$IFDEF FPC}@{$ENDIF FPC}Sync_PickBuff);
 
             if CurrentSendBuff <> nil then
               begin
@@ -260,22 +266,19 @@ begin
 
         if Activted and Sock.CanRead(100) then
           begin
-            siz := Sock.RecvBuffer(buff, memSiz);
+            Recv_Siz := Sock.RecvBuffer(Recv_Buff, memSiz);
 
             if Sock.LastError <> 0 then
                 break;
 
-            if (Activted) and (siz > 0) then
-              begin
-                IO.SaveReceiveBuffer(buff, siz);
-                IO.FillRecvBuffer(Self, True, True);
-              end;
+            if (Activted) and (Recv_Siz > 0) then
+                TCoreClassThread.Synchronize(Self, {$IFDEF FPC}@{$ENDIF FPC}Sync_FillReceivedBuff);
           end;
       except
           Activted := False;
       end;
     end;
-  System.FreeMemory(buff);
+  System.FreeMemory(Recv_Buff);
   IO.SockTh := nil;
   DisposeObject(IO);
   DisposeObject(Sock);
@@ -289,7 +292,7 @@ end;
 constructor TCommunicationFramework_Server_Synapse.Create;
 begin
   inherited Create;
-  FEnabledAtomicLockAndMultiThread := True;
+  FEnabledAtomicLockAndMultiThread := False;
 
   FListenTh := TSynapseListenTh.Create(True);
   FListenTh.Server := Self;
@@ -334,7 +337,7 @@ procedure TCommunicationFramework_Server_Synapse.TriggerQueueData(v: PQueueData)
 var
   c: TPeerIO;
 begin
-  c := PeerIO[v^.ClientID];
+  c := PeerIO[v^.IO_ID];
   if c <> nil then
     begin
       c.PostQueueData(v);
@@ -354,14 +357,14 @@ begin
   ProgressPerClientM({$IFDEF FPC}@{$ENDIF FPC}All_Disconnect);
 end;
 
-function TCommunicationFramework_Server_Synapse.WaitSendConsoleCmd(Client: TPeerIO;
+function TCommunicationFramework_Server_Synapse.WaitSendConsoleCmd(p_io: TPeerIO;
   const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport');
 end;
 
-procedure TCommunicationFramework_Server_Synapse.WaitSendStreamCmd(Client: TPeerIO;
+procedure TCommunicationFramework_Server_Synapse.WaitSendStreamCmd(p_io: TPeerIO;
   const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
 begin
   RaiseInfo('WaitSend no Suppport');

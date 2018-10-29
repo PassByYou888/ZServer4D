@@ -31,6 +31,9 @@ uses
 {$IFDEF NatTunnel_On_Indy}
   CommunicationFramework_Server_Indy, CommunicationFramework_Client_Indy,
 {$ENDIF NatTunnel_On_Indy}
+{$IFDEF NatTunnel_On_Synapse}
+  CommunicationFramework_Server_Synapse, CommunicationFramework_Client_Synapse,
+{$ENDIF NatTunnel_On_Synapse}
 
 {$ENDIF FPC}
   CoreClasses;
@@ -56,6 +59,10 @@ type
   TXPhysicsServer = TCommunicationFramework_Server_Indy;
   TXPhysicsClient = TCommunicationFramework_Client_Indy;
 {$ENDIF NatTunnel_On_Indy}
+{$IFDEF NatTunnel_On_Synapse}
+  TXPhysicsServer = TCommunicationFramework_Server_Synapse;
+  TXPhysicsClient = TCommunicationFramework_Client_Synapse;
+{$ENDIF NatTunnel_On_Synapse}
 {$ENDIF FPC}
 
 procedure BuildBuff(buff: PByte; siz: NativeInt; local_id, remote_id: Cardinal; var NewSiz: NativeInt; var NewBuff: PByte);

@@ -1,6 +1,10 @@
 // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
-// if CriticalSimulateAtomic defined so performance to be reduced
+// CriticalSimulateAtomic defined so performance to be reduced
 
+// used soft Simulate Critical(ring)
+// SoftCritical defined so performance to be reduced
+
+{ * object lock support, create by qq600585                                    * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
@@ -11,15 +15,67 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 
-type
-  TCritical = TCriticalSection;
+{$IFDEF SoftCritical}
 
+
+type
+  TSoftCritical = class(TCoreClassObject)
+  private
+    L: Boolean;
+  public
+    constructor Create;
+    procedure Acquire;
+    procedure Release;
+  end;
+
+constructor TSoftCritical.Create;
+begin
+  inherited Create;
+  L := False;
+end;
+
+procedure TSoftCritical.Acquire;
+{$IFDEF ANTI_DEAD_ATOMIC_LOCK}
+var
+  d: TTimeTick;
+{$ENDIF ANTI_DEAD_ATOMIC_LOCK}
+begin
+{$IFDEF ANTI_DEAD_ATOMIC_LOCK}
+  d := GetTimeTick;
+  while L do
+    if GetTimeTick - d >= 5000 then
+        RaiseInfo('dead lock');
+{$ELSE ANTI_DEAD_ATOMIC_LOCK}
+  while L do
+      NOP;
+
+  L := True;
+{$ENDIF ANTI_DEAD_ATOMIC_LOCK}
+end;
+
+procedure TSoftCritical.Release;
+begin
+  L := False;
+end;
+{$ENDIF SoftCritical}
+
+
+type
+{$IFDEF SoftCritical}
+  TCritical = TSoftCritical;
+{$ELSE SoftCritical}
+  TCritical = TCriticalSection;
+{$ENDIF SoftCritical}
   PCritical_Struct = ^TCritical_Struct;
 
   TCritical_Struct = record
     Obj: TObject;
+    LEnter: Integer;
+    LockTick: TTimeTick;
     Critical: TCritical;
   end;
+
+  TGetCriticalLockState = (lsSame, lsNew, lsIdle);
 
 var
   CoreCritical: TCritical;
@@ -36,96 +92,132 @@ end;
 procedure FreeCriticalLock;
 var
   i: Integer;
+  p: PCritical_Struct;
 begin
   for i := 0 to CriticalList.Count - 1 do
     begin
-      DisposeObject(PCritical_Struct(CriticalList[i])^.Critical);
-      Dispose(PCritical_Struct(CriticalList[i]));
+      p := PCritical_Struct(CriticalList[i]);
+      p^.Critical.Free;
+      Dispose(p);
     end;
+  CriticalList.Free;
+  CriticalList := nil;
 
-  DisposeObject(CoreCritical);
-  DisposeObject(incrementCritical);
-  DisposeObject(CriticalList);
+  CoreCritical.Free;
+  CoreCritical := nil;
+
+  incrementCritical.Free;
+  incrementCritical := nil;
 end;
 
-procedure GetCriticalLock(const Obj: TObject; var output: PCritical_Struct);
+procedure GetCriticalLock(const Obj: TObject; var output: PCritical_Struct; var state: TGetCriticalLockState);
 var
-  i, pi: Integer;
-  p: PCritical_Struct;
+  i, pIndex: Integer;
+  p1, p2: PCritical_Struct;
 begin
-  CoreCritical.Acquire;
-  try
-    output := nil;
-    pi := -1;
-    p := nil;
-    i := 0;
-    while i < CriticalList.Count do
-      begin
-        if PCritical_Struct(CriticalList[i])^.Obj = Obj then
-          begin
-            output := PCritical_Struct(CriticalList[i]);
-            Break;
-          end
-        else
-          begin
-            if (p = nil) and (PCritical_Struct(CriticalList[i])^.Obj = nil) then
-              begin
-                p := PCritical_Struct(CriticalList[i]);
-                pi := i;
-              end;
-            inc(i);
-          end;
-      end;
-    if output = nil then
-      begin
-        if p <> nil then
-          begin
-            p^.Obj := Obj;
-            output := p;
-            if pi > 0 then
-                CriticalList.Move(pi, 0);
-          end
-        else
-          begin
-            new(p);
-            p^.Obj := Obj;
-            p^.Critical := TCritical.Create;
-            CriticalList.Insert(0, p);
-            output := p;
-          end;
-      end;
-  finally
-      CoreCritical.Release;
-  end;
+  output := nil;
+  pIndex := -1;
+  p1 := nil;
+  i := 0;
+  while i < CriticalList.Count do
+    begin
+      p2 := PCritical_Struct(CriticalList[i]);
+      if p2^.Obj = Obj then
+        begin
+          output := p2;
+          state := TGetCriticalLockState.lsSame;
+          exit;
+        end
+      else if (p2^.Obj = nil) and (p2^.LEnter = 0) then
+        begin
+          p1 := p2;
+          pIndex := i;
+        end;
+      inc(i);
+    end;
+
+  if p1 <> nil then
+    begin
+      p1^.Obj := Obj;
+      output := p1;
+      if pIndex > 0 then
+          CriticalList.Move(pIndex, 0);
+      state := TGetCriticalLockState.lsIdle;
+    end
+  else
+    begin
+      new(p1);
+      p1^.Obj := Obj;
+      p1^.LEnter := 0;
+      p1^.LockTick := GetTimeTick();
+      p1^.Critical := TCritical.Create;
+      CriticalList.Insert(0, p1);
+      output := p1;
+      state := TGetCriticalLockState.lsNew;
+    end;
 end;
 
 procedure _LockCriticalObj(Obj: TObject);
 var
   p: PCritical_Struct;
+  ls: TGetCriticalLockState;
 begin
-  GetCriticalLock(Obj, p);
+  CoreCritical.Acquire;
+  GetCriticalLock(Obj, p, ls);
+  CoreCritical.Release;
   p^.Critical.Acquire;
+  p^.LockTick := GetTimeTick();
+  AtomInc(p^.LEnter);
 end;
 
 procedure _UnLockCriticalObj(Obj: TObject);
 var
   p: PCritical_Struct;
+  ls: TGetCriticalLockState;
 begin
-  GetCriticalLock(Obj, p);
-  p^.Obj := nil;
-  try
-      p^.Critical.Release;
-  except
-      p^.Critical := TCritical.Create;
-  end;
+  CoreCritical.Acquire;
+  GetCriticalLock(Obj, p, ls);
+  CoreCritical.Release;
+
+  AtomDec(p^.LEnter);
+  p^.LockTick := GetTimeTick();
+  if p^.LEnter < 0 then
+      DoStatus('error: unlock failed: illegal unlock');
+  p^.Critical.Release;
+end;
+
+procedure _RecycleLocker(const Obj: TObject);
+var
+  p: PCritical_Struct;
+  i: Integer;
+begin
+  if (CoreCritical = nil) or (CriticalList = nil) or (CriticalList.Count = 0) then
+      exit;
+
+  CoreCritical.Acquire;
+  i := 0;
+  while i < CriticalList.Count do
+    begin
+      p := PCritical_Struct(CriticalList[i]);
+      if p^.Obj = Obj then
+        begin
+          CriticalList.Delete(i);
+          p^.Critical.Free;
+          Dispose(p);
+          break;
+        end
+      else
+          inc(i);
+    end;
+  CoreCritical.Release;
 end;
 
 procedure AtomInc(var x: Int64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
@@ -134,9 +226,9 @@ end;
 procedure AtomInc(var x: Int64; const v: Int64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x, v);
 {$ENDIF FPC}
@@ -145,9 +237,9 @@ end;
 procedure AtomDec(var x: Int64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
@@ -156,9 +248,9 @@ end;
 procedure AtomDec(var x: Int64; const v: Int64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x, v);
 {$ENDIF FPC}
@@ -167,9 +259,9 @@ end;
 procedure AtomInc(var x: UInt64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
@@ -178,9 +270,9 @@ end;
 procedure AtomInc(var x: UInt64; const v: UInt64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x, v);
 {$ENDIF FPC}
@@ -189,9 +281,9 @@ end;
 procedure AtomDec(var x: UInt64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
@@ -200,9 +292,9 @@ end;
 procedure AtomDec(var x: UInt64; const v: UInt64);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x, v);
 {$ENDIF FPC}
@@ -211,9 +303,9 @@ end;
 procedure AtomInc(var x: Integer);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
@@ -222,9 +314,9 @@ end;
 procedure AtomInc(var x: Integer; const v: Integer);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x, v);
 {$ENDIF FPC}
@@ -233,9 +325,9 @@ end;
 procedure AtomDec(var x: Integer);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
@@ -244,9 +336,9 @@ end;
 procedure AtomDec(var x: Integer; const v: Integer);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x, v);
 {$ENDIF FPC}
@@ -255,9 +347,9 @@ end;
 procedure AtomInc(var x: Cardinal);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
@@ -266,9 +358,9 @@ end;
 procedure AtomInc(var x: Cardinal; const v: Cardinal);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   inc(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x, v);
 {$ENDIF FPC}
@@ -277,9 +369,9 @@ end;
 procedure AtomDec(var x: Cardinal);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
@@ -288,9 +380,9 @@ end;
 procedure AtomDec(var x: Cardinal; const v: Cardinal);
 begin
 {$IFDEF FPC}
-  CoreCritical.Acquire;
+  incrementCritical.Acquire;
   dec(x, v);
-  CoreCritical.Release;
+  incrementCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x, v);
 {$ENDIF FPC}

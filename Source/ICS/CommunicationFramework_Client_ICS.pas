@@ -160,13 +160,13 @@ procedure TCommunicationFramework_Client_ICS.SessionClosed(Sender: TObject; ErrC
 begin
   if FAsyncConnecting then
       TriggerDoConnectFailed;
-  FClient.Print('client disonnect for %s:%s', [FDriver.addr, FDriver.Port]);
+  // FClient.Print('client disonnect for %s:%s', [FDriver.addr, FDriver.Port]);
   DoDisconnect(FClient);
 end;
 
 procedure TCommunicationFramework_Client_ICS.SessionConnectedAndCreateContext(Sender: TObject; ErrCode: Word);
 begin
-  FClient.Print('client connected %s:%s', [FDriver.addr, FDriver.Port]);
+  // FClient.Print('client connected %s:%s', [FDriver.addr, FDriver.Port]);
   DoConnected(FClient);
 end;
 
@@ -314,7 +314,7 @@ begin
       if FDriver.State in [wsClosed] then
           Break;
 
-      TThread.Sleep(1);
+      TCoreClassThread.Sleep(1);
     end;
 
   Result := FDriver.State in [wsConnected];
@@ -334,7 +334,7 @@ begin
       if FDriver.State in [wsClosed] then
           Break;
 
-      TThread.Sleep(1);
+      TCoreClassThread.Sleep(1);
     end;
 
   Result := (RemoteInited);
