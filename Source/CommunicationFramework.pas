@@ -11005,11 +11005,19 @@ begin
 end;
 
 procedure TStableServer_PeerIO.Progress;
+var
+  t, offline_t: TTimeTick;
 begin
-  if GetTimeTick - OfflineTick > TCommunicationFramework_CustomStableServer(FOwnerFramework).OfflineTimeout then
+  t := GetTimeTick;
+  offline_t := TCommunicationFramework_CustomStableServer(FOwnerFramework).OfflineTimeout;
+
+  if (FBindPhysicsIO = nil) and (Activted) then
     begin
-      DelayClose;
-      exit;
+      if (offline_t > 0) and (t - OfflineTick > offline_t) then
+        begin
+          DelayClose;
+          exit;
+        end;
     end;
 
   inherited Progress;
@@ -11151,7 +11159,7 @@ begin
 
   Connection_Token_Counter := 1;
   FPhysicsServer := nil;
-  FOfflineTimeout := 1000 * 60;
+  FOfflineTimeout := 1000 * 60 * 5;
   FAutoFreePhysicsServer := False;
   FAutoProgressPhysicsServer := True;
   CustomStableServerProgressing := False;

@@ -119,7 +119,7 @@ begin
     0.1,    // 碎片积累时间，当查询有很多反馈时，每积累到这个时间，就触发反馈事件，便于批量操作，在积累时间中，数据都存在于内存
     0,      // 查询执行时间,0是无限
     0,      // 最大的查询条目匹配数量，0是无限
-    0,      // 最大的查询结果反馈，0表示无限
+    1000,   // 最大的查询结果反馈，0表示无限
       procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     var
         queryRec_Ptr: POpCodeRun_Record;
@@ -281,7 +281,7 @@ begin
       if serv.RecvTunnel.Count > 0 then
           CoreClasses.CheckThreadSynchronize()
       else
-          CoreClasses.CheckThreadSynchronize(100);
+          CoreClasses.CheckThreadSynchronize(10);
     end;
 end;
 

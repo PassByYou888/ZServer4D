@@ -52,6 +52,7 @@ object Form1: TForm1
     Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
     DataDetectorTypes = []
     StyledSettings = [Family, Size, FontColor]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Position.X = 248.000000000000000000
     Position.Y = 8.000000000000000000
     Size.Width = 465.000000000000000000
