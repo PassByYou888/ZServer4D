@@ -83,25 +83,6 @@ type
     procedure Sort(Compare: TCompareFunc);
     property Items[index: Integer]: t read Get write Put; default;
     property List: PTypeList read GetList;
-
-    { Pointer to items. Exactly like @link(List), but this points to a single item,
-      which means you can access particular item by @code(L[I]) instead of
-      @code(List^[I]) in FPC objfpc mode.
-
-      This is just trivial shortcut,  but we use direct access a @italic(lot)
-      for structures. Reasonis: using Items[] default
-      property means copying the structures, which is
-      @orderedList(
-        @item(very dangerous (you can trivially easy modify a temporary result))
-        @item(slow (important for us, since these are used for vector arrays that
-         are crucial for renderer and various processing).)
-      ) }
-    function L: pt;
-
-    { Increase Count and return pointer to new item.
-      Comfortable and efficient way to add a new item that you want to immediately
-      initialize. }
-    function Add: pt;
   end;
 
 {$ENDIF FPC}
@@ -207,20 +188,9 @@ begin
   inherited Sort(@ItemPtrCompare);
 end;
 
-function TGenericStructList.L: pt;
-begin
-  Result := pt(FList);
-end;
-
-function TGenericStructList.Add: pt;
-begin
-  Count := Count + 1;
-  Result := addr(L[Count - 1]);
-end;
-
 {$ENDIF FPC}
 
-end.  
- 
- 
- 
+end.
+
+
+
