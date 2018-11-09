@@ -188,13 +188,13 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 2018-11-9
 
-新功能:IO内核新增序列包机制
-新功能:IO内核新增不怕断线的StableIO系统
-新功能:重做时间刻度支持，新版本的时间刻度可以让服务器开机到硬件报废
-新功能:新增两个Demo：基于Dataset的sql查询演示，聊天室，这两个Demo都使用了StableIO技术，了解StableIO使用可以参考他们，因为使用StableIO太简单了，不需要编写专门的Demo
-新功能:新增两个文档：[基于序列包的断线重连系统StableIO](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%BA%8F%E5%88%97%E5%8C%85%E7%9A%84%E6%96%AD%E7%BA%BF%E9%87%8D%E8%BF%9E%E7%B3%BB%E7%BB%9FStableIO.pdf)  [Zserver中的序列包机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/Zserver%E4%B8%AD%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%85%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
-更新:所有内核的指令全部以__@开头和外部指令进行区分
-修复:之前，ZExpression会把and or xor shr shl div这些关键字当成一个ascii来处理，现在会将pascal关键字and or xor shr shl div当成符号来处理
+- 新功能:IO内核新增序列包机制
+- 新功能:IO内核新增不怕断线的StableIO系统
+- 新功能:重做时间刻度支持，新版本的时间刻度可以让服务器开机到硬件报废
+- 新功能:新增两个Demo：基于Dataset的sql查询演示，聊天室，这两个Demo都使用了StableIO技术，了解StableIO使用可以参考他们，因为使用StableIO太简单了，不需要编写专门的Demo
+- 新功能:新增两个文档：[基于序列包的断线重连系统StableIO](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9F%BA%E4%BA%8E%E5%BA%8F%E5%88%97%E5%8C%85%E7%9A%84%E6%96%AD%E7%BA%BF%E9%87%8D%E8%BF%9E%E7%B3%BB%E7%BB%9FStableIO.pdf)  [Zserver中的序列包机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/Zserver%E4%B8%AD%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%85%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
+- 更新:所有内核的指令全部以__@开头和外部指令进行区分
+- 修复:之前，ZExpression会把and or xor shr shl div这些关键字当成一个ascii来处理，现在会将pascal关键字and or xor shr shl div当成符号来处理
 
 ## 2018-10-30 重做底层原子锁系统
 
