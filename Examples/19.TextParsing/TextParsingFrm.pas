@@ -445,7 +445,7 @@ begin
   // sourTp := TTextParsing.Create('myvar1(*这里是备注*),myvar2,myvar3 := 123+456+'#39' 变量: '#39'+dynamic', tsPascal); // 词法解析引擎，以c语法为例
   // sourTp := TTextParsing.Create('123+456+dynamic', tsPascal); // 词法解析引擎，以c语法为例
 
-  HashVars := THashVariantList.Create(16); // 16是hash的buff长度，数值越大加速度越快
+  HashVars := THashVariantList.CustomCreate(16); // 16是hash的buff长度，数值越大加速度越快
 
   SetLength(splitVarDecl, 0);
   SetLength(myvars, 0);

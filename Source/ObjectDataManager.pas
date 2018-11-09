@@ -1313,19 +1313,19 @@ procedure TObjectDataManagerOfCache.DoCreateFinish;
 begin
   inherited DoCreateFinish;
 
-  FHeaderCache := TInt64HashPointerList.Create(10 * 10000);
+  FHeaderCache := TInt64HashPointerList.CustomCreate(10 * 10000);
   FHeaderCache.AutoFreeData := True;
   FHeaderCache.AccessOptimization := True;
 
-  FItemBlockCache := TInt64HashPointerList.Create(10 * 10000);
+  FItemBlockCache := TInt64HashPointerList.CustomCreate(10 * 10000);
   FItemBlockCache.AutoFreeData := True;
   FItemBlockCache.AccessOptimization := True;
 
-  FItemCache := TInt64HashPointerList.Create(10 * 10000);
+  FItemCache := TInt64HashPointerList.CustomCreate(10 * 10000);
   FItemCache.AutoFreeData := True;
   FItemCache.AccessOptimization := True;
 
-  FFieldCache := TInt64HashPointerList.Create(10 * 10000);
+  FFieldCache := TInt64HashPointerList.CustomCreate(10 * 10000);
   FFieldCache.AutoFreeData := True;
   FFieldCache.AccessOptimization := True;
 

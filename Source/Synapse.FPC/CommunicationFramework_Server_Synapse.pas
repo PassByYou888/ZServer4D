@@ -28,7 +28,7 @@ type
   TCommunicationFramework_Server_Synapse = class;
   TSynapseSockTh = class;
 
-  TPeerIOWithSynapseServer = class(TPeerIO)
+  TSynapseServer_PeerIO = class(TPeerIO)
   protected
     SockTh: TSynapseSockTh;
     LastPeerIP: SystemString;
@@ -62,7 +62,7 @@ type
   TSynapseSockTh = class(TCoreClassThread)
     ClientSockID: TSocket;
     Activted: Boolean;
-    IO: TPeerIOWithSynapseServer;
+    IO: TSynapseServer_PeerIO;
     Sock: TTCPBlockSocket;
     CurrentSendBuff: TMemoryStream64;
     Recv_Buff: Pointer;
@@ -89,14 +89,14 @@ type
     procedure CloseAll;
 
     function WaitSendConsoleCmd(p_io: TPeerIO;
-      const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+      const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
     procedure WaitSendStreamCmd(p_io: TPeerIO;
-      const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+      const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 
 implementation
 
-procedure TPeerIOWithSynapseServer.CreateAfter;
+procedure TSynapseServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
   SockTh := nil;
@@ -105,7 +105,7 @@ begin
   CurrentBuff := TMemoryStream64.Create;
 end;
 
-destructor TPeerIOWithSynapseServer.Destroy;
+destructor TSynapseServer_PeerIO.Destroy;
 var
   i: Integer;
 begin
@@ -118,18 +118,18 @@ begin
   inherited Destroy;
 end;
 
-function TPeerIOWithSynapseServer.Connected: Boolean;
+function TSynapseServer_PeerIO.Connected: Boolean;
 begin
   Result := (SockTh <> nil) and (SockTh.Activted);
 end;
 
-procedure TPeerIOWithSynapseServer.Disconnect;
+procedure TSynapseServer_PeerIO.Disconnect;
 begin
   if SockTh <> nil then
       SockTh.Activted := False;
 end;
 
-procedure TPeerIOWithSynapseServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TSynapseServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
       Exit;
@@ -138,14 +138,14 @@ begin
       CurrentBuff.write(Pointer(buff)^, Size);
 end;
 
-procedure TPeerIOWithSynapseServer.WriteBufferOpen;
+procedure TSynapseServer_PeerIO.WriteBufferOpen;
 begin
   if not Connected then
       Exit;
   CurrentBuff.Clear;
 end;
 
-procedure TPeerIOWithSynapseServer.WriteBufferFlush;
+procedure TSynapseServer_PeerIO.WriteBufferFlush;
 begin
   if not Connected then
       Exit;
@@ -156,14 +156,14 @@ begin
     end;
 end;
 
-procedure TPeerIOWithSynapseServer.WriteBufferClose;
+procedure TSynapseServer_PeerIO.WriteBufferClose;
 begin
   if not Connected then
       Exit;
   CurrentBuff.Clear;
 end;
 
-function TPeerIOWithSynapseServer.GetPeerIP: SystemString;
+function TSynapseServer_PeerIO.GetPeerIP: SystemString;
 begin
   if Connected then
     begin
@@ -174,12 +174,12 @@ begin
       Result := LastPeerIP;
 end;
 
-function TPeerIOWithSynapseServer.WriteBufferEmpty: Boolean;
+function TSynapseServer_PeerIO.WriteBufferEmpty: Boolean;
 begin
   Result := SendBuffQueue.Count = 0;
 end;
 
-procedure TPeerIOWithSynapseServer.Progress;
+procedure TSynapseServer_PeerIO.Progress;
 begin
   inherited Progress;
   ProcessAllSendCmd(nil, False, False);
@@ -190,7 +190,7 @@ begin
   CurrentAcceptSockTh := TSynapseSockTh.Create(True);
   CurrentAcceptSockTh.ClientSockID := LSock.Accept;
   CurrentAcceptSockTh.Activted := False;
-  CurrentAcceptSockTh.IO := TPeerIOWithSynapseServer.Create(Server, CurrentAcceptSockTh);
+  CurrentAcceptSockTh.IO := TSynapseServer_PeerIO.Create(Server, CurrentAcceptSockTh);
   CurrentAcceptSockTh.IO.SockTh := CurrentAcceptSockTh;
   CurrentAcceptSockTh.Suspended := False;
 
@@ -354,18 +354,18 @@ end;
 
 procedure TCommunicationFramework_Server_Synapse.CloseAll;
 begin
-  ProgressPerClientM({$IFDEF FPC}@{$ENDIF FPC}All_Disconnect);
+  ProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}All_Disconnect);
 end;
 
 function TCommunicationFramework_Server_Synapse.WaitSendConsoleCmd(p_io: TPeerIO;
-  const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+  const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport');
 end;
 
 procedure TCommunicationFramework_Server_Synapse.WaitSendStreamCmd(p_io: TPeerIO;
-  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;

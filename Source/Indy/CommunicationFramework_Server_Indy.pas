@@ -35,7 +35,7 @@ uses CommunicationFramework,
 type
   TCommunicationFramework_Server_Context = class;
 
-  TContextIntfForServer = class(TPeerIO)
+  TIDServer_PeerIO = class(TPeerIO)
   public
     RealSendBuff: TMemoryStream64;
 
@@ -55,8 +55,8 @@ type
   end;
 
   TCommunicationFramework_Server_Context = class(TIdServerContext)
-    ClientIntf: TContextIntfForServer;
-    LastTimeTick: TTimeTickValue;
+    ClientIntf: TIDServer_PeerIO;
+    LastTimeTick: TTimeTick;
     constructor Create(AConnection: TIdTCPConnection; AYarn: TIdYarn; AList: TIdContextThreadList = nil); override;
     destructor Destroy; override;
   end;
@@ -67,7 +67,7 @@ type
   protected
     function GetPort: Word;
     procedure SetPort(const Value: Word);
-    procedure SetIdleTimeout(const Value: TTimeTickValue); override;
+    procedure SetIdleTimeout(const Value: TTimeTick); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -88,8 +88,8 @@ type
 
     procedure Indy_Execute(AContext: TIdContext);
 
-    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
 
     property driver: TIdTCPServer read FDriver;
   end;
@@ -104,24 +104,24 @@ begin
   CopyPtr(p, @Result[0], Size);
 end;
 
-procedure TContextIntfForServer.CreateAfter;
+procedure TIDServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
   RealSendBuff := TMemoryStream64.Create;
 end;
 
-destructor TContextIntfForServer.Destroy;
+destructor TIDServer_PeerIO.Destroy;
 begin
   DisposeObject(RealSendBuff);
   inherited Destroy;
 end;
 
-function TContextIntfForServer.Context: TCommunicationFramework_Server_Context;
+function TIDServer_PeerIO.Context: TCommunicationFramework_Server_Context;
 begin
-  Result := ClientIntf as TCommunicationFramework_Server_Context;
+  Result := IOInterface as TCommunicationFramework_Server_Context;
 end;
 
-procedure TContextIntfForServer.ProcesRealSendBuff;
+procedure TIDServer_PeerIO.ProcesRealSendBuff;
 var
   buff: ^TIdBytes;
 begin
@@ -148,7 +148,7 @@ begin
   Dispose(buff);
 end;
 
-function TContextIntfForServer.Connected: Boolean;
+function TIDServer_PeerIO.Connected: Boolean;
 begin
   if Context <> nil then
       Result := Context.Connection.Connected
@@ -156,12 +156,12 @@ begin
       Result := False;
 end;
 
-procedure TContextIntfForServer.Disconnect;
+procedure TIDServer_PeerIO.Disconnect;
 begin
   Context.Connection.Disconnect;
 end;
 
-procedure TContextIntfForServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TIDServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Size > 0 then
     begin
@@ -170,19 +170,19 @@ begin
     end;
 end;
 
-procedure TContextIntfForServer.WriteBufferOpen;
+procedure TIDServer_PeerIO.WriteBufferOpen;
 begin
 end;
 
-procedure TContextIntfForServer.WriteBufferFlush;
+procedure TIDServer_PeerIO.WriteBufferFlush;
 begin
 end;
 
-procedure TContextIntfForServer.WriteBufferClose;
+procedure TIDServer_PeerIO.WriteBufferClose;
 begin
 end;
 
-function TContextIntfForServer.GetPeerIP: SystemString;
+function TIDServer_PeerIO.GetPeerIP: SystemString;
 begin
   Result := Context.Binding.PeerIP;
 end;
@@ -213,7 +213,7 @@ begin
   FDriver.DefaultPort := Value;
 end;
 
-procedure TCommunicationFramework_Server_Indy.SetIdleTimeout(const Value: TTimeTickValue);
+procedure TCommunicationFramework_Server_Indy.SetIdleTimeout(const Value: TTimeTick);
 begin
   inherited SetIdleTimeout(Value);
   FDriver.TerminateWaitTime := IdleTimeout;
@@ -239,7 +239,7 @@ end;
 
 destructor TCommunicationFramework_Server_Indy.Destroy;
 begin
-  ProgressPerClientP(procedure(cli: TPeerIO)
+  ProgressPeerIOP(procedure(cli: TPeerIO)
     begin
       try
           cli.Disconnect;
@@ -329,7 +329,7 @@ begin
       c: TCommunicationFramework_Server_Context;
     begin
       c := TCommunicationFramework_Server_Context(AContext);
-      c.ClientIntf := TContextIntfForServer.Create(Self, c);
+      c.ClientIntf := TIDServer_PeerIO.Create(Self, c);
       DoConnected(c.ClientIntf);
       c.Binding.SetKeepAliveValues(True, 2000, 2);
     end);
@@ -377,7 +377,7 @@ end;
 
 procedure TCommunicationFramework_Server_Indy.Indy_Execute(AContext: TIdContext);
 var
-  t: TTimeTickValue;
+  t: TTimeTick;
   c: TCommunicationFramework_Server_Context;
   iBuf: TIdBytes;
 begin
@@ -475,13 +475,13 @@ begin
       Exit;
 end;
 
-function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_Indy.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
-procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;

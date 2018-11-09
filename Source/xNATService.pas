@@ -108,9 +108,9 @@ type
   private
     ShareListen: TXServiceListen;
   public
-    procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt); override;
-    procedure DoClientConnectBefore(Sender: TPeerIO); override;
-    procedure DoClientDisconnect(Sender: TPeerIO); override;
+    procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt; var FillDone: Boolean); override;
+    procedure DoIOConnectBefore(Sender: TPeerIO); override;
+    procedure DoIODisconnect(Sender: TPeerIO); override;
   end;
 
   TXNATService = class(TCoreClassInterfacedObject, ICommunicationFrameworkVMInterface)
@@ -314,7 +314,7 @@ begin
   if SendTunnel.Count = 0 then
       exit;
 
-  rVM := TXServiceRecvVM_Special(RecvTunnel.FirstClient.UserSpecial);
+  rVM := TXServiceRecvVM_Special(RecvTunnel.FirstIO.UserSpecial);
   f := rVM.CurrentWorkload / rVM.MaxWorkload;
 
   RecvTunnel.GetIO_Array(buff);
@@ -573,7 +573,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TXServerCustomProtocol.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);
+procedure TXServerCustomProtocol.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
 var
   xUserSpec: TXServerUserSpecial;
   nSiz: NativeInt;
@@ -603,7 +603,7 @@ begin
       Sender.DelayClose(1.0);
 end;
 
-procedure TXServerCustomProtocol.DoClientConnectBefore(Sender: TPeerIO);
+procedure TXServerCustomProtocol.DoIOConnectBefore(Sender: TPeerIO);
 var
   de: TDataFrameEngine;
   xUserSpec: TXServerUserSpecial;
@@ -632,10 +632,10 @@ begin
       DisposeObject(de);
       s_io.Progress;
     end;
-  inherited DoClientConnectBefore(Sender);
+  inherited DoIOConnectBefore(Sender);
 end;
 
-procedure TXServerCustomProtocol.DoClientDisconnect(Sender: TPeerIO);
+procedure TXServerCustomProtocol.DoIODisconnect(Sender: TPeerIO);
 var
   de: TDataFrameEngine;
   xUserSpec: TXServerUserSpecial;
@@ -661,7 +661,7 @@ begin
       DisposeObject(de);
       s_io.Progress;
     end;
-  inherited DoClientDisconnect(Sender);
+  inherited DoIODisconnect(Sender);
 end;
 
 procedure TXNATService.IPV6Listen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);

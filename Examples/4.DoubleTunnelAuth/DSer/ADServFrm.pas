@@ -190,7 +190,7 @@ end;
 
 procedure TAuthDoubleServerForm.GetClientValueButtonClick(Sender: TObject);
 begin
-  SendTunnel.ProgressPerClientP(procedure(PeerClient: TPeerClient)
+  SendTunnel.ProgressPeerIOP(procedure(PeerClient: TPeerClient)
     var
       c: TPeerClient;
       de: TDataFrameEngine;

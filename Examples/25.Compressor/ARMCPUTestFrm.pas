@@ -44,7 +44,7 @@ var
   sour           : TMemoryStream64;
   dest           : TMemoryStream64;
   i              : Integer;
-  d, cTick, dTick: TTimeTickValue;
+  d, cTick, dTick: TTimeTick;
   c              : TCompressor;
   cmd5, dmd5     : TMD5;
 begin
@@ -92,7 +92,7 @@ var
   sour           : TMemoryStream64;
   dest           : TMemoryStream64;
   i              : Integer;
-  d, cTick, dTick: TTimeTickValue;
+  d, cTick, dTick: TTimeTick;
   c              : TCompressor;
   cmd5, dmd5     : TMD5;
 begin
@@ -194,7 +194,7 @@ var
   sour           : TMemoryStream64;
   dest           : TMemoryStream64;
   i              : Integer;
-  d, cTick, dTick: TTimeTickValue;
+  d, cTick, dTick: TTimeTick;
   cmd5, dmd5     : TMD5;
 begin
   GlobalLayout.Enabled := False;

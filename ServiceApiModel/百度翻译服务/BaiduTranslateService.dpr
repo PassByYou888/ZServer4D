@@ -50,21 +50,21 @@ var
 type
   TMyServer = class(TCommunicationFramework_Server_CrossSocket)
   public
-    procedure DoClientConnectAfter(Sender: TPeerIO); override;
-    procedure DoClientDisconnect(Sender: TPeerIO); override;
+    procedure DoIOConnectAfter(Sender: TPeerIO); override;
+    procedure DoIODisconnect(Sender: TPeerIO); override;
   end;
 
-procedure TMyServer.DoClientConnectAfter(Sender: TPeerIO);
+procedure TMyServer.DoIOConnectAfter(Sender: TPeerIO);
 begin
   DoStatus('id: %d ip:%s connected', [Sender.ID, Sender.PeerIP]);
   Sender.UserVariants['LastIP'] := Sender.PeerIP;
-  inherited DoClientConnectAfter(Sender);
+  inherited DoIOConnectAfter(Sender);
 end;
 
-procedure TMyServer.DoClientDisconnect(Sender: TPeerIO);
+procedure TMyServer.DoIODisconnect(Sender: TPeerIO);
 begin
   DoStatus('id: %d ip: %s disconnect', [Sender.ID, VarToStr(Sender.UserVariants['LastIP'])]);
-  inherited DoClientDisconnect(Sender);
+  inherited DoIODisconnect(Sender);
 end;
 
 procedure cmd_BaiduTranslate(Sender: TPeerIO; InData, OutData: TDataFrameEngine);

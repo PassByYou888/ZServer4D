@@ -690,15 +690,9 @@ begin
               Result := soAnd
           else if Decl.Same('xor') then
               Result := soXor
-          else if Decl.Same('div') then
+          else if Decl.Same('div', 'idiv', 'intdiv') then
               Result := soIntDiv
-          else if Decl.Same('idiv') then
-              Result := soIntDiv
-          else if Decl.Same('intdiv') then
-              Result := soIntDiv
-          else if Decl.Same('fdiv') then
-              Result := soDiv
-          else if Decl.Same('floatdiv') then
+          else if Decl.Same('fdiv', 'floatdiv') then
               Result := soDiv
           else if Decl.Same('mod') then
               Result := soMod
@@ -916,6 +910,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
 
 var
   cPos, bPos, ePos, i: Integer;
+  td: PTokenData;
   State: TExpressionParsingState;
   BlockIndent, PropIndent: Integer;
   Container: TSymbolExpression;
@@ -927,8 +922,6 @@ var
   p: PExpressionListData;
 begin
   Result := nil;
-
-  // ParsingEng.DeletedComment;
 
   if ParsingEng.ParsingData.Len < 1 then
       Exit;
@@ -947,7 +940,9 @@ begin
           Continue;
         end;
 
-      isSpecialSymbol := ParsingEng.isSpecialSymbol(cPos);
+      td := ParsingEng.TokenPos[cPos];
+
+      isSpecialSymbol := td^.tokenType = ttSpecialSymbol;
       if isSpecialSymbol then
         begin
           isNumber := False;
@@ -955,12 +950,26 @@ begin
           isAscii := False;
           isSymbol := False;
         end
+      else if (td^.tokenType = ttAscii) and
+        (
+        td^.Text.Same('and', 'or', 'xor', 'shl', 'shr')
+        or
+        td^.Text.Same('div', 'idiv', 'intdiv', 'fdiv', 'floatdiv')
+        or
+        td^.Text.Same('mod')
+        ) then
+        begin
+          isSymbol := True;
+          isNumber := False;
+          isTextDecl := False;
+          isAscii := False;
+        end
       else
         begin
-          isNumber := ParsingEng.isNumber(cPos);
-          isTextDecl := ParsingEng.isTextDecl(cPos);
-          isAscii := ParsingEng.isAscii(cPos);
-          isSymbol := ParsingEng.isSymbol(cPos);
+          isNumber := td^.tokenType = ttNumber;
+          isTextDecl := td^.tokenType = ttTextDecl;
+          isAscii := td^.tokenType = ttAscii;
+          isSymbol := td^.tokenType = ttSymbol;
         end;
 
       if (not(esWaitOp in State)) and (isSpecialSymbol or isNumber or isTextDecl or isAscii) then
@@ -972,18 +981,9 @@ begin
             end;
 
           bPos := cPos;
-          if isSpecialSymbol then
-            begin
-              ePos := ParsingEng.GetSpecialSymbolEndPos(cPos);
-              if ParsingEng.GetAsciiBeginPos(ePos) <= ePos then
-                  ePos := ParsingEng.GetSpecialSymbolEndPos(ParsingEng.GetAsciiEndPos(ePos));
-            end
-          else if isNumber then
-              ePos := ParsingEng.GetNumberEndPos(cPos)
-          else if isTextDecl then
-              ePos := ParsingEng.GetTextDeclEndPos(cPos)
-          else
-              ePos := ParsingEng.GetAsciiEndPos(cPos);
+          ePos := td^.ePos;
+          if (isSpecialSymbol) and (ParsingEng.GetAsciiBeginPos(ePos) <= ePos) then
+              ePos := ParsingEng.GetSpecialSymbolEndPos(ParsingEng.GetAsciiEndPos(ePos));
           cPos := ePos;
 
           Decl := ParsingEng.GetStr(bPos, ePos);
@@ -1918,24 +1918,27 @@ var
 
 begin
   Result := nil;
-  NewSymbExps := RebuildAllSymbol(SymbExps);
-  if NewSymbExps <> nil then
+  if SymbExps <> nil then
     begin
-      if DebugMode then
-          NewSymbExps.PrintDebug(True);
-
-      if NewSymbExps.GetSymbolCount([soBlockIndentBegin, soPropIndentBegin]) =
-        NewSymbExps.GetSymbolCount([soBlockIndentEnd, soPropIndentEnd]) then
+      NewSymbExps := RebuildAllSymbol(SymbExps);
+      if NewSymbExps <> nil then
         begin
-          OpContainer := TCoreClassListForObj.Create;
+          if DebugMode then
+              NewSymbExps.PrintDebug(True);
 
-          SymbolIndex := 0;
-          BuildAborted := False;
-          Result := ProcessIndent(soUnknow);
-          ProcessOpContainer(Result <> nil);
-          DisposeObject(OpContainer);
+          if NewSymbExps.GetSymbolCount([soBlockIndentBegin, soPropIndentBegin]) =
+            NewSymbExps.GetSymbolCount([soBlockIndentEnd, soPropIndentEnd]) then
+            begin
+              OpContainer := TCoreClassListForObj.Create;
+
+              SymbolIndex := 0;
+              BuildAborted := False;
+              Result := ProcessIndent(soUnknow);
+              ProcessOpContainer(Result <> nil);
+              DisposeObject(OpContainer);
+            end;
+          DisposeObject(NewSymbExps);
         end;
-      DisposeObject(NewSymbExps);
     end;
 end;
 
@@ -2779,7 +2782,7 @@ end;
 
 initialization
 
-OpCache := THashObjectList.Create(True, 8192);
+OpCache := THashObjectList.CustomCreate(True, 8192);
 
 finalization
 

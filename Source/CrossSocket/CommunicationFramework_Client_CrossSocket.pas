@@ -37,14 +37,14 @@ uses SysUtils, Classes,
 type
   TCommunicationFramework_Client_CrossSocket = class;
 
-  TContextIntfForClient = class(TPeerIOWithCrossSocketServer)
+  TCrossSocketClient_PeerIO = class(TCrossSocketServer_PeerIO)
   public
     OwnerClient: TCommunicationFramework_Client_CrossSocket;
   end;
 
   TCommunicationFramework_Client_CrossSocket = class(TCommunicationFrameworkClient)
   private
-    ClientIOIntf: TContextIntfForClient;
+    ClientIOIntf: TCrossSocketClient_PeerIO;
 
     FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
@@ -135,7 +135,7 @@ destructor TCommunicationFramework_Client_CrossSocket.Destroy;
 begin
   Disconnect;
   if (ClientIO <> nil) then
-      TContextIntfForClient(ClientIO).OwnerClient := nil;
+      TCrossSocketClient_PeerIO(ClientIO).OwnerClient := nil;
   inherited Destroy;
 end;
 
@@ -280,13 +280,13 @@ begin
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread,
     procedure
     var
-      cli: TContextIntfForClient;
+      cli: TCrossSocketClient_PeerIO;
     begin
-      if AConnection.UserObject is TContextIntfForClient then
+      if AConnection.UserObject is TCrossSocketClient_PeerIO then
         begin
-          cli := AConnection.UserObject as TContextIntfForClient;
+          cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
 
-          cli.ClientIntf := nil;
+          cli.IOInterface := nil;
           AConnection.UserObject := nil;
 
           if cli.OwnerClient <> nil then
@@ -305,19 +305,19 @@ end;
 
 procedure TGlobalCrossSocketClientPool.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
-  cli: TContextIntfForClient;
+  cli: TCrossSocketClient_PeerIO;
 begin
   if ALen <= 0 then
       Exit;
-  if not(AConnection.UserObject is TContextIntfForClient) then
+  if not(AConnection.UserObject is TCrossSocketClient_PeerIO) then
       Exit;
 
-  cli := AConnection.UserObject as TContextIntfForClient;
+  cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
 
   if cli = nil then
       Exit;
 
-  if (cli.ClientIntf = nil) then
+  if (cli.IOInterface = nil) then
       Exit;
 
   if cli.OwnerClient.FEnabledAtomicLockAndMultiThread then
@@ -340,21 +340,21 @@ end;
 
 procedure TGlobalCrossSocketClientPool.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
-  cli: TContextIntfForClient;
+  cli: TCrossSocketClient_PeerIO;
 begin
-  if not(AConnection.UserObject is TContextIntfForClient) then
+  if not(AConnection.UserObject is TCrossSocketClient_PeerIO) then
       Exit;
 
-  cli := AConnection.UserObject as TContextIntfForClient;
+  cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
 
-  if (cli.ClientIntf = nil) then
+  if (cli.IOInterface = nil) then
       Exit;
 end;
 
 function TGlobalCrossSocketClientPool.BuildConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
 var
-  dt: TTimeTickValue;
-  cli: TContextIntfForClient;
+  dt: TTimeTick;
+  cli: TCrossSocketClient_PeerIO;
 begin
   LastResult := False;
   LastCompleted := False;
@@ -394,7 +394,7 @@ begin
 
   if LastResult then
     begin
-      cli := TContextIntfForClient.Create(BuildIntf, LastConnection.ConnectionIntf);
+      cli := TCrossSocketClient_PeerIO.Create(BuildIntf, LastConnection.ConnectionIntf);
       cli.OwnerClient := BuildIntf;
 
       LastConnection.UserObject := cli;
@@ -454,9 +454,9 @@ begin
           TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread,
             procedure
             var
-              cli: TContextIntfForClient;
+              cli: TCrossSocketClient_PeerIO;
             begin
-              cli := TContextIntfForClient.Create(BuildIntf, AConnection.ConnectionIntf);
+              cli := TCrossSocketClient_PeerIO.Create(BuildIntf, AConnection.ConnectionIntf);
               cli.OwnerClient := BuildIntf;
               AConnection.UserObject := cli;
               cli.OwnerClient.ClientIOIntf := cli;
@@ -485,3 +485,4 @@ DisposeObject(ClientPool);
 ClientPool := nil;
 
 end.
+

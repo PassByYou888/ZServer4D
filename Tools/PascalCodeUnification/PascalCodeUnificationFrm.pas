@@ -318,8 +318,8 @@ begin
   AddFileButton.Enabled := False;
   FileListMemo.Enabled := False;
 
-  uHash := THashList.Create(8192);
-  nHash := THashVariantList.Create($FFFF);
+  uHash := THashList.CustomCreate(8192);
+  nHash := THashVariantList.CustomCreate($FFFF);
 
   ProgressBar.Max := FileListMemo.Lines.Count - 1;
   ProgressBar.Position := 0;

@@ -28,7 +28,7 @@ uses Windows, SysUtils, Classes, Messages,
 type
   TCommunicationFramework_Client_ICS = class;
 
-  TPeerClientIntfForICS = class(TPeerIO)
+  TICSClient_PeerIO = class(TPeerIO)
   public
     function Context: TCommunicationFramework_Client_ICS;
 
@@ -49,7 +49,7 @@ type
   TCommunicationFramework_Client_ICS = class(TCommunicationFrameworkClient)
   protected
     FDriver: TClientICSContextIntf;
-    FClient: TPeerClientIntfForICS;
+    FClient: TICSClient_PeerIO;
 
     FAsyncConnecting: Boolean;
     FOnAsyncConnectNotifyCall: TStateCall;
@@ -71,7 +71,7 @@ type
     procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
     procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
 
-    function Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTickValue): Boolean; overload;
+    function Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTick): Boolean; overload;
     function Connect(Host, Port: SystemString): Boolean; overload;
     function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     procedure Disconnect; override;
@@ -86,51 +86,51 @@ type
 
 implementation
 
-function TPeerClientIntfForICS.Context: TCommunicationFramework_Client_ICS;
+function TICSClient_PeerIO.Context: TCommunicationFramework_Client_ICS;
 begin
-  Result := ClientIntf as TCommunicationFramework_Client_ICS;
+  Result := IOInterface as TCommunicationFramework_Client_ICS;
 end;
 
-function TPeerClientIntfForICS.Connected: Boolean;
+function TICSClient_PeerIO.Connected: Boolean;
 begin
   Result := Context.Connected;
 end;
 
-procedure TPeerClientIntfForICS.Disconnect;
+procedure TICSClient_PeerIO.Disconnect;
 begin
   Context.Disconnect;
 end;
 
-function TPeerClientIntfForICS.GetPeerIP: SystemString;
+function TICSClient_PeerIO.GetPeerIP: SystemString;
 begin
   Result := Context.FDriver.addr;
 end;
 
-procedure TPeerClientIntfForICS.ContinueResultSend;
+procedure TICSClient_PeerIO.ContinueResultSend;
 begin
   inherited ContinueResultSend;
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TICSClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Connected then
       Context.FDriver.Send(buff, Size);
 end;
 
-procedure TPeerClientIntfForICS.WriteBufferClose;
+procedure TICSClient_PeerIO.WriteBufferClose;
 begin
   if Connected then
       Context.FDriver.TryToSend;
 end;
 
-procedure TPeerClientIntfForICS.WriteBufferFlush;
+procedure TICSClient_PeerIO.WriteBufferFlush;
 begin
   if Connected then
       Context.FDriver.TryToSend;
 end;
 
-procedure TPeerClientIntfForICS.WriteBufferOpen;
+procedure TICSClient_PeerIO.WriteBufferOpen;
 begin
 end;
 
@@ -203,7 +203,7 @@ begin
   FDriver.KeepAliveInterval := 1 * 1000;
   FDriver.OnDataAvailable := DataAvailable;
   FDriver.OnSessionClosed := SessionClosed;
-  FClient := TPeerClientIntfForICS.Create(Self, Self);
+  FClient := TICSClient_PeerIO.Create(Self, Self);
 
   FAsyncConnecting := False;
   FOnAsyncConnectNotifyCall := nil;
@@ -280,9 +280,9 @@ begin
   AsyncConnect(addr, Port, nil, nil, OnResult);
 end;
 
-function TCommunicationFramework_Client_ICS.Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTickValue): Boolean;
+function TCommunicationFramework_Client_ICS.Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTick): Boolean;
 var
-  AStopTime: TTimeTickValue;
+  AStopTime: TTimeTick;
 begin
   Disconnect;
 
@@ -357,7 +357,7 @@ procedure TCommunicationFramework_Client_ICS.Disconnect;
 begin
   FDriver.Close;
   DisposeObject(FClient);
-  FClient := TPeerClientIntfForICS.Create(Self, Self);
+  FClient := TICSClient_PeerIO.Create(Self, Self);
 end;
 
 function TCommunicationFramework_Client_ICS.Connected: Boolean;

@@ -114,7 +114,7 @@ type
   public
     ManServAddr, Regname, RegAddr: SystemString;
     RegRecvPort, RegSendPort: Word;
-    LastEnabled: TTimeTickValue;
+    LastEnabled: TTimeTick;
     WorkLoad: Word;
     ServerType: TServerType;
     SuccessEnabled: Boolean;
@@ -143,7 +143,7 @@ type
   public
     ServerConfig: TSectionTextData;
     ServManClientPool: TServerManager_ClientPool;
-    LastTimeTick: TTimeTickValue;
+    LastTimeTick: TTimeTick;
 
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
     destructor Destroy; override;
@@ -157,6 +157,13 @@ type
 function serverType2Str(t: TServerType): SystemString;
 
 implementation
+
+const
+  C_RegServer = '__@RegServer';
+  C_Offline = '__@Offline';
+  C_EnabledServer = '__@EnabledServer';
+  C_AntiIdle = '__@AntiIdle';
+
 
 function serverType2Str(t: TServerType): SystemString;
 begin
@@ -230,7 +237,7 @@ begin
   Owner := AOwner;
   NetRecvTunnelIntf := Owner.DefaultClientClass.Create;
   NetSendTunnelIntf := Owner.DefaultClientClass.Create;
-  NetSendTunnelIntf.PrintParams['AntiIdle'] := False;
+  NetSendTunnelIntf.PrintParams[C_AntiIdle] := False;
   ConnectInfo.Regname := '';
   ConnectInfo.ManServAddr := '';
   ConnectInfo.RegAddr := '';
@@ -257,15 +264,15 @@ end;
 procedure TServerManager_Client.RegisterCommand;
 begin
   inherited RegisterCommand;
-  NetRecvTunnelIntf.RegisterDirectStream('RegServer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RegServer;
-  NetRecvTunnelIntf.RegisterDirectStream('Offline').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_Offline;
+  NetRecvTunnelIntf.RegisterDirectStream(C_RegServer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RegServer;
+  NetRecvTunnelIntf.RegisterDirectStream(C_Offline).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_Offline;
 end;
 
 procedure TServerManager_Client.UnRegisterCommand;
 begin
   inherited UnRegisterCommand;
-  NetRecvTunnelIntf.DeleteRegistedCMD('RegServer');
-  NetRecvTunnelIntf.DeleteRegistedCMD('Offline');
+  NetRecvTunnelIntf.DeleteRegistedCMD(C_RegServer);
+  NetRecvTunnelIntf.DeleteRegistedCMD(C_Offline);
 end;
 
 function TServerManager_Client.ConnectAndLink(addr: SystemString; const RecvPort, SendPort: Word): Boolean;
@@ -289,7 +296,7 @@ var
 begin
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteWORD(WorkLoad);
-  SendTunnel.SendDirectStreamCmd('AntiIdle', sendDE);
+  SendTunnel.SendDirectStreamCmd(C_AntiIdle, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -319,7 +326,7 @@ begin
 
   DoStatus('send enabled cmd:%s %s [n:%s][addr:%s][r:%d][s:%d][w:%d]', [ManServAddr, serverType2Str(ServerType), Regname, RegAddr, RegRecvPort, RegSendPort, 0]);
 
-  SendTunnel.WaitSendStreamCmd('EnabledServer', SendData, ResultData, 5000);
+  SendTunnel.WaitSendStreamCmd(C_EnabledServer, SendData, ResultData, 5000);
 
   if ResultData.Count = 2 then
     begin
@@ -594,7 +601,7 @@ end;
 
 procedure TServerManager.PostExecute_ServerOffline(Sender: TNPostExecute);
 begin
-  SendTunnel.BroadcastSendDirectStreamCmd('Offline', Sender.DataEng);
+  SendTunnel.BroadcastSendDirectStreamCmd(C_Offline, Sender.DataEng);
 end;
 
 procedure TServerManager.PostExecute_RegServer(Sender: TNPostExecute);
@@ -620,7 +627,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd('RegServer', sendDE);
+  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -695,7 +702,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd('RegServer', sendDE);
+  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
@@ -737,7 +744,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd('RegServer', sendDE);
+  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -799,7 +806,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd('RegServer', sendDE);
+  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -828,15 +835,15 @@ end;
 procedure TServerManager.RegisterCommand;
 begin
   inherited RegisterCommand;
-  FRecvTunnel.RegisterStream('EnabledServer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_EnabledServer;
-  FRecvTunnel.RegisterDirectStream('AntiIdle').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_AntiIdle;
+  FRecvTunnel.RegisterStream(C_EnabledServer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_EnabledServer;
+  FRecvTunnel.RegisterDirectStream(C_AntiIdle).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_AntiIdle;
 end;
 
 procedure TServerManager.UnRegisterCommand;
 begin
   inherited UnRegisterCommand;
-  FRecvTunnel.DeleteRegistedCMD('EnabledServer');
-  FRecvTunnel.DeleteRegistedCMD('AntiIdle');
+  FRecvTunnel.DeleteRegistedCMD(C_EnabledServer);
+  FRecvTunnel.DeleteRegistedCMD(C_AntiIdle);
 end;
 
 procedure TServerManager.Progress;
@@ -874,3 +881,5 @@ begin
 end;
 
 end.
+
+

@@ -165,4 +165,10 @@ object Form1: TForm1
     Left = 408
     Top = 224
   end
+  object BusyLabel: TLabel
+    Position.X = 8.000000000000000000
+    Position.Y = 352.000000000000000000
+    Text = 'BusyLabel'
+    TabOrder = 13
+  end
 end

@@ -422,10 +422,6 @@ type
     property Buffer: UInt64 read FBuffer write FBuffer;
   end;
 
-  TRunTimeDataType = (rdtString, rdtInteger, rdtLongWord, rdtWORD, rdtByte, rdtSingle, rdtDouble,
-    rdtArrayInteger, rdtArraySingle, rdtArrayDouble, rdtStream, rdtVariant, rdtInt64, rdtArrayShortInt, rdtCardinal, rdtUInt64, rdtArrayByte,
-    rdtArrayInt64);
-
   TDataFrameEngine = class;
 
   TDataFrameEngineReader = class sealed(TCoreClassObject)
@@ -491,6 +487,10 @@ type
   end;
 
   TDataFrameEngine = class(TCoreClassObject)
+  private type
+    TRunTimeDataType = (rdtString, rdtInteger, rdtLongWord, rdtWORD, rdtByte, rdtSingle, rdtDouble,
+      rdtArrayInteger, rdtArraySingle, rdtArrayDouble, rdtStream, rdtVariant, rdtInt64, rdtArrayShortInt, rdtCardinal, rdtUInt64, rdtArrayByte,
+      rdtArrayInt64);
   private
     FDataList: TCoreClassListForObj;
     FReader: TDataFrameEngineReader;

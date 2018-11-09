@@ -30,7 +30,7 @@ type
   public
     // 从服务器获取外部定制化处理缓冲区接口
     // 这里的buffer全部是碎片化缓冲区
-    procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt); override;
+    procedure OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt; var FillDone: Boolean); override;
   end;
 
   TMyClient = class(TCommunicationFramework_Client_CrossSocket)
@@ -41,7 +41,7 @@ type
     destructor Destroy; override;
     // 从服务器获取外部定制化处理缓冲区接口
     // 这里的buffer全部是碎片化缓冲区
-    procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt); override;
+    procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean); override;
   end;
 
   TCustomProtocolForm = class(TForm)
@@ -112,8 +112,13 @@ begin
     end;
 end;
 
-procedure TMyServer.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt);
+procedure TMyServer.OnReceiveBuffer(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
 begin
+  // FillDone的作用
+  // 如果FillDone是True，内核会认为，你已经处理过这个缓冲区了，当退出该事件后，不会再进行处理
+  // 如果FillDone是False，内核会在退出该事件后，按ZS的正常机制进行处理，包括使用秘钥拖密，解压
+  // 在Protocol := cpCustom情况下，FillDone都是True，如果Protocol := cpZServer，该事件不会被触发
+
   // 从服务器获取外部定制化处理缓冲区接口
   // 这里的buffer全部是碎片化缓冲区
   // 我们将碎片缓冲区追加写入到myBuffer
@@ -132,8 +137,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TMyClient.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt);
+procedure TMyClient.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
 begin
+  // FillDone的作用
+  // 如果FillDone是True，内核会认为，你已经处理过这个缓冲区了，当退出该事件后，不会再进行处理
+  // 如果FillDone是False，内核会在退出该事件后，按ZS的正常机制进行处理，包括使用秘钥拖密，解压
+  // 在Protocol := cpCustom情况下，FillDone都是True，如果Protocol := cpZServer，该事件不会被触发
+
   // 从服务器获取外部定制化处理缓冲区接口
   // 这里的buffer全部是碎片化缓冲区
   // 我们将碎片缓冲区追加写入到myBuffer

@@ -124,7 +124,7 @@ begin
       if (Identifier.Len = 0) or (umlMultipleMatch(True, Identifier, p^.Identifier)) then
           OutData.WriteString(p^.Host);
     end;
-  Sender.DelayClose;
+  Sender.DelayClose(15);
 end;
 
 constructor THostQueryServer.Create;

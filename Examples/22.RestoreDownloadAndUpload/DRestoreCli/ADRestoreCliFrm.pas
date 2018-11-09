@@ -171,8 +171,8 @@ var
 begin
   lst := TCoreClassStringList.Create;
   client.GetPublicFileList('*.*', lst);
-  hashSiz := THashVariantList.Create(1024);
-  hashMD5 := THashStringList.Create(1024);
+  hashSiz := THashVariantList.CustomCreate(1024);
+  hashMD5 := THashStringList.CustomCreate(1024);
 
   // 异步获取远程文件信息，由于在一个for中循环遍历所有而不经过Progress(时间片主循环)，所以这里就是一个批次
   for i := 0 to lst.Count - 1 do

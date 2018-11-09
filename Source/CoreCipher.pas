@@ -272,7 +272,9 @@ type
     csRC6, csSerpent, csMars, csRijndael, csTwoFish);
 
   TCipherSecuritys = set of TCipherSecurity;
+
   TCipherSecurityArray = array of TCipherSecurity;
+
   TCipherKeyStyle = (cksNone, cksKey64, cks3Key64, cksKey128, cksKey256, cks2IntKey, cksIntKey, ckyDynamicKey);
   PCipherKeyBuffer = ^TCipherKeyBuffer;
   TCipherKeyBuffer = TBytes;
@@ -322,7 +324,7 @@ type
       ckyDynamicKey, // csRC6
       ckyDynamicKey, // csSerpent
       ckyDynamicKey, // csMars
-      ckyDynamicKey, // Rijndael
+      ckyDynamicKey, // csRijndael
       ckyDynamicKey  // csTwoFish
       );
   public
@@ -365,6 +367,8 @@ type
 
     class function BufferToHex(const Buf; BufSize: Cardinal): TPascalString;
     class function HexToBuffer(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean;
+
+    class function CopyKey(const k: TCipherKeyBuffer): TCipherKeyBuffer;
 
     class procedure GenerateNoneKey(var output: TCipherKeyBuffer);
     class procedure GenerateKey64(const s: TPascalString; var output: TCipherKeyBuffer); overload;
@@ -2623,6 +2627,12 @@ begin
   Result := True;
 end;
 
+class function TCipher.CopyKey(const k: TCipherKeyBuffer): TCipherKeyBuffer;
+begin
+  SetLength(Result, length(k));
+  CopyPtr(@k[0], @Result[0], length(k));
+end;
+
 class procedure TCipher.GenerateNoneKey(var output: TCipherKeyBuffer);
 begin
   SetLength(output, C_Byte_Size);
@@ -4789,7 +4799,7 @@ var
   k: TCipherKeyBuffer;
   cs: TCipherSecurity;
   sourHash: TSHA1Digest;
-  d: Cardinal;
+  d: TTimeTick;
 
   hs: THashSecurity;
   hByte: TBytes;
@@ -5003,7 +5013,7 @@ begin
     begin
       d := GetTimeTick;
       TCipher.GenerateHashByte(hs, Dest.Memory, Dest.Size, hByte);
-      DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashSecurity), Integer(hs)), Round((GetTimeTick - d))]);
+      DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashSecurity), Integer(hs)), (GetTimeTick - d)]);
     end;
 
   DoStatus(#13#10'all test done!');

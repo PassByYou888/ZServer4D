@@ -26,6 +26,7 @@ type
     Label3: TLabel;
     Button8: TButton;
     Timer1: TTimer;
+    BusyLabel: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -142,7 +143,7 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 var
   key: TBytes;
-  x:Integer;
+  x: Integer;
 begin
   AddDoStatusHookM(Self, Backcall_DoStatus);
   SingleTunnelClient := TXPhysicsClient.Create;
@@ -164,10 +165,10 @@ begin
   Timer1.Enabled := True;
 
   try
-    x:=12;
+    x := 12;
     exit;
   finally
-    x:=11;
+      x := 11;
   end;
 end;
 
@@ -175,6 +176,13 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 begin
   SingleTunnelClient.Progress;
   DoubleTunnelClient.Progress;
+
+  if SingleTunnelClient.CheckIOBusy or
+    DoubleTunnelClient.RecvTunnel.CheckIOBusy or
+    DoubleTunnelClient.SendTunnel.CheckIOBusy then
+      BusyLabel.Text := 'Busy...'
+  else
+      BusyLabel.Text := 'IDLE...';
 end;
 
 procedure TForm1.Backcall_DoStatus(AText: SystemString; const ID: Integer);

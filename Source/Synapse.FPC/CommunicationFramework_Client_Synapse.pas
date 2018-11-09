@@ -27,7 +27,7 @@ uses SysUtils, Classes,
 type
   TCommunicationFramework_Client_Synapse = class;
 
-  TPeerIOWithSynapseClient = class(TPeerIO)
+  TSynapseClient_PeerIO = class(TPeerIO)
   protected
     LastPeerIP: SystemString;
     SendBuffQueue: TCoreClassListForObj;
@@ -52,7 +52,7 @@ type
   TCommunicationFramework_Client_Synapse = class(TCommunicationFrameworkClient)
   private
     Sock: TTCPBlockSocket;
-    InternalClient: TPeerIOWithSynapseClient;
+    InternalClient: TSynapseClient_PeerIO;
     SockConnected: Boolean;
   protected
     procedure DoConnected(Sender: TPeerIO); override;
@@ -74,7 +74,7 @@ type
 implementation
 
 
-procedure TPeerIOWithSynapseClient.CreateAfter;
+procedure TSynapseClient_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
   LastPeerIP := '';
@@ -82,7 +82,7 @@ begin
   CurrentBuff := TMemoryStream64.Create;
 end;
 
-destructor TPeerIOWithSynapseClient.Destroy;
+destructor TSynapseClient_PeerIO.Destroy;
 var
   i: Integer;
 begin
@@ -95,22 +95,22 @@ begin
   inherited Destroy;
 end;
 
-function TPeerIOWithSynapseClient.Context: TCommunicationFramework_Client_Synapse;
+function TSynapseClient_PeerIO.Context: TCommunicationFramework_Client_Synapse;
 begin
   Result := OwnerFramework as TCommunicationFramework_Client_Synapse;
 end;
 
-function TPeerIOWithSynapseClient.Connected: Boolean;
+function TSynapseClient_PeerIO.Connected: Boolean;
 begin
   Result := Context.SockConnected;
 end;
 
-procedure TPeerIOWithSynapseClient.Disconnect;
+procedure TSynapseClient_PeerIO.Disconnect;
 begin
   Context.Disconnect;
 end;
 
-procedure TPeerIOWithSynapseClient.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TSynapseClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
       Exit;
@@ -119,14 +119,14 @@ begin
       CurrentBuff.write(Pointer(buff)^, Size);
 end;
 
-procedure TPeerIOWithSynapseClient.WriteBufferOpen;
+procedure TSynapseClient_PeerIO.WriteBufferOpen;
 begin
   if not Connected then
       Exit;
   CurrentBuff.Clear;
 end;
 
-procedure TPeerIOWithSynapseClient.WriteBufferFlush;
+procedure TSynapseClient_PeerIO.WriteBufferFlush;
 begin
   if not Connected then
       Exit;
@@ -137,14 +137,14 @@ begin
     end;
 end;
 
-procedure TPeerIOWithSynapseClient.WriteBufferClose;
+procedure TSynapseClient_PeerIO.WriteBufferClose;
 begin
   if not Connected then
       Exit;
   CurrentBuff.Clear;
 end;
 
-function TPeerIOWithSynapseClient.GetPeerIP: SystemString;
+function TSynapseClient_PeerIO.GetPeerIP: SystemString;
 begin
   if Connected then
     begin
@@ -155,12 +155,12 @@ begin
       Result := LastPeerIP;
 end;
 
-function TPeerIOWithSynapseClient.WriteBufferEmpty: Boolean;
+function TSynapseClient_PeerIO.WriteBufferEmpty: Boolean;
 begin
   Result := SendBuffQueue.Count = 0;
 end;
 
-procedure TPeerIOWithSynapseClient.Progress;
+procedure TSynapseClient_PeerIO.Progress;
 begin
   inherited Progress;
   ProcessAllSendCmd(nil, False, False);
@@ -184,7 +184,7 @@ begin
   Sock := TTCPBlockSocket.Create;
   Sock.Family := TSocketFamily.SF_IP4;
   Sock.CreateSocket;
-  InternalClient := TPeerIOWithSynapseClient.Create(Self, Sock);
+  InternalClient := TSynapseClient_PeerIO.Create(Self, Sock);
   SockConnected := False;
 end;
 
@@ -280,7 +280,7 @@ end;
 
 function TCommunicationFramework_Client_Synapse.Connect(addr: SystemString; Port: Word): Boolean;
 var
-  AStopTime: TTimeTickValue;
+  AStopTime: TTimeTick;
 begin
   Result := False;
   try
@@ -334,7 +334,7 @@ begin
   Sock.CloseSocket;
   Sock.CreateSocket;
   DisposeObject(InternalClient);
-  InternalClient := TPeerIOWithSynapseClient.Create(Self, Sock);
+  InternalClient := TSynapseClient_PeerIO.Create(Self, Sock);
 end;
 
 initialization

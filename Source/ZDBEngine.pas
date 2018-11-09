@@ -299,7 +299,7 @@ type
     QueryHnd: PHeader;
     index: NativeInt;
     TaskTag: SystemString;
-    deltaTime, newTime: TTimeTickValue;
+    deltaTime, newTime: TTimeTick;
     Aborted: Boolean;
 
     function ID: Cardinal; inline;
@@ -335,10 +335,10 @@ type
     FItmSrHnd: THeader;
     FState: TQueryState;
 
-    FTriggerTime: TTimeTickValue;
+    FTriggerTime: TTimeTick;
     FTaskTag: SystemString;
 
-    FLastTime: TTimeTickValue;
+    FLastTime: TTimeTick;
 
     FStoped, FPaused: Boolean;
 
@@ -595,7 +595,7 @@ type
     function QueryP(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
 {$ENDIF}
     procedure WaitQueryThread; overload;
-    procedure WaitQueryThread(waitTime: TTimeTickValue); overload;
+    procedure WaitQueryThread(waitTime: TTimeTick); overload;
 
     // query state
     function QueryProcessing: Boolean;
@@ -729,7 +729,7 @@ end;
 
 constructor TDBEngineVL.Create;
 begin
-  inherited Create(2);
+  inherited CustomCreate(2);
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
@@ -752,7 +752,7 @@ end;
 
 constructor TDBEngineVT.Create;
 begin
-  inherited Create(2);
+  inherited CustomCreate(2);
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
@@ -1833,7 +1833,7 @@ end;
 
 function TQueryTask.ProcessQuery: Boolean;
 var
-  TT: TTimeTickValue;
+  TT: TTimeTick;
 begin
   Result := False;
   if FStoped then
@@ -2106,10 +2106,10 @@ begin
   FreeOnTerminate := True;
   Paused := True;
 
-  RemoveQueue := TInt64HashPointerList.Create(1024);
+  RemoveQueue := TInt64HashPointerList.CustomCreate(1024);
   RemoveQueue.AutoFreeData := True;
   RemoveQueue.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}RemoveDeleteProc;
-  RemoveCompletedQueue := TInt64HashPointerList.Create(1024);
+  RemoveCompletedQueue := TInt64HashPointerList.CustomCreate(1024);
   RemoveCompletedQueue.AutoFreeData := False;
 end;
 
@@ -2227,9 +2227,9 @@ begin
 
   FNotifyIntf := nil;
 
-  FCache := TInt64HashObjectList.Create(DefaultCacheBufferLength);
+  FCache := TInt64HashObjectList.CustomCreate(DefaultCacheBufferLength);
   FCache.AutoFreeData := True;
-  FStreamCache := TInt64HashObjectList.Create(DefaultCacheBufferLength);
+  FStreamCache := TInt64HashObjectList.CustomCreate(DefaultCacheBufferLength);
   FStreamCache.AutoFreeData := True;
   FStreamCache.AccessOptimization := True;
 
@@ -2459,7 +2459,7 @@ procedure TDBStoreBase.SaveToStream(stream: TCoreClassStream);
 var
   DestDB: TObjectDataManager;
 begin
-  DestDB := TObjectDataManager.CreateAsStream(TMemoryStream64.Create, '', ObjectDataMarshal.ID, False, True, False);
+  DestDB := TObjectDataManager.CreateAsStream(stream, '', ObjectDataMarshal.ID, False, True, False);
   CompressTo(DestDB);
   DisposeObject(DestDB);
 end;
@@ -3202,9 +3202,9 @@ begin
       CheckThreadSynchronize;
 end;
 
-procedure TDBStoreBase.WaitQueryThread(waitTime: TTimeTickValue);
+procedure TDBStoreBase.WaitQueryThread(waitTime: TTimeTick);
 var
-  st: TTimeTickValue;
+  st: TTimeTick;
 begin
   st := GetTimeTick + waitTime;
   while (not FQueryThread.Paused) and (waitTime > 0) and (GetTimeTick < st) do

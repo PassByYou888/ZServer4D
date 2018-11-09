@@ -26,7 +26,7 @@ uses SysUtils, Classes,
   NotifyObjectBase;
 
 type
-  TPeerIOWithRefrenceClient = class(TPeerIO)
+  TClient_PeerIO = class(TPeerIO)
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -68,12 +68,13 @@ type
     procedure TriggerDoConnectFinished; override;
 
     { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
-    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); override;
     { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
-    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); override;
+{$IFNDEF FPC}
     { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
-    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
-
+    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); override;
+{$ENDIF FPC}
     { Core interface: Blocking connection, which must be made sure that the encryption protocol has been negotiated before the call returns to state, refer to CrossSocket or Indy's interface imp }
     function Connect(addr: SystemString; Port: Word): Boolean; override;
 
@@ -92,54 +93,54 @@ type
 implementation
 
 
-procedure TPeerIOWithRefrenceClient.CreateAfter;
+procedure TClient_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
 end;
 
-destructor TPeerIOWithRefrenceClient.Destroy;
+destructor TClient_PeerIO.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TPeerIOWithRefrenceClient.Connected: Boolean;
+function TClient_PeerIO.Connected: Boolean;
 begin
   Result := True;
 end;
 
-procedure TPeerIOWithRefrenceClient.Disconnect;
+procedure TClient_PeerIO.Disconnect;
 begin
 end;
 
-procedure TPeerIOWithRefrenceClient.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
       Exit;
 end;
 
-procedure TPeerIOWithRefrenceClient.WriteBufferOpen;
+procedure TClient_PeerIO.WriteBufferOpen;
 begin
 end;
 
-procedure TPeerIOWithRefrenceClient.WriteBufferFlush;
+procedure TClient_PeerIO.WriteBufferFlush;
 begin
 end;
 
-procedure TPeerIOWithRefrenceClient.WriteBufferClose;
+procedure TClient_PeerIO.WriteBufferClose;
 begin
 end;
 
-function TPeerIOWithRefrenceClient.GetPeerIP: SystemString;
+function TClient_PeerIO.GetPeerIP: SystemString;
 begin
   Result := '';
 end;
 
-function TPeerIOWithRefrenceClient.WriteBufferEmpty: Boolean;
+function TClient_PeerIO.WriteBufferEmpty: Boolean;
 begin
   Result := True;
 end;
 
-procedure TPeerIOWithRefrenceClient.Progress;
+procedure TClient_PeerIO.Progress;
 begin
   inherited Progress;
   ProcessAllSendCmd(nil, False, False);
@@ -176,10 +177,14 @@ begin
   inherited;
 end;
 
+{$IFNDEF FPC}
+
 procedure TCommunicationFramework_Client_Refrence.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
   inherited;
 end;
+{$ENDIF FPC}
+
 
 function TCommunicationFramework_Client_Refrence.Connect(addr: SystemString; Port: Word): Boolean;
 begin

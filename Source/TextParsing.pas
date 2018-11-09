@@ -140,7 +140,10 @@ type
     function GetTokens(idx: Integer): PTokenData;
     property Tokens[idx: Integer]: PTokenData read GetTokens;
     property Token[idx: Integer]: PTokenData read GetTokens;
-    function TokenCombine(const bTokenI, eTokenI: Integer): TPascalString;
+    function FirstToken: PTokenData;
+    function LastToken: PTokenData;
+    function TokenCombine(const bTokenI, eTokenI: Integer; const acceptT: TTokenTypes): TPascalString; overload;
+    function TokenCombine(const bTokenI, eTokenI: Integer): TPascalString; overload;
     { token probe }
     function TokenProbeL(startI: Integer; const acceptT: TTokenTypes): PTokenData; overload;
     function TokenProbeL(startI: Integer; const t: TPascalString): PTokenData; overload;
@@ -148,6 +151,8 @@ type
     function TokenProbeR(startI: Integer; const acceptT: TTokenTypes): PTokenData; overload;
     function TokenProbeR(startI: Integer; const t: TPascalString): PTokenData; overload;
     function TokenProbeR(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData; overload;
+    { Free to match all strings from Token[StartIndex] left to right, including any symbols. return token }
+    function TokenStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
     { misc }
     function GetText(const bPos, ePos: Integer): TPascalString; overload;
     function GetStr(const bPos, ePos: Integer): TPascalString; overload;
@@ -348,7 +353,7 @@ begin
       if ComparePosStr(cPos, #39#39#39#39) then
         begin
           cPos := CompareTextDeclGetEndPos(cPos + 4);
-          exit;
+          exit(cPos);
         end;
       inc(cPos, 1);
       while ParsingData.Text[cPos] <> #39 do
@@ -1801,9 +1806,20 @@ begin
   Result := PTokenData(ParsingData.Cache.TokenDataList[idx]);
 end;
 
-function TTextParsing.TokenCombine(const bTokenI, eTokenI: Integer): TPascalString;
+function TTextParsing.FirstToken: PTokenData;
+begin
+  Result := GetTokens(0);
+end;
+
+function TTextParsing.LastToken: PTokenData;
+begin
+  Result := GetTokens(TokenCount - 1);
+end;
+
+function TTextParsing.TokenCombine(const bTokenI, eTokenI: Integer; const acceptT: TTokenTypes): TPascalString;
 var
   bi, ei: Integer;
+  p: PTokenData;
 begin
   if bTokenI > eTokenI then
     begin
@@ -1819,9 +1835,16 @@ begin
   Result := '';
   while bi <= ei do
     begin
-      Result.Append(GetTokens(bi)^.Text);
+      p := Tokens[bi];
+      if p^.tokenType in acceptT then
+          Result.Append(p^.Text);
       inc(bi);
     end;
+end;
+
+function TTextParsing.TokenCombine(const bTokenI, eTokenI: Integer): TPascalString;
+begin
+  Result := TokenCombine(bTokenI, eTokenI, [ttTextDecl, ttComment, ttNumber, ttSymbol, ttAscii, ttSpecialSymbol, ttUnknow]);
 end;
 
 function TTextParsing.TokenProbeL(startI: Integer; const acceptT: TTokenTypes): PTokenData;
@@ -1956,6 +1979,28 @@ begin
     end;
 end;
 
+function TTextParsing.TokenStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
+var
+  idx: Integer;
+  p: PTokenData;
+begin
+  Result := nil;
+  if ParsingData.Cache.TokenDataList.Count <= 0 then
+      exit;
+  idx := startI;
+  while idx < ParsingData.Cache.TokenDataList.Count do
+    begin
+      p := PTokenData(ParsingData.Cache.TokenDataList[idx]);
+      if (p^.tokenType in acceptT) and (ComparePosStr(p^.bPos, t)) then
+        begin
+          Result := p;
+          exit;
+        end
+      else
+          inc(idx);
+    end;
+end;
+
 function TTextParsing.GetText(const bPos, ePos: Integer): TPascalString;
 begin
   Result := GetStr(bPos, ePos);
@@ -1996,9 +2041,7 @@ begin
           Result.x := 0;
         end
       else if not CharIn(ParsingData.Text[i], [#13]) then
-        begin
           inc(Result.x);
-        end;
     end;
 end;
 

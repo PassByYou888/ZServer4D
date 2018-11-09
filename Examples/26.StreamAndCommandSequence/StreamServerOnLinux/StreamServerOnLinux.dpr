@@ -7,6 +7,9 @@ program StreamServerOnLinux;
 
 uses
   SysUtils,
+{$IFDEF MSWINDOWS}
+  Windows,
+{$ENDIF MSWINDOWS}
   CoreClasses,
   PascalStrings,
   UnicodeMixedLib,
@@ -47,8 +50,8 @@ type
     constructor Create; override;
     destructor Destroy; override;
 
-    procedure DoClientConnectAfter(Sender: TPeerIO); override;
-    procedure DoClientDisconnect(Sender: TPeerIO); override;
+    procedure DoIOConnectAfter(Sender: TPeerIO); override;
+    procedure DoIODisconnect(Sender: TPeerIO); override;
   end;
 
 constructor TSingleTunnelServer_UserSpecial.Create(AOwner: TPeerIO);
@@ -150,13 +153,13 @@ begin
   inherited;
 end;
 
-procedure TSingleTunnelServer.DoClientConnectAfter(Sender: TPeerIO);
+procedure TSingleTunnelServer.DoIOConnectAfter(Sender: TPeerIO);
 begin
   inherited;
   Sender.Print('SingleTunnel connected');
 end;
 
-procedure TSingleTunnelServer.DoClientDisconnect(Sender: TPeerIO);
+procedure TSingleTunnelServer.DoIODisconnect(Sender: TPeerIO);
 begin
   inherited;
   Sender.Print('SingleTunnel disconnect');
@@ -246,6 +249,13 @@ begin
       SingleTunnelServer.Progress;
       DoubleTunnelServer.Progress;
       CoreClasses.CheckThreadSynchronize(1);
+
+{$IFDEF MSWINDOWS}
+      if SingleTunnelServer.CheckIOBusy or DoubleTunnelServer.RecvTunnel.CheckIOBusy or DoubleTunnelServer.SendTunnel.CheckIOBusy then
+          SetConsoleTitle('Busy')
+      else
+        SetConsoleTitle('IDLE');
+{$ENDIF MSWINDOWS}
     end;
 end;
 

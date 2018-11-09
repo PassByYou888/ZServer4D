@@ -76,7 +76,7 @@ type
     Activted: Boolean;
     RequestBuffer: TMemoryStream64;
 
-    procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt); override;
+    procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean); override;
     procedure OnConnect_Result(const cState: Boolean);
     constructor Create; override;
     destructor Destroy; override;
@@ -194,7 +194,7 @@ begin
       ProtocolPool := TCoreClassListForObj.Create;
 
   if ProtocolHash = nil then
-      ProtocolHash := TUInt32HashObjectList.Create(8192);
+      ProtocolHash := TUInt32HashObjectList.CustomCreate(8192);
 
   if RecvTunnel = nil then
       RecvTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
@@ -376,7 +376,7 @@ begin
   inherited DoDisconnect(Sender);
 end;
 
-procedure TXClientCustomProtocol.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt);
+procedure TXClientCustomProtocol.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
 var
   nSiz: NativeInt;
   nBuff: PByte;

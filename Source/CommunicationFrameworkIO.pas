@@ -101,6 +101,11 @@ implementation
 
 uses SysUtils;
 
+const
+  C_UserLogin = 'UserLogin';
+  C_RegisterUser = 'RegisterUser';
+
+
 constructor TPeerClientUserDefineForIO.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
@@ -310,18 +315,18 @@ begin
   Communication.PeerClientUserDefineClass := TPeerClientUserDefineForIO;
 
   {$IFDEF FPC}
-  Communication.RegisterStream('UserLogin').OnExecute := @Command_UserLogin;
-  Communication.RegisterStream('RegisterUser').OnExecute := @Command_RegisterUser;
+  Communication.RegisterStream(C_UserLogin).OnExecute := @Command_UserLogin;
+  Communication.RegisterStream(C_RegisterUser).OnExecute := @Command_RegisterUser;
   {$ELSE}
-  Communication.RegisterStream('UserLogin').OnExecute := Command_UserLogin;
-  Communication.RegisterStream('RegisterUser').OnExecute := Command_RegisterUser;
+  Communication.RegisterStream(C_UserLogin).OnExecute := Command_UserLogin;
+  Communication.RegisterStream(C_RegisterUser).OnExecute := Command_RegisterUser;
   {$ENDIF}
 end;
 
 procedure TCommunicationFramework_UserAuthService.UnRegisterCommand;
 begin
-  Communication.DeleteRegistedCMD('UserLogin');
-  Communication.DeleteRegistedCMD('RegisterUser');
+  Communication.DeleteRegistedCMD(C_UserLogin);
+  Communication.DeleteRegistedCMD(C_RegisterUser);
   Communication.PeerClientUserDefineClass := TPeerClientUserDefine;
 end;
 
@@ -393,7 +398,7 @@ begin
 
   sendDE.WriteString(UserID);
   sendDE.WriteString(passwd);
-  Client.WaitSendStreamCmd('UserLogin', sendDE, resDE, 10000);
+  Client.WaitSendStreamCmd(C_UserLogin, sendDE, resDE, 10000);
 
   if resDE.Count > 0 then
     begin
@@ -415,7 +420,7 @@ begin
 
   sendDE.WriteString(UserID);
   sendDE.WriteString(passwd);
-  Client.WaitSendStreamCmd('RegisterUser', sendDE, resDE, 10000);
+  Client.WaitSendStreamCmd(C_RegisterUser, sendDE, resDE, 10000);
 
   if resDE.Count > 0 then
     begin
@@ -427,5 +432,6 @@ begin
   DisposeObject(resDE);
 end;
 
-end. 
- 
+end.
+
+

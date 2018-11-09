@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{3A6FF45F-A1F2-4521-A54B-E986A6F0D1F1}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LinuxServerOnDataset\DatasetSimOnFMX.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DatasetSimOnLinuxServer">
+        <MSBuild Projects="LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj"/>
+    </Target>
+    <Target Name="DatasetSimOnLinuxServer:Clean">
+        <MSBuild Projects="LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatasetSimOnLinuxServer:Make">
+        <MSBuild Projects="LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DatasetSimOnFMX">
+        <MSBuild Projects="LinuxServerOnDataset\DatasetSimOnFMX.dproj"/>
+    </Target>
+    <Target Name="DatasetSimOnFMX:Clean">
+        <MSBuild Projects="LinuxServerOnDataset\DatasetSimOnFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatasetSimOnFMX:Make">
+        <MSBuild Projects="LinuxServerOnDataset\DatasetSimOnFMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DatasetSimOnLinuxServer;DatasetSimOnFMX"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DatasetSimOnLinuxServer:Clean;DatasetSimOnFMX:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DatasetSimOnLinuxServer:Make;DatasetSimOnFMX:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

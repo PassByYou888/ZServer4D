@@ -34,7 +34,7 @@ type
   TDataStoreService_PeerClientRecvTunnel_VirtualAuth = class(TPeerClientUserDefineForRecvTunnel_VirtualAuth)
   private
     FPostPerformaceCounter: Integer;
-    FLastPostPerformaceTime: TTimeTickValue;
+    FLastPostPerformaceTime: TTimeTick;
     FPostCounterOfPerSec: Double;
   private
     // data security
@@ -372,6 +372,38 @@ type
 
 implementation
 
+const
+  C_DataStoreSecurity = '__@DataStoreSecurity';
+  C_CompletedFragmentBigStream = '__@CompletedFragmentBigStream';
+  C_CompletedQuery = '__@CompletedQuery';
+  C_CompletedDownloadAssemble = '__@CompletedDownloadAssemble';
+  C_CompletedFastDownloadAssemble = '__@CompletedFastDownloadAssemble';
+  C_CompletedStorePosTransform = '__@CompletedStorePosTransform';
+  C_InitDB = '__@InitDB';
+  C_CloseDB = '__@CloseDB';
+  C_CopyDB = '__@CopyDB';
+  C_CompressDB = '__@CompressDB';
+  C_ReplaceDB = '__@ReplaceDB';
+  C_ResetData = '__@ResetData';
+  C_QueryDB = '__@QueryDB';
+  C_DownloadDB = '__@DownloadDB';
+  C_DownloadDBWithID = '__@DownloadDBWithID';
+  C_RequestDownloadAssembleStream = '__@RequestDownloadAssembleStream';
+  C_RequestFastDownloadAssembleStrea = '__@RequestFastDownloadAssembleStream';
+  C_FastPostCompleteBuffer = '__@FastPostCompleteBuffer';
+  C_FastInsertCompleteBuffer = '__@FastInsertCompleteBuffer';
+  C_FastModifyCompleteBuffer = '__@FastModifyCompleteBuffer';
+  C_CompletedPostAssembleStream = '__@CompletedPostAssembleStream';
+  C_CompletedInsertAssembleStream = '__@CompletedInsertAssembleStream';
+  C_CompletedModifyAssembleStream = '__@CompletedModifyAssembleStream';
+  C_DeleteData = '__@DeleteData';
+  C_GetDBList = '__@GetDBList';
+  C_GetQueryList = '__@GetQueryList';
+  C_GetQueryState = '__@GetQueryState';
+  C_QueryStop = '__@QueryStop';
+  C_QueryPause = '__@QueryPause';
+  C_QueryPlay = '__@QueryPlay';
+
 constructor TDataStoreService_PeerClientRecvTunnel_VirtualAuth.Create(AOwner: TPeerIO);
 type
   TCipherDef = array [0 .. 4] of TCipherSecurity;
@@ -399,7 +431,7 @@ end;
 
 procedure TDataStoreService_PeerClientRecvTunnel_VirtualAuth.Progress;
 var
-  lastTime: TTimeTickValue;
+  lastTime: TTimeTick;
 begin
   lastTime := GetTimeTick;
 
@@ -565,7 +597,7 @@ begin
   de.WriteByte(Byte(RT.FDataStoreCipherSecurity));
   arr := de.WriteArrayByte;
   arr.AddPtrBuff(@RT.FDataStoreCipherKey[0], length(RT.FDataStoreCipherKey));
-  RT.SendTunnel.Owner.SendDirectStreamCmd('DataStoreSecurity', de);
+  RT.SendTunnel.Owner.SendDirectStreamCmd(C_DataStoreSecurity, de);
   DisposeObject(de);
   inherited UserLinkSuccess(UserDefineIO);
 end;
@@ -1198,7 +1230,7 @@ begin
   de.WriteString(pipe.OutputDBName);
   de.WriteString(pipe.PipelineName);
   de.WritePointer(pipe.BackcallPtr);
-  pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedFragmentBigStream', de);
+  pipe.SendTunnel.Owner.SendDirectStreamCmd(C_CompletedFragmentBigStream, de);
   DisposeObject(de);
 end;
 
@@ -1212,7 +1244,7 @@ begin
   de.WriteString(pipe.PipelineName);
   de.WritePointer(pipe.BackcallPtr);
   de.WriteInt64(pipe.QueryResultCounter);
-  pipe.SendTunnel.Owner.SendDirectStreamCmd('CompletedQuery', de);
+  pipe.SendTunnel.Owner.SendDirectStreamCmd(C_CompletedQuery, de);
   DisposeObject(de);
   ClearBatchStream(pipe.SendTunnel.Owner);
 end;
@@ -1225,7 +1257,7 @@ begin
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
-  ASendCli.SendDirectStreamCmd('CompletedDownloadAssemble', de);
+  ASendCli.SendDirectStreamCmd(C_CompletedDownloadAssemble, de);
   DisposeObject(de);
   ClearBatchStream(ASendCli);
 end;
@@ -1238,7 +1270,7 @@ begin
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
-  ASendCli.SendDirectStreamCmd('CompletedFastDownloadAssemble', de);
+  ASendCli.SendDirectStreamCmd(C_CompletedFastDownloadAssemble, de);
   DisposeObject(de);
   ClearBatchStream(ASendCli);
 end;
@@ -1260,7 +1292,7 @@ begin
   for i := 0 to length(TransformBuff^) - 1 do
       arr.Add(TransformBuff^[i].NewPos);
 
-  ASendCli.SendDirectStreamCmd('CompletedStorePosTransform', de);
+  ASendCli.SendDirectStreamCmd(C_CompletedStorePosTransform, de);
   DisposeObject(de);
 end;
 
@@ -1289,67 +1321,67 @@ procedure TDataStoreService_VirtualAuth.RegisterCommand;
 begin
   inherited RegisterCommand;
 
-  FRecvTunnel.RegisterDirectStream('InitDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_InitDB;
-  FRecvTunnel.RegisterDirectStream('CloseDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CloseDB;
+  FRecvTunnel.RegisterDirectStream(C_InitDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_InitDB;
+  FRecvTunnel.RegisterDirectStream(C_CloseDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CloseDB;
 
-  FRecvTunnel.RegisterDirectStream('CopyDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CopyDB;
-  FRecvTunnel.RegisterDirectStream('CompressDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompressDB;
-  FRecvTunnel.RegisterDirectStream('ReplaceDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ReplaceDB;
-  FRecvTunnel.RegisterDirectStream('ResetData').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ResetData;
+  FRecvTunnel.RegisterDirectStream(C_CopyDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CopyDB;
+  FRecvTunnel.RegisterDirectStream(C_CompressDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompressDB;
+  FRecvTunnel.RegisterDirectStream(C_ReplaceDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ReplaceDB;
+  FRecvTunnel.RegisterDirectStream(C_ResetData).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ResetData;
 
-  FRecvTunnel.RegisterDirectStream('QueryDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryDB;
-  FRecvTunnel.RegisterDirectStream('DownloadDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DownloadDB;
-  FRecvTunnel.RegisterDirectStream('DownloadDBWithID').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DownloadDBWithID;
-  FRecvTunnel.RegisterDirectStream('RequestDownloadAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RequestDownloadAssembleStream;
-  FRecvTunnel.RegisterDirectStream('RequestFastDownloadAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RequestFastDownloadAssembleStream;
+  FRecvTunnel.RegisterDirectStream(C_QueryDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryDB;
+  FRecvTunnel.RegisterDirectStream(C_DownloadDB).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DownloadDB;
+  FRecvTunnel.RegisterDirectStream(C_DownloadDBWithID).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DownloadDBWithID;
+  FRecvTunnel.RegisterDirectStream(C_RequestDownloadAssembleStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RequestDownloadAssembleStream;
+  FRecvTunnel.RegisterDirectStream(C_RequestFastDownloadAssembleStrea).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RequestFastDownloadAssembleStream;
 
-  FRecvTunnel.RegisterCompleteBuffer('FastPostCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastPostCompleteBuffer;
-  FRecvTunnel.RegisterCompleteBuffer('FastInsertCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastInsertCompleteBuffer;
-  FRecvTunnel.RegisterCompleteBuffer('FastModifyCompleteBuffer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastModifyCompleteBuffer;
+  FRecvTunnel.RegisterCompleteBuffer(C_FastPostCompleteBuffer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastPostCompleteBuffer;
+  FRecvTunnel.RegisterCompleteBuffer(C_FastInsertCompleteBuffer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastInsertCompleteBuffer;
+  FRecvTunnel.RegisterCompleteBuffer(C_FastModifyCompleteBuffer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FastModifyCompleteBuffer;
 
-  FRecvTunnel.RegisterDirectStream('CompletedPostAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedPostAssembleStream;
-  FRecvTunnel.RegisterDirectStream('CompletedInsertAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedInsertAssembleStream;
-  FRecvTunnel.RegisterDirectStream('CompletedModifyAssembleStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedModifyAssembleStream;
-  FRecvTunnel.RegisterDirectStream('DeleteData').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DeleteData;
+  FRecvTunnel.RegisterDirectStream(C_CompletedPostAssembleStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedPostAssembleStream;
+  FRecvTunnel.RegisterDirectStream(C_CompletedInsertAssembleStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedInsertAssembleStream;
+  FRecvTunnel.RegisterDirectStream(C_CompletedModifyAssembleStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedModifyAssembleStream;
+  FRecvTunnel.RegisterDirectStream(C_DeleteData).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DeleteData;
 
-  FRecvTunnel.RegisterStream('GetDBList').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetDBList;
-  FRecvTunnel.RegisterStream('GetQueryList').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetQueryList;
-  FRecvTunnel.RegisterStream('GetQueryState').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetQueryState;
-  FRecvTunnel.RegisterDirectStream('QueryStop').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryStop;
-  FRecvTunnel.RegisterDirectStream('QueryPause').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryPause;
-  FRecvTunnel.RegisterDirectStream('QueryPlay').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryPlay;
+  FRecvTunnel.RegisterStream(C_GetDBList).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetDBList;
+  FRecvTunnel.RegisterStream(C_GetQueryList).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetQueryList;
+  FRecvTunnel.RegisterStream(C_GetQueryState).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetQueryState;
+  FRecvTunnel.RegisterDirectStream(C_QueryStop).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryStop;
+  FRecvTunnel.RegisterDirectStream(C_QueryPause).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryPause;
+  FRecvTunnel.RegisterDirectStream(C_QueryPlay).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_QueryPlay;
 end;
 
 procedure TDataStoreService_VirtualAuth.UnRegisterCommand;
 begin
   inherited UnRegisterCommand;
-  FRecvTunnel.DeleteRegistedCMD('InitDB');
-  FRecvTunnel.DeleteRegistedCMD('CloseDB');
+  FRecvTunnel.DeleteRegistedCMD(C_InitDB);
+  FRecvTunnel.DeleteRegistedCMD(C_CloseDB);
 
-  FRecvTunnel.DeleteRegistedCMD('CopyDB');
-  FRecvTunnel.DeleteRegistedCMD('CompressDB');
-  FRecvTunnel.DeleteRegistedCMD('ReplaceDB');
-  FRecvTunnel.DeleteRegistedCMD('ResetData');
+  FRecvTunnel.DeleteRegistedCMD(C_CopyDB);
+  FRecvTunnel.DeleteRegistedCMD(C_CompressDB);
+  FRecvTunnel.DeleteRegistedCMD(C_ReplaceDB);
+  FRecvTunnel.DeleteRegistedCMD(C_ResetData);
 
-  FRecvTunnel.DeleteRegistedCMD('QueryDB');
-  FRecvTunnel.DeleteRegistedCMD('DownloadDB');
-  FRecvTunnel.DeleteRegistedCMD('RequestDownloadAssembleStream');
+  FRecvTunnel.DeleteRegistedCMD(C_QueryDB);
+  FRecvTunnel.DeleteRegistedCMD(C_DownloadDB);
+  FRecvTunnel.DeleteRegistedCMD(C_RequestDownloadAssembleStream);
 
-  FRecvTunnel.DeleteRegistedCMD('FastPostCompleteBuffer');
-  FRecvTunnel.DeleteRegistedCMD('FastInsertCompleteBuffer');
-  FRecvTunnel.DeleteRegistedCMD('FastModifyCompleteBuffer');
+  FRecvTunnel.DeleteRegistedCMD(C_FastPostCompleteBuffer);
+  FRecvTunnel.DeleteRegistedCMD(C_FastInsertCompleteBuffer);
+  FRecvTunnel.DeleteRegistedCMD(C_FastModifyCompleteBuffer);
 
-  FRecvTunnel.DeleteRegistedCMD('CompletedPostAssembleStream');
-  FRecvTunnel.DeleteRegistedCMD('CompletedInsertAssembleStream');
-  FRecvTunnel.DeleteRegistedCMD('CompletedModifyAssembleStream');
-  FRecvTunnel.DeleteRegistedCMD('DeleteData');
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedPostAssembleStream);
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedInsertAssembleStream);
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedModifyAssembleStream);
+  FRecvTunnel.DeleteRegistedCMD(C_DeleteData);
 
-  FRecvTunnel.DeleteRegistedCMD('GetDBList');
-  FRecvTunnel.DeleteRegistedCMD('GetQueryList');
-  FRecvTunnel.DeleteRegistedCMD('GetQueryState');
-  FRecvTunnel.DeleteRegistedCMD('QueryStop');
-  FRecvTunnel.DeleteRegistedCMD('QueryPause');
-  FRecvTunnel.DeleteRegistedCMD('QueryPlay');
+  FRecvTunnel.DeleteRegistedCMD(C_GetDBList);
+  FRecvTunnel.DeleteRegistedCMD(C_GetQueryList);
+  FRecvTunnel.DeleteRegistedCMD(C_GetQueryState);
+  FRecvTunnel.DeleteRegistedCMD(C_QueryStop);
+  FRecvTunnel.DeleteRegistedCMD(C_QueryPause);
+  FRecvTunnel.DeleteRegistedCMD(C_QueryPlay);
 end;
 
 procedure TDataStoreService_VirtualAuth.Progress;
@@ -1711,22 +1743,22 @@ end;
 procedure TDataStoreClient_VirtualAuth.RegisterCommand;
 begin
   inherited RegisterCommand;
-  FRecvTunnel.RegisterDirectStream('DataStoreSecurity').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DataStoreSecurity;
-  FRecvTunnel.RegisterDirectStream('CompletedFragmentBigStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedFragmentBigStream;
-  FRecvTunnel.RegisterDirectStream('CompletedQuery').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedQuery;
-  FRecvTunnel.RegisterDirectStream('CompletedDownloadAssemble').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedDownloadAssemble;
-  FRecvTunnel.RegisterDirectStream('CompletedFastDownloadAssemble').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedFastDownloadAssemble;
-  FRecvTunnel.RegisterDirectStream('CompletedStorePosTransform').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedStorePosTransform;
+  FRecvTunnel.RegisterDirectStream(C_DataStoreSecurity).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_DataStoreSecurity;
+  FRecvTunnel.RegisterDirectStream(C_CompletedFragmentBigStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedFragmentBigStream;
+  FRecvTunnel.RegisterDirectStream(C_CompletedQuery).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedQuery;
+  FRecvTunnel.RegisterDirectStream(C_CompletedDownloadAssemble).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream(C_CompletedFastDownloadAssemble).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedFastDownloadAssemble;
+  FRecvTunnel.RegisterDirectStream(C_CompletedStorePosTransform).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_CompletedStorePosTransform;
 end;
 
 procedure TDataStoreClient_VirtualAuth.UnRegisterCommand;
 begin
   inherited UnRegisterCommand;
-  FRecvTunnel.DeleteRegistedCMD('CompletedFragmentBigStream');
-  FRecvTunnel.DeleteRegistedCMD('CompletedQuery');
-  FRecvTunnel.DeleteRegistedCMD('CompletedDownloadAssemble');
-  FRecvTunnel.DeleteRegistedCMD('CompletedFastDownloadAssemble');
-  FRecvTunnel.DeleteRegistedCMD('CompletedStorePosTransform');
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedFragmentBigStream);
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedQuery);
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedDownloadAssemble);
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedFastDownloadAssemble);
+  FRecvTunnel.DeleteRegistedCMD(C_CompletedStorePosTransform);
 end;
 
 procedure TDataStoreClient_VirtualAuth.Progress;
@@ -1748,7 +1780,7 @@ begin
   de.WriteBool(InMem);
   de.WriteString(dbN);
 
-  SendTunnel.SendDirectStreamCmd('InitDB', de);
+  SendTunnel.SendDirectStreamCmd(C_InitDB, de);
   DisposeObject(de);
 end;
 
@@ -1759,7 +1791,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteBool(CloseAndDeleted);
-  SendTunnel.SendDirectStreamCmd('CloseDB', de);
+  SendTunnel.SendDirectStreamCmd(C_CloseDB, de);
   DisposeObject(de);
 end;
 
@@ -1776,7 +1808,7 @@ begin
   de.WriteString(dbN);
   de.WriteString(copyToN);
   de.WritePointer(BackcallPtr);
-  SendTunnel.SendDirectStreamCmd('CopyDB', de);
+  SendTunnel.SendDirectStreamCmd(C_CopyDB, de);
   DisposeObject(de);
 end;
 
@@ -1827,7 +1859,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WritePointer(BackcallPtr);
-  SendTunnel.SendDirectStreamCmd('CompressDB', de);
+  SendTunnel.SendDirectStreamCmd(C_CompressDB, de);
   DisposeObject(de);
 end;
 
@@ -1873,7 +1905,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteString(replaceN);
-  SendTunnel.SendDirectStreamCmd('ReplaceDB', de);
+  SendTunnel.SendDirectStreamCmd(C_ReplaceDB, de);
   DisposeObject(de);
 end;
 
@@ -1883,7 +1915,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
-  SendTunnel.SendDirectStreamCmd('ResetData', de);
+  SendTunnel.SendDirectStreamCmd(C_ResetData, de);
   DisposeObject(de);
 end;
 
@@ -1905,7 +1937,7 @@ begin
   de.WriteInt64(MaxQueryResult);
   de.WritePointer(0); // backcall address
 
-  SendTunnel.SendDirectStreamCmd('QueryDB', de);
+  SendTunnel.SendDirectStreamCmd(C_QueryDB, de);
 
   DisposeObject(de);
 end;
@@ -1931,7 +1963,7 @@ begin
   if RemoteParams <> nil then
       de.WriteVariantList(RemoteParams);
 
-  SendTunnel.SendDirectStreamCmd('QueryDB', de);
+  SendTunnel.SendDirectStreamCmd(C_QueryDB, de);
 
   DisposeObject(de);
 end;
@@ -2083,7 +2115,7 @@ begin
   de.WriteString(dbN);
   de.WritePointer(BackcallPtr);
 
-  SendTunnel.SendDirectStreamCmd('DownloadDB', de);
+  SendTunnel.SendDirectStreamCmd(C_DownloadDB, de);
 
   DisposeObject(de);
 end;
@@ -2137,7 +2169,7 @@ begin
   de.WriteCardinal(db_ID);
   de.WritePointer(BackcallPtr);
 
-  SendTunnel.SendDirectStreamCmd('DownloadDBWithID', de);
+  SendTunnel.SendDirectStreamCmd(C_DownloadDBWithID, de);
 
   DisposeObject(de);
 end;
@@ -2195,7 +2227,7 @@ begin
   de.WriteInt64(StorePos);
   de.WritePointer(BackcallPtr);
 
-  SendTunnel.SendDirectStreamCmd('RequestDownloadAssembleStream', de);
+  SendTunnel.SendDirectStreamCmd(C_RequestDownloadAssembleStream, de);
 
   DisposeObject(de);
 end;
@@ -2301,7 +2333,7 @@ begin
   de.WriteInt64(StorePos);
   de.WritePointer(BackcallPtr);
 
-  SendTunnel.SendDirectStreamCmd('RequestFastDownloadAssembleStream', de);
+  SendTunnel.SendDirectStreamCmd(C_RequestFastDownloadAssembleStrea, de);
 
   DisposeObject(de);
 end;
@@ -2407,7 +2439,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteCardinal(dID);
-  SendTunnel.SendDirectStreamCmd('CompletedPostAssembleStream', de);
+  SendTunnel.SendDirectStreamCmd(C_CompletedPostAssembleStream, de);
   DisposeObject(de);
 end;
 
@@ -2492,7 +2524,7 @@ begin
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
   de.WriteCardinal(dID);
-  SendTunnel.SendDirectStreamCmd('CompletedInsertAssembleStream', de);
+  SendTunnel.SendDirectStreamCmd(C_CompletedInsertAssembleStream, de);
   DisposeObject(de);
 end;
 
@@ -2577,7 +2609,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
-  SendTunnel.SendDirectStreamCmd('CompletedModifyAssembleStream', de);
+  SendTunnel.SendDirectStreamCmd(C_CompletedModifyAssembleStream, de);
   DisposeObject(de);
 end;
 
@@ -2678,7 +2710,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString(dbN);
   de.WriteInt64(dStorePos);
-  SendTunnel.SendDirectStreamCmd('DeleteData', de);
+  SendTunnel.SendDirectStreamCmd(C_DeleteData, de);
   DisposeObject(de);
 end;
 
@@ -2688,7 +2720,7 @@ var
   siz: nativeUInt;
 begin
   p := EncodeOneBuff(dbN, dID, 0, stream.Memory, stream.Size, siz);
-  SendTunnel.SendCompleteBuffer('FastPostCompleteBuffer', p, siz, True);
+  SendTunnel.SendCompleteBuffer(C_FastPostCompleteBuffer, p, siz, True);
 
   if DoneTimeFree then
       DisposeObject(stream);
@@ -2770,7 +2802,7 @@ var
   siz: nativeUInt;
 begin
   p := EncodeOneBuff(dbN, dID, dStorePos, stream.Memory, stream.Size, siz);
-  SendTunnel.SendCompleteBuffer('FastInsertCompleteBuffer', p, siz, True);
+  SendTunnel.SendCompleteBuffer(C_FastInsertCompleteBuffer, p, siz, True);
 
   if DoneTimeFree then
       DisposeObject(stream);
@@ -2849,7 +2881,7 @@ var
   siz: nativeUInt;
 begin
   p := EncodeOneBuff(dbN, dID, dStorePos, stream.Memory, stream.Size, siz);
-  SendTunnel.SendCompleteBuffer('FastModifyCompleteBuffer', p, siz, True);
+  SendTunnel.SendCompleteBuffer(C_FastModifyCompleteBuffer, p, siz, True);
 
   if DoneTimeFree then
       DisposeObject(stream);
@@ -2927,7 +2959,7 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendStreamCmdM('GetDBList', de, OnResult);
+  SendTunnel.SendStreamCmdM(C_GetDBList, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -2936,7 +2968,7 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendStreamCmdM('GetQueryList', de, OnResult);
+  SendTunnel.SendStreamCmdM(C_GetQueryList, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -2946,7 +2978,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
-  SendTunnel.SendStreamCmdM('GetQueryState', de, OnResult);
+  SendTunnel.SendStreamCmdM(C_GetQueryState, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -2956,7 +2988,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
-  SendTunnel.SendDirectStreamCmd('QueryStop', de);
+  SendTunnel.SendDirectStreamCmd(C_QueryStop, de);
   DisposeObject(de);
 end;
 
@@ -2966,7 +2998,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
-  SendTunnel.SendDirectStreamCmd('QueryPause', de);
+  SendTunnel.SendDirectStreamCmd(C_QueryPause, de);
   DisposeObject(de);
 end;
 
@@ -2976,7 +3008,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
-  SendTunnel.SendDirectStreamCmd('QueryPlay', de);
+  SendTunnel.SendDirectStreamCmd(C_QueryPlay, de);
   DisposeObject(de);
 end;
 
@@ -2988,7 +3020,7 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendStreamCmdP('GetDBList', de, OnResult);
+  SendTunnel.SendStreamCmdP(C_GetDBList, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -2997,7 +3029,7 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendStreamCmdP('GetQueryList', de, OnResult);
+  SendTunnel.SendStreamCmdP(C_GetQueryList, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -3007,7 +3039,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString(pipeN);
-  SendTunnel.SendStreamCmdP('GetQueryState', de, OnResult);
+  SendTunnel.SendStreamCmdP(C_GetQueryState, de, OnResult);
   DisposeObject(de);
 end;
 {$ENDIF}

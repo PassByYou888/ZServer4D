@@ -31,7 +31,7 @@ uses SysUtils, Classes, Types,
   PascalStrings,
   SyncObjs
   {$IFDEF FPC}
-    , Contnrs, fgl
+    , Contnrs, fgl, FPCGenericStructlist
   {$ELSE FPC}
   , System.Generics.Collections
   {$ENDIF FPC}
@@ -52,8 +52,11 @@ const
   fmShareDenyNone  = SysUtils.fmShareDenyNone;
 
 type
-  TTimeTickValue = Cardinal;
-  TTimeTick      = TTimeTickValue;
+  TBytes = SysUtils.TBytes;
+  TPoint = Types.TPoint;
+
+  TTimeTick = UInt64;
+  PTimeTick = ^TTimeTick;
 
   TSeekOrigin = Classes.TSeekOrigin;
   TNotify     = Classes.TNotifyEvent;
@@ -79,6 +82,7 @@ type
 
   {$IFDEF FPC}
   PUInt64 = ^UInt64;
+
   TCoreClassInterfacedObject = class(TInterfacedObject)
   protected
     function _AddRef: longint; {$IFNDEF WINDOWS} cdecl {$ELSE} stdcall {$ENDIF};
@@ -88,12 +92,12 @@ type
     procedure BeforeDestruction; override;
   end;
 
-  PCoreClassPointerList      = Classes.PPointerList;
-  TCoreClassPointerList      = Classes.TPointerList;
-  TCoreClassListSortCompare  = Classes.TListSortCompare;
+  PCoreClassPointerList = Classes.PPointerList;
+  TCoreClassPointerList = Classes.TPointerList;
+  TCoreClassListSortCompare = Classes.TListSortCompare;
   TCoreClassListNotification = Classes.TListNotification;
 
-  TCoreClassList             = class(TList)
+  TCoreClassList = class(TList)
     property ListData: PPointerList read GetList;
   end;
 
@@ -236,7 +240,7 @@ procedure AtomDec(var x: Cardinal); overload;
 procedure AtomDec(var x: Cardinal; const v:Cardinal); overload;
 
 procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte); inline;
-function CompareMemory(const p1, p2: Pointer; const Count: NativeInt): Boolean; inline;
+function CompareMemory(const p1, p2: Pointer; Count: NativeInt): Boolean; inline;
 procedure CopyPtr(const sour, dest:Pointer; Count: NativeInt); inline;
 
 procedure RaiseInfo(const n: SystemString); overload;
@@ -244,9 +248,9 @@ procedure RaiseInfo(const n: SystemString; const Args: array of const); overload
 
 function IsMobile: Boolean;
 
-function GetTimeTickCount: TTimeTickValue; inline;
-function GetTimeTick: TTimeTickValue; inline;
-function GetCrashTimeTick: TTimeTickValue; inline;
+function GetTimeTickCount: TTimeTick;
+function GetTimeTick: TTimeTick;
+function GetCrashTimeTick: TTimeTick;
 
 function ROL8(const Value: Byte; Shift: Byte): Byte; inline;
 function ROL16(const Value: Word; Shift: Byte): Word; inline;
@@ -310,8 +314,6 @@ function N2LE(const AValue: UInt64): UInt64; overload;
 
 threadvar
   MHGlobalHookEnabled: Boolean;
-var
-  Core_Run_TimeTick: TTimeTick;
 
 implementation
 
@@ -354,9 +356,9 @@ begin
       try
         {$IFDEF AUTOREFCOUNT}
         Obj.DisposeOf;
-        {$ELSE}
+        {$ELSE AUTOREFCOUNT}
         Obj.Free;
-        {$ENDIF}
+        {$ENDIF AUTOREFCOUNT}
         {$IFDEF CriticalSimulateAtomic}
         _RecycleLocker(Obj);
         {$ENDIF CriticalSimulateAtomic}
@@ -456,40 +458,38 @@ end;
 
 procedure FillPtrByte(const dest: Pointer; Count: NativeInt; const Value: Byte);
 var
-  index: NativeInt;
-  v    : UInt64;
-  PB   : PByte;
+  d: PByte;
+  v: UInt64;
 begin
-  PB := dest;
-
-  if Count >= 8 then
+  if Count <= 0 then
+      Exit;
+  v := Value or (Value shl 8) or (Value shl 16) or (Value shl 24);
+  v := v or (v shl 32);
+  d := dest;
+  while Count >= 8 do
     begin
-      v := Value or (Value shl 8) or (Value shl 16) or (Value shl 24);
-      v := v or (v shl 32);
-
-      index := (Count shr 3) - 1;
-      while index >= 0 do
-        begin
-          PUInt64(PB)^ := v;
-          inc(PB, 8);
-          dec(index);
-        end;
-      { Get the remainder (mod 8) }
-      Count := Count and $7;
+      PUInt64(d)^ := v;
+      dec(Count, 8);
+      inc(d, 8);
     end;
-
-  // Fill remain.
+  if Count >= 4 then
+    begin
+      PCardinal(d)^ := PCardinal(@v)^;
+      dec(Count, 4);
+      inc(d, 4);
+    end;
+  if Count >= 2 then
+    begin
+      PWORD(d)^ := PWORD(@v)^;
+      dec(Count, 2);
+      inc(d, 2);
+    end;
   if Count > 0 then
-    for index := Count - 1 downto 0 do
-      begin
-        PB^ := Value;
-        inc(PB);
-      end;
+      d^ := Value;
 end;
 
-function CompareMemory(const p1, p2: Pointer; const Count: NativeInt): Boolean;
+function CompareMemory(const p1, p2: Pointer; Count: NativeInt): Boolean;
 var
-  i: NativeInt;
   b1, b2: PByte;
 begin;
   if Count <= 0 then
@@ -500,70 +500,67 @@ begin;
   Result := False;
   b1 := p1;
   b2 := p2;
-  i := Count;
-  while (i >= 8) do
+  while (Count >= 8) do
     begin
       if PUInt64(b2)^ <> PUInt64(b1)^ then
-        Exit;
-      dec(i, 8);
+          Exit;
+      dec(Count, 8);
       inc(b2, 8);
       inc(b1, 8);
     end;
-  if i >= 4 then
+  if Count >= 4 then
     begin
       if PCardinal(b2)^ <> PCardinal(b1)^ then
-        Exit;
-      dec(i, 4);
+          Exit;
+      dec(Count, 4);
       inc(b2, 4);
       inc(b1, 4);
     end;
-  if i >= 2 then
+  if Count >= 2 then
     begin
       if PWORD(b2)^ <> PWORD(b1)^ then
-        Exit;
-      dec(i, 2);
+          Exit;
+      dec(Count, 2);
       inc(b2, 2);
       inc(b1, 2);
     end;
-  if i > 0 then
+  if Count > 0 then
     if b2^ <> b1^ then
-      Exit;
+        Exit;
   Result := True;
 end;
 
 procedure CopyPtr(const sour, dest: Pointer; Count: NativeInt);
 var
-  i: NativeInt;
   s, d: PByte;
 begin
   if Count <= 0 then
-    Exit;
+      Exit;
   s := sour;
-  d := Dest;
-  i := Count;
-  while i >= 8 do
+  d := dest;
+  while Count >= 8 do
     begin
       PUInt64(d)^ := PUInt64(s)^;
-      dec(i, 8);
+      dec(Count, 8);
       inc(d, 8);
       inc(s, 8);
     end;
-  if i >= 4 then
+  if Count >= 4 then
     begin
       PCardinal(d)^ := PCardinal(s)^;
-      dec(i, 4);
+      dec(Count, 4);
       inc(d, 4);
       inc(s, 4);
     end;
-  if i >= 2 then
+  if Count >= 2 then
     begin
       PWORD(d)^ := PWORD(s)^;
-      dec(i, 2);
+      dec(Count, 2);
       inc(d, 2);
       inc(s, 2);
     end;
-  if i > 0 then
-    d^ := s^;
+  if Count > 0 then
+      d^ := s^;
 end;
 
 procedure RaiseInfo(const n: SystemString);
@@ -585,19 +582,33 @@ begin
   end;
 end;
 
-function GetTimeTickCount: TTimeTickValue;
+var
+  Core_RunTime_Tick: TTimeTick;
+  Core_Step_Tick: Cardinal;
+
+function GetTimeTickCount: TTimeTick;
+var
+  tick: Cardinal;
 begin
-  Result := TCoreClassThread.GetTickCount();
+  CoreComputeCritical.Acquire;
+  try
+    tick := TCoreClassThread.GetTickCount();
+    inc(Core_RunTime_Tick, UInt64(tick - Core_Step_Tick));
+    Core_Step_Tick := tick;
+    Exit(Core_RunTime_Tick);
+  finally
+      CoreComputeCritical.Release;
+  end;
 end;
 
-function GetTimeTick: TTimeTickValue;
+function GetTimeTick: TTimeTick;
 begin
   Result := GetTimeTickCount();
 end;
 
-function GetCrashTimeTick: TTimeTickValue;
+function GetCrashTimeTick: TTimeTick;
 begin
-  Result := $FFFFFFFF - GetTimeTick;
+  Result := $FFFFFFFFFFFFFFFF - GetTimeTickCount();
 end;
 
 {$IFDEF RangeCheck}{$R-}{$ENDIF}
@@ -922,7 +933,8 @@ end;
 
 
 initialization
-  Core_Run_TimeTick := TCoreClassThread.GetTickCount();
+  Core_RunTime_Tick := 0;
+  Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock;
   InitLockIDBuff;
   MHGlobalHookEnabled := True;

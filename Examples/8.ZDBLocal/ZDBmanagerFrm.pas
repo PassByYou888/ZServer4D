@@ -76,7 +76,7 @@ var
   n      : TPascalString;
   df     : TDBEngineDF;
   ms     : TMemoryStream64;
-  d      : TTimeTickValue;
+  d      : TTimeTick;
   tc     : Int64;
 begin
   doStatus('build struct...');

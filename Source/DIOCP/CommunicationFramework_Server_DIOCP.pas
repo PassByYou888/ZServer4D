@@ -25,17 +25,17 @@ uses SysUtils, Classes,
   diocp_tcp_server;
 
 type
-  TPeerIOWithDIOCPServer = class;
+  TDIOCPServer_PeerIO = class;
 
   TIocpClientContextIntf_WithDServ = class(TIocpClientContext)
   private
-    Link: TPeerIOWithDIOCPServer;
+    Link: TDIOCPServer_PeerIO;
   public
     constructor Create; override;
     destructor Destroy; override;
   end;
 
-  TPeerIOWithDIOCPServer = class(TPeerIO)
+  TDIOCPServer_PeerIO = class(TPeerIO)
   private
     Link: TIocpClientContextIntf_WithDServ;
     lastSendBufferTag: Integer;
@@ -76,8 +76,8 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure Progress; override;
 
-    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 
 implementation
@@ -90,7 +90,7 @@ end;
 
 destructor TIocpClientContextIntf_WithDServ.Destroy;
 var
-  peerio: TPeerIOWithDIOCPServer;
+  peerio: TDIOCPServer_PeerIO;
 begin
   if Link <> nil then
     begin
@@ -101,7 +101,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPeerIOWithDIOCPServer.CreateAfter;
+procedure TDIOCPServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
   Link := nil;
@@ -110,7 +110,7 @@ begin
   SendingStream := TMemoryStream64.Create;
 end;
 
-destructor TPeerIOWithDIOCPServer.Destroy;
+destructor TDIOCPServer_PeerIO.Destroy;
 begin
   if Link <> nil then
     begin
@@ -124,17 +124,17 @@ begin
   inherited Destroy;
 end;
 
-function TPeerIOWithDIOCPServer.Connected: Boolean;
+function TDIOCPServer_PeerIO.Connected: Boolean;
 begin
   Result := (Link <> nil);
 end;
 
-procedure TPeerIOWithDIOCPServer.Disconnect;
+procedure TDIOCPServer_PeerIO.Disconnect;
 begin
   Link.PostWSACloseRequest;
 end;
 
-procedure TPeerIOWithDIOCPServer.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TDIOCPServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if not Connected then
       Exit;
@@ -143,12 +143,12 @@ begin
       SendingStream.WritePtr(buff, Size);
 end;
 
-procedure TPeerIOWithDIOCPServer.WriteBufferOpen;
+procedure TDIOCPServer_PeerIO.WriteBufferOpen;
 begin
   WriteBufferFlush;
 end;
 
-procedure TPeerIOWithDIOCPServer.WriteBufferFlush;
+procedure TDIOCPServer_PeerIO.WriteBufferFlush;
 begin
   if SendingStream.Size > 0 then
     begin
@@ -162,12 +162,12 @@ begin
     end;
 end;
 
-procedure TPeerIOWithDIOCPServer.WriteBufferClose;
+procedure TDIOCPServer_PeerIO.WriteBufferClose;
 begin
   WriteBufferFlush;
 end;
 
-function TPeerIOWithDIOCPServer.GetPeerIP: SystemString;
+function TDIOCPServer_PeerIO.GetPeerIP: SystemString;
 begin
   if Connected then
       Result := Link.RemoteAddr + ' ' + IntToStr(Link.RemotePort)
@@ -175,12 +175,12 @@ begin
       Result := '';
 end;
 
-function TPeerIOWithDIOCPServer.WriteBufferEmpty: Boolean;
+function TDIOCPServer_PeerIO.WriteBufferEmpty: Boolean;
 begin
   Result := not WasSending;
 end;
 
-procedure TPeerIOWithDIOCPServer.Progress;
+procedure TDIOCPServer_PeerIO.Progress;
 begin
   inherited Progress;
   ProcessAllSendCmd(nil, False, False);
@@ -190,7 +190,7 @@ procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOConnected(pvClientContext
 begin
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
     begin
-      TIocpClientContextIntf_WithDServ(pvClientContext).Link := TPeerIOWithDIOCPServer.Create(Self, pvClientContext);
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link := TDIOCPServer_PeerIO.Create(Self, pvClientContext);
       TIocpClientContextIntf_WithDServ(pvClientContext).Link.Link := TIocpClientContextIntf_WithDServ(pvClientContext);
     end);
 end;
@@ -202,7 +202,7 @@ begin
 
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
     var
-      peerio: TPeerIOWithDIOCPServer;
+      peerio: TDIOCPServer_PeerIO;
     begin
       peerio := TIocpClientContextIntf_WithDServ(pvClientContext).Link;
       TIocpClientContextIntf_WithDServ(pvClientContext).Link := nil;
@@ -216,7 +216,7 @@ end;
 
 procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOSendCompleted(pvContext: TIocpClientContext; pvBuff: Pointer; Len: Cardinal; pvBufferTag: Integer; pvTagData: Pointer; pvErrorCode: Integer);
 var
-  peerio: TPeerIOWithDIOCPServer;
+  peerio: TDIOCPServer_PeerIO;
 begin
   if TIocpClientContextIntf_WithDServ(pvContext).Link = nil then
       Exit;
@@ -236,7 +236,7 @@ begin
       // 经过简单分析，这个事件被上锁保护了，似乎调度有点延迟
       // 这里的性能热点不太好找，diocp的瓶颈主要是卡在这一步
       TIocpClientContextIntf_WithDServ(pvClientContext).Link.SaveReceiveBuffer(Buf, Len);
-      TIocpClientContextIntf_WithDServ(pvClientContext).Link.FillRecvBuffer(TCoreClassThread.CurrentThread, True, True);
+      TIocpClientContextIntf_WithDServ(pvClientContext).Link.FillRecvBuffer(TCoreClassThread.CurrentThread, False, False);
     end);
 end;
 
@@ -306,13 +306,13 @@ begin
   CoreClasses.CheckThreadSynchronize;
 end;
 
-function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_DIOCP.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;

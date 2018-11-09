@@ -689,7 +689,7 @@ end;
 constructor TNumberModuleList.Create;
 begin
   inherited Create;
-  FList := THashObjectList.Create(True, 256);
+  FList := THashObjectList.CustomCreate(True, 256);
 end;
 
 destructor TNumberModuleList.Destroy;

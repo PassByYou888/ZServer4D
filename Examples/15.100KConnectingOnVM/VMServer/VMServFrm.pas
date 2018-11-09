@@ -87,7 +87,7 @@ end;
 
 procedure TVMServForm.ExecuteTestButtonClick(Sender: TObject);
 begin
-  ServWithVM.ProgressPerClientP(procedure(PeerClient: TPeerClient)
+  ServWithVM.ProgressPeerIOP(procedure(PeerClient: TPeerClient)
     begin
       ServWithVMTest.ExecuteAsyncTest(PeerClient);
     end);
@@ -219,7 +219,7 @@ begin
 
   connectingcount := 0;
   InitedCount := 0;
-  ServWithVM.FastProgressPerClientP(procedure(PeerClient: TPeerClient)
+  ServWithVM.FastProgressPeerIOP(procedure(PeerClient: TPeerClient)
     begin
       if PeerClient.RemoteExecutedForConnectInit then
           inc(InitedCount)

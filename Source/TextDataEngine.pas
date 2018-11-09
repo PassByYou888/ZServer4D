@@ -170,7 +170,7 @@ begin
           Exit;
       if nsl.Count = 0 then
           Exit;
-      vl := THashVariantList.Create(FMaxListHash);
+      vl := THashVariantList.CustomCreate(FMaxListHash);
       vl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
 
       vt := THashVariantTextStream.Create(vl);
@@ -191,7 +191,7 @@ begin
   vl := THashVariantList(FSectionHashVariantList[SName]);
   if vl = nil then
     begin
-      vl := THashVariantList.Create(FMaxListHash);
+      vl := THashVariantList.CustomCreate(FMaxListHash);
       vl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
 
       nsl := Names[SName];
@@ -221,7 +221,7 @@ begin
           Exit;
       if nsl.Count = 0 then
           Exit;
-      sl := THashStringList.Create(FMaxListHash);
+      sl := THashStringList.CustomCreate(FMaxListHash);
       sl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
 
       st := THashStringTextStream.Create(sl);
@@ -242,7 +242,7 @@ begin
   sl := THashStringList(FSectionHashStringList[SName]);
   if sl = nil then
     begin
-      sl := THashStringList.Create(FMaxListHash);
+      sl := THashStringList.CustomCreate(FMaxListHash);
       sl.AutoUpdateDefaultValue := AutoUpdateDefaultValue;
 
       nsl := Names[SName];
@@ -265,7 +265,7 @@ begin
   Result := THashVariantList(FSectionHashVariantList[n]);
   if Result = nil then
     begin
-      Result := THashVariantList.Create(FMaxListHash);
+      Result := THashVariantList.CustomCreate(FMaxListHash);
       Result.AutoUpdateDefaultValue := FAutoUpdateDefaultValue;
       nsl := Names[n];
       if nsl <> nil then
@@ -287,7 +287,7 @@ begin
   Result := THashStringList(FSectionHashStringList[n]);
   if Result = nil then
     begin
-      Result := THashStringList.Create(FMaxListHash);
+      Result := THashStringList.CustomCreate(FMaxListHash);
       Result.AutoUpdateDefaultValue := FAutoUpdateDefaultValue;
       nsl := Names[n];
       if nsl <> nil then
@@ -328,9 +328,9 @@ begin
   FMaxListHash := AMaxListHash;
 
   FComment := TCoreClassStringList.Create;
-  FSectionList := THashObjectList.Create(True, FMaxSectionHash);
-  FSectionHashVariantList := THashObjectList.Create(True, FMaxSectionHash);
-  FSectionHashStringList := THashObjectList.Create(True, FMaxSectionHash);
+  FSectionList := THashObjectList.CustomCreate(True, FMaxSectionHash);
+  FSectionHashVariantList := THashObjectList.CustomCreate(True, FMaxSectionHash);
+  FSectionHashStringList := THashObjectList.CustomCreate(True, FMaxSectionHash);
   FAutoUpdateDefaultValue := False;
 end;
 

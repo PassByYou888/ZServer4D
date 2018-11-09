@@ -71,12 +71,14 @@ type
     function DoGetLast(var Param: TOpParam): Variant;
     function DoDeleteLast(var Param: TOpParam): Variant;
 
+    function DoMultiple(var Param: TOpParam): Variant;
+
     procedure InternalReg;
   public
     ProcList: THashList;
 
-    constructor Create; overload; virtual;
-    constructor Create(maxHashLen: Integer); overload; virtual;
+    constructor Create; virtual;
+    constructor CustomCreate(maxHashLen: Integer); virtual;
     destructor Destroy; override;
 
     procedure RegOpC(ProcName: SystemString; OnProc: TOnOpCall); overload;
@@ -552,11 +554,11 @@ function TOpCustomRunTime.DoBool(var Param: TOpParam): Variant;
             Result := False;
       end
     else if VarIsOrdinal(v) then
-        Result := v > 0
+        Result := Boolean(v)
     else if VarIsFloat(v) then
-        Result := v > 0
+        Result := Boolean(Round(v))
     else
-        Result := v;
+        Result := Boolean(v);
   end;
 
 var
@@ -626,6 +628,20 @@ begin
       Result := '';
 end;
 
+function TOpCustomRunTime.DoMultiple(var Param: TOpParam): Variant;
+var
+  i:Integer;
+begin
+  if length(Param) >= 2 then
+    begin
+      Result:=True;
+      for i:=1 to length(Param)-1 do
+      Result := Result and umlMultipleMatch(VarToStr(Param[0]), VarToStr(Param[i]));
+    end
+  else
+      Result := True;
+end;
+
 procedure TOpCustomRunTime.InternalReg;
 begin
   ProcList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}FreeNotifyProc;
@@ -657,20 +673,19 @@ begin
   RegOpM('GetLast', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast);
   RegOpM('Last', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast);
   RegOpM('DeleteLast', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteLast);
+
+  RegOpM('MultipleMatch', {$IFDEF FPC}@{$ENDIF FPC}DoMultiple);
 end;
 
 constructor TOpCustomRunTime.Create;
 begin
-  inherited Create;
-  ProcList := THashList.Create(256);
-  ProcList.AutoFreeData := True;
-  InternalReg;
+  CustomCreate(256);
 end;
 
-constructor TOpCustomRunTime.Create(maxHashLen: Integer);
+constructor TOpCustomRunTime.CustomCreate(maxHashLen: Integer);
 begin
   inherited Create;
-  ProcList := THashList.Create(maxHashLen);
+  ProcList := THashList.CustomCreate(maxHashLen);
   ProcList.AutoFreeData := True;
   InternalReg;
 end;

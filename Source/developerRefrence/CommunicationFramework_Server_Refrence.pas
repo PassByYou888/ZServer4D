@@ -25,7 +25,7 @@ uses SysUtils, Classes,
   CommunicationFramework, CoreClasses, UnicodeMixedLib, MemoryStream64, DataFrameEngine;
 
 type
-  TPeerIOWithRefrenceServer = class(TPeerIO)
+  TServer_PeerIO = class(TPeerIO)
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -75,61 +75,61 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
 
     { Selected ignore: recommended no used blocking communication calls on the server, unstable!! }
-    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
     { Selected ignore: recommended no used blocking communication calls on the server, unstable!! }
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 
 implementation
 
-procedure TPeerIOWithRefrenceServer.CreateAfter;
+procedure TServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
 end;
 
-destructor TPeerIOWithRefrenceServer.Destroy;
+destructor TServer_PeerIO.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TPeerIOWithRefrenceServer.Connected: Boolean;
+function TServer_PeerIO.Connected: Boolean;
 begin
   Result := True;
 end;
 
-procedure TPeerIOWithRefrenceServer.Disconnect;
+procedure TServer_PeerIO.Disconnect;
 begin
 end;
 
-procedure TPeerIOWithRefrenceServer.SendByteBuffer(const buff: PByte; const Size: nativeInt);
+procedure TServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: nativeInt);
 begin
   if not Connected then
       Exit;
 end;
 
-procedure TPeerIOWithRefrenceServer.WriteBufferOpen;
+procedure TServer_PeerIO.WriteBufferOpen;
 begin
 end;
 
-procedure TPeerIOWithRefrenceServer.WriteBufferFlush;
+procedure TServer_PeerIO.WriteBufferFlush;
 begin
 end;
 
-procedure TPeerIOWithRefrenceServer.WriteBufferClose;
+procedure TServer_PeerIO.WriteBufferClose;
 begin
 end;
 
-function TPeerIOWithRefrenceServer.GetPeerIP: SystemString;
+function TServer_PeerIO.GetPeerIP: SystemString;
 begin
   Result := '';
 end;
 
-function TPeerIOWithRefrenceServer.WriteBufferEmpty: Boolean;
+function TServer_PeerIO.WriteBufferEmpty: Boolean;
 begin
   Result := True;
 end;
 
-procedure TPeerIOWithRefrenceServer.Progress;
+procedure TServer_PeerIO.Progress;
 begin
   inherited Progress;
   ProcessAllSendCmd(nil, False, False);
@@ -175,14 +175,14 @@ begin
 end;
 
 function TCommunicationFramework_Server_Refrence.WaitSendConsoleCmd(p_io: TPeerIO;
-  const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+  const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport');
 end;
 
 procedure TCommunicationFramework_Server_Refrence.WaitSendStreamCmd(p_io: TPeerIO;
-  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;

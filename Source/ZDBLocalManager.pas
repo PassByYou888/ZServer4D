@@ -29,7 +29,7 @@ type
   TZDBStoreEngine = class(TDBStoreBase)
   protected
     FName: SystemString;
-    FLastModifyTime: TTimeTickValue;
+    FLastModifyTime: TTimeTick;
     procedure DoCreateInit; override;
   public
     property Name: SystemString read FName;
@@ -63,12 +63,12 @@ type
   TZDBPipeline = class(TCoreClassInterfacedObject)
   private
     FQueryCounter: Int64;
-    FCurrentFragmentTime: TTimeTickValue;
+    FCurrentFragmentTime: TTimeTick;
     FFragmentBuffer: TMemoryStream64;
     FActivted: Boolean;
     FQueryTask: TQueryTask;
     FPerformaceCounter: NativeInt;
-    FLastPerformaceTime: TTimeTickValue;
+    FLastPerformaceTime: TTimeTick;
     FQueryCounterOfPerSec: Double;
     FRealTimePostFragmentData: Boolean;
     FQueryResultCounter: Int64;
@@ -760,7 +760,7 @@ end;
 
 procedure TZDBPipeline.Query(var qState: TQueryState);
 var
-  lastTime: TTimeTickValue;
+  lastTime: TTimeTick;
   AlreadWrite: Boolean;
   Allowed: Boolean;
 
@@ -1321,10 +1321,10 @@ constructor TZDBLocalManager.Create;
 begin
   inherited Create;
   FRootPath := umlCurrentPath;
-  FDBPool := THashObjectList.Create(True, 1024);
+  FDBPool := THashObjectList.CustomCreate(True, 1024);
   FDBPool.AccessOptimization := False;
 
-  FQueryPipelinePool := THashObjectList.Create(False, 1024);
+  FQueryPipelinePool := THashObjectList.CustomCreate(False, 1024);
   FQueryPipelinePool.AccessOptimization := False;
 
   FQueryPipelineList := TCoreClassListForObj.Create;

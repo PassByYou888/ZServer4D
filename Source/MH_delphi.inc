@@ -179,7 +179,7 @@ end;
 
 procedure InstallMemoryHook;
 begin
-  HookPtrList := TPointerHashNativeUIntList.Create(32);
+  HookPtrList := TPointerHashNativeUIntList.CustomCreate(32);
   CurrentHookThread := nil;
 
   GetMemoryManager(OriginMM);

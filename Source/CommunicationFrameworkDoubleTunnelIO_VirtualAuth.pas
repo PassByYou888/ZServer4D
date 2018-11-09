@@ -322,7 +322,7 @@ type
     procedure ClearBatchStream;
     procedure GetBatchStreamStateM(OnResult: TStreamMethod); overload;
 {$IFNDEF FPC} procedure GetBatchStreamStateP(OnResult: TStreamProc); overload; {$ENDIF}
-    function GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTickValue): Boolean; overload;
+    function GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean; overload;
 
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
@@ -349,6 +349,24 @@ type
 implementation
 
 uses SysUtils;
+
+const
+  C_FileInfo = '__@FileInfo';
+  C_PostFile = '__@PostFile';
+  C_PostFileOver = '__@PostFileOver';
+  C_PostBatchStreamDone = '__@PostBatchStreamDone';
+  C_UserLogin = '__@UserLogin';
+  C_TunnelLink = '__@TunnelLink';
+  C_GetCurrentCadencer = '__@GetCurrentCadencer';
+  C_GetFileTime = '__@GetFileTime';
+  C_GetFileInfo = '__@GetFileInfo';
+  C_GetFileMD5 = '__@GetFileMD5';
+  C_GetFile = '__@GetFile';
+  C_PostFileInfo = '__@PostFileInfo';
+  C_NewBatchStream = '__@NewBatchStream';
+  C_PostBatchStream = '__@PostBatchStream';
+  C_ClearBatchStream = '__@ClearBatchStream';
+  C_GetBatchStreamState = '__@GetBatchStreamState';
 
 type
   PPostBatchBackcallData_VirtualAuth = ^TPostBatchBackcallData_VirtualAuth;
@@ -813,18 +831,18 @@ begin
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(fs.Size);
   sendDE.WriteString(remoteinfo);
-  UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd('FileInfo', sendDE);
+  UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_FileInfo, sendDE);
   DisposeObject(sendDE);
 
   MD5 := umlStreamMD5(fs);
 
   fs.Position := 0;
-  UserDefineIO.SendTunnel.Owner.SendBigStream('PostFile', fs, StartPos, True);
+  UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteMD5(MD5);
   sendDE.WritePointer(RemoteBackcallAddr);
-  UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd('PostFileOver', sendDE);
+  UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
@@ -972,7 +990,7 @@ begin
               de.WriteMD5(p^.RemoteMD5);
               de.WriteMD5(p^.SourceMD5);
               de.WritePointer(p^.CompletedBackcallPtr);
-              RT.SendTunnel.Owner.SendDirectStreamCmd('PostBatchStreamDone', de);
+              RT.SendTunnel.Owner.SendDirectStreamCmd(C_PostBatchStreamDone, de);
               DisposeObject(de);
             end;
         end;
@@ -1068,7 +1086,7 @@ begin
 
   FOnUserAuth := nil;
 
-  FLoginUserDefineIOList := THashObjectList.Create(False, 8192);
+  FLoginUserDefineIOList := THashObjectList.CustomCreate(False, 8192);
 
   FCanStatus := True;
   FCadencerEngine := TCadencer.Create;
@@ -1123,44 +1141,44 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.RegisterCommand;
 begin
-  FRecvTunnel.RegisterStream('UserLogin').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_UserLogin;
-  FRecvTunnel.RegisterStream('TunnelLink').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_TunnelLink;
-  FRecvTunnel.RegisterStream('GetCurrentCadencer').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetCurrentCadencer;
+  FRecvTunnel.RegisterStream(C_UserLogin).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_UserLogin;
+  FRecvTunnel.RegisterStream(C_TunnelLink).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_TunnelLink;
+  FRecvTunnel.RegisterStream(C_GetCurrentCadencer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetCurrentCadencer;
 
-  FRecvTunnel.RegisterStream('GetFileTime').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileTime;
-  FRecvTunnel.RegisterStream('GetFileInfo').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileInfo;
-  FRecvTunnel.RegisterStream('GetFileMD5').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileMD5;
-  FRecvTunnel.RegisterStream('GetFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFile;
-  FRecvTunnel.RegisterDirectStream('PostFileInfo').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileInfo;
-  FRecvTunnel.RegisterBigStream('PostFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFile;
-  FRecvTunnel.RegisterDirectStream('PostFileOver').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileOver;
+  FRecvTunnel.RegisterStream(C_GetFileTime).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileTime;
+  FRecvTunnel.RegisterStream(C_GetFileInfo).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileInfo;
+  FRecvTunnel.RegisterStream(C_GetFileMD5).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileMD5;
+  FRecvTunnel.RegisterStream(C_GetFile).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFile;
+  FRecvTunnel.RegisterDirectStream(C_PostFileInfo).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileInfo;
+  FRecvTunnel.RegisterBigStream(C_PostFile).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFile;
+  FRecvTunnel.RegisterDirectStream(C_PostFileOver).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileOver;
 
-  FRecvTunnel.RegisterDirectStream('NewBatchStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_NewBatchStream;
-  FRecvTunnel.RegisterBigStream('PostBatchStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStream;
-  FRecvTunnel.RegisterDirectStream('ClearBatchStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ClearBatchStream;
-  FRecvTunnel.RegisterDirectStream('PostBatchStreamDone').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStreamDone;
-  FRecvTunnel.RegisterStream('GetBatchStreamState').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetBatchStreamState;
+  FRecvTunnel.RegisterDirectStream(C_NewBatchStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_NewBatchStream;
+  FRecvTunnel.RegisterBigStream(C_PostBatchStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStream;
+  FRecvTunnel.RegisterDirectStream(C_ClearBatchStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ClearBatchStream;
+  FRecvTunnel.RegisterDirectStream(C_PostBatchStreamDone).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStreamDone;
+  FRecvTunnel.RegisterStream(C_GetBatchStreamState).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetBatchStreamState;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UnRegisterCommand;
 begin
-  FRecvTunnel.DeleteRegistedCMD('UserLogin');
-  FRecvTunnel.DeleteRegistedCMD('TunnelLink');
-  FRecvTunnel.DeleteRegistedCMD('GetCurrentCadencer');
+  FRecvTunnel.DeleteRegistedCMD(C_UserLogin);
+  FRecvTunnel.DeleteRegistedCMD(C_TunnelLink);
+  FRecvTunnel.DeleteRegistedCMD(C_GetCurrentCadencer);
 
-  FRecvTunnel.DeleteRegistedCMD('GetFileTime');
-  FRecvTunnel.DeleteRegistedCMD('GetFileInfo');
-  FRecvTunnel.DeleteRegistedCMD('GetFileMD5');
-  FRecvTunnel.DeleteRegistedCMD('GetFile');
-  FRecvTunnel.DeleteRegistedCMD('PostFileInfo');
-  FRecvTunnel.DeleteRegistedCMD('PostFile');
-  FRecvTunnel.DeleteRegistedCMD('PostFileOver');
+  FRecvTunnel.DeleteRegistedCMD(C_GetFileTime);
+  FRecvTunnel.DeleteRegistedCMD(C_GetFileInfo);
+  FRecvTunnel.DeleteRegistedCMD(C_GetFileMD5);
+  FRecvTunnel.DeleteRegistedCMD(C_GetFile);
+  FRecvTunnel.DeleteRegistedCMD(C_PostFileInfo);
+  FRecvTunnel.DeleteRegistedCMD(C_PostFile);
+  FRecvTunnel.DeleteRegistedCMD(C_PostFileOver);
 
-  FRecvTunnel.DeleteRegistedCMD('NewBatchStream');
-  FRecvTunnel.DeleteRegistedCMD('PostBatchStream');
-  FRecvTunnel.DeleteRegistedCMD('ClearBatchStream');
-  FRecvTunnel.DeleteRegistedCMD('PostBatchStreamDone');
-  FRecvTunnel.DeleteRegistedCMD('GetBatchStreamState');
+  FRecvTunnel.DeleteRegistedCMD(C_NewBatchStream);
+  FRecvTunnel.DeleteRegistedCMD(C_PostBatchStream);
+  FRecvTunnel.DeleteRegistedCMD(C_ClearBatchStream);
+  FRecvTunnel.DeleteRegistedCMD(C_PostBatchStreamDone);
+  FRecvTunnel.DeleteRegistedCMD(C_GetBatchStreamState);
 end;
 
 function TCommunicationFramework_DoubleTunnelService_VirtualAuth.GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
@@ -1191,10 +1209,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(0);
-  cli.SendDirectStreamCmd('NewBatchStream', de);
+  cli.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  cli.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  cli.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.PostBatchStreamC(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall);
@@ -1215,10 +1233,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(p);
-  cli.SendDirectStreamCmd('NewBatchStream', de);
+  cli.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  cli.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  cli.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.PostBatchStreamM(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod);
@@ -1239,10 +1257,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(p);
-  cli.SendDirectStreamCmd('NewBatchStream', de);
+  cli.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  cli.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  cli.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
 {$IFNDEF FPC}
@@ -1266,10 +1284,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(p);
-  cli.SendDirectStreamCmd('NewBatchStream', de);
+  cli.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  cli.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  cli.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 {$ENDIF}
 
@@ -1280,7 +1298,7 @@ var
   p: PPostBatchBackcallData_VirtualAuth;
 begin
   de := TDataFrameEngine.Create;
-  cli.SendDirectStreamCmd('ClearBatchStream', de);
+  cli.SendDirectStreamCmd(C_ClearBatchStream, de);
   DisposeObject(de);
 end;
 
@@ -1290,7 +1308,7 @@ var
   p: PPostBatchBackcallData_VirtualAuth;
 begin
   de := TDataFrameEngine.Create;
-  cli.SendStreamCmdM('GetBatchStreamState', de, OnResult);
+  cli.SendStreamCmdM(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -1303,7 +1321,7 @@ var
   p: PPostBatchBackcallData_VirtualAuth;
 begin
   de := TDataFrameEngine.Create;
-  cli.SendStreamCmdP('GetBatchStreamState', de, OnResult);
+  cli.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 {$ENDIF}
@@ -1566,7 +1584,7 @@ begin
               de.WriteMD5(p^.RemoteMD5);
               de.WriteMD5(p^.SourceMD5);
               de.WritePointer(p^.CompletedBackcallPtr);
-              SendTunnel.SendDirectStreamCmd('PostBatchStreamDone', de);
+              SendTunnel.SendDirectStreamCmd(C_PostBatchStreamDone, de);
               DisposeObject(de);
             end;
         end;
@@ -1872,10 +1890,10 @@ end;
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.Disconnect;
 begin
   if FSendTunnel.ClientIO <> nil then
-      FSendTunnel.ClientIO.Disconnect;
+      FSendTunnel.Disconnect;
 
   if FRecvTunnel.ClientIO <> nil then
-      FRecvTunnel.ClientIO.Disconnect;
+      FRecvTunnel.Disconnect;
 
   FAsyncConnectAddr := '';
   FAsyncConnRecvPort := 0;
@@ -1902,7 +1920,7 @@ begin
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
   sendDE.WriteString(Passwd);
-  FSendTunnel.WaitSendStreamCmd('UserLogin', sendDE, resDE, FWaitCommandTimeout * 2);
+  FSendTunnel.WaitSendStreamCmd(C_UserLogin, sendDE, resDE, FWaitCommandTimeout * 2);
 
   if resDE.Count > 0 then
     begin
@@ -1935,7 +1953,7 @@ begin
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
 
-  FSendTunnel.WaitSendStreamCmd('TunnelLink', sendDE, resDE, FWaitCommandTimeout);
+  FSendTunnel.WaitSendStreamCmd(C_TunnelLink, sendDE, resDE, FWaitCommandTimeout);
 
   if resDE.Count > 0 then
     begin
@@ -1974,7 +1992,7 @@ begin
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
   sendDE.WriteString(Passwd);
-  FSendTunnel.SendStreamCmdP('UserLogin', sendDE,
+  FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE,
     procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
       r: Boolean;
@@ -2012,7 +2030,7 @@ begin
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
 
-  FSendTunnel.SendStreamCmdP('TunnelLink', sendDE,
+  FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE,
     procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
       r: Boolean;
@@ -2054,7 +2072,7 @@ begin
   FLastCadencerTime := FCadencerEngine.CurrentTime;
   FServerDelay := 0;
   sendDE.WriteDouble(FLastCadencerTime);
-  FSendTunnel.SendStreamCmdM('GetCurrentCadencer', sendDE, {$IFDEF FPC}@{$ENDIF FPC}GetCurrentCadencer_StreamResult);
+  FSendTunnel.SendStreamCmdM(C_GetCurrentCadencer, sendDE, {$IFDEF FPC}@{$ENDIF FPC}GetCurrentCadencer_StreamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2069,7 +2087,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(RemoteFilename);
-  FSendTunnel.SendStreamCmdM('GetFileTime', sendDE, OnCallResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileTime, sendDE, OnCallResult);
   DisposeObject(sendDE);
 end;
 
@@ -2084,7 +2102,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(RemoteFilename);
-  FSendTunnel.SendStreamCmdP('GetFileTime', sendDE, OnCallResult);
+  FSendTunnel.SendStreamCmdP(C_GetFileTime, sendDE, OnCallResult);
   DisposeObject(sendDE);
 end;
 {$ENDIF FPC}
@@ -2112,7 +2130,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := nil; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFileInfo', sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileInfo_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileInfo, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileInfo_StreamParamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2137,7 +2155,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := nil; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFileInfo', sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileInfo_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileInfo, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileInfo_StreamParamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2165,7 +2183,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := OnComplete; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFileInfo', sendDE, p, nil, GetFileInfo_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileInfo, sendDE, p, nil, GetFileInfo_StreamParamResult);
   DisposeObject(sendDE);
 end;
 {$ENDIF FPC}
@@ -2199,7 +2217,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := nil; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFileMD5', sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileMD5_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileMD5, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileMD5_StreamParamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2229,7 +2247,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := nil; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFileMD5', sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileMD5_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileMD5, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFileMD5_StreamParamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2259,7 +2277,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := OnComplete; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFileMD5', sendDE, p, nil, GetFileMD5_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFileMD5, sendDE, p, nil, GetFileMD5_StreamParamResult);
   DisposeObject(sendDE);
 end;
 {$ENDIF FPC}
@@ -2317,7 +2335,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := nil; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFile', sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFile, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2344,7 +2362,7 @@ begin
 {$IFNDEF FPC} p^.OnCompleteProc := nil; {$ENDIF}
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFile', sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFile, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
   DisposeObject(sendDE);
 end;
 
@@ -2371,7 +2389,7 @@ begin
   p^.OnCompleteProc := OnCompleteProc;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM('GetFile', sendDE, p, nil, GetFile_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetFile, sendDE, p, nil, GetFile_StreamParamResult);
   DisposeObject(sendDE);
 end;
 {$ENDIF}
@@ -2396,7 +2414,7 @@ begin
   sendDE.WriteString(saveToPath);
   sendDE.WritePointer(0);
 
-  FSendTunnel.WaitSendStreamCmd('GetFile', sendDE, resDE, FWaitCommandTimeout);
+  FSendTunnel.WaitSendStreamCmd(C_GetFile, sendDE, resDE, FWaitCommandTimeout);
 
   if resDE.Count > 0 then
     begin
@@ -2427,17 +2445,17 @@ begin
   sendDE.WriteString(umlGetFileName(fileName));
   sendDE.WriteInt64(0);
   sendDE.WriteInt64(fs.Size);
-  FSendTunnel.SendDirectStreamCmd('PostFileInfo', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
   MD5 := umlStreamMD5(fs);
 
   fs.Position := 0;
-  FSendTunnel.SendBigStream('PostFile', fs, True);
+  FSendTunnel.SendBigStream(C_PostFile, fs, True);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteMD5(MD5);
-  FSendTunnel.SendDirectStreamCmd('PostFileOver', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -2460,17 +2478,17 @@ begin
   sendDE.WriteString(umlGetFileName(fileName));
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(fs.Size);
-  FSendTunnel.SendDirectStreamCmd('PostFileInfo', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
   MD5 := umlStreamMD5(fs);
 
   fs.Position := 0;
-  FSendTunnel.SendBigStream('PostFile', fs, StartPos, True);
+  FSendTunnel.SendBigStream(C_PostFile, fs, StartPos, True);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteMD5(MD5);
-  FSendTunnel.SendDirectStreamCmd('PostFileOver', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -2489,18 +2507,18 @@ begin
   sendDE.WriteString(umlGetFileName(fn));
   sendDE.WriteInt64(0);
   sendDE.WriteInt64(stream.Size);
-  FSendTunnel.SendDirectStreamCmd('PostFileInfo', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
   stream.Position := 0;
   MD5 := umlStreamMD5(stream);
 
   stream.Position := 0;
-  FSendTunnel.SendBigStream('PostFile', stream, doneFreeStream);
+  FSendTunnel.SendBigStream(C_PostFile, stream, doneFreeStream);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteMD5(MD5);
-  FSendTunnel.SendDirectStreamCmd('PostFileOver', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -2519,18 +2537,18 @@ begin
   sendDE.WriteString(umlGetFileName(fn));
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(stream.Size);
-  FSendTunnel.SendDirectStreamCmd('PostFileInfo', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
   stream.Position := 0;
   MD5 := umlStreamMD5(stream);
 
   stream.Position := 0;
-  FSendTunnel.SendBigStream('PostFile', stream, StartPos, doneFreeStream);
+  FSendTunnel.SendBigStream(C_PostFile, stream, StartPos, doneFreeStream);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteMD5(MD5);
-  FSendTunnel.SendDirectStreamCmd('PostFileOver', sendDE);
+  FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -2542,10 +2560,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(0);
-  SendTunnel.SendDirectStreamCmd('NewBatchStream', de);
+  SendTunnel.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  SendTunnel.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  SendTunnel.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.PostBatchStreamC(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall);
@@ -2566,10 +2584,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(p);
-  SendTunnel.SendDirectStreamCmd('NewBatchStream', de);
+  SendTunnel.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  SendTunnel.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  SendTunnel.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.PostBatchStreamM(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod);
@@ -2590,10 +2608,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(p);
-  SendTunnel.SendDirectStreamCmd('NewBatchStream', de);
+  SendTunnel.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  SendTunnel.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  SendTunnel.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
 {$IFNDEF FPC}
@@ -2617,10 +2635,10 @@ begin
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(p);
-  SendTunnel.SendDirectStreamCmd('NewBatchStream', de);
+  SendTunnel.SendDirectStreamCmd(C_NewBatchStream, de);
   DisposeObject(de);
 
-  SendTunnel.SendBigStream('PostBatchStream', stream, doneFreeStream);
+  SendTunnel.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 {$ENDIF}
 
@@ -2631,7 +2649,7 @@ var
   p: PPostBatchBackcallData_VirtualAuth;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendDirectStreamCmd('ClearBatchStream', de);
+  SendTunnel.SendDirectStreamCmd(C_ClearBatchStream, de);
   DisposeObject(de);
 end;
 
@@ -2640,7 +2658,7 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendStreamCmdM('GetBatchStreamState', de, OnResult);
+  SendTunnel.SendStreamCmdM(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 
@@ -2652,45 +2670,45 @@ var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.SendStreamCmdP('GetBatchStreamState', de, OnResult);
+  SendTunnel.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 {$ENDIF}
 
 
-function TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTickValue): Boolean;
+function TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean;
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.WaitSendStreamCmd('GetBatchStreamState', de, ResultData, ATimeOut);
+  SendTunnel.WaitSendStreamCmd(C_GetBatchStreamState, de, ResultData, ATimeOut);
   Result := ResultData.Count > 0;
   DisposeObject(de);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.RegisterCommand;
 begin
-  FRecvTunnel.RegisterDirectStream('FileInfo').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FileInfo;
-  FRecvTunnel.RegisterBigStream('PostFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFile;
-  FRecvTunnel.RegisterDirectStream('PostFileOver').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileOver;
-  FRecvTunnel.RegisterDirectStream('NewBatchStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_NewBatchStream;
-  FRecvTunnel.RegisterBigStream('PostBatchStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStream;
-  FRecvTunnel.RegisterDirectStream('ClearBatchStream').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ClearBatchStream;
-  FRecvTunnel.RegisterDirectStream('PostBatchStreamDone').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStreamDone;
-  FRecvTunnel.RegisterStream('GetBatchStreamState').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetBatchStreamState;
+  FRecvTunnel.RegisterDirectStream(C_FileInfo).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_FileInfo;
+  FRecvTunnel.RegisterBigStream(C_PostFile).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFile;
+  FRecvTunnel.RegisterDirectStream(C_PostFileOver).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileOver;
+  FRecvTunnel.RegisterDirectStream(C_NewBatchStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_NewBatchStream;
+  FRecvTunnel.RegisterBigStream(C_PostBatchStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStream;
+  FRecvTunnel.RegisterDirectStream(C_ClearBatchStream).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_ClearBatchStream;
+  FRecvTunnel.RegisterDirectStream(C_PostBatchStreamDone).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostBatchStreamDone;
+  FRecvTunnel.RegisterStream(C_GetBatchStreamState).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetBatchStreamState;
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.UnRegisterCommand;
 begin
-  FRecvTunnel.DeleteRegistedCMD('FileInfo');
-  FRecvTunnel.DeleteRegistedCMD('PostFile');
-  FRecvTunnel.DeleteRegistedCMD('PostFileOver');
+  FRecvTunnel.DeleteRegistedCMD(C_FileInfo);
+  FRecvTunnel.DeleteRegistedCMD(C_PostFile);
+  FRecvTunnel.DeleteRegistedCMD(C_PostFileOver);
 
-  FRecvTunnel.DeleteRegistedCMD('NewBatchStream');
-  FRecvTunnel.DeleteRegistedCMD('PostBatchStream');
-  FRecvTunnel.DeleteRegistedCMD('ClearBatchStream');
-  FRecvTunnel.DeleteRegistedCMD('PostBatchStreamDone');
-  FRecvTunnel.DeleteRegistedCMD('GetBatchStreamState');
+  FRecvTunnel.DeleteRegistedCMD(C_NewBatchStream);
+  FRecvTunnel.DeleteRegistedCMD(C_PostBatchStream);
+  FRecvTunnel.DeleteRegistedCMD(C_ClearBatchStream);
+  FRecvTunnel.DeleteRegistedCMD(C_PostBatchStreamDone);
+  FRecvTunnel.DeleteRegistedCMD(C_GetBatchStreamState);
 end;
 
 function TCommunicationFramework_DoubleTunnelClient_VirtualAuth.RemoteInited: Boolean;
@@ -2699,3 +2717,4 @@ begin
 end;
 
 end.
+

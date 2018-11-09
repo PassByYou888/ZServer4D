@@ -30,7 +30,7 @@ uses CommunicationFramework, CoreClasses,
 type
   TCommunicationFramework_Client_Indy = class;
 
-  TClientIntf = class(TPeerIO)
+  TIDClient_PeerIO = class(TPeerIO)
   public
     function Context: TIdTCPClient;
 
@@ -46,7 +46,7 @@ type
   TCommunicationFramework_Client_Indy = class(TCommunicationFrameworkClient)
   protected
     FDriver: TIdTCPClient;
-    ClientIntf: TClientIntf;
+    ClientIntf: TIDClient_PeerIO;
     FProgressing: Boolean;
 
     FOnAsyncConnectNotifyCall: TStateCall;
@@ -114,43 +114,43 @@ begin
   CopyPtr(p, @Result[0], Size);
 end;
 
-function TClientIntf.Context: TIdTCPClient;
+function TIDClient_PeerIO.Context: TIdTCPClient;
 begin
-  Result := ClientIntf as TIdTCPClient;
+  Result := IOInterface as TIdTCPClient;
 end;
 
-function TClientIntf.Connected: Boolean;
+function TIDClient_PeerIO.Connected: Boolean;
 begin
   Result := Context.Connected;
 end;
 
-procedure TClientIntf.Disconnect;
+procedure TIDClient_PeerIO.Disconnect;
 begin
   Context.Disconnect;
 end;
 
-procedure TClientIntf.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TIDClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Size > 0 then
       Context.IOHandler.write(ToIDBytes(buff, Size));
 end;
 
-procedure TClientIntf.WriteBufferOpen;
+procedure TIDClient_PeerIO.WriteBufferOpen;
 begin
   Context.IOHandler.WriteBufferOpen;
 end;
 
-procedure TClientIntf.WriteBufferFlush;
+procedure TIDClient_PeerIO.WriteBufferFlush;
 begin
   Context.IOHandler.WriteBufferFlush;
 end;
 
-procedure TClientIntf.WriteBufferClose;
+procedure TIDClient_PeerIO.WriteBufferClose;
 begin
   Context.IOHandler.WriteBufferClose;
 end;
 
-function TClientIntf.GetPeerIP: SystemString;
+function TIDClient_PeerIO.GetPeerIP: SystemString;
 begin
   Result := Context.Host;
 end;
@@ -162,7 +162,7 @@ begin
   DisposeObject(ClientIntf);
 
   FDriver := TIdTCPClient.Create(nil);
-  ClientIntf := TClientIntf.Create(Self, FDriver);
+  ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
   FProgressing := False;
 
   if IsIPv4(addr) then
@@ -198,7 +198,7 @@ begin
         FDriver.UseNagle := False;
 
         DisposeObject(ClientIntf);
-        ClientIntf := TClientIntf.Create(Self, FDriver);
+        ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
 
         TriggerDoConnectFailed;
 
@@ -230,7 +230,7 @@ begin
           FDriver.UseNagle := False;
 
           DisposeObject(ClientIntf);
-          ClientIntf := TClientIntf.Create(Self, FDriver);
+          ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
 
           TriggerDoConnectFailed;
 
@@ -259,7 +259,7 @@ begin
   FDriver.ReadTimeout := -1;
   FDriver.UseNagle := False;
 
-  ClientIntf := TClientIntf.Create(Self, FDriver);
+  ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
   FProgressing := False;
 
   FOnAsyncConnectNotifyCall := nil;
@@ -339,7 +339,7 @@ begin
 
     DisposeObject(ClientIntf);
 
-    ClientIntf := TClientIntf.Create(Self, FDriver);
+    ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
     Result := False;
   end;
 end;
@@ -351,7 +351,7 @@ end;
 
 procedure TCommunicationFramework_Client_Indy.Progress;
 var
-  t: TTimeTickValue;
+  t: TTimeTick;
   iBuf: TIdBytes;
 begin
   if FProgressing then
@@ -459,7 +459,7 @@ end;
 
 function TCommunicationFramework_Client_Indy.Connect(addr: SystemString; Port: Word): Boolean;
 var
-  t: TTimeTickValue;
+  t: TTimeTick;
 begin
   Result := False;
 
@@ -468,7 +468,7 @@ begin
   DisposeObject(ClientIntf);
 
   FDriver := TIdTCPClient.Create(nil);
-  ClientIntf := TClientIntf.Create(Self, FDriver);
+  ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
   FProgressing := False;
 
   if IsIPv4(addr) then
@@ -504,7 +504,7 @@ begin
         FDriver.UseNagle := False;
 
         DisposeObject(ClientIntf);
-        ClientIntf := TClientIntf.Create(Self, FDriver);
+        ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
         Exit;
       end
     else
@@ -533,7 +533,7 @@ begin
           FDriver.UseNagle := False;
 
           DisposeObject(ClientIntf);
-          ClientIntf := TClientIntf.Create(Self, FDriver);
+          ClientIntf := TIDClient_PeerIO.Create(Self, FDriver);
           Exit;
         end;
       end;

@@ -27,6 +27,12 @@
   {$DEFINE parallel}
   {$DEFINE OptimizationMemoryStreamMD5}
 
+  {
+    Using Sequential Packet Model will consume more memory and reduce IO performance,
+    it can memory communication status and facilitate us to return to the original scene.
+  }
+  // {$DEFINE SEQUENCE_PACKET}
+
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
   // CriticalSimulateAtomic defined so performance to be reduced
   {$DEFINE CriticalSimulateAtomic}
@@ -59,6 +65,12 @@
   {$DEFINE parallel}
   {$DEFINE OptimizationMemoryStreamMD5}
 
+  {
+    Using Sequential Packet Model will consume more memory and reduce IO performance,
+    it can memory communication status and facilitate us to return to the original scene.
+  }
+  // {$DEFINE SEQUENCE_PACKET}
+
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
   // CriticalSimulateAtomic defined so performance to be reduced
   // {$DEFINE CriticalSimulateAtomic}
@@ -75,7 +87,7 @@
     {$I-} { Input output checking }
     {$O+} { optimization }
   {$ELSE}
-    {$UNDEF INLINE_ASM}
+    {$DEFINE INLINE_ASM}
     {$R-} { range check }
     {$I-} { Input output checking }
     {$O+} { optimization }
@@ -92,7 +104,6 @@
     // {$DEFINE NatTunnel_On_Indy}
     // {$DEFINE NatTunnel_On_Synapse}
 
-
     // HostQuery Physics interface
     // {$DEFINE HostQuery_On_ICS}
     {$DEFINE HostQuery_On_CrossSocket}
@@ -101,8 +112,8 @@
   {$IFEND}
 {$ENDIF FPC}
 
-{$WARNINGS ON}
-{$HINTS ON}
+{$WARNINGS OFF}
+{$HINTS OFF}
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
@@ -134,3 +145,36 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
+
+(*
+  {$IFDEF FPC}
+  {$ELSE FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}@{$ENDIF FPC}
+
+  {$IFNDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF parallel}
+  {$ELSE parallel}
+  {$ENDIF parallel}
+
+  {$IFNDEF parallel}
+  {$ENDIF parallel}
+
+  {$Region 'RegionName'}
+  {$EndRegion 'RegionName'}
+
+  {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
+  {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
+
+  {$IFDEF RangeCheck}{$R-}{$ENDIF}
+  {$IFDEF RangeCheck}{$R+}{$ENDIF}
+*)
+
+
+

@@ -45,7 +45,7 @@ type
     procedure ProcessThreadTrigger;
   end;
 
-  TPeerClientIntfForICS = class(TPeerIO)
+  TICSServer_PeerIO = class(TPeerIO)
   public
     FContext: TICSContext;
 
@@ -64,10 +64,10 @@ type
   protected
     FTRIGGER_THREAD_PROCESS_MSGID: uint;
     FICSSocketThread: TICSSocketThread_Server;
-    FClientIntf: TPeerClientIntfForICS;
-    FLastActiveTime: TTimeTickValue;
+    FClientIntf: TICSServer_PeerIO;
+    FLastActiveTime: TTimeTick;
     FClientThreadPause: Boolean;
-    FTimeOut: TTimeTickValue;
+    FTimeOut: TTimeTick;
     ThreadAttachAborted: Boolean;
   protected
     // thread sync interface
@@ -106,8 +106,8 @@ type
 
     procedure Progress; override;
 
-    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue); override;
+    function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
 
     property StartedService: Boolean read FStartedService;
     property driver: TCustomICSSocketServer read FDriver;
@@ -295,7 +295,7 @@ begin
     end;
 end;
 
-function TPeerClientIntfForICS.Connected: Boolean;
+function TICSServer_PeerIO.Connected: Boolean;
 begin
   if FContext <> nil then
       Result := (FContext.State in [wsConnected])
@@ -303,7 +303,7 @@ begin
       Result := False;
 end;
 
-procedure TPeerClientIntfForICS.Disconnect;
+procedure TICSServer_PeerIO.Disconnect;
 begin
   if FContext <> nil then
     begin
@@ -317,27 +317,18 @@ begin
     end;
 end;
 
-procedure TPeerClientIntfForICS.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+procedure TICSServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if Connected then
     if Size > 0 then
         FContext.Send(buff, Size);
 end;
 
-procedure TPeerClientIntfForICS.WriteBufferOpen;
+procedure TICSServer_PeerIO.WriteBufferOpen;
 begin
 end;
 
-procedure TPeerClientIntfForICS.WriteBufferFlush;
-begin
-  try
-    if Connected then
-        FContext.TryToSend;
-  except
-  end;
-end;
-
-procedure TPeerClientIntfForICS.WriteBufferClose;
+procedure TICSServer_PeerIO.WriteBufferFlush;
 begin
   try
     if Connected then
@@ -346,7 +337,16 @@ begin
   end;
 end;
 
-function TPeerClientIntfForICS.GetPeerIP: SystemString;
+procedure TICSServer_PeerIO.WriteBufferClose;
+begin
+  try
+    if Connected then
+        FContext.TryToSend;
+  except
+  end;
+end;
+
+function TICSServer_PeerIO.GetPeerIP: SystemString;
 begin
   if FContext <> nil then
       Result := FContext.PeerAddr
@@ -354,7 +354,7 @@ begin
       Result := '';
 end;
 
-procedure TPeerClientIntfForICS.ContinueResultSend;
+procedure TICSServer_PeerIO.ContinueResultSend;
 begin
   inherited ContinueResultSend;
   ProcessAllSendCmd(nil, False, False);
@@ -501,7 +501,7 @@ end;
 procedure TCommunicationFramework_Server_ICS.ClientCreateContextEvent(Sender: TObject; Client: TCustomICSContext);
 var
   cli: TICSContext;
-  t: TTimeTickValue;
+  t: TTimeTick;
 begin
   if Count > 500 then
     begin
@@ -520,7 +520,7 @@ begin
     cli.FICSSocketThread.FCommunicationFramework := Self;
     cli.FICSSocketThread.Suspended := False;
 
-    cli.FClientIntf := TPeerClientIntfForICS.Create(Self, cli);
+    cli.FClientIntf := TICSServer_PeerIO.Create(Self, cli);
     cli.FClientIntf.FContext := cli;
 
     t := GetTimeTickCount + 5000;
@@ -623,7 +623,7 @@ procedure TCommunicationFramework_Server_ICS.StopService;
 begin
   if Count > 0 then
     begin
-      ProgressPerClientP(procedure(cli: TPeerIO)
+      ProgressPeerIOP(procedure(cli: TPeerIO)
         begin
           cli.Disconnect;
         end);
@@ -647,7 +647,7 @@ begin
   if c <> nil then
     begin
       c.PostQueueData(v);
-      TPeerClientIntfForICS(c).FContext.FICSSocketThread.ProcessThreadTrigger;
+      TICSServer_PeerIO(c).FContext.FICSSocketThread.ProcessThreadTrigger;
     end
   else
       DisposeQueueData(v);
@@ -655,9 +655,9 @@ end;
 
 procedure TCommunicationFramework_Server_ICS.Progress;
 begin
-  ProgressPerClientP(procedure(cli: TPeerIO)
+  ProgressPeerIOP(procedure(cli: TPeerIO)
     begin
-      TPeerClientIntfForICS(cli).FContext.ProcessClientActiveTime;
+      TICSServer_PeerIO(cli).FContext.ProcessClientActiveTime;
     end);
 
   inherited Progress;
@@ -668,13 +668,13 @@ begin
   end;
 end;
 
-function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTickValue): SystemString;
+function TCommunicationFramework_Server_ICS.WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
 begin
   Result := '';
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
-procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTickValue);
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
