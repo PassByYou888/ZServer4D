@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{617D5858-FDB0-404E-BBDE-01A1E265F739}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="CustomStableIOServerDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CustomStableIOClientDemo.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="CustomStableIOServerDemo">
+        <MSBuild Projects="CustomStableIOServerDemo.dproj"/>
+    </Target>
+    <Target Name="CustomStableIOServerDemo:Clean">
+        <MSBuild Projects="CustomStableIOServerDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CustomStableIOServerDemo:Make">
+        <MSBuild Projects="CustomStableIOServerDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CustomStableIOClientDemo">
+        <MSBuild Projects="CustomStableIOClientDemo.dproj"/>
+    </Target>
+    <Target Name="CustomStableIOClientDemo:Clean">
+        <MSBuild Projects="CustomStableIOClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CustomStableIOClientDemo:Make">
+        <MSBuild Projects="CustomStableIOClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="CustomStableIOServerDemo;CustomStableIOClientDemo"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="CustomStableIOServerDemo:Clean;CustomStableIOClientDemo:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="CustomStableIOServerDemo:Make;CustomStableIOClientDemo:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

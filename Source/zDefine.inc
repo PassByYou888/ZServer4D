@@ -27,12 +27,6 @@
   {$DEFINE parallel}
   {$DEFINE OptimizationMemoryStreamMD5}
 
-  {
-    Using Sequential Packet Model will consume more memory and reduce IO performance,
-    it can memory communication status and facilitate us to return to the original scene.
-  }
-  // {$DEFINE SEQUENCE_PACKET}
-
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
   // CriticalSimulateAtomic defined so performance to be reduced
   {$DEFINE CriticalSimulateAtomic}
@@ -42,6 +36,10 @@
   // {$DEFINE SoftCritical}
 
   // {$DEFINE ANTI_DEAD_ATOMIC_LOCK}
+
+  // Using Sequential Packet Model will consume more memory and reduce IO performance,
+  // it can memory communication status and facilitate us to return to the original scene.
+  // {$DEFINE SEQUENCE_PACKET}
 
   {$DEFINE release}
   {$UNDEF debug}
@@ -65,12 +63,6 @@
   {$DEFINE parallel}
   {$DEFINE OptimizationMemoryStreamMD5}
 
-  {
-    Using Sequential Packet Model will consume more memory and reduce IO performance,
-    it can memory communication status and facilitate us to return to the original scene.
-  }
-  // {$DEFINE SEQUENCE_PACKET}
-
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
   // CriticalSimulateAtomic defined so performance to be reduced
   // {$DEFINE CriticalSimulateAtomic}
@@ -80,6 +72,10 @@
   // {$DEFINE SoftCritical}
 
   // {$DEFINE ANTI_DEAD_ATOMIC_LOCK}
+
+  // Using Sequential Packet Model will consume more memory and reduce IO performance,
+  // it can memory communication status and facilitate us to return to the original scene.
+  // {$DEFINE SEQUENCE_PACKET}
 
   {$IFDEF release}
     {$DEFINE INLINE_ASM}

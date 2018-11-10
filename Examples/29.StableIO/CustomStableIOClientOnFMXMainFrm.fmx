@@ -1,0 +1,118 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 373
+  ClientWidth = 732
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Padding.Right = 10.000000000000000000
+    Position.X = 16.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Label1: TLabel
+      Align = Left
+      StyledSettings = [Family, Style, FontColor]
+      Size.Width = 41.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'host'
+      TabOrder = 0
+    end
+    object HostEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      TabOrder = 1
+      Text = '127.0.0.1'
+      Size.Width = 174.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+  end
+  object connectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      '  StableIO'#21407#29702
+      
+        '  StableIO'#36890#36807#25130#33719#29289#29702'IO('#20219#24847'synapse,corss,diocp,indy,ico'#30340'IO)'#30340#25910#21457#20107#20214#65292#29420#31435#20102#19968#20010 +
+        #31283#23450#30340'IO'#65292#21483'StableIO'
+      
+        '  StableIO'#26159#34394#21270#30340#65292#23427#19981#20250#20687#29289#29702'IO'#37027#26679#65292#26029#32447#20197#21518#65292#23454#20363#21644#29616#22330#37117#34987#30772#22351#20102#65292'StableIO'#22312#26029#32447#20197#21518#65292#20173#28982#36824#22312#24037#20316#65292'S' +
+        'tableIO'#22788#20110#19968#31181'offline'#30340#24037#20316#27169#24335#12290
+      '  '#24403#29289#29702'IO'#37325#36830#65292'StableIO'#20250#20174'offline'#20013#31163#24320#65292#36827#20837'online'#27169#24335#65292#24182#36824#21407#29616#22330
+      ''
+      '  StableIO'#30340#26381#21153#22120#24517#39035#26159#65292'TCommunicationFramework_StableServer'
+      '  StableIO'#30340#23458#25143#31471#24517#39035#26159#65292'TCommunicationFramework_StableClient'
+      '  '#36825#20004#32773#24517#39035#23545#21495#65292#25165#33021#36827#34892#33258#21160#21270#30340#26029#32447#37325#36830#21644#24674#22797#29616#22330#33021#21147
+      ''
+      '  '#26222#36890#23458#25143#31471#20063#33021#30452#25509#20351#29992'StableIO'#26381#21153#22120#65292#20294#26159#19981#20855#26377#26029#32447#37325#36830#21151#33021
+      ''
+      '  '#36816#34892'StableIO'#30340'Demo'#65292#20351#29992#29289#29702#32593#32476#31995#32479#26356#23481#26131#27979#35797#21644#39564#35777)
+    StyledSettings = [Family, Size, FontColor]
+    TextSettings.WordWrap = True
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Position.X = 248.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 465.000000000000000000
+    Size.Height = 345.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Viewport.Width = 461.000000000000000000
+    Viewport.Height = 341.000000000000000000
+  end
+  object RunTestButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Run Test'
+    OnClick = RunTestButtonClick
+  end
+  object DisconnectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 128.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'disconnect'
+    OnClick = DisconnectButtonClick
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 184
+    Top = 136
+  end
+  object IOStateLabel: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 128.000000000000000000
+    Text = 'IOStateLabel'
+    TabOrder = 6
+  end
+end
