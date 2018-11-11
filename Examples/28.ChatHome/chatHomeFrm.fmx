@@ -86,6 +86,7 @@ object Form3: TForm3
     Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
     DataDetectorTypes = []
     StyledSettings = [Family, Size, FontColor]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Position.X = 248.000000000000000000
     Position.Y = 8.000000000000000000
     Size.Width = 497.000000000000000000
@@ -150,6 +151,7 @@ object Form3: TForm3
     TabOrder = 8
   end
   object Layout3: TLayout
+    Anchors = [akLeft, akRight, akBottom]
     Padding.Right = 10.000000000000000000
     Position.X = 120.000000000000000000
     Position.Y = 360.000000000000000000
@@ -281,6 +283,7 @@ object Form3: TForm3
     end
   end
   object DebugCheckBox: TCheckBox
+    Anchors = [akLeft, akBottom]
     StyledSettings = [Family, Style, FontColor]
     IsChecked = True
     Position.X = 16.000000000000000000

@@ -422,6 +422,7 @@ type
     // Security
     FSequencePacketLimitPhysicsMemory: Int64;
     SequencePacketCloseDone: Boolean;
+    LastSequencePacketReceivedTick: TTimeTick;
 
     procedure InitSequencePacketModel(const hashLen, MemoryDelta: Integer);
     procedure FreeSequencePacketModel;
@@ -3017,6 +3018,8 @@ begin
 
   FSequencePacketLimitPhysicsMemory := 0;
   SequencePacketCloseDone := False;
+
+  LastSequencePacketReceivedTick := GetTimeTick;
 end;
 
 procedure TPeerIO.FreeSequencePacketModel;
@@ -3066,10 +3069,11 @@ begin
   if FSequencePacketSignal then
     begin
       t := GetTimeTick;
-      if t - LastCommunicationTick_Sending > 2000 then
+      if (t - LastSequencePacketReceivedTick > 1000) and
+        (SendingSequencePacketHistory.Count > 0) then
         begin
-          if SendingSequencePacketHistory.Count > 0 then
-              ResendSequencePacket(SendingSequencePacketHistory.LastPtr^.u32);
+          IOSendBuffer.Position := IOSendBuffer.Size;
+          ResendSequencePacket(SendingSequencePacketHistory.LastPtr^.u32);
         end;
     end;
 
@@ -3278,6 +3282,9 @@ begin
           Break;
 
       sToken := fastSwap.ReadUInt8;
+
+      if sToken in [C_Sequence_RequestResend, C_Sequence_EchoPackage, C_Sequence_Package] then
+          LastSequencePacketReceivedTick := GetTimeTick;
 
       if sToken = C_Sequence_KeepAlive then
         begin

@@ -133,7 +133,7 @@ end;
 procedure TForm1.RunTestButtonClick(Sender: TObject);
 begin
   if MyClient.Connected then
-      MyClient.Test.ExecuteTest(MyClient.ClientIO);
+      MyClient.Test.ExecuteAsyncTestWithBigStream(MyClient.ClientIO);
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
