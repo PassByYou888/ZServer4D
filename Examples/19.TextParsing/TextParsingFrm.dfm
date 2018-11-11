@@ -18,7 +18,7 @@ object Form1: TForm1
     Top = 0
     Width = 896
     Height = 440
-    ActivePage = TabSheet3
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -65,6 +65,10 @@ object Form1: TForm1
     object TabSheet2: TTabSheet
       Caption = 'pascal proc list'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Memo3: TMemo
         Left = 24
         Top = 27

@@ -99,13 +99,7 @@ begin
       if cState then
         begin
           client_test.ExecuteAsyncTestWithBigStream(client.ClientIO);
-          client_test.ExecuteTestReponse(client.ClientIO);
         end;
-      // 如果远程服务器上行流量不够，测试数据无法收发成功，30秒以后会强制断线
-      client.WaitP(30 * 1000, procedure(const sState: Boolean)
-        begin
-          client.Disconnect;
-        end);
     end);
 end;
 

@@ -23,9 +23,9 @@ object VMServForm: TVMServForm
     Align = alClient
     TabOrder = 0
     object StateMemo: TMemo
-      Left = 578
+      Left = 493
       Top = 1
-      Width = 202
+      Width = 287
       Height = 410
       Align = alRight
       DoubleBuffered = True
@@ -40,6 +40,7 @@ object VMServForm: TVMServForm
       ParentFont = False
       TabOrder = 0
       WordWrap = False
+      ExplicitLeft = 578
     end
     object ReceiveMemo: TMemo
       Left = 780
@@ -156,12 +157,13 @@ object VMServForm: TVMServForm
     object Memo: TMemo
       Left = 138
       Top = 1
-      Width = 440
+      Width = 355
       Height = 410
       Align = alClient
       ScrollBars = ssVertical
       TabOrder = 5
       WordWrap = False
+      ExplicitWidth = 440
     end
   end
   object ProgressTimer: TTimer
