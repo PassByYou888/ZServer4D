@@ -113,6 +113,16 @@ object Form1: TForm1
     Position.X = 16.000000000000000000
     Position.Y = 128.000000000000000000
     Text = 'IOStateLabel'
+    TabOrder = 7
+  end
+  object InfoLabel: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 161.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'IOStateLabel'
     TabOrder = 6
   end
 end

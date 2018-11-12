@@ -245,6 +245,7 @@ begin
     begin
       phyClient.ClientIO.BuildP2PAuthTokenP(procedure
         begin
+          DoStatus('wait open...');
           phyClient.ClientIO.OpenP2PVMTunnelP(True, '', procedure(const VMauthState: Boolean)
             begin
               if VMauthState then
@@ -252,6 +253,7 @@ begin
                   phyClient.ClientIO.p2pVMTunnel.InstallLogicFramework(cli.SendTunnel);
                   phyClient.ClientIO.p2pVMTunnel.InstallLogicFramework(cli.RecvTunnel);
 
+                  DoStatus('connection virtual adapter...');
                   cli.AsyncConnectP('::', 1, 0, procedure(const ccState: Boolean)
                     begin
                       if ccState then
@@ -265,6 +267,10 @@ begin
                           end);
                     end);
                 end
+              else
+                begin
+                  DoStatus('OpenP2PVMTunnelP failed...');
+                end;
             end);
         end);
     end);

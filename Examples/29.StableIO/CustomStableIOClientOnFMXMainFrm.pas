@@ -31,6 +31,7 @@ type
     DisconnectButton: TButton;
     Timer1: TTimer;
     IOStateLabel: TLabel;
+    InfoLabel: TLabel;
     procedure connectButtonClick(Sender: TObject);
     procedure DisconnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -68,13 +69,11 @@ end;
 procedure TMyClient.DoConnected(Sender: TPeerIO);
 begin
   inherited;
-  Sender.Print('connected');
 end;
 
 procedure TMyClient.DoDisconnect(Sender: TPeerIO);
 begin
   inherited;
-  Sender.Print('disconnect');
 end;
 
 procedure TForm1.backcall_DoStatus(AText: SystemString; const ID: Integer);
@@ -137,6 +136,8 @@ begin
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
+var
+  discard, recv, send, sequmem: string;
 begin
   MyClient.Progress;
 
@@ -145,6 +146,16 @@ begin
       IOStateLabel.Text := 'IO Busy...'
   else
       IOStateLabel.Text := 'IO IDLE';
+
+  discard := Format(
+    'discard: %d, size: %s', [MyClient.Statistics[TStatisticsType.stSequencePacketDiscard],
+    umlSizeToStr(MyClient.Statistics[TStatisticsType.stSequencePacketDiscardSize]).Text]);
+
+  recv := Format('received: %d', [MyClient.Statistics[TStatisticsType.stReceiveSize]]);
+  send := Format('sending: %d', [MyClient.Statistics[TStatisticsType.stSendSize]]);
+  sequmem := Format('swap memory: %s', [umlSizeToStr(MyClient.ClientIO.SequencePacketUsagePhysicsMemory).Text]);
+
+  InfoLabel.Text := Format('%s'#13#10'%s'#13#10'%s'#13#10'%s', [recv, send, discard, sequmem]);
 end;
 
 end.

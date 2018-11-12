@@ -1,4 +1,4 @@
-{ ****************************************************************************** }
+﻿{ ****************************************************************************** }
 { * communication framework written by QQ 600585@qq.com                        * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -294,6 +294,7 @@ type
     Size: Word;
     hash: TMD5;
     data: TMemoryStream64;
+    tick: TTimeTick;
   end;
 
   PSequencePacket_IDLE_Trace = ^TSequencePacket_IDLE_Trace;
@@ -342,6 +343,7 @@ type
     FDirectStreamToken: Byte;
     FBigStreamToken: Byte;
     FCompleteBufferToken: Byte;
+    FReceivedAbort: Boolean;
     FReceivedBuffer: TMemoryStream64;
     FReceivedBuffer_Busy: TMemoryStream64;
     FBigStreamReceiveProcessing: Boolean;
@@ -388,41 +390,41 @@ type
     FTimeOutProcessDone: Boolean;
   public
     // external interface
-    function Connected: Boolean; virtual; abstract;
-    procedure Disconnect; virtual; abstract;
-    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); virtual; abstract;
-    procedure WriteBufferOpen; virtual; abstract;
-    procedure WriteBufferFlush; virtual; abstract;
-    procedure WriteBufferClose; virtual; abstract;
-    function GetPeerIP: SystemString; virtual; abstract;
+    function Connected: Boolean; virtual;
+    procedure Disconnect; virtual;
+    procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); virtual;
+    procedure WriteBufferOpen; virtual;
+    procedure WriteBufferFlush; virtual;
+    procedure WriteBufferClose; virtual;
+    function GetPeerIP: SystemString; virtual;
     function WriteBufferEmpty: Boolean; virtual;
   protected const
-    C_Sequence_Package_HeadSize = 22;
-    C_Sequence_Package: Byte = 0;
-    C_Sequence_EchoPackage: Byte = 1;
-    C_Sequence_KeepAlive: Byte = 3;
-    C_Sequence_EchoKeepAlive: Byte = 4;
-    C_Sequence_RequestResend: Byte = $FF;
+    C_Sequence_Packet_HeadSize = 22;
+
+    C_Sequence_QuietPacket: Byte = 1;
+    C_Sequence_Packet: Byte = 2;
+    C_Sequence_EchoPacket: Byte = 3;
+    C_Sequence_KeepAlive: Byte = 4;
+    C_Sequence_EchoKeepAlive: Byte = 5;
+    C_Sequence_RequestResend: Byte = 6;
 
   var
-    FSequencePacketActivted: Boolean;
-    FSequencePacketSignal: Boolean;
-    SequenceNumberOnSendCounter: Cardinal;
-    SequenceNumberOnReceivedCounter: Cardinal;
+    FSequencePacketActivted, FSequencePacketSignal: Boolean;
+    SequenceNumberOnSendCounter, SequenceNumberOnReceivedCounter: Cardinal;
     SendingSequencePacketHistory: TUInt32HashPointerList;
     SequencePacketReceivedPool: TUInt32HashPointerList;
-    SendingSequencePacketHistoryMemory: Int64;
-    SequencePacketReceivedPoolMemory: Int64;
-    IOSendBuffer: TMemoryStream64;
-    SequencePacketSendBuffer: TMemoryStream64;
-    SequencePacketReceivedBuffer: TMemoryStream64;
+    SendingSequencePacketHistoryMemory, SequencePacketReceivedPoolMemory: Int64;
+    IOSendBuffer, SequencePacketSendBuffer, SequencePacketReceivedBuffer: TMemoryStream64;
+
     // performance
     FSequencePacketUsedHash: Boolean;
     FSequencePacketMTU: Word;
+
     // Security
     FSequencePacketLimitPhysicsMemory: Int64;
     SequencePacketCloseDone: Boolean;
-    LastSequencePacketReceivedTick: TTimeTick;
+
+    SequencePacketVerifyTick: TTimeTick;
 
     procedure InitSequencePacketModel(const hashLen, MemoryDelta: Integer);
     procedure FreeSequencePacketModel;
@@ -438,8 +440,9 @@ type
     procedure SendSequencePacketEnd;
     procedure SendSequencePacketKeepAlive(p: Pointer; siz: Word);
     procedure DoSequencePacketEchoKeepAlive(p: Pointer; siz: Word);
+    procedure WriteSequencePacket(p: PSequencePacket);
     procedure ResendSequencePacket(SequenceNumber: Cardinal);
-    procedure FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMemoryStream64);
+    function FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMemoryStream64): Boolean;
 
     procedure Send_Free_OnPtr(p: Pointer);
     procedure Send_Add_OnPtr(p: Pointer);
@@ -547,6 +550,7 @@ type
     //
     { Sequence Packet model support }
     property SequencePacketActivted: Boolean read FSequencePacketActivted write FSequencePacketActivted; // default set false
+    property SequencePacketSignal: Boolean read FSequencePacketSignal write FSequencePacketSignal;       // default set True
     { performance }
     property SequencePacketUsedHash: Boolean read FSequencePacketUsedHash write FSequencePacketUsedHash; // default set false
     property SequencePacketMTU: Word read FSequencePacketMTU write FSequencePacketMTU;                   // default set 1536
@@ -720,7 +724,7 @@ type
     stEncrypt, stCompress, stGenerateHash,
     stSequencePacketMemoryOnSending, stSequencePacketMemoryOnReceived,
     stSequencePacketReceived, stSequencePacketEcho, stSequencePacketRequestResend,
-    stSequencePacketMatched, stSequencePacketPlan, stSequencePacketDiscard,
+    stSequencePacketMatched, stSequencePacketPlan, stSequencePacketDiscard, stSequencePacketDiscardSize,
     stPause, stContinue,
     stLock, stUnLock,
     stPrint);
@@ -1235,9 +1239,9 @@ type
   TCommunicationFrameworkClientClass = class of TCommunicationFrameworkClient;
 {$ENDREGION 'CommunicationFrameworkClient'}
 {$REGION 'P2pVM'}
-  Pp2pVMFragmentPackage = ^Tp2pVMFragmentPackage;
+  Pp2pVMFragmentPacket = ^Tp2pVMFragmentPacket;
 
-  Tp2pVMFragmentPackage = record
+  Tp2pVMFragmentPacket = record
   public
     buffSiz: Cardinal;
     frameworkID: Cardinal;
@@ -1535,9 +1539,9 @@ type
     procedure ServerCustomProtocolReceiveBufferNotify(Sender: TPeerIO; const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
     procedure SetPhysicsServer(const Value: TCommunicationFrameworkServer);
 
-    procedure cmd_BuildConnectionToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
-    procedure cmd_RequestConnectionToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
-    procedure cmd_FreeConnectionToken(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure cmd_BuildStableIO(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure cmd_OpenStableIO(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure cmd_CloseStableIO(Sender: TPeerIO; InData: TDataFrameEngine);
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -1602,15 +1606,14 @@ type
     procedure ClientCustomProtocolReceiveBufferNotify(Sender: TCommunicationFrameworkClient; const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
     procedure SetPhysicsClient(const Value: TCommunicationFrameworkClient);
 
-    procedure BuildConnectionToken_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure BuildStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
     procedure AsyncConnectResult(const cState: Boolean);
     procedure PostConnection(Sender: TNPostExecute);
     procedure PhysicsClientCipherModelDone(Sender: TCommunicationFrameworkClient);
-    procedure RequestConnectionToken_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure OpenStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
     procedure AsyncReconnectionResult(const cState: Boolean);
     procedure PostReconnection(Sender: TNPostExecute);
     procedure Reconnection;
-
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -1674,8 +1677,8 @@ procedure DisposeQueueData(const v: PQueueData);
 procedure InitQueueData(var v: TQueueData);
 function NewQueueData: PQueueData;
 
-function BuildP2PVMPackage(buffSiz, frameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPackage;
-procedure FreeP2PVMPackage(p: Pp2pVMFragmentPackage);
+function BuildP2PVMPacket(buffSiz, frameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPacket;
+procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
 
 function IsSystemCMD(const Cmd: U_String): Boolean;
 
@@ -1752,9 +1755,9 @@ const
   C_CipherModel = '__@CipherModel';
   C_Wait = '__@Wait';
   // stable IO command
-  C_BuildConnectionToken = '__@BuildConnectionToken';
-  C_RequestConnectionToken = '__@RequestConnectionToken';
-  C_FreeConnectionToken = '__@FreeConnectionToken';
+  C_BuildStableIO = '__@BuildStableIO';
+  C_OpenStableIO = '__@OpenStableIO';
+  C_CloseStableIO = '__@CloseStableIO';
 
 type
   TWaitSendConsoleCmdIntf = class(TCoreClassObject)
@@ -1862,9 +1865,9 @@ begin
   InitQueueData(Result^);
 end;
 
-function BuildP2PVMPackage(buffSiz, frameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPackage;
+function BuildP2PVMPacket(buffSiz, frameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPacket;
 var
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   new(p);
   p^.buffSiz := buffSiz;
@@ -1882,7 +1885,7 @@ begin
   Result := p;
 end;
 
-procedure FreeP2PVMPackage(p: Pp2pVMFragmentPackage);
+procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
 begin
   if (p^.buff <> nil) and (p^.buffSiz > 0) then
       FreeMem(p^.buff, p^.buffSiz);
@@ -3019,7 +3022,7 @@ begin
   FSequencePacketLimitPhysicsMemory := 0;
   SequencePacketCloseDone := False;
 
-  LastSequencePacketReceivedTick := GetTimeTick;
+  SequencePacketVerifyTick := GetTimeTick;
 end;
 
 procedure TPeerIO.FreeSequencePacketModel;
@@ -3049,7 +3052,10 @@ end;
 
 procedure TPeerIO.ProcessSequencePacketModel;
 var
-  t: TTimeTick;
+  i: NativeInt;
+  pH: PUInt32HashListPointerStruct;
+  p: PSequencePacket;
+  siz: NativeInt;
 begin
   if not WasWorkOnSequencePacketModel then
       exit;
@@ -3066,15 +3072,30 @@ begin
       exit;
     end;
 
-  if FSequencePacketSignal then
+  if (FSequencePacketSignal)
+    and (GetTimeTick - SequencePacketVerifyTick > 1000)
+    and (SendingSequencePacketHistory.Count > 0)
+    and (WriteBufferEmpty) then
     begin
-      t := GetTimeTick;
-      if (t - LastSequencePacketReceivedTick > 1000) and
-        (SendingSequencePacketHistory.Count > 0) then
+      IOSendBuffer.Position := IOSendBuffer.Size;
+
+      siz := 0;
+      i := 0;
+      pH := SendingSequencePacketHistory.FirstPtr;
+      while (i < SendingSequencePacketHistory.Count) and (siz < 100 * 1024) do
         begin
-          IOSendBuffer.Position := IOSendBuffer.Size;
-          ResendSequencePacket(SendingSequencePacketHistory.LastPtr^.u32);
+          p := pH^.data;
+          if (GetTimeTick - p^.tick > 3000) then
+            begin
+              WriteSequencePacket(p);
+              p^.tick := GetTimeTick;
+              inc(siz, p^.Size);
+            end;
+          inc(i);
+          pH := pH^.Next;
         end;
+
+      SequencePacketVerifyTick := GetTimeTick;
     end;
 
   FlushIOSendBuffer;
@@ -3133,7 +3154,6 @@ end;
 
 procedure TPeerIO.SendSequencePacketEnd;
 var
-  t: TTimeTick;
   pBuff: PByte;
   p: PSequencePacket;
   siz: NativeInt;
@@ -3152,9 +3172,8 @@ begin
       exit;
     end;
 
-  FlushBuffSize := umlMax(FSequencePacketMTU, 1024) - (C_Sequence_Package_HeadSize + 1);
+  FlushBuffSize := umlMax(FSequencePacketMTU, 1024) - (C_Sequence_Packet_HeadSize + 1);
 
-  t := GetTimeTick;
   siz := SequencePacketSendBuffer.Size;
   pBuff := SequencePacketSendBuffer.Memory;
 
@@ -3170,18 +3189,21 @@ begin
       p^.Size := p^.data.Size;
       CopyPtr(pBuff, p^.data.Memory, p^.data.Size);
       p^.hash := ComputeSequencePacketHash(p^.data.Memory, p^.data.Size);
+      p^.tick := GetTimeTick;
 
       inc(pBuff, FlushBuffSize);
       dec(siz, FlushBuffSize);
 
-      IOSendBuffer.WriteUInt8(C_Sequence_Package);
-      IOSendBuffer.WriteUInt16(p^.Size);
-      IOSendBuffer.WriteUInt32(p^.SequenceNumber);
-      IOSendBuffer.WriteMD5(p^.hash);
-      IOSendBuffer.WritePtr(p^.data.Memory, p^.data.Size);
-
+      WriteSequencePacket(p);
       inc(SequenceNumberOnSendCounter);
-      SendingSequencePacketHistory.Add(p^.SequenceNumber, p, False);
+
+      if FSequencePacketSignal then
+          SendingSequencePacketHistory.Add(p^.SequenceNumber, p, False)
+      else
+        begin
+          DisposeObject(p^.data);
+          Dispose(p);
+        end;
     end;
 
   if siz > 0 then
@@ -3193,15 +3215,18 @@ begin
       p^.Size := p^.data.Size;
       CopyPtr(pBuff, p^.data.Memory, p^.data.Size);
       p^.hash := ComputeSequencePacketHash(p^.data.Memory, p^.data.Size);
+      p^.tick := GetTimeTick;
 
-      IOSendBuffer.WriteUInt8(C_Sequence_Package);
-      IOSendBuffer.WriteUInt16(p^.Size);
-      IOSendBuffer.WriteUInt32(p^.SequenceNumber);
-      IOSendBuffer.WriteMD5(p^.hash);
-      IOSendBuffer.WritePtr(p^.data.Memory, p^.data.Size);
-
+      WriteSequencePacket(p);
       inc(SequenceNumberOnSendCounter);
-      SendingSequencePacketHistory.Add(p^.SequenceNumber, p, False);
+
+      if FSequencePacketSignal then
+          SendingSequencePacketHistory.Add(p^.SequenceNumber, p, False)
+      else
+        begin
+          DisposeObject(p^.data);
+          Dispose(p);
+        end;
     end;
   SequencePacketSendBuffer.Clear;
 
@@ -3210,16 +3235,31 @@ end;
 
 procedure TPeerIO.SendSequencePacketKeepAlive(p: Pointer; siz: Word);
 begin
-  IOSendBuffer.Position := IOSendBuffer.Size;
+  if FSequencePacketSignal and WasWorkOnSequencePacketModel then
+    begin
+      IOSendBuffer.Position := IOSendBuffer.Size;
 
-  IOSendBuffer.WriteUInt8(C_Sequence_KeepAlive);
-  IOSendBuffer.WriteUInt16(siz);
-  if siz > 0 then
-      IOSendBuffer.WritePtr(p, siz);
+      IOSendBuffer.WriteUInt8(C_Sequence_KeepAlive);
+      IOSendBuffer.WriteUInt16(siz);
+      if siz > 0 then
+          IOSendBuffer.WritePtr(p, siz);
+    end;
 end;
 
 procedure TPeerIO.DoSequencePacketEchoKeepAlive(p: Pointer; siz: Word);
 begin
+end;
+
+procedure TPeerIO.WriteSequencePacket(p: PSequencePacket);
+begin
+  if FSequencePacketSignal then
+      IOSendBuffer.WriteUInt8(C_Sequence_Packet)
+  else
+      IOSendBuffer.WriteUInt8(C_Sequence_QuietPacket);
+  IOSendBuffer.WriteUInt16(p^.Size);
+  IOSendBuffer.WriteUInt32(p^.SequenceNumber);
+  IOSendBuffer.WriteMD5(p^.hash);
+  IOSendBuffer.WritePtr(p^.data.Memory, p^.data.Size);
 end;
 
 procedure TPeerIO.ResendSequencePacket(SequenceNumber: Cardinal);
@@ -3228,32 +3268,25 @@ var
 begin
   p := SendingSequencePacketHistory[SequenceNumber];
   if p <> nil then
-    begin
-      IOSendBuffer.WriteUInt8(C_Sequence_Package);
-      IOSendBuffer.WriteUInt16(p^.Size);
-      IOSendBuffer.WriteUInt32(p^.SequenceNumber);
-      IOSendBuffer.WriteMD5(p^.hash);
-      IOSendBuffer.WritePtr(p^.data.Memory, p^.data.Size);
-    end
+      WriteSequencePacket(p)
   else
       PrintError('resend error, invalid Sequence Packet ' + IntToHex(SequenceNumber, 8));
 end;
 
-procedure TPeerIO.FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMemoryStream64);
+function TPeerIO.FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMemoryStream64): Boolean;
 var
   t: TTimeTick;
   ErrorState: Boolean;
   p: PSequencePacket;
-  sToken: Byte;
+  head: Byte;
   echoSiz: Word;
   echoBuff: TBytes;
   ResendNumber, DoneNumber: Cardinal;
   fastSwap, n: TMemoryStream64;
   hashMatched: Boolean;
-  pH: PUInt32HashListPointerStruct;
 begin
-  if TThread.CurrentThread.ThreadID <> MainThreadID then
-      nop;
+  Result := True;
+
   if not WasWorkOnSequencePacketModel then
     begin
       ExtractDest.Position := ExtractDest.Size;
@@ -3281,12 +3314,9 @@ begin
       if fastSwap.Position + 1 > fastSwap.Size then
           Break;
 
-      sToken := fastSwap.ReadUInt8;
+      head := fastSwap.ReadUInt8;
 
-      if sToken in [C_Sequence_RequestResend, C_Sequence_EchoPackage, C_Sequence_Package] then
-          LastSequencePacketReceivedTick := GetTimeTick;
-
-      if sToken = C_Sequence_KeepAlive then
+      if head = C_Sequence_KeepAlive then
         begin
           if fastSwap.Position + 2 > fastSwap.Size then
               Break;
@@ -3294,12 +3324,17 @@ begin
           if fastSwap.Position + echoSiz > fastSwap.Size then
               Break;
 
-          IOSendBuffer.WriteUInt8(C_Sequence_EchoKeepAlive);
-          IOSendBuffer.WriteUInt16(echoSiz);
-          if echoSiz > 0 then
-              IOSendBuffer.CopyFrom(fastSwap, echoSiz);
+          if FSequencePacketSignal then
+            begin
+              IOSendBuffer.WriteUInt8(C_Sequence_EchoKeepAlive);
+              IOSendBuffer.WriteUInt16(echoSiz);
+              if echoSiz > 0 then
+                  IOSendBuffer.CopyFrom(fastSwap, echoSiz);
+            end
+          else
+              fastSwap.Position := fastSwap.Position + echoSiz;
         end
-      else if sToken = C_Sequence_EchoKeepAlive then
+      else if head = C_Sequence_EchoKeepAlive then
         begin
           if fastSwap.Position + 2 > fastSwap.Size then
               Break;
@@ -3307,34 +3342,39 @@ begin
           if fastSwap.Position + echoSiz > fastSwap.Size then
               Break;
 
-          SetLength(echoBuff, echoSiz);
-          if echoSiz > 0 then
-              fastSwap.ReadPtr(@echoBuff[0], echoSiz);
-          DoSequencePacketEchoKeepAlive(@echoBuff[0], echoSiz);
-          SetLength(echoBuff, 0);
+          if FSequencePacketSignal then
+            begin
+              SetLength(echoBuff, echoSiz);
+              if echoSiz > 0 then
+                  fastSwap.ReadPtr(@echoBuff[0], echoSiz);
+              DoSequencePacketEchoKeepAlive(@echoBuff[0], echoSiz);
+              SetLength(echoBuff, 0);
+            end
+          else
+              fastSwap.Position := fastSwap.Position + echoSiz;
         end
-      else if sToken = C_Sequence_RequestResend then
+      else if head = C_Sequence_RequestResend then
         begin
           if fastSwap.Position + 4 > fastSwap.Size then
               Break;
           ResendNumber := fastSwap.ReadUInt32;
-          // resend package
+          // resend Packet
           if FSequencePacketSignal then
               ResendSequencePacket(ResendNumber);
           AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketRequestResend]);
         end
-      else if sToken = C_Sequence_EchoPackage then
+      else if head = C_Sequence_EchoPacket then
         begin
           if fastSwap.Position + 4 > fastSwap.Size then
               Break;
           DoneNumber := fastSwap.ReadUInt32;
-          // recycle package
+          // recycle Packet
           SendingSequencePacketHistory.Delete(DoneNumber);
           AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketEcho]);
         end
-      else if sToken = C_Sequence_Package then
+      else if head in [C_Sequence_QuietPacket, C_Sequence_Packet] then
         begin
-          if fastSwap.Position + C_Sequence_Package_HeadSize > fastSwap.Size then
+          if fastSwap.Position + C_Sequence_Packet_HeadSize > fastSwap.Size then
               Break;
 
           p^.Size := fastSwap.ReadUInt16;
@@ -3346,56 +3386,55 @@ begin
 
           hashMatched := (umlIsNullMD5(p^.hash)) or (umlMD5Compare(p^.hash, ComputeSequencePacketHash(fastSwap.PositionAsPtr(), p^.Size)));
 
-          if not hashMatched then
+          if hashMatched then
+            begin
+              if (FSequencePacketSignal) and (head = C_Sequence_Packet) then
+                begin
+                  IOSendBuffer.WriteUInt8(C_Sequence_EchoPacket);
+                  IOSendBuffer.WriteUInt32(p^.SequenceNumber);
+                end;
+
+              AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketReceived]);
+
+              if p^.SequenceNumber = SequenceNumberOnReceivedCounter then
+                begin
+                  ExtractDest.CopyFrom(fastSwap, p^.Size);
+                  SequencePacketReceivedPool.Delete(p^.SequenceNumber);
+                  inc(SequenceNumberOnReceivedCounter);
+                  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketMatched]);
+                end
+              else if (FSequencePacketSignal) and ((p^.SequenceNumber > SequenceNumberOnReceivedCounter) or
+                (Cardinal(p^.SequenceNumber + Cardinal($7FFFFFFF)) > Cardinal(SequenceNumberOnReceivedCounter + Cardinal($7FFFFFFF)))) then
+                begin
+                  p^.data := TMemoryStream64.Create;
+                  p^.data.CopyFrom(fastSwap, p^.Size);
+                  p^.tick := GetTimeTick;
+                  SequencePacketReceivedPool.Add(p^.SequenceNumber, p, True);
+
+                  new(p);
+                  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketPlan]);
+                end
+              else
+                begin
+                  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketDiscard]);
+                  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketDiscardSize], p^.Size);
+                  fastSwap.Position := fastSwap.Position + p^.Size;
+                end;
+            end
+          else
             begin
               fastSwap.Position := fastSwap.Position + p^.Size;
               if FSequencePacketSignal then
                 begin
-                  // request resend
                   IOSendBuffer.WriteUInt8(C_Sequence_RequestResend);
                   IOSendBuffer.WriteUInt32(p^.SequenceNumber);
-                end
-              else
-                begin
-                  PrintError('sequence packet: hash error');
-                  ErrorState := True;
-                  Break;
                 end;
-            end;
-
-          if FSequencePacketSignal then
-            begin
-              // reponse done
-              IOSendBuffer.WriteUInt8(C_Sequence_EchoPackage);
-              IOSendBuffer.WriteUInt32(p^.SequenceNumber);
-            end;
-
-          AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketReceived]);
-
-          if p^.SequenceNumber = SequenceNumberOnReceivedCounter then
-            begin
-              ExtractDest.CopyFrom(fastSwap, p^.Size);
-              inc(SequenceNumberOnReceivedCounter);
-              AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketMatched]);
-            end
-          else if Cardinal(p^.SequenceNumber + Cardinal($7FFFFFFF)) > Cardinal(SequenceNumberOnReceivedCounter + Cardinal($7FFFFFFF)) then
-            begin
-              p^.data := TMemoryStream64.Create;
-              p^.data.CopyFrom(fastSwap, p^.Size);
-              SequencePacketReceivedPool.Add(p^.SequenceNumber, p, True);
-              new(p);
-              AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketPlan]);
-            end
-          else
-            begin
-              // Print('Discard packet: ' + IntToHex(p^.SequenceNumber, 8));
-              AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSequencePacketDiscard]);
-              fastSwap.Position := fastSwap.Position + p^.Size;
             end;
         end
       else
         begin
-          PrintError('sequence packet: error token');
+          PrintError('sequence packet: error head');
+          DoStatus('error buffer: ', buff, umlMin(siz, 200), 60);
           ErrorState := True;
           Break;
         end;
@@ -3410,6 +3449,7 @@ begin
   if ErrorState then
     begin
       DisposeObject(fastSwap);
+      Result := False;
       exit;
     end;
 
@@ -3430,9 +3470,11 @@ begin
       p := SequencePacketReceivedPool[SequenceNumberOnReceivedCounter];
       if p = nil then
         begin
-          // request resend
-          IOSendBuffer.WriteUInt8(C_Sequence_RequestResend);
-          IOSendBuffer.WriteUInt32(SequenceNumberOnReceivedCounter);
+          if FSequencePacketSignal then
+            begin
+              IOSendBuffer.WriteUInt8(C_Sequence_RequestResend);
+              IOSendBuffer.WriteUInt32(SequenceNumberOnReceivedCounter);
+            end;
           Break;
         end;
       ExtractDest.WritePtr(p^.data.Memory, p^.Size);
@@ -3655,7 +3697,7 @@ var
   StartPos, EndPos: Int64;
   tmpPos: Int64;
   j: Int64;
-  Num: Int64;
+  num: Int64;
   Rest: Int64;
   buff: TBytes;
 begin
@@ -3665,14 +3707,14 @@ begin
   EndPos := Queue.BigStream.Size;
   tmpPos := StartPos;
   { Calculate number of full chunks that will fit into the buffer }
-  Num := (EndPos - StartPos) div ChunkSize;
+  num := (EndPos - StartPos) div ChunkSize;
   { Calculate remaining bytes }
   Rest := (EndPos - StartPos) mod ChunkSize;
   { init buffer }
   SetLength(buff, ChunkSize);
   { Process full chunks }
   j := 0;
-  while j < Num do
+  while j < num do
     begin
       if not Connected then
           exit;
@@ -4397,7 +4439,7 @@ begin
   LockIO;
   try
     if FReceiveProcessing or FAllSendProcessing then
-        FillSequencePacketTo(buff, siz, FReceivedBuffer_Busy)
+        FReceivedAbort := not FillSequencePacketTo(buff, siz, FReceivedBuffer_Busy)
     else
       begin
         FReceivedBuffer.Position := FReceivedBuffer.Size;
@@ -4406,7 +4448,7 @@ begin
             FReceivedBuffer.WritePtr(FReceivedBuffer_Busy.Memory, FReceivedBuffer_Busy.Size);
             FReceivedBuffer_Busy.Clear;
           end;
-        FillSequencePacketTo(buff, siz, FReceivedBuffer);
+        FReceivedAbort := not FillSequencePacketTo(buff, siz, FReceivedBuffer);
       end;
   finally
       UnLockIO;
@@ -4430,6 +4472,11 @@ var
   sourSiz, compSiz: Cardinal;
   BreakAndDisconnect: Boolean;
 begin
+  if FReceivedAbort then
+    begin
+      DelayClose;
+      exit;
+    end;
   if FAllSendProcessing or
     FReceiveProcessing or
     FPauseResultSend or
@@ -4842,6 +4889,36 @@ begin
     end;
 end;
 
+function TPeerIO.Connected: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TPeerIO.Disconnect;
+begin
+end;
+
+procedure TPeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+begin
+end;
+
+procedure TPeerIO.WriteBufferOpen;
+begin
+end;
+
+procedure TPeerIO.WriteBufferFlush;
+begin
+end;
+
+procedure TPeerIO.WriteBufferClose;
+begin
+end;
+
+function TPeerIO.GetPeerIP: SystemString;
+begin
+  Result := 'offline';
+end;
+
 function TPeerIO.WriteBufferEmpty: Boolean;
 begin
   Result := True;
@@ -4877,6 +4954,7 @@ begin
   FBigStreamToken := c_DefaultBigStreamToken;
   FCompleteBufferToken := c_DefaultCompleteBufferToken;
 
+  FReceivedAbort := False;
   FReceivedBuffer := TMemoryStream64.Create;
   FReceivedBuffer_Busy := TMemoryStream64.Create;
   FBigStreamReceiveProcessing := False;
@@ -5127,6 +5205,9 @@ procedure TPeerIO.BuildP2PAuthToken;
 var
   de: TDataFrameEngine;
 begin
+  ResetSequencePacketBuffer;
+  FSequencePacketSignal := False;
+
   de := TDataFrameEngine.Create;
   de.WriteInteger(umlRandomRange(-maxInt, maxInt));
   SendStreamCmdM(C_BuildP2PAuthToken, de, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.CommandResult_BuildP2PAuthToken);
@@ -6078,6 +6159,9 @@ var
   seed: Integer;
   arr: TDataFrameArrayInteger;
 begin
+  Sender.ResetSequencePacketBuffer;
+  Sender.FSequencePacketSignal := False;
+
   // build auth buffer
   seed := InData.Reader.ReadInteger;
   arr := OutData.WriteArrayInteger;
@@ -6100,6 +6184,10 @@ begin
   p2pVMTunnelAuth(Sender, InData, Accept);
   if not Accept then
       exit;
+
+  Sender.ResetSequencePacketBuffer;
+  Sender.FSequencePacketSignal := False;
+
   Sender.OpenP2PVMTunnel(16, False, '');
   Sender.p2pVMTunnel.AuthVM;
   p2pVMTunnelOpenBefore(Sender, Sender.p2pVMTunnel);
@@ -6144,7 +6232,7 @@ begin
   if PC = nil then
       exit;
 
-  ProgressPost.PostExecuteM(1.0, {$IFDEF FPC}@{$ENDIF FPC}VMAuthSuccessAfterDelayExecute).Data3 := PC.FID;
+  ProgressPost.PostExecuteM(0, {$IFDEF FPC}@{$ENDIF FPC}VMAuthSuccessAfterDelayExecute).Data3 := PC.FID;
   p2pVMTunnelOpen(PC, PC.p2pVMTunnel);
 end;
 
@@ -6282,6 +6370,7 @@ procedure TCommunicationFramework.p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTun
 begin
   Sender.ResetSequencePacketBuffer;
   Sender.FSequencePacketSignal := True;
+  Sender.SequencePacketVerifyTick := GetTimeTick;
   if FVMInterface <> nil then
       FVMInterface.p2pVMTunnelOpen(Sender, p2pVMTunnel);
 end;
@@ -6295,7 +6384,7 @@ end;
 procedure TCommunicationFramework.SwitchMaxPerformance;
 begin
   FUsedParallelEncrypt := False;
-  FHashSecurity := THashSecurity.hsFastMD5;
+  FHashSecurity := THashSecurity.hsNone;
   FSendDataCompressed := False;
   SetLength(FCipherSecurityArray, 1);
   FCipherSecurityArray[0] := csNone;
@@ -7928,7 +8017,7 @@ begin
 
   FWaiting := False;
   FWaitingTimeOut := 0;
-  FAsyncConnectTimeout := 2000;
+  FAsyncConnectTimeout := 15000;
   FOnCipherModelDone := nil;
 
   FIgnoreProcessConnectedAndDisconnect := False;
@@ -8732,7 +8821,7 @@ begin
       Result := False;
 end;
 
-procedure Tp2pVMFragmentPackage.Init;
+procedure Tp2pVMFragmentPacket.Init;
 begin
   buffSiz := 0;
   frameworkID := 0;
@@ -8741,7 +8830,7 @@ begin
   buff := nil;
 end;
 
-function Tp2pVMFragmentPackage.FillReceiveBuff(Stream: TMemoryStream64): Integer;
+function Tp2pVMFragmentPacket.FillReceiveBuff(Stream: TMemoryStream64): Integer;
 begin
   Result := 0;
   if Stream.Size < 13 then
@@ -8765,7 +8854,7 @@ begin
   Result := buffSiz + 13;
 end;
 
-procedure Tp2pVMFragmentPackage.BuildSendBuff(Stream: TMemoryStream64);
+procedure Tp2pVMFragmentPacket.BuildSendBuff(Stream: TMemoryStream64);
 begin
   Stream.WritePtr(@buffSiz, 4);
   Stream.WritePtr(@frameworkID, 4);
@@ -8778,7 +8867,7 @@ end;
 procedure TP2PVM_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
-  SequencePacketActivted := True;
+  FSequencePacketActivted := True;
 
   FLinkVM := nil;
   FRealSendBuff := TMemoryStream64.Create;
@@ -8804,7 +8893,7 @@ begin
     end;
 
   for i := 0 to FSendQueue.Count - 1 do
-      FreeP2PVMPackage(FSendQueue[i]);
+      FreeP2PVMPacket(FSendQueue[i]);
   DisposeObject(FSendQueue);
   DisposeObject(FRealSendBuff);
   inherited Destroy;
@@ -8858,13 +8947,13 @@ begin
       // fill fragment
       while siz > FLinkVM.FMaxVMFragmentSize do
         begin
-          FSendQueue.Add(BuildP2PVMPackage(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, FLinkVM.c_p2pVM_LogicFragmentData, p));
+          FSendQueue.Add(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, FLinkVM.c_p2pVM_LogicFragmentData, p));
           inc(p, FLinkVM.FMaxVMFragmentSize);
           dec(siz, FLinkVM.FMaxVMFragmentSize);
         end;
 
       if siz > 0 then
-          FSendQueue.Add(BuildP2PVMPackage(siz, FRemote_frameworkID, FRemote_p2pID, FLinkVM.c_p2pVM_LogicFragmentData, p));
+          FSendQueue.Add(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, FLinkVM.c_p2pVM_LogicFragmentData, p));
     end;
 
   FRealSendBuff.Clear;
@@ -9631,7 +9720,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.Hook_SendByteBuffer(const Sender: TPeerIO; const buff: PByte; siz: NativeInt);
 var
-  t: Tp2pVMFragmentPackage;
+  t: Tp2pVMFragmentPacket;
 begin
   if siz <= 0 then
       exit;
@@ -9670,7 +9759,7 @@ var
   LP: Pp2pVMListen;
   p64: Int64;
   SourStream: TMemoryStream64;
-  fPk: Tp2pVMFragmentPackage;
+  fPk: Tp2pVMFragmentPacket;
   rPos: Integer;
 begin
   if FReceiveStream.Size <= 0 then
@@ -9710,7 +9799,7 @@ begin
           FReceiveStream := SourStream;
 
           if not FQuietMode then
-              DoStatus('VM connect Auth Success');
+              DoStatus('VM Authentication Success');
         end
       else if FAuthWaiting then
           exit
@@ -9909,7 +9998,7 @@ begin
   if p2pID <> 0 then
     begin
       if not FQuietMode then
-          DoStatus('listen protocol error! P_IO ID:%d', [p2pID]);
+          DoStatus('listen protocol error! IO ID:%d', [p2pID]);
       exit;
     end;
 
@@ -9968,7 +10057,7 @@ begin
   if p2pID <> 0 then
     begin
       if not FQuietMode then
-          DoStatus('Virtual listen state protocol error! P_IO ID:%d', [p2pID]);
+          DoStatus('Virtual listen state protocol error! IO ID:%d', [p2pID]);
       exit;
     end;
 
@@ -10039,7 +10128,7 @@ begin
     begin
       Disconnect(Remote_frameworkID, Remote_p2pID);
       if not FQuietMode then
-          DoStatus('connect request with protocol error! P_IO ID:%d', [p2pID]);
+          DoStatus('connect request with protocol error! IO ID:%d', [p2pID]);
       exit;
     end;
 
@@ -10093,7 +10182,7 @@ begin
       TCommunicationFrameworkWithP2PVM_Client(c).VMConnectSuccessed(Self, Remote_frameworkID, Remote_p2pID, frameworkID);
 
       if not FQuietMode then
-          DoStatus('connect reponse from frameworkID[%d] p2pID[%d]', [Remote_frameworkID, Remote_p2pID]);
+          DoStatus('connect reponse from frameworkID: %d p2pID: %d', [Remote_frameworkID, Remote_p2pID]);
     end;
 end;
 
@@ -10114,7 +10203,7 @@ begin
       if LocalVMc = nil then
         begin
           if not FQuietMode then
-              DoStatus('disconnect with protocol error! P_IO ID:%d', [p2pID]);
+              DoStatus('disconnect with protocol error! IO ID:%d', [p2pID]);
           exit;
         end;
       LocalVMc.FDestroyTimeNotify := False;
@@ -10123,7 +10212,7 @@ begin
   else
     begin
       if not FQuietMode then
-          DoStatus('disconnect with protocol error! frameworkID:%d', [frameworkID]);
+          DoStatus('disconnect with protocol error! frameworkID: %d', [frameworkID]);
     end;
 end;
 
@@ -10170,7 +10259,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.DoProcessPerClientFragmentSend(P_IO: TPeerIO);
 var
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if TP2PVM_PeerIO(P_IO).FLinkVM <> Self then
       exit;
@@ -10180,7 +10269,7 @@ begin
       p := TP2PVM_PeerIO(P_IO).FSendQueue[0];
       TP2PVM_PeerIO(P_IO).FSendQueue.Delete(0);
       p^.BuildSendBuff(FSendStream);
-      FreeP2PVMPackage(p);
+      FreeP2PVMPacket(p);
     end;
 end;
 
@@ -10297,7 +10386,7 @@ begin
   if not FAuthed then
       exit;
 
-  // fragment package
+  // fragment Packet
   repeat
     lsiz := FSendStream.Size;
     if (FFrameworkPool.Count > 0) then
@@ -10589,19 +10678,19 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.AuthSuccessed;
 var
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
-  p := BuildP2PVMPackage(0, 0, 0, c_p2pVM_AuthSuccessed, nil);
+  p := BuildP2PVMPacket(0, 0, 0, c_p2pVM_AuthSuccessed, nil);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.echoing(const OnEchoPtr: POnEcho; Timeout: TTimeTick);
 var
   u64ptr: UInt64;
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
   i: Integer;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
@@ -10635,11 +10724,11 @@ begin
     end;
 
   u64ptr := UInt64(OnEchoPtr);
-  p := BuildP2PVMPackage(8, 0, 0, c_p2pVM_echoing, @u64ptr);
+  p := BuildP2PVMPacket(8, 0, 0, c_p2pVM_echoing, @u64ptr);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 
   FWaitEchoList.Add(OnEchoPtr);
 end;
@@ -10687,15 +10776,15 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.echoBuffer(const buff: Pointer; const siz: NativeInt);
 var
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
-  p := BuildP2PVMPackage(siz, 0, 0, c_p2pVM_echo, buff);
+  p := BuildP2PVMPacket(siz, 0, 0, c_p2pVM_echo, buff);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.Listen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
@@ -10703,7 +10792,7 @@ var
   LP: Pp2pVMListen;
   c: TCommunicationFramework;
   RBuf: array [0 .. 18] of Byte;
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
     begin
@@ -10737,35 +10826,35 @@ begin
       PIPV6(@RBuf[0])^ := ipv6;
       PWORD(@RBuf[16])^ := Port;
       PBoolean(@RBuf[18])^ := Listening;
-      p := BuildP2PVMPackage(SizeOf(RBuf), frameworkID, 0, c_p2pVM_Listen, @RBuf[0]);
+      p := BuildP2PVMPacket(SizeOf(RBuf), frameworkID, 0, c_p2pVM_Listen, @RBuf[0]);
 
       FSendStream.Position := FSendStream.Size;
       p^.BuildSendBuff(FSendStream);
-      FreeP2PVMPackage(p);
+      FreeP2PVMPacket(p);
     end;
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.ListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
 var
   RBuf: array [0 .. 18] of Byte;
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
   PIPV6(@RBuf[0])^ := ipv6;
   PWORD(@RBuf[16])^ := Port;
   PBoolean(@RBuf[18])^ := Listening;
-  p := BuildP2PVMPackage(SizeOf(RBuf), frameworkID, 0, c_p2pVM_ListenState, @RBuf[0]);
+  p := BuildP2PVMPacket(SizeOf(RBuf), frameworkID, 0, c_p2pVM_ListenState, @RBuf[0]);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.Connecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
 var
   RBuf: array [0 .. 25] of Byte;
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
@@ -10774,41 +10863,41 @@ begin
   PIPV6(@RBuf[8])^ := ipv6;
   PWORD(@RBuf[24])^ := Port;
 
-  p := BuildP2PVMPackage(SizeOf(RBuf), Remote_frameworkID, 0, c_p2pVM_Connecting, @RBuf[0]);
+  p := BuildP2PVMPacket(SizeOf(RBuf), Remote_frameworkID, 0, c_p2pVM_Connecting, @RBuf[0]);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.ConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
 var
   RBuf: array [0 .. 7] of Byte;
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
   PCardinal(@RBuf[0])^ := frameworkID;
   PCardinal(@RBuf[4])^ := p2pID;
 
-  p := BuildP2PVMPackage(SizeOf(RBuf), Remote_frameworkID, Remote_p2pID, c_p2pVM_ConnectedReponse, @RBuf[0]);
+  p := BuildP2PVMPacket(SizeOf(RBuf), Remote_frameworkID, Remote_p2pID, c_p2pVM_ConnectedReponse, @RBuf[0]);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.Disconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
 var
-  p: Pp2pVMFragmentPackage;
+  p: Pp2pVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
-  p := BuildP2PVMPackage(0, Remote_frameworkID, Remote_p2pID, c_p2pVM_Disconnect, nil);
+  p := BuildP2PVMPacket(0, Remote_frameworkID, Remote_p2pID, c_p2pVM_Disconnect, nil);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
-  FreeP2PVMPackage(p);
+  FreeP2PVMPacket(p);
 end;
 
 function TCommunicationFrameworkWithP2PVM.ListenCount: Integer;
@@ -10981,7 +11070,10 @@ end;
 procedure TStableServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if BindPhysicsIO = nil then
+    begin
+      AtomDec(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
       exit;
+    end;
   BindPhysicsIO.SendByteBuffer(buff, Size);
 end;
 
@@ -11065,8 +11157,8 @@ begin
       FPhysicsServer.StableServer_IO := nil;
       FPhysicsServer.QuietMode := False;
 
-      UnRegisted(C_BuildConnectionToken);
-      UnRegisted(C_RequestConnectionToken);
+      UnRegisted(C_BuildStableIO);
+      UnRegisted(C_OpenStableIO);
     end;
 
   FPhysicsServer := Value;
@@ -11079,15 +11171,15 @@ begin
       FPhysicsServer.StableServer_IO := Self;
       FPhysicsServer.SyncOnResult := True;
       FPhysicsServer.SyncOnCompleteBuffer := True;
-      FPhysicsServer.QuietMode := True;
+      FPhysicsServer.QuietMode := False;
       FPhysicsServer.TimeOutIDLE := 0;
 
-      FPhysicsServer.RegisterStream(C_BuildConnectionToken).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_BuildConnectionToken;
-      FPhysicsServer.RegisterStream(C_RequestConnectionToken).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_RequestConnectionToken;
+      FPhysicsServer.RegisterStream(C_BuildStableIO).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_BuildStableIO;
+      FPhysicsServer.RegisterStream(C_OpenStableIO).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_OpenStableIO;
     end;
 end;
 
-procedure TCommunicationFramework_CustomStableServer.cmd_BuildConnectionToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableServer.cmd_BuildStableIO(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   io_def: TStableServer_PhysicsIO_UserDefine;
   s_io: TStableServer_PeerIO;
@@ -11095,7 +11187,7 @@ begin
   io_def := Sender.UserDefine as TStableServer_PhysicsIO_UserDefine;
   s_io := TStableServer_PeerIO.Create(Self, nil);
   s_io.Activted := True;
-  s_io.SequencePacketActivted := True;
+  s_io.FSequencePacketActivted := True;
   s_io.FSequencePacketSignal := True;
   s_io.SequencePacketLimitPhysicsMemory := FLimitSequencePacketMemoryUsage;
   s_io.DestroyRecyclePhysicsIO := True;
@@ -11111,7 +11203,7 @@ begin
   OutData.WriteArrayByte.SetBuff(@s_io.FCipherKey[0], length(s_io.FCipherKey));
 end;
 
-procedure TCommunicationFramework_CustomStableServer.cmd_RequestConnectionToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableServer.cmd_OpenStableIO(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   io_def: TStableServer_PhysicsIO_UserDefine;
   connToken: Cardinal;
@@ -11154,6 +11246,7 @@ begin
   io_picked.UserDefine.WorkPlatform := io_def.WorkPlatform;
   io_def.BindStableIO := io_picked;
   io_picked.ResetSequencePacketBuffer;
+  io_picked.SequencePacketVerifyTick := GetTimeTick;
 
   OutData.WriteBool(True);
   OutData.WriteCardinal(io_picked.Connection_Token);
@@ -11162,7 +11255,7 @@ begin
   OutData.WriteArrayByte.SetBuff(@io_picked.FCipherKey[0], length(io_picked.FCipherKey));
 end;
 
-procedure TCommunicationFramework_CustomStableServer.cmd_FreeConnectionToken(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableServer.cmd_CloseStableIO(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   s_io: TStableServer_PeerIO;
 begin
@@ -11176,7 +11269,7 @@ begin
   EnabledAtomicLockAndMultiThread := False;
   SwitchMaxSecurity;
 
-  RegisterDirectStream(C_FreeConnectionToken).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FreeConnectionToken;
+  RegisterDirectStream(C_CloseStableIO).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_CloseStableIO;
 
   Connection_Token_Counter := 1;
   FPhysicsServer := nil;
@@ -11193,7 +11286,7 @@ destructor TCommunicationFramework_CustomStableServer.Destroy;
 var
   phyServ: TCommunicationFrameworkServer;
 begin
-  UnRegisted(C_FreeConnectionToken);
+  UnRegisted(C_CloseStableIO);
 
   while Count > 0 do
       DisposeObject(FirstIO);
@@ -11286,7 +11379,7 @@ end;
 procedure TStableClient_PeerIO.Disconnect;
 begin
   if (BindPhysicsIO <> nil) then
-      BindPhysicsIO.DelayClose;
+      BindPhysicsIO.Disconnect;
 
   TCommunicationFramework_CustomStableClient(FOwnerFramework).Disconnect;
 end;
@@ -11294,7 +11387,10 @@ end;
 procedure TStableClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
 begin
   if (BindPhysicsIO = nil) or (not Activted) or (WaitConnecting) then
+    begin
+      AtomDec(FOwnerFramework.Statistics[TStatisticsType.stSendSize], Size);
       exit;
+    end;
 
   BindPhysicsIO.SendByteBuffer(buff, Size);
 end;
@@ -11345,7 +11441,7 @@ procedure TCommunicationFramework_CustomStableClient.ClientCustomProtocolReceive
 begin
   KeepAliveChecking := False;
 
-  FillDone := StableClientIO.Activted and (not StableClientIO.WaitConnecting);
+  FillDone := StableClientIO.Activted and (not StableClientIO.WaitConnecting) and (StableClientIO.BindPhysicsIO <> nil);
   if FillDone then
     begin
       StableClientIO.SaveReceiveBuffer(buffer, Size);
@@ -11377,11 +11473,11 @@ begin
       FPhysicsClient.SyncOnResult := True;
       FPhysicsClient.SyncOnCompleteBuffer := True;
       FPhysicsClient.TimeOutIDLE := 0;
-      FPhysicsClient.QuietMode := True;
+      FPhysicsClient.QuietMode := False;
     end;
 end;
 
-procedure TCommunicationFramework_CustomStableClient.BuildConnectionToken_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableClient.BuildStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
 var
   r_token, r_id: Cardinal;
   cSec: TCipherSecurity;
@@ -11415,7 +11511,7 @@ begin
       Sender.FSendDataCipherSecurity := cSec;
       Sender.FCipherKey := TCipher.CopyKey(k);
       // open sequence packet model
-      StableClientIO.SequencePacketActivted := True;
+      StableClientIO.FSequencePacketActivted := True;
       StableClientIO.FSequencePacketSignal := True;
       StableClientIO.SequencePacketLimitPhysicsMemory := FLimitSequencePacketMemoryUsage;
       // triger
@@ -11437,7 +11533,7 @@ begin
   if cState then
     begin
       de := TDataFrameEngine.Create;
-      FPhysicsClient.SendStreamCmdM(C_BuildConnectionToken, de, {$IFDEF FPC}@{$ENDIF FPC}BuildConnectionToken_Result);
+      FPhysicsClient.SendStreamCmdM(C_BuildStableIO, de, {$IFDEF FPC}@{$ENDIF FPC}BuildStableIO_Result);
       DisposeObject(de);
     end
   else
@@ -11464,7 +11560,7 @@ procedure TCommunicationFramework_CustomStableClient.PhysicsClientCipherModelDon
 begin
 end;
 
-procedure TCommunicationFramework_CustomStableClient.RequestConnectionToken_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableClient.OpenStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
 var
   r_token, r_id: Cardinal;
   cSec: TCipherSecurity;
@@ -11498,11 +11594,12 @@ begin
       Sender.FSendDataCipherSecurity := cSec;
       Sender.FCipherKey := TCipher.CopyKey(k);
       // sequence packet model
-      StableClientIO.SequencePacketActivted := True;
+      StableClientIO.FSequencePacketActivted := True;
       StableClientIO.FSequencePacketSignal := True;
       StableClientIO.SequencePacketLimitPhysicsMemory := FLimitSequencePacketMemoryUsage;
       StableClientIO.ResetSequencePacketBuffer;
-      FPhysicsClient.ClientIO.Print('StableIO calibrate session.', []);
+      StableClientIO.SequencePacketVerifyTick := GetTimeTick;
+      StableClientIO.Print('StableIO calibrate session.', []);
     end
   else
     begin
@@ -11534,7 +11631,7 @@ begin
       de := TDataFrameEngine.Create;
       de.WriteCardinal(StableClientIO.Connection_Token);
       de.WriteArrayByte.SetBuff(@StableClientIO.FCipherKey[0], length(StableClientIO.FCipherKey));
-      FPhysicsClient.SendStreamCmdM(C_RequestConnectionToken, de, {$IFDEF FPC}@{$ENDIF FPC}RequestConnectionToken_Result);
+      FPhysicsClient.SendStreamCmdM(C_OpenStableIO, de, {$IFDEF FPC}@{$ENDIF FPC}OpenStableIO_Result);
       DisposeObject(de);
     end
   else
@@ -11566,7 +11663,6 @@ begin
 
   StableClientIO.WaitConnecting := True;
   StableClientIO.PhysicsIO_LastConnectTick := GetTimeTick;
-
   StableClientIO.BindPhysicsIO := nil;
 
   FOnAsyncConnectNotifyCall := nil;
@@ -11782,7 +11878,7 @@ begin
   if (FPhysicsClient <> nil) and (FPhysicsClient.Connected) and (StableClientIO.Activted) then
     begin
       WaitDisconnecting := True;
-      SendDirectStreamCmd(C_FreeConnectionToken);
+      SendDirectStreamCmd(C_CloseStableIO);
       t := GetTimeTick;
       while (GetTimeTick - t < 500) and (FPhysicsClient.Connected) do
           Progress;
@@ -11816,6 +11912,8 @@ begin
 end;
 
 procedure TCommunicationFramework_CustomStableClient.Progress;
+var
+  t: TTimeTick;
 begin
   if CustomStableClientProgressing then
       exit;
@@ -11827,27 +11925,33 @@ begin
     end;
   inherited Progress;
 
-  if (StableClientIO.Activted) and (StableClientIO.WasWorkOnSequencePacketModel) then
-    begin
-      if StableClientIO.WaitConnecting then
-        begin
-          if GetTimeTick - StableClientIO.PhysicsIO_LastConnectTick > 3000 then
-              StableClientIO.WaitConnecting := False;
-        end
-      else if (GetTimeTick - StableClientIO.LastCommunicationTick_Received > 1000) then
-        begin
-          if KeepAliveChecking then
-            begin
-              Reconnection;
-            end
-          else
-            begin
-              StableClientIO.SendSequencePacketKeepAlive(@StableClientIO.FCipherKey[0], length(StableClientIO.FCipherKey));
-              KeepAliveChecking := True;
-              StableClientIO.LastCommunicationTick_Received := GetTimeTick;
-            end;
-        end;
-    end;
+  if FPhysicsClient <> nil then
+    if (StableClientIO.Activted) and (StableClientIO.WasWorkOnSequencePacketModel) then
+      begin
+        t := GetTimeTick;
+        if StableClientIO.WaitConnecting then
+          begin
+            if t - StableClientIO.PhysicsIO_LastConnectTick > 5000 then
+                StableClientIO.WaitConnecting := False;
+          end
+        else if not FPhysicsClient.Connected then
+          begin
+            Reconnection;
+          end
+        else if (StableClientIO.FSequencePacketSignal) and (t - StableClientIO.LastCommunicationTick_Received > 2000) then
+          begin
+            if KeepAliveChecking then
+              begin
+                Reconnection;
+              end
+            else
+              begin
+                StableClientIO.SendSequencePacketKeepAlive(@StableClientIO.FCipherKey[0], length(StableClientIO.FCipherKey));
+                KeepAliveChecking := True;
+                StableClientIO.LastCommunicationTick_Received := GetTimeTick;
+              end;
+          end;
+      end;
 
   CustomStableClientProgressing := False;
 end;

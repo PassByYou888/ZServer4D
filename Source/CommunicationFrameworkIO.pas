@@ -105,7 +105,6 @@ const
   C_UserLogin = 'UserLogin';
   C_RegisterUser = 'RegisterUser';
 
-
 constructor TPeerClientUserDefineForIO.Create(AOwner: TPeerIO);
 begin
   inherited Create(AOwner);
@@ -122,12 +121,7 @@ destructor TPeerClientUserDefineForIO.Destroy;
 begin
   if LoginSuccessed then
     begin
-      LockObject(UserAuthService.FLoginUserList);
-      try
-          UserAuthService.FLoginUserList.Delete(UserID);
-      except
-      end;
-      UnLockObject(UserAuthService.FLoginUserList);
+      UserAuthService.FLoginUserList.Delete(UserID);
     end;
 
   try
@@ -163,14 +157,12 @@ begin
       Exit;
     end;
 
-  LockObject(FLoginUserList);
   if FLoginUserList.Exists(UserID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user already online:%s', [UserID]));
       Exit;
     end;
-  UnLockObject(FLoginUserList);
 
   if not CompareQuantumCryptographyPassword(UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
     begin
@@ -192,9 +184,7 @@ begin
       UserDefineIO.UserConfigFile.LoadFromFile(UserDefineIO.MakeFilePath('User.Config'));
   UserDefineIO.UserConfigFile.Hit['UserInfo', 'UserID'] := UserID;
 
-  LockObject(FLoginUserList);
   FLoginUserList[UserID] := Now;
-  UnLockObject(FLoginUserList);
 
   OutData.WriteBool(True);
   OutData.WriteString(Format('success Login:%s', [UserID]));
@@ -229,14 +219,12 @@ begin
       Exit;
     end;
 
-  LockObject(FLoginUserList);
   if FLoginUserList.Exists(UserID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user already online:%s', [UserID]));
       Exit;
     end;
-  UnLockObject(FLoginUserList);
 
   UserDefineIO := GetUserDefineClient(Sender);
   UserDefineIO.UserFlag := MakeUserFlag;
@@ -260,9 +248,7 @@ begin
   if FCanSaveUserInfo then
       FUserDB.SaveToFile(umlCombineFileName(FRootPath, 'UserDB'));
 
-  LockObject(FLoginUserList);
   FLoginUserList[UserID] := Now;
-  UnLockObject(FLoginUserList);
 end;
 
 constructor TCommunicationFramework_UserAuthService.Create(ACommunication: TCommunicationFramework);
@@ -314,13 +300,13 @@ procedure TCommunicationFramework_UserAuthService.RegisterCommand;
 begin
   Communication.PeerClientUserDefineClass := TPeerClientUserDefineForIO;
 
-  {$IFDEF FPC}
+{$IFDEF FPC}
   Communication.RegisterStream(C_UserLogin).OnExecute := @Command_UserLogin;
   Communication.RegisterStream(C_RegisterUser).OnExecute := @Command_RegisterUser;
-  {$ELSE}
+{$ELSE}
   Communication.RegisterStream(C_UserLogin).OnExecute := Command_UserLogin;
   Communication.RegisterStream(C_RegisterUser).OnExecute := Command_RegisterUser;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 procedure TCommunicationFramework_UserAuthService.UnRegisterCommand;
@@ -433,5 +419,3 @@ begin
 end;
 
 end.
-
-

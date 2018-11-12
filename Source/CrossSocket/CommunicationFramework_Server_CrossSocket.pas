@@ -151,7 +151,6 @@ var
 begin
   if (AConnection = nil) or (not ASuccess) then
     begin
-      PrintError('send failed!');
       Sending := False;
       DelayFree(0);
       exit;
@@ -171,6 +170,7 @@ begin
           try
             if (ASuccess and isConn) then
               begin
+                UpdateLastCommunicationTime;
                 if SendBuffQueue.Count > 0 then
                   begin
                     // 将发送队列拾取出来

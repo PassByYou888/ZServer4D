@@ -62,6 +62,7 @@ end;
 procedure MainLoop;
 var
   MyServer: TMyServer;
+  iostate, discard, recv, send, sequmem, n: string;
 begin
   MyServer := TMyServer.Create;
 
@@ -106,20 +107,31 @@ begin
 {$IFDEF MSWINDOWS}
       // CheckIOBusy 是适用于任何平台的IO状态检查机制，当IO有数据在处理时，就会返回true
       if MyServer.CheckIOBusy then
-          SetConsoleTitle('Server Busy')
+          iostate := 'Busy'
       else
-          SetConsoleTitle('Server IDLE');
+          iostate := 'Idle';
+      // SetConsoleTitle('Server IDLE');
+
+      discard := Format(
+        'discard: %d, size: %s', [MyServer.Statistics[TStatisticsType.stSequencePacketDiscard],
+        umlSizeToStr(MyServer.Statistics[TStatisticsType.stSequencePacketDiscardSize]).Text]);
+
+      recv := Format('received: %d', [MyServer.Statistics[TStatisticsType.stReceiveSize]]);
+      send := Format('sending: %d', [MyServer.Statistics[TStatisticsType.stSendSize]]);
+      sequmem := Format('swap memory: %s', [umlSizeToStr(MyServer.Statistics[TStatisticsType.stSequencePacketMemoryOnSending]).Text]);
+
+      SetConsoleTitle(PWideChar(Format('%s - %s - %s - %s - %s', [iostate, recv, send, discard, sequmem])));
 {$ENDIF MSWINDOWS}
       CoreClasses.CheckThreadSynchronize(10);
-    end;
-end;
+      end;
+      end;
 
-begin
-  try
-      MainLoop;
-  except
-    on E: Exception do
+      begin
+        try
+        MainLoop;
+      except
+        on E: Exception do
         Writeln(E.ClassName, ': ', E.Message);
-  end;
+      end;
 
-end.
+      end.

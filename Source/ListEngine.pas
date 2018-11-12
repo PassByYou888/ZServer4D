@@ -3934,10 +3934,7 @@ begin
               DoDelete(pData);
               if (FAutoFreeData) and (pData^.Data <> nil) and (pData^.Data <> _CustomData) then
                 begin
-                  try
-                      DoDataFreeProc(pData^.Data);
-                  except
-                  end;
+                  DoDataFreeProc(pData^.Data);
                 end;
               pData^.Data := _CustomData;
               Result := pData;
@@ -3959,6 +3956,7 @@ begin
                   else
                       inc(FIDCounter);
                 end;
+              DoAddDataNotifyProc(pData^.Data);
 
               Exit;
             end;

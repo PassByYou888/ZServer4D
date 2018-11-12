@@ -521,7 +521,6 @@ const
   C_GetUserPrivateFileList = '__@GetUserPrivateFileList';
   C_GetUserPrivateDirectoryList = '__@GetUserPrivateDirectoryList';
 
-
 type
   PPostBatchBackcallData = ^TPostBatchBackcallData;
 
@@ -660,19 +659,15 @@ begin
               DoubleTunnelService.FSendTunnel.PeerIO[SendTunnelID].Disconnect;
         end;
 
-      LockObject(DoubleTunnelService.FLoginUserList);
       try
           DoubleTunnelService.FLoginUserList.Delete(UserID);
       except
       end;
-      UnLockObject(DoubleTunnelService.FLoginUserList);
 
-      LockObject(DoubleTunnelService.FLoginUserDefineIOList);
       try
           DoubleTunnelService.FLoginUserDefineIOList.Delete(UserID);
       except
       end;
-      UnLockObject(DoubleTunnelService.FLoginUserDefineIOList);
     end;
 
   try
@@ -759,15 +754,12 @@ begin
       Exit;
     end;
 
-  LockObject(FLoginUserList);
   if FLoginUserList.Exists(UserID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user already online:%s', [UserID]));
-      UnLockObject(FLoginUserList);
       Exit;
     end;
-  UnLockObject(FLoginUserList);
 
   try
     if not CompareQuantumCryptographyPassword(UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
@@ -796,13 +788,9 @@ begin
   UserDefineIO.UserConfigFile.Hit['UserInfo', 'UserID'] := UserID;
   UserDefineIO.UserConfigFile.Hit['UserInfo', 'Password'] := SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''));
 
-  LockObject(FLoginUserList);
   FLoginUserList[UserID] := Now;
-  UnLockObject(FLoginUserList);
 
-  LockObject(FLoginUserDefineIOList);
   FLoginUserDefineIOList[UserID] := UserDefineIO;
-  UnLockObject(FLoginUserDefineIOList);
 
   UserDefineIO.WaitLink := True;
   UserDefineIO.WaitLinkSendID := SendTunnelID;
@@ -854,15 +842,12 @@ begin
       Exit;
     end;
 
-  LockObject(FLoginUserList);
   if FLoginUserList.Exists(UserID) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user already online:%s', [UserID]));
-      UnLockObject(FLoginUserList);
       Exit;
     end;
-  UnLockObject(FLoginUserList);
 
   UserDefineIO.UserFlag := MakeUserFlag;
   UserDefineIO.UserID := UserID;
@@ -882,13 +867,9 @@ begin
   if FCanSaveUserInfo then
       SaveUserDB;
 
-  LockObject(FLoginUserList);
   FLoginUserList[UserID] := Now;
-  UnLockObject(FLoginUserList);
 
-  LockObject(FLoginUserDefineIOList);
   FLoginUserDefineIOList[UserID] := UserDefineIO;
-  UnLockObject(FLoginUserDefineIOList);
 
   UserDefineIO.WaitLink := True;
   UserDefineIO.WaitLinkSendID := SendTunnelID;
@@ -1901,13 +1882,8 @@ begin
   if FUserDB.Exists(UsrID) then
       Exit;
 
-  LockObject(FLoginUserList);
   if FLoginUserList.Exists(UsrID) then
-    begin
-      UnLockObject(FLoginUserList);
       Exit;
-    end;
-  UnLockObject(FLoginUserList);
 
   AUserFlag := MakeUserFlag;
 
@@ -4531,4 +4507,3 @@ begin
 end;
 
 end.
-
