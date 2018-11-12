@@ -11278,8 +11278,6 @@ begin
   FAutoFreePhysicsServer := False;
   FAutoProgressPhysicsServer := True;
   CustomStableServerProgressing := False;
-
-  PrintParams[C_Wait] := False;
 end;
 
 destructor TCommunicationFramework_CustomStableServer.Destroy;

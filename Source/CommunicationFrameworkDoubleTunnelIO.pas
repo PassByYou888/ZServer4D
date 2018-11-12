@@ -493,7 +493,7 @@ const
   C_PostFile = '__@PostFile';
   C_PostFileOver = '__@PostFileOver';
   C_PostBatchStreamDone = '__@PostBatchStreamDone';
-  C_UserDB = '__@UserDB';
+  C_UserDB = 'UserDB';
   C_UserLogin = '__@UserLogin';
   C_RegisterUser = '__@RegisterUser';
   C_TunnelLink = '__@TunnelLink';
