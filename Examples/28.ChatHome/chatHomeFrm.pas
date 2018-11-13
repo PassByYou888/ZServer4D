@@ -11,11 +11,24 @@ uses
   CommunicationFramework, CommunicationFrameworkDoubleTunnelIO_NoAuth;
 
 type
+  // 服务器对每用户创建的实例，
+  // 自定义的用户存储信息在这里存放
+  // 比如，性别，昵称，登录时间，发言次数
+  TChatServer_UserSpecial = class(TPeerClientUserSpecial)
+  public
+    // 发言次数
+    talkCounter: Integer;
+    constructor Create(AOwner: TPeerIO); override;
+    destructor Destroy; override;
+    procedure Progress; override;
+  end;
+
   TChatServer = class(TCommunicationFramework_DoubleTunnelService_NoAuth)
   protected
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
   public
+    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     procedure cmd_PushMsg(Sender: TPeerIO; InData: SystemString);
 
     procedure RegisterCommand; override;
@@ -29,6 +42,8 @@ type
   TChatClient = class(TCommunicationFramework_DoubleTunnelClient_NoAuth)
   public
     MsgNotify: IMsgNotify;
+
+    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
 
     procedure cmd_OnMsg(Sender: TPeerIO; InData: SystemString);
     procedure PushMsg(msg: SystemString);
@@ -103,6 +118,24 @@ implementation
 {$R *.fmx}
 
 
+constructor TChatServer_UserSpecial.Create(AOwner: TPeerIO);
+begin
+  inherited;
+  talkCounter := 0;
+end;
+
+destructor TChatServer_UserSpecial.Destroy;
+begin
+
+  inherited;
+end;
+
+procedure TChatServer_UserSpecial.Progress;
+begin
+  inherited;
+
+end;
+
 procedure TChatServer.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
 begin
   inherited;
@@ -129,15 +162,40 @@ begin
     end);
 end;
 
-procedure TChatServer.cmd_PushMsg(Sender: TPeerIO; InData: SystemString);
+constructor TChatServer.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
 begin
+  inherited Create(ARecvTunnel, ASendTunnel);
+  ARecvTunnel.UserSpecialClass := TChatServer_UserSpecial;
+end;
+
+procedure TChatServer.cmd_PushMsg(Sender: TPeerIO; InData: SystemString);
+var
+  MyUserSpec: TChatServer_UserSpecial;
+begin
+  // 在双通道的编程中，都要在指令前面加上linkOK的判断
+  // linkok也表示验证成功，只让验证成功的用户发言
+  if not GetUserDefineRecvTunnel(Sender).LinkOk then
+      exit;
+
+  MyUserSpec := Sender.UserSpecial as TChatServer_UserSpecial;
+  inc(MyUserSpec.talkCounter);
+
   RecvTunnel.ProgressPeerIOP(procedure(P_IO: TPeerIO)
     var
       rDef: TPeerClientUserDefineForRecvTunnel_NoAuth;
+      PeerUserSpec: TChatServer_UserSpecial;
     begin
       rDef := GetUserDefineRecvTunnel(P_IO);
+
+      // linkOK就表示已经登录登录成功，
+      // 如果是带验证的双通道，linkok也表示验证成功
+      // 在双通道的编程中，都要在指令前面加上linkOK的判断
       if rDef.LinkOk then
+        begin
+          PeerUserSpec := P_IO.UserSpecial as TChatServer_UserSpecial;
+
           rDef.SendTunnel.Owner.SendDirectConsoleCmd('OnMsg', InData);
+        end;
     end);
 end;
 
@@ -151,6 +209,11 @@ procedure TChatServer.UnRegisterCommand;
 begin
   inherited;
   RecvTunnel.UnRegisted('PushMsg');
+end;
+
+constructor TChatClient.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+begin
+  inherited Create(ARecvTunnel, ASendTunnel);
 end;
 
 procedure TChatClient.cmd_OnMsg(Sender: TPeerIO; InData: SystemString);
