@@ -11930,7 +11930,11 @@ begin
         if StableClientIO.WaitConnecting then
           begin
             if t - StableClientIO.PhysicsIO_LastConnectTick > 5000 then
+              begin
                 StableClientIO.WaitConnecting := False;
+                FPhysicsClient.Disconnect;
+                Reconnection;
+              end;
           end
         else if not FPhysicsClient.Connected then
           begin
