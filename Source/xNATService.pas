@@ -287,6 +287,7 @@ begin
 
   if Protocol = nil then
       Protocol := TXServerCustomProtocol.Create;
+  Protocol.TimeOutIDLE := 5 * 60 * 1000;
   Protocol.ShareListen := Self;
   Protocol.Protocol := cpCustom;
   Protocol.UserSpecialClass := TXServerUserSpecial;
