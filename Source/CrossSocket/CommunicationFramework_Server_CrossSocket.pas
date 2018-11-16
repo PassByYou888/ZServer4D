@@ -106,8 +106,20 @@ end;
 
 destructor TCrossSocketServer_PeerIO.Destroy;
 var
+  c: TCrossConnection;
   i: Integer;
 begin
+  if IOInterface <> nil then
+    begin
+      c := Context;
+      Context.UserObject := nil;
+      IOInterface := nil;
+      try
+          c.Close;
+      except
+      end;
+    end;
+
   for i := 0 to SendBuffQueue.Count - 1 do
       DisposeObject(SendBuffQueue[i]);
 
@@ -135,14 +147,20 @@ begin
 end;
 
 procedure TCrossSocketServer_PeerIO.Disconnect;
+var
+  c: TCrossConnection;
 begin
   if IOInterface <> nil then
     begin
+      c := Context;
+      Context.UserObject := nil;
+      IOInterface := nil;
       try
-          Context.Disconnect;
+          c.Close;
       except
       end;
     end;
+  DisposeObject(Self);
 end;
 
 procedure TCrossSocketServer_PeerIO.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
@@ -262,7 +280,7 @@ begin
     var
       cli: TCrossSocketServer_PeerIO;
     begin
-      cli := TCrossSocketServer_PeerIO.Create(self, AConnection.ConnectionIntf);
+      cli := TCrossSocketServer_PeerIO.Create(Self, AConnection.ConnectionIntf);
       AConnection.UserObject := cli;
     end);
 end;

@@ -46,6 +46,7 @@ type
   private
     Link: TIocpClientContextIntf_WithDCli;
     SendingStream: TMemoryStream64;
+    CanTriggerDoDisconnect: Boolean;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -129,14 +130,11 @@ begin
 end;
 
 destructor TIocpClientContextIntf_WithDCli.Destroy;
-var
-  peerio: TDIOCPClient_PeerIO;
 begin
   if Link <> nil then
     begin
-      peerio := Link;
+      Link.Link := nil;
       Link := nil;
-      DisposeObject(peerio);
     end;
   inherited Destroy;
 end;
@@ -146,6 +144,7 @@ begin
   inherited CreateAfter;
   Link := nil;
   SendingStream := TMemoryStream64.Create;
+  CanTriggerDoDisconnect := True;
 end;
 
 destructor TDIOCPClient_PeerIO.Destroy;
@@ -156,7 +155,10 @@ begin
     begin
       cintf := Link;
       Link := nil;
-      DisposeObject(cintf);
+      cintf.Link := nil;
+      if CanTriggerDoDisconnect then
+          TCommunicationFramework_Client_DIOCP(FOwnerFramework).DoDisconnect(Self);
+      cintf.Close();
     end;
 
   DisposeObject(SendingStream);
@@ -169,9 +171,19 @@ begin
 end;
 
 procedure TDIOCPClient_PeerIO.Disconnect;
+var
+  cintf: TIocpClientContextIntf_WithDCli;
 begin
   if Link <> nil then
-      Link.Close;
+    begin
+      cintf := Link;
+      Link := nil;
+      cintf.Link := nil;
+      if CanTriggerDoDisconnect then
+          TCommunicationFramework_Client_DIOCP(FOwnerFramework).DoDisconnect(Self);
+      cintf.Close();
+    end;
+  DisposeObject(Self);
 end;
 
 procedure TDIOCPClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
@@ -218,20 +230,26 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoConnected(Sender: TIocpClientContextIntf_WithDCli);
 begin
-  Sender.Link.Print('connected addr: %s port: %d', [Sender.Host, Sender.Port]);
-  DoConnected(Sender.Link);
+  if Sender.Link <> nil then
+    begin
+      Sender.Link.Print('connected addr: %s port: %d', [Sender.Host, Sender.Port]);
+      DoConnected(Sender.Link);
+    end;
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoDisconnect(Sender: TIocpClientContextIntf_WithDCli);
 begin
-  Sender.Link.Print('disconnect with %s port: %d', [Sender.Host, Sender.Port]);
-  DoDisconnect(Sender.Link);
-  TriggerDoConnectFailed;
+  if Sender.Link <> nil then
+    begin
+      DisposeObject(Sender.Link);
+      Sender.Link := TDIOCPClient_PeerIO.Create(Self, Sender);
+      Sender.Link.Link := Sender;
+      TriggerDoConnectFailed;
+    end;
 end;
 
 procedure TCommunicationFramework_Client_DIOCP.DCDoConnectFailed(Sender: TIocpClientContextIntf_WithDCli);
 begin
-  Sender.Link.Print('connect failed form addr: %s port: %d', [Sender.Host, Sender.Port]);
   TriggerDoConnectFailed;
 end;
 
@@ -262,6 +280,9 @@ begin
   DIOCPClientPool := TDiocpTcpClient.Create(nil);
   DIOCPClientPool.RegisterContextClass(TIocpClientContextIntf_WithDCli);
   DIOCPClientPool.NoDelayOption := True;
+  DIOCPClientPool.DisableAutoConnect := True;
+  DIOCPClientPool.TrigerDisconnectEventAfterNoneConnected := False;
+  DIOCPClientPool.Open;
 
   DCIntf := TIocpClientContextIntf_WithDCli(DIOCPClientPool.Add);
   DCIntf.OwnerFramework := Self;
@@ -276,7 +297,8 @@ end;
 destructor TCommunicationFramework_Client_DIOCP.Destroy;
 begin
   Disconnect;
-  DisposeObject(DCIntf);
+  DIOCPClientPool.Close;
+  DisposeObject(DIOCPClientPool);
   inherited Destroy;
 end;
 
@@ -351,11 +373,10 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
 begin
-  DCIntf.Link.Link := nil;
+  if (DCIntf.Link <> nil) then
+      DCIntf.Link.CanTriggerDoDisconnect := Connected;
   DisposeObject(DCIntf.Link);
-  DCIntf.Link := nil;
-  Disconnect;
-
+  DIOCPClientPool.RemoveAllContext;
   DCIntf := TIocpClientContextIntf_WithDCli(DIOCPClientPool.Add);
   DCIntf.OwnerFramework := Self;
   DCIntf.Link := TDIOCPClient_PeerIO.Create(Self, DCIntf);
@@ -372,11 +393,10 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
 begin
-  DCIntf.Link.Link := nil;
+  if (DCIntf.Link <> nil) then
+      DCIntf.Link.CanTriggerDoDisconnect := Connected;
   DisposeObject(DCIntf.Link);
-  DCIntf.Link := nil;
-  Disconnect;
-
+  DIOCPClientPool.RemoveAllContext;
   DCIntf := TIocpClientContextIntf_WithDCli(DIOCPClientPool.Add);
   DCIntf.OwnerFramework := Self;
   DCIntf.Link := TDIOCPClient_PeerIO.Create(Self, DCIntf);
@@ -393,11 +413,10 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
 begin
-  DCIntf.Link.Link := nil;
+  if (DCIntf.Link <> nil) then
+      DCIntf.Link.CanTriggerDoDisconnect := Connected;
   DisposeObject(DCIntf.Link);
-  DCIntf.Link := nil;
-  Disconnect;
-
+  DIOCPClientPool.RemoveAllContext;
   DCIntf := TIocpClientContextIntf_WithDCli(DIOCPClientPool.Add);
   DCIntf.OwnerFramework := Self;
   DCIntf.Link := TDIOCPClient_PeerIO.Create(Self, DCIntf);
@@ -416,17 +435,14 @@ function TCommunicationFramework_Client_DIOCP.Connect(addr: SystemString; Port: 
 var
   t: TTimeTick;
 begin
-  DCIntf.Link.Link := nil;
+  if (DCIntf.Link <> nil) then
+      DCIntf.Link.CanTriggerDoDisconnect := Connected;
   DisposeObject(DCIntf.Link);
-  DCIntf.Link := nil;
-  Disconnect;
-
+  DIOCPClientPool.RemoveAllContext;
   DCIntf := TIocpClientContextIntf_WithDCli(DIOCPClientPool.Add);
   DCIntf.OwnerFramework := Self;
   DCIntf.Link := TDIOCPClient_PeerIO.Create(Self, DCIntf);
   DCIntf.Link.Link := DCIntf;
-
-  DIOCPClientPool.Open;
 
   Result := False;
 
@@ -451,12 +467,18 @@ end;
 
 procedure TCommunicationFramework_Client_DIOCP.Disconnect;
 begin
-  if Connected then
-      ClientIO.Disconnect;
-
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
+
+  if (DCIntf.Link <> nil) then
+      DCIntf.Link.CanTriggerDoDisconnect := Connected;
+  DisposeObject(DCIntf.Link);
+  DIOCPClientPool.RemoveAllContext;
+  DCIntf := TIocpClientContextIntf_WithDCli(DIOCPClientPool.Add);
+  DCIntf.OwnerFramework := Self;
+  DCIntf.Link := TDIOCPClient_PeerIO.Create(Self, DCIntf);
+  DCIntf.Link.Link := DCIntf;
 end;
 
 initialization

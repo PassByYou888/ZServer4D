@@ -19,6 +19,7 @@ type
     Test: TCommunicationTestIntf;
     constructor Create; override;
     destructor Destroy; override;
+    function isOffline: Boolean;
   end;
 
   TForm1 = class(TForm)
@@ -74,6 +75,12 @@ end;
 procedure TMyClient.DoDisconnect(Sender: TPeerIO);
 begin
   inherited;
+end;
+
+function TMyClient.isOffline: Boolean;
+begin
+  Result := (not StableClientIO.Activted) or
+    ((StableClientIO.Activted) and (StableClientIO.WaitConnecting));
 end;
 
 procedure TForm1.backcall_DoStatus(AText: SystemString; const ID: Integer);
@@ -155,7 +162,8 @@ begin
   send := Format('sending: %d', [MyClient.Statistics[TStatisticsType.stSendSize]]);
   sequmem := Format('swap memory: %s', [umlSizeToStr(MyClient.ClientIO.SequencePacketUsagePhysicsMemory).Text]);
 
-  InfoLabel.Text := Format('%s'#13#10'%s'#13#10'%s'#13#10'%s', [recv, send, discard, sequmem]);
+  InfoLabel.Text := Format('%s'#13#10'%s'#13#10'%s'#13#10'%s'#13#10'StopCommunicationTimeTick: %f ',
+    [recv, send, discard, sequmem, MyClient.StopCommunicationTimeTick * 0.001]);
 end;
 
 end.

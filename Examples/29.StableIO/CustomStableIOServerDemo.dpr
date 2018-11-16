@@ -120,18 +120,19 @@ begin
       send := Format('sending: %d', [MyServer.Statistics[TStatisticsType.stSendSize]]);
       sequmem := Format('swap memory: %s', [umlSizeToStr(MyServer.Statistics[TStatisticsType.stSequencePacketMemoryOnSending]).Text]);
 
-      SetConsoleTitle(PWideChar(Format('%s - %s - %s - %s - %s', [iostate, recv, send, discard, sequmem])));
+      SetConsoleTitle(PWideChar(Format('%s - IO:%d PIO:%d - %s - %s - %s - %s',
+        [iostate, MyServer.Count, MyServer.PhysicsServer.Count, recv, send, discard, sequmem])));
 {$ENDIF MSWINDOWS}
       CoreClasses.CheckThreadSynchronize(10);
-      end;
-      end;
+    end;
+end;
 
-      begin
-        try
-        MainLoop;
-      except
-        on E: Exception do
+begin
+  try
+      MainLoop;
+  except
+    on E: Exception do
         Writeln(E.ClassName, ': ', E.Message);
-      end;
+  end;
 
-      end.
+end.

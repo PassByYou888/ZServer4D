@@ -54,7 +54,6 @@ type
     LSock: TTCPBlockSocket;
     Activted: Boolean;
     Listen: Boolean;
-    CurrentAcceptSockTh: TSynapseSockTh;
     procedure Sync_CreateIO;
     procedure Execute; override;
   end;
@@ -69,6 +68,7 @@ type
     Recv_Siz: Integer;
     procedure Sync_PickBuff;
     procedure Sync_FillReceivedBuff;
+    procedure Sync_CloseIO;
     procedure Execute; override;
   end;
 
@@ -109,6 +109,12 @@ destructor TSynapseServer_PeerIO.Destroy;
 var
   i: Integer;
 begin
+  if SockTh <> nil then
+    begin
+      SockTh.IO := nil;
+      SockTh.Activted := False;
+    end;
+
   for i := 0 to SendBuffQueue.Count - 1 do
       DisposeObject(SendBuffQueue[i]);
 
@@ -126,7 +132,11 @@ end;
 procedure TSynapseServer_PeerIO.Disconnect;
 begin
   if SockTh <> nil then
+    begin
+      SockTh.IO := nil;
       SockTh.Activted := False;
+    end;
+  DisposeObject(Self);
 end;
 
 procedure TSynapseServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: nativeInt);
@@ -176,7 +186,7 @@ end;
 
 function TSynapseServer_PeerIO.WriteBufferEmpty: Boolean;
 begin
-  Result := SendBuffQueue.Count = 0;
+  Result := (SendBuffQueue.Count = 0) and (SockTh <> nil) and (SockTh.CurrentSendBuff = nil);
 end;
 
 procedure TSynapseServer_PeerIO.Progress;
@@ -186,6 +196,8 @@ begin
 end;
 
 procedure TSynapseListenTh.Sync_CreateIO;
+var
+  CurrentAcceptSockTh: TSynapseSockTh;
 begin
   CurrentAcceptSockTh := TSynapseSockTh.Create(True);
   CurrentAcceptSockTh.ClientSockID := LSock.Accept;
@@ -225,7 +237,7 @@ end;
 
 procedure TSynapseSockTh.Sync_PickBuff;
 begin
-  if IO.SendBuffQueue.Count > 0 then
+  if (IO.SendBuffQueue.Count > 0) and (IO <> nil) then
     begin
       CurrentSendBuff := TMemoryStream64(IO.SendBuffQueue[0]);
       IO.SendBuffQueue.Delete(0);
@@ -234,8 +246,21 @@ end;
 
 procedure TSynapseSockTh.Sync_FillReceivedBuff;
 begin
-  IO.SaveReceiveBuffer(Recv_Buff, Recv_Siz);
-  IO.FillRecvBuffer(Self, True, True);
+  if (IO <> nil) then
+    begin
+      IO.SaveReceiveBuffer(Recv_Buff, Recv_Siz);
+      IO.FillRecvBuffer(Self, True, True);
+    end;
+end;
+
+procedure TSynapseSockTh.Sync_CloseIO;
+begin
+  if IO <> nil then
+    begin
+      IO.SockTh := nil;
+      DisposeObject(IO);
+    end;
+  DisposeObject(Sock);
 end;
 
 procedure TSynapseSockTh.Execute;
@@ -249,7 +274,7 @@ begin
   Activted := True;
 
   Recv_Buff := System.GetMemory(memSiz);
-  while Activted do
+  while (Activted) and (IO <> nil) do
     begin
       try
         while Activted and (IO.SendBuffQueue.Count > 0) do
@@ -261,6 +286,7 @@ begin
               begin
                 Sock.SendBuffer(CurrentSendBuff.Memory, CurrentSendBuff.Size);
                 DisposeObject(CurrentSendBuff);
+                CurrentSendBuff := nil;
               end;
           end;
 
@@ -279,9 +305,7 @@ begin
       end;
     end;
   System.FreeMemory(Recv_Buff);
-  IO.SockTh := nil;
-  DisposeObject(IO);
-  DisposeObject(Sock);
+  SyncMethod(Self, True, {$IFDEF FPC}@{$ENDIF FPC}Sync_CloseIO);
 end;
 
 procedure TCommunicationFramework_Server_Synapse.All_Disconnect(PeerClient: TPeerIO);

@@ -111,13 +111,15 @@ begin
 end;
 
 destructor TDIOCPServer_PeerIO.Destroy;
+var
+  clink: TIocpClientContextIntf_WithDServ;
 begin
   if Link <> nil then
     begin
-      // 系统绿色化，我在破坏对象时，不是直接close，而是post一个消息
-      // 这样会导致断线产生一个小幅延迟，这里不影响性能
-      Link.PostWSACloseRequest;
-      Link.Link := nil;
+      clink := Link;
+      Link := nil;
+      clink.Link := nil;
+      clink.PostWSACloseRequest;
     end;
 
   DisposeObject(SendingStream);
@@ -130,8 +132,17 @@ begin
 end;
 
 procedure TDIOCPServer_PeerIO.Disconnect;
+var
+  clink: TIocpClientContextIntf_WithDServ;
 begin
-  Link.PostWSACloseRequest;
+  if Link <> nil then
+    begin
+      clink := Link;
+      Link := nil;
+      clink.Link := nil;
+      clink.PostWSACloseRequest;
+    end;
+  DisposeObject(Self);
 end;
 
 procedure TDIOCPServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
@@ -201,12 +212,8 @@ begin
       Exit;
 
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
-    var
-      peerio: TDIOCPServer_PeerIO;
     begin
-      peerio := TIocpClientContextIntf_WithDServ(pvClientContext).Link;
-      TIocpClientContextIntf_WithDServ(pvClientContext).Link := nil;
-      DisposeObject(peerio);
+      DisposeObject(TIocpClientContextIntf_WithDServ(pvClientContext).Link);
     end);
 end;
 

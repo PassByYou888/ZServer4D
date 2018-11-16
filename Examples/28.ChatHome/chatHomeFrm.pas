@@ -253,6 +253,7 @@ begin
 
   phyServer := TXPhysicsServer.Create.StableIO;
   phyServer.VMInterface := self;
+  TCommunicationFramework_StableServer(phyServer).OfflineTimeout := 5 *  1000;
 
   phyClient := TXPhysicsClient.Create.StableIO;
 

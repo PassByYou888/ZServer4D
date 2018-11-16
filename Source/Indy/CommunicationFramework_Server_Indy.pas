@@ -330,7 +330,6 @@ begin
     begin
       c := TCommunicationFramework_Server_Context(AContext);
       c.ClientIntf := TIDServer_PeerIO.Create(Self, c);
-      DoConnected(c.ClientIntf);
       c.Binding.SetKeepAliveValues(True, 2000, 2);
     end);
 end;
@@ -350,7 +349,6 @@ begin
       c: TCommunicationFramework_Server_Context;
     begin
       c := TCommunicationFramework_Server_Context(AContext);
-      DoDisconnect(c.ClientIntf);
       if c.ClientIntf <> nil then
         begin
           DisposeObject(c.ClientIntf);

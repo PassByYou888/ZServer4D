@@ -30,6 +30,9 @@ type
 
   TICSClient_PeerIO = class(TPeerIO)
   public
+    procedure CreateAfter; override;
+    destructor Destroy; override;
+
     function Context: TCommunicationFramework_Client_ICS;
 
     function Connected: Boolean; override;
@@ -43,7 +46,7 @@ type
     procedure ContinueResultSend; override;
   end;
 
-  TClientICSContextIntf = class(TCustomICSContextIntf)
+  TClientICSContextIntf = class(TCustomICS)
   end;
 
   TCommunicationFramework_Client_ICS = class(TCommunicationFrameworkClient)
@@ -86,6 +89,16 @@ type
 
 implementation
 
+procedure TICSClient_PeerIO.CreateAfter;
+begin
+  inherited CreateAfter;
+end;
+
+destructor TICSClient_PeerIO.Destroy;
+begin
+  inherited Destroy;
+end;
+
 function TICSClient_PeerIO.Context: TCommunicationFramework_Client_ICS;
 begin
   Result := IOInterface as TCommunicationFramework_Client_ICS;
@@ -101,6 +114,26 @@ begin
   Context.Disconnect;
 end;
 
+procedure TICSClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
+begin
+  if Connected then
+      Context.FDriver.Send(buff, Size);
+end;
+
+procedure TICSClient_PeerIO.WriteBufferOpen;
+begin
+end;
+
+procedure TICSClient_PeerIO.WriteBufferFlush;
+begin
+  if Connected then
+      Context.FDriver.TryToSend;
+end;
+
+procedure TICSClient_PeerIO.WriteBufferClose;
+begin
+end;
+
 function TICSClient_PeerIO.GetPeerIP: SystemString;
 begin
   Result := Context.FDriver.addr;
@@ -112,48 +145,27 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TICSClient_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);
-begin
-  if Connected then
-      Context.FDriver.Send(buff, Size);
-end;
-
-procedure TICSClient_PeerIO.WriteBufferClose;
-begin
-  if Connected then
-      Context.FDriver.TryToSend;
-end;
-
-procedure TICSClient_PeerIO.WriteBufferFlush;
-begin
-  if Connected then
-      Context.FDriver.TryToSend;
-end;
-
-procedure TICSClient_PeerIO.WriteBufferOpen;
-begin
-end;
-
 procedure TCommunicationFramework_Client_ICS.DataAvailable(Sender: TObject; ErrCode: Word);
 var
   BuffCount: Integer;
-  buff: TBytes;
+  buff: PByte;
 begin
   // increment receive
   BuffCount := FDriver.RcvdCount;
   if BuffCount <= 0 then
       BuffCount := 255 * 255;
-  SetLength(buff, BuffCount);
-  BuffCount := FDriver.Receive(@buff[0], BuffCount);
+  buff := System.GetMemory(BuffCount);
+  BuffCount := FDriver.Receive(buff, BuffCount);
   if BuffCount > 0 then
     begin
       try
-        FClient.SaveReceiveBuffer(@buff[0], BuffCount);
+        FClient.SaveReceiveBuffer(buff, BuffCount);
         FClient.FillRecvBuffer(nil, False, False);
       except
           FDriver.Close;
       end;
     end;
+  System.FreeMemory(buff);
 end;
 
 procedure TCommunicationFramework_Client_ICS.SessionClosed(Sender: TObject; ErrCode: Word);

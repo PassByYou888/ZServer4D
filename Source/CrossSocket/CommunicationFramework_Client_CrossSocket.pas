@@ -40,6 +40,9 @@ type
   TCrossSocketClient_PeerIO = class(TCrossSocketServer_PeerIO)
   public
     OwnerClient: TCommunicationFramework_Client_CrossSocket;
+    procedure CreateAfter; override;
+    destructor Destroy; override;
+    procedure Disconnect; override;
   end;
 
   TCommunicationFramework_Client_CrossSocket = class(TCommunicationFrameworkClient)
@@ -102,6 +105,33 @@ var
 
 implementation
 
+procedure TCrossSocketClient_PeerIO.CreateAfter;
+begin
+  inherited CreateAfter;
+  OwnerClient := nil;
+end;
+
+destructor TCrossSocketClient_PeerIO.Destroy;
+begin
+  if OwnerClient <> nil then
+    begin
+      OwnerClient.DoDisconnect(Self);
+      OwnerClient.ClientIOIntf := nil;
+    end;
+  OwnerClient := nil;
+  inherited Destroy;
+end;
+
+procedure TCrossSocketClient_PeerIO.Disconnect;
+begin
+  if OwnerClient <> nil then
+    begin
+      OwnerClient.DoDisconnect(Self);
+      OwnerClient.ClientIOIntf := nil;
+    end;
+  OwnerClient := nil;
+  inherited Disconnect;
+end;
 
 procedure TCommunicationFramework_Client_CrossSocket.AsyncConnect(addr: SystemString; Port: Word; OnResultCall: TStateCall; OnResultMethod: TStateMethod; OnResultProc: TStateProc);
 begin
@@ -246,7 +276,9 @@ end;
 procedure TCommunicationFramework_Client_CrossSocket.Disconnect;
 begin
   if Connected then
+    begin
       ClientIO.Disconnect;
+    end;
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
@@ -292,14 +324,11 @@ begin
           if cli.OwnerClient <> nil then
             begin
               try
-                cli.OwnerClient.DoDisconnect(cli);
-                cli.OwnerClient.ClientIOIntf := nil;
-                DisposeObject(cli);
+                  DisposeObject(cli);
               except
               end;
             end;
         end;
-      AConnection.UserObject := nil;
     end);
 end;
 
@@ -485,4 +514,3 @@ DisposeObject(ClientPool);
 ClientPool := nil;
 
 end.
-

@@ -711,7 +711,6 @@ type
   TPeerClientClass = TPeerIOClass;
 {$ENDREGION 'IO'}
 {$REGION 'CommunicationFramework'}
-  TPeerIONotify = procedure(Sender: TPeerIO) of object;
   TPeerIOCMDNotify = procedure(Sender: TPeerIO; Cmd: SystemString; var Allow: Boolean) of object;
 
   TStatisticsType = (
@@ -751,8 +750,6 @@ type
     FCommandList: THashObjectList;
     FPeerIO_HashPool: TUInt32HashObjectList;
     FIDCounter: Cardinal;
-    FOnConnected: TPeerIONotify;
-    FOnDisconnect: TPeerIONotify;
     FOnExecuteCommand: TPeerIOCMDNotify;
     FOnSendCommand: TPeerIOCMDNotify;
     FPeerIOUserDefineClass: TPeerIOUserDefineClass;
@@ -786,9 +783,6 @@ type
 
     function GetIdleTimeOut: TTimeTick; virtual;
     procedure SetIdleTimeOut(const Value: TTimeTick); virtual;
-
-    procedure DoConnected(Sender: TPeerIO); virtual;
-    procedure DoDisconnect(Sender: TPeerIO); virtual;
 
     function CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean; virtual;
     function CanSendCommand(Sender: TPeerIO; Cmd: SystemString): Boolean; virtual;
@@ -912,8 +906,6 @@ type
     // misc
     function FirstIO: TPeerIO;
     function LastIO: TPeerIO;
-    property OnConnected: TPeerIONotify read FOnConnected write FOnConnected;
-    property OnDisconnect: TPeerIONotify read FOnDisconnect write FOnDisconnect;
     property OnExecuteCommand: TPeerIOCMDNotify read FOnExecuteCommand write FOnExecuteCommand;
     property OnSendCommand: TPeerIOCMDNotify read FOnSendCommand write FOnSendCommand;
 
@@ -1121,8 +1113,8 @@ type
 
     procedure StreamResult_CipherModel(Sender: TPeerIO; ResultData: TDataFrameEngine);
 
-    procedure DoConnected(Sender: TPeerIO); override;
-    procedure DoDisconnect(Sender: TPeerIO); override;
+    procedure DoConnected(Sender: TPeerIO); virtual;
+    procedure DoDisconnect(Sender: TPeerIO); virtual;
 
     function CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean; override;
     function CanSendCommand(Sender: TPeerIO; Cmd: SystemString): Boolean; override;
@@ -1506,10 +1498,10 @@ type
     Activted: Boolean;
     DestroyRecyclePhysicsIO: Boolean;
     Connection_Token: Cardinal;
-    FBindPhysicsIO: TPeerIO;
+    InternalBindPhysicsIO: TPeerIO;
     OfflineTick: TTimeTick;
     procedure SetBindPhysicsIO(const Value: TPeerIO);
-    property BindPhysicsIO: TPeerIO read FBindPhysicsIO write SetBindPhysicsIO;
+    property BindPhysicsIO: TPeerIO read InternalBindPhysicsIO write SetBindPhysicsIO;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -1599,6 +1591,7 @@ type
     FAutoProgressPhysicsClient: Boolean;
     CustomStableClientProgressing: Boolean;
     KeepAliveChecking: Boolean;
+    SaveLastCommunicationTick_Received: TTimeTick;
 
     FOnAsyncConnectNotifyCall: TStateCall;
     FOnAsyncConnectNotifyMethod: TStateMethod;
@@ -1614,6 +1607,8 @@ type
     procedure AsyncReconnectionResult(const cState: Boolean);
     procedure PostReconnection(Sender: TNPostExecute);
     procedure Reconnection;
+
+    function GetStopCommunicationTimeTick: TTimeTick;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -1623,6 +1618,7 @@ type
     property AutoFreePhysicsClient: Boolean read FAutoFreePhysicsClient write FAutoFreePhysicsClient;
     property AutoProgressPhysicsClient: Boolean read FAutoProgressPhysicsClient write FAutoProgressPhysicsClient;
     property AutomatedConnection: Boolean read FAutomatedConnection write FAutomatedConnection;
+    property StopCommunicationTimeTick: TTimeTick read GetStopCommunicationTimeTick;
 
     procedure TriggerDoConnectFailed; override;
     procedure TriggerDoConnectFinished; override;
@@ -5901,18 +5897,6 @@ begin
   FIdleTimeOut := Value;
 end;
 
-procedure TCommunicationFramework.DoConnected(Sender: TPeerIO);
-begin
-  if Assigned(FOnConnected) then
-      FOnConnected(Sender);
-end;
-
-procedure TCommunicationFramework.DoDisconnect(Sender: TPeerIO);
-begin
-  if Assigned(FOnDisconnect) then
-      FOnDisconnect(Sender);
-end;
-
 function TCommunicationFramework.CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean;
 begin
   Result := True;
@@ -5955,7 +5939,9 @@ begin
   IO_ID := Sender.Data3;
   c_IO := TPeerIO(FPeerIO_HashPool[IO_ID]);
   if c_IO <> nil then
+    begin
       c_IO.Disconnect;
+    end;
 end;
 
 procedure TCommunicationFramework.DelayFree(Sender: TNPostExecute);
@@ -6102,7 +6088,9 @@ begin
           FillCustomBuffer(Sender, nil, Sender.FReceivedBuffer.Memory, Sender.FReceivedBuffer.Size, FillDone);
 
       if FillDone then
+        begin
           Sender.FReceivedBuffer.Clear;
+        end;
 
       Sender.UnLockIO;
 
@@ -6271,8 +6259,6 @@ begin
   FPeerIO_HashPool := TUInt32HashObjectList.CustomCreate(HashPoolLen);
   FPeerIO_HashPool.AutoFreeData := False;
   FPeerIO_HashPool.AccessOptimization := False;
-  FOnConnected := nil;
-  FOnDisconnect := nil;
   FOnExecuteCommand := nil;
   FOnSendCommand := nil;
   FIdleTimeOut := 0;
@@ -7847,10 +7833,9 @@ procedure TCommunicationFrameworkClient.DoConnected(Sender: TPeerIO);
 var
   de: TDataFrameEngine;
 begin
+  // Sender.Print('connected.');
   if FIgnoreProcessConnectedAndDisconnect then
     begin
-      inherited DoConnected(Sender);
-
       if FNotyifyInterface <> nil then
         begin
           try
@@ -7876,8 +7861,6 @@ begin
       SendStreamCmdM(C_CipherModel, de, {$IFDEF FPC}@{$ENDIF FPC}StreamResult_CipherModel);
       DisposeObject(de);
 
-      inherited DoConnected(Sender);
-
       if FNotyifyInterface <> nil then
         begin
           try
@@ -7889,7 +7872,6 @@ begin
   else
     begin
       ClientIO.SendCipherSecurity := TCipherSecurity.csNone;
-      inherited DoConnected(Sender);
       if FNotyifyInterface <> nil then
         begin
           try
@@ -7907,6 +7889,7 @@ end;
 
 procedure TCommunicationFrameworkClient.DoDisconnect(Sender: TPeerIO);
 begin
+  // Sender.Print('disconnectd.');
   if not FIgnoreProcessConnectedAndDisconnect then
     begin
       FPeerIO_HashPool.Delete(Sender.FID);
@@ -7914,16 +7897,8 @@ begin
       Sender.FRemoteExecutedForConnectInit := False;
     end;
 
-  try
-      inherited DoDisconnect(Sender);
-  except
-  end;
-
-  try
-    if FNotyifyInterface <> nil then
-        FNotyifyInterface.ClientDisconnect(Self);
-  except
-  end;
+  if FNotyifyInterface <> nil then
+      FNotyifyInterface.ClientDisconnect(Self);
 end;
 
 function TCommunicationFrameworkClient.CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean;
@@ -8097,7 +8072,7 @@ begin
       end;
     end;
 
-  if (FWaiting) and (GetTimeTick > FWaitingTimeOut) then
+  if (FWaiting) and ((GetTimeTick > FWaitingTimeOut) or (not Connected)) then
     begin
       FWaiting := False;
       FWaitingTimeOut := 0;
@@ -11030,9 +11005,9 @@ end;
 
 procedure TStableServer_PeerIO.SetBindPhysicsIO(const Value: TPeerIO);
 begin
-  FBindPhysicsIO := Value;
-  if Value = nil then
+  if (Value = nil) then
       OfflineTick := GetTimeTick;
+  InternalBindPhysicsIO := Value;
 end;
 
 procedure TStableServer_PeerIO.CreateAfter;
@@ -11041,7 +11016,7 @@ begin
   Activted := False;
   DestroyRecyclePhysicsIO := True;
   Connection_Token := 0;
-  FBindPhysicsIO := nil;
+  InternalBindPhysicsIO := nil;
   OfflineTick := GetTimeTick;
 end;
 
@@ -11119,10 +11094,10 @@ var
   t, offline_t: TTimeTick;
 begin
   t := GetTimeTick;
-  offline_t := TCommunicationFramework_CustomStableServer(FOwnerFramework).OfflineTimeout;
 
-  if (FBindPhysicsIO = nil) and (Activted) then
+  if (BindPhysicsIO = nil) and (Activted) then
     begin
+      offline_t := TCommunicationFramework_CustomStableServer(FOwnerFramework).OfflineTimeout;
       if (offline_t > 0) and (t - OfflineTick > offline_t) then
         begin
           DelayClose;
@@ -11171,8 +11146,8 @@ begin
       FPhysicsServer.StableServer_IO := Self;
       FPhysicsServer.SyncOnResult := True;
       FPhysicsServer.SyncOnCompleteBuffer := True;
-      FPhysicsServer.QuietMode := False;
-      FPhysicsServer.TimeOutIDLE := 0;
+      FPhysicsServer.QuietMode := True;
+      FPhysicsServer.TimeOutIDLE := 60 * 1000;
 
       FPhysicsServer.RegisterStream(C_BuildStableIO).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_BuildStableIO;
       FPhysicsServer.RegisterStream(C_OpenStableIO).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_OpenStableIO;
@@ -11471,7 +11446,7 @@ begin
       FPhysicsClient.SyncOnResult := True;
       FPhysicsClient.SyncOnCompleteBuffer := True;
       FPhysicsClient.TimeOutIDLE := 0;
-      FPhysicsClient.QuietMode := False;
+      FPhysicsClient.QuietMode := True;
     end;
 end;
 
@@ -11671,6 +11646,14 @@ begin
   PostProgress.PostExecuteM(0.5, {$IFDEF FPC}@{$ENDIF FPC}PostReconnection);
 end;
 
+function TCommunicationFramework_CustomStableClient.GetStopCommunicationTimeTick: TTimeTick;
+begin
+  if KeepAliveChecking then
+      Result := GetTimeTick - SaveLastCommunicationTick_Received
+  else
+      Result := GetTimeTick - StableClientIO.LastCommunicationTick_Received;
+end;
+
 constructor TCommunicationFramework_CustomStableClient.Create;
 begin
   inherited Create;
@@ -11689,6 +11672,7 @@ begin
   FAutoProgressPhysicsClient := True;
   CustomStableClientProgressing := False;
   KeepAliveChecking := False;
+  SaveLastCommunicationTick_Received := StableClientIO.LastCommunicationTick_Received;
 
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
@@ -11931,6 +11915,7 @@ begin
           begin
             if t - StableClientIO.PhysicsIO_LastConnectTick > 5000 then
               begin
+                KeepAliveChecking := False;
                 StableClientIO.WaitConnecting := False;
                 FPhysicsClient.Disconnect;
                 Reconnection;
@@ -11938,19 +11923,23 @@ begin
           end
         else if not FPhysicsClient.Connected then
           begin
+            KeepAliveChecking := False;
             Reconnection;
           end
         else if (StableClientIO.FSequencePacketSignal) and (t - StableClientIO.LastCommunicationTick_Received > 2000) then
           begin
-            if KeepAliveChecking then
+            if (KeepAliveChecking) then
               begin
+                StableClientIO.LastCommunicationTick_Received := SaveLastCommunicationTick_Received;
                 Reconnection;
+                KeepAliveChecking := False;
               end
             else
               begin
                 StableClientIO.SendSequencePacketKeepAlive(@StableClientIO.FCipherKey[0], length(StableClientIO.FCipherKey));
-                KeepAliveChecking := True;
+                SaveLastCommunicationTick_Received := StableClientIO.LastCommunicationTick_Received;
                 StableClientIO.LastCommunicationTick_Received := GetTimeTick;
+                KeepAliveChecking := True;
               end;
           end;
       end;

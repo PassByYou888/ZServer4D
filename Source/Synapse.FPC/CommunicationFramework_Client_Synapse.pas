@@ -330,6 +330,8 @@ end;
 
 procedure TCommunicationFramework_Client_Synapse.Disconnect;
 begin
+  if SockConnected then
+      DoDisconnect(InternalClient);
   SockConnected := False;
   Sock.CloseSocket;
   Sock.CreateSocket;
