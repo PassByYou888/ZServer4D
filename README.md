@@ -186,6 +186,13 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务(已经实现)
 
+## 2018-11-16
+
+- 修复:socket取替了优雅IO的关闭方式，直接close，这一改动对物理断线后的关闭有效
+- 修复:xnat的物理连接会在5分钟超时后暴力关闭
+- 修改:重写了ICS server接口，现在ICS server为单线程服务器
+- 修改:在StableIO的客户端增加了 StopCommunicationTimeTick 参数，无论是否在线和离线，StopCommunicationTimeTick都能准确给出无通讯响应的时间，在开发IOT设备时，该参数可用于重启预检测
+
 ## 2018-11-9
 
 - 新功能:IO内核新增序列包机制
