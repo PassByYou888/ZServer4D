@@ -6358,13 +6358,13 @@ begin
   Sender.FSequencePacketSignal := True;
   Sender.SequencePacketVerifyTick := GetTimeTick;
   if FVMInterface <> nil then
-      FVMInterface.p2pVMTunnelOpen(Sender, p2pVMTunnel);
+      FVMInterface.p2pVMTunnelOpenAfter(Sender, p2pVMTunnel); // fixed by qq,345148965
 end;
 
 procedure TCommunicationFramework.p2pVMTunnelClose(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin
   if FVMInterface <> nil then
-      FVMInterface.p2pVMTunnelOpen(Sender, p2pVMTunnel);
+      FVMInterface.p2pVMTunnelClose(Sender, p2pVMTunnel); // fixed by qq,345148965
 end;
 
 procedure TCommunicationFramework.SwitchMaxPerformance;
