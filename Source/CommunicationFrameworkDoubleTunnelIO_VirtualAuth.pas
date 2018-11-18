@@ -27,12 +27,12 @@ type
 
   TVirtualAuthIO = class(TCoreClassObject)
   private
-    Owner: TCommunicationFramework_DoubleTunnelService_VirtualAuth;
     RecvIO_ID: Cardinal;
     AuthResult: TDataFrameEngine;
     Done: Boolean;
-    UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   public
+    Owner: TCommunicationFramework_DoubleTunnelService_VirtualAuth;
+    UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
     UserID, Passwd: SystemString;
     function Online: Boolean;
     procedure Accept;

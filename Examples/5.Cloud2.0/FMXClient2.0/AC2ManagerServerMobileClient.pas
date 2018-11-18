@@ -90,7 +90,7 @@ begin
         Client.SendStreamCmdP('Query', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
           var
             vl: THashVariantList;
-            a: TAddressInfo;
+            a2: TAddressInfo;
           begin
             vl := THashVariantList.Create;
 
@@ -99,26 +99,26 @@ begin
                 while not ResultData.Reader.IsEnd do
                   begin
                     ResultData.Reader.ReadVariantList(vl);
-                    a.RegName := vl.GetDefaultValue('Name', '');
-                    a.Host := vl.GetDefaultValue('Host', '');
-                    a.RecvPort := vl.GetDefaultValue('RecvPort', 0);
-                    a.SendPort := vl.GetDefaultValue('SendPort', 0);
-                    a.WorkLoad := vl.GetDefaultValue('WorkLoad', 0);
-                    a.ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
-                    // DoStatus('query success:%s server type:%s', [a.RegName, serverType2Str(a.ServerType)]);
+                    a2.RegName := vl.GetDefaultValue('Name', '');
+                    a2.Host := vl.GetDefaultValue('Host', '');
+                    a2.RecvPort := vl.GetDefaultValue('RecvPort', 0);
+                    a2.SendPort := vl.GetDefaultValue('SendPort', 0);
+                    a2.WorkLoad := vl.GetDefaultValue('WorkLoad', 0);
+                    a2.ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
+                    // DoStatus('query success:%s server type:%s', [a2.RegName, serverType2Str(a2.ServerType)]);
                     if Assigned(ResultProc) then
                       begin
-                        ResultProc(True, a);
+                        ResultProc(True, a2);
                       end;
-                    ServerList.Add(a);
+                    ServerList.Add(a2);
                     vl.Clear;
                   end;
               end
             else
               begin
-                a.Init;
+                a2.Init;
                 if Assigned(ResultProc) then
-                    ResultProc(False, a);
+                    ResultProc(False, a2);
               end;
 
             DisposeObject(vl);
@@ -146,7 +146,7 @@ begin
         Client.SendStreamCmdP('QueryMinLoad', sendDE, procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
           var
             vl: THashVariantList;
-            a: TAddressInfo;
+            a2: TAddressInfo;
           begin
             vl := THashVariantList.Create;
 
@@ -155,25 +155,25 @@ begin
                 while not ResultData.Reader.IsEnd do
                   begin
                     ResultData.Reader.ReadVariantList(vl);
-                    a.RegName := vl.GetDefaultValue('Name', '');
-                    a.Host := vl.GetDefaultValue('Host', '');
-                    a.RecvPort := vl.GetDefaultValue('RecvPort', 0);
-                    a.SendPort := vl.GetDefaultValue('SendPort', 0);
-                    a.WorkLoad := vl.GetDefaultValue('WorkLoad', 0);
-                    a.ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
+                    a2.RegName := vl.GetDefaultValue('Name', '');
+                    a2.Host := vl.GetDefaultValue('Host', '');
+                    a2.RecvPort := vl.GetDefaultValue('RecvPort', 0);
+                    a2.SendPort := vl.GetDefaultValue('SendPort', 0);
+                    a2.WorkLoad := vl.GetDefaultValue('WorkLoad', 0);
+                    a2.ServerType := vl.GetDefaultValue('Type', TServerType.stUnknow);
                     if Assigned(ResultProc) then
                       begin
-                        ResultProc(True, a);
+                        ResultProc(True, a2);
                       end;
-                    ServerList.Add(a);
+                    ServerList.Add(a2);
                     vl.Clear;
                   end;
               end
             else
               begin
-                a.Init;
+                a2.Init;
                 if Assigned(ResultProc) then
-                    ResultProc(False, a);
+                    ResultProc(False, a2);
               end;
 
             DisposeObject(vl);
@@ -201,11 +201,11 @@ end;
 
 function TManagerQueryBase.ExistsServerType(ServerType: TServerType): Boolean;
 var
-  a: TAddressInfo;
+  a2: TAddressInfo;
 begin
   Result := True;
-  for a in ServerList do
-    if a.ServerType = ServerType then
+  for a2 in ServerList do
+    if a2.ServerType = ServerType then
         exit;
   Result := False;
 end;

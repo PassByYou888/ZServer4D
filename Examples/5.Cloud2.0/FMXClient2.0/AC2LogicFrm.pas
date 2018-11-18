@@ -142,9 +142,6 @@ end;
 
 procedure TAC2LogicForm.computeButtonClick(Sender: TObject);
 begin
-  Hide;
-  AC2ProgressForm.Show;
-
   QueryClient.Query(ManagerServerHost, TServerType.stFOGCompute, procedure(const State: Boolean; const Addr: TAddressInfo)
     begin
       if not State then
@@ -153,7 +150,7 @@ begin
           Show;
           exit;
         end;
-      if FogComputeClient.Connect(Addr.Host, Addr.RecvPort, Addr.SendPort) then
+      if FogComputeClient.Connect(Addr.Host, Addr.RecvPort, Addr.SendPort) and FogComputeClient.TunnelLink then
         begin
           ValueEdit.Text := '';
           ValueEdit.TextPrompt := '远程雾服务器正在计算中...';
@@ -162,8 +159,6 @@ begin
               ValueEdit.Text := ResultData.Reader.ReadString;
             end);
         end;
-      AC2ProgressForm.Hide;
-      Show;
     end);
 end;
 

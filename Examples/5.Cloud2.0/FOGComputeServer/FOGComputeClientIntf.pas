@@ -22,7 +22,6 @@ type
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
 
-    function Connect(addr: SystemString; const FogCliRecvPort, FogCliSendPort: Word): Boolean; override;
     procedure Disconnect; override;
 
     procedure SimulateCompute5Sec(exp: string; OnResult: TStreamProc);
@@ -56,44 +55,6 @@ end;
 procedure TFogCompute_DoubleTunnelClient.UnRegisterCommand;
 begin
   inherited UnRegisterCommand;
-end;
-
-function TFogCompute_DoubleTunnelClient.Connect(addr: SystemString; const FogCliRecvPort, FogCliSendPort: Word): Boolean;
-var
-  t: Cardinal;
-begin
-  Result := False;
-  Disconnect;
-
-  if not NetSendTunnelIntf.Connect(addr, FogCliSendPort) then
-    begin
-      DoStatus('connect %s failed!', [addr]);
-      exit;
-    end;
-  if not NetRecvTunnelIntf.Connect(addr, FogCliRecvPort) then
-    begin
-      DoStatus('connect %s failed!', [addr]);
-      exit;
-    end;
-
-  if not Connected then
-      exit;
-
-  t := TCoreClassThread.GetTickCount + 4000;
-  while not RemoteInited do
-    begin
-      if TCoreClassThread.GetTickCount > t then
-          break;
-      if not Connected then
-          break;
-      Progress;
-    end;
-
-  if Connected then
-    begin
-      DoStatus('connect fog compute service "%s" ok!', [addr]);
-      Result := TunnelLink;
-    end;
 end;
 
 procedure TFogCompute_DoubleTunnelClient.Disconnect;

@@ -1,5 +1,5 @@
 unit AC2LogicMobileClient;
-
+
 interface
 
 uses System.SysUtils, System.IOUtils,
@@ -183,7 +183,7 @@ begin
 
   if NetSendTunnelIntf.ClientIO.StopCommunicationTime > 5 * 1000 then
     begin
-      NetSendTunnelIntf.WaitP(3000, procedure(const cState: Boolean)
+      NetSendTunnelIntf.WaitP(5000, procedure(const cState: Boolean)
         begin
           if cState then
             begin
@@ -192,9 +192,7 @@ begin
             end
           else
             begin
-              if LastConnectState then
-                  NetSendTunnelIntf.TriggerDoDisconnect;
-              LastConnectState := False;
+              NetSendTunnelIntf.Disconnect;
             end;
         end);
     end;
@@ -435,3 +433,4 @@ begin
 end;
 
 end.
+

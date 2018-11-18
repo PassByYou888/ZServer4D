@@ -171,6 +171,9 @@ var
 begin
   p_io := TICSServer_PeerIO.Create(Self, nil);
   p_io.Context.HSocket := Driver.Accept;
+  p_io.Context.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
+  p_io.Context.KeepAliveTime := 1 * 1000;
+  p_io.Context.KeepAliveInterval := 1 * 1000;
 end;
 
 constructor TCommunicationFramework_Server_ICS.Create;
