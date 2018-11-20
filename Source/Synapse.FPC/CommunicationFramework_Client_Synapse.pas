@@ -302,12 +302,12 @@ begin
 
     DoConnected(InternalClient);
 
-    AStopTime := GetTimeTickCount + 2000;
+    AStopTime := GetTimeTick + 2000;
 
     while (not RemoteInited) and Connected do
       begin
         Progress;
-        if GetTimeTickCount > AStopTime then
+        if GetTimeTick > AStopTime then
           begin
             Disconnect;
             Exit;
