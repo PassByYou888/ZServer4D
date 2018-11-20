@@ -190,7 +190,7 @@ end;
 constructor TCommunicationFramework_Server_Context.Create(AConnection: TIdTCPConnection; AYarn: TIdYarn; AList: TIdContextThreadList);
 begin
   inherited Create(AConnection, AYarn, AList);
-  LastTimeTick := GetTimeTickCount;
+  LastTimeTick := GetTimeTick;
 end;
 
 destructor TCommunicationFramework_Server_Context.Destroy;
@@ -393,7 +393,7 @@ begin
         c.ClientIntf.ProcessAllSendCmd(TIdYarnOfThread(AContext.Yarn).Thread, False, False);
       end);
 
-    t := GetTimeTickCount + 5000;
+    t := GetTimeTick + 5000;
     while (c.ClientIntf <> nil) and (c.Connection.Connected) and (c.ClientIntf.WaitOnResult) do
       begin
         c.ClientIntf.ProcesRealSendBuff;
@@ -401,8 +401,8 @@ begin
         c.Connection.IOHandler.CheckForDataOnSource(10);
         if c.Connection.IOHandler.InputBuffer.Size > 0 then
           begin
-            t := GetTimeTickCount + 5000;
-            c.LastTimeTick := GetTimeTickCount;
+            t := GetTimeTick + 5000;
+            c.LastTimeTick := GetTimeTick;
             c.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
             c.Connection.IOHandler.InputBuffer.Clear;
 
@@ -414,7 +414,7 @@ begin
               end);
             SetLength(iBuf, 0);
           end
-        else if GetTimeTickCount > t then
+        else if GetTimeTick > t then
           begin
             if c.ClientIntf <> nil then
               begin
@@ -439,7 +439,7 @@ begin
     c.Connection.IOHandler.CheckForDataOnSource(10);
     while c.Connection.IOHandler.InputBuffer.Size > 0 do
       begin
-        c.LastTimeTick := GetTimeTickCount;
+        c.LastTimeTick := GetTimeTick;
         c.Connection.IOHandler.InputBuffer.ExtractToBytes(iBuf);
         c.Connection.IOHandler.InputBuffer.Clear;
         try

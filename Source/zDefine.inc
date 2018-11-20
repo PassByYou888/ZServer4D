@@ -11,7 +11,7 @@
   {$MODE objfpc}
   {$MODESWITCH AdvancedRecords}
   {$NOTES OFF}
-  {$STACKFRAMES OFF}
+  {$STACKFRAMES ON}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -45,7 +45,7 @@
   {$UNDEF debug}
   {$DEFINE INLINE_ASM}
   {$R-} { range check }
-  {$O+} { optimization }
+  {$O-} { optimization }
 {$ELSE FPC}
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -90,26 +90,19 @@
   {$ENDIF}
 
   {$IF Defined(Android) or Defined(IOS)}
-    {$DEFINE NatTunnel_On_Indy}
-    {$DEFINE HostQuery_On_Indy}
+    {$DEFINE PhysicsIO_On_Indy}
   {$ELSE}
-    // xNat Physics interface
-    // {$DEFINE NatTunnel_On_ICS}
-    {$DEFINE NatTunnel_On_CrossSocket}
-    // {$DEFINE NatTunnel_On_DIOCP}
-    // {$DEFINE NatTunnel_On_Indy}
-    // {$DEFINE NatTunnel_On_Synapse}
-
-    // HostQuery Physics interface
-    // {$DEFINE HostQuery_On_ICS}
-    {$DEFINE HostQuery_On_CrossSocket}
-    // {$DEFINE HostQuery_On_DIOCP}
-    // {$DEFINE HostQuery_On_Indy}
+    // PhysicsIO interface
+    // {$DEFINE PhysicsIO_On_ICS}
+    {$DEFINE PhysicsIO_On_CrossSocket}
+    // {$DEFINE PhysicsIO_On_DIOCP}
+    // {$DEFINE PhysicsIO_On_Indy}
+    // {$DEFINE PhysicsIO_On_Synapse}
   {$IFEND}
 {$ENDIF FPC}
 
-{$WARNINGS OFF}
-{$HINTS OFF}
+{$WARNINGS ON}
+{$HINTS ON}
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }

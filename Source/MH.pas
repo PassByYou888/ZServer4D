@@ -38,16 +38,6 @@ procedure EndMemoryHook_3;
 function GetHookMemorySize_3: nativeUInt;
 function GetHookPtrList_3: TPointerHashNativeUIntList;
 
-type
-  TMemoryHookedState = array [0 .. 3] of Boolean;
-
-const
-  cEnabled_MemoryHookedState: TMemoryHookedState = (True, True, True, True);
-  cDisable_MemoryHookedState: TMemoryHookedState = (False, False, False, False);
-
-function GetMHState: TMemoryHookedState;
-procedure SetMHState(const M: TMemoryHookedState);
-
 implementation
 
 uses MH_ZDB, MH_1, MH_2, MH_3, DoStatusIO, PascalStrings;
@@ -112,38 +102,22 @@ begin
   Result := MH_3.HookPtrList;
 end;
 
-function GetMHState: TMemoryHookedState;
-begin
-  Result[0] := MH_ZDB.MemoryHooked;
-  Result[1] := MH_1.MemoryHooked;
-  Result[2] := MH_2.MemoryHooked;
-  Result[3] := MH_3.MemoryHooked;
-end;
-
-procedure SetMHState(const M: TMemoryHookedState);
-begin
-  MH_ZDB.MemoryHooked := M[0];
-  MH_1.MemoryHooked := M[1];
-  MH_2.MemoryHooked := M[2];
-  MH_3.MemoryHooked := M[3];
-end;
-
 var
   MHStatusCritical: TCriticalSection;
   OriginDoStatusHook: TDoStatusCall;
 
 procedure InternalDoStatus(Text: SystemString; const ID: Integer);
 var
-  hs: TMemoryHookedState;
+  hook_state_bak: Boolean;
 begin
+  hook_state_bak := GlobalMemoryHook;
+  GlobalMemoryHook := False;
   MHStatusCritical.Acquire;
-  hs := GetMHState;
-  SetMHState(cDisable_MemoryHookedState);
   try
       OriginDoStatusHook(Text, ID);
   finally
-    SetMHState(hs);
     MHStatusCritical.Release;
+    GlobalMemoryHook := hook_state_bak;
   end;
 end;
 

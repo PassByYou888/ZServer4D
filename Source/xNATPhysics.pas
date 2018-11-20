@@ -15,55 +15,11 @@ unit xNATPhysics;
 
 interface
 
-uses
-{$IFDEF FPC}
-  CommunicationFramework_Server_Synapse, CommunicationFramework_Client_Synapse,
-{$ELSE FPC}
-{$IFDEF NatTunnel_On_ICS}
-  CommunicationFramework_Server_ICS, CommunicationFramework_Client_ICS,
-{$ENDIF NatTunnel_On_ICS}
-{$IFDEF NatTunnel_On_CrossSocket}
-  CommunicationFramework_Server_CrossSocket, CommunicationFramework_Client_CrossSocket,
-{$ENDIF NatTunnel_On_CrossSocket}
-{$IFDEF NatTunnel_On_DIOCP}
-  CommunicationFramework_Server_DIOCP, CommunicationFramework_Client_DIOCP,
-{$ENDIF NatTunnel_On_DIOCP}
-{$IFDEF NatTunnel_On_Indy}
-  CommunicationFramework_Server_Indy, CommunicationFramework_Client_Indy,
-{$ENDIF NatTunnel_On_Indy}
-{$IFDEF NatTunnel_On_Synapse}
-  CommunicationFramework_Server_Synapse, CommunicationFramework_Client_Synapse,
-{$ENDIF NatTunnel_On_Synapse}
-
-{$ENDIF FPC}
-  CoreClasses;
+uses CoreClasses, PhysicsIO;
 
 type
-{$IFDEF FPC}
-  TXPhysicsServer = TCommunicationFramework_Server_Synapse;
-  TXPhysicsClient = TCommunicationFramework_Client_Synapse;
-{$ELSE FPC}
-{$IFDEF NatTunnel_On_ICS}
-  TXPhysicsServer = TCommunicationFramework_Server_ICS;
-  TXPhysicsClient = TCommunicationFramework_Client_ICS;
-{$ENDIF NatTunnel_On_ICS}
-{$IFDEF NatTunnel_On_CrossSocket}
-  TXPhysicsServer = TCommunicationFramework_Server_CrossSocket;
-  TXPhysicsClient = TCommunicationFramework_Client_CrossSocket;
-{$ENDIF NatTunnel_On_CrossSocket}
-{$IFDEF NatTunnel_On_DIOCP}
-  TXPhysicsServer = TCommunicationFramework_Server_DIOCP;
-  TXPhysicsClient = TCommunicationFramework_Client_DIOCP;
-{$ENDIF NatTunnel_On_DIOCP}
-{$IFDEF NatTunnel_On_Indy}
-  TXPhysicsServer = TCommunicationFramework_Server_Indy;
-  TXPhysicsClient = TCommunicationFramework_Client_Indy;
-{$ENDIF NatTunnel_On_Indy}
-{$IFDEF NatTunnel_On_Synapse}
-  TXPhysicsServer = TCommunicationFramework_Server_Synapse;
-  TXPhysicsClient = TCommunicationFramework_Client_Synapse;
-{$ENDIF NatTunnel_On_Synapse}
-{$ENDIF FPC}
+  TXPhysicsServer = TPhysicsServer;
+  TXPhysicsClient = TPhysicsClient;
 
 procedure BuildBuff(buff: PByte; siz: NativeInt; local_id, remote_id: Cardinal; var NewSiz: NativeInt; var NewBuff: PByte);
 procedure FillBuff(sour: PByte; siz: NativeInt; var local_id, remote_id: Cardinal; var destSiz: NativeInt; var destBuff: PByte);

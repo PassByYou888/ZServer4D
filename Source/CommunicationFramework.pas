@@ -297,9 +297,9 @@ type
     tick: TTimeTick;
   end;
 
-  PSequencePacket_IDLE_Trace = ^TSequencePacket_IDLE_Trace;
+  PIDLE_Trace = ^TIDLE_Trace;
 
-  TSequencePacket_IDLE_Trace = record
+  TIDLE_Trace = record
     ID: Cardinal;
     data: TCoreClassObject;
     OnNotifyC: TDataNotifyCall;
@@ -479,12 +479,13 @@ type
     FUserAutoFreeObjects: THashObjectList;
     FUserDefine: TPeerIOUserDefine;
     FUserSpecial: TPeerIOUserSpecial;
-    BeginSendState: Boolean;
 
     function GetUserVariants: THashVariantList;
     function GetUserObjects: THashObjectList;
     function GetUserAutoFreeObjects: THashObjectList;
   protected
+    BeginSendState: Boolean;
+
     procedure BeginSend;
     procedure Send(const buff: PByte; siz: NativeInt);
     procedure EndSend;
@@ -664,7 +665,7 @@ type
     // encrypt
     procedure Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
     //
-    // timeout
+    // TimeOut Tick
     function StopCommunicationTime: TTimeTick;
     procedure UpdateLastCommunicationTime;
     property LastCommunicationTime: TTimeTick read FLastCommunicationTick;
@@ -776,8 +777,6 @@ type
     FCMDWithThreadRuning: Integer;
     FVMInterface: ICommunicationFrameworkVMInterface;
     FProtocol: TCommunicationProtocol;
-    StableServer_IO: TCommunicationFramework;
-
   protected
     procedure DoPrint(const v: SystemString); virtual;
 
@@ -1500,8 +1499,7 @@ type
     Connection_Token: Cardinal;
     InternalBindPhysicsIO: TPeerIO;
     OfflineTick: TTimeTick;
-    procedure SetBindPhysicsIO(const Value: TPeerIO);
-    property BindPhysicsIO: TPeerIO read InternalBindPhysicsIO write SetBindPhysicsIO;
+    property BindPhysicsIO: TPeerIO read InternalBindPhysicsIO write InternalBindPhysicsIO;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -1890,7 +1888,8 @@ end;
 
 function IsSystemCMD(const Cmd: U_String): Boolean;
 begin
-  Result := Cmd.Same(C_CipherModel, C_BuildP2PAuthToken, C_InitP2PTunnel, C_CloseP2PTunnel, C_Wait);
+  Result := Cmd.Same(C_CipherModel, C_BuildP2PAuthToken, C_InitP2PTunnel, C_CloseP2PTunnel, C_Wait) or
+    Cmd.Same(C_BuildStableIO, C_OpenStableIO, C_CloseStableIO);
 end;
 
 function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
@@ -2357,7 +2356,7 @@ begin
       Cf.ClientIO.PrintCommand('Begin Wait console cmd: %s', Cmd);
     end);
 
-  timetick := GetTimeTickCount + Timeout;
+  timetick := GetTimeTick + Timeout;
   while Cf.ClientIO.WaitOnResult or Cf.ClientIO.BigStreamReceiveing do
     begin
       TCoreClassThread.Synchronize(th,
@@ -2368,7 +2367,7 @@ begin
 
       if not Cf.Connected then
           exit;
-      if (Timeout > 0) and (GetTimeTickCount > timetick) then
+      if (Timeout > 0) and (GetTimeTick > timetick) then
           exit;
       th.Sleep(1);
     end;
@@ -2394,7 +2393,7 @@ begin
         if not Cf.Connected then
             Break;
 
-        if (Timeout > 0) and (GetTimeTickCount > timetick) then
+        if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
         th.Sleep(1);
       end;
@@ -2438,7 +2437,7 @@ begin
       Cf.ClientIO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
     end);
 
-  timetick := GetTimeTickCount + Timeout;
+  timetick := GetTimeTick + Timeout;
 
   if Cf.ClientIO.WaitOnResult then
     begin
@@ -2451,7 +2450,7 @@ begin
             end);
           if not Cf.Connected then
               exit;
-          if (Timeout > 0) and (GetTimeTickCount > timetick) then
+          if (Timeout > 0) and (GetTimeTick > timetick) then
               exit;
           th.Sleep(1);
         end;
@@ -2475,7 +2474,7 @@ begin
           end);
         if not Cf.Connected then
             Break;
-        if (Timeout > 0) and (GetTimeTickCount > timetick) then
+        if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
         th.Sleep(1);
       end;
@@ -3485,7 +3484,6 @@ begin
   dec(SendingSequencePacketHistoryMemory, PSequencePacket(p)^.Size);
   if SendingSequencePacketHistoryMemory < 0 then
       PrintError('SendingSequencePacketHistoryMemory overflow');
-
   DisposeObject(PSequencePacket(p)^.data);
   Dispose(PSequencePacket(p));
 end;
@@ -3928,11 +3926,11 @@ begin
   FReceiveCommandRuning := True;
   PrintCommand('execute console cmd:%s', FInCmd);
 
-  d := GetTimeTickCount;
+  d := GetTimeTick;
   FOwnerFramework.ExecuteConsole(Self, FInCmd, FInText, FOutText);
   FReceiveCommandRuning := False;
 
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecConsole]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
@@ -3945,11 +3943,11 @@ begin
   FReceiveCommandRuning := True;
   PrintCommand('execute stream cmd:%s', FInCmd);
 
-  d := GetTimeTickCount;
+  d := GetTimeTick;
   FOwnerFramework.ExecuteStream(Self, FInCmd, FInDataFrame, FOutDataFrame);
   FReceiveCommandRuning := False;
 
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecStream]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
@@ -3962,11 +3960,11 @@ begin
   FReceiveCommandRuning := True;
   PrintCommand('execute direct console cmd:%s', FInCmd);
 
-  d := GetTimeTickCount;
+  d := GetTimeTick;
   FOwnerFramework.ExecuteDirectConsole(Self, FInCmd, FInText);
   FReceiveCommandRuning := False;
 
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestConsole]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
@@ -3979,11 +3977,11 @@ begin
   FReceiveCommandRuning := True;
   PrintCommand('execute direct stream cmd:%s', FInCmd);
 
-  d := GetTimeTickCount;
+  d := GetTimeTick;
   FOwnerFramework.ExecuteDirectStream(Self, FInCmd, FInDataFrame);
   FReceiveCommandRuning := False;
 
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecDirestStream]);
   FOwnerFramework.CmdRecvStatistics.IncValue(FInCmd, 1);
@@ -4106,10 +4104,10 @@ var
   d: TTimeTick;
 begin
   FReceiveCommandRuning := True;
-  d := GetTimeTickCount;
+  d := GetTimeTick;
   FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FBigStreamReceive, FBigStreamTotal, FBigStreamCompleted);
   FReceiveCommandRuning := False;
-  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
+  FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
   if FBigStreamTotal = FBigStreamCompleted then
     begin
@@ -4170,12 +4168,12 @@ begin
   if FOwnerFramework.FSyncOnCompleteBuffer then
     begin
       FReceiveCommandRuning := True;
-      d := GetTimeTickCount;
+      d := GetTimeTick;
 
       FOwnerFramework.ExecuteCompleteBuffer(Self, FCompleteBufferCmd, FCompleteBufferReceiveStream.Memory, FCompleteBufferReceiveStream.Size);
 
       FReceiveCommandRuning := False;
-      FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTickCount - d);
+      FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
       FOwnerFramework.CmdRecvStatistics.IncValue(FCompleteBufferCmd, 1);
       PrintCommand('execute complete buffer cmd:%s', FCompleteBufferCmd);
@@ -5133,7 +5131,7 @@ end;
 
 procedure TPeerIO.IO_IDLE_TraceC(data: TCoreClassObject; OnNotify: TDataNotifyCall);
 var
-  p: PSequencePacket_IDLE_Trace;
+  p: PIDLE_Trace;
 begin
   if not CheckIOBusy then
     begin
@@ -5154,7 +5152,7 @@ end;
 
 procedure TPeerIO.IO_IDLE_TraceM(data: TCoreClassObject; OnNotify: TDataNotifyMethod);
 var
-  p: PSequencePacket_IDLE_Trace;
+  p: PIDLE_Trace;
 begin
   if not CheckIOBusy then
     begin
@@ -5178,7 +5176,7 @@ end;
 
 procedure TPeerIO.IO_IDLE_TraceP(data: TCoreClassObject; OnNotify: TDataNotifyProc);
 var
-  p: PSequencePacket_IDLE_Trace;
+  p: PIDLE_Trace;
 begin
   if not CheckIOBusy then
     begin
@@ -5728,12 +5726,12 @@ end;
 
 function TPeerIO.StopCommunicationTime: TTimeTick;
 begin
-  Result := GetTimeTickCount - FLastCommunicationTick;
+  Result := GetTimeTick - FLastCommunicationTick;
 end;
 
 procedure TPeerIO.UpdateLastCommunicationTime;
 begin
-  FLastCommunicationTick := GetTimeTickCount;
+  FLastCommunicationTick := GetTimeTick;
 end;
 
 procedure TPeerIO.SendConsoleCmdM(Cmd: SystemString; ConsoleData: SystemString; OnResult: TConsoleMethod);
@@ -5988,7 +5986,7 @@ end;
 
 procedure TCommunicationFramework.IDLE_Trace_Execute(Sender: TNPostExecute);
 var
-  p: PSequencePacket_IDLE_Trace;
+  p: PIDLE_Trace;
   p_id: Cardinal;
   P_IO: TPeerIO;
 begin
@@ -6293,8 +6291,6 @@ begin
   FVMInterface := nil;
 
   FProtocol := cpZServer;
-
-  StableServer_IO := nil;
 
   for st := low(TStatisticsType) to high(TStatisticsType) do
       Statistics[st] := 0;
@@ -7450,14 +7446,14 @@ begin
 
   P_IO.PrintCommand('Begin Wait Console cmd: %s', Cmd);
 
-  timetick := GetTimeTickCount + Timeout;
+  timetick := GetTimeTick + Timeout;
 
   while P_IO.WaitOnResult or P_IO.BigStreamReceiveing or P_IO.FWaitSendBusy do
     begin
       ProgressWaitSend(P_IO);
       if not Exists(P_IO) then
           exit;
-      if (Timeout > 0) and (GetTimeTickCount > timetick) then
+      if (Timeout > 0) and (GetTimeTick > timetick) then
           exit('');
     end;
 
@@ -7476,7 +7472,7 @@ begin
         ProgressWaitSend(P_IO);
         if not Exists(P_IO) then
             Break;
-        if (Timeout > 0) and (GetTimeTickCount > timetick) then
+        if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
     Result := waitIntf.NewResult;
@@ -7503,14 +7499,14 @@ begin
 
   P_IO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
 
-  timetick := GetTimeTickCount + Timeout;
+  timetick := GetTimeTick + Timeout;
 
   while P_IO.WaitOnResult or P_IO.BigStreamReceiveing or P_IO.FWaitSendBusy do
     begin
       ProgressWaitSend(P_IO);
       if not Exists(P_IO) then
           exit;
-      if (Timeout > 0) and (GetTimeTickCount > timetick) then
+      if (Timeout > 0) and (GetTimeTick > timetick) then
           exit;
     end;
 
@@ -7528,7 +7524,7 @@ begin
         ProgressWaitSend(P_IO);
         if not Exists(P_IO) then
             Break;
-        if (Timeout > 0) and (GetTimeTickCount > timetick) then
+        if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
     if waitIntf.Done then
@@ -8619,14 +8615,14 @@ begin
       exit;
   ClientIO.PrintCommand('Begin Wait console cmd: %s', Cmd);
 
-  timetick := GetTimeTickCount + Timeout;
+  timetick := GetTimeTick + Timeout;
 
   while ClientIO.WaitOnResult or ClientIO.BigStreamReceiveing or ClientIO.FWaitSendBusy do
     begin
       ProgressWaitSend(ClientIO);
       if not Connected then
           exit;
-      if (Timeout > 0) and (GetTimeTickCount > timetick) then
+      if (Timeout > 0) and (GetTimeTick > timetick) then
           exit;
     end;
 
@@ -8645,7 +8641,7 @@ begin
         ProgressWaitSend(ClientIO);
         if not Connected then
             Break;
-        if (Timeout > 0) and (GetTimeTickCount > timetick) then
+        if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
     Result := waitIntf.NewResult;
@@ -8678,14 +8674,14 @@ begin
 
   ClientIO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
 
-  timetick := GetTimeTickCount + Timeout;
+  timetick := GetTimeTick + Timeout;
 
   while ClientIO.WaitOnResult or ClientIO.BigStreamReceiveing or ClientIO.FWaitSendBusy do
     begin
       ProgressWaitSend(ClientIO);
       if not Connected then
           exit;
-      if (Timeout > 0) and (GetTimeTickCount > timetick) then
+      if (Timeout > 0) and (GetTimeTick > timetick) then
           exit;
     end;
 
@@ -8703,7 +8699,7 @@ begin
         ProgressWaitSend(ClientIO);
         if not Connected then
             Break;
-        if (Timeout > 0) and (GetTimeTickCount > timetick) then
+        if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
     try
@@ -11003,13 +10999,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TStableServer_PeerIO.SetBindPhysicsIO(const Value: TPeerIO);
-begin
-  if (Value = nil) then
-      OfflineTick := GetTimeTick;
-  InternalBindPhysicsIO := Value;
-end;
-
 procedure TStableServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
@@ -11093,16 +11082,21 @@ procedure TStableServer_PeerIO.Progress;
 var
   t, offline_t: TTimeTick;
 begin
-  t := GetTimeTick;
-
-  if (BindPhysicsIO = nil) and (Activted) then
+  if (Activted) then
     begin
-      offline_t := TCommunicationFramework_CustomStableServer(FOwnerFramework).OfflineTimeout;
-      if (offline_t > 0) and (t - OfflineTick > offline_t) then
+      t := GetTimeTick;
+
+      if (BindPhysicsIO = nil) then
         begin
-          DelayClose;
-          exit;
-        end;
+          offline_t := TCommunicationFramework_CustomStableServer(FOwnerFramework).OfflineTimeout;
+          if (offline_t > 0) and (t - OfflineTick > offline_t) then
+            begin
+              DelayClose;
+              exit;
+            end;
+        end
+      else
+          OfflineTick := t;
     end;
 
   inherited Progress;
@@ -11129,7 +11123,6 @@ begin
       FPhysicsServer.FOnServerCustomProtocolReceiveBufferNotify := nil;
       FPhysicsServer.Protocol := TCommunicationProtocol.cpZServer;
       FPhysicsServer.UserDefineClass := TPeerIOUserDefine;
-      FPhysicsServer.StableServer_IO := nil;
       FPhysicsServer.QuietMode := False;
 
       UnRegisted(C_BuildStableIO);
@@ -11143,10 +11136,9 @@ begin
       FPhysicsServer.FOnServerCustomProtocolReceiveBufferNotify := {$IFDEF FPC}@{$ENDIF FPC}ServerCustomProtocolReceiveBufferNotify;
       FPhysicsServer.Protocol := TCommunicationProtocol.cpCustom;
       FPhysicsServer.UserDefineClass := TStableServer_PhysicsIO_UserDefine;
-      FPhysicsServer.StableServer_IO := Self;
       FPhysicsServer.SyncOnResult := True;
       FPhysicsServer.SyncOnCompleteBuffer := True;
-      FPhysicsServer.QuietMode := True;
+      FPhysicsServer.QuietMode := False;
       FPhysicsServer.TimeOutIDLE := 60 * 1000;
 
       FPhysicsServer.RegisterStream(C_BuildStableIO).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_BuildStableIO;
@@ -11222,6 +11214,7 @@ begin
   io_def.BindStableIO := io_picked;
   io_picked.ResetSequencePacketBuffer;
   io_picked.SequencePacketVerifyTick := GetTimeTick;
+  io_picked.OfflineTick := GetTimeTick;
 
   OutData.WriteBool(True);
   OutData.WriteCardinal(io_picked.Connection_Token);
@@ -11446,7 +11439,7 @@ begin
       FPhysicsClient.SyncOnResult := True;
       FPhysicsClient.SyncOnCompleteBuffer := True;
       FPhysicsClient.TimeOutIDLE := 0;
-      FPhysicsClient.QuietMode := True;
+      FPhysicsClient.QuietMode := False;
     end;
 end;
 

@@ -515,7 +515,7 @@ begin
   RegAddr := '';
   RegRecvPort := 0;
   RegSendPort := 0;
-  LastEnabled := GetTimeTickCount;
+  LastEnabled := GetTimeTick;
   WorkLoad := 0;
   ServerType := TServerType.stUnknow;
   SuccessEnabled := False;
@@ -654,7 +654,7 @@ begin
   cli.RegAddr := InData.Reader.ReadString;
   cli.RegRecvPort := InData.Reader.ReadWord;
   cli.RegSendPort := InData.Reader.ReadWord;
-  cli.LastEnabled := GetTimeTickCount;
+  cli.LastEnabled := GetTimeTick;
   cli.WorkLoad := InData.Reader.ReadWord;
   cli.ServerType := TServerType(InData.Reader.ReadByte);
   cli.SuccessEnabled := True;
@@ -727,7 +727,7 @@ begin
 
   cli.WorkLoad := InData.Reader.ReadWord;
 
-  cli.LastEnabled := GetTimeTickCount;
+  cli.LastEnabled := GetTimeTick;
 
   if cli.LinkOk then
       cli.WriteConfig(ServerConfig);
@@ -866,7 +866,7 @@ begin
             if (peer <> nil) then
               begin
                 cli := peer.UserDefine as TServerManager_RecvTunnelData;
-                if GetTimeTickCount - cli.LastEnabled > 5 * 60000 then
+                if GetTimeTick - cli.LastEnabled > 5 * 60000 then
                   begin
                     ServerConfig.Delete(cli.MakeRegName);
                     cli.Owner.Disconnect;

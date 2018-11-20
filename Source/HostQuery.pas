@@ -18,54 +18,19 @@ interface
 uses CoreClasses, ListEngine, UnicodeMixedLib, DoStatusIO,
   DataFrameEngine, MemoryStream64, PascalStrings, CoreCipher, NotifyObjectBase, Cadencer,
   TextDataEngine,
-{$IFDEF FPC}
-  CommunicationFramework_Server_Synapse, CommunicationFramework_Client_Synapse,
-{$ELSE FPC}
-{$IFDEF HostQuery_On_ICS}
-  CommunicationFramework_Server_ICS, CommunicationFramework_Client_ICS,
-{$ENDIF HostQuery_On_ICS}
-{$IFDEF HostQuery_On_CrossSocket}
-  CommunicationFramework_Server_CrossSocket, CommunicationFramework_Client_CrossSocket,
-{$ENDIF HostQuery_On_CrossSocket}
-{$IFDEF HostQuery_On_DIOCP}
-  CommunicationFramework_Server_DIOCP, CommunicationFramework_Client_DIOCP,
-{$ENDIF HostQuery_On_DIOCP}
-{$IFDEF HostQuery_On_Indy}
-  CommunicationFramework_Server_Indy, CommunicationFramework_Client_Indy,
-{$ENDIF HostQuery_On_Indy}
-{$ENDIF FPC}
-  CommunicationFramework;
+  CommunicationFramework, PhysicsIO;
 
 const
-{$IFDEF HostQuery_On_CrossSocket}
+{$IFDEF PhysicsIO_On_CrossSocket}
   HostQuery_ListenBind = '';
-{$ELSE HostQuery_On_CrossSocket}
+{$ELSE PhysicsIO_On_CrossSocket}
   HostQuery_ListenBind = '0.0.0.0';
-{$ENDIF HostQuery_On_CrossSocket}
+{$ENDIF PhysicsIO_On_CrossSocket}
   HostQuery_ListenPort = 8398;
 
 type
-{$IFDEF FPC}
-  THPhysicsServer = TCommunicationFramework_Server_Synapse;
-  THPhysicsClient = TCommunicationFramework_Client_Synapse;
-{$ELSE FPC}
-{$IFDEF HostQuery_On_ICS}
-  THPhysicsServer = TCommunicationFramework_Server_ICS;
-  THPhysicsClient = TCommunicationFramework_Client_ICS;
-{$ENDIF HostQuery_On_ICS}
-{$IFDEF HostQuery_On_CrossSocket}
-  THPhysicsServer = TCommunicationFramework_Server_CrossSocket;
-  THPhysicsClient = TCommunicationFramework_Client_CrossSocket;
-{$ENDIF HostQuery_On_CrossSocket}
-{$IFDEF HostQuery_On_DIOCP}
-  THPhysicsServer = TCommunicationFramework_Server_DIOCP;
-  THPhysicsClient = TCommunicationFramework_Client_DIOCP;
-{$ENDIF HostQuery_On_DIOCP}
-{$IFDEF HostQuery_On_Indy}
-  THPhysicsServer = TCommunicationFramework_Server_Indy;
-  THPhysicsClient = TCommunicationFramework_Client_Indy;
-{$ENDIF HostQuery_On_Indy}
-{$ENDIF FPC}
+  THPhysicsServer = TPhysicsServer;
+  THPhysicsClient = TPhysicsClient;
 
   THostRec = record
     Host, Identifier: TPascalString;

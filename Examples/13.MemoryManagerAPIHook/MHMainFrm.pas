@@ -157,8 +157,8 @@ type
   end;
 
 var
-  p : PMyRec;
-  i : Integer;
+  p: PMyRec;
+  i: Integer;
   hl: TPointerHashNativeUIntList;
 begin
   // 200万次的大批量记录内存申请，最后一次性释放
@@ -208,7 +208,7 @@ end;
 procedure TMHMainForm.Button5Click(Sender: TObject);
 
 var
-  s   : string;
+  s: string;
   sptr: PString;
 begin
   MH_1.BeginMemoryHook(16);

@@ -10,13 +10,13 @@
 uses Classes;
 
 type
-  MPtrUInt  = ptruint;
-  MPtr      = Pointer;
+  MPtrUInt = ptruint;
+  MPtr = Pointer;
   PMPtrUInt = ^MPtrUInt;
 
 var
-  OriginMM         : TMemoryManager;
-  HookMM           : TMemoryManager;
+  OriginMM: TMemoryManager;
+  HookMM: TMemoryManager;
   CurrentHookThread: TCoreClassThread;
 
 procedure BeginMemoryHook;
@@ -58,12 +58,12 @@ function GetHookMemorySize: nativeUInt;
 var
   bak: Boolean;
 begin
-  bak := MHGlobalHookEnabled;
-  MHGlobalHookEnabled := False;
+  bak := GlobalMemoryHook;
+  GlobalMemoryHook := False;
   try
       Result := HookPtrList.Total;
   finally
-      MHGlobalHookEnabled := bak;
+      GlobalMemoryHook := bak;
   end;
 end;
 
@@ -71,12 +71,12 @@ function GetHookMemorySize(p: Pointer): nativeUInt;
 var
   bak: Boolean;
 begin
-  bak := MHGlobalHookEnabled;
-  MHGlobalHookEnabled := False;
+  bak := GlobalMemoryHook;
+  GlobalMemoryHook := False;
   try
       Result := HookPtrList[p];
   finally
-      MHGlobalHookEnabled := bak;
+      GlobalMemoryHook := bak;
   end;
 end;
 
@@ -84,12 +84,12 @@ function GetHookMemoryMinimizePtr: Pointer;
 var
   bak: Boolean;
 begin
-  bak := MHGlobalHookEnabled;
-  MHGlobalHookEnabled := False;
+  bak := GlobalMemoryHook;
+  GlobalMemoryHook := False;
   try
       Result := HookPtrList.MinimizePtr;
   finally
-      MHGlobalHookEnabled := bak;
+      GlobalMemoryHook := bak;
   end;
 end;
 
@@ -97,86 +97,86 @@ function GetHookMemoryMaximumPtr: Pointer;
 var
   bak: Boolean;
 begin
-  bak := MHGlobalHookEnabled;
-  MHGlobalHookEnabled := False;
+  bak := GlobalMemoryHook;
+  GlobalMemoryHook := False;
   try
       Result := HookPtrList.MaximumPtr;
   finally
-      MHGlobalHookEnabled := bak;
+      GlobalMemoryHook := bak;
   end;
 end;
 
 function Hash_GetMem(Size: ptruint): Pointer;
 begin
   Result := OriginMM.GetMem(Size);
-  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
+  if (not MemoryHooked) or (not GlobalMemoryHook) or (Result = nil) then
       Exit;
   MemoryHooked := False;
-  MHGlobalHookEnabled := False;
+  GlobalMemoryHook := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Add(Result, Size, False);
   finally
     MemoryHooked := True;
-    MHGlobalHookEnabled := True;
+    GlobalMemoryHook := True;
   end;
 end;
 
 function Hash_FreeMem(p: Pointer): ptruint;
 begin
   Result := OriginMM.FreeMem(p);
-  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (p = nil) then
+  if (not MemoryHooked) or (not GlobalMemoryHook) or (p = nil) then
       Exit;
   MemoryHooked := False;
-  MHGlobalHookEnabled := False;
+  GlobalMemoryHook := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Delete(p);
   finally
     MemoryHooked := True;
-    MHGlobalHookEnabled := True;
+    GlobalMemoryHook := True;
   end;
 end;
 
 function Hash_FreememSize(p: Pointer; Size: ptruint): ptruint;
 begin
   Result := OriginMM.FreememSize(p, Size);
-  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (p = nil) then
+  if (not MemoryHooked) or (not GlobalMemoryHook) or (p = nil) then
       Exit;
   MemoryHooked := False;
-  MHGlobalHookEnabled := False;
+  GlobalMemoryHook := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Delete(p);
   finally
     MemoryHooked := True;
-    MHGlobalHookEnabled := True;
+    GlobalMemoryHook := True;
   end;
 end;
 
 function Hash_AllocMem(Size: ptruint): Pointer;
 begin
   Result := OriginMM.AllocMem(Size);
-  if (not MemoryHooked) or (not MHGlobalHookEnabled) or (Result = nil) then
+  if (not MemoryHooked) or (not GlobalMemoryHook) or (Result = nil) then
       Exit;
   MemoryHooked := False;
-  MHGlobalHookEnabled := False;
+  GlobalMemoryHook := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
         HookPtrList.Add(Result, Size, True);
   finally
     MemoryHooked := True;
-    MHGlobalHookEnabled := True;
+    GlobalMemoryHook := True;
   end;
 end;
 
 function Hash_ReallocMem(var p: Pointer; Size: ptruint): Pointer;
 begin
   Result := OriginMM.ReallocMem(p, Size);
-  if (not MemoryHooked) or (not MHGlobalHookEnabled) then
+  if (not MemoryHooked) or (not GlobalMemoryHook) then
       Exit;
   MemoryHooked := False;
-  MHGlobalHookEnabled := False;
+  GlobalMemoryHook := False;
   try
     if CurrentHookThread = TCoreClassThread.CurrentThread then
       begin
@@ -191,7 +191,7 @@ begin
       end;
   finally
     MemoryHooked := True;
-    MHGlobalHookEnabled := True;
+    GlobalMemoryHook := True;
   end;
 end;
 
@@ -219,5 +219,4 @@ begin
   MemoryHooked := False;
   SetMemoryManager(OriginMM);
   DisposeObject(HookPtrList);
-end; 
- 
+end;

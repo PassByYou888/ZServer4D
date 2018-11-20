@@ -384,13 +384,13 @@ begin
           if Connected then
             begin
               ClientIntf.ProcessAllSendCmd(nil, False, False);
-              t := GetTimeTickCount + 15000;
+              t := GetTimeTick + 15000;
               while (ClientIntf <> nil) and (Connected) and (ClientIntf.WaitOnResult) do
                 begin
                   FDriver.IOHandler.CheckForDataOnSource(5);
                   if FDriver.IOHandler.InputBuffer.Size > 0 then
                     begin
-                      t := GetTimeTickCount + 15000;
+                      t := GetTimeTick + 15000;
 
                       FDriver.IOHandler.InputBuffer.ExtractToBytes(iBuf);
                       FDriver.IOHandler.InputBuffer.Clear;
@@ -404,7 +404,7 @@ begin
                         Exit;
                       end;
                     end
-                  else if GetTimeTickCount > t then
+                  else if GetTimeTick > t then
                     begin
                       ClientIntf.Disconnect;
                       Break;
@@ -544,8 +544,8 @@ begin
 
   DoConnected(ClientIntf);
 
-  t := GetTimeTickCount + 3000;
-  while (not RemoteInited) and (FDriver.Connected) and (GetTimeTickCount < t) do
+  t := GetTimeTick + 3000;
+  while (not RemoteInited) and (FDriver.Connected) and (GetTimeTick < t) do
     begin
       Progress;
       FDriver.IOHandler.CheckForDataOnSource(100);

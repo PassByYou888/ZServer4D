@@ -55,7 +55,7 @@ type
   TBytes = SysUtils.TBytes;
   TPoint = Types.TPoint;
 
-  TTimeTick = UInt64;
+  TTimeTick = Int64;
   PTimeTick = ^TTimeTick;
 
   TSeekOrigin = Classes.TSeekOrigin;
@@ -248,7 +248,6 @@ procedure RaiseInfo(const n: SystemString; const Args: array of const); overload
 
 function IsMobile: Boolean;
 
-function GetTimeTickCount: TTimeTick;
 function GetTimeTick: TTimeTick;
 function GetCrashTimeTick: TTimeTick;
 
@@ -312,8 +311,8 @@ function N2LE(const AValue: Cardinal): Cardinal; overload;
 function N2LE(const AValue: Int64): Int64; overload;
 function N2LE(const AValue: UInt64): UInt64; overload;
 
-threadvar
-  MHGlobalHookEnabled: Boolean;
+var
+  GlobalMemoryHook: Boolean;
 
 implementation
 
@@ -586,14 +585,14 @@ var
   Core_RunTime_Tick: TTimeTick;
   Core_Step_Tick: Cardinal;
 
-function GetTimeTickCount: TTimeTick;
+function GetTimeTick: TTimeTick;
 var
   tick: Cardinal;
 begin
   CoreComputeCritical.Acquire;
   try
     tick := TCoreClassThread.GetTickCount();
-    inc(Core_RunTime_Tick, UInt64(tick - Core_Step_Tick));
+    inc(Core_RunTime_Tick, tick - Core_Step_Tick);
     Core_Step_Tick := tick;
     Exit(Core_RunTime_Tick);
   finally
@@ -601,14 +600,9 @@ begin
   end;
 end;
 
-function GetTimeTick: TTimeTick;
-begin
-  Result := GetTimeTickCount();
-end;
-
 function GetCrashTimeTick: TTimeTick;
 begin
-  Result := $FFFFFFFFFFFFFFFF - GetTimeTickCount();
+  Result := $FFFFFFFFFFFFFFFF - GetTimeTick();
 end;
 
 {$IFDEF RangeCheck}{$R-}{$ENDIF}
@@ -933,11 +927,11 @@ end;
 
 
 initialization
-  Core_RunTime_Tick := 0;
+  Core_RunTime_Tick := 1000 * 60 * 60 * 24 * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock;
   InitLockIDBuff;
-  MHGlobalHookEnabled := True;
+  GlobalMemoryHook := True;
   CheckThreadSynchronizeing := False;
 
   // float check
@@ -945,6 +939,6 @@ initialization
 finalization
   FreeCriticalLock;
   FreeLockIDBuff;
-  MHGlobalHookEnabled := False;
+  GlobalMemoryHook := False;
 end.
 
