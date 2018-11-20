@@ -339,6 +339,7 @@ function TCommunicationFramework_Server_Synapse.StartService(Host: SystemString;
 begin
   try
     FListenTh.LSock.SetLinger(True, 10000);
+    FListenTh.LSock.EnableReuse(True);
     FListenTh.LSock.Bind(Host, IntToStr(Port));
     FListenTh.LSock.Listen;
     FListenTh.Listen := True;
