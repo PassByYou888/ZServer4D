@@ -337,7 +337,6 @@ const
   C_ClearBatchStream = '__@ClearBatchStream';
   C_GetBatchStreamState = '__@GetBatchStreamState';
 
-
 type
   PPostBatchBackcallData_NoAuth = ^TPostBatchBackcallData_NoAuth;
 
@@ -901,6 +900,9 @@ begin
       umlCreateDirectory(FFileReceiveDirectory);
 
   SwitchAsDefaultPerformance;
+
+  FRecvTunnel.PrefixName := 'Double.Received';
+  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TCommunicationFramework_DoubleTunnelService_NoAuth.Destroy;
@@ -1547,6 +1549,9 @@ begin
 {$IFNDEF FPC} FAsyncOnResultProc := nil; {$ENDIF}
   //
   SwitchAsDefaultPerformance;
+
+  FRecvTunnel.PrefixName := 'Double.Received';
+  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TCommunicationFramework_DoubleTunnelClient_NoAuth.Destroy;
@@ -2446,4 +2451,3 @@ begin
 end;
 
 end.
-

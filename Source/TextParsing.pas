@@ -895,8 +895,7 @@ begin
 
           if isWordSplitChar(c, True, SymbolTable) then
             begin
-              if NC > 0 then
-                  Break;
+              Break;
             end
           else if CharIn(c, cAtoZ) then
             begin
@@ -932,8 +931,7 @@ begin
             end
           else if isWordSplitChar(c, True, SymbolTable) then
             begin
-              if NC > 0 then
-                  Break
+              Break
             end
           else if CharIn(c, cAtoZ) then
             begin

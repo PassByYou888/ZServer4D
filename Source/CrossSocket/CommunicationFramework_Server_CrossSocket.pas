@@ -11,8 +11,10 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
+  CrossSocket Server的最大连接被限制到20000
   update history
 *)
+
 unit CommunicationFramework_Server_CrossSocket;
 
 {$INCLUDE ..\zDefine.inc}
@@ -68,6 +70,7 @@ type
     FBindHost: SystemString;
     FBindPort: Word;
   protected
+    procedure DoAccpet(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
     procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
@@ -274,6 +277,11 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
+procedure TCommunicationFramework_Server_CrossSocket.DoAccpet(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
+begin
+  Accept := Count < 20000;
+end;
+
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);
 begin
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
@@ -363,6 +371,7 @@ begin
   inherited Create;
   FEnabledAtomicLockAndMultiThread := {$IFDEF CrossSocketServer_HighPerformance}True; {$ELSE}False; {$ENDIF}
   FDriver := TDriverEngine.Create(maxThPool);
+  FDriver.OnAccept := DoAccpet;
   FDriver.OnConnected := DoConnected;
   FDriver.OnDisconnected := DoDisconnect;
   FDriver.OnReceived := DoReceived;

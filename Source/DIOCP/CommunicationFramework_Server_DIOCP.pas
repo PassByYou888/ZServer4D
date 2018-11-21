@@ -11,6 +11,7 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
+  DIOCP Server的最大连接被限制到20000
   update history
 *)
 unit CommunicationFramework_Server_DIOCP;
@@ -61,6 +62,7 @@ type
   protected
     FDIOCPServer: TDiocpTcpServer;
 
+    procedure DIOCP_IOAccept(pvSocket: THandle; pvAddr: String; pvPort: Integer; var vAllowAccept: Boolean);
     procedure DIOCP_IOConnected(pvClientContext: TIocpClientContext);
     procedure DIOCP_IODisconnect(pvClientContext: TIocpClientContext);
     procedure DIOCP_IOSend(pvContext: TIocpClientContext; pvRequest: TIocpSendRequest);
@@ -197,6 +199,11 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
+procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOAccept(pvSocket: THandle; pvAddr: String; pvPort: Integer; var vAllowAccept: Boolean);
+begin
+  vAllowAccept := Count < 20000;
+end;
+
 procedure TCommunicationFramework_Server_DIOCP.DIOCP_IOConnected(pvClientContext: TIocpClientContext);
 begin
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
@@ -254,6 +261,7 @@ begin
 
   FDIOCPServer := TDiocpTcpServer.Create(nil);
 
+  FDIOCPServer.OnContextAccept := DIOCP_IOAccept;
   FDIOCPServer.OnContextConnected := DIOCP_IOConnected;
   FDIOCPServer.OnContextDisconnected := DIOCP_IODisconnect;
   FDIOCPServer.OnSendRequestResponse := DIOCP_IOSend;

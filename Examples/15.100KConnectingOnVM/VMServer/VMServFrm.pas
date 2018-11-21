@@ -100,7 +100,7 @@ begin
   ServTunnel.StartService('0.0.0.0', 9988);
   ServTunnel.QuietMode := True;
 
-  ServWithVM := TCommunicationFrameworkWithP2PVM_Server.Create(10240, 88);
+  ServWithVM := TCommunicationFrameworkWithP2PVM_Server.CustomCreate(10240, 88);
   ServWithVM.SwitchMaxPerformance;
   ServWithVM.QuietMode := False;
   ServWithVMTest := TCommunicationTestIntf.Create;

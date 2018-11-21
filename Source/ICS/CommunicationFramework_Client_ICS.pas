@@ -315,13 +315,13 @@ begin
     exit;
   end;
 
-  AStopTime := GetTimeTickCount + AWaitTimeOut;
+  AStopTime := GetTimeTick + AWaitTimeOut;
 
   while not(FDriver.State in [wsConnected]) do
     begin
       Progress;
 
-      if (GetTimeTickCount >= AStopTime) then
+      if (GetTimeTick >= AStopTime) then
           Break;
       if FDriver.State in [wsClosed] then
           Break;
@@ -338,7 +338,7 @@ begin
     begin
       Progress;
 
-      if (GetTimeTickCount >= AStopTime) then
+      if (GetTimeTick >= AStopTime) then
         begin
           FDriver.Close;
           Break;

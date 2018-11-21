@@ -11,6 +11,7 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
+  INDY Server的最大连接被限制到20
   update history
 *)
 unit CommunicationFramework_Server_Indy;

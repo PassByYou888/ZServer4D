@@ -32,8 +32,8 @@ function GetHookMemoryMinimizePtr: Pointer;
 function GetHookMemoryMaximumPtr: Pointer;
 
 var
-  MemoryHooked: Boolean;
   HookPtrList: TPointerHashNativeUIntList;
+  MemoryHooked: Boolean;
 
 implementation
 
@@ -52,5 +52,3 @@ finalization
 UnInstallMemoryHook;
 
 end.
- 
- 

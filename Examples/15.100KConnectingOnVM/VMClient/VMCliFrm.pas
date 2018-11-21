@@ -115,7 +115,7 @@ begin
 
   for i := low(ClientWithVM) to high(ClientWithVM) do
     begin
-      ClientWithVM[i] := TMyClient.Create(i + 99);
+      ClientWithVM[i] := TMyClient.CustomCreate(i + 99);
       ClientWithVM[i].SwitchMaxPerformance;
       ClientWithVMTest[i] := TCommunicationTestIntf.Create;
       ClientWithVMTest[i].RegCmd(ClientWithVM[i]);

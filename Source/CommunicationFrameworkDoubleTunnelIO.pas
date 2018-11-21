@@ -1790,6 +1790,9 @@ begin
   FProgressEngine := TNProgressPost.Create;
 
   SwitchAsDefaultPerformance;
+
+  FRecvTunnel.PrefixName := 'Double.Received';
+  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TCommunicationFramework_DoubleTunnelService.Destroy;
@@ -2828,6 +2831,9 @@ begin
 {$ENDIF}
   //
   SwitchAsDefaultPerformance;
+
+  FRecvTunnel.PrefixName := 'Double.Received';
+  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TCommunicationFramework_DoubleTunnelClient.Destroy;

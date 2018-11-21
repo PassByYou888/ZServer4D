@@ -249,6 +249,7 @@ procedure RaiseInfo(const n: SystemString; const Args: array of const); overload
 function IsMobile: Boolean;
 
 function GetTimeTick: TTimeTick;
+function GetTimeTickCount: TTimeTick;
 function GetCrashTimeTick: TTimeTick;
 
 function ROL8(const Value: Byte; Shift: Byte): Byte; inline;
@@ -598,6 +599,11 @@ begin
   finally
       CoreComputeCritical.Release;
   end;
+end;
+
+function GetTimeTickCount: TTimeTick;
+begin
+  Result := GetTimeTick();
 end;
 
 function GetCrashTimeTick: TTimeTick;

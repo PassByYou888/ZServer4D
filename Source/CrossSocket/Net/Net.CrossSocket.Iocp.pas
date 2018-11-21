@@ -72,7 +72,7 @@ type
     function _NewIoData: PPerIoData; inline;
     procedure _FreeIoData(P: PPerIoData); inline;
 
-    procedure _NewAccept(AListen: ICrossListen);
+    function _NewAccept(AListen: ICrossListen): Boolean;
     function _NewReadZero(AConnection: ICrossConnection): Boolean;
 
     procedure _HandleAccept(APerIoData: PPerIoData);
@@ -116,12 +116,13 @@ begin
   System.Dispose(P);
 end;
 
-procedure TIocpCrossSocket._NewAccept(AListen: ICrossListen);
+function TIocpCrossSocket._NewAccept(AListen: ICrossListen): Boolean;
 var
   LClientSocket: THandle;
   LPerIoData: PPerIoData;
   LBytes: Cardinal;
 begin
+  Result := False;
   LClientSocket := WSASocket(AListen.Family, AListen.SockType, AListen.Protocol,
     nil, 0, WSA_FLAG_OVERLAPPED);
   if (LClientSocket = INVALID_SOCKET) then
@@ -131,6 +132,12 @@ begin
     {$ENDIF}
     Exit;
   end;
+
+  if not TriggerAccept(AListen) then
+   begin
+     TSocketAPI.CloseSocket(LClientSocket);
+     exit;
+   end;
 
   TSocketAPI.SetNonBlock(LClientSocket, True);
   SetKeepAlive(LClientSocket);
@@ -148,7 +155,8 @@ begin
     {$ENDIF}
     TSocketAPI.CloseSocket(LClientSocket);
     _FreeIoData(LPerIoData);
-  end;
+  end
+  else Result:=True;
 end;
 
 function TIocpCrossSocket._NewReadZero(AConnection: ICrossConnection): Boolean;
@@ -185,7 +193,7 @@ var
   LClientSocket, LListenSocket: THandle;
 begin
   LListen := APerIoData.CrossData as ICrossListen;
-  _NewAccept(LListen);
+  if not _NewAccept(LListen) then exit;
 
   LClientSocket := APerIoData.Socket;
   LListenSocket := LListen.Socket;

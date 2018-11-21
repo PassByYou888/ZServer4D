@@ -319,6 +319,7 @@ type
   end;
   TCrossConnections = TDictionary<UInt64, ICrossConnection>;
 
+  TCrossAcceptEvent = procedure(Sender: TObject; AListen: ICrossListen; var Accept:Boolean) of object;
   TCrossListenEvent = procedure(Sender: TObject; AListen: ICrossListen) of object;
   TCrossConnectEvent = procedure(Sender: TObject; AConnection: ICrossConnection) of object;
   TCrossDataEvent = procedure(Sender: TObject; AConnection: ICrossConnection; ABuf: Pointer; ALen: Integer) of object;
@@ -730,6 +731,7 @@ type
 
     FOnListened: TCrossListenEvent;
     FOnListenEnd: TCrossListenEvent;
+    FOnAccept: TCrossAcceptEvent;
     FOnConnected: TCrossConnectEvent;
     FOnDisconnected: TCrossConnectEvent;
     FOnReceived: TCrossDataEvent;
@@ -748,6 +750,7 @@ type
     function GetOnDisconnected: TCrossConnectEvent;
     function GetOnListened: TCrossListenEvent;
     function GetOnListenEnd: TCrossListenEvent;
+    function GetOnAccept: TCrossAcceptEvent;
     function GetOnReceived: TCrossDataEvent;
     function GetOnSent: TCrossDataEvent;
 
@@ -755,6 +758,7 @@ type
     procedure SetOnDisconnected(const Value: TCrossConnectEvent);
     procedure SetOnListened(const Value: TCrossListenEvent);
     procedure SetOnListenEnd(const Value: TCrossListenEvent);
+    procedure SetOnAccept(const Value: TCrossAcceptEvent);
     procedure SetOnReceived(const Value: TCrossDataEvent);
     procedure SetOnSent(const Value: TCrossDataEvent);
   protected
@@ -775,6 +779,7 @@ type
     {$region '物理事件'}
     procedure TriggerListened(AListen: ICrossListen); virtual;
     procedure TriggerListenEnd(AListen: ICrossListen); virtual;
+    function TriggerAccept(AListen: ICrossListen): Boolean; virtual;
 
     procedure TriggerConnecting(AConnection: ICrossConnection); virtual;
     procedure TriggerConnected(AConnection: ICrossConnection); virtual;
@@ -831,6 +836,7 @@ type
 
     property OnListened: TCrossListenEvent read GetOnListened write SetOnListened;
     property OnListenEnd: TCrossListenEvent read GetOnListenEnd write SetOnListenEnd;
+    property OnAccept: TCrossAcceptEvent read GetOnAccept write SetOnAccept;
     property OnConnected: TCrossConnectEvent read GetOnConnected write SetOnConnected;
     property OnDisconnected: TCrossConnectEvent read GetOnDisconnected write SetOnDisconnected;
     property OnReceived: TCrossDataEvent read GetOnReceived write SetOnReceived;
@@ -1047,6 +1053,11 @@ begin
   Result := FOnListenEnd;
 end;
 
+function TAbstractCrossSocket.GetOnAccept: TCrossAcceptEvent;
+begin
+  Result := FOnAccept;
+end;
+
 function TAbstractCrossSocket.GetOnReceived: TCrossDataEvent;
 begin
   Result := FOnReceived;
@@ -1114,6 +1125,11 @@ end;
 procedure TAbstractCrossSocket.SetOnListenEnd(const Value: TCrossListenEvent);
 begin
   FOnListenEnd := Value;
+end;
+
+procedure TAbstractCrossSocket.SetOnAccept(const Value: TCrossAcceptEvent);
+begin
+  FOnAccept := Value;
 end;
 
 procedure TAbstractCrossSocket.SetOnReceived(const Value: TCrossDataEvent);
@@ -1198,6 +1214,13 @@ begin
 
   if Assigned(FOnListenEnd) then
     FOnListenEnd(Self, AListen);
+end;
+
+function TAbstractCrossSocket.TriggerAccept(AListen: ICrossListen): Boolean;
+begin
+  Result := True;
+  if Assigned(FOnAccept) then
+   FOnAccept(Self, AListen, Result);
 end;
 
 procedure TAbstractCrossSocket.TriggerReceived(AConnection: ICrossConnection;

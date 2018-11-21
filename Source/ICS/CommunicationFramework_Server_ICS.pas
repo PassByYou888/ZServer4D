@@ -11,6 +11,7 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
+  ICS Server的最大连接被限制到500
   update history
 *)
 unit CommunicationFramework_Server_ICS;
@@ -169,11 +170,14 @@ procedure TCommunicationFramework_Server_ICS.SessionAvailable(Sender: TObject; E
 var
   p_io: TICSServer_PeerIO;
 begin
-  p_io := TICSServer_PeerIO.Create(Self, nil);
-  p_io.Context.HSocket := Driver.Accept;
-  p_io.Context.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
-  p_io.Context.KeepAliveTime := 1 * 1000;
-  p_io.Context.KeepAliveInterval := 1 * 1000;
+  if Count < 500 then
+    begin
+      p_io := TICSServer_PeerIO.Create(Self, nil);
+      p_io.Context.HSocket := Driver.Accept;
+      p_io.Context.KeepAliveOnOff := TSocketKeepAliveOnOff.wsKeepAliveOnCustom;
+      p_io.Context.KeepAliveTime := 1 * 1000;
+      p_io.Context.KeepAliveInterval := 1 * 1000;
+    end;
 end;
 
 constructor TCommunicationFramework_Server_ICS.Create;

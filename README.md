@@ -186,6 +186,22 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务(已经实现)
 
+## 2018-11-21 想做个大更，但是，因为新增了StableIO，引发了无数多小问题，所以，最近更新总是不断，真烦!!
+
+- 修改:对每个服务器提供PrefixName+Name，Print时我们会知道哪个服务器在Log
+- 修复:大修MemoryHook的Delphi+FPC实现，此改动影响ZDB
+- 修复:zExpression识别-(，会认为是数字的bug
+- 修复:Synapse在IOT的reuse_addr的问题，感谢longbow qq47324905
+
+**服务器不做最大连接数限制都是不安全的，你的服务器无限制，但是操作系统会有限制**
+
+- CrossSocket最大连接被限制到20000(小幅修改CrossSocket的IOCP,EPoll,KQueue内核)
+- DIOCP最大连接被限制到20000
+- ICS最大连接被限制到500
+- INDY最大连接被限制到20
+- Syanpse最大连接被限制到100
+- P2PVM最大连接无限制（不受操作系统影响）
+
 ## 2018-11-20
 
 - 修改:独立了一个PhysicsIO.pas单元

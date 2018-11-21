@@ -40,7 +40,6 @@ object VMServForm: TVMServForm
       ParentFont = False
       TabOrder = 0
       WordWrap = False
-      ExplicitLeft = 578
     end
     object ReceiveMemo: TMemo
       Left = 780

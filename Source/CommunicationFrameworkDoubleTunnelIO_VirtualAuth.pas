@@ -1099,6 +1099,9 @@ begin
       umlCreateDirectory(FFileReceiveDirectory);
 
   SwitchAsDefaultPerformance;
+
+  FRecvTunnel.PrefixName := 'Double.Received';
+  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TCommunicationFramework_DoubleTunnelService_VirtualAuth.Destroy;
@@ -1760,6 +1763,9 @@ begin
 {$IFNDEF FPC} FAsyncOnResultProc := nil; {$ENDIF}
   //
   SwitchAsDefaultPerformance;
+
+  FRecvTunnel.PrefixName := 'Double.Received';
+  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TCommunicationFramework_DoubleTunnelClient_VirtualAuth.Destroy;
@@ -2717,4 +2723,3 @@ begin
 end;
 
 end.
-

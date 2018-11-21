@@ -401,6 +401,15 @@ begin
       Break;
     end;
 
+    // 边缘化触发连接请求模式，如果有多个连接，是全部放在一起处理
+    // 这里的accept与windows不同，这里需要全部accept以后，发现有问题再去立即关闭，没有windows的预处理概念
+    // 假如Accept不允许，那么后续请求队列将会全部禁止连接，直到到请求队列为空
+    if not TriggerAccept(AListen) then
+      begin
+        TSocketAPI.CloseSocket(LSocket);
+        continue;
+      end;
+
     LClientSocket := LSocket;
     TSocketAPI.SetNonBlock(LClientSocket, True);
     SetKeepAlive(LClientSocket);

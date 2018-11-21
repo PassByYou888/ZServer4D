@@ -2782,7 +2782,7 @@ end;
 
 initialization
 
-OpCache := THashObjectList.CustomCreate(True, 8192);
+OpCache := THashObjectList.CustomCreate(True, $FFFF);
 
 finalization
 

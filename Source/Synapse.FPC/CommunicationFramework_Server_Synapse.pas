@@ -11,6 +11,7 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 (*
+  Synapse Server的最大连接被限制到100
   update history
 *)
 
@@ -339,7 +340,7 @@ function TCommunicationFramework_Server_Synapse.StartService(Host: SystemString;
 begin
   try
     FListenTh.LSock.SetLinger(True, 10000);
-    FListenTh.LSock.EnableReuse(True);
+    FListenTh.LSock.EnableReuse(True); // fixed by.qq47324905
     FListenTh.LSock.Bind(Host, IntToStr(Port));
     FListenTh.LSock.Listen;
     FListenTh.Listen := True;
