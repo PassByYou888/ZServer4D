@@ -95,6 +95,7 @@ type
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
+    procedure DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
 
     function BuildConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
     procedure BuildAsyncConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket);
@@ -380,6 +381,21 @@ begin
       Exit;
 end;
 
+procedure TGlobalCrossSocketClientPool.DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+var
+  cli: TCrossSocketClient_PeerIO;
+begin
+  if not(AConnection.UserObject is TCrossSocketClient_PeerIO) then
+      Exit;
+
+  cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
+
+  if (cli.IOInterface = nil) then
+      Exit;
+
+  cli.SendBuffResult(ASuccess);
+end;
+
 function TGlobalCrossSocketClientPool.BuildConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
 var
   dt: TTimeTick;
@@ -425,9 +441,9 @@ begin
     begin
       cli := TCrossSocketClient_PeerIO.Create(BuildIntf, LastConnection.ConnectionIntf);
       cli.OwnerClient := BuildIntf;
-
       LastConnection.UserObject := cli;
       cli.OwnerClient.ClientIOIntf := cli;
+      cli.OnSendBackcall := DoSendBuffResult;
       BuildIntf.DoConnected(cli);
     end;
 
@@ -489,6 +505,7 @@ begin
               cli.OwnerClient := BuildIntf;
               AConnection.UserObject := cli;
               cli.OwnerClient.ClientIOIntf := cli;
+              cli.OnSendBackcall := DoSendBuffResult;
               BuildIntf.DoConnected(cli);
             end);
         end

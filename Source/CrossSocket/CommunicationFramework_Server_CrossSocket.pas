@@ -44,6 +44,7 @@ type
     SendBuffQueue: TCoreClassListForObj;
     CurrentBuff: TMemoryStream64;
     LastSendingBuff: TMemoryStream64;
+    OnSendBackcall: TProc<ICrossConnection, Boolean>;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -51,7 +52,7 @@ type
     //
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+    procedure SendBuffResult(ASuccess: Boolean);
     procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
@@ -75,6 +76,7 @@ type
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
+    procedure DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
   public
     constructor Create; override;
     constructor CreateTh(maxThPool: Word);
@@ -105,6 +107,7 @@ begin
   SendBuffQueue := TCoreClassListForObj.Create;
   CurrentBuff := TMemoryStream64.Create;
   LastSendingBuff := nil;
+  OnSendBackcall := nil;
 end;
 
 destructor TCrossSocketServer_PeerIO.Destroy;
@@ -166,18 +169,18 @@ begin
   DisposeObject(Self);
 end;
 
-procedure TCrossSocketServer_PeerIO.SendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+procedure TCrossSocketServer_PeerIO.SendBuffResult(ASuccess: Boolean);
 var
   isConn: Boolean;
 begin
-  if (AConnection = nil) or (not ASuccess) then
+  if (not ASuccess) then
     begin
       Sending := False;
       DelayFree(0);
       exit;
     end;
 
-  isConn := AConnection.ConnectStatus = TConnectStatus.csConnected;
+  isConn := Connected;
 
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
     var
@@ -200,9 +203,9 @@ begin
                     SendBuffQueue.Delete(0);
 
                     if Context <> nil then
-                        Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, SendBuffResult)
+                        Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall)
                     else
-                        SendBuffResult(nil, False);
+                        SendBuffResult(False);
                   end
                 else
                   begin
@@ -245,7 +248,7 @@ begin
     begin
       Sending := True;
       LastSendingBuff := CurrentBuff;
-      Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, SendBuffResult);
+      Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall);
       CurrentBuff := TMemoryStream64.Create;
     end;
 end;
@@ -290,6 +293,7 @@ begin
     begin
       cli := TCrossSocketServer_PeerIO.Create(Self, AConnection.ConnectionIntf);
       AConnection.UserObject := cli;
+      cli.OnSendBackcall := DoSendBuffResult;
     end);
 end;
 
@@ -359,6 +363,20 @@ begin
   cli := AConnection.UserObject as TCrossSocketServer_PeerIO;
   if cli.IOInterface = nil then
       exit;
+end;
+
+procedure TCommunicationFramework_Server_CrossSocket.DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+var
+  cli: TCrossSocketServer_PeerIO;
+begin
+  if AConnection.UserObject = nil then
+      exit;
+
+  cli := AConnection.UserObject as TCrossSocketServer_PeerIO;
+  if cli.IOInterface = nil then
+      exit;
+
+  cli.SendBuffResult(ASuccess);
 end;
 
 constructor TCommunicationFramework_Server_CrossSocket.Create;
