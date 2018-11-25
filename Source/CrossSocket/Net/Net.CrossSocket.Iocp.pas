@@ -177,7 +177,7 @@ begin
     and (WSAGetLastError <> WSA_IO_PENDING) then
   begin
     {$IFDEF DEBUG}
-    _LogLastOsError('TIocpCrossSocket._NewReadZero.WSARecv');
+    // _LogLastOsError('TIocpCrossSocket._NewReadZero.WSARecv');
     {$ENDIF}
     _FreeIoData(LPerIoData);
     Exit(False);

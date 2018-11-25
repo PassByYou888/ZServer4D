@@ -19,15 +19,6 @@ unit CommunicationFramework_Server_CrossSocket;
 
 {$INCLUDE ..\zDefine.inc}
 
-{
-  CrossSocket Server(服务器端)的高性能模式，还在试验阶段
-  服务器需要稳定，该选项在服务器端请小心使用
-  在高性能模式下，多核会被充分调动，但是异步IO会发生的中断情况（通俗来说就是容易掉线），zs的暴力做法：发现状态不对，直接丢弃IO(服务器会正常关闭该IO，不做错误处理)
-  关闭该选项后，服务器会极其稳定，IO调度会多核，但是数据吞吐全在主线来干
-  该选项对多连接，并发数无任何影响，只影响cpu工作能力
-}
-{$UNDEF CrossSocketServer_HighPerformance}
-
 interface
 
 uses SysUtils, Classes,
@@ -148,8 +139,7 @@ end;
 
 function TCrossSocketServer_PeerIO.Connected: Boolean;
 begin
-  Result := (IOInterface <> nil) and
-    (Context.ConnectStatus = TConnectStatus.csConnected);
+  Result := (IOInterface <> nil) and (Context.ConnectStatus = TConnectStatus.csConnected);
 end;
 
 procedure TCrossSocketServer_PeerIO.Disconnect;
@@ -170,29 +160,23 @@ begin
 end;
 
 procedure TCrossSocketServer_PeerIO.SendBuffResult(ASuccess: Boolean);
-var
-  isConn: Boolean;
 begin
-  if (not ASuccess) then
-    begin
-      Sending := False;
-      DelayFree(0);
-      exit;
-    end;
-
-  isConn := Connected;
-
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
-    var
-      i: Integer;
     begin
       DisposeObject(LastSendingBuff);
       LastSendingBuff := nil;
 
-      if isConn then
+      if (not ASuccess) then
+        begin
+          Sending := False;
+          DelayFree();
+          exit;
+        end;
+
+      if Connected then
         begin
           try
-            if (ASuccess and isConn) then
+            if (ASuccess) then
               begin
                 UpdateLastCommunicationTime;
                 if SendBuffQueue.Count > 0 then
@@ -213,6 +197,7 @@ begin
                   end;
               end;
           except
+              DelayClose();
           end;
         end
       else
@@ -236,6 +221,9 @@ end;
 
 procedure TCrossSocketServer_PeerIO.WriteBufferFlush;
 begin
+  if not Connected then
+      exit;
+
   if Sending then
     begin
       if CurrentBuff.Size = 0 then
@@ -248,7 +236,10 @@ begin
     begin
       Sending := True;
       LastSendingBuff := CurrentBuff;
-      Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall);
+      try
+          Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall);
+      except
+      end;
       CurrentBuff := TMemoryStream64.Create;
     end;
 end;
@@ -289,11 +280,11 @@ procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject
 begin
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
     var
-      cli: TCrossSocketServer_PeerIO;
+      p_io: TCrossSocketServer_PeerIO;
     begin
-      cli := TCrossSocketServer_PeerIO.Create(Self, AConnection.ConnectionIntf);
-      AConnection.UserObject := cli;
-      cli.OnSendBackcall := DoSendBuffResult;
+      p_io := TCrossSocketServer_PeerIO.Create(Self, AConnection.ConnectionIntf);
+      AConnection.UserObject := p_io;
+      p_io.OnSendBackcall := DoSendBuffResult;
     end);
 end;
 
@@ -303,91 +294,70 @@ begin
     begin
       TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
         var
-          cli: TCrossSocketServer_PeerIO;
-        begin
-          cli := TCrossSocketServer_PeerIO(AConnection.UserObject);
-          cli.IOInterface := nil;
-          AConnection.UserObject := nil;
-
-          cli.DelayFree;
-        end);
-    end;
-end;
-
-procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
-var
-  cli: TCrossSocketServer_PeerIO;
-begin
-  if ALen <= 0 then
-      exit;
-
-  if AConnection.UserObject = nil then
-      exit;
-
-  if FEnabledAtomicLockAndMultiThread then
-    begin
-      try
-        cli := AConnection.UserObject as TCrossSocketServer_PeerIO;
-        if cli.IOInterface = nil then
-            exit;
-
-        cli.SaveReceiveBuffer(aBuf, ALen);
-        cli.FillRecvBuffer(TCoreClassThread.CurrentThread, True, True);
-      except
-      end;
-    end
-  else
-    begin
-      TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+          p_io: TCrossSocketServer_PeerIO;
         begin
           try
-            cli := AConnection.UserObject as TCrossSocketServer_PeerIO;
-            if cli.IOInterface = nil then
-                exit;
-
-            cli.SaveReceiveBuffer(aBuf, ALen);
-            cli.FillRecvBuffer(nil, False, False);
+            p_io := TCrossSocketServer_PeerIO(AConnection.UserObject);
+            if p_io <> nil then
+              begin
+                p_io.IOInterface := nil;
+                AConnection.UserObject := nil;
+                DisposeObject(p_io);
+              end;
           except
           end;
         end);
     end;
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
-var
-  cli: TCrossSocketServer_PeerIO;
+procedure TCommunicationFramework_Server_CrossSocket.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 begin
-  if AConnection.UserObject = nil then
+  if ALen <= 0 then
       exit;
 
-  cli := AConnection.UserObject as TCrossSocketServer_PeerIO;
-  if cli.IOInterface = nil then
-      exit;
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+    var
+      p_io: TCrossSocketServer_PeerIO;
+    begin
+      try
+        p_io := TCrossSocketServer_PeerIO(AConnection.UserObject);
+        if (p_io = niL) or (p_io.IOInterface = nil) then
+            exit;
+
+        p_io.SaveReceiveBuffer(aBuf, ALen);
+        p_io.FillRecvBuffer(nil, False, False);
+      except
+      end;
+    end);
+end;
+
+procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
+begin
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
 var
-  cli: TCrossSocketServer_PeerIO;
+  p_io: TCrossSocketServer_PeerIO;
 begin
   if AConnection.UserObject = nil then
       exit;
 
-  cli := AConnection.UserObject as TCrossSocketServer_PeerIO;
-  if cli.IOInterface = nil then
+  p_io := TCrossSocketServer_PeerIO(AConnection.UserObject);
+  if (p_io = niL) or (p_io.IOInterface = nil) then
       exit;
 
-  cli.SendBuffResult(ASuccess);
+  p_io.SendBuffResult(ASuccess);
 end;
 
 constructor TCommunicationFramework_Server_CrossSocket.Create;
 begin
-  CreateTh({$IFDEF CrossSocketServer_HighPerformance}CPUCount{$ELSE}2{$ENDIF});
+  CreateTh(CPUCount);
 end;
 
 constructor TCommunicationFramework_Server_CrossSocket.CreateTh(maxThPool: Word);
 begin
   inherited Create;
-  FEnabledAtomicLockAndMultiThread := {$IFDEF CrossSocketServer_HighPerformance}True; {$ELSE}False; {$ENDIF}
+  FEnabledAtomicLockAndMultiThread := False;
   FDriver := TDriverEngine.Create(maxThPool);
   FDriver.OnAccept := DoAccpet;
   FDriver.OnConnected := DoConnected;

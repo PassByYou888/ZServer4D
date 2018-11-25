@@ -1,0 +1,102 @@
+object Form2: TForm2
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 427
+  ClientWidth = 823
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 256
+    Top = 24
+  end
+  object clientLayout: TLayout
+    Align = Client
+    Size.Width = 823.000000000000000000
+    Size.Height = 427.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    object connectionButton: TButton
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 7.000000000000000000
+      Position.Y = 64.000000000000000000
+      Size.Width = 130.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'connection'
+      OnClick = connectionButtonClick
+    end
+    object Button1: TButton
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 7.000000000000000000
+      Position.Y = 112.000000000000000000
+      Size.Width = 130.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'disconnect'
+      OnClick = Button1Click
+    end
+    object TestButton: TButton
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 7.000000000000000000
+      Position.Y = 160.000000000000000000
+      Size.Width = 130.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'test performance...'
+      OnClick = TestButtonClick
+    end
+    object Layout1: TLayout
+      Position.X = 5.000000000000000000
+      Position.Y = 7.000000000000000000
+      Size.Width = 188.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      object HostEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Bottom
+        TabOrder = 0
+        Text = '127.0.0.1'
+        Position.Y = 27.000000000000000000
+        Size.Width = 188.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        StyledSettings = [Family, Style, FontColor]
+      end
+      object Label1: TLabel
+        Align = Bottom
+        StyledSettings = [Family, Style, FontColor]
+        Position.Y = 10.000000000000000000
+        Size.Width = 188.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'my18888 host'
+        TabOrder = 1
+      end
+    end
+    object InfoListBox: TListBox
+      Align = Client
+      Margins.Left = 200.000000000000000000
+      Size.Width = 623.000000000000000000
+      Size.Height = 427.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 8
+      AlternatingRowBackground = True
+      DisableFocusEffect = True
+      DefaultItemStyles.ItemStyle = ''
+      DefaultItemStyles.GroupHeaderStyle = ''
+      DefaultItemStyles.GroupFooterStyle = ''
+      Viewport.Width = 619.000000000000000000
+      Viewport.Height = 423.000000000000000000
+    end
+  end
+end

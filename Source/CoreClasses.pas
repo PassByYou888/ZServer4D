@@ -168,6 +168,20 @@ type
     {$IFNDEF FPC} class function RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc): TComputeThread; {$ENDIF FPC}
   end;
 
+  TSoftCritical = class(TCoreClassObject)
+  private
+    L: Boolean;
+  public
+    constructor Create;
+    procedure Acquire;
+    procedure Release;
+  end;
+
+{$IFDEF SoftCritical}
+  TCritical = TSoftCritical;
+{$ELSE SoftCritical}
+  TCritical = TCriticalSection;
+{$ENDIF SoftCritical}
 
   TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID32, epANDROID64, epLinux64, epLinux32, epUnknow);
 
@@ -590,14 +604,14 @@ function GetTimeTick: TTimeTick;
 var
   tick: Cardinal;
 begin
-  CoreComputeCritical.Acquire;
+  CoreTimeTickCritical.Acquire;
   try
     tick := TCoreClassThread.GetTickCount();
     inc(Core_RunTime_Tick, tick - Core_Step_Tick);
     Core_Step_Tick := tick;
     Exit(Core_RunTime_Tick);
   finally
-      CoreComputeCritical.Release;
+      CoreTimeTickCritical.Release;
   end;
 end;
 

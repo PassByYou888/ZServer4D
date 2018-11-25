@@ -186,6 +186,14 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务(已经实现)
 
+## 2018-11-25 日常更新
+
+- 新增:XNAT技术体系的VirtualServer Demo，该Demo可以在IOT以及手机设备带起操作2000连接的并发服务器，并且支持断线重连技术StableIO
+- 修复:CrossSocket报告socket无效问题
+- 修复:在zDefine.inc中，有三个原子锁开关，CriticalSimulateAtomic，SoftCritical，ANTI_DEAD_ATOMIC_LOCK，现在可以自由打开，程序不会报错
+- 修复:在IOT设备，大幅降低高并程序发对cpu的使用（干掉后置事件引擎的LockObject死板机制，改用互斥区做锁）
+- 测试通过:所有Demo和服务器模型运行亲测通过
+
 ## 2018-11-21 想做个大更，但是，因为新增了StableIO，引发了无数多小问题，所以，最近更新总是不断，真烦!!
 
 - 修改:对每个服务器提供PrefixName+Name，Print时我们会知道哪个服务器在Log

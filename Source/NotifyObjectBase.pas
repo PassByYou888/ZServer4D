@@ -84,6 +84,7 @@ type
     FCurrentExecute: TNPostExecute;
     FBreakProgress: Boolean;
     FPaused: Boolean;
+    Critical: TCritical;
   public
     constructor Create;
     destructor Destroy; override;
@@ -109,7 +110,6 @@ type
     function PostExecuteP(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecuteP(Delay: Double; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
 {$ENDIF}
-
     procedure Delete(p: TNPostExecute); overload; virtual;
 
     procedure Progress(deltaTime: Double);
@@ -300,12 +300,14 @@ begin
   FCurrentExecute := nil;
   FBreakProgress := False;
   FPaused := False;
+  Critical := TCritical.Create;
 end;
 
 destructor TNProgressPost.Destroy;
 begin
   ResetPost;
   DisposeObject(FPostExecuteList);
+  DisposeObject(Critical);
   inherited Destroy;
 end;
 
@@ -313,7 +315,7 @@ procedure TNProgressPost.ResetPost;
 var
   i: Integer;
 begin
-  LockObject(FPostExecuteList); // atom
+  Critical.Acquire; // atom
   try
     try
       for i := 0 to FPostExecuteList.Count - 1 do
@@ -326,7 +328,7 @@ begin
     except
     end;
   finally
-      UnLockObject(FPostExecuteList); // atom
+      Critical.Release; // atom
   end;
   FBreakProgress := True;
 end;
@@ -335,11 +337,11 @@ function TNProgressPost.PostExecute(): TNPostExecute;
 begin
   Result := FPostClass.Create;
   Result.FOwner := Self;
-  LockObject(FPostExecuteList); // atom
+  Critical.Acquire; // atom
   try
       FPostExecuteList.Add(Result);
   finally
-      UnLockObject(FPostExecuteList); // atom
+      Critical.Release; // atom
   end;
 end;
 
@@ -427,7 +429,7 @@ procedure TNProgressPost.Delete(p: TNPostExecute);
 var
   i: Integer;
 begin
-  LockObject(FPostExecuteList); // atom
+  Critical.Acquire; // atom
   try
     i := 0;
     while i < FPostExecuteList.Count do
@@ -442,7 +444,7 @@ begin
             inc(i);
       end;
   finally
-      UnLockObject(FPostExecuteList); // atom
+      Critical.Release; // atom
   end;
 end;
 
@@ -462,7 +464,7 @@ begin
 
   L := TCoreClassListForObj.Create;
 
-  LockObject(FPostExecuteList); // atom
+  Critical.Acquire; // atom
   i := 0;
   try
     while i < FPostExecuteList.Count do
@@ -478,7 +480,7 @@ begin
             inc(i);
       end;
   finally
-      UnLockObject(FPostExecuteList); // atom
+      Critical.Release; // atom
   end;
 
   i := 0;

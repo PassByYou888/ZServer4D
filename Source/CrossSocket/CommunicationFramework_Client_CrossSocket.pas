@@ -17,14 +17,6 @@ unit CommunicationFramework_Client_CrossSocket;
 
 {$INCLUDE ..\zDefine.inc}
 
-{
-  CrossSocket 客户端的高性能模式，试验阶段!
-  在高性能模式下，多核会被充分调动，但是异步IO会发生的中断情况
-  关闭该选项后，客户端会极其稳定，IO调度会多核，但是数据吞吐全在主线来干
-  该选项对多连接，并发数无任何影响，只影响cpu工作能力
-}
-{$UNDEF CrossSocketClient_HighPerformance}
-
 interface
 
 uses SysUtils, Classes,
@@ -94,7 +86,6 @@ type
 
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
-    procedure DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
     procedure DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
 
     function BuildConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
@@ -156,7 +147,7 @@ end;
 constructor TCommunicationFramework_Client_CrossSocket.Create;
 begin
   inherited Create;
-  FEnabledAtomicLockAndMultiThread := {$IFDEF CrossSocketClient_HighPerformance}True; {$ELSE}False; {$ENDIF}
+  FEnabledAtomicLockAndMultiThread := False;
   FOnAsyncConnectNotifyCall := nil;
   FOnAsyncConnectNotifyMethod := nil;
   FOnAsyncConnectNotifyProc := nil;
@@ -292,7 +283,6 @@ begin
   driver := TDriverEngine.Create(0);
   driver.OnDisconnected := DoDisconnect;
   driver.OnReceived := DoReceived;
-  driver.OnSent := DoSent;
 
   AutoReconnect := False;
 end;
@@ -313,19 +303,22 @@ begin
   TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread,
     procedure
     var
-      cli: TCrossSocketClient_PeerIO;
+      p_io: TCrossSocketClient_PeerIO;
     begin
       if AConnection.UserObject is TCrossSocketClient_PeerIO then
         begin
-          cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
+          p_io := TCrossSocketClient_PeerIO(AConnection.UserObject);
 
-          cli.IOInterface := nil;
+          if p_io = nil then
+              Exit;
+
+          p_io.IOInterface := nil;
           AConnection.UserObject := nil;
 
-          if cli.OwnerClient <> nil then
+          if p_io.OwnerClient <> nil then
             begin
               try
-                  DisposeObject(cli);
+                  DisposeObject(p_io);
               except
               end;
             end;
@@ -335,71 +328,49 @@ end;
 
 procedure TGlobalCrossSocketClientPool.DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
 var
-  cli: TCrossSocketClient_PeerIO;
+  p_io: TCrossSocketClient_PeerIO;
 begin
   if ALen <= 0 then
       Exit;
   if not(AConnection.UserObject is TCrossSocketClient_PeerIO) then
       Exit;
 
-  cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
+  p_io := TCrossSocketClient_PeerIO(AConnection.UserObject);
 
-  if cli = nil then
+  if p_io = nil then
       Exit;
 
-  if (cli.IOInterface = nil) then
+  if (p_io.IOInterface = nil) then
       Exit;
 
-  if cli.OwnerClient.FEnabledAtomicLockAndMultiThread then
+  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
     begin
-      cli.SaveReceiveBuffer(aBuf, ALen);
-      cli.FillRecvBuffer(TCoreClassThread.CurrentThread, True, True);
-    end
-  else
-    begin
-      TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
-        begin
-          try
-            cli.SaveReceiveBuffer(aBuf, ALen);
-            cli.FillRecvBuffer(nil, False, False);
-          except
-          end;
-        end);
-    end;
-end;
-
-procedure TGlobalCrossSocketClientPool.DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
-var
-  cli: TCrossSocketClient_PeerIO;
-begin
-  if not(AConnection.UserObject is TCrossSocketClient_PeerIO) then
-      Exit;
-
-  cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
-
-  if (cli.IOInterface = nil) then
-      Exit;
+      try
+        p_io.SaveReceiveBuffer(aBuf, ALen);
+        p_io.FillRecvBuffer(nil, False, False);
+      except
+      end;
+    end);
 end;
 
 procedure TGlobalCrossSocketClientPool.DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
 var
-  cli: TCrossSocketClient_PeerIO;
+  p_io: TCrossSocketClient_PeerIO;
 begin
   if not(AConnection.UserObject is TCrossSocketClient_PeerIO) then
       Exit;
 
-  cli := AConnection.UserObject as TCrossSocketClient_PeerIO;
+  p_io := TCrossSocketClient_PeerIO(AConnection.UserObject);
 
-  if (cli.IOInterface = nil) then
+  if p_io = nil then
       Exit;
-
-  cli.SendBuffResult(ASuccess);
+  p_io.SendBuffResult(ASuccess);
 end;
 
 function TGlobalCrossSocketClientPool.BuildConnect(addr: SystemString; Port: Word; BuildIntf: TCommunicationFramework_Client_CrossSocket): Boolean;
 var
   dt: TTimeTick;
-  cli: TCrossSocketClient_PeerIO;
+  p_io: TCrossSocketClient_PeerIO;
 begin
   LastResult := False;
   LastCompleted := False;
@@ -439,12 +410,12 @@ begin
 
   if LastResult then
     begin
-      cli := TCrossSocketClient_PeerIO.Create(BuildIntf, LastConnection.ConnectionIntf);
-      cli.OwnerClient := BuildIntf;
-      LastConnection.UserObject := cli;
-      cli.OwnerClient.ClientIOIntf := cli;
-      cli.OnSendBackcall := DoSendBuffResult;
-      BuildIntf.DoConnected(cli);
+      p_io := TCrossSocketClient_PeerIO.Create(BuildIntf, LastConnection.ConnectionIntf);
+      p_io.OwnerClient := BuildIntf;
+      LastConnection.UserObject := p_io;
+      p_io.OwnerClient.ClientIOIntf := p_io;
+      p_io.OnSendBackcall := DoSendBuffResult;
+      BuildIntf.DoConnected(p_io);
     end;
 
   dt := GetTimeTick + 2000;
@@ -493,20 +464,21 @@ begin
 
   ICrossSocket(driver).Connect(addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
+    var
+      t_p_io: TCrossSocketClient_PeerIO;
     begin
       if ASuccess then
         begin
-          TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread,
-            procedure
+          TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
             var
-              cli: TCrossSocketClient_PeerIO;
+              p_io: TCrossSocketClient_PeerIO;
             begin
-              cli := TCrossSocketClient_PeerIO.Create(BuildIntf, AConnection.ConnectionIntf);
-              cli.OwnerClient := BuildIntf;
-              AConnection.UserObject := cli;
-              cli.OwnerClient.ClientIOIntf := cli;
-              cli.OnSendBackcall := DoSendBuffResult;
-              BuildIntf.DoConnected(cli);
+              p_io := TCrossSocketClient_PeerIO.Create(BuildIntf, AConnection.ConnectionIntf);
+              p_io.OwnerClient := BuildIntf;
+              AConnection.UserObject := p_io;
+              p_io.OwnerClient.ClientIOIntf := p_io;
+              p_io.OnSendBackcall := DoSendBuffResult;
+              BuildIntf.DoConnected(p_io);
             end);
         end
       else

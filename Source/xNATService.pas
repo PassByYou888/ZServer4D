@@ -287,7 +287,7 @@ begin
 
   if Protocol = nil then
       Protocol := TXServerCustomProtocol.Create;
-  Protocol.TimeOutIDLE := 60 * 1000;
+  Protocol.TimeOutIDLE := 180 * 1000;
   Protocol.ShareListen := Self;
   Protocol.Protocol := cpCustom;
   Protocol.UserSpecialClass := TXServerUserSpecial;
@@ -848,15 +848,12 @@ begin
   for i := ShareListenList.Count - 1 downto 0 do
     begin
       shLt := ShareListenList[i] as TXServiceListen;
-      try
-        if (shLt.RecvTunnel.Count = 0) and (shLt.SendTunnel.Count = 0) and (shLt.Activted) then
-            shLt.Activted := False;
+      if (shLt.RecvTunnel.Count = 0) and (shLt.SendTunnel.Count = 0) and (shLt.Activted) then
+          shLt.Activted := False;
 
-        shLt.Protocol.Progress;
-        shLt.RecvTunnel.Progress;
-        shLt.SendTunnel.Progress;
-      except
-      end;
+      shLt.RecvTunnel.Progress;
+      shLt.SendTunnel.Progress;
+      shLt.Protocol.Progress;
     end;
 end;
 

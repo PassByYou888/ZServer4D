@@ -15,19 +15,6 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 
-{$IFDEF SoftCritical}
-
-
-type
-  TSoftCritical = class(TCoreClassObject)
-  private
-    L: Boolean;
-  public
-    constructor Create;
-    procedure Acquire;
-    procedure Release;
-  end;
-
 constructor TSoftCritical.Create;
 begin
   inherited Create;
@@ -57,15 +44,8 @@ procedure TSoftCritical.Release;
 begin
   L := False;
 end;
-{$ENDIF SoftCritical}
-
 
 type
-{$IFDEF SoftCritical}
-  TCritical = TSoftCritical;
-{$ELSE SoftCritical}
-  TCritical = TCriticalSection;
-{$ENDIF SoftCritical}
   PCritical_Struct = ^TCritical_Struct;
 
   TCritical_Struct = record
@@ -78,14 +58,16 @@ type
   TGetCriticalLockState = (lsSame, lsNew, lsIdle);
 
 var
-  CoreLockCritical: TCritical;
-  CoreComputeCritical: TCritical;
+  CoreLockCritical: TCriticalSection;
+  CoreComputeCritical: TCriticalSection;
+  CoreTimeTickCritical: TCriticalSection;
   CriticalList: TCoreClassList;
 
 procedure InitCriticalLock;
 begin
-  CoreLockCritical := TCritical.Create;
-  CoreComputeCritical := TCritical.Create;
+  CoreLockCritical := TCriticalSection.Create;
+  CoreComputeCritical := TCriticalSection.Create;
+  CoreTimeTickCritical := TCriticalSection.Create;
   CriticalList := TCoreClassList.Create;
 end;
 
@@ -108,6 +90,9 @@ begin
 
   CoreComputeCritical.Free;
   CoreComputeCritical := nil;
+
+  CoreTimeTickCritical.Free;
+  CoreTimeTickCritical := nil;
 end;
 
 procedure GetCriticalLock(const Obj: TObject; var output: PCritical_Struct; var state: TGetCriticalLockState);

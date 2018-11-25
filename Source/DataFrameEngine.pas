@@ -1987,8 +1987,7 @@ begin
     varInt64: FBuffer := stream.ReadInt64;
     varUInt64: FBuffer := stream.ReadUInt64;
     varOleStr, varString, varUString: FBuffer := stream.ReadString.Text;
-    else
-      RaiseInfo('error variant type');
+    else RaiseInfo('error variant type');
   end;
 end;
 

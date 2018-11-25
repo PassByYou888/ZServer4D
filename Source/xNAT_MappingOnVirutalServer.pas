@@ -99,6 +99,7 @@ type
     WaitAsyncConnecting: Boolean;
     WaitAsyncConnecting_BeginTime: TTimeTick;
     PhysicsEngine: TXPhysicsClient;
+    Progressing: Boolean;
   protected
     procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
     procedure PhysicsVMBuildAuthToken_Result;
@@ -169,6 +170,7 @@ begin
   de.WriteCardinal(Remote_ID);
   OwnerVS.SendTunnel.SendDirectStreamCmd('disconnect_reponse', de);
   DisposeObject(de);
+  DelayFree(5.0);
 end;
 
 procedure TXNAT_MappingOnVirutalServer_IO.SendByteBuffer(const buff: PByte; const Size: nativeInt);
@@ -352,10 +354,13 @@ end;
 procedure TXNAT_MappingOnVirutalServer.cmd_disconnect_request(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   local_id, Remote_ID: Cardinal;
+  p_io: TPeerIO;
 begin
   Remote_ID := InData.Reader.ReadCardinal;
   local_id := InData.Reader.ReadCardinal;
-  DisposeObject(PeerIO[local_id]);
+  p_io := PeerIO[local_id];
+  if p_io <> nil then
+      DisposeObject(p_io);
 end;
 
 procedure TXNAT_MappingOnVirutalServer.cmd_data(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
@@ -432,7 +437,18 @@ end;
 
 procedure TXNAT_MappingOnVirutalServer.Progress;
 begin
+  if (XNAT <> nil) and (not XNAT.Progressing) then
+    begin
+      XNAT.Progress;
+      exit;
+    end;
+
   inherited Progress;
+
+  if SendTunnel <> nil then
+      SendTunnel.Progress;
+  if RecvTunnel <> nil then
+      RecvTunnel.Progress;
 end;
 
 procedure TXNAT_MappingOnVirutalServer.TriggerQueueData(v: PQueueData);
@@ -441,10 +457,7 @@ var
 begin
   c := PeerIO[v^.IO_ID];
   if c <> nil then
-    begin
-      c.PostQueueData(v);
-      c.ProcessAllSendCmd(nil, False, False);
-    end
+      c.PostQueueData(v)
   else
       DisposeQueueData(v);
 end;
@@ -489,7 +502,12 @@ begin
     ref wiki
     https://en.wikipedia.org/wiki/SHA-3
   }
-  PhysicsEngine.ClientIO.OpenP2pVMTunnelM(True, GenerateQuantumCryptographyPassword(AuthToken), {$IFDEF FPC}@{$ENDIF FPC}PhysicsOpenVM_Result)
+
+  PhysicsEngine.ClientIO.OpenP2pVMTunnelM(
+    True,                                           // send p2pVM auth request
+    GenerateQuantumCryptographyPassword(AuthToken), // QuantumCryptographyPassword
+{$IFDEF FPC}@{$ENDIF FPC}PhysicsOpenVM_Result       // backcall
+    );
 end;
 
 procedure TXNAT_Mapping.PhysicsOpenVM_Result(const cState: Boolean);
@@ -563,6 +581,7 @@ begin
   Activted := False;
   WaitAsyncConnecting := False;
   PhysicsEngine := nil;
+  Progressing := False;
 end;
 
 destructor TXNAT_Mapping.Destroy;
@@ -617,6 +636,11 @@ var
   i: Integer;
   tunMp: TXNAT_MappingOnVirutalServer;
 begin
+  if Progressing then
+      exit;
+
+  Progressing := True;
+
   if PhysicsEngine <> nil then
     begin
       if WaitAsyncConnecting and (GetTimeTick - WaitAsyncConnecting_BeginTime > 15000) then
@@ -640,14 +664,12 @@ begin
 
       tunMp.UpdateWorkload(False);
 
-      if tunMp.SendTunnel <> nil then
-          tunMp.SendTunnel.Progress;
-      if tunMp.RecvTunnel <> nil then
-          tunMp.RecvTunnel.Progress;
       tunMp.Progress;
 
       inc(i);
     end;
+
+  Progressing := False;
 end;
 
 function TXNAT_Mapping.Count: Integer;

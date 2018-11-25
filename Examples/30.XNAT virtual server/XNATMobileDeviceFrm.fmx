@@ -1,0 +1,160 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 296
+  ClientWidth = 712
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 240
+    Top = 208
+  end
+  object OpenButton: TButton
+    Position.X = 7.000000000000000000
+    Position.Y = 64.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'Open'
+    OnClick = OpenButtonClick
+  end
+  object InfoLabel: TLabel
+    Position.X = 6.000000000000000000
+    Position.Y = 144.000000000000000000
+    Size.Width = 93.000000000000000000
+    Size.Height = 89.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+  end
+  object TabControl1: TTabControl
+    Align = Client
+    Margins.Left = 100.000000000000000000
+    Size.Width = 612.000000000000000000
+    Size.Height = 296.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 3
+    TabPosition = PlatformDefault
+    Sizes = (
+      612s
+      270s
+      612s
+      270s)
+    object TabItem1: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 103.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'log information'
+      ExplicitSize.cx = 103.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object LogMemo: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        Lines.Strings = (
+          '  XNAT'#30340#20844#32593#26381#21153#22120#65292#29992#20110#20844#32593#21327#35758#25509#21475
+          '  XNAT'#30340'MobileServer'#26159#24037#20316#20110#25163#26426#25110#21017'IOT'#35774#22791#30340#26381#21153#22120#27169#22411
+          '  '#22312#20844#32593#21327#35758#25509#21475#20013#65292'XNAT'#20351#29992#20102'P2PVM'#25216#26415#65292#28436#31034#20102#22914#20309#35753#25163#26426#24102#36215#22823#37327#29289#29702#36830#25509#30340#26381#21153
+          ' XNAT'#30340#29289#29702#24182#21457#36830#25509#19978#38480#26159'4000'
+          ''
+          #35813'Demo'#20351#29992#20102#20197#19979#25216#26415
+          'P2PVM'#65306#21327#35758#26632#34394#25311#26426#25216#26415
+          'StableIO'#65306#25239#26029#32447#25216#26415
+          ''
+          #35813'Demo'#21487#20197#22810#24320
+          #22810#24320'XNATMobileServer'#20197#21518#65292#23601#26159#20998#24067#24335#36127#36733
+          ''
+          #21487#35753#23433#21331'/'#33529#26524'/IOT'#35774#22791#30340'WIFI or 4G'#24102#36215#22823#37327#30340#29289#29702#36830#25509#65292#24182#19988#19981#24597#26029#32447
+          ''
+          '2018-11-24'
+          'by qq600585')
+        Align = Client
+        Size.Width = 612.000000000000000000
+        Size.Height = 270.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Viewport.Width = 608.000000000000000000
+        Viewport.Height = 266.000000000000000000
+      end
+    end
+    object TabItem2: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 67.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Statistics'
+      ExplicitSize.cx = 67.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object InfoListBox: TListBox
+        Align = Client
+        Size.Width = 612.000000000000000000
+        Size.Height = 270.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        AlternatingRowBackground = True
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        Viewport.Width = 608.000000000000000000
+        Viewport.Height = 266.000000000000000000
+      end
+    end
+  end
+  object Layout1: TLayout
+    Position.X = 5.000000000000000000
+    Position.Y = 7.000000000000000000
+    Size.Width = 89.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    object HostEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Bottom
+      TabOrder = 0
+      Text = '127.0.0.1'
+      Position.Y = 27.000000000000000000
+      Size.Width = 89.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+    object Label1: TLabel
+      Align = Bottom
+      StyledSettings = [Family, Style, FontColor]
+      Position.Y = 10.000000000000000000
+      Size.Width = 89.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'XNAT Internet'
+      TabOrder = 1
+    end
+  end
+  object LogCheckBox: TCheckBox
+    Position.X = 8.000000000000000000
+    Position.Y = 120.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 6
+    Text = 'Log'
+  end
+end
