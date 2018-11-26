@@ -52,7 +52,7 @@ begin
       begin
         XServ.Progress;
         try
-            CoreClasses.CheckThreadSynchronize;
+            CoreClasses.CheckThreadSynchronize(1);
         except
         end;
       end;

@@ -832,22 +832,22 @@ end;
 
 function TGenericsList<t>.ListData: Pointer;
 begin
-  Result := @(inherited List);
+  Result := @Pointer(inherited List);
 end;
 
 function TGenericsObjectList<t>.ListData: Pointer;
 begin
-  Result := @(inherited List);
+  Result := @Pointer(inherited List);
 end;
 
 function TCoreClassList.ListData: PCoreClassPointerList;
 begin
-  Result := @(inherited List);
+  Result := @Pointer(inherited List);
 end;
 
 function TCoreClassListForObj.ListData: PCoreClassForObjectList;
 begin
-  Result := @(inherited List);
+  Result := @Pointer(inherited List);
 end;
 
 {$ENDIF}

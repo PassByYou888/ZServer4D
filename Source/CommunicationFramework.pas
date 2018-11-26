@@ -9815,74 +9815,68 @@ begin
   if FReceiveStream.Size < 13 then
       exit;
 
-  LockObject(Self);
+  SourStream := TMemoryStream64.Create;
+  p64 := 0;
+  SourStream.SetPointerWithProtectedMode(FReceiveStream.PositionAsPtr(p64), FReceiveStream.Size - p64);
 
-  try
-    SourStream := TMemoryStream64.Create;
-    p64 := 0;
-    SourStream.SetPointerWithProtectedMode(FReceiveStream.PositionAsPtr(p64), FReceiveStream.Size - p64);
-
-    while SourStream.Size > 0 do
-      begin
-        fPk.Init;
-        rPos := fPk.FillReceiveBuff(SourStream);
-        if rPos > 0 then
-          begin
-            // protocol support
-            case fPk.pkType of
-              c_p2pVM_echoing: ReceivedEchoing(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_echo: ReceivedEcho(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_AuthSuccessed:
-                begin
-                  if Assigned(OnAuthSuccessOnesNotify) then
-                    begin
-                      try
-                          OnAuthSuccessOnesNotify(Self);
-                      except
-                      end;
-                      OnAuthSuccessOnesNotify := nil;
-                    end;
-                end;
-              c_p2pVM_Listen: ReceivedListen(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_ListenState: ReceivedListenState(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_Connecting: ReceivedConnecting(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_ConnectedReponse: ReceivedConnectedReponse(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_Disconnect: ReceivedDisconnect(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_LogicFragmentData: ReceivedLogicFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              c_p2pVM_PhysicsFragmentData: ReceivedPhysicsFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-              else if not FQuietMode then
-                  begin
-                    DoStatus('VM protocol header errror');
-                    DoStatus(@fPk, SizeOf(fPk), 40);
-                  end;
-            end;
-            // fill buffer
-            inc(p64, rPos);
-            if FReceiveStream.Size - p64 >= 13 then
+  while SourStream.Size > 0 do
+    begin
+      fPk.Init;
+      rPos := fPk.FillReceiveBuff(SourStream);
+      if rPos > 0 then
+        begin
+          // protocol support
+          case fPk.pkType of
+            c_p2pVM_echoing: ReceivedEchoing(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_echo: ReceivedEcho(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_AuthSuccessed:
               begin
-                SourStream.SetPointerWithProtectedMode(FReceiveStream.PositionAsPtr(p64), FReceiveStream.Size - p64);
-              end
-            else
-                Break;
-          end
-        else
-            Break;
-      end;
+                if Assigned(OnAuthSuccessOnesNotify) then
+                  begin
+                    try
+                        OnAuthSuccessOnesNotify(Self);
+                    except
+                    end;
+                    OnAuthSuccessOnesNotify := nil;
+                  end;
+              end;
+            c_p2pVM_Listen: ReceivedListen(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_ListenState: ReceivedListenState(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_Connecting: ReceivedConnecting(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_ConnectedReponse: ReceivedConnectedReponse(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_Disconnect: ReceivedDisconnect(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_LogicFragmentData: ReceivedLogicFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            c_p2pVM_PhysicsFragmentData: ReceivedPhysicsFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
+            else if not FQuietMode then
+                begin
+                  DoStatus('VM protocol header errror');
+                  DoStatus(@fPk, SizeOf(fPk), 40);
+                end;
+          end;
+          // fill buffer
+          inc(p64, rPos);
+          if FReceiveStream.Size - p64 >= 13 then
+            begin
+              SourStream.SetPointerWithProtectedMode(FReceiveStream.PositionAsPtr(p64), FReceiveStream.Size - p64);
+            end
+          else
+              Break;
+        end
+      else
+          Break;
+    end;
 
-    DisposeObject(SourStream);
+  DisposeObject(SourStream);
 
-    if p64 > 0 then
-      begin
-        SourStream := TMemoryStream64.Create;
-        FReceiveStream.Position := p64;
-        if FReceiveStream.Size - FReceiveStream.Position > 0 then
-            SourStream.CopyFrom(FReceiveStream, FReceiveStream.Size - FReceiveStream.Position);
-        DisposeObject(FReceiveStream);
-        FReceiveStream := SourStream;
-      end;
-  finally
-      UnLockObject(Self);
-  end;
+  if p64 > 0 then
+    begin
+      SourStream := TMemoryStream64.Create;
+      FReceiveStream.Position := p64;
+      if FReceiveStream.Size - FReceiveStream.Position > 0 then
+          SourStream.CopyFrom(FReceiveStream, FReceiveStream.Size - FReceiveStream.Position);
+      DisposeObject(FReceiveStream);
+      FReceiveStream := SourStream;
+    end;
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.Hook_ProcessReceiveBuffer(const Sender: TPeerIO; const ACurrentActiveThread: TCoreClassThread; const RecvSync, SendSync: Boolean);
