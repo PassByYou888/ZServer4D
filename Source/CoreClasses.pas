@@ -116,30 +116,30 @@ type
   end;
 
   TGenericsList<t>=class(System.Generics.Collections.TList<t>)
+  private type
+    TGArry = array of t;
+  public var Arry:TGArry;
     function ListData: Pointer;
   end;
 
   TGenericsObjectList<t:class>=class(System.Generics.Collections.TList<t>)
+  private type
+    TGArry = array of t;
+  public var Arry:TGArry;
     function ListData: Pointer;
   end;
 
   TCoreClassPointerList = array of Pointer;
   PCoreClassPointerList = ^TCoreClassPointerList;
 
-  TCoreClassList_ = class(System.Generics.Collections.TList<Pointer>)
-  end;
-
-  TCoreClassList = class(TCoreClassList_)
+  TCoreClassList = class(TGenericsList<Pointer>)
     function ListData: PCoreClassPointerList;
   end;
 
   TCoreClassForObjectList = array of TCoreClassObject;
   PCoreClassForObjectList = ^TCoreClassForObjectList;
 
-  TCoreClassListForObj_ = class(System.Generics.Collections.TList<TCoreClassObject>)
-  end;
-
-  TCoreClassListForObj = class(TCoreClassListForObj_)
+  TCoreClassListForObj = class(TGenericsList<TCoreClassObject>)
     function ListData: PCoreClassForObjectList;
   end;
   {$ENDIF FPC}
@@ -832,22 +832,28 @@ end;
 
 function TGenericsList<t>.ListData: Pointer;
 begin
-  Result := @Pointer(inherited List);
+  // set array pointer
+  Arry := TGArry(Pointer(inherited List));
+  // @ array
+  Result := @Arry;
 end;
 
 function TGenericsObjectList<t>.ListData: Pointer;
 begin
-  Result := @Pointer(inherited List);
+  // set array pointer
+  Arry := TGArry(Pointer(inherited List));
+  // @ array
+  Result := @Arry;
 end;
 
 function TCoreClassList.ListData: PCoreClassPointerList;
 begin
-  Result := @Pointer(inherited List);
+  Result := PCoreClassPointerList(inherited ListData);
 end;
 
 function TCoreClassListForObj.ListData: PCoreClassForObjectList;
 begin
-  Result := @Pointer(inherited List);
+  Result := PCoreClassForObjectList(inherited ListData);
 end;
 
 {$ENDIF}
