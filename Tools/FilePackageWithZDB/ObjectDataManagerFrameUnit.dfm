@@ -1,13 +1,13 @@
 object ObjectDataManagerFrame: TObjectDataManagerFrame
   Left = 0
   Top = 0
-  Width = 810
-  Height = 431
+  Width = 791
+  Height = 416
   TabOrder = 0
   object Splitter: TSplitter
     Left = 185
     Top = 0
-    Height = 431
+    Height = 416
     ExplicitLeft = 200
     ExplicitTop = 64
     ExplicitHeight = 100
@@ -15,8 +15,8 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
   object ListView: TListView
     Left = 188
     Top = 0
-    Width = 622
-    Height = 431
+    Width = 603
+    Height = 416
     Align = alClient
     BorderStyle = bsNone
     Columns = <
@@ -26,7 +26,7 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       end
       item
         Caption = 'Property'
-        Width = 80
+        Width = 100
       end
       item
         Caption = 'Size'
@@ -34,12 +34,12 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       end
       item
         Alignment = taRightJustify
-        Caption = 'Date'
-        Width = 100
+        Caption = 'Time'
+        Width = 120
       end
       item
-        Caption = 'Time'
-        Width = 100
+        Caption = 'Modification Time'
+        Width = 120
       end>
     ColumnClick = False
     DoubleBuffered = True
@@ -54,20 +54,19 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     OnEdited = ListViewEdited
     OnEditing = ListViewEditing
     OnKeyUp = ListViewKeyUp
-    ExplicitWidth = 422
-    ExplicitHeight = 316
+    ExplicitWidth = 571
+    ExplicitHeight = 409
   end
   object TreePanel: TPanel
     Left = 0
     Top = 0
     Width = 185
-    Height = 431
+    Height = 416
     Align = alLeft
     BevelOuter = bvNone
     PopupMenu = PopupMenu
     TabOrder = 1
-    ExplicitLeft = -3
-    ExplicitHeight = 316
+    ExplicitHeight = 431
   end
   object ActionList: TActionList
     Left = 224

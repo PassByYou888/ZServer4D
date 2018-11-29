@@ -51,7 +51,7 @@ type
   protected
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     UsedMemory: nativeUInt;
   public
     constructor Create;
@@ -63,7 +63,7 @@ type
   protected
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     UsedMemory: nativeUInt;
   public
     constructor Create;
@@ -75,7 +75,7 @@ type
   protected
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     UsedMemory: nativeUInt;
   public
     constructor Create;
@@ -87,7 +87,7 @@ type
   protected
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     UsedMemory: nativeUInt;
   public
     constructor Create;
@@ -101,7 +101,7 @@ type
   protected
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     UsedMemory: nativeUInt;
   public
     constructor Create;
@@ -114,7 +114,7 @@ type
   protected
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     UsedMemory: nativeUInt;
     FBuff: TPascalString;
     procedure SetBuff(const Value: TPascalString);
@@ -291,6 +291,8 @@ type
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
 
+  TDBCacheStream64 = class;
+
   PQueryState = ^TQueryState;
 
   TQueryState = record
@@ -302,14 +304,19 @@ type
     deltaTime, newTime: TTimeTick;
     Aborted: Boolean;
 
-    function ID: Cardinal; inline;
-    function IsDF: Boolean; inline;
-    function IsVL: Boolean; inline;
-    function IsVT: Boolean; inline;
-    function IsTE: Boolean; inline;
-    function IsJson: Boolean; inline;
-    function IsString: Boolean; inline;
-    function IsOther: Boolean; inline;
+    function ID: Cardinal;
+    function IsDF: Boolean;
+    function IsVL: Boolean;
+    function IsVT: Boolean;
+    function IsTE: Boolean;
+    function IsJson: Boolean;
+    function IsString: Boolean;
+    function IsOther: Boolean;
+    function IsFirst: Boolean;
+    function IsLast: Boolean;
+    function Cache: TDBCacheStream64;
+    function NextCache: TDBCacheStream64;
+    function PrevCache: TDBCacheStream64;
   end;
 
   TQueryCall = procedure(var qState: TQueryState);
@@ -412,12 +419,12 @@ type
   // store engine
   TCacheStyle = (csAutomation, csNever, csAlways);
 
-  TMemoryStream64InCache = class(TMemoryStream64)
+  TDBCacheStream64 = class(TMemoryStream64)
   private
     OwnerEng: TDBStoreBase;
     OwnerCache: TInt64HashObjectList;
     ID: Cardinal;
-    CreateTime, LastModifyTime: TDateTime;
+    CreateTime, ModificationTime: TDateTime;
     StorePos: Int64;
     UsedMemorySize: NativeInt;
   public
@@ -462,7 +469,7 @@ type
     procedure InstanceCacheObjectFreeProc(Obj: TCoreClassObject);
     procedure ProcessNewInstanceCache(StorePos: Int64; Obj: TCoreClassObject; siz: NativeInt);
     procedure StreamCacheObjectFreeProc(Obj: TCoreClassObject);
-    procedure ProcessNewStreamCache(M: TMemoryStream64InCache);
+    procedure ProcessNewStreamCache(M: TDBCacheStream64);
     function DeleteData(const StorePos: Int64): Boolean;
   public
     constructor Create(dbFile: SystemString; OnlyRead: Boolean);
@@ -515,8 +522,8 @@ type
     // modify
     function SetData(const StorePos: Int64; buff: TCoreClassStream): Boolean;
     // get cache
-    function GetCacheStream(const StorePos: Int64; ID: Cardinal): TMemoryStream64InCache; overload;
-    function GetCacheStream(const StorePos: Int64): TMemoryStream64InCache; overload;
+    function GetCacheStream(const StorePos: Int64; ID: Cardinal): TDBCacheStream64; overload;
+    function GetCacheStream(const StorePos: Int64): TDBCacheStream64; overload;
     // backcall
     property NotifyIntf: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
 
@@ -710,7 +717,7 @@ begin
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
-  LastModifyTime := CreateTime;
+  ModificationTime := CreateTime;
   UsedMemory := 0;
 end;
 
@@ -733,7 +740,7 @@ begin
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
-  LastModifyTime := CreateTime;
+  ModificationTime := CreateTime;
   UsedMemory := 0;
 end;
 
@@ -756,7 +763,7 @@ begin
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
-  LastModifyTime := CreateTime;
+  ModificationTime := CreateTime;
   UsedMemory := 0;
 end;
 
@@ -779,7 +786,7 @@ begin
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
-  LastModifyTime := CreateTime;
+  ModificationTime := CreateTime;
   UsedMemory := 0;
 end;
 
@@ -805,7 +812,7 @@ begin
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
-  LastModifyTime := CreateTime;
+  ModificationTime := CreateTime;
   UsedMemory := 0;
 end;
 
@@ -836,7 +843,7 @@ begin
   DBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
-  LastModifyTime := CreateTime;
+  ModificationTime := CreateTime;
   FBuff.Len := 0;
   hash := 0;
   UsedMemory := 0;
@@ -1741,6 +1748,37 @@ begin
   Result := not(ID in [c_DF, c_VL, c_TE, c_Json, c_PascalString]);
 end;
 
+function TQueryState.IsFirst: Boolean;
+begin
+  Result := (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_FirstPositionFlags, db_Header_OnlyPositionFlags]);
+end;
+
+function TQueryState.IsLast: Boolean;
+begin
+  Result := (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_LastPositionFlags, db_Header_OnlyPositionFlags]);
+end;
+
+function TQueryState.Cache: TDBCacheStream64;
+begin
+  Result := dbEng.GetCacheStream(StorePos);
+end;
+
+function TQueryState.NextCache: TDBCacheStream64;
+begin
+  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_FirstPositionFlags, db_Header_MediumPositionFlags]) then
+      Result := dbEng.GetCacheStream(QueryHnd^.NextHeader)
+  else
+      Result := nil;
+end;
+
+function TQueryState.PrevCache: TDBCacheStream64;
+begin
+  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_LastPositionFlags, db_Header_MediumPositionFlags]) then
+      Result := dbEng.GetCacheStream(QueryHnd^.PrevHeader)
+  else
+      Result := nil;
+end;
+
 procedure TQueryTask.DoTriggerQuery;
 begin
   try
@@ -2172,19 +2210,19 @@ end;
 {$ENDIF FPC}
 
 
-constructor TMemoryStream64InCache.Create;
+constructor TDBCacheStream64.Create;
 begin
   inherited Create;
   OwnerEng := nil;
   OwnerCache := nil;
   ID := 0;
   CreateTime := 0;
-  LastModifyTime := 0;
+  ModificationTime := 0;
   StorePos := -1;
   UsedMemorySize := 0;
 end;
 
-destructor TMemoryStream64InCache.Destroy;
+destructor TDBCacheStream64.Destroy;
 begin
   if OwnerCache <> nil then
     begin
@@ -2294,13 +2332,13 @@ end;
 procedure TDBStoreBase.StreamCacheObjectFreeProc(Obj: TCoreClassObject);
 begin
   try
-    TMemoryStream64InCache(Obj).OwnerCache := nil;
+    TDBCacheStream64(Obj).OwnerCache := nil;
     DisposeObject(Obj);
   except
   end;
 end;
 
-procedure TDBStoreBase.ProcessNewStreamCache(M: TMemoryStream64InCache);
+procedure TDBStoreBase.ProcessNewStreamCache(M: TDBCacheStream64);
 begin
   FStreamCache.Add(M.StorePos, M, False);
   M.UsedMemorySize := M.Size;
@@ -2706,12 +2744,12 @@ begin
       end;
 end;
 
-function TDBStoreBase.GetCacheStream(const StorePos: Int64; ID: Cardinal): TMemoryStream64InCache;
+function TDBStoreBase.GetCacheStream(const StorePos: Int64; ID: Cardinal): TDBCacheStream64;
 var
   itmHnd: TItemHandle;
   itmStream: TItemStream;
 begin
-  Result := TMemoryStream64InCache(FStreamCache[StorePos]);
+  Result := TDBCacheStream64(FStreamCache[StorePos]);
   if Result = nil then
     begin
       itmStream := nil;
@@ -2722,7 +2760,7 @@ begin
               itmStream := TItemStream.Create(FDBEngine, itmHnd);
 
           try
-            Result := TMemoryStream64InCache.Create;
+            Result := TDBCacheStream64.Create;
             Result.CopyFrom(itmStream, itmStream.Size);
             Result.Position := 0;
 
@@ -2730,7 +2768,7 @@ begin
             Result.OwnerCache := FStreamCache;
             Result.ID := itmStream.Hnd^.Item.RHeader.UserProperty;
             Result.CreateTime := itmStream.Hnd^.CreateTime;
-            Result.LastModifyTime := itmStream.Hnd^.LastModifyTime;
+            Result.ModificationTime := itmStream.Hnd^.ModificationTime;
             Result.StorePos := StorePos;
           finally
               ProcessNewStreamCache(Result);
@@ -2745,12 +2783,12 @@ begin
       Result.Position := 0;
 end;
 
-function TDBStoreBase.GetCacheStream(const StorePos: Int64): TMemoryStream64InCache;
+function TDBStoreBase.GetCacheStream(const StorePos: Int64): TDBCacheStream64;
 var
   itmHnd: TItemHandle;
   itmStream: TItemStream;
 begin
-  Result := TMemoryStream64InCache(FStreamCache[StorePos]);
+  Result := TDBCacheStream64(FStreamCache[StorePos]);
   if Result = nil then
     begin
       if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
@@ -2758,7 +2796,7 @@ begin
           itmStream := TItemStream.Create(FDBEngine, itmHnd);
 
           try
-            Result := TMemoryStream64InCache.Create;
+            Result := TDBCacheStream64.Create;
             Result.CopyFrom(itmStream, itmStream.Size);
             Result.Position := 0;
 
@@ -2766,7 +2804,7 @@ begin
             Result.OwnerCache := FStreamCache;
             Result.ID := itmStream.Hnd^.Item.RHeader.UserProperty;
             Result.CreateTime := itmStream.Hnd^.CreateTime;
-            Result.LastModifyTime := itmStream.Hnd^.LastModifyTime;
+            Result.ModificationTime := itmStream.Hnd^.ModificationTime;
             Result.StorePos := StorePos;
           finally
               ProcessNewStreamCache(Result);
@@ -3279,7 +3317,7 @@ end;
 function TDBStoreBase.GetDF(const StorePos: Int64): TDBEngineDF;
 var
   lastAcc: TCoreClassObject;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   lastAcc := FCache[StorePos];
   if lastAcc is TDBEngineDF then
@@ -3312,7 +3350,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
             ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
@@ -3329,7 +3367,7 @@ end;
 
 function TDBStoreBase.BuildDF(const StorePos: Int64): TDBEngineDF;
 var
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := nil;
   M := GetCacheStream(StorePos, c_DF);
@@ -3347,7 +3385,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
@@ -3383,7 +3421,7 @@ end;
 function TDBStoreBase.GetVL(const StorePos: Int64): TDBEngineVL;
 var
   lastAcc: TCoreClassObject;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   lastAcc := FCache[StorePos];
   if lastAcc is TDBEngineVL then
@@ -3416,7 +3454,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
             ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
@@ -3433,7 +3471,7 @@ end;
 
 function TDBStoreBase.BuildVL(const StorePos: Int64): TDBEngineVL;
 var
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := nil;
   M := GetCacheStream(StorePos, c_VL);
@@ -3450,7 +3488,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
@@ -3486,7 +3524,7 @@ end;
 function TDBStoreBase.GetVT(const StorePos: Int64): TDBEngineVT;
 var
   lastAcc: TCoreClassObject;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   lastAcc := FCache[StorePos];
   if lastAcc is TDBEngineVT then
@@ -3519,7 +3557,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
             ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
@@ -3536,7 +3574,7 @@ end;
 
 function TDBStoreBase.BuildVT(const StorePos: Int64): TDBEngineVT;
 var
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := nil;
   M := GetCacheStream(StorePos, c_VT);
@@ -3553,7 +3591,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
@@ -3589,7 +3627,7 @@ end;
 function TDBStoreBase.GetTE(const StorePos: Int64): TDBEngineTE;
 var
   lastAcc: TCoreClassObject;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   lastAcc := FCache[StorePos];
   if lastAcc is TDBEngineTE then
@@ -3622,7 +3660,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
             ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
@@ -3639,7 +3677,7 @@ end;
 
 function TDBStoreBase.BuildTE(const StorePos: Int64): TDBEngineTE;
 var
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := nil;
   M := GetCacheStream(StorePos, c_TE);
@@ -3656,7 +3694,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
@@ -3695,7 +3733,7 @@ end;
 function TDBStoreBase.GetJson(const StorePos: Int64): TDBEngineJson;
 var
   lastAcc: TCoreClassObject;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   lastAcc := FCache[StorePos];
   if lastAcc is TDBEngineJson then
@@ -3728,7 +3766,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
             ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
@@ -3745,7 +3783,7 @@ end;
 
 function TDBStoreBase.BuildJson(const StorePos: Int64): TDBEngineJson;
 var
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := nil;
   M := GetCacheStream(StorePos, c_Json);
@@ -3762,7 +3800,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
@@ -3815,7 +3853,7 @@ begin
       t.DBStorePos := Result;
       t.dbEng := Self;
       t.CreateTime := itmHnd.CreateTime;
-      t.LastModifyTime := itmHnd.LastModifyTime;
+      t.ModificationTime := itmHnd.ModificationTime;
 
       ProcessNewInstanceCache(t.DBStorePos, t, t.UsedMemory);
     end
@@ -3873,7 +3911,7 @@ begin
       t.DBStorePos := Result;
       t.dbEng := Self;
       t.CreateTime := itmHnd.CreateTime;
-      t.LastModifyTime := itmHnd.LastModifyTime;
+      t.ModificationTime := itmHnd.ModificationTime;
 
       ProcessNewInstanceCache(t.DBStorePos, t, t.UsedMemory);
     end
@@ -3895,7 +3933,7 @@ end;
 function TDBStoreBase.GetPascalString(const StorePos: Int64): TDBEnginePascalString;
 var
   lastAcc: TCoreClassObject;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   lastAcc := FCache[StorePos];
   if lastAcc is TDBEnginePascalString then
@@ -3928,7 +3966,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
             ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
@@ -3973,7 +4011,7 @@ end;
 
 function TDBStoreBase.BuildPascalString(const StorePos: Int64): TDBEnginePascalString;
 var
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := nil;
   M := GetCacheStream(StorePos, c_PascalString);
@@ -3990,7 +4028,7 @@ begin
         Result.DBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
-        Result.LastModifyTime := M.LastModifyTime;
+        Result.ModificationTime := M.ModificationTime;
         Result.UsedMemory := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
@@ -4019,7 +4057,7 @@ DefaultMaximumStreamCacheSize := Int64(1048576 * 128);    // 128M
 DefaultCacheBufferLength := 10000;
 DefaultIndexCacheBufferLength := 10000;
 DefaultMinimizeInstanceCacheSize := 16 * 1024 * 1024; // 16M
-DefaultMaximumInstanceCacheSize := 512 * 1024 * 1024; // 512M
+DefaultMaximumInstanceCacheSize := 128 * 1024 * 1024; // 128M
 DefaultMinimizeStreamCacheSize := 8 * 1048576;        // 8M
 DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;   // 128M
 {$ENDIF}

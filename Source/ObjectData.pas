@@ -67,7 +67,7 @@ type
   THeader = record
     CurrentHeader: Int64; // nowrite
     NextHeader, PrevHeader, DataMainPOS: Int64;
-    CreateTime, LastModifyTime: Double;
+    CreateTime, ModificationTime: Double;
     ID, PositionID: Byte;
     UserProperty: Cardinal; // external define
     Name: U_String;
@@ -137,7 +137,7 @@ type
   TTMDB = record
     FileDescription: U_String;
     MajorVer, MinorVer: SmallInt;
-    CreateTime, LastModifyTime: Double;
+    CreateTime, ModificationTime: Double;
     RootHeaderCount: Int64;
     DefaultFieldPOS, FirstHeaderPOS, LastHeaderPOS, CurrentFieldPOS: Int64;
     CurrentFieldLevel: Word;
@@ -164,7 +164,7 @@ type
     Path: U_String;
     Name: U_String;
     Description: U_String;
-    CreateTime, LastModifyTime: Double;
+    CreateTime, ModificationTime: Double;
     ItemExtID: Byte;
     OpenFlags: Boolean;
   end;
@@ -172,7 +172,7 @@ type
   TTMDBSearchHeader = record
     Name: U_String;
     ID: Byte;
-    CreateTime, LastModifyTime: Double;
+    CreateTime, ModificationTime: Double;
     HeaderPOS: Int64;
     CompleteCount: Int64;
     FieldSearch: TFieldSearch;
@@ -247,8 +247,8 @@ function dbField_ReadRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderField: 
 function dbItem_OnlyWriteItemBlockRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderItemBlock: TItemBlock): Boolean; inline;
 function dbItem_OnlyReadItemBlockRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderItemBlock: TItemBlock): Boolean; inline;
 
-function dbPack_WriteRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean; inline;
-function dbPack_ReadRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean; inline;
+function db_WriteRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean; inline;
+function db_ReadRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean; inline;
 
 function dbItem_OnlyWriteItemRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderItem: TItem): Boolean; inline;
 function dbItem_OnlyReadItemRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderItem: TItem): Boolean; inline;
@@ -315,103 +315,103 @@ function dbField_CopyItem(var SenderItem: TItem; var IOHnd: TIOHnd; const DestFi
 function dbField_CopyItemBuffer(var SenderItem: TItem; var IOHnd: TIOHnd; var DestItemHnd: TItem; var DestRecFile: TIOHnd): Boolean;                           { inline token }
 function dbField_CopyAllTo(const FilterName: U_String; const FieldPos: Int64; var IOHnd: TIOHnd; const DestFieldPos: Int64; var DestRecFile: TIOHnd): Boolean; { inline token }
 
-function dbPack_CreatePack(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;      { inline token }
-function dbPack_OpenPack(const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean; { inline token }
+function db_CreatePack(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;      { inline token }
+function db_OpenPack(const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean; { inline token }
 
-function dbPack_CreateAsStream(stream: U_Stream; const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;      { inline token }
-function dbPack_OpenAsStream(stream: U_Stream; const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean; { inline token }
+function db_CreateAsStream(stream: U_Stream; const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;      { inline token }
+function db_OpenAsStream(stream: U_Stream; const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean; { inline token }
 
-function dbPack_ClosePack(var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_ClosePack(var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_CopyFieldTo(const FilterName: U_String; var SenderTMDB: TTMDB; const SourceFieldPos: Int64; var DestTMDB: TTMDB; const DestFieldPos: Int64): Boolean; { inline token }
-function dbPack_CopyAllTo(var SenderTMDB: TTMDB; var DestTMDB: TTMDB): Boolean;                                                                                       { inline token }
-function dbPack_CopyAllToDestPath(var SenderTMDB: TTMDB; var DestTMDB: TTMDB; destPath: U_String): Boolean;                                                           { inline token }
+function db_CopyFieldTo(const FilterName: U_String; var SenderTMDB: TTMDB; const SourceFieldPos: Int64; var DestTMDB: TTMDB; const DestFieldPos: Int64): Boolean; { inline token }
+function db_CopyAllTo(var SenderTMDB: TTMDB; var DestTMDB: TTMDB): Boolean;                                                                                       { inline token }
+function db_CopyAllToDestPath(var SenderTMDB: TTMDB; var DestTMDB: TTMDB; destPath: U_String): Boolean;                                                           { inline token }
 
-function dbPack_Update(var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_Update(var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_TestNameStr(const Name: U_String): Boolean; { inline token }
+function db_TestName(const Name: U_String): Boolean; { inline token }
 
-function dbPack_AutoCheckRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;                 { inline token }
-function dbPack_CreateRootHeader(const Name: U_String; const ID: Byte; var SenderTMDB: TTMDB; var SenderHeader: THeader): Boolean; { inline token }
-function dbPack_CreateRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;                                { inline token }
-function dbPack_CreateAndSetRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;                          { inline token }
-function dbPack_CreateField(const pathName, Description: U_String; var SenderTMDB: TTMDB): Boolean;                                { inline token }
+function db_CheckRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;                     { inline token }
+function db_CreateRootHeader(const Name: U_String; const ID: Byte; var SenderTMDB: TTMDB; var SenderHeader: THeader): Boolean; { inline token }
+function db_CreateRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;                                { inline token }
+function db_CreateAndSetRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;                          { inline token }
+function db_CreateField(const pathName, Description: U_String; var SenderTMDB: TTMDB): Boolean;                                { inline token }
 
-function dbPack_SetFieldName(const pathName, OriginFieldName, NewFieldName, FieldDescription: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_SetItemName(const pathName, OriginItemName, NewItemName, ItemDescription: U_String; var SenderTMDB: TTMDB): Boolean;     { inline token }
-function dbPack_DeleteField(const pathName, FilterName: U_String; var SenderTMDB: TTMDB): Boolean;                                       { inline token }
+function db_SetFieldName(const pathName, OriginFieldName, NewFieldName, FieldDescription: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_SetItemName(const pathName, OriginItemName, NewItemName, ItemDescription: U_String; var SenderTMDB: TTMDB): Boolean;     { inline token }
+function db_DeleteField(const pathName, FilterName: U_String; var SenderTMDB: TTMDB): Boolean;                                       { inline token }
 
-function dbPack_DeleteHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_DeleteHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_MoveItem(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_MoveItem(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_MoveField(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_MoveField(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_MoveHeader(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const HeaderID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_MoveHeader(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const HeaderID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_SetCurrentRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_SetCurrentField(const pathName: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_SetCurrentRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_SetCurrentField(const pathName: U_String; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_GetRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;         { inline token }
-function dbPack_GetField(const pathName: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;         { inline token }
-function dbPack_GetPath(const FieldPos, RootFieldPos: Int64; var SenderTMDB: TTMDB; var RetPath: U_String): Boolean; { inline token }
+function db_GetRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;         { inline token }
+function db_GetField(const pathName: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;         { inline token }
+function db_GetPath(const FieldPos, RootFieldPos: Int64; var SenderTMDB: TTMDB; var RetPath: U_String): Boolean; { inline token }
 
-function dbPack_NewItem(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_NewItem(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_DeleteItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_DeleteItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_GetItem(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_GetItem(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_ItemCreate(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                      { inline token }
-function dbPack_ItemFastCreate(const ItemName, ItemDescription: U_String; const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                         { inline token }
-function dbPack_ItemFastInsertNew(const ItemName, ItemDescription: U_String; const FieldPos, InsertHeaderPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_ItemOpen(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                         { inline token }
-function dbPack_ItemFastOpen(const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                      { inline token }
-function dbPack_ItemClose(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                                                                   { inline token }
-function dbPack_ItemUpdate(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                                                                  { inline token }
-function dbPack_ItemBodyReset(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                                                               { inline token }
-function dbPack_ItemReName(const FieldPos: Int64; const NewItemName, NewItemDescription: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                          { inline token }
+function db_ItemCreate(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                      { inline token }
+function db_ItemFastCreate(const ItemName, ItemDescription: U_String; const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                         { inline token }
+function db_ItemFastInsertNew(const ItemName, ItemDescription: U_String; const FieldPos, InsertHeaderPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_ItemOpen(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                         { inline token }
+function db_ItemFastOpen(const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                      { inline token }
+function db_ItemClose(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                                                                   { inline token }
+function db_ItemUpdate(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                                                                  { inline token }
+function db_ItemBodyReset(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                                                                                               { inline token }
+function db_ItemReName(const FieldPos: Int64; const NewItemName, NewItemDescription: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                                          { inline token }
 
-function dbPack_ItemRead(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;  { inline token }
-function dbPack_ItemWrite(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_ItemReadStr(var Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;           { inline token }
-function dbPack_ItemWriteStr(const Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;        { inline token }
+function db_ItemRead(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;  { inline token }
+function db_ItemWrite(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_ItemReadStr(var Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;           { inline token }
+function db_ItemWriteStr(const Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;        { inline token }
 
-function dbPack_ItemSeekPos(const fPos: Int64; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;    { inline token }
-function dbPack_ItemSeekStartPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                  { inline token }
-function dbPack_ItemSeekLastPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                   { inline token }
-function dbPack_ItemGetPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;                          { inline token }
-function dbPack_ItemGetSize(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;                         { inline token }
-function dbPack_AppendItemSize(var SenderTMDBItemHandle: TTMDBItemHandle; const Size: Int64; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_ItemSeekPos(const fPos: Int64; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;    { inline token }
+function db_ItemSeekStartPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                  { inline token }
+function db_ItemSeekLastPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;                   { inline token }
+function db_ItemGetPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;                          { inline token }
+function db_ItemGetSize(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;                         { inline token }
+function db_AppendItemSize(var SenderTMDBItemHandle: TTMDBItemHandle; const Size: Int64; var SenderTMDB: TTMDB): Boolean; { inline token }
 
-function dbPack_ExistsRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;                                                                      { inline token }
-function dbPack_FindFirstHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_FindNextHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;                                                        { inline token }
-function dbPack_FindLastHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;  { inline token }
-function dbPack_FindPrevHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;                                                        { inline token }
+function db_ExistsRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;                                                                      { inline token }
+function db_FindFirstHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_FindNextHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;                                                        { inline token }
+function db_FindLastHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;  { inline token }
+function db_FindPrevHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;                                                        { inline token }
 
-function dbPack_FindFirstItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_FindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
-function dbPack_FindLastItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;  { inline token }
-function dbPack_FindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
+function db_FindFirstItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_FindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
+function db_FindLastItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;  { inline token }
+function db_FindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
 
-function dbPack_FastFindFirstItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_FastFindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
-function dbPack_FastFindLastItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;  { inline token }
-function dbPack_FastFindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
+function db_FastFindFirstItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_FastFindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
+function db_FastFindLastItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;  { inline token }
+function db_FastFindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
 
-function dbPack_FindFirstField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_FindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
-function dbPack_FindLastField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;  { inline token }
-function dbPack_FindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
+function db_FindFirstField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_FindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
+function db_FindLastField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;  { inline token }
+function db_FindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
 
-function dbPack_FastFindFirstField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_FastFindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
-function dbPack_FastFindLastField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;  { inline token }
-function dbPack_FastFindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
+function db_FastFindFirstField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_FastFindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
+function db_FastFindLastField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;  { inline token }
+function db_FastFindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;                                                     { inline token }
 
-function dbPack_RecursionSearchFirst(const InitPath, FilterName: U_String; var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean; { inline token }
-function dbPack_RecursionSearchNext(var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
+function db_RecursionSearchFirst(const InitPath, FilterName: U_String; var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean; { inline token }
+function db_RecursionSearchNext(var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean;                                        { inline token }
 
 const
   { return code }
@@ -534,27 +534,27 @@ implementation
 
 uses PascalStrings;
 
-function dbPack_GetPathCount(const StrName: U_String): Integer; inline;
+function db_GetPathCount(const StrName: U_String): Integer;
 begin
   Result := umlGetIndexStrCount(StrName, db_FieldPathLimitChar);
 end;
 
-function dbPack_DeleteFirstPath(const pathName: U_String): U_String; inline;
+function db_DeleteFirstPath(const pathName: U_String): U_String;
 begin
   Result := umlDeleteFirstStr(pathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_DeleteLastPath(const pathName: U_String): U_String; inline;
+function db_DeleteLastPath(const pathName: U_String): U_String;
 begin
   Result := umlDeleteLastStr(pathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_GetFirstPath(const pathName: U_String): U_String; inline;
+function db_GetFirstPath(const pathName: U_String): U_String;
 begin
   Result := umlGetFirstStr(pathName, db_FieldPathLimitChar).Text;
 end;
 
-function dbPack_GetLastPath(const pathName: U_String): U_String; inline;
+function db_GetLastPath(const pathName: U_String): U_String;
 begin
   Result := umlGetLastStr(pathName, db_FieldPathLimitChar).Text;
 end;
@@ -566,7 +566,7 @@ begin
   SenderHeader.PrevHeader := 0;
   SenderHeader.DataMainPOS := 0;
   SenderHeader.CreateTime := 0;
-  SenderHeader.LastModifyTime := 0;
+  SenderHeader.ModificationTime := 0;
   SenderHeader.ID := 0;
   SenderHeader.PositionID := 0;
   SenderHeader.UserProperty := 0;
@@ -630,7 +630,7 @@ begin
   SenderTMDB.MajorVer := 0;
   SenderTMDB.MinorVer := 0;
   SenderTMDB.CreateTime := 0;
-  SenderTMDB.LastModifyTime := 0;
+  SenderTMDB.ModificationTime := 0;
   SenderTMDB.RootHeaderCount := 0;
   SenderTMDB.DefaultFieldPOS := 0;
   SenderTMDB.FirstHeaderPOS := 0;
@@ -665,7 +665,7 @@ begin
   SenderTMDBItemHandle.Name := '';
   SenderTMDBItemHandle.Description := '';
   SenderTMDBItemHandle.CreateTime := 0;
-  SenderTMDBItemHandle.LastModifyTime := 0;
+  SenderTMDBItemHandle.ModificationTime := 0;
   SenderTMDBItemHandle.ItemExtID := 0;
   SenderTMDBItemHandle.OpenFlags := False;
 end;
@@ -675,7 +675,7 @@ begin
   SenderTMDBSearchHeader.Name := '';
   SenderTMDBSearchHeader.ID := 0;
   SenderTMDBSearchHeader.CreateTime := 0;
-  SenderTMDBSearchHeader.LastModifyTime := 0;
+  SenderTMDBSearchHeader.ModificationTime := 0;
   SenderTMDBSearchHeader.HeaderPOS := 0;
   SenderTMDBSearchHeader.CompleteCount := 0;
   Init_TFieldSearch(SenderTMDBSearchHeader.FieldSearch);
@@ -768,7 +768,7 @@ begin
       Result := False;
       Exit;
     end;
-  if umlFileWrite(IOHnd, DB_Time_Size, SenderHeader.LastModifyTime) = False then
+  if umlFileWrite(IOHnd, DB_Time_Size, SenderHeader.ModificationTime) = False then
     begin
       SenderHeader.Return := db_Header_WriteLastEditTimeError;
       Result := False;
@@ -851,7 +851,7 @@ begin
       Result := False;
       Exit;
     end;
-  if umlFileRead(IOHnd, DB_Time_Size, SenderHeader.LastModifyTime) = False then
+  if umlFileRead(IOHnd, DB_Time_Size, SenderHeader.ModificationTime) = False then
     begin
       SenderHeader.Return := db_Header_ReadLastEditTimeError;
       Result := False;
@@ -1241,7 +1241,7 @@ begin
         PTMDB(IOHnd.Data)^.OnWriteItemBlock(fPos, SenderItemBlock);
 end;
 
-function dbPack_WriteRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean;
+function db_WriteRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean;
 begin
   if umlFileSeek(IOHnd, fPos) = False then
     begin
@@ -1274,7 +1274,7 @@ begin
       Result := False;
       Exit;
     end;
-  if umlFileWrite(IOHnd, DB_Time_Size, SenderTMDB.LastModifyTime) = False then
+  if umlFileWrite(IOHnd, DB_Time_Size, SenderTMDB.ModificationTime) = False then
     begin
       SenderTMDB.Return := db_Pack_WriteLastEditTimeError;
       Result := False;
@@ -1320,7 +1320,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ReadRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean;
+function db_ReadRec(const fPos: Int64; var IOHnd: TIOHnd; var SenderTMDB: TTMDB): Boolean;
 begin
   if umlFileSeek(IOHnd, fPos) = False then
     begin
@@ -1358,7 +1358,7 @@ begin
       Result := False;
       Exit;
     end;
-  if umlFileRead(IOHnd, DB_Time_Size, SenderTMDB.LastModifyTime) = False then
+  if umlFileRead(IOHnd, DB_Time_Size, SenderTMDB.ModificationTime) = False then
     begin
       SenderTMDB.Return := db_Pack_ReadLastEditTimeError;
       Result := False;
@@ -2932,13 +2932,13 @@ begin
         f.HeaderCount := 1;
         f.FirstHeaderPOS := umlFileGetSize(IOHnd);
         f.LastHeaderPOS := f.FirstHeaderPOS;
-        f.RHeader.LastModifyTime := umlDefaultTime;
+        f.RHeader.ModificationTime := umlDefaultTime;
         SenderHeader.PositionID := db_Header_OnlyPositionFlags;
         SenderHeader.NextHeader := f.LastHeaderPOS;
         SenderHeader.PrevHeader := f.FirstHeaderPOS;
         SenderHeader.CurrentHeader := f.FirstHeaderPOS;
         SenderHeader.CreateTime := umlDefaultTime;
-        SenderHeader.LastModifyTime := umlDefaultTime;
+        SenderHeader.ModificationTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
           begin
@@ -2975,9 +2975,9 @@ begin
           end;
         f.HeaderCount := f.HeaderCount + 1;
         f.LastHeaderPOS := SenderHeader.CurrentHeader;
-        f.RHeader.LastModifyTime := umlDefaultTime;
+        f.RHeader.ModificationTime := umlDefaultTime;
         SenderHeader.CreateTime := umlDefaultTime;
-        SenderHeader.LastModifyTime := umlDefaultTime;
+        SenderHeader.ModificationTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         SenderHeader.PositionID := db_Header_LastPositionFlags;
         if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
@@ -3031,9 +3031,9 @@ begin
 
         f.HeaderCount := f.HeaderCount + 1;
         f.LastHeaderPOS := SenderHeader.CurrentHeader;
-        f.RHeader.LastModifyTime := umlDefaultTime;
+        f.RHeader.ModificationTime := umlDefaultTime;
         SenderHeader.CreateTime := umlDefaultTime;
-        SenderHeader.LastModifyTime := umlDefaultTime;
+        SenderHeader.ModificationTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         SenderHeader.PositionID := db_Header_LastPositionFlags;
         if dbField_WriteRec(f.RHeader.CurrentHeader, IOHnd, f) = False then
@@ -3073,12 +3073,12 @@ begin
       Exit;
     end;
 
-  f.RHeader.LastModifyTime := umlDefaultTime;
+  f.RHeader.ModificationTime := umlDefaultTime;
 
   NewHeader.CurrentHeader := umlFileGetSize(IOHnd);
   NewHeader.DataMainPOS := NewHeader.CurrentHeader + db_Header_Size;
   NewHeader.CreateTime := umlDefaultTime;
-  NewHeader.LastModifyTime := umlDefaultTime;
+  NewHeader.ModificationTime := umlDefaultTime;
   NewHeader.ID := ID;
   NewHeader.UserProperty := 0;
   NewHeader.Name := Name;
@@ -3361,7 +3361,7 @@ begin
             SenderField.HeaderCount := 0;
             SenderField.FirstHeaderPOS := 0;
             SenderField.LastHeaderPOS := 0;
-            SenderField.RHeader.LastModifyTime := umlDefaultTime;
+            SenderField.RHeader.ModificationTime := umlDefaultTime;
             if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
               begin
                 Result := False;
@@ -3404,7 +3404,7 @@ begin
               SenderField.FirstHeaderPOS := DeleteHeader.CurrentHeader;
               SenderField.LastHeaderPOS := DeleteHeader.CurrentHeader;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3433,7 +3433,7 @@ begin
               SenderField.FirstHeaderPOS := DeleteHeader.CurrentHeader;
               SenderField.LastHeaderPOS := DeleteHeader.CurrentHeader;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3490,7 +3490,7 @@ begin
                   Exit;
                 end;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3528,7 +3528,7 @@ begin
                   Exit;
                 end;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3568,7 +3568,7 @@ begin
                   Exit;
                 end;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3625,7 +3625,7 @@ begin
                   Exit;
                 end;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3663,7 +3663,7 @@ begin
                   Exit;
                 end;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3703,7 +3703,7 @@ begin
                   Exit;
                 end;
               SenderField.HeaderCount := SenderField.HeaderCount - 1;
-              SenderField.RHeader.LastModifyTime := umlDefaultTime;
+              SenderField.RHeader.ModificationTime := umlDefaultTime;
               if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
                 begin
                   Result := False;
@@ -3790,7 +3790,7 @@ begin
           end;
         SenderField.HeaderCount := SenderField.HeaderCount + 1;
         SenderField.LastHeaderPOS := ActiveHeader.CurrentHeader;
-        SenderField.RHeader.LastModifyTime := umlDefaultTime;
+        SenderField.RHeader.ModificationTime := umlDefaultTime;
         if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
           begin
             Result := False;
@@ -3839,7 +3839,7 @@ begin
           end;
         SenderField.HeaderCount := SenderField.HeaderCount + 1;
         SenderField.LastHeaderPOS := ActiveHeader.CurrentHeader;
-        SenderField.RHeader.LastModifyTime := umlDefaultTime;
+        SenderField.RHeader.ModificationTime := umlDefaultTime;
         ActiveHeader.PositionID := db_Header_LastPositionFlags;
         if dbField_WriteRec(SenderField.RHeader.CurrentHeader, IOHnd, SenderField) = False then
           begin
@@ -3912,7 +3912,7 @@ begin
   SenderItem.LastBlockPOS := 0;
   SenderItem.Size := 0;
   SenderItem.BlockCount := 0;
-  SenderItem.RHeader.LastModifyTime := umlDefaultTime;
+  SenderItem.RHeader.ModificationTime := umlDefaultTime;
   if dbItem_OnlyWriteItemRec(SenderItem.RHeader.DataMainPOS, IOHnd, SenderItem) = False then
     begin
       Result := False;
@@ -3937,7 +3937,7 @@ begin
   SenderItem.LastBlockPOS := 0;
   SenderItem.Size := 0;
   SenderItem.BlockCount := 0;
-  SenderItem.RHeader.LastModifyTime := umlDefaultTime;
+  SenderItem.RHeader.ModificationTime := umlDefaultTime;
   if dbItem_OnlyWriteItemRec(SenderItem.RHeader.DataMainPOS, IOHnd, SenderItem) = False then
     begin
       Result := False;
@@ -4118,7 +4118,7 @@ begin
   Result := True;
 end;
 
-function dbPack_CreatePack(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_CreatePack(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 begin
   if umlFileTest(SenderTMDB.IOHnd) then
     begin
@@ -4135,18 +4135,18 @@ begin
   SenderTMDB.MajorVer := db_Pack_MajorVersion;
   SenderTMDB.MinorVer := db_Pack_MinorVersion;
   SenderTMDB.CreateTime := umlDefaultTime;
-  SenderTMDB.LastModifyTime := SenderTMDB.CreateTime;
+  SenderTMDB.ModificationTime := SenderTMDB.CreateTime;
   SenderTMDB.RootHeaderCount := 0;
   SenderTMDB.DefaultFieldPOS := db_Pack_Size;
   SenderTMDB.LastHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.FirstHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.CurrentFieldPOS := SenderTMDB.DefaultFieldPOS;
-  if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
+  if db_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbPack_CreateAndSetRootField(db_Pack_DefaultDescription, db_Pack_DefaultDescription, SenderTMDB) = False then
+  if db_CreateAndSetRootField(db_Pack_DefaultDescription, db_Pack_DefaultDescription, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4155,7 +4155,7 @@ begin
   Result := True;
 end;
 
-function dbPack_OpenPack(const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean;
+function db_OpenPack(const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean;
 begin
   if umlFileTest(SenderTMDB.IOHnd) then
     begin
@@ -4171,7 +4171,7 @@ begin
       Exit;
     end;
 
-  if dbPack_ReadRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
+  if db_ReadRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4181,7 +4181,7 @@ begin
   Result := True;
 end;
 
-function dbPack_CreateAsStream(stream: U_Stream; const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_CreateAsStream(stream: U_Stream; const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 begin
   if umlFileTest(SenderTMDB.IOHnd) then
     begin
@@ -4198,18 +4198,18 @@ begin
   SenderTMDB.MajorVer := db_Pack_MajorVersion;
   SenderTMDB.MinorVer := db_Pack_MinorVersion;
   SenderTMDB.CreateTime := umlDefaultTime;
-  SenderTMDB.LastModifyTime := SenderTMDB.CreateTime;
+  SenderTMDB.ModificationTime := SenderTMDB.CreateTime;
   SenderTMDB.RootHeaderCount := 0;
   SenderTMDB.DefaultFieldPOS := db_Pack_Size;
   SenderTMDB.LastHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.FirstHeaderPOS := SenderTMDB.DefaultFieldPOS;
   SenderTMDB.CurrentFieldPOS := SenderTMDB.DefaultFieldPOS;
-  if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
+  if db_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbPack_CreateAndSetRootField(db_Pack_DefaultDescription, db_Pack_DefaultDescription, SenderTMDB) = False then
+  if db_CreateAndSetRootField(db_Pack_DefaultDescription, db_Pack_DefaultDescription, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4218,7 +4218,7 @@ begin
   Result := True;
 end;
 
-function dbPack_OpenAsStream(stream: U_Stream; const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean;
+function db_OpenAsStream(stream: U_Stream; const Name: U_String; var SenderTMDB: TTMDB; _OnlyRead: Boolean): Boolean;
 begin
   if umlFileTest(SenderTMDB.IOHnd) then
     begin
@@ -4234,7 +4234,7 @@ begin
       Exit;
     end;
 
-  if dbPack_ReadRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
+  if db_ReadRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4244,7 +4244,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ClosePack(var SenderTMDB: TTMDB): Boolean;
+function db_ClosePack(var SenderTMDB: TTMDB): Boolean;
 begin
   if umlFileTest(SenderTMDB.IOHnd) = False then
     begin
@@ -4252,10 +4252,10 @@ begin
       Result := False;
       Exit;
     end;
-  if SenderTMDB.IOHnd.WriteFlag then
+  if SenderTMDB.IOHnd.WriteStated then
     begin
-      SenderTMDB.LastModifyTime := umlDefaultTime;
-      if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
+      SenderTMDB.ModificationTime := umlDefaultTime;
+      if db_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
         begin
           Result := False;
           Exit;
@@ -4271,7 +4271,7 @@ begin
   Result := True;
 end;
 
-function dbPack_Update(var SenderTMDB: TTMDB): Boolean;
+function db_Update(var SenderTMDB: TTMDB): Boolean;
 begin
   if umlFileTest(SenderTMDB.IOHnd) = False then
     begin
@@ -4279,10 +4279,10 @@ begin
       Result := False;
       Exit;
     end;
-  if SenderTMDB.IOHnd.WriteFlag then
+  if SenderTMDB.IOHnd.WriteStated then
     begin
-      SenderTMDB.LastModifyTime := umlDefaultTime;
-      if dbPack_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
+      SenderTMDB.ModificationTime := umlDefaultTime;
+      if db_WriteRec(0, SenderTMDB.IOHnd, SenderTMDB) = False then
         begin
           Result := False;
           Exit;
@@ -4292,7 +4292,7 @@ begin
   Result := umlFileUpdate(SenderTMDB.IOHnd);
 end;
 
-function dbPack_CopyFieldTo(const FilterName: U_String; var SenderTMDB: TTMDB; const SourceFieldPos: Int64; var DestTMDB: TTMDB; const DestFieldPos: Int64): Boolean;
+function db_CopyFieldTo(const FilterName: U_String; var SenderTMDB: TTMDB; const SourceFieldPos: Int64; var DestTMDB: TTMDB; const DestFieldPos: Int64): Boolean;
 begin
   if dbField_CopyAllTo(FilterName, SourceFieldPos, SenderTMDB.IOHnd, DestFieldPos, DestTMDB.IOHnd) then
     begin
@@ -4308,33 +4308,33 @@ begin
     end;
 end;
 
-function dbPack_CopyAllTo(var SenderTMDB: TTMDB; var DestTMDB: TTMDB): Boolean;
+function db_CopyAllTo(var SenderTMDB: TTMDB; var DestTMDB: TTMDB): Boolean;
 begin
-  Result := dbPack_CopyFieldTo('*', SenderTMDB, SenderTMDB.DefaultFieldPOS, DestTMDB, DestTMDB.DefaultFieldPOS);
+  Result := db_CopyFieldTo('*', SenderTMDB, SenderTMDB.DefaultFieldPOS, DestTMDB, DestTMDB.DefaultFieldPOS);
 end;
 
-function dbPack_CopyAllToDestPath(var SenderTMDB: TTMDB; var DestTMDB: TTMDB; destPath: U_String): Boolean;
+function db_CopyAllToDestPath(var SenderTMDB: TTMDB; var DestTMDB: TTMDB; destPath: U_String): Boolean;
 var
   f: TField;
 begin
   Result := False;
-  dbPack_CreateField(destPath, '', DestTMDB);
-  if dbPack_GetField(destPath, f, DestTMDB) then
+  db_CreateField(destPath, '', DestTMDB);
+  if db_GetField(destPath, f, DestTMDB) then
     begin
-      Result := dbPack_CopyFieldTo('*', SenderTMDB, SenderTMDB.DefaultFieldPOS, DestTMDB, f.RHeader.CurrentHeader);
+      Result := db_CopyFieldTo('*', SenderTMDB, SenderTMDB.DefaultFieldPOS, DestTMDB, f.RHeader.CurrentHeader);
     end;
 end;
 
-function dbPack_TestNameStr(const Name: U_String): Boolean;
+function db_TestName(const Name: U_String): Boolean;
 begin
   Result := umlDeleteChar(Name, TPascalString(db_FieldPathLimitChar + #9#32#13#10)).Len > 0;
 end;
 
-function dbPack_AutoCheckRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
+function db_CheckRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_TestNameStr(Name) = False then
+  if db_TestName(Name) = False then
     begin
       SenderTMDB.Return := db_Pack_PathNameError;
       SenderField.Return := SenderTMDB.Return;
@@ -4342,9 +4342,9 @@ begin
       Exit;
     end;
 
-  if dbPack_GetRootField(Name, f, SenderTMDB) = False then
+  if db_GetRootField(Name, f, SenderTMDB) = False then
     begin
-      if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, SenderField.RHeader) = False then
+      if db_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, SenderField.RHeader) = False then
         begin
           SenderTMDB.Return := SenderField.RHeader.Return;
           SenderField.Return := SenderTMDB.Return;
@@ -4369,7 +4369,7 @@ begin
   Result := True;
 end;
 
-function dbPack_CreateRootHeader(const Name: U_String; const ID: Byte; var SenderTMDB: TTMDB; var SenderHeader: THeader): Boolean;
+function db_CreateRootHeader(const Name: U_String; const ID: Byte; var SenderTMDB: TTMDB; var SenderHeader: THeader): Boolean;
 var
   _Header: THeader;
 begin
@@ -4381,13 +4381,13 @@ begin
         SenderTMDB.RootHeaderCount := 1;
         SenderTMDB.FirstHeaderPOS := umlFileGetSize(SenderTMDB.IOHnd);
         SenderTMDB.LastHeaderPOS := SenderTMDB.FirstHeaderPOS;
-        SenderTMDB.LastModifyTime := umlDefaultTime;
+        SenderTMDB.ModificationTime := umlDefaultTime;
         SenderHeader.PositionID := db_Header_OnlyPositionFlags;
         SenderHeader.NextHeader := SenderTMDB.LastHeaderPOS;
         SenderHeader.PrevHeader := SenderTMDB.FirstHeaderPOS;
         SenderHeader.CurrentHeader := SenderTMDB.FirstHeaderPOS;
         SenderHeader.CreateTime := umlDefaultTime;
-        SenderHeader.LastModifyTime := umlDefaultTime;
+        SenderHeader.ModificationTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         if dbHeader_WriteRec(SenderHeader.CurrentHeader, SenderTMDB.IOHnd, SenderHeader) = False then
           begin
@@ -4417,9 +4417,9 @@ begin
           end;
         SenderTMDB.RootHeaderCount := SenderTMDB.RootHeaderCount + 1;
         SenderTMDB.LastHeaderPOS := SenderHeader.CurrentHeader;
-        SenderTMDB.LastModifyTime := umlDefaultTime;
+        SenderTMDB.ModificationTime := umlDefaultTime;
         SenderHeader.CreateTime := umlDefaultTime;
-        SenderHeader.LastModifyTime := umlDefaultTime;
+        SenderHeader.ModificationTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         SenderHeader.PositionID := db_Header_LastPositionFlags;
         if dbHeader_WriteRec(SenderHeader.CurrentHeader, SenderTMDB.IOHnd, SenderHeader) = False then
@@ -4462,9 +4462,9 @@ begin
           end;
         SenderTMDB.RootHeaderCount := SenderTMDB.RootHeaderCount + 1;
         SenderTMDB.LastHeaderPOS := SenderHeader.CurrentHeader;
-        SenderTMDB.LastModifyTime := umlDefaultTime;
+        SenderTMDB.ModificationTime := umlDefaultTime;
         SenderHeader.CreateTime := umlDefaultTime;
-        SenderHeader.LastModifyTime := umlDefaultTime;
+        SenderHeader.ModificationTime := umlDefaultTime;
         SenderHeader.DataMainPOS := SenderHeader.CurrentHeader + db_Header_Size;
         SenderHeader.PositionID := db_Header_LastPositionFlags;
         if dbHeader_WriteRec(SenderHeader.CurrentHeader, SenderTMDB.IOHnd, SenderHeader) = False then
@@ -4479,24 +4479,24 @@ begin
   Result := True;
 end;
 
-function dbPack_CreateRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_CreateRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_TestNameStr(Name) = False then
+  if db_TestName(Name) = False then
     begin
       SenderTMDB.Return := db_Pack_PathNameError;
       Result := False;
       Exit;
     end;
 
-  if dbPack_ExistsRootField(Name, SenderTMDB) then
+  if db_ExistsRootField(Name, SenderTMDB) then
     begin
       SenderTMDB.Return := db_Pack_PathNameError;
       Result := False;
       Exit;
     end;
-  if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, f.RHeader) = False then
+  if db_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, f.RHeader) = False then
     begin
       SenderTMDB.Return := f.RHeader.Return;
       Result := False;
@@ -4515,24 +4515,24 @@ begin
   Result := True;
 end;
 
-function dbPack_CreateAndSetRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_CreateAndSetRootField(const Name, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_TestNameStr(Name) = False then
+  if db_TestName(Name) = False then
     begin
       SenderTMDB.Return := db_Pack_PathNameError;
       Result := False;
       Exit;
     end;
 
-  if dbPack_ExistsRootField(Name, SenderTMDB) then
+  if db_ExistsRootField(Name, SenderTMDB) then
     begin
       SenderTMDB.Return := db_Pack_PathNameError;
       Result := False;
       Exit;
     end;
-  if dbPack_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, f.RHeader) = False then
+  if db_CreateRootHeader(Name, db_Header_Field_ID, SenderTMDB, f.RHeader) = False then
     begin
       SenderTMDB.Return := f.RHeader.Return;
       Result := False;
@@ -4552,7 +4552,7 @@ begin
   Result := True;
 end;
 
-function dbPack_CreateField(const pathName, Description: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_CreateField(const pathName, Description: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   fs: TFieldSearch;
@@ -4579,15 +4579,15 @@ begin
       Exit;
     end;
   TempPathName := pathName;
-  PC := dbPack_GetPathCount(TempPathName);
+  PC := db_GetPathCount(TempPathName);
   if PC > 0 then
     begin
       for i := 1 to PC do
         begin
-          TempPathStr := dbPack_GetFirstPath(TempPathName);
-          TempPathName := dbPack_DeleteFirstPath(TempPathName);
+          TempPathStr := db_GetFirstPath(TempPathName);
+          TempPathName := db_DeleteFirstPath(TempPathName);
 
-          if dbPack_TestNameStr(TempPathStr) = False then
+          if db_TestName(TempPathStr) = False then
             begin
               SenderTMDB.Return := db_Pack_PathNameError;
               Result := False;
@@ -4620,13 +4620,13 @@ begin
   Result := True;
 end;
 
-function dbPack_SetFieldName(const pathName, OriginFieldName, NewFieldName, FieldDescription: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_SetFieldName(const pathName, OriginFieldName, NewFieldName, FieldDescription: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   f: TField;
   OriginField: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4655,13 +4655,13 @@ begin
   Result := True;
 end;
 
-function dbPack_SetItemName(const pathName, OriginItemName, NewItemName, ItemDescription: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_SetItemName(const pathName, OriginItemName, NewItemName, ItemDescription: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   f: TField;
   OriginItem: TItem;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4690,12 +4690,12 @@ begin
   Result := True;
 end;
 
-function dbPack_DeleteField(const pathName, FilterName: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_DeleteField(const pathName, FilterName: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4725,12 +4725,12 @@ begin
   Result := True;
 end;
 
-function dbPack_DeleteHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_DeleteHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4760,17 +4760,17 @@ begin
   Result := True;
 end;
 
-function dbPack_MoveItem(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_MoveItem(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   SourcerField, TargetField: TField;
 begin
-  if dbPack_GetField(SourcerPathName, SourcerField, SenderTMDB) = False then
+  if db_GetField(SourcerPathName, SourcerField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbPack_GetField(TargetPathName, TargetField, SenderTMDB) = False then
+  if db_GetField(TargetPathName, TargetField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4821,17 +4821,17 @@ begin
   Result := True;
 end;
 
-function dbPack_MoveField(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_MoveField(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   SourcerField, TargetField: TField;
 begin
-  if dbPack_GetField(SourcerPathName, SourcerField, SenderTMDB) = False then
+  if db_GetField(SourcerPathName, SourcerField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbPack_GetField(TargetPathName, TargetField, SenderTMDB) = False then
+  if db_GetField(TargetPathName, TargetField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4882,17 +4882,17 @@ begin
   Result := True;
 end;
 
-function dbPack_MoveHeader(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const HeaderID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_MoveHeader(const SourcerPathName, FilterName: U_String; const TargetPathName: U_String; const HeaderID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   SourcerField, TargetField: TField;
 begin
-  if dbPack_GetField(SourcerPathName, SourcerField, SenderTMDB) = False then
+  if db_GetField(SourcerPathName, SourcerField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
     end;
-  if dbPack_GetField(TargetPathName, TargetField, SenderTMDB) = False then
+  if db_GetField(TargetPathName, TargetField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -4943,7 +4943,7 @@ begin
   Result := True;
 end;
 
-function dbPack_SetCurrentRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_SetCurrentRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -5009,7 +5009,7 @@ begin
   Result := False;
 end;
 
-function dbPack_SetCurrentField(const pathName: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_SetCurrentField(const pathName: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   fs: TFieldSearch;
@@ -5038,15 +5038,15 @@ begin
       Exit;
     end;
   TempPathName := pathName;
-  PC := dbPack_GetPathCount(TempPathName);
+  PC := db_GetPathCount(TempPathName);
   if PC > 0 then
     begin
       for i := 1 to PC do
         begin
-          TempPathStr := dbPack_GetFirstPath(TempPathName);
-          TempPathName := dbPack_DeleteFirstPath(TempPathName);
+          TempPathStr := db_GetFirstPath(TempPathName);
+          TempPathName := db_DeleteFirstPath(TempPathName);
 
-          if dbPack_TestNameStr(TempPathStr) = False then
+          if db_TestName(TempPathStr) = False then
             begin
               SenderTMDB.Return := db_Pack_PathNameError;
               Result := False;
@@ -5072,7 +5072,7 @@ begin
   Result := True;
 end;
 
-function dbPack_GetRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
+function db_GetRootField(const Name: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -5147,7 +5147,7 @@ begin
   Result := False;
 end;
 
-function dbPack_GetField(const pathName: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
+function db_GetField(const pathName: U_String; var SenderField: TField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   fs: TFieldSearch;
@@ -5175,16 +5175,16 @@ begin
       Exit;
     end;
   TempPathName := pathName;
-  PC := dbPack_GetPathCount(TempPathName);
+  PC := db_GetPathCount(TempPathName);
 
   if PC > 0 then
     begin
       for i := 1 to PC do
         begin
-          TempPathStr := dbPack_GetFirstPath(TempPathName);
-          TempPathName := dbPack_DeleteFirstPath(TempPathName);
+          TempPathStr := db_GetFirstPath(TempPathName);
+          TempPathName := db_DeleteFirstPath(TempPathName);
 
-          if dbPack_TestNameStr(TempPathStr) = False then
+          if db_TestName(TempPathStr) = False then
             begin
               SenderTMDB.Return := db_Pack_PathNameError;
               Result := False;
@@ -5209,7 +5209,7 @@ begin
   Result := True;
 end;
 
-function dbPack_GetPath(const FieldPos, RootFieldPos: Int64; var SenderTMDB: TTMDB; var RetPath: U_String): Boolean;
+function db_GetPath(const FieldPos, RootFieldPos: Int64; var SenderTMDB: TTMDB; var RetPath: U_String): Boolean;
 var
   f: TField;
 begin
@@ -5258,7 +5258,7 @@ begin
   Result := False;
 end;
 
-function dbPack_NewItem(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
+function db_NewItem(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   fs: TFieldSearch;
@@ -5281,15 +5281,15 @@ begin
   if umlGetLength(pathName) > 0 then
     begin
       TempPathName := pathName;
-      PC := dbPack_GetPathCount(TempPathName);
+      PC := db_GetPathCount(TempPathName);
       if PC > 0 then
         begin
           for i := 1 to PC do
             begin
-              TempPathStr := dbPack_GetFirstPath(TempPathName);
-              TempPathName := dbPack_DeleteFirstPath(TempPathName);
+              TempPathStr := db_GetFirstPath(TempPathName);
+              TempPathName := db_DeleteFirstPath(TempPathName);
 
-              if dbPack_TestNameStr(TempPathStr) = False then
+              if db_TestName(TempPathStr) = False then
                 begin
                   SenderTMDB.Return := db_Pack_PathNameError;
                   Result := False;
@@ -5320,7 +5320,7 @@ begin
         end;
     end;
 
-  if dbPack_TestNameStr(ItemName) = False then
+  if db_TestName(ItemName) = False then
     begin
       SenderTMDB.Return := db_Pack_ItemNameError;
       Result := False;
@@ -5358,12 +5358,12 @@ begin
   Result := True;
 end;
 
-function dbPack_DeleteItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_DeleteItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   TempSR: TFieldSearch;
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -5393,12 +5393,12 @@ begin
   Result := True;
 end;
 
-function dbPack_GetItem(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
+function db_GetItem(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderItem: TItem; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   _FieldSR: TFieldSearch;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -5419,7 +5419,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemCreate(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemCreate(const pathName, ItemName, ItemDescription: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags then
     begin
@@ -5427,7 +5427,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbPack_NewItem(pathName, ItemName, ItemDescription, ItemExtID, SenderTMDBItemHandle.Item, SenderTMDB) = False then
+  if db_NewItem(pathName, ItemName, ItemDescription, ItemExtID, SenderTMDBItemHandle.Item, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -5442,14 +5442,14 @@ begin
   SenderTMDBItemHandle.Name := ItemName;
   SenderTMDBItemHandle.Description := ItemDescription;
   SenderTMDBItemHandle.CreateTime := SenderTMDBItemHandle.Item.RHeader.CreateTime;
-  SenderTMDBItemHandle.LastModifyTime := SenderTMDBItemHandle.Item.RHeader.LastModifyTime;
+  SenderTMDBItemHandle.ModificationTime := SenderTMDBItemHandle.Item.RHeader.ModificationTime;
   SenderTMDBItemHandle.ItemExtID := ItemExtID;
   SenderTMDBItemHandle.OpenFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
-function dbPack_ItemFastCreate(const ItemName, ItemDescription: U_String; const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle;
+function db_ItemFastCreate(const ItemName, ItemDescription: U_String; const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle;
   var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags then
@@ -5473,14 +5473,14 @@ begin
   SenderTMDBItemHandle.Name := ItemName;
   SenderTMDBItemHandle.Description := ItemDescription;
   SenderTMDBItemHandle.CreateTime := SenderTMDBItemHandle.Item.RHeader.CreateTime;
-  SenderTMDBItemHandle.LastModifyTime := SenderTMDBItemHandle.Item.RHeader.LastModifyTime;
+  SenderTMDBItemHandle.ModificationTime := SenderTMDBItemHandle.Item.RHeader.ModificationTime;
   SenderTMDBItemHandle.ItemExtID := ItemExtID;
   SenderTMDBItemHandle.OpenFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
-function dbPack_ItemFastInsertNew(const ItemName, ItemDescription: U_String; const FieldPos, InsertHeaderPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemFastInsertNew(const ItemName, ItemDescription: U_String; const FieldPos, InsertHeaderPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags then
     begin
@@ -5503,14 +5503,14 @@ begin
   SenderTMDBItemHandle.Name := ItemName;
   SenderTMDBItemHandle.Description := ItemDescription;
   SenderTMDBItemHandle.CreateTime := SenderTMDBItemHandle.Item.RHeader.CreateTime;
-  SenderTMDBItemHandle.LastModifyTime := SenderTMDBItemHandle.Item.RHeader.LastModifyTime;
+  SenderTMDBItemHandle.ModificationTime := SenderTMDBItemHandle.Item.RHeader.ModificationTime;
   SenderTMDBItemHandle.ItemExtID := ItemExtID;
   SenderTMDBItemHandle.OpenFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
-function dbPack_ItemOpen(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemOpen(const pathName, ItemName: U_String; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags then
     begin
@@ -5518,7 +5518,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbPack_GetItem(pathName, ItemName, ItemExtID, SenderTMDBItemHandle.Item, SenderTMDB) = False then
+  if db_GetItem(pathName, ItemName, ItemExtID, SenderTMDBItemHandle.Item, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -5533,14 +5533,14 @@ begin
   SenderTMDBItemHandle.Name := ItemName;
   SenderTMDBItemHandle.Description := SenderTMDBItemHandle.Item.Description;
   SenderTMDBItemHandle.CreateTime := SenderTMDBItemHandle.Item.RHeader.CreateTime;
-  SenderTMDBItemHandle.LastModifyTime := SenderTMDBItemHandle.Item.RHeader.LastModifyTime;
+  SenderTMDBItemHandle.ModificationTime := SenderTMDBItemHandle.Item.RHeader.ModificationTime;
   SenderTMDBItemHandle.ItemExtID := ItemExtID;
   SenderTMDBItemHandle.OpenFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
-function dbPack_ItemFastOpen(const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemFastOpen(const fPos: Int64; const ItemExtID: Byte; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -5585,14 +5585,14 @@ begin
   SenderTMDBItemHandle.Name := itm.RHeader.Name;
   SenderTMDBItemHandle.Description := SenderTMDBItemHandle.Item.Description;
   SenderTMDBItemHandle.CreateTime := SenderTMDBItemHandle.Item.RHeader.CreateTime;
-  SenderTMDBItemHandle.LastModifyTime := SenderTMDBItemHandle.Item.RHeader.LastModifyTime;
+  SenderTMDBItemHandle.ModificationTime := SenderTMDBItemHandle.Item.RHeader.ModificationTime;
   SenderTMDBItemHandle.ItemExtID := ItemExtID;
   SenderTMDBItemHandle.OpenFlags := True;
   SenderTMDB.Return := db_Pack_ok;
   Result := True;
 end;
 
-function dbPack_ItemUpdate(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemUpdate(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5604,7 +5604,7 @@ begin
     begin
       SenderTMDBItemHandle.Item.RHeader.Name := SenderTMDBItemHandle.Name;
       SenderTMDBItemHandle.Item.RHeader.CreateTime := SenderTMDBItemHandle.CreateTime;
-      SenderTMDBItemHandle.Item.RHeader.LastModifyTime := SenderTMDBItemHandle.LastModifyTime;
+      SenderTMDBItemHandle.Item.RHeader.ModificationTime := SenderTMDBItemHandle.ModificationTime;
       SenderTMDBItemHandle.Item.Description := SenderTMDBItemHandle.Description;
       SenderTMDBItemHandle.Item.ExtID := SenderTMDBItemHandle.ItemExtID;
       if dbItem_WriteRec(SenderTMDBItemHandle.Item.RHeader.CurrentHeader, SenderTMDB.IOHnd, SenderTMDBItemHandle.Item) = False then
@@ -5618,7 +5618,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemBodyReset(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemBodyReset(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5629,7 +5629,7 @@ begin
 
   SenderTMDBItemHandle.Item.RHeader.Name := SenderTMDBItemHandle.Name;
   SenderTMDBItemHandle.Item.RHeader.CreateTime := SenderTMDBItemHandle.CreateTime;
-  SenderTMDBItemHandle.Item.RHeader.LastModifyTime := SenderTMDBItemHandle.LastModifyTime;
+  SenderTMDBItemHandle.Item.RHeader.ModificationTime := SenderTMDBItemHandle.ModificationTime;
   SenderTMDBItemHandle.Item.Description := SenderTMDBItemHandle.Description;
   SenderTMDBItemHandle.Item.ExtID := SenderTMDBItemHandle.ItemExtID;
 
@@ -5649,14 +5649,14 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemClose(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemClose(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
-  Result := dbPack_ItemUpdate(SenderTMDBItemHandle, SenderTMDB);
+  Result := db_ItemUpdate(SenderTMDBItemHandle, SenderTMDB);
   if Result then
       SenderTMDBItemHandle.OpenFlags := False;
 end;
 
-function dbPack_ItemReName(const FieldPos: Int64; const NewItemName, NewItemDescription: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemReName(const FieldPos: Int64; const NewItemName, NewItemDescription: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 var
   SenderSearchHnd: TTMDBSearchItem;
 begin
@@ -5666,7 +5666,7 @@ begin
       Result := False;
       Exit;
     end;
-  if dbPack_FastFindFirstItem(FieldPos, NewItemName, SenderTMDBItemHandle.ItemExtID, SenderSearchHnd, SenderTMDB) then
+  if db_FastFindFirstItem(FieldPos, NewItemName, SenderTMDBItemHandle.ItemExtID, SenderSearchHnd, SenderTMDB) then
     if (SenderTMDBItemHandle.Name = NewItemName) then
       begin
         SenderTMDB.Return := db_Pack_ItemNameError;
@@ -5687,7 +5687,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemRead(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemRead(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5705,7 +5705,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemWrite(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemWrite(const Size: Int64; var Buffers; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5723,7 +5723,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemReadStr(var Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemReadStr(var Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 var
   StrSize: Integer;
   SwapName: U_Bytes;
@@ -5759,7 +5759,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemWriteStr(const Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemWriteStr(const Name: U_String; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 var
   StrSize: Integer;
   SwapName: U_Bytes;
@@ -5794,7 +5794,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemSeekPos(const fPos: Int64; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemSeekPos(const fPos: Int64; var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5812,7 +5812,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemSeekStartPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemSeekStartPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5830,7 +5830,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemSeekLastPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
+function db_ItemSeekLastPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Boolean;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5848,7 +5848,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ItemGetPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;
+function db_ItemGetPos(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5859,7 +5859,7 @@ begin
   Result := dbItem_BlockGetPOS(SenderTMDB.IOHnd, SenderTMDBItemHandle.Item);
 end;
 
-function dbPack_ItemGetSize(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;
+function db_ItemGetSize(var SenderTMDBItemHandle: TTMDBItemHandle; var SenderTMDB: TTMDB): Int64;
 begin
   if SenderTMDBItemHandle.OpenFlags = False then
     begin
@@ -5870,7 +5870,7 @@ begin
   Result := SenderTMDBItemHandle.Item.Size;
 end;
 
-function dbPack_AppendItemSize(var SenderTMDBItemHandle: TTMDBItemHandle; const Size: Int64; var SenderTMDB: TTMDB): Boolean;
+function db_AppendItemSize(var SenderTMDBItemHandle: TTMDBItemHandle; const Size: Int64; var SenderTMDB: TTMDB): Boolean;
 var
   SwapBuffers: array [0 .. C_MaxBufferFragmentSize] of Byte;
   i: Integer;
@@ -5918,7 +5918,7 @@ begin
   Result := True;
 end;
 
-function dbPack_ExistsRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;
+function db_ExistsRootField(const Name: U_String; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -5981,11 +5981,11 @@ begin
   Result := False;
 end;
 
-function dbPack_FindFirstHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
+function db_FindFirstHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -5999,14 +5999,14 @@ begin
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
   SenderSearch.ID := SenderSearch.FieldSearch.RHeader.ID;
   SenderSearch.CreateTime := SenderSearch.FieldSearch.RHeader.CreateTime;
-  SenderSearch.LastModifyTime := SenderSearch.FieldSearch.RHeader.LastModifyTime;
+  SenderSearch.ModificationTime := SenderSearch.FieldSearch.RHeader.ModificationTime;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
   Result := True;
 end;
 
-function dbPack_FindNextHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
+function db_FindNextHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
 begin
   if dbField_FindNext(SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6017,18 +6017,18 @@ begin
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
   SenderSearch.ID := SenderSearch.FieldSearch.RHeader.ID;
   SenderSearch.CreateTime := SenderSearch.FieldSearch.RHeader.CreateTime;
-  SenderSearch.LastModifyTime := SenderSearch.FieldSearch.RHeader.LastModifyTime;
+  SenderSearch.ModificationTime := SenderSearch.FieldSearch.RHeader.ModificationTime;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
   Result := True;
 end;
 
-function dbPack_FindLastHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
+function db_FindLastHeader(const pathName, FilterName: U_String; const ID: Byte; var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -6042,14 +6042,14 @@ begin
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
   SenderSearch.ID := SenderSearch.FieldSearch.RHeader.ID;
   SenderSearch.CreateTime := SenderSearch.FieldSearch.RHeader.CreateTime;
-  SenderSearch.LastModifyTime := SenderSearch.FieldSearch.RHeader.LastModifyTime;
+  SenderSearch.ModificationTime := SenderSearch.FieldSearch.RHeader.ModificationTime;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
   Result := True;
 end;
 
-function dbPack_FindPrevHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
+function db_FindPrevHeader(var SenderSearch: TTMDBSearchHeader; var SenderTMDB: TTMDB): Boolean;
 begin
   if dbField_FindPrev(SenderTMDB.IOHnd, SenderSearch.FieldSearch) = False then
     begin
@@ -6060,19 +6060,19 @@ begin
   SenderSearch.Name := SenderSearch.FieldSearch.RHeader.Name;
   SenderSearch.ID := SenderSearch.FieldSearch.RHeader.ID;
   SenderSearch.CreateTime := SenderSearch.FieldSearch.RHeader.CreateTime;
-  SenderSearch.LastModifyTime := SenderSearch.FieldSearch.RHeader.LastModifyTime;
+  SenderSearch.ModificationTime := SenderSearch.FieldSearch.RHeader.ModificationTime;
   SenderSearch.HeaderPOS := SenderSearch.FieldSearch.RHeader.CurrentHeader;
   SenderSearch.CompleteCount := SenderSearch.CompleteCount + 1;
   SenderTMDB.Return := SenderSearch.FieldSearch.Return;
   Result := True;
 end;
 
-function dbPack_FindFirstItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
+function db_FindFirstItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   itm: TItem;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -6093,7 +6093,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_FindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -6113,12 +6113,12 @@ begin
   Result := True;
 end;
 
-function dbPack_FindLastItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
+function db_FindLastItem(const pathName, FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
   itm: TItem;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -6139,7 +6139,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_FindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -6159,7 +6159,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindFirstItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindFirstItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -6179,7 +6179,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindNextItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -6199,7 +6199,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindLastItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindLastItem(const FieldPos: Int64; const FilterName: U_String; const ItemExtID: Byte; var SenderSearch: TTMDBSearchItem; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -6219,7 +6219,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindPrevItem(var SenderSearch: TTMDBSearchItem; const ItemExtID: Byte; var SenderTMDB: TTMDB): Boolean;
 var
   itm: TItem;
 begin
@@ -6239,11 +6239,11 @@ begin
   Result := True;
 end;
 
-function dbPack_FindFirstField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FindFirstField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -6269,7 +6269,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -6294,11 +6294,11 @@ begin
   Result := True;
 end;
 
-function dbPack_FindLastField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FindLastField(const pathName, FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
-  if dbPack_GetField(pathName, f, SenderTMDB) = False then
+  if db_GetField(pathName, f, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -6324,7 +6324,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -6349,7 +6349,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindFirstField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindFirstField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -6374,7 +6374,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindNextField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -6399,7 +6399,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindLastField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindLastField(const FieldPos: Int64; const FilterName: U_String; var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -6424,7 +6424,7 @@ begin
   Result := True;
 end;
 
-function dbPack_FastFindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
+function db_FastFindPrevField(var SenderSearch: TTMDBSearchField; var SenderTMDB: TTMDB): Boolean;
 var
   f: TField;
 begin
@@ -6449,9 +6449,9 @@ begin
   Result := True;
 end;
 
-function dbPack_RecursionSearchFirst(const InitPath, FilterName: U_String; var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean;
+function db_RecursionSearchFirst(const InitPath, FilterName: U_String; var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean;
 begin
-  if dbPack_GetField(InitPath, SenderRecursionSearch.CurrentField, SenderTMDB) = False then
+  if db_GetField(InitPath, SenderRecursionSearch.CurrentField, SenderTMDB) = False then
     begin
       Result := False;
       Exit;
@@ -6486,7 +6486,7 @@ begin
   Result := True;
 end;
 
-function dbPack_RecursionSearchNext(var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean;
+function db_RecursionSearchNext(var SenderRecursionSearch: TTMDBRecursionSearch; var SenderTMDB: TTMDB): Boolean;
 begin
   case SenderRecursionSearch.ReturnHeader.ID of
     db_Header_Field_ID:
@@ -6614,4 +6614,3 @@ begin
 end;
 
 end.
-

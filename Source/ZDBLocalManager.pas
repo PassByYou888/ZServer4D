@@ -315,7 +315,7 @@ type
     procedure DeleteData(dn: SystemString; StorePos: Int64);
     //
     // getData
-    function GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TMemoryStream64InCache;
+    function GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TDBCacheStream64;
     //
     // modify operation
     function SetData(dn: SystemString; StorePos: Int64; dSour: TMemoryStream64): Boolean;
@@ -640,7 +640,7 @@ end;
 
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
 var
-  itmStream: TMemoryStream64InCache;
+  itmStream: TDBCacheStream64;
   siz: Int64;
   ID: Cardinal;
 begin
@@ -1880,7 +1880,7 @@ end;
 function TZDBLocalManager.PostData(dn: SystemString; sourDBEng: TZDBStoreEngine; SourStorePos: Int64): Int64;
 var
   d: TZDBStoreEngine;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := -1;
   d := GetDB(dn);
@@ -1897,7 +1897,7 @@ end;
 function TZDBLocalManager.PostData(dn: SystemString; var qState: TQueryState): Int64;
 var
   d: TZDBStoreEngine;
-  M: TMemoryStream64InCache;
+  M: TDBCacheStream64;
 begin
   Result := -1;
   d := GetDB(dn);
@@ -2166,7 +2166,7 @@ begin
   d.PostDeleteData(StorePos);
 end;
 
-function TZDBLocalManager.GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TMemoryStream64InCache;
+function TZDBLocalManager.GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TDBCacheStream64;
 var
   d: TZDBStoreEngine;
 begin

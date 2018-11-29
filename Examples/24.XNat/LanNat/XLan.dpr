@@ -11,6 +11,7 @@ uses
   PascalStrings,
   UnicodeMixedLib,
   CommunicationFramework,
+  xNATPhysics,
   xNATClient,
   DoStatusIO;
 
@@ -32,9 +33,9 @@ begin
     }
     XCli.ProtocolCompressed := True;
 
-    XCli.RemoteTunnelAddr := '127.0.0.1'; // 公网服务器的IP
-    XCli.RemoteTunnelPort := '7890';      // 公网服务器的端口号
-    XCli.AuthToken := '123456';           // 协议验证字符串
+    XCli.Host := '127.0.0.1';   // 公网服务器的IP
+    XCli.Port := '7890';        // 公网服务器的端口号
+    XCli.AuthToken := '123456'; // 协议验证字符串
 
     // 127.0.0.1是内网服务器的IP
     XCli.AddMapping('127.0.0.1', '80', 'web8000', 1000); // 将公网服务器的8000端口反向代理到本地80端口

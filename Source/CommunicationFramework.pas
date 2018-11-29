@@ -398,17 +398,7 @@ type
     procedure WriteBufferClose; virtual;
     function GetPeerIP: SystemString; virtual;
     function WriteBufferEmpty: Boolean; virtual;
-  protected const
-    C_Sequence_Packet_HeadSize = 22;
-
-    C_Sequence_QuietPacket: Byte = 1;
-    C_Sequence_Packet: Byte = 2;
-    C_Sequence_EchoPacket: Byte = 3;
-    C_Sequence_KeepAlive: Byte = 4;
-    C_Sequence_EchoKeepAlive: Byte = 5;
-    C_Sequence_RequestResend: Byte = 6;
-
-  var
+  protected
     FSequencePacketActivted, FSequencePacketSignal: Boolean;
     SequenceNumberOnSendCounter, SequenceNumberOnReceivedCounter: Cardinal;
     SendingSequencePacketHistory: TUInt32HashPointerList;
@@ -733,6 +723,12 @@ type
   TPeerIOListCall = procedure(P_IO: TPeerIO);
   TPeerIOListMethod = procedure(P_IO: TPeerIO) of object;
 {$IFNDEF FPC} TPeerIOListProc = reference to procedure(P_IO: TPeerIO); {$ENDIF FPC}
+
+  IIOInterface = interface
+    procedure PeerIO_Create(const Sender: TPeerIO);
+    procedure PeerIO_Destroy(const Sender: TPeerIO);
+  end;
+
   TIO_Array = array of Cardinal;
 
   ICommunicationFrameworkVMInterface = interface
@@ -777,6 +773,7 @@ type
     FOnProgressRuning: Boolean;
     FOnProgress: TProgressOnCommunicationFramework;
     FCMDWithThreadRuning: Integer;
+    FIOInterface: IIOInterface;
     FVMInterface: ICommunicationFrameworkVMInterface;
     FProtocol: TCommunicationProtocol;
     FPrefixName: SystemString;
@@ -810,6 +807,7 @@ type
     procedure Framework_InternalIOCreate(const Sender: TPeerIO); virtual;
     procedure Framework_InternalIODestroy(const Sender: TPeerIO); virtual;
 
+    procedure BuildP2PAuthToken_DelayExecute(Sender: TNPostExecute);
     procedure CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
     procedure Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure Command_InitP2PTunnel(Sender: TPeerIO; InData: SystemString);
@@ -836,6 +834,9 @@ type
 
     property PrefixName: SystemString read FPrefixName write FPrefixName;
     property Name: SystemString read FName write FName;
+
+    // IO backcall interface
+    property IOInterface: IIOInterface read FIOInterface write FIOInterface;
 
     // p2pVM backcall interface
     property VMInterface: ICommunicationFrameworkVMInterface read FVMInterface write FVMInterface;
@@ -1378,17 +1379,6 @@ type
   TP2PVMAuthSuccessMethod = procedure(Sender: TCommunicationFrameworkWithP2PVM) of object;
 
   TCommunicationFrameworkWithP2PVM = class(TCoreClassObject)
-  private const
-    c_p2pVM_echoing = $01;
-    c_p2pVM_echo = $02;
-    c_p2pVM_AuthSuccessed = $09;
-    c_p2pVM_Listen = $10;
-    c_p2pVM_ListenState = $11;
-    c_p2pVM_Connecting = $20;
-    c_p2pVM_ConnectedReponse = $21;
-    c_p2pVM_Disconnect = $40;
-    c_p2pVM_LogicFragmentData = $54;
-    c_p2pVM_PhysicsFragmentData = $64;
   private
     FLockedObject: TCritical;
     FPhysicsIO: TPeerIO;
@@ -1646,7 +1636,28 @@ type
 {$REGION 'ConstAndVariant'}
 
 
-var
+const
+  { sequence packet }
+  C_Sequence_Packet_HeadSize: Byte = 22;
+  C_Sequence_QuietPacket: Byte = 1;
+  C_Sequence_Packet: Byte = 2;
+  C_Sequence_EchoPacket: Byte = 3;
+  C_Sequence_KeepAlive: Byte = 4;
+  C_Sequence_EchoKeepAlive: Byte = 5;
+  C_Sequence_RequestResend: Byte = 6;
+
+  { p2pVM token }
+  c_p2pVM_echoing: Byte = $01;
+  c_p2pVM_echo: Byte = $02;
+  c_p2pVM_AuthSuccessed: Byte = $09;
+  c_p2pVM_Listen: Byte = $10;
+  c_p2pVM_ListenState: Byte = $11;
+  c_p2pVM_Connecting: Byte = $20;
+  c_p2pVM_ConnectedReponse: Byte = $21;
+  c_p2pVM_Disconnect: Byte = $40;
+  c_p2pVM_LogicFragmentData: Byte = $54;
+  c_p2pVM_PhysicsFragmentData: Byte = $64;
+
   // communication data token
   c_DefaultConsoleToken: Byte = $F1;
   c_DefaultStreamToken: Byte = $2F;
@@ -6125,10 +6136,39 @@ end;
 
 procedure TCommunicationFramework.Framework_InternalIOCreate(const Sender: TPeerIO);
 begin
+  if FIOInterface <> nil then
+      FIOInterface.PeerIO_Create(Sender);
 end;
 
 procedure TCommunicationFramework.Framework_InternalIODestroy(const Sender: TPeerIO);
 begin
+  if FIOInterface <> nil then
+      FIOInterface.PeerIO_Destroy(Sender);
+end;
+
+procedure TCommunicationFramework.BuildP2PAuthToken_DelayExecute(Sender: TNPostExecute);
+var
+  P_IO: TPeerIO;
+begin
+  P_IO := TPeerIO(FPeerIO_HashPool[Sender.Data3]);
+  if P_IO = nil then
+      exit;
+
+  try
+    if Assigned(P_IO.OnVMBuildAuthModelResultCall) then
+        P_IO.OnVMBuildAuthModelResultCall();
+    if Assigned(P_IO.OnVMBuildAuthModelResultMethod) then
+        P_IO.OnVMBuildAuthModelResultMethod();
+{$IFNDEF FPC}
+    if Assigned(P_IO.OnVMBuildAuthModelResultProc) then
+        P_IO.OnVMBuildAuthModelResultProc();
+{$ENDIF FPC}
+  except
+  end;
+
+  P_IO.OnVMBuildAuthModelResultCall := nil;
+  P_IO.OnVMBuildAuthModelResultMethod := nil;
+{$IFNDEF FPC} P_IO.OnVMBuildAuthModelResultProc := nil; {$ENDIF FPC}
 end;
 
 procedure TCommunicationFramework.CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
@@ -6141,21 +6181,7 @@ begin
   for i := 0 to arr.Count - 1 do
       PInteger(@Sender.FP2PAuthToken[i * 4])^ := arr[i];
 
-  try
-    if Assigned(Sender.OnVMBuildAuthModelResultCall) then
-        Sender.OnVMBuildAuthModelResultCall();
-    if Assigned(Sender.OnVMBuildAuthModelResultMethod) then
-        Sender.OnVMBuildAuthModelResultMethod();
-{$IFNDEF FPC}
-    if Assigned(Sender.OnVMBuildAuthModelResultProc) then
-        Sender.OnVMBuildAuthModelResultProc();
-{$ENDIF FPC}
-  except
-  end;
-
-  Sender.OnVMBuildAuthModelResultCall := nil;
-  Sender.OnVMBuildAuthModelResultMethod := nil;
-{$IFNDEF FPC} Sender.OnVMBuildAuthModelResultProc := nil; {$ENDIF FPC}
+  ProgressPost.PostExecuteM(0, {$IFDEF FPC}@{$ENDIF FPC}BuildP2PAuthToken_DelayExecute).Data3 := Sender.ID;
 end;
 
 procedure TCommunicationFramework.Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -6237,7 +6263,7 @@ begin
   if PC = nil then
       exit;
 
-  ProgressPost.PostExecuteM(0, {$IFDEF FPC}@{$ENDIF FPC}VMAuthSuccessAfterDelayExecute).Data3 := PC.FID;
+  ProgressPost.PostExecuteM(0.5, {$IFDEF FPC}@{$ENDIF FPC}VMAuthSuccessAfterDelayExecute).Data3 := PC.FID;
   p2pVMTunnelOpen(PC, PC.p2pVMTunnel);
 end;
 
@@ -6308,6 +6334,7 @@ begin
 
   FCMDWithThreadRuning := 0;
 
+  FIOInterface := nil;
   FVMInterface := nil;
 
   FProtocol := cpZServer;
@@ -8942,13 +8969,13 @@ begin
       // send fragment
       while siz > FLinkVM.FMaxVMFragmentSize do
         begin
-          FSendQueue.Add(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, FLinkVM.c_p2pVM_LogicFragmentData, p));
+          FSendQueue.Add(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, c_p2pVM_LogicFragmentData, p));
           inc(p, FLinkVM.FMaxVMFragmentSize);
           dec(siz, FLinkVM.FMaxVMFragmentSize);
         end;
 
       if siz > 0 then
-          FSendQueue.Add(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, FLinkVM.c_p2pVM_LogicFragmentData, p));
+          FSendQueue.Add(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, c_p2pVM_LogicFragmentData, p));
     end;
 
   FRealSendBuff.Clear;
@@ -9795,7 +9822,7 @@ begin
           FReceiveStream := SourStream;
 
           if not FQuietMode then
-              DoStatus('VM Authentication Success');
+              DoStatus('VM Authentication Success');
         end
       else if FAuthWaiting then
           exit
@@ -9826,33 +9853,41 @@ begin
       if rPos > 0 then
         begin
           // protocol support
-          case fPk.pkType of
-            c_p2pVM_echoing: ReceivedEchoing(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_echo: ReceivedEcho(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_AuthSuccessed:
-              begin
-                if Assigned(OnAuthSuccessOnesNotify) then
-                  begin
-                    try
-                        OnAuthSuccessOnesNotify(Self);
-                    except
-                    end;
-                    OnAuthSuccessOnesNotify := nil;
-                  end;
-              end;
-            c_p2pVM_Listen: ReceivedListen(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_ListenState: ReceivedListenState(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_Connecting: ReceivedConnecting(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_ConnectedReponse: ReceivedConnectedReponse(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_Disconnect: ReceivedDisconnect(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_LogicFragmentData: ReceivedLogicFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            c_p2pVM_PhysicsFragmentData: ReceivedPhysicsFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz);
-            else if not FQuietMode then
+          if fPk.pkType = c_p2pVM_echoing then
+              ReceivedEchoing(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_echo then
+              ReceivedEcho(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_AuthSuccessed then
+            begin
+              if Assigned(OnAuthSuccessOnesNotify) then
                 begin
-                  DoStatus('VM protocol header errror');
-                  DoStatus(@fPk, SizeOf(fPk), 40);
+                  try
+                      OnAuthSuccessOnesNotify(Self);
+                  except
+                  end;
+                  OnAuthSuccessOnesNotify := nil;
                 end;
-          end;
+            end
+          else if fPk.pkType = c_p2pVM_Listen then
+              ReceivedListen(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_ListenState then
+              ReceivedListenState(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_Connecting then
+              ReceivedConnecting(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_ConnectedReponse then
+              ReceivedConnectedReponse(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_Disconnect then
+              ReceivedDisconnect(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_LogicFragmentData then
+              ReceivedLogicFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if fPk.pkType = c_p2pVM_PhysicsFragmentData then
+              ReceivedPhysicsFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
+          else if not FQuietMode then
+            begin
+              DoStatus('VM protocol header errror');
+              DoStatus(@fPk, SizeOf(fPk), 40);
+            end;
+
           // fill buffer
           inc(p64, rPos);
           if FReceiveStream.Size - p64 >= 13 then

@@ -11,7 +11,7 @@
   {$MODE objfpc}
   {$MODESWITCH AdvancedRecords}
   {$NOTES OFF}
-  {$STACKFRAMES OFF}
+  {$STACKFRAMES ON}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -81,11 +81,11 @@
     {$DEFINE INLINE_ASM}
     {$R-} { range check }
     {$I-} { Input output checking }
-    {$O-} { optimization }
+    {$O+} { optimization }
   {$ELSE}
-    {$DEFINE INLINE_ASM}
-    {$R-} { range check }
-    {$I-} { Input output checking }
+    {$UNDEF INLINE_ASM}
+    {$R+} { range check }
+    {$I+} { Input output checking }
     {$O-} { optimization }
   {$ENDIF}
 
@@ -134,3 +134,36 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
+
+(*
+  {$IFDEF FPC}
+  {$ELSE FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}@{$ENDIF FPC}
+
+  {$IFNDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF parallel}
+  {$ELSE parallel}
+  {$ENDIF parallel}
+
+  {$IFNDEF parallel}
+  {$ENDIF parallel}
+
+  {$Region 'RegionName'}
+  {$EndRegion 'RegionName'}
+
+  {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
+  {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
+
+  {$IFDEF RangeCheck}{$R-}{$ENDIF}
+  {$IFDEF RangeCheck}{$R+}{$ENDIF}
+*)
+
+
+

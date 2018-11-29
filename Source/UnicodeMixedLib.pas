@@ -99,7 +99,7 @@ type
     PrepareReadPosition: Int64;
     PrepareReadBuff: U_Stream;
     IORead, IOWrite: Int64;
-    WriteFlag: Boolean;
+    WriteStated: Boolean;
     Data: Pointer;
     Return: Integer;
   end;
@@ -1351,7 +1351,7 @@ begin
   IOHnd.PrepareReadBuff := nil;
   IOHnd.IORead := 0;
   IOHnd.IOWrite := 0;
-  IOHnd.WriteFlag := false;
+  IOHnd.WriteStated := false;
   IOHnd.Data := nil;
   IOHnd.Return := C_NotError;
 end;
@@ -1496,7 +1496,7 @@ begin
   IOHnd.Time := umlDefaultTime;
   IOHnd.Name := '';
   IOHnd.OpenFlags := false;
-  IOHnd.WriteFlag := false;
+  IOHnd.WriteStated := false;
   Result := True;
 end;
 
@@ -1511,7 +1511,7 @@ begin
 
   umlFileFlushWrite(IOHnd);
   umlResetPrepareRead(IOHnd);
-  IOHnd.WriteFlag := false;
+  IOHnd.WriteStated := false;
 
   Result := True;
 end;
@@ -1726,7 +1726,7 @@ begin
       exit;
     end;
 
-  IOHnd.WriteFlag := True;
+  IOHnd.WriteStated := True;
 
   umlResetPrepareRead(IOHnd);
 

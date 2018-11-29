@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo,
   CoreClasses, PascalStrings, UnicodeMixedLib, CommunicationFramework,
-  xNATClient, DoStatusIO;
+  xNATPhysics, xNATClient, DoStatusIO;
 
 type
   TForm1 = class(TForm)
@@ -46,8 +46,8 @@ begin
   }
   XCli.ProtocolCompressed := True;
 
-  XCli.RemoteTunnelAddr := '127.0.0.1';               // 公网服务器的IP
-  XCli.RemoteTunnelPort := '7890';                    // 公网服务器的端口号
+  XCli.Host := '127.0.0.1';                           // 公网服务器的IP
+  XCli.Port := '7890';                                // 公网服务器的端口号
   XCli.AuthToken := '123456';                         // 协议验证字符串
   XCli.AddMapping('127.0.0.1', '80', 'web8000', 100); // 将公网服务器的8000端口反向代理到本地80端口
   XCli.OpenTunnel;                                    // 启动内网穿透

@@ -38,9 +38,9 @@ type
   private
     { Private declarations }
     FDefaultFolderImageIndex: Integer;
-    FResourceData           : TObjectDataManager;
-    FResourceTreeFrame      : TObjectDataTreeFrame;
-    FIsModify               : Boolean;
+    FResourceData: TObjectDataManager;
+    FResourceTreeFrame: TObjectDataTreeFrame;
+    FIsModify: Boolean;
 
     FFileFilter: string;
 
@@ -82,7 +82,7 @@ uses UnicodeMixedLib, DoStatusIO, LibraryManager, StreamList;
 
 procedure TObjectDataManagerFrame.ActionAddResourceExecute(Sender: TObject);
 var
-  RepaInt : Integer;
+  RepaInt: Integer;
   aShowMsg: Boolean;
 begin
   if FResourceData = nil then
@@ -118,8 +118,8 @@ end;
 
 procedure TObjectDataManagerFrame.ActionExportExecute(Sender: TObject);
 var
-  aShowMsg        : Boolean;
-  RepaInt         : Integer;
+  aShowMsg: Boolean;
+  RepaInt: Integer;
   aTargetDirectory: string;
 begin
   if ListView.IsEditing then
@@ -197,7 +197,7 @@ end;
 procedure TObjectDataManagerFrame.ListViewEdited(Sender: TObject; Item: TListItem; var s: string);
 var
   aFieldPos: Int64;
-  aItemHnd : TItemHandle;
+  aItemHnd: TItemHandle;
 begin
   if FResourceData = nil then
       Exit;
@@ -315,9 +315,9 @@ end;
 
 procedure TObjectDataManagerFrame.UpdateItemList(APath: string);
 var
-  aItemSR : TItemSearch;
+  aItemSR: TItemSearch;
   aFieldSR: TFieldSearch;
-  Filter  : TArrayPascalString;
+  Filter: TArrayPascalString;
 begin
   umlGetSplitArray(FFileFilter, Filter, '|;');
   ListView.Items.BeginUpdate;
@@ -350,8 +350,8 @@ begin
                     Caption := aItemSR.Name;
                     SubItems.Add(IntToHex(aItemSR.FieldSearch.RHeader.UserProperty, 8));
                     SubItems.Add(umlSizeToStr(aItemSR.Size));
-                    SubItems.Add(DateToStr(aItemSR.FieldSearch.RHeader.LastModifyTime));
-                    SubItems.Add(TimeToStr(aItemSR.FieldSearch.RHeader.LastModifyTime));
+                    SubItems.Add(DateTimeToStr(aItemSR.FieldSearch.RHeader.CreateTime));
+                    SubItems.Add(DateTimeToStr(aItemSR.FieldSearch.RHeader.ModificationTime));
                     ImageIndex := -1;
                     StateIndex := -1;
                     Data := nil;
@@ -366,8 +366,8 @@ end;
 procedure TObjectDataManagerFrame.ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var aShowMsg: Boolean);
 var
   aItemHnd: TItemHandle;
-  s       : TItemStream;
-  aFS     : TFileStream;
+  s: TItemStream;
+  aFS: TFileStream;
 begin
   if FResourceData <> nil then
     begin
@@ -398,7 +398,7 @@ end;
 procedure TObjectDataManagerFrame.ImportFromFile(aFileName: string; var aShowMsg: Boolean);
 var
   aItemHnd: TItemHandle;
-  aFS     : TFileStream;
+  aFS: TFileStream;
 begin
   if FResourceData <> nil then
     begin
@@ -460,4 +460,4 @@ initialization
 
 finalization
 
-end. 
+end.

@@ -88,8 +88,8 @@ end;
 
 procedure TForm1.OpenButtonClick(Sender: TObject);
 begin
-  XCli.RemoteTunnelAddr := HostEdit.Text; // 公网服务器的IP
-  XCli.RemoteTunnelPort := '7890';        // 公网服务器的端口号
+  XCli.Host := HostEdit.Text; // 公网服务器的IP
+  XCli.Port := '7890';        // 公网服务器的端口号
   XCli.AuthToken := '123456';             // 协议验证字符串
   // 启动内网穿透
   // 在启动了内网穿透服务器后，本地服务器会自动StartService，本地服务器不会侦听任何端口

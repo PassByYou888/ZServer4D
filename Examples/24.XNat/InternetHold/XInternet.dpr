@@ -11,6 +11,7 @@ uses
   PascalStrings,
   UnicodeMixedLib,
   CommunicationFramework,
+  xNATPhysics,
   xNATService,
   DoStatusIO;
 
@@ -33,19 +34,21 @@ begin
     }
     XServ.ProtocolCompressed := True;
 
-    XServ.TunnelListenAddr := '0.0.0.0'; // 与内网服务器的通讯参数：协议隧道绑定地址为所有网卡的ipv4，如果是ipv6，写'::'
-    XServ.TunnelListenPort := '7890';    // 与内网服务器的通讯参数：协议端口
-    XServ.AuthToken := '123456';         // 与内网服务器的通讯参数：协议验证字符串(该标识符使用了抗量子密码模型，相关技术请自行研究代码)
+    XServ.Host := '0.0.0.0';     // 与内网服务器的通讯参数：协议隧道绑定地址为所有网卡的ipv4，如果是ipv6，写'::'
+    XServ.Port := '7890';        // 与内网服务器的通讯参数：协议端口
+    XServ.AuthToken := '123456'; // 与内网服务器的通讯参数：协议验证字符串(该标识符使用了抗量子密码模型，相关技术请自行研究代码)
 
     {
       侦听配置
     }
-    XServ.AddMapping('0.0.0.0', '8000', 'web8000'); // 在服务器端需要映射的端口8000，绑定地址为所有网卡的ipv4
+    // 在服务器端需要映射的端口8000，绑定地址为所有网卡的ipv4，因为挂载短连接的http，当连接空闲1分钟超时后会自动释放socket
+    XServ.AddMapping('0.0.0.0', '8000', 'web8000', 60 * 1000);
 
     {
       在内网服务器未连接,临时断线,未请求mapping "ftp8021"，8021端口都是非侦听状态，只有当内网服务器全部正常工作,这个8021才会开始工作
     }
-    XServ.AddMapping('0.0.0.0', '8021', 'ftp8021'); // 在服务器端需要映射的端口8021，绑定地址为所有网卡的ipv4
+    // 在服务器端需要映射的端口8021，绑定地址为所有网卡的ipv4，因为挂载的是长连接的ftp，当连接空闲15分钟超时后会自动释放socket
+    XServ.AddMapping('0.0.0.0', '8021', 'ftp8021', 15 * 60 * 1000);
     XServ.OpenTunnel;
 
     while True do

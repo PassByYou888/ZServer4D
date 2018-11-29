@@ -57,8 +57,8 @@ begin
   }
   XCli.ProtocolCompressed := True;
 
-  XCli.RemoteTunnelAddr := '127.0.0.1';       // 公网服务器的IP
-  XCli.RemoteTunnelPort := '7890';                  // 公网服务器的端口号
+  XCli.Host := '127.0.0.1';       // 公网服务器的IP
+  XCli.Port := '7890';                  // 公网服务器的端口号
   XCli.AuthToken := '123456';                       // 协议验证字符串
   server := XCli.AddMappingServer('web8000', 1000); // 将公网服务器的8000端口反向代理到成为本地服务器
 

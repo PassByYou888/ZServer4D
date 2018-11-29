@@ -91,7 +91,7 @@ type
     procedure GetNameList(OutputList: TListPascalString); overload;
     procedure GetListData(OutputList: TCoreClassList);
     procedure Delete(const Name: SystemString);
-    procedure Add(const Name: SystemString; _CustomData: Pointer; const overwrite: Boolean); overload;
+    procedure Add(const Name: SystemString; _CustomData: Pointer; const OverWrite: Boolean); overload;
     procedure Add(const Name: SystemString; _CustomData: Pointer); overload;
     procedure SetValue(const Name: SystemString; const _CustomData: Pointer);
     function Find(const Name: SystemString): Pointer;
@@ -167,7 +167,7 @@ type
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
     procedure Delete(i64: Int64);
-    function Add(i64: Int64; _CustomData: TCoreClassObject; const overwrite: Boolean): PInt64HashListObjectStruct;
+    function Add(i64: Int64; _CustomData: TCoreClassObject; const OverWrite: Boolean): PInt64HashListObjectStruct;
     procedure SetValue(i64: Int64; _CustomData: TCoreClassObject);
     function Exists(i64: Int64): Boolean;
     procedure SetHashBlockCount(cnt: Integer);
@@ -233,7 +233,7 @@ type
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
     procedure Delete(i64: Int64);
-    function Add(i64: Int64; _CustomData: Pointer; const overwrite: Boolean): PInt64HashListPointerStruct;
+    function Add(i64: Int64; _CustomData: Pointer; const OverWrite: Boolean): PInt64HashListPointerStruct;
     procedure SetValue(i64: Int64; _CustomData: Pointer);
     function Exists(i64: Int64): Boolean;
     procedure SetHashBlockCount(cnt: Integer);
@@ -297,7 +297,7 @@ type
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
     procedure Delete(u32: UInt32);
-    function Add(u32: UInt32; _CustomData: TCoreClassObject; const overwrite: Boolean): PUInt32HashListObjectStruct;
+    function Add(u32: UInt32; _CustomData: TCoreClassObject; const OverWrite: Boolean): PUInt32HashListObjectStruct;
     procedure SetValue(u32: UInt32; _CustomData: TCoreClassObject);
     function Exists(u32: UInt32): Boolean;
     procedure SetHashBlockCount(cnt: Integer);
@@ -368,7 +368,7 @@ type
     procedure Clear;
     procedure GetListData(OutputList: TCoreClassList);
     function Delete(u32: UInt32): Boolean;
-    function Add(u32: UInt32; _CustomData: Pointer; const overwrite: Boolean): PUInt32HashListPointerStruct;
+    function Add(u32: UInt32; _CustomData: Pointer; const OverWrite: Boolean): PUInt32HashListPointerStruct;
     procedure SetValue(u32: UInt32; _CustomData: Pointer);
     function Exists(u32: UInt32): Boolean;
     procedure SetHashBlockCount(cnt: Integer);
@@ -442,7 +442,7 @@ type
     procedure FastClear;
     procedure GetListData(OutputList: TCoreClassList);
     function Delete(NPtr: Pointer): Boolean;
-    function Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean): PPointerHashListNativeUIntStruct;
+    function Add(NPtr: Pointer; _CustomData: NativeUInt; const OverWrite: Boolean): PPointerHashListNativeUIntStruct;
     procedure SetValue(NPtr: Pointer; _CustomData: NativeUInt);
     function Exists(NPtr: Pointer): Boolean;
     procedure SetHashBlockCount(cnt: Integer);
@@ -1697,7 +1697,7 @@ begin
     end;
 end;
 
-procedure THashList.Add(const Name: SystemString; _CustomData: Pointer; const overwrite: Boolean);
+procedure THashList.Add(const Name: SystemString; _CustomData: Pointer; const OverWrite: Boolean);
 var
   newhash: THash;
   L: NativeInt;
@@ -1727,7 +1727,7 @@ begin
     end;
 
   lst := GetListTable(newhash, True);
-  if (lst.Count > 0) and (overwrite) then
+  if (lst.Count > 0) and (OverWrite) then
     begin
       for i := 0 to lst.Count - 1 do
         begin
@@ -2282,7 +2282,7 @@ begin
       FIDCounter := 1;
 end;
 
-function TInt64HashObjectList.Add(i64: Int64; _CustomData: TCoreClassObject; const overwrite: Boolean): PInt64HashListObjectStruct;
+function TInt64HashObjectList.Add(i64: Int64; _CustomData: TCoreClassObject; const OverWrite: Boolean): PInt64HashListObjectStruct;
 var
   newhash: THash;
   lst: TCoreClassList;
@@ -2292,7 +2292,7 @@ begin
   newhash := MakeHashI64(i64);
 
   lst := GetListTable(newhash, True);
-  if (lst.Count > 0) and (overwrite) then
+  if (lst.Count > 0) and (OverWrite) then
     begin
       for i := lst.Count - 1 downto 0 do
         begin
@@ -2809,7 +2809,7 @@ begin
       FIDCounter := 1;
 end;
 
-function TInt64HashPointerList.Add(i64: Int64; _CustomData: Pointer; const overwrite: Boolean): PInt64HashListPointerStruct;
+function TInt64HashPointerList.Add(i64: Int64; _CustomData: Pointer; const OverWrite: Boolean): PInt64HashListPointerStruct;
 var
   newhash: THash;
   lst: TCoreClassList;
@@ -2819,7 +2819,7 @@ begin
   newhash := MakeHashI64(i64);
 
   lst := GetListTable(newhash, True);
-  if (lst.Count > 0) and (overwrite) then
+  if (lst.Count > 0) and (OverWrite) then
     begin
       for i := lst.Count - 1 downto 0 do
         begin
@@ -3314,7 +3314,7 @@ begin
       FIDCounter := 1;
 end;
 
-function TUInt32HashObjectList.Add(u32: UInt32; _CustomData: TCoreClassObject; const overwrite: Boolean): PUInt32HashListObjectStruct;
+function TUInt32HashObjectList.Add(u32: UInt32; _CustomData: TCoreClassObject; const OverWrite: Boolean): PUInt32HashListObjectStruct;
 var
   newhash: THash;
   lst: TCoreClassList;
@@ -3324,7 +3324,7 @@ begin
   newhash := MakeHashU32(u32);
 
   lst := GetListTable(newhash, True);
-  if (lst.Count > 0) and (overwrite) then
+  if (lst.Count > 0) and (OverWrite) then
     begin
       for i := lst.Count - 1 downto 0 do
         begin
@@ -3914,7 +3914,7 @@ begin
       FIDCounter := 1;
 end;
 
-function TUInt32HashPointerList.Add(u32: UInt32; _CustomData: Pointer; const overwrite: Boolean): PUInt32HashListPointerStruct;
+function TUInt32HashPointerList.Add(u32: UInt32; _CustomData: Pointer; const OverWrite: Boolean): PUInt32HashListPointerStruct;
 var
   newhash: THash;
   lst: TCoreClassList;
@@ -3924,7 +3924,7 @@ begin
   newhash := MakeHashU32(u32);
 
   lst := GetListTable(newhash, True);
-  if (lst.Count > 0) and (overwrite) then
+  if (lst.Count > 0) and (OverWrite) then
     begin
       for i := lst.Count - 1 downto 0 do
         begin
@@ -4536,7 +4536,7 @@ begin
     end;
 end;
 
-function TPointerHashNativeUIntList.Add(NPtr: Pointer; _CustomData: NativeUInt; const overwrite: Boolean): PPointerHashListNativeUIntStruct;
+function TPointerHashNativeUIntList.Add(NPtr: Pointer; _CustomData: NativeUInt; const OverWrite: Boolean): PPointerHashListNativeUIntStruct;
 var
   newhash: THash;
   lst: TCoreClassList;
@@ -4546,7 +4546,7 @@ begin
   newhash := MakeHashP(NPtr);
 
   lst := GetListTable(newhash, True);
-  if (lst.Count > 0) and (overwrite) then
+  if (lst.Count > 0) and (OverWrite) then
     begin
       for i := lst.Count - 1 downto 0 do
         begin

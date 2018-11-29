@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * Object Data Manager, base on ObjectData, write by qq600585                 * }
+{ * ObjectData Manager, base on ObjectData, write by qq600585                  * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
@@ -24,20 +24,20 @@ uses CoreClasses, ObjectData, UnicodeMixedLib, PascalStrings, ListEngine;
 type
   TItemHandle = TTMDBItemHandle;
   PItemHandle = ^TItemHandle;
-  PFieldHandle = ^TFieldHandle;
   TFieldHandle = TField;
-  PItemSearch = ^TItemSearch;
+  PFieldHandle = ^TFieldHandle;
   TItemSearch = TTMDBSearchItem;
-  PFieldSearch = ^TFieldSearch;
+  PItemSearch = ^TItemSearch;
   TFieldSearch = TTMDBSearchField;
-  PItemRecursionSearch = ^TItemRecursionSearch;
+  PFieldSearch = ^TFieldSearch;
   TItemRecursionSearch = TTMDBRecursionSearch;
+  PItemRecursionSearch = ^TItemRecursionSearch;
 
   TObjectDataManager = class(TCoreClassObject)
   private
     FStreamEngine: TCoreClassStream;
     FObjectDataHandle: TTMDB;
-    FNeedCreateNew, FOverWriteItem, FAllowSameHeaderName, FOnlyRead: Boolean;
+    FNeedCreateNew, FOnlyRead: Boolean;
     FObjectName: SystemString;
     FDefaultItemID: Byte;
     FIsOpened: Boolean;
@@ -54,12 +54,12 @@ type
     procedure SetOverWriteItem(Value: Boolean);
     procedure SetAllowSameHeaderName(Value: Boolean);
   public
-    constructor Create(const aObjectName: SystemString; const AID: Byte; aOnlyRead: Boolean);
-    constructor CreateNew(const aObjectName: SystemString; const AID: Byte);
-    constructor CreateAsStream(AStream: TCoreClassStream; const aObjectName: SystemString; const AID: Byte; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
+    constructor Create(const dbName: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean);
+    constructor CreateNew(const dbName: SystemString; const dbItemID: Byte);
+    constructor CreateAsStream(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean);
     destructor Destroy; override;
     function Open: Boolean;
-    function NewHandle(AStream: TCoreClassStream; const aObjectName: SystemString; const AID: Byte; aOnlyRead, aIsNew: Boolean): Boolean;
+    function NewHandle(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, aIsNew: Boolean): Boolean;
     function copyto(DestDB: TObjectDataManager): Boolean;
     function CopyToPath(DestDB: TObjectDataManager; destPath: SystemString): Boolean;
     function CopyFieldToPath(FieldPos: Int64; DestDB: TObjectDataManager; destPath: SystemString): Boolean;
@@ -73,19 +73,23 @@ type
     function Size: Int64;
     function IOReadSize: Int64;
     function IOWriteSize: Int64;
+
+    // defaultItem ID
     procedure SetID(const ID: Byte);
+
+    // head update
     procedure Update;
 
-    // field
+    // field api
     function CreateField(const DirName, DirDescription: SystemString): Boolean;
     function CreateRootField(const RootName: SystemString): Boolean;
     function DirectoryExists(const DirName: SystemString): Boolean;
-    function FastDelete(const FieldPos: Int64; const APos: Int64): Boolean;
+    function FastDelete(const FieldPos: Int64; const fPos: Int64): Boolean;
     function FastFieldExists(const FieldPos: Int64; const FieldName: SystemString): Boolean;
     function FastFieldCreate(const FieldPos: Int64; const FieldName, FieldDescription: SystemString; var NewFieldPos: Int64): Boolean;
-    function SetRootField(const RootName: SystemString): Boolean;
-    function FieldReName(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
     function RootField: Int64;
+    function SetRootField(const RootName: SystemString): Boolean;
+    function FieldRename(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
     function FieldDelete(const DBPath: SystemString; const FieldName: SystemString): Boolean;
     function FieldExists(const DBPath: SystemString; const FieldName: SystemString): Boolean;
     function FieldFastFindFirst(const FieldPos: Int64; const Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
@@ -101,50 +105,53 @@ type
     function GetFieldPath(const FieldPos: Int64): SystemString;
     function GetPathField(const DBPath: SystemString; var dest: Int64): Boolean;
     function GetPathFieldPos(const DBPath: SystemString): Int64;
-    function GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
-    function GetItemSize(const DBPath, DBItem: SystemString): Int64;
 
-    // fast api support
+    // header api
+    function GetHeaderModificationTime(const hPos: Int64): TDateTime;
     function GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
     function GetLastHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
     function GetHeader(hPos: Int64; var h: THeader): Boolean;
-    function ItemAutoOpenOrCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
-    function ItemUpdate(var ItemHnd: TItemHandle): Boolean;
-    function ItemClose(var ItemHnd: TItemHandle): Boolean;
-    function ItemReName(const FieldPos: Int64; var ItemHnd: TItemHandle; const aNewName, aNewDescription: SystemString): Boolean;
-    function ItemCopyTo(var ItemHnd: TItemHandle; DestDB: TObjectDataManager; var DestItemHandle: TItemHandle; const CopySize: Int64): Boolean;
+
+    // item api
+    function GetItemSize(const DBPath, DBItem: SystemString): Int64;
     function ItemCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
     function ItemDelete(const DBPath, DBItem: SystemString): Boolean;
     function ItemExists(const DBPath, DBItem: SystemString): Boolean;
+    function ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemAutoOpenOrCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemUpdate(var ItemHnd: TItemHandle): Boolean;
+    function ItemClose(var ItemHnd: TItemHandle): Boolean;
+    function ItemCopyTo(var ItemHnd: TItemHandle; DestDB: TObjectDataManager; var DestItemHandle: TItemHandle; const CopySize: Int64): Boolean;
+    function ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
+    function ItemRename(const FieldPos: Int64; var ItemHnd: TItemHandle; const NewName, NewDescription: SystemString): Boolean;
     function ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
-    function ItemFastCreate(const APos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemFastCreate(const fPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemFastOpen(const fPos: Int64; var ItemHnd: TItemHandle): Boolean;
+    function ItemFastResetBody(const fPos: Int64): Boolean;
     function ItemFastExists(const FieldPos: Int64; const DBItem: SystemString): Boolean;
     function ItemFastFindFirst(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindLast(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemFastOpen(const APos: Int64; var ItemHnd: TItemHandle): Boolean;
-    function ItemFastResetBody(const APos: Int64): Boolean;
     function ItemFindFirst(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFindLast(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
-    function ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
 
     // block operation
-    function ItemRead(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
+    function ItemRead(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean;
     function ItemSeekStart(var ItemHnd: TItemHandle): Boolean;
     function ItemSeekLast(var ItemHnd: TItemHandle): Boolean;
     function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean;
     function ItemGetPos(var ItemHnd: TItemHandle): Int64;
     function ItemGetSize(var ItemHnd: TItemHandle): Int64;
-    function ItemWrite(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
+    function ItemWrite(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean;
 
     // recursion support
     function RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 
+    // options
     function ObjectDataHandlePtr: PTMDB;
     property AutoFreeHandle: Boolean read GetAutoFreeHandle write SetAutoFreeHandle;
     property IsOnlyRead: Boolean read FOnlyRead;
@@ -154,7 +161,8 @@ type
     property StreamEngine: TCoreClassStream read FStreamEngine;
     property DBTime: TDateTime read GetDBTime;
     property OverWriteItem: Boolean read GetOverWriteItem write SetOverWriteItem;
-    property AllowSameHeaderName: Boolean read GetAllowSameHeaderName write SetAllowSameHeaderName;
+    property SameHeaderName: Boolean read GetAllowSameHeaderName write SetAllowSameHeaderName;
+
     // user custom data
     property Data: Pointer read FData write FData;
   end;
@@ -243,11 +251,11 @@ type
     function GetNames(AName: SystemString): TObjectDataManager;
     procedure SetItems(aIndex: Integer; const Value: TObjectDataManager);
   public
-    constructor Create(AID: Byte);
+    constructor Create(dbItemID: Byte);
     destructor Destroy; override;
-    function GetAbsoluteFileName(aFileName: SystemString): SystemString;
-    function NewDB(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
-    function Open(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
+    function GetAbsoluteFileName(fileName: SystemString): SystemString;
+    function NewDB(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
+    function Open(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
     procedure CloseDB(db: TObjectDataManager);
     procedure Clear;
     function Count: Integer;
@@ -320,34 +328,32 @@ end;
 procedure TObjectDataManager.SetOverWriteItem(Value: Boolean);
 begin
   FObjectDataHandle.OverWriteItem := Value;
-  FOverWriteItem := Value;
 end;
 
 procedure TObjectDataManager.SetAllowSameHeaderName(Value: Boolean);
 begin
   FObjectDataHandle.AllowSameHeaderName := Value;
-  FAllowSameHeaderName := Value;
 end;
 
-constructor TObjectDataManager.Create(const aObjectName: SystemString; const AID: Byte; aOnlyRead: Boolean);
+constructor TObjectDataManager.Create(const dbName: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean);
 begin
   inherited Create;
-  NewHandle(nil, aObjectName, AID, aOnlyRead, False);
+  NewHandle(nil, dbName, dbItemID, dbOnlyRead, False);
   DoCreateFinish;
 end;
 
-constructor TObjectDataManager.CreateNew(const aObjectName: SystemString; const AID: Byte);
+constructor TObjectDataManager.CreateNew(const dbName: SystemString; const dbItemID: Byte);
 begin
   inherited Create;
-  NewHandle(nil, aObjectName, AID, False, True);
+  NewHandle(nil, dbName, dbItemID, False, True);
   DoCreateFinish;
 end;
 
-constructor TObjectDataManager.CreateAsStream(AStream: TCoreClassStream; const aObjectName: SystemString; const AID: Byte; aOnlyRead, aIsNewData, aAutoFreeHandle: Boolean);
+constructor TObjectDataManager.CreateAsStream(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean);
 begin
   inherited Create;
-  NewHandle(AStream, aObjectName, AID, aOnlyRead, aIsNewData);
-  AutoFreeHandle := aAutoFreeHandle;
+  NewHandle(AStream, dbName, dbItemID, dbOnlyRead, isNewDB);
+  AutoFreeHandle := DestroyTimeFreeStream;
   DoCreateFinish;
 end;
 
@@ -364,18 +370,18 @@ begin
     begin
       if FNeedCreateNew then
         begin
-          if not dbPack_CreateAsStream(StreamEngine, ObjectName, '', FObjectDataHandle) then
+          if not db_CreateAsStream(StreamEngine, ObjectName, '', FObjectDataHandle) then
             begin
               Exit;
             end;
-          if not(dbPack_CreateRootField(UserRootName, '', FObjectDataHandle)) then
+          if not(db_CreateRootField(UserRootName, '', FObjectDataHandle)) then
               Exit;
-          if not(dbPack_SetCurrentRootField(UserRootName, FObjectDataHandle)) then
+          if not(db_SetCurrentRootField(UserRootName, FObjectDataHandle)) then
               Exit;
         end
       else
         begin
-          if not dbPack_OpenAsStream(StreamEngine, ObjectName, FObjectDataHandle, IsOnlyRead) then
+          if not db_OpenAsStream(StreamEngine, ObjectName, FObjectDataHandle, IsOnlyRead) then
             begin
               Exit;
             end;
@@ -383,60 +389,58 @@ begin
     end
   else if (FNeedCreateNew) or (not umlFileExists(ObjectName)) then
     begin
-      if not dbPack_CreatePack(ObjectName, '', FObjectDataHandle) then
+      if not db_CreatePack(ObjectName, '', FObjectDataHandle) then
         begin
-          dbPack_ClosePack(FObjectDataHandle);
+          db_ClosePack(FObjectDataHandle);
           Init_TTMDB(FObjectDataHandle);
-          if not dbPack_CreatePack(ObjectName, '', FObjectDataHandle) then
+          if not db_CreatePack(ObjectName, '', FObjectDataHandle) then
             begin
               Exit;
             end;
         end;
-      if not(dbPack_CreateRootField(UserRootName, '', FObjectDataHandle)) then
+      if not(db_CreateRootField(UserRootName, '', FObjectDataHandle)) then
           Exit;
-      if not(dbPack_SetCurrentRootField(UserRootName, FObjectDataHandle)) then
+      if not(db_SetCurrentRootField(UserRootName, FObjectDataHandle)) then
           Exit;
     end
-  else if not dbPack_OpenPack(ObjectName, FObjectDataHandle, IsOnlyRead) then
+  else if not db_OpenPack(ObjectName, FObjectDataHandle, IsOnlyRead) then
     begin
-      dbPack_ClosePack(FObjectDataHandle);
+      db_ClosePack(FObjectDataHandle);
       Init_TTMDB(FObjectDataHandle);
-      if not dbPack_OpenPack(ObjectName, FObjectDataHandle, IsOnlyRead) then
+      if not db_OpenPack(ObjectName, FObjectDataHandle, IsOnlyRead) then
         begin
           Exit;
         end;
     end;
-  FObjectDataHandle.OverWriteItem := FOverWriteItem;
-  FObjectDataHandle.AllowSameHeaderName := FAllowSameHeaderName;
   Result := True;
 end;
 
-function TObjectDataManager.NewHandle(AStream: TCoreClassStream; const aObjectName: SystemString; const AID: Byte; aOnlyRead, aIsNew: Boolean): Boolean;
+function TObjectDataManager.NewHandle(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, aIsNew: Boolean): Boolean;
 begin
   Close;
   Init_TTMDB(FObjectDataHandle);
   FStreamEngine := AStream;
-  FObjectName := aObjectName;
+  FObjectName := dbName;
   FNeedCreateNew := aIsNew;
-  FOnlyRead := aOnlyRead;
-  FDefaultItemID := AID;
+  FOnlyRead := dbOnlyRead;
+  FDefaultItemID := dbItemID;
   FIsOpened := Open();
   Result := FIsOpened;
 
   OverWriteItem := True;
-  AllowSameHeaderName := False;
+  SameHeaderName := False;
   AutoFreeHandle := True;
   FData := nil;
 end;
 
 function TObjectDataManager.copyto(DestDB: TObjectDataManager): Boolean;
 begin
-  Result := dbPack_CopyAllTo(FObjectDataHandle, DestDB.FObjectDataHandle);
+  Result := db_CopyAllTo(FObjectDataHandle, DestDB.FObjectDataHandle);
 end;
 
 function TObjectDataManager.CopyToPath(DestDB: TObjectDataManager; destPath: SystemString): Boolean;
 begin
-  Result := dbPack_CopyAllToDestPath(FObjectDataHandle, DestDB.FObjectDataHandle, destPath);
+  Result := db_CopyAllToDestPath(FObjectDataHandle, DestDB.FObjectDataHandle, destPath);
 end;
 
 function TObjectDataManager.CopyFieldToPath(FieldPos: Int64; DestDB: TObjectDataManager; destPath: SystemString): Boolean;
@@ -446,7 +450,7 @@ begin
   Result := False;
   CreateField(destPath, '');
   if GetPathField(destPath, DestFieldPos) then
-      Result := dbPack_CopyFieldTo('*', FObjectDataHandle, FieldPos, DestDB.FObjectDataHandle, DestFieldPos);
+      Result := db_CopyFieldTo('*', FObjectDataHandle, FieldPos, DestDB.FObjectDataHandle, DestFieldPos);
 end;
 
 procedure TObjectDataManager.SaveToStream(stream: TCoreClassStream);
@@ -532,7 +536,7 @@ end;
 
 function TObjectDataManager.Close: Boolean;
 begin
-  Result := dbPack_ClosePack(FObjectDataHandle);
+  Result := db_ClosePack(FObjectDataHandle);
 end;
 
 function TObjectDataManager.ErrorNo: Int64;
@@ -542,7 +546,7 @@ end;
 
 function TObjectDataManager.Modify: Boolean;
 begin
-  Result := FObjectDataHandle.IOHnd.WriteFlag;
+  Result := FObjectDataHandle.IOHnd.WriteStated;
 end;
 
 function TObjectDataManager.Size: Int64;
@@ -567,34 +571,34 @@ end;
 
 procedure TObjectDataManager.Update;
 begin
-  dbPack_Update(FObjectDataHandle);
+  db_Update(FObjectDataHandle);
 end;
 
 function TObjectDataManager.CreateField(const DirName, DirDescription: SystemString): Boolean;
 begin
-  Result := dbPack_CreateField(DirName, DirDescription, FObjectDataHandle);
+  Result := db_CreateField(DirName, DirDescription, FObjectDataHandle);
 end;
 
 function TObjectDataManager.CreateRootField(const RootName: SystemString): Boolean;
 begin
-  Result := dbPack_CreateRootField(RootName, RootName, FObjectDataHandle);
+  Result := db_CreateRootField(RootName, RootName, FObjectDataHandle);
 end;
 
 function TObjectDataManager.DirectoryExists(const DirName: SystemString): Boolean;
 var
   Field: TFieldHandle;
 begin
-  Result := dbPack_GetField(DirName, Field, FObjectDataHandle);
+  Result := db_GetField(DirName, Field, FObjectDataHandle);
 end;
 
-function TObjectDataManager.FastDelete(const FieldPos: Int64; const APos: Int64): Boolean;
+function TObjectDataManager.FastDelete(const FieldPos: Int64; const fPos: Int64): Boolean;
 var
   FieldHnd: TFieldHandle;
 begin
   Init_TField(FieldHnd);
   Result := False;
   if dbField_ReadRec(FieldPos, FObjectDataHandle.IOHnd, FieldHnd) then
-      Result := dbField_DeleteHeader(APos, FieldPos, FObjectDataHandle.IOHnd, FieldHnd);
+      Result := dbField_DeleteHeader(fPos, FieldPos, FObjectDataHandle.IOHnd, FieldHnd);
 end;
 
 function TObjectDataManager.FastFieldExists(const FieldPos: Int64; const FieldName: SystemString): Boolean;
@@ -614,12 +618,17 @@ begin
   NewFieldPos := NewField.RHeader.CurrentHeader;
 end;
 
-function TObjectDataManager.SetRootField(const RootName: SystemString): Boolean;
+function TObjectDataManager.RootField: Int64;
 begin
-  Result := dbPack_SetCurrentRootField(RootName, FObjectDataHandle);
+  Result := FObjectDataHandle.DefaultFieldPOS;
 end;
 
-function TObjectDataManager.FieldReName(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
+function TObjectDataManager.SetRootField(const RootName: SystemString): Boolean;
+begin
+  Result := db_SetCurrentRootField(RootName, FObjectDataHandle);
+end;
+
+function TObjectDataManager.FieldRename(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
 var
   FieldHnd: TFieldHandle;
 begin
@@ -639,14 +648,9 @@ begin
     end;
 end;
 
-function TObjectDataManager.RootField: Int64;
-begin
-  Result := FObjectDataHandle.DefaultFieldPOS;
-end;
-
 function TObjectDataManager.FieldDelete(const DBPath: SystemString; const FieldName: SystemString): Boolean;
 begin
-  Result := dbPack_DeleteField(DBPath, FieldName, FObjectDataHandle);
+  Result := db_DeleteField(DBPath, FieldName, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldExists(const DBPath: SystemString; const FieldName: SystemString): Boolean;
@@ -659,50 +663,50 @@ end;
 function TObjectDataManager.FieldFastFindFirst(const FieldPos: Int64; const Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
 begin
   Init_TTMDBSearchField(FieldSearchHandle);
-  Result := dbPack_FastFindFirstField(FieldPos, Filter, FieldSearchHandle, FObjectDataHandle);
+  Result := db_FastFindFirstField(FieldPos, Filter, FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFastFindLast(const FieldPos: Int64; const Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
 begin
   Init_TTMDBSearchField(FieldSearchHandle);
-  Result := dbPack_FastFindLastField(FieldPos, Filter, FieldSearchHandle, FObjectDataHandle);
+  Result := db_FastFindLastField(FieldPos, Filter, FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFastFindNext(var FieldSearchHandle: TFieldSearch): Boolean;
 begin
-  Result := dbPack_FastFindNextField(FieldSearchHandle, FObjectDataHandle);
+  Result := db_FastFindNextField(FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFastFindPrev(var FieldSearchHandle: TFieldSearch): Boolean;
 begin
-  Result := dbPack_FastFindPrevField(FieldSearchHandle, FObjectDataHandle);
+  Result := db_FastFindPrevField(FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFindFirst(const DBPath, Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
 begin
   Init_TTMDBSearchField(FieldSearchHandle);
-  Result := dbPack_FindFirstField(DBPath, Filter, FieldSearchHandle, FObjectDataHandle);
+  Result := db_FindFirstField(DBPath, Filter, FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFindLast(const DBPath, Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
 begin
   Init_TTMDBSearchField(FieldSearchHandle);
-  Result := dbPack_FindLastField(DBPath, Filter, FieldSearchHandle, FObjectDataHandle);
+  Result := db_FindLastField(DBPath, Filter, FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFindNext(var FieldSearchHandle: TFieldSearch): Boolean;
 begin
-  Result := dbPack_FindNextField(FieldSearchHandle, FObjectDataHandle);
+  Result := db_FindNextField(FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldFindPrev(var FieldSearchHandle: TFieldSearch): Boolean;
 begin
-  Result := dbPack_FindPrevField(FieldSearchHandle, FObjectDataHandle);
+  Result := db_FindPrevField(FieldSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.FieldMove(const DBPath, FieldName, destPath: SystemString): Boolean;
 begin
-  Result := dbPack_MoveField(DBPath, FieldName, destPath, FObjectDataHandle);
+  Result := db_MoveField(DBPath, FieldName, destPath, FObjectDataHandle);
 end;
 
 function TObjectDataManager.GetFieldData(const FieldPos: Int64; var dest: TFieldHandle): Boolean;
@@ -715,7 +719,7 @@ function TObjectDataManager.GetFieldPath(const FieldPos: Int64): SystemString;
 var
   ReturnPath: U_String;
 begin
-  if dbPack_GetPath(FieldPos, FObjectDataHandle.DefaultFieldPOS, FObjectDataHandle, ReturnPath) then
+  if db_GetPath(FieldPos, FObjectDataHandle.DefaultFieldPOS, FObjectDataHandle, ReturnPath) then
       Result := ReturnPath
   else
       Result := '';
@@ -725,7 +729,7 @@ function TObjectDataManager.GetPathField(const DBPath: SystemString; var dest: I
 var
   FieldHnd: TFieldHandle;
 begin
-  Result := dbPack_GetField(DBPath, FieldHnd, FObjectDataHandle);
+  Result := db_GetField(DBPath, FieldHnd, FObjectDataHandle);
   if Result then
       dest := FieldHnd.RHeader.CurrentHeader;
 end;
@@ -736,25 +740,14 @@ begin
       Result := 0;
 end;
 
-function TObjectDataManager.GetHeaderLastModifyTime(const hPos: Int64): TDateTime;
+function TObjectDataManager.GetHeaderModificationTime(const hPos: Int64): TDateTime;
 var
   h: THeader;
 begin
   if dbHeader_ReadRec(hPos, FObjectDataHandle.IOHnd, h) then
-      Result := h.LastModifyTime
+      Result := h.ModificationTime
   else
       Result := umlDefaultTime;
-end;
-
-function TObjectDataManager.GetItemSize(const DBPath, DBItem: SystemString): Int64;
-var
-  DBItemHandle: TItemHandle;
-begin
-  Init_TTMDBItemHandle(DBItemHandle);
-  if dbPack_GetItem(DBPath, DBItem, FDefaultItemID, DBItemHandle.Item, FObjectDataHandle) then
-      Result := DBItemHandle.Item.Size
-  else
-      Result := 0;
 end;
 
 function TObjectDataManager.GetFirstHeaderFromField(FieldPos: Int64; var h: THeader): Boolean;
@@ -782,6 +775,45 @@ begin
   Result := dbHeader_ReadRec(hPos, FObjectDataHandle.IOHnd, h);
 end;
 
+function TObjectDataManager.GetItemSize(const DBPath, DBItem: SystemString): Int64;
+var
+  DBItemHandle: TItemHandle;
+begin
+  Init_TTMDBItemHandle(DBItemHandle);
+  if db_GetItem(DBPath, DBItem, FDefaultItemID, DBItemHandle.Item, FObjectDataHandle) then
+      Result := DBItemHandle.Item.Size
+  else
+      Result := 0;
+end;
+
+function TObjectDataManager.ItemCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+{
+  It can automatically create a path
+}
+begin
+  Init_TTMDBItemHandle(ItemHnd);
+  Result := db_ItemCreate(DBPath, DBItem, DBItemDescription, FDefaultItemID, ItemHnd, FObjectDataHandle);
+end;
+
+function TObjectDataManager.ItemDelete(const DBPath, DBItem: SystemString): Boolean;
+begin
+  Result := db_DeleteItem(DBPath, DBItem, FDefaultItemID, FObjectDataHandle);
+end;
+
+function TObjectDataManager.ItemExists(const DBPath, DBItem: SystemString): Boolean;
+var
+  ItemSearchHnd: TItemSearch;
+begin
+  Init_TTMDBSearchItem(ItemSearchHnd);
+  Result := db_FindFirstItem(DBPath, DBItem, FDefaultItemID, ItemSearchHnd, FObjectDataHandle);
+end;
+
+function TObjectDataManager.ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
+begin
+  Init_TTMDBItemHandle(ItemHnd);
+  Result := db_ItemOpen(DBPath, DBItem, FDefaultItemID, ItemHnd, FObjectDataHandle);
+end;
+
 function TObjectDataManager.ItemAutoOpenOrCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
   if ItemExists(DBPath, DBItem) then
@@ -792,28 +824,23 @@ end;
 
 function TObjectDataManager.ItemUpdate(var ItemHnd: TItemHandle): Boolean;
 begin
-  Result := dbPack_ItemUpdate(ItemHnd, FObjectDataHandle);
+  Result := db_ItemUpdate(ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemClose(var ItemHnd: TItemHandle): Boolean;
 begin
-  Result := dbPack_ItemClose(ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemReName(const FieldPos: Int64; var ItemHnd: TItemHandle; const aNewName, aNewDescription: SystemString): Boolean;
-begin
-  Result := dbPack_ItemReName(FieldPos, aNewName, aNewDescription, ItemHnd, FObjectDataHandle);
+  Result := db_ItemClose(ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemCopyTo(var ItemHnd: TItemHandle; DestDB: TObjectDataManager; var DestItemHandle: TItemHandle; const CopySize: Int64): Boolean;
 var
-  RepaInt: Integer;
+  i: Integer;
   buff: array [0 .. MaxBuffSize] of Byte;
 begin
   Result := False;
   if CopySize > MaxBuffSize then
     begin
-      for RepaInt := 1 to (CopySize div MaxBuffSize) do
+      for i := 1 to (CopySize div MaxBuffSize) do
         begin
           if not ItemRead(ItemHnd, MaxBuffSize, buff) then
               Exit;
@@ -841,38 +868,40 @@ begin
   Result := True;
 end;
 
-function TObjectDataManager.ItemCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
-{
-  It can automatically create a path
-}
+function TObjectDataManager.ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
 begin
-  Init_TTMDBItemHandle(ItemHnd);
-  Result := dbPack_ItemCreate(DBPath, DBItem, DBItemDescription, FDefaultItemID, ItemHnd, FObjectDataHandle);
+  Result := db_MoveItem(DBPath, ItemName, destPath, FDefaultItemID, FObjectDataHandle);
 end;
 
-function TObjectDataManager.ItemDelete(const DBPath, DBItem: SystemString): Boolean;
+function TObjectDataManager.ItemRename(const FieldPos: Int64; var ItemHnd: TItemHandle; const NewName, NewDescription: SystemString): Boolean;
 begin
-  Result := dbPack_DeleteItem(DBPath, DBItem, FDefaultItemID, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemExists(const DBPath, DBItem: SystemString): Boolean;
-var
-  ItemSearchHnd: TItemSearch;
-begin
-  Init_TTMDBSearchItem(ItemSearchHnd);
-  Result := dbPack_FindFirstItem(DBPath, DBItem, FDefaultItemID, ItemSearchHnd, FObjectDataHandle);
+  Result := db_ItemReName(FieldPos, NewName, NewDescription, ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := dbPack_ItemFastInsertNew(DBItem, DBItemDescription, FieldPos, InsertHeaderPos, FDefaultItemID, ItemHnd, FObjectDataHandle);
+  Result := db_ItemFastInsertNew(DBItem, DBItemDescription, FieldPos, InsertHeaderPos, FDefaultItemID, ItemHnd, FObjectDataHandle);
 end;
 
-function TObjectDataManager.ItemFastCreate(const APos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemFastCreate(const fPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := dbPack_ItemFastCreate(DBItem, DBItemDescription, APos, FDefaultItemID, ItemHnd, FObjectDataHandle);
+  Result := db_ItemFastCreate(DBItem, DBItemDescription, fPos, FDefaultItemID, ItemHnd, FObjectDataHandle);
+end;
+
+function TObjectDataManager.ItemFastOpen(const fPos: Int64; var ItemHnd: TItemHandle): Boolean;
+begin
+  Init_TTMDBItemHandle(ItemHnd);
+  Result := db_ItemFastOpen(fPos, FDefaultItemID, ItemHnd, FObjectDataHandle);
+end;
+
+function TObjectDataManager.ItemFastResetBody(const fPos: Int64): Boolean;
+var
+  ItemHnd: TItemHandle;
+begin
+  Result := ItemFastOpen(fPos, ItemHnd)
+    and db_ItemBodyReset(ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFastExists(const FieldPos: Int64; const DBItem: SystemString): Boolean;
@@ -880,132 +909,107 @@ var
   ItemSearchHnd: TItemSearch;
 begin
   Init_TTMDBSearchItem(ItemSearchHnd);
-  Result := dbPack_FastFindFirstItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHnd, FObjectDataHandle);
+  Result := db_FastFindFirstItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFastFindFirst(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := dbPack_FastFindFirstItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
+  Result := db_FastFindFirstItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFastFindLast(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := dbPack_FastFindLastItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
+  Result := db_FastFindLastItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFastFindNext(var ItemSearchHandle: TItemSearch): Boolean;
 begin
-  Result := dbPack_FastFindNextItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
+  Result := db_FastFindNextItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFastFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
 begin
-  Result := dbPack_FastFindPrevItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemFastOpen(const APos: Int64; var ItemHnd: TItemHandle): Boolean;
-begin
-  Init_TTMDBItemHandle(ItemHnd);
-  Result := dbPack_ItemFastOpen(APos, FDefaultItemID, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemFastResetBody(const APos: Int64): Boolean;
-var
-  ItemHnd: TItemHandle;
-begin
-  Result := ItemFastOpen(APos, ItemHnd)
-    and dbPack_ItemBodyReset(ItemHnd, FObjectDataHandle);
+  Result := db_FastFindPrevItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFindFirst(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := dbPack_FindFirstItem(DBPath, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
+  Result := db_FindFirstItem(DBPath, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFindLast(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := dbPack_FindLastItem(DBPath, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
+  Result := db_FindLastItem(DBPath, DBItem, FDefaultItemID, ItemSearchHandle, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean;
 begin
-  Result := dbPack_FindNextItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
+  Result := db_FindNextItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
 begin
-  Result := dbPack_FindPrevItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
+  Result := db_FindPrevItem(ItemSearchHandle, FDefaultItemID, FObjectDataHandle);
 end;
 
-function TObjectDataManager.ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
+function TObjectDataManager.ItemRead(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean;
 begin
-  Result := dbPack_MoveItem(DBPath, ItemName, destPath, FDefaultItemID, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
-begin
-  Init_TTMDBItemHandle(ItemHnd);
-  Result := dbPack_ItemOpen(DBPath, DBItem, FDefaultItemID, ItemHnd, FObjectDataHandle);
-end;
-
-function TObjectDataManager.ItemRead(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
-begin
-  Result := dbPack_ItemRead(ASize, Buffers, ItemHnd, FObjectDataHandle);
+  Result := db_ItemRead(siz, Buffers, ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemSeekStart(var ItemHnd: TItemHandle): Boolean;
 begin
-  Result := dbPack_ItemSeekStartPos(ItemHnd, FObjectDataHandle);
+  Result := db_ItemSeekStartPos(ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemSeekLast(var ItemHnd: TItemHandle): Boolean;
 begin
-  Result := dbPack_ItemSeekLastPos(ItemHnd, FObjectDataHandle);
+  Result := db_ItemSeekLastPos(ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean;
 var
-  ASize: Integer;
+  siz: Integer;
 begin
-  ASize := dbPack_ItemGetSize(ItemHnd, FObjectDataHandle);
-  if ItemOffset > ASize then
-      Result := dbPack_AppendItemSize(ItemHnd, ItemOffset - ASize, FObjectDataHandle)
-  else if ItemOffset = ASize then
-      Result := dbPack_ItemSeekLastPos(ItemHnd, FObjectDataHandle)
+  siz := db_ItemGetSize(ItemHnd, FObjectDataHandle);
+  if ItemOffset > siz then
+      Result := db_AppendItemSize(ItemHnd, ItemOffset - siz, FObjectDataHandle)
+  else if ItemOffset = siz then
+      Result := db_ItemSeekLastPos(ItemHnd, FObjectDataHandle)
   else if ItemOffset = 0 then
-      Result := dbPack_ItemSeekStartPos(ItemHnd, FObjectDataHandle)
+      Result := db_ItemSeekStartPos(ItemHnd, FObjectDataHandle)
   else
-      Result := dbPack_ItemSeekPos(ItemOffset, ItemHnd, FObjectDataHandle);
+      Result := db_ItemSeekPos(ItemOffset, ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemGetPos(var ItemHnd: TItemHandle): Int64;
 begin
-  Result := dbPack_ItemGetPos(ItemHnd, FObjectDataHandle);
+  Result := db_ItemGetPos(ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ItemGetSize(var ItemHnd: TItemHandle): Int64;
 begin
-  Result := dbPack_ItemGetSize(ItemHnd, FObjectDataHandle);
+  Result := db_ItemGetSize(ItemHnd, FObjectDataHandle);
 end;
 
-function TObjectDataManager.ItemWrite(var ItemHnd: TItemHandle; const ASize: Int64; var Buffers): Boolean;
+function TObjectDataManager.ItemWrite(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean;
 begin
-  Result := dbPack_ItemWrite(ASize, Buffers, ItemHnd, FObjectDataHandle);
+  Result := db_ItemWrite(siz, Buffers, ItemHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.RecursionSearchFirst(const InitPath, MaskName: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 begin
   Init_TTMDBRecursionSearch(RecursionSearchHnd);
-  Result := dbPack_RecursionSearchFirst(InitPath, MaskName, RecursionSearchHnd, FObjectDataHandle);
+  Result := db_RecursionSearchFirst(InitPath, MaskName, RecursionSearchHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 begin
-  Result := dbPack_RecursionSearchNext(RecursionSearchHnd, FObjectDataHandle);
+  Result := db_RecursionSearchNext(RecursionSearchHnd, FObjectDataHandle);
 end;
 
 function TObjectDataManager.ObjectDataHandlePtr: PTMDB;
@@ -1398,7 +1402,7 @@ end;
 
 function TObjectDataMarshal.GetNames(AName: SystemString): TObjectDataManager;
 var
-  RepaInt: Integer;
+  i: Integer;
   aUName: SystemString;
 begin
   Result := nil;
@@ -1409,11 +1413,11 @@ begin
         begin
           if not umlMatchLimitChar('\', aUName) then
               aUName := '*\' + aUName;
-          for RepaInt := 0 to FLibList.Count - 1 do
+          for i := 0 to FLibList.Count - 1 do
             begin
-              if umlMultipleMatch(False, aUName, FLibList[RepaInt]) then
+              if umlMultipleMatch(False, aUName, FLibList[i]) then
                 begin
-                  Result := TObjectDataManager(FLibList.Objects[RepaInt]);
+                  Result := TObjectDataManager(FLibList.Objects[i]);
                   Exit;
                 end;
             end;
@@ -1422,19 +1426,19 @@ begin
         begin
           if umlMatchLimitChar('\', aUName) then
             begin
-              for RepaInt := 0 to FLibList.Count - 1 do
-                if umlSameText(aUName, FLibList[RepaInt]) then
+              for i := 0 to FLibList.Count - 1 do
+                if umlSameText(aUName, FLibList[i]) then
                   begin
-                    Result := TObjectDataManager(FLibList.Objects[RepaInt]);
+                    Result := TObjectDataManager(FLibList.Objects[i]);
                     Exit;
                   end;
             end
           else
             begin
-              for RepaInt := 0 to FLibList.Count - 1 do
-                if umlSameText(aUName, umlGetLastStr(FLibList[RepaInt], '\')) then
+              for i := 0 to FLibList.Count - 1 do
+                if umlSameText(aUName, umlGetLastStr(FLibList[i], '\')) then
                   begin
-                    Result := TObjectDataManager(FLibList.Objects[RepaInt]);
+                    Result := TObjectDataManager(FLibList.Objects[i]);
                     Exit;
                   end;
             end;
@@ -1451,10 +1455,10 @@ begin
     end;
 end;
 
-constructor TObjectDataMarshal.Create(AID: Byte);
+constructor TObjectDataMarshal.Create(dbItemID: Byte);
 begin
   inherited Create;
-  FID := AID;
+  FID := dbItemID;
   FLibList := TCoreClassStringList.Create;
   FUseWildcard := True;
 end;
@@ -1466,25 +1470,25 @@ begin
   inherited Destroy;
 end;
 
-function TObjectDataMarshal.GetAbsoluteFileName(aFileName: SystemString): SystemString;
+function TObjectDataMarshal.GetAbsoluteFileName(fileName: SystemString): SystemString;
 begin
-  Result := umlUpperCase(umlCharReplace(umlTrimSpace(aFileName), '/', '\')).Text;
+  Result := umlUpperCase(umlCharReplace(umlTrimSpace(fileName), '/', '\')).Text;
 end;
 
-function TObjectDataMarshal.NewDB(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
+function TObjectDataMarshal.NewDB(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
 var
-  RepaInt: Integer;
+  i: Integer;
   aUName: SystemString;
 begin
   Result := nil;
-  aUName := GetAbsoluteFileName(aFile);
+  aUName := GetAbsoluteFileName(dbFile);
   if FLibList.Count > 0 then
-    for RepaInt := 0 to FLibList.Count - 1 do
-      if umlSameText(aUName, FLibList[RepaInt]) then
-          Result := TObjectDataManager(FLibList.Objects[RepaInt]);
+    for i := 0 to FLibList.Count - 1 do
+      if umlSameText(aUName, FLibList[i]) then
+          Result := TObjectDataManager(FLibList.Objects[i]);
   if Result = nil then
     begin
-      Result := TObjectDataManager.CreateNew(aFile, FID);
+      Result := TObjectDataManager.CreateNew(dbFile, FID);
       if Result.isAbort then
         begin
           DisposeObject(Result);
@@ -1497,20 +1501,20 @@ begin
     end;
 end;
 
-function TObjectDataMarshal.Open(aFile: SystemString; aOnlyRead: Boolean): TObjectDataManager;
+function TObjectDataMarshal.Open(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
 var
-  RepaInt: Integer;
+  i: Integer;
   aUName: SystemString;
 begin
   Result := nil;
-  aUName := GetAbsoluteFileName(aFile);
+  aUName := GetAbsoluteFileName(dbFile);
   if FLibList.Count > 0 then
-    for RepaInt := 0 to FLibList.Count - 1 do
-      if umlSameText(aUName, FLibList[RepaInt]) then
-          Result := TObjectDataManager(FLibList.Objects[RepaInt]);
+    for i := 0 to FLibList.Count - 1 do
+      if umlSameText(aUName, FLibList[i]) then
+          Result := TObjectDataManager(FLibList.Objects[i]);
   if Result = nil then
     begin
-      Result := TObjectDataManager.Create(aFile, FID, aOnlyRead);
+      Result := TObjectDataManager.Create(dbFile, FID, dbOnlyRead);
       if Result.isAbort then
         begin
           DisposeObject(Result);
@@ -1557,7 +1561,7 @@ end;
 
 procedure TObjectDataMarshal.DeleteFromName(AName: SystemString);
 var
-  RepaInt: Integer;
+  i: Integer;
   aUName: SystemString;
 begin
   aUName := GetAbsoluteFileName(AName);
@@ -1567,46 +1571,46 @@ begin
         begin
           if not umlMatchLimitChar('\', aUName) then
               aUName := '*\' + aUName;
-          RepaInt := 0;
-          while RepaInt < FLibList.Count do
+          i := 0;
+          while i < FLibList.Count do
             begin
-              if umlMultipleMatch(False, aUName, FLibList[RepaInt]) then
+              if umlMultipleMatch(False, aUName, FLibList[i]) then
                 begin
-                  DisposeObject(FLibList.Objects[RepaInt]);
-                  FLibList.Delete(RepaInt);
+                  DisposeObject(FLibList.Objects[i]);
+                  FLibList.Delete(i);
                 end
               else
-                  inc(RepaInt);
+                  inc(i);
             end;
         end
       else
         begin
           if umlMatchLimitChar('\', aUName) then
             begin
-              RepaInt := 0;
-              while RepaInt < FLibList.Count do
+              i := 0;
+              while i < FLibList.Count do
                 begin
-                  if umlSameText(aUName, FLibList[RepaInt]) then
+                  if umlSameText(aUName, FLibList[i]) then
                     begin
-                      DisposeObject(FLibList.Objects[RepaInt]);
-                      FLibList.Delete(RepaInt);
+                      DisposeObject(FLibList.Objects[i]);
+                      FLibList.Delete(i);
                     end
                   else
-                      inc(RepaInt);
+                      inc(i);
                 end;
             end
           else
             begin
-              RepaInt := 0;
-              while RepaInt < FLibList.Count do
+              i := 0;
+              while i < FLibList.Count do
                 begin
-                  if umlSameText(aUName, umlGetLastStr(FLibList[RepaInt], '\')) then
+                  if umlSameText(aUName, umlGetLastStr(FLibList[i], '\')) then
                     begin
-                      DisposeObject(FLibList.Objects[RepaInt]);
-                      FLibList.Delete(RepaInt);
+                      DisposeObject(FLibList.Objects[i]);
+                      FLibList.Delete(i);
                     end
                   else
-                      inc(RepaInt);
+                      inc(i);
                 end;
             end;
         end;
@@ -1615,29 +1619,29 @@ end;
 
 procedure TObjectDataMarshal.UpdateAll;
 var
-  RepaInt: Integer;
+  i: Integer;
 begin
   if Count > 0 then
-    for RepaInt := 0 to Count - 1 do
-        Items[RepaInt].Update;
+    for i := 0 to Count - 1 do
+        Items[i].Update;
 end;
 
 procedure TObjectDataMarshal.Disable;
 var
-  RepaInt: Integer;
+  i: Integer;
 begin
   if Count > 0 then
-    for RepaInt := 0 to Count - 1 do
-        Items[RepaInt].Close;
+    for i := 0 to Count - 1 do
+        Items[i].Close;
 end;
 
 procedure TObjectDataMarshal.Enabled;
 var
-  RepaInt: Integer;
+  i: Integer;
 begin
   if Count > 0 then
-    for RepaInt := 0 to Count - 1 do
-        Items[RepaInt].Open;
+    for i := 0 to Count - 1 do
+        Items[i].Open;
 end;
 
 initialization
