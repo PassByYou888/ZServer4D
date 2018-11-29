@@ -91,17 +91,21 @@ begin
 
   while True do
     begin
-      if not MyPhysics_Client.Connected then
-        while not MyPhysics_Client.Connect('127.0.0.1', 19899) do
+{$IFDEF MSWINDOWS}
+      SetConsoleTitle(PWideChar(Format('P2PVM 服务器在线: %d', [MyP2PVM_Server.Count])));
+{$ENDIF MSWINDOWS}
+      // 自动重连
+      if not MyPhysics_Client.RemoteInited then
+        if not MyPhysics_Client.Connect('127.0.0.1', 19899) then
+          begin
             CoreClasses.CheckThreadSynchronize(100);
+            continue;
+          end;
 
       // 在p2pVM被InstallLogicFramework后，progress会自动调用MyP2PVM_Server.Progress
       if MyPhysics_Client.Connected then
           MyPhysics_Client.Progress;
 
-{$IFDEF MSWINDOWS}
-      SetConsoleTitle(PWideChar(Format('P2PVM server online: %d', [MyP2PVM_Server.Count])));
-{$ENDIF MSWINDOWS}
       // 绿色环保，给cpu节能
       CoreClasses.CheckThreadSynchronize(10);
     end;

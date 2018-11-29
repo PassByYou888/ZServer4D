@@ -807,7 +807,7 @@ type
     procedure Framework_InternalIOCreate(const Sender: TPeerIO); virtual;
     procedure Framework_InternalIODestroy(const Sender: TPeerIO); virtual;
 
-    procedure BuildP2PAuthToken_DelayExecute(Sender: TNPostExecute);
+    procedure BuildP2PAuthTokenResult_OnIOIDLE(Sender: TCoreClassObject);
     procedure CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
     procedure Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure Command_InitP2PTunnel(Sender: TPeerIO; InData: SystemString);
@@ -6146,13 +6146,11 @@ begin
       FIOInterface.PeerIO_Destroy(Sender);
 end;
 
-procedure TCommunicationFramework.BuildP2PAuthToken_DelayExecute(Sender: TNPostExecute);
+procedure TCommunicationFramework.BuildP2PAuthTokenResult_OnIOIDLE(Sender: TCoreClassObject);
 var
   P_IO: TPeerIO;
 begin
-  P_IO := TPeerIO(FPeerIO_HashPool[Sender.Data3]);
-  if P_IO = nil then
-      exit;
+  P_IO := TPeerIO(Sender);
 
   try
     if Assigned(P_IO.OnVMBuildAuthModelResultCall) then
@@ -6181,7 +6179,7 @@ begin
   for i := 0 to arr.Count - 1 do
       PInteger(@Sender.FP2PAuthToken[i * 4])^ := arr[i];
 
-  ProgressPost.PostExecuteM(0, {$IFDEF FPC}@{$ENDIF FPC}BuildP2PAuthToken_DelayExecute).Data3 := Sender.ID;
+  Sender.IO_IDLE_TraceM(Sender, {$IFDEF FPC}@{$ENDIF FPC}BuildP2PAuthTokenResult_OnIOIDLE);
 end;
 
 procedure TCommunicationFramework.Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
