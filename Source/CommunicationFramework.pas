@@ -327,8 +327,6 @@ type
   TInternalIODestory = procedure(const Sender: TPeerIO) of object;
 
   TCommunicationFrameworkWithP2PVM = class;
-  TCommunicationFrameworkWithP2PVM_Server = class;
-  TCommunicationFrameworkWithP2PVM_Client = class;
 
   TPeerIO = class(TCoreClassInterfacedObject)
   protected
@@ -606,7 +604,7 @@ type
     // delay reponse
     procedure PauseResultSend; virtual;
     procedure ContinueResultSend; virtual;
-    // ContinueResultSend use it
+    // ContinueResultSend usage
     property InText: SystemString read FInText;
     property OutText: SystemString read FOutText write FOutText;
     property InDataFrame: TDataFrameEngine read FInDataFrame;
@@ -651,16 +649,16 @@ type
     // hash code
     procedure GenerateHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var output: TBytes);
     function VerifyHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
-    //
+
     // encrypt
     procedure Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
-    //
+
     // TimeOut Tick
     function StopCommunicationTime: TTimeTick;
     procedure UpdateLastCommunicationTime;
     property LastCommunicationTime: TTimeTick read FLastCommunicationTick;
     property LastCommunicationTimeTick: TTimeTick read FLastCommunicationTick;
-    //
+
     // queue data
     property CurrentQueueData: PQueueData read FCurrentQueueData;
 
@@ -938,6 +936,7 @@ type
 
     // hash pool
     property PeerIO_HashPool: TUInt32HashObjectList read FPeerIO_HashPool;
+    property IOPool: TUInt32HashObjectList read FPeerIO_HashPool;
 
     // custom struct: user custom instance one
     property PeerClientUserDefineClass: TPeerIOUserDefineClass read FPeerIOUserDefineClass write FPeerIOUserDefineClass;
@@ -1079,12 +1078,13 @@ type
 
     function GetCount: Integer;
     property Count: Integer read GetCount;
+
     function Exists(P_IO: TCoreClassObject): Boolean; overload;
     function Exists(P_IO: TPeerIO): Boolean; overload;
     function Exists(P_IO: TPeerIOUserDefine): Boolean; overload;
     function Exists(P_IO: TPeerIOUserSpecial): Boolean; overload;
-
     function Exists(IO_ID: Cardinal): Boolean; overload;
+
     function GetPeerIO(ID: Cardinal): TPeerIO;
     property IO[ID: Cardinal]: TPeerIO read GetPeerIO; default;
     property PeerIO[ID: Cardinal]: TPeerIO read GetPeerIO;
@@ -1636,48 +1636,47 @@ type
 {$REGION 'ConstAndVariant'}
 
 
-const
-  { sequence packet }
-  C_Sequence_Packet_HeadSize: Byte = 22;
-  C_Sequence_QuietPacket: Byte = 1;
-  C_Sequence_Packet: Byte = 2;
-  C_Sequence_EchoPacket: Byte = 3;
-  C_Sequence_KeepAlive: Byte = 4;
-  C_Sequence_EchoKeepAlive: Byte = 5;
-  C_Sequence_RequestResend: Byte = 6;
+var
+  { sequence packet model }
+  C_Sequence_Packet_HeadSize: Byte = $16;
+  C_Sequence_QuietPacket: Byte = $01;
+  C_Sequence_Packet: Byte = $02;
+  C_Sequence_EchoPacket: Byte = $03;
+  C_Sequence_KeepAlive: Byte = $04;
+  C_Sequence_EchoKeepAlive: Byte = $05;
+  C_Sequence_RequestResend: Byte = $06;
 
-  { p2pVM token }
-  c_p2pVM_echoing: Byte = $01;
-  c_p2pVM_echo: Byte = $02;
-  c_p2pVM_AuthSuccessed: Byte = $09;
-  c_p2pVM_Listen: Byte = $10;
-  c_p2pVM_ListenState: Byte = $11;
-  c_p2pVM_Connecting: Byte = $20;
-  c_p2pVM_ConnectedReponse: Byte = $21;
-  c_p2pVM_Disconnect: Byte = $40;
-  c_p2pVM_LogicFragmentData: Byte = $54;
-  c_p2pVM_PhysicsFragmentData: Byte = $64;
+  { p2pVM }
+  C_p2pVM_echoing: Byte = $01;
+  C_p2pVM_echo: Byte = $02;
+  C_p2pVM_AuthSuccessed: Byte = $09;
+  C_p2pVM_Listen: Byte = $10;
+  C_p2pVM_ListenState: Byte = $11;
+  C_p2pVM_Connecting: Byte = $20;
+  C_p2pVM_ConnectedReponse: Byte = $21;
+  C_p2pVM_Disconnect: Byte = $40;
+  C_p2pVM_LogicFragmentData: Byte = $54;
+  C_p2pVM_PhysicsFragmentData: Byte = $64;
 
-  // communication data token
-  c_DefaultConsoleToken: Byte = $F1;
-  c_DefaultStreamToken: Byte = $2F;
-  c_DefaultDirectConsoleToken: Byte = $F3;
-  c_DefaultDirectStreamToken: Byte = $4F;
-  c_DefaultBigStreamToken: Byte = $F5;
-  c_DefaultCompleteBufferToken: Byte = $6F;
+  { default system head }
+  C_DefaultConsoleToken: Byte = $F1;
+  C_DefaultStreamToken: Byte = $2F;
+  C_DefaultDirectConsoleToken: Byte = $F3;
+  C_DefaultDirectStreamToken: Byte = $4F;
+  C_DefaultBigStreamToken: Byte = $F5;
+  C_DefaultCompleteBufferToken: Byte = $6F;
 
-  // user custom header verify token
-  c_DataHeadToken: Cardinal = $F0F0F0F0;
-  // user custom tail verify token
-  c_DataTailToken: Cardinal = $F1F1F1F1;
+  { user custom header verify token }
+  C_DataHeadToken: Cardinal = $F0F0F0F0;
+  { user custom tail verify token }
+  C_DataTailToken: Cardinal = $F1F1F1F1;
 
   // dostatus id
-  c_DoStatusID: Integer = $0FFFFFFF;
+  C_DoStatusID: Integer = $0FFFFFFF;
 
   // vm auth token size
   C_VMAuthSize: Integer = 256;
 
-var
   // global progress backcall
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
   ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
@@ -3085,9 +3084,9 @@ begin
     end;
 
   if (FSequencePacketSignal)
-    and (GetTimeTick - SequencePacketVerifyTick > 1000)
     and (SendingSequencePacketHistory.Count > 0)
-    and (WriteBufferEmpty) then
+    and (WriteBufferEmpty)
+    and (GetTimeTick - SequencePacketVerifyTick > 1000) then
     begin
       IOSendBuffer.Position := IOSendBuffer.Size;
 
@@ -3280,7 +3279,10 @@ var
 begin
   p := SendingSequencePacketHistory[SequenceNumber];
   if p <> nil then
-      WriteSequencePacket(p)
+    begin
+      WriteSequencePacket(p);
+      p^.tick := GetTimeTick();
+    end
   else
       PrintError('resend error, invalid Sequence Packet ' + IntToHex(SequenceNumber, 8));
 end;
@@ -4951,15 +4953,15 @@ begin
   while (AOwnerFramework.FIDCounter = 0) or (AOwnerFramework.FPeerIO_HashPool.Exists(AOwnerFramework.FIDCounter)) do
       AtomInc(AOwnerFramework.FIDCounter);
 
-  FHeadToken := c_DataHeadToken;
-  FTailToken := c_DataTailToken;
+  FHeadToken := C_DataHeadToken;
+  FTailToken := C_DataTailToken;
 
-  FConsoleToken := c_DefaultConsoleToken;
-  FStreamToken := c_DefaultStreamToken;
-  FDirectConsoleToken := c_DefaultDirectConsoleToken;
-  FDirectStreamToken := c_DefaultDirectStreamToken;
-  FBigStreamToken := c_DefaultBigStreamToken;
-  FCompleteBufferToken := c_DefaultCompleteBufferToken;
+  FConsoleToken := C_DefaultConsoleToken;
+  FStreamToken := C_DefaultStreamToken;
+  FDirectConsoleToken := C_DefaultDirectConsoleToken;
+  FDirectStreamToken := C_DefaultDirectStreamToken;
+  FBigStreamToken := C_DefaultBigStreamToken;
+  FCompleteBufferToken := C_DefaultCompleteBufferToken;
 
   FReceivedAbort := False;
   FReceivedBuffer := TMemoryStream64.Create;
@@ -5910,7 +5912,7 @@ begin
         end
       else
           n2 := '';
-      DoStatus(n1 + n2 + v, c_DoStatusID);
+      DoStatus(n1 + n2 + v, C_DoStatusID);
     end;
 
   AtomInc(Statistics[TStatisticsType.stPrint]);
@@ -8967,13 +8969,13 @@ begin
       // send fragment
       while siz > FLinkVM.FMaxVMFragmentSize do
         begin
-          FSendQueue.Add(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, c_p2pVM_LogicFragmentData, p));
+          FSendQueue.Add(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, C_p2pVM_LogicFragmentData, p));
           inc(p, FLinkVM.FMaxVMFragmentSize);
           dec(siz, FLinkVM.FMaxVMFragmentSize);
         end;
 
       if siz > 0 then
-          FSendQueue.Add(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, c_p2pVM_LogicFragmentData, p));
+          FSendQueue.Add(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, C_p2pVM_LogicFragmentData, p));
     end;
 
   FRealSendBuff.Clear;
@@ -9754,7 +9756,7 @@ begin
       t.buffSiz := siz;
       t.frameworkID := 0;
       t.p2pID := 0;
-      t.pkType := c_p2pVM_PhysicsFragmentData;
+      t.pkType := C_p2pVM_PhysicsFragmentData;
       t.buff := buff;
       t.BuildSendBuff(FSendStream);
     end
@@ -9851,11 +9853,11 @@ begin
       if rPos > 0 then
         begin
           // protocol support
-          if fPk.pkType = c_p2pVM_echoing then
+          if fPk.pkType = C_p2pVM_echoing then
               ReceivedEchoing(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_echo then
+          else if fPk.pkType = C_p2pVM_echo then
               ReceivedEcho(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_AuthSuccessed then
+          else if fPk.pkType = C_p2pVM_AuthSuccessed then
             begin
               if Assigned(OnAuthSuccessOnesNotify) then
                 begin
@@ -9866,19 +9868,19 @@ begin
                   OnAuthSuccessOnesNotify := nil;
                 end;
             end
-          else if fPk.pkType = c_p2pVM_Listen then
+          else if fPk.pkType = C_p2pVM_Listen then
               ReceivedListen(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_ListenState then
+          else if fPk.pkType = C_p2pVM_ListenState then
               ReceivedListenState(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_Connecting then
+          else if fPk.pkType = C_p2pVM_Connecting then
               ReceivedConnecting(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_ConnectedReponse then
+          else if fPk.pkType = C_p2pVM_ConnectedReponse then
               ReceivedConnectedReponse(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_Disconnect then
+          else if fPk.pkType = C_p2pVM_Disconnect then
               ReceivedDisconnect(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_LogicFragmentData then
+          else if fPk.pkType = C_p2pVM_LogicFragmentData then
               ReceivedLogicFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if fPk.pkType = c_p2pVM_PhysicsFragmentData then
+          else if fPk.pkType = C_p2pVM_PhysicsFragmentData then
               ReceivedPhysicsFragmentData(fPk.frameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
           else if not FQuietMode then
             begin
@@ -10709,7 +10711,7 @@ procedure TCommunicationFrameworkWithP2PVM.AuthSuccessed;
 var
   p: Pp2pVMFragmentPacket;
 begin
-  p := BuildP2PVMPacket(0, 0, 0, c_p2pVM_AuthSuccessed, nil);
+  p := BuildP2PVMPacket(0, 0, 0, C_p2pVM_AuthSuccessed, nil);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
@@ -10753,7 +10755,7 @@ begin
     end;
 
   u64ptr := UInt64(OnEchoPtr);
-  p := BuildP2PVMPacket(8, 0, 0, c_p2pVM_echoing, @u64ptr);
+  p := BuildP2PVMPacket(8, 0, 0, C_p2pVM_echoing, @u64ptr);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
@@ -10809,7 +10811,7 @@ var
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
-  p := BuildP2PVMPacket(siz, 0, 0, c_p2pVM_echo, buff);
+  p := BuildP2PVMPacket(siz, 0, 0, C_p2pVM_echo, buff);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
@@ -10855,7 +10857,7 @@ begin
       PIPV6(@RBuf[0])^ := ipv6;
       PWORD(@RBuf[16])^ := Port;
       PBoolean(@RBuf[18])^ := Listening;
-      p := BuildP2PVMPacket(SizeOf(RBuf), frameworkID, 0, c_p2pVM_Listen, @RBuf[0]);
+      p := BuildP2PVMPacket(SizeOf(RBuf), frameworkID, 0, C_p2pVM_Listen, @RBuf[0]);
 
       FSendStream.Position := FSendStream.Size;
       p^.BuildSendBuff(FSendStream);
@@ -10873,7 +10875,7 @@ begin
   PIPV6(@RBuf[0])^ := ipv6;
   PWORD(@RBuf[16])^ := Port;
   PBoolean(@RBuf[18])^ := Listening;
-  p := BuildP2PVMPacket(SizeOf(RBuf), frameworkID, 0, c_p2pVM_ListenState, @RBuf[0]);
+  p := BuildP2PVMPacket(SizeOf(RBuf), frameworkID, 0, C_p2pVM_ListenState, @RBuf[0]);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
@@ -10892,7 +10894,7 @@ begin
   PIPV6(@RBuf[8])^ := ipv6;
   PWORD(@RBuf[24])^ := Port;
 
-  p := BuildP2PVMPacket(SizeOf(RBuf), Remote_frameworkID, 0, c_p2pVM_Connecting, @RBuf[0]);
+  p := BuildP2PVMPacket(SizeOf(RBuf), Remote_frameworkID, 0, C_p2pVM_Connecting, @RBuf[0]);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
@@ -10909,7 +10911,7 @@ begin
   PCardinal(@RBuf[0])^ := frameworkID;
   PCardinal(@RBuf[4])^ := p2pID;
 
-  p := BuildP2PVMPacket(SizeOf(RBuf), Remote_frameworkID, Remote_p2pID, c_p2pVM_ConnectedReponse, @RBuf[0]);
+  p := BuildP2PVMPacket(SizeOf(RBuf), Remote_frameworkID, Remote_p2pID, C_p2pVM_ConnectedReponse, @RBuf[0]);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);
@@ -10922,7 +10924,7 @@ var
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
-  p := BuildP2PVMPacket(0, Remote_frameworkID, Remote_p2pID, c_p2pVM_Disconnect, nil);
+  p := BuildP2PVMPacket(0, Remote_frameworkID, Remote_p2pID, C_p2pVM_Disconnect, nil);
 
   FSendStream.Position := FSendStream.Size;
   p^.BuildSendBuff(FSendStream);

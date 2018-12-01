@@ -209,9 +209,8 @@ type
 
   PDoStatusData = ^TDoStatusData;
 
-threadvar StatusActive: Boolean;
-
 var
+  StatusActive: Boolean;
   HookDoStatus: TCoreClassList;
   ReservedStatus: TCoreClassList;
   LastDoStatusNoLn: TPascalString;
