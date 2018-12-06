@@ -139,6 +139,10 @@ type
 
   TObjectFreeProc = procedure(Obj: TCoreClassObject) of object;
 
+  TInt64HashObjectListLoopCall = procedure(i64: Int64; Value: TCoreClassObject);
+  TInt64HashObjectListLoopMethod = procedure(i64: Int64; Value: TCoreClassObject) of object;
+{$IFNDEF FPC} TInt64HashObjectListLoopProc = reference to procedure(i64: Int64; Value: TCoreClassObject); {$ENDIF}
+
   TInt64HashObjectList = class(TCoreClassObject)
   private
     FListBuffer: TListBuffer;
@@ -183,6 +187,11 @@ type
     function GetNext(i64: Int64): TCoreClassObject;
     function GetPrev(i64: Int64): TCoreClassObject;
     function ListBuffer: PListBuffer;
+
+    procedure ProgressC(OnProgress: TInt64HashObjectListLoopCall); overload;
+    procedure ProgressM(OnProgress: TInt64HashObjectListLoopMethod); overload;
+{$IFNDEF FPC} procedure ProgressP(OnProgress: TInt64HashObjectListLoopProc); overload; {$ENDIF}
+    // print hash status
     procedure PrintHashReport;
 
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
@@ -202,6 +211,10 @@ type
     ID: TCounter;
     Prev, Next: PInt64HashListPointerStruct;
   end;
+
+  TInt64HashPointerListLoopCall = procedure(i64: Int64; Value: Pointer);
+  TInt64HashPointerListLoopMethod = procedure(i64: Int64; Value: Pointer) of object;
+{$IFNDEF FPC} TInt64HashPointerListLoopProc = reference to procedure(i64: Int64; Value: Pointer); {$ENDIF}
 
   TInt64HashPointerList = class(TCoreClassObject)
   private
@@ -246,6 +259,11 @@ type
     function GetNext(i64: Int64): Pointer;
     function GetPrev(i64: Int64): Pointer;
     function ListBuffer: PListBuffer;
+
+    procedure ProgressC(OnProgress: TInt64HashPointerListLoopCall); overload;
+    procedure ProgressM(OnProgress: TInt64HashPointerListLoopMethod); overload;
+{$IFNDEF FPC} procedure ProgressP(OnProgress: TInt64HashPointerListLoopProc); overload; {$ENDIF}
+    // print hash status
     procedure PrintHashReport;
 
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
@@ -2494,6 +2512,73 @@ begin
   Result := @FListBuffer;
 end;
 
+procedure TInt64HashObjectList.ProgressC(OnProgress: TInt64HashObjectListLoopCall);
+var
+  i: NativeInt;
+  p: PInt64HashListObjectStruct;
+begin
+  if (FCount > 0) and (Assigned(OnProgress)) then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          try
+              OnProgress(p^.i64, p^.Data);
+          except
+          end;
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+
+procedure TInt64HashObjectList.ProgressM(OnProgress: TInt64HashObjectListLoopMethod);
+var
+  i: NativeInt;
+  p: PInt64HashListObjectStruct;
+begin
+  if (FCount > 0) and (Assigned(OnProgress)) then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          try
+              OnProgress(p^.i64, p^.Data);
+          except
+          end;
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+{$IFNDEF FPC}
+
+
+procedure TInt64HashObjectList.ProgressP(OnProgress: TInt64HashObjectListLoopProc);
+var
+  i: NativeInt;
+  p: PInt64HashListObjectStruct;
+begin
+  if (FCount > 0) and (Assigned(OnProgress)) then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          try
+              OnProgress(p^.i64, p^.Data);
+          except
+          end;
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+{$ENDIF}
+
+
 procedure TInt64HashObjectList.PrintHashReport;
 var
   i: NativeInt;
@@ -3015,6 +3100,74 @@ function TInt64HashPointerList.ListBuffer: PListBuffer;
 begin
   Result := @FListBuffer;
 end;
+
+procedure TInt64HashPointerList.ProgressC(OnProgress: TInt64HashPointerListLoopCall);
+var
+  i: NativeInt;
+  p: PInt64HashListPointerStruct;
+begin
+  if (FCount > 0) and (Assigned(OnProgress)) then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          try
+              OnProgress(p^.i64, p^.Data);
+          except
+          end;
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+
+procedure TInt64HashPointerList.ProgressM(OnProgress: TInt64HashPointerListLoopMethod);
+var
+  i: NativeInt;
+  p: PInt64HashListPointerStruct;
+begin
+  if (FCount > 0) and (Assigned(OnProgress)) then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          try
+              OnProgress(p^.i64, p^.Data);
+          except
+          end;
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+{$IFNDEF FPC}
+
+
+procedure TInt64HashPointerList.ProgressP(OnProgress: TInt64HashPointerListLoopProc);
+var
+  i: NativeInt;
+  p: PInt64HashListPointerStruct;
+begin
+  if (FCount > 0) and (Assigned(OnProgress)) then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          try
+              OnProgress(p^.i64, p^.Data);
+          except
+          end;
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+
+{$ENDIF}
+
 
 procedure TInt64HashPointerList.PrintHashReport;
 var

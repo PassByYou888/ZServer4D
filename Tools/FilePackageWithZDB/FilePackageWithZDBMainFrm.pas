@@ -46,7 +46,7 @@ type
     procedure CompressAsButtonClick(Sender: TObject);
   private
     { Private declarations }
-    FDBEng     : TObjectDataManagerOfCache;
+    FDBEng: TObjectDataManagerOfCache;
     FDBManFrame: TObjectDataManagerFrame;
 
     FTotalRead, FTotalWrite: Int64;
@@ -83,7 +83,7 @@ begin
 
   FOpenFile := '';
 
-  FDBEng.Update;
+  FDBEng.Flush;
   FDBEng.StreamEngine.Position := 0;
 
   MD5Edit.Text := umlStreamMD5String(FDBEng.StreamEngine);
@@ -104,7 +104,7 @@ end;
 procedure TFilePackageWithZDBMainForm.CompressAsButtonClick(Sender: TObject);
 var
   m64, C64: TMemoryStream64;
-  fn      : string;
+  fn: string;
 begin
   if not SaveAsCompressedDialog.Execute then
       Exit;
@@ -149,7 +149,7 @@ begin
   FDBManFrame.ResourceData := FDBEng;
   FOpenFile := '';
 
-  FDBEng.Update;
+  FDBEng.Flush;
   FDBEng.StreamEngine.Position := 0;
   MD5Edit.Text := umlStreamMD5String(FDBEng.StreamEngine);
   DoStatus('new DB');
@@ -239,9 +239,8 @@ end;
 
 procedure TFilePackageWithZDBMainForm.TimerTimer(Sender: TObject);
 begin
-  CacheStateMemo.Text := Format('cached header:%d field:%d item:%d block:%d' + #13#10 + 'File Size:%s IO Read:%s IO Write:%s',
-    [FDBEng.HeaderCache.Count, FDBEng.FieldCache.Count, FDBEng.ItemCache.Count, FDBEng.ItemBlockCache.Count,
-    umlSizeToStr(FDBEng.Size).Text, umlSizeToStr(FTotalRead).Text, umlSizeToStr(FTotalWrite).Text]);
+  CacheStateMemo.Text := Format('File Size:%s IO Read:%s IO Write:%s',
+    [umlSizeToStr(FDBEng.Size).Text, umlSizeToStr(FTotalRead).Text, umlSizeToStr(FTotalWrite).Text]);
 end;
 
 procedure TFilePackageWithZDBMainForm.TriggerRead64(Count: Int64);
@@ -275,4 +274,4 @@ begin
   DoStatus('save DB:%s', [FOpenFile.Text]);
 end;
 
-end. 
+end.

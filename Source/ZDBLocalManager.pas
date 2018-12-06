@@ -317,7 +317,7 @@ type
     // getData
     function GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TDBCacheStream64;
     //
-    // modify operation
+    // Modification operation
     function SetData(dn: SystemString; StorePos: Int64; dSour: TMemoryStream64): Boolean;
   end;
 
@@ -1456,9 +1456,9 @@ begin
       Exit;
 
   db := TZDBStoreEngine(Obj);
-  if (db.DBEngine.Modify) and (GetTimeTick - db.FLastModifyTime > 1000) then
+  if (db.DBEngine.Modification) and (GetTimeTick - db.FLastModifyTime > 1000) then
     begin
-      db.DBEngine.Update;
+      db.Update;
       db.FLastModifyTime := GetTimeTick;
     end;
 end;
@@ -2163,7 +2163,7 @@ begin
   d := GetDB(dn);
   if d = nil then
       Exit;
-  d.PostDeleteData(StorePos);
+  d.DeleteData(StorePos);
 end;
 
 function TZDBLocalManager.GetData(dn: SystemString; StorePos: Int64; ID: Cardinal): TDBCacheStream64;

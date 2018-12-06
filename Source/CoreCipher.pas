@@ -336,6 +336,11 @@ type
     class function StringToBuff(const Hex: TPascalString; var Buf; BufSize: Cardinal): Boolean; overload;
 
     class procedure HashToString(hash: Pointer; Size: NativeInt; var output: TPascalString); overload;
+
+    class procedure HashToString(hash: TSHA3_224_Digest; var output: TPascalString); overload;
+    class procedure HashToString(hash: TSHA3_256_Digest; var output: TPascalString); overload;
+    class procedure HashToString(hash: TSHA3_384_Digest; var output: TPascalString); overload;
+    class procedure HashToString(hash: TSHA3_512_Digest; var output: TPascalString); overload;
     class procedure HashToString(hash: TSHA512Digest; var output: TPascalString); overload;
     class procedure HashToString(hash: TSHA256Digest; var output: TPascalString); overload;
     class procedure HashToString(hash: TSHA1Digest; var output: TPascalString); overload;
@@ -343,6 +348,10 @@ type
     class procedure HashToString(hash: TBytes; var output: TPascalString); overload;
     class procedure HashToString(hash: TBytes; var output: SystemString); overload;
 
+    class function CompareHash(h1, h2: TSHA3_224_Digest): Boolean; overload;
+    class function CompareHash(h1, h2: TSHA3_256_Digest): Boolean; overload;
+    class function CompareHash(h1, h2: TSHA3_384_Digest): Boolean; overload;
+    class function CompareHash(h1, h2: TSHA3_512_Digest): Boolean; overload;
     class function CompareHash(h1, h2: TSHA512Digest): Boolean; overload;
     class function CompareHash(h1, h2: TSHA256Digest): Boolean; overload;
     class function CompareHash(h1, h2: TSHA1Digest): Boolean; overload;
@@ -565,6 +574,18 @@ function ComparePassword(const cs: TCipherSecurity; const passwd, passwdDataSour
 }
 function GenerateQuantumCryptographyPassword(const passwd: TPascalString): TPascalString;
 function CompareQuantumCryptographyPassword(const passwd, passwdDataSource: TPascalString): Boolean;
+
+// QuantumCryptography for Stream support: used sha-3-512 cryptography as 512 bits password
+type
+  TQuantumEncryptHead = packed record
+    CipherSecurity: Byte;
+    Level: Word;
+    Size: Int64;
+    hash: TSHA3_512_Digest;
+  end;
+
+procedure QuantumEncrypt(input, output: TCoreClassStream; SecurityLevel: Integer; key: TCipherKeyBuffer);
+function QuantumDecrypt(input, output: TCoreClassStream; key: TCipherKeyBuffer): Boolean;
 
 procedure TestCoreCipher;
 
@@ -2331,6 +2352,26 @@ begin
     end;
 end;
 
+class procedure TCipher.HashToString(hash: TSHA3_224_Digest; var output: TPascalString);
+begin
+  HashToString(@hash[0], SizeOf(hash), output);
+end;
+
+class procedure TCipher.HashToString(hash: TSHA3_256_Digest; var output: TPascalString);
+begin
+  HashToString(@hash[0], SizeOf(hash), output);
+end;
+
+class procedure TCipher.HashToString(hash: TSHA3_384_Digest; var output: TPascalString);
+begin
+  HashToString(@hash[0], SizeOf(hash), output);
+end;
+
+class procedure TCipher.HashToString(hash: TSHA3_512_Digest; var output: TPascalString);
+begin
+  HashToString(@hash[0], SizeOf(hash), output);
+end;
+
 class procedure TCipher.HashToString(hash: TSHA512Digest; var output: TPascalString);
 begin
   HashToString(@hash[0], SizeOf(hash), output);
@@ -2367,6 +2408,26 @@ begin
     end
   else
       output := '';
+end;
+
+class function TCipher.CompareHash(h1, h2: TSHA3_224_Digest): Boolean;
+begin
+  Result := CompareMemory(@h1[0], @h2[0], SizeOf(h1));
+end;
+
+class function TCipher.CompareHash(h1, h2: TSHA3_256_Digest): Boolean;
+begin
+  Result := CompareMemory(@h1[0], @h2[0], SizeOf(h1));
+end;
+
+class function TCipher.CompareHash(h1, h2: TSHA3_384_Digest): Boolean;
+begin
+  Result := CompareMemory(@h1[0], @h2[0], SizeOf(h1));
+end;
+
+class function TCipher.CompareHash(h1, h2: TSHA3_512_Digest): Boolean;
+begin
+  Result := CompareMemory(@h1[0], @h2[0], SizeOf(h1));
 end;
 
 class function TCipher.CompareHash(h1, h2: TSHA512Digest): Boolean;
@@ -4792,6 +4853,72 @@ begin
     end;
 end;
 
+procedure QuantumEncrypt(input, output: TCoreClassStream; SecurityLevel: Integer; key: TCipherKeyBuffer);
+var
+  m64: TMemoryStream64;
+  head: TQuantumEncryptHead;
+  i: Integer;
+  hh: TSHA3_512_Digest;
+begin
+  m64 := TMemoryStream64.Create;
+  input.Position := 0;
+  m64.CopyFrom(input, input.Size);
+
+  head.CipherSecurity := Byte(TCipherSecurity.csRijndael);
+  head.Level := SecurityLevel;
+  head.Size := m64.Size;
+
+  // 2x-sha3-512 Secure Hash
+  TSHA3.SHA512(hh, m64.Memory, head.Size);
+  TSHA3.SHA512(head.hash, @hh[0], 64);
+
+  // infinition encrypt
+  for i := 0 to head.Level - 1 do
+      SequEncryptCBC(TCipherSecurity(head.CipherSecurity), m64.Memory, m64.Size, key, True, True);
+
+  output.write(head, SizeOf(head));
+  output.write(m64.Memory^, m64.Size);
+  DisposeObject(m64);
+end;
+
+function QuantumDecrypt(input, output: TCoreClassStream; key: TCipherKeyBuffer): Boolean;
+var
+  head: TQuantumEncryptHead;
+  m64: TMemoryStream64;
+  i: Integer;
+  hh, h: TSHA3_512_Digest;
+begin
+  Result := False;
+  input.read(head, SizeOf(head));
+  m64 := TMemoryStream64.Create;
+  if m64.CopyFrom(input, head.Size) <> head.Size then
+    begin
+      DisposeObject(m64);
+      Exit;
+    end;
+
+  // infinition encrypt
+  for i := 0 to head.Level - 1 do
+      SequEncryptCBC(TCipherSecurity(head.CipherSecurity), m64.Memory, m64.Size, key, False, True);
+
+  // 2x-sha3-512 Secure Hash
+  TSHA3.SHA512(hh, m64.Memory, m64.Size);
+  TSHA3.SHA512(h, @hh[0], 64);
+
+  // compare
+  if not TCipher.CompareHash(h, head.hash) then
+    begin
+      DisposeObject(m64);
+      Exit;
+    end;
+
+  m64.Position := 0;
+  output.CopyFrom(m64, m64.Size);
+  DisposeObject(m64);
+
+  Result := True;
+end;
+
 procedure TestCoreCipher;
 var
   Buffer: TBytes;
@@ -4819,8 +4946,6 @@ begin
   DoStatus('pointer mode md5:' + umlMD5String(sour.Memory, sour.Size).Text);
 
   DisposeObject(sour);
-
-  IDEOutput := True;
 
   DoStatus('Generate and verify QuantumCryptographyPassword test');
   s := GenerateQuantumCryptographyPassword('123456');
@@ -6809,7 +6934,7 @@ var
   AA, BB: DWORD;
   CC, DD: DWORD;
   EE, FF: DWORD;
-  GG, HH: DWORD;
+  GG, hh: DWORD;
   i, r: Integer;
   Temp: TDCPTFSubKeys;
 begin
@@ -6828,7 +6953,7 @@ begin
       EE := KeyArray^[2];
       FF := BCSalts[i];
       GG := KeyArray^[3];
-      HH := BCSalts[i];
+      hh := BCSalts[i];
 
       { mix all the bits around for 8 rounds }
       { achieves avalanche and eliminates funnels }
@@ -6846,16 +6971,16 @@ begin
           GG := GG + DD;
           EE := EE + FF;
           EE := EE xor (FF shl 10);
-          HH := HH + EE;
+          hh := hh + EE;
           FF := FF + GG;
           FF := FF xor (GG shr 4);
           AA := AA + FF;
-          GG := GG + HH;
-          GG := GG xor (HH shl 8);
+          GG := GG + hh;
+          GG := GG xor (hh shl 8);
           BB := BB + GG;
-          HH := HH + AA;
-          HH := HH xor (AA shr 9);
-          CC := CC + HH;
+          hh := hh + AA;
+          hh := hh xor (AA shr 9);
+          CC := CC + hh;
           AA := AA + BB;
         end;
 
@@ -6867,7 +6992,7 @@ begin
       Context.SubKeysInts[i, 4] := EE;
       Context.SubKeysInts[i, 5] := FF;
       Context.SubKeysInts[i, 6] := GG;
-      Context.SubKeysInts[i, 7] := HH;
+      Context.SubKeysInts[i, 7] := hh;
     end;
 
   { reverse subkeys if decrypting - easier for EncryptLBC routine }
@@ -7419,7 +7544,7 @@ var
     a := RolX(a + ((b and d) or (c and not d)) + x + AC, s) + b;
   end;
 
-  procedure HH(var a: DWORD; const b, c, d, x, s, AC: DWORD);
+  procedure hh(var a: DWORD; const b, c, d, x, s, AC: DWORD);
   begin
     a := RolX(a + (b xor c xor d) + x + AC, s) + b;
   end;
@@ -7472,22 +7597,22 @@ begin
   GG(b, c, d, a, InBuf[12], S24, $8D2A4C8A); { 32 }
 
   { round 3 }
-  HH(a, b, c, d, InBuf[5], S31, $FFFA3942);  { 33 }
-  HH(d, a, b, c, InBuf[8], S32, $8771F681);  { 34 }
-  HH(c, d, a, b, InBuf[11], S33, $6D9D6122); { 35 }
-  HH(b, c, d, a, InBuf[14], S34, $FDE5380C); { 36 }
-  HH(a, b, c, d, InBuf[1], S31, $A4BEEA44);  { 37 }
-  HH(d, a, b, c, InBuf[4], S32, $4BDECFA9);  { 38 }
-  HH(c, d, a, b, InBuf[7], S33, $F6BB4B60);  { 39 }
-  HH(b, c, d, a, InBuf[10], S34, $BEBFBC70); { 40 }
-  HH(a, b, c, d, InBuf[13], S31, $289B7EC6); { 41 }
-  HH(d, a, b, c, InBuf[0], S32, $EAA127FA);  { 42 }
-  HH(c, d, a, b, InBuf[3], S33, $D4EF3085);  { 43 }
-  HH(b, c, d, a, InBuf[6], S34, $4881D05);   { 44 }
-  HH(a, b, c, d, InBuf[9], S31, $D9D4D039);  { 45 }
-  HH(d, a, b, c, InBuf[12], S32, $E6DB99E5); { 46 }
-  HH(c, d, a, b, InBuf[15], S33, $1FA27CF8); { 47 }
-  HH(b, c, d, a, InBuf[2], S34, $C4AC5665);  { 48 }
+  hh(a, b, c, d, InBuf[5], S31, $FFFA3942);  { 33 }
+  hh(d, a, b, c, InBuf[8], S32, $8771F681);  { 34 }
+  hh(c, d, a, b, InBuf[11], S33, $6D9D6122); { 35 }
+  hh(b, c, d, a, InBuf[14], S34, $FDE5380C); { 36 }
+  hh(a, b, c, d, InBuf[1], S31, $A4BEEA44);  { 37 }
+  hh(d, a, b, c, InBuf[4], S32, $4BDECFA9);  { 38 }
+  hh(c, d, a, b, InBuf[7], S33, $F6BB4B60);  { 39 }
+  hh(b, c, d, a, InBuf[10], S34, $BEBFBC70); { 40 }
+  hh(a, b, c, d, InBuf[13], S31, $289B7EC6); { 41 }
+  hh(d, a, b, c, InBuf[0], S32, $EAA127FA);  { 42 }
+  hh(c, d, a, b, InBuf[3], S33, $D4EF3085);  { 43 }
+  hh(b, c, d, a, InBuf[6], S34, $4881D05);   { 44 }
+  hh(a, b, c, d, InBuf[9], S31, $D9D4D039);  { 45 }
+  hh(d, a, b, c, InBuf[12], S32, $E6DB99E5); { 46 }
+  hh(c, d, a, b, InBuf[15], S33, $1FA27CF8); { 47 }
+  hh(b, c, d, a, InBuf[2], S34, $C4AC5665);  { 48 }
 
   { round 4 }
   II(a, b, c, d, InBuf[0], S41, $F4292244);  { 49 }

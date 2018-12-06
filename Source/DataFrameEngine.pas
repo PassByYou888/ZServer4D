@@ -23,8 +23,8 @@ unit DataFrameEngine;
 interface
 
 uses SysUtils, CoreClasses, Types,
-  ListEngine, MemoryStream64, DoStatusIO,
-  GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
+  ListEngine, MemoryStream64, CoreCipher,
+  DoStatusIO, GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
 {$IFNDEF FPC} ZS_JsonDataObjects, {$ENDIF}
   CoreCompress, UnicodeMixedLib, PascalStrings;
 
@@ -624,6 +624,11 @@ type
 
     function EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
     function EncodeTo(output: TCoreClassStream): Integer; overload;
+
+    // data security support
+    // QuantumCryptographyPassword: used sha-3-512 cryptography as 512 bits password
+    procedure Encrypt(output: TCoreClassStream; cCompressed: Boolean; SecurityLevel: Integer; Key: TCipherKeyBuffer);
+    function Decrypt(input: TCoreClassStream; Key: TCipherKeyBuffer): Boolean;
 
     // json support
 {$IFNDEF FPC}
@@ -1969,7 +1974,6 @@ end;
 
 procedure TDataFrameVariant.LoadFromStream(stream: TMemoryStream64);
 var
-  vt_ord: Word;
   vt: TVarType;
 begin
   vt := TVarType(stream.ReadUInt16);
@@ -3896,6 +3900,35 @@ begin
   Result := EncodeTo(output, False);
 end;
 
+procedure TDataFrameEngine.Encrypt(output: TCoreClassStream; cCompressed: Boolean; SecurityLevel: Integer; Key: TCipherKeyBuffer);
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.Create;
+  if cCompressed then
+      EncodeAsZLib(m64, True)
+  else
+      EncodeTo(m64, True);
+
+  QuantumEncrypt(m64, output, SecurityLevel, Key);
+  DisposeObject(m64);
+end;
+
+function TDataFrameEngine.Decrypt(input: TCoreClassStream; Key: TCipherKeyBuffer): Boolean;
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.Create;
+  Result := QuantumDecrypt(input, m64, Key);
+  if Result then
+    begin
+      m64.Position := 0;
+      DecodeFrom(m64, True);
+    end;
+
+  DisposeObject(m64);
+end;
+
 {$IFNDEF FPC}
 
 
@@ -4258,7 +4291,7 @@ var
 begin
   Clear;
 
-  Result := 0;
+  Result := -1;
 
   StoreStream := TMemoryStream64.Create;
 

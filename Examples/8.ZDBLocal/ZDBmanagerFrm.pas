@@ -1,5 +1,5 @@
 unit ZDBmanagerFrm;
-
+
 interface
 
 uses
@@ -73,11 +73,11 @@ implementation
 procedure TZDBmanagerForm.buildTempDataButtonClick(Sender: TObject);
 var
   i, j, k: Integer;
-  n      : TPascalString;
-  df     : TDBEngineDF;
-  ms     : TMemoryStream64;
-  d      : TTimeTick;
-  tc     : Int64;
+  n: TPascalString;
+  df: TDBEngineDF;
+  ms: TMemoryStream64;
+  d: TTimeTick;
+  tc: Int64;
 begin
   doStatus('build struct...');
   d := GetTimeTickCount;
@@ -146,10 +146,10 @@ end;
 
 procedure TZDBmanagerForm.Timer2Timer(Sender: TObject);
 var
-  i  : Integer;
+  i: Integer;
   lst: TCoreClassListForObj;
-  db : TZDBStoreEngine;
-  pl : TZDBPipeline;
+  db: TZDBStoreEngine;
+  pl: TZDBPipeline;
 begin
   lst := TCoreClassListForObj.Create;
   zdb.GetDBList(lst);
@@ -249,7 +249,7 @@ end;
 procedure TZDBmanagerForm.InsertButtonClick(Sender: TObject);
 var
   DBEng: TDBStoreBase;
-  lst  : TListInt64;
+  lst: TListInt64;
 begin
   DBEng := zdb.InitMemoryDB('testdb');
 
@@ -375,7 +375,7 @@ begin
   p.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
     var
       AnalysisPipe: TZDBPipeline;
-      sum         : Double;
+      sum: Double;
     begin
       doStatus('Analysis finished!');
       sum := 0;
@@ -403,7 +403,7 @@ begin
       if qState.IsDF then
         with qState.DBEng.GetDF(qState) do
           if InRange(ReadDouble(0), -100, 100) then
-              qState.DBEng.PostDeleteData(qState.StorePos);
+              qState.DBEng.DeleteData(qState.StorePos);
     end;
 end;
 
@@ -436,8 +436,10 @@ begin
     begin
       if qs.IsString then
         if umlMultipleMatch(True, 'insert*', DBEng.PascalString[qs.StorePos]) then
-            DBEng.PostDeleteData(qs.StorePos);
+            DBEng.DeleteData(qs.StorePos);
     end);
+
+  DBEng.WaitQueryThread;
 
   doStatus('');
   doStatus('');
@@ -462,3 +464,4 @@ begin
 end;
 
 end.
+

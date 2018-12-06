@@ -253,9 +253,9 @@ procedure AtomInc(var x: Cardinal; const v:Cardinal); overload;
 procedure AtomDec(var x: Cardinal); overload;
 procedure AtomDec(var x: Cardinal; const v:Cardinal); overload;
 
-procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte); inline;
-function CompareMemory(const p1, p2: Pointer; Count: NativeInt): Boolean; inline;
-procedure CopyPtr(const sour, dest:Pointer; Count: NativeInt); inline;
+procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte);
+function CompareMemory(const p1, p2: Pointer; Count: NativeInt): Boolean;
+procedure CopyPtr(const sour, dest:Pointer; Count: NativeInt);
 
 procedure RaiseInfo(const n: SystemString); overload;
 procedure RaiseInfo(const n: SystemString; const Args: array of const); overload;
@@ -266,14 +266,14 @@ function GetTimeTick: TTimeTick;
 function GetTimeTickCount: TTimeTick;
 function GetCrashTimeTick: TTimeTick;
 
-function ROL8(const Value: Byte; Shift: Byte): Byte; inline;
-function ROL16(const Value: Word; Shift: Byte): Word; inline;
-function ROL32(const Value: Cardinal; Shift: Byte): Cardinal; inline;
-function ROL64(const Value: UInt64; Shift: Byte): UInt64; inline;
-function ROR8(const Value: Byte; Shift: Byte): Byte; inline;
-function ROR16(const Value: Word; Shift: Byte): Word; inline;
-function ROR32(const Value: Cardinal; Shift: Byte): Cardinal; inline;
-function ROR64(const Value: UInt64; Shift: Byte): UInt64; inline;
+function ROL8(const Value: Byte; Shift: Byte): Byte;
+function ROL16(const Value: Word; Shift: Byte): Word;
+function ROL32(const Value: Cardinal; Shift: Byte): Cardinal;
+function ROL64(const Value: UInt64; Shift: Byte): UInt64;
+function ROR8(const Value: Byte; Shift: Byte): Byte;
+function ROR16(const Value: Word; Shift: Byte): Word;
+function ROR32(const Value: Cardinal; Shift: Byte): Cardinal;
+function ROR64(const Value: UInt64; Shift: Byte): UInt64;
 
 procedure Swap(var v1,v2:Byte); overload;
 procedure Swap(var v1,v2:Word); overload;
@@ -967,4 +967,5 @@ finalization
   FreeLockIDBuff;
   GlobalMemoryHook := False;
 end.
+
 

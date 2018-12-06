@@ -152,7 +152,7 @@ begin
     end;
   DisposeObject(hashTextStream);
 
-  dbEng.Update;
+  dbEng.UpdateIO;
 end;
 
 procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataManager);
@@ -252,7 +252,7 @@ begin
   if dbEng <> nil then
     begin
       AddPath(InitDir, dbEng.RootField);
-      dbEng.Update;
+      dbEng.UpdateIO;
     end;
 end;
 
@@ -262,7 +262,7 @@ var
 begin
   dbEng := ObjectDataMarshal.NewDB(dbFile, False);
   BatchImportPathToDB(InitDir, Filter, dbEng);
-  dbEng.Update;
+  dbEng.UpdateIO;
   ObjectDataMarshal.CloseDB(dbEng);
 end;
 
@@ -272,7 +272,7 @@ var
 begin
   dbEng := TObjectDataManager.CreateAsStream(DBStream, '', ObjectDataMarshal.ID, False, True, False);
   BatchImportPathToDB(InitDir, Filter, dbEng);
-  dbEng.Update;
+  dbEng.UpdateIO;
   DisposeObject(dbEng);
   DBStream.Position := 0;
 end;
