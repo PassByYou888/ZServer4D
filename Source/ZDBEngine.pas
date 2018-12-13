@@ -27,19 +27,6 @@ uses SysUtils, Classes,
   CoreClasses, MemoryStream64, ObjectData, ObjectDataManager,
   DataFrameEngine, ItemStream;
 
-var
-  DefaultCacheAnnealingTime: Double;
-  DefaultCacheBufferLength: Integer;
-  DefaultIndexCacheBufferLength: Integer;
-
-  DefaultMinimizeInstanceCacheSize: Int64;
-  DefaultMaximumInstanceCacheSize: Int64;
-
-  DefaultMinimizeStreamCacheSize: Int64;
-  DefaultMaximumStreamCacheSize: Int64;
-
-  DefaultMinimizeCacheOfFileSize: Int64;
-
 type
   TDBStoreBase = class;
 
@@ -52,7 +39,7 @@ type
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
     CreateTime, ModificationTime: TDateTime;
-    UsedMemory: nativeUInt;
+    MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
@@ -64,7 +51,7 @@ type
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
     CreateTime, ModificationTime: TDateTime;
-    UsedMemory: nativeUInt;
+    MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
@@ -76,7 +63,7 @@ type
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
     CreateTime, ModificationTime: TDateTime;
-    UsedMemory: nativeUInt;
+    MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
@@ -88,7 +75,7 @@ type
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
     CreateTime, ModificationTime: TDateTime;
-    UsedMemory: nativeUInt;
+    MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
@@ -102,7 +89,7 @@ type
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
     CreateTime, ModificationTime: TDateTime;
-    UsedMemory: nativeUInt;
+    MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
@@ -115,7 +102,7 @@ type
     DBStorePos: Int64;
     dbEng: TDBStoreBase;
     CreateTime, ModificationTime: TDateTime;
-    UsedMemory: nativeUInt;
+    MemoryUsed: nativeUInt;
     FBuff: TPascalString;
     procedure SetBuff(const Value: TPascalString);
   public
@@ -698,6 +685,8 @@ type
     property PascalString[const StorePos: Int64]: TPascalString read GetString write SetString;
   end;
 
+procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+
 const
   c_DF: Cardinal = $FFFFFFF0;
   c_VL: Cardinal = $FFFFFFF1;
@@ -706,7 +695,18 @@ const
   c_PascalString: Cardinal = $FFFFFFF4;
   c_VT: Cardinal = $FFFFFFF5;
 
-procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+var
+  DefaultCacheAnnealingTime: Double;
+  DefaultCacheBufferLength: Integer;
+  DefaultIndexCacheBufferLength: Integer;
+
+  DefaultMinimizeInstanceCacheSize: Int64;
+  DefaultMaximumInstanceCacheSize: Int64;
+
+  DefaultMinimizeStreamCacheSize: Int64;
+  DefaultMaximumStreamCacheSize: Int64;
+
+  DefaultMinimizeCacheOfFileSize: Int64;
 
 implementation
 
@@ -737,7 +737,7 @@ begin
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
-  UsedMemory := 0;
+  MemoryUsed := 0;
 end;
 
 procedure TDBEngineDF.Save;
@@ -760,7 +760,7 @@ begin
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
-  UsedMemory := 0;
+  MemoryUsed := 0;
 end;
 
 procedure TDBEngineVL.Save;
@@ -783,7 +783,7 @@ begin
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
-  UsedMemory := 0;
+  MemoryUsed := 0;
 end;
 
 procedure TDBEngineVT.Save;
@@ -806,7 +806,7 @@ begin
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
-  UsedMemory := 0;
+  MemoryUsed := 0;
 end;
 
 procedure TDBEngineTE.Save;
@@ -832,7 +832,7 @@ begin
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
-  UsedMemory := 0;
+  MemoryUsed := 0;
 end;
 
 procedure TDBEngineJson.Save;
@@ -865,7 +865,7 @@ begin
   ModificationTime := CreateTime;
   FBuff.Len := 0;
   hash := 0;
-  UsedMemory := 0;
+  MemoryUsed := 0;
 end;
 
 destructor TDBEnginePascalString.Destroy;
@@ -2330,17 +2330,17 @@ end;
 procedure TDBStoreBase.InstanceCacheObjectFreeProc(Obj: TCoreClassObject);
 begin
   if Obj is TDBEngineDF then
-      dec(FUsedInstanceCacheMemory, TDBEngineDF(Obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineDF(Obj).MemoryUsed)
   else if Obj is TDBEngineVL then
-      dec(FUsedInstanceCacheMemory, TDBEngineVL(Obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineVL(Obj).MemoryUsed)
   else if Obj is TDBEngineTE then
-      dec(FUsedInstanceCacheMemory, TDBEngineTE(Obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineTE(Obj).MemoryUsed)
 {$IFNDEF FPC}
   else if Obj is TDBEngineJson then
-      dec(FUsedInstanceCacheMemory, TDBEngineJson(Obj).UsedMemory)
+      dec(FUsedInstanceCacheMemory, TDBEngineJson(Obj).MemoryUsed)
 {$ENDIF}
   else if Obj is TDBEnginePascalString then
-      dec(FUsedInstanceCacheMemory, TDBEnginePascalString(Obj).UsedMemory);
+      dec(FUsedInstanceCacheMemory, TDBEnginePascalString(Obj).MemoryUsed);
 
   DisposeObject(Obj);
 end;
@@ -3379,9 +3379,9 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
-            ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
+            ProcessNewInstanceCache(StorePos, Result, Result.MemoryUsed);
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3414,7 +3414,7 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3483,9 +3483,9 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
-            ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
+            ProcessNewInstanceCache(StorePos, Result, Result.MemoryUsed);
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3517,7 +3517,7 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3586,9 +3586,9 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
-            ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
+            ProcessNewInstanceCache(StorePos, Result, Result.MemoryUsed);
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3620,7 +3620,7 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3689,9 +3689,9 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
-            ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
+            ProcessNewInstanceCache(StorePos, Result, Result.MemoryUsed);
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3723,7 +3723,7 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3795,9 +3795,9 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
-            ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
+            ProcessNewInstanceCache(StorePos, Result, Result.MemoryUsed);
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3829,7 +3829,7 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -3869,7 +3869,7 @@ begin
       MH_ZDB.BeginMemoryHook;
       t := TDBEnginePascalString.Create;
       t.buff := buff;
-      t.UsedMemory := MH_ZDB.GetHookMemorySize;
+      t.MemoryUsed := MH_ZDB.GetHookMemorySize;
       MH_ZDB.EndMemoryHook;
 
       M := TMemoryStream64.Create;
@@ -3883,7 +3883,7 @@ begin
       t.CreateTime := itmHnd.CreateTime;
       t.ModificationTime := itmHnd.ModificationTime;
 
-      ProcessNewInstanceCache(t.DBStorePos, t, t.UsedMemory);
+      ProcessNewInstanceCache(t.DBStorePos, t, t.MemoryUsed);
     end
   else
     begin
@@ -3927,7 +3927,7 @@ begin
       MH_ZDB.BeginMemoryHook;
       t := TDBEnginePascalString.Create;
       t.buff := buff;
-      t.UsedMemory := MH_ZDB.GetHookMemorySize;
+      t.MemoryUsed := MH_ZDB.GetHookMemorySize;
       MH_ZDB.EndMemoryHook;
 
       M := TMemoryStream64.Create;
@@ -3941,7 +3941,7 @@ begin
       t.CreateTime := itmHnd.CreateTime;
       t.ModificationTime := itmHnd.ModificationTime;
 
-      ProcessNewInstanceCache(t.DBStorePos, t, t.UsedMemory);
+      ProcessNewInstanceCache(t.DBStorePos, t, t.MemoryUsed);
     end
   else
     begin
@@ -3995,9 +3995,9 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
         if AllowedCache then
-            ProcessNewInstanceCache(StorePos, Result, Result.UsedMemory);
+            ProcessNewInstanceCache(StorePos, Result, Result.MemoryUsed);
       finally
           MH_ZDB.EndMemoryHook;
       end;
@@ -4057,7 +4057,7 @@ begin
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
-        Result.UsedMemory := MH_ZDB.GetHookMemorySize;
+        Result.MemoryUsed := MH_ZDB.GetHookMemorySize;
       finally
           MH_ZDB.EndMemoryHook;
       end;

@@ -21,19 +21,19 @@ uses SysUtils, PascalStrings;
 
 type
 {$IFDEF FPC}
-  USystemChar   = UnicodeChar;
+  USystemChar = UnicodeChar;
   USystemString = UnicodeString;
 {$ELSE FPC}
-  USystemChar   = PascalStrings.SystemChar;
+  USystemChar = PascalStrings.SystemChar;
   USystemString = PascalStrings.SystemString;
 {$ENDIF FPC}
   PUSystemString = ^USystemString;
   PUPascalString = ^TUPascalString;
-  TUArrayChar    = array of USystemChar;
-  TUOrdChar      = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ);
-  TUOrdChars     = set of TUOrdChar;
-  TUHash         = Cardinal;
-  TUHash64       = UInt64;
+  TUArrayChar = array of USystemChar;
+  TUOrdChar = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ);
+  TUOrdChars = set of TUOrdChar;
+  TUHash = Cardinal;
+  TUHash64 = UInt64;
 
   TUPascalString = record
   private
@@ -328,9 +328,9 @@ end;
 
 function UCharIn(c: USystemChar; const SomeCharset: TUOrdChar): Boolean;
 const
-  ord0  = Ord('0');
-  ord1  = Ord('1');
-  ord9  = Ord('9');
+  ord0 = Ord('0');
+  ord1 = Ord('1');
+  ord9 = Ord('9');
   ordLA = Ord('a');
   ordHA = Ord('A');
   ordLF = Ord('f');
@@ -512,8 +512,8 @@ end;
 
 const
   SmithWaterman_MatchOk = 1;
-  mismatch_penalty      = -1;
-  gap_penalty           = -1;
+  mismatch_penalty = -1;
+  gap_penalty = -1;
 
 function USmithWatermanCompare(const seq1, seq2: PUPascalString; var diff1, diff2: TUPascalString;
   const NoDiffChar: Boolean; const diffChar: USystemChar): Double;
@@ -1337,6 +1337,8 @@ end;
 procedure TUPascalString.SetBytes(const Value: TBytes);
 begin
   SetLength(buff, 0);
+  if length(Value) = 0 then
+      Exit;
   try
       Text := SysUtils.TEncoding.UTF8.GetString(Value);
   except
@@ -1346,6 +1348,9 @@ end;
 
 function TUPascalString.GetBytes: TBytes;
 begin
+  SetLength(Result, 0);
+  if length(buff) = 0 then
+      Exit;
 {$IFDEF FPC}
   Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
 {$ELSE}
@@ -1932,4 +1937,3 @@ initialization
 finalization
 
 end.
-

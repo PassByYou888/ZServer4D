@@ -11,7 +11,7 @@
   {$MODE objfpc}
   {$MODESWITCH AdvancedRecords}
   {$NOTES OFF}
-  {$STACKFRAMES ON}
+  {$STACKFRAMES OFF}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -97,11 +97,13 @@
     {$I-} { Input output checking }
     {$O+} { optimization }
     {$INLINE AUTO} { call inline automated }
+    {$C-} { Assertions }
   {$ELSE}
     {$UNDEF INLINE_ASM}
     {$R+} { range check }
     {$I+} { Input output checking }
     {$O-} { optimization }
+    {$C+} { Assertions }
   {$ENDIF}
 
   {$IF Defined(Android) or Defined(IOS)}

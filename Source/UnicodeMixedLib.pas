@@ -143,7 +143,9 @@ function umlBytesOf(const s: TPascalString): TBytes;
 function umlStringOf(const s: TBytes): TPascalString; overload;
 
 function FixedLengthString2Pascal(var s: U_FixedLengthString): TPascalString;
-function Pascal2FixedLengthString(var s: TPascalString): U_FixedLengthString;
+procedure Pascal2FixedLengthString(var In_: TPascalString; var out_: U_FixedLengthString); overload;
+function Pascal2FixedLengthString(const In_: TPascalString): U_FixedLengthString; overload;
+procedure ResetFixedLengthString(var v: U_FixedLengthString);
 
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
 function umlPos(const SubStr, Str: TPascalString; const Offset: Integer = 1): Integer;
@@ -726,11 +728,26 @@ begin
   SetLength(b, 0);
 end;
 
-function Pascal2FixedLengthString(var s: TPascalString): U_FixedLengthString;
+procedure Pascal2FixedLengthString(var In_: TPascalString; var out_: U_FixedLengthString);
 var
   BB: TBytes;
 begin
-  BB := s.Bytes;
+  BB := In_.Bytes;
+  out_.Len := length(BB);
+  if out_.Len > C_FixedLengthStringSize then
+      out_.Len := C_FixedLengthStringSize
+  else
+      FillPtrByte(@out_.Data[0], C_FixedLengthStringSize, 0);
+
+  if out_.Len > 0 then
+      CopyPtr(@BB[0], @out_.Data[0], out_.Len);
+end;
+
+function Pascal2FixedLengthString(const In_: TPascalString): U_FixedLengthString;
+var
+  BB: TBytes;
+begin
+  BB := In_.Bytes;
   Result.Len := length(BB);
   if Result.Len > C_FixedLengthStringSize then
       Result.Len := C_FixedLengthStringSize
@@ -739,6 +756,11 @@ begin
 
   if Result.Len > 0 then
       CopyPtr(@BB[0], @Result.Data[0], Result.Len);
+end;
+
+procedure ResetFixedLengthString(var v: U_FixedLengthString);
+begin
+  FillPtrByte(@v, SizeOf(U_FixedLengthString), 0);
 end;
 
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
@@ -1977,7 +1999,7 @@ function umlFileWriteStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
 var
   buff: U_FixedLengthString;
 begin
-  buff := Pascal2FixedLengthString(Value);
+  Pascal2FixedLengthString(Value, buff);
   if umlFileWrite(IOHnd, C_FixedLengthStringSize + C_FixedLengthStringHeaderSize, buff) = False then
     begin
       IOHnd.Return := C_FileWriteError;

@@ -25,15 +25,15 @@ interface
 uses SysUtils;
 
 type
-  SystemChar    = Char;
-  SystemString  = string;
-  THash         = Cardinal;
-  THash64       = UInt64;
+  SystemChar = Char;
+  SystemString = string;
+  THash = Cardinal;
+  THash64 = UInt64;
   PSystemString = ^SystemString;
   PPascalString = ^TPascalString;
-  TArrayChar    = array of SystemChar;
-  TOrdChar      = (c0to9, c1to9, c0to32, c0to32no10, cLoAtoF, cHiAtoF, cLoAtoZ, cHiAtoZ, cHex, cAtoF, cAtoZ);
-  TOrdChars     = set of TOrdChar;
+  TArrayChar = array of SystemChar;
+  TOrdChar = (c0to9, c1to9, c0to32, c0to32no10, cLoAtoF, cHiAtoF, cLoAtoZ, cHiAtoZ, cHex, cAtoF, cAtoZ);
+  TOrdChars = set of TOrdChar;
 
   TPascalString = record
   private
@@ -324,9 +324,9 @@ end;
 
 function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean;
 const
-  ord0  = Ord('0');
-  ord1  = Ord('1');
-  ord9  = Ord('9');
+  ord0 = Ord('0');
+  ord1 = Ord('1');
+  ord9 = Ord('9');
   ordLA = Ord('a');
   ordHA = Ord('A');
   ordLF = Ord('f');
@@ -504,8 +504,8 @@ end;
 
 const
   SmithWaterman_MatchOk = 1;
-  mismatch_penalty      = -1;
-  gap_penalty           = -1;
+  mismatch_penalty = -1;
+  gap_penalty = -1;
 
 function SmithWatermanCompare(const seq1, seq2: PPascalString; var diff1, diff2: TPascalString;
   const NoDiffChar: Boolean; const diffChar: SystemChar): Double;
@@ -1319,6 +1319,8 @@ end;
 procedure TPascalString.SetBytes(const Value: TBytes);
 begin
   SetLength(buff, 0);
+  if length(Value) = 0 then
+    Exit;
   try
       Text := SysUtils.TEncoding.UTF8.GetString(Value);
   except
@@ -1328,6 +1330,9 @@ end;
 
 function TPascalString.GetBytes: TBytes;
 begin
+  SetLength(Result, 0);
+  if length(buff) = 0 then
+      Exit;
 {$IFDEF FPC}
   Result := SysUtils.TEncoding.UTF8.GetBytes(Text);
 {$ELSE}

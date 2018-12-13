@@ -536,7 +536,9 @@ begin
       end;
 
       TSocketAPI.SetNonBlock(LListenSocket, True);
-      TSocketAPI.SetReUseAddr(LListenSocket, True);
+      // Windows的侦听在上一个侦听关闭以后，可以马上复用，但是linux下却不能（这不合理）
+      // 在cross的iocp接口中，无需启用使用地址复用参数，它会让侦听状态总是返回成功，造成我们队侦听服务开启状态的错误判断
+      // TSocketAPI.SetReUseAddr(LListenSocket, True);
 
       if (LAddrInfo.ai_family = AF_INET6) then
         TSocketAPI.SetSockOpt<Integer>(LListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, 1);

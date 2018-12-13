@@ -1,5 +1,5 @@
-{******************************************************************************}
-{* Core class library  written by QQ 600585@qq.com                            *}
+{* *************************************************************************** * }
+{ * Core class library  written by QQ 600585@qq.com                            * }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
 { * https://github.com/PassByYou888/zExpression                                * }
@@ -953,12 +953,12 @@ end;
 
 
 initialization
+  GlobalMemoryHook := True;
+  CheckThreadSynchronizeing := False;
   Core_RunTime_Tick := 1000 * 60 * 60 * 24 * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock;
   InitLockIDBuff;
-  GlobalMemoryHook := True;
-  CheckThreadSynchronizeing := False;
 
   // float check
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);

@@ -29,14 +29,6 @@ type
 
   TOpParam = array of Variant;
 
-  POpData = ^opData;
-
-  opData = record
-    Op: TOpCode;
-    Value: Variant;
-    ValueType: TOpValueType;
-  end;
-
   TOnOpCall = function(var Param: TOpParam): Variant;
   TOnOpMethod = function(var Param: TOpParam): Variant of object;
 {$IFNDEF FPC}
@@ -89,7 +81,15 @@ type
   opClass = class of TOpCode;
 
   TOpCode = class(TCoreClassObject)
-  private
+  private type
+    POpData = ^opData;
+
+    opData = record
+      Op: TOpCode;
+      Value: Variant;
+      ValueType: TOpValueType;
+    end;
+  protected
     FParam: TCoreClassList;
     FAutoFreeLink: Boolean;
     function DoExecute(opRT: TOpCustomRunTime): Variant; virtual;
@@ -338,7 +338,7 @@ end;
 
 function LoadOpFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
 
-  function LoadFromDataFrame_1(CurDataEng: TDataFrameEngine): TOpCode;
+  function LoadFromDataFrame_(CurDataEng: TDataFrameEngine): TOpCode;
   var
     AName: SystemString;
     RegPtr: POpRegData;
@@ -365,7 +365,7 @@ function LoadOpFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Bool
                 // create new TOpCode
                 newDataEng := TDataFrameEngine.Create;
                 CurDataEng.Reader.ReadDataFrame(newDataEng);
-                Result.AddLink(LoadFromDataFrame_1(newDataEng));
+                Result.AddLink(LoadFromDataFrame_(newDataEng));
                 DisposeObject(newDataEng);
               end
             else
@@ -391,7 +391,7 @@ begin
     DataEdition := DataEng.Reader.ReadInteger;
     if DataEdition = 1 then
       begin
-        LoadedOp := LoadFromDataFrame_1(DataEng);
+        LoadedOp := LoadFromDataFrame_(DataEng);
         Result := True;
       end
     else
@@ -630,13 +630,13 @@ end;
 
 function TOpCustomRunTime.DoMultiple(var Param: TOpParam): Variant;
 var
-  i:Integer;
+  i: Integer;
 begin
   if length(Param) >= 2 then
     begin
-      Result:=True;
-      for i:=1 to length(Param)-1 do
-      Result := Result and umlMultipleMatch(VarToStr(Param[0]), VarToStr(Param[i]));
+      Result := True;
+      for i := 1 to length(Param) - 1 do
+          Result := Result and umlMultipleMatch(VarToStr(Param[0]), VarToStr(Param[i]));
     end
   else
       Result := True;

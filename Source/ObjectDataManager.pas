@@ -178,8 +178,6 @@ type
     PObjectDataCacheHeader = PHeader;
     PObjectDataCacheItemBlock = PItemBlock;
 
-    PObjectDataCacheItem = ^TObjectDataCacheItem;
-
     TObjectDataCacheItem = record
       Description: U_String;
       ExtID: Byte;
@@ -196,7 +194,7 @@ type
       procedure read(var rVal: TItem);
     end;
 
-    PObjectDataCacheField = ^TObjectDataCacheField;
+    PObjectDataCacheItem = ^TObjectDataCacheItem;
 
     TObjectDataCacheField = record
       UpLevelFieldPOS: Int64;
@@ -209,6 +207,8 @@ type
       procedure write(var wVal: TField);
       procedure read(var rVal: TField);
     end;
+
+    PObjectDataCacheField = ^TObjectDataCacheField;
 
     TSwapHead = packed record
       Size: Integer;
@@ -1642,6 +1642,7 @@ begin
   except
     DisposeObject(swapHnd);
     umlDeleteFile(swapFileName);
+    Exit;
   end;
   CheckSuccessed := True;
   m64 := TMemoryStream64.CustomCreate(8192);
@@ -1830,8 +1831,6 @@ var
   swapHnd: TCoreClassFileStream;
   swaphead: TSwapHead;
 begin
-  inherited UpdateIO;
-
   if (FDBHandle.IOHnd.Handle is TReliableFileStream)
     and (not FDBHandle.IOHnd.IsOnlyRead)
     and (FDBHandle.IOHnd.IsOpen)
@@ -1878,6 +1877,8 @@ begin
       umlDeleteFile(swapFileName);
     end;
   FPrepareWritePool.Clear;
+
+  inherited UpdateIO;
 end;
 
 function TObjectDataManagerOfCache.CacheStatus: SystemString;

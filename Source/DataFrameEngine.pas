@@ -4052,7 +4052,7 @@ begin
   else
       md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
-  compStream := TMemoryStream64.Create;
+  compStream := TMemoryStream64.CustomCreate($FFFF);
   ZCompStream := TCompressionStream.Create(compStream);
   StoreStream.Position := 0;
   ZCompStream.CopyFrom(StoreStream, StoreStream.Size);

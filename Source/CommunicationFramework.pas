@@ -348,7 +348,7 @@ type
     FBigStreamTotal: Int64;
     FBigStreamCompleted: Int64;
     FBigStreamCmd: SystemString;
-    FBigStreamReceive: TCoreClassStream;
+    FSyncBigStreamReceive: TCoreClassStream;
     FBigStreamSending: TCoreClassStream;
     FBigStreamSendState: Int64;
     FBigStreamSendDoneTimeFree: Boolean;
@@ -3737,6 +3737,7 @@ begin
       Send(@buff[0], ChunkSize);
       EndSend;
 
+      // peer fragment is 512K
       if Queue.BigStream.Size - tmpPos > ChunkSize * 8 then
         begin
           FBigStreamSending := Queue.BigStream;
@@ -4121,7 +4122,7 @@ var
 begin
   FReceiveCommandRuning := True;
   d := GetTimeTick;
-  FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FBigStreamReceive, FBigStreamTotal, FBigStreamCompleted);
+  FOwnerFramework.ExecuteBigStream(Self, FBigStreamCmd, FSyncBigStreamReceive, FBigStreamTotal, FBigStreamCompleted);
   FReceiveCommandRuning := False;
   FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
@@ -4142,7 +4143,7 @@ begin
     begin
       FReceivedBuffer.Position := 0;
       FBigStreamCompleted := FBigStreamCompleted + FReceivedBuffer.Size;
-      FBigStreamReceive := FReceivedBuffer;
+      FSyncBigStreamReceive := FReceivedBuffer;
 
       IO_SyncMethod(ACurrentActiveThread, Sync, {$IFDEF FPC}@{$ENDIF FPC}Sync_ExecuteBigStream);
 
@@ -4156,7 +4157,7 @@ begin
       tmpStream.CopyFrom(FReceivedBuffer, leftSize);
       tmpStream.Position := 0;
       FBigStreamCompleted := FBigStreamTotal;
-      FBigStreamReceive := tmpStream;
+      FSyncBigStreamReceive := tmpStream;
 
       IO_SyncMethod(ACurrentActiveThread, Sync, {$IFDEF FPC}@{$ENDIF FPC}Sync_ExecuteBigStream);
 
@@ -4174,7 +4175,7 @@ begin
 
       FReceivedBuffer.Position := 0;
     end;
-  FBigStreamReceive := nil;
+  FSyncBigStreamReceive := nil;
 end;
 
 procedure TPeerIO.Sync_ExecuteCompleteBuffer;
@@ -4491,9 +4492,14 @@ begin
     FReceiveProcessing or
     FPauseResultSend or
     (FResultDataBuffer.Size > 0) or
-    FReceiveTriggerRuning or
-    (FBigStreamSending <> nil) then
+    FReceiveTriggerRuning then
     begin
+      exit;
+    end;
+
+  if (FBigStreamSending <> nil) then
+    begin
+      // process BigStream reponse
       exit;
     end;
 
@@ -4970,7 +4976,7 @@ begin
   FBigStreamTotal := 0;
   FBigStreamCompleted := 0;
   FBigStreamCmd := '';
-  FBigStreamReceive := nil;
+  FSyncBigStreamReceive := nil;
   FBigStreamSending := nil;
   FBigStreamSendState := -1;
   FBigStreamSendDoneTimeFree := False;
