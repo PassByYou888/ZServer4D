@@ -1,0 +1,39 @@
+object MainForm: TMainForm
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Button1: TButton
+    Position.X = 544.000000000000000000
+    Position.Y = 16.000000000000000000
+    TabOrder = 1
+    Text = 'Button1'
+    OnClick = Button1Click
+  end
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Position.X = 48.000000000000000000
+    Position.Y = 336.000000000000000000
+    Size.Width = 553.000000000000000000
+    Size.Height = 129.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Viewport.Width = 549.000000000000000000
+    Viewport.Height = 125.000000000000000000
+  end
+  object Timer: TTimer
+    Interval = 10
+    OnTimer = TimerTimer
+    Left = 24
+    Top = 16
+  end
+end
