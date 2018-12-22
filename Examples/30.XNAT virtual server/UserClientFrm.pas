@@ -38,7 +38,7 @@ var
   Form2: TForm2;
 
 const
-  MaxConn = 2000;
+  MaxConn = 8000;
 
 implementation
 

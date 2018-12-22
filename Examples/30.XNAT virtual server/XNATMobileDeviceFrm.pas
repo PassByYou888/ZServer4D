@@ -61,7 +61,7 @@ begin
 
   server := XCli.AddMappingServer('my18888', 10000).StableIO; // 将公网服务器的18888端口反向代理到成为本地服务器，物理连接只有1个
 
-  server.OfflineTimeout := 3 * 60 * 1000;        // 离线重连技术，在离线后2分钟就断开stableIO的实例
+  server.OfflineTimeout := 3 * 60 * 1000;        // 离线重连技术，在离线后3分钟就断开stableIO的实例
   server.PhysicsServer.TimeOutIDLE := 60 * 1000; // 物理客户端60秒无响应就是离线状态
 
   server.PhysicsServer.QuietMode := True;

@@ -754,13 +754,6 @@ begin
       Exit;
     end;
 
-  if FLoginUserList.Exists(UserID) then
-    begin
-      OutData.WriteBool(False);
-      OutData.WriteString(Format('user already online:%s', [UserID]));
-      Exit;
-    end;
-
   try
     if not CompareQuantumCryptographyPassword(UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
       begin
@@ -773,6 +766,9 @@ begin
     OutData.WriteString(Format('password error', []));
     Exit;
   end;
+
+  if FLoginUserDefineIOList.Exists(UserID) then
+      TPeerClientUserDefineForRecvTunnel(FLoginUserDefineIOList[UserID]).Owner.Disconnect;
 
   UserDefineIO.UserDBIntf := FUserDB.VariantList[UserID];
   UserDefineIO.UserDBIntf['LastLoginTime'] := DateTimeToStr(Now);

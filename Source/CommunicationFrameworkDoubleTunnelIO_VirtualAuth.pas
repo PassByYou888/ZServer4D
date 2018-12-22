@@ -27,7 +27,7 @@ type
 
   TVirtualAuthIO = class(TCoreClassObject)
   private
-    RecvIO_ID: Cardinal;
+    RecvIO_ID, SendIO_ID: Cardinal;
     AuthResult: TDataFrameEngine;
     Done: Boolean;
   public
@@ -426,7 +426,11 @@ end;
 procedure TVirtualAuthIO.Accept;
 var
   IO: TPeerIO;
+  n: SystemString;
 begin
+  if Owner.FLoginUserDefineIOList.Exists(UserID) then
+      TPeerClientUserDefineForRecvTunnel_VirtualAuth(Owner.FLoginUserDefineIOList[UserID]).Owner.Disconnect;
+
   if AuthResult <> nil then
     begin
       UserDefineIO.UserID := UserID;
@@ -466,6 +470,7 @@ end;
 procedure TVirtualAuthIO.Reject;
 var
   IO: TPeerIO;
+  r_IO, s_IO: TPeerIO;
 begin
   if AuthResult <> nil then
     begin
@@ -498,11 +503,25 @@ begin
           IO.ContinueResultSend;
         end;
     end;
+
+  r_IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
+  if r_IO <> nil then
+      r_IO.delayClose(2.0);
+  s_IO := Owner.SendTunnel.PeerIO[SendIO_ID];
+  if (s_IO <> nil) and (not TPeerClientUserDefineForSendTunnel_VirtualAuth(s_IO.UserDefine).LinkOk) then
+      s_IO.delayClose(2.0);
+
   DisposeObject(Self);
 end;
 
 procedure TVirtualAuthIO.Bye;
+var
+  r_IO, s_IO: TPeerIO;
 begin
+  r_IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
+  if r_IO <> nil then
+      r_IO.delayClose(1.0);
+
   DisposeObject(Self);
 end;
 
@@ -613,16 +632,10 @@ begin
       exit;
     end;
 
-  if FLoginUserDefineIOList.Exists(UserID) then
-    begin
-      OutData.WriteBool(False);
-      OutData.WriteString(Format('user "%s" already login', [UserID]));
-      exit;
-    end;
-
   AuthIO := TVirtualAuthIO.Create;
   AuthIO.Owner := Self;
   AuthIO.RecvIO_ID := Sender.ID;
+  AuthIO.SendIO_ID := SendTunnelID;
   AuthIO.AuthResult := OutData;
   AuthIO.Done := False;
   AuthIO.UserDefineIO := UserDefineIO;
@@ -860,7 +873,7 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
     begin
-      Sender.DelayClose();
+      Sender.delayClose();
       exit;
     end;
 
@@ -904,7 +917,7 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
     begin
-      Sender.DelayClose();
+      Sender.delayClose();
       exit;
     end;
 
@@ -925,7 +938,7 @@ begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LinkOk then
     begin
-      Sender.DelayClose();
+      Sender.delayClose();
       exit;
     end;
 

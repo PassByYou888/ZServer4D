@@ -505,7 +505,6 @@ type
     procedure InternalSendBigStreamBuff(var Queue: TQueueData);
     procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz, compSiz: Cardinal);
     procedure InternalSendCompleteBufferBuff(var Queue: TQueueData);
-
     procedure InternalSendBigStreamContinueRequest;
     procedure SendBigStreamLittlePacket(buff: PByte; Size: NativeInt);
 
@@ -3838,7 +3837,7 @@ begin
       sourStream := TMemoryStream64.Create;
       sourStream.SetPointerWithProtectedMode(buff, Size);
       destStream := TMemoryStream64.CustomCreate(8192);
-      CompressStream(sourStream, destStream);
+      FastCompressStream(sourStream, destStream);
 
       head.Size := destStream.Size;
       head.Compressed := True;
@@ -4463,7 +4462,7 @@ begin
   end;
 
   // stripped stream
-  tmpStream := TMemoryStream64.Create;
+  tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
   if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
       tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
   DisposeObject(FReceivedBuffer);
@@ -4660,7 +4659,7 @@ begin
               end;
 
             // stripped stream
-            tmpStream := TMemoryStream64.Create;
+            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -4744,7 +4743,7 @@ begin
             SetLength(buff, 0);
 
             // stripped stream
-            tmpStream := TMemoryStream64.Create;
+            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -4797,7 +4796,7 @@ begin
             SetLength(buff, 0);
 
             // stripped stream
-            tmpStream := TMemoryStream64.Create;
+            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -4878,7 +4877,7 @@ begin
             DisposeObject(tmpStream);
 
             // stripped stream
-            tmpStream := TMemoryStream64.Create;
+            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -10572,8 +10571,6 @@ begin
             TCommunicationFramework(p^.data).FastProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoProcessPerClientFragmentSend);
             inc(i);
             p := p^.Next;
-            if FSendStream.Size > FMaxRealBuffer then
-                Break;
           end;
       end;
   until (FSendStream.Size = lsiz) or (FSendStream.Size > FMaxRealBuffer);
