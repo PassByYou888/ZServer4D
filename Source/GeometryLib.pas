@@ -5896,10 +5896,10 @@ begin
   Result := 0;
   if nSides > 2 then begin
       RstVector(r);
-      p1 := @p[0];
-      p2 := @p[1];
+      p1 := @p^[0];
+      p2 := @p^[1];
       for i := 2 to nSides - 1 do begin
-          p3 := @p[i];
+          p3 := @p^[i];
           AddVector(r, VectorCrossProduct(VectorSubtract(p2^, p1^),
             VectorSubtract(p3^, p1^)));
           p2 := p3;

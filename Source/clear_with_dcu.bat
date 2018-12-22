@@ -11,3 +11,6 @@ del/s *.stat
 del/s *.tvsconfig
 del/s *.deployproj
 del/s *.stat
+del/s *.pdb
+del/s *.exp
+del/s zAI\*.lib

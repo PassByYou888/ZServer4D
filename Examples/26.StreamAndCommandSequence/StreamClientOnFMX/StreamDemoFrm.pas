@@ -177,9 +177,9 @@ begin
   SingleTunnelClient.Progress;
   DoubleTunnelClient.Progress;
 
-  if SingleTunnelClient.CheckIOBusy or
-    DoubleTunnelClient.RecvTunnel.CheckIOBusy or
-    DoubleTunnelClient.SendTunnel.CheckIOBusy then
+  if SingleTunnelClient.IOBusy or
+    DoubleTunnelClient.RecvTunnel.IOBusy or
+    DoubleTunnelClient.SendTunnel.IOBusy then
       BusyLabel.Text := 'Busy...'
   else
       BusyLabel.Text := 'IDLE...';

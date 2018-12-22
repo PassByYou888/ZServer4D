@@ -183,7 +183,7 @@ function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 
 function umlRandomRange(const aMin, aMax: Integer): Integer;
-function umlRandomRangeF(const aMin, aMax: Single): Single;
+function umlRandomRangeS(const aMin, aMax: Single): Single;
 function umlRandomRangeD(const aMin, aMax: Double): Double;
 function umlDefaultTime: Double;
 function umlDefaultAttrib: Integer;
@@ -322,8 +322,11 @@ function umlPercentageToFloat(OriginMax, OriginMin, ProcressParameter: Double): 
 function umlPercentageToInt(OriginParameter, ProcressParameter: Integer): Integer;
 function umlPercentageToStr(OriginParameter, ProcressParameter: Integer): TPascalString;
 function umlSmartSizeToStr(Size: Int64): TPascalString;
+
+function umlIntToStr(Parameter: Single): TPascalString; overload;
 function umlIntToStr(Parameter: Double): TPascalString; overload;
 function umlIntToStr(Parameter: Int64): TPascalString; overload;
+
 function umlSizeToStr(Parameter: Int64): TPascalString;
 function umlTimeToStr(t: TDateTime): TPascalString;
 function umlDateToStr(t: TDateTime): TPascalString;
@@ -334,6 +337,7 @@ function umlStrToInt(const _V: TPascalString): Integer; overload;
 function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer; overload;
 function umlStrToInt(const _V: TPascalString; _Def: Double): Integer; overload;
 function umlStrToFloat(const _V: TPascalString; _Def: Double): Double; overload;
+function umlStrToFloat(const _V: TPascalString): Double; overload;
 
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean; overload;
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr: TPascalString): Boolean; overload;
@@ -1052,7 +1056,7 @@ begin
       Result := Random(mx - mn) + mn;
 end;
 
-function umlRandomRangeF(const aMin, aMax: Single): Single;
+function umlRandomRangeS(const aMin, aMax: Single): Single;
 begin
   Result := (umlRandomRange(Trunc(aMin * 1000), Trunc(aMax * 1000))) * 0.001;
 end;
@@ -3106,6 +3110,11 @@ begin
       Result := Format('%fG', [Size / (1 shl 30)])
 end;
 
+function umlIntToStr(Parameter: Single): TPascalString;
+begin
+  Result := IntToStr(Round(Parameter));
+end;
+
 function umlIntToStr(Parameter: Double): TPascalString;
 begin
   Result := IntToStr(Round(Parameter));
@@ -3172,6 +3181,11 @@ begin
       Result := StrToFloat(_V.Text)
   else
       Result := _Def;
+end;
+
+function umlStrToFloat(const _V: TPascalString): Double;
+begin
+  Result := umlStrToFloat(_V, 0);
 end;
 
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean;

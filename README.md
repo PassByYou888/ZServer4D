@@ -186,6 +186,17 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务(已经实现)
 
+## 2018-12-22 BigStream能支持在非物理隧道进行大规模并行传输
+
+**建议将工程都升级到本次更新的版本，本次更新已经数小时，上百个通讯程序的严格测试，更加稳定**
+
+- 大改:重做BigStream的协议机制，新的BigStream协议为反馈续传：我们在发送一个大型文件时，内核会按小块一次一个进行发送，当收到远程信号后，才会发送下一个。不再是在Progress中对物理隧道做WriteBufferEmpty进行下一个小块发送。
+- 新功能:BigStream支持压缩选项，我们打开了SendDataCompressed开关后，BigStream会自动对小数据块进行压缩，在实际后台工作，它对cpu的消耗很小，可以忽略不计
+- 新功能:新增全自动化KeepAlive机制：只要我们在服务器设置了TimeOutIDLE这类参数（超时断线），系统就会自动判断掉线，可以稳定保活连接，无需自行在外部去实现AntiIDLE的机制了。KeepAlive不再依靠操作系统的非标准KeepAlive，这是非标准api，各个系统很不稳定。
+- 修复:修复P2PVM-Client中IO释放的BUG
+- 修复:取消了SequencePacket的编译选项，默认情况下，SequencePacket模式都会打开，而我们开关SequencePacket模式不用再通过编译选项，注意：在大规模并发时，会让cpu性能会掉1-5%左右，假如你觉得这样不好，可以关闭Server.SequencePacketActivted的开关，但是会失去自动化KeepAlive机制功能。
+- 修改:将 IO 中的CheckIOBusy检查更名为IOBusy，外部程序如果有使用该方法请替换一下名字
+
 ## 2018-11-29 P2PVM支持了IO对穿
 
 - 新功能:XNAT可以对穿,XNAT服务器可以是客户端，并且仍然可以断线重连，XNAT客户端可以是服务器，对穿就是正向代理和反向代理我们可以自由切换

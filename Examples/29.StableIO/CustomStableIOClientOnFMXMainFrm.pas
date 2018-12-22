@@ -148,8 +148,8 @@ var
 begin
   MyClient.Progress;
 
-  // CheckIOBusy 是适用于任何平台的IO状态检查机制，当IO有数据在处理时，就会返回true
-  if MyClient.CheckIOBusy then
+  // IOBusy 是适用于任何平台的IO状态检查机制，当IO有数据在处理时，就会返回true
+  if MyClient.IOBusy then
       IOStateLabel.Text := 'IO Busy...'
   else
       IOStateLabel.Text := 'IO IDLE';

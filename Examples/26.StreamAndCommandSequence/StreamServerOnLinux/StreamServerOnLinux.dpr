@@ -251,7 +251,7 @@ begin
       CoreClasses.CheckThreadSynchronize(1);
 
 {$IFDEF MSWINDOWS}
-      if SingleTunnelServer.CheckIOBusy or DoubleTunnelServer.RecvTunnel.CheckIOBusy or DoubleTunnelServer.SendTunnel.CheckIOBusy then
+      if SingleTunnelServer.IOBusy or DoubleTunnelServer.RecvTunnel.IOBusy or DoubleTunnelServer.SendTunnel.IOBusy then
           SetConsoleTitle('Busy')
       else
         SetConsoleTitle('IDLE');

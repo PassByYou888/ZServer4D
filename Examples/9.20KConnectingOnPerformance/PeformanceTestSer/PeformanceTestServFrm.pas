@@ -39,7 +39,7 @@ type
   public
     { Public declarations }
     server: TMyServer;
-    test  : TCommunicationTestIntf;
+    test: TCommunicationTestIntf;
   end;
 
 var
@@ -57,6 +57,7 @@ begin
 
   server.QuietMode := True;
   server.SwitchMaxPerformance;
+  server.SequencePacketActivted := False;
 
   test.RegCmd(server);
 
@@ -78,10 +79,10 @@ procedure TEZServerForm.RefStateTimerTimer(Sender: TObject);
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
-    n   : string;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
+    n: string;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -110,9 +111,9 @@ procedure TEZServerForm.RefStateTimerTimer(Sender: TObject);
   procedure PrintServerCMDStatistics(const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
-    comm                               : TCommunicationFramework;
-    i                                  : Integer;
-    lst                                : TListString;
+    comm: TCommunicationFramework;
+    i: Integer;
+    lst: TListString;
   begin
     RecvLst := THashVariantList.Create;
     SendLst := THashVariantList.Create;

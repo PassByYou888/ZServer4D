@@ -103,8 +103,8 @@ type
   public
     { Public declarations }
 
-    phyServer: TCommunicationFrameworkServer;
-    phyClient: TCommunicationFrameworkClient;
+    phyServer: TCommunicationFramework_StableServer;
+    phyClient: TCommunicationFramework_StableClient;
     serv: TChatServer;
     cli: TChatClient;
     procedure backcall_DoStatus(AText: SystemString; const ID: Integer);
@@ -253,7 +253,6 @@ begin
 
   phyServer := TXPhysicsServer.Create.StableIO;
   phyServer.VMInterface := self;
-//  TCommunicationFramework_StableServer(phyServer).OfflineTimeout := 5 * 1000;
 
   phyClient := TXPhysicsClient.Create.StableIO;
 
@@ -274,7 +273,11 @@ begin
   serv.Progress;
   cli.Progress;
 
-  ChatServiceInfoLabel.Text := Format('Online Count: %d', [serv.TotalLinkCount]);
+  ChatServiceInfoLabel.Text := Format('Server Online: %d - %d - %d - %d - %d' + #13#10 + 'Client OnLine: %d - %d - %d - %d',
+    [serv.TotalLinkCount, phyServer.Count, phyServer.PhysicsServer.Count, serv.RecvTunnel.Count, serv.SendTunnel.Count,
+    phyClient.PeerIO_HashPool.Count, phyClient.PhysicsClient.PeerIO_HashPool.Count,
+    cli.RecvTunnel.PeerIO_HashPool.Count, cli.SendTunnel.PeerIO_HashPool.Count
+    ]);
 end;
 
 procedure TForm3.ChatHomeMasterCheckBoxChange(Sender: TObject);
@@ -288,6 +291,8 @@ begin
     begin
       phyServer.StopService;
       TButton(Sender).Text := 'Start Listen';
+      // connectButton.Enabled := True;
+      // DisconnectButton.Enabled := True;
     end
   else
     begin
@@ -295,6 +300,8 @@ begin
           RaiseInfo('listen service Failed');
 
       TButton(Sender).Text := 'Stop Listen';
+      // connectButton.Enabled := False;
+      // DisconnectButton.Enabled := False;
     end;
 end;
 

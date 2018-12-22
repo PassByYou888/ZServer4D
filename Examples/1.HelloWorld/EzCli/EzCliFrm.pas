@@ -1,4 +1,4 @@
-unit EzCliFrm;
+ï»¿unit EzCliFrm;
 
 interface
 
@@ -74,24 +74,24 @@ end;
 procedure TEZClientForm.HelloWorldBtnClick(Sender: TObject);
 var
   SendDe, ResultDE: TDataFrameEngine;
-  js              : TJsonObject;
+  js: TJsonObject;
 begin
-  // Íù·şÎñÆ÷·¢ËÍÒ»ÌõconsoleĞÎÊ½µÄhello worldÖ¸Áî
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡consoleå½¢å¼çš„hello worldæŒ‡ä»¤
   client.SendDirectConsoleCmd('helloWorld_Console', '');
 
-  // Íù·şÎñÆ÷·¢ËÍÒ»ÌõstreamĞÎÊ½µÄhello worldÖ¸Áî
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡streamå½¢å¼çš„hello worldæŒ‡ä»¤
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('directstream 123456');
   client.SendDirectStreamCmd('helloWorld_Stream', SendDe);
   DisposeObject([SendDe]);
 
-  // Òì²½·½Ê½·¢ËÍ£¬²¢ÇÒ½ÓÊÕStreamÖ¸Áî£¬·´À¡ÒÔ·½·¨»Øµ÷´¥·¢
+  // å¼‚æ­¥æ–¹å¼å‘é€ï¼Œå¹¶ä¸”æ¥æ”¶StreamæŒ‡ä»¤ï¼Œåé¦ˆä»¥æ–¹æ³•å›è°ƒè§¦å‘
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
   client.SendStreamCmdM('helloWorld_Stream_Result', SendDe, BackCall_helloWorld_Stream_Result);
   DisposeObject([SendDe]);
 
-  // Òì²½·½Ê½·¢ËÍ£¬²¢ÇÒ½ÓÊÕStreamÖ¸Áî£¬·´À¡ÒÔproc»Øµ÷´¥·¢
+  // å¼‚æ­¥æ–¹å¼å‘é€ï¼Œå¹¶ä¸”æ¥æ”¶StreamæŒ‡ä»¤ï¼Œåé¦ˆä»¥procå›è°ƒè§¦å‘
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
   client.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
@@ -102,7 +102,7 @@ begin
     end);
   DisposeObject([SendDe]);
 
-  // ×èÈû·½Ê½·¢ËÍ£¬²¢ÇÒ½ÓÊÕStreamÖ¸Áî
+  // é˜»å¡æ–¹å¼å‘é€ï¼Œå¹¶ä¸”æ¥æ”¶StreamæŒ‡ä»¤
   SendDe := TDataFrameEngine.Create;
   ResultDE := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
@@ -111,9 +111,9 @@ begin
       DoStatus('server response:%s', [ResultDE.Reader.ReadString]);
   DisposeObject([SendDe, ResultDE]);
 
-  // jsonÊÕ·¢
+  // jsonæ”¶å‘
   js := TJsonObject.Create;
-  js.S['ÖĞÎÄ²âÊÔ'] := 'ÄãºÃÊÀ½ç';
+  js.S['ä¸­æ–‡æµ‹è¯•'] := 'ä½ å¥½ä¸–ç•Œ';
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteJson(js);
   client.SendDirectStreamCmd('Json_Stream', SendDe);
@@ -123,14 +123,14 @@ end;
 procedure TEZClientForm.SendBigStreamButtonClick(Sender: TObject);
 var
   ms: TMemoryStream;
-  p : PInt64;
-  i : Integer;
+  p: PInt64;
+  i: Integer;
 begin
-  // ÔÚmsÖĞ°üº¬ÁË128M´óĞÍÊı¾İ£¬ÔÚ·şÎñÆ÷¶ËÏàµ±ÓÚÖ´ĞĞÁË1ÌõÆÕÍ¨ÃüÁî
+  // åœ¨msä¸­åŒ…å«äº†16Må¤§å‹æ•°æ®ï¼Œåœ¨æœåŠ¡å™¨ç«¯ç›¸å½“äºæ‰§è¡Œäº†1æ¡æ™®é€šå‘½ä»¤
   ms := TMemoryStream.Create;
-  ms.SetSize(128 * 1024 * 1024);
+  ms.SetSize(16 * 1024 * 1024);
 
-  DoStatus('´´½¨128MÁÙÊ±´óÊı¾İÁ÷');
+  DoStatus('åˆ›å»º128Mä¸´æ—¶å¤§æ•°æ®æµ');
   p := ms.Memory;
   for i := 1 to ms.Size div SizeOf(Int64) do
     begin
@@ -138,46 +138,46 @@ begin
       inc(p);
     end;
 
-  DoStatus('¼ÆËãÁÙÊ±´óÊı¾İÁ÷md5');
+  DoStatus('è®¡ç®—ä¸´æ—¶å¤§æ•°æ®æµmd5');
   DoStatus('bigstream md5:' + umlMD5Char(ms.Memory, ms.Size).Text);
 
-  // Íù·şÎñÆ÷·¢ËÍÒ»ÌõBig StreamĞÎÊ½µÄÖ¸Áî
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡Big Streamå½¢å¼çš„æŒ‡ä»¤
   client.SendBigStream('Test128MBigStream', ms, True);
 end;
 
 procedure TEZClientForm.SendCompletebufferButtonClick(Sender: TObject);
 var
   buff: Pointer;
-  p   : PInt64;
-  i   : Integer;
+  p: PInt64;
+  i: Integer;
 begin
-  // ÔÚmsÖĞ°üº¬ÁË128M´óĞÍÊı¾İ£¬ÔÚ·şÎñÆ÷¶ËÏàµ±ÓÚÖ´ĞĞÁË1ÌõÆÕÍ¨ÃüÁî
-  buff := GetMemory(128 * 1024 * 1024);
+  // åœ¨msä¸­åŒ…å«äº†16Må¤§å‹æ•°æ®ï¼Œåœ¨æœåŠ¡å™¨ç«¯ç›¸å½“äºæ‰§è¡Œäº†1æ¡æ™®é€šå‘½ä»¤
+  buff := GetMemory(16 * 1024 * 1024);
 
-  DoStatus('´´½¨128MÁÙÊ±´óÊı¾İÁ÷');
+  DoStatus('åˆ›å»º128Mä¸´æ—¶å¤§æ•°æ®æµ');
   p := buff;
-  for i := 1 to (128 * 1024 * 1024) div SizeOf(Int64) do
+  for i := 1 to (16 * 1024 * 1024) div SizeOf(Int64) do
     begin
       p^ := Random(MaxInt);
       inc(p);
     end;
 
-  DoStatus('¼ÆËãÁÙÊ±´óÊı¾İÁ÷md5');
-  DoStatus('complete buffer md5:' + umlMD5String(buff, 128 * 1024 * 1024).Text);
+  DoStatus('è®¡ç®—ä¸´æ—¶å¤§æ•°æ®æµmd5');
+  DoStatus('complete buffer md5:' + umlMD5String(buff, 16 * 1024 * 1024).Text);
 
-  // Íù·şÎñÆ÷·¢ËÍÒ»ÌõCompleteBufferĞÎÊ½µÄÖ¸Áî
-  // ×îºóµÄ²¼¶û²ÎÊı±íÊ¾ÊÇ·ñÔÚÍê³É·¢ËÍºóÊÍ·Åbuff
-  client.SendCompleteBuffer('TestCompleteBuffer', buff, 128 * 1024 * 1024, True);
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡CompleteBufferå½¢å¼çš„æŒ‡ä»¤
+  // æœ€åçš„å¸ƒå°”å‚æ•°è¡¨ç¤ºæ˜¯å¦åœ¨å®Œæˆå‘é€åé‡Šæ”¾buff
+  client.SendCompleteBuffer('TestCompleteBuffer', buff, 16 * 1024 * 1024, True);
 end;
 
 procedure TEZClientForm.sendMiniStreamButtonClick(Sender: TObject);
 var
-  ms    : TMemoryStream;
+  ms: TMemoryStream;
   SendDe: TDataFrameEngine;
-  p     : PInt64;
-  i     : Integer;
+  p: PInt64;
+  i: Integer;
 begin
-  // ÔÚSendDEÖĞ°üº¬ÁË512k´óĞÍÊı¾İ£¬ÔÚ·şÎñÆ÷¶ËÏàµ±ÓÚÖ´ĞĞÁË512ÌõÆÕÍ¨ÃüÁî
+  // åœ¨SendDEä¸­åŒ…å«äº†512kå¤§å‹æ•°æ®ï¼Œåœ¨æœåŠ¡å™¨ç«¯ç›¸å½“äºæ‰§è¡Œäº†512æ¡æ™®é€šå‘½ä»¤
   ms := TMemoryStream.Create;
   ms.SetSize(512 * 1024);
 
@@ -190,7 +190,7 @@ begin
 
   DoStatus('mini stream md5:' + umlMD5Char(ms.Memory, ms.Size).Text);
 
-  // Íù·şÎñÆ÷·¢ËÍÒ»Ìõdirect streamĞÎÊ½µÄÖ¸Áî
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡direct streamå½¢å¼çš„æŒ‡ä»¤
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteStream(ms);
   client.SendDirectStreamCmd('TestMiniStream', SendDe);
@@ -204,22 +204,22 @@ end;
 
 procedure TEZClientForm.ConnectButtonClick(Sender: TObject);
 begin
-  // ·½·¨1£¬×èÈûÊ½Á´½Ó
+  // æ–¹æ³•1ï¼Œé˜»å¡å¼é“¾æ¥
   // if client.Connect(HostEdit.Text, 9818) then
-  // DoStatus('Á´½Ó³É¹¦')
+  // DoStatus('é“¾æ¥æˆåŠŸ')
   // else
-  // DoStatus('Á´½ÓÊ§°Ü');
+  // DoStatus('é“¾æ¥å¤±è´¥');
 
-  // ·½·¨2£¬Òì²½¸ßËÙÁ´½Ó
+  // æ–¹æ³•2ï¼Œå¼‚æ­¥é«˜é€Ÿé“¾æ¥
   client.AsyncConnectP(HostEdit.Text, 9818, procedure(const cState: Boolean)
     begin
       if cState then
         begin
-          DoStatus('Á´½Ó³É¹¦');
+          DoStatus('é“¾æ¥æˆåŠŸ');
           DoStatus('current client id: %d', [client.ClientIO.ID]);
         end
       else
-          DoStatus('Á´½ÓÊ§°Ü');
+          DoStatus('é“¾æ¥å¤±è´¥');
     end);
 
 end;

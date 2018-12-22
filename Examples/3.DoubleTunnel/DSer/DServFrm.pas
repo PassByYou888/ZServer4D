@@ -6,8 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
   CommunicationFramework,
-  CommunicationFramework_Server_ICS,
-  CommunicationFramework_Server_Indy,
+  CommunicationFramework_Server_DIOCP,
   CommunicationFramework_Server_CrossSocket, DoStatusIO, CoreClasses,
   DataFrameEngine, CommunicationFrameworkDoubleTunnelIO_NoAuth;
 
@@ -47,8 +46,8 @@ type
     procedure DoStatusNear(AText: string; const ID: Integer);
   public
     { Public declarations }
-    RecvTunnel: TCommunicationFramework_Server_CrossSocket;
-    SendTunnel: TCommunicationFramework_Server_CrossSocket;
+    RecvTunnel: TCommunicationFramework_Server_DIOCP;
+    SendTunnel: TCommunicationFramework_Server_DIOCP;
     Service   : TMyService;
   end;
 
@@ -122,8 +121,8 @@ procedure TDoubleServerForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
 
-  RecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
-  SendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  RecvTunnel := TCommunicationFramework_Server_DIOCP.Create;
+  SendTunnel := TCommunicationFramework_Server_DIOCP.Create;
   Service := TMyService.Create(RecvTunnel, SendTunnel);
   Service.f := self;
 end;

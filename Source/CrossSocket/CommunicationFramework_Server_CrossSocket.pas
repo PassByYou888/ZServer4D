@@ -62,7 +62,7 @@ type
     FBindHost: SystemString;
     FBindPort: Word;
   protected
-    procedure DoAccpet(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
+    procedure DoAccept(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
     procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
@@ -271,7 +271,7 @@ begin
   ProcessAllSendCmd(nil, False, False);
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.DoAccpet(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
+procedure TCommunicationFramework_Server_CrossSocket.DoAccept(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
 begin
   Accept := Count < 20000;
 end;
@@ -359,7 +359,7 @@ begin
   inherited Create;
   FEnabledAtomicLockAndMultiThread := False;
   FDriver := TDriverEngine.Create(maxThPool);
-  FDriver.OnAccept := DoAccpet;
+  FDriver.OnAccept := DoAccept;
   FDriver.OnConnected := DoConnected;
   FDriver.OnDisconnected := DoDisconnect;
   FDriver.OnReceived := DoReceived;

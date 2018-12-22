@@ -105,8 +105,8 @@ begin
     begin
       MyServer.Progress;
 {$IFDEF MSWINDOWS}
-      // CheckIOBusy 是适用于任何平台的IO状态检查机制，当IO有数据在处理时，就会返回true
-      if MyServer.CheckIOBusy then
+      // IOBusy 是适用于任何平台的IO状态检查机制，当IO有数据在处理时，就会返回true
+      if MyServer.IOBusy then
           iostate := 'Busy'
       else
           iostate := 'Idle';

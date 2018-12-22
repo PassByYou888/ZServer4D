@@ -132,6 +132,7 @@ begin
   AddDoStatusHook(self, DoStatusNear);
   server := TCommunicationFramework_Server_CrossSocket.Create;
   server.PeerClientUserSpecialClass := TMySpecialDefine;
+  server.TimeOutIDLE := 15 * 1000;
 
   // 更改最大completeBuffer，这里只用于测试，正常运行服务器，这里一般给4M就可以了
   server.MaxCompleteBufferSize := 128 * 1024 * 1024;

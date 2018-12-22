@@ -164,7 +164,6 @@ const
   C_EnabledServer = '__@EnabledServer';
   C_AntiIdle = '__@AntiIdle';
 
-
 function serverType2Str(t: TServerType): SystemString;
 begin
   Result := GetEnumName(TypeInfo(TServerType), Ord(t));
@@ -294,6 +293,8 @@ procedure TServerManager_Client.AntiIdle(WorkLoad: Word);
 var
   sendDE: TDataFrameEngine;
 begin
+  if SendTunnel.IOBusy then
+      exit;
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteWORD(WorkLoad);
   SendTunnel.SendDirectStreamCmd(C_AntiIdle, sendDE);
@@ -421,7 +422,7 @@ var
   c: TServerManager_Client;
 begin
   if AntiIdleIsRun then
-      Exit;
+      exit;
   AntiIdleIsRun := True;
   try
     i := 0;
@@ -474,7 +475,7 @@ begin
         (c.ConnectInfo.RegSendPort = RegSendPort) then
         begin
           c.ReconnectTotal := 0;
-          Exit;
+          exit;
         end;
     end;
 
@@ -646,7 +647,7 @@ begin
     begin
       OutData.WriteBool(False);
       OutData.WriteString('nolink');
-      Exit;
+      exit;
     end;
 
   cli.ManServAddr := InData.Reader.ReadString;
@@ -695,7 +696,7 @@ begin
           Data1 := Sender;
           Data2 := cli;
         end;
-      Exit;
+      exit;
     end;
 
   cli.WriteConfig(ServerConfig);
@@ -738,7 +739,7 @@ var
   sendDE: TDataFrameEngine;
 begin
   if ServerConfig.Same(ConfigData) then
-      Exit;
+      exit;
 
   ServerConfig.Merge(ConfigData);
 
@@ -881,5 +882,3 @@ begin
 end;
 
 end.
-
-

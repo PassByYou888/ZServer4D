@@ -76,7 +76,8 @@ begin
     begin
       client[i] := TCommunicationFramework_Client_CrossSocket.Create;
       client[i].QuietMode := True;
-      client[i].SwitchMaxSecurity;
+      client[i].SwitchMaxPerformance;
+      client[i].SequencePacketActivted := False;
       test[i] := TCommunicationTestIntf.Create;
       test[i].RegCmd(client[i]);
     end;
