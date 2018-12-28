@@ -351,7 +351,6 @@ type
     FReceivedAbort: Boolean;
     FReceivedBuffer: TMemoryStream64;
     FReceivedBuffer_Busy: TMemoryStream64;
-
     FBigStreamReceiveProcessing: Boolean;
     FBigStreamTotal: Int64;
     FBigStreamCompleted: Int64;
@@ -360,7 +359,6 @@ type
     FBigStreamSending: TCoreClassStream;
     FBigStreamSendState: Int64;
     FBigStreamSendDoneTimeFree: Boolean;
-
     FCompleteBufferReceiveProcessing: Boolean;
     FCompleteBufferTotal: Cardinal;
     FCompleteBufferCompressedSize: Cardinal;
@@ -9457,7 +9455,8 @@ procedure TCommunicationFrameworkWithP2PVM_Client.VMDisconnect(SenderVM: TCommun
 begin
   FVMConnected := False;
   TriggerDoConnectFailed;
-  FVMClient.Disconnect;
+  if FVMClient <> nil then
+      FVMClient.Disconnect;
 end;
 
 constructor TCommunicationFrameworkWithP2PVM_Client.Create;
@@ -10362,7 +10361,8 @@ begin
   c := TCommunicationFramework(FFrameworkPool[frameworkID]);
   if c is TCommunicationFrameworkWithP2PVM_Client then
     begin
-      TCommunicationFrameworkWithP2PVM_Client(c).FVMClient.FDestroyTimeNotify := False;
+      if TCommunicationFrameworkWithP2PVM_Client(c).FVMClient <> nil then
+          TCommunicationFrameworkWithP2PVM_Client(c).FVMClient.FDestroyTimeNotify := False;
       TCommunicationFrameworkWithP2PVM_Client(c).VMDisconnect(Self);
     end
   else if c is TCommunicationFrameworkWithP2PVM_Server then
