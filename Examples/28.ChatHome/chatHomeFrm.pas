@@ -103,8 +103,8 @@ type
   public
     { Public declarations }
 
-    phyServer: TCommunicationFramework_StableServer;
-    phyClient: TCommunicationFramework_StableClient;
+    phyServer: TCommunicationFrameworkServer;
+    phyClient: TCommunicationFrameworkClient;
     serv: TChatServer;
     cli: TChatClient;
     procedure backcall_DoStatus(AText: SystemString; const ID: Integer);
@@ -251,10 +251,10 @@ begin
   MyNameEditChangeTracking(MyNameEdit);
   ChatHomeMasterCheckBoxChange(ChatHomeMasterCheckBox);
 
-  phyServer := TXPhysicsServer.Create.StableIO;
+  phyServer := TXPhysicsServer.Create;
   phyServer.VMInterface := self;
 
-  phyClient := TXPhysicsClient.Create.StableIO;
+  phyClient := TXPhysicsClient.Create;
 
   serv := TChatServer.Create(TCommunicationFrameworkWithP2PVM_Server.Create, TCommunicationFrameworkWithP2PVM_Server.Create);
   serv.RecvTunnel.StartService('::', 0);
@@ -274,8 +274,8 @@ begin
   cli.Progress;
 
   ChatServiceInfoLabel.Text := Format('Server Online: %d - %d - %d - %d - %d' + #13#10 + 'Client OnLine: %d - %d - %d - %d',
-    [serv.TotalLinkCount, phyServer.Count, phyServer.PhysicsServer.Count, serv.RecvTunnel.Count, serv.SendTunnel.Count,
-    phyClient.PeerIO_HashPool.Count, phyClient.PhysicsClient.PeerIO_HashPool.Count,
+    [serv.TotalLinkCount, phyServer.Count, phyServer.Count, serv.RecvTunnel.Count, serv.SendTunnel.Count,
+    phyClient.PeerIO_HashPool.Count, phyClient.PeerIO_HashPool.Count,
     cli.RecvTunnel.PeerIO_HashPool.Count, cli.SendTunnel.PeerIO_HashPool.Count
     ]);
 end;
