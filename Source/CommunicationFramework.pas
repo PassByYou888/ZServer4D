@@ -405,6 +405,7 @@ type
     function GetPeerIP: SystemString; virtual;
     function WriteBufferEmpty: Boolean; virtual;
   protected
+    // Sequence Packet Model
     FSequencePacketActivted, FSequencePacketSignal: Boolean;
     SequenceNumberOnSendCounter, SequenceNumberOnReceivedCounter: Cardinal;
     SendingSequencePacketHistory: TUInt32HashPointerList;
@@ -10733,6 +10734,17 @@ var
   i: Integer;
   LP: Pp2pVMListen;
 begin
+  if (c is TCommunicationFramework_CustomStableServer) then
+    begin
+      InstallLogicFramework(TCommunicationFramework_CustomStableServer(c).PhysicsServer);
+      exit;
+    end;
+  if (c is TCommunicationFramework_CustomStableClient) then
+    begin
+      InstallLogicFramework(TCommunicationFramework_CustomStableClient(c).PhysicsClient);
+      exit;
+    end;
+
   if c is TCommunicationFrameworkWithP2PVM_Server then
     begin
       if TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID <> 0 then
@@ -10780,7 +10792,9 @@ begin
       TCommunicationFrameworkWithP2PVM_Client(c).FLinkVM := Self;
 
       FFrameworkPool.Add(TCommunicationFrameworkWithP2PVM_Client(c).FFrameworkWithVM_ID, c, True);
-    end;
+    end
+  else
+      RaiseInfo('illegal p2pVM.');
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.UninstallLogicFramework(c: TCommunicationFramework);
@@ -10788,6 +10802,17 @@ var
   i: Integer;
   LP: Pp2pVMListen;
 begin
+  if (c is TCommunicationFramework_CustomStableServer) then
+    begin
+      UninstallLogicFramework(TCommunicationFramework_CustomStableServer(c).PhysicsServer);
+      exit;
+    end;
+  if (c is TCommunicationFramework_CustomStableClient) then
+    begin
+      UninstallLogicFramework(TCommunicationFramework_CustomStableClient(c).PhysicsClient);
+      exit;
+    end;
+
   if c is TCommunicationFrameworkWithP2PVM_Server then
     begin
       TCommunicationFrameworkWithP2PVM_Server(c).CloseAllClient;

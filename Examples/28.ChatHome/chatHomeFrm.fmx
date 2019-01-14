@@ -8,6 +8,7 @@ object Form3: TForm3
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
+  OnClose = FormClose
   DesignerMasterStyle = 0
   object Layout1: TLayout
     Padding.Right = 10.000000000000000000

@@ -89,6 +89,7 @@ type
     procedure MyNameEditChangeTracking(Sender: TObject);
     procedure connectButtonClick(Sender: TObject);
     procedure DisconnectButtonClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SendButtonClick(Sender: TObject);
   private
     // ICommunicationFrameworkVMInterface
@@ -251,16 +252,26 @@ begin
   MyNameEditChangeTracking(MyNameEdit);
   ChatHomeMasterCheckBoxChange(ChatHomeMasterCheckBox);
 
+  // 如果要把vm架在stableIO上面，在初始化物理io时，要两次构建StableIO
+  // 以为p2pVM会用自己的隧道替代原IO隧道，必须两次构建StableIO，vm才能是防止断线的工作模式
+  // phyServer := TXPhysicsServer.Create.StableIO.StableIO;
   phyServer := TXPhysicsServer.Create;
   phyServer.VMInterface := self;
 
+  // 如果要把vm架在stableIO上面，在初始化物理io时，要两次构建StableIO
+  // 以为p2pVM会用自己的隧道替代原IO隧道，必须两次构建StableIO，vm才能是防止断线的工作模式
+  // phyClient := TXPhysicsClient.Create.StableIO.StableIO;
   phyClient := TXPhysicsClient.Create;
 
+  // 我们在p2pVM基础上,也可以构建StableIO,构建方法如下
+  // serv := TChatServer.Create(TCommunicationFrameworkWithP2PVM_Server.Create.StableIO, TCommunicationFrameworkWithP2PVM_Server.Create.StableIO);
   serv := TChatServer.Create(TCommunicationFrameworkWithP2PVM_Server.Create, TCommunicationFrameworkWithP2PVM_Server.Create);
   serv.RecvTunnel.StartService('::', 0);
   serv.SendTunnel.StartService('::', 1);
   serv.RegisterCommand;
 
+  // 我们在p2pVM基础上,也可以构建StableIO,构建方法如下
+  // cli := TChatClient.Create(TCommunicationFrameworkWithP2PVM_Client.Create.StableIO, TCommunicationFrameworkWithP2PVM_Client.Create.StableIO);
   cli := TChatClient.Create(TCommunicationFrameworkWithP2PVM_Client.Create, TCommunicationFrameworkWithP2PVM_Client.Create);
   cli.MsgNotify := self;
   cli.RegisterCommand;
@@ -396,6 +407,11 @@ begin
       exit;
   Memo1.Lines.Add(AText);
   Memo1.GoToTextEnd;
+end;
+
+procedure TForm3.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DeleteDoStatusHook(self);
 end;
 
 end.
