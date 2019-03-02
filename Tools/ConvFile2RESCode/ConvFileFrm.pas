@@ -157,7 +157,7 @@ type
         p^.DefName := MakeDefName(p^.PrefixFileName);
 
         BuildStream(p);
-        OutputCodes.Add(Format('// %s Origin MD5:%s', [TPath.GetFileName(p^.FullName), umlMD52Str(p^.md5).Text]));
+        OutputCodes.Add(Format('// %s Origin MD5:%s', [TPath.GetFileName(p^.FullName), umlMD5ToStr(p^.md5).Text]));
         OutputCodes.Add(Format('procedure Get_%s_Stream(Output: TStream);', [p^.DefName]));
         FileList.Add(p);
       end;
@@ -304,7 +304,7 @@ type
       begin
         p := FileList[i];
         OutputCodes.Add(Format('  RegisterFileStream(' + '''' + '%s' + '''' + ', Get_%s_Stream, ' + '''' + '%s' + '''' + ');',
-          [umlMD52Str(p^.md5).Text, p^.DefName, TPath.GetFileName(p^.FullName)]));
+          [umlMD5ToStr(p^.md5).Text, p^.DefName, TPath.GetFileName(p^.FullName)]));
       end;
     OutputCodes.Add(Format('*)', []));
     OutputCodes.Add(Format('end.', []));

@@ -19,23 +19,21 @@ unit ItemStream;
 
 interface
 
-uses SysUtils, CoreClasses, Classes, UnicodeMixedLib, ObjectData, ObjectDataManager,
-  PascalStrings;
+uses SysUtils, CoreClasses, Classes, UnicodeMixedLib, ObjectData, ObjectDataManager, PascalStrings;
 
 type
   TItemStream = class(TCoreClassStream)
   private
-    FItemHnd: TItemHandle;
-    FDBEngine: TObjectDataManager;
+    DB_Engine: TObjectDataManager;
+    ItemHnd_Ptr: PItemHandle;
+    AutoFreeHnd: Boolean;
   protected
     function GetSize: Int64; override;
   public
-    constructor Create(DBEngine: TObjectDataManager; DBPath, DBItem: SystemString); overload;
-    constructor Create(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle); overload;
-    constructor Create(DBEngine: TObjectDataManager; var ItemHeaderPos: Int64); overload;
-    constructor Create; overload;
+    constructor Create(eng_: TObjectDataManager; DBPath, DBItem: SystemString); overload;
+    constructor Create(eng_: TObjectDataManager; var ItemHnd: TItemHandle); overload;
+    constructor Create(eng_: TObjectDataManager; var ItemHeaderPos: Int64); overload;
     destructor Destroy; override;
-    procedure ChangeHandle(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle);
 
     procedure SaveToFile(fn: SystemString);
     procedure LoadFromFile(fn: SystemString);
@@ -50,61 +48,51 @@ type
     procedure SeekLast;
     function UpdateHandle: Boolean;
     function CloseHandle: Boolean;
-    function Hnd: PItemHandle;
-  end;
-
-  TItemStreamEngine = class(TItemStream)
-  public
-    destructor Destroy; override;
+    property Hnd: PItemHandle read ItemHnd_Ptr;
   end;
 
 implementation
 
 function TItemStream.GetSize: Int64;
 begin
-  Result := FDBEngine.ItemGetSize(FItemHnd);
+  Result := DB_Engine.ItemGetSize(ItemHnd_Ptr^);
 end;
 
-constructor TItemStream.Create;
+constructor TItemStream.Create(eng_: TObjectDataManager; DBPath, DBItem: SystemString);
 begin
   inherited Create;
-  FDBEngine := nil;
-  Init_TTMDBItemHandle(FItemHnd);
+  DB_Engine := eng_;
+  New(ItemHnd_Ptr);
+  eng_.ItemAutoOpenOrCreate(DBPath, DBItem, DBItem, ItemHnd_Ptr^);
+  AutoFreeHnd := True;
 end;
 
-constructor TItemStream.Create(DBEngine: TObjectDataManager; DBPath, DBItem: SystemString);
-var
-  ihnd: TItemHandle;
+constructor TItemStream.Create(eng_: TObjectDataManager; var ItemHnd: TItemHandle);
 begin
   inherited Create;
-  DBEngine.ItemAutoOpenOrCreate(DBPath, DBItem, DBItem, ihnd);
-  ChangeHandle(DBEngine, ihnd);
+  DB_Engine := eng_;
+  ItemHnd_Ptr := @ItemHnd;
+  AutoFreeHnd := False;
 end;
 
-constructor TItemStream.Create(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle);
+constructor TItemStream.Create(eng_: TObjectDataManager; var ItemHeaderPos: Int64);
 begin
   inherited Create;
-  ChangeHandle(DBEngine, ItemHnd);
-end;
-
-constructor TItemStream.Create(DBEngine: TObjectDataManager; var ItemHeaderPos: Int64);
-var
-  ItemHnd: TItemHandle;
-begin
-  DBEngine.ItemFastOpen(ItemHeaderPos, ItemHnd);
-  Create(DBEngine, ItemHnd);
+  DB_Engine := eng_;
+  New(ItemHnd_Ptr);
+  eng_.ItemFastOpen(ItemHeaderPos, ItemHnd_Ptr^);
+  AutoFreeHnd := True;
 end;
 
 destructor TItemStream.Destroy;
 begin
+  UpdateHandle();
+  if AutoFreeHnd then
+    begin
+      Dispose(ItemHnd_Ptr);
+      ItemHnd_Ptr := nil;
+    end;
   inherited Destroy;
-end;
-
-procedure TItemStream.ChangeHandle(DBEngine: TObjectDataManager; var ItemHnd: TItemHandle);
-begin
-  FDBEngine := DBEngine;
-  FItemHnd := ItemHnd;
-  FDBEngine.ItemSeek(FItemHnd, 0);
 end;
 
 procedure TItemStream.SaveToFile(fn: SystemString);
@@ -139,14 +127,14 @@ begin
   Result := 0;
   if (Count > 0) then
     begin
-      _P := FDBEngine.ItemGetPos(FItemHnd);
-      _Size := FDBEngine.ItemGetSize(FItemHnd);
+      _P := DB_Engine.ItemGetPos(ItemHnd_Ptr^);
+      _Size := DB_Engine.ItemGetSize(ItemHnd_Ptr^);
       if _P + Count <= _Size then
         begin
-          if FDBEngine.ItemRead(FItemHnd, Count, PByte(@buffer)^) then
+          if DB_Engine.ItemRead(ItemHnd_Ptr^, Count, PByte(@buffer)^) then
               Result := Count;
         end
-      else if FDBEngine.ItemRead(FItemHnd, _Size - _P, PByte(@buffer)^) then
+      else if DB_Engine.ItemRead(ItemHnd_Ptr^, _Size - _P, PByte(@buffer)^) then
           Result := _Size - _P;
     end;
 end;
@@ -155,7 +143,7 @@ function TItemStream.write(const buffer; Count: longint): longint;
 begin
   Result := Count;
   if (Count > 0) then
-    if not FDBEngine.ItemWrite(FItemHnd, Count, PByte(@buffer)^) then
+    if not DB_Engine.ItemWrite(ItemHnd_Ptr^, Count, PByte(@buffer)^) then
       begin
         Result := 0;
       end;
@@ -166,19 +154,19 @@ begin
   case origin of
     soFromBeginning:
       begin
-        FDBEngine.ItemSeek(FItemHnd, Offset);
+        DB_Engine.ItemSeek(ItemHnd_Ptr^, Offset);
       end;
     soFromCurrent:
       begin
         if Offset <> 0 then
-            FDBEngine.ItemSeek(FItemHnd, FDBEngine.ItemGetPos(FItemHnd) + Offset);
+            DB_Engine.ItemSeek(ItemHnd_Ptr^, DB_Engine.ItemGetPos(ItemHnd_Ptr^) + Offset);
       end;
     soFromEnd:
       begin
-        FDBEngine.ItemSeek(FItemHnd, FDBEngine.ItemGetSize(FItemHnd) + Offset);
+        DB_Engine.ItemSeek(ItemHnd_Ptr^, DB_Engine.ItemGetSize(ItemHnd_Ptr^) + Offset);
       end;
   end;
-  Result := FDBEngine.ItemGetPos(FItemHnd);
+  Result := DB_Engine.ItemGetPos(ItemHnd_Ptr^);
 end;
 
 function TItemStream.Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
@@ -186,50 +174,39 @@ begin
   case origin of
     TSeekOrigin.soBeginning:
       begin
-        FDBEngine.ItemSeek(FItemHnd, Offset);
+        DB_Engine.ItemSeek(ItemHnd_Ptr^, Offset);
       end;
     TSeekOrigin.soCurrent:
       begin
         if Offset <> 0 then
-            FDBEngine.ItemSeek(FItemHnd, FDBEngine.ItemGetPos(FItemHnd) + Offset);
+            DB_Engine.ItemSeek(ItemHnd_Ptr^, DB_Engine.ItemGetPos(ItemHnd_Ptr^) + Offset);
       end;
     TSeekOrigin.soEnd:
       begin
-        FDBEngine.ItemSeek(FItemHnd, FDBEngine.ItemGetSize(FItemHnd) + Offset);
+        DB_Engine.ItemSeek(ItemHnd_Ptr^, DB_Engine.ItemGetSize(ItemHnd_Ptr^) + Offset);
       end;
   end;
-  Result := FDBEngine.ItemGetPos(FItemHnd);
+  Result := DB_Engine.ItemGetPos(ItemHnd_Ptr^);
 end;
 
 procedure TItemStream.SeekStart;
 begin
-  FDBEngine.ItemSeekStart(FItemHnd);
+  DB_Engine.ItemSeekStart(ItemHnd_Ptr^);
 end;
 
 procedure TItemStream.SeekLast;
 begin
-  FDBEngine.ItemSeekLast(FItemHnd);
+  DB_Engine.ItemSeekLast(ItemHnd_Ptr^);
 end;
 
 function TItemStream.UpdateHandle: Boolean;
 begin
-  Result := FDBEngine.ItemUpdate(FItemHnd);
+  Result := DB_Engine.ItemUpdate(ItemHnd_Ptr^);
 end;
 
 function TItemStream.CloseHandle: Boolean;
 begin
-  Result := FDBEngine.ItemClose(FItemHnd);
-end;
-
-function TItemStream.Hnd: PItemHandle;
-begin
-  Result := @FItemHnd;
-end;
-
-destructor TItemStreamEngine.Destroy;
-begin
-  UpdateHandle;
-  inherited Destroy;
+  Result := DB_Engine.ItemClose(ItemHnd_Ptr^);
 end;
 
 end.

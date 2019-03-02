@@ -302,7 +302,7 @@ begin
 
     DoConnected(InternalClient);
 
-    AStopTime := GetTimeTick + 2000;
+    AStopTime := GetTimeTick + 3000;
 
     while (not RemoteInited) and Connected do
       begin

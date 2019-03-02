@@ -1,7 +1,7 @@
 object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   Left = 0
   Top = 0
-  Caption = 'File Package WithZDB...'
+  Caption = 'File Package.'
   ClientHeight = 513
   ClientWidth = 1167
   Color = clBtnFace
@@ -11,6 +11,7 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery

@@ -196,7 +196,7 @@ begin
         procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
           const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5)
         begin
-          hashMD5.Add(fileName, umlMD52String(MD5).Text);
+          hashMD5.Add(fileName, umlMD5ToStr(MD5).Text);
         end);
     end);
 
@@ -225,7 +225,7 @@ begin
       m64: TMemoryStream64;
     begin
       m5 := umlStreamMD5(stream, 0, 512);
-      DoStatus('Local MD5(0..512):%s', [umlMD52String(m5).Text]);
+      DoStatus('Local MD5(0..512):%s', [umlMD5ToStr(m5).Text]);
       m64 := TMemoryStream64.Create;
       m64.LoadFromStream(stream);
 
@@ -235,10 +235,10 @@ begin
           const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5)
         begin
           // 只取文件的头512byte重新来存储，为后面的断点续传demo打下基础
-          DoStatus('remote MD5(0..512):%s', [umlMD52String(MD5).Text]);
+          DoStatus('remote MD5(0..512):%s', [umlMD5ToStr(MD5).Text]);
           m64.Size := 512;
           m5 := umlStreamMD5(m64);
-          DoStatus('Local MD5(0..512):%s', [umlMD52String(m5).Text]);
+          DoStatus('Local MD5(0..512):%s', [umlMD5ToStr(m5).Text]);
           m64.SaveToFile(umlCombineFileName(umlCurrentPath, 'ADRestoreServer.exe'));
           DisposeObject(m64);
 
@@ -247,13 +247,13 @@ begin
             procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
               const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5)
             begin
-              DoStatus('remote MD5:%s', [umlMD52String(MD5).Text]);
+              DoStatus('remote MD5:%s', [umlMD5ToStr(MD5).Text]);
               // 从远程断点续传下载
               client.GetPublicFileP('ADRestoreServer.exe', 512, umlCurrentPath, nil, nil,
                 procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString)
                 begin
                   // 如果上面两个md5打印结果相同，则说明断点续传的文件下载是完整的
-                  DoStatus('Local MD5:%s', [umlMD52String(umlStreamMD5(stream)).Text]);
+                  DoStatus('Local MD5:%s', [umlMD5ToStr(umlStreamMD5(stream)).Text]);
 
                   DoStatus('大约1秒后开始演示断点续传的上传');
 
@@ -266,7 +266,7 @@ begin
                       m64.loadFromFile(umlCombineFileName(umlCurrentPath, 'ADRestoreServer.exe'));
                       // 截断文件体，让它长度为999byte
                       m64.Size := 999;
-                      DoStatus('private local md5(0..999):%s', [umlMD52String(umlStreamMD5(m64)).Text]);
+                      DoStatus('private local md5(0..999):%s', [umlMD5ToStr(umlStreamMD5(m64)).Text]);
                       // 我们使用私人空间来存储上传文件，最后的一个参数表示完成上传后，自动释放m64
                       client.PostStreamToPrivate('testUpload.dat', '', m64, True);
                       // 因为上传文件使用的SendTunnel，现在，我们在SendTunnel做一个Wait事件来侦测上传是否完成
@@ -280,10 +280,10 @@ begin
                             var
                               m64_2: TMemoryStream64;
                             begin
-                              DoStatus('private remote md5(0..999):%s', [umlMD52String(MD5).Text]);
+                              DoStatus('private remote md5(0..999):%s', [umlMD5ToStr(MD5).Text]);
                               m64_2 := TMemoryStream64.Create;
                               m64_2.loadFromFile(umlCombineFileName(umlCurrentPath, 'ADRestoreServer.exe'));
-                              DoStatus('private local md5:%s', [umlMD52String(umlStreamMD5(m64_2)).Text]);
+                              DoStatus('private local md5:%s', [umlMD5ToStr(umlStreamMD5(m64_2)).Text]);
                               // 我们开始做断点续传的上传
                               client.PostStreamToPrivate('testUpload.dat', '', m64_2, 999, True);
 
@@ -296,7 +296,7 @@ begin
                                       const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5)
                                     begin
                                       // 如果上面两个md5相同，则表示断点续传的上传已经成功
-                                      DoStatus('private remote md5:%s', [umlMD52String(MD5).Text]);
+                                      DoStatus('private remote md5:%s', [umlMD5ToStr(MD5).Text]);
                                       DoStatus('restore demo over!');
                                     end);
                                 end);

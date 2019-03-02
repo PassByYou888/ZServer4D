@@ -289,6 +289,10 @@ end;
 
 destructor TGlobalCrossSocketClientPool.Destroy;
 begin
+  try
+      ICrossSocket(driver).DisconnectAll;
+  except
+  end;
   DisposeObject(driver);
   inherited Destroy;
 end;
@@ -404,7 +408,7 @@ begin
 
   TCoreClassThread.Sleep(10);
 
-  dt := GetTimeTick + 2000;
+  dt := GetTimeTick + 3000;
   while (not LastCompleted) and (GetTimeTick < dt) do
       CheckThreadSynchronize(5);
 
@@ -418,7 +422,7 @@ begin
       BuildIntf.DoConnected(p_io);
     end;
 
-  dt := GetTimeTick + 2000;
+  dt := GetTimeTick + 4000;
   while (LastCompleted) and (LastResult) and (not BuildIntf.RemoteInited) do
     begin
       BuildIntf.Progress;

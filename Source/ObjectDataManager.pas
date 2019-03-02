@@ -62,7 +62,7 @@ type
     destructor Destroy; override;
     function Open(): Boolean;
     function NewHandle(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, aIsNew: Boolean): Boolean;
-    function copyto(DestDB: TObjectDataManager): Boolean;
+    function CopyTo(DestDB: TObjectDataManager): Boolean;
     function CopyToPath(DestDB: TObjectDataManager; destPath: SystemString): Boolean;
     function CopyFieldToPath(FieldPos: Int64; DestDB: TObjectDataManager; destPath: SystemString): Boolean;
     procedure SaveToStream(stream: TCoreClassStream);
@@ -142,14 +142,20 @@ type
     function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
 
-    // block operation
-    function ItemRead(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean;
+    // item block operation
+    function ItemRead(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean; overload;
     function ItemSeekStart(var ItemHnd: TItemHandle): Boolean;
     function ItemSeekLast(var ItemHnd: TItemHandle): Boolean;
     function ItemSeek(var ItemHnd: TItemHandle; const ItemOffset: Int64): Boolean;
     function ItemGetPos(var ItemHnd: TItemHandle): Int64;
     function ItemGetSize(var ItemHnd: TItemHandle): Int64;
     function ItemWrite(var ItemHnd: TItemHandle; const siz: Int64; var Buffers): Boolean;
+
+    // item stream
+    function ItemReadToStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean; overload;
+    function ItemWriteFromStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean; overload;
+    function ItemReadToStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean; overload;
+    function ItemWriteFromStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean; overload;
 
     // recursion support
     function RecursionSearchFirst(const InitPath, Filter: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
@@ -187,7 +193,6 @@ type
       BlockCount: Int64;
       CurrentBlockSeekPOS: Int64;
       CurrentFileSeekPOS: Int64;
-      DataModification: Boolean;
       Return: Integer;
       MemorySiz: nativeUInt;
       procedure write(var wVal: TItem);
@@ -408,53 +413,56 @@ end;
 function TObjectDataManager.Open(): Boolean;
 begin
   Result := False;
-  if StreamEngine <> nil then
-    begin
-      if FNeedCreateNew then
-        begin
-          if not db_CreateAsStream(StreamEngine, ObjectName, '', FDBHandle) then
-            begin
-              Exit;
-            end;
-          if not(db_CreateRootField(UserRootName, '', FDBHandle)) then
-              Exit;
-          if not(db_SetCurrentRootField(UserRootName, FDBHandle)) then
-              Exit;
-        end
-      else
-        begin
-          if not db_OpenAsStream(StreamEngine, ObjectName, FDBHandle, IsOnlyRead) then
-            begin
-              Exit;
-            end;
-        end;
-    end
-  else if (FNeedCreateNew) or (not umlFileExists(ObjectName)) then
-    begin
-      if not db_CreateNew(ObjectName, '', FDBHandle) then
-        begin
-          db_ClosePack(FDBHandle);
-          Init_TTMDB(FDBHandle);
-          if not db_CreateNew(ObjectName, '', FDBHandle) then
-            begin
-              Exit;
-            end;
-        end;
-      if not(db_CreateRootField(UserRootName, '', FDBHandle)) then
-          Exit;
-      if not(db_SetCurrentRootField(UserRootName, FDBHandle)) then
-          Exit;
-    end
-  else if not db_Open(ObjectName, FDBHandle, IsOnlyRead) then
-    begin
-      db_ClosePack(FDBHandle);
-      Init_TTMDB(FDBHandle);
-      if not db_Open(ObjectName, FDBHandle, IsOnlyRead) then
-        begin
-          Exit;
-        end;
-    end;
-  Result := True;
+  try
+    if StreamEngine <> nil then
+      begin
+        if FNeedCreateNew then
+          begin
+            if not db_CreateAsStream(StreamEngine, ObjectName, '', FDBHandle) then
+              begin
+                Exit;
+              end;
+            if not(db_CreateRootField(UserRootName, '', FDBHandle)) then
+                Exit;
+            if not(db_SetCurrentRootField(UserRootName, FDBHandle)) then
+                Exit;
+          end
+        else
+          begin
+            if not db_OpenAsStream(StreamEngine, ObjectName, FDBHandle, IsOnlyRead) then
+              begin
+                Exit;
+              end;
+          end;
+      end
+    else if (FNeedCreateNew) or (not umlFileExists(ObjectName)) then
+      begin
+        if not db_CreateNew(ObjectName, '', FDBHandle) then
+          begin
+            db_ClosePack(FDBHandle);
+            Init_TTMDB(FDBHandle);
+            if not db_CreateNew(ObjectName, '', FDBHandle) then
+              begin
+                Exit;
+              end;
+          end;
+        if not(db_CreateRootField(UserRootName, '', FDBHandle)) then
+            Exit;
+        if not(db_SetCurrentRootField(UserRootName, FDBHandle)) then
+            Exit;
+      end
+    else if not db_Open(ObjectName, FDBHandle, IsOnlyRead) then
+      begin
+        db_ClosePack(FDBHandle);
+        Init_TTMDB(FDBHandle);
+        if not db_Open(ObjectName, FDBHandle, IsOnlyRead) then
+          begin
+            Exit;
+          end;
+      end;
+    Result := True;
+  except
+  end;
 end;
 
 function TObjectDataManager.NewHandle(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, aIsNew: Boolean): Boolean;
@@ -477,7 +485,7 @@ begin
   FData := nil;
 end;
 
-function TObjectDataManager.copyto(DestDB: TObjectDataManager): Boolean;
+function TObjectDataManager.CopyTo(DestDB: TObjectDataManager): Boolean;
 begin
   Result := db_CopyAllTo(FDBHandle, DestDB.FDBHandle);
 end;
@@ -502,7 +510,7 @@ var
   E: TObjectDataManager;
 begin
   E := TObjectDataManager.CreateAsStream(stream, ObjectName, DefaultItemID, False, True, False);
-  copyto(E);
+  CopyTo(E);
   DisposeObject(E);
 end;
 
@@ -513,7 +521,7 @@ var
   fPos: Int64;
   fs: TCoreClassFileStream;
   itmHnd: TItemHandle;
-  itmStream: TItemStreamEngine;
+  itmStream: TItemStream;
 begin
   DBPath := umlCharReplace(DBPath, '\', '/').Text;
   if not DirectoryExists(DBPath) then
@@ -525,7 +533,7 @@ begin
     begin
       fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
       ItemFastCreate(fPos, umlGetFileName(n).Text, '', itmHnd);
-      itmStream := TItemStreamEngine.Create(Self, itmHnd);
+      itmStream := TItemStream.Create(Self, itmHnd);
       try
           itmStream.CopyFrom(fs, fs.Size)
       except
@@ -550,7 +558,7 @@ var
   fPos: Int64;
   fs: TCoreClassFileStream;
   itmHnd: TItemHandle;
-  itmStream: TItemStreamEngine;
+  itmStream: TItemStream;
 begin
   DBPath := umlCharReplace(DBPath, '\', '/').Text;
   if not DirectoryExists(DBPath) then
@@ -562,7 +570,7 @@ begin
       n := ImpFiles[i];
       fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
       ItemFastCreate(fPos, umlGetFileName(n).Text, '', itmHnd);
-      itmStream := TItemStreamEngine.Create(Self, itmHnd);
+      itmStream := TItemStream.Create(Self, itmHnd);
       try
           itmStream.CopyFrom(fs, fs.Size)
       except
@@ -677,7 +685,7 @@ var
   FieldHnd: TFieldHandle;
 begin
   Result := False;
-  if not umlExistsLimitChar(NewFieldName, '\/') then
+  if not umlExistsChar(NewFieldName, '\/') then
     begin
       Init_TField(FieldHnd);
       if dbField_ReadRec(FieldPos, FDBHandle.IOHnd, FieldHnd) then
@@ -1081,6 +1089,50 @@ begin
   Result := db_ItemWrite(siz, Buffers, ItemHnd, FDBHandle);
 end;
 
+function TObjectDataManager.ItemReadToStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean;
+var
+  sour: TItemStream;
+begin
+  sour := TItemStream.Create(Self, ItemHnd);
+  sour.SeekStart();
+  Result := stream.CopyFrom(sour, sour.Size) = sour.Size;
+  ItemHnd := sour.Hnd^;
+  DisposeObject(sour);
+end;
+
+function TObjectDataManager.ItemWriteFromStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean;
+var
+  sour: TItemStream;
+begin
+  sour := TItemStream.Create(Self, ItemHnd);
+  sour.SeekStart();
+  stream.Position := 0;
+  Result := sour.CopyFrom(stream, stream.Size) = stream.Size;
+  sour.CloseHandle;
+  ItemHnd := sour.Hnd^;
+  DisposeObject(sour);
+end;
+
+function TObjectDataManager.ItemReadToStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean;
+var
+  itmHnd: TItemHandle;
+begin
+  Result := False;
+  if not ItemOpen(DBPath, DBItem, itmHnd) then
+      Exit;
+  Result := ItemReadToStream(itmHnd, stream);
+end;
+
+function TObjectDataManager.ItemWriteFromStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean;
+var
+  itmHnd: TItemHandle;
+begin
+  Result := False;
+  ItemDelete(DBPath, DBItem);
+  if ItemCreate(DBPath, DBItem, DBItem, itmHnd) then
+      Result := ItemWriteFromStream(itmHnd, stream);
+end;
+
 function TObjectDataManager.RecursionSearchFirst(const InitPath, Filter: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 begin
   Init_TTMDBRecursionSearch(RecursionSearchHnd);
@@ -1107,7 +1159,6 @@ begin
   BlockCount := wVal.BlockCount;
   CurrentBlockSeekPOS := wVal.CurrentBlockSeekPOS;
   CurrentFileSeekPOS := wVal.CurrentFileSeekPOS;
-  DataModification := wVal.DataModification;
   Return := wVal.Return;
   MemorySiz := 0;
 end;
@@ -1122,7 +1173,6 @@ begin
   rVal.BlockCount := BlockCount;
   rVal.CurrentBlockSeekPOS := CurrentBlockSeekPOS;
   rVal.CurrentFileSeekPOS := CurrentFileSeekPOS;
-  rVal.DataModification := DataModification;
   rVal.Return := Return;
 end;
 
@@ -1220,7 +1270,7 @@ end;
 procedure TObjectDataManagerOfCache.PrepareHeaderWriteProc(fPos: Int64; var wVal: THeader; var Done: Boolean);
 var
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
@@ -1231,10 +1281,10 @@ begin
       m64 := TMemoryStream64.CustomCreate(DB_Header_Size);
       FPrepareWritePool.Add(fPos, m64, False);
     end;
-  InitIOHnd(hnd);
-  umlFileOpenAsStream('', m64, hnd, False);
-  dbHeader_WriteRec(0, hnd, wVal);
-  umlFileClose(hnd);
+  InitIOHnd(Hnd);
+  umlFileOpenAsStream('', m64, Hnd, False);
+  dbHeader_WriteRec(0, Hnd, wVal);
+  umlFileClose(Hnd);
   if m64.Position <> m64.Size then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
@@ -1263,7 +1313,7 @@ procedure TObjectDataManagerOfCache.HeaderReadProc(fPos: Int64; var rVal: THeade
 var
   p: PObjectDataCacheHeader;
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   p := PObjectDataCacheHeader(FHeaderCache[fPos]);
   Done := p <> nil;
@@ -1272,10 +1322,10 @@ begin
       m64 := TMemoryStream64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
-          InitIOHnd(hnd);
-          umlFileOpenAsStream('', m64, hnd, False);
-          Done := dbHeader_ReadRec(0, hnd, rVal);
-          umlFileClose(hnd);
+          InitIOHnd(Hnd);
+          umlFileOpenAsStream('', m64, Hnd, False);
+          Done := dbHeader_ReadRec(0, Hnd, rVal);
+          umlFileClose(Hnd);
           m64.Position := 0;
           if Done then
             begin
@@ -1293,7 +1343,7 @@ end;
 procedure TObjectDataManagerOfCache.PrepareItemBlockWriteProc(fPos: Int64; var wVal: TItemBlock; var Done: Boolean);
 var
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
@@ -1304,10 +1354,10 @@ begin
       m64 := TMemoryStream64.CustomCreate(DB_Item_BlockSize);
       FPrepareWritePool.Add(fPos, m64, False);
     end;
-  InitIOHnd(hnd);
-  umlFileOpenAsStream('', m64, hnd, False);
-  dbItem_OnlyWriteItemBlockRec(0, hnd, wVal);
-  umlFileClose(hnd);
+  InitIOHnd(Hnd);
+  umlFileOpenAsStream('', m64, Hnd, False);
+  dbItem_OnlyWriteItemBlockRec(0, Hnd, wVal);
+  umlFileClose(Hnd);
   if m64.Position <> m64.Size then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
@@ -1336,7 +1386,7 @@ procedure TObjectDataManagerOfCache.ItemBlockReadProc(fPos: Int64; var rVal: TIt
 var
   p: PObjectDataCacheItemBlock;
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   p := PObjectDataCacheItemBlock(FItemBlockCache[fPos]);
   Done := p <> nil;
@@ -1345,10 +1395,10 @@ begin
       m64 := TMemoryStream64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
-          InitIOHnd(hnd);
-          umlFileOpenAsStream('', m64, hnd, False);
-          Done := dbItem_OnlyReadItemBlockRec(0, hnd, rVal);
-          umlFileClose(hnd);
+          InitIOHnd(Hnd);
+          umlFileOpenAsStream('', m64, Hnd, False);
+          Done := dbItem_OnlyReadItemBlockRec(0, Hnd, rVal);
+          umlFileClose(Hnd);
           m64.Position := 0;
           if Done then
             begin
@@ -1403,7 +1453,7 @@ end;
 procedure TObjectDataManagerOfCache.PrepareOnlyItemRecWriteProc(fPos: Int64; var wVal: TItem; var Done: Boolean);
 var
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
@@ -1414,10 +1464,10 @@ begin
       m64 := TMemoryStream64.CustomCreate(DB_Item_Size);
       FPrepareWritePool.Add(fPos, m64, False);
     end;
-  InitIOHnd(hnd);
-  umlFileOpenAsStream('', m64, hnd, False);
-  dbItem_OnlyWriteItemRec(0, hnd, wVal);
-  umlFileClose(hnd);
+  InitIOHnd(Hnd);
+  umlFileOpenAsStream('', m64, Hnd, False);
+  dbItem_OnlyWriteItemRec(0, Hnd, wVal);
+  umlFileClose(Hnd);
   if m64.Position <> m64.Size then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
@@ -1446,7 +1496,7 @@ procedure TObjectDataManagerOfCache.OnlyItemRecReadProc(fPos: Int64; var rVal: T
 var
   p: PObjectDataCacheItem;
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   p := PObjectDataCacheItem(FItemCache[fPos]);
   Done := p <> nil;
@@ -1455,10 +1505,10 @@ begin
       m64 := TMemoryStream64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
-          InitIOHnd(hnd);
-          umlFileOpenAsStream('', m64, hnd, False);
-          Done := dbItem_OnlyReadItemRec(0, hnd, rVal);
-          umlFileClose(hnd);
+          InitIOHnd(Hnd);
+          umlFileOpenAsStream('', m64, Hnd, False);
+          Done := dbItem_OnlyReadItemRec(0, Hnd, rVal);
+          umlFileClose(Hnd);
           m64.Position := 0;
           if Done then
             begin
@@ -1511,7 +1561,7 @@ end;
 procedure TObjectDataManagerOfCache.PrepareOnlyFieldRecWriteProc(fPos: Int64; var wVal: TField; var Done: Boolean);
 var
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
@@ -1522,10 +1572,10 @@ begin
       m64 := TMemoryStream64.CustomCreate(DB_Field_Size);
       FPrepareWritePool.Add(fPos, m64, False);
     end;
-  InitIOHnd(hnd);
-  umlFileOpenAsStream('', m64, hnd, False);
-  dbField_OnlyWriteFieldRec(0, hnd, wVal);
-  umlFileClose(hnd);
+  InitIOHnd(Hnd);
+  umlFileOpenAsStream('', m64, Hnd, False);
+  dbField_OnlyWriteFieldRec(0, Hnd, wVal);
+  umlFileClose(Hnd);
   if m64.Position <> m64.Size then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
@@ -1554,7 +1604,7 @@ procedure TObjectDataManagerOfCache.OnlyFieldRecReadProc(fPos: Int64; var rVal: 
 var
   p: PObjectDataCacheField;
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
   p := PObjectDataCacheField(FFieldCache[fPos]);
   Done := p <> nil;
@@ -1563,10 +1613,10 @@ begin
       m64 := TMemoryStream64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
-          InitIOHnd(hnd);
-          umlFileOpenAsStream('', m64, hnd, False);
-          Done := dbField_OnlyReadFieldRec(0, hnd, rVal);
-          umlFileClose(hnd);
+          InitIOHnd(Hnd);
+          umlFileOpenAsStream('', m64, Hnd, False);
+          Done := dbField_OnlyReadFieldRec(0, Hnd, rVal);
+          umlFileClose(Hnd);
           m64.Position := 0;
           if Done then
             begin
@@ -1584,24 +1634,27 @@ end;
 procedure TObjectDataManagerOfCache.PrepareTMDBWriteProc(fPos: Int64; const wVal: PTMDB; var Done: Boolean);
 var
   m64: TMemoryStream64;
-  hnd: TIOHnd;
+  Hnd: TIOHnd;
 begin
+  Done := False;
+  if not CheckPreapreWrite(fPos) then
+      Exit;
   m64 := TMemoryStream64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
       m64 := TMemoryStream64.CustomCreate(DB_Size);
       FPrepareWritePool.Add(fPos, m64, False);
     end;
-  InitIOHnd(hnd);
-  umlFileOpenAsStream('', m64, hnd, False);
+  InitIOHnd(Hnd);
+  umlFileOpenAsStream('', m64, Hnd, False);
 
   FDBHandle.IOHnd.Data := nil;
 
-  db_WriteRec(0, hnd, wVal^);
+  db_WriteRec(0, Hnd, wVal^);
 
   FDBHandle.IOHnd.Data := @FDBHandle;
 
-  umlFileClose(hnd);
+  umlFileClose(Hnd);
   if m64.Position <> m64.Size then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
@@ -1637,6 +1690,7 @@ begin
   if not umlFileExists(swapFileName) then
       Exit;
 
+  swapHnd := nil;
   try
       swapHnd := TCoreClassFileStream.Create(swapFileName, fmOpenReadWrite);
   except
@@ -1831,37 +1885,40 @@ var
   swapHnd: TCoreClassFileStream;
   swaphead: TSwapHead;
 begin
-  if (FDBHandle.IOHnd.Handle is TReliableFileStream)
-    and (not FDBHandle.IOHnd.IsOnlyRead)
+  if (not FDBHandle.IOHnd.IsOnlyRead)
     and (FDBHandle.IOHnd.IsOpen)
     and (FPrepareWritePool.Count > 0) then
     begin
       // step 1: flush to swap file
-      swapFileName := TReliableFileStream(FDBHandle.IOHnd.Handle).fileName + '.~flush';
-      try
-        swapHnd := TCoreClassFileStream.Create(swapFileName, fmCreate);
+      if (FDBHandle.IOHnd.Handle is TReliableFileStream) then
+        begin
+          swapFileName := TReliableFileStream(FDBHandle.IOHnd.Handle).fileName + '.~flush';
+          swapHnd := nil;
+          try
+            swapHnd := TCoreClassFileStream.Create(swapFileName, fmCreate);
 
-        i := 0;
-        p := FPrepareWritePool.FirstPtr;
-        while i < FPrepareWritePool.Count do
-          begin
-            m64 := TMemoryStream64(p^.Data);
-            if p^.i64 >= FDBHandle.IOHnd.Size then
-                RaiseInfo('flush: prepare write buffer error!');
+            i := 0;
+            p := FPrepareWritePool.FirstPtr;
+            while i < FPrepareWritePool.Count do
+              begin
+                m64 := TMemoryStream64(p^.Data);
+                if p^.i64 >= FDBHandle.IOHnd.Size then
+                    RaiseInfo('flush: prepare write buffer error!');
 
-            swaphead.Size := m64.Size;
-            swaphead.MD5 := umlMD5(m64.Memory, m64.Size);
-            swaphead.Position := p^.i64;
-            swapHnd.write(swaphead, SizeOf(swaphead));
-            swapHnd.write(m64.Memory^, m64.Size);
-            inc(i);
-            p := p^.Next;
+                swaphead.Size := m64.Size;
+                swaphead.MD5 := umlMD5(m64.Memory, m64.Size);
+                swaphead.Position := p^.i64;
+                swapHnd.write(swaphead, SizeOf(swaphead));
+                swapHnd.write(m64.Memory^, m64.Size);
+                inc(i);
+                p := p^.Next;
+              end;
+          except
           end;
-      except
-      end;
-      DisposeObject(swapHnd);
+          DisposeObject(swapHnd);
+        end;
 
-      // step 2: flash to DB
+      // step 2: flash fragment
       i := 0;
       p := FPrepareWritePool.FirstPtr;
       while i < FPrepareWritePool.Count do
@@ -1874,7 +1931,8 @@ begin
         end;
 
       // step 3: delete swap file
-      umlDeleteFile(swapFileName);
+      if (FDBHandle.IOHnd.Handle is TReliableFileStream) then
+          umlDeleteFile(swapFileName);
     end;
   FPrepareWritePool.Clear;
 
@@ -1902,7 +1960,7 @@ begin
     begin
       if FUseWildcard then
         begin
-          if not umlMatchLimitChar('\', aUName) then
+          if not umlMatchChar('\', aUName) then
               aUName := '*\' + aUName;
           for i := 0 to FLibList.Count - 1 do
             begin
@@ -1915,7 +1973,7 @@ begin
         end
       else
         begin
-          if umlMatchLimitChar('\', aUName) then
+          if umlMatchChar('\', aUName) then
             begin
               for i := 0 to FLibList.Count - 1 do
                 if umlSameText(aUName, FLibList[i]) then
@@ -2060,7 +2118,7 @@ begin
     begin
       if FUseWildcard then
         begin
-          if not umlMatchLimitChar('\', aUName) then
+          if not umlMatchChar('\', aUName) then
               aUName := '*\' + aUName;
           i := 0;
           while i < FLibList.Count do
@@ -2076,7 +2134,7 @@ begin
         end
       else
         begin
-          if umlMatchLimitChar('\', aUName) then
+          if umlMatchChar('\', aUName) then
             begin
               i := 0;
               while i < FLibList.Count do

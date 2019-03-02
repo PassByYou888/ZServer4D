@@ -128,7 +128,7 @@ begin
         begin
           try
             ph := System.IOUtils.TPath.GetDocumentsPath;
-            fn := umlCombineFileName(ph, umlMD52String(Sender.UserDefine.BigStreamBatchList.Last^.SourceMD5)).Text;
+            fn := umlCombineFileName(ph, umlMD5ToStr(Sender.UserDefine.BigStreamBatchList.Last^.SourceMD5)).Text;
             Sender.UserDefine.BigStreamBatchList.Last^.Source.SaveToFile(fn);
           except
           end;
@@ -291,10 +291,10 @@ begin
       if not umlIsNullMD5(md5) then
         begin
           ph := System.IOUtils.TPath.GetDocumentsPath;
-          if umlFileExists(umlCombineFileName(ph, umlMD52String(md5))) then
+          if umlFileExists(umlCombineFileName(ph, umlMD5ToStr(md5))) then
             begin
               m64 := TMemoryStream64.Create;
-              m64.LoadFromFile(umlCombineFileName(ph, umlMD52String(md5)));
+              m64.LoadFromFile(umlCombineFileName(ph, umlMD5ToStr(md5)));
               m64.Position := 0;
               OnComplete(fn, m64);
               DisposeObject(m64);
@@ -342,10 +342,10 @@ begin
       if not umlIsNullMD5(md5) then
         begin
           ph := System.IOUtils.TPath.GetDocumentsPath;
-          if umlFileExists(umlCombineFileName(ph, umlMD52String(md5))) then
+          if umlFileExists(umlCombineFileName(ph, umlMD5ToStr(md5))) then
             begin
               m64 := TMemoryStream64.Create;
-              m64.LoadFromFile(umlCombineFileName(ph, umlMD52String(md5)));
+              m64.LoadFromFile(umlCombineFileName(ph, umlMD5ToStr(md5)));
               m64.Position := 0;
               OnComplete(fn, m64);
               DisposeObject(m64);

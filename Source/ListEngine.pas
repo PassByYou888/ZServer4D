@@ -1121,7 +1121,9 @@ type
   end;
 
   TPascalStringList = TListPascalString;
+  TPascalStrings = TListPascalString;
   TPascalStringHashList = THashStringList;
+  TPascalStringHash = THashStringList;
 
   TListVariantData = record
     Data: Variant;
@@ -1300,7 +1302,7 @@ uses Math,
 {$IFDEF FPC}
   streamex,
 {$ENDIF FPC}
-  MemoryStream64, DoStatusIO, UnicodeMixedLib;
+  MemoryStream64, DoStatusIO, UnicodeMixedLib, zExpression;
 
 function HashMod(const h: THash; const m: Integer): Integer;
 begin
@@ -5041,11 +5043,6 @@ function THashObjectList.GetKeyValue(const Name: SystemString): TCoreClassObject
 var
   pObjData: PHashObjectListData;
 begin
-  if Name = '' then
-    begin
-      Result := nil;
-      Exit;
-    end;
   pObjData := FHashList.NameValue[Name];
   if pObjData <> nil then
       Result := pObjData^.Obj
@@ -5475,19 +5472,8 @@ begin
 end;
 
 function THashObjectList.Exists(const Name: SystemString): Boolean;
-var
-  pObjData: PHashObjectListData;
 begin
-  if Name <> '' then
-    begin
-      pObjData := FHashList.NameValue[Name];
-      if pObjData <> nil then
-          Result := pObjData^.Obj <> nil
-      else
-          Result := False;
-    end
-  else
-      Result := False;
+  Result := FHashList.Exists(Name);
 end;
 
 function THashObjectList.ExistsObject(Obj: TCoreClassObject): Boolean;
@@ -5586,11 +5572,6 @@ function THashStringList.GetKeyValue(const Name: SystemString): SystemString;
 var
   pVarData: PHashStringListData;
 begin
-  if Name = '' then
-    begin
-      Result := Null;
-      Exit;
-    end;
   pVarData := FHashList.NameValue[Name];
   if pVarData <> nil then
       Result := pVarData^.v
@@ -6182,7 +6163,7 @@ function THashStringTextStream.VToStr(const v: SystemString): SystemString;
 var
   b64: TPascalString;
 begin
-  if umlExistsLimitChar(v, #10#13#9#8#0) then
+  if umlExistsChar(v, #10#13#9#8#0) then
     begin
       umlEncodeLineBASE64(v, b64);
       Result := '___base64:' + b64.Text;
@@ -6193,15 +6174,34 @@ end;
 
 function THashStringTextStream.StrToV(const s: SystemString): SystemString;
 var
-  n, b64: U_String;
+  n, body: U_String;
 begin
   n := umlTrimSpace(s);
   try
     if n.ComparePos(1, '___base64:') then
       begin
         n := umlDeleteFirstStr(n, ':').Text;
-        umlDecodeLineBASE64(n, b64);
-        Result := b64.Text;
+        umlDecodeLineBASE64(n, body);
+        Result := body.Text;
+      end
+    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := VarToStr(EvaluateExpressionValue(body));
+      end
+    else if umlMultipleMatch([
+      'expression(*)', 'expression[*]', 'expression<*>', 'expression"*"', 'expression'#39'*'#39,
+      'exp(*)', 'exp[*]', 'exp<*>', 'exp"*"', 'exp'#39'*'#39,
+      'expr(*)', 'expr[*]', 'expr<*>', 'expr"*"', 'expr'#39'*'#39,
+      'express(*)', 'express[*]', 'express<*>', 'express"*"', 'exp'#39'*'#39
+      ], n) then
+      begin
+        body := umlDeleteFirstStr_M(n, '([<"'#39);
+        body.DeleteLast;
+        Result := VarToStr(EvaluateExpressionValue(body));
       end
     else
       begin
@@ -7212,7 +7212,7 @@ begin
         begin
           n.Text := VarToStr(v);
 
-          if umlExistsLimitChar(n, #10#13#9#8#0) then
+          if umlExistsChar(n, #10#13#9#8#0) then
             begin
               umlEncodeLineBASE64(n, b64);
               Result := '___base64:' + b64.Text;
@@ -7238,15 +7238,34 @@ end;
 
 class function THashVariantTextStream.StrToV(const s: SystemString): Variant;
 var
-  n, b64: U_String;
+  n, body: U_String;
 begin
   n := umlTrimSpace(s);
   try
     if n.ComparePos(1, '___base64:') then
       begin
         n := umlDeleteFirstStr(n, ':').Text;
-        umlDecodeLineBASE64(n, b64);
-        Result := b64.Text;
+        umlDecodeLineBASE64(n, body);
+        Result := body.Text;
+      end
+    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := EvaluateExpressionValue(body);
+      end
+    else if umlMultipleMatch([
+      'expression(*)', 'expression[*]', 'expression<*>', 'expression"*"', 'expression'#39'*'#39,
+      'exp(*)', 'exp[*]', 'exp<*>', 'exp"*"', 'exp'#39'*'#39,
+      'expr(*)', 'expr[*]', 'expr<*>', 'expr"*"', 'expr'#39'*'#39,
+      'express(*)', 'express[*]', 'express<*>', 'express"*"', 'exp'#39'*'#39
+      ], n) then
+      begin
+        body := umlDeleteFirstStr_M(n, '([<"'#39);
+        body.DeleteLast;
+        Result := EvaluateExpressionValue(body);
       end
     else
       begin

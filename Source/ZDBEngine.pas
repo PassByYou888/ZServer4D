@@ -496,12 +496,16 @@ type
     function AllowedCache: Boolean; virtual;
 
     {
-      CacheStyle = csAutomation:
+      csAutomation:
       automatically manages the cache according from the parameters
       ---- CacheAnnealingTime, MaximumCacheMemorySize, MinimizeCacheMemorySize, MaximumStreamCacheMemorySize, MinimizeCacheOfFileSize
       ---- if the database is too large memory usage is automatically scheduled.
-      CacheStyle = csNever: disable cache
-      CacheStyle = csAlways: using memory to speed up all entries, memory crashes maybe when the database is large.
+
+      csNever:
+      disable cache
+
+      csAlways:
+      using memory to speed up all entries, memory crashes maybe when the database is large.
     }
     property CacheStyle: TCacheStyle read FCacheStyle write FCacheStyle;
     // only work in CacheStyle = csAutomation
@@ -699,13 +703,10 @@ var
   DefaultCacheAnnealingTime: Double;
   DefaultCacheBufferLength: Integer;
   DefaultIndexCacheBufferLength: Integer;
-
   DefaultMinimizeInstanceCacheSize: Int64;
   DefaultMaximumInstanceCacheSize: Int64;
-
   DefaultMinimizeStreamCacheSize: Int64;
   DefaultMaximumStreamCacheSize: Int64;
-
   DefaultMinimizeCacheOfFileSize: Int64;
 
 implementation

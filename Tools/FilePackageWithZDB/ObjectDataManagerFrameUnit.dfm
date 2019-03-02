@@ -51,11 +51,10 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     PopupMenu = PopupMenu
     TabOrder = 0
     ViewStyle = vsReport
+    OnDblClick = Action_OpenExecute
     OnEdited = ListViewEdited
     OnEditing = ListViewEditing
     OnKeyUp = ListViewKeyUp
-    ExplicitWidth = 571
-    ExplicitHeight = 409
   end
   object TreePanel: TPanel
     Left = 0
@@ -66,7 +65,6 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     BevelOuter = bvNone
     PopupMenu = PopupMenu
     TabOrder = 1
-    ExplicitHeight = 431
   end
   object ActionList: TActionList
     Left = 224
@@ -91,6 +89,10 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       Caption = 'Export...'
       OnExecute = ActionExportExecute
     end
+    object Action_Open: TAction
+      Caption = 'Open'
+      OnExecute = Action_OpenExecute
+    end
   end
   object OpenDialog: TOpenDialog
     Options = [ofHideReadOnly, ofAllowMultiSelect, ofPathMustExist, ofFileMustExist, ofEnableSizing]
@@ -100,6 +102,12 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
   object PopupMenu: TPopupMenu
     Left = 336
     Top = 128
+    object Open1: TMenuItem
+      Action = Action_Open
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
     object CreateDirectory1: TMenuItem
       Action = ActionCreateDir
     end
@@ -118,5 +126,9 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     object Rename1: TMenuItem
       Action = ActionRename
     end
+  end
+  object SaveDialog: TSaveDialog
+    Left = 256
+    Top = 216
   end
 end

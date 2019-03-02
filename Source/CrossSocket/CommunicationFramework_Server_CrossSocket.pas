@@ -176,25 +176,22 @@ begin
       if Connected then
         begin
           try
-            if (ASuccess) then
+            UpdateLastCommunicationTime;
+            if SendBuffQueue.Count > 0 then
               begin
-                UpdateLastCommunicationTime;
-                if SendBuffQueue.Count > 0 then
-                  begin
-                    // 将发送队列拾取出来
-                    LastSendingBuff := TMemoryStream64(SendBuffQueue[0]);
-                    // 删除队列，下次回调时后置式释放
-                    SendBuffQueue.Delete(0);
+                // 将发送队列拾取出来
+                LastSendingBuff := TMemoryStream64(SendBuffQueue[0]);
+                // 删除队列，下次回调时后置式释放
+                SendBuffQueue.Delete(0);
 
-                    if Context <> nil then
-                        Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall)
-                    else
-                        SendBuffResult(False);
-                  end
+                if Context <> nil then
+                    Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall)
                 else
-                  begin
-                    Sending := False;
-                  end;
+                    SendBuffResult(False);
+              end
+            else
+              begin
+                Sending := False;
               end;
           except
               DelayClose();

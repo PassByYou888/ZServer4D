@@ -87,6 +87,7 @@ begin
   js.SaveToLines(ns);
   DoStatus(ns);
   disposeObject(ns);
+  disposeObject(js);
 end;
 
 procedure TEZServerForm.cmd_TestMiniStream(Sender: TPeerClient; InData: TDataFrameEngine);

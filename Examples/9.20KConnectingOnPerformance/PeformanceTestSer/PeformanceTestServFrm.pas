@@ -57,7 +57,7 @@ begin
 
   server.QuietMode := True;
   server.SwitchMaxPerformance;
-  server.SequencePacketActivted := False;
+  server.SequencePacketActivted := True;
 
   test.RegCmd(server);
 

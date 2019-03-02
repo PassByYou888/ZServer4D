@@ -512,8 +512,6 @@ function db_ItemReName(const FieldPos: Int64; const NewItemName, NewItemDescript
 
 function db_ItemRead(const Size: Int64; var Buffers; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;  { inline token }
 function db_ItemWrite(const Size: Int64; var Buffers; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean; { inline token }
-function db_ItemReadStr(var Name: U_String; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;           { inline token }
-function db_ItemWriteStr(const Name: U_String; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;        { inline token }
 
 function db_ItemSeekPos(const fPos: Int64; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;    { inline token }
 function db_ItemSeekStartPos(var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;                  { inline token }
@@ -6256,77 +6254,6 @@ begin
       exit;
     end;
   if dbItem_BlockWriteData(DB_.IOHnd, ItemHnd_.Item, Buffers, Size) = False then
-    begin
-      DB_.Return := ItemHnd_.Item.Return;
-      Result := False;
-      exit;
-    end;
-  DB_.Return := DB_ok;
-  Result := True;
-end;
-
-function db_ItemReadStr(var Name: U_String; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;
-var
-  StrSize: Integer;
-  SwapName: U_Bytes;
-begin
-  if ItemHnd_.OpenFlags = False then
-    begin
-      DB_.Return := DB_OpenItemError;
-      Result := False;
-      exit;
-    end;
-  if dbItem_BlockReadData(DB_.IOHnd, ItemHnd_.Item, StrSize, C_FixedLengthStringHeaderSize) = False then
-    begin
-      DB_.Return := ItemHnd_.Item.Return;
-      Result := False;
-      exit;
-    end;
-  umlSetLength(SwapName, StrSize);
-  if StrSize <= 0 then
-    begin
-      Name := '';
-      DB_.Return := DB_ok;
-      Result := True;
-      exit;
-    end;
-  if dbItem_BlockReadData(DB_.IOHnd, ItemHnd_.Item, SwapName[0], StrSize) = False then
-    begin
-      DB_.Return := ItemHnd_.Item.Return;
-      Result := False;
-      exit;
-    end;
-  Name := umlStringOf(SwapName).Text;
-  DB_.Return := DB_ok;
-  Result := True;
-end;
-
-function db_ItemWriteStr(const Name: U_String; var ItemHnd_: TTMDBItemHandle; var DB_: TTMDB): Boolean;
-var
-  StrSize: Integer;
-  SwapName: U_Bytes;
-begin
-  if ItemHnd_.OpenFlags = False then
-    begin
-      DB_.Return := DB_OpenItemError;
-      Result := False;
-      exit;
-    end;
-  SwapName := umlBytesOf(Name);
-  StrSize := umlGetLength(SwapName);
-  if dbItem_BlockWriteData(DB_.IOHnd, ItemHnd_.Item, StrSize, C_FixedLengthStringHeaderSize) = False then
-    begin
-      DB_.Return := ItemHnd_.Item.Return;
-      Result := False;
-      exit;
-    end;
-  if StrSize <= 0 then
-    begin
-      DB_.Return := DB_ok;
-      Result := True;
-      exit;
-    end;
-  if dbItem_BlockWriteData(DB_.IOHnd, ItemHnd_.Item, SwapName[0], StrSize) = False then
     begin
       DB_.Return := ItemHnd_.Item.Return;
       Result := False;

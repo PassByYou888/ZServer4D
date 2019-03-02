@@ -31,7 +31,7 @@ uses SysUtils, Classes, Types,
   PascalStrings,
   SyncObjs
   {$IFDEF FPC}
-    , Contnrs, fgl, FPCGenericStructlist
+    , FPCGenericStructlist
   {$ELSE FPC}
   , System.Generics.Collections
   {$ENDIF FPC}
@@ -55,7 +55,7 @@ type
   TBytes = SysUtils.TBytes;
   TPoint = Types.TPoint;
 
-  TTimeTick = Int64;
+  TTimeTick = UInt64;
   PTimeTick = ^TTimeTick;
 
   TSeekOrigin = Classes.TSeekOrigin;
@@ -101,10 +101,8 @@ type
     property ListData: PPointerList read GetList;
   end;
 
-  TCoreClassListForObj = class(TObjectList)
-  public
-    constructor Create;
-  end;
+  TCoreClassListForObj = specialize TGenericsList<TCoreClassObject>;
+
   {$ELSE FPC}
   TCoreClassInterfacedObject = class(TInterfacedObject)
   protected
@@ -144,28 +142,17 @@ type
   end;
   {$ENDIF FPC}
 
-  TComputeThread = class(TCoreClassThread)
-  private type
-    TRunWithThreadCall               = procedure(Sender: TComputeThread);
-    TRunWithThreadMethod             = procedure(Sender: TComputeThread) of object;
-    {$IFNDEF FPC} TRunWithThreadProc = reference to procedure(Sender: TComputeThread); {$ENDIF FPC}
-  protected
-    OnRunCall: TRunWithThreadCall;
-    OnRunMethod: TRunWithThreadMethod;
-    {$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
-    OnDoneCall: TRunWithThreadCall;
-    OnDoneMethod: TRunWithThreadMethod;
-    {$IFNDEF FPC} OnDoneProc: TRunWithThreadProc; {$ENDIF FPC}
-    procedure Execute; override;
-    procedure Done_Sync;
+  TCoreClassObjectList = class(TCoreClassListForObj)
+  private
+    AutoFreeObj: Boolean;
   public
-    UserData: Pointer;
-    UserObject: TCoreClassObject;
+    constructor Create; overload;
+    constructor Create(AutoFreeObj_: Boolean); overload;
+    destructor Destroy; override;
 
-    constructor Create;
-    class function RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall): TComputeThread;
-    class function RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod): TComputeThread;
-    {$IFNDEF FPC} class function RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc): TComputeThread; {$ENDIF FPC}
+    procedure Remove(obj: TCoreClassObject);
+    procedure Delete(index: Integer);
+    procedure Clear;
   end;
 
   TSoftCritical = class(TCoreClassObject)
@@ -175,6 +162,7 @@ type
     constructor Create;
     procedure Acquire;
     procedure Release;
+    property Busy:Boolean read L;
   end;
 
 {$IFDEF SoftCritical}
@@ -182,6 +170,39 @@ type
 {$ELSE SoftCritical}
   TCritical = TCriticalSection;
 {$ENDIF SoftCritical}
+
+  TComputeThread = class;
+
+  TRunWithThreadCall = procedure(ThSender: TComputeThread);
+  TRunWithThreadMethod = procedure(ThSender: TComputeThread) of object;
+  {$IFNDEF FPC} TRunWithThreadProc = reference to procedure(ThSender: TComputeThread); {$ENDIF FPC}
+
+  TComputeThread = class(TCoreClassThread)
+  protected
+    OnRunCall: TRunWithThreadCall;
+    OnRunMethod: TRunWithThreadMethod;
+    {$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
+    OnDoneCall: TRunWithThreadCall;
+    OnDoneMethod: TRunWithThreadMethod;
+    {$IFNDEF FPC} OnDoneProc: TRunWithThreadProc; {$ENDIF FPC}
+    procedure Execute; override;
+    procedure Done_Sync;
+    procedure Halt_Sync;
+  public
+    UserData: Pointer;
+    UserObject: TCoreClassObject;
+
+    constructor Create;
+
+    class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
+    class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
+    class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod); overload;
+    class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod); overload;
+    {$IFNDEF FPC}
+    class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc); overload;
+    class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc); overload;
+    {$ENDIF FPC}
+  end;
 
   TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID32, epANDROID64, epLinux64, epLinux32, epUnknow);
 
@@ -217,13 +238,6 @@ const
   {$ELSE}
   CurrentPlatform = TExecutePlatform.epUnknow;
   {$IFEND}
-
-// NoP = No Operation. It's the empty function, whose purpose is only for the
-// debugging, or for the piece of code where intentionaly nothing is planned to be.
-procedure Nop;
-
-procedure CheckThreadSynchronize; overload;
-function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 
 procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
@@ -262,6 +276,14 @@ procedure RaiseInfo(const n: SystemString; const Args: array of const); overload
 
 function IsMobile: Boolean;
 
+const
+  C_Tick_Second = TTimeTick(1000);
+  C_Tick_Minute = TTimeTick(C_Tick_Second) * 60;
+  C_Tick_Hour   = TTimeTick(C_Tick_Minute) * 60;
+  C_Tick_Day    = TTimeTick(C_Tick_Hour) * 24;
+  C_Tick_Week   = TTimeTick(C_Tick_Day) * 7;
+  C_Tick_Year   = TTimeTick(C_Tick_Day) * 365;
+
 function GetTimeTick: TTimeTick;
 function GetTimeTickCount: TTimeTick;
 function GetCrashTimeTick: TTimeTick;
@@ -274,22 +296,6 @@ function ROR8(const Value: Byte; Shift: Byte): Byte;
 function ROR16(const Value: Word; Shift: Byte): Word;
 function ROR32(const Value: Cardinal; Shift: Byte): Cardinal;
 function ROR64(const Value: UInt64; Shift: Byte): UInt64;
-
-procedure Swap(var v1,v2:Byte); overload;
-procedure Swap(var v1,v2:Word); overload;
-procedure Swap(var v1,v2:Integer); overload;
-procedure Swap(var v1,v2:Int64); overload;
-procedure Swap(var v1,v2:UInt64); overload;
-procedure Swap(var v1,v2:SystemString); overload;
-procedure Swap(var v1,v2:Single); overload;
-procedure Swap(var v1,v2:Double); overload;
-procedure Swap(var v1,v2:Pointer); overload;
-
-function SAR16(const AValue: SmallInt; const Shift: Byte): SmallInt;
-function SAR32(const AValue: Integer; Shift: Byte): Integer;
-function SAR64(const AValue: Int64; Shift: Byte): Int64;
-
-function MemoryAlign(addr: Pointer; alignment: nativeUInt): Pointer;
 
 function Endian(const AValue: SmallInt): SmallInt; overload;
 function Endian(const AValue: Word): Word; overload;
@@ -326,40 +332,40 @@ function N2LE(const AValue: Cardinal): Cardinal; overload;
 function N2LE(const AValue: Int64): Int64; overload;
 function N2LE(const AValue: UInt64): UInt64; overload;
 
+procedure Swap(var v1, v2: Byte); overload;
+procedure Swap(var v1, v2: Word); overload;
+procedure Swap(var v1, v2: Integer); overload;
+procedure Swap(var v1, v2: Cardinal); overload;
+procedure Swap(var v1, v2: Int64); overload;
+procedure Swap(var v1, v2: UInt64); overload;
+procedure Swap(var v1, v2: SystemString); overload;
+procedure Swap(var v1, v2: Single); overload;
+procedure Swap(var v1, v2: Double); overload;
+procedure Swap(var v1, v2: Pointer); overload;
+
+function Swap(const v: Word): Word; overload;
+function Swap(const v: Cardinal): Cardinal; overload;
+function Swap(const v: UInt64): UInt64; overload;
+
+function SAR16(const AValue: SmallInt; const Shift: Byte): SmallInt;
+function SAR32(const AValue: Integer; Shift: Byte): Integer;
+function SAR64(const AValue: Int64; Shift: Byte): Int64;
+
+function MemoryAlign(addr: Pointer; alignment: nativeUInt): Pointer;
+
+// NoP = No Operation. It's the empty function, whose purpose is only for the
+// debugging, or for the piece of code where intentionaly nothing is planned to be.
+procedure Nop;
+
+procedure CheckThreadSynchronize; overload;
+function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
+
 var
   GlobalMemoryHook: Boolean;
 
 implementation
 
 uses DoStatusIO;
-
-procedure Nop;
-begin
-end;
-
-var
-  CheckThreadSynchronizeing: Boolean;
-
-procedure CheckThreadSynchronize;
-begin
-  CheckThreadSynchronize(0);
-end;
-
-function CheckThreadSynchronize(Timeout: Integer): Boolean;
-begin
-  DoStatus;
-  if not CheckThreadSynchronizeing then
-    begin
-      CheckThreadSynchronizeing := True;
-      try
-          Result := CheckSynchronize(Timeout);
-      finally
-          CheckThreadSynchronizeing := False;
-      end;
-    end
-  else
-    Result := False;
-end;
 
 {$INCLUDE CoreAtomic.inc}
 
@@ -403,14 +409,14 @@ begin
 end;
 
 var
-  LockIDBuff: array [0..$FF] of TCoreClassPersistent;
+  LockIDBuff: array [0..$FF] of TCritical;
 
 procedure InitLockIDBuff;
 var
   i: Byte;
 begin
   for i := 0 to $FF do
-      LockIDBuff[i] := TCoreClassPersistent.Create;
+      LockIDBuff[i] := TCritical.Create;
 end;
 
 procedure FreeLockIDBuff;
@@ -423,12 +429,12 @@ end;
 
 procedure LockID(const ID: Byte);
 begin
-  LockObject(LockIDBuff[ID]);
+  LockIDBuff[ID].Acquire;
 end;
 
 procedure UnLockID(const ID: Byte);
 begin
-  UnLockObject(LockIDBuff[ID]);
+  LockIDBuff[ID].Release;
 end;
 
 procedure LockObject(Obj:TObject);
@@ -625,166 +631,9 @@ begin
   Result := $FFFFFFFFFFFFFFFF - GetTimeTick();
 end;
 
-{$IFDEF RangeCheck}{$R-}{$ENDIF}
-function ROL8(const Value: Byte; Shift: Byte): Byte;
-begin
-  Shift := Shift and $07;
-  Result := Byte((Value shl Shift) or (Value shr (8 - Shift)));
-end;
-
-function ROL16(const Value: Word; Shift: Byte): Word;
-begin
-  Shift := Shift and $0F;
-  Result := Word((Value shl Shift) or (Value shr (16 - Shift)));
-end;
-
-function ROL32(const Value: Cardinal; Shift: Byte): Cardinal;
-begin
-  Shift := Shift and $1F;
-  Result := Cardinal((Value shl Shift) or (Value shr (32 - Shift)));
-end;
-
-function ROL64(const Value: UInt64; Shift: Byte): UInt64;
-begin
-  Shift := Shift and $3F;
-  Result := UInt64((Value shl Shift) or (Value shr (64 - Shift)));
-end;
-
-function ROR8(const Value: Byte; Shift: Byte): Byte;
-begin
-  Shift := Shift and $07;
-  Result := UInt8((Value shr Shift) or (Value shl (8 - Shift)));
-end;
-
-function ROR16(const Value: Word; Shift: Byte): Word;
-begin
-  Shift := Shift and $0F;
-  Result := Word((Value shr Shift) or (Value shl (16 - Shift)));
-end;
-
-function ROR32(const Value: Cardinal; Shift: Byte): Cardinal;
-begin
-  Shift := Shift and $1F;
-  Result := Cardinal((Value shr Shift) or (Value shl (32 - Shift)));
-end;
-
-function ROR64(const Value: UInt64; Shift: Byte): UInt64;
-begin
-  Shift := Shift and $3F;
-  Result := UInt64((Value shr Shift) or (Value shl (64 - Shift)));
-end;
-{$IFDEF RangeCheck}{$R+}{$ENDIF}
-
-procedure Swap(var v1,v2: Byte);
-var
-  v: Byte;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1,v2: Word);
-var
-  v: Word;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: Integer);
-var
-  v: Integer;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: Int64);
-var
-  v: Int64;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: UInt64);
-var
-  v: UInt64;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: SystemString);
-var
-  v: SystemString;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: Single);
-var
-  v: Single;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: Double);
-var
-  v: Double;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-procedure Swap(var v1, v2: Pointer);
-var
-  v: Pointer;
-begin
-  v := v1;
-  v1 := v2;
-  v2 := v;
-end;
-
-{$IFDEF RangeCheck}{$R-}{$ENDIF}
-function SAR16(const AValue: SmallInt; const Shift: Byte): SmallInt;
-begin
-  Result := SmallInt(Word(Word(Word(AValue) shr (Shift and 15)) or (Word(SmallInt(Word(0 - Word(Word(AValue) shr 15)) and Word(SmallInt(0 - (Ord((Shift and 15) <> 0) { and 1 } ))))) shl (16 - (Shift and 15)))));
-end;
-
-function SAR32(const AValue: Integer; Shift: Byte): Integer;
-begin
-  Result := Integer(Cardinal(Cardinal(Cardinal(AValue) shr (Shift and 31)) or (Cardinal(Integer(Cardinal(0 - Cardinal(Cardinal(AValue) shr 31)) and Cardinal(Integer(0 - (Ord((Shift and 31) <> 0) { and 1 } ))))) shl (32 - (Shift and 31)))));
-end;
-
-function SAR64(const AValue: Int64; Shift: Byte): Int64;
-begin
-  Result := Int64(UInt64(UInt64(UInt64(AValue) shr (Shift and 63)) or (UInt64(Int64(UInt64(0 - UInt64(UInt64(AValue) shr 63)) and UInt64(Int64(0 - (Ord((Shift and 63) <> 0) { and 1 } ))))) shl (64 - (Shift and 63)))));
-end;
-{$IFDEF RangeCheck}{$R+}{$ENDIF}
-
-function MemoryAlign(addr: Pointer; alignment: nativeUInt): Pointer;
-var
-  tmp: nativeUInt;
-begin
-  tmp := nativeUInt(addr) + (alignment - 1);
-  Result := Pointer(tmp - (tmp mod alignment));
-end;
-
 {$INCLUDE CoreEndian.inc}
 
 {$IFDEF FPC}
-
 
 function TCoreClassInterfacedObject._AddRef: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
@@ -802,11 +651,6 @@ end;
 
 procedure TCoreClassInterfacedObject.BeforeDestruction;
 begin
-end;
-
-constructor TCoreClassListForObj.Create;
-begin
-  inherited Create(False);
 end;
 
 {$ELSE}
@@ -858,99 +702,89 @@ end;
 
 {$ENDIF}
 
-
-
-procedure TComputeThread.Execute;
+constructor TCoreClassObjectList.Create;
 begin
-  try
-    if Assigned(OnRunCall) then
-        OnRunCall(Self);
-    if Assigned(OnRunMethod) then
-        OnRunMethod(Self);
-    {$IFNDEF FPC}
-    if Assigned(OnRunProc) then
-        OnRunProc(Self);
-    {$ENDIF FPC}
-  except
-  end;
-
-  {$IFDEF FPC}
-  Synchronize(@Done_Sync);
-  {$ELSE FPC}
-  Synchronize(Done_Sync);
-  {$ENDIF FPC}
+  inherited Create;
+  AutoFreeObj := True;
 end;
 
-procedure TComputeThread.Done_Sync;
+constructor TCoreClassObjectList.Create(AutoFreeObj_: Boolean);
 begin
-  try
-    if Assigned(OnDoneCall) then
-        OnDoneCall(Self);
-    if Assigned(OnDoneMethod) then
-        OnDoneMethod(Self);
-    {$IFNDEF FPC}
-    if Assigned(OnDoneProc) then
-        OnDoneProc(Self);
-    {$ENDIF FPC}
-  except
-  end;
+  inherited Create;
+  AutoFreeObj := AutoFreeObj_;
 end;
 
-constructor TComputeThread.Create;
+destructor TCoreClassObjectList.Destroy;
 begin
-  inherited Create(True);
-  FreeOnTerminate := True;
-
-  OnRunCall := nil;
-  OnRunMethod := nil;
-  {$IFNDEF FPC} OnRunProc := nil; {$ENDIF FPC}
-  OnDoneCall := nil;
-  OnDoneMethod := nil;
-  {$IFNDEF FPC} OnDoneProc := nil; {$ENDIF FPC}
-  UserData := nil;
-  UserObject := nil;
+  Clear;
+  inherited Destroy;
 end;
 
-class function TComputeThread.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall): TComputeThread;
+procedure TCoreClassObjectList.Remove(obj: TCoreClassObject);
 begin
-  Result := TComputeThread.Create;
-  Result.FreeOnTerminate := True;
-
-  Result.OnRunCall := OnRun;
-  Result.OnDoneCall := OnDone;
-  Result.UserData := Data;
-  Result.UserObject := Obj;
-  Result.Suspended := False;
+  inherited Remove(obj);
+  if AutoFreeObj then
+      DisposeObject(obj);
 end;
 
-class function TComputeThread.RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod): TComputeThread;
+procedure TCoreClassObjectList.Delete(index: Integer);
 begin
-  Result := TComputeThread.Create;
-  Result.FreeOnTerminate := True;
-
-  Result.OnRunMethod := OnRun;
-  Result.OnDoneMethod := OnDone;
-  Result.UserData := Data;
-  Result.UserObject := Obj;
-  Result.Suspended := False;
+  if index >= 0 then
+    begin
+      if AutoFreeObj then
+          disposeObject(Items[index]);
+      inherited Delete(index);
+    end;
 end;
 
-{$IFNDEF FPC}
-
-
-class function TComputeThread.RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc): TComputeThread;
+procedure TCoreClassObjectList.Clear;
+var
+  i: Integer;
 begin
-  Result := TComputeThread.Create;
-  Result.FreeOnTerminate := True;
-
-  Result.OnRunProc := OnRun;
-  Result.OnDoneProc := OnDone;
-  Result.UserData := Data;
-  Result.UserObject := Obj;
-  Result.Suspended := False;
+  if AutoFreeObj then
+    for i := 0 to Count - 1 do
+        disposeObject(Items[i]);
+  inherited Clear;
 end;
-{$ENDIF FPC}
 
+
+{$INCLUDE CoreComputeThread.inc}
+
+procedure Nop;
+begin
+end;
+
+var
+  CheckThreadSynchronizeing: Boolean;
+
+procedure CheckThreadSynchronize;
+begin
+  CheckThreadSynchronize(0);
+end;
+
+function CheckThreadSynchronize(Timeout: Integer): Boolean;
+begin
+  if TCoreClassThread.CurrentThread.ThreadID <> MainThreadID then
+    begin
+      TCoreClassThread.Sleep(Timeout);
+      Result := False;
+    end
+  else
+    begin
+      DoStatus;
+      if not CheckThreadSynchronizeing then
+        begin
+          CheckThreadSynchronizeing := True;
+          try
+              Result := CheckSynchronize(Timeout);
+          finally
+              CheckThreadSynchronizeing := False;
+          end;
+        end
+      else
+        Result := False;
+    end;
+end;
 
 initialization
   GlobalMemoryHook := True;
@@ -959,10 +793,10 @@ initialization
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock;
   InitLockIDBuff;
-
-  // float check
+  InitCoreThreadPool(CpuCount * 2);
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 finalization
+  FreeCoreThreadPool;
   FreeCriticalLock;
   FreeLockIDBuff;
   GlobalMemoryHook := False;

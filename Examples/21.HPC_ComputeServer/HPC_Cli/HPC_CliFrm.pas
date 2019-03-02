@@ -90,7 +90,7 @@ begin
   // 阻塞方式发送，并且接收Stream指令
   SendDe := TDataFrameEngine.Create;
   ResultDE := TDataFrameEngine.Create;
-  SendDe.WriteString('123456');
+  SendDe.WriteString('654321');
   client.SendTunnel.WaitSendStreamCmd('helloWorld_Stream_Result', SendDe, ResultDE, 5000);
   if ResultDE.Count > 0 then
       DoStatus('server response:%s', [ResultDE.Reader.ReadString]);

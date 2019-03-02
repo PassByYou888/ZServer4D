@@ -28,6 +28,7 @@ uses
   SysUtils, ZLib,
 {$IFDEF FPC}
   zstream,
+  FPCGenericStructlist,
 {$ENDIF}
   CoreClasses, PascalStrings, UnicodeMixedLib;
 
@@ -49,6 +50,8 @@ type
     constructor Create;
     constructor CustomCreate(const customDelta: NativeInt);
     destructor Destroy; override;
+
+    procedure DiscardMemory;
     procedure Clear;
 
     property Delta: NativeInt read FDelta write FDelta;
@@ -110,6 +113,17 @@ type
     function ReadString: TPascalString;
     function ReadMD5: TMD5;
   end;
+
+{$IFDEF FPC}
+  TMemoryStream64List_Decl = specialize TGenericsList<TMemoryStream64>;
+{$ELSE FPC}
+  TMemoryStream64List_Decl = TGenericsList<TMemoryStream64>;
+{$ENDIF FPC}
+
+  TMemoryStream64List = class(TMemoryStream64List_Decl)
+  end;
+
+  TStream64List = TMemoryStream64List;
 
   IMemoryStream64WriteTrigger = interface
     procedure TriggerWrite64(Count: Int64);
@@ -244,6 +258,16 @@ destructor TMemoryStream64.Destroy;
 begin
   Clear;
   inherited Destroy;
+end;
+
+procedure TMemoryStream64.DiscardMemory;
+begin
+  if FProtectedMode then
+      Exit;
+  FMemory := nil;
+  FSize := 0;
+  FPosition := 0;
+  FCapacity := 0;
 end;
 
 procedure TMemoryStream64.Clear;

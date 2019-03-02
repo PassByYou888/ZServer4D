@@ -255,13 +255,13 @@ begin
   // 如果要把vm架在stableIO上面，在初始化物理io时，要两次构建StableIO
   // 因为p2pVM会用自己的隧道替代原IO隧道，必须两次构建StableIO，vm才能是防止断线的工作模式
   // phyServer := TXPhysicsServer.Create.StableIO.StableIO;
-  phyServer := TXPhysicsServer.Create;
+  phyServer := TXPhysicsServer.Create.StableIO;
   phyServer.VMInterface := self;
 
   // 如果要把vm架在stableIO上面，在初始化物理io时，要两次构建StableIO
   // 因为p2pVM会用自己的隧道替代原IO隧道，必须两次构建StableIO，vm才能是防止断线的工作模式
   // phyClient := TXPhysicsClient.Create.StableIO.StableIO;
-  phyClient := TXPhysicsClient.Create;
+  phyClient := TXPhysicsClient.Create.StableIO;
 
   // 我们在p2pVM基础上,也可以构建StableIO,构建方法如下
   // serv := TChatServer.Create(TCommunicationFrameworkWithP2PVM_Server.Create.StableIO, TCommunicationFrameworkWithP2PVM_Server.Create.StableIO);

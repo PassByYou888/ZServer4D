@@ -31,6 +31,7 @@ interface
 uses
 {$IFDEF FPC}
   Dynlibs,
+{$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
 {$ELSE FPC}
 {$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
   System.IOUtils,
@@ -186,6 +187,7 @@ function umlRandomRange(const aMin, aMax: Integer): Integer;
 function umlRandomRangeS(const aMin, aMax: Single): Single;
 function umlRandomRangeD(const aMin, aMax: Double): Double;
 function umlDefaultTime: Double;
+function umlNow: Double;
 function umlDefaultAttrib: Integer;
 function umlBoolToStr(const Value: Boolean): TPascalString;
 function umlStrToBool(const Value: TPascalString): Boolean;
@@ -195,6 +197,8 @@ function umlDirectoryExists(const DirectoryName: TPascalString): Boolean;
 function umlCreateDirectory(const DirectoryName: TPascalString): Boolean;
 function umlCurrentDirectory: TPascalString;
 function umlCurrentPath: TPascalString;
+function umlGetCurrentPath: TPascalString;
+procedure umlSetCurrentPath(ph: TPascalString);
 
 function umlFindFirstFile(const FileName: TPascalString; var SR: TSR): Boolean;
 function umlFindNextFile(var SR: TSR): Boolean;
@@ -202,8 +206,11 @@ function umlFindFirstDir(const DirName: TPascalString; var SR: TSR): Boolean;
 function umlFindNextDir(var SR: TSR): Boolean;
 procedure umlFindClose(var SR: TSR);
 
-function umlGetFileList(const FullPath: TPascalString; AsLst: TCoreClassStrings): Integer;
-function umlGetDirList(const FullPath: TPascalString; AsLst: TCoreClassStrings): Integer;
+function umlGetFileList(const FullPath: TPascalString; AsLst: TCoreClassStrings): Integer; overload;
+function umlGetDirList(const FullPath: TPascalString; AsLst: TCoreClassStrings): Integer; overload;
+
+function umlGetFileList(const FullPath: TPascalString; AsLst: TPascalStringList): Integer; overload;
+function umlGetDirList(const FullPath: TPascalString; AsLst: TPascalStringList): Integer; overload;
 
 function umlGetFileListWithFullPath(const FullPath: TPascalString): U_StringArray;
 function umlGetDirListWithFullPath(const FullPath: TPascalString): U_StringArray;
@@ -257,17 +264,17 @@ function umlDeleteFile(const FileName: TPascalString): Boolean; overload;
 function umlCopyFile(const SourFile, DestFile: TPascalString): Boolean;
 function umlRenameFile(const OldName, NewName: TPascalString): Boolean;
 
-procedure umlSetLength(var aStr: TPascalString; Len: Integer); overload;
-procedure umlSetLength(var aStr: U_Bytes; Len: Integer); overload;
-procedure umlSetLength(var aStr: TArrayPascalString; Len: Integer); overload;
+procedure umlSetLength(var sVal: TPascalString; Len: Integer); overload;
+procedure umlSetLength(var sVal: U_Bytes; Len: Integer); overload;
+procedure umlSetLength(var sVal: TArrayPascalString; Len: Integer); overload;
 
-function umlGetLength(const aStr: TPascalString): Integer; overload;
-function umlGetLength(var aStr: U_Bytes): Integer; overload;
-function umlGetLength(const aStr: TArrayPascalString): Integer; overload;
+function umlGetLength(const sVal: TPascalString): Integer; overload;
+function umlGetLength(const sVal: U_Bytes): Integer; overload;
+function umlGetLength(const sVal: TArrayPascalString): Integer; overload;
 
 function umlUpperCase(const Str: TPascalString): TPascalString;
 function umlLowerCase(const Str: TPascalString): TPascalString;
-function umlCopyStr(const aStr: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
+function umlCopyStr(const sVal: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
 function umlSameText(const s1, s2: TPascalString): Boolean;
 
 function umlDeleteChar(const SText, Ch: TPascalString): TPascalString; overload;
@@ -275,19 +282,18 @@ function umlDeleteChar(const SText: TPascalString; const SomeChars: array of Sys
 function umlDeleteChar(const SText: TPascalString; const SomeCharsets: TOrdChars): TPascalString; overload;
 function umlGetNumberCharInText(const n: TPascalString): TPascalString;
 
-function umlMatchLimitChar(CharValue: U_Char; LimitValue: P_String): Boolean; overload;
-function umlMatchLimitChar(CharValue: U_Char; LimitValue: TPascalString): Boolean; overload;
-function umlExistsLimitChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean;
-function umlExistsChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean;
+function umlMatchChar(CharValue: U_Char; cVal: P_String): Boolean; overload;
+function umlMatchChar(CharValue: U_Char; cVal: TPascalString): Boolean; overload;
+function umlExistsChar(StrValue: TPascalString; cVal: TPascalString): Boolean;
 
-function umlTrimChar(const s, limitS: TPascalString): TPascalString;
+function umlTrimChar(const s, trim_s: TPascalString): TPascalString;
 
-function umlGetFirstStr(const aStr, limitS: TPascalString): TPascalString;
-function umlGetLastStr(const aStr, limitS: TPascalString): TPascalString;
-function umlDeleteFirstStr(const aStr, limitS: TPascalString): TPascalString;
-function umlDeleteLastStr(const aStr, limitS: TPascalString): TPascalString;
-function umlGetIndexStrCount(const aStr, limitS: TPascalString): Integer;
-function umlGetIndexStr(const aStr: TPascalString; limitS: TPascalString; index: Integer): TPascalString;
+function umlGetFirstStr(const sVal, trim_s: TPascalString): TPascalString;
+function umlGetLastStr(const sVal, trim_s: TPascalString): TPascalString;
+function umlDeleteFirstStr(const sVal, trim_s: TPascalString): TPascalString;
+function umlDeleteLastStr(const sVal, trim_s: TPascalString): TPascalString;
+function umlGetIndexStrCount(const sVal, trim_s: TPascalString): Integer;
+function umlGetIndexStr(const sVal: TPascalString; trim_s: TPascalString; index: Integer): TPascalString;
 
 procedure umlGetSplitArray(const sour: TPascalString; var dest: TArrayPascalString; const splitC: TPascalString); overload;
 procedure umlGetSplitArray(const sour: TPascalString; var dest: U_StringArray; const splitC: TPascalString); overload;
@@ -295,12 +301,12 @@ function ArrayStringToText(var ary: TArrayPascalString; const splitC: TPascalStr
 function umlStringsToText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString; overload;
 function umlStringsToText(lst: TListPascalString; const splitC: TPascalString): TPascalString; overload;
 
-function umlGetFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
-function umlDeleteFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
-function umlGetLastStr_M(const aStr, limitS: TPascalString): TPascalString;
-function umlDeleteLastStr_M(const aStr, limitS: TPascalString): TPascalString;
-function umlGetIndexStrCount_M(const aStr, limitS: TPascalString): Integer;
-function umlGetIndexStr_M(const aStr: TPascalString; limitS: TPascalString; index: Integer): TPascalString;
+function umlGetFirstStr_M(const sVal, trim_s: TPascalString): TPascalString;
+function umlDeleteFirstStr_M(const sVal, trim_s: TPascalString): TPascalString;
+function umlGetLastStr_M(const sVal, trim_s: TPascalString): TPascalString;
+function umlDeleteLastStr_M(const sVal, trim_s: TPascalString): TPascalString;
+function umlGetIndexStrCount_M(const sVal, trim_s: TPascalString): Integer;
+function umlGetIndexStr_M(const sVal: TPascalString; trim_s: TPascalString; index: Integer): TPascalString;
 
 function umlGetFirstTextPos(const s: TPascalString; const TextArry: TArrayPascalString; var OutText: TPascalString): Integer;
 function umlDeleteText(const sour: TPascalString; const bToken, eToken: TArrayPascalString; ANeedBegin, ANeedEnd: Boolean): TPascalString;
@@ -311,12 +317,12 @@ type
   TTextTypes = set of TTextType;
 function umlGetNumTextType(const s: TPascalString): TTextType;
 
-function umlIsHex(const aStr: TPascalString): Boolean;
-function umlIsNumber(const aStr: TPascalString): Boolean;
-function umlIsIntNumber(const aStr: TPascalString): Boolean;
-function umlIsFloatNumber(const aStr: TPascalString): Boolean;
-function umlIsBool(const aStr: TPascalString): Boolean;
-function umlNumberCount(const aStr: TPascalString): Integer;
+function umlIsHex(const sVal: TPascalString): Boolean;
+function umlIsNumber(const sVal: TPascalString): Boolean;
+function umlIsIntNumber(const sVal: TPascalString): Boolean;
+function umlIsFloatNumber(const sVal: TPascalString): Boolean;
+function umlIsBool(const sVal: TPascalString): Boolean;
+function umlNumberCount(const sVal: TPascalString): Integer;
 
 function umlPercentageToFloat(OriginMax, OriginMin, ProcressParameter: Double): Double;
 function umlPercentageToInt(OriginParameter, ProcressParameter: Integer): Integer;
@@ -327,7 +333,10 @@ function umlIntToStr(Parameter: Single): TPascalString; overload;
 function umlIntToStr(Parameter: Double): TPascalString; overload;
 function umlIntToStr(Parameter: Int64): TPascalString; overload;
 
+function umlPointerToStr(param: Pointer): TPascalString;
+
 function umlSizeToStr(Parameter: Int64): TPascalString;
+function umlDateTimeToStr(t: TDateTime): TPascalString;
 function umlTimeToStr(t: TDateTime): TPascalString;
 function umlDateToStr(t: TDateTime): TPascalString;
 function umlFloatToStr(const f: Extended): TPascalString;
@@ -346,8 +355,8 @@ function umlMultipleMatch(const ValueCheck: array of TPascalString; const Value:
 function umlSearchMatch(const SourceStr, TargetStr: TPascalString): Boolean; overload;
 function umlSearchMatch(const ValueCheck: TArrayPascalString; Value: TPascalString): Boolean; overload;
 
-{ Decode Double }
-function umlDeTimeCodeToStr(NowDateTime: TDateTime): TPascalString;
+function umlDecodeTimeToStr(NowDateTime: TDateTime): TPascalString;
+function umlMakeRanName: TPascalString;
 
 function umlStringReplace(const s, OldPattern, NewPattern: TPascalString; IgnoreCase: Boolean): TPascalString;
 function umlCharReplace(const s: TPascalString; OldPattern, NewPattern: U_Char): TPascalString;
@@ -432,21 +441,24 @@ const
   NullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   ZeroMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-function umlMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5;
+function umlMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5; inline;
 function umlMD5Char(const buffPtr: PByte; const BuffSize: nativeUInt): TPascalString;
 function umlMD5String(const buffPtr: PByte; const BuffSize: nativeUInt): TPascalString;
 function umlStreamMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5; overload;
 function umlStreamMD5(stream: TCoreClassStream): TMD5; overload;
 function umlStreamMD5Char(stream: TCoreClassStream): TPascalString; overload;
 function umlStreamMD5String(stream: TCoreClassStream): TPascalString; overload;
-function umlStringMD5(const Value: TPascalString): TMD5; overload;
-function umlStringMD5Char(const Value: TPascalString): TPascalString; overload;
-function umlMD52Str(md5: TMD5): TPascalString;
-function umlMD52String(md5: TMD5): TPascalString;
+function umlStringMD5(const Value: TPascalString): TPascalString;
+function umlCombineMD5(const m1: TMD5): TMD5; overload;
+function umlCombineMD5(const m1, m2: TMD5): TMD5; overload;
+function umlCombineMD5(const m1, m2, m3: TMD5): TMD5; overload;
+function umlCombineMD5(const buff: array of TMD5): TMD5; overload;
+function umlMD5ToStr(md5: TMD5): TPascalString; overload;
+function umlMD5ToString(md5: TMD5): TPascalString; overload;
 function umlMD5Compare(const m1, m2: TMD5): Boolean;
 function umlCompareMD5(const m1, m2: TMD5): Boolean;
-function umlIsNullMD5(M: TMD5): Boolean;
-function umlWasNullMD5(M: TMD5): Boolean;
+function umlIsNullMD5(m: TMD5): Boolean;
+function umlWasNullMD5(m: TMD5): Boolean;
 
 {$REGION 'crc16define'}
 
@@ -592,6 +604,15 @@ function GetExtLib(LibName: SystemString): HMODULE;
 function FreeExtLib(LibName: SystemString): Boolean;
 function GetExtProc(const LibName, ProcName: SystemString): Pointer;
 
+type
+  TArrayRawByte = array [0 .. MaxInt - 1] of Byte;
+  PArrayRawByte = ^TArrayRawByte;
+
+function umlCompareRawByteString(const s1: RawByteString; const s2: PArrayRawByte): Boolean; overload;
+function umlCompareRawByteString(const s1: PArrayRawByte; const s2: RawByteString): Boolean; overload;
+procedure umlSetRawByte(const sour: RawByteString; const dest: PArrayRawByte); overload;
+procedure umlSetRawByte(const dest: PArrayRawByte; const sour: RawByteString); overload;
+
 implementation
 
 uses
@@ -645,21 +666,21 @@ end;
 
 constructor TReliableFileStream.Create(const FileName_: SystemString; IsNew_, IsWrite_: Boolean);
 var
-  M: Word;
+  m: Word;
 begin
   inherited Create;
   if IsNew_ then
-      M := fmCreate
+      m := fmCreate
   else if IsWrite_ then
-      M := fmOpenReadWrite
+      m := fmOpenReadWrite
   else
-      M := fmOpenRead or fmShareDenyWrite;
+      m := fmOpenRead or fmShareDenyWrite;
 {$IFDEF ZDB_BACKUP}
   FActivted := IsNew_ or IsWrite_;
 {$ELSE ZDB_BACKUP}
   FActivted := False;
 {$ENDIF ZDB_BACKUP}
-  SourceIO := TCoreClassFileStream.Create(FileName_, M);
+  SourceIO := TCoreClassFileStream.Create(FileName_, m);
 
   BackupFileIO := nil;
   FFileName := FileName_;
@@ -791,7 +812,7 @@ begin
         begin
           n.Text := VarToStr(v);
 
-          if Base64Conver and umlExistsLimitChar(n, #10#13#9#8#0) then
+          if Base64Conver and umlExistsChar(n, #10#13#9#8#0) then
             begin
               umlEncodeLineBASE64(n, b64);
               Result := '___base64:' + b64.Text;
@@ -1071,6 +1092,11 @@ begin
   Result := Now;
 end;
 
+function umlNow: Double;
+begin
+  Result := Now;
+end;
+
 function umlDefaultAttrib: Integer;
 begin
   Result := 0;
@@ -1153,6 +1179,16 @@ begin
       if (Result.Len = 0) or (Result.Last <> '/') then
           Result := Result.Text + '/';
   end;
+end;
+
+function umlGetCurrentPath: TPascalString;
+begin
+  Result := umlCurrentPath();
+end;
+
+procedure umlSetCurrentPath(ph: TPascalString);
+begin
+  SetCurrentDir(ph.Text);
 end;
 
 function umlFindFirstFile(const FileName: TPascalString; var SR: TSR): Boolean;
@@ -1278,14 +1314,44 @@ begin
   umlFindClose(_SR);
 end;
 
+function umlGetFileList(const FullPath: TPascalString; AsLst: TPascalStringList): Integer;
+var
+  _SR: TSR;
+begin
+  Result := 0;
+  if umlFindFirstFile(umlCombineFileName(FullPath, '*'), _SR) then
+    begin
+      repeat
+        AsLst.Add(_SR.Name);
+        inc(Result);
+      until not umlFindNextFile(_SR);
+    end;
+  umlFindClose(_SR);
+end;
+
+function umlGetDirList(const FullPath: TPascalString; AsLst: TPascalStringList): Integer;
+var
+  _SR: TSR;
+begin
+  Result := 0;
+  if umlFindFirstDir(umlCombineFileName(FullPath, '*'), _SR) then
+    begin
+      repeat
+        AsLst.Add(_SR.Name);
+        inc(Result);
+      until not umlFindNextDir(_SR);
+    end;
+  umlFindClose(_SR);
+end;
+
 function umlGetFileListWithFullPath(const FullPath: TPascalString): U_StringArray;
 var
   ph: TPascalString;
-  ns: TCoreClassStrings;
+  ns: TPascalStringList;
   i: Integer;
 begin
   ph := FullPath;
-  ns := TCoreClassStringList.Create;
+  ns := TPascalStringList.Create;
   umlGetFileList(FullPath, ns);
   SetLength(Result, ns.Count);
   for i := 0 to ns.Count - 1 do
@@ -1296,11 +1362,11 @@ end;
 function umlGetDirListWithFullPath(const FullPath: TPascalString): U_StringArray;
 var
   ph: TPascalString;
-  ns: TCoreClassStrings;
+  ns: TPascalStringList;
   i: Integer;
 begin
   ph := FullPath;
-  ns := TCoreClassStringList.Create;
+  ns := TPascalStringList.Create;
   umlGetDirList(FullPath, ns);
   SetLength(Result, ns.Count);
   for i := 0 to ns.Count - 1 do
@@ -1374,6 +1440,7 @@ var
 begin
   pn := umlTrimSpace(pathName);
   fn := umlTrimSpace(FileName);
+
   case CurrentPlatform of
     epWin32, epWin64:
       begin
@@ -1435,12 +1502,15 @@ function umlGetFileName(const s: TPascalString): TPascalString;
 var
   n: TPascalString;
 begin
-  n := umlTrimSpace(s);
   case CurrentPlatform of
     epWin32, epWin64:
       begin
         n := umlCharReplace(umlTrimSpace(s), '/', '\');
-        if n.Exists('\') then
+        if n.Len = 0 then
+            Result := ''
+        else if (n.Last = '\') then
+            Result := ''
+        else if n.Exists('\') then
             Result := umlGetLastStr(n, '\')
         else
             Result := n;
@@ -1448,7 +1518,11 @@ begin
     else
       begin
         n := umlCharReplace(umlTrimSpace(s), '\', '/');
-        if n.Exists('/') then
+        if n.Len = 0 then
+            Result := ''
+        else if (n.Last = '/') then
+            Result := ''
+        else if n.Exists('/') then
             Result := umlGetLastStr(n, '/')
         else
             Result := n;
@@ -1460,12 +1534,15 @@ function umlGetFilePath(const s: TPascalString): TPascalString;
 var
   n: TPascalString;
 begin
-  n := umlTrimSpace(n);
   case CurrentPlatform of
     epWin32, epWin64:
       begin
         n := umlCharReplace(umlTrimSpace(s), '/', '\');
-        if (n.Last <> '\') and (n.Exists('\')) then
+        if n.Len = 0 then
+            Result := ''
+        else if not n.Exists('\') then
+            Result := ''
+        else if (n.Last <> '\') then
             Result := umlDeleteLastStr(n, '\')
         else
             Result := n;
@@ -1473,7 +1550,11 @@ begin
     else
       begin
         n := umlCharReplace(umlTrimSpace(s), '\', '/');
-        if (n.Last <> '/') and (n.Exists('/')) then
+        if n.Len = 0 then
+            Result := ''
+        else if not n.Exists('/') then
+            Result := ''
+        else if (n.Last <> '/') then
             Result := umlDeleteLastStr(n, '/')
         else
             Result := n;
@@ -1483,20 +1564,33 @@ end;
 
 function umlChangeFileExt(const s, ext: TPascalString): TPascalString;
 var
+  ph, fn: TPascalString;
   n: TPascalString;
 begin
+  if s.Len = 0 then
+    begin
+      Result := ext;
+      exit;
+    end;
+
+  ph := umlGetFilePath(s);
+  fn := umlGetFileName(s);
+
   n := ext;
   if (n.Len > 0) and (n.First <> '.') then
       n.Text := '.' + n.Text;
-  if umlExistsLimitChar(s, '.') then
-      Result := umlDeleteLastStr(s, '.') + n
+  if umlExistsChar(fn, '.') then
+      Result := umlDeleteLastStr(fn, '.') + n
   else
-      Result := s + n;
+      Result := fn + n;
+
+  if ph.Len > 0 then
+      Result := umlCombineFileName(ph, Result);
 end;
 
 function umlGetFileExt(const s: TPascalString): TPascalString;
 begin
-  if umlExistsLimitChar(s, '.') then
+  if (s.Len > 0) and (umlExistsChar(s, '.')) then
       Result := '.' + umlGetLastStr(s, '.')
   else
       Result := '';
@@ -2077,18 +2171,43 @@ begin
 end;
 
 function umlGetFileTime(const FileName: TPascalString): TDateTime;
+{$IFDEF MSWINDOWS}
+  function CovFileDate_(Fd: TFileTime): TDateTime;
+  var
+    Tct: _SystemTime;
+    t: TFileTime;
+  begin
+    FileTimeToLocalFileTime(Fd, t);
+    FileTimeToSystemTime(t, Tct);
+    CovFileDate_ := SystemTimeToDateTime(Tct);
+  end;
+
+var
+  SR: TSR;
+begin
+  if umlFindFirstFile(FileName, SR) then
+      Result := CovFileDate_(SR.FindData.ftLastWriteTime)
+  else
+      Result := umlNow();
+  umlFindClose(SR);
+end;
+{$ELSE MSWINDOWS}
+
+
 var
   f: THandle;
 begin
   f := FileOpen(FileName.Text, fmOpenRead or fmShareDenyWrite);
-  if f = THandle(-1) then
-      Result := Now
-  else
+  if f <> THandle(-1) then
     begin
       Result := FileDateToDateTime(FileGetDate(f));
       FileClose(f);
-    end;
+    end
+  else
+      Result := Now;
 end;
+{$ENDIF MSWINDOWS}
+
 
 procedure umlSetFileTime(const FileName: TPascalString; newTime: TDateTime);
 begin
@@ -2133,7 +2252,7 @@ function umlDeleteFile(const FileName: TPascalString; const _VerifyCheck: Boolea
 var
   _SR: TSR;
 begin
-  if umlExistsLimitChar(FileName, '*?') then
+  if umlExistsChar(FileName, '*?') then
     begin
       if umlFindFirstFile(FileName, _SR) then
         begin
@@ -2197,34 +2316,34 @@ begin
   Result := RenameFile(OldName.Text, NewName.Text);
 end;
 
-procedure umlSetLength(var aStr: TPascalString; Len: Integer);
+procedure umlSetLength(var sVal: TPascalString; Len: Integer);
 begin
-  aStr.Len := Len;
+  sVal.Len := Len;
 end;
 
-procedure umlSetLength(var aStr: U_Bytes; Len: Integer);
+procedure umlSetLength(var sVal: U_Bytes; Len: Integer);
 begin
-  SetLength(aStr, Len);
+  SetLength(sVal, Len);
 end;
 
-procedure umlSetLength(var aStr: TArrayPascalString; Len: Integer);
+procedure umlSetLength(var sVal: TArrayPascalString; Len: Integer);
 begin
-  SetLength(aStr, Len);
+  SetLength(sVal, Len);
 end;
 
-function umlGetLength(const aStr: TPascalString): Integer;
+function umlGetLength(const sVal: TPascalString): Integer;
 begin
-  Result := aStr.Len;
+  Result := sVal.Len;
 end;
 
-function umlGetLength(var aStr: U_Bytes): Integer;
+function umlGetLength(const sVal: U_Bytes): Integer;
 begin
-  Result := length(aStr);
+  Result := length(sVal);
 end;
 
-function umlGetLength(const aStr: TArrayPascalString): Integer;
+function umlGetLength(const sVal: TArrayPascalString): Integer;
 begin
-  Result := length(aStr);
+  Result := length(sVal);
 end;
 
 function umlUpperCase(const Str: TPascalString): TPascalString;
@@ -2237,9 +2356,9 @@ begin
   Result := LowerCase(Str.Text);
 end;
 
-function umlCopyStr(const aStr: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
+function umlCopyStr(const sVal: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
 begin
-  Result := aStr.GetString(MainPosition, LastPosition);
+  Result := sVal.GetString(MainPosition, LastPosition);
 end;
 
 function umlSameText(const s1, s2: TPascalString): Boolean;
@@ -2306,39 +2425,28 @@ begin
     end;
 end;
 
-function umlMatchLimitChar(CharValue: U_Char; LimitValue: P_String): Boolean;
+function umlMatchChar(CharValue: U_Char; cVal: P_String): Boolean;
 begin
-  Result := CharIn(CharValue, LimitValue);
+  Result := CharIn(CharValue, cVal);
 end;
 
-function umlMatchLimitChar(CharValue: U_Char; LimitValue: TPascalString): Boolean;
+function umlMatchChar(CharValue: U_Char; cVal: TPascalString): Boolean;
 begin
-  Result := CharIn(CharValue, @LimitValue);
+  Result := CharIn(CharValue, @cVal);
 end;
 
-function umlExistsLimitChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean;
+function umlExistsChar(StrValue: TPascalString; cVal: TPascalString): Boolean;
 var
   c: SystemChar;
 begin
   Result := True;
   for c in StrValue.buff do
-    if CharIn(c, @LimitValue) then
+    if CharIn(c, @cVal) then
         exit;
   Result := False;
 end;
 
-function umlExistsChar(StrValue: TPascalString; LimitValue: TPascalString): Boolean;
-var
-  c: SystemChar;
-begin
-  Result := True;
-  for c in StrValue.buff do
-    if CharIn(c, @LimitValue) then
-        exit;
-  Result := False;
-end;
-
-function umlTrimChar(const s, limitS: TPascalString): TPascalString;
+function umlTrimChar(const s, trim_s: TPascalString): TPascalString;
 var
   L, bp, EP: Integer;
 begin
@@ -2347,7 +2455,7 @@ begin
   if L > 0 then
     begin
       bp := 1;
-      while CharIn(s[bp], @limitS) do
+      while CharIn(s[bp], @trim_s) do
         begin
           inc(bp);
           if (bp > L) then
@@ -2362,7 +2470,7 @@ begin
         begin
           EP := L;
 
-          while CharIn(s[EP], @limitS) do
+          while CharIn(s[EP], @trim_s) do
             begin
               dec(EP);
               if (EP < 1) then
@@ -2376,24 +2484,24 @@ begin
     end;
 end;
 
-function umlGetFirstStr(const aStr, limitS: TPascalString): TPascalString;
+function umlGetFirstStr(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlGetFirstName_PrevPos, umlGetFirstName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   if Result.Len <= 1 then
     begin
       exit;
     end;
   umlGetFirstName_Pos := 1;
-  while umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) do
+  while umlMatchChar(Result[umlGetFirstName_Pos], @trim_s) do
     begin
       if umlGetFirstName_Pos = Result.Len then
           exit;
       inc(umlGetFirstName_Pos);
     end;
   umlGetFirstName_PrevPos := umlGetFirstName_Pos;
-  while not umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlGetFirstName_Pos], @trim_s) do
     begin
       if umlGetFirstName_Pos = Result.Len then
         begin
@@ -2405,24 +2513,24 @@ begin
   Result := umlCopyStr(Result, umlGetFirstName_PrevPos, umlGetFirstName_Pos);
 end;
 
-function umlGetLastStr(const aStr, limitS: TPascalString): TPascalString;
+function umlGetLastStr(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlGetLastName_PrevPos, umlGetLastName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   umlGetLastName_Pos := Result.Len;
   if umlGetLastName_Pos <= 1 then
     begin
       exit;
     end;
-  while umlMatchLimitChar(Result[umlGetLastName_Pos], @limitS) do
+  while umlMatchChar(Result[umlGetLastName_Pos], @trim_s) do
     begin
       if umlGetLastName_Pos = 1 then
           exit;
       dec(umlGetLastName_Pos);
     end;
   umlGetLastName_PrevPos := umlGetLastName_Pos;
-  while not umlMatchLimitChar(Result[umlGetLastName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlGetLastName_Pos], @trim_s) do
     begin
       if umlGetLastName_Pos = 1 then
         begin
@@ -2434,18 +2542,18 @@ begin
   Result := umlCopyStr(Result, umlGetLastName_Pos + 1, umlGetLastName_PrevPos + 1);
 end;
 
-function umlDeleteFirstStr(const aStr, limitS: TPascalString): TPascalString;
+function umlDeleteFirstStr(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlMaskFirstName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   if Result.Len <= 1 then
     begin
       Result := '';
       exit;
     end;
   umlMaskFirstName_Pos := 1;
-  while umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
+  while umlMatchChar(Result[umlMaskFirstName_Pos], @trim_s) do
     begin
       if umlMaskFirstName_Pos = Result.Len then
         begin
@@ -2454,7 +2562,7 @@ begin
         end;
       inc(umlMaskFirstName_Pos);
     end;
-  while not umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlMaskFirstName_Pos], @trim_s) do
     begin
       if umlMaskFirstName_Pos = Result.Len then
         begin
@@ -2463,7 +2571,7 @@ begin
         end;
       inc(umlMaskFirstName_Pos);
     end;
-  while umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
+  while umlMatchChar(Result[umlMaskFirstName_Pos], @trim_s) do
     begin
       if umlMaskFirstName_Pos = Result.Len then
         begin
@@ -2475,18 +2583,18 @@ begin
   Result := umlCopyStr(Result, umlMaskFirstName_Pos, Result.Len + 1);
 end;
 
-function umlDeleteLastStr(const aStr, limitS: TPascalString): TPascalString;
+function umlDeleteLastStr(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlMaskLastName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   umlMaskLastName_Pos := Result.Len;
   if umlMaskLastName_Pos <= 1 then
     begin
       Result := '';
       exit;
     end;
-  while umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
+  while umlMatchChar(Result[umlMaskLastName_Pos], @trim_s) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2495,7 +2603,7 @@ begin
         end;
       dec(umlMaskLastName_Pos);
     end;
-  while not umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlMaskLastName_Pos], @trim_s) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2504,7 +2612,7 @@ begin
         end;
       dec(umlMaskLastName_Pos);
     end;
-  while umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
+  while umlMatchChar(Result[umlMaskLastName_Pos], @trim_s) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2516,26 +2624,26 @@ begin
   umlSetLength(Result, umlMaskLastName_Pos);
 end;
 
-function umlGetIndexStrCount(const aStr, limitS: TPascalString): Integer;
+function umlGetIndexStrCount(const sVal, trim_s: TPascalString): Integer;
 var
   Str: TPascalString;
   APos: Integer;
 begin
-  Str := aStr;
+  Str := sVal;
   Result := 0;
   if Str.Len = 0 then
       exit;
   APos := 1;
   while True do
     begin
-      while umlMatchLimitChar(Str[APos], @limitS) do
+      while umlMatchChar(Str[APos], @trim_s) do
         begin
           if APos >= Str.Len then
               exit;
           inc(APos);
         end;
       inc(Result);
-      while not umlMatchLimitChar(Str[APos], @limitS) do
+      while not umlMatchChar(Str[APos], @trim_s) do
         begin
           if APos >= Str.Len then
               exit;
@@ -2544,7 +2652,7 @@ begin
     end;
 end;
 
-function umlGetIndexStr(const aStr: TPascalString; limitS: TPascalString; index: Integer): TPascalString;
+function umlGetIndexStr(const sVal: TPascalString; trim_s: TPascalString; index: Integer): TPascalString;
 var
   umlGetIndexName_Repeat: Integer;
 begin
@@ -2556,21 +2664,21 @@ begin
       end;
     0, 1:
       begin
-        Result := umlGetFirstStr(aStr, limitS);
+        Result := umlGetFirstStr(sVal, trim_s);
         exit;
       end;
   end;
-  if index >= umlGetIndexStrCount(aStr, limitS) then
+  if index >= umlGetIndexStrCount(sVal, trim_s) then
     begin
-      Result := umlGetLastStr(aStr, limitS);
+      Result := umlGetLastStr(sVal, trim_s);
       exit;
     end;
-  Result := aStr;
+  Result := sVal;
   for umlGetIndexName_Repeat := 2 to index do
     begin
-      Result := umlDeleteFirstStr(Result, limitS);
+      Result := umlDeleteFirstStr(Result, trim_s);
     end;
-  Result := umlGetFirstStr(Result, limitS);
+  Result := umlGetFirstStr(Result, trim_s);
 end;
 
 procedure umlGetSplitArray(const sour: TPascalString; var dest: TArrayPascalString; const splitC: TPascalString);
@@ -2659,15 +2767,15 @@ begin
         Result := lst[i];
 end;
 
-function umlGetFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
+function umlGetFirstStr_M(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlGetFirstName_PrevPos, umlGetFirstName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   if Result.Len <= 1 then
       exit;
   umlGetFirstName_Pos := 1;
-  if umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) then
+  if umlMatchChar(Result[umlGetFirstName_Pos], @trim_s) then
     begin
       inc(umlGetFirstName_Pos);
       umlGetFirstName_PrevPos := umlGetFirstName_Pos;
@@ -2675,7 +2783,7 @@ begin
   else
     begin
       umlGetFirstName_PrevPos := umlGetFirstName_Pos;
-      while not umlMatchLimitChar(Result[umlGetFirstName_Pos], @limitS) do
+      while not umlMatchChar(Result[umlGetFirstName_Pos], @trim_s) do
         begin
           if umlGetFirstName_Pos = Result.Len then
             begin
@@ -2688,18 +2796,18 @@ begin
   Result := umlCopyStr(Result, umlGetFirstName_PrevPos, umlGetFirstName_Pos);
 end;
 
-function umlDeleteFirstStr_M(const aStr, limitS: TPascalString): TPascalString;
+function umlDeleteFirstStr_M(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlMaskFirstName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   if Result.Len <= 1 then
     begin
       Result := '';
       exit;
     end;
   umlMaskFirstName_Pos := 1;
-  while not umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlMaskFirstName_Pos], @trim_s) do
     begin
       if umlMaskFirstName_Pos = Result.Len then
         begin
@@ -2708,23 +2816,23 @@ begin
         end;
       inc(umlMaskFirstName_Pos);
     end;
-  if umlMatchLimitChar(Result[umlMaskFirstName_Pos], @limitS) then
+  if umlMatchChar(Result[umlMaskFirstName_Pos], @trim_s) then
       inc(umlMaskFirstName_Pos);
   Result := umlCopyStr(Result, umlMaskFirstName_Pos, Result.Len + 1);
 end;
 
-function umlGetLastStr_M(const aStr, limitS: TPascalString): TPascalString;
+function umlGetLastStr_M(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlGetLastName_PrevPos, umlGetLastName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   umlGetLastName_Pos := Result.Len;
   if umlGetLastName_Pos <= 1 then
       exit;
-  if Result[umlGetLastName_Pos] = limitS then
+  if Result[umlGetLastName_Pos] = trim_s then
       dec(umlGetLastName_Pos);
   umlGetLastName_PrevPos := umlGetLastName_Pos;
-  while not umlMatchLimitChar(Result[umlGetLastName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlGetLastName_Pos], @trim_s) do
     begin
       if umlGetLastName_Pos = 1 then
         begin
@@ -2736,20 +2844,20 @@ begin
   Result := umlCopyStr(Result, umlGetLastName_Pos + 1, umlGetLastName_PrevPos + 1);
 end;
 
-function umlDeleteLastStr_M(const aStr, limitS: TPascalString): TPascalString;
+function umlDeleteLastStr_M(const sVal, trim_s: TPascalString): TPascalString;
 var
   umlMaskLastName_Pos: Integer;
 begin
-  Result := aStr;
+  Result := sVal;
   umlMaskLastName_Pos := Result.Len;
   if umlMaskLastName_Pos <= 1 then
     begin
       Result := '';
       exit;
     end;
-  if umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) then
+  if umlMatchChar(Result[umlMaskLastName_Pos], @trim_s) then
       dec(umlMaskLastName_Pos);
-  while not umlMatchLimitChar(Result[umlMaskLastName_Pos], @limitS) do
+  while not umlMatchChar(Result[umlMaskLastName_Pos], @trim_s) do
     begin
       if umlMaskLastName_Pos = 1 then
         begin
@@ -2761,12 +2869,12 @@ begin
   umlSetLength(Result, umlMaskLastName_Pos);
 end;
 
-function umlGetIndexStrCount_M(const aStr, limitS: TPascalString): Integer;
+function umlGetIndexStrCount_M(const sVal, trim_s: TPascalString): Integer;
 var
   Str: TPascalString;
   APos: Integer;
 begin
-  Str := aStr;
+  Str := sVal;
   Result := 0;
   if Str.Len = 0 then
       exit;
@@ -2774,7 +2882,7 @@ begin
   Result := 1;
   while True do
     begin
-      while not umlMatchLimitChar(Str[APos], @limitS) do
+      while not umlMatchChar(Str[APos], @trim_s) do
         begin
           if APos = Str.Len then
               exit;
@@ -2787,7 +2895,7 @@ begin
     end;
 end;
 
-function umlGetIndexStr_M(const aStr: TPascalString; limitS: TPascalString; index: Integer): TPascalString;
+function umlGetIndexStr_M(const sVal: TPascalString; trim_s: TPascalString; index: Integer): TPascalString;
 var
   umlGetIndexName_Repeat: Integer;
 begin
@@ -2799,19 +2907,19 @@ begin
       end;
     0, 1:
       begin
-        Result := umlGetFirstStr_M(aStr, limitS);
+        Result := umlGetFirstStr_M(sVal, trim_s);
         exit;
       end;
   end;
-  if index >= umlGetIndexStrCount_M(aStr, limitS) then
+  if index >= umlGetIndexStrCount_M(sVal, trim_s) then
     begin
-      Result := umlGetLastStr_M(aStr, limitS);
+      Result := umlGetLastStr_M(sVal, trim_s);
       exit;
     end;
-  Result := aStr;
+  Result := sVal;
   for umlGetIndexName_Repeat := 2 to index do
-      Result := umlDeleteFirstStr_M(Result, limitS);
-  Result := umlGetFirstStr_M(Result, limitS);
+      Result := umlDeleteFirstStr_M(Result, trim_s);
+  Result := umlGetFirstStr_M(Result, trim_s);
 end;
 
 function umlGetFirstTextPos(const s: TPascalString; const TextArry: TArrayPascalString; var OutText: TPascalString): Integer;
@@ -3043,40 +3151,40 @@ begin
     end;
 end;
 
-function umlIsHex(const aStr: TPascalString): Boolean;
+function umlIsHex(const sVal: TPascalString): Boolean;
 begin
-  Result := umlGetNumTextType(aStr) in
+  Result := umlGetNumTextType(sVal) in
     [ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt];
 end;
 
-function umlIsNumber(const aStr: TPascalString): Boolean;
+function umlIsNumber(const sVal: TPascalString): Boolean;
 begin
-  Result := umlGetNumTextType(aStr) <> ntUnknow;
+  Result := umlGetNumTextType(sVal) <> ntUnknow;
 end;
 
-function umlIsIntNumber(const aStr: TPascalString): Boolean;
+function umlIsIntNumber(const sVal: TPascalString): Boolean;
 begin
-  Result := umlGetNumTextType(aStr) in
+  Result := umlGetNumTextType(sVal) in
     [ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt];
 end;
 
-function umlIsFloatNumber(const aStr: TPascalString): Boolean;
+function umlIsFloatNumber(const sVal: TPascalString): Boolean;
 begin
-  Result := umlGetNumTextType(aStr) in [ntSingle, ntDouble, ntCurrency];
+  Result := umlGetNumTextType(sVal) in [ntSingle, ntDouble, ntCurrency];
 end;
 
-function umlIsBool(const aStr: TPascalString): Boolean;
+function umlIsBool(const sVal: TPascalString): Boolean;
 begin
-  Result := umlGetNumTextType(aStr) = ntBool;
+  Result := umlGetNumTextType(sVal) = ntBool;
 end;
 
-function umlNumberCount(const aStr: TPascalString): Integer;
+function umlNumberCount(const sVal: TPascalString): Integer;
 var
   i: Integer;
 begin
   Result := 0;
-  for i := 1 to aStr.Len do
-    if CharIn(aStr[i], [c0to9]) then
+  for i := 1 to sVal.Len do
+    if CharIn(sVal[i], [c0to9]) then
         inc(Result);
 end;
 
@@ -3125,6 +3233,11 @@ begin
   Result := IntToStr(Parameter);
 end;
 
+function umlPointerToStr(param: Pointer): TPascalString;
+begin
+  Result := '0x' + IntToHex(nativeUInt(param), SizeOf(Pointer) * 2);
+end;
+
 function umlSizeToStr(Parameter: Int64): TPascalString;
 begin
   try
@@ -3132,6 +3245,11 @@ begin
   except
       Result := IntToStr(Parameter) + ' B';
   end;
+end;
+
+function umlDateTimeToStr(t: TDateTime): TPascalString;
+begin
+  Result := DateTimeToStr(t);
 end;
 
 function umlTimeToStr(t: TDateTime): TPascalString;
@@ -3220,14 +3338,14 @@ begin
       UpperCaseTargetStr := TargetStr;
     end;
 
-  if (not umlExistsLimitChar(SourceStr, umlMultipleCharacter)) and (not umlExistsLimitChar(SourceStr, umlMultipleString)) then
+  if (not umlExistsChar(SourceStr, umlMultipleCharacter)) and (not umlExistsChar(SourceStr, umlMultipleString)) then
     begin
       Result := (SourceLength = TargetLength) and (UpperCaseSourceStr = UpperCaseTargetStr);
       exit;
     end;
   if SourceLength = 1 then
     begin
-      if umlMatchLimitChar(UpperCaseSourceStr[1], @umlMultipleString) then
+      if umlMatchChar(UpperCaseSourceStr[1], @umlMultipleString) then
           Result := True
       else
           Result := False;
@@ -3239,7 +3357,7 @@ begin
   TargetChar := UpperCaseTargetStr[TargetIndex];
 
 CharacterRep_Label:
-  while (SourceChar = TargetChar) and (not umlMatchLimitChar(SourceChar, @umlMultipleCharacter)) and (not umlMatchLimitChar(SourceChar, @umlMultipleString)) do
+  while (SourceChar = TargetChar) and (not umlMatchChar(SourceChar, @umlMultipleCharacter)) and (not umlMatchChar(SourceChar, @umlMultipleString)) do
     begin
       if SourceIndex = SourceLength then
         begin
@@ -3257,7 +3375,7 @@ CharacterRep_Label:
           if SourceIndex = SourceLength then
             begin
               SourceChar := UpperCaseSourceStr[SourceIndex];
-              Result := umlMatchLimitChar(SourceChar, @umlMultipleString) or umlMatchLimitChar(SourceChar, @umlMultipleCharacter);
+              Result := umlMatchChar(SourceChar, @umlMultipleString) or umlMatchChar(SourceChar, @umlMultipleCharacter);
               exit;
             end;
           Result := False;
@@ -3270,7 +3388,7 @@ CharacterRep_Label:
     end;
 
 MultipleCharacterRep_Label:
-  while umlMatchLimitChar(SourceChar, @umlMultipleCharacter) do
+  while umlMatchChar(SourceChar, @umlMultipleCharacter) do
     begin
       if SourceIndex = SourceLength then
         begin
@@ -3286,7 +3404,7 @@ MultipleCharacterRep_Label:
         begin
           SourceIndex := SourceIndex + 1;
           SourceChar := UpperCaseSourceStr[SourceIndex];
-          if (SourceIndex = SourceLength) and ((umlMatchLimitChar(SourceChar, @umlMultipleString)) or (umlMatchLimitChar(SourceChar, @umlMultipleCharacter))) then
+          if (SourceIndex = SourceLength) and ((umlMatchChar(SourceChar, @umlMultipleString)) or (umlMatchChar(SourceChar, @umlMultipleCharacter))) then
             begin
               Result := True;
               exit;
@@ -3301,7 +3419,7 @@ MultipleCharacterRep_Label:
     end;
 
 MultipleStringRep_Label:
-  if umlMatchLimitChar(SourceChar, @umlMultipleString) then
+  if umlMatchChar(SourceChar, @umlMultipleString) then
     begin
       if SourceIndex = SourceLength then
         begin
@@ -3311,7 +3429,7 @@ MultipleStringRep_Label:
       SourceIndex := SourceIndex + 1;
       SourceChar := UpperCaseSourceStr[SourceIndex];
 
-      while (umlMatchLimitChar(SourceChar, @umlMultipleString)) or (umlMatchLimitChar(SourceChar, @umlMultipleCharacter)) do
+      while (umlMatchChar(SourceChar, @umlMultipleString)) or (umlMatchChar(SourceChar, @umlMultipleCharacter)) do
         begin
           if SourceIndex = SourceLength then
             begin
@@ -3320,7 +3438,7 @@ MultipleStringRep_Label:
             end;
           SourceIndex := SourceIndex + 1;
           SourceChar := UpperCaseSourceStr[SourceIndex];
-          while umlMatchLimitChar(SourceChar, @umlMultipleCharacter) do
+          while umlMatchChar(SourceChar, @umlMultipleCharacter) do
             begin
               if SourceIndex = SourceLength then
                 begin
@@ -3340,12 +3458,12 @@ MultipleStringRep_Label:
         end;
       SwapIndex := 1;
       SwapChar := SwapStr[SwapIndex];
-      while (not umlMatchLimitChar(SwapChar, @umlMultipleCharacter)) and (not umlMatchLimitChar(SwapChar, @umlMultipleString)) and (SwapIndex < SwapLength) do
+      while (not umlMatchChar(SwapChar, @umlMultipleCharacter)) and (not umlMatchChar(SwapChar, @umlMultipleString)) and (SwapIndex < SwapLength) do
         begin
           SwapIndex := SwapIndex + 1;
           SwapChar := SwapStr[SwapIndex];
         end;
-      if (umlMatchLimitChar(SwapChar, @umlMultipleCharacter)) or (umlMatchLimitChar(SwapChar, @umlMultipleString)) then
+      if (umlMatchChar(SwapChar, @umlMultipleCharacter)) or (umlMatchChar(SwapChar, @umlMultipleString)) then
           SwapStr := umlCopyStr(SwapStr, 1, SwapIndex)
       else
         begin
@@ -3411,9 +3529,9 @@ MultipleStringRep_Label:
     end;
   if SourceChar = TargetChar then
       goto CharacterRep_Label
-  else if umlMatchLimitChar(SourceChar, @umlMultipleCharacter) then
+  else if umlMatchChar(SourceChar, @umlMultipleCharacter) then
       goto MultipleCharacterRep_Label
-  else if umlMatchLimitChar(SourceChar, @umlMultipleString) then
+  else if umlMatchChar(SourceChar, @umlMultipleString) then
       goto MultipleStringRep_Label
   else
       Result := False;
@@ -3497,7 +3615,7 @@ begin
     end;
 end;
 
-function umlDeTimeCodeToStr(NowDateTime: TDateTime): TPascalString;
+function umlDecodeTimeToStr(NowDateTime: TDateTime): TPascalString;
 var
   Year, Month, Day: Word;
   Hour, Min, Sec, MSec: Word;
@@ -3507,6 +3625,25 @@ begin
   Result := IntToHex(Year, 4) + IntToHex(Month, 2) +
     IntToHex(Day, 2) + IntToHex(Hour, 1) + IntToHex(Min, 2) +
     IntToHex(Sec, 2) + IntToHex(MSec, 3);
+end;
+
+function umlMakeRanName: TPascalString;
+type
+  TRanData = packed record
+    Year, Month, Day: Word;
+    Hour, Min, Sec, MSec: Word;
+  end;
+var
+  d: TDateTime;
+  r: TRanData;
+begin
+  d := umlNow();
+  with r do
+    begin
+      DecodeDate(d, Year, Month, Day);
+      DecodeTime(d, Hour, Min, Sec, MSec);
+    end;
+  Result := umlMD5String(@r, SizeOf(TRanData));
 end;
 
 function umlStringReplace(const s, OldPattern, NewPattern: TPascalString; IgnoreCase: Boolean): TPascalString;
@@ -4480,12 +4617,12 @@ end;
 
 function umlMD5Char(const buffPtr: PByte; const BuffSize: nativeUInt): TPascalString;
 begin
-  Result := umlMD52Str(umlMD5(buffPtr, BuffSize));
+  Result := umlMD5ToStr(umlMD5(buffPtr, BuffSize));
 end;
 
 function umlMD5String(const buffPtr: PByte; const BuffSize: nativeUInt): TPascalString;
 begin
-  Result := umlMD52Str(umlMD5(buffPtr, BuffSize));
+  Result := umlMD5ToStr(umlMD5(buffPtr, BuffSize));
 end;
 
 function umlStreamMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5;
@@ -4599,31 +4736,52 @@ end;
 
 function umlStreamMD5Char(stream: TCoreClassStream): TPascalString;
 begin
-  Result := umlMD52Str(umlStreamMD5(stream));
+  Result := umlMD5ToStr(umlStreamMD5(stream));
 end;
 
 function umlStreamMD5String(stream: TCoreClassStream): TPascalString;
 begin
-  Result := umlMD52Str(umlStreamMD5(stream));
+  Result := umlMD5ToStr(umlStreamMD5(stream));
 end;
 
-function umlStringMD5(const Value: TPascalString): TMD5;
+function umlStringMD5(const Value: TPascalString): TPascalString;
 var
   b: TBytes;
 begin
   b := umlBytesOf(Value);
-  Result := umlMD5(@b[0], length(b));
+  Result := umlMD5ToStr(umlMD5(@b[0], length(b)));
 end;
 
-function umlStringMD5Char(const Value: TPascalString): TPascalString;
-var
-  b: TBytes;
+function umlCombineMD5(const m1: TMD5): TMD5;
 begin
-  b := umlBytesOf(Value);
-  Result := umlMD52Str(umlMD5(@b[0], length(b)));
+  Result := umlMD5(@m1, SizeOf(TMD5));
 end;
 
-function umlMD52Str(md5: TMD5): TPascalString;
+function umlCombineMD5(const m1, m2: TMD5): TMD5;
+var
+  buff: array [0 .. 1] of TMD5;
+begin
+  buff[0] := m1;
+  buff[1] := m2;
+  Result := umlMD5(@buff[0], SizeOf(TMD5) * 2);
+end;
+
+function umlCombineMD5(const m1, m2, m3: TMD5): TMD5;
+var
+  buff: array [0 .. 2] of TMD5;
+begin
+  buff[0] := m1;
+  buff[1] := m2;
+  buff[2] := m3;
+  Result := umlMD5(@buff[0], SizeOf(TMD5) * 3);
+end;
+
+function umlCombineMD5(const buff: array of TMD5): TMD5;
+begin
+  Result := umlMD5(@buff[0], length(buff) * SizeOf(TMD5));
+end;
+
+function umlMD5ToStr(md5: TMD5): TPascalString;
 const
   HexArr: array [0 .. 15] of U_Char = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f');
 var
@@ -4637,7 +4795,7 @@ begin
     end;
 end;
 
-function umlMD52String(md5: TMD5): TPascalString;
+function umlMD5ToString(md5: TMD5): TPascalString;
 const
   HexArr: array [0 .. 15] of U_Char = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f');
 var
@@ -4661,14 +4819,14 @@ begin
   Result := (PUInt64(@m1[0])^ = PUInt64(@m2[0])^) and (PUInt64(@m1[8])^ = PUInt64(@m2[8])^);
 end;
 
-function umlIsNullMD5(M: TMD5): Boolean;
+function umlIsNullMD5(m: TMD5): Boolean;
 begin
-  Result := umlCompareMD5(M, NullMD5);
+  Result := umlCompareMD5(m, NullMD5);
 end;
 
-function umlWasNullMD5(M: TMD5): Boolean;
+function umlWasNullMD5(m: TMD5): Boolean;
 begin
-  Result := umlCompareMD5(M, NullMD5);
+  Result := umlCompareMD5(m, NullMD5);
 end;
 
 function umlCRC16(const Value: PByte; const Count: nativeUInt): Word;
@@ -5190,7 +5348,7 @@ begin
       exit;
   n := SText;
   //
-  if umlExistsLimitChar(n, Limit) then
+  if umlExistsChar(n, Limit) then
     begin
       repeat
         t := umlGetFirstStr(n, Limit);
@@ -5218,7 +5376,7 @@ begin
       exit;
   n := SText;
 
-  if umlExistsLimitChar(n, Limit) then
+  if umlExistsChar(n, Limit) then
     begin
       repeat
         t := umlTrimSpace(umlGetFirstStr(n, Limit));
@@ -5249,7 +5407,7 @@ begin
   Result := '';
   n := SText;
   //
-  if umlExistsLimitChar(n, Limit) then
+  if umlExistsChar(n, Limit) then
     begin
       repeat
         t := umlGetFirstStr(n, Limit);
@@ -5278,7 +5436,7 @@ begin
   AsLst.Clear;
   n := SText;
   //
-  if umlExistsLimitChar(n, Limit) then
+  if umlExistsChar(n, Limit) then
     begin
       repeat
         t := umlGetFirstStr(n, Limit);
@@ -5303,7 +5461,7 @@ begin
   AsLst.Clear;
   n := SText;
   //
-  if umlExistsLimitChar(n, Limit) then
+  if umlExistsChar(n, Limit) then
     begin
       repeat
         t := umlGetFirstStr(n, Limit);
@@ -5662,22 +5820,27 @@ begin
       ExLibs := THashVariantList.Create;
   if not ExLibs.Exists(LibName) then
     begin
+      try
 {$IFNDEF FPC}
 {$IFDEF ANDROID}
-      Result := LoadLibrary(PChar(umlCombineFileName(System.IOUtils.TPath.GetLibraryPath, LibName).Text));
+        Result := LoadLibrary(PChar(umlCombineFileName(System.IOUtils.TPath.GetLibraryPath, LibName).Text));
 {$ELSE ANDROID}
-      Result := LoadLibrary(PChar(LibName));
+        Result := LoadLibrary(PChar(LibName));
 {$ENDIF ANDROID}
 {$ELSE FPC}
-      Result := LoadLibrary(PChar(LibName));
+        Result := LoadLibrary(PChar(LibName));
 {$ENDIF FPC}
-      ExLibs.Add(LibName, Result);
+        ExLibs.Add(LibName, Result);
+      except
+        FreeExtLib(LibName);
+        Result := 0;
+      end;
     end
   else
       Result := ExLibs[LibName];
 
   if Result = 0 then
-      raiseInfo('LoadLibrary failed:%s', [LibName]);
+      DoStatus('failed LoadLibrary %s', [LibName]);
 {$IFEND}
 end;
 
@@ -5689,7 +5852,10 @@ begin
       ExLibs := THashVariantList.Create;
   if ExLibs.Exists(LibName) then
     begin
-      FreeLibrary(HMODULE(ExLibs[LibName]));
+      try
+          FreeLibrary(HMODULE(ExLibs[LibName]));
+      except
+      end;
       ExLibs.Delete(LibName);
       Result := True;
     end;
@@ -5697,19 +5863,50 @@ begin
 end;
 
 function GetExtProc(const LibName, ProcName: SystemString): Pointer;
-begin
 {$IF not(Defined(IOS) and Defined(CPUARM))}
-  Result := GetProcAddress(GetExtLib(LibName), PChar(ProcName));
-  if Result = nil then
-      raiseInfo('external libray error: %s - %s', [LibName, ProcName]);
-
-{$ELSE}
+var
+  h: HMODULE;
+{$IFEND}
+begin
   Result := nil;
+{$IF not(Defined(IOS) and Defined(CPUARM))}
+  h := GetExtLib(LibName);
+  if h <> 0 then
+    begin
+      Result := GetProcAddress(h, PChar(ProcName));
+      if Result = nil then
+          DoStatus('error external libray: %s - %s', [LibName, ProcName]);
+    end;
 {$IFEND}
 end;
 
-initialization
+{$IFDEF RangeCheck}{$R-}{$ENDIF}
 
+
+function umlCompareRawByteString(const s1: RawByteString; const s2: PArrayRawByte): Boolean;
+begin
+  Result := CompareMemory(@s1[1], @s2^[0], length(s1));
+end;
+
+function umlCompareRawByteString(const s1: PArrayRawByte; const s2: RawByteString): Boolean;
+begin
+  Result := CompareMemory(@s2[1], @s1^[0], length(s2));
+end;
+
+procedure umlSetRawByte(const sour: RawByteString; const dest: PArrayRawByte);
+begin
+  CopyPtr(@sour[1], @dest^[0], length(sour));
+end;
+
+procedure umlSetRawByte(const dest: PArrayRawByte; const sour: RawByteString);
+begin
+  CopyPtr(@sour[1], @dest^[0], length(sour));
+end;
+
+{$IFDEF RangeCheck}{$R+}{$ENDIF}
+
+
+initialization
 
 finalization
 

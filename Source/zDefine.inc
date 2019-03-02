@@ -8,7 +8,12 @@
 { * https://github.com/PassByYou888/zRasterization                             * }
 { ****************************************************************************** }
 {$IFDEF FPC}
-  {$MODE objfpc}
+  {$IFDEF FPC_DELPHI_MODE}
+    {$MODE delphi}
+  {$ELSE FPC_DELPHI_MODE}
+    {$MODE objfpc}
+  {$ENDIF FPC_DELPHI_MODE}
+
   {$MODESWITCH AdvancedRecords}
   {$NOTES OFF}
   {$STACKFRAMES ON}
@@ -34,52 +39,8 @@
   // multi thread parallel switch.
   {$DEFINE parallel}
 
-  (*
-   Z_AI summary
-
-   fast surf:
-   This is the original paper which introduced the algorithm: Speeded Up Robust Features, By Herbert Bay, Tinne Tuytelaars, and Luc Van Gool,
-   translate for pascal, by qq600585
-
-   object detection train:
-   learning to detect objects in images. supported.
-   create an object detector it requires a set of annotated training images.
-
-   object detection:
-   used sliding window object detector.
-   first published by Dalal and Triggs in 2005 in the paper Histograms of Oriented Gradients for Human Detection.
-
-   svm:
-   1, cross validation and svm training functions to find a good decision.
-   2, pegasos algorithm for online training of support vector machines.
-   3, learning to rank objects.
-   4, simple binary classification problem and make you to train a support vector machine on that data.
-   5, the central ideas needed to setup a structural SVM model for your machine learning problems.
-
-   svr:
-   illustrating the use of the epsilon-insensitive support vector regression object from the zAI Library.
-
-   ResNet network face recognition:
-   model has a 99.38% accuracy on the standard LFW face recognition benchmark,
-   which is comparable to other state-of-the-art methods for face recognition as of February 2017.
-
-   face shape predictor trainer:
-   One Millisecond Face Alignment with an Ensemble of Regression Trees by Vahid Kazemi and Josephine Sullivan, CVPR 2014
-
-   cuDNN, https://developer.nvidia.com/cuda-zone
-
-   Max-Margin Object Detection and train, CVPR 2015,
-
-   ResNet34 Object detector train and object classifier:
-   The ResNet34 architecture is from the paper Deep Residual Learning for Image Recognition by qq600585.
-   The model file that comes with zAI was trained using the cuda program on a Titan X for about 2 weeks.
-   This pretrained model has a top5 error of 7.572% on test for 2012 imagenet validation dataset.
-
-   krls:
-   This is an implementation of the kernel recursive least squares algorithm described in the paper:
-   The Kernel Recursive Least Squares Algorithm by Yaakov Engel.
-  *)
-  {$DEFINE Z_AI}
+  // automated loading common AI data sets on boot-time
+  // {$DEFINE Z_AI_Dataset_Build_In}
 
   // With LARGE_RASTER_FONT, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
   // {$DEFINE LARGE_RASTER_FONT}
@@ -126,52 +87,8 @@
   // multi thread parallel switch.
   {$DEFINE parallel}
 
-  (*
-   Z_AI summary
-
-   fast surf:
-   This is the original paper which introduced the algorithm: Speeded Up Robust Features, By Herbert Bay, Tinne Tuytelaars, and Luc Van Gool,
-   translate for pascal, by qq600585
-
-   object detection train:
-   learning to detect objects in images. supported.
-   create an object detector it requires a set of annotated training images.
-
-   object detection:
-   used sliding window object detector.
-   first published by Dalal and Triggs in 2005 in the paper Histograms of Oriented Gradients for Human Detection.
-
-   svm:
-   1, cross validation and svm training functions to find a good decision.
-   2, pegasos algorithm for online training of support vector machines.
-   3, learning to rank objects.
-   4, simple binary classification problem and make you to train a support vector machine on that data.
-   5, the central ideas needed to setup a structural SVM model for your machine learning problems.
-
-   svr:
-   illustrating the use of the epsilon-insensitive support vector regression object from the zAI Library.
-
-   ResNet network face recognition:
-   model has a 99.38% accuracy on the standard LFW face recognition benchmark,
-   which is comparable to other state-of-the-art methods for face recognition as of February 2017.
-
-   face shape predictor trainer:
-   One Millisecond Face Alignment with an Ensemble of Regression Trees by Vahid Kazemi and Josephine Sullivan, CVPR 2014
-
-   cuDNN, https://developer.nvidia.com/cuda-zone
-
-   Max-Margin Object Detection and train, CVPR 2015,
-
-   ResNet34 Object detector train and object classifier:
-   The ResNet34 architecture is from the paper Deep Residual Learning for Image Recognition by qq600585.
-   The model file that comes with zAI was trained using the cuda program on a Titan X for about 2 weeks.
-   This pretrained model has a top5 error of 7.572% on test for 2012 imagenet validation dataset.
-
-   krls:
-   This is an implementation of the kernel recursive least squares algorithm described in the paper:
-   The Kernel Recursive Least Squares Algorithm by Yaakov Engel.
-  *)
-  {$DEFINE Z_AI}
+  // automated loading common AI data sets on boot-time
+  // {$DEFINE Z_AI_Dataset_Build_In}
 
   // With LARGE_RASTER_FONT, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
   // {$DEFINE LARGE_RASTER_FONT}
@@ -194,7 +111,6 @@
     {$R-} { range check }
     {$I-} { Input output checking }
     {$O+} { optimization }
-    {$INLINE AUTO} { call inline automated }
     {$C+} { Assertions }
   {$ELSE}
     {$UNDEF INLINE_ASM}
@@ -216,8 +132,8 @@
   {$IFEND}
 {$ENDIF FPC}
 
-{$WARNINGS ON}
-{$HINTS ON}
+{$WARNINGS OFF}
+{$HINTS OFF}
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }

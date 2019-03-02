@@ -75,27 +75,30 @@ procedure TMyService.cmd_helloWorld_Stream_Result(Sender: TPeerClient; InData, O
 begin
   // hpc延迟后台运算机制演示，机制非常简单，可以大规模堆砌工程化代码
   CommunicationFramework.RunStreamWithDelayThreadP(Sender, nil, nil, InData, OutData,
-    procedure(Sender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine)
+    procedure(ThSender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine)
     begin
       // 如果在你的后台服务器框架有调度中心服务器：ManagerServer
-      TThread.Synchronize(Sender, procedure
+      TThread.Synchronize(ThSender.Thread, procedure
         begin
           // 我们要在主进程的运行地带告诉调度中心服务器，我开始做大规模运算工作了
         end);
 
       // hpc延迟后台运算与传统处理差异在于我们需要使用ThInData,ThOutData来辨别和反馈数据
 
+      // 在hpc后台计算可以使用doStatus
+      DoStatus('run compute thread');
+
       // 这里的代码是工作于线程地带的
       ThOutData.WriteString('result 654321');
 
       // 如果需要同步到主线程，需要使用
-      TThread.Synchronize(Sender, procedure
+      TThread.Synchronize(ThSender.Thread, procedure
         begin
           // 这里是主进程的同步地带，比如文件操作，zdb数据库操作等等
         end);
 
       // 在hpc的后台延迟线程中，并行化是安全的
-      Threading.TParallel.&For(0, 100000, procedure(pass: Integer)
+      Threading.TParallel.&For(0, 10000, procedure(pass: Integer)
         begin
           // 在并行处理中，因为emb的设计问题，我们无法使用 TThread.Synchronize 方法
           // 在并行处理中，我们可以使用zServer内核原子锁
@@ -105,10 +108,14 @@ begin
           // 另一种原子锁的写法是
           LockID(1);   // LockID可以1..255之间的数值
           UnLockID(1); // UnLockID可以1..255之间的数值
+
+          // 在hpc后台计算可以使用doStatus
+          if pass mod 1000 = 1 then
+              DoStatus('run compute thread:%d', [pass]);
         end);
 
       // 如果在你的后台服务器框架有调度中心服务器：ManagerServer
-      TThread.Synchronize(Sender, procedure
+      TThread.Synchronize(ThSender.Thread, procedure
         begin
           // 我们要在主进程的运行地带告诉调度中心服务器，我的大规模计算工作做完了
         end);

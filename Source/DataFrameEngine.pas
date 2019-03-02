@@ -204,7 +204,6 @@ type
   TDataFrameArrayShortInt = class sealed(TDataFrameBase)
   protected
     FBuffer: TCoreClassList;
-
   public
     constructor Create(ID: ShortInt);
     destructor Destroy; override;
@@ -517,6 +516,7 @@ type
     function DeleteCount(idx, _Count: Integer): Boolean;
     //
     procedure Assign(SameObj: TDataFrameEngine);
+    function Clone: TDataFrameEngine;
     //
     procedure WriteString(v: SystemString); overload;
     procedure WriteString(v: TPascalString); overload;
@@ -2635,6 +2635,12 @@ begin
   s.Position := 0;
   DecodeFrom(s, True);
   DisposeObject(s);
+end;
+
+function TDataFrameEngine.Clone: TDataFrameEngine;
+begin
+  Result := TDataFrameEngine.Create;
+  Result.Assign(Self);
 end;
 
 procedure TDataFrameEngine.WriteString(v: SystemString);

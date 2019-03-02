@@ -5,6 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ActnList, Menus,
+  ShellAPI, IOUtils,
   PascalStrings, ObjectData, ObjectDataManager, FileCtrl,
   ObjectDataTreeFrameUnit, ItemStream, System.Actions;
 
@@ -27,11 +28,16 @@ type
     ExportTo1: TMenuItem;
     Remove1: TMenuItem;
     n3: TMenuItem;
+    SaveDialog: TSaveDialog;
+    Action_Open: TAction;
+    Open1: TMenuItem;
+    N1: TMenuItem;
     procedure ActionAddResourceExecute(Sender: TObject);
     procedure ActionCreateDirExecute(Sender: TObject);
     procedure ActionExportExecute(Sender: TObject);
     procedure ActionRemoveExecute(Sender: TObject);
     procedure ActionRenameExecute(Sender: TObject);
+    procedure Action_OpenExecute(Sender: TObject);
     procedure ListViewEdited(Sender: TObject; Item: TListItem; var s: string);
     procedure ListViewEditing(Sender: TObject; Item: TListItem; var AllowEdit: Boolean);
     procedure ListViewKeyUp(Sender: TObject; var key: Word; Shift: TShiftState);
@@ -126,9 +132,17 @@ begin
       Exit;
   if FResourceData = nil then
       Exit;
-  if ListView.SelCount > 0 then
+  if ListView.SelCount = 1 then
     begin
-      if not SelectDirectory('export to', '', aTargetDirectory) then
+      SaveDialog.FileName := ListView.Selected.Caption;
+      if not SaveDialog.Execute() then
+          Exit;
+      aShowMsg := True;
+      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, umlGetFilePath(SaveDialog.FileName), umlGetFileName(SaveDialog.FileName), aShowMsg);
+    end
+  else
+    begin
+      if not SelectDirectory('export to', '', aTargetDirectory, [sdNewFolder, sdShowEdit, sdShowShares, sdNewUI]) then
           Exit;
 
       aShowMsg := True;
@@ -136,16 +150,10 @@ begin
         begin
           with ListView.Items[RepaInt] do
             begin
-              if selected then
+              if (Selected) or (ListView.SelCount = 0) then
                 begin
-                  if ImageIndex = FDefaultFolderImageIndex then
-                    begin
-                      DoStatus(Format('dont export directory "%s"', [Caption]));
-                    end
-                  else
-                    begin
+                  if ImageIndex <> FDefaultFolderImageIndex then
                       ExportToFile(CurrentObjectDataPath, Caption, aTargetDirectory, Caption, aShowMsg);
-                    end;
                 end;
             end;
         end;
@@ -168,7 +176,7 @@ begin
         begin
           with ListView.Items[RepaInt] do
             begin
-              if selected then
+              if Selected then
                 begin
                   if ImageIndex = FDefaultFolderImageIndex then
                     begin
@@ -190,8 +198,8 @@ procedure TObjectDataManagerFrame.ActionRenameExecute(Sender: TObject);
 begin
   if ListView.IsEditing then
       Exit;
-  if ListView.selected <> nil then
-      ListView.selected.EditCaption;
+  if ListView.Selected <> nil then
+      ListView.Selected.EditCaption;
 end;
 
 procedure TObjectDataManagerFrame.ListViewEdited(Sender: TObject; Item: TListItem; var s: string);
@@ -311,6 +319,25 @@ destructor TObjectDataManagerFrame.Destroy;
 begin
   FResourceTreeFrame.Free;
   inherited;
+end;
+
+procedure TObjectDataManagerFrame.Action_OpenExecute(Sender: TObject);
+var
+  aShowMsg: Boolean;
+  RepaInt: Integer;
+  aTargetDirectory: string;
+begin
+  if ListView.IsEditing then
+      Exit;
+  if FResourceData = nil then
+      Exit;
+  if ListView.SelCount = 1 then
+    begin
+      aShowMsg := False;
+      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, TPath.GetTempPath, ListView.Selected.Caption, aShowMsg);
+
+      ShellExecute(0, 'open', PWideChar(umlCombineFileName(TPath.GetTempPath, ListView.Selected.Caption).Text), '', PWideChar(TPath.GetTempPath), SW_SHOW);
+    end;
 end;
 
 procedure TObjectDataManagerFrame.UpdateItemList(APath: string);

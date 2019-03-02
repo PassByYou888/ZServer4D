@@ -205,7 +205,7 @@ begin
   UserID := InData.Reader.ReadString;
   UserPasswd := InData.Reader.ReadString;
 
-  if umlExistsLimitChar(UserID, '[]:'#13#10#9#8#0) then
+  if umlExistsChar(UserID, '[]:'#13#10#9#8#0) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user name Illegal:%s', [UserID]));

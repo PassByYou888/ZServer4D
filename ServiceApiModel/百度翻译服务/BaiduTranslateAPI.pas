@@ -268,7 +268,7 @@ begin
     '&to=' + TranslateLanguage2Token(desLanguage) +
     '&appid=' + BaiduTranslate_Appid +
     '&salt=' + IntToStr(salt) +
-    '&sign=' + umlStringMD5Char(soursign);
+    '&sign=' + umlStringMD5(soursign);
   Intf := THTTPSyncIntf.Create;
   Intf.th := THTTPGetTh.Create;
   Intf.th.syncIntf := Intf;

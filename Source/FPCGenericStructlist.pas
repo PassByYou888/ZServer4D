@@ -48,7 +48,7 @@ type
     see http://bugs.freepascal.org/view.php?id=9228).
 
     We also add some trivial helper methods like @link(Add) and @link(L). }
-  generic TGenericStructList<t> = class(TFPSList)
+  generic TGenericsList<t> = class(TFPSList)
   private
     type
       TCompareFunc = function(const Item1, Item2: t): Integer;
@@ -77,12 +77,13 @@ type
     procedure Insert(index: Integer; const Item: t); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: t; {$ifdef CLASSESINLINE} inline; {$endif}
 {$ifndef OldSyntax}
-    procedure Assign(Source: TGenericStructList);
+    procedure Assign(Source: TGenericsList);
 {$endif OldSyntax}
     function Remove(const Item: t): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[index: Integer]: t read Get write Put; default;
     property List: PTypeList read GetList;
+    property ListData: PTypeList read GetList;
   end;
 
 {$ENDIF FPC}
@@ -90,82 +91,82 @@ type
 implementation
 
 {$IFDEF FPC}
-constructor TGenericStructList.Create;
+constructor TGenericsList.Create;
 begin
   inherited Create(SizeOf(t));
 end;
 
-procedure TGenericStructList.CopyItem(Src, dest: Pointer);
+procedure TGenericsList.CopyItem(Src, dest: Pointer);
 begin
   t(dest^) := t(Src^);
 end;
 
-procedure TGenericStructList.Deref(Item: Pointer);
+procedure TGenericsList.Deref(Item: Pointer);
 begin
   Finalize(t(Item^));
 end;
 
-function TGenericStructList.Get(index: Integer): t;
+function TGenericsList.Get(index: Integer): t;
 begin
   Result := t(inherited Get(index)^);
 end;
 
-function TGenericStructList.GetList: PTypeList;
+function TGenericsList.GetList: PTypeList;
 begin
   Result := PTypeList(FList);
 end;
 
-function TGenericStructList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+function TGenericsList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
 begin
   Result := FOnCompare(t(Item1^), t(Item2^));
 end;
 
-procedure TGenericStructList.Put(index: Integer; const Item: t);
+procedure TGenericsList.Put(index: Integer; const Item: t);
 begin
   inherited Put(index, @Item);
 end;
 
-function TGenericStructList.Add(const Item: t): Integer;
+function TGenericsList.Add(const Item: t): Integer;
 begin
   Result := inherited Add(@Item);
 end;
 
 {$ifdef HAS_EXTRACT}
-function TGenericStructList.Extract(const Item: t): t;
+function TGenericsList.Extract(const Item: t): t;
 begin
   inherited Extract(@Item, @Result);
 end;
 {$endif}
 
-function TGenericStructList.First: t;
+function TGenericsList.First: t;
 begin
   Result := t(inherited First^);
 end;
 
 {$ifdef HAS_ENUMERATOR}
-function TGenericStructList.GetEnumerator: TFPGListEnumeratorSpec;
+function TGenericsList.GetEnumerator: TFPGListEnumeratorSpec;
 begin
   Result := TFPGListEnumeratorSpec.Create(Self);
 end;
 {$endif}
 
-function TGenericStructList.IndexOf(const Item: t): Integer;
+function TGenericsList.IndexOf(const Item: t): Integer;
 begin
   Result := inherited IndexOf(@Item);
 end;
 
-procedure TGenericStructList.Insert(index: Integer; const Item: t);
+procedure TGenericsList.Insert(index: Integer; const Item: t);
 begin
   t(inherited Insert(index)^) := Item;
 end;
 
-function TGenericStructList.Last: t;
+function TGenericsList.Last: t;
 begin
   Result := t(inherited Last^);
 end;
 
 {$ifndef OldSyntax}
-procedure TGenericStructList.Assign(Source: TGenericStructList);
+procedure TGenericsList.Assign(Source: TGenericsList);
 var
   i: Integer;
 begin
@@ -175,14 +176,14 @@ begin
 end;
 {$endif OldSyntax}
 
-function TGenericStructList.Remove(const Item: t): Integer;
+function TGenericsList.Remove(const Item: t): Integer;
 begin
   Result := IndexOf(Item);
   if Result >= 0 then
     Delete(Result);
 end;
 
-procedure TGenericStructList.Sort(Compare: TCompareFunc);
+procedure TGenericsList.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);

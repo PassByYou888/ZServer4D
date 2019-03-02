@@ -12,10 +12,10 @@
 
 unit Geometry3DUnit;
 
-interface
-
+{$DEFINE FPC_DELPHI_MODE}
 {$INCLUDE zDefine.inc}
 
+interface
 
 uses Types, SysUtils,
   GeometryLib, Geometry2DUnit, PascalStrings, UnicodeMixedLib;
@@ -28,13 +28,12 @@ type
   TMatrix4 = record
     Link: TMat4;
   public
-{$IFNDEF FPC}
     class operator Equal(const Lhs, Rhs: TMatrix4): Boolean;
     class operator NotEqual(const Lhs, Rhs: TMatrix4): Boolean;
     class operator Multiply(const Lhs, Rhs: TMatrix4): TMatrix4;
     class operator Implicit(Value: Single): TMatrix4;
     class operator Implicit(Value: TMat4): TMatrix4;
-{$ENDIF}
+
     function Swap: TMatrix4;
     function Lerp(M: TMatrix4; Delta: Single): TMatrix4;
     function AffineMatrix: TAffineMatrix;
@@ -69,7 +68,6 @@ type
     property COLOR: TVec4 read Link write Link;
     property LinkValue[index: Integer]: Single read GetLinkValue write SetLinkValue; default;
 
-{$IFNDEF FPC}
     class operator Equal(const Lhs, Rhs: TVector4): Boolean;
     class operator NotEqual(const Lhs, Rhs: TVector4): Boolean;
     class operator GreaterThan(const Lhs, Rhs: TVector4): Boolean;
@@ -88,13 +86,10 @@ type
     class operator Multiply(const Lhs, Rhs: TVector4): TVector4;
     class operator Multiply(const Lhs: TVector4; const Rhs: Single): TVector4;
     class operator Multiply(const Lhs: Single; const Rhs: TVector4): TVector4;
-
     class operator Multiply(const Lhs: TVector4; const Rhs: TMatrix4): TVector4;
     class operator Multiply(const Lhs: TMatrix4; const Rhs: TVector4): TVector4;
-
     class operator Multiply(const Lhs: TVector4; const Rhs: TMat4): TVector4;
     class operator Multiply(const Lhs: TMat4; const Rhs: TVector4): TVector4;
-
     class operator Multiply(const Lhs: TVector4; const Rhs: TAffineMatrix): TVector4;
     class operator Multiply(const Lhs: TAffineMatrix; const Rhs: TVector4): TVector4;
 
@@ -105,12 +100,12 @@ type
     class operator Implicit(Value: Single): TVector4;
     class operator Implicit(Value: TVec4): TVector4;
     class operator Implicit(Value: TVec3): TVector4;
-    class operator Implicit(Value: T2DPoint): TVector4;
+    class operator Implicit(Value: TVec2): TVector4;
 
     class operator Explicit(Value: TVector4): TVec4;
     class operator Explicit(Value: TVector4): TVec3;
-    class operator Explicit(Value: TVector4): T2DPoint;
-{$ENDIF}
+    class operator Explicit(Value: TVector4): TVec2;
+
     procedure SetRGBA(const r, g, b, a: Single); overload;
     procedure SetLocation(const fx, fy, fz, fw: Single); overload;
     procedure SetLocation(const fx, fy, fz: Single); overload;
@@ -142,7 +137,6 @@ type
     property RGB: TVec3 read Link write Link;
     property LinkValue[index: Integer]: Single read GetLinkValue write SetLinkValue; default;
 
-{$IFNDEF FPC}
     class operator Equal(const Lhs, Rhs: TVector3): Boolean;
     class operator NotEqual(const Lhs, Rhs: TVector3): Boolean;
     class operator GreaterThan(const Lhs, Rhs: TVector3): Boolean;
@@ -178,12 +172,12 @@ type
     class operator Implicit(Value: Single): TVector3;
     class operator Implicit(Value: TVec4): TVector3;
     class operator Implicit(Value: TVec3): TVector3;
-    class operator Implicit(Value: T2DPoint): TVector3;
+    class operator Implicit(Value: TVec2): TVector3;
 
     class operator Explicit(Value: TVector3): TVec4;
     class operator Explicit(Value: TVector3): TVec3;
-    class operator Explicit(Value: TVector3): T2DPoint;
-{$ENDIF}
+    class operator Explicit(Value: TVector3): TVec2;
+
     procedure SetLocation(const fx, fy, fz: Single); overload;
     function Distance3D(const v2: TVector3): Single;
     function Distance2D(const v2: TVector3): Single;
@@ -214,6 +208,55 @@ type
     function PointIn(const p: TVector3): Boolean;
   end;
 
+  TVector2 = record
+    Link: TVec2;
+  private
+    function GetLinkValue(index: Integer): TGeoFloat;
+    procedure SetLinkValue(index: Integer; const Value: TGeoFloat);
+  public
+    property LinkValue[index: Integer]: TGeoFloat read GetLinkValue write SetLinkValue; default;
+
+    class operator Equal(const Lhs, Rhs: TVector2): Boolean;
+    class operator NotEqual(const Lhs, Rhs: TVector2): Boolean;
+    class operator GreaterThan(const Lhs, Rhs: TVector2): Boolean;
+    class operator GreaterThanOrEqual(const Lhs, Rhs: TVector2): Boolean;
+    class operator LessThan(const Lhs, Rhs: TVector2): Boolean;
+    class operator LessThanOrEqual(const Lhs, Rhs: TVector2): Boolean;
+
+    class operator Add(const Lhs, Rhs: TVector2): TVector2;
+    class operator Add(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
+    class operator Add(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
+
+    class operator Subtract(const Lhs, Rhs: TVector2): TVector2;
+    class operator Subtract(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
+    class operator Subtract(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
+
+    class operator Multiply(const Lhs, Rhs: TVector2): TVector2;
+    class operator Multiply(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
+    class operator Multiply(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
+
+    class operator Divide(const Lhs, Rhs: TVector2): TVector2;
+    class operator Divide(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
+    class operator Divide(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
+
+    class operator Implicit(Value: TGeoFloat): TVector2;
+    class operator Implicit(Value: TPoint): TVector2;
+    class operator Implicit(Value: TPointf): TVector2;
+    class operator Implicit(Value: TVec2): TVector2;
+
+    class operator Explicit(Value: TVector2): TPointf;
+    class operator Explicit(Value: TVector2): TPoint;
+    class operator Explicit(Value: TVector2): TVec2;
+
+    procedure SetLocation(const fx, fy: TGeoFloat); overload;
+    function Distance(const v2: TVector2): TGeoFloat;
+    function Lerp(const v2: TVector2; const t: TGeoFloat): TVector2;
+    function LerpDistance(const v2: TVector2; const d: TGeoFloat): TVector2;
+    function Norm: TGeoFloat;
+    function length: TGeoFloat;
+    function Normalize: TVector2;
+  end;
+
 function Vector4(x, y, z, w: Single): TVector4; overload;
 function Vector4(x, y, z: Single): TVector4; overload;
 function Vector4(v: TVec3): TVector4; overload;
@@ -226,8 +269,8 @@ function Vector3(v: TVec4): TVector3; overload;
 function Vec3(const x, y, z: Single): TVec3; overload;
 function Vec3(const v: TVec4): TVec3; overload;
 function Vec3(const v: TVector3): TVec3; overload;
-function Vec3(const v: TVec2): TVec3; overload;
-function Vec3(const v: TVec2; z: Single): TVec3; overload;
+function Vec3(const v: TVector2): TVec3; overload;
+function Vec3(const v: TVector2; z: Single): TVec3; overload;
 
 function Vec4(const x, y, z: Single): TVec4; overload;
 function Vec4(const x, y, z, w: Single): TVec4; overload;
@@ -235,12 +278,13 @@ function Vec4(const v: TVec3): TVec4; overload;
 function Vec4(const v: TVec3; const z: Single): TVec4; overload;
 function Vec4(const v: TVector3): TVec4; overload;
 
-function vec2(const v: TVec3): TVec2; overload;
-function vec2(const v: TVec4): TVec2; overload;
-function vec2(const v: TVector3): TVec2; overload;
-function vec2(const v: TVector4): TVec2; overload;
+function vec2(const v: TVec3): TVector2; overload;
+function vec2(const v: TVec4): TVector2; overload;
+function vec2(const v: TVector3): TVector2; overload;
+function vec2(const v: TVector4): TVector2; overload;
 
 function VecToStr(const v: TVec2): SystemString; overload;
+function VecToStr(const v: TVector2): SystemString; overload;
 function VecToStr(const v: TVec3): SystemString; overload;
 function VecToStr(const v: TVec4): SystemString; overload;
 function VecToStr(const v: TVector3): SystemString; overload;
@@ -248,6 +292,7 @@ function VecToStr(const v: TVector4): SystemString; overload;
 function RectToStr(const v: TRectV2): SystemString; overload;
 
 function StrToVec2(const s: SystemString): TVec2;
+function StrToVector2(const s: SystemString): TVector2;
 function StrToVec3(const s: SystemString): TVec3;
 function StrToVec4(const s: SystemString): TVec4;
 function StrToVector3(const s: SystemString): TVector3;
@@ -259,83 +304,32 @@ function GetMin(const arry: array of Integer): Integer; overload;
 function GetMax(const arry: array of TGeoFloat): TGeoFloat; overload;
 function GetMax(const arry: array of Integer): Integer; overload;
 
-function FinalAngle4FMX(const a: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function CalcAngle(const v1, v2: T2DPoint): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function AngleDistance(const sour, dest: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function SmoothAngle(const sour, dest, Delta: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function AngleEqual(const a1, a2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FinalAngle4FMX(const a: TGeoFloat): TGeoFloat;
+function CalcAngle(const v1, v2: TVec2): TGeoFloat;
+function AngleDistance(const sour, dest: TGeoFloat): TGeoFloat;
+function SmoothAngle(const sour, dest, Delta: TGeoFloat): TGeoFloat;
+function AngleEqual(const a1, a2: TGeoFloat): Boolean;
 
-function Distance(const v1, v2: T2DPoint): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function Distance(const v1, v2: TRectV2): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Distance(const v1, v2: TVec2): TGeoFloat; overload;
+function Distance(const v1, v2: TRectV2): TGeoFloat; overload;
 
-function MovementLerp(const s, d, Lerp: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementLerp(const s, d: T2DPoint; Lerp: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementLerp(const s, d: TRectV2; Lerp: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementLerp(const s, d, Lerp: TGeoFloat): TGeoFloat; overload;
+function MovementLerp(const s, d: TVec2; Lerp: TGeoFloat): TVec2; overload;
+function MovementLerp(const s, d: TRectV2; Lerp: TGeoFloat): TRectV2; overload;
 
-function MovementDistance(const s, d: T2DPoint; dt: TGeoFloat): T2DPoint; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementDistance(const s, d: TRectV2; dt: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistance(const s, d: TVec2; dt: TGeoFloat): TVec2; overload;
+function MovementDistance(const s, d: TRectV2; dt: TGeoFloat): TRectV2; overload;
+function MovementDistance(const sour, dest: TVector4; Distance: Single): TVector4; overload;
+function MovementDistance(const sour, dest: TVector3; Distance: Single): TVector3; overload;
 
-function MovementDistance(const sour, dest: TVector4; Distance: Single): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementDistance(const sour, dest: TVector3; Distance: Single): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-
-function MovementDistanceDeltaTime(const s, d: T2DPoint; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function MovementDistanceDeltaTime(const s, d: TRectV2; ASpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function AngleRollDistanceDeltaTime(const s, d: TGeoFloat; ARollSpeed: TGeoFloat): Double; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function MovementDistanceDeltaTime(const s, d: TVec2; ASpeed: TGeoFloat): Double; overload;
+function MovementDistanceDeltaTime(const s, d: TRectV2; ASpeed: TGeoFloat): Double; overload;
+function AngleRollDistanceDeltaTime(const s, d: TGeoFloat; ARollSpeed: TGeoFloat): Double; overload;
 
 function BounceVector(const Current: TVector4; DeltaDistance: Single; const BeginVector, EndVector: TVector4; var EndFlag: Boolean): TVector4; overload;
 function BounceVector(const Current: TVector3; DeltaDistance: Single; const BeginVector, EndVector: TVector3; var EndFlag: Boolean): TVector3; overload;
-function BounceVector(const Current: TVec2; DeltaDistance: Single; const BeginVector, EndVector: TVec2; var EndFlag: Boolean): TVec2; overload;
+function BounceVector(const Current: TVector2; DeltaDistance: Single; const BeginVector, EndVector: TVector2; var EndFlag: Boolean): TVector2; overload;
 function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; var EndFlag: Boolean): TGeoFloat; overload;
-
-{$IFDEF FPC}
-
-operator := (const s: Single)r: TMatrix4;
-operator := (const s: TMatrix4)r: TMat4;
-operator := (const s: TMat4)r: TMatrix4;
-
-operator := (const s: Single)r: TVector4;
-operator := (const s: TVector4)r: TVec4;
-operator := (const s: TVec4)r: TVector4;
-
-operator := (const s: Single)r: TVector3;
-operator := (const s: TVector3)r: TVec3;
-operator := (const s: TVec3)r: TVector3;
-
-operator * (const a: TMatrix4; const b: TMatrix4): TMatrix4;
-
-operator * (const a: Single; const b: TVector4): TVector4;
-operator * (const a: TVector4; const b: Single): TVector4;
-operator * (const a: TVector4; const b: TVector4): TVector4;
-
-operator * (const a: Single; const b: TVector3): TVector3;
-operator * (const a: TVector3; const b: Single): TVector3;
-operator * (const a: TVector3; const b: TVector3): TVector3;
-
-operator / (const a: Single; const b: TVector4): TVector4;
-operator / (const a: TVector4; const b: Single): TVector4;
-operator / (const a: TVector4; const b: TVector4): TVector4;
-
-operator / (const a: Single; const b: TVector3): TVector3;
-operator / (const a: TVector3; const b: Single): TVector3;
-operator / (const a: TVector3; const b: TVector3): TVector3;
-
-operator + (const a: Single; const b: TVector4): TVector4;
-operator + (const a: TVector4; const b: Single): TVector4;
-operator + (const a: TVector4; const b: TVector4): TVector4;
-
-operator + (const a: Single; const b: TVector3): TVector3;
-operator + (const a: TVector3; const b: Single): TVector3;
-operator + (const a: TVector3; const b: TVector3): TVector3;
-
-operator - (const a: Single; const b: TVector4): TVector4;
-operator - (const a: TVector4; const b: Single): TVector4;
-operator - (const a: TVector4; const b: TVector4): TVector4;
-
-operator - (const a: Single; const b: TVector3): TVector3;
-operator - (const a: TVector3; const b: Single): TVector3;
-operator - (const a: TVector3; const b: TVector3): TVector3;
-
-{$ENDIF}
 
 implementation
 
@@ -404,14 +398,14 @@ begin
   Result := v.Link;
 end;
 
-function Vec3(const v: TVec2): TVec3;
+function Vec3(const v: TVector2): TVec3;
 begin
   Result[0] := v[0];
   Result[1] := v[1];
   Result[2] := 0;
 end;
 
-function Vec3(const v: TVec2; z: Single): TVec3;
+function Vec3(const v: TVector2; z: Single): TVec3;
 begin
   Result[0] := v[0];
   Result[1] := v[1];
@@ -443,29 +437,34 @@ begin
   Result := VectorMake(v.Link);
 end;
 
-function vec2(const v: TVec3): TVec2;
+function vec2(const v: TVec3): TVector2;
 begin
   Result := vec2(v[0], v[1]);
 end;
 
-function vec2(const v: TVec4): TVec2;
+function vec2(const v: TVec4): TVector2;
 begin
   Result := vec2(v[0], v[1]);
 end;
 
-function vec2(const v: TVector3): TVec2;
+function vec2(const v: TVector3): TVector2;
 begin
   Result[0] := v.Link[0];
   Result[1] := v.Link[1];
 end;
 
-function vec2(const v: TVector4): TVec2;
+function vec2(const v: TVector4): TVector2;
 begin
   Result[0] := v.Link[0];
   Result[1] := v.Link[1];
 end;
 
 function VecToStr(const v: TVec2): SystemString;
+begin
+  Result := Format('%g,%g', [v[0], v[1]]);
+end;
+
+function VecToStr(const v: TVector2): SystemString;
 begin
   Result := Format('%g,%g', [v[0], v[1]]);
 end;
@@ -496,6 +495,19 @@ begin
 end;
 
 function StrToVec2(const s: SystemString): TVec2;
+var
+  v, v1, v2: U_String;
+begin
+  v := umlTrimSpace(s);
+  v1 := umlGetFirstStr(v, ',: ');
+  v := umlDeleteFirstStr(v, ',: ');
+  v2 := umlGetFirstStr(v, ',: ');
+
+  Result[0] := umlStrToFloat(v1, 0);
+  Result[1] := umlStrToFloat(v2, 0);
+end;
+
+function StrToVector2(const s: SystemString): TVector2;
 var
   v, v1, v2: U_String;
 begin
@@ -642,7 +654,7 @@ begin
   Result := NormalizeDegAngle((-a - 90) + 180);
 end;
 
-function CalcAngle(const v1, v2: T2DPoint): TGeoFloat;
+function CalcAngle(const v1, v2: TVec2): TGeoFloat;
 begin
   if IsEqual(v1, v2) then
       Result := 0
@@ -695,7 +707,7 @@ begin
   Result := AngleDistance(a1, a2) < 0.01;
 end;
 
-function Distance(const v1, v2: T2DPoint): TGeoFloat;
+function Distance(const v1, v2: TVec2): TGeoFloat;
 begin
   Result := PointDistance(v1, v2);
 end;
@@ -720,7 +732,7 @@ begin
       Result := d;
 end;
 
-function MovementLerp(const s, d: T2DPoint; Lerp: TGeoFloat): T2DPoint;
+function MovementLerp(const s, d: TVec2; Lerp: TGeoFloat): TVec2;
 begin
   if Lerp < 1.0 then
     begin
@@ -742,7 +754,7 @@ begin
       Result := d;
 end;
 
-function MovementDistance(const s, d: T2DPoint; dt: TGeoFloat): T2DPoint;
+function MovementDistance(const s, d: TVec2; dt: TGeoFloat): TVec2;
 var
   k: Double;
 begin
@@ -764,7 +776,7 @@ begin
       Result[1] := d[1];
 end;
 
-function MovementDistance(const sour, dest: TVector4; Distance: Single): TVector4; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MovementDistance(const sour, dest: TVector4; Distance: Single): TVector4;
 var
   k: Single;
 begin
@@ -778,7 +790,7 @@ begin
   Result[3] := sour[3] + k * (dest[3] - sour[3]);
 end;
 
-function MovementDistance(const sour, dest: TVector3; Distance: Single): TVector3; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MovementDistance(const sour, dest: TVector3; Distance: Single): TVector3;
 var
   k: Single;
 begin
@@ -790,7 +802,7 @@ begin
   Result[2] := sour[2] + k * (dest[2] - sour[2]);
 end;
 
-function MovementDistanceDeltaTime(const s, d: T2DPoint; ASpeed: TGeoFloat): Double;
+function MovementDistanceDeltaTime(const s, d: TVec2; ASpeed: TGeoFloat): Double;
 begin
   Result := Distance(s, d) / ASpeed;
 end;
@@ -858,8 +870,8 @@ begin
     end;
 end;
 
-function BounceVector(const Current: TVec2; DeltaDistance: Single; const BeginVector, EndVector: TVec2; var EndFlag: Boolean): TVec2;
-  function ToVector: TVec2;
+function BounceVector(const Current: TVector2; DeltaDistance: Single; const BeginVector, EndVector: TVector2; var EndFlag: Boolean): TVector2;
+  function ToVector: TVector2;
   begin
     if EndFlag then
         Result := EndVector
@@ -870,19 +882,19 @@ function BounceVector(const Current: TVec2; DeltaDistance: Single; const BeginVe
 var
   k: Single;
 begin
-  k := PointDistance(Current, ToVector);
+  k := Vec2Distance(Current.Link, ToVector.Link);
   if k >= DeltaDistance then
-      Result := PointLerpTo(Current, ToVector, DeltaDistance)
+      Result := Vec2LerpTo(Current.Link, ToVector.Link, DeltaDistance)
   else
     begin
       Result := ToVector;
       EndFlag := not EndFlag;
-      Result := PointLerpTo(Result, ToVector, DeltaDistance - k);
+      Result := Vec2LerpTo(Result.Link, ToVector.Link, DeltaDistance - k);
     end;
 end;
 
 function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; var EndFlag: Boolean): TGeoFloat;
-  function IfOut(Cur, Delta, dest: Single): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function IfOut(Cur, Delta, dest: Single): Boolean;
   begin
     if Cur > dest then
         Result := Cur - Delta < dest
@@ -890,7 +902,7 @@ function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; v
         Result := Cur + Delta > dest;
   end;
 
-  function GetOutValue(Cur, Delta, dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function GetOutValue(Cur, Delta, dest: Single): Single;
   begin
     if IfOut(Cur, Delta, dest) then
       begin
@@ -903,7 +915,7 @@ function BounceFloat(const CurrentVal, DeltaVal, StartVal, OverVal: TGeoFloat; v
         Result := 0;
   end;
 
-  function GetDeltaValue(Cur, Delta, dest: Single): Single; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function GetDeltaValue(Cur, Delta, dest: Single): Single;
   begin
     if Cur > dest then
         Result := Cur - Delta
@@ -939,9 +951,6 @@ begin
       Result := CurrentVal;
 end;
 
-{$IFNDEF FPC}
-
-
 class operator TMatrix4.Equal(const Lhs, Rhs: TMatrix4): Boolean;
 begin
   Result := VectorEquals(Lhs.Link[0], Rhs.Link[0]) and VectorEquals(Lhs.Link[1], Rhs.Link[1]) and VectorEquals(Lhs.Link[2], Rhs.Link[2]) and VectorEquals(Lhs.Link[3], Rhs.Link[3]);
@@ -970,9 +979,6 @@ class operator TMatrix4.Implicit(Value: TMat4): TMatrix4;
 begin
   Result.Link := Value;
 end;
-
-{$ENDIF}
-
 
 function TMatrix4.Swap: TMatrix4;
 var
@@ -1100,9 +1106,6 @@ procedure TVector4.SetLinkValue(index: Integer; const Value: Single);
 begin
   Link[index] := Value;
 end;
-
-{$IFNDEF FPC}
-
 
 class operator TVector4.Equal(const Lhs, Rhs: TVector4): Boolean;
 begin
@@ -1278,7 +1281,7 @@ begin
   Result.Link := VectorMake(Value);
 end;
 
-class operator TVector4.Implicit(Value: T2DPoint): TVector4;
+class operator TVector4.Implicit(Value: TVec2): TVector4;
 begin
   Result.Link := VectorMake(Value[0], Value[1], 0, 0);
 end;
@@ -1293,14 +1296,11 @@ begin
   Result := AffineVectorMake(Value.Link);
 end;
 
-class operator TVector4.Explicit(Value: TVector4): T2DPoint;
+class operator TVector4.Explicit(Value: TVector4): TVec2;
 begin
   Result[0] := Value.Link[0];
   Result[1] := Value.Link[1];
 end;
-
-{$ENDIF}
-
 
 procedure TVector4.SetRGBA(const r, g, b, a: Single);
 begin
@@ -1433,9 +1433,6 @@ procedure TVector3.SetLinkValue(index: Integer; const Value: Single);
 begin
   Link[index] := Value;
 end;
-
-{$IFNDEF FPC}
-
 
 class operator TVector3.Equal(const Lhs, Rhs: TVector3): Boolean;
 begin
@@ -1598,7 +1595,7 @@ begin
   Result.Link := Value;
 end;
 
-class operator TVector3.Implicit(Value: T2DPoint): TVector3;
+class operator TVector3.Implicit(Value: TVec2): TVector3;
 begin
   Result.Link := AffineVectorMake(Value[0], Value[1], 0);
 end;
@@ -1613,14 +1610,11 @@ begin
   Result := Value.Link;
 end;
 
-class operator TVector3.Explicit(Value: TVector3): T2DPoint;
+class operator TVector3.Explicit(Value: TVector3): TVec2;
 begin
   Result[0] := Value.Link[0];
   Result[1] := Value.Link[1];
 end;
-
-{$ENDIF}
-
 
 procedure TVector3.SetLocation(const fx, fy, fz: Single);
 begin
@@ -1780,253 +1774,174 @@ begin
     and (p.Link[2] <= Max[2]) and (p.Link[2] >= Min[2]);
 end;
 
-{$IFDEF FPC}
-
-
-operator := (const s: Single)r: TMatrix4;
-var
-  i, j: Integer;
+function TVector2.GetLinkValue(index: Integer): TGeoFloat;
 begin
-  for i := 0 to 3 do
-    for j := 0 to 3 do
-        r.Link[i, j] := s;
+  Result := Link[index];
 end;
 
-operator := (const s: TMatrix4)r: TMat4;
+procedure TVector2.SetLinkValue(index: Integer; const Value: TGeoFloat);
 begin
-  r := s.Link;
+  Link[index] := Value;
 end;
 
-operator := (const s: TMat4)r: TMatrix4;
+class operator TVector2.Equal(const Lhs, Rhs: TVector2): Boolean;
 begin
-  r.Link := s;
+  Result := IsEqual(Lhs.Link, Rhs.Link);
 end;
 
-operator := (const s: Single)r: TVector4;
+class operator TVector2.NotEqual(const Lhs, Rhs: TVector2): Boolean;
 begin
-  r.Link[0] := s;
-  r.Link[1] := s;
-  r.Link[2] := s;
-  r.Link[3] := s;
+  Result := NotEqual(Lhs.Link, Rhs.Link);
 end;
 
-operator := (const s: TVector4)r: TVec4;
+class operator TVector2.GreaterThan(const Lhs, Rhs: TVector2): Boolean;
 begin
-  r := s.Link;
+  Result := (Lhs.Link[0] > Rhs.Link[0]) and (Lhs.Link[1] > Rhs.Link[1]);
 end;
 
-operator := (const s: TVec4)r: TVector4;
+class operator TVector2.GreaterThanOrEqual(const Lhs, Rhs: TVector2): Boolean;
 begin
-  r.Link := s;
+  Result := (Lhs.Link[0] >= Rhs.Link[0]) and (Lhs.Link[1] >= Rhs.Link[1]);
 end;
 
-operator := (const s: Single)r: TVector3;
+class operator TVector2.LessThan(const Lhs, Rhs: TVector2): Boolean;
 begin
-  r.Link[0] := s;
-  r.Link[1] := s;
-  r.Link[2] := s;
+  Result := (Lhs.Link[0] < Rhs.Link[0]) and (Lhs.Link[1] < Rhs.Link[1]);
 end;
 
-operator := (const s: TVector3)r: TVec3;
+class operator TVector2.LessThanOrEqual(const Lhs, Rhs: TVector2): Boolean;
 begin
-  r := s.Link;
+  Result := (Lhs.Link[0] <= Rhs.Link[0]) and (Lhs.Link[1] <= Rhs.Link[1]);
 end;
 
-operator := (const s: TVec3)r: TVector3;
+class operator TVector2.Add(const Lhs, Rhs: TVector2): TVector2;
 begin
-  r.Link := s;
+  Result.Link := Vec2Add(Lhs.Link, Rhs.Link);
 end;
 
-operator * (const a: TMatrix4; const b: TMatrix4): TMatrix4;
+class operator TVector2.Add(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
 begin
-  Result := GeometryLib.MatrixMultiply(a, b);
+  Result.Link := Vec2Add(Lhs.Link, Rhs);
 end;
 
-operator * (const a: Single; const b: TVector4): TVector4;
+class operator TVector2.Add(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a * b.Link[0];
-  Result.Link[1] := a * b.Link[1];
-  Result.Link[2] := a * b.Link[2];
-  Result.Link[3] := a * b.Link[3];
+  Result.Link := Vec2Add(Lhs, Rhs.Link);
 end;
 
-operator * (const a: TVector4; const b: Single): TVector4;
+class operator TVector2.Subtract(const Lhs, Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a.Link[0] * b;
-  Result.Link[1] := a.Link[1] * b;
-  Result.Link[2] := a.Link[2] * b;
-  Result.Link[3] := a.Link[3] * b;
+  Result.Link := Vec2Sub(Lhs.Link, Rhs.Link);
 end;
 
-operator * (const a: TVector4; const b: TVector4): TVector4;
+class operator TVector2.Subtract(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
 begin
-  Result.Link[0] := a.Link[0] * b.Link[0];
-  Result.Link[1] := a.Link[1] * b.Link[1];
-  Result.Link[2] := a.Link[2] * b.Link[2];
-  Result.Link[3] := a.Link[3] * b.Link[3];
+  Result.Link := Vec2Sub(Lhs.Link, Rhs);
 end;
 
-operator * (const a: Single; const b: TVector3): TVector3;
+class operator TVector2.Subtract(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a * b.Link[0];
-  Result.Link[1] := a * b.Link[1];
-  Result.Link[2] := a * b.Link[2];
+  Result.Link := Vec2Sub(Lhs, Rhs.Link);
 end;
 
-operator * (const a: TVector3; const b: Single): TVector3;
+class operator TVector2.Multiply(const Lhs, Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a.Link[0] * b;
-  Result.Link[1] := a.Link[1] * b;
-  Result.Link[2] := a.Link[2] * b;
+  Result.Link := Vec2Mul(Lhs.Link, Rhs.Link);
 end;
 
-operator * (const a: TVector3; const b: TVector3): TVector3;
+class operator TVector2.Multiply(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
 begin
-  Result.Link[0] := a.Link[0] * b.Link[0];
-  Result.Link[1] := a.Link[1] * b.Link[1];
-  Result.Link[2] := a.Link[2] * b.Link[2];
+  Result.Link := Vec2Mul(Lhs.Link, Rhs);
 end;
 
-operator / (const a: Single; const b: TVector4): TVector4;
+class operator TVector2.Multiply(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a / b.Link[0];
-  Result.Link[1] := a / b.Link[1];
-  Result.Link[2] := a / b.Link[2];
-  Result.Link[3] := a / b.Link[3];
+  Result.Link := Vec2Mul(Lhs, Rhs.Link);
 end;
 
-operator / (const a: TVector4; const b: Single): TVector4;
+class operator TVector2.Divide(const Lhs, Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a.Link[0] / b;
-  Result.Link[1] := a.Link[1] / b;
-  Result.Link[2] := a.Link[2] / b;
-  Result.Link[3] := a.Link[3] / b;
+  Result.Link := Vec2Div(Lhs.Link, Rhs.Link);
 end;
 
-operator / (const a: TVector4; const b: TVector4): TVector4;
+class operator TVector2.Divide(const Lhs: TVector2; const Rhs: TGeoFloat): TVector2;
 begin
-  Result.Link[0] := a.Link[0] / b.Link[0];
-  Result.Link[1] := a.Link[1] / b.Link[1];
-  Result.Link[2] := a.Link[2] / b.Link[2];
-  Result.Link[3] := a.Link[3] / b.Link[3];
+  Result.Link := Vec2Div(Lhs.Link, Rhs);
 end;
 
-operator / (const a: Single; const b: TVector3): TVector3;
+class operator TVector2.Divide(const Lhs: TGeoFloat; const Rhs: TVector2): TVector2;
 begin
-  Result.Link[0] := a / b.Link[0];
-  Result.Link[1] := a / b.Link[1];
-  Result.Link[2] := a / b.Link[2];
+  Result.Link := Vec2Div(Lhs, Rhs.Link);
 end;
 
-operator / (const a: TVector3; const b: Single): TVector3;
+class operator TVector2.Implicit(Value: TGeoFloat): TVector2;
 begin
-  Result.Link[0] := a.Link[0] / b;
-  Result.Link[1] := a.Link[1] / b;
-  Result.Link[2] := a.Link[2] / b;
+  Result.Link := vec2(Value);
 end;
 
-operator / (const a: TVector3; const b: TVector3): TVector3;
+class operator TVector2.Implicit(Value: TPoint): TVector2;
 begin
-  Result.Link[0] := a.Link[0] / b.Link[0];
-  Result.Link[1] := a.Link[1] / b.Link[1];
-  Result.Link[2] := a.Link[2] / b.Link[2];
+  Result.Link := vec2(Value);
 end;
 
-operator + (const a: Single; const b: TVector4): TVector4;
+class operator TVector2.Implicit(Value: TPointf): TVector2;
 begin
-  Result.Link[0] := a + b.Link[0];
-  Result.Link[1] := a + b.Link[1];
-  Result.Link[2] := a + b.Link[2];
-  Result.Link[3] := a + b.Link[3];
+  Result.Link := vec2(Value);
 end;
 
-operator + (const a: TVector4; const b: Single): TVector4;
+class operator TVector2.Implicit(Value: TVec2): TVector2;
 begin
-  Result.Link[0] := a.Link[0] + b;
-  Result.Link[1] := a.Link[1] + b;
-  Result.Link[2] := a.Link[2] + b;
-  Result.Link[3] := a.Link[3] + b;
+  Result.Link := Value;
 end;
 
-operator + (const a: TVector4; const b: TVector4): TVector4;
+class operator TVector2.Explicit(Value: TVector2): TPointf;
 begin
-  Result.Link[0] := a.Link[0] + b.Link[0];
-  Result.Link[1] := a.Link[1] + b.Link[1];
-  Result.Link[2] := a.Link[2] + b.Link[2];
-  Result.Link[3] := a.Link[3] + b.Link[3];
+  Result := MakePointf(Value.Link);
 end;
 
-operator + (const a: Single; const b: TVector3): TVector3;
+class operator TVector2.Explicit(Value: TVector2): TPoint;
 begin
-  Result.Link[0] := a + b.Link[0];
-  Result.Link[1] := a + b.Link[1];
-  Result.Link[2] := a + b.Link[2];
+  Result := MakePoint(Value.Link);
 end;
 
-operator + (const a: TVector3; const b: Single): TVector3;
+class operator TVector2.Explicit(Value: TVector2): TVec2;
 begin
-  Result.Link[0] := a.Link[0] + b;
-  Result.Link[1] := a.Link[1] + b;
-  Result.Link[2] := a.Link[2] + b;
+  Result := Value.Link;
 end;
 
-operator + (const a: TVector3; const b: TVector3): TVector3;
+procedure TVector2.SetLocation(const fx, fy: TGeoFloat);
 begin
-  Result.Link[0] := a.Link[0] + b.Link[0];
-  Result.Link[1] := a.Link[1] + b.Link[1];
-  Result.Link[2] := a.Link[2] + b.Link[2];
+  Link := vec2(fx, fy);
 end;
 
-operator - (const a: Single; const b: TVector4): TVector4;
+function TVector2.Distance(const v2: TVector2): TGeoFloat;
 begin
-  Result.Link[0] := a - b.Link[0];
-  Result.Link[1] := a - b.Link[1];
-  Result.Link[2] := a - b.Link[2];
-  Result.Link[3] := a - b.Link[3];
+  Result := Vec2Distance(Link, v2.Link);
 end;
 
-operator - (const a: TVector4; const b: Single): TVector4;
+function TVector2.Lerp(const v2: TVector2; const t: TGeoFloat): TVector2;
 begin
-  Result.Link[0] := a.Link[0] - b;
-  Result.Link[1] := a.Link[1] - b;
-  Result.Link[2] := a.Link[2] - b;
-  Result.Link[3] := a.Link[3] - b;
+  Result.Link := Vec2Lerp(Link, v2.Link, t);
 end;
 
-operator - (const a: TVector4; const b: TVector4): TVector4;
+function TVector2.LerpDistance(const v2: TVector2; const d: TGeoFloat): TVector2;
 begin
-  Result.Link[0] := a.Link[0] - b.Link[0];
-  Result.Link[1] := a.Link[1] - b.Link[1];
-  Result.Link[2] := a.Link[2] - b.Link[2];
-  Result.Link[3] := a.Link[3] - b.Link[3];
+  Result.Link := Vec2LerpTo(Link, v2.Link, d);
 end;
 
-operator - (const a: Single; const b: TVector3): TVector3;
+function TVector2.Norm: TGeoFloat;
 begin
-  Result.Link[0] := a - b.Link[0];
-  Result.Link[1] := a - b.Link[1];
-  Result.Link[2] := a - b.Link[2];
+  Result := Vec2Norm(Link);
 end;
 
-operator - (const a: TVector3; const b: Single): TVector3;
+function TVector2.length: TGeoFloat;
 begin
-  Result.Link[0] := a.Link[0] - b;
-  Result.Link[1] := a.Link[1] - b;
-  Result.Link[2] := a.Link[2] - b;
+  Result := Vec2Length(Link);
 end;
 
-operator - (const a: TVector3; const b: TVector3): TVector3;
+function TVector2.Normalize: TVector2;
 begin
-  Result.Link[0] := a.Link[0] - b.Link[0];
-  Result.Link[1] := a.Link[1] - b.Link[1];
-  Result.Link[2] := a.Link[2] - b.Link[2];
+  Result.Link := Vec2Normalize(Link);
 end;
 
-{$ENDIF}
-
-
-end. 
- 
- 
-
-
+end.

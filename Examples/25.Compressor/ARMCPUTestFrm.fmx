@@ -62,7 +62,7 @@ object Form1: TForm1
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Text = #32431#38454#21387#32553#22120'(BRRC)'
+      Text = #26799#24230#21387#32553#22120'(BRRC)'
       OnClick = BRRCCompressorButtonClick
     end
     object MHTestButton: TButton

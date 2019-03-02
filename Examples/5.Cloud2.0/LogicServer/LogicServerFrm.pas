@@ -13,7 +13,7 @@ uses
   ConnectManagerServerFrm, DataFrameEngine, ListEngine, Cadencer,
   CoreClasses, DoStatusIO, CommunicationFramework,
   UnicodeMixedLib, TextDataEngine, MemoryStream64,
-  DBCompressPackageForFile,
+  FilePackage,
   NotifyObjectBase,
   CommunicationFramework_Server_CrossSocket,
   CommunicationFramework_Client_CrossSocket,

@@ -197,7 +197,7 @@ end;
 
 procedure DoStatus(const v: TMD5);
 begin
-  DoStatus(umlMD52String(v).Text);
+  DoStatus(umlMD5ToString(v).Text);
 end;
 
 type
@@ -307,6 +307,8 @@ procedure CheckDoStatus(th: TCoreClassThread);
 var
   i: Integer;
 begin
+  if StatusCritical = nil then
+      exit;
   if (th = nil) or (th.ThreadID <> MainThreadID) then
       exit;
   StatusCritical.Acquire;
@@ -440,6 +442,7 @@ begin
 
   StatusActive := True;
   LastDoStatusNoLn := '';
+  StatusCritical := nil;
 end;
 
 initialization

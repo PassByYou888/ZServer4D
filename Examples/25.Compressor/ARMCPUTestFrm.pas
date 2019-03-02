@@ -73,8 +73,8 @@ begin
   dmd5 := umlStreamMD5(sour);
   DisposeObject(c);
 
-  DoStatus('BBRC sour md5:%s', [umlMD52String(cmd5).Text]);
-  DoStatus('BBRC dest md5:%s', [umlMD52String(dmd5).Text]);
+  DoStatus('BBRC sour md5:%s', [umlMD5ToStr(cmd5).Text]);
+  DoStatus('BBRC dest md5:%s', [umlMD5ToStr(dmd5).Text]);
 
   if umlMD5Compare(cmd5, dmd5) then
       DoStatus('BBRC md5 compare success!', [])
@@ -121,8 +121,8 @@ begin
   dmd5 := umlStreamMD5(sour);
   DisposeObject(c);
 
-  DoStatus('Deflate sour md5:%s', [umlMD52String(cmd5).Text]);
-  DoStatus('Deflate dest md5:%s', [umlMD52String(dmd5).Text]);
+  DoStatus('Deflate sour md5:%s', [umlMD5ToStr(cmd5).Text]);
+  DoStatus('Deflate dest md5:%s', [umlMD5ToStr(dmd5).Text]);
 
   if umlMD5Compare(cmd5, dmd5) then
       DoStatus('Deflate md5 compare success!', [])
@@ -220,8 +220,8 @@ begin
   dTick := GetTimeTick - d;
   dmd5 := umlStreamMD5(sour);
 
-  DoStatus('ZLib sour md5:%s', [umlMD52String(cmd5).Text]);
-  DoStatus('ZLib dest md5:%s', [umlMD52String(dmd5).Text]);
+  DoStatus('ZLib sour md5:%s', [umlMD5ToStr(cmd5).Text]);
+  DoStatus('ZLib dest md5:%s', [umlMD5ToStr(dmd5).Text]);
 
   if umlMD5Compare(cmd5, dmd5) then
       DoStatus('ZLib md5 compare success!', [])

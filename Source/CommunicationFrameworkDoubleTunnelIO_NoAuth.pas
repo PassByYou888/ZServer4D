@@ -23,7 +23,7 @@ interface
 uses CoreClasses,
   ListEngine, UnicodeMixedLib,
   DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
-  DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher;
+  DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings;
 
 type
   TCommunicationFramework_DoubleTunnelService_NoAuth = class;
@@ -237,16 +237,17 @@ type
     //
     procedure Disconnect; virtual;
 
-    // block mode TunnelLink
+    // sync mode TunnelLink
     function TunnelLink: Boolean; overload; virtual;
-    // unblock mode TunnelLink
 {$IFNDEF FPC}
+    // async mode TunnelLink
     procedure TunnelLinkP(OnProc: TStateProc); overload; virtual;
 {$ENDIF}
-    // unblock mode SyncCadencer
+    // async mode SyncCadencer
     procedure SyncCadencer; virtual;
 
     procedure GetFileTimeM(RemoteFilename: SystemString; OnCallResult: TStreamMethod); overload;
+
 {$IFNDEF FPC} procedure GetFileTimeP(RemoteFilename: SystemString; OnCallResult: TStreamProc); overload; {$ENDIF FPC}
     // remote file information
     procedure GetFileInfoC(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall_NoAuth); overload;

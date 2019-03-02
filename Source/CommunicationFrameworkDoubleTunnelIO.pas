@@ -26,7 +26,7 @@ interface
 uses CoreClasses,
   ListEngine, UnicodeMixedLib,
   DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
-  DoStatusIO, Cadencer, NotifyObjectBase, DBCompressPackageForFile,
+  DoStatusIO, Cadencer, NotifyObjectBase, FilePackage,
   ObjectDataManager, CoreCipher, PascalStrings;
 
 type
@@ -824,7 +824,7 @@ begin
       Exit;
     end;
 
-  if umlExistsLimitChar(UserID, '[]:'#13#10#9#8#0) then
+  if umlExistsChar(UserID, '[]:'#13#10#9#8#0) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('user name Illegal:%s', [UserID]));
@@ -1875,7 +1875,7 @@ var
   te: TSectionTextData;
 begin
   Result := False;
-  if umlExistsLimitChar(UsrID, '[]:'#13#10#9#8#0) then
+  if umlExistsChar(UsrID, '[]:'#13#10#9#8#0) then
       Exit;
 
   if FUserDB.Exists(UsrID) then

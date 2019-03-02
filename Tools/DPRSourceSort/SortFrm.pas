@@ -132,7 +132,7 @@ begin
               token := T.TokenIndex[ttTextDecl, 0]^;
               p^.SortKey := T.GetTextBody(T.GetStr(token.bPos, token.ePos));
 
-              if umlExistsLimitChar(p^.SortKey, '\') then
+              if umlExistsChar(p^.SortKey, '\') then
                   p^.SortKey := umlDeleteLastStr(p^.SortKey, '\')
               else
                   p^.SortKey := '';
