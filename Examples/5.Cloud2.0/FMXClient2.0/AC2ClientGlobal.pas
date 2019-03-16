@@ -361,7 +361,7 @@ begin
 
   if Connected then
     begin
-      DoStatus('connect hall service "%s" ok!', [Addr]);
+      DoStatus('connect logic service "%s" ok!', [Addr]);
       Result := True;
       LastConnectState := True;
     end;

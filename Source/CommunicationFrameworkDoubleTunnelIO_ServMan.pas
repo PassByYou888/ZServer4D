@@ -857,7 +857,7 @@ begin
   ServManClientPool.Progress;
   inherited Progress;
 
-  if GetTimeTick - LastTimeTick > 5000 then
+  if GetTimeTick() - LastTimeTick > 5000 then
     begin
       try
         FRecvTunnel.GetIO_Array(IO_Array);
@@ -878,6 +878,7 @@ begin
       end;
 
       ServManClientPool.AntiIdle(RecvTunnel.Count + SendTunnel.Count);
+      LastTimeTick := GetTimeTick();
     end;
 end;
 
