@@ -149,17 +149,25 @@ end;
 procedure FreeCoreThreadPool;
 var
   th: TComputeThread;
+  tk: TTimeTick;
 begin
+  if not CoreThreadRuning then
+      exit;
+
+  tk := GetTimeTick();
   CoreThreadRuning := False;
-  while CoreThreadPool.Count > 0 do
+  while (CoreThreadPool.Count > 0) and (GetTimeTick() - tk < 500) do
     begin
       th := CoreThreadPool.First;
       if th.Suspended then
           th.Suspended := False;
       CheckSynchronize();
     end;
-  while ComputeDispatchTh <> nil do
+  CoreThreadPool.Clear;
+  while (ComputeDispatchTh <> nil) and (GetTimeTick() - tk < 500) do
       CheckSynchronize();
+
+  ComputeDispatchTh := nil;
 
   CoreThreadPool.Free;
   CoreThreadPool := nil;

@@ -177,14 +177,10 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 最后一更新日志
 
+## 2019-3-18 新增一个DLL技术范例
 
-**大更新预告:下一次更新会增加沙箱服务器模型，该模型提供paas虚化服务器后台的技术体系支持**
-
-**目前已经支持的同构虚拟系统：vmware,virtualBox,HyperV，目前已经支持异构模拟器：QEMU**
-
-### 大更新预告:下一次更新会增加delphi/fpc控件形式的开发工艺，正在开发中(年底之前解决)
-
-### 大更新预告:下一次更新会新增内网穿透开发组件，我们不必搭建CS服务器，直接挂载访问XNatServer也可实现远程服务(已经实现)
+- 详见 "**33.DLL_API**" 的Demo，使用D7调用无需使用FastMM这类工具来检测内存泄漏，FastMM的内存泄漏检测与XE Runtime不兼容
+- 忙于升级zAI，尚未与CorssSocket和DIOCP做最新代码合并，代码合并容易，测试很麻烦，待zAI升级完成.
 
 ## 2019-3-2 底层库大幅更新
 
@@ -200,7 +196,7 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 - IO内核新增BigStream的传输进度事件，收发有进度信息，截获该事件后，我们可以更方便在ProgressBar之类的东西上显示状态
 - 在 THashStringList 和 THashVariantLsit 可以使用zExpression来赋值，写法为，list['value']='e"1+1"' 结果 list['value']=2
 
-**由于最近我的精力都忙于zAI的开发[https://zpascal.net](https://zpascal.net "https://zpascal.net")，业内的CrossSocket和DIOCP两个重量级接口库，我还没有来得及使用最新的代码合并，因为我不确定CrossSocket内存泄漏问题是否已经解决了，如果你有时间请自行使用Winmerge合并一下新库的代码来测试，如果有结果，请反馈一下**
+**由于最近我的精力都忙于zAI的开发[https://zpascal.net](https://zpascal.net "https://zpascal.net")，圈内的CrossSocket和DIOCP两个重量级接口库，我还没有来得及使用最新的代码合并，因为我不确定CrossSocket内存泄漏问题是否已经解决了，如果你有时间请自行使用Winmerge合并一下新库的代码来测试，如果有结果，请反馈一下**
 
 **本次更新需要向大家说明一个小小信息：ZS有独特的P2PVM和StableIO，因为我就是希望ZS是独特的，以后都不能被替代，我不敢说ZS是圈内第一通讯库，至少保证它也是独特的存在。当然。它必须是免费的，因为通讯库都是地基项目，地基库是不能有半点水分的。**
 
