@@ -285,6 +285,8 @@ begin
   driver.OnReceived := DoReceived;
 
   AutoReconnect := False;
+
+  ClientPool := Self;
 end;
 
 destructor TGlobalCrossSocketClientPool.Destroy;
@@ -294,6 +296,7 @@ begin
   except
   end;
   DisposeObject(driver);
+  ClientPool := nil;
   inherited Destroy;
 end;
 
@@ -499,11 +502,10 @@ end;
 
 initialization
 
-ClientPool := TGlobalCrossSocketClientPool.Create;
+TGlobalCrossSocketClientPool.Create;
 
 finalization
 
 DisposeObject(ClientPool);
-ClientPool := nil;
 
 end.

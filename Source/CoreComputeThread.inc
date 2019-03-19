@@ -149,24 +149,23 @@ end;
 procedure FreeCoreThreadPool;
 var
   th: TComputeThread;
-  tk: TTimeTick;
 begin
   if not CoreThreadRuning then
       exit;
 
-  tk := GetTimeTick();
   CoreThreadRuning := False;
-  while (CoreThreadPool.Count > 0) and (GetTimeTick() - tk < 500) do
+
+  while (CoreThreadPool.Count > 0) do
     begin
       th := CoreThreadPool.First;
       if th.Suspended then
           th.Suspended := False;
       CheckSynchronize();
     end;
-  CoreThreadPool.Clear;
-  while (ComputeDispatchTh <> nil) and (GetTimeTick() - tk < 500) do
+  while (ComputeDispatchTh <> nil) do
       CheckSynchronize();
 
+  CoreThreadPool.Clear;
   ComputeDispatchTh := nil;
 
   CoreThreadPool.Free;
@@ -232,7 +231,8 @@ end;
 
 procedure TComputeThread.Halt_Sync;
 begin
-  CoreThreadPool.Remove(Self);
+  if (CoreThreadPool <> nil) and (CoreThreadPool.Count > 0) then
+      CoreThreadPool.Remove(Self);
 end;
 
 constructor TComputeThread.Create;

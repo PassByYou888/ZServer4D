@@ -5,6 +5,7 @@ uses
   PascalStrings,
   DoStatusIO,
   PhysicsIO,
+  CommunicationFramework_Client_CrossSocket,
   CommunicationFramework,
   CommunicationTest;
 
@@ -21,6 +22,16 @@ end;
 procedure DLL_Exit_Proc(); stdcall;
 begin
   DeleteDoStatusHook(nil);
+
+  // 当我们在FreeLibrary时，凡是使用了SyncEvent的调用，都会卡住
+  // 打开debug追出了两个使用SyncEvent的地方
+  // 寻找使用SyncEvent做同步的地方，我们可以在finalization事件中慢慢追出来
+
+  // CoreClasses有个线程池系统，它在finalization释放，会使用SyncEvent
+  FreeCoreThreadPool();
+
+  // crossSocket的接口有个clientPool，它在finalization释放，会使用SyncEvent
+  DisposeObject(ClientPool);
 end;
 
 procedure DLL_ThreadSync_Proc(); stdcall;
@@ -43,8 +54,8 @@ begin
       test.ExecuteAsyncTestWithBigStream(cli.ClientIO);
       cli.Wait(5000);
     end;
-  disposeObject(cli);
-  disposeObject(test);
+  DisposeObject(cli);
+  DisposeObject(test);
 end;
 
 procedure DLL_DemoAsyncThread_Proc(); stdcall;

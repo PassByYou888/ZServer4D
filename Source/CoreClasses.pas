@@ -239,6 +239,8 @@ const
   CurrentPlatform = TExecutePlatform.epUnknow;
   {$IFEND}
 
+procedure FreeCoreThreadPool;
+
 procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const Obj: TObject); overload;
@@ -801,5 +803,4 @@ finalization
   FreeLockIDBuff;
   GlobalMemoryHook := False;
 end.
-
 
