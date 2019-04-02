@@ -1,11 +1,21 @@
-{* *************************************************************************** * }
+{ ****************************************************************************** }
 { * Core class library  written by QQ 600585@qq.com                            * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ ****************************************************************************** }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/PascalString                               * }
+{ * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
 { * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
 { * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
 (*
@@ -246,11 +256,8 @@ procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const Obj: TObject); overload;
 procedure FreeObject(const objs: array of TObject); overload;
 
-procedure LockID(const ID:Byte);
-procedure UnLockID(const ID:Byte);
-
-procedure LockObject(Obj:TObject);
-procedure UnLockObject(Obj:TObject);
+procedure LockObject(Obj: TObject);
+procedure UnLockObject(Obj: TObject);
 
 procedure AtomInc(var x: Int64); overload;
 procedure AtomInc(var x: Int64; const v: Int64); overload;
@@ -410,36 +417,7 @@ begin
       FreeObject(Obj);
 end;
 
-var
-  LockIDBuff: array [0..$FF] of TCritical;
-
-procedure InitLockIDBuff;
-var
-  i: Byte;
-begin
-  for i := 0 to $FF do
-      LockIDBuff[i] := TCritical.Create;
-end;
-
-procedure FreeLockIDBuff;
-var
-  i: Integer;
-begin
-  for i := 0 to $FF do
-      DisposeObject(LockIDBuff[i]);
-end;
-
-procedure LockID(const ID: Byte);
-begin
-  LockIDBuff[ID].Acquire;
-end;
-
-procedure UnLockID(const ID: Byte);
-begin
-  LockIDBuff[ID].Release;
-end;
-
-procedure LockObject(Obj:TObject);
+procedure LockObject(Obj: TObject);
 {$IFNDEF CriticalSimulateAtomic}
 {$IFDEF ANTI_DEAD_ATOMIC_LOCK}
 var
@@ -465,7 +443,7 @@ begin
 {$ENDIF FPC}
 end;
 
-procedure UnLockObject(Obj:TObject);
+procedure UnLockObject(Obj: TObject);
 begin
 {$IFDEF FPC}
   _UnLockCriticalObj(Obj);
@@ -794,13 +772,11 @@ initialization
   Core_RunTime_Tick := 1000 * 60 * 60 * 24 * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock;
-  InitLockIDBuff;
   InitCoreThreadPool(CpuCount * 2);
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 finalization
   FreeCoreThreadPool;
   FreeCriticalLock;
-  FreeLockIDBuff;
   GlobalMemoryHook := False;
 end.
 

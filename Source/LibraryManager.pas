@@ -1,13 +1,20 @@
 { ****************************************************************************** }
 { * fast File query in Package                                                 * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 (*
   update history
@@ -29,13 +36,14 @@ type
     FDBEngine: TObjectDataManager;
     FRoot: THashStreamList;
     FRootDir: SystemString;
+    FAutoFreeDataEngine: Boolean;
   private
   protected
     function GetItems(index: Integer): THashStreamList;
     function GetNameItems(AName: SystemString): THashStreamList;
     function GetPathItems(APath: SystemString): PHashStreamListData;
   public
-    constructor Create(aDataEngine: TObjectDataManager; aRootDir: SystemString);
+    constructor Create(DataEngine_: TObjectDataManager; aRootDir: SystemString);
     destructor Destroy; override;
     function Clone: TLibraryManager;
     function Count: Integer;
@@ -54,6 +62,7 @@ type
     property PathItems[APath: SystemString]: PHashStreamListData read GetPathItems;
     property DBEngine: TObjectDataManager read FDBEngine;
     property ROOT: THashStreamList read FRoot;
+    property AutoFreeDataEngine: Boolean read FAutoFreeDataEngine write FAutoFreeDataEngine;
   end;
 
 implementation
@@ -149,15 +158,16 @@ begin
     end;
 end;
 
-constructor TLibraryManager.Create(aDataEngine: TObjectDataManager; aRootDir: SystemString);
+constructor TLibraryManager.Create(DataEngine_: TObjectDataManager; aRootDir: SystemString);
 begin
   inherited Create;
   FList := TCoreClassListForObj.Create;
-  FDBEngine := aDataEngine;
+  FDBEngine := DataEngine_;
   FRoot := nil;
   FRootDir := aRootDir;
   Refresh;
   LibManCloneAutoFreeList.Add(Self);
+  FAutoFreeDataEngine := False;
 end;
 
 destructor TLibraryManager.Destroy;
@@ -169,6 +179,8 @@ begin
       FList.Delete(0);
     end;
   DisposeObject(FList);
+  if FAutoFreeDataEngine then
+      DisposeObject(FDBEngine);
   inherited Destroy;
 end;
 

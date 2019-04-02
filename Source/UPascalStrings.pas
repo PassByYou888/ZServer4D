@@ -1,13 +1,20 @@
-{ ***************************************************************************** }
-{ * fpc Unicode string support,writen by QQ 600585@qq.com                      * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ ****************************************************************************** }
+{ * fpc Unicode string         writen by QQ 600585@qq.com                      * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
 unit UPascalStrings;
@@ -45,8 +52,8 @@ type
     procedure SetChars(index: Integer; const Value: USystemChar);
     function GetBytes: TBytes;
     procedure SetBytes(const Value: TBytes);
-    function GetSysBytes: TBytes;
-    procedure SetSysBytes(const Value: TBytes);
+    function GetPlatformBytes: TBytes;
+    procedure SetPlatformBytes(const Value: TBytes);
     function GetLast: USystemChar;
     procedure SetLast(const Value: USystemChar);
     function GetFirst: USystemChar;
@@ -134,8 +141,8 @@ type
     property Len: Integer read GetLen write SetLen;
     property L: Integer read GetLen write SetLen;
     property Chars[index: Integer]: USystemChar read GetChars write SetChars; default;
-    property Bytes: TBytes read GetBytes write SetBytes;          // UTF8
-    property SysBytes: TBytes read GetSysBytes write SetSysBytes; // system default
+    property Bytes: TBytes read GetBytes write SetBytes;                         // UTF8
+    property PlatformBytes: TBytes read GetPlatformBytes write SetPlatformBytes; // system default
     function BOMBytes: TBytes;
   end;
 
@@ -1367,7 +1374,7 @@ begin
 {$ENDIF}
 end;
 
-procedure TUPascalString.SetSysBytes(const Value: TBytes);
+procedure TUPascalString.SetPlatformBytes(const Value: TBytes);
 begin
   SetLength(buff, 0);
   if length(Value) = 0 then
@@ -1379,7 +1386,7 @@ begin
   end;
 end;
 
-function TUPascalString.GetSysBytes: TBytes;
+function TUPascalString.GetPlatformBytes: TBytes;
 begin
   SetLength(Result, 0);
   if length(buff) = 0 then

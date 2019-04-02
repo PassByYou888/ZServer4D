@@ -105,10 +105,6 @@ begin
           LockObject(Sender);
           UnLockObject(Sender);
 
-          // 另一种原子锁的写法是
-          LockID(1);   // LockID可以1..255之间的数值
-          UnLockID(1); // UnLockID可以1..255之间的数值
-
           // 在hpc后台计算可以使用doStatus
           if pass mod 1000 = 1 then
               DoStatus('run compute thread:%d', [pass]);

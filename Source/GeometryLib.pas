@@ -1,13 +1,20 @@
 { ****************************************************************************** }
 { * geometry 3D library writen by QQ 600585@qq.com                             * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
 unit GeometryLib;
@@ -20,41 +27,41 @@ type
   THalfFloat = type Word;
   PHalfFloat = ^THalfFloat;
 
-  TVector2d  = array [0 .. 1] of Double;
-  TVector2f  = array [0 .. 1] of Single;
-  TVector2h  = array [0 .. 1] of THalfFloat;
-  TVector2i  = array [0 .. 1] of Integer;
+  TVector2d = array [0 .. 1] of Double;
+  TVector2f = array [0 .. 1] of Single;
+  TVector2h = array [0 .. 1] of THalfFloat;
+  TVector2i = array [0 .. 1] of Integer;
   TVector2ui = array [0 .. 1] of Cardinal;
-  TVector2s  = array [0 .. 1] of SmallInt;
-  TVector2b  = array [0 .. 1] of Byte;
+  TVector2s = array [0 .. 1] of SmallInt;
+  TVector2b = array [0 .. 1] of Byte;
   TVector2sb = array [0 .. 1] of ShortInt;
-  TVector2e  = array [0 .. 1] of Extended;
-  TVector2w  = array [0 .. 1] of Word;
-  TVector2p  = array [0 .. 1] of Pointer;
+  TVector2e = array [0 .. 1] of Extended;
+  TVector2w = array [0 .. 1] of Word;
+  TVector2p = array [0 .. 1] of Pointer;
 
-  TVector3d  = array [0 .. 2] of Double;
-  TVector3f  = array [0 .. 2] of Single;
-  TVector3h  = array [0 .. 2] of THalfFloat;
-  TVector3i  = array [0 .. 2] of Integer;
+  TVector3d = array [0 .. 2] of Double;
+  TVector3f = array [0 .. 2] of Single;
+  TVector3h = array [0 .. 2] of THalfFloat;
+  TVector3i = array [0 .. 2] of Integer;
   TVector3ui = array [0 .. 2] of Cardinal;
-  TVector3s  = array [0 .. 2] of SmallInt;
-  TVector3b  = array [0 .. 2] of Byte;
+  TVector3s = array [0 .. 2] of SmallInt;
+  TVector3b = array [0 .. 2] of Byte;
   TVector3sb = array [0 .. 2] of ShortInt;
-  TVector3e  = array [0 .. 2] of Extended;
-  TVector3w  = array [0 .. 2] of Word;
-  TVector3p  = array [0 .. 2] of Pointer;
+  TVector3e = array [0 .. 2] of Extended;
+  TVector3w = array [0 .. 2] of Word;
+  TVector3p = array [0 .. 2] of Pointer;
 
-  TVector4d  = array [0 .. 3] of Double;
-  TVector4f  = array [0 .. 3] of Single;
-  TVector4h  = array [0 .. 3] of THalfFloat;
-  TVector4i  = array [0 .. 3] of Integer;
+  TVector4d = array [0 .. 3] of Double;
+  TVector4f = array [0 .. 3] of Single;
+  TVector4h = array [0 .. 3] of THalfFloat;
+  TVector4i = array [0 .. 3] of Integer;
   TVector4ui = array [0 .. 3] of Cardinal;
-  TVector4s  = array [0 .. 3] of SmallInt;
-  TVector4b  = array [0 .. 3] of Byte;
+  TVector4s = array [0 .. 3] of SmallInt;
+  TVector4b = array [0 .. 3] of Byte;
   TVector4sb = array [0 .. 3] of ShortInt;
-  TVector4e  = array [0 .. 3] of Extended;
-  TVector4w  = array [0 .. 3] of Word;
-  TVector4p  = array [0 .. 3] of Pointer;
+  TVector4e = array [0 .. 3] of Extended;
+  TVector4w = array [0 .. 3] of Word;
+  TVector4p = array [0 .. 3] of Pointer;
 
   TMatrix2d = array [0 .. 1] of TVector2d;
   TMatrix2f = array [0 .. 1] of TVector2f;
@@ -84,7 +91,7 @@ type
   TMatrix4p = array [0 .. 3] of TVector4p;
 
 const
-  cMaxArray     = (MaxInt shr 4);
+  cMaxArray = (MaxInt shr 4);
   cColinearBias = 1E-8;
 
 type
@@ -101,27 +108,27 @@ type
 
   // types to specify continous streams of a specific type
   // switch off range checking to access values beyond the limits
-  PByteVector     = ^TByteVector;
-  PByteArray      = PByteVector;
-  TByteVector     = array [0 .. cMaxArray] of Byte;
-  PWordVector     = ^TWordVector;
-  TWordVector     = array [0 .. cMaxArray] of Word;
-  PIntegerVector  = ^TIntegerVector;
-  PIntegerArray   = PIntegerVector;
-  TIntegerVector  = array [0 .. cMaxArray] of Integer;
-  PFloatVector    = ^TFloatVector;
-  PFloatArray     = PFloatVector;
-  PSingleArray    = PFloatArray;
-  TFloatVector    = array [0 .. cMaxArray] of Single;
-  TSingleArray    = array of Single;
-  PDoubleVector   = ^TDoubleVector;
-  PDoubleArray    = PDoubleVector;
-  TDoubleVector   = array [0 .. cMaxArray] of Double;
-  PPointerVector  = ^TPointerVector;
-  PPointerArray   = PPointerVector;
-  TPointerVector  = array [0 .. cMaxArray] of Pointer;
+  PByteVector = ^TByteVector;
+  PByteArray = PByteVector;
+  TByteVector = array [0 .. cMaxArray] of Byte;
+  PWordVector = ^TWordVector;
+  TWordVector = array [0 .. cMaxArray] of Word;
+  PIntegerVector = ^TIntegerVector;
+  PIntegerArray = PIntegerVector;
+  TIntegerVector = array [0 .. cMaxArray] of Integer;
+  PFloatVector = ^TFloatVector;
+  PFloatArray = PFloatVector;
+  PSingleArray = PFloatArray;
+  TFloatVector = array [0 .. cMaxArray] of Single;
+  TSingleArray = array of Single;
+  PDoubleVector = ^TDoubleVector;
+  PDoubleArray = PDoubleVector;
+  TDoubleVector = array [0 .. cMaxArray] of Double;
+  PPointerVector = ^TPointerVector;
+  PPointerArray = PPointerVector;
+  TPointerVector = array [0 .. cMaxArray] of Pointer;
   PCardinalVector = ^TCardinalVector;
-  PCardinalArray  = PCardinalVector;
+  PCardinalArray = PCardinalVector;
   TCardinalVector = array [0 .. cMaxArray] of Cardinal;
 
   // common vector and matrix types with predefined limits
@@ -134,77 +141,77 @@ type
   THomogeneousByteVector = TVector4b;
   PHomogeneousWordVector = ^THomogeneousWordVector;
   THomogeneousWordVector = TVector4w;
-  PHomogeneousIntVector  = ^THomogeneousIntVector;
-  THomogeneousIntVector  = TVector4i;
-  PHomogeneousFltVector  = ^THomogeneousFltVector;
-  THomogeneousFltVector  = TVector4f;
-  PHomogeneousDblVector  = ^THomogeneousDblVector;
-  THomogeneousDblVector  = TVector4d;
-  PHomogeneousExtVector  = ^THomogeneousExtVector;
-  THomogeneousExtVector  = TVector4e;
-  PHomogeneousPtrVector  = ^THomogeneousPtrVector;
-  THomogeneousPtrVector  = TVector4p;
-  PAffineByteVector      = ^TAffineByteVector;
-  TAffineByteVector      = TVector3b;
-  PAffineWordVector      = ^TAffineWordVector;
-  TAffineWordVector      = TVector3w;
-  PAffineIntVector       = ^TAffineIntVector;
-  TAffineIntVector       = TVector3i;
-  PAffineFltVector       = ^TAffineFltVector;
-  TAffineFltVector       = TVector3f;
-  PAffineDblVector       = ^TAffineDblVector;
-  TAffineDblVector       = TVector3d;
-  PAffineExtVector       = ^TAffineExtVector;
-  TAffineExtVector       = TVector3e;
-  PAffinePtrVector       = ^TAffinePtrVector;
-  TAffinePtrVector       = TVector3p;
-  PVector2f              = ^TVector2f;
+  PHomogeneousIntVector = ^THomogeneousIntVector;
+  THomogeneousIntVector = TVector4i;
+  PHomogeneousFltVector = ^THomogeneousFltVector;
+  THomogeneousFltVector = TVector4f;
+  PHomogeneousDblVector = ^THomogeneousDblVector;
+  THomogeneousDblVector = TVector4d;
+  PHomogeneousExtVector = ^THomogeneousExtVector;
+  THomogeneousExtVector = TVector4e;
+  PHomogeneousPtrVector = ^THomogeneousPtrVector;
+  THomogeneousPtrVector = TVector4p;
+  PAffineByteVector = ^TAffineByteVector;
+  TAffineByteVector = TVector3b;
+  PAffineWordVector = ^TAffineWordVector;
+  TAffineWordVector = TVector3w;
+  PAffineIntVector = ^TAffineIntVector;
+  TAffineIntVector = TVector3i;
+  PAffineFltVector = ^TAffineFltVector;
+  TAffineFltVector = TVector3f;
+  PAffineDblVector = ^TAffineDblVector;
+  TAffineDblVector = TVector3d;
+  PAffineExtVector = ^TAffineExtVector;
+  TAffineExtVector = TVector3e;
+  PAffinePtrVector = ^TAffinePtrVector;
+  TAffinePtrVector = TVector3p;
+  PVector2f = ^TVector2f;
 
   // some simplified names
-  PVector            = ^TVector;
-  TVector            = THomogeneousFltVector;
+  PVector = ^TVector;
+  TVector = THomogeneousFltVector;
   PHomogeneousVector = ^THomogeneousVector;
   THomogeneousVector = THomogeneousFltVector;
-  PAffineVector      = ^TAffineVector;
-  TAffineVector      = TVector3f;
-  PVertex            = ^TVertex;
-  TVertex            = TAffineVector;
+  PAffineVector = ^TAffineVector;
+  TAffineVector = TVector3f;
+  PVertex = ^TVertex;
+  TVertex = TAffineVector;
   // arrays of vectors
   PAffineVectorArray = ^TAffineVectorArray;
   TAffineVectorArray = array [0 .. MaxInt shr 4] of TAffineVector;
-  PVectorArray       = ^TVectorArray;
-  TVectorArray       = array [0 .. MaxInt shr 5] of TVector;
-  PTexPointArray     = ^TTexPointArray;
-  TTexPointArray     = array [0 .. MaxInt shr 4] of TTexPoint;
+  PVectorArray = ^TVectorArray;
+  TVectorArray = array [0 .. MaxInt shr 5] of TVector;
+  PTexPointArray = ^TTexPointArray;
+  TTexPointArray = array [0 .. MaxInt shr 4] of TTexPoint;
   // matrices
   THomogeneousByteMatrix = TMatrix4b;
   THomogeneousWordMatrix = array [0 .. 3] of THomogeneousWordVector;
-  THomogeneousIntMatrix  = TMatrix4i;
-  THomogeneousFltMatrix  = TMatrix4f;
-  THomogeneousDblMatrix  = TMatrix4d;
-  THomogeneousExtMatrix  = array [0 .. 3] of THomogeneousExtVector;
-  TAffineByteMatrix      = TMatrix3b;
-  TAffineWordMatrix      = array [0 .. 2] of TAffineWordVector;
-  TAffineIntMatrix       = TMatrix3i;
-  TAffineFltMatrix       = TMatrix3f;
-  TAffineDblMatrix       = TMatrix3d;
-  TAffineExtMatrix       = array [0 .. 2] of TAffineExtVector;
+  THomogeneousIntMatrix = TMatrix4i;
+  THomogeneousFltMatrix = TMatrix4f;
+  THomogeneousDblMatrix = TMatrix4d;
+  THomogeneousExtMatrix = array [0 .. 3] of THomogeneousExtVector;
+  TAffineByteMatrix = TMatrix3b;
+  TAffineWordMatrix = array [0 .. 2] of TAffineWordVector;
+  TAffineIntMatrix = TMatrix3i;
+  TAffineFltMatrix = TMatrix3f;
+  TAffineDblMatrix = TMatrix3d;
+  TAffineExtMatrix = array [0 .. 2] of TAffineExtVector;
 
   // some simplified names
-  PMatrix            = ^TMatrix;
-  TMatrix            = THomogeneousFltMatrix;
-  TMatrixArray       = array [0 .. MaxInt shr 7] of TMatrix;
-  PMatrixArray       = ^TMatrixArray;
+  PMatrix = ^TMatrix;
+  TMatrix = THomogeneousFltMatrix;
+  TMatrixArray = array [0 .. MaxInt shr 7] of TMatrix;
+  PMatrixArray = ^TMatrixArray;
   PHomogeneousMatrix = ^THomogeneousMatrix;
   THomogeneousMatrix = THomogeneousFltMatrix;
-  PAffineMatrix      = ^TAffineMatrix;
-  TAffineMatrix      = TAffineFltMatrix;
+  PAffineMatrix = ^TAffineMatrix;
+  TAffineMatrix = TAffineFltMatrix;
 
   { : A plane equation.
     Defined by its equation A.x+B.y+C.z+D, a plane can be mapped to the
     homogeneous space coordinates, and this is what we are doing here.<br>
     The typename is just here for easing up data manipulation. }
-  THmgPlane       = TVector;
+  THmgPlane = TVector;
   TDoubleHmgPlane = THomogeneousDblVector;
 
   // q = ([x, y, z], w)
@@ -241,42 +248,42 @@ type
 
 const
   // TexPoints (2D space)
-  XTexPoint: TTexPoint    = (s: 1; t: 0);
-  YTexPoint: TTexPoint    = (s: 0; t: 1);
-  XYTexPoint: TTexPoint   = (s: 1; t: 1);
+  XTexPoint: TTexPoint = (s: 1; t: 0);
+  YTexPoint: TTexPoint = (s: 0; t: 1);
+  XYTexPoint: TTexPoint = (s: 1; t: 1);
   NullTexPoint: TTexPoint = (s: 0; t: 0);
-  MidTexPoint: TTexPoint  = (s: 0.5; t: 0.5);
+  MidTexPoint: TTexPoint = (s: 0.5; t: 0.5);
 
   // standard vectors
-  XVector: TAffineVector      = (1, 0, 0);
-  YVector: TAffineVector      = (0, 1, 0);
-  ZVector: TAffineVector      = (0, 0, 1);
-  XYVector: TAffineVector     = (1, 1, 0);
-  XZVector: TAffineVector     = (1, 0, 1);
-  YZVector: TAffineVector     = (0, 1, 1);
-  XYZVector: TAffineVector    = (1, 1, 1);
-  NullVector: TAffineVector   = (0, 0, 0);
+  XVector: TAffineVector = (1, 0, 0);
+  YVector: TAffineVector = (0, 1, 0);
+  ZVector: TAffineVector = (0, 0, 1);
+  XYVector: TAffineVector = (1, 1, 0);
+  XZVector: TAffineVector = (1, 0, 1);
+  YZVector: TAffineVector = (0, 1, 1);
+  XYZVector: TAffineVector = (1, 1, 1);
+  NullVector: TAffineVector = (0, 0, 0);
   MinusXVector: TAffineVector = (-1, 0, 0);
   MinusYVector: TAffineVector = (0, -1, 0);
   MinusZVector: TAffineVector = (0, 0, -1);
 
   // standard homogeneous vectors
-  XHmgVector: THomogeneousVector    = (1, 0, 0, 0);
-  YHmgVector: THomogeneousVector    = (0, 1, 0, 0);
-  ZHmgVector: THomogeneousVector    = (0, 0, 1, 0);
-  WHmgVector: THomogeneousVector    = (0, 0, 0, 1);
-  XYHmgVector: THomogeneousVector   = (1, 1, 0, 0);
-  YZHmgVector: THomogeneousVector   = (0, 1, 1, 0);
-  XZHmgVector: THomogeneousVector   = (1, 0, 1, 0);
-  XYZHmgVector: THomogeneousVector  = (1, 1, 1, 0);
+  XHmgVector: THomogeneousVector = (1, 0, 0, 0);
+  YHmgVector: THomogeneousVector = (0, 1, 0, 0);
+  ZHmgVector: THomogeneousVector = (0, 0, 1, 0);
+  WHmgVector: THomogeneousVector = (0, 0, 0, 1);
+  XYHmgVector: THomogeneousVector = (1, 1, 0, 0);
+  YZHmgVector: THomogeneousVector = (0, 1, 1, 0);
+  XZHmgVector: THomogeneousVector = (1, 0, 1, 0);
+  XYZHmgVector: THomogeneousVector = (1, 1, 1, 0);
   XYZWHmgVector: THomogeneousVector = (1, 1, 1, 1);
   NullHmgVector: THomogeneousVector = (0, 0, 0, 0);
 
   // standard homogeneous points
-  XHmgPoint: THomogeneousVector    = (1, 0, 0, 1);
-  YHmgPoint: THomogeneousVector    = (0, 1, 0, 1);
-  ZHmgPoint: THomogeneousVector    = (0, 0, 1, 1);
-  WHmgPoint: THomogeneousVector    = (0, 0, 0, 1);
+  XHmgPoint: THomogeneousVector = (1, 0, 0, 1);
+  YHmgPoint: THomogeneousVector = (0, 1, 0, 1);
+  ZHmgPoint: THomogeneousVector = (0, 0, 1, 1);
+  WHmgPoint: THomogeneousVector = (0, 0, 0, 1);
   NullHmgPoint: THomogeneousVector = (0, 0, 0, 1);
 
   IdentityMatrix: TAffineMatrix =
@@ -308,7 +315,7 @@ const
   IdentityQuaternion: TQuaternion = (ImagPart: (0, 0, 0); RealPart: 1);
 
   // some very small numbers
-  Epsilon: Single  = 1E-40;
+  Epsilon: Single = 1E-40;
   EPSILON2: Single = 1E-30;
 
   // ------------------------------------------------------------------------------
@@ -844,13 +851,13 @@ procedure VectorRotateAroundY(const v: TAffineVector; alpha: Single; var vr: TAf
 // : Returns given vector rotated around the Z axis (alpha is in rad)
 function VectorRotateAroundZ(const v: TAffineVector; alpha: Single): TAffineVector; overload;
 
-// : Vector components are replaced by their Abs() value. }
+// : Vector components are replaced by their Abs() value.
 procedure AbsVector(var v: TVector); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-// : Vector components are replaced by their Abs() value. }
+// : Vector components are replaced by their Abs() value.
 procedure AbsVector(var v: TAffineVector); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-// : Returns a vector with components replaced by their Abs value. }
+// : Returns a vector with components replaced by their Abs value.
 function VectorAbs(const v: TVector): TVector; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-// : Returns a vector with components replaced by their Abs value. }
+// : Returns a vector with components replaced by their Abs value.
 function VectorAbs(const v: TAffineVector): TAffineVector; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 // : Returns true if both vector are colinear
@@ -1314,7 +1321,6 @@ function ClampValue(const AValue, aMin, aMax: Single): Single; overload;
 { : Clamps aValue in the aMin-INF interval. }
 function ClampValue(const AValue, aMin: Single): Single; overload;
 
-
 { : Turn a triplet of rotations about x, y, and z (in that order) into an equivalent rotation around a single axis (all in radians). }
 function ConvertRotation(const Angles: TAffineVector): TVector;
 
@@ -1471,31 +1477,31 @@ function ShiftObjectFromCenter(const AOriginalPosition: TVector; const ACenter: 
 function ShiftObjectFromCenter(const AOriginalPosition: TAffineVector; const ACenter: TAffineVector; const aDistance: Single; const AFromCenterSpot: Boolean): TAffineVector; overload;
 
 const
-  cPI: Single       = 3.141592654;
+  cPI: Single = 3.141592654;
   cPIdiv180: Single = 0.017453292;
   c180divPI: Single = 57.29577951;
-  c2PI: Single      = 6.283185307;
-  cPIdiv2: Single   = 1.570796326;
-  cPIdiv4: Single   = 0.785398163;
-  c3PIdiv2: Single  = 4.71238898;
-  c3PIdiv4: Single  = 2.35619449;
-  cInv2PI: Single   = 1 / 6.283185307;
-  cInv360: Single   = 1 / 360;
-  c180: Single      = 180;
-  c360: Single      = 360;
-  cOneHalf: Single  = 0.5;
-  cLn10: Single     = 2.302585093;
+  c2PI: Single = 6.283185307;
+  cPIdiv2: Single = 1.570796326;
+  cPIdiv4: Single = 0.785398163;
+  c3PIdiv2: Single = 4.71238898;
+  c3PIdiv4: Single = 2.35619449;
+  cInv2PI: Single = 1 / 6.283185307;
+  cInv360: Single = 1 / 360;
+  c180: Single = 180;
+  c360: Single = 360;
+  cOneHalf: Single = 0.5;
+  cLn10: Single = 2.302585093;
 
   // Ranges of the IEEE floating point types, including denormals
   // with Math.pas compatible name
-  MinSingle   = 1.5E-45;
-  MaxSingle   = 3.4E+38;
-  MinDouble   = 5.0E-324;
-  MaxDouble   = 1.7E+308;
+  MinSingle = 1.5E-45;
+  MaxSingle = 3.4E+38;
+  MinDouble = 5.0E-324;
+  MaxDouble = 1.7E+308;
   MinExtended = 3.4E-4932;
   MaxExtended = 1.1E+4932;
-  MinComp     = -9.223372036854775807E+18;
-  MaxComp     = 9.223372036854775807E+18;
+  MinComp = -9.223372036854775807E+18;
+  MaxComp = 9.223372036854775807E+18;
 
   // --------------------------------------------------------------
   // --------------------------------------------------------------
@@ -1515,8 +1521,8 @@ const
   z = 2;
   w = 3;
 
-  cZero: Single       = 0.0;
-  cOne: Single        = 1.0;
+  cZero: Single = 0.0;
+  cOne: Single = 1.0;
   cOneDotFive: Single = 0.5;
 
   // ------------------------------------------------------------------------------
@@ -5235,11 +5241,11 @@ end;
 function ArcCos(const x: Single): Single;
 // Result:=ArcTan2(Sqrt(c1 - X * X), X);
 begin
-  {$IFDEF FPC}
+{$IFDEF FPC}
   if Abs(x) > 1.0 then
       Result := Math.ArcCos(Sign(x))
   else
-    {$ENDIF}
+{$ENDIF}
       Result := Math.ArcCos(x);
 end;
 
@@ -8217,8 +8223,4 @@ initialization
 // --------------------------------------------------------------
 // --------------------------------------------------------------
 
-end. 
- 
- 
-
-
+end.

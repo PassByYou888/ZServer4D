@@ -1,13 +1,20 @@
 { ****************************************************************************** }
 { * hash Library,Writen by QQ 600585@qq.com                                    * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
 (*
@@ -652,8 +659,10 @@ type
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromFile(FileName: SystemString);
     procedure SaveToFile(FileName: SystemString);
-    procedure ExportAsStrings(output: TListPascalString);
-    procedure ImportFromStrings(output: TListPascalString);
+    procedure ExportAsStrings(output: TListPascalString); overload;
+    procedure ExportAsStrings(output: TCoreClassStrings); overload;
+    procedure ImportFromStrings(input: TListPascalString); overload;
+    procedure ImportFromStrings(input: TCoreClassStrings); overload;
     function GetAsText: SystemString;
     procedure SetAsText(const Value: SystemString);
     property AsText: SystemString read GetAsText write SetAsText;
@@ -795,8 +804,8 @@ type
     procedure SaveToFile(FileName: SystemString);
     procedure ExportAsStrings(output: TListPascalString); overload;
     procedure ExportAsStrings(output: TCoreClassStrings); overload;
-    procedure ImportFromStrings(output: TListPascalString); overload;
-    procedure ImportFromStrings(output: TCoreClassStrings); overload;
+    procedure ImportFromStrings(input: TListPascalString); overload;
+    procedure ImportFromStrings(input: TCoreClassStrings); overload;
     function GetAsText: SystemString;
     procedure SetAsText(const Value: SystemString);
     property AsText: SystemString read GetAsText write SetAsText;
@@ -1302,7 +1311,7 @@ uses Math,
 {$IFDEF FPC}
   streamex,
 {$ENDIF FPC}
-  MemoryStream64, DoStatusIO, UnicodeMixedLib, zExpression;
+  MemoryStream64, DoStatusIO, UnicodeMixedLib, TextParsing, zExpression;
 
 function HashMod(const h: THash; const m: Integer): Integer;
 begin
@@ -6101,12 +6110,30 @@ begin
   DisposeObject(VT);
 end;
 
-procedure THashStringList.ImportFromStrings(output: TListPascalString);
+procedure THashStringList.ExportAsStrings(output: TCoreClassStrings);
 var
   VT: THashStringTextStream;
 begin
   VT := THashStringTextStream.Create(Self);
-  VT.DataImport(output);
+  VT.DataExport(output);
+  DisposeObject(VT);
+end;
+
+procedure THashStringList.ImportFromStrings(input: TListPascalString);
+var
+  VT: THashStringTextStream;
+begin
+  VT := THashStringTextStream.Create(Self);
+  VT.DataImport(input);
+  DisposeObject(VT);
+end;
+
+procedure THashStringList.ImportFromStrings(input: TCoreClassStrings);
+var
+  VT: THashStringTextStream;
+begin
+  VT := THashStringTextStream.Create(Self);
+  VT.DataImport(input);
   DisposeObject(VT);
 end;
 
@@ -6184,14 +6211,6 @@ begin
         umlDecodeLineBASE64(n, body);
         Result := body.Text;
       end
-    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
-      begin
-        body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
-        body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(body));
-      end
     else if umlMultipleMatch([
       'expression(*)', 'expression[*]', 'expression<*>', 'expression"*"', 'expression'#39'*'#39,
       'exp(*)', 'exp[*]', 'exp<*>', 'exp"*"', 'exp'#39'*'#39,
@@ -6202,6 +6221,30 @@ begin
         body := umlDeleteFirstStr_M(n, '([<"'#39);
         body.DeleteLast;
         Result := VarToStr(EvaluateExpressionValue(body));
+      end
+    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := VarToStr(EvaluateExpressionValue(body));
+      end
+    else if umlMultipleMatch(['c(*)', 'c[*]', 'c<*>', 'c"*"', 'c'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := VarToStr(EvaluateExpressionValue(TTextStyle.tsC, body));
+      end
+    else if umlMultipleMatch(['p(*)', 'p[*]', 'p<*>', 'p"*"', 'p'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := VarToStr(EvaluateExpressionValue(TTextStyle.tsPascal, body));
       end
     else
       begin
@@ -7106,31 +7149,29 @@ end;
 
 procedure THashVariantList.ExportAsStrings(output: TCoreClassStrings);
 var
-  ns: TListPascalString;
+  VT: THashVariantTextStream;
 begin
-  ns := TListPascalString.Create;
-  ExportAsStrings(ns);
-  ns.AssignTo(output);
-  DisposeObject(ns);
+  VT := THashVariantTextStream.Create(Self);
+  VT.DataExport(output);
+  DisposeObject(VT);
 end;
 
-procedure THashVariantList.ImportFromStrings(output: TListPascalString);
+procedure THashVariantList.ImportFromStrings(input: TListPascalString);
 var
   VT: THashVariantTextStream;
 begin
   VT := THashVariantTextStream.Create(Self);
-  VT.DataImport(output);
+  VT.DataImport(input);
   DisposeObject(VT);
 end;
 
-procedure THashVariantList.ImportFromStrings(output: TCoreClassStrings);
+procedure THashVariantList.ImportFromStrings(input: TCoreClassStrings);
 var
-  ns: TListPascalString;
+  VT: THashVariantTextStream;
 begin
-  ns := TListPascalString.Create;
-  ns.Assign(output);
-  ImportFromStrings(ns);
-  DisposeObject(ns);
+  VT := THashVariantTextStream.Create(Self);
+  VT.DataImport(input);
+  DisposeObject(VT);
 end;
 
 function THashVariantList.GetAsText: SystemString;
@@ -7248,14 +7289,6 @@ begin
         umlDecodeLineBASE64(n, body);
         Result := body.Text;
       end
-    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
-      begin
-        body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
-        body.DeleteLast;
-        Result := EvaluateExpressionValue(body);
-      end
     else if umlMultipleMatch([
       'expression(*)', 'expression[*]', 'expression<*>', 'expression"*"', 'expression'#39'*'#39,
       'exp(*)', 'exp[*]', 'exp<*>', 'exp"*"', 'exp'#39'*'#39,
@@ -7266,6 +7299,30 @@ begin
         body := umlDeleteFirstStr_M(n, '([<"'#39);
         body.DeleteLast;
         Result := EvaluateExpressionValue(body);
+      end
+    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := EvaluateExpressionValue(body);
+      end
+    else if umlMultipleMatch(['c(*)', 'c[*]', 'c<*>', 'c"*"', 'c'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := EvaluateExpressionValue(TTextStyle.tsC, body);
+      end
+    else if umlMultipleMatch(['p(*)', 'p[*]', 'p<*>', 'p"*"', 'p'#39'*'#39], n) then
+      begin
+        body := n;
+        body.DeleteFirst;
+        body.DeleteFirst;
+        body.DeleteLast;
+        Result := EvaluateExpressionValue(TTextStyle.tsPascal, body);
       end
     else
       begin

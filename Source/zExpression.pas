@@ -1,13 +1,20 @@
 { * zExpression                                                                * }
 { ****************************************************************************** }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 unit zExpression;
 
@@ -53,7 +60,10 @@ type
 
   PExpressionListData = ^TExpressionListData;
 
-  TNumTextType = (nttBool, nttInt, nttInt64, nttUInt64, nttWord, nttByte, nttSmallInt, nttShortInt, nttUInt, nttSingle, nttDouble, nttCurrency, nttUnknow);
+  TNumTextType = (nttBool, nttInt, nttInt64, nttUInt64, nttWord, nttByte,
+    nttSmallInt, nttShortInt, nttUInt,
+    nttSingle, nttDouble, nttCurrency,
+    nttUnknow);
 
   TSymbolExpression = class sealed(TCoreClassObject)
   protected
@@ -379,7 +389,9 @@ begin
         begin
           if cnt[vsSymSub] > 0 then
             begin
-              if cnt[vsNum] + cnt[vsAtoF] < 2 then
+              if cnt[vsNum] + cnt[vsAtoF] = 0 then
+                  Result := nttUnknow
+              else if cnt[vsNum] + cnt[vsAtoF] < 2 then
                   Result := nttShortInt
               else if cnt[vsNum] + cnt[vsAtoF] < 4 then
                   Result := nttSmallInt
@@ -392,7 +404,9 @@ begin
             end
           else
             begin
-              if cnt[vsNum] + cnt[vsAtoF] < 3 then
+              if cnt[vsNum] + cnt[vsAtoF] = 0 then
+                  Result := nttUnknow
+              else if cnt[vsNum] + cnt[vsAtoF] < 3 then
                   Result := nttByte
               else if cnt[vsNum] + cnt[vsAtoF] < 5 then
                   Result := nttWord
@@ -408,7 +422,9 @@ begin
           Exit(nttUnknow)
       else if cnt[vsSymSub] > 0 then
         begin
-          if cnt[vsNum] < 3 then
+          if cnt[vsNum] = 0 then
+              Result := nttUnknow
+          else if cnt[vsNum] < 3 then
               Result := nttShortInt
           else if cnt[vsNum] < 5 then
               Result := nttSmallInt
@@ -421,7 +437,9 @@ begin
         end
       else
         begin
-          if cnt[vsNum] < 3 then
+          if cnt[vsNum] = 0 then
+              Result := nttUnknow
+          else if cnt[vsNum] < 3 then
               Result := nttByte
           else if cnt[vsNum] < 5 then
               Result := nttWord

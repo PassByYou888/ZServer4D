@@ -241,6 +241,8 @@ begin
 
   Service.f := self;
   Service.CanRegisterNewUser := True;
+
+  StartServiceButtonClick(nil);
 end;
 
 procedure TAuthDoubleServerForm.FormDestroy(Sender: TObject);

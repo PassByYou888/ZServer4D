@@ -1,13 +1,20 @@
 { ****************************************************************************** }
 { * MixedLibrary,writen by QQ 600585@qq.com                                    * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
 {
@@ -314,7 +321,6 @@ function umlGetTextContent(const sour: TPascalString; const bToken, eToken: TArr
 
 type
   TTextType = (ntBool, ntInt, ntInt64, ntUInt64, ntWord, ntByte, ntSmallInt, ntShortInt, ntUInt, ntSingle, ntDouble, ntCurrency, ntUnknow);
-  TTextTypes = set of TTextType;
 function umlGetNumTextType(const s: TPascalString): TTextType;
 
 function umlIsHex(const sVal: TPascalString): Boolean;
@@ -432,6 +438,7 @@ procedure umlEncodeLineBASE64(const buffer: TPascalString; var output: TPascalSt
 procedure umlDecodeStreamBASE64(const buffer: TPascalString; output: TCoreClassStream);
 procedure umlEncodeStreamBASE64(buffer: TCoreClassStream; var output: TPascalString);
 procedure umlDivisionBase64Text(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean; var output: TPascalString);
+function umlTestBase64(const text: TPascalString): Boolean;
 
 type
   PMD5 = ^TMD5;
@@ -626,8 +633,8 @@ begin
   if not FActivted then
       exit;
 
-  DoStatus(PFormat('Reliable IO Open : %s', [umlGetFileName(FileName).Text]));
-  DoStatus(PFormat('Backup %s size: %s', [umlGetFileName(FileName).Text, umlSizeToStr(SourceIO.Size).Text]));
+  DoStatus(PFormat('Reliable IO Open : %s', [umlGetFileName(FileName).text]));
+  DoStatus(PFormat('Backup %s size: %s', [umlGetFileName(FileName).text, umlSizeToStr(SourceIO.Size).text]));
 
   BackupFileIO := TCoreClassFileStream.Create(FBackupFileName, fmCreate);
   BackupFileIO.Size := SourceIO.Size;
@@ -651,7 +658,7 @@ begin
     umlRenameFile(FBackupFileName, FileName);
   except
   end;
-  DoStatus(PFormat('Reliable IO Close : %s', [umlGetFileName(FileName).Text]));
+  DoStatus(PFormat('Reliable IO Close : %s', [umlGetFileName(FileName).text]));
 end;
 
 procedure TReliableFileStream.SetSize(const NewSize: Int64);
@@ -810,15 +817,15 @@ begin
       varSingle, varDouble, varCurrency, varDate: Result := FloatToStr(v);
       varOleStr, varString, varUString:
         begin
-          n.Text := VarToStr(v);
+          n.text := VarToStr(v);
 
           if Base64Conver and umlExistsChar(n, #10#13#9#8#0) then
             begin
               umlEncodeLineBASE64(n, b64);
-              Result := '___base64:' + b64.Text;
+              Result := '___base64:' + b64.text;
             end
           else
-              Result := n.Text;
+              Result := n.text;
         end;
       varBoolean: Result := umlBoolToStr(v);
       else
@@ -846,30 +853,30 @@ begin
   try
     if n.ComparePos(1, '___base64:') then
       begin
-        n := umlDeleteFirstStr(n, ':').Text;
+        n := umlDeleteFirstStr(n, ':').text;
         umlDecodeLineBASE64(n, b64);
-        Result := b64.Text;
+        Result := b64.text;
       end
     else
       begin
         case umlGetNumTextType(n) of
           ntBool: Result := umlStrToBool(n);
-          ntInt: Result := StrToInt(n.Text);
-          ntInt64: Result := StrToInt64(n.Text);
-{$IFDEF FPC} ntUInt64: Result := StrToQWord(n.Text); {$ELSE} ntUInt64: Result := StrToUInt64(n.Text); {$ENDIF}
-          ntWord: Result := StrToInt(n.Text);
-          ntByte: Result := StrToInt(n.Text);
-          ntSmallInt: Result := StrToInt(n.Text);
-          ntShortInt: Result := StrToInt(n.Text);
-          ntUInt: Result := StrToInt(n.Text);
-          ntSingle: Result := StrToFloat(n.Text);
-          ntDouble: Result := StrToFloat(n.Text);
-          ntCurrency: Result := StrToFloat(n.Text);
-          else Result := n.Text;
+          ntInt: Result := StrToInt(n.text);
+          ntInt64: Result := StrToInt64(n.text);
+{$IFDEF FPC} ntUInt64: Result := StrToQWord(n.text); {$ELSE} ntUInt64: Result := StrToUInt64(n.text); {$ENDIF}
+          ntWord: Result := StrToInt(n.text);
+          ntByte: Result := StrToInt(n.text);
+          ntSmallInt: Result := StrToInt(n.text);
+          ntShortInt: Result := StrToInt(n.text);
+          ntUInt: Result := StrToInt(n.text);
+          ntSingle: Result := StrToFloat(n.text);
+          ntDouble: Result := StrToFloat(n.text);
+          ntCurrency: Result := StrToFloat(n.text);
+          else Result := n.text;
         end;
       end;
   except
-      Result := n.Text;
+      Result := n.text;
   end;
 end;
 
@@ -1047,7 +1054,7 @@ begin
   else
       n := FileName;
 
-  Result := TCoreClassResourceStream.Create(HInstance, n.Text, RT_RCDATA);
+  Result := TCoreClassResourceStream.Create(HInstance, n.text, RT_RCDATA);
 end;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
@@ -1134,7 +1141,7 @@ end;
 function umlFileExists(const FileName: TPascalString): Boolean;
 begin
   if FileName.Len > 0 then
-      Result := FileExists(FileName.Text)
+      Result := FileExists(FileName.text)
   else
       Result := False;
 end;
@@ -1142,7 +1149,7 @@ end;
 function umlDirectoryExists(const DirectoryName: TPascalString): Boolean;
 begin
   if DirectoryName.Len > 0 then
-      Result := DirectoryExists(DirectoryName.Text)
+      Result := DirectoryExists(DirectoryName.text)
   else
       Result := False;
 end;
@@ -1154,10 +1161,10 @@ begin
       exit;
 
   try
-      Result := ForceDirectories(DirectoryName.Text);
+      Result := ForceDirectories(DirectoryName.text);
   except
     try
-        Result := CreateDir(DirectoryName.Text);
+        Result := CreateDir(DirectoryName.text);
     except
         Result := False;
     end;
@@ -1166,18 +1173,18 @@ end;
 
 function umlCurrentDirectory: TPascalString;
 begin
-  Result.Text := GetCurrentDir;
+  Result.text := GetCurrentDir;
 end;
 
 function umlCurrentPath: TPascalString;
 begin
-  Result.Text := GetCurrentDir;
+  Result.text := GetCurrentDir;
   case CurrentPlatform of
     epWin32, epWin64: if (Result.Len = 0) or (Result.Last <> '\') then
-          Result := Result.Text + '\';
+          Result := Result.text + '\';
     else
       if (Result.Len = 0) or (Result.Last <> '/') then
-          Result := Result.Text + '/';
+          Result := Result.text + '/';
   end;
 end;
 
@@ -1188,13 +1195,13 @@ end;
 
 procedure umlSetCurrentPath(ph: TPascalString);
 begin
-  SetCurrentDir(ph.Text);
+  SetCurrentDir(ph.text);
 end;
 
 function umlFindFirstFile(const FileName: TPascalString; var SR: TSR): Boolean;
 label SearchPoint;
 begin
-  if FindFirst(FileName.Text, faAnyFile, SR) <> 0 then
+  if FindFirst(FileName.text, faAnyFile, SR) <> 0 then
     begin
       Result := False;
       exit;
@@ -1238,7 +1245,7 @@ end;
 function umlFindFirstDir(const DirName: TPascalString; var SR: TSR): Boolean;
 label SearchPoint;
 begin
-  if FindFirst(DirName.Text, faAnyFile, SR) <> 0 then
+  if FindFirst(DirName.text, faAnyFile, SR) <> 0 then
     begin
       Result := False;
       exit;
@@ -1355,7 +1362,7 @@ begin
   umlGetFileList(FullPath, ns);
   SetLength(Result, ns.Count);
   for i := 0 to ns.Count - 1 do
-      Result[i] := umlCombineFileName(ph, ns[i]).Text;
+      Result[i] := umlCombineFileName(ph, ns[i]).text;
   DisposeObject(ns);
 end;
 
@@ -1370,7 +1377,7 @@ begin
   umlGetDirList(FullPath, ns);
   SetLength(Result, ns.Count);
   for i := 0 to ns.Count - 1 do
-      Result[i] := umlCombinePath(ph, ns[i]).Text;
+      Result[i] := umlCombinePath(ph, ns[i]).text;
   DisposeObject(ns);
 end;
 
@@ -1392,9 +1399,9 @@ begin
         if n1.Len > 0 then
           begin
             if n1.Last = '\' then
-                Result := n1.Text + n2.Text
+                Result := n1.text + n2.text
             else
-                Result := n1.Text + '\' + n2.Text;
+                Result := n1.text + '\' + n2.text;
           end
         else
             Result := n2;
@@ -1417,9 +1424,9 @@ begin
         if n1.Len > 0 then
           begin
             if n1.Last = '/' then
-                Result := n1.Text + n2.Text
+                Result := n1.text + n2.text
             else
-                Result := n1.Text + '/' + n2.Text;
+                Result := n1.text + '/' + n2.text;
           end
         else
             Result := n2;
@@ -1455,9 +1462,9 @@ begin
         if pn.Len > 0 then
           begin
             if pn.Last = '\' then
-                Result := pn.Text + fn.Text
+                Result := pn.text + fn.text
             else
-                Result := pn.Text + '\' + fn.Text;
+                Result := pn.text + '\' + fn.text;
           end
         else
             Result := fn;
@@ -1483,9 +1490,9 @@ begin
         if pn.Len > 0 then
           begin
             if pn.Last = '/' then
-                Result := pn.Text + fn.Text
+                Result := pn.text + fn.text
             else
-                Result := pn.Text + '/' + fn.Text;
+                Result := pn.text + '/' + fn.text;
           end
         else
             Result := fn;
@@ -1578,7 +1585,7 @@ begin
 
   n := ext;
   if (n.Len > 0) and (n.First <> '.') then
-      n.Text := '.' + n.Text;
+      n.text := '.' + n.text;
   if umlExistsChar(fn, '.') then
       Result := umlDeleteLastStr(fn, '.') + n
   else
@@ -1688,7 +1695,7 @@ begin
       exit;
     end;
   try
-      IOHnd.Handle := TReliableFileStream.Create(Name.Text, True, True);
+      IOHnd.Handle := TReliableFileStream.Create(Name.text, True, True);
   except
     IOHnd.Handle := nil;
     IOHnd.Return := C_CreateFileError;
@@ -1721,7 +1728,7 @@ begin
       exit;
     end;
   try
-      IOHnd.Handle := TReliableFileStream.Create(Name.Text, False, not OnlyRead_);
+      IOHnd.Handle := TReliableFileStream.Create(Name.text, False, not OnlyRead_);
   except
     IOHnd.Handle := nil;
     IOHnd.Return := C_OpenFileError;
@@ -1732,7 +1739,7 @@ begin
   IOHnd.Return := C_NotError;
   IOHnd.Size := IOHnd.Handle.Size;
   IOHnd.Position := 0;
-  if not FileAge(name.Text, IOHnd.Time) then
+  if not FileAge(name.text, IOHnd.Time) then
       IOHnd.Time := Now;
   IOHnd.Name := name;
   IOHnd.IsOpen := True;
@@ -2124,7 +2131,7 @@ begin
     IOHnd.Return := C_NotError;
     Result := True;
   except
-    Value.Text := '';
+    Value.text := '';
     IOHnd.Return := C_StringError;
     Result := False;
   end;
@@ -2197,7 +2204,7 @@ end;
 var
   f: THandle;
 begin
-  f := FileOpen(FileName.Text, fmOpenRead or fmShareDenyWrite);
+  f := FileOpen(FileName.text, fmOpenRead or fmShareDenyWrite);
   if f <> THandle(-1) then
     begin
       Result := FileDateToDateTime(FileGetDate(f));
@@ -2211,7 +2218,7 @@ end;
 
 procedure umlSetFileTime(const FileName: TPascalString; newTime: TDateTime);
 begin
-  FileSetDate(FileName.Text, DateTimeToFileDate(newTime));
+  FileSetDate(FileName.text, DateTimeToFileDate(newTime));
 end;
 
 function umlGetFileSize(const FileName: TPascalString): Int64;
@@ -2244,7 +2251,7 @@ end;
 
 function umlGetFileDateTime(const FileName: TPascalString): TDateTime;
 begin
-  if not FileAge(FileName.Text, Result, False) then
+  if not FileAge(FileName.text, Result, False) then
       Result := Now;
 end;
 
@@ -2258,7 +2265,7 @@ begin
         begin
           repeat
             try
-                DeleteFile(umlCombineFileName(FileName, _SR.Name).Text);
+                DeleteFile(umlCombineFileName(FileName, _SR.Name).text);
             except
             end;
           until not umlFindNextFile(_SR);
@@ -2269,7 +2276,7 @@ begin
   else
     begin
       try
-          Result := DeleteFile(FileName.Text);
+          Result := DeleteFile(FileName.text);
       except
           Result := False;
       end;
@@ -2295,10 +2302,10 @@ begin
   try
     if not umlFileExists(SourFile) then
         exit;
-    if umlMultipleMatch(True, ExpandFileName(SourFile.Text), ExpandFileName(DestFile.Text)) then
+    if umlMultipleMatch(True, ExpandFileName(SourFile.text), ExpandFileName(DestFile.text)) then
         exit;
-    _SH := TCoreClassFileStream.Create(SourFile.Text, fmOpenRead or fmShareDenyWrite);
-    _DH := TCoreClassFileStream.Create(DestFile.Text, fmCreate);
+    _SH := TCoreClassFileStream.Create(SourFile.text, fmOpenRead or fmShareDenyWrite);
+    _DH := TCoreClassFileStream.Create(DestFile.text, fmCreate);
     Result := _DH.CopyFrom(_SH, _SH.Size) = _SH.Size;
     DisposeObject(_SH);
     DisposeObject(_DH);
@@ -2313,7 +2320,7 @@ end;
 
 function umlRenameFile(const OldName, NewName: TPascalString): Boolean;
 begin
-  Result := RenameFile(OldName.Text, NewName.Text);
+  Result := RenameFile(OldName.text, NewName.text);
 end;
 
 procedure umlSetLength(var sVal: TPascalString; Len: Integer);
@@ -2348,12 +2355,12 @@ end;
 
 function umlUpperCase(const Str: TPascalString): TPascalString;
 begin
-  Result := UpperCase(Str.Text);
+  Result := UpperCase(Str.text);
 end;
 
 function umlLowerCase(const Str: TPascalString): TPascalString;
 begin
-  Result := LowerCase(Str.Text);
+  Result := LowerCase(Str.text);
 end;
 
 function umlCopyStr(const sVal: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
@@ -2750,7 +2757,7 @@ begin
   Result := '';
   for i := 0 to lst.Count - 1 do
     if i > 0 then
-        Result.Append(splitC.Text + lst[i])
+        Result.Append(splitC.text + lst[i])
     else
         Result := lst[i];
 end;
@@ -2762,7 +2769,7 @@ begin
   Result := '';
   for i := 0 to lst.Count - 1 do
     if i > 0 then
-        Result.Append(splitC.Text + lst[i])
+        Result.Append(splitC.text + lst[i])
     else
         Result := lst[i];
 end;
@@ -3095,7 +3102,9 @@ begin
         begin
           if cnt[vsSymSub] > 0 then
             begin
-              if cnt[vsNum] + cnt[vsAtoF] < 2 then
+              if cnt[vsNum] + cnt[vsAtoF] = 0 then
+                  Result := ntUnknow
+              else if cnt[vsNum] + cnt[vsAtoF] < 2 then
                   Result := ntShortInt
               else if cnt[vsNum] + cnt[vsAtoF] < 4 then
                   Result := ntSmallInt
@@ -3108,7 +3117,9 @@ begin
             end
           else
             begin
-              if cnt[vsNum] + cnt[vsAtoF] < 3 then
+              if cnt[vsNum] + cnt[vsAtoF] = 0 then
+                  Result := ntUnknow
+              else if cnt[vsNum] + cnt[vsAtoF] < 3 then
                   Result := ntByte
               else if cnt[vsNum] + cnt[vsAtoF] < 5 then
                   Result := ntWord
@@ -3124,7 +3135,9 @@ begin
           exit(ntUnknow)
       else if cnt[vsSymSub] > 0 then
         begin
-          if cnt[vsNum] < 3 then
+          if cnt[vsNum] = 0 then
+              Result := ntUnknow
+          else if cnt[vsNum] < 3 then
               Result := ntShortInt
           else if cnt[vsNum] < 5 then
               Result := ntSmallInt
@@ -3137,7 +3150,9 @@ begin
         end
       else
         begin
-          if cnt[vsNum] < 3 then
+          if cnt[vsNum] = 0 then
+              Result := ntUnknow
+          else if cnt[vsNum] < 3 then
               Result := ntByte
           else if cnt[vsNum] < 5 then
               Result := ntWord
@@ -3280,7 +3295,7 @@ end;
 function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer;
 begin
   if umlIsNumber(_V) then
-      Result := StrToInt(_V.Text)
+      Result := StrToInt(_V.text)
   else
       Result := _Def;
 end;
@@ -3288,7 +3303,7 @@ end;
 function umlStrToInt(const _V: TPascalString; _Def: Double): Integer;
 begin
   if umlIsNumber(_V) then
-      Result := StrToInt(_V.Text)
+      Result := StrToInt(_V.text)
   else
       Result := Round(_Def);
 end;
@@ -3296,7 +3311,7 @@ end;
 function umlStrToFloat(const _V: TPascalString; _Def: Double): Double;
 begin
   if umlIsNumber(_V) then
-      Result := StrToFloat(_V.Text)
+      Result := StrToFloat(_V.text)
   else
       Result := _Def;
 end;
@@ -3539,7 +3554,7 @@ end;
 
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr: TPascalString): Boolean;
 begin
-  if (SourceStr.Len > 0) and (SourceStr.Text <> '*') then
+  if (SourceStr.Len > 0) and (SourceStr.text <> '*') then
       Result := umlMultipleMatch(IgnoreCase, SourceStr, TargetStr, '*', '?')
   else
       Result := True;
@@ -3549,7 +3564,7 @@ function umlMultipleMatch(const SourceStr, TargetStr: TPascalString): Boolean;
 var
   fi: TArrayPascalString;
 begin
-  if (SourceStr.Len > 0) and (SourceStr.Text <> '*') then
+  if (SourceStr.Len > 0) and (SourceStr.text <> '*') then
     begin
       umlGetSplitArray(SourceStr, fi, ';');
       Result := umlMultipleMatch(fi, TargetStr);
@@ -3584,7 +3599,7 @@ function umlSearchMatch(const SourceStr, TargetStr: TPascalString): Boolean;
 var
   fi: TArrayPascalString;
 begin
-  if (SourceStr.Len > 0) and (SourceStr.Text <> '*') then
+  if (SourceStr.Len > 0) and (SourceStr.text <> '*') then
     begin
       umlGetSplitArray(SourceStr, fi, ';');
       Result := umlSearchMatch(fi, TargetStr);
@@ -3653,7 +3668,7 @@ begin
   f := [rfReplaceAll];
   if IgnoreCase then
       f := f + [rfIgnoreCase];
-  Result.Text := StringReplace(s.Text, OldPattern.Text, NewPattern.Text, f);
+  Result.text := StringReplace(s.text, OldPattern.text, NewPattern.text, f);
 end;
 
 function umlCharReplace(const s: TPascalString; OldPattern, NewPattern: U_Char): TPascalString;
@@ -4453,6 +4468,21 @@ begin
       output.Append('''' + ';');
 end;
 
+function umlTestBase64(const text: TPascalString): Boolean;
+var
+  sour, dest: TBytes;
+begin
+  sour := text.Bytes;
+  SetLength(dest, 0);
+  try
+      umlBase64DecodeBytes(sour, dest);
+  except
+  end;
+  Result := length(dest) > 0;
+  if Result then
+      SetLength(dest, 0);
+end;
+
 procedure umlTransformMD5(var Accu; var Buf); inline;
   function ROL(const x: Cardinal; const n: Byte): Cardinal; inline;
   begin
@@ -5086,7 +5116,7 @@ begin
       ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
       while (ASeparatorText.Len > 0) and (ANewText.Len > 0) do
         begin
-          dest.Add(ASeparatorText.Text);
+          dest.Add(ASeparatorText.text);
           inc(Result);
           ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
           ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
@@ -5105,7 +5135,7 @@ begin
       ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
       while (ASeparatorText.Len > 0) and (ANewText.Len > 0) do
         begin
-          dest.IncValue(ASeparatorText.Text, 1);
+          dest.IncValue(ASeparatorText.text, 1);
           inc(Result);
           ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
           ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
@@ -5228,21 +5258,21 @@ function umlAddNewStrTo(SourceStr: TPascalString; dest: TListPascalString; Ignor
 begin
   Result := not umlStringsInExists(dest, SourceStr, IgnoreCase);
   if Result then
-      dest.Append(SourceStr.Text);
+      dest.Append(SourceStr.text);
 end;
 
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Boolean;
 begin
   Result := not umlStringsInExists(dest, SourceStr, IgnoreCase);
   if Result then
-      dest.Append(SourceStr.Text);
+      dest.Append(SourceStr.text);
 end;
 
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings): Boolean;
 begin
   Result := not umlStringsInExists(dest, SourceStr, True);
   if Result then
-      dest.Append(SourceStr.Text);
+      dest.Append(SourceStr.text);
 end;
 
 function umlDeleteStrings(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
@@ -5440,7 +5470,7 @@ begin
     begin
       repeat
         t := umlGetFirstStr(n, Limit);
-        AsLst.Append(t.Text);
+        AsLst.Append(t.text);
         n := umlDeleteFirstStr(n, Limit);
       until n = '';
     end
@@ -5448,7 +5478,7 @@ begin
     begin
       t := n;
       if umlGetLength(t) > 0 then
-          AsLst.Append(t.Text);
+          AsLst.Append(t.text);
     end;
   //
   Result := AsLst.Count > 0;
@@ -5465,7 +5495,7 @@ begin
     begin
       repeat
         t := umlGetFirstStr(n, Limit);
-        AsLst.Append(umlTrimSpace(t).Text);
+        AsLst.Append(umlTrimSpace(t).text);
         n := umlDeleteFirstStr(n, Limit);
       until n = '';
     end
@@ -5473,7 +5503,7 @@ begin
     begin
       t := n;
       if umlGetLength(t) > 0 then
-          AsLst.Append(umlTrimSpace(t).Text);
+          AsLst.Append(umlTrimSpace(t).text);
     end;
   //
   Result := AsLst.Count > 0;
@@ -5525,7 +5555,7 @@ begin
   c := 1;
   RefrenceName := umlUpdateComponentName(RefrenceName);
   Result := RefrenceName;
-  while Owner.FindComponent(Result.Text) <> nil do
+  while Owner.FindComponent(Result.text) <> nil do
     begin
       Result := RefrenceName + IntToStr(c);
       inc(c);
@@ -5823,7 +5853,7 @@ begin
       try
 {$IFNDEF FPC}
 {$IFDEF ANDROID}
-        Result := LoadLibrary(PChar(umlCombineFileName(System.IOUtils.TPath.GetLibraryPath, LibName).Text));
+        Result := LoadLibrary(PChar(umlCombineFileName(System.IOUtils.TPath.GetLibraryPath, LibName).text));
 {$ELSE ANDROID}
         Result := LoadLibrary(PChar(LibName));
 {$ENDIF ANDROID}

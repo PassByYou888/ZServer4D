@@ -1,13 +1,20 @@
 ﻿{ ****************************************************************************** }
 { * communication framework written by QQ 600585@qq.com                        * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 (*
   update history
@@ -599,9 +606,9 @@ type
 
     { delay close on now }
     procedure DelayClose; overload;
-    { delay close on custom delay of ms time }
+    { delay close on custom delay of double time }
     procedure DelayClose(const t: double); overload;
-    { delay free on custom delay of ms time }
+    { delay free on custom delay of double time }
     procedure DelayFree; overload;
     procedure DelayFree(const t: double); overload;
     //
@@ -862,6 +869,7 @@ type
 
     // p2pVM backcall interface
     property VMInterface: ICommunicationFrameworkVMInterface read FVMInterface write FVMInterface;
+    // p2pVM trigger
     procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean); virtual;
     procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
     procedure p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
@@ -1293,7 +1301,6 @@ type
     FRemote_p2pID: Cardinal;
     FIP: TIPV6;
     FPort: Word;
-    FDestroyTimeNotify: Boolean;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -1488,13 +1495,13 @@ type
     procedure echoBuffer(const buff: Pointer; const siz: NativeInt);
     //
     // p2p VM simulate with network listen
-    procedure Listen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
-    procedure ListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
+    procedure SendListen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
+    procedure SendListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
     //
     // p2p VM simulate connecting
-    procedure Connecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
-    procedure ConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
-    procedure Disconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
+    procedure SendConnecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
+    procedure SendConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
+    procedure SendDisconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
     //
     // p2p VM Listen Query
     function ListenCount: Integer;
@@ -4384,7 +4391,7 @@ end;
 procedure TPeerIO.InternalSaveReceiveBuffer(const buff: Pointer; siz: Int64);
 begin
   if not Connected then
-    exit;
+      exit;
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stReceiveSize], siz);
 
   LockIO;
@@ -5096,7 +5103,6 @@ begin
   UnLockIO;
 
   FreeSequencePacketModel();
-
   InternalCloseP2PVMTunnel;
 
   if (FCurrentQueueData <> nil) and (FWaitOnResult) then
@@ -5282,7 +5288,7 @@ begin
         begin
           if IOBusy then
             begin
-              PrintError('P2PVM failed: IO Busy.');
+              PrintError('OpenP2PVMTunnel failed: IO Busy.');
               exit;
             end;
           SendDirectConsoleCmd(C_InitP2PTunnel, AuthToken);
@@ -5385,7 +5391,13 @@ end;
 
 procedure TPeerIO.CloseP2PVMTunnel;
 begin
+  if IOBusy then
+    begin
+      PrintError('CloseP2PVMTunnel failed: IO Busy.');
+      exit;
+    end;
   SendDirectConsoleCmd(C_CloseP2PTunnel, '');
+  ProcessAllSendCmd(nil, False, False);
 end;
 
 procedure TPeerIO.PrintError(v: SystemString);
@@ -6211,6 +6223,7 @@ end;
 procedure TCommunicationFramework.Command_CloseP2PTunnel(Sender: TPeerIO; InData: SystemString);
 begin
   Sender.InternalCloseP2PVMTunnel;
+  Sender.ResetSequencePacketBuffer;
 end;
 
 procedure TCommunicationFramework.VMAuthSuccessAfterDelayExecute(Sender: TNPostExecute);
@@ -8913,7 +8926,6 @@ begin
   FRemote_p2pID := 0;
   FillPtrByte(@FIP, SizeOf(FIP), 0);
   FPort := 0;
-  FDestroyTimeNotify := True;
 
   if not FOwnerFramework.FQuietMode then
       Print('VM-IO Create %d', [ID]);
@@ -8924,13 +8936,8 @@ var
   i: Integer;
 begin
   if Connected then
-    begin
-      if not FOwnerFramework.FQuietMode then
-          DoStatus('VMClient %d disconnect', [ID]);
-
-      if (FDestroyTimeNotify) then
-          FLinkVM.Disconnect(FRemote_frameworkID, FRemote_p2pID);
-    end;
+    if not FOwnerFramework.FQuietMode then
+        DoStatus('VMClient %d disconnect', [ID]);
 
   for i := 0 to FSendQueue.Count - 1 do
       FreeP2PVMPacket(FSendQueue[i]);
@@ -9047,7 +9054,7 @@ begin
       LocalVMc.FPort := Port;
 
       // connected reponse
-      SenderVM.ConnectedReponse(LocalVMc.FRemote_frameworkID, LocalVMc.FRemote_p2pID, frameworkID, LocalVMc.ID);
+      SenderVM.SendConnectedReponse(LocalVMc.FRemote_frameworkID, LocalVMc.FRemote_p2pID, frameworkID, LocalVMc.ID);
 
       if not FQuietMode then
           DoStatus('Virtual connecting with "%s port:%d"', [IPv6ToStr(ipv6).Text, Port]);
@@ -9227,7 +9234,7 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       p := lst[i];
-      SenderVM.Listen(p^.frameworkID, p^.ListenHost, p^.ListenPort, False);
+      SenderVM.SendListen(p^.frameworkID, p^.ListenHost, p^.ListenPort, False);
     end;
   DisposeObject(lst);
 end;
@@ -9292,7 +9299,7 @@ begin
       while i < FLinkVMPool.Count do
         begin
           try
-              TCommunicationFrameworkWithP2PVM(p^.data).Listen(FFrameworkWithVM_ID, ipv6, Port, True);
+              TCommunicationFrameworkWithP2PVM(p^.data).SendListen(FFrameworkWithVM_ID, ipv6, Port, True);
           except
           end;
           inc(i);
@@ -9500,7 +9507,7 @@ begin
   FVMClient.FIP := ipv6;
   FVMClient.FPort := Port;
 
-  FLinkVM.Connecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
+  FLinkVM.SendConnecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
@@ -9558,7 +9565,7 @@ begin
   FVMClient.FIP := ipv6;
   FVMClient.FPort := Port;
 
-  FLinkVM.Connecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
+  FLinkVM.SendConnecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
@@ -9616,7 +9623,7 @@ begin
   FVMClient.FIP := ipv6;
   FVMClient.FPort := Port;
 
-  FLinkVM.Connecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
+  FLinkVM.SendConnecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
 end;
 
 {$IFNDEF FPC}
@@ -9678,7 +9685,7 @@ begin
   FVMClient.FIP := ipv6;
   FVMClient.FPort := Port;
 
-  FLinkVM.Connecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
+  FLinkVM.SendConnecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
 end;
 {$ENDIF FPC}
 
@@ -9734,7 +9741,7 @@ begin
 
   FVMClient.FIP := ipv6;
   FVMClient.FPort := Port;
-  FLinkVM.Connecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
+  FLinkVM.SendConnecting(p^.frameworkID, FFrameworkWithVM_ID, FVMClient.ID, ipv6, Port);
 
   t := GetTimeTick + 1000;
   while not FVMConnected do
@@ -9837,7 +9844,7 @@ begin
           for i := 0 to FFrameworkListenPool.Count - 1 do
             begin
               LP := FFrameworkListenPool[i];
-              ListenState(LP^.frameworkID, LP^.ListenHost, LP^.ListenPort, LP^.Listening);
+              SendListenState(LP^.frameworkID, LP^.ListenHost, LP^.ListenPort, LP^.Listening);
             end;
 
           // send auth successed token
@@ -10067,18 +10074,18 @@ begin
           LP^.ListenPort := Port;
           LP^.Listening := True;
           FFrameworkListenPool.Add(LP);
-          ListenState(frameworkID, ipv6, Port, True);
+          SendListenState(frameworkID, ipv6, Port, True);
         end
       else
         begin
           LP^.Listening := True;
-          ListenState(frameworkID, ipv6, Port, True);
+          SendListenState(frameworkID, ipv6, Port, True);
         end;
     end
   else
     begin
       DeleteListen(ipv6, Port);
-      ListenState(frameworkID, ipv6, Port, False);
+      SendListenState(frameworkID, ipv6, Port, False);
     end;
 end;
 
@@ -10145,7 +10152,7 @@ begin
   if c is TCommunicationFrameworkWithP2PVM_Server then
     begin
       TCommunicationFrameworkWithP2PVM_Server(c).ListenState(Self, ipv6, Port, Listening);
-      ListenState(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID, ipv6, Port, Listening);
+      SendListenState(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID, ipv6, Port, Listening);
     end;
 end;
 
@@ -10180,7 +10187,7 @@ begin
 
   if p2pID <> 0 then
     begin
-      Disconnect(Remote_frameworkID, Remote_p2pID);
+      SendDisconnect(Remote_frameworkID, Remote_p2pID);
       if not FQuietMode then
           DoStatus('connect request with protocol error! IO ID:%d', [p2pID]);
       exit;
@@ -10194,13 +10201,13 @@ begin
 
       if not Allowed then
         begin
-          Disconnect(Remote_frameworkID, 0);
+          SendDisconnect(Remote_frameworkID, 0);
           exit;
         end;
     end
   else
     begin
-      Disconnect(Remote_frameworkID, Remote_p2pID);
+      SendDisconnect(Remote_frameworkID, Remote_p2pID);
     end;
 end;
 
@@ -10236,7 +10243,7 @@ begin
       TCommunicationFrameworkWithP2PVM_Client(c).VMConnectSuccessed(Self, Remote_frameworkID, Remote_p2pID, frameworkID);
 
       if not FQuietMode then
-          DoStatus('connect reponse from frameworkID: %d p2pID: %d', [Remote_frameworkID, Remote_p2pID]);
+          DoStatus('connecting reponse from frameworkID: %d p2pID: %d', [Remote_frameworkID, Remote_p2pID]);
     end;
 end;
 
@@ -10248,8 +10255,6 @@ begin
   c := TCommunicationFramework(FFrameworkPool[frameworkID]);
   if c is TCommunicationFrameworkWithP2PVM_Client then
     begin
-      if TCommunicationFrameworkWithP2PVM_Client(c).FVMClient <> nil then
-          TCommunicationFrameworkWithP2PVM_Client(c).FVMClient.FDestroyTimeNotify := False;
       TCommunicationFrameworkWithP2PVM_Client(c).VMDisconnect(Self);
     end
   else if c is TCommunicationFrameworkWithP2PVM_Server then
@@ -10261,7 +10266,6 @@ begin
               DoStatus('disconnect with protocol error! IO ID:%d', [p2pID]);
           exit;
         end;
-      LocalVMc.FDestroyTimeNotify := False;
       LocalVMc.Disconnect;
     end
   else
@@ -10662,7 +10666,7 @@ begin
       for i := 0 to TCommunicationFrameworkWithP2PVM_Server(c).ListenCount - 1 do
         begin
           LP := TCommunicationFrameworkWithP2PVM_Server(c).GetListen(i);
-          Listen(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID, LP^.ListenHost, LP^.ListenPort, LP^.Listening);
+          SendListen(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID, LP^.ListenHost, LP^.ListenPort, LP^.Listening);
         end;
     end
   else if c is TCommunicationFrameworkWithP2PVM_Client then
@@ -10708,7 +10712,6 @@ begin
 
   if c is TCommunicationFrameworkWithP2PVM_Server then
     begin
-      TCommunicationFrameworkWithP2PVM_Server(c).CloseAllClient;
       TCommunicationFrameworkWithP2PVM_Server(c).FLinkVMPool.Delete(FVMID);
       FFrameworkPool.Delete(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID);
 
@@ -10880,7 +10883,7 @@ begin
   FreeP2PVMPacket(p);
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.Listen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
+procedure TCommunicationFrameworkWithP2PVM.SendListen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
 var
   LP: Pp2pVMListen;
   c: TCommunicationFramework;
@@ -10911,7 +10914,7 @@ begin
       if c is TCommunicationFrameworkWithP2PVM_Server then
         begin
           TCommunicationFrameworkWithP2PVM_Server(c).ListenState(Self, ipv6, Port, Listening);
-          ListenState(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID, ipv6, Port, Listening);
+          SendListenState(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID, ipv6, Port, Listening);
         end;
     end
   else
@@ -10927,7 +10930,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.ListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
+procedure TCommunicationFrameworkWithP2PVM.SendListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
 var
   RBuf: array [0 .. 18] of Byte;
   p: Pp2pVMFragmentPacket;
@@ -10944,7 +10947,7 @@ begin
   FreeP2PVMPacket(p);
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.Connecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
+procedure TCommunicationFrameworkWithP2PVM.SendConnecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
 var
   RBuf: array [0 .. 25] of Byte;
   p: Pp2pVMFragmentPacket;
@@ -10963,7 +10966,7 @@ begin
   FreeP2PVMPacket(p);
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.ConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
+procedure TCommunicationFrameworkWithP2PVM.SendConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
 var
   RBuf: array [0 .. 7] of Byte;
   p: Pp2pVMFragmentPacket;
@@ -10980,7 +10983,7 @@ begin
   FreeP2PVMPacket(p);
 end;
 
-procedure TCommunicationFrameworkWithP2PVM.Disconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
+procedure TCommunicationFrameworkWithP2PVM.SendDisconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
 var
   p: Pp2pVMFragmentPacket;
 begin

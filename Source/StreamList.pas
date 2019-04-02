@@ -1,13 +1,20 @@
 { ****************************************************************************** }
 { * fast StreamQuery,writen by QQ 600585@qq.com                                * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 (*
   update history
@@ -50,9 +57,9 @@ type
     FData: Pointer;
 
     function GetListTable(hash: THash; AutoCreate: Boolean): TCoreClassList;
-    procedure RefreshDBLst(aDBEngine: TObjectDataManager; var aFieldPos: Int64);
+    procedure RefreshDBLst(DBEngine_: TObjectDataManager; var aFieldPos: Int64);
   public
-    constructor Create(aDBEngine: TObjectDataManager; aFieldPos: Int64);
+    constructor Create(DBEngine_: TObjectDataManager; aFieldPos: Int64);
     destructor Destroy; override;
     procedure Clear;
     procedure Refresh;
@@ -82,7 +89,7 @@ implementation
 
 uses UnicodeMixedLib;
 
-constructor THashStreamList.Create(aDBEngine: TObjectDataManager; aFieldPos: Int64);
+constructor THashStreamList.Create(DBEngine_: TObjectDataManager; aFieldPos: Int64);
 begin
   inherited Create;
   FCounter := True;
@@ -90,7 +97,7 @@ begin
   FData := nil;
   SetLength(FAryList, 0);
   SetHashBlockCount(100);
-  RefreshDBLst(aDBEngine, aFieldPos);
+  RefreshDBLst(DBEngine_, aFieldPos);
 end;
 
 destructor THashStreamList.Destroy;
@@ -158,7 +165,7 @@ begin
   Result := FAryList[idx];
 end;
 
-procedure THashStreamList.RefreshDBLst(aDBEngine: TObjectDataManager; var aFieldPos: Int64);
+procedure THashStreamList.RefreshDBLst(DBEngine_: TObjectDataManager; var aFieldPos: Int64);
 var
   ItemSearchHnd: TItemSearch;
   ICnt: Integer;
@@ -194,7 +201,7 @@ var
   end;
 
 begin
-  FDBEngine := aDBEngine;
+  FDBEngine := DBEngine_;
   FFieldPos := aFieldPos;
   FCount := 0;
   ICnt := 0;

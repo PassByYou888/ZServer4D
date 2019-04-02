@@ -1,13 +1,20 @@
-{ ***************************************************************************** }
-{ * parsing library,writen by QQ 600585@qq.com                                * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ ****************************************************************************** }
+{ * parsing library,writen by QQ 600585@qq.com                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
 unit TextParsing;
@@ -2419,14 +2426,14 @@ var
   n: TPascalString;
 begin
   n := umlTrimSpace(Decl);
-  if umlMultipleMatch(False, '{*}', n) then
+  if umlMultipleMatch(False, '(*?*)', n, '?', '') then
       Result := Decl
-  else if umlMultipleMatch(False, '(*?*)', n, '?', '') then
+  else if umlMultipleMatch(False, '{*}', n) then
       Result := Decl
   else if n.Exists(['{', '}']) then
-      Result := Decl
+      Result := '(* ' + Decl + ' *)'
   else
-      Result := '{ ' + (Decl) + ' }';
+      Result := '{ ' + Decl + ' }';
 end;
 
 class function TTextParsing.TranslateC_DeclCommentToText(const Decl: TPascalString): TPascalString;

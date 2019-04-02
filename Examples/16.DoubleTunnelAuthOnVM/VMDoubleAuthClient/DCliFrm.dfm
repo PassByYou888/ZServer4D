@@ -135,12 +135,21 @@ object AuthDoubleTunnelClientForm: TAuthDoubleTunnelClientForm
   end
   object connectTunnelButton: TButton
     Left = 263
-    Top = 6
+    Top = 8
     Width = 106
     Height = 25
     Caption = '1.connect tunnel'
     TabOrder = 9
     OnClick = connectTunnelButtonClick
+  end
+  object Button1: TButton
+    Left = 375
+    Top = 6
+    Width = 106
+    Height = 25
+    Caption = '1.disconnect tunnel'
+    TabOrder = 10
+    OnClick = Button1Click
   end
   object Timer1: TTimer
     Interval = 10

@@ -25,6 +25,7 @@ type
     TimeLabel: TLabel;
     fixedTimeButton: TButton;
     connectTunnelButton: TButton;
+    Button1: TButton;
     procedure ConnectButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -32,17 +33,14 @@ type
     procedure HelloWorldBtnClick(Sender: TObject);
     procedure AsyncConnectButtonClick(Sender: TObject);
     procedure fixedTimeButtonClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure RegUserButtonClick(Sender: TObject);
     procedure connectTunnelButtonClick(Sender: TObject);
   private
-    { Private declarations }
     procedure DoStatusNear(AText: string; const ID: Integer);
-
     procedure cmd_ChangeCaption(Sender: TPeerClient; InData: TDataFrameEngine);
     procedure cmd_GetClientValue(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
   public
-    { Public declarations }
-
     // vm隧道
     // vm隧道可以在自生正常工作中，同时带起整个协议栈的工作
     // 我们在这里会将RecvTunnel+SendTunnel同时绑定在VMTunnel中，只用一个链接实现双通道服务
@@ -259,6 +257,11 @@ begin
         end;
     end);
 
+end;
+
+procedure TAuthDoubleTunnelClientForm.Button1Click(Sender: TObject);
+begin
+  VMTunnel.Disconnect;
 end;
 
 end.
