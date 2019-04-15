@@ -264,7 +264,7 @@ begin
   serv.zdb.InitMemoryDB('mydb');
   // 创建10万条数据记录
   doStatus('database building...');
-  for i := 1 to 10 * 10000 do
+  for i := 1 to 1 * 10000 do
     begin
       VT := TDBEngineVT.Create;
       VT['key'] := inttostr(umlRandomRange(-10000, 10000));

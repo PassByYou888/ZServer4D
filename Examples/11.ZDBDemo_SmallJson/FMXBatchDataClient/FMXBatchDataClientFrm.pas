@@ -1,17 +1,19 @@
 unit FMXBatchDataClientFrm;
-
+
 interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.TabControl, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation,
-  FMX.Layouts, CommunicationFrameworkDataStoreService, ZDBEngine,
+  FMX.Layouts,
+  FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
+  FMX.ListView, FMX.ScrollBox, FMX.Memo,
+  CommunicationFrameworkDataStoreService, ZDBEngine,
   ZDBLocalManager, CommunicationFramework_Client_Indy,
   NotifyObjectBase,
-  CommunicationFramework, CoreClasses, DoStatusIO, FMX.ScrollBox, FMX.Memo,
-  FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
-  FMX.ListView, PascalStrings, MemoryStream64, UnicodeMixedLib,
+  CommunicationFramework, CoreClasses, DoStatusIO,
+  PascalStrings, MemoryStream64, UnicodeMixedLib,
   CommunicationFrameworkDataStoreService_VirtualAuth,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth;
 
@@ -180,10 +182,6 @@ begin
       j.i['RandomValue'] := umlRandomRange(1, 10);
       DBClient.FastPostCompleteBuffer(JsonDestDBEdit.Text, j);
       DisposeObject(j);
-
-      // 因为创建的json条目太多，这里要做消息处理，否则创建指令会一直堵塞在发送缓存，主要是我们不想等太久
-      if i mod 10 = 0 then
-          Application.ProcessMessages;
     end;
   TabControl.Enabled := True;
 end;
@@ -270,47 +268,46 @@ begin
       j.i['RandomValue'] := umlRandomRange(1, 10);
       DBClient.FastPostCompleteBuffer(JsonDestDBEdit.Text, j);
       DisposeObject(j);
-
-      // 因为创建的json条目太多，这里要做消息处理，否则创建指令会一直堵塞在发送缓存，主要是我们不想等太久
-      if i mod 100 = 0 then
-          Application.ProcessMessages;
     end;
   TabControl.Enabled := True;
 end;
 
 procedure TFMXBatchDataClientForm.LoginBtnClick(Sender: TObject);
 begin
-  if not SendTunnel.Connect(ServerEdit.Text, 10099) then
-      exit;
-  if not RecvTunnel.Connect(ServerEdit.Text, 10098) then
-      exit;
-
-  DBClient.UserLoginP(UserIDEdit.Text, PasswdEdit.Text,
-    procedure(const State: Boolean)
+  SendTunnel.AsyncConnectP(ServerEdit.Text, 10099, procedure(const sState: Boolean)
     begin
-      if State then
-        begin
-          DoStatus('登录成功');
-          DBClient.TunnelLinkP(
-            procedure(const State: Boolean)
-            begin
-              if State then
+      if sState then
+          RecvTunnel.AsyncConnectP(ServerEdit.Text, 10098, procedure(const rState: Boolean)
+          begin
+            if rState then
+                DBClient.UserLoginP(UserIDEdit.Text, PasswdEdit.Text,
+                procedure(const State: Boolean)
                 begin
-                  DoStatus('双通道链接成功');
-                  TabControl.ActiveTab := DBOperationDataTabItem;
-
-                  // 因为跨平台的问题，indy在ios和安卓平台底层都不支持断线事件
-                  // 必须手动检查断线状态
-                  // 当连接成功后，我们激活一个计时器，循环检查断线
-                  DisconnectCheckTimer.Enabled := True;
-                  DBClient.ProgressEngine.PostExecuteP(1, procedure(Sender: TNPostExecute)
+                  if State then
                     begin
-                      while not DBClient.DataCipherKeyFinished do
-                          DBClient.Progress;
-                    end)
-                end;
-            end);
-        end;
+                      DoStatus('登录成功');
+                      DBClient.TunnelLinkP(
+                        procedure(const State: Boolean)
+                        begin
+                          if State then
+                            begin
+                              DoStatus('双通道链接成功');
+                              TabControl.ActiveTab := DBOperationDataTabItem;
+
+                              // 因为跨平台的问题，indy在ios和安卓平台底层都不支持断线事件
+                              // 必须手动检查断线状态
+                              // 当连接成功后，我们激活一个计时器，循环检查断线
+                              DisconnectCheckTimer.Enabled := True;
+                              DBClient.ProgressEngine.PostExecuteP(1, procedure(Sender: TNPostExecute)
+                                begin
+                                  while not DBClient.DataCipherKeyFinished do
+                                      DBClient.Progress;
+                                end)
+                            end;
+                        end);
+                    end;
+                end);
+          end);
     end);
 end;
 
@@ -371,3 +368,4 @@ begin
 end;
 
 end.
+

@@ -190,6 +190,7 @@ function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 
+function umlRandom: Integer;
 function umlRandomRange(const aMin, aMax: Integer): Integer;
 function umlRandomRangeS(const aMin, aMax: Single): Single;
 function umlRandomRangeD(const aMin, aMax: Double): Double;
@@ -1064,6 +1065,11 @@ begin
   except
       Result := False;
   end;
+end;
+
+function umlRandom: Integer;
+begin
+  Result := Random(MaxInt);
 end;
 
 function umlRandomRange(const aMin, aMax: Integer): Integer;
@@ -5669,7 +5675,7 @@ var
   n: TPascalString;
   king, buff: TArrayPascalString;
 begin
-  // fill csv head
+  // csv head
   bp := -1;
   for i := low(sour) to high(sour) do
     begin
@@ -5695,7 +5701,7 @@ begin
         end;
     end;
 
-  // fill csv body
+  // csv body
   if bp > 0 then
     for i := bp to high(sour) do
       begin
@@ -5726,7 +5732,7 @@ var
   n: TPascalString;
   king, buff: TArrayPascalString;
 begin
-  // fill csv head
+  // csv head
   bp := -1;
   for i := low(sour) to high(sour) do
     begin
@@ -5752,7 +5758,7 @@ begin
         end;
     end;
 
-  // fill csv body
+  // csv body
   if bp > 0 then
     for i := bp to high(sour) do
       begin
@@ -5786,7 +5792,7 @@ var
   n: TPascalString;
   king, buff: TArrayPascalString;
 begin
-  // fill csv head
+  // csv head
   bp := -1;
   for i := low(sour) to high(sour) do
     begin
@@ -5812,7 +5818,7 @@ begin
         end;
     end;
 
-  // fill csv body
+  // csv body
   if bp > 0 then
     for i := bp to high(sour) do
       begin

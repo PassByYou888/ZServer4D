@@ -24,7 +24,7 @@ object EZClientForm: TEZClientForm
     Top = 27
     Width = 176
     Height = 35
-    Caption = 'build 20000 connect'
+    Caption = 'build 10000 connect'
     TabOrder = 0
     OnClick = ConnectButtonClick
   end
@@ -56,7 +56,7 @@ object EZClientForm: TEZClientForm
     Width = 409
     Height = 285
     Lines.Strings = (
-      #28857'build 20000 connect'#21518' '#31245#31561#29255#21051
+      #28857'build 10000 connect'#21518' '#31245#31561#29255#21051
       #22914#26524#26426#22120#37197#32622#19981#39640#65292#23458#25143#31471#21345#39039#23601#20250#27604#36739#39057#32321
       ''
       '1'#65292#20013#38388#35831#25171#24320#36164#28304#30417#35270#22120#65292#23450#20301#21040#23458#25143#31471#36827#31243#20013

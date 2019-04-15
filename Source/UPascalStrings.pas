@@ -75,12 +75,14 @@ type
     class operator Add(const Lhs: USystemChar; const Rhs: TUPascalString): TUPascalString;
     class operator Add(const Lhs: TUPascalString; const Rhs: USystemChar): TUPascalString;
 
+    class operator Implicit(Value: RawByteString): TUPascalString;
     class operator Implicit(Value: TPascalString): TUPascalString;
     class operator Implicit(Value: USystemString): TUPascalString;
     class operator Implicit(Value: USystemChar): TUPascalString;
     class operator Implicit(Value: TUPascalString): USystemString;
     class operator Implicit(Value: TUPascalString): Variant;
 
+    class operator Explicit(Value: TUPascalString): RawByteString;
     class operator Explicit(Value: TUPascalString): TPascalString;
     class operator Explicit(Value: TUPascalString): USystemString;
     class operator Explicit(Value: TUPascalString): Variant;
@@ -104,10 +106,10 @@ type
     function Exists(c: array of USystemChar): Boolean; overload;
     function Exists(const s: TUPascalString): Boolean; overload;
     function GetCharCount(c: USystemChar): Integer;
-    //
+
     function hash: TUHash;
     function Hash64: TUHash64;
-    //
+
     property Last: USystemChar read GetLast write SetLast;
     property First: USystemChar read GetFirst write SetFirst;
 
@@ -119,10 +121,8 @@ type
     procedure Append(c: USystemChar); overload;
     function GetString(bPos, ePos: NativeInt): TUPascalString;
     procedure Insert(AText: USystemString; idx: Integer);
-    //
     procedure FastAsText(var output: USystemString);
     procedure FastGetBytes(var output: TBytes);
-    //
     property Text: USystemString read GetText write SetText;
     function LowerText: USystemString;
     function UpperText: USystemString;
@@ -133,6 +133,9 @@ type
     function ReplaceChar(const Chars: TUPascalString; const newChar: USystemChar): TUPascalString; overload;
     function ReplaceChar(const Chars, newChar: USystemChar): TUPascalString; overload;
     function ReplaceChar(const Chars: TUOrdChars; const newChar: USystemChar): TUPascalString; overload;
+
+    function BuildPlatformPChar: Pointer;
+    class procedure FreePlatformPChar(p: Pointer); static;
 
     { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
     function SmithWaterman(const p: PUPascalString): Double; overload;
@@ -178,6 +181,7 @@ function UFormat(const Fmt: USystemString; const Args: array of const): USystemS
 
 operator := (const s: Variant)r: TUPascalString;
 operator := (const s: AnsiString)r: TUPascalString;
+operator := (const s: RawByteString)r: TUPascalString;
 operator := (const s: UnicodeString)r: TUPascalString;
 operator := (const s: WideString)r: TUPascalString;
 operator := (const s: ShortString)r: TUPascalString;
@@ -185,6 +189,7 @@ operator := (const c: USystemChar)r: TUPascalString;
 operator := (const c: TPascalString)r: TUPascalString;
 
 operator := (const s: TUPascalString)r: AnsiString;
+operator := (const s: TUPascalString)r: RawByteString;
 operator := (const s: TUPascalString)r: UnicodeString;
 operator := (const s: TUPascalString)r: WideString;
 operator := (const s: TUPascalString)r: ShortString;
@@ -1199,6 +1204,11 @@ begin
   r.Text := s;
 end;
 
+operator := (const s: RawByteString)r: TUPascalString;
+begin
+  r.Text := s;
+end;
+
 operator := (const s: UnicodeString)r: TUPascalString;
 begin
   r.Text := s;
@@ -1225,6 +1235,11 @@ begin
 end;
 
 operator := (const s: TUPascalString)r: AnsiString;
+begin
+  r := s.Text;
+end;
+
+operator := (const s: TUPascalString)r: RawByteString;
 begin
   r := s.Text;
 end;
@@ -1482,6 +1497,11 @@ begin
   CombineCharsPC(Lhs.buff, Rhs, Result.buff);
 end;
 
+class operator TUPascalString.Implicit(Value: RawByteString): TUPascalString;
+begin
+  Result.Text := Value;
+end;
+
 class operator TUPascalString.Implicit(Value: TPascalString): TUPascalString;
 begin
   Result.Bytes := Value.Bytes;
@@ -1504,6 +1524,11 @@ begin
 end;
 
 class operator TUPascalString.Implicit(Value: TUPascalString): Variant;
+begin
+  Result := Value.Text;
+end;
+
+class operator TUPascalString.Explicit(Value: TUPascalString): RawByteString;
 begin
   Result := Value.Text;
 end;
@@ -1952,6 +1977,27 @@ begin
         Result.buff[i] := newChar
     else
         Result.buff[i] := buff[i];
+end;
+
+function TUPascalString.BuildPlatformPChar: Pointer;
+type
+  TAnsiChar_Buff = array [0 .. MaxInt - 1] of Byte;
+  PAnsiChar_Buff = ^TAnsiChar_Buff;
+var
+  swap_buff: TBytes;
+  buff_P: PAnsiChar_Buff;
+begin
+  swap_buff := PlatformBytes;
+  buff_P := GetMemory(length(swap_buff) + 1);
+  CopyPtr(@swap_buff[0], buff_P, length(swap_buff));
+  buff_P^[length(swap_buff)] := 0;
+  SetLength(swap_buff, 0);
+  Result := buff_P;
+end;
+
+class procedure TUPascalString.FreePlatformPChar(p: Pointer);
+begin
+  FreeMemory(p);
 end;
 
 function TUPascalString.SmithWaterman(const p: PUPascalString): Double;

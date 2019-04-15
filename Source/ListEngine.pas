@@ -5040,7 +5040,7 @@ end;
 
 function THashObjectList.GetIgnoreCase: Boolean;
 begin
-  Result := IgnoreCase;
+  Result := FHashList.IgnoreCase;
 end;
 
 procedure THashObjectList.SetIgnoreCase(const Value: Boolean);
@@ -5569,7 +5569,7 @@ end;
 
 function THashStringList.GetIgnoreCase: Boolean;
 begin
-  Result := IgnoreCase;
+  Result := FHashList.IgnoreCase;
 end;
 
 procedure THashStringList.SetIgnoreCase(const Value: Boolean);
@@ -6413,7 +6413,7 @@ end;
 
 function THashVariantList.GetIgnoreCase: Boolean;
 begin
-  Result := IgnoreCase;
+  Result := FHashList.IgnoreCase;
 end;
 
 procedure THashVariantList.SetIgnoreCase(const Value: Boolean);

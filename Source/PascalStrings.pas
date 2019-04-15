@@ -75,11 +75,13 @@ type
     class operator Add(const Lhs: SystemChar; const Rhs: TPascalString): TPascalString;
     class operator Add(const Lhs: TPascalString; const Rhs: SystemChar): TPascalString;
 
+    class operator Implicit(Value: RawByteString): TPascalString;
     class operator Implicit(Value: SystemString): TPascalString;
     class operator Implicit(Value: SystemChar): TPascalString;
     class operator Implicit(Value: TPascalString): SystemString;
     class operator Implicit(Value: TPascalString): Variant;
 
+    class operator Explicit(Value: TPascalString): RawByteString;
     class operator Explicit(Value: TPascalString): SystemString;
     class operator Explicit(Value: SystemString): TPascalString;
     class operator Explicit(Value: SystemChar): TPascalString;
@@ -102,10 +104,10 @@ type
     function Exists(c: array of SystemChar): Boolean; overload;
     function Exists(const s: TPascalString): Boolean; overload;
     function GetCharCount(c: SystemChar): Integer;
-    //
+
     function hash: THash;
     function Hash64: THash64;
-    //
+
     property Last: SystemChar read GetLast write SetLast;
     property First: SystemChar read GetFirst write SetFirst;
 
@@ -117,10 +119,8 @@ type
     procedure Append(c: SystemChar); overload;
     function GetString(bPos, ePos: NativeInt): TPascalString;
     procedure Insert(AText: SystemString; idx: Integer);
-    //
     procedure FastAsText(var output: SystemString);
     procedure FastGetBytes(var output: TBytes);
-    //
     property Text: SystemString read GetText write SetText;
     function LowerText: SystemString;
     function UpperText: SystemString;
@@ -131,6 +131,9 @@ type
     function ReplaceChar(const Chars: TPascalString; const newChar: SystemChar): TPascalString; overload;
     function ReplaceChar(const Chars, newChar: SystemChar): TPascalString; overload;
     function ReplaceChar(const Chars: TOrdChars; const newChar: SystemChar): TPascalString; overload;
+
+    function BuildPlatformPChar: Pointer;
+    class procedure FreePlatformPChar(p: Pointer); static;
 
     { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
     function SmithWaterman(const p: PPascalString): Double; overload;
@@ -176,12 +179,14 @@ function PFormat(const Fmt: SystemString; const Args: array of const): SystemStr
 
 operator := (const s: Variant)r: TPascalString;
 operator := (const s: AnsiString)r: TPascalString;
+operator := (const s: RawByteString)r: TPascalString;
 operator := (const s: UnicodeString)r: TPascalString;
 operator := (const s: WideString)r: TPascalString;
 operator := (const s: ShortString)r: TPascalString;
 operator := (const c: SystemChar)r: TPascalString;
 
 operator := (const s: TPascalString)r: AnsiString;
+operator := (const s: TPascalString)r: RawByteString;
 operator := (const s: TPascalString)r: UnicodeString;
 operator := (const s: TPascalString)r: WideString;
 operator := (const s: TPascalString)r: ShortString;
@@ -1191,6 +1196,11 @@ begin
   r.Text := s;
 end;
 
+operator := (const s: RawByteString)r: TPascalString;
+begin
+  r.Text := s;
+end;
+
 operator := (const s: UnicodeString)r: TPascalString;
 begin
   r.Text := s;
@@ -1212,6 +1222,11 @@ begin
 end;
 
 operator := (const s: TPascalString)r: AnsiString;
+begin
+  r := s.Text;
+end;
+
+operator := (const s: TPascalString)r: RawByteString;
 begin
   r := s.Text;
 end;
@@ -1464,6 +1479,11 @@ begin
   CombineCharsPC(Lhs.buff, Rhs, Result.buff);
 end;
 
+class operator TPascalString.Implicit(Value: RawByteString): TPascalString;
+begin
+  Result.Text := Value;
+end;
+
 class operator TPascalString.Implicit(Value: SystemString): TPascalString;
 begin
   Result.Text := Value;
@@ -1481,6 +1501,11 @@ begin
 end;
 
 class operator TPascalString.Implicit(Value: TPascalString): Variant;
+begin
+  Result := Value.Text;
+end;
+
+class operator TPascalString.Explicit(Value: TPascalString): RawByteString;
 begin
   Result := Value.Text;
 end;
@@ -1924,6 +1949,27 @@ begin
         Result.buff[i] := newChar
     else
         Result.buff[i] := buff[i];
+end;
+
+function TPascalString.BuildPlatformPChar: Pointer;
+type
+  TAnsiChar_Buff = array [0 .. MaxInt - 1] of Byte;
+  PAnsiChar_Buff = ^TAnsiChar_Buff;
+var
+  swap_buff: TBytes;
+  buff_P: PAnsiChar_Buff;
+begin
+  swap_buff := PlatformBytes;
+  buff_P := GetMemory(length(swap_buff) + 1);
+  CopyPtr(@swap_buff[0], buff_P, length(swap_buff));
+  buff_P^[length(swap_buff)] := 0;
+  SetLength(swap_buff, 0);
+  Result := buff_P;
+end;
+
+class procedure TPascalString.FreePlatformPChar(p: Pointer);
+begin
+  FreeMemory(p);
 end;
 
 function TPascalString.SmithWaterman(const p: PPascalString): Double;

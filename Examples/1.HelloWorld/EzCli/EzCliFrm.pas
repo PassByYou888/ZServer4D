@@ -130,7 +130,7 @@ begin
   ms := TMemoryStream.Create;
   ms.SetSize(16 * 1024 * 1024);
 
-  DoStatus('创建128M临时大数据流');
+  DoStatus('创建16M临时大数据流');
   p := ms.Memory;
   for i := 1 to ms.Size div SizeOf(Int64) do
     begin
@@ -177,9 +177,9 @@ var
   p: PInt64;
   i: Integer;
 begin
-  // 在SendDE中包含了512k大型数据，在服务器端相当于执行了512条普通命令
+  // 在SendDE中包含了4M大型数据，在服务器端相当于执行了512条普通命令
   ms := TMemoryStream.Create;
-  ms.SetSize(512 * 1024);
+  ms.SetSize(4 * 1024 * 1024);
 
   p := ms.Memory;
   for i := 1 to ms.Size div SizeOf(Int64) do

@@ -89,6 +89,10 @@ type
   end;
 
   TCompressor = class(TCoreClassObject)
+  private const
+    ChunkHeadSize = $3000;
+    ChunkSize = $FFFF - ChunkHeadSize;
+    PrepareBuffSize = $FFFF;
   public
     constructor Create; reintroduce; virtual;
     destructor Destroy; override;
@@ -102,8 +106,7 @@ type
   TCompressorClass = class of TCompressor;
 
   TCompressorDeflate = class(TCompressor)
-  protected
-    const
+  private const
     HashBits = 16;
     HashSize = 1 shl HashBits;
     HashMask = HashSize - 1;
@@ -115,7 +118,6 @@ type
     MaxOffset = 32768;
     HashRef_ENDIAN_B30 = {$IF defined(BIG_ENDIAN)}$FFFFFF00{$ELSE}$00FFFFFF{$IFEND};
 
-  const
 {$IFNDEF BIG_ENDIAN}
     MultiplyDeBruijnBytePosition: array [0 .. 31] of TCCUInt8 = (0, 0, 3, 0, 3, 1, 3, 0, 3, 2, 2, 1, 3, 2, 0, 1, 3, 3, 1, 2, 2, 2, 2, 0, 3, 1, 2, 0, 1, 0, 1, 1);
 {$ENDIF}
@@ -205,7 +207,8 @@ type
     PBits = ^TBits;
     TBase = array [0 .. 29] of TCCUInt16;
     PBase = ^TBase;
-  private
+
+  var
     fHashTable: THashTable;
     fChainTable: TChainTable;
     fLengthCodesLookUpTable: array [0 .. 258] of TCCInt32;
@@ -237,12 +240,10 @@ type
   end;
 
   TCompressorBRRC = class(TCompressor)
-  private
-    const
+  private const
     FlagModel = 0;
     LiteralModel = 2;
     SizeModels = 258;
-  private
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -411,9 +412,6 @@ begin
 end;
 
 procedure TCompressor.CompressStream(sour: TCoreClassStream; StartPos, EndPos: NativeInt; CompressTo: TCoreClassStream);
-const
-  ChunkSize = $FFFF - $2000;
-  PrepareBuffSize = $FFFF;
 type
   TPrepareBuff = array [0 .. PrepareBuffSize + 2] of Byte;
   PPrepareBuff = ^TPrepareBuff;
@@ -425,208 +423,69 @@ var
   j: NativeInt;
   Num: NativeInt;
   Rest: NativeInt;
-
-  CompressOriginPos, CompressToSiz: Int64;
 begin
   siz := EndPos - StartPos;
   if siz > 0 then
     begin
-      if CompressTo is TCoreClassMemoryStream then
+      CompressTo.write(siz, 8);
+      sour.Position := StartPos;
+
+      new(PrepareBuffPtr);
+      if siz > ChunkSize then
         begin
-          CompressOriginPos := CompressTo.Position;
-          TCoreClassMemoryStream(CompressTo).Size := CompressOriginPos + sour.Size + 8 + ((siz div ChunkSize) * $2000);
+          Num := siz div ChunkSize;
+          Rest := siz mod ChunkSize;
 
-          CompressTo.write(siz, 8);
-          CompressToSiz := 8;
-
-          sour.Position := StartPos;
-
-          if siz > ChunkSize then
+          for j := 0 to Num - 1 do
             begin
-              { Calculate number of full chunks that will fit into the buffer }
-              Num := siz div ChunkSize;
-              { Calculate remaining bytes }
-              Rest := siz mod ChunkSize;
-
-              { Process full chunks }
-              for j := 0 to Num - 1 do
-                begin
-                  sour.read(buff[0], ChunkSize);
-                  PrepareBuffPtr := Pointer(nativeUInt(TCoreClassMemoryStream(CompressTo).Memory) + (CompressOriginPos + CompressToSiz));
-                  PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
-                  inc(CompressToSiz, PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-                end;
-
-              { Process remaining bytes }
-              if Rest > 0 then
-                begin
-                  sour.read(buff[0], Rest);
-                  PrepareBuffPtr := Pointer(nativeUInt(TCoreClassMemoryStream(CompressTo).Memory) + (CompressOriginPos + CompressToSiz));
-                  PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
-                  inc(CompressToSiz, PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-                end;
-            end
-          else
-            begin
-              sour.read(buff[0], siz);
-              PrepareBuffPtr := Pointer(nativeUInt(TCoreClassMemoryStream(CompressTo).Memory) + (CompressOriginPos + CompressToSiz));
-              PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
-              inc(CompressToSiz, PWORD(@(PrepareBuffPtr^[0]))^ + 2);
+              sour.read(buff[0], ChunkSize);
+              PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
+              CompressTo.write(PrepareBuffPtr^[0], PWORD(@(PrepareBuffPtr^[0]))^ + 2);
             end;
 
-          if CompressOriginPos + CompressToSiz < TCoreClassMemoryStream(CompressTo).Size then
-              TCoreClassMemoryStream(CompressTo).Size := CompressOriginPos + CompressToSiz;
-        end
-      else if CompressTo is TMemoryStream64 then
-        begin
-          CompressOriginPos := CompressTo.Position;
-          TMemoryStream64(CompressTo).Size := CompressOriginPos + sour.Size + 8 + ((siz div ChunkSize) * $2000);
-
-          CompressTo.write(siz, 8);
-          CompressToSiz := 8;
-
-          sour.Position := StartPos;
-
-          if siz > ChunkSize then
+          if Rest > 0 then
             begin
-              { Calculate number of full chunks that will fit into the buffer }
-              Num := siz div ChunkSize;
-              { Calculate remaining bytes }
-              Rest := siz mod ChunkSize;
-
-              { Process full chunks }
-              for j := 0 to Num - 1 do
-                begin
-                  sour.read(buff[0], ChunkSize);
-                  PrepareBuffPtr := TMemoryStream64(CompressTo).PositionAsPtr(CompressOriginPos + CompressToSiz);
-                  PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
-                  inc(CompressToSiz, PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-                end;
-
-              { Process remaining bytes }
-              if Rest > 0 then
-                begin
-                  sour.read(buff[0], Rest);
-                  PrepareBuffPtr := TMemoryStream64(CompressTo).PositionAsPtr(CompressOriginPos + CompressToSiz);
-                  PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
-                  inc(CompressToSiz, PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-                end;
-            end
-          else
-            begin
-              sour.read(buff[0], siz);
-              PrepareBuffPtr := TMemoryStream64(CompressTo).PositionAsPtr(CompressOriginPos + CompressToSiz);
-              PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
-              inc(CompressToSiz, PWORD(@(PrepareBuffPtr^[0]))^ + 2);
+              sour.read(buff[0], Rest);
+              PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
+              CompressTo.write(PrepareBuffPtr^[0], PWORD(@(PrepareBuffPtr^[0]))^ + 2);
             end;
-
-          if CompressOriginPos + CompressToSiz < TMemoryStream64(CompressTo).Size then
-              TMemoryStream64(CompressTo).Size := CompressOriginPos + CompressToSiz;
         end
       else
         begin
-          CompressTo.write(siz, 8);
-          sour.Position := StartPos;
-
-          new(PrepareBuffPtr);
-          if siz > ChunkSize then
-            begin
-              { Calculate number of full chunks that will fit into the buffer }
-              Num := siz div ChunkSize;
-              { Calculate remaining bytes }
-              Rest := siz mod ChunkSize;
-
-              { Process full chunks }
-              for j := 0 to Num - 1 do
-                begin
-                  sour.read(buff[0], ChunkSize);
-                  PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], ChunkSize, @PrepareBuffPtr^[2], PrepareBuffSize);
-                  CompressTo.write(PrepareBuffPtr^[0], PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-                end;
-
-              { Process remaining bytes }
-              if Rest > 0 then
-                begin
-                  sour.read(buff[0], Rest);
-                  PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], Rest, @PrepareBuffPtr^[2], PrepareBuffSize);
-                  CompressTo.write(PrepareBuffPtr^[0], PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-                end;
-            end
-          else
-            begin
-              sour.read(buff[0], siz);
-              PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
-              CompressTo.write(PrepareBuffPtr^[0], PWORD(@(PrepareBuffPtr^[0]))^ + 2);
-            end;
-          Dispose(PrepareBuffPtr);
+          sour.read(buff[0], siz);
+          PWORD(@(PrepareBuffPtr^[0]))^ := Compress(@buff[0], siz, @PrepareBuffPtr^[2], PrepareBuffSize);
+          CompressTo.write(PrepareBuffPtr^[0], PWORD(@(PrepareBuffPtr^[0]))^ + 2);
         end;
+      Dispose(PrepareBuffPtr);
     end;
 end;
 
 procedure TCompressor.DecompressStream(sour, DecompressTo: TCoreClassStream);
 var
-  siz, cSiz, DecompressOriginPos: Int64;
+  siz, cSiz: Int64;
   bufSiz, deBufSiz: Word;
-  buff, debuff: array of Byte;
+  buff, decryptBuff: Pointer;
 begin
   if sour.Position + 10 < sour.Size then
     begin
       sour.read(siz, 8);
       cSiz := 0;
-      DecompressOriginPos := DecompressTo.Position;
 
-      if DecompressTo is TCoreClassMemoryStream then
+      buff := GetMemory(PrepareBuffSize);
+      decryptBuff := GetMemory(PrepareBuffSize);
+      while cSiz < siz do
         begin
-          TCoreClassMemoryStream(DecompressTo).Size := DecompressOriginPos + siz;
-          DecompressTo.Position := DecompressOriginPos;
-          SetLength(buff, $FFFF);
-          while cSiz < siz do
-            begin
-              if sour.read(bufSiz, 2) <> 2 then
-                  Break;
-              if sour.read(buff[0], bufSiz) <> bufSiz then
-                  Break;
+          if sour.read(bufSiz, 2) <> 2 then
+              Break;
+          if sour.read(buff^, bufSiz) <> bufSiz then
+              Break;
 
-              deBufSiz := Decompress(@buff[0], bufSiz, Pointer(nativeUInt(TCoreClassMemoryStream(DecompressTo).Memory) + (DecompressOriginPos + cSiz)), $FFFF);
-              inc(cSiz, deBufSiz);
-            end;
-          SetLength(buff, 0);
-        end
-      else if DecompressTo is TMemoryStream64 then
-        begin
-          TMemoryStream64(DecompressTo).Size := DecompressOriginPos + siz;
-          DecompressTo.Position := DecompressOriginPos;
-          SetLength(buff, $FFFF);
-          while cSiz < siz do
-            begin
-              if sour.read(bufSiz, 2) <> 2 then
-                  Break;
-              if sour.read(buff[0], bufSiz) <> bufSiz then
-                  Break;
-
-              deBufSiz := Decompress(@buff[0], bufSiz, TMemoryStream64(DecompressTo).PositionAsPtr(DecompressOriginPos + cSiz), $FFFF);
-              inc(cSiz, deBufSiz);
-            end;
-          SetLength(buff, 0);
-        end
-      else
-        begin
-          SetLength(buff, $FFFF);
-          SetLength(debuff, $FFFF);
-          while cSiz < siz do
-            begin
-              if sour.read(bufSiz, 2) <> 2 then
-                  Break;
-              if sour.read(buff[0], bufSiz) <> bufSiz then
-                  Break;
-
-              deBufSiz := Decompress(@buff[0], bufSiz, @debuff[0], $FFFF);
-              DecompressTo.write(debuff[0], deBufSiz);
-              inc(cSiz, deBufSiz);
-            end;
-          SetLength(buff, 0);
-          SetLength(debuff, 0);
+          deBufSiz := Decompress(buff, bufSiz, decryptBuff, PrepareBuffSize);
+          DecompressTo.write(decryptBuff^, deBufSiz);
+          inc(cSiz, deBufSiz);
         end;
+      FreeMemory(buff);
+      FreeMemory(decryptBuff);
     end;
 end;
 
@@ -807,8 +666,7 @@ var
 
 var
   CurrentPointer, EndPointer, EndSearchPointer, Head, CurrentPossibleMatch: PCCUInt8;
-  BestMatchDistance, BestMatchLength, MatchLength, CheckSum, Step, Difference, Offset,
-    UnsuccessfulFindMatchAttempts: TCCUInt32;
+  BestMatchDistance, BestMatchLength, MatchLength, CheckSum, Step, Difference, Offset, UnsuccessfulFindMatchAttempts: TCCUInt32;
   HashTableItem: PPCCUInt8;
 begin
   OK := True;

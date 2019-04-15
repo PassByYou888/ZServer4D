@@ -96,7 +96,7 @@ begin
   FCount := 0;
   FData := nil;
   SetLength(FAryList, 0);
-  SetHashBlockCount(100);
+  SetHashBlockCount(10000);
   RefreshDBLst(DBEngine_, aFieldPos);
 end;
 

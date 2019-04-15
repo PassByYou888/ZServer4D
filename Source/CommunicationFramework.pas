@@ -455,7 +455,7 @@ type
     procedure Send_Add_OnPtr(p: Pointer);
     procedure Received_Free_OnPtr(p: Pointer);
     procedure Received_Add_OnPtr(p: Pointer);
-  private
+  protected
     // private vm and protocol stack support
     FP2PVMTunnel: TCommunicationFrameworkWithP2PVM;
     // vm auth token buffer
@@ -1280,20 +1280,19 @@ type
   Pp2pVMFragmentPacket = ^Tp2pVMFragmentPacket;
 
   Tp2pVMFragmentPacket = record
-  public
     buffSiz: Cardinal;
     frameworkID: Cardinal;
     p2pID: Cardinal;
     pkType: Byte;
     buff: PByte;
-  private
+
     procedure Init;
     function FillReceiveBuff(Stream: TMemoryStream64): Integer;
     procedure BuildSendBuff(Stream: TMemoryStream64);
   end;
 
   TP2PVM_PeerIO = class(TPeerIO)
-  private
+  protected
     FLinkVM: TCommunicationFrameworkWithP2PVM;
     FRealSendBuff: TMemoryStream64;
     FSendQueue: TCoreClassList;
@@ -1334,7 +1333,7 @@ type
     procedure Connecting(SenderVM: TCommunicationFrameworkWithP2PVM;
       const Remote_frameworkID, frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; var Allowed: Boolean); virtual;
     procedure ListenState(SenderVM: TCommunicationFrameworkWithP2PVM; const ipv6: TIPV6; const Port: Word; const State: Boolean); virtual;
-  private
+  protected
     FFrameworkListenPool: TCoreClassList;
     FLinkVMPool: TUInt32HashObjectList;
     FFrameworkWithVM_ID: Cardinal;
@@ -1419,7 +1418,7 @@ type
   TP2PVMAuthSuccessMethod = procedure(Sender: TCommunicationFrameworkWithP2PVM) of object;
 
   TCommunicationFrameworkWithP2PVM = class(TCoreClassObject)
-  private
+  protected
     FLockedObject: TCritical;
     FPhysicsIO: TPeerIO;
     FAuthWaiting: Boolean;
@@ -1435,7 +1434,7 @@ type
     FWaitEchoList: TCoreClassList;
     FVMID: Cardinal;
     OnAuthSuccessOnesNotify: TP2PVMAuthSuccessMethod;
-  private
+  protected
     procedure Hook_SendByteBuffer(const Sender: TPeerIO; const buff: PByte; siz: NativeInt);
     procedure Hook_SaveReceiveBuffer(const Sender: TPeerIO; const buff: Pointer; siz: Int64);
     procedure SyncProcessReceiveBuff;
@@ -1443,7 +1442,7 @@ type
     procedure Hook_ClientDestroy(const Sender: TPeerIO);
 
     procedure SendVMBuffer(const buff: Pointer; const siz: NativeInt);
-    //
+
     procedure ReceivedEchoing(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
     procedure ReceivedEcho(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
     procedure ReceivedListen(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
@@ -1453,15 +1452,18 @@ type
     procedure ReceivedDisconnect(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
     procedure ReceivedLogicFragmentData(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
     procedure ReceivedPhysicsFragmentData(const frameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
-    //
+
     procedure DoProcessPerClientFragmentSend(P_IO: TPeerIO);
     procedure DoPerClientClose(P_IO: TPeerIO);
   public
     constructor Create(HashPoolLen: Integer);
     destructor Destroy; override;
 
+    // owner physical IO, maybe also virtual IO
+    property PhysicsIO: TPeerIO read FPhysicsIO;
+
     procedure Progress;
-    //
+
     procedure ProgressCommunicationFrameworkC(OnBackcall: TCommunicationFrameworkListCall); overload;
     procedure ProgressCommunicationFrameworkM(OnBackcall: TCommunicationFrameworkListMethod); overload;
 {$IFNDEF FPC} procedure ProgressCommunicationFrameworkP(OnBackcall: TCommunicationFrameworkListProc); overload; {$ENDIF FPC}
@@ -1469,12 +1471,12 @@ type
     // p2p VM physics tunnel support
     procedure OpenP2PVMTunnel(c: TPeerIO);
     procedure CloseP2PVMTunnel;
-    //
+
     // p2p VM logic CommunicationFramework support
     procedure InstallLogicFramework(c: TCommunicationFramework);
     procedure UninstallLogicFramework(c: TCommunicationFramework);
     function CreateLogicClient: TCommunicationFrameworkWithP2PVM_Client;
-    //
+
     // p2p VM Peformance support
     // MaxVMFragmentSize see also MTU
     property MaxVMFragmentSize: Cardinal read FMaxVMFragmentSize write FMaxVMFragmentSize;
@@ -1486,23 +1488,23 @@ type
     procedure AuthVM; overload;
     property WasAuthed: Boolean read FAuthed;
     procedure AuthSuccessed;
-    //
+
     // p2p VM echo support and keepalive
     procedure echoing(const OnEchoPtr: POnEcho; Timeout: TTimeTick); overload;
     procedure echoingC(OnResult: TStateCall; Timeout: TTimeTick); overload;
     procedure echoingM(OnResult: TStateMethod; Timeout: TTimeTick); overload;
 {$IFNDEF FPC} procedure echoingP(OnResult: TStateProc; Timeout: TTimeTick); overload; {$ENDIF FPC}
     procedure echoBuffer(const buff: Pointer; const siz: NativeInt);
-    //
+
     // p2p VM simulate with network listen
     procedure SendListen(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
     procedure SendListenState(const frameworkID: Cardinal; const ipv6: TIPV6; const Port: Word; const Listening: Boolean);
-    //
+
     // p2p VM simulate connecting
     procedure SendConnecting(const Remote_frameworkID, frameworkID, p2pID: Cardinal; const ipv6: TIPV6; const Port: Word);
     procedure SendConnectedReponse(const Remote_frameworkID, Remote_p2pID, frameworkID, p2pID: Cardinal);
     procedure SendDisconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
-    //
+
     // p2p VM Listen Query
     function ListenCount: Integer;
     function GetListen(const index: Integer): Pp2pVMListen;
@@ -1510,7 +1512,7 @@ type
     function FindListening(const ipv6: TIPV6; const Port: Word): Pp2pVMListen;
     procedure DeleteListen(const ipv6: TIPV6; const Port: Word);
     procedure ClearListen;
-    //
+
     // p2p VM operaton
     procedure CloseAllClientIO;
     procedure CloseAllServerIO;
@@ -3650,7 +3652,7 @@ begin
       sour := TMemoryStream64.Create;
       sour.SetPointerWithProtectedMode(Queue.buffer, Queue.BufferSize);
       dest := TMemoryStream64.Create;
-      FastCompressStream(sour, dest);
+      ParallelCompressStream(sour, dest);
       InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, dest.Size);
       Send(dest.Memory, dest.Size);
       DisposeObject(sour);
@@ -3685,7 +3687,7 @@ begin
       sourStream := TMemoryStream64.Create;
       sourStream.SetPointerWithProtectedMode(buff, Size);
       destStream := TMemoryStream64.CustomCreate(8192);
-      FastCompressStream(sourStream, destStream);
+      ParallelCompressStream(sourStream, destStream);
 
       head.Size := destStream.Size;
       head.Compressed := True;
@@ -3731,7 +3733,7 @@ begin
   df.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsZLib(Stream, True)
+      df.EncodeAsSelectCompress(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -3758,7 +3760,7 @@ begin
   df.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsZLib(Stream, True)
+      df.EncodeAsSelectCompress(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -3785,7 +3787,7 @@ begin
   df.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsZLib(Stream, True)
+      df.EncodeAsSelectCompress(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -3812,7 +3814,7 @@ begin
   df.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsZLib(Stream, True)
+      df.EncodeAsSelectCompress(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -4074,7 +4076,7 @@ begin
   if head.Compressed then
     begin
       destBuff := TMemoryStream64.CustomCreate(8192);
-      DecompressStream(buff, destBuff);
+      ParallelDecompressStream(buff, destBuff);
       DisposeObject(buff);
       buff := destBuff;
       buff.Position := 0;
@@ -4190,7 +4192,7 @@ begin
       if FCompleteBufferCompressedSize > 0 then
         begin
           dest := TMemoryStream64.Create;
-          DecompressStream(FCompleteBufferReceiveStream, dest);
+          ParallelDecompressStream(FCompleteBufferReceiveStream, dest);
           DisposeObject(FCompleteBufferReceiveStream);
           dest.Position := 0;
           FCompleteBufferReceiveStream := dest;

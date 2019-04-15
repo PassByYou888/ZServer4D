@@ -737,12 +737,11 @@ type
   { Miscellaneous algorithms }
   { Misc public utilities }
   TMISC = class(TCoreClassObject)
-  private
+  public
     class procedure Mix128(var x: T128Bit); static;
     class function Ran0Prim(var Seed: Integer; IA, IQ, IR: Integer): Integer; static;
     class function Random64(var Seed: TInt64): Integer; static;
     class procedure Transform(var OutputBuffer: TTransformOutput; var InBuf: TTransformInput); static;
-  public
     class procedure GenerateRandomKey(var key; KeySize: Integer); static;
     class procedure HashELF(var Digest: DWORD; const Buf; BufSize: nativeUInt); static;
     class procedure HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt); static;
