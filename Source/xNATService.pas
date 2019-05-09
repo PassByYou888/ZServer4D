@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * x Nat tunnel service          written by QQ 600585@qq.com                  * }
+{ * xNat tunnel                  written by QQ 600585@qq.com                   * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -258,6 +258,7 @@ begin
   // sequence sync
   RecvTunnel.SyncOnCompleteBuffer := True;
   RecvTunnel.SyncOnResult := True;
+  RecvTunnel.SwitchMaxPerformance;
   // mapping interface
   RecvTunnel.OwnerMapping := Self;
   RecvTunnel.UserSpecialClass := TXServiceRecvVM_Special;
@@ -296,6 +297,7 @@ begin
   // sequence sync
   SendTunnel.SyncOnCompleteBuffer := True;
   SendTunnel.SyncOnResult := True;
+  SendTunnel.SwitchMaxPerformance;
   // mapping interface
   SendTunnel.OwnerMapping := Self;
   SendTunnel.UserSpecialClass := TXServiceSendVM_Special;

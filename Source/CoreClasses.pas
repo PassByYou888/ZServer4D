@@ -276,9 +276,9 @@ procedure AtomInc(var x: Cardinal; const v:Cardinal); overload;
 procedure AtomDec(var x: Cardinal); overload;
 procedure AtomDec(var x: Cardinal; const v:Cardinal); overload;
 
-procedure FillPtrByte(const dest:Pointer; Count: NativeInt; const Value: Byte);
-function CompareMemory(const p1, p2: Pointer; Count: NativeInt): Boolean;
-procedure CopyPtr(const sour, dest:Pointer; Count: NativeInt);
+procedure FillPtrByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
+function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
+procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt);
 
 procedure RaiseInfo(const n: SystemString); overload;
 procedure RaiseInfo(const n: SystemString; const Args: array of const); overload;
@@ -456,7 +456,7 @@ begin
 {$ENDIF FPC}
 end;
 
-procedure FillPtrByte(const dest: Pointer; Count: NativeInt; const Value: Byte);
+procedure FillPtrByte(const dest: Pointer; Count: NativeUInt; const Value: Byte);
 var
   d: PByte;
   v: UInt64;
@@ -488,7 +488,7 @@ begin
       d^ := Value;
 end;
 
-function CompareMemory(const p1, p2: Pointer; Count: NativeInt): Boolean;
+function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
 var
   b1, b2: PByte;
 begin;
@@ -530,7 +530,7 @@ begin;
   Result := True;
 end;
 
-procedure CopyPtr(const sour, dest: Pointer; Count: NativeInt);
+procedure CopyPtr(const sour, dest: Pointer; Count: NativeUInt);
 var
   s, d: PByte;
 begin

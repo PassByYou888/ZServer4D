@@ -22,8 +22,7 @@ unit OpCode;
 
 interface
 
-uses SysUtils, Variants, Math, CoreClasses, PascalStrings, DoStatusIO,
-  ListEngine, UnicodeMixedLib, DataFrameEngine;
+uses SysUtils, Variants, Math, CoreClasses, PascalStrings, DoStatusIO, ListEngine, UnicodeMixedLib, DataFrameEngine;
 
 type
   TOpValueType = (
@@ -1371,7 +1370,7 @@ end;
 
 function op_Symbol_Add.DoExecute(opRT: TOpCustomRunTime): Variant;
 begin
-  Result := (Param[0]^.Value);
+  Result := Param[0]^.Value;
 end;
 
 initialization

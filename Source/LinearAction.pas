@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * liner action          written by QQ 600585@qq.com                          * }
+{ * linear action          written by QQ 600585@qq.com                         * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -16,7 +16,7 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
-unit LinerAction;
+unit LinearAction;
 
 {$INCLUDE zDefine.inc}
 
@@ -59,11 +59,10 @@ type
     FLast: TCoreAction;
   public
     Owner: TCoreActionLinear;
-    ActionClass: TCoreActionClass;
     constructor Create(AOwner: TCoreActionLinear); virtual;
     destructor Destroy; override;
     procedure Clear;
-    function Add: TCoreAction;
+    function Add(ActionClass_: TCoreActionClass): TCoreAction; overload;
     procedure Play;
     procedure Over;
     procedure Stop;
@@ -144,7 +143,6 @@ begin
   FWorkIndex := -1;
   FLast := nil;
   Owner := AOwner;
-  ActionClass := TCoreAction;
 end;
 
 destructor TCoreActionList.Destroy;
@@ -163,9 +161,9 @@ begin
   FList.Clear;
 end;
 
-function TCoreActionList.Add: TCoreAction;
+function TCoreActionList.Add(ActionClass_: TCoreActionClass): TCoreAction;
 begin
-  Result := ActionClass.Create(Self);
+  Result := ActionClass_.Create(Self);
   FList.Add(Result);
 end;
 
@@ -319,7 +317,7 @@ var
 begin
   al := TCoreActionList.Create(nil);
   for i := 1 to 2 do
-    with al.Add do
+    with al.Add(TCoreAction) do
       begin
         ID := i;
         Desc := PFormat('description %d', [i]);

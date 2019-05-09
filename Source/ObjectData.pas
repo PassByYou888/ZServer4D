@@ -50,7 +50,7 @@ const
 
   DB_Path_Delimiter = '/';
 
-  DB_String_Length = C_FixedLengthStringHeaderSize + C_FixedLengthStringSize;
+  DB_String_Length = C_FixedStringHeaderSize + C_FixedStringSize;
   DB_Header_Size = (DB_String_Length * 1) + (DB_Position_Size * 3) + (DB_Time_Size * 2) + (DB_ID_Size * 2) + (DB_Property_Size * 1);
   DB_Item_Size = (DB_String_Length * 1) + (DB_ID_Size * 1) + (DB_Position_Size * 2) + (DB_DataSize_Size * 1) + (DB_Counter_Size * 1);
   DB_Item_BlockSize = (DB_ID_Size * 1) + (DB_Position_Size * 4) + (DB_DataSize_Size * 1);
@@ -284,34 +284,27 @@ type
     AllowSameHeaderName: Boolean; // nowrite
     Return: Integer;              // nowrite
 
+    // backcall
     OnError: TObjectDataErrorProc;
-
     OnDeleteHeader: TObjectDataHeaderDeleteProc;
-
     OnPrepareWriteHeader: TObjectDataHeaderWriteBeforeProc;
     OnWriteHeader: TObjectDataHeaderWriteAfterProc;
     OnReadHeader: TObjectDataHeaderReadProc;
-
     OnPrepareWriteItemBlock: TObjectDataItemBlockWriteBeforeProc;
     OnWriteItemBlock: TObjectDataItemBlockWriteAfterProc;
     OnReadItemBlock: TObjectDataItemBlockReadProc;
-
     OnPrepareWriteItem: TObjectDataItemWriteBeforeProc;
     OnWriteItem: TObjectDataItemWriteAfterProc;
     OnReadItem: TObjectDataItemReadProc;
-
     OnPrepareOnlyWriteItemRec: TObjectDataItemWriteBeforeProc;
     OnOnlyWriteItemRec: TObjectDataItemWriteAfterProc;
     OnOnlyReadItemRec: TObjectDataItemReadProc;
-
     OnPrepareWriteField: TObjectDataFieldWriteBeforeProc;
     OnWriteField: TObjectDataFieldWriteAfterProc;
     OnReadField: TObjectDataFieldReadProc;
-
     OnPrepareOnlyWriteFieldRec: TObjectDataFieldWriteBeforeProc;
     OnOnlyWriteFieldRec: TObjectDataFieldWriteAfterProc;
     OnOnlyReadFieldRec: TObjectDataFieldReadProc;
-
     OnPrepareWriteTMDB: TObjectDataTMDBWriteBeforeProc;
     OnWriteTMDB: TObjectDataTMDBWriteAfterProc;
     OnReadTMDB: TObjectDataTMDBReadProc;

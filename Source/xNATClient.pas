@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * x Nat tunnel access          written by QQ 600585@qq.com                   * }
+{ * xNat tunnel                  written by QQ 600585@qq.com                   * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -75,6 +75,7 @@ type
 
   TXClientCustomProtocol = class(TXPhysicsClient)
   protected
+    procedure DoConnected(Sender: TPeerIO); override;
     procedure DoDisconnect(Sender: TPeerIO); override;
   public
     LocalProtocol_ID, RemoteProtocol_ID: Cardinal;
@@ -252,8 +253,11 @@ begin
   // sequence sync
   RecvTunnel.SyncOnCompleteBuffer := True;
   RecvTunnel.SyncOnResult := True;
+  RecvTunnel.SwitchMaxPerformance;
+
   SendTunnel.SyncOnCompleteBuffer := True;
   SendTunnel.SyncOnResult := True;
+  SendTunnel.SwitchMaxPerformance;
 
   // compressed complete buffer
   SendTunnel.CompleteBufferCompressed := XClientTunnel.ProtocolCompressed;
@@ -285,11 +289,11 @@ end;
 
 procedure TXClientMapping.cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  remote_id: Cardinal;
+  Remote_id: Cardinal;
   Remote_IP: SystemString;
   xCli: TXClientCustomProtocol;
 begin
-  remote_id := InData.Reader.ReadCardinal;
+  Remote_id := InData.Reader.ReadCardinal;
   Remote_IP := InData.Reader.ReadString;
 
   xCli := TXClientCustomProtocol.Create;
@@ -302,7 +306,7 @@ begin
   ProtocolPool.Add(xCli);
   ProtocolHash.Add(xCli.LocalProtocol_ID, xCli, False);
 
-  xCli.RemoteProtocol_ID := remote_id;
+  xCli.RemoteProtocol_ID := Remote_id;
   xCli.Mapping := Self;
   xCli.Activted := False;
   xCli.AsyncConnectM(Addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}xCli.OnConnect_Result);
@@ -310,33 +314,29 @@ end;
 
 procedure TXClientMapping.cmd_disconnect_request(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  local_id, remote_id: Cardinal;
+  local_id, Remote_id: Cardinal;
   phy_io: TXClientCustomProtocol;
 begin
-  remote_id := InData.Reader.ReadCardinal;
+  Remote_id := InData.Reader.ReadCardinal;
   local_id := InData.Reader.ReadCardinal;
 
   phy_io := TXClientCustomProtocol(ProtocolHash[local_id]);
   if phy_io <> nil then
-    begin
       phy_io.Disconnect;
-    end;
 end;
 
 procedure TXClientMapping.cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  local_id, remote_id: Cardinal;
+  local_id, Remote_id: Cardinal;
   destSiz: NativeInt;
   destBuff: PByte;
   phy_io: TXClientCustomProtocol;
 begin
-  FillBuff(InData, DataSize, remote_id, local_id, destSiz, destBuff);
+  FillBuff(InData, DataSize, Remote_id, local_id, destSiz, destBuff);
 
   phy_io := TXClientCustomProtocol(ProtocolHash[local_id]);
   if phy_io <> nil then
-    begin
       phy_io.WriteBuffer(destBuff, destSiz);
-    end;
 end;
 
 constructor TXClientMapping.Create;
@@ -399,6 +399,11 @@ begin
 
   LastUpdateWorkload := ProtocolHash.Count;
   LastUpdateTime := GetTimeTick();
+end;
+
+procedure TXClientCustomProtocol.DoConnected(Sender: TPeerIO);
+begin
+  inherited DoConnected(Sender);
 end;
 
 procedure TXClientCustomProtocol.DoDisconnect(Sender: TPeerIO);
@@ -677,7 +682,13 @@ end;
 
 procedure TXNATClient.PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
 begin
-  TPhysicsEngine_Special(TCommunicationFrameworkClient(PhysicsEngine).ClientIO.UserSpecial).PhysicsConnect_Result_BuildP2PToken(cState);
+  if cState then
+      TPhysicsEngine_Special(TCommunicationFrameworkClient(PhysicsEngine).ClientIO.UserSpecial).PhysicsConnect_Result_BuildP2PToken(cState)
+  else
+    begin
+      DoStatus('P2PVM not connection');
+      WaitAsyncConnecting := False;
+    end;
 end;
 
 constructor TXNATClient.Create;

@@ -26,8 +26,7 @@ unit LibraryManager;
 
 interface
 
-uses ObjectDataManager, StreamList, CoreClasses, PascalStrings,
-  UnicodeMixedLib;
+uses ObjectDataManager, StreamList, CoreClasses, PascalStrings, UnicodeMixedLib;
 
 type
   TLibraryManager = class(TCoreClassObject)
@@ -37,29 +36,28 @@ type
     FRoot: THashStreamList;
     FRootDir: SystemString;
     FAutoFreeDataEngine: Boolean;
-  private
   protected
     function GetItems(index: Integer): THashStreamList;
-    function GetNameItems(AName: SystemString): THashStreamList;
-    function GetPathItems(APath: SystemString): PHashStreamListData;
+    function GetNameItems(Name_: SystemString): THashStreamList;
+    function GetPathItems(Path_: SystemString): PHashStreamListData;
   public
-    constructor Create(DataEngine_: TObjectDataManager; aRootDir: SystemString);
+    constructor Create(DataEngine_: TObjectDataManager; RootDir_: SystemString);
     destructor Destroy; override;
     function Clone: TLibraryManager;
     function Count: Integer;
     procedure Clear;
     procedure Refresh;
-    procedure ChangeRoot(NewRoot: SystemString);
+    procedure ChangeRoot(NewRoot_: SystemString);
 
     function TotalCount: Integer;
-    function new(AName, aDescription: SystemString): THashStreamList;
-    function Delete(AName: SystemString; ForceRefresh: Boolean): Boolean;
-    function ReName(aOLDName, NewName, aDescription: SystemString; ForceRefresh: Boolean): Boolean;
-    function Exists(AName: SystemString): Boolean;
+    function New(Name_, Description_: SystemString): THashStreamList;
+    function Delete(Name_: SystemString; ForceRefresh: Boolean): Boolean;
+    function ReName(OLDName_, NewName_, Description_: SystemString; ForceRefresh: Boolean): Boolean;
+    function Exists(Name_: SystemString): Boolean;
 
     property Items[index: Integer]: THashStreamList read GetItems;
-    property NameItems[AName: SystemString]: THashStreamList read GetNameItems; default;
-    property PathItems[APath: SystemString]: PHashStreamListData read GetPathItems;
+    property NameItems[Name_: SystemString]: THashStreamList read GetNameItems; default;
+    property PathItems[Path_: SystemString]: PHashStreamListData read GetPathItems;
     property DBEngine: TObjectDataManager read FDBEngine;
     property ROOT: THashStreamList read FRoot;
     property AutoFreeDataEngine: Boolean read FAutoFreeDataEngine write FAutoFreeDataEngine;
@@ -114,21 +112,21 @@ begin
   Result := THashStreamList(FList[index]);
 end;
 
-function TLibraryManager.GetNameItems(AName: SystemString): THashStreamList;
+function TLibraryManager.GetNameItems(Name_: SystemString): THashStreamList;
 var
   i: Integer;
 begin
   Result := ROOT;
   if Count > 0 then
     for i := 0 to Count - 1 do
-      if umlMultipleMatch(True, AName, Items[i].Name) then
+      if umlMultipleMatch(True, Name_, Items[i].Name) then
         begin
           Result := Items[i];
           Break;
         end;
 end;
 
-function TLibraryManager.GetPathItems(APath: SystemString): PHashStreamListData;
+function TLibraryManager.GetPathItems(Path_: SystemString): PHashStreamListData;
 var
   i: Integer;
   slst: THashStreamList;
@@ -137,11 +135,11 @@ begin
   Result := nil;
   if Count > 0 then
     begin
-      if umlGetIndexStrCount(APath, PathDelim) > 1 then
-          PhPrefix := umlGetFirstStr(APath, PathDelim).Text
+      if umlGetIndexStrCount(Path_, PathDelim) > 1 then
+          PhPrefix := umlGetFirstStr(Path_, PathDelim).Text
       else
           PhPrefix := '';
-      phPostfix := umlGetLastStr(APath, PathDelim).Text;
+      phPostfix := umlGetLastStr(Path_, PathDelim).Text;
       for i := 0 to Count - 1 do
         begin
           if umlMultipleMatch(True, PhPrefix, Items[i].Name) then
@@ -158,13 +156,13 @@ begin
     end;
 end;
 
-constructor TLibraryManager.Create(DataEngine_: TObjectDataManager; aRootDir: SystemString);
+constructor TLibraryManager.Create(DataEngine_: TObjectDataManager; RootDir_: SystemString);
 begin
   inherited Create;
   FList := TCoreClassListForObj.Create;
   FDBEngine := DataEngine_;
   FRoot := nil;
-  FRootDir := aRootDir;
+  FRootDir := RootDir_;
   Refresh;
   LibManCloneAutoFreeList.Add(Self);
   FAutoFreeDataEngine := False;
@@ -246,9 +244,9 @@ begin
     end;
 end;
 
-procedure TLibraryManager.ChangeRoot(NewRoot: SystemString);
+procedure TLibraryManager.ChangeRoot(NewRoot_: SystemString);
 begin
-  FRootDir := NewRoot;
+  FRootDir := NewRoot_;
   Refresh;
 end;
 
@@ -262,18 +260,18 @@ begin
         Result := Result + Items[i].Count;
 end;
 
-function TLibraryManager.new(AName, aDescription: SystemString): THashStreamList;
+function TLibraryManager.New(Name_, Description_: SystemString): THashStreamList;
 var
   fPos: Int64;
   n, d: SystemString;
   fSearchHnd: TFieldSearch;
 begin
   Result := nil;
-  if not umlMultipleMatch(True, AName, ROOT.Name) then
+  if not umlMultipleMatch(True, Name_, ROOT.Name) then
     begin
-      if FDBEngine.CreateField((FRootDir + '/' + AName), aDescription) then
+      if FDBEngine.CreateField((FRootDir + '/' + Name_), Description_) then
         begin
-          if FDBEngine.FieldFindFirst(FRootDir, AName, fSearchHnd) then
+          if FDBEngine.FieldFindFirst(FRootDir, Name_, fSearchHnd) then
             begin
               n := fSearchHnd.Name;
               d := fSearchHnd.Description;
@@ -291,29 +289,29 @@ begin
     end;
 end;
 
-function TLibraryManager.Delete(AName: SystemString; ForceRefresh: Boolean): Boolean;
+function TLibraryManager.Delete(Name_: SystemString; ForceRefresh: Boolean): Boolean;
 begin
-  Result := FDBEngine.FieldDelete(FRootDir, AName);
+  Result := FDBEngine.FieldDelete(FRootDir, Name_);
   if (ForceRefresh) and (Result) then
       Refresh;
 end;
 
-function TLibraryManager.ReName(aOLDName, NewName, aDescription: SystemString; ForceRefresh: Boolean): Boolean;
+function TLibraryManager.ReName(OLDName_, NewName_, Description_: SystemString; ForceRefresh: Boolean): Boolean;
 var
   fPos: Int64;
 begin
   Result := False;
-  if FDBEngine.FieldExists(FRootDir, NewName) then
+  if FDBEngine.FieldExists(FRootDir, NewName_) then
       Exit;
-  if FDBEngine.GetPathField(FRootDir + '/' + aOLDName, fPos) then
+  if FDBEngine.GetPathField(FRootDir + '/' + OLDName_, fPos) then
     begin
-      Result := FDBEngine.FieldReName(fPos, NewName, aDescription);
+      Result := FDBEngine.FieldReName(fPos, NewName_, Description_);
       if (Result) and (ForceRefresh) then
           Refresh;
     end;
 end;
 
-function TLibraryManager.Exists(AName: SystemString): Boolean;
+function TLibraryManager.Exists(Name_: SystemString): Boolean;
 var
   i: Integer;
 begin
@@ -321,7 +319,7 @@ begin
   if Count > 0 then
     for i := 0 to Count - 1 do
       begin
-        if umlMultipleMatch(True, AName, Items[i].Name) then
+        if umlMultipleMatch(True, Name_, Items[i].Name) then
           begin
             Result := True;
             Exit;

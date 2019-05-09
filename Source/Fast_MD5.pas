@@ -40,7 +40,7 @@ uses MemoryStream64;
   https://github.com/maximmasiutin/MD5_Transform-x64
 
   delphi imp by 600585@qq.com
-  https://github.com/PassByYou888/ZServer4D
+  https://github.com/PassByYou888/FastMD5
 *)
 
 {$IF Defined(WIN32)}

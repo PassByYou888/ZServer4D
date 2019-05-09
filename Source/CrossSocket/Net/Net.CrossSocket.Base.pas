@@ -21,7 +21,8 @@ uses
   System.Classes,
   System.Math,
   System.Generics.Collections,
-  Net.SocketAPI, CoreClasses, DoStatusIO;
+  Net.SocketAPI,
+  CoreClasses, DoStatusIO;
 
 const
   // 唯一编号类别

@@ -1373,7 +1373,7 @@ begin
   try
       Text := SysUtils.TEncoding.UTF8.GetString(Value);
   except
-      SetLength(buff, 0);
+      SetPlatformBytes(Value);
   end;
 end;
 

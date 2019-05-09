@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * x Nat tunnel virtual server          written by QQ 600585@qq.com           * }
+{ * x Nat virtual server          written by QQ 600585@qq.com                  * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -341,8 +341,11 @@ begin
   // sequence sync
   RecvTunnel.SyncOnCompleteBuffer := True;
   RecvTunnel.SyncOnResult := True;
+  RecvTunnel.SwitchMaxPerformance;
+
   SendTunnel.SyncOnCompleteBuffer := True;
   SendTunnel.SyncOnResult := True;
+  SendTunnel.SwitchMaxPerformance;
 
   // compressed complete buffer
   SendTunnel.CompleteBufferCompressed := XNAT.ProtocolCompressed;

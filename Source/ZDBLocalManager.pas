@@ -179,13 +179,10 @@ type
     FPipelineClass: TZDBPipelineClass;
     FNotifyIntf: IZDBLocalManagerNotify;
   protected
-    // zdbEngine interface
     procedure DoInsertData(Sender: TDBStoreBase; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
     procedure DoAddData(Sender: TDBStoreBase; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
     procedure DoModifyData(Sender: TDBStoreBase; const StorePos: Int64; buff: TCoreClassStream); virtual;
     procedure DoDeleteData(Sender: TDBStoreBase; const StorePos: Int64); virtual;
-  protected
-    // cadencer interface
     procedure ZDBEngProgress(const Name: PSystemString; Obj: TCoreClassObject);
     procedure CadencerProgress(const deltaTime, newTime: Double);
   protected

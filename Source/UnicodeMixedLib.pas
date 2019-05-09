@@ -78,8 +78,8 @@ const
   C_NotFindFile = -901;
   C_NotError = -900;
 
-  C_FixedLengthStringSize = 64;
-  C_FixedLengthStringHeaderSize = 1;
+  C_FixedStringSize = 64;
+  C_FixedStringHeaderSize = 1;
 
 type
   U_SystemString = SystemString;
@@ -139,9 +139,9 @@ type
     Return: Integer;
   end;
 
-  U_FixedLengthString = packed record
+  U_FixedString = packed record
     Len: Byte;
-    Data: array [0 .. C_FixedLengthStringSize] of Byte;
+    Data: array [0 .. C_FixedStringSize] of Byte;
   end;
 
   U_ByteArray = array [0 .. MaxInt div SizeOf(Byte) - 1] of Byte;
@@ -150,10 +150,10 @@ type
 function umlBytesOf(const s: TPascalString): TBytes;
 function umlStringOf(const s: TBytes): TPascalString; overload;
 
-function FixedLengthString2Pascal(var s: U_FixedLengthString): TPascalString;
-procedure Pascal2FixedLengthString(var In_: TPascalString; var out_: U_FixedLengthString); overload;
-function Pascal2FixedLengthString(const In_: TPascalString): U_FixedLengthString; overload;
-procedure ResetFixedLengthString(var v: U_FixedLengthString);
+function FixedString2Pascal(var s: U_FixedString): TPascalString;
+procedure Pascal2FixedString(var In_: TPascalString; var out_: U_FixedString); overload;
+function Pascal2FixedString(const In_: TPascalString): U_FixedString; overload;
+procedure ResetFixedString(var v: U_FixedString);
 
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
 function umlPos(const SubStr, Str: TPascalString; const Offset: Integer = 1): Integer;
@@ -750,50 +750,50 @@ begin
   Result.Bytes := s;
 end;
 
-function FixedLengthString2Pascal(var s: U_FixedLengthString): TPascalString;
+function FixedString2Pascal(var s: U_FixedString): TPascalString;
 var
   b: TBytes;
 begin
-  SetLength(b, C_FixedLengthStringSize);
-  CopyPtr(@s.Data[0], @b[0], C_FixedLengthStringSize);
+  SetLength(b, C_FixedStringSize);
+  CopyPtr(@s.Data[0], @b[0], C_FixedStringSize);
   SetLength(b, s.Len);
   Result.Bytes := b;
   SetLength(b, 0);
 end;
 
-procedure Pascal2FixedLengthString(var In_: TPascalString; var out_: U_FixedLengthString);
+procedure Pascal2FixedString(var In_: TPascalString; var out_: U_FixedString);
 var
   BB: TBytes;
 begin
   BB := In_.Bytes;
   out_.Len := length(BB);
-  if out_.Len > C_FixedLengthStringSize then
-      out_.Len := C_FixedLengthStringSize
+  if out_.Len > C_FixedStringSize then
+      out_.Len := C_FixedStringSize
   else
-      FillPtrByte(@out_.Data[0], C_FixedLengthStringSize, 0);
+      FillPtrByte(@out_.Data[0], C_FixedStringSize, 0);
 
   if out_.Len > 0 then
       CopyPtr(@BB[0], @out_.Data[0], out_.Len);
 end;
 
-function Pascal2FixedLengthString(const In_: TPascalString): U_FixedLengthString;
+function Pascal2FixedString(const In_: TPascalString): U_FixedString;
 var
   BB: TBytes;
 begin
   BB := In_.Bytes;
   Result.Len := length(BB);
-  if Result.Len > C_FixedLengthStringSize then
-      Result.Len := C_FixedLengthStringSize
+  if Result.Len > C_FixedStringSize then
+      Result.Len := C_FixedStringSize
   else
-      FillPtrByte(@Result.Data[0], C_FixedLengthStringSize, 0);
+      FillPtrByte(@Result.Data[0], C_FixedStringSize, 0);
 
   if Result.Len > 0 then
       CopyPtr(@BB[0], @Result.Data[0], Result.Len);
 end;
 
-procedure ResetFixedLengthString(var v: U_FixedLengthString);
+procedure ResetFixedString(var v: U_FixedString);
 begin
-  FillPtrByte(@v, SizeOf(U_FixedLengthString), 0);
+  FillPtrByte(@v, SizeOf(U_FixedString), 0);
 end;
 
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
@@ -2108,10 +2108,10 @@ end;
 
 function umlFileWriteStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
 var
-  buff: U_FixedLengthString;
+  buff: U_FixedString;
 begin
-  Pascal2FixedLengthString(Value, buff);
-  if umlFileWrite(IOHnd, C_FixedLengthStringSize + C_FixedLengthStringHeaderSize, buff) = False then
+  Pascal2FixedString(Value, buff);
+  if umlFileWrite(IOHnd, C_FixedStringSize + C_FixedStringHeaderSize, buff) = False then
     begin
       IOHnd.Return := C_FileWriteError;
       Result := False;
@@ -2124,16 +2124,16 @@ end;
 
 function umlFileReadStr(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
 var
-  buff: U_FixedLengthString;
+  buff: U_FixedString;
 begin
   try
-    if umlFileRead(IOHnd, C_FixedLengthStringSize + C_FixedLengthStringHeaderSize, buff) = False then
+    if umlFileRead(IOHnd, C_FixedStringSize + C_FixedStringHeaderSize, buff) = False then
       begin
         IOHnd.Return := C_FileReadError;
         Result := False;
         exit;
       end;
-    Value := FixedLengthString2Pascal(buff);
+    Value := FixedString2Pascal(buff);
     IOHnd.Return := C_NotError;
     Result := True;
   except

@@ -3733,7 +3733,7 @@ begin
   df.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsSelectCompress(Stream, True)
+      df.EncodeAsSelectCompressor(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -3760,7 +3760,7 @@ begin
   df.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsSelectCompress(Stream, True)
+      df.EncodeAsSelectCompressor(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -3787,7 +3787,7 @@ begin
   df.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsSelectCompress(Stream, True)
+      df.EncodeAsSelectCompressor(Stream, True)
   else
       df.EncodeTo(Stream, True);
 
@@ -3814,7 +3814,7 @@ begin
   df.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      df.EncodeAsSelectCompress(Stream, True)
+      df.EncodeAsSelectCompressor(Stream, True)
   else
       df.EncodeTo(Stream, True);
 

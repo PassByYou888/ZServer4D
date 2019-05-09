@@ -413,6 +413,7 @@ begin
     LClientSocket := LSocket;
     TSocketAPI.SetNonBlock(LClientSocket, True);
     SetKeepAlive(LClientSocket);
+    TSocketAPI.SetTcpNoDelay(LClientSocket, False);
 
     LConnection := CreateConnection(Self, LClientSocket, ctAccept);
     TriggerConnecting(LConnection);
