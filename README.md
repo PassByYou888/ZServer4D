@@ -177,6 +177,12 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 最后一更新日志
 
+## 修复xNAT代理http长连接的问题
+
+- XNAT做http穿透时需要使用长连接方式:HTTP Keep-Alive
+- 修复crossSocket接口断开连接时小概率不触发DoDisconnect的问题
+
+
 ## 2019-4-15 新增并行化压缩器，新增两个Demo
 
 - 性能：通讯内核引入并行化压缩技术：buff尺寸越大，提升越明显，已经test passed
