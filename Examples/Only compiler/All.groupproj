@@ -114,7 +114,7 @@
         <Projects Include="..\15.100KConnectingOnVM\VMServer\VMServ.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\24.XNat\InternetHold\XInternet.dproj">
+        <Projects Include="..\24.XNat\InternetHole\XInternet.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\24.XNat\LanNat\XLan.dproj">
@@ -576,13 +576,13 @@
         <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj" Targets="Make"/>
     </Target>
     <Target Name="XInternet">
-        <MSBuild Projects="..\24.XNat\InternetHold\XInternet.dproj"/>
+        <MSBuild Projects="..\24.XNat\InternetHole\XInternet.dproj"/>
     </Target>
     <Target Name="XInternet:Clean">
-        <MSBuild Projects="..\24.XNat\InternetHold\XInternet.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\24.XNat\InternetHole\XInternet.dproj" Targets="Clean"/>
     </Target>
     <Target Name="XInternet:Make">
-        <MSBuild Projects="..\24.XNat\InternetHold\XInternet.dproj" Targets="Make"/>
+        <MSBuild Projects="..\24.XNat\InternetHole\XInternet.dproj" Targets="Make"/>
     </Target>
     <Target Name="XLan">
         <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj"/>

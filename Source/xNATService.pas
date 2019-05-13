@@ -511,7 +511,7 @@ begin
         end;
     end
   else
-      phy_io.DelayClose(0);
+      phy_io.DelayClose;
 end;
 
 procedure TXServiceListen.cmd_disconnect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -526,7 +526,7 @@ begin
   if phy_io = nil then
       exit;
 
-  phy_io.DelayClose(0);
+  phy_io.DelayClose(1.0);
 end;
 
 procedure TXServiceListen.cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
@@ -1008,7 +1008,7 @@ begin
   PhysicsEngine.VMInterface := Self;
 
   // Security protocol
-  PhysicsEngine.SwitchMaxSecurity;
+  PhysicsEngine.SwitchMaxPerformance;
 
   // regsiter protocol
   if not PhysicsEngine.ExistsRegistedCmd(C_IPV6Listen) then
@@ -1016,7 +1016,7 @@ begin
 
   if PhysicsEngine is TCommunicationFrameworkServer then
     begin
-      // start service
+      // service
       if TCommunicationFrameworkServer(PhysicsEngine).StartService(Host, umlStrToInt(Port)) then
           DoStatus('Tunnel Open %s:%s successed', [TranslateBindAddr(Host), Port.Text])
       else
@@ -1031,7 +1031,7 @@ begin
     end
   else if PhysicsEngine is TCommunicationFrameworkClient then
     begin
-      // start reverse connection
+      // reverse connection
       if not TCommunicationFrameworkClient(PhysicsEngine).Connected then
         begin
           WaitAsyncConnecting := True;

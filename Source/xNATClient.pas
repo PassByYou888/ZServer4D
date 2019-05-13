@@ -309,6 +309,8 @@ begin
   xCli.RemoteProtocol_ID := Remote_id;
   xCli.Mapping := Self;
   xCli.Activted := False;
+
+  // async connection
   xCli.AsyncConnectM(Addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}xCli.OnConnect_Result);
 end;
 
@@ -764,7 +766,7 @@ begin
   PhysicsEngine.VMInterface := Self;
 
   // Security protocol
-  PhysicsEngine.SwitchMaxSecurity;
+  PhysicsEngine.SwitchMaxPerformance;
 
   if PhysicsEngine is TCommunicationFrameworkServer then
     begin

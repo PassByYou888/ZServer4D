@@ -3,7 +3,7 @@
         <ProjectGuid>{30F99F74-336E-425E-947A-5C66AD0E081F}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="InternetHold\XInternet.dproj">
+        <Projects Include="InternetHole\XInternet.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="LanNat\XLan.dproj">
@@ -24,13 +24,13 @@
         </BorlandProject>
     </ProjectExtensions>
     <Target Name="XInternet">
-        <MSBuild Projects="InternetHold\XInternet.dproj"/>
+        <MSBuild Projects="InternetHole\XInternet.dproj"/>
     </Target>
     <Target Name="XInternet:Clean">
-        <MSBuild Projects="InternetHold\XInternet.dproj" Targets="Clean"/>
+        <MSBuild Projects="InternetHole\XInternet.dproj" Targets="Clean"/>
     </Target>
     <Target Name="XInternet:Make">
-        <MSBuild Projects="InternetHold\XInternet.dproj" Targets="Make"/>
+        <MSBuild Projects="InternetHole\XInternet.dproj" Targets="Make"/>
     </Target>
     <Target Name="XLan">
         <MSBuild Projects="LanNat\XLan.dproj"/>

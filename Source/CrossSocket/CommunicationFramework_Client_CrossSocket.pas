@@ -163,8 +163,6 @@ end;
 destructor TCommunicationFramework_Client_CrossSocket.Destroy;
 begin
   Disconnect;
-  if (ClientIO <> nil) then
-      TCrossSocketClient_PeerIO(ClientIO).OwnerClient := nil;
   inherited Destroy;
 end;
 
@@ -326,9 +324,6 @@ begin
           if p_io = nil then
               Exit;
 
-          p_io.IOInterface := nil;
-          AConnection.UserObject := nil;
-
           if p_io.OwnerClient <> nil then
             begin
               try
@@ -336,6 +331,9 @@ begin
               except
               end;
             end;
+
+          p_io.IOInterface := nil;
+          AConnection.UserObject := nil;
         end;
     end);
 end;
@@ -478,8 +476,6 @@ begin
 
   ICrossSocket(driver).Connect(addr, Port,
     procedure(AConnection: ICrossConnection; ASuccess: Boolean)
-    var
-      t_p_io: TCrossSocketClient_PeerIO;
     begin
       if ASuccess then
         begin
