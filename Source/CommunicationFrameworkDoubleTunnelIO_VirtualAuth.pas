@@ -263,7 +263,7 @@ type
     procedure CadencerProgress(Sender: TObject; const deltaTime, newTime: Double); virtual;
 
     // sync connect
-    function Connect(addr: SystemString; const RecvPort, SendPort: Word): Boolean; virtual;
+    function Connect(addr: SystemString; const RecvPort, SendPort: Word): Boolean; overload; virtual;
 
     // async
     procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateCall); overload; virtual;

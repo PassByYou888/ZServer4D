@@ -46,37 +46,41 @@ type
 {$ENDIF FPC}
 
   TOpCustomRunTime = class(TCoreClassObject)
-  private
+  protected
     procedure FreeNotifyProc(p: Pointer);
 
-    function DoInt(var Param: TOpParam): Variant;
-    function DoFrac(var Param: TOpParam): Variant;
-    function DoExp(var Param: TOpParam): Variant;
-    function DoCos(var Param: TOpParam): Variant;
-    function DoSin(var Param: TOpParam): Variant;
-    function DoLn(var Param: TOpParam): Variant;
-    function DoArcTan(var Param: TOpParam): Variant;
-    function DoSqrt(var Param: TOpParam): Variant;
-    function DoTan(var Param: TOpParam): Variant;
-    function DoRound(var Param: TOpParam): Variant;
-    function DoTrunc(var Param: TOpParam): Variant;
+    function DoInt(var Param: TOpParam): Variant; virtual;
+    function DoFrac(var Param: TOpParam): Variant; virtual;
+    function DoExp(var Param: TOpParam): Variant; virtual;
+    function DoCos(var Param: TOpParam): Variant; virtual;
+    function DoSin(var Param: TOpParam): Variant; virtual;
+    function DoLn(var Param: TOpParam): Variant; virtual;
+    function DoArcTan(var Param: TOpParam): Variant; virtual;
+    function DoSqrt(var Param: TOpParam): Variant; virtual;
+    function DoTan(var Param: TOpParam): Variant; virtual;
+    function DoRound(var Param: TOpParam): Variant; virtual;
+    function DoTrunc(var Param: TOpParam): Variant; virtual;
 
-    function DoStr(var Param: TOpParam): Variant;
+    function DoStr(var Param: TOpParam): Variant; virtual;
 
-    function DoBool(var Param: TOpParam): Variant;
-    function DoTrue(var Param: TOpParam): Variant;
-    function DoFalse(var Param: TOpParam): Variant;
-    function DoRandom(var Param: TOpParam): Variant;
+    function DoBool(var Param: TOpParam): Variant; virtual;
+    function DoTrue(var Param: TOpParam): Variant; virtual;
+    function DoFalse(var Param: TOpParam): Variant; virtual;
+    function DoRandom(var Param: TOpParam): Variant; virtual;
+    function DoRandomFloat(var Param: TOpParam): Variant; virtual;
 
-    function DoGetFirst(var Param: TOpParam): Variant;
-    function DoDeleteFirst(var Param: TOpParam): Variant;
-    function DoGetLast(var Param: TOpParam): Variant;
-    function DoDeleteLast(var Param: TOpParam): Variant;
+    function DoMax(var Param: TOpParam): Variant; virtual;
+    function DoMin(var Param: TOpParam): Variant; virtual;
+    function DoClamp(var Param: TOpParam): Variant; virtual;
+    function DoIfThen(var Param: TOpParam): Variant; virtual;
 
-    function DoMultiple(var Param: TOpParam): Variant;
-    function DoPrint(var Param: TOpParam): Variant;
+    function DoGetFirst(var Param: TOpParam): Variant; virtual;
+    function DoDeleteFirst(var Param: TOpParam): Variant; virtual;
+    function DoGetLast(var Param: TOpParam): Variant; virtual;
+    function DoDeleteLast(var Param: TOpParam): Variant; virtual;
 
-    procedure InternalReg;
+    function DoMultiple(var Param: TOpParam): Variant; virtual;
+    function DoPrint(var Param: TOpParam): Variant; virtual;
   public
     ProcList: THashList;
     UserObject: TCoreClassObject;
@@ -84,9 +88,11 @@ type
     UserVariant: Variant;
     UserString: SystemString;
 
-    constructor Create; virtual;
+    constructor Create;
     constructor CustomCreate(maxHashLen: Integer); virtual;
     destructor Destroy; override;
+
+    procedure InternalReg; virtual;
 
     procedure RegOpC(ProcName: SystemString; OnProc: TOnOpCall);
     procedure RegOpM(ProcName: SystemString; OnProc: TOnOpMethod);
@@ -627,9 +633,89 @@ begin
       Result := Random(MaxInt);
 end;
 
+function TOpCustomRunTime.DoRandomFloat(var Param: TOpParam): Variant;
+begin
+  Result := Random;
+end;
+
+function TOpCustomRunTime.DoMax(var Param: TOpParam): Variant;
+var
+  i: Integer;
+begin
+  if Length(Param) = 0 then
+    begin
+      Result := NULL;
+      Exit;
+    end;
+  Result := Param[0];
+  for i := 1 to Length(Param) - 1 do
+    if Param[i] > Result then
+        Result := Param[i];
+end;
+
+function TOpCustomRunTime.DoMin(var Param: TOpParam): Variant;
+var
+  i: Integer;
+begin
+  if Length(Param) = 0 then
+    begin
+      Result := NULL;
+      Exit;
+    end;
+  Result := Param[0];
+  for i := 1 to Length(Param) - 1 do
+    if Param[i] < Result then
+        Result := Param[i];
+end;
+
+function TOpCustomRunTime.DoClamp(var Param: TOpParam): Variant;
+var
+  minv_, maxv_: Variant;
+begin
+  if Length(Param) <> 3 then
+    begin
+      if Length(Param) > 0 then
+          Result := Param[0]
+      else
+          Result := NULL;
+      Exit;
+    end;
+
+  if Param[1] > Param[2] then
+    begin
+      minv_ := Param[2];
+      maxv_ := Param[1];
+    end
+  else
+    begin
+      minv_ := Param[1];
+      maxv_ := Param[2];
+    end;
+
+  if Param[0] < minv_ then
+      Result := minv_
+  else if Param[0] > maxv_ then
+      Result := maxv_
+  else
+      Result := Param[0];
+end;
+
+function TOpCustomRunTime.DoIfThen(var Param: TOpParam): Variant;
+begin
+  if Length(Param) <> 3 then
+    begin
+      Result := NULL;
+      Exit;
+    end;
+  if Boolean(Param[0]) = True then
+      Result := Param[1]
+  else
+      Result := Param[2];
+end;
+
 function TOpCustomRunTime.DoGetFirst(var Param: TOpParam): Variant;
 begin
-  if length(Param) = 2 then
+  if Length(Param) = 2 then
       Result := umlGetFirstStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -637,7 +723,7 @@ end;
 
 function TOpCustomRunTime.DoDeleteFirst(var Param: TOpParam): Variant;
 begin
-  if length(Param) = 2 then
+  if Length(Param) = 2 then
       Result := umlDeleteFirstStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -645,7 +731,7 @@ end;
 
 function TOpCustomRunTime.DoGetLast(var Param: TOpParam): Variant;
 begin
-  if length(Param) = 2 then
+  if Length(Param) = 2 then
       Result := umlGetLastStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -653,7 +739,7 @@ end;
 
 function TOpCustomRunTime.DoDeleteLast(var Param: TOpParam): Variant;
 begin
-  if length(Param) = 2 then
+  if Length(Param) = 2 then
       Result := umlDeleteLastStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -663,10 +749,10 @@ function TOpCustomRunTime.DoMultiple(var Param: TOpParam): Variant;
 var
   i: Integer;
 begin
-  if length(Param) >= 2 then
+  if Length(Param) >= 2 then
     begin
       Result := True;
-      for i := 1 to length(Param) - 1 do
+      for i := 1 to Length(Param) - 1 do
           Result := Result and umlMultipleMatch(VarToStr(Param[0]), VarToStr(Param[i]));
     end
   else
@@ -686,6 +772,31 @@ begin
 
   DoStatusNoLn;
   Result := True;
+end;
+
+constructor TOpCustomRunTime.Create;
+begin
+  CustomCreate(256);
+end;
+
+constructor TOpCustomRunTime.CustomCreate(maxHashLen: Integer);
+begin
+  inherited Create;
+  ProcList := THashList.CustomCreate(maxHashLen);
+  ProcList.AutoFreeData := True;
+
+  UserObject := nil;
+  UserData := nil;
+  UserVariant := NULL;
+  UserString := '';
+
+  InternalReg;
+end;
+
+destructor TOpCustomRunTime.Destroy;
+begin
+  DisposeObject(ProcList);
+  inherited Destroy;
 end;
 
 procedure TOpCustomRunTime.InternalReg;
@@ -712,6 +823,13 @@ begin
   RegOpM('True', {$IFDEF FPC}@{$ENDIF FPC}DoTrue);
   RegOpM('False', {$IFDEF FPC}@{$ENDIF FPC}DoFalse);
   RegOpM('Random', {$IFDEF FPC}@{$ENDIF FPC}DoRandom);
+  RegOpM('RandomFloat', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat);
+  RegOpM('RandomF', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat);
+
+  RegOpM('Max', {$IFDEF FPC}@{$ENDIF FPC}DoMax);
+  RegOpM('Min', {$IFDEF FPC}@{$ENDIF FPC}DoMin);
+  RegOpM('Clamp', {$IFDEF FPC}@{$ENDIF FPC}DoClamp);
+  RegOpM('IfThen', {$IFDEF FPC}@{$ENDIF FPC}DoIfThen);
 
   RegOpM('GetFirst', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst);
   RegOpM('First', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst);
@@ -725,31 +843,6 @@ begin
 
   RegOpM('Print', {$IFDEF FPC}@{$ENDIF FPC}DoPrint);
   RegOpM('DoStatus', {$IFDEF FPC}@{$ENDIF FPC}DoPrint);
-end;
-
-constructor TOpCustomRunTime.Create;
-begin
-  CustomCreate(256);
-end;
-
-constructor TOpCustomRunTime.CustomCreate(maxHashLen: Integer);
-begin
-  inherited Create;
-  ProcList := THashList.CustomCreate(maxHashLen);
-  ProcList.AutoFreeData := True;
-
-  UserObject := nil;
-  UserData := nil;
-  UserVariant := Null;
-  UserString := '';
-
-  InternalReg;
-end;
-
-destructor TOpCustomRunTime.Destroy;
-begin
-  DisposeObject(ProcList);
-  inherited Destroy;
 end;
 
 procedure TOpCustomRunTime.RegOpC(ProcName: SystemString; OnProc: TOnOpCall);
@@ -825,7 +918,7 @@ end;
 
 function TOpCode.DoExecute(opRT: TOpCustomRunTime): Variant;
 begin
-  Result := Null;
+  Result := NULL;
 end;
 
 function TOpCode.GetParam(index: Integer): POpData;
@@ -998,7 +1091,7 @@ begin
 
   p^.Op.Owner := Self;
 
-  p^.Value := Null;
+  p^.Value := NULL;
   p^.ValueType := ovtUnknow;
   Result := FParam.Add(p);
 end;
@@ -1037,13 +1130,14 @@ begin
   try
       EvaluateParam(opRT);
   except
-      Exit(Null);
+    Result := NULL;
+    Exit;
   end;
 
   try
       Result := DoExecute(opRT);
   except
-      Result := Null;
+      Result := NULL;
   end;
 end;
 
@@ -1068,7 +1162,7 @@ var
   p: PopRTproc;
   i: Integer;
 begin
-  Result := 0;
+  Result := NULL;
   if (opRT = nil) then
       opRT := DefaultOpRT;
 
@@ -1082,7 +1176,7 @@ begin
           Exit;
     end;
 
-  if length(p^.Param) <> Count - 1 then
+  if Length(p^.Param) <> Count - 1 then
       SetLength(p^.Param, Count - 1);
 
   for i := 1 to Count - 1 do
@@ -1124,7 +1218,7 @@ var
   n1, n2: TPascalString;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
 
   if Fast_VarIsStr(Result) then
@@ -1182,7 +1276,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result - Param[i]^.Value;
@@ -1195,7 +1289,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result * Param[i]^.Value;
@@ -1208,7 +1302,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result / Param[i]^.Value;
@@ -1221,7 +1315,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result div Param[i]^.Value;
@@ -1233,7 +1327,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Power(Result, Param[i]^.Value);
@@ -1246,7 +1340,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result mod Param[i]^.Value;
@@ -1259,7 +1353,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result or Param[i]^.Value;
@@ -1272,7 +1366,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result and Param[i]^.Value;
@@ -1285,7 +1379,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result xor Param[i]^.Value;
@@ -1298,7 +1392,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := UInt64(Result) shl UInt64(Param[i]^.Value);
@@ -1311,7 +1405,7 @@ var
   i: Integer;
 begin
   if Count = 0 then
-      Exit(Null);
+      Exit(NULL);
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := UInt64(Result) shr UInt64(Param[i]^.Value);

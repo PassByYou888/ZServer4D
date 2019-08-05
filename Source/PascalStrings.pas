@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * string                by QQ 600585@qq.com                                  * }
+{ * delphi:string fpc:AnsiString               by QQ 600585@qq.com             * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -1355,7 +1355,7 @@ begin
   try
       Text := SysUtils.TEncoding.UTF8.GetString(Value);
   except
-      SetPlatFormBytes(Value);
+      SetPlatformBytes(Value);
   end;
 end;
 

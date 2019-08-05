@@ -1,14 +1,21 @@
 { ****************************************************************************** }
 { * IndyInterface                                                              * }
 { * written by QQ 600585@qq.com                                                * }
-{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://zpascal.net                                                        * }
+{ * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
-{ * https://github.com/PassByYou888/zExpression                                * }
-{ * https://github.com/PassByYou888/zTranslate                                 * }
-{ * https://github.com/PassByYou888/zSound                                     * }
-{ * https://github.com/PassByYou888/zAnalysis                                  * }
-{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/PascalString                               * }
 { * https://github.com/PassByYou888/zRasterization                             * }
+{ * https://github.com/PassByYou888/CoreCipher                                 * }
+{ * https://github.com/PassByYou888/zSound                                     * }
+{ * https://github.com/PassByYou888/zChinese                                   * }
+{ * https://github.com/PassByYou888/zExpression                                * }
+{ * https://github.com/PassByYou888/zGameWare                                  * }
+{ * https://github.com/PassByYou888/zAnalysis                                  * }
+{ * https://github.com/PassByYou888/FFMPEG-Header                              * }
+{ * https://github.com/PassByYou888/zTranslate                                 * }
+{ * https://github.com/PassByYou888/InfiniteIoT                                * }
+{ * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 (*
   INDY Server的最大连接被限制到20
@@ -56,6 +63,7 @@ type
   end;
 
   TCommunicationFramework_Server_Context = class(TIdServerContext)
+  public
     ClientIntf: TIDServer_PeerIO;
     LastTimeTick: TTimeTick;
     constructor Create(AConnection: TIdTCPConnection; AYarn: TIdYarn; AList: TIdContextThreadList = nil); override;
@@ -65,7 +73,7 @@ type
   TCommunicationFramework_Server_Indy = class(TCommunicationFrameworkServer)
   protected
     FDriver: TIdTCPServer;
-  protected
+
     function GetPort: Word;
     procedure SetPort(const Value: Word);
     procedure SetIdleTimeout(const Value: TTimeTick); override;

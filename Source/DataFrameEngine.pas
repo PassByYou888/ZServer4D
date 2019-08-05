@@ -3038,12 +3038,12 @@ end;
 
 procedure TDataFrameEngine.WriteVector4(v: TVector4);
 begin
-  WriteArraySingle.WriteArray(v.Link);
+  WriteArraySingle.WriteArray(v.Buff);
 end;
 
 procedure TDataFrameEngine.WriteVector3(v: TVector3);
 begin
-  WriteArraySingle.WriteArray(v.Link);
+  WriteArraySingle.WriteArray(v.Buff);
 end;
 
 procedure TDataFrameEngine.WriteMat4(v: TMat4);
@@ -3059,7 +3059,7 @@ end;
 
 procedure TDataFrameEngine.WriteMatrix4(v: TMatrix4);
 begin
-  WriteMat4(v.Link);
+  WriteMat4(v.Buff);
 end;
 
 procedure TDataFrameEngine.Write2DPoint(v: T2DPoint);
@@ -3499,10 +3499,10 @@ end;
 procedure TDataFrameEngine.ReadStream(index_: Integer; output: TCoreClassStream);
 var
   Obj_: TDataFrameBase;
-  AneedResetPos: Boolean;
+  LNeedResetPos: Boolean;
 begin
   Obj_ := Data[index_];
-  AneedResetPos := output.Size = 0;
+  LNeedResetPos := output.Size = 0;
   if Obj_ is TDataFrameStream then
     begin
       with TDataFrameStream(Obj_) do
@@ -3516,7 +3516,7 @@ begin
       Obj_.SaveToStream(TMemoryStream64(output))
   else
       RaiseInfo('no support');
-  if AneedResetPos then
+  if LNeedResetPos then
       output.Position := 0;
 end;
 
@@ -3827,7 +3827,7 @@ end;
 
 function TDataFrameEngine.ReadMatrix4(index_: Integer): TMatrix4;
 begin
-  Result.Link := ReadMat4(index_);
+  Result.Buff := ReadMat4(index_);
 end;
 
 function TDataFrameEngine.Read2DPoint(index_: Integer): T2DPoint;

@@ -18,6 +18,7 @@
 {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
 {$IFDEF RangeCheck}{$R-}{$ENDIF}
 
+
 function ROL8(const Value: Byte; Shift: Byte): Byte;
 begin
   Shift := Shift and $07;
@@ -412,6 +413,15 @@ begin
   v2 := v;
 end;
 
+procedure SwapVariant(var v1, v2: Variant);
+var
+  v: Variant;
+begin
+  v := v1;
+  v1 := v2;
+  v2 := v;
+end;
+
 function Swap(const v: Word): Word;
 begin
   Result := Endian(v);
@@ -442,14 +452,13 @@ begin
   Result := Int64(UInt64(UInt64(UInt64(AValue) shr (Shift and 63)) or (UInt64(Int64(UInt64(0 - UInt64(UInt64(AValue) shr 63)) and UInt64(Int64(0 - (Ord((Shift and 63) <> 0) { and 1 } ))))) shl (64 - (Shift and 63)))));
 end;
 
-function MemoryAlign(addr: Pointer; alignment: nativeUInt): Pointer;
+function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
 var
   tmp: nativeUInt;
 begin
-  tmp := nativeUInt(addr) + (alignment - 1);
-  Result := Pointer(tmp - (tmp mod alignment));
+  tmp := nativeUInt(addr) + (alignment_ - 1);
+  Result := Pointer(tmp - (tmp mod alignment_));
 end;
-
 
 {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
 {$IFDEF RangeCheck}{$R+}{$ENDIF}

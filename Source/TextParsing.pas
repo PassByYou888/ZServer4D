@@ -61,6 +61,8 @@ type
     Len: Integer;
   end;
 
+  TSymbolMatrix = array of TArrayPascalString;
+
   TTextParsing = class(TCoreClassObject)
   public
     TextStyle: TTextStyle;
@@ -149,6 +151,8 @@ type
     property Token[idx: Integer]: PTokenData read GetTokens;
     function FirstToken: PTokenData;
     function LastToken: PTokenData;
+    function NextToken(p: PTokenData): PTokenData;
+    function PrevToken(p: PTokenData): PTokenData;
     function TokenCombine(const bTokenI, eTokenI: Integer; const acceptT: TTokenTypes): TPascalString; overload;
     function TokenCombine(const bTokenI, eTokenI: Integer): TPascalString; overload;
     { token probe }
@@ -159,7 +163,17 @@ type
     function TokenProbeR(startI: Integer; const t: TPascalString): PTokenData; overload;
     function TokenProbeR(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData; overload;
     { Free to match all strings from Token[StartIndex] left to right, including any symbols. return token }
-    function TokenStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
+    function TokenFullStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
+    { symbol Indent probe for end indent }
+    function IndentSymbolEndProbeR(startI: Integer; const indent_begin_symbol, indent_end_symbol: TPascalString): PTokenData;
+    { symbol Indent probe for begin indent }
+    function IndentSymbolBeginProbeL(startI: Integer; const indent_begin_symbol, indent_end_symbol: TPascalString): PTokenData;
+    { segmention text as symbol vector, L = output }
+    function DetectSymbolVector: Boolean;
+    function FillSymbolVector(L: TPascalStringList): Boolean; overload;
+    function FillSymbolVector: TArrayPascalString; overload;
+    { segmention text as symbol matrix }
+    function FillSymbolMatrix(W, H: Integer; var symbolMatrix: TSymbolMatrix): Boolean;
     { misc }
     function GetText(const bPos, ePos: Integer): TPascalString; overload;
     function GetStr(const bPos, ePos: Integer): TPascalString; overload;
@@ -188,9 +202,10 @@ type
     class function TranslateC_DeclCommentToText(const Decl: TPascalString): TPascalString;
     class function TranslateTextToC_DeclComment(const Decl: TPascalString): TPascalString;
     { structor }
+    constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString; ASpacerSymbol: SystemString); overload;
     constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString); overload;
     constructor Create(const AText: TPascalString; AStyle: TTextStyle); overload;
-    constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString; ASpacerSymbol: SystemString); overload;
+    constructor Create(const AText: TPascalString); overload;
     destructor Destroy; override;
     { external }
     procedure Init; virtual;
@@ -202,7 +217,7 @@ type
   TTextParsingClass = class of TTextParsing;
 
 const
-  C_SpacerSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36;
+  C_SpacerSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36#124;
 
 var
   V_SpacerSymbol: SystemString = C_SpacerSymbol;
@@ -273,7 +288,7 @@ begin
 
   Result := cPos;
 
-  if ComparePosStr(Result, '//') then
+  if (TextStyle <> tsText) and (ComparePosStr(Result, '//')) then
     begin
       inc(Result, 2);
       while ParsingData.Text[Result] <> #10 do
@@ -1821,11 +1836,32 @@ begin
   Result := GetTokens(TokenCount - 1);
 end;
 
+function TTextParsing.NextToken(p: PTokenData): PTokenData;
+begin
+  Result := nil;
+  if (p = nil) or (p^.Index + 1 >= TokenCount) then
+      exit;
+  Result := Tokens[p^.Index + 1];
+end;
+
+function TTextParsing.PrevToken(p: PTokenData): PTokenData;
+begin
+  Result := nil;
+  if (p = nil) or (p^.Index - 1 >= 0) then
+      exit;
+  Result := Tokens[p^.Index - 1];
+end;
+
 function TTextParsing.TokenCombine(const bTokenI, eTokenI: Integer; const acceptT: TTokenTypes): TPascalString;
 var
   bi, ei: Integer;
   p: PTokenData;
 begin
+  Result := '';
+
+  if (bTokenI < 0) or (eTokenI < 0) then
+      exit;
+
   if bTokenI > eTokenI then
     begin
       bi := eTokenI;
@@ -1837,13 +1873,21 @@ begin
       ei := eTokenI;
     end;
 
-  Result := '';
-  while bi <= ei do
+  while (bi <= ei) and (bi < TokenCount) do
     begin
       p := Tokens[bi];
       if p^.tokenType in acceptT then
           Result.Append(p^.Text);
       inc(bi);
+    end;
+
+  if (bi >= TokenCount) then
+    begin
+      while (Result.Len > 0) and (Result.Last = #0) do
+          Result.DeleteLast;
+
+      if (Result.Len > 0) and (Result.Last = #32) then
+          Result.DeleteLast;
     end;
 end;
 
@@ -1984,7 +2028,7 @@ begin
     end;
 end;
 
-function TTextParsing.TokenStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
+function TTextParsing.TokenFullStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
 var
   idx: Integer;
   p: PTokenData;
@@ -2006,6 +2050,232 @@ begin
     end;
 end;
 
+function TTextParsing.IndentSymbolEndProbeR(startI: Integer; const indent_begin_symbol, indent_end_symbol: TPascalString): PTokenData;
+var
+  idx, bC, eC: Integer;
+  p: PTokenData;
+begin
+  Result := nil;
+  if ParsingData.Cache.TokenDataList.Count <= 0 then
+      exit;
+  idx := startI;
+  bC := 0;
+  eC := 0;
+  while idx < ParsingData.Cache.TokenDataList.Count do
+    begin
+      p := PTokenData(ParsingData.Cache.TokenDataList[idx]);
+
+      if indent_begin_symbol.Exists(p^.Text.buff) then
+          inc(bC)
+      else if indent_end_symbol.Exists(p^.Text.buff) then
+          inc(eC);
+
+      if (bC > 0) and (eC = bC) then
+        begin
+          Result := p;
+          exit;
+        end;
+
+      inc(idx);
+    end;
+end;
+
+function TTextParsing.IndentSymbolBeginProbeL(startI: Integer; const indent_begin_symbol, indent_end_symbol: TPascalString): PTokenData;
+var
+  idx, bC, eC: Integer;
+  p: PTokenData;
+begin
+  Result := nil;
+  if ParsingData.Cache.TokenDataList.Count <= 0 then
+      exit;
+  idx := startI;
+  bC := 0;
+  eC := 0;
+  while idx >= 0 do
+    begin
+      p := PTokenData(ParsingData.Cache.TokenDataList[idx]);
+
+      if indent_begin_symbol.Exists(p^.Text.buff) then
+          inc(bC)
+      else if indent_end_symbol.Exists(p^.Text.buff) then
+          inc(eC);
+
+      if (eC > 0) and (eC = bC) then
+        begin
+          Result := p;
+          exit;
+        end;
+
+      dec(idx);
+    end;
+end;
+
+function TTextParsing.DetectSymbolVector: Boolean;
+var
+  i: Integer;
+  p1, p2, paramB, paramE: PTokenData;
+  vExp: U_String;
+  VectorNum: Integer;
+begin
+  Result := False;
+
+  i := 0;
+  p1 := nil;
+  p2 := nil;
+  paramB := FirstToken;
+  paramE := paramB;
+  VectorNum := 0;
+
+  while i < TokenCount do
+    begin
+      p1 := TokenProbeR(i, [ttSymbol]);
+      if p1 = nil then
+        begin
+          // successed
+          inc(VectorNum);
+          Break;
+        end;
+      if p1^.Text.Same(',', ';') then
+        begin
+          paramE := p1;
+          inc(VectorNum);
+          paramB := NextToken(paramE);
+          // successed
+          if paramB = nil then
+              Break;
+          // do loop.
+          paramE := paramB;
+          i := paramB^.Index;
+        end
+      else if p1^.Text.Same('(') then
+        begin
+          p2 := IndentSymbolEndProbeR(p1^.Index, '(', ')');
+          // error
+          if p2 = nil then
+              exit;
+
+          // do loop.
+          paramE := paramB;
+          i := p2^.Index + 1;
+        end
+      else if p1^.Text.Same('[') then
+        begin
+          p2 := IndentSymbolEndProbeR(p1^.Index, '[', ']');
+          // error
+          if p2 = nil then
+              exit;
+          // do loop.
+          paramE := paramB;
+          i := p2^.Index + 1;
+        end
+      else
+          inc(i);
+    end;
+
+  Result := VectorNum > 1;
+end;
+
+function TTextParsing.FillSymbolVector(L: TPascalStringList): Boolean;
+var
+  i: Integer;
+  p1, p2, paramB, paramE: PTokenData;
+  vExp: U_String;
+begin
+  Result := False;
+
+  i := 0;
+  p1 := nil;
+  p2 := nil;
+  paramB := FirstToken;
+  paramE := paramB;
+
+  while i < TokenCount do
+    begin
+      p1 := TokenProbeR(i, [ttSymbol]);
+      if p1 = nil then
+        begin
+          // successed
+          vExp := TokenCombine(paramB^.Index, TokenCount - 1);
+          L.Add(vExp);
+          Break;
+        end;
+      if p1^.Text.Same(',', ';') then
+        begin
+          paramE := p1;
+          if paramB <> paramE then
+              vExp := TokenCombine(paramB^.Index, paramE^.Index - 1)
+          else
+              vExp := '';
+          L.Add(vExp);
+          paramB := NextToken(paramE);
+          // successed
+          if paramB = nil then
+              Break;
+          // do loop.
+          paramE := paramB;
+          i := paramB^.Index;
+        end
+      else if p1^.Text.Same('(') then
+        begin
+          p2 := IndentSymbolEndProbeR(p1^.Index, '(', ')');
+          // error
+          if p2 = nil then
+              exit;
+          // do loop.
+          paramE := paramB;
+          i := p2^.Index + 1;
+        end
+      else if p1^.Text.Same('[') then
+        begin
+          p2 := IndentSymbolEndProbeR(p1^.Index, '[', ']');
+          // error
+          if p2 = nil then
+              exit;
+          // do loop.
+          paramE := paramB;
+          i := p2^.Index + 1;
+        end
+      else
+          inc(i);
+    end;
+
+  Result := True;
+end;
+
+function TTextParsing.FillSymbolVector: TArrayPascalString;
+var
+  L: TPascalStringList;
+begin
+  L := TPascalStringList.Create;
+  if FillSymbolVector(L) then
+      L.FillTo(Result)
+  else
+      SetLength(Result, 0);
+  DisposeObject(L);
+end;
+
+function TTextParsing.FillSymbolMatrix(W, H: Integer; var symbolMatrix: TSymbolMatrix): Boolean;
+var
+  L: TPascalStringList;
+  i, j, k: Integer;
+begin
+  SetLength(symbolMatrix, 0, 0);
+  L := TPascalStringList.Create;
+  Result := FillSymbolVector(L);
+  if L.Count >= W * H then
+    begin
+      SetLength(symbolMatrix, H, W);
+      k := 0;
+      for j := 0 to H - 1 do
+        for i := 0 to W - 1 do
+          begin
+            symbolMatrix[j, i] := L[k];
+            inc(k);
+          end;
+    end;
+  DisposeObject(L);
+end;
+
 function TTextParsing.GetText(const bPos, ePos: Integer): TPascalString;
 begin
   Result := GetStr(bPos, ePos);
@@ -2013,8 +2283,14 @@ end;
 
 function TTextParsing.GetStr(const bPos, ePos: Integer): TPascalString;
 begin
-  if ePos = ParsingData.Len then
-      Result := ParsingData.Text.GetString(bPos, ePos + 1)
+  if ePos >= ParsingData.Len then
+    begin
+      Result := ParsingData.Text.GetString(bPos, ePos + 1);
+      while (Result.Len > 0) and (Result.Last = #0) do
+          Result.DeleteLast;
+      if (Result.Len > 0) and (Result.Last = #32) then
+          Result.DeleteLast;
+    end
   else
       Result := ParsingData.Text.GetString(bPos, ePos);
 end;
@@ -2481,54 +2757,6 @@ begin
       Result := '/* ' + n + ' */';
 end;
 
-constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString);
-begin
-  inherited Create;
-  ParsingData.Cache.CommentDecls := nil;
-  ParsingData.Cache.TextDecls := nil;
-  ParsingData.Cache.TokenDataList := nil;
-  SetLength(ParsingData.Cache.CharToken, 0);
-  if AText.Len = 0 then
-      ParsingData.Text := #13#10
-  else
-      ParsingData.Text := AText + #32;
-  ParsingData.Len := ParsingData.Text.Len + 1;
-  TextStyle := AStyle;
-  SymbolTable := V_SpacerSymbol;
-  TokenStatistics := NullTokenStatistics;
-  SpecialSymbol := TListPascalString.Create;
-  if ASpecialSymbol <> nil then
-      SpecialSymbol.Assign(ASpecialSymbol);
-  RebuildCacheBusy := False;
-
-  RebuildParsingCache;
-
-  Init;
-end;
-
-constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle);
-begin
-  inherited Create;
-  ParsingData.Cache.CommentDecls := nil;
-  ParsingData.Cache.TextDecls := nil;
-  ParsingData.Cache.TokenDataList := nil;
-  SetLength(ParsingData.Cache.CharToken, 0);
-  if AText.Len = 0 then
-      ParsingData.Text := #13#10
-  else
-      ParsingData.Text := AText + #32;
-  ParsingData.Len := ParsingData.Text.Len + 1;
-  TextStyle := AStyle;
-  SymbolTable := V_SpacerSymbol;
-  TokenStatistics := NullTokenStatistics;
-  SpecialSymbol := TListPascalString.Create;
-  RebuildCacheBusy := False;
-
-  RebuildParsingCache;
-
-  Init;
-end;
-
 constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString; ASpacerSymbol: SystemString);
 begin
   inherited Create;
@@ -2552,6 +2780,21 @@ begin
   RebuildParsingCache;
 
   Init;
+end;
+
+constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString);
+begin
+  Create(AText, AStyle, ASpecialSymbol, V_SpacerSymbol);
+end;
+
+constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle);
+begin
+  Create(AText, AStyle, nil, V_SpacerSymbol);
+end;
+
+constructor TTextParsing.Create(const AText: TPascalString);
+begin
+  Create(AText, tsText, nil, V_SpacerSymbol);
 end;
 
 destructor TTextParsing.Destroy;
@@ -2609,5 +2852,17 @@ begin
       DoStatus(PFormat('index: %d type: %s value: %s', [i, GetEnumName(TypeInfo(TTokenType), Ord(pt^.tokenType)), pt^.Text.Text]));
     end;
 end;
+
+procedure FillSymbol_Test_;
+var
+  t: TTextParsing;
+  SM: TSymbolMatrix;
+begin
+  t := TTextParsing.Create('1,2,3,4,5,6,7,8,9', tsPascal);
+  t.FillSymbolMatrix(3, 2, SM);
+  DisposeObject(t);
+end;
+
+initialization
 
 end.

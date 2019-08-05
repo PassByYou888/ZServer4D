@@ -361,7 +361,10 @@ end;
 
 procedure DoStatus(Text: SystemString; const ID: Integer);
 begin
-  OnDoStatusHook(Text, ID);
+  try
+      OnDoStatusHook(Text, ID);
+  except
+  end;
 end;
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);

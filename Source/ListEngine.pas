@@ -679,8 +679,8 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    function VToStr(const v: SystemString): SystemString;
-    function StrToV(const s: SystemString): SystemString;
+    class function VToStr(const v: SystemString): SystemString;
+    class function StrToV(const s: SystemString): SystemString;
 
     procedure DataImport(TextList: TListPascalString); overload;
     procedure DataImport(TextList: TCoreClassStrings); overload;
@@ -6186,7 +6186,7 @@ begin
       FStringList.Clear;
 end;
 
-function THashStringTextStream.VToStr(const v: SystemString): SystemString;
+class function THashStringTextStream.VToStr(const v: SystemString): SystemString;
 var
   b64: TPascalString;
 begin
@@ -6199,7 +6199,7 @@ begin
       Result := v;
 end;
 
-function THashStringTextStream.StrToV(const s: SystemString): SystemString;
+class function THashStringTextStream.StrToV(const s: SystemString): SystemString;
 var
   n, body: U_String;
 begin
@@ -6218,9 +6218,9 @@ begin
       'express(*)', 'express[*]', 'express<*>', 'express"*"', 'exp'#39'*'#39
       ], n) then
       begin
-        body := umlDeleteFirstStr_M(n, '([<"'#39);
+        body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(body));
+        Result := VarToStr(EvaluateExpressionValue(False, body));
       end
     else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
@@ -6228,7 +6228,7 @@ begin
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(body));
+        Result := VarToStr(EvaluateExpressionValue(False, body));
       end
     else if umlMultipleMatch(['c(*)', 'c[*]', 'c<*>', 'c"*"', 'c'#39'*'#39], n) then
       begin
@@ -6236,7 +6236,7 @@ begin
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(TTextStyle.tsC, body));
+        Result := VarToStr(EvaluateExpressionValue(False, TTextStyle.tsC, body));
       end
     else if umlMultipleMatch(['p(*)', 'p[*]', 'p<*>', 'p"*"', 'p'#39'*'#39], n) then
       begin
@@ -6244,7 +6244,7 @@ begin
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(TTextStyle.tsPascal, body));
+        Result := VarToStr(EvaluateExpressionValue(False, TTextStyle.tsPascal, body));
       end
     else
       begin
@@ -6270,10 +6270,10 @@ begin
 
         if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
           begin
-            TextName := umlGetFirstStr_M(n, ':=');
+            TextName := umlGetFirstStr_Discontinuity(n, ':=');
             if TextName.Len > 0 then
               begin
-                TextValue := umlDeleteFirstStr_M(n, ':=');
+                TextValue := umlDeleteFirstStr_Discontinuity(n, ':=');
                 FStringList[TextName.Text] := StrToV(TextValue.Text);
               end
             else
@@ -7296,9 +7296,9 @@ begin
       'express(*)', 'express[*]', 'express<*>', 'express"*"', 'exp'#39'*'#39
       ], n) then
       begin
-        body := umlDeleteFirstStr_M(n, '([<"'#39);
+        body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        Result := EvaluateExpressionValue(body);
+        Result := EvaluateExpressionValue(False, body);
       end
     else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
@@ -7306,7 +7306,7 @@ begin
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
-        Result := EvaluateExpressionValue(body);
+        Result := EvaluateExpressionValue(False, body);
       end
     else if umlMultipleMatch(['c(*)', 'c[*]', 'c<*>', 'c"*"', 'c'#39'*'#39], n) then
       begin
@@ -7314,7 +7314,7 @@ begin
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
-        Result := EvaluateExpressionValue(TTextStyle.tsC, body);
+        Result := EvaluateExpressionValue(False, TTextStyle.tsC, body);
       end
     else if umlMultipleMatch(['p(*)', 'p[*]', 'p<*>', 'p"*"', 'p'#39'*'#39], n) then
       begin
@@ -7322,7 +7322,7 @@ begin
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
-        Result := EvaluateExpressionValue(TTextStyle.tsPascal, body);
+        Result := EvaluateExpressionValue(False, TTextStyle.tsPascal, body);
       end
     else
       begin
@@ -7366,10 +7366,10 @@ begin
 
         if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
           begin
-            TextName := umlGetFirstStr_M(n, ':=');
+            TextName := umlGetFirstStr_Discontinuity(n, ':=');
             if TextName.Len > 0 then
               begin
-                TextValue := umlDeleteFirstStr_M(n, ':=');
+                TextValue := umlDeleteFirstStr_Discontinuity(n, ':=');
                 FVariantList[TextName.Text] := StrToV(TextValue.Text);
               end
             else

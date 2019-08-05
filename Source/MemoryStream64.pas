@@ -123,12 +123,7 @@ type
     function ReadMD5: TMD5;
   end;
 
-{$IFDEF FPC}
-
-  TMemoryStream64List_Decl = specialize TGenericsList<TMemoryStream64>;
-{$ELSE FPC}
-  TMemoryStream64List_Decl = TGenericsList<TMemoryStream64>;
-{$ENDIF FPC}
+  TMemoryStream64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMemoryStream64>;
 
   TMemoryStream64List = class(TMemoryStream64List_Decl)
   end;

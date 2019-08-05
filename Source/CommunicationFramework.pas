@@ -73,7 +73,7 @@ type
   TQueueState = (qsUnknow, qsSendConsoleCMD, qsSendStreamCMD, qsSendDirectConsoleCMD, qsSendDirectStreamCMD, qsSendBigStream, qsSendCompleteBuffer);
 
   TQueueData = record
-    // queue style
+    // queue state
     State: TQueueState;
     // ID
     IO_ID: Cardinal;

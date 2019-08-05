@@ -30,13 +30,8 @@ type
 
   PComputeDispatchData = ^TComputeDispatch;
 
-{$IFDEF FPC}
-  TCoreComputeThreadPool = specialize TGenericsList<TComputeThread>;
-  TComputeDispatchDataPool = specialize TGenericsList<PComputeDispatchData>;
-{$ELSE FPC}
-  TCoreComputeThreadPool = TGenericsObjectList<TComputeThread>;
-  TComputeDispatchDataPool = TGenericsList<PComputeDispatchData>;
-{$ENDIF FPC}
+  TCoreComputeThreadPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TComputeThread>;
+  TComputeDispatchDataPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PComputeDispatchData>;
 
   TComputeDispatchTh = class(TCoreClassThread)
   protected

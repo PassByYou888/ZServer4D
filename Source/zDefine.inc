@@ -118,12 +118,12 @@
     {$DEFINE INLINE_ASM}
     {$R-} { range check }
     {$I-} { Input output checking }
-    {$O+} { optimization }
+    {$O-} { optimization }
     {$C+} { Assertions }
   {$ELSE}
     {$UNDEF INLINE_ASM}
-    {$R-} { range check }
-    {$I-} { Input output checking }
+    {$R+} { range check }
+    {$I+} { Input output checking }
     {$O-} { optimization }
     {$C+} { Assertions }
   {$ENDIF}
@@ -142,6 +142,7 @@
 
 {$WARNINGS OFF}
 {$HINTS OFF}
+{$M-} { Run-Time Type Information }
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }

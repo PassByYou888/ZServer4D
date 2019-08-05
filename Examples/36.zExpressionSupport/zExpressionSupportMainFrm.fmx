@@ -1,0 +1,428 @@
+object zExpressionSupportMainForm: TzExpressionSupportMainForm
+  Left = 0
+  Top = 0
+  Caption = 'zExpression Support. create by.qq600585'
+  ClientHeight = 782
+  ClientWidth = 1165
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object ExpParsingMemo: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      '1+2*3 or 3 > 1'
+      '1+2*(2-3)'
+      '3.14*9.99E-5+2'
+      '2-3.14*5 or 33 + 44-2*(55-2*3.14)+4'
+      '1>0'
+      '1+1>1'
+      '2*2=4'
+      '1*2-3/4-4 mod 4'
+      '-3.44E-3*2'
+      '1*2 and 3=4*5-2'
+      #39'abc'#39
+      #39'abc'#39'+'#39'123'#39
+      #39'123'#39'+123'
+      'round(2.9)'
+      'round(2.9)+1'
+      '1.1+round(2.9)'
+      '0xFF*$FF'
+      '$FF*$FF'
+      '255*255'
+      '256*256'
+      '$100*$100'
+      '0xFF+1'
+      'a(1,round(2.9))'
+      '$1 + 1'
+      '1 + 1'
+      '$1+1'
+      '0x1+1'
+      '0x8A+1'
+      '$98f+1'
+      '3.14e-10*5'
+      '3.14e10*5'
+      '3.14e-10'
+      '3.14e-10*10'
+      '3.14e-10*100'
+      '3.14e-10*10000'
+      '3.14e-10*0.001'
+      '3.14e-10*0.01'
+      '3.14e-10*2'
+      '3.14e-10*3'
+      '3.14e-10*4'
+      '3.14e10*2'
+      '3.14e10*2.1e-5'
+      '2.1e-10+2'
+      'a(30,Round(2.8),20)'
+      #39'abc'#39'+123'
+      #39'abc'#39'+123+#32+49.997'
+      '123+'#39'abc'#39
+      '#32+a(1,round(2.9))'
+      'a(1,round(2.9))+'#39'abcdefg'#39
+      'a(1,round(2.9))+'#39'1adfj'#39
+      'a(1,round(2.9))+#88'
+      'a(1,round(2.9))+#89'
+      'a(1,round(2.9))+#32'
+      '#32+a(1,round(2.9))+#32'
+      '1+#32'
+      '1+#32 '
+      '1+#$20'
+      '0.5e-16*100000'
+      '0.5e-16*100000000'
+      '0.5e-16*10000000000'
+      '0.5e-16*100000000000000'
+      #39'aaa'#39'+'#39'123'#39
+      'a(1)'
+      'a[1]'
+      'random(33)'
+      'random'
+      'true'
+      'bool('#39'1'#39')'
+      'bool('#39'2'#39')'
+      'false'
+      '3+$33'
+      '3+0x33'
+      'sqrt(100)'
+      'sqrt(99)'
+      'sqrt(2)'
+      'sqrt(3)'
+      'sqrt(4)'
+      'sqrt(6)'
+      'sqrt(9)'
+      'sqrt(16)'
+      'sqrt(25)'
+      '5.0E-4'
+      '-2.908395E-09'
+      '-2.908395E-09*100'
+      '-2.908395E-09*10'
+      ' (-2.908395E-09)+1'
+      '1.0E-10'
+      '1.0E-1'
+      '1.0E+100'
+      '1.0E-100'
+      '1.0E+5'
+      '1.0E+3'
+      '1.0E-3'
+      'tan(1.0E-3*3.14159265)'
+      'sin(1.0E-3*3.14159265)'
+      'str(1.0E-3*3.14159265)'
+      'str(1.0E-3*3.14159265)+'#39'abc'#39
+      '-2.908395E-03'
+      '-2.908395E-5'
+      '-2.908395E-4'
+      '-2.908393325E-4'
+      '-2.90839334325E-4'
+      'first('#39'abc,defg'#39', '#39','#39')'
+      'last('#39'abc,defg'#39', '#39','#39')'
+      '1>2'
+      '(-229 > -1000)'
+      'bool(-229 > -1000) and bool(-229<1000)'
+      '(-229<1000)'
+      'bool(-229<1000)'
+      'bool(-229 > -1000) and (-229<1000)'
+      '(-229 > -1000) and (-229<1000)'
+      '((-229 > -1000) and (-229<1000))'
+      '(-229 > -1000) and -229<1000'
+      '-229 > -1000 and -229<1000'
+      '(1>0)and(true)and(false)'
+      '(1>0)and(true)'
+      '(1>0)and(false)'
+      '(1>0)and(false)and(true)'
+      '(1+1>2)'
+      '(1+1>2)or(1+1=2)'
+      '1>1 and 2>2'
+      '1+1-2+1'
+      '(1+1)-(2+1)'
+      '1+1'
+      '1+1-(2+1)'
+      '(1>0)+(false)+(true)'
+      '(1>0)and(true)and(true)'
+      '0.1*10'
+      '1.1*10'
+      '$FFFF'
+      '$FF*256'
+      '$FF'
+      '($FF+1)*$FF'
+      '($FF+1)*($FF+1)'
+      '1.0e-4*2'
+      '1.0e-4'
+      '3.14'
+      '3.14-3'
+      '1==1'
+      'print(1)'
+      'print(1==1)'
+      'max(1,2,3)'
+      'min(1,2,3)'
+      'clamp(1,2,3)'
+      'ifthen(true,1,2)'
+      'ifthen(false,1,2)'
+      'max(1,2,3,4,5)'
+      'min(0.1,1,2,3,4,5)'
+      'min(0.1111,1,2,3,4,5)'
+      'min(1.1111,44,2,3,4,5)'
+      '5 shr 1'
+      '55 shr 1'
+      '55 div 2')
+    Position.X = 8.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 561.000000000000000000
+    Size.Height = 273.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Viewport.Width = 541.000000000000000000
+    Viewport.Height = 269.000000000000000000
+  end
+  object expEvaluateMemo: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      '1+2*3 or 3 > 1'
+      '1+2*(2-3)'
+      '3.14*9.99E-5+2'
+      '2-3.14*5 or 33 + 44-2*(55-2*3.14)+4'
+      '1>0'
+      '1+1>1'
+      '2*2=4'
+      '1*2-3/4-4 mod 4'
+      '-3.44E-3*2'
+      '1*2 and 3=4*5-2'
+      #39'abc'#39
+      #39'abc'#39'+'#39'123'#39
+      #39'123'#39'+123'
+      'a(1,a(2))'
+      'round(2.9)'
+      'round(2.9)+1'
+      '1.1+round(2.9)'
+      '$FF*$FF'
+      '255*255'
+      '256*256'
+      '$100*$100'
+      '0xFF*$FF'
+      '0xFF+1'
+      'a(1,round(2.9))'
+      '1 + 1'
+      '$1+1'
+      '0x1+1'
+      '0x8A+1'
+      '$98f+1'
+      '3.14f+1'
+      '-9'
+      '3.14e-10*5'
+      '3.14e10*5'
+      '3.14e-10'
+      '3.14e-10*10'
+      '3.14e-10*100'
+      '3.14e-10*10000'
+      '3.14e-10*0.001'
+      '3.14e-10*0.01'
+      '3.14e-10*2'
+      '3.14e-10*3'
+      '3.14e-10*4'
+      '3.14e10*2'
+      '3.14e10*2.1e-5'
+      '2.1e-10+2'
+      'a(30,Round(2.8),20)'
+      #39'abc'#39'+123'
+      #39'abc'#39'+123+49.997'
+      '123+'#39'abc'#39
+      'a(1,round(2.9))+#32'
+      'a(1,round(2.9))+#32+#9'
+      '#32+a(1,round(2.9))'
+      'a(1,round(2.9))+'#39'abcdefg'#39
+      'a(1,round(2.9))+'#39'1adfj'#39
+      'a(1,round(2.9))+#88'
+      'a(1,round(2.9))+#89'
+      '#32+a(1,round(2.9))+#32'
+      '1+#32'
+      '1+#32 '
+      '1+#$20'
+      '0.5e-16'
+      '0.5e-16*100000'
+      '0.5e-16*100000000'
+      '0.5e-16*10000000000'
+      '0.5e-16*100000000000000'
+      #39'aaa'#39'+'#39'123'#39
+      'a(1)'
+      'a[1]'
+      'random(33)'
+      'random'
+      'true'
+      'bool('#39'1'#39')'
+      'bool('#39'2'#39')'
+      'false'
+      '(1)'
+      '3+$33'
+      '3+0x33'
+      'sqrt(100)'
+      'sqrt(99)'
+      'sqrt(2)'
+      'sqrt(3)'
+      'sqrt(4)'
+      'sqrt(6)'
+      'sqrt(9)'
+      'sqrt(16)'
+      'sqrt(25)'
+      '5.0E-4'
+      '-2.908395E-09'
+      '-2.908395E-09*100'
+      '-2.908395E-09*10'
+      ' (-2.908395E-09)+1'
+      '2000'
+      '2000{abc}'
+      '1 {123}'
+      '1{123}'
+      '1{abc}'
+      '1.0E-1'
+      '1.0E+100'
+      '1.0E-100'
+      '1.0E-10'
+      '1.0E+5'
+      '1.0E+3'
+      '1.0E-3'
+      'tan(1.0E-3*3.14159265)'
+      'sin(1.0E-3*3.14159265)'
+      'str(1.0E-3*3.14159265)'
+      'str(1.0E-3*3.14159265)+'#39'abc'#39
+      '-2.908395E-03'
+      '-2.908395E-5'
+      '-2.908395E-4'
+      '-2.908393325E-4'
+      '-2.90839334325E-4'
+      'first('#39'abc,defg'#39', '#39','#39')'
+      'last('#39'abc,defg'#39', '#39','#39')'
+      '1>2'
+      '(-229 > -1000)'
+      'bool(-229 > -1000) and bool(229<1000)'
+      'bool(-229 > -1000) and bool(-229<1000)'
+      '(-229<1000)'
+      'bool(-229<1000)'
+      'bool(-229 > -1000) and (-229<1000)'
+      '(-229 > -1000) and -229<1000'
+      '-229 > -1000 and -229<1000'
+      '(-229 > -1000) and (-229<1000)'
+      '(1>0)and(true)'
+      '(1>0)and(false)'
+      '(1+1>2)'
+      '(1+1>2)or(1+1=2)'
+      '1>1 and 2>2'
+      '(1>0)and(true)and(false)'
+      '1+1-2+1'
+      '1+1'
+      '1+1-(2+1)'
+      '(1>0)+(false)+(true)'
+      '(1>0)and(false)and(true)'
+      '(1>0)and(true)and(true)'
+      '1.1*10'
+      '$FFFF'
+      '$FF*256'
+      '$FF'
+      '($FF+1)*$FF'
+      '($FF+1)*($FF+1)'
+      '1.0e-4*2'
+      '1.0e-4'
+      '3.14'
+      '3.14-3'
+      '1==1'
+      'print(1)'
+      'print(1==1)'
+      'max(1,2,3)'
+      'min(1,2,3)'
+      'clamp(1,2,3)'
+      'ifthen(true,1,2)'
+      'ifthen(false,1,2)'
+      'max(1,2,3,4,5)'
+      'min(0.1,1,2,3,4,5)'
+      'min(0.1111,1,2,3,4,5)'
+      'min(1.1111,44,2,3,4,5)'
+      '5 shr 1'
+      '55 shr 1'
+      '55 div 2')
+    Anchors = [akLeft, akTop, akRight]
+    Position.X = 576.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 560.000000000000000000
+    Size.Height = 281.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 540.000000000000000000
+    Viewport.Height = 277.000000000000000000
+  end
+  object Layout1: TLayout
+    Anchors = [akLeft, akTop, akRight]
+    Position.X = 8.000000000000000000
+    Position.Y = 316.000000000000000000
+    Size.Width = 1128.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object Label3: TLabel
+      Align = Left
+      Margins.Right = 10.000000000000000000
+      Size.Width = 177.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = ' input script (vector support)'
+      TabOrder = 0
+    end
+    object InputEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = VertCenter
+      TabOrder = 1
+      Text = 'IfThen(1=1,0.1,10000),clamp(2,0.1,0.2),max(0.001,0.01,0.1)'
+      Position.X = 187.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 941.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      object EditButton1: TEditButton
+        CanFocus = False
+        Cursor = crArrow
+        Size.Width = 76.000000000000000000
+        Size.Height = 29.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'evaluate'
+        OnClick = EditButton1Click
+      end
+    end
+  end
+  object ParsingButton: TButton
+    StyledSettings = [Family, Size, Style]
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 257.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    Text = 'expression parsing(no vector support)'
+    TextSettings.FontColor = claCrimson
+    OnClick = ParsingButtonClick
+  end
+  object EvaluateButton: TButton
+    Position.X = 576.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = 'expression evaluate(vector support)'
+    OnClick = EvaluateButtonClick
+  end
+  object StatusMemo: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Position.X = 8.000000000000000000
+    Position.Y = 376.000000000000000000
+    Size.Width = 1128.000000000000000000
+    Size.Height = 397.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 6
+    Viewport.Width = 1124.000000000000000000
+    Viewport.Height = 393.000000000000000000
+  end
+end

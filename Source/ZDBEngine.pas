@@ -632,7 +632,7 @@ type
     procedure StopAllQuery;
     function QueryThreadCount: Integer;
 
-    // data operation
+    // dataframe operation
     function InsertData(const InsertPos: Int64; buff: TDataFrameEngine): Int64; overload;
     function AddData(buff: TDataFrameEngine): Int64; overload;
     function GetDF(const StorePos: Int64): TDBEngineDF; overload;
@@ -641,7 +641,7 @@ type
     function BuildDF(var qState: TQueryState): TDBEngineDF; overload;
     property DF[const StorePos: Int64]: TDBEngineDF read GetDF;
 
-    // data operation
+    // key-value operation
     function InsertData(const InsertPos: Int64; buff: THashVariantList): Int64; overload;
     function AddData(buff: THashVariantList): Int64; overload;
     function GetVL(const StorePos: Int64): TDBEngineVL; overload;
@@ -650,7 +650,7 @@ type
     function BuildVL(var qState: TQueryState): TDBEngineVL; overload;
     property VL[const StorePos: Int64]: TDBEngineVL read GetVL;
 
-    // data operation
+    // key-string operation
     function InsertData(const InsertPos: Int64; buff: THashStringList): Int64; overload;
     function AddData(buff: THashStringList): Int64; overload;
     function GetVT(const StorePos: Int64): TDBEngineVT; overload;
@@ -659,7 +659,7 @@ type
     function BuildVT(var qState: TQueryState): TDBEngineVT; overload;
     property VT[const StorePos: Int64]: TDBEngineVT read GetVT;
 
-    // data operation
+    // text section operation
     function InsertData(const InsertPos: Int64; buff: TSectionTextData): Int64; overload;
     function AddData(buff: TSectionTextData): Int64; overload;
     function GetTE(const StorePos: Int64): TDBEngineTE; overload;
@@ -668,7 +668,7 @@ type
     function BuildTE(var qState: TQueryState): TDBEngineTE; overload;
     property TE[const StorePos: Int64]: TDBEngineTE read GetTE;
 
-    // data operation
+    // json operation
 {$IFNDEF FPC}
     function InsertData(const InsertPos: Int64; buff: TJsonObject): Int64; overload;
     function AddData(buff: TJsonObject): Int64; overload;
@@ -679,7 +679,7 @@ type
     property Json[const StorePos: Int64]: TDBEngineJson read GetJson;
 {$ENDIF}
     //
-    // data operation
+    // string operation
     function InsertData(const InsertPos: Int64; buff: TDBEnginePascalString): Int64; overload;
     function InsertData(const InsertPos: Int64; buff: TPascalString): Int64; overload;
     function InsertString(const InsertPos: Int64; buff: TPascalString): Int64; overload;
@@ -1124,10 +1124,10 @@ begin
         end
       else if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
         begin
-          TextName := umlGetFirstStr_M(n, ':=');
+          TextName := umlGetFirstStr_Discontinuity(n, ':=');
           if TextName.Len > 0 then
             begin
-              TextValue := umlDeleteFirstStr_M(n, ':=');
+              TextValue := umlDeleteFirstStr_Discontinuity(n, ':=');
               VL[TextName.Text] := THashVariantTextStream.StrToV(TextValue.Text);
             end
           else
@@ -1351,10 +1351,10 @@ begin
         end
       else if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
         begin
-          TextName := umlGetFirstStr_M(n, ':=');
+          TextName := umlGetFirstStr_Discontinuity(n, ':=');
           if TextName.Len > 0 then
             begin
-              TextValue := umlDeleteFirstStr_M(n, ':=');
+              TextValue := umlDeleteFirstStr_Discontinuity(n, ':=');
               VL[TextName.Text] := THashVariantTextStream.StrToV(TextValue.Text);
             end
           else

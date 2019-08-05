@@ -57,9 +57,9 @@ type
     function GetHitString(SName, VName: SystemString): SystemString;
     procedure SetHitString(SName, VName: SystemString; const Value: SystemString);
 
+    // return override state
     function GetHVariantList(n: SystemString): THashVariantList;
     function GetHStringList(n: SystemString): THashStringList;
-    // return override state
     procedure AddDataSection(aSection: SystemString; TextList: TCoreClassStrings);
   public
     constructor Create; overload;
