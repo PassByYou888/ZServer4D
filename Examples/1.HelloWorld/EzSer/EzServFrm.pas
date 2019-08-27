@@ -1,4 +1,4 @@
-unit EzServFrm;
+ï»¿unit EzServFrm;
 
 interface
 
@@ -14,10 +14,10 @@ uses
   DataFrameEngine, UnicodeMixedLib, MemoryStream64;
 
 type
-  // TPeerClientUserSpecialÊÇ»ùÓÚÃ¿ÓÃ»§Á´½Óºó×Ô¶¯´´½¨µÄÊµÀı
-  // Ê¹ÓÃÊ±ºòÇë×¢ÒâÊÍ·ÅÄÚ´æ
-  // TPeerClientUserDefineÓÃÓÚAuth,DBµÈµÈ·şÎñ
-  // TPeerClientUserSpecialµÄ×÷ÓÃÊÇÓë¸ß¼¶·şÎñµÄAuth,DB·¢Éú³åÍ»Ê±£¬¶Ô¿ª·¢ÕßÌá¹©¶ÀÏíÊµÀı
+  // TPeerClientUserSpecialæ˜¯åŸºäºæ¯ç”¨æˆ·é“¾æ¥åè‡ªåŠ¨åˆ›å»ºçš„å®ä¾‹
+  // ä½¿ç”¨æ—¶å€™è¯·æ³¨æ„é‡Šæ”¾å†…å­˜
+  // TPeerClientUserDefineç”¨äºAuth,DBç­‰ç­‰æœåŠ¡
+  // TPeerClientUserSpecialçš„ä½œç”¨æ˜¯ä¸é«˜çº§æœåŠ¡çš„Auth,DBå‘ç”Ÿå†²çªæ—¶ï¼Œå¯¹å¼€å‘è€…æä¾›ç‹¬äº«å®ä¾‹
   TMySpecialDefine = class(TPeerClientUserSpecial)
   public
     tempStream: TMemoryStream64;
@@ -108,6 +108,7 @@ var
 begin
   tempStream := TMySpecialDefine(Sender.UserSpecial).tempStream;
   tempStream.CopyFrom(InData, InData.Size);
+  DoStatus('%d/%d', [BigStreamTotal, BigStreamCompleteSize]);
 
   // bigstream complete
   if tempStream.Size = BigStreamTotal then
@@ -135,7 +136,7 @@ begin
   server.PeerClientUserSpecialClass := TMySpecialDefine;
   server.TimeOutIDLE := 15 * 1000;
 
-  // ¸ü¸Ä×î´ócompleteBuffer£¬ÕâÀïÖ»ÓÃÓÚ²âÊÔ£¬Õı³£ÔËĞĞ·şÎñÆ÷£¬ÕâÀïÒ»°ã¸ø4M¾Í¿ÉÒÔÁË
+  // æ›´æ”¹æœ€å¤§completeBufferï¼Œè¿™é‡Œåªç”¨äºæµ‹è¯•ï¼Œæ­£å¸¸è¿è¡ŒæœåŠ¡å™¨ï¼Œè¿™é‡Œä¸€èˆ¬ç»™4Må°±å¯ä»¥äº†
   server.MaxCompleteBufferSize := 128 * 1024 * 1024;
 
   server.RegisterDirectConsole('helloWorld_Console').OnExecute := cmd_helloWorld_Console;
@@ -147,7 +148,7 @@ begin
   server.RegisterDirectStream('TestMiniStream').OnExecute := cmd_TestMiniStream;
   server.RegisterBigStream('Test128MBigStream').OnExecute := cmd_Test128MBigStream;
 
-  // ×¢²áCompletebufferÖ¸Áî
+  // æ³¨å†ŒCompletebufferæŒ‡ä»¤
   server.RegisterCompleteBuffer('TestCompleteBuffer').OnExecute := cmd_TestCompleteBuffer;
 end;
 
@@ -159,7 +160,7 @@ end;
 
 procedure TEZServerForm.StartServiceButtonClick(Sender: TObject);
 begin
-  // »ùÓÚCrosssSocket¹Ù·½ÎÄµµ£¬°ó¶¨×Ö·û´®Èç¹ûÎª¿Õ£¬°ó¶¨IPV6+IPV4
+  // åŸºäºCrosssSocketå®˜æ–¹æ–‡æ¡£ï¼Œç»‘å®šå­—ç¬¦ä¸²å¦‚æœä¸ºç©ºï¼Œç»‘å®šIPV6+IPV4
   if server.StartService('', 9818) then
       DoStatus('start service success')
   else

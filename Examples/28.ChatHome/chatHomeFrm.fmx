@@ -175,7 +175,7 @@ object Form3: TForm3
       Align = Client
       TabOrder = 1
       Text = 'hello world'
-      Size.Width = 443.000000000000000000
+      Size.Width = 362.000000000000000000
       Size.Height = 33.000000000000000000
       Size.PlatformDefault = False
       StyledSettings = [Family, Style, FontColor]
@@ -187,14 +187,30 @@ object Form3: TForm3
       Margins.Top = 2.000000000000000000
       Margins.Right = 2.000000000000000000
       Margins.Bottom = 2.000000000000000000
-      Position.X = 574.000000000000000000
+      Position.X = 493.000000000000000000
       Position.Y = 2.000000000000000000
       Size.Width = 39.000000000000000000
       Size.Height = 29.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 5
+      TabOrder = 6
       Text = 'send'
       OnClick = SendButtonClick
+    end
+    object SendBigStreamButton: TButton
+      Align = Right
+      StyledSettings = [Family, Style, FontColor]
+      Margins.Left = 2.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 2.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 536.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 77.000000000000000000
+      Size.Height = 29.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'Send Stream'
+      OnClick = SendBigStreamButtonClick
     end
   end
   object ServiceLayout: TLayout

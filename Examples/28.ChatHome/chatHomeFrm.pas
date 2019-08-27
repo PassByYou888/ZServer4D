@@ -30,6 +30,7 @@ type
   public
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
     procedure cmd_PushMsg(Sender: TPeerIO; InData: SystemString);
+    procedure cmd_TestBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
 
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
@@ -47,6 +48,7 @@ type
 
     procedure cmd_OnMsg(Sender: TPeerIO; InData: SystemString);
     procedure PushMsg(msg: SystemString);
+    procedure TestBigStream;
 
     procedure RegisterCommand; override;
     procedure UnRegisterCommand; override;
@@ -82,6 +84,7 @@ type
     ChatServiceInfoLabel: TLabel;
     Timer1: TTimer;
     DebugCheckBox: TCheckBox;
+    SendBigStreamButton: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure ChatHomeMasterCheckBoxChange(Sender: TObject);
@@ -91,6 +94,7 @@ type
     procedure DisconnectButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SendButtonClick(Sender: TObject);
+    procedure SendBigStreamButtonClick(Sender: TObject);
   private
     // ICommunicationFrameworkVMInterface
     procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
@@ -200,16 +204,49 @@ begin
     end);
 end;
 
+procedure TChatServer.cmd_TestBigStream(Sender: TPeerClient; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
+var
+  MyUserSpec: TChatServer_UserSpecial;
+begin
+  // 在双通道的编程中，都要在指令前面加上linkOK的判断
+  // linkok也表示验证成功，只让验证成功的用户发言
+  if not GetUserDefineRecvTunnel(Sender).LinkOk then
+      exit;
+
+  MyUserSpec := Sender.UserSpecial as TChatServer_UserSpecial;
+  inc(MyUserSpec.talkCounter);
+
+  RecvTunnel.ProgressPeerIOP(procedure(P_IO: TPeerIO)
+    var
+      rDef: TPeerClientUserDefineForRecvTunnel_NoAuth;
+      PeerUserSpec: TChatServer_UserSpecial;
+    begin
+      rDef := GetUserDefineRecvTunnel(P_IO);
+
+      // linkOK就表示已经登录登录成功，
+      // 如果是带验证的双通道，linkok也表示验证成功
+      // 在双通道的编程中，都要在指令前面加上linkOK的判断
+      if rDef.LinkOk then
+        begin
+          PeerUserSpec := P_IO.UserSpecial as TChatServer_UserSpecial;
+
+          rDef.SendTunnel.Owner.SendDirectConsoleCmd('OnMsg', Format('big stream test: %d/%d', [BigStreamCompleteSize, BigStreamTotal]));
+        end;
+    end);
+end;
+
 procedure TChatServer.RegisterCommand;
 begin
   inherited;
   RecvTunnel.RegisterDirectConsole('PushMsg').OnExecute := cmd_PushMsg;
+  RecvTunnel.RegisterBigStream('TestBigStream').OnExecute := cmd_TestBigStream;
 end;
 
 procedure TChatServer.UnRegisterCommand;
 begin
   inherited;
   RecvTunnel.UnRegisted('PushMsg');
+  RecvTunnel.UnRegisted('TestBigStream');
 end;
 
 constructor TChatClient.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
@@ -233,6 +270,16 @@ begin
   SendTunnel.SendDirectConsoleCmd('PushMsg', msg);
 end;
 
+procedure TChatClient.TestBigStream;
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.Create;
+  m64.Size := 4 * 1024 * 1024;
+  FillPtrByte(m64.Memory, m64.Size, 0);
+  SendTunnel.SendBigStream('TestBigStream', m64, True);
+end;
+
 procedure TChatClient.RegisterCommand;
 begin
   inherited;
@@ -252,26 +299,15 @@ begin
   MyNameEditChangeTracking(MyNameEdit);
   ChatHomeMasterCheckBoxChange(ChatHomeMasterCheckBox);
 
-  // 如果要把vm架在stableIO上面，在初始化物理io时，要两次构建StableIO
-  // 因为p2pVM会用自己的隧道替代原IO隧道，必须两次构建StableIO，vm才能是防止断线的工作模式
-  // phyServer := TXPhysicsServer.Create.StableIO.StableIO;
   phyServer := TXPhysicsServer.Create.StableIO;
   phyServer.VMInterface := self;
-
-  // 如果要把vm架在stableIO上面，在初始化物理io时，要两次构建StableIO
-  // 因为p2pVM会用自己的隧道替代原IO隧道，必须两次构建StableIO，vm才能是防止断线的工作模式
-  // phyClient := TXPhysicsClient.Create.StableIO.StableIO;
   phyClient := TXPhysicsClient.Create.StableIO;
 
-  // 我们在p2pVM基础上,也可以构建StableIO,构建方法如下
-  // serv := TChatServer.Create(TCommunicationFrameworkWithP2PVM_Server.Create.StableIO, TCommunicationFrameworkWithP2PVM_Server.Create.StableIO);
   serv := TChatServer.Create(TCommunicationFrameworkWithP2PVM_Server.Create, TCommunicationFrameworkWithP2PVM_Server.Create);
   serv.RecvTunnel.StartService('::', 0);
   serv.SendTunnel.StartService('::', 1);
   serv.RegisterCommand;
 
-  // 我们在p2pVM基础上,也可以构建StableIO,构建方法如下
-  // cli := TChatClient.Create(TCommunicationFrameworkWithP2PVM_Client.Create.StableIO, TCommunicationFrameworkWithP2PVM_Client.Create.StableIO);
   cli := TChatClient.Create(TCommunicationFrameworkWithP2PVM_Client.Create, TCommunicationFrameworkWithP2PVM_Client.Create);
   cli.MsgNotify := self;
   cli.RegisterCommand;
@@ -302,8 +338,6 @@ begin
     begin
       phyServer.StopService;
       TButton(Sender).Text := 'Start Listen';
-      // connectButton.Enabled := True;
-      // DisconnectButton.Enabled := True;
     end
   else
     begin
@@ -311,8 +345,6 @@ begin
           RaiseInfo('listen service Failed');
 
       TButton(Sender).Text := 'Stop Listen';
-      // connectButton.Enabled := False;
-      // DisconnectButton.Enabled := False;
     end;
 end;
 
@@ -363,9 +395,19 @@ begin
   phyClient.Disconnect;
 end;
 
+procedure TForm3.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DeleteDoStatusHook(self);
+end;
+
 procedure TForm3.SendButtonClick(Sender: TObject);
 begin
   cli.PushMsg(TalkInfoLabel.Text + TalkEdit.Text);
+end;
+
+procedure TForm3.SendBigStreamButtonClick(Sender: TObject);
+begin
+  cli.TestBigStream;
 end;
 
 procedure TForm3.p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
@@ -407,11 +449,6 @@ begin
       exit;
   Memo1.Lines.Add(AText);
   Memo1.GoToTextEnd;
-end;
-
-procedure TForm3.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  DeleteDoStatusHook(self);
 end;
 
 end.
