@@ -133,6 +133,7 @@ end;
 
 procedure TIDClient_PeerIO.Disconnect;
 begin
+  CheckAndTriggerFailedWaitResult();
   Context.Disconnect;
 end;
 

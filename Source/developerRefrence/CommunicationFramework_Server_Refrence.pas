@@ -55,11 +55,11 @@ type
     { core interface: get the IP information. }
     function GetPeerIP: SystemString; override;
 
-    { selected ignore: If your data is in memory and wait been sent, it returns to False. }
-    { selected ignore: if you do not consider high concurrency optimization, you can ignore the interface. }
+    { select: If your data is in memory and wait been sent, it returns to False. }
+    { select: if you do not consider high concurrency optimization, you can ignore the interface. }
     function WriteBufferEmpty: Boolean; override;
 
-    { selected ignore: Kernel main loop, you can do ignore the interface }
+    { select: Kernel main loop, you can do ignore the interface }
     procedure Progress; override;
   end;
 
@@ -78,12 +78,12 @@ type
     { core interface: Kernel main loop, you can do ignore the interface }
     procedure Progress; override;
 
-    { Selected ignore: in the kernel post a queue command, it triggers. }
+    { select: in the kernel post a queue command, it triggers. }
     procedure TriggerQueueData(v: PQueueData); override;
 
-    { Selected ignore: recommended no used blocking communication calls on the server, unstable!! }
+    { select: recommended no used blocking communication calls on the server, unstable!! }
     function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    { Selected ignore: recommended no used blocking communication calls on the server, unstable!! }
+    { select: recommended no used blocking communication calls on the server, unstable!! }
     procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 

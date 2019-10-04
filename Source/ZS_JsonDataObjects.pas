@@ -3063,7 +3063,7 @@ class function TJsonBaseObject.ParseFromFile(const FileName: string; Utf8Without
 var
   stream: TFileStream;
 begin
-  stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
     Result := ParseFromStream(stream, nil, Utf8WithoutBOM{$IFDEF SUPPORT_PROGRESS}, AProgress{$ENDIF});
   finally
@@ -3158,7 +3158,7 @@ procedure TJsonBaseObject.LoadFromFile(const FileName: string; Utf8WithoutBOM: B
 var
   stream: TFileStream;
 begin
-  stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
     LoadFromStream(stream, nil, Utf8WithoutBOM{$IFDEF SUPPORT_PROGRESS}, AProgress{$ENDIF});
   finally

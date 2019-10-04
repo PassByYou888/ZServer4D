@@ -27,8 +27,8 @@ unit FilePackage;
 
 interface
 
-uses ObjectData, ObjectDataManager, UnicodeMixedLib, CoreClasses, ItemStream,
-  DoStatusIO, ListEngine, TextDataEngine, PascalStrings;
+uses CoreClasses, PascalStrings, UnicodeMixedLib,
+  ObjectData, ObjectDataManager, ItemStream, DoStatusIO, ListEngine;
 
 procedure BeginImportStreamToDB(dbEng: TObjectDataManager; md5List: THashStringList);
 procedure ImportStreamToDB(md5List: THashStringList; stream: TCoreClassStream; FileName: SystemString; dbEng: TObjectDataManager); overload;
@@ -214,7 +214,7 @@ procedure BatchImportPathToDB(InitDir, Filter: SystemString; dbEng: TObjectDataM
             if dbEng.ItemFastCreate(aFieldPos, suffixn, '', itmHnd) then
               begin
                 try
-                  fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+                  fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
                   itmStream := TItemStream.Create(dbEng, itmHnd);
 
                   fs.Position := 0;
@@ -274,7 +274,7 @@ procedure BatchImportPathToDBFile(InitDir, Filter, dbFile: SystemString);
 var
   dbEng: TObjectDataManager;
 begin
-  dbEng := ObjectDataMarshal.NewDB(dbFile, False);
+  dbEng := ObjectDataMarshal.NewDB($FF, dbFile, False);
   BatchImportPathToDB(InitDir, Filter, dbEng);
   dbEng.UpdateIO;
   ObjectDataMarshal.CloseDB(dbEng);
@@ -284,7 +284,7 @@ procedure BatchImportPathToDBStream(InitDir, Filter: SystemString; DBStream: TCo
 var
   dbEng: TObjectDataManager;
 begin
-  dbEng := TObjectDataManager.CreateAsStream(DBStream, '', ObjectDataMarshal.ID, False, True, False);
+  dbEng := TObjectDataManager.CreateAsStream($FF, DBStream, '', ObjectDataMarshal.ID, False, True, False);
   BatchImportPathToDB(InitDir, Filter, dbEng);
   dbEng.UpdateIO;
   DisposeObject(dbEng);

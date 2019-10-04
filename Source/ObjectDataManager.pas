@@ -62,19 +62,34 @@ type
     procedure SetAllowSameHeaderName(Value: Boolean);
 
     procedure DBErrorProc(error: U_String);
+    function DoOpen(): Boolean;
+    function NewHandle(Stream_: TCoreClassStream; const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, IsNewDB_: Boolean): Boolean; overload;
+    function NewHandle(FixedStringL: Byte; Stream_: TCoreClassStream; const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, IsNewDB_: Boolean): Boolean; overload;
   public
-    constructor Create(const dbName: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean);
-    constructor CreateNew(const dbName: SystemString; const dbItemID: Byte);
-    constructor CreateAsStream(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean);
+    // DoOpen Database from file
+    constructor Open(const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean); overload;
+    // create new Database file
+    constructor CreateNew(const dbFile: SystemString; const dbItemID: Byte); overload;
+    constructor CreateNew(FixedStringL: Byte; const dbFile: SystemString; const dbItemID: Byte); overload;
+    // create or DoOpen Database for Stream IO
+    constructor CreateAsStream(Stream_: TCoreClassStream;
+      const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean); overload;
+    constructor CreateAsStream(FixedStringL: Byte; Stream_: TCoreClassStream;
+      const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean); overload;
+
     destructor Destroy; override;
-    function Open(): Boolean;
-    function NewHandle(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, aIsNew: Boolean): Boolean;
+
     function CopyTo(DestDB: TObjectDataManager): Boolean;
     function CopyToPath(DestDB: TObjectDataManager; destPath: SystemString): Boolean;
     function CopyFieldToPath(FieldPos: Int64; DestDB: TObjectDataManager; destPath: SystemString): Boolean;
     procedure SaveToStream(stream: TCoreClassStream);
+    procedure SaveToZLibStream(stream: TCoreClassStream);
+    procedure SaveToParallelCompressionStream(stream: TCoreClassStream);
     procedure ImpFromPath(ImpPath, DBPath: SystemString; IncludeSub: Boolean);
     procedure ImpFromFiles(ImpFiles: TCoreClassStrings; DBPath: SystemString);
+    procedure SplitTo(RootPh, destFile: SystemString; SplitSiz: Int64);
+    procedure SplitToZLib(RootPh, destFile: SystemString; SplitSiz: Int64);
+    procedure SplitToParallelCompression(RootPh, destFile: SystemString; SplitSiz: Int64);
     function isAbort: Boolean;
     function Close: Boolean;
     function ErrorNo: Int64;
@@ -82,11 +97,7 @@ type
     function Size: Int64;
     function IOReadSize: Int64;
     function IOWriteSize: Int64;
-
-    // defaultItem ID
     procedure SetID(const ID: Byte);
-
-    // realtime IO update
     procedure UpdateIO; virtual;
 
     // field api
@@ -98,6 +109,7 @@ type
     function FastFieldCreate(const FieldPos: Int64; const FieldName, FieldDescription: SystemString; var NewFieldPos: Int64): Boolean;
     function RootField: Int64;
     function SetRootField(const RootName: SystemString): Boolean;
+    function GetRootFieldPos(const RootName: SystemString): Int64;
     function FieldRename(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
     function FieldDelete(const DBPath: SystemString; const FieldName: SystemString): Boolean;
     function FieldExists(const DBPath: SystemString; const FieldName: SystemString): Boolean;
@@ -124,28 +136,28 @@ type
     function GetHeader(hPos: Int64; var h: THeader): Boolean;
 
     // item api
-    function GetItemSize(const DBPath, DBItem: SystemString): Int64;
-    function ItemCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
-    function ItemDelete(const DBPath, DBItem: SystemString): Boolean;
-    function ItemExists(const DBPath, DBItem: SystemString): Boolean;
-    function ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
-    function ItemAutoOpenOrCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function GetItemSize(const DBPath, DBItemName: SystemString): Int64;
+    function ItemCreate(const DBPath, DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemDelete(const DBPath, DBItemName: SystemString): Boolean;
+    function ItemExists(const DBPath, DBItemName: SystemString): Boolean;
+    function ItemOpen(const DBPath, DBItemName: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemAutoOpenOrCreate(const DBPath, DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
     function ItemUpdate(var ItemHnd: TItemHandle): Boolean;
     function ItemClose(var ItemHnd: TItemHandle): Boolean;
     function ItemCopyTo(var ItemHnd: TItemHandle; DestDB: TObjectDataManager; var DestItemHandle: TItemHandle; const CopySize: Int64): Boolean;
     function ItemMove(const DBPath, ItemName, destPath: SystemString): Boolean;
     function ItemRename(const FieldPos: Int64; var ItemHnd: TItemHandle; const NewName, NewDescription: SystemString): Boolean;
-    function ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
-    function ItemFastCreate(const fPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+    function ItemFastCreate(const fPos: Int64; const DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
     function ItemFastOpen(const fPos: Int64; var ItemHnd: TItemHandle): Boolean;
     function ItemFastResetBody(const fPos: Int64): Boolean;
-    function ItemFastExists(const FieldPos: Int64; const DBItem: SystemString): Boolean;
-    function ItemFastFindFirst(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemFastFindLast(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFastExists(const FieldPos: Int64; const DBItemName: SystemString): Boolean;
+    function ItemFastFindFirst(const FieldPos: Int64; const DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFastFindLast(const FieldPos: Int64; const DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFastFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemFindFirst(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
-    function ItemFindLast(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFindFirst(const DBPath, DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+    function ItemFindLast(const DBPath, DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean;
     function ItemFindPrev(var ItemSearchHandle: TItemSearch): Boolean;
 
@@ -161,15 +173,16 @@ type
     // item stream
     function ItemReadToStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean; overload;
     function ItemWriteFromStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean; overload;
-    function ItemReadToStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean; overload;
-    function ItemWriteFromStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean; overload;
+    function ItemReadToStream(const DBPath, DBItemName: SystemString; stream: TCoreClassStream): Boolean; overload;
+    function ItemWriteFromStream(const DBPath, DBItemName: SystemString; stream: TCoreClassStream): Boolean; overload;
 
     // recursion support
     function RecursionSearchFirst(const InitPath, Filter: SystemString; var RecursionSearchHnd: TItemRecursionSearch): Boolean;
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 
     // options
-    function DBHandlePtr: PTMDB;
+    function HandlePtr: PTMDB;
+    property Handle: PTMDB read HandlePtr;
     property AutoFreeHandle: Boolean read GetAutoFreeHandle write SetAutoFreeHandle;
     property IsOnlyRead: Boolean read FOnlyRead;
     property NeedCreateNew: Boolean read FNeedCreateNew;
@@ -295,7 +308,8 @@ type
     constructor Create(dbItemID: Byte);
     destructor Destroy; override;
     function GetAbsoluteFileName(fileName: SystemString): SystemString;
-    function NewDB(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
+    function NewDB(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager; overload;
+    function NewDB(FixedStringL: Byte; dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager; overload;
     function Open(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
     procedure CloseDB(db: TObjectDataManager);
     procedure Clear;
@@ -324,7 +338,6 @@ uses ItemStream, Types, MemoryStream64, DoStatusIO;
 
 const
   MaxBuffSize = 65535;
-  UserRootName = 'User';
 
 var
   Internal_ObjectDataMarshal: TObjectDataMarshal = nil;
@@ -389,35 +402,7 @@ begin
   DoStatus('error: %s - %s!', [ObjectName, error.Text]);
 end;
 
-constructor TObjectDataManager.Create(const dbName: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean);
-begin
-  inherited Create;
-  NewHandle(nil, dbName, dbItemID, dbOnlyRead, False);
-  DoCreateFinish;
-end;
-
-constructor TObjectDataManager.CreateNew(const dbName: SystemString; const dbItemID: Byte);
-begin
-  inherited Create;
-  NewHandle(nil, dbName, dbItemID, False, True);
-  DoCreateFinish;
-end;
-
-constructor TObjectDataManager.CreateAsStream(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean);
-begin
-  inherited Create;
-  NewHandle(AStream, dbName, dbItemID, dbOnlyRead, isNewDB);
-  AutoFreeHandle := DestroyTimeFreeStream;
-  DoCreateFinish;
-end;
-
-destructor TObjectDataManager.Destroy;
-begin
-  Close;
-  inherited Destroy;
-end;
-
-function TObjectDataManager.Open(): Boolean;
+function TObjectDataManager.DoOpen(): Boolean;
 begin
   Result := False;
   try
@@ -426,70 +411,92 @@ begin
         if FNeedCreateNew then
           begin
             if not db_CreateAsStream(StreamEngine, ObjectName, '', FDBHandle) then
-              begin
-                Exit;
-              end;
-            if not(db_CreateRootField(UserRootName, '', FDBHandle)) then
-                Exit;
-            if not(db_SetCurrentRootField(UserRootName, FDBHandle)) then
                 Exit;
           end
         else
           begin
             if not db_OpenAsStream(StreamEngine, ObjectName, FDBHandle, IsOnlyRead) then
-              begin
                 Exit;
-              end;
           end;
       end
     else if (FNeedCreateNew) or (not umlFileExists(ObjectName)) then
       begin
-        if not db_CreateNew(ObjectName, '', FDBHandle) then
-          begin
-            db_ClosePack(FDBHandle);
-            Init_TTMDB(FDBHandle);
-            if not db_CreateNew(ObjectName, '', FDBHandle) then
-              begin
-                Exit;
-              end;
-          end;
-        if not(db_CreateRootField(UserRootName, '', FDBHandle)) then
-            Exit;
-        if not(db_SetCurrentRootField(UserRootName, FDBHandle)) then
+        if not db_CreateNew(ObjectName, FDBHandle) then
             Exit;
       end
     else if not db_Open(ObjectName, FDBHandle, IsOnlyRead) then
-      begin
-        db_ClosePack(FDBHandle);
-        Init_TTMDB(FDBHandle);
-        if not db_Open(ObjectName, FDBHandle, IsOnlyRead) then
-          begin
-            Exit;
-          end;
-      end;
+        Exit;
     Result := True;
   except
   end;
 end;
 
-function TObjectDataManager.NewHandle(AStream: TCoreClassStream; const dbName: SystemString; const dbItemID: Byte; dbOnlyRead, aIsNew: Boolean): Boolean;
+function TObjectDataManager.NewHandle(Stream_: TCoreClassStream; const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, IsNewDB_: Boolean): Boolean;
+begin
+  Result := NewHandle(65, Stream_, dbFile, dbItemID, dbOnlyRead, IsNewDB_);
+end;
+
+function TObjectDataManager.NewHandle(FixedStringL: Byte; Stream_: TCoreClassStream; const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, IsNewDB_: Boolean): Boolean;
 begin
   Close;
-  Init_TTMDB(FDBHandle);
+  Init_TTMDB(FDBHandle, FixedStringL);
   FDBHandle.OnError := {$IFDEF FPC}@{$ENDIF FPC}DBErrorProc;
 
-  FStreamEngine := AStream;
-  FObjectName := dbName;
-  FNeedCreateNew := aIsNew;
+  FStreamEngine := Stream_;
+  FObjectName := dbFile;
+  FNeedCreateNew := IsNewDB_;
   FOnlyRead := dbOnlyRead;
   FDefaultItemID := dbItemID;
-  FIsOpened := Open();
+
+  DoCreateFinish;
+  FIsOpened := DoOpen();
+
   Result := FIsOpened;
 
   OverWriteItem := True;
   SameHeaderName := False;
   AutoFreeHandle := True;
   FData := nil;
+end;
+
+constructor TObjectDataManager.Open(const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean);
+begin
+  inherited Create;
+  NewHandle(nil, dbFile, dbItemID, dbOnlyRead, False);
+end;
+
+constructor TObjectDataManager.CreateNew(const dbFile: SystemString; const dbItemID: Byte);
+begin
+  inherited Create;
+  NewHandle(nil, dbFile, dbItemID, False, True);
+end;
+
+constructor TObjectDataManager.CreateNew(FixedStringL: Byte; const dbFile: SystemString; const dbItemID: Byte);
+begin
+  inherited Create;
+  NewHandle(FixedStringL, nil, dbFile, dbItemID, False, True);
+end;
+
+constructor TObjectDataManager.CreateAsStream(Stream_: TCoreClassStream;
+  const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean);
+begin
+  inherited Create;
+  NewHandle(Stream_, dbFile, dbItemID, dbOnlyRead, isNewDB);
+  AutoFreeHandle := DestroyTimeFreeStream;
+end;
+
+constructor TObjectDataManager.CreateAsStream(FixedStringL: Byte; Stream_: TCoreClassStream;
+  const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead, isNewDB, DestroyTimeFreeStream: Boolean);
+begin
+  inherited Create;
+  NewHandle(FixedStringL, Stream_, dbFile, dbItemID, dbOnlyRead, isNewDB);
+  AutoFreeHandle := DestroyTimeFreeStream;
+end;
+
+destructor TObjectDataManager.Destroy;
+begin
+  Close;
+  inherited Destroy;
 end;
 
 function TObjectDataManager.CopyTo(DestDB: TObjectDataManager): Boolean;
@@ -516,9 +523,32 @@ procedure TObjectDataManager.SaveToStream(stream: TCoreClassStream);
 var
   E: TObjectDataManager;
 begin
-  E := TObjectDataManager.CreateAsStream(stream, ObjectName, DefaultItemID, False, True, False);
+  E := TObjectDataManager.CreateAsStream(Handle^.IOHnd.FixedStringL, stream, ObjectName, DefaultItemID, False, True, False);
+  E.OverWriteItem := False;
   CopyTo(E);
   DisposeObject(E);
+end;
+
+procedure TObjectDataManager.SaveToZLibStream(stream: TCoreClassStream);
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.CustomCreate(1024 * 1024);
+  SaveToStream(m64);
+  m64.Position := 0;
+  MaxCompressStream(m64, stream);
+  DisposeObject(m64);
+end;
+
+procedure TObjectDataManager.SaveToParallelCompressionStream(stream: TCoreClassStream);
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.CustomCreate(1024 * 1024);
+  SaveToStream(m64);
+  m64.Position := 0;
+  ParallelCompressStream(TSelectCompressionMethod.scmZLIB_Max, m64, stream);
+  DisposeObject(m64);
 end;
 
 procedure TObjectDataManager.ImpFromPath(ImpPath, DBPath: SystemString; IncludeSub: Boolean);
@@ -538,7 +568,7 @@ begin
   fAry := umlGetFileListWithFullPath(ImpPath);
   for n in fAry do
     begin
-      fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
       ItemFastCreate(fPos, umlGetFileName(n).Text, '', itmHnd);
       itmStream := TItemStream.Create(Self, itmHnd);
       try
@@ -554,7 +584,7 @@ begin
     begin
       fAry := umlGetDirListWithFullPath(ImpPath);
       for n in fAry do
-          ImpFromPath(n, umlCombineFileName(DBPath, umlGetFileName(n)).Text, IncludeSub);
+          ImpFromPath(n, umlCombinePath(DBPath, umlGetLastStr(n, '\/')).Text, IncludeSub);
     end;
 end;
 
@@ -575,7 +605,7 @@ begin
   for i := 0 to ImpFiles.Count - 1 do
     begin
       n := ImpFiles[i];
-      fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
       ItemFastCreate(fPos, umlGetFileName(n).Text, '', itmHnd);
       itmStream := TItemStream.Create(Self, itmHnd);
       try
@@ -586,6 +616,169 @@ begin
       DisposeObject(fs);
       DisposeObject(itmStream);
     end;
+end;
+
+procedure TObjectDataManager.SplitTo(RootPh, destFile: SystemString; SplitSiz: Int64);
+var
+  fn: U_String;
+  sr: TItemRecursionSearch;
+  Ph: U_String;
+  itmHnd, destItmHnd: TItemHandle;
+  DestDB: TObjectDataManager;
+  spID: Integer;
+begin
+  fn := destFile;
+  DestDB := TObjectDataManagerOfCache.CreateNew(FDBHandle.FixedStringL, fn, DefaultItemID);
+  DestDB.OverWriteItem := False;
+  spID := 1;
+  if RecursionSearchFirst(RootPh, '*', sr) then
+    begin
+      repeat
+        if sr.ReturnHeader.ID = DB_Header_Item_ID then
+          begin
+            Ph := GetFieldPath(sr.CurrentField.RHeader.CurrentHeader);
+            ItemFastOpen(sr.ReturnHeader.CurrentHeader, itmHnd);
+            DestDB.CreateField(Ph, '');
+            DestDB.ItemCreate(Ph, itmHnd.Name, itmHnd.Description, destItmHnd);
+            ItemCopyTo(itmHnd, DestDB, destItmHnd, itmHnd.Item.Size);
+            destItmHnd.Item.RHeader.UserProperty := itmHnd.Item.RHeader.UserProperty;
+            destItmHnd.Item.RHeader.CreateTime := itmHnd.Item.RHeader.CreateTime;
+            destItmHnd.Item.RHeader.ModificationTime := itmHnd.Item.RHeader.ModificationTime;
+            DestDB.ItemClose(destItmHnd);
+            ItemClose(itmHnd);
+
+            if DestDB.Size > SplitSiz then
+              begin
+                DestDB.UpdateIO;
+                DisposeObject(DestDB);
+
+                fn := umlChangeFileExt(destFile, '') + umlIntToStr(spID) + umlGetFileExt(destFile);
+                inc(spID);
+                DestDB := TObjectDataManagerOfCache.CreateNew(FDBHandle.FixedStringL, fn, DefaultItemID);
+                DestDB.OverWriteItem := False;
+              end;
+          end;
+
+      until not RecursionSearchNext(sr);
+    end;
+  DestDB.UpdateIO;
+  DisposeObject(DestDB);
+end;
+
+procedure TObjectDataManager.SplitToZLib(RootPh, destFile: SystemString; SplitSiz: Int64);
+var
+  fn: U_String;
+  sr: TItemRecursionSearch;
+  Ph: U_String;
+  itmHnd, destItmHnd: TItemHandle;
+  DestDB: TObjectDataManager;
+  spID: Integer;
+  fs: TCoreClassFileStream;
+begin
+  fn := destFile;
+  DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
+    TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+  DestDB.OverWriteItem := False;
+  spID := 1;
+  if RecursionSearchFirst(RootPh, '*', sr) then
+    begin
+      repeat
+        if sr.ReturnHeader.ID = DB_Header_Item_ID then
+          begin
+            Ph := GetFieldPath(sr.CurrentField.RHeader.CurrentHeader);
+            ItemFastOpen(sr.ReturnHeader.CurrentHeader, itmHnd);
+            DestDB.CreateField(Ph, '');
+            DestDB.ItemCreate(Ph, itmHnd.Name, itmHnd.Description, destItmHnd);
+            ItemCopyTo(itmHnd, DestDB, destItmHnd, itmHnd.Item.Size);
+            destItmHnd.Item.RHeader.UserProperty := itmHnd.Item.RHeader.UserProperty;
+            destItmHnd.Item.RHeader.CreateTime := itmHnd.Item.RHeader.CreateTime;
+            destItmHnd.Item.RHeader.ModificationTime := itmHnd.Item.RHeader.ModificationTime;
+            DestDB.ItemClose(destItmHnd);
+            ItemClose(itmHnd);
+
+            if DestDB.Size > SplitSiz then
+              begin
+                DestDB.UpdateIO;
+                fs := TCoreClassFileStream.Create(fn, fmCreate);
+                DestDB.StreamEngine.Position := 0;
+                MaxCompressStream(DestDB.StreamEngine, fs);
+                DisposeObject(fs);
+                DisposeObject(DestDB);
+
+                fn := umlChangeFileExt(destFile, '') + umlIntToStr(spID) + umlGetFileExt(destFile);
+                inc(spID);
+                DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
+                  TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+                DestDB.OverWriteItem := False;
+              end;
+          end;
+
+      until not RecursionSearchNext(sr);
+    end;
+  DestDB.UpdateIO;
+  fs := TCoreClassFileStream.Create(fn, fmCreate);
+  DestDB.StreamEngine.Position := 0;
+  MaxCompressStream(DestDB.StreamEngine, fs);
+  DisposeObject(fs);
+  DisposeObject(DestDB);
+end;
+
+procedure TObjectDataManager.SplitToParallelCompression(RootPh, destFile: SystemString; SplitSiz: Int64);
+var
+  fn: U_String;
+  sr: TItemRecursionSearch;
+  Ph: U_String;
+  itmHnd, destItmHnd: TItemHandle;
+  DestDB: TObjectDataManager;
+  spID: Integer;
+  fs: TCoreClassFileStream;
+begin
+  fn := destFile;
+  DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
+    TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+  DestDB.OverWriteItem := False;
+  spID := 1;
+  if RecursionSearchFirst(RootPh, '*', sr) then
+    begin
+      repeat
+        if sr.ReturnHeader.ID = DB_Header_Item_ID then
+          begin
+            Ph := GetFieldPath(sr.CurrentField.RHeader.CurrentHeader);
+            ItemFastOpen(sr.ReturnHeader.CurrentHeader, itmHnd);
+            DestDB.CreateField(Ph, '');
+            DestDB.ItemCreate(Ph, itmHnd.Name, itmHnd.Description, destItmHnd);
+            ItemCopyTo(itmHnd, DestDB, destItmHnd, itmHnd.Item.Size);
+            destItmHnd.Item.RHeader.UserProperty := itmHnd.Item.RHeader.UserProperty;
+            destItmHnd.Item.RHeader.CreateTime := itmHnd.Item.RHeader.CreateTime;
+            destItmHnd.Item.RHeader.ModificationTime := itmHnd.Item.RHeader.ModificationTime;
+            DestDB.ItemClose(destItmHnd);
+            ItemClose(itmHnd);
+
+            if DestDB.Size > SplitSiz then
+              begin
+                DestDB.UpdateIO;
+                fs := TCoreClassFileStream.Create(fn, fmCreate);
+                DestDB.StreamEngine.Position := 0;
+                ParallelCompressStream(TSelectCompressionMethod.scmZLIB_Max, TMemoryStream64(DestDB.StreamEngine), fs);
+                DisposeObject(fs);
+                DisposeObject(DestDB);
+
+                fn := umlChangeFileExt(destFile, '') + umlIntToStr(spID) + umlGetFileExt(destFile);
+                inc(spID);
+                DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
+                  TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+                DestDB.OverWriteItem := False;
+              end;
+          end;
+
+      until not RecursionSearchNext(sr);
+    end;
+  DestDB.UpdateIO;
+  fs := TCoreClassFileStream.Create(fn, fmCreate);
+  DestDB.StreamEngine.Position := 0;
+  ParallelCompressStream(TSelectCompressionMethod.scmZLIB_Max, TMemoryStream64(DestDB.StreamEngine), fs);
+  DisposeObject(fs);
+  DisposeObject(DestDB);
 end;
 
 function TObjectDataManager.isAbort: Boolean;
@@ -685,6 +878,17 @@ end;
 function TObjectDataManager.SetRootField(const RootName: SystemString): Boolean;
 begin
   Result := db_SetCurrentRootField(RootName, FDBHandle);
+end;
+
+function TObjectDataManager.GetRootFieldPos(const RootName: SystemString): Int64;
+var
+  f: TFieldHandle;
+begin
+  Init_TField(f);
+  if db_GetRootField(RootName, f, FDBHandle) then
+      Result := f.RHeader.CurrentHeader
+  else
+      Result := -1;
 end;
 
 function TObjectDataManager.FieldRename(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
@@ -827,7 +1031,7 @@ begin
         repeat
           output[i] := h.Name;
           inc(i);
-          if h.PositionID in [DB_Header_OnlyPositionFlags, DB_Header_LastPositionFlags] then
+          if h.PositionID in [DB_Header_1, DB_Header_Last] then
               break;
           dbHeader_ReadRec(h.NextHeader, FDBHandle.IOHnd, h);
         until False;
@@ -870,51 +1074,51 @@ begin
   Result := dbHeader_ReadRec(hPos, FDBHandle.IOHnd, h);
 end;
 
-function TObjectDataManager.GetItemSize(const DBPath, DBItem: SystemString): Int64;
+function TObjectDataManager.GetItemSize(const DBPath, DBItemName: SystemString): Int64;
 var
   DBItemHandle: TItemHandle;
 begin
   Init_TTMDBItemHandle(DBItemHandle);
-  if db_GetItem(DBPath, DBItem, FDefaultItemID, DBItemHandle.Item, FDBHandle) then
+  if db_GetItem(DBPath, DBItemName, FDefaultItemID, DBItemHandle.Item, FDBHandle) then
       Result := DBItemHandle.Item.Size
   else
       Result := 0;
 end;
 
-function TObjectDataManager.ItemCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemCreate(const DBPath, DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 {
   It can automatically create a path
 }
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := db_ItemCreate(DBPath, DBItem, DBItemDescription, FDefaultItemID, ItemHnd, FDBHandle);
+  Result := db_ItemCreate(DBPath, DBItemName, DBItemDescription, FDefaultItemID, ItemHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemDelete(const DBPath, DBItem: SystemString): Boolean;
+function TObjectDataManager.ItemDelete(const DBPath, DBItemName: SystemString): Boolean;
 begin
-  Result := db_DeleteItem(DBPath, DBItem, FDefaultItemID, FDBHandle);
+  Result := db_DeleteItem(DBPath, DBItemName, FDefaultItemID, FDBHandle);
 end;
 
-function TObjectDataManager.ItemExists(const DBPath, DBItem: SystemString): Boolean;
+function TObjectDataManager.ItemExists(const DBPath, DBItemName: SystemString): Boolean;
 var
   ItemSearchHnd: TItemSearch;
 begin
   Init_TTMDBSearchItem(ItemSearchHnd);
-  Result := db_FindFirstItem(DBPath, DBItem, FDefaultItemID, ItemSearchHnd, FDBHandle);
+  Result := db_FindFirstItem(DBPath, DBItemName, FDefaultItemID, ItemSearchHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemOpen(const DBPath, DBItem: SystemString; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemOpen(const DBPath, DBItemName: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := db_ItemOpen(DBPath, DBItem, FDefaultItemID, ItemHnd, FDBHandle);
+  Result := db_ItemOpen(DBPath, DBItemName, FDefaultItemID, ItemHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemAutoOpenOrCreate(const DBPath, DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemAutoOpenOrCreate(const DBPath, DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
-  if ItemExists(DBPath, DBItem) then
-      Result := ItemOpen(DBPath, DBItem, ItemHnd)
+  if ItemExists(DBPath, DBItemName) then
+      Result := ItemOpen(DBPath, DBItemName, ItemHnd)
   else
-      Result := ItemCreate(DBPath, DBItem, DBItemDescription, ItemHnd);
+      Result := ItemCreate(DBPath, DBItemName, DBItemDescription, ItemHnd);
 end;
 
 function TObjectDataManager.ItemUpdate(var ItemHnd: TItemHandle): Boolean;
@@ -973,16 +1177,16 @@ begin
   Result := db_ItemReName(FieldPos, NewName, NewDescription, ItemHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemFastInsertNew(const FieldPos, InsertHeaderPos: Int64; const DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := db_ItemFastInsertNew(DBItem, DBItemDescription, FieldPos, InsertHeaderPos, FDefaultItemID, ItemHnd, FDBHandle);
+  Result := db_ItemFastInsertNew(DBItemName, DBItemDescription, FieldPos, InsertHeaderPos, FDefaultItemID, ItemHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFastCreate(const fPos: Int64; const DBItem, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemFastCreate(const fPos: Int64; const DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := db_ItemFastCreate(DBItem, DBItemDescription, fPos, FDefaultItemID, ItemHnd, FDBHandle);
+  Result := db_ItemFastCreate(DBItemName, DBItemDescription, fPos, FDefaultItemID, ItemHnd, FDBHandle);
 end;
 
 function TObjectDataManager.ItemFastOpen(const fPos: Int64; var ItemHnd: TItemHandle): Boolean;
@@ -999,24 +1203,24 @@ begin
     and db_ItemBodyReset(ItemHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFastExists(const FieldPos: Int64; const DBItem: SystemString): Boolean;
+function TObjectDataManager.ItemFastExists(const FieldPos: Int64; const DBItemName: SystemString): Boolean;
 var
   ItemSearchHnd: TItemSearch;
 begin
   Init_TTMDBSearchItem(ItemSearchHnd);
-  Result := db_FastFindFirstItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHnd, FDBHandle);
+  Result := db_FastFindFirstItem(FieldPos, DBItemName, FDefaultItemID, ItemSearchHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFastFindFirst(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+function TObjectDataManager.ItemFastFindFirst(const FieldPos: Int64; const DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := db_FastFindFirstItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHandle, FDBHandle);
+  Result := db_FastFindFirstItem(FieldPos, DBItemName, FDefaultItemID, ItemSearchHandle, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFastFindLast(const FieldPos: Int64; const DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+function TObjectDataManager.ItemFastFindLast(const FieldPos: Int64; const DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := db_FastFindLastItem(FieldPos, DBItem, FDefaultItemID, ItemSearchHandle, FDBHandle);
+  Result := db_FastFindLastItem(FieldPos, DBItemName, FDefaultItemID, ItemSearchHandle, FDBHandle);
 end;
 
 function TObjectDataManager.ItemFastFindNext(var ItemSearchHandle: TItemSearch): Boolean;
@@ -1029,16 +1233,16 @@ begin
   Result := db_FastFindPrevItem(ItemSearchHandle, FDefaultItemID, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFindFirst(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+function TObjectDataManager.ItemFindFirst(const DBPath, DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := db_FindFirstItem(DBPath, DBItem, FDefaultItemID, ItemSearchHandle, FDBHandle);
+  Result := db_FindFirstItem(DBPath, DBItemName, FDefaultItemID, ItemSearchHandle, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFindLast(const DBPath, DBItem: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
+function TObjectDataManager.ItemFindLast(const DBPath, DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
 begin
   Init_TTMDBSearchItem(ItemSearchHandle);
-  Result := db_FindLastItem(DBPath, DBItem, FDefaultItemID, ItemSearchHandle, FDBHandle);
+  Result := db_FindLastItem(DBPath, DBItemName, FDefaultItemID, ItemSearchHandle, FDBHandle);
 end;
 
 function TObjectDataManager.ItemFindNext(var ItemSearchHandle: TItemSearch): Boolean;
@@ -1103,7 +1307,6 @@ begin
   sour := TItemStream.Create(Self, ItemHnd);
   sour.SeekStart();
   Result := stream.CopyFrom(sour, sour.Size) = sour.Size;
-  ItemHnd := sour.Hnd^;
   DisposeObject(sour);
 end;
 
@@ -1115,28 +1318,26 @@ begin
   sour.SeekStart();
   stream.Position := 0;
   Result := sour.CopyFrom(stream, stream.Size) = stream.Size;
-  sour.CloseHandle;
-  ItemHnd := sour.Hnd^;
+  sour.UpdateHandle;
   DisposeObject(sour);
 end;
 
-function TObjectDataManager.ItemReadToStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean;
+function TObjectDataManager.ItemReadToStream(const DBPath, DBItemName: SystemString; stream: TCoreClassStream): Boolean;
 var
   itmHnd: TItemHandle;
 begin
   Result := False;
-  if not ItemOpen(DBPath, DBItem, itmHnd) then
+  if not ItemOpen(DBPath, DBItemName, itmHnd) then
       Exit;
   Result := ItemReadToStream(itmHnd, stream);
 end;
 
-function TObjectDataManager.ItemWriteFromStream(const DBPath, DBItem: SystemString; stream: TCoreClassStream): Boolean;
+function TObjectDataManager.ItemWriteFromStream(const DBPath, DBItemName: SystemString; stream: TCoreClassStream): Boolean;
 var
   itmHnd: TItemHandle;
 begin
   Result := False;
-  ItemDelete(DBPath, DBItem);
-  if ItemCreate(DBPath, DBItem, DBItem, itmHnd) then
+  if ItemCreate(DBPath, DBItemName, DBItemName, itmHnd) then
       Result := ItemWriteFromStream(itmHnd, stream);
 end;
 
@@ -1151,7 +1352,7 @@ begin
   Result := db_RecursionSearchNext(RecursionSearchHnd, FDBHandle);
 end;
 
-function TObjectDataManager.DBHandlePtr: PTMDB;
+function TObjectDataManager.HandlePtr: PTMDB;
 begin
   Result := @FDBHandle;
 end;
@@ -1285,14 +1486,15 @@ begin
   m64 := TMemoryStream64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(DB_Header_Size);
+      m64 := TMemoryStream64.CustomCreate(Get_DB_HeaderL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
+  Hnd.FixedStringL := FDBHandle.FixedStringL;
   umlFileOpenAsStream('', m64, Hnd, False);
   dbHeader_WriteRec(0, Hnd, wVal);
   umlFileClose(Hnd);
-  if m64.Position <> m64.Size then
+  if m64.Position <> Get_DB_HeaderL(FDBHandle.IOHnd) then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
 
@@ -1330,6 +1532,7 @@ begin
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
+          Hnd.FixedStringL := FDBHandle.FixedStringL;
           umlFileOpenAsStream('', m64, Hnd, False);
           Done := dbHeader_ReadRec(0, Hnd, rVal);
           umlFileClose(Hnd);
@@ -1358,14 +1561,15 @@ begin
   m64 := TMemoryStream64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(DB_Item_BlockSize);
+      m64 := TMemoryStream64.CustomCreate(Get_DB_BlockL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
+  Hnd.FixedStringL := FDBHandle.FixedStringL;
   umlFileOpenAsStream('', m64, Hnd, False);
   dbItem_OnlyWriteItemBlockRec(0, Hnd, wVal);
   umlFileClose(Hnd);
-  if m64.Position <> m64.Size then
+  if m64.Position <> Get_DB_BlockL(FDBHandle.IOHnd) then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
 
@@ -1403,6 +1607,7 @@ begin
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
+          Hnd.FixedStringL := FDBHandle.FixedStringL;
           umlFileOpenAsStream('', m64, Hnd, False);
           Done := dbItem_OnlyReadItemBlockRec(0, Hnd, rVal);
           umlFileClose(Hnd);
@@ -1468,14 +1673,15 @@ begin
   m64 := TMemoryStream64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(DB_Item_Size);
+      m64 := TMemoryStream64.CustomCreate(Get_DB_ItemL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
+  Hnd.FixedStringL := FDBHandle.FixedStringL;
   umlFileOpenAsStream('', m64, Hnd, False);
   dbItem_OnlyWriteItemRec(0, Hnd, wVal);
   umlFileClose(Hnd);
-  if m64.Position <> m64.Size then
+  if m64.Position <> Get_DB_ItemL(FDBHandle.IOHnd) then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
 
@@ -1513,6 +1719,7 @@ begin
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
+          Hnd.FixedStringL := FDBHandle.FixedStringL;
           umlFileOpenAsStream('', m64, Hnd, False);
           Done := dbItem_OnlyReadItemRec(0, Hnd, rVal);
           umlFileClose(Hnd);
@@ -1576,14 +1783,15 @@ begin
   m64 := TMemoryStream64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(DB_Field_Size);
+      m64 := TMemoryStream64.CustomCreate(Get_DB_FieldL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
+  Hnd.FixedStringL := FDBHandle.FixedStringL;
   umlFileOpenAsStream('', m64, Hnd, False);
   dbField_OnlyWriteFieldRec(0, Hnd, wVal);
   umlFileClose(Hnd);
-  if m64.Position <> m64.Size then
+  if m64.Position <> Get_DB_FieldL(FDBHandle.IOHnd) then
       RaiseInfo('preapre write error!');
   m64.Position := 0;
 
@@ -1621,6 +1829,7 @@ begin
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
+          Hnd.FixedStringL := FDBHandle.FixedStringL;
           umlFileOpenAsStream('', m64, Hnd, False);
           Done := dbField_OnlyReadFieldRec(0, Hnd, rVal);
           umlFileClose(Hnd);
@@ -1639,43 +1848,52 @@ begin
 end;
 
 procedure TObjectDataManagerOfCache.PrepareTMDBWriteProc(fPos: Int64; const wVal: PTMDB; var Done: Boolean);
+begin
+  Done := CheckPreapreWrite(fPos);
+end;
+
+procedure TObjectDataManagerOfCache.TMDBWriteProc(fPos: Int64; const wVal: PTMDB);
 var
   m64: TMemoryStream64;
   Hnd: TIOHnd;
 begin
-  Done := False;
-  if not CheckPreapreWrite(fPos) then
-      Exit;
   m64 := TMemoryStream64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(DB_Size);
+      m64 := TMemoryStream64.CustomCreate(Get_DB_L(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
+  Hnd.FixedStringL := FDBHandle.FixedStringL;
   umlFileOpenAsStream('', m64, Hnd, False);
 
   FDBHandle.IOHnd.Data := nil;
-
   db_WriteRec(0, Hnd, wVal^);
-
   FDBHandle.IOHnd.Data := @FDBHandle;
 
   umlFileClose(Hnd);
-  if m64.Position <> m64.Size then
-      RaiseInfo('preapre write error!');
+  if m64.Position <> Get_DB_L(FDBHandle.IOHnd) then
+      RaiseInfo('write error!');
   m64.Position := 0;
-
-  Done := True;
-end;
-
-procedure TObjectDataManagerOfCache.TMDBWriteProc(fPos: Int64; const wVal: PTMDB);
-begin
 end;
 
 procedure TObjectDataManagerOfCache.TMDBReadProc(fPos: Int64; const rVal: PTMDB; var Done: Boolean);
+var
+  m64: TMemoryStream64;
+  Hnd: TIOHnd;
 begin
-  Done := False;
+  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  if m64 <> nil then
+    begin
+      InitIOHnd(Hnd);
+      Hnd.FixedStringL := FDBHandle.FixedStringL;
+      umlFileOpenAsStream('', m64, Hnd, False);
+      FDBHandle.IOHnd.Data := nil;
+      Done := db_ReadRec(0, Hnd, rVal^);
+      FDBHandle.IOHnd.Data := @FDBHandle;
+      umlFileClose(Hnd);
+      m64.Position := 0;
+    end;
 end;
 
 procedure TObjectDataManagerOfCache.CheckAndRestoreFlush;
@@ -1892,6 +2110,9 @@ var
   swapHnd: TCoreClassFileStream;
   swaphead: TSwapHead;
 begin
+  // update db header
+  inherited UpdateIO;
+
   if (not FDBHandle.IOHnd.IsOnlyRead)
     and (FDBHandle.IOHnd.IsOpen)
     and (FPrepareWritePool.Count > 0) then
@@ -1942,13 +2163,11 @@ begin
           umlDeleteFile(swapFileName);
     end;
   FPrepareWritePool.Clear;
-
-  inherited UpdateIO;
 end;
 
 function TObjectDataManagerOfCache.CacheStatus: SystemString;
 begin
-  Result := PFormat('h:%d b:%d i:%d f:%d w:%d', [FHeaderCache.Count, FItemBlockCache.Count, FItemCache.Count, FFieldCache.Count, FPrepareWritePool.Count]);
+  Result := PFormat('cache state: h:%d b:%d i:%d f:%d w:%d', [FHeaderCache.Count, FItemBlockCache.Count, FItemCache.Count, FFieldCache.Count, FPrepareWritePool.Count]);
 end;
 
 function TObjectDataMarshal.GetItems(aIndex: Integer): TObjectDataManager;
@@ -2057,6 +2276,32 @@ begin
     end;
 end;
 
+function TObjectDataMarshal.NewDB(FixedStringL: Byte; dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
+var
+  i: Integer;
+  aUName: SystemString;
+begin
+  Result := nil;
+  aUName := GetAbsoluteFileName(dbFile);
+  if FLibList.Count > 0 then
+    for i := 0 to FLibList.Count - 1 do
+      if umlSameText(aUName, FLibList[i]) then
+          Result := TObjectDataManager(FLibList.Objects[i]);
+  if Result = nil then
+    begin
+      Result := TObjectDataManager.CreateNew(FixedStringL, dbFile, FID);
+      if Result.isAbort then
+        begin
+          DisposeObject(Result);
+          Result := nil;
+        end
+      else
+        begin
+          FLibList.AddObject(GetAbsoluteFileName(Result.ObjectName), Result);
+        end;
+    end;
+end;
+
 function TObjectDataMarshal.Open(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
 var
   i: Integer;
@@ -2070,7 +2315,7 @@ begin
           Result := TObjectDataManager(FLibList.Objects[i]);
   if Result = nil then
     begin
-      Result := TObjectDataManager.Create(dbFile, FID, dbOnlyRead);
+      Result := TObjectDataManager.Open(dbFile, FID, dbOnlyRead);
       if Result.isAbort then
         begin
           DisposeObject(Result);
@@ -2197,7 +2442,7 @@ var
 begin
   if Count > 0 then
     for i := 0 to Count - 1 do
-        Items[i].Open;
+        Items[i].DoOpen;
 end;
 
 procedure TestObjectData_(c: TObjectDataManagerClass);
@@ -2208,7 +2453,7 @@ var
   nameL: U_StringArray;
   n: U_String;
 begin
-  db := c.CreateAsStream(TMemoryStream64.CustomCreate($FFFF), '', 0, False, True, True);
+  db := c.CreateAsStream($FF, TMemoryStream64.CustomCreate($FFFF), '', 0, False, True, True);
 
   if db.CreateRootField('_RootField') then
       DoStatus('CreateRootField ok')

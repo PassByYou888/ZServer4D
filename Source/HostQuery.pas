@@ -203,7 +203,7 @@ procedure THostQueryServer.LoadConfigure(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   LoadConfigure(fs);
   DisposeObject(fs);
 end;

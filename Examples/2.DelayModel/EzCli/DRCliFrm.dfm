@@ -62,6 +62,15 @@ object DRClientForm: TDRClientForm
     TabOrder = 3
     OnClick = DelayResponseBtnClick
   end
+  object DelayResponse2Btn: TButton
+    Left = 32
+    Top = 135
+    Width = 89
+    Height = 34
+    Caption = 'Send Request2'
+    TabOrder = 4
+    OnClick = DelayResponse2BtnClick
+  end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer

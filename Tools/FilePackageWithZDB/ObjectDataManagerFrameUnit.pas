@@ -5,9 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ActnList, Menus,
-  ShellAPI, IOUtils,
-  PascalStrings, ObjectData, ObjectDataManager, FileCtrl,
-  ObjectDataTreeFrameUnit, ItemStream, System.Actions;
+  ShellAPI, Actions, FileCtrl, Types, IOUtils,
+  CoreClasses, PascalStrings, UnicodeMixedLib, ObjectData, ObjectDataManager,
+  ObjectDataTreeFrameUnit, ItemStream;
 
 type
   TObjectDataManagerFrame = class(TFrame)
@@ -16,7 +16,7 @@ type
     ActionList: TActionList;
     ActionCreateDir: TAction;
     ActionRemove: TAction;
-    ActionAddResource: TAction;
+    ActionImportFile: TAction;
     TreePanel: TPanel;
     OpenDialog: TOpenDialog;
     ActionRename: TAction;
@@ -27,14 +27,16 @@ type
     Importfile1: TMenuItem;
     ExportTo1: TMenuItem;
     Remove1: TMenuItem;
-    n3: TMenuItem;
     SaveDialog: TSaveDialog;
     Action_Open: TAction;
     Open1: TMenuItem;
-    N1: TMenuItem;
-    procedure ActionAddResourceExecute(Sender: TObject);
+    N2: TMenuItem;
+    ActionImportDirectory: TAction;
+    ImportDirectory1: TMenuItem;
     procedure ActionCreateDirExecute(Sender: TObject);
     procedure ActionExportExecute(Sender: TObject);
+    procedure ActionImportFileExecute(Sender: TObject);
+    procedure ActionImportDirectoryExecute(Sender: TObject);
     procedure ActionRemoveExecute(Sender: TObject);
     procedure ActionRenameExecute(Sender: TObject);
     procedure Action_OpenExecute(Sender: TObject);
@@ -64,9 +66,8 @@ type
     destructor Destroy; override;
     procedure UpdateItemList(APath: string);
 
-    procedure ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var aShowMsg: Boolean);
-    procedure ImportFromFile(aFileName: string; var aShowMsg: Boolean);
-    procedure ImportFromStreamData(aItemName: string; stream: TStream; var aShowMsg: Boolean);
+    procedure ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var showMsg: Boolean);
+    procedure ImportFromFile(FileName_: string; var showMsg: Boolean);
 
     property ResourceData: TObjectDataManager read FResourceData write SetResourceData;
 
@@ -81,31 +82,10 @@ type
 
 implementation
 
-uses UnicodeMixedLib, DoStatusIO, LibraryManager, StreamList;
+uses DoStatusIO, ObjectDataHashField, ObjectDataHashItem;
 
 {$R *.dfm}
 
-
-procedure TObjectDataManagerFrame.ActionAddResourceExecute(Sender: TObject);
-var
-  RepaInt: Integer;
-  aShowMsg: Boolean;
-begin
-  if FResourceData = nil then
-      Exit;
-  if OpenDialog.Execute then
-    begin
-      if OpenDialog.Files.Count > 0 then
-        begin
-          aShowMsg := True;
-          for RepaInt := 0 to OpenDialog.Files.Count - 1 do
-              ImportFromFile(OpenDialog.Files[RepaInt], aShowMsg);
-          UpdateItemList(CurrentObjectDataPath);
-          FResourceTreeFrame.RefreshList;
-          IsModify := True;
-        end;
-    end;
-end;
 
 procedure TObjectDataManagerFrame.ActionCreateDirExecute(Sender: TObject);
 begin
@@ -124,9 +104,9 @@ end;
 
 procedure TObjectDataManagerFrame.ActionExportExecute(Sender: TObject);
 var
-  aShowMsg: Boolean;
-  RepaInt: Integer;
-  aTargetDirectory: string;
+  showMsg: Boolean;
+  i: Integer;
+  destDir: string;
 begin
   if ListView.IsEditing then
       Exit;
@@ -137,32 +117,110 @@ begin
       SaveDialog.FileName := ListView.Selected.Caption;
       if not SaveDialog.Execute() then
           Exit;
-      aShowMsg := True;
-      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, umlGetFilePath(SaveDialog.FileName), umlGetFileName(SaveDialog.FileName), aShowMsg);
+      showMsg := True;
+      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, umlGetFilePath(SaveDialog.FileName), umlGetFileName(SaveDialog.FileName), showMsg);
     end
   else
     begin
-      if not SelectDirectory('export to', '', aTargetDirectory, [sdNewFolder, sdShowEdit, sdShowShares, sdNewUI]) then
+      if not SelectDirectory('export to', '', destDir, [sdNewFolder, sdShowEdit, sdShowShares, sdNewUI]) then
           Exit;
 
-      aShowMsg := True;
-      for RepaInt := 0 to ListView.Items.Count - 1 do
+      showMsg := True;
+      for i := 0 to ListView.Items.Count - 1 do
         begin
-          with ListView.Items[RepaInt] do
+          with ListView.Items[i] do
             begin
               if (Selected) or (ListView.SelCount = 0) then
                 begin
                   if ImageIndex <> FDefaultFolderImageIndex then
-                      ExportToFile(CurrentObjectDataPath, Caption, aTargetDirectory, Caption, aShowMsg);
+                      ExportToFile(CurrentObjectDataPath, Caption, destDir, Caption, showMsg);
                 end;
             end;
         end;
     end;
 end;
 
+procedure TObjectDataManagerFrame.ActionImportFileExecute(Sender: TObject);
+var
+  i: Integer;
+  showMsg: Boolean;
+begin
+  if FResourceData = nil then
+      Exit;
+  if OpenDialog.Execute then
+    begin
+      if OpenDialog.Files.Count > 0 then
+        begin
+          showMsg := True;
+          for i := 0 to OpenDialog.Files.Count - 1 do
+              ImportFromFile(OpenDialog.Files[i], showMsg);
+          UpdateItemList(CurrentObjectDataPath);
+          FResourceTreeFrame.RefreshList;
+          IsModify := True;
+        end;
+    end;
+end;
+
+procedure TObjectDataManagerFrame.ActionImportDirectoryExecute(Sender: TObject);
+  procedure ImpFromPath(ImpPath, DBPath: U_String);
+  var
+    fAry: U_StringArray;
+    n: U_SystemString;
+    fPos: Int64;
+    fs: TCoreClassFileStream;
+    itmHnd: TItemHandle;
+    itmStream: TItemStream;
+    longName: Boolean;
+  begin
+    DBPath := umlCharReplace(DBPath, '\', '/');
+    if not FResourceData.DirectoryExists(DBPath) then
+        FResourceData.CreateField(DBPath, '');
+    fPos := FResourceData.GetPathFieldPos(DBPath);
+
+    fAry := umlGetFileListWithFullPath(ImpPath);
+    for n in fAry do
+      begin
+        longName := FResourceData.Handle^.IOHnd.CheckFixedStringLoss(umlGetFileName(n));
+
+        if longName then
+            MessageDlg(Format('File name %s is too long, which causes character loss!', [umlGetFileName(n).Text]), mtWarning, [mbOk], 0);
+
+        FResourceData.ItemFastCreate(fPos, umlGetFileName(n), '', itmHnd);
+        itmHnd.Item.RHeader.CreateTime := umlGetFileTime(n);
+        itmHnd.Item.RHeader.ModificationTime := itmHnd.Item.RHeader.CreateTime;
+        fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+        itmStream := TItemStream.Create(FResourceData, itmHnd);
+        DoStatus('import %s', [umlCombineFileName(DBPath, itmHnd.Name).Text]);
+        try
+            itmStream.CopyFrom(fs, fs.Size)
+        except
+        end;
+        itmStream.CloseHandle;
+        DisposeObject(fs);
+        DisposeObject(itmStream);
+      end;
+
+    fAry := umlGetDirListPath(ImpPath);
+    for n in fAry do
+        ImpFromPath(umlCombinePath(ImpPath, n), umlCombinePath(DBPath, n));
+  end;
+
+var
+  d: string;
+begin
+  if not SelectDirectory('Import directory', '', d, [sdNewFolder, sdNewUI]) then
+      Exit;
+
+  ImpFromPath(d, CurrentObjectDataPath);
+
+  UpdateItemList(CurrentObjectDataPath);
+  FResourceTreeFrame.RefreshList;
+  IsModify := True;
+end;
+
 procedure TObjectDataManagerFrame.ActionRemoveExecute(Sender: TObject);
 var
-  RepaInt: Integer;
+  i: Integer;
 begin
   if ListView.IsEditing then
       Exit;
@@ -172,9 +230,9 @@ begin
       Exit;
   if ListView.SelCount > 0 then
     begin
-      for RepaInt := 0 to ListView.Items.Count - 1 do
+      for i := 0 to ListView.Items.Count - 1 do
         begin
-          with ListView.Items[RepaInt] do
+          with ListView.Items[i] do
             begin
               if Selected then
                 begin
@@ -202,10 +260,29 @@ begin
       ListView.Selected.EditCaption;
 end;
 
+procedure TObjectDataManagerFrame.Action_OpenExecute(Sender: TObject);
+var
+  showMsg: Boolean;
+  i: Integer;
+  destDir: string;
+begin
+  if ListView.IsEditing then
+      Exit;
+  if FResourceData = nil then
+      Exit;
+  if ListView.SelCount = 1 then
+    begin
+      showMsg := False;
+      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, TPath.GetTempPath, ListView.Selected.Caption, showMsg);
+
+      ShellExecute(0, 'open', PWideChar(umlCombineFileName(TPath.GetTempPath, ListView.Selected.Caption).Text), '', PWideChar(TPath.GetTempPath), SW_SHOW);
+    end;
+end;
+
 procedure TObjectDataManagerFrame.ListViewEdited(Sender: TObject; Item: TListItem; var s: string);
 var
   aFieldPos: Int64;
-  aItemHnd: TItemHandle;
+  ItemHnd: TItemHandle;
 begin
   if FResourceData = nil then
       Exit;
@@ -223,10 +300,10 @@ begin
     end
   else if (FResourceData.GetPathField(CurrentObjectDataPath, aFieldPos)) then
     begin
-      if FResourceData.ItemOpen(CurrentObjectDataPath, Item.Caption, aItemHnd) then
+      if FResourceData.ItemOpen(CurrentObjectDataPath, Item.Caption, ItemHnd) then
         begin
           DoStatus(Format('ReName Item "%s" to "%s" .', [Item.Caption, s]));
-          if not FResourceData.ItemReName(aFieldPos, aItemHnd, s, '') then
+          if not FResourceData.ItemReName(aFieldPos, ItemHnd, s, '') then
               Item.Free;
         end;
     end;
@@ -321,29 +398,10 @@ begin
   inherited;
 end;
 
-procedure TObjectDataManagerFrame.Action_OpenExecute(Sender: TObject);
-var
-  aShowMsg: Boolean;
-  RepaInt: Integer;
-  aTargetDirectory: string;
-begin
-  if ListView.IsEditing then
-      Exit;
-  if FResourceData = nil then
-      Exit;
-  if ListView.SelCount = 1 then
-    begin
-      aShowMsg := False;
-      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, TPath.GetTempPath, ListView.Selected.Caption, aShowMsg);
-
-      ShellExecute(0, 'open', PWideChar(umlCombineFileName(TPath.GetTempPath, ListView.Selected.Caption).Text), '', PWideChar(TPath.GetTempPath), SW_SHOW);
-    end;
-end;
-
 procedure TObjectDataManagerFrame.UpdateItemList(APath: string);
 var
-  aItemSR: TItemSearch;
-  aFieldSR: TFieldSearch;
+  ItmSR: TItemSearch;
+  FieldSR: TFieldSearch;
   Filter: TArrayPascalString;
 begin
   umlGetSplitArray(FFileFilter, Filter, '|;');
@@ -352,134 +410,111 @@ begin
   CurrentObjectDataPath := APath;
   if FResourceData <> nil then
     begin
-      if FResourceData.FieldFindFirst(APath, '*', aFieldSR) then
+      if FResourceData.FieldFindFirst(APath, '*', FieldSR) then
         begin
           repeat
             with ListView.Items.Add do
               begin
-                Caption := aFieldSR.Name;
+                Caption := FieldSR.Name;
                 SubItems.Add('Field');
-                SubItems.Add('Child : ' + umlIntToStr(aFieldSR.HeaderCount));
+                SubItems.Add('Child : ' + umlIntToStr(FieldSR.HeaderCount));
                 ImageIndex := FDefaultFolderImageIndex;
                 StateIndex := -1;
                 Data := nil;
               end;
-          until not FResourceData.FieldFindNext(aFieldSR);
+          until not FResourceData.FieldFindNext(FieldSR);
         end;
 
-      if FResourceData.ItemFindFirst(APath, '*', aItemSR) then
+      if FResourceData.ItemFindFirst(APath, '*', ItmSR) then
         begin
           repeat
-            if umlMultipleMatch(Filter, aItemSR.Name) then
+            if umlMultipleMatch(Filter, ItmSR.Name) then
               begin
                 with ListView.Items.Add do
                   begin
-                    Caption := aItemSR.Name;
-                    SubItems.Add(IntToHex(aItemSR.FieldSearch.RHeader.UserProperty, 8));
-                    SubItems.Add(umlSizeToStr(aItemSR.Size));
-                    SubItems.Add(DateTimeToStr(aItemSR.FieldSearch.RHeader.CreateTime));
-                    SubItems.Add(DateTimeToStr(aItemSR.FieldSearch.RHeader.ModificationTime));
+                    Caption := ItmSR.Name;
+                    SubItems.Add(IntToHex(ItmSR.FieldSearch.RHeader.UserProperty, 8));
+                    SubItems.Add(umlSizeToStr(ItmSR.Size));
+                    SubItems.Add(DateTimeToStr(ItmSR.FieldSearch.RHeader.CreateTime));
+                    SubItems.Add(DateTimeToStr(ItmSR.FieldSearch.RHeader.ModificationTime));
                     ImageIndex := -1;
                     StateIndex := -1;
                     Data := nil;
                   end;
               end;
-          until not FResourceData.ItemFindNext(aItemSR);
+          until not FResourceData.ItemFindNext(ItmSR);
         end;
     end;
   ListView.Items.EndUpdate;
 end;
 
-procedure TObjectDataManagerFrame.ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var aShowMsg: Boolean);
+procedure TObjectDataManagerFrame.ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var showMsg: Boolean);
 var
-  aItemHnd: TItemHandle;
+  ItemHnd: TItemHandle;
   s: TItemStream;
-  aFS: TFileStream;
+  fs: TFileStream;
 begin
   if FResourceData <> nil then
     begin
       if not umlDirectoryExists(aToDirectory) then
           umlCreateDirectory(aToDirectory);
 
-      if (aShowMsg) and (umlFileExists(umlCombineFileName(aToDirectory, aToName))) then
+      if (showMsg) and (umlFileExists(umlCombineFileName(aToDirectory, aToName))) then
         begin
           case MessageDlg(Format('File "%s" alread exists, overwirte?', [ExtractFilename(aToName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
             mrNo:
               Exit;
             mrAll:
-              aShowMsg := False;
+              showMsg := False;
           end;
         end;
-      if FResourceData.ItemOpen(aDBPath, aDBItem, aItemHnd) then
+      if FResourceData.ItemOpen(aDBPath, aDBItem, ItemHnd) then
         begin
-          s := TItemStream.Create(FResourceData, aItemHnd);
-          aFS := TFileStream.Create(umlCombineFileName(aToDirectory, aToName), fmCreate);
-          aFS.CopyFrom(s, s.Size);
-          aFS.Free;
+          s := TItemStream.Create(FResourceData, ItemHnd);
+          fs := TFileStream.Create(umlCombineFileName(aToDirectory, aToName), fmCreate);
+          fs.CopyFrom(s, s.Size);
+          fs.Free;
           s.Free;
+          umlSetFileTime(umlCombineFileName(aToDirectory, aToName), ItemHnd.Item.RHeader.CreateTime);
           DoStatus('export file:%s', [umlCombineFileName(aToDirectory, aToName).Text]);
         end;
     end;
 end;
 
-procedure TObjectDataManagerFrame.ImportFromFile(aFileName: string; var aShowMsg: Boolean);
+procedure TObjectDataManagerFrame.ImportFromFile(FileName_: string; var showMsg: Boolean);
 var
-  aItemHnd: TItemHandle;
-  aFS: TFileStream;
+  ItemHnd: TItemHandle;
+  fs: TFileStream;
+  longName: Boolean;
 begin
   if FResourceData <> nil then
     begin
-      if (aShowMsg) and (FResourceData.ItemExists(CurrentObjectDataPath, ExtractFilename(aFileName))) then
+      if (showMsg) and (FResourceData.ItemExists(CurrentObjectDataPath, ExtractFilename(FileName_))) then
         begin
-          case MessageDlg(Format('Item "%s" alread exists, overwirte?', [ExtractFilename(aFileName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
+          case MessageDlg(Format('Item "%s" alread exists, overwirte?', [ExtractFilename(FileName_)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
             mrNo:
               Exit;
             mrAll:
-              aShowMsg := False;
+              showMsg := False;
           end;
         end;
-      aFS := TFileStream.Create(aFileName, fmOpenRead);
-      if FResourceData.ItemCreate(CurrentObjectDataPath, ExtractFilename(aFileName), '', aItemHnd) then
-        begin
-          with TItemStream.Create(FResourceData, aItemHnd) do
-            begin
-              CopyFrom(aFS, aFS.Size);
-              CloseHandle;
-              Free;
-            end;
-          DoStatus('import file:%s', [aItemHnd.Name.Text]);
-        end;
-      aFS.Free;
-    end;
-end;
 
-procedure TObjectDataManagerFrame.ImportFromStreamData(aItemName: string; stream: TStream; var aShowMsg: Boolean);
-var
-  aItemHnd: TItemHandle;
-begin
-  if FResourceData <> nil then
-    begin
-      if (aShowMsg) and (FResourceData.ItemExists(CurrentObjectDataPath, aItemName)) then
-        begin
-          case MessageDlg(Format('Item "%s" alread exists, overwirte?', [aItemName]), mtInformation, [mbYes, mbNo, mbAll], 0) of
-            mrNo:
-              Exit;
-            mrAll:
-              aShowMsg := False;
-          end;
-        end;
-      if FResourceData.ItemCreate(CurrentObjectDataPath, aItemName, '', aItemHnd) then
-        begin
-          stream.Position := 0;
-          DoStatus(aItemHnd.Name);
-          with TItemStream.Create(FResourceData, aItemHnd) do
-            begin
-              CopyFrom(stream, stream.Size);
-              CloseHandle;
-              Free;
-            end;
-          DoStatus('import stream', [aItemName]);
-        end;
+      longName := FResourceData.Handle^.IOHnd.CheckFixedStringLoss(umlGetFileName(FileName_));
+
+      if longName then
+          MessageDlg(Format('File name %s is too long, which causes character loss!', [umlGetFileName(FileName_).Text]), mtWarning, [mbOk], 0);
+
+      fs := TFileStream.Create(FileName_, fmOpenRead);
+      FResourceData.ItemCreate(CurrentObjectDataPath, ExtractFilename(FileName_), '', ItemHnd);
+      try
+        if FResourceData.ItemWriteFromStream(ItemHnd, fs) then
+            DoStatus('import file:%s', [ExtractFilename(FileName_)]);
+      finally
+          fs.Free;
+      end;
+      ItemHnd.Item.RHeader.CreateTime := umlGetFileTime(FileName_);
+      ItemHnd.Item.RHeader.ModificationTime := ItemHnd.Item.RHeader.CreateTime;
+      FResourceData.ItemClose(ItemHnd);
     end;
 end;
 

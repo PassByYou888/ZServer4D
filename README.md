@@ -240,15 +240,24 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 最后一更新日志
 
-- 全面支持XE10.3.2
+**本次更新有点巨大，以下只罗列了重大更新**
 
-- 新增Demo: zExpression对自然句法支持度的深度测试以及运算能力完整的评估和技术支持
-- 新增Demo: 演示了使用TextParsing文本解析引擎机器化对pascal语言进行%二进制类申明翻译
-- 新增Demo：针对代码机器人,大规模代码翻译的技术支持,它演示了对pascal语言的uses依赖关系的解析和排序,它可以解析出uses过哪些库,以及$I过那些源码,并且排序
+- ZDB内核更新：数据库遍历机制的性能提升10%
+- ZDB内核更新：新增非定长数据结构，新数据结构可以兼容以前ZDB的格式
+- ZDB工具更新：FilePackageWithZDB同步支持非定长数据结构
+- ZDB数据引擎支持文件分包，合包系统（后续我会新提交一个开源的安装程序系统上来，这项分包合包将会是重要功能）
 
-- 新增若干文档，请参考documents
 
-- 修复bug：修复ListEngine中IgnoreCase变量赋值问题，感谢蝈蝈qq56571173
+- 百度翻译API更新：因为百度翻译限制翻译频率为1秒一次，百度翻译API调用机制已经同步更新，如果你在使用zTranslate，你会需要使用本次更新
+
+
+- FastMD5库更新：近期遇到过一个可以算bug也可以不算bug的问题，由于外面调用API的疏忽，出现非法内存访问，该异常直接在FastMD5这个库触发，经过很久检查才发现是外部程序的调用疏忽，这类疏忽很容易发生在粗心大意的人手上，因此FastMD5新增了一项安全检查机制
+
+
+- ZServer的只读文件打开方式更新：更新成OpenReadOnly
+- ZServer的数据结构库更新：TDataFrameEngine现在可以支持对大于4G的数据打包，内部存储ID新增数十种，使用上无任何变化
+- ZServer内核更新：以重载方式新增反馈命令在未收到远程反馈时会触发一个异常事件(**内核机制更新**)
+- 新增文档：异步通讯模型编程引导
 
 
 [更多更新日志](https://github.com/PassByYou888/ZServer4D/update.md)
@@ -261,7 +270,7 @@ REST,BAAS等等单项式的HTTP服务请自行在服务器开发和集成，ZSer
 
 qq群490269542
 
-**请支持ZServer4D的后续开发** [支付宝转账](https://github.com/PassByYou888/ZServer4D/raw/master/alipay.jpg)
+**支持ZServer4D的后续开发** [支付宝转账](https://github.com/PassByYou888/ZServer4D/raw/master/alipay.jpg)
 
 不转帐也没事,遇上问题及时反馈一下.你们都是我的用户：〉
 

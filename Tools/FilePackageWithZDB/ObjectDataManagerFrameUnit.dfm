@@ -1,21 +1,21 @@
 object ObjectDataManagerFrame: TObjectDataManagerFrame
   Left = 0
   Top = 0
-  Width = 791
+  Width = 821
   Height = 416
   TabOrder = 0
   object Splitter: TSplitter
     Left = 185
     Top = 0
+    Width = 5
     Height = 416
-    ExplicitLeft = 200
-    ExplicitTop = 64
-    ExplicitHeight = 100
+    AutoSnap = False
+    ResizeStyle = rsUpdate
   end
   object ListView: TListView
-    Left = 188
+    Left = 190
     Top = 0
-    Width = 603
+    Width = 631
     Height = 416
     Align = alClient
     BorderStyle = bsNone
@@ -63,7 +63,6 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     Height = 416
     Align = alLeft
     BevelOuter = bvNone
-    PopupMenu = PopupMenu
     TabOrder = 1
   end
   object ActionList: TActionList
@@ -77,9 +76,9 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       Caption = 'Delete...'
       OnExecute = ActionRemoveExecute
     end
-    object ActionAddResource: TAction
+    object ActionImportFile: TAction
       Caption = 'Import file...'
-      OnExecute = ActionAddResourceExecute
+      OnExecute = ActionImportFileExecute
     end
     object ActionRename: TAction
       Caption = 'Rename...'
@@ -93,6 +92,10 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       Caption = 'Open'
       OnExecute = Action_OpenExecute
     end
+    object ActionImportDirectory: TAction
+      Caption = 'Import Directory..'
+      OnExecute = ActionImportDirectoryExecute
+    end
   end
   object OpenDialog: TOpenDialog
     Options = [ofHideReadOnly, ofAllowMultiSelect, ofPathMustExist, ofFileMustExist, ofEnableSizing]
@@ -100,25 +103,25 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     Top = 128
   end
   object PopupMenu: TPopupMenu
-    Left = 336
-    Top = 128
+    Left = 224
+    Top = 224
     object Open1: TMenuItem
       Action = Action_Open
     end
-    object N1: TMenuItem
+    object ExportTo1: TMenuItem
+      Action = ActionExport
+    end
+    object ImportFile1: TMenuItem
+      Action = ActionImportFile
+    end
+    object ImportDirectory1: TMenuItem
+      Action = ActionImportDirectory
+    end
+    object N2: TMenuItem
       Caption = '-'
     end
     object CreateDirectory1: TMenuItem
       Action = ActionCreateDir
-    end
-    object N3: TMenuItem
-      Caption = '-'
-    end
-    object ImportFile1: TMenuItem
-      Action = ActionAddResource
-    end
-    object ExportTo1: TMenuItem
-      Action = ActionExport
     end
     object Remove1: TMenuItem
       Action = ActionRemove
@@ -128,7 +131,7 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
     end
   end
   object SaveDialog: TSaveDialog
-    Left = 256
-    Top = 216
+    Left = 224
+    Top = 176
   end
 end

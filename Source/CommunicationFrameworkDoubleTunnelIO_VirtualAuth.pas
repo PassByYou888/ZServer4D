@@ -265,10 +265,14 @@ type
     // sync connect
     function Connect(addr: SystemString; const RecvPort, SendPort: Word): Boolean; overload; virtual;
 
-    // async
+    // async connection
     procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateCall); overload; virtual;
     procedure AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateMethod); overload; virtual;
 {$IFNDEF FPC} procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateProc); overload; virtual; {$ENDIF}
+    // parameter async connection
+    procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateCall); overload;
+    procedure AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateMethod); overload;
+{$IFNDEF FPC} procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc); overload; {$ENDIF}
     //
     procedure Disconnect; virtual;
 
@@ -793,7 +797,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
     OutData.WriteBool(False);
     DisposeObject(fs);
@@ -841,7 +845,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
       exit;
   end;
@@ -1913,6 +1917,44 @@ end;
 {$ENDIF}
 
 
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateCall);
+var
+  ParamBridge: TStateParamBridge;
+begin
+  ParamBridge := TStateParamBridge.Create;
+  ParamBridge.Param1 := Param1;
+  ParamBridge.Param2 := Param2;
+  ParamBridge.OnNotifyC := OnResult;
+  AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateMethod);
+var
+  ParamBridge: TStateParamBridge;
+begin
+  ParamBridge := TStateParamBridge.Create;
+  ParamBridge.Param1 := Param1;
+  ParamBridge.Param2 := Param2;
+  ParamBridge.OnNotifyM := OnResult;
+  AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
+end;
+
+{$IFNDEF FPC}
+
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc);
+var
+  ParamBridge: TStateParamBridge;
+begin
+  ParamBridge := TStateParamBridge.Create;
+  ParamBridge.Param1 := Param1;
+  ParamBridge.Param2 := Param2;
+  ParamBridge.OnNotifyP := OnResult;
+  AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
+end;
+{$ENDIF}
+
+
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.Disconnect;
 begin
   if FSendTunnel.ClientIO <> nil then
@@ -2465,7 +2507,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(umlGetFileName(fileName));
@@ -2498,7 +2540,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(umlGetFileName(fileName));

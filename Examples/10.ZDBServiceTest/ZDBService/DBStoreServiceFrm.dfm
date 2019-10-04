@@ -110,7 +110,6 @@ object DBStoreServiceForm: TDBStoreServiceForm
     ParentDoubleBuffered = False
     ParentFont = False
     TabOrder = 1
-    ExplicitLeft = 966
   end
   object ProgressTimer: TTimer
     Interval = 1

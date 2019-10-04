@@ -168,6 +168,7 @@ end;
 procedure TIDServer_PeerIO.Disconnect;
 begin
   Context.Connection.Disconnect;
+  inherited Disconnect;
 end;
 
 procedure TIDServer_PeerIO.SendByteBuffer(const buff: PByte; const Size: NativeInt);

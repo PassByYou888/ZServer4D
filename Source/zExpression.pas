@@ -280,6 +280,11 @@ var
 
 implementation
 
+type
+  TSymbolOperationType = record
+    State: TSymbolOperation;
+    Decl: SystemString;
+  end;
 
 const
   MethodToken: TExpressionDeclTypes = ([edtProcExp]);
@@ -307,13 +312,6 @@ const
     soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,
     soShl, soShr]);
 
-type
-  TSymbolOperationType = record
-    State: TSymbolOperation;
-    Decl: SystemString;
-  end;
-
-const
   SymbolOperationTextDecl: array [TSymbolOperation] of TSymbolOperationType = (
     (State: soAdd; Decl: '+'),
     (State: soSub; Decl: '-'),

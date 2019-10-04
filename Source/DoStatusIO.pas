@@ -65,6 +65,10 @@ procedure DoStatusNoLn(const v: TPascalString); overload;
 procedure DoStatusNoLn(const v: SystemString; const Args: array of const); overload;
 procedure DoStatusNoLn; overload;
 
+function StrInfo(s: TPascalString): string; overload;
+function StrInfo(s: TUPascalString): string; overload;
+function BytesInfo(s: TBytes): string; overload;
+
 var
   LastDoStatus: SystemString;
   IDEOutput: Boolean;
@@ -273,6 +277,21 @@ begin
   StatusCritical.Release;
   if Length(a) > 0 then
       DoStatus(a);
+end;
+
+function StrInfo(s: TPascalString): string;
+begin
+  Result := BytesInfo(s.Bytes);
+end;
+
+function StrInfo(s: TUPascalString): string;
+begin
+  Result := BytesInfo(s.Bytes);
+end;
+
+function BytesInfo(s: TBytes): string;
+begin
+  Result := umlStringOf(s);
 end;
 
 procedure _InternalOutput(const Text_Ptr: PSystemString; const ID: Integer);

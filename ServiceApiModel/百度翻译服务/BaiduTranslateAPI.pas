@@ -23,7 +23,7 @@ var
 
   // 百度翻译的密钥
   BaiduTranslate_Appid: string = '2015063000000001';
-  BaiduTranslate_Key  : string = '12345678';
+  BaiduTranslate_Key: string = '12345678';
 
   // 接口百度翻译的最大安全线程
   // 系统每个线程会占用1-4M(linux X64下是8M)的堆栈空间，合理安排后台资源
@@ -77,6 +77,9 @@ implementation
 
 uses SysUtils, IDHttp;
 
+var
+  LastAPI_TimeTick: TTimeTick;
+
 type
   THTTPGetTh = class;
 
@@ -99,12 +102,17 @@ type
 
 procedure THTTPSyncIntf.AsyncGet;
 var
-  js       : TJsonObject; // 高频率翻译这种东西，我们要用JsonDataObjects，它的缺陷是不支持fpc，但是它稳定和快速
-  ja       : TJsonArray;
-  i        : Integer;
-  Success  : Boolean;
+  js: TJsonObject; // 高频率翻译这种东西，我们要用JsonDataObjects，它的缺陷是不支持fpc，但是它稳定和快速
+  ja: TJsonArray;
+  i: Integer;
+  Success: Boolean;
   sour, Dst: TPascalString;
 begin
+  // 由于百度翻译限制了访问频率 这里我们需要等1.1秒后才触发http访问
+  while GetTimeTick() - LastAPI_TimeTick < 1100 do
+      Sleep(10);
+  LastAPI_TimeTick := GetTimeTick();
+
   try
     HTTP.ReadTimeout := 2000;
     HTTP.Get(url, m64);
@@ -242,12 +250,12 @@ end;
 
 procedure BaiduTranslateWithHTTP(UsedSSL: Boolean; sourLanguage, desLanguage: TTranslateLanguage; Text: TPascalString; UserData: Pointer; OnResult: TTranslateCompleteProc);
 var
-  salt    : Integer;
-  httpurl : TPascalString;
+  salt: Integer;
+  httpurl: TPascalString;
   soursign: TPascalString;
-  lasturl : TPascalString;
-  Intf    : THTTPSyncIntf;
-  th      : THTTPGetTh;
+  lasturl: TPascalString;
+  Intf: THTTPSyncIntf;
+  th: THTTPGetTh;
 begin
   if Text.Len > 2000 then
     begin
@@ -281,4 +289,8 @@ begin
   Intf.th.Suspended := False;
 end;
 
-end. 
+initialization
+
+LastAPI_TimeTick := GetTimeTick();
+
+end.

@@ -289,6 +289,19 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
+class procedure TComputeThread.RunC(const OnRun: TRunWithThreadCall);
+var
+  Dispatch_: TComputeDispatch;
+begin
+  if not CoreThreadRuning then
+      exit;
+  Dispatch_.Init;
+  Dispatch_.OnRunCall := OnRun;
+  Dispatch_.UserData := nil;
+  Dispatch_.UserObject := nil;
+  PostComputeDispatchData(Dispatch_);
+end;
+
 class procedure TComputeThread.RunM(const data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod);
 var
   Dispatch_: TComputeDispatch;
@@ -313,6 +326,19 @@ begin
   Dispatch_.OnRunMethod := OnRun;
   Dispatch_.UserData := data;
   Dispatch_.UserObject := Obj;
+  PostComputeDispatchData(Dispatch_);
+end;
+
+class procedure TComputeThread.RunM(const OnRun: TRunWithThreadMethod);
+var
+  Dispatch_: TComputeDispatch;
+begin
+  if not CoreThreadRuning then
+      exit;
+  Dispatch_.Init;
+  Dispatch_.OnRunMethod := OnRun;
+  Dispatch_.UserData := nil;
+  Dispatch_.UserObject := nil;
   PostComputeDispatchData(Dispatch_);
 end;
 
@@ -343,6 +369,19 @@ begin
   Dispatch_.OnRunProc := OnRun;
   Dispatch_.UserData := data;
   Dispatch_.UserObject := Obj;
+  PostComputeDispatchData(Dispatch_);
+end;
+
+class procedure TComputeThread.RunP(const OnRun: TRunWithThreadProc);
+var
+  Dispatch_: TComputeDispatch;
+begin
+  if not CoreThreadRuning then
+      exit;
+  Dispatch_.Init;
+  Dispatch_.OnRunProc := OnRun;
+  Dispatch_.UserData := nil;
+  Dispatch_.UserObject := nil;
   PostComputeDispatchData(Dispatch_);
 end;
 

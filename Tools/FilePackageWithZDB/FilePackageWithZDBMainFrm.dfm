@@ -2,8 +2,8 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   Left = 0
   Top = 0
   Caption = 'File Package.'
-  ClientHeight = 513
-  ClientWidth = 1167
+  ClientHeight = 624
+  ClientWidth = 1462
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -21,50 +21,29 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   TextHeight = 13
   object Splitter1: TSplitter
     Left = 0
-    Top = 389
-    Width = 1167
-    Height = 3
+    Top = 498
+    Width = 1462
+    Height = 5
     Cursor = crVSplit
     Align = alBottom
     AutoSnap = False
-    ExplicitTop = 41
-    ExplicitWidth = 407
+    ResizeStyle = rsUpdate
+    ExplicitTop = 389
+    ExplicitWidth = 1167
   end
   object TopPanel: TPanel
     Left = 0
     Top = 0
-    Width = 1167
-    Height = 57
+    Width = 1462
+    Height = 41
     Align = alTop
     BorderWidth = 5
     TabOrder = 0
-    object Bevel1: TBevel
-      Left = 176
-      Top = 6
-      Width = 10
-      Height = 45
-      Align = alLeft
-      Shape = bsSpacer
-      ExplicitLeft = 151
-      ExplicitTop = 1
-      ExplicitHeight = 39
-    end
-    object Bevel2: TBevel
-      Left = 364
-      Top = 6
-      Width = 10
-      Height = 45
-      Align = alLeft
-      Shape = bsSpacer
-      ExplicitLeft = 339
-      ExplicitTop = 1
-      ExplicitHeight = 39
-    end
     object Bevel3: TBevel
-      Left = 236
+      Left = 303
       Top = 6
       Width = 10
-      Height = 45
+      Height = 29
       Align = alLeft
       Shape = bsSpacer
       ExplicitLeft = 211
@@ -72,10 +51,10 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       ExplicitHeight = 39
     end
     object Bevel4: TBevel
-      Left = 56
+      Left = 133
       Top = 6
       Width = 10
-      Height = 45
+      Height = 29
       Align = alLeft
       Shape = bsSpacer
       ExplicitLeft = 38
@@ -83,120 +62,157 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       ExplicitHeight = 33
     end
     object Bevel5: TBevel
-      Left = 116
+      Left = 193
       Top = 6
       Width = 10
-      Height = 45
+      Height = 29
       Align = alLeft
       Shape = bsSpacer
       ExplicitLeft = 98
       ExplicitTop = 0
       ExplicitHeight = 33
     end
-    object Bevel6: TBevel
-      Left = 410
-      Top = 6
-      Width = 10
-      Height = 45
-      Align = alLeft
-      Shape = bsSpacer
-      ExplicitLeft = 408
-      ExplicitTop = 4
-      ExplicitHeight = 33
-    end
     object Bevel7: TBevel
-      Left = 645
+      Left = 841
       Top = 6
       Width = 10
-      Height = 45
+      Height = 29
       Align = alLeft
       Shape = bsSpacer
       ExplicitLeft = 637
       ExplicitTop = 0
       ExplicitHeight = 33
     end
+    object Bevel8: TBevel
+      Left = 606
+      Top = 6
+      Width = 10
+      Height = 29
+      Align = alLeft
+      Shape = bsSpacer
+      ExplicitLeft = 521
+      ExplicitHeight = 21
+    end
     object NewButton: TButton
       Left = 6
       Top = 6
       Width = 50
-      Height = 45
+      Height = 29
       Align = alLeft
       Caption = 'New'
       TabOrder = 0
       OnClick = NewButtonClick
     end
     object OpenButton: TButton
-      Left = 66
+      Left = 143
       Top = 6
       Width = 50
-      Height = 45
+      Height = 29
       Align = alLeft
       Caption = 'Open'
-      TabOrder = 1
+      TabOrder = 2
       OnClick = OpenButtonClick
     end
     object SaveButton: TButton
-      Left = 126
+      Left = 203
       Top = 6
       Width = 50
-      Height = 45
+      Height = 29
       Align = alLeft
       Caption = 'Save'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = SaveButtonClick
     end
     object SaveAsButton: TButton
-      Left = 186
+      Left = 253
       Top = 6
       Width = 50
-      Height = 45
+      Height = 29
       Align = alLeft
       Caption = 'Save as'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = SaveAsButtonClick
+      ExplicitLeft = 263
     end
     object MD5Edit: TMemo
-      Left = 420
+      Left = 616
       Top = 6
       Width = 225
-      Height = 45
+      Height = 29
       Align = alLeft
       ParentColor = True
-      TabOrder = 4
+      TabOrder = 5
+      ExplicitLeft = 576
     end
     object CacheStateMemo: TMemo
-      Left = 655
+      Left = 851
       Top = 6
-      Width = 506
-      Height = 45
+      Width = 605
+      Height = 29
       Align = alClient
-      TabOrder = 5
+      TabOrder = 7
+      ExplicitLeft = 811
+      ExplicitWidth = 645
     end
     object RecalcMD5Button: TButton
-      Left = 374
+      Left = 313
       Top = 6
       Width = 36
-      Height = 45
+      Height = 29
       Align = alLeft
       Caption = 'MD5'
-      TabOrder = 6
+      TabOrder = 8
       OnClick = RecalcMD5ButtonClick
+      ExplicitLeft = 323
     end
     object CompressAsButton: TButton
-      Left = 246
+      Left = 349
       Top = 6
-      Width = 118
-      Height = 45
+      Width = 70
+      Height = 29
       Align = alLeft
-      Caption = 'Save as .OXC'
-      TabOrder = 7
+      Caption = 'Build .OXC'
+      TabOrder = 9
       OnClick = CompressAsButtonClick
+      ExplicitLeft = 369
+    end
+    object BuildIndexPackageButton: TButton
+      Left = 489
+      Top = 6
+      Width = 117
+      Height = 29
+      Align = alLeft
+      Caption = 'Build Index Package'
+      TabOrder = 6
+      OnClick = BuildIndexPackageButtonClick
+      ExplicitLeft = 449
+    end
+    object NewCustomButton: TButton
+      Left = 56
+      Top = 6
+      Width = 77
+      Height = 29
+      Align = alLeft
+      Caption = 'New Custom'
+      TabOrder = 1
+      OnClick = NewCustomButtonClick
+    end
+    object ParallelCompressAsButton: TButton
+      Left = 419
+      Top = 6
+      Width = 70
+      Height = 29
+      Align = alLeft
+      Caption = 'Build .OXP'
+      TabOrder = 10
+      OnClick = ParallelCompressAsButtonClick
+      ExplicitLeft = 449
     end
   end
   object Memo: TMemo
     Left = 0
-    Top = 392
-    Width = 1167
+    Top = 503
+    Width = 1462
     Height = 121
     Align = alBottom
     BorderStyle = bsNone
@@ -205,31 +221,37 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   end
   object OpenDialog: TOpenDialog
     Filter = 
-      'all files(*.OX;*.OXC)|*.OX;*.OXC|Object Data(*.OX)|*.OX|Compress' +
-      'ed Object Data(*.OXC)|*.OXC|All(*.*)|*.*'
+      'all files(*.OX;*.OXC;*.OXP;*.ImgMat)|*.OX;*.OXC;*.OXP;*.ImgMat|O' +
+      'bject Data(*.OX)|*.OX|Compressed Object Data(*.OXC)|*.OXC|Parall' +
+      'el Compressed Object Data(*.OXP)|*.OXP|All(*.*)|*.*'
     Options = [ofPathMustExist, ofFileMustExist, ofShareAware, ofNoTestFileCreate, ofEnableSizing]
     Left = 56
-    Top = 88
+    Top = 104
   end
   object SaveDialog: TSaveDialog
     DefaultExt = '.OX'
-    Filter = 
-      'Object Data(*.OX)|*.OX|Compressed Object Data(*.OXC)|*.OXC|All(*' +
-      '.*)|*.*'
+    Filter = 'Object Data(*.OX)|*.OX|All(*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    Left = 56
-    Top = 160
+    Left = 184
+    Top = 112
   end
   object Timer: TTimer
     OnTimer = TimerTimer
     Left = 56
-    Top = 232
+    Top = 160
   end
   object SaveAsCompressedDialog: TSaveDialog
     DefaultExt = '.OXC'
     Filter = 'Object Data(*.OXC)|*.OXC|All(*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    Left = 160
+    Left = 184
     Top = 160
+  end
+  object SaveAsParallelCompressedDialog: TSaveDialog
+    DefaultExt = '.OXP'
+    Filter = 'Object Data(*.OXP)|*.OXP|All(*.*)|*.*'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    Left = 184
+    Top = 216
   end
 end

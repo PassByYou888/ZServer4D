@@ -26,7 +26,7 @@ interface
 uses CoreClasses, UnicodeMixedLib;
 
 function FastMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5; overload;
-function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5; overload;
+function FastMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5; overload;
 
 implementation
 
@@ -153,9 +153,9 @@ begin
   MD5_Transform(Result, ChunkBuff);
 end;
 
-function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
+function FastMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5;
 const
-  deltaSize = $40 * $FFFF;
+  deltaSize: Cardinal = $40 * $FFFF;
 
 var
   Digest: TMD5;
@@ -167,16 +167,25 @@ var
   ChunkIndex: Byte;
   ChunkBuff: array [0 .. 63] of Byte;
 begin
+  if StartPos > EndPos then
+      Swap(StartPos, EndPos);
+  StartPos := umlClamp(StartPos, 0, stream.Size);
+  EndPos := umlClamp(EndPos, 0, stream.Size);
+  if EndPos - StartPos <= 0 then
+    begin
+      Result := FastMD5(nil, 0);
+      exit;
+    end;
 {$IFDEF OptimizationMemoryStreamMD5}
   if stream is TCoreClassMemoryStream then
     begin
       Result := FastMD5(Pointer(nativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
-      Exit;
+      exit;
     end;
   if stream is TMemoryStream64 then
     begin
       Result := FastMD5(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
-      Exit;
+      exit;
     end;
 {$ENDIF}
   //
@@ -207,9 +216,10 @@ begin
         if Rest = 0 then
           begin
             if bufSiz >= deltaSize then
-                Rest := stream.read(DeltaBuf^, deltaSize)
+                Rest := deltaSize
             else
-                Rest := stream.read(DeltaBuf^, bufSiz);
+                Rest := bufSiz;
+            stream.ReadBuffer(DeltaBuf^, Rest);
 
             p := DeltaBuf;
           end;
@@ -248,7 +258,7 @@ begin
   Result := umlMD5(buffPtr, bufSiz);
 end;
 
-function FastMD5(stream: TCoreClassStream; const StartPos, EndPos: Int64): TMD5;
+function FastMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5;
 begin
   Result := umlStreamMD5(stream, StartPos, EndPos);
 end;

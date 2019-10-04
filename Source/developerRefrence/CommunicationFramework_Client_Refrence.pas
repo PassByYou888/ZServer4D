@@ -56,11 +56,11 @@ type
     { core interface: get the IP information. }
     function GetPeerIP: SystemString; override;
 
-    { selected ignore: If your data is in memory and wait been sent, it returns to False. }
-    { selected ignore: if you do not consider high concurrency optimization, you can ignore the interface. }
+    { select: If your data is in memory and wait been sent, it returns to False. }
+    { select: if you do not consider high concurrency optimization, you can ignore the interface. }
     function WriteBufferEmpty: Boolean; override;
 
-    { selected ignore: Kernel main loop, you can do ignore the interface }
+    { select: Kernel main loop, you can do ignore the interface }
     procedure Progress; override;
   end;
 
@@ -74,12 +74,12 @@ type
     { selected ignore, TriggerDoConnectFinished provides callbacks for successful async connections }
     procedure TriggerDoConnectFinished; override;
 
-    { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
+    { select: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
     procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); override;
-    { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
+    { select: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
     procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); override;
 {$IFNDEF FPC}
-    { selected ignore: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
+    { select: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
     procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); override;
 {$ENDIF FPC}
     { Core interface: Blocking connection, which must be made sure that the encryption protocol has been negotiated before the call returns to state, refer to CrossSocket or Indy's interface imp }
@@ -91,7 +91,7 @@ type
     procedure Disconnect; override;
     { Core interface: returns the TPeerIO instance of the client. }
     function ClientIO: TPeerIO; override;
-    { Selected ignore: in the kernel post a queue command, it triggers. }
+    { select: in the kernel post a queue command, it triggers. }
     procedure TriggerQueueData(v: PQueueData); override;
     { core interface: Kernel main loop }
     procedure Progress; override;

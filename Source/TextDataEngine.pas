@@ -128,6 +128,8 @@ type
     property HStringList[n: SystemString]: THashStringList read GetHStringList;
   end;
 
+  TTextDataEngine = THashTextEngine;
+
 implementation
 
 uses UnicodeMixedLib;
@@ -694,33 +696,33 @@ end;
 
 procedure THashTextEngine.LoadFromFile(FileName: SystemString);
 var
-  ns: TMemoryStream64;
+  m64: TMemoryStream64;
 begin
   try
-    ns := TMemoryStream64.Create;
-    ns.LoadFromFile(FileName);
+    m64 := TMemoryStream64.Create;
+    m64.LoadFromFile(FileName);
   except
-    DisposeObject(ns);
+    DisposeObject(m64);
     Exit;
   end;
 
   try
-      LoadFromStream(ns);
+      LoadFromStream(m64);
   finally
-      DisposeObject(ns);
+      DisposeObject(m64);
   end;
 end;
 
 procedure THashTextEngine.SaveToFile(FileName: SystemString);
 var
-  ns: TMemoryStream64;
+  m64: TMemoryStream64;
 begin
-  ns := TMemoryStream64.Create;
+  m64 := TMemoryStream64.Create;
   try
-    SaveToStream(ns);
-    ns.SaveToFile(FileName);
+    SaveToStream(m64);
+    m64.SaveToFile(FileName);
   finally
-      DisposeObject(ns);
+      DisposeObject(m64);
   end;
 end;
 

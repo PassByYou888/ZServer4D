@@ -148,9 +148,8 @@ type
   {$ENDIF FPC}
 
   TCoreClassObjectList = class(TCoreClassListForObj)
-  private
-    AutoFreeObj: Boolean;
   public
+    AutoFreeObj: Boolean;
     constructor Create; overload;
     constructor Create(AutoFreeObj_: Boolean); overload;
     destructor Destroy; override;
@@ -201,11 +200,14 @@ type
 
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
+    class procedure RunC(const OnRun: TRunWithThreadCall); overload;
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod); overload;
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod); overload;
+    class procedure RunM(const OnRun: TRunWithThreadMethod); overload;
     {$IFNDEF FPC}
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc); overload;
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc); overload;
+    class procedure RunP(const OnRun: TRunWithThreadProc); overload;
     {$ENDIF FPC}
   end;
 
@@ -250,6 +252,8 @@ procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const Obj: TObject); overload;
 procedure FreeObject(const objs: array of TObject); overload;
+procedure DisposeObjectAsNil(var Obj);
+procedure DisposeObjectAndNil(var Obj);
 
 procedure LockObject(Obj: TObject);
 procedure UnLockObject(Obj: TObject);
@@ -367,6 +371,7 @@ function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 
 var
   GlobalMemoryHook: Boolean;
+  CoreInitedTimeTick: TTimeTick;
 
 implementation
 
@@ -410,7 +415,21 @@ var
   Obj: TObject;
 begin
   for Obj in objs do
-      FreeObject(Obj);
+      DisposeObject(Obj);
+end;
+
+procedure DisposeObjectAsNil(var Obj);
+begin
+  if TObject(Obj) <> nil then
+    begin
+      DisposeObject(TObject(Obj));
+      TObject(Obj) := nil;
+    end;
+end;
+
+procedure DisposeObjectAndNil(var Obj);
+begin
+  DisposeObjectAsNil(Obj);
 end;
 
 procedure LockObject(Obj: TObject);
@@ -770,6 +789,8 @@ initialization
   InitCriticalLock;
   InitCoreThreadPool(CpuCount * 2);
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
+
+  CoreInitedTimeTick := GetTimeTick();
 finalization
   FreeCoreThreadPool;
   FreeCriticalLock;

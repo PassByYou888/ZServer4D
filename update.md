@@ -1,5 +1,17 @@
 # 更新日志
 
+
+## 全面支持XE10.3.2
+
+- 新增Demo: zExpression对自然句法支持度的深度测试以及运算能力完整的评估和技术支持
+- 新增Demo: 演示了使用TextParsing文本解析引擎机器化对pascal语言进行%二进制类申明翻译
+- 新增Demo：针对代码机器人,大规模代码翻译的技术支持,它演示了对pascal语言的uses依赖关系的解析和排序,它可以解析出uses过哪些库,以及$I过那些源码,并且排序
+
+- 新增若干文档，请参考documents
+
+- 修复bug：修复ListEngine中IgnoreCase变量赋值问题，感谢蝈蝈qq56571173
+
+
 ## 修复xNAT代理http长连接的问题
 
 - XNAT做http穿透时需要使用长连接方式:HTTP Keep-Alive

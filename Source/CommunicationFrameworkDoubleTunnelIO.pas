@@ -317,10 +317,14 @@ type
     // sync connect
     function Connect(addr: SystemString; const RecvPort, SendPort: Word): Boolean; overload; virtual;
 
-    // async
+    // async connection
     procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateCall); overload; virtual;
     procedure AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateMethod); overload; virtual;
 {$IFNDEF FPC} procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateProc); overload; virtual; {$ENDIF}
+    // parameter async connection
+    procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateCall); overload;
+    procedure AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateMethod); overload;
+{$IFNDEF FPC} procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc); overload; {$ENDIF}
     //
     procedure Disconnect; virtual;
 
@@ -1015,7 +1019,7 @@ begin
         begin
           try
             de := TDataFrameEngine.Create;
-            stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+            stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
             de.DecodeFrom(stream);
             DisposeObject(stream);
             Cmd := de.Reader.ReadString;
@@ -1215,7 +1219,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
     OutData.WriteBool(False);
     DisposeObject(fs);
@@ -1261,7 +1265,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
     OutData.WriteBool(False);
     DisposeObject(fs);
@@ -1311,7 +1315,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
       Exit;
   end;
@@ -1370,7 +1374,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
       Exit;
   end;
@@ -1433,7 +1437,7 @@ begin
     end;
 
   try
-      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
   except
       Exit;
   end;
@@ -1992,7 +1996,7 @@ function TCommunicationFramework_DoubleTunnelService.UnPackFileAsUser(packageFil
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(packageFile, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(packageFile, fmOpenRead or fmShareDenyNone);
   Result := UnPackStreamAsUser(fs);
   DisposeObject(fs);
 end;
@@ -2970,6 +2974,41 @@ begin
 end;
 {$ENDIF}
 
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateCall);
+var
+  ParamBridge: TStateParamBridge;
+begin
+  ParamBridge := TStateParamBridge.Create;
+  ParamBridge.Param1 := Param1;
+  ParamBridge.Param2 := Param2;
+  ParamBridge.OnNotifyC := OnResult;
+  AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateMethod);
+var
+  ParamBridge: TStateParamBridge;
+begin
+  ParamBridge := TStateParamBridge.Create;
+  ParamBridge.Param1 := Param1;
+  ParamBridge.Param2 := Param2;
+  ParamBridge.OnNotifyM := OnResult;
+  AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
+end;
+
+{$IFNDEF FPC}
+
+procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc);
+var
+  ParamBridge: TStateParamBridge;
+begin
+  ParamBridge := TStateParamBridge.Create;
+  ParamBridge.Param1 := Param1;
+  ParamBridge.Param2 := Param2;
+  ParamBridge.OnNotifyP := OnResult;
+  AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
+end;
+{$ENDIF}
 
 procedure TCommunicationFramework_DoubleTunnelClient.Disconnect;
 begin
@@ -4243,7 +4282,7 @@ begin
   if not FRecvTunnel.Connected then
       Exit;
 
-  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(umlGetFileName(fileName));
@@ -4285,7 +4324,7 @@ begin
   if not FRecvTunnel.Connected then
       Exit;
 
-  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteString(umlGetFileName(fileName));

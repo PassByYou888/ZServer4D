@@ -6357,7 +6357,7 @@ procedure THashStringTextStream.LoadFromFile(FileName: SystemString);
 var
   ns: TCoreClassStream;
 begin
-  ns := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  ns := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
       LoadFromStream(ns);
   finally
@@ -7453,7 +7453,7 @@ procedure THashVariantTextStream.LoadFromFile(FileName: SystemString);
 var
   ns: TCoreClassStream;
 begin
-  ns := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  ns := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
       LoadFromStream(ns);
   finally
@@ -8334,7 +8334,7 @@ procedure TListString.LoadFromFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       LoadFromStream(fs);
   finally
@@ -8530,7 +8530,7 @@ begin
   Result := -1;
 
   for i := 0 to FList.Count - 1 do
-    if (PListPascalStringData(FList[i])^.hash = h) and (PListPascalStringData(FList[i])^.Data.Same(Value)) then
+    if (PListPascalStringData(FList[i])^.hash = h) and (PListPascalStringData(FList[i])^.Data.Same(@Value)) then
       begin
         Result := i;
         Break;
@@ -8660,7 +8660,7 @@ procedure TListPascalString.LoadFromFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       LoadFromStream(fs);
   finally

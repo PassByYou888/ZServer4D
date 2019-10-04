@@ -17,6 +17,7 @@ uses
   System.Variants,
   PascalStrings,
   CommunicationFramework,
+  CommunicationFramework_Server_Indy,
   CommunicationFramework_Server_CrossSocket,
   DoStatusIO,
   CoreClasses,
@@ -31,7 +32,7 @@ uses
   BaiduTranslateClient in 'Client.Lib\BaiduTranslateClient.pas';
 
 (*
-  百度翻译服务器使用delphi xe10.2所编写
+  百度翻译服务器使用delphi xe10.1.2所编写
   如果要在linux下使用，请更换delphi xe10.2.2或以上版本，如果我们在平台下拉项会找不到linux，就新建一个console工程，将代码复制过去即可
 
   百度翻译的http查询是在线程中干的
@@ -46,6 +47,9 @@ uses
 
 var
   MiniDB: TZDBLocalManager;
+
+const
+  C_Mini_DB_Name = 'zTranslate';
 
 type
   TMyServer = class(TCommunicationFramework_Server_CrossSocket)
@@ -112,17 +116,17 @@ begin
 
   // 从cache数据库查询我们的翻译，效率更好
   MiniDB.QueryDBP(
-    False,     // 查询结果写入到返回表
-    True,      // 查询的返回表是内存表，如果是False就是一个实体的文件表
-    True,      // 从最后开始查询
-    'History', // 查询的目标数据库名称
-    '',        // 返回表的名称，因为我们不输出，这里给空
-    True,      // 查询完成时，释放返回表
-    0,         // 查询完成时，释放返回表的延迟时间，单位是秒
-    0.1,       // 碎片积累时间，当查询有很多反馈时，每积累到这个时间，就触发反馈事件，便于批量操作，在积累时间中，数据都存在于内存
-    0,         // 查询执行时间,0是无限
-    0,         // 最大的查询条目匹配数量，0是无限
-    1,         // 最大的查询结果反馈，我们只查一条我们的翻译cache
+    False,          // 查询结果写入到返回表
+    True,           // 查询的返回表是内存表，如果是False就是一个实体的文件表
+    True,           // 从最后开始查询
+    C_Mini_DB_Name, // 查询的目标数据库名称
+    '',             // 返回表的名称，因为我们不输出，这里给空
+    True,           // 查询完成时，释放返回表
+    0,              // 查询完成时，释放返回表的延迟时间，单位是秒
+    0.1,            // 碎片积累时间，当查询有很多反馈时，每积累到这个时间，就触发反馈事件，便于批量操作，在积累时间中，数据都存在于内存
+    0,              // 查询执行时间,0是无限
+    0,              // 最大的查询条目匹配数量，0是无限
+    1,              // 最大的查询结果反馈，我们只查一条我们的翻译cache
       procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     var
         p: PDelayReponseSource;
@@ -210,7 +214,7 @@ begin
                       js.s['d'] := dest.Text;
                       js.s['ip'] := cli.PeerIP;
 
-                      MiniDB.PostData('History', js);
+                      MiniDB.PostData(C_Mini_DB_Name, js);
 
                       // 在ubuntu服务器模式下，无法显示中文
 {$IFNDEF Linux}
@@ -251,7 +255,7 @@ begin
   js.s['s'] := s.Text;
   js.s['d'] := d.Text;
   js.s['ip'] := Sender.PeerIP;
-  MiniDB.PostData('History', js);
+  MiniDB.PostData(C_Mini_DB_Name, js);
 
   // 在ubuntu服务器模式下，无法显示中文
 {$IFNDEF Linux}
@@ -268,9 +272,9 @@ begin
   // http://api.fanyi.baidu.com
 
   cfg := THashStringList.Create;
-  if umlFileExists(umlCombineFileName(umlCurrentPath(), 'baidu.cfg')) then
+  if umlFileExists(umlCombineFileName(umlCurrentPath(), 'zTranslate.conf')) then
     begin
-      cfg.LoadFromFile(umlCombineFileName(umlCurrentPath(), 'baidu.cfg'));
+      cfg.LoadFromFile(umlCombineFileName(umlCurrentPath(), 'zTranslate.conf'));
       BaiduTranslate_Appid := cfg.GetDefaultValue('AppID', BaiduTranslate_Appid);
       BaiduTranslate_Key := cfg.GetDefaultValue('Key', BaiduTranslate_Key);
     end
@@ -278,7 +282,7 @@ begin
     begin
       cfg.SetDefaultValue('AppID', BaiduTranslate_Appid);
       cfg.SetDefaultValue('Key', BaiduTranslate_Key);
-      cfg.SaveToFile(umlCombineFileName(umlCurrentPath(), 'baidu.cfg'));
+      cfg.SaveToFile(umlCombineFileName(umlCurrentPath(), 'zTranslate.conf'));
     end;
   DisposeObject(cfg);
 end;
@@ -292,7 +296,7 @@ begin
 
   MiniDB := TZDBLocalManager.Create;
   // 因为创建文件形式的数据库，对于这种经常ctrl+f2的强退，数据库很容易损坏
-  MiniDB.InitDB('History');
+  MiniDB.InitDB(C_Mini_DB_Name);
 
   server_1 := TMyServer.Create;
   // 使用最强加密系统，3次级DES反复加密结合ECB
@@ -342,9 +346,7 @@ begin
       if server_1.Count + server_2.Count > 0 then
           CoreClasses.CheckThreadSynchronize(1)
       else
-        begin
           CoreClasses.CheckThreadSynchronize(100);
-        end;
     end;
 
 end.

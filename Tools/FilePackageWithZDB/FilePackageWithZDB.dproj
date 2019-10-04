@@ -148,8 +148,16 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="BuildIndexPackageOptFrm.pas">
+            <Form>BuildIndexPackageOptForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <DCCReference Include="FilePackageWithZDBMainFrm.pas">
             <Form>FilePackageWithZDBMainForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="NewDBOptFrm.pas">
+            <Form>NewDBOptForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="ObjectDataManagerFrameUnit.pas">
@@ -218,6 +226,12 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="Win64\Release\FilePackageWithZDB.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>FilePackageWithZDB.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win64\Debug\FilePackageWithZDB.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>FilePackageWithZDB.exe</RemoteName>
@@ -226,12 +240,6 @@
                 </DeployFile>
                 <DeployFile LocalName="Win32\Debug\FilePackageWithZDB.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>FilePackageWithZDB.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Release\FilePackageWithZDB.exe" Configuration="Release" Class="ProjectOutput">
-                    <Platform Name="Win64">
                         <RemoteName>FilePackageWithZDB.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>

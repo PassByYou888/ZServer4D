@@ -39,7 +39,7 @@ type
   public
     constructor Create(eng_: TObjectDataManager; DBPath, DBItem: SystemString); overload;
     constructor Create(eng_: TObjectDataManager; var ItemHnd: TItemHandle); overload;
-    constructor Create(eng_: TObjectDataManager; var ItemHeaderPos: Int64); overload;
+    constructor Create(eng_: TObjectDataManager; const ItemHeaderPos: Int64); overload;
     destructor Destroy; override;
 
     procedure SaveToFile(fn: SystemString);
@@ -82,7 +82,7 @@ begin
   AutoFreeHnd := False;
 end;
 
-constructor TItemStream.Create(eng_: TObjectDataManager; var ItemHeaderPos: Int64);
+constructor TItemStream.Create(eng_: TObjectDataManager; const ItemHeaderPos: Int64);
 begin
   inherited Create;
   DB_Engine := eng_;
@@ -118,7 +118,7 @@ procedure TItemStream.LoadFromFile(fn: SystemString);
 var
   stream: TCoreClassStream;
 begin
-  stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  stream := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       CopyFrom(stream, stream.Size);
   finally
@@ -208,7 +208,10 @@ end;
 
 function TItemStream.UpdateHandle: Boolean;
 begin
-  Result := DB_Engine.ItemUpdate(ItemHnd_Ptr^);
+  if DB_Engine.IsOnlyRead then
+      Result := False
+  else
+      Result := DB_Engine.ItemUpdate(ItemHnd_Ptr^);
 end;
 
 function TItemStream.CloseHandle: Boolean;
