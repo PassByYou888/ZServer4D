@@ -39,7 +39,7 @@ type
     LastActivtedTime: TTimeTick;
     Busy: Boolean;
     Instance: Integer;
-    procedure BuildMT(Seed_: Integer);
+    procedure BuildMT(Seed_: Cardinal);
     function GenRand_MT19937(): Integer;
     procedure Init(ThreadID_: TThreadID; LastActivtedTime_: TTimeTick);
   end;
@@ -52,11 +52,11 @@ type
   end;
 
   { Initializing the array with a seed }
-procedure TMT19937Core.BuildMT(Seed_: Integer);
+procedure TMT19937Core.BuildMT(Seed_: Cardinal);
 var
   i: Integer;
 begin
-  MT[0] := Seed_;
+  MT[0] := Integer(Seed_);
   for i := 1 to MT19937N - 1 do
     begin
       MT[i] := 1812433253 * (MT[i - 1] xor (MT[i - 1] shr 30)) + i;
