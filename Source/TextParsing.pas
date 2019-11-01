@@ -75,46 +75,57 @@ type
     { compare char }
     function ComparePosStr(const cOffset: Integer; const t: TPascalString): Boolean; overload; inline;
     function ComparePosStr(const cOffset: Integer; const p: PPascalString): Boolean; overload; inline;
+
     { compare comment and text declaration: TokenCache }
     function CompareCommentGetEndPos(const cOffset: Integer): Integer;
     function CompareTextDeclGetEndPos(const cOffset: Integer): Integer;
+
     { rebuild support }
     procedure RebuildParsingCache;
     procedure RebuildText;
     procedure RebuildToken;
+
     { automated context on pick: TokenCache }
     function GetContextBeginPos(const cOffset: Integer): Integer;
     function GetContextEndPos(const cOffset: Integer): Integer;
+
     { special symbol support: TokenCache }
     function isSpecialSymbol(const cOffset: Integer): Boolean; overload;
     function isSpecialSymbol(const cOffset: Integer; var speicalSymbolEndPos: Integer): Boolean; overload;
     function GetSpecialSymbolEndPos(const cOffset: Integer): Integer;
+
     { number decl support: TokenCache }
     function isNumber(const cOffset: Integer): Boolean; overload;
     function isNumber(const cOffset: Integer; var NumberBegin: Integer; var IsHex: Boolean): Boolean; overload;
     function GetNumberEndPos(const cOffset: Integer): Integer;
+
     { text support: TokenCache }
     function isTextDecl(const cOffset: Integer): Boolean;
     function GetTextDeclEndPos(const cOffset: Integer): Integer;
     function GetTextDeclBeginPos(const cOffset: Integer): Integer;
     function GetTextBody(const AText: TPascalString): TPascalString;
     function GetTextDeclPos(const cOffset: Integer; var charBeginPos, charEndPos: Integer): Boolean;
+
     { symbol support: TokenCache }
     function isSymbol(const cOffset: Integer): Boolean;
     function GetSymbolEndPos(const cOffset: Integer): Integer;
+
     { ascii support: TokenCache }
     function isAscii(const cOffset: Integer): Boolean;
     function GetAsciiBeginPos(const cOffset: Integer): Integer;
     function GetAsciiEndPos(const cOffset: Integer): Integer;
+
     { comment support: TokenCache }
     function isComment(const cOffset: Integer): Boolean;
     function GetCommentEndPos(const cOffset: Integer): Integer;
     function GetCommentBeginPos(const cOffset: Integer): Integer;
     function GetCommentPos(const cOffset: Integer; var charBeginPos, charEndPos: Integer): Boolean;
     function GetDeletedCommentText: TPascalString;
+
     { text support: TokenCache }
     function isTextOrComment(const cOffset: Integer): Boolean;
     function isCommentOrText(const cOffset: Integer): Boolean;
+
     { lowlevel word support: TokenCache no used }
     function isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean; overload;
     function isWordSplitChar(const c: SystemChar): Boolean; overload;
@@ -128,15 +139,19 @@ type
     function GetWordEndPos(const cOffset: Integer;
       BeginDefaultChar: Boolean; BeginSplitCharSet: TPascalString;
       EndDefaultChar: Boolean; EndSplitCharSet: TPascalString): Integer; overload;
+
     { sniffing }
     function SniffingNextChar(const cOffset: Integer; declChar: TPascalString): Boolean; overload;
     function SniffingNextChar(const cOffset: Integer; declChar: TPascalString; out OutPos: Integer): Boolean; overload;
+
     { split char }
     function SplitChar(const cOffset: Integer; var LastPos: Integer; const SplitTokenC, SplitEndTokenC: TPascalString; var SplitOutput: TArrayPascalString): Integer; overload;
     function SplitChar(const cOffset: Integer; const SplitTokenC, SplitEndTokenC: TPascalString; var SplitOutput: TArrayPascalString): Integer; overload;
+
     { split string }
     function SplitString(const cOffset: Integer; var LastPos: Integer; const SplitTokenS, SplitEndTokenS: TPascalString; var SplitOutput: TArrayPascalString): Integer; overload;
     function SplitString(const cOffset: Integer; const SplitTokenS, SplitEndTokenS: TPascalString; var SplitOutput: TArrayPascalString): Integer; overload;
+
     { token }
     function CompareTokenText(const cOffset: Integer; t: TPascalString): Boolean;
     function CompareTokenChar(const cOffset: Integer; const c: array of SystemChar): Boolean;
@@ -155,6 +170,7 @@ type
     function PrevToken(p: PTokenData): PTokenData;
     function TokenCombine(const bTokenI, eTokenI: Integer; const acceptT: TTokenTypes): TPascalString; overload;
     function TokenCombine(const bTokenI, eTokenI: Integer): TPascalString; overload;
+
     { token probe }
     function TokenProbeL(startI: Integer; const acceptT: TTokenTypes): PTokenData; overload;
     function TokenProbeL(startI: Integer; const t: TPascalString): PTokenData; overload;
@@ -162,18 +178,24 @@ type
     function TokenProbeR(startI: Integer; const acceptT: TTokenTypes): PTokenData; overload;
     function TokenProbeR(startI: Integer; const t: TPascalString): PTokenData; overload;
     function TokenProbeR(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData; overload;
+
     { Free to match all strings from Token[StartIndex] left to right, including any symbols. return token }
     function TokenFullStringProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData;
+
     { symbol Indent probe for end indent }
     function IndentSymbolEndProbeR(startI: Integer; const indent_begin_symbol, indent_end_symbol: TPascalString): PTokenData;
+
     { symbol Indent probe for begin indent }
     function IndentSymbolBeginProbeL(startI: Integer; const indent_begin_symbol, indent_end_symbol: TPascalString): PTokenData;
+
     { segmention text as symbol vector, L = output }
     function DetectSymbolVector: Boolean;
     function FillSymbolVector(L: TPascalStringList): Boolean; overload;
     function FillSymbolVector: TArrayPascalString; overload;
+
     { segmention text as symbol matrix }
     function FillSymbolMatrix(W, H: Integer; var symbolMatrix: TSymbolMatrix): Boolean;
+
     { misc }
     function GetText(const bPos, ePos: Integer): TPascalString; overload;
     function GetStr(const bPos, ePos: Integer): TPascalString; overload;
@@ -2532,10 +2554,10 @@ begin
       exit;
     end;
 
-  ordCharInfo.Len := 32;
+  ordCharInfo.Len := 32 + 1;
   for cPos := 0 to 31 do
-      ordCharInfo[cPos] := SystemChar(Ord(cPos));
-  ordCharInfo[32] := #39;
+      ordCharInfo[cPos + 1] := SystemChar(Ord(cPos));
+  ordCharInfo[33] := #39;
 
   Result := '';
   LastIsOrdChar := False;

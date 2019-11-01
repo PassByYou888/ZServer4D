@@ -14,7 +14,6 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
-uses Classes;
 
 type
   MPtrUInt = ptruint;

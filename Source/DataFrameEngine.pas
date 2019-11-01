@@ -3937,7 +3937,7 @@ begin
       Exit;
     end;
 
-  StoreStream := TMemoryStream64.Create;
+  StoreStream := TMemoryStream64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
@@ -4151,7 +4151,7 @@ begin
       Exit;
     end;
 
-  StoreStream := TMemoryStream64.Create;
+  StoreStream := TMemoryStream64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
@@ -4271,7 +4271,7 @@ begin
       Exit;
     end;
 
-  StoreStream := TMemoryStream64.Create;
+  StoreStream := TMemoryStream64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
@@ -4377,7 +4377,7 @@ begin
       Exit;
     end;
 
-  StoreStream := TMemoryStream64.Create;
+  StoreStream := TMemoryStream64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
@@ -4485,7 +4485,7 @@ begin
       Exit;
     end;
 
-  StoreStream := TMemoryStream64.Create;
+  StoreStream := TMemoryStream64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);

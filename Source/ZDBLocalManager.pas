@@ -1332,7 +1332,7 @@ begin
 
   FTaskCounter := 1;
   FCadencerEng := TCadencer.Create;
-  FCadencerEng.ProgressIntf := Self;
+  FCadencerEng.ProgressInterface := Self;
   FProgressPost := TNProgressPost.Create;
   FPipelineClass := TZDBPipeline;
   FNotifyIntf := nil;

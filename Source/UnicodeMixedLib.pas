@@ -207,10 +207,10 @@ function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 
 function umlRandom: Integer;
-function umlRandomRange(const aMin, aMax: Integer): Integer;
-function umlRandomRangeS(const aMin, aMax: Single): Single;
-function umlRandomRangeD(const aMin, aMax: Double): Double;
-function umlRandomRangeF(const aMin, aMax: Double): Double;
+function umlRandomRange(const min_, max_: Integer): Integer;
+function umlRandomRangeS(const min_, max_: Single): Single;
+function umlRandomRangeD(const min_, max_: Double): Double;
+function umlRandomRangeF(const min_, max_: Double): Double;
 function umlDefaultTime: Double;
 function umlNow: Double;
 function umlDefaultAttrib: Integer;
@@ -466,7 +466,7 @@ procedure umlDecodeLineBASE64(const buffer: TPascalString; var output: TPascalSt
 procedure umlEncodeLineBASE64(const buffer: TPascalString; var output: TPascalString);
 procedure umlDecodeStreamBASE64(const buffer: TPascalString; output: TCoreClassStream);
 procedure umlEncodeStreamBASE64(buffer: TCoreClassStream; var output: TPascalString);
-procedure umlDivisionBase64Text(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean; var output: TPascalString);
+function umlDivisionBase64Text(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean): TPascalString;
 function umlTestBase64(const text: TPascalString): Boolean;
 
 type
@@ -1263,15 +1263,15 @@ end;
 
 function umlRandom: Integer;
 begin
-  Result := Random(MaxInt);
+  Result := MT19937Rand32(MaxInt);
 end;
 
-function umlRandomRange(const aMin, aMax: Integer): Integer;
+function umlRandomRange(const min_, max_: Integer): Integer;
 var
   mn, mx: Integer;
 begin
-  mn := aMin;
-  mx := aMax;
+  mn := min_;
+  mx := max_;
 
   if mn > mx then
       inc(mn)
@@ -1279,24 +1279,24 @@ begin
       inc(mx);
 
   if mn > mx then
-      Result := Random(mn - mx) + mx
+      Result := MT19937Rand32(mn - mx) + mx
   else
-      Result := Random(mx - mn) + mn;
+      Result := MT19937Rand32(mx - mn) + mn;
 end;
 
-function umlRandomRangeS(const aMin, aMax: Single): Single;
+function umlRandomRangeS(const min_, max_: Single): Single;
 begin
-  Result := (umlRandomRange(Trunc(aMin * 1000), Trunc(aMax * 1000))) * 0.001;
+  Result := (umlRandomRange(Trunc(min_ * 1000), Trunc(max_ * 1000))) * 0.001;
 end;
 
-function umlRandomRangeD(const aMin, aMax: Double): Double;
+function umlRandomRangeD(const min_, max_: Double): Double;
 begin
-  Result := (umlRandomRange(Trunc(aMin * 10000), Trunc(aMax * 10000))) * 0.0001;
+  Result := (umlRandomRange(Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
 end;
 
-function umlRandomRangeF(const aMin, aMax: Double): Double;
+function umlRandomRangeF(const min_, max_: Double): Double;
 begin
-  Result := (umlRandomRange(Trunc(aMin * 10000), Trunc(aMax * 10000))) * 0.0001;
+  Result := (umlRandomRange(Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
 end;
 
 function umlDefaultTime: Double;
@@ -1788,6 +1788,8 @@ begin
             Result := umlDeleteLastStr(n, '\')
         else
             Result := n;
+        if umlMultipleMatch('?:', Result) then
+            Result.Append('\');
       end;
     else
       begin
@@ -4113,8 +4115,8 @@ var
   i: Integer;
   State: Byte;
   b, BV, B1: Byte;
-  DataArr, UTF8Str: TBytes;
-  tmp: TBytes;
+  DataArry_, UTF8Str_: TBytes;
+  tmpBytes: TBytes;
 const
   STATE_READ_DATA = 0;
   STATE_READ_PERCENT_ENCODED_BYTE_1 = 1;
@@ -4124,26 +4126,26 @@ const
 begin
   B1 := 0;
   State := STATE_READ_DATA;
-  SetLength(UTF8Str, 0);
-  DataArr := Data.Bytes;
-  for i := 0 to length(DataArr) - 1 do
+  SetLength(UTF8Str_, 0);
+  DataArry_ := Data.Bytes;
+  for i := 0 to length(DataArry_) - 1 do
     begin
-      b := DataArr[i];
+      b := DataArry_[i];
       if State = STATE_READ_DATA then
         begin
           if b = $25 then
               State := STATE_READ_PERCENT_ENCODED_BYTE_1
           else if FormEncoded and (b = $2B) then // + sign
             begin
-              tmp := UTF8Str;
-              UTF8Str := CombineArry(tmp, Byte($20));
-              FreeArry(tmp);
+              tmpBytes := UTF8Str_;
+              UTF8Str_ := CombineArry(tmpBytes, Byte($20));
+              FreeArry(tmpBytes);
             end
           else
             begin
-              tmp := UTF8Str;
-              UTF8Str := CombineArry(tmp, Byte(Data[FirstCharPos + i]));
-              FreeArry(tmp);
+              tmpBytes := UTF8Str_;
+              UTF8Str_ := CombineArry(tmpBytes, Byte(Data[FirstCharPos + i]));
+              FreeArry(tmpBytes);
             end;
         end
       else
@@ -4166,17 +4168,17 @@ begin
             begin
               b := (B1 shl 4) or BV;
 
-              tmp := UTF8Str;
-              UTF8Str := CombineArry(tmp, b);
-              FreeArry(tmp);
+              tmpBytes := UTF8Str_;
+              UTF8Str_ := CombineArry(tmpBytes, b);
+              FreeArry(tmpBytes);
 
               State := STATE_READ_DATA;
             end;
         end;
     end;
-  Result.Bytes := UTF8Str;
-  FreeArry(UTF8Str);
-  FreeArry(DataArr);
+  Result.Bytes := UTF8Str_;
+  FreeArry(UTF8Str_);
+  FreeArry(DataArry_);
 end;
 
 function B64EstimateEncodedSize(Ctx: TBase64Context; InSize: Integer): Integer;
@@ -4772,30 +4774,30 @@ begin
   buffer.Position := bak;
 end;
 
-procedure umlDivisionBase64Text(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean; var output: TPascalString);
+function umlDivisionBase64Text(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean): TPascalString;
 var
   i, n: Integer;
 begin
-  output := '';
+  Result := '';
   n := 0;
   for i := 1 to buffer.Len do
     begin
       if (DivisionAsPascalString) and (n = 0) then
-          output.Append(#39);
+          Result.Append(#39);
 
-      output.Append(buffer[i]);
+      Result.Append(buffer[i]);
       inc(n);
       if n = width then
         begin
           if DivisionAsPascalString then
-              output.Append(#39 + '+' + #13#10)
+              Result.Append(#39 + '+' + #13#10)
           else
-              output.Append(#13#10);
+              Result.Append(#13#10);
           n := 0;
         end;
     end;
   if DivisionAsPascalString then
-      output.Append(#39);
+      Result.Append(#39);
 end;
 
 function umlTestBase64(const text: TPascalString): Boolean;

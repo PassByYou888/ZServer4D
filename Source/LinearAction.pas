@@ -43,10 +43,10 @@ type
     constructor Create(AOwner: TCoreActionList); virtual;
     destructor Destroy; override;
 
-    procedure Play; virtual;
-    procedure Over; virtual;
-    procedure Stop; virtual;
-    procedure Pause; virtual;
+    procedure Run(); virtual;
+    procedure Over(); virtual;
+    procedure Stop(); virtual;
+    procedure Pause(); virtual;
     procedure Progress(deltaTime: Double); virtual;
   end;
 
@@ -63,11 +63,11 @@ type
     destructor Destroy; override;
     procedure Clear;
     function Add(ActionClass_: TCoreActionClass): TCoreAction; overload;
-    procedure Play;
-    procedure Over;
-    procedure Stop;
-    function IsOver: Boolean;
-    function IsStop: Boolean;
+    procedure Run();
+    procedure Over();
+    procedure Stop();
+    function IsOver(): Boolean;
+    function IsStop(): Boolean;
     property Last: TCoreAction read FLast;
     procedure Progress(deltaTime: Double);
   end;
@@ -83,14 +83,14 @@ type
     destructor Destroy; override;
     procedure Clear;
     function Add: TCoreActionList;
-    procedure Play;
-    procedure Stop;
-    procedure Over;
+    procedure Run();
+    procedure Stop();
+    procedure Over();
     property Last: TCoreActionList read FLast;
     procedure Progress(deltaTime: Double);
-  end;
 
-procedure TestAction;
+    class procedure Test();
+  end;
 
 implementation
 
@@ -108,7 +108,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TCoreAction.Play;
+procedure TCoreAction.Run;
 begin
   State := [asPlaying];
 end;
@@ -167,7 +167,7 @@ begin
   FList.Add(Result);
 end;
 
-procedure TCoreActionList.Play;
+procedure TCoreActionList.Run();
 begin
   if FList.Count > 0 then
     begin
@@ -212,7 +212,7 @@ begin
 
   if FLast.State = [] then
     begin
-      FLast.Play;
+      FLast.Run;
       Exit;
     end;
 
@@ -272,7 +272,7 @@ begin
   FList.Add(Result);
 end;
 
-procedure TCoreActionLinear.Play;
+procedure TCoreActionLinear.Run;
 begin
   if FList.Count > 0 then
     begin
@@ -310,7 +310,7 @@ begin
       FLast.Progress(deltaTime);
 end;
 
-procedure TestAction;
+class procedure TCoreActionLinear.Test();
 var
   al: TCoreActionList;
   i: Integer;
@@ -322,7 +322,7 @@ begin
         ID := i;
         Desc := PFormat('description %d', [i]);
       end;
-  al.Play;
+  al.Run;
   while True do
     begin
       al.Progress(0.1);

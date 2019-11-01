@@ -119,6 +119,7 @@ type
     procedure Clear;
     procedure Append(t: TUPascalString); overload;
     procedure Append(c: USystemChar); overload;
+    procedure Append(const Fmt: SystemString; const Args: array of const); overload;
     function GetString(bPos, ePos: NativeInt): TUPascalString;
     procedure Insert(AText: USystemString; idx: Integer);
     procedure FastAsText(var output: USystemString);
@@ -136,6 +137,8 @@ type
 
     function BuildPlatformPChar: Pointer;
     class procedure FreePlatformPChar(p: Pointer); static;
+
+    class function RandomString(L_: Integer): TUPascalString; static;
 
     { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
     function SmithWaterman(const p: PUPascalString): Double; overload;
@@ -1833,6 +1836,11 @@ begin
   buff[length(buff) - 1] := c;
 end;
 
+procedure TUPascalString.Append(const Fmt: SystemString; const Args: array of const);
+begin
+  Append(PFormat(Fmt, Args));
+end;
+
 function TUPascalString.GetString(bPos, ePos: NativeInt): TUPascalString;
 begin
   if ePos > length(buff) then
@@ -2000,6 +2008,22 @@ begin
   FreeMemory(p);
 end;
 
+class function TUPascalString.RandomString(L_: Integer): TUPascalString;
+var
+  i: Integer;
+  c: USystemChar;
+begin
+  Result.L := L_;
+  MT19937Randomize;
+  for i := 1 to L_ do
+    begin
+      repeat
+          c := USystemChar(MT19937Rand32(128));
+      until UCharIn(c, [uc0to9, ucAtoZ]);
+      Result[i] := c;
+    end;
+end;
+
 function TUPascalString.SmithWaterman(const p: PUPascalString): Double;
 begin
   Result := USmithWatermanCompare(@Self, @p);
@@ -2018,9 +2042,5 @@ begin
   Result := SysUtils.TEncoding.UTF8.GetPreamble + GetBytes;
 {$ENDIF}
 end;
-
-initialization
-
-finalization
 
 end.

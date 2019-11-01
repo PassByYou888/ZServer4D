@@ -224,8 +224,8 @@ var
   StatusActive: Boolean;
   HookDoStatus: TCoreClassList;
   ReservedStatus: TCoreClassList;
-  LastDoStatusNoLn: TPascalString;
   StatusCritical: TCriticalSection;
+  LastDoStatusNoLn: TPascalString;
 
 procedure DoStatusNoLn(const v: TPascalString);
 var

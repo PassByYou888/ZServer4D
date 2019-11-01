@@ -540,7 +540,9 @@ type
 
     procedure ExtractToBuff(var output: TArrayVec2); overload;
     procedure GiveListDataFromBuff(output: TArrayVec2); overload;
+
     procedure VertexReduction(Epsilon: TGeoFloat); overload;
+    procedure Reduction(Epsilon: TGeoFloat); overload;
 
     function Line2Intersect(const lb, le: TVec2; ClosedPolyMode: Boolean): Boolean; overload;
     function Line2Intersect(const lb, le: TVec2; ClosedPolyMode: Boolean; output: TVec2List): Boolean; overload;
@@ -579,18 +581,37 @@ type
     property UserObject: TCoreClassObject read FUserObject write FUserObject;
   end;
 
-  T2DPointList = TVec2List;
+  TLines = class(TVec2List)
+  end;
 
+  TLinesArray = array of TLines;
+
+  TLinesList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TLines>;
+
+  TLinesList = class(TLinesList_Decl)
+  public
+    AutoFree: Boolean;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Remove(obj: TLines);
+    procedure Delete(index: TGeoInt);
+    procedure Clear;
+  end;
+
+  T2DPointList = TVec2List;
   T2DPolygonGraph = class;
 
-  T2DPolygon = class(TVec2List)
+  T2DPolygon = class(TLines)
   public
     Owner: T2DPolygonGraph;
     constructor Create;
     destructor Destroy; override;
   end;
 
-  TCollapses = array of T2DPolygon;
+  T2DPolygonArray = array of T2DPolygon;
+  TCollapses = T2DPolygonArray;
 
   T2DPolygonGraph = class(TCoreClassObject)
   public
@@ -625,6 +646,12 @@ type
     function CollapseBounds: TRectV2Array;
     function Line2Intersect(const lb, le: TVec2; output: T2DPolygon): Boolean;
     function GetNearLine(const pt: TVec2; out output: T2DPolygon; out lb, le: TGeoInt): TVec2;
+    procedure Transform(X, Y: TGeoFloat); overload;
+    procedure Transform(v: TVec2); overload;
+    procedure Mul(X, Y: TGeoFloat); overload;
+    procedure Mul(v: TVec2); overload;
+    procedure FDiv(X, Y: TGeoFloat); overload;
+    procedure FDiv(v: TVec2); overload;
 
     procedure SaveToStream(stream: TMemoryStream64);
     procedure LoadFromStream(stream: TMemoryStream64);
@@ -2957,7 +2984,6 @@ var
   Count: TGeoInt;
 begin
   FilterPoints;
-
   Count := FastRamerDouglasPeucker(output, Epsilon);
   SetLength(output, Count);
 end;
@@ -4831,10 +4857,22 @@ end;
 procedure TVec2List.VertexReduction(Epsilon: TGeoFloat);
 var
   buff, output: TArrayVec2;
+  f, l: TVec2;
 begin
+  RemoveSame;
+  f := First^;
+  l := Last^;
   ExtractToBuff(buff);
   FastVertexReduction(buff, Epsilon, output);
   GiveListDataFromBuff(output);
+  Insert(0, f);
+  Add(l);
+  RemoveSame;
+end;
+
+procedure TVec2List.Reduction(Epsilon: TGeoFloat);
+begin
+  VertexReduction(Epsilon);
 end;
 
 function TVec2List.Line2Intersect(const lb, le: TVec2; ClosedPolyMode: Boolean): Boolean;
@@ -4966,98 +5004,90 @@ end;
 
 procedure TVec2List.SortOfNear(const lb, le: TVec2);
 
-  function ListSortCompare(Item1, Item2: Pointer): TGeoInt;
+  function Compare_(Left, Right: Pointer): TGeoInt;
   var
     d1, d2: TGeoFloat;
   begin
-    d1 := MinimumDistanceFromPointToLine(lb, le, PVec2(Item1)^);
-    d2 := MinimumDistanceFromPointToLine(lb, le, PVec2(Item2)^);
+    d1 := MinimumDistanceFromPointToLine(lb, le, PVec2(Left)^);
+    d2 := MinimumDistanceFromPointToLine(lb, le, PVec2(Right)^);
     Result := CompareValue(d1, d2);
   end;
 
-  procedure QuickSortList(var SortList: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
-    p, t: Pointer;
+    p: Pointer;
   begin
     repeat
       i := l;
       j := r;
-      p := SortList[(l + r) shr 1];
+      p := arry_[(l + r) shr 1];
       repeat
-        while ListSortCompare(SortList[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while ListSortCompare(SortList[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-              begin
-                t := SortList[i];
-                SortList[i] := SortList[j];
-                SortList[j] := t;
-              end;
+                Swap(arry_[i], arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          QuickSortList(SortList, l, j);
+          fastSort_(arry_, l, j);
       l := i;
     until i >= r;
   end;
 
 begin
   if Count > 1 then
-      QuickSortList(FList.ListData^, 0, Count - 1);
+      fastSort_(FList.ListData^, 0, Count - 1);
 end;
 
 procedure TVec2List.SortOfNear(const pt: TVec2);
 
-  function ListSortCompare(Item1, Item2: Pointer): TGeoInt;
+  function Compare_(Left, Right: Pointer): TGeoInt;
   var
     d1, d2: TGeoFloat;
   begin
-    d1 := PointDistance(PVec2(Item1)^, pt);
-    d2 := PointDistance(PVec2(Item2)^, pt);
+    d1 := PointDistance(PVec2(Left)^, pt);
+    d2 := PointDistance(PVec2(Right)^, pt);
     Result := CompareValue(d1, d2);
   end;
 
-  procedure QuickSortList(var SortList: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
-    p, t: Pointer;
+    p: Pointer;
   begin
     repeat
       i := l;
       j := r;
-      p := SortList[(l + r) shr 1];
+      p := arry_[(l + r) shr 1];
       repeat
-        while ListSortCompare(SortList[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while ListSortCompare(SortList[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-              begin
-                t := SortList[i];
-                SortList[i] := SortList[j];
-                SortList[j] := t;
-              end;
+                Swap(arry_[i], arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          QuickSortList(SortList, l, j);
+          fastSort_(arry_, l, j);
       l := i;
     until i >= r;
   end;
 
 begin
   if Count > 1 then
-      QuickSortList(FList.ListData^, 0, Count - 1);
+      fastSort_(FList.ListData^, 0, Count - 1);
 end;
 
 procedure TVec2List.Reverse;
@@ -5385,6 +5415,45 @@ begin
 
   Result[0] := pt[0] + Cx;
   Result[1] := pt[1] + Cy;
+end;
+
+constructor TLinesList.Create;
+begin
+  inherited Create;
+  AutoFree := False;
+end;
+
+destructor TLinesList.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+procedure TLinesList.Remove(obj: TLines);
+begin
+  if AutoFree then
+      DisposeObject(obj);
+  inherited Remove(obj);
+end;
+
+procedure TLinesList.Delete(index: TGeoInt);
+begin
+  if (index >= 0) and (index < Count) then
+    begin
+      if AutoFree then
+          DisposeObject(Items[index]);
+      inherited Delete(index);
+    end;
+end;
+
+procedure TLinesList.Clear;
+var
+  i: TGeoInt;
+begin
+  if AutoFree then
+    for i := 0 to Count - 1 do
+        DisposeObject(Items[i]);
+  inherited Clear;
 end;
 
 constructor T2DPolygon.Create;
@@ -5740,6 +5809,48 @@ begin
   // free buff
   SetLength(buff_ori, 0);
   SetLength(buff, 0);
+end;
+
+procedure T2DPolygonGraph.Transform(X, Y: TGeoFloat);
+var
+  i: TGeoInt;
+begin
+  Surround.Transform(X, Y);
+  for i := 0 to CollapsesCount - 1 do
+      Collapses[i].Transform(X, Y);
+end;
+
+procedure T2DPolygonGraph.Transform(v: TVec2);
+begin
+  Transform(v[0], v[1]);
+end;
+
+procedure T2DPolygonGraph.Mul(X, Y: TGeoFloat);
+var
+  i: TGeoInt;
+begin
+  Surround.Mul(X, Y);
+  for i := 0 to CollapsesCount - 1 do
+      Collapses[i].Mul(X, Y);
+end;
+
+procedure T2DPolygonGraph.Mul(v: TVec2);
+begin
+  Mul(v[0], v[1]);
+end;
+
+procedure T2DPolygonGraph.FDiv(X, Y: TGeoFloat);
+var
+  i: TGeoInt;
+begin
+  Surround.FDiv(X, Y);
+  for i := 0 to CollapsesCount - 1 do
+      Collapses[i].FDiv(X, Y);
+end;
+
+procedure T2DPolygonGraph.FDiv(v: TVec2);
+begin
+  FDiv(v[0], v[1]);
 end;
 
 procedure T2DPolygonGraph.SaveToStream(stream: TMemoryStream64);
@@ -7660,43 +7771,39 @@ end;
 
 procedure TDeflectionPolygonLines.SortOfNear(const pt: TVec2);
 
-  function ListSortCompare(Item1, Item2: Pointer): TGeoInt;
+  function Compare_(Left, Right: Pointer): TGeoInt;
   var
     d1, d2: TGeoFloat;
   begin
-    d1 := PDeflectionPolygonLine(Item1)^.MinimumDistance(pt);
-    d2 := PDeflectionPolygonLine(Item2)^.MinimumDistance(pt);
+    d1 := PDeflectionPolygonLine(Left)^.MinimumDistance(pt);
+    d2 := PDeflectionPolygonLine(Right)^.MinimumDistance(pt);
     Result := CompareValue(d1, d2);
   end;
 
-  procedure QuickSortList(var SortList: TCoreClassPointerList; l, r: TGeoInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
-    p, t: Pointer;
+    p: Pointer;
   begin
     repeat
       i := l;
       j := r;
-      p := SortList[(l + r) shr 1];
+      p := arry_[(l + r) shr 1];
       repeat
-        while ListSortCompare(SortList[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while ListSortCompare(SortList[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-              begin
-                t := SortList[i];
-                SortList[i] := SortList[j];
-                SortList[j] := t;
-              end;
+                Swap(arry_[i], arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          QuickSortList(SortList, l, j);
+          fastSort_(arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -7705,50 +7812,46 @@ var
   i: TGeoInt;
 begin
   if Count > 1 then
-      QuickSortList(FList.ListData^, 0, Count - 1);
+      fastSort_(FList.ListData^, 0, Count - 1);
   for i := 0 to Count - 1 do
       Items[i]^.index := i;
 end;
 
 procedure TDeflectionPolygonLines.SortOfFar(const pt: TVec2);
 
-  function ListSortCompare(Item1, Item2: Pointer): TGeoInt;
+  function Compare_(Left, Right: Pointer): TGeoInt;
   var
     d1, d2: TGeoFloat;
   begin
-    d1 := PDeflectionPolygonLine(Item1)^.MinimumDistance(pt);
-    d2 := PDeflectionPolygonLine(Item2)^.MinimumDistance(pt);
+    d1 := PDeflectionPolygonLine(Left)^.MinimumDistance(pt);
+    d2 := PDeflectionPolygonLine(Right)^.MinimumDistance(pt);
     Result := CompareValue(d2, d1);
   end;
 
-  procedure QuickSortList(var SortList: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
-    p, t: Pointer;
+    p: Pointer;
   begin
     repeat
       i := l;
       j := r;
-      p := SortList[(l + r) shr 1];
+      p := arry_[(l + r) shr 1];
       repeat
-        while ListSortCompare(SortList[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while ListSortCompare(SortList[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-              begin
-                t := SortList[i];
-                SortList[i] := SortList[j];
-                SortList[j] := t;
-              end;
+                Swap(arry_[i], arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          QuickSortList(SortList, l, j);
+          fastSort_(arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -7757,7 +7860,7 @@ var
   i: TGeoInt;
 begin
   if Count > 1 then
-      QuickSortList(FList.ListData^, 0, Count - 1);
+      fastSort_(FList.ListData^, 0, Count - 1);
   for i := 0 to Count - 1 do
       Items[i]^.index := i;
 end;
@@ -8532,39 +8635,35 @@ end;
 
 procedure TRectPacking.Build(SpaceWidth, SpaceHeight: TGeoFloat);
 
-  function ListSortCompare(Left, Right: Pointer): TGeoInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  function Compare_(Left, Right: Pointer): TGeoInt;
   begin
     Result := CompareValue(RectArea(PRectPackData(Right)^.Rect), RectArea(PRectPackData(Left)^.Rect));
   end;
 
-  procedure QuickSortList(var SortList: TCoreClassPointerList; l, r: TGeoInt); {$IFDEF INLINE_ASM} inline; {$ENDIF}
+  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
-    p, t: Pointer;
+    p: Pointer;
   begin
     repeat
       i := l;
       j := r;
-      p := SortList[(l + r) shr 1];
+      p := arry_[(l + r) shr 1];
       repeat
-        while ListSortCompare(SortList[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while ListSortCompare(SortList[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-              begin
-                t := SortList[i];
-                SortList[i] := SortList[j];
-                SortList[j] := t;
-              end;
+                Swap(arry_[i], arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          QuickSortList(SortList, l, j);
+          fastSort_(arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -8576,7 +8675,7 @@ var
   X, Y, w, h: TGeoFloat;
 begin
   if FList.Count > 1 then
-      QuickSortList(FList.ListData^, 0, Count - 1);
+      fastSort_(FList.ListData^, 0, Count - 1);
 
   newLst := TRectPacking.Create;
   newLst.Add(0, 0, SpaceWidth, SpaceHeight);

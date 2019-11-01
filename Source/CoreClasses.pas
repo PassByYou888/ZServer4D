@@ -26,9 +26,7 @@ interface
 
 uses SysUtils, Classes, Types,
   {$IFDEF parallel}
-  {$IFDEF FPC}
-  mtprocs,
-  {$ELSE FPC}
+  {$IFNDEF FPC}
   Threading,
   {$ENDIF FPC}
   {$ENDIF parallel}
@@ -41,20 +39,7 @@ uses SysUtils, Classes, Types,
   {$ENDIF FPC}
   ,Math;
 
-const
-  fmCreate        = Classes.fmCreate;
-  soFromBeginning = Classes.soFromBeginning;
-  soFromCurrent   = Classes.soFromCurrent;
-  soFromEnd       = Classes.soFromEnd;
-
-  fmOpenRead      = SysUtils.fmOpenRead;
-  fmOpenWrite     = SysUtils.fmOpenWrite;
-  fmOpenReadWrite = SysUtils.fmOpenReadWrite;
-
-  fmShareExclusive = SysUtils.fmShareExclusive;
-  fmShareDenyWrite = SysUtils.fmShareDenyWrite;
-  fmShareDenyNone  = SysUtils.fmShareDenyNone;
-
+{$Region 'core define and class'}
 type
   TBytes = SysUtils.TBytes;
   TPoint = Types.TPoint;
@@ -83,6 +68,8 @@ type
   TCoreClassReader     = TReader;
   TCoreClassWriter     = TWriter;
   TCoreClassComponent  = TComponent;
+
+  TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID32, epANDROID64, epLinux64, epLinux32, epUnknow);
 
   {$IFDEF FPC}
   PUInt64 = ^UInt64;
@@ -181,11 +168,18 @@ type
   TRunWithThreadMethod = procedure(ThSender: TComputeThread) of object;
   {$IFNDEF FPC} TRunWithThreadProc = reference to procedure(ThSender: TComputeThread); {$ENDIF FPC}
 
+  TRunWithThreadCall_NP = procedure();
+  TRunWithThreadMethod_NP = procedure() of object;
+  {$IFNDEF FPC} TRunWithThreadProc_NP = reference to procedure(); {$ENDIF FPC}
+
   TComputeThread = class(TCoreClassThread)
   protected
     OnRunCall: TRunWithThreadCall;
     OnRunMethod: TRunWithThreadMethod;
     {$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
+    OnRunCall_NP: TRunWithThreadCall_NP;
+    OnRunMethod_NP: TRunWithThreadMethod_NP;
+    {$IFNDEF FPC} OnRunProc_NP: TRunWithThreadProc_NP; {$ENDIF FPC}
     OnDoneCall: TRunWithThreadCall;
     OnDoneMethod: TRunWithThreadMethod;
     {$IFNDEF FPC} OnDoneProc: TRunWithThreadProc; {$ENDIF FPC}
@@ -197,55 +191,124 @@ type
     UserObject: TCoreClassObject;
 
     constructor Create;
+    class function ActivtedTask(): Integer;
+    class function WaitingTask(): Integer;
+    class function TotalTask(): Integer;
+    class function State(): SystemString;
 
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
     class procedure RunC(const OnRun: TRunWithThreadCall); overload;
+    class procedure RunC_NP(const OnRun: TRunWithThreadCall_NP); overload;
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod); overload;
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod); overload;
     class procedure RunM(const OnRun: TRunWithThreadMethod); overload;
+    class procedure RunM_NP(const OnRun: TRunWithThreadMethod_NP); overload;
     {$IFNDEF FPC}
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc); overload;
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc); overload;
     class procedure RunP(const OnRun: TRunWithThreadProc); overload;
+    class procedure RunP_NP(const OnRun: TRunWithThreadProc_NP); overload;
     {$ENDIF FPC}
   end;
 
-  TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID32, epANDROID64, epLinux64, epLinux32, epUnknow);
+  TMT19937Random = class(TCoreClassObject)
+  private
+    FRndInstance: Pointer;
+    function GetSeed: Integer;
+    procedure SetSeed(const Value: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
 
+    procedure Rndmize();
+
+    function Rand32(L: Integer): Integer; overload;
+    procedure Rand32(L: Integer; dest: PInteger; num: NativeInt); overload;
+
+    function Rand64(L: Int64): Int64; overload;
+    procedure Rand64(L: Int64; dest: PInt64; num: NativeInt); overload;
+
+    function RandE: Extended; overload;
+    procedure RandE(dest: PExtended; num: NativeInt); overload;
+
+    function RandF: Single; overload;
+    procedure RandF(dest: PSingle; num: NativeInt); overload;
+
+    function RandD: Double; overload;
+    procedure RandD(dest: PDouble; num: NativeInt); overload;
+
+    property seed: Integer read GetSeed write SetSeed;
+  end;
+
+{$EndRegion 'core define and class'}
+{$Region 'core const'}
 const
   {$IF Defined(WIN32)}
-  CurrentPlatform = TExecutePlatform.epWin32;
+  CurrentPlatform: TExecutePlatform = epWin32;
   {$ELSEIF Defined(WIN64)}
-  CurrentPlatform = TExecutePlatform.epWin64;
+  CurrentPlatform: TExecutePlatform = epWin64;
   {$ELSEIF Defined(OSX)}
     {$IFDEF CPU64}
-      CurrentPlatform = TExecutePlatform.epOSX64;
+      CurrentPlatform: TExecutePlatform = epOSX64;
     {$ELSE CPU64}
-      CurrentPlatform = TExecutePlatform.epOSX32;
+      CurrentPlatform: TExecutePlatform = epOSX32;
     {$IFEND CPU64}
   {$ELSEIF Defined(IOS)}
     {$IFDEF CPUARM}
-    CurrentPlatform = TExecutePlatform.epIOS;
+    CurrentPlatform: TExecutePlatform = epIOS;
     {$ELSE CPUARM}
-    CurrentPlatform = TExecutePlatform.epIOSSIM;
+    CurrentPlatform: TExecutePlatform = epIOSSIM;
     {$ENDIF CPUARM}
   {$ELSEIF Defined(ANDROID)}
     {$IFDEF CPU64}
-    CurrentPlatform = TExecutePlatform.epANDROID64;
+    CurrentPlatform: TExecutePlatform = epANDROID64;
     {$ELSE CPU64}
-    CurrentPlatform = TExecutePlatform.epANDROID32;
+    CurrentPlatform: TExecutePlatform = epANDROID32;
     {$IFEND CPU64}
   {$ELSEIF Defined(Linux)}
     {$IFDEF CPU64}
-      CurrentPlatform = TExecutePlatform.epLinux64;
+      CurrentPlatform: TExecutePlatform = epLinux64;
     {$ELSE CPU64}
-      CurrentPlatform = TExecutePlatform.epLinux32;
+      CurrentPlatform: TExecutePlatform = epLinux32;
     {$IFEND CPU64}
   {$ELSE}
-  CurrentPlatform = TExecutePlatform.epUnknow;
+  CurrentPlatform: TExecutePlatform = epUnknow;
   {$IFEND}
 
+  // timetick define
+  C_Tick_Second = TTimeTick(1000);
+  C_Tick_Minute = TTimeTick(C_Tick_Second) * 60;
+  C_Tick_Hour   = TTimeTick(C_Tick_Minute) * 60;
+  C_Tick_Day    = TTimeTick(C_Tick_Hour) * 24;
+  C_Tick_Week   = TTimeTick(C_Tick_Day) * 7;
+  C_Tick_Year   = TTimeTick(C_Tick_Day) * 365;
+
+  // The life cycle of working in asynchronous thread consistency, metric n/MS
+  MT19937LifeCycle: TTimeTick = 5 * 1000;
+
+  // file mode
+  fmCreate        = Classes.fmCreate;
+  soFromBeginning = Classes.soFromBeginning;
+  soFromCurrent   = Classes.soFromCurrent;
+  soFromEnd       = Classes.soFromEnd;
+
+  fmOpenRead      = SysUtils.fmOpenRead;
+  fmOpenWrite     = SysUtils.fmOpenWrite;
+  fmOpenReadWrite = SysUtils.fmOpenReadWrite;
+
+  fmShareExclusive = SysUtils.fmShareExclusive;
+  fmShareDenyWrite = SysUtils.fmShareDenyWrite;
+  fmShareDenyNone  = SysUtils.fmShareDenyNone;
+{$EndRegion 'core const'}
+{$Region 'core api'}
+
+{$IFDEF FPC}
+type TFPCParallelForProcedure = procedure(pass: NativeInt) is nested;
+procedure FPCParallelFor(const OnFor:TFPCParallelForProcedure; const b, e: NativeInt);
+{$ENDIF FPC}
+
+procedure SetCoreThreadDispatch(sleep_: Integer); // default dispatch sleep is 10ms
 procedure FreeCoreThreadPool;
 
 procedure DisposeObject(const Obj: TObject); overload;
@@ -284,17 +347,25 @@ procedure RaiseInfo(const n: SystemString; const Args: array of const); overload
 
 function IsMobile: Boolean;
 
-const
-  C_Tick_Second = TTimeTick(1000);
-  C_Tick_Minute = TTimeTick(C_Tick_Second) * 60;
-  C_Tick_Hour   = TTimeTick(C_Tick_Minute) * 60;
-  C_Tick_Day    = TTimeTick(C_Tick_Hour) * 24;
-  C_Tick_Week   = TTimeTick(C_Tick_Day) * 7;
-  C_Tick_Year   = TTimeTick(C_Tick_Day) * 365;
+function GetTimeTick(): TTimeTick;
+function GetTimeTickCount(): TTimeTick;
+function GetCrashTimeTick(): TTimeTick;
 
-function GetTimeTick: TTimeTick;
-function GetTimeTickCount: TTimeTick;
-function GetCrashTimeTick: TTimeTick;
+// MT19937 random num
+function MT19937InstanceNum(): Integer;
+procedure SetMT19937Seed(seed: Integer);
+function GetMT19937Seed(): Integer;
+procedure MT19937Randomize();
+function MT19937Rand32(L: Integer): Integer; overload;
+procedure MT19937Rand32(L: Integer; dest: PInteger; num: NativeInt); overload;
+function MT19937Rand64(L: Int64): Int64; overload;
+procedure MT19937Rand64(L: Int64; dest: PInt64; num: NativeInt); overload;
+function MT19937RandE: Extended; overload;
+procedure MT19937RandE(dest: PExtended; num: NativeInt); overload;
+function MT19937RandF: Single; overload;
+procedure MT19937RandF(dest: PSingle; num: NativeInt); overload;
+function MT19937RandD: Double; overload;
+procedure MT19937RandD(dest: PDouble; num: NativeInt); overload;
 
 function ROL8(const Value: Byte; Shift: Byte): Byte;
 function ROL16(const Value: Word; Shift: Byte): Word;
@@ -368,16 +439,23 @@ procedure Nop;
 
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
-
+{$EndRegion 'core api'}
+{$Region 'core var'}
 var
-  GlobalMemoryHook: Boolean;
+  GlobalMemoryHook: Boolean;     // default is True
   CoreInitedTimeTick: TTimeTick;
+{$EndRegion 'core var'}
 
 implementation
 
 uses DoStatusIO;
 
+{$IFDEF FPC}
+{$INCLUDE Core_FPCParallelFor.inc}
+{$ENDIF FPC}
+
 {$INCLUDE CoreAtomic.inc}
+{$INCLUDE Core_MT19937.inc}
 
 procedure DisposeObject(const Obj: TObject);
 begin
@@ -547,35 +625,72 @@ end;
 
 procedure CopyPtr(const sour, dest: Pointer; Count: NativeUInt);
 var
-  s, d: PByte;
+  s, d: NativeUInt;
 begin
-  if Count <= 0 then
-      Exit;
-  s := sour;
-  d := dest;
-  while Count >= 8 do
+  if Count = 0 then
+      exit;
+  if sour = dest then
+      exit;
+
+  s := NativeUInt(sour);
+  d := NativeUInt(dest);
+  // fixed overlap problem. by,qq600585, 2019-10
+  // thanks,qq122742470,wang
+  // thanks,qq4700653,LOK
+  if d > s then
     begin
-      PUInt64(d)^ := PUInt64(s)^;
-      dec(Count, 8);
-      inc(d, 8);
-      inc(s, 8);
-    end;
-  if Count >= 4 then
+      inc(s, Count);
+      inc(d, Count);
+      while Count >= 8 do
+        begin
+          dec(d, 8);
+          dec(s, 8);
+          dec(Count, 8);
+          PUInt64(d)^ := PUInt64(s)^;
+        end;
+      if Count >= 4 then
+        begin
+          dec(d, 4);
+          dec(s, 4);
+          dec(Count, 4);
+          PCardinal(d)^ := PCardinal(s)^;
+        end;
+      if Count >= 2 then
+        begin
+          dec(d, 2);
+          dec(s, 2);
+          dec(Count, 2);
+          PWORD(d)^ := PWORD(s)^;
+        end;
+      if Count > 0 then
+          PByte(d - 1)^ := PByte(s - 1)^;
+    end
+  else
     begin
-      PCardinal(d)^ := PCardinal(s)^;
-      dec(Count, 4);
-      inc(d, 4);
-      inc(s, 4);
+      while Count >= 8 do
+        begin
+          PUInt64(d)^ := PUInt64(s)^;
+          dec(Count, 8);
+          inc(d, 8);
+          inc(s, 8);
+        end;
+      if Count >= 4 then
+        begin
+          PCardinal(d)^ := PCardinal(s)^;
+          dec(Count, 4);
+          inc(d, 4);
+          inc(s, 4);
+        end;
+      if Count >= 2 then
+        begin
+          PWORD(d)^ := PWORD(s)^;
+          dec(Count, 2);
+          inc(d, 2);
+          inc(s, 2);
+        end;
+      if Count > 0 then
+          PByte(d)^ := PByte(s)^;
     end;
-  if Count >= 2 then
-    begin
-      PWORD(d)^ := PWORD(s)^;
-      dec(Count, 2);
-      inc(d, 2);
-      inc(s, 2);
-    end;
-  if Count > 0 then
-      d^ := s^;
 end;
 
 procedure RaiseInfo(const n: SystemString);
@@ -601,7 +716,7 @@ var
   Core_RunTime_Tick: TTimeTick;
   Core_Step_Tick: Cardinal;
 
-function GetTimeTick: TTimeTick;
+function GetTimeTick(): TTimeTick;
 var
   tick: Cardinal;
 begin
@@ -616,12 +731,12 @@ begin
   end;
 end;
 
-function GetTimeTickCount: TTimeTick;
+function GetTimeTickCount(): TTimeTick;
 begin
   Result := GetTimeTick();
 end;
 
-function GetCrashTimeTick: TTimeTick;
+function GetCrashTimeTick(): TTimeTick;
 begin
   Result := $FFFFFFFFFFFFFFFF - GetTimeTick();
 end;
@@ -766,7 +881,8 @@ begin
     end
   else
     begin
-      DoStatus;
+      MT19937();
+      DoStatus();
       if not CheckThreadSynchronizeing then
         begin
           CheckThreadSynchronizeing := True;
@@ -786,12 +902,13 @@ initialization
   CheckThreadSynchronizeing := False;
   Core_RunTime_Tick := 1000 * 60 * 60 * 24 * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
-  InitCriticalLock;
+  InitCriticalLock();
   InitCoreThreadPool(CpuCount * 2);
+  InitMT19937Rand();
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-
   CoreInitedTimeTick := GetTimeTick();
 finalization
+  FreeMT19937Rand();
   FreeCoreThreadPool;
   FreeCriticalLock;
   GlobalMemoryHook := False;

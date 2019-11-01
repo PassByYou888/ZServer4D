@@ -245,6 +245,8 @@ function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; Expressio
 function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 
 // Evaluate multi Expression as variant Vector
+function EvaluateExpressionVector(DebugMode, UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+  opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector; overload;
 function EvaluateExpressionVector(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector; overload;
 function EvaluateExpressionVector(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
@@ -2265,7 +2267,7 @@ var
 begin
   if IsSymbolVectorExpression(ExpressionText, TextStyle, SpecialAsciiToken) then
     begin
-      v := EvaluateExpressionVector(UsedCache, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+      v := EvaluateExpressionVector(DebugMode, UsedCache, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
       Result := ExpressionValueVectorToStr(v).Text;
       SetLength(v, 0);
       Exit;
@@ -2296,7 +2298,9 @@ begin
 
       if sym <> nil then
         begin
-          Op := BuildAsOpCode(False, sym, 'Main', -1);
+          if DebugMode then
+              sym.PrintDebug(True);
+          Op := BuildAsOpCode(DebugMode, sym, 'Main', -1);
           if Op <> nil then
             begin
               try
@@ -2416,7 +2420,7 @@ begin
   Result := EvaluateExpressionValue(True, SpecialAsciiToken, False, TextStyle, ExpressionText, opRT);
 end;
 
-function EvaluateExpressionVector(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(DebugMode, UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
 var
   t: TTextParsing;
@@ -2432,7 +2436,7 @@ begin
       for i := 0 to L.Count - 1 do
         begin
           try
-              Result[i] := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, False, TextStyle, L[i], opRT, const_vl);
+              Result[i] := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, TextStyle, L[i], opRT, const_vl);
           except
               Result[i] := NULL;
           end;
@@ -2442,10 +2446,16 @@ begin
   DisposeObject(t);
 end;
 
+function EvaluateExpressionVector(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+  opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
+begin
+  Result := EvaluateExpressionVector(False, UsedCache, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+end;
+
 function EvaluateExpressionVector(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
 begin
-  Result := EvaluateExpressionVector(False, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+  Result := EvaluateExpressionVector(False, False, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
 end;
 
 function EvaluateExpressionVector(ExpressionText: SystemString; opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
@@ -3066,7 +3076,7 @@ begin
       if VarIsNull(v[i]) then
           Result.Append('error, ')
       else if VarIsStr(v[i]) then
-          Result.Append(#39 + VarToStr(v[i]) + #39 + ', ')
+          Result.Append(VarToStr(v[i]) + ', ')
       else
           Result.Append(VarToStr(v[i]) + ', ');
     end;

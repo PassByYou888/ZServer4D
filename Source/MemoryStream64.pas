@@ -195,17 +195,20 @@ function DecompressStreamToPtr(sour: TCoreClassStream; var dest: Pointer): Boole
 function CompressFile(sour, dest: SystemString): Boolean;
 function DecompressFile(sour, dest: SystemString): Boolean;
 
-function SelectCompressStream(scm: TSelectCompressionMethod; sour, dest: TCoreClassStream): Boolean;
-function SelectDecompressStream(sour, dest: TCoreClassStream): Boolean;
-procedure ParallelCompressStream(scm: TSelectCompressionMethod; StripNum: Integer; sour: TMemoryStream64; dest: TCoreClassStream); overload;
-procedure ParallelCompressStream(scm: TSelectCompressionMethod; sour: TMemoryStream64; dest: TCoreClassStream); overload;
-procedure ParallelCompressStream(sour: TMemoryStream64; dest: TCoreClassStream); overload;
-procedure ParallelDecompressStream(sour_, dest_: TCoreClassStream);
-procedure ParallelCompressFile(sour, dest: SystemString);
-procedure ParallelDecompressFile(sour, dest: SystemString);
+function SelectCompressStream(const scm: TSelectCompressionMethod; const sour, dest: TCoreClassStream): Boolean;
+function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean;
 
-function CompressUTF8(sour_: TBytes): TBytes;
-function DecompressUTF8(sour_: TBytes): TBytes;
+procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressStream(const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+
+procedure ParallelDecompressStream(const sour_, dest_: TCoreClassStream);
+
+procedure ParallelCompressFile(const sour, dest: SystemString);
+procedure ParallelDecompressFile(const sour, dest: SystemString);
+
+function CompressUTF8(const sour_: TBytes): TBytes;
+function DecompressUTF8(const sour_: TBytes): TBytes;
 
 procedure DoStatus(const v: TMemoryStream64); overload;
 
@@ -213,9 +216,7 @@ implementation
 
 uses
 {$IFDEF parallel}
-{$IFDEF FPC}
-  mtprocs,
-{$ELSE FPC}
+{$IFNDEF FPC}
   Threading,
 {$ENDIF FPC}
 {$ENDIF parallel}
@@ -996,7 +997,7 @@ begin
   DisposeObject(d_fs);
 end;
 
-function SelectCompressStream(scm: TSelectCompressionMethod; sour, dest: TCoreClassStream): Boolean;
+function SelectCompressStream(const scm: TSelectCompressionMethod; const sour, dest: TCoreClassStream): Boolean;
 var
   scm_b: Byte;
   siz_: Int64;
@@ -1025,7 +1026,7 @@ begin
   end;
 end;
 
-function SelectDecompressStream(sour, dest: TCoreClassStream): Boolean;
+function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean;
 var
   scm: Byte;
   siz_: Int64;
@@ -1050,14 +1051,15 @@ begin
   end;
 end;
 
-procedure ParallelCompressStream(scm: TSelectCompressionMethod; StripNum: Integer; sour: TMemoryStream64; dest: TCoreClassStream);
+procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream);
 var
+  StripNum: Integer;
   sourStrips: TStream64List;
   StripArry: array of TMemoryStream64;
 
 {$IFDEF parallel}
 {$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
+  procedure Nested_ParallelFor(pass: NativeInt);
   begin
     SelectCompressStream(scm, sourStrips[pass], StripArry[pass]);
   end;
@@ -1135,13 +1137,15 @@ var
   end;
 
 begin
-  if StripNum <= 0 then
-      StripNum := 1;
+  if StripNum_ <= 0 then
+      StripNum := 1
+  else
+    StripNum := StripNum_;
   BuildBuff;
 
 {$IFDEF parallel}
 {$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, Length(StripArry) - 1);
+  FPCParallelFor(@Nested_ParallelFor, 0, Length(StripArry) - 1);
 {$ELSE FPC}
   TParallel.for(0, Length(StripArry) - 1, procedure(pass: Integer)
     begin
@@ -1155,21 +1159,20 @@ begin
   FreeBuff;
 end;
 
-procedure ParallelCompressStream(scm: TSelectCompressionMethod; sour: TMemoryStream64; dest: TCoreClassStream);
+procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream);
 begin
   ParallelCompressStream(scm, sour.Size div 8192, sour, dest);
 end;
 
-procedure ParallelCompressStream(sour: TMemoryStream64; dest: TCoreClassStream);
+procedure ParallelCompressStream(const sour: TMemoryStream64; const dest: TCoreClassStream);
 begin
   ParallelCompressStream(scmZLIB, sour, dest);
 end;
 
-procedure ParallelDecompressStream(sour_, dest_: TCoreClassStream);
+procedure ParallelDecompressStream(const sour_, dest_: TCoreClassStream);
 type
   TPara_strip_ = record
-    sour: TMemoryStream64;
-    dest: TMemoryStream64;
+    sour, dest: TMemoryStream64;
   end;
 
   PPara_strip_ = ^TPara_strip_;
@@ -1178,7 +1181,7 @@ var
 
 {$IFDEF parallel}
 {$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
+  procedure Nested_ParallelFor(pass: NativeInt);
   begin
     SelectDecompressStream(StripArry[pass].sour, StripArry[pass].dest);
   end;
@@ -1288,7 +1291,7 @@ begin
 
 {$IFDEF parallel}
 {$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, Length(StripArry) - 1);
+  FPCParallelFor(@Nested_ParallelFor, 0, Length(StripArry) - 1);
 {$ELSE FPC}
   TParallel.for(0, Length(StripArry) - 1, procedure(pass: Integer)
     begin
@@ -1302,7 +1305,7 @@ begin
   FreeBuff;
 end;
 
-procedure ParallelCompressFile(sour, dest: SystemString);
+procedure ParallelCompressFile(const sour, dest: SystemString);
 var
   s_fs: TMemoryStream64;
   d_fs: TCoreClassFileStream;
@@ -1315,7 +1318,7 @@ begin
   DisposeObject(d_fs);
 end;
 
-procedure ParallelDecompressFile(sour, dest: SystemString);
+procedure ParallelDecompressFile(const sour, dest: SystemString);
 var
   s_fs: TMemoryStream64;
   d_fs: TCoreClassFileStream;
@@ -1328,7 +1331,7 @@ begin
   DisposeObject(d_fs);
 end;
 
-function CompressUTF8(sour_: TBytes): TBytes;
+function CompressUTF8(const sour_: TBytes): TBytes;
 var
   cStream: TCompressionStream;
   dest: TMemoryStream64;
@@ -1355,7 +1358,7 @@ begin
       Result := sour_;
 end;
 
-function DecompressUTF8(sour_: TBytes): TBytes;
+function DecompressUTF8(const sour_: TBytes): TBytes;
 var
   dcStream: TDecompressionStream;
   sour: TMemoryStream64;

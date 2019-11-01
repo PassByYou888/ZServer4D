@@ -537,7 +537,7 @@ constructor TNProgressPostWithCadencer.Create;
 begin
   inherited Create;
   FCadencerEngine := TCadencer.Create;
-  FCadencerEngine.ProgressIntf := Self;
+  FCadencerEngine.ProgressInterface := Self;
 end;
 
 destructor TNProgressPostWithCadencer.Destroy;

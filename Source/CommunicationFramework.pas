@@ -960,15 +960,15 @@ type
     //
     // PeerIO id array
     procedure GetIO_Array(out IO_Array: TIO_Array);
-    //
+
     // block progress
     procedure ProgressWaitSend(P_IO: TPeerIO); virtual;
-    //
+
     // print
     procedure Print(const v: SystemString);
     procedure PrintParam(v: SystemString; Args: SystemString);
-    //
-    // register command with server/client
+
+    // register command for server/client
     function DeleteRegistedCMD(Cmd: SystemString): Boolean;
     function UnRegisted(Cmd: SystemString): Boolean;
     function RegisterConsole(Cmd: SystemString): TCommandConsole;
@@ -979,15 +979,15 @@ type
     function RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBuffer;
     function ExistsRegistedCmd(Cmd: SystemString): Boolean;
     procedure PrintRegistedCMD;
-    //
-    // execute command with local
+
+    // execute command on local
     function ExecuteConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString; var OutData: SystemString): Boolean; virtual;
     function ExecuteStream(Sender: TPeerIO; Cmd: SystemString; InData, OutData: TDataFrameEngine): Boolean; virtual;
     function ExecuteDirectStream(Sender: TPeerIO; Cmd: SystemString; InData: TDataFrameEngine): Boolean; virtual;
     function ExecuteDirectConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString): Boolean; virtual;
     function ExecuteBigStream(Sender: TPeerIO; Cmd: SystemString; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64): Boolean; virtual;
     function ExecuteCompleteBuffer(Sender: TPeerIO; Cmd: SystemString; InData: PByte; DataSize: NativeInt): Boolean; virtual;
-    //
+
     // misc
     function FirstIO: TPeerIO;
     function LastIO: TPeerIO;
@@ -1809,7 +1809,7 @@ var
   C_VMAuthSize: Integer = 256;
 
   // BigStream fragment size
-  C_BigStream_ChunkSize: NativeInt = 512 * 1024;
+  C_BigStream_ChunkSize: NativeInt = 64 * 1024;
 
   // global progress backcall
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
@@ -1893,6 +1893,7 @@ const
   C_CloseP2PTunnel = '__@CloseP2PTunnel';
   C_CipherModel = '__@CipherModel';
   C_Wait = '__@Wait';
+
   // stable IO command
   C_BuildStableIO = '__@BuildStableIO';
   C_OpenStableIO = '__@OpenStableIO';

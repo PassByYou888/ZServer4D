@@ -1778,9 +1778,7 @@ implementation
 
 uses DoStatusIO,
 {$IFDEF parallel}
-{$IFDEF FPC}
-  mtprocs,
-{$ELSE parallel}
+{$IFNDEF FPC}
   Threading,
 {$ENDIF FPC}
 {$ENDIF parallel}
@@ -3757,7 +3755,7 @@ procedure TParallelCipher.RunParallel(const JobData: PParallelCipherJobData; con
 var
   StepTotal, stepW: Integer;
 {$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
+  procedure Nested_ParallelFor(pass: NativeInt);
   var
     w: Integer;
   begin
@@ -3784,7 +3782,7 @@ begin
       inc(StepTotal);
 
 {$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, StepTotal - 1);
+  FPCParallelFor(@Nested_ParallelFor, 0, StepTotal - 1);
 {$ELSE FPC}
   TParallel.for(0, StepTotal - 1, procedure(pass: Integer)
     var
@@ -5147,7 +5145,7 @@ begin
       DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashSecurity), Integer(hs)), (GetTimeTick - d)]);
     end;
 
-  DoStatus(#13#10'all test done!');
+  DoStatus(#13#10'Cipher test done!');
   DisposeObject([ps, sour, Dest]);
 end;
 
@@ -7332,9 +7330,9 @@ class procedure TMISC.GenerateRandomKey(var key; KeySize: Integer);
 var
   i: Integer;
 begin
-  Randomize;
+  MT19937Randomize;
   for i := 0 to KeySize - 1 do
-      TCCByteArray(key)[i] := System.Random(256); { !!.01 }
+      TCCByteArray(key)[i] := MT19937Rand32(256); { !!.01 }
 end;
 
 class procedure TMISC.HashELF(var Digest: DWORD; const Buf; BufSize: nativeUInt);

@@ -23,7 +23,7 @@ unit GeometryLib;
 
 interface
 
-uses Geometry2DUnit;
+uses CoreClasses, Geometry2DUnit;
 
 type
   TVector2f = array [0 .. 1] of TGeoFloat;
@@ -5176,8 +5176,8 @@ procedure RandomPointOnSphere(var p: TAffineVector);
 var
   t, w: TGeoFloat;
 begin
-  p[2] := 2 * Random - 1;
-  t := 2 * pi * Random;
+  p[2] := 2 * MT19937RandF - 1;
+  t := 2 * pi * MT19937RandF;
   w := Sqrt(1 - p[2] * p[2]);
   GeometryLib.SinCos(t, w, p[1], p[0]);
 end;

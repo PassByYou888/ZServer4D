@@ -29,21 +29,21 @@ interface
 uses CoreClasses, ObjectData, UnicodeMixedLib, PascalStrings, ListEngine;
 
 type
-  TItemHandle = ObjectData.TTMDBItemHandle;
+  TItemHandle = ObjectData.TItemHandle_;
   PItemHandle = ^TItemHandle;
   TFieldHandle = ObjectData.TField;
   PFieldHandle = ^TFieldHandle;
-  TItemSearch = ObjectData.TTMDBSearchItem;
+  TItemSearch = ObjectData.TSearchItem_;
   PItemSearch = ^TItemSearch;
-  TFieldSearch = ObjectData.TTMDBSearchField;
+  TFieldSearch = ObjectData.TSearchField_;
   PFieldSearch = ^TFieldSearch;
-  TItemRecursionSearch = ObjectData.TTMDBRecursionSearch;
+  TItemRecursionSearch = ObjectData.TRecursionSearch_;
   PItemRecursionSearch = ^TItemRecursionSearch;
 
   TObjectDataManager = class(TCoreClassObject)
   protected
     FStreamEngine: TCoreClassStream;
-    FDBHandle: TTMDB;
+    FDBHandle: TObjectDataHandle;
     FNeedCreateNew, FOnlyRead: Boolean;
     FObjectName: SystemString;
     FDefaultItemID: Byte;
@@ -181,8 +181,8 @@ type
     function RecursionSearchNext(var RecursionSearchHnd: TItemRecursionSearch): Boolean;
 
     // options
-    function HandlePtr: PTMDB;
-    property Handle: PTMDB read HandlePtr;
+    function HandlePtr: PObjectDataHandle;
+    property Handle: PObjectDataHandle read HandlePtr;
     property AutoFreeHandle: Boolean read GetAutoFreeHandle write SetAutoFreeHandle;
     property IsOnlyRead: Boolean read FOnlyRead;
     property NeedCreateNew: Boolean read FNeedCreateNew;
@@ -213,7 +213,7 @@ type
       BlockCount: Int64;
       CurrentBlockSeekPOS: Int64;
       CurrentFileSeekPOS: Int64;
-      Return: Integer;
+      State: Integer;
       MemorySiz: nativeUInt;
       procedure write(var wVal: TItem);
       procedure read(var rVal: TItem);
@@ -222,12 +222,12 @@ type
     PObjectDataCacheItem = ^TObjectDataCacheItem;
 
     TObjectDataCacheField = record
-      UpLevelFieldPOS: Int64;
+      UpFieldPOS: Int64;
       Description: U_String;
       HeaderCount: Int64;
       FirstHeaderPOS: Int64;
       LastHeaderPOS: Int64;
-      Return: Integer;
+      State: Integer;
       MemorySiz: nativeUInt;
       procedure write(var wVal: TField);
       procedure read(var rVal: TField);
@@ -279,9 +279,9 @@ type
     procedure OnlyFieldRecWriteProc(fPos: Int64; var wVal: TField);
     procedure OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
 
-    procedure PrepareTMDBWriteProc(fPos: Int64; const wVal: PTMDB; var Done: Boolean);
-    procedure TMDBWriteProc(fPos: Int64; const wVal: PTMDB);
-    procedure TMDBReadProc(fPos: Int64; const rVal: PTMDB; var Done: Boolean);
+    procedure PrepareTMDBWriteProc(fPos: Int64; const wVal: PObjectDataHandle; var Done: Boolean);
+    procedure TMDBWriteProc(fPos: Int64; const wVal: PObjectDataHandle);
+    procedure TMDBReadProc(fPos: Int64; const rVal: PObjectDataHandle; var Done: Boolean);
 
     procedure CheckAndRestoreFlush;
     procedure DoCreateFinish; override;
@@ -793,7 +793,7 @@ end;
 
 function TObjectDataManager.ErrorNo: Int64;
 begin
-  Result := FDBHandle.Return;
+  Result := FDBHandle.State;
 end;
 
 function TObjectDataManager.Modification: Boolean;
@@ -901,7 +901,7 @@ begin
       Init_TField(FieldHnd);
       if dbField_ReadRec(FieldPos, FDBHandle.IOHnd, FieldHnd) then
         begin
-          if (not FastFieldExists(FieldHnd.UpLevelFieldPOS, NewFieldName)) and (FieldHnd.RHeader.CurrentHeader <> FDBHandle.DefaultFieldPOS) then
+          if (not FastFieldExists(FieldHnd.UpFieldPOS, NewFieldName)) and (FieldHnd.RHeader.CurrentHeader <> FDBHandle.DefaultFieldPOS) then
             begin
               FieldHnd.RHeader.Name := NewFieldName;
               FieldHnd.Description := NewFieldDescription;
@@ -1352,7 +1352,7 @@ begin
   Result := db_RecursionSearchNext(RecursionSearchHnd, FDBHandle);
 end;
 
-function TObjectDataManager.HandlePtr: PTMDB;
+function TObjectDataManager.HandlePtr: PObjectDataHandle;
 begin
   Result := @FDBHandle;
 end;
@@ -1367,7 +1367,7 @@ begin
   BlockCount := wVal.BlockCount;
   CurrentBlockSeekPOS := wVal.CurrentBlockSeekPOS;
   CurrentFileSeekPOS := wVal.CurrentFileSeekPOS;
-  Return := wVal.Return;
+  State := wVal.State;
   MemorySiz := 0;
 end;
 
@@ -1381,28 +1381,28 @@ begin
   rVal.BlockCount := BlockCount;
   rVal.CurrentBlockSeekPOS := CurrentBlockSeekPOS;
   rVal.CurrentFileSeekPOS := CurrentFileSeekPOS;
-  rVal.Return := Return;
+  rVal.State := State;
 end;
 
 procedure TObjectDataManagerOfCache.TObjectDataCacheField.write(var wVal: TField);
 begin
-  UpLevelFieldPOS := wVal.UpLevelFieldPOS;
+  UpFieldPOS := wVal.UpFieldPOS;
   Description := wVal.Description;
   HeaderCount := wVal.HeaderCount;
   FirstHeaderPOS := wVal.FirstHeaderPOS;
   LastHeaderPOS := wVal.LastHeaderPOS;
-  Return := wVal.Return;
+  State := wVal.State;
   MemorySiz := 0;
 end;
 
 procedure TObjectDataManagerOfCache.TObjectDataCacheField.read(var rVal: TField);
 begin
-  rVal.UpLevelFieldPOS := UpLevelFieldPOS;
+  rVal.UpFieldPOS := UpFieldPOS;
   rVal.Description := Description;
   rVal.HeaderCount := HeaderCount;
   rVal.FirstHeaderPOS := FirstHeaderPOS;
   rVal.LastHeaderPOS := LastHeaderPOS;
-  rVal.Return := Return;
+  rVal.State := State;
 end;
 
 procedure TObjectDataManagerOfCache.HeaderCache_DataFreeProc(p: Pointer);
@@ -1515,7 +1515,7 @@ begin
   else
       p^ := wVal;
 
-  p^.Return := DB_Header_ok;
+  p^.State := DB_Header_ok;
 end;
 
 procedure TObjectDataManagerOfCache.HeaderReadProc(fPos: Int64; var rVal: THeader; var Done: Boolean);
@@ -1542,7 +1542,7 @@ begin
               new(p);
               p^ := rVal;
               FHeaderCache.Add(rVal.CurrentHeader, p, False);
-              p^.Return := DB_Header_ok;
+              p^.State := DB_Header_ok;
             end;
         end;
     end
@@ -1590,7 +1590,7 @@ begin
   else
       p^ := wVal;
 
-  p^.Return := DB_Item_ok;
+  p^.State := DB_Item_ok;
 end;
 
 procedure TObjectDataManagerOfCache.ItemBlockReadProc(fPos: Int64; var rVal: TItemBlock; var Done: Boolean);
@@ -1617,7 +1617,7 @@ begin
               new(p);
               p^ := rVal;
               FItemBlockCache.Add(rVal.CurrentBlockPOS, p, False);
-              p^.Return := DB_Item_ok;
+              p^.State := DB_Item_ok;
             end;
         end;
     end
@@ -1702,7 +1702,7 @@ begin
   else
       p^.write(wVal);
 
-  p^.Return := DB_Item_ok;
+  p^.State := DB_Item_ok;
 end;
 
 procedure TObjectDataManagerOfCache.OnlyItemRecReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
@@ -1729,7 +1729,7 @@ begin
               new(p);
               p^.read(rVal);
               FItemCache.Add(fPos, p, False);
-              p^.Return := DB_Item_ok;
+              p^.State := DB_Item_ok;
             end;
         end;
     end
@@ -1812,7 +1812,7 @@ begin
   else
       p^.write(wVal);
 
-  p^.Return := DB_Field_ok;
+  p^.State := DB_Field_ok;
 end;
 
 procedure TObjectDataManagerOfCache.OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
@@ -1839,7 +1839,7 @@ begin
               new(p);
               p^.read(rVal);
               FFieldCache.Add(fPos, p, False);
-              p^.Return := DB_Item_ok;
+              p^.State := DB_Item_ok;
             end;
         end;
     end
@@ -1847,12 +1847,12 @@ begin
       p^.read(rVal);
 end;
 
-procedure TObjectDataManagerOfCache.PrepareTMDBWriteProc(fPos: Int64; const wVal: PTMDB; var Done: Boolean);
+procedure TObjectDataManagerOfCache.PrepareTMDBWriteProc(fPos: Int64; const wVal: PObjectDataHandle; var Done: Boolean);
 begin
   Done := CheckPreapreWrite(fPos);
 end;
 
-procedure TObjectDataManagerOfCache.TMDBWriteProc(fPos: Int64; const wVal: PTMDB);
+procedure TObjectDataManagerOfCache.TMDBWriteProc(fPos: Int64; const wVal: PObjectDataHandle);
 var
   m64: TMemoryStream64;
   Hnd: TIOHnd;
@@ -1877,7 +1877,7 @@ begin
   m64.Position := 0;
 end;
 
-procedure TObjectDataManagerOfCache.TMDBReadProc(fPos: Int64; const rVal: PTMDB; var Done: Boolean);
+procedure TObjectDataManagerOfCache.TMDBReadProc(fPos: Int64; const rVal: PObjectDataHandle; var Done: Boolean);
 var
   m64: TMemoryStream64;
   Hnd: TIOHnd;
@@ -1925,6 +1925,8 @@ begin
   end;
   CheckSuccessed := True;
   m64 := TMemoryStream64.CustomCreate(8192);
+
+  // verify data
   while swapHnd.Position < swapHnd.Size do
     begin
       if swapHnd.read(swaphead, SizeOf(swaphead)) <> SizeOf(swaphead) then
@@ -1949,16 +1951,21 @@ begin
         end;
     end;
 
+  // write data
   if CheckSuccessed then
     begin
       DoStatus('%s CRC done!, the database to restored to previous state', [umlGetFileName(swapFileName).Text]);
       swapHnd.Position := 0;
-      swapHnd.read(swaphead, SizeOf(swaphead));
-      m64.Clear;
-      m64.CopyFrom(swapHnd, swaphead.Size);
 
-      FDBHandle.IOHnd.Handle.Position := swaphead.Position;
-      FDBHandle.IOHnd.Handle.write(m64.Memory^, m64.Size);
+      while swapHnd.Position < swapHnd.Size do
+        begin
+          swapHnd.read(swaphead, SizeOf(swaphead));
+          m64.Clear;
+          m64.CopyFrom(swapHnd, swaphead.Size);
+
+          FDBHandle.IOHnd.Handle.Position := swaphead.Position;
+          FDBHandle.IOHnd.Handle.write(m64.Memory^, m64.Size);
+        end;
     end;
 
   DisposeObject(swapHnd);

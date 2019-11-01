@@ -23,8 +23,12 @@
   {$ENDIF FPC_DELPHI_MODE}
 
   {$MODESWITCH AdvancedRecords}
+  {$MODESWITCH NestedProcVars}
   {$NOTES OFF}
-  {$STACKFRAMES ON}
+  {$STACKFRAMES OFF}
+  {$COPERATORS ON}
+  {$GOTO ON}
+  {$INLINE ON}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -48,9 +52,9 @@
   {$DEFINE parallel}
 
   // automated loading common AI data sets on boot-time
-  // {$DEFINE Z_AI_Dataset_Build_In}
+  {$DEFINE Z_AI_Dataset_Build_In}
 
-  // With SMALL_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
+  // With SMALL_RASTER_FONT_Build_In and LARGE_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
   {$DEFINE SMALL_RASTER_FONT_Build_In}
   // {$DEFINE LARGE_RASTER_FONT_Build_In}
 
@@ -71,7 +75,6 @@
   {$UNDEF debug}
   {$DEFINE INLINE_ASM}
   {$R-} { range check }
-  {$O-} { optimization }
 {$ELSE FPC}
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -96,10 +99,14 @@
   // multi thread parallel switch.
   {$DEFINE parallel}
 
+  // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
+  // Using this paper replace of Delphi Random() and Randomize() function
+  {$DEFINE InstallMT19937CoreToDelphi}
+
   // automated loading common AI data sets on boot-time
   // {$DEFINE Z_AI_Dataset_Build_In}
 
-  // With SMALL_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
+  // With SMALL_RASTER_FONT_Build_In and LARGE_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
   // {$DEFINE SMALL_RASTER_FONT_Build_In}
   // {$DEFINE LARGE_RASTER_FONT_Build_In}
 
@@ -120,10 +127,18 @@
     {$DEFINE INLINE_ASM}
     {$R-} { range check }
     {$I-} { Input output checking }
+    {$IF Defined(Android) or Defined(IOS)}
+      {$O-} { close optimization }
+    {$ELSE}
+      {$O+} { open optimization }
+      {$INLINE AUTO} { inline }
+    {$IFEND}
   {$ELSE}
     {$UNDEF INLINE_ASM}
-    {$R-} { range check }
-    {$I-} { Input output checking }
+    {$O-} { close optimization }
+    {$R+} { range check }
+    {$I+} { Input output checking }
+    {$D+} { debug information }
   {$ENDIF}
 
   {$IF Defined(Android) or Defined(IOS)}
@@ -136,18 +151,20 @@
     // {$DEFINE PhysicsIO_On_Indy}
     // {$DEFINE PhysicsIO_On_Synapse}
   {$IFEND}
+
+  {$X+} { Extended syntax }
+  {$Z1} { Minimum enum size }
 {$ENDIF FPC}
 
 {$WARNINGS OFF}
 {$HINTS OFF}
-{$O-} { optimization }
 {$C+} { Assertions }
 {$M-} { Run-Time Type Information }
 {$H+} { long string }
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$J+} { Writeable typed constants }
+{$J-} { Writeable typed constants }
 
 (*
   Pointer math is simply treating any given typed pointer in some narrow,
@@ -180,3 +197,72 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
+
+(*
+  {$IFDEF FPC}
+  {$ELSE FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF DELPHI}
+  {$ENDIF DELPHI}
+
+  {$IFDEF FPC}@{$ENDIF FPC}
+  {$IFDEF FPC}specialize {$ENDIF FPC}
+
+  {$IFNDEF FPC}
+  {$ENDIF FPC}
+
+  {$IFDEF parallel}
+  {$ELSE parallel}
+  {$ENDIF parallel}
+
+  {$IFNDEF parallel}
+  {$ENDIF parallel}
+
+  {$Region 'RegionName'}
+  {$EndRegion 'RegionName'}
+
+  {$IFDEF OverflowCheck}{$Q-}{$ENDIF}
+  {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
+
+  {$IFDEF RangeCheck}{$R-}{$ENDIF}
+  {$IFDEF RangeCheck}{$R+}{$ENDIF}
+
+  {$IFDEF Z_AI_Dataset_Build_In}
+  {$ELSE Z_AI_Dataset_Build_In}
+  {$ENDIF Z_AI_Dataset_Build_In}
+
+{$IFDEF parallel}
+{$IFDEF FPC}
+  procedure Nested_ParallelFor(pass: NativeInt);
+  begin
+  end;
+{$ENDIF FPC}
+{$ELSE parallel}
+  procedure DoFor;
+  var
+    pass: Integer;
+  begin
+    for pass:= 0 to Height - 1 do
+      begin
+      end;
+  end;
+{$ENDIF parallel}
+
+{$IFDEF parallel}
+{$IFDEF FPC}
+      FPCParallelFor(@Nested_ParallelFor, 0, Height - 1);
+{$ELSE FPC}
+      TParallel.for(0, Height - 1, procedure(pass: Integer)
+        begin
+        end);
+{$ENDIF FPC}
+{$ELSE parallel}
+      DoFor;
+{$ENDIF parallel}
+
+*)
+

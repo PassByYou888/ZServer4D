@@ -137,8 +137,7 @@ type
     property OnProgress: TCadencerProgressMethod read FOnProgress write FOnProgress;
     property OnProgressCall: TCadencerProgressCall read FOnProgressCall write FOnProgressCall;
 {$IFNDEF FPC} property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc; {$ENDIF FPC}
-    { intf }
-    property ProgressIntf: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
+    { interface }
     property ProgressInterface: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
 

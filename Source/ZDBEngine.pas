@@ -735,7 +735,7 @@ begin
   else
     begin
       try
-          proc;
+          proc();
       except
       end;
     end;
