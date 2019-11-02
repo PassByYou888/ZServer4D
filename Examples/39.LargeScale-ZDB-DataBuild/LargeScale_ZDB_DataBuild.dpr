@@ -112,7 +112,6 @@ begin
       // 大数据导入需要避免cache太多
       if db.Count mod 100000 = 0 then
         begin
-          db.Update;
           db.DBEngine.CleaupCache;
         end;
     end);
@@ -159,7 +158,7 @@ begin
   // 在退火引擎的帮助下，多任务查询会比单任务更快
 
   // 模拟3个同时查询的任务
-  for i := 0 to 1 - 1 do
+  for i := 0 to 3 - 1 do
     begin
       LM.QueryDBP(False,          // 将查询结果写入到一个临时数据库
       True,                       // 临时数据库是内存模式
