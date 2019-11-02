@@ -19,7 +19,7 @@ uses
 
 function DestDBPath: SystemString;
 begin
-  Result := 'x:\';
+  Result := umlGetCurrentPath;
 end;
 
 // 模拟构建.CSV格式文件
