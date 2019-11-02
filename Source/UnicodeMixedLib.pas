@@ -630,13 +630,19 @@ procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
 
 type
-  TCSVCall = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
-  TCSVMethod = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) of object;
-{$IFNDEF FPC} TCSVProc = reference to procedure(const sour: TPascalString; const king, Data: TArrayPascalString); {$ENDIF FPC}
+  TCSVSaveCall = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
+  TCSVSaveMethod = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) of object;
+{$IFNDEF FPC}
+  TCSVGetLineProc = reference to procedure(var L: TPascalString; var IsEnd: Boolean);
+  TCSVSaveProc = reference to procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
+{$ENDIF FPC}
 
-procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVCall);
-procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVMethod);
-{$IFNDEF FPC} procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVProc); {$ENDIF FPC}
+procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVSaveCall);
+procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVSaveMethod);
+{$IFNDEF FPC}
+procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVSaveProc);
+procedure CustomImportCSV_P(const OnGetLine: TCSVGetLineProc; OnNotify: TCSVSaveProc);
+{$ENDIF FPC}
 
 function GetExtLib(LibName: SystemString): HMODULE;
 function FreeExtLib(LibName: SystemString): Boolean;
@@ -6036,7 +6042,7 @@ begin
       Result := CurrentVal;
 end;
 
-procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVCall);
+procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVSaveCall);
 var
   i, j, bp, hc: NativeInt;
   n: TPascalString;
@@ -6093,7 +6099,7 @@ begin
   n := '';
 end;
 
-procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVMethod);
+procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVSaveMethod);
 var
   i, j, bp, hc: NativeInt;
   n: TPascalString;
@@ -6153,7 +6159,7 @@ end;
 {$IFNDEF FPC}
 
 
-procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVProc);
+procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVSaveProc);
 var
   i, j, bp, hc: NativeInt;
   n: TPascalString;
@@ -6209,6 +6215,71 @@ begin
   SetLength(king, 0);
   n := '';
 end;
+
+procedure CustomImportCSV_P(const OnGetLine: TCSVGetLineProc; OnNotify: TCSVSaveProc);
+var
+  IsEnd: Boolean;
+  i, j, hc: NativeInt;
+  n, s: TPascalString;
+  king, buff: TArrayPascalString;
+begin
+  // csv head
+  while true do
+    begin
+      IsEnd := False;
+      n := '';
+      OnGetLine(n, IsEnd);
+      if IsEnd then
+          exit;
+      if n.L <> 0 then
+        begin
+          hc := n.GetCharCount(',') + 1;
+          SetLength(buff, hc);
+          SetLength(king, hc);
+
+          for j := low(king) to high(king) do
+              king[j] := '';
+          j := 0;
+          while (j < length(king)) and (n.Len > 0) do
+            begin
+              king[j] := umlGetFirstStr_Discontinuity(n, ',');
+              n := umlDeleteFirstStr_Discontinuity(n, ',');
+              inc(j);
+            end;
+
+          break;
+        end;
+    end;
+
+  // csv body
+  while true do
+    begin
+      IsEnd := False;
+      n := '';
+      OnGetLine(n, IsEnd);
+      if IsEnd then
+          exit;
+      if n.Len > 0 then
+        begin
+          s := n;
+          for j := low(buff) to high(buff) do
+              buff[j] := '';
+          j := 0;
+          while (j < length(buff)) and (n.Len > 0) do
+            begin
+              buff[j] := umlGetFirstStr_Discontinuity(n, ',');
+              n := umlDeleteFirstStr_Discontinuity(n, ',');
+              inc(j);
+            end;
+          OnNotify(s, king, buff);
+        end;
+    end;
+
+  SetLength(buff, 0);
+  SetLength(king, 0);
+  n := '';
+end;
+
 {$ENDIF FPC}
 
 

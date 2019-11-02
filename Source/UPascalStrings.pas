@@ -2012,16 +2012,18 @@ class function TUPascalString.RandomString(L_: Integer): TUPascalString;
 var
   i: Integer;
   c: USystemChar;
+  rnd: TMT19937Random;
 begin
   Result.L := L_;
-  MT19937Randomize;
+  rnd := TMT19937Random.Create;
   for i := 1 to L_ do
     begin
       repeat
-          c := USystemChar(MT19937Rand32(128));
+          c := USystemChar(rnd.Rand32(128));
       until UCharIn(c, [uc0to9, ucAtoZ]);
       Result[i] := c;
     end;
+  DisposeObject(rnd);
 end;
 
 function TUPascalString.SmithWaterman(const p: PUPascalString): Double;

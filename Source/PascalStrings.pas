@@ -1984,16 +1984,18 @@ class function TPascalString.RandomString(L_: Integer): TPascalString;
 var
   i: Integer;
   c: SystemChar;
+  rnd: TMT19937Random;
 begin
   Result.L := L_;
-  MT19937Randomize;
+  rnd := TMT19937Random.Create;
   for i := 1 to L_ do
     begin
       repeat
-          c := SystemChar(MT19937Rand32(128));
+          c := SystemChar(rnd.Rand32(128));
       until CharIn(c, [c0to9, cAtoZ]);
       Result[i] := c;
     end;
+  DisposeObject(rnd);
 end;
 
 function TPascalString.SmithWaterman(const p: PPascalString): Double;

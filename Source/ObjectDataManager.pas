@@ -40,6 +40,46 @@ type
   TItemRecursionSearch = ObjectData.TRecursionSearch_;
   PItemRecursionSearch = ^TItemRecursionSearch;
 
+  PObjectDataCacheHeader = PHeader;
+  PObjectDataCacheItemBlock = PItemBlock;
+
+  TObjectDataCacheItem = record
+    Description: U_String;
+    ExtID: Byte;
+    FirstBlockPOS: Int64;
+    LastBlockPOS: Int64;
+    Size: Int64;
+    BlockCount: Int64;
+    CurrentBlockSeekPOS: Int64;
+    CurrentFileSeekPOS: Int64;
+    State: Integer;
+    MemorySiz: nativeUInt;
+    procedure write(var wVal: TItem);
+    procedure read(var rVal: TItem);
+  end;
+
+  PObjectDataCacheItem = ^TObjectDataCacheItem;
+
+  TObjectDataCacheField = record
+    UpFieldPOS: Int64;
+    Description: U_String;
+    HeaderCount: Int64;
+    FirstHeaderPOS: Int64;
+    LastHeaderPOS: Int64;
+    State: Integer;
+    MemorySiz: nativeUInt;
+    procedure write(var wVal: TField);
+    procedure read(var rVal: TField);
+  end;
+
+  PObjectDataCacheField = ^TObjectDataCacheField;
+
+  TSwapHead = packed record
+    Size: Integer;
+    MD5: TMD5;
+    Position: Int64;
+  end;
+
   TObjectDataManager = class(TCoreClassObject)
   protected
     FStreamEngine: TCoreClassStream;
@@ -53,7 +93,8 @@ type
     function GetAutoFreeHandle: Boolean;
     procedure SetAutoFreeHandle(const Value: Boolean);
   protected
-    procedure DoCreateFinish; virtual;
+    procedure DoOpenBefore; virtual;
+    procedure DoOpenAfter; virtual;
 
     function GetOverWriteItem: Boolean;
     function GetAllowSameHeaderName: Boolean;
@@ -200,47 +241,6 @@ type
   TObjectDataManagerClass = class of TObjectDataManager;
 
   TObjectDataManagerOfCache = class(TObjectDataManager)
-  protected type
-    PObjectDataCacheHeader = PHeader;
-    PObjectDataCacheItemBlock = PItemBlock;
-
-    TObjectDataCacheItem = record
-      Description: U_String;
-      ExtID: Byte;
-      FirstBlockPOS: Int64;
-      LastBlockPOS: Int64;
-      Size: Int64;
-      BlockCount: Int64;
-      CurrentBlockSeekPOS: Int64;
-      CurrentFileSeekPOS: Int64;
-      State: Integer;
-      MemorySiz: nativeUInt;
-      procedure write(var wVal: TItem);
-      procedure read(var rVal: TItem);
-    end;
-
-    PObjectDataCacheItem = ^TObjectDataCacheItem;
-
-    TObjectDataCacheField = record
-      UpFieldPOS: Int64;
-      Description: U_String;
-      HeaderCount: Int64;
-      FirstHeaderPOS: Int64;
-      LastHeaderPOS: Int64;
-      State: Integer;
-      MemorySiz: nativeUInt;
-      procedure write(var wVal: TField);
-      procedure read(var rVal: TField);
-    end;
-
-    PObjectDataCacheField = ^TObjectDataCacheField;
-
-    TSwapHead = packed record
-      Size: Integer;
-      MD5: TMD5;
-      Position: Int64;
-    end;
-
   protected
     FHeaderCache, FItemBlockCache, FItemCache, FFieldCache: TInt64HashPointerList;
     FPrepareWritePool: TInt64HashObjectList;
@@ -283,8 +283,7 @@ type
     procedure TMDBWriteProc(fPos: Int64; const wVal: PObjectDataHandle);
     procedure TMDBReadProc(fPos: Int64; const rVal: PObjectDataHandle; var Done: Boolean);
 
-    procedure CheckAndRestoreFlush;
-    procedure DoCreateFinish; override;
+    procedure DoOpenBefore; override;
   public
     destructor Destroy; override;
     procedure BuildDBCacheIntf;
@@ -329,6 +328,8 @@ type
 
 function ObjectDataMarshal: TObjectDataMarshal;
 function DBMarshal: TObjectDataMarshal;
+procedure CheckAndRemoveFlush(PrepareOpenFile: U_String);
+procedure CheckAndRestoreFlush(PrepareOpenFile: U_String);
 
 procedure TestObjectData();
 
@@ -337,7 +338,10 @@ implementation
 uses ItemStream, Types, MemoryStream64, DoStatusIO;
 
 const
-  MaxBuffSize = 65535;
+  SFlush = '.~flush';
+  STmp = '.tmp';
+  SOld = '.old';
+  MaxBuffSize = $FFFF;
 
 var
   Internal_ObjectDataMarshal: TObjectDataMarshal = nil;
@@ -354,6 +358,188 @@ begin
   Result := ObjectDataMarshal();
 end;
 
+procedure CheckAndRemoveFlush(PrepareOpenFile: U_String);
+var
+  swapFileName: TPascalString;
+begin
+  if not umlFileExists(PrepareOpenFile) then
+      Exit;
+  swapFileName := PrepareOpenFile + SFlush;
+
+  if not umlFileExists(swapFileName) then
+      Exit;
+  umlDeleteFile(swapFileName);
+end;
+
+procedure CheckAndRestoreFlush(PrepareOpenFile: U_String);
+var
+  IOHnd: TIOHnd;
+  swapFileName: TPascalString;
+  swapHnd: TCoreClassFileStream;
+  swapCompleted, swapTotal: Integer;
+  swapHead: TSwapHead;
+  CheckSuccessed: Boolean;
+  m64: TMemoryStream64;
+  m5: TMD5;
+  oldDBHnd, newDBHnd: TObjectDataHandle;
+begin
+  if not umlFileExists(PrepareOpenFile) then
+      Exit;
+  swapFileName := PrepareOpenFile + SFlush;
+
+  if not umlFileExists(swapFileName) then
+      Exit;
+
+  swapHnd := nil;
+  try
+      swapHnd := TCoreClassFileStream.Create(swapFileName, fmOpenReadWrite);
+  except
+    DisposeObject(swapHnd);
+    umlDeleteFile(swapFileName);
+    Exit;
+  end;
+  CheckSuccessed := True;
+  m64 := TMemoryStream64.CustomCreate(8192);
+
+  // check crc
+  swapCompleted := 0;
+  if swapHnd.read(swapTotal, C_Integer_Size) = C_Integer_Size then
+    while swapHnd.Position < swapHnd.Size do
+      begin
+        if swapHnd.read(swapHead, SizeOf(swapHead)) <> SizeOf(swapHead) then
+          begin
+            DoStatus('%s CRC header errors, the database will be restored to previous state', [umlGetFileName(swapFileName).Text]);
+            CheckSuccessed := False;
+            break;
+          end;
+        m64.Clear;
+        if m64.CopyFrom(swapHnd, swapHead.Size) <> swapHead.Size then
+          begin
+            DoStatus('%s CRC data loss, the database will be restored to previous state', [umlGetFileName(swapFileName).Text]);
+            CheckSuccessed := False;
+            break;
+          end;
+        m5 := umlMD5(m64.Memory, m64.Size);
+        if not umlCompareMD5(m5, swapHead.MD5) then
+          begin
+            DoStatus('%s CRC validation errors, the database will be restored to previous state', [umlGetFileName(swapFileName).Text]);
+            CheckSuccessed := False;
+            break;
+          end;
+        inc(swapCompleted);
+      end;
+
+  CheckSuccessed := CheckSuccessed and (swapCompleted = swapTotal);
+
+  // restore
+  if CheckSuccessed then
+    begin
+      DoStatus('Start backup of old database.');
+      Init_TTMDB(oldDBHnd);
+      db_Open(PrepareOpenFile, oldDBHnd, True);
+      Init_TTMDB(newDBHnd, oldDBHnd.FixedStringL);
+      db_CreateNew(PrepareOpenFile + SOld, newDBHnd);
+      db_CopyAllTo(oldDBHnd, newDBHnd);
+      db_ClosePack(oldDBHnd);
+      db_ClosePack(newDBHnd);
+      DoStatus('old database "%s" rename as -> "%s"', [umlGetFileName(PrepareOpenFile).Text, umlGetFileName(PrepareOpenFile).Text + SOld]);
+
+      DoStatus('database to restored to previous state', []);
+      InitIOHnd(IOHnd);
+      if umlFileOpen(PrepareOpenFile, IOHnd, False) then
+        begin
+          swapCompleted := 0;
+          swapHnd.Position := 0;
+          if swapHnd.read(swapTotal, C_Integer_Size) = C_Integer_Size then
+            while swapHnd.Position < swapHnd.Size do
+              begin
+                swapHnd.read(swapHead, SizeOf(swapHead));
+                m64.Clear;
+                m64.CopyFrom(swapHnd, swapHead.Size);
+
+                umlFileSeek(IOHnd, swapHead.Position);
+                umlBlockWrite(IOHnd, m64.Memory^, m64.Size);
+                inc(swapCompleted);
+                DoStatus('CRC %s restored %d / %d', [umlMD5ToStr(swapHead.MD5).Text, swapCompleted, swapTotal]);
+              end;
+        end;
+      umlFileClose(IOHnd);
+    end
+  else
+    begin
+      DoStatus('%s CRC error!, Start repairing this database, please wait', [umlGetFileName(swapFileName).Text]);
+      Init_TTMDB(oldDBHnd);
+      db_Open(PrepareOpenFile, oldDBHnd, True);
+
+      Init_TTMDB(newDBHnd, oldDBHnd.FixedStringL);
+      db_CreateNew(PrepareOpenFile + STmp, newDBHnd);
+
+      DoStatus('Start backup of old database.');
+      db_CopyAllTo(oldDBHnd, newDBHnd);
+
+      db_ClosePack(oldDBHnd);
+      db_ClosePack(newDBHnd);
+
+      umlDeleteFile(PrepareOpenFile + SOld);
+      umlRenameFile(PrepareOpenFile, PrepareOpenFile + SOld);
+      umlRenameFile(PrepareOpenFile + STmp, PrepareOpenFile);
+
+      DoStatus('old database "%s" rename as -> "%s"', [umlGetFileName(PrepareOpenFile).Text, umlGetFileName(PrepareOpenFile).Text + SOld]);
+    end;
+
+  DisposeObject(swapHnd);
+  DisposeObject(m64);
+  umlDeleteFile(swapFileName);
+end;
+
+procedure TObjectDataCacheItem.write(var wVal: TItem);
+begin
+  Description := wVal.Description;
+  ExtID := wVal.ExtID;
+  FirstBlockPOS := wVal.FirstBlockPOS;
+  LastBlockPOS := wVal.LastBlockPOS;
+  Size := wVal.Size;
+  BlockCount := wVal.BlockCount;
+  CurrentBlockSeekPOS := wVal.CurrentBlockSeekPOS;
+  CurrentFileSeekPOS := wVal.CurrentFileSeekPOS;
+  State := wVal.State;
+  MemorySiz := 0;
+end;
+
+procedure TObjectDataCacheItem.read(var rVal: TItem);
+begin
+  rVal.Description := Description;
+  rVal.ExtID := ExtID;
+  rVal.FirstBlockPOS := FirstBlockPOS;
+  rVal.LastBlockPOS := LastBlockPOS;
+  rVal.Size := Size;
+  rVal.BlockCount := BlockCount;
+  rVal.CurrentBlockSeekPOS := CurrentBlockSeekPOS;
+  rVal.CurrentFileSeekPOS := CurrentFileSeekPOS;
+  rVal.State := State;
+end;
+
+procedure TObjectDataCacheField.write(var wVal: TField);
+begin
+  UpFieldPOS := wVal.UpFieldPOS;
+  Description := wVal.Description;
+  HeaderCount := wVal.HeaderCount;
+  FirstHeaderPOS := wVal.FirstHeaderPOS;
+  LastHeaderPOS := wVal.LastHeaderPOS;
+  State := wVal.State;
+  MemorySiz := 0;
+end;
+
+procedure TObjectDataCacheField.read(var rVal: TField);
+begin
+  rVal.UpFieldPOS := UpFieldPOS;
+  rVal.Description := Description;
+  rVal.HeaderCount := HeaderCount;
+  rVal.FirstHeaderPOS := FirstHeaderPOS;
+  rVal.LastHeaderPOS := LastHeaderPOS;
+  rVal.State := State;
+end;
+
 function TObjectDataManager.GetAutoFreeHandle: Boolean;
 begin
   if not isAbort then
@@ -368,7 +554,11 @@ begin
       FDBHandle.IOHnd.AutoFree := Value;
 end;
 
-procedure TObjectDataManager.DoCreateFinish;
+procedure TObjectDataManager.DoOpenBefore;
+begin
+end;
+
+procedure TObjectDataManager.DoOpenAfter;
 begin
 end;
 
@@ -448,8 +638,9 @@ begin
   FOnlyRead := dbOnlyRead;
   FDefaultItemID := dbItemID;
 
-  DoCreateFinish;
+  DoOpenBefore;
   FIsOpened := DoOpen();
+  DoOpenAfter;
 
   Result := FIsOpened;
 
@@ -462,18 +653,24 @@ end;
 constructor TObjectDataManager.Open(const dbFile: SystemString; const dbItemID: Byte; dbOnlyRead: Boolean);
 begin
   inherited Create;
+  if dbOnlyRead then
+      CheckAndRemoveFlush(dbFile)
+  else
+      CheckAndRestoreFlush(dbFile);
   NewHandle(nil, dbFile, dbItemID, dbOnlyRead, False);
 end;
 
 constructor TObjectDataManager.CreateNew(const dbFile: SystemString; const dbItemID: Byte);
 begin
   inherited Create;
+  CheckAndRemoveFlush(dbFile);
   NewHandle(nil, dbFile, dbItemID, False, True);
 end;
 
 constructor TObjectDataManager.CreateNew(FixedStringL: Byte; const dbFile: SystemString; const dbItemID: Byte);
 begin
   inherited Create;
+  CheckAndRemoveFlush(dbFile);
   NewHandle(FixedStringL, nil, dbFile, dbItemID, False, True);
 end;
 
@@ -1357,54 +1554,6 @@ begin
   Result := @FDBHandle;
 end;
 
-procedure TObjectDataManagerOfCache.TObjectDataCacheItem.write(var wVal: TItem);
-begin
-  Description := wVal.Description;
-  ExtID := wVal.ExtID;
-  FirstBlockPOS := wVal.FirstBlockPOS;
-  LastBlockPOS := wVal.LastBlockPOS;
-  Size := wVal.Size;
-  BlockCount := wVal.BlockCount;
-  CurrentBlockSeekPOS := wVal.CurrentBlockSeekPOS;
-  CurrentFileSeekPOS := wVal.CurrentFileSeekPOS;
-  State := wVal.State;
-  MemorySiz := 0;
-end;
-
-procedure TObjectDataManagerOfCache.TObjectDataCacheItem.read(var rVal: TItem);
-begin
-  rVal.Description := Description;
-  rVal.ExtID := ExtID;
-  rVal.FirstBlockPOS := FirstBlockPOS;
-  rVal.LastBlockPOS := LastBlockPOS;
-  rVal.Size := Size;
-  rVal.BlockCount := BlockCount;
-  rVal.CurrentBlockSeekPOS := CurrentBlockSeekPOS;
-  rVal.CurrentFileSeekPOS := CurrentFileSeekPOS;
-  rVal.State := State;
-end;
-
-procedure TObjectDataManagerOfCache.TObjectDataCacheField.write(var wVal: TField);
-begin
-  UpFieldPOS := wVal.UpFieldPOS;
-  Description := wVal.Description;
-  HeaderCount := wVal.HeaderCount;
-  FirstHeaderPOS := wVal.FirstHeaderPOS;
-  LastHeaderPOS := wVal.LastHeaderPOS;
-  State := wVal.State;
-  MemorySiz := 0;
-end;
-
-procedure TObjectDataManagerOfCache.TObjectDataCacheField.read(var rVal: TField);
-begin
-  rVal.UpFieldPOS := UpFieldPOS;
-  rVal.Description := Description;
-  rVal.HeaderCount := HeaderCount;
-  rVal.FirstHeaderPOS := FirstHeaderPOS;
-  rVal.LastHeaderPOS := LastHeaderPOS;
-  rVal.State := State;
-end;
-
 procedure TObjectDataManagerOfCache.HeaderCache_DataFreeProc(p: Pointer);
 begin
   Dispose(PObjectDataCacheHeader(p));
@@ -1896,88 +2045,9 @@ begin
     end;
 end;
 
-procedure TObjectDataManagerOfCache.CheckAndRestoreFlush;
-var
-  swapFileName: TPascalString;
-  swapHnd: TCoreClassFileStream;
-  swaphead: TSwapHead;
-  CheckSuccessed: Boolean;
-  m64: TMemoryStream64;
-  m5: TMD5;
+procedure TObjectDataManagerOfCache.DoOpenBefore;
 begin
-  if not(FDBHandle.IOHnd.Handle is TReliableFileStream) then
-      Exit;
-  if (FDBHandle.IOHnd.IsOnlyRead) or (not FDBHandle.IOHnd.IsOpen) then
-      Exit;
-
-  swapFileName := TReliableFileStream(FDBHandle.IOHnd.Handle).fileName + '.~flush';
-
-  if not umlFileExists(swapFileName) then
-      Exit;
-
-  swapHnd := nil;
-  try
-      swapHnd := TCoreClassFileStream.Create(swapFileName, fmOpenReadWrite);
-  except
-    DisposeObject(swapHnd);
-    umlDeleteFile(swapFileName);
-    Exit;
-  end;
-  CheckSuccessed := True;
-  m64 := TMemoryStream64.CustomCreate(8192);
-
-  // verify data
-  while swapHnd.Position < swapHnd.Size do
-    begin
-      if swapHnd.read(swaphead, SizeOf(swaphead)) <> SizeOf(swaphead) then
-        begin
-          DoStatus('%s CRC header errors, the database will be restored to previous state', [umlGetFileName(swapFileName).Text]);
-          CheckSuccessed := False;
-          break;
-        end;
-      m64.Clear;
-      if m64.CopyFrom(swapHnd, swaphead.Size) <> swaphead.Size then
-        begin
-          DoStatus('%s CRC data loss, the database will be restored to previous state', [umlGetFileName(swapFileName).Text]);
-          CheckSuccessed := False;
-          break;
-        end;
-      m5 := umlMD5(m64.Memory, m64.Size);
-      if not umlCompareMD5(m5, swaphead.MD5) then
-        begin
-          DoStatus('%s CRC validation errors, the database will be restored to previous state', [umlGetFileName(swapFileName).Text]);
-          CheckSuccessed := False;
-          break;
-        end;
-    end;
-
-  // write data
-  if CheckSuccessed then
-    begin
-      DoStatus('%s CRC done!, the database to restored to previous state', [umlGetFileName(swapFileName).Text]);
-      swapHnd.Position := 0;
-
-      while swapHnd.Position < swapHnd.Size do
-        begin
-          swapHnd.read(swaphead, SizeOf(swaphead));
-          m64.Clear;
-          m64.CopyFrom(swapHnd, swaphead.Size);
-
-          FDBHandle.IOHnd.Handle.Position := swaphead.Position;
-          FDBHandle.IOHnd.Handle.write(m64.Memory^, m64.Size);
-        end;
-    end;
-
-  DisposeObject(swapHnd);
-  DisposeObject(m64);
-  umlDeleteFile(swapFileName);
-end;
-
-procedure TObjectDataManagerOfCache.DoCreateFinish;
-begin
-  inherited DoCreateFinish;
-
-  CheckAndRestoreFlush;
+  inherited DoOpenBefore;
 
   FHeaderCache := TInt64HashPointerList.CustomCreate(10 * 10000);
   FHeaderCache.AutoFreeData := True;
@@ -2111,11 +2181,12 @@ end;
 procedure TObjectDataManagerOfCache.Flush();
 var
   i: NativeInt;
+  swapTotal: Integer;
   p: PInt64HashListObjectStruct;
   m64: TMemoryStream64;
   swapFileName: TPascalString;
   swapHnd: TCoreClassFileStream;
-  swaphead: TSwapHead;
+  swapHead: TSwapHead;
 begin
   // update db header
   inherited UpdateIO;
@@ -2127,10 +2198,13 @@ begin
       // step 1: flush to swap file
       if (FDBHandle.IOHnd.Handle is TReliableFileStream) then
         begin
-          swapFileName := TReliableFileStream(FDBHandle.IOHnd.Handle).fileName + '.~flush';
+          swapFileName := TReliableFileStream(FDBHandle.IOHnd.Handle).fileName + SFlush;
           swapHnd := nil;
           try
             swapHnd := TCoreClassFileStream.Create(swapFileName, fmCreate);
+
+            swapTotal := FPrepareWritePool.Count;
+            swapHnd.write(swapTotal, C_Integer_Size);
 
             i := 0;
             p := FPrepareWritePool.FirstPtr;
@@ -2140,10 +2214,10 @@ begin
                 if p^.i64 >= FDBHandle.IOHnd.Size then
                     RaiseInfo('flush: prepare write buffer error!');
 
-                swaphead.Size := m64.Size;
-                swaphead.MD5 := umlMD5(m64.Memory, m64.Size);
-                swaphead.Position := p^.i64;
-                swapHnd.write(swaphead, SizeOf(swaphead));
+                swapHead.Size := m64.Size;
+                swapHead.MD5 := umlMD5(m64.Memory, m64.Size);
+                swapHead.Position := p^.i64;
+                swapHnd.write(swapHead, SizeOf(swapHead));
                 swapHnd.write(m64.Memory^, m64.Size);
                 inc(i);
                 p := p^.Next;
@@ -2174,7 +2248,7 @@ end;
 
 function TObjectDataManagerOfCache.CacheStatus: SystemString;
 begin
-  Result := PFormat('cache state: h:%d b:%d i:%d f:%d w:%d', [FHeaderCache.Count, FItemBlockCache.Count, FItemCache.Count, FFieldCache.Count, FPrepareWritePool.Count]);
+  Result := PFormat('header %d block %d item %d field %d prepare %d', [FHeaderCache.Count, FItemBlockCache.Count, FItemCache.Count, FFieldCache.Count, FPrepareWritePool.Count]);
 end;
 
 function TObjectDataMarshal.GetItems(aIndex: Integer): TObjectDataManager;

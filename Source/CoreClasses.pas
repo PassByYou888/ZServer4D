@@ -315,7 +315,6 @@ procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
 procedure FreeObject(const Obj: TObject); overload;
 procedure FreeObject(const objs: array of TObject); overload;
-procedure DisposeObjectAsNil(var Obj);
 procedure DisposeObjectAndNil(var Obj);
 
 procedure LockObject(Obj: TObject);
@@ -496,18 +495,13 @@ begin
       DisposeObject(Obj);
 end;
 
-procedure DisposeObjectAsNil(var Obj);
+procedure DisposeObjectAndNil(var Obj);
 begin
   if TObject(Obj) <> nil then
     begin
       DisposeObject(TObject(Obj));
       TObject(Obj) := nil;
     end;
-end;
-
-procedure DisposeObjectAndNil(var Obj);
-begin
-  DisposeObjectAsNil(Obj);
 end;
 
 procedure LockObject(Obj: TObject);

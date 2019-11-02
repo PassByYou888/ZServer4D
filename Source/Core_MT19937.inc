@@ -256,7 +256,7 @@ end;
 
 procedure MT19937Randomize();
 begin
-  MT19937()^.InternalRndSeed := GetTimeTick;
+  MT19937()^.InternalRndSeed := Cardinal(GetTimeTick());
 end;
 
 function MT19937Rand32(L: Integer): Integer;
