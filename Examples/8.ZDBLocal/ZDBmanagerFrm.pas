@@ -134,7 +134,7 @@ begin
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
       if qState.IsDF then
-        with qState.DBEng.GetDF(qState) do
+        with qState.Eng.GetDF(qState) do
             Allowed := InRange(ReadDouble(0), -100, 100);
     end;
 end;
@@ -199,7 +199,7 @@ begin
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
       if qState.IsDF then
-        with qState.DBEng.GetDF(qState) do
+        with qState.Eng.GetDF(qState) do
             Allowed := InRange(ReadDouble(0), -100, 100);
     end;
 end;
@@ -310,7 +310,7 @@ begin
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
       if qState.IsString then
-          qState.DBEng.PascalString[qState.StorePos] := IntToStr(dPipe.QueryCounter);
+          qState.Eng.PascalString[qState.StorePos] := IntToStr(dPipe.QueryCounter);
     end;
   p.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
     begin
@@ -321,7 +321,7 @@ begin
         procedure(var qState: TQueryState)
         begin
           if qState.IsString then
-              doStatus('item:%s', [qState.DBEng.GetString(qState.StorePos).Text]);
+              doStatus('item:%s', [qState.Eng.GetString(qState.StorePos).Text]);
         end);
     end;
 end;
@@ -341,7 +341,7 @@ begin
 
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
-      doStatus('%d:%s', [dPipe.QueryCounter, qState.DBEng.GetString(qState.StorePos).Text]);
+      doStatus('%d:%s', [dPipe.QueryCounter, qState.Eng.GetString(qState.StorePos).Text]);
     end;
   p.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
     begin
@@ -366,7 +366,7 @@ begin
     begin
       if not qState.IsDF then
           exit;
-      df := qState.DBEng.GetDF(qState);
+      df := qState.Eng.GetDF(qState);
       if InRange(df.ReadDouble(0), 1, 10) then
         begin
           Allowed := True;
@@ -382,7 +382,7 @@ begin
       AnalysisPipe := zdb.QueryDB(False, True, True, 'Analysis', 'temp', True, 1, 0.1, 0, 0, 0);
       AnalysisPipe.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
         begin
-          with qState.DBEng.GetDF(qState) do
+          with qState.Eng.GetDF(qState) do
               sum := sum + ReadDouble(0);
         end;
       AnalysisPipe.OnDataDoneProc := procedure(dPipe: TZDBPipeline)
@@ -401,9 +401,9 @@ begin
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
       if qState.IsDF then
-        with qState.DBEng.GetDF(qState) do
+        with qState.Eng.GetDF(qState) do
           if InRange(ReadDouble(0), -100, 100) then
-              qState.DBEng.DeleteData(qState.StorePos);
+              qState.Eng.DeleteData(qState.StorePos);
     end;
 end;
 
@@ -415,7 +415,7 @@ begin
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     begin
       if qState.IsDF then
-        with qState.DBEng.GetDF(qState) do
+        with qState.Eng.GetDF(qState) do
           if InRange(ReadDouble(0), -200, 200) then
             begin
               TDataFrameDouble(Data[0]).Buffer := umlRandomRangeD(-100.0, 100.0);

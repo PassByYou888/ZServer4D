@@ -62,6 +62,9 @@
   // usage ZDB_BACKUP so slows the open of large size ZDB file, after time, but does is high performance.
   // {$DEFINE ZDB_BACKUP}
 
+  // ZDB Flush() uses physical IO as the temp storage device
+  // {$DEFINE ZDB_PHYSICAL_FLUSH}
+
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
   // CriticalSimulateAtomic defined so performance to be reduced
   {$DEFINE CriticalSimulateAtomic}
@@ -75,7 +78,7 @@
   {$UNDEF debug}
   {$DEFINE INLINE_ASM}
   {$R-} { range check }
-{$ELSE FPC}
+{$ELSE FPC} { IF DELPHI }
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
 
@@ -114,6 +117,9 @@
   // usage ZDB_BACKUP so slows the open of large size ZDB file, after time, but does is high performance.
   // {$DEFINE ZDB_BACKUP}
 
+  // ZDB Flush() uses physical IO as the temp storage device
+  // {$DEFINE ZDB_PHYSICAL_FLUSH}
+
   // used Critical Simulate Atomic with TMonitor.Enter(obj) and TMonitor.Exit(obj)
   // CriticalSimulateAtomic defined so performance to be reduced
   // {$DEFINE CriticalSimulateAtomic}
@@ -137,7 +143,7 @@
     {$UNDEF INLINE_ASM}
     {$O-} { close optimization }
     {$R-} { range check }
-    {$I-} { Input output checking }
+    {$I+} { Input output checking }
     {$D+} { debug information }
   {$ENDIF}
 

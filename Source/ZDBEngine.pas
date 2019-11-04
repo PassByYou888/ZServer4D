@@ -304,13 +304,14 @@ type
   PQueryState = ^TQueryState;
 
   TQueryState = record
-    dbEng: TDBStoreBase;
+    Eng: TDBStoreBase;
     StorePos: Int64;
     QueryHnd: PHeader;
     index: NativeInt;
     TaskTag: SystemString;
     deltaTime, NewTime: TTimeTick;
     Aborted: Boolean;
+    property dbEng: TDBStoreBase read Eng;
 
     function ID: Cardinal;
     function IsDF: Boolean;
@@ -1801,13 +1802,13 @@ end;
 
 function TQueryState.Cache: TDBCacheStream64;
 begin
-  Result := dbEng.GetCacheStream(StorePos);
+  Result := Eng.GetCacheStream(StorePos);
 end;
 
 function TQueryState.NextCache: TDBCacheStream64;
 begin
   if (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_First, DB_Header_Medium]) then
-      Result := dbEng.GetCacheStream(QueryHnd^.NextHeader)
+      Result := Eng.GetCacheStream(QueryHnd^.NextHeader)
   else
       Result := nil;
 end;
@@ -1815,7 +1816,7 @@ end;
 function TQueryState.PrevCache: TDBCacheStream64;
 begin
   if (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_Last, DB_Header_Medium]) then
-      Result := dbEng.GetCacheStream(QueryHnd^.PrevHeader)
+      Result := Eng.GetCacheStream(QueryHnd^.PrevHeader)
   else
       Result := nil;
 end;
@@ -2902,7 +2903,7 @@ end;
 function TDBStoreBase.QueryFirst(var qState: TQueryState): Boolean;
 begin
   Result := False;
-  qState.dbEng := Self;
+  qState.Eng := Self;
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.TaskTag := '';
@@ -2941,7 +2942,7 @@ end;
 function TDBStoreBase.QueryLast(var qState: TQueryState): Boolean;
 begin
   Result := False;
-  qState.dbEng := Self;
+  qState.Eng := Self;
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.TaskTag := '';

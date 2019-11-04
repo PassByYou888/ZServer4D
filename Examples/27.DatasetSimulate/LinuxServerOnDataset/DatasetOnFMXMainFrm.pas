@@ -157,7 +157,7 @@ begin
       dbeng.WaitQueryP(
         procedure(var qState: TQueryState)
         begin
-          DoStatus(qState.dbeng.VT[qState.StorePos].AsText);
+          DoStatus(qState.eng.VT[qState.StorePos].AsText);
         end);
       disposeObject(dbeng);
     end);

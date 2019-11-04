@@ -73,7 +73,7 @@ type
 
 function TOpCodeRun_Record.zExp_DB(var Param: TOpParam): Variant;
 begin
-  Result := qState.dbEng.VT[qState^.StorePos]['Key'];
+  Result := qState.Eng.VT[qState^.StorePos]['Key'];
 end;
 
 procedure TMyDoubleServer.cmd_QueryMyDatabase(Sender: TPeerIO; InData: TDataFrameEngine);

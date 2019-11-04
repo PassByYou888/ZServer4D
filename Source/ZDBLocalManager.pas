@@ -770,7 +770,7 @@ var
     if AlreadWrite then
         Exit;
 
-    WriteToOutput(qState.dbEng, qState.StorePos, qState.ID);
+    WriteToOutput(qState.Eng, qState.StorePos, qState.ID);
     AlreadWrite := True;
     inc(FQueryResultCounter);
   end;
@@ -822,6 +822,7 @@ begin
 {$ENDIF}
   inc(FQueryCounter);
 
+  // delay fragment
   FCurrentFragmentTime := FCurrentFragmentTime + qState.deltaTime;
   if (AlreadWrite) and (FCurrentFragmentTime >= Trunc(FragmentWaitTime * 1000)) then
     begin
@@ -829,16 +830,21 @@ begin
       FCurrentFragmentTime := 0;
     end;
 
+  // max query result
   if (MaxQueryResult > 0) and (FQueryResultCounter >= MaxQueryResult) then
     begin
       qState.Aborted := True;
       Exit;
     end;
+
+  // max query compare
   if (MaxQueryCompare > 0) and (FQueryCounter >= MaxQueryCompare) then
     begin
       qState.Aborted := True;
       Exit;
     end;
+
+  // max query wait
   if (MaxWaitTime > 0) and (qState.newTime >= Trunc(MaxWaitTime * 1000)) then
     begin
       qState.Aborted := True;
@@ -1909,7 +1915,7 @@ begin
   d := GetDB(dn);
   if d = nil then
       d := InitMemoryDB(dn);
-  M := qState.dbEng.GetCacheStream(qState.StorePos, qState.ID);
+  M := qState.Eng.GetCacheStream(qState.StorePos, qState.ID);
   if M <> nil then
     begin
       Result := d.AddData(M, M.CacheID);

@@ -104,7 +104,7 @@ begin
       exit;
 
   // 从数据库获取一个json对象
-  j := qState.DBEng.GetJson(qState);
+  j := qState.Eng.GetJson(qState);
 
   // 以牺牲性能换取安全检查
   if not dPipe.Values.Exists('Key') then
@@ -134,7 +134,7 @@ begin
       exit;
 
   // 从数据库获取一个json对象
-  j := qState.DBEng.GetJson(qState);
+  j := qState.Eng.GetJson(qState);
 
   // 以牺牲性能换取安全检查
   if not dPipe.Values.Exists('Key') then

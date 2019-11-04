@@ -276,6 +276,7 @@ function MakeRectV2(const X, Y: TGeoFloat; const p2: TVec2): TRectV2; {$IFDEF IN
 function MakeRectV2(const r: TRect): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function MakeRectV2(const r: TRectf): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
+function RectV2(): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function RectV2(const centre: TVec2; const width, height: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function RectV2(const X, Y, radius: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function RectV2(const x1, y1, x2, y2: TGeoFloat): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -1967,6 +1968,11 @@ begin
   Result[0, 1] := r.Top;
   Result[1, 0] := r.Right;
   Result[1, 1] := r.Bottom;
+end;
+
+function RectV2(): TRectV2;
+begin
+  Result := ZeroRect;
 end;
 
 function RectV2(const centre: TVec2; const width, height: TGeoFloat): TRectV2;

@@ -50,13 +50,13 @@ implementation
 procedure TDBStoreServiceForm.Query_G300(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
 begin
   if qState.IsDF then
-      Allowed := InRange(qState.DBEng.GetDF(qState).ReadDouble(0), -300.0, 300.0);
+      Allowed := InRange(qState.Eng.GetDF(qState).ReadDouble(0), -300.0, 300.0);
 end;
 
 procedure TDBStoreServiceForm.Query_G700(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
 begin
   if qState.IsDF then
-      Allowed := InRange(qState.DBEng.GetDF(qState).ReadDouble(0), -710.0, -700.0);
+      Allowed := InRange(qState.Eng.GetDF(qState).ReadDouble(0), -710.0, -700.0);
 end;
 
 procedure TDBStoreServiceForm.Timer1Timer(Sender: TObject);

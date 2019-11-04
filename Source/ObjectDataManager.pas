@@ -2196,6 +2196,7 @@ begin
     and (FPrepareWritePool.Count > 0) then
     begin
       // step 1: flush to swap file
+{$IFDEF ZDB_PHYSICAL_FLUSH}
       if (FDBHandle.IOHnd.Handle is TReliableFileStream) then
         begin
           swapFileName := TReliableFileStream(FDBHandle.IOHnd.Handle).fileName + SFlush;
@@ -2226,7 +2227,7 @@ begin
           end;
           DisposeObject(swapHnd);
         end;
-
+{$ENDIF ZDB_PHYSICAL_FLUSH}
       // step 2: flash fragment
       i := 0;
       p := FPrepareWritePool.FirstPtr;
@@ -2239,9 +2240,11 @@ begin
           p := p^.Next;
         end;
 
+{$IFDEF ZDB_PHYSICAL_FLUSH}
       // step 3: delete swap file
       if (FDBHandle.IOHnd.Handle is TReliableFileStream) then
           umlDeleteFile(swapFileName);
+{$ENDIF ZDB_PHYSICAL_FLUSH}
     end;
   FPrepareWritePool.Clear;
 end;

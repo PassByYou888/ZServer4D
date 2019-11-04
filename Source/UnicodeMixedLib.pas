@@ -205,6 +205,7 @@ function umlDeltaNumber(const v, Delta: NativeInt): NativeInt;
 function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
+function umlSameVariant(const v1, v2: Variant): Boolean;
 
 function umlRandom: Integer;
 function umlRandomRange(const min_, max_: Integer): Integer;
@@ -630,7 +631,9 @@ procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
 function umlProcessCycleValue(CurrentVal, DeltaVal, StartVal, OverVal: Single; var EndFlag: Boolean): Single;
 
 type
+  TCSVGetLineCall = procedure(var L: TPascalString; var IsEnd: Boolean);
   TCSVSaveCall = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
+  TCSVGetLineMethod = procedure(var L: TPascalString; var IsEnd: Boolean) of object;
   TCSVSaveMethod = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) of object;
 {$IFNDEF FPC}
   TCSVGetLineProc = reference to procedure(var L: TPascalString; var IsEnd: Boolean);
@@ -638,7 +641,9 @@ type
 {$ENDIF FPC}
 
 procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVSaveCall);
+procedure CustomImportCSV_C(const OnGetLine: TCSVGetLineCall; OnNotify: TCSVSaveCall);
 procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVSaveMethod);
+procedure CustomImportCSV_M(const OnGetLine: TCSVGetLineMethod; OnNotify: TCSVSaveMethod);
 {$IFNDEF FPC}
 procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVSaveProc);
 procedure CustomImportCSV_P(const OnGetLine: TCSVGetLineProc; OnNotify: TCSVSaveProc);
@@ -1259,6 +1264,15 @@ begin
 end;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
+begin
+  try
+      Result := VarSameValue(v1, v2);
+  except
+      Result := False;
+  end;
+end;
+
+function umlSameVariant(const v1, v2: Variant): Boolean;
 begin
   try
       Result := VarSameValue(v1, v2);
@@ -6099,6 +6113,70 @@ begin
   n := '';
 end;
 
+procedure CustomImportCSV_C(const OnGetLine: TCSVGetLineCall; OnNotify: TCSVSaveCall);
+var
+  IsEnd: Boolean;
+  i, j, hc: NativeInt;
+  n, s: TPascalString;
+  king, buff: TArrayPascalString;
+begin
+  // csv head
+  while true do
+    begin
+      IsEnd := False;
+      n := '';
+      OnGetLine(n, IsEnd);
+      if IsEnd then
+          exit;
+      if n.L <> 0 then
+        begin
+          hc := n.GetCharCount(',') + 1;
+          SetLength(buff, hc);
+          SetLength(king, hc);
+
+          for j := low(king) to high(king) do
+              king[j] := '';
+          j := 0;
+          while (j < length(king)) and (n.Len > 0) do
+            begin
+              king[j] := umlGetFirstStr_Discontinuity(n, ',');
+              n := umlDeleteFirstStr_Discontinuity(n, ',');
+              inc(j);
+            end;
+
+          break;
+        end;
+    end;
+
+  // csv body
+  while true do
+    begin
+      IsEnd := False;
+      n := '';
+      OnGetLine(n, IsEnd);
+      if IsEnd then
+          exit;
+      if n.Len > 0 then
+        begin
+          s := n;
+          for j := low(buff) to high(buff) do
+              buff[j] := '';
+          j := 0;
+          while (j < length(buff)) and (n.Len > 0) do
+            begin
+              buff[j] := umlGetFirstStr_Discontinuity(n, ',');
+              n := umlDeleteFirstStr_Discontinuity(n, ',');
+              inc(j);
+            end;
+          OnNotify(s, king, buff);
+        end;
+    end;
+
+  SetLength(buff, 0);
+  SetLength(king, 0);
+  n := '';
+end;
+
 procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVSaveMethod);
 var
   i, j, bp, hc: NativeInt;
@@ -6150,6 +6228,70 @@ begin
             OnNotify(sour[i], king, buff);
           end;
       end;
+
+  SetLength(buff, 0);
+  SetLength(king, 0);
+  n := '';
+end;
+
+procedure CustomImportCSV_M(const OnGetLine: TCSVGetLineMethod; OnNotify: TCSVSaveMethod);
+var
+  IsEnd: Boolean;
+  i, j, hc: NativeInt;
+  n, s: TPascalString;
+  king, buff: TArrayPascalString;
+begin
+  // csv head
+  while true do
+    begin
+      IsEnd := False;
+      n := '';
+      OnGetLine(n, IsEnd);
+      if IsEnd then
+          exit;
+      if n.L <> 0 then
+        begin
+          hc := n.GetCharCount(',') + 1;
+          SetLength(buff, hc);
+          SetLength(king, hc);
+
+          for j := low(king) to high(king) do
+              king[j] := '';
+          j := 0;
+          while (j < length(king)) and (n.Len > 0) do
+            begin
+              king[j] := umlGetFirstStr_Discontinuity(n, ',');
+              n := umlDeleteFirstStr_Discontinuity(n, ',');
+              inc(j);
+            end;
+
+          break;
+        end;
+    end;
+
+  // csv body
+  while true do
+    begin
+      IsEnd := False;
+      n := '';
+      OnGetLine(n, IsEnd);
+      if IsEnd then
+          exit;
+      if n.Len > 0 then
+        begin
+          s := n;
+          for j := low(buff) to high(buff) do
+              buff[j] := '';
+          j := 0;
+          while (j < length(buff)) and (n.Len > 0) do
+            begin
+              buff[j] := umlGetFirstStr_Discontinuity(n, ',');
+              n := umlDeleteFirstStr_Discontinuity(n, ',');
+              inc(j);
+            end;
+          OnNotify(s, king, buff);
+        end;
+    end;
 
   SetLength(buff, 0);
   SetLength(king, 0);

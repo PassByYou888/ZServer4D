@@ -276,6 +276,9 @@ const
   CurrentPlatform: TExecutePlatform = epUnknow;
   {$IFEND}
 
+  CPU64 = {$IFDEF CPU64}True{$ELSE CPU64}False{$IFEND CPU64};
+  X64 = CPU64;
+
   // timetick define
   C_Tick_Second = TTimeTick(1000);
   C_Tick_Minute = TTimeTick(C_Tick_Second) * 60;
