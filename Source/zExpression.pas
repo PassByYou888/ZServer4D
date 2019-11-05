@@ -870,9 +870,9 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
   procedure PrintError(const s: SystemString);
   begin
     if s = '' then
-        DoStatus('declaration error', [])
+        DoStatus('declaration error "%s"', [ParsingEng.Text.Text])
     else
-        DoStatus('declaration error %s', [s]);
+        DoStatus('declaration error "%s" -> [%s]', [ParsingEng.Text.Text, s]);
     DoStatus('');
   end;
 
@@ -2319,6 +2319,9 @@ begin
               end;
             end;
           DisposeObject(sym);
+        end
+      else
+        begin
         end;
       DisposeObject(exp_const_vl);
     end;
