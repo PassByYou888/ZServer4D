@@ -6224,6 +6224,7 @@ end;
 class function THashStringTextStream.StrToV(const s: SystemString): SystemString;
 var
   n, body: U_String;
+  v: Variant;
 begin
   n := umlTrimSpace(s);
   try
@@ -6242,14 +6243,22 @@ begin
       begin
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(False, body));
+        v := EvaluateExpressionValue(False, body);
+        if VarIsNull(v) then
+            Result := n
+        else
+            Result := VarToStr(v);
       end
     else if n.ComparePos(1, 'e') and umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(False, body));
+        v := EvaluateExpressionValue(False, body);
+        if VarIsNull(v) then
+            Result := n
+        else
+            Result := VarToStr(v);
       end
     else
       begin
@@ -7285,6 +7294,7 @@ end;
 class function THashVariantTextStream.StrToV(const s: SystemString): Variant;
 var
   n, body: U_String;
+  v: Variant;
 begin
   n := umlTrimSpace(s);
   try
@@ -7303,14 +7313,22 @@ begin
       begin
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        Result := EvaluateExpressionValue(False, body);
+        v := EvaluateExpressionValue(False, body);
+        if VarIsNull(v) then
+            Result := n
+        else
+            Result := VarToStr(v);
       end
     else if n.ComparePos(1, 'e') and umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        Result := EvaluateExpressionValue(False, body);
+        v := EvaluateExpressionValue(False, body);
+        if VarIsNull(v) then
+            Result := n
+        else
+            Result := VarToStr(v);
       end
     else
       begin
