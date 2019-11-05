@@ -6233,7 +6233,7 @@ begin
         umlDecodeLineBASE64(n, body);
         Result := body.Text;
       end
-    else if umlMultipleMatch([
+    else if n.ComparePos(1, 'exp') and umlMultipleMatch([
       'expression(*)', 'expression[*]', 'expression<*>', 'expression"*"', 'expression'#39'*'#39,
       'exp(*)', 'exp[*]', 'exp<*>', 'exp"*"', 'exp'#39'*'#39,
       'expr(*)', 'expr[*]', 'expr<*>', 'expr"*"', 'expr'#39'*'#39,
@@ -6244,29 +6244,12 @@ begin
         body.DeleteLast;
         Result := VarToStr(EvaluateExpressionValue(False, body));
       end
-    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
         body.DeleteFirst;
         body.DeleteFirst;
         body.DeleteLast;
         Result := VarToStr(EvaluateExpressionValue(False, body));
-      end
-    else if umlMultipleMatch(['c(*)', 'c[*]', 'c<*>', 'c"*"', 'c'#39'*'#39], n) then
-      begin
-        body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
-        body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(False, TTextStyle.tsC, body));
-      end
-    else if umlMultipleMatch(['p(*)', 'p[*]', 'p<*>', 'p"*"', 'p'#39'*'#39], n) then
-      begin
-        body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
-        body.DeleteLast;
-        Result := VarToStr(EvaluateExpressionValue(False, TTextStyle.tsPascal, body));
       end
     else
       begin
@@ -7311,7 +7294,7 @@ begin
         umlDecodeLineBASE64(n, body);
         Result := body.Text;
       end
-    else if umlMultipleMatch([
+    else if n.ComparePos(1, 'exp') and umlMultipleMatch([
       'expression(*)', 'expression[*]', 'expression<*>', 'expression"*"', 'expression'#39'*'#39,
       'exp(*)', 'exp[*]', 'exp<*>', 'exp"*"', 'exp'#39'*'#39,
       'expr(*)', 'expr[*]', 'expr<*>', 'expr"*"', 'expr'#39'*'#39,
@@ -7322,29 +7305,12 @@ begin
         body.DeleteLast;
         Result := EvaluateExpressionValue(False, body);
       end
-    else if umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
+    else if n.ComparePos(1, 'e') and umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
+        body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
         Result := EvaluateExpressionValue(False, body);
-      end
-    else if umlMultipleMatch(['c(*)', 'c[*]', 'c<*>', 'c"*"', 'c'#39'*'#39], n) then
-      begin
-        body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
-        body.DeleteLast;
-        Result := EvaluateExpressionValue(False, TTextStyle.tsC, body);
-      end
-    else if umlMultipleMatch(['p(*)', 'p[*]', 'p<*>', 'p"*"', 'p'#39'*'#39], n) then
-      begin
-        body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
-        body.DeleteLast;
-        Result := EvaluateExpressionValue(False, TTextStyle.tsPascal, body);
       end
     else
       begin
