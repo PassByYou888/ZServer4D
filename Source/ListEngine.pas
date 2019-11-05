@@ -6244,10 +6244,10 @@ begin
         body.DeleteLast;
         Result := VarToStr(EvaluateExpressionValue(False, body));
       end
+    else if n.ComparePos(1, 'e') and umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
-        body.DeleteFirst;
-        body.DeleteFirst;
+        body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
         Result := VarToStr(EvaluateExpressionValue(False, body));
       end
