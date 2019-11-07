@@ -97,6 +97,7 @@ type
 
     function DoMultiple(var Param: TOpParam): Variant;
     function DoPrint(var Param: TOpParam): Variant;
+
     procedure InternalReg; virtual;
   public
     ProcList: THashList;
@@ -798,50 +799,50 @@ end;
 procedure TOpCustomRunTime.InternalReg;
 begin
   ProcList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}FreeNotifyProc;
-  RegOpM('Int', 'Int(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoInt)^.Category := 'Math';
-  RegOpM('Frac', 'Frac(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoFrac)^.Category := 'Math';
-  RegOpM('Exp', 'Exp(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoExp)^.Category := 'Math';
-  RegOpM('Cos', 'Cos(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoCos)^.Category := 'Math';
-  RegOpM('Sin', 'Sin(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSin)^.Category := 'Math';
-  RegOpM('Ln', 'Ln(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoLn)^.Category := 'Math';
-  RegOpM('ArcTan', 'ArcTan(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoArcTan)^.Category := 'Math';
-  RegOpM('Sqrt', 'Sqrt(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSqrt)^.Category := 'Math';
-  RegOpM('Sqr', 'Sqr(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSqr)^.Category := 'Math';
-  RegOpM('Tan', 'Tan(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTan)^.Category := 'Math';
-  RegOpM('Round', 'Round(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoRound)^.Category := 'Math';
-  RegOpM('Trunc', 'Trunc(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc)^.Category := 'Math';
+  RegOpM('Int', 'Int(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoInt)^.Category := 'Base Math';
+  RegOpM('Frac', 'Frac(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoFrac)^.Category := 'Base Math';
+  RegOpM('Exp', 'Exp(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoExp)^.Category := 'Base Math';
+  RegOpM('Cos', 'Cos(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoCos)^.Category := 'Base Math';
+  RegOpM('Sin', 'Sin(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSin)^.Category := 'Base Math';
+  RegOpM('Ln', 'Ln(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoLn)^.Category := 'Base Math';
+  RegOpM('ArcTan', 'ArcTan(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoArcTan)^.Category := 'Base Math';
+  RegOpM('Sqrt', 'Sqrt(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSqrt)^.Category := 'Base Math';
+  RegOpM('Sqr', 'Sqr(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSqr)^.Category := 'Base Math';
+  RegOpM('Tan', 'Tan(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTan)^.Category := 'Base Math';
+  RegOpM('Round', 'Round(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoRound)^.Category := 'Base Math';
+  RegOpM('Trunc', 'Trunc(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc)^.Category := 'Base Math';
 
-  RegOpM('Bool', 'Bool(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Math';
-  RegOpM('Boolean', 'Boolean(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Math';
+  RegOpM('Bool', 'Bool(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Base Math';
+  RegOpM('Boolean', 'Boolean(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Base Math';
 
-  RegOpM('True', 'True(): return true', {$IFDEF FPC}@{$ENDIF FPC}DoTrue)^.Category := 'Math';
-  RegOpM('False', 'False(): return false', {$IFDEF FPC}@{$ENDIF FPC}DoFalse)^.Category := 'Math';
+  RegOpM('True', 'True(): return true', {$IFDEF FPC}@{$ENDIF FPC}DoTrue)^.Category := 'Base Math';
+  RegOpM('False', 'False(): return false', {$IFDEF FPC}@{$ENDIF FPC}DoFalse)^.Category := 'Base Math';
 
-  RegOpM('Random', 'Random(0..n): return number', {$IFDEF FPC}@{$ENDIF FPC}DoRandom)^.Category := 'Math';
-  RegOpM('RandomFloat', 'RandomFloat(): return float', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat)^.Category := 'Math';
-  RegOpM('RandomF', 'RandomF(): return float', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat)^.Category := 'Math';
+  RegOpM('Random', 'Random(0..n): return number', {$IFDEF FPC}@{$ENDIF FPC}DoRandom)^.Category := 'Base Math';
+  RegOpM('RandomFloat', 'RandomFloat(): return float', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat)^.Category := 'Base Math';
+  RegOpM('RandomF', 'RandomF(): return float', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat)^.Category := 'Base Math';
 
-  RegOpM('Max', 'Max(0..n): return max value', {$IFDEF FPC}@{$ENDIF FPC}DoMax)^.Category := 'Math';
-  RegOpM('Min', 'Min(0..n): return min value', {$IFDEF FPC}@{$ENDIF FPC}DoMin)^.Category := 'Math';
-  RegOpM('Clamp', 'Clamp(value, min, max): return clamp value', {$IFDEF FPC}@{$ENDIF FPC}DoClamp)^.Category := 'Math';
-  RegOpM('IfThen', 'IfThen(bool, if true then of value, if false then of value): return if value', {$IFDEF FPC}@{$ENDIF FPC}DoIfThen)^.Category := 'Math';
+  RegOpM('Max', 'Max(0..n): return max value', {$IFDEF FPC}@{$ENDIF FPC}DoMax)^.Category := 'Base Math';
+  RegOpM('Min', 'Min(0..n): return min value', {$IFDEF FPC}@{$ENDIF FPC}DoMin)^.Category := 'Base Math';
+  RegOpM('Clamp', 'Clamp(value, min, max): return clamp value', {$IFDEF FPC}@{$ENDIF FPC}DoClamp)^.Category := 'Base Math';
+  RegOpM('IfThen', 'IfThen(bool, if true then of value, if false then of value): return if value', {$IFDEF FPC}@{$ENDIF FPC}DoIfThen)^.Category := 'Base Math';
 
-  RegOpM('Str', 'Str(n..n): convert any variant as string', {$IFDEF FPC}@{$ENDIF FPC}DoStr)^.Category := 'String';
-  RegOpM('String', 'String(n..n): convert any variant as string', {$IFDEF FPC}@{$ENDIF FPC}DoStr)^.Category := 'String';
-  RegOpM('Text', 'Text(n..n): convert any variant as string', {$IFDEF FPC}@{$ENDIF FPC}DoStr)^.Category := 'String';
+  RegOpM('Str', 'Str(n..n): convert any variant as string', {$IFDEF FPC}@{$ENDIF FPC}DoStr)^.Category := 'Base String';
+  RegOpM('Base String', 'String(n..n): convert any variant as string', {$IFDEF FPC}@{$ENDIF FPC}DoStr)^.Category := 'Base String';
+  RegOpM('Text', 'Text(n..n): convert any variant as string', {$IFDEF FPC}@{$ENDIF FPC}DoStr)^.Category := 'Base String';
 
-  RegOpM('GetFirst', 'GetFirst(string, split Char): return first split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst)^.Category := 'String';
-  RegOpM('First', 'First(string, split Char): return first split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst)^.Category := 'String';
-  RegOpM('DeleteFirst', 'DeleteFirst(string, split Char): return removed at after first split segment of value', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteFirst)^.Category := 'String';
-  RegOpM('GetLast', 'GetLast(string, split Char): return last split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast)^.Category := 'String';
-  RegOpM('Last', 'Last(string, split Char): return last split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast)^.Category := 'String';
-  RegOpM('DeleteLast', 'DeleteLast(string, split Char): return removed at after last split segment of value', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteLast)^.Category := 'String';
+  RegOpM('GetFirst', 'GetFirst(string, split Char): return first split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst)^.Category := 'Base String';
+  RegOpM('First', 'First(string, split Char): return first split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetFirst)^.Category := 'Base String';
+  RegOpM('DeleteFirst', 'DeleteFirst(string, split Char): return removed at after first split segment of value', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteFirst)^.Category := 'Base String';
+  RegOpM('GetLast', 'GetLast(string, split Char): return last split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast)^.Category := 'Base String';
+  RegOpM('Last', 'Last(string, split Char): return last split segment', {$IFDEF FPC}@{$ENDIF FPC}DoGetLast)^.Category := 'Base String';
+  RegOpM('DeleteLast', 'DeleteLast(string, split Char): return removed at after last split segment of value', {$IFDEF FPC}@{$ENDIF FPC}DoDeleteLast)^.Category := 'Base String';
 
-  RegOpM('MultipleMatch', 'MultipleMatch(multile exp, n..n): return bool', {$IFDEF FPC}@{$ENDIF FPC}DoMultiple)^.Category := 'String';
-  RegOpM('Multiple', 'MultipleMatch(multile exp, n..n): return bool', {$IFDEF FPC}@{$ENDIF FPC}DoMultiple)^.Category := 'String';
+  RegOpM('MultipleMatch', 'MultipleMatch(multile exp, n..n): return bool', {$IFDEF FPC}@{$ENDIF FPC}DoMultiple)^.Category := 'Base String';
+  RegOpM('Multiple', 'MultipleMatch(multile exp, n..n): return bool', {$IFDEF FPC}@{$ENDIF FPC}DoMultiple)^.Category := 'Base String';
 
-  RegOpM('Print', 'Print(n..n): output to console', {$IFDEF FPC}@{$ENDIF FPC}DoPrint)^.Category := 'String';
-  RegOpM('DoStatus', 'DoStatus(n..n): output to console', {$IFDEF FPC}@{$ENDIF FPC}DoPrint)^.Category := 'String';
+  RegOpM('Print', 'Print(n..n): output to console', {$IFDEF FPC}@{$ENDIF FPC}DoPrint)^.Category := 'Base String';
+  RegOpM('DoStatus', 'DoStatus(n..n): output to console', {$IFDEF FPC}@{$ENDIF FPC}DoPrint)^.Category := 'Base String';
 end;
 
 constructor TOpCustomRunTime.Create;

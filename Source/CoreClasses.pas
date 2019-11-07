@@ -39,7 +39,7 @@ uses SysUtils, Classes, Types,
   {$ENDIF FPC}
   ,Math;
 
-{$Region 'core define and class'}
+{$Region 'core defines + class'}
 type
   TBytes = SysUtils.TBytes;
   TPoint = Types.TPoint;
@@ -174,6 +174,8 @@ type
 
   TComputeThread = class(TCoreClassThread)
   protected
+    InternalCritical_: TCritical;
+    InternalRunning_: Boolean;
     OnRunCall: TRunWithThreadCall;
     OnRunMethod: TRunWithThreadMethod;
     {$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
@@ -186,6 +188,9 @@ type
     procedure Execute; override;
     procedure Done_Sync;
     procedure Halt_Sync;
+    function GetRunning(): Boolean;
+    procedure SetRunning(const Value: Boolean);
+    property Running: Boolean read GetRunning write SetRunning;
   public
     UserData: Pointer;
     UserObject: TCoreClassObject;
@@ -222,26 +227,20 @@ type
     destructor Destroy; override;
 
     procedure Rndmize();
-
     function Rand32(L: Integer): Integer; overload;
     procedure Rand32(L: Integer; dest: PInteger; num: NativeInt); overload;
-
     function Rand64(L: Int64): Int64; overload;
     procedure Rand64(L: Int64; dest: PInt64; num: NativeInt); overload;
-
     function RandE: Extended; overload;
     procedure RandE(dest: PExtended; num: NativeInt); overload;
-
     function RandF: Single; overload;
     procedure RandF(dest: PSingle; num: NativeInt); overload;
-
     function RandD: Double; overload;
     procedure RandD(dest: PDouble; num: NativeInt); overload;
-
     property seed: Integer read GetSeed write SetSeed;
   end;
 
-{$EndRegion 'core define and class'}
+{$EndRegion 'core defines + class'}
 {$Region 'core const'}
 const
   {$IF Defined(WIN32)}
@@ -722,7 +721,7 @@ begin
     tick := TCoreClassThread.GetTickCount();
     inc(Core_RunTime_Tick, tick - Core_Step_Tick);
     Core_Step_Tick := tick;
-    Exit(Core_RunTime_Tick);
+    Result := Core_RunTime_Tick;
   finally
       CoreTimeTickCritical.Release;
   end;
@@ -900,10 +899,10 @@ initialization
   Core_RunTime_Tick := 1000 * 60 * 60 * 24 * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock();
-  InitCoreThreadPool(CpuCount * 2);
   InitMT19937Rand();
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   CoreInitedTimeTick := GetTimeTick();
+  InitCoreThreadPool(CpuCount * 2);
 finalization
   FreeMT19937Rand();
   FreeCoreThreadPool;

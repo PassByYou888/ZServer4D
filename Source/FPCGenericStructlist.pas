@@ -72,7 +72,6 @@ type
       TCompareFunc = function(const Item1, Item2: t): Integer;
       TTypeList = array[0..MaxGListSize] of t;
       PTypeList = ^TTypeList;
-      pt = ^t;
   {$ifdef HAS_ENUMERATOR} TFPGListEnumeratorSpec = specialize TFPGListEnumerator<t>; {$endif}
 
   {$ifndef OldSyntax}protected var{$else}
