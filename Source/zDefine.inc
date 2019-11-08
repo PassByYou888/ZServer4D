@@ -102,6 +102,9 @@
   // multi thread parallel switch.
   {$DEFINE parallel}
 
+  // Parallel programs use the system default TParallel
+  {$DEFINE SystemParallel}
+
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
   // Using this paper replace of Delphi Random() and Randomize() function
   {$DEFINE InstallMT19937CoreToDelphi}

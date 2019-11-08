@@ -307,7 +307,18 @@ const
 
 {$IFDEF FPC}
 type TFPCParallelForProcedure = procedure(pass: NativeInt) is nested;
-procedure FPCParallelFor(const OnFor:TFPCParallelForProcedure; const b, e: NativeInt);
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedure; b, e: NativeInt);
+{$ELSE FPC}
+type
+{$IFDEF SystemParallel}
+  TDelphiParallelForProcedure32 = TProc<Integer>;
+  TDelphiParallelForProcedure64 = TProc<Int64>;
+{$ELSE SystemParallel}
+  TDelphiParallelForProcedure32 = reference to procedure(pass: Integer);
+  TDelphiParallelForProcedure64 = reference to procedure(pass: Int64);
+{$ENDIF SystemParallel}
+procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
 {$ENDIF FPC}
 
 procedure SetCoreThreadDispatch(sleep_: Integer); // default dispatch sleep is 10ms
@@ -450,10 +461,6 @@ var
 implementation
 
 uses DoStatusIO;
-
-{$IFDEF FPC}
-{$INCLUDE Core_FPCParallelFor.inc}
-{$ENDIF FPC}
 
 {$INCLUDE CoreAtomic.inc}
 {$INCLUDE Core_MT19937.inc}
@@ -853,8 +860,13 @@ begin
   inherited Clear;
 end;
 
-
 {$INCLUDE CoreComputeThread.inc}
+
+{$IFDEF FPC}
+{$INCLUDE Core_FPCParallelFor.inc}
+{$ELSE FPC}
+{$INCLUDE Core_DelphiParallelFor.inc}
+{$ENDIF FPC}
 
 procedure Nop;
 begin
@@ -909,4 +921,5 @@ finalization
   FreeCriticalLock;
   GlobalMemoryHook := False;
 end.
+
 

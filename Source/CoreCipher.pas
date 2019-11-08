@@ -3784,7 +3784,7 @@ begin
 {$IFDEF FPC}
   FPCParallelFor(@Nested_ParallelFor, 0, StepTotal - 1);
 {$ELSE FPC}
-  TParallel.for(0, StepTotal - 1, procedure(pass: Integer)
+  DelphiParallelFor(0, StepTotal - 1, procedure(pass: Integer)
     var
       w: Integer;
     begin

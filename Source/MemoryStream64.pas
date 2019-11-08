@@ -1147,7 +1147,7 @@ begin
 {$IFDEF FPC}
   FPCParallelFor(@Nested_ParallelFor, 0, Length(StripArry) - 1);
 {$ELSE FPC}
-  TParallel.for(0, Length(StripArry) - 1, procedure(pass: Integer)
+  DelphiParallelFor(0, Length(StripArry) - 1, procedure(pass: Integer)
     begin
       SelectCompressStream(scm, sourStrips[pass], StripArry[pass]);
     end);
@@ -1293,7 +1293,7 @@ begin
 {$IFDEF FPC}
   FPCParallelFor(@Nested_ParallelFor, 0, Length(StripArry) - 1);
 {$ELSE FPC}
-  TParallel.for(0, Length(StripArry) - 1, procedure(pass: Integer)
+  DelphiParallelFor(0, Length(StripArry) - 1, procedure(pass: Integer)
     begin
       SelectDecompressStream(StripArry[pass].sour, StripArry[pass].dest);
     end);

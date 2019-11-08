@@ -47,6 +47,7 @@ var
   CoreThreadRunning_: Boolean;
   ComputeThreadDispatchSleep: Integer;
   ComputeThreadTaskRunning: Integer;
+  ParallelGranularity: Integer;
 
   // dispatch compute
   ComputeDispatchCritical: TCritical;
@@ -160,6 +161,7 @@ begin
   CoreThreadRunning_ := True;
   ComputeThreadDispatchSleep := 10;
   ComputeThreadTaskRunning := 0;
+  ParallelGranularity := Thread_Num;
   for i := 0 to Thread_Num - 1 do
     begin
       th := TComputeThread.Create;
@@ -217,7 +219,7 @@ begin
   while True do
     begin
       while (not Running) and (GetTimeTick - RunningTimeTick < 100) do
-          TComputeThread.Sleep(1);
+          TComputeThread.Yield;
 
       while not Running do
           TComputeThread.Sleep(ComputeThreadDispatchSleep);
