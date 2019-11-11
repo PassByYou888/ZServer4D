@@ -112,6 +112,7 @@ type
 
     function GetProcDescription(ProcName: SystemString): SystemString; overload;
     function GetAllProcDescription(): TPascalStringList; overload;
+    function GetAllProcDescription(Category: U_String): TPascalStringList; overload;
 
     function RegOpC(ProcName: SystemString; OnProc: TOnOpCall): POpRTData; overload;
     function RegOpC(ProcName, ProcDescription: SystemString; OnProc: TOnOpCall): POpRTData; overload;
@@ -882,6 +883,11 @@ begin
 end;
 
 function TOpCustomRunTime.GetAllProcDescription(): TPascalStringList;
+begin
+  Result := GetAllProcDescription('*');
+end;
+
+function TOpCustomRunTime.GetAllProcDescription(Category: U_String): TPascalStringList;
 var
   arry: THashDataArray;
   hl: THashObjectList;
@@ -914,13 +920,14 @@ begin
   ns := TPascalStringList.Create;
   hl.GetListData(ns);
   for i := 0 to ns.Count - 1 do
-    begin
-      Result.Add(PFormat('%s:', [ns[i].Text]));
-      tmp := ns.Objects[i] as TPascalStringList;
-      for j := 0 to tmp.Count - 1 do
-          Result.Add('  ' + tmp[j]);
-      Result.Add('');
-    end;
+    if umlMultipleMatch(Category, ns[i]) then
+      begin
+        Result.Add(PFormat('%s:', [ns[i].Text]));
+        tmp := ns.Objects[i] as TPascalStringList;
+        for j := 0 to tmp.Count - 1 do
+            Result.Add('  ' + tmp[j]);
+        Result.Add('');
+      end;
   n := '';
   DisposeObject(ns);
   DisposeObject(hl);

@@ -48,8 +48,11 @@
   // be associate api: UnicodeMixedLib.umlStreamMD5, Fast_MD5.FastMD5
   {$DEFINE OptimizationMemoryStreamMD5}
 
-  // multi thread parallel switch.
-  {$DEFINE parallel}
+  // multi thread Parallel switch.
+  {$DEFINE Parallel}
+
+  // MT19937 of seed in the startup TComputeThread is 0
+  {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
   // automated loading common AI data sets on boot-time
   {$DEFINE Z_AI_Dataset_Build_In}
@@ -99,15 +102,18 @@
   // be associate api: UnicodeMixedLib.umlStreamMD5, Fast_MD5.FastMD5
   {$DEFINE OptimizationMemoryStreamMD5}
 
-  // multi thread parallel switch.
-  {$DEFINE parallel}
+  // multi thread Parallel switch.
+  {$DEFINE Parallel}
 
-  // Parallel programs use the system default TParallel
+  // Parallel programs use the delphi default TParallel
   {$DEFINE SystemParallel}
 
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
   // Using this paper replace of Delphi Random() and Randomize() function
-  {$DEFINE InstallMT19937CoreToDelphi}
+  // {$DEFINE InstallMT19937CoreToDelphi}
+
+  // MT19937 of seed in the startup TComputeThread is 0
+  {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
   // automated loading common AI data sets on boot-time
   // {$DEFINE Z_AI_Dataset_Build_In}

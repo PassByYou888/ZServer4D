@@ -52,6 +52,16 @@ begin
   L := False;
 end;
 
+procedure TSoftCritical.Enter;
+begin
+  Acquire;
+end;
+
+procedure TSoftCritical.Leave;
+begin
+  Release;
+end;
+
 type
   PCritical_Struct = ^TCritical_Struct;
 
@@ -379,4 +389,3 @@ begin
   System.AtomicDecrement(x, v);
 {$ENDIF FPC}
 end;
-

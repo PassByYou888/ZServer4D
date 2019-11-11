@@ -187,6 +187,7 @@ end;
 
 {$IFDEF DELPHI}
 
+{$IFDEF InstallMT19937CoreToDelphi}
 
 function DelphiRandom32Proc: UInt32;
 begin
@@ -203,6 +204,7 @@ begin
   Random32Proc := DelphiRandom32Proc;
   RandomizeProc := DelphiRandomizeProc;
 end;
+{$ENDIF InstallMT19937CoreToDelphi}
 
 {$ENDIF DELPHI}
 
@@ -233,7 +235,6 @@ end;
 
 function MT19937InstanceNum(): Integer;
 begin
-  MT19937();
   MT19937InternalCritical.Acquire;
   Result := MT19937POOL.Count;
   MT19937InternalCritical.Release;

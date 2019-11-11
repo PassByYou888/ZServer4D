@@ -214,13 +214,7 @@ procedure DoStatus(const v: TMemoryStream64); overload;
 
 implementation
 
-uses
-{$IFDEF parallel}
-{$IFNDEF FPC}
-  Threading,
-{$ENDIF FPC}
-{$ENDIF parallel}
-  SyncObjs, DoStatusIO, CoreCompress;
+uses DoStatusIO, CoreCompress;
 
 procedure TMemoryStream64.SetPointer(buffPtr: Pointer; const BuffSize: NativeUInt);
 begin
@@ -1057,14 +1051,14 @@ var
   sourStrips: TStream64List;
   StripArry: array of TMemoryStream64;
 
-{$IFDEF parallel}
+{$IFDEF Parallel}
 {$IFDEF FPC}
   procedure Nested_ParallelFor(pass: NativeInt);
   begin
     SelectCompressStream(scm, sourStrips[pass], StripArry[pass]);
   end;
 {$ENDIF FPC}
-{$ELSE parallel}
+{$ELSE Parallel}
   procedure DoFor;
   var
     pass: Integer;
@@ -1074,7 +1068,7 @@ var
         SelectCompressStream(scm, sourStrips[pass], StripArry[pass]);
       end;
   end;
-{$ENDIF parallel}
+{$ENDIF Parallel}
   procedure BuildBuff;
   var
     strip_siz, strip_m: Int64;
@@ -1143,7 +1137,7 @@ begin
     StripNum := StripNum_;
   BuildBuff;
 
-{$IFDEF parallel}
+{$IFDEF Parallel}
 {$IFDEF FPC}
   FPCParallelFor(@Nested_ParallelFor, 0, Length(StripArry) - 1);
 {$ELSE FPC}
@@ -1152,9 +1146,9 @@ begin
       SelectCompressStream(scm, sourStrips[pass], StripArry[pass]);
     end);
 {$ENDIF FPC}
-{$ELSE parallel}
+{$ELSE Parallel}
   DoFor;
-{$ENDIF parallel}
+{$ENDIF Parallel}
   BuildOutput;
   FreeBuff;
 end;
@@ -1179,14 +1173,14 @@ type
 var
   StripArry: array of TPara_strip_;
 
-{$IFDEF parallel}
+{$IFDEF Parallel}
 {$IFDEF FPC}
   procedure Nested_ParallelFor(pass: NativeInt);
   begin
     SelectDecompressStream(StripArry[pass].sour, StripArry[pass].dest);
   end;
 {$ENDIF FPC}
-{$ELSE parallel}
+{$ELSE Parallel}
   procedure DoFor;
   var
     pass: Integer;
@@ -1196,7 +1190,7 @@ var
         SelectDecompressStream(StripArry[pass].sour, StripArry[pass].dest);
       end;
   end;
-{$ENDIF parallel}
+{$ENDIF Parallel}
   function BuildBuff_Stream64(stream: TMemoryStream64): Boolean;
   var
     strip_num: Integer;
@@ -1289,7 +1283,7 @@ begin
       Exit;
     end;
 
-{$IFDEF parallel}
+{$IFDEF Parallel}
 {$IFDEF FPC}
   FPCParallelFor(@Nested_ParallelFor, 0, Length(StripArry) - 1);
 {$ELSE FPC}
@@ -1298,9 +1292,9 @@ begin
       SelectDecompressStream(StripArry[pass].sour, StripArry[pass].dest);
     end);
 {$ENDIF FPC}
-{$ELSE parallel}
+{$ELSE Parallel}
   DoFor;
-{$ENDIF parallel}
+{$ENDIF Parallel}
   BuildOutput;
   FreeBuff;
 end;

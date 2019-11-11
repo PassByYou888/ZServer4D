@@ -52,9 +52,13 @@ type
   TNPostExecute = class;
 
   TNPostExecuteCall = procedure(Sender: TNPostExecute);
+  TNPostExecuteCall_NP = procedure();
   TNPostExecuteMethod = procedure(Sender: TNPostExecute) of object;
-
-{$IFNDEF FPC} TNPostExecuteProc = reference to procedure(Sender: TNPostExecute); {$ENDIF}
+  TNPostExecuteMethod_NP = procedure() of object;
+{$IFNDEF FPC}
+  TNPostExecuteProc = reference to procedure(Sender: TNPostExecute);
+  TNPostExecuteProc_NP = reference to procedure();
+{$ENDIF}
 
   TNPostExecute = class(TCoreClassObject)
   private
@@ -70,8 +74,13 @@ type
     Delay: Double;
 
     OnExecuteCall: TNPostExecuteCall;
+    OnExecuteCall_NP: TNPostExecuteCall_NP;
     OnExecuteMethod: TNPostExecuteMethod;
-{$IFNDEF FPC} OnExecuteProc: TNPostExecuteProc; {$ENDIF}
+    OnExecuteMethod_NP: TNPostExecuteMethod_NP;
+{$IFNDEF FPC}
+    OnExecuteProc: TNPostExecuteProc;
+    OnExecuteProc_NP: TNPostExecuteProc_NP;
+{$ENDIF}
     property DataEng: TDataFrameEngine read FDataEng;
     property Owner: TNProgressPost read FOwner;
 
@@ -107,27 +116,27 @@ type
     function PostExecuteM(DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
     function PostExecuteM(Delay: Double; DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
     function PostExecuteM(Delay: Double; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
+    function PostExecuteM_NP(Delay: Double; OnExecuteMethod: TNPostExecuteMethod_NP): TNPostExecute; overload;
 
     function PostExecuteC(DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
     function PostExecuteC(Delay: Double; DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
     function PostExecuteC(Delay: Double; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
+    function PostExecuteC_NP(Delay: Double; OnExecuteCall: TNPostExecuteCall_NP): TNPostExecute; overload;
 
 {$IFNDEF FPC}
     function PostExecuteP(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecuteP(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecuteP(Delay: Double; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
+    function PostExecuteP_NP(Delay: Double; OnExecuteProc: TNPostExecuteProc_NP): TNPostExecute; overload;
 {$ENDIF}
     procedure Delete(p: TNPostExecute); overload; virtual;
 
     procedure Progress(deltaTime: Double);
 
-    procedure PauseProgress;
-    procedure ContinueProgress;
-
+    property Paused: Boolean read FPaused write FPaused;
     property Busy: Boolean read FBusy;
     property CurrentExecute: TNPostExecute read FCurrentExecute;
     property PostClass: TNPostExecuteClass read FPostClass write FPostClass;
-    property IsPause: Boolean read FPaused;
   end;
 
   TNProgressPostWithCadencer = class(TNProgressPost, ICadencerProgressInterface)
@@ -236,9 +245,12 @@ begin
   Delay := 0;
 
   OnExecuteCall := nil;
+  OnExecuteCall_NP := nil;
   OnExecuteMethod := nil;
+  OnExecuteMethod_NP := nil;
 {$IFNDEF FPC}
   OnExecuteProc := nil;
+  OnExecuteProc_NP := nil;
 {$ENDIF}
 end;
 
@@ -276,11 +288,29 @@ begin
       end;
     end;
 
+  if Assigned(OnExecuteCall_NP) then
+    begin
+      FDataEng.Reader.index := 0;
+      try
+          OnExecuteCall_NP();
+      except
+      end;
+    end;
+
   if Assigned(OnExecuteMethod) then
     begin
       FDataEng.Reader.index := 0;
       try
           OnExecuteMethod(Self);
+      except
+      end;
+    end;
+
+  if Assigned(OnExecuteMethod_NP) then
+    begin
+      FDataEng.Reader.index := 0;
+      try
+          OnExecuteMethod_NP();
       except
       end;
     end;
@@ -291,6 +321,14 @@ begin
       FDataEng.Reader.index := 0;
       try
           OnExecuteProc(Self);
+      except
+      end;
+    end;
+  if Assigned(OnExecuteProc_NP) then
+    begin
+      FDataEng.Reader.index := 0;
+      try
+          OnExecuteProc_NP();
       except
       end;
     end;
@@ -390,6 +428,12 @@ begin
   Result.OnExecuteMethod := OnExecuteMethod;
 end;
 
+function TNProgressPost.PostExecuteM_NP(Delay: Double; OnExecuteMethod: TNPostExecuteMethod_NP): TNPostExecute;
+begin
+  Result := PostExecute(Delay);
+  Result.OnExecuteMethod_NP := OnExecuteMethod;
+end;
+
 function TNProgressPost.PostExecuteC(DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
 begin
   Result := PostExecute(DataEng);
@@ -406,6 +450,12 @@ function TNProgressPost.PostExecuteC(Delay: Double; OnExecuteCall: TNPostExecute
 begin
   Result := PostExecute(Delay);
   Result.OnExecuteCall := OnExecuteCall;
+end;
+
+function TNProgressPost.PostExecuteC_NP(Delay: Double; OnExecuteCall: TNPostExecuteCall_NP): TNPostExecute;
+begin
+  Result := PostExecute(Delay);
+  Result.OnExecuteCall_NP := OnExecuteCall;
 end;
 
 {$IFNDEF FPC}
@@ -427,6 +477,12 @@ function TNProgressPost.PostExecuteP(Delay: Double; OnExecuteProc: TNPostExecute
 begin
   Result := PostExecute(Delay);
   Result.OnExecuteProc := OnExecuteProc;
+end;
+
+function TNProgressPost.PostExecuteP_NP(Delay: Double; OnExecuteProc: TNPostExecuteProc_NP): TNPostExecute;
+begin
+  Result := PostExecute(Delay);
+  Result.OnExecuteProc_NP := OnExecuteProc;
 end;
 
 {$ENDIF}
@@ -516,16 +572,6 @@ begin
   DisposeObject(L);
 
   FPostProcessIsRun := False;
-end;
-
-procedure TNProgressPost.PauseProgress;
-begin
-  FPaused := True;
-end;
-
-procedure TNProgressPost.ContinueProgress;
-begin
-  FPaused := False;
 end;
 
 procedure TNProgressPostWithCadencer.CadencerProgress(const deltaTime, newTime: Double);

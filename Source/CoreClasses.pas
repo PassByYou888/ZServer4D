@@ -25,11 +25,13 @@ unit CoreClasses;
 interface
 
 uses SysUtils, Classes, Types,
-  {$IFDEF parallel}
+  {$IFDEF Parallel}
   {$IFNDEF FPC}
+  {$IFDEF SystemParallel}
   Threading,
+  {$ENDIF SystemParallel}
   {$ENDIF FPC}
-  {$ENDIF parallel}
+  {$ENDIF Parallel}
   PascalStrings,
   SyncObjs
   {$IFDEF FPC}
@@ -147,12 +149,13 @@ type
   end;
 
   TSoftCritical = class(TCoreClassObject)
-  private
-    L: Boolean;
   public
+    var L: Boolean;
     constructor Create;
-    procedure Acquire;
-    procedure Release;
+    procedure Acquire; inline;
+    procedure Release; inline;
+    procedure Enter; inline;
+    procedure Leave; inline;
     property Busy:Boolean read L;
   end;
 
@@ -305,9 +308,18 @@ const
 {$EndRegion 'core const'}
 {$Region 'core api'}
 
+// NoP = No Operation. It's the empty function, whose purpose is only for the
+// debugging, or for the piece of code where intentionaly nothing is planned to be.
+procedure Nop;
+procedure CheckThreadSynchronize; overload;
+function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
+
 {$IFDEF FPC}
-type TFPCParallelForProcedure = procedure(pass: NativeInt) is nested;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedure; b, e: NativeInt);
+type
+  TFPCParallelForProcedureInt32 = procedure(pass: Integer) is nested;
+  TFPCParallelForProcedureInt64 = procedure(pass: Int64) is nested;
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedureInt32; b, e: Integer); overload;
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedureInt64; b, e: Int64); overload;
 {$ELSE FPC}
 type
 {$IFDEF SystemParallel}
@@ -445,12 +457,6 @@ function SAR64(const AValue: Int64; Shift: Byte): Int64;
 
 function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
 
-// NoP = No Operation. It's the empty function, whose purpose is only for the
-// debugging, or for the piece of code where intentionaly nothing is planned to be.
-procedure Nop;
-
-procedure CheckThreadSynchronize; overload;
-function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 {$EndRegion 'core api'}
 {$Region 'core var'}
 var
@@ -889,7 +895,6 @@ begin
     end
   else
     begin
-      MT19937();
       DoStatus();
       if not CheckThreadSynchronizeing then
         begin
@@ -916,8 +921,8 @@ initialization
   CoreInitedTimeTick := GetTimeTick();
   InitCoreThreadPool(CpuCount * 2);
 finalization
-  FreeMT19937Rand();
   FreeCoreThreadPool;
+  FreeMT19937Rand();
   FreeCriticalLock;
   GlobalMemoryHook := False;
 end.

@@ -130,6 +130,7 @@ begin
         end
       else
           TCoreClassThread.Sleep(ComputeThreadDispatchSleep);
+      MT19937();
     end;
 
   ComputeDispatchCritical.Acquire;
@@ -227,9 +228,9 @@ begin
       if not CoreThreadRunning_ then
           break;
 
-      RunningTimeTick := GetTimeTick;
-
-      SetMT19937Seed(0);
+{$IFDEF MT19937SeedOnTComputeThreadIs0} SetMT19937Seed(0); {$ELSE MT19937SeedOnTComputeThreadIs0} MT19937Randomize(); {$ENDIF MT19937SeedOnTComputeThreadIs0}
+      //
+      // run sequence
       AtomInc(ComputeThreadTaskRunning);
       try
         if Assigned(OnRunCall) then
@@ -256,6 +257,7 @@ begin
           Synchronize({$IFDEF FPC}@{$ENDIF FPC}Done_Sync);
 
       AtomDec(ComputeThreadTaskRunning);
+      RunningTimeTick := GetTimeTick;
       Running := False;
     end;
 

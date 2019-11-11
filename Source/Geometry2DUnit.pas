@@ -377,9 +377,9 @@ function RectSize(const r: TRectV2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectSizeR(const r: TRectV2): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectFit(const sour, dest: TRectV2; const Bound: Boolean): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectFit(const sour, dest: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function RectFit(const width, height: TGeoFloat; const b: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectFit(const width, height: TGeoFloat; const bk: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function FitRect(const sour, dest: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function FitRect(const width, height: TGeoFloat; const b: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function FitRect(const width, height: TGeoFloat; const bk: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function BoundRect(const buff: TArrayPoint): TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function BoundRect(const p1, p2, p3: TPoint): TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function BoundRect(const p1, p2, p3, p4: TPoint): TRect; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -2675,9 +2675,9 @@ begin
   Result := RectFit(sour, dest, False);
 end;
 
-function RectFit(const width, height: TGeoFloat; const b: TRectV2): TRectV2;
+function RectFit(const width, height: TGeoFloat; const bk: TRectV2): TRectV2;
 begin
-  Result := RectFit(MakeRectV2(0, 0, width, height), b);
+  Result := RectFit(MakeRectV2(0, 0, width, height), bk);
 end;
 
 function FitRect(const sour, dest: TRectV2): TRectV2;
@@ -2685,9 +2685,9 @@ begin
   Result := RectFit(sour, dest);
 end;
 
-function FitRect(const width, height: TGeoFloat; const b: TRectV2): TRectV2;
+function FitRect(const width, height: TGeoFloat; const bk: TRectV2): TRectV2;
 begin
-  Result := RectFit(MakeRectV2(0, 0, width, height), b);
+  Result := RectFit(MakeRectV2(0, 0, width, height), bk);
 end;
 
 function BoundRect(const buff: TArrayPoint): TRect;

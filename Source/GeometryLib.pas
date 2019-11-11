@@ -98,11 +98,11 @@ type
   TVertex = TAffineVector;
   // arrays of vectors
   PAffineVectorArray = ^TAffineVectorArray;
-  TAffineVectorArray = array [0 .. MaxInt shr 4] of TAffineVector;
+  TAffineVectorArray = array [0 .. (MaxInt div SizeOf(TAffineVector)) - 1] of TAffineVector;
   PVectorArray = ^TVectorArray;
-  TVectorArray = array [0 .. MaxInt shr 5] of TVector;
+  TVectorArray = array [0 .. (MaxInt div SizeOf(TVector)) - 1] of TVector;
   PTexPointArray = ^TTexPointArray;
-  TTexPointArray = array [0 .. MaxInt shr 4] of TTexPoint;
+  TTexPointArray = array [0 .. (MaxInt div SizeOf(TTexPoint)) - 1] of TTexPoint;
   // matrices
   THomogeneousFltMatrix = TMatrix4f;
   TAffineFltMatrix = TMatrix3f;
@@ -110,7 +110,7 @@ type
   // some simplified names
   PMatrix = ^TMatrix;
   TMatrix = THomogeneousFltMatrix;
-  TMatrixArray = array [0 .. MaxInt shr 7] of TMatrix;
+  TMatrixArray = array [0 .. (MaxInt div SizeOf(TMatrix)) - 1] of TMatrix;
   PMatrixArray = ^TMatrixArray;
   PHomogeneousMatrix = ^THomogeneousMatrix;
   THomogeneousMatrix = THomogeneousFltMatrix;
@@ -132,7 +132,7 @@ type
   end;
 
   PQuaternionArray = ^TQuaternionArray;
-  TQuaternionArray = array [0 .. MaxInt shr 5] of TQuaternion;
+  TQuaternionArray = array [0 .. (MaxInt div SizeOf(TQuaternion)) - 1] of TQuaternion;
 
   TRectangle = record
     Left, Top, width, height: Integer;
@@ -661,7 +661,7 @@ function VectorDistance2(const v1, v2: TAffineVector): TGeoFloat; overload;
 function VectorDistance2(const v1, v2: TVector): TGeoFloat; overload;
 
 { Calculates a vector perpendicular to N.
-  N is assumed to be of unit length, subtract out any component parallel to N }
+  N is assumed to be of unit length, subtract out any component Parallel to N }
 function VectorPerpendicular(const v, n: TAffineVector): TAffineVector;
 // Reflects vector V against N (assumes N is normalized)
 function VectorReflect(const v, n: TAffineVector): TAffineVector;
@@ -1176,7 +1176,7 @@ function Roll(const Matrix: TMatrix; const MasterDirection: TAffineVector; angle
 
 { Compute the intersection point "res" of a line with a plane.
   Return value:<ul>
-  <li>0 : no intersection, line parallel to plane
+  <li>0 : no intersection, line Parallel to plane
   <li>1 : res is valid
   <li>-1 : line is inside plane
   </ul><br>
@@ -1241,7 +1241,7 @@ function IsVolumeClipped(const Min, Max: TAffineVector; const Frustum: TFrustum)
 // misc funcs
 
 {
-  Creates a parallel projection matrix.
+  Creates a Parallel projection matrix.
   Transformed points will projected on the plane along the specified direction. }
 function MakeParallelProjectionMatrix(const plane: THmgPlane; const dir: TVector): TMatrix;
 
@@ -6272,7 +6272,7 @@ begin
   VectorSubtract(p3, p1, v2);
   VectorCrossProduct(rayVector, v2, pvec);
   det := VectorDotProduct(v1, pvec);
-  if ((det < EPSILON2) and (det > -EPSILON2)) then begin // vector is parallel to triangle's plane
+  if ((det < EPSILON2) and (det > -EPSILON2)) then begin // vector is Parallel to triangle's plane
       Result := False;
       Exit;
     end;
@@ -6461,7 +6461,7 @@ var
 begin
   a := VectorDotProduct(plane, direction); // direction projected to plane normal
   b := PlaneEvaluatePoint(plane, Point);   // distance to plane
-  if a = 0 then begin                      // direction is parallel to plane
+  if a = 0 then begin                      // direction is Parallel to plane
       if b = 0 then
           Result := -1 // line is inside plane
       else
