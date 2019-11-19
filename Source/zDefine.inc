@@ -109,7 +109,7 @@
   {$DEFINE SystemParallel}
 
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
-  // Using this paper replace of Delphi Random() and Randomize() function
+  // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3.2 or laster
   // {$DEFINE InstallMT19937CoreToDelphi}
 
   // MT19937 of seed in the startup TComputeThread is 0
@@ -152,7 +152,7 @@
     {$UNDEF INLINE_ASM}
     {$O-} { close optimization }
     {$R-} { range check }
-    {$I+} { Input output checking }
+    {$I-} { Input output checking }
     {$D+} { debug information }
   {$ENDIF}
 
@@ -179,7 +179,7 @@
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$J-} { Writeable typed constants }
+{$J+} { Writeable typed constants }
 
 (*
   Pointer math is simply treating any given typed pointer in some narrow,
