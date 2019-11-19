@@ -29,30 +29,18 @@ type
     UserData: Pointer;
     UserObject: TCoreClassObject;
     procedure Init;
+    procedure AssignTo(th: TComputeThread);
   end;
 
   PComputeDispatchData = ^TComputeDispatch;
 
   TCoreComputeThreadPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TComputeThread>;
-  TComputeDispatchDataPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PComputeDispatchData>;
-
-  TComputeDispatchTh = class(TCoreClassThread)
-  protected
-    function PickedIdleThread: TComputeThread; inline;
-    procedure Execute; override;
-  end;
 
 var
   CoreThreadPool: TCoreComputeThreadPool;
-  CoreThreadRunning_: Boolean;
-  ComputeThreadDispatchSleep: Integer;
   ComputeThreadTaskRunning: Integer;
   ParallelGranularity: Integer;
-
-  // dispatch compute
   ComputeDispatchCritical: TCritical;
-  ComputeDispatchDataPool: TComputeDispatchDataPool;
-  ComputeDispatchTh: TComputeDispatchTh;
 
 procedure TComputeDispatch.Init;
 begin
@@ -69,214 +57,97 @@ begin
   UserObject := nil;
 end;
 
-function TComputeDispatchTh.PickedIdleThread: TComputeThread;
-var
-  i: Integer;
+procedure TComputeDispatch.AssignTo(th: TComputeThread);
 begin
-  while CoreThreadRunning_ do
-    begin
-      for i := 0 to CoreThreadPool.Count - 1 do
-        begin
-          if not CoreThreadPool[i].Running then
-            begin
-              Result := CoreThreadPool[i];
-              exit;
-            end;
-        end;
-      TCoreClassThread.Sleep(ComputeThreadDispatchSleep);
-    end;
-  Result := nil;
+  th.OnRunCall := OnRunCall;
+  th.OnRunMethod := OnRunMethod;
+{$IFNDEF FPC} th.OnRunProc := OnRunProc; {$ENDIF FPC}
+  th.OnRunCall_NP := OnRunCall_NP;
+  th.OnRunMethod_NP := OnRunMethod_NP;
+{$IFNDEF FPC} th.OnRunProc_NP := OnRunProc_NP; {$ENDIF FPC}
+  th.OnDoneCall := OnDoneCall;
+  th.OnDoneMethod := OnDoneMethod;
+{$IFNDEF FPC} th.OnDoneProc := OnDoneProc; {$ENDIF FPC}
+  th.UserData := UserData;
+  th.UserObject := UserObject;
 end;
 
-procedure TComputeDispatchTh.Execute;
-var
-  p: PComputeDispatchData;
-  cTh: TComputeThread;
-  i: Integer;
+function PickOrCreateThread(): TComputeThread;
 begin
-  while CoreThreadRunning_ do
-    begin
-      if ComputeDispatchDataPool.Count > 0 then
-        begin
-          ComputeDispatchCritical.Acquire;
-          p := ComputeDispatchDataPool[0];
-          ComputeDispatchDataPool.Delete(0);
-          ComputeDispatchCritical.Release;
-
-          if not CoreThreadRunning_ then
-              break;
-
-          cTh := PickedIdleThread();
-
-          if cTh = nil then
-              break;
-
-          cTh.OnRunCall := p^.OnRunCall;
-          cTh.OnRunMethod := p^.OnRunMethod;
-{$IFNDEF FPC} cTh.OnRunProc := p^.OnRunProc; {$ENDIF FPC}
-          //
-          cTh.OnRunCall_NP := p^.OnRunCall_NP;
-          cTh.OnRunMethod_NP := p^.OnRunMethod_NP;
-{$IFNDEF FPC} cTh.OnRunProc_NP := p^.OnRunProc_NP; {$ENDIF FPC}
-          //
-          cTh.OnDoneCall := p^.OnDoneCall;
-          cTh.OnDoneMethod := p^.OnDoneMethod;
-{$IFNDEF FPC} cTh.OnDoneProc := p^.OnDoneProc; {$ENDIF FPC}
-          //
-          cTh.UserData := p^.UserData;
-          cTh.UserObject := p^.UserObject;
-          dispose(p);
-          cTh.Running := True;
-        end
-      else
-          TCoreClassThread.Sleep(ComputeThreadDispatchSleep);
-      MT19937();
-    end;
-
-  ComputeDispatchCritical.Acquire;
-  for i := 0 to ComputeDispatchDataPool.Count - 1 do
-      dispose(ComputeDispatchDataPool[i]);
-  ComputeDispatchDataPool.Clear;
-  ComputeDispatchCritical.Release;
-
-  ComputeDispatchTh := nil;
+  Result := TComputeThread.Create;
+  CoreThreadPool.Add(Result);
 end;
 
 procedure PostComputeDispatchData(const data: TComputeDispatch);
 var
-  p: PComputeDispatchData;
+  th: TComputeThread;
 begin
-  new(p);
-  p^ := data;
   ComputeDispatchCritical.Acquire;
-  ComputeDispatchDataPool.Add(p);
+  AtomInc(ComputeThreadTaskRunning);
+  th := PickOrCreateThread();
+  data.AssignTo(th);
+  th.Start();
   ComputeDispatchCritical.Release;
 end;
 
 procedure InitCoreThreadPool(Thread_Num: Integer);
 var
   th: TComputeThread;
-  i: Integer;
 begin
   CoreThreadPool := TCoreComputeThreadPool.Create;
-  CoreThreadRunning_ := True;
-  ComputeThreadDispatchSleep := 10;
   ComputeThreadTaskRunning := 0;
   ParallelGranularity := Thread_Num;
-  for i := 0 to Thread_Num - 1 do
-    begin
-      th := TComputeThread.Create;
-      CoreThreadPool.Add(th);
-    end;
   ComputeDispatchCritical := TCritical.Create;
-  ComputeDispatchDataPool := TComputeDispatchDataPool.Create;
-  ComputeDispatchTh := TComputeDispatchTh.Create(True);
-  ComputeDispatchTh.FreeOnTerminate := True;
-  ComputeDispatchTh.Suspended := False;
-end;
-
-procedure SetCoreThreadDispatch(sleep_: Integer);
-begin
-  ComputeThreadDispatchSleep := sleep_;
 end;
 
 procedure FreeCoreThreadPool;
 var
-  th: TComputeThread;
+  i: Integer;
 begin
-  if not CoreThreadRunning_ then
-      exit;
-
-  CoreThreadRunning_ := False;
-
-  while (CoreThreadPool.Count > 0) do
-    begin
-      th := CoreThreadPool.First;
-      if not th.Running then
-          th.Running := True;
-      CheckSynchronize();
-    end;
-  while (ComputeDispatchTh <> nil) do
-      CheckSynchronize();
-
-  CoreThreadPool.Clear;
-  ComputeDispatchTh := nil;
+  repeat
+    ComputeDispatchCritical.Acquire;
+    i := CoreThreadPool.Count;
+    ComputeDispatchCritical.Release;
+  until i = 0;
 
   CoreThreadPool.Free;
   CoreThreadPool := nil;
 
   ComputeDispatchCritical.Free;
   ComputeDispatchCritical := nil;
-
-  ComputeDispatchDataPool.Free;
-  ComputeDispatchDataPool := nil;
 end;
 
 procedure TComputeThread.Execute;
-var
-  RunningTimeTick: TTimeTick;
 begin
-  RunningTimeTick := GetTimeTick;
-  while True do
-    begin
-      while (not Running) and (GetTimeTick - RunningTimeTick < 100) do
-          TComputeThread.Yield;
-
-      while not Running do
-          TComputeThread.Sleep(ComputeThreadDispatchSleep);
-
-      if not CoreThreadRunning_ then
-          break;
-
-{$IFDEF MT19937SeedOnTComputeThreadIs0} SetMT19937Seed(0); {$ELSE MT19937SeedOnTComputeThreadIs0} MT19937Randomize(); {$ENDIF MT19937SeedOnTComputeThreadIs0}
-      //
-      // run sequence
-      AtomInc(ComputeThreadTaskRunning);
-      try
-        if Assigned(OnRunCall) then
-            OnRunCall(Self);
-        if Assigned(OnRunMethod) then
-            OnRunMethod(Self);
-{$IFNDEF FPC}
-        if Assigned(OnRunProc) then
-            OnRunProc(Self);
-{$ENDIF FPC}
-        //
-        if Assigned(OnRunCall_NP) then
-            OnRunCall_NP();
-        if Assigned(OnRunMethod_NP) then
-            OnRunMethod_NP();
-{$IFNDEF FPC}
-        if Assigned(OnRunProc_NP) then
-            OnRunProc_NP();
-{$ENDIF FPC}
-      except
-      end;
-
-      if Assigned(OnDoneCall) or Assigned(OnDoneMethod){$IFNDEF FPC} or Assigned(OnDoneProc){$ENDIF FPC} then
-          Synchronize({$IFDEF FPC}@{$ENDIF FPC}Done_Sync);
-
-      AtomDec(ComputeThreadTaskRunning);
-      RunningTimeTick := GetTimeTick;
-      Running := False;
-    end;
-
-  OnRunCall := nil;
-  OnRunMethod := nil;
-{$IFNDEF FPC} OnRunProc := nil; {$ENDIF FPC}
-  OnRunCall_NP := nil;
-  OnRunMethod_NP := nil;
-{$IFNDEF FPC} OnRunProc_NP := nil; {$ENDIF FPC}
-  OnDoneCall := nil;
-  OnDoneMethod := nil;
-{$IFNDEF FPC} OnDoneProc := nil; {$ENDIF FPC}
-  UserData := nil;
-  UserObject := nil;
-
   try
-      Synchronize({$IFDEF FPC}@{$ENDIF FPC}Halt_Sync);
+{$IFDEF MT19937SeedOnTComputeThreadIs0} SetMT19937Seed(0); {$ELSE MT19937SeedOnTComputeThreadIs0} MT19937Randomize(); {$ENDIF MT19937SeedOnTComputeThreadIs0}
+    if Assigned(OnRunCall) then
+        OnRunCall(Self);
+    if Assigned(OnRunMethod) then
+        OnRunMethod(Self);
+{$IFNDEF FPC}
+    if Assigned(OnRunProc) then
+        OnRunProc(Self);
+{$ENDIF FPC}
+    if Assigned(OnRunCall_NP) then
+        OnRunCall_NP();
+    if Assigned(OnRunMethod_NP) then
+        OnRunMethod_NP();
+{$IFNDEF FPC}
+    if Assigned(OnRunProc_NP) then
+        OnRunProc_NP();
+{$ENDIF FPC}
   except
   end;
+  if Assigned(OnDoneCall) or Assigned(OnDoneMethod){$IFNDEF FPC} or Assigned(OnDoneProc){$ENDIF FPC} then
+      Synchronize({$IFDEF FPC}@{$ENDIF FPC}Done_Sync);
+  AtomDec(ComputeThreadTaskRunning);
+
+  ComputeDispatchCritical.Acquire;
+  CoreThreadPool.Remove(Self);
+  ComputeDispatchCritical.Release;
+
+  RemoveMT19937Thread(ThreadID);
 end;
 
 procedure TComputeThread.Done_Sync;
@@ -294,35 +165,10 @@ begin
   end;
 end;
 
-procedure TComputeThread.Halt_Sync;
-begin
-  if (CoreThreadPool <> nil) and (CoreThreadPool.Count > 0) then
-      CoreThreadPool.Remove(Self);
-  InternalCritical_.Free;
-end;
-
-function TComputeThread.GetRunning(): Boolean;
-begin
-  InternalCritical_.Acquire;
-  Result := InternalRunning_;
-  InternalCritical_.Release;
-end;
-
-procedure TComputeThread.SetRunning(const Value: Boolean);
-begin
-  InternalCritical_.Acquire;
-  InternalRunning_ := Value;
-  InternalCritical_.Release;
-end;
-
 constructor TComputeThread.Create;
 begin
   inherited Create(True);
   FreeOnTerminate := True;
-
-  InternalCritical_ := TCritical.Create;
-  InternalRunning_ := False;
-
   OnRunCall := nil;
   OnRunMethod := nil;
 {$IFNDEF FPC} OnRunProc := nil; {$ENDIF FPC}
@@ -334,8 +180,11 @@ begin
 {$IFNDEF FPC} OnDoneProc := nil; {$ENDIF FPC}
   UserData := nil;
   UserObject := nil;
+end;
 
-  Suspended := False;
+destructor TComputeThread.Destroy;
+begin
+  inherited Destroy;
 end;
 
 class function TComputeThread.ActivtedTask(): Integer;
@@ -343,30 +192,22 @@ begin
   Result := ComputeThreadTaskRunning;
 end;
 
-class function TComputeThread.WaitingTask(): Integer;
-begin
-  ComputeDispatchCritical.Acquire;
-  Result := ComputeDispatchDataPool.Count;
-  ComputeDispatchCritical.Release;
-end;
-
 class function TComputeThread.TotalTask(): Integer;
 begin
-  Result := TComputeThread.ActivtedTask() + TComputeThread.WaitingTask();
+  Result := ComputeThreadTaskRunning;
 end;
 
 class function TComputeThread.State(): SystemString;
 begin
-  Result := Format('total task: %d, activted task: %d, queue task: %d Instance(MT19937): %d',
-    [TComputeThread.TotalTask, TComputeThread.ActivtedTask, TComputeThread.WaitingTask, MT19937InstanceNum]);
+  ComputeDispatchCritical.Acquire;
+  Result := Format('total task: %d, activted task: %d, ComputeThread: %d', [ComputeThreadTaskRunning, ComputeThreadTaskRunning, CoreThreadPool.Count]);
+  ComputeDispatchCritical.Release;
 end;
 
 class procedure TComputeThread.RunC(const data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunCall := OnRun;
   Dispatch_.OnDoneCall := OnDone;
@@ -379,8 +220,6 @@ class procedure TComputeThread.RunC(const data: Pointer; const Obj: TCoreClassOb
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunCall := OnRun;
   Dispatch_.UserData := data;
@@ -392,8 +231,6 @@ class procedure TComputeThread.RunC(const OnRun: TRunWithThreadCall);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunCall := OnRun;
   Dispatch_.UserData := nil;
@@ -405,8 +242,6 @@ class procedure TComputeThread.RunC_NP(const OnRun: TRunWithThreadCall_NP);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunCall_NP := OnRun;
   Dispatch_.UserData := nil;
@@ -418,8 +253,6 @@ class procedure TComputeThread.RunM(const data: Pointer; const Obj: TCoreClassOb
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunMethod := OnRun;
   Dispatch_.OnDoneMethod := OnDone;
@@ -432,8 +265,6 @@ class procedure TComputeThread.RunM(const data: Pointer; const Obj: TCoreClassOb
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunMethod := OnRun;
   Dispatch_.UserData := data;
@@ -445,8 +276,6 @@ class procedure TComputeThread.RunM(const OnRun: TRunWithThreadMethod);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunMethod := OnRun;
   Dispatch_.UserData := nil;
@@ -458,8 +287,6 @@ class procedure TComputeThread.RunM_NP(const OnRun: TRunWithThreadMethod_NP);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunMethod_NP := OnRun;
   Dispatch_.UserData := nil;
@@ -474,8 +301,6 @@ class procedure TComputeThread.RunP(const data: Pointer; const Obj: TCoreClassOb
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunProc := OnRun;
   Dispatch_.OnDoneProc := OnDone;
@@ -488,8 +313,6 @@ class procedure TComputeThread.RunP(const data: Pointer; const Obj: TCoreClassOb
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunProc := OnRun;
   Dispatch_.UserData := data;
@@ -501,8 +324,6 @@ class procedure TComputeThread.RunP(const OnRun: TRunWithThreadProc);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunProc := OnRun;
   Dispatch_.UserData := nil;
@@ -514,8 +335,6 @@ class procedure TComputeThread.RunP_NP(const OnRun: TRunWithThreadProc_NP);
 var
   Dispatch_: TComputeDispatch;
 begin
-  if not CoreThreadRunning_ then
-      exit;
   Dispatch_.Init;
   Dispatch_.OnRunProc_NP := OnRun;
   Dispatch_.UserData := nil;
