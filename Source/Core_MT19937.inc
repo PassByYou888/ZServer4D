@@ -39,7 +39,7 @@ type
     LastActivtedTime: TTimeTick;
     Busy: Boolean;
     Instance: Integer;
-    procedure BuildMT(Seed_: Cardinal);
+    procedure BuildMT(Seed_: Integer);
     function GenRand_MT19937(): Integer;
     procedure Init(ThreadID_: TThreadID; LastActivtedTime_: TTimeTick);
   end;
@@ -52,7 +52,7 @@ type
   end;
 
   { Initializing the array with a seed }
-procedure TMT19937Core.BuildMT(Seed_: Cardinal);
+procedure TMT19937Core.BuildMT(Seed_: Integer);
 var
   i: Integer;
 begin
@@ -89,7 +89,7 @@ begin
       if MTI = (MT19937N + 1) then
         begin
           { default initial seed is used }
-          BuildMT(InternalRndSeed);
+          BuildMT(Integer(InternalRndSeed));
 
           { hack: InternalRndSeed is not used more than once in this algorithm. Most }
           { user changes are re-initialising reandseed with the value it had }
@@ -148,10 +148,10 @@ var
   i: Integer;
   p: PMD19937Core;
 begin
+  tk := GetTimeTick;
   MT19937InternalCritical.Acquire;
   try
     Result := nil;
-    tk := GetTimeTick;
     thID := TCoreClassThread.CurrentThread.ThreadID;
     i := 0;
     while i < MT19937POOL.Count do
@@ -180,14 +180,39 @@ begin
         MT19937POOL.Add(p);
         Result := p;
       end;
-  finally
-      MT19937InternalCritical.Release;
+  except
   end;
+  MT19937InternalCritical.Release;
+end;
+
+procedure RemoveMT19937Thread(thID: TThreadID);
+var
+  tk: TTimeTick;
+  i: Integer;
+  p: PMD19937Core;
+begin
+  tk := GetTimeTick;
+  MT19937InternalCritical.Acquire;
+  i := 0;
+  while i < MT19937POOL.Count do
+    begin
+      p := MT19937POOL[i];
+      if (p^.ThreadID = thID) or
+        ((not p^.Busy) and (p^.Instance <= 0) and (tk - p^.LastActivtedTime > MT19937LifeCycle)) then
+        begin
+          dispose(p);
+          MT19937POOL.Delete(i);
+        end
+      else
+          inc(i);
+    end;
+  MT19937InternalCritical.Release;
 end;
 
 {$IFDEF DELPHI}
 
 {$IFDEF InstallMT19937CoreToDelphi}
+
 
 function DelphiRandom32Proc: UInt32;
 begin
@@ -219,6 +244,7 @@ begin
   MT19937Install();
 {$ENDIF InstallMT19937CoreToDelphi}
 {$ENDIF DELPHI}
+  MT19937LifeCycle := 60 * 1000;
 end;
 
 procedure FreeMT19937Rand;
