@@ -176,9 +176,7 @@ type
   {$IFNDEF FPC} TRunWithThreadProc_NP = reference to procedure(); {$ENDIF FPC}
 
   TComputeThread = class(TCoreClassThread)
-  protected
-    InternalCritical_: TCritical;
-    InternalRunning_: Boolean;
+  private var
     OnRunCall: TRunWithThreadCall;
     OnRunMethod: TRunWithThreadMethod;
     {$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
@@ -188,19 +186,16 @@ type
     OnDoneCall: TRunWithThreadCall;
     OnDoneMethod: TRunWithThreadMethod;
     {$IFNDEF FPC} OnDoneProc: TRunWithThreadProc; {$ENDIF FPC}
+  private
     procedure Execute; override;
     procedure Done_Sync;
-    procedure Halt_Sync;
-    function GetRunning(): Boolean;
-    procedure SetRunning(const Value: Boolean);
-    property Running: Boolean read GetRunning write SetRunning;
   public
     UserData: Pointer;
     UserObject: TCoreClassObject;
 
     constructor Create;
+    destructor Destroy; override;
     class function ActivtedTask(): Integer;
-    class function WaitingTask(): Integer;
     class function TotalTask(): Integer;
     class function State(): SystemString;
 
@@ -289,9 +284,6 @@ const
   C_Tick_Week   = TTimeTick(C_Tick_Day) * 7;
   C_Tick_Year   = TTimeTick(C_Tick_Day) * 365;
 
-  // The life cycle of working in asynchronous thread consistency, metric n/MS
-  MT19937LifeCycle: TTimeTick = 5 * 1000;
-
   // file mode
   fmCreate        = Classes.fmCreate;
   soFromBeginning = Classes.soFromBeginning;
@@ -313,6 +305,8 @@ const
 procedure Nop;
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
+procedure CheckMT19937();
+procedure FreeCoreThreadPool;
 
 {$IFDEF FPC}
 type
@@ -332,9 +326,6 @@ type
 procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
 procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
 {$ENDIF FPC}
-
-procedure SetCoreThreadDispatch(sleep_: Integer); // default dispatch sleep is 10ms
-procedure FreeCoreThreadPool;
 
 procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
@@ -460,8 +451,14 @@ function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
 {$EndRegion 'core api'}
 {$Region 'core var'}
 var
-  GlobalMemoryHook: Boolean;     // default is True
+  // default is True
+  GlobalMemoryHook: Boolean;
+
+  // core init time
   CoreInitedTimeTick: TTimeTick;
+
+  // The life cycle of working in asynchronous thread consistency, metric n/MS
+  MT19937LifeCycle: TTimeTick;
 {$EndRegion 'core var'}
 
 implementation
@@ -908,6 +905,11 @@ begin
       else
         Result := False;
     end;
+end;
+
+procedure CheckMT19937();
+begin
+  MT19937();
 end;
 
 initialization
