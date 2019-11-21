@@ -2,7 +2,8 @@ type
   TFPCParallelThData32 = record
     b, e: Integer;
     Completed: ^Integer;
-    OnFor: TFPCParallelForProcedureInt32;
+    OnFor: TFPCParallelForProcedure32;
+    Critical: TCritical;
   end;
 
   PFPCParallelThData32 = ^TFPCParallelThData32;
@@ -10,76 +11,101 @@ type
 procedure FPCParallelTh32(ThSender: TComputeThread);
 var
   p: PFPCParallelThData32;
-  pass: Integer;
+  Pass: Integer;
 begin
   p := ThSender.UserData;
-  for pass := p^.b to p^.e do
-      p^.OnFor(pass);
+  for Pass := p^.b to p^.e do
+      p^.OnFor(Pass);
+
+  p^.Critical.Acquire;
   AtomInc(p^.Completed^, p^.e - p^.b + 1);
+  p^.Critical.Release;
   dispose(p);
 end;
 
-procedure FPCParallelFor(OnFor: TFPCParallelForProcedureInt32; b, e: Integer);
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer);
 var
-  Total, Depth, Completed, StepTotal, stepW, pass, w: Integer;
+  Total, Depth, Completed, StepTotal, stepW, Pass, w: Integer;
   p: PFPCParallelThData32;
+  i_: Integer;
+  Critical: TCritical;
 begin
   if b > e then
       Swap(b, e);
-
-  Depth := ParallelGranularity;
-  Total := e - b + 1;
-
-  Completed := 0;
-
-  if (Total < Depth) then
+  if ParallelOverflow.Busy() then
     begin
-      for pass := b to e do
-        begin
-          new(p);
-          p^.b := pass;
-          p^.e := pass;
-          p^.Completed := @Completed;
-          p^.OnFor := OnFor;
-          TComputeThread.RunC(p, nil, @FPCParallelTh32);
-        end;
-    end
-  else
-    begin
-      stepW := Total div Depth;
-      StepTotal := Total div stepW;
-      if Total mod stepW > 0 then
-          inc(StepTotal);
-
-      for pass := 0 to StepTotal - 1 do
-        begin
-          w := stepW * pass;
-          new(p);
-          if w + stepW <= Total then
-            begin
-              p^.b := w + b;
-              p^.e := w + stepW + b - 1;
-            end
-          else
-            begin
-              p^.b := w + b;
-              p^.e := Total + b - 1;
-            end;
-          p^.Completed := @Completed;
-          p^.OnFor := OnFor;
-          TComputeThread.RunC(p, nil, @FPCParallelTh32);
-        end;
+      for i_ := b to e do
+          OnFor(i_);
+      exit;
     end;
+  ParallelOverflow.Acquire;
+  try
+    Depth := ParallelGranularity;
+    Total := e - b + 1;
+    Critical := TCritical.Create;
 
-  while Completed < Total do
+    Completed := 0;
+
+    if (Total < Depth) then
+      begin
+        for Pass := b to e do
+          begin
+            new(p);
+            p^.b := Pass;
+            p^.e := Pass;
+            p^.Completed := @Completed;
+            p^.OnFor := OnFor;
+            p^.Critical := Critical;
+            TComputeThread.RunC(p, nil, @FPCParallelTh32);
+          end;
+      end
+    else
+      begin
+        stepW := Total div Depth;
+        StepTotal := Total div stepW;
+        if Total mod stepW > 0 then
+            inc(StepTotal);
+
+        for Pass := 0 to StepTotal - 1 do
+          begin
+            w := stepW * Pass;
+            new(p);
+            if w + stepW <= Total then
+              begin
+                p^.b := w + b;
+                p^.e := w + stepW + b - 1;
+              end
+            else
+              begin
+                p^.b := w + b;
+                p^.e := Total + b - 1;
+              end;
+            p^.Completed := @Completed;
+            p^.OnFor := OnFor;
+            p^.Critical := Critical;
+            TComputeThread.RunC(p, nil, @FPCParallelTh32);
+          end;
+      end;
+
+    repeat
       TThread.Sleep(1);
+      Critical.Acquire;
+      w := Completed;
+      Critical.Release;
+    until w >= Total;
+
+    Critical.Free;
+  finally
+      ParallelOverflow.Release;
+  end;
 end;
 
 type
   TFPCParallelThData64 = record
     b, e: Int64;
     Completed: ^Int64;
-    OnFor: TFPCParallelForProcedureInt64;
+    OnFor: TFPCParallelForProcedure64;
+    Critical: TCritical;
   end;
 
   PFPCParallelThData64 = ^TFPCParallelThData64;
@@ -87,67 +113,91 @@ type
 procedure FPCParallelTh64(ThSender: TComputeThread);
 var
   p: PFPCParallelThData64;
-  pass: Int64;
+  Pass: Int64;
 begin
   p := ThSender.UserData;
-  for pass := p^.b to p^.e do
-      p^.OnFor(pass);
+  for Pass := p^.b to p^.e do
+      p^.OnFor(Pass);
+
+  p^.Critical.Acquire;
   AtomInc(p^.Completed^, p^.e - p^.b + 1);
+  p^.Critical.Release;
   dispose(p);
 end;
 
-procedure FPCParallelFor(OnFor: TFPCParallelForProcedureInt64; b, e: Int64);
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64);
 var
-  Total, Depth, Completed, StepTotal, stepW, pass, w: Int64;
+  Total, Depth, Completed, StepTotal, stepW, Pass, w: Int64;
   p: PFPCParallelThData64;
+  i_: Int64;
+  Critical: TCritical;
 begin
   if b > e then
       Swap(b, e);
-
-  Depth := ParallelGranularity;
-  Total := e - b + 1;
-
-  Completed := 0;
-
-  if (Total < Depth) then
+  if ParallelOverflow.Busy() then
     begin
-      for pass := b to e do
-        begin
-          new(p);
-          p^.b := pass;
-          p^.e := pass;
-          p^.Completed := @Completed;
-          p^.OnFor := OnFor;
-          TComputeThread.RunC(p, nil, @FPCParallelTh64);
-        end;
-    end
-  else
-    begin
-      stepW := Total div Depth;
-      StepTotal := Total div stepW;
-      if Total mod stepW > 0 then
-          inc(StepTotal);
-
-      for pass := 0 to StepTotal - 1 do
-        begin
-          w := stepW * pass;
-          new(p);
-          if w + stepW <= Total then
-            begin
-              p^.b := w + b;
-              p^.e := w + stepW + b - 1;
-            end
-          else
-            begin
-              p^.b := w + b;
-              p^.e := Total + b - 1;
-            end;
-          p^.Completed := @Completed;
-          p^.OnFor := OnFor;
-          TComputeThread.RunC(p, nil, @FPCParallelTh64);
-        end;
+      for i_ := b to e do
+          OnFor(i_);
+      exit;
     end;
+  ParallelOverflow.Acquire;
+  try
+    Depth := ParallelGranularity;
+    Total := e - b + 1;
+    Critical := TCritical.Create;
 
-  while Completed < Total do
+    Completed := 0;
+
+    if (Total < Depth) then
+      begin
+        for Pass := b to e do
+          begin
+            new(p);
+            p^.b := Pass;
+            p^.e := Pass;
+            p^.Completed := @Completed;
+            p^.OnFor := OnFor;
+            p^.Critical := Critical;
+            TComputeThread.RunC(p, nil, @FPCParallelTh64);
+          end;
+      end
+    else
+      begin
+        stepW := Total div Depth;
+        StepTotal := Total div stepW;
+        if Total mod stepW > 0 then
+            inc(StepTotal);
+
+        for Pass := 0 to StepTotal - 1 do
+          begin
+            w := stepW * Pass;
+            new(p);
+            if w + stepW <= Total then
+              begin
+                p^.b := w + b;
+                p^.e := w + stepW + b - 1;
+              end
+            else
+              begin
+                p^.b := w + b;
+                p^.e := Total + b - 1;
+              end;
+            p^.Completed := @Completed;
+            p^.OnFor := OnFor;
+            p^.Critical := Critical;
+            TComputeThread.RunC(p, nil, @FPCParallelTh64);
+          end;
+      end;
+
+    repeat
       TThread.Sleep(1);
+      Critical.Acquire;
+      w := Completed;
+      Critical.Release;
+    until w >= Total;
+
+    Critical.Free;
+  finally
+      ParallelOverflow.Release;
+  end;
 end;

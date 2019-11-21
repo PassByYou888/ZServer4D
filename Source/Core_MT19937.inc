@@ -29,19 +29,24 @@
 const
   MT19937N = 624;
   MT19937M = 397;
+  Mag01: array [0 .. 1] of Integer = (0, Integer($9908B0DF));
+  MT19937UPPER_MASK = Integer($80000000); // most significant r/w bits
+  MT19937LOWER_MASK = Integer($7FFFFFFF); // least significant r bits
+  TEMPERING_MASK_B = Integer($9D2C5680);
+  TEMPERING_MASK_C = Integer($EFC60000);
 
 type
   TMT19937Core = record
     MT: array [0 .. MT19937N - 1] of Integer; // the array for the state vector
     MTI: Integer;
     InternalRndSeed, InternalOldRndSeed: Cardinal;
-    ThreadID: TThreadID;
+    Thread: TCoreClassThread;
     LastActivtedTime: TTimeTick;
     Busy: Boolean;
     Instance: Integer;
     procedure BuildMT(Seed_: Integer);
     function GenRand_MT19937(): Integer;
-    procedure Init(ThreadID_: TThreadID; LastActivtedTime_: TTimeTick);
+    procedure Init(Thread_: TCoreClassThread; LastActivtedTime_: TTimeTick);
   end;
 
   PMD19937Core = ^TMT19937Core;
@@ -69,12 +74,6 @@ begin
 end;
 
 function TMT19937Core.GenRand_MT19937(): Integer;
-const
-  Mag01: array [0 .. 1] of Integer = (0, Integer($9908B0DF));
-  MT19937UPPER_MASK = Integer($80000000); // most significant r/w bits
-  MT19937LOWER_MASK = Integer($7FFFFFFF); // least significant r bits
-  TEMPERING_MASK_B = Integer($9D2C5680);
-  TEMPERING_MASK_C = Integer($EFC60000);
 var
   th: TCoreClassThread;
   Y, K: Integer;
@@ -126,12 +125,12 @@ begin
   Result := Y;
 end;
 
-procedure TMT19937Core.Init(ThreadID_: TThreadID; LastActivtedTime_: TTimeTick);
+procedure TMT19937Core.Init(Thread_: TCoreClassThread; LastActivtedTime_: TTimeTick);
 begin
   InternalRndSeed := 0;
   InternalOldRndSeed := 0;
   BuildMT(0);
-  ThreadID := ThreadID_;
+  Thread := Thread_;
   LastActivtedTime := LastActivtedTime_;
   Busy := False;
   Instance := 0;
@@ -143,62 +142,59 @@ var
 
 function MT19937(): PMD19937Core;
 var
-  tk: TTimeTick;
-  thID: TThreadID;
+  th: TCoreClassThread;
   i: Integer;
   p: PMD19937Core;
 begin
-  tk := GetTimeTick;
+  th := TCoreClassThread.CurrentThread;
+  Result := nil;
+
   MT19937InternalCritical.Acquire;
-  try
-    Result := nil;
-    thID := TCoreClassThread.CurrentThread.ThreadID;
-    i := 0;
-    while i < MT19937POOL.Count do
-      begin
-        p := MT19937POOL[i];
-        if p^.ThreadID = thID then
-          begin
-            if i > 0 then
-                MT19937POOL.Exchange(0, i);
-            p^.LastActivtedTime := tk;
-            Result := p;
-            inc(i);
-          end
-        else if (not p^.Busy) and (p^.Instance <= 0) and (tk - p^.LastActivtedTime > MT19937LifeCycle) then
-          begin
-            dispose(p);
-            MT19937POOL.Delete(i);
-          end
-        else
-            inc(i);
-      end;
-    if Result = nil then
-      begin
-        New(p);
-        p^.Init(thID, tk);
-        MT19937POOL.Add(p);
-        Result := p;
-      end;
-  except
-  end;
+
+  i := 0;
+  while i < MT19937POOL.Count do
+    begin
+      p := MT19937POOL[i];
+      if p^.Thread = th then
+        begin
+          if i > 0 then
+              MT19937POOL.Exchange(0, i);
+          p^.LastActivtedTime := GetTimeTick;
+          Result := p;
+          inc(i);
+        end
+      else if (not p^.Busy) and (p^.Instance <= 0) and (GetTimeTick - p^.LastActivtedTime > MT19937LifeTime) then
+        begin
+          dispose(p);
+          MT19937POOL.Delete(i);
+        end
+      else
+          inc(i);
+    end;
+
+  if Result = nil then
+    begin
+      New(p);
+      p^.Init(th, GetTimeTick);
+      MT19937POOL.Add(p);
+      Result := p;
+    end;
+
   MT19937InternalCritical.Release;
 end;
 
-procedure RemoveMT19937Thread(thID: TThreadID);
+procedure RemoveMT19937Thread(th: TCoreClassThread);
 var
-  tk: TTimeTick;
   i: Integer;
   p: PMD19937Core;
 begin
-  tk := GetTimeTick;
   MT19937InternalCritical.Acquire;
   i := 0;
   while i < MT19937POOL.Count do
     begin
       p := MT19937POOL[i];
-      if (p^.ThreadID = thID) or
-        ((not p^.Busy) and (p^.Instance <= 0) and (tk - p^.LastActivtedTime > MT19937LifeCycle)) then
+      if (p^.Thread = th) or
+        ((not p^.Busy) and (p^.Instance <= 0) and (GetTimeTick - p^.LastActivtedTime > MT19937LifeTime)) then
         begin
           dispose(p);
           MT19937POOL.Delete(i);
@@ -244,7 +240,7 @@ begin
   MT19937Install();
 {$ENDIF InstallMT19937CoreToDelphi}
 {$ENDIF DELPHI}
-  MT19937LifeCycle := 60 * 1000;
+  MT19937LifeTime := 10 * 1000;
 end;
 
 procedure FreeMT19937Rand;
@@ -270,9 +266,13 @@ procedure SetMT19937Seed(seed: Integer);
 begin
   with MT19937()^ do
     begin
+      MT19937InternalCritical.Acquire;
       InternalRndSeed := seed;
       InternalOldRndSeed := seed;
       BuildMT(seed);
+      Thread := TCoreClassThread.CurrentThread;
+      LastActivtedTime := GetTimeTick();
+      MT19937InternalCritical.Release;
     end;
 end;
 
@@ -283,7 +283,7 @@ end;
 
 procedure MT19937Randomize();
 begin
-  MT19937()^.InternalRndSeed := Cardinal(GetTimeTick());
+  SetMT19937Seed(Integer(GetTimeTick()));
 end;
 
 function MT19937Rand32(L: Integer): Integer;

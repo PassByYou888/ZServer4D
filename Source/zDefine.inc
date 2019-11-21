@@ -106,7 +106,7 @@
   {$DEFINE Parallel}
 
   // Parallel programs use the delphi default TParallel
-  {$DEFINE SystemParallel}
+  // {$DEFINE SystemParallel}
 
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
   // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3.2 or laster

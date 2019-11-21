@@ -36,11 +36,20 @@ type
 
   TCoreComputeThreadPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TComputeThread>;
 
+  TParallelOverflow = record
+    ActivtedParallel: Integer;
+    procedure Acquire;
+    procedure Release;
+    function Busy(): Boolean; inline;
+  end;
+
 var
   CoreThreadPool: TCoreComputeThreadPool;
   ComputeThreadTaskRunning: Integer;
   ParallelGranularity: Integer;
   ComputeDispatchCritical: TCritical;
+  MaxActivtedParallel: Integer;
+  ParallelOverflow: TParallelOverflow;
 
 procedure TComputeDispatch.Init;
 begin
@@ -72,13 +81,30 @@ begin
   th.UserObject := UserObject;
 end;
 
+procedure TParallelOverflow.Acquire;
+begin
+  while Busy() do
+      TCoreClassThread.Sleep(1);
+  AtomInc(ActivtedParallel);
+end;
+
+procedure TParallelOverflow.Release;
+begin
+  AtomDec(ActivtedParallel);
+end;
+
+function TParallelOverflow.Busy(): Boolean;
+begin
+  Result := ActivtedParallel >= MaxActivtedParallel;
+end;
+
 function PickOrCreateThread(): TComputeThread;
 begin
   Result := TComputeThread.Create;
   CoreThreadPool.Add(Result);
 end;
 
-procedure PostComputeDispatchData(const data: TComputeDispatch);
+procedure PostComputeDispatchData(var data: TComputeDispatch);
 var
   th: TComputeThread;
 begin
@@ -98,6 +124,8 @@ begin
   ComputeThreadTaskRunning := 0;
   ParallelGranularity := Thread_Num;
   ComputeDispatchCritical := TCritical.Create;
+  MaxActivtedParallel := 2;
+  ParallelOverflow.ActivtedParallel := 0;
 end;
 
 procedure FreeCoreThreadPool;
@@ -147,7 +175,7 @@ begin
   CoreThreadPool.Remove(Self);
   ComputeDispatchCritical.Release;
 
-  RemoveMT19937Thread(ThreadID);
+  RemoveMT19937Thread(Self);
 end;
 
 procedure TComputeThread.Done_Sync;
@@ -199,9 +227,7 @@ end;
 
 class function TComputeThread.State(): SystemString;
 begin
-  ComputeDispatchCritical.Acquire;
-  Result := Format('total task: %d, activted task: %d, ComputeThread: %d', [ComputeThreadTaskRunning, ComputeThreadTaskRunning, CoreThreadPool.Count]);
-  ComputeDispatchCritical.Release;
+  Result := Format('activted task: %d', [ComputeThreadTaskRunning]);
 end;
 
 class procedure TComputeThread.RunC(const data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);

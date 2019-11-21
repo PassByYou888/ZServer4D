@@ -64,6 +64,9 @@ type
   TLine2 = TLineV2;
   TLine2D = TLineV2;
 
+  TArrayLineV2 = array of TLineV2;
+  PArrayLineV2 = ^TArrayLineV2;
+
   TLineV2_P = array [0 .. 1] of PVec2;
   PLineV2_P = ^TLineV2_P;
 
@@ -254,6 +257,10 @@ function PointInRect(const Px, Py: TGeoFloat; const x1, y1, x2, y2: TGeoFloat): 
 function PointInRect(const Px, Py: TGeoInt; const x1, y1, x2, y2: TGeoInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointInRect(const pt: TVec2; const r: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointInRect(const Px, Py: TGeoFloat; const r: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2InRect(const Px, Py: TGeoFloat; const x1, y1, x2, y2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2InRect(const Px, Py: TGeoInt; const x1, y1, x2, y2: TGeoInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2InRect(const pt: TVec2; const r: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function Vec2InRect(const Px, Py: TGeoFloat; const r: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function RectToRectIntersect(const x1, y1, x2, y2, x3, y3, x4, y4: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function RectToRectIntersect(const x1, y1, x2, y2, x3, y3, x4, y4: TGeoInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function RectToRectIntersect(const r1, r2: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -564,8 +571,10 @@ type
     procedure Transform(v: TVec2); overload;
     procedure Mul(X, Y: TGeoFloat); overload;
     procedure Mul(v: TVec2); overload;
+    procedure Mul(v: TGeoFloat); overload;
     procedure FDiv(X, Y: TGeoFloat); overload;
     procedure FDiv(v: TVec2); overload;
+    procedure FDiv(v: TGeoFloat); overload;
 
     property Points[index: TGeoInt]: PVec2 read GetPoints; default;
     function First: PVec2;
@@ -1851,6 +1860,26 @@ end;
 function PointInRect(const Px, Py: TGeoFloat; const r: TRectV2): Boolean;
 begin
   Result := PointInRect(Px, Py, r[0, 0], r[0, 1], r[1, 0], r[1, 1]);
+end;
+
+function Vec2InRect(const Px, Py: TGeoFloat; const x1, y1, x2, y2: TGeoFloat): Boolean;
+begin
+  Result := ((x1 <= Px) and (Px <= x2) and (y1 <= Py) and (Py <= y2)) or ((x2 <= Px) and (Px <= x1) and (y2 <= Py) and (Py <= y1));
+end;
+
+function Vec2InRect(const Px, Py: TGeoInt; const x1, y1, x2, y2: TGeoInt): Boolean;
+begin
+  Result := ((x1 <= Px) and (Px <= x2) and (y1 <= Py) and (Py <= y2)) or ((x2 <= Px) and (Px <= x1) and (y2 <= Py) and (Py <= y1));
+end;
+
+function Vec2InRect(const pt: TVec2; const r: TRectV2): Boolean;
+begin
+  Result := Vec2InRect(pt[0], pt[1], r[0, 0], r[0, 1], r[1, 0], r[1, 1]);
+end;
+
+function Vec2InRect(const Px, Py: TGeoFloat; const r: TRectV2): Boolean;
+begin
+  Result := Vec2InRect(Px, Py, r[0, 0], r[0, 1], r[1, 0], r[1, 1]);
 end;
 
 function RectToRectIntersect(const x1, y1, x2, y2, x3, y3, x4, y4: TGeoFloat): Boolean;
@@ -5311,6 +5340,11 @@ begin
   Mul(v[0], v[1]);
 end;
 
+procedure TVec2List.Mul(v: TGeoFloat);
+begin
+  Mul(v, v);
+end;
+
 procedure TVec2List.FDiv(X, Y: TGeoFloat);
 var
   i: TGeoInt;
@@ -5327,6 +5361,11 @@ end;
 procedure TVec2List.FDiv(v: TVec2);
 begin
   FDiv(v[0], v[1]);
+end;
+
+procedure TVec2List.FDiv(v: TGeoFloat);
+begin
+  FDiv(v, v);
 end;
 
 function TVec2List.First: PVec2;

@@ -31,7 +31,13 @@ uses
   FMX.Types,
 {$IFEND}
 {$IFEND FPC}
-  SysUtils, Classes, SyncObjs, PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses;
+  SysUtils, Classes, SyncObjs,
+{$IFDEF FPC}
+  FPCGenericStructlist, fgl,
+{$ELSE FPC}
+  System.Generics.Collections,
+{$ENDIF FPC}
+  PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses;
 
 type
   TDoStatusMethod = procedure(AText: SystemString; const ID: Integer) of object;
@@ -220,19 +226,76 @@ type
 
   PDoStatusData = ^TDoStatusData;
 
+  TDoStatusNoLnData = record
+    s: TPascalString;
+    th: TCoreClassThread;
+    TriggerTime: TTimeTick;
+  end;
+
+  PDoStatusNoLnData = ^TDoStatusNoLnData;
+
+  THookDoStatusDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PDoStatusData>;
+  TReservedStatusDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PSystemString>;
+  TDoStatusNoLnDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PDoStatusNoLnData>;
+
 var
   StatusActive: Boolean;
-  HookDoStatus: TCoreClassList;
-  ReservedStatus: TCoreClassList;
+  HookDoStatus: THookDoStatusDataList;
+  ReservedStatus: TReservedStatusDataList;
   StatusCritical: TCriticalSection;
-  LastDoStatusNoLn: TPascalString;
+  StatusNoLnDataList: TDoStatusNoLnDataList;
+
+function GetOrCreateStatusNoLnData_(th_: TCoreClassThread): PDoStatusNoLnData;
+var
+  tk: TTimeTick;
+  i: Integer;
+begin
+  tk := GetTimeTick();
+  Result := nil;
+  i := 0;
+  while i < StatusNoLnDataList.Count do
+    begin
+      if StatusNoLnDataList[i]^.th = th_ then
+        begin
+          Result := StatusNoLnDataList[i];
+          Result^.TriggerTime := tk;
+
+          if i > 0 then
+              StatusNoLnDataList.Exchange(i, 0);
+          inc(i);
+        end
+      else if tk - StatusNoLnDataList[i]^.TriggerTime > C_Tick_Minute then
+        begin
+          Dispose(StatusNoLnDataList[i]);
+          StatusNoLnDataList.Delete(i);
+        end
+      else
+          inc(i);
+    end;
+
+  if Result = nil then
+    begin
+      new(Result);
+      Result^.s := '';
+      Result^.th := th_;
+      Result^.TriggerTime := tk;
+      StatusNoLnDataList.Add(Result);
+    end;
+end;
+
+function GetOrCreateStatusNoLnData(): PDoStatusNoLnData;
+begin
+  Result := GetOrCreateStatusNoLnData_(TCoreClassThread.CurrentThread);
+end;
 
 procedure DoStatusNoLn(const v: TPascalString);
 var
   L, i: Integer;
+  StatusNoLnData: PDoStatusNoLnData;
   ps: PSystemString;
 begin
   StatusCritical.Acquire;
+  StatusNoLnData := GetOrCreateStatusNoLnData();
   try
     L := v.Len;
     i := 1;
@@ -240,11 +303,11 @@ begin
       begin
         if CharIn(v[i], [#13, #10]) then
           begin
-            if LastDoStatusNoLn.Len > 0 then
+            if StatusNoLnData^.s.Len > 0 then
               begin
                 new(ps);
-                ps^ := LastDoStatusNoLn.Text;
-                LastDoStatusNoLn := '';
+                ps^ := StatusNoLnData^.s.Text;
+                StatusNoLnData^.s := '';
                 ReservedStatus.Add(ps);
               end;
             repeat
@@ -253,7 +316,7 @@ begin
           end
         else
           begin
-            LastDoStatusNoLn.Append(v[i]);
+            StatusNoLnData^.s.Append(v[i]);
             inc(i);
           end;
       end;
@@ -269,11 +332,13 @@ end;
 
 procedure DoStatusNoLn;
 var
+  StatusNoLnData: PDoStatusNoLnData;
   a: SystemString;
 begin
   StatusCritical.Acquire;
-  a := LastDoStatusNoLn;
-  LastDoStatusNoLn := '';
+  StatusNoLnData := GetOrCreateStatusNoLnData();
+  a := StatusNoLnData^.s;
+  StatusNoLnData^.s := '';
   StatusCritical.Release;
   if Length(a) > 0 then
       DoStatus(a);
@@ -444,9 +509,10 @@ end;
 
 procedure _DoInit;
 begin
-  HookDoStatus := TCoreClassList.Create;
-  ReservedStatus := TCoreClassList.Create;
+  HookDoStatus := THookDoStatusDataList.Create;
+  ReservedStatus := TReservedStatusDataList.Create;
   StatusCritical := TCriticalSection.Create;
+  StatusNoLnDataList := TDoStatusNoLnDataList.Create;
 
   StatusActive := True;
   LastDoStatus := '';
@@ -467,10 +533,13 @@ begin
       Dispose(PSystemString(ReservedStatus[i]));
   DisposeObject(ReservedStatus);
 
+  for i := 0 to StatusNoLnDataList.Count - 1 do
+      Dispose(StatusNoLnDataList[i]);
+  DisposeObject(StatusNoLnDataList);
+
   DisposeObject(StatusCritical);
 
   StatusActive := True;
-  LastDoStatusNoLn := '';
   StatusCritical := nil;
 end;
 

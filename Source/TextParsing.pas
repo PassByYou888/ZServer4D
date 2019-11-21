@@ -160,10 +160,11 @@ type
     function GetTokenIndex(t: TTokenType; idx: Integer): PTokenData;
     property TokenIndex[t: TTokenType; idx: Integer]: PTokenData read GetTokenIndex;
     function TokenCount: Integer; overload;
-    function TokenCount(t: TTokenTypes): Integer; overload;
+    function TokenCountT(t: TTokenTypes): Integer; overload;
     function GetTokens(idx: Integer): PTokenData;
-    property Tokens[idx: Integer]: PTokenData read GetTokens;
+    property Tokens[idx: Integer]: PTokenData read GetTokens; default;
     property Token[idx: Integer]: PTokenData read GetTokens;
+    property Count: Integer read TokenCount;
     function FirstToken: PTokenData;
     function LastToken: PTokenData;
     function NextToken(p: PTokenData): PTokenData;
@@ -1833,7 +1834,7 @@ begin
   Result := ParsingData.Cache.TokenDataList.Count;
 end;
 
-function TTextParsing.TokenCount(t: TTokenTypes): Integer;
+function TTextParsing.TokenCountT(t: TTokenTypes): Integer;
 var
   i: Integer;
 begin

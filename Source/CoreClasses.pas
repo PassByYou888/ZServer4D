@@ -310,10 +310,10 @@ procedure FreeCoreThreadPool;
 
 {$IFDEF FPC}
 type
-  TFPCParallelForProcedureInt32 = procedure(pass: Integer) is nested;
-  TFPCParallelForProcedureInt64 = procedure(pass: Int64) is nested;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedureInt32; b, e: Integer); overload;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedureInt64; b, e: Int64); overload;
+  TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
+  TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
 {$ELSE FPC}
 type
 {$IFDEF SystemParallel}
@@ -457,8 +457,8 @@ var
   // core init time
   CoreInitedTimeTick: TTimeTick;
 
-  // The life cycle of working in asynchronous thread consistency, metric n/MS
-  MT19937LifeCycle: TTimeTick;
+  // The life time of working in asynchronous thread consistency,
+  MT19937LifeTime: TTimeTick;
 {$EndRegion 'core var'}
 
 implementation
@@ -921,7 +921,7 @@ initialization
   InitMT19937Rand();
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   CoreInitedTimeTick := GetTimeTick();
-  InitCoreThreadPool(CpuCount * 2);
+  InitCoreThreadPool(CpuCount);
 finalization
   FreeCoreThreadPool;
   FreeMT19937Rand();
