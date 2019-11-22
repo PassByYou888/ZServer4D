@@ -77,9 +77,15 @@ type
     function DoRound(var Param: TOpParam): Variant;
     function DoTrunc(var Param: TOpParam): Variant;
 
+    function DoPI(var Param: TOpParam): Variant;
     function DoBool(var Param: TOpParam): Variant;
     function DoTrue(var Param: TOpParam): Variant;
     function DoFalse(var Param: TOpParam): Variant;
+    function DoRColor(var Param: TOpParam): Variant;
+    function DoVec2(var Param: TOpParam): Variant;
+    function DoVec3(var Param: TOpParam): Variant;
+    function DoVec4(var Param: TOpParam): Variant;
+
     function DoRandom(var Param: TOpParam): Variant;
     function DoRandomFloat(var Param: TOpParam): Variant;
 
@@ -588,6 +594,11 @@ begin
   Result := Trunc(Double(v));
 end;
 
+function TOpCustomRunTime.DoPI(var Param: TOpParam): Variant;
+begin
+  Result := PI;
+end;
+
 function TOpCustomRunTime.DoBool(var Param: TOpParam): Variant;
   function v2b(const v: Variant): Boolean;
   var
@@ -628,6 +639,63 @@ end;
 function TOpCustomRunTime.DoFalse(var Param: TOpParam): Variant;
 begin
   Result := False;
+end;
+
+function TOpCustomRunTime.DoRColor(var Param: TOpParam): Variant;
+var
+  buff: array [0 .. 3] of SystemString;
+  i: Integer;
+begin
+  for i := 0 to 2 do
+      buff[i] := '0.0';
+  buff[3] := '1.0';
+
+  for i := Low(Param) to high(Param) do
+      buff[i] := VarToStr(Param[i]);
+
+  Result := Format('RColor(%s,%s,%s,%s)', [buff[0], buff[1], buff[2], buff[3]]);
+end;
+
+function TOpCustomRunTime.DoVec2(var Param: TOpParam): Variant;
+var
+  buff: array [0 .. 1] of SystemString;
+  i: Integer;
+begin
+  for i := Low(buff) to high(buff) do
+      buff[i] := '0.0';
+
+  for i := Low(Param) to high(Param) do
+      buff[i] := VarToStr(Param[i]);
+
+  Result := Format('Vec2(%s,%s)', [buff[0], buff[1]]);
+end;
+
+function TOpCustomRunTime.DoVec3(var Param: TOpParam): Variant;
+var
+  buff: array [0 .. 2] of SystemString;
+  i: Integer;
+begin
+  for i := Low(buff) to high(buff) do
+      buff[i] := '0.0';
+
+  for i := Low(Param) to high(Param) do
+      buff[i] := VarToStr(Param[i]);
+
+  Result := Format('Vec3(%s,%s,%s)', [buff[0], buff[1], buff[2]]);
+end;
+
+function TOpCustomRunTime.DoVec4(var Param: TOpParam): Variant;
+var
+  buff: array [0 .. 3] of SystemString;
+  i: Integer;
+begin
+  for i := Low(buff) to high(buff) do
+      buff[i] := '0.0';
+
+  for i := Low(Param) to high(Param) do
+      buff[i] := VarToStr(Param[i]);
+
+  Result := Format('Vec4(%s,%s,%s,%s)', [buff[0], buff[1], buff[2], buff[3]]);
 end;
 
 function TOpCustomRunTime.DoRandom(var Param: TOpParam): Variant;
@@ -813,11 +881,18 @@ begin
   RegOpM('Round', 'Round(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoRound)^.Category := 'Base Math';
   RegOpM('Trunc', 'Trunc(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc)^.Category := 'Base Math';
 
+  RegOpM('PI', 'PI(): return PI', {$IFDEF FPC}@{$ENDIF FPC}DoPI)^.Category := 'Base Math';
+
   RegOpM('Bool', 'Bool(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Base Math';
   RegOpM('Boolean', 'Boolean(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Base Math';
 
   RegOpM('True', 'True(): return true', {$IFDEF FPC}@{$ENDIF FPC}DoTrue)^.Category := 'Base Math';
   RegOpM('False', 'False(): return false', {$IFDEF FPC}@{$ENDIF FPC}DoFalse)^.Category := 'Base Math';
+
+  RegOpM('RColor', 'RColor(R,G,B,A): return RColor string', {$IFDEF FPC}@{$ENDIF FPC}DoRColor)^.Category := 'Base Math';
+  RegOpM('Vec2', 'Vec2(X,Y): return Vec2 string', {$IFDEF FPC}@{$ENDIF FPC}DoVec2)^.Category := 'Base Math';
+  RegOpM('Vec3', 'Vec3(X,Y,Z): return Vec3 string', {$IFDEF FPC}@{$ENDIF FPC}DoVec3)^.Category := 'Base Math';
+  RegOpM('Vec4', 'Vec4(X,Y,Z,W): return Vec4 string', {$IFDEF FPC}@{$ENDIF FPC}DoVec4)^.Category := 'Base Math';
 
   RegOpM('Random', 'Random(0..n): return number', {$IFDEF FPC}@{$ENDIF FPC}DoRandom)^.Category := 'Base Math';
   RegOpM('RandomFloat', 'RandomFloat(): return float', {$IFDEF FPC}@{$ENDIF FPC}DoRandomFloat)^.Category := 'Base Math';
