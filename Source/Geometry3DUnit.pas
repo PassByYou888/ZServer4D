@@ -297,6 +297,7 @@ function VecToStr(const v: TVec4): SystemString; overload;
 function VecToStr(const v: TVector3): SystemString; overload;
 function VecToStr(const v: TVector4): SystemString; overload;
 function RectToStr(const v: TRectV2): SystemString; overload;
+function RectToStr(const v: TRect): SystemString; overload;
 
 function StrToVec2(const s: SystemString): TVec2;
 function StrToVector2(const s: SystemString): TVector2;
@@ -304,7 +305,8 @@ function StrToVec3(const s: SystemString): TVec3;
 function StrToVec4(const s: SystemString): TVec4;
 function StrToVector3(const s: SystemString): TVector3;
 function StrToVector4(const s: SystemString): TVector4;
-function StrToRect(const s: SystemString): TRectV2;
+function StrToRect(const s: SystemString): TRect;
+function StrToRectV2(const s: SystemString): TRectV2;
 
 function GetMin(const arry: array of TGeoFloat): TGeoFloat; overload;
 function GetMin(const arry: array of Integer): Integer; overload;
@@ -501,6 +503,11 @@ begin
   Result := Format('%g,%g,%g,%g', [v[0][0], v[0][1], v[1][0], v[1][1]]);
 end;
 
+function RectToStr(const v: TRect): SystemString;
+begin
+  Result := Format('%d,%d,%d,%d', [v.Left, v.Top, v.Right, v.Bottom]);
+end;
+
 function StrToVec2(const s: SystemString): TVec2;
 var
   v, v1, v2: U_String;
@@ -597,7 +604,12 @@ begin
   Result.Buff[3] := umlStrToFloat(v4, 0);
 end;
 
-function StrToRect(const s: SystemString): TRectV2;
+function StrToRect(const s: SystemString): TRect;
+begin
+  Result := Rect2Rect(StrToRectV2(s));
+end;
+
+function StrToRectV2(const s: SystemString): TRectV2;
 var
   v, v1, v2, v3, v4: U_String;
 begin
