@@ -31,7 +31,7 @@ var
   Critical: TCritical;
 begin
   if b > e then
-      Swap(b, e);
+      exit;
   if ParallelOverflow.Busy() then
     begin
       for i_ := b to e do
@@ -133,7 +133,7 @@ var
   Critical: TCritical;
 begin
   if b > e then
-      Swap(b, e);
+      exit;
   if ParallelOverflow.Busy() then
     begin
       for i_ := b to e do
