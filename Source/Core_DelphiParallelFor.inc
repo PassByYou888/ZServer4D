@@ -5,6 +5,8 @@ procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32)
 var
   i_: Integer;
 begin
+  if b > e then
+      exit;
   if ParallelOverflow.Busy() then
     begin
       for i_ := b to e do
@@ -23,6 +25,8 @@ procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64);
 var
   i_: Int64;
 begin
+  if b > e then
+      exit;
   if ParallelOverflow.Busy() then
     begin
       for i_ := b to e do
@@ -72,7 +76,7 @@ var
   Critical: TCritical;
 begin
   if b > e then
-      Swap(b, e);
+      exit;
   if ParallelOverflow.Busy() then
     begin
       for i_ := b to e do
@@ -174,7 +178,7 @@ var
   Critical: TCritical;
 begin
   if b > e then
-      Swap(b, e);
+      exit;
   if ParallelOverflow.Busy() then
     begin
       for i_ := b to e do
