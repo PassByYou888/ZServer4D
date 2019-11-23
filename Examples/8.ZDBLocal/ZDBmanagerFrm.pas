@@ -182,7 +182,7 @@ end;
 procedure TZDBmanagerForm.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
 begin
   // performance test
-  FillFragmentSource(pipe.SourceDB.name, pipe.PipelineName, FragmentSource,
+  FillFragmentSourceP(pipe.SourceDB.name, pipe.PipelineName, FragmentSource,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
     var
       df: TDataFrameEngine;
