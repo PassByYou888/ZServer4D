@@ -635,7 +635,10 @@ type
   TCSVSaveCall = procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
   TCSVGetLineMethod = procedure(var L: TPascalString; var IsEnd: Boolean) of object;
   TCSVSaveMethod = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) of object;
-{$IFNDEF FPC}
+{$IFDEF FPC}
+  TCSVGetLineProc = procedure(var L: TPascalString; var IsEnd: Boolean) is nested;
+  TCSVSaveProc = procedure(const sour: TPascalString; const king, Data: TArrayPascalString) is nested;
+{$ELSE FPC}
   TCSVGetLineProc = reference to procedure(var L: TPascalString; var IsEnd: Boolean);
   TCSVSaveProc = reference to procedure(const sour: TPascalString; const king, Data: TArrayPascalString);
 {$ENDIF FPC}
@@ -644,10 +647,8 @@ procedure ImportCSV_C(const sour: TArrayPascalString; OnNotify: TCSVSaveCall);
 procedure CustomImportCSV_C(const OnGetLine: TCSVGetLineCall; OnNotify: TCSVSaveCall);
 procedure ImportCSV_M(const sour: TArrayPascalString; OnNotify: TCSVSaveMethod);
 procedure CustomImportCSV_M(const OnGetLine: TCSVGetLineMethod; OnNotify: TCSVSaveMethod);
-{$IFNDEF FPC}
 procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVSaveProc);
 procedure CustomImportCSV_P(const OnGetLine: TCSVGetLineProc; OnNotify: TCSVSaveProc);
-{$ENDIF FPC}
 
 function GetExtLib(LibName: SystemString): HMODULE;
 function FreeExtLib(LibName: SystemString): Boolean;
@@ -6298,9 +6299,6 @@ begin
   n := '';
 end;
 
-{$IFNDEF FPC}
-
-
 procedure ImportCSV_P(const sour: TArrayPascalString; OnNotify: TCSVSaveProc);
 var
   i, j, bp, hc: NativeInt;
@@ -6421,9 +6419,6 @@ begin
   SetLength(king, 0);
   n := '';
 end;
-
-{$ENDIF FPC}
-
 
 var
   ExLibs: THashVariantList = nil;

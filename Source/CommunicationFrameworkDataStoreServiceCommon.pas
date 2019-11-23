@@ -56,17 +56,18 @@ type
     dbN, outN, pipeN: SystemString; TotalResult: Int64);
   TUserQueryDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
     dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
-{$IFNDEF FPC}
-  TUserQueryDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN, outN, pipeN: SystemString; TotalResult: Int64);
-{$ENDIF}
-  //
   TQueryDoneNotifyCall = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
   TQueryDoneNotifyMethod = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
-{$IFNDEF FPC}
+
+{$IFDEF FPC}
+  TUserQueryDoneNotifyProc = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, outN, pipeN: SystemString; TotalResult: Int64) is nested;
+  TQueryDoneNotifyProc = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64) is nested;
+{$ELSE FPC}
+  TUserQueryDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, outN, pipeN: SystemString; TotalResult: Int64);
   TQueryDoneNotifyProc = reference to procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
-{$ENDIF}
-  //
+{$ENDIF FPC}
   PDataStoreClientQueryNotify = ^TDataStoreClientQueryNotify;
 
   TDataStoreClientQueryNotify = record
@@ -75,16 +76,16 @@ type
     UserVariant: Variant;
     OnQueryCall: TFillQueryDataCall;
     OnQueryMethod: TFillQueryDataMethod;
-{$IFNDEF FPC} OnQueryProc: TFillQueryDataProc; {$ENDIF}
+    OnQueryProc: TFillQueryDataProc;
     OnUserQueryCall: TUserFillQueryDataCall;
     OnUserQueryMethod: TUserFillQueryDataMethod;
-{$IFNDEF FPC} OnUserQueryProc: TUserFillQueryDataProc; {$ENDIF}
+    OnUserQueryProc: TUserFillQueryDataProc;
     OnDoneCall: TQueryDoneNotifyCall;
     OnDoneMethod: TQueryDoneNotifyMethod;
-{$IFNDEF FPC} OnDoneProc: TQueryDoneNotifyProc; {$ENDIF}
+    OnDoneProc: TQueryDoneNotifyProc;
     OnUserDoneCall: TUserQueryDoneNotifyCall;
     OnUserDoneMethod: TUserQueryDoneNotifyMethod;
-{$IFNDEF FPC} OnUserDoneProc: TUserQueryDoneNotifyProc; {$ENDIF}
+    OnUserDoneProc: TUserQueryDoneNotifyProc;
     procedure Init;
   end;
 
@@ -92,15 +93,18 @@ type
     dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
   TUserDownloadDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
     dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
-{$IFNDEF FPC}
-  TUserDownloadDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
-{$ENDIF}
-  //
   TDownloadDoneNotifyCall = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
   TDownloadDoneNotifyMethod = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
-{$IFNDEF FPC} TDownloadDoneNotifyProc = reference to procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64); {$ENDIF}
-  //
+
+{$IFDEF FPC}
+  TUserDownloadDoneNotifyProc = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
+  TDownloadDoneNotifyProc = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
+{$ELSE FPC}
+  TUserDownloadDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+  TDownloadDoneNotifyProc = reference to procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+{$ENDIF FPC}
   PDataStoreClientDownloadNotify = ^TDataStoreClientDownloadNotify;
 
   TDataStoreClientDownloadNotify = record
@@ -109,23 +113,27 @@ type
     UserVariant: Variant;
     OnUserDoneCall: TUserDownloadDoneNotifyCall;
     OnUserDoneMethod: TUserDownloadDoneNotifyMethod;
-{$IFNDEF FPC} OnUserDoneProc: TUserDownloadDoneNotifyProc; {$ENDIF}
+    OnUserDoneProc: TUserDownloadDoneNotifyProc;
     OnDoneCall: TDownloadDoneNotifyCall;
     OnDoneMethod: TDownloadDoneNotifyMethod;
-{$IFNDEF FPC} OnDoneProc: TDownloadDoneNotifyProc; {$ENDIF}
+    OnDoneProc: TDownloadDoneNotifyProc;
     procedure Init;
   end;
 
   // client storePos transform
   TStorePosTransformNotifyCall = procedure(const TransformBuff: PZDBStorePosTransformArray);
   TStorePosTransformNotifyMethod = procedure(const TransformBuff: PZDBStorePosTransformArray) of object;
-{$IFNDEF FPC} TStorePosTransformNotifyProc = reference to procedure(const TransformBuff: PZDBStorePosTransformArray); {$ENDIF}
+{$IFDEF FPC}
+  TStorePosTransformNotifyProc = procedure(const TransformBuff: PZDBStorePosTransformArray) is nested;
+{$ELSE FPC}
+  TStorePosTransformNotifyProc = reference to procedure(const TransformBuff: PZDBStorePosTransformArray);
+{$ENDIF FPC}
   PStorePosTransformNotify = ^TStorePosTransformNotify;
 
   TStorePosTransformNotify = record
     OnDoneCall: TStorePosTransformNotifyCall;
     OnDoneMethod: TStorePosTransformNotifyMethod;
-{$IFNDEF FPC} OnDoneProc: TStorePosTransformNotifyProc; {$ENDIF}
+    OnDoneProc: TStorePosTransformNotifyProc;
     procedure Init;
   end;
 
@@ -180,26 +188,26 @@ begin
 
   OnQueryCall := nil;
   OnQueryMethod := nil;
-{$IFNDEF FPC} OnQueryProc := nil; {$ENDIF}
-  //
+  OnQueryProc := nil;
+
   OnUserQueryCall := nil;
   OnUserQueryMethod := nil;
-{$IFNDEF FPC} OnUserQueryProc := nil; {$ENDIF}
-  //
+  OnUserQueryProc := nil;
+
   OnDoneCall := nil;
   OnDoneMethod := nil;
-{$IFNDEF FPC} OnDoneProc := nil; {$ENDIF}
-  //
+  OnDoneProc := nil;
+
   OnUserDoneCall := nil;
   OnUserDoneMethod := nil;
-{$IFNDEF FPC} OnUserDoneProc := nil; {$ENDIF}
+  OnUserDoneProc := nil;
 end;
 
 procedure TStorePosTransformNotify.Init;
 begin
   OnDoneCall := nil;
   OnDoneMethod := nil;
-{$IFNDEF FPC} OnDoneProc := nil; {$ENDIF}
+  OnDoneProc := nil;
 end;
 
 procedure TDataStoreClientDownloadNotify.Init;
@@ -210,11 +218,11 @@ begin
 
   OnDoneCall := nil;
   OnDoneMethod := nil;
-{$IFNDEF FPC} OnDoneProc := nil; {$ENDIF}
-  //
+  OnDoneProc := nil;
+
   OnUserDoneCall := nil;
   OnUserDoneMethod := nil;
-{$IFNDEF FPC} OnUserDoneProc := nil; {$ENDIF}
+  OnUserDoneProc := nil;
 end;
 
 procedure TPipeState.Init;

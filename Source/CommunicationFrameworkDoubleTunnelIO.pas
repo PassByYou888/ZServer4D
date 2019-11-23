@@ -180,10 +180,10 @@ type
     procedure PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean); overload;
     procedure PostBatchStreamC(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall); overload;
     procedure PostBatchStreamM(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod); overload;
-{$IFNDEF FPC} procedure PostBatchStreamP(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload; {$ENDIF}
+    procedure PostBatchStreamP(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
     procedure ClearBatchStream(cli: TPeerIO);
     procedure GetBatchStreamStateM(cli: TPeerIO; OnResult: TStreamMethod); overload;
-{$IFNDEF FPC} procedure GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc); overload; {$ENDIF}
+    procedure GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc); overload;
     property LoginUserList: THashVariantList read FLoginUserList;
 
     property CanRegisterNewUser: Boolean read FCanRegisterNewUser write FCanRegisterNewUser;
@@ -239,13 +239,22 @@ type
     const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5) of object;
   TFileCompleteCall = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
   TFileCompleteMethod = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString) of object;
-{$IFNDEF FPC}
+
+{$IFDEF FPC}
+  TGetFileInfoProc = procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
+    const fileName: SystemString; const Existed: Boolean; const fSiz: Int64) is nested;
+  TFileMD5Proc = procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
+    const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5) is nested;
+  TFileCompleteProc = procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream:
+    TCoreClassStream; const fileName: SystemString) is nested;
+{$ELSE FPC}
   TGetFileInfoProc = reference to procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
     const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
   TFileMD5Proc = reference to procedure(const UserData: Pointer; const UserObject: TCoreClassObject;
     const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
-  TFileCompleteProc = reference to procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
-{$ENDIF}
+  TFileCompleteProc = reference to procedure(const UserData: Pointer; const UserObject: TCoreClassObject; stream:
+    TCoreClassStream; const fileName: SystemString);
+{$ENDIF FPC}
 
   TCommunicationFramework_DoubleTunnelClient = class(TCoreClassInterfacedObject, ICommunicationFrameworkClientInterface)
   protected
@@ -298,7 +307,7 @@ type
     FAsyncConnRecvPort, FAsyncConnSendPort: Word;
     FAsyncOnResultCall: TStateCall;
     FAsyncOnResultMethod: TStateMethod;
-{$IFNDEF FPC} FAsyncOnResultProc: TStateProc; {$ENDIF}
+    FAsyncOnResultProc: TStateProc;
     procedure AsyncSendConnectResult(const cState: Boolean);
     procedure AsyncRecvConnectResult(const cState: Boolean);
   public
@@ -320,11 +329,11 @@ type
     // async connection
     procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateCall); overload; virtual;
     procedure AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateMethod); overload; virtual;
-{$IFNDEF FPC} procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateProc); overload; virtual; {$ENDIF}
+    procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateProc); overload; virtual;
     // parameter async connection
     procedure AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateCall); overload;
     procedure AsyncConnectM(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateMethod); overload;
-{$IFNDEF FPC} procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc); overload; {$ENDIF}
+    procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc); overload;
     //
     procedure Disconnect; virtual;
 
@@ -343,12 +352,11 @@ type
     procedure RegisterUserM(UserID, passwd: SystemString; OnProc: TStateMethod); virtual;
     procedure TunnelLinkM(OnProc: TStateMethod); virtual;
 
-{$IFNDEF FPC}
     // async mode
     procedure UserLoginP(UserID, passwd: SystemString; OnProc: TStateProc); virtual;
     procedure RegisterUserP(UserID, passwd: SystemString; OnProc: TStateProc); virtual;
     procedure TunnelLinkP(OnProc: TStateProc); virtual;
-{$ENDIF}
+
     procedure SyncCadencer; virtual;
 
     // Block style
@@ -367,26 +375,26 @@ type
     // remote file information
     procedure GetPublicFileInfoC(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall); overload;
     procedure GetPublicFileInfoM(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoMethod); overload;
-{$IFNDEF FPC} procedure GetPublicFileInfoP(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc); overload; {$ENDIF FPC}
+    procedure GetPublicFileInfoP(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc); overload;
     procedure GetPrivateFileInfoC(fileName, DirectoryName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall); overload;
     procedure GetPrivateFileInfoM(fileName, DirectoryName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoMethod); overload;
-{$IFNDEF FPC} procedure GetPrivateFileInfoP(fileName, DirectoryName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc); overload; {$ENDIF FPC}
+    procedure GetPrivateFileInfoP(fileName, DirectoryName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc); overload;
     //
     // remote md5 support with public store space
     procedure GetPublicFileMD5C(fileName: SystemString; const StartPos, EndPos: Int64;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call); overload;
     procedure GetPublicFileMD5M(fileName: SystemString; const StartPos, EndPos: Int64;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Method); overload;
-{$IFNDEF FPC} procedure GetPublicFileMD5P(fileName: SystemString; const StartPos, EndPos: Int64;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc); overload; {$ENDIF FPC}
+    procedure GetPublicFileMD5P(fileName: SystemString; const StartPos, EndPos: Int64;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc); overload;
     //
     // remote md5 support with private store space
     procedure GetPrivateFileMD5C(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call); overload;
     procedure GetPrivateFileMD5M(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Method); overload;
-{$IFNDEF FPC} procedure GetPrivateFileMD5P(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc); overload; {$ENDIF FPC}
+    procedure GetPrivateFileMD5P(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc); overload;
     //
     // normal download with public store space
     function GetPublicFile(fileName, saveToPath: SystemString): Boolean; overload;
@@ -394,8 +402,8 @@ type
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteCall); overload;
     procedure GetPublicFileM(fileName, saveToPath: SystemString;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteMethod); overload;
-{$IFNDEF FPC} procedure GetPublicFileP(fileName, saveToPath: SystemString;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload; {$ENDIF}
+    procedure GetPublicFileP(fileName, saveToPath: SystemString;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload;
     //
     // restore download with public store space
     function GetPublicFile(fileName: SystemString; StartPos: Int64; saveToPath: SystemString): Boolean; overload;
@@ -403,8 +411,8 @@ type
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteCall); overload;
     procedure GetPublicFileM(fileName: SystemString; StartPos: Int64; saveToPath: SystemString;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteMethod); overload;
-{$IFNDEF FPC} procedure GetPublicFileP(fileName: SystemString; StartPos: Int64; saveToPath: SystemString;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload; {$ENDIF}
+    procedure GetPublicFileP(fileName: SystemString; StartPos: Int64; saveToPath: SystemString;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload;
     //
     // normal download with private store space
     function GetPrivateFile(fileName, DirectoryName, saveToPath: SystemString): Boolean; overload;
@@ -413,8 +421,8 @@ type
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteCall); overload;
     procedure GetPrivateFileM(fileName, DirectoryName, saveToPath: SystemString;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteMethod); overload;
-{$IFNDEF FPC} procedure GetPrivateFileP(fileName, DirectoryName, saveToPath: SystemString;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload; {$ENDIF}
+    procedure GetPrivateFileP(fileName, DirectoryName, saveToPath: SystemString;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload;
     //
     // restore download with private store space
     function GetPrivateFile(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString): Boolean; overload;
@@ -423,8 +431,8 @@ type
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteCall); overload;
     procedure GetPrivateFileM(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteMethod); overload;
-{$IFNDEF FPC} procedure GetPrivateFileP(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload; {$ENDIF}
+    procedure GetPrivateFileP(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload;
     //
     // normal download with custom user
     function GetUserPrivateFile(UserID, fileName, DirectoryName, saveToPath: SystemString): Boolean; overload;
@@ -433,8 +441,8 @@ type
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteCall); overload;
     procedure GetUserPrivateFileM(UserID, fileName, DirectoryName, saveToPath: SystemString;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteMethod); overload;
-{$IFNDEF FPC} procedure GetUserPrivateFileP(UserID, fileName, DirectoryName, saveToPath: SystemString;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload; {$ENDIF}
+    procedure GetUserPrivateFileP(UserID, fileName, DirectoryName, saveToPath: SystemString;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload;
     //
     // restore download with custom user
     function GetUserPrivateFile(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString): Boolean; overload;
@@ -443,8 +451,8 @@ type
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteCall); overload;
     procedure GetUserPrivateFileM(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteMethod); overload;
-{$IFNDEF FPC} procedure GetUserPrivateFileP(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
-      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload; {$ENDIF}
+    procedure GetUserPrivateFileP(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
+      const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc); overload;
     //
     // upload file to public store space
     procedure PostFileToPublic(fileName: SystemString); overload;
@@ -465,10 +473,10 @@ type
     procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean); overload;
     procedure PostBatchStreamC(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall); overload;
     procedure PostBatchStreamM(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod); overload;
-{$IFNDEF FPC} procedure PostBatchStreamP(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload; {$ENDIF}
+    procedure PostBatchStreamP(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
     procedure ClearBatchStream;
     procedure GetBatchStreamStateM(OnResult: TStreamMethod); overload;
-{$IFNDEF FPC} procedure GetBatchStreamStateP(OnResult: TStreamProc); overload; {$ENDIF}
+    procedure GetBatchStreamStateP(OnResult: TStreamProc); overload;
     function GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean; overload;
 
     procedure RegisterCommand; virtual;
@@ -538,7 +546,7 @@ type
   TPostBatchBackcallData = record
     OnCall: TStateCall;
     OnMethod: TStateMethod;
-{$IFNDEF FPC} OnProc: TStateProc; {$ENDIF}
+    OnProc: TStateProc;
     procedure Init;
   end;
 
@@ -550,7 +558,7 @@ type
     fileName: SystemString;
     OnCompleteCall: TGetFileInfoCall;
     OnCompleteMethod: TGetFileInfoMethod;
-{$IFNDEF FPC} OnCompleteProc: TGetFileInfoProc; {$ENDIF}
+    OnCompleteProc: TGetFileInfoProc;
     procedure Init;
   end;
 
@@ -563,7 +571,7 @@ type
     StartPos, EndPos: Int64;
     OnCompleteCall: TFileMD5Call;
     OnCompleteMethod: TFileMD5Method;
-{$IFNDEF FPC} OnCompleteProc: TFileMD5Proc; {$ENDIF}
+    OnCompleteProc: TFileMD5Proc;
     procedure Init;
   end;
 
@@ -574,7 +582,7 @@ type
     UserObject: TCoreClassObject;
     OnCompleteCall: TFileCompleteCall;
     OnCompleteMethod: TFileCompleteMethod;
-{$IFNDEF FPC} OnCompleteProc: TFileCompleteProc; {$ENDIF}
+    OnCompleteProc: TFileCompleteProc;
     procedure Init;
   end;
 
@@ -582,9 +590,7 @@ procedure TPostBatchBackcallData.Init;
 begin
   OnCall := nil;
   OnMethod := nil;
-{$IFNDEF FPC}
   OnProc := nil;
-{$ENDIF}
 end;
 
 procedure TGetFileInfoStruct.Init;
@@ -594,7 +600,7 @@ begin
   fileName := '';
   OnCompleteCall := nil;
   OnCompleteMethod := nil;
-{$IFNDEF FPC} OnCompleteProc := nil; {$ENDIF}
+  OnCompleteProc := nil;
 end;
 
 procedure TFileMD5Struct.Init;
@@ -606,7 +612,7 @@ begin
   EndPos := 0;
   OnCompleteCall := nil;
   OnCompleteMethod := nil;
-{$IFNDEF FPC} OnCompleteProc := nil; {$ENDIF}
+  OnCompleteProc := nil;
 end;
 
 procedure TRemoteFileBackcall.Init;
@@ -615,7 +621,7 @@ begin
   UserObject := nil;
   OnCompleteCall := nil;
   OnCompleteMethod := nil;
-{$IFNDEF FPC} OnCompleteProc := nil; {$ENDIF}
+  OnCompleteProc := nil;
 end;
 
 constructor TPeerClientUserDefineForSendTunnel.Create(AOwner: TPeerIO);
@@ -1740,13 +1746,12 @@ begin
   except
   end;
 
-{$IFNDEF FPC}
   try
     if Assigned(backCallValPtr^.OnProc) then
         backCallValPtr^.OnProc(MD5Verify);
   except
   end;
-{$ENDIF}
+
   try
       Dispose(backCallValPtr);
   except
@@ -2259,9 +2264,6 @@ begin
   cli.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelService.PostBatchStreamP(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc);
 var
   de: TDataFrameEngine;
@@ -2285,8 +2287,6 @@ begin
 
   cli.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
-{$ENDIF}
-
 
 procedure TCommunicationFramework_DoubleTunnelService.ClearBatchStream(cli: TPeerIO);
 var
@@ -2308,9 +2308,6 @@ begin
   DisposeObject(de);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelService.GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc);
 var
   de: TDataFrameEngine;
@@ -2320,8 +2317,6 @@ begin
   cli.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
-{$ENDIF}
-
 
 constructor TClientUserDefineForRecvTunnel.Create(AOwner: TPeerIO);
 begin
@@ -2438,13 +2433,11 @@ begin
                 FCurrentStream.Position := 0;
                 p^.OnCompleteMethod(p^.UserData, p^.UserObject, FCurrentStream, fn);
               end;
-{$IFNDEF FPC}
             if Assigned(p^.OnCompleteProc) then
               begin
                 FCurrentStream.Position := 0;
                 p^.OnCompleteProc(p^.UserData, p^.UserObject, FCurrentStream, fn);
               end;
-{$ENDIF}
             Dispose(p);
           end;
       except
@@ -2472,10 +2465,8 @@ begin
           p^.OnCompleteCall(p^.UserData, p^.UserObject, p^.fileName, Existed, fSiz);
       if Assigned(p^.OnCompleteMethod) then
           p^.OnCompleteMethod(p^.UserData, p^.UserObject, p^.fileName, Existed, fSiz);
-{$IFNDEF FPC}
       if Assigned(p^.OnCompleteProc) then
           p^.OnCompleteProc(p^.UserData, p^.UserObject, p^.fileName, Existed, fSiz);
-{$ENDIF FPC}
       p^.fileName := '';
       Dispose(p);
     end;
@@ -2496,10 +2487,8 @@ begin
           p^.OnCompleteCall(p^.UserData, p^.UserObject, p^.fileName, Existed, fSiz);
       if Assigned(p^.OnCompleteMethod) then
           p^.OnCompleteMethod(p^.UserData, p^.UserObject, p^.fileName, Existed, fSiz);
-{$IFNDEF FPC}
       if Assigned(p^.OnCompleteProc) then
           p^.OnCompleteProc(p^.UserData, p^.UserObject, p^.fileName, Existed, fSiz);
-{$ENDIF FPC}
       p^.fileName := '';
       Dispose(p);
     end;
@@ -2523,10 +2512,8 @@ begin
           p^.OnCompleteCall(p^.UserData, p^.UserObject, p^.fileName, p^.StartPos, p^.EndPos, MD5);
       if Assigned(p^.OnCompleteMethod) then
           p^.OnCompleteMethod(p^.UserData, p^.UserObject, p^.fileName, p^.StartPos, p^.EndPos, MD5);
-{$IFNDEF FPC}
       if Assigned(p^.OnCompleteProc) then
           p^.OnCompleteProc(p^.UserData, p^.UserObject, p^.fileName, p^.StartPos, p^.EndPos, MD5);
-{$ENDIF FPC}
       p^.fileName := '';
       Dispose(p);
     end;
@@ -2550,10 +2537,8 @@ begin
           p^.OnCompleteCall(p^.UserData, p^.UserObject, p^.fileName, p^.StartPos, p^.EndPos, MD5);
       if Assigned(p^.OnCompleteMethod) then
           p^.OnCompleteMethod(p^.UserData, p^.UserObject, p^.fileName, p^.StartPos, p^.EndPos, MD5);
-{$IFNDEF FPC}
       if Assigned(p^.OnCompleteProc) then
           p^.OnCompleteProc(p^.UserData, p^.UserObject, p^.fileName, p^.StartPos, p^.EndPos, MD5);
-{$ENDIF FPC}
       p^.fileName := '';
       Dispose(p);
     end;
@@ -2702,13 +2687,12 @@ begin
   except
   end;
 
-{$IFNDEF FPC}
   try
     if Assigned(backCallValPtr^.OnProc) then
         backCallValPtr^.OnProc(MD5Verify);
   except
   end;
-{$ENDIF}
+
   try
       Dispose(backCallValPtr);
   except
@@ -2754,10 +2738,8 @@ begin
             FAsyncOnResultCall(False);
         if Assigned(FAsyncOnResultMethod) then
             FAsyncOnResultMethod(False);
-{$IFNDEF FPC}
         if Assigned(FAsyncOnResultProc) then
             FAsyncOnResultProc(False);
-{$ENDIF}
       except
       end;
       FAsyncConnectAddr := '';
@@ -2765,9 +2747,7 @@ begin
       FAsyncConnSendPort := 0;
       FAsyncOnResultCall := nil;
       FAsyncOnResultMethod := nil;
-{$IFNDEF FPC}
       FAsyncOnResultProc := nil;
-{$ENDIF}
       Exit;
     end;
 
@@ -2784,10 +2764,8 @@ begin
         FAsyncOnResultCall(cState);
     if Assigned(FAsyncOnResultMethod) then
         FAsyncOnResultMethod(cState);
-{$IFNDEF FPC}
     if Assigned(FAsyncOnResultProc) then
         FAsyncOnResultProc(cState);
-{$ENDIF}
   except
   end;
 
@@ -2796,9 +2774,7 @@ begin
   FAsyncConnSendPort := 0;
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := nil;
-{$IFNDEF FPC}
   FAsyncOnResultProc := nil;
-{$ENDIF}
 end;
 
 constructor TCommunicationFramework_DoubleTunnelClient.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
@@ -2833,9 +2809,7 @@ begin
   FAsyncConnSendPort := 0;
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := nil;
-{$IFNDEF FPC}
   FAsyncOnResultProc := nil;
-{$ENDIF}
   //
   SwitchAsDefaultPerformance;
 
@@ -2937,9 +2911,7 @@ begin
   FAsyncConnSendPort := SendPort;
   FAsyncOnResultCall := OnResult;
   FAsyncOnResultMethod := nil;
-{$IFNDEF FPC}
   FAsyncOnResultProc := nil;
-{$ENDIF}
   SendTunnel.AsyncConnectM(FAsyncConnectAddr, FAsyncConnSendPort, {$IFDEF FPC}@{$ENDIF FPC}AsyncSendConnectResult);
 end;
 
@@ -2951,14 +2923,9 @@ begin
   FAsyncConnSendPort := SendPort;
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := OnResult;
-{$IFNDEF FPC}
   FAsyncOnResultProc := nil;
-{$ENDIF}
   SendTunnel.AsyncConnectM(FAsyncConnectAddr, FAsyncConnSendPort, {$IFDEF FPC}@{$ENDIF FPC}AsyncSendConnectResult);
 end;
-
-{$IFNDEF FPC}
-
 
 procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; OnResult: TStateProc);
 begin
@@ -2970,9 +2937,8 @@ begin
   FAsyncOnResultMethod := nil;
   FAsyncOnResultProc := OnResult;
 
-  SendTunnel.AsyncConnectM(FAsyncConnectAddr, FAsyncConnSendPort, AsyncSendConnectResult);
+  SendTunnel.AsyncConnectM(FAsyncConnectAddr, FAsyncConnSendPort, {$IFDEF FPC}@{$ENDIF FPC}AsyncSendConnectResult);
 end;
-{$ENDIF}
 
 procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnectC(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateCall);
 var
@@ -2996,8 +2962,6 @@ begin
   AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
 end;
 
-{$IFNDEF FPC}
-
 procedure TCommunicationFramework_DoubleTunnelClient.AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc);
 var
   ParamBridge: TStateParamBridge;
@@ -3008,7 +2972,6 @@ begin
   ParamBridge.OnNotifyP := OnResult;
   AsyncConnectM(addr, RecvPort, SendPort, {$IFDEF FPC}@{$ENDIF FPC}ParamBridge.DoStateResult);
 end;
-{$ENDIF}
 
 procedure TCommunicationFramework_DoubleTunnelClient.Disconnect;
 begin
@@ -3023,9 +2986,7 @@ begin
   FAsyncConnSendPort := 0;
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := nil;
-{$IFNDEF FPC}
   FAsyncOnResultProc := nil;
-{$ENDIF}
 end;
 
 function TCommunicationFramework_DoubleTunnelClient.UserLogin(UserID, passwd: SystemString): Boolean;
@@ -3126,33 +3087,23 @@ begin
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient.UserLoginC(UserID, passwd: SystemString; OnProc: TStateCall);
-begin
-end;
-
-procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserC(UserID, passwd: SystemString; OnProc: TStateCall);
-begin
-end;
-
-procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkC(OnProc: TStateCall);
-begin
-end;
-
-procedure TCommunicationFramework_DoubleTunnelClient.UserLoginM(UserID, passwd: SystemString; OnProc: TStateMethod);
-begin
-end;
-
-procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserM(UserID, passwd: SystemString; OnProc: TStateMethod);
-begin
-end;
-
-procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkM(OnProc: TStateMethod);
-begin
-end;
-
-{$IFNDEF FPC}
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
 
 
-procedure TCommunicationFramework_DoubleTunnelClient.UserLoginP(UserID, passwd: SystemString; OnProc: TStateProc);
 var
   sendDE: TDataFrameEngine;
 begin
@@ -3165,6 +3116,9 @@ begin
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
   sendDE.WriteString(passwd);
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE, @NestedProc_);
+{$ELSE FPC}
   FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE,
     procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
@@ -3179,11 +3133,28 @@ begin
       if Assigned(OnProc) then
           OnProc(r);
     end);
-
+{$ENDIF FPC}
   DisposeObject(sendDE);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserP(UserID, passwd: SystemString; OnProc: TStateProc);
+procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserC(UserID, passwd: SystemString; OnProc: TStateCall);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
 var
   sendDE: TDataFrameEngine;
 begin
@@ -3196,6 +3167,9 @@ begin
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
   sendDE.WriteString(passwd);
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_RegisterUser, sendDE, @NestedProc_);
+{$ELSE FPC}
   FSendTunnel.SendStreamCmdP(C_RegisterUser, sendDE,
     procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
@@ -3210,11 +3184,38 @@ begin
       if Assigned(OnProc) then
           OnProc(r);
     end);
-
+{$ENDIF FPC}
   DisposeObject(sendDE);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkP(OnProc: TStateProc);
+procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkC(OnProc: TStateCall);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+
+        if r then
+          begin
+            TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).Client := Self;
+            TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).RecvTunnel := TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine);
+
+            TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).Client := Self;
+            TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).SendTunnel := TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine);
+            FLinkOk := True;
+          end;
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
 var
   sendDE: TDataFrameEngine;
 begin
@@ -3234,6 +3235,9 @@ begin
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
 
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE, @NestedProc_);
+{$ELSE FPC}
   FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE,
     procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
     var
@@ -3258,11 +3262,369 @@ begin
       if Assigned(OnProc) then
           OnProc(r);
     end);
-
+{$ENDIF FPC}
   DisposeObject(sendDE);
 end;
-{$ENDIF}
 
+procedure TCommunicationFramework_DoubleTunnelClient.UserLoginM(UserID, passwd: SystemString; OnProc: TStateMethod);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
+var
+  sendDE: TDataFrameEngine;
+begin
+  if not FSendTunnel.Connected then
+      Exit;
+  if not FRecvTunnel.Connected then
+      Exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(passwd);
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE, @NestedProc_);
+{$ELSE FPC}
+  FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE,
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
+    var
+      r: Boolean;
+    begin
+      r := False;
+      if ResultData.Count > 0 then
+        begin
+          r := ResultData.ReadBool(0);
+          FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+        end;
+      if Assigned(OnProc) then
+          OnProc(r);
+    end);
+{$ENDIF FPC}
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserM(UserID, passwd: SystemString; OnProc: TStateMethod);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
+var
+  sendDE: TDataFrameEngine;
+begin
+  if not FSendTunnel.Connected then
+      Exit;
+  if not FRecvTunnel.Connected then
+      Exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(passwd);
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_RegisterUser, sendDE, @NestedProc_);
+{$ELSE FPC}
+  FSendTunnel.SendStreamCmdP(C_RegisterUser, sendDE,
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
+    var
+      r: Boolean;
+    begin
+      r := False;
+      if ResultData.Count > 0 then
+        begin
+          r := ResultData.ReadBool(0);
+          FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+        end;
+      if Assigned(OnProc) then
+          OnProc(r);
+    end);
+{$ENDIF FPC}
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkM(OnProc: TStateMethod);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+
+        if r then
+          begin
+            TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).Client := Self;
+            TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).RecvTunnel := TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine);
+
+            TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).Client := Self;
+            TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).SendTunnel := TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine);
+            FLinkOk := True;
+          end;
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
+var
+  sendDE: TDataFrameEngine;
+begin
+  if FLinkOk then
+      Exit;
+
+  FLinkOk := False;
+  if not FSendTunnel.Connected then
+      Exit;
+  if not FRecvTunnel.Connected then
+      Exit;
+
+  SyncCadencer;
+
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FSendTunnel.RemoteID);
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE, @NestedProc_);
+{$ELSE FPC}
+  FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE,
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
+    var
+      r: Boolean;
+    begin
+      r := False;
+      if ResultData.Count > 0 then
+        begin
+          r := ResultData.ReadBool(0);
+          FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+
+          if r then
+            begin
+              TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).Client := Self;
+              TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).RecvTunnel := TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine);
+
+              TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).Client := Self;
+              TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).SendTunnel := TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine);
+              FLinkOk := True;
+            end;
+        end;
+      if Assigned(OnProc) then
+          OnProc(r);
+    end);
+{$ENDIF FPC}
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.UserLoginP(UserID, passwd: SystemString; OnProc: TStateProc);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
+var
+  sendDE: TDataFrameEngine;
+begin
+  if not FSendTunnel.Connected then
+      Exit;
+  if not FRecvTunnel.Connected then
+      Exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(passwd);
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE, @NestedProc_);
+{$ELSE FPC}
+  FSendTunnel.SendStreamCmdP(C_UserLogin, sendDE,
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
+    var
+      r: Boolean;
+    begin
+      r := False;
+      if ResultData.Count > 0 then
+        begin
+          r := ResultData.ReadBool(0);
+          FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+        end;
+      if Assigned(OnProc) then
+          OnProc(r);
+    end);
+{$ENDIF FPC}
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.RegisterUserP(UserID, passwd: SystemString; OnProc: TStateProc);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
+var
+  sendDE: TDataFrameEngine;
+begin
+  if not FSendTunnel.Connected then
+      Exit;
+  if not FRecvTunnel.Connected then
+      Exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(passwd);
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_RegisterUser, sendDE, @NestedProc_);
+{$ELSE FPC}
+  FSendTunnel.SendStreamCmdP(C_RegisterUser, sendDE,
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
+    var
+      r: Boolean;
+    begin
+      r := False;
+      if ResultData.Count > 0 then
+        begin
+          r := ResultData.ReadBool(0);
+          FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+        end;
+      if Assigned(OnProc) then
+          OnProc(r);
+    end);
+{$ENDIF FPC}
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.TunnelLinkP(OnProc: TStateProc);
+{$IFDEF FPC}
+  procedure NestedProc_(Sender: TPeerIO; ResultData: TDataFrameEngine);
+  var
+    r: Boolean;
+  begin
+    r := False;
+    if ResultData.Count > 0 then
+      begin
+        r := ResultData.ReadBool(0);
+        FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+
+        if r then
+          begin
+            TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).Client := Self;
+            TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).RecvTunnel := TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine);
+
+            TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).Client := Self;
+            TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).SendTunnel := TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine);
+            FLinkOk := True;
+          end;
+      end;
+    if Assigned(OnProc) then
+        OnProc(r);
+  end;
+{$ENDIF FPC}
+
+
+var
+  sendDE: TDataFrameEngine;
+begin
+  if FLinkOk then
+      Exit;
+
+  FLinkOk := False;
+  if not FSendTunnel.Connected then
+      Exit;
+  if not FRecvTunnel.Connected then
+      Exit;
+
+  SyncCadencer;
+
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FSendTunnel.RemoteID);
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+
+{$IFDEF FPC}
+  FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE, @NestedProc_);
+{$ELSE FPC}
+  FSendTunnel.SendStreamCmdP(C_TunnelLink, sendDE,
+    procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
+    var
+      r: Boolean;
+    begin
+      r := False;
+      if ResultData.Count > 0 then
+        begin
+          r := ResultData.ReadBool(0);
+          FSendTunnel.ClientIO.Print(ResultData.ReadString(1));
+
+          if r then
+            begin
+              TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).Client := Self;
+              TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine).RecvTunnel := TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine);
+
+              TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).Client := Self;
+              TClientUserDefineForRecvTunnel(FRecvTunnel.ClientIO.UserDefine).SendTunnel := TClientUserDefineForSendTunnel(FSendTunnel.ClientIO.UserDefine);
+              FLinkOk := True;
+            end;
+        end;
+      if Assigned(OnProc) then
+          OnProc(r);
+    end);
+{$ENDIF FPC}
+  DisposeObject(sendDE);
+end;
 
 procedure TCommunicationFramework_DoubleTunnelClient.SyncCadencer;
 var
@@ -3495,9 +3857,6 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileInfoP(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc);
 var
   sendDE: TDataFrameEngine;
@@ -3518,11 +3877,9 @@ begin
   p^.OnCompleteProc := OnComplete;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM(C_GetPublicFileInfo, sendDE, p, nil, GetPublicFileInfo_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetPublicFileInfo, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPublicFileInfo_StreamParamResult);
   DisposeObject(sendDE);
 end;
-{$ENDIF FPC}
-
 
 procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileInfoC(fileName, DirectoryName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall);
 var
@@ -3574,9 +3931,6 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileInfoP(fileName, DirectoryName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc);
 var
   sendDE: TDataFrameEngine;
@@ -3598,11 +3952,9 @@ begin
   p^.OnCompleteProc := OnComplete;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM(C_GetPrivateFileInfo, sendDE, p, nil, GetPrivateFileInfo_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetPrivateFileInfo, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPrivateFileInfo_StreamParamResult);
   DisposeObject(sendDE);
 end;
-{$ENDIF FPC}
-
 
 //
 // remote md5 support with public store space
@@ -3664,7 +4016,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC} procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileMD5P(fileName: SystemString; const StartPos, EndPos: Int64;
+procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileMD5P(fileName: SystemString; const StartPos, EndPos: Int64;
 const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc);
 var
   sendDE: TDataFrameEngine;
@@ -3689,11 +4041,9 @@ begin
   p^.OnCompleteProc := OnComplete;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM(C_GetPublicFileMD5, sendDE, p, nil, GetPublicFileMD5_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetPublicFileMD5, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPublicFileMD5_StreamParamResult);
   DisposeObject(sendDE);
 end;
-{$ENDIF FPC}
-
 
 // remote md5 support with private store space
 procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileMD5C(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
@@ -3756,7 +4106,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC} procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileMD5P(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
+procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileMD5P(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
 const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc);
 var
   sendDE: TDataFrameEngine;
@@ -3785,8 +4135,6 @@ begin
   FSendTunnel.SendStreamCmdM(C_GetPrivateFileMD5, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPrivateFileMD5_StreamParamResult);
   DisposeObject(sendDE);
 end;
-{$ENDIF FPC}
-
 
 function TCommunicationFramework_DoubleTunnelClient.GetPublicFile(fileName, saveToPath: SystemString): Boolean;
 begin
@@ -3805,16 +4153,11 @@ begin
   GetPublicFileM(fileName, 0, saveToPath, UserData, UserObject, OnComplete);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileP(fileName, saveToPath: SystemString;
 const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc);
 begin
   GetPublicFileP(fileName, 0, saveToPath, UserData, UserObject, OnComplete);
 end;
-{$ENDIF}
-
 
 // restore download from public
 function TCommunicationFramework_DoubleTunnelClient.GetPublicFile(fileName: SystemString; StartPos: Int64; saveToPath: SystemString): Boolean;
@@ -3905,9 +4248,6 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileP(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc);
 var
   sendDE: TDataFrameEngine;
@@ -3930,12 +4270,9 @@ begin
   p^.OnCompleteProc := OnComplete;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM(C_GetPublicFile, sendDE, p, nil, GetPublicFile_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetPublicFile, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPublicFile_StreamParamResult);
   DisposeObject(sendDE);
 end;
-
-{$ENDIF}
-
 
 function TCommunicationFramework_DoubleTunnelClient.GetPrivateFile(fileName, DirectoryName, saveToPath: SystemString): Boolean;
 begin
@@ -3959,16 +4296,11 @@ begin
   GetPrivateFileM(fileName, 0, DirectoryName, saveToPath, UserData, UserObject, OnComplete);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileP(fileName, DirectoryName, saveToPath: SystemString;
 const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc);
 begin
   GetPrivateFileP(fileName, 0, DirectoryName, saveToPath, UserData, UserObject, OnComplete);
 end;
-{$ENDIF}
-
 
 // restore download from user
 function TCommunicationFramework_DoubleTunnelClient.GetPrivateFile(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString): Boolean;
@@ -4066,9 +4398,6 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileP(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc);
 var
   sendDE: TDataFrameEngine;
@@ -4092,12 +4421,9 @@ begin
   p^.OnCompleteProc := OnComplete;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM(C_GetPrivateFile, sendDE, p, nil, GetPrivateFile_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetPrivateFile, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPrivateFile_StreamParamResult);
   DisposeObject(sendDE);
 end;
-
-{$ENDIF}
-
 
 function TCommunicationFramework_DoubleTunnelClient.GetUserPrivateFile(UserID, fileName, DirectoryName, saveToPath: SystemString): Boolean;
 begin
@@ -4121,16 +4447,11 @@ begin
   GetUserPrivateFileM(UserID, fileName, 0, DirectoryName, saveToPath, UserData, UserObject, OnComplete);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetUserPrivateFileP(UserID, fileName, DirectoryName, saveToPath: SystemString;
 const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc);
 begin
   GetUserPrivateFileP(UserID, fileName, 0, DirectoryName, saveToPath, UserData, UserObject, OnComplete);
 end;
-{$ENDIF}
-
 
 // restore download with custom user
 function TCommunicationFramework_DoubleTunnelClient.GetUserPrivateFile(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString): Boolean;
@@ -4233,7 +4554,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-{$IFNDEF FPC} procedure TCommunicationFramework_DoubleTunnelClient.GetUserPrivateFileP(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
+procedure TCommunicationFramework_DoubleTunnelClient.GetUserPrivateFileP(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString;
 const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileCompleteProc);
 var
   sendDE: TDataFrameEngine;
@@ -4258,11 +4579,9 @@ begin
   p^.OnCompleteProc := OnComplete;
   sendDE.WritePointer(p);
 
-  FSendTunnel.SendStreamCmdM(C_GetUserPrivateFile, sendDE, p, nil, GetPrivateFile_StreamParamResult);
+  FSendTunnel.SendStreamCmdM(C_GetUserPrivateFile, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetPrivateFile_StreamParamResult);
   DisposeObject(sendDE);
 end;
-{$ENDIF}
-
 
 procedure TCommunicationFramework_DoubleTunnelClient.PostFileToPublic(fileName: SystemString);
 begin
@@ -4452,9 +4771,6 @@ begin
   SendTunnel.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.PostBatchStreamP(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc);
 var
   de: TDataFrameEngine;
@@ -4478,8 +4794,6 @@ begin
 
   SendTunnel.SendBigStream(C_PostBatchStream, stream, doneFreeStream);
 end;
-{$ENDIF}
-
 
 procedure TCommunicationFramework_DoubleTunnelClient.ClearBatchStream;
 var
@@ -4500,9 +4814,6 @@ begin
   DisposeObject(de);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TCommunicationFramework_DoubleTunnelClient.GetBatchStreamStateP(OnResult: TStreamProc);
 var
   de: TDataFrameEngine;
@@ -4511,8 +4822,6 @@ begin
   SendTunnel.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
-{$ENDIF}
-
 
 function TCommunicationFramework_DoubleTunnelClient.GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean;
 var

@@ -151,7 +151,11 @@ type
 
   TInt64HashObjectListLoopCall = procedure(i64: Int64; Value: TCoreClassObject);
   TInt64HashObjectListLoopMethod = procedure(i64: Int64; Value: TCoreClassObject) of object;
-{$IFNDEF FPC} TInt64HashObjectListLoopProc = reference to procedure(i64: Int64; Value: TCoreClassObject); {$ENDIF}
+{$IFDEF FPC}
+  TInt64HashObjectListLoopProc = procedure(i64: Int64; Value: TCoreClassObject) is nested;
+{$ELSE FPC}
+  TInt64HashObjectListLoopProc = reference to procedure(i64: Int64; Value: TCoreClassObject);
+{$ENDIF FPC}
 
   TInt64HashObjectList = class(TCoreClassObject)
   private
@@ -198,9 +202,9 @@ type
     function GetPrev(i64: Int64): TCoreClassObject;
     function ListBuffer: PListBuffer;
 
-    procedure ProgressC(OnProgress: TInt64HashObjectListLoopCall); overload;
-    procedure ProgressM(OnProgress: TInt64HashObjectListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: TInt64HashObjectListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: TInt64HashObjectListLoopCall);
+    procedure ProgressM(OnProgress: TInt64HashObjectListLoopMethod);
+    procedure ProgressP(OnProgress: TInt64HashObjectListLoopProc);
     // print hash status
     procedure PrintHashReport;
 
@@ -224,7 +228,11 @@ type
 
   TInt64HashPointerListLoopCall = procedure(i64: Int64; Value: Pointer);
   TInt64HashPointerListLoopMethod = procedure(i64: Int64; Value: Pointer) of object;
-{$IFNDEF FPC} TInt64HashPointerListLoopProc = reference to procedure(i64: Int64; Value: Pointer); {$ENDIF}
+{$IFDEF FPC}
+  TInt64HashPointerListLoopProc = procedure(i64: Int64; Value: Pointer) is nested;
+{$ELSE FPC}
+  TInt64HashPointerListLoopProc = reference to procedure(i64: Int64; Value: Pointer);
+{$ENDIF FPC}
 
   TInt64HashPointerList = class(TCoreClassObject)
   private
@@ -270,9 +278,9 @@ type
     function GetPrev(i64: Int64): Pointer;
     function ListBuffer: PListBuffer;
 
-    procedure ProgressC(OnProgress: TInt64HashPointerListLoopCall); overload;
-    procedure ProgressM(OnProgress: TInt64HashPointerListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: TInt64HashPointerListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: TInt64HashPointerListLoopCall);
+    procedure ProgressM(OnProgress: TInt64HashPointerListLoopMethod);
+    procedure ProgressP(OnProgress: TInt64HashPointerListLoopProc);
     // print hash status
     procedure PrintHashReport;
 
@@ -297,7 +305,11 @@ type
 
   TUInt32HashObjectListLoopCall = procedure(u32: UInt32; Value: TCoreClassObject);
   TUInt32HashObjectListLoopMethod = procedure(u32: UInt32; Value: TCoreClassObject) of object;
-{$IFNDEF FPC} TUInt32HashObjectListLoopProc = reference to procedure(u32: UInt32; Value: TCoreClassObject); {$ENDIF}
+{$IFDEF FPC}
+  TUInt32HashObjectListLoopProc = procedure(u32: UInt32; Value: TCoreClassObject) is nested;
+{$ELSE FPC}
+  TUInt32HashObjectListLoopProc = reference to procedure(u32: UInt32; Value: TCoreClassObject);
+{$ENDIF FPC}
 
   TUInt32HashObjectList = class(TCoreClassObject)
   private
@@ -338,9 +350,9 @@ type
     function GetNext(u32: UInt32): TCoreClassObject;
     function GetPrev(u32: UInt32): TCoreClassObject;
     function ListBuffer: PListBuffer;
-    procedure ProgressC(OnProgress: TUInt32HashObjectListLoopCall); overload;
-    procedure ProgressM(OnProgress: TUInt32HashObjectListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: TUInt32HashObjectListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: TUInt32HashObjectListLoopCall);
+    procedure ProgressM(OnProgress: TUInt32HashObjectListLoopMethod);
+    procedure ProgressP(OnProgress: TUInt32HashObjectListLoopProc);
     //
     function ExistsObject(Obj: TCoreClassObject): Boolean;
 
@@ -365,7 +377,11 @@ type
 
   TUInt32HashPointerListLoopCall = procedure(u32: UInt32; pData: Pointer);
   TUInt32HashPointerListLoopMethod = procedure(u32: UInt32; pData: Pointer) of object;
-{$IFNDEF FPC} TUInt32HashPointerListLoopProc = reference to procedure(u32: UInt32; pData: Pointer); {$ENDIF}
+{$IFDEF FPC}
+  TUInt32HashPointerListLoopProc = procedure(u32: UInt32; pData: Pointer) is nested;
+{$ELSE FPC}
+  TUInt32HashPointerListLoopProc = reference to procedure(u32: UInt32; pData: Pointer);
+{$ENDIF FPC}
 
   TUInt32HashPointerList = class(TCoreClassObject)
   private
@@ -409,9 +425,9 @@ type
     function GetNext(u32: UInt32): Pointer;
     function GetPrev(u32: UInt32): Pointer;
     function ListBuffer: PListBuffer;
-    procedure ProgressC(OnProgress: TUInt32HashPointerListLoopCall); overload;
-    procedure ProgressM(OnProgress: TUInt32HashPointerListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: TUInt32HashPointerListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: TUInt32HashPointerListLoopCall);
+    procedure ProgressM(OnProgress: TUInt32HashPointerListLoopMethod);
+    procedure ProgressP(OnProgress: TUInt32HashPointerListLoopProc);
     //
     function ExistsPointer(pData: Pointer): Boolean;
 
@@ -438,7 +454,11 @@ type
 
   TPointerHashNativeUIntListLoopCall = procedure(NPtr: Pointer; uData: NativeUInt);
   TPointerHashNativeUIntListLoopMethod = procedure(NPtr: Pointer; uData: NativeUInt) of object;
-{$IFNDEF FPC} TPointerHashNativeUIntListLoopProc = reference to procedure(NPtr: Pointer; uData: NativeUInt); {$ENDIF}
+{$IFDEF FPC}
+  TPointerHashNativeUIntListLoopProc = procedure(NPtr: Pointer; uData: NativeUInt) is nested;
+{$ELSE FPC}
+  TPointerHashNativeUIntListLoopProc = reference to procedure(NPtr: Pointer; uData: NativeUInt);
+{$ENDIF FPC}
 
   TPointerHashNativeUIntList = class(TCoreClassObject)
   public
@@ -483,9 +503,9 @@ type
     function GetNext(NPtr: Pointer): NativeUInt;
     function GetPrev(NPtr: Pointer): NativeUInt;
     function ListBuffer: PListBuffer;
-    procedure ProgressC(OnProgress: TPointerHashNativeUIntListLoopCall); overload;
-    procedure ProgressM(OnProgress: TPointerHashNativeUIntListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: TPointerHashNativeUIntListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: TPointerHashNativeUIntListLoopCall);
+    procedure ProgressM(OnProgress: TPointerHashNativeUIntListLoopMethod);
+    procedure ProgressP(OnProgress: TPointerHashNativeUIntListLoopProc);
     //
     function ExistsNaviveUInt(Obj: NativeUInt): Boolean;
 
@@ -511,7 +531,11 @@ type
 
   THashObjectListLoopCall = procedure(const Name: PSystemString; Obj: TCoreClassObject);
   THashObjectListLoopMethod = procedure(const Name: PSystemString; Obj: TCoreClassObject) of object;
-{$IFNDEF FPC} THashObjectListLoopProc = reference to procedure(const Name: PSystemString; Obj: TCoreClassObject); {$ENDIF}
+{$IFDEF FPC}
+  THashObjectListLoopProc = procedure(const Name: PSystemString; Obj: TCoreClassObject) is nested;
+{$ELSE FPC}
+  THashObjectListLoopProc = reference to procedure(const Name: PSystemString; Obj: TCoreClassObject);
+{$ENDIF FPC}
 
   THashObjectList = class(TCoreClassObject)
   private
@@ -542,9 +566,9 @@ type
 
     procedure Assign(sour: THashObjectList);
 
-    procedure ProgressC(OnProgress: THashObjectListLoopCall); overload;
-    procedure ProgressM(OnProgress: THashObjectListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: THashObjectListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: THashObjectListLoopCall);
+    procedure ProgressM(OnProgress: THashObjectListLoopMethod);
+    procedure ProgressP(OnProgress: THashObjectListLoopProc);
     //
     procedure Clear;
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
@@ -590,7 +614,11 @@ type
 
   THashStringListLoopCall = procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString);
   THashStringListLoopMethod = procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString) of object;
-{$IFNDEF FPC} THashStringListLoopProc = reference to procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString); {$ENDIF}
+{$IFDEF FPC}
+  THashStringListLoopProc = procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString) is nested;
+{$ELSE FPC}
+  THashStringListLoopProc = reference to procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString);
+{$ENDIF FPC}
 
   THashStringList = class(TCoreClassObject)
   private
@@ -621,9 +649,9 @@ type
     //
     procedure Assign(sour: THashStringList);
     //
-    procedure ProgressC(OnProgress: THashStringListLoopCall); overload;
-    procedure ProgressM(OnProgress: THashStringListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: THashStringListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: THashStringListLoopCall);
+    procedure ProgressM(OnProgress: THashStringListLoopMethod);
+    procedure ProgressP(OnProgress: THashStringListLoopProc);
     //
     procedure Clear;
     //
@@ -713,7 +741,11 @@ type
 
   THashVariantListLoopCall = procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant);
   THashVariantListLoopMethod = procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant) of object;
-{$IFNDEF FPC} THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant); {$ENDIF}
+{$IFDEF FPC}
+  THashVariantListLoopProc = procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant) is nested;
+{$ELSE FPC}
+  THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant);
+{$ENDIF FPC}
 
   THashVariantList = class(TCoreClassObject)
   private
@@ -753,9 +785,9 @@ type
     //
     procedure Assign(sour: THashVariantList);
     //
-    procedure ProgressC(OnProgress: THashVariantListLoopCall); overload;
-    procedure ProgressM(OnProgress: THashVariantListLoopMethod); overload;
-{$IFNDEF FPC} procedure ProgressP(OnProgress: THashVariantListLoopProc); overload; {$ENDIF}
+    procedure ProgressC(OnProgress: THashVariantListLoopCall);
+    procedure ProgressM(OnProgress: THashVariantListLoopMethod);
+    procedure ProgressP(OnProgress: THashVariantListLoopProc);
     //
     procedure Clear;
     //
@@ -1258,14 +1290,18 @@ type
   TBackcallNotifyCall = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
   TBackcallNotifyMethod = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant) of object;
 
-{$IFNDEF FPC} TBackcallNotifyProc = reference to procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant); {$ENDIF}
+{$IFDEF FPC}
+  TBackcallNotifyProc = procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant) is nested;
+{$ELSE FPC}
+  TBackcallNotifyProc = reference to procedure(Sender: TBackcalls; TriggerObject: TCoreClassObject; Param1, Param2, Param3: Variant);
+{$ENDIF FPC}
   PBackcallData = ^TBackcallData;
 
   TBackcallData = record
     TokenObj: TCoreClassObject;
     NotifyCall: TBackcallNotifyCall;
     NotifyMethod: TBackcallNotifyMethod;
-{$IFNDEF FPC} NotifyProc: TBackcallNotifyProc; {$ENDIF}
+    NotifyProc: TBackcallNotifyProc;
     procedure Init;
   end;
 
@@ -1283,9 +1319,9 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure RegisterBackcall(TokenObj_: TCoreClassObject; NotifyCall_: TBackcallNotifyCall); overload;
-    procedure RegisterBackcall(TokenObj_: TCoreClassObject; NotifyMethod_: TBackcallNotifyMethod); overload;
-{$IFNDEF FPC} procedure RegisterBackcall(TokenObj_: TCoreClassObject; NotifyProc_: TBackcallNotifyProc); overload; {$ENDIF}
+    procedure RegisterBackcallC(TokenObj_: TCoreClassObject; NotifyCall_: TBackcallNotifyCall);
+    procedure RegisterBackcallM(TokenObj_: TCoreClassObject; NotifyMethod_: TBackcallNotifyMethod);
+    procedure RegisterBackcallP(TokenObj_: TCoreClassObject; NotifyProc_: TBackcallNotifyProc);
     procedure UnRegisterBackcall(TokenObj_: TCoreClassObject);
 
     procedure Clear;
@@ -2586,8 +2622,6 @@ begin
         end;
     end;
 end;
-{$IFNDEF FPC}
-
 
 procedure TInt64HashObjectList.ProgressP(OnProgress: TInt64HashObjectListLoopProc);
 var
@@ -2609,8 +2643,6 @@ begin
         end;
     end;
 end;
-{$ENDIF}
-
 
 procedure TInt64HashObjectList.PrintHashReport;
 var
@@ -3175,8 +3207,6 @@ begin
         end;
     end;
 end;
-{$IFNDEF FPC}
-
 
 procedure TInt64HashPointerList.ProgressP(OnProgress: TInt64HashPointerListLoopProc);
 var
@@ -3198,9 +3228,6 @@ begin
         end;
     end;
 end;
-
-{$ENDIF}
-
 
 procedure TInt64HashPointerList.PrintHashReport;
 var
@@ -3742,9 +3769,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TUInt32HashObjectList.ProgressP(OnProgress: TUInt32HashObjectListLoopProc);
 var
   i: NativeInt;
@@ -3765,8 +3789,6 @@ begin
         end;
     end;
 end;
-{$ENDIF}
-
 
 function TUInt32HashObjectList.ExistsObject(Obj: TCoreClassObject): Boolean;
 var
@@ -4344,9 +4366,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TUInt32HashPointerList.ProgressP(OnProgress: TUInt32HashPointerListLoopProc);
 var
   i: NativeInt;
@@ -4367,8 +4386,6 @@ begin
         end;
     end;
 end;
-{$ENDIF}
-
 
 function TUInt32HashPointerList.ExistsPointer(pData: Pointer): Boolean;
 var
@@ -4968,9 +4985,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TPointerHashNativeUIntList.ProgressP(OnProgress: TPointerHashNativeUIntListLoopProc);
 var
   i: Integer;
@@ -4991,8 +5005,6 @@ begin
         end;
     end;
 end;
-{$ENDIF}
-
 
 function TPointerHashNativeUIntList.ExistsNaviveUInt(Obj: NativeUInt): Boolean;
 var
@@ -5212,9 +5224,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 procedure THashObjectList.ProgressP(OnProgress: THashObjectListLoopProc);
 var
   i: Integer;
@@ -5235,8 +5244,6 @@ begin
         end;
     end;
 end;
-{$ENDIF}
-
 
 procedure THashObjectList.Clear;
 var
@@ -5764,9 +5771,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 procedure THashStringList.ProgressP(OnProgress: THashStringListLoopProc);
 var
   i: Integer;
@@ -5787,9 +5791,6 @@ begin
         end;
     end;
 end;
-
-{$ENDIF}
-
 
 procedure THashStringList.Clear;
 begin
@@ -6663,9 +6664,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 procedure THashVariantList.ProgressP(OnProgress: THashVariantListLoopProc);
 var
   i: Integer;
@@ -6686,9 +6684,6 @@ begin
         end;
     end;
 end;
-
-{$ENDIF}
-
 
 procedure THashVariantList.Clear;
 begin
@@ -9155,9 +9150,7 @@ begin
   TokenObj := nil;
   NotifyCall := nil;
   NotifyMethod := nil;
-{$IFNDEF FPC}
   NotifyProc := nil;
-{$ENDIF}
 end;
 
 function TBackcalls.GetVariantList: THashVariantList;
@@ -9194,7 +9187,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TBackcalls.RegisterBackcall(TokenObj_: TCoreClassObject; NotifyCall_: TBackcallNotifyCall);
+procedure TBackcalls.RegisterBackcallC(TokenObj_: TCoreClassObject; NotifyCall_: TBackcallNotifyCall);
 var
   p: PBackcallData;
   i: Integer;
@@ -9210,7 +9203,7 @@ begin
   FList.Add(p);
 end;
 
-procedure TBackcalls.RegisterBackcall(TokenObj_: TCoreClassObject; NotifyMethod_: TBackcallNotifyMethod);
+procedure TBackcalls.RegisterBackcallM(TokenObj_: TCoreClassObject; NotifyMethod_: TBackcallNotifyMethod);
 var
   p: PBackcallData;
   i: Integer;
@@ -9226,10 +9219,7 @@ begin
   FList.Add(p);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TBackcalls.RegisterBackcall(TokenObj_: TCoreClassObject; NotifyProc_: TBackcallNotifyProc);
+procedure TBackcalls.RegisterBackcallP(TokenObj_: TCoreClassObject; NotifyProc_: TBackcallNotifyProc);
 var
   p: PBackcallData;
   i: Integer;
@@ -9244,8 +9234,6 @@ begin
   p^.NotifyProc := NotifyProc_;
   FList.Add(p);
 end;
-{$ENDIF}
-
 
 procedure TBackcalls.UnRegisterBackcall(TokenObj_: TCoreClassObject);
 var
@@ -9296,7 +9284,6 @@ begin
           except
           end;
         end;
-{$IFNDEF FPC}
       if Assigned(p^.NotifyProc) then
         begin
           try
@@ -9304,7 +9291,6 @@ begin
           except
           end;
         end;
-{$ENDIF}
       if (i >= 0) and (i < FList.Count) and (FList[i] = p) then
           inc(i);
     end;

@@ -40,7 +40,11 @@ type
   TOnOpMethod = function(var Param: TOpParam): Variant of object;
   TOnObjectOpCall = function(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
   TOnObjectOpMethod = function(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant of object;
-{$IFNDEF FPC}
+
+{$IFDEF FPC}
+  TOnOpProc = function(var Param: TOpParam): Variant is nested;
+  TOnObjectOpProc = function(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant is nested;
+{$ELSE FPC}
   TOnOpProc = reference to function(var Param: TOpParam): Variant;
   TOnObjectOpProc = reference to function(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
 {$ENDIF FPC}
@@ -53,10 +57,8 @@ type
     OnOpMethod: TOnOpMethod;
     OnObjectOpCall: TOnObjectOpCall;
     OnObjectOpMethod: TOnObjectOpMethod;
-{$IFNDEF FPC}
     OnOpProc: TOnOpProc;
     OnObjectOpProc: TOnObjectOpProc;
-{$ENDIF FPC}
     procedure Init;
   end;
 
@@ -128,12 +130,10 @@ type
     function RegObjectOpC(ProcName, ProcDescription: SystemString; OnProc: TOnObjectOpCall): POpRTData; overload;
     function RegObjectOpM(ProcName: SystemString; OnProc: TOnObjectOpMethod): POpRTData; overload;
     function RegObjectOpM(ProcName, ProcDescription: SystemString; OnProc: TOnObjectOpMethod): POpRTData; overload;
-{$IFNDEF FPC}
     function RegOpP(ProcName: SystemString; OnProc: TOnOpProc): POpRTData; overload;
     function RegOpP(ProcName, ProcDescription: SystemString; OnProc: TOnOpProc): POpRTData; overload;
     function RegObjectOpP(ProcName: SystemString; OnProc: TOnObjectOpProc): POpRTData; overload;
     function RegObjectOpP(ProcName, ProcDescription: SystemString; OnProc: TOnObjectOpProc): POpRTData; overload;
-{$ENDIF FPC}
   end;
 
   opClass = class of TOpCode;
@@ -343,10 +343,8 @@ begin
   OnOpMethod := nil;
   OnObjectOpCall := nil;
   OnObjectOpMethod := nil;
-{$IFNDEF FPC}
   OnOpProc := nil;
   OnObjectOpProc := nil;
-{$ENDIF FPC}
 end;
 
 function GetRegistedOp(Name: TPascalString): POpRegData;
@@ -1108,9 +1106,6 @@ begin
   Result := p;
 end;
 
-{$IFNDEF FPC}
-
-
 function TOpCustomRunTime.RegOpP(ProcName: SystemString; OnProc: TOnOpProc): POpRTData;
 var
   p: POpRTData;
@@ -1160,8 +1155,6 @@ begin
   ProcList.Add(ProcName, p, True);
   Result := p;
 end;
-{$ENDIF FPC}
-
 
 function TOpCode.DoExecute(opRT: TOpCustomRunTime): Variant;
 begin
@@ -1439,12 +1432,10 @@ begin
       Result := p^.OnObjectOpCall(opRT, p^.Param);
   if Assigned(p^.OnObjectOpMethod) then
       Result := p^.OnObjectOpMethod(opRT, p^.Param);
-{$IFNDEF FPC}
   if Assigned(p^.OnOpProc) then
       Result := p^.OnOpProc(p^.Param);
   if Assigned(p^.OnObjectOpProc) then
       Result := p^.OnObjectOpProc(opRT, p^.Param);
-{$ENDIF FPC}
 end;
 
 { op_Add }

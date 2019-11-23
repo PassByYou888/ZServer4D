@@ -51,10 +51,13 @@ type
   TZDBPipelineDoneCall = procedure(dPipe: TZDBPipeline);
   TZDBPipelineDoneMethod = procedure(dPipe: TZDBPipeline) of object;
 
-{$IFNDEF FPC}
+{$IFDEF FPC}
+  TZDBPipelineFilterProc = procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean) is nested;
+  TZDBPipelineDoneProc = procedure(dPipe: TZDBPipeline) is nested;
+{$ELSE FPC}
   TZDBPipelineFilterProc = reference to procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
   TZDBPipelineDoneProc = reference to procedure(dPipe: TZDBPipeline);
-{$ENDIF}
+{$ENDIF FPC}
 
   TZDBStorePosTransform = record
     OriginPos, NewPos: Int64;
@@ -104,13 +107,10 @@ type
 
     OnDataFilterCall: TZDBPipelineFilterCall;
     OnDataFilterMethod: TZDBPipelineFilterMethod;
-
     OnDataDoneCall: TZDBPipelineDoneCall;
     OnDataDoneMethod: TZDBPipelineDoneMethod;
-{$IFNDEF FPC}
     OnDataFilterProc: TZDBPipelineFilterProc;
     OnDataDoneProc: TZDBPipelineDoneProc;
-{$ENDIF}
     OnStorePosTransform: TZDBStorePosTransformNotify;
 
     values: THashVariantList;
@@ -262,7 +262,6 @@ type
       MaxQueryCompare, MaxQueryResult: Int64;
       OnDataFilterMethod: TZDBPipelineFilterMethod; OnDataDoneMethod: TZDBPipelineDoneMethod): TZDBPipeline; overload;
 
-{$IFNDEF FPC}
     function QueryDBP(WriteResultToOutputDB, InMemory, ReverseQuery: Boolean; dbN, OutputDB: SystemString;
       AutoDestroyDB: Boolean; QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double;
       MaxQueryCompare, MaxQueryResult: Int64;
@@ -273,7 +272,7 @@ type
       AutoDestroyDB: Boolean; QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double;
       MaxQueryCompare, MaxQueryResult: Int64;
       OnDataFilterProc: TZDBPipelineFilterProc; OnDataDoneProc: TZDBPipelineDoneProc): TZDBPipeline; overload;
-{$ENDIF}
+
     function QueryDBToMemory(WriteResultToOutputDB, ReverseQuery: Boolean; dbN: SystemString;
       QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double;
       MaxQueryCompare, MaxQueryResult: Int64): TZDBPipeline; overload;
@@ -281,11 +280,10 @@ type
     function QueryDBToMemory(WriteResultToOutputDB, ReverseQuery: Boolean; dbN: SystemString;
       FragmentWaitTime, MaxWaitTime: Double; MaxQueryResult: Int64): TZDBPipeline; overload;
 
-{$IFNDEF FPC}
     function QueryDBToMemoryP(WriteResultToOutputDB, ReverseQuery: Boolean; dbN: SystemString;
       QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double; MaxQueryCompare, MaxQueryResult: Int64;
       OnDataFilterProc: TZDBPipelineFilterProc; OnDataDoneProc: TZDBPipelineDoneProc): TZDBPipeline; overload;
-{$ENDIF}
+
     function QueryDBToFile(WriteResultToOutputDB, ReverseQuery: Boolean; dbN, OutputDB: SystemString;
       FragmentWaitTime, MaxWaitTime: Double; MaxQueryCompare, MaxQueryResult: Int64): TZDBPipeline;
 
@@ -324,34 +322,37 @@ type
 
   TFillQueryDataCall = procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
   TFillQueryDataMethod = procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64) of object;
-  //
-{$IFNDEF FPC}
-  TFillQueryDataProc = reference to procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
-{$ENDIF}
   TUserFillQueryDataCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
     dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
   TUserFillQueryDataMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
     dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64) of object;
-{$IFNDEF FPC}
+
+{$IFDEF FPC}
+  TFillQueryDataProc = procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64) is nested;
+  TUserFillQueryDataProc = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+    dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64) is nested;
+{$ELSE FPC}
+  TFillQueryDataProc = reference to procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
   TUserFillQueryDataProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
     dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
-{$ENDIF}
+{$ENDIF FPC}
 
 function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString;
 
 // fill and store
 procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStoreBase);
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall); overload;
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod); overload;
-{$IFNDEF FPC} procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload; {$ENDIF}
+procedure FillFragmentSourceC(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall); overload;
+procedure FillFragmentSourceM(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod); overload;
+procedure FillFragmentSourceP(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc); overload;
 
 // fill and trigger
-procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+procedure FillFragmentSourceC(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall); overload;
-procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+procedure FillFragmentSourceM(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod); overload;
-{$IFNDEF FPC} procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc); overload; {$ENDIF}
+procedure FillFragmentSourceP(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+  dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc); overload;
+
 // one fragment operation
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
 function DecodeOneFragment(DataSour: TMemoryStream64; var dStorePos: Int64; var ID: Cardinal): TMemoryStream64; overload;
@@ -404,7 +405,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall);
+procedure FillFragmentSourceC(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataCall);
 var
   StorePos, siz: Int64;
   ID: Cardinal;
@@ -441,7 +442,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod);
+procedure FillFragmentSourceM(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataMethod);
 var
   StorePos, siz: Int64;
   ID: Cardinal;
@@ -478,10 +479,7 @@ begin
   DisposeObject(m64);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure FillFragmentSource(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc);
+procedure FillFragmentSourceP(dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TFillQueryDataProc);
 var
   StorePos, siz: Int64;
   ID: Cardinal;
@@ -517,10 +515,8 @@ begin
     end;
   DisposeObject(m64);
 end;
-{$ENDIF}
 
-
-procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+procedure FillFragmentSourceC(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataCall);
 var
   StorePos, siz: Int64;
@@ -558,7 +554,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+procedure FillFragmentSourceM(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataMethod);
 var
   StorePos, siz: Int64;
@@ -596,10 +592,7 @@ begin
   DisposeObject(m64);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure FillFragmentSource(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
+procedure FillFragmentSourceP(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
   dbN, pipeN: SystemString; DataSour: TMemoryStream64; OnResult: TUserFillQueryDataProc);
 var
   StorePos, siz: Int64;
@@ -636,8 +629,6 @@ begin
     end;
   DisposeObject(m64);
 end;
-{$ENDIF}
-
 
 function EncodeOneFragment(db: TDBStoreBase; StorePos: Int64; DestStream: TMemoryStream64): Boolean;
 var
@@ -809,7 +800,6 @@ begin
   except
   end;
 
-{$IFNDEF FPC}
   Allowed := False;
   try
     if Assigned(OnDataFilterProc) then
@@ -819,7 +809,7 @@ begin
         DoWrite;
   except
   end;
-{$ENDIF}
+
   inc(FQueryCounter);
 
   // delay fragment
@@ -882,14 +872,12 @@ begin
   except
   end;
 
-{$IFNDEF FPC}
   try
     if Assigned(OnDataDoneProc) then
         OnDataDoneProc(Self);
   except
   end;
-{$ENDIF}
-  //
+
   try
       Owner.DoQueryDone(Self);
   except
@@ -968,14 +956,10 @@ begin
 
   OnDataFilterCall := nil;
   OnDataFilterMethod := nil;
-{$IFNDEF FPC}
   OnDataFilterProc := nil;
-{$ENDIF}
   OnDataDoneCall := nil;
   OnDataDoneMethod := nil;
-{$IFNDEF FPC}
   OnDataDoneProc := nil;
-{$ENDIF}
   OnStorePosTransform := nil;
 
   values := THashVariantList.Create;
@@ -1817,9 +1801,6 @@ begin
   Result.OnDataDoneMethod := OnDataDoneMethod;
 end;
 
-{$IFNDEF FPC}
-
-
 function TZDBLocalManager.QueryDBP(WriteResultToOutputDB, InMemory, ReverseQuery: Boolean; dbN, OutputDB: SystemString;
   AutoDestroyDB: Boolean; QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double;
   MaxQueryCompare, MaxQueryResult: Int64;
@@ -1844,9 +1825,6 @@ begin
   Result.UserObject := UserObj;
 end;
 
-{$ENDIF}
-
-
 function TZDBLocalManager.QueryDBToMemory(WriteResultToOutputDB, ReverseQuery: Boolean; dbN: SystemString;
   QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double;
   MaxQueryCompare, MaxQueryResult: Int64): TZDBPipeline;
@@ -1860,9 +1838,6 @@ begin
   Result := QueryDB(WriteResultToOutputDB, True, ReverseQuery, dbN, 'Temp', True, 60 * 5, FragmentWaitTime, MaxWaitTime, 0, MaxQueryResult);
 end;
 
-{$IFNDEF FPC}
-
-
 function TZDBLocalManager.QueryDBToMemoryP(WriteResultToOutputDB, ReverseQuery: Boolean; dbN: SystemString;
   QueryDoneFreeDelayTime, FragmentWaitTime, MaxWaitTime: Double; MaxQueryCompare, MaxQueryResult: Int64;
   OnDataFilterProc: TZDBPipelineFilterProc; OnDataDoneProc: TZDBPipelineDoneProc): TZDBPipeline;
@@ -1871,8 +1846,6 @@ begin
   Result.OnDataFilterProc := OnDataFilterProc;
   Result.OnDataDoneProc := OnDataDoneProc;
 end;
-{$ENDIF}
-
 
 function TZDBLocalManager.QueryDBToFile(WriteResultToOutputDB, ReverseQuery: Boolean; dbN, OutputDB: SystemString;
   FragmentWaitTime, MaxWaitTime: Double; MaxQueryCompare, MaxQueryResult: Int64): TZDBPipeline;

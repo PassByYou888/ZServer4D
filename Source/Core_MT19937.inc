@@ -36,8 +36,11 @@ const
   TEMPERING_MASK_C = Integer($EFC60000);
 
 type
+  TMTVector = array [0 .. MT19937N - 1] of Integer;
+
+type
   TMT19937Core = record
-    MT: array [0 .. MT19937N - 1] of Integer; // the array for the state vector
+    MT: TMTVector; // the array for the state vector
     MTI: Integer;
     InternalRndSeed, InternalOldRndSeed: Cardinal;
     Thread: TCoreClassThread;
@@ -47,6 +50,8 @@ type
     procedure BuildMT(Seed_: Integer);
     function GenRand_MT19937(): Integer;
     procedure Init(Thread_: TCoreClassThread; LastActivtedTime_: TTimeTick);
+    procedure Serialize(stream: TCoreClassStream);
+    procedure Unserialize(stream: TCoreClassStream);
   end;
 
   PMD19937Core = ^TMT19937Core;
@@ -136,11 +141,27 @@ begin
   Instance := 0;
 end;
 
+procedure TMT19937Core.Serialize(stream: TCoreClassStream);
+begin
+  stream.WriteBuffer(MT[0], SizeOf(TMTVector));
+  stream.WriteBuffer(MTI, 4);
+  stream.WriteBuffer(InternalRndSeed, 4);
+  stream.WriteBuffer(InternalOldRndSeed, 4);
+end;
+
+procedure TMT19937Core.Unserialize(stream: TCoreClassStream);
+begin
+  stream.ReadBuffer(MT[0], SizeOf(TMTVector));
+  stream.ReadBuffer(MTI, 4);
+  stream.ReadBuffer(InternalRndSeed, 4);
+  stream.ReadBuffer(InternalOldRndSeed, 4);
+end;
+
 var
   MT19937InternalCritical: TCritical;
   MT19937POOL: TMT19937List;
 
-function MT19937(): PMD19937Core;
+function InternalMT19937__(): PMD19937Core;
 var
   th: TCoreClassThread;
   i: Integer;
@@ -212,12 +233,12 @@ end;
 
 function DelphiRandom32Proc: UInt32;
 begin
-  Result := UInt32(MT19937()^.GenRand_MT19937());
+  Result := UInt32(InternalMT19937__()^.GenRand_MT19937());
 end;
 
 procedure DelphiRandomizeProc(NewSeed: UInt64);
 begin
-  MT19937()^.InternalRndSeed := Cardinal(NewSeed);
+  InternalMT19937__()^.InternalRndSeed := Cardinal(NewSeed);
 end;
 
 procedure MT19937Install();
@@ -264,7 +285,7 @@ end;
 
 procedure SetMT19937Seed(seed: Integer);
 begin
-  with MT19937()^ do
+  with InternalMT19937__()^ do
     begin
       MT19937InternalCritical.Acquire;
       InternalRndSeed := seed;
@@ -278,7 +299,7 @@ end;
 
 function GetMT19937Seed(): Integer;
 begin
-  Result := MT19937()^.InternalRndSeed;
+  Result := InternalMT19937__()^.InternalRndSeed;
 end;
 
 procedure MT19937Randomize();
@@ -291,7 +312,7 @@ begin
   { otherwise we can return values = L (JM) }
   if (L < 0) then
       inc(L);
-  Result := Integer((Int64(Cardinal(MT19937()^.GenRand_MT19937())) * L) shr 32);
+  Result := Integer((Int64(Cardinal(InternalMT19937__()^.GenRand_MT19937())) * L) shr 32);
 end;
 
 procedure MT19937Rand32(L: Integer; dest: PInteger; num: NativeInt);
@@ -300,7 +321,7 @@ begin
   if (L < 0) then
       inc(L);
 
-  with MT19937()^ do
+  with InternalMT19937__()^ do
     begin
       Busy := True;
       try
@@ -320,7 +341,7 @@ end;
 function MT19937Rand64(L: Int64): Int64;
 begin
   { always call random, so the random generator cycles (TP-compatible) (JM) }
-  with MT19937()^ do
+  with InternalMT19937__()^ do
       Result := Int64((UInt64(Cardinal(GenRand_MT19937())) or ((UInt64(Cardinal(GenRand_MT19937())) shl 32))) and $7FFFFFFFFFFFFFFF);
   if (L <> 0) then
       Result := Result mod L
@@ -330,7 +351,7 @@ end;
 
 procedure MT19937Rand64(L: Int64; dest: PInt64; num: NativeInt);
 begin
-  with MT19937()^ do
+  with InternalMT19937__()^ do
     begin
       Busy := True;
       try
@@ -355,14 +376,14 @@ function MT19937RandE: Extended;
 const
   f = Extended(1.0) / (Int64(1) shl 32);
 begin
-  Result := f * Cardinal(MT19937()^.GenRand_MT19937());
+  Result := f * Cardinal(InternalMT19937__()^.GenRand_MT19937());
 end;
 
 procedure MT19937RandE(dest: PExtended; num: NativeInt);
 const
   f = Extended(1.0) / (Int64(1) shl 32);
 begin
-  with MT19937()^ do
+  with InternalMT19937__()^ do
     begin
       Busy := True;
       try
@@ -383,14 +404,14 @@ function MT19937RandF: Single;
 const
   f = Single(1.0) / (Int64(1) shl 32);
 begin
-  Result := f * Cardinal(MT19937()^.GenRand_MT19937());
+  Result := f * Cardinal(InternalMT19937__()^.GenRand_MT19937());
 end;
 
 procedure MT19937RandF(dest: PSingle; num: NativeInt);
 const
   f = Single(1.0) / (Int64(1) shl 32);
 begin
-  with MT19937()^ do
+  with InternalMT19937__()^ do
     begin
       Busy := True;
       try
@@ -411,14 +432,14 @@ function MT19937RandD: Double;
 const
   f = Double(1.0) / (Int64(1) shl 32);
 begin
-  Result := f * Cardinal(MT19937()^.GenRand_MT19937());
+  Result := f * Cardinal(InternalMT19937__()^.GenRand_MT19937());
 end;
 
 procedure MT19937RandD(dest: PDouble; num: NativeInt);
 const
   f = Double(1.0) / (Int64(1) shl 32);
 begin
-  with MT19937()^ do
+  with InternalMT19937__()^ do
     begin
       Busy := True;
       try
@@ -433,6 +454,16 @@ begin
         Busy := False;
       end;
     end;
+end;
+
+procedure MT19937SaveToStream(stream: TCoreClassStream);
+begin
+  InternalMT19937__()^.Serialize(stream);
+end;
+
+procedure MT19937LoadFromStream(stream: TCoreClassStream);
+begin
+  InternalMT19937__()^.Unserialize(stream);
 end;
 
 { ****************************************************************************** }
@@ -457,7 +488,7 @@ end;
 constructor TMT19937Random.Create;
 begin
   inherited Create;
-  FRndInstance := MT19937();
+  FRndInstance := InternalMT19937__();
   AtomInc(PMD19937Core(FRndInstance)^.Instance);
 end;
 

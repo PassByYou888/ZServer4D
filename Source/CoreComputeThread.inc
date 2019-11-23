@@ -19,13 +19,13 @@ type
   TComputeDispatch = record
     OnRunCall: TRunWithThreadCall;
     OnRunMethod: TRunWithThreadMethod;
-{$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
+    OnRunProc: TRunWithThreadProc;
     OnRunCall_NP: TRunWithThreadCall_NP;
     OnRunMethod_NP: TRunWithThreadMethod_NP;
-{$IFNDEF FPC} OnRunProc_NP: TRunWithThreadProc_NP; {$ENDIF FPC}
+    OnRunProc_NP: TRunWithThreadProc_NP;
     OnDoneCall: TRunWithThreadCall;
     OnDoneMethod: TRunWithThreadMethod;
-{$IFNDEF FPC} OnDoneProc: TRunWithThreadProc; {$ENDIF FPC}
+    OnDoneProc: TRunWithThreadProc;
     UserData: Pointer;
     UserObject: TCoreClassObject;
     procedure Init;
@@ -45,9 +45,9 @@ type
 
 var
   CoreThreadPool: TCoreComputeThreadPool;
+  ComputeDispatchCritical: TCritical;
   ComputeThreadTaskRunning: Integer;
   ParallelGranularity: Integer;
-  ComputeDispatchCritical: TCritical;
   MaxActivtedParallel: Integer;
   ParallelOverflow: TParallelOverflow;
 
@@ -55,13 +55,13 @@ procedure TComputeDispatch.Init;
 begin
   OnRunCall := nil;
   OnRunMethod := nil;
-{$IFNDEF FPC} OnRunProc := nil; {$ENDIF FPC}
+  OnRunProc := nil;
   OnRunCall_NP := nil;
   OnRunMethod_NP := nil;
-{$IFNDEF FPC} OnRunProc_NP := nil; {$ENDIF FPC}
+  OnRunProc_NP := nil;
   OnDoneCall := nil;
   OnDoneMethod := nil;
-{$IFNDEF FPC} OnDoneProc := nil; {$ENDIF FPC}
+  OnDoneProc := nil;
   UserData := nil;
   UserObject := nil;
 end;
@@ -70,13 +70,13 @@ procedure TComputeDispatch.AssignTo(th: TComputeThread);
 begin
   th.OnRunCall := OnRunCall;
   th.OnRunMethod := OnRunMethod;
-{$IFNDEF FPC} th.OnRunProc := OnRunProc; {$ENDIF FPC}
+  th.OnRunProc := OnRunProc;
   th.OnRunCall_NP := OnRunCall_NP;
   th.OnRunMethod_NP := OnRunMethod_NP;
-{$IFNDEF FPC} th.OnRunProc_NP := OnRunProc_NP; {$ENDIF FPC}
+  th.OnRunProc_NP := OnRunProc_NP;
   th.OnDoneCall := OnDoneCall;
   th.OnDoneMethod := OnDoneMethod;
-{$IFNDEF FPC} th.OnDoneProc := OnDoneProc; {$ENDIF FPC}
+  th.OnDoneProc := OnDoneProc;
   th.UserData := UserData;
   th.UserObject := UserObject;
 end;
@@ -153,18 +153,14 @@ begin
         OnRunCall(Self);
     if Assigned(OnRunMethod) then
         OnRunMethod(Self);
-{$IFNDEF FPC}
     if Assigned(OnRunProc) then
         OnRunProc(Self);
-{$ENDIF FPC}
     if Assigned(OnRunCall_NP) then
         OnRunCall_NP();
     if Assigned(OnRunMethod_NP) then
         OnRunMethod_NP();
-{$IFNDEF FPC}
     if Assigned(OnRunProc_NP) then
         OnRunProc_NP();
-{$ENDIF FPC}
   except
   end;
   if Assigned(OnDoneCall) or Assigned(OnDoneMethod){$IFNDEF FPC} or Assigned(OnDoneProc){$ENDIF FPC} then
@@ -185,10 +181,8 @@ begin
         OnDoneCall(Self);
     if Assigned(OnDoneMethod) then
         OnDoneMethod(Self);
-{$IFNDEF FPC}
     if Assigned(OnDoneProc) then
         OnDoneProc(Self);
-{$ENDIF FPC}
   except
   end;
 end;
@@ -199,13 +193,13 @@ begin
   FreeOnTerminate := True;
   OnRunCall := nil;
   OnRunMethod := nil;
-{$IFNDEF FPC} OnRunProc := nil; {$ENDIF FPC}
+  OnRunProc := nil;
   OnRunCall_NP := nil;
   OnRunMethod_NP := nil;
-{$IFNDEF FPC} OnRunProc_NP := nil; {$ENDIF FPC}
+  OnRunProc_NP := nil;
   OnDoneCall := nil;
   OnDoneMethod := nil;
-{$IFNDEF FPC} OnDoneProc := nil; {$ENDIF FPC}
+  OnDoneProc := nil;
   UserData := nil;
   UserObject := nil;
 end;
@@ -320,9 +314,6 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-{$IFNDEF FPC}
-
-
 class procedure TComputeThread.RunP(const data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc);
 var
   Dispatch_: TComputeDispatch;
@@ -367,5 +358,3 @@ begin
   Dispatch_.UserObject := nil;
   PostComputeDispatchData(Dispatch_);
 end;
-
-{$ENDIF FPC}

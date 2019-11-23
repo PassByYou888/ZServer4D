@@ -33,7 +33,11 @@ type
   }
   TCadencerProgressMethod = procedure(Sender: TObject; const deltaTime, newTime: Double) of object;
   TCadencerProgressCall = procedure(Sender: TObject; const deltaTime, newTime: Double);
-{$IFNDEF FPC} TCadencerProgressProc = reference to procedure(Sender: TObject; const deltaTime, newTime: Double); {$ENDIF}
+{$IFDEF FPC}
+  TCadencerProgressProc = procedure(Sender: TObject; const deltaTime, newTime: Double) is nested;
+{$ELSE FPC}
+  TCadencerProgressProc = reference to procedure(Sender: TObject; const deltaTime, newTime: Double);
+{$ENDIF FPC}
 
   ICadencerProgressInterface = interface
     procedure CadencerProgress(const deltaTime, newTime: Double);
@@ -61,7 +65,7 @@ type
     FMaxDeltaTime, FMinDeltaTime, FFixedDeltaTime: Double;
     FOnProgress: TCadencerProgressMethod;
     FOnProgressCall: TCadencerProgressCall;
-{$IFNDEF FPC} FOnProgressProc: TCadencerProgressProc; {$ENDIF FPC}
+    FOnProgressProc: TCadencerProgressProc;
     FProgressing: Integer;
     FProgressIntf: ICadencerProgressInterface;
   protected
@@ -136,7 +140,7 @@ type
     { backcall }
     property OnProgress: TCadencerProgressMethod read FOnProgress write FOnProgress;
     property OnProgressCall: TCadencerProgressCall read FOnProgressCall write FOnProgressCall;
-{$IFNDEF FPC} property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc; {$ENDIF FPC}
+    property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc;
     { interface }
     property ProgressInterface: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
@@ -154,9 +158,9 @@ begin
     begin
       FEnabled := val;
       if Enabled then
-        FOriginTime := FOriginTime + GetRawReferenceTime - downTime
+          FOriginTime := FOriginTime + GetRawReferenceTime - downTime
       else
-        downTime := GetRawReferenceTime;
+          downTime := GetRawReferenceTime;
     end;
 end;
 
@@ -212,7 +216,7 @@ begin
   Enabled := True;
   FOnProgress := nil;
   FOnProgressCall := nil;
-{$IFNDEF FPC} FOnProgressProc := nil; {$ENDIF FPC}
+  FOnProgressProc := nil;
   FProgressIntf := nil;
 end;
 
@@ -229,12 +233,12 @@ begin
   // basic protection against infinite loops,
   // shall never happen, unless there is a bug in user code
   if FProgressing < 0 then
-    Exit;
+      Exit;
   if Enabled then
     begin
       // avoid stalling everything else...
       if SleepLength >= 0 then
-        TCoreClassThread.Sleep(SleepLength);
+          TCoreClassThread.Sleep(SleepLength);
     end;
   inc(FProgressing);
   try
@@ -259,33 +263,31 @@ begin
                   end;
                 totalDelta := deltaTime;
                 if FixedDeltaTime > 0 then
-                  deltaTime := FixedDeltaTime;
+                    deltaTime := FixedDeltaTime;
                 while totalDelta >= deltaTime do
                   begin
                     lastTime := lastTime + deltaTime;
                     try
                       if Assigned(FOnProgress) then
-                        FOnProgress(Self, deltaTime, newTime);
+                          FOnProgress(Self, deltaTime, newTime);
                       if Assigned(FOnProgressCall) then
-                        FOnProgressCall(Self, deltaTime, newTime);
-{$IFNDEF FPC}
+                          FOnProgressCall(Self, deltaTime, newTime);
                       if Assigned(FOnProgressProc) then
-                        FOnProgressProc(Self, deltaTime, newTime);
-{$ENDIF FPC}
+                          FOnProgressProc(Self, deltaTime, newTime);
                       if Assigned(FProgressIntf) then
-                        FProgressIntf.CadencerProgress(deltaTime, newTime);
+                          FProgressIntf.CadencerProgress(deltaTime, newTime);
                     except
                     end;
 
                     if deltaTime <= 0 then
-                      Break;
+                        Break;
                     totalDelta := totalDelta - deltaTime;
                   end;
               end;
           end;
       end;
   finally
-    dec(FProgressing);
+      dec(FProgressing);
   end;
 end;
 

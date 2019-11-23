@@ -120,7 +120,9 @@ type
 
   TOnDeclValueCall = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
   TOnDeclValueMethod = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) of object;
-{$IFNDEF FPC}
+{$IFDEF FPC}
+  TOnDeclValueProc = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) is nested;
+{$ELSE FPC}
   TOnDeclValueProc = reference to procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
 {$ENDIF FPC}
   //
@@ -143,8 +145,7 @@ function ParseSymbol(ParsingEng: TTextParsing; WorkSym: TSymbolExpression;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; pStates: PExpressionParsingState): Boolean;
 
 function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod;
-{$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
+  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod; const OnDeclValueProc: TOnDeclValueProc;
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
 function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
@@ -152,10 +153,9 @@ function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: Sy
 
 function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
-{$IFNDEF FPC}
+
 function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
-{$ENDIF FPC}
 
 function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString;
   TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
@@ -181,13 +181,12 @@ function ParseTextExpressionAsSymbol_C(SpecialAsciiToken: TListPascalString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
-{$IFNDEF FPC}
+
 function ParseTextExpressionAsSymbol_P(SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
-{$ENDIF FPC}
 
 // symbol priority
 function RebuildLogicalPrioritySymbol(Exps: TSymbolExpression): TSymbolExpression;
@@ -210,10 +209,9 @@ function EvaluateExpressionValue_M(UsedCache: Boolean; SpecialAsciiToken: TListP
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
 function EvaluateExpressionValue_C(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueCall): Variant;
-{$IFNDEF FPC}
+
 function EvaluateExpressionValue_P(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
-{$ENDIF FPC}
 
 { prototype: EvaluateExpressionValue }
 function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean;
@@ -864,7 +862,7 @@ end;
 
 function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
   const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod;
-{$IFNDEF FPC} const OnDeclValueProc: TOnDeclValueProc; {$ENDIF FPC}
+  const OnDeclValueProc: TOnDeclValueProc;
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
   procedure PrintError(const s: SystemString);
@@ -885,10 +883,8 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
         OnDeclValueCall(Decl, Result, v);
     if Assigned(OnDeclValueMethod) then
         OnDeclValueMethod(Decl, Result, v);
-{$IFNDEF FPC}
     if Assigned(OnDeclValueProc) then
         OnDeclValueProc(Decl, Result, v);
-{$ENDIF FPC}
   end;
 
   function FillProc(var ExpIndex: Integer; const Exps, procExp: TSymbolExpression): TSymbolExpression;
@@ -1175,33 +1171,20 @@ end;
 function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
-{$IFDEF FPC}
-  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, OnGetValue, nil, RefrenceOpRT);
-{$ELSE }
   Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, OnGetValue, nil, nil, RefrenceOpRT);
-{$ENDIF FPC}
 end;
 
 function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
-{$IFDEF FPC}
-  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, OnGetValue, RefrenceOpRT);
-{$ELSE }
   Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, OnGetValue, nil, RefrenceOpRT);
-{$ENDIF FPC}
 end;
-
-{$IFNDEF FPC}
-
 
 function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, nil, OnGetValue, RefrenceOpRT);
 end;
-{$ENDIF FPC}
-
 
 function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString;
   TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
@@ -1283,9 +1266,6 @@ begin
   Result := ParseTextExpressionAsSymbol_C(nil, TextEngClass, TextStyle, uName, ExpressionText, OnGetValue, RefrenceOpRT);
 end;
 
-{$IFNDEF FPC}
-
-
 function ParseTextExpressionAsSymbol_P(SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
@@ -1302,9 +1282,6 @@ function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; TextStyl
 begin
   Result := ParseTextExpressionAsSymbol_P(nil, TextEngClass, TextStyle, uName, ExpressionText, OnGetValue, RefrenceOpRT);
 end;
-
-{$ENDIF FPC}
-
 
 function RebuildLogicalPrioritySymbol(Exps: TSymbolExpression): TSymbolExpression;
   function SymbolPriority(s1, s2: TSymbolOperation): Integer;
@@ -2175,9 +2152,6 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
 function EvaluateExpressionValue_P(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
 var
@@ -2228,8 +2202,6 @@ begin
         end;
     end;
 end;
-{$ENDIF FPC}
-
 
 type
   TExpression_ConstVL = class

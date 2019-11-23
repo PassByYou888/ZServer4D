@@ -33,47 +33,43 @@ uses SysUtils, Classes, Types,
   {$ENDIF FPC}
   {$ENDIF Parallel}
   PascalStrings,
-  SyncObjs
+  UPascalStrings,
+  SyncObjs,
   {$IFDEF FPC}
-    , FPCGenericStructlist, fgl
+  FPCGenericStructlist, fgl,
   {$ELSE FPC}
-  , System.Generics.Collections
+  System.Generics.Collections,
   {$ENDIF FPC}
-  ,Math;
+  Math;
 
 {$Region 'core defines + class'}
 type
   TBytes = SysUtils.TBytes;
   TPoint = Types.TPoint;
-
   TTimeTick = UInt64;
   PTimeTick = ^TTimeTick;
-
   TSeekOrigin = Classes.TSeekOrigin;
-  TNotify     = Classes.TNotifyEvent;
+  TNotify = Classes.TNotifyEvent;
 
-  TCoreClassObject     = TObject;
+  TCoreClassObject = TObject;
   TCoreClassPersistent = TPersistent;
-
-  TCoreClassStream         = TStream;
-  TCoreClassFileStream     = TFileStream;
-  TCoreClassStringStream   = TStringStream;
+  TCoreClassStream = TStream;
+  TCoreClassFileStream = TFileStream;
+  TCoreClassStringStream = TStringStream;
   TCoreClassResourceStream = TResourceStream;
-
   TCoreClassThread = TThread;
-
   CoreClassException = Exception;
-
   TCoreClassMemoryStream = TMemoryStream;
-  TCoreClassStrings    = TStrings;
+  TCoreClassStrings = TStrings;
   TCoreClassStringList = TStringList;
-  TCoreClassReader     = TReader;
-  TCoreClassWriter     = TWriter;
-  TCoreClassComponent  = TComponent;
+  TCoreClassReader = TReader;
+  TCoreClassWriter = TWriter;
+  TCoreClassComponent = TComponent;
 
   TExecutePlatform = (epWin32, epWin64, epOSX32, epOSX64, epIOS, epIOSSIM, epANDROID32, epANDROID64, epLinux64, epLinux32, epUnknow);
 
   {$IFDEF FPC}
+  // freepascal
   PUInt64 = ^UInt64;
 
   TCoreClassInterfacedObject = class(TInterfacedObject)
@@ -98,6 +94,7 @@ type
   TCoreClassForObjectList = array of TCoreClassObject;
   PCoreClassForObjectList = ^TCoreClassForObjectList;
   {$ELSE FPC}
+  // delphi
   TCoreClassInterfacedObject = class(TInterfacedObject)
   protected
     function _AddRef: Integer; stdcall;
@@ -165,27 +162,81 @@ type
   TCritical = TCriticalSection;
 {$ENDIF SoftCritical}
 
+{$IFDEF FPC}
+  generic TAtomVar<T_> = class
+{$ELSE FPC}
+  TAtomVar<T_> = class
+{$ENDIF FPC}
+  public type
+    PT_ = ^T_;
+  private
+    FValue__: T_;
+    Critical: TCritical;
+    function GetValue: T_;
+    procedure SetValue(const Value_: T_);
+    function GetValueP: PT_;
+    procedure SetValueP(const Value_: PT_);
+  public
+    constructor Create(Value_: T_);
+    destructor Destroy; override;
+    property V: T_ read GetValue write SetValue;
+    property P: PT_ read GetValueP write SetValueP;
+    // custom operation
+    function Lock: T_;
+    function LockP: PT_;
+    procedure UnLock(const Value_: T_); overload;
+    procedure UnLock(const Value_: PT_); overload;
+    procedure UnLock(); overload;
+  end;
+  TAtomBoolean = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Boolean>;
+  TAtomBool = TAtomBoolean;
+  TAtomSmallInt = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<SmallInt>;
+  TAtomShortInt = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<ShortInt>;
+  TAtomInteger = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Integer>;
+  TAtomInt8 = TAtomSmallInt;
+  TAtomInt16 = TAtomShortInt;
+  TAtomInt32 = TAtomInteger;
+  TAtomInt64 = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Int64>;
+  TAtomByte = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Byte>;
+  TAtomWord = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Word>;
+  TAtomCardinal = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Cardinal>;
+  TAtomUInt8 = TAtomByte;
+  TAtomUInt16 = TAtomWord;
+  TAtomUInt32 = TAtomCardinal;
+  TAtomDWord = TAtomCardinal;
+  TAtomUInt64 = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<UInt64>;
+  TAtomSingle = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Single>;
+  TAtomDouble = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Double>;
+  TAtomExtended = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Extended>;
+  TAtomString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<string>;
+  TAtomPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TPascalString>;
+  TAtomUPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TUPascalString>;
+
   TComputeThread = class;
 
   TRunWithThreadCall = procedure(ThSender: TComputeThread);
   TRunWithThreadMethod = procedure(ThSender: TComputeThread) of object;
-  {$IFNDEF FPC} TRunWithThreadProc = reference to procedure(ThSender: TComputeThread); {$ENDIF FPC}
-
   TRunWithThreadCall_NP = procedure();
   TRunWithThreadMethod_NP = procedure() of object;
-  {$IFNDEF FPC} TRunWithThreadProc_NP = reference to procedure(); {$ENDIF FPC}
+  {$IFDEF FPC}
+  TRunWithThreadProc = procedure(ThSender: TComputeThread) is nested;
+  TRunWithThreadProc_NP = procedure() is nested;
+  {$ELSE FPC}
+  TRunWithThreadProc = reference to procedure(ThSender: TComputeThread);
+  TRunWithThreadProc_NP = reference to procedure();
+  {$ENDIF FPC}
 
   TComputeThread = class(TCoreClassThread)
   private var
     OnRunCall: TRunWithThreadCall;
     OnRunMethod: TRunWithThreadMethod;
-    {$IFNDEF FPC} OnRunProc: TRunWithThreadProc; {$ENDIF FPC}
+    OnRunProc: TRunWithThreadProc;
     OnRunCall_NP: TRunWithThreadCall_NP;
     OnRunMethod_NP: TRunWithThreadMethod_NP;
-    {$IFNDEF FPC} OnRunProc_NP: TRunWithThreadProc_NP; {$ENDIF FPC}
+    OnRunProc_NP: TRunWithThreadProc_NP;
     OnDoneCall: TRunWithThreadCall;
     OnDoneMethod: TRunWithThreadMethod;
-    {$IFNDEF FPC} OnDoneProc: TRunWithThreadProc; {$ENDIF FPC}
+    OnDoneProc: TRunWithThreadProc;
   private
     procedure Execute; override;
     procedure Done_Sync;
@@ -207,12 +258,10 @@ type
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod); overload;
     class procedure RunM(const OnRun: TRunWithThreadMethod); overload;
     class procedure RunM_NP(const OnRun: TRunWithThreadMethod_NP); overload;
-    {$IFNDEF FPC}
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc); overload;
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc); overload;
     class procedure RunP(const OnRun: TRunWithThreadProc); overload;
     class procedure RunP_NP(const OnRun: TRunWithThreadProc_NP); overload;
-    {$ENDIF FPC}
   end;
 
   TMT19937Random = class(TCoreClassObject)
@@ -305,7 +354,6 @@ const
 procedure Nop;
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
-procedure CheckMT19937();
 procedure FreeCoreThreadPool;
 
 {$IFDEF FPC}
@@ -381,6 +429,8 @@ function MT19937RandF: Single; overload;
 procedure MT19937RandF(dest: PSingle; num: NativeInt); overload;
 function MT19937RandD: Double; overload;
 procedure MT19937RandD(dest: PDouble; num: NativeInt); overload;
+procedure MT19937SaveToStream(stream: TCoreClassStream);
+procedure MT19937LoadFromStream(stream: TCoreClassStream);
 
 function ROL8(const Value: Byte; Shift: Byte): Byte;
 function ROL16(const Value: Word; Shift: Byte): Word;
@@ -867,8 +917,10 @@ end;
 
 {$IFDEF FPC}
 {$INCLUDE Core_FPCParallelFor.inc}
+{$INCLUDE Core_FPCAtomVar.inc}
 {$ELSE FPC}
 {$INCLUDE Core_DelphiParallelFor.inc}
+{$INCLUDE Core_DelphiAtomVar.inc}
 {$ENDIF FPC}
 
 procedure Nop;
@@ -905,11 +957,6 @@ begin
       else
         Result := False;
     end;
-end;
-
-procedure CheckMT19937();
-begin
-  MT19937();
 end;
 
 initialization
