@@ -183,7 +183,7 @@ begin
 
   AtomDec(p^.LEnter);
   if p^.LEnter < 0 then
-      DoStatus('error: unlock failed: illegal unlock');
+      RaiseInfo('error: unlock failed: illegal unlock');
   p^.LockTick := GetTimeTick();
   p^.Critical.Release;
 end;

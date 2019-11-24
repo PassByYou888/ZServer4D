@@ -32,8 +32,6 @@ uses SysUtils, Classes, Types,
   {$ENDIF SystemParallel}
   {$ENDIF FPC}
   {$ENDIF Parallel}
-  PascalStrings,
-  UPascalStrings,
   SyncObjs,
   {$IFDEF FPC}
   FPCGenericStructlist, fgl,
@@ -175,18 +173,19 @@ type
     function GetValue: T_;
     procedure SetValue(const Value_: T_);
     function GetValueP: PT_;
-    procedure SetValueP(const Value_: PT_);
   public
     constructor Create(Value_: T_);
     destructor Destroy; override;
-    property V: T_ read GetValue write SetValue;
-    property P: PT_ read GetValueP write SetValueP;
-    // custom operation
+    // operation
     function Lock: T_;
     function LockP: PT_;
+    property P: PT_ read GetValueP;
     procedure UnLock(const Value_: T_); overload;
     procedure UnLock(const Value_: PT_); overload;
     procedure UnLock(); overload;
+    // value work in atom read and write
+    property V: T_ read GetValue write SetValue;
+    property Value: T_ read GetValue write SetValue;
   end;
   TAtomBoolean = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Boolean>;
   TAtomBool = TAtomBoolean;
@@ -206,11 +205,10 @@ type
   TAtomDWord = TAtomCardinal;
   TAtomUInt64 = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<UInt64>;
   TAtomSingle = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Single>;
+  TAtomFloat = TAtomSingle;
   TAtomDouble = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Double>;
   TAtomExtended = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Extended>;
   TAtomString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<string>;
-  TAtomPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TPascalString>;
-  TAtomUPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TUPascalString>;
 
   TComputeThread = class;
 
@@ -237,7 +235,7 @@ type
     OnDoneCall: TRunWithThreadCall;
     OnDoneMethod: TRunWithThreadMethod;
     OnDoneProc: TRunWithThreadProc;
-  private
+  protected
     procedure Execute; override;
     procedure Done_Sync;
   public
@@ -247,8 +245,9 @@ type
     constructor Create;
     destructor Destroy; override;
     class function ActivtedTask(): Integer;
+    class function WaitTask(): Integer;
     class function TotalTask(): Integer;
-    class function State(): SystemString;
+    class function State(): string;
 
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
@@ -355,12 +354,13 @@ procedure Nop;
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 procedure FreeCoreThreadPool;
+procedure EnabledParallelCore;
+procedure DisableParallelCore;
 
 {$IFDEF FPC}
-type
-  TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
-  TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
+type TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
 procedure FPCParallelFor(OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
+type TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
 procedure FPCParallelFor(OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
 {$ELSE FPC}
 type
@@ -405,8 +405,8 @@ procedure FillPtrByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
 function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
 procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt);
 
-procedure RaiseInfo(const n: SystemString); overload;
-procedure RaiseInfo(const n: SystemString; const Args: array of const); overload;
+procedure RaiseInfo(const n: string); overload;
+procedure RaiseInfo(const n: string; const Args: array of const); overload;
 
 function IsMobile: Boolean;
 
@@ -482,7 +482,7 @@ procedure Swap(var v1, v2: Integer); overload;
 procedure Swap(var v1, v2: Cardinal); overload;
 procedure Swap(var v1, v2: Int64); overload;
 procedure Swap(var v1, v2: UInt64); overload;
-procedure Swap(var v1, v2: SystemString); overload;
+procedure Swap(var v1, v2: string); overload;
 procedure Swap(var v1, v2: Single); overload;
 procedure Swap(var v1, v2: Double); overload;
 procedure Swap(var v1, v2: Pointer); overload;
@@ -500,7 +500,15 @@ function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
 
 {$EndRegion 'core api'}
 {$Region 'core var'}
+
+type TCheckThreadSynchronize = procedure();
+
 var
+  OnCheckThreadSynchronize: TCheckThreadSynchronize;
+
+  // DelphiParallelFor and FPCParallelFor work in parallel
+  WorkInParallelCore: TAtomBool;
+
   // default is True
   GlobalMemoryHook: Boolean;
 
@@ -512,8 +520,6 @@ var
 {$EndRegion 'core var'}
 
 implementation
-
-uses DoStatusIO;
 
 {$INCLUDE CoreAtomic.inc}
 {$INCLUDE Core_MT19937.inc}
@@ -584,7 +590,7 @@ begin
   d := GetTimeTick;
   TMonitor.Enter(Obj, 5000);
   if GetTimeTick - d >= 5000 then
-      RaiseInfo('dead lock');
+      RaiseInfo('dead');
   {$ELSE ANTI_DEAD_ATOMIC_LOCK}
   TMonitor.Enter(Obj);
   {$ENDIF ANTI_DEAD_ATOMIC_LOCK}
@@ -749,13 +755,12 @@ begin
     end;
 end;
 
-procedure RaiseInfo(const n: SystemString);
+procedure RaiseInfo(const n: string);
 begin
-  DoStatus('raise exception: ' + n);
   raise Exception.Create(n);
 end;
 
-procedure RaiseInfo(const n: SystemString; const Args: array of const);
+procedure RaiseInfo(const n: string; const Args: array of const);
 begin
   raise Exception.Create(Format(n, Args));
 end;
@@ -928,7 +933,7 @@ begin
 end;
 
 var
-  CheckThreadSynchronizeing: Boolean;
+  CheckThreadSynchronizeing: TAtomBool;
 
 procedure CheckThreadSynchronize;
 begin
@@ -944,25 +949,38 @@ begin
     end
   else
     begin
-      DoStatus();
-      if not CheckThreadSynchronizeing then
+      if not CheckThreadSynchronizeing.V then
         begin
-          CheckThreadSynchronizeing := True;
+          CheckThreadSynchronizeing.V := True;
           try
               Result := CheckSynchronize(Timeout);
           finally
-              CheckThreadSynchronizeing := False;
+              CheckThreadSynchronizeing.V := False;
           end;
         end
       else
         Result := False;
     end;
+  if Assigned(OnCheckThreadSynchronize) then
+    OnCheckThreadSynchronize();
+end;
+
+procedure EnabledParallelCore;
+begin
+  WorkInParallelCore.V := True;
+end;
+
+procedure DisableParallelCore;
+begin
+  WorkInParallelCore.V := False;
 end;
 
 initialization
+  OnCheckThreadSynchronize := nil;
+  WorkInParallelCore := TAtomBool.Create(True);
   GlobalMemoryHook := True;
-  CheckThreadSynchronizeing := False;
-  Core_RunTime_Tick := 1000 * 60 * 60 * 24 * 3;
+  CheckThreadSynchronizeing := TAtomBool.Create(False);
+  Core_RunTime_Tick := C_Tick_Day * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock();
   InitMT19937Rand();
@@ -974,6 +992,10 @@ finalization
   FreeMT19937Rand();
   FreeCriticalLock;
   GlobalMemoryHook := False;
+  CheckThreadSynchronizeing.Free;
+  CheckThreadSynchronizeing := nil;
+  WorkInParallelCore.Free;
+  WorkInParallelCore := nil;
 end.
 
 

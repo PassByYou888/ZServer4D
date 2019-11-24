@@ -14,8 +14,12 @@ var
   Pass: Integer;
 begin
   p := ThSender.UserData;
-  for Pass := p^.b to p^.e do
+  Pass := p^.b;
+  while Pass <= p^.e do
+    begin
       p^.OnFor(Pass);
+      inc(Pass);
+    end;
 
   p^.Critical.Acquire;
   AtomInc(p^.Completed^, p^.e - p^.b + 1);
@@ -32,10 +36,14 @@ var
 begin
   if b > e then
       exit;
-  if ParallelOverflow.Busy() then
+  if (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
-      for i_ := b to e do
+      i_ := b;
+      while i_ <= e do
+        begin
           OnFor(i_);
+          inc(i_);
+        end;
       exit;
     end;
   ParallelOverflow.Acquire;
@@ -48,7 +56,8 @@ begin
 
     if (Total < Depth) then
       begin
-        for Pass := b to e do
+        Pass := b;
+        while Pass <= e do
           begin
             new(p);
             p^.b := Pass;
@@ -57,6 +66,7 @@ begin
             p^.OnFor := OnFor;
             p^.Critical := Critical;
             TComputeThread.RunC(p, nil, @FPCParallelTh32);
+            inc(Pass);
           end;
       end
     else
@@ -66,7 +76,8 @@ begin
         if Total mod stepW > 0 then
             inc(StepTotal);
 
-        for Pass := 0 to StepTotal - 1 do
+        Pass := 0;
+        while Pass < StepTotal do
           begin
             w := stepW * Pass;
             new(p);
@@ -84,6 +95,7 @@ begin
             p^.OnFor := OnFor;
             p^.Critical := Critical;
             TComputeThread.RunC(p, nil, @FPCParallelTh32);
+            inc(Pass);
           end;
       end;
 
@@ -116,8 +128,12 @@ var
   Pass: Int64;
 begin
   p := ThSender.UserData;
-  for Pass := p^.b to p^.e do
+  Pass := p^.b;
+  while Pass <= p^.e do
+    begin
       p^.OnFor(Pass);
+      inc(Pass);
+    end;
 
   p^.Critical.Acquire;
   AtomInc(p^.Completed^, p^.e - p^.b + 1);
@@ -134,10 +150,14 @@ var
 begin
   if b > e then
       exit;
-  if ParallelOverflow.Busy() then
+  if (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
-      for i_ := b to e do
+      i_ := b;
+      while i_ <= e do
+        begin
           OnFor(i_);
+          inc(i_);
+        end;
       exit;
     end;
   ParallelOverflow.Acquire;
@@ -150,7 +170,8 @@ begin
 
     if (Total < Depth) then
       begin
-        for Pass := b to e do
+        Pass := b;
+        while Pass <= e do
           begin
             new(p);
             p^.b := Pass;
@@ -159,6 +180,7 @@ begin
             p^.OnFor := OnFor;
             p^.Critical := Critical;
             TComputeThread.RunC(p, nil, @FPCParallelTh64);
+            inc(Pass);
           end;
       end
     else
@@ -168,7 +190,8 @@ begin
         if Total mod stepW > 0 then
             inc(StepTotal);
 
-        for Pass := 0 to StepTotal - 1 do
+        Pass := 0;
+        while Pass < StepTotal do
           begin
             w := stepW * Pass;
             new(p);
@@ -186,6 +209,7 @@ begin
             p^.OnFor := OnFor;
             p^.Critical := Critical;
             TComputeThread.RunC(p, nil, @FPCParallelTh64);
+            inc(Pass);
           end;
       end;
 

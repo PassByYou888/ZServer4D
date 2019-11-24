@@ -244,6 +244,7 @@ var
   ReservedStatus: TReservedStatusDataList;
   StatusCritical: TCriticalSection;
   StatusNoLnDataList: TDoStatusNoLnDataList;
+  Hooked_OnCheckThreadSynchronize: TCheckThreadSynchronize;
 
 function GetOrCreateStatusNoLnData_(th_: TCoreClassThread): PDoStatusNoLnData;
 var
@@ -507,6 +508,13 @@ begin
   StatusActive := True;
 end;
 
+procedure DoCheckThreadSynchronize;
+begin
+  DoStatus();
+  if Assigned(Hooked_OnCheckThreadSynchronize) then
+      Hooked_OnCheckThreadSynchronize();
+end;
+
 procedure _DoInit;
 begin
   HookDoStatus := THookDoStatusDataList.Create;
@@ -519,6 +527,9 @@ begin
   IDEOutput := False;
   ConsoleOutput := True;
   OnDoStatusHook := {$IFDEF FPC}@{$ENDIF FPC}InternalDoStatus;
+
+  Hooked_OnCheckThreadSynchronize := CoreClasses.OnCheckThreadSynchronize;
+  CoreClasses.OnCheckThreadSynchronize := {$IFDEF FPC}@{$ENDIF FPC}DoCheckThreadSynchronize;
 end;
 
 procedure _DoFree;

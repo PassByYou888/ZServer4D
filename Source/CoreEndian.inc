@@ -377,9 +377,9 @@ begin
   v2 := v;
 end;
 
-procedure Swap(var v1, v2: SystemString);
+procedure Swap(var v1, v2: string);
 var
-  v: SystemString;
+  v: string;
 begin
   v := v1;
   v1 := v2;

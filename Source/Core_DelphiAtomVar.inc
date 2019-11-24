@@ -14,16 +14,7 @@ end;
 
 function TAtomVar<T_>.GetValueP: PT_;
 begin
-  Critical.Acquire;
   Result := @FValue__;
-  Critical.Release;
-end;
-
-procedure TAtomVar<T_>.SetValueP(const Value_: PT_);
-begin
-  Critical.Acquire;
-  FValue__ := Value_^;
-  Critical.Release;
 end;
 
 constructor TAtomVar<T_>.Create(Value_: T_);

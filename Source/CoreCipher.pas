@@ -3749,7 +3749,7 @@ procedure TParallelCipher.RunParallel(const JobData: PParallelCipherJobData; con
 var
   StepTotal, stepW: Integer;
 {$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: NativeInt);
+  procedure Nested_ParallelFor(pass: Integer);
   var
     w: Integer;
   begin

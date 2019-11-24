@@ -29,20 +29,13 @@ unit TextDataEngine;
 interface
 
 uses SysUtils, Variants,
-  // Hash
-  ListEngine,
-  // CoreClasses
   CoreClasses,
-  // fast stream
-  MemoryStream64,
-  // SystemString support
-  PascalStrings;
+  UnicodeMixedLib,
+  PascalStrings,
+  ListEngine,
+  MemoryStream64;
 
 type
-  THashTextEngine = class;
-
-  TSectionTextData = THashTextEngine;
-
   THashTextEngine = class(TCoreClassObject)
   private
     FComment: TCoreClassStrings;
@@ -129,10 +122,9 @@ type
   end;
 
   TTextDataEngine = THashTextEngine;
+  TSectionTextData = THashTextEngine;
 
 implementation
-
-uses UnicodeMixedLib;
 
 function THashTextEngine.GetNames(n: SystemString): TCoreClassStrings;
 var

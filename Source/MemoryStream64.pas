@@ -1053,7 +1053,7 @@ var
 
 {$IFDEF Parallel}
 {$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: NativeInt);
+  procedure Nested_ParallelFor(pass: Integer);
   begin
     SelectCompressStream(scm, sourStrips[pass], StripArry[pass]);
   end;
@@ -1134,7 +1134,7 @@ begin
   if StripNum_ <= 0 then
       StripNum := 1
   else
-    StripNum := StripNum_;
+      StripNum := StripNum_;
   BuildBuff;
 
 {$IFDEF Parallel}
@@ -1175,7 +1175,7 @@ var
 
 {$IFDEF Parallel}
 {$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: NativeInt);
+  procedure Nested_ParallelFor(pass: Integer);
   begin
     SelectDecompressStream(StripArry[pass].sour, StripArry[pass].dest);
   end;

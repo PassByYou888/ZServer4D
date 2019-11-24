@@ -46,7 +46,7 @@ type
 var
   CoreThreadPool: TCoreComputeThreadPool;
   ComputeDispatchCritical: TCritical;
-  ComputeThreadTaskRunning: Integer;
+  ComputeThreadTaskRunning: TAtomInteger;
   ParallelGranularity: Integer;
   MaxActivtedParallel: Integer;
   ParallelOverflow: TParallelOverflow;
@@ -109,7 +109,8 @@ var
   th: TComputeThread;
 begin
   ComputeDispatchCritical.Acquire;
-  AtomInc(ComputeThreadTaskRunning);
+  inc(ComputeThreadTaskRunning.LockP()^);
+  ComputeThreadTaskRunning.Unlock;
   th := PickOrCreateThread();
   data.AssignTo(th);
   th.Start();
@@ -121,25 +122,27 @@ var
   th: TComputeThread;
 begin
   CoreThreadPool := TCoreComputeThreadPool.Create;
-  ComputeThreadTaskRunning := 0;
+  ComputeThreadTaskRunning := TAtomInteger.Create(0);
   ParallelGranularity := Thread_Num;
   ComputeDispatchCritical := TCritical.Create;
-  MaxActivtedParallel := 2;
+{$IFDEF SystemParallel}
+  MaxActivtedParallel := 1;
+{$ELSE SystemParallel}
+  MaxActivtedParallel := CpuCount;
+{$ENDIF SystemParallel}
   ParallelOverflow.ActivtedParallel := 0;
 end;
 
 procedure FreeCoreThreadPool;
-var
-  i: Integer;
 begin
-  repeat
-    ComputeDispatchCritical.Acquire;
-    i := CoreThreadPool.Count;
-    ComputeDispatchCritical.Release;
-  until i = 0;
+  while TComputeThread.ActivtedTask() > 0 do
+      CheckThreadSynchronize(1);
 
   CoreThreadPool.Free;
   CoreThreadPool := nil;
+
+  ComputeThreadTaskRunning.Free;
+  ComputeThreadTaskRunning := nil;
 
   ComputeDispatchCritical.Free;
   ComputeDispatchCritical := nil;
@@ -163,9 +166,11 @@ begin
         OnRunProc_NP();
   except
   end;
-  if Assigned(OnDoneCall) or Assigned(OnDoneMethod){$IFNDEF FPC} or Assigned(OnDoneProc){$ENDIF FPC} then
+  if Assigned(OnDoneCall) or Assigned(OnDoneMethod) or Assigned(OnDoneProc) then
       Synchronize({$IFDEF FPC}@{$ENDIF FPC}Done_Sync);
-  AtomDec(ComputeThreadTaskRunning);
+
+  Dec(ComputeThreadTaskRunning.LockP()^);
+  ComputeThreadTaskRunning.Unlock();
 
   ComputeDispatchCritical.Acquire;
   CoreThreadPool.Remove(Self);
@@ -211,17 +216,24 @@ end;
 
 class function TComputeThread.ActivtedTask(): Integer;
 begin
-  Result := ComputeThreadTaskRunning;
+  ComputeDispatchCritical.Acquire;
+  Result := CoreThreadPool.Count;
+  ComputeDispatchCritical.Release;
+end;
+
+class function TComputeThread.WaitTask(): Integer;
+begin
+  Result := ComputeThreadTaskRunning.V - ActivtedTask();
 end;
 
 class function TComputeThread.TotalTask(): Integer;
 begin
-  Result := ComputeThreadTaskRunning;
+  Result := ComputeThreadTaskRunning.V;
 end;
 
-class function TComputeThread.State(): SystemString;
+class function TComputeThread.State(): string;
 begin
-  Result := Format('activted task: %d', [ComputeThreadTaskRunning]);
+  Result := Format('total: %d Activted: %d Waiting: %d', [TotalTask(), ActivtedTask(), WaitTask()]);
 end;
 
 class procedure TComputeThread.RunC(const data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);
