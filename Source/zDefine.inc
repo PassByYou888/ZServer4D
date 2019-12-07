@@ -26,10 +26,10 @@
   {$MODESWITCH NestedProcVars}
   {$NOTES OFF}
   {$STACKFRAMES OFF}
-  {$COPERATORS ON}
+  {$COPERATORS OFF}
   {$GOTO ON}
   {$INLINE ON}
-  {$MACRO ON}
+  {$MACRO OFF}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -78,10 +78,11 @@
   // {$DEFINE SoftCritical}
   // {$DEFINE ANTI_DEAD_ATOMIC_LOCK}
 
-  {$DEFINE release}
   {$UNDEF debug}
+  {$DEFINE release}
   {$DEFINE INLINE_ASM}
   {$R-} { range check }
+  {$OPTIMIZATION LEVEL4} { open optimization }
 {$ELSE FPC} { IF DELPHI }
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -110,7 +111,7 @@
   // {$DEFINE SystemParallel}
 
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
-  // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3.2 or laster
+  // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3 or laster
   // {$DEFINE InstallMT19937CoreToDelphi}
 
   // MT19937 of seed in the startup TComputeThread is 0
@@ -172,7 +173,18 @@
   {$Z1} { Minimum enum size }
 {$ENDIF FPC}
 
-{$WARNINGS OFF}
+{$IFDEF DEBUG}
+  // initialization status prompt
+  {$DEFINE initializationStatus}
+  // warning prompt
+  {$WARNINGS ON}
+{$ELSE DEBUG}
+  // initialization status prompt
+  {$UNDEF initializationStatus}
+  // warning prompt
+  {$WARNINGS OFF}
+{$ENDIF DEBUG}
+
 {$HINTS OFF}
 {$C+} { Assertions }
 {$M-} { Run-Time Type Information }
@@ -180,7 +192,7 @@
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$J+} { Writeable typed constants }
+{$J-} { Writeable typed constants }
 
 (*
   Pointer math is simply treating any given typed pointer in some narrow,

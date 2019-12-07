@@ -26,7 +26,7 @@ end;
 // 模拟构建.CSV格式文件
 procedure BuildRandCSVData;
 const
-  c_MaxFileSize = Int64(64) * Int64(1024 * 1024); // 需要构建的csv文件尺寸
+  c_MaxFileSize = Int64(16) * Int64(1024 * 1024); // 需要构建的csv文件尺寸
 var
   ioHnd: TIOHnd;
   i: Integer;

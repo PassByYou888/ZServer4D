@@ -2075,7 +2075,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_M(TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
+      sym := ParseTextExpressionAsSymbol_M(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
 
       if sym <> nil then
         begin
@@ -2126,7 +2126,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_C(TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
+      sym := ParseTextExpressionAsSymbol_C(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
 
       if sym <> nil then
         begin
@@ -2177,7 +2177,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_P(TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
+      sym := ParseTextExpressionAsSymbol_P(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
 
       if sym <> nil then
         begin

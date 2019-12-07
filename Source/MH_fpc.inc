@@ -27,17 +27,17 @@ var
 
 procedure BeginMemoryHook;
 begin
-  if (MemoryHooked) or (CurrentHookThread <> nil) then
+  if (MemoryHooked.V) or (CurrentHookThread <> nil) then
       RaiseInfo('illegal BeginMemoryHook');
 
   CurrentHookThread := TCoreClassThread.CurrentThread;
   HookPtrList.FastClear;
-  MemoryHooked := True;
+  MemoryHooked.V := True;
 end;
 
 procedure BeginMemoryHook(cacheLen: Integer);
 begin
-  if (MemoryHooked) or (CurrentHookThread <> nil) then
+  if (MemoryHooked.V) or (CurrentHookThread <> nil) then
       RaiseInfo('illegal BeginMemoryHook');
 
   CurrentHookThread := TCoreClassThread.CurrentThread;
@@ -46,15 +46,15 @@ begin
   else
       HookPtrList.FastClear;
 
-  MemoryHooked := True;
+  MemoryHooked.V := True;
 end;
 
 procedure EndMemoryHook;
 begin
-  if not MemoryHooked then
+  if not MemoryHooked.V then
       RaiseInfo('illegal EndMemoryHook');
 
-  MemoryHooked := False;
+  MemoryHooked.V := False;
   CurrentHookThread := nil;
 end;
 
@@ -80,59 +80,59 @@ end;
 
 function Hash_GetMem(Size: ptruint): Pointer;
 begin
-  Result := OriginMM.GetMem(Size);
-  if (not MemoryHooked) or (not GlobalMemoryHook) or (Result = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
+  Result := OriginMM.GetMem(DeltaStep(Size, C_MH_MemoryDelta));
+  if (not MemoryHooked.V) or (not GlobalMemoryHook.V) or (Result = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
       Exit;
-  MemoryHooked := False;
-  GlobalMemoryHook := False;
+  MemoryHooked.V := False;
+  GlobalMemoryHook.V := False;
   HookPtrList.Add(Result, Size, False);
-  MemoryHooked := True;
-  GlobalMemoryHook := True;
+  MemoryHooked.V := True;
+  GlobalMemoryHook.V := True;
 end;
 
 function Hash_FreeMem(p: Pointer): ptruint;
 begin
   Result := OriginMM.FreeMem(p);
-  if (not MemoryHooked) or (not GlobalMemoryHook) or (p = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
+  if (not MemoryHooked.V) or (not GlobalMemoryHook.V) or (p = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
       Exit;
-  MemoryHooked := False;
-  GlobalMemoryHook := False;
+  MemoryHooked.V := False;
+  GlobalMemoryHook.V := False;
   HookPtrList.Delete(p);
-  MemoryHooked := True;
-  GlobalMemoryHook := True;
+  MemoryHooked.V := True;
+  GlobalMemoryHook.V := True;
 end;
 
 function Hash_FreememSize(p: Pointer; Size: ptruint): ptruint;
 begin
-  Result := OriginMM.FreememSize(p, Size);
-  if (not MemoryHooked) or (not GlobalMemoryHook) or (p = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
+  Result := OriginMM.FreememSize(p, DeltaStep(Size, C_MH_MemoryDelta));
+  if (not MemoryHooked.V) or (not GlobalMemoryHook.V) or (p = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
       Exit;
-  MemoryHooked := False;
-  GlobalMemoryHook := False;
+  MemoryHooked.V := False;
+  GlobalMemoryHook.V := False;
   HookPtrList.Delete(p);
-  MemoryHooked := True;
-  GlobalMemoryHook := True;
+  MemoryHooked.V := True;
+  GlobalMemoryHook.V := True;
 end;
 
 function Hash_AllocMem(Size: ptruint): Pointer;
 begin
-  Result := OriginMM.AllocMem(Size);
-  if (not MemoryHooked) or (not GlobalMemoryHook) or (Result = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
+  Result := OriginMM.AllocMem(DeltaStep(Size, C_MH_MemoryDelta));
+  if (not MemoryHooked.V) or (not GlobalMemoryHook.V) or (Result = nil) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
       Exit;
-  MemoryHooked := False;
-  GlobalMemoryHook := False;
+  MemoryHooked.V := False;
+  GlobalMemoryHook.V := False;
   HookPtrList.Add(Result, Size, True);
-  MemoryHooked := True;
-  GlobalMemoryHook := True;
+  MemoryHooked.V := True;
+  GlobalMemoryHook.V := True;
 end;
 
 function Hash_ReallocMem(var p: Pointer; Size: ptruint): Pointer;
 begin
-  Result := OriginMM.ReallocMem(p, Size);
-  if (not MemoryHooked) or (not GlobalMemoryHook) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
+  Result := OriginMM.ReallocMem(p, DeltaStep(Size, C_MH_MemoryDelta));
+  if (not MemoryHooked.V) or (not GlobalMemoryHook.V) or (CurrentHookThread <> TCoreClassThread.CurrentThread) then
       Exit;
-  MemoryHooked := False;
-  GlobalMemoryHook := False;
+  MemoryHooked.V := False;
+  GlobalMemoryHook.V := False;
   if p <> nil then
     begin
       if HookPtrList.Delete(p) then
@@ -141,8 +141,8 @@ begin
     end
   else if Result <> nil then
       HookPtrList.Add(Result, Size, False);
-  MemoryHooked := True;
-  GlobalMemoryHook := True;
+  MemoryHooked.V := True;
+  GlobalMemoryHook.V := True;
 end;
 
 procedure InstallMemoryHook;
@@ -153,7 +153,7 @@ begin
   GetMemoryManager(OriginMM);
   HookMM := OriginMM;
 
-  MemoryHooked := False;
+  MemoryHooked := TAtomBool.Create(False);
 
   HookMM.GetMem := @Hash_GetMem;
   HookMM.FreeMem := @Hash_FreeMem;
@@ -166,7 +166,8 @@ end;
 
 procedure UnInstallMemoryHook;
 begin
-  MemoryHooked := False;
   SetMemoryManager(OriginMM);
   DisposeObject(HookPtrList);
+  MemoryHooked.Free;
+  MemoryHooked := nil;
 end;

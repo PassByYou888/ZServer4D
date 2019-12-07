@@ -200,8 +200,6 @@ function umlInRange(const v, min_, max_: ShortInt): Boolean; {$IFDEF INLINE_ASM}
 function umlInRange(const v, min_, max_: Double): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function umlInRange(const v, min_, max_: Single): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function umlDeltaNumber(const v, Delta: NativeInt): NativeInt;
-
 function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 
 function umlSameVarValue(const v1, v2: Variant): Boolean;
@@ -245,6 +243,10 @@ function umlGetDirListPath(const FullPath: TPascalString): U_StringArray;
 
 function umlCombinePath(const s1, s2: TPascalString): TPascalString;
 function umlCombineFileName(const pathName, FileName: TPascalString): TPascalString;
+function umlCombineUnixPath(const s1, s2: TPascalString): TPascalString;
+function umlCombineUnixFileName(const pathName, FileName: TPascalString): TPascalString;
+function umlCombineWinPath(const s1, s2: TPascalString): TPascalString;
+function umlCombineWinFileName(const pathName, FileName: TPascalString): TPascalString;
 function umlGetFileName(const s: TPascalString): TPascalString;
 function umlGetFilePath(const s: TPascalString): TPascalString;
 function umlChangeFileExt(const s, ext: TPascalString): TPascalString;
@@ -662,6 +664,8 @@ function umlCompareRawByteString(const s1: RawByteString; const s2: PArrayRawByt
 function umlCompareRawByteString(const s1: PArrayRawByte; const s2: RawByteString): Boolean; overload;
 procedure umlSetRawByte(const sour: RawByteString; const dest: PArrayRawByte); overload;
 procedure umlSetRawByte(const dest: PArrayRawByte; const sour: RawByteString); overload;
+
+procedure SaveMemory(p: Pointer; siz: NativeInt; DestFile: TPascalString);
 
 implementation
 
@@ -1247,11 +1251,6 @@ begin
   Result := (v >= umlMin(min_, max_)) and (v <= umlMax(min_, max_));
 end;
 
-function umlDeltaNumber(const v, Delta: NativeInt): NativeInt;
-begin
-  Result := (v + (Delta - 1)) and (not(Delta - 1));
-end;
-
 function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 var
   n: TPascalString;
@@ -1638,127 +1637,146 @@ begin
 end;
 
 function umlCombinePath(const s1, s2: TPascalString): TPascalString;
+begin
+  if CurrentPlatform in [epWin32, epWin64] then
+      Result := umlCombineWinPath(s1, s2)
+  else
+      Result := umlCombineUnixPath(s1, s2);
+end;
+
+function umlCombineFileName(const pathName, FileName: TPascalString): TPascalString;
+begin
+  if CurrentPlatform in [epWin32, epWin64] then
+      Result := umlCombineWinFileName(pathName, FileName)
+  else
+      Result := umlCombineUnixFileName(pathName, FileName);
+end;
+
+function umlCombineUnixPath(const s1, s2: TPascalString): TPascalString;
 var
   n1, n2, n: TPascalString;
 begin
   n1 := umlTrimSpace(s1);
   n2 := umlTrimSpace(s2);
-  case CurrentPlatform of
-    epWin32, epWin64:
-      begin
-        n1 := umlCharReplace(n1, '/', '\');
-        n2 := umlCharReplace(n2, '/', '\');
 
-        if (n2.Len > 0) and (n2.First = '\') then
-            n2.DeleteFirst;
+  n1 := umlCharReplace(n1, '\', '/');
+  n2 := umlCharReplace(n2, '\', '/');
 
-        if n1.Len > 0 then
-          begin
-            if n1.Last = '\' then
-                Result := n1.text + n2.text
-            else
-                Result := n1.text + '\' + n2.text;
-          end
-        else
-            Result := n2;
+  if (n2.Len > 0) and (n2.First = '/') then
+      n2.DeleteFirst;
 
-        repeat
-          n := Result;
-          Result := umlStringReplace(Result, '\\', '\', true);
-        until Result.Same(n);
-        if (Result.Len > 0) and (Result.Last <> '\') then
-            Result.Append('\');
-      end;
-    else
-      begin
-        n1 := umlCharReplace(n1, '\', '/');
-        n2 := umlCharReplace(n2, '\', '/');
+  if n1.Len > 0 then
+    begin
+      if n1.Last = '/' then
+          Result := n1.text + n2.text
+      else
+          Result := n1.text + '/' + n2.text;
+    end
+  else
+      Result := n2;
 
-        if (n2.Len > 0) and (n2.First = '/') then
-            n2.DeleteFirst;
-
-        if n1.Len > 0 then
-          begin
-            if n1.Last = '/' then
-                Result := n1.text + n2.text
-            else
-                Result := n1.text + '/' + n2.text;
-          end
-        else
-            Result := n2;
-
-        repeat
-          n := Result;
-          Result := umlStringReplace(Result, '//', '/', true);
-        until Result.Same(n);
-        if (Result.Len > 0) and (Result.Last <> '/') then
-            Result.Append('/');
-      end;
-  end;
+  repeat
+    n := Result;
+    Result := umlStringReplace(Result, '//', '/', true);
+  until Result.Same(n);
+  if (Result.Len > 0) and (Result.Last <> '/') then
+      Result.Append('/');
 end;
 
-function umlCombineFileName(const pathName, FileName: TPascalString): TPascalString;
+function umlCombineUnixFileName(const pathName, FileName: TPascalString): TPascalString;
 var
   pn, fn, n: TPascalString;
 begin
   pn := umlTrimSpace(pathName);
   fn := umlTrimSpace(FileName);
 
-  case CurrentPlatform of
-    epWin32, epWin64:
-      begin
-        pn := umlCharReplace(pn, '/', '\');
-        fn := umlCharReplace(fn, '/', '\');
+  pn := umlCharReplace(pn, '\', '/');
+  fn := umlCharReplace(fn, '\', '/');
 
-        if (fn.Len > 0) and (fn.First = '\') then
-            fn.DeleteFirst;
-        if (fn.Len > 0) and (fn.Last = '\') then
-            fn.DeleteLast;
+  if (fn.Len > 0) and (fn.First = '/') then
+      fn.DeleteFirst;
+  if (fn.Len > 0) and (fn.Last = '/') then
+      fn.DeleteLast;
 
-        if pn.Len > 0 then
-          begin
-            if pn.Last = '\' then
-                Result := pn.text + fn.text
-            else
-                Result := pn.text + '\' + fn.text;
-          end
-        else
-            Result := fn;
+  if pn.Len > 0 then
+    begin
+      if pn.Last = '/' then
+          Result := pn.text + fn.text
+      else
+          Result := pn.text + '/' + fn.text;
+    end
+  else
+      Result := fn;
 
-        repeat
-          n := Result;
-          Result := umlStringReplace(Result, '\\', '\', true);
-        until Result.Same(n);
+  repeat
+    n := Result;
+    Result := umlStringReplace(Result, '//', '/', true);
+  until Result.Same(n);
+end;
 
-        if Result.Last = '\' then
-            Result.DeleteLast;
-      end;
-    else
-      begin
-        pn := umlCharReplace(pn, '\', '/');
-        fn := umlCharReplace(fn, '\', '/');
+function umlCombineWinPath(const s1, s2: TPascalString): TPascalString;
+var
+  n1, n2, n: TPascalString;
+begin
+  n1 := umlTrimSpace(s1);
+  n2 := umlTrimSpace(s2);
 
-        if (fn.Len > 0) and (fn.First = '/') then
-            fn.DeleteFirst;
-        if (fn.Len > 0) and (fn.Last = '/') then
-            fn.DeleteLast;
+  n1 := umlCharReplace(n1, '/', '\');
+  n2 := umlCharReplace(n2, '/', '\');
 
-        if pn.Len > 0 then
-          begin
-            if pn.Last = '/' then
-                Result := pn.text + fn.text
-            else
-                Result := pn.text + '/' + fn.text;
-          end
-        else
-            Result := fn;
+  if (n2.Len > 0) and (n2.First = '\') then
+      n2.DeleteFirst;
 
-        repeat
-          n := Result;
-          Result := umlStringReplace(Result, '//', '/', true);
-        until Result.Same(n);
-      end;
-  end;
+  if n1.Len > 0 then
+    begin
+      if n1.Last = '\' then
+          Result := n1.text + n2.text
+      else
+          Result := n1.text + '\' + n2.text;
+    end
+  else
+      Result := n2;
+
+  repeat
+    n := Result;
+    Result := umlStringReplace(Result, '\\', '\', true);
+  until Result.Same(n);
+  if (Result.Len > 0) and (Result.Last <> '\') then
+      Result.Append('\');
+end;
+
+function umlCombineWinFileName(const pathName, FileName: TPascalString): TPascalString;
+var
+  pn, fn, n: TPascalString;
+begin
+  pn := umlTrimSpace(pathName);
+  fn := umlTrimSpace(FileName);
+
+  pn := umlCharReplace(pn, '/', '\');
+  fn := umlCharReplace(fn, '/', '\');
+
+  if (fn.Len > 0) and (fn.First = '\') then
+      fn.DeleteFirst;
+  if (fn.Len > 0) and (fn.Last = '\') then
+      fn.DeleteLast;
+
+  if pn.Len > 0 then
+    begin
+      if pn.Last = '\' then
+          Result := pn.text + fn.text
+      else
+          Result := pn.text + '\' + fn.text;
+    end
+  else
+      Result := fn;
+
+  repeat
+    n := Result;
+    Result := umlStringReplace(Result, '\\', '\', true);
+  until Result.Same(n);
+
+  if Result.Last = '\' then
+      Result.DeleteLast;
 end;
 
 function umlGetFileName(const s: TPascalString): TPascalString;
@@ -6516,6 +6534,16 @@ end;
 
 {$IFDEF RangeCheck}{$R+}{$ENDIF}
 
+
+procedure SaveMemory(p: Pointer; siz: NativeInt; DestFile: TPascalString);
+var
+  m64: TMemoryStream64;
+begin
+  m64 := TMemoryStream64.Create;
+  m64.SetPointerWithProtectedMode(p, siz);
+  m64.SaveToFile(DestFile);
+  DisposeObject(m64);
+end;
 
 initialization
 

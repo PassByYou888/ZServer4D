@@ -40,7 +40,7 @@ function GetHookMemoryMaximumPtr: Pointer;
 
 var
   HookPtrList: TPointerHashNativeUIntList;
-  MemoryHooked: Boolean;
+  MemoryHooked: TAtomBool;
 
 implementation
 

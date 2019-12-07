@@ -117,14 +117,14 @@ procedure InternalDoStatus(Text: SystemString; const ID: Integer);
 var
   hook_state_bak: Boolean;
 begin
-  hook_state_bak := GlobalMemoryHook;
-  GlobalMemoryHook := False;
+  hook_state_bak := GlobalMemoryHook.V;
+  GlobalMemoryHook.V := False;
   MHStatusCritical.Acquire;
   try
       OriginDoStatusHook(Text, ID);
   finally
     MHStatusCritical.Release;
-    GlobalMemoryHook := hook_state_bak;
+    GlobalMemoryHook.V := hook_state_bak;
   end;
 end;
 
@@ -132,11 +132,7 @@ initialization
 
 MHStatusCritical := TCriticalSection.Create;
 OriginDoStatusHook := OnDoStatusHook;
-{$IFDEF FPC}
-OnDoStatusHook := @InternalDoStatus;
-{$ELSE}
-OnDoStatusHook := InternalDoStatus;
-{$ENDIF}
+OnDoStatusHook := {$IFDEF FPC}@{$ENDIF FPC}InternalDoStatus;
 
 finalization
 

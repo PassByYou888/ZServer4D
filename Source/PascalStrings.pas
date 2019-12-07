@@ -29,7 +29,7 @@ unit PascalStrings;
 
 interface
 
-uses SysUtils, CoreClasses;
+uses CoreClasses;
 
 type
   SystemChar = Char;
@@ -253,7 +253,7 @@ const
 
 implementation
 
-uses Variants;
+uses SysUtils, Variants;
 
 procedure CombineCharsPP(const c1, c2: TArrayChar; var output: TArrayChar);
 var

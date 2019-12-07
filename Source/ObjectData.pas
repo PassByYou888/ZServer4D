@@ -357,7 +357,7 @@ type
     SearchBuff: array [0 .. DB_Max_Secursion_Level] of TFieldSearch;
   end;
 
-  //internal used
+  // internal used
 function Get_DB_StringL(var IOHnd: TIOHnd): Integer;
 function Get_DB_HeaderL(var IOHnd: TIOHnd): Integer;
 function Get_DB_ItemL(var IOHnd: TIOHnd): Integer;
@@ -5790,7 +5790,6 @@ function db_GetPath(const FieldPos, RootFieldPos: Int64; var DB_: TObjectDataHan
 var
   f: TField;
 begin
-
   if dbHeader_ReadRec(FieldPos, DB_.IOHnd, f.RHeader) = False then
     begin
       DB_.State := f.RHeader.State;

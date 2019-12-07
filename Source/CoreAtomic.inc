@@ -214,6 +214,14 @@ begin
   CoreLockCritical.Release;
 end;
 
+function DeltaStep(const value_, Delta_: NativeInt): NativeInt;
+begin
+  if Delta_ > 0 then
+      Result := (value_ + (Delta_ - 1)) and (not(Delta_ - 1))
+  else
+      Result := value_;
+end;
+
 procedure AtomInc(var x: Int64);
 begin
 {$IFDEF FPC}

@@ -24,7 +24,7 @@ unit Geometry3DUnit;
 
 interface
 
-uses Types, SysUtils,
+uses Types, CoreClasses,
   GeometryLib, Geometry2DUnit, PascalStrings, UnicodeMixedLib;
 
 type
@@ -292,6 +292,7 @@ function vec2(const v: TVector4): TVector2; overload;
 
 function VecToStr(const v: TVec2): SystemString; overload;
 function VecToStr(const v: TVector2): SystemString; overload;
+function VecToStr(const v: TArrayVec2): TPascalString; overload;
 function VecToStr(const v: TVec3): SystemString; overload;
 function VecToStr(const v: TVec4): SystemString; overload;
 function VecToStr(const v: TVector3): SystemString; overload;
@@ -301,6 +302,7 @@ function RectToStr(const v: TRect): SystemString; overload;
 
 function StrToVec2(const s: SystemString): TVec2;
 function StrToVector2(const s: SystemString): TVector2;
+function StrToArrayVec2(const s: SystemString): TArrayVec2;
 function StrToVec3(const s: SystemString): TVec3;
 function StrToVec4(const s: SystemString): TVec4;
 function StrToVector3(const s: SystemString): TVector3;
@@ -470,22 +472,35 @@ end;
 
 function VecToStr(const v: TVec2): SystemString;
 begin
-  Result := Format('%g,%g', [v[0], v[1]]);
+  Result := PFormat('%g,%g', [v[0], v[1]]);
 end;
 
 function VecToStr(const v: TVector2): SystemString;
 begin
-  Result := Format('%g,%g', [v[0], v[1]]);
+  Result := PFormat('%g,%g', [v[0], v[1]]);
+end;
+
+function VecToStr(const v: TArrayVec2): TPascalString;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := low(v) to high(v) do
+    begin
+      if i <> Low(v) then
+          Result.Append(',');
+      Result.Append('%g,%g', [v[i, 0], v[i, 1]]);
+    end;
 end;
 
 function VecToStr(const v: TVec3): SystemString;
 begin
-  Result := Format('%g,%g,%g', [v[0], v[1], v[2]]);
+  Result := PFormat('%g,%g,%g', [v[0], v[1], v[2]]);
 end;
 
 function VecToStr(const v: TVec4): SystemString;
 begin
-  Result := Format('%g,%g,%g,%g', [v[0], v[1], v[2], v[3]]);
+  Result := PFormat('%g,%g,%g,%g', [v[0], v[1], v[2], v[3]]);
 end;
 
 function VecToStr(const v: TVector3): SystemString;
@@ -500,12 +515,12 @@ end;
 
 function RectToStr(const v: TRectV2): SystemString;
 begin
-  Result := Format('%g,%g,%g,%g', [v[0][0], v[0][1], v[1][0], v[1][1]]);
+  Result := PFormat('%g,%g,%g,%g', [v[0][0], v[0][1], v[1][0], v[1][1]]);
 end;
 
 function RectToStr(const v: TRect): SystemString;
 begin
-  Result := Format('%d,%d,%d,%d', [v.Left, v.Top, v.Right, v.Bottom]);
+  Result := PFormat('%d,%d,%d,%d', [v.Left, v.Top, v.Right, v.Bottom]);
 end;
 
 function StrToVec2(const s: SystemString): TVec2;
@@ -532,6 +547,25 @@ begin
 
   Result[0] := umlStrToFloat(v1, 0);
   Result[1] := umlStrToFloat(v2, 0);
+end;
+
+function StrToArrayVec2(const s: SystemString): TArrayVec2;
+var
+  n, v1, v2: U_String;
+  L: TVec2List;
+begin
+  L := TVec2List.Create;
+  n := umlTrimSpace(s);
+  while n.L > 0 do
+    begin
+      v1 := umlGetFirstStr(n, ',: ');
+      n := umlDeleteFirstStr(n, ',: ');
+      v2 := umlGetFirstStr(n, ',: ');
+      n := umlDeleteFirstStr(n, ',: ');
+      L.Add(umlStrToFloat(v1, 0), umlStrToFloat(v2, 0));
+    end;
+  Result := L.BuildArray();
+  DisposeObject(L);
 end;
 
 function StrToVec3(const s: SystemString): TVec3;

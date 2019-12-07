@@ -184,11 +184,11 @@ begin
       if i mod 99999 = 0 then
         begin
           // 这里是迭代调用，我们不记录，将MH_3.MemoryHooked设置为False即可
-          MH_3.MemoryHooked := False;
+          MH_3.MemoryHooked.V := False;
           Button1Click(nil);
           Application.ProcessMessages;
           // 继续记录内存申请
-          MH_3.MemoryHooked := True;
+          MH_3.MemoryHooked.V := True;
         end;
     end;
   MH_3.EndMemoryHook;

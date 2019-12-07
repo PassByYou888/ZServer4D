@@ -236,7 +236,7 @@ begin
       Exit(nil);
 
   if (NewCapacity > 0) and (NewCapacity <> FSize) then
-      NewCapacity := umlDeltaNumber(NewCapacity, FDelta);
+      NewCapacity := DeltaStep(NewCapacity, FDelta);
   Result := Memory;
   if NewCapacity <> FCapacity then
     begin

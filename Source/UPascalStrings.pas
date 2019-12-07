@@ -24,7 +24,7 @@ unit UPascalStrings;
 interface
 
 
-uses SysUtils, CoreClasses, PascalStrings;
+uses CoreClasses, PascalStrings;
 
 type
 {$IFDEF FPC}
@@ -257,7 +257,7 @@ const
 
 implementation
 
-uses Variants;
+uses SysUtils, Variants;
 
 procedure CombineCharsPP(const c1, c2: TUArrayChar; var output: TUArrayChar);
 var

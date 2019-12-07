@@ -332,16 +332,17 @@ const
   C_Tick_Week   = TTimeTick(C_Tick_Day) * 7;
   C_Tick_Year   = TTimeTick(C_Tick_Day) * 365;
 
+  // memory align
+  C_MH_MemoryDelta = 0;
+
   // file mode
-  fmCreate        = Classes.fmCreate;
-  soFromBeginning = Classes.soFromBeginning;
-  soFromCurrent   = Classes.soFromCurrent;
-  soFromEnd       = Classes.soFromEnd;
-
-  fmOpenRead      = SysUtils.fmOpenRead;
-  fmOpenWrite     = SysUtils.fmOpenWrite;
-  fmOpenReadWrite = SysUtils.fmOpenReadWrite;
-
+  fmCreate         = Classes.fmCreate;
+  soFromBeginning  = Classes.soFromBeginning;
+  soFromCurrent    = Classes.soFromCurrent;
+  soFromEnd        = Classes.soFromEnd;
+  fmOpenRead       = SysUtils.fmOpenRead;
+  fmOpenWrite      = SysUtils.fmOpenWrite;
+  fmOpenReadWrite  = SysUtils.fmOpenReadWrite;
   fmShareExclusive = SysUtils.fmShareExclusive;
   fmShareDenyWrite = SysUtils.fmShareDenyWrite;
   fmShareDenyNone  = SysUtils.fmShareDenyNone;
@@ -351,11 +352,13 @@ const
 // NoP = No Operation. It's the empty function, whose purpose is only for the
 // debugging, or for the piece of code where intentionaly nothing is planned to be.
 procedure Nop;
+
+// process Synchronize
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
+
+// core thread pool
 procedure FreeCoreThreadPool;
-procedure EnabledParallelCore;
-procedure DisableParallelCore;
 
 {$IFDEF FPC}
 type TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
@@ -384,6 +387,7 @@ procedure DisposeObjectAndNil(var Obj);
 procedure LockObject(Obj: TObject);
 procedure UnLockObject(Obj: TObject);
 
+function DeltaStep(const value_, Delta_: NativeInt): NativeInt; inline;
 procedure AtomInc(var x: Int64); overload;
 procedure AtomInc(var x: Int64; const v: Int64); overload;
 procedure AtomDec(var x: Int64); overload;
@@ -510,7 +514,7 @@ var
   WorkInParallelCore: TAtomBool;
 
   // default is True
-  GlobalMemoryHook: Boolean;
+  GlobalMemoryHook: TAtomBool;
 
   // core init time
   CoreInitedTimeTick: TTimeTick;
@@ -965,20 +969,10 @@ begin
     OnCheckThreadSynchronize();
 end;
 
-procedure EnabledParallelCore;
-begin
-  WorkInParallelCore.V := True;
-end;
-
-procedure DisableParallelCore;
-begin
-  WorkInParallelCore.V := False;
-end;
-
 initialization
   OnCheckThreadSynchronize := nil;
-  WorkInParallelCore := TAtomBool.Create(True);
-  GlobalMemoryHook := True;
+  WorkInParallelCore := TAtomBool.Create({$IFDEF FPC}True{$ELSE FPC}DebugHook = 0{$ENDIF FPC});
+  GlobalMemoryHook := TAtomBool.Create(True);
   CheckThreadSynchronizeing := TAtomBool.Create(False);
   Core_RunTime_Tick := C_Tick_Day * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
@@ -991,11 +985,12 @@ finalization
   FreeCoreThreadPool;
   FreeMT19937Rand();
   FreeCriticalLock;
-  GlobalMemoryHook := False;
   CheckThreadSynchronizeing.Free;
   CheckThreadSynchronizeing := nil;
   WorkInParallelCore.Free;
   WorkInParallelCore := nil;
+  GlobalMemoryHook.Free;
+  GlobalMemoryHook := nil;
 end.
 
 

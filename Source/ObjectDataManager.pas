@@ -123,14 +123,36 @@ type
     function CopyTo(DestDB: TObjectDataManager): Boolean;
     function CopyToPath(DestDB: TObjectDataManager; destPath: SystemString): Boolean;
     function CopyFieldToPath(FieldPos: Int64; DestDB: TObjectDataManager; destPath: SystemString): Boolean;
+
+    // export to stream
     procedure SaveToStream(stream: TCoreClassStream);
+
+    // export to ZLib Compressor for stream
     procedure SaveToZLibStream(stream: TCoreClassStream);
+
+    // export to parallel Compressor for stream
     procedure SaveToParallelCompressionStream(stream: TCoreClassStream);
+
+    // Import recursively
     procedure ImpFromPath(ImpPath, DBPath: SystemString; IncludeSub: Boolean);
+
+    // Import batch
     procedure ImpFromFiles(ImpFiles: TCoreClassStrings; DBPath: SystemString);
+
+    // split direct
     procedure SplitTo(RootPh, destFile: SystemString; SplitSiz: Int64);
+
+    // split to ZLib compressor for DB
     procedure SplitToZLib(RootPh, destFile: SystemString; SplitSiz: Int64);
+
+    // split to Parallel compressor for DB
     procedure SplitToParallelCompression(RootPh, destFile: SystemString; SplitSiz: Int64);
+
+    // export to disk
+    procedure ExpPathToDisk(DBPath, ExpPath_: SystemString; IncludeSub: Boolean);
+    procedure ExpItemToDisk(DBPath, DBItem, ExpFilename_: SystemString);
+
+    // state
     function isAbort: Boolean;
     function Close: Boolean;
     function ErrorNo: Int64;
@@ -138,7 +160,7 @@ type
     function Size: Int64;
     function IOReadSize: Int64;
     function IOWriteSize: Int64;
-    procedure SetID(const ID: Byte);
+    procedure SetID(const ID_: Byte);
     procedure UpdateIO; virtual;
 
     // field api
@@ -153,7 +175,8 @@ type
     function GetRootFieldPos(const RootName: SystemString): Int64;
     function FieldRename(const FieldPos: Int64; const NewFieldName, NewFieldDescription: SystemString): Boolean;
     function FieldDelete(const DBPath: SystemString; const FieldName: SystemString): Boolean;
-    function FieldExists(const DBPath: SystemString; const FieldName: SystemString): Boolean;
+    function FieldExists(const DBPath: SystemString; const FieldName: SystemString): Boolean; overload;
+    function FieldExists(const DBPath: SystemString): Boolean; overload;
     function FieldFastFindFirst(const FieldPos: Int64; const Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
     function FieldFastFindLast(const FieldPos: Int64; const Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
     function FieldFastFindNext(var FieldSearchHandle: TFieldSearch): Boolean;
@@ -164,7 +187,8 @@ type
     function FieldFindPrev(var FieldSearchHandle: TFieldSearch): Boolean;
     function FieldMove(const DBPath, FieldName, destPath: SystemString): Boolean;
     function GetFieldData(const FieldPos: Int64; var dest: TFieldHandle): Boolean;
-    function GetFieldPath(const FieldPos: Int64): SystemString;
+    function GetFieldPath(const FieldPos: Int64): SystemString; overload;
+    function GetFieldPath(const FieldPos, RootFieldPos: Int64): SystemString; overload;
     function GetPathField(const DBPath: SystemString; var dest: Int64): Boolean;
     function GetPathFieldPos(const DBPath: SystemString): Int64;
     function GetPathFieldHeaderCount(const DBPath: SystemString): Int64;
@@ -229,6 +253,7 @@ type
     property NeedCreateNew: Boolean read FNeedCreateNew;
     property ObjectName: SystemString read FObjectName write FObjectName;
     property DefaultItemID: Byte read FDefaultItemID;
+    property ID: Byte read FDefaultItemID;
     property StreamEngine: TCoreClassStream read FStreamEngine;
     property DBTime: TDateTime read GetDBTime;
     property OverWriteItem: Boolean read GetOverWriteItem write SetOverWriteItem;
@@ -639,7 +664,13 @@ begin
   FDefaultItemID := dbItemID;
 
   DoOpenBefore;
-  FIsOpened := DoOpen();
+  try
+      FIsOpened := DoOpen();
+  except
+    FIsOpened := False;
+    Result := False;
+    Close;
+  end;
   DoOpenAfter;
 
   Result := FIsOpened;
@@ -978,6 +1009,77 @@ begin
   DisposeObject(DestDB);
 end;
 
+procedure TObjectDataManager.ExpPathToDisk(DBPath, ExpPath_: SystemString; IncludeSub: Boolean);
+var
+  rFieldPos: Int64;
+  rs: TItemRecursionSearch;
+  destPath: U_String;
+  itmHnd: TItemHandle;
+  fs: TCoreClassFileStream;
+  sr: TItemSearch;
+begin
+  destPath := ExpPath_;
+  umlCreateDirectory(destPath);
+  if IncludeSub then
+    begin
+      if GetPathField(DBPath, rFieldPos) then
+        begin
+          if RecursionSearchFirst(DBPath, '*', rs) then
+            begin
+              repeat
+                if rs.ReturnHeader.ID = DB_Header_Field_ID then
+                  begin
+                    destPath := umlCombinePath(ExpPath_, GetFieldPath(rs.ReturnHeader.CurrentHeader, rFieldPos));
+                    umlCreateDirectory(destPath);
+                  end
+                else if ItemFastOpen(rs.ReturnHeader.CurrentHeader, itmHnd) then
+                  begin
+                    try
+                      fs := TCoreClassFileStream.Create(umlCombineFileName(destPath, itmHnd.Name), fmCreate);
+                      ItemReadToStream(itmHnd, fs);
+                      DisposeObject(fs);
+                    except
+                    end;
+                    ItemClose(itmHnd);
+                  end;
+              until not RecursionSearchNext(rs);
+            end;
+        end;
+    end
+  else if ItemFindFirst(DBPath, '*', sr) then
+    begin
+      repeat
+        if ItemFastOpen(sr.HeaderPOS, itmHnd) then
+          begin
+            try
+              fs := TCoreClassFileStream.Create(umlCombineFileName(destPath, itmHnd.Name), fmCreate);
+              ItemReadToStream(itmHnd, fs);
+              DisposeObject(fs);
+            except
+            end;
+            ItemClose(itmHnd);
+          end;
+      until not ItemFindNext(sr);
+    end;
+end;
+
+procedure TObjectDataManager.ExpItemToDisk(DBPath, DBItem, ExpFilename_: SystemString);
+var
+  itmHnd: TItemHandle;
+  fs: TCoreClassFileStream;
+begin
+  if ItemOpen(DBPath, DBItem, itmHnd) then
+    begin
+      try
+        fs := TCoreClassFileStream.Create(ExpFilename_, fmCreate);
+        ItemReadToStream(itmHnd, fs);
+        DisposeObject(fs);
+      except
+      end;
+      ItemClose(itmHnd);
+    end;
+end;
+
 function TObjectDataManager.isAbort: Boolean;
 begin
   Result := not FIsOpened;
@@ -1013,9 +1115,9 @@ begin
   Result := FDBHandle.IOHnd.IOWrite;
 end;
 
-procedure TObjectDataManager.SetID(const ID: Byte);
+procedure TObjectDataManager.SetID(const ID_: Byte);
 begin
-  FDefaultItemID := ID;
+  FDefaultItemID := ID_;
 end;
 
 procedure TObjectDataManager.UpdateIO;
@@ -1120,6 +1222,13 @@ begin
   Result := FieldFindFirst(DBPath, FieldName, FieldSearch);
 end;
 
+function TObjectDataManager.FieldExists(const DBPath: SystemString): Boolean;
+var
+  FieldPos: Int64;
+begin
+  Result := GetPathField(DBPath, FieldPos);
+end;
+
 function TObjectDataManager.FieldFastFindFirst(const FieldPos: Int64; const Filter: SystemString; var FieldSearchHandle: TFieldSearch): Boolean;
 begin
   Init_TTMDBSearchField(FieldSearchHandle);
@@ -1180,6 +1289,16 @@ var
   ReturnPath: U_String;
 begin
   if db_GetPath(FieldPos, FDBHandle.DefaultFieldPOS, FDBHandle, ReturnPath) then
+      Result := ReturnPath
+  else
+      Result := '';
+end;
+
+function TObjectDataManager.GetFieldPath(const FieldPos, RootFieldPos: Int64): SystemString;
+var
+  ReturnPath: U_String;
+begin
+  if db_GetPath(FieldPos, RootFieldPos, FDBHandle, ReturnPath) then
       Result := ReturnPath
   else
       Result := '';
