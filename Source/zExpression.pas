@@ -1852,31 +1852,50 @@ var
                   end
                 else
                   begin
-                    // fixed symbol prefix, -proc(xx)...
+                    // fixed symbol prefix, -(operation), -proc(xx)...
                     if (SymbolIndex + 1 < NewSymbExps.Count) then
                       begin
                         p2 := NewSymbExps[SymbolIndex + 1];
-                        if (p1^.Symbol in [soAdd, soSub]) and (p2^.DeclType = edtProcExp) and (p2^.Symbol = soProc) then
+                        if (p1^.Symbol in [soAdd, soSub]) then
                           begin
-                            ProcOp := NewOpProc(uName);
-                            ProcOp.AddValue(p2^.Value);
-                            for i := 0 to p2^.Expression.Count - 1 do
+                            if (p2^.DeclType = edtSymbol) and (p2^.Symbol in [soBlockIndentBegin, soPropIndentBegin]) then
                               begin
-                                ResOp := BuildAsOpCode(False, p2^.Expression[i]^.Expression, uName, LineNo);
+                                inc(SymbolIndex);
+                                ResOp := ProcessIndent(p2^.Symbol);
                                 if ResOp <> nil then
-                                    ProcOp.AddLink(ResOp)
+                                  begin
+                                    LocalOp := NewOpPrefixFromSym(p1^.Symbol, uName);
+                                    LocalOp.AddLink(ResOp);
+                                  end
                                 else
                                   begin
-                                    PrintError('method Illegal');
+                                    PrintError('logical cperotion Illegal');
                                     Break;
                                   end;
+                                Continue;
+                              end
+                            else if (p2^.DeclType = edtProcExp) and (p2^.Symbol = soProc) then
+                              begin
+                                ProcOp := NewOpProc(uName);
+                                ProcOp.AddValue(p2^.Value);
+                                for i := 0 to p2^.Expression.Count - 1 do
+                                  begin
+                                    ResOp := BuildAsOpCode(False, p2^.Expression[i]^.Expression, uName, LineNo);
+                                    if ResOp <> nil then
+                                        ProcOp.AddLink(ResOp)
+                                    else
+                                      begin
+                                        PrintError('method Illegal');
+                                        Break;
+                                      end;
+                                  end;
+
+                                LocalOp := NewOpPrefixFromSym(p1^.Symbol, uName);
+                                LocalOp.AddLink(ProcOp);
+
+                                inc(SymbolIndex, 2);
+                                Continue;
                               end;
-
-                            LocalOp := NewOpPrefixFromSym(p1^.Symbol, uName);
-                            LocalOp.AddLink(ProcOp);
-
-                            inc(SymbolIndex, 2);
-                            Continue;
                           end;
                       end;
                     PrintError('logical cperotion Illegal');
