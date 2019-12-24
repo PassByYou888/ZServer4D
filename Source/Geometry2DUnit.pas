@@ -220,13 +220,13 @@ function Pow(const v, n: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$EN
 function MiddleVec2(const pt1, pt2: TVec2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function Vec2Middle(const pt1, pt2: TVec2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function IsEqual(const Val1, Val2, Epsilon: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function IsEqual(const Val1, Val2, Epsilon_: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function IsEqual(const Val1, Val2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function IsEqual(const Val1, Val2: TVec2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
-function IsEqual(const Val1, Val2: TVec2; Epsilon: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function IsEqual(const Val1, Val2: TVec2; Epsilon_: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function IsEqual(const Val1, Val2: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
-function NotEqual(const Val1, Val2, Epsilon: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function NotEqual(const Val1, Val2, Epsilon_: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function NotEqual(const Val1, Val2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function NotEqual(const Val1, Val2: TVec2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 
@@ -255,6 +255,8 @@ function CircleInCircle(const cp1, cp2: TVec2; const r1, r2: TGeoFloat): Boolean
 function CircleInRect(const cp: TVec2; const radius: TGeoFloat; r: TRectV2): Boolean;
 function PointInRect(const Px, Py: TGeoFloat; const x1, y1, x2, y2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointInRect(const Px, Py: TGeoInt; const x1, y1, x2, y2: TGeoInt): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function PointInRect(const X, Y: TGeoInt; const r: TRect): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
+function PointInRect(const pt: TPoint; const r: TRect): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointInRect(const pt: TVec2; const r: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointInRect(const Px, Py: TGeoFloat; const r: TRectV2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function Vec2InRect(const Px, Py: TGeoFloat; const x1, y1, x2, y2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -400,8 +402,8 @@ function BuffCentroid(const p1, p2, p3, p4: TVec2): TVec2; {$IFDEF INLINE_ASM} i
 function BuffCentroid(const p1, p2, p3: TVec2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 function PointInPolygon(pt: TVec2; const PolygonBuff: TArrayVec2): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-function FastRamerDouglasPeucker(var Points: TArrayVec2; Epsilon: TGeoFloat): TGeoInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure FastVertexReduction(Points: TArrayVec2; Epsilon: TGeoFloat; var output: TArrayVec2);
+function FastRamerDouglasPeucker(var Points: TArrayVec2; Epsilon_: TGeoFloat): TGeoInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+procedure FastVertexReduction(Points: TArrayVec2; Epsilon_: TGeoFloat; var output: TArrayVec2);
 
 function Clip(const x1, y1, x2, y2, x3, y3, x4, y4: TGeoFloat; out Cx1, Cy1, Cx2, Cy2: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
 procedure Clip(const sour_, background_: TRectV2; var output: TRectV2); {$IFDEF INLINE_ASM} inline; {$ENDIF} overload;
@@ -463,7 +465,7 @@ function Detect_Circle2Line(const cp: TVec2; const r: TGeoFloat; const l: TLineV
 function SameLinePtr(const lb1, le1, lb2, le2: PVec2): Boolean;
 
 function ComputeCurvePartPrecision(const pt1, pt2, pt3, pt4: TVec2): TGeoInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function Interpolation_OutSide(const t_: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Interpolation_OutSide(const T_: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Interpolation_InSide(const t: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 
@@ -549,8 +551,8 @@ type
     procedure ExtractToBuff(var output: TArrayVec2); overload;
     procedure GiveListDataFromBuff(output: TArrayVec2); overload;
 
-    procedure VertexReduction(Epsilon: TGeoFloat); overload;
-    procedure Reduction(Epsilon: TGeoFloat); overload;
+    procedure VertexReduction(Epsilon_: TGeoFloat); overload;
+    procedure Reduction(Epsilon_: TGeoFloat); overload;
 
     function Line2Intersect(const lb, le: TVec2; ClosedPolyMode: Boolean): Boolean; overload;
     function Line2Intersect(const lb, le: TVec2; ClosedPolyMode: Boolean; output: TVec2List): Boolean; overload;
@@ -620,6 +622,7 @@ type
     destructor Destroy; override;
   end;
 
+  T2DPolygonList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<T2DPolygon>;
   T2DPolygonArray = array of T2DPolygon;
   TCollapses = T2DPolygonArray;
 
@@ -631,15 +634,17 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    procedure Assign(Source: TCoreClassObject);
+
     function NewCollapse(): T2DPolygon;
     procedure AddCollapse(polygon: T2DPolygon);
     procedure Clear;
     function CollapsesCount(): TGeoInt;
-    property Count: TGeoInt read CollapsesCount;
     function GetBands(const index: TGeoInt): T2DPolygon;
     property Bands[const index: TGeoInt]: T2DPolygon read GetBands;
     procedure Remove(p: PVec2); overload;
     procedure FreeAndRemove(polygon: T2DPolygon); overload;
+    procedure RemoveNullPolygon();
     function Total: TGeoInt;
     function BuildArray: TArray2DPoint;
     function BuildPArray: TArrayPVec2;
@@ -660,8 +665,11 @@ type
     procedure Transform(v: TVec2); overload;
     procedure Mul(X, Y: TGeoFloat); overload;
     procedure Mul(v: TVec2); overload;
+    procedure Mul(v: TGeoFloat); overload;
     procedure FDiv(X, Y: TGeoFloat); overload;
     procedure FDiv(v: TVec2); overload;
+    procedure VertexReduction(Epsilon_: TGeoFloat); overload;
+    procedure Reduction(Epsilon_: TGeoFloat); overload;
 
     procedure SaveToStream(stream: TMemoryStream64);
     procedure LoadFromStream(stream: TMemoryStream64);
@@ -922,7 +930,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure AddTri(t_: TTriangle);
+    procedure AddTri(T_: TTriangle);
     procedure Remove(p: PTriangle);
     procedure Delete(index: TGeoInt);
     procedure Clear;
@@ -998,13 +1006,13 @@ uses Geometry3DUnit, DataFrameEngine;
 
 const
   // Epsilon
-  Epsilon = 1.0E-12;
+  C_Epsilon = 1.0E-12;
+
   Zero = 0.0;
   PIDiv180 = 0.017453292519943295769236907684886;
 
 {$INCLUDE GeometrySplitHeader.inc}
 {$INCLUDE GeometrySplit.inc}
-
 {$IFDEF FPC}
 
 
@@ -1245,12 +1253,12 @@ end;
 
 function IsZero(const v: TGeoFloat): Boolean;
 begin
-  Result := IsEqual(v, 0, Epsilon);
+  Result := IsEqual(v, 0, C_Epsilon);
 end;
 
 function IsZero(const pt: TVec2): Boolean;
 begin
-  Result := IsEqual(pt[0], 0, Epsilon) and IsEqual(pt[1], 0, Epsilon);
+  Result := IsEqual(pt[0], 0, C_Epsilon) and IsEqual(pt[1], 0, C_Epsilon);
 end;
 
 function IsZero(const r: TRectV2): Boolean;
@@ -1682,18 +1690,18 @@ begin
   Result[1] := (pt1[1] + pt2[1]) * 0.5;
 end;
 
-function IsEqual(const Val1, Val2, Epsilon: TGeoFloat): Boolean;
+function IsEqual(const Val1, Val2, Epsilon_: TGeoFloat): Boolean;
 var
   Diff: TGeoFloat;
 begin
   Diff := Val1 - Val2;
-  Assert(((-Epsilon <= Diff) and (Diff <= Epsilon)) = (FAbs(Diff) <= Epsilon), 'Error - Illogical error in equality Detect. (IsEqual)');
-  Result := ((-Epsilon <= Diff) and (Diff <= Epsilon));
+  Assert(((-Epsilon_ <= Diff) and (Diff <= Epsilon_)) = (FAbs(Diff) <= Epsilon_), 'Error - Illogical error in equality Detect. (IsEqual)');
+  Result := ((-Epsilon_ <= Diff) and (Diff <= Epsilon_));
 end;
 
 function IsEqual(const Val1, Val2: TGeoFloat): Boolean;
 begin
-  Result := IsEqual(Val1, Val2, Epsilon);
+  Result := IsEqual(Val1, Val2, C_Epsilon);
 end;
 
 function IsEqual(const Val1, Val2: TVec2): Boolean;
@@ -1701,9 +1709,9 @@ begin
   Result := IsEqual(Val1[0], Val2[0]) and IsEqual(Val1[1], Val2[1]);
 end;
 
-function IsEqual(const Val1, Val2: TVec2; Epsilon: TGeoFloat): Boolean;
+function IsEqual(const Val1, Val2: TVec2; Epsilon_: TGeoFloat): Boolean;
 begin
-  Result := IsEqual(Val1[0], Val2[0], Epsilon) and IsEqual(Val1[1], Val2[1], Epsilon);
+  Result := IsEqual(Val1[0], Val2[0], Epsilon_) and IsEqual(Val1[1], Val2[1], Epsilon_);
 end;
 
 function IsEqual(const Val1, Val2: TRectV2): Boolean;
@@ -1711,18 +1719,18 @@ begin
   Result := IsEqual(Val1[0], Val2[0]) and IsEqual(Val1[1], Val2[1]);
 end;
 
-function NotEqual(const Val1, Val2, Epsilon: TGeoFloat): Boolean;
+function NotEqual(const Val1, Val2, Epsilon_: TGeoFloat): Boolean;
 var
   Diff: TGeoFloat;
 begin
   Diff := Val1 - Val2;
-  Assert(((-Epsilon > Diff) or (Diff > Epsilon)) = (FAbs(Val1 - Val2) > Epsilon), 'Error - Illogical error in equality Detect. (NotEqual)');
-  Result := ((-Epsilon > Diff) or (Diff > Epsilon));
+  Assert(((-Epsilon_ > Diff) or (Diff > Epsilon_)) = (FAbs(Val1 - Val2) > Epsilon_), 'Error - Illogical error in equality Detect. (NotEqual)');
+  Result := ((-Epsilon_ > Diff) or (Diff > Epsilon_));
 end;
 
 function NotEqual(const Val1, Val2: TGeoFloat): Boolean;
 begin
-  Result := NotEqual(Val1, Val2, Epsilon);
+  Result := NotEqual(Val1, Val2, C_Epsilon);
 end;
 
 function NotEqual(const Val1, Val2: TVec2): Boolean;
@@ -1850,6 +1858,16 @@ end;
 function PointInRect(const Px, Py: TGeoInt; const x1, y1, x2, y2: TGeoInt): Boolean;
 begin
   Result := ((x1 <= Px) and (Px <= x2) and (y1 <= Py) and (Py <= y2)) or ((x2 <= Px) and (Px <= x1) and (y2 <= Py) and (Py <= y1));
+end;
+
+function PointInRect(const X, Y: TGeoInt; const r: TRect): Boolean;
+begin
+  Result := PointInRect(X, Y, r.Left, r.Top, r.Right, r.Bottom);
+end;
+
+function PointInRect(const pt: TPoint; const r: TRect): Boolean;
+begin
+  Result := PointInRect(pt.X, pt.Y, r.Left, r.Top, r.Right, r.Bottom);
 end;
 
 function PointInRect(const pt: TVec2; const r: TRectV2): Boolean;
@@ -2927,7 +2945,7 @@ begin
     end;
 end;
 
-function FastRamerDouglasPeucker(var Points: TArrayVec2; Epsilon: TGeoFloat): TGeoInt;
+function FastRamerDouglasPeucker(var Points: TArrayVec2; Epsilon_: TGeoFloat): TGeoInt;
 var
   i: TGeoInt;
   Range: array of TGeoInt;
@@ -2967,8 +2985,8 @@ begin
               end;
           end;
 
-        // if max distance is greater than epsilon, split ranges
-        if DeltaMax >= Epsilon * HypotX(FirstLastDelta[0], FirstLastDelta[1]) then
+        // if max distance is greater than Epsilon_, split ranges
+        if DeltaMax >= Epsilon_ * HypotX(FirstLastDelta[0], FirstLastDelta[1]) then
           begin
             Range[FirstIndex] := DeltaMaxIndex;
             Range[DeltaMaxIndex] := LastIndex;
@@ -2992,7 +3010,7 @@ begin
   inc(Result);
 end;
 
-procedure FastVertexReduction(Points: TArrayVec2; Epsilon: TGeoFloat; var output: TArrayVec2);
+procedure FastVertexReduction(Points: TArrayVec2; Epsilon_: TGeoFloat; var output: TArrayVec2);
 
   procedure FilterPoints;
   var
@@ -3000,7 +3018,7 @@ procedure FastVertexReduction(Points: TArrayVec2; Epsilon: TGeoFloat; var output
     Count: TGeoInt;
     SqrEpsilon: TGeoFloat;
   begin
-    SqrEpsilon := Sqr(Epsilon);
+    SqrEpsilon := Sqr(Epsilon_);
     output := Points;
     Count := 1;
     for index := 1 to high(output) do
@@ -3019,7 +3037,7 @@ var
   Count: TGeoInt;
 begin
   FilterPoints;
-  Count := FastRamerDouglasPeucker(output, Epsilon);
+  Count := FastRamerDouglasPeucker(output, Epsilon_);
   SetLength(output, Count);
 end;
 
@@ -3842,13 +3860,13 @@ begin
       Result := 1;
 end;
 
-function Interpolation_OutSide(const t_: TGeoFloat): TGeoFloat;
+function Interpolation_OutSide(const T_: TGeoFloat): TGeoFloat;
 const
   Coeff = 0.5;
 var
   t, tt, ttt: TGeoFloat;
 begin
-  t := Abs(t_);
+  t := Abs(T_);
   tt := Sqr(t);
   ttt := tt * t;
   if t < 1 then
@@ -4108,7 +4126,7 @@ end;
 
 procedure TVec2List.MoveDataTo(dest: TVec2List);
 var
-  i: Integer;
+  i: TGeoInt;
 begin
   for i := 0 to FList.Count - 1 do
       dest.FList.Add(FList[i]);
@@ -4889,7 +4907,7 @@ begin
       Add(output[i]);
 end;
 
-procedure TVec2List.VertexReduction(Epsilon: TGeoFloat);
+procedure TVec2List.VertexReduction(Epsilon_: TGeoFloat);
 var
   buff, output: TArrayVec2;
   f, l: TVec2;
@@ -4898,16 +4916,16 @@ begin
   f := First^;
   l := Last^;
   ExtractToBuff(buff);
-  FastVertexReduction(buff, Epsilon, output);
+  FastVertexReduction(buff, Epsilon_, output);
   GiveListDataFromBuff(output);
   Insert(0, f);
   Add(l);
   RemoveSame;
 end;
 
-procedure TVec2List.Reduction(Epsilon: TGeoFloat);
+procedure TVec2List.Reduction(Epsilon_: TGeoFloat);
 begin
-  VertexReduction(Epsilon);
+  VertexReduction(Epsilon_);
 end;
 
 function TVec2List.Line2Intersect(const lb, le: TVec2; ClosedPolyMode: Boolean): Boolean;
@@ -5522,9 +5540,29 @@ end;
 
 destructor T2DPolygonGraph.Destroy;
 begin
-  DisposeObject(Surround);
   Clear();
+  DisposeObject(Surround);
   inherited Destroy;
+end;
+
+procedure T2DPolygonGraph.Assign(Source: TCoreClassObject);
+var
+  i: TGeoInt;
+begin
+  Clear;
+  if Source is T2DPolygonGraph then
+    begin
+      Surround.Assign(T2DPolygonGraph(Source).Surround);
+      SetLength(Collapses, T2DPolygonGraph(Source).CollapsesCount);
+      for i := 0 to T2DPolygonGraph(Source).CollapsesCount - 1 do
+        begin
+          Collapses[i] := T2DPolygon.Create;
+          Collapses[i].Owner := Self;
+          Collapses[i].Assign(T2DPolygonGraph(Source).Collapses[i]);
+        end;
+    end
+  else
+      Surround.Assign(Source);
 end;
 
 function T2DPolygonGraph.NewCollapse: T2DPolygon;
@@ -5576,35 +5614,41 @@ end;
 
 procedure T2DPolygonGraph.FreeAndRemove(polygon: T2DPolygon);
 var
-  i, j, sum: TGeoInt;
-  NewCollapses_: TCollapses;
+  i: TGeoInt;
+  l: T2DPolygonList;
 begin
   if polygon = Surround then
       Clear()
   else
     begin
-      sum := 0;
-      for i := 0 to length(Collapses) - 1 do
-        if Collapses[i] <> polygon then
-            inc(sum);
-
-      SetLength(NewCollapses_, sum);
-      j := 0;
-
-      for i := 0 to length(Collapses) - 1 do
-        if Collapses[i] <> polygon then
-          begin
-            NewCollapses_[j] := Collapses[i];
-            inc(j);
-          end
+      l := T2DPolygonList.Create;
+      for i := Low(Collapses) to High(Collapses) do
+        if Collapses[i] = polygon then
+            DisposeObject(Collapses[i])
         else
-            DisposeObject(Collapses[i]);
+            l.Add(Collapses[i]);
 
-      SetLength(Collapses, sum);
-      for i := 0 to sum - 1 do
-          Collapses[i] := NewCollapses_[i];
-      SetLength(NewCollapses_, 0);
+      SetLength(Collapses, l.Count);
+      for i := 0 to l.Count - 1 do
+          Collapses[i] := l[i];
+
+      DisposeObject(l);
     end;
+end;
+
+procedure T2DPolygonGraph.RemoveNullPolygon;
+var
+  i: TGeoInt;
+  l: T2DPolygonList;
+begin
+  l := T2DPolygonList.Create;
+  for i := 0 to CollapsesCount - 1 do
+    if Collapses[i].Count = 0 then
+        l.Add(Collapses[i]);
+
+  for i := 0 to l.Count - 1 do
+      FreeAndRemove(l[i]);
+  DisposeObject(l);
 end;
 
 function T2DPolygonGraph.Total: TGeoInt;
@@ -5884,6 +5928,11 @@ begin
   Mul(v[0], v[1]);
 end;
 
+procedure T2DPolygonGraph.Mul(v: TGeoFloat);
+begin
+  Mul(v, v);
+end;
+
 procedure T2DPolygonGraph.FDiv(X, Y: TGeoFloat);
 var
   i: TGeoInt;
@@ -5896,6 +5945,20 @@ end;
 procedure T2DPolygonGraph.FDiv(v: TVec2);
 begin
   FDiv(v[0], v[1]);
+end;
+
+procedure T2DPolygonGraph.VertexReduction(Epsilon_: TGeoFloat);
+var
+  i: TGeoInt;
+begin
+  Surround.VertexReduction(Epsilon_);
+  for i := 0 to CollapsesCount - 1 do
+      Collapses[i].VertexReduction(Epsilon_);
+end;
+
+procedure T2DPolygonGraph.Reduction(Epsilon_: TGeoFloat);
+begin
+  VertexReduction(Epsilon_);
 end;
 
 procedure T2DPolygonGraph.SaveToStream(stream: TMemoryStream64);
@@ -8234,12 +8297,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TTriangleList.AddTri(t_: TTriangle);
+procedure TTriangleList.AddTri(T_: TTriangle);
 var
   p: PTriangle;
 begin
   new(p);
-  p^ := t_;
+  p^ := T_;
   inherited Add(p);
 end;
 
@@ -8275,7 +8338,7 @@ var
   v1, v2: TVec2;
   first_vert, Vert1, vert2: TVertex2D_;
   mesh_tri: TTriangle2D_;
-  t_: TTriangle;
+  T_: TTriangle;
 begin
   Clear;
 
@@ -8312,13 +8375,13 @@ begin
     begin
       mesh_tri := mesh.Triangles[i];
       with mesh_tri.Vertices[0].Point^ do
-          t_[0] := vec2(X, Y);
+          T_[0] := vec2(X, Y);
       with mesh_tri.Vertices[1].Point^ do
-          t_[1] := vec2(X, Y);
+          T_[1] := vec2(X, Y);
       with mesh_tri.Vertices[2].Point^ do
-          t_[2] := vec2(X, Y);
+          T_[2] := vec2(X, Y);
 
-      AddTri(t_);
+      AddTri(T_);
     end;
 
   DisposeObject(mesh);
@@ -8333,7 +8396,7 @@ var
   v1, v2: TVec2;
   first_vert, Vert1, vert2: TVertex2D_;
   mesh_tri: TTriangle2D_;
-  t_: TTriangle;
+  T_: TTriangle;
 begin
   Clear;
 
@@ -8374,13 +8437,13 @@ begin
     begin
       mesh_tri := mesh.Triangles[i];
       with mesh_tri.Vertices[0].Point^ do
-          t_[0] := vec2(X, Y);
+          T_[0] := vec2(X, Y);
       with mesh_tri.Vertices[1].Point^ do
-          t_[1] := vec2(X, Y);
+          T_[1] := vec2(X, Y);
       with mesh_tri.Vertices[2].Point^ do
-          t_[2] := vec2(X, Y);
+          T_[2] := vec2(X, Y);
 
-      AddTri(t_);
+      AddTri(T_);
     end;
 
   DisposeObject(mesh);
@@ -8396,7 +8459,7 @@ var
   v1, v2: TVec2;
   first_vert, Vert1, vert2: TVertex2D_;
   mesh_tri: TTriangle2D_;
-  t_: TTriangle;
+  T_: TTriangle;
 begin
   Clear;
 
@@ -8453,14 +8516,14 @@ begin
     begin
       mesh_tri := mesh.Triangles[i];
       with mesh_tri.Vertices[0].Point^ do
-          t_[0] := vec2(X, Y);
+          T_[0] := vec2(X, Y);
       with mesh_tri.Vertices[1].Point^ do
-          t_[1] := vec2(X, Y);
+          T_[1] := vec2(X, Y);
       with mesh_tri.Vertices[2].Point^ do
-          t_[2] := vec2(X, Y);
+          T_[2] := vec2(X, Y);
 
-      if polygon.InHere(TriCentre(t_)) then
-          AddTri(t_);
+      if polygon.InHere(TriCentre(T_)) then
+          AddTri(T_);
     end;
 
   DisposeObject(mesh);
@@ -8476,7 +8539,7 @@ var
   v1, v2: TVec2;
   first_vert, Vert1, vert2: TVertex2D_;
   mesh_tri: TTriangle2D_;
-  t_: TTriangle;
+  T_: TTriangle;
 begin
   Clear;
 
@@ -8537,14 +8600,14 @@ begin
     begin
       mesh_tri := mesh.Triangles[i];
       with mesh_tri.Vertices[0].Point^ do
-          t_[0] := vec2(X, Y);
+          T_[0] := vec2(X, Y);
       with mesh_tri.Vertices[1].Point^ do
-          t_[1] := vec2(X, Y);
+          T_[1] := vec2(X, Y);
       with mesh_tri.Vertices[2].Point^ do
-          t_[2] := vec2(X, Y);
+          T_[2] := vec2(X, Y);
 
-      if polygon.InHere(TriCentre(t_)) then
-          AddTri(t_);
+      if polygon.InHere(TriCentre(T_)) then
+          AddTri(T_);
     end;
 
   DisposeObject(mesh);

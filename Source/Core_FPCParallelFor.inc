@@ -225,3 +225,13 @@ begin
       ParallelOverflow.Release;
   end;
 end;
+
+procedure FPCParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32);
+begin
+  FPCParallelFor(OnFor, b, e);
+end;
+
+procedure FPCParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64);
+begin
+  FPCParallelFor(OnFor, b, e);
+end;

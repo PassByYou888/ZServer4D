@@ -78,6 +78,7 @@ type
     function DoTan(var Param: TOpParam): Variant;
     function DoRound(var Param: TOpParam): Variant;
     function DoTrunc(var Param: TOpParam): Variant;
+    function DoDeg(var Param: TOpParam): Variant;
 
     function DoPI(var Param: TOpParam): Variant;
     function DoBool(var Param: TOpParam): Variant;
@@ -191,6 +192,18 @@ type
   op_Proc = class sealed(TOpCode)
   private
     // proc(a,b,c...)
+    function DoExecute(opRT: TOpCustomRunTime): Variant; override;
+  end;
+
+  op_Add_Prefix = class sealed(TOpCode)
+  private
+    // +proc
+    function DoExecute(opRT: TOpCustomRunTime): Variant; override;
+  end;
+
+  op_Sub_Prefix = class sealed(TOpCode)
+  private
+    // -proc
     function DoExecute(opRT: TOpCustomRunTime): Variant; override;
   end;
 
@@ -320,6 +333,8 @@ var
   DefaultOpRT: TOpCustomRunTime;
 
 implementation
+
+uses Geometry2DUnit, Geometry3DUnit;
 
 type
   opRegData = record
@@ -590,6 +605,17 @@ begin
   for i := low(Param) to high(Param) do
       v := v + Param[i];
   Result := Trunc(Double(v));
+end;
+
+function TOpCustomRunTime.DoDeg(var Param: TOpParam): Variant;
+var
+  v: Variant;
+  i: Integer;
+begin
+  v := 0;
+  for i := low(Param) to high(Param) do
+      v := v + Param[i];
+  Result := NormalizeDegAngle(TGeoFloat(v));
 end;
 
 function TOpCustomRunTime.DoPI(var Param: TOpParam): Variant;
@@ -878,6 +904,7 @@ begin
   RegOpM('Tan', 'Tan(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTan)^.Category := 'Base Math';
   RegOpM('Round', 'Round(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoRound)^.Category := 'Base Math';
   RegOpM('Trunc', 'Trunc(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc)^.Category := 'Base Math';
+  RegOpM('Deg', 'Deg(0..n): NormalizeDegAngle function', {$IFDEF FPC}@{$ENDIF FPC}DoDeg)^.Category := 'Base Math';
 
   RegOpM('PI', 'PI(): return PI', {$IFDEF FPC}@{$ENDIF FPC}DoPI)^.Category := 'Base Math';
 
@@ -1438,6 +1465,34 @@ begin
       Result := p^.OnObjectOpProc(opRT, p^.Param);
 end;
 
+{ op_Add_Prefix }
+
+function op_Add_Prefix.DoExecute(opRT: TOpCustomRunTime): Variant;
+var
+  i: Integer;
+begin
+  if Count = 0 then
+      Exit(NULL);
+  Result := Param[0]^.Value;
+  for i := 1 to Count - 1 do
+      Result := Result + Param[i]^.Value;
+  Result := +Result;
+end;
+
+{ op_Sub_Prefix }
+
+function op_Sub_Prefix.DoExecute(opRT: TOpCustomRunTime): Variant;
+var
+  i: Integer;
+begin
+  if Count = 0 then
+      Exit(NULL);
+  Result := Param[0]^.Value;
+  for i := 1 to Count - 1 do
+      Result := Result + Param[i]^.Value;
+  Result := -Result;
+end;
+
 { op_Add }
 
 function op_Add.DoExecute(opRT: TOpCustomRunTime): Variant;
@@ -1716,6 +1771,8 @@ OpList := TCoreClassList.Create;
 
 RegisterOp(op_Value);
 RegisterOp(op_Proc);
+RegisterOp(op_Add_Prefix);
+RegisterOp(op_Sub_Prefix);
 RegisterOp(op_Add);
 RegisterOp(op_Sub);
 RegisterOp(op_Mul);

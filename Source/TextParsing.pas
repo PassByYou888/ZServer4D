@@ -103,7 +103,7 @@ type
     function isTextDecl(const cOffset: Integer): Boolean;
     function GetTextDeclEndPos(const cOffset: Integer): Integer;
     function GetTextDeclBeginPos(const cOffset: Integer): Integer;
-    function GetTextBody(const AText: TPascalString): TPascalString;
+    function GetTextBody(const Text_: TPascalString): TPascalString;
     function GetTextDeclPos(const cOffset: Integer; var charBeginPos, charEndPos: Integer): Boolean;
 
     { symbol support: TokenCache }
@@ -126,10 +126,10 @@ type
     function isTextOrComment(const cOffset: Integer): Boolean;
     function isCommentOrText(const cOffset: Integer): Boolean;
 
-    { lowlevel word support: TokenCache no used }
-    function isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean; overload;
-    function isWordSplitChar(const c: SystemChar): Boolean; overload;
-    function isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean; overload;
+    { word support: TokenCache no used }
+    class function isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean; overload;
+    class function isWordSplitChar(const c: SystemChar): Boolean; overload;
+    class function isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean; overload;
     function GetWordBeginPos(const cOffset: Integer; SplitTokenC: TPascalString): Integer; overload;
     function GetWordBeginPos(const cOffset: Integer): Integer; overload;
     function GetWordBeginPos(const cOffset: Integer; BeginDefaultChar: Boolean; SplitTokenC: TPascalString): Integer; overload;
@@ -225,10 +225,10 @@ type
     class function TranslateC_DeclCommentToText(const Decl: TPascalString): TPascalString;
     class function TranslateTextToC_DeclComment(const Decl: TPascalString): TPascalString;
     { structor }
-    constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString; ASpacerSymbol: SystemString); overload;
-    constructor Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString); overload;
-    constructor Create(const AText: TPascalString; AStyle: TTextStyle); overload;
-    constructor Create(const AText: TPascalString); overload;
+    constructor Create(const Text_: TPascalString; Style_: TTextStyle; SpecialSymbol_: TListPascalString; SpacerSymbol_: SystemString); overload;
+    constructor Create(const Text_: TPascalString; Style_: TTextStyle; SpecialSymbol_: TListPascalString); overload;
+    constructor Create(const Text_: TPascalString; Style_: TTextStyle); overload;
+    constructor Create(const Text_: TPascalString); overload;
     destructor Destroy; override;
     { external }
     procedure Init; virtual;
@@ -243,7 +243,7 @@ const
   C_SpacerSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36#124;
 
 var
-  V_SpacerSymbol: SystemString = C_SpacerSymbol;
+  SpacerSymbol: TAtomString;
 
 implementation
 
@@ -1105,14 +1105,14 @@ begin
       Result := cOffset;
 end;
 
-function TTextParsing.GetTextBody(const AText: TPascalString): TPascalString;
+function TTextParsing.GetTextBody(const Text_: TPascalString): TPascalString;
 begin
   if TextStyle = tsPascal then
-      Result := TranslatePascalDeclToText(AText)
+      Result := TranslatePascalDeclToText(Text_)
   else if TextStyle = tsC then
-      Result := TranslateC_DeclToText(AText)
+      Result := TranslateC_DeclToText(Text_)
   else
-      Result := AText;
+      Result := Text_;
 end;
 
 function TTextParsing.GetTextDeclPos(const cOffset: Integer; var charBeginPos, charEndPos: Integer): Boolean;
@@ -1446,17 +1446,17 @@ begin
   Result := isComment(cOffset) or isTextDecl(cOffset);
 end;
 
-function TTextParsing.isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean;
+class function TTextParsing.isWordSplitChar(const c: SystemChar; SplitTokenC: TPascalString): Boolean;
 begin
   Result := isWordSplitChar(c, True, SplitTokenC);
 end;
 
-function TTextParsing.isWordSplitChar(const c: SystemChar): Boolean;
+class function TTextParsing.isWordSplitChar(const c: SystemChar): Boolean;
 begin
   Result := isWordSplitChar(c, True, '');
 end;
 
-function TTextParsing.isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean;
+class function TTextParsing.isWordSplitChar(const c: SystemChar; DefaultChar: Boolean; SplitTokenC: TPascalString): Boolean;
 begin
   if DefaultChar then
       Result := CharIn(c, [c0to32], SplitTokenC)
@@ -1587,16 +1587,17 @@ begin
 end;
 
 function TTextParsing.SplitChar(const cOffset: Integer; var LastPos: Integer; const SplitTokenC, SplitEndTokenC: TPascalString; var SplitOutput: TArrayPascalString): Integer;
-  procedure AddS(s: TPascalString);
+  procedure AddS(const s: TPascalString);
   var
+    n: TPascalString;
     L: Integer;
   begin
-    s := s.TrimChar(#32#0);
-    if s.Len = 0 then
+    n := s.TrimChar(#32#0);
+    if n.Len = 0 then
         exit;
     L := Length(SplitOutput);
     SetLength(SplitOutput, L + 1);
-    SplitOutput[L] := s;
+    SplitOutput[L] := n;
     inc(Result);
   end;
 
@@ -2780,24 +2781,24 @@ begin
       Result := '/* ' + n + ' */';
 end;
 
-constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString; ASpacerSymbol: SystemString);
+constructor TTextParsing.Create(const Text_: TPascalString; Style_: TTextStyle; SpecialSymbol_: TListPascalString; SpacerSymbol_: SystemString);
 begin
   inherited Create;
   ParsingData.Cache.CommentDecls := nil;
   ParsingData.Cache.TextDecls := nil;
   ParsingData.Cache.TokenDataList := nil;
   SetLength(ParsingData.Cache.CharToken, 0);
-  if AText.Len = 0 then
+  if Text_.Len = 0 then
       ParsingData.Text := #13#10
   else
-      ParsingData.Text := AText + #32;
+      ParsingData.Text := Text_ + #32;
   ParsingData.Len := ParsingData.Text.Len + 1;
-  TextStyle := AStyle;
-  SymbolTable := ASpacerSymbol;
+  TextStyle := Style_;
+  SymbolTable := SpacerSymbol_;
   TokenStatistics := NullTokenStatistics;
   SpecialSymbol := TListPascalString.Create;
-  if ASpecialSymbol <> nil then
-      SpecialSymbol.Assign(ASpecialSymbol);
+  if SpecialSymbol_ <> nil then
+      SpecialSymbol.Assign(SpecialSymbol_);
   RebuildCacheBusy := False;
 
   RebuildParsingCache;
@@ -2805,19 +2806,19 @@ begin
   Init;
 end;
 
-constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle; ASpecialSymbol: TListPascalString);
+constructor TTextParsing.Create(const Text_: TPascalString; Style_: TTextStyle; SpecialSymbol_: TListPascalString);
 begin
-  Create(AText, AStyle, ASpecialSymbol, V_SpacerSymbol);
+  Create(Text_, Style_, SpecialSymbol_, SpacerSymbol.V);
 end;
 
-constructor TTextParsing.Create(const AText: TPascalString; AStyle: TTextStyle);
+constructor TTextParsing.Create(const Text_: TPascalString; Style_: TTextStyle);
 begin
-  Create(AText, AStyle, nil, V_SpacerSymbol);
+  Create(Text_, Style_, nil, SpacerSymbol.V);
 end;
 
-constructor TTextParsing.Create(const AText: TPascalString);
+constructor TTextParsing.Create(const Text_: TPascalString);
 begin
-  Create(AText, tsText, nil, V_SpacerSymbol);
+  Create(Text_, tsText, nil, SpacerSymbol.V);
 end;
 
 destructor TTextParsing.Destroy;
@@ -2887,5 +2888,11 @@ begin
 end;
 
 initialization
+
+SpacerSymbol := TAtomString.Create(C_SpacerSymbol);
+
+finalization
+
+DisposeObjectAndNil(SpacerSymbol);
 
 end.

@@ -160,11 +160,7 @@ type
   TCritical = TCriticalSection;
 {$ENDIF SoftCritical}
 
-{$IFDEF FPC}
-  generic TAtomVar<T_> = class
-{$ELSE FPC}
-  TAtomVar<T_> = class
-{$ENDIF FPC}
+{$IFDEF FPC}generic{$ENDIF FPC}TAtomVar<T_> = class
   public type
     PT_ = ^T_;
   private
@@ -263,6 +259,9 @@ type
     class procedure RunP_NP(const OnRun: TRunWithThreadProc_NP); overload;
   end;
 
+  // TComputeThread alias
+  TCompute = TComputeThread;
+
   TMT19937Random = class(TCoreClassObject)
   private
     FRndInstance: Pointer;
@@ -284,6 +283,26 @@ type
     function RandD: Double; overload;
     procedure RandD(dest: PDouble; num: NativeInt); overload;
     property seed: Integer read GetSeed write SetSeed;
+  end;
+
+  {$IFDEF FPC}generic{$ENDIF FPC}TLineProcessor<T_> = class
+  protected
+    procedure VertLine(X, y1, y2: NativeInt);
+    procedure HorzLine(x1, Y, x2: NativeInt);
+  public type
+    TTArry_ = array [0 .. 0] of T_;
+    PTArry_ = ^TTArry_;
+    PT_ = ^T_;
+  public var
+    Data_: PTArry_;
+    Width_, Height_: NativeInt;
+    Value_: T_;
+    L_: Boolean;
+  public
+    constructor Create(data: Pointer; width, height: NativeInt; Value: T_; L: Boolean);
+    procedure Line(x1, y1, x2, y2: NativeInt);
+    procedure FillBox(x1, y1, x2, y2: NativeInt);
+    procedure Process(vp: PT_; v: T_); virtual;
   end;
 
 {$EndRegion 'core defines + class'}
@@ -347,6 +366,30 @@ const
   fmShareDenyWrite = SysUtils.fmShareDenyWrite;
   fmShareDenyNone  = SysUtils.fmShareDenyNone;
 {$EndRegion 'core const'}
+{$Region 'Parallel API'}
+{$IFDEF FPC}
+type
+  TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
+  TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure FPCParallelFor(OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
+procedure FPCParallelFor(b, e: Integer; OnFor:TFPCParallelForProcedure32); overload;
+procedure FPCParallelFor(b, e: Int64; OnFor:TFPCParallelForProcedure64); overload;
+{$ELSE FPC}
+type
+{$IFDEF SystemParallel}
+  TDelphiParallelForProcedure32 = TProc<Integer>;
+  TDelphiParallelForProcedure64 = TProc<Int64>;
+{$ELSE SystemParallel}
+  TDelphiParallelForProcedure32 = reference to procedure(pass: Integer);
+  TDelphiParallelForProcedure64 = reference to procedure(pass: Int64);
+{$ENDIF SystemParallel}
+procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
+procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure32; b, e: Integer); overload;
+procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
+{$ENDIF FPC}
+{$EndRegion 'Parallel API'}
 {$Region 'core api'}
 
 // NoP = No Operation. It's the empty function, whose purpose is only for the
@@ -359,24 +402,6 @@ function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 
 // core thread pool
 procedure FreeCoreThreadPool;
-
-{$IFDEF FPC}
-type TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
-type TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
-{$ELSE FPC}
-type
-{$IFDEF SystemParallel}
-  TDelphiParallelForProcedure32 = TProc<Integer>;
-  TDelphiParallelForProcedure64 = TProc<Int64>;
-{$ELSE SystemParallel}
-  TDelphiParallelForProcedure32 = reference to procedure(pass: Integer);
-  TDelphiParallelForProcedure64 = reference to procedure(pass: Int64);
-{$ENDIF SystemParallel}
-procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
-procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
-{$ENDIF FPC}
 
 procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
@@ -406,6 +431,8 @@ procedure AtomDec(var x: Cardinal); overload;
 procedure AtomDec(var x: Cardinal; const v:Cardinal); overload;
 
 procedure FillPtrByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
+procedure FillPtr(const dest:Pointer; Count: NativeUInt; const Value: Byte);
+procedure FillByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
 function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
 procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt);
 
@@ -486,12 +513,13 @@ procedure Swap(var v1, v2: Integer); overload;
 procedure Swap(var v1, v2: Cardinal); overload;
 procedure Swap(var v1, v2: Int64); overload;
 procedure Swap(var v1, v2: UInt64); overload;
+procedure Swap(var v1, v2: NativeInt); overload;
+procedure Swap(var v1, v2: NativeUInt); overload;
 procedure Swap(var v1, v2: string); overload;
 procedure Swap(var v1, v2: Single); overload;
 procedure Swap(var v1, v2: Double); overload;
 procedure Swap(var v1, v2: Pointer); overload;
 procedure SwapVariant(var v1, v2: Variant);
-
 function Swap(const v: Word): Word; overload;
 function Swap(const v: Cardinal): Cardinal; overload;
 function Swap(const v: UInt64): UInt64; overload;
@@ -501,6 +529,18 @@ function SAR32(const AValue: Integer; Shift: Byte): Integer;
 function SAR64(const AValue: Int64; Shift: Byte): Int64;
 
 function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
+
+function if_(const bool_: Boolean; const True_, False_: Boolean): Boolean; overload;
+function if_(const bool_: Boolean; const True_, False_: ShortInt): ShortInt; overload;
+function if_(const bool_: Boolean; const True_, False_: SmallInt): SmallInt; overload;
+function if_(const bool_: Boolean; const True_, False_: Integer): Integer; overload;
+function if_(const bool_: Boolean; const True_, False_: Int64): Int64; overload;
+function if_(const bool_: Boolean; const True_, False_: Byte): Byte; overload;
+function if_(const bool_: Boolean; const True_, False_: Word): Word; overload;
+function if_(const bool_: Boolean; const True_, False_: Cardinal): Cardinal; overload;
+function if_(const bool_: Boolean; const True_, False_: UInt64): UInt64; overload;
+function if_(const bool_: Boolean; const True_, False_: Single): Single; overload;
+function if_(const bool_: Boolean; const True_, False_: Double): Double; overload;
 
 {$EndRegion 'core api'}
 {$Region 'core var'}
@@ -647,6 +687,16 @@ begin
       d^ := Value;
 end;
 
+procedure FillPtr(const dest:Pointer; Count: NativeUInt; const Value: Byte);
+begin
+  FillPtrByte(dest, Count, Value);
+end;
+
+procedure FillByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
+begin
+  FillPtrByte(dest, Count, Value);
+end;
+
 function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
 var
   b1, b2: PByte;
@@ -700,7 +750,7 @@ begin
 
   s := NativeUInt(sour);
   d := NativeUInt(dest);
-  // fixed overlap problem. by,qq600585, 2019-10
+  // overlap problem
   // thanks,qq122742470,wang
   // thanks,qq4700653,LOK
   if d > s then
@@ -926,11 +976,12 @@ end;
 
 {$IFDEF FPC}
 {$INCLUDE Core_FPCParallelFor.inc}
-{$INCLUDE Core_FPCAtomVar.inc}
 {$ELSE FPC}
 {$INCLUDE Core_DelphiParallelFor.inc}
-{$INCLUDE Core_DelphiAtomVar.inc}
 {$ENDIF FPC}
+{$INCLUDE Core_AtomVar.inc}
+{$INCLUDE Core_LineProcessor.inc}
+
 
 procedure Nop;
 begin
@@ -992,5 +1043,3 @@ finalization
   GlobalMemoryHook.Free;
   GlobalMemoryHook := nil;
 end.
-
-

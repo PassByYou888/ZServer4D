@@ -377,6 +377,24 @@ begin
   v2 := v;
 end;
 
+procedure Swap(var v1, v2: NativeInt);
+var
+  v: NativeInt;
+begin
+  v := v1;
+  v1 := v2;
+  v2 := v;
+end;
+
+procedure Swap(var v1, v2: NativeUInt);
+var
+  v: NativeUInt;
+begin
+  v := v1;
+  v1 := v2;
+  v2 := v;
+end;
+
 procedure Swap(var v1, v2: string);
 var
   v: string;
@@ -439,26 +457,121 @@ end;
 
 function SAR16(const AValue: SmallInt; const Shift: Byte): SmallInt;
 begin
-  Result := SmallInt(Word(Word(Word(AValue) shr (Shift and 15)) or (Word(SmallInt(Word(0 - Word(Word(AValue) shr 15)) and Word(SmallInt(0 - (Ord((Shift and 15) <> 0) { and 1 } ))))) shl (16 - (Shift and 15)))));
+  Result := SmallInt(
+    Word(Word(Word(AValue) shr (Shift and 15)) or
+    (Word(SmallInt(Word(0 - Word(Word(AValue) shr 15)) and Word(SmallInt(0 - (Ord((Shift and 15) <> 0) { and 1 } ))))) shl (16 - (Shift and 15)))));
 end;
 
 function SAR32(const AValue: Integer; Shift: Byte): Integer;
 begin
-  Result := Integer(Cardinal(Cardinal(Cardinal(AValue) shr (Shift and 31)) or (Cardinal(Integer(Cardinal(0 - Cardinal(Cardinal(AValue) shr 31)) and Cardinal(Integer(0 - (Ord((Shift and 31) <> 0) { and 1 } ))))) shl (32 - (Shift and 31)))));
+  Result := Integer(
+    Cardinal(Cardinal(Cardinal(AValue) shr (Shift and 31)) or
+    (Cardinal(Integer(Cardinal(0 - Cardinal(Cardinal(AValue) shr 31)) and Cardinal(Integer(0 - (Ord((Shift and 31) <> 0) { and 1 } ))))) shl (32 - (Shift and 31)))));
 end;
 
 function SAR64(const AValue: Int64; Shift: Byte): Int64;
 begin
-  Result := Int64(UInt64(UInt64(UInt64(AValue) shr (Shift and 63)) or (UInt64(Int64(UInt64(0 - UInt64(UInt64(AValue) shr 63)) and UInt64(Int64(0 - (Ord((Shift and 63) <> 0) { and 1 } ))))) shl (64 - (Shift and 63)))));
+  Result := Int64(
+    UInt64(UInt64(UInt64(AValue) shr (Shift and 63)) or
+    (UInt64(Int64(UInt64(0 - UInt64(UInt64(AValue) shr 63)) and UInt64(Int64(0 - (Ord((Shift and 63) <> 0) { and 1 } ))))) shl (64 - (Shift and 63)))));
 end;
 
-function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
+function MemoryAlign(addr: Pointer; alignment_: NativeUInt): Pointer;
 var
-  tmp: nativeUInt;
+  tmp: NativeUInt;
 begin
-  tmp := nativeUInt(addr) + (alignment_ - 1);
+  tmp := NativeUInt(addr) + (alignment_ - 1);
   Result := Pointer(tmp - (tmp mod alignment_));
 end;
 
 {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
 {$IFDEF RangeCheck}{$R+}{$ENDIF}
+
+
+function if_(const bool_: Boolean; const True_, False_: Boolean): Boolean;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: ShortInt): ShortInt;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: SmallInt): SmallInt;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Integer): Integer;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Int64): Int64;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Byte): Byte;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Word): Word;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Cardinal): Cardinal;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: UInt64): UInt64;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Single): Single;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: Double): Double;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;

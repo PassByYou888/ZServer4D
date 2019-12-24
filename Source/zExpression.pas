@@ -209,7 +209,6 @@ function EvaluateExpressionValue_M(UsedCache: Boolean; SpecialAsciiToken: TListP
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
 function EvaluateExpressionValue_C(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueCall): Variant;
-
 function EvaluateExpressionValue_P(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
 
@@ -1004,36 +1003,49 @@ begin
           Continue;
         end;
 
-      td := ParsingEng.TokenPos[cPos];
-
-      isSpecialSymbol := td^.tokenType = ttSpecialSymbol;
-      if isSpecialSymbol then
+      // check esWaitOp state
+      if (esWaitOp in State) and (CharIn(ParsingEng.GetChar(cPos), ParsingEng.SymbolTable)) then
         begin
           isNumber := False;
           isTextDecl := False;
           isAscii := False;
-          isSymbol := False;
-        end
-      else if (td^.tokenType = ttAscii) and
-        (
-        td^.Text.Same('and', 'or', 'xor', 'shl', 'shr')
-        or
-        td^.Text.Same('div', 'idiv', 'intdiv', 'fdiv', 'floatdiv')
-        or
-        td^.Text.Same('mod')
-        ) then
-        begin
           isSymbol := True;
-          isNumber := False;
-          isTextDecl := False;
-          isAscii := False;
+          bPos := cPos;
+          ePos := bPos + 1;
         end
       else
         begin
-          isNumber := td^.tokenType = ttNumber;
-          isTextDecl := td^.tokenType = ttTextDecl;
-          isAscii := td^.tokenType = ttAscii;
-          isSymbol := td^.tokenType = ttSymbol;
+          td := ParsingEng.TokenPos[cPos];
+
+          isSpecialSymbol := td^.tokenType = ttSpecialSymbol;
+          if isSpecialSymbol then
+            begin
+              isNumber := False;
+              isTextDecl := False;
+              isAscii := False;
+              isSymbol := False;
+            end
+          else if (td^.tokenType = ttAscii) and
+            (
+            td^.Text.Same('and', 'or', 'xor', 'shl', 'shr')
+            or
+            td^.Text.Same('div', 'idiv', 'intdiv', 'fdiv', 'floatdiv')
+            or
+            td^.Text.Same('mod')
+            ) then
+            begin
+              isSymbol := True;
+              isNumber := False;
+              isTextDecl := False;
+              isAscii := False;
+            end
+          else
+            begin
+              isNumber := td^.tokenType = ttNumber;
+              isTextDecl := td^.tokenType = ttTextDecl;
+              isAscii := td^.tokenType = ttAscii;
+              isSymbol := td^.tokenType = ttSymbol;
+            end;
         end;
 
       if (not(esWaitOp in State)) and (isSpecialSymbol or isNumber or isTextDecl or isAscii) then
@@ -1729,6 +1741,22 @@ var
     OpContainer.Add(Result);
   end;
 
+  function NewOpPrefixFromSym(sym: TSymbolOperation; const uName: SystemString): TOpCode;
+  begin
+    case sym of
+      soAdd: Result := op_Add_Prefix.Create(False);
+      soSub: Result := op_Sub_Prefix.Create(False);
+      else
+        Result := nil;
+    end;
+    if Result <> nil then
+      begin
+        Result.ParsedInfo := uName;
+        Result.ParsedLineNo := LineNo;
+        OpContainer.Add(Result);
+      end;
+  end;
+
   function NewOpFromSym(sym: TSymbolOperation; const uName: SystemString): TOpCode;
   begin
     case sym of
@@ -1824,6 +1852,33 @@ var
                   end
                 else
                   begin
+                    // fixed symbol prefix, -proc(xx)...
+                    if (SymbolIndex + 1 < NewSymbExps.Count) then
+                      begin
+                        p2 := NewSymbExps[SymbolIndex + 1];
+                        if (p1^.Symbol in [soAdd, soSub]) and (p2^.DeclType = edtProcExp) and (p2^.Symbol = soProc) then
+                          begin
+                            ProcOp := NewOpProc(uName);
+                            ProcOp.AddValue(p2^.Value);
+                            for i := 0 to p2^.Expression.Count - 1 do
+                              begin
+                                ResOp := BuildAsOpCode(False, p2^.Expression[i]^.Expression, uName, LineNo);
+                                if ResOp <> nil then
+                                    ProcOp.AddLink(ResOp)
+                                else
+                                  begin
+                                    PrintError('method Illegal');
+                                    Break;
+                                  end;
+                              end;
+
+                            LocalOp := NewOpPrefixFromSym(p1^.Symbol, uName);
+                            LocalOp.AddLink(ProcOp);
+
+                            inc(SymbolIndex, 2);
+                            Continue;
+                          end;
+                      end;
                     PrintError('logical cperotion Illegal');
                     Break;
                   end;
@@ -2222,7 +2277,7 @@ function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TText
 var
   t: TTextParsing;
 begin
-  t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, V_SpacerSymbol);
+  t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, SpacerSymbol.v);
   Result := t.DetectSymbolVector;
   DisposeObject(t);
 end;
@@ -2270,8 +2325,6 @@ begin
 
       if sym <> nil then
         begin
-          if DebugMode then
-              sym.PrintDebug(True);
           Op := BuildAsOpCode(DebugMode, sym, 'Main', -1);
           if Op <> nil then
             begin
@@ -2403,7 +2456,7 @@ var
   i: Integer;
 begin
   SetLength(Result, 0);
-  t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, V_SpacerSymbol);
+  t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, SpacerSymbol.v);
   L := TPascalStringList.Create;
   if t.FillSymbolVector(L) then
     begin

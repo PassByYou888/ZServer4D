@@ -271,3 +271,14 @@ begin
   end;
 end;
 {$ENDIF SystemParallel}
+
+
+procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure32; b, e: Integer);
+begin
+  DelphiParallelFor(b, e, OnFor);
+end;
+
+procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure64; b, e: Int64);
+begin
+  DelphiParallelFor(b, e, OnFor);
+end;
