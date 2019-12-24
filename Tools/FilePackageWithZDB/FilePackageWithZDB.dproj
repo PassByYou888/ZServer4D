@@ -226,6 +226,12 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="Win64\Release\FilePackageWithZDB.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>FilePackageWithZDB.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\FilePackageWithZDB.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>FilePackageWithZDB.exe</RemoteName>
@@ -233,12 +239,6 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="Win64\Debug\FilePackageWithZDB.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win64">
-                        <RemoteName>FilePackageWithZDB.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Release\FilePackageWithZDB.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>FilePackageWithZDB.exe</RemoteName>
                         <Overwrite>true</Overwrite>

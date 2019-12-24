@@ -148,11 +148,11 @@ var
             Inc(i);
           end;
         w_TP.RebuildToken;
-        u_TP := TTextParsing.Create(w_TP.ParsingData.Text, tsPascal, nil, TPascalString(V_SpacerSymbol).DeleteChar('.'));
+        u_TP := TTextParsing.Create(w_TP.ParsingData.Text, tsPascal, nil, TPascalString(SpacerSymbol).DeleteChar('.'));
       end
     else
       begin
-        u_TP := TTextParsing.Create(Code.Text, tsPascal, nil, TPascalString(V_SpacerSymbol).DeleteChar('.'));
+        u_TP := TTextParsing.Create(Code.Text, tsPascal, nil, TPascalString(SpacerSymbol).DeleteChar('.'));
       end;
 
     i := 0;
