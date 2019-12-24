@@ -60,6 +60,8 @@ var
   i: Integer;
   pt: PTokenData;
 begin
+  TextParsing.SpacerSymbol.V:=umlDeleteChar(TextParsing.SpacerSymbol.V, '.');
+
   t := TTextParsing.Create(Memo1.Text, TTextStyle.tsPascal, nil);
 
   Memo2.Clear;
