@@ -1848,6 +1848,11 @@ var
                   begin
                     OldOp := LocalOp;
                     LocalOp := NewOpFromSym(p1^.Symbol, uName);
+                    if LocalOp = nil then
+                      begin
+                        PrintError('prefix symbol Illegal');
+                        Break;
+                      end;
                     LocalOp.AddLink(OldOp);
                   end
                 else
@@ -1865,6 +1870,11 @@ var
                                 if ResOp <> nil then
                                   begin
                                     LocalOp := NewOpPrefixFromSym(p1^.Symbol, uName);
+                                    if LocalOp = nil then
+                                      begin
+                                        PrintError('prefix symbol Illegal');
+                                        Break;
+                                      end;
                                     LocalOp.AddLink(ResOp);
                                   end
                                 else
