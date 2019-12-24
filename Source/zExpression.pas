@@ -1832,7 +1832,7 @@ var
                   end
                 else
                   begin
-                    PrintError('logical cperotion Illegal');
+                    PrintError('logical operotion Illegal');
                     Break;
                   end;
               end
@@ -1879,7 +1879,7 @@ var
                                   end
                                 else
                                   begin
-                                    PrintError('logical cperotion Illegal');
+                                    PrintError('logical operotion Illegal');
                                     Break;
                                   end;
                                 Continue;
@@ -1908,13 +1908,13 @@ var
                               end;
                           end;
                       end;
-                    PrintError('logical cperotion Illegal');
+                    PrintError('logical operotion Illegal');
                     Break;
                   end;
               end
             else
               begin
-                PrintError('logical cperotion Illegal');
+                PrintError('logical operotion Illegal');
                 Break;
               end;
           end
