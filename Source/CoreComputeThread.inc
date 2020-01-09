@@ -35,6 +35,7 @@ type
   PComputeDispatchData = ^TComputeDispatch;
 
   TCoreComputeThreadPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TComputeThread>;
+  TComputeDispatchPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PComputeDispatchData>;
 
   TParallelOverflow = record
     ActivtedParallel: Integer;
@@ -50,6 +51,8 @@ var
   ParallelGranularity: Integer;
   MaxActivtedParallel: Integer;
   ParallelOverflow: TParallelOverflow;
+  ComputeDispatchPool: TComputeDispatchPool;
+  IdleComputeThreadSum: TAtomInt;
 
 procedure TComputeDispatch.Init;
 begin
@@ -106,8 +109,35 @@ end;
 
 procedure PostComputeDispatchData(var data: TComputeDispatch);
 var
+  tk: TTimeTick;
+  done: Boolean;
   th: TComputeThread;
 begin
+  // check for idle thread, and again run.
+  if IdleComputeThreadSum.V > 0 then
+    begin
+      ComputeDispatchCritical.Acquire;
+      ComputeDispatchPool.Add(@data);
+      ComputeDispatchCritical.Release;
+      tk := GetTimeTick();
+      while (IdleComputeThreadSum.V > 0) and (GetTimeTick() - tk < 20) do
+        begin
+          ComputeDispatchCritical.Acquire;
+          done := ComputeDispatchPool.IndexOf(@data) < 0;
+          ComputeDispatchCritical.Release;
+          if done then
+              exit;
+        end;
+      ComputeDispatchCritical.Acquire;
+      done := ComputeDispatchPool.IndexOf(@data) < 0;
+      if not done then
+          ComputeDispatchPool.Remove(@data);
+      ComputeDispatchCritical.Release;
+      if done then
+          exit;
+    end;
+
+  // create thread
   ComputeDispatchCritical.Acquire;
   inc(ComputeThreadTaskRunning.LockP()^);
   ComputeThreadTaskRunning.Unlock;
@@ -125,12 +155,10 @@ begin
   ComputeThreadTaskRunning := TAtomInteger.Create(0);
   ParallelGranularity := Thread_Num;
   ComputeDispatchCritical := TCritical.Create;
-{$IFDEF SystemParallel}
-  MaxActivtedParallel := 1;
-{$ELSE SystemParallel}
   MaxActivtedParallel := CpuCount;
-{$ENDIF SystemParallel}
   ParallelOverflow.ActivtedParallel := 0;
+  ComputeDispatchPool := TComputeDispatchPool.Create;
+  IdleComputeThreadSum := TAtomInt.Create(0);
 end;
 
 procedure FreeCoreThreadPool;
@@ -146,30 +174,72 @@ begin
 
   ComputeDispatchCritical.Free;
   ComputeDispatchCritical := nil;
+
+  ComputeDispatchPool.Free;
+  ComputeDispatchPool := nil;
+
+  IdleComputeThreadSum.Free;
+  IdleComputeThreadSum := nil;
 end;
 
 procedure TComputeThread.Execute;
+var
+  tk: TTimeTick;
+  NoTask: Boolean;
+  i: Integer;
 begin
-  try
+  while True do
+    begin
+      try
 {$IFDEF MT19937SeedOnTComputeThreadIs0} SetMT19937Seed(0); {$ELSE MT19937SeedOnTComputeThreadIs0} MT19937Randomize(); {$ENDIF MT19937SeedOnTComputeThreadIs0}
-    if Assigned(OnRunCall) then
-        OnRunCall(Self);
-    if Assigned(OnRunMethod) then
-        OnRunMethod(Self);
-    if Assigned(OnRunProc) then
-        OnRunProc(Self);
-    if Assigned(OnRunCall_NP) then
-        OnRunCall_NP();
-    if Assigned(OnRunMethod_NP) then
-        OnRunMethod_NP();
-    if Assigned(OnRunProc_NP) then
-        OnRunProc_NP();
-  except
-  end;
-  if Assigned(OnDoneCall) or Assigned(OnDoneMethod) or Assigned(OnDoneProc) then
-      Synchronize({$IFDEF FPC}@{$ENDIF FPC}Done_Sync);
+        if Assigned(OnRunCall) then
+            OnRunCall(Self);
+        if Assigned(OnRunMethod) then
+            OnRunMethod(Self);
+        if Assigned(OnRunProc) then
+            OnRunProc(Self);
+        if Assigned(OnRunCall_NP) then
+            OnRunCall_NP();
+        if Assigned(OnRunMethod_NP) then
+            OnRunMethod_NP();
+        if Assigned(OnRunProc_NP) then
+            OnRunProc_NP();
+      except
+      end;
 
-  Dec(ComputeThreadTaskRunning.LockP()^);
+      if Assigned(OnDoneCall) or Assigned(OnDoneMethod) or Assigned(OnDoneProc) then
+          Synchronize({$IFDEF FPC}@{$ENDIF FPC}Done_Sync);
+
+      // check for idle thread, and again run.
+      tk := GetTimeTick;
+      NoTask := True;
+      inc(IdleComputeThreadSum.LockP^);
+      IdleComputeThreadSum.Unlock;
+      for i := 1 to 100 do
+        begin
+          while NoTask and (GetTimeTick - tk < 10) do
+            begin
+              ComputeDispatchCritical.Acquire;
+              if ComputeDispatchPool.Count > 0 then
+                begin
+                  ComputeDispatchPool[0]^.AssignTo(Self);
+                  ComputeDispatchPool.Delete(0);
+                  NoTask := False;
+                end;
+              ComputeDispatchCritical.Release;
+            end;
+          if not NoTask then
+              break;
+          // little delay
+          Sleep(1);
+        end;
+      dec(IdleComputeThreadSum.LockP^);
+      IdleComputeThreadSum.Unlock;
+      if NoTask then
+          break;
+    end;
+
+  dec(ComputeThreadTaskRunning.LockP()^);
   ComputeThreadTaskRunning.Unlock();
 
   ComputeDispatchCritical.Acquire;

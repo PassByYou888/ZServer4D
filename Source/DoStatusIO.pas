@@ -40,10 +40,9 @@ uses
   PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses;
 
 type
-  TDoStatusMethod = procedure(AText: SystemString; const ID: Integer) of object;
-  TDoStatusCall = procedure(AText: SystemString; const ID: Integer);
+  TDoStatusMethod = procedure(Text_: SystemString; const ID: Integer) of object;
+  TDoStatusCall = procedure(Text_: SystemString; const ID: Integer);
 
-procedure DoStatus(Text: SystemString; const ID: Integer); overload;
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 procedure AddDoStatusHookM(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
@@ -51,6 +50,7 @@ procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
 
+procedure DoStatus(Text_: SystemString; const ID: Integer); overload;
 procedure DoStatus(const v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(prefix: SystemString; v: Pointer; siz, width: NativeInt); overload;
 procedure DoStatus(const v: TCoreClassStrings); overload;
@@ -95,6 +95,14 @@ begin
       output.buff[i * 2] := HexArr[(PByte(nativeUInt(hash) + i)^ shr 4) and $0F];
       output.buff[i * 2 + 1] := HexArr[PByte(nativeUInt(hash) + i)^ and $0F];
     end;
+end;
+
+procedure DoStatus(Text_: SystemString; const ID: Integer);
+begin
+  try
+      OnDoStatusHook(Text_, ID);
+  except
+  end;
 end;
 
 procedure DoStatus(const v: Pointer; siz, width: NativeInt);
@@ -424,7 +432,7 @@ begin
   CheckDoStatus(TCoreClassThread.CurrentThread);
 end;
 
-procedure InternalDoStatus(Text: SystemString; const ID: Integer);
+procedure InternalDoStatus(Text_: SystemString; const ID: Integer);
 var
   th: TCoreClassThread;
   ps: PSystemString;
@@ -433,7 +441,7 @@ begin
   if (th = nil) or (th.ThreadID <> MainThreadID) then
     begin
       new(ps);
-      ps^ := Text;
+      ps^ := Text_;
       StatusCritical.Acquire;
       ReservedStatus.Add(ps);
       StatusCritical.Release;
@@ -441,15 +449,7 @@ begin
     end;
 
   CheckDoStatus(th);
-  _InternalOutput(@Text, ID);
-end;
-
-procedure DoStatus(Text: SystemString; const ID: Integer);
-begin
-  try
-      OnDoStatusHook(Text, ID);
-  except
-  end;
+  _InternalOutput(@Text_, ID);
 end;
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);

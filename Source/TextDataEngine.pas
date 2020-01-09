@@ -690,9 +690,9 @@ procedure THashTextEngine.LoadFromFile(FileName: SystemString);
 var
   m64: TMemoryStream64;
 begin
+  m64 := TMemoryStream64.Create;
   try
-    m64 := TMemoryStream64.Create;
-    m64.LoadFromFile(FileName);
+      m64.LoadFromFile(FileName);
   except
     DisposeObject(m64);
     Exit;

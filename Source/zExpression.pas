@@ -26,6 +26,7 @@ uses SysUtils, Variants, CoreClasses, TypInfo, TextParsing, PascalStrings, Unico
   DoStatusIO, ListEngine, OpCode;
 
 type
+{$REGION 'internal define'}
   TSymbolOperation = (soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor, // math
     soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual,  // logic
     soShl, soShr,                                                                             // bit
@@ -69,14 +70,16 @@ type
   TSymbolExpression = class sealed(TCoreClassObject)
   protected
     FList: TCoreClassList;
+    FTextStyle: TTextStyle;
   public
-    constructor Create;
+    constructor Create(const TextStyle_: TTextStyle);
     destructor Destroy; override;
 
+    property TextStyle: TTextStyle read FTextStyle;
     procedure Clear;
-    procedure PrintDebug(const detail: Boolean; const prefix: SystemString = '');
-    function Decl(const TextStyle: TTextStyle): SystemString; overload;
-    function Decl: SystemString; overload;
+    procedure PrintDebug(const detail: Boolean; const prefix: SystemString); overload;
+    procedure PrintDebug(const detail: Boolean); overload;
+    function Decl(): SystemString;
 
     function GetCount(t: TExpressionDeclTypes): Integer;
     function GetSymbolCount(Operations: TSymbolOperations): Integer;
@@ -138,6 +141,12 @@ type
   TExpressionValueMatrix = array of TExpressionValueVector;
   PExpressionValueMatrix = ^TExpressionValueMatrix;
 
+  // other
+function NumTextType(s: TPascalString): TNumTextType;
+procedure InitExp(var v: TExpressionListData);
+function dt2op(const v: TExpressionDeclType): TOpValueType;
+function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType;
+
 function ParseOperationState(ParsingEng: TTextParsing;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation;
 
@@ -148,43 +157,56 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
   const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod; const OnDeclValueProc: TOnDeclValueProc;
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
+// parsing text as expression structor, backcall is TOnDeclValueCall
 function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor, backcall is TOnDeclValueMethod
 function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor, backcall is TOnDeclValueProc
 function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString;
   TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol(TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol_M(SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol_C(SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol_P(SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+// parsing text as expression structor
 function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
   const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
@@ -194,7 +216,7 @@ function RebuildLogicalPrioritySymbol(Exps: TSymbolExpression): TSymbolExpressio
 // format symbol
 function RebuildAllSymbol(Exps: TSymbolExpression): TSymbolExpression;
 
-// op
+// build opCode
 function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression; const uName: SystemString; LineNo: Integer): TOpCode; overload;
 function BuildAsOpCode(SymbExps: TSymbolExpression): TOpCode; overload;
 function BuildAsOpCode(DebugMode: Boolean; SymbExps: TSymbolExpression): TOpCode; overload;
@@ -205,12 +227,16 @@ function BuildAsOpCode(DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText
 function BuildAsOpCode(TextStyle: TTextStyle; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
 function BuildAsOpCode(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
 
+// Evaluate Expression
 function EvaluateExpressionValue_M(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
 function EvaluateExpressionValue_C(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueCall): Variant;
 function EvaluateExpressionValue_P(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
+{$ENDREGION 'internal define'}
+
+procedure CleanOpCache();
 
 { prototype: EvaluateExpressionValue }
 function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean;
@@ -266,18 +292,16 @@ function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;
 procedure DoStatus(v: TExpressionValueVector); overload;
 procedure DoStatus(v: TExpressionValueMatrix); overload;
 
+// test
 procedure EvaluateExpressionVectorAndMatrix_test_;
 
-// other
-function NumTextType(s: TPascalString): TNumTextType;
-procedure InitExp(var v: TExpressionListData);
-function dt2op(const v: TExpressionDeclType): TOpValueType;
-function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType;
+implementation
 
 var
   OpCache: THashObjectList;
 
-implementation
+{$REGION 'internal imp'}
+
 
 type
   TSymbolOperationType = record
@@ -529,6 +553,553 @@ begin
     edtProcExp: Result := ovtProc;
     else Result := ovtUnknow;
   end;
+end;
+
+function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType;
+begin
+  case VarType(v) of
+    varSmallInt: Result := edtSmallInt;
+    varInteger: Result := edtInt;
+    varSingle: Result := edtSingle;
+    varDouble: Result := edtDouble;
+    varCurrency: Result := edtCurrency;
+    varBoolean: Result := edtBool;
+    varShortInt: Result := edtShortInt;
+    varByte: Result := edtByte;
+    varWord: Result := edtWord;
+    varLongWord: Result := edtUInt;
+    varInt64: Result := edtInt64;
+    varUInt64: Result := edtUInt64;
+    else
+      begin
+        if VarIsStr(v) then
+            Result := edtString
+        else
+            Result := edtUnknow;
+      end;
+  end;
+end;
+
+constructor TSymbolExpression.Create(const TextStyle_: TTextStyle);
+begin
+  inherited Create;
+  FList := TCoreClassList.Create;
+  FTextStyle := TextStyle_;
+end;
+
+destructor TSymbolExpression.Destroy;
+begin
+  Clear;
+  DisposeObject(FList);
+  inherited Destroy;
+end;
+
+procedure TSymbolExpression.Clear;
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+    begin
+      if (PExpressionListData(FList[i])^.ExpressionAutoFree) and (PExpressionListData(FList[i])^.Expression <> nil) then
+          DisposeObject(PExpressionListData(FList[i])^.Expression);
+
+      Dispose(PExpressionListData(FList[i]));
+    end;
+
+  FList.Clear;
+end;
+
+procedure TSymbolExpression.PrintDebug(const detail: Boolean; const prefix: SystemString);
+var
+  i: Integer;
+  p: PExpressionListData;
+begin
+  DoStatus(prefix + ' decl: ' + Decl());
+
+  if detail then
+    begin
+      for i := 0 to Count - 1 do
+        begin
+          p := GetItems(i);
+
+          DoStatus(prefix + ' id:%d exp:%s symbol:%s val:%s', [i,
+            GetEnumName(TypeInfo(TExpressionDeclType), Ord(p^.DeclType)),
+            GetEnumName(TypeInfo(TSymbolOperation), Ord(p^.Symbol)),
+            VarToStr(p^.Value)]);
+
+        end;
+
+      DoStatus('');
+
+      for i := 0 to Count - 1 do
+        begin
+          p := GetItems(i);
+          if p^.Expression <> nil then
+            if p^.Expression.Count > 0 then
+                p^.Expression.PrintDebug(detail, prefix + ' -> ' + VarToStr(p^.Value));
+        end;
+    end;
+end;
+
+procedure TSymbolExpression.PrintDebug(const detail: Boolean);
+begin
+  PrintDebug(detail, '');
+end;
+
+function TSymbolExpression.Decl(): SystemString;
+var
+  i, j: Integer;
+  p: PExpressionListData;
+begin
+  Result := '';
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := FList[i];
+      case p^.DeclType of
+        edtSymbol:
+          Result := Result + SymbolOperationTextDecl[p^.Symbol].Decl;
+        edtSingle, edtDouble, edtCurrency:
+          Result := Result + FloatToStr(p^.Value);
+        edtProcExp:
+          begin
+            Result := Result + VarToStr(p^.Value) + '(';
+            for j := 0 to p^.Expression.Count - 1 do
+              begin
+                if j = 0 then
+                    Result := Result + p^.Expression[j]^.Expression.Decl
+                else
+                    Result := Result + ',' + p^.Expression[j]^.Expression.Decl;
+              end;
+            Result := Result + ')';
+          end;
+        edtString:
+          begin
+            case FTextStyle of
+              tsPascal: Result := Result + TTextParsing.TranslateTextToPascalDecl(VarToStr(p^.Value));
+              tsC: Result := Result + TTextParsing.TranslateTextToC_Decl(VarToStr(p^.Value));
+              else Result := Result + VarToStr(p^.Value);
+            end;
+          end;
+        edtExpressionAsValue:
+          begin
+            case p^.Symbol of
+              soBlockIndentBegin:
+                Result := Format('%s%s%s%s',
+                  [Result,
+                  SymbolOperationTextDecl[soBlockIndentBegin].Decl,
+                  p^.Expression.Decl,
+                  SymbolOperationTextDecl[soBlockIndentEnd].Decl
+                  ]);
+              soPropIndentBegin:
+                Result := Format('%s%s%s%s',
+                  [Result,
+                  SymbolOperationTextDecl[soPropIndentBegin].Decl,
+                  p^.Expression.Decl,
+                  SymbolOperationTextDecl[soPropIndentEnd].Decl
+                  ]);
+              soParameter:
+                begin
+                  Result := Format('%s%s%s%s',
+                    [Result,
+                    SymbolOperationTextDecl[soBlockIndentBegin].Decl,
+                    p^.Expression.Decl,
+                    SymbolOperationTextDecl[soBlockIndentEnd].Decl
+                    ]);
+                end;
+              else
+                Result := Result + ' !error! ';
+            end;
+          end;
+        edtUnknow: Result := Result + ' !error! ';
+        else
+          Result := Result + VarToStr(p^.Value);
+      end;
+    end;
+end;
+
+function TSymbolExpression.GetCount(t: TExpressionDeclTypes): Integer;
+var
+  i: Integer;
+  p: PExpressionListData;
+begin
+  Result := 0;
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := FList[i];
+      if p^.DeclType in t then
+          inc(Result);
+    end;
+end;
+
+function TSymbolExpression.GetSymbolCount(Operations: TSymbolOperations): Integer;
+var
+  i: Integer;
+  p: PExpressionListData;
+begin
+  Result := 0;
+  for i := 0 to FList.Count - 1 do
+    begin
+      p := FList[i];
+      if p^.DeclType = edtSymbol then
+        begin
+          if p^.Symbol in Operations then
+              inc(Result);
+        end;
+    end;
+end;
+
+function TSymbolExpression.AvailValueCount: Integer;
+begin
+  Result := GetCount(AllExpressionValueType);
+end;
+
+function TSymbolExpression.Count: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TSymbolExpression.InsertSymbol(const idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtSymbol;
+  p^.charPos := charPos;
+  p^.Symbol := v;
+  p^.Value := v;
+  FList.Insert(idx, p);
+  Result := p;
+end;
+
+function TSymbolExpression.Insert(const idx: Integer; v: TExpressionListData): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  p^ := v;
+  FList.Insert(idx, p);
+  Result := p;
+end;
+
+procedure TSymbolExpression.InsertExpression(const idx: Integer; E: TSymbolExpression);
+var
+  NewList: TCoreClassList;
+  i: Integer;
+  p: PExpressionListData;
+begin
+  NewList := TCoreClassList.Create;
+  NewList.Capacity := E.FList.Count + FList.Count;
+
+  for i := 0 to idx do
+      NewList.Add(FList[i]);
+
+  for i := 0 to E.FList.Count - 1 do
+    begin
+      new(p);
+      p^ := PExpressionListData(E.FList[i])^;
+      NewList.Add(p);
+    end;
+
+  for i := idx to FList.Count - 1 do
+      NewList.Add(FList[i]);
+
+  DisposeObject(FList);
+  FList := NewList;
+end;
+
+procedure TSymbolExpression.AddExpression(const E: TSymbolExpression);
+var
+  i: Integer;
+begin
+  for i := 0 to E.Count - 1 do
+      AddCopy(E[i]^);
+end;
+
+function TSymbolExpression.AddSymbol(const v: TSymbolOperation; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtSymbol;
+  p^.charPos := charPos;
+  p^.Symbol := v;
+  p^.Value := SymbolOperationTextDecl[v].Decl;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddBool(const v: Boolean; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtBool;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddInt(const v: Integer; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtInt;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddUInt(const v: Cardinal; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtUInt;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddInt64(const v: Int64; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtInt64;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddUInt64(const v: UInt64; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtUInt64;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddWord(const v: Word; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtWord;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddByte(const v: Byte; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtByte;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddSmallInt(const v: SmallInt; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtSmallInt;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddShortInt(const v: ShortInt; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtShortInt;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddSingle(const v: Single; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtSingle;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddDouble(const v: Double; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtDouble;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddCurrency(const v: Currency; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtCurrency;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddString(const v: SystemString; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtString;
+  p^.charPos := charPos;
+  p^.Value := v;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddFunc(const v: SystemString; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtProcExp;
+  p^.charPos := charPos;
+  p^.Symbol := soProc;
+  p^.Value := v;
+  p^.Expression := TSymbolExpression.Create(FTextStyle);
+  p^.ExpressionAutoFree := True;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddExpressionAsValue(AutoFree: Boolean; Expression: TSymbolExpression; Symbol: TSymbolOperation; Value: Variant; charPos: Integer): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  InitExp(p^);
+  p^.DeclType := edtExpressionAsValue;
+  p^.charPos := charPos;
+  p^.Symbol := Symbol;
+  p^.Value := Value;
+  p^.Expression := Expression;
+  p^.ExpressionAutoFree := AutoFree;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.Add(const v: TExpressionListData): PExpressionListData;
+var
+  p: PExpressionListData;
+begin
+  new(p);
+  p^ := v;
+  p^.ExpressionAutoFree := False;
+  FList.Add(p);
+  Result := p;
+end;
+
+function TSymbolExpression.AddCopy(const v: TExpressionListData): PExpressionListData;
+var
+  p: PExpressionListData;
+  i: Integer;
+begin
+  new(p);
+  p^ := v;
+  p^.ExpressionAutoFree := False;
+  if v.Expression <> nil then
+    begin
+      p^.Expression := TSymbolExpression.Create(FTextStyle);
+      p^.ExpressionAutoFree := True;
+      for i := 0 to v.Expression.Count - 1 do
+          p^.Expression.AddCopy(v.Expression[i]^)
+    end;
+  FList.Add(p);
+  Result := p;
+end;
+
+procedure TSymbolExpression.Delete(const idx: Integer);
+var
+  p: PExpressionListData;
+begin
+  p := FList[idx];
+  if (p^.ExpressionAutoFree) and (p^.Expression <> nil) then
+      DisposeObject(p^.Expression);
+  Dispose(p);
+  FList.Delete(idx);
+end;
+
+procedure TSymbolExpression.DeleteLast;
+begin
+  Delete(Count - 1);
+end;
+
+function TSymbolExpression.Last: PExpressionListData;
+begin
+  Result := FList.Last;
+end;
+
+function TSymbolExpression.First: PExpressionListData;
+begin
+  Result := FList.First;
+end;
+
+function TSymbolExpression.IndexOf(p: PExpressionListData): Integer;
+var
+  i: Integer;
+begin
+  for i := FList.Count - 1 downto 0 do
+    if FList[i] = p then
+        Exit(i);
+  Exit(-1);
+end;
+
+function TSymbolExpression.GetItems(index: Integer): PExpressionListData;
+begin
+  Result := FList[index];
 end;
 
 function ParseOperationState(ParsingEng: TTextParsing;
@@ -901,9 +1472,10 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
     WasProc := procExp <> nil;
 
     if WasProc then
-        LocalExp := procExp.AddExpressionAsValue(True, TSymbolExpression.Create, soParameter, 'param_1', Exps[ExpIndex]^.charPos)^.Expression
+        LocalExp := procExp.AddExpressionAsValue(
+        True, TSymbolExpression.Create(ParsingEng.TextStyle), soParameter, 'param_1', Exps[ExpIndex]^.charPos)^.Expression
     else
-        LocalExp := TSymbolExpression.Create;
+        LocalExp := TSymbolExpression.Create(ParsingEng.TextStyle);
 
     Result := LocalExp;
 
@@ -959,7 +1531,8 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
                     Exit;
                   end;
 
-                LocalExp := procExp.AddExpressionAsValue(True, TSymbolExpression.Create, soParameter, 'param_' + IntToStr(procExp.Count + 1),
+                LocalExp := procExp.AddExpressionAsValue(True,
+                  TSymbolExpression.Create(ParsingEng.TextStyle), soParameter, 'param_' + IntToStr(procExp.Count + 1),
                   Exps[ExpIndex]^.charPos)^.Expression;
                 inc(ExpIndex);
                 Continue;
@@ -993,7 +1566,7 @@ begin
   BlockIndent := 0;
   PropIndent := 0;
   State := [esFirst];
-  Container := TSymbolExpression.Create;
+  Container := TSymbolExpression.Create(ParsingEng.TextStyle);
 
   while cPos <= ParsingEng.Len do
     begin
@@ -1016,7 +1589,6 @@ begin
       else
         begin
           td := ParsingEng.TokenPos[cPos];
-
           isSpecialSymbol := td^.tokenType = ttSpecialSymbol;
           if isSpecialSymbol then
             begin
@@ -1488,7 +2060,7 @@ begin
     end;
 
   SymbolIndex := 0;
-  newExpression := TSymbolExpression.Create;
+  newExpression := TSymbolExpression.Create(Exps.FTextStyle);
   ParseAborted := False;
 
   ProcessSymbol(soUnknow);
@@ -1521,7 +2093,7 @@ var
     p1, p2: PExpressionListData;
     LocalExp, ResExp: TSymbolExpression;
   begin
-    LocalExp := TSymbolExpression.Create;
+    LocalExp := TSymbolExpression.Create(Exps.FTextStyle);
     Result := LocalExp;
     while True do
       begin
@@ -1642,7 +2214,7 @@ var
         Exit;
       end;
 
-    Result := TSymbolExpression.Create;
+    Result := TSymbolExpression.Create(E.FTextStyle);
 
     for i := 0 to E.Count - 1 do
       begin
@@ -2287,6 +2859,16 @@ begin
     end;
 end;
 
+{$ENDREGION 'internal imp'}
+
+
+procedure CleanOpCache();
+begin
+  LockObject(OpCache);
+  OpCache.Clear;
+  UnLockObject(OpCache);
+end;
+
 type
   TExpression_ConstVL = class
     VL: THashVariantList;
@@ -2575,552 +3157,6 @@ end;
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString): TExpressionValueMatrix;
 begin
   Result := EvaluateExpressionMatrix(W, H, ExpressionText, DefaultOpRT, nil);
-end;
-
-function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType;
-begin
-  case VarType(v) of
-    varSmallInt: Result := edtSmallInt;
-    varInteger: Result := edtInt;
-    varSingle: Result := edtSingle;
-    varDouble: Result := edtDouble;
-    varCurrency: Result := edtCurrency;
-    varBoolean: Result := edtBool;
-    varShortInt: Result := edtShortInt;
-    varByte: Result := edtByte;
-    varWord: Result := edtWord;
-    varLongWord: Result := edtUInt;
-    varInt64: Result := edtInt64;
-    varUInt64: Result := edtUInt64;
-    else
-      begin
-        if VarIsStr(v) then
-            Result := edtString
-        else
-            Result := edtUnknow;
-      end;
-  end;
-end;
-
-constructor TSymbolExpression.Create;
-begin
-  inherited Create;
-  FList := TCoreClassList.Create;
-end;
-
-destructor TSymbolExpression.Destroy;
-begin
-  Clear;
-  DisposeObject(FList);
-  inherited Destroy;
-end;
-
-procedure TSymbolExpression.Clear;
-var
-  i: Integer;
-begin
-  for i := 0 to FList.Count - 1 do
-    begin
-      if (PExpressionListData(FList[i])^.ExpressionAutoFree) and (PExpressionListData(FList[i])^.Expression <> nil) then
-          DisposeObject(PExpressionListData(FList[i])^.Expression);
-
-      Dispose(PExpressionListData(FList[i]));
-    end;
-
-  FList.Clear;
-end;
-
-procedure TSymbolExpression.PrintDebug(const detail: Boolean; const prefix: SystemString = '');
-var
-  i: Integer;
-  p: PExpressionListData;
-begin
-  DoStatus(prefix + ' decl: ' + Decl);
-
-  if detail then
-    begin
-      for i := 0 to Count - 1 do
-        begin
-          p := GetItems(i);
-
-          DoStatus(prefix + ' id:%d exp:%s symbol:%s val:%s', [i,
-            GetEnumName(TypeInfo(TExpressionDeclType), Ord(p^.DeclType)),
-            GetEnumName(TypeInfo(TSymbolOperation), Ord(p^.Symbol)),
-            VarToStr(p^.Value)]);
-
-        end;
-
-      DoStatus('');
-
-      for i := 0 to Count - 1 do
-        begin
-          p := GetItems(i);
-          if p^.Expression <> nil then
-            if p^.Expression.Count > 0 then
-                p^.Expression.PrintDebug(detail, prefix + ' -> ' + VarToStr(p^.Value));
-        end;
-    end;
-end;
-
-function TSymbolExpression.Decl(const TextStyle: TTextStyle): SystemString;
-var
-  i, j: Integer;
-  p: PExpressionListData;
-begin
-  Result := '';
-  for i := 0 to FList.Count - 1 do
-    begin
-      p := FList[i];
-      case p^.DeclType of
-        edtSymbol:
-          Result := Result + SymbolOperationTextDecl[p^.Symbol].Decl;
-        edtSingle, edtDouble, edtCurrency:
-          Result := Result + FloatToStr(p^.Value);
-        edtProcExp:
-          begin
-            Result := Result + VarToStr(p^.Value) + '(';
-            for j := 0 to p^.Expression.Count - 1 do
-              begin
-                if j = 0 then
-                    Result := Result + p^.Expression[j]^.Expression.Decl
-                else
-                    Result := Result + ',' + p^.Expression[j]^.Expression.Decl;
-              end;
-            Result := Result + ')';
-          end;
-        edtString:
-          begin
-            case TextStyle of
-              tsPascal: Result := Result + TTextParsing.TranslateTextToPascalDecl(VarToStr(p^.Value));
-              tsC: Result := Result + TTextParsing.TranslateTextToC_Decl(VarToStr(p^.Value));
-              else Result := Result + VarToStr(p^.Value);
-            end;
-          end;
-        edtExpressionAsValue:
-          begin
-            case p^.Symbol of
-              soBlockIndentBegin:
-                Result := Format('%s%s%s%s',
-                  [Result,
-                  SymbolOperationTextDecl[soBlockIndentBegin].Decl,
-                  p^.Expression.Decl,
-                  SymbolOperationTextDecl[soBlockIndentEnd].Decl
-                  ]);
-              soPropIndentBegin:
-                Result := Format('%s%s%s%s',
-                  [Result,
-                  SymbolOperationTextDecl[soPropIndentBegin].Decl,
-                  p^.Expression.Decl,
-                  SymbolOperationTextDecl[soPropIndentEnd].Decl
-                  ]);
-              soParameter:
-                begin
-                  Result := Format('%s%s%s%s',
-                    [Result,
-                    SymbolOperationTextDecl[soBlockIndentBegin].Decl,
-                    p^.Expression.Decl,
-                    SymbolOperationTextDecl[soBlockIndentEnd].Decl
-                    ]);
-                end;
-              else
-                Result := Result + ' !error! ';
-            end;
-          end;
-        edtUnknow: Result := Result + ' !error! ';
-        else
-          Result := Result + VarToStr(p^.Value);
-      end;
-    end;
-end;
-
-function TSymbolExpression.Decl: SystemString;
-begin
-  Result := Decl(tsPascal);
-end;
-
-function TSymbolExpression.GetCount(t: TExpressionDeclTypes): Integer;
-var
-  i: Integer;
-  p: PExpressionListData;
-begin
-  Result := 0;
-  for i := 0 to FList.Count - 1 do
-    begin
-      p := FList[i];
-      if p^.DeclType in t then
-          inc(Result);
-    end;
-end;
-
-function TSymbolExpression.GetSymbolCount(Operations: TSymbolOperations): Integer;
-var
-  i: Integer;
-  p: PExpressionListData;
-begin
-  Result := 0;
-  for i := 0 to FList.Count - 1 do
-    begin
-      p := FList[i];
-      if p^.DeclType = edtSymbol then
-        begin
-          if p^.Symbol in Operations then
-              inc(Result);
-        end;
-    end;
-end;
-
-function TSymbolExpression.AvailValueCount: Integer;
-begin
-  Result := GetCount(AllExpressionValueType);
-end;
-
-function TSymbolExpression.Count: Integer;
-begin
-  Result := FList.Count;
-end;
-
-function TSymbolExpression.InsertSymbol(const idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtSymbol;
-  p^.charPos := charPos;
-  p^.Symbol := v;
-  p^.Value := v;
-  FList.Insert(idx, p);
-  Result := p;
-end;
-
-function TSymbolExpression.Insert(const idx: Integer; v: TExpressionListData): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  p^ := v;
-  FList.Insert(idx, p);
-  Result := p;
-end;
-
-procedure TSymbolExpression.InsertExpression(const idx: Integer; E: TSymbolExpression);
-var
-  NewList: TCoreClassList;
-  i: Integer;
-  p: PExpressionListData;
-begin
-  NewList := TCoreClassList.Create;
-  NewList.Capacity := E.FList.Count + FList.Count;
-
-  for i := 0 to idx do
-      NewList.Add(FList[i]);
-
-  for i := 0 to E.FList.Count - 1 do
-    begin
-      new(p);
-      p^ := PExpressionListData(E.FList[i])^;
-      NewList.Add(p);
-    end;
-
-  for i := idx to FList.Count - 1 do
-      NewList.Add(FList[i]);
-
-  DisposeObject(FList);
-  FList := NewList;
-end;
-
-procedure TSymbolExpression.AddExpression(const E: TSymbolExpression);
-var
-  i: Integer;
-begin
-  for i := 0 to E.Count - 1 do
-      AddCopy(E[i]^);
-end;
-
-function TSymbolExpression.AddSymbol(const v: TSymbolOperation; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtSymbol;
-  p^.charPos := charPos;
-  p^.Symbol := v;
-  p^.Value := SymbolOperationTextDecl[v].Decl;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddBool(const v: Boolean; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtBool;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddInt(const v: Integer; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtInt;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddUInt(const v: Cardinal; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtUInt;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddInt64(const v: Int64; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtInt64;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddUInt64(const v: UInt64; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtUInt64;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddWord(const v: Word; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtWord;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddByte(const v: Byte; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtByte;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddSmallInt(const v: SmallInt; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtSmallInt;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddShortInt(const v: ShortInt; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtShortInt;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddSingle(const v: Single; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtSingle;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddDouble(const v: Double; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtDouble;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddCurrency(const v: Currency; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtCurrency;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddString(const v: SystemString; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtString;
-  p^.charPos := charPos;
-  p^.Value := v;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddFunc(const v: SystemString; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtProcExp;
-  p^.charPos := charPos;
-  p^.Symbol := soProc;
-  p^.Value := v;
-  p^.Expression := TSymbolExpression.Create;
-  p^.ExpressionAutoFree := True;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddExpressionAsValue(AutoFree: Boolean; Expression: TSymbolExpression; Symbol: TSymbolOperation; Value: Variant; charPos: Integer): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  InitExp(p^);
-  p^.DeclType := edtExpressionAsValue;
-  p^.charPos := charPos;
-  p^.Symbol := Symbol;
-  p^.Value := Value;
-  p^.Expression := Expression;
-  p^.ExpressionAutoFree := AutoFree;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.Add(const v: TExpressionListData): PExpressionListData;
-var
-  p: PExpressionListData;
-begin
-  new(p);
-  p^ := v;
-  p^.ExpressionAutoFree := False;
-  FList.Add(p);
-  Result := p;
-end;
-
-function TSymbolExpression.AddCopy(const v: TExpressionListData): PExpressionListData;
-var
-  p: PExpressionListData;
-  i: Integer;
-begin
-  new(p);
-  p^ := v;
-  p^.ExpressionAutoFree := False;
-  if v.Expression <> nil then
-    begin
-      p^.Expression := TSymbolExpression.Create;
-      p^.ExpressionAutoFree := True;
-      for i := 0 to v.Expression.Count - 1 do
-          p^.Expression.AddCopy(v.Expression[i]^)
-    end;
-  FList.Add(p);
-  Result := p;
-end;
-
-procedure TSymbolExpression.Delete(const idx: Integer);
-var
-  p: PExpressionListData;
-begin
-  p := FList[idx];
-  if (p^.ExpressionAutoFree) and (p^.Expression <> nil) then
-      DisposeObject(p^.Expression);
-  Dispose(p);
-  FList.Delete(idx);
-end;
-
-procedure TSymbolExpression.DeleteLast;
-begin
-  Delete(Count - 1);
-end;
-
-function TSymbolExpression.Last: PExpressionListData;
-begin
-  Result := FList.Last;
-end;
-
-function TSymbolExpression.First: PExpressionListData;
-begin
-  Result := FList.First;
-end;
-
-function TSymbolExpression.IndexOf(p: PExpressionListData): Integer;
-var
-  i: Integer;
-begin
-  for i := FList.Count - 1 downto 0 do
-    if FList[i] = p then
-        Exit(i);
-  Exit(-1);
-end;
-
-function TSymbolExpression.GetItems(index: Integer): PExpressionListData;
-begin
-  Result := FList[index];
 end;
 
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;

@@ -21,7 +21,7 @@ constructor TAtomVar{$IFNDEF FPC}<T_>{$ENDIF FPC}.Create(Value_: T_);
 begin
   inherited Create;
   FValue__ := Value_;
-  Critical := TCritical.Create;
+  Critical := TCritical_.Create;
 end;
 
 destructor TAtomVar{$IFNDEF FPC}<T_>{$ENDIF FPC}.Destroy;

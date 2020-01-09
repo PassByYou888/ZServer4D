@@ -62,6 +62,47 @@ begin
   Release;
 end;
 
+constructor TCritical.Create;
+begin
+  inherited Create;
+  LNum := TAtomInt.Create(0);
+end;
+
+destructor TCritical.Destroy;
+begin
+  LNum.Free;
+  inherited Destroy;
+end;
+
+procedure TCritical.Acquire;
+begin
+  Inc(LNum.LockP^);
+  LNum.UnLock;
+  inherited Acquire;
+end;
+
+procedure TCritical.Release;
+begin
+  Dec(LNum.LockP^);
+  LNum.UnLock;
+  inherited Release;
+end;
+
+procedure TCritical.Enter;
+begin
+  Acquire();
+end;
+
+procedure TCritical.Leave;
+begin
+  Release();
+end;
+
+function TCritical.IsBusy: Boolean;
+begin
+  Result := LNum.V > 0;
+end;
+
 type
   PCritical_Struct = ^TCritical_Struct;
 
@@ -135,7 +176,7 @@ begin
           p1 := p2;
           pIndex := i;
         end;
-      inc(i);
+      Inc(i);
     end;
 
   if p1 <> nil then
@@ -209,7 +250,7 @@ begin
           break;
         end
       else
-          inc(i);
+          Inc(i);
     end;
   CoreLockCritical.Release;
 end;
@@ -226,21 +267,21 @@ procedure AtomInc(var x: Int64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x);
+  Inc(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomInc(var x: Int64; const v: Int64);
+procedure AtomInc(var x: Int64; const V: Int64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x, v);
+  Inc(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicIncrement(x, v);
+  System.AtomicIncrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -248,21 +289,21 @@ procedure AtomDec(var x: Int64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x);
+  Dec(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomDec(var x: Int64; const v: Int64);
+procedure AtomDec(var x: Int64; const V: Int64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x, v);
+  Dec(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicDecrement(x, v);
+  System.AtomicDecrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -270,21 +311,21 @@ procedure AtomInc(var x: UInt64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x);
+  Inc(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomInc(var x: UInt64; const v: UInt64);
+procedure AtomInc(var x: UInt64; const V: UInt64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x, v);
+  Inc(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicIncrement(x, v);
+  System.AtomicIncrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -292,21 +333,21 @@ procedure AtomDec(var x: UInt64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x);
+  Dec(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomDec(var x: UInt64; const v: UInt64);
+procedure AtomDec(var x: UInt64; const V: UInt64);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x, v);
+  Dec(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicDecrement(x, v);
+  System.AtomicDecrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -314,21 +355,21 @@ procedure AtomInc(var x: Integer);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x);
+  Inc(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomInc(var x: Integer; const v: Integer);
+procedure AtomInc(var x: Integer; const V: Integer);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x, v);
+  Inc(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicIncrement(x, v);
+  System.AtomicIncrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -336,21 +377,21 @@ procedure AtomDec(var x: Integer);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x);
+  Dec(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomDec(var x: Integer; const v: Integer);
+procedure AtomDec(var x: Integer; const V: Integer);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x, v);
+  Dec(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicDecrement(x, v);
+  System.AtomicDecrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -358,21 +399,21 @@ procedure AtomInc(var x: Cardinal);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x);
+  Inc(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicIncrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomInc(var x: Cardinal; const v: Cardinal);
+procedure AtomInc(var x: Cardinal; const V: Cardinal);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  inc(x, v);
+  Inc(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicIncrement(x, v);
+  System.AtomicIncrement(x, V);
 {$ENDIF FPC}
 end;
 
@@ -380,20 +421,20 @@ procedure AtomDec(var x: Cardinal);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x);
+  Dec(x);
   CoreComputeCritical.Release;
 {$ELSE FPC}
   System.AtomicDecrement(x);
 {$ENDIF FPC}
 end;
 
-procedure AtomDec(var x: Cardinal; const v: Cardinal);
+procedure AtomDec(var x: Cardinal; const V: Cardinal);
 begin
 {$IFDEF FPC}
   CoreComputeCritical.Acquire;
-  dec(x, v);
+  Dec(x, V);
   CoreComputeCritical.Release;
 {$ELSE FPC}
-  System.AtomicDecrement(x, v);
+  System.AtomicDecrement(x, V);
 {$ENDIF FPC}
 end;

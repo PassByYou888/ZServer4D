@@ -144,20 +144,20 @@ type
   end;
 
   TSoftCritical = class(TCoreClassObject)
+  private
+    L: Boolean;
   public
-    var L: Boolean;
     constructor Create;
-    procedure Acquire; inline;
-    procedure Release; inline;
-    procedure Enter; inline;
-    procedure Leave; inline;
-    property Busy:Boolean read L;
+    procedure Acquire; virtual;
+    procedure Release; virtual;
+    procedure Enter; virtual;
+    procedure Leave; virtual;
   end;
 
 {$IFDEF SoftCritical}
-  TCritical = TSoftCritical;
+  TCritical_ = TSoftCritical;
 {$ELSE SoftCritical}
-  TCritical = TCriticalSection;
+  TCritical_ = TCriticalSection;
 {$ENDIF SoftCritical}
 
 {$IFDEF FPC}generic{$ENDIF FPC}TAtomVar<T_> = class
@@ -165,7 +165,7 @@ type
     PT_ = ^T_;
   private
     FValue__: T_;
-    Critical: TCritical;
+    Critical: TCritical_;
     function GetValue: T_;
     procedure SetValue(const Value_: T_);
     function GetValueP: PT_;
@@ -176,6 +176,7 @@ type
     function Lock: T_;
     function LockP: PT_;
     property P: PT_ read GetValueP;
+    property Pointer_: PT_ read GetValueP;
     procedure UnLock(const Value_: T_); overload;
     procedure UnLock(const Value_: PT_); overload;
     procedure UnLock(); overload;
@@ -191,6 +192,7 @@ type
   TAtomInt8 = TAtomSmallInt;
   TAtomInt16 = TAtomShortInt;
   TAtomInt32 = TAtomInteger;
+  TAtomInt = TAtomInteger;
   TAtomInt64 = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Int64>;
   TAtomByte = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Byte>;
   TAtomWord = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Word>;
@@ -205,6 +207,20 @@ type
   TAtomDouble = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Double>;
   TAtomExtended = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Extended>;
   TAtomString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<string>;
+
+  TCritical = class(TCritical_)
+  private
+    LNum: TAtomInt;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Acquire;
+    procedure Release;
+    procedure Enter;
+    procedure Leave;
+    function IsBusy: Boolean;
+    property Busy: Boolean read IsBusy;
+  end;
 
   TComputeThread = class;
 
@@ -513,8 +529,10 @@ procedure Swap(var v1, v2: Integer); overload;
 procedure Swap(var v1, v2: Cardinal); overload;
 procedure Swap(var v1, v2: Int64); overload;
 procedure Swap(var v1, v2: UInt64); overload;
+{$IFDEF OVERLOAD_NATIVEINT}
 procedure Swap(var v1, v2: NativeInt); overload;
 procedure Swap(var v1, v2: NativeUInt); overload;
+{$ENDIF OVERLOAD_NATIVEINT}
 procedure Swap(var v1, v2: string); overload;
 procedure Swap(var v1, v2: Single); overload;
 procedure Swap(var v1, v2: Double); overload;
@@ -528,7 +546,7 @@ function SAR16(const AValue: SmallInt; const Shift: Byte): SmallInt;
 function SAR32(const AValue: Integer; Shift: Byte): Integer;
 function SAR64(const AValue: Int64; Shift: Byte): Int64;
 
-function MemoryAlign(addr: Pointer; alignment_: nativeUInt): Pointer;
+function MemoryAlign(addr: Pointer; alignment_: NativeUInt): Pointer;
 
 function if_(const bool_: Boolean; const True_, False_: Boolean): Boolean; overload;
 function if_(const bool_: Boolean; const True_, False_: ShortInt): ShortInt; overload;
@@ -541,6 +559,7 @@ function if_(const bool_: Boolean; const True_, False_: Cardinal): Cardinal; ove
 function if_(const bool_: Boolean; const True_, False_: UInt64): UInt64; overload;
 function if_(const bool_: Boolean; const True_, False_: Single): Single; overload;
 function if_(const bool_: Boolean; const True_, False_: Double): Double; overload;
+function if_(const bool_: Boolean; const True_, False_: string): string; overload;
 
 {$EndRegion 'core api'}
 {$Region 'core var'}

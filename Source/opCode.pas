@@ -1476,7 +1476,7 @@ begin
   Result := Param[0]^.Value;
   for i := 1 to Count - 1 do
       Result := Result + Param[i]^.Value;
-  Result := +Result;
+  Result := - - Result;
 end;
 
 { op_Sub_Prefix }

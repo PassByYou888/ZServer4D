@@ -32,10 +32,12 @@ unit MemoryStream64;
 interface
 
 uses
-  SysUtils, ZLib,
+  SysUtils,
 {$IFDEF FPC}
   zstream,
   FPCGenericStructlist,
+{$ELSE FPC}
+  ZLib,
 {$ENDIF}
   CoreClasses, PascalStrings, UnicodeMixedLib;
 

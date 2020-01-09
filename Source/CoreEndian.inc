@@ -377,6 +377,7 @@ begin
   v2 := v;
 end;
 
+{$IFDEF OVERLOAD_NATIVEINT}
 procedure Swap(var v1, v2: NativeInt);
 var
   v: NativeInt;
@@ -394,6 +395,7 @@ begin
   v1 := v2;
   v2 := v;
 end;
+{$ENDIF OVERLOAD_NATIVEINT}
 
 procedure Swap(var v1, v2: string);
 var
@@ -569,6 +571,14 @@ begin
 end;
 
 function if_(const bool_: Boolean; const True_, False_: Double): Double;
+begin
+  if bool_ then
+      Result := True_
+  else
+      Result := False_;
+end;
+
+function if_(const bool_: Boolean; const True_, False_: string): string;
 begin
   if bool_ then
       Result := True_

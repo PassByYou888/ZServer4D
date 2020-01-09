@@ -42,6 +42,9 @@
 
   {$UNDEF Delphi}
 
+  // nativeint as int or int64 type variable when Modifier is overload
+  {$UNDEF OVERLOAD_NATIVEINT}
+
   // fast MD5 only delphi supported, https://github.com/PassByYou888/FastMD5
   {$UNDEF FastMD5}
 
@@ -82,7 +85,6 @@
   {$DEFINE release}
   {$DEFINE INLINE_ASM}
   {$R-} { range check }
-  {$OPTIMIZATION LEVEL4} { open optimization }
 {$ELSE FPC} { IF DELPHI }
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -96,6 +98,9 @@
   {$ENDIF}
 
   {$DEFINE Delphi}
+
+  // nativeint as int or int64 type variable when Modifier is overload
+  {$DEFINE OVERLOAD_NATIVEINT}
 
   // fast MD5 only delphi supported, https://github.com/PassByYou888/FastMD5
   {$DEFINE FastMD5}
@@ -152,13 +157,14 @@
     {$IFEND}
   {$ELSE}
     {$UNDEF INLINE_ASM}
-    {$O-} { close optimization }
+    {$O+} { close optimization }
     {$R-} { range check }
     {$I-} { Input output checking }
     {$D+} { debug information }
   {$ENDIF}
 
   {$IF Defined(Android) or Defined(IOS)}
+    {$DEFINE SMALL_RASTER_FONT_Build_In}
     {$DEFINE PhysicsIO_On_Indy}
   {$ELSE}
     // PhysicsIO interface
@@ -172,6 +178,8 @@
   {$X+} { Extended syntax }
   {$Z1} { Minimum enum size }
 {$ENDIF FPC}
+
+
 
 {$IFDEF DEBUG}
   // initialization status prompt

@@ -205,11 +205,19 @@ function umlGetResourceStream(const FileName: TPascalString): TCoreClassStream;
 function umlSameVarValue(const v1, v2: Variant): Boolean;
 function umlSameVariant(const v1, v2: Variant): Boolean;
 
-function umlRandom: Integer;
-function umlRandomRange(const min_, max_: Integer): Integer;
-function umlRandomRangeS(const min_, max_: Single): Single;
-function umlRandomRangeD(const min_, max_: Double): Double;
-function umlRandomRangeF(const min_, max_: Double): Double;
+function umlRandom(const rnd: TMT19937Random): Integer; overload;
+function umlRandom: Integer; overload;
+
+function umlRandomRange(const rnd: TMT19937Random; const min_, max_: Integer): Integer; overload;
+function umlRandomRangeS(const rnd: TMT19937Random; const min_, max_: Single): Single; overload;
+function umlRandomRangeD(const rnd: TMT19937Random; const min_, max_: Double): Double; overload;
+function umlRandomRangeF(const rnd: TMT19937Random; const min_, max_: Double): Double; overload;
+
+function umlRandomRange(const min_, max_: Integer): Integer; overload;
+function umlRandomRangeS(const min_, max_: Single): Single; overload;
+function umlRandomRangeD(const min_, max_: Double): Double; overload;
+function umlRandomRangeF(const min_, max_: Double): Double; overload;
+
 function umlDefaultTime: Double;
 function umlNow: Double;
 function umlDefaultAttrib: Integer;
@@ -607,6 +615,7 @@ function umlTextInStrings(const SText: TPascalString; dest: TCoreClassStrings): 
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TListPascalString; IgnoreCase: Boolean): Boolean; overload;
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Boolean; overload;
 function umlAddNewStrTo(SourceStr: TPascalString; dest: TCoreClassStrings): Boolean; overload;
+function umlAddNewStrTo(SourceStr, dest: TCoreClassStrings): Integer; overload;
 function umlDeleteStrings(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
 function umlDeleteStringsNot(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
 function umlMergeStrings(Source, dest: TCoreClassStrings; IgnoreCase: Boolean): Integer; overload;
@@ -1281,9 +1290,47 @@ begin
   end;
 end;
 
+function umlRandom(const rnd: TMT19937Random): Integer;
+begin
+  Result := rnd.Rand32(MaxInt);
+end;
+
 function umlRandom: Integer;
 begin
   Result := MT19937Rand32(MaxInt);
+end;
+
+function umlRandomRange(const rnd: TMT19937Random; const min_, max_: Integer): Integer;
+var
+  mn, mx: Integer;
+begin
+  mn := min_;
+  mx := max_;
+
+  if mn > mx then
+      inc(mn)
+  else
+      inc(mx);
+
+  if mn > mx then
+      Result := rnd.Rand32(mn - mx) + mx
+  else
+      Result := rnd.Rand32(mx - mn) + mn;
+end;
+
+function umlRandomRangeS(const rnd: TMT19937Random; const min_, max_: Single): Single;
+begin
+  Result := (umlRandomRange(rnd, Trunc(min_ * 1000), Trunc(max_ * 1000))) * 0.001;
+end;
+
+function umlRandomRangeD(const rnd: TMT19937Random; const min_, max_: Double): Double;
+begin
+  Result := (umlRandomRange(rnd, Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
+end;
+
+function umlRandomRangeF(const rnd: TMT19937Random; const min_, max_: Double): Double;
+begin
+  Result := (umlRandomRange(rnd, Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
 end;
 
 function umlRandomRange(const min_, max_: Integer): Integer;
@@ -5685,6 +5732,16 @@ begin
   Result := not umlStringsInExists(dest, SourceStr, true);
   if Result then
       dest.Append(SourceStr.text);
+end;
+
+function umlAddNewStrTo(SourceStr, dest: TCoreClassStrings): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to SourceStr.Count - 1 do
+    if umlAddNewStrTo(SourceStr[i], dest) then
+        inc(Result);
 end;
 
 function umlDeleteStrings(const SText: TPascalString; dest: TCoreClassStrings; IgnoreCase: Boolean): Integer;
