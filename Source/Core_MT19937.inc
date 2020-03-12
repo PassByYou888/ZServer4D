@@ -160,6 +160,7 @@ end;
 var
   MT19937InternalCritical: TCritical;
   MT19937POOL: TMT19937List;
+  MT19937CoreToDelphi_: Boolean;
 
 function InternalMT19937__(): PMD19937Core;
 var
@@ -245,6 +246,7 @@ procedure MT19937Install();
 begin
   Random32Proc := DelphiRandom32Proc;
   RandomizeProc := DelphiRandomizeProc;
+  MT19937CoreToDelphi_ := True;
 end;
 {$ENDIF InstallMT19937CoreToDelphi}
 
@@ -255,6 +257,7 @@ procedure InitMT19937Rand;
 begin
   MT19937InternalCritical := TCritical.Create;
   MT19937POOL := TMT19937List.Create;
+  MT19937CoreToDelphi_ := False;
 
 {$IFDEF DELPHI}
 {$IFDEF InstallMT19937CoreToDelphi}
@@ -274,6 +277,11 @@ begin
   MT19937POOL := nil;
   MT19937InternalCritical.Free;
   MT19937InternalCritical := nil;
+end;
+
+function MT19937CoreToDelphi: Boolean;
+begin
+  Result := MT19937CoreToDelphi_;
 end;
 
 function MT19937InstanceNum(): Integer;

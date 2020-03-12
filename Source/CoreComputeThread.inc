@@ -155,7 +155,7 @@ begin
   ComputeThreadTaskRunning := TAtomInteger.Create(0);
   ParallelGranularity := Thread_Num;
   ComputeDispatchCritical := TCritical.Create;
-  MaxActivtedParallel := CpuCount;
+  MaxActivtedParallel := Thread_Num;
   ParallelOverflow.ActivtedParallel := 0;
   ComputeDispatchPool := TComputeDispatchPool.Create;
   IdleComputeThreadSum := TAtomInt.Create(0);
@@ -293,7 +293,7 @@ end;
 
 class function TComputeThread.WaitTask(): Integer;
 begin
-  Result := ComputeThreadTaskRunning.V - ActivtedTask();
+  Result := IdleComputeThreadSum.V;
 end;
 
 class function TComputeThread.TotalTask(): Integer;
@@ -303,7 +303,70 @@ end;
 
 class function TComputeThread.State(): string;
 begin
-  Result := Format('total: %d Activted: %d Waiting: %d', [TotalTask(), ActivtedTask(), WaitTask()]);
+  Result := Format('total: %d Activted: %d Waiting: %d Granularity: %d MaxParallel: %d/%d',
+    [TotalTask(), ActivtedTask(), WaitTask(), ParallelGranularity, ParallelOverflow.ActivtedParallel, MaxActivtedParallel]);
+end;
+
+class function TComputeThread.GetParallelGranularity: Integer;
+begin
+  Result := ParallelGranularity;
+end;
+
+class function TComputeThread.GetMaxActivtedParallel: Integer;
+begin
+  Result := MaxActivtedParallel;
+end;
+
+type
+  TSyncTmp = class
+  private
+    OnRun: TRunWithThreadProc_NP;
+    procedure DoSync;
+  end;
+
+procedure TSyncTmp.DoSync;
+begin
+  try
+    OnRun();
+    Free;
+  except
+  end;
+end;
+
+class procedure TComputeThread.Sync(const OnRun_: TRunWithThreadProc_NP);
+{$IFDEF FPC}
+var
+  tmp: TSyncTmp;
+{$ENDIF FPC}
+begin
+{$IFDEF FPC}
+  tmp := TSyncTmp.Create;
+  tmp.OnRun := OnRun_;
+  TCompute.Synchronize(TCompute.CurrentThread, @tmp.DoSync);
+{$ELSE FPC}
+  TCompute.Synchronize(TCompute.CurrentThread, procedure
+    begin
+      OnRun_();
+    end);
+{$ENDIF FPC}
+end;
+
+class procedure TComputeThread.Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
+{$IFDEF FPC}
+var
+  tmp: TSyncTmp;
+{$ENDIF FPC}
+begin
+{$IFDEF FPC}
+  tmp := TSyncTmp.Create;
+  tmp.OnRun := OnRun_;
+  TCompute.Synchronize(Thread_, @tmp.DoSync);
+{$ELSE FPC}
+  TCompute.Synchronize(Thread_, procedure
+    begin
+      OnRun_();
+    end);
+{$ENDIF FPC}
 end;
 
 class procedure TComputeThread.RunC(const data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);

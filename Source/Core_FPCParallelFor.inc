@@ -27,7 +27,7 @@ begin
   dispose(p);
 end;
 
-procedure FPCParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer);
+procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure32; b, e: Integer);
 var
   Total, Depth, Completed, StepTotal, stepW, Pass, w: Integer;
   p: PFPCParallelThData32;
@@ -36,12 +36,15 @@ var
 begin
   if b > e then
       exit;
-  if (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
       i_ := b;
       while i_ <= e do
         begin
-          OnFor(i_);
+          try
+              OnFor(i_);
+          except
+          end;
           inc(i_);
         end;
       exit;
@@ -141,7 +144,7 @@ begin
   dispose(p);
 end;
 
-procedure FPCParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64);
+procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure64; b, e: Int64);
 var
   Total, Depth, Completed, StepTotal, stepW, Pass, w: Int64;
   p: PFPCParallelThData64;
@@ -150,12 +153,15 @@ var
 begin
   if b > e then
       exit;
-  if (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
       i_ := b;
       while i_ <= e do
         begin
-          OnFor(i_);
+          try
+              OnFor(i_);
+          except
+          end;
           inc(i_);
         end;
       exit;
@@ -226,6 +232,16 @@ begin
   end;
 end;
 
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer);
+begin
+  FPCParallelFor(True, OnFor, b, e);
+end;
+
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64);
+begin
+  FPCParallelFor(True, OnFor, b, e);
+end;
+
 procedure FPCParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32);
 begin
   FPCParallelFor(OnFor, b, e);
@@ -234,4 +250,14 @@ end;
 procedure FPCParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64);
 begin
   FPCParallelFor(OnFor, b, e);
+end;
+
+procedure FPCParallelFor(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32);
+begin
+  FPCParallelFor(parallel, OnFor, b, e);
+end;
+
+procedure FPCParallelFor(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64);
+begin
+  FPCParallelFor(parallel, OnFor, b, e);
 end;

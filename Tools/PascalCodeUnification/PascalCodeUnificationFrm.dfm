@@ -110,10 +110,15 @@ object PascalCodeUnificationForm: TPascalCodeUnificationForm
     TabOrder = 7
     OnClick = FixedWordCheckBoxClick
   end
-  object OpenDialog: TOpenDialog
-    Filter = 'All Pascal Unit(*.pas;*.pp;*.inc;*.dpr)|*.pas;*.pp;*.inc;*.dpr'
-    Options = [ofHideReadOnly, ofAllowMultiSelect, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 192
-    Top = 72
+  object OpenDialog: TFileOpenDialog
+    FavoriteLinks = <>
+    FileTypes = <
+      item
+        DisplayName = 'All Pascal Unit(*.pas;*.pp;*.inc;*.dpr)'
+        FileMask = '*.pas;*.pp;*.inc;*.dpr'
+      end>
+    Options = [fdoAllowMultiSelect, fdoPathMustExist, fdoFileMustExist]
+    Left = 184
+    Top = 176
   end
 end

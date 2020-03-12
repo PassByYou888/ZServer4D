@@ -201,7 +201,6 @@ type
     function ProbeL(startI: Integer; const acceptT: TTokenTypes; const t1, t2, t3: TPascalString): PTokenData; overload;
     function ProbeL(startI: Integer; const acceptT: TTokenTypes; const t1, t2, t3, t4: TPascalString): PTokenData; overload;
     function ProbeL(startI: Integer; const acceptT: TTokenTypes; const t1, t2, t3, t4, t5: TPascalString): PTokenData; overload;
-
     function LProbe(startI: Integer; const acceptT: TTokenTypes): PTokenData; overload;
     function LProbe(startI: Integer; const t: TPascalString): PTokenData; overload;
     function LProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData; overload;
@@ -218,7 +217,6 @@ type
     function ProbeR(startI: Integer; const acceptT: TTokenTypes; const t1, t2, t3: TPascalString): PTokenData; overload;
     function ProbeR(startI: Integer; const acceptT: TTokenTypes; const t1, t2, t3, t4: TPascalString): PTokenData; overload;
     function ProbeR(startI: Integer; const acceptT: TTokenTypes; const t1, t2, t3, t4, t5: TPascalString): PTokenData; overload;
-
     function RProbe(startI: Integer; const acceptT: TTokenTypes): PTokenData; overload;
     function RProbe(startI: Integer; const t: TPascalString): PTokenData; overload;
     function RProbe(startI: Integer; const acceptT: TTokenTypes; const t: TPascalString): PTokenData; overload;
@@ -261,26 +259,31 @@ type
     procedure InsertTextBlock(const bPos, ePos: Integer; AInsertText: TPascalString); overload;
     procedure InsertTextBlock(const tp: TTextPos; AInsertText: TPascalString); overload;
     function SearchWordBody(initPos: Integer; wordInfo: TPascalString; var OutPos: TTextPos): Boolean;
+
     { string declaration }
     class function TranslatePascalDeclToText(const Decl: TPascalString): TPascalString;
     class function TranslateTextToPascalDecl(const Decl: TPascalString): TPascalString;
     class function TranslateTextToPascalDeclWithUnicode(const Decl: TPascalString): TPascalString;
     class function TranslateC_DeclToText(const Decl: TPascalString): TPascalString;
     class function TranslateTextToC_Decl(const Decl: TPascalString): TPascalString;
+
     { comment declaration }
     class function TranslatePascalDeclCommentToText(const Decl: TPascalString): TPascalString;
     class function TranslateTextToPascalDeclComment(const Decl: TPascalString): TPascalString;
     class function TranslateC_DeclCommentToText(const Decl: TPascalString): TPascalString;
     class function TranslateTextToC_DeclComment(const Decl: TPascalString): TPascalString;
+
     { structor }
     constructor Create(const Text_: TPascalString; Style_: TTextStyle; SpecialSymbol_: TListPascalString; SpacerSymbol_: SystemString); overload;
     constructor Create(const Text_: TPascalString; Style_: TTextStyle; SpecialSymbol_: TListPascalString); overload;
     constructor Create(const Text_: TPascalString; Style_: TTextStyle); overload;
     constructor Create(const Text_: TPascalString); overload;
     destructor Destroy; override;
+
     { external }
     procedure Init; virtual;
     function Parsing: Boolean; virtual;
+
     { debug }
     procedure Print;
   end;

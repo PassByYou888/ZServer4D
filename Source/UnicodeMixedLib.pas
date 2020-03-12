@@ -628,9 +628,9 @@ function umlSplitTextTrimSpaceMatch(const SText, Limit, MatchText: TPascalString
 function umlSplitDeleteText(const SText, Limit, MatchText: TPascalString; IgnoreCase: Boolean): TPascalString;
 function umlSplitTextAsList(const SText, Limit: TPascalString; AsLst: TCoreClassStrings): Boolean;
 function umlSplitTextAsListAndTrimSpace(const SText, Limit: TPascalString; AsLst: TCoreClassStrings): Boolean;
-
 function umlListAsSplitText(const List: TCoreClassStrings; Limit: TPascalString): TPascalString; overload;
 function umlListAsSplitText(const List: TListPascalString; Limit: TPascalString): TPascalString; overload;
+function umlDivisionText(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean): TPascalString;
 
 function umlUpdateComponentName(const Name: TPascalString): TPascalString;
 function umlMakeComponentName(Owner: TCoreClassComponent; RefrenceName: TPascalString): TPascalString;
@@ -669,10 +669,11 @@ type
   TArrayRawByte = array [0 .. MaxInt - 1] of Byte;
   PArrayRawByte = ^TArrayRawByte;
 
-function umlCompareRawByteString(const s1: RawByteString; const s2: PArrayRawByte): Boolean; overload;
-function umlCompareRawByteString(const s1: PArrayRawByte; const s2: RawByteString): Boolean; overload;
-procedure umlSetRawByte(const sour: RawByteString; const dest: PArrayRawByte); overload;
-procedure umlSetRawByte(const dest: PArrayRawByte; const sour: RawByteString); overload;
+function umlCompareByteString(const s1: TPascalString; const s2: PArrayRawByte): Boolean; overload;
+function umlCompareByteString(const s2: PArrayRawByte; const s1: TPascalString): Boolean; overload;
+procedure umlSetByteString(const sour: TPascalString; const dest: PArrayRawByte); overload;
+procedure umlSetByteString(const dest: PArrayRawByte; const sour: TPascalString); overload;
+function umlGetByteString(const sour: PArrayRawByte; const L: Integer): TPascalString;
 
 procedure SaveMemory(p: Pointer; siz: NativeInt; DestFile: TPascalString);
 
@@ -2559,7 +2560,7 @@ begin
   if umlFindFirstFile(FileName, SR) = true then
     begin
       Result := SR.Size;
-      while umlFindNextFile(SR) = true do
+      while umlFindNextFile(SR) do
           Result := Result + SR.Size;
     end;
   umlFindClose(SR);
@@ -2588,14 +2589,16 @@ end;
 function umlDeleteFile(const FileName: TPascalString; const _VerifyCheck: Boolean): Boolean;
 var
   _SR: TSR;
+  ph: TPascalString;
 begin
   if umlExistsChar(FileName, '*?') then
     begin
+      ph := umlGetFilePath(FileName);
       if umlFindFirstFile(FileName, _SR) then
         begin
           repeat
             try
-                DeleteFile(umlCombineFileName(FileName, _SR.Name).text);
+                DeleteFile(umlCombineFileName(ph, _SR.Name).text);
             except
             end;
           until not umlFindNextFile(_SR);
@@ -3706,7 +3709,7 @@ begin
 end;
 
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean;
-label CharacterRep_Label, MultipleCharacterRep_Label, MultipleStringRep_Label;
+label Character_Label, MChar_Label, MString_Label;
 var
   UpperCaseSourceStr, UpperCaseTargetStr, SwapStr: TPascalString;
   SourceChar, TargetChar, SwapChar: U_Char;
@@ -3755,7 +3758,7 @@ begin
   SourceChar := UpperCaseSourceStr[SourceIndex];
   TargetChar := UpperCaseTargetStr[TargetIndex];
 
-CharacterRep_Label:
+Character_Label:
   while (SourceChar = TargetChar) and (not umlMatchChar(SourceChar, @umlMultipleCharacter)) and (not umlMatchChar(SourceChar, @umlMultipleString)) do
     begin
       if SourceIndex = SourceLength then
@@ -3786,7 +3789,7 @@ CharacterRep_Label:
       TargetChar := UpperCaseTargetStr[TargetIndex];
     end;
 
-MultipleCharacterRep_Label:
+MChar_Label:
   while umlMatchChar(SourceChar, @umlMultipleCharacter) do
     begin
       if SourceIndex = SourceLength then
@@ -3817,7 +3820,7 @@ MultipleCharacterRep_Label:
       TargetChar := UpperCaseTargetStr[TargetIndex];
     end;
 
-MultipleStringRep_Label:
+MString_Label:
   if umlMatchChar(SourceChar, @umlMultipleString) then
     begin
       if SourceIndex = SourceLength then
@@ -3927,11 +3930,11 @@ MultipleStringRep_Label:
       SourceChar := SwapChar;
     end;
   if SourceChar = TargetChar then
-      goto CharacterRep_Label
+      goto Character_Label
   else if umlMatchChar(SourceChar, @umlMultipleCharacter) then
-      goto MultipleCharacterRep_Label
+      goto MChar_Label
   else if umlMatchChar(SourceChar, @umlMultipleString) then
-      goto MultipleStringRep_Label
+      goto MString_Label
   else
       Result := False;
 end;
@@ -6002,6 +6005,32 @@ begin
         Result.Append(Limit + List[i]);
 end;
 
+function umlDivisionText(const buffer: TPascalString; width: Integer; DivisionAsPascalString: Boolean): TPascalString;
+var
+  i, n: Integer;
+begin
+  Result := '';
+  n := 0;
+  for i := 1 to buffer.Len do
+    begin
+      if (DivisionAsPascalString) and (n = 0) then
+          Result.Append(#39);
+
+      Result.Append(buffer[i]);
+      inc(n);
+      if n = width then
+        begin
+          if DivisionAsPascalString then
+              Result.Append(#39 + '+' + #13#10)
+          else
+              Result.Append(#13#10);
+          n := 0;
+        end;
+    end;
+  if DivisionAsPascalString then
+      Result.Append(#39);
+end;
+
 function umlUpdateComponentName(const Name: TPascalString): TPascalString;
 var
   i: Integer;
@@ -6569,24 +6598,53 @@ end;
 {$IFDEF RangeCheck}{$R-}{$ENDIF}
 
 
-function umlCompareRawByteString(const s1: RawByteString; const s2: PArrayRawByte): Boolean;
+function umlCompareByteString(const s1: TPascalString; const s2: PArrayRawByte): Boolean;
+var
+  tmp: TBytes;
+  i: Integer;
 begin
-  Result := CompareMemory(@s1[1], @s2^[0], length(s1));
+  SetLength(tmp, s1.L);
+  for i := 0 to s1.L - 1 do
+      tmp[i] := Byte(s1.buff[i]);
+
+  Result := CompareMemory(@tmp[0], @s2^[0], s1.L);
 end;
 
-function umlCompareRawByteString(const s1: PArrayRawByte; const s2: RawByteString): Boolean;
+function umlCompareByteString(const s2: PArrayRawByte; const s1: TPascalString): Boolean;
+var
+  tmp: TBytes;
+  i: Integer;
 begin
-  Result := CompareMemory(@s2[1], @s1^[0], length(s2));
+  SetLength(tmp, s1.L);
+  for i := 0 to s1.L - 1 do
+      tmp[i] := Byte(s1.buff[i]);
+
+  Result := CompareMemory(@tmp[0], @s2^[0], s1.L);
 end;
 
-procedure umlSetRawByte(const sour: RawByteString; const dest: PArrayRawByte);
+procedure umlSetByteString(const sour: TPascalString; const dest: PArrayRawByte);
+var
+  i: Integer;
 begin
-  CopyPtr(@sour[1], @dest^[0], length(sour));
+  for i := 0 to sour.L - 1 do
+      dest^[i] := Byte(sour.buff[i]);
 end;
 
-procedure umlSetRawByte(const dest: PArrayRawByte; const sour: RawByteString);
+procedure umlSetByteString(const dest: PArrayRawByte; const sour: TPascalString);
+var
+  i: Integer;
 begin
-  CopyPtr(@sour[1], @dest^[0], length(sour));
+  for i := 0 to sour.L - 1 do
+      dest^[i] := Byte(sour.buff[i]);
+end;
+
+function umlGetByteString(const sour: PArrayRawByte; const L: Integer): TPascalString;
+var
+  i: Integer;
+begin
+  Result.L := L;
+  for i := 0 to L - 1 do
+      Result.buff[i] := SystemChar(sour^[i]);
 end;
 
 {$IFDEF RangeCheck}{$R+}{$ENDIF}

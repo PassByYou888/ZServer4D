@@ -42,7 +42,7 @@ begin
     穿透协议压缩选项
     建议使用场景:
     如果代理的数据已经压缩过，或则使用https这类方式加密过，压缩会无效，甚至压缩后数据更大
-    如果时裸数据协议，比如ftp,不带s的http,tennet，压缩开关可以打开，可以小幅提速
+    如果是裸数据协议，比如ftp,不带s的http,tennet，压缩开关可以打开，可以小幅提速
   }
   XCli.ProtocolCompressed := True;
 

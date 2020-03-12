@@ -260,7 +260,14 @@ type
     class function WaitTask(): Integer;
     class function TotalTask(): Integer;
     class function State(): string;
+    class function GetParallelGranularity(): Integer;
+    class function GetMaxActivtedParallel(): Integer;
 
+    // synchronization
+    class procedure Sync(const OnRun_: TRunWithThreadProc_NP); overload;
+    class procedure Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP); overload;
+
+    // asynchronous
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
     class procedure RunC(const OnRun: TRunWithThreadCall); overload;
@@ -301,24 +308,28 @@ type
     property seed: Integer read GetSeed write SetSeed;
   end;
 
+  TRandom = TMT19937Random;
+
   {$IFDEF FPC}generic{$ENDIF FPC}TLineProcessor<T_> = class
-  protected
-    procedure VertLine(X, y1, y2: NativeInt);
-    procedure HorzLine(x1, Y, x2: NativeInt);
   public type
     TTArry_ = array [0 .. 0] of T_;
     PTArry_ = ^TTArry_;
     PT_ = ^T_;
-  public var
-    Data_: PTArry_;
-    Width_, Height_: NativeInt;
-    Value_: T_;
-    L_: Boolean;
+  private var
+    FData: PTArry_;
+    FWidth, FHeight: NativeInt;
+    FValue: T_;
+    FLineTail: Boolean;
   public
-    constructor Create(data: Pointer; width, height: NativeInt; Value: T_; L: Boolean);
+    procedure CreateDone; virtual;
+    constructor Create(const data_: Pointer; const width_, height_: NativeInt; const Value_: T_; const LineTail_: Boolean);
+    destructor Destroy; override;
+    procedure VertLine(X, y1, y2: NativeInt);
+    procedure HorzLine(x1, Y, x2: NativeInt);
     procedure Line(x1, y1, x2, y2: NativeInt);
     procedure FillBox(x1, y1, x2, y2: NativeInt);
-    procedure Process(vp: PT_; v: T_); virtual;
+    procedure Process(const vp: PT_; const v: T_); virtual;
+    property Value: T_ read FValue;
   end;
 
 {$EndRegion 'core defines + class'}
@@ -387,10 +398,14 @@ const
 type
   TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
   TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
+procedure FPCParallelFor(parallel: Boolean; OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure FPCParallelFor(parallel: Boolean; OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
 procedure FPCParallelFor(OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
 procedure FPCParallelFor(OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
 procedure FPCParallelFor(b, e: Integer; OnFor:TFPCParallelForProcedure32); overload;
 procedure FPCParallelFor(b, e: Int64; OnFor:TFPCParallelForProcedure64); overload;
+procedure FPCParallelFor(parallel: Boolean; b, e: Integer; OnFor:TFPCParallelForProcedure32); overload;
+procedure FPCParallelFor(parallel: Boolean; b, e: Int64; OnFor:TFPCParallelForProcedure64); overload;
 {$ELSE FPC}
 type
 {$IFDEF SystemParallel}
@@ -400,10 +415,14 @@ type
   TDelphiParallelForProcedure32 = reference to procedure(pass: Integer);
   TDelphiParallelForProcedure64 = reference to procedure(pass: Int64);
 {$ENDIF SystemParallel}
+procedure DelphiParallelFor(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure DelphiParallelFor(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
 procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
 procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
 procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure32; b, e: Integer); overload;
 procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
+procedure DelphiParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure32; b, e: Integer); overload;
+procedure DelphiParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
 {$ENDIF FPC}
 {$EndRegion 'Parallel API'}
 {$Region 'core api'}
@@ -462,6 +481,7 @@ function GetTimeTickCount(): TTimeTick;
 function GetCrashTimeTick(): TTimeTick;
 
 // MT19937 random num
+function MT19937CoreToDelphi: Boolean;
 function MT19937InstanceNum(): Integer;
 procedure SetMT19937Seed(seed: Integer);
 function GetMT19937Seed(): Integer;
@@ -560,6 +580,7 @@ function if_(const bool_: Boolean; const True_, False_: UInt64): UInt64; overloa
 function if_(const bool_: Boolean; const True_, False_: Single): Single; overload;
 function if_(const bool_: Boolean; const True_, False_: Double): Double; overload;
 function if_(const bool_: Boolean; const True_, False_: string): string; overload;
+function ifv_(const bool_: Boolean; const True_, False_: Variant): Variant;
 
 {$EndRegion 'core api'}
 {$Region 'core var'}
@@ -769,7 +790,7 @@ begin
 
   s := NativeUInt(sour);
   d := NativeUInt(dest);
-  // overlap problem
+  // overlap solve
   // thanks,qq122742470,wang
   // thanks,qq4700653,LOK
   if d > s then

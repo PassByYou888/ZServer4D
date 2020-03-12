@@ -704,8 +704,12 @@ type
     property UserAutoFreeObjects: THashObjectList read GetUserAutoFreeObjects;
     property UserData: Pointer read FUserData write FUserData;
     property UserValue: Variant read FUserValue write FUserValue;
+
     property UserDefine: TPeerIOUserDefine read FUserDefine;
+    property Define: TPeerIOUserDefine read FUserDefine;
+
     property UserSpecial: TPeerIOUserSpecial read FUserSpecial;
+    property Special: TPeerIOUserSpecial read FUserSpecial;
 
     // hash code
     procedure GenerateHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var output: TBytes);

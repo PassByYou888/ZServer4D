@@ -105,10 +105,7 @@ begin
   FOpenFile := '';
   MD5Edit.Text := '';
 
-  if ParamCount = 1 then
-      OpenFile(ParamStr(1))
-  else
-      NewButtonClick(NewButton);
+  NewButtonClick(NewButton);
 end;
 
 procedure TFilePackageWithZDBMainForm.FormDestroy(Sender: TObject);

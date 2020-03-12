@@ -119,7 +119,7 @@ type
       fs: TCoreClassFileStream;
       KeyStream: TMemoryStream64;
     begin
-      fs := TCoreClassFileStream.Create(p^.FullName, fmOpenRead or fmShareDenyWrite);
+      fs := TCoreClassFileStream.Create(p^.FullName, fmOpenRead);
       p^.md5 := umlStreamMD5(fs);
       fs.Position := 0;
 

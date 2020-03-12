@@ -40,12 +40,18 @@ uses
   PascalStrings, UPascalStrings, UnicodeMixedLib, CoreClasses;
 
 type
+{$IFDEF FPC}
+  TDoStatusProc = procedure(Text_: SystemString; const ID: Integer) is nested;
+{$ELSE FPC}
+  TDoStatusProc = reference to procedure(Text_: SystemString; const ID: Integer);
+{$ENDIF FPC}
   TDoStatusMethod = procedure(Text_: SystemString; const ID: Integer) of object;
   TDoStatusCall = procedure(Text_: SystemString; const ID: Integer);
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 procedure AddDoStatusHookM(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
+procedure AddDoStatusHookP(TokenObj: TCoreClassObject; CallProc: TDoStatusProc);
 procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
@@ -226,35 +232,44 @@ begin
 end;
 
 type
-  TDoStatusData = record
+  TStatusProcStruct = record
     TokenObj: TCoreClassObject;
-    OnStatusNear: TDoStatusMethod;
-    OnStatusFar: TDoStatusCall;
+    OnStatusM: TDoStatusMethod;
+    OnStatusC: TDoStatusCall;
+    OnStatusP: TDoStatusProc;
   end;
 
-  PDoStatusData = ^TDoStatusData;
+  PStatusProcStruct = ^TStatusProcStruct;
 
-  TDoStatusNoLnData = record
+  TStatusStruct = record
+    s: SystemString;
+    th: TCoreClassThread;
+    TriggerTime: TTimeTick;
+  end;
+
+  PStatusStruct = ^TStatusStruct;
+
+  TStatusNoLnStruct = record
     s: TPascalString;
     th: TCoreClassThread;
     TriggerTime: TTimeTick;
   end;
 
-  PDoStatusNoLnData = ^TDoStatusNoLnData;
+  PStatusNoLnStruct = ^TStatusNoLnStruct;
 
-  THookDoStatusDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PDoStatusData>;
-  TReservedStatusDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PSystemString>;
-  TDoStatusNoLnDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PDoStatusNoLnData>;
+  TStatusProcList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PStatusProcStruct>;
+  TStatusStructList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PStatusStruct>;
+  TStatusNoLnStructList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PStatusNoLnStruct>;
 
 var
   StatusActive: Boolean;
-  HookDoStatus: THookDoStatusDataList;
-  ReservedStatus: TReservedStatusDataList;
+  HookStatusProcs: TStatusProcList;
+  StatusStructList: TStatusStructList;
   StatusCritical: TCriticalSection;
-  StatusNoLnDataList: TDoStatusNoLnDataList;
+  StatusNoLnStructList: TStatusNoLnStructList;
   Hooked_OnCheckThreadSynchronize: TCheckThreadSynchronize;
 
-function GetOrCreateStatusNoLnData_(th_: TCoreClassThread): PDoStatusNoLnData;
+function GetOrCreateStatusNoLnData_(th_: TCoreClassThread): PStatusNoLnStruct;
 var
   tk: TTimeTick;
   i: Integer;
@@ -262,21 +277,21 @@ begin
   tk := GetTimeTick();
   Result := nil;
   i := 0;
-  while i < StatusNoLnDataList.Count do
+  while i < StatusNoLnStructList.Count do
     begin
-      if StatusNoLnDataList[i]^.th = th_ then
+      if StatusNoLnStructList[i]^.th = th_ then
         begin
-          Result := StatusNoLnDataList[i];
+          Result := StatusNoLnStructList[i];
           Result^.TriggerTime := tk;
 
           if i > 0 then
-              StatusNoLnDataList.Exchange(i, 0);
+              StatusNoLnStructList.Exchange(i, 0);
           inc(i);
         end
-      else if tk - StatusNoLnDataList[i]^.TriggerTime > C_Tick_Minute then
+      else if tk - StatusNoLnStructList[i]^.TriggerTime > C_Tick_Minute then
         begin
-          Dispose(StatusNoLnDataList[i]);
-          StatusNoLnDataList.Delete(i);
+          Dispose(StatusNoLnStructList[i]);
+          StatusNoLnStructList.Delete(i);
         end
       else
           inc(i);
@@ -288,11 +303,11 @@ begin
       Result^.s := '';
       Result^.th := th_;
       Result^.TriggerTime := tk;
-      StatusNoLnDataList.Add(Result);
+      StatusNoLnStructList.Add(Result);
     end;
 end;
 
-function GetOrCreateStatusNoLnData(): PDoStatusNoLnData;
+function GetOrCreateStatusNoLnData(): PStatusNoLnStruct;
 begin
   Result := GetOrCreateStatusNoLnData_(TCoreClassThread.CurrentThread);
 end;
@@ -300,8 +315,8 @@ end;
 procedure DoStatusNoLn(const v: TPascalString);
 var
   L, i: Integer;
-  StatusNoLnData: PDoStatusNoLnData;
-  ps: PSystemString;
+  StatusNoLnData: PStatusNoLnStruct;
+  pSS: PStatusStruct;
 begin
   StatusCritical.Acquire;
   StatusNoLnData := GetOrCreateStatusNoLnData();
@@ -314,10 +329,12 @@ begin
           begin
             if StatusNoLnData^.s.Len > 0 then
               begin
-                new(ps);
-                ps^ := StatusNoLnData^.s.Text;
+                new(pSS);
+                pSS^.s := StatusNoLnData^.s.Text;
+                pSS^.th := TCoreClassThread.CurrentThread;
+                pSS^.TriggerTime := GetTimeTick;
+                StatusStructList.Add(pSS);
                 StatusNoLnData^.s := '';
-                ReservedStatus.Add(ps);
               end;
             repeat
                 inc(i);
@@ -341,7 +358,7 @@ end;
 
 procedure DoStatusNoLn;
 var
-  StatusNoLnData: PDoStatusNoLnData;
+  StatusNoLnData: PStatusNoLnStruct;
   a: SystemString;
 begin
   StatusCritical.Acquire;
@@ -368,22 +385,24 @@ begin
   Result := umlStringOf(s);
 end;
 
-procedure _InternalOutput(const Text_Ptr: PSystemString; const ID: Integer);
+procedure _InternalOutput(const Text_: SystemString; const ID: Integer);
 var
   i: Integer;
-  p: PDoStatusData;
+  p: PStatusProcStruct;
 begin
-  if (StatusActive) and (HookDoStatus.Count > 0) then
+  if (StatusActive) and (HookStatusProcs.Count > 0) then
     begin
-      LastDoStatus := Text_Ptr^;
-      for i := HookDoStatus.Count - 1 downto 0 do
+      LastDoStatus := Text_;
+      for i := HookStatusProcs.Count - 1 downto 0 do
         begin
-          p := HookDoStatus[i];
+          p := HookStatusProcs[i];
           try
-            if Assigned(p^.OnStatusNear) then
-                p^.OnStatusNear(Text_Ptr^, ID)
-            else if Assigned(p^.OnStatusFar) then
-                p^.OnStatusFar(Text_Ptr^, ID);
+            if Assigned(p^.OnStatusM) then
+                p^.OnStatusM(Text_, ID);
+            if Assigned(p^.OnStatusC) then
+                p^.OnStatusC(Text_, ID);
+            if Assigned(p^.OnStatusP) then
+                p^.OnStatusP(Text_, ID);
           except
           end;
         end;
@@ -393,19 +412,20 @@ begin
   if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
     begin
 {$IF Defined(WIN32) or Defined(WIN64)}
-      OutputDebugString(PWideChar('"' + Text_Ptr^ + '"'));
+      OutputDebugString(PWideChar('"' + Text_ + '"'));
 {$ELSEIF not Defined(Linux)}
-      FMX.Types.Log.d('"' + Text_Ptr^ + '"');
+      FMX.Types.Log.d('"' + Text_ + '"');
 {$IFEND}
     end;
 {$IFEND FPC}
   if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
-      Writeln(Text_Ptr^);
+      Writeln(Text_);
 end;
 
 procedure CheckDoStatus(th: TCoreClassThread);
 var
   i: Integer;
+  pSS: PStatusStruct;
 begin
   if StatusCritical = nil then
       exit;
@@ -413,14 +433,16 @@ begin
       exit;
   StatusCritical.Acquire;
   try
-    if ReservedStatus.Count > 0 then
+    if StatusStructList.Count > 0 then
       begin
-        for i := 0 to ReservedStatus.Count - 1 do
+        for i := 0 to StatusStructList.Count - 1 do
           begin
-            _InternalOutput(PSystemString(ReservedStatus[i]), 0);
-            Dispose(PSystemString(ReservedStatus[i]));
+            pSS := StatusStructList[i];
+            _InternalOutput(pSS^.s, 0);
+            pSS^.s := '';
+            Dispose(pSS);
           end;
-        ReservedStatus.Clear;
+        StatusStructList.Clear;
       end;
   finally
       StatusCritical.Release;
@@ -435,21 +457,23 @@ end;
 procedure InternalDoStatus(Text_: SystemString; const ID: Integer);
 var
   th: TCoreClassThread;
-  ps: PSystemString;
+  pSS: PStatusStruct;
 begin
   th := TCoreClassThread.CurrentThread;
   if (th = nil) or (th.ThreadID <> MainThreadID) then
     begin
-      new(ps);
-      ps^ := Text_;
+      new(pSS);
+      pSS^.s := '[' + IntToStr(th.ThreadID) + '] ' + Text_;;
+      pSS^.th := th;
+      pSS^.TriggerTime := GetTimeTick();
       StatusCritical.Acquire;
-      ReservedStatus.Add(ps);
+      StatusStructList.Add(pSS);
       StatusCritical.Release;
       exit;
     end;
 
   CheckDoStatus(th);
-  _InternalOutput(@Text_, ID);
+  _InternalOutput(Text_, ID);
 end;
 
 procedure AddDoStatusHook(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
@@ -459,39 +483,53 @@ end;
 
 procedure AddDoStatusHookM(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod);
 var
-  p: PDoStatusData;
+  p: PStatusProcStruct;
 begin
   new(p);
   p^.TokenObj := TokenObj;
-  p^.OnStatusNear := CallProc;
-  p^.OnStatusFar := nil;
-  HookDoStatus.Add(p);
+  p^.OnStatusM := CallProc;
+  p^.OnStatusC := nil;
+  p^.OnStatusP := nil;
+  HookStatusProcs.Add(p);
 end;
 
 procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 var
-  p: PDoStatusData;
+  p: PStatusProcStruct;
 begin
   new(p);
   p^.TokenObj := TokenObj;
-  p^.OnStatusNear := nil;
-  p^.OnStatusFar := CallProc;
-  HookDoStatus.Add(p);
+  p^.OnStatusM := nil;
+  p^.OnStatusC := CallProc;
+  p^.OnStatusP := nil;
+  HookStatusProcs.Add(p);
+end;
+
+procedure AddDoStatusHookP(TokenObj: TCoreClassObject; CallProc: TDoStatusProc);
+var
+  p: PStatusProcStruct;
+begin
+  new(p);
+  p^.TokenObj := TokenObj;
+  p^.OnStatusM := nil;
+  p^.OnStatusC := nil;
+  p^.OnStatusP := CallProc;
+  HookStatusProcs.Add(p);
 end;
 
 procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
 var
   i: Integer;
-  p: PDoStatusData;
+  p: PStatusProcStruct;
 begin
   i := 0;
-  while i < HookDoStatus.Count do
+  while i < HookStatusProcs.Count do
     begin
-      p := HookDoStatus[i];
+      p := HookStatusProcs[i];
       if p^.TokenObj = TokenObj then
         begin
           Dispose(p);
-          HookDoStatus.Delete(i);
+          HookStatusProcs.Delete(i);
         end
       else
           inc(i);
@@ -517,10 +555,10 @@ end;
 
 procedure _DoInit;
 begin
-  HookDoStatus := THookDoStatusDataList.Create;
-  ReservedStatus := TReservedStatusDataList.Create;
+  HookStatusProcs := TStatusProcList.Create;
+  StatusStructList := TStatusStructList.Create;
   StatusCritical := TCriticalSection.Create;
-  StatusNoLnDataList := TDoStatusNoLnDataList.Create;
+  StatusNoLnStructList := TStatusNoLnStructList.Create;
 
   StatusActive := True;
   LastDoStatus := '';
@@ -535,18 +573,23 @@ end;
 procedure _DoFree;
 var
   i: Integer;
+  pSS: PStatusStruct;
 begin
-  for i := 0 to HookDoStatus.Count - 1 do
-      Dispose(PDoStatusData(HookDoStatus[i]));
-  DisposeObject(HookDoStatus);
+  for i := 0 to HookStatusProcs.Count - 1 do
+      Dispose(PStatusProcStruct(HookStatusProcs[i]));
+  DisposeObject(HookStatusProcs);
 
-  for i := 0 to ReservedStatus.Count - 1 do
-      Dispose(PSystemString(ReservedStatus[i]));
-  DisposeObject(ReservedStatus);
+  for i := 0 to StatusStructList.Count - 1 do
+    begin
+      pSS := StatusStructList[i];
+      pSS^.s := '';
+      Dispose(pSS);
+    end;
+  DisposeObject(StatusStructList);
 
-  for i := 0 to StatusNoLnDataList.Count - 1 do
-      Dispose(StatusNoLnDataList[i]);
-  DisposeObject(StatusNoLnDataList);
+  for i := 0 to StatusNoLnStructList.Count - 1 do
+      Dispose(StatusNoLnStructList[i]);
+  DisposeObject(StatusNoLnStructList);
 
   DisposeObject(StatusCritical);
 

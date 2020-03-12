@@ -287,6 +287,14 @@ function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString; c
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString; TextStyle: TTextStyle): TExpressionValueMatrix; overload;
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString): TExpressionValueMatrix; overload;
 
+// easy API
+function EStr(s: U_String): U_String;
+function EStrToInt(s: U_String; default: Integer): Integer;
+function EStrToInt64(s: U_String; default: Int64): Int64;
+function EStrToFloat(s: U_String; default: Double): Double;
+function EStrToSingle(s: U_String; default: Single): Single;
+function EStrToDouble(s: U_String; default: Double): Double;
+
 // print
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;
 procedure DoStatus(v: TExpressionValueVector); overload;
@@ -2887,10 +2895,19 @@ end;
 function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean;
 var
   t: TTextParsing;
+  L: TPascalStringList;
 begin
-  t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, SpacerSymbol.v);
-  Result := t.DetectSymbolVector;
+  t := TTextParsing.Create(umlDeleteChar(ExpressionText, #13#10#32#9), TextStyle, SpecialAsciiToken, SpacerSymbol.v);
+  L := TPascalStringList.Create;
+  if t.FillSymbolVector(L) then
+    begin
+      if (L.Count = 2) and (L[1].L = 0) then
+          Result := False
+      else
+          Result := L.Count > 1;
+    end;
   DisposeObject(t);
+  DisposeObject(L);
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean;
@@ -3157,6 +3174,60 @@ end;
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString): TExpressionValueMatrix;
 begin
   Result := EvaluateExpressionMatrix(W, H, ExpressionText, DefaultOpRT, nil);
+end;
+
+function EStr(s: U_String): U_String;
+begin
+  Result := umlVarToStr(EvaluateExpressionValue(s), False);
+end;
+
+function EStrToInt(s: U_String; default: Integer): Integer;
+var
+  v: Variant;
+begin
+  v := EvaluateExpressionValue(s);
+  if VarIsNumeric(v) then
+      Result := v
+  else
+      Result := default;
+end;
+
+function EStrToInt64(s: U_String; default: Int64): Int64;
+var
+  v: Variant;
+begin
+  v := EvaluateExpressionValue(s);
+  if VarIsNumeric(v) then
+      Result := v
+  else
+      Result := default;
+end;
+
+function EStrToFloat(s: U_String; default: Double): Double;
+begin
+  Result := EStrToDouble(s, default);
+end;
+
+function EStrToSingle(s: U_String; default: Single): Single;
+var
+  v: Variant;
+begin
+  v := EvaluateExpressionValue(s);
+  if VarIsNumeric(v) then
+      Result := v
+  else
+      Result := default;
+end;
+
+function EStrToDouble(s: U_String; default: Double): Double;
+var
+  v: Variant;
+begin
+  v := EvaluateExpressionValue(s);
+  if VarIsNumeric(v) then
+      Result := v
+  else
+      Result := default;
 end;
 
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;

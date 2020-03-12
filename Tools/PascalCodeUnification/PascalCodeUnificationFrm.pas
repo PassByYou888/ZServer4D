@@ -15,7 +15,6 @@ type
     AddFileButton: TButton;
     FixedButton: TButton;
     StatusMemo: TMemo;
-    OpenDialog: TOpenDialog;
     StateLabel: TLabel;
     ProgressBar: TProgressBar;
     WordDefineMemo: TMemo;
@@ -23,16 +22,15 @@ type
     WordOutputMemo: TMemo;
     dictOutputInfoLabel: TLabel;
     FixedWordCheckBox: TCheckBox;
-    procedure FormDestroy(Sender: TObject);
+    OpenDialog: TFileOpenDialog;
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure AddFileButtonClick(Sender: TObject);
     procedure FixedButtonClick(Sender: TObject);
     procedure FixedWordCheckBoxClick(Sender: TObject);
   private
-    { Private declarations }
-  public
-    { Public declarations }
     procedure DoStatusMethod(AText: SystemString; const ID: Integer);
+  public
   end;
 
 var
@@ -42,20 +40,6 @@ implementation
 
 {$R *.dfm}
 
-
-procedure TPascalCodeUnificationForm.FormDestroy(Sender: TObject);
-var
-  he: THashTextEngine;
-begin
-  DeleteDoStatusHook(Self);
-
-  he := THashTextEngine.Create;
-  he.SetDefaultValue('options', 'fixedWord', FixedWordCheckBox.Checked);
-  he.Names['Files'].Assign(FileListMemo.Lines);
-  he.Names['Words'].Assign(WordDefineMemo.Lines);
-  he.SaveToFile(umlCombineFileName(umlGetFilePath(Application.Exename), 'PascalCodeUnification.ini'));
-  DisposeObject(he);
-end;
 
 procedure TPascalCodeUnificationForm.FormCreate(Sender: TObject);
 var
@@ -82,6 +66,20 @@ begin
 
       FixedWordCheckBoxClick(FixedWordCheckBox);
     end;
+end;
+
+procedure TPascalCodeUnificationForm.FormDestroy(Sender: TObject);
+var
+  he: THashTextEngine;
+begin
+  DeleteDoStatusHook(Self);
+
+  he := THashTextEngine.Create;
+  he.SetDefaultValue('options', 'fixedWord', FixedWordCheckBox.Checked);
+  he.Names['Files'].Assign(FileListMemo.Lines);
+  he.Names['Words'].Assign(WordDefineMemo.Lines);
+  he.SaveToFile(umlCombineFileName(umlGetFilePath(Application.Exename), 'PascalCodeUnification.ini'));
+  DisposeObject(he);
 end;
 
 procedure TPascalCodeUnificationForm.AddFileButtonClick(Sender: TObject);
@@ -148,11 +146,11 @@ var
             Inc(i);
           end;
         w_TP.RebuildToken;
-        u_TP := TTextParsing.Create(w_TP.ParsingData.Text, tsPascal, nil, TPascalString(SpacerSymbol).DeleteChar('.'));
+        u_TP := TTextParsing.Create(w_TP.ParsingData.Text, tsPascal, nil, TPascalString(SpacerSymbol.V).DeleteChar('.'));
       end
     else
       begin
-        u_TP := TTextParsing.Create(Code.Text, tsPascal, nil, TPascalString(SpacerSymbol).DeleteChar('.'));
+        u_TP := TTextParsing.Create(Code.Text, tsPascal, nil, TPascalString(SpacerSymbol.V).DeleteChar('.'));
       end;
 
     i := 0;
@@ -380,12 +378,6 @@ begin
   FileListMemo.Enabled := True;
 end;
 
-procedure TPascalCodeUnificationForm.DoStatusMethod(AText: SystemString; const ID: Integer);
-begin
-  StatusMemo.Lines.Add(AText);
-  Application.ProcessMessages;
-end;
-
 procedure TPascalCodeUnificationForm.FixedWordCheckBoxClick(Sender: TObject);
 var
   flag: Boolean;
@@ -395,6 +387,12 @@ begin
   WordDefineMemo.Visible := flag;
   dictOutputInfoLabel.Visible := flag;
   WordOutputMemo.Visible := flag;
+end;
+
+procedure TPascalCodeUnificationForm.DoStatusMethod(AText: SystemString; const ID: Integer);
+begin
+  StatusMemo.Lines.Add(AText);
+  Application.ProcessMessages;
 end;
 
 end.

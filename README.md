@@ -90,6 +90,8 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 **内核:**
 
+[zDefine过程定义详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/zDefine%E8%BF%87%E7%A8%8B%E5%AE%9A%E4%B9%89%E8%AF%A6%E8%A7%A3.pdf)
+
 [BigStream机制详解](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/BigStream%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.pdf)
 
 [多媒体通讯CompleteBuffer](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%9C%A8ZS%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6CompleteBuffer.pdf) 
@@ -239,6 +241,15 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 
 ## 最后一更新日志
+
+**内核更新**
+
+- 并行机制更新
+- 分线程机制更新
+- 新增统配符demo
+- 新增了一个非常详细的并行化机理demo
+- Tools若干代码更新
+
 
 **本次更新有点巨大，以下只罗列了重大更新**
 

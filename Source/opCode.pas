@@ -79,6 +79,7 @@ type
     function DoRound(var Param: TOpParam): Variant;
     function DoTrunc(var Param: TOpParam): Variant;
     function DoDeg(var Param: TOpParam): Variant;
+    function DoPower(var Param: TOpParam): Variant;
 
     function DoPI(var Param: TOpParam): Variant;
     function DoBool(var Param: TOpParam): Variant;
@@ -618,6 +619,17 @@ begin
   Result := NormalizeDegAngle(TGeoFloat(v));
 end;
 
+function TOpCustomRunTime.DoPower(var Param: TOpParam): Variant;
+var
+  v: Variant;
+  i: Integer;
+begin
+  if length(Param) = 2 then
+      Result := Power(Param[0], Param[1])
+  else
+      Result := 0;
+end;
+
 function TOpCustomRunTime.DoPI(var Param: TOpParam): Variant;
 begin
   Result := PI;
@@ -746,13 +758,13 @@ function TOpCustomRunTime.DoMax(var Param: TOpParam): Variant;
 var
   i: Integer;
 begin
-  if Length(Param) = 0 then
+  if length(Param) = 0 then
     begin
       Result := NULL;
       Exit;
     end;
   Result := Param[0];
-  for i := 1 to Length(Param) - 1 do
+  for i := 1 to length(Param) - 1 do
     if Param[i] > Result then
         Result := Param[i];
 end;
@@ -761,13 +773,13 @@ function TOpCustomRunTime.DoMin(var Param: TOpParam): Variant;
 var
   i: Integer;
 begin
-  if Length(Param) = 0 then
+  if length(Param) = 0 then
     begin
       Result := NULL;
       Exit;
     end;
   Result := Param[0];
-  for i := 1 to Length(Param) - 1 do
+  for i := 1 to length(Param) - 1 do
     if Param[i] < Result then
         Result := Param[i];
 end;
@@ -776,9 +788,9 @@ function TOpCustomRunTime.DoClamp(var Param: TOpParam): Variant;
 var
   minv_, maxv_: Variant;
 begin
-  if Length(Param) <> 3 then
+  if length(Param) <> 3 then
     begin
-      if Length(Param) > 0 then
+      if length(Param) > 0 then
           Result := Param[0]
       else
           Result := NULL;
@@ -806,7 +818,7 @@ end;
 
 function TOpCustomRunTime.DoIfThen(var Param: TOpParam): Variant;
 begin
-  if Length(Param) <> 3 then
+  if length(Param) <> 3 then
     begin
       Result := NULL;
       Exit;
@@ -830,7 +842,7 @@ end;
 
 function TOpCustomRunTime.DoGetFirst(var Param: TOpParam): Variant;
 begin
-  if Length(Param) = 2 then
+  if length(Param) = 2 then
       Result := umlGetFirstStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -838,7 +850,7 @@ end;
 
 function TOpCustomRunTime.DoDeleteFirst(var Param: TOpParam): Variant;
 begin
-  if Length(Param) = 2 then
+  if length(Param) = 2 then
       Result := umlDeleteFirstStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -846,7 +858,7 @@ end;
 
 function TOpCustomRunTime.DoGetLast(var Param: TOpParam): Variant;
 begin
-  if Length(Param) = 2 then
+  if length(Param) = 2 then
       Result := umlGetLastStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -854,7 +866,7 @@ end;
 
 function TOpCustomRunTime.DoDeleteLast(var Param: TOpParam): Variant;
 begin
-  if Length(Param) = 2 then
+  if length(Param) = 2 then
       Result := umlDeleteLastStr(VarToStr(Param[0]), VarToStr(Param[1])).Text
   else
       Result := '';
@@ -864,10 +876,10 @@ function TOpCustomRunTime.DoMultiple(var Param: TOpParam): Variant;
 var
   i: Integer;
 begin
-  if Length(Param) >= 2 then
+  if length(Param) >= 2 then
     begin
       Result := True;
-      for i := 1 to Length(Param) - 1 do
+      for i := 1 to length(Param) - 1 do
           Result := Result and umlMultipleMatch(VarToStr(Param[0]), VarToStr(Param[i]));
     end
   else
@@ -886,7 +898,7 @@ begin
     end;
 
   DoStatusNoLn;
-  Result := LastDoStatus;
+  Result := True;
 end;
 
 procedure TOpCustomRunTime.InternalReg;
@@ -905,6 +917,7 @@ begin
   RegOpM('Round', 'Round(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoRound)^.Category := 'Base Math';
   RegOpM('Trunc', 'Trunc(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoTrunc)^.Category := 'Base Math';
   RegOpM('Deg', 'Deg(0..n): NormalizeDegAngle function', {$IFDEF FPC}@{$ENDIF FPC}DoDeg)^.Category := 'Base Math';
+  RegOpM('Power', 'Power(float,float): Power: Raise base to any power function', {$IFDEF FPC}@{$ENDIF FPC}DoPower)^.Category := 'Base Math';
 
   RegOpM('PI', 'PI(): return PI', {$IFDEF FPC}@{$ENDIF FPC}DoPI)^.Category := 'Base Math';
 
@@ -1443,7 +1456,7 @@ begin
           Exit;
     end;
 
-  if Length(p^.Param) <> Count - 1 then
+  if length(p^.Param) <> Count - 1 then
       SetLength(p^.Param, Count - 1);
 
   for i := 1 to Count - 1 do

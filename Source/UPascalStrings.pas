@@ -37,7 +37,7 @@ type
   PUSystemString = ^USystemString;
   PUPascalString = ^TUPascalString;
   TUArrayChar = array of USystemChar;
-  TUOrdChar = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ);
+  TUOrdChar = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ, ucVisibled);
   TUOrdChars = set of TUOrdChar;
   TUHash = Cardinal;
   TUHash64 = UInt64;
@@ -54,10 +54,16 @@ type
     procedure SetBytes(const Value: TBytes);
     function GetPlatformBytes: TBytes;
     procedure SetPlatformBytes(const Value: TBytes);
+    function GetANSI: TBytes;
+    procedure SetANSI(const Value: TBytes);
     function GetLast: USystemChar;
     procedure SetLast(const Value: USystemChar);
     function GetFirst: USystemChar;
     procedure SetFirst(const Value: USystemChar);
+    function GetUpperChar(index: Integer): USystemChar;
+    procedure SetUpperChar(index: Integer; const Value: USystemChar);
+    function GetLowerChar(index: Integer): USystemChar;
+    procedure SetLowerChar(index: Integer; const Value: USystemChar);
   public
     buff: TUArrayChar;
 
@@ -147,8 +153,11 @@ type
     property Len: Integer read GetLen write SetLen;
     property L: Integer read GetLen write SetLen;
     property Chars[index: Integer]: USystemChar read GetChars write SetChars; default;
+    property UpperChar[index: Integer]: USystemChar read GetUpperChar write SetUpperChar;
+    property LowerChar[index: Integer]: USystemChar read GetLowerChar write SetLowerChar;
     property Bytes: TBytes read GetBytes write SetBytes;                         // UTF8
     property PlatformBytes: TBytes read GetPlatformBytes write SetPlatformBytes; // system default
+    property ANSI: TBytes read GetANSI write SetANSI;                            // Ansi Bytes
     function BOMBytes: TBytes;
   end;
 
@@ -374,6 +383,7 @@ begin
     ucHex: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF)) or ((v >= ord0) and (v <= ord9));
     ucAtoF: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF));
     ucAtoZ: Result := ((v >= ordLA) and (v <= ordLZ)) or ((v >= ordHA) and (v <= ordHZ));
+    ucVisibled: Result := (v <= $20) and (v <= $7E);
     else Result := False;
   end;
 end;
@@ -1368,6 +1378,18 @@ begin
   buff[index - 1] := Value;
 end;
 
+function TUPascalString.GetBytes: TBytes;
+begin
+  SetLength(Result, 0);
+  if length(buff) = 0 then
+      Exit;
+{$IFDEF FPC}
+  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+{$ELSE}
+  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+{$ENDIF}
+end;
+
 procedure TUPascalString.SetBytes(const Value: TBytes);
 begin
   SetLength(buff, 0);
@@ -1380,15 +1402,15 @@ begin
   end;
 end;
 
-function TUPascalString.GetBytes: TBytes;
+function TUPascalString.GetPlatformBytes: TBytes;
 begin
   SetLength(Result, 0);
   if length(buff) = 0 then
       Exit;
 {$IFDEF FPC}
-  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+  Result := SysUtils.TEncoding.Default.GetBytes(buff);
 {$ELSE}
-  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+  Result := SysUtils.TEncoding.Default.GetBytes(buff);
 {$ENDIF}
 end;
 
@@ -1404,16 +1426,28 @@ begin
   end;
 end;
 
-function TUPascalString.GetPlatformBytes: TBytes;
+function TUPascalString.GetANSI: TBytes;
 begin
   SetLength(Result, 0);
   if length(buff) = 0 then
       Exit;
 {$IFDEF FPC}
-  Result := SysUtils.TEncoding.Default.GetBytes(buff);
+  Result := SysUtils.TEncoding.ANSI.GetBytes(Text);
 {$ELSE}
-  Result := SysUtils.TEncoding.Default.GetBytes(buff);
+  Result := SysUtils.TEncoding.ANSI.GetBytes(buff);
 {$ENDIF}
+end;
+
+procedure TUPascalString.SetANSI(const Value: TBytes);
+begin
+  SetLength(buff, 0);
+  if length(Value) = 0 then
+      Exit;
+  try
+      Text := SysUtils.TEncoding.ANSI.GetString(Value);
+  except
+      SetLength(buff, 0);
+  end;
 end;
 
 function TUPascalString.GetLast: USystemChar;
@@ -1442,6 +1476,35 @@ begin
   buff[0] := Value;
 end;
 
+function TUPascalString.GetUpperChar(index: Integer): USystemChar;
+begin
+  Result := GetChars(index);
+  if CharIn(Result, cLoAtoZ) then
+      Result := USystemChar(Word(Result) xor $0020);
+end;
+
+procedure TUPascalString.SetUpperChar(index: Integer; const Value: USystemChar);
+begin
+  if CharIn(Value, cLoAtoZ) then
+      SetChars(index, USystemChar(Word(Value) xor $0020))
+  else
+      SetChars(index, Value);
+end;
+
+function TUPascalString.GetLowerChar(index: Integer): USystemChar;
+begin
+  Result := GetChars(index);
+  if CharIn(Result, cHiAtoZ) then
+      Result := USystemChar(Word(Result) or $0020);
+end;
+
+procedure TUPascalString.SetLowerChar(index: Integer; const Value: USystemChar);
+begin
+  if CharIn(Value, cHiAtoZ) then
+      SetChars(index, USystemChar(Word(Value) or $0020))
+  else
+      SetChars(index, Value);
+end;
 {$IFDEF DELPHI}
 
 
@@ -2011,18 +2074,12 @@ end;
 class function TUPascalString.RandomString(L_: Integer): TUPascalString;
 var
   i: Integer;
-  c: USystemChar;
   rnd: TMT19937Random;
 begin
   Result.L := L_;
   rnd := TMT19937Random.Create;
   for i := 1 to L_ do
-    begin
-      repeat
-          c := USystemChar(rnd.Rand32(128));
-      until UCharIn(c, [uc0to9, ucAtoZ]);
-      Result[i] := c;
-    end;
+      Result[i] := USystemChar(rnd.Rand32($7E - $20) + $20);
   DisposeObject(rnd);
 end;
 

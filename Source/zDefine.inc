@@ -157,7 +157,7 @@
     {$IFEND}
   {$ELSE}
     {$UNDEF INLINE_ASM}
-    {$O+} { close optimization }
+    {$O-} { close optimization }
     {$R-} { range check }
     {$I-} { Input output checking }
     {$D+} { debug information }
@@ -200,7 +200,7 @@
 {$A+} { Word Align Data }
 {$Q-} { Overflow checking }
 {$B-} { Complete boolean evaluation }
-{$J-} { Writeable typed constants }
+{$J+} { Writeable typed constants }
 
 (*
   Pointer math is simply treating any given typed pointer in some narrow,

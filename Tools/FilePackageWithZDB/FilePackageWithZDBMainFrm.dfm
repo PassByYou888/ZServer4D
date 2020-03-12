@@ -2,8 +2,8 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   Left = 0
   Top = 0
   Caption = 'File Package.'
-  ClientHeight = 624
-  ClientWidth = 1462
+  ClientHeight = 430
+  ClientWidth = 1082
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -13,6 +13,7 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
+  Position = poDesktopCenter
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -21,8 +22,8 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   TextHeight = 13
   object Splitter1: TSplitter
     Left = 0
-    Top = 498
-    Width = 1462
+    Top = 304
+    Width = 1082
     Height = 5
     Cursor = crVSplit
     Align = alBottom
@@ -34,7 +35,7 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
   object TopPanel: TPanel
     Left = 0
     Top = 0
-    Width = 1462
+    Width = 1082
     Height = 41
     Align = alTop
     BorderWidth = 5
@@ -132,7 +133,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Save as'
       TabOrder = 4
       OnClick = SaveAsButtonClick
-      ExplicitLeft = 263
     end
     object MD5Edit: TMemo
       Left = 616
@@ -142,17 +142,14 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Align = alLeft
       ParentColor = True
       TabOrder = 5
-      ExplicitLeft = 576
     end
     object CacheStateMemo: TMemo
       Left = 851
       Top = 6
-      Width = 605
+      Width = 225
       Height = 29
       Align = alClient
       TabOrder = 7
-      ExplicitLeft = 811
-      ExplicitWidth = 645
     end
     object RecalcMD5Button: TButton
       Left = 313
@@ -163,7 +160,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'MD5'
       TabOrder = 8
       OnClick = RecalcMD5ButtonClick
-      ExplicitLeft = 323
     end
     object CompressAsButton: TButton
       Left = 349
@@ -174,7 +170,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Build .OXC'
       TabOrder = 9
       OnClick = CompressAsButtonClick
-      ExplicitLeft = 369
     end
     object BuildIndexPackageButton: TButton
       Left = 489
@@ -185,7 +180,6 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Build Index Package'
       TabOrder = 6
       OnClick = BuildIndexPackageButtonClick
-      ExplicitLeft = 449
     end
     object NewCustomButton: TButton
       Left = 56
@@ -206,13 +200,12 @@ object FilePackageWithZDBMainForm: TFilePackageWithZDBMainForm
       Caption = 'Build .OXP'
       TabOrder = 10
       OnClick = ParallelCompressAsButtonClick
-      ExplicitLeft = 449
     end
   end
   object Memo: TMemo
     Left = 0
-    Top = 503
-    Width = 1462
+    Top = 309
+    Width = 1082
     Height = 121
     Align = alBottom
     BorderStyle = bsNone

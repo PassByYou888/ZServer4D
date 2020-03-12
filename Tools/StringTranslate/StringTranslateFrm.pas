@@ -11,20 +11,20 @@ type
   TStringTranslateForm = class(TForm)
     Memo1: TMemo;
     Memo2: TMemo;
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
-    Button4: TButton;
-    Button5: TButton;
-    Button6: TButton;
-    Button7: TButton;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
-    procedure Button6Click(Sender: TObject);
-    procedure Button7Click(Sender: TObject);
+    Hex2AsciiButton: TButton;
+    Ascii2HexButton: TButton;
+    Ascii2DeclButton: TButton;
+    Ascii2PascalDeclButton: TButton;
+    PascalDecl2AsciiButton: TButton;
+    Ascii2cButton: TButton;
+    c2AsciiButton: TButton;
+    procedure Hex2AsciiButtonClick(Sender: TObject);
+    procedure Ascii2HexButtonClick(Sender: TObject);
+    procedure Ascii2DeclButtonClick(Sender: TObject);
+    procedure Ascii2PascalDeclButtonClick(Sender: TObject);
+    procedure PascalDecl2AsciiButtonClick(Sender: TObject);
+    procedure Ascii2cButtonClick(Sender: TObject);
+    procedure c2AsciiButtonClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -39,13 +39,13 @@ implementation
 {$R *.dfm}
 
 
-procedure TStringTranslateForm.Button1Click(Sender: TObject);
+procedure TStringTranslateForm.Hex2AsciiButtonClick(Sender: TObject);
 var
   s, n: u_String;
   c: Char;
   output: string;
 begin
-  s := umlDeleteChar(Memo1.Text, #32#9#13#10'()[]{}');
+  s := Memo1.Text;
   output := '';
 
   while s <> '' do
@@ -59,7 +59,7 @@ begin
   Memo2.Text := output;
 end;
 
-procedure TStringTranslateForm.Button2Click(Sender: TObject);
+procedure TStringTranslateForm.Ascii2HexButtonClick(Sender: TObject);
 var
   s: string;
   c: Char;
@@ -90,7 +90,7 @@ begin
   Memo1.Text := output;
 end;
 
-procedure TStringTranslateForm.Button3Click(Sender: TObject);
+procedure TStringTranslateForm.Ascii2DeclButtonClick(Sender: TObject);
 var
   s: string;
   c: Char;
@@ -121,7 +121,7 @@ begin
   Memo1.Text := output;
 end;
 
-procedure TStringTranslateForm.Button4Click(Sender: TObject);
+procedure TStringTranslateForm.Ascii2PascalDeclButtonClick(Sender: TObject);
 var
   i: Integer;
 begin
@@ -135,12 +135,12 @@ begin
     end;
 end;
 
-procedure TStringTranslateForm.Button5Click(Sender: TObject);
+procedure TStringTranslateForm.PascalDecl2AsciiButtonClick(Sender: TObject);
 begin
   Memo2.Text:=EvaluateExpressionValue(tsPascal, Memo1.Text);
 end;
 
-procedure TStringTranslateForm.Button6Click(Sender: TObject);
+procedure TStringTranslateForm.Ascii2cButtonClick(Sender: TObject);
 var
   i: Integer;
 begin
@@ -154,7 +154,7 @@ begin
     end;
 end;
 
-procedure TStringTranslateForm.Button7Click(Sender: TObject);
+procedure TStringTranslateForm.c2AsciiButtonClick(Sender: TObject);
 begin
   Memo2.Text:=EvaluateExpressionValue(tsC, Memo1.Text);
 end;

@@ -97,11 +97,6 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
       OnExecute = ActionImportDirectoryExecute
     end
   end
-  object OpenDialog: TOpenDialog
-    Options = [ofHideReadOnly, ofAllowMultiSelect, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 224
-    Top = 128
-  end
   object PopupMenu: TPopupMenu
     Left = 224
     Top = 224
@@ -133,5 +128,12 @@ object ObjectDataManagerFrame: TObjectDataManagerFrame
   object SaveDialog: TSaveDialog
     Left = 224
     Top = 176
+  end
+  object OpenDialog: TFileOpenDialog
+    FavoriteLinks = <>
+    FileTypes = <>
+    Options = [fdoAllowMultiSelect, fdoPathMustExist, fdoFileMustExist]
+    Left = 224
+    Top = 128
   end
 end

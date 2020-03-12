@@ -18,7 +18,6 @@ type
     ActionRemove: TAction;
     ActionImportFile: TAction;
     TreePanel: TPanel;
-    OpenDialog: TOpenDialog;
     ActionRename: TAction;
     ActionExport: TAction;
     PopupMenu: TPopupMenu;
@@ -33,6 +32,7 @@ type
     N2: TMenuItem;
     ActionImportDirectory: TAction;
     ImportDirectory1: TMenuItem;
+    OpenDialog: TFileOpenDialog;
     procedure ActionCreateDirExecute(Sender: TObject);
     procedure ActionExportExecute(Sender: TObject);
     procedure ActionImportFileExecute(Sender: TObject);
@@ -66,7 +66,8 @@ type
     destructor Destroy; override;
     procedure UpdateItemList(APath: string);
 
-    procedure ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var showMsg: Boolean);
+    procedure ExportDBPathToPath(DBPath_, destDir_: string);
+    procedure ExportToFile(DBPath_, DBItem_, destDir_, destFileName_: string; var showMsg: Boolean);
     procedure ImportFromFile(FileName_: string; var showMsg: Boolean);
 
     property ResourceData: TObjectDataManager read FResourceData write SetResourceData;
@@ -114,11 +115,20 @@ begin
       Exit;
   if ListView.SelCount = 1 then
     begin
-      SaveDialog.FileName := ListView.Selected.Caption;
-      if not SaveDialog.Execute() then
-          Exit;
-      showMsg := True;
-      ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, umlGetFilePath(SaveDialog.FileName), umlGetFileName(SaveDialog.FileName), showMsg);
+      if ListView.Selected.ImageIndex = FDefaultFolderImageIndex then
+        begin
+          if not SelectDirectory('export to', '', destDir, [sdNewFolder, sdShowEdit, sdShowShares, sdNewUI]) then
+              Exit;
+          ExportDBPathToPath(umlCombineUnixPath(CurrentObjectDataPath, ListView.Selected.Caption), umlCombinePath(destDir, ListView.Selected.Caption));
+        end
+      else
+        begin
+          SaveDialog.FileName := ListView.Selected.Caption;
+          if not SaveDialog.Execute() then
+              Exit;
+          showMsg := True;
+          ExportToFile(CurrentObjectDataPath, ListView.Selected.Caption, umlGetFilePath(SaveDialog.FileName), umlGetFileName(SaveDialog.FileName), showMsg);
+        end;
     end
   else
     begin
@@ -132,7 +142,9 @@ begin
             begin
               if (Selected) or (ListView.SelCount = 0) then
                 begin
-                  if ImageIndex <> FDefaultFolderImageIndex then
+                  if ImageIndex = FDefaultFolderImageIndex then
+                      ExportDBPathToPath(umlCombineUnixPath(CurrentObjectDataPath, Caption), umlCombinePath(destDir, Caption))
+                  else
                       ExportToFile(CurrentObjectDataPath, Caption, destDir, Caption, showMsg);
                 end;
             end;
@@ -188,7 +200,7 @@ procedure TObjectDataManagerFrame.ActionImportDirectoryExecute(Sender: TObject);
         FResourceData.ItemFastCreate(fPos, umlGetFileName(n), '', itmHnd);
         itmHnd.Item.RHeader.CreateTime := umlGetFileTime(n);
         itmHnd.Item.RHeader.ModificationTime := itmHnd.Item.RHeader.CreateTime;
-        fs := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+        fs := TCoreClassFileStream.Create(n, fmOpenRead);
         itmStream := TItemStream.Create(FResourceData, itmHnd);
         DoStatus('import %s', [umlCombineFileName(DBPath, itmHnd.Name).Text]);
         try
@@ -448,7 +460,13 @@ begin
   ListView.Items.EndUpdate;
 end;
 
-procedure TObjectDataManagerFrame.ExportToFile(aDBPath, aDBItem, aToDirectory, aToName: string; var showMsg: Boolean);
+procedure TObjectDataManagerFrame.ExportDBPathToPath(DBPath_, destDir_: string);
+begin
+  if FResourceData <> nil then
+      FResourceData.ExpPathToDisk(DBPath_, destDir_, True);
+end;
+
+procedure TObjectDataManagerFrame.ExportToFile(DBPath_, DBItem_, destDir_, destFileName_: string; var showMsg: Boolean);
 var
   ItemHnd: TItemHandle;
   s: TItemStream;
@@ -456,27 +474,27 @@ var
 begin
   if FResourceData <> nil then
     begin
-      if not umlDirectoryExists(aToDirectory) then
-          umlCreateDirectory(aToDirectory);
+      if not umlDirectoryExists(destDir_) then
+          umlCreateDirectory(destDir_);
 
-      if (showMsg) and (umlFileExists(umlCombineFileName(aToDirectory, aToName))) then
+      if (showMsg) and (umlFileExists(umlCombineFileName(destDir_, destFileName_))) then
         begin
-          case MessageDlg(Format('File "%s" alread exists, overwirte?', [ExtractFilename(aToName)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
+          case MessageDlg(Format('File "%s" alread exists, overwirte?', [ExtractFilename(destFileName_)]), mtInformation, [mbYes, mbNo, mbAll], 0) of
             mrNo:
               Exit;
             mrAll:
               showMsg := False;
           end;
         end;
-      if FResourceData.ItemOpen(aDBPath, aDBItem, ItemHnd) then
+      if FResourceData.ItemOpen(DBPath_, DBItem_, ItemHnd) then
         begin
           s := TItemStream.Create(FResourceData, ItemHnd);
-          fs := TFileStream.Create(umlCombineFileName(aToDirectory, aToName), fmCreate);
+          fs := TFileStream.Create(umlCombineFileName(destDir_, destFileName_), fmCreate);
           fs.CopyFrom(s, s.Size);
           fs.Free;
           s.Free;
-          umlSetFileTime(umlCombineFileName(aToDirectory, aToName), ItemHnd.Item.RHeader.CreateTime);
-          DoStatus('export file:%s', [umlCombineFileName(aToDirectory, aToName).Text]);
+          umlSetFileTime(umlCombineFileName(destDir_, destFileName_), ItemHnd.Item.RHeader.CreateTime);
+          DoStatus('export file:%s', [umlCombineFileName(destDir_, destFileName_).Text]);
         end;
     end;
 end;

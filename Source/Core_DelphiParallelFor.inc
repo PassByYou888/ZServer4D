@@ -1,16 +1,20 @@
 {$IFDEF SystemParallel}
 
 
-procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32);
+procedure DelphiParallelFor(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32);
 var
   i_: Integer;
 begin
   if b > e then
       exit;
-  if ParallelOverflow.Busy() then
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
-      for i_ := b to e do
+      i_ := b;
+      while i_ <= e do
+        begin
           OnFor(i_);
+          inc(i_);
+        end;
       exit;
     end;
   ParallelOverflow.Acquire;
@@ -21,16 +25,20 @@ begin
   end;
 end;
 
-procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64);
+procedure DelphiParallelFor(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64);
 var
   i_: Int64;
 begin
   if b > e then
       exit;
-  if ParallelOverflow.Busy() then
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
-      for i_ := b to e do
+      i_ := b;
+      while i_ <= e do
+        begin
           OnFor(i_);
+          inc(i_);
+        end;
       exit;
     end;
   ParallelOverflow.Acquire;
@@ -72,7 +80,7 @@ begin
   dispose(p);
 end;
 
-procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32);
+procedure DelphiParallelFor(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32);
 var
   Total, Depth, Completed, StepTotal, stepW, Pass, w: Integer;
   p: PDelphiParallelThData32;
@@ -81,12 +89,15 @@ var
 begin
   if b > e then
       exit;
-  if (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
       i_ := b;
       while i_ <= e do
         begin
-          OnFor(i_);
+          try
+              OnFor(i_);
+          except
+          end;
           inc(i_);
         end;
       exit;
@@ -186,7 +197,7 @@ begin
   dispose(p);
 end;
 
-procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64);
+procedure DelphiParallelFor(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64);
 var
   Total, Depth, Completed, StepTotal, stepW, Pass, w: Int64;
   p: PDelphiParallelThData64;
@@ -195,12 +206,15 @@ var
 begin
   if b > e then
       exit;
-  if (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
       i_ := b;
       while i_ <= e do
         begin
-          OnFor(i_);
+          try
+              OnFor(i_);
+          except
+          end;
           inc(i_);
         end;
       exit;
@@ -270,8 +284,19 @@ begin
       ParallelOverflow.Release;
   end;
 end;
+
 {$ENDIF SystemParallel}
 
+
+procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32);
+begin
+  DelphiParallelFor(True, b, e, OnFor);
+end;
+
+procedure DelphiParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64);
+begin
+  DelphiParallelFor(True, b, e, OnFor);
+end;
 
 procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure32; b, e: Integer);
 begin
@@ -281,4 +306,14 @@ end;
 procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure64; b, e: Int64);
 begin
   DelphiParallelFor(b, e, OnFor);
+end;
+
+procedure DelphiParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure32; b, e: Integer);
+begin
+  DelphiParallelFor(parallel, b, e, OnFor);
+end;
+
+procedure DelphiParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure64; b, e: Int64);
+begin
+  DelphiParallelFor(parallel, b, e, OnFor);
 end;
