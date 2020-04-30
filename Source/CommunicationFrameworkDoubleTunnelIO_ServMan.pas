@@ -67,7 +67,7 @@ type
     ConnectInfo: TServerManager_ClientConnectInfo;
     ReconnectTotal: Integer;
 
-    constructor Create(AOwner: TServerManager_ClientPool);
+    constructor Create(Owner_: TServerManager_ClientPool);
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -113,7 +113,7 @@ type
 
   TServerManager_SendTunnelData = class(TPeerClientUserDefineForSendTunnel_NoAuth)
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -126,7 +126,7 @@ type
     ServerType: TServerType;
     SuccessEnabled: Boolean;
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     procedure WriteConfig(t: TSectionTextData);
@@ -238,9 +238,9 @@ begin
   ProgressEngine.PostExecuteM(InData, {$IFDEF FPC}@{$ENDIF FPC}PostExecute_Offline);
 end;
 
-constructor TServerManager_Client.Create(AOwner: TServerManager_ClientPool);
+constructor TServerManager_Client.Create(Owner_: TServerManager_ClientPool);
 begin
-  Owner := AOwner;
+  Owner := Owner_;
   NetRecvTunnelIntf := Owner.DefaultClientClass.Create;
   NetSendTunnelIntf := Owner.DefaultClientClass.Create;
   NetSendTunnelIntf.PrintParams[C_AntiIdle] := False;
@@ -506,9 +506,9 @@ begin
       DisposeObject(c);
 end;
 
-constructor TServerManager_SendTunnelData.Create(AOwner: TPeerIO);
+constructor TServerManager_SendTunnelData.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
 end;
 
 destructor TServerManager_SendTunnelData.Destroy;
@@ -516,9 +516,9 @@ begin
   inherited Destroy;
 end;
 
-constructor TServerManager_RecvTunnelData.Create(AOwner: TPeerIO);
+constructor TServerManager_RecvTunnelData.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   Regname := '';
   RegAddr := '';
   RegRecvPort := 0;

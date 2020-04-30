@@ -1,4 +1,4 @@
-unit DCliFrm;
+ï»¿unit DCliFrm;
 
 interface
 
@@ -41,13 +41,13 @@ type
     procedure cmd_ChangeCaption(Sender: TPeerClient; InData: TDataFrameEngine);
     procedure cmd_GetClientValue(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
   public
-    // vmËíµÀ
-    // vmËíµÀ¿ÉÒÔÔÚ×ÔÉúÕı³£¹¤×÷ÖĞ£¬Í¬Ê±´øÆğÕû¸öĞ­ÒéÕ»µÄ¹¤×÷
-    // ÎÒÃÇÔÚÕâÀï»á½«RecvTunnel+SendTunnelÍ¬Ê±°ó¶¨ÔÚVMTunnelÖĞ£¬Ö»ÓÃÒ»¸öÁ´½ÓÊµÏÖË«Í¨µÀ·şÎñ
-    // vmËíµÀ¿ÉÒÔÊÇÈÎºÎsocket´²¼Ü£¬indy£¬ics£¬crossSocket£¬µÈµÈ¾ùÖ§³ÖvmËíµÀ
+    // vméš§é“
+    // vméš§é“å¯ä»¥åœ¨è‡ªç”Ÿæ­£å¸¸å·¥ä½œä¸­ï¼ŒåŒæ—¶å¸¦èµ·æ•´ä¸ªåè®®æ ˆçš„å·¥ä½œ
+    // æˆ‘ä»¬åœ¨è¿™é‡Œä¼šå°†RecvTunnel+SendTunnelåŒæ—¶ç»‘å®šåœ¨VMTunnelä¸­ï¼Œåªç”¨ä¸€ä¸ªé“¾æ¥å®ç°åŒé€šé“æœåŠ¡
+    // vméš§é“å¯ä»¥æ˜¯ä»»ä½•socketåºŠæ¶ï¼Œindyï¼Œicsï¼ŒcrossSocketï¼Œç­‰ç­‰å‡æ”¯æŒvméš§é“
     VMTunnel: TCommunicationFrameworkClient;
 
-    // zsÕı³£µÄÍ¨Ñ¶¿ò¼Ü
+    // zsæ­£å¸¸çš„é€šè®¯æ¡†æ¶
     RecvTunnel: TCommunicationFrameworkWithP2PVM_Client;
     SendTunnel: TCommunicationFrameworkWithP2PVM_Client;
     client: TCommunicationFramework_DoubleTunnelClient;
@@ -68,14 +68,14 @@ end;
 
 procedure TAuthDoubleTunnelClientForm.fixedTimeButtonClick(Sender: TObject);
 begin
-  // ¸ßËÙÍ¬²½£¬²»¾­¹ıProgress´¥·¢
-  // ÕâÑù¸ÉÊÇ½«Ê±¼äµÄÑÓ³ÙÂÊ½µµÍµ½×îĞ¡
+  // é«˜é€ŸåŒæ­¥ï¼Œä¸ç»è¿‡Progressè§¦å‘
+  // è¿™æ ·å¹²æ˜¯å°†æ—¶é—´çš„å»¶è¿Ÿç‡é™ä½åˆ°æœ€å°
   client.SendTunnel.SyncOnResult := True;
   client.SyncCadencer;
   client.SendTunnel.WaitP(1000, procedure(const cState: Boolean)
     begin
-      // ÒòÎª´ò¿ªÁËSyncOnResultºó£¬ÄäÃûº¯Êı»á³öÏÖÇ¶Ì×ËÀËø
-      // ÎÒÃÇÏÖÔÚ¹Ø±ÕËü£¬ÒÔ±£Ö¤ÄäÃûº¯ÊıµÄÇ¶Ì×Ö´ĞĞ
+      // å› ä¸ºæ‰“å¼€äº†SyncOnResultåï¼ŒåŒ¿åå‡½æ•°ä¼šå‡ºç°åµŒå¥—æ­»é”
+      // æˆ‘ä»¬ç°åœ¨å…³é—­å®ƒï¼Œä»¥ä¿è¯åŒ¿åå‡½æ•°çš„åµŒå¥—æ‰§è¡Œ
       client.SendTunnel.SyncOnResult := False;
     end);
 end;
@@ -84,19 +84,19 @@ procedure TAuthDoubleTunnelClientForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
 
-  // vmËíµÀ
-  // vmËíµÀ¿ÉÒÔÔÚ×ÔÉúÕı³£¹¤×÷ÖĞ£¬Í¬Ê±´øÆğÕû¸öĞ­ÒéÕ»µÄ¹¤×÷
-  // ÎÒÃÇÔÚÕâÀï»á½«RecvTunnel+SendTunnelÍ¬Ê±°ó¶¨ÔÚVMTunnelÖĞ£¬Ö»ÓÃÒ»¸öÁ´½ÓÊµÏÖË«Í¨µÀ·şÎñ
+  // vméš§é“
+  // vméš§é“å¯ä»¥åœ¨è‡ªç”Ÿæ­£å¸¸å·¥ä½œä¸­ï¼ŒåŒæ—¶å¸¦èµ·æ•´ä¸ªåè®®æ ˆçš„å·¥ä½œ
+  // æˆ‘ä»¬åœ¨è¿™é‡Œä¼šå°†RecvTunnel+SendTunnelåŒæ—¶ç»‘å®šåœ¨VMTunnelä¸­ï¼Œåªç”¨ä¸€ä¸ªé“¾æ¥å®ç°åŒé€šé“æœåŠ¡
   VMTunnel := TCommunicationFramework_Client_CrossSocket.Create;
 
-  // zsÕı³£µÄÍ¨Ñ¶¿ò¼Ü
+  // zsæ­£å¸¸çš„é€šè®¯æ¡†æ¶
   RecvTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
   SendTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
   client := TCommunicationFramework_DoubleTunnelClient.Create(RecvTunnel, SendTunnel);
 
   client.RegisterCommand;
 
-  // ×¢²á¿ÉÒÔÓÉ·şÎñÆ÷·¢ÆğµÄÍ¨Ñ¶Ö¸Áî
+  // æ³¨å†Œå¯ä»¥ç”±æœåŠ¡å™¨å‘èµ·çš„é€šè®¯æŒ‡ä»¤
   client.RecvTunnel.RegisterDirectStream('ChangeCaption').OnExecute := cmd_ChangeCaption;
   client.RecvTunnel.RegisterStream('GetClientValue').OnExecute := cmd_GetClientValue;
 end;
@@ -111,16 +111,16 @@ procedure TAuthDoubleTunnelClientForm.HelloWorldBtnClick(Sender: TObject);
 var
   SendDe, ResultDE: TDataFrameEngine;
 begin
-  // Íù·şÎñÆ÷·¢ËÍÒ»ÌõconsoleĞÎÊ½µÄhello worldÖ¸Áî
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡consoleå½¢å¼çš„hello worldæŒ‡ä»¤
   client.SendTunnel.SendDirectConsoleCmd('helloWorld_Console', '');
 
-  // Íù·şÎñÆ÷·¢ËÍÒ»ÌõstreamĞÎÊ½µÄhello worldÖ¸Áî
+  // å¾€æœåŠ¡å™¨å‘é€ä¸€æ¡streamå½¢å¼çš„hello worldæŒ‡ä»¤
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('directstream 123456');
   client.SendTunnel.SendDirectStreamCmd('helloWorld_Stream', SendDe);
   DisposeObject([SendDe]);
 
-  // Òì²½·½Ê½·¢ËÍ£¬²¢ÇÒ½ÓÊÕStreamÖ¸Áî£¬·´À¡ÒÔproc»Øµ÷´¥·¢
+  // å¼‚æ­¥æ–¹å¼å‘é€ï¼Œå¹¶ä¸”æ¥æ”¶StreamæŒ‡ä»¤ï¼Œåé¦ˆä»¥procå›è°ƒè§¦å‘
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
   client.SendTunnel.SendStreamCmdP('helloWorld_Stream_Result', SendDe,
@@ -131,7 +131,7 @@ begin
     end);
   DisposeObject([SendDe]);
 
-  // ×èÈû·½Ê½·¢ËÍ£¬²¢ÇÒ½ÓÊÕStreamÖ¸Áî
+  // é˜»å¡æ–¹å¼å‘é€ï¼Œå¹¶ä¸”æ¥æ”¶StreamæŒ‡ä»¤
   SendDe := TDataFrameEngine.Create;
   ResultDE := TDataFrameEngine.Create;
   SendDe.WriteString('123456');
@@ -176,7 +176,7 @@ begin
   SendTunnel.Connect('::', 2);
   RecvTunnel.Connect('::', 1);
 
-  // ¼ì²éË«Í¨µÀÊÇ·ñ¶¼ÒÑ¾­³É¹¦Á´½Ó£¬È·±£Íê³ÉÁË¶Ô³Æ¼ÓÃÜµÈµÈ³õÊ¼»¯¹¤×÷
+  // æ£€æŸ¥åŒé€šé“æ˜¯å¦éƒ½å·²ç»æˆåŠŸé“¾æ¥ï¼Œç¡®ä¿å®Œæˆäº†å¯¹ç§°åŠ å¯†ç­‰ç­‰åˆå§‹åŒ–å·¥ä½œ
   while (not client.RemoteInited) and (client.Connected) do
     begin
       TThread.Sleep(10);
@@ -185,7 +185,7 @@ begin
 
   if client.Connected then
     begin
-      // Ç¶Ì×Ê½ÄäÃûº¯ÊıÖ§³Ö
+      // åµŒå¥—å¼åŒ¿åå‡½æ•°æ”¯æŒ
       client.UserLoginP(UserEdit.Text, PasswdEdit.Text,
         procedure(const State: Boolean)
         begin
@@ -210,8 +210,8 @@ begin
               begin
                 if VMauthState then
                   begin
-                    // ½«¿Í»§¶Ë¿ò¼Ü°ó¶¨µ½ËíµÀÖĞ
-                    // ÕâÀïÓĞÁ½¸ö¿Í»§¶Ë£¬ÎÒÃÇ¶¼°ó¶¨½øÈ¥
+                    // å°†å®¢æˆ·ç«¯æ¡†æ¶ç»‘å®šåˆ°éš§é“ä¸­
+                    // è¿™é‡Œæœ‰ä¸¤ä¸ªå®¢æˆ·ç«¯ï¼Œæˆ‘ä»¬éƒ½ç»‘å®šè¿›å»
                     VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(SendTunnel);
                     VMTunnel.ClientIO.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
                   end;
@@ -222,14 +222,14 @@ end;
 
 procedure TAuthDoubleTunnelClientForm.AsyncConnectButtonClick(Sender: TObject);
 begin
-  // Òì²½Ê½Ë«Í¨µÀÁ´½Ó
+  // å¼‚æ­¥å¼åŒé€šé“é“¾æ¥
   client.AsyncConnectP('::', 1, 2,
     procedure(const cState: Boolean)
     begin
       if cState then
         begin
           DoStatus('connected success!');
-          // Ç¶Ì×Ê½ÄäÃûº¯ÊıÖ§³Ö
+          // åµŒå¥—å¼åŒ¿åå‡½æ•°æ”¯æŒ
           client.UserLoginP(UserEdit.Text, PasswdEdit.Text,
             procedure(const lState: Boolean)
             begin

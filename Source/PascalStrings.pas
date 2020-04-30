@@ -101,6 +101,9 @@ type
     function Same(const t1, t2, t3: TPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4: TPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7, t8: TPascalString): Boolean; overload;
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const p: PPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const t: TPascalString): Boolean; overload;
@@ -110,6 +113,7 @@ type
     function Exists(c: array of SystemChar): Boolean; overload;
     function Exists(const s: TPascalString): Boolean; overload;
     function GetCharCount(c: SystemChar): Integer;
+    function IsVisibledASCII: Boolean;
 
     function hash: THash;
     function Hash64: THash64;
@@ -142,7 +146,8 @@ type
     function BuildPlatformPChar: Pointer;
     class procedure FreePlatformPChar(p: Pointer); static;
 
-    class function RandomString(L_: Integer): TPascalString; static;
+    class function RandomString(rnd: TRandom; L_: Integer): TPascalString; overload; static;
+    class function RandomString(L_: Integer): TPascalString; overload; static;
 
     { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
     function SmithWaterman(const p: PPascalString): Double; overload;
@@ -165,7 +170,8 @@ type
   TArrayPascalStringPtr = array of PPascalString;
   PArrayPascalStringPtr = ^TArrayPascalStringPtr;
 
-  TPStr = TPascalString;
+  TPasStr = TPascalString;
+  PPasStr = PPascalString;
 
 function CharIn(c: SystemChar; const SomeChars: array of SystemChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeChar: SystemChar): Boolean; overload;
@@ -175,6 +181,8 @@ function CharIn(c: SystemChar; const SomeCharsets: TOrdChars): Boolean; overload
 function CharIn(c: SystemChar; const SomeCharset: TOrdChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload;
 function CharIn(c: SystemChar; const SomeCharsets: TOrdChars; const p: PPascalString): Boolean; overload;
+function TextIs(t: TPascalString; const SomeCharsets: TOrdChars): Boolean; overload;
+function TextIs(t: TPascalString; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean; overload;
 
 function FastHashPSystemString(const s: PSystemString): THash; overload;
 function FastHash64PSystemString(const s: PSystemString): THash64; overload;
@@ -379,7 +387,7 @@ begin
     cHex: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF)) or ((v >= ord0) and (v <= ord9));
     cAtoF: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF));
     cAtoZ: Result := ((v >= ordLA) and (v <= ordLZ)) or ((v >= ordHA) and (v <= ordHZ));
-    cVisibled: Result := (v <= $20) and (v <= $7E);
+    cVisibled: Result := (v >= $20) and (v <= $7E);
     else Result := False;
   end;
 end;
@@ -409,6 +417,28 @@ begin
       Result := True
   else
       Result := CharIn(c, p);
+end;
+
+function TextIs(t: TPascalString; const SomeCharsets: TOrdChars): Boolean;
+var
+  c: SystemChar;
+begin
+  Result := False;
+  for c in t.buff do
+    if not CharIn(c, SomeCharsets) then
+        Exit;
+  Result := True;
+end;
+
+function TextIs(t: TPascalString; const SomeCharsets: TOrdChars; const SomeChars: TPascalString): Boolean;
+var
+  c: SystemChar;
+begin
+  Result := False;
+  for c in t.buff do
+    if not CharIn(c, SomeCharsets, SomeChars) then
+        Exit;
+  Result := True;
 end;
 
 function BytesOfPascalString(const s: TPascalString): TBytes;
@@ -1682,6 +1712,21 @@ begin
   Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5);
 end;
 
+function TPascalString.Same(const t1, t2, t3, t4, t5, t6: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6);
+end;
+
+function TPascalString.Same(const t1, t2, t3, t4, t5, t6, t7: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7);
+end;
+
+function TPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8);
+end;
+
 function TPascalString.Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean;
 var
   i: Integer;
@@ -1816,6 +1861,17 @@ begin
   for i := low(buff) to high(buff) do
     if CharIn(buff[i], c) then
         inc(Result);
+end;
+
+function TPascalString.IsVisibledASCII: Boolean;
+var
+  c: SystemChar;
+begin
+  Result := False;
+  for c in buff do
+    if not CharIn(c, cVisibled) then
+        Exit;
+  Result := True;
 end;
 
 function TPascalString.hash: THash;
@@ -2042,6 +2098,15 @@ end;
 class procedure TPascalString.FreePlatformPChar(p: Pointer);
 begin
   FreeMemory(p);
+end;
+
+class function TPascalString.RandomString(rnd: TRandom; L_: Integer): TPascalString;
+var
+  i: Integer;
+begin
+  Result.L := L_;
+  for i := 1 to L_ do
+      Result[i] := SystemChar(rnd.Rand32($7E - $20) + $20);
 end;
 
 class function TPascalString.RandomString(L_: Integer): TPascalString;

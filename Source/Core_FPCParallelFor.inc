@@ -1,23 +1,26 @@
 type
-  TFPCParallelThData32 = record
+  TFPCParallelThData32_Block = record
     b, e: Integer;
     Completed: ^Integer;
     OnFor: TFPCParallelForProcedure32;
     Critical: TCritical;
   end;
 
-  PFPCParallelThData32 = ^TFPCParallelThData32;
+  PFPCParallelThData32_Block = ^TFPCParallelThData32_Block;
 
-procedure FPCParallelTh32(ThSender: TComputeThread);
+procedure FPCParallelTh32_Block(ThSender: TComputeThread);
 var
-  p: PFPCParallelThData32;
+  p: PFPCParallelThData32_Block;
   Pass: Integer;
 begin
   p := ThSender.UserData;
   Pass := p^.b;
   while Pass <= p^.e do
     begin
-      p^.OnFor(Pass);
+      try
+          p^.OnFor(Pass);
+      except
+      end;
       inc(Pass);
     end;
 
@@ -27,25 +30,25 @@ begin
   dispose(p);
 end;
 
-procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure32; b, e: Integer);
+procedure FPCParallelFor_Block(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32);
 var
   Total, Depth, Completed, StepTotal, stepW, Pass, w: Integer;
-  p: PFPCParallelThData32;
-  i_: Integer;
+  p: PFPCParallelThData32_Block;
+  i: Integer;
   Critical: TCritical;
 begin
   if b > e then
       exit;
   if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
-      i_ := b;
-      while i_ <= e do
+      i := b;
+      while i <= e do
         begin
           try
-              OnFor(i_);
+              OnFor(i);
           except
           end;
-          inc(i_);
+          inc(i);
         end;
       exit;
     end;
@@ -68,7 +71,7 @@ begin
             p^.Completed := @Completed;
             p^.OnFor := OnFor;
             p^.Critical := Critical;
-            TComputeThread.RunC(p, nil, @FPCParallelTh32);
+            TComputeThread.RunC(p, nil, @FPCParallelTh32_Block);
             inc(Pass);
           end;
       end
@@ -97,7 +100,7 @@ begin
             p^.Completed := @Completed;
             p^.OnFor := OnFor;
             p^.Critical := Critical;
-            TComputeThread.RunC(p, nil, @FPCParallelTh32);
+            TComputeThread.RunC(p, nil, @FPCParallelTh32_Block);
             inc(Pass);
           end;
       end;
@@ -116,25 +119,28 @@ begin
 end;
 
 type
-  TFPCParallelThData64 = record
+  TFPCParallelThData64_Block = record
     b, e: Int64;
     Completed: ^Int64;
     OnFor: TFPCParallelForProcedure64;
     Critical: TCritical;
   end;
 
-  PFPCParallelThData64 = ^TFPCParallelThData64;
+  PFPCParallelThData64_Block = ^TFPCParallelThData64_Block;
 
-procedure FPCParallelTh64(ThSender: TComputeThread);
+procedure FPCParallelTh64_Block(ThSender: TComputeThread);
 var
-  p: PFPCParallelThData64;
+  p: PFPCParallelThData64_Block;
   Pass: Int64;
 begin
   p := ThSender.UserData;
   Pass := p^.b;
   while Pass <= p^.e do
     begin
-      p^.OnFor(Pass);
+      try
+          p^.OnFor(Pass);
+      except
+      end;
       inc(Pass);
     end;
 
@@ -144,25 +150,25 @@ begin
   dispose(p);
 end;
 
-procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure64; b, e: Int64);
+procedure FPCParallelFor_Block(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64);
 var
   Total, Depth, Completed, StepTotal, stepW, Pass, w: Int64;
-  p: PFPCParallelThData64;
-  i_: Int64;
+  p: PFPCParallelThData64_Block;
+  i: Int64;
   Critical: TCritical;
 begin
   if b > e then
       exit;
   if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
     begin
-      i_ := b;
-      while i_ <= e do
+      i := b;
+      while i <= e do
         begin
           try
-              OnFor(i_);
+              OnFor(i);
           except
           end;
-          inc(i_);
+          inc(i);
         end;
       exit;
     end;
@@ -185,7 +191,7 @@ begin
             p^.Completed := @Completed;
             p^.OnFor := OnFor;
             p^.Critical := Critical;
-            TComputeThread.RunC(p, nil, @FPCParallelTh64);
+            TComputeThread.RunC(p, nil, @FPCParallelTh64_Block);
             inc(Pass);
           end;
       end
@@ -214,7 +220,7 @@ begin
             p^.Completed := @Completed;
             p^.OnFor := OnFor;
             p^.Critical := Critical;
-            TComputeThread.RunC(p, nil, @FPCParallelTh64);
+            TComputeThread.RunC(p, nil, @FPCParallelTh64_Block);
             inc(Pass);
           end;
       end;
@@ -232,32 +238,272 @@ begin
   end;
 end;
 
-procedure FPCParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer);
+type
+  TFPCParallelThData32_Fold = record
+    Pass: Int64;
+    Total, Granularity: Integer;
+    Completed: Boolean;
+    OnFor: TFPCParallelForProcedure32;
+    Critical: TCritical;
+  end;
+
+  PFPCParallelThData32_Fold = ^TFPCParallelThData32_Fold;
+
+procedure FPCParallelTh32_Fold(ThSender: TComputeThread);
+var
+  p: PFPCParallelThData32_Fold;
 begin
-  FPCParallelFor(True, OnFor, b, e);
+  p := ThSender.UserData;
+  with p^ do
+    while Pass <= Total do
+      begin
+        try
+            OnFor(Pass);
+        except
+        end;
+        inc(Pass, Granularity);
+      end;
+
+  p^.Critical.Acquire;
+  p^.Completed := True;
+  p^.Critical.Release;
 end;
 
-procedure FPCParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64);
+procedure FPCParallelFor_Fold(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32);
+var
+  p: PFPCParallelThData32_Fold;
+  i, Depth: Integer;
+  Critical: TCritical;
+  states: array of TFPCParallelThData32_Fold;
+  Completed: Boolean;
 begin
-  FPCParallelFor(True, OnFor, b, e);
+  if b > e then
+      exit;
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
+    begin
+      i := b;
+      while i <= e do
+        begin
+          try
+              OnFor(i);
+          except
+          end;
+          inc(i);
+        end;
+      exit;
+    end;
+  ParallelOverflow.Acquire;
+  try
+    Critical := TCritical.Create;
+    Depth := Min(ParallelGranularity, e - b + 1);
+    SetLength(states, Depth);
+
+    for i := 0 to Length(states) - 1 do
+      begin
+        p := @states[i];
+        p^.Pass := b + i;
+        p^.Total := e;
+        p^.Granularity := ParallelGranularity;
+        p^.Completed := False;
+        p^.OnFor := OnFor;
+        p^.Critical := Critical;
+        TComputeThread.RunC(p, nil, @FPCParallelTh32_Fold);
+      end;
+
+    repeat
+      TThread.Sleep(1);
+      Critical.Acquire;
+      Completed := True;
+      i := 0;
+      while i < Length(states) do
+        begin
+          Completed := Completed and states[i].Completed;
+          inc(i);
+        end;
+      Critical.Release;
+    until Completed;
+
+    Critical.Free;
+  finally
+      ParallelOverflow.Release;
+  end;
 end;
 
-procedure FPCParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32);
+type
+  TFPCParallelThData64_Fold = record
+    Pass: Int64;
+    Total, Granularity: Int64;
+    Completed: Boolean;
+    OnFor: TFPCParallelForProcedure64;
+    Critical: TCritical;
+  end;
+
+  PFPCParallelThData64_Fold = ^TFPCParallelThData64_Fold;
+
+procedure FPCParallelTh64_Fold(ThSender: TComputeThread);
+var
+  p: PFPCParallelThData64_Fold;
 begin
-  FPCParallelFor(OnFor, b, e);
+  p := ThSender.UserData;
+  with p^ do
+    while Pass <= Total do
+      begin
+        try
+            OnFor(Pass);
+        except
+        end;
+        inc(Pass, Granularity);
+      end;
+
+  p^.Critical.Acquire;
+  p^.Completed := True;
+  p^.Critical.Release;
 end;
 
-procedure FPCParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64);
+procedure FPCParallelFor_Fold(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64);
+var
+  p: PFPCParallelThData64_Fold;
+  i, Depth: Int64;
+  Critical: TCritical;
+  states: array of TFPCParallelThData64_Fold;
+  Completed: Boolean;
 begin
-  FPCParallelFor(OnFor, b, e);
+  if b > e then
+      exit;
+  if (not parallel) or (not WorkInParallelCore.V) or ParallelOverflow.Busy() then
+    begin
+      i := b;
+      while i <= e do
+        begin
+          try
+              OnFor(i);
+          except
+          end;
+          inc(i);
+        end;
+      exit;
+    end;
+  ParallelOverflow.Acquire;
+  try
+    Critical := TCritical.Create;
+    Depth := Min(ParallelGranularity, e - b + 1);
+    SetLength(states, Depth);
+
+    for i := 0 to Length(states) - 1 do
+      begin
+        p := @states[i];
+        p^.Pass := b + i;
+        p^.Total := e;
+        p^.Granularity := ParallelGranularity;
+        p^.Completed := False;
+        p^.OnFor := OnFor;
+        p^.Critical := Critical;
+        TComputeThread.RunC(p, nil, @FPCParallelTh64_Fold);
+      end;
+
+    repeat
+      TThread.Sleep(1);
+      Critical.Acquire;
+      Completed := True;
+      i := 0;
+      while i < Length(states) do
+        begin
+          Completed := Completed and states[i].Completed;
+          inc(i);
+        end;
+      Critical.Release;
+    until Completed;
+
+    Critical.Free;
+  finally
+      ParallelOverflow.Release;
+  end;
 end;
 
 procedure FPCParallelFor(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32);
 begin
-  FPCParallelFor(parallel, OnFor, b, e);
+{$IFDEF FoldParallel}
+  FPCParallelFor_Fold(parallel, b, e, OnFor);
+{$ELSE FoldParallel}
+  FPCParallelFor_Block(parallel, b, e, OnFor);
+{$ENDIF FoldParallel}
 end;
 
 procedure FPCParallelFor(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64);
 begin
-  FPCParallelFor(parallel, OnFor, b, e);
+{$IFDEF FoldParallel}
+  FPCParallelFor_Fold(parallel, b, e, OnFor);
+{$ELSE FoldParallel}
+  FPCParallelFor_Block(parallel, b, e, OnFor);
+{$ENDIF FoldParallel}
+end;
+
+procedure FPCParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32);
+begin
+  FPCParallelFor(True, b, e, OnFor);
+end;
+
+procedure FPCParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64);
+begin
+  FPCParallelFor(True, b, e, OnFor);
+end;
+
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer);
+begin
+  FPCParallelFor(b, e, OnFor);
+end;
+
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64);
+begin
+  FPCParallelFor(b, e, OnFor);
+end;
+
+procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure32; b, e: Integer);
+begin
+  FPCParallelFor(parallel, b, e, OnFor);
+end;
+
+procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure64; b, e: Int64);
+begin
+  FPCParallelFor(parallel, b, e, OnFor);
+end;
+
+procedure ParallelFor(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32);
+begin
+  FPCParallelFor(parallel, b, e, OnFor);
+end;
+
+procedure ParallelFor(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64);
+begin
+  FPCParallelFor(parallel, b, e, OnFor);
+end;
+
+procedure ParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32);
+begin
+  FPCParallelFor(True, b, e, OnFor);
+end;
+
+procedure ParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64);
+begin
+  FPCParallelFor(True, b, e, OnFor);
+end;
+
+procedure ParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer);
+begin
+  FPCParallelFor(b, e, OnFor);
+end;
+
+procedure ParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64);
+begin
+  FPCParallelFor(b, e, OnFor);
+end;
+
+procedure ParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure32; b, e: Integer);
+begin
+  FPCParallelFor(parallel, b, e, OnFor);
+end;
+
+procedure ParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure64; b, e: Int64);
+begin
+  FPCParallelFor(parallel, b, e, OnFor);
 end;

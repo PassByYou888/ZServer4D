@@ -98,7 +98,7 @@ type
     procedure PhysicsOpenVM_Result(const cState: Boolean);
     procedure IPV6Listen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -581,9 +581,9 @@ begin
   XNAT.WaitAsyncConnecting := False;
 end;
 
-constructor TPhysicsEngine_Special.Create(AOwner: TPeerIO);
+constructor TPhysicsEngine_Special.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   XNAT := nil;
 end;
 

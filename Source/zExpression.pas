@@ -297,8 +297,8 @@ function EStrToDouble(s: U_String; default: Double): Double;
 
 // print
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;
-procedure DoStatus(v: TExpressionValueVector); overload;
-procedure DoStatus(v: TExpressionValueMatrix); overload;
+procedure DoStatusE(v: TExpressionValueVector); overload;
+procedure DoStatusE(v: TExpressionValueMatrix); overload;
 
 // test
 procedure EvaluateExpressionVectorAndMatrix_test_;
@@ -3247,7 +3247,7 @@ begin
   Result := Result.TrimChar(', ');
 end;
 
-procedure DoStatus(v: TExpressionValueVector);
+procedure DoStatusE(v: TExpressionValueVector);
 var
   i: Integer;
 begin
@@ -3256,12 +3256,12 @@ begin
   DoStatusNoLn;
 end;
 
-procedure DoStatus(v: TExpressionValueMatrix);
+procedure DoStatusE(v: TExpressionValueMatrix);
 var
   i: Integer;
 begin
   for i := 0 to high(v) do
-      DoStatus(v[i]);
+      DoStatusE(v[i]);
 end;
 
 procedure EvaluateExpressionVectorAndMatrix_test_;

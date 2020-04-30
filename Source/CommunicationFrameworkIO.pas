@@ -43,7 +43,7 @@ type
     UserDBIntf: THashVariantList;
     LoginSuccessed: Boolean;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     function MakeFilePath(fn: SystemString): SystemString;
@@ -112,9 +112,9 @@ const
   C_UserLogin = 'UserLogin';
   C_RegisterUser = 'RegisterUser';
 
-constructor TPeerClientUserDefineForIO.Create(AOwner: TPeerIO);
+constructor TPeerClientUserDefineForIO.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   UserFlag := '';
   UserID := '';
   UserPath := '';

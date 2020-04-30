@@ -49,7 +49,7 @@ type
     FDataStoreCipherSecurity: TCipherSecurity;
     FDataStoreCipherKey: TCipherKeyBuffer;
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     procedure Progress; override;
@@ -63,7 +63,7 @@ type
 
   TDataStoreService_PeerClientSendTunnel_NoAuth = class(TPeerClientUserDefineForSendTunnel_NoAuth)
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     function RecvTunnelDefine: TDataStoreService_PeerClientRecvTunnel_NoAuth;
@@ -401,7 +401,7 @@ const
   C_QueryPause = '__@QueryPause';
   C_QueryPlay = '__@QueryPlay';
 
-constructor TDataStoreService_PeerClientRecvTunnel_NoAuth.Create(AOwner: TPeerIO);
+constructor TDataStoreService_PeerClientRecvTunnel_NoAuth.Create(Owner_: TPeerIO);
 type
   TCipherDef = array [0 .. 4] of TCipherSecurity;
 const
@@ -409,7 +409,7 @@ const
 var
   kref: TInt64;
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   FPostPerformaceCounter := 0;
   FLastPostPerformaceTime := GetTimeTick;
   FPostCounterOfPerSec := 0;
@@ -459,9 +459,9 @@ begin
   SequEncryptCBC(FDataStoreCipherSecurity, sour, Size, FDataStoreCipherKey, Encrypt, True);
 end;
 
-constructor TDataStoreService_PeerClientSendTunnel_NoAuth.Create(AOwner: TPeerIO);
+constructor TDataStoreService_PeerClientSendTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
 end;
 
 destructor TDataStoreService_PeerClientSendTunnel_NoAuth.Destroy;

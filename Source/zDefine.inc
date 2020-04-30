@@ -55,6 +55,10 @@
   // multi thread Parallel switch.
   {$DEFINE Parallel}
 
+  // Parallel for fold make better use CPU of multi core
+  // if rem this "FoldParallel" parallel for block program, thread can use linear address
+  {$DEFINE FoldParallel}
+
   // MT19937 of seed in the startup TComputeThread is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
@@ -111,6 +115,10 @@
 
   // multi thread Parallel switch.
   {$DEFINE Parallel}
+
+  // Parallel for fold make better use CPU of multi core
+  // if rem this "FoldParallel" is parallel for block program, thread can use linear address
+  {$DEFINE FoldParallel}
 
   // Parallel programs use the delphi default TParallel
   // {$DEFINE SystemParallel}

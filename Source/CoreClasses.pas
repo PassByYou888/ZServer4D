@@ -287,6 +287,7 @@ type
 
   TMT19937Random = class(TCoreClassObject)
   private
+    FInternalCritical: TCritical;
     FRndInstance: Pointer;
     function GetSeed: Integer;
     procedure SetSeed(const Value: Integer);
@@ -305,6 +306,7 @@ type
     procedure RandF(dest: PSingle; num: NativeInt); overload;
     function RandD: Double; overload;
     procedure RandD(dest: PDouble; num: NativeInt); overload;
+    function RandBool: Boolean;
     property seed: Integer read GetSeed write SetSeed;
   end;
 
@@ -394,20 +396,38 @@ const
   fmShareDenyNone  = SysUtils.fmShareDenyNone;
 {$EndRegion 'core const'}
 {$Region 'Parallel API'}
+
+function GetParallelGranularity: Integer;
+procedure SetParallelGranularity(Thread_Num: Integer);
+
 {$IFDEF FPC}
+  // freepascal
 type
   TFPCParallelForProcedure32 = procedure(pass: Integer) is nested;
   TFPCParallelForProcedure64 = procedure(pass: Int64) is nested;
-procedure FPCParallelFor(parallel: Boolean; OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
-procedure FPCParallelFor(parallel: Boolean; OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedure32; b, e: Integer); overload;
-procedure FPCParallelFor(OnFor:TFPCParallelForProcedure64; b, e: Int64); overload;
-procedure FPCParallelFor(b, e: Integer; OnFor:TFPCParallelForProcedure32); overload;
-procedure FPCParallelFor(b, e: Int64; OnFor:TFPCParallelForProcedure64); overload;
-procedure FPCParallelFor(parallel: Boolean; b, e: Integer; OnFor:TFPCParallelForProcedure32); overload;
-procedure FPCParallelFor(parallel: Boolean; b, e: Int64; OnFor:TFPCParallelForProcedure64); overload;
+procedure FPCParallelFor_Block(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32); overload;
+procedure FPCParallelFor_Block(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64); overload;
+procedure FPCParallelFor_Fold(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32); overload;
+procedure FPCParallelFor_Fold(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64); overload;
+procedure FPCParallelFor(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32); overload;
+procedure FPCParallelFor(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64); overload;
+procedure FPCParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32); overload;
+procedure FPCParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64); overload;
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure FPCParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64); overload;
+procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure FPCParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure64; b, e: Int64); overload;
+procedure ParallelFor(parallel: Boolean; b, e: Integer; OnFor: TFPCParallelForProcedure32); overload;
+procedure ParallelFor(parallel: Boolean; b, e: Int64; OnFor: TFPCParallelForProcedure64); overload;
+procedure ParallelFor(b, e: Integer; OnFor: TFPCParallelForProcedure32); overload;
+procedure ParallelFor(b, e: Int64; OnFor: TFPCParallelForProcedure64); overload;
+procedure ParallelFor(OnFor: TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure ParallelFor(OnFor: TFPCParallelForProcedure64; b, e: Int64); overload;
+procedure ParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure32; b, e: Integer); overload;
+procedure ParallelFor(parallel: Boolean; OnFor: TFPCParallelForProcedure64; b, e: Int64); overload;
 {$ELSE FPC}
 type
+  // delphi
 {$IFDEF SystemParallel}
   TDelphiParallelForProcedure32 = TProc<Integer>;
   TDelphiParallelForProcedure64 = TProc<Int64>;
@@ -415,6 +435,10 @@ type
   TDelphiParallelForProcedure32 = reference to procedure(pass: Integer);
   TDelphiParallelForProcedure64 = reference to procedure(pass: Int64);
 {$ENDIF SystemParallel}
+procedure DelphiParallelFor_Block(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure DelphiParallelFor_Block(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
+procedure DelphiParallelFor_Fold(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure DelphiParallelFor_Fold(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
 procedure DelphiParallelFor(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
 procedure DelphiParallelFor(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
 procedure DelphiParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
@@ -423,7 +447,16 @@ procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure32; b, e: Integer)
 procedure DelphiParallelFor(OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
 procedure DelphiParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure32; b, e: Integer); overload;
 procedure DelphiParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
+procedure ParallelFor(parallel: Boolean; b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure ParallelFor(parallel: Boolean; b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
+procedure ParallelFor(b, e: Integer; OnFor: TDelphiParallelForProcedure32); overload;
+procedure ParallelFor(b, e: Int64; OnFor: TDelphiParallelForProcedure64); overload;
+procedure ParallelFor(OnFor: TDelphiParallelForProcedure32; b, e: Integer); overload;
+procedure ParallelFor(OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
+procedure ParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure32; b, e: Integer); overload;
+procedure ParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure64; b, e: Int64); overload;
 {$ENDIF FPC}
+
 {$EndRegion 'Parallel API'}
 {$Region 'core api'}
 
@@ -469,7 +502,7 @@ procedure FillPtrByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
 procedure FillPtr(const dest:Pointer; Count: NativeUInt; const Value: Byte);
 procedure FillByte(const dest:Pointer; Count: NativeUInt; const Value: Byte);
 function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
-procedure CopyPtr(const sour, dest:Pointer; Count: NativeUInt);
+procedure CopyPtr(const sour, dest: Pointer; Count: NativeUInt);
 
 procedure RaiseInfo(const n: string); overload;
 procedure RaiseInfo(const n: string; const Args: array of const); overload;
@@ -1022,6 +1055,16 @@ end;
 {$INCLUDE Core_AtomVar.inc}
 {$INCLUDE Core_LineProcessor.inc}
 
+function GetParallelGranularity: Integer;
+begin
+  Result := ParallelGranularity;
+end;
+
+procedure SetParallelGranularity(Thread_Num: Integer);
+begin
+  ParallelGranularity := Thread_Num;
+  MaxActivtedParallel := Thread_Num;
+end;
 
 procedure Nop;
 begin

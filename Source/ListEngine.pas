@@ -1399,8 +1399,8 @@ function MakeHashI64(const i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$END
 function MakeHashU32(const c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakeHashP(const p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure DoStatus(const v: TListPascalString); overload;
-procedure DoStatus(const v: TListString); overload;
+procedure DoStatusL(const v: TListPascalString); overload;
+procedure DoStatusL(const v: TListString); overload;
 
 implementation
 
@@ -1445,7 +1445,7 @@ begin
   Result := umlCRC32(@p, C_Pointer_Size);
 end;
 
-procedure DoStatus(const v: TListPascalString);
+procedure DoStatusL(const v: TListPascalString);
 var
   i: Integer;
   o: TCoreClassObject;
@@ -1460,7 +1460,7 @@ begin
     end;
 end;
 
-procedure DoStatus(const v: TListString);
+procedure DoStatusL(const v: TListString);
 var
   i: Integer;
   o: TCoreClassObject;

@@ -63,6 +63,7 @@ type
     procedure DiscardMemory;
     procedure Clear;
     procedure NewParam(source: TMemoryStream64);
+    procedure SwapInstance(source: TMemoryStream64);
 
     property Delta: NativeInt read FDelta write FDelta;
     procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: NativeUInt);
@@ -313,6 +314,37 @@ begin
   FPosition := source.FPosition;
   FCapacity := source.FCapacity;
   FProtectedMode := source.FProtectedMode;
+end;
+
+procedure TMemoryStream64.SwapInstance(source: TMemoryStream64);
+var
+  FDelta_: NativeInt;
+  FMemory_: Pointer;
+  FSize_: NativeUInt;
+  FPosition_: NativeUInt;
+  FCapacity_: NativeUInt;
+  FProtectedMode_: Boolean;
+begin
+  FDelta_ := FDelta;
+  FMemory_ := FMemory;
+  FSize_ := FSize;
+  FPosition_ := FPosition;
+  FCapacity_ := FCapacity;
+  FProtectedMode_ := FProtectedMode;
+
+  FDelta := source.FDelta;
+  FMemory := source.FMemory;
+  FSize := source.FSize;
+  FPosition := source.FPosition;
+  FCapacity := source.FCapacity;
+  FProtectedMode := source.FProtectedMode;
+
+  source.FDelta := FDelta_;
+  source.FMemory := FMemory_;
+  source.FSize := FSize_;
+  source.FPosition := FPosition_;
+  source.FCapacity := FCapacity_;
+  source.FProtectedMode := FProtectedMode_;
 end;
 
 procedure TMemoryStream64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: NativeUInt);

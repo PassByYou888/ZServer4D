@@ -636,6 +636,7 @@ type
 
     class procedure BuildEmptyStream(output: TCoreClassStream);
 
+    function EncodeTo(output: TCoreClassStream; const FastMode, AutoCompressed: Boolean): Integer; overload;
     function EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
     function EncodeTo(output: TCoreClassStream): Integer; overload;
 
@@ -3902,7 +3903,7 @@ begin
   output.write(cnt, C_Integer_Size);
 end;
 
-function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode, AutoCompressed: Boolean): Integer;
 var
   i: Integer;
   DataFrame_: TDataFrameBase;
@@ -3924,7 +3925,7 @@ begin
     end;
 
   // if encode size too large(>1M), we use EncodeAsSelectCompressor
-  if ComputeEncodeSize > 1024 * 1024 then
+  if (AutoCompressed) and (ComputeEncodeSize > 1024 * 1024) then
     begin
       Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB, output, FastMode);
       Exit;
@@ -3981,6 +3982,11 @@ begin
   StoreStream.Position := 0;
   output.CopyFrom(StoreStream, StoreStream.Size);
   DisposeObject(StoreStream);
+end;
+
+function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer;
+begin
+  Result := EncodeTo(output, FastMode, True);
 end;
 
 function TDataFrameEngine.EncodeTo(output: TCoreClassStream): Integer;

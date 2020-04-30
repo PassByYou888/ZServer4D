@@ -81,6 +81,36 @@ type
     function DoDeg(var Param: TOpParam): Variant;
     function DoPower(var Param: TOpParam): Variant;
 
+    function DoSingle(var Param: TOpParam): Variant;
+    function DoDouble(var Param: TOpParam): Variant;
+    function DoExtended(var Param: TOpParam): Variant;
+    function DoByte(var Param: TOpParam): Variant;
+    function DoWord(var Param: TOpParam): Variant;
+    function DoCardinal(var Param: TOpParam): Variant;
+    function DoUInt64(var Param: TOpParam): Variant;
+    function DoShortInt(var Param: TOpParam): Variant;
+    function DoSmallInt(var Param: TOpParam): Variant;
+    function DoInteger(var Param: TOpParam): Variant;
+    function DoInt64(var Param: TOpParam): Variant;
+
+    function DoROL8(var Param: TOpParam): Variant;
+    function DoROL16(var Param: TOpParam): Variant;
+    function DoROL32(var Param: TOpParam): Variant;
+    function DoROL64(var Param: TOpParam): Variant;
+    function DoROR8(var Param: TOpParam): Variant;
+    function DoROR16(var Param: TOpParam): Variant;
+    function DoROR32(var Param: TOpParam): Variant;
+    function DoROR64(var Param: TOpParam): Variant;
+    function DoEndian16(var Param: TOpParam): Variant;
+    function DoEndian32(var Param: TOpParam): Variant;
+    function DoEndian64(var Param: TOpParam): Variant;
+    function DoEndianU16(var Param: TOpParam): Variant;
+    function DoEndianU32(var Param: TOpParam): Variant;
+    function DoEndianU64(var Param: TOpParam): Variant;
+    function DoSAR16(var Param: TOpParam): Variant;
+    function DoSAR32(var Param: TOpParam): Variant;
+    function DoSAR64(var Param: TOpParam): Variant;
+
     function DoPI(var Param: TOpParam): Variant;
     function DoBool(var Param: TOpParam): Variant;
     function DoTrue(var Param: TOpParam): Variant;
@@ -630,6 +660,146 @@ begin
       Result := 0;
 end;
 
+function TOpCustomRunTime.DoSingle(var Param: TOpParam): Variant;
+begin
+  Result := Single(Param[0]);
+end;
+
+function TOpCustomRunTime.DoDouble(var Param: TOpParam): Variant;
+begin
+  Result := Double(Param[0]);
+end;
+
+function TOpCustomRunTime.DoExtended(var Param: TOpParam): Variant;
+begin
+  Result := Extended(Param[0]);
+end;
+
+function TOpCustomRunTime.DoByte(var Param: TOpParam): Variant;
+begin
+  Result := Byte(Param[0]);
+end;
+
+function TOpCustomRunTime.DoWord(var Param: TOpParam): Variant;
+begin
+  Result := Word(Param[0]);
+end;
+
+function TOpCustomRunTime.DoCardinal(var Param: TOpParam): Variant;
+begin
+  Result := Cardinal(Param[0]);
+end;
+
+function TOpCustomRunTime.DoUInt64(var Param: TOpParam): Variant;
+begin
+  Result := UInt64(Param[0]);
+end;
+
+function TOpCustomRunTime.DoShortInt(var Param: TOpParam): Variant;
+begin
+  Result := ShortInt(Param[0]);
+end;
+
+function TOpCustomRunTime.DoSmallInt(var Param: TOpParam): Variant;
+begin
+  Result := SmallInt(Param[0]);
+end;
+
+function TOpCustomRunTime.DoInteger(var Param: TOpParam): Variant;
+begin
+  Result := Integer(Param[0]);
+end;
+
+function TOpCustomRunTime.DoInt64(var Param: TOpParam): Variant;
+begin
+  Result := Int64(Param[0]);
+end;
+
+function TOpCustomRunTime.DoROL8(var Param: TOpParam): Variant;
+begin
+  Result := ROL8(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROL16(var Param: TOpParam): Variant;
+begin
+  Result := ROL16(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROL32(var Param: TOpParam): Variant;
+begin
+  Result := ROL32(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROL64(var Param: TOpParam): Variant;
+begin
+  Result := ROL64(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROR8(var Param: TOpParam): Variant;
+begin
+  Result := ROR8(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROR16(var Param: TOpParam): Variant;
+begin
+  Result := ROR16(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROR32(var Param: TOpParam): Variant;
+begin
+  Result := ROR32(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoROR64(var Param: TOpParam): Variant;
+begin
+  Result := ROR64(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoEndian16(var Param: TOpParam): Variant;
+begin
+  Result := Endian(SmallInt(Param[0]));
+end;
+
+function TOpCustomRunTime.DoEndian32(var Param: TOpParam): Variant;
+begin
+  Result := Endian(Integer(Param[0]));
+end;
+
+function TOpCustomRunTime.DoEndian64(var Param: TOpParam): Variant;
+begin
+  Result := Endian(Int64(Param[0]));
+end;
+
+function TOpCustomRunTime.DoEndianU16(var Param: TOpParam): Variant;
+begin
+  Result := Endian(Word(Param[0]));
+end;
+
+function TOpCustomRunTime.DoEndianU32(var Param: TOpParam): Variant;
+begin
+  Result := Endian(Cardinal(Param[0]));
+end;
+
+function TOpCustomRunTime.DoEndianU64(var Param: TOpParam): Variant;
+begin
+  Result := Endian(UInt64(Param[0]));
+end;
+
+function TOpCustomRunTime.DoSAR16(var Param: TOpParam): Variant;
+begin
+  Result := SAR16(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoSAR32(var Param: TOpParam): Variant;
+begin
+  Result := SAR32(Param[0], Param[1]);
+end;
+
+function TOpCustomRunTime.DoSAR64(var Param: TOpParam): Variant;
+begin
+  Result := SAR64(Param[0], Param[1]);
+end;
+
 function TOpCustomRunTime.DoPI(var Param: TOpParam): Variant;
 begin
   Result := PI;
@@ -904,6 +1074,7 @@ end;
 procedure TOpCustomRunTime.InternalReg;
 begin
   ProcList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}FreeNotifyProc;
+
   RegOpM('Int', 'Int(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoInt)^.Category := 'Base Math';
   RegOpM('Frac', 'Frac(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoFrac)^.Category := 'Base Math';
   RegOpM('Exp', 'Exp(0..n): math function', {$IFDEF FPC}@{$ENDIF FPC}DoExp)^.Category := 'Base Math';
@@ -919,14 +1090,41 @@ begin
   RegOpM('Deg', 'Deg(0..n): NormalizeDegAngle function', {$IFDEF FPC}@{$ENDIF FPC}DoDeg)^.Category := 'Base Math';
   RegOpM('Power', 'Power(float,float): Power: Raise base to any power function', {$IFDEF FPC}@{$ENDIF FPC}DoPower)^.Category := 'Base Math';
 
-  RegOpM('PI', 'PI(): return PI', {$IFDEF FPC}@{$ENDIF FPC}DoPI)^.Category := 'Base Math';
+  RegOpM('Single', 'Single(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSingle)^.Category := 'Base Math';
+  RegOpM('Double', 'Double(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoDouble)^.Category := 'Base Math';
+  RegOpM('Extended', 'Extended(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoExtended)^.Category := 'Base Math';
+  RegOpM('Byte', 'Byte(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoByte)^.Category := 'Base Math';
+  RegOpM('Word', 'Word(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoWord)^.Category := 'Base Math';
+  RegOpM('Cardinal', 'Cardinal(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoCardinal)^.Category := 'Base Math';
+  RegOpM('UInt64', 'UInt64(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoUInt64)^.Category := 'Base Math';
+  RegOpM('ShortInt', 'ShortInt(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoShortInt)^.Category := 'Base Math';
+  RegOpM('SmallInt', 'SmallInt(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSmallInt)^.Category := 'Base Math';
+  RegOpM('Integer', 'Integer(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoInteger)^.Category := 'Base Math';
+  RegOpM('Int64', 'Int64(value): math function', {$IFDEF FPC}@{$ENDIF FPC}DoInt64)^.Category := 'Base Math';
 
+  RegOpM('ROL8', 'ROL8(byte,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROL8)^.Category := 'Base Math';
+  RegOpM('ROL16', 'ROL16(word,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROL16)^.Category := 'Base Math';
+  RegOpM('ROL32', 'ROL32(cardinal,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROL32)^.Category := 'Base Math';
+  RegOpM('ROL64', 'ROL64(uint64,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROL64)^.Category := 'Base Math';
+  RegOpM('ROR8', 'ROR8(byte,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROR8)^.Category := 'Base Math';
+  RegOpM('ROR16', 'ROR16(word,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROR16)^.Category := 'Base Math';
+  RegOpM('ROR32', 'ROR32(cardinal,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROR32)^.Category := 'Base Math';
+  RegOpM('ROR64', 'ROR64(uint64,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoROR64)^.Category := 'Base Math';
+  RegOpM('Endian16', 'Endian16(smallint): math function', {$IFDEF FPC}@{$ENDIF FPC}DoEndian16)^.Category := 'Base Math';
+  RegOpM('Endian32', 'Endian32(integer): math function', {$IFDEF FPC}@{$ENDIF FPC}DoEndian32)^.Category := 'Base Math';
+  RegOpM('Endian64', 'Endian64(int64): math function', {$IFDEF FPC}@{$ENDIF FPC}DoEndian64)^.Category := 'Base Math';
+  RegOpM('EndianU16', 'EndianU16(word): math function', {$IFDEF FPC}@{$ENDIF FPC}DoEndianU16)^.Category := 'Base Math';
+  RegOpM('EndianU32', 'EndianU32(cardinal): math function', {$IFDEF FPC}@{$ENDIF FPC}DoEndianU32)^.Category := 'Base Math';
+  RegOpM('EndianU64', 'EndianU64(uint64): math function', {$IFDEF FPC}@{$ENDIF FPC}DoEndianU64)^.Category := 'Base Math';
+  RegOpM('SAR16', 'SAR16(word,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSAR16)^.Category := 'Base Math';
+  RegOpM('SAR32', 'SAR32(cardinal,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSAR32)^.Category := 'Base Math';
+  RegOpM('SAR64', 'SAR64(uint64,Shift): math function', {$IFDEF FPC}@{$ENDIF FPC}DoSAR64)^.Category := 'Base Math';
+
+  RegOpM('PI', 'PI(): return PI', {$IFDEF FPC}@{$ENDIF FPC}DoPI)^.Category := 'Base Math';
   RegOpM('Bool', 'Bool(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Base Math';
   RegOpM('Boolean', 'Boolean(n..n): convert any variant as bool', {$IFDEF FPC}@{$ENDIF FPC}DoBool)^.Category := 'Base Math';
-
   RegOpM('True', 'True(): return true', {$IFDEF FPC}@{$ENDIF FPC}DoTrue)^.Category := 'Base Math';
   RegOpM('False', 'False(): return false', {$IFDEF FPC}@{$ENDIF FPC}DoFalse)^.Category := 'Base Math';
-
   RegOpM('RColor', 'RColor(R,G,B,A): return RColor string', {$IFDEF FPC}@{$ENDIF FPC}DoRColor)^.Category := 'Base Math';
   RegOpM('Vec2', 'Vec2(X,Y): return Vec2 string', {$IFDEF FPC}@{$ENDIF FPC}DoVec2)^.Category := 'Base Math';
   RegOpM('Vec3', 'Vec3(X,Y,Z): return Vec3 string', {$IFDEF FPC}@{$ENDIF FPC}DoVec3)^.Category := 'Base Math';

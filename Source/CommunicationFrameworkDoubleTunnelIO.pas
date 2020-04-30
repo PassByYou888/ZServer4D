@@ -46,7 +46,7 @@ type
     RecvTunnelID: Cardinal;
     DoubleTunnelService: TCommunicationFramework_DoubleTunnelService;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -66,7 +66,7 @@ type
     WaitLink: Boolean;
     WaitLinkSendID: Cardinal;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     function MakeFilePath(fn: SystemString): SystemString;
@@ -216,7 +216,7 @@ type
     Client: TCommunicationFramework_DoubleTunnelClient;
     SendTunnel: TClientUserDefineForSendTunnel;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -225,7 +225,7 @@ type
     Client: TCommunicationFramework_DoubleTunnelClient;
     RecvTunnel: TClientUserDefineForRecvTunnel;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -624,9 +624,9 @@ begin
   OnCompleteProc := nil;
 end;
 
-constructor TPeerClientUserDefineForSendTunnel.Create(AOwner: TPeerIO);
+constructor TPeerClientUserDefineForSendTunnel.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   RecvTunnel := nil;
   RecvTunnelID := 0;
   DoubleTunnelService := nil;
@@ -642,9 +642,9 @@ begin
   inherited Destroy;
 end;
 
-constructor TPeerClientUserDefineForRecvTunnel.Create(AOwner: TPeerIO);
+constructor TPeerClientUserDefineForRecvTunnel.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   SendTunnel := nil;
   SendTunnelID := 0;
   UserFlag := '';
@@ -2318,9 +2318,9 @@ begin
   DisposeObject(de);
 end;
 
-constructor TClientUserDefineForRecvTunnel.Create(AOwner: TPeerIO);
+constructor TClientUserDefineForRecvTunnel.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   Client := nil;
   SendTunnel := nil;
 end;
@@ -2339,9 +2339,9 @@ begin
   inherited Destroy;
 end;
 
-constructor TClientUserDefineForSendTunnel.Create(AOwner: TPeerIO);
+constructor TClientUserDefineForSendTunnel.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   Client := nil;
   RecvTunnel := nil;
 end;

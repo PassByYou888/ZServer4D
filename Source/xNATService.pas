@@ -36,7 +36,7 @@ type
     RecvID, SendID: Cardinal;
     MaxWorkload, CurrentWorkload: Cardinal;
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -45,7 +45,7 @@ type
     OwnerMapping: TXServiceListen;
     RecvID, SendID: Cardinal;
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -108,7 +108,7 @@ type
     RequestBuffer: TMemoryStream64;
     r_id, s_id: Cardinal; // IO in TXServiceListen
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -128,7 +128,7 @@ type
     procedure PhysicsVMBuildAuthToken_Result;
     procedure PhysicsOpenVM_Result(const cState: Boolean);
   public
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -181,9 +181,9 @@ type
 
 implementation
 
-constructor TXServiceRecvVM_Special.Create(AOwner: TPeerIO);
+constructor TXServiceRecvVM_Special.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   OwnerMapping := nil;
   RecvID := 0;
   SendID := 0;
@@ -213,9 +213,9 @@ begin
   inherited Destroy;
 end;
 
-constructor TXServiceSendVM_Special.Create(AOwner: TPeerIO);
+constructor TXServiceSendVM_Special.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   OwnerMapping := nil;
   RecvID := 0;
   SendID := 0;
@@ -589,9 +589,9 @@ begin
   inherited Destroy;
 end;
 
-constructor TXServerUserSpecial.Create(AOwner: TPeerIO);
+constructor TXServerUserSpecial.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   RemoteProtocol_ID := 0;
   RemoteProtocol_Inited := False;
   RequestBuffer := TMemoryStream64.Create;
@@ -754,9 +754,9 @@ begin
   XNAT.WaitAsyncConnecting := False;
 end;
 
-constructor TPhysicsEngine_Special.Create(AOwner: TPeerIO);
+constructor TPhysicsEngine_Special.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   XNAT := nil;
 end;
 

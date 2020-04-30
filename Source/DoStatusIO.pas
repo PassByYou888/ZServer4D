@@ -86,6 +86,7 @@ var
   IDEOutput: Boolean;
   ConsoleOutput: Boolean;
   OnDoStatusHook: TDoStatusCall;
+  StatusThreadID: Boolean;
 
 implementation
 
@@ -409,7 +410,7 @@ begin
     end;
 
 {$IFNDEF FPC}
-  if ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
+  if (StatusActive) and ((IDEOutput) or (ID = 2)) and (DebugHook <> 0) then
     begin
 {$IF Defined(WIN32) or Defined(WIN64)}
       OutputDebugString(PWideChar('"' + Text_ + '"'));
@@ -418,7 +419,7 @@ begin
 {$IFEND}
     end;
 {$IFEND FPC}
-  if ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
+  if (StatusActive) and ((ConsoleOutput) or (ID = 2)) and (IsConsole) then
       Writeln(Text_);
 end;
 
@@ -463,7 +464,10 @@ begin
   if (th = nil) or (th.ThreadID <> MainThreadID) then
     begin
       new(pSS);
-      pSS^.s := '[' + IntToStr(th.ThreadID) + '] ' + Text_;;
+      if StatusThreadID then
+          pSS^.s := '[' + IntToStr(th.ThreadID) + '] ' + Text_
+      else
+          pSS^.s := Text_;
       pSS^.th := th;
       pSS^.TriggerTime := GetTimeTick();
       StatusCritical.Acquire;
@@ -565,6 +569,7 @@ begin
   IDEOutput := False;
   ConsoleOutput := True;
   OnDoStatusHook := {$IFDEF FPC}@{$ENDIF FPC}InternalDoStatus;
+  StatusThreadID := True;
 
   Hooked_OnCheckThreadSynchronize := CoreClasses.OnCheckThreadSynchronize;
   CoreClasses.OnCheckThreadSynchronize := {$IFDEF FPC}@{$ENDIF FPC}DoCheckThreadSynchronize;

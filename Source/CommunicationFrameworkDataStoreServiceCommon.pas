@@ -38,7 +38,7 @@ type
     SyncToClient: Boolean;
     RegistedQuery: SystemString;
 
-    constructor Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString); override;
+    constructor Create(InMem: Boolean; Owner_: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString); override;
     destructor Destroy; override;
 
     procedure Progress(deltaTime: Double); override;
@@ -153,9 +153,9 @@ type
 
 implementation
 
-constructor TTDataStoreService_DBPipeline.Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString);
+constructor TTDataStoreService_DBPipeline.Create(InMem: Boolean; Owner_: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString);
 begin
-  inherited Create(InMem, AOwner, sourDBName, APipelineN, OutDBName);
+  inherited Create(InMem, Owner_, sourDBName, APipelineN, OutDBName);
   SendTunnel := nil;
   RecvTunnel := nil;
   BackcallPtr := 0;

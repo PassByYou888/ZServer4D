@@ -78,7 +78,7 @@ begin
     procedure(ThSender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine)
     begin
       // 如果在你的后台服务器框架有调度中心服务器：ManagerServer
-      TThread.Synchronize(ThSender.Thread, procedure
+      TCompute.sync(procedure
         begin
           // 我们要在主进程的运行地带告诉调度中心服务器，我开始做大规模运算工作了
         end);
@@ -92,13 +92,15 @@ begin
       ThOutData.WriteString('result 654321');
 
       // 如果需要同步到主线程，需要使用
-      TThread.Synchronize(ThSender.Thread, procedure
+      TCompute.sync(procedure
         begin
           // 这里是主进程的同步地带，比如文件操作，zdb数据库操作等等
         end);
 
       // 在hpc的后台延迟线程中，并行化是安全的
-      Threading.TParallel.&For(0, 10000, procedure(pass: Integer)
+      // ParallelFor优于Delphi内置的TParallel.For
+      // ParallelFor优于fpc内置的mtprocs
+      ParallelFor(0, 10000, procedure(pass: Integer)
         begin
           // 在并行处理中，因为emb的设计问题，我们无法使用 TThread.Synchronize 方法
           // 在并行处理中，我们可以使用zServer内核原子锁
@@ -111,7 +113,7 @@ begin
         end);
 
       // 如果在你的后台服务器框架有调度中心服务器：ManagerServer
-      TThread.Synchronize(ThSender.Thread, procedure
+      TCompute.sync(procedure
         begin
           // 我们要在主进程的运行地带告诉调度中心服务器，我的大规模计算工作做完了
         end);

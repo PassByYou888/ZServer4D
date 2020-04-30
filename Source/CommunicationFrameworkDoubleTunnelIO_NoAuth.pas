@@ -42,7 +42,7 @@ type
     RecvTunnelID: Cardinal;
     DoubleTunnelService: TCommunicationFramework_DoubleTunnelService_NoAuth;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     function LinkOk: Boolean;
@@ -57,7 +57,7 @@ type
     SendTunnelID: Cardinal;
     DoubleTunnelService: TCommunicationFramework_DoubleTunnelService_NoAuth;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
 
     function LinkOk: Boolean;
@@ -142,7 +142,7 @@ type
     Client: TCommunicationFramework_DoubleTunnelClient_NoAuth;
     SendTunnel: TClientUserDefineForSendTunnel_NoAuth;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -151,7 +151,7 @@ type
     Client: TCommunicationFramework_DoubleTunnelClient_NoAuth;
     RecvTunnel: TClientUserDefineForRecvTunnel_NoAuth;
 
-    constructor Create(AOwner: TPeerIO); override;
+    constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
   end;
 
@@ -403,9 +403,9 @@ begin
   OnProc := nil;
 end;
 
-constructor TPeerClientUserDefineForSendTunnel_NoAuth.Create(AOwner: TPeerIO);
+constructor TPeerClientUserDefineForSendTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   RecvTunnel := nil;
   RecvTunnelID := 0;
   DoubleTunnelService := nil;
@@ -426,9 +426,9 @@ begin
   Result := DoubleTunnelService <> nil;
 end;
 
-constructor TPeerClientUserDefineForRecvTunnel_NoAuth.Create(AOwner: TPeerIO);
+constructor TPeerClientUserDefineForRecvTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   SendTunnel := nil;
   SendTunnelID := 0;
   DoubleTunnelService := nil;
@@ -1123,9 +1123,9 @@ begin
   DisposeObject(de);
 end;
 
-constructor TClientUserDefineForRecvTunnel_NoAuth.Create(AOwner: TPeerIO);
+constructor TClientUserDefineForRecvTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   Client := nil;
   SendTunnel := nil;
 end;
@@ -1137,9 +1137,9 @@ begin
   inherited Destroy;
 end;
 
-constructor TClientUserDefineForSendTunnel_NoAuth.Create(AOwner: TPeerIO);
+constructor TClientUserDefineForSendTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
-  inherited Create(AOwner);
+  inherited Create(Owner_);
   Client := nil;
   RecvTunnel := nil;
 end;

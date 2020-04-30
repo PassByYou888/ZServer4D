@@ -153,7 +153,7 @@ function umlNewString(const s: TPascalString): P_String;
 procedure umlFreeString(const p: P_String);
 
 function umlComparePosStr(const s: TPascalString; Offset: Integer; const t: TPascalString): Boolean;
-function umlPos(const SubStr, Str: TPascalString; const Offset: Integer = 1): Integer;
+function umlPos(const SubStr, s: TPascalString; const Offset: Integer = 1): Integer;
 
 function umlVarToStr(const v: Variant; const Base64Conver: Boolean): TPascalString; overload;
 function umlVarToStr(const v: Variant): TPascalString; overload;
@@ -208,11 +208,13 @@ function umlSameVariant(const v1, v2: Variant): Boolean;
 function umlRandom(const rnd: TMT19937Random): Integer; overload;
 function umlRandom: Integer; overload;
 
+function umlRandomRange64(const rnd: TMT19937Random; const min_, max_: Int64): Int64; overload;
 function umlRandomRange(const rnd: TMT19937Random; const min_, max_: Integer): Integer; overload;
 function umlRandomRangeS(const rnd: TMT19937Random; const min_, max_: Single): Single; overload;
 function umlRandomRangeD(const rnd: TMT19937Random; const min_, max_: Double): Double; overload;
 function umlRandomRangeF(const rnd: TMT19937Random; const min_, max_: Double): Double; overload;
 
+function umlRandomRange64(const min_, max_: Int64): Int64; overload;
 function umlRandomRange(const min_, max_: Integer): Integer; overload;
 function umlRandomRangeS(const min_, max_: Single): Single; overload;
 function umlRandomRangeD(const min_, max_: Double): Double; overload;
@@ -310,8 +312,8 @@ function umlGetLength(const sVal: TPascalString): Integer; overload;
 function umlGetLength(const sVal: U_Bytes): Integer; overload;
 function umlGetLength(const sVal: TArrayPascalString): Integer; overload;
 
-function umlUpperCase(const Str: TPascalString): TPascalString;
-function umlLowerCase(const Str: TPascalString): TPascalString;
+function umlUpperCase(const s: TPascalString): TPascalString;
+function umlLowerCase(const s: TPascalString): TPascalString;
 function umlCopyStr(const sVal: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
 function umlSameText(const s1, s2: TPascalString): Boolean;
 
@@ -336,8 +338,8 @@ function umlGetIndexStr(const sVal: TPascalString; trim_s: TPascalString; index:
 procedure umlGetSplitArray(const sour: TPascalString; var dest: TArrayPascalString; const splitC: TPascalString); overload;
 procedure umlGetSplitArray(const sour: TPascalString; var dest: U_StringArray; const splitC: TPascalString); overload;
 function ArrayStringToText(var ary: TArrayPascalString; const splitC: TPascalString): TPascalString;
-function umlStringsToText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString; overload;
-function umlStringsToText(lst: TListPascalString; const splitC: TPascalString): TPascalString; overload;
+function umlStringsToSplitText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString; overload;
+function umlStringsToSplitText(lst: TListPascalString; const splitC: TPascalString): TPascalString; overload;
 
 function umlGetFirstStr_Discontinuity(const sVal, trim_s: TPascalString): TPascalString;
 function umlDeleteFirstStr_Discontinuity(const sVal, trim_s: TPascalString): TPascalString;
@@ -377,8 +379,8 @@ function umlDateTimeToStr(t: TDateTime): TPascalString;
 function umlTimeTickToStr(const t: TTimeTick): TPascalString;
 function umlTimeToStr(t: TDateTime): TPascalString;
 function umlDateToStr(t: TDateTime): TPascalString;
-function umlFloatToStr(const f: Extended): TPascalString;
-function umlShortFloatToStr(const f: Extended): TPascalString;
+function umlFloatToStr(const f: Double): TPascalString;
+function umlShortFloatToStr(const f: Double): TPascalString;
 
 function umlStrToInt(const _V: TPascalString): Integer; overload;
 function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer; overload;
@@ -394,6 +396,8 @@ function umlSearchMatch(const SourceStr, TargetStr: TPascalString): Boolean; ove
 function umlSearchMatch(const ValueCheck: TArrayPascalString; Value: TPascalString): Boolean; overload;
 
 // <prefix>.<postfix> formula, match sour -> dest
+// example: <prefix>.*
+// example: *.<postfix>
 function umlMatchFileInfo(const exp_, sour_, dest_: TPascalString): Boolean;
 
 function umlDecodeTimeToStr(NowDateTime: TDateTime): TPascalString;
@@ -598,9 +602,9 @@ function umlStreamCRC32(stream: U_Stream): Cardinal; overload;
 
 function umlTrimSpace(const s: TPascalString): TPascalString;
 
-function umlSeparatorText(AText: TPascalString; dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer; overload;
-function umlSeparatorText(AText: TPascalString; dest: THashVariantList; SeparatorChar: TPascalString): Integer; overload;
-function umlSeparatorText(AText: TPascalString; dest: TListPascalString; SeparatorChar: TPascalString): Integer; overload;
+function umlSeparatorText(Text_: TPascalString; dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer; overload;
+function umlSeparatorText(Text_: TPascalString; dest: THashVariantList; SeparatorChar: TPascalString): Integer; overload;
+function umlSeparatorText(Text_: TPascalString; dest: TListPascalString; SeparatorChar: TPascalString): Integer; overload;
 
 function umlStringsMatchText(OriginValue: TCoreClassStrings; DestValue: TPascalString; IgnoreCase: Boolean): Boolean;
 
@@ -873,9 +877,9 @@ begin
   Result := s.ComparePos(Offset, @t);
 end;
 
-function umlPos(const SubStr, Str: TPascalString; const Offset: Integer = 1): Integer;
+function umlPos(const SubStr, s: TPascalString; const Offset: Integer = 1): Integer;
 begin
-  Result := Str.GetPos(SubStr, Offset);
+  Result := s.GetPos(SubStr, Offset);
 end;
 
 function umlVarToStr(const v: Variant; const Base64Conver: Boolean): TPascalString; overload;
@@ -1301,10 +1305,40 @@ begin
   Result := MT19937Rand32(MaxInt);
 end;
 
+function umlRandomRange64(const rnd: TMT19937Random; const min_, max_: Int64): Int64;
+var
+  mn, mx: Int64;
+begin
+  if min_ = max_ then
+    begin
+      Result := min_;
+      exit;
+    end;
+
+  mn := min_;
+  mx := max_;
+
+  if mn > mx then
+      inc(mn)
+  else
+      inc(mx);
+
+  if mn > mx then
+      Result := rnd.Rand64(mn - mx) + mx
+  else
+      Result := rnd.Rand64(mx - mn) + mn;
+end;
+
 function umlRandomRange(const rnd: TMT19937Random; const min_, max_: Integer): Integer;
 var
   mn, mx: Integer;
 begin
+  if min_ = max_ then
+    begin
+      Result := min_;
+      exit;
+    end;
+
   mn := min_;
   mx := max_;
 
@@ -1321,23 +1355,51 @@ end;
 
 function umlRandomRangeS(const rnd: TMT19937Random; const min_, max_: Single): Single;
 begin
-  Result := (umlRandomRange(rnd, Trunc(min_ * 1000), Trunc(max_ * 1000))) * 0.001;
+  Result := (umlRandomRange64(rnd, Trunc(min_ * 1000), Trunc(max_ * 1000))) * 0.001;
 end;
 
 function umlRandomRangeD(const rnd: TMT19937Random; const min_, max_: Double): Double;
 begin
-  Result := (umlRandomRange(rnd, Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
+  Result := (umlRandomRange64(rnd, Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
 end;
 
 function umlRandomRangeF(const rnd: TMT19937Random; const min_, max_: Double): Double;
 begin
-  Result := (umlRandomRange(rnd, Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
+  Result := (umlRandomRange64(rnd, Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
+end;
+
+function umlRandomRange64(const min_, max_: Int64): Int64;
+var
+  mn, mx: Int64;
+begin
+  if min_ = max_ then
+    begin
+      Result := min_;
+      exit;
+    end;
+  mn := min_;
+  mx := max_;
+
+  if mn > mx then
+      inc(mn)
+  else
+      inc(mx);
+
+  if mn > mx then
+      Result := MT19937Rand64(mn - mx) + mx
+  else
+      Result := MT19937Rand64(mx - mn) + mn;
 end;
 
 function umlRandomRange(const min_, max_: Integer): Integer;
 var
   mn, mx: Integer;
 begin
+  if min_ = max_ then
+    begin
+      Result := min_;
+      exit;
+    end;
   mn := min_;
   mx := max_;
 
@@ -1354,17 +1416,17 @@ end;
 
 function umlRandomRangeS(const min_, max_: Single): Single;
 begin
-  Result := (umlRandomRange(Trunc(min_ * 1000), Trunc(max_ * 1000))) * 0.001;
+  Result := (umlRandomRange64(Trunc(min_ * 1000), Trunc(max_ * 1000))) * 0.001;
 end;
 
 function umlRandomRangeD(const min_, max_: Double): Double;
 begin
-  Result := (umlRandomRange(Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
+  Result := (umlRandomRange64(Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
 end;
 
 function umlRandomRangeF(const min_, max_: Double): Double;
 begin
-  Result := (umlRandomRange(Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
+  Result := (umlRandomRange64(Trunc(min_ * 10000), Trunc(max_ * 10000))) * 0.0001;
 end;
 
 function umlDefaultTime: Double;
@@ -2686,14 +2748,14 @@ begin
   Result := length(sVal);
 end;
 
-function umlUpperCase(const Str: TPascalString): TPascalString;
+function umlUpperCase(const s: TPascalString): TPascalString;
 begin
-  Result := UpperCase(Str.text);
+  Result := s.UpperText;
 end;
 
-function umlLowerCase(const Str: TPascalString): TPascalString;
+function umlLowerCase(const s: TPascalString): TPascalString;
 begin
-  Result := LowerCase(Str.text);
+  Result := s.LowerText;
 end;
 
 function umlCopyStr(const sVal: TPascalString; MainPosition, LastPosition: Integer): TPascalString;
@@ -2966,26 +3028,26 @@ end;
 
 function umlGetIndexStrCount(const sVal, trim_s: TPascalString): Integer;
 var
-  Str: TPascalString;
+  s: TPascalString;
   APos: Integer;
 begin
-  Str := sVal;
+  s := sVal;
   Result := 0;
-  if Str.Len = 0 then
+  if s.Len = 0 then
       exit;
   APos := 1;
   while true do
     begin
-      while umlMatchChar(Str[APos], @trim_s) do
+      while umlMatchChar(s[APos], @trim_s) do
         begin
-          if APos >= Str.Len then
+          if APos >= s.Len then
               exit;
           inc(APos);
         end;
       inc(Result);
-      while not umlMatchChar(Str[APos], @trim_s) do
+      while not umlMatchChar(s[APos], @trim_s) do
         begin
-          if APos >= Str.Len then
+          if APos >= s.Len then
               exit;
           inc(APos);
         end;
@@ -3083,7 +3145,7 @@ begin
         Result := Result + ary[i];
 end;
 
-function umlStringsToText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString;
+function umlStringsToSplitText(lst: TCoreClassStrings; const splitC: TPascalString): TPascalString;
 var
   i: Integer;
 begin
@@ -3095,7 +3157,7 @@ begin
         Result := lst[i];
 end;
 
-function umlStringsToText(lst: TListPascalString; const splitC: TPascalString): TPascalString;
+function umlStringsToSplitText(lst: TListPascalString; const splitC: TPascalString): TPascalString;
 var
   i: Integer;
 begin
@@ -3211,25 +3273,25 @@ end;
 
 function umlGetIndexStrCount_Discontinuity(const sVal, trim_s: TPascalString): Integer;
 var
-  Str: TPascalString;
+  s: TPascalString;
   APos: Integer;
 begin
-  Str := sVal;
+  s := sVal;
   Result := 0;
-  if Str.Len = 0 then
+  if s.Len = 0 then
       exit;
   APos := 1;
   Result := 1;
   while true do
     begin
-      while not umlMatchChar(Str[APos], @trim_s) do
+      while not umlMatchChar(s[APos], @trim_s) do
         begin
-          if APos = Str.Len then
+          if APos = s.Len then
               exit;
           inc(APos);
         end;
       inc(Result);
-      if APos = Str.Len then
+      if APos = s.Len then
           exit;
       inc(APos);
     end;
@@ -3646,12 +3708,12 @@ begin
   Result := DateToStr(t);
 end;
 
-function umlFloatToStr(const f: Extended): TPascalString;
+function umlFloatToStr(const f: Double): TPascalString;
 begin
   Result := FloatToStr(f);
 end;
 
-function umlShortFloatToStr(const f: Extended): TPascalString;
+function umlShortFloatToStr(const f: Double): TPascalString;
 begin
   Result := Format('%f', [f]);
 end;
@@ -5567,59 +5629,59 @@ begin
     end;
 end;
 
-function umlSeparatorText(AText: TPascalString; dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer;
+function umlSeparatorText(Text_: TPascalString; dest: TCoreClassStrings; SeparatorChar: TPascalString): Integer;
 var
-  ANewText, ASeparatorText: TPascalString;
+  NewText_, SeparatorText_: TPascalString;
 begin
   Result := 0;
   if Assigned(dest) then
     begin
-      ANewText := AText;
-      ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
-      while (ASeparatorText.Len > 0) and (ANewText.Len > 0) do
+      NewText_ := Text_;
+      SeparatorText_ := umlGetFirstStr(NewText_, SeparatorChar);
+      while (SeparatorText_.Len > 0) and (NewText_.Len > 0) do
         begin
-          dest.Add(ASeparatorText.text);
+          dest.Add(SeparatorText_.text);
           inc(Result);
-          ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
-          ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+          NewText_ := umlDeleteFirstStr(NewText_, SeparatorChar);
+          SeparatorText_ := umlGetFirstStr(NewText_, SeparatorChar);
         end;
     end;
 end;
 
-function umlSeparatorText(AText: TPascalString; dest: THashVariantList; SeparatorChar: TPascalString): Integer;
+function umlSeparatorText(Text_: TPascalString; dest: THashVariantList; SeparatorChar: TPascalString): Integer;
 var
-  ANewText, ASeparatorText: TPascalString;
+  NewText_, SeparatorText_: TPascalString;
 begin
   Result := 0;
   if Assigned(dest) then
     begin
-      ANewText := AText;
-      ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
-      while (ASeparatorText.Len > 0) and (ANewText.Len > 0) do
+      NewText_ := Text_;
+      SeparatorText_ := umlGetFirstStr(NewText_, SeparatorChar);
+      while (SeparatorText_.Len > 0) and (NewText_.Len > 0) do
         begin
-          dest.IncValue(ASeparatorText.text, 1);
+          dest.IncValue(SeparatorText_.text, 1);
           inc(Result);
-          ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
-          ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+          NewText_ := umlDeleteFirstStr(NewText_, SeparatorChar);
+          SeparatorText_ := umlGetFirstStr(NewText_, SeparatorChar);
         end;
     end;
 end;
 
-function umlSeparatorText(AText: TPascalString; dest: TListPascalString; SeparatorChar: TPascalString): Integer;
+function umlSeparatorText(Text_: TPascalString; dest: TListPascalString; SeparatorChar: TPascalString): Integer;
 var
-  ANewText, ASeparatorText: TPascalString;
+  NewText_, SeparatorText_: TPascalString;
 begin
   Result := 0;
   if Assigned(dest) then
     begin
-      ANewText := AText;
-      ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
-      while (ASeparatorText.Len > 0) and (ANewText.Len > 0) do
+      NewText_ := Text_;
+      SeparatorText_ := umlGetFirstStr(NewText_, SeparatorChar);
+      while (SeparatorText_.Len > 0) and (NewText_.Len > 0) do
         begin
-          dest.Add(ASeparatorText);
+          dest.Add(SeparatorText_);
           inc(Result);
-          ANewText := umlDeleteFirstStr(ANewText, SeparatorChar);
-          ASeparatorText := umlGetFirstStr(ANewText, SeparatorChar);
+          NewText_ := umlDeleteFirstStr(NewText_, SeparatorChar);
+          SeparatorText_ := umlGetFirstStr(NewText_, SeparatorChar);
         end;
     end;
 end;
@@ -6553,9 +6615,6 @@ begin
     end
   else
       Result := ExLibs[LibName];
-
-  if Result = 0 then
-      DoStatus('failed LoadLibrary %s', [LibName]);
 {$IFEND}
 end;
 
