@@ -970,6 +970,8 @@ type
     property FrameworkIsClient: Boolean read FFrameworkIsClient;
     property FrameworkInfo: SystemString read FFrameworkInfo;
 
+    function IOBusy: Boolean;
+
     // mainLoop
     procedure Progress; virtual;
     property OnProgress: TProgressOnCommunicationFramework read FOnProgress write FOnProgress;
@@ -6728,6 +6730,29 @@ begin
   if FEnabledAtomicLockAndMultiThread then
       FCritical.Release; // atomic lock
   AtomInc(Statistics[TStatisticsType.stCommunicationFrameworkUnLock]);
+end;
+
+function TCommunicationFramework.IOBusy: Boolean;
+var
+  IOArry: TIO_Array;
+  i: Integer;
+  P_IO: TPeerIO;
+begin
+  Result := False;
+  if FPeerIO_HashPool.Count = 0 then
+      exit;
+
+  GetIO_Array(IOArry);
+  for i := Low(IOArry) to High(IOArry) do
+    begin
+      P_IO := TPeerIO(FPeerIO_HashPool[IOArry[i]]);
+      if (P_IO <> nil) and (P_IO.IOBusy) then
+        begin
+          Result := True;
+          Break;
+        end;
+    end;
+  SetLength(IOArry, 0);
 end;
 
 procedure TCommunicationFramework.Progress;
