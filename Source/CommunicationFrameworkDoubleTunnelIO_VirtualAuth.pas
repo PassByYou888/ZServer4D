@@ -77,18 +77,24 @@ type
     function LinkOk: Boolean;
   end;
 
-  TOnUserAuth = procedure(Sender: TVirtualAuthIO) of object;
+  TVirtualAuth_OnAuth = procedure(Sender: TCommunicationFramework_DoubleTunnelService_VirtualAuth; AuthIO: TVirtualAuthIO) of object;
+  TVirtualAuth_OnLinkSuccess = procedure(Sender: TCommunicationFramework_DoubleTunnelService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth) of object;
+  TVirtualAuth_OnUserOut = procedure(Sender: TCommunicationFramework_DoubleTunnelService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth) of object;
 
   TCommunicationFramework_DoubleTunnelService_VirtualAuth = class(TCoreClassInterfacedObject)
   protected
     FRecvTunnel, FSendTunnel: TCommunicationFrameworkServer;
-    FOnUserAuth: TOnUserAuth;
     FLoginUserDefineIOList: THashObjectList;
     FCanStatus: Boolean;
     FCadencerEngine: TCadencer;
     FProgressEngine: TNProgressPost;
     FFileReceiveDirectory: SystemString;
+    // event
+    FOnUserAuth: TVirtualAuth_OnAuth;
+    FOnLinkSuccess: TVirtualAuth_OnLinkSuccess;
+    FOnUserOut: TVirtualAuth_OnUserOut;
   protected
+    // virtual event
     procedure UserAuth(Sender: TVirtualAuthIO); virtual;
     procedure UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
@@ -114,7 +120,7 @@ type
     procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
     destructor Destroy; override;
 
     procedure SwitchAsMaxPerformance;
@@ -153,10 +159,12 @@ type
 
     property FileReceiveDirectory: SystemString read FFileReceiveDirectory;
 
-    property OnUserAuth: TOnUserAuth read FOnUserAuth write FOnUserAuth;
-
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
+
+    property OnUserAuth: TVirtualAuth_OnAuth read FOnUserAuth write FOnUserAuth;
+    property OnLinkSuccess: TVirtualAuth_OnLinkSuccess read FOnLinkSuccess write FOnLinkSuccess;
+    property OnUserOut: TVirtualAuth_OnUserOut read FOnUserOut write FOnUserOut;
   end;
 
   TCommunicationFramework_DoubleTunnelClient_VirtualAuth = class;
@@ -256,7 +264,7 @@ type
     procedure AsyncSendConnectResult(const cState: Boolean);
     procedure AsyncRecvConnectResult(const cState: Boolean);
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
     destructor Destroy; override;
 
     function Connected: Boolean; virtual;
@@ -608,7 +616,7 @@ end;
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserAuth(Sender: TVirtualAuthIO);
 begin
   if Assigned(FOnUserAuth) then
-      FOnUserAuth(Sender);
+      FOnUserAuth(Self, Sender);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
@@ -617,10 +625,14 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
 begin
+  if Assigned(FOnLinkSuccess) then
+      FOnLinkSuccess(Self, UserDefineIO);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth);
 begin
+  if Assigned(FOnUserOut) then
+      FOnUserOut(Self, UserDefineIO);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.UserPostFileSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth; fn: SystemString);
@@ -1103,15 +1115,13 @@ begin
     end;
 end;
 
-constructor TCommunicationFramework_DoubleTunnelService_VirtualAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+constructor TCommunicationFramework_DoubleTunnelService_VirtualAuth.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
 begin
   inherited Create;
-  FRecvTunnel := ARecvTunnel;
+  FRecvTunnel := RecvTunnel_;
   FRecvTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForRecvTunnel_VirtualAuth;
-  FSendTunnel := ASendTunnel;
+  FSendTunnel := SendTunnel_;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel_VirtualAuth;
-
-  FOnUserAuth := nil;
 
   FLoginUserDefineIOList := THashObjectList.CustomCreate(False, 8192);
 
@@ -1129,6 +1139,10 @@ begin
 
   FRecvTunnel.PrefixName := 'Double.Received';
   FSendTunnel.PrefixName := 'Double.Sending';
+
+  FOnUserAuth := nil;
+  FOnLinkSuccess := nil;
+  FOnUserOut := nil;
 end;
 
 destructor TCommunicationFramework_DoubleTunnelService_VirtualAuth.Destroy;
@@ -1733,14 +1747,14 @@ begin
   FAsyncOnResultProc := nil;
 end;
 
-constructor TCommunicationFramework_DoubleTunnelClient_VirtualAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+constructor TCommunicationFramework_DoubleTunnelClient_VirtualAuth.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
 begin
   inherited Create;
-  FRecvTunnel := ARecvTunnel;
+  FRecvTunnel := RecvTunnel_;
   FRecvTunnel.NotyifyInterface := Self;
   FRecvTunnel.PeerClientUserDefineClass := TClientUserDefineForRecvTunnel_VirtualAuth;
 
-  FSendTunnel := ASendTunnel;
+  FSendTunnel := SendTunnel_;
   FSendTunnel.NotyifyInterface := Self;
   FSendTunnel.PeerClientUserDefineClass := TClientUserDefineForSendTunnel_VirtualAuth;
 
@@ -2027,6 +2041,7 @@ procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.UserLoginP(User
   end;
 {$ENDIF FPC}
 
+
 var
   sendDE: TDataFrameEngine;
 begin
@@ -2088,6 +2103,7 @@ procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.TunnelLinkP(OnP
         OnProc(r);
   end;
 {$ENDIF FPC}
+
 
 var
   sendDE: TDataFrameEngine;

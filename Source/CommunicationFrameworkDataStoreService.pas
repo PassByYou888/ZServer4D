@@ -140,7 +140,7 @@ type
     procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
     procedure Send_CompletedStorePosTransform(ASendCli: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -175,7 +175,7 @@ type
     procedure Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -1273,9 +1273,9 @@ begin
   DisposeObject(de);
 end;
 
-constructor TDataStoreService.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+constructor TDataStoreService.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
 begin
-  inherited Create(ARecvTunnel, ASendTunnel);
+  inherited Create(RecvTunnel_, SendTunnel_);
   FRecvTunnel.PeerClientUserDefineClass := TDataStoreService_PeerClientRecvTunnel;
   FSendTunnel.PeerClientUserDefineClass := TDataStoreService_PeerClientSendTunnel;
 
@@ -1686,9 +1686,9 @@ begin
   Dispose(BackcallPtr);
 end;
 
-constructor TDataStoreClient.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+constructor TDataStoreClient.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
 begin
-  inherited Create(ARecvTunnel, ASendTunnel);
+  inherited Create(RecvTunnel_, SendTunnel_);
   FDataStoreCipherSecurity := TCipherSecurity.csNone;
   SetLength(FDataStoreCipherKey, 0);
 end;

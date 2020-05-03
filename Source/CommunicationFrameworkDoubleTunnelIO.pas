@@ -77,6 +77,9 @@ type
     function LinkOk: Boolean;
   end;
 
+  TOnLinkSuccess = procedure(Sender: TCommunicationFramework_DoubleTunnelService; UserDefineIO: TPeerClientUserDefineForRecvTunnel) of object;
+  TOnUserOut = procedure(Sender: TCommunicationFramework_DoubleTunnelService; UserDefineIO: TPeerClientUserDefineForRecvTunnel) of object;
+
   TCommunicationFramework_DoubleTunnelService = class(TCoreClassInterfacedObject)
   protected
     FRecvTunnel, FSendTunnel: TCommunicationFrameworkServer;
@@ -89,7 +92,11 @@ type
     FLoginUserDefineIOList: THashObjectList;
     FCadencerEngine: TCadencer;
     FProgressEngine: TNProgressPost;
+    // event
+    FOnLinkSuccess: TOnLinkSuccess;
+    FOnUserOut: TOnUserOut;
   protected
+    // virtual event
     procedure UserRegistedSuccess(UserID: SystemString); virtual;
     procedure UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel); virtual;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel); virtual;
@@ -136,7 +143,7 @@ type
     procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
     destructor Destroy; override;
 
     procedure SwitchAsMaxPerformance;
@@ -205,6 +212,9 @@ type
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
+
+    property OnLinkSuccess: TOnLinkSuccess read FOnLinkSuccess write FOnLinkSuccess;
+    property OnUserOut: TOnUserOut read FOnUserOut write FOnUserOut;
   end;
 
   TCommunicationFramework_DoubleTunnelClient = class;
@@ -311,7 +321,7 @@ type
     procedure AsyncSendConnectResult(const cState: Boolean);
     procedure AsyncRecvConnectResult(const cState: Boolean);
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
     destructor Destroy; override;
 
     function Connected: Boolean; virtual;
@@ -731,6 +741,8 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel);
 begin
+  if Assigned(FOnLinkSuccess) then
+      FOnLinkSuccess(Self, UserDefineIO);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService.UserCreateDirectorySuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel; dn: SystemString);
@@ -743,6 +755,8 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel);
 begin
+  if Assigned(FOnUserOut) then
+      FOnUserOut(Self, UserDefineIO);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService.Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -1780,12 +1794,12 @@ begin
     end;
 end;
 
-constructor TCommunicationFramework_DoubleTunnelService.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+constructor TCommunicationFramework_DoubleTunnelService.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
 begin
   inherited Create;
-  FRecvTunnel := ARecvTunnel;
+  FRecvTunnel := RecvTunnel_;
   FRecvTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForRecvTunnel;
-  FSendTunnel := ASendTunnel;
+  FSendTunnel := SendTunnel_;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel;
 
   FRootPath := umlCurrentPath;
@@ -1805,6 +1819,9 @@ begin
 
   FRecvTunnel.PrefixName := 'Double.Received';
   FSendTunnel.PrefixName := 'Double.Sending';
+
+  FOnLinkSuccess := nil;
+  FOnUserOut := nil;
 end;
 
 destructor TCommunicationFramework_DoubleTunnelService.Destroy;
@@ -2777,14 +2794,14 @@ begin
   FAsyncOnResultProc := nil;
 end;
 
-constructor TCommunicationFramework_DoubleTunnelClient.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+constructor TCommunicationFramework_DoubleTunnelClient.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
 begin
   inherited Create;
-  FRecvTunnel := ARecvTunnel;
+  FRecvTunnel := RecvTunnel_;
   FRecvTunnel.NotyifyInterface := Self;
   FRecvTunnel.PeerClientUserDefineClass := TClientUserDefineForRecvTunnel;
 
-  FSendTunnel := ASendTunnel;
+  FSendTunnel := SendTunnel_;
   FSendTunnel.NotyifyInterface := Self;
   FSendTunnel.PeerClientUserDefineClass := TClientUserDefineForSendTunnel;
 

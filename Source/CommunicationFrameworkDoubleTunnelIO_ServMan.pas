@@ -152,7 +152,7 @@ type
     ServManClientPool: TServerManager_ClientPool;
     LastTimeTick: TTimeTick;
 
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -300,7 +300,7 @@ procedure TServerManager_Client.AntiIdle(WorkLoad: Word);
 var
   sendDE: TDataFrameEngine;
 begin
-  if SendTunnel.IOBusy then
+  if SendTunnel.ClientIO.IOBusy then
       exit;
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteWORD(WorkLoad);
@@ -818,9 +818,9 @@ begin
   DisposeObject(sendDE);
 end;
 
-constructor TServerManager.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
+constructor TServerManager.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
 begin
-  inherited Create(ARecvTunnel, ASendTunnel);
+  inherited Create(RecvTunnel_, SendTunnel_);
 
   FRecvTunnel.PeerClientUserDefineClass := TServerManager_RecvTunnelData;
   FSendTunnel.PeerClientUserDefineClass := TServerManager_SendTunnelData;

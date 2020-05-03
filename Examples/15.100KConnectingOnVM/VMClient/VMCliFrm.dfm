@@ -105,7 +105,7 @@ object VMCliForm: TVMCliForm
       Top = 278
       Width = 139
       Height = 25
-      Caption = #36807#20998#27979#35797'VM'#24615#33021
+      Caption = #36807#20998#27979#35797'VM'#24615#33021'(x64)'
       TabOrder = 7
       OnClick = MaxTestButtonClick
     end

@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * x Nat tunnel Physics interface, written by QQ 600585@qq.com                * }
+{ * XNAT tunnel Physics interface, written by QQ 600585@qq.com                 * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }

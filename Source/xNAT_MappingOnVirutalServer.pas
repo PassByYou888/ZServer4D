@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * x Nat virtual server          written by QQ 600585@qq.com                  * }
+{ * XNAT virtual server          written by QQ 600585@qq.com                   * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }

@@ -29,6 +29,9 @@ uses
 {$ENDIF FPC}
   CoreClasses, Types, Math, MemoryStream64, PascalStrings, UnicodeMixedLib;
 
+{$REGION 'BaseType define'}
+
+
 type
   TGeoFloat = Single;
   TGeoInt = Integer;
@@ -103,7 +106,8 @@ function Rectf(Left, Top, Right, Bottom: TGeoFloat): TRectf;
 {$ELSE FPC}
   TArrayPointf = array of TPointf;
 {$ENDIF}
-
+{$ENDREGION 'BaseType define'}
+{$REGION 'API'}
 function FAbs(const v: Single): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function FAbs(const v: Double): Double; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Clamp(const Value_, Min_, Max_: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -519,12 +523,10 @@ function SameLinePtr(const lb1, le1, lb2, le2: PVec2): Boolean;
 function ComputeCurvePartPrecision(const pt1, pt2, pt3, pt4: TVec2): TGeoInt; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Interpolation_OutSide(const T_: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Interpolation_InSide(const t: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-
+{$ENDREGION 'API'}
+{$REGION 'TV2Rect4'}
 
 type
-  TVec2List = class;
-  TDeflectionPolygon = class;
-  TDeflectionPolygonLines = class;
 
   TV2Rect4 = record
   public
@@ -603,6 +605,10 @@ type
   end;
 
   TV2R4List = TV2Rect4List;
+{$ENDREGION 'TV2Rect4'}
+{$REGION 'TVec2List'}
+  TDeflectionPolygon = class;
+  TDeflectionPolygonLines = class;
 
   TVec2List = class(TCoreClassObject)
   private
@@ -732,6 +738,8 @@ type
     property UserData: Pointer read FUserData write FUserData;
     property UserObject: TCoreClassObject read FUserObject write FUserObject;
   end;
+{$ENDREGION 'TVec2List'}
+{$REGION 'PolygonGraph'}
 
   TLines = class(TVec2List)
   end;
@@ -816,6 +824,8 @@ type
   end;
 
   T2DPolygonGraphList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<T2DPolygonGraph>;
+{$ENDREGION 'PolygonGraph'}
+{$REGION 'DeflectionPolygon'}
 
   TDeflectionPolygonVec = record
     Owner: TDeflectionPolygon;
@@ -1025,6 +1035,8 @@ type
     property UserData: Pointer read FUserData write FUserData;
     property UserObject: TCoreClassObject read FUserObject write FUserObject;
   end;
+{$ENDREGION 'DeflectionPolygon'}
+{$REGION 'TriangleList'}
 
   TTriangleList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericsList<PTriangle>;
 
@@ -1043,6 +1055,8 @@ type
     procedure BuildTriangle(polygon: T2DPolygonGraph); overload;
     procedure BuildTriangle(polygon: T2DPolygonGraph; MinAngle, MinSegmentLength, MaxElementSize: TGeoFloat); overload;
   end;
+{$ENDREGION 'TriangleList'}
+{$REGION 'RectPacking'}
 
   TRectPackData = record
     Rect: TRectV2;
@@ -1077,6 +1091,8 @@ type
     procedure Build(SpaceWidth, SpaceHeight: TGeoFloat); overload;
     procedure Build; overload;
   end;
+{$ENDREGION 'RectPacking'}
+{$REGION 'Hausdorf'}
 
   THausdorf = class
   private type
@@ -1254,6 +1270,8 @@ type
     class procedure Test1();
     class procedure Test2();
   end;
+{$ENDREGION 'Hausdorf'}
+
 
 function ArrayVec2(const r: TRectV2): TArrayVec2; overload;
 function ArrayVec2(const r: TV2Rect4): TArrayVec2; overload;

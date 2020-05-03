@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * xNat tunnel                  written by QQ 600585@qq.com                   * }
+{ * XNAT tunnel                  written by QQ 600585@qq.com                   * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }

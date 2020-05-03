@@ -63,6 +63,9 @@ type
     function LinkOk: Boolean;
   end;
 
+  TNoAuth_OnLinkSuccess = procedure(Sender: TCommunicationFramework_DoubleTunnelService_NoAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth) of object;
+  TNoAuth_OnUserOut = procedure(Sender: TCommunicationFramework_DoubleTunnelService_NoAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth) of object;
+
   TCommunicationFramework_DoubleTunnelService_NoAuth = class(TCoreClassInterfacedObject)
   protected
     FRecvTunnel, FSendTunnel: TCommunicationFrameworkServer;
@@ -70,7 +73,11 @@ type
     FCadencerEngine: TCadencer;
     FProgressEngine: TNProgressPost;
     FFileReceiveDirectory: SystemString;
+    // event
+    FOnLinkSuccess: TNoAuth_OnLinkSuccess;
+    FOnUserOut: TNoAuth_OnUserOut;
   protected
+    // virtual event
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); virtual;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); virtual;
     procedure UserPostFileSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth; fn: SystemString); virtual;
@@ -93,7 +100,7 @@ type
     procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
     destructor Destroy; override;
 
     procedure SwitchAsMaxPerformance;
@@ -131,6 +138,9 @@ type
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
+
+    property OnLinkSuccess: TNoAuth_OnLinkSuccess read FOnLinkSuccess write FOnLinkSuccess;
+    property OnUserOut: TNoAuth_OnUserOut read FOnUserOut write FOnUserOut;
   end;
 
   TCommunicationFramework_DoubleTunnelClient_NoAuth = class;
@@ -228,7 +238,7 @@ type
     procedure AsyncSendConnectResult(const cState: Boolean);
     procedure AsyncRecvConnectResult(const cState: Boolean);
   public
-    constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
     destructor Destroy; override;
 
     function Connected: Boolean; virtual;
@@ -464,10 +474,14 @@ end;
 
 procedure TCommunicationFramework_DoubleTunnelService_NoAuth.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
 begin
+  if Assigned(FOnLinkSuccess) then
+      FOnLinkSuccess(Self, UserDefineIO);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_NoAuth.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
 begin
+  if Assigned(FOnUserOut) then
+      FOnUserOut(Self, UserDefineIO);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelService_NoAuth.UserPostFileSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth; fn: SystemString);
@@ -896,12 +910,12 @@ begin
     end;
 end;
 
-constructor TCommunicationFramework_DoubleTunnelService_NoAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
+constructor TCommunicationFramework_DoubleTunnelService_NoAuth.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
 begin
   inherited Create;
-  FRecvTunnel := ARecvTunnel;
+  FRecvTunnel := RecvTunnel_;
   FRecvTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForRecvTunnel_NoAuth;
-  FSendTunnel := ASendTunnel;
+  FSendTunnel := SendTunnel_;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel_NoAuth;
 
   FCanStatus := True;
@@ -918,6 +932,9 @@ begin
 
   FRecvTunnel.PrefixName := 'Double.Received';
   FSendTunnel.PrefixName := 'Double.Sending';
+
+  FOnLinkSuccess := nil;
+  FOnUserOut := nil;
 end;
 
 destructor TCommunicationFramework_DoubleTunnelService_NoAuth.Destroy;
@@ -1509,14 +1526,14 @@ begin
   FAsyncOnResultProc := nil;
 end;
 
-constructor TCommunicationFramework_DoubleTunnelClient_NoAuth.Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkClient);
+constructor TCommunicationFramework_DoubleTunnelClient_NoAuth.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
 begin
   inherited Create;
-  FRecvTunnel := ARecvTunnel;
+  FRecvTunnel := RecvTunnel_;
   FRecvTunnel.NotyifyInterface := Self;
   FRecvTunnel.PeerClientUserDefineClass := TClientUserDefineForRecvTunnel_NoAuth;
 
-  FSendTunnel := ASendTunnel;
+  FSendTunnel := SendTunnel_;
   FSendTunnel.NotyifyInterface := Self;
   FSendTunnel.PeerClientUserDefineClass := TClientUserDefineForSendTunnel_NoAuth;
 
@@ -1787,6 +1804,7 @@ procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.TunnelLinkP(OnProc: 
         OnProc(r);
   end;
 {$ENDIF FPC}
+
 
 var
   sendDE: TDataFrameEngine;

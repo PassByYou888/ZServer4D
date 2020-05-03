@@ -98,6 +98,16 @@ begin
   Release();
 end;
 
+procedure TCritical.Lock;
+begin
+  Acquire();
+end;
+
+procedure TCritical.UnLock;
+begin
+  Release();
+end;
+
 function TCritical.IsBusy: Boolean;
 begin
   Result := LNum.V > 0;
