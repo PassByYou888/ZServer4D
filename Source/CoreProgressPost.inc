@@ -34,6 +34,7 @@ begin
   FCritical.Release;
   DisposeObject(FSyncPool);
   FCritical.Free;
+  FProgressing.Free;
   inherited Destroy;
 end;
 
@@ -226,4 +227,3 @@ begin
   FSyncPool.Add(p);
   FCritical.Release;
 end;
-
