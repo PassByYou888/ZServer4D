@@ -609,7 +609,7 @@ end;
 
 procedure TServerManager.PostExecute_ServerOffline(Sender: TNPostExecute);
 begin
-  SendTunnel.BroadcastSendDirectStreamCmd(C_Offline, Sender.DataEng);
+  SendTunnel.BroadcastDirectStreamCmd(C_Offline, Sender.DataEng);
 end;
 
 procedure TServerManager.PostExecute_RegServer(Sender: TNPostExecute);
@@ -635,7 +635,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
+  SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -710,7 +710,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
+  SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
@@ -752,7 +752,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
+  SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 
@@ -814,7 +814,7 @@ begin
 
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteSectionText(ServerConfig);
-  SendTunnel.BroadcastSendDirectStreamCmd(C_RegServer, sendDE);
+  SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 

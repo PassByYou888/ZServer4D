@@ -150,7 +150,7 @@ begin
   de := TDataFrameEngine.Create;
   de.WriteString('change caption as hello World,from server!');
   // 广播方法不会区分客户端是否有登录，是否建立成功了双通道
-  SendTunnel.BroadcastSendDirectStreamCmd('ChangeCaption', de);
+  SendTunnel.BroadcastDirectStreamCmd('ChangeCaption', de);
   disposeObject(de);
 end;
 

@@ -822,7 +822,7 @@ type
 
   IOnBigStreamInterface = interface
     procedure BeginStream(Sender: TPeerIO; Total: Int64);
-    procedure Process(Sender: TPeerIO; Total, siz: Int64);
+    procedure Process(Sender: TPeerIO; Total, current: Int64);
     procedure EndStream(Sender: TPeerIO; Total: Int64);
   end;
 
@@ -1209,7 +1209,7 @@ type
 
     // Broadcast to all IO
     procedure BroadcastDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString);
-    procedure BroadcastSendDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
+    procedure BroadcastDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
 
     function GetCount: Integer;
     property Count: Integer read GetCount;
@@ -8215,7 +8215,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFrameworkServer.BroadcastSendDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
+procedure TCommunicationFrameworkServer.BroadcastDirectStreamCmd(Cmd: SystemString; StreamData: TDataFrameEngine);
 var
   IO_ID: Cardinal;
   IO_Array: TIO_Array;
@@ -10916,6 +10916,7 @@ var
   c: TCommunicationFramework;
   LocalVMc: TPeerIO;
 begin
+  AtomInc(FPhysicsIO.OwnerFramework.Statistics[TStatisticsType.stReceiveSize], siz);
   c := TCommunicationFramework(FFrameworkPool[FrameworkID]);
   if c is TCommunicationFrameworkWithP2PVM_Server then
     begin

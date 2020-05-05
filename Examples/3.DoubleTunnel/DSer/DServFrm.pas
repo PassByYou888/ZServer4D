@@ -108,7 +108,7 @@ var
 begin
   de := TDataFrameEngine.Create;
   de.WriteString('change caption as hello World,from server!');
-  SendTunnel.BroadcastSendDirectStreamCmd('ChangeCaption', de);
+  SendTunnel.BroadcastDirectStreamCmd('ChangeCaption', de);
   disposeObject(de);
 end;
 
