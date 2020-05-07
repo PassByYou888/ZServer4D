@@ -1192,8 +1192,8 @@ initialization
   InitCoreThreadPool(CpuCount);
   MainThreadProgress := TThreadProgressPost.Create(MainThreadID);
 finalization
-  MainThreadProgress.Free;
   FreeCoreThreadPool;
+  MainThreadProgress.Free;
   FreeMT19937Rand();
   FreeCriticalLock;
   WorkInParallelCore.Free;
