@@ -229,21 +229,6 @@ type
       const ACallback: TProc<ICrossConnection, Boolean> = nil); overload;
 
     /// <summary>
-    ///   发送无类型数据
-    /// </summary>
-    /// <param name="ABuffer">
-    ///   无类型数据
-    /// </param>
-    /// <param name="ACount">
-    ///   数据大小
-    /// </param>
-    /// <param name="ACallback">
-    ///   全部数据发送完成或者出错时调用的回调函数
-    /// </param>
-    procedure SendBuf(const ABuffer; ACount: Integer;
-      const ACallback: TProc<ICrossConnection, Boolean> = nil); overload;
-
-    /// <summary>
     ///   发送字节数据
     /// </summary>
     /// <param name="ABytes">
@@ -649,7 +634,7 @@ type
 
   TAbstractCrossConnection = class(TCrossData, ICrossConnection)
   public const
-    SND_BUF_SIZE = 32768;
+    SND_BUF_SIZE = 16384;
   private
     FPeerAddr: string;
     FPeerPort: Word;
@@ -680,8 +665,6 @@ type
 
     procedure SendBuf(ABuffer: Pointer; ACount: Integer;
       const ACallback: TProc<ICrossConnection, Boolean> = nil); overload;
-    procedure SendBuf(const ABuffer; ACount: Integer;
-      const ACallback: TProc<ICrossConnection, Boolean> = nil); overload; inline;
     procedure SendBytes(const ABytes: TBytes; AOffset, ACount: Integer;
       const ACallback: TProc<ICrossConnection, Boolean> = nil); overload;
     procedure SendBytes(const ABytes: TBytes;
@@ -1588,12 +1571,6 @@ begin
   LSender(LConnection, True);
 end;
 {$ENDIF}
-
-procedure TAbstractCrossConnection.SendBuf(const ABuffer; ACount: Integer;
-  const ACallback: TProc<ICrossConnection, Boolean>);
-begin
-  SendBuf(@ABuffer, ACount, ACallback);
-end;
 
 procedure TAbstractCrossConnection.SendBytes(const ABytes: TBytes; AOffset,
   ACount: Integer; const ACallback: TProc<ICrossConnection, Boolean>);

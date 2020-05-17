@@ -3191,7 +3191,7 @@ begin
     FDefaultListener.WaitForCancel(12000);
 
 
-    if not WaitForContext(120000) then
+    if not WaitForContext(1000) then
     begin  // wait time out
       Sleep(10);
 

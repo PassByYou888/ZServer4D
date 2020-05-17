@@ -157,7 +157,7 @@ type
     property PostRun: TNProgressPost read FProgressEngine;
     property PostExecute: TNProgressPost read FProgressEngine;
 
-    property FileReceiveDirectory: SystemString read FFileReceiveDirectory;
+    property FileReceiveDirectory: SystemString read FFileReceiveDirectory write FFileReceiveDirectory;
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;

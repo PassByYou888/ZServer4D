@@ -38,6 +38,7 @@ type
   TComputeDispatchPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PComputeDispatchData>;
 
   TParallelOverflow = record
+  public
     ActivtedParallel: Integer;
     procedure Acquire;
     procedure Release;
@@ -98,7 +99,7 @@ end;
 
 function TParallelOverflow.Busy(): Boolean;
 begin
-  Result := ActivtedParallel >= MaxActivtedParallel;
+  Result := (MaxActivtedParallel > 0) and (ActivtedParallel >= MaxActivtedParallel);
 end;
 
 function PickOrCreateThread(): TComputeThread;
@@ -155,7 +156,7 @@ begin
   ComputeThreadTaskRunning := TAtomInteger.Create(0);
   ParallelGranularity := Thread_Num;
   ComputeDispatchCritical := TCritical.Create;
-  MaxActivtedParallel := Thread_Num;
+  MaxActivtedParallel := 0;
   ParallelOverflow.ActivtedParallel := 0;
   ComputeDispatchPool := TComputeDispatchPool.Create;
   IdleComputeThreadSum := TAtomInt.Create(0);

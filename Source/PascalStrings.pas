@@ -170,8 +170,8 @@ type
   TArrayPascalStringPtr = array of PPascalString;
   PArrayPascalStringPtr = ^TArrayPascalStringPtr;
 
-  TPasStr = TPascalString;
-  PPasStr = PPascalString;
+  TP_String = TPascalString;
+  PP_String = PPascalString;
 
 function CharIn(c: SystemChar; const SomeChars: array of SystemChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeChar: SystemChar): Boolean; overload;

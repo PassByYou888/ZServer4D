@@ -141,7 +141,7 @@ begin
 
   TSocketAPI.SetNonBlock(LClientSocket, True);
   SetKeepAlive(LClientSocket);
-  TSocketAPI.SetTcpNoDelay(LClientSocket, False);
+  TSocketAPI.SetTcpNoDelay(LClientSocket, True);
 
   LPerIoData := _NewIoData;
   LPerIoData.Action := ioAccept;

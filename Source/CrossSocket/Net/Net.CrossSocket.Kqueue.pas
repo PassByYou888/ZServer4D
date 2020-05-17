@@ -480,7 +480,7 @@ begin
     LClientSocket := LSocket;
     TSocketAPI.SetNonBlock(LClientSocket, True);
     SetKeepAlive(LClientSocket);
-    TSocketAPI.SetTcpNoDelay(LClientSocket, False);
+    TSocketAPI.SetTcpNoDelay(LClientSocket, True);
     _SetNoSigPipe(LClientSocket);
 
     LConnection := CreateConnection(Self, LClientSocket, ctAccept);

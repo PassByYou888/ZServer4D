@@ -374,6 +374,7 @@ function umlIntToStr(Parameter: Int64): TPascalString; overload;
 
 function umlPointerToStr(param: Pointer): TPascalString;
 
+function umlMBPSToStr(Size: Int64): TPascalString;
 function umlSizeToStr(Parameter: Int64): TPascalString;
 function umlDateTimeToStr(t: TDateTime): TPascalString;
 function umlTimeTickToStr(const t: TTimeTick): TPascalString;
@@ -501,9 +502,11 @@ function umlStreamMD5Char(stream: TCoreClassStream): TPascalString; overload;
 function umlStreamMD5String(stream: TCoreClassStream): TPascalString; overload;
 function umlStringMD5(const Value: TPascalString): TPascalString;
 function umlFileMD5(FileName: TPascalString): TMD5; overload;
+function umlFileMD5(FileName: TPascalString; StartPos, EndPos: Int64): TMD5; overload;
 function umlCombineMD5(const m1: TMD5): TMD5; overload;
 function umlCombineMD5(const m1, m2: TMD5): TMD5; overload;
 function umlCombineMD5(const m1, m2, m3: TMD5): TMD5; overload;
+function umlCombineMD5(const m1, m2, m3, m4: TMD5): TMD5; overload;
 function umlCombineMD5(const buff: array of TMD5): TMD5; overload;
 function umlMD5ToStr(md5: TMD5): TPascalString; overload;
 function umlMD5ToString(md5: TMD5): TPascalString; overload;
@@ -2588,7 +2591,7 @@ begin
   if umlFindFirstFile(FileName, SR) then
       Result := CovFileDate_(SR.FindData.ftLastWriteTime)
   else
-      Result := umlNow();
+      Result := 0;
   umlFindClose(SR);
 end;
 {$ELSE MSWINDOWS}
@@ -2604,7 +2607,7 @@ begin
       FileClose(f);
     end
   else
-      Result := Now;
+      Result := 0;
 end;
 {$ENDIF MSWINDOWS}
 
@@ -3646,6 +3649,18 @@ end;
 function umlPointerToStr(param: Pointer): TPascalString;
 begin
   Result := '0x' + IntToHex(nativeUInt(param), SizeOf(Pointer) * 2);
+end;
+
+function umlMBPSToStr(Size: Int64): TPascalString;
+begin
+  if Size < 1 shl 10 then
+      Result := Format('%dbps', [Size * 10])
+  else if Size < 1 shl 20 then
+      Result := Format('%fKbps', [Size / (1 shl 10) * 10])
+  else if Size < 1 shl 30 then
+      Result := Format('%fMbps', [Size / (1 shl 20) * 10])
+  else
+      Result := Format('%fGbps', [Size / (1 shl 30) * 10])
 end;
 
 function umlSizeToStr(Parameter: Int64): TPascalString;
@@ -5292,6 +5307,23 @@ begin
   end;
 end;
 
+function umlFileMD5(FileName: TPascalString; StartPos, EndPos: Int64): TMD5;
+var
+  fs: TCoreClassFileStream;
+begin
+  try
+      fs := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
+  except
+    Result := NullMD5;
+    exit;
+  end;
+  try
+      Result := umlStreamMD5(fs, StartPos, EndPos);
+  finally
+      DisposeObject(fs);
+  end;
+end;
+
 function umlCombineMD5(const m1: TMD5): TMD5;
 begin
   Result := umlMD5(@m1, SizeOf(TMD5));
@@ -5314,6 +5346,17 @@ begin
   buff[1] := m2;
   buff[2] := m3;
   Result := umlMD5(@buff[0], SizeOf(TMD5) * 3);
+end;
+
+function umlCombineMD5(const m1, m2, m3, m4: TMD5): TMD5;
+var
+  buff: array [0 .. 3] of TMD5;
+begin
+  buff[0] := m1;
+  buff[1] := m2;
+  buff[2] := m3;
+  buff[3] := m4;
+  Result := umlMD5(@buff[0], SizeOf(TMD5) * 4);
 end;
 
 function umlCombineMD5(const buff: array of TMD5): TMD5;

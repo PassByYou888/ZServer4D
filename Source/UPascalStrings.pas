@@ -173,8 +173,8 @@ type
   TUArrayPascalStringPtr = array of PUPascalString;
   PUArrayPascalStringPtr = ^TUArrayPascalStringPtr;
 
-  TUPasStr = TUPascalString;
-  PUPasStr = PUPascalString;
+  TUP_String = TUPascalString;
+  PUP_String = PUPascalString;
 
 function UCharIn(c: USystemChar; const SomeChars: array of USystemChar): Boolean; overload;
 function UCharIn(c: USystemChar; const SomeChar: USystemChar): Boolean; overload;

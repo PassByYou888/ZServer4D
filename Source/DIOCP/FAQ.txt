@@ -1,0 +1,97 @@
+﻿1.diocp-v5使用在哪里可以得到帮助
+  
+  http://www.diocp.org/?page_id=159
+  
+  可以浏览官方社区的一些基础说明,该文档会陆续进行 整理。
+  
+
+
+2.diocp-v5怎么样编译DEMO  
+  <<关于DEMO的编译>>
+  http://www.diocp.org/?p=16
+  
+2.1 
+Q:在编译DiocpV5DEMO是编译不通过
+A:你编译DEMO的时候，把diocpv5\source加入到路径就好
+  不要把所有Source下的文件添加到工程,因为有一些文件是给android/ios平台用的当然不能在windows下面编译,
+  例如:diocp.core.rawPosixSocket.pas
+
+  
+  
+3.服务端避免不了和多线程打交道，请先好好熟悉多线程的基础知识和注意实现。下面有多线程的一些文章，请认真看看。
+  http://blog.qdac.cc/?p=890
+
+
+Q:服务端在线信息显示为何与实际有差异?
+Q:服务端许多死链接都显示在线?
+A:DIOCP默认关闭了心跳。所以会造成很多死链接，仍然显示在线，详细原因点击查看该文章：http://www.diocp.org/?p=189
+ (【DIOCP3-说明书】关于服务端的KeepAlive属性(心跳))
+ 
+Q: 编译出现的问题 - brcc32 command line for "XXXX.vrc"(工程文件.vrc) 时出现异常。
+A: 把XXX.dpr文件以外的其他工程文件(xxx.res, xxx.dprog, xxx.vrc等)删除, 重新打开dpr工程文件进行编译。
+   由于高版本不兼容低版本工程文件导致
+   2016-08-27 11:42:21
+
+ 
+Q: 在Diocp中我需要另外开线程去处理逻辑吗？
+A: 在编码层(TDiocpCoderTcpServer), 逻辑处理事件(OnContextAction), 是由DiocpTask/Qworker(编译开关(QDAC_QWorker)可以进行切换)驱动的，和底层的通信线程是不相干扰。所以在编码层不需要使用另外的线程池，来处理逻辑。
+
+Q: 同一个连接的OnContextAction会同时被多个线程触发吗？
+A：编码层的OnContextAction是排队处理的，底层接收到数据后交由注册的解码器进行解码, 解码成功后，放到任务队列，然后依次触发OnContextAction,所以同一个连接的OnContextAction同时只会有一个线程调用。
+
+Q: Diocp的断开日志
+A: Diocp在DEBUG模式下面会记录详细的日志。会记录每个连接断开的原因。如下
+   1> xxxx:[2824]投递发送数据请求时出现了错误。错误代码:10054
+     说明: 这种日志在发送数据的时候系统返回了错误代码，可以根据错误代码(如10054),查询到相应的错误信息。
+     MSDN上面SOCKET错误代码说明: https://msdn.microsoft.com/en-us/library/ms740668.aspx
+   2> xxxx: [720]响应接收请求时出现了错误。错误代码:64!      
+     说明：这种日志在响应接收请求时系统返回的错误，根据错误代码查询响应的信息,
+           64, MSDN指定的网络名不可用，一般是主动CloseSocket, 对于已经投递出去的请求，会有这样的响应。
+   3> xxxx: [704]接收到0字节的数据,该连接将断开!
+     说明: 服务端接收到长度为0字节的数据，认为对方关闭了连接。服务端相应的会释放连接触发OnDiscconected函数。
+   4> xxxx :[812]执行[CheckNextSendRequest::lvRequest.ExecuteSend]失败: 处理投递发送请求数据包时,发现异步关闭请求(Request.Tag = -1)。进行关闭处理!
+     说明: 这种日志一般在服务端投递了异步关闭请求(PostWSAClose)时，会出现该日志。
+   上面列举的日志都是正常的，DIOCP只是记录详细情况，以便出现问题时能有据可查，请勿惊慌。
+   * 中括号[]中的数字是连接对应的SocketHandle，是连接的套接字句柄。
+
+Q: Diocp如何关闭日志记录。
+A: Diocp在DEBUG模式会记录详细日志。可以把DEBUG模式关闭
+   D2007工程为例： Project->Options->Directories/Conditionals->Conditional defines 中把DEBUG删除
+   
+Q: Diocp如何把日志记录Memo。
+A: Diocp服务端的日志是采用safelogger进行记录，默认是记录到文件。
+   1>. 你可以自己创建一个SafeLogger，然后通过RegisterDiocpSvrLogger进行注册。
+   2>. 你可以通过TStringAppender改变safelogger的添加方式，注意添加到Memo要在主线程进行 
+    
+    你可以在程序初始化的地方，写下如下代码
+       sfLogger.setAppender(TStringsAppender.Create(mmoLog.Lines));
+       sfLogger.AppendInMainThread := true;
+       RegisterDiocpSvrLogger(sfLogger);
+   
+Q: 编码层逻辑处理的方式
+A: 编码层默认由接收数据的IOCP线程处理，这样会占用iocp接收网络io的资源，可以通过定义工程宏[QDAC_QWorker]由QWorker来处理逻辑(需要引用QWorkers单元)，[DIOCP_Task]有DiocpTask来处理逻辑(2016-07-19修改)
+
+Q: 怎么样将提高DIOCP速度
+A: 在工程属性中定义[DIOCP_HIGH_SPEED]宏(Project->Options->Directories/Conditionals->Conditional defines)
+
+Q: 获取连接的IP和端口
+A: 找到对应的连接(Context), IP: Context.RemoteAddr, 端口: Context.RemotePort
+
+Q: 怎么使用单独的Iocp引擎
+A: Diocp从2016-11-08号的版本，底层默认都使用__defaultDiocpEngine, 如果不希望互相干扰，可以绑定一个新的引擎
+   服务端: TDiocpTcpServer.BindDiocpEngine(CreateNewDiocpEngine(0), true);
+   客户端: TDiocpCustom.BindDiocpEngine(CreateNewDiocpEngine(0), true);
+   
+Q: 怎么设置服务器的最大并发连接数
+A: TDiocpTcpServer.AllowMaxOnlineCount := 10000, 默认为0，不进行限制。
+
+Q: 客户端类(TDiocpTcpClient)的连接过程是怎么样的？
+A: 客户端连接TIocpRemoteContext支持阻塞方式建立连接(Connect)和异步方式建立连接(ConnectASync)。
+   建立成功后都会触发OnConnected事件(Owner.FOnContextConnected -> OnConnected() -> FOnConnectedEvent -> 连接状态(ssConnected) -> 开始接受数据(PostWSARecvRequest))
+   Connect 建立连接失败后会抛出异常，不会触发其他事件。
+   ConnectASync，建立失败后会触发会依次触发(FOnConnectFail(事件) -> OnConnectFail(成员方法) ->DoNotifyDisconnected(如果Owner.TrigerDisconnectEventAfterNoneConnected为true)/连接状态(ssDisconnected));
+   
+Q: 为什么发送小数据会有延时？
+A: Windows的Socket有个nagle算法会造成200ms左右的延时, 为了减少网络拥塞而设计的，它会等待足够的数据才发送出去，如果没有足够的数据，就会等待约200ms（内部计时器超时触发）后发送出去。
+   DIOCP有个NoDelayOption选项，可以尝试打开这个选项。看看有没有改善，记得服务端和客户端都打开，试试看
+   

@@ -1,0 +1,236 @@
+DIOCP-v5 0.0.1
+  2015-02-22 08:40:40
+
+1.规范单元文件的命名，和组件的命名
+2.中文注释重要的过程和类名
+
+DIOCP-v5 0.0.2
+  2015-03-04 21:49:41
+
+1.更新DIOCPStreamCoder解码的一处Bug
+
+  //如果缓存中的数据长度不够包头长度，
+  lvValidCount := inBuf.validCount;   //pack_flag + head_len + buf_len
+  if (lvValidCount < SizeOf(Word) + SizeOf(Integer)  + SizeOf(Integer)) then
+
+  // 之前如下
+  if (lvValidCount < SizeOf(Word) + SizeOf(Integer)) then
+
+  // 在客户端只发送了6个字节就进行解码时会出现错误的数据包，从而会T掉客户端
+
+  2015-03-04 21:46:53
+
+2. 修复URLEncode，URLDecode在Anddriod和UNICODE下的异常
+*   2015-03-05 12:53:38
+
+3  修正UNICODE下URLDecode和URLEncode的BUG
+   原来的Request.RequestURL ->改成Request.RequestURI
+   RequestURL 带完整的参数
+   2015-03-05 12:58:55
+   
+4. 添加TDiocpHttpRequest.DecodeURLParam({$IFDEF UNICODE} pvEncoding:TEncoding {$ELSE}pvUseUtf8Decode:Boolean{$ENDIF});
+   解码URL中的参数，放到参数列表(RequestParamsList)中
+   在OnDiocpHttpRequest中调用(和DecodePostDataParam一样)
+   2015-03-05 22:42:04
+
+5. 修正在编译成64位EXE时HttpSERVER运行出错的BUG
+   2015-03-05 22:42:42
+   
+6. 优化URLDecode解码
+   2015-03-05 22:42:58
+
+7.* 池化TDiocpHttpRequest请求对象
+  加入QWorkers/DiocpTask异步处理请求，不阻塞Iocp线程
+  
+8.修复SplitStrings,分隔符最后一个字符串没有加入的bug, 导致Http解析时最后一个参数没有解析
+  感谢(Xjumping  990669769)反馈bug
+
+9 修正Request.Tag借出时置为0(可能会引起服务端主动关闭连接)
+  2015-04-04 12:00:56
+
+10.编码器模式和Http异步处理优化
+  *   2015-04-08 12:34:33
+  *    (感谢 (Xjumping  990669769)/(suoler)反馈bug和提供bug重现)
+  *    改为异步处理Http请求后
+  *      当连接已经关闭，但是请求还没有来得及处理，然后连接上下文已经归还到池，这个时候应该放弃处理任务,(可能会导致处理逻辑时出现AV异常)
+
+
+  *    (感谢 suoler反馈bug和提供bug重现)
+  *    异步处理逻辑请求后OnContextAction
+  *      当连接已经关闭，但是请求还没有来得及处理，然后连接上下文已经归还到池，这个时候应该放弃处理任务,(可能会导致处理逻辑时出现AV异常)
+
+11.修复在不使用SOCKET重用情况下重复创建Socket句柄的Bug。
+   优化内存使用
+   2015-04-10 13:08:06
+
+12
+ *   2015-04-10 18:00:52
+ *     停止时加入等待所有的投递的AcceptEx请求回归回归后再进行关闭IOCP引擎,(会导致投递出去的AcceptEx无法回归(XP下出现泄漏))
+ *     感谢 Xjumping  990669769, 反馈bug
+
+13: 修改客户端重连方案。
+ * 在断开事件里面投递了重连请求，马上进行了连接，而且连接成功, 但是这个时候断开事件还没有处理完成(调试时会抛出出现断言异常)
+  2015-04-13 13:09:25 飘城小二(114069657);反馈bug
+
+14: * 移植DIOCPv3的文件服务器到V5
+  2015-05-03 11:42:59
+  
+15：修正编码层一个致命的BUG, 在客户端拼命推送多个包数据时，可能会引发多个线程同时操作同一个Context, 从而会引发不可控制的异常(Out of Memory!, av等)。
+  现在改为在编码成功后，投递到一个待处理的任务队列，然后由逻辑处理线程去读取这个队列，进行排队任务的处理，保证只有同一个线程在处理单个连接的任务。
+  2015-05-21 17:32:47(感谢小白提供解决思路, Http解码器暂未修改)
+  
+16
+ *   1. 扩展服务器TDiocpExTcpServer, 可以定义开始标志和结束标志(也可以只设定结束标志)，然后自动进行解包触发OnContextDataAction事件。
+ *   2. 字符串服务器TDiocpStringTcpServer, 可以设定开始字符串和结束字符串(也可以只设定结束字符串)，然后自动进行解包触发OnContextStringAction事件。
+ *      2015-07-15 09:00:09
+
+
+
+17  2015年7月16日 18:19:00
+    TDiocpBlockTcpClient添加RecvBufEnd函数
+    /// <summary>
+    ///   阻塞接收数据直到接收到一个endBuf为止
+    ///   如果收到的数据到达len大小，会直接返回
+    /// </summary>
+    /// <returns>
+    ///   返回接收到的数据长度
+    /// </returns>
+    /// <param name="buf"> 用来存放的起始内存地址 </param>
+    /// <param name="len"> 内存大小 </param>
+    /// <param name="endBuf"> 判断结束的起始内存地址 </param>
+    /// <param name="endBufLen"> 内存大小 </param>
+    function RecvBufferEnd(buf: Pointer; len: cardinal; endBuf: Pointer; endBufLen:
+        Integer): Integer;
+
+18: utils.buffer.pas中添加函数
+ *1. 2015年7月17日 15:01:12
+ *    TBufferLink添加函数
+ *     /// <summary>
+ *    ///  从当前位置开始搜索Buffer
+ *    ///   返回搜索到subBuf的起始位置
+ *    ///   如果搜索不到返回-1
+ *    /// </summary>
+ *    function SearchBuffer(subBuf:PAnsiChar; subBufLen:Cardinal): Integer;
+ 
+19: diocp.tcp.client.pas中添加TDiocpExRemoteContext可以定义包的开始和结束位置。
+ 
+
+20. 添加diocp.udp.pas，和samples\UDPTester
+
+21. diocp.ex.httpServer初步完成Cookie和Session 2015-07-29 12:04:57
+    
+22. 修复ex.tcpclient, ex.tcpserver编码问题，发送大数据时，无法解码的bug
+    2015-08-17 14:25:56
+
+23.  修正TDiocpExTcpServer和TDiocpExTcpClient的一处解码严重bug(谢谢 沈阳-想  14667479反馈和提供有缺陷的DEMO)
+     修正了SearchBuffer中用于搜索数据的函数SearchPointer bug，
+     由于没有赋值j = pvStartIndex导致判断 j < sourcelen时，会出现超越内存块搜寻。导致搜寻了无效的数据。
+     2015-08-28 14:06:14
+
+24. 修正SearchBuffer中的一严重bug(只比较了前两位字符的匹配性)
+    影响范围: doicp.ex.tcpClient.pas, diocp.ex.tcpserver.pas, utils.buffer.pas, utils.strings.pas
+     2015-09-10 20:10:41
+ 
+25. 优化IocpEngine的开启和关闭过程, SafeStop时关闭IOCP句柄，在Start(开启引擎)时重建IOCP句柄。
+    (SafeStop在等待所有工作线程停止时会重复投递退出请求，如果不重建句柄，会在重新工作线程的时候，可能会继续收到退出请求，导致工作线程退出。)
+	可能会导致，程序无法退出，并有内存泄漏, 因为重新开启服务后的工作线程为0时,无法处理任何的IOCP请求.
+	2015-10-13 21:05:34
+
+26. 添加dpk可以将DIOCP安装到组件面板
+    2015-10-14 19:50:02
+
+27.+ 添加source_cb文件夹(为cb编译使用的源码)
+  cb中不能有含有 utils/winapi的文件名，否则会冲突
+  2015-10-14 22:47:23
+
+28: + TDiocpTcpServer添加DefaultListenAddresss属性(可以单独侦听单个IP)
+   2015-11-11 09:10:24
+
+29: + 添加http_ex_httpClient(Http客户端)
+    * utilsDValue->utils_DValue, utilsUrl -> utils_URL
+
+    * httpClient 处理Cookie
+    * httpServer 添加HttpDValueSession
+    2015-11-14 16:12:01
+    
+30: * 捕获投递AcceptEx异常并记录日志。
+    2015-12-28 20:13:11
+    
+31: 2016-01-22 21:52:03
+    * 将Socket的初始化工作放在组件创建中
+    * StreamCoderDEMO添加DiocpStreamServer工程
+    (已经确认编码层(TDiocpCoderTcpServer)有隐患, 请尽量使用TDiocpTcpServer, 编码层使用了iocpTaskManager, utils.buffer(TBufferLink), 目前还没有确定是具体位置, 
+     解决方法：请参考DiocpStreamServer。
+    )
+
+
+32: 2016-05-25 13:10:49
+   * 解决在线列表BUG，该问题在Win2008SERVER上，在频繁连接断开的应用中，可能会导致在线列表不正确，
+   
+33：2016-07-17 21:10:56
+   * 服务端加入支持ipv6
+   * 服务端支持多端口绑定, 一个端口可以对应一种解码方式
+  
+34：2016-07-18 20:13:10
+   * 编码层默认使用iocp线程执行逻辑，可以通过定义宏[]改成qwokers和diocptask
+   
+35: 2016-08-02 11:01:48
+   * 源码支持D6(Echo可以编译)
+   
+36: 2016-08-05 13:14:03
+   * Http发送改成分块发送模式
+   * 优化分块发送时内存块泄漏的bug
+   * 不使用对象池时可能出现AV的bug
+   * 感谢小白一起解决问题
+
+
+37: 2016-08-12 10:32:49
+   * 修改接收请求为池模式(之前是一个连接一个接收请求)
+   * 底层的连接上下文，发送请求，接收请求，Http处理请求对象可以通过TcpServer.UseObjectPool来决定是否使用池。
+   * 优化在非池模式下面可能产生的AV的bug
+   (感谢小白)
+      
+38: 2016-10-07 21:11:56
+   * HTTP加入WebSocket支持(感谢小白), 使用方法参见(samples\DIOCPHttpServer)
+   
+   
+39: 2016-10-08 14:14:18 
+   修复utils_bufferPool可能会重复释放的BUG
+   
+40: 2016-10-10 15:19:22
+   * 修复http协议层的一处bug(当http协议不合法时，可能会导致服务出现av)
+   * 完善WEBSocket(修复掉线bug)
+   
+41: 2016-11-08 15:24:43
+   * 底层共享同一个Iocp引擎
+    
+42: 2016-12-30 20:08:21
+   + 添加KeepAliveTime设定
+   * 修改SafeStop时，会触发OnDisconnected事件
+   
+43: 2017年1月5日 17:01:48
+   * 修正SafeStop时，会继续投递AcceptEx的bug。(会生成core日志, accepEx投递失败)
+   
+44: 2017-01-10 11:16:32
+   * 修改新的编码器模式()
+  
+45: 2017-01-10 15:11:35
+   * DiocpStringServer修复没有注册TDiocpStringContext类的bug，如果扩展TDiocpStringContext会出现内存越界，感谢Beem(8418601)配合调试。
+   
+46: 2017-01-12 10:18:03
+  * 修复底层queue在Clear后，无法取出的bug,感谢brice(66943345)反馈
+  
+47: 2017-01-12 15:22:16
+  * 修复在不使用对象池时的在进行计数操作时访问的对象无效(会导致AV异常,客户端默认不使用对象池),感谢brice(66943345)反馈和配合调试
+   
+48: 2017-05-04 09:09:02-22
+  * 添加DiocpTcpClient.TrigerDisconnectEventAfterNoneConnected属性, 为true时: 即使连接失败的情况下，触发OnDisconnected事件, 默认为true
+  
+  
+49: 2017-06-22 15:13:42
+    1.修改utils_queues默认不使用PQueueData池,可以定义编译宏[USE_QUEUE_POOL]继续使用，
+    2.使用对象池时，预创建了一些对象。避免与业务共用内存块。
+    
+50：2017-07-01 14:56:15
+    1.HTTP修改投递接收请求模式，使用计数器进行。
+    
