@@ -42,21 +42,22 @@ end;
 procedure PostDemo();
 var
   P: TThreadProgressPost; // TThreadProgressPost,Post机制支持
-  doneState: TAtomBool;   // 线程安全:状态变量
+  done: TAtomBool;        // 线程安全:状态变量
+  over: boolean;          // local变量,在调用完成后会自动销毁,故此,我们必须在这里做一个监视work_结束状态
 begin
   // 线程安全:状态变量
-  doneState := TAtomBool.Create(False);
+  done := TAtomBool.Create(False);
   P := TThreadProgressPost.Create(0);
   // 工作线程
   TCompute.RunP_NP(procedure
     begin
       P.ThreadID := TCompute.CurrentThread.ThreadID;
-      while not doneState.V do
+      while not done.V do
         begin
           P.Progress(); // post主循环
           TCompute.Sleep(1);
         end;
-      DisposeObjectAndNil(P);
+      over := True;
     end);
   // 往工作线程发任务
   // 这些任务会严格按输入顺序执行
@@ -72,8 +73,9 @@ begin
     var
       i: Integer;
     begin
-      for i := 3 to 10 do
+      for i := 3 to 20 do
         begin
+          TCompute.Sleep(100);
           P.PostP3(nil, nil, i, procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant)
             begin
               DoStatus(VarToStr(Data3));
@@ -82,20 +84,21 @@ begin
       // 工作线程结束
       P.PostP1(procedure
         begin
-          doneState.V := True;
+          done.V := True;
         end);
     end);
   // 等执行完
-  while not doneState.V do
+  while not over do
     begin
       DoStatus();
       TCompute.Sleep(1);
     end;
-  DisposeObject(doneState);
+  DisposeObjectAndNil(P);
+  DisposeObjectAndNil(done);
 end;
 
 begin
-  stateDemo();
+  StateDemo();
   PostDemo();
   DoStatus('回车键结束程序.');
   readln;
