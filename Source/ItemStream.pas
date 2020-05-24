@@ -51,6 +51,8 @@ type
     function Seek(Offset: longint; origin: Word): longint; overload; override;
     function Seek(const Offset: Int64; origin: TSeekOrigin): Int64; overload; override;
 
+    function CopyFrom64(const Source: TCoreClassStream; Count: Int64): Int64;
+
     procedure SeekStart;
     procedure SeekLast;
     function UpdateHandle: Boolean;
@@ -194,6 +196,40 @@ begin
       end;
   end;
   Result := DB_Engine.ItemGetPos(ItemHnd_Ptr^);
+end;
+
+function TItemStream.CopyFrom64(const Source: TCoreClassStream; Count: Int64): Int64;
+const
+  MaxBufSize = $F000;
+var
+  BufSize, N: Int64;
+  buffer: PByte;
+begin
+  if Count <= 0 then
+    begin
+      Source.Position := 0;
+      Count := Source.Size;
+    end;
+  Result := Count;
+  if Count > MaxBufSize then
+      BufSize := MaxBufSize
+  else
+      BufSize := Count;
+  buffer := System.GetMemory(BufSize);
+  try
+    while Count <> 0 do
+      begin
+        if Count > BufSize then
+            N := BufSize
+        else
+            N := Count;
+        Source.ReadBuffer(buffer^, N);
+        WriteBuffer(buffer^, N);
+        Dec(Count, N);
+      end;
+  finally
+      System.FreeMem(buffer);
+  end;
 end;
 
 procedure TItemStream.SeekStart;

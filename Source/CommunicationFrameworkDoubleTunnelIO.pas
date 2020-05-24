@@ -513,44 +513,6 @@ type
     function RemoteInited: Boolean;
   end;
 
-implementation
-
-uses SysUtils;
-
-const
-  C_FileInfo = '__@FileInfo';
-  C_PostFile = '__@PostFile';
-  C_PostFileOver = '__@PostFileOver';
-  C_PostBatchStreamDone = '__@PostBatchStreamDone';
-  C_UserDB = 'UserDB';
-  C_UserLogin = '__@UserLogin';
-  C_RegisterUser = '__@RegisterUser';
-  C_TunnelLink = '__@TunnelLink';
-  C_ChangePasswd = '__@ChangePasswd';
-  C_CustomNewUser = '__@CustomNewUser';
-  C_ProcessStoreQueueCMD = '__@ProcessStoreQueueCMD';
-  C_GetPublicFileList = '__@GetPublicFileList';
-  C_GetPrivateFileList = '__@GetPrivateFileList';
-  C_GetPrivateDirectoryList = '__@GetPrivateDirectoryList';
-  C_CreatePrivateDirectory = '__@CreatePrivateDirectory';
-  C_GetPublicFileInfo = '__@GetPublicFileInfo';
-  C_GetPrivateFileInfo = '__@GetPrivateFileInfo';
-  C_GetPublicFileMD5 = '__@GetPublicFileMD5';
-  C_GetPrivateFileMD5 = '__@GetPrivateFileMD5';
-  C_GetPublicFile = '__@GetPublicFile';
-  C_GetPrivateFile = '__@GetPrivateFile';
-  C_GetUserPrivateFile = '__@GetUserPrivateFile';
-  C_PostPublicFileInfo = '__@PostPublicFileInfo';
-  C_PostPrivateFileInfo = '__@PostPrivateFileInfo';
-  C_GetCurrentCadencer = '__@GetCurrentCadencer';
-  C_NewBatchStream = '__@NewBatchStream';
-  C_PostBatchStream = '__@PostBatchStream';
-  C_ClearBatchStream = '__@ClearBatchStream';
-  C_GetBatchStreamState = '__@GetBatchStreamState';
-  C_GetUserPrivateFileList = '__@GetUserPrivateFileList';
-  C_GetUserPrivateDirectoryList = '__@GetUserPrivateDirectoryList';
-
-type
   PPostBatchBackcallData = ^TPostBatchBackcallData;
 
   TPostBatchBackcallData = record
@@ -595,6 +557,10 @@ type
     OnCompleteProc: TFileCompleteProc;
     procedure Init;
   end;
+
+implementation
+
+uses SysUtils;
 
 procedure TPostBatchBackcallData.Init;
 begin

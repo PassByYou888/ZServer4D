@@ -369,38 +369,6 @@ type
 
 implementation
 
-const
-  C_DataStoreSecurity = '__@DataStoreSecurity';
-  C_CompletedFragmentBigStream = '__@CompletedFragmentBigStream';
-  C_CompletedQuery = '__@CompletedQuery';
-  C_CompletedDownloadAssemble = '__@CompletedDownloadAssemble';
-  C_CompletedFastDownloadAssemble = '__@CompletedFastDownloadAssemble';
-  C_CompletedStorePosTransform = '__@CompletedStorePosTransform';
-  C_InitDB = '__@InitDB';
-  C_CloseDB = '__@CloseDB';
-  C_CopyDB = '__@CopyDB';
-  C_CompressDB = '__@CompressDB';
-  C_ReplaceDB = '__@ReplaceDB';
-  C_ResetData = '__@ResetData';
-  C_QueryDB = '__@QueryDB';
-  C_DownloadDB = '__@DownloadDB';
-  C_DownloadDBWithID = '__@DownloadDBWithID';
-  C_RequestDownloadAssembleStream = '__@RequestDownloadAssembleStream';
-  C_RequestFastDownloadAssembleStrea = '__@RequestFastDownloadAssembleStream';
-  C_FastPostCompleteBuffer = '__@FastPostCompleteBuffer';
-  C_FastInsertCompleteBuffer = '__@FastInsertCompleteBuffer';
-  C_FastModifyCompleteBuffer = '__@FastModifyCompleteBuffer';
-  C_CompletedPostAssembleStream = '__@CompletedPostAssembleStream';
-  C_CompletedInsertAssembleStream = '__@CompletedInsertAssembleStream';
-  C_CompletedModifyAssembleStream = '__@CompletedModifyAssembleStream';
-  C_DeleteData = '__@DeleteData';
-  C_GetDBList = '__@GetDBList';
-  C_GetQueryList = '__@GetQueryList';
-  C_GetQueryState = '__@GetQueryState';
-  C_QueryStop = '__@QueryStop';
-  C_QueryPause = '__@QueryPause';
-  C_QueryPlay = '__@QueryPlay';
-
 constructor TDataStoreService_PeerClientRecvTunnel_NoAuth.Create(Owner_: TPeerIO);
 type
   TCipherDef = array [0 .. 4] of TCipherSecurity;
@@ -2399,6 +2367,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 procedure TDataStoreClient_NoAuth.PostAssembleStream(dbN: SystemString; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
@@ -2483,6 +2452,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 procedure TDataStoreClient_NoAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
@@ -2566,6 +2536,7 @@ begin
 end;
 
 {$IFNDEF FPC}
+
 
 procedure TDataStoreClient_NoAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
@@ -2674,6 +2645,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 procedure TDataStoreClient_NoAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
@@ -2755,6 +2727,7 @@ end;
 
 {$IFNDEF FPC}
 
+
 procedure TDataStoreClient_NoAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
@@ -2835,6 +2808,7 @@ begin
 end;
 
 {$IFNDEF FPC}
+
 
 procedure TDataStoreClient_NoAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var

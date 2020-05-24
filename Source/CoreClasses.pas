@@ -698,6 +698,8 @@ function if_(const bool_: Boolean; const True_, False_: Single): Single; overloa
 function if_(const bool_: Boolean; const True_, False_: Double): Double; overload;
 function if_(const bool_: Boolean; const True_, False_: string): string; overload;
 function ifv_(const bool_: Boolean; const True_, False_: Variant): Variant;
+function GetOffset(p_: Pointer; offset_: NativeInt): Pointer;
+function GetPtr(p_: Pointer; offset_: NativeInt): Pointer;
 
 {$EndRegion 'core api'}
 {$Region 'core var'}

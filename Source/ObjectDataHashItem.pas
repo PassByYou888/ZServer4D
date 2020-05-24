@@ -305,7 +305,7 @@ end;
 
 procedure TObjectDataHashItem.GetList(Output_: TCoreClassList);
   function ListSortCompare(Item1, Item2: Pointer): Integer;
-    function aCompareValue(const a, b: Int64): Integer;
+    function Compare_(const a, b: Int64): Integer;
     begin
       if a = b then
           Result := 0
@@ -316,7 +316,7 @@ procedure TObjectDataHashItem.GetList(Output_: TCoreClassList);
     end;
 
   begin
-    Result := aCompareValue(PHashItemData(Item1)^.ID, PHashItemData(Item2)^.ID);
+    Result := Compare_(PHashItemData(Item1)^.ID, PHashItemData(Item2)^.ID);
   end;
 
   procedure QuickSortList(var SortList: TCoreClassPointerList; L, r: Integer);

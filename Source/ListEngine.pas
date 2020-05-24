@@ -36,7 +36,11 @@ unit ListEngine;
 
 interface
 
-uses SysUtils, Classes, Variants, CoreClasses, PascalStrings;
+uses SysUtils, Classes, Variants, CoreClasses,
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  PascalStrings;
 
 type
   TCounter = NativeUInt;
@@ -980,6 +984,7 @@ type
     property Items[idx: Integer]: Int64 read GetItems write SetItems; default;
     property List: TCoreClassList read FList;
   end;
+
 {$ENDREGION 'TListInt64'}
 {$REGION 'TListNativeInt'}
 
@@ -1389,7 +1394,21 @@ type
     property Owner: TCoreClassObject read FOwner write FOwner;
   end;
 {$ENDREGION 'TBackcalls'}
+{$REGION 'Generics decl'}
 
+  TGUInt8List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Byte>;
+  TGInt8List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<ShortInt>;
+  TGUInt16List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Word>;
+  TGInt16List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<SmallInt>;
+  TGUInt32List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Cardinal>;
+  TGInt32List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
+  TGUInt64List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<UInt64>;
+  TGInt64List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Int64>;
+
+  TGSingleList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Single>;
+  TGFloatList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Single>;
+  TGDoubleList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Double>;
+{$ENDREGION 'Generics decl'}
 
 function HashMod(const h: THash; const m: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 // fast hash support

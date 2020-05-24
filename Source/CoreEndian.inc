@@ -379,6 +379,7 @@ end;
 
 {$IFDEF OVERLOAD_NATIVEINT}
 
+
 procedure Swap(var v1, v2: NativeInt);
 var
   v: NativeInt;
@@ -594,4 +595,14 @@ begin
       Result := True_
   else
       Result := False_;
+end;
+
+function GetOffset(p_: Pointer; offset_: NativeInt): Pointer;
+begin
+  Result := Pointer(NativeUInt(p_) + offset_);
+end;
+
+function GetPtr(p_: Pointer; offset_: NativeInt): Pointer;
+begin
+  Result := Pointer(NativeUInt(p_) + offset_);
 end;

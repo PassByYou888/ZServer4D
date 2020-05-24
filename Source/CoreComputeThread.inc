@@ -214,8 +214,8 @@ begin
       // check for idle thread, and again run.
       tk := GetTimeTick;
       NoTask := True;
-      inc(IdleComputeThreadSum.LockP^);
-      IdleComputeThreadSum.Unlock;
+      inc(IdleComputeThreadSum.LockP()^);
+      IdleComputeThreadSum.Unlock();
       for i := 1 to 100 do
         begin
           while NoTask and (GetTimeTick - tk < 10) do
@@ -234,8 +234,8 @@ begin
           // little delay
           Sleep(1);
         end;
-      dec(IdleComputeThreadSum.LockP^);
-      IdleComputeThreadSum.Unlock;
+      dec(IdleComputeThreadSum.LockP()^);
+      IdleComputeThreadSum.Unlock();
       if NoTask then
           break;
     end;

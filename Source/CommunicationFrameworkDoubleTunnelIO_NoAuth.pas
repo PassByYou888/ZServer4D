@@ -348,29 +348,6 @@ type
     property SendTunnel: TCommunicationFrameworkClient read FSendTunnel;
   end;
 
-implementation
-
-uses SysUtils;
-
-const
-  C_FileInfo = '__@FileInfo';
-  C_PostFile = '__@PostFile';
-  C_PostFileOver = '__@PostFileOver';
-  C_PostBatchStreamDone = '__@PostBatchStreamDone';
-  C_TunnelLink = '__@TunnelLink';
-  C_GetCurrentCadencer = '__@GetCurrentCadencer';
-  C_GetFileTime = '__@GetFileTime';
-  C_GetFileInfo = '__@GetFileInfo';
-  C_GetFileMD5 = '__@GetFileMD5';
-  C_GetFile = '__@GetFile';
-  C_GetFileAs = '__@GetFileAs';
-  C_PostFileInfo = '__@PostFileInfo';
-  C_NewBatchStream = '__@NewBatchStream';
-  C_PostBatchStream = '__@PostBatchStream';
-  C_ClearBatchStream = '__@ClearBatchStream';
-  C_GetBatchStreamState = '__@GetBatchStreamState';
-
-type
   PPostBatchBackcallData_NoAuth = ^TPostBatchBackcallData_NoAuth;
 
   TPostBatchBackcallData_NoAuth = record
@@ -412,6 +389,10 @@ type
     OnCompleteMethod: TFileCompleteMethod_NoAuth;
     OnCompleteProc: TFileCompleteProc_NoAuth;
   end;
+
+implementation
+
+uses SysUtils;
 
 procedure TPostBatchBackcallData_NoAuth.Init;
 begin

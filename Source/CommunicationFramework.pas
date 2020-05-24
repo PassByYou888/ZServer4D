@@ -1839,7 +1839,7 @@ var
   C_DataTailToken: Cardinal = $F1F1F1F1;
 
   { send flush buffer }
-  C_SendFlushSize: NativeInt = 1 * 1024; // flush size = 1k byte
+  C_SendFlushSize: NativeInt = 16 * 1024; // flush size = 16k byte
 
   // DoStatus ID
   C_DoStatusID: Integer = $0FFFFFFF;
@@ -1853,6 +1853,90 @@ var
   // global progress backcall
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
   ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
+
+  // system command
+  C_BuildP2PAuthToken: SystemString = '__@BuildP2PAuthToken';
+  C_InitP2PTunnel: SystemString = '__@InitP2PTunnel';
+  C_CloseP2PTunnel: SystemString = '__@CloseP2PTunnel';
+  C_CipherModel: SystemString = '__@CipherModel';
+  C_Wait: SystemString = '__@Wait';
+
+  // stable IO command
+  C_BuildStableIO: SystemString = '__@BuildStableIO';
+  C_OpenStableIO: SystemString = '__@OpenStableIO';
+  C_CloseStableIO: SystemString = '__@CloseStableIO';
+
+  // double tunnel command
+  C_FileInfo: SystemString = '__@FileInfo';
+  C_PostFile: SystemString = '__@PostFile';
+  C_PostFileOver: SystemString = '__@PostFileOver';
+  C_PostBatchStreamDone: SystemString = '__@PostBatchStreamDone';
+  C_UserDB: SystemString = 'UserDB';
+  C_UserLogin: SystemString = '__@UserLogin';
+  C_RegisterUser: SystemString = '__@RegisterUser';
+  C_TunnelLink: SystemString = '__@TunnelLink';
+  C_ChangePasswd: SystemString = '__@ChangePasswd';
+  C_CustomNewUser: SystemString = '__@CustomNewUser';
+  C_ProcessStoreQueueCMD: SystemString = '__@ProcessStoreQueueCMD';
+  C_GetPublicFileList: SystemString = '__@GetPublicFileList';
+  C_GetPrivateFileList: SystemString = '__@GetPrivateFileList';
+  C_GetPrivateDirectoryList: SystemString = '__@GetPrivateDirectoryList';
+  C_CreatePrivateDirectory: SystemString = '__@CreatePrivateDirectory';
+  C_GetPublicFileInfo: SystemString = '__@GetPublicFileInfo';
+  C_GetPrivateFileInfo: SystemString = '__@GetPrivateFileInfo';
+  C_GetPublicFileMD5: SystemString = '__@GetPublicFileMD5';
+  C_GetPrivateFileMD5: SystemString = '__@GetPrivateFileMD5';
+  C_GetPublicFile: SystemString = '__@GetPublicFile';
+  C_GetPrivateFile: SystemString = '__@GetPrivateFile';
+  C_GetUserPrivateFile: SystemString = '__@GetUserPrivateFile';
+  C_PostPublicFileInfo: SystemString = '__@PostPublicFileInfo';
+  C_PostPrivateFileInfo: SystemString = '__@PostPrivateFileInfo';
+  C_GetCurrentCadencer: SystemString = '__@GetCurrentCadencer';
+  C_NewBatchStream: SystemString = '__@NewBatchStream';
+  C_PostBatchStream: SystemString = '__@PostBatchStream';
+  C_ClearBatchStream: SystemString = '__@ClearBatchStream';
+  C_GetBatchStreamState: SystemString = '__@GetBatchStreamState';
+  C_GetUserPrivateFileList: SystemString = '__@GetUserPrivateFileList';
+  C_GetUserPrivateDirectoryList: SystemString = '__@GetUserPrivateDirectoryList';
+  C_GetFileTime: SystemString = '__@GetFileTime';
+  C_GetFileInfo: SystemString = '__@GetFileInfo';
+  C_GetFileMD5: SystemString = '__@GetFileMD5';
+  C_GetFile: SystemString = '__@GetFile';
+  C_GetFileAs: SystemString = '__@GetFileAs';
+  C_PostFileInfo: SystemString = '__@PostFileInfo';
+
+  // double tunnel datastore command
+  C_DataStoreSecurity: SystemString = '__@DataStoreSecurity';
+  C_CompletedFragmentBigStream: SystemString = '__@CompletedFragmentBigStream';
+  C_CompletedQuery: SystemString = '__@CompletedQuery';
+  C_CompletedDownloadAssemble: SystemString = '__@CompletedDownloadAssemble';
+  C_CompletedFastDownloadAssemble: SystemString = '__@CompletedFastDownloadAssemble';
+  C_CompletedStorePosTransform: SystemString = '__@CompletedStorePosTransform';
+  C_InitDB: SystemString = '__@InitDB';
+  C_CloseDB: SystemString = '__@CloseDB';
+  C_CopyDB: SystemString = '__@CopyDB';
+  C_CompressDB: SystemString = '__@CompressDB';
+  C_ReplaceDB: SystemString = '__@ReplaceDB';
+  C_ResetData: SystemString = '__@ResetData';
+  C_QueryDB: SystemString = '__@QueryDB';
+  C_DownloadDB: SystemString = '__@DownloadDB';
+  C_DownloadDBWithID: SystemString = '__@DownloadDBWithID';
+  C_RequestDownloadAssembleStream: SystemString = '__@RequestDownloadAssembleStream';
+  C_RequestFastDownloadAssembleStrea: SystemString = '__@RequestFastDownloadAssembleStream';
+  C_FastPostCompleteBuffer: SystemString = '__@FastPostCompleteBuffer';
+  C_FastInsertCompleteBuffer: SystemString = '__@FastInsertCompleteBuffer';
+  C_FastModifyCompleteBuffer: SystemString = '__@FastModifyCompleteBuffer';
+  C_CompletedPostAssembleStream: SystemString = '__@CompletedPostAssembleStream';
+  C_CompletedInsertAssembleStream: SystemString = '__@CompletedInsertAssembleStream';
+  C_CompletedModifyAssembleStream: SystemString = '__@CompletedModifyAssembleStream';
+  C_DeleteData: SystemString = '__@DeleteData';
+  C_GetDBList: SystemString = '__@GetDBList';
+  C_GetQueryList: SystemString = '__@GetQueryList';
+  C_GetQueryState: SystemString = '__@GetQueryState';
+  C_QueryStop: SystemString = '__@QueryStop';
+  C_QueryPause: SystemString = '__@QueryPause';
+  C_QueryPlay: SystemString = '__@QueryPlay';
+
 {$ENDREGION 'ConstAndVariant'}
 {$REGION 'function'}
 
@@ -1925,19 +2009,6 @@ procedure RunStreamWithDelayThreadP(Sender: TPeerIO;
 {$ENDREGION 'function'}
 
 implementation
-
-const
-  // system command
-  C_BuildP2PAuthToken = '__@BuildP2PAuthToken';
-  C_InitP2PTunnel = '__@InitP2PTunnel';
-  C_CloseP2PTunnel = '__@CloseP2PTunnel';
-  C_CipherModel = '__@CipherModel';
-  C_Wait = '__@Wait';
-
-  // stable IO command
-  C_BuildStableIO = '__@BuildStableIO';
-  C_OpenStableIO = '__@OpenStableIO';
-  C_CloseStableIO = '__@CloseStableIO';
 
 type
   TWaitSendConsoleCmdIntf = class(TCoreClassObject)
@@ -10998,7 +11069,7 @@ begin
 
   FFrameworkListenPool := TCoreClassList.Create;
 
-  FMaxVMFragmentSize := 200;
+  FMaxVMFragmentSize := 8192;
   FMaxRealBuffer := 2048 * 1024; // 2M
 
   FQuietMode := False;
