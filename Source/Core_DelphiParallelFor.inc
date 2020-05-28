@@ -357,7 +357,8 @@ begin
     Depth := Min(ParallelGranularity, e - b + 1);
     SetLength(states, Depth);
 
-    for i := 0 to Length(states) - 1 do
+    i := 0;
+    while i < Depth do
       begin
         p := @states[i];
         p^.Pass := b + i;
@@ -367,6 +368,7 @@ begin
         p^.OnFor := OnFor;
         p^.Critical := Critical;
         TComputeThread.RunC(p, nil, DelphiParallelTh32_Fold);
+        inc(i);
       end;
 
     repeat
@@ -448,7 +450,8 @@ begin
     Depth := Min(ParallelGranularity, e - b + 1);
     SetLength(states, Depth);
 
-    for i := 0 to Length(states) - 1 do
+    i := 0;
+    while i < Depth do
       begin
         p := @states[i];
         p^.Pass := b + i;
@@ -458,6 +461,7 @@ begin
         p^.OnFor := OnFor;
         p^.Critical := Critical;
         TComputeThread.RunC(p, nil, DelphiParallelTh64_Fold);
+        inc(i);
       end;
 
     repeat
