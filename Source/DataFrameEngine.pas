@@ -3927,7 +3927,7 @@ begin
   // if encode size too large(>1M), we use EncodeAsSelectCompressor
   if (AutoCompressed) and (ComputeEncodeSize > 1024 * 1024) then
     begin
-      Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB, output, FastMode);
+      Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB_Fast, output, FastMode);
       Exit;
     end;
 
@@ -4225,7 +4225,7 @@ begin
   if ComputeEncodeSize > 64 * 1024 then
     begin
       if FastMode then
-          scm := TSelectCompressionMethod.scmZLIB
+          scm := TSelectCompressionMethod.scmZLIB_Fast
       else
           scm := TSelectCompressionMethod.scmZLIB_Max;
       Result := EncodeAsSelectCompressor(scm, output, FastMode);

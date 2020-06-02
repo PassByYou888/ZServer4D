@@ -102,7 +102,7 @@ type
 implementation
 
 uses
-  Macapi.CoreFoundation, Macapi.ObjectiveC, Macapi.ObjCRuntime, Macapi.Helpers, iOSapi.CocoaTypes, iOSapi.Foundation,
+  Macapi.CoreFoundation, Macapi.ObjectiveC, Macapi.ObjCRuntime, Macapi.Helpers, iOSApi.CocoaTypes, iOSApi.Foundation,
   iOSapi.UIKit, iOSapi.StoreKit, FMX.Helpers.iOS,
   System.IOUtils,
   System.TypInfo,
@@ -884,3 +884,4 @@ finalization
   RemoveEnumElementAliases(TypeInfo(TFailureKind));
 
 end.
+ 

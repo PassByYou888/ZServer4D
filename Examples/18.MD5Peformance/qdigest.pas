@@ -36,7 +36,7 @@ interface
   2014.8.2
   * 修正了一处Move参数传递错误
 }
-uses classes, sysutils, qstring{$IFDEF MSWINDOWS}, windows{$ENDIF};
+uses Classes, SysUtils, qstring{$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 type
 {$HPPEMIT '#pragma link "qdigest"'}
@@ -2763,3 +2763,4 @@ begin
 end;
 
 end.
+ 

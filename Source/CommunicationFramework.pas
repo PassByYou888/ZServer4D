@@ -939,6 +939,7 @@ type
 
     // p2pVM backcall interface
     property VMInterface: ICommunicationFrameworkVMInterface read FVMInterface write FVMInterface;
+    property OnVMInterface: ICommunicationFrameworkVMInterface read FVMInterface write FVMInterface;
     // p2pVM trigger
     procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean); virtual;
     procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); virtual;
@@ -3865,7 +3866,7 @@ begin
       sour := TMemoryStream64.Create;
       sour.SetPointerWithProtectedMode(Queue.buffer, Queue.BufferSize);
       dest := TMemoryStream64.Create;
-      ParallelCompressStream(sour, dest);
+      ParallelCompressStream(scmZLIB_Fast, sour, dest);
       InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, dest.Size);
       Send(dest.Memory, dest.Size);
       DisposeObject(sour);
@@ -3909,7 +3910,7 @@ begin
       sourStream := TMemoryStream64.Create;
       sourStream.SetPointerWithProtectedMode(buff, Size);
       destStream := TMemoryStream64.CustomCreate(8192);
-      ParallelCompressStream(sourStream, destStream);
+      ParallelCompressStream(scmZLIB_Fast, sourStream, destStream);
 
       head.Size := destStream.Size;
       head.Compressed := True;

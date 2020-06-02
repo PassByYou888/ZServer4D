@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, FlyUtils.CnMD5,
-  FlyUtils.CnXXX.Common, IdGlobal, IdHashMessageDigest, IdHash, System.Hash,
+  FlyUtils.CnXXX.Common, IDGlobal, IdHashMessageDigest, IdHash, System.Hash,
   SynCrypto, Fast_MD5, qdigest;
 
 type
@@ -268,3 +268,4 @@ begin
 end;
 
 end.
+ 

@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls,
   CoreClasses, PascalStrings, UnicodeMixedLib, CommunicationFramework,
-  xNAT_MappingOnVirutalServer, xNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase;
+  XNATMappingOnVirutalService, XNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase;
 
 type
   TForm2 = class(TForm)
@@ -113,3 +113,4 @@ begin
 end;
 
 end.
+ 

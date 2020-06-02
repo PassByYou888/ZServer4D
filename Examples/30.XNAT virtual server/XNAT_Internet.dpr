@@ -18,7 +18,7 @@ uses
   PascalStrings,
   UnicodeMixedLib,
   CommunicationFramework,
-  xNATService,
+  XNATService,
   DoStatusIO;
 
 var
@@ -40,9 +40,9 @@ begin
     }
     XServ.ProtocolCompressed := True;
 
-    XServ.Host := '0.0.0.0'; // 与内网服务器的通讯参数：协议隧道绑定地址为所有网卡的ipv4，如果是ipv6，写'::'
-    XServ.Port := '7890';    // 与内网服务器的通讯参数：协议端口
-    XServ.AuthToken := '123456';         // 与内网服务器的通讯参数：协议验证字符串(该标识符使用了抗量子密码模型，相关技术请自行研究代码)
+    XServ.Host := '0.0.0.0';     // 与内网服务器的通讯参数：协议隧道绑定地址为所有网卡的ipv4，如果是ipv6，写'::'
+    XServ.Port := '7890';        // 与内网服务器的通讯参数：协议端口
+    XServ.AuthToken := '123456'; // 与内网服务器的通讯参数：协议验证字符串(该标识符使用了抗量子密码模型，相关技术请自行研究代码)
 
     {
       侦听配置
@@ -67,3 +67,4 @@ begin
   end;
 
 end.
+ 

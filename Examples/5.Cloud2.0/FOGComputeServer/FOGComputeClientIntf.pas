@@ -7,7 +7,7 @@ uses Variants, SysUtils, Types, DateUtils,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine, Cadencer,
   NotifyObjectBase,
-  xNATPhysics,
+  XNATPhysics,
   PascalStrings, MemoryStream64;
 
 type
@@ -74,3 +74,4 @@ begin
 end;
 
 end.
+ 

@@ -6,8 +6,9 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, System.TypInfo,
+  FMX.TabControl, FMX.Edit, FMX.Layouts, FMX.ListBox,
   CoreClasses, PascalStrings, UnicodeMixedLib, CommunicationFramework,
-  xNAT_MappingOnVirutalServer, xNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase, FMX.TabControl, FMX.Edit, FMX.Layouts, FMX.ListBox;
+  XNATMappingOnVirutalService, XNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase;
 
 type
   TForm1 = class(TForm)
@@ -59,7 +60,7 @@ begin
   }
   XCli.ProtocolCompressed := True;
 
-  server := XCli.AddMappingServer('my18888', 10000).StableIO; // 将公网服务器的18888端口反向代理到成为本地服务器，物理连接只有1个
+  server := XCli.AddMappingServer('my18888', 5).StableIO; // 将公网服务器的18888端口反向代理到成为本地服务器，物理连接只有1个
 
   server.OfflineTimeout := 3 * 60 * 1000;        // 离线重连技术，在离线后3分钟就断开stableIO的实例
   server.PhysicsServer.TimeOutIDLE := 60 * 1000; // 物理客户端60秒无响应就是离线状态

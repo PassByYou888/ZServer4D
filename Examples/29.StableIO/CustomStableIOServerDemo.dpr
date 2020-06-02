@@ -21,7 +21,7 @@ uses
   MemoryStream64,
   CommunicationFramework,
   CommunicationTest,
-  xNATPhysics;
+  XNATPhysics;
 
 {
   StableIO‘≠¿Ì
@@ -136,3 +136,4 @@ begin
   end;
 
 end.
+ 

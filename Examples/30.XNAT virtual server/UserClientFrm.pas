@@ -6,8 +6,9 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ScrollBox, FMX.Memo,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Edit, FMX.Layouts, System.TypInfo,
+  FMX.ListBox,
   CommunicationFramework, DoStatusIO, CoreClasses, PhysicsIO,
-  Cadencer, DataFrameEngine, UnicodeMixedLib, CommunicationTest, FMX.ListBox;
+  Cadencer, DataFrameEngine, UnicodeMixedLib, CommunicationTest;
 
 type
   TForm2 = class(TForm)
@@ -38,7 +39,7 @@ var
   Form2: TForm2;
 
 const
-  MaxConn = 2000;
+  MaxConn = 10;
 
 implementation
 

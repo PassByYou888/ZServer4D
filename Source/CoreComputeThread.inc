@@ -121,7 +121,7 @@ begin
       ComputeDispatchPool.Add(@Data);
       ComputeDispatchCritical.Release;
       tk := GetTimeTick();
-      while (IdleComputeThreadSum.V > 0) and (GetTimeTick() - tk < 20) do
+      while (IdleComputeThreadSum.V > 0) and (GetTimeTick() - tk < 5) do
         begin
           ComputeDispatchCritical.Acquire;
           done := ComputeDispatchPool.IndexOf(@Data) < 0;

@@ -10,7 +10,7 @@ uses
   CommunicationFramework_Server_CrossSocket, CommunicationFramework_Client_CrossSocket,
   DoStatusIO, MemoryStream64, CoreClasses,
 
-  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdGlobal;
+  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IDGlobal;
 
 type
   // TPeerClientUserSpecial是每个客户端p2p链接后的特殊实例接口
@@ -243,3 +243,4 @@ begin
 end;
 
 end.
+ 

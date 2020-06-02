@@ -38,7 +38,7 @@ uses
   FPCGenericStructlist,
 {$ELSE FPC}
   ZLib,
-{$ENDIF}
+{$ENDIF FPC}
   CoreClasses, PascalStrings, UnicodeMixedLib;
 
 type

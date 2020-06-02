@@ -5,9 +5,9 @@ interface
 uses
   FMX.Controls, FMX.Ani, FMX.Forms, FMX.Types, System.UITypes, FMX.Layouts,
   System.Types,
-  IdGlobal,
+  IDGlobal,
   AC2KeepAwakeUnit,
-  CommunicationFramework, xNATPhysics,
+  CommunicationFramework, XNATPhysics,
   CoreClasses, TextDataEngine,
   Cadencer,
   Classes, SysUtils, Geometry2DUnit, NotifyObjectBase,
@@ -81,11 +81,11 @@ uses
   iOSapi.Helpers,
 {$ELSEIF Defined(ANDROID)}
   Androidapi.JNI.App,
-  Androidapi.JNI.GraphicsContentViewText,
-  Androidapi.Helpers,
+  AndroidApi.JNI.GraphicsContentViewText,
+  AndroidApi.Helpers,
   FMX.Helpers.Android,
   FMX.Platform.Android,
-  Androidapi.JNI.Os, Androidapi.JNI.JavaTypes, Androidapi.JNIBridge,
+  Androidapi.JNI.Os, AndroidApi.JNI.JavaTypes, AndroidApi.JNIBridge,
 {$ELSE}
 {$IFEND}
   DoStatusIO, AC2LogicFrm, AC2LoginFrm, AC2ProgressFrm;
@@ -386,3 +386,5 @@ GlobalProgressThreadRuning := False;
 ProgressBackgroundProc := nil;
 
 end.
+ 
+ 

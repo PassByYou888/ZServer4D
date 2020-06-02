@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo,
   CoreClasses, PascalStrings, UnicodeMixedLib, CommunicationFramework,
-  xNATPhysics, xNATClient, DoStatusIO;
+  XNATPhysics, XNATClient, DoStatusIO;
 
 type
   TForm1 = class(TForm)
@@ -71,3 +71,4 @@ begin
 end;
 
 end.
+ 

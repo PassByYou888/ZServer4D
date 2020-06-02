@@ -27,14 +27,6 @@ uses CoreClasses, ListEngine, UnicodeMixedLib, DoStatusIO,
   TextDataEngine,
   CommunicationFramework, PhysicsIO;
 
-const
-{$IFDEF PhysicsIO_On_CrossSocket}
-  HostQuery_ListenBind = '';
-{$ELSE PhysicsIO_On_CrossSocket}
-  HostQuery_ListenBind = '0.0.0.0';
-{$ENDIF PhysicsIO_On_CrossSocket}
-  HostQuery_ListenPort = 8398;
-
 type
   THPhysicsServer = TPhysicsServer;
   THPhysicsClient = TPhysicsClient;
@@ -80,6 +72,10 @@ type
     constructor Create(const Host, Filter: SystemString);
     destructor Destroy; override;
   end;
+
+var
+  HostQuery_ListenBind: SystemString = {$IFDEF PhysicsIO_On_CrossSocket} '' {$ELSE PhysicsIO_On_CrossSocket} '0.0.0.0' {$ENDIF PhysicsIO_On_CrossSocket};
+  HostQuery_ListenPort: Word = 8398;
 
 implementation
 

@@ -246,7 +246,7 @@ unit SynCrypto;
 
 interface
 
-{$I Synopse.inc} // define HASINLINE USETYPEINFO CPU32 CPU64 OWNNORMTOUPPER
+{$INCLUDE Synopse.inc} // define HASINLINE USETYPEINFO CPU32 CPU64 OWNNORMTOUPPER
 
 {.$define USEPADLOCK}
 
@@ -13665,3 +13665,4 @@ end.
 
 
 
+ 

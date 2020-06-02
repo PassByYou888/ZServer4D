@@ -16,7 +16,7 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
-unit xNATClient;
+unit XNATClient;
 
 {$INCLUDE zDefine.inc}
 
@@ -24,7 +24,7 @@ interface
 
 uses CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib, ListEngine, TextDataEngine,
   CoreCipher, DataFrameEngine, MemoryStream64, CommunicationFramework, NotifyObjectBase,
-  xNATPhysics;
+  XNATPhysics;
 
 type
   TXNATClient = class;
@@ -699,7 +699,7 @@ begin
   Host := '';
   Port := '4921';
   AuthToken := '';
-  MaxVMFragment := '1024';
+  MaxVMFragment := '8192';
   MaxRealBuffer := umlIntToStr(1024 * 1024 * 2);
   ProtocolCompressed := False;
   MappingList := TCoreClassListForObj.Create;
@@ -857,3 +857,5 @@ begin
 end;
 
 end.
+ 
+ 

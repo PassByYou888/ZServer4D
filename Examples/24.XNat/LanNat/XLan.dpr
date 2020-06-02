@@ -11,8 +11,8 @@ uses
   PascalStrings,
   UnicodeMixedLib,
   CommunicationFramework,
-  xNATPhysics,
-  xNATClient,
+  XNATPhysics,
+  XNATClient,
   DoStatusIO;
 
 var
@@ -56,3 +56,4 @@ begin
   end;
 
 end.
+ 

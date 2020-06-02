@@ -1,5 +1,5 @@
 unit qstring;
-{$I 'qdac.inc'}
+{$INCLUDE 'qdac.inc'}
 
 interface
 
@@ -244,11 +244,11 @@ interface
 }
 {$ENDREGION 'History'}
 
-uses classes, sysutils, types{$IF RTLVersion>=21},
+uses Classes, SysUtils, Types{$IF RTLVersion>=21},
   Rtti{$IFEND >=XE10}{$IFNDEF MSWINDOWS},
-  syncobjs{$ENDIF}
+  SyncObjs{$ENDIF}
 {$IFDEF MSWINDOWS}
-    , windows
+    , Windows
 {$ENDIF}
 {$IFDEF POSIX}
     , Posix.String_
@@ -257,7 +257,7 @@ uses classes, sysutils, types{$IF RTLVersion>=21},
     , Androidapi.Log
 {$ENDIF}
 {$IFDEF IOS}
-    , iOSapi.Foundation, Macapi.Helpers, Macapi.ObjectiveC
+    , iOSApi.Foundation, Macapi.Helpers, Macapi.ObjectiveC
 {$ENDIF}
     ;
 {$HPPEMIT '#pragma link "qstring"'}
@@ -1519,7 +1519,7 @@ const
 
 implementation
 
-uses dateutils, math, sysconst, variants
+uses DateUtils, Math, sysconst, Variants
 {$IF (RTLVersion>=25) and (not Defined(NEXTGEN))}
     , AnsiStrings
 {$IFEND >=XE4}
@@ -12037,3 +12037,4 @@ if hMsvcrtl <> 0 then
 {$ENDIF}
 
 end.
+ 
