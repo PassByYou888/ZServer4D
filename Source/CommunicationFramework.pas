@@ -16,12 +16,6 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
-(*
-  update history
-  2018-9-11 vm auth model, user protocol model
-  2017-12-6 added TBigStreamBatchList
-  2017-11-28  support anonymous function
-*)
 
 unit CommunicationFramework;
 
@@ -85,6 +79,15 @@ type
   TNotifyProc = reference to procedure();
   TDataNotifyProc = reference to procedure(data: TCoreClassObject);
 {$ENDIF FPC}
+
+  TOnStateStruct = record
+    OnCall: TStateCall;
+    OnMethod: TStateMethod;
+    OnProc: TStateProc;
+    procedure Init;
+  end;
+
+  POnStateStruct = ^TOnStateStruct;
 
   TStateParamBridge = class
   public
@@ -2732,6 +2735,13 @@ begin
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
   TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+end;
+
+procedure TOnStateStruct.Init;
+begin
+  OnCall := nil;
+  OnMethod := nil;
+  OnProc := nil;
 end;
 
 constructor TStateParamBridge.Create;
