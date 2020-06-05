@@ -120,22 +120,22 @@ type
     PhysicsEngine: TCommunicationFramework;
     Progressing: Boolean;
 
-    // IO Interface
+    { IO Interface }
     procedure PeerIO_Create(const Sender: TPeerIO);
     procedure PeerIO_Destroy(const Sender: TPeerIO);
-    // p2pVM Interface
+    { p2pVM Interface }
     procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
     procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
     procedure p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
     procedure p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
     procedure p2pVMTunnelClose(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
-    // backcall
+    { backcall }
     procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
-    // property proc
+    { property proc }
     function GetServers(const index: Integer): TXNAT_MappingOnVirutalServer;
     function GetServersWithMapping(const Mapping: SystemString): TXNAT_MappingOnVirutalServer;
   public
-    // tunnel parameter
+    { tunnel parameter }
     Host: TPascalString;
     Port: TPascalString;
     AuthToken: TPascalString;
@@ -327,18 +327,18 @@ begin
       p_io := TPeerIO(XNAT.PhysicsEngine.PeerIO_HashPool[p_id]);
       if p_io <> nil then
         begin
-          // uninstall p2pVM
+          { uninstall p2pVM }
           p_io.p2pVMTunnel.UninstallLogicFramework(SendTunnel);
           p_io.p2pVMTunnel.UninstallLogicFramework(RecvTunnel);
 
-          // install p2pVM
+          { install p2pVM }
           p_io.p2pVMTunnel.InstallLogicFramework(SendTunnel);
           p_io.p2pVMTunnel.InstallLogicFramework(RecvTunnel);
         end;
     end;
   SetLength(io_array, 0);
 
-  // sequence sync
+  { sequence sync }
   RecvTunnel.SyncOnCompleteBuffer := True;
   RecvTunnel.SyncOnResult := True;
   RecvTunnel.SwitchMaxPerformance;
@@ -347,7 +347,7 @@ begin
   SendTunnel.SyncOnResult := True;
   SendTunnel.SwitchMaxPerformance;
 
-  // compressed complete buffer
+  { compressed complete buffer }
   SendTunnel.CompleteBufferCompressed := XNAT.ProtocolCompressed;
   RecvTunnel.CompleteBufferCompressed := XNAT.ProtocolCompressed;
 
@@ -767,7 +767,7 @@ procedure TXNAT_Mapping.OpenTunnel(MODEL: TXNAT_PHYSICS_MODEL);
 begin
   Activted := True;
 
-  // init tunnel engine
+  { init tunnel engine }
   if PhysicsEngine = nil then
     begin
       if MODEL = TXNAT_PHYSICS_MODEL.XNAT_PHYSICS_SERVICE then
@@ -780,7 +780,7 @@ begin
   PhysicsEngine.IOInterface := Self;
   PhysicsEngine.VMInterface := Self;
 
-  // Security protocol
+  { Security protocol }
   PhysicsEngine.SwitchMaxSecurity;
 
   if PhysicsEngine is TCommunicationFrameworkServer then
@@ -857,4 +857,3 @@ begin
 end;
 
 end.
- 

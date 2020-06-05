@@ -3099,17 +3099,23 @@ begin
       Result.DeleteFirst;
       Result.DeleteFirst;
       Result.DeleteFirst;
+      if Result.Last = #13 then
+          Result.DeleteLast;
     end
   else if umlMultipleMatch(False, '///*', Result) then
     begin
       Result.DeleteFirst;
       Result.DeleteFirst;
       Result.DeleteFirst;
+      if Result.Last = #13 then
+          Result.DeleteLast;
     end
   else if umlMultipleMatch(False, '//*', Result) then
     begin
       Result.DeleteFirst;
       Result.DeleteFirst;
+      if Result.Last = #13 then
+          Result.DeleteLast;
     end;
 end;
 

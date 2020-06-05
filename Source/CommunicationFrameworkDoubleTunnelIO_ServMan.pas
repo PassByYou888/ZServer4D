@@ -140,7 +140,7 @@ type
     procedure PostExecute_ServerOffline(Sender: TNPostExecute);
     procedure PostExecute_RegServer(Sender: TNPostExecute);
   protected
-    // manager client
+    { manager client }
     procedure Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure PostExecute_Disconnect(Sender: TNPostExecute);
     procedure Command_AntiIdle(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -588,7 +588,7 @@ begin
 
   if cli.ServerType = TServerType.stManager then
     begin
-      // delete local configure
+      { delete local configure }
       ns := TCoreClassStringList.Create;
       ServerConfig.GetSectionList(ns);
 
@@ -600,7 +600,7 @@ begin
         end;
       DisposeObject(ns);
 
-      // sync all client
+      { sync all client }
       ProgressEngine.PostExecuteM(nil, {$IFDEF FPC}@{$ENDIF FPC}PostExecute_RegServer);
     end;
 
@@ -620,7 +620,7 @@ var
   peer: TPeerIO;
   c: TServerManager_RecvTunnelData;
 begin
-  // fixed local connect info
+  { fixed local connect info }
   FRecvTunnel.GetIO_Array(IO_Array);
   for pid in IO_Array do
     begin
@@ -783,7 +783,7 @@ begin
 
   if not existedSameOnlineServer then
     begin
-      // delete local configure
+      { delete local configure }
       ns := TCoreClassStringList.Create;
       ServerConfig.GetSectionList(ns);
 
@@ -798,7 +798,7 @@ begin
       ServerConfig.Rebuild;
     end;
 
-  // sync all client
+  { sync all client }
   for pid in IO_Array do
     begin
       peer := RecvTunnel.PeerIO[pid];

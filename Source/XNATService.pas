@@ -80,19 +80,19 @@ type
     procedure Init;
     function Open: Boolean;
 
-    // worker tunnel
+    { worker tunnel }
     procedure PickWorkloadTunnel(var rID, sID: Cardinal);
 
-    // requestListen: activted listen and reponse states
+    { requestListen: activted listen and reponse states }
     procedure cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
-    // workload: update workload states
+    { workload: update workload states }
     procedure cmd_workload(Sender: TPeerIO; InData: TDataFrameEngine);
-    // connect forward
+    { connect forward }
     procedure cmd_connect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
     procedure cmd_disconnect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
-    // data forward
+    { data forward }
     procedure cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
-    // states
+    { states }
     procedure SetActivted(const Value: Boolean);
   public
     constructor Create;
@@ -106,7 +106,7 @@ type
     RemoteProtocol_ID: Cardinal;
     RemoteProtocol_Inited: Boolean;
     RequestBuffer: TMemoryStream64;
-    r_id, s_id: Cardinal; // IO in TXServiceListen
+    r_id, s_id: Cardinal; { IO in TXServiceListen }
   public
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
@@ -134,29 +134,29 @@ type
 
   TXNATService = class(TCoreClassInterfacedObject, IIOInterface, ICommunicationFrameworkVMInterface)
   private
-    // external tunnel
+    { external tunnel }
     ShareListenList: TCoreClassListForObj;
-    // internal physics tunnel
+    { internal physics tunnel }
     PhysicsEngine: TCommunicationFramework;
     Activted: Boolean;
     WaitAsyncConnecting: Boolean;
     WaitAsyncConnecting_BeginTime: TTimeTick;
 
-    // physis protocol
+    { physis protocol }
     procedure IPV6Listen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
-    // IO Interface
+    { IO Interface }
     procedure PeerIO_Create(const Sender: TPeerIO);
     procedure PeerIO_Destroy(const Sender: TPeerIO);
-    // p2pVM Interface
+    { p2pVM Interface }
     procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
     procedure p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
     procedure p2pVMTunnelOpen(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
     procedure p2pVMTunnelOpenAfter(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
     procedure p2pVMTunnelClose(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
-    // backcall
+    { backcall }
     procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
   public
-    // tunnel parameter
+    { tunnel parameter }
     Host: TPascalString;
     Port: TPascalString;
     AuthToken: TPascalString;
@@ -251,25 +251,25 @@ function TXServiceListen.Open: Boolean;
 var
   nt: Pointer;
 begin
-  // build receive tunnel
+  { build receive tunnel }
   if RecvTunnel = nil then
       RecvTunnel := TXCustomP2PVM_Server.Create;
 
-  // sequence sync
+  { sequence sync }
   RecvTunnel.SyncOnCompleteBuffer := True;
   RecvTunnel.SyncOnResult := True;
   RecvTunnel.SwitchMaxPerformance;
-  // mapping interface
+  { mapping interface }
   RecvTunnel.OwnerMapping := Self;
   RecvTunnel.UserSpecialClass := TXServiceRecvVM_Special;
-  // compressed complete buffer
+  { compressed complete buffer }
   RecvTunnel.CompleteBufferCompressed := XServerTunnel.ProtocolCompressed;
-  // build virtual address
+  { build virtual address }
   nt := @RecvTunnel;
   TSHA3.SHAKE128(@RecvTunnel_IPV6, @nt, SizeOf(nt), 128);
-  // build virtual port
+  { build virtual port }
   RecvTunnel_Port := umlCRC16(@RecvTunnel_IPV6, SizeOf(TIPV6));
-  // disable data status print
+  { disable data status print }
   RecvTunnel.PrintParams[C_Connect_reponse] := False;
   RecvTunnel.PrintParams[C_Disconnect_reponse] := False;
   RecvTunnel.PrintParams[C_Data] := False;
@@ -290,25 +290,25 @@ begin
   if not RecvTunnel.ExistsRegistedCmd(C_Data) then
       RecvTunnel.RegisterCompleteBuffer(C_Data).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_data;
 
-  // build send tunnel
+  { build send tunnel }
   if SendTunnel = nil then
       SendTunnel := TXCustomP2PVM_Server.Create;
 
-  // sequence sync
+  { sequence sync }
   SendTunnel.SyncOnCompleteBuffer := True;
   SendTunnel.SyncOnResult := True;
   SendTunnel.SwitchMaxPerformance;
-  // mapping interface
+  { mapping interface }
   SendTunnel.OwnerMapping := Self;
   SendTunnel.UserSpecialClass := TXServiceSendVM_Special;
-  // compressed complete buffer
+  { compressed complete buffer }
   SendTunnel.CompleteBufferCompressed := XServerTunnel.ProtocolCompressed;
-  // build virtual address
+  { build virtual address }
   nt := @SendTunnel;
   TSHA3.SHAKE128(@SendTunnel_IPV6, @nt, SizeOf(nt), 128);
-  // build virtual port
+  { build virtual port }
   SendTunnel_Port := umlCRC16(@SendTunnel_IPV6, SizeOf(TIPV6));
-  // disable data status print
+  { disable data status print }
   SendTunnel.PrintParams[C_Connect_request] := False;
   SendTunnel.PrintParams[C_Disconnect_request] := False;
   SendTunnel.PrintParams[C_Data] := False;
@@ -739,14 +739,14 @@ begin
       Owner.p2pVMTunnel.MaxRealBuffer := umlStrToInt(XNAT.MaxRealBuffer, Owner.p2pVMTunnel.MaxRealBuffer);
       XNAT.Activted := True;
 
-      // open share listen
+      { open share listen }
       for i := 0 to XNAT.ShareListenList.Count - 1 do
         begin
           shLt := XNAT.ShareListenList[i] as TXServiceListen;
 
           shLt.Open;
 
-          // install p2pVM
+          { install p2pVM }
           Owner.p2pVMTunnel.InstallLogicFramework(shLt.SendTunnel);
           Owner.p2pVMTunnel.InstallLogicFramework(shLt.RecvTunnel);
         end;
@@ -922,7 +922,7 @@ begin
   Activted := False;
   WaitAsyncConnecting := False;
 
-  // parameter
+  { parameter }
   Host := '';
   Port := '4921';
   AuthToken := 'ZServer';
@@ -994,7 +994,7 @@ var
 begin
   Activted := True;
 
-  // init tunnel engine
+  { init tunnel engine }
   if PhysicsEngine = nil then
     begin
       if MODEL = TXNAT_PHYSICS_MODEL.XNAT_PHYSICS_SERVICE then
@@ -1007,22 +1007,22 @@ begin
   PhysicsEngine.IOInterface := Self;
   PhysicsEngine.VMInterface := Self;
 
-  // Security protocol
+  { Security protocol }
   PhysicsEngine.SwitchMaxPerformance;
 
-  // regsiter protocol
+  { regsiter protocol }
   if not PhysicsEngine.ExistsRegistedCmd(C_IPV6Listen) then
       PhysicsEngine.RegisterStream(C_IPV6Listen).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}IPV6Listen;
 
   if PhysicsEngine is TCommunicationFrameworkServer then
     begin
-      // service
+      { service }
       if TCommunicationFrameworkServer(PhysicsEngine).StartService(Host, umlStrToInt(Port)) then
           DoStatus('Tunnel Open %s:%s successed', [TranslateBindAddr(Host), Port.Text])
       else
           DoStatus('error: Tunnel is Closed for %s:%s', [TranslateBindAddr(Host), Port.Text]);
 
-      // open share listen
+      { open share listen }
       for i := 0 to ShareListenList.Count - 1 do
         begin
           shLt := ShareListenList[i] as TXServiceListen;
@@ -1031,7 +1031,7 @@ begin
     end
   else if PhysicsEngine is TCommunicationFrameworkClient then
     begin
-      // reverse connection
+      { reverse connection }
       if not TCommunicationFrameworkClient(PhysicsEngine).Connected then
         begin
           WaitAsyncConnecting := True;
@@ -1087,5 +1087,3 @@ begin
 end;
 
 end.
- 
- 

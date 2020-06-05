@@ -2901,7 +2901,7 @@ begin
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := nil;
   FAsyncOnResultProc := nil;
-  //
+  { }
   SwitchAsDefaultPerformance;
 
   FRecvTunnel.PrefixName := 'Double.Received';
@@ -3572,7 +3572,7 @@ begin
   DisposeObject(resDE);
 end;
 
-// remote file exists
+{ remote file exists }
 procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileInfoC(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall);
 var
   sendDE: TDataFrameEngine;
@@ -3720,8 +3720,8 @@ begin
   DisposeObject(sendDE);
 end;
 
-//
-// remote md5 support with public store space
+{ }
+{ remote md5 support with public store space }
 procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileMD5C(fileName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call);
 var
@@ -3809,7 +3809,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-// remote md5 support with private store space
+{ remote md5 support with private store space }
 procedure TCommunicationFramework_DoubleTunnelClient.GetPrivateFileMD5C(fileName, DirectoryName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call);
 var
@@ -3923,7 +3923,7 @@ begin
   GetPublicFileP(fileName, 0, saveToPath, UserData, UserObject, OnComplete);
 end;
 
-// restore download from public
+{ restore download from public }
 function TCommunicationFramework_DoubleTunnelClient.GetPublicFile(fileName: SystemString; StartPos: Int64; saveToPath: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
@@ -4066,7 +4066,7 @@ begin
   GetPrivateFileP(fileName, 0, DirectoryName, saveToPath, UserData, UserObject, OnComplete);
 end;
 
-// restore download from user
+{ restore download from user }
 function TCommunicationFramework_DoubleTunnelClient.GetPrivateFile(fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
@@ -4217,7 +4217,7 @@ begin
   GetUserPrivateFileP(UserID, fileName, 0, DirectoryName, saveToPath, UserData, UserObject, OnComplete);
 end;
 
-// restore download with custom user
+{ restore download with custom user }
 function TCommunicationFramework_DoubleTunnelClient.GetUserPrivateFile(UserID, fileName: SystemString; StartPos: Int64; DirectoryName, saveToPath: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;

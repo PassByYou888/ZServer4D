@@ -147,7 +147,7 @@ type
     procedure ClearBatchStream(cli: TPeerIO);
     procedure GetBatchStreamStateM(cli: TPeerIO; OnResult: TStreamMethod); overload;
     procedure GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc); overload;
-    //
+    { }
     property CanStatus: Boolean read FCanStatus write FCanStatus;
     property CadencerEngine: TCadencer read FCadencerEngine;
 
@@ -1364,7 +1364,7 @@ begin
   inherited Destroy;
 end;
 
-// client notify interface
+{ client notify interface }
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.ClientConnected(Sender: TCommunicationFrameworkClient);
 begin
 end;
@@ -1407,7 +1407,7 @@ begin
         FCurrentStream := TCoreClassFileStream.Create(fullfn, fmCreate);
   except
     Sender.Print('post file failed: %s', [fullfn]);
-    // FRecvTunnel.ClientIO.Disconnect;
+    { FRecvTunnel.ClientIO.Disconnect; }
     FCurrentStream := nil;
   end;
 end;
@@ -1839,7 +1839,7 @@ begin
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := nil;
   FAsyncOnResultProc := nil;
-  //
+  { }
   SwitchAsDefaultPerformance;
 
   FRecvTunnel.PrefixName := 'Double.Received';
@@ -2277,7 +2277,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-// remote file exists
+{ remote file exists }
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetFileInfoC(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall_VirtualAuth);
 var
   sendDE: TDataFrameEngine;
@@ -2353,8 +2353,8 @@ begin
   DisposeObject(sendDE);
 end;
 
-//
-// remote md5 support with public store space
+{ }
+{ remote md5 support with public store space }
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetFileMD5C(fileName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call_VirtualAuth);
 var

@@ -120,7 +120,7 @@ type
     procedure Init;
   end;
 
-  // client storePos transform
+  { client storePos transform }
   TStorePosTransformNotifyCall = procedure(const TransformBuff: PZDBStorePosTransformArray);
   TStorePosTransformNotifyMethod = procedure(const TransformBuff: PZDBStorePosTransformArray) of object;
 {$IFDEF FPC}
@@ -142,7 +142,7 @@ type
     DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;
     SourceDB, OutputDB, PipelineName, RegistedQuery: SystemString;
-    //
+    { }
     procedure Init;
     procedure Encode(d: TDataFrameEngine);
     procedure Decode(d: TDataFrameEngine);

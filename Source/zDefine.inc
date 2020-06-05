@@ -191,7 +191,15 @@
   {$Z1} { Minimum enum size }
 {$ENDIF FPC}
 
+// Sequence packets default are opened in Physics-IO
+// Sequence package can support multi platform keep-alive mode
+// building a network CS system, the symmetry of compiler(FPC/Delphi) "UsedSequencePacket"
+{$DEFINE UsedSequencePacket}
 
+// Sequence package can support multi platform keep-alive mode
+// building a network CS system, the symmetry of compiler(FPC/Delphi) "UsedSequencePacketOnP2PVM"
+// Sequence packets default are closed in P2PVM-IO
+{$UNDEF UsedSequencePacketOnP2PVM}
 
 {$IFDEF DEBUG}
   // initialization status prompt
