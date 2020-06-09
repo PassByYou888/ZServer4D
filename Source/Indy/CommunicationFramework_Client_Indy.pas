@@ -369,8 +369,8 @@ begin
     begin
       FProgressing := True;
 
-      FDriver.IOHandler.CheckForDataOnSource(2);
       try
+        FDriver.IOHandler.CheckForDataOnSource(2);
         while FDriver.IOHandler.InputBuffer.Size > 0 do
           begin
             FDriver.IOHandler.InputBuffer.ExtractToBytes(iBuf);
@@ -437,7 +437,9 @@ begin
         ClientIntf.Disconnect;
         FProgressing := False;
       end;
-    end;
+    end
+  else if LastConnectIsSuccessed then
+      TriggerDoDisconnect;
 end;
 
 procedure TCommunicationFramework_Client_Indy.TriggerQueueData(v: PQueueData);
