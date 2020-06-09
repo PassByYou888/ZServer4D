@@ -249,6 +249,7 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 **未改动ZS的主线框架,对原有服务器程序无影响**
 
+- 修复indy客户端在断线时不触发事件的问题
 - 在zDefine.inc新增两个关闭序列包支持的编译选项,详见 zDefine过程定义详解.pdf
 - ComplteBuffer在客户端不再受内存尺寸限制
 - ComplteBuffer在服务端最大内存尺寸调整为64M
