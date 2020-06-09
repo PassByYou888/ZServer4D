@@ -1254,6 +1254,7 @@ type
     FOnCipherModelDone: TOnCipherModelDone;
 
     FIgnoreProcessConnectedAndDisconnect: Boolean;
+    FLastConnectIsSuccessed: Boolean;
 
     procedure StreamResult_CipherModel(Sender: TPeerIO; ResultData: TDataFrameEngine);
 
@@ -1304,6 +1305,7 @@ type
 
     { external io,state }
     function Connected: Boolean; virtual;
+    property LastConnectIsSuccessed: Boolean read FLastConnectIsSuccessed;
     { external io,intf }
     function ClientIO: TPeerIO; virtual;
     { external io,intf }
@@ -4829,9 +4831,7 @@ begin
                     if Assigned(FOwnerFramework.FOnBigStreamInterface) then
                         FOwnerFramework.FOnBigStreamInterface.Process(Self, FBigStreamSending.Size, FBigStreamSendCurrentPos);
                   end;
-              end
-            else
-                PrintError('BigStream error: FBigStreamSending is nil');
+              end;
           end
         else if FWaitBigStreamReceiveDoneSignal then
           begin
@@ -8438,7 +8438,7 @@ procedure TCommunicationFrameworkClient.DoConnected(Sender: TPeerIO);
 var
   de: TDataFrameEngine;
 begin
-  { Sender.Print('connected.'); }
+  FLastConnectIsSuccessed := True;
   if FIgnoreProcessConnectedAndDisconnect then
     begin
       if FOnInterface <> nil then
@@ -8494,7 +8494,6 @@ end;
 
 procedure TCommunicationFrameworkClient.DoDisconnect(Sender: TPeerIO);
 begin
-  { Sender.Print('disconnectd.'); }
   if not FIgnoreProcessConnectedAndDisconnect then
     begin
       FPeerIO_HashPool.Delete(Sender.FID);
@@ -8502,8 +8501,9 @@ begin
       Sender.FRemoteExecutedForConnectInit := False;
     end;
 
-  if FOnInterface <> nil then
+  if (FLastConnectIsSuccessed) and (FOnInterface <> nil) then
       FOnInterface.ClientDisconnect(Self);
+  FLastConnectIsSuccessed := False;
 end;
 
 function TCommunicationFrameworkClient.CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean;
@@ -8600,6 +8600,7 @@ begin
   FOnCipherModelDone := nil;
 
   FIgnoreProcessConnectedAndDisconnect := False;
+  FLastConnectIsSuccessed := False;
 
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := nil;
