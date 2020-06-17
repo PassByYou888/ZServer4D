@@ -1,5 +1,4 @@
 ﻿{ ****************************************************************************** }
-{ * double tunnel IO framework(incl File service)                              * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
