@@ -365,7 +365,7 @@ begin
   if (TextStyle <> tsText) and (ComparePosStr(Result, '//')) then
     begin
       inc(Result, 2);
-      while ParsingData.Text[Result] <> #10 do
+      while not CharIn(ParsingData.Text[Result], [#13, #10]) do
         begin
           if Result + 1 > L then
               Break;
@@ -375,7 +375,7 @@ begin
   else if (TextStyle = tsC) and (ComparePosStr(Result, '#')) then
     begin
       inc(Result, 1);
-      while ParsingData.Text[Result] <> #10 do
+      while not CharIn(ParsingData.Text[Result], [#13, #10]) do
         begin
           if Result + 1 > L then
               Break;
@@ -3099,7 +3099,7 @@ begin
       Result.DeleteFirst;
       Result.DeleteFirst;
       Result.DeleteFirst;
-      if Result.Last = #13 then
+      while CharIn(Result.Last, [#13, #10]) do
           Result.DeleteLast;
     end
   else if umlMultipleMatch(False, '///*', Result) then
@@ -3107,14 +3107,14 @@ begin
       Result.DeleteFirst;
       Result.DeleteFirst;
       Result.DeleteFirst;
-      if Result.Last = #13 then
+      while CharIn(Result.Last, [#13, #10]) do
           Result.DeleteLast;
     end
   else if umlMultipleMatch(False, '//*', Result) then
     begin
       Result.DeleteFirst;
       Result.DeleteFirst;
-      if Result.Last = #13 then
+      while CharIn(Result.Last, [#13, #10]) do
           Result.DeleteLast;
     end;
 end;

@@ -22,6 +22,7 @@
     {$MODE objfpc}
   {$ENDIF FPC_DELPHI_MODE}
 
+  {$ASMMODE INTEL}
   {$MODESWITCH AdvancedRecords}
   {$MODESWITCH NestedProcVars}
   {$NOTES OFF}
@@ -253,3 +254,4 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
+

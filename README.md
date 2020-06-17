@@ -249,6 +249,16 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 **未改动ZS的主线框架,对原有服务器程序无影响**
 
+- 新增HPC支持数据类型:DirectStream, Stream, DirectConsole, Console
+- 新增自动化p2pVM机制:AutomatedP2VM
+- 新增2个自动化p2pVM机制demo,同时他们也是测试程序之一
+
+
+## 上一更新日志
+
+
+**未改动ZS的主线框架,对原有服务器程序无影响**
+
 - 修复indy客户端在断线时不触发事件的问题
 - 在zDefine.inc新增两个关闭序列包支持的编译选项,详见 zDefine过程定义详解.pdf
 - ComplteBuffer在客户端不再受内存尺寸限制

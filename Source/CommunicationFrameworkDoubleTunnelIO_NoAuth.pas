@@ -58,6 +58,8 @@ type
     destructor Destroy; override;
 
     function LinkOk: Boolean;
+    property CurrentFileStream: TCoreClassStream read FCurrentFileStream write FCurrentFileStream;
+    property CurrentReceiveFileName: SystemString read FCurrentReceiveFileName write FCurrentReceiveFileName;
   end;
 
   TNoAuth_OnLinkSuccess = procedure(Sender: TCommunicationFramework_DoubleTunnelService_NoAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth) of object;
@@ -206,7 +208,7 @@ type
     { client notify interface }
     procedure ClientConnected(Sender: TCommunicationFrameworkClient); virtual;
     procedure ClientDisconnect(Sender: TCommunicationFrameworkClient); virtual;
-  protected
+  public
     { registed client command }
     procedure Command_FileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
@@ -214,11 +216,11 @@ type
 
     procedure GetCurrentCadencer_StreamResult(Sender: TPeerIO; ResultData: TDataFrameEngine); virtual;
 
-    procedure GetFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
-    procedure GetFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+    procedure GetFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
+    procedure GetFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
 
     { Downloading files from the server asynchronously and triggering notifications when completed }
-    procedure GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+    procedure GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
 
     { batch stream suppport }
     procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
@@ -2179,8 +2181,7 @@ begin
   GetFileAsM(fileName, saveFileName, 0, saveToPath, UserData, UserObject, OnCompleteMethod);
 end;
 
-procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.GetFileAsP(fileName, saveFileName, saveToPath: SystemString;
-  const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_NoAuth);
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.GetFileAsP(fileName, saveFileName, saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_NoAuth);
 begin
   GetFileAsP(fileName, saveFileName, 0, saveToPath, UserData, UserObject, OnCompleteProc);
 end;

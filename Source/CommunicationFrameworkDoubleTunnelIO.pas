@@ -70,6 +70,8 @@ type
     procedure SaveConfigFile; virtual;
 
     function LinkOk: Boolean;
+    property CurrentFileStream: TCoreClassStream read FCurrentFileStream write FCurrentFileStream;
+    property CurrentReceiveFileName: SystemString read FCurrentReceiveFileName write FCurrentReceiveFileName;
   end;
 
   TOnLinkSuccess = procedure(Sender: TCommunicationFramework_DoubleTunnelService; UserDefineIO: TPeerClientUserDefineForRecvTunnel) of object;
@@ -282,23 +284,23 @@ type
     FServerDelay: Double;
 
     FProgressEngine: TNProgressPost;
-  protected
+  public
     { registed client command }
     procedure Command_FileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
     procedure Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
 
-    procedure GetPublicFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
-    procedure GetPrivateFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+    procedure GetPublicFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
+    procedure GetPrivateFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
 
-    procedure GetPublicFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
-    procedure GetPrivateFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+    procedure GetPublicFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
+    procedure GetPrivateFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
 
-    procedure GetPublicFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
-    procedure GetPrivateFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine);
+    procedure GetPublicFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
+    procedure GetPrivateFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine); virtual;
 
     { GetCurrentCadencer result proc }
-    procedure GetCurrentCadencer_StreamResult(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure GetCurrentCadencer_StreamResult(Sender: TPeerIO; ResultData: TDataFrameEngine); virtual;
 
     { batch stream suppport }
     procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;

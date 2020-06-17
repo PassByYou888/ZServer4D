@@ -74,8 +74,8 @@ end;
 procedure TMyService.cmd_helloWorld_Stream_Result(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 begin
   // hpc延迟后台运算机制演示，机制非常简单，可以大规模堆砌工程化代码
-  CommunicationFramework.RunStreamWithDelayThreadP(Sender, nil, nil, InData, OutData,
-    procedure(ThSender: TStreamCmdThread; ThInData, ThOutData: TDataFrameEngine)
+  CommunicationFramework.RunHPC_StreamP(Sender, nil, nil, InData, OutData,
+    procedure(ThSender: THPC_Stream; ThInData, ThOutData: TDataFrameEngine)
     begin
       // 如果在你的后台服务器框架有调度中心服务器：ManagerServer
       TCompute.sync(procedure

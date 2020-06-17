@@ -401,6 +401,7 @@ function umlSearchMatch(const ValueCheck: TArrayPascalString; Value: TPascalStri
 // example: *.<postfix>
 function umlMatchFileInfo(const exp_, sour_, dest_: TPascalString): Boolean;
 
+function umlGetDateTimeStr(NowDateTime: TDateTime): TPascalString;
 function umlDecodeTimeToStr(NowDateTime: TDateTime): TPascalString;
 function umlMakeRanName: TPascalString;
 
@@ -4115,15 +4116,25 @@ begin
   n := '';
 end;
 
+function umlGetDateTimeStr(NowDateTime: TDateTime): TPascalString;
+var
+  Year, Month, Day: Word;
+  Hour, min_, Sec, MSec: Word;
+begin
+  DecodeDate(NowDateTime, Year, Month, Day);
+  DecodeTime(NowDateTime, Hour, min_, Sec, MSec);
+  Result := IntToStr(Year) + '-' + IntToStr(Month) + '-' + IntToStr(Day) + ' ' + IntToStr(Hour) + '-' + IntToStr(min_) + '-' + IntToStr(Sec) + '-' + IntToStr(MSec);
+end;
+
 function umlDecodeTimeToStr(NowDateTime: TDateTime): TPascalString;
 var
   Year, Month, Day: Word;
-  Hour, Min, Sec, MSec: Word;
+  Hour, min_, Sec, MSec: Word;
 begin
   DecodeDate(NowDateTime, Year, Month, Day);
-  DecodeTime(NowDateTime, Hour, Min, Sec, MSec);
+  DecodeTime(NowDateTime, Hour, min_, Sec, MSec);
   Result := IntToHex(Year, 4) + IntToHex(Month, 2) +
-    IntToHex(Day, 2) + IntToHex(Hour, 1) + IntToHex(Min, 2) +
+    IntToHex(Day, 2) + IntToHex(Hour, 1) + IntToHex(min_, 2) +
     IntToHex(Sec, 2) + IntToHex(MSec, 3);
 end;
 
@@ -4131,7 +4142,7 @@ function umlMakeRanName: TPascalString;
 type
   TRanData = packed record
     Year, Month, Day: Word;
-    Hour, Min, Sec, MSec: Word;
+    Hour, min_, Sec, MSec: Word;
   end;
 var
   d: TDateTime;
@@ -4141,7 +4152,7 @@ begin
   with r do
     begin
       DecodeDate(d, Year, Month, Day);
-      DecodeTime(d, Hour, Min, Sec, MSec);
+      DecodeTime(d, Hour, min_, Sec, MSec);
     end;
   Result := umlMD5String(@r, SizeOf(TRanData));
 end;

@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B4BFC72F-6575-4CE8-9AA3-9D159AA528E3}</ProjectGuid>
+        <ProjectGuid>{E4067922-65A8-43D7-876A-B43CD43F052F}</ProjectGuid>
         <ProjectVersion>18.8</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <MainSource>AsyncServer.dpr</MainSource>
