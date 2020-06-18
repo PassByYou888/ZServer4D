@@ -139,10 +139,6 @@ begin
       SetMT19937Seed(0);
       n := '';
 
-      // 批量随机数生成，这种方式简单暴力，适用于生成噪音图这种东西
-      SetLength(Buff, 100);
-      MT19937Rand32(10, @Buff[0], 100);
-
       for i := 1 to 20 do
         begin
           // 一次产生一个随机数

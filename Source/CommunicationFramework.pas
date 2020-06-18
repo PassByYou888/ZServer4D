@@ -1,5 +1,5 @@
 ﻿{ ****************************************************************************** }
-{ * written by QQ 600585@qq.com                                                * }
+{ * communication framework written by QQ 600585@qq.com                        * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -546,7 +546,7 @@ type
     OnVMAuthResultIOProc: TIOStateProc;
     procedure P2PVMAuthSuccess(Sender: TCommunicationFrameworkWithP2PVM);
   protected
-    { automatec P2PVM }
+    { automated P2PVM }
     FAutomatedP2PVMClient_Connection_Sequence: Integer;
     FAutomatedP2PVMClient_Connection_Sequence_Successed: Integer;
     FOnAutomatedP2PVMClientConnectionDoneCall: TStateCall;
@@ -908,7 +908,13 @@ type
     procedure Clean;
   end;
 
-  TOnAutomatedP2PVMClientConnectDone = procedure(Sender: TCommunicationFramework) of object;
+  TOnAutomatedP2PVMClientConnectionDone_C = procedure(Sender: TCommunicationFramework);
+  TOnAutomatedP2PVMClientConnectionDone_M = procedure(Sender: TCommunicationFramework) of object;
+{$IFDEF FPC}
+  TOnAutomatedP2PVMClientConnectionDone_P = procedure(Sender: TCommunicationFramework) is nested;
+{$ELSE FPC}
+  TOnAutomatedP2PVMClientConnectionDone_P = reference to procedure(Sender: TCommunicationFramework);
+{$ENDIF FPC}
 
   TCommunicationFramework = class(TCoreClassInterfacedObject)
   protected
@@ -999,7 +1005,9 @@ type
     FAutomatedP2PVMClientBind: TAutomatedP2PVMClientBind;
     FAutomatedP2PVMClientDelayBoot: double;
     FAutomatedP2PVMAuthToken: SystemString;
-    FOnAutomatedP2PVMClientConnectionDone: TOnAutomatedP2PVMClientConnectDone;
+    FOnAutomatedP2PVMClientConnectionDone_C: TOnAutomatedP2PVMClientConnectionDone_C;
+    FOnAutomatedP2PVMClientConnectionDone_M: TOnAutomatedP2PVMClientConnectionDone_M;
+    FOnAutomatedP2PVMClientConnectionDone_P: TOnAutomatedP2PVMClientConnectionDone_P;
 
     procedure InitAutomatedP2PVM;
     procedure FreeAutomatedP2PVM;
@@ -1059,7 +1067,9 @@ type
     property AutomatedP2PVMBindClient: TAutomatedP2PVMClientBind read FAutomatedP2PVMClientBind;
     property AutomatedP2PVMClientDelayBoot: double read FAutomatedP2PVMClientDelayBoot write FAutomatedP2PVMClientDelayBoot;
     property AutomatedP2PVMAuthToken: SystemString read FAutomatedP2PVMAuthToken write FAutomatedP2PVMAuthToken;
-    property OnAutomatedP2PVMClientConnectionDone: TOnAutomatedP2PVMClientConnectDone read FOnAutomatedP2PVMClientConnectionDone write FOnAutomatedP2PVMClientConnectionDone;
+    property OnAutomatedP2PVMClientConnectionDone_C: TOnAutomatedP2PVMClientConnectionDone_C read FOnAutomatedP2PVMClientConnectionDone_C write FOnAutomatedP2PVMClientConnectionDone_C;
+    property OnAutomatedP2PVMClientConnectionDone_M: TOnAutomatedP2PVMClientConnectionDone_M read FOnAutomatedP2PVMClientConnectionDone_M write FOnAutomatedP2PVMClientConnectionDone_M;
+    property OnAutomatedP2PVMClientConnectionDone_P: TOnAutomatedP2PVMClientConnectionDone_P read FOnAutomatedP2PVMClientConnectionDone_P write FOnAutomatedP2PVMClientConnectionDone_P;
     { automated P2PVM client api }
     function AutomatedP2PVMClientConnectionDone(P_IO: TPeerIO): Boolean;
     procedure AutomatedP2PVM_Open(P_IO: TPeerIO);
@@ -7328,7 +7338,9 @@ begin
   FAutomatedP2PVMClientBind := TAutomatedP2PVMClientBind.Create;
   FAutomatedP2PVMClientDelayBoot := 0.1;
   FAutomatedP2PVMAuthToken := '';
-  FOnAutomatedP2PVMClientConnectionDone := nil;
+  FOnAutomatedP2PVMClientConnectionDone_C := nil;
+  FOnAutomatedP2PVMClientConnectionDone_M := nil;
+  FOnAutomatedP2PVMClientConnectionDone_P := nil;
 end;
 
 procedure TCommunicationFramework.FreeAutomatedP2PVM;
@@ -7432,8 +7444,12 @@ procedure TCommunicationFramework.AutomatedP2PVMClient_Done(P_IO: TPeerIO);
 begin
   Print('Automated P2PVM client connection done.');
   try
-    if Assigned(FOnAutomatedP2PVMClientConnectionDone) then
-        FOnAutomatedP2PVMClientConnectionDone(Self);
+    if Assigned(FOnAutomatedP2PVMClientConnectionDone_C) then
+        FOnAutomatedP2PVMClientConnectionDone_C(Self);
+    if Assigned(FOnAutomatedP2PVMClientConnectionDone_M) then
+        FOnAutomatedP2PVMClientConnectionDone_M(Self);
+    if Assigned(FOnAutomatedP2PVMClientConnectionDone_P) then
+        FOnAutomatedP2PVMClientConnectionDone_P(Self);
   except
   end;
 

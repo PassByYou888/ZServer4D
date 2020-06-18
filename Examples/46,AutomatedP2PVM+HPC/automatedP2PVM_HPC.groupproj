@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{A8ACBFA1-CEE2-4D65-ACA5-7C5789F97436}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="automatedP2PVM_HPC_Serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="automatedP2PVM_HPC_Cli.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="automatedP2PVM_HPC_Serv">
+        <MSBuild Projects="automatedP2PVM_HPC_Serv.dproj"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Serv:Clean">
+        <MSBuild Projects="automatedP2PVM_HPC_Serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Serv:Make">
+        <MSBuild Projects="automatedP2PVM_HPC_Serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Cli">
+        <MSBuild Projects="automatedP2PVM_HPC_Cli.dproj"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Cli:Clean">
+        <MSBuild Projects="automatedP2PVM_HPC_Cli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Cli:Make">
+        <MSBuild Projects="automatedP2PVM_HPC_Cli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="automatedP2PVM_HPC_Serv;automatedP2PVM_HPC_Cli"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="automatedP2PVM_HPC_Serv:Clean;automatedP2PVM_HPC_Cli:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="automatedP2PVM_HPC_Serv:Make;automatedP2PVM_HPC_Cli:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -130,7 +130,13 @@
 
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
   // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3 or laster
-  // {$DEFINE InstallMT19937CoreToDelphi}
+  {$UNDEF InstallMT19937CoreToDelphi}
+  {$IFDEF VER330}
+    {$DEFINE InstallMT19937CoreToDelphi}
+  {$ENDIF VER330}
+  {$IFDEF VER340}
+    {$DEFINE InstallMT19937CoreToDelphi}
+  {$ENDIF VER340}
 
   // MT19937 of seed in the startup TComputeThread is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
@@ -207,11 +213,15 @@
   {$DEFINE initializationStatus}
   // warning prompt
   {$WARNINGS ON}
+  // JPEG support can output debug info
+  {$DEFINE JPEG_Debug}
 {$ELSE DEBUG}
   // initialization status prompt
   {$UNDEF initializationStatus}
   // warning prompt
   {$WARNINGS OFF}
+  // JPEG support can output debug info
+  {$UNDEF JPEG_Debug}
 {$ENDIF DEBUG}
 
 {$HINTS OFF}
@@ -254,4 +264,3 @@
 {$IFOPT Q+}
   {$DEFINE OverflowCheck}
 {$ENDIF}
-
