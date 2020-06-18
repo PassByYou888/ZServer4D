@@ -43,7 +43,7 @@ begin
 
   // 这里演示了hpc怎样负载大规模计算
   // 该hpc的demo客户端可以多开,服务器cpu越好,计算能力越好
-  phyCli.OnAutomatedP2PVMClientConnectionDone_P := procedure(Sender: TCommunicationFramework)
+  phyCli.OnAutomatedP2PVMClientConnectionDone_P := procedure(Sender: TCommunicationFramework; P_IO: TPeerIO)
     var
       de: TDataFrameEngine;
     begin
@@ -59,7 +59,7 @@ begin
               // 循环调用
               TCompute.PostP1(procedure
                 begin
-                  phyCli.OnAutomatedP2PVMClientConnectionDone_P(phyCli);
+                  phyCli.OnAutomatedP2PVMClientConnectionDone_P(phyCli, phyCli.ClientIO);
                 end);
             end);
           disposeObject(de);
