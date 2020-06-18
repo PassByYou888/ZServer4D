@@ -549,9 +549,9 @@ type
     { automated P2PVM }
     FAutomatedP2PVMClient_Connection_Sequence: Integer;
     FAutomatedP2PVMClient_Connection_Sequence_Successed: Integer;
-    FOnAutomatedP2PVMClientConnectionDoneCall: TStateCall;
-    FOnAutomatedP2PVMClientConnectionDoneMethod: TStateMethod;
-    FOnAutomatedP2PVMClientConnectionDoneProc: TStateProc;
+    FOnAutomatedP2PVMClientConnectionDoneCall: TIOStateCall;
+    FOnAutomatedP2PVMClientConnectionDoneMethod: TIOStateMethod;
+    FOnAutomatedP2PVMClientConnectionDoneProc: TIOStateProc;
   protected
     { user custom }
     FUserData: Pointer;
@@ -908,12 +908,12 @@ type
     procedure Clean;
   end;
 
-  TOnAutomatedP2PVMClientConnectionDone_C = procedure(Sender: TCommunicationFramework);
-  TOnAutomatedP2PVMClientConnectionDone_M = procedure(Sender: TCommunicationFramework) of object;
+  TOnAutomatedP2PVMClientConnectionDone_C = procedure(Sender: TCommunicationFramework; P_IO: TPeerIO);
+  TOnAutomatedP2PVMClientConnectionDone_M = procedure(Sender: TCommunicationFramework; P_IO: TPeerIO) of object;
 {$IFDEF FPC}
-  TOnAutomatedP2PVMClientConnectionDone_P = procedure(Sender: TCommunicationFramework) is nested;
+  TOnAutomatedP2PVMClientConnectionDone_P = procedure(Sender: TCommunicationFramework; P_IO: TPeerIO) is nested;
 {$ELSE FPC}
-  TOnAutomatedP2PVMClientConnectionDone_P = reference to procedure(Sender: TCommunicationFramework);
+  TOnAutomatedP2PVMClientConnectionDone_P = reference to procedure(Sender: TCommunicationFramework; P_IO: TPeerIO);
 {$ENDIF FPC}
 
   TCommunicationFramework = class(TCoreClassInterfacedObject)
@@ -1073,9 +1073,9 @@ type
     { automated P2PVM client api }
     function AutomatedP2PVMClientConnectionDone(P_IO: TPeerIO): Boolean;
     procedure AutomatedP2PVM_Open(P_IO: TPeerIO);
-    procedure AutomatedP2PVM_Open_C(P_IO: TPeerIO; OnResult: TStateCall);
-    procedure AutomatedP2PVM_Open_M(P_IO: TPeerIO; OnResult: TStateMethod);
-    procedure AutomatedP2PVM_Open_P(P_IO: TPeerIO; OnResult: TStateProc);
+    procedure AutomatedP2PVM_Open_C(P_IO: TPeerIO; OnResult: TIOStateCall);
+    procedure AutomatedP2PVM_Open_M(P_IO: TPeerIO; OnResult: TIOStateMethod);
+    procedure AutomatedP2PVM_Open_P(P_IO: TPeerIO; OnResult: TIOStateProc);
     procedure AutomatedP2PVM_Close(P_IO: TPeerIO);
 
     { IO Big Stream interface }
@@ -7445,21 +7445,21 @@ begin
   Print('Automated P2PVM client connection done.');
   try
     if Assigned(FOnAutomatedP2PVMClientConnectionDone_C) then
-        FOnAutomatedP2PVMClientConnectionDone_C(Self);
+        FOnAutomatedP2PVMClientConnectionDone_C(Self, P_IO);
     if Assigned(FOnAutomatedP2PVMClientConnectionDone_M) then
-        FOnAutomatedP2PVMClientConnectionDone_M(Self);
+        FOnAutomatedP2PVMClientConnectionDone_M(Self, P_IO);
     if Assigned(FOnAutomatedP2PVMClientConnectionDone_P) then
-        FOnAutomatedP2PVMClientConnectionDone_P(Self);
+        FOnAutomatedP2PVMClientConnectionDone_P(Self, P_IO);
   except
   end;
 
   try
     if Assigned(P_IO.FOnAutomatedP2PVMClientConnectionDoneCall) then
-        P_IO.FOnAutomatedP2PVMClientConnectionDoneCall(AutomatedP2PVMClientConnectionDone(P_IO));
+        P_IO.FOnAutomatedP2PVMClientConnectionDoneCall(P_IO, AutomatedP2PVMClientConnectionDone(P_IO));
     if Assigned(P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod) then
-        P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod(AutomatedP2PVMClientConnectionDone(P_IO));
+        P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod(P_IO, AutomatedP2PVMClientConnectionDone(P_IO));
     if Assigned(P_IO.FOnAutomatedP2PVMClientConnectionDoneProc) then
-        P_IO.FOnAutomatedP2PVMClientConnectionDoneProc(AutomatedP2PVMClientConnectionDone(P_IO));
+        P_IO.FOnAutomatedP2PVMClientConnectionDoneProc(P_IO, AutomatedP2PVMClientConnectionDone(P_IO));
   except
   end;
 
@@ -7670,7 +7670,7 @@ begin
       FPostProgress.PostExecuteM(FAutomatedP2PVMClientDelayBoot, {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClient_DelayRequest).Data3 := P_IO.ID;
 end;
 
-procedure TCommunicationFramework.AutomatedP2PVM_Open_C(P_IO: TPeerIO; OnResult: TStateCall);
+procedure TCommunicationFramework.AutomatedP2PVM_Open_C(P_IO: TPeerIO; OnResult: TIOStateCall);
 begin
   P_IO.FOnAutomatedP2PVMClientConnectionDoneCall := OnResult;
   P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod := nil;
@@ -7678,7 +7678,7 @@ begin
   AutomatedP2PVM_Open(P_IO);
 end;
 
-procedure TCommunicationFramework.AutomatedP2PVM_Open_M(P_IO: TPeerIO; OnResult: TStateMethod);
+procedure TCommunicationFramework.AutomatedP2PVM_Open_M(P_IO: TPeerIO; OnResult: TIOStateMethod);
 begin
   P_IO.FOnAutomatedP2PVMClientConnectionDoneCall := nil;
   P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod := OnResult;
@@ -7686,7 +7686,7 @@ begin
   AutomatedP2PVM_Open(P_IO);
 end;
 
-procedure TCommunicationFramework.AutomatedP2PVM_Open_P(P_IO: TPeerIO; OnResult: TStateProc);
+procedure TCommunicationFramework.AutomatedP2PVM_Open_P(P_IO: TPeerIO; OnResult: TIOStateProc);
 begin
   P_IO.FOnAutomatedP2PVMClientConnectionDoneCall := nil;
   P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod := nil;
