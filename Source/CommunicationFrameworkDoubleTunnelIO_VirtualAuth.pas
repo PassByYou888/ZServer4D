@@ -57,6 +57,7 @@ type
     destructor Destroy; override;
 
     function LinkOk: Boolean;
+    property BindOk:Boolean read LinkOk;
   end;
 
   TPeerClientUserDefineForRecvTunnel_VirtualAuth = class(TPeerClientUserDefine)
@@ -75,6 +76,7 @@ type
     destructor Destroy; override;
 
     function LinkOk: Boolean;
+    property BindOk:Boolean read LinkOk;
     property CurrentFileStream: TCoreClassStream read FCurrentFileStream write FCurrentFileStream;
     property CurrentReceiveFileName: SystemString read FCurrentReceiveFileName write FCurrentReceiveFileName;
   end;
@@ -364,6 +366,7 @@ type
     procedure UnRegisterCommand; virtual;
 
     property LinkOk: Boolean read FLinkOk;
+    property BindOk:Boolean read FLinkOk;
     property WaitCommandTimeout: Cardinal read FWaitCommandTimeout write FWaitCommandTimeout;
 
     property CadencerEngine: TCadencer read FCadencerEngine;
