@@ -1139,7 +1139,9 @@ type
     function RegisterBigStream(Cmd: SystemString): TCommandBigStream;
     function RegisterCompleteBuffer(Cmd: SystemString): TCommandCompleteBuffer;
     function ExistsRegistedCmd(Cmd: SystemString): Boolean;
-    procedure PrintRegistedCMD;
+    procedure PrintRegistedCMD; overload;
+    procedure PrintRegistedCMD(prefix: SystemString; incl_internalCMD: Boolean); overload;
+    procedure PrintRegistedCMD(prefix: SystemString); overload;
 
     { execute command on local }
     function ExecuteConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString; var OutData: SystemString): Boolean; virtual;
@@ -2139,6 +2141,7 @@ type
     InData, OutData: TDataFrameEngine;
     constructor Create;
     destructor Destroy;
+    function IsOnline: Boolean; { only work in mainthread }
   end;
 
 procedure RunHPC_StreamC(Sender: TPeerIO;
@@ -2182,6 +2185,7 @@ type
     InData: TDataFrameEngine;
     constructor Create;
     destructor Destroy;
+    function IsOnline: Boolean; { only work in mainthread }
   end;
 
 procedure RunHPC_DirectStreamC(Sender: TPeerIO;
@@ -2226,6 +2230,7 @@ type
     InData, OutData: SystemString;
     constructor Create;
     destructor Destroy;
+    function IsOnline: Boolean; { only work in mainthread }
   end;
 
 procedure RunHPC_ConsoleC(Sender: TPeerIO;
@@ -2269,6 +2274,7 @@ type
     InData: SystemString;
     constructor Create;
     destructor Destroy;
+    function IsOnline: Boolean; { only work in mainthread }
   end;
 
 procedure RunHPC_DirectConsoleC(Sender: TPeerIO;
@@ -2928,6 +2934,11 @@ begin
   inherited Destroy;
 end;
 
+function THPC_Stream.IsOnline: Boolean;
+begin
+  Result := (Framework <> nil) and (Framework.ExistsID(WorkID));
+end;
+
 procedure RunHPC_StreamC(Sender: TPeerIO;
   const UserData: Pointer; const UserObject: TCoreClassObject;
   const InData, OutData: TDataFrameEngine; const OnRun: TOnHPC_StreamCall);
@@ -3041,6 +3052,11 @@ destructor THPC_DirectStream.Destroy;
 begin
   DisposeObject(InData);
   inherited Destroy;
+end;
+
+function THPC_DirectStream.IsOnline: Boolean;
+begin
+  Result := (Framework <> nil) and (Framework.ExistsID(WorkID));
 end;
 
 procedure RunHPC_DirectStreamC(Sender: TPeerIO;
@@ -3168,6 +3184,11 @@ begin
   inherited Destroy;
 end;
 
+function THPC_Console.IsOnline: Boolean;
+begin
+  Result := (Framework <> nil) and (Framework.ExistsID(WorkID));
+end;
+
 procedure RunHPC_ConsoleC(Sender: TPeerIO;
   const UserData: Pointer; const UserObject: TCoreClassObject;
   const InData, OutData: SystemString; const OnRun: TOnHPC_ConsoleCall);
@@ -3268,6 +3289,11 @@ end;
 destructor THPC_DirectConsole.Destroy;
 begin
   inherited Destroy;
+end;
+
+function THPC_DirectConsole.IsOnline: Boolean;
+begin
+  Result := (Framework <> nil) and (Framework.ExistsID(WorkID));
 end;
 
 procedure RunHPC_DirectConsoleC(Sender: TPeerIO;
@@ -8159,6 +8185,11 @@ begin
 end;
 
 procedure TCommunicationFramework.PrintRegistedCMD;
+begin
+  PrintRegistedCMD('', True);
+end;
+
+procedure TCommunicationFramework.PrintRegistedCMD(prefix: SystemString; incl_internalCMD: Boolean);
 var
   l: TListPascalString;
   i: Integer;
@@ -8166,8 +8197,14 @@ begin
   l := TListPascalString.Create;
   FCommandList.GetNameList(l);
   for i := 0 to l.Count - 1 do
-      Print(l[i]);
+    if incl_internalCMD or (not umlMultipleMatch('__@*', l[i])) then
+        Print(prefix + l.Objects[i].ClassName + ': ' + l[i]);
   DisposeObject(l);
+end;
+
+procedure TCommunicationFramework.PrintRegistedCMD(prefix: SystemString);
+begin
+  PrintRegistedCMD(prefix, True);
 end;
 
 function TCommunicationFramework.ExecuteConsole(Sender: TPeerIO; Cmd: SystemString; const InData: SystemString; var OutData: SystemString): Boolean;
