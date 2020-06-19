@@ -43,6 +43,8 @@ type
 
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
+    function LinkOk: Boolean;
+    property BindOk: Boolean read LinkOk;
   end;
 
   TPeerClientUserDefineForRecvTunnel = class(TPeerClientUserDefine)
@@ -70,6 +72,7 @@ type
     procedure SaveConfigFile; virtual;
 
     function LinkOk: Boolean;
+    property BindOk: Boolean read LinkOk;
     property CurrentFileStream: TCoreClassStream read FCurrentFileStream write FCurrentFileStream;
     property CurrentReceiveFileName: SystemString read FCurrentReceiveFileName write FCurrentReceiveFileName;
   end;
@@ -494,6 +497,7 @@ type
     procedure UnRegisterCommand; virtual;
 
     property LinkOk: Boolean read FLinkOk;
+    property BindOk: Boolean read FLinkOk;
     property WaitCommandTimeout: Cardinal read FWaitCommandTimeout write FWaitCommandTimeout;
     property RecvFileing: Boolean read FRecvFileing;
     property RecvFileOfBatching: Boolean read FRecvFileOfBatching;
@@ -601,6 +605,11 @@ begin
           DoubleTunnelService.FRecvTunnel.PeerIO[RecvTunnelID].Disconnect;
     end;
   inherited Destroy;
+end;
+
+function TPeerClientUserDefineForSendTunnel.LinkOk: Boolean;
+begin
+  Result := DoubleTunnelService <> nil;
 end;
 
 constructor TPeerClientUserDefineForRecvTunnel.Create(Owner_: TPeerIO);
