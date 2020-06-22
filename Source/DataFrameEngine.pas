@@ -36,6 +36,9 @@ uses SysUtils, CoreClasses, Types,
   CoreCompress, UnicodeMixedLib, PascalStrings;
 
 type
+  TDataFrameEngine = class;
+  TDFE = TDataFrameEngine;
+
   TDataFrameBase = class(TCoreClassObject)
   protected
     FID: Byte; // data frame id
@@ -427,8 +430,6 @@ type
 
     property Buffer: UInt64 read FBuffer write FBuffer;
   end;
-
-  TDataFrameEngine = class;
 
   TDataFrameEngineReader = class sealed(TCoreClassObject)
   private
