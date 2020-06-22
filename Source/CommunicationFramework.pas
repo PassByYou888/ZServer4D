@@ -325,16 +325,18 @@ type
     FOwner: TPeerIO;
     FWorkPlatform: TExecutePlatform;
     FBigStreamBatch: TBigStreamBatch;
+    FBusy: Boolean;
+    procedure DelayFreeOnBusy;
   public
     constructor Create(Owner_: TPeerIO); virtual;
     destructor Destroy; override;
-
     procedure Progress; virtual;
-
     property Owner: TPeerIO read FOwner;
     property WorkPlatform: TExecutePlatform read FWorkPlatform write FWorkPlatform;
+    // Stream Batch support
     property BigStreamBatchList: TBigStreamBatch read FBigStreamBatch;
     property BigStreamBatch: TBigStreamBatch read FBigStreamBatch;
+    property Busy: Boolean read FBusy write FBusy; // default is false, if busy is true do delayed destruction.
   end;
 
   TPeerIOUserDefineClass = class of TPeerIOUserDefine;
@@ -342,21 +344,20 @@ type
   TPeerIOUserSpecial = class(TCoreClassInterfacedObject)
   protected
     FOwner: TPeerIO;
+    FBusy: Boolean;
+    procedure DelayFreeOnBusy;
   public
     constructor Create(Owner_: TPeerIO); virtual;
     destructor Destroy; override;
     procedure Progress; virtual;
-
     property Owner: TPeerIO read FOwner;
+    property Busy: Boolean read FBusy write FBusy; // default is false, if busy is true do delayed destruction.
   end;
 
   TPeerIOUserSpecialClass = class of TPeerIOUserSpecial;
 
-  TPeerClientUserDefine = class(TPeerIOUserDefine)
-  end;
-
-  TPeerClientUserSpecial = class(TPeerIOUserSpecial)
-  end;
+  TPeerClientUserDefine = TPeerIOUserDefine;
+  TPeerClientUserSpecial = TPeerIOUserSpecial;
 
   PSequencePacket = ^TSequencePacket;
 
@@ -631,6 +632,7 @@ type
     procedure CreateAfter; virtual;
     destructor Destroy; override;
 
+    // check IO state
     function IOBusy: Boolean;
 
     procedure IO_IDLE_TraceC(data: TCoreClassObject; OnNotify: TDataNotifyCall);
@@ -1941,176 +1943,6 @@ type
   TCommunicationFramework_StableClient = class(TCommunicationFramework_CustomStableClient)
   end;
 {$ENDREGION 'StableIO'}
-{$REGION 'ConstAndVariant'}
-
-
-var
-  { sequence packet model }
-  C_Sequence_Packet_HeadSize: Byte = $16;
-  C_Sequence_QuietPacket: Byte = $01;
-  C_Sequence_Packet: Byte = $02;
-  C_Sequence_EchoPacket: Byte = $03;
-  C_Sequence_KeepAlive: Byte = $04;
-  C_Sequence_EchoKeepAlive: Byte = $05;
-  C_Sequence_RequestResend: Byte = $06;
-
-  { p2pVM }
-  C_p2pVM_echoing: Byte = $01;
-  C_p2pVM_echo: Byte = $02;
-  C_p2pVM_AuthSuccessed: Byte = $09;
-  C_p2pVM_Listen: Byte = $10;
-  C_p2pVM_ListenState: Byte = $11;
-  C_p2pVM_Connecting: Byte = $20;
-  C_p2pVM_ConnectedReponse: Byte = $21;
-  C_p2pVM_Disconnect: Byte = $40;
-  C_p2pVM_LogicFragmentData: Byte = $54;
-  C_p2pVM_PhysicsFragmentData: Byte = $64;
-
-  { default system head }
-  C_DefaultConsoleToken: Byte = $F1;
-  C_DefaultStreamToken: Byte = $2F;
-  C_DefaultDirectConsoleToken: Byte = $F3;
-  C_DefaultDirectStreamToken: Byte = $4F;
-  C_DefaultBigStreamToken: Byte = $F5;
-  C_DefaultBigStreamReceiveFragmentSignal: Byte = $F6;
-  C_DefaultBigStreamReceiveDoneSignal: Byte = $F7;
-  C_DefaultCompleteBufferToken: Byte = $6F;
-
-  { user custom header verify token }
-  C_DataHeadToken: Cardinal = $F0F0F0F0;
-  { user custom tail verify token }
-  C_DataTailToken: Cardinal = $F1F1F1F1;
-
-  { send flush buffer }
-  C_SendFlushSize: NativeInt = 16 * 1024; { flush size = 16k byte }
-
-  { max complete buffer }
-  C_MaxCompleteBufferSize: NativeInt = 64 * 1024 * 1024; { 64M, 0 = infinity }
-
-  { DoStatus ID }
-  C_DoStatusID: Integer = $0FFFFFFF;
-
-  { vm auth token size }
-  C_VMAuthSize: Integer = 256;
-
-  { BigStream fragment size }
-  C_BigStream_ChunkSize: NativeInt = 1024 * 1024;
-
-  { global progress backcall }
-  ProgressBackgroundProc: TProgressBackgroundProc = nil;
-  ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
-
-  { system command }
-  C_BuildP2PAuthToken: SystemString = '__@BuildP2PAuthToken';
-  C_InitP2PTunnel: SystemString = '__@InitP2PTunnel';
-  C_CloseP2PTunnel: SystemString = '__@CloseP2PTunnel';
-  C_CipherModel: SystemString = '__@CipherModel';
-  C_Wait: SystemString = '__@Wait';
-
-  { stable IO command }
-  C_BuildStableIO: SystemString = '__@BuildStableIO';
-  C_OpenStableIO: SystemString = '__@OpenStableIO';
-  C_CloseStableIO: SystemString = '__@CloseStableIO';
-
-  { double tunnel command }
-  C_FileInfo: SystemString = '__@FileInfo';
-  C_PostFile: SystemString = '__@PostFile';
-  C_PostFileOver: SystemString = '__@PostFileOver';
-  C_PostBatchStreamDone: SystemString = '__@PostBatchStreamDone';
-  C_UserDB: SystemString = 'UserDB';
-  C_UserLogin: SystemString = '__@UserLogin';
-  C_RegisterUser: SystemString = '__@RegisterUser';
-  C_TunnelLink: SystemString = '__@TunnelLink';
-  C_ChangePasswd: SystemString = '__@ChangePasswd';
-  C_CustomNewUser: SystemString = '__@CustomNewUser';
-  C_ProcessStoreQueueCMD: SystemString = '__@ProcessStoreQueueCMD';
-  C_GetPublicFileList: SystemString = '__@GetPublicFileList';
-  C_GetPrivateFileList: SystemString = '__@GetPrivateFileList';
-  C_GetPrivateDirectoryList: SystemString = '__@GetPrivateDirectoryList';
-  C_CreatePrivateDirectory: SystemString = '__@CreatePrivateDirectory';
-  C_GetPublicFileInfo: SystemString = '__@GetPublicFileInfo';
-  C_GetPrivateFileInfo: SystemString = '__@GetPrivateFileInfo';
-  C_GetPublicFileMD5: SystemString = '__@GetPublicFileMD5';
-  C_GetPrivateFileMD5: SystemString = '__@GetPrivateFileMD5';
-  C_GetPublicFile: SystemString = '__@GetPublicFile';
-  C_GetPrivateFile: SystemString = '__@GetPrivateFile';
-  C_GetUserPrivateFile: SystemString = '__@GetUserPrivateFile';
-  C_PostPublicFileInfo: SystemString = '__@PostPublicFileInfo';
-  C_PostPrivateFileInfo: SystemString = '__@PostPrivateFileInfo';
-  C_GetCurrentCadencer: SystemString = '__@GetCurrentCadencer';
-  C_NewBatchStream: SystemString = '__@NewBatchStream';
-  C_PostBatchStream: SystemString = '__@PostBatchStream';
-  C_ClearBatchStream: SystemString = '__@ClearBatchStream';
-  C_GetBatchStreamState: SystemString = '__@GetBatchStreamState';
-  C_GetUserPrivateFileList: SystemString = '__@GetUserPrivateFileList';
-  C_GetUserPrivateDirectoryList: SystemString = '__@GetUserPrivateDirectoryList';
-  C_GetFileTime: SystemString = '__@GetFileTime';
-  C_GetFileInfo: SystemString = '__@GetFileInfo';
-  C_GetFileMD5: SystemString = '__@GetFileMD5';
-  C_GetFile: SystemString = '__@GetFile';
-  C_GetFileAs: SystemString = '__@GetFileAs';
-  C_PostFileInfo: SystemString = '__@PostFileInfo';
-
-  { double tunnel datastore command }
-  C_DataStoreSecurity: SystemString = '__@DataStoreSecurity';
-  C_CompletedFragmentBigStream: SystemString = '__@CompletedFragmentBigStream';
-  C_CompletedQuery: SystemString = '__@CompletedQuery';
-  C_CompletedDownloadAssemble: SystemString = '__@CompletedDownloadAssemble';
-  C_CompletedFastDownloadAssemble: SystemString = '__@CompletedFastDownloadAssemble';
-  C_CompletedStorePosTransform: SystemString = '__@CompletedStorePosTransform';
-  C_InitDB: SystemString = '__@InitDB';
-  C_CloseDB: SystemString = '__@CloseDB';
-  C_CopyDB: SystemString = '__@CopyDB';
-  C_CompressDB: SystemString = '__@CompressDB';
-  C_ReplaceDB: SystemString = '__@ReplaceDB';
-  C_ResetData: SystemString = '__@ResetData';
-  C_QueryDB: SystemString = '__@QueryDB';
-  C_DownloadDB: SystemString = '__@DownloadDB';
-  C_DownloadDBWithID: SystemString = '__@DownloadDBWithID';
-  C_RequestDownloadAssembleStream: SystemString = '__@RequestDownloadAssembleStream';
-  C_RequestFastDownloadAssembleStrea: SystemString = '__@RequestFastDownloadAssembleStream';
-  C_FastPostCompleteBuffer: SystemString = '__@FastPostCompleteBuffer';
-  C_FastInsertCompleteBuffer: SystemString = '__@FastInsertCompleteBuffer';
-  C_FastModifyCompleteBuffer: SystemString = '__@FastModifyCompleteBuffer';
-  C_CompletedPostAssembleStream: SystemString = '__@CompletedPostAssembleStream';
-  C_CompletedInsertAssembleStream: SystemString = '__@CompletedInsertAssembleStream';
-  C_CompletedModifyAssembleStream: SystemString = '__@CompletedModifyAssembleStream';
-  C_DeleteData: SystemString = '__@DeleteData';
-  C_GetDBList: SystemString = '__@GetDBList';
-  C_GetQueryList: SystemString = '__@GetQueryList';
-  C_GetQueryState: SystemString = '__@GetQueryState';
-  C_QueryStop: SystemString = '__@QueryStop';
-  C_QueryPause: SystemString = '__@QueryPause';
-  C_QueryPlay: SystemString = '__@QueryPlay';
-
-{$ENDREGION 'ConstAndVariant'}
-{$REGION 'function'}
-
-procedure DisposeQueueData(const v: PQueueData);
-procedure InitQueueData(var v: TQueueData);
-function NewQueueData: PQueueData;
-
-function BuildP2PVMPacket(buffSiz, FrameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPacket;
-procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
-
-function IsSystemCMD(const Cmd: U_String): Boolean;
-
-function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
-function IPv4ToStr(const IPv4Addr_: TIPV4): U_String;
-function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6; overload;
-function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6; overload;
-function IPv6ToStr(const IPv6Addr: TIPV6): U_String;
-function IsIPv4(const s: U_String): Boolean;
-function IsIPV6(const s: U_String): Boolean;
-
-function CompareIPV4(const IP1, ip2: TIPV4): Boolean;
-function CompareIPV6(const IP1, ip2: TIPV6): Boolean;
-
-function TranslateBindAddr(addr: SystemString): SystemString;
-
-procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
-procedure DoExecuteResult(c: TPeerIO; const QueuePtr: PQueueData; const AResultText: SystemString; AResultDF: TDataFrameEngine);
-{$ENDREGION 'function'}
 {$REGION 'HPC Stream Support'}
 
 
@@ -2289,6 +2121,176 @@ procedure RunHPC_DirectConsoleP(Sender: TPeerIO;
   const UserData: Pointer; const UserObject: TCoreClassObject;
   const InData: SystemString; const OnRun: TOnHPC_DirectConsoleProc);
 {$ENDREGION 'HPC DirectConsole Support'}
+{$REGION 'function'}
+
+procedure DisposeQueueData(const v: PQueueData);
+procedure InitQueueData(var v: TQueueData);
+function NewQueueData: PQueueData;
+
+function BuildP2PVMPacket(buffSiz, FrameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPacket;
+procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
+
+function IsSystemCMD(const Cmd: U_String): Boolean;
+
+function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
+function IPv4ToStr(const IPv4Addr_: TIPV4): U_String;
+function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6; overload;
+function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6; overload;
+function IPv6ToStr(const IPv6Addr: TIPV6): U_String;
+function IsIPv4(const s: U_String): Boolean;
+function IsIPV6(const s: U_String): Boolean;
+
+function CompareIPV4(const IP1, ip2: TIPV4): Boolean;
+function CompareIPV6(const IP1, ip2: TIPV6): Boolean;
+
+function TranslateBindAddr(addr: SystemString): SystemString;
+
+procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure DoExecuteResult(c: TPeerIO; const QueuePtr: PQueueData; const AResultText: SystemString; AResultDF: TDataFrameEngine);
+{$ENDREGION 'function'}
+{$REGION 'ConstAndVariant'}
+
+
+var
+  { sequence packet model }
+  C_Sequence_Packet_HeadSize: Byte = $16;
+  C_Sequence_QuietPacket: Byte = $01;
+  C_Sequence_Packet: Byte = $02;
+  C_Sequence_EchoPacket: Byte = $03;
+  C_Sequence_KeepAlive: Byte = $04;
+  C_Sequence_EchoKeepAlive: Byte = $05;
+  C_Sequence_RequestResend: Byte = $06;
+
+  { p2pVM }
+  C_p2pVM_echoing: Byte = $01;
+  C_p2pVM_echo: Byte = $02;
+  C_p2pVM_AuthSuccessed: Byte = $09;
+  C_p2pVM_Listen: Byte = $10;
+  C_p2pVM_ListenState: Byte = $11;
+  C_p2pVM_Connecting: Byte = $20;
+  C_p2pVM_ConnectedReponse: Byte = $21;
+  C_p2pVM_Disconnect: Byte = $40;
+  C_p2pVM_LogicFragmentData: Byte = $54;
+  C_p2pVM_PhysicsFragmentData: Byte = $64;
+
+  { default system head }
+  C_DefaultConsoleToken: Byte = $F1;
+  C_DefaultStreamToken: Byte = $2F;
+  C_DefaultDirectConsoleToken: Byte = $F3;
+  C_DefaultDirectStreamToken: Byte = $4F;
+  C_DefaultBigStreamToken: Byte = $F5;
+  C_DefaultBigStreamReceiveFragmentSignal: Byte = $F6;
+  C_DefaultBigStreamReceiveDoneSignal: Byte = $F7;
+  C_DefaultCompleteBufferToken: Byte = $6F;
+
+  { user custom header verify token }
+  C_DataHeadToken: Cardinal = $F0F0F0F0;
+  { user custom tail verify token }
+  C_DataTailToken: Cardinal = $F1F1F1F1;
+
+  { send flush buffer }
+  C_SendFlushSize: NativeInt = 16 * 1024; { flush size = 16k byte }
+
+  { max complete buffer }
+  C_MaxCompleteBufferSize: NativeInt = 64 * 1024 * 1024; { 64M, 0 = infinity }
+
+  { DoStatus ID }
+  C_DoStatusID: Integer = $0FFFFFFF;
+
+  { vm auth token size }
+  C_VMAuthSize: Integer = 256;
+
+  { BigStream fragment size }
+  C_BigStream_ChunkSize: NativeInt = 1024 * 1024;
+
+  { global progress backcall }
+  ProgressBackgroundProc: TProgressBackgroundProc = nil;
+  ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
+
+  { system command }
+  C_BuildP2PAuthToken: SystemString = '__@BuildP2PAuthToken';
+  C_InitP2PTunnel: SystemString = '__@InitP2PTunnel';
+  C_CloseP2PTunnel: SystemString = '__@CloseP2PTunnel';
+  C_CipherModel: SystemString = '__@CipherModel';
+  C_Wait: SystemString = '__@Wait';
+
+  { stable IO command }
+  C_BuildStableIO: SystemString = '__@BuildStableIO';
+  C_OpenStableIO: SystemString = '__@OpenStableIO';
+  C_CloseStableIO: SystemString = '__@CloseStableIO';
+
+  { double tunnel command }
+  C_FileInfo: SystemString = '__@FileInfo';
+  C_PostFile: SystemString = '__@PostFile';
+  C_PostFileOver: SystemString = '__@PostFileOver';
+  C_PostBatchStreamDone: SystemString = '__@PostBatchStreamDone';
+  C_UserDB: SystemString = 'UserDB';
+  C_UserLogin: SystemString = '__@UserLogin';
+  C_RegisterUser: SystemString = '__@RegisterUser';
+  C_TunnelLink: SystemString = '__@TunnelLink';
+  C_ChangePasswd: SystemString = '__@ChangePasswd';
+  C_CustomNewUser: SystemString = '__@CustomNewUser';
+  C_ProcessStoreQueueCMD: SystemString = '__@ProcessStoreQueueCMD';
+  C_GetPublicFileList: SystemString = '__@GetPublicFileList';
+  C_GetPrivateFileList: SystemString = '__@GetPrivateFileList';
+  C_GetPrivateDirectoryList: SystemString = '__@GetPrivateDirectoryList';
+  C_CreatePrivateDirectory: SystemString = '__@CreatePrivateDirectory';
+  C_GetPublicFileInfo: SystemString = '__@GetPublicFileInfo';
+  C_GetPrivateFileInfo: SystemString = '__@GetPrivateFileInfo';
+  C_GetPublicFileMD5: SystemString = '__@GetPublicFileMD5';
+  C_GetPrivateFileMD5: SystemString = '__@GetPrivateFileMD5';
+  C_GetPublicFile: SystemString = '__@GetPublicFile';
+  C_GetPrivateFile: SystemString = '__@GetPrivateFile';
+  C_GetUserPrivateFile: SystemString = '__@GetUserPrivateFile';
+  C_PostPublicFileInfo: SystemString = '__@PostPublicFileInfo';
+  C_PostPrivateFileInfo: SystemString = '__@PostPrivateFileInfo';
+  C_GetCurrentCadencer: SystemString = '__@GetCurrentCadencer';
+  C_NewBatchStream: SystemString = '__@NewBatchStream';
+  C_PostBatchStream: SystemString = '__@PostBatchStream';
+  C_ClearBatchStream: SystemString = '__@ClearBatchStream';
+  C_GetBatchStreamState: SystemString = '__@GetBatchStreamState';
+  C_GetUserPrivateFileList: SystemString = '__@GetUserPrivateFileList';
+  C_GetUserPrivateDirectoryList: SystemString = '__@GetUserPrivateDirectoryList';
+  C_GetFileTime: SystemString = '__@GetFileTime';
+  C_GetFileInfo: SystemString = '__@GetFileInfo';
+  C_GetFileMD5: SystemString = '__@GetFileMD5';
+  C_GetFile: SystemString = '__@GetFile';
+  C_GetFileAs: SystemString = '__@GetFileAs';
+  C_PostFileInfo: SystemString = '__@PostFileInfo';
+
+  { double tunnel datastore command }
+  C_DataStoreSecurity: SystemString = '__@DataStoreSecurity';
+  C_CompletedFragmentBigStream: SystemString = '__@CompletedFragmentBigStream';
+  C_CompletedQuery: SystemString = '__@CompletedQuery';
+  C_CompletedDownloadAssemble: SystemString = '__@CompletedDownloadAssemble';
+  C_CompletedFastDownloadAssemble: SystemString = '__@CompletedFastDownloadAssemble';
+  C_CompletedStorePosTransform: SystemString = '__@CompletedStorePosTransform';
+  C_InitDB: SystemString = '__@InitDB';
+  C_CloseDB: SystemString = '__@CloseDB';
+  C_CopyDB: SystemString = '__@CopyDB';
+  C_CompressDB: SystemString = '__@CompressDB';
+  C_ReplaceDB: SystemString = '__@ReplaceDB';
+  C_ResetData: SystemString = '__@ResetData';
+  C_QueryDB: SystemString = '__@QueryDB';
+  C_DownloadDB: SystemString = '__@DownloadDB';
+  C_DownloadDBWithID: SystemString = '__@DownloadDBWithID';
+  C_RequestDownloadAssembleStream: SystemString = '__@RequestDownloadAssembleStream';
+  C_RequestFastDownloadAssembleStrea: SystemString = '__@RequestFastDownloadAssembleStream';
+  C_FastPostCompleteBuffer: SystemString = '__@FastPostCompleteBuffer';
+  C_FastInsertCompleteBuffer: SystemString = '__@FastInsertCompleteBuffer';
+  C_FastModifyCompleteBuffer: SystemString = '__@FastModifyCompleteBuffer';
+  C_CompletedPostAssembleStream: SystemString = '__@CompletedPostAssembleStream';
+  C_CompletedInsertAssembleStream: SystemString = '__@CompletedInsertAssembleStream';
+  C_CompletedModifyAssembleStream: SystemString = '__@CompletedModifyAssembleStream';
+  C_DeleteData: SystemString = '__@DeleteData';
+  C_GetDBList: SystemString = '__@GetDBList';
+  C_GetQueryList: SystemString = '__@GetQueryList';
+  C_GetQueryState: SystemString = '__@GetQueryState';
+  C_QueryStop: SystemString = '__@QueryStop';
+  C_QueryPause: SystemString = '__@QueryPause';
+  C_QueryPlay: SystemString = '__@QueryPlay';
+
+{$ENDREGION 'ConstAndVariant'}
 
 implementation
 
@@ -3681,12 +3683,21 @@ begin
     end;
 end;
 
+procedure TPeerIOUserDefine.DelayFreeOnBusy;
+begin
+  while FBusy do
+      TCoreClassThread.Sleep(1);
+
+  DisposeObject(Self);
+end;
+
 constructor TPeerIOUserDefine.Create(Owner_: TPeerIO);
 begin
   inherited Create;
   FOwner := Owner_;
   FWorkPlatform := TExecutePlatform.epUnknow;
   FBigStreamBatch := TBigStreamBatch.Create(Owner);
+  FBusy := False;
 end;
 
 destructor TPeerIOUserDefine.Destroy;
@@ -3699,10 +3710,18 @@ procedure TPeerIOUserDefine.Progress;
 begin
 end;
 
+procedure TPeerIOUserSpecial.DelayFreeOnBusy;
+begin
+  while FBusy do
+      TCoreClassThread.Sleep(1);
+  DisposeObject(Self);
+end;
+
 constructor TPeerIOUserSpecial.Create(Owner_: TPeerIO);
 begin
   inherited Create;
   FOwner := Owner_;
+  FBusy := False;
 end;
 
 destructor TPeerIOUserSpecial.Destroy;
@@ -6051,8 +6070,15 @@ begin
       UnLockIO;
   end;
 
-  DisposeObject(FUserDefine);
-  DisposeObject(FUserSpecial);
+  if FUserDefine.FBusy then
+      TCompute.RunM_NP({$IFDEF FPC}@{$ENDIF FPC}FUserDefine.DelayFreeOnBusy)
+  else
+      DisposeObject(FUserDefine);
+
+  if FUserSpecial.FBusy then
+      TCompute.RunM_NP({$IFDEF FPC}@{$ENDIF FPC}FUserSpecial.DelayFreeOnBusy)
+  else
+      DisposeObject(FUserSpecial);
 
   DisposeObject(FQueueList);
   DisposeObject(FReceivedBuffer);
@@ -6230,6 +6256,7 @@ begin
         end;
 
       FP2PVMTunnel := TCommunicationFrameworkWithP2PVM.Create(vmHashPoolSize);
+      FP2PVMTunnel.QuietMode := FOwnerFramework.QuietMode;
       FP2PVMTunnel.FVMID := FID;
 
       FP2PVMTunnel.OpenP2PVMTunnel(Self);
