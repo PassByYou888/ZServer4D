@@ -74,7 +74,7 @@ end;
 procedure BuildZDB;
 var
   LM: TZDBLocalManager;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
   r: TStreamReader;
 begin
   DoStatus('开始构建大规模ZDB');
@@ -127,7 +127,7 @@ end;
 procedure QueryZDB1;
 var
   LM: TZDBLocalManager;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
   LVT: TDBListVT;
   tk: TTimeTick;
   i, j: Integer;
@@ -188,7 +188,7 @@ end;
 procedure QueryZDB2;
 var
   LM: TZDBLocalManager;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
   tk: TTimeTick;
   i: Integer;
 begin
@@ -249,7 +249,7 @@ end;
 procedure QueryZDB3;
 var
   LM: TZDBLocalManager;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
   tk: TTimeTick;
   i: Integer;
 begin
@@ -343,7 +343,7 @@ end;
 procedure QueryZDB4;
 var
   LM: TZDBLocalManager;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
   tk: TTimeTick;
   arry: TStoreArray;
   i, j: Integer;

@@ -2194,6 +2194,15 @@ var
   { max complete buffer }
   C_MaxCompleteBufferSize: NativeInt = 64 * 1024 * 1024; { 64M, 0 = infinity }
 
+  { sequence packet model Packet MTU }
+  C_SequencePacketMTU: Word = {$IFDEF MSWINDOWS}1536{$ELSE MSWINDOWS}50000{$ENDIF MSWINDOWS};
+
+  { P2PVM Fragment size }
+  C_P2PVM_MaxVMFragmentSize: Cardinal = {$IFDEF MSWINDOWS}8192{$ELSE MSWINDOWS}20000{$ENDIF MSWINDOWS};
+
+  { P2PVM Max Real buffer }
+  C_P2PVM_MaxRealBuffer: Cardinal = 2048 * 1024;
+
   { DoStatus ID }
   C_DoStatusID: Integer = $0FFFFFFF;
 
@@ -3794,7 +3803,7 @@ begin
   SequencePacketSendBuffer := TMemoryStream64.CustomCreate(MemoryDelta);
   SequencePacketReceivedBuffer := TMemoryStream64.CustomCreate(MemoryDelta);
 
-  FSequencePacketMTU := 1536;
+  FSequencePacketMTU := C_SequencePacketMTU;
 
   FSequencePacketLimitPhysicsMemory := 0;
   SequencePacketCloseDone := False;
@@ -12111,8 +12120,8 @@ begin
 
   FFrameworkListenPool := TCoreClassList.Create;
 
-  FMaxVMFragmentSize := 8192;
-  FMaxRealBuffer := 2048 * 1024; { 2M }
+  FMaxVMFragmentSize := C_P2PVM_MaxVMFragmentSize;
+  FMaxRealBuffer := C_P2PVM_MaxRealBuffer;
 
   FQuietMode := False;
 

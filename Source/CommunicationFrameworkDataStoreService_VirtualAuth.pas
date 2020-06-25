@@ -86,12 +86,12 @@ type
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64); virtual;
     procedure QueryDone(pipe: TZDBPipeline); virtual;
     procedure StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
-    procedure CreateDB(ActiveDB: TZDBStoreEngine); virtual;
-    procedure CloseDB(ActiveDB: TZDBStoreEngine); virtual;
-    procedure InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
-    procedure AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
-    procedure ModifyData(Sender: TZDBStoreEngine; const StorePos: Int64; buff: TCoreClassStream); virtual;
-    procedure DeleteData(Sender: TZDBStoreEngine; const StorePos: Int64); virtual;
+    procedure CreateDB(ActiveDB: TZDBLMStore); virtual;
+    procedure CloseDB(ActiveDB: TZDBLMStore); virtual;
+    procedure InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
+    procedure AddData(Sender: TZDBLMStore; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
+    procedure ModifyData(Sender: TZDBLMStore; const StorePos: Int64; buff: TCoreClassStream); virtual;
+    procedure DeleteData(Sender: TZDBLMStore; const StorePos: Int64); virtual;
   protected
     procedure DownloadQueryFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
     procedure DownloadQueryWithIDFilterMethod(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean);
@@ -498,27 +498,27 @@ begin
   Dispose(p);
 end;
 
-procedure TDataStoreService_VirtualAuth.CreateDB(ActiveDB: TZDBStoreEngine);
+procedure TDataStoreService_VirtualAuth.CreateDB(ActiveDB: TZDBLMStore);
 begin
 end;
 
-procedure TDataStoreService_VirtualAuth.CloseDB(ActiveDB: TZDBStoreEngine);
+procedure TDataStoreService_VirtualAuth.CloseDB(ActiveDB: TZDBLMStore);
 begin
 end;
 
-procedure TDataStoreService_VirtualAuth.InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+procedure TDataStoreService_VirtualAuth.InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
 begin
 end;
 
-procedure TDataStoreService_VirtualAuth.AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+procedure TDataStoreService_VirtualAuth.AddData(Sender: TZDBLMStore; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
 begin
 end;
 
-procedure TDataStoreService_VirtualAuth.ModifyData(Sender: TZDBStoreEngine; const StorePos: Int64; buff: TCoreClassStream);
+procedure TDataStoreService_VirtualAuth.ModifyData(Sender: TZDBLMStore; const StorePos: Int64; buff: TCoreClassStream);
 begin
 end;
 
-procedure TDataStoreService_VirtualAuth.DeleteData(Sender: TZDBStoreEngine; const StorePos: Int64);
+procedure TDataStoreService_VirtualAuth.DeleteData(Sender: TZDBLMStore; const StorePos: Int64);
 begin
 end;
 
@@ -1026,7 +1026,7 @@ var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   lst: TCoreClassListForObj;
   i: Integer;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
@@ -1036,7 +1036,7 @@ begin
   FZDBLocal.GetDBList(lst);
   for i := 0 to lst.Count - 1 do
     begin
-      db := TZDBStoreEngine(lst[i]);
+      db := TZDBLMStore(lst[i]);
       OutData.WriteString(db.Name);
     end;
   DisposeObject(lst);

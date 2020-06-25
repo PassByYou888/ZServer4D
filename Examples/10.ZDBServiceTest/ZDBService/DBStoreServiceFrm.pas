@@ -63,7 +63,7 @@ procedure TDBStoreServiceForm.Timer1Timer(Sender: TObject);
 var
   i  : Integer;
   lst: TCoreClassListForObj;
-  db : TZDBStoreEngine;
+  db : TZDBLMStore;
   pl : TTDataStoreService_DBPipeline;
   lip: string;
 begin
@@ -83,7 +83,7 @@ begin
       ListBox.Items.Add(Format('database(%d)...', [lst.Count]));
       for i := 0 to lst.Count - 1 do
         begin
-          db := TZDBStoreEngine(lst[i]);
+          db := TZDBLMStore(lst[i]);
           ListBox.Items.Add(Format('db: %s total items:%d size:%s %s', [db.name, db.Count, umlSizeToStr(db.DBEngine.Size).Text, db.CacheAnnealingState]));
         end;
     end;

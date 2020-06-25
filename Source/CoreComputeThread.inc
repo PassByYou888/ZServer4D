@@ -321,53 +321,106 @@ end;
 type
   TSyncTmp = class
   private
-    OnRun: TRunWithThreadProc_NP;
+    OnRunC: TRunWithThreadCall_NP;
+    OnRunM: TRunWithThreadMethod_NP;
+    OnRunP: TRunWithThreadProc_NP;
     procedure DoSync;
+  public
+    constructor Create;
   end;
 
 procedure TSyncTmp.DoSync;
 begin
   try
-    OnRun();
-    Free;
+    if Assigned(OnRunC) then
+        OnRunC();
+    if Assigned(OnRunM) then
+        OnRunM();
+    if Assigned(OnRunP) then
+        OnRunP();
   except
   end;
+  Free;
+end;
+
+constructor TSyncTmp.Create;
+begin
+  inherited Create;
+  OnRunC := nil;
+  OnRunM := nil;
+  OnRunP := nil;
 end;
 
 class procedure TComputeThread.Sync(const OnRun_: TRunWithThreadProc_NP);
-{$IFDEF FPC}
 var
   tmp: TSyncTmp;
-{$ENDIF FPC}
 begin
-{$IFDEF FPC}
   tmp := TSyncTmp.Create;
-  tmp.OnRun := OnRun_;
-  TCompute.Synchronize(TCompute.CurrentThread, @tmp.DoSync);
-{$ELSE FPC}
-  TCompute.Synchronize(TCompute.CurrentThread, procedure
-    begin
-      OnRun_();
-    end);
-{$ENDIF FPC}
+  tmp.OnRunP := OnRun_;
+  TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
 class procedure TComputeThread.Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
-{$IFDEF FPC}
 var
   tmp: TSyncTmp;
-{$ENDIF FPC}
 begin
-{$IFDEF FPC}
   tmp := TSyncTmp.Create;
-  tmp.OnRun := OnRun_;
-  TCompute.Synchronize(Thread_, @tmp.DoSync);
-{$ELSE FPC}
-  TCompute.Synchronize(Thread_, procedure
-    begin
-      OnRun_();
-    end);
-{$ENDIF FPC}
+  tmp.OnRunP := OnRun_;
+  TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
+end;
+
+class procedure TComputeThread.SyncC(OnRun_: TRunWithThreadCall_NP);
+var
+  tmp: TSyncTmp;
+begin
+  tmp := TSyncTmp.Create;
+  tmp.OnRunC := OnRun_;
+  TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
+end;
+
+class procedure TComputeThread.SyncC(const Thread_: TThread; OnRun_: TRunWithThreadCall_NP);
+var
+  tmp: TSyncTmp;
+begin
+  tmp := TSyncTmp.Create;
+  tmp.OnRunC := OnRun_;
+  TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
+end;
+
+class procedure TComputeThread.SyncM(OnRun_: TRunWithThreadMethod_NP);
+var
+  tmp: TSyncTmp;
+begin
+  tmp := TSyncTmp.Create;
+  tmp.OnRunM := OnRun_;
+  TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
+end;
+
+class procedure TComputeThread.SyncM(const Thread_: TThread; OnRun_: TRunWithThreadMethod_NP);
+var
+  tmp: TSyncTmp;
+begin
+  tmp := TSyncTmp.Create;
+  tmp.OnRunM := OnRun_;
+  TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
+end;
+
+class procedure TComputeThread.SyncP(const OnRun_: TRunWithThreadProc_NP);
+var
+  tmp: TSyncTmp;
+begin
+  tmp := TSyncTmp.Create;
+  tmp.OnRunP := OnRun_;
+  TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
+end;
+
+class procedure TComputeThread.SyncP(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
+var
+  tmp: TSyncTmp;
+begin
+  tmp := TSyncTmp.Create;
+  tmp.OnRunP := OnRun_;
+  TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
 class procedure TComputeThread.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);

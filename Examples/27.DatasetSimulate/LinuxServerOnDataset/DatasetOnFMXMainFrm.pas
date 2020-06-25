@@ -148,10 +148,10 @@ procedure TForm1.QueryButtonClick(Sender: TObject);
 begin
   myQueryClient.QueryMyDatabase(ExpEdit.Text, procedure(QueryResultCount: Integer; PipelineName: SystemString; dataSource: TMemoryStream64)
     var
-      dbeng: TDBStoreBase;
+      dbeng: TDBStore;
     begin
       DoStatus('"%s" Result: %d', [PipelineName, QueryResultCount]);
-      dbeng := TDBStoreBase.CreateNewMemory;
+      dbeng := TDBStore.CreateNewMemory;
       dataSource.Position := 0;
       dbeng.LoadFromStream(dataSource);
       dbeng.WaitQueryP(

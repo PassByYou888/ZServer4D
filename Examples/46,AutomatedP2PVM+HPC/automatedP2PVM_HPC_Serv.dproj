@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F109163B-7C5E-42A4-8863-1B38184B4A7E}</ProjectGuid>
+        <ProjectGuid>{3586BC97-A447-4661-82E5-5FDA23E9CEB4}</ProjectGuid>
         <ProjectVersion>18.8</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <MainSource>automatedP2PVM_HPC_Serv.dpr</MainSource>

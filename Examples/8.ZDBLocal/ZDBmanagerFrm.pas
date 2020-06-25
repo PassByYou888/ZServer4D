@@ -50,12 +50,12 @@ type
     procedure CreateQuery(pipe: TZDBPipeline);
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
     procedure QueryDone(pipe: TZDBPipeline);
-    procedure CreateDB(ActiveDB: TZDBStoreEngine);
-    procedure CloseDB(ActiveDB: TZDBStoreEngine);
-    procedure InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
-    procedure AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
-    procedure ModifyData(Sender: TZDBStoreEngine; const StorePos: Int64; buff: TCoreClassStream);
-    procedure DeleteData(Sender: TZDBStoreEngine; const StorePos: Int64);
+    procedure CreateDB(ActiveDB: TZDBLMStore);
+    procedure CloseDB(ActiveDB: TZDBLMStore);
+    procedure InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+    procedure AddData(Sender: TZDBLMStore; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+    procedure ModifyData(Sender: TZDBLMStore; const StorePos: Int64; buff: TCoreClassStream);
+    procedure DeleteData(Sender: TZDBLMStore; const StorePos: Int64);
   public
     { Public declarations }
     zdb: TZDBLocalManager;
@@ -148,7 +148,7 @@ procedure TZDBmanagerForm.Timer2Timer(Sender: TObject);
 var
   i: Integer;
   lst: TCoreClassListForObj;
-  db: TZDBStoreEngine;
+  db: TZDBLMStore;
   pl: TZDBPipeline;
 begin
   lst := TCoreClassListForObj.Create;
@@ -159,7 +159,7 @@ begin
   ListBox1.Items.Add('database...');
   for i := 0 to lst.Count - 1 do
     begin
-      db := TZDBStoreEngine(lst[i]);
+      db := TZDBLMStore(lst[i]);
       ListBox1.Items.Add(Format('db: %s total items:%d size:%s %s', [db.name, db.Count, umlSizeToStr(db.DBEngine.Size).Text, db.CacheAnnealingState]));
     end;
 
@@ -219,19 +219,19 @@ begin
   doStatus('query done!');
 end;
 
-procedure TZDBmanagerForm.CreateDB(ActiveDB: TZDBStoreEngine);
+procedure TZDBmanagerForm.CreateDB(ActiveDB: TZDBLMStore);
 begin
   doStatus('create db:%s', [ActiveDB.name]);
 end;
 
-procedure TZDBmanagerForm.CloseDB(ActiveDB: TZDBStoreEngine);
+procedure TZDBmanagerForm.CloseDB(ActiveDB: TZDBLMStore);
 begin
   doStatus('close db:%s', [ActiveDB.name]);
 end;
 
 procedure TZDBmanagerForm.CompressButtonClick(Sender: TObject);
 var
-  DBEng: TDBStoreBase;
+  DBEng: TDBStore;
 begin
   if zdb.ExistsDB('testdb') then
     begin
@@ -248,7 +248,7 @@ end;
 
 procedure TZDBmanagerForm.InsertButtonClick(Sender: TObject);
 var
-  DBEng: TDBStoreBase;
+  DBEng: TDBStore;
   lst: TListInt64;
 begin
   DBEng := zdb.InitMemoryDB('testdb');
@@ -289,12 +289,12 @@ begin
   DisposeObject([lst]);
 end;
 
-procedure TZDBmanagerForm.InsertData(Sender: TZDBStoreEngine; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+procedure TZDBmanagerForm.InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
 begin
 
 end;
 
-procedure TZDBmanagerForm.AddData(Sender: TZDBStoreEngine; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+procedure TZDBmanagerForm.AddData(Sender: TZDBLMStore; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
 begin
 
 end;
@@ -326,7 +326,7 @@ begin
     end;
 end;
 
-procedure TZDBmanagerForm.ModifyData(Sender: TZDBStoreEngine; const StorePos: Int64; buff: TCoreClassStream);
+procedure TZDBmanagerForm.ModifyData(Sender: TZDBLMStore; const StorePos: Int64; buff: TCoreClassStream);
 begin
 
 end;
@@ -426,7 +426,7 @@ end;
 
 procedure TZDBmanagerForm.DeleteButtonClick(Sender: TObject);
 var
-  DBEng: TDBStoreBase;
+  DBEng: TDBStore;
 begin
   DBEng := zdb.InitMemoryDB('testdb');
   doStatus('db count:', [DBEng.Count]);
@@ -453,7 +453,7 @@ begin
     end);
 end;
 
-procedure TZDBmanagerForm.DeleteData(Sender: TZDBStoreEngine; const StorePos: Int64);
+procedure TZDBmanagerForm.DeleteData(Sender: TZDBLMStore; const StorePos: Int64);
 begin
 
 end;

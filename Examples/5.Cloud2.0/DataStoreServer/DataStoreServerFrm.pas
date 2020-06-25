@@ -684,7 +684,7 @@ procedure TDataStoreServerForm.DBWatchTimerTimer(Sender: TObject);
 var
   i  : Integer;
   lst: TCoreClassListForObj;
-  db : TZDBStoreEngine;
+  db : TZDBLMStore;
   pl : TZDBPipeline;
 begin
   lst := TCoreClassListForObj.Create;
@@ -700,7 +700,7 @@ begin
   WatchMemo.Lines.Add('活跃数据库...');
   for i := 0 to lst.Count - 1 do
     begin
-      db := TZDBStoreEngine(lst[i]);
+      db := TZDBLMStore(lst[i]);
       WatchMemo.Lines.Add(Format('库 %s 条目:%d 大小:%s 缓存 %s', [db.name, db.Count, umlSizeToStr(db.DBEngine.Size).Text, db.CacheAnnealingState]));
     end;
 

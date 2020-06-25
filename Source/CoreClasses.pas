@@ -337,6 +337,12 @@ type
     // build-in synchronization
     class procedure Sync(const OnRun_: TRunWithThreadProc_NP); overload;
     class procedure Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP); overload;
+    class procedure SyncC(OnRun_: TRunWithThreadCall_NP); overload;
+    class procedure SyncC(const Thread_: TThread; OnRun_: TRunWithThreadCall_NP); overload;
+    class procedure SyncM(OnRun_: TRunWithThreadMethod_NP); overload;
+    class procedure SyncM(const Thread_: TThread; OnRun_: TRunWithThreadMethod_NP); overload;
+    class procedure SyncP(const OnRun_: TRunWithThreadProc_NP); overload;
+    class procedure SyncP(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP); overload;
     // build-in asynchronous
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
