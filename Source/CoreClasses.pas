@@ -268,16 +268,19 @@ type
     FThreadID: TThreadID;
     FSyncPool: TThreadProgressPostDataList;
     FProgressing: TAtomBool;
+    FOneStep: Boolean;
   public
     constructor Create(ThreadID_: TThreadID);
     destructor Destroy; override;
     property ThreadID: TThreadID read FThreadID write FThreadID;
+    property OneStep: Boolean read FOneStep write FOneStep;
 
     function Count: Integer;
+    function Busy: Boolean;
 
-    procedure Progress(ThreadID_: TThreadID); overload;
-    procedure Progress(Thread_: TThread); overload;
-    procedure Progress(); overload;
+    function Progress(ThreadID_: TThreadID): Integer; overload;
+    function Progress(Thread_: TThread): Integer; overload;
+    function Progress(): Integer; overload;
 
     // post thread synchronization
     procedure PostC1(OnSync: TThreadProgressPostCall1);
@@ -290,25 +293,26 @@ type
     procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
     procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
   end;
+  TThreadPost = TThreadProgressPost;
 
 {$EndRegion 'ThreadProgressPost'}
 {$Region 'ComputeThread'}
-  TComputeThread = class;
+  TCompute = class;
 
-  TRunWithThreadCall = procedure(ThSender: TComputeThread);
-  TRunWithThreadMethod = procedure(ThSender: TComputeThread) of object;
+  TRunWithThreadCall = procedure(ThSender: TCompute);
+  TRunWithThreadMethod = procedure(ThSender: TCompute) of object;
   TRunWithThreadCall_NP = procedure();
   TRunWithThreadMethod_NP = procedure() of object;
   {$IFDEF FPC}
-  TRunWithThreadProc = procedure(ThSender: TComputeThread) is nested;
+  TRunWithThreadProc = procedure(ThSender: TCompute) is nested;
   TRunWithThreadProc_NP = procedure() is nested;
   {$ELSE FPC}
-  TRunWithThreadProc = reference to procedure(ThSender: TComputeThread);
+  TRunWithThreadProc = reference to procedure(ThSender: TCompute);
   TRunWithThreadProc_NP = reference to procedure();
   {$ENDIF FPC}
 
-  TComputeThread = class(TCoreClassThread)
-  private var
+  TCompute = class(TCoreClassThread)
+  private
     OnRunCall: TRunWithThreadCall;
     OnRunMethod: TRunWithThreadMethod;
     OnRunProc: TRunWithThreadProc;
@@ -371,8 +375,8 @@ type
     class procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
   end;
 
-  // TComputeThread alias
-  TCompute = TComputeThread;
+  // TCompute alias
+  TComputeThread = TCompute;
 {$EndRegion 'ComputeThread'}
 {$Region 'MT19937Random'}
   TMT19937Random = class(TCoreClassObject)
@@ -825,6 +829,11 @@ begin
 end;
 
 procedure FillPtrByte(const dest: Pointer; Count: NativeUInt; const Value: Byte);
+{$IFDEF FillPtr_Used_FillChar}
+begin
+  FillChar(dest^, Count, Value);
+end;
+{$ELSE FillPtr_Used_FillChar}
 var
   d: PByte;
   v: UInt64;
@@ -855,6 +864,7 @@ begin
   if Count > 0 then
       d^ := Value;
 end;
+{$ENDIF FillPtr_Used_FillChar}
 
 procedure FillPtr(const dest:Pointer; Count: NativeUInt; const Value: Byte);
 begin
@@ -909,6 +919,11 @@ begin;
 end;
 
 procedure CopyPtr(const sour, dest: Pointer; Count: NativeUInt);
+{$IFDEF CopyPtr_Used_Move}
+begin
+  Move(sour^, dest^, Count);
+end;
+{$ELSE CopyPtr_Used_Move}
 var
   s, d: NativeUInt;
 begin
@@ -977,6 +992,7 @@ begin
           PByte(d)^ := PByte(s)^;
     end;
 end;
+{$ENDIF CopyPtr_Used_Move}
 
 procedure RaiseInfo(const n: string);
 begin

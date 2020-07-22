@@ -128,6 +128,7 @@ type
     procedure DeleteFirst;
     procedure Delete(idx, cnt: Integer);
     procedure Clear;
+    procedure Reset;
     procedure Append(t: TUPascalString); overload;
     procedure Append(c: USystemChar); overload;
     procedure Append(const Fmt: SystemString; const Args: array of const); overload;
@@ -1933,6 +1934,11 @@ begin
 end;
 
 procedure TUPascalString.Clear;
+begin
+  SetLength(buff, 0);
+end;
+
+procedure TUPascalString.Reset;
 begin
   SetLength(buff, 0);
 end;

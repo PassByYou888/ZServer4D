@@ -29,12 +29,12 @@ type
     UserData: Pointer;
     UserObject: TCoreClassObject;
     procedure Init;
-    procedure AssignTo(th: TComputeThread);
+    procedure AssignTo(th: TCompute);
   end;
 
   PComputeDispatchData = ^TComputeDispatch;
 
-  TCoreComputeThreadPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TComputeThread>;
+  TCoreComputeThreadPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TCompute>;
   TComputeDispatchPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PComputeDispatchData>;
 
   TParallelOverflow = record
@@ -70,7 +70,7 @@ begin
   UserObject := nil;
 end;
 
-procedure TComputeDispatch.AssignTo(th: TComputeThread);
+procedure TComputeDispatch.AssignTo(th: TCompute);
 begin
   th.OnRunCall := OnRunCall;
   th.OnRunMethod := OnRunMethod;
@@ -102,9 +102,9 @@ begin
   Result := (MaxActivtedParallel > 0) and (ActivtedParallel >= MaxActivtedParallel);
 end;
 
-function PickOrCreateThread(): TComputeThread;
+function PickOrCreateThread(): TCompute;
 begin
-  Result := TComputeThread.Create;
+  Result := TCompute.Create;
   CoreThreadPool.Add(Result);
 end;
 
@@ -112,7 +112,7 @@ procedure PostComputeDispatchData(var Data: TComputeDispatch);
 var
   tk: TTimeTick;
   done: Boolean;
-  th: TComputeThread;
+  th: TCompute;
 begin
   // check for idle thread, and again run.
   if IdleComputeThreadSum.V > 0 then
@@ -150,7 +150,7 @@ end;
 
 procedure InitCoreThreadPool(Thread_Num: Integer);
 var
-  th: TComputeThread;
+  th: TCompute;
 begin
   CoreThreadPool := TCoreComputeThreadPool.Create;
   ComputeThreadTaskRunning := TAtomInteger.Create(0);
@@ -164,7 +164,7 @@ end;
 
 procedure FreeCoreThreadPool;
 begin
-  while TComputeThread.ActivtedTask() > 0 do
+  while TCompute.ActivtedTask() > 0 do
       CheckThreadSynchronize(1);
 
   CoreThreadPool.Free;
@@ -183,7 +183,7 @@ begin
   IdleComputeThreadSum := nil;
 end;
 
-procedure TComputeThread.Execute;
+procedure TCompute.Execute;
 var
   tk: TTimeTick;
   NoTask: Boolean;
@@ -250,7 +250,7 @@ begin
   RemoveMT19937Thread(Self);
 end;
 
-procedure TComputeThread.Done_Sync;
+procedure TCompute.Done_Sync;
 begin
   try
     if Assigned(OnDoneCall) then
@@ -263,7 +263,7 @@ begin
   end;
 end;
 
-constructor TComputeThread.Create;
+constructor TCompute.Create;
 begin
   inherited Create(True);
   FreeOnTerminate := True;
@@ -280,40 +280,40 @@ begin
   UserObject := nil;
 end;
 
-destructor TComputeThread.Destroy;
+destructor TCompute.Destroy;
 begin
   inherited Destroy;
 end;
 
-class function TComputeThread.ActivtedTask(): Integer;
+class function TCompute.ActivtedTask(): Integer;
 begin
   ComputeDispatchCritical.Acquire;
   Result := CoreThreadPool.Count;
   ComputeDispatchCritical.Release;
 end;
 
-class function TComputeThread.WaitTask(): Integer;
+class function TCompute.WaitTask(): Integer;
 begin
   Result := IdleComputeThreadSum.V;
 end;
 
-class function TComputeThread.TotalTask(): Integer;
+class function TCompute.TotalTask(): Integer;
 begin
   Result := ComputeThreadTaskRunning.V;
 end;
 
-class function TComputeThread.State(): string;
+class function TCompute.State(): string;
 begin
   Result := Format('total: %d Activted: %d Waiting: %d Granularity: %d MaxParallel: %d/%d',
     [TotalTask(), ActivtedTask(), WaitTask(), ParallelGranularity, ParallelOverflow.ActivtedParallel, MaxActivtedParallel]);
 end;
 
-class function TComputeThread.GetParallelGranularity: Integer;
+class function TCompute.GetParallelGranularity: Integer;
 begin
   Result := ParallelGranularity;
 end;
 
-class function TComputeThread.GetMaxActivtedParallel: Integer;
+class function TCompute.GetMaxActivtedParallel: Integer;
 begin
   Result := MaxActivtedParallel;
 end;
@@ -351,7 +351,7 @@ begin
   OnRunP := nil;
 end;
 
-class procedure TComputeThread.Sync(const OnRun_: TRunWithThreadProc_NP);
+class procedure TCompute.Sync(const OnRun_: TRunWithThreadProc_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -360,7 +360,7 @@ begin
   TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
+class procedure TCompute.Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -369,7 +369,7 @@ begin
   TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.SyncC(OnRun_: TRunWithThreadCall_NP);
+class procedure TCompute.SyncC(OnRun_: TRunWithThreadCall_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -378,7 +378,7 @@ begin
   TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.SyncC(const Thread_: TThread; OnRun_: TRunWithThreadCall_NP);
+class procedure TCompute.SyncC(const Thread_: TThread; OnRun_: TRunWithThreadCall_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -387,7 +387,7 @@ begin
   TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.SyncM(OnRun_: TRunWithThreadMethod_NP);
+class procedure TCompute.SyncM(OnRun_: TRunWithThreadMethod_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -396,7 +396,7 @@ begin
   TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.SyncM(const Thread_: TThread; OnRun_: TRunWithThreadMethod_NP);
+class procedure TCompute.SyncM(const Thread_: TThread; OnRun_: TRunWithThreadMethod_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -405,7 +405,7 @@ begin
   TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.SyncP(const OnRun_: TRunWithThreadProc_NP);
+class procedure TCompute.SyncP(const OnRun_: TRunWithThreadProc_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -414,7 +414,7 @@ begin
   TCompute.Synchronize(TCompute.CurrentThread, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.SyncP(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
+class procedure TCompute.SyncP(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP);
 var
   tmp: TSyncTmp;
 begin
@@ -423,7 +423,7 @@ begin
   TCompute.Synchronize(Thread_, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoSync);
 end;
 
-class procedure TComputeThread.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);
+class procedure TCompute.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -435,7 +435,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall);
+class procedure TCompute.RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -446,7 +446,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunC(const OnRun: TRunWithThreadCall);
+class procedure TCompute.RunC(const OnRun: TRunWithThreadCall);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -457,7 +457,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunC_NP(const OnRun: TRunWithThreadCall_NP);
+class procedure TCompute.RunC_NP(const OnRun: TRunWithThreadCall_NP);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -468,7 +468,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod);
+class procedure TCompute.RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -480,7 +480,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod);
+class procedure TCompute.RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -491,7 +491,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunM(const OnRun: TRunWithThreadMethod);
+class procedure TCompute.RunM(const OnRun: TRunWithThreadMethod);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -502,7 +502,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunM_NP(const OnRun: TRunWithThreadMethod_NP);
+class procedure TCompute.RunM_NP(const OnRun: TRunWithThreadMethod_NP);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -513,7 +513,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc);
+class procedure TCompute.RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -525,7 +525,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc);
+class procedure TCompute.RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -536,7 +536,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunP(const OnRun: TRunWithThreadProc);
+class procedure TCompute.RunP(const OnRun: TRunWithThreadProc);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -547,7 +547,7 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.RunP_NP(const OnRun: TRunWithThreadProc_NP);
+class procedure TCompute.RunP_NP(const OnRun: TRunWithThreadProc_NP);
 var
   Dispatch_: TComputeDispatch;
 begin
@@ -558,52 +558,52 @@ begin
   PostComputeDispatchData(Dispatch_);
 end;
 
-class procedure TComputeThread.ProgressPost();
+class procedure TCompute.ProgressPost();
 begin
   MainThreadProgress.Progress();
 end;
 
-class procedure TComputeThread.PostC1(OnSync: TThreadProgressPostCall1);
+class procedure TCompute.PostC1(OnSync: TThreadProgressPostCall1);
 begin
   MainThreadProgress.PostC1(OnSync);
 end;
 
-class procedure TComputeThread.PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
+class procedure TCompute.PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
 begin
   MainThreadProgress.PostC2(Data1, OnSync);
 end;
 
-class procedure TComputeThread.PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
+class procedure TCompute.PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
 begin
   MainThreadProgress.PostC3(Data1, Data2, Data3, OnSync);
 end;
 
-class procedure TComputeThread.PostM1(OnSync: TThreadProgressPostMethod1);
+class procedure TCompute.PostM1(OnSync: TThreadProgressPostMethod1);
 begin
   MainThreadProgress.PostM1(OnSync);
 end;
 
-class procedure TComputeThread.PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
+class procedure TCompute.PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
 begin
   MainThreadProgress.PostM2(Data1, OnSync);
 end;
 
-class procedure TComputeThread.PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
+class procedure TCompute.PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
 begin
   MainThreadProgress.PostM3(Data1, Data2, Data3, OnSync);
 end;
 
-class procedure TComputeThread.PostP1(OnSync: TThreadProgressPostProc1);
+class procedure TCompute.PostP1(OnSync: TThreadProgressPostProc1);
 begin
   MainThreadProgress.PostP1(OnSync);
 end;
 
-class procedure TComputeThread.PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
+class procedure TCompute.PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
 begin
   MainThreadProgress.PostP2(Data1, OnSync);
 end;
 
-class procedure TComputeThread.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
+class procedure TCompute.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
 begin
   MainThreadProgress.PostP3(Data1, Data2, Data3, OnSync);
 end;

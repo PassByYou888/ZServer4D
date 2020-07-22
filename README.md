@@ -249,15 +249,19 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 **未改动ZS的主线框架,对原有服务器程序无影响**
 
+- 实用性更新:近期做HPC/远程控制/视频墙服务器体系时遇到一个小问题,log信息刷屏,屏蔽以后,发现有问题不提示,顾增加了printError支持,即使屏蔽log,printerror仍然会提示我们服务器遇到了何种错误,方便排查.
+- 在zDefine.inc新增了两个构建开关,见zDefine构建定义文档
+- 基础库小幅命名调整规范化
+
+## 近期更新日志
+
+**未改动ZS的主线框架,对原有服务器程序无影响**
+
 - ZServer4D会自动优化XE10.3以后版本的Random函数,包括XE10.4
 - 新增AutomatedP2VM+HPC的结合demo,纯技术demo,非应用程序
 - 新增HPC支持数据类型:DirectStream, Stream, DirectConsole, Console
 - 新增自动化p2pVM机制:AutomatedP2VM
 - 新增2个自动化p2pVM机制demo,同时他们也是测试程序之一
-
-
-## 近期更新日志
-
 
 **未改动ZS的主线框架,对原有服务器程序无影响**
 

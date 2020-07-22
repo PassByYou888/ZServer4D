@@ -25,12 +25,14 @@
   {$ASMMODE INTEL}
   {$MODESWITCH AdvancedRecords}
   {$MODESWITCH NestedProcVars}
+  {$MODESWITCH NESTEDCOMMENTS}
   {$NOTES OFF}
   {$STACKFRAMES OFF}
   {$COPERATORS OFF}
   {$GOTO ON}
   {$INLINE ON}
   {$MACRO OFF}
+  {$PIC OFF}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -60,7 +62,7 @@
   // if rem this "FoldParallel" parallel for block program, thread can use linear address
   {$DEFINE FoldParallel}
 
-  // MT19937 of seed in the startup TComputeThread is 0
+  // MT19937 of seed in the startup TCompute is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
   // automated loading common AI data sets on boot-time
@@ -89,7 +91,9 @@
   {$UNDEF debug}
   {$DEFINE release}
   {$DEFINE INLINE_ASM}
-  {$R-} { range check }
+  {$R-}
+  {$I-}
+  {$S-}
 {$ELSE FPC} { IF DELPHI }
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -138,7 +142,7 @@
     {$DEFINE InstallMT19937CoreToDelphi}
   {$ENDIF VER340}
 
-  // MT19937 of seed in the startup TComputeThread is 0
+  // MT19937 of seed in the startup TCompute is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
   // automated loading common AI data sets on boot-time
@@ -197,6 +201,13 @@
   {$X+} { Extended syntax }
   {$Z1} { Minimum enum size }
 {$ENDIF FPC}
+
+// Using fillchar replace of FillPtr
+// Maybe fillchar works on MMX / SSE2,
+// {$Define FillPtr_Used_FillChar}
+
+// Using Move replace of CopyPtr
+// {$Define CopyPtr_Used_Move}
 
 // Sequence packets default are opened in Physics-IO
 // Sequence package can support multi platform keep-alive mode

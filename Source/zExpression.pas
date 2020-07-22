@@ -2897,6 +2897,7 @@ var
   t: TTextParsing;
   L: TPascalStringList;
 begin
+  Result := False;
   t := TTextParsing.Create(umlDeleteChar(ExpressionText, #13#10#32#9), TextStyle, SpecialAsciiToken, SpacerSymbol.v);
   L := TPascalStringList.Create;
   if t.FillSymbolVector(L) then

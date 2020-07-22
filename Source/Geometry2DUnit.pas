@@ -464,6 +464,7 @@ function MinimumDistanceFromPointToLine(const lb, le, pt: TVec2): TGeoFloat; ove
 // projection
 function RectProjection(const sour, dest: TRectV2; const sour_pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectProjection(const sour, dest: TRectV2; const sour_rect: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectProjectionArrayV2(const sour, dest: TRectV2; const sour_arry: TArrayVec2): TArrayVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function RectProjectionRotationDest(const sour, dest: TRectV2; const axis: TVec2; const Angle: TGeoFloat; const sour_pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function RectProjectionRotationDest(const sour, dest: TRectV2; const axis: TVec2; const Angle: TGeoFloat; const sour_rect: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -526,8 +527,8 @@ function Interpolation_InSide(const t: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM
 {$ENDREGION 'API'}
 {$REGION 'TV2Rect4'}
 
-type
 
+type
   TV2Rect4 = record
   public
     LeftTop, RightTop, RightBottom, LeftBottom: TVec2;
@@ -1075,6 +1076,7 @@ type
   public
     MaxWidth, MaxHeight: TGeoFloat;
     Margins: TGeoFloat;
+    UserToken: U_String;
 
     constructor Create;
     destructor Destroy; override;
@@ -1090,6 +1092,7 @@ type
 
     procedure Build(SpaceWidth, SpaceHeight: TGeoFloat); overload;
     procedure Build; overload;
+    function GetBoundsBox(): TRectV2;
   end;
 {$ENDREGION 'RectPacking'}
 {$REGION 'Hausdorf'}
@@ -3986,6 +3989,20 @@ begin
   s := ForwardRect(sour);
   d := ForwardRect(dest);
   Result := RectAdd(RectMul(RectSub(sour_rect, s[0]), Vec2Div(RectSize(dest), RectSize(sour))), d[0]);
+end;
+
+function RectProjectionArrayV2(const sour, dest: TRectV2; const sour_arry: TArrayVec2): TArrayVec2;
+var
+  s, d: TRectV2;
+  f: TVec2;
+  i: Integer;
+begin
+  s := ForwardRect(sour);
+  d := ForwardRect(dest);
+  f := Vec2Div(RectSize(dest), RectSize(sour));
+  SetLength(Result, length(sour_arry));
+  for i := 0 to length(sour_arry) - 1 do
+      Result[i] := Vec2Add(Vec2Mul(Vec2Sub(sour_arry[i], s[0]), f), d[0]);
 end;
 
 function RectProjectionRotationDest(const sour, dest: TRectV2; const axis: TVec2; const Angle: TGeoFloat; const sour_pt: TVec2): TVec2;
@@ -9478,6 +9495,7 @@ begin
   MaxWidth := 0;
   MaxHeight := 0;
   Margins := 2;
+  UserToken := '';
 end;
 
 destructor TRectPacking.Destroy;
@@ -9640,6 +9658,17 @@ begin
       h := h + RectHeight(p^.Rect) + Margins * 2 + 1;
     end;
   Build(w, h);
+end;
+
+function TRectPacking.GetBoundsBox(): TRectV2;
+var
+  i: Integer;
+begin
+  if Count = 0 then
+      exit(NULLRect);
+  Result := Items[0]^.Rect;
+  for i := 1 to Count - 1 do
+      Result := BoundRect(Result, Items[i]^.Rect);
 end;
 
 procedure THausdorf.NewNode(var p: PNode);
@@ -10359,14 +10388,15 @@ function ArrayBoundRect(arry: TArrayVec2): TRectV2;
 var
   i: Integer;
 begin
-  Result := NULLRect;
   if length(arry) > 0 then
     begin
       Result[0] := arry[0];
-      Result[1] := Result[1];
+      Result[1] := arry[0];
       for i := 1 to High(arry) do
           Result := BoundRect(Result, arry[i]);
-    end;
+    end
+  else
+      Result := NULLRect;
 end;
 
 function ArrayBoundRect(arry: TArrayRectV2): TRectV2;
@@ -10374,20 +10404,23 @@ var
   i: Integer;
   Inited: Boolean;
 begin
-  Result := NULLRect;
-  Inited := False;
   if length(arry) > 0 then
-    for i := 0 to High(arry) do
-      if RectArea(arry[i]) > 0 then
-        begin
-          if Inited then
-              Result := BoundRect(Result, arry[i])
-          else
-            begin
-              Inited := True;
-              Result := arry[i];
-            end;
-        end;
+    begin
+      Inited := False;
+      for i := 0 to High(arry) do
+        if RectArea(arry[i]) > 0 then
+          begin
+            if Inited then
+                Result := BoundRect(Result, arry[i])
+            else
+              begin
+                Inited := True;
+                Result := arry[i];
+              end;
+          end;
+    end
+  else
+      Result := NULLRect;
 end;
 
 function ArrayBoundRect(arry: TArrayV2Rect4): TRectV2;
@@ -10395,20 +10428,23 @@ var
   i: Integer;
   Inited: Boolean;
 begin
-  Result := NULLRect;
-  Inited := False;
   if length(arry) > 0 then
-    for i := 0 to High(arry) do
-      if arry[i].Area > 0 then
-        begin
-          if Inited then
-              Result := BoundRect(Result, arry[i].BoundRect)
-          else
-            begin
-              Inited := True;
-              Result := arry[i].BoundRect;
-            end;
-        end;
+    begin
+      Inited := False;
+      for i := 0 to High(arry) do
+        if arry[i].Area > 0 then
+          begin
+            if Inited then
+                Result := BoundRect(Result, arry[i].BoundRect)
+            else
+              begin
+                Inited := True;
+                Result := arry[i].BoundRect;
+              end;
+          end;
+    end
+  else
+      Result := NULLRect;
 end;
 
 end.

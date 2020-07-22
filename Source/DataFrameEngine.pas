@@ -494,6 +494,8 @@ type
     procedure Read(var aBuf; aCount: Int64); overload;
     // read as TDataFrameBase
     function Read: TDataFrameBase; overload;
+    // return current TDataFrameBase
+    function Current: TDataFrameBase;
   end;
 
   TDataFrameEngine = class(TCoreClassObject)
@@ -2470,6 +2472,11 @@ function TDataFrameEngineReader.Read: TDataFrameBase;
 begin
   Result := FOwner.Read(FIndex);
   inc(FIndex);
+end;
+
+function TDataFrameEngineReader.Current: TDataFrameBase;
+begin
+  Result := FOwner.Read(FIndex);
 end;
 
 function TDataFrameEngine.DataTypeToByte(v: TRunTimeDataType): Byte;

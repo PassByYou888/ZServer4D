@@ -3,7 +3,7 @@
         <ProjectGuid>{D32C1EB8-C6F4-4D0A-B1BB-CA6227630FDE}</ProjectGuid>
         <MainSource>PhyDouble_P2pVMDouble_Client.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>FMX</FrameworkType>

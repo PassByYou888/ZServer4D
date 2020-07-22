@@ -125,6 +125,7 @@ type
     procedure DeleteFirst;
     procedure Delete(idx, cnt: Integer);
     procedure Clear;
+    procedure Reset;
     procedure Append(t: TPascalString); overload;
     procedure Append(c: SystemChar); overload;
     procedure Append(const Fmt: SystemString; const Args: array of const); overload;
@@ -1905,6 +1906,11 @@ begin
 end;
 
 procedure TPascalString.Clear;
+begin
+  SetLength(buff, 0);
+end;
+
+procedure TPascalString.Reset;
 begin
   SetLength(buff, 0);
 end;

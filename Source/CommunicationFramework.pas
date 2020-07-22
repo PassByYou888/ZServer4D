@@ -960,6 +960,7 @@ type
     FCustomUserObject: TCoreClassObject;
   protected
     procedure DoPrint(const v: SystemString); virtual;
+    procedure DoError(const v: SystemString); virtual;
 
     function GetIdleTimeOut: TTimeTick; virtual;
     procedure SetIdleTimeOut(const Value: TTimeTick); virtual;
@@ -1130,6 +1131,8 @@ type
     { print }
     procedure Print(const v: SystemString);
     procedure PrintParam(v: SystemString; Args: SystemString);
+    procedure Error(const v: SystemString);
+    procedure ErrorParam(v: SystemString; Args: SystemString);
 
     { register command for server/client }
     function DeleteRegistedCMD(Cmd: SystemString): Boolean;
@@ -1962,10 +1965,10 @@ type
     OnCall: TOnHPC_StreamCall;
     OnMethod: TOnHPC_StreamMethod;
     OnProc: TOnHPC_StreamProc;
-    procedure Run(Sender: TComputeThread);
-    procedure RunDone(Sender: TComputeThread);
+    procedure Run(Sender: TCompute);
+    procedure RunDone(Sender: TCompute);
   public
-    Thread: TComputeThread;
+    Thread: TCompute;
     Framework: TCommunicationFramework;
     WorkID: Cardinal;
     UserData: Pointer;
@@ -2007,9 +2010,9 @@ type
     OnCall: TOnHPC_DirectStreamCall;
     OnMethod: TOnHPC_DirectStreamMethod;
     OnProc: TOnHPC_DirectStreamProc;
-    procedure Run(Sender: TComputeThread);
+    procedure Run(Sender: TCompute);
   public
-    Thread: TComputeThread;
+    Thread: TCompute;
     Framework: TCommunicationFramework;
     WorkID: Cardinal;
     UserData: Pointer;
@@ -2051,10 +2054,10 @@ type
     OnCall: TOnHPC_ConsoleCall;
     OnMethod: TOnHPC_ConsoleMethod;
     OnProc: TOnHPC_ConsoleProc;
-    procedure Run(Sender: TComputeThread);
-    procedure RunDone(Sender: TComputeThread);
+    procedure Run(Sender: TCompute);
+    procedure RunDone(Sender: TCompute);
   public
-    Thread: TComputeThread;
+    Thread: TCompute;
     Framework: TCommunicationFramework;
     WorkID: Cardinal;
     UserData: Pointer;
@@ -2096,9 +2099,9 @@ type
     OnCall: TOnHPC_DirectConsoleCall;
     OnMethod: TOnHPC_DirectConsoleMethod;
     OnProc: TOnHPC_DirectConsoleProc;
-    procedure Run(Sender: TComputeThread);
+    procedure Run(Sender: TCompute);
   public
-    Thread: TComputeThread;
+    Thread: TCompute;
     Framework: TCommunicationFramework;
     WorkID: Cardinal;
     UserData: Pointer;
@@ -2195,10 +2198,10 @@ var
   C_MaxCompleteBufferSize: NativeInt = 64 * 1024 * 1024; { 64M, 0 = infinity }
 
   { sequence packet model Packet MTU }
-  C_SequencePacketMTU: Word = {$IFDEF MSWINDOWS}1536{$ELSE MSWINDOWS}50000{$ENDIF MSWINDOWS};
+  C_SequencePacketMTU: Word = {$IFDEF Delphi}1536{$ELSE Delphi}20000{$ENDIF Delphi};
 
   { P2PVM Fragment size }
-  C_P2PVM_MaxVMFragmentSize: Cardinal = {$IFDEF MSWINDOWS}8192{$ELSE MSWINDOWS}20000{$ENDIF MSWINDOWS};
+  C_P2PVM_MaxVMFragmentSize: Cardinal = {$IFDEF Delphi}8192{$ELSE Delphi}20000{$ENDIF Delphi};
 
   { P2PVM Max Real buffer }
   C_P2PVM_MaxRealBuffer: Cardinal = 2048 * 1024;
@@ -2887,7 +2890,7 @@ begin
   c.FReceiveResultRuning := False;
 end;
 
-procedure THPC_Stream.Run(Sender: TComputeThread);
+procedure THPC_Stream.Run(Sender: TCompute);
 begin
   Thread := Sender;
   try
@@ -2901,7 +2904,7 @@ begin
   end;
 end;
 
-procedure THPC_Stream.RunDone(Sender: TComputeThread);
+procedure THPC_Stream.RunDone(Sender: TCompute);
 var
   P_IO: TPeerIO;
 begin
@@ -2974,7 +2977,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
 end;
 
 procedure RunHPC_StreamM(Sender: TPeerIO;
@@ -3001,7 +3004,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
 end;
 
 procedure RunHPC_StreamP(Sender: TPeerIO;
@@ -3028,10 +3031,10 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
 end;
 
-procedure THPC_DirectStream.Run(Sender: TComputeThread);
+procedure THPC_DirectStream.Run(Sender: TCompute);
 begin
   Thread := Sender;
   try
@@ -3090,7 +3093,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
 end;
 
 procedure RunHPC_DirectStreamM(Sender: TPeerIO;
@@ -3113,7 +3116,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
 end;
 
 procedure RunHPC_DirectStreamP(Sender: TPeerIO;
@@ -3136,10 +3139,10 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
 end;
 
-procedure THPC_Console.Run(Sender: TComputeThread);
+procedure THPC_Console.Run(Sender: TCompute);
 begin
   Thread := Sender;
   try
@@ -3153,7 +3156,7 @@ begin
   end;
 end;
 
-procedure THPC_Console.RunDone(Sender: TComputeThread);
+procedure THPC_Console.RunDone(Sender: TCompute);
 var
   P_IO: TPeerIO;
 begin
@@ -3220,7 +3223,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
 end;
 
 procedure RunHPC_ConsoleM(Sender: TPeerIO;
@@ -3243,7 +3246,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
 end;
 
 procedure RunHPC_ConsoleP(Sender: TPeerIO;
@@ -3266,10 +3269,10 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run, {$IFDEF FPC}@{$ENDIF FPC}t.RunDone);
 end;
 
-procedure THPC_DirectConsole.Run(Sender: TComputeThread);
+procedure THPC_DirectConsole.Run(Sender: TCompute);
 begin
   Thread := Sender;
   try
@@ -3325,7 +3328,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
 end;
 
 procedure RunHPC_DirectConsoleM(Sender: TPeerIO;
@@ -3346,7 +3349,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
 end;
 
 procedure RunHPC_DirectConsoleP(Sender: TPeerIO;
@@ -3367,7 +3370,7 @@ begin
 
   AtomInc(Sender.OwnerFramework.FCMDWithThreadRuning);
 
-  TComputeThread.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
+  TCompute.RunM(UserData, UserObject, {$IFDEF FPC}@{$ENDIF FPC}t.Run);
 end;
 
 procedure TOnStateStruct.Init;
@@ -5686,6 +5689,7 @@ begin
             except
               PrintError('decrypt dataFrame error!');
               DisposeObject(tmpStream);
+              DisposeObject(df);
               BreakAndDisconnect := True;
               Break;
             end;
@@ -5701,7 +5705,7 @@ begin
             try
                 ExecuteDataFrame(CurrentActiveThread_, RecvSync, SendSync, dID, df);
             except
-              PrintError('run procedure on dataFrame error!');
+              PrintError('run ExecuteDataFrame error!');
               DisposeObject(df);
               BreakAndDisconnect := True;
               Break;
@@ -6389,9 +6393,9 @@ var
 begin
   n := GetPeerIP;
   if n <> '' then
-      OwnerFramework.DoPrint(Format('error: %s %s', [n, v]))
+      OwnerFramework.DoError(Format('error: %s %s', [n, v]))
   else
-      OwnerFramework.DoPrint(Format('error: %s', [v]));
+      OwnerFramework.DoError(Format('error: %s', [v]));
 end;
 
 procedure TPeerIO.PrintError(v: SystemString; const Args: array of const);
@@ -6994,6 +6998,27 @@ begin
           n2 := '';
       DoStatus(n1 + n2 + v, C_DoStatusID);
     end;
+
+  AtomInc(Statistics[TStatisticsType.stPrint]);
+end;
+
+procedure TCommunicationFramework.DoError(const v: SystemString);
+var
+  n1, n2: SystemString;
+begin
+  if FPrefixName <> '' then
+      n1 := FPrefixName
+  else
+      n1 := '';
+  if FName <> '' then
+    begin
+      if n1 <> '' then
+          n1 := n1 + '.';
+      n2 := FName + ' ';
+    end
+  else
+      n2 := '';
+  DoStatus(n1 + n2 + v, C_DoStatusID);
 
   AtomInc(Statistics[TStatisticsType.stPrint]);
 end;
@@ -8063,6 +8088,16 @@ begin
   except
       Print(Format(v, [Args]));
   end;
+end;
+
+procedure TCommunicationFramework.Error(const v: SystemString);
+begin
+  DoError(v);
+end;
+
+procedure TCommunicationFramework.ErrorParam(v: SystemString; Args: SystemString);
+begin
+  DoError(Format(v, [Args]));
 end;
 
 function TCommunicationFramework.DeleteRegistedCMD(Cmd: SystemString): Boolean;
