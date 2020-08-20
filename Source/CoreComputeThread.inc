@@ -189,6 +189,9 @@ var
   NoTask: Boolean;
   i: Integer;
 begin
+  FRndInstance := InternalMT19937__();
+  AtomInc(PMD19937Core(FRndInstance)^.Instance);
+
   while True do
     begin
       try
@@ -247,6 +250,8 @@ begin
   CoreThreadPool.Remove(Self);
   ComputeDispatchCritical.Release;
 
+  AtomDec(PMD19937Core(FRndInstance)^.Instance);
+  FRndInstance := nil;
   RemoveMT19937Thread(Self);
 end;
 
@@ -278,6 +283,7 @@ begin
   OnDoneProc := nil;
   UserData := nil;
   UserObject := nil;
+  FRndInstance := nil;
 end;
 
 destructor TCompute.Destroy;
