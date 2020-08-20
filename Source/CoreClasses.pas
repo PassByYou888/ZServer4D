@@ -322,6 +322,7 @@ type
     OnDoneCall: TRunWithThreadCall;
     OnDoneMethod: TRunWithThreadMethod;
     OnDoneProc: TRunWithThreadProc;
+    FRndInstance: Pointer;
   protected
     procedure Execute; override;
     procedure Done_Sync;
