@@ -38,6 +38,7 @@ uses SysUtils, CoreClasses, Types,
 type
   TDataFrameEngine = class;
   TDFE = TDataFrameEngine;
+  TDataFrame = TDataFrameEngine;
 
   TDataFrameBase = class(TCoreClassObject)
   protected

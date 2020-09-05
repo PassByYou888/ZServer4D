@@ -542,7 +542,6 @@ begin
   FFOGComputeSendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
 
   FFOGComputeService := TFOGComputeService.Create(FFOGComputeRecvTunnel, FFOGComputeSendTunnel);
-  FFOGComputeService.CanStatus := True;
 
   FFOGComputeService.RegisterCommand;
 

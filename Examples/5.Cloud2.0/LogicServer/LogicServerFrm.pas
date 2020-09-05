@@ -1376,7 +1376,6 @@ begin
   FPaySendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
 
   FPayService := TPayService.Create(FPayRecvTunnel, FPaySendTunnel);
-  FPayService.CanStatus := True;
   FPayService.RegisterCommand;
 
   FLogicRecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
@@ -1385,7 +1384,6 @@ begin
   FLogicSendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
 
   FLogicService := TLogicService.Create(FLogicRecvTunnel, FLogicSendTunnel);
-  FLogicService.CanStatus := True;
   FLogicService.RegisterCommand;
 
   FLogicService.LogicForm := Self;

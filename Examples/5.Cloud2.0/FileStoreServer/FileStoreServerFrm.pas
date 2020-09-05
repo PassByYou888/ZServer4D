@@ -672,7 +672,6 @@ begin
   FDBSendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
 
   FFileStoreService := TFileStoreDoubleTunnelService.Create(FDBRecvTunnel, FDBSendTunnel);
-  FFileStoreService.CanStatus := True;
 
   FFileStoreService.RegisterCommand;
 

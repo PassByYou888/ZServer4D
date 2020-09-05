@@ -468,7 +468,6 @@ begin
   FPayQuerySendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
 
   FPayQueryService := TPayQueryService.Create(FPayQueryRecvTunnel, FPayQuerySendTunnel);
-  FPayQueryService.CanStatus := True;
 
   FPayQueryService.RegisterCommand;
 

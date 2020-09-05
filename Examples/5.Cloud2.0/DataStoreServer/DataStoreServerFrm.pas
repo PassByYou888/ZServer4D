@@ -558,7 +558,6 @@ begin
   FDBSendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
 
   FDataStoreService := TDataStoreDoubleTunnelService.Create(FDBRecvTunnel, FDBSendTunnel);
-  FDataStoreService.CanStatus := True;
 
   FDataStoreService.RegisterCommand;
 

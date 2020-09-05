@@ -291,8 +291,8 @@ type
   TBigStreamBatchPostData = record
     Source: TMemoryStream64;
     CompletedBackcallPtr: UInt64;
-    RemoteMD5: UnicodeMixedLib.TMD5;
-    SourceMD5: UnicodeMixedLib.TMD5;
+    RemoteMD5: TMD5;
+    SourceMD5: TMD5;
     index: Integer;
     DBStorePos: Int64;
 
@@ -2219,19 +2219,21 @@ var
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
   ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
 
-  { system command }
-  C_BuildP2PAuthToken: SystemString = '__@BuildP2PAuthToken';
-  C_InitP2PTunnel: SystemString = '__@InitP2PTunnel';
-  C_CloseP2PTunnel: SystemString = '__@CloseP2PTunnel';
+  { system }
   C_CipherModel: SystemString = '__@CipherModel';
   C_Wait: SystemString = '__@Wait';
 
-  { stable IO command }
+  { P2PVM }
+  C_BuildP2PAuthToken: SystemString = '__@BuildP2PAuthToken';
+  C_InitP2PTunnel: SystemString = '__@InitP2PTunnel';
+  C_CloseP2PTunnel: SystemString = '__@CloseP2PTunnel';
+
+  { stable IO }
   C_BuildStableIO: SystemString = '__@BuildStableIO';
   C_OpenStableIO: SystemString = '__@OpenStableIO';
   C_CloseStableIO: SystemString = '__@CloseStableIO';
 
-  { double tunnel command }
+  { double tunnel }
   C_FileInfo: SystemString = '__@FileInfo';
   C_PostFile: SystemString = '__@PostFile';
   C_PostFileOver: SystemString = '__@PostFileOver';
@@ -2269,8 +2271,12 @@ var
   C_GetFile: SystemString = '__@GetFile';
   C_GetFileAs: SystemString = '__@GetFileAs';
   C_PostFileInfo: SystemString = '__@PostFileInfo';
+  C_GetPublicFileFragmentData: SystemString = '__@GetPublicFileFragmentData';
+  C_GetPrivateFileFragmentData: SystemString = '__@GetPrivateFileFragmentData';
+  C_GetFileFragmentData: SystemString = '__@GetFileFragmentData';
+  C_PostFileFragmentData: SystemString = '__@PostFileFragmentData';
 
-  { double tunnel datastore command }
+  { double tunnel datastore }
   C_DataStoreSecurity: SystemString = '__@DataStoreSecurity';
   C_CompletedFragmentBigStream: SystemString = '__@CompletedFragmentBigStream';
   C_CompletedQuery: SystemString = '__@CompletedQuery';

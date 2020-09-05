@@ -67,7 +67,7 @@ type
 
     property Delta: NativeInt read FDelta write FDelta;
     procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: NativeUInt);
-    function PositionAsPtr(const APosition: Int64): Pointer; overload;
+    function PositionAsPtr(const Position_: Int64): Pointer; overload;
     function PositionAsPtr: Pointer; overload;
 
     procedure LoadFromStream(stream: TCoreClassStream); virtual;
@@ -130,6 +130,9 @@ type
     function ReadANSI(L: Integer): TPascalString;
     function ReadMD5: TMD5;
   end;
+
+  TMem64 = TMemoryStream64;
+  TStream64 = TMemoryStream64;
 
   TMemoryStream64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMemoryStream64>;
 
@@ -356,9 +359,9 @@ begin
   FProtectedMode := True;
 end;
 
-function TMemoryStream64.PositionAsPtr(const APosition: Int64): Pointer;
+function TMemoryStream64.PositionAsPtr(const Position_: Int64): Pointer;
 begin
-  Result := Pointer(NativeUInt(FMemory) + APosition);
+  Result := Pointer(NativeUInt(FMemory) + Position_);
 end;
 
 function TMemoryStream64.PositionAsPtr: Pointer;

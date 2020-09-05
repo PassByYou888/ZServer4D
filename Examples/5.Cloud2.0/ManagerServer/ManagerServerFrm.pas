@@ -525,7 +525,6 @@ begin
   AccessService.RegisterStream('QueryMinLoad').OnExecute := Command_QueryMinLoad;
 
   ManagerService := TServerManager.Create(RecvService, SendService, TCommunicationFramework_Client_CrossSocket);
-  ManagerService.CanStatus := True;
   ManagerService.RegisterCommand;
 
   Memo.Lines.Add(WSAInfo);
