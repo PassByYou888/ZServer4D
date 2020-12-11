@@ -1318,8 +1318,6 @@ const
   MaxSingle = 3.4E+38;
   MinDouble = 5.0E-324;
   MaxDouble = 1.7E+308;
-  MinExtended = 3.4E-4932;
-  MaxExtended = 1.1E+4932;
   MinComp = -9.223372036854775807E+18;
   MaxComp = 9.223372036854775807E+18;
 

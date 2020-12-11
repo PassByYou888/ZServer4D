@@ -373,6 +373,7 @@ type
     function GetBuffer: TCoreClassStream;
     procedure SetBuffer(_Buffer: TCoreClassStream);
     property Buffer: TCoreClassStream read GetBuffer write SetBuffer;
+    property InstanceBuffer: TMemoryStream64 read FBuffer write FBuffer;
   end;
 
   TDataFrameVariant = class sealed(TDataFrameBase)
@@ -551,6 +552,7 @@ type
     function WriteArrayDouble: TDataFrameArrayDouble;
     function WriteArrayInt64: TDataFrameArrayInt64;
     procedure WriteStream(v: TCoreClassStream);
+    procedure WriteInstanceStream(v: TMemoryStream64);
     procedure WriteVariant(v: Variant);
     procedure WriteInt64(v: Int64);
     procedure WriteUInt64(v: UInt64);
@@ -2827,6 +2829,15 @@ begin
   FDataList.Add(Obj_);
 end;
 
+procedure TDataFrameEngine.WriteInstanceStream(v: TMemoryStream64);
+var
+  Obj_: TDataFrameStream;
+begin
+  Obj_ := TDataFrameStream.Create(DataTypeToByte(rdtStream));
+  Obj_.InstanceBuffer := v;
+  FDataList.Add(Obj_);
+end;
+
 procedure TDataFrameEngine.WriteVariant(v: Variant);
 var
   Obj_: TDataFrameVariant;
@@ -4187,7 +4198,7 @@ begin
       md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
   compStream := TMemoryStream64.CustomCreate($FFFF);
-  ParallelCompressStream(scm, StoreStream, compStream);
+  ParallelCompressMemory(scm, StoreStream, compStream);
   DisposeObject(StoreStream);
 
   // make header

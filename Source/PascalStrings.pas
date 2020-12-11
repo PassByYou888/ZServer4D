@@ -104,6 +104,7 @@ type
     function Same(const t1, t2, t3, t4, t5, t6: TPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5, t6, t7: TPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5, t6, t7, t8: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7, t8, t9: TPascalString): Boolean; overload;
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const p: PPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const t: TPascalString): Boolean; overload;
@@ -1726,6 +1727,11 @@ end;
 function TPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8: TPascalString): Boolean;
 begin
   Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8);
+end;
+
+function TPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8, t9: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8) or Same(@t9);
 end;
 
 function TPascalString.Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean;

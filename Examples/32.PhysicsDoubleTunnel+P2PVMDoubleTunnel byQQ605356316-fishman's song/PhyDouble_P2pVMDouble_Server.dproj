@@ -3,7 +3,7 @@
         <ProjectGuid>{825B710F-22DD-4C06-97E7-DD6C57D60D9E}</ProjectGuid>
         <MainSource>PhyDouble_P2pVMDouble_Server.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Console</AppType>
         <FrameworkType>None</FrameworkType>

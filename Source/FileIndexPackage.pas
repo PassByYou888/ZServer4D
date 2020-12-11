@@ -268,7 +268,7 @@ end;
 
 procedure ParallelCompressStream_Call(sourstream, deststream: TMemoryStream64);
 begin
-  ParallelCompressStream(sourstream, deststream);
+  ParallelCompressMemory(sourstream, deststream);
 end;
 
 procedure ParallelDecompressStream_Call(sourstream, deststream: TMemoryStream64);

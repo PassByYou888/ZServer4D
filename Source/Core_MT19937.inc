@@ -80,7 +80,6 @@ end;
 
 function TMT19937Core.GenRand_MT19937(): Integer;
 var
-  th: TCoreClassThread;
   Y, K: Integer;
 begin
   if InternalRndSeed <> InternalOldRndSeed then

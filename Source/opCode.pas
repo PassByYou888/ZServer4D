@@ -1159,7 +1159,7 @@ end;
 
 constructor TOpCustomRunTime.Create;
 begin
-  CustomCreate(512);
+  CustomCreate(1024);
 end;
 
 constructor TOpCustomRunTime.CustomCreate(maxHashLen: Integer);
@@ -1167,6 +1167,7 @@ begin
   inherited Create;
   ProcList := THashList.CustomCreate(maxHashLen);
   ProcList.AutoFreeData := True;
+  ProcList.AccessOptimization := True;
 
   Trigger := nil;
 

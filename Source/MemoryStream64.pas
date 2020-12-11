@@ -66,9 +66,12 @@ type
     procedure SwapInstance(source: TMemoryStream64);
 
     property Delta: NativeInt read FDelta write FDelta;
-    procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: NativeUInt);
+    procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
+    procedure Mapping(buffPtr: Pointer; const BuffSize: Int64);
     function PositionAsPtr(const Position_: Int64): Pointer; overload;
     function PositionAsPtr: Pointer; overload;
+    function PosAsPtr(const Position_: Int64): Pointer; overload;
+    function PosAsPtr: Pointer; overload;
 
     procedure LoadFromStream(stream: TCoreClassStream); virtual;
     procedure LoadFromFile(FileName: SystemString);
@@ -92,7 +95,7 @@ type
     function Seek(const Offset: Int64; origin: TSeekOrigin): Int64; override;
     property Memory: Pointer read FMemory;
 
-    function CopyFrom(const source: TCoreClassStream; CCount: Int64): Int64; virtual;
+    function CopyFrom(const source: TCoreClassStream; Count: Int64): Int64; virtual;
 
     // Serialized writer
     procedure WriteBool(const buff: Boolean);
@@ -131,7 +134,6 @@ type
     function ReadMD5: TMD5;
   end;
 
-  TMem64 = TMemoryStream64;
   TStream64 = TMemoryStream64;
 
   TMemoryStream64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMemoryStream64>;
@@ -208,9 +210,9 @@ function DecompressFile(sour, dest: SystemString): Boolean;
 function SelectCompressStream(const scm: TSelectCompressionMethod; const sour, dest: TCoreClassStream): Boolean;
 function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean;
 
-procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
-procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
-procedure ParallelCompressStream(const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressMemory(const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
 
 procedure ParallelDecompressStream(const sour_, dest_: TCoreClassStream);
 
@@ -350,13 +352,18 @@ begin
   source.FProtectedMode := FProtectedMode_;
 end;
 
-procedure TMemoryStream64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: NativeUInt);
+procedure TMemoryStream64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
 begin
   Clear;
   FMemory := buffPtr;
   FSize := BuffSize;
   FPosition := 0;
   FProtectedMode := True;
+end;
+
+procedure TMemoryStream64.Mapping(buffPtr: Pointer; const BuffSize: Int64);
+begin
+  SetPointerWithProtectedMode(buffPtr, BuffSize);
 end;
 
 function TMemoryStream64.PositionAsPtr(const Position_: Int64): Pointer;
@@ -367,6 +374,16 @@ end;
 function TMemoryStream64.PositionAsPtr: Pointer;
 begin
   Result := Pointer(NativeUInt(FMemory) + FPosition);
+end;
+
+function TMemoryStream64.PosAsPtr(const Position_: Int64): Pointer;
+begin
+  Result := PositionAsPtr(Position_);
+end;
+
+function TMemoryStream64.PosAsPtr: Pointer;
+begin
+  Result := PositionAsPtr();
 end;
 
 procedure TMemoryStream64.LoadFromStream(stream: TCoreClassStream);
@@ -497,12 +514,6 @@ function TMemoryStream64.Write64(const buffer; Count: Int64): Int64;
 var
   p: Int64;
 begin
-  if FProtectedMode then
-    begin
-      Result := 0;
-      Exit;
-    end;
-
   if (Count > 0) then
     begin
       p := FPosition;
@@ -511,6 +522,11 @@ begin
         begin
           if p > FSize then
             begin
+              if FProtectedMode then
+                begin
+                  Result := 0;
+                  Exit;
+                end;
               if p > FCapacity then
                   SetCapacity(p);
               FSize := p;
@@ -549,6 +565,11 @@ begin
         begin
           if p > FSize then
             begin
+              if FProtectedMode then
+                begin
+                  Result := 0;
+                  Exit;
+                end;
               if p > FCapacity then
                   SetCapacity(p);
               FSize := p;
@@ -635,7 +656,7 @@ begin
   Result := FPosition;
 end;
 
-function TMemoryStream64.CopyFrom(const source: TCoreClassStream; CCount: Int64): Int64;
+function TMemoryStream64.CopyFrom(const source: TCoreClassStream; Count: Int64): Int64;
 const
   MaxBufSize = $F000;
 var
@@ -647,35 +668,35 @@ begin
 
   if source is TMemoryStream64 then
     begin
-      WritePtr(TMemoryStream64(source).PositionAsPtr, CCount);
-      TMemoryStream64(source).Position := TMemoryStream64(source).FPosition + CCount;
-      Result := CCount;
+      WritePtr(TMemoryStream64(source).PositionAsPtr, Count);
+      TMemoryStream64(source).Position := TMemoryStream64(source).FPosition + Count;
+      Result := Count;
       Exit;
     end;
 
-  if CCount <= 0 then
+  if Count <= 0 then
     begin
       source.Position := 0;
-      CCount := source.Size;
+      Count := source.Size;
     end;
 
-  Result := CCount;
-  if CCount > MaxBufSize then
+  Result := Count;
+  if Count > MaxBufSize then
       BufSize := MaxBufSize
   else
-      BufSize := CCount;
+      BufSize := Count;
 
   buffer := System.GetMemory(BufSize);
   try
-    while CCount <> 0 do
+    while Count <> 0 do
       begin
-        if CCount > BufSize then
+        if Count > BufSize then
             n := BufSize
         else
-            n := CCount;
+            n := Count;
         source.read(buffer^, n);
         WritePtr(buffer, n);
-        dec(CCount, n);
+        dec(Count, n);
       end;
   finally
       System.FreeMem(buffer);
@@ -1130,7 +1151,7 @@ begin
   end;
 end;
 
-procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream);
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream);
 var
   StripNum: Integer;
   sourStrips: TStream64List;
@@ -1238,14 +1259,14 @@ begin
   FreeBuff;
 end;
 
-procedure ParallelCompressStream(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream);
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream);
 begin
-  ParallelCompressStream(scm, sour.Size div 8192, sour, dest);
+  ParallelCompressMemory(scm, sour.Size div (16 * 1024), sour, dest);
 end;
 
-procedure ParallelCompressStream(const sour: TMemoryStream64; const dest: TCoreClassStream);
+procedure ParallelCompressMemory(const sour: TMemoryStream64; const dest: TCoreClassStream);
 begin
-  ParallelCompressStream(scmZLIB, sour, dest);
+  ParallelCompressMemory(scmZLIB, sour, dest);
 end;
 
 procedure ParallelDecompressStream(const sour_, dest_: TCoreClassStream);
@@ -1392,7 +1413,7 @@ begin
   s_fs := TMemoryStream64.Create;
   s_fs.LoadFromFile(sour);
   d_fs := TCoreClassFileStream.Create(dest, fmCreate);
-  ParallelCompressStream(s_fs, d_fs);
+  ParallelCompressMemory(s_fs, d_fs);
   DisposeObject(s_fs);
   DisposeObject(d_fs);
 end;

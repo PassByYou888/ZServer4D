@@ -514,6 +514,7 @@ type
     property Count: Int64 read FCount;
 
     // cache states
+    procedure ResetCachePool(const siz_: Integer);
     property Cache: TInt64HashObjectList read FCache;
     procedure Recache;
     function AllowedCache: Boolean; virtual;
@@ -686,7 +687,7 @@ type
     property PascalString[const StorePos: Int64]: TPascalString read GetString write SetString;
   end;
 
-procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure ZDB_ThSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 
 const
   c_DF: Cardinal = $FFFFFFF0;
@@ -710,7 +711,7 @@ implementation
 
 uses MH_ZDB, CoreCipher, DoStatusIO;
 
-procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure ZDB_ThSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 begin
   try
     if Sync then
@@ -1898,7 +1899,7 @@ begin
   Result := False;
   if FStoped or FProcessQueryDone then
     begin
-      zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+      ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
       Exit;
     end;
 
@@ -1918,14 +1919,14 @@ begin
         begin
           if not FDBEng.QueryPrev(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           dec(FState.index);
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1934,14 +1935,14 @@ begin
         begin
           if not FDBEng.QueryNext(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           inc(FState.index);
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1958,14 +1959,14 @@ begin
         begin
           if not FDBEng.QueryLast(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           FState.index := FDBEng.Count - 1;
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1974,14 +1975,14 @@ begin
         begin
           if not FDBEng.QueryFirst(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           FState.index := 0;
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -2020,7 +2021,7 @@ begin
   if StoreEngine = nil then
       Exit;
 
-  zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}PickQueryQueue);
+  ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}PickQueryQueue);
 
   i := 0;
   for i := 0 to PickedQueryQueue.Count - 1 do
@@ -2029,14 +2030,14 @@ begin
       QT.FProcessQueryDone := not QT.ProcessQuery;
     end;
 
-  zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncQueryDone);
+  ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncQueryDone);
 
   Paused := (StoreEngine.FQueryQueue.Count = 0) and (RemoveQueue.Count = 0);
 
   if Paused then
     begin
       StoreEngine.FQueryThreadLastActivtedTime := Now;
-      zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
+      ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
     end;
 end;
 
@@ -2168,14 +2169,14 @@ begin
           Sleep(10);
           PausedIdleTime := PausedIdleTime + 0.01;
 
-          zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncCheckCache);
+          ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncCheckCache);
         end;
 
       AsyncQuery();
       if (cloop = 0) or (cloop > 1000) then
         begin
           cloop := 0;
-          zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
+          ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
         end;
 
       inc(cloop);
@@ -2642,6 +2643,11 @@ begin
 
   FDBEngine := TObjectDataManagerOfCache.Open(oldFN, ObjectDataMarshal.ID, False);
   ReadHeaderInfo;
+end;
+
+procedure TDBStore.ResetCachePool(const siz_: Integer);
+begin
+  FDBEngine.ResetCachePool(siz_);
 end;
 
 procedure TDBStore.Recache;

@@ -31,8 +31,9 @@
   {$COPERATORS OFF}
   {$GOTO ON}
   {$INLINE ON}
-  {$MACRO OFF}
-  {$PIC OFF}
+  {$MACRO ON}
+  {$HINTS ON}
+  {$IEEEERRORS ON}
 
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
@@ -94,23 +95,30 @@
   {$R-}
   {$I-}
   {$S-}
+  {$OPTIMIZATION OFF}
 {$ELSE FPC} { IF DELPHI }
+  {$DEFINE Delphi}
+
   {$DEFINE LITTLE_ENDIAN}
   {$UNDEF BIG_ENDIAN}
 
+  {$IFDEF ANDROID}
+    {$DEFINE FirstCharInZero}
+  {$ENDIF ANDROID}
+
+  {$IFDEF IOS}
+    {$DEFINE FirstCharInZero}
+  {$ENDIF IOS}
+
+  // delphi 10.4
   {$IFDEF VER340}
     {$UNDEF FirstCharInZero}
-  {$ELSE VER340}
-    {$IFDEF ANDROID}
-      {$DEFINE FirstCharInZero}
-    {$ENDIF ANDROID}
-
-    {$IFDEF IOS}
-      {$DEFINE FirstCharInZero}
-    {$ENDIF IOS}
   {$ENDIF VER340}
 
-  {$DEFINE Delphi}
+  // delphi 10.5
+  {$IFDEF VER350}
+    {$UNDEF FirstCharInZero}
+  {$ENDIF VER350}
 
   // nativeint as int or int64 type variable when Modifier is overload
   {$DEFINE OVERLOAD_NATIVEINT}
@@ -135,12 +143,18 @@
   // paper: Mersenne Twister: A 623-dimensionallyequidistributed uniformpseudorandom number generator
   // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3 or laster
   {$UNDEF InstallMT19937CoreToDelphi}
+
   {$IFDEF VER330}
     {$DEFINE InstallMT19937CoreToDelphi}
   {$ENDIF VER330}
+
   {$IFDEF VER340}
     {$DEFINE InstallMT19937CoreToDelphi}
   {$ENDIF VER340}
+
+  {$IFDEF VER350}
+    {$DEFINE InstallMT19937CoreToDelphi}
+  {$ENDIF VER350}
 
   // MT19937 of seed in the startup TCompute is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
@@ -201,6 +215,9 @@
   {$X+} { Extended syntax }
   {$Z1} { Minimum enum size }
 {$ENDIF FPC}
+
+// ZDB2.0 optimized TMemoryStream/TMemoryStream64 for Replace
+{$DEFINE ZDB2_Core_Used_Mem64}
 
 // Using fillchar replace of FillPtr
 // Maybe fillchar works on MMX / SSE2,

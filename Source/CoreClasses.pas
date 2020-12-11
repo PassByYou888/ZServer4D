@@ -102,14 +102,14 @@ type
     procedure BeforeDestruction; override;
   end;
 
-  TGenericsList<t>=class(System.Generics.Collections.TList<t>)
+  TGenericsList<t> = class(System.Generics.Collections.TList<t>)
   private type
     TGArry = array of t;
   public var Arry:TGArry;
     function ListData: Pointer;
   end;
 
-  TGenericsObjectList<t:class>=class(System.Generics.Collections.TList<t>)
+  TGenericsObjectList<t: class> = class(System.Generics.Collections.TList<t>)
   private type
     TGArry = array of t;
   public var Arry:TGArry;
@@ -229,29 +229,36 @@ type
   TThreadProgressPostCall1 = procedure();
   TThreadProgressPostCall2 = procedure(Data1: Pointer);
   TThreadProgressPostCall3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant);
+  TThreadProgressPostCall4 = procedure(Data1: Pointer; Data2: TCoreClassObject);
   TThreadProgressPostMethod1 = procedure() of object;
   TThreadProgressPostMethod2 = procedure(Data1: Pointer) of object;
   TThreadProgressPostMethod3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant) of object;
+  TThreadProgressPostMethod4 = procedure(Data1: Pointer; Data2: TCoreClassObject) of object;
 {$IFDEF FPC}
   TThreadProgressPostProc1 = procedure() is nested;
   TThreadProgressPostProc2 = procedure(Data1: Pointer) is nested;
   TThreadProgressPostProc3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant) is nested;
+  TThreadProgressPostProc4 = procedure(Data1: Pointer; Data2: TCoreClassObject) is nested;
 {$ELSE FPC}
   TThreadProgressPostProc1 = reference to procedure();
   TThreadProgressPostProc2 = reference to procedure(Data1: Pointer);
   TThreadProgressPostProc3 = reference to procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant);
+  TThreadProgressPostProc4 = reference to procedure(Data1: Pointer; Data2: TCoreClassObject);
 {$ENDIF FPC}
 
   TThreadProgressPostData = record
     OnCall1: TThreadProgressPostCall1;
     OnCall2: TThreadProgressPostCall2;
     OnCall3: TThreadProgressPostCall3;
+    OnCall4: TThreadProgressPostCall4;
     OnMethod1: TThreadProgressPostMethod1;
     OnMethod2: TThreadProgressPostMethod2;
     OnMethod3: TThreadProgressPostMethod3;
+    OnMethod4: TThreadProgressPostMethod4;
     OnProc1: TThreadProgressPostProc1;
     OnProc2: TThreadProgressPostProc2;
     OnProc3: TThreadProgressPostProc3;
+    OnProc4: TThreadProgressPostProc4;
     Data1: Pointer;
     Data2: TCoreClassObject;
     Data3: Variant;
@@ -269,11 +276,13 @@ type
     FSyncPool: TThreadProgressPostDataList;
     FProgressing: TAtomBool;
     FOneStep: Boolean;
+    FResetRandomSeed: Boolean;
   public
     constructor Create(ThreadID_: TThreadID);
     destructor Destroy; override;
     property ThreadID: TThreadID read FThreadID write FThreadID;
     property OneStep: Boolean read FOneStep write FOneStep;
+    property ResetRandomSeed: Boolean read FResetRandomSeed write FResetRandomSeed;
 
     function Count: Integer;
     function Busy: Boolean;
@@ -286,12 +295,17 @@ type
     procedure PostC1(OnSync: TThreadProgressPostCall1);
     procedure PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
     procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
+    procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+
     procedure PostM1(OnSync: TThreadProgressPostMethod1);
     procedure PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
     procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
+    procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+
     procedure PostP1(OnSync: TThreadProgressPostProc1);
     procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
     procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
+    procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
   end;
   TThreadPost = TThreadProgressPost;
 
@@ -368,12 +382,17 @@ type
     class procedure PostC1(OnSync: TThreadProgressPostCall1);
     class procedure PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
     class procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
+    class procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+
     class procedure PostM1(OnSync: TThreadProgressPostMethod1);
     class procedure PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
     class procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
+    class procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+
     class procedure PostP1(OnSync: TThreadProgressPostProc1);
     class procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
     class procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
+    class procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
   end;
 
   // TCompute alias

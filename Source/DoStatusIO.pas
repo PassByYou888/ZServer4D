@@ -360,15 +360,15 @@ end;
 procedure DoStatusNoLn;
 var
   StatusNoLnData: PStatusNoLnStruct;
-  a: SystemString;
+  s: SystemString;
 begin
   StatusCritical.Acquire;
   StatusNoLnData := GetOrCreateStatusNoLnData();
-  a := StatusNoLnData^.s;
+  s := StatusNoLnData^.s;
   StatusNoLnData^.s := '';
   StatusCritical.Release;
-  if Length(a) > 0 then
-      DoStatus(a);
+  if Length(s) > 0 then
+      DoStatus(s);
 end;
 
 function StrInfo(s: TPascalString): string;

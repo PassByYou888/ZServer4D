@@ -121,7 +121,7 @@ type
   public
     procedure InitOptions;
 
-    constructor Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString); virtual;
+    constructor Create(InMem: Boolean; Owner_: TZDBLocalManager; sourDBName_, PipelineName_, OutDBName_: SystemString); virtual;
 
     destructor Destroy; override;
 
@@ -337,7 +337,7 @@ type
     dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
 {$ENDIF FPC}
 
-function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString;
+function GeneratePipeName(const sourDBName_, taskName: SystemString): SystemString;
 
 // fill and store
 procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStore);
@@ -368,9 +368,9 @@ procedure DecodeOneBuff(buff: Pointer; buffSiz: nativeUInt;
 
 implementation
 
-function GeneratePipeName(const sourDBName, taskName: SystemString): SystemString;
+function GeneratePipeName(const sourDBName_, taskName: SystemString): SystemString;
 begin
-  Result := sourDBName + '.QueryPipe.' + taskName;
+  Result := sourDBName_ + '.QueryPipe.' + taskName;
 end;
 
 procedure FillFragmentToDB(DataSour: TMemoryStream64; db: TDBStore);
@@ -972,21 +972,21 @@ begin
   Owner.FQueryPipelineList.Add(Self);
 end;
 
-constructor TZDBPipeline.Create(InMem: Boolean; AOwner: TZDBLocalManager; sourDBName, APipelineN, OutDBName: SystemString);
+constructor TZDBPipeline.Create(InMem: Boolean; Owner_: TZDBLocalManager; sourDBName_, PipelineName_, OutDBName_: SystemString);
 begin
   inherited Create;
-  Owner := AOwner;
+  Owner := Owner_;
 
-  SourceDB := Owner.FDBPool[sourDBName] as TZDBLMStore;
+  SourceDB := Owner.FDBPool[sourDBName_] as TZDBLMStore;
 
-  PipelineName := APipelineN;
-  SourceDBName := sourDBName;
-  OutputDBName := OutDBName;
+  PipelineName := PipelineName_;
+  SourceDBName := sourDBName_;
+  OutputDBName := OutDBName_;
 
   if InMem then
-      OutputDB := Owner.InitMemoryDB(OutDBName)
+      OutputDB := Owner.InitMemoryDB(OutDBName_)
   else
-      OutputDB := Owner.InitDB(OutDBName, False);
+      OutputDB := Owner.InitDB(OutDBName_, False);
 
   InitOptions;
 end;

@@ -107,6 +107,7 @@ type
     function Same(const t1, t2, t3, t4, t5, t6: TUPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5, t6, t7: TUPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5, t6, t7, t8: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7, t8, t9: TUPascalString): Boolean; overload;
     function Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const p: PUPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const t: TUPascalString): Boolean; overload;
@@ -1754,6 +1755,11 @@ end;
 function TUPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8: TUPascalString): Boolean;
 begin
   Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8);
+end;
+
+function TUPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8, t9: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8) or Same(@t9);
 end;
 
 function TUPascalString.Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean;

@@ -584,6 +584,11 @@ begin
   MainThreadProgress.PostC3(Data1, Data2, Data3, OnSync);
 end;
 
+class procedure TCompute.PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+begin
+  MainThreadProgress.PostC4(Data1, Data2, OnSync);
+end;
+
 class procedure TCompute.PostM1(OnSync: TThreadProgressPostMethod1);
 begin
   MainThreadProgress.PostM1(OnSync);
@@ -599,6 +604,11 @@ begin
   MainThreadProgress.PostM3(Data1, Data2, Data3, OnSync);
 end;
 
+class procedure TCompute.PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+begin
+  MainThreadProgress.PostM4(Data1, Data2, OnSync);
+end;
+
 class procedure TCompute.PostP1(OnSync: TThreadProgressPostProc1);
 begin
   MainThreadProgress.PostP1(OnSync);
@@ -612,4 +622,9 @@ end;
 class procedure TCompute.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
 begin
   MainThreadProgress.PostP3(Data1, Data2, Data3, OnSync);
+end;
+
+class procedure TCompute.PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
+begin
+  MainThreadProgress.PostP4(Data1, Data2, OnSync);
 end;
