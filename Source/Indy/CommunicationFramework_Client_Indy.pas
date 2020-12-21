@@ -73,9 +73,9 @@ type
     procedure Progress; override;
     procedure TriggerQueueData(v: PQueueData); override;
 
-    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc); overload; override;
     function Connect(addr: SystemString; Port: Word): Boolean; override;
     procedure Disconnect; override;
   end;
@@ -419,7 +419,6 @@ begin
                     end;
                   inherited Progress;
                 end;
-
             end;
         except
           ClientIntf.Disconnect;
@@ -452,17 +451,17 @@ begin
       DisposeQueueData(v);
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_Indy.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 begin
   AsyncConnect(addr, Port, OnResult, nil, nil);
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_Indy.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 begin
   AsyncConnect(addr, Port, nil, OnResult, nil);
 end;
 
-procedure TCommunicationFramework_Client_Indy.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_Indy.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 begin
   AsyncConnect(addr, Port, nil, nil, OnResult);
 end;

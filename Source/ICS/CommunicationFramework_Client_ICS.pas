@@ -77,9 +77,9 @@ type
     procedure TriggerDoConnectFailed; override;
     procedure TriggerDoConnectFinished; override;
 
-    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc); overload; override;
 
     function Connect(Host, Port: SystemString; AWaitTimeOut: TTimeTick): Boolean; overload;
     function Connect(Host, Port: SystemString): Boolean; overload;
@@ -284,17 +284,17 @@ begin
   FAsyncConnecting := False;
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_ICS.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 begin
   AsyncConnect(addr, Port, OnResult, nil, nil);
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_ICS.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 begin
   AsyncConnect(addr, Port, nil, OnResult, nil);
 end;
 
-procedure TCommunicationFramework_Client_ICS.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_ICS.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 begin
   AsyncConnect(addr, Port, nil, nil, OnResult);
 end;

@@ -75,13 +75,11 @@ type
     procedure TriggerDoConnectFinished; override;
 
     { select: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
-    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall); override;
     { select: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
-    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); override;
-{$IFNDEF FPC}
+    procedure AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod); override;
     { select: Asynchronous connection, returns state by callback, and if the interface is ignored, the system uses blocking connections. }
-    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); override;
-{$ENDIF FPC}
+    procedure AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc); override;
     { Core interface: Blocking connection, which must be made sure that the encryption protocol has been negotiated before the call returns to state, refer to CrossSocket or Indy's interface imp }
     function Connect(addr: SystemString; Port: Word): Boolean; override;
 
@@ -174,24 +172,20 @@ begin
   inherited TriggerDoConnectFinished;
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 begin
   inherited;
 end;
 
-procedure TCommunicationFramework_Client_Refrence.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 begin
   inherited;
 end;
 
-{$IFNDEF FPC}
-
-procedure TCommunicationFramework_Client_Refrence.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_Refrence.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 begin
   inherited;
 end;
-{$ENDIF FPC}
-
 
 function TCommunicationFramework_Client_Refrence.Connect(addr: SystemString; Port: Word): Boolean;
 begin

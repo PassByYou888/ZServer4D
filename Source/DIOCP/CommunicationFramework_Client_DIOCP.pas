@@ -96,9 +96,9 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
     procedure Progress; override;
 
-    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc); overload; override;
 
     function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     procedure Disconnect; override;
@@ -378,7 +378,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 begin
   if (DCIntf.Link <> nil) then
       DCIntf.Link.CanTriggerDoDisconnect := Connected;
@@ -398,7 +398,7 @@ begin
   DCIntf.ConnectASync;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 begin
   if (DCIntf.Link <> nil) then
       DCIntf.Link.CanTriggerDoDisconnect := Connected;
@@ -418,7 +418,7 @@ begin
   DCIntf.ConnectASync;
 end;
 
-procedure TCommunicationFramework_Client_DIOCP.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_DIOCP.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 begin
   if (DCIntf.Link <> nil) then
       DCIntf.Link.CanTriggerDoDisconnect := Connected;

@@ -69,9 +69,9 @@ type
     procedure Progress; override;
 
     procedure AsyncConnect(addr: SystemString; Port: Word); overload;
-    procedure AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall); overload; override;
-    procedure AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod); overload; override;
-    procedure AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc); overload; override;
+    procedure AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall); overload; override;
+    procedure AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod); overload; override;
+    procedure AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc); overload; override;
 
     function Connect(addr: SystemString; Port: Word): Boolean; overload; override;
     function Connect(Host: SystemString; Port: SystemString): Boolean; overload;
@@ -245,17 +245,17 @@ begin
   ClientPool.BuildAsyncConnect(addr, Port, Self);
 end;
 
-procedure TCommunicationFramework_Client_CrossSocket.AsyncConnectC(addr: SystemString; Port: Word; OnResult: TStateCall);
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 begin
   AsyncConnect(addr, Port, OnResult, nil, nil);
 end;
 
-procedure TCommunicationFramework_Client_CrossSocket.AsyncConnectM(addr: SystemString; Port: Word; OnResult: TStateMethod);
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 begin
   AsyncConnect(addr, Port, nil, OnResult, nil);
 end;
 
-procedure TCommunicationFramework_Client_CrossSocket.AsyncConnectP(addr: SystemString; Port: Word; OnResult: TStateProc);
+procedure TCommunicationFramework_Client_CrossSocket.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 begin
   AsyncConnect(addr, Port, nil, nil, OnResult);
 end;
