@@ -137,9 +137,9 @@ type
     function GetPrev(const Name: SystemString): Pointer;
     function ListBuffer: PListBuffer;
 
-    procedure ProgressC(OnProgress: THashListLoopCall);
-    procedure ProgressM(OnProgress: THashListLoopMethod);
-    procedure ProgressP(OnProgress: THashListLoopProc);
+    procedure ProgressC(const OnProgress: THashListLoopCall);
+    procedure ProgressM(const OnProgress: THashListLoopMethod);
+    procedure ProgressP(const OnProgress: THashListLoopProc);
     procedure PrintHashReport;
 
     property AutoFreeData: Boolean read FAutoFreeData write FAutoFreeData;
@@ -230,9 +230,9 @@ type
     function GetPrev(i64: Int64): TCoreClassObject;
     function ListBuffer: PListBuffer;
 
-    procedure ProgressC(OnProgress: TInt64HashObjectListLoopCall);
-    procedure ProgressM(OnProgress: TInt64HashObjectListLoopMethod);
-    procedure ProgressP(OnProgress: TInt64HashObjectListLoopProc);
+    procedure ProgressC(const OnProgress: TInt64HashObjectListLoopCall);
+    procedure ProgressM(const OnProgress: TInt64HashObjectListLoopMethod);
+    procedure ProgressP(const OnProgress: TInt64HashObjectListLoopProc);
     // print hash status
     procedure PrintHashReport;
 
@@ -310,9 +310,9 @@ type
     function GetPrev(i64: Int64): Pointer;
     function ListBuffer: PListBuffer;
 
-    procedure ProgressC(OnProgress: TInt64HashPointerListLoopCall);
-    procedure ProgressM(OnProgress: TInt64HashPointerListLoopMethod);
-    procedure ProgressP(OnProgress: TInt64HashPointerListLoopProc);
+    procedure ProgressC(const OnProgress: TInt64HashPointerListLoopCall);
+    procedure ProgressM(const OnProgress: TInt64HashPointerListLoopMethod);
+    procedure ProgressP(const OnProgress: TInt64HashPointerListLoopProc);
     // print hash status
     procedure PrintHashReport;
 
@@ -386,9 +386,9 @@ type
     function GetNext(u32: UInt32): TCoreClassObject;
     function GetPrev(u32: UInt32): TCoreClassObject;
     function ListBuffer: PListBuffer;
-    procedure ProgressC(OnProgress: TUInt32HashObjectListLoopCall);
-    procedure ProgressM(OnProgress: TUInt32HashObjectListLoopMethod);
-    procedure ProgressP(OnProgress: TUInt32HashObjectListLoopProc);
+    procedure ProgressC(const OnProgress: TUInt32HashObjectListLoopCall);
+    procedure ProgressM(const OnProgress: TUInt32HashObjectListLoopMethod);
+    procedure ProgressP(const OnProgress: TUInt32HashObjectListLoopProc);
     //
     function ExistsObject(Obj: TCoreClassObject): Boolean;
 
@@ -465,9 +465,9 @@ type
     function GetNext(u32: UInt32): Pointer;
     function GetPrev(u32: UInt32): Pointer;
     function ListBuffer: PListBuffer;
-    procedure ProgressC(OnProgress: TUInt32HashPointerListLoopCall);
-    procedure ProgressM(OnProgress: TUInt32HashPointerListLoopMethod);
-    procedure ProgressP(OnProgress: TUInt32HashPointerListLoopProc);
+    procedure ProgressC(const OnProgress: TUInt32HashPointerListLoopCall);
+    procedure ProgressM(const OnProgress: TUInt32HashPointerListLoopMethod);
+    procedure ProgressP(const OnProgress: TUInt32HashPointerListLoopProc);
     //
     function ExistsPointer(pData: Pointer): Boolean;
 
@@ -546,9 +546,9 @@ type
     function GetNext(NPtr: Pointer): NativeUInt;
     function GetPrev(NPtr: Pointer): NativeUInt;
     function ListBuffer: PListBuffer;
-    procedure ProgressC(OnProgress: TPointerHashNativeUIntListLoopCall);
-    procedure ProgressM(OnProgress: TPointerHashNativeUIntListLoopMethod);
-    procedure ProgressP(OnProgress: TPointerHashNativeUIntListLoopProc);
+    procedure ProgressC(const OnProgress: TPointerHashNativeUIntListLoopCall);
+    procedure ProgressM(const OnProgress: TPointerHashNativeUIntListLoopMethod);
+    procedure ProgressP(const OnProgress: TPointerHashNativeUIntListLoopProc);
     //
     function ExistsNaviveUInt(Obj: NativeUInt): Boolean;
 
@@ -611,9 +611,9 @@ type
 
     procedure Assign(sour: THashObjectList);
 
-    procedure ProgressC(OnProgress: THashObjectListLoopCall);
-    procedure ProgressM(OnProgress: THashObjectListLoopMethod);
-    procedure ProgressP(OnProgress: THashObjectListLoopProc);
+    procedure ProgressC(const OnProgress: THashObjectListLoopCall);
+    procedure ProgressM(const OnProgress: THashObjectListLoopMethod);
+    procedure ProgressP(const OnProgress: THashObjectListLoopProc);
     //
     procedure Clear;
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
@@ -695,9 +695,9 @@ type
     procedure Assign(sour: THashStringList);
     procedure MergeTo(dest: THashStringList);
     //
-    procedure ProgressC(OnProgress: THashStringListLoopCall);
-    procedure ProgressM(OnProgress: THashStringListLoopMethod);
-    procedure ProgressP(OnProgress: THashStringListLoopProc);
+    procedure ProgressC(const OnProgress: THashStringListLoopCall);
+    procedure ProgressM(const OnProgress: THashStringListLoopMethod);
+    procedure ProgressP(const OnProgress: THashStringListLoopProc);
     //
     procedure Clear;
     //
@@ -833,9 +833,9 @@ type
     //
     procedure Assign(sour: THashVariantList);
     //
-    procedure ProgressC(OnProgress: THashVariantListLoopCall);
-    procedure ProgressM(OnProgress: THashVariantListLoopMethod);
-    procedure ProgressP(OnProgress: THashVariantListLoopProc);
+    procedure ProgressC(const OnProgress: THashVariantListLoopCall);
+    procedure ProgressM(const OnProgress: THashVariantListLoopMethod);
+    procedure ProgressP(const OnProgress: THashVariantListLoopProc);
     //
     procedure Clear;
     //
@@ -2282,7 +2282,7 @@ begin
   Result := @FListBuffer;
 end;
 
-procedure THashList.ProgressC(OnProgress: THashListLoopCall);
+procedure THashList.ProgressC(const OnProgress: THashListLoopCall);
 var
   i: NativeInt;
   p: PHashListData;
@@ -2303,7 +2303,7 @@ begin
     end;
 end;
 
-procedure THashList.ProgressM(OnProgress: THashListLoopMethod);
+procedure THashList.ProgressM(const OnProgress: THashListLoopMethod);
 var
   i: NativeInt;
   p: PHashListData;
@@ -2324,7 +2324,7 @@ begin
     end;
 end;
 
-procedure THashList.ProgressP(OnProgress: THashListLoopProc);
+procedure THashList.ProgressP(const OnProgress: THashListLoopProc);
 var
   i: NativeInt;
   p: PHashListData;
@@ -2953,7 +2953,7 @@ begin
   Result := @FListBuffer;
 end;
 
-procedure TInt64HashObjectList.ProgressC(OnProgress: TInt64HashObjectListLoopCall);
+procedure TInt64HashObjectList.ProgressC(const OnProgress: TInt64HashObjectListLoopCall);
 var
   i: NativeInt;
   p: PInt64HashListObjectStruct;
@@ -2974,7 +2974,7 @@ begin
     end;
 end;
 
-procedure TInt64HashObjectList.ProgressM(OnProgress: TInt64HashObjectListLoopMethod);
+procedure TInt64HashObjectList.ProgressM(const OnProgress: TInt64HashObjectListLoopMethod);
 var
   i: NativeInt;
   p: PInt64HashListObjectStruct;
@@ -2995,7 +2995,7 @@ begin
     end;
 end;
 
-procedure TInt64HashObjectList.ProgressP(OnProgress: TInt64HashObjectListLoopProc);
+procedure TInt64HashObjectList.ProgressP(const OnProgress: TInt64HashObjectListLoopProc);
 var
   i: NativeInt;
   p: PInt64HashListObjectStruct;
@@ -3633,7 +3633,7 @@ begin
   Result := @FListBuffer;
 end;
 
-procedure TInt64HashPointerList.ProgressC(OnProgress: TInt64HashPointerListLoopCall);
+procedure TInt64HashPointerList.ProgressC(const OnProgress: TInt64HashPointerListLoopCall);
 var
   i: NativeInt;
   p: PInt64HashListPointerStruct;
@@ -3654,7 +3654,7 @@ begin
     end;
 end;
 
-procedure TInt64HashPointerList.ProgressM(OnProgress: TInt64HashPointerListLoopMethod);
+procedure TInt64HashPointerList.ProgressM(const OnProgress: TInt64HashPointerListLoopMethod);
 var
   i: NativeInt;
   p: PInt64HashListPointerStruct;
@@ -3675,7 +3675,7 @@ begin
     end;
 end;
 
-procedure TInt64HashPointerList.ProgressP(OnProgress: TInt64HashPointerListLoopProc);
+procedure TInt64HashPointerList.ProgressP(const OnProgress: TInt64HashPointerListLoopProc);
 var
   i: NativeInt;
   p: PInt64HashListPointerStruct;
@@ -4282,7 +4282,7 @@ begin
   Result := @FListBuffer;
 end;
 
-procedure TUInt32HashObjectList.ProgressC(OnProgress: TUInt32HashObjectListLoopCall);
+procedure TUInt32HashObjectList.ProgressC(const OnProgress: TUInt32HashObjectListLoopCall);
 var
   i: NativeInt;
   p: PUInt32HashListObjectStruct;
@@ -4303,7 +4303,7 @@ begin
     end;
 end;
 
-procedure TUInt32HashObjectList.ProgressM(OnProgress: TUInt32HashObjectListLoopMethod);
+procedure TUInt32HashObjectList.ProgressM(const OnProgress: TUInt32HashObjectListLoopMethod);
 var
   i: NativeInt;
   p: PUInt32HashListObjectStruct;
@@ -4324,7 +4324,7 @@ begin
     end;
 end;
 
-procedure TUInt32HashObjectList.ProgressP(OnProgress: TUInt32HashObjectListLoopProc);
+procedure TUInt32HashObjectList.ProgressP(const OnProgress: TUInt32HashObjectListLoopProc);
 var
   i: NativeInt;
   p: PUInt32HashListObjectStruct;
@@ -4970,7 +4970,7 @@ begin
   Result := @FListBuffer;
 end;
 
-procedure TUInt32HashPointerList.ProgressC(OnProgress: TUInt32HashPointerListLoopCall);
+procedure TUInt32HashPointerList.ProgressC(const OnProgress: TUInt32HashPointerListLoopCall);
 var
   i: NativeInt;
   p: PUInt32HashListPointerStruct;
@@ -4991,7 +4991,7 @@ begin
     end;
 end;
 
-procedure TUInt32HashPointerList.ProgressM(OnProgress: TUInt32HashPointerListLoopMethod);
+procedure TUInt32HashPointerList.ProgressM(const OnProgress: TUInt32HashPointerListLoopMethod);
 var
   i: NativeInt;
   p: PUInt32HashListPointerStruct;
@@ -5012,7 +5012,7 @@ begin
     end;
 end;
 
-procedure TUInt32HashPointerList.ProgressP(OnProgress: TUInt32HashPointerListLoopProc);
+procedure TUInt32HashPointerList.ProgressP(const OnProgress: TUInt32HashPointerListLoopProc);
 var
   i: NativeInt;
   p: PUInt32HashListPointerStruct;
@@ -5682,7 +5682,7 @@ begin
   Result := @FListBuffer;
 end;
 
-procedure TPointerHashNativeUIntList.ProgressC(OnProgress: TPointerHashNativeUIntListLoopCall);
+procedure TPointerHashNativeUIntList.ProgressC(const OnProgress: TPointerHashNativeUIntListLoopCall);
 var
   i: Integer;
   p: PPointerHashListNativeUIntStruct;
@@ -5703,7 +5703,7 @@ begin
     end;
 end;
 
-procedure TPointerHashNativeUIntList.ProgressM(OnProgress: TPointerHashNativeUIntListLoopMethod);
+procedure TPointerHashNativeUIntList.ProgressM(const OnProgress: TPointerHashNativeUIntListLoopMethod);
 var
   i: Integer;
   p: PPointerHashListNativeUIntStruct;
@@ -5724,7 +5724,7 @@ begin
     end;
 end;
 
-procedure TPointerHashNativeUIntList.ProgressP(OnProgress: TPointerHashNativeUIntListLoopProc);
+procedure TPointerHashNativeUIntList.ProgressP(const OnProgress: TPointerHashNativeUIntListLoopProc);
 var
   i: Integer;
   p: PPointerHashListNativeUIntStruct;
@@ -5921,7 +5921,7 @@ begin
     end;
 end;
 
-procedure THashObjectList.ProgressC(OnProgress: THashObjectListLoopCall);
+procedure THashObjectList.ProgressC(const OnProgress: THashObjectListLoopCall);
 var
   i: Integer;
   p: PHashListData;
@@ -5942,7 +5942,7 @@ begin
     end;
 end;
 
-procedure THashObjectList.ProgressM(OnProgress: THashObjectListLoopMethod);
+procedure THashObjectList.ProgressM(const OnProgress: THashObjectListLoopMethod);
 var
   i: Integer;
   p: PHashListData;
@@ -5963,7 +5963,7 @@ begin
     end;
 end;
 
-procedure THashObjectList.ProgressP(OnProgress: THashObjectListLoopProc);
+procedure THashObjectList.ProgressP(const OnProgress: THashObjectListLoopProc);
 var
   i: Integer;
   p: PHashListData;
@@ -6486,7 +6486,7 @@ begin
     end;
 end;
 
-procedure THashStringList.ProgressC(OnProgress: THashStringListLoopCall);
+procedure THashStringList.ProgressC(const OnProgress: THashStringListLoopCall);
 var
   i: Integer;
   p: PHashListData;
@@ -6507,7 +6507,7 @@ begin
     end;
 end;
 
-procedure THashStringList.ProgressM(OnProgress: THashStringListLoopMethod);
+procedure THashStringList.ProgressM(const OnProgress: THashStringListLoopMethod);
 var
   i: Integer;
   p: PHashListData;
@@ -6528,7 +6528,7 @@ begin
     end;
 end;
 
-procedure THashStringList.ProgressP(OnProgress: THashStringListLoopProc);
+procedure THashStringList.ProgressP(const OnProgress: THashStringListLoopProc);
 var
   i: Integer;
   p: PHashListData;
@@ -7379,7 +7379,7 @@ begin
     end;
 end;
 
-procedure THashVariantList.ProgressC(OnProgress: THashVariantListLoopCall);
+procedure THashVariantList.ProgressC(const OnProgress: THashVariantListLoopCall);
 var
   i: Integer;
   p: PHashListData;
@@ -7400,7 +7400,7 @@ begin
     end;
 end;
 
-procedure THashVariantList.ProgressM(OnProgress: THashVariantListLoopMethod);
+procedure THashVariantList.ProgressM(const OnProgress: THashVariantListLoopMethod);
 var
   i: Integer;
   p: PHashListData;
@@ -7421,7 +7421,7 @@ begin
     end;
 end;
 
-procedure THashVariantList.ProgressP(OnProgress: THashVariantListLoopProc);
+procedure THashVariantList.ProgressP(const OnProgress: THashVariantListLoopProc);
 var
   i: Integer;
   p: PHashListData;

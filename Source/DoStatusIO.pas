@@ -246,6 +246,7 @@ type
     s: SystemString;
     th: TCoreClassThread;
     TriggerTime: TTimeTick;
+    ID: Integer;
   end;
 
   PStatusStruct = ^TStatusStruct;
@@ -334,6 +335,7 @@ begin
                 pSS^.s := StatusNoLnData^.s.Text;
                 pSS^.th := TCoreClassThread.CurrentThread;
                 pSS^.TriggerTime := GetTimeTick;
+                pSS^.ID := 0;
                 StatusStructList.Add(pSS);
                 StatusNoLnData^.s := '';
               end;
@@ -439,7 +441,7 @@ begin
         for i := 0 to StatusStructList.Count - 1 do
           begin
             pSS := StatusStructList[i];
-            _InternalOutput(pSS^.s, 0);
+            _InternalOutput(pSS^.s, pSS^.ID);
             pSS^.s := '';
             Dispose(pSS);
           end;
@@ -470,6 +472,7 @@ begin
           pSS^.s := Text_;
       pSS^.th := th;
       pSS^.TriggerTime := GetTimeTick();
+      pSS^.ID := ID;
       StatusCritical.Acquire;
       StatusStructList.Add(pSS);
       StatusCritical.Release;

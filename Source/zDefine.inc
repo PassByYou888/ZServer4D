@@ -66,7 +66,7 @@
   // MT19937 of seed in the startup TCompute is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
-  // automated loading common AI data sets on boot-time
+  // automated loading common AI datasets on boot-time
   {$DEFINE Z_AI_Dataset_Build_In}
 
   // With SMALL_RASTER_FONT_Build_In and LARGE_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
@@ -159,7 +159,7 @@
   // MT19937 of seed in the startup TCompute is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
 
-  // automated loading common AI data sets on boot-time
+  // automated loading common AI datasets on boot-time
   // {$DEFINE Z_AI_Dataset_Build_In}
 
   // With SMALL_RASTER_FONT_Build_In and LARGE_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms

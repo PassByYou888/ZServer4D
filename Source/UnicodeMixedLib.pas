@@ -367,6 +367,7 @@ function umlIsBool(const sVal: TPascalString): Boolean;
 function umlNumberCount(const sVal: TPascalString): Integer;
 
 function umlPercentageToFloat(OriginMax, OriginMin, ProcressParameter: Double): Double;
+function umlPercentageToInt64(OriginParameter, ProcressParameter: Int64): Integer;
 function umlPercentageToInt(OriginParameter, ProcressParameter: Integer): Integer;
 function umlPercentageToStr(OriginParameter, ProcressParameter: Integer): TPascalString;
 function umlSmartSizeToStr(Size: Int64): TPascalString;
@@ -3631,6 +3632,14 @@ end;
 function umlPercentageToFloat(OriginMax, OriginMin, ProcressParameter: Double): Double;
 begin
   Result := (ProcressParameter - OriginMin) * 100.0 / (OriginMax - OriginMin);
+end;
+
+function umlPercentageToInt64(OriginParameter, ProcressParameter: Int64): Integer;
+begin
+  if OriginParameter = 0 then
+      Result := 0
+  else
+      Result := Round((ProcressParameter * 100.0) / OriginParameter);
 end;
 
 function umlPercentageToInt(OriginParameter, ProcressParameter: Integer): Integer;

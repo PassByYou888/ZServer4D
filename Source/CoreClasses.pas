@@ -742,6 +742,8 @@ var
 
   // DelphiParallelFor and FPCParallelFor work in parallel
   WorkInParallelCore: TAtomBool;
+  // same WorkInParallelCore
+  ParallelCore: TAtomBool;
 
   // default is True
   GlobalMemoryHook: TAtomBool;
@@ -1227,6 +1229,7 @@ end;
 initialization
   OnCheckThreadSynchronize := nil;
   WorkInParallelCore := TAtomBool.Create({$IFDEF FPC}True{$ELSE FPC}DebugHook = 0{$ENDIF FPC});
+  ParallelCore := WorkInParallelCore;
   GlobalMemoryHook := TAtomBool.Create(True);
   Core_RunTime_Tick := C_Tick_Day * 3;
   Core_Step_Tick := TCoreClassThread.GetTickCount();
