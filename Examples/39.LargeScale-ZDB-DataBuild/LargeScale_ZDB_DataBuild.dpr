@@ -138,7 +138,7 @@ begin
   db := LM.InitDB('big');
 
   // 遍历大数据我们需要加大内核的hash池来提速
-  db.DBEngine.SetPoolCache(100 * 10000);
+  db.DBEngine.ResetCachePool(100 * 10000);
 
   // 载入内存方式查询，需要的时间时间很长，耐心等待
   DoStatus('正在载入内存', []);
@@ -198,7 +198,7 @@ begin
   db := LM.InitDB('big');
 
   // 遍历大数据我们需要加大内核的hash池来提速
-  db.DBEngine.SetPoolCache(100 * 10000);
+  db.DBEngine.ResetCachePool(100 * 10000);
 
   // 遍历方式查询
   // 在退火引擎的帮助下，多任务查询会比单任务更快
@@ -259,7 +259,7 @@ begin
   db := LM.InitDB('big');
 
   // 遍历大数据我们需要加大内核的hash池来提速
-  db.DBEngine.SetPoolCache(100 * 10000);
+  db.DBEngine.ResetCachePool(100 * 10000);
 
   // 这种方式是直接关闭退火引擎，把实例全部缓冲到ZDB的内核中
   // 在缓冲完成后，查询速度非常快
@@ -354,7 +354,7 @@ begin
   db := LM.InitDB('big');
 
   // 遍历大数据我们需要加大内核的hash池来提速
-  db.DBEngine.SetPoolCache(100 * 10000);
+  db.DBEngine.ResetCachePool(100 * 10000);
 
   // 这种方式是直接关闭退火引擎，把实例全部缓冲到ZDB的内核中
   // 在缓冲完成后，查询速度非常快

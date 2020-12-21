@@ -284,7 +284,7 @@ begin
     MD5Edit.Text := umlStreamMD5String(m64);
 
     m64.Position := 0;
-    ParallelCompressStream(TSelectCompressionMethod.scmZLIB_Max, m64, C64);
+    ParallelCompressMemory(TSelectCompressionMethod.scmZLIB_Max, m64, C64);
 
     C64.SaveToFile(fn);
 

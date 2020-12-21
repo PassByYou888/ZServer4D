@@ -87,7 +87,7 @@ var
         tk := GetTimeTick;
         sour.Position := 0;
         dest.Position := 0;
-        ParallelCompressStream(scm, sour, dest);
+        ParallelCompressMemory(scm, sour, dest);
 
         sour.Clear;
         sour.Position := 0;
