@@ -932,37 +932,15 @@ end;
 
 function umlStrToVar(const s: TPascalString): Variant;
 var
-  n, b64: TPascalString;
+  b64: TPascalString;
 begin
-  n := umlTrimSpace(s);
-  try
-    if n.ComparePos(1, '___base64:') then
-      begin
-        n := umlDeleteFirstStr(n, ':').text;
-        umlDecodeLineBASE64(n, b64);
-        Result := b64.text;
-      end
-    else
-      begin
-        case umlGetNumTextType(n) of
-          ntBool: Result := umlStrToBool(n);
-          ntInt: Result := StrToInt(n.text);
-          ntInt64: Result := StrToInt64(n.text);
-{$IFDEF FPC} ntUInt64: Result := StrToQWord(n.text); {$ELSE} ntUInt64: Result := StrToUInt64(n.text); {$ENDIF}
-          ntWord: Result := StrToInt(n.text);
-          ntByte: Result := StrToInt(n.text);
-          ntSmallInt: Result := StrToInt(n.text);
-          ntShortInt: Result := StrToInt(n.text);
-          ntUInt: Result := StrToInt(n.text);
-          ntSingle: Result := StrToFloat(n.text);
-          ntDouble: Result := StrToFloat(n.text);
-          ntCurrency: Result := StrToFloat(n.text);
-          else Result := n.text;
-        end;
-      end;
-  except
-      Result := n.text;
-  end;
+  if s.Exists([#10, #13, #9, #8, #0]) then
+    begin
+      umlEncodeLineBASE64(s, b64);
+      Result := '___base64:' + b64.text;
+    end
+  else
+      Result := s.text;
 end;
 
 function umlMax(const v1, v2: UInt64): UInt64;
@@ -2922,7 +2900,7 @@ var
   umlGetFirstName_PrevPos, umlGetFirstName_Pos: Integer;
 begin
   Result := sVal;
-  if Result.Len <= 1 then
+  if Result.Len <= 0 then
     begin
       exit;
     end;
@@ -2952,7 +2930,7 @@ var
 begin
   Result := sVal;
   umlGetLastName_Pos := Result.Len;
-  if umlGetLastName_Pos <= 1 then
+  if umlGetLastName_Pos <= 0 then
     begin
       exit;
     end;
@@ -2980,7 +2958,7 @@ var
   umlMaskFirstName_Pos: Integer;
 begin
   Result := sVal;
-  if Result.Len <= 1 then
+  if Result.Len <= 0 then
     begin
       Result := '';
       exit;
@@ -3022,7 +3000,7 @@ var
 begin
   Result := sVal;
   umlMaskLastName_Pos := Result.Len;
-  if umlMaskLastName_Pos <= 1 then
+  if umlMaskLastName_Pos <= 0 then
     begin
       Result := '';
       exit;
@@ -3205,7 +3183,7 @@ var
   umlGetFirstName_PrevPos, umlGetFirstName_Pos: Integer;
 begin
   Result := sVal;
-  if Result.Len <= 1 then
+  if Result.Len <= 0 then
       exit;
   umlGetFirstName_Pos := 1;
   if umlMatchChar(Result[umlGetFirstName_Pos], @trim_s) then
@@ -3234,7 +3212,7 @@ var
   umlMaskFirstName_Pos: Integer;
 begin
   Result := sVal;
-  if Result.Len <= 1 then
+  if Result.Len <= 0 then
     begin
       Result := '';
       exit;
@@ -3260,7 +3238,7 @@ var
 begin
   Result := sVal;
   umlGetLastName_Pos := Result.Len;
-  if umlGetLastName_Pos <= 1 then
+  if umlGetLastName_Pos <= 0 then
       exit;
   if Result[umlGetLastName_Pos] = trim_s then
       dec(umlGetLastName_Pos);
@@ -3283,7 +3261,7 @@ var
 begin
   Result := sVal;
   umlMaskLastName_Pos := Result.Len;
-  if umlMaskLastName_Pos <= 1 then
+  if umlMaskLastName_Pos <= 0 then
     begin
       Result := '';
       exit;

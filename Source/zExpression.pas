@@ -3085,6 +3085,8 @@ var
   i: Integer;
 begin
   SetLength(Result, 0);
+  if ExpressionText = '' then
+      Exit;
   t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, SpacerSymbol.v);
   L := TPascalStringList.Create;
   if t.FillSymbolVector(L) then

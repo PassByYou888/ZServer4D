@@ -34,27 +34,27 @@ type
 
   { call }
   TZDB2_OnResultCall = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Successed: Boolean);
-  TZDB2_OnGetDataCall = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TMem64; Successed: Boolean);
-  TZDB2_OnTraversalCall = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TMem64; var Running: Boolean);
+  TZDB2_OnGetDataCall = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TZDB2_Mem; Successed: Boolean);
+  TZDB2_OnTraversalCall = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TZDB2_Mem; var Running: Boolean);
   TZDB2_OnTraversalDoneCall = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal);
 
   { method }
   TZDB2_OnResultMethod = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Successed: Boolean) of object;
-  TZDB2_OnGetDataMethod = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TMem64; Successed: Boolean) of object;
-  TZDB2_OnTraversalMethod = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TMem64; var Running: Boolean) of object;
+  TZDB2_OnGetDataMethod = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TZDB2_Mem; Successed: Boolean) of object;
+  TZDB2_OnTraversalMethod = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TZDB2_Mem; var Running: Boolean) of object;
   TZDB2_OnTraversalDoneMethod = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal) of object;
 
 {$IFDEF FPC}
   { fpc local nested }
   TZDB2_OnResultProc = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Successed: Boolean) is nested;
-  TZDB2_OnGetDataProc = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TMem64; Successed: Boolean) is nested;
-  TZDB2_OnTraversalProc = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TMem64; var Running: Boolean) is nested;
+  TZDB2_OnGetDataProc = procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TZDB2_Mem; Successed: Boolean) is nested;
+  TZDB2_OnTraversalProc = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TZDB2_Mem; var Running: Boolean) is nested;
   TZDB2_OnTraversalDoneProc = procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal) is nested;
 {$ELSE FPC}
   { delphi anonymous }
   TZDB2_OnResultProc = reference to procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Successed: Boolean);
-  TZDB2_OnGetDataProc = reference to procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TMem64; Successed: Boolean);
-  TZDB2_OnTraversalProc = reference to procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TMem64; var Running: Boolean);
+  TZDB2_OnGetDataProc = reference to procedure(ZSender: TZDB2; UserData: Pointer; ID: Integer; Mem: TZDB2_Mem; Successed: Boolean);
+  TZDB2_OnTraversalProc = reference to procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal; Mem: TZDB2_Mem; var Running: Boolean);
   TZDB2_OnTraversalDoneProc = reference to procedure(ZSender: TZDB2; Traversal: TZDB2_Traversal);
 {$ENDIF FPC}
 
@@ -64,7 +64,7 @@ type
     StartTime: TTimeTick;
     Reverse: Boolean;
     Running: Boolean;
-    FMemory: TMem64;
+    FMemory: TZDB2_Mem;
     OnTraversalCall: TZDB2_OnTraversalCall;
     OnTraversalMethod: TZDB2_OnTraversalMethod;
     OnTraversalProc: TZDB2_OnTraversalProc;
@@ -73,7 +73,7 @@ type
     OnDoneProc: TZDB2_OnTraversalDoneProc;
     DoneSignal: TAtomBool;
 
-    procedure DoGetDataResult(ZSender: TZDB2; UserData_: Pointer; ID: Integer; Mem_: TMem64; Successed: Boolean);
+    procedure DoGetDataResult(ZSender: TZDB2; UserData_: Pointer; ID: Integer; Mem_: TZDB2_Mem; Successed: Boolean);
   public
     Total: Integer;
     Current: Integer;
@@ -120,7 +120,7 @@ type
     procedure DoOnNoSpace(Siz_: Int64; var retry: Boolean);
     procedure LoadIndex;
     function IndexSpaceSize(PhyBlockNum_: Integer): Int64;
-    function MakeIndexBuffer(Siz_: Int64): TMem64;
+    function MakeIndexBuffer(Siz_: Int64): TZDB2_Mem;
     function SaveIndex(Space_: TZDB2_Core_Space): Boolean;
     procedure Cmd_Save();
     procedure Cmd_AppendSpace(Data: Pointer);
@@ -149,7 +149,7 @@ type
 
     { stmBigData: DB Size > 10G, < 130TB, block number < 1000*10000, no cache }
     { stmNormal: DB size > 1G, < 10G, block number < 100*10000, open write cache }
-    { stmFast: DB size > 100M, < 1G, block number < 10*10000, open r/w cache }
+    { stmFast: DB size > 100M, < 1G, block number < 10*10000, open read/write cache }
     procedure NewStream(Stream: TCoreClassStream; Space_: Int64; BlockSize_: Word; Mode: TZDB2_Core_SpaceMode);
     procedure OpenStream(Stream: TCoreClassStream; OnlyRead: Boolean; Mode: TZDB2_Core_SpaceMode);
     procedure NewFile(Filename: U_String; Space_: Int64; BlockSize_: Word; Mode: TZDB2_Core_SpaceMode);
@@ -173,16 +173,16 @@ type
     procedure CopyFrom(Source: TZDB2); overload;
 
     { append post data,thread supported }
-    procedure Post(Mem: TMem64; DoneFreeMem: Boolean);
-    procedure PostC(Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
-    procedure PostM(Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
-    procedure PostP(Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
+    procedure Post(Mem: TZDB2_Mem; DoneFreeMem: Boolean);
+    procedure PostC(Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
+    procedure PostM(Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
+    procedure PostP(Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
 
     { insert post data,thread supported }
-    procedure Insert(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean);
-    procedure InsertC(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
-    procedure InsertM(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
-    procedure InsertP(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
+    procedure Insert(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean);
+    procedure InsertC(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
+    procedure InsertM(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
+    procedure InsertP(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
 
     { remove data,thread supported }
     function Remove(ID: Integer; SafeClean: Boolean): Boolean;
@@ -191,10 +191,10 @@ type
     procedure RemoveP(ID: Integer; SafeClean: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
 
     { get data,thread supported }
-    function GetData(ID: Integer; Mem: TMem64): Boolean;
-    procedure GetDataC(ID: Integer; Mem: TMem64; UserData: Pointer; OnResult: TZDB2_OnGetDataCall);
-    procedure GetDataM(ID: Integer; Mem: TMem64; UserData: Pointer; OnResult: TZDB2_OnGetDataMethod);
-    procedure GetDataP(ID: Integer; Mem: TMem64; UserData: Pointer; OnResult: TZDB2_OnGetDataProc);
+    function GetData(ID: Integer; Mem: TZDB2_Mem): Boolean;
+    procedure GetDataC(ID: Integer; Mem: TZDB2_Mem; UserData: Pointer; OnResult: TZDB2_OnGetDataCall);
+    procedure GetDataM(ID: Integer; Mem: TZDB2_Mem; UserData: Pointer; OnResult: TZDB2_OnGetDataMethod);
+    procedure GetDataP(ID: Integer; Mem: TZDB2_Mem; UserData: Pointer; OnResult: TZDB2_OnGetDataProc);
 
     { Traversal,thread supported }
     procedure TraversalC(WaitDone_, Reverse_: Boolean; UserData: Pointer; OnTraversal: TZDB2_OnTraversalCall; OnDone: TZDB2_OnTraversalDoneCall);
@@ -222,7 +222,7 @@ type
   PZDB2_OnCopyTo = ^TZDB2_OnCopyTo;
 
   TZDB2_OnPost = record
-    Mem: TMem64;
+    Mem: TZDB2_Mem;
     DoneFreeMem: Boolean;
     UserData: Pointer;
     OnCall: TZDB2_OnResultCall;
@@ -234,7 +234,7 @@ type
 
   TZDB2_OnInsert = record
     InsertBeforeIndex: Integer;
-    Mem: TMem64;
+    Mem: TZDB2_Mem;
     DoneFreeMem: Boolean;
     UserData: Pointer;
     OnCall: TZDB2_OnResultCall;
@@ -266,7 +266,7 @@ type
 
   TZDB2_OnSyncGetData = record
     ID: Integer;
-    Mem: TMem64;
+    Mem: TZDB2_Mem;
     Successed: Boolean;
     Done: TAtomBool;
   end;
@@ -275,7 +275,7 @@ type
 
   TZDB2_OnGetData = record
     ID: Integer;
-    Mem: TMem64;
+    Mem: TZDB2_Mem;
     UserData: Pointer;
     OnCall: TZDB2_OnGetDataCall;
     OnMethod: TZDB2_OnGetDataMethod;
@@ -290,7 +290,7 @@ type
 
   PZDB2_OnSyncWaitQueue = ^TZDB2_OnSyncWaitQueue;
 
-procedure TZDB2_Traversal.DoGetDataResult(ZSender: TZDB2; UserData_: Pointer; ID: Integer; Mem_: TMem64; Successed: Boolean);
+procedure TZDB2_Traversal.DoGetDataResult(ZSender: TZDB2; UserData_: Pointer; ID: Integer; Mem_: TZDB2_Mem; Successed: Boolean);
 var
   found_: Boolean;
 begin
@@ -353,7 +353,7 @@ begin
   StartTime := GetTimeTick;
   Reverse := False;
   Running := True;
-  FMemory := TMem64.Create;
+  FMemory := TZDB2_Mem.Create;
   OnTraversalCall := nil;
   OnTraversalMethod := nil;
   OnTraversalProc := nil;
@@ -456,11 +456,11 @@ procedure TZDB2.LoadIndex;
 var
   ID_: Integer;
   num: Int64;
-  Mem: TMem64;
+  Mem: TZDB2_Mem;
 begin
   FCritical.Lock;
   FIndexBuffer.Clear;
-  Mem := TMem64.Create;
+  Mem := TZDB2_Mem.Create;
   if FSpace.Check(PInteger(@FSpace.CustomFileHeader^[0])^) then
     if FSpace.ReadData(Mem, PInteger(@FSpace.CustomFileHeader^[0])^) then
       begin
@@ -481,12 +481,12 @@ begin
   Result := 8 + PhyBlockNum_ shl 2;
 end;
 
-function TZDB2.MakeIndexBuffer(Siz_: Int64): TMem64;
+function TZDB2.MakeIndexBuffer(Siz_: Int64): TZDB2_Mem;
 var
   i: NativeInt;
   p: PUInt32HashListPointerStruct;
 begin
-  Result := TMem64.Create;
+  Result := TZDB2_Mem.Create;
   Result.Size := Siz_;
   Result.Position := 0;
 
@@ -508,7 +508,7 @@ end;
 
 function TZDB2.SaveIndex(Space_: TZDB2_Core_Space): Boolean;
 var
-  Mem: TMem64;
+  Mem: TZDB2_Mem;
 begin
   if Space_.Check(PInteger(@Space_.CustomFileHeader^[0])^) then
       Space_.RemoveData(PInteger(@Space_.CustomFileHeader^[0])^, True);
@@ -534,7 +534,7 @@ var
   DestStream: TCoreClassStream;
   DestIO: TIOHnd;
   DestSpace: TZDB2_Core_Space;
-  Mem: TMem64;
+  Mem: TZDB2_Mem;
   IsOnlyRead_: Boolean;
   Mode_: TZDB2_Core_SpaceMode;
   Space_, Space2_: TZDB2_Core_Space;
@@ -632,14 +632,14 @@ var
   p: PZDB2_OnCopyTo;
   Hnd: TZDB2_Core_BlockHnd;
   i: Integer;
-  Mem: TMem64;
+  Mem: TZDB2_Mem;
   Change_: PIDChange;
 begin
   p := Data;
   Hnd := GetIndex;
   for i in Hnd do
     begin
-      Mem := TMem64.Create;
+      Mem := TZDB2_Mem.Create;
       if FSpace.ReadData(Mem, i) then
         begin
           if p^.IDChanges <> nil then
@@ -1053,7 +1053,7 @@ begin
   CopyFrom(Source, nil);
 end;
 
-procedure TZDB2.Post(Mem: TMem64; DoneFreeMem: Boolean);
+procedure TZDB2.Post(Mem: TZDB2_Mem; DoneFreeMem: Boolean);
 var
   p: PZDB2_OnPost;
 begin
@@ -1067,7 +1067,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Post);
 end;
 
-procedure TZDB2.PostC(Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
+procedure TZDB2.PostC(Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
 var
   p: PZDB2_OnPost;
 begin
@@ -1081,7 +1081,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Post);
 end;
 
-procedure TZDB2.PostM(Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
+procedure TZDB2.PostM(Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
 var
   p: PZDB2_OnPost;
 begin
@@ -1095,7 +1095,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Post);
 end;
 
-procedure TZDB2.PostP(Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
+procedure TZDB2.PostP(Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
 var
   p: PZDB2_OnPost;
 begin
@@ -1109,7 +1109,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Post);
 end;
 
-procedure TZDB2.Insert(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean);
+procedure TZDB2.Insert(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean);
 var
   p: PZDB2_OnInsert;
 begin
@@ -1124,7 +1124,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Insert);
 end;
 
-procedure TZDB2.InsertC(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
+procedure TZDB2.InsertC(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultCall);
 var
   p: PZDB2_OnInsert;
 begin
@@ -1139,7 +1139,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Insert);
 end;
 
-procedure TZDB2.InsertM(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
+procedure TZDB2.InsertM(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultMethod);
 var
   p: PZDB2_OnInsert;
 begin
@@ -1154,7 +1154,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Insert);
 end;
 
-procedure TZDB2.InsertP(InsertBeforeIndex: Integer; Mem: TMem64; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
+procedure TZDB2.InsertP(InsertBeforeIndex: Integer; Mem: TZDB2_Mem; DoneFreeMem: Boolean; UserData: Pointer; OnResult: TZDB2_OnResultProc);
 var
   p: PZDB2_OnInsert;
 begin
@@ -1228,7 +1228,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_Remove);
 end;
 
-function TZDB2.GetData(ID: Integer; Mem: TMem64): Boolean;
+function TZDB2.GetData(ID: Integer; Mem: TZDB2_Mem): Boolean;
 var
   p: PZDB2_OnSyncGetData;
 begin
@@ -1245,7 +1245,7 @@ begin
   Dispose(p);
 end;
 
-procedure TZDB2.GetDataC(ID: Integer; Mem: TMem64; UserData: Pointer; OnResult: TZDB2_OnGetDataCall);
+procedure TZDB2.GetDataC(ID: Integer; Mem: TZDB2_Mem; UserData: Pointer; OnResult: TZDB2_OnGetDataCall);
 var
   p: PZDB2_OnGetData;
 begin
@@ -1259,7 +1259,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_GetData);
 end;
 
-procedure TZDB2.GetDataM(ID: Integer; Mem: TMem64; UserData: Pointer; OnResult: TZDB2_OnGetDataMethod);
+procedure TZDB2.GetDataM(ID: Integer; Mem: TZDB2_Mem; UserData: Pointer; OnResult: TZDB2_OnGetDataMethod);
 var
   p: PZDB2_OnGetData;
 begin
@@ -1273,7 +1273,7 @@ begin
   FThreadPost.PostM2(p, {$IFDEF FPC}@{$ENDIF FPC}Cmd_GetData);
 end;
 
-procedure TZDB2.GetDataP(ID: Integer; Mem: TMem64; UserData: Pointer; OnResult: TZDB2_OnGetDataProc);
+procedure TZDB2.GetDataP(ID: Integer; Mem: TZDB2_Mem; UserData: Pointer; OnResult: TZDB2_OnGetDataProc);
 var
   p: PZDB2_OnGetData;
 begin
@@ -1419,7 +1419,7 @@ end;
 class procedure TZDB2.Test;
 var
   Mem1, Mem2: TStream64;
-  tmp: TMem64;
+  tmp: TZDB2_Mem;
   db1, db2, db3, db4: TZDB2;
   i: Integer;
 begin
@@ -1434,7 +1434,7 @@ begin
   db2.OpenStream(Mem1, False, stmBigData);
   for i := 0 to 100000 - 1 do
     begin
-      tmp := TMem64.Create;
+      tmp := TZDB2_Mem.Create;
       tmp.Size := umlRandomRange($40, 512);
       db2.Post(tmp, True);
     end;

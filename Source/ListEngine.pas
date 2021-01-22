@@ -114,9 +114,10 @@ type
     destructor Destroy; override;
     procedure Clear;
     procedure MergeTo(dest: THashList);
-    procedure GetNameList(var output: TArrayPascalString); overload;
+    procedure GetNameList(var Output_: TArrayPascalString); overload;
     procedure GetNameList(OutputList: TListString); overload;
     procedure GetNameList(OutputList: TListPascalString); overload;
+    procedure GetNameList(OutputList: TCoreClassStrings); overload;
     procedure GetListData(OutputList: TCoreClassList);
     function GetHashDataArray(): THashDataArray;
     procedure Delete(const Name: SystemString);
@@ -160,9 +161,10 @@ type
     property MaxNameLen: NativeInt read FMaxNameLen;
     property MinNameLen: NativeInt read FMinNameLen;
   end;
+
+  PHashList = ^THashList;
 {$ENDREGION 'THashList'}
 {$REGION 'TInt64HashObjectList'}
-
   PInt64HashListObjectStruct = ^TInt64HashListObjectStruct;
 
   TInt64HashListObjectStruct = record
@@ -699,6 +701,11 @@ type
     procedure ProgressM(const OnProgress: THashStringListLoopMethod);
     procedure ProgressP(const OnProgress: THashStringListLoopProc);
     //
+    function FirstName: SystemString;
+    function LastName: SystemString;
+    function FirstData: PHashStringListData;
+    function LastData: PHashStringListData;
+    //
     procedure Clear;
     //
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
@@ -718,7 +725,7 @@ type
     function GetDefaultValue(const Name: SystemString; AValue: SystemString): SystemString;
     procedure SetDefaultValue(const Name: SystemString; AValue: SystemString);
 
-    function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var output: SystemString): Boolean;
+    function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
     property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
@@ -736,8 +743,8 @@ type
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromFile(FileName: SystemString);
     procedure SaveToFile(FileName: SystemString);
-    procedure ExportAsStrings(output: TListPascalString); overload;
-    procedure ExportAsStrings(output: TCoreClassStrings); overload;
+    procedure ExportAsStrings(Output_: TListPascalString); overload;
+    procedure ExportAsStrings(Output_: TCoreClassStrings); overload;
     procedure ImportFromStrings(input: TListPascalString); overload;
     procedure ImportFromStrings(input: TCoreClassStrings); overload;
     function GetAsText: SystemString;
@@ -775,9 +782,10 @@ type
 
     property StringList: THashStringList read FStringList write FStringList;
   end;
+
+  PHashStringList = ^THashStringList;
 {$ENDREGION 'THashStringList'}
 {$REGION 'THashVariantList'}
-
   THashVariantChangeEvent = procedure(Sender: THashVariantList; Name: SystemString; _OLD, _New: Variant) of object;
 
   THashVariantListData = record
@@ -837,6 +845,11 @@ type
     procedure ProgressM(const OnProgress: THashVariantListLoopMethod);
     procedure ProgressP(const OnProgress: THashVariantListLoopProc);
     //
+    function FirstName: SystemString;
+    function LastName: SystemString;
+    function FirstData: PHashVariantListData;
+    function LastData: PHashVariantListData;
+    //
     procedure Clear;
     //
     procedure GetNameList(OutputList: TCoreClassStrings); overload;
@@ -863,7 +876,7 @@ type
     function GetDefaultValue(const Name: SystemString; AValue: Variant): Variant;
     procedure SetDefaultValue(const Name: SystemString; AValue: Variant);
 
-    function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var output: SystemString): Boolean;
+    function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
     property AccessOptimization: Boolean read GetAccessOptimization write SetAccessOptimization;
@@ -885,8 +898,8 @@ type
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromFile(FileName: SystemString);
     procedure SaveToFile(FileName: SystemString);
-    procedure ExportAsStrings(output: TListPascalString); overload;
-    procedure ExportAsStrings(output: TCoreClassStrings); overload;
+    procedure ExportAsStrings(Output_: TListPascalString); overload;
+    procedure ExportAsStrings(Output_: TCoreClassStrings); overload;
     procedure ImportFromStrings(input: TListPascalString); overload;
     procedure ImportFromStrings(input: TCoreClassStrings); overload;
     function GetAsText: SystemString;
@@ -929,6 +942,8 @@ type
     property NameValue[Name_: SystemString]: Variant read GetKeyValue write SetKeyValue; default;
     property VariantList: THashVariantList read FVariantList write FVariantList;
   end;
+
+  PHashVariantList = ^THashVariantList;
 {$ENDREGION 'THashVariantList'}
 {$REGION 'TListCardinal'}
 
@@ -1208,11 +1223,12 @@ type
     procedure Assign(SameObj: TListPascalString); overload;
     procedure Assign(sour: TCoreClassStrings); overload;
     procedure AssignTo(dest: TCoreClassStrings); overload;
+    procedure AssignTo(dest: TListPascalString); overload;
 
     procedure AddStrings(sour: TListPascalString); overload;
     procedure AddStrings(sour: TCoreClassStrings); overload;
 
-    procedure FillTo(var output: TArrayPascalString); overload;
+    procedure FillTo(var Output_: TArrayPascalString); overload;
     procedure FillFrom(const InData: TArrayPascalString);
 
     procedure LoadFromStream(stream: TCoreClassStream);
@@ -1220,7 +1236,7 @@ type
     procedure LoadFromFile(fn: SystemString);
     procedure SaveToFile(fn: SystemString);
 
-    property Text: SystemString read GetText write SetText;
+    property AsText: SystemString read GetText write SetText;
 
     property Items[idx: Integer]: TPascalString read GetItems write SetItems; default;
     property Items_PPascalString[idx: Integer]: PPascalString read GetItems_PPascalString;
@@ -1763,19 +1779,19 @@ begin
     end;
 end;
 
-procedure THashList.GetNameList(var output: TArrayPascalString);
+procedure THashList.GetNameList(var Output_: TArrayPascalString);
 var
   i: Integer;
   p: PHashListData;
 begin
-  SetLength(output, Count);
+  SetLength(Output_, Count);
   if FCount > 0 then
     begin
       i := 0;
       p := FFirst;
       while i < FCount do
         begin
-          output[i] := p^.OriginName;
+          Output_[i] := p^.OriginName;
           inc(i);
           p := p^.Next;
         end;
@@ -1802,6 +1818,25 @@ begin
 end;
 
 procedure THashList.GetNameList(OutputList: TListPascalString);
+var
+  i: Integer;
+  p: PHashListData;
+begin
+  OutputList.Clear;
+  if FCount > 0 then
+    begin
+      i := 0;
+      p := FFirst;
+      while i < FCount do
+        begin
+          OutputList.Add(p^.OriginName);
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+end;
+
+procedure THashList.GetNameList(OutputList: TCoreClassStrings);
 var
   i: Integer;
   p: PHashListData;
@@ -6549,6 +6584,38 @@ begin
     end;
 end;
 
+function THashStringList.FirstName: SystemString;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.FirstPtr^.OriginName
+  else
+      Result := '';
+end;
+
+function THashStringList.LastName: SystemString;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.LastPtr^.OriginName
+  else
+      Result := '';
+end;
+
+function THashStringList.FirstData: PHashStringListData;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.FirstPtr^.Data
+  else
+      Result := nil;
+end;
+
+function THashStringList.LastData: PHashStringListData;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.LastPtr^.Data
+  else
+      Result := nil;
+end;
+
 procedure THashStringList.Clear;
 begin
   FHashList.Clear;
@@ -6801,7 +6868,7 @@ begin
   SetKeyValue(Name, AValue);
 end;
 
-function THashStringList.ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var output: SystemString): Boolean;
+function THashStringList.ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 var
   sour: U_String;
   h, t: U_String;
@@ -6809,7 +6876,7 @@ var
   KeyText: SystemString;
   i: Integer;
 begin
-  output := '';
+  Output_ := '';
   sour.Text := Text_;
   h.Text := HeadToken;
   t.Text := TailToken;
@@ -6829,7 +6896,7 @@ begin
 
               if Exists(KeyText) then
                 begin
-                  output := output + GetKeyValue(KeyText);
+                  Output_ := Output_ + GetKeyValue(KeyText);
                   i := ePos + t.Len;
                   Continue;
                 end
@@ -6840,7 +6907,7 @@ begin
             end;
         end;
 
-      output := output + sour[i];
+      Output_ := Output_ + sour[i];
       inc(i);
     end;
 end;
@@ -6881,21 +6948,21 @@ begin
   DisposeObject(VT);
 end;
 
-procedure THashStringList.ExportAsStrings(output: TListPascalString);
+procedure THashStringList.ExportAsStrings(Output_: TListPascalString);
 var
   VT: THashStringTextStream;
 begin
   VT := THashStringTextStream.Create(Self);
-  VT.DataExport(output);
+  VT.DataExport(Output_);
   DisposeObject(VT);
 end;
 
-procedure THashStringList.ExportAsStrings(output: TCoreClassStrings);
+procedure THashStringList.ExportAsStrings(Output_: TCoreClassStrings);
 var
   VT: THashStringTextStream;
 begin
   VT := THashStringTextStream.Create(Self);
-  VT.DataExport(output);
+  VT.DataExport(Output_);
   DisposeObject(VT);
 end;
 
@@ -7156,7 +7223,7 @@ begin
   if FStringList = nil then
       Exit;
   n := TListPascalString.Create;
-  n.Text := Text_;
+  n.AsText := Text_;
   DataImport(n);
   DisposeObject(n);
 end;
@@ -7169,7 +7236,7 @@ begin
       Exit;
   n := TListPascalString.Create;
   DataExport(n);
-  Text_ := n.Text;
+  Text_ := n.AsText;
   DisposeObject(n);
 end;
 
@@ -7440,6 +7507,38 @@ begin
           p := p^.Next;
         end;
     end;
+end;
+
+function THashVariantList.FirstName: SystemString;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.FirstPtr^.OriginName
+  else
+      Result := '';
+end;
+
+function THashVariantList.LastName: SystemString;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.LastPtr^.OriginName
+  else
+      Result := '';
+end;
+
+function THashVariantList.FirstData: PHashVariantListData;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.FirstPtr^.Data
+  else
+      Result := nil;
+end;
+
+function THashVariantList.LastData: PHashVariantListData;
+begin
+  if HashList.Count > 0 then
+      Result := HashList.LastPtr^.Data
+  else
+      Result := nil;
 end;
 
 procedure THashVariantList.Clear;
@@ -7824,7 +7923,7 @@ begin
   SetKeyValue(Name, AValue);
 end;
 
-function THashVariantList.ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var output: SystemString): Boolean;
+function THashVariantList.ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 var
   sour: U_String;
   h, t: U_String;
@@ -7832,7 +7931,7 @@ var
   KeyText: SystemString;
   i: Integer;
 begin
-  output := '';
+  Output_ := '';
   sour.Text := Text_;
   h.Text := HeadToken;
   t.Text := TailToken;
@@ -7852,7 +7951,7 @@ begin
 
               if Exists(KeyText) then
                 begin
-                  output := output + VarToStr(GetKeyValue(KeyText));
+                  Output_ := Output_ + VarToStr(GetKeyValue(KeyText));
                   i := ePos + t.Len;
                   Continue;
                 end
@@ -7863,7 +7962,7 @@ begin
             end;
         end;
 
-      output := output + sour[i];
+      Output_ := Output_ + sour[i];
       inc(i);
     end;
 end;
@@ -7904,21 +8003,21 @@ begin
   DisposeObject(VT);
 end;
 
-procedure THashVariantList.ExportAsStrings(output: TListPascalString);
+procedure THashVariantList.ExportAsStrings(Output_: TListPascalString);
 var
   VT: THashVariantTextStream;
 begin
   VT := THashVariantTextStream.Create(Self);
-  VT.DataExport(output);
+  VT.DataExport(Output_);
   DisposeObject(VT);
 end;
 
-procedure THashVariantList.ExportAsStrings(output: TCoreClassStrings);
+procedure THashVariantList.ExportAsStrings(Output_: TCoreClassStrings);
 var
   VT: THashVariantTextStream;
 begin
   VT := THashVariantTextStream.Create(Self);
-  VT.DataExport(output);
+  VT.DataExport(Output_);
   DisposeObject(VT);
 end;
 
@@ -8238,7 +8337,7 @@ begin
   if FVariantList = nil then
       Exit;
   n := TListPascalString.Create;
-  n.Text := Text_;
+  n.AsText := Text_;
   DataImport(n);
   DisposeObject(n);
 end;
@@ -8251,7 +8350,7 @@ begin
       Exit;
   n := TListPascalString.Create;
   DataExport(n);
-  Text_ := n.Text;
+  Text_ := n.AsText;
   DisposeObject(n);
 end;
 
@@ -9337,6 +9436,11 @@ begin
       dest.AddObject(Items[i], Objects[i]);
 end;
 
+procedure TListPascalString.AssignTo(dest: TListPascalString);
+begin
+  dest.Assign(Self);
+end;
+
 procedure TListPascalString.AddStrings(sour: TListPascalString);
 var
   i: Integer;
@@ -9353,13 +9457,13 @@ begin
       Add(sour[i]);
 end;
 
-procedure TListPascalString.FillTo(var output: TArrayPascalString);
+procedure TListPascalString.FillTo(var Output_: TArrayPascalString);
 var
   i: Integer;
 begin
-  SetLength(output, Count);
+  SetLength(Output_, Count);
   for i := 0 to Count - 1 do
-      output[i] := Items[i];
+      Output_[i] := Items[i];
 end;
 
 procedure TListPascalString.FillFrom(const InData: TArrayPascalString);

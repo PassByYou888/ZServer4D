@@ -355,7 +355,7 @@ begin
   if (p_io.IOInterface = nil) then
       Exit;
 
-  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+  TCompute.SyncP(procedure
     begin
       try
         p_io.SaveReceiveBuffer(aBuf, ALen);
@@ -479,7 +479,7 @@ begin
     begin
       if ASuccess then
         begin
-          TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+          TCompute.SyncP(procedure
             var
               p_io: TCrossSocketClient_PeerIO;
             begin

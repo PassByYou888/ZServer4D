@@ -106,7 +106,7 @@ var
 begin
   ns := TPascalStringList.Create;
   ns.LoadFromFile(fn);
-  CreateFromString(ns.Text);
+  CreateFromString(ns.AsText);
   disposeObject(ns);
 end;
 

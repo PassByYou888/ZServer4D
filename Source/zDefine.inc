@@ -242,7 +242,7 @@
   // warning prompt
   {$WARNINGS ON}
   // JPEG support can output debug info
-  {$DEFINE JPEG_Debug}
+  {$UNDEF JPEG_Debug}
 {$ELSE DEBUG}
   // initialization status prompt
   {$UNDEF initializationStatus}

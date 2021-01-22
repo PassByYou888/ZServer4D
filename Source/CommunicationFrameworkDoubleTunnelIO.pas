@@ -1938,6 +1938,9 @@ begin
   FSendTunnel := SendTunnel_;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel;
 
+  FRecvTunnel.DoubleChannelFramework := Self;
+  FSendTunnel.DoubleChannelFramework := Self;
+
   FRootPath := umlCurrentPath;
   FPublicPath := FRootPath;
   FUserDB := TSectionTextData.Create(20 * 10000);
@@ -3122,6 +3125,9 @@ begin
   FSendTunnel := SendTunnel_;
   FSendTunnel.NotyifyInterface := Self;
   FSendTunnel.PeerClientUserDefineClass := TClientUserDefineForSendTunnel;
+
+  FRecvTunnel.DoubleChannelFramework := Self;
+  FSendTunnel.DoubleChannelFramework := Self;
 
   FCurrentStream := nil;
   FCurrentReceiveStreamFileName := '';

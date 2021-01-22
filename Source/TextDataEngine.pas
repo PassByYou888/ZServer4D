@@ -29,6 +29,9 @@ unit TextDataEngine;
 interface
 
 uses SysUtils, Variants,
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
   CoreClasses,
   UnicodeMixedLib,
   PascalStrings,
@@ -123,6 +126,8 @@ type
 
   TTextDataEngine = THashTextEngine;
   TSectionTextData = THashTextEngine;
+
+  THashTextEngineList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<THashTextEngine>;
 
 implementation
 
@@ -759,11 +764,11 @@ end;
 
 function THashTextEngine.GetAsText: SystemString;
 var
-  ns: TCoreClassStringList;
+  ns: TPascalStringList;
 begin
-  ns := TCoreClassStringList.Create;
+  ns := TPascalStringList.Create;
   DataExport(ns);
-  Result := ns.Text;
+  Result := ns.AsText;
   DisposeObject(ns);
 end;
 
@@ -774,7 +779,7 @@ begin
   Clear;
 
   ns := TListPascalString.Create;
-  ns.Text := Value;
+  ns.AsText := Value;
   DataImport(ns);
   DisposeObject(ns);
 end;

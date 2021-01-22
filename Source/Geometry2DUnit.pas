@@ -34,6 +34,8 @@ uses
 
 type
   TGeoFloat = Single;
+  TGeoFloatList = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericsList<TGeoFloat>;
+
   TGeoInt = Integer;
   TVec2 = array [0 .. 1] of TGeoFloat;
   PVec2 = ^TVec2;
@@ -44,6 +46,8 @@ type
   TArrayVec2 = array of TVec2;
   PArrayVec2 = ^TArrayVec2;
   TVec2Array = TArrayVec2;
+
+  TMatrixVec2 = array of TArrayVec2;
 
   TArray2DPoint = TArrayVec2;
   PArray2DPoint = PArrayVec2;
@@ -264,6 +268,7 @@ function Vec2Rotation(const axis, pt: TVec2; const Angle: TGeoFloat): TVec2; ove
 function Vec2Rotation(const sour_r: TRectV2; const Angle: TGeoFloat; const pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Vec2Rotation(const sour_r: TRectV2; const axis: TVec2; const Angle: TGeoFloat; const pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Vec2Rotation(const sour_r: TRectV2; const axis: TVec2; const Angle: TGeoFloat; const r: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectRotation(const axis: TVec2; const r: TRectV2; const Angle: TGeoFloat): TRectV2;
 
 function CircleInCircle(const cp1, cp2: TVec2; const r1, r2: TGeoFloat): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function CircleInRect(const cp: TVec2; const radius: TGeoFloat; r: TRectV2): Boolean;
@@ -318,6 +323,7 @@ function MakeRect(const r: TRect): TRectV2; overload; {$IFDEF INLINE_ASM} inline
 function MakeRect(const r: TRectf): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function RoundRect(const r: TRectV2): TRect; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RoundRectV2(const r: TRectV2): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function Rect2Rect(const r: TRectV2): TRect; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Rect2Rect(const r: TRect): TRectV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -529,6 +535,8 @@ function Interpolation_InSide(const t: TGeoFloat): TGeoFloat; {$IFDEF INLINE_ASM
 
 
 type
+  TVec2List = class;
+
   TV2Rect4 = record
   public
     LeftTop, RightTop, RightBottom, LeftBottom: TVec2;
@@ -562,6 +570,8 @@ type
     function Projection(const sour, dest: TRectV2; const sourAxis, destAxis: TVec2; const sourAngle, destAngle: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Projection(const sour, dest: TRectV2; sourAngle, destAngle: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Projection(const sour, dest: TRectV2): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function RebuildVertex(const buff: TArrayVec2): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+    class function RebuildVertex(const buff: TVec2List): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function Init(r: TRectV2): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function Init(r: TRectV2; axis: TVec2; Ang: TGeoFloat): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     class function Init(r: TRectV2; Ang: TGeoFloat): TV2Rect4; overload; static; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -1276,6 +1286,7 @@ type
 {$ENDREGION 'Hausdorf'}
 
 
+function ArrayVec2(const v: TArrayVec2): TArrayVec2; overload;
 function ArrayVec2(const r: TRectV2): TArrayVec2; overload;
 function ArrayVec2(const r: TV2Rect4): TArrayVec2; overload;
 function ArrayVec2(const l: TLineV2): TArrayVec2; overload;
@@ -2191,6 +2202,12 @@ begin
   Result[1] := Vec2Rotation(sour_r, axis, Angle, r[1]);
 end;
 
+function RectRotation(const axis: TVec2; const r: TRectV2; const Angle: TGeoFloat): TRectV2;
+begin
+  Result[0] := Vec2Rotation(axis, r[0], Angle);
+  Result[1] := Vec2Rotation(axis, r[1], Angle);
+end;
+
 function CircleInCircle(const cp1, cp2: TVec2; const r1, r2: TGeoFloat): Boolean;
 begin
   Result := (r2 - (PointDistance(cp1, cp2) + r1) >= Zero);
@@ -2489,6 +2506,14 @@ begin
   Result.Top := Round(r[0, 1]);
   Result.Right := Round(r[1, 0]);
   Result.Bottom := Round(r[1, 1]);
+end;
+
+function RoundRectV2(const r: TRectV2): TRectV2;
+begin
+  Result[0, 0] := Round(r[0, 0]);
+  Result[0, 1] := Round(r[0, 1]);
+  Result[1, 0] := Round(r[1, 0]);
+  Result[1, 1] := Round(r[1, 1]);
 end;
 
 function Rect2Rect(const r: TRectV2): TRect;
@@ -4701,6 +4726,38 @@ begin
   Result.RightTop := RectProjection(sour, dest, RightTop);
   Result.RightBottom := RectProjection(sour, dest, RightBottom);
   Result.LeftBottom := RectProjection(sour, dest, LeftBottom);
+end;
+
+class function TV2Rect4.RebuildVertex(const buff: TArrayVec2): TV2Rect4;
+begin
+  if length(buff) <> 4 then
+    begin
+      Result := TV2Rect4.Init(Geometry2DUnit.BoundRect(buff));
+    end
+  else
+    with Result do
+      begin
+        LeftTop := buff[0];
+        RightTop := buff[1];
+        RightBottom := buff[2];
+        LeftBottom := buff[3];
+      end;
+end;
+
+class function TV2Rect4.RebuildVertex(const buff: TVec2List): TV2Rect4;
+begin
+  if buff.Count <> 4 then
+    begin
+      Result := TV2Rect4.Init(buff.BoundBox);
+    end
+  else
+    with Result do
+      begin
+        LeftTop := buff[0]^;
+        RightTop := buff[1]^;
+        RightBottom := buff[2]^;
+        LeftBottom := buff[3]^;
+      end;
 end;
 
 class function TV2Rect4.Init(r: TRectV2): TV2Rect4;
@@ -10349,6 +10406,15 @@ begin
 
   DisposeObject(vl1);
   DisposeObject(vl2);
+end;
+
+function ArrayVec2(const v: TArrayVec2): TArrayVec2;
+var
+  i: Integer;
+begin
+  SetLength(Result, length(v));
+  for i := 0 to length(v) - 1 do
+      Result[i] := v[i];
 end;
 
 function ArrayVec2(const r: TRectV2): TArrayVec2;

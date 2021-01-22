@@ -27,9 +27,7 @@ uses CoreClasses,
   FPCGenericStructlist,
 {$ENDIF FPC}
   PascalStrings, UnicodeMixedLib,
-{$IFNDEF ZDB2_Core_Used_Mem64}
   MemoryStream64,
-{$ENDIF ZDB2_Core_Used_Mem64}
   DoStatusIO;
 
 const
@@ -40,10 +38,9 @@ type
   TZDB2_Core_Space = class;
 
 {$IFDEF ZDB2_Core_Used_Mem64}
-  TZDB2_Core_Mem64 = class;
-  TMem64 = TZDB2_Core_Mem64;
+  TZDB2_Mem = TMem64;
 {$ELSE ZDB2_Core_Used_Mem64}
-  TMem64 = TMemoryStream64;
+  TZDB2_Mem = TMemoryStream64;
 {$ENDIF ZDB2_Core_Used_Mem64}
 
   TZDB2_Core_BlockData = packed record
@@ -57,7 +54,7 @@ type
   PZDB2_Core_BlockData = ^TZDB2_Core_BlockData;
 
   TZDB2_Core_BlockCache = record
-    Mem: TMem64;
+    Mem: TZDB2_Mem;
     FlushThisCacheToFile: Boolean;
   end;
 
@@ -72,7 +69,7 @@ type
 
   { stmBigData: DB Size > 10G, < 130TB, block number < 1000*10000, no cache }
   { stmNormal: DB size > 1G, < 10G, block number < 100*10000, open write cache }
-  { stmFast: DB size > 100M, < 1G, block number < 10*10000, open Next/w cache }
+  { stmFast: DB size > 100M, < 1G, block number < 10*10000, open read/write cache }
   TZDB2_Core_SpaceMode = (stmBigData, stmNormal, stmFast);
 
   TZDB2_Core_SpaceState = record
@@ -127,7 +124,7 @@ type
     property UsedWriteCache: Boolean read FUsedWriteCache write FUsedWriteCache;
     { stmBigData: DB Size > 10G, < 130TB, block number < 1000*10000, no cache }
     { stmNormal: DB size > 1G, < 10G, block number < 100*10000, open write cache }
-    { stmFast: DB size > 100M, < 1G, block number < 10*10000, open Next/w cache }
+    { stmFast: DB size > 100M, < 1G, block number < 10*10000, open read/write cache }
     procedure SetMode(const Value: TZDB2_Core_SpaceMode);
     property Mode: TZDB2_Core_SpaceMode read FMode write SetMode;
     { state }
@@ -167,11 +164,11 @@ type
     { Write a buffer to automatically fill the space block }
     function CheckWriteSpace(Siz_: Int64): Boolean; overload;
     function CheckWriteSpace(Siz_: Int64; Space_: TZDB2_Core_BlockPtrList): Boolean; overload;
-    function WriteData(buff: TMem64; var SpaceHnd: TZDB2_Core_BlockHnd): Boolean; overload;
-    function WriteData(buff: TMem64; var ID: Integer): Boolean; overload;
+    function WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_Core_BlockHnd): Boolean; overload;
+    function WriteData(buff: TZDB2_Mem; var ID: Integer): Boolean; overload;
     { read the fragment space and merge the data to buff }
-    function ReadData(buff: TMem64; SpaceHnd: TZDB2_Core_BlockHnd): Boolean; overload;
-    function ReadData(buff: TMem64; ID: Integer): Boolean; overload;
+    function ReadData(buff: TZDB2_Mem; SpaceHnd: TZDB2_Core_BlockHnd): Boolean; overload;
+    function ReadData(buff: TZDB2_Mem; ID: Integer): Boolean; overload;
     { remove the fragments. This operation will not reconstruct freespace. our need call ScanSpace to rebuild freespace struct. }
     function RemoveData(SpaceHnd: TZDB2_Core_BlockHnd; SafeClean_: Boolean): Boolean; overload;
     function RemoveData(ID: Integer; SafeClean_: Boolean): Boolean; overload;
@@ -184,98 +181,6 @@ type
 
     class procedure Test();
   end;
-
-{$IFDEF ZDB2_Core_Used_Mem64}
-
-  TZDB2_Core_Mem64 = class
-  private
-    FDelta: NativeInt;
-    FMemory: Pointer;
-    FSize: Int64;
-    FPosition: Int64;
-    FCapacity: Int64;
-    FProtectedMode: Boolean;
-  protected
-    procedure SetPointer(buffPtr: Pointer; const BuffSize: Int64);
-    procedure SetCapacity(NewCapacity: Int64);
-    function Realloc(var NewCapacity: Int64): Pointer;
-    property Capacity: Int64 read FCapacity write SetCapacity;
-    function GetPosition: Int64;
-    procedure SetPosition(const Value: Int64);
-    function GetSize: Int64;
-    procedure SetSize(const NewSize: Int64);
-  public
-    constructor Create;
-    constructor CustomCreate(const customDelta: NativeInt);
-    destructor Destroy; override;
-
-    procedure DiscardMemory;
-    procedure Clear;
-    procedure NewParam(source: TZDB2_Core_Mem64);
-    procedure SwapInstance(source: TZDB2_Core_Mem64);
-
-    property Delta: NativeInt read FDelta write FDelta;
-    property Memory: Pointer read FMemory;
-    property Position: Int64 read GetPosition write SetPosition;
-    property Size: Int64 read GetSize write SetSize;
-
-    procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
-    procedure Mapping(buffPtr: Pointer; const BuffSize: Int64);
-    function PositionAsPtr(const Position_: Int64): Pointer; overload;
-    function PositionAsPtr: Pointer; overload;
-    function PosAsPtr(const Position_: Int64): Pointer; overload;
-    function PosAsPtr: Pointer; overload;
-
-    procedure LoadFromStream(stream: TCoreClassStream);
-    procedure LoadFromFile(FileName: SystemString);
-    procedure SaveToStream(stream: TCoreClassStream);
-    procedure SaveToFile(FileName: SystemString);
-
-    function Write64(const buffer; Count: Int64): Int64;
-    function WritePtr(const p: Pointer; Count: Int64): Int64;
-    function Write(const buffer; Count: Int64): Int64;
-    function Read64(var buffer; Count: Int64): Int64;
-    function ReadPtr(const p: Pointer; Count: Int64): Int64;
-    function Read(var buffer; Count: Int64): Int64;
-    function Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
-
-    // Serialized writer
-    procedure WriteBool(const buff: Boolean);
-    procedure WriteInt8(const buff: ShortInt);
-    procedure WriteInt16(const buff: SmallInt);
-    procedure WriteInt32(const buff: Integer);
-    procedure WriteInt64(const buff: Int64);
-    procedure WriteUInt8(const buff: Byte);
-    procedure WriteUInt16(const buff: Word);
-    procedure WriteUInt32(const buff: Cardinal);
-    procedure WriteUInt64(const buff: UInt64);
-    procedure WriteSingle(const buff: Single);
-    procedure WriteDouble(const buff: Double);
-    procedure WriteCurrency(const buff: Currency);
-    procedure WriteString(const buff: TPascalString);
-    procedure WriteANSI(const buff: TPascalString); overload;
-    procedure WriteANSI(const buff: TPascalString; const L: Integer); overload;
-    procedure WriteMD5(const buff: TMD5);
-
-    // Serialized reader
-    function ReadBool: Boolean;
-    function ReadInt8: ShortInt;
-    function ReadInt16: SmallInt;
-    function ReadInt32: Integer;
-    function ReadInt64: Int64;
-    function ReadUInt8: Byte;
-    function ReadUInt16: Word;
-    function ReadUInt32: Cardinal;
-    function ReadUInt64: UInt64;
-    function ReadSingle: Single;
-    function ReadDouble: Double;
-    function ReadCurrency: Currency;
-    function PrepareReadString: Boolean;
-    function ReadString: TPascalString;
-    function ReadANSI(L: Integer): TPascalString;
-    function ReadMD5: TMD5;
-  end;
-{$ENDIF ZDB2_Core_Used_Mem64}
 
 implementation
 
@@ -310,7 +215,7 @@ begin
     begin
       if Mem = nil then
         begin
-          Mem := TMem64.Create;
+          Mem := TZDB2_Mem.Create;
           Mem.Size := p^.Size;
           FillPtr(Mem.Memory, p^.Size, 0);
           inc(FState.Cache, p^.Size);
@@ -626,7 +531,7 @@ end;
 procedure TZDB2_Core_Space.BuildSpace(PhySpaceSize: Int64; BlockSize_: Word);
 var
   BlockSize: Word;
-  m64: TMem64;
+  m64: TZDB2_Mem;
   i: Integer;
 begin
   if not umlFileSeek(FSpace_IOHnd^, 0) then
@@ -637,7 +542,7 @@ begin
 
   BlockSize := umlMax(BlockSize_, C_ZDB2_MinBlockSize);
   PreparePhyBlock((PhySpaceSize - GetTableSize(PhySpaceSize div BlockSize)) div BlockSize);
-  m64 := TMem64.Create;
+  m64 := TZDB2_Mem.Create;
   m64.Size := GetTableSize;
   m64.Position := 0;
   FillPtr(m64.Memory, m64.Size, 0);
@@ -674,7 +579,7 @@ end;
 procedure TZDB2_Core_Space.AppendSpace(Dest: TZDB2_Core_Space; DestPhySpaceSize: Int64; DestBlockSize_: Word);
 var
   DestBlockSize: Word;
-  m64: TMem64;
+  m64: TZDB2_Mem;
   buff: Pointer;
   i: Integer;
 begin
@@ -686,7 +591,7 @@ begin
 
   DestBlockSize := umlMax(DestBlockSize_, C_ZDB2_MinBlockSize);
   Dest.PreparePhyBlock(FPhyBlockNum + (DestPhySpaceSize div DestBlockSize));
-  m64 := TMem64.Create;
+  m64 := TZDB2_Mem.Create;
   m64.Size := Dest.GetTableSize;
   m64.Position := 0;
   FillPtr(m64.Memory, m64.Size, 0);
@@ -749,7 +654,7 @@ end;
 
 procedure TZDB2_Core_Space.OptimizeInstance(Dest: TZDB2_Core_Space);
 var
-  m64: TMem64;
+  m64: TZDB2_Mem;
   buff: Pointer;
   i: Integer;
 begin
@@ -759,7 +664,7 @@ begin
       exit;
     end;
   Dest.PreparePhyBlock(FPhyBlockNum);
-  m64 := TMem64.Create;
+  m64 := TZDB2_Mem.Create;
   m64.Size := GetTableSize;
   m64.Position := 0;
   FillPtr(m64.Memory, m64.Size, 0);
@@ -929,7 +834,7 @@ begin
   Result := tmp >= Siz_;
 end;
 
-function TZDB2_Core_Space.WriteData(buff: TMem64; var SpaceHnd: TZDB2_Core_BlockHnd): Boolean;
+function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_Core_BlockHnd): Boolean;
 var
   Space_: TZDB2_Core_BlockPtrList;
   tmp: Int64;
@@ -1056,7 +961,7 @@ begin
       end;
 end;
 
-function TZDB2_Core_Space.WriteData(buff: TMem64; var ID: Integer): Boolean;
+function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var ID: Integer): Boolean;
 var
   SpaceHnd: TZDB2_Core_BlockHnd;
 begin
@@ -1066,7 +971,7 @@ begin
   SetLength(SpaceHnd, 0);
 end;
 
-function TZDB2_Core_Space.ReadData(buff: TMem64; SpaceHnd: TZDB2_Core_BlockHnd): Boolean;
+function TZDB2_Core_Space.ReadData(buff: TZDB2_Mem; SpaceHnd: TZDB2_Core_BlockHnd): Boolean;
 var
   i: Integer;
   Siz_: Int64;
@@ -1126,7 +1031,7 @@ begin
   Result := True;
 end;
 
-function TZDB2_Core_Space.ReadData(buff: TMem64; ID: Integer): Boolean;
+function TZDB2_Core_Space.ReadData(buff: TZDB2_Mem; ID: Integer): Boolean;
 begin
   Result := ReadData(buff, GetSpaceHnd(ID));
 end;
@@ -1218,7 +1123,7 @@ var
   hnd1, hnd2, hnd3: TIOHnd;
 
   q, q2: TZDB2_Core_BlockHnd;
-  m64: TMem64;
+  m64: TZDB2_Mem;
 begin
   InitIOHnd(hnd1);
   InitIOHnd(hnd2);
@@ -1235,7 +1140,7 @@ begin
   st1.AppendSpace(st2, 1024 * 1024 * 2, 1024);
   st1.OptimizeInstance(st3);
 
-  m64 := TMem64.Create;
+  m64 := TZDB2_Mem.Create;
   m64.Size := 1024 * 1024 * 20;
   st1.WriteData(m64, q2);
   st1.Save;
@@ -1249,7 +1154,7 @@ begin
   st1.ScanSpace;
   DisposeObject(m64);
 
-  m64 := TMem64.Create;
+  m64 := TZDB2_Mem.Create;
   m64.Size := 64;
   st1.WriteData(m64, q);
   st1.Save;
@@ -1261,7 +1166,7 @@ begin
   st1.ScanSpace;
   DisposeObject(m64);
 
-  m64 := TMem64.Create;
+  m64 := TZDB2_Mem.Create;
   m64.Size := 1024;
   st1.WriteData(m64, q);
   st1.Save;
@@ -1285,585 +1190,6 @@ begin
 
   DoStatus('TZDB2_Core_Space.Test passed.');
 end;
-
-{$IFDEF ZDB2_Core_Used_Mem64}
-
-
-procedure TZDB2_Core_Mem64.SetPointer(buffPtr: Pointer; const BuffSize: Int64);
-begin
-  FMemory := buffPtr;
-  FSize := BuffSize;
-end;
-
-procedure TZDB2_Core_Mem64.SetCapacity(NewCapacity: Int64);
-begin
-  if FProtectedMode then
-      exit;
-  SetPointer(Realloc(NewCapacity), FSize);
-  FCapacity := NewCapacity;
-end;
-
-function TZDB2_Core_Mem64.Realloc(var NewCapacity: Int64): Pointer;
-begin
-  if FProtectedMode then
-      exit(nil);
-
-  if (NewCapacity > 0) and (NewCapacity <> FSize) then
-      NewCapacity := DeltaStep(NewCapacity, FDelta);
-  Result := Memory;
-  if NewCapacity <> FCapacity then
-    begin
-      if NewCapacity = 0 then
-        begin
-          System.FreeMemory(Memory);
-          Result := nil;
-        end
-      else
-        begin
-          if Capacity = 0 then
-              Result := System.GetMemory(NewCapacity)
-          else
-              Result := System.ReallocMemory(Result, NewCapacity);
-          if Result = nil then
-              RaiseInfo('Out of memory while expanding memory stream');
-        end;
-    end;
-end;
-
-function TZDB2_Core_Mem64.GetPosition: Int64;
-begin
-  Result := Seek(0, TSeekOrigin.soCurrent);
-end;
-
-procedure TZDB2_Core_Mem64.SetPosition(const Value: Int64);
-begin
-  Seek(Value, TSeekOrigin.soBeginning);
-end;
-
-function TZDB2_Core_Mem64.GetSize: Int64;
-var
-  Pos: Int64;
-begin
-  Pos := Seek(0, TSeekOrigin.soCurrent);
-  Result := Seek(0, TSeekOrigin.soEnd);
-  Seek(Pos, TSeekOrigin.soBeginning);
-end;
-
-procedure TZDB2_Core_Mem64.SetSize(const NewSize: Int64);
-var
-  OldPosition: Int64;
-begin
-  if FProtectedMode then
-      exit;
-
-  OldPosition := FPosition;
-  SetCapacity(NewSize);
-  FSize := NewSize;
-  if OldPosition > NewSize then
-      Seek(0, TSeekOrigin.soEnd);
-end;
-
-constructor TZDB2_Core_Mem64.Create;
-begin
-  CustomCreate(256);
-end;
-
-constructor TZDB2_Core_Mem64.CustomCreate(const customDelta: NativeInt);
-begin
-  inherited Create;
-  FDelta := customDelta;
-  FMemory := nil;
-  FSize := 0;
-  FPosition := 0;
-  FCapacity := 0;
-  FProtectedMode := False;
-end;
-
-destructor TZDB2_Core_Mem64.Destroy;
-begin
-  Clear;
-  inherited Destroy;
-end;
-
-procedure TZDB2_Core_Mem64.DiscardMemory;
-begin
-  if FProtectedMode then
-      exit;
-  FMemory := nil;
-  FSize := 0;
-  FPosition := 0;
-  FCapacity := 0;
-end;
-
-procedure TZDB2_Core_Mem64.Clear;
-begin
-  if FProtectedMode then
-      exit;
-  SetCapacity(0);
-  FSize := 0;
-  FPosition := 0;
-end;
-
-procedure TZDB2_Core_Mem64.NewParam(source: TZDB2_Core_Mem64);
-begin
-  Clear;
-  FDelta := source.FDelta;
-  FMemory := source.FMemory;
-  FSize := source.FSize;
-  FPosition := source.FPosition;
-  FCapacity := source.FCapacity;
-  FProtectedMode := source.FProtectedMode;
-end;
-
-procedure TZDB2_Core_Mem64.SwapInstance(source: TZDB2_Core_Mem64);
-var
-  FDelta_: NativeInt;
-  FMemory_: Pointer;
-  FSize_: Int64;
-  FPosition_: Int64;
-  FCapacity_: Int64;
-  FProtectedMode_: Boolean;
-begin
-  FDelta_ := FDelta;
-  FMemory_ := FMemory;
-  FSize_ := FSize;
-  FPosition_ := FPosition;
-  FCapacity_ := FCapacity;
-  FProtectedMode_ := FProtectedMode;
-
-  FDelta := source.FDelta;
-  FMemory := source.FMemory;
-  FSize := source.FSize;
-  FPosition := source.FPosition;
-  FCapacity := source.FCapacity;
-  FProtectedMode := source.FProtectedMode;
-
-  source.FDelta := FDelta_;
-  source.FMemory := FMemory_;
-  source.FSize := FSize_;
-  source.FPosition := FPosition_;
-  source.FCapacity := FCapacity_;
-  source.FProtectedMode := FProtectedMode_;
-end;
-
-procedure TZDB2_Core_Mem64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
-begin
-  Clear;
-  FMemory := buffPtr;
-  FSize := BuffSize;
-  FPosition := 0;
-  FProtectedMode := True;
-end;
-
-procedure TZDB2_Core_Mem64.Mapping(buffPtr: Pointer; const BuffSize: Int64);
-begin
-  SetPointerWithProtectedMode(buffPtr, BuffSize);
-end;
-
-function TZDB2_Core_Mem64.PositionAsPtr(const Position_: Int64): Pointer;
-begin
-  Result := GetOffset(FMemory, Position_);
-end;
-
-function TZDB2_Core_Mem64.PositionAsPtr: Pointer;
-begin
-  Result := GetOffset(FMemory, FPosition);
-end;
-
-function TZDB2_Core_Mem64.PosAsPtr(const Position_: Int64): Pointer;
-begin
-  Result := PositionAsPtr(Position_);
-end;
-
-function TZDB2_Core_Mem64.PosAsPtr: Pointer;
-begin
-  Result := PositionAsPtr();
-end;
-
-procedure TZDB2_Core_Mem64.LoadFromStream(stream: TCoreClassStream);
-const
-  ChunkSize = 64 * 1024 * 1024;
-var
-  p: Pointer;
-  j: NativeInt;
-  num: NativeInt;
-  Rest: NativeInt;
-begin
-  if FProtectedMode then
-      exit;
-
-  stream.Position := 0;
-  SetSize(stream.Size);
-  if stream.Size > 0 then
-    begin
-      p := FMemory;
-      if stream.Size > ChunkSize then
-        begin
-          { Calculate number of full chunks that will fit into the buffer }
-          num := stream.Size div ChunkSize;
-          { Calculate remaining bytes }
-          Rest := stream.Size mod ChunkSize;
-
-          { Process full chunks }
-          for j := 0 to num - 1 do
-            begin
-              stream.ReadBuffer(p^, ChunkSize);
-              p := GetOffset(p, ChunkSize);
-            end;
-
-          { Process remaining bytes }
-          if Rest > 0 then
-            begin
-              stream.ReadBuffer(p^, Rest);
-              p := GetOffset(p, Rest);
-            end;
-        end
-      else
-          stream.ReadBuffer(p^, stream.Size);
-    end;
-end;
-
-procedure TZDB2_Core_Mem64.LoadFromFile(FileName: SystemString);
-var
-  stream: TCoreClassStream;
-begin
-  stream := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
-  try
-      LoadFromStream(stream);
-  finally
-      DisposeObject(stream);
-  end;
-end;
-
-procedure TZDB2_Core_Mem64.SaveToStream(stream: TCoreClassStream);
-const
-  ChunkSize = 64 * 1024 * 1024;
-var
-  p: Pointer;
-  j: NativeInt;
-  num: NativeInt;
-  Rest: NativeInt;
-begin
-  if Size > 0 then
-    begin
-      p := FMemory;
-      if Size > ChunkSize then
-        begin
-          { Calculate number of full chunks that will fit into the buffer }
-          num := Size div ChunkSize;
-          { Calculate remaining bytes }
-          Rest := Size mod ChunkSize;
-
-          { Process full chunks }
-          for j := 0 to num - 1 do
-            begin
-              stream.WriteBuffer(p^, ChunkSize);
-              p := GetOffset(p, ChunkSize);
-            end;
-
-          { Process remaining bytes }
-          if Rest > 0 then
-            begin
-              stream.WriteBuffer(p^, Rest);
-              p := GetOffset(p, Rest);
-            end;
-        end
-      else
-          stream.WriteBuffer(p^, Size);
-    end;
-end;
-
-procedure TZDB2_Core_Mem64.SaveToFile(FileName: SystemString);
-var
-  stream: TCoreClassStream;
-begin
-  stream := TCoreClassFileStream.Create(FileName, fmCreate);
-  try
-      SaveToStream(stream);
-  finally
-      DisposeObject(stream);
-  end;
-end;
-
-function TZDB2_Core_Mem64.Write64(const buffer; Count: Int64): Int64;
-var
-  p: Int64;
-begin
-  if (Count > 0) then
-    begin
-      p := FPosition;
-      p := p + Count;
-      if p > 0 then
-        begin
-          if p > FSize then
-            begin
-              if FProtectedMode then
-                begin
-                  Result := 0;
-                  exit;
-                end;
-              if p > FCapacity then
-                  SetCapacity(p);
-              FSize := p;
-            end;
-          CopyPtr(@buffer, GetOffset(FMemory, FPosition), Count);
-          FPosition := p;
-          Result := Count;
-          exit;
-        end;
-    end;
-  Result := 0;
-end;
-
-function TZDB2_Core_Mem64.WritePtr(const p: Pointer; Count: Int64): Int64;
-begin
-  Result := Write64(p^, Count);
-end;
-
-function TZDB2_Core_Mem64.Write(const buffer; Count: Int64): Int64;
-begin
-  Result := Write64(buffer, Count);
-end;
-
-function TZDB2_Core_Mem64.Read64(var buffer; Count: Int64): Int64;
-begin
-  if Count > 0 then
-    begin
-      Result := FSize;
-      Result := Result - FPosition;
-      if Result > 0 then
-        begin
-          if Result > Count then
-              Result := Count;
-          CopyPtr(GetOffset(FMemory, FPosition), @buffer, Result);
-          inc(FPosition, Result);
-          exit;
-        end;
-    end;
-  Result := 0;
-end;
-
-function TZDB2_Core_Mem64.ReadPtr(const p: Pointer; Count: Int64): Int64;
-begin
-  Result := Read64(p^, Count);
-end;
-
-function TZDB2_Core_Mem64.Read(var buffer; Count: Int64): Int64;
-begin
-  Result := Read64(buffer, Count);
-end;
-
-function TZDB2_Core_Mem64.Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
-begin
-  case origin of
-    TSeekOrigin.soBeginning: FPosition := Offset;
-    TSeekOrigin.soCurrent: inc(FPosition, Offset);
-    TSeekOrigin.soEnd: FPosition := FSize + Offset;
-  end;
-  Result := FPosition;
-end;
-
-procedure TZDB2_Core_Mem64.WriteBool(const buff: Boolean);
-begin
-  WritePtr(@buff, 1);
-end;
-
-procedure TZDB2_Core_Mem64.WriteInt8(const buff: ShortInt);
-begin
-  WritePtr(@buff, 1);
-end;
-
-procedure TZDB2_Core_Mem64.WriteInt16(const buff: SmallInt);
-begin
-  WritePtr(@buff, 2);
-end;
-
-procedure TZDB2_Core_Mem64.WriteInt32(const buff: Integer);
-begin
-  WritePtr(@buff, 4);
-end;
-
-procedure TZDB2_Core_Mem64.WriteInt64(const buff: Int64);
-begin
-  WritePtr(@buff, 8);
-end;
-
-procedure TZDB2_Core_Mem64.WriteUInt8(const buff: Byte);
-begin
-  WritePtr(@buff, 1);
-end;
-
-procedure TZDB2_Core_Mem64.WriteUInt16(const buff: Word);
-begin
-  WritePtr(@buff, 2);
-end;
-
-procedure TZDB2_Core_Mem64.WriteUInt32(const buff: Cardinal);
-begin
-  WritePtr(@buff, 4);
-end;
-
-procedure TZDB2_Core_Mem64.WriteUInt64(const buff: UInt64);
-begin
-  WritePtr(@buff, 8);
-end;
-
-procedure TZDB2_Core_Mem64.WriteSingle(const buff: Single);
-begin
-  WritePtr(@buff, 4);
-end;
-
-procedure TZDB2_Core_Mem64.WriteDouble(const buff: Double);
-begin
-  WritePtr(@buff, 8);
-end;
-
-procedure TZDB2_Core_Mem64.WriteCurrency(const buff: Currency);
-begin
-  WriteDouble(buff);
-end;
-
-procedure TZDB2_Core_Mem64.WriteString(const buff: TPascalString);
-var
-  b: TBytes;
-begin
-  b := buff.Bytes;
-  WriteUInt32(Length(b));
-  if Length(b) > 0 then
-    begin
-      WritePtr(@b[0], Length(b));
-      SetLength(b, 0);
-    end;
-end;
-
-procedure TZDB2_Core_Mem64.WriteANSI(const buff: TPascalString);
-var
-  b: TBytes;
-begin
-  b := buff.ANSI;
-  if Length(b) > 0 then
-    begin
-      WritePtr(@b[0], Length(b));
-      SetLength(b, 0);
-    end;
-end;
-
-procedure TZDB2_Core_Mem64.WriteANSI(const buff: TPascalString; const L: Integer);
-var
-  b: TBytes;
-begin
-  b := buff.ANSI;
-  if L > 0 then
-    begin
-      WritePtr(@b[0], L);
-      SetLength(b, 0);
-    end;
-end;
-
-procedure TZDB2_Core_Mem64.WriteMD5(const buff: TMD5);
-begin
-  WritePtr(@buff, 16);
-end;
-
-function TZDB2_Core_Mem64.ReadBool: Boolean;
-begin
-  ReadPtr(@Result, 1);
-end;
-
-function TZDB2_Core_Mem64.ReadInt8: ShortInt;
-begin
-  ReadPtr(@Result, 1);
-end;
-
-function TZDB2_Core_Mem64.ReadInt16: SmallInt;
-begin
-  ReadPtr(@Result, 2);
-end;
-
-function TZDB2_Core_Mem64.ReadInt32: Integer;
-begin
-  ReadPtr(@Result, 4);
-end;
-
-function TZDB2_Core_Mem64.ReadInt64: Int64;
-begin
-  ReadPtr(@Result, 8);
-end;
-
-function TZDB2_Core_Mem64.ReadUInt8: Byte;
-begin
-  ReadPtr(@Result, 1);
-end;
-
-function TZDB2_Core_Mem64.ReadUInt16: Word;
-begin
-  ReadPtr(@Result, 2);
-end;
-
-function TZDB2_Core_Mem64.ReadUInt32: Cardinal;
-begin
-  ReadPtr(@Result, 4);
-end;
-
-function TZDB2_Core_Mem64.ReadUInt64: UInt64;
-begin
-  ReadPtr(@Result, 8);
-end;
-
-function TZDB2_Core_Mem64.ReadSingle: Single;
-begin
-  ReadPtr(@Result, 4);
-end;
-
-function TZDB2_Core_Mem64.ReadDouble: Double;
-begin
-  ReadPtr(@Result, 8);
-end;
-
-function TZDB2_Core_Mem64.ReadCurrency: Currency;
-begin
-  Result := ReadDouble();
-end;
-
-function TZDB2_Core_Mem64.PrepareReadString: Boolean;
-begin
-  Result := (Position + 4 <= Size) and (Position + 4 + PCardinal(PositionAsPtr())^ <= Size);
-end;
-
-function TZDB2_Core_Mem64.ReadString: TPascalString;
-var
-  L: Cardinal;
-  b: TBytes;
-begin
-  L := ReadUInt32;
-  if L > 0 then
-    begin
-      SetLength(b, L);
-      ReadPtr(@b[0], L);
-      Result.Bytes := b;
-      SetLength(b, 0);
-    end;
-end;
-
-function TZDB2_Core_Mem64.ReadANSI(L: Integer): TPascalString;
-var
-  b: TBytes;
-begin
-  if L > 0 then
-    begin
-      SetLength(b, L);
-      ReadPtr(@b[0], L);
-      Result.ANSI := b;
-      SetLength(b, 0);
-    end;
-end;
-
-function TZDB2_Core_Mem64.ReadMD5: TMD5;
-begin
-  ReadPtr(@Result, 16);
-end;
-
-{$ENDIF ZDB2_Core_Used_Mem64}
 
 initialization
 

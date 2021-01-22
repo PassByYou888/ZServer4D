@@ -26,7 +26,7 @@ uses CoreClasses, DoStatusIO, PascalStrings, UnicodeMixedLib;
 
 type
   TCoreActionID = Integer;
-  TCoreActionString = U_String;
+  TCoreActionString = SystemString;
   TCoreActionState = (asPlaying, asPause, asStop, asOver);
   TCoreActionStates = set of TCoreActionState;
   TCoreAction = class;
@@ -40,7 +40,7 @@ type
     ID: TCoreActionID;
     Desc: TCoreActionString;
 
-    constructor Create(AOwner: TCoreActionList); virtual;
+    constructor Create(Owner_: TCoreActionList); virtual;
     destructor Destroy; override;
 
     procedure Run(); virtual;
@@ -54,12 +54,12 @@ type
 
   TCoreActionList = class(TCoreClassObject)
   protected
-    FList: TCoreClassListForObj;
-    FWorkIndex: Integer;
+    FSequenceList: TCoreClassListForObj;
+    FFocusIndex: Integer;
     FLast: TCoreAction;
   public
     Owner: TCoreActionLinear;
-    constructor Create(AOwner: TCoreActionLinear); virtual;
+    constructor Create(Owner_: TCoreActionLinear);
     destructor Destroy; override;
     procedure Clear;
     function Add(ActionClass_: TCoreActionClass): TCoreAction; overload;
@@ -74,12 +74,11 @@ type
 
   TCoreActionLinear = class(TCoreClassObject)
   protected
-    FList: TCoreClassListForObj;
-    FWorkIndex: Integer;
+    FSequenceList: TCoreClassListForObj;
+    FFocusIndex: Integer;
     FLast: TCoreActionList;
   public
-    Owner: TCoreClassObject;
-    constructor Create(AOwner: TCoreClassObject); virtual;
+    constructor Create();
     destructor Destroy; override;
     procedure Clear;
     function Add: TCoreActionList;
@@ -94,10 +93,10 @@ type
 
 implementation
 
-constructor TCoreAction.Create(AOwner: TCoreActionList);
+constructor TCoreAction.Create(Owner_: TCoreActionList);
 begin
   inherited Create;
-  Owner := AOwner;
+  Owner := Owner_;
   State := [];
   ID := 0;
   Desc := '';
@@ -136,19 +135,19 @@ begin
 
 end;
 
-constructor TCoreActionList.Create(AOwner: TCoreActionLinear);
+constructor TCoreActionList.Create(Owner_: TCoreActionLinear);
 begin
   inherited Create;
-  FList := TCoreClassListForObj.Create;
-  FWorkIndex := -1;
+  FSequenceList := TCoreClassListForObj.Create;
+  FFocusIndex := -1;
   FLast := nil;
-  Owner := AOwner;
+  Owner := Owner_;
 end;
 
 destructor TCoreActionList.Destroy;
 begin
   Clear;
-  DisposeObject(FList);
+  DisposeObject(FSequenceList);
   inherited Destroy;
 end;
 
@@ -156,27 +155,27 @@ procedure TCoreActionList.Clear;
 var
   i: Integer;
 begin
-  for i := FList.Count - 1 downto 0 do
-      DisposeObject(FList[i]);
-  FList.Clear;
+  for i := FSequenceList.Count - 1 downto 0 do
+      DisposeObject(FSequenceList[i]);
+  FSequenceList.Clear;
 end;
 
 function TCoreActionList.Add(ActionClass_: TCoreActionClass): TCoreAction;
 begin
   Result := ActionClass_.Create(Self);
-  FList.Add(Result);
+  FSequenceList.Add(Result);
 end;
 
 procedure TCoreActionList.Run();
 begin
-  if FList.Count > 0 then
+  if FSequenceList.Count > 0 then
     begin
-      FWorkIndex := 0;
-      FLast := FList[FWorkIndex] as TCoreAction;
+      FFocusIndex := 0;
+      FLast := FSequenceList[FFocusIndex] as TCoreAction;
     end
   else
     begin
-      FWorkIndex := -1;
+      FFocusIndex := -1;
       FLast := nil;
     end;
 end;
@@ -184,31 +183,31 @@ end;
 procedure TCoreActionList.Over;
 begin
   if FLast <> nil then
-      FWorkIndex := FList.Count;
+      FFocusIndex := FSequenceList.Count;
 end;
 
 procedure TCoreActionList.Stop;
 begin
   if FLast <> nil then
-      FWorkIndex := -1;
+      FFocusIndex := -1;
 end;
 
 function TCoreActionList.IsOver: Boolean;
 begin
-  Result := FWorkIndex >= FList.Count;
+  Result := FFocusIndex >= FSequenceList.Count;
 end;
 
 function TCoreActionList.IsStop: Boolean;
 begin
-  Result := FWorkIndex < 0;
+  Result := FFocusIndex < 0;
 end;
 
 procedure TCoreActionList.Progress(deltaTime: Double);
 begin
-  if (FWorkIndex < 0) or (FWorkIndex >= FList.Count) then
+  if (FFocusIndex < 0) or (FFocusIndex >= FSequenceList.Count) then
       Exit;
 
-  FLast := FList[FWorkIndex] as TCoreAction;
+  FLast := FSequenceList[FFocusIndex] as TCoreAction;
 
   if FLast.State = [] then
     begin
@@ -224,7 +223,7 @@ begin
 
   if asStop in FLast.State then
     begin
-      FWorkIndex := -1;
+      FFocusIndex := -1;
       if Owner <> nil then
           Owner.Stop;
       Exit;
@@ -232,26 +231,25 @@ begin
 
   if asOver in FLast.State then
     begin
-      inc(FWorkIndex);
-      if (FWorkIndex >= FList.Count) and (Owner <> nil) then
+      inc(FFocusIndex);
+      if (FFocusIndex >= FSequenceList.Count) and (Owner <> nil) then
           Owner.Over;
       Exit;
     end;
 end;
 
-constructor TCoreActionLinear.Create(AOwner: TCoreClassObject);
+constructor TCoreActionLinear.Create();
 begin
   inherited Create;
-  FList := TCoreClassListForObj.Create;
-  FWorkIndex := -1;
+  FSequenceList := TCoreClassListForObj.Create;
+  FFocusIndex := -1;
   FLast := nil;
-  Owner := AOwner;
 end;
 
 destructor TCoreActionLinear.Destroy;
 begin
   Clear;
-  DisposeObject(FList);
+  DisposeObject(FSequenceList);
   inherited Destroy;
 end;
 
@@ -259,29 +257,29 @@ procedure TCoreActionLinear.Clear;
 var
   i: Integer;
 begin
-  for i := FList.Count - 1 downto 0 do
-      DisposeObject(FList[i]);
-  FList.Clear;
-  FWorkIndex := -1;
+  for i := FSequenceList.Count - 1 downto 0 do
+      DisposeObject(FSequenceList[i]);
+  FSequenceList.Clear;
+  FFocusIndex := -1;
   FLast := nil;
 end;
 
 function TCoreActionLinear.Add: TCoreActionList;
 begin
   Result := TCoreActionList.Create(Self);
-  FList.Add(Result);
+  FSequenceList.Add(Result);
 end;
 
 procedure TCoreActionLinear.Run;
 begin
-  if FList.Count > 0 then
+  if FSequenceList.Count > 0 then
     begin
-      FWorkIndex := 0;
-      FLast := FList[FWorkIndex] as TCoreActionList;
+      FFocusIndex := 0;
+      FLast := FSequenceList[FFocusIndex] as TCoreActionList;
     end
   else
     begin
-      FWorkIndex := -1;
+      FFocusIndex := -1;
       FLast := nil;
     end;
 end;
@@ -293,10 +291,10 @@ end;
 
 procedure TCoreActionLinear.Over;
 begin
-  inc(FWorkIndex);
-  if FWorkIndex < FList.Count then
+  inc(FFocusIndex);
+  if FFocusIndex < FSequenceList.Count then
     begin
-      FLast := FList[FWorkIndex] as TCoreActionList;
+      FLast := FSequenceList[FFocusIndex] as TCoreActionList;
     end
   else
     begin

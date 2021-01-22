@@ -353,24 +353,29 @@ type
     class function GetParallelGranularity(): Integer;
     class function GetMaxActivtedParallel(): Integer;
 
-    // build-in synchronization
+    // build-in synchronization Proc
     class procedure Sync(const OnRun_: TRunWithThreadProc_NP); overload;
     class procedure Sync(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP); overload;
+    // build-in synchronization call
     class procedure SyncC(OnRun_: TRunWithThreadCall_NP); overload;
     class procedure SyncC(const Thread_: TThread; OnRun_: TRunWithThreadCall_NP); overload;
+    // build-in synchronization method
     class procedure SyncM(OnRun_: TRunWithThreadMethod_NP); overload;
     class procedure SyncM(const Thread_: TThread; OnRun_: TRunWithThreadMethod_NP); overload;
+    // build-in synchronization Proc
     class procedure SyncP(const OnRun_: TRunWithThreadProc_NP); overload;
     class procedure SyncP(const Thread_: TThread; OnRun_: TRunWithThreadProc_NP); overload;
-    // build-in asynchronous
+    // build-in asynchronous call
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadCall); overload;
     class procedure RunC(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadCall); overload;
     class procedure RunC(const OnRun: TRunWithThreadCall); overload;
     class procedure RunC_NP(const OnRun: TRunWithThreadCall_NP); overload;
+    // build-in asynchronous methoc
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadMethod); overload;
     class procedure RunM(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadMethod); overload;
     class procedure RunM(const OnRun: TRunWithThreadMethod); overload;
     class procedure RunM_NP(const OnRun: TRunWithThreadMethod_NP); overload;
+    // build-in asynchronous proc
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun, OnDone: TRunWithThreadProc); overload;
     class procedure RunP(const Data: Pointer; const Obj: TCoreClassObject; const OnRun: TRunWithThreadProc); overload;
     class procedure RunP(const OnRun: TRunWithThreadProc); overload;
@@ -378,17 +383,17 @@ type
 
     // main thread
     class procedure ProgressPost();
-    // post to main thread
+    // post to main thread call
     class procedure PostC1(OnSync: TThreadProgressPostCall1);
     class procedure PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
     class procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
     class procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
-
+    // post to main thread method
     class procedure PostM1(OnSync: TThreadProgressPostMethod1);
     class procedure PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
     class procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
     class procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
-
+    // post to main thread proc
     class procedure PostP1(OnSync: TThreadProgressPostProc1);
     class procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
     class procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);

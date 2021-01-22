@@ -40,9 +40,10 @@ type
     LastPeerIP: SystemString;
     Sending: Boolean;
     SendBuffQueue: TCoreClassListForObj;
-    CurrentBuff: TMemoryStream64;
-    LastSendingBuff: TMemoryStream64;
+    CurrentBuff: TMem64;
+    LastSendingBuff: TMem64;
     OnSendBackcall: TProc<ICrossConnection, Boolean>;
+    FSendCritical: TCritical;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -68,6 +69,7 @@ type
     FStartedService: Boolean;
     FBindHost: SystemString;
     FBindPort: Word;
+    FMaxConnection: Integer;
   protected
     procedure DoAccept(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
     procedure DoConnected(Sender: TObject; AConnection: ICrossConnection);
@@ -93,6 +95,7 @@ type
     property driver: TDriverEngine read FDriver;
     property BindPort: Word read FBindPort;
     property BindHost: SystemString read FBindHost;
+    property MaxConnection: Integer read FMaxConnection write FMaxConnection;
   end;
 
 implementation
@@ -103,9 +106,10 @@ begin
   LastPeerIP := '';
   Sending := False;
   SendBuffQueue := TCoreClassListForObj.Create;
-  CurrentBuff := TMemoryStream64.Create;
+  CurrentBuff := TMem64.Create;
   LastSendingBuff := nil;
   OnSendBackcall := nil;
+  FSendCritical := TCritical.Create;
 end;
 
 destructor TCrossSocketServer_PeerIO.Destroy;
@@ -135,6 +139,7 @@ begin
 
   DisposeObject(CurrentBuff);
   DisposeObject(SendBuffQueue);
+  FSendCritical.Free;
 
   inherited Destroy;
 end;
@@ -168,10 +173,13 @@ end;
 
 procedure TCrossSocketServer_PeerIO.SendBuffResult(ASuccess: Boolean);
 begin
-  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+  TCompute.SyncP(procedure
+    var
+      num: Integer;
     begin
-      DisposeObject(LastSendingBuff);
-      LastSendingBuff := nil;
+      FSendCritical.Lock;
+      DisposeObjectAndNil(LastSendingBuff);
+      FSendCritical.UnLock;
 
       if (not ASuccess) then
         begin
@@ -184,21 +192,34 @@ begin
         begin
           try
             UpdateLastCommunicationTime;
-            if SendBuffQueue.Count > 0 then
+            FSendCritical.Lock;
+            num := SendBuffQueue.Count;
+            FSendCritical.UnLock;
+
+            if num > 0 then
               begin
+                FSendCritical.Lock;
                 // 将发送队列拾取出来
-                LastSendingBuff := TMemoryStream64(SendBuffQueue[0]);
+                LastSendingBuff := TMem64(SendBuffQueue[0]);
                 // 删除队列，下次回调时后置式释放
                 SendBuffQueue.Delete(0);
 
                 if Context <> nil then
-                    Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall)
+                  begin
+                    Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall);
+                    FSendCritical.UnLock;
+                  end
                 else
+                  begin
+                    FSendCritical.UnLock;
                     SendBuffResult(False);
+                  end;
               end
             else
               begin
+                FSendCritical.Lock;
                 Sending := False;
+                FSendCritical.UnLock;
               end;
           except
               DelayClose();
@@ -216,7 +237,12 @@ begin
   // 避免大量零碎数据消耗流量资源，碎片收集
   // 在flush中实现精确异步发送和校验
   if Size > 0 then
+    begin
+      FSendCritical.Lock;
+      CurrentBuff.Position := CurrentBuff.Size;
       CurrentBuff.write(Pointer(buff)^, Size);
+      FSendCritical.UnLock;
+    end;
 end;
 
 procedure TCrossSocketServer_PeerIO.WriteBufferOpen;
@@ -228,24 +254,27 @@ begin
   if not Connected then
       exit;
 
+  if CurrentBuff.Size = 0 then
+      exit;
+
+  FSendCritical.Lock;
   if Sending then
     begin
-      if CurrentBuff.Size = 0 then
-          exit;
-
       SendBuffQueue.Add(CurrentBuff);
-      CurrentBuff := TMemoryStream64.Create;
+      CurrentBuff := TMem64.Create;
     end
   else
     begin
-      Sending := True;
-      LastSendingBuff := CurrentBuff;
-      try
-          Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall);
-      except
-      end;
-      CurrentBuff := TMemoryStream64.Create;
+      if SendBuffQueue.Count = 0 then
+          DisposeObjectAndNil(LastSendingBuff);
+
+      SendBuffQueue.Add(CurrentBuff);
+      CurrentBuff := TMem64.Create;
+      LastSendingBuff := TMem64(SendBuffQueue[0]);
+      SendBuffQueue.Delete(0);
+      Context.SendBuf(LastSendingBuff.Memory, LastSendingBuff.Size, OnSendBackcall);
     end;
+  FSendCritical.UnLock;
 end;
 
 procedure TCrossSocketServer_PeerIO.WriteBufferClose;
@@ -266,23 +295,26 @@ end;
 
 function TCrossSocketServer_PeerIO.WriteBufferEmpty: Boolean;
 begin
-  Result := not Sending;
+  FSendCritical.Lock;
+  Result := (not Sending) and (SendBuffQueue.Count = 0);
+  FSendCritical.UnLock;
 end;
 
 procedure TCrossSocketServer_PeerIO.Progress;
 begin
   inherited Progress;
+
   ProcessAllSendCmd(nil, False, False);
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoAccept(Sender: TObject; AListen: ICrossListen; var Accept: Boolean);
 begin
-  Accept := Count < 20000;
+  Accept := Count < FMaxConnection;
 end;
 
 procedure TCommunicationFramework_Server_CrossSocket.DoConnected(Sender: TObject; AConnection: ICrossConnection);
 begin
-  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+  TCompute.SyncP(procedure
     var
       p_io: TCrossSocketServer_PeerIO;
     begin
@@ -296,7 +328,7 @@ procedure TCommunicationFramework_Server_CrossSocket.DoDisconnect(Sender: TObjec
 begin
   if AConnection.UserObject is TCrossSocketServer_PeerIO then
     begin
-      TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+      TCompute.SyncP(procedure
         var
           p_io: TCrossSocketServer_PeerIO;
         begin
@@ -319,7 +351,7 @@ begin
   if ALen <= 0 then
       exit;
 
-  TCoreClassThread.Synchronize(TCoreClassThread.CurrentThread, procedure
+  TCompute.SyncP(procedure
     var
       p_io: TCrossSocketServer_PeerIO;
     begin
@@ -371,6 +403,7 @@ begin
   FStartedService := False;
   FBindPort := 0;
   FBindHost := '';
+  FMaxConnection := 20000;
 end;
 
 destructor TCommunicationFramework_Server_CrossSocket.Destroy;

@@ -1203,6 +1203,9 @@ begin
   FSendTunnel := SendTunnel_;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel_VirtualAuth;
 
+  FRecvTunnel.DoubleChannelFramework := Self;
+  FSendTunnel.DoubleChannelFramework := Self;
+
   FLoginUserDefineIOList := THashObjectList.CustomCreate(False, 8192);
 
   FCadencerEngine := TCadencer.Create;
@@ -1976,6 +1979,9 @@ begin
   FSendTunnel := SendTunnel_;
   FSendTunnel.NotyifyInterface := Self;
   FSendTunnel.PeerClientUserDefineClass := TClientUserDefineForSendTunnel_VirtualAuth;
+
+  FRecvTunnel.DoubleChannelFramework := Self;
+  FSendTunnel.DoubleChannelFramework := Self;
 
   FLinkOk := False;
   FWaitCommandTimeout := 5000;

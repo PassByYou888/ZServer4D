@@ -1056,6 +1056,9 @@ begin
   FSendTunnel := SendTunnel_;
   FSendTunnel.PeerClientUserDefineClass := TPeerClientUserDefineForSendTunnel_NoAuth;
 
+  FRecvTunnel.DoubleChannelFramework := Self;
+  FSendTunnel.DoubleChannelFramework := Self;
+
   FCadencerEngine := TCadencer.Create;
   FCadencerEngine.OnProgress := {$IFDEF FPC}@{$ENDIF FPC}CadencerProgress;
   FProgressEngine := TNProgressPost.Create;
@@ -1777,6 +1780,9 @@ begin
   FSendTunnel := SendTunnel_;
   FSendTunnel.NotyifyInterface := Self;
   FSendTunnel.PeerClientUserDefineClass := TClientUserDefineForSendTunnel_NoAuth;
+
+  FRecvTunnel.DoubleChannelFramework := Self;
+  FSendTunnel.DoubleChannelFramework := Self;
 
   FLinkOk := False;
   FWaitCommandTimeout := 5000;
