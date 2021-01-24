@@ -239,7 +239,9 @@ var
   d: UInt64;
 begin
   d := ($ABCDEF1234567890);
+  myClient.BeginWriteBuffer;
   myClient.WriteBuffer(@d, SizeOf(d));
+  myClient.EndWriteBuffer;
 end;
 
 end.
