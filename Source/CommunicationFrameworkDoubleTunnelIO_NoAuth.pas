@@ -136,6 +136,7 @@ type
     property PostExecute: TNProgressPost read FProgressEngine;
 
     property FileReceiveDirectory: SystemString read FFileReceiveDirectory write FFileReceiveDirectory;
+    property PublicFileDirectory: SystemString read FFileReceiveDirectory write FFileReceiveDirectory;
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
@@ -336,6 +337,11 @@ type
     procedure GetFileFragmentDataP(fileName: SystemString; StartPos, EndPos: Int64;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileFragmentDataProc_NoAuth); overload;
 
+    { automated download and verify }
+    procedure AutomatedDownloadFileC(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteCall_NoAuth);
+    procedure AutomatedDownloadFileM(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteMethod_NoAuth);
+    procedure AutomatedDownloadFileP(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteProc_NoAuth);
+
     { Uploading local files asynchronously }
     procedure PostFile(fileName: SystemString); overload;
     { restore Uploading local files asynchronously }
@@ -344,6 +350,9 @@ type
     procedure PostFile(fn: SystemString; stream: TCoreClassStream; doneFreeStream: Boolean); overload;
     { restore Upload an Stream asynchronously and automatically release Stream after completion }
     procedure PostFile(fn: SystemString; stream: TCoreClassStream; StartPos: Int64; doneFreeStream: Boolean); overload;
+
+    { automated Upload and verify }
+    procedure AutomatedUploadFile(localFile: U_String);
 
     { batch stream suppport }
     procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean); overload;
@@ -423,9 +432,171 @@ type
     OnCompleteProc: TFileFragmentDataProc_NoAuth;
   end;
 
+  TAutomatedDownloadFile_Struct_NoAuth = class
+  private
+    remoteFile, localFile: SystemString;
+    OnDownloadDoneC: TFileCompleteCall_NoAuth;
+    OnDownloadDoneM: TFileCompleteMethod_NoAuth;
+    OnDownloadDoneP: TFileCompleteProc_NoAuth;
+    Client: TCommunicationFramework_DoubleTunnelClient_NoAuth;
+    r_fileName: SystemString;
+    r_fileExisted: Boolean;
+    r_fileSize: Int64;
+    r_fileMD5: UnicodeMixedLib.TMD5;
+    l_fileMD5: UnicodeMixedLib.TMD5;
+    procedure DoComplete(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
+    procedure DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+    procedure DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  TAutomatedUploadFile_Struct_NoAuth = class
+  private
+    localFile: SystemString;
+    Client: TCommunicationFramework_DoubleTunnelClient_NoAuth;
+    r_fileName: SystemString;
+    r_fileExisted: Boolean;
+    r_fileSize: Int64;
+    r_fileMD5: UnicodeMixedLib.TMD5;
+    procedure DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+    procedure DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
 implementation
 
 uses SysUtils;
+
+procedure TAutomatedDownloadFile_Struct_NoAuth.DoComplete(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
+begin
+  try
+    if Assigned(OnDownloadDoneC) then
+        OnDownloadDoneC(UserData, UserObject, stream, fileName);
+    if Assigned(OnDownloadDoneM) then
+        OnDownloadDoneM(UserData, UserObject, stream, fileName);
+    if Assigned(OnDownloadDoneP) then
+        OnDownloadDoneP(UserData, UserObject, stream, fileName);
+  except
+  end;
+  Free;
+end;
+
+procedure TAutomatedDownloadFile_Struct_NoAuth.DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+begin
+  r_fileExisted := Existed;
+
+  if Existed then
+    begin
+      r_fileName := fileName;
+      r_fileSize := fSiz;
+      if not umlFileExists(localFile) then
+          Client.GetFileAsM(remoteFile, umlGetFileName(localFile), 0, umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete)
+      else if fSiz >= umlGetFileSize(localFile) then
+          Client.GetFileMD5M(umlGetFileName(remoteFile), 0, umlGetFileSize(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoResult_GetFileMD5)
+      else
+          Client.GetFileAsM(remoteFile, umlGetFileName(localFile), 0, umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete);
+    end
+  else
+    begin
+      DoStatus('no found remote file: "%s" ', [remoteFile]);
+      Free;
+    end;
+end;
+
+procedure TAutomatedDownloadFile_Struct_NoAuth.DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+begin
+  r_fileMD5 := MD5;
+  l_fileMD5 := umlFileMD5(localFile);
+  if umlMD5Compare(l_fileMD5, MD5) then
+    begin
+      if r_fileSize = umlGetFileSize(localFile) then
+          DoComplete(nil, nil, nil, localFile)
+      else
+          Client.GetFileAsM(fileName, umlGetFileName(localFile), umlGetFileSize(localFile), umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete);
+    end
+  else
+      Client.GetFileAsM(fileName, umlGetFileName(localFile), 0, umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete);
+end;
+
+constructor TAutomatedDownloadFile_Struct_NoAuth.Create;
+begin
+  inherited Create;
+  remoteFile := '';
+  localFile := '';
+  OnDownloadDoneC := nil;
+  OnDownloadDoneM := nil;
+  OnDownloadDoneP := nil;
+  Client := nil;
+  r_fileName := '';
+  r_fileExisted := False;
+  r_fileSize := -1;
+  r_fileMD5 := NullMD5;
+  l_fileMD5 := NullMD5;
+end;
+
+destructor TAutomatedDownloadFile_Struct_NoAuth.Destroy;
+begin
+  remoteFile := '';
+  localFile := '';
+  r_fileName := '';
+  inherited Destroy;
+end;
+
+procedure TAutomatedUploadFile_Struct_NoAuth.DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+begin
+  r_fileExisted := Existed;
+
+  if Existed then
+    begin
+      r_fileName := fileName;
+      r_fileSize := fSiz;
+      if r_fileSize <= umlGetFileSize(localFile) then
+          Client.GetFileMD5P(umlGetFileName(localFile), 0, r_fileSize, nil, nil, DoResult_GetFileMD5)
+      else
+          Client.PostFile(localFile);
+    end
+  else
+      Client.PostFile(localFile);
+end;
+
+procedure TAutomatedUploadFile_Struct_NoAuth.DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+begin
+  r_fileMD5 := MD5;
+  if umlMD5Compare(r_fileMD5, umlFileMD5(localFile, 0, r_fileSize)) then
+    begin
+      if umlGetFileSize(localFile) > r_fileSize then
+          Client.PostFile(fileName, r_fileSize);
+    end
+  else
+      Client.PostFile(localFile);
+  Free;
+end;
+
+constructor TAutomatedUploadFile_Struct_NoAuth.Create;
+begin
+  inherited Create;
+  localFile := '';
+  Client := nil;
+  r_fileName := '';
+  r_fileExisted := False;
+  r_fileSize := -1;
+  r_fileMD5 := NullMD5;
+end;
+
+destructor TAutomatedUploadFile_Struct_NoAuth.Destroy;
+begin
+  localFile := '';
+  r_fileName := '';
+  inherited Destroy;
+end;
 
 constructor TPeerClientUserDefineForSendTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
@@ -633,7 +804,7 @@ begin
       EndPos := fs.Size;
 
   if (EndPos = StartPos) or (EndPos = 0) then
-      MD5 := umlStreamMD5(fs)
+      MD5 := umlFileMD5(fullfn)
   else
       MD5 := umlStreamMD5(fs, StartPos, EndPos);
 
@@ -683,7 +854,7 @@ begin
   UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_FileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fullfn);
 
   fs.Position := 0;
   UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
@@ -740,7 +911,7 @@ begin
   UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_FileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fullfn);
 
   fs.Position := 0;
   UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
@@ -2647,6 +2818,45 @@ begin
   DisposeObject(sendDE);
 end;
 
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.AutomatedDownloadFileC(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteCall_NoAuth);
+var
+  tmp: TAutomatedDownloadFile_Struct_NoAuth;
+begin
+  tmp := TAutomatedDownloadFile_Struct_NoAuth.Create;
+  tmp.remoteFile := remoteFile;
+  tmp.localFile := localFile;
+  tmp.OnDownloadDoneC := OnDownloadDone;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(remoteFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.AutomatedDownloadFileM(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteMethod_NoAuth);
+var
+  tmp: TAutomatedDownloadFile_Struct_NoAuth;
+begin
+  tmp := TAutomatedDownloadFile_Struct_NoAuth.Create;
+  tmp.remoteFile := remoteFile;
+  tmp.localFile := localFile;
+  tmp.OnDownloadDoneM := OnDownloadDone;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(remoteFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.AutomatedDownloadFileP(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteProc_NoAuth);
+var
+  tmp: TAutomatedDownloadFile_Struct_NoAuth;
+begin
+  tmp := TAutomatedDownloadFile_Struct_NoAuth.Create;
+  tmp.remoteFile := remoteFile;
+  tmp.localFile := localFile;
+  tmp.OnDownloadDoneP := OnDownloadDone;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(remoteFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
+end;
+
 procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.PostFile(fileName: SystemString);
 var
   sendDE: TDataFrameEngine;
@@ -2669,7 +2879,7 @@ begin
   FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fileName);
 
   fs.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, fs, True);
@@ -2702,7 +2912,7 @@ begin
   FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fileName);
 
   fs.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, fs, StartPos, True);
@@ -2771,6 +2981,17 @@ begin
   sendDE.WriteMD5(MD5);
   FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.AutomatedUploadFile(localFile: U_String);
+var
+  tmp: TAutomatedUploadFile_Struct_NoAuth;
+begin
+  tmp := TAutomatedUploadFile_Struct_NoAuth.Create;
+  tmp.localFile := localFile;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_NoAuth.PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean);

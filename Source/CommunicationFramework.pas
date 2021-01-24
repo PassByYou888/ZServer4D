@@ -2219,6 +2219,7 @@ function CompareIPV4(const IP1, IP2: TIPV4): Boolean;
 function CompareIPV6(const IP1, IP2: TIPV6): Boolean;
 
 function TranslateBindAddr(addr: SystemString): SystemString;
+procedure ExtractHostAddress(var Host: U_String; var Port: Word);
 
 procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 procedure DoExecuteResult(c: TPeerIO; const QueuePtr: PQueueData; const AResultText: SystemString; AResultDF: TDataFrameEngine);
@@ -2328,6 +2329,9 @@ var
   C_GetPublicFile: SystemString = '__@GetPublicFile';
   C_GetPrivateFile: SystemString = '__@GetPrivateFile';
   C_GetUserPrivateFile: SystemString = '__@GetUserPrivateFile';
+  C_GetPublicFileAs: SystemString = '__@GetPublicFileAs';
+  C_GetPrivateFileAs: SystemString = '__@GetPrivateFileAs';
+  C_GetUserPrivateFileAs: SystemString = '__@GetUserPrivateFileAs';
   C_PostPublicFileInfo: SystemString = '__@PostPublicFileInfo';
   C_PostPrivateFileInfo: SystemString = '__@PostPrivateFileInfo';
   C_GetCurrentCadencer: SystemString = '__@GetCurrentCadencer';
@@ -2857,6 +2861,15 @@ begin
       Result := PFormat('Custom IPv6(%s)', [addr])
   else
       Result := addr;
+end;
+
+procedure ExtractHostAddress(var Host: U_String; var Port: Word);
+begin
+  if Host.Exists(':') then
+    begin
+      Port := umlStrToInt(umlGetLastStr(Host, ':'), Port);
+      Host := umlDeleteLastStr(Host, ':');
+    end;
 end;
 
 procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
@@ -6668,7 +6681,9 @@ end;
 procedure TPeerIO.PostQueueData(p: PQueueData);
 begin
   FOwnerFramework.CmdSendStatistics.IncValue(p^.Cmd, 1);
+  LockIO;
   FQueueList.Add(p);
+  UnLockIO;
 end;
 
 procedure TPeerIO.BeginWriteCustomBuffer;
@@ -7509,7 +7524,7 @@ begin
   if Sender.FP2PVMTunnel <> nil then
       exit;
 
-  Accept := True;
+  Accept := False;
   p2pVMTunnelAuth(Sender, InData, Accept);
   if not Accept then
       exit;
@@ -7641,7 +7656,7 @@ begin
   P_IO := TPeerIO(FPeerIO_HashPool[IO_ID]);
   if P_IO = nil then
     begin
-      Print('AutomatedP2PVMClient_Request request fialed: loss IO');
+      Error('AutomatedP2PVMClient_Request request fialed: loss IO');
       exit;
     end;
   if P_IO.OwnerFramework <> Self then
@@ -7653,13 +7668,13 @@ begin
   if FAutomatedP2PVMClient and (FAutomatedP2PVMClientBind.Count > 0) then
       P_IO.BuildP2PAuthTokenIO_M({$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_BuildP2PAuthTokenResult)
   else
-      Print('AutomatedP2PVMClient is false, on do AutomatedP2PVMClient_Request dont work.');
+      Error('AutomatedP2PVMClient is false, on do AutomatedP2PVMClient_Request dont work.');
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVMClient_BuildP2PAuthTokenResult(P_IO: TPeerIO);
 begin
   if P_IO <> nil then
-      P_IO.OpenP2PVMTunnelIO_M(True, FAutomatedP2PVMAuthToken, {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_OpenP2PVMTunnelResult);
+      P_IO.OpenP2PVMTunnelIO_M(True, GenerateQuantumCryptographyPassword(FAutomatedP2PVMAuthToken), {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_OpenP2PVMTunnelResult);
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVMClient_OpenP2PVMTunnelResult(P_IO: TPeerIO; VMauthState: Boolean);
@@ -7669,7 +7684,9 @@ var
 begin
   if not VMauthState then
     begin
-      Print('Automated P2PVM Auth failed!');
+      Error('Automated P2PVM Auth failed!');
+      if P_IO <> nil then
+          P_IO.DelayClose(1.0);
       exit;
     end;
 
@@ -7695,7 +7712,7 @@ var
 begin
   if not FPeerIO_HashPool.ExistsObject(Param2) then
     begin
-      Print('Automated P2PVM IO failed.');
+      Error('Automated P2PVM IO failed.');
       exit;
     end;
 
@@ -7908,8 +7925,8 @@ procedure TCommunicationFramework.p2pVMTunnelAuth(Sender: TPeerIO; const Token: 
 begin
   if FVMInterface <> nil then
       FVMInterface.p2pVMTunnelAuth(Sender, Token, Accept);
-  if (not Accept) and (FAutomatedP2PVMService) and (FAutomatedP2PVMServiceBind.Count > 0) then
-      Accept := SameText(FAutomatedP2PVMAuthToken, Token);
+  if (FAutomatedP2PVMService) and (FAutomatedP2PVMServiceBind.Count > 0) then
+      Accept := CompareQuantumCryptographyPassword(FAutomatedP2PVMAuthToken, Token);
 end;
 
 procedure TCommunicationFramework.p2pVMTunnelOpenBefore(Sender: TPeerIO; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);

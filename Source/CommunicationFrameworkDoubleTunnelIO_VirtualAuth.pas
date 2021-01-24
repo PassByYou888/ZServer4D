@@ -113,6 +113,7 @@ type
     procedure Command_GetFileInfo(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_GetFileMD5(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_GetFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
     procedure Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
@@ -161,6 +162,7 @@ type
     property PostExecute: TNProgressPost read FProgressEngine;
 
     property FileReceiveDirectory: SystemString read FFileReceiveDirectory write FFileReceiveDirectory;
+    property PublicFileDirectory: SystemString read FFileReceiveDirectory write FFileReceiveDirectory;
 
     property RecvTunnel: TCommunicationFrameworkServer read FRecvTunnel;
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
@@ -353,6 +355,9 @@ type
     procedure GetFileC(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_VirtualAuth); overload;
     procedure GetFileM(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_VirtualAuth); overload;
     procedure GetFileP(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_VirtualAuth); overload;
+    procedure GetFileAsC(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_VirtualAuth); overload;
+    procedure GetFileAsM(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_VirtualAuth); overload;
+    procedure GetFileAsP(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_VirtualAuth); overload;
     { Synchronously waiting to restore download files from the server to complete }
     function GetFile(fileName: SystemString; StartPos: Int64; saveToPath: SystemString): Boolean; overload;
 
@@ -364,6 +369,11 @@ type
     procedure GetFileFragmentDataP(fileName: SystemString; StartPos, EndPos: Int64;
       const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileFragmentDataProc_VirtualAuth); overload;
 
+    { automated download and verify }
+    procedure AutomatedDownloadFileC(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteCall_VirtualAuth);
+    procedure AutomatedDownloadFileM(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteMethod_VirtualAuth);
+    procedure AutomatedDownloadFileP(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteProc_VirtualAuth);
+
     { Uploading local files asynchronously }
     procedure PostFile(fileName: SystemString); overload;
     { restore Uploading local files asynchronously }
@@ -372,6 +382,9 @@ type
     procedure PostFile(fn: SystemString; stream: TCoreClassStream; doneFreeStream: Boolean); overload;
     { restore Upload an Stream asynchronously and automatically release Stream after completion }
     procedure PostFile(fn: SystemString; stream: TCoreClassStream; StartPos: Int64; doneFreeStream: Boolean); overload;
+
+    { automated Upload and verify }
+    procedure AutomatedUploadFile(localFile: U_String);
 
     { batch stream suppport }
     procedure PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean); overload;
@@ -451,9 +464,169 @@ type
     OnCompleteProc: TFileFragmentDataProc_VirtualAuth;
   end;
 
+  TAutomatedDownloadFile_Struct_VirtualAuth = class
+  private
+    remoteFile, localFile: SystemString;
+    OnDownloadDoneC: TFileCompleteCall_VirtualAuth;
+    OnDownloadDoneM: TFileCompleteMethod_VirtualAuth;
+    OnDownloadDoneP: TFileCompleteProc_VirtualAuth;
+    Client: TCommunicationFramework_DoubleTunnelClient_VirtualAuth;
+    r_fileName: SystemString;
+    r_fileExisted: Boolean;
+    r_fileSize: Int64;
+    r_fileMD5: UnicodeMixedLib.TMD5;
+    l_fileMD5: UnicodeMixedLib.TMD5;
+    procedure DoComplete(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
+    procedure DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+    procedure DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  TAutomatedUploadFile_Struct_VirtualAuth = class
+  private
+    localFile: SystemString;
+    Client: TCommunicationFramework_DoubleTunnelClient_VirtualAuth;
+    r_fileName: SystemString;
+    r_fileExisted: Boolean;
+    r_fileSize: Int64;
+    r_fileMD5: UnicodeMixedLib.TMD5;
+    procedure DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+    procedure DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject; const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
 implementation
 
 uses SysUtils;
+
+procedure TAutomatedDownloadFile_Struct_VirtualAuth.DoComplete(const UserData: Pointer; const UserObject: TCoreClassObject; stream: TCoreClassStream; const fileName: SystemString);
+begin
+  try
+    if Assigned(OnDownloadDoneC) then
+        OnDownloadDoneC(UserData, UserObject, stream, fileName);
+    if Assigned(OnDownloadDoneM) then
+        OnDownloadDoneM(UserData, UserObject, stream, fileName);
+    if Assigned(OnDownloadDoneP) then
+        OnDownloadDoneP(UserData, UserObject, stream, fileName);
+  except
+  end;
+  Free;
+end;
+
+procedure TAutomatedDownloadFile_Struct_VirtualAuth.DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+begin
+  if Existed then
+    begin
+      r_fileName := fileName;
+      r_fileSize := fSiz;
+      if not umlFileExists(localFile) then
+          Client.GetFileAsM(remoteFile, umlGetFileName(localFile), 0, umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete)
+      else if fSiz >= umlGetFileSize(localFile) then
+          Client.GetFileMD5M(umlGetFileName(remoteFile), 0, umlGetFileSize(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoResult_GetFileMD5)
+      else
+          Client.GetFileAsM(remoteFile, umlGetFileName(localFile), 0, umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete);
+    end
+  else
+    begin
+      DoStatus('no found remote file: "%s" ', [remoteFile]);
+      Free;
+    end;
+end;
+
+procedure TAutomatedDownloadFile_Struct_VirtualAuth.DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+begin
+  r_fileMD5 := MD5;
+  l_fileMD5 := umlFileMD5(localFile);
+  if umlMD5Compare(l_fileMD5, MD5) then
+    begin
+      if r_fileSize = umlGetFileSize(localFile) then
+          DoComplete(nil, nil, nil, localFile)
+      else
+          Client.GetFileAsM(fileName, umlGetFileName(localFile), umlGetFileSize(localFile), umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete);
+    end
+  else
+      Client.GetFileAsM(fileName, umlGetFileName(localFile), 0, umlGetFilePath(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoComplete);
+end;
+
+constructor TAutomatedDownloadFile_Struct_VirtualAuth.Create;
+begin
+  inherited Create;
+  remoteFile := '';
+  localFile := '';
+  OnDownloadDoneC := nil;
+  OnDownloadDoneM := nil;
+  OnDownloadDoneP := nil;
+  Client := nil;
+  r_fileName := '';
+  r_fileExisted := False;
+  r_fileSize := -1;
+  r_fileMD5 := NullMD5;
+  l_fileMD5 := NullMD5;
+end;
+
+destructor TAutomatedDownloadFile_Struct_VirtualAuth.Destroy;
+begin
+  remoteFile := '';
+  localFile := '';
+  r_fileName := '';
+  inherited Destroy;
+end;
+
+procedure TAutomatedUploadFile_Struct_VirtualAuth.DoResult_GetFileInfo(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const Existed: Boolean; const fSiz: Int64);
+begin
+  r_fileExisted := Existed;
+
+  if Existed then
+    begin
+      r_fileName := fileName;
+      r_fileSize := fSiz;
+      if r_fileSize <= umlGetFileSize(localFile) then
+          Client.GetFileMD5P(umlGetFileName(localFile), 0, r_fileSize, nil, nil, DoResult_GetFileMD5)
+      else
+          Client.PostFile(localFile);
+    end
+  else
+      Client.PostFile(localFile);
+end;
+
+procedure TAutomatedUploadFile_Struct_VirtualAuth.DoResult_GetFileMD5(const UserData: Pointer; const UserObject: TCoreClassObject;
+  const fileName: SystemString; const StartPos, EndPos: Int64; const MD5: UnicodeMixedLib.TMD5);
+begin
+  r_fileMD5 := MD5;
+  if umlMD5Compare(r_fileMD5, umlFileMD5(localFile, 0, r_fileSize)) then
+    begin
+      if umlGetFileSize(localFile) > r_fileSize then
+          Client.PostFile(fileName, r_fileSize);
+    end
+  else
+      Client.PostFile(localFile);
+  Free;
+end;
+
+constructor TAutomatedUploadFile_Struct_VirtualAuth.Create;
+begin
+  inherited Create;
+  localFile := '';
+  Client := nil;
+  r_fileName := '';
+  r_fileExisted := False;
+  r_fileSize := -1;
+  r_fileMD5 := NullMD5;
+end;
+
+destructor TAutomatedUploadFile_Struct_VirtualAuth.Destroy;
+begin
+  localFile := '';
+  r_fileName := '';
+  inherited Destroy;
+end;
 
 function TVirtualAuthIO.Online: Boolean;
 begin
@@ -837,7 +1010,7 @@ begin
       EndPos := fs.Size;
 
   if (EndPos = StartPos) or (EndPos = 0) then
-      MD5 := umlStreamMD5(fs)
+      MD5 := umlFileMD5(fullfn)
   else
       MD5 := umlStreamMD5(fs, StartPos, EndPos);
 
@@ -887,7 +1060,64 @@ begin
   UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_FileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fullfn);
+
+  fs.Position := 0;
+  UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
+
+  sendDE := TDataFrameEngine.Create;
+  sendDE.WriteMD5(MD5);
+  sendDE.WritePointer(RemoteBackcallAddr);
+  UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_PostFileOver, sendDE);
+  DisposeObject(sendDE);
+
+  OutData.WriteBool(True);
+  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+end;
+
+procedure TCommunicationFramework_DoubleTunnelService_VirtualAuth.Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+var
+  UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+  fullfn, fileName, saveFileName, remoteinfo: SystemString;
+  StartPos: Int64;
+  RemoteBackcallAddr: UInt64;
+  sendDE: TDataFrameEngine;
+  fs: TCoreClassFileStream;
+  MD5: TMD5;
+begin
+  UserDefineIO := GetUserDefineRecvTunnel(Sender);
+  if not UserDefineIO.LinkOk then
+      exit;
+
+  fileName := InData.Reader.ReadString;
+  saveFileName := InData.Reader.ReadString;
+  StartPos := InData.Reader.ReadInt64;
+  remoteinfo := InData.Reader.ReadString;
+  RemoteBackcallAddr := InData.Reader.ReadPointer;
+
+  fullfn := umlCombineFileName(FFileReceiveDirectory, fileName);
+  if not umlFileExists(fullfn) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      exit;
+    end;
+
+  try
+      fs := TCoreClassFileStream.Create(fullfn, fmOpenRead or fmShareDenyNone);
+  except
+      exit;
+  end;
+
+  sendDE := TDataFrameEngine.Create;
+  sendDE.WriteString(saveFileName);
+  sendDE.WriteInt64(StartPos);
+  sendDE.WriteInt64(fs.Size);
+  sendDE.WriteString(remoteinfo);
+  UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_FileInfo, sendDE);
+  DisposeObject(sendDE);
+
+  MD5 := umlFileMD5(fullfn);
 
   fs.Position := 0;
   UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
@@ -1275,6 +1505,7 @@ begin
   FRecvTunnel.RegisterStream(C_GetFileInfo).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileInfo;
   FRecvTunnel.RegisterStream(C_GetFileMD5).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileMD5;
   FRecvTunnel.RegisterStream(C_GetFile).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFile;
+  FRecvTunnel.RegisterStream(C_GetFileAs).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetFileAs;
   FRecvTunnel.RegisterDirectStream(C_PostFileInfo).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileInfo;
   FRecvTunnel.RegisterBigStream(C_PostFile).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFile;
   FRecvTunnel.RegisterDirectStream(C_PostFileOver).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_PostFileOver;
@@ -1297,6 +1528,7 @@ begin
   FRecvTunnel.DeleteRegistedCMD(C_GetFileInfo);
   FRecvTunnel.DeleteRegistedCMD(C_GetFileMD5);
   FRecvTunnel.DeleteRegistedCMD(C_GetFile);
+  FRecvTunnel.DeleteRegistedCMD(C_GetFileAs);
   FRecvTunnel.DeleteRegistedCMD(C_PostFileInfo);
   FRecvTunnel.DeleteRegistedCMD(C_PostFile);
   FRecvTunnel.DeleteRegistedCMD(C_PostFileOver);
@@ -2713,6 +2945,90 @@ begin
   DisposeObject(sendDE);
 end;
 
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetFileAsC(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_VirtualAuth);
+var
+  sendDE: TDataFrameEngine;
+  p: PRemoteFileBackcall_VirtualAuth;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteString(fileName);
+  sendDE.WriteString(saveFileName);
+  sendDE.WriteInt64(StartPos);
+  sendDE.WriteString(saveToPath);
+  new(p);
+  p^.UserData := UserData;
+  p^.UserObject := UserObject;
+  p^.OnCompleteCall := OnCompleteCall;
+  p^.OnCompleteMethod := nil;
+  p^.OnCompleteProc := nil;
+  sendDE.WritePointer(p);
+
+  FSendTunnel.SendStreamCmdM(C_GetFileAs, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetFileAsM(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_VirtualAuth);
+var
+  sendDE: TDataFrameEngine;
+  p: PRemoteFileBackcall_VirtualAuth;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteString(fileName);
+  sendDE.WriteString(saveFileName);
+  sendDE.WriteInt64(StartPos);
+  sendDE.WriteString(saveToPath);
+  new(p);
+  p^.UserData := UserData;
+  p^.UserObject := UserObject;
+  p^.OnCompleteCall := nil;
+  p^.OnCompleteMethod := OnCompleteMethod;
+  p^.OnCompleteProc := nil;
+  sendDE.WritePointer(p);
+
+  FSendTunnel.SendStreamCmdM(C_GetFileAs, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
+  DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetFileAsP(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_VirtualAuth);
+var
+  sendDE: TDataFrameEngine;
+  p: PRemoteFileBackcall_VirtualAuth;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteString(fileName);
+  sendDE.WriteString(saveFileName);
+  sendDE.WriteInt64(StartPos);
+  sendDE.WriteString(saveToPath);
+  new(p);
+  p^.UserData := UserData;
+  p^.UserObject := UserObject;
+  p^.OnCompleteCall := nil;
+  p^.OnCompleteMethod := nil;
+  p^.OnCompleteProc := OnCompleteProc;
+  sendDE.WritePointer(p);
+
+  FSendTunnel.SendStreamCmdM(C_GetFileAs, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}GetFile_StreamParamResult);
+  DisposeObject(sendDE);
+end;
+
 { Synchronously waiting to download files from the server to complete }
 function TCommunicationFramework_DoubleTunnelClient_VirtualAuth.GetFile(fileName: SystemString; StartPos: Int64; saveToPath: SystemString): Boolean;
 var
@@ -2840,6 +3156,45 @@ begin
   DisposeObject(sendDE);
 end;
 
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AutomatedDownloadFileC(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteCall_VirtualAuth);
+var
+  tmp: TAutomatedDownloadFile_Struct_VirtualAuth;
+begin
+  tmp := TAutomatedDownloadFile_Struct_VirtualAuth.Create;
+  tmp.remoteFile := remoteFile;
+  tmp.localFile := localFile;
+  tmp.OnDownloadDoneC := OnDownloadDone;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(remoteFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AutomatedDownloadFileM(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteMethod_VirtualAuth);
+var
+  tmp: TAutomatedDownloadFile_Struct_VirtualAuth;
+begin
+  tmp := TAutomatedDownloadFile_Struct_VirtualAuth.Create;
+  tmp.remoteFile := remoteFile;
+  tmp.localFile := localFile;
+  tmp.OnDownloadDoneM := OnDownloadDone;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(remoteFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AutomatedDownloadFileP(remoteFile, localFile: U_String; OnDownloadDone: TFileCompleteProc_VirtualAuth);
+var
+  tmp: TAutomatedDownloadFile_Struct_VirtualAuth;
+begin
+  tmp := TAutomatedDownloadFile_Struct_VirtualAuth.Create;
+  tmp.remoteFile := remoteFile;
+  tmp.localFile := localFile;
+  tmp.OnDownloadDoneP := OnDownloadDone;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(remoteFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
+end;
+
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.PostFile(fileName: SystemString);
 var
   sendDE: TDataFrameEngine;
@@ -2862,7 +3217,7 @@ begin
   FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fileName);
 
   fs.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, fs, True);
@@ -2895,7 +3250,7 @@ begin
   FSendTunnel.SendDirectStreamCmd(C_PostFileInfo, sendDE);
   DisposeObject(sendDE);
 
-  MD5 := umlStreamMD5(fs);
+  MD5 := umlFileMD5(fileName);
 
   fs.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, fs, StartPos, True);
@@ -2964,6 +3319,17 @@ begin
   sendDE.WriteMD5(MD5);
   FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.AutomatedUploadFile(localFile: U_String);
+var
+  tmp: TAutomatedUploadFile_Struct_VirtualAuth;
+begin
+  tmp := TAutomatedUploadFile_Struct_VirtualAuth.Create;
+  tmp.localFile := localFile;
+  tmp.Client := Self;
+
+  GetFileInfoM(umlGetFileName(localFile), nil, nil, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoResult_GetFileInfo);
 end;
 
 procedure TCommunicationFramework_DoubleTunnelClient_VirtualAuth.PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean);

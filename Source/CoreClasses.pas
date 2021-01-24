@@ -1227,8 +1227,12 @@ begin
       MainThreadProgress.Progress(MainThreadID);
       Result := CheckSynchronize(Timeout);
     end;
-  if Assigned(OnCheckThreadSynchronize) then
-    OnCheckThreadSynchronize();
+
+  try
+    if Assigned(OnCheckThreadSynchronize) then
+      OnCheckThreadSynchronize();
+  except
+  end;
 end;
 
 initialization
