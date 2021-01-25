@@ -541,7 +541,9 @@ begin
 
   if phy_io <> nil then
     begin
+      Protocol.BeginWriteBuffer(phy_io);
       Protocol.WriteBuffer(phy_io, destBuff, destSiz);
+      Protocol.EndWriteBuffer(phy_io);
     end;
 end;
 
