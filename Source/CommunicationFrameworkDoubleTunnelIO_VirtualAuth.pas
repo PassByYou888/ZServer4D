@@ -588,7 +588,7 @@ begin
       r_fileName := fileName;
       r_fileSize := fSiz;
       if r_fileSize <= umlGetFileSize(localFile) then
-          Client.GetFileMD5P(umlGetFileName(localFile), 0, r_fileSize, nil, nil, DoResult_GetFileMD5)
+          Client.GetFileMD5M(umlGetFileName(localFile), 0, r_fileSize, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoResult_GetFileMD5)
       else
           Client.PostFile(localFile);
     end
