@@ -2,9 +2,6 @@
 
 ZSERVER4D是一套高级通讯系统的地基平台，它偏向于开发工艺和多平台支持
 
-
-**如果国内访问github很慢使用国内服务器下载 [https://zpascal.net/download/github/ZServer4D.7z](https://zpascal.net/download/github/ZServer4D.7z)**
-
  
 ## 功能
 
