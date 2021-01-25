@@ -270,32 +270,15 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 近期更新日志
 
-**未改动ZS的主线框架,对原有服务器程序无影响**
+**未改动ZS的主线框架,对原有服务器程序无影响,如果手上的项目正在使用ZS，建议使用本次更新**
 
-- ZServer4D会自动优化XE10.3以后版本的Random函数,包括XE10.4
-- 新增AutomatedP2VM+HPC的结合demo,纯技术demo,非应用程序
-- 新增HPC支持数据类型:DirectStream, Stream, DirectConsole, Console
-- 新增自动化p2pVM机制:AutomatedP2VM
-- 新增2个自动化p2pVM机制demo,同时他们也是测试程序之一
-
-**未改动ZS的主线框架,对原有服务器程序无影响**
-
-- 修复indy客户端在断线时不触发事件的问题
-- 在zDefine.inc新增两个关闭序列包支持的编译选项,详见 zDefine过程定义详解.pdf
-- ComplteBuffer在客户端不再受内存尺寸限制
-- ComplteBuffer在服务端最大内存尺寸调整为64M
-- BigStream的步数信号尺度调整每1M发一个完成块传输信号
-- 优化了万兆以太传输性能:如果打开序列包机制,ZServer将会是100Mbps的工作模式,关闭序列包以后,才可以使用万兆以太.
-- 优化了5G端云服务器的支持机制,可以在云端使用高带宽负载5G设备进行媒体数据传输
-
-**万兆以太演示程序稍后我忙手上项目才会补充**
-
-- 优化双通道客户都安连接绑定机制
-- 增加一个在线程中使用ZS客户端的标准范式 43.asyncClient
-- 提升并行程序最快触发条件:每秒最大可触发200个并行任务
-- 小幅优化压缩算法
-
-
+- 新增支持自动化的文件断点续传，包括上传，下载，注意：自动化断点支持只能适用于双通道服务框架
+- 优化了文件MD5效验码问题：服务器在获取MD5效验码时，如果使用hdd会出现卡io的情况，现在是一次性的，系统会自动cache文件md5，不再会卡IO
+- 新增了一个开源项目，以文件传输为主 [NetFileService](https://github.com/PassByYou888/NetFileService)
+- 优化automatedP2PVM框架，更加全自动化
+- 优化custom protocol支持部分，已在商业项目成功对接 c++/c/java/oc/swift/py 这些项目涵盖物联网、移动端、macos桌面端
+- 按商业项目等级优化了crosssocket后台接口，目标是绝不让它出错，哪怕百万分之一的出错几率
+- 近期ZS结合Z-AI的应用刚经历过几家创业公司和上市产品洗礼，ZS表现稳定
 
 [更多更新日志](https://github.com/PassByYou888/ZServer4D/update.md)
 
