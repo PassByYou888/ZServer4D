@@ -338,7 +338,11 @@ begin
 
   phy_io := TXClientCustomProtocol(ProtocolHash[local_id]);
   if phy_io <> nil then
+    begin
+      phy_io.BeginWriteBuffer;
       phy_io.WriteBuffer(destBuff, destSiz);
+      phy_io.EndWriteBuffer;
+    end;
 end;
 
 constructor TXClientMapping.Create;
