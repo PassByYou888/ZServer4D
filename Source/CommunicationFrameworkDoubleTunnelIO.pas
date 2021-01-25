@@ -897,7 +897,7 @@ begin
       r_fileName := fileName;
       r_fileSize := fSiz;
       if r_fileSize <= umlGetFileSize(localFile) then
-          Client.GetPublicFileMD5P(umlGetFileName(localFile), 0, r_fileSize, nil, nil, DoResult_GetFileMD5)
+          Client.GetPublicFileMD5M(umlGetFileName(localFile), 0, r_fileSize, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoResult_GetFileMD5)
       else
           Client.PostFileToPublic(localFile);
     end
@@ -947,7 +947,7 @@ begin
       r_fileName := fileName;
       r_fileSize := fSiz;
       if r_fileSize <= umlGetFileSize(localFile) then
-          Client.GetPrivateFileMD5P(umlGetFileName(localFile), RemoteDirectory, 0, r_fileSize, nil, nil, DoResult_GetFileMD5)
+          Client.GetPrivateFileMD5M(umlGetFileName(localFile), RemoteDirectory, 0, r_fileSize, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}DoResult_GetFileMD5)
       else
           Client.PostFileToPrivate(localFile, RemoteDirectory);
     end
