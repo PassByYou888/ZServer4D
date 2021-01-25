@@ -409,10 +409,8 @@ end;
 function TMemoryStream64.Mem64: TMem64;
 begin
   if FMem64 = nil then
-    begin
       FMem64 := TMem64.Create;
-      FMem64.Mapping(self);
-    end;
+  FMem64.Mapping(self);
   Result := FMem64;
 end;
 
@@ -1260,10 +1258,8 @@ end;
 function TMem64.Stream64: TMemoryStream64;
 begin
   if FStream64 = nil then
-    begin
       FStream64 := TMemoryStream64.Create;
-      FStream64.Mapping(self);
-    end;
+  FStream64.Mapping(self);
   Result := FStream64;
 end;
 
@@ -1813,7 +1809,6 @@ begin
       DisposeObject(Items[i]);
   Clear;
 end;
-
 
 {$IFDEF FPC}
 
