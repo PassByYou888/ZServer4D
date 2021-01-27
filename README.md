@@ -131,6 +131,8 @@ ZServer4D的前后台均支持苹果要求的IPV6审核条件，支持AAAA,A记�
 
 [解疑：为什么通过网络传任何文件都要验证](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E8%A7%A3%E7%96%91%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%9A%E8%BF%87%E7%BD%91%E7%BB%9C%E4%BC%A0%E4%BB%BB%E4%BD%95%E6%96%87%E4%BB%B6%E9%83%BD%E8%A6%81%E9%AA%8C%E8%AF%81.pdf)
 
+[解疑：为什么ZServer4D不能在线程中使用](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E8%A7%A3%E7%96%91%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88ZServer4D%E4%B8%8D%E8%83%BD%E5%9C%A8%E7%BA%BF%E7%A8%8B%E4%B8%AD%E4%BD%BF%E7%94%A8.pdf)
+
 **ZDB:** 
 
 [使用ZDB：1.认识ZDB](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E4%BD%BF%E7%94%A8ZDB%EF%BC%9A1.%E8%AE%A4%E8%AF%86ZDB.pdf)
