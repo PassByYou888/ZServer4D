@@ -5,6 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  PascalStrings,
   CommunicationFramework,
   CommunicationFramework_Server_ICS,
   CommunicationFramework_Server_Indy,
@@ -16,6 +17,7 @@ type
 
   TMyVM_Tunnel = class(TCommunicationFramework_Server_CrossSocket)
   public
+    procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean); override;
     // vm 隧道刚被创建时
     procedure p2pVMTunnelOpenBefore(Sender: TPeerClient; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); override;
     // 隧道已经握手成功
@@ -70,7 +72,7 @@ type
     // zs正常的通讯框架
     RecvTunnel: TCommunicationFrameworkWithP2PVM_Server;
     SendTunnel: TCommunicationFrameworkWithP2PVM_Server;
-    Service   : TMyService;
+    Service: TMyService;
   end;
 
 var
@@ -80,6 +82,10 @@ implementation
 
 {$R *.dfm}
 
+procedure TMyVM_Tunnel.p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
+begin
+  Accept := True;
+end;
 
 procedure TMyVM_Tunnel.p2pVMTunnelClose(Sender: TPeerClient; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin

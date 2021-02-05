@@ -39,12 +39,6 @@
         <Projects Include="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj">
             <Dependencies/>
         </Projects>
@@ -99,13 +93,13 @@
         <Projects Include="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\15.100KConnectingOnVM\VMClient\VMCli.dproj">
@@ -129,16 +123,22 @@
         <Projects Include="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\8.ZDBLocal\ZDBLocal.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj">
@@ -211,12 +211,6 @@
             <Dependencies/>
         </Projects>
         <Projects Include="..\31.reverseP2PVM\reverse_p2pVM_serv.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Client.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Server.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\33.DLL_API\zsServ.dproj">
@@ -404,24 +398,6 @@
     <Target Name="FMXAFDRClient:Make">
         <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj" Targets="Make"/>
     </Target>
-    <Target Name="FMXBatchDataClient">
-        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj"/>
-    </Target>
-    <Target Name="FMXBatchDataClient:Clean">
-        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXBatchDataClient:Make">
-        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="FMXBatchPictureDataClient">
-        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj"/>
-    </Target>
-    <Target Name="FMXBatchPictureDataClient:Clean">
-        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FMXBatchPictureDataClient:Make">
-        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Make"/>
-    </Target>
     <Target Name="FMXClient2">
         <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj"/>
     </Target>
@@ -584,6 +560,15 @@
     <Target Name="VirtualAuth_Server:Make">
         <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Make"/>
     </Target>
+    <Target Name="VMDoubleAuthServer">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
+    </Target>
     <Target Name="VMDoubleAuthClient">
         <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj"/>
     </Target>
@@ -601,15 +586,6 @@
     </Target>
     <Target Name="VMDoubleAuthFMXClient:Make">
         <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="VMDoubleAuthServer">
-        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
-    </Target>
-    <Target Name="VMDoubleAuthServer:Clean">
-        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="VMDoubleAuthServer:Make">
-        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="VMCli">
         <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj"/>
@@ -674,6 +650,15 @@
     <Target Name="ZDBBatchDataService:Make">
         <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Make"/>
     </Target>
+    <Target Name="FMXBatchDataClient">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Clean">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Make">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Make"/>
+    </Target>
     <Target Name="ZDBBatchPictureDataService">
         <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj"/>
     </Target>
@@ -682,6 +667,24 @@
     </Target>
     <Target Name="ZDBBatchPictureDataService:Make">
         <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Clean">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Make">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBServiceDemo">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj"/>
+    </Target>
+    <Target Name="ZDBServiceDemo:Clean">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBServiceDemo:Make">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="ZDBClientDemo">
         <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj"/>
@@ -700,15 +703,6 @@
     </Target>
     <Target Name="ZDBLocal:Make">
         <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="ZDBServiceDemo">
-        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj"/>
-    </Target>
-    <Target Name="ZDBServiceDemo:Clean">
-        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ZDBServiceDemo:Make">
-        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="ACFMXClient">
         <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj"/>
@@ -926,24 +920,6 @@
     <Target Name="reverse_p2pVM_serv:Make">
         <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_serv.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PhyDouble_P2pVMDouble_Client">
-        <MSBuild Projects="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Client.dproj"/>
-    </Target>
-    <Target Name="PhyDouble_P2pVMDouble_Client:Clean">
-        <MSBuild Projects="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Client.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="PhyDouble_P2pVMDouble_Client:Make">
-        <MSBuild Projects="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Client.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="PhyDouble_P2pVMDouble_Server">
-        <MSBuild Projects="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Server.dproj"/>
-    </Target>
-    <Target Name="PhyDouble_P2pVMDouble_Server:Clean">
-        <MSBuild Projects="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Server.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="PhyDouble_P2pVMDouble_Server:Make">
-        <MSBuild Projects="..\32.PhysicsDoubleTunnel+P2PVMDoubleTunnel byQQ605356316-fishman's song\PhyDouble_P2pVMDouble_Server.dproj" Targets="Make"/>
-    </Target>
     <Target Name="zsServ">
         <MSBuild Projects="..\33.DLL_API\zsServ.dproj"/>
     </Target>
@@ -1152,13 +1128,13 @@
         <MSBuild Projects="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="EzClient;EzServer;FMXClient;DClient;DMDemo;DRClient;DRServer;DServer;EZLinuxServ;FileStoreServer;FMXADClient;FMXAFDRClient;FMXBatchDataClient;FMXBatchPictureDataClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;FOGComputeServer;HPC_Client;HPC_Client_FMX;HPC_Server;IOSPaymentQueryServer;LogicServer;ManagerServer;MD5PerformanceTest;MHDemo;PeformanceTestClient;performaceTestServer;TextParsingDemo;VirtualAuth_Client;VirtualAuth_Server;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMDoubleAuthServer;VMCli;VMServ;XInternet;XLan;XLanMobile;LanNatVirtualServer;ZDBBatchDataService;ZDBBatchPictureDataService;ZDBClientDemo;ZDBLocal;ZDBServiceDemo;ACFMXClient;ADClient;ADRestoreClient;ADRestoreServer;ADServer;AFDRClient;AFDRServer;ARMCPUTest;ClientToLinuxServer;CustomProtocol;DataStoreServer;DataStoreViewClient;StreamServerOnLinux;StreamClientOnFMX;DatasetSimOnLinuxServer;DatasetSimOnFMX;ChatHome;CustomStableIOClientDemo;CustomStableIOServerDemo;XNAT_Internet;XNATMobileServer;UserClient;reverse_p2pVM_client;reverse_p2pVM_serv;PhyDouble_P2pVMDouble_Client;PhyDouble_P2pVMDouble_Server;zsServ;zsLIB;DLL_Test;ParallelCompressor;QuantumEncryptDemo;zExpressionSupport;PascalCodeDependencyAnslysis;NumTrans;LargeScale_ZDB_DataBuild;ParallelDemo;Wildcard;AsyncStateDemo;automatedP2PVM_Cli;automatedP2PVM_Serv;AsyncClient;AsyncServer;reverse_automatedP2PVM_Serv;reverse_automatedP2PVM_Cli;automatedP2PVM_HPC_Cli;automatedP2PVM_HPC_Serv;CopyPtrSpeed;FragmentServiceDemo;FragmentClientDemo"/>
+        <CallTarget Targets="EzClient;EzServer;FMXClient;DClient;DMDemo;DRClient;DRServer;DServer;EZLinuxServ;FileStoreServer;FMXADClient;FMXAFDRClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;FOGComputeServer;HPC_Client;HPC_Client_FMX;HPC_Server;IOSPaymentQueryServer;LogicServer;ManagerServer;MD5PerformanceTest;MHDemo;PeformanceTestClient;performaceTestServer;TextParsingDemo;VirtualAuth_Client;VirtualAuth_Server;VMDoubleAuthServer;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMCli;VMServ;XInternet;XLan;XLanMobile;LanNatVirtualServer;ZDBBatchDataService;FMXBatchDataClient;ZDBBatchPictureDataService;FMXBatchPictureDataClient;ZDBServiceDemo;ZDBClientDemo;ZDBLocal;ACFMXClient;ADClient;ADRestoreClient;ADRestoreServer;ADServer;AFDRClient;AFDRServer;ARMCPUTest;ClientToLinuxServer;CustomProtocol;DataStoreServer;DataStoreViewClient;StreamServerOnLinux;StreamClientOnFMX;DatasetSimOnLinuxServer;DatasetSimOnFMX;ChatHome;CustomStableIOClientDemo;CustomStableIOServerDemo;XNAT_Internet;XNATMobileServer;UserClient;reverse_p2pVM_client;reverse_p2pVM_serv;zsServ;zsLIB;DLL_Test;ParallelCompressor;QuantumEncryptDemo;zExpressionSupport;PascalCodeDependencyAnslysis;NumTrans;LargeScale_ZDB_DataBuild;ParallelDemo;Wildcard;AsyncStateDemo;automatedP2PVM_Cli;automatedP2PVM_Serv;AsyncClient;AsyncServer;reverse_automatedP2PVM_Serv;reverse_automatedP2PVM_Cli;automatedP2PVM_HPC_Cli;automatedP2PVM_HPC_Serv;CopyPtrSpeed;FragmentServiceDemo;FragmentClientDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="EzClient:Clean;EzServer:Clean;FMXClient:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EZLinuxServ:Clean;FileStoreServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXBatchDataClient:Clean;FMXBatchPictureDataClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;FOGComputeServer:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;HPC_Server:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;MD5PerformanceTest:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;TextParsingDemo:Clean;VirtualAuth_Client:Clean;VirtualAuth_Server:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMDoubleAuthServer:Clean;VMCli:Clean;VMServ:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;LanNatVirtualServer:Clean;ZDBBatchDataService:Clean;ZDBBatchPictureDataService:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ZDBServiceDemo:Clean;ACFMXClient:Clean;ADClient:Clean;ADRestoreClient:Clean;ADRestoreServer:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;ClientToLinuxServer:Clean;CustomProtocol:Clean;DataStoreServer:Clean;DataStoreViewClient:Clean;StreamServerOnLinux:Clean;StreamClientOnFMX:Clean;DatasetSimOnLinuxServer:Clean;DatasetSimOnFMX:Clean;ChatHome:Clean;CustomStableIOClientDemo:Clean;CustomStableIOServerDemo:Clean;XNAT_Internet:Clean;XNATMobileServer:Clean;UserClient:Clean;reverse_p2pVM_client:Clean;reverse_p2pVM_serv:Clean;PhyDouble_P2pVMDouble_Client:Clean;PhyDouble_P2pVMDouble_Server:Clean;zsServ:Clean;zsLIB:Clean;DLL_Test:Clean;ParallelCompressor:Clean;QuantumEncryptDemo:Clean;zExpressionSupport:Clean;PascalCodeDependencyAnslysis:Clean;NumTrans:Clean;LargeScale_ZDB_DataBuild:Clean;ParallelDemo:Clean;Wildcard:Clean;AsyncStateDemo:Clean;automatedP2PVM_Cli:Clean;automatedP2PVM_Serv:Clean;AsyncClient:Clean;AsyncServer:Clean;reverse_automatedP2PVM_Serv:Clean;reverse_automatedP2PVM_Cli:Clean;automatedP2PVM_HPC_Cli:Clean;automatedP2PVM_HPC_Serv:Clean;CopyPtrSpeed:Clean;FragmentServiceDemo:Clean;FragmentClientDemo:Clean"/>
+        <CallTarget Targets="EzClient:Clean;EzServer:Clean;FMXClient:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EZLinuxServ:Clean;FileStoreServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;FOGComputeServer:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;HPC_Server:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;MD5PerformanceTest:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;TextParsingDemo:Clean;VirtualAuth_Client:Clean;VirtualAuth_Server:Clean;VMDoubleAuthServer:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMCli:Clean;VMServ:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;LanNatVirtualServer:Clean;ZDBBatchDataService:Clean;FMXBatchDataClient:Clean;ZDBBatchPictureDataService:Clean;FMXBatchPictureDataClient:Clean;ZDBServiceDemo:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ACFMXClient:Clean;ADClient:Clean;ADRestoreClient:Clean;ADRestoreServer:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;ClientToLinuxServer:Clean;CustomProtocol:Clean;DataStoreServer:Clean;DataStoreViewClient:Clean;StreamServerOnLinux:Clean;StreamClientOnFMX:Clean;DatasetSimOnLinuxServer:Clean;DatasetSimOnFMX:Clean;ChatHome:Clean;CustomStableIOClientDemo:Clean;CustomStableIOServerDemo:Clean;XNAT_Internet:Clean;XNATMobileServer:Clean;UserClient:Clean;reverse_p2pVM_client:Clean;reverse_p2pVM_serv:Clean;zsServ:Clean;zsLIB:Clean;DLL_Test:Clean;ParallelCompressor:Clean;QuantumEncryptDemo:Clean;zExpressionSupport:Clean;PascalCodeDependencyAnslysis:Clean;NumTrans:Clean;LargeScale_ZDB_DataBuild:Clean;ParallelDemo:Clean;Wildcard:Clean;AsyncStateDemo:Clean;automatedP2PVM_Cli:Clean;automatedP2PVM_Serv:Clean;AsyncClient:Clean;AsyncServer:Clean;reverse_automatedP2PVM_Serv:Clean;reverse_automatedP2PVM_Cli:Clean;automatedP2PVM_HPC_Cli:Clean;automatedP2PVM_HPC_Serv:Clean;CopyPtrSpeed:Clean;FragmentServiceDemo:Clean;FragmentClientDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="EzClient:Make;EzServer:Make;FMXClient:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EZLinuxServ:Make;FileStoreServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXBatchDataClient:Make;FMXBatchPictureDataClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;FOGComputeServer:Make;HPC_Client:Make;HPC_Client_FMX:Make;HPC_Server:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;MD5PerformanceTest:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;TextParsingDemo:Make;VirtualAuth_Client:Make;VirtualAuth_Server:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMDoubleAuthServer:Make;VMCli:Make;VMServ:Make;XInternet:Make;XLan:Make;XLanMobile:Make;LanNatVirtualServer:Make;ZDBBatchDataService:Make;ZDBBatchPictureDataService:Make;ZDBClientDemo:Make;ZDBLocal:Make;ZDBServiceDemo:Make;ACFMXClient:Make;ADClient:Make;ADRestoreClient:Make;ADRestoreServer:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;ClientToLinuxServer:Make;CustomProtocol:Make;DataStoreServer:Make;DataStoreViewClient:Make;StreamServerOnLinux:Make;StreamClientOnFMX:Make;DatasetSimOnLinuxServer:Make;DatasetSimOnFMX:Make;ChatHome:Make;CustomStableIOClientDemo:Make;CustomStableIOServerDemo:Make;XNAT_Internet:Make;XNATMobileServer:Make;UserClient:Make;reverse_p2pVM_client:Make;reverse_p2pVM_serv:Make;PhyDouble_P2pVMDouble_Client:Make;PhyDouble_P2pVMDouble_Server:Make;zsServ:Make;zsLIB:Make;DLL_Test:Make;ParallelCompressor:Make;QuantumEncryptDemo:Make;zExpressionSupport:Make;PascalCodeDependencyAnslysis:Make;NumTrans:Make;LargeScale_ZDB_DataBuild:Make;ParallelDemo:Make;Wildcard:Make;AsyncStateDemo:Make;automatedP2PVM_Cli:Make;automatedP2PVM_Serv:Make;AsyncClient:Make;AsyncServer:Make;reverse_automatedP2PVM_Serv:Make;reverse_automatedP2PVM_Cli:Make;automatedP2PVM_HPC_Cli:Make;automatedP2PVM_HPC_Serv:Make;CopyPtrSpeed:Make;FragmentServiceDemo:Make;FragmentClientDemo:Make"/>
+        <CallTarget Targets="EzClient:Make;EzServer:Make;FMXClient:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EZLinuxServ:Make;FileStoreServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;FOGComputeServer:Make;HPC_Client:Make;HPC_Client_FMX:Make;HPC_Server:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;MD5PerformanceTest:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;TextParsingDemo:Make;VirtualAuth_Client:Make;VirtualAuth_Server:Make;VMDoubleAuthServer:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMCli:Make;VMServ:Make;XInternet:Make;XLan:Make;XLanMobile:Make;LanNatVirtualServer:Make;ZDBBatchDataService:Make;FMXBatchDataClient:Make;ZDBBatchPictureDataService:Make;FMXBatchPictureDataClient:Make;ZDBServiceDemo:Make;ZDBClientDemo:Make;ZDBLocal:Make;ACFMXClient:Make;ADClient:Make;ADRestoreClient:Make;ADRestoreServer:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;ClientToLinuxServer:Make;CustomProtocol:Make;DataStoreServer:Make;DataStoreViewClient:Make;StreamServerOnLinux:Make;StreamClientOnFMX:Make;DatasetSimOnLinuxServer:Make;DatasetSimOnFMX:Make;ChatHome:Make;CustomStableIOClientDemo:Make;CustomStableIOServerDemo:Make;XNAT_Internet:Make;XNATMobileServer:Make;UserClient:Make;reverse_p2pVM_client:Make;reverse_p2pVM_serv:Make;zsServ:Make;zsLIB:Make;DLL_Test:Make;ParallelCompressor:Make;QuantumEncryptDemo:Make;zExpressionSupport:Make;PascalCodeDependencyAnslysis:Make;NumTrans:Make;LargeScale_ZDB_DataBuild:Make;ParallelDemo:Make;Wildcard:Make;AsyncStateDemo:Make;automatedP2PVM_Cli:Make;automatedP2PVM_Serv:Make;AsyncClient:Make;AsyncServer:Make;reverse_automatedP2PVM_Serv:Make;reverse_automatedP2PVM_Cli:Make;automatedP2PVM_HPC_Cli:Make;automatedP2PVM_HPC_Serv:Make;CopyPtrSpeed:Make;FragmentServiceDemo:Make;FragmentClientDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

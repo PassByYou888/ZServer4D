@@ -16,6 +16,7 @@ uses
 type
   TMyServer = class(TCommunicationFramework_Server_CrossSocket)
   protected
+    procedure p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean); override;
     procedure p2pVMTunnelOpen(Sender: TPeerClient; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); override;
     procedure p2pVMTunnelClose(Sender: TPeerClient; p2pVMTunnel: TCommunicationFrameworkWithP2PVM); override;
   end;
@@ -47,8 +48,8 @@ type
     { Private declarations }
   public
     { Public declarations }
-    ServTunnel    : TMyServer;
-    ServWithVM    : TCommunicationFrameworkWithP2PVM_Server;
+    ServTunnel: TMyServer;
+    ServWithVM: TCommunicationFrameworkWithP2PVM_Server;
     ServWithVMTest: TCommunicationTestIntf;
 
     procedure DoStatusMethod(AText: SystemString; const ID: Integer);
@@ -61,6 +62,10 @@ implementation
 
 {$R *.dfm}
 
+procedure TMyServer.p2pVMTunnelAuth(Sender: TPeerIO; const Token: SystemString; var Accept: Boolean);
+begin
+  Accept := True;
+end;
 
 procedure TMyServer.p2pVMTunnelOpen(Sender: TPeerClient; p2pVMTunnel: TCommunicationFrameworkWithP2PVM);
 begin
@@ -120,10 +125,10 @@ procedure TVMServForm.PrintStateTimerTimer(Sender: TObject);
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
-    n   : string;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
+    n: string;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -152,9 +157,9 @@ procedure TVMServForm.PrintStateTimerTimer(Sender: TObject);
   procedure PrintServerCMDStatistics(const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
-    comm                               : TCommunicationFramework;
-    i                                  : Integer;
-    lst                                : TListString;
+    comm: TCommunicationFramework;
+    i: Integer;
+    lst: TListString;
   begin
     RecvLst := THashVariantList.Create;
     SendLst := THashVariantList.Create;

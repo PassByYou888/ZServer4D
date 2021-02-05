@@ -104,7 +104,7 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  if not DataStoreClient.Connect('192.168.2.77', 13888, 13887) then
+  if not DataStoreClient.Connect('127.0.0.1', 13888, 13887) then
       exit;
   if DataStoreClient.TunnelLink then
     begin
