@@ -326,11 +326,13 @@ const
     edtString, edtProcExp,
     edtExpressionAsValue]);
 
-  SymbolOperationPriority: array [0 .. 3] of TSymbolOperations = (
-    ([soOr, soAnd, soXor]),
+  SymbolOperationPriority: array [0 .. 4] of TSymbolOperations = (
+    ([soAnd]),
+    ([soOr, soXor]),
     ([soEqual, soLessThan, soEqualOrLessThan, soGreaterThan, soEqualOrGreaterThan, soNotEqual]),
     ([soAdd, soSub]),
-    ([soMul, soDiv, soMod, soIntDiv, soShl, soShr, soPow]));
+    ([soMul, soDiv, soMod, soIntDiv, soShl, soShr, soPow])
+    );
 
   AllowPrioritySymbol: TSymbolOperations = ([
     soAdd, soSub, soMul, soDiv, soMod, soIntDiv, soPow, soOr, soAnd, soXor,

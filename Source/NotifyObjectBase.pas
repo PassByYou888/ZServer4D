@@ -163,7 +163,12 @@ var
 procedure DoCheckThreadSynchronize();
 begin
   if Assigned(Hooked_OnCheckThreadSynchronize) then
-      Hooked_OnCheckThreadSynchronize();
+    begin
+      try
+          Hooked_OnCheckThreadSynchronize();
+      except
+      end;
+    end;
   ProgressCadencer.Progress;
 end;
 
@@ -607,7 +612,7 @@ ProgressCadencer := TNProgressPostWithCadencer.Create;
 
 finalization
 
-DisposeObject(ProgressCadencer);
 CoreClasses.OnCheckThreadSynchronize := Hooked_OnCheckThreadSynchronize;
+DisposeObject(ProgressCadencer);
 
 end.

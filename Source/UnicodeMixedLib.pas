@@ -6783,9 +6783,9 @@ end;
 
 procedure SaveMemory(p: Pointer; siz: NativeInt; DestFile: TPascalString);
 var
-  m64: TMemoryStream64;
+  m64: TMem64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMem64.Create;
   m64.SetPointerWithProtectedMode(p, siz);
   m64.SaveToFile(DestFile);
   DisposeObject(m64);
@@ -6828,7 +6828,9 @@ var
 begin
   if not umlFileExists(FileName) then
     begin
+      Critical.Lock;
       FHash.Delete(FileName);
+      Critical.UnLock;
       Result := NullMD5;
       exit;
     end;
@@ -6899,6 +6901,7 @@ type
   PCacheFileMD5FromDirectoryData_ = ^TCacheFileMD5FromDirectoryData_;
 
 var
+  CacheThreadIsAcivted: Boolean = True;
   CacheFileMD5FromDirectory_Num: Integer = 0;
 
 procedure DoCacheFileMD5FromDirectory(thSender: TCompute);
@@ -6911,9 +6914,13 @@ begin
   try
     arry := umlGetFileListWithFullPath(p^.Directory_);
     for n in arry do
-      if umlMultipleMatch(p^.Filter_, umlGetFileName(n)) then
-        if umlFileExists(n) then
-            umlCacheFileMD5(n);
+      begin
+        if umlMultipleMatch(p^.Filter_, umlGetFileName(n)) then
+          if umlFileExists(n) then
+              umlCacheFileMD5(n);
+        if not CacheThreadIsAcivted then
+            break;
+      end;
     SetLength(arry, 0);
   except
   end;
@@ -6938,9 +6945,11 @@ initialization
 
 FileMD5Cache := TFileMD5Cache.Create;
 CacheFileMD5FromDirectory_Num := 0;
+CacheThreadIsAcivted := True;
 
 finalization
 
+CacheThreadIsAcivted := False;
 while CacheFileMD5FromDirectory_Num > 0 do
     TCompute.Sleep(1);
 

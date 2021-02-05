@@ -70,8 +70,8 @@ type
     FProgressIntf: ICadencerProgressInterface;
   protected
     function StoreTimeMultiplier: Boolean;
-    procedure SetEnabled(const val: Boolean);
-    procedure SetTimeMultiplier(const val: Double);
+    procedure SetEnabled(const val_: Boolean);
+    procedure SetTimeMultiplier(const val_: Double);
     procedure SetCurrentTime(const Value: Double);
     { : Returns raw ref time (no multiplier, no offset) }
     function GetRawReferenceTime: Double;
@@ -152,11 +152,11 @@ begin
   Result := (FTimeMultiplier <> 1);
 end;
 
-procedure TCadencer.SetEnabled(const val: Boolean);
+procedure TCadencer.SetEnabled(const val_: Boolean);
 begin
-  if FEnabled <> val then
+  if FEnabled <> val_ then
     begin
-      FEnabled := val;
+      FEnabled := val_;
       if Enabled then
           FOriginTime := FOriginTime + GetRawReferenceTime - downTime
       else
@@ -164,13 +164,13 @@ begin
     end;
 end;
 
-procedure TCadencer.SetTimeMultiplier(const val: Double);
+procedure TCadencer.SetTimeMultiplier(const val_: Double);
 var
   rawRef: Double;
 begin
-  if val <> FTimeMultiplier then
+  if val_ <> FTimeMultiplier then
     begin
-      if val = 0 then
+      if val_ = 0 then
         begin
           lastMultiplier := FTimeMultiplier;
           Enabled := False;
@@ -181,16 +181,12 @@ begin
           if FTimeMultiplier = 0 then
             begin
               Enabled := True;
-              // continuity of time: (rawRef-newOriginTime)*val = (rawRef-FOriginTime)*lastMultiplier
-              FOriginTime := rawRef - (rawRef - FOriginTime) * lastMultiplier / val;
+              FOriginTime := rawRef - (rawRef - FOriginTime) * lastMultiplier / val_;
             end
           else
-            begin
-              // continuity of time: (rawRef-newOriginTime)*val = (rawRef-FOriginTime)*FTimeMultiplier
-              FOriginTime := rawRef - (rawRef - FOriginTime) * FTimeMultiplier / val;
-            end;
+              FOriginTime := rawRef - (rawRef - FOriginTime) * FTimeMultiplier / val_;
         end;
-      FTimeMultiplier := val;
+      FTimeMultiplier := val_;
     end;
 end;
 
@@ -222,7 +218,8 @@ end;
 
 destructor TCadencer.Destroy;
 begin
-  Assert(FProgressing = 0);
+  while FProgressing > 0 do
+      TCompute.Sleep(1);
   inherited Destroy;
 end;
 
@@ -240,7 +237,7 @@ begin
       if SleepLength >= 0 then
           TCoreClassThread.Sleep(SleepLength);
     end;
-  inc(FProgressing);
+  AtomInc(FProgressing);
   try
     if Enabled then
       begin
@@ -287,7 +284,7 @@ begin
           end;
       end;
   finally
-      dec(FProgressing);
+      AtomDec(FProgressing);
   end;
 end;
 
@@ -299,7 +296,7 @@ end;
 
 function TCadencer.IsBusy: Boolean;
 begin
-  Result := (FProgressing <> 0);
+  Result := (FProgressing > 0);
 end;
 
 procedure TCadencer.Reset;

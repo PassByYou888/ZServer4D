@@ -51,6 +51,7 @@ type
     Data: Pointer;
     constructor Create;
     destructor Destroy; override;
+    procedure Delete(); virtual;
     property OnCall: TIOThread_Call read FOnCall write FOnCall;
     property OnMethod: TIOThread_Method read FOnMethod write FOnMethod;
     property OnProc: TIOThread_Proc read FOnProc write FOnProc;
@@ -64,7 +65,6 @@ type
   end;
 
   TIO_Interface = interface
-    procedure Free;
     function Count(): Integer;
     property QueueCount: Integer read Count;
     // encrypt input data to pool
@@ -227,6 +227,11 @@ end;
 destructor TIOData.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TIOData.Delete;
+begin
+  DisposeObject(Self);
 end;
 
 procedure TIODataQueue.Clean;
@@ -751,7 +756,7 @@ begin
   FQueueOptimized := True;
   for i := 0 to ThNum_ - 1 do
       TPost_Thread.Create(Self);
-  while ThNum <> ThNum_ do
+  while ThNum() < ThNum_ do
       TCompute.Sleep(1);
 end;
 
