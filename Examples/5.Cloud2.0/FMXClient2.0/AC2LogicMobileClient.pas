@@ -5,6 +5,7 @@ interface
 uses System.SysUtils, System.IOUtils,
   CommunicationFrameworkDoubleTunnelIO,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
+  CommunicationFrameworkDoubleTunnelIO_ServMan,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine,
   NotifyObjectBase, MemoryStream64;
 
@@ -156,7 +157,7 @@ begin
   NetSendTunnelIntf := ASendTunnel;
   inherited Create(NetRecvTunnelIntf, NetSendTunnelIntf);
   LogicBackCallInterface := ALogicBackCallInterface;
-  NetSendTunnelIntf.PrintParams['AntiIdle'] := False;
+  NetSendTunnelIntf.PrintParams[C_AntiIdle] := False;
   FCacheUserInfo := THashObjectList.Create(True);
   LastConnectState := False;
   AutoReconnect := False;

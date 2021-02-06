@@ -515,7 +515,7 @@ begin
   AddDoStatusHook(Self, DoStatusNear);
 
   RecvService := TPhysicsServer.Create;
-  RecvService.PrintParams['AntiIdle'] := False;
+  RecvService.PrintParams[C_AntiIdle] := False;
 
   SendService := TPhysicsServer.Create;
 

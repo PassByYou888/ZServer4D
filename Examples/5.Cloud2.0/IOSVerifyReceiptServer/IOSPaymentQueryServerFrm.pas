@@ -459,7 +459,7 @@ begin
   AddDoStatusHook(Self, DoStatusNear);
 
   FPayQueryRecvTunnel := TPhysicsServer.Create;
-  FPayQueryRecvTunnel.PrintParams['AntiIdle'] := False;
+  FPayQueryRecvTunnel.PrintParams[C_AntiIdle] := False;
   FPayQuerySendTunnel := TPhysicsServer.Create;
 
   FPayQueryService := TPayQueryService.Create(FPayQueryRecvTunnel, FPayQuerySendTunnel);

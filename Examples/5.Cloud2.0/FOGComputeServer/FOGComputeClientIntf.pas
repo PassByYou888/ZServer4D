@@ -6,6 +6,7 @@ uses Variants, SysUtils, Types, DateUtils,
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine, Cadencer,
+  CommunicationFrameworkDoubleTunnelIO_ServMan,
   NotifyObjectBase,
   PhysicsIO,
   PascalStrings, MemoryStream64;
@@ -33,7 +34,7 @@ constructor TFogCompute_DoubleTunnelClient.Create(ClientClass: TCommunicationFra
 begin
   NetRecvTunnelIntf := ClientClass.Create;
   NetSendTunnelIntf := ClientClass.Create;
-  NetSendTunnelIntf.PrintParams['AntiIdle'] := False;
+  NetSendTunnelIntf.PrintParams[C_AntiIdle] := False;
   inherited Create(NetRecvTunnelIntf, NetSendTunnelIntf);
 
   SwitchAsMaxPerformance;

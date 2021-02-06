@@ -532,7 +532,7 @@ begin
   AddDoStatusHook(Self, DoStatusNear);
 
   FFOGComputeRecvTunnel := TPhysicsServer.Create;
-  FFOGComputeRecvTunnel.PrintParams['AntiIdle'] := False;
+  FFOGComputeRecvTunnel.PrintParams[C_AntiIdle] := False;
   FFOGComputeSendTunnel := TPhysicsServer.Create;
 
   FFOGComputeService := TFOGComputeService.Create(FFOGComputeRecvTunnel, FFOGComputeSendTunnel);

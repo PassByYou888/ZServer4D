@@ -667,7 +667,7 @@ begin
   AddDoStatusHook(Self, DoStatusNear);
 
   FDBRecvTunnel := TPhysicsServer.Create;
-  FDBRecvTunnel.PrintParams['AntiIdle'] := False;
+  FDBRecvTunnel.PrintParams[C_AntiIdle] := False;
   FDBSendTunnel := TPhysicsServer.Create;
 
   FFileStoreService := TFileStoreDoubleTunnelService.Create(FDBRecvTunnel, FDBSendTunnel);

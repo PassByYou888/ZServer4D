@@ -6,6 +6,7 @@ uses System.IOUtils, SysUtils, Types, DateUtils,
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine, Cadencer,
+  CommunicationFrameworkDoubleTunnelIO_ServMan,
   PhysicsIO,
   NotifyObjectBase;
 
@@ -154,7 +155,7 @@ begin
   Owner := AOwner;
   NetRecvTunnelIntf := TPhysicsClient.Create;
   NetSendTunnelIntf := TPhysicsClient.Create;
-  NetSendTunnelIntf.PrintParams['AntiIdle'] := False;
+  NetSendTunnelIntf.PrintParams[C_AntiIdle] := False;
   ConnectInfo.DBServAddr := '';
   ConnectInfo.RegAddr := '';
   ConnectInfo.RegRecvPort := 0;

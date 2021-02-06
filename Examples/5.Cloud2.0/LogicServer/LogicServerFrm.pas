@@ -1368,7 +1368,7 @@ begin
 
   FPayRecvTunnel := TPhysicsServer.Create;
   FPayRecvTunnel.IdleTimeout := 60 * 1000;
-  FPayRecvTunnel.PrintParams['AntiIdle'] := False;
+  FPayRecvTunnel.PrintParams[C_AntiIdle] := False;
   FPaySendTunnel := TPhysicsServer.Create;
 
   FPayService := TPayService.Create(FPayRecvTunnel, FPaySendTunnel);
@@ -1376,7 +1376,7 @@ begin
 
   FLogicRecvTunnel := TPhysicsServer.Create;
   FLogicRecvTunnel.IdleTimeout := 5 * 60 * 1000;
-  FLogicRecvTunnel.PrintParams['AntiIdle'] := False;
+  FLogicRecvTunnel.PrintParams[C_AntiIdle] := False;
   FLogicSendTunnel := TPhysicsServer.Create;
 
   FLogicService := TLogicService.Create(FLogicRecvTunnel, FLogicSendTunnel);
