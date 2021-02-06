@@ -12016,7 +12016,7 @@ begin
   if FLinkVM <> nil then
     begin
       if FLinkVM.FPhysicsIO <> nil then
-          FLinkVM.FPhysicsIO.OwnerFramework.Progress;
+          FLinkVM.FPhysicsIO.OwnerFramework.ProgressWaitSend(FLinkVM.FPhysicsIO);
 
       FLinkVM.Progress;
     end;

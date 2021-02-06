@@ -2867,6 +2867,10 @@ begin
   FRecvTunnel.DeleteRegistedCMD(C_GetPrivateFile);
   FRecvTunnel.DeleteRegistedCMD(C_GetUserPrivateFile);
 
+  FRecvTunnel.DeleteRegistedCMD(C_GetPublicFileAs);
+  FRecvTunnel.DeleteRegistedCMD(C_GetPrivateFileAs);
+  FRecvTunnel.DeleteRegistedCMD(C_GetUserPrivateFileAs);
+
   FRecvTunnel.DeleteRegistedCMD(C_PostPublicFileInfo);
   FRecvTunnel.DeleteRegistedCMD(C_PostPrivateFileInfo);
   FRecvTunnel.DeleteRegistedCMD(C_PostFile);

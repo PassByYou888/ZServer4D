@@ -33,10 +33,9 @@ uses
 const
   DEFAULT_MANAGERSERVICE_RECVPORT: Word = 13336;
   DEFAULT_MANAGERSERVICE_SENDPORT: Word = 13335;
-  CDEFAULT_MANAGERSERVICE_QUERYPORT: Word = 10888;
+  DEFAULT_MANAGERSERVICE_QUERYPORT: Word = 10888;
 
 {$INCLUDE ServerManTypeDefine.inc}
-
 
 type
   TServerManager_ClientPool = class;
@@ -95,7 +94,7 @@ type
     DefaultClientClass: TCommunicationFrameworkClientClass;
     NotifyIntf: IServerManager_ClientPoolNotify;
 
-    constructor Create(AClientClass: TCommunicationFrameworkClientClass; ANotifyIntf: IServerManager_ClientPoolNotify);
+    constructor Create(ClientClass_: TCommunicationFrameworkClientClass; NotifyIntf_: IServerManager_ClientPoolNotify);
     destructor Destroy; override;
 
     function ActivtedCount: Integer;
@@ -356,7 +355,7 @@ begin
   FClientList[index] := Value;
 end;
 
-constructor TServerManager_ClientPool.Create(AClientClass: TCommunicationFrameworkClientClass; ANotifyIntf: IServerManager_ClientPoolNotify);
+constructor TServerManager_ClientPool.Create(ClientClass_: TCommunicationFrameworkClientClass; NotifyIntf_: IServerManager_ClientPoolNotify);
 begin
   inherited Create;
   FClientList := TCoreClassListForObj.Create;
@@ -368,8 +367,8 @@ begin
   LastRegSendPort := 0;
   AntiIdleIsRun := False;
   ServerConfig := TSectionTextData.Create;
-  DefaultClientClass := AClientClass;
-  NotifyIntf := ANotifyIntf;
+  DefaultClientClass := ClientClass_;
+  NotifyIntf := NotifyIntf_;
 end;
 
 destructor TServerManager_ClientPool.Destroy;
