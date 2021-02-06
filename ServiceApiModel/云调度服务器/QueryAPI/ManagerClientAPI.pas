@@ -86,7 +86,7 @@ var
 begin
   ServerList.Clear;
   try
-    Connect(Addr, CDEFAULT_MANAGERSERVICE_QUERYPORT);
+    Connect(Addr, DEFAULT_MANAGERSERVICE_QUERYPORT);
     if (ClientIntf.Connected) and (ClientIntf.RemoteInited) then
       begin
         // 查询所有在管理中心注册的服务器，返回所有服务器
@@ -129,7 +129,7 @@ var
 begin
   ServerList.Clear;
   try
-    Connect(Addr, CDEFAULT_MANAGERSERVICE_QUERYPORT);
+    Connect(Addr, DEFAULT_MANAGERSERVICE_QUERYPORT);
     if (ClientIntf.Connected) and (ClientIntf.RemoteInited) then
       begin
         // 查询所有在管理中心注册的服务器，返回所有服务器
@@ -176,7 +176,7 @@ var
 begin
   ServerList.Clear;
   try
-    Connect(Addr, CDEFAULT_MANAGERSERVICE_QUERYPORT);
+    Connect(Addr, DEFAULT_MANAGERSERVICE_QUERYPORT);
     if (ClientIntf.Connected) and (ClientIntf.RemoteInited) then
       begin
         // 查询所有在管理中心注册的服务器，返回最小负载

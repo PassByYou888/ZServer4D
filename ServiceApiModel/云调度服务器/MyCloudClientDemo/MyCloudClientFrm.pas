@@ -5,12 +5,12 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ScrollBox, FMX.Memo,
-  FMX.Edit, FMX.Controls.Presentation, FMX.StdCtrls,
+  FMX.Edit, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types,
 
   CoreClasses, PascalStrings, TextDataEngine, ListEngine, CommunicationFramework,
-  DoStatusIO, UnicodeMixedLib, DataFrameEngine,
+  DoStatusIO, UnicodeMixedLib, DataFrameEngine, PhysicsIO,
   CommunicationFrameworkDoubleTunnelIO_ServMan,
-  CommunicationFramework_Client_Indy, ManagerClientAPI, MyCloudClientAPI;
+  ManagerClientAPI, MyCloudClientAPI;
 
 type
   TForm1 = class(TForm)
@@ -30,7 +30,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    FManQueryCli: TCommunicationFramework_Client_Indy;
+    FManQueryCli: TPhysicsClient;
     FManQuery: TManagerQuery;
     FMyCloudClient: TMyCloudClient;
     procedure DoStatusMethod(AText: SystemString; const ID: Integer);
@@ -54,9 +54,9 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusMethod);
-  FManQueryCli := TCommunicationFramework_Client_Indy.Create;
+  FManQueryCli := TPhysicsClient.Create;
   FManQuery := TManagerQuery.Create(FManQueryCli);
-  FMyCloudClient := TMyCloudClient.Create(TCommunicationFramework_Client_Indy);
+  FMyCloudClient := TMyCloudClient.Create(TPhysicsClient);
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);

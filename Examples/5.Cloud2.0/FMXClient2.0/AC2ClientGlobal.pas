@@ -7,7 +7,8 @@ uses
   System.Types,
   IDGlobal,
   AC2KeepAwakeUnit,
-  CommunicationFramework, XNATPhysics,
+  CommunicationFramework,
+  PhysicsIO,
   CoreClasses, TextDataEngine,
   Cadencer,
   Classes, SysUtils, Geometry2DUnit, NotifyObjectBase,
@@ -81,11 +82,11 @@ uses
   iOSapi.Helpers,
 {$ELSEIF Defined(ANDROID)}
   Androidapi.JNI.App,
-  AndroidApi.JNI.GraphicsContentViewText,
-  AndroidApi.Helpers,
+  Androidapi.JNI.GraphicsContentViewText,
+  Androidapi.Helpers,
   FMX.Helpers.Android,
   FMX.Platform.Android,
-  Androidapi.JNI.Os, AndroidApi.JNI.JavaTypes, AndroidApi.JNIBridge,
+  Androidapi.JNI.Os, Androidapi.JNI.JavaTypes, Androidapi.JNIBridge,
 {$ELSE}
 {$IFEND}
   DoStatusIO, AC2LogicFrm, AC2LoginFrm, AC2ProgressFrm;
@@ -221,7 +222,7 @@ begin
 
   LogicClient := TLogicClient.Create(AC2LogicForm);
 
-  FogComputeClient := TFogCompute_DoubleTunnelClient.Create(TXPhysicsClient);
+  FogComputeClient := TFogCompute_DoubleTunnelClient.Create(TPhysicsClient);
 
   GlobalProgressPost.PostExecuteC(1, CreateAllForm);
 end;
@@ -305,7 +306,7 @@ end;
 
 constructor TManagerQuery.Create;
 begin
-  inherited Create(TXPhysicsClient.Create);
+  inherited Create(TPhysicsClient.Create);
 end;
 
 destructor TManagerQuery.Destroy;
@@ -315,12 +316,12 @@ end;
 
 procedure TManagerQuery.Connect(Addr: string; Port: Word);
 begin
-  TXPhysicsClient(Client).Connect(Addr, Port);
+  TPhysicsClient(Client).Connect(Addr, Port);
 end;
 
 constructor TLogicClient.Create(ALogicBackCallInterface: ILogicBackCallInterface);
 begin
-  inherited Create(ALogicBackCallInterface, TXPhysicsClient.Create, TXPhysicsClient.Create);
+  inherited Create(ALogicBackCallInterface, TPhysicsClient.Create, TPhysicsClient.Create);
 end;
 
 destructor TLogicClient.Destroy;
@@ -336,13 +337,13 @@ begin
   Disconnect;
   RegisterCommand;
 
-  TXPhysicsClient(NetSendTunnelIntf).Connect(Addr, ASendPort);
+  TPhysicsClient(NetSendTunnelIntf).Connect(Addr, ASendPort);
   if not NetSendTunnelIntf.Connected then
     begin
       DoStatus('connect %s failed!', [Addr]);
       exit;
     end;
-  TXPhysicsClient(NetRecvTunnelIntf).Connect(Addr, ARecvPort);
+  TPhysicsClient(NetRecvTunnelIntf).Connect(Addr, ARecvPort);
   if not NetRecvTunnelIntf.Connected then
     begin
       DoStatus('connect %s failed!', [Addr]);
@@ -386,5 +387,3 @@ GlobalProgressThreadRuning := False;
 ProgressBackgroundProc := nil;
 
 end.
- 
- 

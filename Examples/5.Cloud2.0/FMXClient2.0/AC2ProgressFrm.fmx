@@ -67,7 +67,7 @@ object AC2ProgressForm: TAC2ProgressForm
         StopValue = 5.000000000000000000
       end
       object GlowEffect4: TGlowEffect
-        Softness = 0.400000005960464400
+        Softness = 0.400000005960464500
         GlowColor = claGold
         Opacity = 0.899999976158142100
       end

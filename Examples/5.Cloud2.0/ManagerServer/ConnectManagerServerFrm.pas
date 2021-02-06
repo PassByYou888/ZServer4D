@@ -81,8 +81,8 @@ begin
 
   Result := AClients.BuildClientAndConnect(f.RegNameEdit.Text,
     f.ServerManagerHostEdit.Text, f.RegServerHostEdit.Text,
-        umlStrToInt(f.ManCliRecvPortEdit.Text, cManagerService_SendPort),
-        umlStrToInt(f.ManCliSendPortEdit.Text, cManagerService_RecvPort),
+    umlStrToInt(f.ManCliRecvPortEdit.Text, cManagerService_SendPort),
+    umlStrToInt(f.ManCliSendPortEdit.Text, cManagerService_RecvPort),
     RegRecvPort, RegSendPort, serverType);
 
   if Result then
@@ -145,7 +145,7 @@ end;
 procedure TConnectManagerServerForm.LoadConfig;
 var
   te: TSectionTextData;
-  n : SystemString;
+  n: SystemString;
 begin
   n := umlChangeFileExt(Application.Exename, '') + '_connectInfo.ini';
 
@@ -165,7 +165,7 @@ end;
 procedure TConnectManagerServerForm.SaveConfig;
 var
   te: TSectionTextData;
-  n : SystemString;
+  n: SystemString;
 begin
   n := umlChangeFileExt(Application.Exename, '') + '_connectInfo.ini';
 

@@ -5,18 +5,19 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
+  Vcl.AppEvnts,
   System.TypInfo,
 
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine,
 
+  PhysicsIO,
   ConnectManagerServerFrm,
-  CommunicationFramework_Server_ICSCustomSocket, Vcl.AppEvnts,
-  CommunicationFramework_Server_CrossSocket, NotifyObjectBase,
-  CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Server_ICS, CoreCipher,
-  CommunicationFrameworkDoubleTunnelIO_ServMan, PascalStrings,
+  NotifyObjectBase,
+  CoreCipher,
+  CommunicationFrameworkDoubleTunnelIO_ServMan,
+  PascalStrings,
   CommonServiceDefine;
 
 type
@@ -52,9 +53,9 @@ type
     procedure RefreshServerListButtonClick(Sender: TObject);
   private
     { Private declarations }
-    RecvService, SendService: TCommunicationFramework_Server_CrossSocket;
-    AccessService           : TCommunicationFramework_Server_CrossSocket;
-    ManagerService          : TServerManager;
+    RecvService, SendService: TPhysicsServer;
+    AccessService: TPhysicsServer;
+    ManagerService: TServerManager;
 
     procedure DoStatusNear(AText: SystemString; const ID: Integer);
 
@@ -87,7 +88,6 @@ begin
   try
     ManagerService.Progress;
     AccessService.Progress;
-    ProcessICSMessages;
 
     try
       if Memo.Lines.Count > 5000 then
@@ -102,18 +102,18 @@ end;
 
 procedure TManagerServerForm.RefreshServerListButtonClick(Sender: TObject);
 var
-  i : Integer;
+  i: Integer;
   ns: TCoreClassStringList;
   vl: THashVariantList;
 
-  ManServAddr     : SystemString;
+  ManServAddr: SystemString;
   RegName, RegAddr: SystemString;
-  RegRecvPort     : word;
-  RegSendPort     : word;
-  LastEnabled     : UInt64;
-  WorkLoad        : word;
-  ServerType      : TServerType;
-  SuccessEnabled  : Boolean;
+  RegRecvPort: word;
+  RegSendPort: word;
+  LastEnabled: UInt64;
+  WorkLoad: word;
+  ServerType: TServerType;
+  SuccessEnabled: Boolean;
 
   vServerVal: array [TServerType] of Integer;
 
@@ -129,9 +129,9 @@ var
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -163,9 +163,9 @@ var
   procedure PrintServerCMDStatistics(prefix: SystemString; const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
-    comm                               : TCommunicationFramework;
-    i                                  : Integer;
-    lst                                : TListString;
+    comm: TCommunicationFramework;
+    i: Integer;
+    lst: TListString;
   begin
     RecvLst := THashVariantList.Create;
     SendLst := THashVariantList.Create;
@@ -371,7 +371,7 @@ end;
 
 function TManagerServerForm.GetPathTreeNode(_Value, _Split: SystemString; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
 var
-  Rep_Int : Integer;
+  Rep_Int: Integer;
   _Postfix: SystemString;
 begin
   _Postfix := umlGetFirstStr(_Value, _Split);
@@ -435,9 +435,9 @@ end;
 procedure TManagerServerForm.Command_Query(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
   servType: TServerType;
-  i       : Integer;
-  ns      : TListString;
-  vl      : THashVariantList;
+  i: Integer;
+  ns: TListString;
+  vl: THashVariantList;
 begin
   servType := TServerType(InData.Reader.ReadByte);
 
@@ -459,9 +459,9 @@ end;
 procedure TManagerServerForm.Command_QueryMinLoad(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
   servType: TServerType;
-  i       : Integer;
-  ns      : TListString;
-  vl, mvl : THashVariantList;
+  i: Integer;
+  ns: TListString;
+  vl, mvl: THashVariantList;
 begin
   servType := TServerType(InData.Reader.ReadByte);
 
@@ -501,33 +501,32 @@ end;
 constructor TManagerServerForm.Create(AOwner: TComponent);
 var
   i, pcount: Integer;
-  p1, p2   : SystemString;
+  p1, p2: SystemString;
 
-  delayStartService    : Boolean;
+  delayStartService: Boolean;
   delayStartServiceTime: Double;
 
-  delayReg    : Boolean;
+  delayReg: Boolean;
   delayRegTime: Double;
-  ManServAddr : SystemString;
-  RegAddr     : SystemString;
+  ManServAddr: SystemString;
+  RegAddr: SystemString;
 begin
   inherited Create(AOwner);
   AddDoStatusHook(Self, DoStatusNear);
 
-  RecvService := TCommunicationFramework_Server_CrossSocket.Create;
+  RecvService := TPhysicsServer.Create;
   RecvService.PrintParams['AntiIdle'] := False;
 
-  SendService := TCommunicationFramework_Server_CrossSocket.Create;
+  SendService := TPhysicsServer.Create;
 
-  AccessService := TCommunicationFramework_Server_CrossSocket.Create;
+  AccessService := TPhysicsServer.Create;
   AccessService.IdleTimeout := 5000;
   AccessService.RegisterStream('Query').OnExecute := Command_Query;
   AccessService.RegisterStream('QueryMinLoad').OnExecute := Command_QueryMinLoad;
 
-  ManagerService := TServerManager.Create(RecvService, SendService, TCommunicationFramework_Client_CrossSocket);
+  ManagerService := TServerManager.Create(RecvService, SendService, TPhysicsClient);
   ManagerService.RegisterCommand;
 
-  Memo.Lines.Add(WSAInfo);
   Memo.Lines.Add(Format('File Receive directory %s', [ManagerService.FileReceiveDirectory]));
 
   RecvPortEdit.Text := IntToStr(cManagerService_RecvPort);

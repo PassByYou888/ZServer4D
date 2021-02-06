@@ -28,8 +28,7 @@ uses
   NotifyObjectBase,
   TextDataEngine,
   CommunicationFramework,
-  CommunicationFramework_Server_CrossSocket,
-  CommunicationFramework_Client_CrossSocket,
+  PhysicsIO,
   CommunicationFrameworkDoubleTunnelIO_ServMan,
   DataFrameEngine,
   UnicodeMixedLib,
@@ -125,20 +124,20 @@ end;
 
 constructor TManagerServer.Create;
 begin
-  RecvService := TCommunicationFramework_Server_CrossSocket.Create;
+  RecvService := TPhysicsServer.Create;
   RecvService.PrintParams['AntiIdle'] := False;
   // 如果登录进来的客户端1分钟无响应，就踢掉
   RecvService.IdleTimeout := 60 * 1000;
 
-  SendService := TCommunicationFramework_Server_CrossSocket.Create;
+  SendService := TPhysicsServer.Create;
 
-  AccessService := TCommunicationFramework_Server_CrossSocket.Create;
+  AccessService := TPhysicsServer.Create;
   // access 客户端查询是5秒无响应自动断线
   AccessService.IdleTimeout := 5000;
   AccessService.RegisterStream('Query').OnExecute := Command_Query;
   AccessService.RegisterStream('QueryMinLoad').OnExecute := Command_QueryMinLoad;
 
-  ManagerService := TServerManager.Create(RecvService, SendService, TCommunicationFramework_Client_CrossSocket);
+  ManagerService := TServerManager.Create(RecvService, SendService, TPhysicsClient);
   ManagerService.RegisterCommand;
 end;
 

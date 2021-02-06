@@ -6,12 +6,11 @@ uses System.IOUtils, SysUtils, Types, DateUtils,
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine, Cadencer,
-  NotifyObjectBase,
-  CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Client_ICS;
+  PhysicsIO,
+  NotifyObjectBase;
 
 type
-  TFileStoreService_DoubleTunnelClient     = class;
+  TFileStoreService_DoubleTunnelClient = class;
   TFileStoreService_DoubleTunnelClientPool = class;
 
   TFileStoreCliConnectInfo = record
@@ -25,10 +24,10 @@ type
   TFileStoreService_DoubleTunnelClient = class(TCommunicationFramework_DoubleTunnelClient_NoAuth)
   protected
   public
-    Owner                               : TFileStoreService_DoubleTunnelClientPool;
-    NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFramework_Client_CrossSocket;
-    ConnectInfo                         : TFileStoreCliConnectInfo;
-    ReconnectTotal                      : Integer;
+    Owner: TFileStoreService_DoubleTunnelClientPool;
+    NetRecvTunnelIntf, NetSendTunnelIntf: TPhysicsClient;
+    ConnectInfo: TFileStoreCliConnectInfo;
+    ReconnectTotal: Integer;
 
     constructor Create(AOwner: TFileStoreService_DoubleTunnelClientPool);
     destructor Destroy; override;
@@ -66,13 +65,13 @@ type
 
   TStoreFileInfoList = class(TGenericsList<PStoreFileInfo>)
   public
-    Filename       : string;
-    Owner          : TFileStoreService_DoubleTunnelClientPool;
-    CompleteTime   : Double;
-    OnComplete     : TStoreFileInfoComplete;
-    PeerClientData : TPeerClient;
+    Filename: string;
+    Owner: TFileStoreService_DoubleTunnelClientPool;
+    CompleteTime: Double;
+    OnComplete: TStoreFileInfoComplete;
+    PeerClientData: TPeerClient;
     InData, OutData: TDataFrameEngine;
-    SerialNo       : Integer;
+    SerialNo: Integer;
 
     procedure SortOfFileLastTime;
     function AllCompleted: Boolean;
@@ -99,11 +98,11 @@ type
 
   TFileStoreUserStateList = class(TGenericsList<PFileStoreUserState>)
   public
-    userID         : string;
-    Owner          : TFileStoreService_DoubleTunnelClientPool;
-    CompleteTime   : Double;
-    OnComplete     : TFileStoreUserStateComplete;
-    PeerClientData : TPeerClient;
+    userID: string;
+    Owner: TFileStoreService_DoubleTunnelClientPool;
+    CompleteTime: Double;
+    OnComplete: TFileStoreUserStateComplete;
+    PeerClientData: TPeerClient;
     InData, OutData: TDataFrameEngine;
 
     function AllCompleted: Boolean;
@@ -113,11 +112,11 @@ type
 
   TFileStoreService_DoubleTunnelClientPool = class(TCoreClassPersistent)
   protected
-    FClientList            : TCoreClassListForObj;
-    AntiIdleIsRun          : Boolean;
-    CadencerEng            : TCadencer;
-    PostProgress           : TNProgressPost;
-    DBCompleteFileInfoList : TFileStoreCompleteInfoList;
+    FClientList: TCoreClassListForObj;
+    AntiIdleIsRun: Boolean;
+    CadencerEng: TCadencer;
+    PostProgress: TNProgressPost;
+    DBCompleteFileInfoList: TFileStoreCompleteInfoList;
     DBCompleteUserStateList: TDBCompleteUserStateList;
 
     function GetItems(index: Integer): TFileStoreService_DoubleTunnelClient;
@@ -153,8 +152,8 @@ implementation
 constructor TFileStoreService_DoubleTunnelClient.Create(AOwner: TFileStoreService_DoubleTunnelClientPool);
 begin
   Owner := AOwner;
-  NetRecvTunnelIntf := TCommunicationFramework_Client_CrossSocket.Create;
-  NetSendTunnelIntf := TCommunicationFramework_Client_CrossSocket.Create;
+  NetRecvTunnelIntf := TPhysicsClient.Create;
+  NetSendTunnelIntf := TPhysicsClient.Create;
   NetSendTunnelIntf.PrintParams['AntiIdle'] := False;
   ConnectInfo.DBServAddr := '';
   ConnectInfo.RegAddr := '';
@@ -439,8 +438,8 @@ end;
 
 procedure TFileStoreService_DoubleTunnelClientPool.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
 var
-  i           : Integer;
-  FileInfoLst : TStoreFileInfoList;
+  i: Integer;
+  FileInfoLst: TStoreFileInfoList;
   UserStateLst: TFileStoreUserStateList;
 begin
   i := 0;
@@ -579,9 +578,9 @@ end;
 
 procedure TFileStoreService_DoubleTunnelClientPool.AntiIdle(workLoad: Word);
 var
-  i       : Integer;
+  i: Integer;
   conninfo: TFileStoreCliConnectInfo;
-  c       : TFileStoreService_DoubleTunnelClient;
+  c: TFileStoreService_DoubleTunnelClient;
 begin
   if AntiIdleIsRun then
       exit;

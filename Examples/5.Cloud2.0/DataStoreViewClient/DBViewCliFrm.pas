@@ -5,10 +5,13 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  CommunicationFramework_Client_CrossSocket, DoStatusIO, PascalStrings,
-  Vcl.ExtCtrls, ListEngine, MemoryStream64, CoreClasses,
+  Vcl.ComCtrls, Vcl.Grids,
+  Vcl.ExtCtrls,
+  PhysicsIO,
+  DoStatusIO, PascalStrings,
+  ListEngine, MemoryStream64, CoreClasses,
   DataStoreClientIntf, CommunicationFrameworkDoubleTunnelIO_ServMan,
-  Vcl.ComCtrls, Vcl.Grids, CommunicationFramework, DataFrameEngine,
+  CommunicationFramework, DataFrameEngine,
   ZDBEngine, CommonServiceDefine;
 
 type
@@ -57,13 +60,15 @@ end;
 
 procedure TDBViewCliForm.DBListViewClick(Sender: TObject);
 var
-  lst   : TDBListVL;
+  lst: TDBListVL;
   maxCol: Integer;
-  maxVL : TDBEngineVL;
+  maxVL: TDBEngineVL;
 
 begin
-  if DBListView.SelCount <> 1 then      exit;
-  if not cli.Connected then      exit;
+  if DBListView.SelCount <> 1 then
+    exit;
+  if not cli.Connected then
+    exit;
 
   lst := TDBListVL.Create;
   maxCol := -1;
@@ -81,7 +86,8 @@ begin
     begin
       vl := lst.Add;
       vl.LoadFromStream(DataSour);
-      vl['__StorePos__'] := StorePos; vl['__Database__'] := dbN;
+      vl['__StorePos__'] := StorePos;
+      vl['__Database__'] := dbN;
       if vl.Count > maxCol then
         begin
           maxCol := vl.Count;
@@ -138,7 +144,7 @@ end;
 procedure TDBViewCliForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
-  cli := TDataStore_DoubleTunnelClient.Create(TCommunicationFramework_Client_CrossSocket);
+  cli := TDataStore_DoubleTunnelClient.Create(TPhysicsClient);
   cli.RegisterCommand;
 end;
 

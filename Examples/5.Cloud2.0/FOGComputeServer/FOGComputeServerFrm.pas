@@ -8,9 +8,6 @@ uses
   Vcl.ComCtrls,
 
   Cadencer, CommunicationFramework,
-  CommunicationFramework_Client_ICS,
-  CommunicationFramework_Server_ICS,
-  CommunicationFramework_Server_ICSCustomSocket,
   CommunicationFrameworkDoubleTunnelIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, CommunicationFrameworkIO,
   CoreClasses, DataFrameEngine, DoStatusIO, ListEngine,
   PascalStrings, UnicodeMixedLib,
@@ -18,8 +15,7 @@ uses
   ConnectManagerServerFrm,
   TextDataEngine, NotifyObjectBase,
   MemoryStream64,
-  CommunicationFramework_Server_CrossSocket,
-  CommunicationFramework_Client_CrossSocket,
+  PhysicsIO,
   CommunicationFrameworkDoubleTunnelIO_ServMan, CommonServiceDefine,
   DataStoreClientIntf;
 
@@ -66,11 +62,11 @@ type
     procedure AntiIDLETimerTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    FFOGComputeRecvTunnel: TCommunicationFramework_Server_CrossSocket;
-    FFOGComputeSendTunnel: TCommunicationFramework_Server_CrossSocket;
-    FFOGComputeService   : TFOGComputeService;
-    FManagerClients      : TServerManager_ClientPool;
-    FDataStoreClient     : TDataStore_DoubleTunnelClient;
+    FFOGComputeRecvTunnel: TPhysicsServer;
+    FFOGComputeSendTunnel: TPhysicsServer;
+    FFOGComputeService: TFOGComputeService;
+    FManagerClients: TServerManager_ClientPool;
+    FDataStoreClient: TDataStore_DoubleTunnelClient;
 
     procedure DoStatusNear(AText: string; const ID: Integer);
     function GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
@@ -179,18 +175,18 @@ end;
 
 procedure TFOGComputeServerForm.RefreshServerListButtonClick(Sender: TObject);
 var
-  i : Integer;
+  i: Integer;
   ns: TCoreClassStringList;
   vl: THashVariantList;
 
-  ManServAddr     : string;
+  ManServAddr: string;
   RegName, RegAddr: string;
-  RegRecvPort     : Word;
-  RegSendPort     : Word;
-  LastEnabled     : UInt64;
-  WorkLoad        : Word;
-  ServerType      : TServerType;
-  SuccessEnabled  : Boolean;
+  RegRecvPort: Word;
+  RegSendPort: Word;
+  LastEnabled: UInt64;
+  WorkLoad: Word;
+  ServerType: TServerType;
+  SuccessEnabled: Boolean;
 
   vServerVal: array [TServerType] of Integer;
 
@@ -206,9 +202,9 @@ var
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -240,9 +236,9 @@ var
   procedure PrintServerCMDStatistics(prefix: string; const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
-    comm                               : TCommunicationFramework;
-    i                                  : Integer;
-    lst                                : TListString;
+    comm: TCommunicationFramework;
+    i: Integer;
+    lst: TListString;
   begin
     RecvLst := THashVariantList.Create;
     SendLst := THashVariantList.Create;
@@ -380,7 +376,6 @@ begin
     FFOGComputeService.Progress;
     FManagerClients.Progress;
     FDataStoreClient.Progress;
-    ProcessICSMessages;
   except
   end;
 end;
@@ -410,12 +405,11 @@ begin
     begin
       Memo.Lines.Append(AText);
     end;
-  FDataStoreClient.PostLogInfo('FogCompute', AText);
 end;
 
 function TFOGComputeServerForm.GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
 var
-  Rep_Int : Integer;
+  Rep_Int: Integer;
   _Postfix: string;
 begin
   _Postfix := umlGetFirstStr(_Value, _Split);
@@ -478,13 +472,13 @@ end;
 procedure TFOGComputeServerForm.ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
 var
   ns: TCoreClassStringList;
-  i : Integer;
+  i: Integer;
   vl: THashVariantList;
 
-  DBServAddr, RegAddr                                   : string;
+  DBServAddr, RegAddr: string;
   DBCliRecvPort, DBCliSendPort, RegRecvPort, RegSendPort: Word;
 
-  DataStoreServAddr                         : string;
+  DataStoreServAddr: string;
   DataStoreCliRecvPort, DataStoreCliSendPort: Word;
 begin
   if FManagerClients.Count = 0 then
@@ -524,33 +518,31 @@ end;
 constructor TFOGComputeServerForm.Create(AOwner: TComponent);
 var
   i, pcount: Integer;
-  p1, p2   : string;
+  p1, p2: string;
 
-  delayStartService    : Boolean;
+  delayStartService: Boolean;
   delayStartServiceTime: Double;
 
-  delayReg    : Boolean;
+  delayReg: Boolean;
   delayRegTime: Double;
-  ManServAddr : string;
-  RegAddr     : string;
+  ManServAddr: string;
+  RegAddr: string;
 begin
   inherited Create(AOwner);
   AddDoStatusHook(Self, DoStatusNear);
 
-  FFOGComputeRecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FFOGComputeRecvTunnel := TPhysicsServer.Create;
   FFOGComputeRecvTunnel.PrintParams['AntiIdle'] := False;
-  FFOGComputeSendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FFOGComputeSendTunnel := TPhysicsServer.Create;
 
   FFOGComputeService := TFOGComputeService.Create(FFOGComputeRecvTunnel, FFOGComputeSendTunnel);
 
   FFOGComputeService.RegisterCommand;
 
-  FManagerClients := TServerManager_ClientPool.Create(TCommunicationFramework_Client_CrossSocket, Self);
+  FManagerClients := TServerManager_ClientPool.Create(TPhysicsClient, Self);
 
-  FDataStoreClient := TDataStore_DoubleTunnelClient.Create(TCommunicationFramework_Client_CrossSocket);
+  FDataStoreClient := TDataStore_DoubleTunnelClient.Create(TPhysicsClient);
   FDataStoreClient.RegisterCommand;
-
-  Memo.Lines.Add(WSAInfo);
 
   RecvPortEdit.Text := IntToStr(cFOGCompute_RecvPort);
   SendPortEdit.Text := IntToStr(cFOGCompute_SendPort);

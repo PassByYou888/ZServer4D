@@ -38,13 +38,13 @@ begin
   FOnAllowSleeping := nil;
 
   if TPlatformServices.Current.SupportsPlatformService(IFMXApplicationEventService, IInterface(LService)) then
-    LService.SetApplicationEventHandler(HandleAppEvent);
+      LService.SetApplicationEventHandler(HandleAppEvent);
 end;
 
 destructor TKeepAwake.Destroy;
 begin
   if Assigned(OnAllowSleeping) then
-    OnAllowSleeping;
+      OnAllowSleeping;
   inherited;
 end;
 
@@ -54,19 +54,19 @@ begin
 
   case AEvent of
     TApplicationEvent.FinishedLaunching,
-    TApplicationEvent.BecameActive,
-    TApplicationEvent.WillBecomeForeground:
+      TApplicationEvent.BecameActive,
+      TApplicationEvent.WillBecomeForeground:
       begin
         if Assigned(OnKeepAwake) then
-          OnKeepAwake;
+            OnKeepAwake;
         Exit(True);
       end;
     TApplicationEvent.WillTerminate,
-    TApplicationEvent.WillBecomeInactive,
-    TApplicationEvent.EnteredBackground:
+      TApplicationEvent.WillBecomeInactive,
+      TApplicationEvent.EnteredBackground:
       begin
         if Assigned(OnAllowSleeping) then
-          OnAllowSleeping;
+            OnAllowSleeping;
         Exit(True);
       end;
   end;

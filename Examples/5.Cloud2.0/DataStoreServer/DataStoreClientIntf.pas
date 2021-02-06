@@ -7,8 +7,7 @@ uses Variants, SysUtils, Types, DateUtils,
   CoreClasses, TextDataEngine, ListEngine, CommunicationFramework,
   DoStatusIO, UnicodeMixedLib, DataFrameEngine, Cadencer,
   NotifyObjectBase,
-  CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Client_ICS,
+  PhysicsIO,
   CommunicationFrameworkDataStoreService_NoAuth, PascalStrings,
   MemoryStream64, ZDBEngine, ZDBLocalManager;
 

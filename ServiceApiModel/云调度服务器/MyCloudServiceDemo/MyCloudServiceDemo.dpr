@@ -28,8 +28,6 @@ uses
   NotifyObjectBase,
   TextDataEngine,
   CommunicationFramework,
-  CommunicationFramework_Server_CrossSocket,
-  CommunicationFramework_Client_CrossSocket,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth,
   CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CommunicationFrameworkDoubleTunnelIO,
@@ -37,6 +35,7 @@ uses
   CommunicationFrameworkDataStoreService_NoAuth,
   CommunicationFrameworkDataStoreService,
   CommunicationFrameworkDoubleTunnelIO_ServMan,
+  PhysicsIO,
   DataFrameEngine,
   UnicodeMixedLib,
   MemoryStream64,
@@ -96,12 +95,12 @@ type
 
 constructor TMyServer.Create;
 begin
-  RecvService := TCommunicationFramework_Server_CrossSocket.Create;
+  RecvService := TPhysicsServer.Create;
   RecvService.PrintParams['AntiIdle'] := False;
 
-  SendService := TCommunicationFramework_Server_CrossSocket.Create;
+  SendService := TPhysicsServer.Create;
 
-  ManagerClient := TServerManager_ClientPool.Create(TCommunicationFramework_Client_CrossSocket, Self);
+  ManagerClient := TServerManager_ClientPool.Create(TPhysicsClient, Self);
   inherited Create(RecvService, SendService);
 end;
 

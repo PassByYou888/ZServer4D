@@ -7,17 +7,15 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls,
   System.DateUtils, System.TypInfo, Vcl.AppEvnts,
 
-  CommunicationFramework_Server_ICSCustomSocket,
-  CommunicationFrameworkDoubleTunnelIO, CommunicationFrameworkDoubleTunnelIO_NoAuth,
+  CommunicationFrameworkDoubleTunnelIO,
+  CommunicationFrameworkDoubleTunnelIO_NoAuth,
   CommunicationFrameworkIO,
   ConnectManagerServerFrm, DataFrameEngine, ListEngine, Cadencer,
   CoreClasses, DoStatusIO, CommunicationFramework,
   UnicodeMixedLib, TextDataEngine, MemoryStream64,
   FilePackage,
   NotifyObjectBase,
-  CommunicationFramework_Server_CrossSocket,
-  CommunicationFramework_Client_CrossSocket,
-  CommunicationFramework_Client_ICS, CommunicationFramework_Server_ICS,
+  PhysicsIO,
   CommunicationFrameworkDoubleTunnelIO_ServMan,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth, FileStoreClientIntf,
   PascalStrings, DataStoreClientIntf, ZDBEngine, ZDBLocalManager,
@@ -25,8 +23,8 @@ uses
 
 type
   TLogicServerForm = class;
-  TLogicService    = class;
-  TPayService      = class;
+  TLogicService = class;
+  TPayService = class;
 
   TPerUserPaySendTunnel = class(TPeerClientUserDefineForSendTunnel_NoAuth)
   protected
@@ -40,7 +38,7 @@ type
   TPerUserPayRecvTunnel = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
   protected
   public
-    PayService : TPayService;
+    PayService: TPayService;
     PayWorkload: Word;
     constructor Create(AOwner: TPeerClient); override;
     destructor Destroy; override;
@@ -68,8 +66,8 @@ type
 
   TPerUserLogicRecvTunnel = class(TPeerClientUserDefineForRecvTunnel)
   protected
-    LastAccessHomeCli               : Cardinal; // homeserver->send tunnel->id
-    LastGenPlayerIDInHome           : Cardinal;
+    LastAccessHomeCli: Cardinal; // homeserver->send tunnel->id
+    LastGenPlayerIDInHome: Cardinal;
     DownloadDBClient, UploadDBClient: TFileStoreService_DoubleTunnelClient;
 
     DisableHomeList: TListString;
@@ -87,10 +85,10 @@ type
 
   TLogicService = class(TCommunicationFramework_DoubleTunnelService)
   private
-    PortraitStream     : TMemoryStream64;
+    PortraitStream: TMemoryStream64;
     lastRegUserSerialNo: Integer;
-    LogicFileDB        : TObjectDataManagerOfCache;
-    FileMD5Cache       : THashList;
+    LogicFileDB: TObjectDataManagerOfCache;
+    FileMD5Cache: THashList;
   protected
     procedure UserLoginFileDownloadComplete(const UserData: Pointer; const UserObject: TCoreClassObject; Stream: TCoreClassStream; const fileName: string);
     procedure UserLoginQueryComplete(Sender: TStoreFileInfoList);
@@ -167,17 +165,17 @@ type
     procedure AppEventsException(Sender: TObject; E: Exception);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    FPayRecvTunnel: TCommunicationFramework_Server_CrossSocket;
-    FPaySendTunnel: TCommunicationFramework_Server_CrossSocket;
-    FPayService   : TPayService;
+    FPayRecvTunnel: TPhysicsServer;
+    FPaySendTunnel: TPhysicsServer;
+    FPayService: TPayService;
 
-    FLogicRecvTunnel: TCommunicationFramework_Server_CrossSocket;
-    FLogicSendTunnel: TCommunicationFramework_Server_CrossSocket;
-    FLogicService   : TLogicService;
+    FLogicRecvTunnel: TPhysicsServer;
+    FLogicSendTunnel: TPhysicsServer;
+    FLogicService: TLogicService;
 
-    FManagerClients     : TServerManager_ClientPool;
+    FManagerClients: TServerManager_ClientPool;
     FFileStoreClientPool: TFileStoreService_DoubleTunnelClientPool;
-    FDataStoreClient    : TDataStore_DoubleTunnelClient;
+    FDataStoreClient: TDataStore_DoubleTunnelClient;
 
     procedure DoStatusNear(AText: string; const ID: Integer);
     function GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
@@ -308,11 +306,11 @@ end;
 
 procedure TLogicService.UserLoginQueryComplete(Sender: TStoreFileInfoList);
 var
-  SendTunnelID      : Cardinal;
+  SendTunnelID: Cardinal;
   UserID, UserPasswd: string;
 
   LogicCli: TPerUserLogicRecvTunnel;
-  p       : PGetFileUserData;
+  p: PGetFileUserData;
 begin
   if RecvTunnel.Exists(Sender.PeerClientData) and (Sender.Count > 0) then
     begin
@@ -348,10 +346,10 @@ end;
 
 procedure TLogicService.UserLockQueryComplete(Sender: TFileStoreUserStateList);
 var
-  i     : Integer;
+  i: Integer;
   locked: Boolean;
 
-  SendTunnelID      : Cardinal;
+  SendTunnelID: Cardinal;
   UserID, UserPasswd: string;
 
   FileInfoLst: TStoreFileInfoList;
@@ -394,9 +392,9 @@ end;
 
 procedure TLogicService.Command_UserLogin(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  SendTunnelID      : Cardinal;
+  SendTunnelID: Cardinal;
   UserID, UserPasswd: string;
-  UserStateLst      : TFileStoreUserStateList;
+  UserStateLst: TFileStoreUserStateList;
 begin
   SendTunnelID := InData.Reader.ReadCardinal;
   UserID := InData.Reader.ReadString;
@@ -450,8 +448,8 @@ end;
 procedure TLogicService.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel);
 var
   LogicCli: TPerUserLogicRecvTunnel;
-  sendDE  : TDataFrameEngine;
-  ms      : TMemoryStream64;
+  sendDE: TDataFrameEngine;
+  ms: TMemoryStream64;
 begin
   LogicCli := UserDefineIO as TPerUserLogicRecvTunnel;
 
@@ -484,7 +482,7 @@ end;
 procedure TLogicService.UserRegQueryComplete(Sender: TStoreFileInfoList);
 var
   LogicCli: TPerUserLogicRecvTunnel;
-  ms      : TMemoryStream64;
+  ms: TMemoryStream64;
 begin
   if RecvTunnel.Exists(Sender.PeerClientData) and (Sender.Count > 0) then
     begin
@@ -511,12 +509,12 @@ end;
 procedure TLogicService.UserRegGuestUserQueryComplete(Sender: TStoreFileInfoList);
 var
   LogicCli: TPerUserLogicRecvTunnel;
-  i, j    : Integer;
+  i, j: Integer;
 
   UserID: string;
-  l     : TStoreFileInfoList;
-  te    : TSectionTextData;
-  ms    : TMemoryStream64;
+  l: TStoreFileInfoList;
+  te: TSectionTextData;
+  ms: TMemoryStream64;
 begin
   if RecvTunnel.Exists(Sender.PeerClientData) and (Sender.Count > 0) then
     begin
@@ -582,8 +580,8 @@ end;
 procedure TLogicService.Command_RegGuestUser(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
   UserID: string;
-  j     : Integer;
-  l     : TStoreFileInfoList;
+  j: Integer;
+  l: TStoreFileInfoList;
 begin
   j := lastRegUserSerialNo;
   repeat
@@ -603,7 +601,7 @@ end;
 
 procedure TLogicService.Command_GetLogicFileList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  itmSR   : TItemSearch;
+  itmSR: TItemSearch;
   LogicCli: TPerUserLogicRecvTunnel;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
@@ -620,9 +618,9 @@ end;
 
 procedure TLogicService.Command_GetLogicFileMD5(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  fn      : string;
-  md5Ptr  : UnicodeMixedLib.PMD5;
-  itm     : TItemStream;
+  fn: string;
+  md5Ptr: UnicodeMixedLib.PMD5;
+  itm: TItemStream;
   LogicCli: TPerUserLogicRecvTunnel;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
@@ -653,11 +651,11 @@ end;
 
 procedure TLogicService.Command_GetLogicFile(Sender: TPeerClient; InData: TDataFrameEngine);
 var
-  fn         : string;
+  fn: string;
   callBackPtr: UInt64;
-  itm        : TItemStream;
-  LogicCli   : TPerUserLogicRecvTunnel;
-  sendDE     : TDataFrameEngine;
+  itm: TItemStream;
+  LogicCli: TPerUserLogicRecvTunnel;
+  sendDE: TDataFrameEngine;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
   if not LogicCli.LinkOk then
@@ -686,7 +684,7 @@ end;
 
 procedure TLogicService.Command_GetAdvertisementFileList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  itmSR   : TItemSearch;
+  itmSR: TItemSearch;
   LogicCli: TPerUserLogicRecvTunnel;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
@@ -703,9 +701,9 @@ end;
 
 procedure TLogicService.Command_GetAdvertisementFileMD5(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  fn      : string;
-  md5Ptr  : UnicodeMixedLib.PMD5;
-  itm     : TItemStream;
+  fn: string;
+  md5Ptr: UnicodeMixedLib.PMD5;
+  itm: TItemStream;
   LogicCli: TPerUserLogicRecvTunnel;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
@@ -736,11 +734,11 @@ end;
 
 procedure TLogicService.Command_GetAdvertisementFile(Sender: TPeerClient; InData: TDataFrameEngine);
 var
-  fn         : string;
+  fn: string;
   callBackPtr: UInt64;
-  itm        : TItemStream;
-  LogicCli   : TPerUserLogicRecvTunnel;
-  sendDE     : TDataFrameEngine;
+  itm: TItemStream;
+  LogicCli: TPerUserLogicRecvTunnel;
+  sendDE: TDataFrameEngine;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
   if not LogicCli.LinkOk then
@@ -769,8 +767,8 @@ end;
 
 procedure TLogicService.GetUserInfoFileDownloadComplete(const UserData: Pointer; const UserObject: TCoreClassObject; Stream: TCoreClassStream; const fileName: string);
 var
-  p : PGetFileUserData;
-  m : TMemoryStream64;
+  p: PGetFileUserData;
+  m: TMemoryStream64;
   te: TSectionTextData;
 begin
   p := UserData;
@@ -802,7 +800,7 @@ end;
 procedure TLogicService.GetUserInfoQueryComplete(Sender: TStoreFileInfoList);
 var
   cli: TFileStoreService_DoubleTunnelClient;
-  p  : PGetFileUserData;
+  p: PGetFileUserData;
 begin
   if RecvTunnel.Exists(Sender.PeerClientData) and (Sender.Count > 0) then
     begin
@@ -827,11 +825,11 @@ end;
 
 procedure TLogicService.Command_GetUserInfo(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
-  UserID  : string;
-  cli     : TPeerClientUserDefineForRecvTunnel;
-  l       : TStoreFileInfoList;
+  UserID: string;
+  cli: TPeerClientUserDefineForRecvTunnel;
+  l: TStoreFileInfoList;
   LogicCli: TPerUserLogicRecvTunnel;
-  te      : TSectionTextData;
+  te: TSectionTextData;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
   if not LogicCli.LinkOk then
@@ -871,7 +869,7 @@ end;
 procedure TLogicService.Command_ChangeAlias(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
 var
   LogicCli: TPerUserLogicRecvTunnel;
-  alias   : string;
+  alias: string;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
   if not LogicCli.LinkOk then
@@ -994,18 +992,18 @@ end;
 
 procedure TLogicServerForm.RefreshServerListButtonClick(Sender: TObject);
 var
-  i : Integer;
+  i: Integer;
   ns: TCoreClassStringList;
   vl: THashVariantList;
 
-  ManServAddr     : string;
+  ManServAddr: string;
   RegName, RegAddr: string;
-  RegRecvPort     : Word;
-  RegSendPort     : Word;
-  LastEnabled     : UInt64;
-  WorkLoad        : Word;
-  ServerType      : TServerType;
-  SuccessEnabled  : Boolean;
+  RegRecvPort: Word;
+  RegSendPort: Word;
+  LastEnabled: UInt64;
+  WorkLoad: Word;
+  ServerType: TServerType;
+  SuccessEnabled: Boolean;
 
   vServerVal: array [TServerType] of Integer;
 
@@ -1021,9 +1019,9 @@ var
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -1055,9 +1053,9 @@ var
   procedure PrintServerCMDStatistics(prefix: string; const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
-    comm                               : TCommunicationFramework;
-    i                                  : Integer;
-    lst                                : TListString;
+    comm: TCommunicationFramework;
+    i: Integer;
+    lst: TListString;
   begin
     RecvLst := THashVariantList.Create;
     SendLst := THashVariantList.Create;
@@ -1197,7 +1195,6 @@ begin
     FManagerClients.Progress;
     FFileStoreClientPool.Progress;
     FDataStoreClient.Progress;
-    ProcessICSMessages;
   except
   end;
 end;
@@ -1219,7 +1216,6 @@ procedure TLogicServerForm.DoStatusNear(AText: string; const ID: Integer);
 begin
   if StatusCheckBox.Checked then
       Memo.Lines.Append(AText);
-  FDataStoreClient.PostLogInfo('Logic', AText);
 end;
 
 procedure TLogicServerForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1230,7 +1226,7 @@ end;
 
 function TLogicServerForm.GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
 var
-  Rep_Int : Integer;
+  Rep_Int: Integer;
   _Postfix: string;
 begin
   _Postfix := umlGetFirstStr(_Value, _Split);
@@ -1289,13 +1285,13 @@ end;
 procedure TLogicServerForm.ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
 var
   ns: TCoreClassStringList;
-  i : Integer;
+  i: Integer;
   vl: THashVariantList;
 
-  DBServAddr, RegAddr                                   : string;
+  DBServAddr, RegAddr: string;
   DBCliRecvPort, DBCliSendPort, RegRecvPort, RegSendPort: Word;
 
-  DataStoreServAddr                         : string;
+  DataStoreServAddr: string;
   DataStoreCliRecvPort, DataStoreCliSendPort: Word;
 begin
   if FManagerClients.Count = 0 then
@@ -1357,45 +1353,44 @@ end;
 constructor TLogicServerForm.Create(AOwner: TComponent);
 var
   i, pcount: Integer;
-  p1, p2   : string;
+  p1, p2: string;
 
-  delayStartService    : Boolean;
+  delayStartService: Boolean;
   delayStartServiceTime: Double;
 
-  delayReg    : Boolean;
+  delayReg: Boolean;
   delayRegTime: Double;
-  ManServAddr : string;
-  RegAddr     : string;
+  ManServAddr: string;
+  RegAddr: string;
 begin
   inherited Create(AOwner);
   AddDoStatusHook(Self, DoStatusNear);
 
-  FPayRecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FPayRecvTunnel := TPhysicsServer.Create;
   FPayRecvTunnel.IdleTimeout := 60 * 1000;
   FPayRecvTunnel.PrintParams['AntiIdle'] := False;
-  FPaySendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FPaySendTunnel := TPhysicsServer.Create;
 
   FPayService := TPayService.Create(FPayRecvTunnel, FPaySendTunnel);
   FPayService.RegisterCommand;
 
-  FLogicRecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FLogicRecvTunnel := TPhysicsServer.Create;
   FLogicRecvTunnel.IdleTimeout := 5 * 60 * 1000;
   FLogicRecvTunnel.PrintParams['AntiIdle'] := False;
-  FLogicSendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FLogicSendTunnel := TPhysicsServer.Create;
 
   FLogicService := TLogicService.Create(FLogicRecvTunnel, FLogicSendTunnel);
   FLogicService.RegisterCommand;
 
   FLogicService.LogicForm := Self;
 
-  FManagerClients := TServerManager_ClientPool.Create(TCommunicationFramework_Client_CrossSocket, Self);
+  FManagerClients := TServerManager_ClientPool.Create(TPhysicsClient, Self);
 
   FFileStoreClientPool := TFileStoreService_DoubleTunnelClientPool.Create(Self);
 
-  FDataStoreClient := TDataStore_DoubleTunnelClient.Create(TCommunicationFramework_Client_CrossSocket);
+  FDataStoreClient := TDataStore_DoubleTunnelClient.Create(TPhysicsClient);
   FDataStoreClient.RegisterCommand;
 
-  Memo.Lines.Add(WSAInfo);
   Memo.Lines.Add(Format('LogicService Root directory %s', [FLogicService.RootPath]));
 
   RecvPortEdit.Text := IntToStr(cLogicService_RecvPort);

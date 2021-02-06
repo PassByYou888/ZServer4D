@@ -5,14 +5,17 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
+  FMX.Edit, FMX.ScrollBox, FMX.Memo,
+  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
+  FMX.Objects, FMX.Ani, FMX.ListBox,
   Cadencer,
-  Geometry2DUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
+  Geometry2DUnit,
   CoreClasses, MemoryStream64,
   DoStatusIO, ListEngine, UnicodeMixedLib,
-  FMX.Objects, FMX.Ani, FMX.ListBox, AC2LogicMobileClient,
+  AC2LogicMobileClient,
   CommunicationFramework, DataFrameEngine,
   CommunicationFrameworkDoubleTunnelIO_ServMan,
-  AC2ManagerServerMobileClient, FMX.Edit, FMX.ScrollBox, FMX.Memo;
+  AC2ManagerServerMobileClient, FMX.Memo.Types;
 
 type
   TAC2LogicForm = class(TForm, ILogicBackCallInterface)

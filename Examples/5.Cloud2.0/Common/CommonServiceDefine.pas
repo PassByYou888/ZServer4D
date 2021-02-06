@@ -5,8 +5,8 @@ interface
 // global service port define
 const
   cManagerService_QueryPort = 10888;
-  cManagerService_RecvPort  = 13336;
-  cManagerService_SendPort  = 13335;
+  cManagerService_RecvPort = 13336;
+  cManagerService_SendPort = 13335;
 
   cDataStorePrimary_RecvPort = 7732;
   cDataStorePrimary_SendPort = 7731;
@@ -23,8 +23,8 @@ const
   cPayQuery_RecvPort = 4427;
   cPayQuery_SendPort = 4426;
 
-  cFOGCompute_RecvPort=20001;
-  cFOGCompute_SendPort=20000;
+  cFOGCompute_RecvPort = 20001;
+  cFOGCompute_SendPort = 20000;
 
 implementation
 

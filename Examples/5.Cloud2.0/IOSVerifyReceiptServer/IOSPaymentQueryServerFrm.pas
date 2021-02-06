@@ -1,5 +1,5 @@
 unit IOSPaymentQueryServerFrm;
-
+
 interface
 
 uses
@@ -8,9 +8,6 @@ uses
   Vcl.ComCtrls,
 
   Cadencer, CommunicationFramework,
-  CommunicationFramework_Client_ICS,
-  CommunicationFramework_Server_ICS,
-  CommunicationFramework_Server_ICSCustomSocket,
   CommunicationFrameworkDoubleTunnelIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, CommunicationFrameworkIO,
   CoreClasses, DataFrameEngine, DoStatusIO, ListEngine,
   PascalStrings, UnicodeMixedLib,
@@ -18,8 +15,7 @@ uses
   ConnectManagerServerFrm,
   TextDataEngine, NotifyObjectBase,
   MemoryStream64,
-  CommunicationFramework_Server_CrossSocket,
-  CommunicationFramework_Client_CrossSocket,
+  PhysicsIO,
   CommunicationFrameworkDoubleTunnelIO_ServMan, CommonServiceDefine;
 
 type
@@ -62,10 +58,10 @@ type
     procedure AntiIDLETimerTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    FPayQueryRecvTunnel: TCommunicationFramework_Server_CrossSocket;
-    FPayQuerySendTunnel: TCommunicationFramework_Server_CrossSocket;
-    FPayQueryService   : TPayQueryService;
-    FManagerClients    : TServerManager_ClientPool;
+    FPayQueryRecvTunnel: TPhysicsServer;
+    FPayQuerySendTunnel: TPhysicsServer;
+    FPayQueryService: TPayQueryService;
+    FManagerClients: TServerManager_ClientPool;
 
     procedure DoStatusNear(AText: string; const ID: Integer);
     function GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
@@ -130,18 +126,18 @@ end;
 
 procedure TIOSPaymentQueryServerForm.RefreshServerListButtonClick(Sender: TObject);
 var
-  i : Integer;
+  i: Integer;
   ns: TCoreClassStringList;
   vl: THashVariantList;
 
-  ManServAddr     : string;
+  ManServAddr: string;
   RegName, RegAddr: string;
-  RegRecvPort     : Word;
-  RegSendPort     : Word;
-  LastEnabled     : UInt64;
-  WorkLoad        : Word;
-  ServerType      : TServerType;
-  SuccessEnabled  : Boolean;
+  RegRecvPort: Word;
+  RegSendPort: Word;
+  LastEnabled: UInt64;
+  WorkLoad: Word;
+  ServerType: TServerType;
+  SuccessEnabled: Boolean;
 
   vServerVal: array [TServerType] of Integer;
 
@@ -157,9 +153,9 @@ var
   var
     buff: array [TStatisticsType] of Int64;
     comm: TCommunicationFramework;
-    st  : TStatisticsType;
-    i   : Integer;
-    v   : Int64;
+    st: TStatisticsType;
+    i: Integer;
+    v: Int64;
   begin
     for st := low(TStatisticsType) to high(TStatisticsType) do
         buff[st] := 0;
@@ -191,9 +187,9 @@ var
   procedure PrintServerCMDStatistics(prefix: string; const arry: array of TCommunicationFramework);
   var
     RecvLst, SendLst, ExecuteConsumeLst: THashVariantList;
-    comm                               : TCommunicationFramework;
-    i                                  : Integer;
-    lst                                : TListString;
+    comm: TCommunicationFramework;
+    i: Integer;
+    lst: TListString;
   begin
     RecvLst := THashVariantList.Create;
     SendLst := THashVariantList.Create;
@@ -330,7 +326,6 @@ begin
   try
     FPayQueryService.Progress;
     FManagerClients.Progress;
-    ProcessICSMessages;
   except
   end;
 end;
@@ -362,7 +357,7 @@ end;
 
 function TIOSPaymentQueryServerForm.GetPathTreeNode(_Value, _Split: string; _TreeView: TTreeView; _RN: TTreeNode): TTreeNode;
 var
-  Rep_Int : Integer;
+  Rep_Int: Integer;
   _Postfix: string;
 begin
   _Postfix := umlGetFirstStr(_Value, _Split);
@@ -425,7 +420,7 @@ end;
 procedure TIOSPaymentQueryServerForm.ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
 var
   ns: TCoreClassStringList;
-  i : Integer;
+  i: Integer;
   vl: THashVariantList;
 begin
   if FManagerClients.Count = 0 then
@@ -450,30 +445,28 @@ end;
 constructor TIOSPaymentQueryServerForm.Create(AOwner: TComponent);
 var
   i, pcount: Integer;
-  p1, p2   : string;
+  p1, p2: string;
 
-  delayStartService    : Boolean;
+  delayStartService: Boolean;
   delayStartServiceTime: Double;
 
-  delayReg    : Boolean;
+  delayReg: Boolean;
   delayRegTime: Double;
-  ManServAddr : string;
-  RegAddr     : string;
+  ManServAddr: string;
+  RegAddr: string;
 begin
   inherited Create(AOwner);
   AddDoStatusHook(Self, DoStatusNear);
 
-  FPayQueryRecvTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FPayQueryRecvTunnel := TPhysicsServer.Create;
   FPayQueryRecvTunnel.PrintParams['AntiIdle'] := False;
-  FPayQuerySendTunnel := TCommunicationFramework_Server_CrossSocket.Create;
+  FPayQuerySendTunnel := TPhysicsServer.Create;
 
   FPayQueryService := TPayQueryService.Create(FPayQueryRecvTunnel, FPayQuerySendTunnel);
 
   FPayQueryService.RegisterCommand;
 
-  FManagerClients := TServerManager_ClientPool.Create(TCommunicationFramework_Client_CrossSocket, Self);
-
-  Memo.Lines.Add(WSAInfo);
+  FManagerClients := TServerManager_ClientPool.Create(TPhysicsClient, Self);
 
   RecvPortEdit.Text := IntToStr(cPayQuery_RecvPort);
   SendPortEdit.Text := IntToStr(cPayQuery_SendPort);
@@ -628,3 +621,4 @@ end;
 initialization
 
 end.
+
