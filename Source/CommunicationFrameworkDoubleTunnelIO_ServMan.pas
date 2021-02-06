@@ -37,6 +37,7 @@ const
 
 {$INCLUDE ServerManTypeDefine.inc}
 
+
 type
   TServerManager_ClientPool = class;
   TServerManager_Client = class;
@@ -162,13 +163,13 @@ type
 
 function serverType2Str(t: TServerType): SystemString;
 
-implementation
-
 const
   C_RegServer = '__@RegServer';
   C_Offline = '__@Offline';
   C_EnabledServer = '__@EnabledServer';
   C_AntiIdle = '__@AntiIdle';
+
+implementation
 
 function serverType2Str(t: TServerType): SystemString;
 begin
@@ -300,6 +301,8 @@ var
   sendDE: TDataFrameEngine;
 begin
   if SendTunnel.ClientIO.IOBusy then
+      exit;
+  if SendTunnel.SequencePacketActivted then
       exit;
   sendDE := TDataFrameEngine.Create;
   sendDE.WriteWORD(WorkLoad);
@@ -454,7 +457,9 @@ begin
               end;
           end
         else
+          begin
             c.AntiIdle(WorkLoad);
+          end;
         inc(i);
       end;
   except

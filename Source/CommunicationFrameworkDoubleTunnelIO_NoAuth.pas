@@ -2020,8 +2020,16 @@ begin
   FCadencerEngine.Progress;
 
   try
+    if FRecvTunnel is TCommunicationFrameworkWithP2PVM_Client then
+      if FRecvTunnel.ClientIO <> nil then
+          FRecvTunnel.ProgressWaitSend(FRecvTunnel.ClientIO);
     FRecvTunnel.Progress;
+
+    if FSendTunnel is TCommunicationFrameworkWithP2PVM_Client then
+      if FSendTunnel.ClientIO <> nil then
+          FSendTunnel.ProgressWaitSend(FSendTunnel.ClientIO);
     FSendTunnel.Progress;
+
     if not Connected then
         FLinkOk := False;
   except
