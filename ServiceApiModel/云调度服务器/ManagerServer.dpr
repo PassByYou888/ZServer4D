@@ -164,7 +164,7 @@ end;
 procedure TManagerServer.StartService;
 begin
   StopService;
-  if AccessService.StartService(BIND_IP, umlStrToInt(QUERY_PORT, CDEFAULT_MANAGERSERVICE_QUERYPORT)) then
+  if AccessService.StartService(BIND_IP, umlStrToInt(QUERY_PORT, DEFAULT_MANAGERSERVICE_QUERYPORT)) then
       DoStatus('Manager Access Service ready Ok! bind:%s port:%s', [TranslateBindAddr(BIND_IP), QUERY_PORT])
   else
       DoStatus('Manager Access Service Failed! bind:%s port:%s', [TranslateBindAddr(BIND_IP), QUERY_PORT]);
@@ -238,7 +238,7 @@ begin
 
   RECEIVE_PORT := IntToStr(DEFAULT_MANAGERSERVICE_RECVPORT);
   SEND_PORT := IntToStr(DEFAULT_MANAGERSERVICE_SENDPORT);
-  QUERY_PORT := IntToStr(CDEFAULT_MANAGERSERVICE_QUERYPORT);
+  QUERY_PORT := IntToStr(DEFAULT_MANAGERSERVICE_QUERYPORT);
 
   delayStartService := True;
   delayStartServiceTime := 0.1;
