@@ -45,7 +45,7 @@ begin
   // 该hpc的demo客户端可以多开,服务器cpu越好,计算能力越好
   phyCli.OnAutomatedP2PVMClientConnectionDone_P := procedure(Sender: TCommunicationFramework; P_IO: TPeerIO)
     var
-      de: TDataFrameEngine;
+      de, tmp: TDataFrameEngine;
     begin
       if phyCli.AutomatedP2PVMClientConnectionDone(phyCli.ClientIO) then
         begin
@@ -53,6 +53,14 @@ begin
           de := TDataFrameEngine.Create;
           de.WriteInteger(100 * 10000);
           de.WriteString('1+1=2');
+
+          // 阻塞方式发送等反馈
+          tmp := TDFE.Create;
+          vm_cli4.WaitSendStreamCmd('runExp', de, tmp, 5000);
+          DoStatus('执行100万次表达式耗时 %d 毫秒', [tmp.Reader.ReadUInt64]);
+          disposeObject(tmp);
+
+          // 异步方式发送等反馈
           vm_cli4.SendStreamCmdP('runExp', de, procedure(Sender: TPeerIO; ResultData: TDataFrameEngine)
             begin
               DoStatus('执行100万次表达式耗时 %d 毫秒', [ResultData.Reader.ReadUInt64]);
