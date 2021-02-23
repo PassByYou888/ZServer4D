@@ -1041,6 +1041,7 @@ type
     procedure AutomatedP2PVMClient_BuildP2PAuthTokenResult(P_IO: TPeerIO);
     procedure AutomatedP2PVMClient_OpenP2PVMTunnelResult(P_IO: TPeerIO; VMauthState: Boolean);
     procedure AutomatedP2PVMClient_ConnectionResult(Param1: Pointer; Param2: TObject; const ConnectionState: Boolean);
+    procedure AutomatedP2PVMClient_Delay_Done(Sender: TNPostExecute);
     procedure AutomatedP2PVMClient_Done(P_IO: TPeerIO);
   protected
     { large-scale IO support }
@@ -7732,8 +7733,17 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework.AutomatedP2PVMClient_Done(P_IO: TPeerIO);
+procedure TCommunicationFramework.AutomatedP2PVMClient_Delay_Done(Sender: TNPostExecute);
+var
+  P_IO: TPeerIO;
 begin
+  P_IO := TPeerIO(FPeerIO_HashPool[Cardinal(Sender.Data3)]);
+  if P_IO = nil then
+    begin
+      Print('Async Loss IO.');
+      exit;
+    end;
+
   Print('Automated P2PVM client connection done.');
   try
     if Assigned(FOnAutomatedP2PVMClientConnectionDone_C) then
@@ -7758,6 +7768,11 @@ begin
   P_IO.FOnAutomatedP2PVMClientConnectionDoneCall := nil;
   P_IO.FOnAutomatedP2PVMClientConnectionDoneMethod := nil;
   P_IO.FOnAutomatedP2PVMClientConnectionDoneProc := nil;
+end;
+
+procedure TCommunicationFramework.AutomatedP2PVMClient_Done(P_IO: TPeerIO);
+begin
+  FPostProgress.PostExecuteM(0, {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_Delay_Done).Data3 := P_IO.ID;
 end;
 
 procedure TCommunicationFramework.InitLargeScaleIOPool;
@@ -8290,6 +8305,7 @@ end;
 
 procedure TCommunicationFramework.ProgressWaitSend(P_IO: TPeerIO);
 begin
+  CheckThreadSynchronize;
   Progress;
 end;
 
