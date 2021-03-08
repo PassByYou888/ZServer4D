@@ -8,7 +8,8 @@ uses
   FMX.Memo, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
   CoreClasses, ZDBEngine, ZDBLocalManager, DoStatusIO, DataFrameEngine, PascalStrings,
   ListEngine, UnicodeMixedLib, MemoryStream64, zExpression, OpCode, XNATPhysics, NotifyObjectBase,
-  CommunicationFramework, CommunicationFrameworkDoubleTunnelIO_NoAuth;
+  CommunicationFramework, CommunicationFrameworkDoubleTunnelIO_NoAuth,
+  FMX.Memo.Types;
 
 type
   // 服务器对每用户创建的实例，

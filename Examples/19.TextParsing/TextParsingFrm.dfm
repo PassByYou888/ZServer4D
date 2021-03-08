@@ -23,10 +23,6 @@ object Form1: TForm1
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'symbol list'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo1: TMemo
         Left = 16
         Top = 19
@@ -69,10 +65,6 @@ object Form1: TForm1
     object TabSheet2: TTabSheet
       Caption = 'pascal proc list'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo3: TMemo
         Left = 24
         Top = 27
@@ -108,10 +100,6 @@ object Form1: TForm1
     object TabSheet3: TTabSheet
       Caption = 'zExpression Demo'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo5: TMemo
         Left = 0
         Top = 49

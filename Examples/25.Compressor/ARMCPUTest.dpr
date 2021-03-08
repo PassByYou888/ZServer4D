@@ -1,12 +1,10 @@
 program ARMCPUTest;
-
 uses
   System.StartUpCopy,
   FMX.Forms,
   ARMCPUTestFrm in 'ARMCPUTestFrm.pas' {Form1};
 
 {$R *.res}
-
 
 begin
   ReportMemoryLeaksOnShutdown := True;

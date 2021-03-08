@@ -251,6 +251,12 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 ## 最后更新日志
 
+**全面支持Radstudio10.4.2**
+
+- 修复p2pVM主循环问题
+- 内核新增OrderStrtuct以支持ThreadPos
+- 全面支持10.4.2
+
 **小改动**
 
 - 修复在P2PVM触发ConnectionDone事件中使用阻塞方式通讯等不到反馈的问题，感谢qq274384409

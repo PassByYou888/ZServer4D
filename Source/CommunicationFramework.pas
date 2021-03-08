@@ -965,7 +965,8 @@ type
     FFrameworkIsServer: Boolean;
     FFrameworkIsClient: Boolean;
     FFrameworkInfo: SystemString;
-    FOnProgressRuning: Boolean;
+    FProgressRuning: Boolean;
+    FProgressWaitRuning: Boolean;
     FOnProgress: TProgressOnCommunicationFramework;
     FCMDWithThreadRuning: Integer;
     FIOInterface: IIOInterface;
@@ -2197,7 +2198,7 @@ procedure RunHPC_DirectConsoleP(Sender: TPeerIO;
   const UserData: Pointer; const UserObject: TCoreClassObject;
   const InData: SystemString; const OnRun: TOnHPC_DirectConsoleProc);
 {$ENDREGION 'HPC DirectConsole Support'}
-{$REGION 'function'}
+{$REGION 'api'}
 
 procedure DisposeQueueData(const v: PQueueData);
 procedure InitQueueData(var v: TQueueData);
@@ -2224,7 +2225,7 @@ procedure ExtractHostAddress(var Host: U_String; var Port: Word);
 
 procedure SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 procedure DoExecuteResult(c: TPeerIO; const QueuePtr: PQueueData; const AResultText: SystemString; AResultDF: TDataFrameEngine);
-{$ENDREGION 'function'}
+{$ENDREGION 'api'}
 {$REGION 'ConstAndVariant'}
 
 
@@ -7859,7 +7860,8 @@ begin
   FFrameworkIsClient := True;
   FFrameworkInfo := ClassName;
 
-  FOnProgressRuning := False;
+  FProgressRuning := False;
+  FProgressWaitRuning := False;
   FOnProgress := nil;
 
   FCMDWithThreadRuning := 0;
@@ -8095,11 +8097,11 @@ procedure TCommunicationFramework.Progress;
 var
   i: Integer;
 begin
-  if FOnProgressRuning then
+  if FProgressRuning then
       exit;
 
   { anti Dead loop }
-  FOnProgressRuning := True;
+  FProgressRuning := True;
 
   try
     if Assigned(ProgressBackgroundProc) then
@@ -8144,7 +8146,7 @@ begin
   end;
 
   { anti Dead loop }
-  FOnProgressRuning := False;
+  FProgressRuning := False;
 end;
 
 procedure TCommunicationFramework.ProgressPeerIOC(const OnBackcall: TPeerIOListCall);
@@ -8305,8 +8307,16 @@ end;
 
 procedure TCommunicationFramework.ProgressWaitSend(P_IO: TPeerIO);
 begin
-  CheckThreadSynchronize;
-  Progress;
+  if FProgressWaitRuning then
+      exit;
+
+  FProgressWaitRuning := True;
+  try
+    CheckThreadSynchronize;
+    Progress;
+  except
+  end;
+  FProgressWaitRuning := False;
 end;
 
 procedure TCommunicationFramework.Print(const v: SystemString);
@@ -11173,6 +11183,11 @@ begin
           FLinkVM.SendDisconnect(Remote_frameworkID, Remote_p2pID);
       if not FOwnerFramework.FQuietMode then
           DoStatus('VMClientIO %d disconnect', [ID]);
+      if FOwnerFramework is TCommunicationFrameworkWithP2PVM_Client then
+        begin
+          TCommunicationFrameworkWithP2PVM_Client(FOwnerFramework).DoDisconnect(Self);
+          TCommunicationFrameworkWithP2PVM_Client(FOwnerFramework).FLinkVM := nil;
+        end;
     end;
 
   for i := 0 to FSendQueue.Count - 1 do
@@ -12600,7 +12615,9 @@ end;
 procedure TCommunicationFrameworkWithP2PVM.DoPerClientClose(P_IO: TPeerIO);
 begin
   if TP2PVM_PeerIO(P_IO).FLinkVM = Self then
+    begin
       P_IO.Disconnect;
+    end;
 end;
 
 constructor TCommunicationFrameworkWithP2PVM.Create(HashPoolSize: Integer);
@@ -14192,11 +14209,11 @@ begin
     begin
       FStableClientIO.FSequencePacketSignal := False;
       while FStableClientIO.IOBusy do
-          Progress;
+          ProgressWaitSend(FStableClientIO);
       FStableClientIO.SendDirectConsoleCmd(C_CloseStableIO);
       FStableClientIO.Progress;
       while FPhysicsClient.Connected and (not FPhysicsClient.ClientIO.WriteBufferEmpty) do
-          FPhysicsClient.Progress;
+          FPhysicsClient.ProgressWaitSend(FPhysicsClient.ClientIO);
       FStableClientIO.FSequencePacketSignal := True;
     end;
 

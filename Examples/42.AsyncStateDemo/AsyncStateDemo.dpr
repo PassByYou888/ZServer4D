@@ -41,13 +41,13 @@ end;
 // post等同于把代码发送给一个我们构建的目标线程来执行,post不会挑线性类型,不区分主线程/子线程,任何线程都能使用
 procedure PostDemo();
 var
-  P: TThreadProgressPost; // TThreadProgressPost,Post机制支持
+  P: TThreadPost; // TThreadPost,Post机制支持
   done: TAtomBool;        // 线程安全:状态变量
   over: boolean;          // local变量,在调用完成后会自动销毁,故此,我们必须在这里做一个监视work_结束状态
 begin
   // 线程安全:状态变量
   done := TAtomBool.Create(False);
-  P := TThreadProgressPost.Create(0);
+  P := TThreadPost.Create(0);
   // 工作线程
   TCompute.RunP_NP(procedure
     begin

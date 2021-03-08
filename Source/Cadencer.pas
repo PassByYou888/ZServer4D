@@ -143,6 +143,7 @@ type
     property OnProgressProc: TCadencerProgressProc read FOnProgressProc write FOnProgressProc;
     { interface }
     property ProgressInterface: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
+    property OnProgressInterface: ICadencerProgressInterface read FProgressIntf write FProgressIntf;
   end;
 
 implementation

@@ -143,6 +143,34 @@ type
     procedure Clear;
   end;
 {$EndRegion 'core defines + class'}
+{$Region 'OrderStruct'}
+  {$IFDEF FPC}generic{$ENDIF FPC}TOrderStruct<T_> = class
+  public type
+    PT_ = ^T_;
+    POrederStruct_ = ^TOrederStruct_;
+    TOrederStruct_ = packed record
+      Data: PT_;
+      Next: POrederStruct_;
+    end;
+    TOnFreeOrderStruct = procedure(p: PT_) of object;
+  private
+    FFirst: POrederStruct_;
+    FLast: POrederStruct_;
+    FNum: NativeInt;
+    FOnFreeOrderStruct: TOnFreeOrderStruct;
+  protected
+    procedure DoFree(p: POrederStruct_);
+  public
+    constructor Create;
+    destructor Destroy;
+    procedure Clear;
+    function Current: PT_;
+    procedure Next;
+    procedure Push(Data: T_);
+    property Num: NativeInt read FNum;
+    property OnFreeOrderStruct: TOnFreeOrderStruct read FOnFreeOrderStruct write FOnFreeOrderStruct;
+  end;
+{$EndRegion 'OrderStruct'}
 {$Region 'Critical'}
   TSoftCritical = class(TCoreClassObject)
   private
@@ -225,58 +253,57 @@ type
     property Busy: Boolean read IsBusy;
   end;
 {$EndRegion 'Critical'}
-{$Region 'ThreadProgressPost'}
-  TThreadProgressPostCall1 = procedure();
-  TThreadProgressPostCall2 = procedure(Data1: Pointer);
-  TThreadProgressPostCall3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant);
-  TThreadProgressPostCall4 = procedure(Data1: Pointer; Data2: TCoreClassObject);
-  TThreadProgressPostMethod1 = procedure() of object;
-  TThreadProgressPostMethod2 = procedure(Data1: Pointer) of object;
-  TThreadProgressPostMethod3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant) of object;
-  TThreadProgressPostMethod4 = procedure(Data1: Pointer; Data2: TCoreClassObject) of object;
+{$Region 'ThreadPost'}
+  TThreadPostCall1 = procedure();
+  TThreadPostCall2 = procedure(Data1: Pointer);
+  TThreadPostCall3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant);
+  TThreadPostCall4 = procedure(Data1: Pointer; Data2: TCoreClassObject);
+  TThreadPostMethod1 = procedure() of object;
+  TThreadPostMethod2 = procedure(Data1: Pointer) of object;
+  TThreadPostMethod3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant) of object;
+  TThreadPostMethod4 = procedure(Data1: Pointer; Data2: TCoreClassObject) of object;
 {$IFDEF FPC}
-  TThreadProgressPostProc1 = procedure() is nested;
-  TThreadProgressPostProc2 = procedure(Data1: Pointer) is nested;
-  TThreadProgressPostProc3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant) is nested;
-  TThreadProgressPostProc4 = procedure(Data1: Pointer; Data2: TCoreClassObject) is nested;
+  TThreadPostProc1 = procedure() is nested;
+  TThreadPostProc2 = procedure(Data1: Pointer) is nested;
+  TThreadPostProc3 = procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant) is nested;
+  TThreadPostProc4 = procedure(Data1: Pointer; Data2: TCoreClassObject) is nested;
 {$ELSE FPC}
-  TThreadProgressPostProc1 = reference to procedure();
-  TThreadProgressPostProc2 = reference to procedure(Data1: Pointer);
-  TThreadProgressPostProc3 = reference to procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant);
-  TThreadProgressPostProc4 = reference to procedure(Data1: Pointer; Data2: TCoreClassObject);
+  TThreadPostProc1 = reference to procedure();
+  TThreadPostProc2 = reference to procedure(Data1: Pointer);
+  TThreadPostProc3 = reference to procedure(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant);
+  TThreadPostProc4 = reference to procedure(Data1: Pointer; Data2: TCoreClassObject);
 {$ENDIF FPC}
 
-  TThreadProgressPostData = record
-    OnCall1: TThreadProgressPostCall1;
-    OnCall2: TThreadProgressPostCall2;
-    OnCall3: TThreadProgressPostCall3;
-    OnCall4: TThreadProgressPostCall4;
-    OnMethod1: TThreadProgressPostMethod1;
-    OnMethod2: TThreadProgressPostMethod2;
-    OnMethod3: TThreadProgressPostMethod3;
-    OnMethod4: TThreadProgressPostMethod4;
-    OnProc1: TThreadProgressPostProc1;
-    OnProc2: TThreadProgressPostProc2;
-    OnProc3: TThreadProgressPostProc3;
-    OnProc4: TThreadProgressPostProc4;
+  TThreadPostData = record
+    OnCall1: TThreadPostCall1;
+    OnCall2: TThreadPostCall2;
+    OnCall3: TThreadPostCall3;
+    OnCall4: TThreadPostCall4;
+    OnMethod1: TThreadPostMethod1;
+    OnMethod2: TThreadPostMethod2;
+    OnMethod3: TThreadPostMethod3;
+    OnMethod4: TThreadPostMethod4;
+    OnProc1: TThreadPostProc1;
+    OnProc2: TThreadPostProc2;
+    OnProc3: TThreadPostProc3;
+    OnProc4: TThreadPostProc4;
     Data1: Pointer;
     Data2: TCoreClassObject;
     Data3: Variant;
     procedure Init;
   end;
 
-  PThreadProgressPostData = ^TThreadProgressPostData;
+  TThreadPostDataOrder = {$IFDEF FPC}specialize {$ENDIF FPC} TOrderStruct<TThreadPostData>;
 
-  TThreadProgressPostDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PThreadProgressPostData>;
-
-  TThreadProgressPost = class(TCoreClassObject)
+  TThreadPost = class(TCoreClassObject)
   protected
     FCritical: TCritical;
     FThreadID: TThreadID;
-    FSyncPool: TThreadProgressPostDataList;
+    FSyncPool: TThreadPostDataOrder;
     FProgressing: TAtomBool;
     FOneStep: Boolean;
     FResetRandomSeed: Boolean;
+    procedure FreeThreadProgressPostData(p: TThreadPostDataOrder.PT_);
   public
     constructor Create(ThreadID_: TThreadID);
     destructor Destroy; override;
@@ -292,24 +319,23 @@ type
     function Progress(): Integer; overload;
 
     // post thread synchronization
-    procedure PostC1(OnSync: TThreadProgressPostCall1);
-    procedure PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
-    procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
-    procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+    procedure PostC1(OnSync: TThreadPostCall1);
+    procedure PostC2(Data1: Pointer; OnSync: TThreadPostCall2);
+    procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostCall3);
+    procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostCall4);
 
-    procedure PostM1(OnSync: TThreadProgressPostMethod1);
-    procedure PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
-    procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
-    procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+    procedure PostM1(OnSync: TThreadPostMethod1);
+    procedure PostM2(Data1: Pointer; OnSync: TThreadPostMethod2);
+    procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostMethod3);
+    procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostMethod4);
 
-    procedure PostP1(OnSync: TThreadProgressPostProc1);
-    procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
-    procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
-    procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
+    procedure PostP1(OnSync: TThreadPostProc1);
+    procedure PostP2(Data1: Pointer; OnSync: TThreadPostProc2);
+    procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostProc3);
+    procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostProc4);
   end;
-  TThreadPost = TThreadProgressPost;
 
-{$EndRegion 'ThreadProgressPost'}
+{$EndRegion 'ThreadPost'}
 {$Region 'ComputeThread'}
   TCompute = class;
 
@@ -384,20 +410,20 @@ type
     // main thread
     class procedure ProgressPost();
     // post to main thread call
-    class procedure PostC1(OnSync: TThreadProgressPostCall1);
-    class procedure PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
-    class procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
-    class procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+    class procedure PostC1(OnSync: TThreadPostCall1);
+    class procedure PostC2(Data1: Pointer; OnSync: TThreadPostCall2);
+    class procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostCall3);
+    class procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostCall4);
     // post to main thread method
-    class procedure PostM1(OnSync: TThreadProgressPostMethod1);
-    class procedure PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
-    class procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
-    class procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+    class procedure PostM1(OnSync: TThreadPostMethod1);
+    class procedure PostM2(Data1: Pointer; OnSync: TThreadPostMethod2);
+    class procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostMethod3);
+    class procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostMethod4);
     // post to main thread proc
-    class procedure PostP1(OnSync: TThreadProgressPostProc1);
-    class procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
-    class procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
-    class procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
+    class procedure PostP1(OnSync: TThreadPostProc1);
+    class procedure PostP2(Data1: Pointer; OnSync: TThreadPostProc2);
+    class procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostProc3);
+    class procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostProc4);
   end;
 
   // TCompute alias
@@ -759,8 +785,8 @@ var
   // The life time of working in asynchronous thread consistency,
   MT19937LifeTime: TTimeTick;
 
-  // MainThread TThreadProgressPost
-  MainThreadProgress: TThreadProgressPost;
+  // MainThread TThreadPost
+  MainThreadProgress: TThreadPost;
 {$EndRegion 'core var'}
 
 implementation
@@ -1184,7 +1210,7 @@ begin
   inherited Clear;
 end;
 
-{$INCLUDE CoreProgressPost.inc}
+{$INCLUDE CoreThreadPost.inc}
 {$INCLUDE CoreComputeThread.inc}
 
 {$IFDEF FPC}
@@ -1194,6 +1220,7 @@ end;
 {$ENDIF FPC}
 {$INCLUDE Core_AtomVar.inc}
 {$INCLUDE Core_LineProcessor.inc}
+{$INCLUDE Core_OrederData.inc}
 
 function GetParallelGranularity: Integer;
 begin
@@ -1215,6 +1242,9 @@ begin
   CheckThreadSynchronize(0);
 end;
 
+var
+  MainThSynchronizeRunning: Boolean;
+
 function CheckThreadSynchronize(Timeout: Integer): Boolean;
 begin
   if TCoreClassThread.CurrentThread.ThreadID <> MainThreadID then
@@ -1224,18 +1254,27 @@ begin
     end
   else
     begin
+      if MainThSynchronizeRunning then
+        Exit;
+      MainThSynchronizeRunning := True;
       MainThreadProgress.Progress(MainThreadID);
       Result := CheckSynchronize(Timeout);
+      MainThSynchronizeRunning := False;
     end;
 
+  if MainThSynchronizeRunning then
+    Exit;
+  MainThSynchronizeRunning := True;
   try
     if Assigned(OnCheckThreadSynchronize) then
       OnCheckThreadSynchronize();
   except
   end;
+  MainThSynchronizeRunning := False;
 end;
 
 initialization
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   OnCheckThreadSynchronize := nil;
   WorkInParallelCore := TAtomBool.Create({$IFDEF FPC}True{$ELSE FPC}DebugHook = 0{$ENDIF FPC});
   ParallelCore := WorkInParallelCore;
@@ -1244,10 +1283,10 @@ initialization
   Core_Step_Tick := TCoreClassThread.GetTickCount();
   InitCriticalLock();
   InitMT19937Rand();
-  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   CoreInitedTimeTick := GetTimeTick();
   InitCoreThreadPool(CpuCount);
-  MainThreadProgress := TThreadProgressPost.Create(MainThreadID);
+  MainThreadProgress := TThreadPost.Create(MainThreadID);
+  MainThSynchronizeRunning := False;
 finalization
   FreeCoreThreadPool;
   MainThreadProgress.Free;

@@ -8,7 +8,7 @@ uses
   FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
   CoreClasses, ZDBEngine, ZDBLocalManager, DoStatusIO, DataFrameEngine, PascalStrings,
   ListEngine, UnicodeMixedLib, MemoryStream64,
-  CommunicationFramework, CommunicationTest, XNATPhysics;
+  CommunicationFramework, CommunicationTest, XNATPhysics, FMX.Memo.Types;
 
 type
   TMyClient = class(TCommunicationFramework_StableClient)

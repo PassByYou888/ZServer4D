@@ -138,7 +138,7 @@ type
   private
     FOwner: TPost_ThreadPool;
     FBindTh: TCompute;
-    FPost: TThreadProgressPost;
+    FPost: TThreadPost;
     FActivted: TAtomBool;
     procedure ThRun(thSender: TCompute);
   public
@@ -146,22 +146,22 @@ type
     destructor Destroy; override;
 
     property BindTh: TCompute read FBindTh;
-    property Post: TThreadProgressPost read FPost;
+    property Post: TThreadPost read FPost;
 
-    procedure PostC1(OnSync: TThreadProgressPostCall1);
-    procedure PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
-    procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
-    procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+    procedure PostC1(OnSync: TThreadPostCall1);
+    procedure PostC2(Data1: Pointer; OnSync: TThreadPostCall2);
+    procedure PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostCall3);
+    procedure PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostCall4);
 
-    procedure PostM1(OnSync: TThreadProgressPostMethod1);
-    procedure PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
-    procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
-    procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+    procedure PostM1(OnSync: TThreadPostMethod1);
+    procedure PostM2(Data1: Pointer; OnSync: TThreadPostMethod2);
+    procedure PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostMethod3);
+    procedure PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostMethod4);
 
-    procedure PostP1(OnSync: TThreadProgressPostProc1);
-    procedure PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
-    procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
-    procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
+    procedure PostP1(OnSync: TThreadPostProc1);
+    procedure PostP2(Data1: Pointer; OnSync: TThreadPostProc2);
+    procedure PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostProc3);
+    procedure PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostProc4);
   end;
 
   TPost_ThreadPool_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TPost_Thread>;
@@ -619,7 +619,7 @@ var
   LastTK, IdleTK: TTimeTick;
 begin
   FBindTh := thSender;
-  FPost := TThreadProgressPost.Create(thSender.ThreadID);
+  FPost := TThreadPost.Create(thSender.ThreadID);
   FPost.OneStep := False;
   FPost.ResetRandomSeed := False;
   FActivted := TAtomBool.Create(True);
@@ -663,62 +663,62 @@ begin
   inherited Destroy;
 end;
 
-procedure TPost_Thread.PostC1(OnSync: TThreadProgressPostCall1);
+procedure TPost_Thread.PostC1(OnSync: TThreadPostCall1);
 begin
   FPost.PostC1(OnSync);
 end;
 
-procedure TPost_Thread.PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
+procedure TPost_Thread.PostC2(Data1: Pointer; OnSync: TThreadPostCall2);
 begin
   FPost.PostC2(Data1, OnSync);
 end;
 
-procedure TPost_Thread.PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
+procedure TPost_Thread.PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostCall3);
 begin
   FPost.PostC3(Data1, Data2, Data3, OnSync);
 end;
 
-procedure TPost_Thread.PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+procedure TPost_Thread.PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostCall4);
 begin
   FPost.PostC4(Data1, Data2, OnSync);
 end;
 
-procedure TPost_Thread.PostM1(OnSync: TThreadProgressPostMethod1);
+procedure TPost_Thread.PostM1(OnSync: TThreadPostMethod1);
 begin
   FPost.PostM1(OnSync);
 end;
 
-procedure TPost_Thread.PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
+procedure TPost_Thread.PostM2(Data1: Pointer; OnSync: TThreadPostMethod2);
 begin
   FPost.PostM2(Data1, OnSync);
 end;
 
-procedure TPost_Thread.PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
+procedure TPost_Thread.PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostMethod3);
 begin
   FPost.PostM3(Data1, Data2, Data3, OnSync);
 end;
 
-procedure TPost_Thread.PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+procedure TPost_Thread.PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostMethod4);
 begin
   FPost.PostM4(Data1, Data2, OnSync);
 end;
 
-procedure TPost_Thread.PostP1(OnSync: TThreadProgressPostProc1);
+procedure TPost_Thread.PostP1(OnSync: TThreadPostProc1);
 begin
   FPost.PostP1(OnSync);
 end;
 
-procedure TPost_Thread.PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
+procedure TPost_Thread.PostP2(Data1: Pointer; OnSync: TThreadPostProc2);
 begin
   FPost.PostP2(Data1, OnSync);
 end;
 
-procedure TPost_Thread.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
+procedure TPost_Thread.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostProc3);
 begin
   FPost.PostP3(Data1, Data2, Data3, OnSync);
 end;
 
-procedure TPost_Thread.PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
+procedure TPost_Thread.PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostProc4);
 begin
   FPost.PostP4(Data1, Data2, OnSync);
 end;

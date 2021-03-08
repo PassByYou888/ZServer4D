@@ -291,7 +291,7 @@ type
   TTextParsingClass = class of TTextParsing;
 
 const
-  C_SpacerSymbol = #44#46#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36#124;
+  C_SpacerSymbol = #44#43#45#42#47#40#41#59#58#61#35#64#94#38#37#33#34#91#93#60#62#63#123#125#39#36#124;
 
 var
   SpacerSymbol: TAtomString;
@@ -893,9 +893,8 @@ var
   L: Integer;
   cPos, bkPos: Integer;
   NC: Integer;
-  dotCount: Integer;
-  eCnt: Integer;
-  AddSubSymCnt: Integer;
+  dotNum: Integer;
+  eNum: Integer;
   p: PTokenData;
 begin
   if not RebuildCacheBusy then
@@ -974,7 +973,7 @@ begin
           inc(cPos);
         end;
 
-      Result := NC > 0;
+      Result := (NC > 0);
       NumberBegin := bkPos;
       exit;
     end;
@@ -984,6 +983,7 @@ begin
     begin
       bkPos := cPos;
       NC := 0;
+      dotNum := 0;
       while True do
         begin
           cPos := GetTextDeclEndPos(GetCommentEndPos(cPos));
@@ -992,7 +992,13 @@ begin
               Break;
           c := ParsingData.Text[cPos];
 
-          if isWordSplitChar(c, True, SymbolTable) then
+          if CharIn(c, '.') then
+            begin
+              inc(dotNum);
+              if dotNum > 1 then
+                  Break;
+            end
+          else if isWordSplitChar(c, True, SymbolTable) then
             begin
               Break;
             end
@@ -1007,7 +1013,7 @@ begin
           inc(cPos);
         end;
 
-      Result := NC > 0;
+      Result := (NC > 0) and (dotNum <= 1);
       NumberBegin := bkPos;
       exit;
     end
@@ -1015,6 +1021,7 @@ begin
     begin
       bkPos := cPos;
       NC := 0;
+      dotNum:=0;
       while True do
         begin
           cPos := GetTextDeclEndPos(GetCommentEndPos(cPos));
@@ -1023,7 +1030,13 @@ begin
               Break;
           c := ParsingData.Text[cPos];
 
-          if CharIn(c, '+-') then
+          if CharIn(c, '.') then
+            begin
+              inc(dotNum);
+              if dotNum > 1 then
+                  Break;
+            end
+          else if CharIn(c, '+-') then
             begin
               if NC > 0 then
                   Break;
@@ -1043,7 +1056,7 @@ begin
           inc(cPos);
         end;
 
-      Result := NC > 0;
+      Result := (NC > 0) and (dotNum <= 1);
       NumberBegin := bkPos;
       exit;
     end;
@@ -1056,8 +1069,8 @@ var
   cPos: Integer;
   c: SystemChar;
   NC: Integer;
-  dotC: Integer;
-  eC: Integer;
+  dotNum: Integer;
+  eNum: Integer;
   p: PTokenData;
 begin
   if not RebuildCacheBusy then
@@ -1083,8 +1096,8 @@ begin
   if isNumber(cPos, Result, IsHex) then
     begin
       NC := 0;
-      dotC := 0;
-      eC := 0;
+      dotNum := 0;
+      eNum := 0;
       while True do
         begin
           if isComment(Result) or isTextDecl(Result) then
@@ -1097,23 +1110,23 @@ begin
                 begin
                   if NC > 0 then
                     begin
-                      if eC = 1 then
-                          inc(eC)
+                      if eNum = 1 then
+                          inc(eNum)
                       else
                           exit;
                     end;
                 end
               else if (not IsHex) and CharIn(c, '.') then
                 begin
-                  if (dotC > 1) then
+                  if (dotNum > 1) then
                       exit;
-                  inc(dotC);
+                  inc(dotNum);
                 end
               else if (not IsHex) and CharIn(c, 'eE') then
                 begin
-                  if (eC > 1) then
+                  if (eNum > 1) then
                       exit;
-                  inc(eC);
+                  inc(eNum);
                 end
               else if (IsHex and (CharIn(c, [cLoAtoF, cHiAtoF]))) then
                   inc(NC)

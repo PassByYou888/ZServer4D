@@ -694,6 +694,9 @@ function umlFileMD5(FileName: TPascalString): TMD5; overload;
 procedure umlCacheFileMD5(FileName: U_String);
 procedure umlCacheFileMD5FromDirectory(Directory_, Filter_: U_String);
 
+function umlBinToInt(Value: U_String): UInt64;
+function umlIntToBin(v: UInt64): U_String;
+
 implementation
 
 uses
@@ -6939,6 +6942,39 @@ begin
   p^.Directory_ := Directory_;
   p^.Filter_ := Filter_;
   TCompute.RunC(p, nil, {$IFDEF FPC}@{$ENDIF FPC}DoCacheFileMD5FromDirectory);
+end;
+
+function umlBinToInt(Value: U_String): UInt64;
+var
+  i, Size: Integer;
+begin
+  Result := 0;
+  Size := Value.L;
+  for i := Size downto 1 do
+    begin
+      if Value[i] = '1' then
+          Result := Result + (1 shl (Size - i));
+    end;
+end;
+
+function umlIntToBin(v: UInt64): U_String;
+begin
+  if v = 0 then
+    begin
+      Result := '0';
+      exit;
+    end;
+  Result := '';
+  while v > 0 do
+    begin
+      if v and $1 = 1 then
+          Result := '1' + Result
+      else
+          Result := '0' + Result;
+      v := v shr 1;
+    end;
+  while Result.First = '0' do
+      Result.DeleteFirst;
 end;
 
 initialization

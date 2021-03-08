@@ -569,62 +569,62 @@ begin
   MainThreadProgress.Progress();
 end;
 
-class procedure TCompute.PostC1(OnSync: TThreadProgressPostCall1);
+class procedure TCompute.PostC1(OnSync: TThreadPostCall1);
 begin
   MainThreadProgress.PostC1(OnSync);
 end;
 
-class procedure TCompute.PostC2(Data1: Pointer; OnSync: TThreadProgressPostCall2);
+class procedure TCompute.PostC2(Data1: Pointer; OnSync: TThreadPostCall2);
 begin
   MainThreadProgress.PostC2(Data1, OnSync);
 end;
 
-class procedure TCompute.PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostCall3);
+class procedure TCompute.PostC3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostCall3);
 begin
   MainThreadProgress.PostC3(Data1, Data2, Data3, OnSync);
 end;
 
-class procedure TCompute.PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostCall4);
+class procedure TCompute.PostC4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostCall4);
 begin
   MainThreadProgress.PostC4(Data1, Data2, OnSync);
 end;
 
-class procedure TCompute.PostM1(OnSync: TThreadProgressPostMethod1);
+class procedure TCompute.PostM1(OnSync: TThreadPostMethod1);
 begin
   MainThreadProgress.PostM1(OnSync);
 end;
 
-class procedure TCompute.PostM2(Data1: Pointer; OnSync: TThreadProgressPostMethod2);
+class procedure TCompute.PostM2(Data1: Pointer; OnSync: TThreadPostMethod2);
 begin
   MainThreadProgress.PostM2(Data1, OnSync);
 end;
 
-class procedure TCompute.PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostMethod3);
+class procedure TCompute.PostM3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostMethod3);
 begin
   MainThreadProgress.PostM3(Data1, Data2, Data3, OnSync);
 end;
 
-class procedure TCompute.PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostMethod4);
+class procedure TCompute.PostM4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostMethod4);
 begin
   MainThreadProgress.PostM4(Data1, Data2, OnSync);
 end;
 
-class procedure TCompute.PostP1(OnSync: TThreadProgressPostProc1);
+class procedure TCompute.PostP1(OnSync: TThreadPostProc1);
 begin
   MainThreadProgress.PostP1(OnSync);
 end;
 
-class procedure TCompute.PostP2(Data1: Pointer; OnSync: TThreadProgressPostProc2);
+class procedure TCompute.PostP2(Data1: Pointer; OnSync: TThreadPostProc2);
 begin
   MainThreadProgress.PostP2(Data1, OnSync);
 end;
 
-class procedure TCompute.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadProgressPostProc3);
+class procedure TCompute.PostP3(Data1: Pointer; Data2: TCoreClassObject; Data3: Variant; OnSync: TThreadPostProc3);
 begin
   MainThreadProgress.PostP3(Data1, Data2, Data3, OnSync);
 end;
 
-class procedure TCompute.PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadProgressPostProc4);
+class procedure TCompute.PostP4(Data1: Pointer; Data2: TCoreClassObject; OnSync: TThreadPostProc4);
 begin
   MainThreadProgress.PostP4(Data1, Data2, OnSync);
 end;
