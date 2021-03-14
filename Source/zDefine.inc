@@ -22,7 +22,6 @@
     {$MODE objfpc}
   {$ENDIF FPC_DELPHI_MODE}
 
-  {$ASMMODE INTEL}
   {$MODESWITCH AdvancedRecords}
   {$MODESWITCH NestedProcVars}
   {$MODESWITCH NESTEDCOMMENTS}
@@ -165,6 +164,10 @@
   // With SMALL_RASTER_FONT_Build_In and LARGE_RASTER_FONT_Build_In, boot-time memory usage increase by 100M-200M and start-up time to be delay 100ms
   // {$DEFINE SMALL_RASTER_FONT_Build_In}
   // {$DEFINE LARGE_RASTER_FONT_Build_In}
+
+  {$IF Defined(Android) or Defined(IOS)}
+    {$DEFINE SMALL_RASTER_FONT_Build_In}
+  {$IFEND}
 
   // ZDB_BACKUP is automatically made and replica caching is enabled.
   // usage ZDB_BACKUP so slows the open of large size ZDB file, after time, but does is high performance.
