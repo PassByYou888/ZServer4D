@@ -257,8 +257,14 @@ function umlCombineUnixPath(const s1, s2: TPascalString): TPascalString;
 function umlCombineUnixFileName(const pathName, FileName: TPascalString): TPascalString;
 function umlCombineWinPath(const s1, s2: TPascalString): TPascalString;
 function umlCombineWinFileName(const pathName, FileName: TPascalString): TPascalString;
-function umlGetFileName(const s: TPascalString): TPascalString;
-function umlGetFilePath(const s: TPascalString): TPascalString;
+function umlGetFileName(platform_: TExecutePlatform; const s: TPascalString): TPascalString; overload;
+function umlGetFileName(const s: TPascalString): TPascalString; overload;
+function umlGetWindowsFileName(const s: TPascalString): TPascalString;
+function umlGetUnixFileName(const s: TPascalString): TPascalString;
+function umlGetFilePath(platform_: TExecutePlatform; const s: TPascalString): TPascalString; overload;
+function umlGetFilePath(const s: TPascalString): TPascalString; overload;
+function umlGetWindowsFilePath(const s: TPascalString): TPascalString;
+function umlGetUnixFilePath(const s: TPascalString): TPascalString;
 function umlChangeFileExt(const s, ext: TPascalString): TPascalString;
 function umlGetFileExt(const s: TPascalString): TPascalString;
 
@@ -1469,7 +1475,7 @@ end;
 
 function umlFileExists(const FileName: TPascalString): Boolean;
 begin
-  if FileName.Len > 0 then
+  if FileName.L > 0 then
       Result := FileExists(FileName.text)
   else
       Result := False;
@@ -1883,11 +1889,11 @@ begin
       Result.DeleteLast;
 end;
 
-function umlGetFileName(const s: TPascalString): TPascalString;
+function umlGetFileName(platform_: TExecutePlatform; const s: TPascalString): TPascalString;
 var
   n: TPascalString;
 begin
-  case CurrentPlatform of
+  case platform_ of
     epWin32, epWin64:
       begin
         n := umlCharReplace(umlTrimSpace(s), '/', '\');
@@ -1915,11 +1921,46 @@ begin
   end;
 end;
 
-function umlGetFilePath(const s: TPascalString): TPascalString;
+function umlGetFileName(const s: TPascalString): TPascalString;
+begin
+  Result := umlGetFileName(CurrentPlatform, s);
+end;
+
+function umlGetWindowsFileName(const s: TPascalString): TPascalString;
 var
   n: TPascalString;
 begin
-  case CurrentPlatform of
+  n := umlCharReplace(umlTrimSpace(s), '/', '\');
+  if n.Len = 0 then
+      Result := ''
+  else if (n.Last = '\') then
+      Result := ''
+  else if n.Exists('\') then
+      Result := umlGetLastStr(n, '\')
+  else
+      Result := n;
+end;
+
+function umlGetUnixFileName(const s: TPascalString): TPascalString;
+var
+  n: TPascalString;
+begin
+  n := umlCharReplace(umlTrimSpace(s), '\', '/');
+  if n.Len = 0 then
+      Result := ''
+  else if (n.Last = '/') then
+      Result := ''
+  else if n.Exists('/') then
+      Result := umlGetLastStr(n, '/')
+  else
+      Result := n;
+end;
+
+function umlGetFilePath(platform_: TExecutePlatform; const s: TPascalString): TPascalString;
+var
+  n: TPascalString;
+begin
+  case platform_ of
     epWin32, epWin64:
       begin
         n := umlCharReplace(umlTrimSpace(s), '/', '\');
@@ -1947,6 +1988,43 @@ begin
             Result := n;
       end;
   end;
+end;
+
+function umlGetFilePath(const s: TPascalString): TPascalString;
+begin
+  Result := umlGetFilePath(CurrentPlatform, s);
+end;
+
+function umlGetWindowsFilePath(const s: TPascalString): TPascalString;
+var
+  n: TPascalString;
+begin
+  n := umlCharReplace(umlTrimSpace(s), '/', '\');
+  if n.Len = 0 then
+      Result := ''
+  else if not n.Exists('\') then
+      Result := ''
+  else if (n.Last <> '\') then
+      Result := umlDeleteLastStr(n, '\')
+  else
+      Result := n;
+  if umlMultipleMatch('?:', Result) then
+      Result.Append('\');
+end;
+
+function umlGetUnixFilePath(const s: TPascalString): TPascalString;
+var
+  n: TPascalString;
+begin
+  n := umlCharReplace(umlTrimSpace(s), '\', '/');
+  if n.Len = 0 then
+      Result := ''
+  else if not n.Exists('/') then
+      Result := ''
+  else if (n.Last <> '/') then
+      Result := umlDeleteLastStr(n, '/')
+  else
+      Result := n;
 end;
 
 function umlChangeFileExt(const s, ext: TPascalString): TPascalString;
