@@ -386,6 +386,7 @@ function umlPointerToStr(param: Pointer): TPascalString;
 
 function umlMBPSToStr(Size: Int64): TPascalString;
 function umlSizeToStr(Parameter: Int64): TPascalString;
+function umlStrToDateTime(s: TPascalString): TDateTime;
 function umlDateTimeToStr(t: TDateTime): TPascalString;
 function umlTimeTickToStr(const t: TTimeTick): TPascalString;
 function umlTimeToStr(t: TDateTime): TPascalString;
@@ -504,6 +505,7 @@ const
   NullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   ZeroMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+procedure umlTransformMD5(var Accu; const Buf); inline;
 function umlMD5(const buffPtr: PByte; bufSiz: NativeUInt): TMD5;
 function umlMD5Char(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
 function umlMD5String(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
@@ -702,6 +704,9 @@ procedure umlCacheFileMD5FromDirectory(Directory_, Filter_: U_String);
 
 function umlBinToInt(Value: U_String): UInt64;
 function umlIntToBin(v: UInt64): U_String;
+
+var
+  Lib_DateTimeFormatSettings: TFormatSettings;
 
 implementation
 
@@ -3772,9 +3777,14 @@ begin
   end;
 end;
 
+function umlStrToDateTime(s: TPascalString): TDateTime;
+begin
+  Result := StrToDateTime(s.text, Lib_DateTimeFormatSettings);
+end;
+
 function umlDateTimeToStr(t: TDateTime): TPascalString;
 begin
-  Result := DateTimeToStr(t);
+  Result := DateTimeToStr(t, Lib_DateTimeFormatSettings);
 end;
 
 function umlTimeTickToStr(const t: TTimeTick): TPascalString;
@@ -5091,7 +5101,12 @@ begin
       SetLength(dest, 0);
 end;
 
-procedure umlTransformMD5(var Accu; var Buf); inline;
+procedure umlTransformMD5(var Accu; const Buf); inline;
+{$IF Defined(FastMD5) and Defined(Delphi) and (Defined(WIN32) or Defined(WIN64))}
+begin
+  MD5_Transform(Accu, Buf);
+end;
+{$ELSE}
   function ROL(const x: Cardinal; const n: Byte): Cardinal; inline;
   begin
     Result := (x shl n) or (x shr (32 - n))
@@ -5198,6 +5213,7 @@ begin
   inc(TDigestCardinal(Accu)[2], c);
   inc(TDigestCardinal(Accu)[3], d)
 end;
+{$IFEND}
 
 function umlMD5(const buffPtr: PByte; bufSiz: NativeUInt): TMD5;
 {$IF Defined(FastMD5) and Defined(Delphi) and (Defined(WIN32) or Defined(WIN64))}
@@ -7060,6 +7076,12 @@ initialization
 FileMD5Cache := TFileMD5Cache.Create;
 CacheFileMD5FromDirectory_Num := 0;
 CacheThreadIsAcivted := True;
+
+Lib_DateTimeFormatSettings := FormatSettings;
+Lib_DateTimeFormatSettings.ShortDateFormat := 'yyyy-MM-dd';
+Lib_DateTimeFormatSettings.DateSeparator := '-';
+Lib_DateTimeFormatSettings.TimeSeparator := ':';
+Lib_DateTimeFormatSettings.LongTimeFormat := 'hh:mm:ss:zzz';
 
 finalization
 

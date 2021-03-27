@@ -46,12 +46,11 @@ type
     FOnCall: TIOThread_Call;
     FOnMethod: TIOThread_Method;
     FOnProc: TIOThread_Proc;
-    procedure Process;
   public
     Data: Pointer;
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
-    procedure Delete(); virtual;
+    procedure Process; virtual;
     property OnCall: TIOThread_Call read FOnCall write FOnCall;
     property OnMethod: TIOThread_Method read FOnMethod write FOnMethod;
     property OnProc: TIOThread_Proc read FOnProc write FOnProc;
@@ -67,15 +66,14 @@ type
   TIO_Interface = interface
     function Count(): Integer;
     property QueueCount: Integer read Count;
-    // encrypt input data to pool
     procedure EnQueue(Queue_: TIODataQueue); overload;
     procedure EnQueue(IOData: TIOData); overload;
     procedure EnQueueC(IOData: TIOData; Data: Pointer; OnCall: TIOThread_Call);
     procedure EnQueueM(IOData: TIOData; Data: Pointer; OnMethod: TIOThread_Method);
     procedure EnQueueP(IOData: TIOData; Data: Pointer; OnProc: TIOThread_Proc);
-    // decrypt data state is done from pool
     function DeQueue(wait_: Boolean): TIOData; overload;
     procedure DeQueue(wait_: Boolean; Queue_: TIODataQueue); overload;
+    procedure Wait;
   end;
 
   TIO_Thread = class(TCoreClassInterfacedObject, TIO_Interface)
@@ -94,15 +92,14 @@ type
 
     function Count(): Integer;
     property QueueCount: Integer read Count;
-    // encrypt input data to pool
     procedure EnQueue(Queue_: TIODataQueue); overload;
     procedure EnQueue(IOData: TIOData); overload;
     procedure EnQueueC(IOData: TIOData; Data: Pointer; OnCall: TIOThread_Call);
     procedure EnQueueM(IOData: TIOData; Data: Pointer; OnMethod: TIOThread_Method);
     procedure EnQueueP(IOData: TIOData; Data: Pointer; OnProc: TIOThread_Proc);
-    // decrypt data state is done from pool
     function DeQueue(wait_: Boolean): TIOData; overload;
     procedure DeQueue(wait_: Boolean; Queue_: TIODataQueue); overload;
+    procedure Wait;
 
     class procedure Test();
   end;
@@ -119,15 +116,14 @@ type
 
     function Count(): Integer;
     property QueueCount: Integer read Count;
-    // encrypt input data to pool
     procedure EnQueue(Queue_: TIODataQueue); overload;
     procedure EnQueue(IOData: TIOData); overload;
     procedure EnQueueC(IOData: TIOData; Data: Pointer; OnCall: TIOThread_Call);
     procedure EnQueueM(IOData: TIOData; Data: Pointer; OnMethod: TIOThread_Method);
     procedure EnQueueP(IOData: TIOData; Data: Pointer; OnProc: TIOThread_Proc);
-    // decrypt data state is done from pool
     function DeQueue(wait_: Boolean): TIOData; overload;
     procedure DeQueue(wait_: Boolean; Queue_: TIODataQueue); overload;
+    procedure Wait;
 
     class procedure Test();
   end;
@@ -201,19 +197,6 @@ begin
   TCompute.Sleep(0);
 end;
 
-procedure TIOData.Process;
-begin
-  try
-    if Assigned(FOnCall) then
-        FOnCall(Self);
-    if Assigned(FOnMethod) then
-        FOnMethod(Self);
-    if Assigned(FOnProc) then
-        FOnProc(Self);
-  except
-  end;
-end;
-
 constructor TIOData.Create;
 begin
   inherited Create;
@@ -229,9 +212,17 @@ begin
   inherited Destroy;
 end;
 
-procedure TIOData.Delete;
+procedure TIOData.Process;
 begin
-  DisposeObject(Self);
+  try
+    if Assigned(FOnCall) then
+        FOnCall(Self);
+    if Assigned(FOnMethod) then
+        FOnMethod(Self);
+    if Assigned(FOnProc) then
+        FOnProc(Self);
+  except
+  end;
 end;
 
 procedure TIODataQueue.Clean;
@@ -296,6 +287,8 @@ begin
 
   for i := 0 to ThNum_ - 1 do
       TCompute.RunM({$IFDEF FPC}@{$ENDIF FPC}ThRun);
+  while FThNum < ThNum_ do
+      TCompute.Sleep(1);
 end;
 
 destructor TIO_Thread.Destroy;
@@ -316,6 +309,8 @@ begin
   FThNum := 0;
   for i := 0 to n - 1 do
       TCompute.RunM({$IFDEF FPC}@{$ENDIF FPC}ThRun);
+  while FThNum < n do
+      TCompute.Sleep(1);
 end;
 
 procedure TIO_Thread.ClearQueue();
@@ -448,6 +443,12 @@ begin
     if (wait_) and (n = 0) then
         TCompute.Sleep(1);
   until (not wait_) or (n = 0) or (doneNum = 0);
+end;
+
+procedure TIO_Thread.Wait;
+begin
+  while Count > 0 do
+      TCompute.Sleep(1);
 end;
 
 class procedure TIO_Thread.Test();
@@ -596,6 +597,12 @@ begin
       end;
     FCritical.UnLock;
   until (not wait_) or (n = 0) or (doneNum = 0);
+end;
+
+procedure TIO_Direct.Wait;
+begin
+  while Count > 0 do
+      TCompute.Sleep(1);
 end;
 
 class procedure TIO_Direct.Test;

@@ -265,9 +265,7 @@ type
   TObjectDataTMDBReadProc = procedure(fPos: Int64; const rVal: PObjectDataHandle; var Done: Boolean) of object;
 
   TObjectDataHandle = record
-
     IOHnd: TIOHnd; // IO handle
-
     ReservedData: array [0 .. DB_ReservedData_Size - 1] of Byte; // file: reserved struct
     FixedStringL: Byte;                                          // file: fixed string length
     MajorVer, MinorVer: SmallInt;                                // file: version info
@@ -756,22 +754,22 @@ end;
 
 function db_DeleteFirstPath(const pathName: U_String): U_String;
 begin
-  Result := umlDeleteFirstStr(pathName, db_FieldPathLimitChar).Text;
+  Result := umlDeleteFirstStr(pathName, db_FieldPathLimitChar);
 end;
 
 function db_DeleteLastPath(const pathName: U_String): U_String;
 begin
-  Result := umlDeleteLastStr(pathName, db_FieldPathLimitChar).Text;
+  Result := umlDeleteLastStr(pathName, db_FieldPathLimitChar);
 end;
 
 function db_GetFirstPath(const pathName: U_String): U_String;
 begin
-  Result := umlGetFirstStr(pathName, db_FieldPathLimitChar).Text;
+  Result := umlGetFirstStr(pathName, db_FieldPathLimitChar);
 end;
 
 function db_GetLastPath(const pathName: U_String): U_String;
 begin
-  Result := umlGetLastStr(pathName, db_FieldPathLimitChar).Text;
+  Result := umlGetLastStr(pathName, db_FieldPathLimitChar);
 end;
 
 procedure Init_THeader(var Header_: THeader);

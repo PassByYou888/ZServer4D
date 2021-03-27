@@ -261,7 +261,7 @@ type
   TSHA1Context = packed record { SHA-1 }
     sdHi: DWORD;
     sdLo: DWORD;
-    sdIndex: nativeUInt;
+    sdIndex: NativeUInt;
     sdHash: array [0 .. 4] of DWORD;
     sdBuf: array [0 .. 63] of Byte;
   end;
@@ -434,12 +434,12 @@ type
     class function RNG32(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer): Boolean;
     class function RNG64(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer): Boolean;
     class function LSC(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer): Boolean;
-    class function TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function XXTea512(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function RC6(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function Serpent(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function Mars(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class function Rijndael(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
+    class function TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     class procedure BlockCBC(sour: Pointer; Size: NativeInt; boxBuff: Pointer; boxSiz: NativeInt);
 
     class function EncryptBuffer(cs: TCipherSecurity; sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -454,7 +454,7 @@ type
 
     PParallelCipherJobData = ^TParallelCipherJobData;
 
-    TParallelCipherJobData = packed record
+    TParallelCipherJobData = record
       cipherFunc: TParallelCipherFunc;
       KeyBuffer: Pointer;
       OriginBuffer: Pointer;
@@ -491,12 +491,12 @@ type
     function Blowfish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function LBC(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function LQC(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
-    function TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function XXTea512(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function RC6(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function Serpent(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function Mars(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     function Rijndael(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
+    function TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
     procedure BlockCBC(sour: Pointer; Size: NativeInt; boxBuff: Pointer; boxSiz: NativeInt);
 
     function EncryptBuffer(cs: TCipherSecurity; sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -586,8 +586,6 @@ function CompareQuantumCryptographyPassword(const passwd, passwdDataSource: TPas
 procedure QuantumEncrypt(input, output: TCoreClassStream; SecurityLevel: Integer; key: TCipherKeyBuffer);
 function QuantumDecrypt(input, output: TCoreClassStream; key: TCipherKeyBuffer): Boolean;
 
-procedure TestCoreCipher;
-
 {$REGION 'cryptAndHash'}
 
 
@@ -623,11 +621,11 @@ type
     class function SHA1SwapByteOrder(n: DWORD): DWORD;
     class procedure SHA1UpdateLen(var Context: TSHA1Context; Len: DWORD);
   public
-    class procedure FinalizeSHA1(var Context: TSHA1Context; var Digest: TSHA1Digest);
-    class procedure SHA1(var Digest: TSHA1Digest; const Buf; BufSize: nativeUInt);
+    class procedure SHA1(var Digest: TSHA1Digest; const Buf; BufSize: NativeUInt);
+    class procedure ByteBuffSHA1(var Digest: TSHA1Digest; const Bytes_: TBytes);
     class procedure InitSHA1(var Context: TSHA1Context);
-    class procedure ByteBuffSHA1(var Digest: TSHA1Digest; const ABytes: TBytes);
-    class procedure UpdateSHA1(var Context: TSHA1Context; const Buf; BufSize: nativeUInt);
+    class procedure UpdateSHA1(var Context: TSHA1Context; const Buf; BufSize: NativeUInt);
+    class procedure FinalizeSHA1(var Context: TSHA1Context; var Digest: TSHA1Digest);
   end;
 
   { SHA-2-SHA256 }
@@ -636,7 +634,7 @@ type
     class procedure SwapDWORD(var a: DWORD);
     class procedure Compute(var Digest: TSHA256Digest; const buff: Pointer);
   public
-    class procedure SHA256(var Digest: TSHA256Digest; const Buf; BufSize: nativeUInt);
+    class procedure SHA256(var Digest: TSHA256Digest; const Buf; BufSize: NativeUInt);
   end;
 
   { SHA-2-SHA512 }
@@ -699,23 +697,23 @@ type
   { MD5 }
   THashMD5 = class(TCoreClassObject)
   public
-    class procedure FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
-    class procedure GenerateMD5Key(var key: TKey128; const ABytes: TBytes);
+    class procedure GenerateMD5Key(var key: TKey128; const Bytes_: TBytes);
     class procedure HashMD5(var Digest: TMD5Digest; const Buf; BufSize: NativeInt);
+    class procedure ByteBuffHashMD5(var Digest: TMD5Digest; const Bytes_: TBytes);
     class procedure InitMD5(var Context: TMD5Context);
-    class procedure ByteBuffHashMD5(var Digest: TMD5Digest; const ABytes: TBytes);
     class procedure UpdateMD5(var Context: TMD5Context; const Buf; BufSize: NativeInt);
+    class procedure FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
   end;
 
   { message digest }
   THashMD = class(TCoreClassObject)
   public
-    class procedure FinalizeLMD(var Context: TLMDContext; var Digest; DigestSize: Integer);
-    class procedure GenerateLMDKey(var key; KeySize: Integer; const ABytes: TBytes);
+    class procedure GenerateLMDKey(var key; KeySize: Integer; const Bytes_: TBytes);
     class procedure HashLMD(var Digest; DigestSize: Integer; const Buf; BufSize: NativeInt);
+    class procedure ByteBuffHashLMD(var Digest; DigestSize: Integer; const Bytes_: TBytes);
     class procedure InitLMD(var Context: TLMDContext);
-    class procedure ByteBuffHashLMD(var Digest; DigestSize: Integer; const ABytes: TBytes);
     class procedure UpdateLMD(var Context: TLMDContext; const Buf; BufSize: NativeInt);
+    class procedure FinalizeLMD(var Context: TLMDContext; var Digest; DigestSize: Integer);
   end;
 
   { Random Number Cipher }
@@ -743,8 +741,8 @@ type
     class function Random64(var Seed: TInt64): Integer; static;
     class procedure Transform(var OutputBuffer: TTransformOutput; var InBuf: TTransformInput); static;
     class procedure GenerateRandomKey(var key; KeySize: Integer); static;
-    class procedure HashELF(var Digest: DWORD; const Buf; BufSize: nativeUInt); static;
-    class procedure HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt); static;
+    class procedure HashELF(var Digest: DWORD; const Buf; BufSize: NativeUInt); static;
+    class procedure HashELF64(var Digest: Int64; const Buf; BufSize: NativeUInt); static;
     class procedure HashMix128(var Digest: DWORD; const Buf; BufSize: NativeInt); static;
     class function Ran01(var Seed: Integer): Integer; static;
     class function Ran02(var Seed: Integer): Integer; static;
@@ -752,8 +750,8 @@ type
     class function Random32Byte(var Seed: Integer): Byte; static;
     class function Random64Byte(var Seed: TInt64): Byte; static;
     class function RolX(i, c: DWORD): DWORD; static;
-    class procedure ByteBuffHashELF(var Digest: DWORD; const ABytes: TBytes); static;
-    class procedure ByteBuffHashMix128(var Digest: DWORD; const ABytes: TBytes); static;
+    class procedure ByteBuffHashELF(var Digest: DWORD; const Bytes_: TBytes); static;
+    class procedure ByteBuffHashMix128(var Digest: DWORD; const Bytes_: TBytes); static;
     class procedure XorMem(var Mem1; const Mem2; Count: NativeInt); static;
   end;
 
@@ -1774,6 +1772,170 @@ type
   end;
 {$ENDREGION 'cryptAndHash'}
 
+
+type
+  TCipher_Base = class(TCoreClassObject)
+  protected
+    FCipherSecurity: TCipherSecurity;
+    FLastGenerateKey: TCipherKeyBuffer;
+    FLevel: Integer;
+    FProcessTail: Boolean;
+    FCBC: Boolean;
+  public
+    property CipherSecurity: TCipherSecurity read FCipherSecurity;
+    property LastGenerateKey: TCipherKeyBuffer read FLastGenerateKey;
+    property Level: Integer read FLevel write FLevel;
+    property ProcessTail: Boolean read FProcessTail write FProcessTail;
+    property CBC: Boolean read FCBC write FCBC;
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); virtual;
+    destructor Destroy; override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); virtual;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); virtual;
+    procedure Process(sour: Pointer; Size: NativeInt; Level_: Integer; Encrypt_, ProcessTail_, CBC_: Boolean);
+    procedure Test; virtual;
+  end;
+
+  TCipher_DES64 = class(TCipher_Base)
+  private
+    FDKey, FEkey: TDESContext;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_DES128 = class(TCipher_Base)
+  private
+    FDKey, FEkey: TTripleDESContext;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_DES192 = class(TCipher_Base)
+  private
+    FDKey, FEkey: TTripleDESContext3Key;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_BlowFish = class(TCipher_Base)
+  private
+    Fkey: TBFContext;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_LBC = class(TCipher_Base)
+  private
+    FDKey, FEkey: TLBCContext;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_LQC = class(TCipher_Base)
+  private
+    Fkey: TKey128;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_RNG32 = class(TCipher_Base)
+  private
+    Fkey: TRNG32Context;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_RNG64 = class(TCipher_Base)
+  private
+    Fkey: TRNG64Context;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_LSC = class(TCipher_Base)
+  private
+    Fkey: TLSCContext;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_XXTea512 = class(TCipher_Base)
+  private
+    Fkey: TKey128;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_RC6 = class(TCipher_Base)
+  private
+    Fkey: TRC6Key;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_Serpent = class(TCipher_Base)
+  private
+    Fkey: TSerpentkey;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_Mars = class(TCipher_Base)
+  private
+    Fkey: TMarskey;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_Rijndael = class(TCipher_Base)
+  private
+    Fkey: TRijndaelkey;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+  TCipher_TwoFish = class(TCipher_Base)
+  private
+    Fkey: TTwofishKey;
+  public
+    constructor Create(KeyBuffer_: TCipherKeyBuffer); override;
+    procedure Encrypt(sour: Pointer; Size: NativeInt); override;
+    procedure Decrypt(sour: Pointer; Size: NativeInt); override;
+  end;
+
+function CreateCipherClass(cs: TCipherSecurity; KeyBuffer_: TCipherKeyBuffer): TCipher_Base;
+function CreateCipherClassFromPassword(cs: TCipherSecurity; password_: TPascalString): TCipher_Base;
+// compatible SequEncryptCBC
+function CreateCipherClassFromBuffer(cs: TCipherSecurity; key: TCipherKeyBuffer): TCipher_Base;
+procedure TestCoreCipher;
+
 implementation
 
 uses DoStatusIO;
@@ -2337,8 +2499,8 @@ begin
   output.Len := Size * 2;
   for i := 0 to Size - 1 do
     begin
-      output.buff[i * 2] := HexArr[(PByte(nativeUInt(hash) + i)^ shr 4) and $0F];
-      output.buff[i * 2 + 1] := HexArr[PByte(nativeUInt(hash) + i)^ and $0F];
+      output.buff[i * 2] := HexArr[(PByte(NativeUInt(hash) + i)^ shr 4) and $0F];
+      output.buff[i * 2 + 1] := HexArr[PByte(NativeUInt(hash) + i)^ and $0F];
     end;
 end;
 
@@ -2877,7 +3039,7 @@ var
 begin
   buff := s.Bytes;
   SetLength(key, 128);
-  TCipher.GenerateMDHash(@buff[0], SizeOf(buff), @key[0], 128);
+  TCipher.GenerateMDHash(@buff[0], length(buff), @key[0], 128);
   GenerateKey(cs, @key[0], 128, output);
 end;
 
@@ -2958,7 +3120,7 @@ class function TCipher.DES64(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKey
 var
   k: TKey64;
   d: TDESContext;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -2972,7 +3134,7 @@ begin
 
       p := 0;
       repeat
-        TDES.EncryptDES(d, PDESBlock(nativeUInt(sour) + p)^);
+        TDES.EncryptDES(d, PDESBlock(NativeUInt(sour) + p)^);
         p := p + 8;
       until p + 8 > Size;
     end
@@ -2980,7 +3142,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
 
   Result := True;
 end;
@@ -2989,7 +3151,7 @@ class function TCipher.DES128(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKe
 var
   k: TKey128;
   d: TTripleDESContext;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3003,7 +3165,7 @@ begin
 
       p := 0;
       repeat
-        TDES.EncryptTripleDES(d, PDESBlock(nativeUInt(sour) + p)^);
+        TDES.EncryptTripleDES(d, PDESBlock(NativeUInt(sour) + p)^);
         p := p + 8;
       until p + 8 > Size;
     end
@@ -3011,7 +3173,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
 
   Result := True;
 end;
@@ -3020,7 +3182,7 @@ class function TCipher.DES192(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKe
 var
   k1, k2, k3: TKey64;
   d: TTripleDESContext3Key;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3034,7 +3196,7 @@ begin
 
       p := 0;
       repeat
-        TDES.EncryptTripleDES3Key(d, PDESBlock(nativeUInt(sour) + p)^);
+        TDES.EncryptTripleDES3Key(d, PDESBlock(NativeUInt(sour) + p)^);
         p := p + 8;
       until p + 8 > Size;
     end
@@ -3042,7 +3204,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
@@ -3050,7 +3212,7 @@ class function TCipher.Blowfish(sour: Pointer; Size: NativeInt; KeyBuff: PCipher
 var
   k: TKey128;
   d: TBFContext;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3064,7 +3226,7 @@ begin
 
       p := 0;
       repeat
-        TBlowfish.EncryptBF(d, PBFBlock(nativeUInt(sour) + p)^, Encrypt);
+        TBlowfish.EncryptBF(d, PBFBlock(NativeUInt(sour) + p)^, Encrypt);
         p := p + 8;
       until p + 8 > Size;
     end
@@ -3072,7 +3234,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
 
   Result := True;
 end;
@@ -3081,7 +3243,7 @@ class function TCipher.LBC(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBu
 var
   k: TKey128;
   d: TLBCContext;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3095,7 +3257,7 @@ begin
 
       p := 0;
       repeat
-        TLBC.EncryptLBC(d, PLBCBlock(nativeUInt(sour) + p)^);
+        TLBC.EncryptLBC(d, PLBCBlock(NativeUInt(sour) + p)^);
         p := p + 16;
       until p + 16 > Size;
     end
@@ -3103,14 +3265,14 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
 class function TCipher.LQC(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k: TKey128;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3123,7 +3285,7 @@ begin
 
       p := 0;
       repeat
-        TLBC.EncryptLQC(k, PLQCBlock(nativeUInt(sour) + p)^, Encrypt);
+        TLBC.EncryptLQC(k, PLQCBlock(NativeUInt(sour) + p)^, Encrypt);
         p := p + 8;
       until p + 8 > Size;
     end
@@ -3131,7 +3293,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
@@ -3198,54 +3360,10 @@ begin
   Result := True;
 end;
 
-class function TCipher.TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
-var
-  k, k256: TBytes;
-  d: TTwofishKey;
-  p: nativeUInt;
-begin
-  Result := False;
-  if Size <= 0 then
-      Exit;
-  if Size >= 16 then
-    begin
-      if not GetKey(KeyBuff, k) then
-          Exit;
-
-      SetLength(k256, 32);
-      THashMD.GenerateLMDKey((@k256[0])^, 32, k);
-
-      TTwofish.InitKey(@k256[0], 32, d);
-
-      if Encrypt then
-        begin
-          p := 0;
-          repeat
-            TTwofish.Encrypt(d, PTwofishBlock(nativeUInt(sour) + p)^);
-            p := p + 16;
-          until p + 16 > Size;
-        end
-      else
-        begin
-          p := 0;
-          repeat
-            TTwofish.Decrypt(d, PTwofishBlock(nativeUInt(sour) + p)^);
-            p := p + 16;
-          until p + 16 > Size;
-        end;
-    end
-  else
-      p := 0;
-
-  if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
-  Result := True;
-end;
-
 class function TCipher.XXTea512(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
 var
   k: TKey128;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3260,7 +3378,7 @@ begin
         begin
           p := 0;
           repeat
-            XXTEAEncrypt(k, PXXTEABlock(nativeUInt(sour) + p)^);
+            XXTEAEncrypt(k, PXXTEABlock(NativeUInt(sour) + p)^);
             p := p + 64;
           until p + 64 > Size;
         end
@@ -3268,7 +3386,7 @@ begin
         begin
           p := 0;
           repeat
-            XXTEADecrypt(k, PXXTEABlock(nativeUInt(sour) + p)^);
+            XXTEADecrypt(k, PXXTEABlock(NativeUInt(sour) + p)^);
             p := p + 64;
           until p + 64 > Size;
         end;
@@ -3277,7 +3395,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
@@ -3285,7 +3403,7 @@ class function TCipher.RC6(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBu
 var
   k, k256: TBytes;
   d: TRC6Key;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3304,7 +3422,7 @@ begin
         begin
           p := 0;
           repeat
-            TRC6.Encrypt(d, PRC6Block(nativeUInt(sour) + p)^);
+            TRC6.Encrypt(d, PRC6Block(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end
@@ -3312,7 +3430,7 @@ begin
         begin
           p := 0;
           repeat
-            TRC6.Decrypt(d, PRC6Block(nativeUInt(sour) + p)^);
+            TRC6.Decrypt(d, PRC6Block(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end;
@@ -3321,7 +3439,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
@@ -3329,7 +3447,7 @@ class function TCipher.Serpent(sour: Pointer; Size: NativeInt; KeyBuff: PCipherK
 var
   k, k256: TBytes;
   d: TSerpentkey;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3348,7 +3466,7 @@ begin
         begin
           p := 0;
           repeat
-            TSerpent.Encrypt(d, PSerpentBlock(nativeUInt(sour) + p)^);
+            TSerpent.Encrypt(d, PSerpentBlock(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end
@@ -3356,7 +3474,7 @@ begin
         begin
           p := 0;
           repeat
-            TSerpent.Decrypt(d, PSerpentBlock(nativeUInt(sour) + p)^);
+            TSerpent.Decrypt(d, PSerpentBlock(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end;
@@ -3365,7 +3483,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
@@ -3373,7 +3491,7 @@ class function TCipher.Mars(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyB
 var
   k, k256: TBytes;
   d: TMarskey;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3392,7 +3510,7 @@ begin
         begin
           p := 0;
           repeat
-            TMars.Encrypt(d, PMarsBlock(nativeUInt(sour) + p)^);
+            TMars.Encrypt(d, PMarsBlock(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end
@@ -3400,7 +3518,7 @@ begin
         begin
           p := 0;
           repeat
-            TMars.Decrypt(d, PMarsBlock(nativeUInt(sour) + p)^);
+            TMars.Decrypt(d, PMarsBlock(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end;
@@ -3409,7 +3527,7 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
@@ -3417,7 +3535,7 @@ class function TCipher.Rijndael(sour: Pointer; Size: NativeInt; KeyBuff: PCipher
 var
   k, k256: TBytes;
   d: TRijndaelkey;
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   Result := False;
   if Size <= 0 then
@@ -3436,7 +3554,7 @@ begin
         begin
           p := 0;
           repeat
-            TRijndael.Encrypt(d, PRijndaelBlock(nativeUInt(sour) + p)^);
+            TRijndael.Encrypt(d, PRijndaelBlock(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end
@@ -3444,7 +3562,7 @@ begin
         begin
           p := 0;
           repeat
-            TRijndael.Decrypt(d, PRijndaelBlock(nativeUInt(sour) + p)^);
+            TRijndael.Decrypt(d, PRijndaelBlock(NativeUInt(sour) + p)^);
             p := p + 16;
           until p + 16 > Size;
         end;
@@ -3453,13 +3571,57 @@ begin
       p := 0;
 
   if (ProcessTail) and (Size - p > 0) then
-      EncryptTail(Pointer(nativeUInt(sour) + p), Size - p);
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
+  Result := True;
+end;
+
+class function TCipher.TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
+var
+  k, k256: TBytes;
+  d: TTwofishKey;
+  p: NativeUInt;
+begin
+  Result := False;
+  if Size <= 0 then
+      Exit;
+  if Size >= 16 then
+    begin
+      if not GetKey(KeyBuff, k) then
+          Exit;
+
+      SetLength(k256, 32);
+      THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+      TTwofish.InitKey(@k256[0], 32, d);
+
+      if Encrypt then
+        begin
+          p := 0;
+          repeat
+            TTwofish.Encrypt(d, PTwofishBlock(NativeUInt(sour) + p)^);
+            p := p + 16;
+          until p + 16 > Size;
+        end
+      else
+        begin
+          p := 0;
+          repeat
+            TTwofish.Decrypt(d, PTwofishBlock(NativeUInt(sour) + p)^);
+            p := p + 16;
+          until p + 16 > Size;
+        end;
+    end
+  else
+      p := 0;
+
+  if (ProcessTail) and (Size - p > 0) then
+      EncryptTail(Pointer(NativeUInt(sour) + p), Size - p);
   Result := True;
 end;
 
 class procedure TCipher.BlockCBC(sour: Pointer; Size: NativeInt; boxBuff: Pointer; boxSiz: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if Size = 0 then
       Exit;
@@ -3471,11 +3633,11 @@ begin
     begin
       p := 0;
       repeat
-        TMISC.XorMem(Pointer(nativeUInt(sour) + p)^, boxBuff^, boxSiz);
+        TMISC.XorMem(Pointer(NativeUInt(sour) + p)^, boxBuff^, boxSiz);
         p := p + boxSiz;
       until p + boxSiz > Size;
 
-      BlockCBC(Pointer(nativeUInt(sour) + p), Size - p, boxBuff, boxSiz);
+      BlockCBC(Pointer(NativeUInt(sour) + p), Size - p, boxBuff, boxSiz);
     end;
 end;
 
@@ -3528,79 +3690,79 @@ end;
 
 procedure TParallelCipher.DES64_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   p := 0;
   repeat
-    TDES.EncryptDES(PDESContext(key)^, PDESBlock(nativeUInt(buff) + p)^);
+    TDES.EncryptDES(PDESContext(key)^, PDESBlock(NativeUInt(buff) + p)^);
     p := p + PParallelCipherJobData(Job)^.BlockLen;
   until p + PParallelCipherJobData(Job)^.BlockLen > Size;
 end;
 
 procedure TParallelCipher.DES128_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   p := 0;
   repeat
-    TDES.EncryptTripleDES(PTripleDESContext(key)^, PDESBlock(nativeUInt(buff) + p)^);
+    TDES.EncryptTripleDES(PTripleDESContext(key)^, PDESBlock(NativeUInt(buff) + p)^);
     p := p + PParallelCipherJobData(Job)^.BlockLen;
   until p + PParallelCipherJobData(Job)^.BlockLen > Size;
 end;
 
 procedure TParallelCipher.DES192_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   p := 0;
   repeat
-    TDES.EncryptTripleDES3Key(PTripleDESContext3Key(key)^, PDESBlock(nativeUInt(buff) + p)^);
+    TDES.EncryptTripleDES3Key(PTripleDESContext3Key(key)^, PDESBlock(NativeUInt(buff) + p)^);
     p := p + PParallelCipherJobData(Job)^.BlockLen;
   until p + PParallelCipherJobData(Job)^.BlockLen > Size;
 end;
 
 procedure TParallelCipher.Blowfish_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   p := 0;
   repeat
-    TBlowfish.EncryptBF(PBFContext(key)^, PBFBlock(nativeUInt(buff) + p)^, PParallelCipherJobData(Job)^.Encrypt);
+    TBlowfish.EncryptBF(PBFContext(key)^, PBFBlock(NativeUInt(buff) + p)^, PParallelCipherJobData(Job)^.Encrypt);
     p := p + PParallelCipherJobData(Job)^.BlockLen;
   until p + PParallelCipherJobData(Job)^.BlockLen > Size;
 end;
 
 procedure TParallelCipher.LBC_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   p := 0;
   repeat
-    TLBC.EncryptLBC(PLBCContext(key)^, PLBCBlock(nativeUInt(buff) + p)^);
+    TLBC.EncryptLBC(PLBCContext(key)^, PLBCBlock(NativeUInt(buff) + p)^);
     p := p + PParallelCipherJobData(Job)^.BlockLen;
   until p + PParallelCipherJobData(Job)^.BlockLen > Size;
 end;
 
 procedure TParallelCipher.LQC_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   p := 0;
   repeat
-    TLBC.EncryptLQC(PKey128(key)^, PLQCBlock(nativeUInt(buff) + p)^, PParallelCipherJobData(Job)^.Encrypt);
+    TLBC.EncryptLQC(PKey128(key)^, PLQCBlock(NativeUInt(buff) + p)^, PParallelCipherJobData(Job)^.Encrypt);
     p := p + PParallelCipherJobData(Job)^.BlockLen;
   until p + PParallelCipherJobData(Job)^.BlockLen > Size;
 end;
 
 procedure TParallelCipher.TwoFish_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if PParallelCipherJobData(Job)^.Encrypt then
     begin
       p := 0;
       repeat
-        TTwofish.Encrypt(PTwofishKey(key)^, PTwofishBlock(nativeUInt(buff) + p)^);
+        TTwofish.Encrypt(PTwofishKey(key)^, PTwofishBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end
@@ -3608,7 +3770,7 @@ begin
     begin
       p := 0;
       repeat
-        TTwofish.Decrypt(PTwofishKey(key)^, PTwofishBlock(nativeUInt(buff) + p)^);
+        TTwofish.Decrypt(PTwofishKey(key)^, PTwofishBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end;
@@ -3616,13 +3778,13 @@ end;
 
 procedure TParallelCipher.XXTea512_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if PParallelCipherJobData(Job)^.Encrypt then
     begin
       p := 0;
       repeat
-        XXTEAEncrypt(PKey128(key)^, PXXTEABlock(nativeUInt(buff) + p)^);
+        XXTEAEncrypt(PKey128(key)^, PXXTEABlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end
@@ -3630,7 +3792,7 @@ begin
     begin
       p := 0;
       repeat
-        XXTEADecrypt(PKey128(key)^, PXXTEABlock(nativeUInt(buff) + p)^);
+        XXTEADecrypt(PKey128(key)^, PXXTEABlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end;
@@ -3638,13 +3800,13 @@ end;
 
 procedure TParallelCipher.RC6_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if PParallelCipherJobData(Job)^.Encrypt then
     begin
       p := 0;
       repeat
-        TRC6.Encrypt(PRC6Key(key)^, PRC6Block(nativeUInt(buff) + p)^);
+        TRC6.Encrypt(PRC6Key(key)^, PRC6Block(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end
@@ -3652,7 +3814,7 @@ begin
     begin
       p := 0;
       repeat
-        TRC6.Decrypt(PRC6Key(key)^, PRC6Block(nativeUInt(buff) + p)^);
+        TRC6.Decrypt(PRC6Key(key)^, PRC6Block(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end;
@@ -3660,13 +3822,13 @@ end;
 
 procedure TParallelCipher.Serpent_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if PParallelCipherJobData(Job)^.Encrypt then
     begin
       p := 0;
       repeat
-        TSerpent.Encrypt(PSerpentkey(key)^, PSerpentBlock(nativeUInt(buff) + p)^);
+        TSerpent.Encrypt(PSerpentkey(key)^, PSerpentBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end
@@ -3674,7 +3836,7 @@ begin
     begin
       p := 0;
       repeat
-        TSerpent.Decrypt(PSerpentkey(key)^, PSerpentBlock(nativeUInt(buff) + p)^);
+        TSerpent.Decrypt(PSerpentkey(key)^, PSerpentBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end;
@@ -3682,13 +3844,13 @@ end;
 
 procedure TParallelCipher.Mars_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if PParallelCipherJobData(Job)^.Encrypt then
     begin
       p := 0;
       repeat
-        TMars.Encrypt(PMarskey(key)^, PMarsBlock(nativeUInt(buff) + p)^);
+        TMars.Encrypt(PMarskey(key)^, PMarsBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end
@@ -3696,7 +3858,7 @@ begin
     begin
       p := 0;
       repeat
-        TMars.Decrypt(PMarskey(key)^, PMarsBlock(nativeUInt(buff) + p)^);
+        TMars.Decrypt(PMarskey(key)^, PMarsBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end;
@@ -3704,13 +3866,13 @@ end;
 
 procedure TParallelCipher.Rijndael_Parallel(Job, buff, key: Pointer; Size: NativeInt);
 var
-  p: nativeUInt;
+  p: NativeUInt;
 begin
   if PParallelCipherJobData(Job)^.Encrypt then
     begin
       p := 0;
       repeat
-        TRijndael.Encrypt(PRijndaelkey(key)^, PRijndaelBlock(nativeUInt(buff) + p)^);
+        TRijndael.Encrypt(PRijndaelkey(key)^, PRijndaelBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end
@@ -3718,7 +3880,7 @@ begin
     begin
       p := 0;
       repeat
-        TRijndael.Decrypt(PRijndaelkey(key)^, PRijndaelBlock(nativeUInt(buff) + p)^);
+        TRijndael.Decrypt(PRijndaelkey(key)^, PRijndaelBlock(NativeUInt(buff) + p)^);
         p := p + PParallelCipherJobData(Job)^.BlockLen;
       until p + PParallelCipherJobData(Job)^.BlockLen > Size;
     end;
@@ -3732,9 +3894,9 @@ end;
 procedure TParallelCipher.ParallelCipherCall(const JobData: PParallelCipherJobData; const FromIndex, ToIndex: Integer);
 var
   newBuffPtr: Pointer;
-  newBuffSiz: nativeUInt;
+  newBuffSiz: NativeUInt;
 begin
-  newBuffPtr := Pointer(nativeUInt(JobData^.OriginBuffer) + (FromIndex * JobData^.BlockLen));
+  newBuffPtr := Pointer(NativeUInt(JobData^.OriginBuffer) + (FromIndex * JobData^.BlockLen));
   newBuffSiz := (ToIndex - FromIndex) * JobData^.BlockLen;
 
   try
@@ -3835,7 +3997,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -3874,7 +4036,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -3913,7 +4075,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -3952,7 +4114,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -3991,7 +4153,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4028,49 +4190,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
-    end;
-
-  Result := True;
-end;
-
-function TParallelCipher.TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
-var
-  JobData: TParallelCipherJobData;
-  k, k256: TBytes;
-  Context: TTwofishKey;
-  tailSiz: NativeInt;
-begin
-  Result := False;
-  if Size <= 0 then
-      Exit;
-
-  if Size >= 16 then
-    begin
-      if not TCipher.GetKey(KeyBuff, k) then
-          Exit;
-
-      SetLength(k256, 32);
-      THashMD.GenerateLMDKey((@k256[0])^, 32, k);
-
-      TTwofish.InitKey(@k256[0], 32, Context);
-      JobData.cipherFunc := {$IFDEF FPC}@{$ENDIF FPC}TwoFish_Parallel;
-      JobData.KeyBuffer := @Context;
-      JobData.OriginBuffer := sour;
-      JobData.BlockLen := 16;
-      JobData.TotalBlock := Size div JobData.BlockLen;
-      JobData.CompletedBlock := 0;
-      JobData.Encrypt := Encrypt;
-
-      RunParallel(@JobData, JobData.TotalBlock, BlockDepth);
-    end;
-
-  if ProcessTail then
-    begin
-      tailSiz := Size mod JobData.BlockLen;
-
-      if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4107,7 +4227,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4149,7 +4269,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4192,7 +4312,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4235,7 +4355,7 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4278,7 +4398,49 @@ begin
       tailSiz := Size mod JobData.BlockLen;
 
       if tailSiz > 0 then
-          TCipher.EncryptTail(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz);
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
+    end;
+
+  Result := True;
+end;
+
+function TParallelCipher.TwoFish(sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
+var
+  JobData: TParallelCipherJobData;
+  k, k256: TBytes;
+  Context: TTwofishKey;
+  tailSiz: NativeInt;
+begin
+  Result := False;
+  if Size <= 0 then
+      Exit;
+
+  if Size >= 16 then
+    begin
+      if not TCipher.GetKey(KeyBuff, k) then
+          Exit;
+
+      SetLength(k256, 32);
+      THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+      TTwofish.InitKey(@k256[0], 32, Context);
+      JobData.cipherFunc := {$IFDEF FPC}@{$ENDIF FPC}TwoFish_Parallel;
+      JobData.KeyBuffer := @Context;
+      JobData.OriginBuffer := sour;
+      JobData.BlockLen := 16;
+      JobData.TotalBlock := Size div JobData.BlockLen;
+      JobData.CompletedBlock := 0;
+      JobData.Encrypt := Encrypt;
+
+      RunParallel(@JobData, JobData.TotalBlock, BlockDepth);
+    end;
+
+  if ProcessTail then
+    begin
+      tailSiz := Size mod JobData.BlockLen;
+
+      if tailSiz > 0 then
+          TCipher.EncryptTail(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz);
     end;
 
   Result := True;
@@ -4313,7 +4475,7 @@ begin
   tailSiz := Size mod JobData.BlockLen;
 
   if tailSiz > 0 then
-      TCipher.BlockCBC(Pointer(nativeUInt(sour) + Size - tailSiz), tailSiz, boxBuff, boxSiz);
+      TCipher.BlockCBC(Pointer(NativeUInt(sour) + Size - tailSiz), tailSiz, boxBuff, boxSiz);
 end;
 
 function TParallelCipher.EncryptBuffer(cs: TCipherSecurity; sour: Pointer; Size: NativeInt; KeyBuff: PCipherKeyBuffer; Encrypt, ProcessTail: Boolean): Boolean;
@@ -4917,232 +5079,6 @@ begin
   Result := True;
 end;
 
-procedure TestCoreCipher;
-var
-  Buffer: TBytes;
-  sour, Dest: TMemoryStream64;
-  k: TCipherKeyBuffer;
-  cs: TCipherSecurity;
-  sourHash: TSHA1Digest;
-  d: TTimeTick;
-
-  hs: THashSecurity;
-  hByte: TBytes;
-
-{$IFDEF Parallel}
-  Parallel: TParallelCipher;
-{$ENDIF}
-  ps: TListPascalString;
-
-  s: TPascalString;
-begin
-  sour := TMemoryStream64.Create;
-  sour.Size := Int64(10 * 1024 * 1024 + 9);
-
-  FillPtrByte(sour.Memory, sour.Size, $7F);
-  DoStatus('stream mode md5 :' + umlStreamMD5String(sour).Text);
-  DoStatus('pointer mode md5:' + umlMD5String(sour.Memory, sour.Size).Text);
-
-  DisposeObject(sour);
-
-  DoStatus('Generate and verify QuantumCryptographyPassword test');
-  s := GenerateQuantumCryptographyPassword('123456');
-  if not CompareQuantumCryptographyPassword('123456', s) then
-      DoStatus('QuantumCryptographyPassword failed!');
-  if CompareQuantumCryptographyPassword('1234560', s) then
-      DoStatus('QuantumCryptographyPassword failed!');
-
-  DoStatus('Generate and verify password test');
-  DoStatus('verify short password');
-  s := GeneratePasswordHash(TCipher.CAllHash, '1');
-  if not ComparePasswordHash('1', s) then
-      DoStatus('PasswordHash failed!');
-  if ComparePasswordHash('11', s) then
-      DoStatus('PasswordHash failed!');
-
-  DoStatus('verify long password');
-  s := GeneratePasswordHash(TCipher.CAllHash, 'hello world 123456');
-  if not ComparePasswordHash('hello world 123456', s) then
-      DoStatus('PasswordHash failed!');
-  if ComparePasswordHash('111 hello world 123456', s) then
-      DoStatus('PasswordHash failed!');
-
-  DoStatus('verify full chiher style password');
-  s := GeneratePassword(TCipher.AllCipher, 'hello world');
-  if not ComparePassword(TCipher.AllCipher, 'hello world', s) then
-      DoStatus('Password cipher test failed! cipher: %s', ['']);
-  if ComparePassword(TCipher.AllCipher, 'hello_world', s) then
-      DoStatus('Password cipher test failed! cipher: %s', ['']);
-
-  for cs in TCipher.AllCipher do
-    begin
-      DoStatus('verify %s chiher style password', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      s := GeneratePassword(TCipher.AllCipher, 'hello world');
-      if not ComparePassword(TCipher.AllCipher, 'hello world', s) then
-          DoStatus('Password cipher test failed! cipher: %s', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      if ComparePassword(TCipher.AllCipher, 'hello_world', s) then
-          DoStatus('Password cipher test failed! cipher: %s', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-    end;
-
-  // hash and Sequence Encrypt
-  SetLength(Buffer, 128 * 1024);
-  FillPtrByte(@Buffer[0], length(Buffer), 99);
-
-  ps := TListPascalString.Create;
-
-  DoStatus('Generate Sequence Hash');
-  GenerateSequHash(TCipher.CAllHash, @Buffer[0], length(Buffer), ps);
-  // DoStatus(ps.Text);
-
-  if not CompareSequHash(ps, @Buffer[0], length(Buffer)) then
-      DoStatus('hash compare failed!');
-
-  DoStatus('test Sequence Encrypt');
-  k := TPascalString('hello world').Bytes;
-  if not SequEncryptWithDirect(TCipher.AllCipher, @Buffer[0], length(Buffer), k, True, True) then
-      DoStatus('SequEncrypt failed!');
-  if not SequEncryptWithDirect(TCipher.AllCipher, @Buffer[0], length(Buffer), k, False, True) then
-      DoStatus('SequEncrypt failed!');
-
-  DoStatus('verify Sequence Encrypt');
-  if not CompareSequHash(ps, @Buffer[0], length(Buffer)) then
-      DoStatus('hash compare failed!');
-
-  // cipher Encrypt performance
-  SetLength(Buffer, 1024 * 1024 * 1 + 99);
-  FillPtrByte(@Buffer[0], length(Buffer), $7F);
-
-  sour := TMemoryStream64.Create;
-  Dest := TMemoryStream64.Create;
-  sour.write(Buffer[0], high(Buffer));
-
-  Dest.Clear;
-  sour.Position := 0;
-  Dest.CopyFrom(sour, sour.Size);
-  sour.Position := 0;
-  Dest.Position := 0;
-
-  sourHash := TCipher.GenerateSHA1Hash(sour.Memory, sour.Size);
-
-{$IFDEF Parallel}
-  DoStatus(#13#10'Parallel cipher performance test');
-
-  for cs in TCipher.AllCipher do
-    begin
-      TCipher.GenerateKey(cs, 'hello world', k);
-      Parallel := TParallelCipher.Create;
-
-      Dest.Clear;
-      sour.Position := 0;
-      Dest.CopyFrom(sour, sour.Size);
-      sour.Position := 0;
-      Dest.Position := 0;
-
-      d := GetTimeTick;
-
-      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
-          DoStatus('%s: Parallel encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
-          DoStatus('%s: Parallel decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      DoStatus('%s - Parallel performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
-
-      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
-          DoStatus('%s Parallel hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-
-      DisposeObject(Parallel);
-    end;
-
-  for cs in TCipher.AllCipher do
-    begin
-      TCipher.GenerateKey(cs, 'hello world', k);
-      Parallel := TParallelCipher.Create;
-
-      Dest.Clear;
-      sour.Position := 0;
-      Dest.CopyFrom(sour, sour.Size);
-      sour.Position := 0;
-      Dest.Position := 0;
-
-      d := GetTimeTick;
-
-      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
-          DoStatus('%s: normal 2 Parallel encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
-          DoStatus('%s: normal 2 Parallel decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      DoStatus('%s - normal 2 Parallel performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
-
-      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
-          DoStatus('%s normal 2 Parallel hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-
-      DisposeObject(Parallel);
-    end;
-
-  for cs in TCipher.AllCipher do
-    begin
-      TCipher.GenerateKey(cs, 'hello world', k);
-      Parallel := TParallelCipher.Create;
-
-      Dest.Clear;
-      sour.Position := 0;
-      Dest.CopyFrom(sour, sour.Size);
-      sour.Position := 0;
-      Dest.Position := 0;
-
-      d := GetTimeTick;
-
-      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
-          DoStatus('%s: Parallel 2 normal encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
-          DoStatus('%s: Parallel 2 normal decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      DoStatus('%s - Parallel 2 normal performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
-
-      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
-          DoStatus('%s Parallel 2 normal hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-
-      DisposeObject(Parallel);
-    end;
-{$ENDIF}
-  DoStatus(#13#10'normal cipher performance test');
-
-  for cs in TCipher.AllCipher do
-    begin
-      TCipher.GenerateKey(cs, 'hello world', k);
-
-      Dest.Clear;
-      sour.Position := 0;
-      Dest.CopyFrom(sour, sour.Size);
-      sour.Position := 0;
-      Dest.Position := 0;
-
-      d := GetTimeTick;
-      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
-          DoStatus('%s: encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
-          DoStatus('%s: decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-      DoStatus('%s - normal performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
-      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
-          DoStatus('%s hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
-    end;
-
-  // hash performance
-  DoStatus(#13#10'hash performance test');
-  Dest.Clear;
-  sour.Position := 0;
-  Dest.CopyFrom(sour, sour.Size);
-  sour.Position := 0;
-  Dest.Position := 0;
-
-  for hs := low(THashSecurity) to high(THashSecurity) do
-    begin
-      d := GetTimeTick;
-      TCipher.GenerateHashByte(hs, Dest.Memory, Dest.Size, hByte);
-      DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashSecurity), Integer(hs)), (GetTimeTick - d)]);
-    end;
-
-  DoStatus(#13#10'Cipher test done!');
-  DisposeObject([ps, sour, Dest]);
-end;
-
 { TBlowfish }
 
 class procedure TBlowfish.EncryptBF(const Context: TBFContext; var Block: TBFBlock; Encrypt: Boolean);
@@ -5378,7 +5314,8 @@ begin
   IPerm(l, r);
 
   CPtr := @Context;
-  for i := 0 to 7 do begin
+  for i := 0 to 7 do
+    begin
       Work := (((r shr 4) or (r shl 28)) xor CPtr^);
       inc(CPtr);
       l := l xor SPBox[6, Work and $3F];
@@ -5577,51 +5514,6 @@ begin
   r := Temp.DWords[0];
 end;
 
-{ TSHA1 }
-
-class procedure TSHA1.FinalizeSHA1(var Context: TSHA1Context; var Digest: TSHA1Digest);
-begin
-  with Context do begin
-      sdBuf[sdIndex] := $80;
-
-      if sdIndex >= 56 then
-          SHA1Hash(Context);
-
-      PDWORD(@sdBuf[56])^ := SHA1SwapByteOrder(sdHi);
-      PDWORD(@sdBuf[60])^ := SHA1SwapByteOrder(sdLo);
-
-      SHA1Hash(Context);
-
-      sdHash[0] := SHA1SwapByteOrder(sdHash[0]);
-      sdHash[1] := SHA1SwapByteOrder(sdHash[1]);
-      sdHash[2] := SHA1SwapByteOrder(sdHash[2]);
-      sdHash[3] := SHA1SwapByteOrder(sdHash[3]);
-      sdHash[4] := SHA1SwapByteOrder(sdHash[4]);
-
-      CopyPtr(@sdHash, @Digest, SizeOf(Digest));
-      SHA1Clear(Context);
-    end;
-end;
-
-class procedure TSHA1.SHA1(var Digest: TSHA1Digest; const Buf; BufSize: nativeUInt);
-var
-  Context: TSHA1Context;
-begin
-  InitSHA1(Context);
-  UpdateSHA1(Context, Buf, BufSize);
-  FinalizeSHA1(Context, Digest);
-end;
-
-class procedure TSHA1.InitSHA1(var Context: TSHA1Context);
-begin
-  SHA1Clear(Context);
-  Context.sdHash[0] := SHA1_A;
-  Context.sdHash[1] := SHA1_B;
-  Context.sdHash[2] := SHA1_C;
-  Context.sdHash[3] := SHA1_D;
-  Context.sdHash[4] := SHA1_E;
-end;
-
 class procedure TSHA1.SHA1Clear(var Context: TSHA1Context);
 begin
   FillPtrByte(@Context, SizeOf(Context), $00);
@@ -5722,12 +5614,31 @@ begin
   inc(Context.sdHi, Len shr 29);
 end;
 
-class procedure TSHA1.ByteBuffSHA1(var Digest: TSHA1Digest; const ABytes: TBytes);
+class procedure TSHA1.SHA1(var Digest: TSHA1Digest; const Buf; BufSize: NativeUInt);
+var
+  Context: TSHA1Context;
 begin
-  SHA1(Digest, ABytes[0], length(ABytes));
+  InitSHA1(Context);
+  UpdateSHA1(Context, Buf, BufSize);
+  FinalizeSHA1(Context, Digest);
 end;
 
-class procedure TSHA1.UpdateSHA1(var Context: TSHA1Context; const Buf; BufSize: nativeUInt);
+class procedure TSHA1.ByteBuffSHA1(var Digest: TSHA1Digest; const Bytes_: TBytes);
+begin
+  SHA1(Digest, Bytes_[0], length(Bytes_));
+end;
+
+class procedure TSHA1.InitSHA1(var Context: TSHA1Context);
+begin
+  SHA1Clear(Context);
+  Context.sdHash[0] := SHA1_A;
+  Context.sdHash[1] := SHA1_B;
+  Context.sdHash[2] := SHA1_C;
+  Context.sdHash[3] := SHA1_D;
+  Context.sdHash[4] := SHA1_E;
+end;
+
+class procedure TSHA1.UpdateSHA1(var Context: TSHA1Context; const Buf; BufSize: NativeUInt);
 var
   PBuf: PByte;
 begin
@@ -5747,6 +5658,32 @@ begin
               BufSize := 0;
             end;
         end;
+    end;
+end;
+
+{ TSHA1 }
+
+class procedure TSHA1.FinalizeSHA1(var Context: TSHA1Context; var Digest: TSHA1Digest);
+begin
+  with Context do begin
+      sdBuf[sdIndex] := $80;
+
+      if sdIndex >= 56 then
+          SHA1Hash(Context);
+
+      PDWORD(@sdBuf[56])^ := SHA1SwapByteOrder(sdHi);
+      PDWORD(@sdBuf[60])^ := SHA1SwapByteOrder(sdLo);
+
+      SHA1Hash(Context);
+
+      sdHash[0] := SHA1SwapByteOrder(sdHash[0]);
+      sdHash[1] := SHA1SwapByteOrder(sdHash[1]);
+      sdHash[2] := SHA1SwapByteOrder(sdHash[2]);
+      sdHash[3] := SHA1SwapByteOrder(sdHash[3]);
+      sdHash[4] := SHA1SwapByteOrder(sdHash[4]);
+
+      CopyPtr(@sdHash, @Digest, SizeOf(Digest));
+      SHA1Clear(Context);
     end;
 end;
 
@@ -6047,7 +5984,7 @@ begin
   inc(PDWORD(@Digest[28])^, h);
 end;
 
-class procedure TSHA256.SHA256(var Digest: TSHA256Digest; const Buf; BufSize: nativeUInt);
+class procedure TSHA256.SHA256(var Digest: TSHA256Digest; const Buf; BufSize: NativeUInt);
 var
   Lo, Hi: DWORD;
   p: PByte;
@@ -7002,6 +6939,75 @@ begin
     end;
 end;
 
+class procedure THashMD5.GenerateMD5Key(var key: TKey128; const Bytes_: TBytes);
+var
+  d: TMD5Digest;
+begin
+  HashMD5(d, Bytes_[0], length(Bytes_));
+end;
+
+class procedure THashMD5.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: NativeInt);
+var
+  Context: TMD5Context;
+begin
+  FillPtrByte(@Context, SizeOf(Context), $00);
+  InitMD5(Context);
+  UpdateMD5(Context, Buf, BufSize);
+  FinalizeMD5(Context, Digest);
+end;
+
+class procedure THashMD5.ByteBuffHashMD5(var Digest: TMD5Digest; const Bytes_: TBytes);
+begin
+  HashMD5(Digest, Bytes_[0], length(Bytes_));
+end;
+
+class procedure THashMD5.InitMD5(var Context: TMD5Context);
+begin
+  Context.Count[0] := 0;
+  Context.Count[1] := 0;
+
+  { load magic initialization constants }
+  Context.State[0] := $67452301;
+  Context.State[1] := $EFCDAB89;
+  Context.State[2] := $98BADCFE;
+  Context.State[3] := $10325476;
+end;
+
+class procedure THashMD5.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: NativeInt);
+var
+  InBuf: TTransformInput;
+  BufOfs: DWORD;
+  MDI: DWORD;
+  i: DWORD;
+begin
+  // { compute number of bytes mod 64 }
+  MDI := (Context.Count[0] shr 3) and $3F;
+
+  // { update number of bits }
+  if BufSize shl 3 < 0 then
+      inc(Context.Count[1]);
+
+  inc(Context.Count[0], BufSize shl 3);
+  inc(Context.Count[1], BufSize shr 29);
+
+  { add new byte acters to buffer }
+  BufOfs := 0;
+  while (BufSize > 0) do
+    begin
+      dec(BufSize);
+      Context.Buf[MDI] := TCCByteArray(Buf)[BufOfs]; { !!.01 }
+      inc(MDI);
+      inc(BufOfs);
+      if (MDI = $40) then
+        begin
+          for i := 0 to 15 do
+              InBuf[i] := PDWORD(@Context.Buf[i * 4])^;
+          TMISC.Transform(Context.State, InBuf);
+          MDI := 0;
+        end;
+    end;
+end;
+
 { THashMD5 }
 
 class procedure THashMD5.FinalizeMD5(var Context: TMD5Context; var Digest: TMD5Digest);
@@ -7051,75 +7057,6 @@ begin
     end;
 end;
 
-class procedure THashMD5.GenerateMD5Key(var key: TKey128; const ABytes: TBytes);
-var
-  d: TMD5Digest;
-begin
-  HashMD5(d, ABytes[0], length(ABytes));
-end;
-
-class procedure THashMD5.HashMD5(var Digest: TMD5Digest; const Buf; BufSize: NativeInt);
-var
-  Context: TMD5Context;
-begin
-  FillPtrByte(@Context, SizeOf(Context), $00);
-  InitMD5(Context);
-  UpdateMD5(Context, Buf, BufSize);
-  FinalizeMD5(Context, Digest);
-end;
-
-class procedure THashMD5.InitMD5(var Context: TMD5Context);
-begin
-  Context.Count[0] := 0;
-  Context.Count[1] := 0;
-
-  { load magic initialization constants }
-  Context.State[0] := $67452301;
-  Context.State[1] := $EFCDAB89;
-  Context.State[2] := $98BADCFE;
-  Context.State[3] := $10325476;
-end;
-
-class procedure THashMD5.ByteBuffHashMD5(var Digest: TMD5Digest; const ABytes: TBytes);
-begin
-  HashMD5(Digest, ABytes[0], length(ABytes));
-end;
-
-class procedure THashMD5.UpdateMD5(var Context: TMD5Context; const Buf; BufSize: NativeInt);
-var
-  InBuf: TTransformInput;
-  BufOfs: DWORD;
-  MDI: DWORD;
-  i: DWORD;
-begin
-  // { compute number of bytes mod 64 }
-  MDI := (Context.Count[0] shr 3) and $3F;
-
-  // { update number of bits }
-  if BufSize shl 3 < 0 then
-      inc(Context.Count[1]);
-
-  inc(Context.Count[0], BufSize shl 3);
-  inc(Context.Count[1], BufSize shr 29);
-
-  { add new byte acters to buffer }
-  BufOfs := 0;
-  while (BufSize > 0) do
-    begin
-      dec(BufSize);
-      Context.Buf[MDI] := TCCByteArray(Buf)[BufOfs]; { !!.01 }
-      inc(MDI);
-      inc(BufOfs);
-      if (MDI = $40) then
-        begin
-          for i := 0 to 15 do
-              InBuf[i] := PDWORD(@Context.Buf[i * 4])^;
-          TMISC.Transform(Context.State, InBuf);
-          MDI := 0;
-        end;
-    end;
-end;
-
 { TRNG }
 
 class procedure TRNG.EncryptRNG32(var Context: TRNG32Context; var Buf; BufSize: Integer);
@@ -7151,33 +7088,9 @@ begin
   TInt64(Context).Hi := Integer(KeyHi);
 end;
 
-{ THashMD }
-
-class procedure THashMD.FinalizeLMD(var Context: TLMDContext; var Digest; DigestSize: Integer);
-const
-  Padding: array [0 .. 7] of Byte = (1, 0, 0, 0, 0, 0, 0, 0);
-var
-  BCContext: TLBCContext;
-  i: Integer;
+class procedure THashMD.GenerateLMDKey(var key; KeySize: Integer; const Bytes_: TBytes);
 begin
-  { pad with "1", followed by as many "0"s as needed to fill the block }
-  UpdateLMD(Context, Padding, SizeOf(Padding) - Context.KeyIndex);
-
-  { mix context using block cipher }
-  TLBC.InitEncryptLBC(Context.key, BCContext, 8, True);
-  for i := 0 to (SizeOf(Context.Digest) div SizeOf(TLBCBlock)) - 1 do
-      TLBC.EncryptLBC(BCContext, PLBCBlock(@Context.Digest[i * SizeOf(TLBCBlock)])^);
-
-  { return Digest of requested DigestSize }
-  { max digest is 2048-bit, although it could be greater if Pi2048 was larger }
-  if DigestSize > SizeOf(Context.Digest) then
-      FillPtrByte(@Digest, DigestSize, 0);
-  CopyPtr(@Context.Digest, @Digest, Min(SizeOf(Context.Digest), DigestSize));
-end;
-
-class procedure THashMD.GenerateLMDKey(var key; KeySize: Integer; const ABytes: TBytes);
-begin
-  HashLMD(key, KeySize, ABytes[0], length(ABytes));
+  HashLMD(key, KeySize, Bytes_[0], length(Bytes_));
 end;
 
 class procedure THashMD.HashLMD(var Digest; DigestSize: Integer; const Buf; BufSize: NativeInt);
@@ -7187,6 +7100,11 @@ begin
   InitLMD(Context);
   UpdateLMD(Context, Buf, BufSize);
   FinalizeLMD(Context, Digest, DigestSize);
+end;
+
+class procedure THashMD.ByteBuffHashLMD(var Digest; DigestSize: Integer; const Bytes_: TBytes);
+begin
+  HashLMD(Digest, DigestSize, Bytes_[0], length(Bytes_));
 end;
 
 class procedure THashMD.InitLMD(var Context: TLMDContext);
@@ -7199,11 +7117,6 @@ begin
   Context.KeyInts[1] := $55555555;
   Context.KeyInts[2] := $55555555;
   Context.KeyInts[3] := $55555555;
-end;
-
-class procedure THashMD.ByteBuffHashLMD(var Digest; DigestSize: Integer; const ABytes: TBytes);
-begin
-  HashLMD(Digest, DigestSize, ABytes[0], length(ABytes));
 end;
 
 class procedure THashMD.UpdateLMD(var Context: TLMDContext; const Buf; BufSize: NativeInt);
@@ -7269,6 +7182,30 @@ begin
       end;
 end;
 
+{ THashMD }
+
+class procedure THashMD.FinalizeLMD(var Context: TLMDContext; var Digest; DigestSize: Integer);
+const
+  Padding: array [0 .. 7] of Byte = (1, 0, 0, 0, 0, 0, 0, 0);
+var
+  BCContext: TLBCContext;
+  i: Integer;
+begin
+  { pad with "1", followed by as many "0"s as needed to fill the block }
+  UpdateLMD(Context, Padding, SizeOf(Padding) - Context.KeyIndex);
+
+  { mix context using block cipher }
+  TLBC.InitEncryptLBC(Context.key, BCContext, 8, True);
+  for i := 0 to (SizeOf(Context.Digest) div SizeOf(TLBCBlock)) - 1 do
+      TLBC.EncryptLBC(BCContext, PLBCBlock(@Context.Digest[i * SizeOf(TLBCBlock)])^);
+
+  { return Digest of requested DigestSize }
+  { max digest is 2048-bit, although it could be greater if Pi2048 was larger }
+  if DigestSize > SizeOf(Context.Digest) then
+      FillPtrByte(@Digest, DigestSize, 0);
+  CopyPtr(@Context.Digest, @Digest, Min(SizeOf(Context.Digest), DigestSize));
+end;
+
 { TLSC }
 
 class procedure TLSC.EncryptLSC(var Context: TLSCContext; var Buf; BufSize: Integer);
@@ -7329,9 +7266,9 @@ begin
       TCCByteArray(key)[i] := MT19937Rand32(256); { !!.01 }
 end;
 
-class procedure TMISC.HashELF(var Digest: DWORD; const Buf; BufSize: nativeUInt);
+class procedure TMISC.HashELF(var Digest: DWORD; const Buf; BufSize: NativeUInt);
 var
-  i: nativeUInt;
+  i: NativeUInt;
   x: DWORD;
 begin
   Digest := 0;
@@ -7344,9 +7281,9 @@ begin
     end;
 end;
 
-class procedure TMISC.HashELF64(var Digest: Int64; const Buf; BufSize: nativeUInt);
+class procedure TMISC.HashELF64(var Digest: Int64; const Buf; BufSize: NativeUInt);
 var
-  i: nativeUInt;
+  i: NativeUInt;
   x: Int64;
 begin
   Digest := 0;
@@ -7498,14 +7435,14 @@ begin
   Result := (i shl (c and 31)) or (i shr (32 - (c and 31)));
 end;
 
-class procedure TMISC.ByteBuffHashELF(var Digest: DWORD; const ABytes: TBytes);
+class procedure TMISC.ByteBuffHashELF(var Digest: DWORD; const Bytes_: TBytes);
 begin
-  HashELF(Digest, ABytes[0], length(ABytes));
+  HashELF(Digest, Bytes_[0], length(Bytes_));
 end;
 
-class procedure TMISC.ByteBuffHashMix128(var Digest: DWORD; const ABytes: TBytes);
+class procedure TMISC.ByteBuffHashMix128(var Digest: DWORD; const Bytes_: TBytes);
 begin
-  HashMix128(Digest, ABytes[0], length(ABytes));
+  HashMix128(Digest, Bytes_[0], length(Bytes_));
 end;
 
 class procedure TMISC.Transform(var OutputBuffer: TTransformOutput; var InBuf: TTransformInput);
@@ -7640,11 +7577,11 @@ class procedure TMISC.XorMem(var Mem1; const Mem2; Count: NativeInt);
 var
   siz: Byte;
   i: Integer;
-  p1, p2: nativeUInt;
+  p1, p2: NativeUInt;
 begin
-  p1 := nativeUInt(@Mem1);
-  p2 := nativeUInt(@Mem2);
-  siz := SizeOf(nativeUInt);
+  p1 := NativeUInt(@Mem1);
+  p2 := NativeUInt(@Mem2);
+  siz := SizeOf(NativeUInt);
 
   for i := 1 to Count div siz do
     begin
@@ -9623,28 +9560,28 @@ begin
 
   if KeySize > 192 then
     begin
-      b0 := P8x8[1, b0] xor PByte(nativeUInt(l) + 12)^;
-      B1 := P8x8[0, B1] xor PByte(nativeUInt(l) + 13)^;
-      B2 := P8x8[0, B2] xor PByte(nativeUInt(l) + 14)^;
-      B3 := P8x8[1, B3] xor PByte(nativeUInt(l) + 15)^;
+      b0 := P8x8[1, b0] xor PByte(NativeUInt(l) + 12)^;
+      B1 := P8x8[0, B1] xor PByte(NativeUInt(l) + 13)^;
+      B2 := P8x8[0, B2] xor PByte(NativeUInt(l) + 14)^;
+      B3 := P8x8[1, B3] xor PByte(NativeUInt(l) + 15)^;
     end;
   if KeySize > 128 then
     begin
-      b0 := P8x8[1, b0] xor PByte(nativeUInt(l) + 8)^;
-      B1 := P8x8[1, B1] xor PByte(nativeUInt(l) + 9)^;
-      B2 := P8x8[0, B2] xor PByte(nativeUInt(l) + 10)^;
-      B3 := P8x8[0, B3] xor PByte(nativeUInt(l) + 11)^;
+      b0 := P8x8[1, b0] xor PByte(NativeUInt(l) + 8)^;
+      B1 := P8x8[1, B1] xor PByte(NativeUInt(l) + 9)^;
+      B2 := P8x8[0, B2] xor PByte(NativeUInt(l) + 10)^;
+      B3 := P8x8[0, B3] xor PByte(NativeUInt(l) + 11)^;
     end;
 
-  b0 := P8x8[0, b0] xor PByte(nativeUInt(l) + 4)^;
-  B1 := P8x8[1, B1] xor PByte(nativeUInt(l) + 5)^;
-  B2 := P8x8[0, B2] xor PByte(nativeUInt(l) + 6)^;
-  B3 := P8x8[1, B3] xor PByte(nativeUInt(l) + 7)^;
+  b0 := P8x8[0, b0] xor PByte(NativeUInt(l) + 4)^;
+  B1 := P8x8[1, B1] xor PByte(NativeUInt(l) + 5)^;
+  B2 := P8x8[0, B2] xor PByte(NativeUInt(l) + 6)^;
+  B3 := P8x8[1, B3] xor PByte(NativeUInt(l) + 7)^;
 
   b0 := P8x8[1, P8x8[0, b0] xor PByte(l)^];
-  B1 := P8x8[0, P8x8[0, B1] xor PByte(nativeUInt(l) + 1)^];
-  B2 := P8x8[1, P8x8[1, B2] xor PByte(nativeUInt(l) + 2)^];
-  B3 := P8x8[0, P8x8[1, B3] xor PByte(nativeUInt(l) + 3)^];
+  B1 := P8x8[0, P8x8[0, B1] xor PByte(NativeUInt(l) + 1)^];
+  B2 := P8x8[1, P8x8[1, B2] xor PByte(NativeUInt(l) + 2)^];
+  B3 := P8x8[0, P8x8[1, B3] xor PByte(NativeUInt(l) + 3)^];
 
   Result := DWORD(b0) or (DWORD(B1) shl 8) or (DWORD(B2) shl 16) or (DWORD(B3) shl 24);
 end;
@@ -9660,28 +9597,28 @@ begin
 
   if KeySize > 192 then
     begin
-      b0 := P8x8[1, b0] xor PByte(nativeUInt(l) + 12)^;
-      B1 := P8x8[0, B1] xor PByte(nativeUInt(l) + 13)^;
-      B2 := P8x8[0, B2] xor PByte(nativeUInt(l) + 14)^;
-      B3 := P8x8[1, B3] xor PByte(nativeUInt(l) + 15)^;
+      b0 := P8x8[1, b0] xor PByte(NativeUInt(l) + 12)^;
+      B1 := P8x8[0, B1] xor PByte(NativeUInt(l) + 13)^;
+      B2 := P8x8[0, B2] xor PByte(NativeUInt(l) + 14)^;
+      B3 := P8x8[1, B3] xor PByte(NativeUInt(l) + 15)^;
     end;
   if KeySize > 128 then
     begin
-      b0 := P8x8[1, b0] xor PByte(nativeUInt(l) + 8)^;
-      B1 := P8x8[1, B1] xor PByte(nativeUInt(l) + 9)^;
-      B2 := P8x8[0, B2] xor PByte(nativeUInt(l) + 10)^;
-      B3 := P8x8[0, B3] xor PByte(nativeUInt(l) + 11)^;
+      b0 := P8x8[1, b0] xor PByte(NativeUInt(l) + 8)^;
+      B1 := P8x8[1, B1] xor PByte(NativeUInt(l) + 9)^;
+      B2 := P8x8[0, B2] xor PByte(NativeUInt(l) + 10)^;
+      B3 := P8x8[0, B3] xor PByte(NativeUInt(l) + 11)^;
     end;
 
-  b0 := P8x8[0, b0] xor PByte(nativeUInt(l) + 4)^;
-  B1 := P8x8[1, B1] xor PByte(nativeUInt(l) + 5)^;
-  B2 := P8x8[0, B2] xor PByte(nativeUInt(l) + 6)^;
-  B3 := P8x8[1, B3] xor PByte(nativeUInt(l) + 7)^;
+  b0 := P8x8[0, b0] xor PByte(NativeUInt(l) + 4)^;
+  B1 := P8x8[1, B1] xor PByte(NativeUInt(l) + 5)^;
+  B2 := P8x8[0, B2] xor PByte(NativeUInt(l) + 6)^;
+  B3 := P8x8[1, B3] xor PByte(NativeUInt(l) + 7)^;
 
   b0 := P8x8[1, P8x8[0, b0] xor PByte(l)^];
-  B1 := P8x8[0, P8x8[0, B1] xor PByte(nativeUInt(l) + 1)^];
-  B2 := P8x8[1, P8x8[1, B2] xor PByte(nativeUInt(l) + 2)^];
-  B3 := P8x8[0, P8x8[1, B3] xor PByte(nativeUInt(l) + 3)^];
+  B1 := P8x8[0, P8x8[0, B1] xor PByte(NativeUInt(l) + 1)^];
+  B2 := P8x8[1, P8x8[1, B2] xor PByte(NativeUInt(l) + 2)^];
+  B3 := P8x8[0, P8x8[1, B3] xor PByte(NativeUInt(l) + 3)^];
 
   z0 := b0 xor ArrEF[B1] xor Arr5B[B2] xor Arr5B[B3];
   z1 := Arr5B[b0] xor ArrEF[B1] xor ArrEF[B2] xor B3;
@@ -10192,6 +10129,1145 @@ begin
   PDWORD(@Data[4])^ := R3 xor KeyContext.ExpandedKey[1];
   PDWORD(@Data[8])^ := R0 xor KeyContext.ExpandedKey[2];
   PDWORD(@Data[12])^ := R1 xor KeyContext.ExpandedKey[3];
+end;
+
+constructor TCipher_Base.Create(KeyBuffer_: TCipherKeyBuffer);
+begin
+  inherited Create;
+  FCipherSecurity := csNone;
+  SetLength(FLastGenerateKey, 0);
+  FLevel := 1;
+  FProcessTail := True;
+  FCBC := False;
+end;
+
+destructor TCipher_Base.Destroy;
+begin
+  SetLength(FLastGenerateKey, 0);
+  inherited Destroy;
+end;
+
+procedure TCipher_Base.Encrypt(sour: Pointer; Size: NativeInt);
+begin
+
+end;
+
+procedure TCipher_Base.Decrypt(sour: Pointer; Size: NativeInt);
+begin
+
+end;
+
+procedure TCipher_Base.Process(sour: Pointer; Size: NativeInt; Level_: Integer; Encrypt_, ProcessTail_, CBC_: Boolean);
+begin
+  FLevel := Level_;
+  FProcessTail := ProcessTail_;
+  FCBC := CBC_;
+  if Encrypt_ then
+      Encrypt(sour, Size)
+  else
+      Decrypt(sour, Size);
+end;
+
+procedure TCipher_Base.Test;
+var
+  m64: TMemoryStream64;
+  md5_1, md5_2: TMD5;
+  i: Integer;
+begin
+  m64 := TMemoryStream64.Create;
+  m64.Size := 999;
+  MT19937Rand32(MaxInt, m64.Memory, m64.Size div 4);
+
+  for i := 1 to 4 do
+    begin
+      FProcessTail := not FProcessTail;
+      FLevel := i;
+      md5_1 := umlStreamMD5(m64);
+      Encrypt(m64.Memory, m64.Size);
+      Decrypt(m64.Memory, m64.Size);
+      md5_2 := umlStreamMD5(m64);
+      if umlCompareMD5(md5_1, md5_2) then
+          DoStatus('test %s level %d ok.', [ClassName, FLevel])
+      else
+          DoStatus('test %s level %d error.', [ClassName, FLevel]);
+    end;
+
+  DisposeObject(m64);
+end;
+
+constructor TCipher_DES64.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k: TKey64;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+  TDES.InitEncryptDES(k, FEkey, True);
+  TDES.InitEncryptDES(k, FDKey, False);
+end;
+
+procedure TCipher_DES64.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TDES.EncryptDES(FEkey, PDESBlock(GetOffset(sour, p))^);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_DES64.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TDES.EncryptDES(FDKey, PDESBlock(GetOffset(sour, p))^);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_DES128.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k: TKey128;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+  TDES.InitEncryptTripleDES(k, FEkey, True);
+  TDES.InitEncryptTripleDES(k, FDKey, False);
+end;
+
+procedure TCipher_DES128.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TDES.EncryptTripleDES(FEkey, PDESBlock(GetOffset(sour, p))^);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_DES128.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TDES.EncryptTripleDES(FDKey, PDESBlock(GetOffset(sour, p))^);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_DES192.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k1, k2, k3: TKey64;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k1, k2, k3);
+  TDES.InitEncryptTripleDES3Key(k1, k2, k3, FEkey, True);
+  TDES.InitEncryptTripleDES3Key(k1, k2, k3, FDKey, False);
+end;
+
+procedure TCipher_DES192.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TDES.EncryptTripleDES3Key(FEkey, PDESBlock(GetOffset(sour, p))^);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_DES192.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TDES.EncryptTripleDES3Key(FDKey, PDESBlock(GetOffset(sour, p))^);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_BlowFish.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k: TKey128;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+  TBlowfish.InitEncryptBF(k, Fkey);
+end;
+
+procedure TCipher_BlowFish.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TBlowfish.EncryptBF(Fkey, PBFBlock(GetOffset(sour, p))^, True);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_BlowFish.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TBlowfish.EncryptBF(Fkey, PBFBlock(GetOffset(sour, p))^, False);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_LBC.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k: TKey128;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+  TLBC.InitEncryptLBC(k, FEkey, 16, True);
+  TLBC.InitEncryptLBC(k, FDKey, 16, False);
+end;
+
+procedure TCipher_LBC.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TLBC.EncryptLBC(FEkey, PLBCBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_LBC.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TLBC.EncryptLBC(FDKey, PLBCBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_LQC.Create(KeyBuffer_: TCipherKeyBuffer);
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, Fkey);
+end;
+
+procedure TCipher_LQC.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TLBC.EncryptLQC(Fkey, PLQCBlock(GetOffset(sour, p))^, True);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_LQC.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 8 <= Size do
+        begin
+          TLBC.EncryptLQC(Fkey, PLQCBlock(GetOffset(sour, p))^, False);
+          inc(p, 8);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_RNG32.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k: DWORD;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+  TRNG.InitEncryptRNG32(k, Fkey);
+end;
+
+procedure TCipher_RNG32.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  tmp: TRNG32Context;
+begin
+  tmp := Fkey;
+  TRNG.EncryptRNG32(tmp, sour^, Size);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_RNG32.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  tmp: TRNG32Context;
+begin
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  tmp := Fkey;
+  TRNG.EncryptRNG32(tmp, sour^, Size);
+end;
+
+constructor TCipher_RNG64.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k1, k2: DWORD;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k1, k2);
+  TRNG.InitEncryptRNG64(k1, k2, Fkey);
+end;
+
+procedure TCipher_RNG64.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  tmp: TRNG64Context;
+begin
+  tmp := Fkey;
+  TRNG.EncryptRNG64(tmp, sour^, Size);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_RNG64.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  tmp: TRNG64Context;
+begin
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  tmp := Fkey;
+  TRNG.EncryptRNG64(tmp, sour^, Size);
+end;
+
+constructor TCipher_LSC.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k: TBytes;
+  k255: TBytes;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+
+  if length(k) > 255 then
+    begin
+      SetLength(k255, 255);
+      THashMD.GenerateLMDKey((@k255[0])^, 255, k);
+    end
+  else
+      k255 := k;
+
+  TLSC.InitEncryptLSC((@k255[0])^, length(k255), Fkey);
+end;
+
+procedure TCipher_LSC.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  tmp: TLSCContext;
+begin
+  tmp := Fkey;
+  TLSC.EncryptLSC(tmp, sour^, Size);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_LSC.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  tmp: TLSCContext;
+begin
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  tmp := Fkey;
+  TLSC.EncryptLSC(tmp, sour^, Size);
+end;
+
+constructor TCipher_XXTea512.Create(KeyBuffer_: TCipherKeyBuffer);
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, Fkey);
+end;
+
+procedure TCipher_XXTea512.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 64 <= Size do
+        begin
+          XXTEAEncrypt(Fkey, PXXTEABlock(GetOffset(sour, p))^);
+          inc(p, 64);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_XXTea512.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 64 <= Size do
+        begin
+          XXTEADecrypt(Fkey, PXXTEABlock(GetOffset(sour, p))^);
+          inc(p, 64);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_RC6.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k, k256: TBytes;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+
+  SetLength(k256, 32);
+  THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+  TRC6.InitKey(@k256[0], 32, Fkey);
+end;
+
+procedure TCipher_RC6.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TRC6.Encrypt(Fkey, PRC6Block(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_RC6.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TRC6.Decrypt(Fkey, PRC6Block(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_Serpent.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k, k256: TBytes;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+
+  SetLength(k256, 32);
+  THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+  TSerpent.InitKey(@k256[0], 32, Fkey);
+end;
+
+procedure TCipher_Serpent.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TSerpent.Encrypt(Fkey, PSerpentBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_Serpent.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TSerpent.Decrypt(Fkey, PSerpentBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_Mars.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k, k256: TBytes;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+
+  SetLength(k256, 32);
+  THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+  TMars.InitKey(@k256[0], 32, Fkey);
+end;
+
+procedure TCipher_Mars.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TMars.Encrypt(Fkey, PMarsBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_Mars.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TMars.Decrypt(Fkey, PMarsBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_Rijndael.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k, k256: TBytes;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+
+  SetLength(k256, 32);
+  THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+  TRijndael.InitKey(@k256[0], 32, Fkey);
+end;
+
+procedure TCipher_Rijndael.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TRijndael.Encrypt(Fkey, PRijndaelBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_Rijndael.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TRijndael.Decrypt(Fkey, PRijndaelBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+constructor TCipher_TwoFish.Create(KeyBuffer_: TCipherKeyBuffer);
+var
+  k, k256: TBytes;
+begin
+  inherited Create(KeyBuffer_);
+  TCipher.GetKey(@KeyBuffer_, k);
+
+  SetLength(k256, 32);
+  THashMD.GenerateLMDKey((@k256[0])^, 32, k);
+
+  TTwofish.InitKey(@k256[0], 32, Fkey);
+end;
+
+procedure TCipher_TwoFish.Encrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TTwofish.Encrypt(Fkey, PTwofishBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+end;
+
+procedure TCipher_TwoFish.Decrypt(sour: Pointer; Size: NativeInt);
+var
+  i: Integer;
+  p: NativeInt;
+begin
+  if Size = 0 then
+      Exit;
+  if FCBC then
+      TCipher.BlockCBC(sour, Size, @SystemCBC[0], length(SystemCBC));
+  for i := 0 to FLevel - 1 do
+    begin
+      p := 0;
+      while p + 16 <= Size do
+        begin
+          TTwofish.Decrypt(Fkey, PTwofishBlock(GetOffset(sour, p))^);
+          inc(p, 16);
+        end;
+    end;
+  if FProcessTail and (p < Size) then
+      TCipher.EncryptTail(GetOffset(sour, p), Size - p);
+end;
+
+function CreateCipherClass(cs: TCipherSecurity; KeyBuffer_: TCipherKeyBuffer): TCipher_Base;
+begin
+  case cs of
+    csNone: Result := TCipher_Base.Create(KeyBuffer_);
+    csDES64: Result := TCipher_DES64.Create(KeyBuffer_);
+    csDES128: Result := TCipher_DES128.Create(KeyBuffer_);
+    csDES192: Result := TCipher_DES192.Create(KeyBuffer_);
+    csBlowfish: Result := TCipher_BlowFish.Create(KeyBuffer_);
+    csLBC: Result := TCipher_LBC.Create(KeyBuffer_);
+    csLQC: Result := TCipher_LQC.Create(KeyBuffer_);
+    csRNG32: Result := TCipher_RNG32.Create(KeyBuffer_);
+    csRNG64: Result := TCipher_RNG64.Create(KeyBuffer_);
+    csLSC: Result := TCipher_LSC.Create(KeyBuffer_);
+    csTwoFish: Result := TCipher_TwoFish.Create(KeyBuffer_);
+    csXXTea512: Result := TCipher_XXTea512.Create(KeyBuffer_);
+    csRC6: Result := TCipher_RC6.Create(KeyBuffer_);
+    csSerpent: Result := TCipher_Serpent.Create(KeyBuffer_);
+    csMars: Result := TCipher_Mars.Create(KeyBuffer_);
+    csRijndael: Result := TCipher_Rijndael.Create(KeyBuffer_);
+    else Result := TCipher_Base.Create(KeyBuffer_);
+  end;
+  Result.FCipherSecurity := cs;
+end;
+
+function CreateCipherClassFromPassword(cs: TCipherSecurity; password_: TPascalString): TCipher_Base;
+var
+  k: TCipherKeyBuffer;
+begin
+  TCipher.GenerateKey(cs, password_, k);
+  Result := CreateCipherClass(cs, k);
+end;
+
+function CreateCipherClassFromBuffer(cs: TCipherSecurity; key: TCipherKeyBuffer): TCipher_Base;
+var
+  k: TCipherKeyBuffer;
+begin
+  TCipher.GenerateKey(cs, @key[0], length(key), k);
+  Result := CreateCipherClass(cs, k);
+  SetLength(k, 0);
+  // copy key
+  SetLength(Result.FLastGenerateKey, length(key));
+  CopyPtr(@key[0], @Result.FLastGenerateKey[0], length(key));
+end;
+
+procedure TestCoreCipher;
+var
+  Buffer: TBytes;
+  sour, Dest: TMemoryStream64;
+  k: TCipherKeyBuffer;
+  cs: TCipherSecurity;
+  sourHash: TSHA1Digest;
+  d: TTimeTick;
+
+  hs: THashSecurity;
+  hByte: TBytes;
+
+{$IFDEF Parallel}
+  Parallel: TParallelCipher;
+{$ENDIF}
+  ps: TListPascalString;
+  cBase: TCipher_Base;
+
+  s: TPascalString;
+begin
+  sour := TMemoryStream64.Create;
+  sour.Size := Int64(10 * 1024 * 1024 + 9);
+
+  FillPtrByte(sour.Memory, sour.Size, $7F);
+  DoStatus('stream mode md5 :' + umlStreamMD5String(sour).Text);
+  DoStatus('pointer mode md5:' + umlMD5String(sour.Memory, sour.Size).Text);
+
+  DisposeObject(sour);
+
+  DoStatus('Generate and verify QuantumCryptographyPassword test');
+  s := GenerateQuantumCryptographyPassword('123456');
+  if not CompareQuantumCryptographyPassword('123456', s) then
+      DoStatus('QuantumCryptographyPassword failed!');
+  if CompareQuantumCryptographyPassword('1234560', s) then
+      DoStatus('QuantumCryptographyPassword failed!');
+
+  DoStatus('Generate and verify password test');
+  DoStatus('verify short password');
+  s := GeneratePasswordHash(TCipher.CAllHash, '1');
+  if not ComparePasswordHash('1', s) then
+      DoStatus('PasswordHash failed!');
+  if ComparePasswordHash('11', s) then
+      DoStatus('PasswordHash failed!');
+
+  DoStatus('verify long password');
+  s := GeneratePasswordHash(TCipher.CAllHash, 'hello world 123456');
+  if not ComparePasswordHash('hello world 123456', s) then
+      DoStatus('PasswordHash failed!');
+  if ComparePasswordHash('111 hello world 123456', s) then
+      DoStatus('PasswordHash failed!');
+
+  DoStatus('verify full chiher style password');
+  s := GeneratePassword(TCipher.AllCipher, 'hello world');
+  if not ComparePassword(TCipher.AllCipher, 'hello world', s) then
+      DoStatus('Password cipher test failed! cipher: %s', ['']);
+  if ComparePassword(TCipher.AllCipher, 'hello_world', s) then
+      DoStatus('Password cipher test failed! cipher: %s', ['']);
+
+  for cs in TCipher.AllCipher do
+    begin
+      DoStatus('verify %s chiher style password', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      s := GeneratePassword(TCipher.AllCipher, 'hello world');
+      if not ComparePassword(TCipher.AllCipher, 'hello world', s) then
+          DoStatus('Password cipher test failed! cipher: %s', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      if ComparePassword(TCipher.AllCipher, 'hello_world', s) then
+          DoStatus('Password cipher test failed! cipher: %s', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+    end;
+
+  // hash and Sequence Encrypt
+  SetLength(Buffer, 128 * 1024);
+  FillPtrByte(@Buffer[0], length(Buffer), 99);
+
+  ps := TListPascalString.Create;
+
+  DoStatus('Generate Sequence Hash');
+  GenerateSequHash(TCipher.CAllHash, @Buffer[0], length(Buffer), ps);
+  // DoStatus(ps.Text);
+
+  if not CompareSequHash(ps, @Buffer[0], length(Buffer)) then
+      DoStatus('hash compare failed!');
+
+  DoStatus('test Sequence Encrypt');
+  k := TPascalString('hello world').Bytes;
+  if not SequEncryptWithDirect(TCipher.AllCipher, @Buffer[0], length(Buffer), k, True, True) then
+      DoStatus('SequEncrypt failed!');
+  if not SequEncryptWithDirect(TCipher.AllCipher, @Buffer[0], length(Buffer), k, False, True) then
+      DoStatus('SequEncrypt failed!');
+
+  DoStatus('verify Sequence Encrypt');
+  if not CompareSequHash(ps, @Buffer[0], length(Buffer)) then
+      DoStatus('hash compare failed!');
+
+  // cipher Encrypt performance
+  SetLength(Buffer, 1024 * 1024 * 1 + 99);
+  FillPtrByte(@Buffer[0], length(Buffer), $7F);
+
+  sour := TMemoryStream64.Create;
+  Dest := TMemoryStream64.Create;
+  sour.write(Buffer[0], high(Buffer));
+
+  Dest.Clear;
+  sour.Position := 0;
+  Dest.CopyFrom(sour, sour.Size);
+  sour.Position := 0;
+  Dest.Position := 0;
+
+  sourHash := TCipher.GenerateSHA1Hash(sour.Memory, sour.Size);
+
+{$IFDEF Parallel}
+  DoStatus(#13#10'Parallel cipher performance test');
+
+  for cs in TCipher.AllCipher do
+    begin
+      TCipher.GenerateKey(cs, 'hello world', k);
+      Parallel := TParallelCipher.Create;
+
+      Dest.Clear;
+      sour.Position := 0;
+      Dest.CopyFrom(sour, sour.Size);
+      sour.Position := 0;
+      Dest.Position := 0;
+
+      d := GetTimeTick;
+
+      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
+          DoStatus('%s: Parallel encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
+          DoStatus('%s: Parallel decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      DoStatus('%s - Parallel performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
+
+      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
+          DoStatus('%s Parallel hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+
+      DisposeObject(Parallel);
+    end;
+
+  for cs in TCipher.AllCipher do
+    begin
+      TCipher.GenerateKey(cs, 'hello world', k);
+      Parallel := TParallelCipher.Create;
+
+      Dest.Clear;
+      sour.Position := 0;
+      Dest.CopyFrom(sour, sour.Size);
+      sour.Position := 0;
+      Dest.Position := 0;
+
+      d := GetTimeTick;
+
+      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
+          DoStatus('%s: normal 2 Parallel encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
+          DoStatus('%s: normal 2 Parallel decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      DoStatus('%s - normal 2 Parallel performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
+
+      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
+          DoStatus('%s normal 2 Parallel hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+
+      DisposeObject(Parallel);
+    end;
+
+  for cs in TCipher.AllCipher do
+    begin
+      TCipher.GenerateKey(cs, 'hello world', k);
+      Parallel := TParallelCipher.Create;
+
+      Dest.Clear;
+      sour.Position := 0;
+      Dest.CopyFrom(sour, sour.Size);
+      sour.Position := 0;
+      Dest.Position := 0;
+
+      d := GetTimeTick;
+
+      if not Parallel.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
+          DoStatus('%s: Parallel 2 normal encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
+          DoStatus('%s: Parallel 2 normal decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      DoStatus('%s - Parallel 2 normal performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
+
+      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
+          DoStatus('%s Parallel 2 normal hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+
+      DisposeObject(Parallel);
+    end;
+{$ENDIF}
+  DoStatus(#13#10'normal cipher performance test');
+
+  for cs in TCipher.AllCipher do
+    begin
+      TCipher.GenerateKey(cs, 'hello world', k);
+
+      Dest.Clear;
+      sour.Position := 0;
+      Dest.CopyFrom(sour, sour.Size);
+      sour.Position := 0;
+      Dest.Position := 0;
+
+      d := GetTimeTick;
+      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
+          DoStatus('%s: encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
+          DoStatus('%s: decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      DoStatus('%s - normal performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
+      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
+          DoStatus('%s hash error!', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+    end;
+
+  DoStatus(#13#10'cipher instance classes test');
+  // cipher class test
+  for cs in TCipher.AllCipher do
+    begin
+      TCipher.GenerateKey(cs, 'hello world', k);
+
+      Dest.Clear;
+      sour.Position := 0;
+      Dest.CopyFrom(sour, sour.Size);
+      sour.Position := 0;
+      Dest.Position := 0;
+
+      d := GetTimeTick;
+      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, True, True) then
+          DoStatus('%s: encode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+
+      cBase := CreateCipherClass(cs, k);
+      cBase.FProcessTail := True;
+      cBase.FCBC := True;
+      cBase.Decrypt(Dest.Memory, Dest.Size);
+
+      DoStatus('%s - instance encrypt performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
+      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
+          DoStatus('%s decrypt for %s hash error!', [cBase.ClassName, GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      DisposeObject(cBase);
+    end;
+
+  for cs in TCipher.AllCipher do
+    begin
+      TCipher.GenerateKey(cs, 'hello world', k);
+
+      Dest.Clear;
+      sour.Position := 0;
+      Dest.CopyFrom(sour, sour.Size);
+      sour.Position := 0;
+      Dest.Position := 0;
+
+      d := GetTimeTick;
+
+      cBase := CreateCipherClass(cs, k);
+      cBase.FProcessTail := True;
+      cBase.FCBC := True;
+      cBase.Encrypt(Dest.Memory, Dest.Size);
+
+      if not TCipher.EncryptBufferCBC(cs, Dest.Memory, Dest.Size, @k, False, True) then
+          DoStatus('%s: Decode failed', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+
+      DoStatus('%s - instance encrypt performance:%dms', [GetEnumName(TypeInfo(TCipherSecurity), Integer(cs)), GetTimeTick - d]);
+      if not TCipher.CompareHash(TCipher.GenerateSHA1Hash(Dest.Memory, Dest.Size), sourHash) then
+          DoStatus('%s encrypt for %s hash error!', [cBase.ClassName, GetEnumName(TypeInfo(TCipherSecurity), Integer(cs))]);
+      DisposeObject(cBase);
+    end;
+
+  // hash performance
+  DoStatus(#13#10'hash performance test');
+  Dest.Clear;
+  sour.Position := 0;
+  Dest.CopyFrom(sour, sour.Size);
+  sour.Position := 0;
+  Dest.Position := 0;
+
+  for hs := low(THashSecurity) to high(THashSecurity) do
+    begin
+      d := GetTimeTick;
+      TCipher.GenerateHashByte(hs, Dest.Memory, Dest.Size, hByte);
+      DoStatus('%s - performance:%dms', [GetEnumName(TypeInfo(THashSecurity), Integer(hs)), (GetTimeTick - d)]);
+    end;
+
+  DoStatus(#13#10'Cipher test done!');
+  DisposeObject([ps, sour, Dest]);
 end;
 
 initialization

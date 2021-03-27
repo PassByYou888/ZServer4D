@@ -25,6 +25,10 @@ interface
 
 uses CoreClasses, UnicodeMixedLib;
 
+{$IF Defined(MSWINDOWS) and Defined(Delphi)}
+procedure MD5_Transform(var Accu; const Buf);
+{$ENDIF Defined(MSWINDOWS) and Defined(Delphi)}
+
 function FastMD5(const buffPtr: PByte; bufSiz: nativeUInt): TMD5; overload;
 function FastMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5; overload;
 

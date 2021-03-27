@@ -324,7 +324,8 @@ function DecompressStreamToPtr(sour: TCoreClassStream; var dest: Pointer): Boole
 function CompressFile(sour, dest: SystemString): Boolean;
 function DecompressFile(sour, dest: SystemString): Boolean;
 function SelectCompressStream(const scm: TSelectCompressionMethod; const sour, dest: TCoreClassStream): Boolean;
-function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean;
+function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean; overload;
+function SelectDecompressStream(const sour, dest: TCoreClassStream; var scm: TSelectCompressionMethod): Boolean; overload;
 procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
 procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
 procedure ParallelCompressMemory(const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
@@ -1989,15 +1990,22 @@ end;
 
 function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean;
 var
-  scm: Byte;
+  scm: TSelectCompressionMethod;
+begin
+  Result := SelectDecompressStream(sour, dest, scm);
+end;
+
+function SelectDecompressStream(const sour, dest: TCoreClassStream; var scm: TSelectCompressionMethod): Boolean;
+var
+  scm_: Byte;
   siz_: Int64;
 begin
   Result := False;
-  if sour.read(scm, 1) <> 1 then
+  if sour.read(scm_, 1) <> 1 then
       Exit;
-
+  scm := TSelectCompressionMethod(scm_);
   try
-    case TSelectCompressionMethod(scm) of
+    case scm of
       scmNone:
         begin
           if sour.read(siz_, 8) <> 8 then

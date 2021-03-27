@@ -527,7 +527,7 @@ type
     function Delete(index_: Integer): Boolean;
     function DeleteFirst: Boolean;
     function DeleteLast: Boolean; overload;
-    function DeleteLastCount(cnt: Integer): Boolean; overload;
+    function DeleteLastCount(num_: Integer): Boolean; overload;
     function DeleteCount(index_, _Count: Integer): Boolean;
     //
     procedure Assign(source: TDataFrameEngine);
@@ -2638,13 +2638,13 @@ begin
   Result := Delete(Count - 1);
 end;
 
-function TDataFrameEngine.DeleteLastCount(cnt: Integer): Boolean;
+function TDataFrameEngine.DeleteLastCount(num_: Integer): Boolean;
 begin
   Result := True;
-  while cnt > 0 do
+  while num_ > 0 do
     begin
       Result := Result and DeleteLast;
-      dec(cnt);
+      dec(num_);
     end;
 end;
 
@@ -3907,20 +3907,20 @@ var
   sizeInfo: Cardinal;
   compToken: Byte;
   md5: TMD5;
-  cnt: Integer;
+  num_: Integer;
 begin
   // make header
   editionToken := $FF;
   sizeInfo := C_Integer_Size;
   compToken := 0;
   md5 := NullMD5;
-  cnt := 0;
+  num_ := 0;
 
   output.write(editionToken, C_Byte_Size);
   output.write(sizeInfo, C_Cardinal_Size);
   output.write(compToken, C_Byte_Size);
   output.write(md5[0], C_MD5_Size);
-  output.write(cnt, C_Integer_Size);
+  output.write(num_, C_Integer_Size);
 end;
 
 function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode, AutoCompressed: Boolean): Integer;
@@ -4618,7 +4618,7 @@ end;
 
 function TDataFrameEngine.DecodeFrom(source: TCoreClassStream; const FastMode: Boolean): Integer;
 var
-  i, cnt: Integer;
+  i, num_: Integer;
   ID: Byte;
   StoreStream: TMemoryStream64;
   ZDecompStream: TDecompressionStream;
@@ -4785,15 +4785,15 @@ begin
 
       StoreStream.Position := 0;
 
-      StoreStream.Read64(cnt, C_Integer_Size);
-      for i := 0 to cnt - 1 do
+      StoreStream.Read64(num_, C_Integer_Size);
+      for i := 0 to num_ - 1 do
         begin
           StoreStream.Read64(ID, C_Byte_Size);
           DataFrame_ := AddData(ByteToDataType(ID));
           DataFrame_.LoadFromStream(StoreStream);
         end;
       DisposeObject(StoreStream);
-      Result := cnt;
+      Result := num_;
     end
   else
     begin

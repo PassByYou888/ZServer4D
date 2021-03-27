@@ -1,5 +1,6 @@
 unit PeformanceTestServFrm;
-
+
+
 interface
 
 uses
@@ -56,7 +57,7 @@ begin
   test := TCommunicationTestIntf.Create;
 
   server.QuietMode := True;
-  server.SwitchMaxPerformance;
+  server.SwitchDefaultPerformance;
   server.SequencePacketActivted := True;
 
   test.RegCmd(server);
@@ -176,4 +177,4 @@ begin
 end;
 
 end.
-
+

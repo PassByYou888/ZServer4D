@@ -1,5 +1,6 @@
 unit PeformanceTestCliFrm;
-
+
+
 interface
 
 uses
@@ -37,7 +38,7 @@ type
   end;
 
 const
-  MaxConn = 10000;
+  MaxConn = 5000;
 
 var
   EZClientForm: TEZClientForm;
@@ -76,7 +77,7 @@ begin
     begin
       client[i] := TCommunicationFramework_Client_CrossSocket.Create;
       client[i].QuietMode := True;
-      client[i].SwitchMaxPerformance;
+      client[i].SwitchDefaultPerformance;
       client[i].SequencePacketActivted := True;
       test[i] := TCommunicationTestIntf.Create;
       test[i].RegCmd(client[i]);
@@ -166,4 +167,4 @@ begin
 end;
 
 end.
-
+

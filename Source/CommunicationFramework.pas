@@ -454,6 +454,9 @@ type
     FReceiveDataCipherSecurity: TCipherSecurity;
     FResultDataBuffer: TMemoryStream64;
     FSendDataCipherSecurity: TCipherSecurity;
+    FCipherKey: TCipherKeyBuffer;
+    FDecryptInstance: TCipher_Base;
+    FEncryptInstance: TCipher_Base;
     FAllSendProcessing: Boolean;
     FReceiveProcessing: Boolean;
     FQueueList: TCoreClassList;
@@ -461,7 +464,6 @@ type
     LastCommunicationTick_Received: TTimeTick;
     LastCommunicationTick_KeepAlive: TTimeTick;
     LastCommunicationTick_Sending: TTimeTick;
-    FCipherKey: TCipherKeyBuffer;
     FRemoteExecutedForConnectInit: Boolean;
     FInCmd: SystemString;
     FInText, FOutText: SystemString;
@@ -951,6 +953,7 @@ type
     FIdleTimeOut: TTimeTick;
     FSendDataCompressed: Boolean;
     FCompleteBufferCompressed: Boolean;
+    FFastEncrypt: Boolean;
     FUsedParallelEncrypt: Boolean;
     FSyncOnResult: Boolean;
     FSyncOnCompleteBuffer: Boolean;
@@ -1192,6 +1195,7 @@ type
     function ExistsID(IO_ID: Cardinal): Boolean;
 
     { p2p options }
+    property FastEncrypt: Boolean read FFastEncrypt write FFastEncrypt;
     property UsedParallelEncrypt: Boolean read FUsedParallelEncrypt write FUsedParallelEncrypt;
     property SyncOnResult: Boolean read FSyncOnResult write FSyncOnResult;
     property SyncOnCompleteBuffer: Boolean read FSyncOnCompleteBuffer write FSyncOnCompleteBuffer;
@@ -6080,6 +6084,8 @@ begin
   { generate random key }
   TMISC.GenerateRandomKey(kref, C_Int64_Size);
   TCipher.GenerateKey(FSendDataCipherSecurity, @kref, C_Int64_Size, FCipherKey);
+  FDecryptInstance := nil;
+  FEncryptInstance := nil;
 
   FRemoteExecutedForConnectInit := False;
 
@@ -6204,6 +6210,7 @@ begin
   else
       DisposeObject(FUserSpecial);
 
+  // free buffer
   DisposeObject(FQueueList);
   DisposeObject(FReceivedBuffer);
   DisposeObject(FReceivedBuffer_Busy);
@@ -6215,6 +6222,10 @@ begin
 
   DisposeObject(FCritical);
   DisposeObject(FCustomProtocolCritical);
+
+  // free cipher instance
+  DisposeObjectAndNil(FDecryptInstance);
+  DisposeObjectAndNil(FEncryptInstance);
 
   if FUserVariants <> nil then
       DisposeObject(FUserVariants);
@@ -6878,10 +6889,45 @@ end;
 
 procedure TPeerIO.Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
 begin
-  if FOwnerFramework.FUsedParallelEncrypt then
-      SequEncryptCBC(cs, DataPtr, Size, k, enc, True)
+  if Size = 0 then
+      exit;
+
+  if FOwnerFramework.FFastEncrypt then
+    begin
+      if enc then
+        begin
+          if FEncryptInstance <> nil then
+            if (FEncryptInstance.CipherSecurity <> cs) or (not TCipher.CompareKey(FEncryptInstance.LastGenerateKey, k)) then
+                DisposeObjectAndNil(FEncryptInstance);
+          if FEncryptInstance = nil then
+            begin
+              FEncryptInstance := CreateCipherClassFromBuffer(cs, k);
+              FEncryptInstance.CBC := True;
+              FEncryptInstance.ProcessTail := True;
+            end;
+          FEncryptInstance.Encrypt(DataPtr, Size);
+        end
+      else
+        begin
+          if FDecryptInstance <> nil then
+            if (FDecryptInstance.CipherSecurity <> cs) or (not TCipher.CompareKey(FDecryptInstance.LastGenerateKey, k)) then
+                DisposeObjectAndNil(FDecryptInstance);
+          if FDecryptInstance = nil then
+            begin
+              FDecryptInstance := CreateCipherClassFromBuffer(cs, k);
+              FDecryptInstance.CBC := True;
+              FDecryptInstance.ProcessTail := True;
+            end;
+          FDecryptInstance.Decrypt(DataPtr, Size);
+        end;
+    end
   else
-      SequEncryptCBCWithDirect(cs, DataPtr, Size, k, enc, True);
+    begin
+      if FOwnerFramework.FUsedParallelEncrypt then
+          SequEncryptCBC(cs, DataPtr, Size, k, enc, True)
+      else
+          SequEncryptCBCWithDirect(cs, DataPtr, Size, k, enc, True);
+    end;
 
   if cs <> TCipherSecurity.csNone then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stEncrypt]);
@@ -7837,6 +7883,7 @@ begin
   FOnExecuteCommand := nil;
   FOnSendCommand := nil;
   FIdleTimeOut := 0;
+  FFastEncrypt := True;
   FUsedParallelEncrypt := True;
   FSyncOnResult := False;
   FSyncOnCompleteBuffer := True;
@@ -8021,6 +8068,7 @@ end;
 
 procedure TCommunicationFramework.SwitchMaxPerformance;
 begin
+  FFastEncrypt := True;
   FUsedParallelEncrypt := False;
   FHashSecurity := THashSecurity.hsNone;
   FSendDataCompressed := False;
@@ -8034,8 +8082,9 @@ const
 var
   i: Integer;
 begin
+  FFastEncrypt := True;
   FUsedParallelEncrypt := True;
-  FHashSecurity := THashSecurity.hsSHA512;
+  FHashSecurity := THashSecurity.hsFastMD5;
   FSendDataCompressed := True;
   SetLength(FCipherSecurityArray, Length(C_CipherSecurity));
   for i := Low(C_CipherSecurity) to high(C_CipherSecurity) do
@@ -8048,6 +8097,7 @@ const
 var
   i: Integer;
 begin
+  FFastEncrypt := True;
   FUsedParallelEncrypt := True;
   FHashSecurity := THashSecurity.hsFastMD5;
   FSendDataCompressed := True;

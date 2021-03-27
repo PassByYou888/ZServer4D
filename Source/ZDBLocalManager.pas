@@ -2022,6 +2022,8 @@ end;
 
 procedure TZDBLocalManager.SetRootPath(const Value: SystemString);
 begin
+  if TPascalString(FRootPath).Same(Value) then
+      Exit;
   FRootPath := Value;
   LoadDB(False);
 end;
