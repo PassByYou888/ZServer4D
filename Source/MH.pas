@@ -66,7 +66,7 @@ end;
 
 function GetHookPtrList_1: TPointerHashNativeUIntList;
 begin
-  Result := MH_1.HookPtrList;
+  Result := MH_1.GetHookPtrList;
 end;
 
 procedure BeginMemoryHook_2;
@@ -86,7 +86,7 @@ end;
 
 function GetHookPtrList_2: TPointerHashNativeUIntList;
 begin
-  Result := MH_2.HookPtrList;
+  Result := MH_2.GetHookPtrList;
 end;
 
 procedure BeginMemoryHook_3;
@@ -106,7 +106,7 @@ end;
 
 function GetHookPtrList_3: TPointerHashNativeUIntList;
 begin
-  Result := MH_3.HookPtrList;
+  Result := MH_3.GetHookPtrList;
 end;
 
 var

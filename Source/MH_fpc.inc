@@ -78,6 +78,16 @@ begin
   Result := HookPtrList.MaximumPtr;
 end;
 
+function GetHookPtrList: TPointerHashNativeUIntList;
+begin
+  Result := HookPtrList;
+end;
+
+function GetMemoryHooked: TAtomBool;
+begin
+  Result := MemoryHooked;
+end;
+
 function Hash_GetMem(Size: ptruint): Pointer;
 begin
   Result := OriginMM.GetMem(DeltaStep(Size, C_MH_MemoryDelta));

@@ -1,5 +1,6 @@
 unit MHMainFrm;
-
+
+
 interface
 
 uses
@@ -139,7 +140,7 @@ begin
       p^.p^.s1 := '54321';
       MH_2.EndMemoryHook;
 
-      MH_2.HookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
+      MH_2.GetHookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
         begin
           // 现在我们可以释放该地址
           FreeMem(NPtr);
@@ -184,25 +185,25 @@ begin
       if i mod 99999 = 0 then
         begin
           // 这里是迭代调用，我们不记录，将MH_3.MemoryHooked设置为False即可
-          MH_3.MemoryHooked.V := False;
+          MH_3.GetMemoryHooked.V := False;
           Button1Click(nil);
           Application.ProcessMessages;
           // 继续记录内存申请
-          MH_3.MemoryHooked.V := True;
+          MH_3.GetMemoryHooked.V := True;
         end;
     end;
   MH_3.EndMemoryHook;
 
-  DoStatus('总共内存分配 %d 次 占用 %s 空间，地址跨度为：%s ', [MH_3.HookPtrList.Count, umlSizeToStr(MH_3.GetHookMemorySize).Text,
+  DoStatus('总共内存分配 %d 次 占用 %s 空间，地址跨度为：%s ', [MH_3.GetHookPtrList.Count, umlSizeToStr(MH_3.GetHookMemorySize).Text,
     umlSizeToStr(NativeUInt(MH_3.GetHookMemoryMaximumPtr) - NativeUInt(MH_3.GetHookMemoryMinimizePtr)).Text]);
 
-  MH_3.HookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH_3.GetHookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       // 现在我们可以释放该地址
       FreeMem(NPtr);
     end);
-  MH_3.HookPtrList.PrintHashReport;
-  MH_3.HookPtrList.SetHashBlockCount(0);
+  MH_3.GetHookPtrList.PrintHashReport;
+  MH_3.GetHookPtrList.SetHashBlockCount(0);
 end;
 
 procedure TMHMainForm.Button5Click(Sender: TObject);
@@ -226,15 +227,15 @@ begin
 
   MH_1.EndMemoryHook;
 
-  MH_1.HookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
+  MH_1.GetHookPtrList.ProgressP(procedure(NPtr: Pointer; uData: NativeUInt)
     begin
       // 现在我们可以释放该地址
       DoStatus(NPtr, uData, 80);
       FreeMem(NPtr);
     end);
 
-  MH_1.HookPtrList.SetHashBlockCount(0);
+  MH_1.GetHookPtrList.SetHashBlockCount(0);
 end;
 
 end.
-
+

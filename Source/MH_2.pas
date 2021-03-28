@@ -37,12 +37,14 @@ function GetHookMemorySize: nativeUInt; overload;
 function GetHookMemorySize(p: Pointer): nativeUInt; overload;
 function GetHookMemoryMinimizePtr: Pointer;
 function GetHookMemoryMaximumPtr: Pointer;
+function GetHookPtrList: TPointerHashNativeUIntList;
+function GetMemoryHooked: TAtomBool;
+
+implementation
 
 var
   HookPtrList: TPointerHashNativeUIntList;
   MemoryHooked: TAtomBool;
-
-implementation
 
 {$IFDEF FPC}
 {$INCLUDE MH_fpc.inc}
@@ -59,5 +61,3 @@ finalization
 UnInstallMemoryHook;
 
 end.
- 
- 
