@@ -253,11 +253,13 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 **大更新数据编码方式**
 
+- 优化单通道双工机制，CustomProtocol模型可与oc/swift/c++/java的异步双工良好对接，在ZAI授权项目已有商业案例!
 - DataFrameEngine的Array类型全部使用连续类型分配，不再使用指针分配
-- DataFrameEngine新增FastEncodeTo方法替代EncodeTo
-- 当FastEncrypt为True，全部使用FastEncodeTo发送数据
+- DataFrameEngine新增FastEncodeTo方法替代EncodeTo，FastEngineTo构建二进制数据结构在高并发环境下与EncodeTo差别很大，FastEngineTo使用零copy机制构建二进制结构
+- 当FastEncrypt为True，全部使用FastEncodeTo发送数据，默认情况下为True
 - 默认通讯协议不再压缩
 - 通讯性能大约提升10%
+- 默认情况下不再使用种子数加密，但是仍然兼容种子数加密
 - 大更新兼容老协议，对原有服务器和客户端无影响
 
 **加解密性能优化**
