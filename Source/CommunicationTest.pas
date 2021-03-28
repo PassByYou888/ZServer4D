@@ -263,11 +263,11 @@ end;
 initialization
 
 TestStreamData := TMemoryStream64.Create;
-TestStreamData.SetSize(Int64(16 + 1024 * 1024));
+TestStreamData.SetSize(Int64(1024));
 MakeRndBuff(99999933, TestStreamData.Memory, TestStreamData.Size);
 TestStreamMD5 := umlStreamMD5String(TestStreamData).Text;
 
-TestBuffSize := 512 * 1024 + 64;
+TestBuffSize := 1024;
 TestBuff := System.GetMemory(TestBuffSize);
 MakeRndBuff(777777, TestBuff, TestBuffSize);
 TestBuffMD5 := umlMD5String(TestBuff, TestBuffSize).Text;

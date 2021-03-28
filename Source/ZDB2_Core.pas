@@ -63,6 +63,7 @@ type
     FlushThisCacheToFile: Boolean;
   end;
 
+  TZDB2_ID_List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
   TZDB2_BlockPtrList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PZDB2_Block>;
 
   TZDB2_BlockPtrList = class(TZDB2_BlockPtrList_Decl)
@@ -247,6 +248,7 @@ type
     function GetDataSize(ID: Integer): Int64; overload;
     function GetDataPhysics(SpaceHnd: TZDB2_BlockHndle): Int64; overload;
     function GetDataPhysics(ID: Integer): Int64; overload;
+    function BuildTableID: TZDB2_BlockHndle;
 
     property AutoCloseIOHnd: Boolean read FAutoCloseIOHnd write FAutoCloseIOHnd;
     property AutoFreeIOHnd: Boolean read FAutoFreeIOHnd write FAutoFreeIOHnd;
@@ -2302,6 +2304,34 @@ begin
   Result := GetDataPhysics(GetSpaceHnd(ID));
 end;
 
+function TZDB2_Core_Space.BuildTableID: TZDB2_BlockHndle;
+var
+  i, j: Integer;
+  LBuff: array of Boolean;
+  tmp: TZDB2_BlockHndle;
+  L: TZDB2_ID_List;
+begin
+  SetLength(LBuff, FBlockCount);
+  L := TZDB2_ID_List.Create;
+  try
+    for i := 0 to FBlockCount - 1 do
+      if (not LBuff[i]) and (FBlockBuffer[i].UsedSpace > 0) then
+        begin
+          tmp := GetSpaceHnd(FBlockBuffer[i].ID);
+          for j := 0 to Length(tmp) - 1 do
+              LBuff[tmp[j]] := True;
+          L.Add(tmp[0]);
+        end;
+    SetLength(Result, L.Count);
+    for i := 0 to L.Count - 1 do
+        Result[i] := L[i];
+  except
+      SetLength(Result, 0);
+  end;
+  DisposeObject(L);
+  SetLength(LBuff, 0);
+end;
+
 class procedure TZDB2_Core_Space.Test;
 type
   TTest_ = record
@@ -2326,6 +2356,7 @@ var
   db1_1, db2_2: TZDB2_Core_Space;
   i: Integer;
   db1_crc16: TZDB2_CRC16;
+  db1Hnd_, db2Hnd_: TZDB2_BlockHndle;
 begin
   Cipher_ := TZDB2_Cipher.Create(TCipherSecurity.csRijndael, 'hello world.', 1, False, True);
 
@@ -2370,6 +2401,34 @@ begin
   db1_place.Flush;
   DisposeObject(db1_place);
   db1.Save;
+
+  db1Hnd_ := db1.BuildTableID;
+  if Length(db1Hnd_) = Length(TestArry) then
+    begin
+      for i := 0 to Length(TestArry) - 1 do
+        begin
+          if TestArry[i].db1hnd[0] = db1Hnd_[i] then
+              DoStatus('BuildTableID verify successed!!', [])
+          else
+              DoStatus('BuildTableID verify error!!', []);
+        end
+    end
+  else
+      DoStatus('BuildTableID error!!', []);
+
+  db2Hnd_ := db2.BuildTableID;
+  if Length(db2Hnd_) = Length(TestArry) then
+    begin
+      for i := 0 to Length(TestArry) - 1 do
+        begin
+          if TestArry[i].db2hnd[0] = db2Hnd_[i] then
+              DoStatus('BuildTableID verify successed!!', [])
+          else
+              DoStatus('BuildTableID verify error!!', []);
+        end
+    end
+  else
+      DoStatus('BuildTableID error!!', []);
 
   db1_crc16 := TZDB2_CRC16.Create;
   db1_crc16.Build(db1);

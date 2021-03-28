@@ -27,7 +27,7 @@ uses CoreClasses,
   FPCGenericStructlist,
 {$ENDIF FPC}
   PascalStrings, UnicodeMixedLib, DoStatusIO, MemoryStream64, ListEngine,
-  DataFrameEngine, ZDB2_Core, ZIOThread;
+  DataFrameEngine, ZDB2_Core, ZIOThread, CoreCipher;
 
 type
   TZDB2_File_IntegerList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
@@ -545,26 +545,26 @@ begin
     begin
       tmp := TZDB2_Core_Space.Create(@ioHnd);
       tmp.Cipher := Cipher_;
-      tmp.Open;
-      id := PInteger(@tmp.UserCustomHeader^[$F0])^;
-
-      if tmp.Check(id) then
+      if tmp.Open then
         begin
-          mem := TZDB2_Mem.Create.Create;
-          if tmp.ReadData(mem, id) then
+          id := PInteger(@tmp.UserCustomHeader^[$F0])^;
+          if tmp.Check(id) then
             begin
-              d := TDFE.Create;
-              try
-                d.LoadFromStream(mem.Stream64);
-                Result := d.Count >= 0;
-              except
-                  Result := False;
-              end;
-              DisposeObject(d);
+              mem := TZDB2_Mem.Create.Create;
+              if tmp.ReadData(mem, id) then
+                begin
+                  d := TDFE.Create;
+                  try
+                    d.LoadFromStream(mem.Stream64);
+                    Result := d.Count >= 0;
+                  except
+                      Result := False;
+                  end;
+                  DisposeObject(d);
+                end;
+              DisposeObject(mem);
             end;
-          DisposeObject(mem);
         end;
-
       DisposeObject(tmp);
     end;
 end;
@@ -666,6 +666,7 @@ begin
   DisposeObject(FIOThread);
   FDecoderFiles.Clean;
   DisposeObject(FDecoderFiles);
+  DisposeObject(FFileLog);
   DisposeObject(FCore);
   inherited Destroy;
 end;
@@ -804,6 +805,7 @@ end;
 
 class procedure TZDB2_File_Decoder.Test;
 var
+  Cipher_: TZDB2_Cipher;
   zdb_stream: TMemoryStream64;
   en: TZDB2_File_Encoder;
   de: TZDB2_File_Decoder;
@@ -811,10 +813,11 @@ var
   i: Integer;
   fi: TZDB2_FI;
 begin
+  Cipher_ := TZDB2_Cipher.Create(TCipherSecurity.csRC6, 'hello world.', 1, False, True);
   zdb_stream := TMemoryStream64.CustomCreate(1024 * 1024 * 8);
 
-  en := TZDB2_File_Encoder.Create(zdb_stream, 2);
-  for i := 0 to 100 do
+  en := TZDB2_File_Encoder.Create(Cipher_, zdb_stream, 4);
+  for i := 0 to 10 do
     begin
       tmp := TMemoryStream64.Create;
       tmp.Size := umlRandomRange(16 * 1024, 64 * 1024);
@@ -825,12 +828,12 @@ begin
   en.Flush;
   DisposeObject(en);
 
-  if TZDB2_File_Decoder.Check(zdb_stream) then
+  if TZDB2_File_Decoder.Check(Cipher_, zdb_stream) then
       DoStatus('TZDB2_File_Decoder check ok.')
   else
       DoStatus('TZDB2_File_Decoder check error.');
 
-  de := TZDB2_File_Decoder.Create(zdb_stream, 2);
+  de := TZDB2_File_Decoder.Create(Cipher_, zdb_stream, 4);
   for i := 0 to de.Files.Count - 1 do
     begin
       tmp := TMemoryStream64.Create;
@@ -849,6 +852,7 @@ begin
   DisposeObject(de);
 
   DisposeObject(zdb_stream);
+  DisposeObject(Cipher_);
 end;
 
 initialization

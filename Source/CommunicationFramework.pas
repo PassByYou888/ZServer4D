@@ -4771,6 +4771,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       df.EncodeAsSelectCompressor(Stream, True)
+  else if FOwnerFramework.FFastEncrypt then
+      df.FastEncodeTo(Stream)
   else
       df.EncodeTo(Stream, True);
 
@@ -4798,6 +4800,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       df.EncodeAsSelectCompressor(Stream, True)
+  else if FOwnerFramework.FFastEncrypt then
+      df.FastEncodeTo(Stream)
   else
       df.EncodeTo(Stream, True);
 
@@ -4825,6 +4829,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       df.EncodeAsSelectCompressor(Stream, True)
+  else if FOwnerFramework.FFastEncrypt then
+      df.FastEncodeTo(Stream)
   else
       df.EncodeTo(Stream, True);
 
@@ -4852,6 +4858,8 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       df.EncodeAsSelectCompressor(Stream, True)
+  else if FOwnerFramework.FFastEncrypt then
+      df.FastEncodeTo(Stream)
   else
       df.EncodeTo(Stream, True);
 
@@ -4976,7 +4984,13 @@ var
 begin
   BeginSend;
   m64 := TMemoryStream64.Create;
-  FOutDataFrame.EncodeTo(m64, True);
+
+  if FOwnerFramework.FSendDataCompressed then
+      FOutDataFrame.EncodeAsSelectCompressor(m64, True)
+  else if FOwnerFramework.FFastEncrypt then
+      FOutDataFrame.FastEncodeTo(m64)
+  else
+      FOutDataFrame.EncodeTo(m64, True);
 
   SendCardinal(FHeadToken);
   SendInteger(m64.Size);
@@ -6774,6 +6788,10 @@ begin
           b := TPascalString(FOutText).Bytes;
           buff.WritePtr(@b[0], Length(b));
         end
+      else if FOwnerFramework.FSendDataCompressed then
+          FOutDataFrame.EncodeAsSelectCompressor(buff, True)
+      else if FOwnerFramework.FFastEncrypt then
+          FOutDataFrame.FastEncodeTo(buff)
       else
           FOutDataFrame.EncodeTo(buff, True);
 
@@ -7891,7 +7909,7 @@ begin
   FTimeOutKeepAlive := True;
   FQuietMode := False;
   SetLength(FCipherSecurityArray, 0);
-  FSendDataCompressed := True;
+  FSendDataCompressed := False;
   FCompleteBufferCompressed := False;
   FHashSecurity := THashSecurity.hsNone;
   FMaxCompleteBufferSize := C_MaxCompleteBufferSize;
@@ -8072,6 +8090,7 @@ begin
   FUsedParallelEncrypt := False;
   FHashSecurity := THashSecurity.hsNone;
   FSendDataCompressed := False;
+  FCompleteBufferCompressed := False;
   SetLength(FCipherSecurityArray, 1);
   FCipherSecurityArray[0] := csNone;
 end;
@@ -8086,6 +8105,7 @@ begin
   FUsedParallelEncrypt := True;
   FHashSecurity := THashSecurity.hsFastMD5;
   FSendDataCompressed := True;
+  FCompleteBufferCompressed := False;
   SetLength(FCipherSecurityArray, Length(C_CipherSecurity));
   for i := Low(C_CipherSecurity) to high(C_CipherSecurity) do
       FCipherSecurityArray[i] := C_CipherSecurity[i];
@@ -8093,14 +8113,15 @@ end;
 
 procedure TCommunicationFramework.SwitchDefaultPerformance;
 const
-  C_CipherSecurity: array [0 .. 9] of TCipherSecurity = (csDES64, csDES128, csDES192, csBlowfish, csLBC, csLQC, csRNG32, csRNG64, csLSC, csXXTea512);
+  C_CipherSecurity: array [0 .. 6] of TCipherSecurity = (csDES64, csDES128, csDES192, csBlowfish, csLBC, csLQC, csXXTea512);
 var
   i: Integer;
 begin
   FFastEncrypt := True;
   FUsedParallelEncrypt := True;
   FHashSecurity := THashSecurity.hsFastMD5;
-  FSendDataCompressed := True;
+  FSendDataCompressed := False;
+  FCompleteBufferCompressed := False;
   SetLength(FCipherSecurityArray, Length(C_CipherSecurity));
   for i := Low(C_CipherSecurity) to high(C_CipherSecurity) do
       FCipherSecurityArray[i] := C_CipherSecurity[i];

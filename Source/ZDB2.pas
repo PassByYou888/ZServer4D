@@ -123,6 +123,7 @@ type
 
     procedure SetOnCoreProgress(const Value: TZDB2_OnProgress);
     procedure DoOnNoSpace(Siz_: Int64; var retry: Boolean);
+    procedure ReloadIndexPtr;
     procedure LoadIndex;
     function IndexSpaceSize(PhyBlockNum_: Integer): Int64;
     function MakeIndexBuffer(Siz_: Int64): TZDB2_Mem;
@@ -142,23 +143,29 @@ type
     procedure AddTraversal(Traversal_: TZDB2_Traversal);
     procedure RemoveTraversal(Traversal_: TZDB2_Traversal);
     procedure ThRun(ThSender: TCompute);
+    function GetState: PZDB2_Core_SpaceState;
   public
-    constructor Create;
-    destructor Destroy; override;
-
     property NoSpace: TZDB2_NoSpace read FNoSpace write FNoSpace;
     property NoSpaceExpansionSize: Int64 read FNoSpaceExpansionSize write FNoSpaceExpansionSize;
     property NoSpaceExpansionBlockSize: Word read FNoSpaceExpansionBlockSize write FNoSpaceExpansionBlockSize;
     property NoSpaceMaxSize: Int64 read FNoSpaceMaxSize write FNoSpaceMaxSize;
     property Space: TZDB2_Core_Space read FSpace;
     property OnCoreProgress: TZDB2_OnProgress read FOnCoreProgress write SetOnCoreProgress;
-    function GetState: PZDB2_Core_SpaceState;
     property State: PZDB2_Core_SpaceState read GetState;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    class function Check(Cipher_: IZDB2_Cipher; Stream: TCoreClassStream): Boolean; overload;
+    class function Check(Stream: TCoreClassStream): Boolean; overload;
+    class function CheckFile(Cipher_: IZDB2_Cipher; Filename: U_String): Boolean; overload;
+    class function CheckFile(Filename: U_String): Boolean; overload;
 
     procedure NewStream(Cipher_: IZDB2_Cipher; Stream: TCoreClassStream; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure NewStream(Stream: TCoreClassStream; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure OpenStream(Cipher_: IZDB2_Cipher; Stream: TCoreClassStream; OnlyRead: Boolean; Mode: TZDB2_SpaceMode); overload;
     procedure OpenStream(Stream: TCoreClassStream; OnlyRead: Boolean; Mode: TZDB2_SpaceMode); overload;
+
     procedure NewFile(Cipher_: IZDB2_Cipher; Filename: U_String; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure NewFile(Filename: U_String; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure OpenFile(Cipher_: IZDB2_Cipher; Filename: U_String; OnlyRead: Boolean; Mode: TZDB2_SpaceMode); overload;
@@ -468,11 +475,32 @@ begin
   else if FNoSpace = nsAppendDeltaSpace then
     begin
       if FNoSpaceMaxSize > FSpace.State^.Physics then
-          FSpace.AppendSpace(FNoSpaceExpansionSize, FNoSpaceExpansionBlockSize);
+        if FSpace.AppendSpace(FNoSpaceExpansionSize, FNoSpaceExpansionBlockSize) then
+            ReloadIndexPtr;
     end
   else if FNoSpace = nsError then
     begin
     end;
+end;
+
+procedure TZDB2.ReloadIndexPtr;
+var
+  i: NativeInt;
+  p: PUInt32HashListPointerStruct;
+begin
+  FCritical.Lock;
+  if FIndexBuffer.Count > 0 then
+    begin
+      i := 0;
+      p := FIndexBuffer.FirstPtr;
+      while i < FIndexBuffer.Count do
+        begin
+          p^.Data := @FSpace.BlockBuffer[p^.u32];
+          inc(i);
+          p := p^.Next;
+        end;
+    end;
+  FCritical.UnLock;
 end;
 
 procedure TZDB2.LoadIndex;
@@ -480,10 +508,14 @@ var
   ID_: Integer;
   num: Int64;
   Mem: TZDB2_Mem;
+  Successed: Boolean;
+  i: Integer;
+  tmp: TZDB2_BlockHndle;
 begin
   FCritical.Lock;
   FIndexBuffer.Clear;
   Mem := TZDB2_Mem.Create;
+  Successed := False;
   if FSpace.Check(PInteger(@FSpace.UserCustomHeader^[0])^) then
     if FSpace.ReadData(Mem, PInteger(@FSpace.UserCustomHeader^[0])^) then
       begin
@@ -494,8 +526,18 @@ begin
             ID_ := Mem.ReadInt32;
             FIndexBuffer.Add(ID_, @FSpace.BlockBuffer[ID_], False);
           end;
+        Successed := True;
       end;
   DisposeObject(Mem);
+
+  if not Successed then
+    begin
+      // rebuild index
+      tmp := FSpace.BuildTableID;
+      for i := 0 to length(tmp) - 1 do
+          FIndexBuffer.Add(tmp[i], @FSpace.BlockBuffer[tmp[i]], False);
+    end;
+
   FCritical.UnLock;
 end;
 
@@ -779,6 +821,14 @@ begin
   FRunning.V := False;
 end;
 
+function TZDB2.GetState: PZDB2_Core_SpaceState;
+begin
+  if FSpace <> nil then
+      Result := FSpace.State
+  else
+      Result := nil;
+end;
+
 constructor TZDB2.Create;
 begin
   inherited Create;
@@ -806,12 +856,48 @@ begin
   inherited Destroy;
 end;
 
-function TZDB2.GetState: PZDB2_Core_SpaceState;
+class function TZDB2.Check(Cipher_: IZDB2_Cipher; Stream: TCoreClassStream): Boolean;
+var
+  ioHnd: TIOHnd;
+  tmp: TZDB2_Core_Space;
 begin
-  if FSpace <> nil then
-      Result := FSpace.State
-  else
-      Result := nil;
+  Result := False;
+  InitIOHnd(ioHnd);
+  if umlFileOpenAsStream('', Stream, ioHnd, True) then
+    begin
+      tmp := TZDB2_Core_Space.Create(@ioHnd);
+      tmp.Cipher := Cipher_;
+      Result := tmp.Open;
+      DisposeObject(tmp);
+    end;
+  umlFileClose(ioHnd);
+end;
+
+class function TZDB2.Check(Stream: TCoreClassStream): Boolean;
+begin
+  Result := TZDB2.Check(nil, Stream);
+end;
+
+class function TZDB2.CheckFile(Cipher_: IZDB2_Cipher; Filename: U_String): Boolean;
+var
+  ioHnd: TIOHnd;
+  tmp: TZDB2_Core_Space;
+begin
+  Result := False;
+  InitIOHnd(ioHnd);
+  if umlFileOpen(Filename, ioHnd, True) then
+    begin
+      tmp := TZDB2_Core_Space.Create(@ioHnd);
+      tmp.Cipher := Cipher_;
+      Result := tmp.Open;
+      DisposeObject(tmp);
+    end;
+  umlFileClose(ioHnd);
+end;
+
+class function TZDB2.CheckFile(Filename: U_String): Boolean;
+begin
+  Result := TZDB2.CheckFile(nil, Filename);
 end;
 
 procedure TZDB2.NewStream(Cipher_: IZDB2_Cipher; Stream: TCoreClassStream; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode);
@@ -1261,7 +1347,7 @@ begin
   Traversal := TZDB2_Traversal.Create;
   Traversal.Reverse := Reverse_;
   Traversal.Hnd := GetIndex();
-  Traversal.Total := Length(Traversal.Hnd);
+  Traversal.Total := length(Traversal.Hnd);
   if Reverse_ then
       Traversal.Current := Traversal.Total - 1
   else
@@ -1304,7 +1390,7 @@ begin
   Traversal := TZDB2_Traversal.Create;
   Traversal.Reverse := Reverse_;
   Traversal.Hnd := GetIndex();
-  Traversal.Total := Length(Traversal.Hnd);
+  Traversal.Total := length(Traversal.Hnd);
   if Reverse_ then
       Traversal.Current := Traversal.Total - 1
   else
@@ -1347,7 +1433,7 @@ begin
   Traversal := TZDB2_Traversal.Create;
   Traversal.Reverse := Reverse_;
   Traversal.Hnd := GetIndex();
-  Traversal.Total := Length(Traversal.Hnd);
+  Traversal.Total := length(Traversal.Hnd);
   if Reverse_ then
       Traversal.Current := Traversal.Total - 1
   else
@@ -1414,6 +1500,7 @@ begin
   db2.TraversalP(True, False, nil, nil, nil);
   DisposeObject(db2);
 
+  TZDB2.Check(Mem1);
   db1 := TZDB2.Create;
   db1.OpenStream(Mem1, False, smBigData);
 

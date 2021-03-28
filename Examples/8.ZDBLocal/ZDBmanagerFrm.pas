@@ -1,5 +1,5 @@
 unit ZDBmanagerFrm;
-
+
 interface
 
 uses
@@ -464,4 +464,4 @@ begin
 end;
 
 end.
-
+

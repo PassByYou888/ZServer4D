@@ -334,6 +334,38 @@ procedure ParallelCompressFile(const sour, dest: SystemString);
 procedure ParallelDecompressFile(const sour, dest: SystemString);
 function CompressUTF8(const sour_: TBytes): TBytes;
 function DecompressUTF8(const sour_: TBytes): TBytes;
+
+// Serialized api
+procedure StreamWriteBool(const stream: TCoreClassStream; const buff: Boolean);
+procedure StreamWriteInt8(const stream: TCoreClassStream; const buff: ShortInt);
+procedure StreamWriteInt16(const stream: TCoreClassStream; const buff: SmallInt);
+procedure StreamWriteInt32(const stream: TCoreClassStream; const buff: Integer);
+procedure StreamWriteInt64(const stream: TCoreClassStream; const buff: Int64);
+procedure StreamWriteUInt8(const stream: TCoreClassStream; const buff: Byte);
+procedure StreamWriteUInt16(const stream: TCoreClassStream; const buff: Word);
+procedure StreamWriteUInt32(const stream: TCoreClassStream; const buff: Cardinal);
+procedure StreamWriteUInt64(const stream: TCoreClassStream; const buff: UInt64);
+procedure StreamWriteSingle(const stream: TCoreClassStream; const buff: Single);
+procedure StreamWriteDouble(const stream: TCoreClassStream; const buff: Double);
+procedure StreamWriteCurrency(const stream: TCoreClassStream; const buff: Currency);
+procedure StreamWriteString(const stream: TCoreClassStream; const buff: TPascalString);
+function ComputeStreamWriteStringSize(buff: TPascalString): Integer;
+procedure StreamWriteMD5(const stream: TCoreClassStream; const buff: TMD5);
+function StreamReadBool(const stream: TCoreClassStream): Boolean;
+function StreamReadInt8(const stream: TCoreClassStream): ShortInt;
+function StreamReadInt16(const stream: TCoreClassStream): SmallInt;
+function StreamReadInt32(const stream: TCoreClassStream): Integer;
+function StreamReadInt64(const stream: TCoreClassStream): Int64;
+function StreamReadUInt8(const stream: TCoreClassStream): Byte;
+function StreamReadUInt16(const stream: TCoreClassStream): Word;
+function StreamReadUInt32(const stream: TCoreClassStream): Cardinal;
+function StreamReadUInt64(const stream: TCoreClassStream): UInt64;
+function StreamReadSingle(const stream: TCoreClassStream): Single;
+function StreamReadDouble(const stream: TCoreClassStream): Double;
+function StreamReadCurrency(const stream: TCoreClassStream): Currency;
+function StreamReadString(const stream: TCoreClassStream): TPascalString;
+function StreamReadMD5(const stream: TCoreClassStream): TMD5;
+
 procedure DoStatus(const v: TMemoryStream64); overload;
 procedure DoStatus(const v: TMem64); overload;
 
@@ -2360,6 +2392,173 @@ var
 begin
   buff := CompressUTF8(TPascalString('123456789abcdefg1111111111111111111111111111111111111').Bytes);
   s.Bytes := DecompressUTF8(buff);
+end;
+
+procedure StreamWriteBool(const stream: TCoreClassStream; const buff: Boolean);
+begin
+  stream.write(buff, 1);
+end;
+
+procedure StreamWriteInt8(const stream: TCoreClassStream; const buff: ShortInt);
+begin
+  stream.write(buff, 1);
+end;
+
+procedure StreamWriteInt16(const stream: TCoreClassStream; const buff: SmallInt);
+begin
+  stream.write(buff, 2);
+end;
+
+procedure StreamWriteInt32(const stream: TCoreClassStream; const buff: Integer);
+begin
+  stream.write(buff, 4);
+end;
+
+procedure StreamWriteInt64(const stream: TCoreClassStream; const buff: Int64);
+begin
+  stream.write(buff, 8);
+end;
+
+procedure StreamWriteUInt8(const stream: TCoreClassStream; const buff: Byte);
+begin
+  stream.write(buff, 1);
+end;
+
+procedure StreamWriteUInt16(const stream: TCoreClassStream; const buff: Word);
+begin
+  stream.write(buff, 2);
+end;
+
+procedure StreamWriteUInt32(const stream: TCoreClassStream; const buff: Cardinal);
+begin
+  stream.write(buff, 4);
+end;
+
+procedure StreamWriteUInt64(const stream: TCoreClassStream; const buff: UInt64);
+begin
+  stream.write(buff, 8);
+end;
+
+procedure StreamWriteSingle(const stream: TCoreClassStream; const buff: Single);
+begin
+  stream.write(buff, 4);
+end;
+
+procedure StreamWriteDouble(const stream: TCoreClassStream; const buff: Double);
+begin
+  stream.write(buff, 8);
+end;
+
+procedure StreamWriteCurrency(const stream: TCoreClassStream; const buff: Currency);
+begin
+  StreamWriteDouble(stream, buff);
+end;
+
+procedure StreamWriteString(const stream: TCoreClassStream; const buff: TPascalString);
+var
+  b: TBytes;
+begin
+  b := buff.Bytes;
+  StreamWriteUInt32(stream, Length(b));
+  if Length(b) > 0 then
+    begin
+      stream.write(b[0], Length(b));
+      SetLength(b, 0);
+    end;
+end;
+
+function ComputeStreamWriteStringSize(buff: TPascalString): Integer;
+var
+  b: TBytes;
+begin
+  b := buff.Bytes;
+  Result := 4 + Length(b);
+  SetLength(b, 0);
+end;
+
+procedure StreamWriteMD5(const stream: TCoreClassStream; const buff: TMD5);
+begin
+  stream.write(buff, 16);
+end;
+
+function StreamReadBool(const stream: TCoreClassStream): Boolean;
+begin
+  stream.read(Result, 1);
+end;
+
+function StreamReadInt8(const stream: TCoreClassStream): ShortInt;
+begin
+  stream.read(Result, 1);
+end;
+
+function StreamReadInt16(const stream: TCoreClassStream): SmallInt;
+begin
+  stream.read(Result, 2);
+end;
+
+function StreamReadInt32(const stream: TCoreClassStream): Integer;
+begin
+  stream.read(Result, 4);
+end;
+
+function StreamReadInt64(const stream: TCoreClassStream): Int64;
+begin
+  stream.read(Result, 8);
+end;
+
+function StreamReadUInt8(const stream: TCoreClassStream): Byte;
+begin
+  stream.read(Result, 1);
+end;
+
+function StreamReadUInt16(const stream: TCoreClassStream): Word;
+begin
+  stream.read(Result, 2);
+end;
+
+function StreamReadUInt32(const stream: TCoreClassStream): Cardinal;
+begin
+  stream.read(Result, 4);
+end;
+
+function StreamReadUInt64(const stream: TCoreClassStream): UInt64;
+begin
+  stream.read(Result, 8);
+end;
+
+function StreamReadSingle(const stream: TCoreClassStream): Single;
+begin
+  stream.read(Result, 4);
+end;
+
+function StreamReadDouble(const stream: TCoreClassStream): Double;
+begin
+  stream.read(Result, 8);
+end;
+
+function StreamReadCurrency(const stream: TCoreClassStream): Currency;
+begin
+  Result := StreamReadDouble(stream);
+end;
+
+function StreamReadString(const stream: TCoreClassStream): TPascalString;
+var
+  L: Cardinal;
+  b: TBytes;
+begin
+  L := StreamReadUInt32(stream);
+  if L > 0 then
+    begin
+      SetLength(b, L);
+      stream.read(b[0], L);
+      Result.Bytes := b;
+      SetLength(b, 0);
+    end;
+end;
+
+function StreamReadMD5(const stream: TCoreClassStream): TMD5;
+begin
+  stream.read(Result, 16);
 end;
 
 procedure DoStatus(const v: TMemoryStream64);

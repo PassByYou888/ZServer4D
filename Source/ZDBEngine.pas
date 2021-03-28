@@ -3224,7 +3224,7 @@ var
 begin
   M := TMemoryStream64.Create;
 
-  Buff.EncodeTo(M, False);
+  Buff.FastEncodeTo(M);
 
   Result := AddData(M, c_DF);
   DisposeObject(M);

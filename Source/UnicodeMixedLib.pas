@@ -268,6 +268,7 @@ function umlGetUnixFilePath(const s: TPascalString): TPascalString;
 function umlChangeFileExt(const s, ext: TPascalString): TPascalString;
 function umlGetFileExt(const s: TPascalString): TPascalString;
 
+{ FileIO }
 procedure InitIOHnd(var IOHnd: TIOHnd);
 function umlFileCreateAsStream(const FileName: TPascalString; stream: U_Stream; var IOHnd: TIOHnd; OnlyRead_: Boolean): Boolean; overload;
 function umlFileCreateAsStream(const FileName: TPascalString; stream: U_Stream; var IOHnd: TIOHnd): Boolean; overload;
@@ -280,20 +281,16 @@ function umlFileOpen(const FileName: TPascalString; var IOHnd: TIOHnd; OnlyRead_
 function umlFileClose(var IOHnd: TIOHnd): Boolean;
 function umlFileUpdate(var IOHnd: TIOHnd): Boolean;
 function umlFileTest(var IOHnd: TIOHnd): Boolean;
-
 procedure umlResetPrepareRead(var IOHnd: TIOHnd);
 function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var buff): Boolean;
 function umlFileRead(var IOHnd: TIOHnd; const Size: Int64; var buff): Boolean;
 function umlBlockRead(var IOHnd: TIOHnd; var buff; const Size: Int64): Boolean;
-
 function umlFilePrepareWrite(var IOHnd: TIOHnd): Boolean;
 function umlFileFlushWrite(var IOHnd: TIOHnd): Boolean;
 function umlFileWrite(var IOHnd: TIOHnd; const Size: Int64; var buff): Boolean;
 function umlBlockWrite(var IOHnd: TIOHnd; var buff; const Size: Int64): Boolean;
-
 function umlFileWriteFixedString(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
 function umlFileReadFixedString(var IOHnd: TIOHnd; var Value: TPascalString): Boolean;
-
 function umlFileSeek(var IOHnd: TIOHnd; Pos_: Int64): Boolean;
 function umlFileGetPOS(var IOHnd: TIOHnd): Int64;
 function umlFileSetSize(var IOHnd: TIOHnd; siz_: Int64): Boolean;
