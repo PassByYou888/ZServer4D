@@ -3212,7 +3212,7 @@ var
 begin
   M := TMemoryStream64.Create;
 
-  Buff.EncodeTo(M, False);
+  Buff.FastEncodeTo(M);
 
   Result := InsertData(InsertPos, M, c_DF);
   DisposeObject(M);
