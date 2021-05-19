@@ -1933,7 +1933,8 @@ type
 function CreateCipherClass(cs: TCipherSecurity; KeyBuffer_: TCipherKeyBuffer): TCipher_Base;
 function CreateCipherClassFromPassword(cs: TCipherSecurity; password_: TPascalString): TCipher_Base;
 // compatible SequEncryptCBC
-function CreateCipherClassFromBuffer(cs: TCipherSecurity; key: TCipherKeyBuffer): TCipher_Base;
+function CreateCipherClassFromBuffer(cs: TCipherSecurity; key: TCipherKeyBuffer): TCipher_Base; overload;
+function CreateCipherClassFromBuffer(cs: TCipherSecurity; buffPtr: Pointer; Size: NativeInt): TCipher_Base; overload;
 procedure TestCoreCipher;
 
 implementation
@@ -10988,6 +10989,18 @@ begin
   // copy key
   SetLength(Result.FLastGenerateKey, length(key));
   CopyPtr(@key[0], @Result.FLastGenerateKey[0], length(key));
+end;
+
+function CreateCipherClassFromBuffer(cs: TCipherSecurity; buffPtr: Pointer; Size: NativeInt): TCipher_Base;
+var
+  k: TCipherKeyBuffer;
+begin
+  TCipher.GenerateKey(cs, buffPtr, Size, k);
+  Result := CreateCipherClass(cs, k);
+  SetLength(k, 0);
+  // copy key
+  SetLength(Result.FLastGenerateKey, Size);
+  CopyPtr(buffPtr, @Result.FLastGenerateKey[0], Size);
 end;
 
 procedure TestCoreCipher;

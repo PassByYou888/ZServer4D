@@ -47,6 +47,7 @@ type
     { data security }
     FDataStoreCipherSecurity: TCipherSecurity;
     FDataStoreCipherKey: TCipherKeyBuffer;
+    FCipherInstance: TCipher_Base;
   public
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
@@ -69,13 +70,6 @@ type
   end;
 
   TDataStoreService_VirtualAuth = class(TCommunicationFramework_DoubleTunnelService_VirtualAuth, IZDBLocalManagerNotify)
-  private type
-    POnStorePosTransformTrigger_VirtualAuth = ^TOnStorePosTransformTrigger_VirtualAuth;
-
-    TOnStorePosTransformTrigger_VirtualAuth = record
-      Client_SendTunnel_ID: Cardinal;
-      BackcallPtr: UInt64;
-    end;
   private
     FZDBLocal: TZDBLocalManager;
     FQueryCallPool: THashObjectList;
@@ -86,6 +80,7 @@ type
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64); virtual;
     procedure QueryDone(pipe: TZDBPipeline); virtual;
     procedure StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
+    procedure OpenDB(ActiveDB: TZDBLMStore); virtual;
     procedure CreateDB(ActiveDB: TZDBLMStore); virtual;
     procedure CloseDB(ActiveDB: TZDBLMStore); virtual;
     procedure InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64); virtual;
@@ -135,11 +130,11 @@ type
     { send client command }
     procedure Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
     procedure Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
-    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
-    procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
     procedure Send_CompletedStorePosTransform(ASendCli: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
   public
-    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer); override;
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -150,9 +145,9 @@ type
 
     function GetDataStoreUserDefine(RecvCli: TPeerIO): TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
 
-    function RegisterQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
-    procedure UnRegisterQueryCall(cName: SystemString);
-    function GetRegistedQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
+    function RegisterQueryCall(QuerierName_: SystemString): TTDataStoreService_QueryCall;
+    procedure UnRegisterQueryCall(QuerierName_: SystemString);
+    function GetRegistedQueryCall(QuerierName_: SystemString): TTDataStoreService_QueryCall;
 
     function PostCounterOfPerSec: Double;
 
@@ -165,6 +160,7 @@ type
   private
     FDataStoreCipherSecurity: TCipherSecurity;
     FDataStoreCipherKey: TCipherKeyBuffer;
+    FCipherInstance: TCipher_Base;
     procedure EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
     procedure Command_DataStoreSecurity(Sender: TPeerIO; InData: TDataFrameEngine);
   private
@@ -174,7 +170,7 @@ type
     procedure Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
   public
-    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient); override;
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -184,189 +180,232 @@ type
 
     function DataCipherKeyFinished: Boolean;
 
-    procedure InitDB(InMem: Boolean; dbN: SystemString); virtual;
-    procedure CloseDB(dbN: SystemString; CloseAndDeleted: Boolean); virtual;
+    procedure InitDB(InMem: Boolean; dataBaseName_: SystemString); virtual;
+    procedure CloseDB(dataBaseName_: SystemString; CloseAndDeleted: Boolean); virtual;
 
-    procedure CopyDB(dbN, copyToN: SystemString); overload;
-    procedure CopyDB(dbN, copyToN: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
-    procedure CopyDB_C(dbN, copyToN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
-    procedure CopyDB_M(dbN, copyToN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
-    procedure CopyDB_P(dbN, copyToN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
-    { }
-    procedure CompressDB(dbN: SystemString); overload;
-    procedure CompressDB(dbN: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
-    procedure CompressDB_C(dbN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
-    procedure CompressDB_M(dbN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
-    procedure CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
-    { }
-    procedure ReplaceDB(dbN, replaceN: SystemString); virtual;
-    procedure ResetData(dbN: SystemString); virtual;
+    procedure CopyDB(dataBaseName_, CopyDestDatabaseName_: SystemString); overload;
+    procedure CopyDB(dataBaseName_, CopyDestDatabaseName_: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
+    procedure CopyDB_C(dataBaseName_, CopyDestDatabaseName_: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
+    procedure CopyDB_M(dataBaseName_, CopyDestDatabaseName_: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
+    procedure CopyDB_P(dataBaseName_, CopyDestDatabaseName_: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
 
-    procedure QuietQueryDB(RegistedQueryName: SystemString; ReverseQuery: Boolean; dbN, outDBN: SystemString; MaxWait: Double; MaxQueryResult: Int64); virtual;
+    procedure CompressDB(dataBaseName_: SystemString); overload;
+    procedure CompressDB(dataBaseName_: SystemString; const BackcallPtr: PStorePosTransformNotify); overload;
+    procedure CompressDB_C(dataBaseName_: SystemString; const OnDoneCall: TStorePosTransformNotifyCall); overload;
+    procedure CompressDB_M(dataBaseName_: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod); overload;
+    procedure CompressDB_P(dataBaseName_: SystemString; const OnDoneProc: TStorePosTransformNotifyProc); overload;
 
-    procedure QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure ReplaceDB(dataBaseName_, replaceN: SystemString); virtual;
+    procedure ResetData(dataBaseName_: SystemString); virtual;
+
+    procedure QuietQueryDB(RegistedQuerier_: SystemString; ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString; MaxWait: Double; MaxQueryResult: Int64); virtual;
+
+    procedure QueryDB(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList); overload; virtual;
 
-    procedure QueryDBC(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDBC(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList; { service ref remote parameter }
       OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
 
-    procedure QueryDBC(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDBC(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList;                                           { service ref remote parameter }
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnQueryCall: TUserFillQueryDataCall; OnDoneCall: TUserQueryDoneNotifyCall); overload;
 
-    procedure QueryDBM(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDBM(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList; { service ref remote parameter }
       OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
 
-    procedure QueryDBM(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDBM(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList;                                           { service ref remote parameter }
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnQueryMethod: TUserFillQueryDataMethod; OnDoneMethod: TUserQueryDoneNotifyMethod); overload;
 
-    procedure QueryDBP(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDBP(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList; { service ref remote parameter }
       OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
 
-    procedure QueryDBP(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+    procedure QueryDBP(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
       fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
       RemoteParams: THashVariantList;                                           { service ref remote parameter }
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnQueryProc: TUserFillQueryDataProc; OnDoneProc: TUserQueryDoneNotifyProc); overload;
 
-    procedure QueryDBC(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
-    procedure QueryDBM(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
-    procedure QueryDBP(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+    procedure QueryDBC(RegistedQuerier_: SystemString; dataBaseName_: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
+    procedure QueryDBM(RegistedQuerier_: SystemString; dataBaseName_: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+    procedure QueryDBP(RegistedQuerier_: SystemString; dataBaseName_: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
 
-    procedure DownloadDB(ReverseQuery: Boolean; dbN: SystemString; BackcallPtr: PDataStoreClientQueryNotify); overload; virtual;
-    procedure DownloadDBC(ReverseQuery: Boolean; dbN: SystemString; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
-    procedure DownloadDBM(ReverseQuery: Boolean; dbN: SystemString; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
-    procedure DownloadDBP(ReverseQuery: Boolean; dbN: SystemString; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+    procedure DownloadDB(ReverseQuery: Boolean; dataBaseName_: SystemString; BackcallPtr: PDataStoreClientQueryNotify); overload; virtual;
+    procedure DownloadDBC(ReverseQuery: Boolean; dataBaseName_: SystemString; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
+    procedure DownloadDBM(ReverseQuery: Boolean; dataBaseName_: SystemString; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+    procedure DownloadDBP(ReverseQuery: Boolean; dataBaseName_: SystemString; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
 
-    procedure DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify); overload; virtual;
-    procedure DownloadDBWithIDC(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
-    procedure DownloadDBWithIDM(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
-    procedure DownloadDBWithIDP(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
+    procedure DownloadDBWithID(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify); overload; virtual;
+    procedure DownloadDBWithIDC(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall); overload;
+    procedure DownloadDBWithIDM(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod); overload;
+    procedure DownloadDBWithIDP(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc); overload;
 
     procedure BeginAssembleStream; virtual;
 
-    procedure RequestDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify); virtual;
-    procedure DownloadAssembleStreamC(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall); overload;
-    procedure DownloadAssembleStreamM(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
-    procedure DownloadAssembleStreamP(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
+    procedure RequestDownloadAssembleStream(dataBaseName_: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify); virtual;
+    procedure DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall); overload;
+    procedure DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
+    procedure DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
+    procedure DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneCall: TDownloadDoneNotifyCall); overload;
+    procedure DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
+    procedure DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneProc: TDownloadDoneNotifyProc); overload;
 
-    procedure DownloadAssembleStreamC(dbN: SystemString; StorePos: Int64;
+    procedure DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64;
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnDoneCall: TUserDownloadDoneNotifyCall); overload;
-    procedure DownloadAssembleStreamM(dbN: SystemString; StorePos: Int64;
+    procedure DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64;
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnDoneMethod: TUserDownloadDoneNotifyMethod); overload;
-    procedure DownloadAssembleStreamP(dbN: SystemString; StorePos: Int64;
+    procedure DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64;
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnDoneProc: TUserDownloadDoneNotifyProc); overload;
 
-    procedure RequestFastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify); virtual;
-    procedure FastDownloadAssembleStreamC(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall); overload;
-    procedure FastDownloadAssembleStreamM(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
-    procedure FastDownloadAssembleStreamP(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
-
-    procedure FastDownloadAssembleStreamC(dbN: SystemString; StorePos: Int64;
+    procedure DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnDoneCall: TUserDownloadDoneNotifyCall); overload;
-    procedure FastDownloadAssembleStreamM(dbN: SystemString; StorePos: Int64;
+    procedure DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnDoneMethod: TUserDownloadDoneNotifyMethod); overload;
-    procedure FastDownloadAssembleStreamP(dbN: SystemString; StorePos: Int64;
+    procedure DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+      OnDoneProc: TUserDownloadDoneNotifyProc); overload;
+
+    procedure RequestFastDownloadAssembleStream(dataBaseName_: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify); virtual;
+    procedure FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall); overload;
+    procedure FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
+    procedure FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc); overload;
+
+    procedure FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneCall: TDownloadDoneNotifyCall); overload;
+    procedure FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneMethod: TDownloadDoneNotifyMethod); overload;
+    procedure FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneProc: TDownloadDoneNotifyProc); overload;
+
+    procedure FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+      OnDoneCall: TUserDownloadDoneNotifyCall); overload;
+    procedure FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+      OnDoneMethod: TUserDownloadDoneNotifyMethod); overload;
+    procedure FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+      OnDoneProc: TUserDownloadDoneNotifyProc); overload;
+
+    procedure FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+      OnDoneCall: TUserDownloadDoneNotifyCall); overload;
+    procedure FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+      UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+      OnDoneMethod: TUserDownloadDoneNotifyMethod); overload;
+    procedure FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
       UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
       OnDoneProc: TUserDownloadDoneNotifyProc); overload;
 
     { Security post support }
-    procedure PostAssembleStream(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure PostAssembleStreamCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
-    procedure PostAssembleStream(dbN: SystemString; DataSource: TDataFrameEngine); overload;
-    procedure PostAssembleStream(dbN: SystemString; DataSource: THashVariantList); overload;
-    procedure PostAssembleStream(dbN: SystemString; DataSource: THashStringList); overload;
-    procedure PostAssembleStream(dbN: SystemString; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure PostAssembleStream(dbN: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF FPC}
-    procedure PostAssembleStream(dbN: SystemString; DataSource: TPascalString); overload;
-    { }
+    procedure PostAssembleStream(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure PostAssembleStreamCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TDataFrameEngine); overload;
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashStringList); overload;
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TSectionTextData); overload;
+{$IFNDEF FPC} procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF FPC}
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TPascalString); overload;
+
     { Security insert support }
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
-    procedure InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
-    { }
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure InsertAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
+{$IFNDEF FPC} procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
+
     { Security modify support }
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
-    procedure ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream);
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
-    procedure ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
-    { }
-    procedure GetPostAssembleStreamStateM(OnResult: TStreamMethod); overload; virtual;
-    procedure GetPostAssembleStreamStateP(OnResult: TStreamProc); overload; virtual;
-    { }
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
+    procedure ModifyAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream);
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
+{$IFNDEF FPC} procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
+
+    procedure GetPostAssembleStreamStateM(OnResult: TStreamMethod); overload;
+    procedure GetPostAssembleStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
+    procedure GetPostAssembleStreamStateP(OnResult: TStreamProc); overload;
+    procedure GetPostAssembleStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
+
     procedure EndAssembleStream; virtual;
-    { }
-    procedure DeleteData(dbN: SystemString; dStorePos: Int64); virtual;
-    { }
+
+    procedure DeleteData(dataBaseName_: SystemString; dStorePos: Int64); virtual;
+
     { fast post support }
-    procedure FastPostCompleteBuffer(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure FastPostCompleteBufferCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
-    procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TDataFrameEngine); overload;
-    procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: THashVariantList); overload;
-    procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: THashStringList); overload;
-    procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF FPC}
-    procedure FastPostCompleteBuffer(dbN: SystemString; DataSource: TPascalString); overload;
-    { }
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastPostCompleteBufferCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDataFrameEngine); overload;
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashStringList); overload;
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TSectionTextData); overload;
+{$IFNDEF FPC} procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF FPC}
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TPascalString); overload;
+
     { fast insert support }
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
-    procedure FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
-    { }
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastInsertCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
+{$IFNDEF FPC} procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
+
     { fast modify support }
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
-    procedure FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
-    procedure FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
-    { }
-    { }
-    procedure GetDBListM(OnResult: TStreamMethod); overload; virtual;
-    procedure GetQueryListM(OnResult: TStreamMethod); overload; virtual;
-    procedure GetQueryStateM(pipeN: SystemString; OnResult: TStreamMethod); overload; virtual;
-    procedure QueryStop(pipeN: SystemString); virtual;
-    procedure QueryPause(pipeN: SystemString); virtual;
-    procedure QueryPlay(pipeN: SystemString); virtual;
-    { }
-    procedure GetDBListP(OnResult: TStreamProc); overload; virtual;
-    procedure GetQueryListP(OnResult: TStreamProc); overload; virtual;
-    procedure GetQueryStateP(pipeN: SystemString; OnResult: TStreamProc); overload; virtual;
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastModifyCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
+{$IFNDEF FPC} procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
+
+    procedure QueryStop(PipeName_: SystemString); virtual;
+    procedure QueryPause(PipeName_: SystemString); virtual;
+    procedure QueryPlay(PipeName_: SystemString); virtual;
+
+    procedure GetDBListM(OnResult: TStreamMethod); overload;
+    procedure GetDBListM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
+    procedure GetQueryListM(OnResult: TStreamMethod); overload;
+    procedure GetQueryListM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
+    procedure GetQueryStateM(PipeName_: SystemString; OnResult: TStreamMethod); overload;
+    procedure GetQueryStateM(PipeName_: SystemString; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
+
+    procedure GetDBListP(OnResult: TStreamProc); overload;
+    procedure GetDBListP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
+    procedure GetQueryListP(OnResult: TStreamProc); overload;
+    procedure GetQueryListP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
+    procedure GetQueryStateP(PipeName_: SystemString; OnResult: TStreamProc); overload;
+    procedure GetQueryStateP(PipeName_: SystemString; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
   end;
 
 implementation
+
+type
+  POnStorePosTransformTrigger_VirtualAuth = ^TOnStorePosTransformTrigger_VirtualAuth;
+
+  TOnStorePosTransformTrigger_VirtualAuth = record
+    Client_SendTunnel_ID: Cardinal;
+    BackcallPtr: UInt64;
+  end;
 
 constructor TDataStoreService_PeerClientRecvTunnel_VirtualAuth.Create(Owner_: TPeerIO);
 type
@@ -386,10 +425,15 @@ begin
   { generate random key }
   TMISC.GenerateRandomKey(kref, C_Int64_Size);
   TCipher.GenerateKey(FDataStoreCipherSecurity, @kref, C_Int64_Size, FDataStoreCipherKey);
+  FCipherInstance := CreateCipherClass(FDataStoreCipherSecurity, FDataStoreCipherKey);
+  FCipherInstance.Level := 1;
+  FCipherInstance.CBC := True;
+  FCipherInstance.ProcessTail := True;
 end;
 
 destructor TDataStoreService_PeerClientRecvTunnel_VirtualAuth.Destroy;
 begin
+  DisposeObjectAndNil(FCipherInstance);
   inherited Destroy;
 end;
 
@@ -423,7 +467,12 @@ end;
 
 procedure TDataStoreService_PeerClientRecvTunnel_VirtualAuth.EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
 begin
-  SequEncryptCBC(FDataStoreCipherSecurity, sour, Size, FDataStoreCipherKey, Encrypt, True);
+  if FCipherInstance = nil then
+      exit;
+  if Encrypt then
+      FCipherInstance.Encrypt(sour, Size)
+  else
+      FCipherInstance.Decrypt(sour, Size);
 end;
 
 constructor TDataStoreService_PeerClientSendTunnel_VirtualAuth.Create(Owner_: TPeerIO);
@@ -455,15 +504,13 @@ var
 begin
   pl := TTDataStoreService_DBPipeline(pipe);
   if not pl.SyncToClient then
-      Exit;
+      exit;
 
   if not SendTunnel.Exists(pl.SendTunnel) then
-      Exit;
+      exit;
 
   DestStream := TMemoryStream64.Create;
-  FragmentSource.Position := 0;
-
-  CompressStream(FragmentSource, DestStream);
+  DestStream.SwapInstance(FragmentSource);
 
   TDataStoreService_PeerClientRecvTunnel_VirtualAuth(pl.RecvTunnel).EncryptBuffer(DestStream.Memory, DestStream.Size, True);
 
@@ -480,7 +527,7 @@ begin
   pl := TTDataStoreService_DBPipeline(pipe);
 
   if not FSendTunnel.Exists(pl.SendTunnel) then
-      Exit;
+      exit;
 
   Send_CompletedQuery(pl);
 end;
@@ -491,11 +538,15 @@ var
   de: TDataFrameEngine;
 begin
   if Data = nil then
-      Exit;
+      exit;
   p := POnStorePosTransformTrigger_VirtualAuth(Data);
   if (p^.BackcallPtr <> 0) and (FSendTunnel.Exists(p^.Client_SendTunnel_ID)) then
       Send_CompletedStorePosTransform(SendTunnel.PeerIO[p^.Client_SendTunnel_ID], p^.BackcallPtr, TransformBuff);
   Dispose(p);
+end;
+
+procedure TDataStoreService_VirtualAuth.OpenDB(ActiveDB: TZDBLMStore);
+begin
 end;
 
 procedure TDataStoreService_VirtualAuth.CreateDB(ActiveDB: TZDBLMStore);
@@ -570,105 +621,105 @@ procedure TDataStoreService_VirtualAuth.Command_InitDB(Sender: TPeerIO; InData: 
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   InMem: Boolean;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   InMem := InData.Reader.ReadBool;
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   if InMem then
-      FZDBLocal.InitMemoryDB(dbN)
+      FZDBLocal.InitMemoryDB(dataBaseName_)
   else
-      FZDBLocal.InitDB(dbN, False);
+      FZDBLocal.InitDB(dataBaseName_, False);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   CloseAndDeleted: Boolean;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   CloseAndDeleted := InData.Reader.ReadBool;
 
   if CloseAndDeleted then
-      FZDBLocal.CloseAndDeleteDB(dbN)
+      FZDBLocal.CloseAndDeleteDB(dataBaseName_)
   else
-      FZDBLocal.CloseDB(dbN);
+      FZDBLocal.CloseDB(dataBaseName_);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN, copy2N: SystemString;
+  dataBaseName_, copy2N: SystemString;
   BackcallPtr: UInt64;
   p: POnStorePosTransformTrigger_VirtualAuth;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   copy2N := InData.Reader.ReadString;
   BackcallPtr := InData.Reader.ReadPointer;
 
   new(p);
   p^.Client_SendTunnel_ID := RT.SendTunnelID;
   p^.BackcallPtr := BackcallPtr;
-  FZDBLocal.CopyDB(dbN, copy2N, p, {$IFDEF FPC}@{$ENDIF FPC}StorePosTransform);
+  FZDBLocal.CopyDB(dataBaseName_, copy2N, p, {$IFDEF FPC}@{$ENDIF FPC}StorePosTransform);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   BackcallPtr: UInt64;
   p: POnStorePosTransformTrigger_VirtualAuth;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   BackcallPtr := InData.Reader.ReadPointer;
 
   new(p);
   p^.Client_SendTunnel_ID := RT.SendTunnelID;
   p^.BackcallPtr := BackcallPtr;
-  FZDBLocal.CompressDB(dbN, p, {$IFDEF FPC}@{$ENDIF FPC}StorePosTransform);
+  FZDBLocal.CompressDB(dataBaseName_, p, {$IFDEF FPC}@{$ENDIF FPC}StorePosTransform);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN, replaceN: SystemString;
+  dataBaseName_, replaceN: SystemString;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   replaceN := InData.Reader.ReadString;
-  FZDBLocal.ReplaceDB(dbN, replaceN);
+  FZDBLocal.ReplaceDB(dataBaseName_, replaceN);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
-  FZDBLocal.ResetData(dbN);
+  dataBaseName_ := InData.Reader.ReadString;
+  FZDBLocal.ResetData(dataBaseName_);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -676,7 +727,7 @@ var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   RegedQueryName: SystemString;
   SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean;
-  dbN, outDBN: SystemString;
+  dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double;
   MaxQueryResult: Int64;
 
@@ -687,21 +738,21 @@ var
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   RegedQueryName := InData.Reader.ReadString;
   SyncToClient := InData.Reader.ReadBool;
   WriteResultToOutputDB := InData.Reader.ReadBool;
   InMem := InData.Reader.ReadBool;
   ReverseQuery := InData.Reader.ReadBool;
-  dbN := InData.Reader.ReadString;
-  outDBN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
+  OutputDatabaseName_ := InData.Reader.ReadString;
   fragmentReponseTime := InData.Reader.ReadDouble;
   MaxWait := InData.Reader.ReadDouble;
   MaxQueryResult := InData.Reader.ReadInt64;
 
-  if not FZDBLocal.ExistsDB(dbN) then
-      Exit;
+  if not FZDBLocal.ExistsDB(dataBaseName_) then
+      exit;
 
   qc := TTDataStoreService_QueryCall(FQueryCallPool[RegedQueryName]);
 
@@ -710,7 +761,7 @@ begin
   else
       AutoDestoryOutputDB := False;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN,
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_,
     AutoDestoryOutputDB, FPerQueryPipelineDelayFreeTime, fragmentReponseTime, MaxWait, 0, MaxQueryResult));
   pl.SendTunnel := RT.SendTunnelDefine;
   pl.RecvTunnel := RT;
@@ -738,26 +789,26 @@ procedure TDataStoreService_VirtualAuth.Command_DownloadDB(Sender: TPeerIO; InDa
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   ReverseQuery: Boolean;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   ReverseQuery := InData.Reader.ReadBool;
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
 
-  if not FZDBLocal.ExistsDB(dbN) then
-      Exit;
+  if not FZDBLocal.ExistsDB(dataBaseName_) then
+      exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dbN, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dataBaseName_, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
   pl.SendTunnel := RT.SendTunnelDefine;
   pl.RecvTunnel := RT;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := True;
   pl.WriteFragmentBuffer := pl.SyncToClient;
-  { }
+
   pl.OnDataFilterMethod := {$IFDEF FPC}@{$ENDIF FPC}DownloadQueryFilterMethod;
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
@@ -766,31 +817,31 @@ procedure TDataStoreService_VirtualAuth.Command_DownloadDBWithID(Sender: TPeerIO
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   ReverseQuery: Boolean;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   downloadWithID: Cardinal;
   pl: TTDataStoreService_DBPipeline;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   ReverseQuery := InData.Reader.ReadBool;
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   downloadWithID := InData.Reader.ReadCardinal;
 
-  if not FZDBLocal.ExistsDB(dbN) then
-      Exit;
+  if not FZDBLocal.ExistsDB(dataBaseName_) then
+      exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dbN, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryDB(False, True, ReverseQuery, dataBaseName_, '', True, FPerQueryPipelineDelayFreeTime, 0.5, 0, 0, 0));
   pl.SendTunnel := RT.SendTunnelDefine;
   pl.RecvTunnel := RT;
   pl.BackcallPtr := InData.Reader.ReadPointer;
   pl.SyncToClient := True;
   pl.WriteFragmentBuffer := pl.SyncToClient;
-  { }
+
   { user download with ID }
   pl.UserVariant := downloadWithID;
-  { }
+
   pl.OnDataFilterMethod := {$IFDEF FPC}@{$ENDIF FPC}DownloadQueryWithIDFilterMethod;
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
@@ -798,73 +849,69 @@ end;
 procedure TDataStoreService_VirtualAuth.Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
-  StorePos: Int64;
-  BackcallPtr: UInt64;
-  M, CM: TMemoryStream64;
-begin
-  RT := GetDataStoreUserDefine(Sender);
-  if not RT.LinkOk then
-      Exit;
-
-  dbN := InData.Reader.ReadString;
-  StorePos := InData.Reader.ReadInt64;
-  BackcallPtr := InData.Reader.ReadPointer;
-
-  M := TMemoryStream64.Create;
-  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, M) then
-    begin
-      Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
-      DisposeObject(M);
-      Exit;
-    end;
-  CM := TMemoryStream64.Create;
-  M.Position := 0;
-  CompressStream(M, CM);
-  DisposeObject(M);
-
-  RT.EncryptBuffer(CM.Memory, CM.Size, True);
-
-  ClearBatchStream(RT.SendTunnelDefine.Owner);
-  PostBatchStream(RT.SendTunnelDefine.Owner, CM, True);
-  Send_CompletedDownloadAssemble(RT.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
-  ClearBatchStream(RT.SendTunnelDefine.Owner);
-end;
-
-procedure TDataStoreService_VirtualAuth.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
-var
-  RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   StorePos: Int64;
   BackcallPtr: UInt64;
   M: TMemoryStream64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   StorePos := InData.Reader.ReadInt64;
   BackcallPtr := InData.Reader.ReadPointer;
 
   M := TMemoryStream64.Create;
-  if not FZDBLocal.WriteDBItemToOneFragment(dbN, StorePos, M) then
+  if not FZDBLocal.ReadDBItemToZDBFragment(dataBaseName_, StorePos, M) then
     begin
-      Sender.PrintParam('get Data Assemble Stream error: %s', dbN);
+      Sender.PrintParam('get Data Assemble Stream error: %s', dataBaseName_);
       DisposeObject(M);
-      Exit;
+      exit;
+    end;
+
+  RT.EncryptBuffer(M.Memory, M.Size, True);
+
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
+  PostBatchStream(RT.SendTunnelDefine.Owner, M, True);
+  Send_CompletedDownloadAssemble(RT.SendTunnelDefine.Owner, dataBaseName_, StorePos, BackcallPtr);
+  ClearBatchStream(RT.SendTunnelDefine.Owner);
+end;
+
+procedure TDataStoreService_VirtualAuth.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
+var
+  RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
+  dataBaseName_: SystemString;
+  StorePos: Int64;
+  BackcallPtr: UInt64;
+  M: TMemoryStream64;
+begin
+  RT := GetDataStoreUserDefine(Sender);
+  if not RT.LinkOk then
+      exit;
+
+  dataBaseName_ := InData.Reader.ReadString;
+  StorePos := InData.Reader.ReadInt64;
+  BackcallPtr := InData.Reader.ReadPointer;
+
+  M := TMemoryStream64.Create;
+  if not FZDBLocal.ReadDBItemToZDBFragment(dataBaseName_, StorePos, M) then
+    begin
+      Sender.PrintParam('get Data Assemble Stream error: %s', dataBaseName_);
+      DisposeObject(M);
+      exit;
     end;
 
   ClearBatchStream(RT.SendTunnelDefine.Owner);
   PostBatchStream(RT.SendTunnelDefine.Owner, M, True);
-  Send_CompletedFastDownloadAssemble(RT.SendTunnelDefine.Owner, dbN, StorePos, BackcallPtr);
+  Send_CompletedFastDownloadAssemble(RT.SendTunnelDefine.Owner, dataBaseName_, StorePos, BackcallPtr);
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: TPascalString;
+  dataBaseName_: TPascalString;
   itmID: Cardinal;
   StorePos: Int64;
   output: Pointer;
@@ -873,20 +920,20 @@ var
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
   inc(RT.FPostPerformaceCounter);
 
-  DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
+  DecodeZDBBuff(InData, DataSize, dataBaseName_, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
-  FZDBLocal.PostData(dbN, m64, itmID);
+  FZDBLocal.PostData(dataBaseName_, m64, itmID);
   DisposeObject(m64);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: TPascalString;
+  dataBaseName_: TPascalString;
   itmID: Cardinal;
   StorePos: Int64;
   output: Pointer;
@@ -895,20 +942,20 @@ var
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
   inc(RT.FPostPerformaceCounter);
 
-  DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
+  DecodeZDBBuff(InData, DataSize, dataBaseName_, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
-  FZDBLocal.InsertData(dbN, StorePos, m64, itmID);
+  FZDBLocal.InsertData(dataBaseName_, StorePos, m64, itmID);
   DisposeObject(m64);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: TPascalString;
+  dataBaseName_: TPascalString;
   itmID: Cardinal;
   StorePos: Int64;
   output: Pointer;
@@ -917,85 +964,85 @@ var
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
   inc(RT.FPostPerformaceCounter);
 
-  DecodeOneBuff(InData, DataSize, dbN, itmID, StorePos, output, outputSiz);
+  DecodeZDBBuff(InData, DataSize, dataBaseName_, itmID, StorePos, output, outputSiz);
   m64 := TMemoryStream64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
-  FZDBLocal.SetData(dbN, StorePos, m64);
+  FZDBLocal.SetData(dataBaseName_, StorePos, m64);
   DisposeObject(m64);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   dID: Cardinal;
   p: PBigStreamBatchPostData;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   if RT.BigStreamBatchList.Count <= 0 then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   dID := InData.Reader.ReadCardinal;
 
   p := RT.BigStreamBatchList.Last;
   RT.EncryptBuffer(p^.Source.Memory, p^.Source.Size, False);
-  p^.DBStorePos := FZDBLocal.PostData(dbN, p^.Source, dID);
+  p^.DBStorePos := FZDBLocal.PostData(dataBaseName_, p^.Source, dID);
   inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   dStorePos: Int64;
   dID: Cardinal;
   p: PBigStreamBatchPostData;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   if RT.BigStreamBatchList.Count <= 0 then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   dID := InData.Reader.ReadCardinal;
 
   p := RT.BigStreamBatchList.Last;
   RT.EncryptBuffer(p^.Source.Memory, p^.Source.Size, False);
-  p^.DBStorePos := FZDBLocal.InsertData(dbN, dStorePos, p^.Source, dID);
+  p^.DBStorePos := FZDBLocal.InsertData(dataBaseName_, dStorePos, p^.Source, dID);
   inc(RT.FPostPerformaceCounter);
 end;
 
 procedure TDataStoreService_VirtualAuth.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   dStorePos: Int64;
   p: PBigStreamBatchPostData;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   if RT.BigStreamBatchList.Count <= 0 then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
 
   p := RT.BigStreamBatchList.Last;
   RT.EncryptBuffer(p^.Source.Memory, p^.Source.Size, False);
 
-  if FZDBLocal.SetData(dbN, dStorePos, p^.Source) then
+  if FZDBLocal.SetData(dataBaseName_, dStorePos, p^.Source) then
     begin
       p^.DBStorePos := dStorePos;
     end
@@ -1008,16 +1055,16 @@ end;
 procedure TDataStoreService_VirtualAuth.Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   dStorePos: Int64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
-  FZDBLocal.DeleteData(dbN, dStorePos);
+  FZDBLocal.DeleteData(dataBaseName_, dStorePos);
   inc(RT.FPostPerformaceCounter);
 end;
 
@@ -1026,18 +1073,18 @@ var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
   lst: TCoreClassListForObj;
   i: Integer;
-  db: TZDBLMStore;
+  Database_: TZDBLMStore;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
   lst := TCoreClassListForObj.Create;
   FZDBLocal.GetDBList(lst);
   for i := 0 to lst.Count - 1 do
     begin
-      db := TZDBLMStore(lst[i]);
-      OutData.WriteString(db.Name);
+      Database_ := TZDBLMStore(lst[i]);
+      OutData.WriteString(Database_.Name);
     end;
   DisposeObject(lst);
 end;
@@ -1050,7 +1097,7 @@ var
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
   for i := 0 to FZDBLocal.QueryPipelineList.Count - 1 do
     begin
       pl := TTDataStoreService_DBPipeline(FZDBLocal.QueryPipelineList[i]);
@@ -1063,28 +1110,28 @@ end;
 procedure TDataStoreService_VirtualAuth.Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  pipeN: SystemString;
+  PipeName_: SystemString;
   pl: TTDataStoreService_DBPipeline;
   ps: TPipeState;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  pipeN := InData.Reader.ReadString;
-  if not FZDBLocal.ExistsPipeline(pipeN) then
-      Exit;
+  PipeName_ := InData.Reader.ReadString;
+  if not FZDBLocal.ExistsPipeline(PipeName_) then
+      exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[PipeName_]);
   if pl = nil then
-      Exit;
+      exit;
 
   if not pl.Activted then
-      Exit;
+      exit;
   if pl.SourceDB = nil then
-      Exit;
+      exit;
   if pl.OutputDB = nil then
-      Exit;
+      exit;
 
   ps.Init;
   ps.WriteOutputDB := (pl.WriteResultToOutputDB);
@@ -1111,18 +1158,18 @@ end;
 procedure TDataStoreService_VirtualAuth.Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  pipeN: SystemString;
+  PipeName_: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  pipeN := InData.Reader.ReadString;
-  if not FZDBLocal.ExistsPipeline(pipeN) then
-      Exit;
+  PipeName_ := InData.Reader.ReadString;
+  if not FZDBLocal.ExistsPipeline(PipeName_) then
+      exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[PipeName_]);
   if pl <> nil then
       pl.stop;
 end;
@@ -1130,18 +1177,18 @@ end;
 procedure TDataStoreService_VirtualAuth.Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  pipeN: SystemString;
+  PipeName_: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  pipeN := InData.Reader.ReadString;
-  if not FZDBLocal.ExistsPipeline(pipeN) then
-      Exit;
+  PipeName_ := InData.Reader.ReadString;
+  if not FZDBLocal.ExistsPipeline(PipeName_) then
+      exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[PipeName_]);
   if pl <> nil then
       pl.Pause;
 end;
@@ -1149,18 +1196,18 @@ end;
 procedure TDataStoreService_VirtualAuth.Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine);
 var
   RT: TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
-  pipeN: SystemString;
+  PipeName_: SystemString;
   pl: TTDataStoreService_DBPipeline;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
-      Exit;
+      exit;
 
-  pipeN := InData.Reader.ReadString;
-  if not FZDBLocal.ExistsPipeline(pipeN) then
-      Exit;
+  PipeName_ := InData.Reader.ReadString;
+  if not FZDBLocal.ExistsPipeline(PipeName_) then
+      exit;
 
-  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[pipeN]);
+  pl := TTDataStoreService_DBPipeline(FZDBLocal.PipelineN[PipeName_]);
   if pl <> nil then
       pl.Play;
 end;
@@ -1193,12 +1240,12 @@ begin
   ClearBatchStream(pipe.SendTunnel.Owner);
 end;
 
-procedure TDataStoreService_VirtualAuth.Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+procedure TDataStoreService_VirtualAuth.Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
   ASendCli.SendDirectStreamCmd(C_CompletedDownloadAssemble, de);
@@ -1206,12 +1253,12 @@ begin
   ClearBatchStream(ASendCli);
 end;
 
-procedure TDataStoreService_VirtualAuth.Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dbN: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+procedure TDataStoreService_VirtualAuth.Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
   ASendCli.SendDirectStreamCmd(C_CompletedFastDownloadAssemble, de);
@@ -1344,26 +1391,28 @@ begin
   Result := RecvCli.UserDefine as TDataStoreService_PeerClientRecvTunnel_VirtualAuth;
 end;
 
-function TDataStoreService_VirtualAuth.RegisterQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
+function TDataStoreService_VirtualAuth.RegisterQueryCall(QuerierName_: SystemString): TTDataStoreService_QueryCall;
 begin
-  if FQueryCallPool.Exists(cName) then
-      RaiseInfo('Query call already registed:%s', [cName]);
+  if FQueryCallPool.Exists(QuerierName_) then
+      RaiseInfo('Query call already registed:%s', [QuerierName_]);
 
   Result := TTDataStoreService_QueryCall.Create;
-  FQueryCallPool[cName] := Result;
+  FQueryCallPool[QuerierName_] := Result;
+  DoStatus('Query Register info: "%s"', [QuerierName_]);
 end;
 
-procedure TDataStoreService_VirtualAuth.UnRegisterQueryCall(cName: SystemString);
+procedure TDataStoreService_VirtualAuth.UnRegisterQueryCall(QuerierName_: SystemString);
 begin
-  if not FQueryCallPool.Exists(cName) then
-      RaiseInfo('Query call not registed:%s', [cName]);
+  if not FQueryCallPool.Exists(QuerierName_) then
+      RaiseInfo('Query call not registed:%s', [QuerierName_]);
 
-  FQueryCallPool.Delete(cName);
+  FQueryCallPool.Delete(QuerierName_);
+  DoStatus('Query UnRegister: "%s"', [QuerierName_]);
 end;
 
-function TDataStoreService_VirtualAuth.GetRegistedQueryCall(cName: SystemString): TTDataStoreService_QueryCall;
+function TDataStoreService_VirtualAuth.GetRegistedQueryCall(QuerierName_: SystemString): TTDataStoreService_QueryCall;
 begin
-  Result := TTDataStoreService_QueryCall(FQueryCallPool[cName]);
+  Result := TTDataStoreService_QueryCall(FQueryCallPool[QuerierName_]);
 end;
 
 function TDataStoreService_VirtualAuth.PostCounterOfPerSec: Double;
@@ -1383,7 +1432,12 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
 begin
-  SequEncryptCBC(FDataStoreCipherSecurity, sour, Size, FDataStoreCipherKey, Encrypt, True);
+  if FCipherInstance = nil then
+      exit;
+  if Encrypt then
+      FCipherInstance.Encrypt(sour, Size)
+  else
+      FCipherInstance.Decrypt(sour, Size);
 end;
 
 procedure TDataStoreClient_VirtualAuth.Command_DataStoreSecurity(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -1394,17 +1448,23 @@ begin
   arr := InData.Reader.ReadArrayByte;
   SetLength(FDataStoreCipherKey, arr.Count);
   arr.GetBuff(@FDataStoreCipherKey[0]);
+
+  DisposeObjectAndNil(FCipherInstance);
+  FCipherInstance := CreateCipherClass(FDataStoreCipherSecurity, FDataStoreCipherKey);
+  FCipherInstance.Level := 1;
+  FCipherInstance.CBC := True;
+  FCipherInstance.ProcessTail := True;
 end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  dbN, outN, pipeN: SystemString;
+  dataBaseName_, OutputDatabaseName_, PipeName_: SystemString;
   BackcallPtr: PDataStoreClientQueryNotify;
   M: TMemoryStream64;
 begin
-  dbN := InData.Reader.ReadString;
-  outN := InData.Reader.ReadString;
-  pipeN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
+  OutputDatabaseName_ := InData.Reader.ReadString;
+  PipeName_ := InData.Reader.ReadString;
   BackcallPtr := PDataStoreClientQueryNotify(InData.Reader.ReadPointer);
 
   M := TMemoryStream64.Create;
@@ -1414,7 +1474,7 @@ begin
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
       EncryptBuffer(Sender.UserDefine.BigStreamBatchList.Last^.Source.Memory, Sender.UserDefine.BigStreamBatchList.Last^.Source.Size, False);
       Sender.UserDefine.BigStreamBatchList.Last^.Source.Position := 0;
-      DecompressStream(Sender.UserDefine.BigStreamBatchList.Last^.Source, M);
+      M.SwapInstance(Sender.UserDefine.BigStreamBatchList.Last^.Source);
       Sender.UserDefine.BigStreamBatchList.DeleteLast;
     end;
 
@@ -1424,32 +1484,32 @@ begin
         M.Position := 0;
         if Assigned(BackcallPtr^.OnUserQueryCall) then
           begin
-            FillFragmentSourceC(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, M, BackcallPtr^.OnUserQueryCall);
+            FillFragmentSourceC(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, PipeName_, M, BackcallPtr^.OnUserQueryCall);
             M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnUserQueryMethod) then
           begin
-            FillFragmentSourceM(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, M, BackcallPtr^.OnUserQueryMethod);
+            FillFragmentSourceM(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, PipeName_, M, BackcallPtr^.OnUserQueryMethod);
             M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnUserQueryProc) then
           begin
-            FillFragmentSourceP(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, pipeN, M, BackcallPtr^.OnUserQueryProc);
+            FillFragmentSourceP(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, PipeName_, M, BackcallPtr^.OnUserQueryProc);
             M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnQueryCall) then
           begin
-            FillFragmentSourceC(dbN, pipeN, M, BackcallPtr^.OnQueryCall);
+            FillFragmentSourceC(dataBaseName_, PipeName_, M, BackcallPtr^.OnQueryCall);
             M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnQueryMethod) then
           begin
-            FillFragmentSourceM(dbN, pipeN, M, BackcallPtr^.OnQueryMethod);
+            FillFragmentSourceM(dataBaseName_, PipeName_, M, BackcallPtr^.OnQueryMethod);
             M.Position := 0;
           end;
         if Assigned(BackcallPtr^.OnQueryProc) then
           begin
-            FillFragmentSourceP(dbN, pipeN, M, BackcallPtr^.OnQueryProc);
+            FillFragmentSourceP(dataBaseName_, PipeName_, M, BackcallPtr^.OnQueryProc);
             M.Position := 0;
           end;
       except
@@ -1461,13 +1521,13 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  dbN, outN, pipeN: SystemString;
+  dataBaseName_, OutputDatabaseName_, PipeName_: SystemString;
   BackcallPtr: PDataStoreClientQueryNotify;
   TotalResultCount: Int64;
 begin
-  dbN := InData.Reader.ReadString;
-  outN := InData.Reader.ReadString;
-  pipeN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
+  OutputDatabaseName_ := InData.Reader.ReadString;
+  PipeName_ := InData.Reader.ReadString;
   BackcallPtr := PDataStoreClientQueryNotify(InData.Reader.ReadPointer);
   TotalResultCount := InData.Reader.ReadInt64;
 
@@ -1475,18 +1535,18 @@ begin
     begin
       try
         if Assigned(BackcallPtr^.OnUserDoneCall) then
-            BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, outN, pipeN, TotalResultCount);
+            BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, OutputDatabaseName_, PipeName_, TotalResultCount);
         if Assigned(BackcallPtr^.OnUserDoneMethod) then
-            BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, outN, pipeN, TotalResultCount);
+            BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, OutputDatabaseName_, PipeName_, TotalResultCount);
         if Assigned(BackcallPtr^.OnUserDoneProc) then
-            BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, outN, pipeN, TotalResultCount);
+            BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, OutputDatabaseName_, PipeName_, TotalResultCount);
 
         if Assigned(BackcallPtr^.OnDoneCall) then
-            BackcallPtr^.OnDoneCall(dbN, outN, pipeN, TotalResultCount);
+            BackcallPtr^.OnDoneCall(dataBaseName_, OutputDatabaseName_, PipeName_, TotalResultCount);
         if Assigned(BackcallPtr^.OnDoneMethod) then
-            BackcallPtr^.OnDoneMethod(dbN, outN, pipeN, TotalResultCount);
+            BackcallPtr^.OnDoneMethod(dataBaseName_, OutputDatabaseName_, PipeName_, TotalResultCount);
         if Assigned(BackcallPtr^.OnDoneProc) then
-            BackcallPtr^.OnDoneProc(dbN, outN, pipeN, TotalResultCount);
+            BackcallPtr^.OnDoneProc(dataBaseName_, OutputDatabaseName_, PipeName_, TotalResultCount);
       except
       end;
       Dispose(BackcallPtr);
@@ -1496,12 +1556,12 @@ end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  M, CM: TMemoryStream64;
+  M, tmp: TMemoryStream64;
 begin
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   BackcallPtr := PDataStoreClientDownloadNotify(InData.Reader.ReadPointer);
 
@@ -1510,64 +1570,69 @@ begin
   else
       M := nil;
 
-  if BackcallPtr <> nil then
+  if M <> nil then
     begin
-      if M <> nil then
+      if BackcallPtr <> nil then
         begin
-          CM := TMemoryStream64.Create;
           EncryptBuffer(M.Memory, M.Size, False);
-          DecompressStream(M, CM);
-          Sender.UserDefine.BigStreamBatchList.DeleteLast;
+
+          if BackcallPtr^.AutoDecodeZDBStream then
+              tmp := DecodeZDBFragment(M)
+          else
+              tmp := M;
 
           try
-            CM.Position := 0;
+            tmp.Position := 0;
             if Assigned(BackcallPtr^.OnUserDoneCall) then
               begin
-                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, CM);
-                CM.Position := 0;
+                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnUserDoneMethod) then
               begin
-                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, CM);
-                CM.Position := 0;
+                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnUserDoneProc) then
               begin
-                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, CM);
-                CM.Position := 0;
+                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
 
             if Assigned(BackcallPtr^.OnDoneCall) then
               begin
-                BackcallPtr^.OnDoneCall(dbN, dStorePos, CM);
-                CM.Position := 0;
+                BackcallPtr^.OnDoneCall(dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnDoneMethod) then
               begin
-                BackcallPtr^.OnDoneMethod(dbN, dStorePos, CM);
-                CM.Position := 0;
+                BackcallPtr^.OnDoneMethod(dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnDoneProc) then
               begin
-                BackcallPtr^.OnDoneProc(dbN, dStorePos, CM);
-                CM.Position := 0;
+                BackcallPtr^.OnDoneProc(dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
-            DisposeObject(CM);
           except
           end;
+
+          if BackcallPtr^.AutoDecodeZDBStream then
+              DisposeObject(tmp);
+          Dispose(BackcallPtr);
         end;
-      Dispose(BackcallPtr);
+      Sender.UserDefine.BigStreamBatchList.DeleteLast;
     end;
 end;
 
 procedure TDataStoreClient_VirtualAuth.Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
 var
-  dbN: SystemString;
+  dataBaseName_: SystemString;
   dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  M: TMemoryStream64;
+  M, tmp: TMemoryStream64;
 begin
-  dbN := InData.Reader.ReadString;
+  dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
   BackcallPtr := PDataStoreClientDownloadNotify(InData.Reader.ReadPointer);
 
@@ -1576,48 +1641,56 @@ begin
   else
       M := nil;
 
-  if BackcallPtr <> nil then
+  if M <> nil then
     begin
-      if M <> nil then
+      if BackcallPtr <> nil then
         begin
+          if BackcallPtr^.AutoDecodeZDBStream then
+              tmp := DecodeZDBFragment(M)
+          else
+              tmp := M;
+
           try
-            M.Position := 0;
+            tmp.Position := 0;
             if Assigned(BackcallPtr^.OnUserDoneCall) then
               begin
-                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, M);
-                M.Position := 0;
+                BackcallPtr^.OnUserDoneCall(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnUserDoneMethod) then
               begin
-                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, M);
-                M.Position := 0;
+                BackcallPtr^.OnUserDoneMethod(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnUserDoneProc) then
               begin
-                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dbN, dStorePos, M);
-                M.Position := 0;
+                BackcallPtr^.OnUserDoneProc(BackcallPtr^.UserPointer, BackcallPtr^.UserObject, BackcallPtr^.UserVariant, dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
 
             if Assigned(BackcallPtr^.OnDoneCall) then
               begin
-                BackcallPtr^.OnDoneCall(dbN, dStorePos, M);
-                M.Position := 0;
+                BackcallPtr^.OnDoneCall(dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnDoneMethod) then
               begin
-                BackcallPtr^.OnDoneMethod(dbN, dStorePos, M);
-                M.Position := 0;
+                BackcallPtr^.OnDoneMethod(dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
             if Assigned(BackcallPtr^.OnDoneProc) then
               begin
-                BackcallPtr^.OnDoneProc(dbN, dStorePos, M);
-                M.Position := 0;
+                BackcallPtr^.OnDoneProc(dataBaseName_, dStorePos, tmp);
+                tmp.Position := 0;
               end;
           except
           end;
-          Sender.UserDefine.BigStreamBatchList.DeleteLast;
+
+          if BackcallPtr^.AutoDecodeZDBStream then
+              DisposeObject(tmp);
+          Dispose(BackcallPtr);
         end;
-      Dispose(BackcallPtr);
+      Sender.UserDefine.BigStreamBatchList.DeleteLast;
     end;
 end;
 
@@ -1658,10 +1731,12 @@ begin
   inherited Create(RecvTunnel_, SendTunnel_);
   FDataStoreCipherSecurity := TCipherSecurity.csNone;
   SetLength(FDataStoreCipherKey, 0);
+  FCipherInstance := nil;
 end;
 
 destructor TDataStoreClient_VirtualAuth.Destroy;
 begin
+  DisposeObjectAndNil(FCipherInstance);
   inherited Destroy;
 end;
 
@@ -1696,157 +1771,157 @@ begin
   Result := (length(FDataStoreCipherKey) > 0) or (Self.FDataStoreCipherSecurity <> csNone);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InitDB(InMem: Boolean; dbN: SystemString);
+procedure TDataStoreClient_VirtualAuth.InitDB(InMem: Boolean; dataBaseName_: SystemString);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
   de.WriteBool(InMem);
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
 
   SendTunnel.SendDirectStreamCmd(C_InitDB, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CloseDB(dbN: SystemString; CloseAndDeleted: Boolean);
+procedure TDataStoreClient_VirtualAuth.CloseDB(dataBaseName_: SystemString; CloseAndDeleted: Boolean);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteBool(CloseAndDeleted);
   SendTunnel.SendDirectStreamCmd(C_CloseDB, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CopyDB(dbN, copyToN: SystemString);
+procedure TDataStoreClient_VirtualAuth.CopyDB(dataBaseName_, CopyDestDatabaseName_: SystemString);
 begin
-  CopyDB(dbN, copyToN, nil);
+  CopyDB(dataBaseName_, CopyDestDatabaseName_, nil);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CopyDB(dbN, copyToN: SystemString; const BackcallPtr: PStorePosTransformNotify);
+procedure TDataStoreClient_VirtualAuth.CopyDB(dataBaseName_, CopyDestDatabaseName_: SystemString; const BackcallPtr: PStorePosTransformNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
-  de.WriteString(copyToN);
+  de.WriteString(dataBaseName_);
+  de.WriteString(CopyDestDatabaseName_);
   de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd(C_CopyDB, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CopyDB_C(dbN, copyToN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
+procedure TDataStoreClient_VirtualAuth.CopyDB_C(dataBaseName_, CopyDestDatabaseName_: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
 var
   p: PStorePosTransformNotify;
 begin
   new(p);
   p^.Init;
   p^.OnDoneCall := OnDoneCall;
-  CopyDB(dbN, copyToN, p);
+  CopyDB(dataBaseName_, CopyDestDatabaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CopyDB_M(dbN, copyToN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.CopyDB_M(dataBaseName_, CopyDestDatabaseName_: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod);
 var
   p: PStorePosTransformNotify;
 begin
   new(p);
   p^.Init;
   p^.OnDoneMethod := OnDoneMethod;
-  CopyDB(dbN, copyToN, p);
+  CopyDB(dataBaseName_, CopyDestDatabaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CopyDB_P(dbN, copyToN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc);
+procedure TDataStoreClient_VirtualAuth.CopyDB_P(dataBaseName_, CopyDestDatabaseName_: SystemString; const OnDoneProc: TStorePosTransformNotifyProc);
 var
   p: PStorePosTransformNotify;
 begin
   new(p);
   p^.Init;
   p^.OnDoneProc := OnDoneProc;
-  CopyDB(dbN, copyToN, p);
+  CopyDB(dataBaseName_, CopyDestDatabaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CompressDB(dbN: SystemString);
+procedure TDataStoreClient_VirtualAuth.CompressDB(dataBaseName_: SystemString);
 begin
-  CompressDB(dbN, nil);
+  CompressDB(dataBaseName_, nil);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CompressDB(dbN: SystemString; const BackcallPtr: PStorePosTransformNotify);
+procedure TDataStoreClient_VirtualAuth.CompressDB(dataBaseName_: SystemString; const BackcallPtr: PStorePosTransformNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd(C_CompressDB, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CompressDB_C(dbN: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
+procedure TDataStoreClient_VirtualAuth.CompressDB_C(dataBaseName_: SystemString; const OnDoneCall: TStorePosTransformNotifyCall);
 var
   p: PStorePosTransformNotify;
 begin
   new(p);
   p^.Init;
   p^.OnDoneCall := OnDoneCall;
-  CompressDB(dbN, p);
+  CompressDB(dataBaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CompressDB_M(dbN: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.CompressDB_M(dataBaseName_: SystemString; const OnDoneMethod: TStorePosTransformNotifyMethod);
 var
   p: PStorePosTransformNotify;
 begin
   new(p);
   p^.Init;
   p^.OnDoneMethod := OnDoneMethod;
-  CompressDB(dbN, p);
+  CompressDB(dataBaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.CompressDB_P(dbN: SystemString; const OnDoneProc: TStorePosTransformNotifyProc);
+procedure TDataStoreClient_VirtualAuth.CompressDB_P(dataBaseName_: SystemString; const OnDoneProc: TStorePosTransformNotifyProc);
 var
   p: PStorePosTransformNotify;
 begin
   new(p);
   p^.Init;
   p^.OnDoneProc := OnDoneProc;
-  CompressDB(dbN, p);
+  CompressDB(dataBaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ReplaceDB(dbN, replaceN: SystemString);
+procedure TDataStoreClient_VirtualAuth.ReplaceDB(dataBaseName_, replaceN: SystemString);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteString(replaceN);
   SendTunnel.SendDirectStreamCmd(C_ReplaceDB, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ResetData(dbN: SystemString);
+procedure TDataStoreClient_VirtualAuth.ResetData(dataBaseName_: SystemString);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   SendTunnel.SendDirectStreamCmd(C_ResetData, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QuietQueryDB(RegistedQueryName: SystemString; ReverseQuery: Boolean; dbN, outDBN: SystemString; MaxWait: Double; MaxQueryResult: Int64);
+procedure TDataStoreClient_VirtualAuth.QuietQueryDB(RegistedQuerier_: SystemString; ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString; MaxWait: Double; MaxQueryResult: Int64);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
-  de.WriteString(RegistedQueryName);
+  de.WriteString(RegistedQuerier_);
   de.WriteBool(False); { sync to client }
-  de.WriteBool(True);  { write output db }
+  de.WriteBool(True);  { write output Database_ }
   de.WriteBool(False); { in memory }
   de.WriteBool(ReverseQuery);
-  de.WriteString(dbN);
-  de.WriteString(outDBN);
+  de.WriteString(dataBaseName_);
+  de.WriteString(OutputDatabaseName_);
   de.WriteDouble(0.1); { fragmentReponseTime }
   de.WriteDouble(MaxWait);
   de.WriteInt64(MaxQueryResult);
@@ -1857,20 +1932,20 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDB(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDB(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
-  de.WriteString(RegistedQueryName);
+  de.WriteString(RegistedQuerier_);
   de.WriteBool(SyncToClient); { sync to client }
   de.WriteBool(WriteResultToOutputDB);
   de.WriteBool(InMem);
   de.WriteBool(ReverseQuery);
-  de.WriteString(dbN);
-  de.WriteString(outDBN);
+  de.WriteString(dataBaseName_);
+  de.WriteString(OutputDatabaseName_);
   de.WriteDouble(fragmentReponseTime);
   de.WriteDouble(MaxWait);
   de.WriteInt64(MaxQueryResult);
@@ -1883,7 +1958,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBC(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDBC(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
@@ -1893,10 +1968,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQuerier_, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBC(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDBC(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList;                                           { service ref remote parameter }
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
@@ -1911,10 +1986,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserQueryCall := OnQueryCall;
   p^.OnUserDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQuerier_, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBM(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDBM(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
@@ -1924,10 +1999,10 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQuerier_, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBM(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDBM(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList;                                           { service ref remote parameter }
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
@@ -1942,10 +2017,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserQueryMethod := OnQueryMethod;
   p^.OnUserDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQuerier_, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBP(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDBP(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
@@ -1955,10 +2030,10 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQuerier_, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBP(RegistedQueryName: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dbN, outDBN: SystemString;
+procedure TDataStoreClient_VirtualAuth.QueryDBP(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64;
   RemoteParams: THashVariantList;                                           { service ref remote parameter }
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
@@ -1973,10 +2048,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserQueryProc := OnQueryProc;
   p^.OnUserDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dbN, outDBN, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
+  QueryDB(RegistedQuerier_, SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery, dataBaseName_, OutputDatabaseName_, fragmentReponseTime, MaxWait, MaxQueryResult, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBC(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
+procedure TDataStoreClient_VirtualAuth.QueryDBC(RegistedQuerier_: SystemString; dataBaseName_: SystemString; RemoteParams: THashVariantList; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1984,10 +2059,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, RemoteParams);
+  QueryDB(RegistedQuerier_, True, False, True, False, dataBaseName_, 'Memory', 0.5, 0, 0, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBM(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.QueryDBM(RegistedQuerier_: SystemString; dataBaseName_: SystemString; RemoteParams: THashVariantList; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -1995,10 +2070,10 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, RemoteParams);
+  QueryDB(RegistedQuerier_, True, False, True, False, dataBaseName_, 'Memory', 0.5, 0, 0, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryDBP(RegistedQueryName: SystemString; dbN: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
+procedure TDataStoreClient_VirtualAuth.QueryDBP(RegistedQuerier_: SystemString; dataBaseName_: SystemString; RemoteParams: THashVariantList; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2006,17 +2081,17 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  QueryDB(RegistedQueryName, True, False, True, False, dbN, 'Memory', 0.5, 0, 0, p, RemoteParams);
+  QueryDB(RegistedQuerier_, True, False, True, False, dataBaseName_, 'Memory', 0.5, 0, 0, p, RemoteParams);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDB(ReverseQuery: Boolean; dbN: SystemString; BackcallPtr: PDataStoreClientQueryNotify);
+procedure TDataStoreClient_VirtualAuth.DownloadDB(ReverseQuery: Boolean; dataBaseName_: SystemString; BackcallPtr: PDataStoreClientQueryNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
   de.WriteBool(ReverseQuery);
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WritePointer(BackcallPtr);
 
   SendTunnel.SendDirectStreamCmd(C_DownloadDB, de);
@@ -2024,7 +2099,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBC(ReverseQuery: Boolean; dbN: SystemString; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
+procedure TDataStoreClient_VirtualAuth.DownloadDBC(ReverseQuery: Boolean; dataBaseName_: SystemString; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2032,10 +2107,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  DownloadDB(ReverseQuery, dbN, p);
+  DownloadDB(ReverseQuery, dataBaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBM(ReverseQuery: Boolean; dbN: SystemString; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.DownloadDBM(ReverseQuery: Boolean; dataBaseName_: SystemString; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2043,10 +2118,10 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  DownloadDB(ReverseQuery, dbN, p);
+  DownloadDB(ReverseQuery, dataBaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBP(ReverseQuery: Boolean; dbN: SystemString; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
+procedure TDataStoreClient_VirtualAuth.DownloadDBP(ReverseQuery: Boolean; dataBaseName_: SystemString; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2054,17 +2129,17 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  DownloadDB(ReverseQuery, dbN, p);
+  DownloadDB(ReverseQuery, dataBaseName_, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBWithID(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify);
+procedure TDataStoreClient_VirtualAuth.DownloadDBWithID(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
   de.WriteBool(ReverseQuery);
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteCardinal(db_ID);
   de.WritePointer(BackcallPtr);
 
@@ -2073,7 +2148,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBWithIDC(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
+procedure TDataStoreClient_VirtualAuth.DownloadDBWithIDC(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; OnQueryCall: TFillQueryDataCall; OnDoneCall: TQueryDoneNotifyCall);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2081,10 +2156,10 @@ begin
   p^.Init;
   p^.OnQueryCall := OnQueryCall;
   p^.OnDoneCall := OnDoneCall;
-  DownloadDBWithID(ReverseQuery, dbN, db_ID, p);
+  DownloadDBWithID(ReverseQuery, dataBaseName_, db_ID, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBWithIDM(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.DownloadDBWithIDM(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; OnQueryMethod: TFillQueryDataMethod; OnDoneMethod: TQueryDoneNotifyMethod);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2092,10 +2167,10 @@ begin
   p^.Init;
   p^.OnQueryMethod := OnQueryMethod;
   p^.OnDoneMethod := OnDoneMethod;
-  DownloadDBWithID(ReverseQuery, dbN, db_ID, p);
+  DownloadDBWithID(ReverseQuery, dataBaseName_, db_ID, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadDBWithIDP(ReverseQuery: Boolean; dbN: SystemString; db_ID: Cardinal; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
+procedure TDataStoreClient_VirtualAuth.DownloadDBWithIDP(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; OnQueryProc: TFillQueryDataProc; OnDoneProc: TQueryDoneNotifyProc);
 var
   p: PDataStoreClientQueryNotify;
 begin
@@ -2103,7 +2178,7 @@ begin
   p^.Init;
   p^.OnQueryProc := OnQueryProc;
   p^.OnDoneProc := OnDoneProc;
-  DownloadDBWithID(ReverseQuery, dbN, db_ID, p);
+  DownloadDBWithID(ReverseQuery, dataBaseName_, db_ID, p);
 end;
 
 procedure TDataStoreClient_VirtualAuth.BeginAssembleStream;
@@ -2111,13 +2186,13 @@ begin
   ClearBatchStream;
 end;
 
-procedure TDataStoreClient_VirtualAuth.RequestDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
+procedure TDataStoreClient_VirtualAuth.RequestDownloadAssembleStream(dataBaseName_: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(StorePos);
   de.WritePointer(BackcallPtr);
 
@@ -2126,7 +2201,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamC(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
 var
   p: PDataStoreClientDownloadNotify;
 begin
@@ -2134,10 +2209,10 @@ begin
   p^.Init;
   p^.OnDoneCall := OnDoneCall;
 
-  RequestDownloadAssembleStream(dbN, StorePos, p);
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamM(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod);
 var
   p: PDataStoreClientDownloadNotify;
 begin
@@ -2145,10 +2220,10 @@ begin
   p^.Init;
   p^.OnDoneMethod := OnDoneMethod;
 
-  RequestDownloadAssembleStream(dbN, StorePos, p);
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamP(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc);
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc);
 var
   p: PDataStoreClientDownloadNotify;
 begin
@@ -2156,10 +2231,46 @@ begin
   p^.Init;
   p^.OnDoneProc := OnDoneProc;
 
-  RequestDownloadAssembleStream(dbN, StorePos, p);
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamC(dbN: SystemString; StorePos: Int64;
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneCall: TDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneCall := OnDoneCall;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneMethod: TDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneMethod := OnDoneMethod;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneProc: TDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneProc := OnDoneProc;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64;
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
   OnDoneCall: TUserDownloadDoneNotifyCall);
 var
@@ -2172,10 +2283,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserDoneCall := OnDoneCall;
 
-  RequestDownloadAssembleStream(dbN, StorePos, p);
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamM(dbN: SystemString; StorePos: Int64;
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64;
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
   OnDoneMethod: TUserDownloadDoneNotifyMethod);
 var
@@ -2188,10 +2299,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserDoneMethod := OnDoneMethod;
 
-  RequestDownloadAssembleStream(dbN, StorePos, p);
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamP(dbN: SystemString; StorePos: Int64;
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64;
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
   OnDoneProc: TUserDownloadDoneNotifyProc);
 var
@@ -2204,16 +2315,67 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserDoneProc := OnDoneProc;
 
-  RequestDownloadAssembleStream(dbN, StorePos, p);
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.RequestFastDownloadAssembleStream(dbN: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+  OnDoneCall: TUserDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneCall := OnDoneCall;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+  OnDoneMethod: TUserDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneMethod := OnDoneMethod;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.DownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+  OnDoneProc: TUserDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneProc := OnDoneProc;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.RequestFastDownloadAssembleStream(dataBaseName_: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
 
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(StorePos);
   de.WritePointer(BackcallPtr);
 
@@ -2222,7 +2384,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamC(dbN: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; OnDoneCall: TDownloadDoneNotifyCall);
 var
   p: PDataStoreClientDownloadNotify;
 begin
@@ -2230,10 +2392,10 @@ begin
   p^.Init;
   p^.OnDoneCall := OnDoneCall;
 
-  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamM(dbN: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod);
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; OnDoneMethod: TDownloadDoneNotifyMethod);
 var
   p: PDataStoreClientDownloadNotify;
 begin
@@ -2241,10 +2403,10 @@ begin
   p^.Init;
   p^.OnDoneMethod := OnDoneMethod;
 
-  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamP(dbN: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc);
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; OnDoneProc: TDownloadDoneNotifyProc);
 var
   p: PDataStoreClientDownloadNotify;
 begin
@@ -2252,10 +2414,46 @@ begin
   p^.Init;
   p^.OnDoneProc := OnDoneProc;
 
-  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamC(dbN: SystemString; StorePos: Int64;
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneCall: TDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneCall := OnDoneCall;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneMethod: TDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneMethod := OnDoneMethod;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean; OnDoneProc: TDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.OnDoneProc := OnDoneProc;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64;
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
   OnDoneCall: TUserDownloadDoneNotifyCall);
 var
@@ -2268,10 +2466,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserDoneCall := OnDoneCall;
 
-  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamM(dbN: SystemString; StorePos: Int64;
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64;
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
   OnDoneMethod: TUserDownloadDoneNotifyMethod);
 var
@@ -2284,10 +2482,10 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserDoneMethod := OnDoneMethod;
 
-  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamP(dbN: SystemString; StorePos: Int64;
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64;
   UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
   OnDoneProc: TUserDownloadDoneNotifyProc);
 var
@@ -2300,24 +2498,80 @@ begin
   p^.UserVariant := UserVariant;
   p^.OnUserDoneProc := OnDoneProc;
 
-  RequestFastDownloadAssembleStream(dbN, StorePos, p);
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamC(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+  OnDoneCall: TUserDownloadDoneNotifyCall);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneCall := OnDoneCall;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamM(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+  OnDoneMethod: TUserDownloadDoneNotifyMethod);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneMethod := OnDoneMethod;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.FastDownloadAssembleStreamP(dataBaseName_: SystemString; StorePos: Int64; AutoDecodeZDBStream: Boolean;
+  UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant; { local event parameter }
+  OnDoneProc: TUserDownloadDoneNotifyProc);
+var
+  p: PDataStoreClientDownloadNotify;
+begin
+  new(p);
+  p^.Init;
+  p^.UserPointer := UserPointer;
+  p^.UserObject := UserObject;
+  p^.UserVariant := UserVariant;
+  p^.OnUserDoneProc := OnDoneProc;
+  p^.AutoDecodeZDBStream := AutoDecodeZDBStream;
+
+  RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
+end;
+
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   de: TDataFrameEngine;
 begin
+  if stream.Size = 0 then
+    begin
+      SendTunnel.Error('PostAssembleStream Error: stream size is 0');
+      exit;
+    end;
   EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd(C_CompletedPostAssembleStream, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStreamCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStreamCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
 var
   M: TMemoryStream64;
 begin
@@ -2325,84 +2579,89 @@ begin
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
-  PostAssembleStream(dbN, M, dID, True);
+  PostAssembleStream(dataBaseName_, M, dID, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: TDataFrameEngine);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TDataFrameEngine);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.EncodeTo(M, True);
-  PostAssembleStream(dbN, M, c_DF, True);
+  PostAssembleStream(dataBaseName_, M, c_DF, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: THashVariantList);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: THashVariantList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  PostAssembleStream(dbN, M, c_VL, True);
+  PostAssembleStream(dataBaseName_, M, c_VL, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: THashStringList);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  PostAssembleStream(dbN, M, c_VT, True);
+  PostAssembleStream(dataBaseName_, M, c_VT, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: TSectionTextData);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  PostAssembleStream(dbN, M, c_TE, True);
+  PostAssembleStream(dataBaseName_, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  PostAssembleStream(dbN, M, c_Json, True);
+  PostAssembleStream(dataBaseName_, M, c_Json, True);
 end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dbN: SystemString; DataSource: TPascalString);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TPascalString);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
-  PostAssembleStream(dbN, M, c_PascalString, True);
+  PostAssembleStream(dataBaseName_, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   de: TDataFrameEngine;
 begin
+  if stream.Size = 0 then
+    begin
+      SendTunnel.Error('InsertAssembleStream Error: stream size is 0');
+      exit;
+    end;
   EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd(C_CompletedInsertAssembleStream, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
   M: TMemoryStream64;
 begin
@@ -2410,84 +2669,88 @@ begin
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
-  InsertAssembleStream(dbN, dStorePos, M, dID, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, dID, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.EncodeTo(M, True);
-  InsertAssembleStream(dbN, dStorePos, M, c_DF, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, c_DF, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  InsertAssembleStream(dbN, dStorePos, M, c_VL, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, c_VL, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  InsertAssembleStream(dbN, dStorePos, M, c_VT, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, c_VT, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  InsertAssembleStream(dbN, dStorePos, M, c_TE, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
-  InsertAssembleStream(dbN, dStorePos, M, c_Json, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, c_Json, True);
 end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
-  InsertAssembleStream(dbN, dStorePos, M, c_PascalString, True);
+  InsertAssembleStream(dataBaseName_, dStorePos, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean);
 var
   de: TDataFrameEngine;
 begin
+  if stream.Size = 0 then
+    begin
+      SendTunnel.Error('ModifyAssembleStream Error: stream size is 0');
+      exit;
+    end;
   EncryptBuffer(stream.Memory, stream.Size, True);
-
   PostBatchStream(stream, DoneTimeFree);
 
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd(C_CompletedModifyAssembleStream, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStreamCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream);
 var
   M: TMemoryStream64;
 begin
@@ -2495,66 +2758,66 @@ begin
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.EncodeTo(M, True);
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
-  ModifyAssembleStream(dbN, dStorePos, M, True);
+  ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient_VirtualAuth.GetPostAssembleStreamStateM(OnResult: TStreamMethod);
@@ -2562,9 +2825,19 @@ begin
   GetBatchStreamStateM(OnResult);
 end;
 
+procedure TDataStoreClient_VirtualAuth.GetPostAssembleStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
+begin
+  GetBatchStreamStateM(Param1, Param2, OnResult);
+end;
+
 procedure TDataStoreClient_VirtualAuth.GetPostAssembleStreamStateP(OnResult: TStreamProc);
 begin
   GetBatchStreamStateP(OnResult);
+end;
+
+procedure TDataStoreClient_VirtualAuth.GetPostAssembleStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
+begin
+  GetBatchStreamStateP(Param1, Param2, OnResult);
 end;
 
 procedure TDataStoreClient_VirtualAuth.EndAssembleStream;
@@ -2572,30 +2845,35 @@ begin
   ClearBatchStream;
 end;
 
-procedure TDataStoreClient_VirtualAuth.DeleteData(dbN: SystemString; dStorePos: Int64);
+procedure TDataStoreClient_VirtualAuth.DeleteData(dataBaseName_: SystemString; dStorePos: Int64);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(dbN);
+  de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd(C_DeleteData, de);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
   siz: nativeUInt;
 begin
-  p := EncodeOneBuff(dbN, dID, 0, stream.Memory, stream.Size, siz);
+  if stream.Size = 0 then
+    begin
+      SendTunnel.Error('FastPostCompleteBuffer Error: stream size is 0');
+      exit;
+    end;
+  p := EncodeZDBBuff(dataBaseName_, dID, 0, stream.Memory, stream.Size, siz);
   SendTunnel.SendCompleteBuffer(C_FastPostCompleteBuffer, p, siz, True);
 
   if DoneTimeFree then
       DisposeObject(stream);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBufferCopy(dbN: SystemString; stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBufferCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
 var
   M: TMemoryStream64;
 begin
@@ -2603,81 +2881,86 @@ begin
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
-  FastPostCompleteBuffer(dbN, M, dID, True);
+  FastPostCompleteBuffer(dataBaseName_, M, dID, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: TDataFrameEngine);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDataFrameEngine);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.EncodeTo(M, True);
-  FastPostCompleteBuffer(dbN, M, c_DF, True);
+  FastPostCompleteBuffer(dataBaseName_, M, c_DF, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: THashVariantList);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashVariantList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastPostCompleteBuffer(dbN, M, c_VL, True);
+  FastPostCompleteBuffer(dataBaseName_, M, c_VL, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: THashStringList);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastPostCompleteBuffer(dbN, M, c_VT, True);
+  FastPostCompleteBuffer(dataBaseName_, M, c_VT, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: TSectionTextData);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastPostCompleteBuffer(dbN, M, c_TE, True);
+  FastPostCompleteBuffer(dataBaseName_, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastPostCompleteBuffer(dbN, M, c_Json, True);
+  FastPostCompleteBuffer(dataBaseName_, M, c_Json, True);
 end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dbN: SystemString; DataSource: TPascalString);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TPascalString);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
-  FastPostCompleteBuffer(dbN, M, c_PascalString, True);
+  FastPostCompleteBuffer(dataBaseName_, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
   siz: nativeUInt;
 begin
-  p := EncodeOneBuff(dbN, dID, dStorePos, stream.Memory, stream.Size, siz);
+  if stream.Size = 0 then
+    begin
+      SendTunnel.Error('FastInsertCompleteBuffer Error: stream size is 0');
+      exit;
+    end;
+  p := EncodeZDBBuff(dataBaseName_, dID, dStorePos, stream.Memory, stream.Size, siz);
   SendTunnel.SendCompleteBuffer(C_FastInsertCompleteBuffer, p, siz, True);
 
   if DoneTimeFree then
       DisposeObject(stream);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
   M: TMemoryStream64;
 begin
@@ -2685,81 +2968,86 @@ begin
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
-  FastInsertCompleteBuffer(dbN, dStorePos, M, dID, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, dID, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.EncodeTo(M, True);
-  FastInsertCompleteBuffer(dbN, dStorePos, M, c_DF, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_DF, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastInsertCompleteBuffer(dbN, dStorePos, M, c_VL, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_VL, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastInsertCompleteBuffer(dbN, dStorePos, M, c_VT, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_VT, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastInsertCompleteBuffer(dbN, dStorePos, M, c_TE, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
-  FastInsertCompleteBuffer(dbN, dStorePos, M, c_Json, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_Json, True);
 end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
-  FastInsertCompleteBuffer(dbN, dStorePos, M, c_PascalString, True);
+  FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
   siz: nativeUInt;
 begin
-  p := EncodeOneBuff(dbN, dID, dStorePos, stream.Memory, stream.Size, siz);
+  if stream.Size = 0 then
+    begin
+      SendTunnel.Error('FastModifyCompleteBuffer Error: stream size is 0');
+      exit;
+    end;
+  p := EncodeZDBBuff(dataBaseName_, dID, dStorePos, stream.Memory, stream.Size, siz);
   SendTunnel.SendCompleteBuffer(C_FastModifyCompleteBuffer, p, siz, True);
 
   if DoneTimeFree then
       DisposeObject(stream);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBufferCopy(dbN: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
   M: TMemoryStream64;
 begin
@@ -2767,66 +3055,96 @@ begin
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
-  FastModifyCompleteBuffer(dbN, dStorePos, M, dID, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, dID, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.EncodeTo(M, True);
-  FastModifyCompleteBuffer(dbN, dStorePos, M, c_DF, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_DF, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashVariantList);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastModifyCompleteBuffer(dbN, dStorePos, M, c_VL, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_VL, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: THashStringList);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastModifyCompleteBuffer(dbN, dStorePos, M, c_VT, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_VT, True);
 end;
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M);
-  FastModifyCompleteBuffer(dbN, dStorePos, M, c_TE, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
 {$IFNDEF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
-  FastModifyCompleteBuffer(dbN, dStorePos, M, c_Json, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_Json, True);
 end;
 {$ENDIF FPC}
 
 
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dbN: SystemString; dStorePos: Int64; DataSource: TPascalString);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
-  FastModifyCompleteBuffer(dbN, dStorePos, M, c_PascalString, True);
+  FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_PascalString, True);
+end;
+
+procedure TDataStoreClient_VirtualAuth.QueryStop(PipeName_: SystemString);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(PipeName_);
+  SendTunnel.SendDirectStreamCmd(C_QueryStop, de);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.QueryPause(PipeName_: SystemString);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(PipeName_);
+  SendTunnel.SendDirectStreamCmd(C_QueryPause, de);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.QueryPlay(PipeName_: SystemString);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(PipeName_);
+  SendTunnel.SendDirectStreamCmd(C_QueryPlay, de);
+  DisposeObject(de);
 end;
 
 procedure TDataStoreClient_VirtualAuth.GetDBListM(OnResult: TStreamMethod);
@@ -2835,6 +3153,15 @@ var
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmdM(C_GetDBList, de, OnResult);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.GetDBListM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  SendTunnel.SendStreamCmdM(C_GetDBList, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
@@ -2847,43 +3174,32 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.GetQueryStateM(pipeN: SystemString; OnResult: TStreamMethod);
+procedure TDataStoreClient_VirtualAuth.GetQueryListM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(pipeN);
+  SendTunnel.SendStreamCmdM(C_GetQueryList, de, Param1, Param2, OnResult);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.GetQueryStateM(PipeName_: SystemString; OnResult: TStreamMethod);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(PipeName_);
   SendTunnel.SendStreamCmdM(C_GetQueryState, de, OnResult);
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.QueryStop(pipeN: SystemString);
+procedure TDataStoreClient_VirtualAuth.GetQueryStateM(PipeName_: SystemString; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(pipeN);
-  SendTunnel.SendDirectStreamCmd(C_QueryStop, de);
-  DisposeObject(de);
-end;
-
-procedure TDataStoreClient_VirtualAuth.QueryPause(pipeN: SystemString);
-var
-  de: TDataFrameEngine;
-begin
-  de := TDataFrameEngine.Create;
-  de.WriteString(pipeN);
-  SendTunnel.SendDirectStreamCmd(C_QueryPause, de);
-  DisposeObject(de);
-end;
-
-procedure TDataStoreClient_VirtualAuth.QueryPlay(pipeN: SystemString);
-var
-  de: TDataFrameEngine;
-begin
-  de := TDataFrameEngine.Create;
-  de.WriteString(pipeN);
-  SendTunnel.SendDirectStreamCmd(C_QueryPlay, de);
+  de.WriteString(PipeName_);
+  SendTunnel.SendStreamCmdM(C_GetQueryState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
@@ -2896,6 +3212,15 @@ begin
   DisposeObject(de);
 end;
 
+procedure TDataStoreClient_VirtualAuth.GetDBListP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  SendTunnel.SendStreamCmdP(C_GetDBList, de, Param1, Param2, OnResult);
+  DisposeObject(de);
+end;
+
 procedure TDataStoreClient_VirtualAuth.GetQueryListP(OnResult: TStreamProc);
 var
   de: TDataFrameEngine;
@@ -2905,13 +3230,32 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient_VirtualAuth.GetQueryStateP(pipeN: SystemString; OnResult: TStreamProc);
+procedure TDataStoreClient_VirtualAuth.GetQueryListP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  de.WriteString(pipeN);
+  SendTunnel.SendStreamCmdP(C_GetQueryList, de, Param1, Param2, OnResult);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.GetQueryStateP(PipeName_: SystemString; OnResult: TStreamProc);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(PipeName_);
   SendTunnel.SendStreamCmdP(C_GetQueryState, de, OnResult);
+  DisposeObject(de);
+end;
+
+procedure TDataStoreClient_VirtualAuth.GetQueryStateP(PipeName_: SystemString; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  de.WriteString(PipeName_);
+  SendTunnel.SendStreamCmdP(C_GetQueryState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 

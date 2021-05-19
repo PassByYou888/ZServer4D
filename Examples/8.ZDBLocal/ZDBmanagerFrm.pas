@@ -50,6 +50,7 @@ type
     procedure CreateQuery(pipe: TZDBPipeline);
     procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
     procedure QueryDone(pipe: TZDBPipeline);
+    procedure OpenDB(ActiveDB: TZDBLMStore);
     procedure CreateDB(ActiveDB: TZDBLMStore);
     procedure CloseDB(ActiveDB: TZDBLMStore);
     procedure InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
@@ -144,108 +145,6 @@ begin
   zdb.Progress;
 end;
 
-procedure TZDBmanagerForm.Timer2Timer(Sender: TObject);
-var
-  i: Integer;
-  lst: TCoreClassListForObj;
-  db: TZDBLMStore;
-  pl: TZDBPipeline;
-begin
-  lst := TCoreClassListForObj.Create;
-  zdb.GetDBList(lst);
-
-  ListBox1.Clear;
-
-  ListBox1.Items.Add('database...');
-  for i := 0 to lst.Count - 1 do
-    begin
-      db := TZDBLMStore(lst[i]);
-      ListBox1.Items.Add(Format('db: %s total items:%d size:%s %s', [db.name, db.Count, umlSizeToStr(db.DBEngine.Size).Text, db.CacheAnnealingState]));
-    end;
-
-  lst.Clear;
-  ListBox1.Items.Add('query pipeline...');
-  zdb.GetPipeList(lst);
-  for i := 0 to lst.Count - 1 do
-    begin
-      pl := TZDBPipeline(lst[i]);
-      ListBox1.Items.Add(Format('name: %s query performance:%f', [pl.PipelineName, pl.QueryCounterOfPerSec]));
-    end;
-
-  DisposeObject(lst);
-end;
-
-procedure TZDBmanagerForm.CreateQuery(pipe: TZDBPipeline);
-begin
-end;
-
-procedure TZDBmanagerForm.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
-begin
-  // performance test
-  FillFragmentSourceP(pipe.SourceDB.name, pipe.PipelineName, FragmentSource,
-    procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
-    var
-      df: TDataFrameEngine;
-    begin
-      df := pipe.SourceDB.GetDF(StorePos);
-    end);
-end;
-
-procedure TZDBmanagerForm.ReverseQueryButtonClick(Sender: TObject);
-var
-  p: TZDBPipeline;
-begin
-  p := zdb.QueryDB(False, True, True, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
-  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
-    begin
-      if qState.IsDF then
-        with qState.Eng.GetDF(qState) do
-            Allowed := InRange(ReadDouble(0), -100, 100);
-    end;
-end;
-
-procedure TZDBmanagerForm.StopButtonClick(Sender: TObject);
-var
-  i: Integer;
-begin
-  for i := 0 to zdb.QueryPipelineList.Count - 1 do
-    begin
-      TZDBPipeline(zdb.QueryPipelineList[i]).Stop;
-    end;
-end;
-
-procedure TZDBmanagerForm.QueryDone(pipe: TZDBPipeline);
-begin
-  doStatus('query done!');
-end;
-
-procedure TZDBmanagerForm.CreateDB(ActiveDB: TZDBLMStore);
-begin
-  doStatus('create db:%s', [ActiveDB.name]);
-end;
-
-procedure TZDBmanagerForm.CloseDB(ActiveDB: TZDBLMStore);
-begin
-  doStatus('close db:%s', [ActiveDB.name]);
-end;
-
-procedure TZDBmanagerForm.CompressButtonClick(Sender: TObject);
-var
-  DBEng: TDBStore;
-begin
-  if zdb.ExistsDB('testdb') then
-    begin
-      DBEng := zdb.DBName['testdb'];
-      doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
-      DBEng.Compress;
-      doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
-    end;
-
-  zdb.CompressDB('Test');
-  // zdb.CopyDB('Test', 'NewTest');
-  // zdb.ReplaceDB('Test', 'NewTest');
-end;
-
 procedure TZDBmanagerForm.InsertButtonClick(Sender: TObject);
 var
   DBEng: TDBStore;
@@ -289,14 +188,33 @@ begin
   DisposeObject([lst]);
 end;
 
-procedure TZDBmanagerForm.InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+procedure TZDBmanagerForm.DeleteButtonClick(Sender: TObject);
+var
+  DBEng: TDBStore;
 begin
+  DBEng := zdb.InitMemoryDB('testdb');
+  doStatus('db count:', [DBEng.Count]);
 
-end;
+  DBEng.WaitQueryP(False,
+    procedure(var qs: TQueryState)
+    begin
+      if qs.IsString then
+        if umlMultipleMatch(True, 'insert*', DBEng.PascalString[qs.StorePos]) then
+            DBEng.DeleteData(qs.StorePos);
+    end);
 
-procedure TZDBmanagerForm.AddData(Sender: TZDBLMStore; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
-begin
+  DBEng.WaitQueryThread;
 
+  doStatus('');
+  doStatus('');
+  doStatus('');
+
+  DBEng.WaitQueryP(False,
+    procedure(var qs: TQueryState)
+    begin
+      if qs.IsString then
+          doStatus('item:%s', [DBEng.GetString(qs.StorePos).Text]);
+    end);
 end;
 
 procedure TZDBmanagerForm.ModifyButtonClick(Sender: TObject);
@@ -326,9 +244,62 @@ begin
     end;
 end;
 
-procedure TZDBmanagerForm.ModifyData(Sender: TZDBLMStore; const StorePos: Int64; buff: TCoreClassStream);
+procedure TZDBmanagerForm.CompressButtonClick(Sender: TObject);
+var
+  DBEng: TDBStore;
 begin
+  if zdb.ExistsDB('testdb') then
+    begin
+      DBEng := zdb.DBName['testdb'];
+      doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
+      DBEng.Compress;
+      doStatus('size:%s', [umlSizeToStr(DBEng.DBEngine.StreamEngine.Size).Text]);
+    end;
 
+  zdb.CompressDB('Test');
+  // zdb.CopyDB('Test', 'NewTest');
+  // zdb.ReplaceDB('Test', 'NewTest');
+end;
+
+procedure TZDBmanagerForm.StopButtonClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  for i := 0 to zdb.QueryPipelineList.Count - 1 do
+    begin
+      TZDBPipeline(zdb.QueryPipelineList[i]).Stop;
+    end;
+end;
+
+procedure TZDBmanagerForm.Timer2Timer(Sender: TObject);
+var
+  i: Integer;
+  lst: TCoreClassListForObj;
+  db: TZDBLMStore;
+  pl: TZDBPipeline;
+begin
+  lst := TCoreClassListForObj.Create;
+  zdb.GetDBList(lst);
+
+  ListBox1.Clear;
+
+  ListBox1.Items.Add('database...');
+  for i := 0 to lst.Count - 1 do
+    begin
+      db := TZDBLMStore(lst[i]);
+      ListBox1.Items.Add(Format('db: %s total items:%d size:%s %s', [db.name, db.Count, umlSizeToStr(db.DBEngine.Size).Text, db.CacheAnnealingState]));
+    end;
+
+  lst.Clear;
+  ListBox1.Items.Add('query pipeline...');
+  zdb.GetPipeList(lst);
+  for i := 0 to lst.Count - 1 do
+    begin
+      pl := TZDBPipeline(lst[i]);
+      ListBox1.Items.Add(Format('name: %s query performance:%f', [pl.PipelineName, pl.QueryCounterOfPerSec]));
+    end;
+
+  DisposeObject(lst);
 end;
 
 procedure TZDBmanagerForm.PrintButtonClick(Sender: TObject);
@@ -350,6 +321,50 @@ begin
   doStatus('');
   doStatus('');
   doStatus('');
+end;
+
+procedure TZDBmanagerForm.ReverseQueryButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(False, True, True, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      if qState.IsDF then
+        with qState.Eng.GetDF(qState) do
+            Allowed := InRange(ReadDouble(0), -100, 100);
+    end;
+end;
+
+procedure TZDBmanagerForm.QueryAndDeleteButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(False, True, True, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      if qState.IsDF then
+        with qState.Eng.GetDF(qState) do
+          if InRange(ReadDouble(0), -100, 100) then
+              qState.Eng.DeleteData(qState.StorePos);
+    end;
+end;
+
+procedure TZDBmanagerForm.QueryAndModifyButtonClick(Sender: TObject);
+var
+  p: TZDBPipeline;
+begin
+  p := zdb.QueryDB(True, True, False, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
+  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+    begin
+      if qState.IsDF then
+        with qState.Eng.GetDF(qState) do
+          if InRange(ReadDouble(0), -200, 200) then
+            begin
+              TDataFrameDouble(Data[0]).Buffer := umlRandomRangeD(-100.0, 100.0);
+              Save;
+            end;
+    end;
 end;
 
 procedure TZDBmanagerForm.QueryAndAnalysisButtonClick(Sender: TObject);
@@ -393,64 +408,55 @@ begin
     end;
 end;
 
-procedure TZDBmanagerForm.QueryAndDeleteButtonClick(Sender: TObject);
-var
-  p: TZDBPipeline;
+procedure TZDBmanagerForm.CreateQuery(pipe: TZDBPipeline);
 begin
-  p := zdb.QueryDB(False, True, True, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
-  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
-    begin
-      if qState.IsDF then
-        with qState.Eng.GetDF(qState) do
-          if InRange(ReadDouble(0), -100, 100) then
-              qState.Eng.DeleteData(qState.StorePos);
-    end;
 end;
 
-procedure TZDBmanagerForm.QueryAndModifyButtonClick(Sender: TObject);
-var
-  p: TZDBPipeline;
+procedure TZDBmanagerForm.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
 begin
-  p := zdb.QueryDB(True, True, False, 'Test', 'output', True, 1, 0.1, 0, 0, 0);
-  p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
+  // performance test
+  FillFragmentSourceP(pipe.SourceDB.name, pipe.PipelineName, FragmentSource,
+    procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
+    var
+      df: TDataFrameEngine;
     begin
-      if qState.IsDF then
-        with qState.Eng.GetDF(qState) do
-          if InRange(ReadDouble(0), -200, 200) then
-            begin
-              TDataFrameDouble(Data[0]).Buffer := umlRandomRangeD(-100.0, 100.0);
-              Save;
-            end;
-    end;
+      df := pipe.SourceDB.GetDF(StorePos);
+    end);
 end;
 
-procedure TZDBmanagerForm.DeleteButtonClick(Sender: TObject);
-var
-  DBEng: TDBStore;
+procedure TZDBmanagerForm.QueryDone(pipe: TZDBPipeline);
 begin
-  DBEng := zdb.InitMemoryDB('testdb');
-  doStatus('db count:', [DBEng.Count]);
+  doStatus('query done!');
+end;
 
-  DBEng.WaitQueryP(False,
-    procedure(var qs: TQueryState)
-    begin
-      if qs.IsString then
-        if umlMultipleMatch(True, 'insert*', DBEng.PascalString[qs.StorePos]) then
-            DBEng.DeleteData(qs.StorePos);
-    end);
+procedure TZDBmanagerForm.OpenDB(ActiveDB: TZDBLMStore);
+begin
 
-  DBEng.WaitQueryThread;
+end;
 
-  doStatus('');
-  doStatus('');
-  doStatus('');
+procedure TZDBmanagerForm.CreateDB(ActiveDB: TZDBLMStore);
+begin
+  doStatus('create db:%s', [ActiveDB.name]);
+end;
 
-  DBEng.WaitQueryP(False,
-    procedure(var qs: TQueryState)
-    begin
-      if qs.IsString then
-          doStatus('item:%s', [DBEng.GetString(qs.StorePos).Text]);
-    end);
+procedure TZDBmanagerForm.CloseDB(ActiveDB: TZDBLMStore);
+begin
+  doStatus('close db:%s', [ActiveDB.name]);
+end;
+
+procedure TZDBmanagerForm.InsertData(Sender: TZDBLMStore; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+begin
+
+end;
+
+procedure TZDBmanagerForm.AddData(Sender: TZDBLMStore; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+begin
+
+end;
+
+procedure TZDBmanagerForm.ModifyData(Sender: TZDBLMStore; const StorePos: Int64; buff: TCoreClassStream);
+begin
+
 end;
 
 procedure TZDBmanagerForm.DeleteData(Sender: TZDBLMStore; const StorePos: Int64);

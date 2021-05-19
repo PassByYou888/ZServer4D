@@ -155,10 +155,10 @@ type
     // split direct
     procedure SplitTo(RootPh, destFile: SystemString; SplitSiz: Int64);
 
-    // split to ZLib compressor for DB
+    // split to ZLib compressor for Database
     procedure SplitToZLib(RootPh, destFile: SystemString; SplitSiz: Int64);
 
-    // split to Parallel compressor for DB
+    // split to Parallel compressor for Database
     procedure SplitToParallelCompression(RootPh, destFile: SystemString; SplitSiz: Int64);
 
     // export to disk
@@ -351,7 +351,7 @@ type
     function NewDB(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager; overload;
     function NewDB(FixedStringL: Byte; dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager; overload;
     function Open(dbFile: SystemString; dbOnlyRead: Boolean): TObjectDataManager;
-    procedure CloseDB(db: TObjectDataManager);
+    procedure CloseDB(Database: TObjectDataManager);
     procedure Clear;
     function Count: Integer;
     procedure Delete(aIndex: Integer);
@@ -2394,7 +2394,7 @@ var
   swapHnd: TCoreClassFileStream;
   swapHead: TSwapHead;
 begin
-  // update db header
+  // update Database header
   inherited UpdateIO;
 
   if (not FDBHandle.IOHnd.IsOnlyRead)
@@ -2618,13 +2618,13 @@ begin
     end;
 end;
 
-procedure TObjectDataMarshal.CloseDB(db: TObjectDataManager);
+procedure TObjectDataMarshal.CloseDB(Database: TObjectDataManager);
 var
   i: Integer;
 begin
   i := 0;
   while i < Count do
-    if Items[i] = db then
+    if Items[i] = Database then
         Delete(i)
     else
         inc(i);
@@ -2737,184 +2737,184 @@ end;
 
 procedure TestObjectData_(c: TObjectDataManagerClass);
 var
-  db: TObjectDataManager;
+  Database: TObjectDataManager;
   itmHnd1, itmHnd2, itmHnd3, itmHnd4: TItemHandle;
   buff: TBytes;
   nameL: U_StringArray;
   n: U_String;
 begin
-  db := c.CreateAsStream($FF, TMemoryStream64.CustomCreate($FFFF), '', 0, False, True, True);
+  Database := c.CreateAsStream($FF, TMemoryStream64.CustomCreate($FFFF), '', 0, False, True, True);
 
-  if db.CreateRootField('_RootField') then
+  if Database.CreateRootField('_RootField') then
       DoStatus('CreateRootField ok')
   else
       DoStatus('CreateRootField error');
-  if db.SetRootField('_RootField') then
+  if Database.SetRootField('_RootField') then
       DoStatus('SetRootField ok')
   else
       DoStatus('SetRootField error');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  DoStatus('db size: %d', [db.Size]);
+  DoStatus('Database size: %d', [Database.Size]);
 
-  DoStatus('DB field test.');
-  db.CreateField('/a/b/c', '');
+  DoStatus('Database field test.');
+  Database.CreateField('/a/b/c', '');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  if db.GetPathFieldHeaderCount('/a') <> 1 then
+  if Database.GetPathFieldHeaderCount('/a') <> 1 then
       DoStatus('create field error');
-  if db.GetPathFieldHeaderCount('/a/b') <> 1 then
+  if Database.GetPathFieldHeaderCount('/a/b') <> 1 then
       DoStatus('create field error');
-  if db.GetPathFieldHeaderCount('/a/b/c') <> 0 then
+  if Database.GetPathFieldHeaderCount('/a/b/c') <> 0 then
       DoStatus('create field error');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  DoStatus('DB item body test');
-  if not db.ItemCreate('/a/b/c', '1', '', itmHnd1) then
+  DoStatus('Database item body test');
+  if not Database.ItemCreate('/a/b/c', '1', '', itmHnd1) then
       DoStatus('create item error');
   buff := umlBytesOf('1111');
-  db.ItemWrite(itmHnd1, length(buff), buff[0]);
+  Database.ItemWrite(itmHnd1, length(buff), buff[0]);
   DoStatus('item1 size:%d', [itmHnd1.Item.Size]);
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  if not db.ItemCreate('/a/b/c', '2', '', itmHnd2) then
+  if not Database.ItemCreate('/a/b/c', '2', '', itmHnd2) then
       DoStatus('create item error');
   buff := umlBytesOf('22222');
-  db.ItemWrite(itmHnd2, length(buff), buff[0]);
+  Database.ItemWrite(itmHnd2, length(buff), buff[0]);
   DoStatus('item2 size:%d', [itmHnd2.Item.Size]);
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  if not db.ItemCreate('/a/b/c', '3', '', itmHnd3) then
+  if not Database.ItemCreate('/a/b/c', '3', '', itmHnd3) then
       DoStatus('create item error');
   buff := umlBytesOf('3333');
-  db.ItemWrite(itmHnd3, length(buff), buff[0]);
+  Database.ItemWrite(itmHnd3, length(buff), buff[0]);
   DoStatus('item3 size:%d', [itmHnd3.Item.Size]);
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  if not db.ItemCreate('/a/b/c', '4', '', itmHnd4) then
+  if not Database.ItemCreate('/a/b/c', '4', '', itmHnd4) then
       DoStatus('create item error');
   buff := umlBytesOf('44444444');
-  db.ItemWrite(itmHnd4, length(buff), buff[0]);
+  Database.ItemWrite(itmHnd4, length(buff), buff[0]);
   DoStatus('item4 size:%d', [itmHnd4.Item.Size]);
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
   buff := umlBytesOf('t12345');
-  db.ItemWrite(itmHnd1, length(buff), buff[0]);
-  db.ItemSeekStart(itmHnd1);
+  Database.ItemWrite(itmHnd1, length(buff), buff[0]);
+  Database.ItemSeekStart(itmHnd1);
   SetLength(buff, itmHnd1.Item.Size);
-  db.ItemRead(itmHnd1, length(buff), buff[0]);
+  Database.ItemRead(itmHnd1, length(buff), buff[0]);
   if umlStringOf(buff).Same('1111t12345') then
       DoStatus('test fragment buffer ok!');
   DoStatus('item1 size:%d', [itmHnd1.Item.Size]);
 
-  db.ItemClose(itmHnd1);
-  db.ItemClose(itmHnd2);
-  db.ItemClose(itmHnd3);
-  db.ItemClose(itmHnd4);
+  Database.ItemClose(itmHnd1);
+  Database.ItemClose(itmHnd2);
+  Database.ItemClose(itmHnd3);
+  Database.ItemClose(itmHnd4);
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  if not db.GetPathFieldHeaderNames('/a/b/c', nameL) then
+  if not Database.GetPathFieldHeaderNames('/a/b/c', nameL) then
       DoStatus('get field list error');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  if db.GetItemSize('/a/b/c', nameL[0]) <> 10 then
+  if Database.GetItemSize('/a/b/c', nameL[0]) <> 10 then
       DoStatus('item body error');
-  if db.GetItemSize('/a/b/c', nameL[1]) <> 5 then
+  if Database.GetItemSize('/a/b/c', nameL[1]) <> 5 then
       DoStatus('item body error');
-  if db.GetItemSize('/a/b/c', nameL[2]) <> 4 then
+  if Database.GetItemSize('/a/b/c', nameL[2]) <> 4 then
       DoStatus('item body error');
-  if db.GetItemSize('/a/b/c', nameL[3]) <> 8 then
+  if Database.GetItemSize('/a/b/c', nameL[3]) <> 8 then
       DoStatus('item body error');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  DoStatus('DB item delete test');
+  DoStatus('Database item delete test');
 
-  db.ItemDelete('/a/b/c', '3');
-  if not db.GetPathFieldHeaderNames('/a/b/c', nameL) then
+  Database.ItemDelete('/a/b/c', '3');
+  if not Database.GetPathFieldHeaderNames('/a/b/c', nameL) then
       DoStatus('get field list error');
 
-  if db.GetItemSize('/a/b/c', nameL[0]) <> 10 then
+  if Database.GetItemSize('/a/b/c', nameL[0]) <> 10 then
       DoStatus('item body error');
-  if db.GetItemSize('/a/b/c', nameL[1]) <> 5 then
+  if Database.GetItemSize('/a/b/c', nameL[1]) <> 5 then
       DoStatus('item body error');
-  if db.GetItemSize('/a/b/c', nameL[2]) <> 8 then
+  if Database.GetItemSize('/a/b/c', nameL[2]) <> 8 then
       DoStatus('item body error');
 
-  db.ItemDelete('/a/b/c', '1');
-  if not db.GetPathFieldHeaderNames('/a/b/c', nameL) then
+  Database.ItemDelete('/a/b/c', '1');
+  if not Database.GetPathFieldHeaderNames('/a/b/c', nameL) then
       DoStatus('get field list error');
 
-  if db.GetItemSize('/a/b/c', nameL[0]) <> 5 then
+  if Database.GetItemSize('/a/b/c', nameL[0]) <> 5 then
       DoStatus('item body error');
-  if db.GetItemSize('/a/b/c', nameL[1]) <> 8 then
+  if Database.GetItemSize('/a/b/c', nameL[1]) <> 8 then
       DoStatus('item body error');
 
-  db.ItemDelete('/a/b/c', '2');
-  if not db.GetPathFieldHeaderNames('/a/b/c', nameL) then
+  Database.ItemDelete('/a/b/c', '2');
+  if not Database.GetPathFieldHeaderNames('/a/b/c', nameL) then
       DoStatus('get field list error');
 
-  if db.GetItemSize('/a/b/c', nameL[0]) <> 8 then
+  if Database.GetItemSize('/a/b/c', nameL[0]) <> 8 then
       DoStatus('item body error');
 
-  db.ItemDelete('/a/b/c', '4');
-  if not db.GetPathFieldHeaderNames('/a/b/c', nameL) then
+  Database.ItemDelete('/a/b/c', '4');
+  if not Database.GetPathFieldHeaderNames('/a/b/c', nameL) then
       DoStatus('get field list error');
 
   if length(nameL) = 0 then
       DoStatus('delete test done!');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  DoStatus('DB field delete test');
+  DoStatus('Database field delete test');
 
-  if not db.GetPathFieldHeaderNames('/a/b', nameL) then
+  if not Database.GetPathFieldHeaderNames('/a/b', nameL) then
       DoStatus('get field list error');
   if (length(nameL) <> 1) then
       DoStatus('get field list error')
   else if nameL[0] = 'c' then
       DoStatus('test field delete ok');
 
-  db.FieldDelete('/a/b', 'c');
-  if not db.GetPathFieldHeaderNames('/a/b', nameL) then
+  Database.FieldDelete('/a/b', 'c');
+  if not Database.GetPathFieldHeaderNames('/a/b', nameL) then
       DoStatus('get field list error');
-  if db.GetPathFieldHeaderCount('/a/b') <> 0 then
+  if Database.GetPathFieldHeaderCount('/a/b') <> 0 then
       DoStatus('delete field error');
 
-  db.FieldDelete('/a', 'b');
-  if db.GetPathFieldHeaderCount('/a/b') <> 0 then
+  Database.FieldDelete('/a', 'b');
+  if Database.GetPathFieldHeaderCount('/a/b') <> 0 then
       DoStatus('delete field error');
-  db.FieldDelete('/', 'a');
-  if db.GetPathFieldHeaderCount('/') <> 0 then
+  Database.FieldDelete('/', 'a');
+  if Database.GetPathFieldHeaderCount('/') <> 0 then
       DoStatus('delete field error');
 
   if length(nameL) = 0 then
       DoStatus('field delete test done!');
 
-  if db is TObjectDataManagerOfCache then
-      DoStatus(TObjectDataManagerOfCache(db).CacheStatus);
+  if Database is TObjectDataManagerOfCache then
+      DoStatus(TObjectDataManagerOfCache(Database).CacheStatus);
 
-  DisposeObject(db);
+  DisposeObject(Database);
 end;
 
 procedure TestObjectData();

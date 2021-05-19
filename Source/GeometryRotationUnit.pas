@@ -194,7 +194,7 @@ end;
 
 function ComputeRoll(uvec, dvec: TAffineVector): Single; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 var
-  lvec                              : TAffineVector;
+  lvec: TAffineVector;
   sinTurn, cosTurn, sinRoll, cosRoll: Single;
 begin
   lvec := VectorCrossProduct(uvec, dvec);
@@ -325,8 +325,8 @@ end;
 
 procedure SetPitch(var uvec, dvec: TAffineVector; angle: Single);
 var
-  rvec     : TAffineVector;
-  Diff     : Single;
+  rvec: TAffineVector;
+  Diff: Single;
   rotMatrix: TMatrix;
 begin
   rvec := VectorCrossProduct(dvec, uvec);
@@ -356,8 +356,8 @@ end;
 
 procedure SetTurn(var uvec, dvec: TAffineVector; angle: Single);
 var
-  rvec     : TAffineVector;
-  Diff     : Single;
+  rvec: TAffineVector;
+  Diff: Single;
   rotMatrix: TMatrix;
 begin
   rvec := VectorCrossProduct(dvec, uvec);
@@ -388,8 +388,8 @@ end;
 
 procedure SetRoll(var uvec, dvec: TAffineVector; angle: Single);
 var
-  rvec     : TAffineVector;
-  Diff     : Single;
+  rvec: TAffineVector;
+  Diff: Single;
   rotMatrix: TMatrix;
 begin
   rvec := VectorCrossProduct(dvec, uvec);
@@ -418,6 +418,4 @@ begin
   MulRMat(M, ScaleXYZ);
 end;
 
-end. 
- 
- 
+end.

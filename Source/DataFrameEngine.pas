@@ -512,6 +512,9 @@ type
     destructor Destroy; override;
 
     property Reader: TDataFrameEngineReader read FReader;
+    property R: TDataFrameEngineReader read FReader;
+
+    procedure SwapInstance(source: TDataFrameEngine);
 
     procedure Clear;
     function AddData(v: TRunTimeDataType): TDataFrameBase;
@@ -2350,6 +2353,23 @@ begin
   inherited Destroy;
 end;
 
+procedure TDataFrameEngine.SwapInstance(source: TDataFrameEngine);
+var
+  tmp_DataList: TCoreClassListForObj;
+  tmp_Reader: TDataFrameEngineReader;
+begin
+  if Self = source then
+      exit;
+  tmp_DataList := FDataList;
+  tmp_Reader := FReader;
+
+  FDataList := source.FDataList;
+  FReader := source.FReader;
+
+  source.FDataList := tmp_DataList;
+  source.FReader := tmp_Reader;
+end;
+
 procedure TDataFrameEngine.Clear;
 var
   i: Integer;
@@ -2483,6 +2503,8 @@ var
   i: Integer;
   DataFrame_: TDataFrameBase;
 begin
+  if Self = source then
+      exit;
   Clear;
   s := TMemoryStream64.CustomCreate(8192);
   for i := 0 to source.Count - 1 do
@@ -3761,7 +3783,7 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   // make header
@@ -3803,7 +3825,7 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   // make header
@@ -3855,20 +3877,20 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   // if encode size too large(>1M), we use EncodeAsSelectCompressor
   if (AutoCompressed) and (ComputeEncodeSize > 1024 * 1024) then
     begin
       Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB_Fast, output, FastMode);
-      Exit;
+      exit;
     end;
 
   if FastMode and (not AutoCompressed) then
     begin
       Result := FastEncodeTo(output);
-      Exit;
+      exit;
     end;
 
   StoreStream := TMemoryStream64.CustomCreate(8192);
@@ -4032,7 +4054,7 @@ begin
       j.LoadFromStream(stream, TEncoding.UTF8, True);
   except
     DisposeObject(j);
-    Exit;
+    exit;
   end;
 
   try
@@ -4044,7 +4066,7 @@ begin
       end;
   except
     DisposeObject(j);
-    Exit;
+    exit;
   end;
 
   DisposeObject(j);
@@ -4087,7 +4109,7 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   StoreStream := TMemoryStream64.CustomCreate(8192);
@@ -4200,14 +4222,14 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   // if encode size too large(>1M), we use EncodeAsSelectCompressor
   if ComputeEncodeSize > 1024 * 1024 then
     begin
       Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB, output, FastMode);
-      Exit;
+      exit;
     end;
 
   StoreStream := TMemoryStream64.CustomCreate(8192);
@@ -4306,14 +4328,14 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   // if encode size too large(>1M), we use EncodeAsSelectCompressor
   if ComputeEncodeSize > 1024 * 1024 then
     begin
       Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB, output, FastMode);
-      Exit;
+      exit;
     end;
 
   StoreStream := TMemoryStream64.CustomCreate(8192);
@@ -4414,14 +4436,14 @@ begin
   if Result = 0 then
     begin
       BuildEmptyStream(output);
-      Exit;
+      exit;
     end;
 
   // if encode size too large(>1M), we use EncodeAsSelectCompressor
   if ComputeEncodeSize > 1024 * 1024 then
     begin
       Result := EncodeAsSelectCompressor(TSelectCompressionMethod.scmZLIB, output, FastMode);
-      Exit;
+      exit;
     end;
 
   StoreStream := TMemoryStream64.CustomCreate(8192);
@@ -4592,7 +4614,7 @@ begin
               begin
                 DoStatus('md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compToken in [1, 11] then
@@ -4620,7 +4642,7 @@ begin
               begin
                 DoStatus('ZLIB md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compToken in [2, 22] then
@@ -4647,7 +4669,7 @@ begin
               begin
                 DoStatus('Deflate md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compToken in [3, 33] then
@@ -4674,7 +4696,7 @@ begin
               begin
                 DoStatus('BRRC md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end
       else if compToken in [4, 44] then
@@ -4699,7 +4721,7 @@ begin
               begin
                 DoStatus('select compression md5 error!');
                 DisposeObject(StoreStream);
-                Exit;
+                exit;
               end;
         end;
 
@@ -4719,7 +4741,7 @@ begin
     begin
       DoStatus('dataframe decode error!');
       DisposeObject(StoreStream);
-      Exit;
+      exit;
     end;
 end;
 
@@ -4777,7 +4799,7 @@ begin
   Result := False;
 
   if Count <> source.Count then
-      Exit;
+      exit;
 
   s1 := TMemoryStream64.CustomCreate(8192);
   s2 := TMemoryStream64.CustomCreate(8192);
@@ -4785,20 +4807,20 @@ begin
     for i := 0 to Count - 1 do
       begin
         if FDataList[i].ClassType <> source[i].ClassType then
-            Exit;
+            exit;
         if TDataFrameBase(FDataList[i]).FID <> TDataFrameBase(source[i]).FID then
-            Exit;
+            exit;
         if TDataFrameBase(FDataList[i]).ComputeEncodeSize <> TDataFrameBase(source[i]).ComputeEncodeSize then
-            Exit;
+            exit;
 
         s1.Clear;
         s2.Clear;
         TDataFrameBase(FDataList[i]).SaveToStream(s1);
         TDataFrameBase(source[i]).SaveToStream(s2);
         if s1.Size <> s2.Size then
-            Exit;
+            exit;
         if not CompareMemory(s1.Memory, s2.Memory, s1.Size) then
-            Exit;
+            exit;
         s1.Clear;
         s2.Clear;
       end;

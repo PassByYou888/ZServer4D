@@ -53,20 +53,20 @@ type
   end;
 
   TUserQueryDoneNotifyCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN, outN, pipeN: SystemString; TotalResult: Int64);
+    dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64);
   TUserQueryDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
-  TQueryDoneNotifyCall = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
-  TQueryDoneNotifyMethod = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64) of object;
+    dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64) of object;
+  TQueryDoneNotifyCall = procedure(dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64);
+  TQueryDoneNotifyMethod = procedure(dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64) of object;
 
 {$IFDEF FPC}
   TUserQueryDoneNotifyProc = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN, outN, pipeN: SystemString; TotalResult: Int64) is nested;
-  TQueryDoneNotifyProc = procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64) is nested;
+    dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64) is nested;
+  TQueryDoneNotifyProc = procedure(dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64) is nested;
 {$ELSE FPC}
   TUserQueryDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN, outN, pipeN: SystemString; TotalResult: Int64);
-  TQueryDoneNotifyProc = reference to procedure(dbN, outN, pipeN: SystemString; TotalResult: Int64);
+    dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64);
+  TQueryDoneNotifyProc = reference to procedure(dataBaseName_, outN, pipeN: SystemString; TotalResult: Int64);
 {$ENDIF FPC}
   PDataStoreClientQueryNotify = ^TDataStoreClientQueryNotify;
 
@@ -90,20 +90,20 @@ type
   end;
 
   TUserDownloadDoneNotifyCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
   TUserDownloadDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
-  TDownloadDoneNotifyCall = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
-  TDownloadDoneNotifyMethod = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
+  TDownloadDoneNotifyCall = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+  TDownloadDoneNotifyMethod = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
 
 {$IFDEF FPC}
   TUserDownloadDoneNotifyProc = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
-  TDownloadDoneNotifyProc = procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
+  TDownloadDoneNotifyProc = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
 {$ELSE FPC}
   TUserDownloadDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
-  TDownloadDoneNotifyProc = reference to procedure(dbN: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+  TDownloadDoneNotifyProc = reference to procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
 {$ENDIF FPC}
   PDataStoreClientDownloadNotify = ^TDataStoreClientDownloadNotify;
 
@@ -111,6 +111,7 @@ type
     UserPointer: Pointer;
     UserObject: TCoreClassObject;
     UserVariant: Variant;
+    AutoDecodeZDBStream: Boolean;
     OnUserDoneCall: TUserDownloadDoneNotifyCall;
     OnUserDoneMethod: TUserDownloadDoneNotifyMethod;
     OnUserDoneProc: TUserDownloadDoneNotifyProc;
@@ -142,7 +143,7 @@ type
     DBCounter, QueryCounter, QueryResultCounter, MaxQueryCompare, MaxQueryResult: Int64;
     QueryPerformanceOfPerSec, ConsumTime, MaxWaitTime: Double;
     SourceDB, OutputDB, PipelineName, RegistedQuery: SystemString;
-    { }
+
     procedure Init;
     procedure Encode(d: TDataFrameEngine);
     procedure Decode(d: TDataFrameEngine);
@@ -215,6 +216,7 @@ begin
   UserPointer := nil;
   UserObject := nil;
   UserVariant := Null;
+  AutoDecodeZDBStream := False;
 
   OnDoneCall := nil;
   OnDoneMethod := nil;

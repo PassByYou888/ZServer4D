@@ -2101,7 +2101,8 @@ var
 begin
   swap_buff := PlatformBytes;
   buff_P := GetMemory(length(swap_buff) + 1);
-  CopyPtr(@swap_buff[0], buff_P, length(swap_buff));
+  if length(swap_buff) > 0 then
+      CopyPtr(@swap_buff[0], buff_P, length(swap_buff));
   buff_P^[length(swap_buff)] := 0;
   SetLength(swap_buff, 0);
   Result := buff_P;

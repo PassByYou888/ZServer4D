@@ -143,34 +143,6 @@ type
     procedure Clear;
   end;
 {$EndRegion 'core defines + class'}
-{$Region 'OrderStruct'}
-  {$IFDEF FPC}generic{$ENDIF FPC}TOrderStruct<T_> = class
-  public type
-    PT_ = ^T_;
-    POrederStruct_ = ^TOrederStruct_;
-    TOrederStruct_ = packed record
-      Data: PT_;
-      Next: POrederStruct_;
-    end;
-    TOnFreeOrderStruct = procedure(p: PT_) of object;
-  private
-    FFirst: POrederStruct_;
-    FLast: POrederStruct_;
-    FNum: NativeInt;
-    FOnFreeOrderStruct: TOnFreeOrderStruct;
-  protected
-    procedure DoFree(p: POrederStruct_);
-  public
-    constructor Create;
-    destructor Destroy;
-    procedure Clear;
-    function Current: PT_;
-    procedure Next;
-    procedure Push(Data: T_);
-    property Num: NativeInt read FNum;
-    property OnFreeOrderStruct: TOnFreeOrderStruct read FOnFreeOrderStruct write FOnFreeOrderStruct;
-  end;
-{$EndRegion 'OrderStruct'}
 {$Region 'Critical'}
   TSoftCritical = class(TCoreClassObject)
   private
@@ -239,7 +211,7 @@ type
 
   TCritical = class(TCritical_)
   private
-    LNum: TAtomInt;
+    LNum: Integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -253,6 +225,132 @@ type
     property Busy: Boolean read IsBusy;
   end;
 {$EndRegion 'Critical'}
+{$Region 'OrderStruct'}
+  {$IFDEF FPC}generic{$ENDIF FPC}TOrderStruct<T_> = class(TCoreClassObject)
+  public type
+    T = T_;
+    PT_ = ^T_;
+    POrderStruct_ = ^TOrderStruct_;
+    TOrderStruct_ = packed record
+      Data: T_;
+      Next: POrderStruct_;
+    end;
+    TOnFreeOrderStruct = procedure(p: T_) of object;
+  private
+    FFirst: POrderStruct_;
+    FLast: POrderStruct_;
+    FNum: NativeInt;
+    FOnFreeOrderStruct: TOnFreeOrderStruct;
+  protected
+    procedure DoFree(p: POrderStruct_);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear;
+    property Current: POrderStruct_ read FFirst;
+    procedure Next;
+    procedure Push(Data: T_);
+    property Num: NativeInt read FNum;
+    property OnFreeOrderStruct: TOnFreeOrderStruct read FOnFreeOrderStruct write FOnFreeOrderStruct;
+    property OnFree: TOnFreeOrderStruct read FOnFreeOrderStruct write FOnFreeOrderStruct;
+  end;
+
+  {$IFDEF FPC}generic{$ENDIF FPC}TOrderPtrStruct<T_> = class(TCoreClassObject)
+  public type
+    T = T_;
+    PT_ = ^T_;
+    POrderPtrStruct_ = ^TOrderPtrStruct_;
+    TOrderPtrStruct_ = packed record
+      Data: PT_;
+      Next: POrderPtrStruct_;
+    end;
+    TOnFreeOrderPtrStruct = procedure(p: PT_) of object;
+  private
+    FFirst: POrderPtrStruct_;
+    FLast: POrderPtrStruct_;
+    FNum: NativeInt;
+    FOnFreeOrderStruct: TOnFreeOrderPtrStruct;
+  protected
+    procedure DoFree(p: POrderPtrStruct_);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear;
+    property Current: POrderPtrStruct_ read FFirst;
+    procedure Next;
+    procedure Push(Data: T_);
+    procedure PushPtr(Data: PT_);
+    property Num: NativeInt read FNum;
+    property OnFreeOrderStruct: TOnFreeOrderPtrStruct read FOnFreeOrderStruct write FOnFreeOrderStruct;
+    property OnFree: TOnFreeOrderPtrStruct read FOnFreeOrderStruct write FOnFreeOrderStruct;
+  end;
+
+  {$IFDEF FPC}generic{$ENDIF FPC}TCriticalOrderStruct<T_> = class(TCoreClassObject)
+  public type
+    T = T_;
+    PT_ = ^T_;
+    POrderStruct_ = ^TOrderStruct_;
+    TOrderStruct_ = packed record
+      Data: T_;
+      Next: POrderStruct_;
+    end;
+    TOnFreeCriticalOrderStruct = procedure(p: T_) of object;
+  private
+    FCritical: TCritical;
+    FFirst: POrderStruct_;
+    FLast: POrderStruct_;
+    FNum: NativeInt;
+    FOnFreeCriticalOrderStruct: TOnFreeCriticalOrderStruct;
+  protected
+    procedure DoFree(p: POrderStruct_);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear;
+    function GetCurrent: POrderStruct_;
+    property Current: POrderStruct_ read GetCurrent;
+    procedure Next;
+    procedure Push(Data: T_);
+    function GetNum: NativeInt;
+    property Num: NativeInt read GetNum;
+    property OnFreeCriticalOrderStruct: TOnFreeCriticalOrderStruct read FOnFreeCriticalOrderStruct write FOnFreeCriticalOrderStruct;
+    property OnFree: TOnFreeCriticalOrderStruct read FOnFreeCriticalOrderStruct write FOnFreeCriticalOrderStruct;
+  end;
+
+  {$IFDEF FPC}generic{$ENDIF FPC}TCriticalOrderPtrStruct<T_> = class(TCoreClassObject)
+  public type
+    T = T_;
+    PT_ = ^T_;
+    POrderPtrStruct_ = ^TOrderPtrStruct_;
+    TOrderPtrStruct_ = packed record
+      Data: PT_;
+      Next: POrderPtrStruct_;
+    end;
+    TOnFreeCriticalOrderPtrStruct = procedure(p: PT_) of object;
+  private
+    FCritical: TCritical;
+    FFirst: POrderPtrStruct_;
+    FLast: POrderPtrStruct_;
+    FNum: NativeInt;
+    FOnFreeCriticalOrderStruct: TOnFreeCriticalOrderPtrStruct;
+  protected
+    procedure DoFree(p: POrderPtrStruct_);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear;
+    function GetCurrent: POrderPtrStruct_;
+    property Current: POrderPtrStruct_ read GetCurrent;
+    procedure Next;
+    procedure Push(Data: T_);
+    procedure PushPtr(Data: PT_);
+    function GetNum: NativeInt;
+    property Num: NativeInt read GetNum;
+    property OnFreeCriticalOrderStruct: TOnFreeCriticalOrderPtrStruct read FOnFreeCriticalOrderStruct write FOnFreeCriticalOrderStruct;
+    property OnFree: TOnFreeCriticalOrderPtrStruct read FOnFreeCriticalOrderStruct write FOnFreeCriticalOrderStruct;
+  end;
+
+{$EndRegion 'OrderStruct'}
 {$Region 'ThreadPost'}
   TThreadPostCall1 = procedure();
   TThreadPostCall2 = procedure(Data1: Pointer);
@@ -293,7 +391,7 @@ type
     procedure Init;
   end;
 
-  TThreadPostDataOrder = {$IFDEF FPC}specialize {$ENDIF FPC} TOrderStruct<TThreadPostData>;
+  TThreadPostDataOrder = {$IFDEF FPC}specialize {$ENDIF FPC} TOrderPtrStruct<TThreadPostData>;
 
   TThreadPost = class(TCoreClassObject)
   protected
@@ -619,9 +717,11 @@ procedure FreeCoreThreadPool;
 
 procedure DisposeObject(const Obj: TObject); overload;
 procedure DisposeObject(const objs: array of TObject); overload;
+procedure FreeObj(const Obj: TObject);
 procedure FreeObject(const Obj: TObject); overload;
 procedure FreeObject(const objs: array of TObject); overload;
 procedure DisposeObjectAndNil(var Obj);
+procedure FreeObjAndNil(var Obj);
 
 procedure LockObject(Obj: TObject);
 procedure UnLockObject(Obj: TObject);
@@ -820,6 +920,11 @@ begin
       DisposeObject(Obj);
 end;
 
+procedure FreeObj(const Obj: TObject);
+begin
+  DisposeObject(Obj);
+end;
+
 procedure FreeObject(const Obj: TObject);
 begin
   DisposeObject(Obj);
@@ -840,6 +945,11 @@ begin
       DisposeObject(TObject(Obj));
       TObject(Obj) := nil;
     end;
+end;
+
+procedure FreeObjAndNil(var Obj);
+begin
+  DisposeObjectAndNil(Obj);
 end;
 
 procedure LockObject(Obj: TObject);
@@ -1220,7 +1330,7 @@ end;
 {$ENDIF FPC}
 {$INCLUDE Core_AtomVar.inc}
 {$INCLUDE Core_LineProcessor.inc}
-{$INCLUDE Core_OrederData.inc}
+{$INCLUDE Core_OrderData.inc}
 
 function GetParallelGranularity: Integer;
 begin
@@ -1230,7 +1340,6 @@ end;
 procedure SetParallelGranularity(Thread_Num: Integer);
 begin
   ParallelGranularity := Thread_Num;
-  MaxActivtedParallel := Thread_Num;
 end;
 
 procedure Nop;
@@ -1258,7 +1367,11 @@ begin
         Exit;
       MainThSynchronizeRunning := True;
       MainThreadProgress.Progress(MainThreadID);
-      Result := CheckSynchronize(Timeout);
+      try
+        Result := CheckSynchronize(Timeout);
+      except
+        Result := False;
+      end;
       MainThSynchronizeRunning := False;
     end;
 

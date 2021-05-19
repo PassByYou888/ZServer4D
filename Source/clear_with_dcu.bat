@@ -11,6 +11,7 @@ del/s *.stat
 del/s *.tvsconfig
 del/s *.deployproj
 del/s *.stat
+del/s *.delphilsp.json
 rem del/s *.pdb
 rem del/s *.exp
 rem del/s zAI\*.pdb

@@ -148,7 +148,7 @@ type
     procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
     procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
   public
-    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer); virtual;
     destructor Destroy; override;
 
     procedure SwitchAsMaxPerformance;
@@ -199,7 +199,9 @@ type
     procedure PostBatchStreamP(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
     procedure ClearBatchStream(cli: TPeerIO);
     procedure GetBatchStreamStateM(cli: TPeerIO; OnResult: TStreamMethod); overload;
+    procedure GetBatchStreamStateM(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
     procedure GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc); overload;
+    procedure GetBatchStreamStateP(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
     property LoginUserList: THashVariantList read FLoginUserList;
 
     property CanRegisterNewUser: Boolean read FCanRegisterNewUser write FCanRegisterNewUser;
@@ -289,6 +291,7 @@ type
     FSendTunnel, FRecvTunnel: TCommunicationFrameworkClient;
     FCurrentStream: TCoreClassStream;
     FCurrentReceiveStreamFileName: SystemString;
+    FAutoFreeTunnel: Boolean;
     FLinkOk: Boolean;
     FWaitCommandTimeout: Cardinal;
 
@@ -349,8 +352,11 @@ type
     procedure TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine);
     procedure TunnelLink_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
   public
-    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient); virtual;
     destructor Destroy; override;
+
+    // free recveive+send tunnel from destroy, default is false
+    property AutoFreeTunnel: Boolean read FAutoFreeTunnel write FAutoFreeTunnel;
 
     function Connected: Boolean; virtual;
 
@@ -554,7 +560,9 @@ type
     procedure PostBatchStreamP(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc); overload;
     procedure ClearBatchStream;
     procedure GetBatchStreamStateM(OnResult: TStreamMethod); overload;
+    procedure GetBatchStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
     procedure GetBatchStreamStateP(OnResult: TStreamProc); overload;
+    procedure GetBatchStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
     function GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean; overload;
 
     procedure RegisterCommand; virtual;
@@ -3020,6 +3028,16 @@ begin
   DisposeObject(de);
 end;
 
+procedure TCommunicationFramework_DoubleTunnelService.GetBatchStreamStateM(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
+var
+  de: TDataFrameEngine;
+  p: POnStateStruct;
+begin
+  de := TDataFrameEngine.Create;
+  cli.SendStreamCmdM(C_GetBatchStreamState, de, Param1, Param2, OnResult);
+  DisposeObject(de);
+end;
+
 procedure TCommunicationFramework_DoubleTunnelService.GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc);
 var
   de: TDataFrameEngine;
@@ -3027,6 +3045,16 @@ var
 begin
   de := TDataFrameEngine.Create;
   cli.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
+  DisposeObject(de);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelService.GetBatchStreamStateP(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
+var
+  de: TDataFrameEngine;
+  p: POnStateStruct;
+begin
+  de := TDataFrameEngine.Create;
+  cli.SendStreamCmdP(C_GetBatchStreamState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
@@ -3681,6 +3709,9 @@ begin
 
   FCurrentStream := nil;
   FCurrentReceiveStreamFileName := '';
+
+  FAutoFreeTunnel := False;
+
   FLinkOk := False;
   FWaitCommandTimeout := 8000;
 
@@ -3701,7 +3732,7 @@ begin
   FAsyncOnResultCall := nil;
   FAsyncOnResultMethod := nil;
   FAsyncOnResultProc := nil;
-  { }
+
   SwitchAsDefaultPerformance;
 
   FRecvTunnel.PrefixName := 'Double.Received';
@@ -3714,6 +3745,12 @@ begin
     begin
       DisposeObject(FCurrentStream);
       FCurrentStream := nil;
+    end;
+
+  if FAutoFreeTunnel then
+    begin
+      DisposeObjectAndNil(FRecvTunnel);
+      DisposeObjectAndNil(FSendTunnel);
     end;
 
   DisposeObject(FCadencerEngine);
@@ -4527,7 +4564,6 @@ begin
   DisposeObject(sendDE);
 end;
 
-{ }
 { remote md5 support with public store space }
 procedure TCommunicationFramework_DoubleTunnelClient.GetPublicFileMD5C(fileName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call);
@@ -5936,12 +5972,30 @@ begin
   DisposeObject(de);
 end;
 
+procedure TCommunicationFramework_DoubleTunnelClient.GetBatchStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  SendTunnel.SendStreamCmdM(C_GetBatchStreamState, de, Param1, Param2, OnResult);
+  DisposeObject(de);
+end;
+
 procedure TCommunicationFramework_DoubleTunnelClient.GetBatchStreamStateP(OnResult: TStreamProc);
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
   SendTunnel.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
+  DisposeObject(de);
+end;
+
+procedure TCommunicationFramework_DoubleTunnelClient.GetBatchStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
+var
+  de: TDataFrameEngine;
+begin
+  de := TDataFrameEngine.Create;
+  SendTunnel.SendStreamCmdP(C_GetBatchStreamState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 

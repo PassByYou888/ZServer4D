@@ -88,7 +88,8 @@ unit ZS_JsonDataObjects;
 {$ENDIF EXTERNALLINKER}
 
 // Enables the progress callback feature
-{$DEFINE SUPPORT_PROGRESS}
+// {$DEFINE SUPPORT_PROGRESS}
+{$UNDEF SUPPORT_PROGRESS}
 
 // Sanity checks all array index accesses and raise an EListError exception.
 {$DEFINE CHECK_ARRAY_INDEX}

@@ -310,7 +310,7 @@ end;
 
 class function TCompute.State(): string;
 begin
-  Result := Format('total: %d activted: %d waiting: %d granularity: %d max parallel: %d/%d',
+  Result := Format('Compute:%d Activted: %d Suspend: %d Granularity:%d MaxParallel:%d/%d',
     [TotalTask(), ActivtedTask(), WaitTask(), ParallelGranularity, ParallelOverflow.ActivtedParallel, MaxActivtedParallel]);
 end;
 

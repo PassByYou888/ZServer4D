@@ -1021,7 +1021,7 @@ begin
     begin
       bkPos := cPos;
       NC := 0;
-      dotNum:=0;
+      dotNum := 0;
       while True do
         begin
           cPos := GetTextDeclEndPos(GetCommentEndPos(cPos));

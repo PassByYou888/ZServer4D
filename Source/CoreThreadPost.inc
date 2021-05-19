@@ -74,7 +74,7 @@ begin
         begin
           FProgressing.V := True;
           FCritical.Acquire;
-          t_ := FSyncPool.Current^;
+          t_ := FSyncPool.Current^.Data^;
           FSyncPool.Next;
           FCritical.Release;
 
@@ -128,32 +128,32 @@ begin
             if FResetRandomSeed then
                 SetMT19937Seed(0);
             try
-              if Assigned(temp.Current^.OnCall1) then
-                  temp.Current^.OnCall1();
-              if Assigned(temp.Current^.OnCall2) then
-                  temp.Current^.OnCall2(temp.Current^.Data1);
-              if Assigned(temp.Current^.OnCall3) then
-                  temp.Current^.OnCall3(temp.Current^.Data1, temp.Current^.Data2, temp.Current^.Data3);
-              if Assigned(temp.Current^.OnCall4) then
-                  temp.Current^.OnCall4(temp.Current^.Data1, temp.Current^.Data2);
+              if Assigned(temp.Current^.Data^.OnCall1) then
+                  temp.Current^.Data^.OnCall1();
+              if Assigned(temp.Current^.Data^.OnCall2) then
+                  temp.Current^.Data^.OnCall2(temp.Current^.Data^.Data1);
+              if Assigned(temp.Current^.Data^.OnCall3) then
+                  temp.Current^.Data^.OnCall3(temp.Current^.Data^.Data1, temp.Current^.Data^.Data2, temp.Current^.Data^.Data3);
+              if Assigned(temp.Current^.Data^.OnCall4) then
+                  temp.Current^.Data^.OnCall4(temp.Current^.Data^.Data1, temp.Current^.Data^.Data2);
 
-              if Assigned(temp.Current^.OnMethod1) then
-                  temp.Current^.OnMethod1();
-              if Assigned(temp.Current^.OnMethod2) then
-                  temp.Current^.OnMethod2(temp.Current^.Data1);
-              if Assigned(temp.Current^.OnMethod3) then
-                  temp.Current^.OnMethod3(temp.Current^.Data1, temp.Current^.Data2, temp.Current^.Data3);
-              if Assigned(temp.Current^.OnMethod4) then
-                  temp.Current^.OnMethod4(temp.Current^.Data1, temp.Current^.Data2);
+              if Assigned(temp.Current^.Data^.OnMethod1) then
+                  temp.Current^.Data^.OnMethod1();
+              if Assigned(temp.Current^.Data^.OnMethod2) then
+                  temp.Current^.Data^.OnMethod2(temp.Current^.Data^.Data1);
+              if Assigned(temp.Current^.Data^.OnMethod3) then
+                  temp.Current^.Data^.OnMethod3(temp.Current^.Data^.Data1, temp.Current^.Data^.Data2, temp.Current^.Data^.Data3);
+              if Assigned(temp.Current^.Data^.OnMethod4) then
+                  temp.Current^.Data^.OnMethod4(temp.Current^.Data^.Data1, temp.Current^.Data^.Data2);
 
-              if Assigned(temp.Current^.OnProc1) then
-                  temp.Current^.OnProc1();
-              if Assigned(temp.Current^.OnProc2) then
-                  temp.Current^.OnProc2(temp.Current^.Data1);
-              if Assigned(temp.Current^.OnProc3) then
-                  temp.Current^.OnProc3(temp.Current^.Data1, temp.Current^.Data2, temp.Current^.Data3);
-              if Assigned(temp.Current^.OnProc4) then
-                  temp.Current^.OnProc4(temp.Current^.Data1, temp.Current^.Data2);
+              if Assigned(temp.Current^.Data^.OnProc1) then
+                  temp.Current^.Data^.OnProc1();
+              if Assigned(temp.Current^.Data^.OnProc2) then
+                  temp.Current^.Data^.OnProc2(temp.Current^.Data^.Data1);
+              if Assigned(temp.Current^.Data^.OnProc3) then
+                  temp.Current^.Data^.OnProc3(temp.Current^.Data^.Data1, temp.Current^.Data^.Data2, temp.Current^.Data^.Data3);
+              if Assigned(temp.Current^.Data^.OnProc4) then
+                  temp.Current^.Data^.OnProc4(temp.Current^.Data^.Data1, temp.Current^.Data^.Data2);
             except
             end;
             temp.Next;

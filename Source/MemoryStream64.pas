@@ -144,6 +144,7 @@ type
   end;
 
   TStream64 = TMemoryStream64;
+  TMS64 = TMemoryStream64;
 
   TMemoryStream64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMemoryStream64>;
 
@@ -153,6 +154,7 @@ type
   end;
 
   TStream64List = TMemoryStream64List;
+  TMS64List = TMemoryStream64List;
 
   IMemoryStream64WriteTrigger = interface
     procedure TriggerWrite64(Count: Int64);
@@ -251,6 +253,8 @@ type
     function read(var buffer; Count: Int64): Int64;
     function Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
 
+    function CopyFrom(const source: TCoreClassStream; Count: Int64): Int64;
+
     // Serialized writer
     procedure WriteBool(const buff: Boolean);
     procedure WriteInt8(const buff: ShortInt);
@@ -288,12 +292,16 @@ type
     function ReadMD5: TMD5;
   end;
 
+  TM64 = TMem64;
+
   TMem64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMem64>;
 
   TMem64List = class(TMem64List_Decl)
   public
     procedure Clean;
   end;
+
+  TM64List = TMem64List;
 
 {$IFDEF FPC}
 
@@ -614,6 +622,15 @@ begin
   if FProtectedMode then
       Exit;
 
+  if stream is TMemoryStream64 then
+    begin
+      Clear;
+      if TMemoryStream64(stream).Size > 0 then
+          WritePtr(TMemoryStream64(stream).Memory, TMemoryStream64(stream).Size);
+      Position := 0;
+      Exit;
+    end;
+
   stream.Position := 0;
   SetSize(stream.Size);
   if stream.Size > 0 then
@@ -666,6 +683,15 @@ var
   Num: NativeInt;
   Rest: NativeInt;
 begin
+  if stream is TMemoryStream64 then
+    begin
+      TMemoryStream64(stream).Clear;
+      if Size > 0 then
+          TMemoryStream64(stream).WritePtr(Memory, Size);
+      TMemoryStream64(stream).Position := 0;
+      Exit;
+    end;
+
   if Size > 0 then
     begin
       p := FMemory;
@@ -1632,6 +1658,53 @@ begin
     TSeekOrigin.soEnd: FPosition := FSize + Offset;
   end;
   Result := FPosition;
+end;
+
+function TMem64.CopyFrom(const source: TCoreClassStream; Count: Int64): Int64;
+const
+  MaxBufSize = $F000;
+var
+  BufSize, n: Int64;
+  buffer: PByte;
+begin
+  if FProtectedMode then
+      RaiseInfo('protected mode');
+
+  if source is TMemoryStream64 then
+    begin
+      WritePtr(TMemoryStream64(source).PositionAsPtr, Count);
+      TMemoryStream64(source).Position := TMemoryStream64(source).FPosition + Count;
+      Result := Count;
+      Exit;
+    end;
+
+  if Count <= 0 then
+    begin
+      source.Position := 0;
+      Count := source.Size;
+    end;
+
+  Result := Count;
+  if Count > MaxBufSize then
+      BufSize := MaxBufSize
+  else
+      BufSize := Count;
+
+  buffer := System.GetMemory(BufSize);
+  try
+    while Count <> 0 do
+      begin
+        if Count > BufSize then
+            n := BufSize
+        else
+            n := Count;
+        source.read(buffer^, n);
+        WritePtr(buffer, n);
+        dec(Count, n);
+      end;
+  finally
+      System.FreeMem(buffer);
+  end;
 end;
 
 procedure TMem64.WriteBool(const buff: Boolean);

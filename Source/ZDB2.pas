@@ -580,6 +580,12 @@ begin
 
   Mem := MakeIndexBuffer(IndexSpaceSize(Space_.BlockCount));
   Result := Space_.WriteData(Mem, PInteger(@Space_.UserCustomHeader^[0])^);
+
+  if not Result then
+    if Mem.Size >= FSpace.State^.FreeSpace then
+      if FSpace.AppendSpace(Mem.Size + FNoSpaceExpansionSize, FNoSpaceExpansionBlockSize) then
+          Result := Space_.WriteData(Mem, PInteger(@Space_.UserCustomHeader^[0])^);
+
   DisposeObject(Mem);
 end;
 

@@ -763,7 +763,7 @@ type
     procedure Clear;
 
     class function VToStr(const v: SystemString): SystemString;
-    class function StrToV(const s: SystemString): SystemString;
+    class function StrToV(const S: SystemString): SystemString;
 
     procedure DataImport(TextList: TListPascalString); overload;
     procedure DataImport(TextList: TCoreClassStrings); overload;
@@ -884,8 +884,8 @@ type
 
     property i64[const Name: SystemString]: Int64 read GetI64 write SetI64;
     property i32[const Name: SystemString]: Integer read GetI32 write SetI32;
-    property f[const Name: SystemString]: Double read GetF write SetF;
-    property s[const Name: SystemString]: SystemString read GetS write SetS;
+    property F[const Name: SystemString]: Double read GetF write SetF;
+    property S[const Name: SystemString]: SystemString read GetS write SetS;
 
     property KeyValue[const Name: SystemString]: Variant read GetKeyValue write SetKeyValue; default;
     property NameValue[const Name: SystemString]: Variant read GetKeyValue write SetKeyValue;
@@ -920,7 +920,7 @@ type
     procedure Clear;
 
     class function VToStr(const v: Variant): SystemString;
-    class function StrToV(const s: SystemString): Variant;
+    class function StrToV(const S: SystemString): Variant;
 
     procedure DataImport(TextList: TListPascalString); overload;
     procedure DataImport(TextList: TCoreClassStrings); overload;
@@ -1438,8 +1438,8 @@ type
 
 function HashMod(const h: THash; const m: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 // fast hash support
-function MakeHashS(const s: PSystemString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function MakeHashPas(const s: PPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MakeHashS(const S: PSystemString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MakeHashPas(const S: PPascalString): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakeHashI64(const i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakeHashU32(const c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakeHashP(const p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -1463,15 +1463,15 @@ begin
       Result := 0;
 end;
 
-function MakeHashS(const s: PSystemString): THash;
+function MakeHashS(const S: PSystemString): THash;
 begin
-  Result := FastHashPSystemString(s);
+  Result := FastHashPSystemString(S);
   Result := umlCRC32(@Result, SizeOf(THash));
 end;
 
-function MakeHashPas(const s: PPascalString): THash;
+function MakeHashPas(const S: PPascalString): THash;
 begin
-  Result := FastHashPPascalString(s);
+  Result := FastHashPPascalString(S);
   Result := umlCRC32(@Result, SizeOf(THash));
 end;
 
@@ -7045,12 +7045,12 @@ begin
       Result := v;
 end;
 
-class function THashStringTextStream.StrToV(const s: SystemString): SystemString;
+class function THashStringTextStream.StrToV(const S: SystemString): SystemString;
 var
   n, body: U_String;
   v: Variant;
 begin
-  n := umlTrimSpace(s);
+  n := umlTrimSpace(S);
   try
     if n.ComparePos(1, '___base64:') then
       begin
@@ -8141,12 +8141,12 @@ begin
   end;
 end;
 
-class function THashVariantTextStream.StrToV(const s: SystemString): Variant;
+class function THashVariantTextStream.StrToV(const S: SystemString): Variant;
 var
   n, body: U_String;
   v: Variant;
 begin
-  n := umlTrimSpace(s);
+  n := umlTrimSpace(S);
   try
     if n.ComparePos(1, '___base64:') then
       begin

@@ -391,11 +391,12 @@ function umlDateToStr(t: TDateTime): TPascalString;
 function umlFloatToStr(const f: Double): TPascalString;
 function umlShortFloatToStr(const f: Double): TPascalString;
 
-function umlStrToInt(const _V: TPascalString): Integer; overload;
-function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer; overload;
-function umlStrToInt64(const _V: TPascalString; _Def: Int64): Int64; overload;
-function umlStrToFloat(const _V: TPascalString; _Def: Double): Double; overload;
-function umlStrToFloat(const _V: TPascalString): Double; overload;
+function umlStrToInt(const V_: TPascalString): Integer; overload;
+function umlStrToInt(const V_: TPascalString; _Def: Integer): Integer; overload;
+function umlStrToInt64(const V_: TPascalString; _Def: Int64): Int64; overload;
+function umlStrToInt64(const V_: TPascalString): Int64; overload;
+function umlStrToFloat(const V_: TPascalString; _Def: Double): Double; overload;
+function umlStrToFloat(const V_: TPascalString): Double; overload;
 
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean; overload;
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr: TPascalString): Boolean; overload;
@@ -510,6 +511,7 @@ function umlStreamMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5; 
 function umlStreamMD5(stream: TCoreClassStream): TMD5; overload;
 function umlStreamMD5Char(stream: TCoreClassStream): TPascalString; overload;
 function umlStreamMD5String(stream: TCoreClassStream): TPascalString; overload;
+function umlStreamMD5Str(stream: TCoreClassStream): TPascalString; overload;
 function umlStringMD5(const Value: TPascalString): TPascalString;
 function umlFileMD5___(FileName: TPascalString): TMD5; overload;
 function umlFileMD5(FileName: TPascalString; StartPos, EndPos: Int64): TMD5; overload;
@@ -651,7 +653,6 @@ function umlDivisionText(const buffer: TPascalString; width: Integer; DivisionAs
 
 function umlUpdateComponentName(const Name: TPascalString): TPascalString;
 function umlMakeComponentName(Owner: TCoreClassComponent; RefrenceName: TPascalString): TPascalString;
-
 procedure umlReadComponent(stream: TCoreClassStream; comp: TCoreClassComponent);
 procedure umlWriteComponent(stream: TCoreClassStream; comp: TCoreClassComponent);
 procedure umlCopyComponentDataTo(comp, copyto: TCoreClassComponent);
@@ -1438,7 +1439,7 @@ end;
 
 function umlNow: Double;
 begin
-  Result := Now;
+  Result := Now();
 end;
 
 function umlDefaultAttrib: Integer;
@@ -3726,11 +3727,11 @@ begin
   if Size < 1 shl 10 then
       Result := Format('%d', [Size])
   else if Size < 1 shl 20 then
-      Result := Format('%fKb', [Size / (1 shl 10)])
+      Result := Format('%f Kb', [Size / (1 shl 10)])
   else if Size < 1 shl 30 then
-      Result := Format('%fM', [Size / (1 shl 20)])
+      Result := Format('%f M', [Size / (1 shl 20)])
   else
-      Result := Format('%fG', [Size / (1 shl 30)])
+      Result := Format('%f G', [Size / (1 shl 30)])
 end;
 
 function umlIntToStr(Parameter: Single): TPascalString;
@@ -3756,13 +3757,13 @@ end;
 function umlMBPSToStr(Size: Int64): TPascalString;
 begin
   if Size < 1 shl 10 then
-      Result := Format('%dbps', [Size * 10])
+      Result := Format('%d bps', [Size * 10])
   else if Size < 1 shl 20 then
-      Result := Format('%fKbps', [Size / (1 shl 10) * 10])
+      Result := Format('%f Kbps', [Size / (1 shl 10) * 10])
   else if Size < 1 shl 30 then
-      Result := Format('%fMbps', [Size / (1 shl 20) * 10])
+      Result := Format('%f Mbps', [Size / (1 shl 20) * 10])
   else
-      Result := Format('%fGbps', [Size / (1 shl 30) * 10])
+      Result := Format('%f Gbps', [Size / (1 shl 30) * 10])
 end;
 
 function umlSizeToStr(Parameter: Int64): TPascalString;
@@ -3822,12 +3823,12 @@ end;
 
 function umlTimeToStr(t: TDateTime): TPascalString;
 begin
-  Result := TimeToStr(t);
+  Result := TimeToStr(t, Lib_DateTimeFormatSettings);
 end;
 
 function umlDateToStr(t: TDateTime): TPascalString;
 begin
-  Result := DateToStr(t);
+  Result := DateToStr(t, Lib_DateTimeFormatSettings);
 end;
 
 function umlFloatToStr(const f: Double): TPascalString;
@@ -3840,17 +3841,17 @@ begin
   Result := Format('%f', [f]);
 end;
 
-function umlStrToInt(const _V: TPascalString): Integer;
+function umlStrToInt(const V_: TPascalString): Integer;
 begin
-  Result := umlStrToInt(_V, 0);
+  Result := umlStrToInt(V_, 0);
 end;
 
-function umlStrToInt(const _V: TPascalString; _Def: Integer): Integer;
+function umlStrToInt(const V_: TPascalString; _Def: Integer): Integer;
 begin
-  if umlIsNumber(_V) then
+  if umlIsNumber(V_) then
     begin
       try
-          Result := StrToInt(_V.text);
+          Result := StrToInt(V_.text);
       except
           Result := _Def;
       end;
@@ -3859,12 +3860,12 @@ begin
       Result := _Def;
 end;
 
-function umlStrToInt64(const _V: TPascalString; _Def: Int64): Int64;
+function umlStrToInt64(const V_: TPascalString; _Def: Int64): Int64;
 begin
-  if umlIsNumber(_V) then
+  if umlIsNumber(V_) then
     begin
       try
-          Result := StrToInt64(_V.text);
+          Result := StrToInt64(V_.text);
       except
           Result := _Def;
       end;
@@ -3873,12 +3874,17 @@ begin
       Result := _Def;
 end;
 
-function umlStrToFloat(const _V: TPascalString; _Def: Double): Double;
+function umlStrToInt64(const V_: TPascalString): Int64;
 begin
-  if umlIsNumber(_V) then
+  Result := umlStrToInt64(V_, 0);
+end;
+
+function umlStrToFloat(const V_: TPascalString; _Def: Double): Double;
+begin
+  if umlIsNumber(V_) then
     begin
       try
-          Result := StrToFloat(_V.text);
+          Result := StrToFloat(V_.text);
       except
           Result := _Def;
       end;
@@ -3887,9 +3893,9 @@ begin
       Result := _Def;
 end;
 
-function umlStrToFloat(const _V: TPascalString): Double;
+function umlStrToFloat(const V_: TPascalString): Double;
 begin
-  Result := umlStrToFloat(_V, 0);
+  Result := umlStrToFloat(V_, 0);
 end;
 
 function umlMultipleMatch(IgnoreCase: Boolean; const SourceStr, TargetStr, umlMultipleString, umlMultipleCharacter: TPascalString): Boolean;
@@ -5212,6 +5218,7 @@ begin
 end;
 {$IFEND}
 
+
 function umlMD5(const buffPtr: PByte; bufSiz: NativeUInt): TMD5;
 {$IF Defined(FastMD5) and Defined(Delphi) and (Defined(WIN32) or Defined(WIN64))}
 begin
@@ -5401,6 +5408,11 @@ begin
 end;
 
 function umlStreamMD5String(stream: TCoreClassStream): TPascalString;
+begin
+  Result := umlMD5ToStr(umlStreamMD5(stream));
+end;
+
+function umlStreamMD5Str(stream: TCoreClassStream): TPascalString;
 begin
   Result := umlMD5ToStr(umlStreamMD5(stream));
 end;

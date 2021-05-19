@@ -15,7 +15,8 @@ uses
   FMX.ListView, PascalStrings, MemoryStream64, UnicodeMixedLib,
   CommunicationFrameworkDataStoreService_VirtualAuth,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth, FileBuffOfCode,
-  FMX.ListBox, FMX.Objects, DataFrameEngine, ZS_JsonDataObjects;
+  FMX.ListBox, FMX.Objects, DataFrameEngine, ZS_JsonDataObjects,
+  FMX.Memo.Types;
 
 type
   TMyDataStoreClient = class(TDataStoreClient_VirtualAuth)
@@ -388,9 +389,9 @@ begin
           img: TImage;
           m: TMemoryStream64;
         begin
-          // stream是临时的，并且是encode的数据，必须使用DecodeOneFragment方法进行解码
+          // stream是临时的，并且是encode的数据，必须使用DecodeZDBFragment方法进行解码
           // 完成后存放再M中，在调用结束时注意释放M
-          m := DecodeOneFragment(stream);
+          m := DecodeZDBFragment(stream);
           img := TImage.Create(litm);
           img.Parent := litm;
           img.Align := TAlignLayout.Right;

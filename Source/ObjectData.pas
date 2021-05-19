@@ -265,7 +265,7 @@ type
   TObjectDataTMDBReadProc = procedure(fPos: Int64; const rVal: PObjectDataHandle; var Done: Boolean) of object;
 
   TObjectDataHandle = record
-    IOHnd: TIOHnd; // IO handle
+    IOHnd: TIOHnd;                                               // IO handle
     ReservedData: array [0 .. DB_ReservedData_Size - 1] of Byte; // file: reserved struct
     FixedStringL: Byte;                                          // file: fixed string length
     MajorVer, MinorVer: SmallInt;                                // file: version info

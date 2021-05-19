@@ -42,7 +42,6 @@ type
   T2DPoint = TVec2;
   P2DPoint = PVec2;
   TPoint2 = T2DPoint;
-
   TArrayVec2 = array of TVec2;
   PArrayVec2 = ^TArrayVec2;
   TVec2Array = TArrayVec2;
@@ -453,6 +452,7 @@ function Intersect(const pt1, pt2, pt3, pt4: TVec2; out pt: TVec2): Boolean; ove
 function Intersect(const l1, l2: TLineV2; out pt: TVec2): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Intersect(const pt1, pt2, pt3, pt4: TVec2): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function PointInCircle(const pt, cp: TVec2; radius: TGeoFloat): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Vec2InCircle(const pt, cp: TVec2; radius: TGeoFloat): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function PointInTriangle(const Px, Py, x1, y1, x2, y2, x3, y3: TGeoFloat): Boolean; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure BuildSinCosCache(const oSin, oCos: PGeoFloatArray; const b, E: TGeoFloat);
@@ -567,6 +567,8 @@ type
     function InHere(r: TRectV2): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function GetArrayVec2: TArrayVec2;
     function GetNear(pt: TVec2): TVec2;
+    function GetNearLine(const v: TVec2; out lb, le: PVec2): TVec2; overload;
+    function GetNearLine(const v: TVec2): TVec2; overload;
     function Projection(const sour, dest: TRectV2; const sourAxis, destAxis: TVec2; const sourAngle, destAngle: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Projection(const sour, dest: TRectV2; sourAngle, destAngle: TGeoFloat): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
     function Projection(const sour, dest: TRectV2): TV2Rect4; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -3858,7 +3860,12 @@ end;
 
 function PointInCircle(const pt, cp: TVec2; radius: TGeoFloat): Boolean;
 begin
-  Result := (PointLayDistance(pt, cp) <= (radius * radius));
+  Result := (PointDistance(pt, cp) <= (radius + radius));
+end;
+
+function Vec2InCircle(const pt, cp: TVec2; radius: TGeoFloat): Boolean;
+begin
+  Result := (PointDistance(pt, cp) <= (radius + radius));
 end;
 
 function PointInTriangle(const Px, Py, x1, y1, x2, y2, x3, y3: TGeoFloat): Boolean;
@@ -4701,6 +4708,68 @@ begin
     begin
       d := tmpDist;
       Result := tmpPt;
+    end;
+end;
+
+function TV2Rect4.GetNearLine(const v: TVec2; out lb, le: PVec2): TVec2;
+var
+  Arry_: array [0 .. 4] of PVec2;
+  i: TGeoInt;
+  pt1, pt2: PVec2;
+  opt: TVec2;
+  d, d2: TGeoFloat;
+begin
+  Arry_[0] := @LeftTop;
+  Arry_[1] := @RightTop;
+  Arry_[2] := @RightBottom;
+  Arry_[3] := @LeftBottom;
+  Arry_[4] := @LeftTop;
+
+  pt1 := Arry_[0];
+  d := 0.0;
+  for i := 1 to 4 do
+    begin
+      pt2 := Arry_[i];
+      opt := ClosestPointOnSegmentFromPoint(pt1^, pt2^, v);
+      d2 := PointDistance(v, opt);
+      if (i = 1) or (d2 < d) then
+        begin
+          Result := opt;
+          d := d2;
+          lb := Arry_[i - 1];
+          le := Arry_[i];
+        end;
+      pt1 := pt2;
+    end;
+end;
+
+function TV2Rect4.GetNearLine(const v: TVec2): TVec2;
+var
+  Arry_: array [0 .. 4] of PVec2;
+  i: TGeoInt;
+  pt1, pt2: PVec2;
+  opt: TVec2;
+  d, d2: TGeoFloat;
+begin
+  Arry_[0] := @LeftTop;
+  Arry_[1] := @RightTop;
+  Arry_[2] := @RightBottom;
+  Arry_[3] := @LeftBottom;
+  Arry_[4] := @LeftTop;
+
+  pt1 := Arry_[0];
+  d := 0.0;
+  for i := 1 to 4 do
+    begin
+      pt2 := Arry_[i];
+      opt := ClosestPointOnSegmentFromPoint(pt1^, pt2^, v);
+      d2 := PointDistance(v, opt);
+      if (i = 1) or (d2 < d) then
+        begin
+          Result := opt;
+          d := d2;
+        end;
+      pt1 := pt2;
     end;
 end;
 
@@ -6238,7 +6307,7 @@ procedure TVec2List.SortOfNear(const lb, le: TVec2);
     Result := CompareFloat(d1, d2);
   end;
 
-  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
@@ -6246,22 +6315,22 @@ procedure TVec2List.SortOfNear(const lb, le: TVec2);
     repeat
       i := l;
       j := r;
-      p := arry_[(l + r) shr 1];
+      p := Arry_[(l + r) shr 1];
       repeat
-        while Compare_(arry_[i], p) < 0 do
+        while Compare_(Arry_[i], p) < 0 do
             inc(i);
-        while Compare_(arry_[j], p) > 0 do
+        while Compare_(Arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Swap(arry_[i], arry_[j]);
+                Swap(Arry_[i], Arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          fastSort_(arry_, l, j);
+          fastSort_(Arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -6282,7 +6351,7 @@ procedure TVec2List.SortOfNear(const pt: TVec2);
     Result := CompareFloat(d1, d2);
   end;
 
-  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
@@ -6290,22 +6359,22 @@ procedure TVec2List.SortOfNear(const pt: TVec2);
     repeat
       i := l;
       j := r;
-      p := arry_[(l + r) shr 1];
+      p := Arry_[(l + r) shr 1];
       repeat
-        while Compare_(arry_[i], p) < 0 do
+        while Compare_(Arry_[i], p) < 0 do
             inc(i);
-        while Compare_(arry_[j], p) > 0 do
+        while Compare_(Arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Swap(arry_[i], arry_[j]);
+                Swap(Arry_[i], Arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          fastSort_(arry_, l, j);
+          fastSort_(Arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -6347,7 +6416,7 @@ begin
           opt := ClosestPointOnSegmentFromPoint(pt1^, pt2^, pt);
 
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (i = 1) or (d2 < d) then
             begin
               Result := opt;
               d := d2;
@@ -6357,12 +6426,12 @@ begin
 
           pt1 := pt2;
         end;
-      if ClosedMode then
+      if ClosedMode and (Count >= 3) then
         begin
           pt2 := Points[0];
           opt := ClosestPointOnSegmentFromPoint(pt1^, pt2^, pt);
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (d2 < d) then
             begin
               Result := opt;
               lb := FList.Count - 1;
@@ -6405,7 +6474,7 @@ begin
           opt := ClosestPointOnSegmentFromPoint(pt1^, pt2^, pt);
 
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (i = 1) or (d2 < d) then
             begin
               Result := opt;
               d := d2;
@@ -6413,12 +6482,12 @@ begin
 
           pt1 := pt2;
         end;
-      if ClosedMode then
+      if ClosedMode and (Count >= 3) then
         begin
           pt2 := Points[0];
           opt := ClosestPointOnSegmentFromPoint(pt1^, pt2^, pt);
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (d2 < d) then
             begin
               Result := opt;
             end;
@@ -6455,7 +6524,7 @@ begin
           opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
 
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (i = 1) or (d2 < d) then
             begin
               Result := opt;
               d := d2;
@@ -6464,12 +6533,15 @@ begin
           pt1 := pt2;
         end;
 
-      pt2 := Expands[0, ExpandDist];
-      opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
-      d2 := PointDistance(pt, opt);
-      if (d = 0.0) or (d2 < d) then
+      if (Count >= 3) then
         begin
-          Result := opt;
+          pt2 := Expands[0, ExpandDist];
+          opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
+          d2 := PointDistance(pt, opt);
+          if (d2 < d) then
+            begin
+              Result := opt;
+            end;
         end;
     end
   else
@@ -8280,7 +8352,7 @@ begin
           opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
 
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (i = 1) or (d2 < d) then
             begin
               Result := opt;
               d := d2;
@@ -8295,7 +8367,7 @@ begin
           pt2 := Points[0];
           opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (d2 < d) then
             begin
               Result := opt;
               lb := FList.Count - 1;
@@ -8336,7 +8408,7 @@ begin
           pt2 := Expands[i, ExpandDistance_];
           opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (i = 1) or (d2 < d) then
             begin
               Result := opt;
               d := d2;
@@ -8351,7 +8423,7 @@ begin
           pt2 := Expands[0, ExpandDistance_];
           opt := ClosestPointOnSegmentFromPoint(pt1, pt2, pt);
           d2 := PointDistance(pt, opt);
-          if (d = 0.0) or (d2 < d) then
+          if (d2 < d) then
             begin
               Result := opt;
               lb := FList.Count - 1;
@@ -9091,7 +9163,7 @@ procedure TDeflectionPolygonLines.SortOfNear(const pt: TVec2);
     Result := CompareFloat(d1, d2);
   end;
 
-  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
@@ -9099,22 +9171,22 @@ procedure TDeflectionPolygonLines.SortOfNear(const pt: TVec2);
     repeat
       i := l;
       j := r;
-      p := arry_[(l + r) shr 1];
+      p := Arry_[(l + r) shr 1];
       repeat
-        while Compare_(arry_[i], p) < 0 do
+        while Compare_(Arry_[i], p) < 0 do
             inc(i);
-        while Compare_(arry_[j], p) > 0 do
+        while Compare_(Arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Swap(arry_[i], arry_[j]);
+                Swap(Arry_[i], Arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          fastSort_(arry_, l, j);
+          fastSort_(Arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -9139,7 +9211,7 @@ procedure TDeflectionPolygonLines.SortOfFar(const pt: TVec2);
     Result := CompareFloat(d2, d1);
   end;
 
-  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
@@ -9147,22 +9219,22 @@ procedure TDeflectionPolygonLines.SortOfFar(const pt: TVec2);
     repeat
       i := l;
       j := r;
-      p := arry_[(l + r) shr 1];
+      p := Arry_[(l + r) shr 1];
       repeat
-        while Compare_(arry_[i], p) < 0 do
+        while Compare_(Arry_[i], p) < 0 do
             inc(i);
-        while Compare_(arry_[j], p) > 0 do
+        while Compare_(Arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Swap(arry_[i], arry_[j]);
+                Swap(Arry_[i], Arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          fastSort_(arry_, l, j);
+          fastSort_(Arry_, l, j);
       l := i;
     until i >= r;
   end;
@@ -9639,7 +9711,7 @@ procedure TRectPacking.Build(SpaceWidth, SpaceHeight: TGeoFloat);
     Result := CompareFloat(RectArea(PRectPackData(Right)^.Rect), RectArea(PRectPackData(Left)^.Rect));
   end;
 
-  procedure fastSort_(var arry_: TCoreClassPointerList; l, r: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; l, r: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
@@ -9647,22 +9719,22 @@ procedure TRectPacking.Build(SpaceWidth, SpaceHeight: TGeoFloat);
     repeat
       i := l;
       j := r;
-      p := arry_[(l + r) shr 1];
+      p := Arry_[(l + r) shr 1];
       repeat
-        while Compare_(arry_[i], p) < 0 do
+        while Compare_(Arry_[i], p) < 0 do
             inc(i);
-        while Compare_(arry_[j], p) > 0 do
+        while Compare_(Arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Swap(arry_[i], arry_[j]);
+                Swap(Arry_[i], Arry_[j]);
             inc(i);
             dec(j);
           end;
       until i > j;
       if l < j then
-          fastSort_(arry_, l, j);
+          fastSort_(Arry_, l, j);
       l := i;
     until i >= r;
   end;
