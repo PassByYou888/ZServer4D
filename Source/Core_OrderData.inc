@@ -1,8 +1,7 @@
-procedure TOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(p: POrderStruct_);
+procedure TOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoInternalFree(p: POrderStruct_);
 begin
   try
-    if Assigned(FOnFreeOrderStruct) then
-        FOnFreeOrderStruct(p^.Data);
+    DoFree(p^.Data);
     Dispose(p);
   except
   end;
@@ -23,6 +22,12 @@ begin
   inherited Destroy;
 end;
 
+procedure TOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(var Data: T_);
+begin
+  if Assigned(FOnFreeOrderStruct) then
+      FOnFreeOrderStruct(Data);
+end;
+
 procedure TOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.Clear;
 var
   p, tmp: POrderStruct_;
@@ -31,7 +36,7 @@ begin
   while p <> nil do
     begin
       tmp := p^.Next;
-      DoFree(p);
+      DoInternalFree(p);
       p := tmp;
     end;
   FFirst := nil;
@@ -46,7 +51,7 @@ begin
   if FFirst <> nil then
     begin
       tmp := FFirst^.Next;
-      DoFree(FFirst);
+      DoInternalFree(FFirst);
       FFirst := tmp;
       if FFirst = nil then
           FLast := nil;
@@ -75,13 +80,10 @@ begin
     end;
 end;
 
-procedure TOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(p: POrderPtrStruct_);
+procedure TOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoInternalFree(p: POrderPtrStruct_);
 begin
   try
-    if Assigned(FOnFreeOrderStruct) then
-        FOnFreeOrderStruct(p^.Data)
-    else
-        Dispose(p^.Data);
+    DoFree(p^.Data);
     Dispose(p);
   except
   end;
@@ -102,6 +104,14 @@ begin
   inherited Destroy;
 end;
 
+procedure TOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(Data: PT_);
+begin
+  if Assigned(FOnFreeOrderStruct) then
+      FOnFreeOrderStruct(Data)
+  else
+      Dispose(Data);
+end;
+
 procedure TOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.Clear;
 var
   p, tmp: POrderPtrStruct_;
@@ -110,7 +120,7 @@ begin
   while p <> nil do
     begin
       tmp := p^.Next;
-      DoFree(p);
+      DoInternalFree(p);
       p := tmp;
     end;
   FFirst := nil;
@@ -125,7 +135,7 @@ begin
   if FFirst <> nil then
     begin
       tmp := FFirst^.Next;
-      DoFree(FFirst);
+      DoInternalFree(FFirst);
       FFirst := tmp;
       if FFirst = nil then
           FLast := nil;
@@ -176,11 +186,10 @@ begin
     end;
 end;
 
-procedure TCriticalOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(p: POrderStruct_);
+procedure TCriticalOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoInternalFree(p: POrderStruct_);
 begin
   try
-    if Assigned(FOnFreeCriticalOrderStruct) then
-        FOnFreeCriticalOrderStruct(p^.Data);
+    DoFree(p^.Data);
     Dispose(p);
   except
   end;
@@ -203,6 +212,12 @@ begin
   inherited Destroy;
 end;
 
+procedure TCriticalOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(var Data: T_);
+begin
+  if Assigned(FOnFreeCriticalOrderStruct) then
+      FOnFreeCriticalOrderStruct(Data);
+end;
+
 procedure TCriticalOrderStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.Clear;
 var
   p, tmp: POrderStruct_;
@@ -212,7 +227,7 @@ begin
   while p <> nil do
     begin
       tmp := p^.Next;
-      DoFree(p);
+      DoInternalFree(p);
       p := tmp;
     end;
   FFirst := nil;
@@ -236,7 +251,7 @@ begin
   if FFirst <> nil then
     begin
       tmp := FFirst^.Next;
-      DoFree(FFirst);
+      DoInternalFree(FFirst);
       FFirst := tmp;
       if FFirst = nil then
           FLast := nil;
@@ -275,13 +290,10 @@ begin
   FCritical.UnLock;
 end;
 
-procedure TCriticalOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(p: POrderPtrStruct_);
+procedure TCriticalOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoInternalFree(p: POrderPtrStruct_);
 begin
   try
-    if Assigned(FOnFreeCriticalOrderStruct) then
-        FOnFreeCriticalOrderStruct(p^.Data)
-    else
-        Dispose(p^.Data);
+    DoFree(p^.Data);
     Dispose(p);
   except
   end;
@@ -304,6 +316,14 @@ begin
   inherited Destroy;
 end;
 
+procedure TCriticalOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.DoFree(Data: PT_);
+begin
+  if Assigned(FOnFreeCriticalOrderStruct) then
+      FOnFreeCriticalOrderStruct(Data)
+  else
+      Dispose(Data);
+end;
+
 procedure TCriticalOrderPtrStruct{$IFNDEF FPC}<T_>{$ENDIF FPC}.Clear;
 var
   p, tmp: POrderPtrStruct_;
@@ -313,7 +333,7 @@ begin
   while p <> nil do
     begin
       tmp := p^.Next;
-      DoFree(p);
+      DoInternalFree(p);
       p := tmp;
     end;
   FFirst := nil;
@@ -337,7 +357,7 @@ begin
   if FFirst <> nil then
     begin
       tmp := FFirst^.Next;
-      DoFree(FFirst);
+      DoInternalFree(FFirst);
       FFirst := tmp;
       if FFirst = nil then
           FLast := nil;

@@ -48,6 +48,12 @@ type
   PTimeTick = ^TTimeTick;
   TSeekOrigin = Classes.TSeekOrigin;
   TNotify = Classes.TNotifyEvent;
+  TArrayInt64 = Array of Int64;
+  TArrayUInt64 = Array of UInt64;
+  TInt64Buffer = Array [0 .. MaxInt div SizeOf(Int64) - 1] of Int64;
+  PInt64Buffer = ^TInt64Buffer;
+  TUInt64Buffer = Array [0 .. MaxInt div SizeOf(UInt64) - 1] of UInt64;
+  PUInt64Buffer = ^TUInt64Buffer;
 
   TCoreClassObject = TObject;
   TCoreClassPersistent = TPersistent;
@@ -235,17 +241,17 @@ type
       Data: T_;
       Next: POrderStruct_;
     end;
-    TOnFreeOrderStruct = procedure(p: T_) of object;
+    TOnFreeOrderStruct = procedure(var p: T_) of object;
   private
     FFirst: POrderStruct_;
     FLast: POrderStruct_;
     FNum: NativeInt;
     FOnFreeOrderStruct: TOnFreeOrderStruct;
-  protected
-    procedure DoFree(p: POrderStruct_);
+    procedure DoInternalFree(p: POrderStruct_);
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
+    procedure DoFree(var Data: T_); virtual;
     procedure Clear;
     property Current: POrderStruct_ read FFirst;
     procedure Next;
@@ -270,11 +276,11 @@ type
     FLast: POrderPtrStruct_;
     FNum: NativeInt;
     FOnFreeOrderStruct: TOnFreeOrderPtrStruct;
-  protected
-    procedure DoFree(p: POrderPtrStruct_);
+    procedure DoInternalFree(p: POrderPtrStruct_);
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
+    procedure DoFree(Data: PT_); virtual;
     procedure Clear;
     property Current: POrderPtrStruct_ read FFirst;
     procedure Next;
@@ -294,18 +300,18 @@ type
       Data: T_;
       Next: POrderStruct_;
     end;
-    TOnFreeCriticalOrderStruct = procedure(p: T_) of object;
+    TOnFreeCriticalOrderStruct = procedure(var p: T_) of object;
   private
     FCritical: TCritical;
     FFirst: POrderStruct_;
     FLast: POrderStruct_;
     FNum: NativeInt;
     FOnFreeCriticalOrderStruct: TOnFreeCriticalOrderStruct;
-  protected
-    procedure DoFree(p: POrderStruct_);
+    procedure DoInternalFree(p: POrderStruct_);
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
+    procedure DoFree(var Data: T_); virtual;
     procedure Clear;
     function GetCurrent: POrderStruct_;
     property Current: POrderStruct_ read GetCurrent;
@@ -333,11 +339,11 @@ type
     FLast: POrderPtrStruct_;
     FNum: NativeInt;
     FOnFreeCriticalOrderStruct: TOnFreeCriticalOrderPtrStruct;
-  protected
-    procedure DoFree(p: POrderPtrStruct_);
+    procedure DoInternalFree(p: POrderPtrStruct_);
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
+    procedure DoFree(Data: PT_); virtual;
     procedure Clear;
     function GetCurrent: POrderPtrStruct_;
     property Current: POrderPtrStruct_ read GetCurrent;

@@ -28,6 +28,8 @@ uses Classes, SysUtils, Variants,
   CoreClasses,
 {$IFDEF FPC}
   FPCGenericStructlist,
+{$ELSE FPC}
+  System.IOUtils,
 {$ENDIF FPC}
   ListEngine, UnicodeMixedLib, DoStatusIO,
   DataFrameEngine, MemoryStream64, PascalStrings, CoreCipher, NotifyObjectBase, Cadencer;
@@ -177,6 +179,7 @@ type
     OnResultM: TStreamEventBridgeEventM;
     OnResultP: TStreamEventBridgeEventP;
     AutoPause: Boolean;
+    AutoFree: Boolean;
     constructor Create(IO_: TPeerIO; AutoPause_: Boolean); overload;
     constructor Create(IO_: TPeerIO); overload;
     destructor Destroy; override;
@@ -197,6 +200,7 @@ type
     OnResultM: TConsoleEventBridgeEventM;
     OnResultP: TConsoleEventBridgeEventP;
     AutoPause: Boolean;
+    AutoFree: Boolean;
     constructor Create(IO_: TPeerIO; AutoPause_: Boolean); overload;
     constructor Create(IO_: TPeerIO); overload;
     destructor Destroy; override;
@@ -262,6 +266,31 @@ type
   end;
 
   PQueueData = ^TQueueData;
+
+  TSwapSpaceList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TCoreClassStream>;
+
+  TSwapSpaceList = class(TSwapSpaceList_Decl)
+  private
+    FCritical: TCritical;
+  public
+    WorkPath: U_String;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Lock;
+    procedure UnLock;
+    procedure Add(obj: TCoreClassStream);
+    procedure Remove(obj: TCoreClassStream);
+    procedure Delete(index: Integer);
+    procedure Clean;
+  end;
+
+  TSwapSpaceFileStream = class(TCoreClassFileStream)
+  private
+    FOwnerSwapSpace: TSwapSpaceList;
+  public
+    class function CreateSwapSpace(stream_: TCoreClassStream; OwnerSwapSpace_: TSwapSpaceList): TSwapSpaceFileStream;
+    destructor Destroy; override;
+  end;
 
 {$ENDREGION 'base Decl'}
 {$REGION 'IO Decl'}
@@ -1030,6 +1059,8 @@ type
     FUsedParallelEncrypt: Boolean;
     FSyncOnResult: Boolean;
     FSyncOnCompleteBuffer: Boolean;
+    FBigStreamMemorySwapSpace: Boolean;
+    FBigStreamSwapSpaceTriggerSize: Int64;
     FEnabledAtomicLockAndMultiThread: Boolean;
     FTimeOutKeepAlive: Boolean;
     FQuietMode: Boolean;
@@ -1274,6 +1305,8 @@ type
     property UsedParallelEncrypt: Boolean read FUsedParallelEncrypt write FUsedParallelEncrypt;
     property SyncOnResult: Boolean read FSyncOnResult write FSyncOnResult;
     property SyncOnCompleteBuffer: Boolean read FSyncOnCompleteBuffer write FSyncOnCompleteBuffer;
+    property BigStreamMemorySwapSpace: Boolean read FBigStreamMemorySwapSpace write FBigStreamMemorySwapSpace;
+    property BigStreamSwapSpaceTriggerSize: Int64 read FBigStreamSwapSpaceTriggerSize write FBigStreamSwapSpaceTriggerSize;
     property EnabledAtomicLockAndMultiThread: Boolean read FEnabledAtomicLockAndMultiThread write FEnabledAtomicLockAndMultiThread;
     property TimeOutKeepAlive: Boolean read FTimeOutKeepAlive write FTimeOutKeepAlive;
     property QuietMode: Boolean read FQuietMode write FQuietMode;
@@ -2386,6 +2419,9 @@ var
   { BigStream fragment size }
   C_BigStream_ChunkSize: NativeInt = 1024 * 1024;
 
+  { BigStream SwapSpace }
+  C_BigStream_SwapSpace_Trigger: Int64 = 1024 * 1024;
+
   { global progress backcall }
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
   ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
@@ -2485,6 +2521,25 @@ var
 {$ENDREGION 'ConstAndVariant'}
 
 implementation
+
+var
+  BigStream_SwapSpace: TSwapSpaceList;
+
+procedure InitBigStream_SwapSpace;
+begin
+  BigStream_SwapSpace := TSwapSpaceList.Create;
+{$IFDEF FPC}
+  BigStream_SwapSpace.WorkPath := umlCurrentPath;
+{$ELSE FPC}
+  BigStream_SwapSpace.WorkPath := TPath.GetTempPath;
+{$ENDIF FPC}
+end;
+
+procedure FreeBigStream_SwapSpace;
+begin
+  BigStream_SwapSpace.Clean;
+  DisposeObjectAndNil(BigStream_SwapSpace);
+end;
 
 type
   TWaitSendConsoleCmdIntf = class(TCoreClassObject)
@@ -3647,6 +3702,7 @@ begin
   OnResultM := nil;
   OnResultP := nil;
   IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
+  AutoFree := AutoPause_;
 end;
 
 constructor TStreamEventBridge.Create(IO_: TPeerIO; AutoPause_: Boolean);
@@ -3687,6 +3743,8 @@ begin
       IO_.OutDataFrame.Assign(ResultData_);
       IO_.ContinueResultSend;
     end;
+  if AutoFree then
+      Free;
 end;
 
 procedure TStreamEventBridge.DoStreamParamEvent(Sender_: TPeerIO; Param1_: Pointer; Param2_: TObject; SendData_, ResultData_: TDataFrameEngine);
@@ -3716,7 +3774,9 @@ begin
     end
   else
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
-  Free;
+
+  if AutoFree then
+      Free;
 end;
 
 procedure TConsoleEventBridge.Init(IO_: TPeerIO; AutoPause_: Boolean);
@@ -3733,6 +3793,7 @@ begin
   OnResultM := nil;
   OnResultP := nil;
   IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
+  AutoFree := AutoPause_;
 end;
 
 constructor TConsoleEventBridge.Create(IO_: TPeerIO; AutoPause_: Boolean);
@@ -3773,6 +3834,8 @@ begin
       IO_.OutText := ResultData_;
       IO_.ContinueResultSend;
     end;
+  if AutoFree then
+      Free;
 end;
 
 procedure TConsoleEventBridge.DoConsoleParamEvent(Sender_: TPeerIO; Param1_: Pointer; Param2_: TObject; SendData_, ResultData_: SystemString);
@@ -3802,7 +3865,8 @@ begin
     end
   else
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
-  Free;
+  if AutoFree then
+      Free;
 end;
 
 procedure TP2PVM_CloneConnectEventBridge.DoAsyncConnectState(const State: Boolean);
@@ -3836,6 +3900,111 @@ end;
 destructor TP2PVM_CloneConnectEventBridge.Destroy;
 begin
   inherited Destroy;
+end;
+
+constructor TSwapSpaceList.Create;
+begin
+  inherited Create;
+  FCritical := TCritical.Create;
+  WorkPath := umlCurrentPath;
+end;
+
+destructor TSwapSpaceList.Destroy;
+begin
+  DisposeObject(FCritical);
+  inherited Destroy;
+end;
+
+procedure TSwapSpaceList.Lock;
+begin
+  FCritical.Lock;
+end;
+
+procedure TSwapSpaceList.UnLock;
+begin
+  FCritical.UnLock;
+end;
+
+procedure TSwapSpaceList.Add(obj: TCoreClassStream);
+begin
+  Lock;
+  inherited Add(obj);
+  UnLock;
+end;
+
+procedure TSwapSpaceList.Remove(obj: TCoreClassStream);
+var
+  i: Integer;
+begin
+  Lock;
+  i := 0;
+  while i < Count do
+    if Items[i] = obj then
+        inherited Delete(i)
+    else
+        inc(i);
+  UnLock;
+end;
+
+procedure TSwapSpaceList.Delete(index: Integer);
+begin
+  Lock;
+  if (index >= 0) and (index < Count) then
+      inherited Delete(index);
+  UnLock;
+end;
+
+procedure TSwapSpaceList.Clean;
+var
+  i: Integer;
+begin
+  Lock;
+  for i := 0 to Count - 1 do
+      DisposeObject(Items[i]);
+  inherited Clear;
+  UnLock;
+end;
+
+class function TSwapSpaceFileStream.CreateSwapSpace(stream_: TCoreClassStream; OwnerSwapSpace_: TSwapSpaceList): TSwapSpaceFileStream;
+var
+  MD5Name: U_String;
+  tmpFileName: U_String;
+  i: Integer;
+begin
+  Result := nil;
+  if not umlDirectoryExists(OwnerSwapSpace_.WorkPath) then
+      exit;
+  try
+    MD5Name := umlStreamMD5String(stream_);
+    tmpFileName := umlCombineFileName(OwnerSwapSpace_.WorkPath, 'ZServer_' + MD5Name + '.tmp');
+    i := 1;
+    while umlFileExists(tmpFileName) do
+      begin
+        tmpFileName := umlCombineFileName(OwnerSwapSpace_.WorkPath, 'ZServer_' + MD5Name + PFormat('(%d).tmp', [i]));
+        inc(i);
+      end;
+    Result := TSwapSpaceFileStream.Create(tmpFileName, fmCreate);
+    MD5Name := '';
+    tmpFileName := '';
+    stream_.Position := 0;
+    Result.CopyFrom(stream_, stream_.Size);
+    Result.Position := 0;
+    Result.FOwnerSwapSpace := OwnerSwapSpace_;
+    OwnerSwapSpace_.Add(Result);
+  except
+      Result := nil;
+  end;
+end;
+
+destructor TSwapSpaceFileStream.Destroy;
+var
+  tmpFileName: U_String;
+begin
+  tmpFileName := FileName;
+  if FOwnerSwapSpace <> nil then
+      FOwnerSwapSpace.Remove(Self);
+  inherited Destroy;
+  umlDeletefile(tmpFileName);
 end;
 
 constructor TCommandStream.Create;
@@ -8266,6 +8435,8 @@ begin
   FUsedParallelEncrypt := True;
   FSyncOnResult := False;
   FSyncOnCompleteBuffer := True;
+  FBigStreamMemorySwapSpace := True;
+  FBigStreamSwapSpaceTriggerSize := C_BigStream_SwapSpace_Trigger;
   FEnabledAtomicLockAndMultiThread := True;
   FTimeOutKeepAlive := True;
   FQuietMode := False;
@@ -9965,8 +10136,18 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
-  p^.BigStream := BigStream;
-  p^.DoneAutoFree := DoneAutoFree;
+  if FBigStreamMemorySwapSpace and DoneAutoFree and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
+    begin
+      p^.BigStream := TSwapSpaceFileStream.CreateSwapSpace(BigStream, BigStream_SwapSpace);
+      if DoneAutoFree then
+          DisposeObject(BigStream);
+      p^.DoneAutoFree := True;
+    end
+  else
+    begin
+      p^.BigStream := BigStream;
+      p^.DoneAutoFree := DoneAutoFree;
+    end;
   TriggerQueueData(p);
   P_IO.PrintCommand('Send BigStream cmd: %s', Cmd);
 end;
@@ -11510,8 +11691,20 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
-  p^.BigStream := BigStream;
-  p^.DoneAutoFree := DoneAutoFree;
+
+  if FBigStreamMemorySwapSpace and DoneAutoFree and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
+    begin
+      p^.BigStream := TSwapSpaceFileStream.CreateSwapSpace(BigStream, BigStream_SwapSpace);
+      if DoneAutoFree then
+          DisposeObject(BigStream);
+      p^.DoneAutoFree := True;
+    end
+  else
+    begin
+      p^.BigStream := BigStream;
+      p^.DoneAutoFree := DoneAutoFree;
+    end;
+
   TriggerQueueData(p);
   ClientIO.PrintCommand('Send BigStream cmd: %s', Cmd);
 end;
@@ -14908,7 +15101,10 @@ initialization
 
 ProgressBackgroundProc := nil;
 ProgressBackgroundMethod := nil;
+InitBigStream_SwapSpace();
 
 finalization
+
+FreeBigStream_SwapSpace();
 
 end.

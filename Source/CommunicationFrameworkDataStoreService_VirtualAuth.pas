@@ -130,9 +130,9 @@ type
     { send client command }
     procedure Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
     procedure Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
-    procedure Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
-    procedure Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
-    procedure Send_CompletedStorePosTransform(ASendCli: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
+    procedure Send_CompletedDownloadAssemble(SendCli_: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedFastDownloadAssemble(SendCli_: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+    procedure Send_CompletedStorePosTransform(SendCli_: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
   public
     constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer); override;
     destructor Destroy; override;
@@ -1240,7 +1240,7 @@ begin
   ClearBatchStream(pipe.SendTunnel.Owner);
 end;
 
-procedure TDataStoreService_VirtualAuth.Send_CompletedDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+procedure TDataStoreService_VirtualAuth.Send_CompletedDownloadAssemble(SendCli_: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
   de: TDataFrameEngine;
 begin
@@ -1248,12 +1248,12 @@ begin
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
-  ASendCli.SendDirectStreamCmd(C_CompletedDownloadAssemble, de);
+  SendCli_.SendDirectStreamCmd(C_CompletedDownloadAssemble, de);
   DisposeObject(de);
-  ClearBatchStream(ASendCli);
+  ClearBatchStream(SendCli_);
 end;
 
-procedure TDataStoreService_VirtualAuth.Send_CompletedFastDownloadAssemble(ASendCli: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
+procedure TDataStoreService_VirtualAuth.Send_CompletedFastDownloadAssemble(SendCli_: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
   de: TDataFrameEngine;
 begin
@@ -1261,12 +1261,12 @@ begin
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
-  ASendCli.SendDirectStreamCmd(C_CompletedFastDownloadAssemble, de);
+  SendCli_.SendDirectStreamCmd(C_CompletedFastDownloadAssemble, de);
   DisposeObject(de);
-  ClearBatchStream(ASendCli);
+  ClearBatchStream(SendCli_);
 end;
 
-procedure TDataStoreService_VirtualAuth.Send_CompletedStorePosTransform(ASendCli: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
+procedure TDataStoreService_VirtualAuth.Send_CompletedStorePosTransform(SendCli_: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
 var
   de: TDataFrameEngine;
   i: Integer;
@@ -1283,7 +1283,7 @@ begin
   for i := 0 to length(TransformBuff^) - 1 do
       arr.Add(TransformBuff^[i].NewPos);
 
-  ASendCli.SendDirectStreamCmd(C_CompletedStorePosTransform, de);
+  SendCli_.SendDirectStreamCmd(C_CompletedStorePosTransform, de);
   DisposeObject(de);
 end;
 
