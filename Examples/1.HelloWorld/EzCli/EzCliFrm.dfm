@@ -68,7 +68,7 @@ object EZClientForm: TEZClientForm
   end
   object SendBigStreamButton: TButton
     Left = 8
-    Top = 200
+    Top = 199
     Width = 113
     Height = 33
     Caption = 'send Big Stream'

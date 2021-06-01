@@ -8435,7 +8435,7 @@ begin
   FUsedParallelEncrypt := True;
   FSyncOnResult := False;
   FSyncOnCompleteBuffer := True;
-  FBigStreamMemorySwapSpace := True;
+  FBigStreamMemorySwapSpace := False;
   FBigStreamSwapSpaceTriggerSize := C_BigStream_SwapSpace_Trigger;
   FEnabledAtomicLockAndMultiThread := True;
   FTimeOutKeepAlive := True;
@@ -10136,7 +10136,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
-  if FBigStreamMemorySwapSpace and DoneAutoFree and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
+  if FBigStreamMemorySwapSpace and DoneAutoFree and P_IO.IOBusy and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
     begin
       p^.BigStream := TSwapSpaceFileStream.CreateSwapSpace(BigStream, BigStream_SwapSpace);
       if DoneAutoFree then
@@ -11692,7 +11692,7 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
 
-  if FBigStreamMemorySwapSpace and DoneAutoFree and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
+  if FBigStreamMemorySwapSpace and DoneAutoFree and IOBusy and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
     begin
       p^.BigStream := TSwapSpaceFileStream.CreateSwapSpace(BigStream, BigStream_SwapSpace);
       if DoneAutoFree then

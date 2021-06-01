@@ -282,6 +282,21 @@
         <Projects Include="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\51.OrderStructForThread\OrderStructForThread.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\50.OrderStruct\OrderStructDemo.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -1127,14 +1142,59 @@
     <Target Name="FragmentClientDemo:Make">
         <MSBuild Projects="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="InternetServ">
+        <MSBuild Projects="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj"/>
+    </Target>
+    <Target Name="InternetServ:Clean">
+        <MSBuild Projects="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InternetServ:Make">
+        <MSBuild Projects="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DatastoreServ">
+        <MSBuild Projects="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj"/>
+    </Target>
+    <Target Name="DatastoreServ:Clean">
+        <MSBuild Projects="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatastoreServ:Make">
+        <MSBuild Projects="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="InternetCli">
+        <MSBuild Projects="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj"/>
+    </Target>
+    <Target Name="InternetCli:Clean">
+        <MSBuild Projects="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InternetCli:Make">
+        <MSBuild Projects="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OrderStructForThread">
+        <MSBuild Projects="..\51.OrderStructForThread\OrderStructForThread.dproj"/>
+    </Target>
+    <Target Name="OrderStructForThread:Clean">
+        <MSBuild Projects="..\51.OrderStructForThread\OrderStructForThread.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OrderStructForThread:Make">
+        <MSBuild Projects="..\51.OrderStructForThread\OrderStructForThread.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OrderStructDemo">
+        <MSBuild Projects="..\50.OrderStruct\OrderStructDemo.dproj"/>
+    </Target>
+    <Target Name="OrderStructDemo:Clean">
+        <MSBuild Projects="..\50.OrderStruct\OrderStructDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OrderStructDemo:Make">
+        <MSBuild Projects="..\50.OrderStruct\OrderStructDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="EzClient;EzServer;FMXClient;DClient;DMDemo;DRClient;DRServer;DServer;EZLinuxServ;FileStoreServer;FMXADClient;FMXAFDRClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;FOGComputeServer;HPC_Client;HPC_Client_FMX;HPC_Server;IOSPaymentQueryServer;LogicServer;ManagerServer;MD5PerformanceTest;MHDemo;PeformanceTestClient;performaceTestServer;TextParsingDemo;VirtualAuth_Client;VirtualAuth_Server;VMDoubleAuthServer;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMCli;VMServ;XInternet;XLan;XLanMobile;LanNatVirtualServer;ZDBBatchDataService;FMXBatchDataClient;ZDBBatchPictureDataService;FMXBatchPictureDataClient;ZDBServiceDemo;ZDBClientDemo;ZDBLocal;ACFMXClient;ADClient;ADRestoreClient;ADRestoreServer;ADServer;AFDRClient;AFDRServer;ARMCPUTest;ClientToLinuxServer;CustomProtocol;DataStoreServer;DataStoreViewClient;StreamServerOnLinux;StreamClientOnFMX;DatasetSimOnLinuxServer;DatasetSimOnFMX;ChatHome;CustomStableIOClientDemo;CustomStableIOServerDemo;XNAT_Internet;XNATMobileServer;UserClient;reverse_p2pVM_client;reverse_p2pVM_serv;zsServ;zsLIB;DLL_Test;ParallelCompressor;QuantumEncryptDemo;zExpressionSupport;PascalCodeDependencyAnslysis;NumTrans;LargeScale_ZDB_DataBuild;ParallelDemo;Wildcard;AsyncStateDemo;automatedP2PVM_Cli;automatedP2PVM_Serv;AsyncClient;AsyncServer;reverse_automatedP2PVM_Serv;reverse_automatedP2PVM_Cli;automatedP2PVM_HPC_Cli;automatedP2PVM_HPC_Serv;CopyPtrSpeed;FragmentServiceDemo;FragmentClientDemo"/>
+        <CallTarget Targets="EzClient;EzServer;FMXClient;DClient;DMDemo;DRClient;DRServer;DServer;EZLinuxServ;FileStoreServer;FMXADClient;FMXAFDRClient;FMXClient2;FMXDClient;FMXDRClient;FMXServer;FOGComputeServer;HPC_Client;HPC_Client_FMX;HPC_Server;IOSPaymentQueryServer;LogicServer;ManagerServer;MD5PerformanceTest;MHDemo;PeformanceTestClient;performaceTestServer;TextParsingDemo;VirtualAuth_Client;VirtualAuth_Server;VMDoubleAuthServer;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMCli;VMServ;XInternet;XLan;XLanMobile;LanNatVirtualServer;ZDBBatchDataService;FMXBatchDataClient;ZDBBatchPictureDataService;FMXBatchPictureDataClient;ZDBServiceDemo;ZDBClientDemo;ZDBLocal;ACFMXClient;ADClient;ADRestoreClient;ADRestoreServer;ADServer;AFDRClient;AFDRServer;ARMCPUTest;ClientToLinuxServer;CustomProtocol;DataStoreServer;DataStoreViewClient;StreamServerOnLinux;StreamClientOnFMX;DatasetSimOnLinuxServer;DatasetSimOnFMX;ChatHome;CustomStableIOClientDemo;CustomStableIOServerDemo;XNAT_Internet;XNATMobileServer;UserClient;reverse_p2pVM_client;reverse_p2pVM_serv;zsServ;zsLIB;DLL_Test;ParallelCompressor;QuantumEncryptDemo;zExpressionSupport;PascalCodeDependencyAnslysis;NumTrans;LargeScale_ZDB_DataBuild;ParallelDemo;Wildcard;AsyncStateDemo;automatedP2PVM_Cli;automatedP2PVM_Serv;AsyncClient;AsyncServer;reverse_automatedP2PVM_Serv;reverse_automatedP2PVM_Cli;automatedP2PVM_HPC_Cli;automatedP2PVM_HPC_Serv;CopyPtrSpeed;FragmentServiceDemo;FragmentClientDemo;InternetServ;DatastoreServ;InternetCli;OrderStructForThread;OrderStructDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="EzClient:Clean;EzServer:Clean;FMXClient:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EZLinuxServ:Clean;FileStoreServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;FOGComputeServer:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;HPC_Server:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;MD5PerformanceTest:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;TextParsingDemo:Clean;VirtualAuth_Client:Clean;VirtualAuth_Server:Clean;VMDoubleAuthServer:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMCli:Clean;VMServ:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;LanNatVirtualServer:Clean;ZDBBatchDataService:Clean;FMXBatchDataClient:Clean;ZDBBatchPictureDataService:Clean;FMXBatchPictureDataClient:Clean;ZDBServiceDemo:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ACFMXClient:Clean;ADClient:Clean;ADRestoreClient:Clean;ADRestoreServer:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;ClientToLinuxServer:Clean;CustomProtocol:Clean;DataStoreServer:Clean;DataStoreViewClient:Clean;StreamServerOnLinux:Clean;StreamClientOnFMX:Clean;DatasetSimOnLinuxServer:Clean;DatasetSimOnFMX:Clean;ChatHome:Clean;CustomStableIOClientDemo:Clean;CustomStableIOServerDemo:Clean;XNAT_Internet:Clean;XNATMobileServer:Clean;UserClient:Clean;reverse_p2pVM_client:Clean;reverse_p2pVM_serv:Clean;zsServ:Clean;zsLIB:Clean;DLL_Test:Clean;ParallelCompressor:Clean;QuantumEncryptDemo:Clean;zExpressionSupport:Clean;PascalCodeDependencyAnslysis:Clean;NumTrans:Clean;LargeScale_ZDB_DataBuild:Clean;ParallelDemo:Clean;Wildcard:Clean;AsyncStateDemo:Clean;automatedP2PVM_Cli:Clean;automatedP2PVM_Serv:Clean;AsyncClient:Clean;AsyncServer:Clean;reverse_automatedP2PVM_Serv:Clean;reverse_automatedP2PVM_Cli:Clean;automatedP2PVM_HPC_Cli:Clean;automatedP2PVM_HPC_Serv:Clean;CopyPtrSpeed:Clean;FragmentServiceDemo:Clean;FragmentClientDemo:Clean"/>
+        <CallTarget Targets="EzClient:Clean;EzServer:Clean;FMXClient:Clean;DClient:Clean;DMDemo:Clean;DRClient:Clean;DRServer:Clean;DServer:Clean;EZLinuxServ:Clean;FileStoreServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient2:Clean;FMXDClient:Clean;FMXDRClient:Clean;FMXServer:Clean;FOGComputeServer:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;HPC_Server:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;MD5PerformanceTest:Clean;MHDemo:Clean;PeformanceTestClient:Clean;performaceTestServer:Clean;TextParsingDemo:Clean;VirtualAuth_Client:Clean;VirtualAuth_Server:Clean;VMDoubleAuthServer:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMCli:Clean;VMServ:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;LanNatVirtualServer:Clean;ZDBBatchDataService:Clean;FMXBatchDataClient:Clean;ZDBBatchPictureDataService:Clean;FMXBatchPictureDataClient:Clean;ZDBServiceDemo:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ACFMXClient:Clean;ADClient:Clean;ADRestoreClient:Clean;ADRestoreServer:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;ClientToLinuxServer:Clean;CustomProtocol:Clean;DataStoreServer:Clean;DataStoreViewClient:Clean;StreamServerOnLinux:Clean;StreamClientOnFMX:Clean;DatasetSimOnLinuxServer:Clean;DatasetSimOnFMX:Clean;ChatHome:Clean;CustomStableIOClientDemo:Clean;CustomStableIOServerDemo:Clean;XNAT_Internet:Clean;XNATMobileServer:Clean;UserClient:Clean;reverse_p2pVM_client:Clean;reverse_p2pVM_serv:Clean;zsServ:Clean;zsLIB:Clean;DLL_Test:Clean;ParallelCompressor:Clean;QuantumEncryptDemo:Clean;zExpressionSupport:Clean;PascalCodeDependencyAnslysis:Clean;NumTrans:Clean;LargeScale_ZDB_DataBuild:Clean;ParallelDemo:Clean;Wildcard:Clean;AsyncStateDemo:Clean;automatedP2PVM_Cli:Clean;automatedP2PVM_Serv:Clean;AsyncClient:Clean;AsyncServer:Clean;reverse_automatedP2PVM_Serv:Clean;reverse_automatedP2PVM_Cli:Clean;automatedP2PVM_HPC_Cli:Clean;automatedP2PVM_HPC_Serv:Clean;CopyPtrSpeed:Clean;FragmentServiceDemo:Clean;FragmentClientDemo:Clean;InternetServ:Clean;DatastoreServ:Clean;InternetCli:Clean;OrderStructForThread:Clean;OrderStructDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="EzClient:Make;EzServer:Make;FMXClient:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EZLinuxServ:Make;FileStoreServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;FOGComputeServer:Make;HPC_Client:Make;HPC_Client_FMX:Make;HPC_Server:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;MD5PerformanceTest:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;TextParsingDemo:Make;VirtualAuth_Client:Make;VirtualAuth_Server:Make;VMDoubleAuthServer:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMCli:Make;VMServ:Make;XInternet:Make;XLan:Make;XLanMobile:Make;LanNatVirtualServer:Make;ZDBBatchDataService:Make;FMXBatchDataClient:Make;ZDBBatchPictureDataService:Make;FMXBatchPictureDataClient:Make;ZDBServiceDemo:Make;ZDBClientDemo:Make;ZDBLocal:Make;ACFMXClient:Make;ADClient:Make;ADRestoreClient:Make;ADRestoreServer:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;ClientToLinuxServer:Make;CustomProtocol:Make;DataStoreServer:Make;DataStoreViewClient:Make;StreamServerOnLinux:Make;StreamClientOnFMX:Make;DatasetSimOnLinuxServer:Make;DatasetSimOnFMX:Make;ChatHome:Make;CustomStableIOClientDemo:Make;CustomStableIOServerDemo:Make;XNAT_Internet:Make;XNATMobileServer:Make;UserClient:Make;reverse_p2pVM_client:Make;reverse_p2pVM_serv:Make;zsServ:Make;zsLIB:Make;DLL_Test:Make;ParallelCompressor:Make;QuantumEncryptDemo:Make;zExpressionSupport:Make;PascalCodeDependencyAnslysis:Make;NumTrans:Make;LargeScale_ZDB_DataBuild:Make;ParallelDemo:Make;Wildcard:Make;AsyncStateDemo:Make;automatedP2PVM_Cli:Make;automatedP2PVM_Serv:Make;AsyncClient:Make;AsyncServer:Make;reverse_automatedP2PVM_Serv:Make;reverse_automatedP2PVM_Cli:Make;automatedP2PVM_HPC_Cli:Make;automatedP2PVM_HPC_Serv:Make;CopyPtrSpeed:Make;FragmentServiceDemo:Make;FragmentClientDemo:Make"/>
+        <CallTarget Targets="EzClient:Make;EzServer:Make;FMXClient:Make;DClient:Make;DMDemo:Make;DRClient:Make;DRServer:Make;DServer:Make;EZLinuxServ:Make;FileStoreServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient2:Make;FMXDClient:Make;FMXDRClient:Make;FMXServer:Make;FOGComputeServer:Make;HPC_Client:Make;HPC_Client_FMX:Make;HPC_Server:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;MD5PerformanceTest:Make;MHDemo:Make;PeformanceTestClient:Make;performaceTestServer:Make;TextParsingDemo:Make;VirtualAuth_Client:Make;VirtualAuth_Server:Make;VMDoubleAuthServer:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMCli:Make;VMServ:Make;XInternet:Make;XLan:Make;XLanMobile:Make;LanNatVirtualServer:Make;ZDBBatchDataService:Make;FMXBatchDataClient:Make;ZDBBatchPictureDataService:Make;FMXBatchPictureDataClient:Make;ZDBServiceDemo:Make;ZDBClientDemo:Make;ZDBLocal:Make;ACFMXClient:Make;ADClient:Make;ADRestoreClient:Make;ADRestoreServer:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;ClientToLinuxServer:Make;CustomProtocol:Make;DataStoreServer:Make;DataStoreViewClient:Make;StreamServerOnLinux:Make;StreamClientOnFMX:Make;DatasetSimOnLinuxServer:Make;DatasetSimOnFMX:Make;ChatHome:Make;CustomStableIOClientDemo:Make;CustomStableIOServerDemo:Make;XNAT_Internet:Make;XNATMobileServer:Make;UserClient:Make;reverse_p2pVM_client:Make;reverse_p2pVM_serv:Make;zsServ:Make;zsLIB:Make;DLL_Test:Make;ParallelCompressor:Make;QuantumEncryptDemo:Make;zExpressionSupport:Make;PascalCodeDependencyAnslysis:Make;NumTrans:Make;LargeScale_ZDB_DataBuild:Make;ParallelDemo:Make;Wildcard:Make;AsyncStateDemo:Make;automatedP2PVM_Cli:Make;automatedP2PVM_Serv:Make;AsyncClient:Make;AsyncServer:Make;reverse_automatedP2PVM_Serv:Make;reverse_automatedP2PVM_Cli:Make;automatedP2PVM_HPC_Cli:Make;automatedP2PVM_HPC_Serv:Make;CopyPtrSpeed:Make;FragmentServiceDemo:Make;FragmentClientDemo:Make;InternetServ:Make;DatastoreServ:Make;InternetCli:Make;OrderStructForThread:Make;OrderStructDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

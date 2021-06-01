@@ -252,6 +252,12 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 ## 最后更新日志
 
 - **更新：BigStream如果为TMemoryStream/TMemoryStream64，可以自动化支持磁盘空间交换（使用临时文件替代内存块）**
+- BigStream的文件转存机制：如果BigStream在队列中，同时它达到了尺寸要求，并且它的类型为TMemoryStream/TMemoryStream64，启动转存机制
+- 新增一个标准三层范式，以名片的增删查改为中心功能：DBService->InternetService->Client ，该Demo也包括了服务器间通讯的事件桥机制Demo，我在代码中已备注中文
+- 新增2个OrderStruct相关Demo，同时也演示了多线程的程序范式.
+
+## 前一版本更新
+
 - 规范了双通道释放机制：必须先释放个别的RecvTunnel/SendTunnel，然后再去释放双通道框架
 - 更新：修复CoreClasses库中OrderStruct中destroy没有override导致内存泄露的问题
 - 更新：修复RunHPC_Stream这类方法中destroy没有override导致内存泄露的问题
