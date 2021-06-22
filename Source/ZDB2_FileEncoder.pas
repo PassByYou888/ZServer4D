@@ -336,6 +336,7 @@ begin
   if FileInfo.Size = 0 then
     begin
       FEncoderFiles.Add(FileInfo);
+      Result := FileInfo;
       exit;
     end;
 
