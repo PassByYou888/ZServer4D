@@ -372,6 +372,9 @@ function EncodeZDBBuff(const dataBaseName_: TPascalString; const ID: Cardinal; c
 procedure DecodeZDBBuff(buff: Pointer; buffSiz: nativeUInt;
   var dataBaseName_: TPascalString; var ID: Cardinal; var StorePos: Int64; var output: Pointer; var outputSiz: nativeUInt);
 
+var
+  ZDBLocalManager_SystemRootPath: SystemString;
+
 implementation
 
 function GeneratePipeName(const sourDBName_, taskName: SystemString): SystemString;
@@ -1317,7 +1320,7 @@ end;
 constructor TZDBLocalManager.Create;
 begin
   inherited Create;
-  FRootPath := umlCurrentPath;
+  FRootPath := ZDBLocalManager_SystemRootPath;
   FDBPool := THashObjectList.CustomCreate(True, 1024);
   FDBPool.AccessOptimization := False;
 
@@ -2191,5 +2194,7 @@ begin
 end;
 
 initialization
+
+ZDBLocalManager_SystemRootPath := umlCurrentPath();
 
 end.
