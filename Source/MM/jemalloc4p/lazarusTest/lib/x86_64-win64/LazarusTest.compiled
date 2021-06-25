@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Compiler Value="C:\lazarus\fpc\3.2.0\bin\x86_64-win64\fpc.exe" Date="1381338938"/>
+  <Params Value=" -MObjFPC -Scghi -O1 -g -gl -WG -l -vewnhibq -FiE:\developer\git\jemalloc4p\lazarusTest\lib\x86_64-win64 -FuE:\developer\git\jemalloc4p\Source -FuC:\lazarus\lcl\units\x86_64-win64\win32 -FuC:\lazarus\lcl\units\x86_64-win64 -FuC:\lazarus\components\lazutils\lib\x86_64-win64 -FuC:\lazarus\packager\units\x86_64-win64 -FuE:\developer\git\jemalloc4p\lazarusTest\ -FUE:\developer\git\jemalloc4p\lazarusTest\lib\x86_64-win64\ -FEE:\developer\git\jemalloc4p\lazarusTest\ -oE:\developer\git\jemalloc4p\lazarusTest\LazarusTest.exe -dLCL -dLCLwin32 LazarusTest.lpr"/>
+</CONFIG>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="11"/>
+    <BuildModes Active="Default"/>
+    <Units Count="3">
+      <Unit0>
+        <Filename Value="LazarusTest.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="44" Y="8"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="lazarustestfrm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="LazarusTestFrm"/>
+        <CursorPos X="35" Y="11"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <CursorPos X="50" Y="11"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit2>
+    </Units>
+    <JumpHistory Count="9" HistoryIndex="8">
+      <Position1>
+        <Filename Value="LazarusTest.lpr"/>
+        <Caret Line="8" Column="44"/>
+      </Position1>
+      <Position2>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="99" TopLine="54"/>
+      </Position2>
+      <Position3>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="71" Column="49" TopLine="17"/>
+      </Position3>
+      <Position4>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="86" Column="30" TopLine="27"/>
+      </Position4>
+      <Position5>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="75" Column="29" TopLine="66"/>
+      </Position5>
+      <Position6>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="73" TopLine="66"/>
+      </Position6>
+      <Position7>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="96" TopLine="81"/>
+      </Position7>
+      <Position8>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="78" TopLine="33"/>
+      </Position8>
+      <Position9>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <Caret Line="84" TopLine="33"/>
+      </Position9>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="0" ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>
