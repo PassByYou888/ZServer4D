@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="11"/>
+    <BuildModes Active="Default"/>
+    <Units Count="66">
+      <Unit0>
+        <Filename Value="serv.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="5" Y="7"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\zserver4d\Source\Cadencer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\zserver4d\Source\CommunicationFramework.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1763"/>
+        <CursorPos X="42" Y="1780"/>
+        <FoldState Value=" TJa1~51 pldrf1#I]AqN-c1{{1O"/>
+        <UsageCount Value="20"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreService.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreService_NoAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreService_VirtualAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreServiceCommon.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="61"/>
+        <CursorPos X="20" Y="70"/>
+        <UsageCount Value="20"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkIO.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\zserver4d\Source\CommunicationTest.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="..\zserver4d\Source\CoreCipher.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="..\zserver4d\Source\CoreClasses.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="..\zserver4d\Source\CoreCompress.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="..\zserver4d\Source\DataFrameEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="..\zserver4d\Source\DoStatusIO.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="..\zserver4d\Source\Fast_MD5.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="..\zserver4d\Source\FileIndexPackage.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="..\zserver4d\Source\FilePackage.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="..\zserver4d\Source\FPCGenericStructlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="..\zserver4d\Source\Geometry2DUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="..\zserver4d\Source\Geometry3DUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="..\zserver4d\Source\GeometryLib.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="..\zserver4d\Source\GeometryRotationUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="..\zserver4d\Source\HostQuery.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="..\zserver4d\Source\ItemStream.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="..\zserver4d\Source\LinearAction.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\zserver4d\Source\ListEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="..\zserver4d\Source\MemoryStream64.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="..\zserver4d\Source\MH.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="..\zserver4d\Source\MH_1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="..\zserver4d\Source\MH_2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="..\zserver4d\Source\MH_3.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="..\zserver4d\Source\MH_ZDB.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="..\zserver4d\Source\NotifyObjectBase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="..\zserver4d\Source\NumberBase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="..\zserver4d\Source\ObjectData.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="..\zserver4d\Source\ObjectDataHashField.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="..\zserver4d\Source\ObjectDataHashItem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="..\zserver4d\Source\ObjectDataManager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="..\zserver4d\Source\opCode.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="OpCode"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="4"/>
+        <CursorPos X="7" Y="19"/>
+        <UsageCount Value="20"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="..\zserver4d\Source\PascalStrings.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="..\zserver4d\Source\PhysicsIO.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="25"/>
+        <CursorPos X="17" Y="50"/>
+        <UsageCount Value="20"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="..\zserver4d\Source\TextDataEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit45>
+      <Unit46>
+        <Filename Value="..\zserver4d\Source\TextParsing.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit46>
+      <Unit47>
+        <Filename Value="..\zserver4d\Source\TextTable.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit47>
+      <Unit48>
+        <Filename Value="..\zserver4d\Source\UnicodeMixedLib.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit48>
+      <Unit49>
+        <Filename Value="..\zserver4d\Source\UPascalStrings.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit49>
+      <Unit50>
+        <Filename Value="..\zserver4d\Source\XNATClient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit50>
+      <Unit51>
+        <Filename Value="..\zserver4d\Source\XNATMappingOnVirutalService.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit51>
+      <Unit52>
+        <Filename Value="..\zserver4d\Source\XNATPhysics.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit52>
+      <Unit53>
+        <Filename Value="..\zserver4d\Source\XNATService.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="..\zserver4d\Source\ZDB2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="..\zserver4d\Source\ZDB2_Core.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="..\zserver4d\Source\ZDB2_FileEncoder.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit56>
+      <Unit57>
+        <Filename Value="..\zserver4d\Source\ZDBEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="..\zserver4d\Source\ZDBLocalManager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="..\zserver4d\Source\ZDBVideoStoreFormula.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="..\zserver4d\Source\zExpression.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="281"/>
+        <CursorPos X="14" Y="291"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="..\zserver4d\Source\ZIOThread.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit61>
+      <Unit62>
+        <Filename Value="..\zserver4d\Source\Synapse.FPC\CommunicationFramework_Client_Synapse.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit62>
+      <Unit63>
+        <Filename Value="..\zserver4d\Source\Synapse.FPC\CommunicationFramework_Server_Synapse.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit63>
+      <Unit64>
+        <Filename Value="..\zserver4d\Source\MM\jemalloc4p\Source\jemalloc4p.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="109"/>
+        <CursorPos Y="117"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit64>
+      <Unit65>
+        <Filename Value="..\zserver4d\Source\ZS_JsonDataObjects.pas"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit65>
+    </Units>
+    <JumpHistory Count="14" HistoryIndex="13">
+      <Position1>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="6"/>
+      </Position1>
+      <Position2>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="41" Column="27" TopLine="30"/>
+      </Position2>
+      <Position3>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="55" TopLine="34"/>
+      </Position3>
+      <Position4>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="41" Column="65" TopLine="34"/>
+      </Position4>
+      <Position5>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="47" TopLine="34"/>
+      </Position5>
+      <Position6>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="48" TopLine="34"/>
+      </Position6>
+      <Position7>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="49" TopLine="34"/>
+      </Position7>
+      <Position8>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="46" TopLine="34"/>
+      </Position8>
+      <Position9>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="47" TopLine="34"/>
+      </Position9>
+      <Position10>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="6"/>
+      </Position10>
+      <Position11>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="45" Column="26" TopLine="35"/>
+      </Position11>
+      <Position12>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="6"/>
+      </Position12>
+      <Position13>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="59" Column="5" TopLine="36"/>
+      </Position13>
+      <Position14>
+        <Filename Value="serv.lpr"/>
+        <Caret Line="7" Column="3"/>
+      </Position14>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="0" ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\zserver4d\Source\MM\jemalloc4p\Source\jemalloc4p.pas"/>
+        <Line Value="117"/>
+      </Item1>
+    </BreakPoints>
+  </Debugging>
+</CONFIG>

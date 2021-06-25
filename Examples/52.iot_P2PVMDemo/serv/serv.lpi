@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="My Application"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="0"/>
+    </RunParams>
+    <Units Count="65">
+      <Unit0>
+        <Filename Value="serv.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\zserver4d\Source\Cadencer.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\zserver4d\Source\CommunicationFramework.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreService.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreService_NoAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreService_VirtualAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDataStoreServiceCommon.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO_NoAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO_ServMan.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkDoubleTunnelIO_VirtualAuth.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\zserver4d\Source\CommunicationFrameworkIO.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\zserver4d\Source\CommunicationTest.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="..\zserver4d\Source\CoreCipher.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="..\zserver4d\Source\CoreClasses.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="..\zserver4d\Source\CoreCompress.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="..\zserver4d\Source\DataFrameEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="..\zserver4d\Source\DoStatusIO.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="..\zserver4d\Source\Fast_MD5.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="..\zserver4d\Source\FileIndexPackage.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="..\zserver4d\Source\FilePackage.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="..\zserver4d\Source\FPCGenericStructlist.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="..\zserver4d\Source\Geometry2DUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="..\zserver4d\Source\Geometry3DUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="..\zserver4d\Source\GeometryLib.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="..\zserver4d\Source\GeometryRotationUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="..\zserver4d\Source\HostQuery.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="..\zserver4d\Source\ItemStream.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="..\zserver4d\Source\LinearAction.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\zserver4d\Source\ListEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="..\zserver4d\Source\MemoryStream64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="..\zserver4d\Source\MH.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="..\zserver4d\Source\MH_1.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="..\zserver4d\Source\MH_2.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="..\zserver4d\Source\MH_3.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="..\zserver4d\Source\MH_ZDB.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="..\zserver4d\Source\NotifyObjectBase.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="..\zserver4d\Source\NumberBase.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="..\zserver4d\Source\ObjectData.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="..\zserver4d\Source\ObjectDataHashField.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="..\zserver4d\Source\ObjectDataHashItem.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="..\zserver4d\Source\ObjectDataManager.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="..\zserver4d\Source\opCode.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="OpCode"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="..\zserver4d\Source\PascalStrings.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="..\zserver4d\Source\PhysicsIO.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="..\zserver4d\Source\TextDataEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit45>
+      <Unit46>
+        <Filename Value="..\zserver4d\Source\TextParsing.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit46>
+      <Unit47>
+        <Filename Value="..\zserver4d\Source\TextTable.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit47>
+      <Unit48>
+        <Filename Value="..\zserver4d\Source\UnicodeMixedLib.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit48>
+      <Unit49>
+        <Filename Value="..\zserver4d\Source\UPascalStrings.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit49>
+      <Unit50>
+        <Filename Value="..\zserver4d\Source\XNATClient.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit50>
+      <Unit51>
+        <Filename Value="..\zserver4d\Source\XNATMappingOnVirutalService.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit51>
+      <Unit52>
+        <Filename Value="..\zserver4d\Source\XNATPhysics.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit52>
+      <Unit53>
+        <Filename Value="..\zserver4d\Source\XNATService.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="..\zserver4d\Source\ZDB2.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="..\zserver4d\Source\ZDB2_Core.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="..\zserver4d\Source\ZDB2_FileEncoder.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit56>
+      <Unit57>
+        <Filename Value="..\zserver4d\Source\ZDBEngine.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="..\zserver4d\Source\ZDBLocalManager.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="..\zserver4d\Source\ZDBVideoStoreFormula.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="..\zserver4d\Source\zExpression.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="..\zserver4d\Source\ZIOThread.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit61>
+      <Unit62>
+        <Filename Value="..\zserver4d\Source\Synapse.FPC\CommunicationFramework_Client_Synapse.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit62>
+      <Unit63>
+        <Filename Value="..\zserver4d\Source\Synapse.FPC\CommunicationFramework_Server_Synapse.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit63>
+      <Unit64>
+        <Filename Value="..\zserver4d\Source\MM\jemalloc4p\Source\jemalloc4p.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit64>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="serv"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\zserver4d\Source;..\zserver4d\Source\Synapse.FPC;..\zserver4d\Source\Synapse.FPC\source;..\zserver4d\Source\MM\jemalloc4p\Source"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
