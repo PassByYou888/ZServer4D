@@ -23,7 +23,7 @@ unit zExpression;
 interface
 
 uses SysUtils, Variants, CoreClasses, TypInfo, TextParsing, PascalStrings, UnicodeMixedLib,
-  DoStatusIO, ListEngine, OpCode;
+  DoStatusIO, ListEngine, opCode;
 
 type
 {$REGION 'internal define'}
