@@ -28,7 +28,7 @@ uses SysUtils,
 {$IFDEF DELPHI}
   delphi_JsonDataObjects,
 {$ELSE DELPHI}
-  fpjson, jsonparser, jsonreader, jsonscanner,
+  fpjson, jsonparser, jsonscanner,
 {$ENDIF DELPHI}
   DoStatusIO,
   UnicodeMixedLib,
