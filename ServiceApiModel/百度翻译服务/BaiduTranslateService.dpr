@@ -24,7 +24,7 @@ uses
   DataFrameEngine,
   UnicodeMixedLib,
   MemoryStream64,
-  ZS_JsonDataObjects,
+  ZJson,
   ZDBLocalManager,
   ZDBEngine,
   ListEngine,
@@ -130,7 +130,7 @@ begin
       procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     var
         p: PDelayReponseSource;
-        J: TJsonObject;
+        J: TZ_JsonObject;
         cli: TPeerIO;
     begin
         // 查询过滤器回调
@@ -185,7 +185,7 @@ begin
         var
           cli: TPeerIO;
           n: TPascalString;
-          js: TJsonObject;
+          js: TZ_JsonObject;
           p: PDelayReponseSource;
         begin
           p := UserData;
@@ -205,7 +205,7 @@ begin
                     begin
                       // 将查询结果记录到数据库
                       // 因为超过200万条翻译，就必须给百度交钱
-                      js := TJsonObject.Create;
+                      js := TZ_JsonObject.Create;
                       js.i['sl'] := Integer(p^.sourLan);
                       js.i['dl'] := Integer(p^.destLan);
                       js.u['h'] := FastHash64PPascalString(@p^.s);
@@ -239,7 +239,7 @@ var
   sourLan, destLan: TTranslateLanguage;
   s, d: TPascalString;
   Hash64: THash64;
-  js: TJsonObject;
+  js: TZ_JsonObject;
 begin
   sourLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的源语言
   destLan := TTranslateLanguage(InData.Reader.ReadByte); // 翻译的目标语言
@@ -247,7 +247,7 @@ begin
   d := InData.Reader.ReadString;                         // 翻译
   Hash64 := FastHash64PPascalString(@s);                 // 高速hash
 
-  js := TJsonObject.Create;
+  js := TZ_JsonObject.Create;
   js.i['sl'] := Integer(sourLan);
   js.i['dl'] := Integer(destLan);
   js.u['h'] := Hash64;

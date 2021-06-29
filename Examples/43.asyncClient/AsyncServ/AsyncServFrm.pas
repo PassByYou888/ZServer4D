@@ -1,11 +1,12 @@
 ﻿unit AsyncServFrm;
-
+
+
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  ZS_JsonDataObjects,
+  ZJson,
   CommunicationFramework,
   PhysicsIO,
   DoStatusIO, CoreClasses,
@@ -76,10 +77,10 @@ end;
 
 procedure TAsyncServerForm.cmd_Json_Stream(Sender: TPeerClient; InData: TDataFrameEngine);
 var
-  js: TJsonObject;
+  js: TZ_JsonObject;
   ns: TStringList;
 begin
-  js := TJsonObject.Create;
+  js := TZ_JsonObject.Create;
   ns := TStringList.Create;
   InData.Reader.ReadJson(js);
   js.SaveToLines(ns);
@@ -186,4 +187,4 @@ begin
 end;
 
 end.
-
+

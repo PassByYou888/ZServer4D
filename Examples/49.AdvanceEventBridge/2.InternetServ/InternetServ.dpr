@@ -6,7 +6,7 @@ program InternetServ;
 
 
 uses
-  ZS_JsonDataObjects,
+  ZJson,
   CoreClasses,
   PascalStrings,
   DoStatusIO,
@@ -181,12 +181,12 @@ type
 
 procedure TMyQueryBridge.DoFillQueryData(dataBaseName_, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64);
 var
-  js: TJsonObject;
+  js: TZ_JsonObject;
 begin
   if CheckIO then
     begin
       try
-        js := TJsonObject.Create;
+        js := TZ_JsonObject.Create;
         DataSour.Position := 0;
         js.LoadFromStream(DataSour);
         js.I64['Pos'] := StorePos;

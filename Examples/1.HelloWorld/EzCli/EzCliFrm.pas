@@ -6,7 +6,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  ZS_JsonDataObjects,
+  ZJson,
   CommunicationFramework,
   DoStatusIO, CoreClasses,
   CommunicationFramework_Client_CrossSocket,
@@ -75,7 +75,7 @@ end;
 procedure TEZClientForm.HelloWorldBtnClick(Sender: TObject);
 var
   SendDe, ResultDE: TDataFrameEngine;
-  js: TJsonObject;
+  js: TZ_JsonObject;
 begin
   // 往服务器发送一条console形式的hello world指令
   client.SendDirectConsoleCmd('helloWorld_Console', '');
@@ -113,7 +113,7 @@ begin
   DisposeObject([SendDe, ResultDE]);
 
   // json收发
-  js := TJsonObject.Create;
+  js := TZ_JsonObject.Create;
   js.S['中文测试'] := '你好世界';
   SendDe := TDataFrameEngine.Create;
   SendDe.WriteJson(js);

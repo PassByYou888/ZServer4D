@@ -173,6 +173,11 @@ type
     procedure SaveToStream(stream: TCoreClassStream); overload;
     procedure LoadFromStream(stream: TCoreClassStream);
 
+    procedure SaveToLines(L_: TCoreClassStrings);
+    procedure LoadFromLines(L_: TCoreClassStrings);
+
+    procedure ParseText(Text_: TPascalString);
+
     function ToJSONString(Formated_: Boolean): TPascalString; overload;
     function ToJSONString: TPascalString; overload;
     property ToJson: TPascalString read ToJSONString;
@@ -201,7 +206,6 @@ end;
 
 destructor TZ_JsonBase.Destroy;
 begin
-  DoStatus('%s free', [ClassName]);
   FList.Free;
   inherited Destroy;
 end;
@@ -240,6 +244,46 @@ begin
   SaveToStream(stream, True);
 end;
 
+procedure TZ_JsonObject.SaveToLines(L_: TCoreClassStrings);
+var
+  m64: TMS64;
+begin
+  m64 := TMS64.Create;
+  SaveToStream(m64);
+  m64.Position := 0;
+  L_.LoadFromStream(m64);
+  m64.Free;
+end;
+
+procedure TZ_JsonObject.LoadFromLines(L_: TCoreClassStrings);
+var
+  m64: TMS64;
+begin
+  m64 := TMS64.Create;
+{$IFDEF FPC}
+  L_.SaveToStream(m64);
+{$ELSE}
+  L_.SaveToStream(m64, TEncoding.UTF8);
+{$ENDIF}
+  m64.Position := 0;
+  LoadFromStream(m64);
+  m64.Free;
+end;
+
+procedure TZ_JsonObject.ParseText(Text_: TPascalString);
+var
+  buff: TBytes;
+  m64: TMS64;
+begin
+  buff := Text_.Bytes;
+  m64 := TMS64.Create;
+  if length(buff) > 0 then
+      m64.SetPointerWithProtectedMode(@buff[0], length(buff));
+  LoadFromStream(m64);
+  m64.Free;
+  SetLength(buff, 0);
+end;
+
 function TZ_JsonObject.ToJSONString(Formated_: Boolean): TPascalString;
 var
   m64: TMemoryStream64;
@@ -270,11 +314,15 @@ begin
   js.S['abc'] := '123';
   DoStatus(js.S['abc']);
 
-  for ii := 0 to 10 do
+  for ii := 1 to 3 do
       js.A['arry'].Add(ii);
 
   for ii := 0 to js.A['arry'].Count - 1 do
+    begin
       DoStatus(js.A['arry'].I[ii]);
+    end;
+
+  js.A['arry'].AddObject.S['tt'] := 'inobj';
 
   js.O['obj'].S['fff'] := '999';
 

@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.Imaging.jpeg, Vcl.ExtDlgs,
 
-  ZS_JsonDataObjects,
+  ZJson,
   CoreClasses,
   PascalStrings,
   DoStatusIO,
@@ -65,7 +65,7 @@ uses InternetCliFrm;
 type
   TMyListItem = class(TListItem)
   public
-    json: TJsonObject;
+    json: TZ_JsonObject;
     constructor Create(AOwner: TListItems); override;
     destructor Destroy; override;
   end;
@@ -73,7 +73,7 @@ type
 constructor TMyListItem.Create(AOwner: TListItems);
 begin
   inherited Create(AOwner);
-  json := TJsonObject.Create;
+  json := TZ_JsonObject.Create;
 end;
 
 destructor TMyListItem.Destroy;
