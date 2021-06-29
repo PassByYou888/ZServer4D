@@ -39,6 +39,7 @@ jemalloc for delphi/fpc compatible(win/linux/ros)
 - 32位系统使用 **jemalloc_IA32.dll**
 - 64位系统使用 **jemalloc_X64.dll** 
 - windows已在引入代码自动区分系统,把jemalloc4p.pas包含进工程后自动生效
+- **提示：windows预编译库需要vcruntime140依赖库(vs2017)**
 
 
 ### Linux 编译后才能用
@@ -56,7 +57,7 @@ cd jemalloc
 ./autoconf
 ./configure
 make -j4
-make install
+sudo make install PREFIX=/usr/lib
 ```
 
 ### OSX and IOS 编译后才能用

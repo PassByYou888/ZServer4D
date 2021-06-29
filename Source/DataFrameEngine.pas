@@ -32,7 +32,7 @@ interface
 uses SysUtils, CoreClasses, Types,
   ListEngine, MemoryStream64, CoreCipher,
   DoStatusIO, GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
-{$IFNDEF FPC} ZS_JsonDataObjects, {$ENDIF}
+  ZJson,
   CoreCompress, UnicodeMixedLib, PascalStrings;
 
 type
@@ -50,10 +50,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); virtual; abstract;
     procedure SaveToStream(stream: TCoreClassStream); virtual; abstract;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); virtual; abstract;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); virtual; abstract;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); virtual; abstract;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); virtual; abstract;
     function ComputeEncodeSize: Int64; virtual; abstract;
   end;
 
@@ -66,10 +64,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
   end;
 
@@ -83,10 +79,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Integer read FBuffer write FBuffer;
@@ -102,10 +96,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Cardinal read FBuffer write FBuffer;
@@ -121,10 +113,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Word read FBuffer write FBuffer;
@@ -140,10 +130,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Byte read FBuffer write FBuffer;
@@ -159,10 +147,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Single read FBuffer write FBuffer;
@@ -178,10 +164,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Double read FBuffer write FBuffer;
@@ -201,10 +185,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer(index_: Integer): Integer;
@@ -226,10 +208,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer(index_: Integer): ShortInt;
@@ -259,10 +239,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer(index_: Integer): Byte;
@@ -284,10 +262,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer(index_: Integer): Single;
@@ -310,10 +286,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer(index_: Integer): Double;
@@ -336,10 +310,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer(index_: Integer): Int64;
@@ -359,10 +331,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     function GetBuffer: TCoreClassStream;
@@ -381,10 +351,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Variant read FBuffer write FBuffer;
@@ -400,10 +368,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: Int64 read FBuffer write FBuffer;
@@ -419,10 +385,8 @@ type
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
     procedure SaveToStream(stream: TCoreClassStream); override;
-{$IFNDEF FPC}
-    procedure LoadFromJson(jarry: TJsonArray; index_: Integer); override;
-    procedure SaveToJson(jarry: TJsonArray; index_: Integer); override;
-{$ENDIF}
+    procedure LoadFromJson(jarry: TZ_JsonArray; index_: Integer); override;
+    procedure SaveToJson(jarry: TZ_JsonArray; index_: Integer); override;
     function ComputeEncodeSize: Int64; override;
 
     property Buffer: UInt64 read FBuffer write FBuffer;
@@ -470,7 +434,7 @@ type
     procedure ReadVariantList(output: THashVariantList);
     procedure ReadSectionText(output: TSectionTextData);
     procedure ReadTextSection(output: TSectionTextData);
-{$IFNDEF FPC} procedure ReadJson(output: TJsonObject); {$ENDIF}
+    procedure ReadJson(output: TZ_JsonObject);
     function ReadRect: TRect;
     function ReadRectf: TRectf;
     function ReadPoint: TPoint;
@@ -563,7 +527,7 @@ type
     procedure WriteVariantList(v: THashVariantList);
     procedure WriteSectionText(v: TSectionTextData);
     procedure WriteTextSection(v: TSectionTextData);
-{$IFNDEF FPC} procedure WriteJson(v: TJsonObject); {$ENDIF}
+    procedure WriteJson(v: TZ_JsonObject);
     procedure WriteFile(fn: SystemString);
     procedure WriteRect(v: TRect);
     procedure WriteRectf(v: TRectf);
@@ -614,7 +578,7 @@ type
     procedure ReadVariantList(index_: Integer; output: THashVariantList);
     procedure ReadSectionText(index_: Integer; output: TSectionTextData);
     procedure ReadTextSection(index_: Integer; output: TSectionTextData);
-{$IFNDEF FPC} procedure ReadJson(index_: Integer; output: TJsonObject); {$ENDIF}
+    procedure ReadJson(index_: Integer; output: TZ_JsonObject);
     function ReadRect(index_: Integer): TRect;
     function ReadRectf(index_: Integer): TRectf;
     function ReadPoint(index_: Integer): TPoint;
@@ -654,13 +618,11 @@ type
     function Decrypt(input: TCoreClassStream; Key: TCipherKeyBuffer): Boolean;
 
     // json support
-{$IFNDEF FPC}
     procedure EncodeAsPublicJson(var output: TPascalString); overload;
     procedure EncodeAsPublicJson(output: TCoreClassStream); overload;
     procedure EncodeAsJson(output: TCoreClassStream);
     procedure DecodeFromJson(stream: TCoreClassStream); overload;
     procedure DecodeFromJson(const s: TPascalString); overload;
-{$ENDIF}
     //
     // Parallel compressor
     function EncodeAsSelectCompressor(scm: TSelectCompressionMethod; output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
@@ -738,24 +700,24 @@ type
     procedure WriteHashStringList(v: THashStringList);       { virtual; }
     procedure WriteVariantList(v: THashVariantList);         { virtual; }
     procedure WriteSectionText(v: TSectionTextData);         { virtual; }
-{$IFNDEF FPC} procedure WriteJson(v: TJsonObject); { virtual; }    {$ENDIF}
-    procedure WriteRect(v: TRect);                 { virtual; }
-    procedure WriteRectf(v: TRectf);               { virtual; }
-    procedure WritePoint(v: TPoint);               { virtual; }
-    procedure WritePointf(v: TPointf);             { virtual; }
-    procedure WriteVector(v: TVector);             { virtual; }
-    procedure WriteAffineVector(v: TAffineVector); { virtual; }
-    procedure WriteVec4(v: TVec4);                 { virtual; }
-    procedure WriteVec3(v: TVec3);                 { virtual; }
-    procedure WriteVector4(v: TVector4);           { virtual; }
-    procedure WriteVector3(v: TVector3);           { virtual; }
-    procedure WriteMat4(v: TMat4);                 { virtual; }
-    procedure WriteMatrix4(v: TMatrix4);           { virtual; }
-    procedure Write2DPoint(v: T2DPoint);           { virtual; }
-    procedure WriteVec2(v: TVec2);                 { virtual; }
-    procedure WriteRectV2(v: TRectV2);             { virtual; }
-    procedure WritePointer(v: Pointer);            { virtual; }
-    procedure write(const Buf_; Count_: Int64);    { virtual; }
+    procedure WriteJson(v: TZ_JsonObject);                   { virtual; }
+    procedure WriteRect(v: TRect);                           { virtual; }
+    procedure WriteRectf(v: TRectf);                         { virtual; }
+    procedure WritePoint(v: TPoint);                         { virtual; }
+    procedure WritePointf(v: TPointf);                       { virtual; }
+    procedure WriteVector(v: TVector);                       { virtual; }
+    procedure WriteAffineVector(v: TAffineVector);           { virtual; }
+    procedure WriteVec4(v: TVec4);                           { virtual; }
+    procedure WriteVec3(v: TVec3);                           { virtual; }
+    procedure WriteVector4(v: TVector4);                     { virtual; }
+    procedure WriteVector3(v: TVector3);                     { virtual; }
+    procedure WriteMat4(v: TMat4);                           { virtual; }
+    procedure WriteMatrix4(v: TMatrix4);                     { virtual; }
+    procedure Write2DPoint(v: T2DPoint);                     { virtual; }
+    procedure WriteVec2(v: TVec2);                           { virtual; }
+    procedure WriteRectV2(v: TRectV2);                       { virtual; }
+    procedure WritePointer(v: Pointer);                      { virtual; }
+    procedure write(const Buf_; Count_: Int64);              { virtual; }
   end;
 
   TDataReader = class(TCoreClassObject)
@@ -792,24 +754,24 @@ type
     procedure ReadHashStringList(output: THashStringList);    { virtual; }
     procedure ReadVariantList(output: THashVariantList);      { virtual; }
     procedure ReadSectionText(output: TSectionTextData);      { virtual; }
-{$IFNDEF FPC} procedure ReadJson(output: TJsonObject); { virtual; }    {$ENDIF}
-    function ReadRect: TRect;                 { virtual; }
-    function ReadRectf: TRectf;               { virtual; }
-    function ReadPoint: TPoint;               { virtual; }
-    function ReadPointf: TPointf;             { virtual; }
-    function ReadVector: TVector;             { virtual; }
-    function ReadAffineVector: TAffineVector; { virtual; }
-    function ReadVec3: TVec3;                 { virtual; }
-    function ReadVec4: TVec4;                 { virtual; }
-    function ReadVector3: TVector3;           { virtual; }
-    function ReadVector4: TVector4;           { virtual; }
-    function ReadMat4: TMat4;                 { virtual; }
-    function ReadMatrix4: TMatrix4;           { virtual; }
-    function Read2DPoint: T2DPoint;           { virtual; }
-    function ReadVec2: TVec2;                 { virtual; }
-    function ReadRectV2: TRectV2;             { virtual; }
-    function ReadPointer: UInt64;             { virtual; }
-    procedure Read(var Buf_; Count_: Int64);  { virtual; }
+    procedure ReadJson(output: TZ_JsonObject);                { virtual; }
+    function ReadRect: TRect;                                 { virtual; }
+    function ReadRectf: TRectf;                               { virtual; }
+    function ReadPoint: TPoint;                               { virtual; }
+    function ReadPointf: TPointf;                             { virtual; }
+    function ReadVector: TVector;                             { virtual; }
+    function ReadAffineVector: TAffineVector;                 { virtual; }
+    function ReadVec3: TVec3;                                 { virtual; }
+    function ReadVec4: TVec4;                                 { virtual; }
+    function ReadVector3: TVector3;                           { virtual; }
+    function ReadVector4: TVector4;                           { virtual; }
+    function ReadMat4: TMat4;                                 { virtual; }
+    function ReadMatrix4: TMatrix4;                           { virtual; }
+    function Read2DPoint: T2DPoint;                           { virtual; }
+    function ReadVec2: TVec2;                                 { virtual; }
+    function ReadRectV2: TRectV2;                             { virtual; }
+    function ReadPointer: UInt64;                             { virtual; }
+    procedure Read(var Buf_; Count_: Int64);                  { virtual; }
   end;
 
 implementation
@@ -857,20 +819,15 @@ begin
       stream.write(Buffer[0], _Len);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameString.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameString.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   Buffer := umlBytesOf(jarry.s[index_]);
 end;
 
-procedure TDataFrameString.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameString.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(umlStringOf(Buffer));
 end;
-{$ENDIF}
-
 
 function TDataFrameString.ComputeEncodeSize: Int64;
 begin
@@ -898,20 +855,15 @@ begin
   stream.write(FBuffer, C_Integer_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameInteger.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameInteger.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameInteger.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameInteger.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameInteger.ComputeEncodeSize: Int64;
 begin
@@ -939,20 +891,15 @@ begin
   stream.write(FBuffer, C_Cardinal_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameCardinal.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameCardinal.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameCardinal.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameCardinal.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameCardinal.ComputeEncodeSize: Int64;
 begin
@@ -980,20 +927,15 @@ begin
   stream.write(FBuffer, C_Word_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameWord.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameWord.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameWord.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameWord.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameWord.ComputeEncodeSize: Int64;
 begin
@@ -1021,20 +963,15 @@ begin
   stream.write(FBuffer, C_Byte_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameByte.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameByte.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameByte.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameByte.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameByte.ComputeEncodeSize: Int64;
 begin
@@ -1062,20 +999,15 @@ begin
   stream.write(FBuffer, C_Single_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameSingle.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameSingle.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.f[index_];
 end;
 
-procedure TDataFrameSingle.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameSingle.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.AddF(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameSingle.ComputeEncodeSize: Int64;
 begin
@@ -1103,20 +1035,15 @@ begin
   stream.write(FBuffer, C_Double_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameDouble.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameDouble.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.f[index_];
 end;
 
-procedure TDataFrameDouble.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameDouble.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.AddF(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameDouble.ComputeEncodeSize: Int64;
 begin
@@ -1179,12 +1106,9 @@ begin
   stream.write(FBuffer.Memory^, L * C_Integer_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameArrayInteger.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayInteger.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.a[index_];
@@ -1192,17 +1116,15 @@ begin
       Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayInteger.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayInteger.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.AddArray;
   for i := 0 to Count - 1 do
       ja.Add(Buffer[i]);
 end;
-{$ENDIF}
-
 
 function TDataFrameArrayInteger.ComputeEncodeSize: Int64;
 begin
@@ -1275,12 +1197,9 @@ begin
   stream.write(FBuffer.Memory^, L);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameArrayShortInt.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayShortInt.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.a[index_];
@@ -1288,17 +1207,15 @@ begin
       Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayShortInt.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayShortInt.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.AddArray;
   for i := 0 to Count - 1 do
       ja.Add(Buffer[i]);
 end;
-{$ENDIF}
-
 
 function TDataFrameArrayShortInt.ComputeEncodeSize: Int64;
 begin
@@ -1412,12 +1329,9 @@ begin
   stream.write(FBuffer.Memory^, L);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameArrayByte.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayByte.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.a[index_];
@@ -1425,17 +1339,15 @@ begin
       Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayByte.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayByte.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.AddArray;
   for i := 0 to Count - 1 do
       ja.Add(Buffer[i]);
 end;
-{$ENDIF}
-
 
 function TDataFrameArrayByte.ComputeEncodeSize: Int64;
 begin
@@ -1508,12 +1420,9 @@ begin
   stream.write(FBuffer.Memory^, L * C_Single_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameArraySingle.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArraySingle.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.a[index_];
@@ -1521,17 +1430,15 @@ begin
       Add(ja.f[i]);
 end;
 
-procedure TDataFrameArraySingle.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArraySingle.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.AddArray;
   for i := 0 to Count - 1 do
       ja.AddF(Buffer[i]);
 end;
-{$ENDIF}
-
 
 function TDataFrameArraySingle.ComputeEncodeSize: Int64;
 begin
@@ -1604,12 +1511,9 @@ begin
   stream.write(FBuffer.Memory^, L * C_Double_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameArrayDouble.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayDouble.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.a[index_];
@@ -1617,17 +1521,15 @@ begin
       Add(ja.f[i]);
 end;
 
-procedure TDataFrameArrayDouble.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayDouble.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.AddArray;
   for i := 0 to Count - 1 do
       ja.AddF(Buffer[i]);
 end;
-{$ENDIF}
-
 
 function TDataFrameArrayDouble.ComputeEncodeSize: Int64;
 begin
@@ -1700,12 +1602,9 @@ begin
   stream.write(FBuffer.Memory^, L * C_Int64_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameArrayInt64.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.a[index_];
@@ -1713,17 +1612,15 @@ begin
       Add(ja.L[i]);
 end;
 
-procedure TDataFrameArrayInt64.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameArrayInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
-  ja: TJsonArray;
+  ja: TZ_JsonArray;
   i: Integer;
 begin
   ja := jarry.AddArray;
   for i := 0 to Count - 1 do
       ja.Add(Buffer[i]);
 end;
-{$ENDIF}
-
 
 function TDataFrameArrayInt64.ComputeEncodeSize: Int64;
 begin
@@ -1780,10 +1677,7 @@ begin
     end;
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameStream.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameStream.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   b64: TPascalString;
 begin
@@ -1792,15 +1686,13 @@ begin
   umlDecodeStreamBASE64(b64, FBuffer);
 end;
 
-procedure TDataFrameStream.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameStream.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   b64: TPascalString;
 begin
   umlEncodeStreamBASE64(FBuffer, b64);
   jarry.Add(b64.Text);
 end;
-{$ENDIF}
-
 
 function TDataFrameStream.ComputeEncodeSize: Int64;
 begin
@@ -1882,20 +1774,15 @@ begin
   end;
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameVariant.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameVariant.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := umlStrToVar(jarry.s[index_]);
 end;
 
-procedure TDataFrameVariant.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameVariant.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(umlVarToStr(FBuffer, True).Text);
 end;
-{$ENDIF}
-
 
 function TDataFrameVariant.ComputeEncodeSize: Int64;
 begin
@@ -1939,20 +1826,15 @@ begin
   stream.write(FBuffer, C_Int64_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameInt64.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.L[index_];
 end;
 
-procedure TDataFrameInt64.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameInt64.ComputeEncodeSize: Int64;
 begin
@@ -1980,20 +1862,15 @@ begin
   stream.write(FBuffer, C_UInt64_Size);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameUInt64.LoadFromJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameUInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.u[index_];
 end;
 
-procedure TDataFrameUInt64.SaveToJson(jarry: TJsonArray; index_: Integer);
+procedure TDataFrameUInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
-{$ENDIF}
-
 
 function TDataFrameUInt64.ComputeEncodeSize: Int64;
 begin
@@ -2199,16 +2076,11 @@ begin
   ReadSectionText(output);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameEngineReader.ReadJson(output: TJsonObject);
+procedure TDataFrameEngineReader.ReadJson(output: TZ_JsonObject);
 begin
   FOwner.ReadJson(FIndex, output);
   inc(FIndex);
 end;
-{$ENDIF}
-
 
 function TDataFrameEngineReader.ReadRect: TRect;
 begin
@@ -2807,21 +2679,16 @@ begin
   WriteSectionText(v);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameEngine.WriteJson(v: TJsonObject);
+procedure TDataFrameEngine.WriteJson(v: TZ_JsonObject);
 var
   ms: TMemoryStream64;
 begin
   ms := TMemoryStream64.Create;
-  v.SaveToStream(ms, False, TEncoding.UTF8, True);
+  v.SaveToStream(ms, True);
   ms.Position := 0;
   WriteStream(ms);
   DisposeObject(ms);
 end;
-{$ENDIF}
-
 
 procedure TDataFrameEngine.WriteFile(fn: SystemString);
 var
@@ -3567,21 +3434,16 @@ begin
   ReadSectionText(index_, output);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataFrameEngine.ReadJson(index_: Integer; output: TJsonObject);
+procedure TDataFrameEngine.ReadJson(index_: Integer; output: TZ_JsonObject);
 var
   d: TMemoryStream64;
 begin
   d := TMemoryStream64.Create;
   ReadStream(index_, d);
   d.Position := 0;
-  output.LoadFromStream(d, TEncoding.UTF8, False);
+  output.LoadFromStream(d);
   DisposeObject(d);
 end;
-{$ENDIF}
-
 
 function TDataFrameEngine.ReadRect(index_: Integer): TRect;
 begin
@@ -3986,9 +3848,6 @@ begin
   DisposeObject(m64);
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TDataFrameEngine.EncodeAsPublicJson(var output: TPascalString);
 var
   m64: TMemoryStream64;
@@ -4005,10 +3864,10 @@ end;
 
 procedure TDataFrameEngine.EncodeAsPublicJson(output: TCoreClassStream);
 var
-  j: TJsonObject;
+  j: TZ_JsonObject;
   i: Integer;
 begin
-  j := TJsonObject.Create;
+  j := TZ_JsonObject.Create;
   j.s['help'] := 'This JSON with TDataFrameEngine encode';
 
   for i := 0 to Count - 1 do
@@ -4017,18 +3876,18 @@ begin
       TDataFrameBase(FDataList[i]).SaveToJson(j.a['Data'], i);
     end;
 
-  j.SaveToStream(output, False, TEncoding.UTF8, True);
+  j.SaveToStream(output, True);
 
   DisposeObject(j);
 end;
 
 procedure TDataFrameEngine.EncodeAsJson(output: TCoreClassStream);
 var
-  j: TJsonObject;
+  j: TZ_JsonObject;
   i: Integer;
   DataFrame_: TDataFrameBase;
 begin
-  j := TJsonObject.Create;
+  j := TZ_JsonObject.Create;
 
   for i := 0 to Count - 1 do
     begin
@@ -4037,22 +3896,22 @@ begin
       j.a['Ref'].Add(DataFrame_.FID);
     end;
 
-  j.SaveToStream(output, True, TEncoding.UTF8, True);
+  j.SaveToStream(output, False);
 
   DisposeObject(j);
 end;
 
 procedure TDataFrameEngine.DecodeFromJson(stream: TCoreClassStream);
 var
-  j: TJsonObject;
+  j: TZ_JsonObject;
   t: Byte;
   i: Integer;
   DataFrame_: TDataFrameBase;
 begin
   Clear;
-  j := TJsonObject.Create;
+  j := TZ_JsonObject.Create;
   try
-      j.LoadFromStream(stream, TEncoding.UTF8, True);
+      j.LoadFromStream(stream);
   except
     DisposeObject(j);
     exit;
@@ -4086,9 +3945,6 @@ begin
   DisposeObject(m64);
   SetLength(buff, 0);
 end;
-
-{$ENDIF}
-
 
 function TDataFrameEngine.EncodeAsSelectCompressor(scm: TSelectCompressionMethod; output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
@@ -5040,15 +4896,10 @@ begin
   FEngine.WriteSectionText(v);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataWriter.WriteJson(v: TJsonObject);
+procedure TDataWriter.WriteJson(v: TZ_JsonObject);
 begin
   FEngine.WriteJson(v);
 end;
-{$ENDIF}
-
 
 procedure TDataWriter.WriteRect(v: TRect);
 begin
@@ -5338,15 +5189,10 @@ begin
   FEngine.Reader.ReadSectionText(output);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataReader.ReadJson(output: TJsonObject);
+procedure TDataReader.ReadJson(output: TZ_JsonObject);
 begin
   FEngine.Reader.ReadJson(output);
 end;
-{$ENDIF}
-
 
 function TDataReader.ReadRect: TRect;
 begin

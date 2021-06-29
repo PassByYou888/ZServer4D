@@ -71,6 +71,7 @@ type
     procedure NewParam(source: TMem64); overload;
     procedure SwapInstance(source: TMemoryStream64); overload;
     procedure SwapInstance(source: TMem64); overload;
+    function ToBytes: TBytes;
 
     property Delta: NativeInt read FDelta write FDelta;
     procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
@@ -245,6 +246,7 @@ type
     procedure NewParam(source: TMem64); overload;
     procedure SwapInstance(source: TMemoryStream64); overload;
     procedure SwapInstance(source: TMem64); overload;
+    function ToBytes: TBytes;
 
     property Delta: NativeInt read GetDelta write SetDelta;
     property Memory: Pointer read GetMemory_;
@@ -584,6 +586,13 @@ begin
   source.FPosition := FPosition_;
   source.FCapacity := FCapacity_;
   source.FProtectedMode := FProtectedMode_;
+end;
+
+function TMemoryStream64.ToBytes: TBytes;
+begin
+  SetLength(Result, Size);
+  if Size > 0 then
+      CopyPtr(Memory, @Result[0], Size);
 end;
 
 procedure TMemoryStream64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
@@ -1511,6 +1520,13 @@ begin
   source.FPosition := FPosition_;
   source.FCapacity := FCapacity_;
   source.FProtectedMode := FProtectedMode_;
+end;
+
+function TMem64.ToBytes: TBytes;
+begin
+  SetLength(Result, Size);
+  if Size > 0 then
+      CopyPtr(Memory, @Result[0], Size);
 end;
 
 procedure TMem64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);

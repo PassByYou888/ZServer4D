@@ -48,7 +48,7 @@ SOFTWARE.
 {$WARN SYMBOL_DEPRECATED OFF} // for StrLen/StrLComp
 {$POINTERMATH ON}
 
-unit ZS_JsonDataObjects;
+unit delphi_JsonDataObjects;
 
 {$IFDEF FPC}
 interface

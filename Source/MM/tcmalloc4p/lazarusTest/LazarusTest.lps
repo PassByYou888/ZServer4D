@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="4">
+      <Unit0>
+        <Filename Value="LazarusTest.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <CursorPos Y="22"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="lazarustestfrm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="LazarusTestFrm"/>
+        <CursorPos X="13" Y="4"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="43"/>
+        <CursorPos X="43" Y="61"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\Source\jemalloc4p.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="50" Y="11"/>
+        <UsageCount Value="20"/>
+      </Unit3>
+    </Units>
+    <JumpHistory Count="18" HistoryIndex="17">
+      <Position1>
+        <Filename Value="LazarusTest.lpr"/>
+        <Caret Line="8" Column="44"/>
+      </Position1>
+      <Position2>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="118" TopLine="97"/>
+      </Position2>
+      <Position3>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="120" TopLine="97"/>
+      </Position3>
+      <Position4>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="122" TopLine="97"/>
+      </Position4>
+      <Position5>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="123" TopLine="97"/>
+      </Position5>
+      <Position6>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="125" TopLine="97"/>
+      </Position6>
+      <Position7>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="104" Column="31" TopLine="91"/>
+      </Position7>
+      <Position8>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="61" Column="29" TopLine="49"/>
+      </Position8>
+      <Position9>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="62" Column="17" TopLine="46"/>
+      </Position9>
+      <Position10>
+        <Filename Value="LazarusTest.lpr"/>
+        <Caret Line="22"/>
+      </Position10>
+      <Position11>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="62" Column="20" TopLine="46"/>
+      </Position11>
+      <Position12>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="65" Column="33" TopLine="46"/>
+      </Position12>
+      <Position13>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="64" Column="47" TopLine="34"/>
+      </Position13>
+      <Position14>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="61" TopLine="43"/>
+      </Position14>
+      <Position15>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="62" Column="44" TopLine="43"/>
+      </Position15>
+      <Position16>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="57" Column="56" TopLine="43"/>
+      </Position16>
+      <Position17>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="61" TopLine="43"/>
+      </Position17>
+      <Position18>
+        <Filename Value="..\Source\tcmalloc4p.pas"/>
+        <Caret Line="58" Column="58" TopLine="43"/>
+      </Position18>
+    </JumpHistory>
+  </ProjectSession>
+</CONFIG>
