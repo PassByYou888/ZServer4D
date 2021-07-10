@@ -24,13 +24,12 @@ unit ZJson;
 interface
 
 uses SysUtils,
-  CoreClasses, PascalStrings,
 {$IFDEF DELPHI}
   delphi_JsonDataObjects,
 {$ELSE DELPHI}
   fpjson, jsonparser, jsonscanner,
 {$ENDIF DELPHI}
-  DoStatusIO,
+  CoreClasses, PascalStrings, DoStatusIO,
   UnicodeMixedLib,
   MemoryStream64;
 
@@ -172,9 +171,10 @@ type
     procedure SaveToStream(stream: TCoreClassStream; Formated_: Boolean); overload;
     procedure SaveToStream(stream: TCoreClassStream); overload;
     procedure LoadFromStream(stream: TCoreClassStream);
-
     procedure SaveToLines(L_: TCoreClassStrings);
     procedure LoadFromLines(L_: TCoreClassStrings);
+    procedure SaveToFile(FileName: SystemString);
+    procedure LoadFromFile(FileName: SystemString);
 
     procedure ParseText(Text_: TPascalString);
 
@@ -270,6 +270,38 @@ begin
   m64.Free;
 end;
 
+procedure TZ_JsonObject.SaveToFile(FileName: SystemString);
+var
+  m64: TMS64;
+begin
+  m64 := TMS64.Create;
+  try
+      m64.LoadFromFile(FileName);
+  except
+    DisposeObject(m64);
+    Exit;
+  end;
+
+  try
+      LoadFromStream(m64);
+  finally
+      DisposeObject(m64);
+  end;
+end;
+
+procedure TZ_JsonObject.LoadFromFile(FileName: SystemString);
+var
+  m64: TMS64;
+begin
+  m64 := TMS64.Create;
+  try
+    SaveToStream(m64);
+    m64.SaveToFile(FileName);
+  finally
+      DisposeObject(m64);
+  end;
+end;
+
 procedure TZ_JsonObject.ParseText(Text_: TPascalString);
 var
   buff: TBytes;
@@ -286,9 +318,9 @@ end;
 
 function TZ_JsonObject.ToJSONString(Formated_: Boolean): TPascalString;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   SaveToStream(m64, Formated_);
   Result.Bytes := m64.ToBytes;
   m64.Free;
@@ -296,9 +328,9 @@ end;
 
 function TZ_JsonObject.ToJSONString: TPascalString;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   SaveToStream(m64, True);
   Result.Bytes := m64.ToBytes;
   m64.Free;
