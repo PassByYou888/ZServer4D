@@ -1870,6 +1870,7 @@ type
 
     procedure Disconnect; override;
 
+    procedure DoBackCall_Progress(Sender: TCommunicationFramework);
     procedure ProgressWaitSend(P_IO: TPeerIO); override;
 
     property LinkVM: TCommunicationFrameworkWithP2PVM read FLinkVM;
@@ -12850,6 +12851,11 @@ begin
       FVMClientIO.Disconnect;
 end;
 
+procedure TCommunicationFrameworkWithP2PVM_Client.DoBackCall_Progress(Sender: TCommunicationFramework);
+begin
+  Sender.Progress;
+end;
+
 procedure TCommunicationFrameworkWithP2PVM_Client.ProgressWaitSend(P_IO: TPeerIO);
 begin
   if FLinkVM <> nil then
@@ -12857,6 +12863,7 @@ begin
       if FLinkVM.FPhysicsIO <> nil then
           FLinkVM.FPhysicsIO.OwnerFramework.ProgressWaitSend(FLinkVM.FPhysicsIO);
       FLinkVM.Progress;
+      FLinkVM.ProgressCommunicationFrameworkM({$IFDEF FPC}@{$ENDIF FPC}DoBackCall_Progress);
     end;
   inherited ProgressWaitSend(P_IO);
 end;
