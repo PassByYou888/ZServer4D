@@ -12,6 +12,7 @@ uses
   CoreClasses,
   PascalStrings,
   UnicodeMixedLib,
+  TextParsing,
   DoStatusIO,
   MemoryStream64,
   ListEngine,
@@ -26,11 +27,11 @@ end;
 // 模拟构建.CSV格式文件
 procedure BuildRandCSVData;
 const
-  c_MaxFileSize = Int64(16) * Int64(1024 * 1024); // 需要构建的csv文件尺寸
+  c_MaxFileSize = Int64(8) * Int64(1024 * 1024); // 需要构建的csv文件尺寸
 var
   ioHnd: TIOHnd;
   i: Integer;
-  n: U_String;
+  n, tmp: U_String;
   c: Int64;
   buff: TBytes;
 begin
@@ -55,7 +56,11 @@ begin
     begin
       n := '';
       for i := 0 to 5 do
-          n.Append(TPascalString.RandomString(umlRandomRange(5, 20)) + ',');
+        begin
+          tmp := TPascalString.RandomString(umlRandomRange(10, 20));
+          tmp.DeleteChar('()[]"' + #39);
+          n.Append(tmp + ',');
+        end;
       n.DeleteLast;
       n.Append(#13#10);
       buff := n.PlatformBytes;
@@ -419,4 +424,5 @@ begin
   QueryZDB4;
   DoStatus('回车键退出.');
   readln;
+
 end.
