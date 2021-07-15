@@ -251,7 +251,11 @@ begin
   m64 := TMS64.Create;
   SaveToStream(m64);
   m64.Position := 0;
+{$IFDEF FPC}
   L_.LoadFromStream(m64);
+{$ELSE}
+  L_.LoadFromStream(m64, TEncoding.UTF8);
+{$ENDIF}
   m64.Free;
 end;
 
