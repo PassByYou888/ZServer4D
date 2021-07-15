@@ -26,12 +26,9 @@ unit CommunicationFrameworkDataStoreService_VirtualAuth;
 
 interface
 
-
 uses CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
   DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher, ZDBEngine, ItemStream, CoreCompress,
-{$IFNDEF FPC}
-  SysUtils, ZS_JsonDataObjects,
-{$ENDIF}
+  SysUtils, ZJson,
   CommunicationFrameworkDoubleTunnelIO_VirtualAuth, CommunicationFrameworkDataStoreServiceCommon, ZDBLocalManager;
 
 type
@@ -316,7 +313,7 @@ type
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashStringList); overload;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF FPC}
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TZ_JsonObject); overload; virtual;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TPascalString); overload;
 
     { Security insert support }
@@ -326,7 +323,7 @@ type
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
 
     { Security modify support }
@@ -336,7 +333,7 @@ type
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
 
     procedure GetPostAssembleStreamStateM(OnResult: TStreamMethod); overload;
@@ -355,7 +352,7 @@ type
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashStringList); overload;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TJsonObject); overload; virtual; {$ENDIF FPC}
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TZ_JsonObject); overload; virtual;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TPascalString); overload;
 
     { fast insert support }
@@ -365,7 +362,7 @@ type
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
 
     { fast modify support }
@@ -375,7 +372,7 @@ type
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
-{$IFNDEF FPC} procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject); overload; {$ENDIF FPC}
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
 
     procedure QueryStop(PipeName_: SystemString); virtual;
@@ -2618,10 +2615,7 @@ begin
   PostAssembleStream(dataBaseName_, M, c_TE, True);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TZ_JsonObject);
 var
   M: TMemoryStream64;
 begin
@@ -2629,8 +2623,6 @@ begin
   DataSource.SaveToStream(M);
   PostAssembleStream(dataBaseName_, M, c_Json, True);
 end;
-{$ENDIF FPC}
-
 
 procedure TDataStoreClient_VirtualAuth.PostAssembleStream(dataBaseName_: SystemString; DataSource: TPascalString);
 var
@@ -2708,19 +2700,14 @@ begin
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  DataSource.SaveToStream(M, False);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_Json, True);
 end;
-{$ENDIF FPC}
-
 
 procedure TDataStoreClient_VirtualAuth.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
@@ -2797,19 +2784,14 @@ begin
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  DataSource.SaveToStream(M, False);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
-{$ENDIF FPC}
-
 
 procedure TDataStoreClient_VirtualAuth.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
@@ -2920,10 +2902,7 @@ begin
   FastPostCompleteBuffer(dataBaseName_, M, c_TE, True);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TZ_JsonObject);
 var
   M: TMemoryStream64;
 begin
@@ -2931,8 +2910,6 @@ begin
   DataSource.SaveToStream(M);
   FastPostCompleteBuffer(dataBaseName_, M, c_Json, True);
 end;
-{$ENDIF FPC}
-
 
 procedure TDataStoreClient_VirtualAuth.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TPascalString);
 var
@@ -3007,19 +2984,14 @@ begin
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  DataSource.SaveToStream(M, False);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_Json, True);
 end;
-{$ENDIF FPC}
-
 
 procedure TDataStoreClient_VirtualAuth.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
@@ -3094,19 +3066,14 @@ begin
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TJsonObject);
+procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  DataSource.SaveToStream(M, False, TEncoding.UTF8, True);
+  DataSource.SaveToStream(M, False);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_Json, True);
 end;
-{$ENDIF FPC}
-
 
 procedure TDataStoreClient_VirtualAuth.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var

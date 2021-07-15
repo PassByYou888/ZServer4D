@@ -176,7 +176,7 @@ type
 
   TDataFrameArrayInteger = class sealed(TDataFrameBase)
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;
@@ -199,7 +199,7 @@ type
 
   TDataFrameArrayShortInt = class sealed(TDataFrameBase)
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: ShortInt);
     destructor Destroy; override;
@@ -222,7 +222,7 @@ type
 
   TDataFrameArrayByte = class sealed(TDataFrameBase)
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;
@@ -253,7 +253,7 @@ type
 
   TDataFrameArraySingle = class sealed(TDataFrameBase)
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;
@@ -277,7 +277,7 @@ type
   TDataFrameArrayDouble = class sealed(TDataFrameBase)
   private
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;
@@ -301,7 +301,7 @@ type
   TDataFrameArrayInt64 = class sealed(TDataFrameBase)
   private
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;
@@ -325,7 +325,7 @@ type
   TDataFrameStream = class sealed(TDataFrameBase)
   private
   protected
-    FBuffer: TMemoryStream64;
+    FBuffer: TMS64;
   public
     constructor Create(ID: Byte);
     destructor Destroy; override;
@@ -341,7 +341,7 @@ type
     function GetBuffer: TCoreClassStream;
     procedure SetBuffer(_Buffer: TCoreClassStream);
     property Buffer: TCoreClassStream read GetBuffer write SetBuffer;
-    property InstanceBuffer: TMemoryStream64 read FBuffer write FBuffer;
+    property InstanceBuffer: TMS64 read FBuffer write FBuffer;
   end;
 
   TDataFrameVariant = class sealed(TDataFrameBase)
@@ -402,7 +402,7 @@ type
   public
     constructor Create(Owner_: TDataFrameEngine);
     destructor Destroy; override;
-    property index: Integer read FIndex write FIndex;
+    property Index: Integer read FIndex write FIndex;
     property Owner: TDataFrameEngine read FOwner;
     //
     function IsEnd: Boolean;
@@ -521,7 +521,7 @@ type
     function WriteArrayDouble: TDataFrameArrayDouble;
     function WriteArrayInt64: TDataFrameArrayInt64;
     procedure WriteStream(v: TCoreClassStream);
-    procedure WriteInstanceStream(v: TMemoryStream64);
+    procedure WriteInstanceStream(v: TMS64);
     procedure WriteVariant(v: Variant);
     procedure WriteInt64(v: Int64);
     procedure WriteUInt64(v: UInt64);
@@ -1072,7 +1072,7 @@ end;
 constructor TDataFrameArrayInteger.Create(ID: Byte);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.CustomCreate(128);
+  FBuffer := TMS64.CustomCreate(128);
 end;
 
 destructor TDataFrameArrayInteger.Destroy;
@@ -1163,7 +1163,7 @@ end;
 constructor TDataFrameArrayShortInt.Create(ID: ShortInt);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.CustomCreate(128);
+  FBuffer := TMS64.CustomCreate(128);
 end;
 
 destructor TDataFrameArrayShortInt.Destroy;
@@ -1254,7 +1254,7 @@ end;
 constructor TDataFrameArrayByte.Create(ID: Byte);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.CustomCreate(128);
+  FBuffer := TMS64.CustomCreate(128);
 end;
 
 destructor TDataFrameArrayByte.Destroy;
@@ -1386,7 +1386,7 @@ end;
 constructor TDataFrameArraySingle.Create(ID: Byte);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.CustomCreate(128);
+  FBuffer := TMS64.CustomCreate(128);
 end;
 
 destructor TDataFrameArraySingle.Destroy;
@@ -1477,7 +1477,7 @@ end;
 constructor TDataFrameArrayDouble.Create(ID: Byte);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.CustomCreate(128);
+  FBuffer := TMS64.CustomCreate(128);
 end;
 
 destructor TDataFrameArrayDouble.Destroy;
@@ -1568,7 +1568,7 @@ end;
 constructor TDataFrameArrayInt64.Create(ID: Byte);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.CustomCreate(128);
+  FBuffer := TMS64.CustomCreate(128);
 end;
 
 destructor TDataFrameArrayInt64.Destroy;
@@ -1659,7 +1659,7 @@ end;
 constructor TDataFrameStream.Create(ID: Byte);
 begin
   inherited Create(ID);
-  FBuffer := TMemoryStream64.Create;
+  FBuffer := TMS64.Create;
 end;
 
 destructor TDataFrameStream.Destroy;
@@ -2402,14 +2402,14 @@ end;
 
 procedure TDataFrameEngine.Assign(source: TDataFrameEngine);
 var
-  s: TMemoryStream64;
+  s: TMS64;
   i: Integer;
   DataFrame_: TDataFrameBase;
 begin
   if Self = source then
       exit;
   Clear;
-  s := TMemoryStream64.CustomCreate(8192);
+  s := TMS64.CustomCreate(8192);
   for i := 0 to source.Count - 1 do
     begin
       DataFrame_ := AddData(ByteToDataType(source[i].FID));
@@ -2574,7 +2574,7 @@ begin
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteInstanceStream(v: TMemoryStream64);
+procedure TDataFrameEngine.WriteInstanceStream(v: TMS64);
 var
   Obj_: TDataFrameStream;
 begin
@@ -2612,9 +2612,9 @@ end;
 
 procedure TDataFrameEngine.WriteStrings(v: TCoreClassStrings);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
 {$IFDEF FPC}
   v.SaveToStream(d);
 {$ELSE}
@@ -2627,9 +2627,9 @@ end;
 
 procedure TDataFrameEngine.WriteListStrings(v: TListString);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   v.SaveToStream(d);
   d.Position := 0;
   WriteStream(d);
@@ -2638,9 +2638,9 @@ end;
 
 procedure TDataFrameEngine.WritePascalStrings(v: TListPascalString);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   v.SaveToStream(d);
   d.Position := 0;
   WriteStream(d);
@@ -2667,10 +2667,10 @@ end;
 
 procedure TDataFrameEngine.WriteHashStringList(v: THashStringList);
 var
-  ms: TMemoryStream64;
+  ms: TMS64;
   h: THashStringTextStream;
 begin
-  ms := TMemoryStream64.Create;
+  ms := TMS64.Create;
   h := THashStringTextStream.Create(v);
   h.SaveToStream(ms);
   DisposeObject(h);
@@ -2681,10 +2681,10 @@ end;
 
 procedure TDataFrameEngine.WriteVariantList(v: THashVariantList);
 var
-  ms: TMemoryStream64;
+  ms: TMS64;
   h: THashVariantTextStream;
 begin
-  ms := TMemoryStream64.Create;
+  ms := TMS64.Create;
   h := THashVariantTextStream.Create(v);
   h.SaveToStream(ms);
   DisposeObject(h);
@@ -2695,9 +2695,9 @@ end;
 
 procedure TDataFrameEngine.WriteSectionText(v: TSectionTextData);
 var
-  ms: TMemoryStream64;
+  ms: TMS64;
 begin
-  ms := TMemoryStream64.Create;
+  ms := TMS64.Create;
   v.SaveToStream(ms);
   ms.Position := 0;
   WriteStream(ms);
@@ -2711,9 +2711,9 @@ end;
 
 procedure TDataFrameEngine.WriteJson(v: TZ_JsonObject);
 var
-  ms: TMemoryStream64;
+  ms: TMS64;
 begin
-  ms := TMemoryStream64.Create;
+  ms := TMS64.Create;
   v.SaveToStream(ms, True);
   ms.Position := 0;
   WriteStream(ms);
@@ -2725,9 +2725,9 @@ end;
 
 procedure TDataFrameEngine.WriteJson(v: TJsonObject);
 var
-  ms: TMemoryStream64;
+  ms: TMS64;
 begin
-  ms := TMemoryStream64.Create;
+  ms := TMS64.Create;
   v.SaveToStream(ms, True, TEncoding.UTF8, True);
   ms.Position := 0;
   WriteStream(ms);
@@ -2868,9 +2868,9 @@ end;
 // append new stream and write
 procedure TDataFrameEngine.write(const Buf_; Count_: Int64);
 var
-  s: TMemoryStream64;
+  s: TMS64;
 begin
-  s := TMemoryStream64.Create;
+  s := TMS64.Create;
   s.Write64(Buf_, Count_);
   WriteStream(s);
   DisposeObject(s);
@@ -3285,8 +3285,8 @@ begin
           Buffer.Position := 0;
         end;
     end
-  else if output is TMemoryStream64 then
-      Obj_.SaveToStream(TMemoryStream64(output))
+  else if output is TMS64 then
+      Obj_.SaveToStream(TMS64(output))
   else
       RaiseInfo('no support');
   if LNeedResetPos then
@@ -3376,9 +3376,9 @@ end;
 
 procedure TDataFrameEngine.ReadStrings(index_: Integer; output: TCoreClassStrings);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
 
@@ -3392,9 +3392,9 @@ end;
 
 procedure TDataFrameEngine.ReadListStrings(index_: Integer; output: TListString);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
 
@@ -3404,9 +3404,9 @@ end;
 
 procedure TDataFrameEngine.ReadPascalStrings(index_: Integer; output: TListPascalString);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
 
@@ -3417,7 +3417,7 @@ end;
 procedure TDataFrameEngine.ReadDataFrame(index_: Integer; output: TDataFrameEngine);
 var
   Obj_: TDataFrameBase;
-  d: TMemoryStream64;
+  d: TMS64;
 begin
   Obj_ := Data[index_];
   if Obj_ is TDataFrameStream then
@@ -3428,7 +3428,7 @@ begin
     end
   else
     begin
-      d := TMemoryStream64.Create;
+      d := TMS64.Create;
       ReadStream(index_, d);
       d.Position := 0;
       output.DecodeFrom(d, True);
@@ -3438,10 +3438,10 @@ end;
 
 procedure TDataFrameEngine.ReadHashStringList(index_: Integer; output: THashStringList);
 var
-  d: TMemoryStream64;
+  d: TMS64;
   h: THashStringTextStream;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
   h := THashStringTextStream.Create(output);
@@ -3452,10 +3452,10 @@ end;
 
 procedure TDataFrameEngine.ReadVariantList(index_: Integer; output: THashVariantList);
 var
-  d: TMemoryStream64;
+  d: TMS64;
   h: THashVariantTextStream;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
   h := THashVariantTextStream.Create(output);
@@ -3466,9 +3466,9 @@ end;
 
 procedure TDataFrameEngine.ReadSectionText(index_: Integer; output: TSectionTextData);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
   output.LoadFromStream(d);
@@ -3482,9 +3482,9 @@ end;
 
 procedure TDataFrameEngine.ReadJson(index_: Integer; output: TZ_JsonObject);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
   output.LoadFromStream(d);
@@ -3496,9 +3496,9 @@ end;
 
 procedure TDataFrameEngine.ReadJson(index_: Integer; output: TJsonObject);
 var
-  d: TMemoryStream64;
+  d: TMS64;
 begin
-  d := TMemoryStream64.Create;
+  d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
   output.LoadFromStream(d, TEncoding.UTF8, True);
@@ -3646,9 +3646,9 @@ end;
 
 procedure TDataFrameEngine.Read(index_: Integer; var Buf_; Count_: Int64);
 var
-  s: TMemoryStream64;
+  s: TMS64;
 begin
-  s := TMemoryStream64.Create;
+  s := TMS64.Create;
   ReadStream(index_, s);
   s.Read64(Buf_, Count_);
   DisposeObject(s);
@@ -3788,7 +3788,7 @@ function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode, Aut
 var
   i: Integer;
   DataFrame_: TDataFrameBase;
-  StoreStream, nStream: TMemoryStream64;
+  StoreStream, nStream: TMS64;
   ID: Byte;
 
   editionToken: Byte;
@@ -3818,12 +3818,12 @@ begin
       exit;
     end;
 
-  StoreStream := TMemoryStream64.CustomCreate(8192);
+  StoreStream := TMS64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
 
-  nStream := TMemoryStream64.Create;
+  nStream := TMS64.Create;
   for i := 0 to Count - 1 do
     begin
       DataFrame_ := GetData(i);
@@ -3883,9 +3883,9 @@ end;
 
 procedure TDataFrameEngine.Encrypt(output: TCoreClassStream; Compressed_: Boolean; SecurityLevel: Integer; Key: TCipherKeyBuffer);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   if Compressed_ then
       EncodeAsSelectCompressor(m64, True)
   else
@@ -3897,9 +3897,9 @@ end;
 
 function TDataFrameEngine.Decrypt(input: TCoreClassStream; Key: TCipherKeyBuffer): Boolean;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   Result := QuantumDecrypt(input, m64, Key);
   if Result then
     begin
@@ -3912,10 +3912,10 @@ end;
 
 procedure TDataFrameEngine.EncodeAsPublicJson(var output: TPascalString);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   buff: TBytes;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   EncodeAsPublicJson(m64);
   SetLength(buff, m64.Size);
   CopyPtr(m64.Memory, @buff[0], m64.Size);
@@ -3997,10 +3997,10 @@ end;
 procedure TDataFrameEngine.DecodeFromJson(const s: TPascalString);
 var
   buff: TBytes;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   buff := s.Bytes;
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.SetPointerWithProtectedMode(@buff[0], length(buff));
   m64.Position := 0;
   DecodeFromJson(m64);
@@ -4012,7 +4012,7 @@ function TDataFrameEngine.EncodeAsSelectCompressor(scm: TSelectCompressionMethod
 var
   i: Integer;
   DataFrame_: TDataFrameBase;
-  StoreStream, nStream, compStream: TMemoryStream64;
+  StoreStream, nStream, compStream: TMS64;
   ID: Byte;
 
   editionToken: Byte;
@@ -4031,12 +4031,12 @@ begin
       exit;
     end;
 
-  StoreStream := TMemoryStream64.CustomCreate(8192);
+  StoreStream := TMS64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
 
-  nStream := TMemoryStream64.Create;
+  nStream := TMS64.Create;
   for i := 0 to Count - 1 do
     begin
       DataFrame_ := GetData(i);
@@ -4058,7 +4058,7 @@ begin
   else
       md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
-  compStream := TMemoryStream64.CustomCreate($FFFF);
+  compStream := TMS64.CustomCreate($FFFF);
   ParallelCompressMemory(scm, StoreStream, compStream);
   DisposeObject(StoreStream);
 
@@ -4124,7 +4124,7 @@ function TDataFrameEngine.EncodeAsZLib(output: TCoreClassStream; const FastMode:
 var
   i: Integer;
   DataFrame_: TDataFrameBase;
-  StoreStream, nStream, compStream: TMemoryStream64;
+  StoreStream, nStream, compStream: TMS64;
   ZCompStream: TCompressionStream;
   ID: Byte;
 
@@ -4151,12 +4151,12 @@ begin
       exit;
     end;
 
-  StoreStream := TMemoryStream64.CustomCreate(8192);
+  StoreStream := TMS64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
 
-  nStream := TMemoryStream64.Create;
+  nStream := TMS64.Create;
   for i := 0 to Count - 1 do
     begin
       DataFrame_ := GetData(i);
@@ -4178,7 +4178,7 @@ begin
   else
       md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
-  compStream := TMemoryStream64.CustomCreate($FFFF);
+  compStream := TMS64.CustomCreate($FFFF);
   ZCompStream := TCompressionStream.Create(compStream);
   StoreStream.Position := 0;
   ZCompStream.CopyFrom(StoreStream, StoreStream.Size);
@@ -4231,7 +4231,7 @@ function TDataFrameEngine.EncodeAsDeflate(output: TCoreClassStream; const FastMo
 var
   i: Integer;
   DataFrame_: TDataFrameBase;
-  StoreStream, nStream, compStream: TMemoryStream64;
+  StoreStream, nStream, compStream: TMS64;
   ID: Byte;
 
   editionToken: Byte;
@@ -4257,12 +4257,12 @@ begin
       exit;
     end;
 
-  StoreStream := TMemoryStream64.CustomCreate(8192);
+  StoreStream := TMS64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
 
-  nStream := TMemoryStream64.Create;
+  nStream := TMS64.Create;
   for i := 0 to Count - 1 do
     begin
       DataFrame_ := GetData(i);
@@ -4284,7 +4284,7 @@ begin
   else
       md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
-  compStream := TMemoryStream64.Create;
+  compStream := TMS64.Create;
   StoreStream.Position := 0;
 
   if FCompressorDeflate = nil then
@@ -4339,7 +4339,7 @@ function TDataFrameEngine.EncodeAsBRRC(output: TCoreClassStream; const FastMode:
 var
   i: Integer;
   DataFrame_: TDataFrameBase;
-  StoreStream, nStream, compStream: TMemoryStream64;
+  StoreStream, nStream, compStream: TMS64;
   ID: Byte;
 
   editionToken: Byte;
@@ -4365,12 +4365,12 @@ begin
       exit;
     end;
 
-  StoreStream := TMemoryStream64.CustomCreate(8192);
+  StoreStream := TMS64.CustomCreate(8192);
 
   // make body
   StoreStream.Write64(Result, C_Integer_Size);
 
-  nStream := TMemoryStream64.Create;
+  nStream := TMS64.Create;
   for i := 0 to Count - 1 do
     begin
       DataFrame_ := GetData(i);
@@ -4392,7 +4392,7 @@ begin
   else
       md5 := umlMD5(StoreStream.Memory, StoreStream.Size);
 
-  compStream := TMemoryStream64.Create;
+  compStream := TMS64.Create;
   StoreStream.Position := 0;
 
   if FCompressorBRRC = nil then
@@ -4481,7 +4481,7 @@ function TDataFrameEngine.DecodeFrom(source: TCoreClassStream; const FastMode: B
 var
   i, num_: Integer;
   ID: Byte;
-  StoreStream: TMemoryStream64;
+  StoreStream: TMS64;
   ZDecompStream: TDecompressionStream;
   DataFrame_: TDataFrameBase;
 
@@ -4497,7 +4497,7 @@ begin
 
   Result := -1;
 
-  StoreStream := TMemoryStream64.Create;
+  StoreStream := TMS64.Create;
 
   source.Read(editionToken, C_Byte_Size);
   if (editionToken in [$FF, $FA]) then
@@ -4519,8 +4519,8 @@ begin
         begin
           source.Read(md5[0], 16);
 
-          if source is TMemoryStream64 then
-              StoreStream.SetPointerWithProtectedMode(TMemoryStream64(source).PositionAsPtr, sizeInfo)
+          if source is TMS64 then
+              StoreStream.SetPointerWithProtectedMode(TMS64(source).PositionAsPtr, sizeInfo)
           else
             begin
               if sizeInfo > 0 then
@@ -4671,9 +4671,9 @@ end;
 
 procedure TDataFrameEngine.EncodeToBytes(const Compressed, FastMode: Boolean; var output: TBytes);
 var
-  enStream: TMemoryStream64;
+  enStream: TMS64;
 begin
-  enStream := TMemoryStream64.Create;
+  enStream := TMS64.Create;
   if Compressed then
       EncodeAsSelectCompressor(enStream, FastMode)
   else
@@ -4691,9 +4691,9 @@ end;
 
 procedure TDataFrameEngine.DecodeFromBytes(var buff: TBytes; const FastMode: Boolean);
 var
-  enStream: TMemoryStream64;
+  enStream: TMS64;
 begin
-  enStream := TMemoryStream64.Create;
+  enStream := TMS64.Create;
   enStream.SetPointerWithProtectedMode(@buff[0], length(buff));
   DecodeFrom(enStream, FastMode);
   DisposeObject(enStream);
@@ -4701,9 +4701,9 @@ end;
 
 function TDataFrameEngine.GetMD5(const FastMode: Boolean): TMD5;
 var
-  enStream: TMemoryStream64;
+  enStream: TMS64;
 begin
-  enStream := TMemoryStream64.Create;
+  enStream := TMS64.Create;
   EncodeTo(enStream, FastMode);
 
   Result := umlMD5(enStream.Memory, enStream.Size);
@@ -4713,15 +4713,15 @@ end;
 function TDataFrameEngine.Compare(source: TDataFrameEngine): Boolean;
 var
   i: Integer;
-  s1, s2: TMemoryStream64;
+  s1, s2: TMS64;
 begin
   Result := False;
 
   if Count <> source.Count then
       exit;
 
-  s1 := TMemoryStream64.CustomCreate(8192);
-  s2 := TMemoryStream64.CustomCreate(8192);
+  s1 := TMS64.CustomCreate(8192);
+  s2 := TMS64.CustomCreate(8192);
   try
     for i := 0 to Count - 1 do
       begin
@@ -4784,11 +4784,11 @@ var
   FlagCompressed: Boolean;
   verflag: TBytes;
   Len: Int64;
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if FStream <> nil then
     begin
-      M := TMemoryStream64.Create;
+      M := TMS64.Create;
       FEngine.FastEncodeTo(M);
       Len := M.Size;
 
@@ -5063,7 +5063,7 @@ var
   verflag: TBytes;
   FlagCompressed: Boolean;
   Len: Int64;
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   inherited Create;
   FEngine := TDataFrameEngine.Create;
@@ -5082,7 +5082,7 @@ begin
       Stream_.Read(Len, C_Int64_Size);
 
       // write buffer
-      M := TMemoryStream64.Create;
+      M := TMS64.Create;
       M.CopyFrom(Stream_, Len);
       M.Position := 0;
       FEngine.DecodeFrom(M);
@@ -5268,11 +5268,13 @@ end;
 
 {$IFDEF DELPHI}
 
+
 procedure TDataReader.ReadJson(output: TJsonObject);
 begin
   FEngine.Reader.ReadJson(output);
 end;
 {$ENDIF DELPHI}
+
 
 function TDataReader.ReadRect: TRect;
 begin

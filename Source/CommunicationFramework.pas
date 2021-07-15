@@ -1259,7 +1259,8 @@ type
     procedure GetIO_Array(out IO_Array: TIO_Array);
 
     { block progress }
-    procedure ProgressWaitSend(P_IO: TPeerIO); virtual;
+    procedure ProgressWaitSend(P_IO: TPeerIO); overload; virtual;
+    function ProgressWaitSend(IO_ID: Cardinal): Boolean; overload;
 
     { print }
     procedure Print(const v: SystemString; const Args: array of const); overload;
@@ -2547,35 +2548,50 @@ type
   public
     NewResult: SystemString;
     Done: Boolean;
+    Failed: Boolean;
     constructor Create;
-    procedure WaitSendConsoleResultEvent(P_IO: TPeerIO; ResultData: SystemString);
+    procedure DoConsoleFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString);
+    procedure DoConsoleParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString);
   end;
 
   TWaitSendStreamCmdIntf = class(TCoreClassObject)
   public
     NewResult: TDataFrameEngine;
     Done: Boolean;
+    Failed: Boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure WaitSendStreamResultEvent(P_IO: TPeerIO; ResultData: TDataFrameEngine);
+    procedure DoStreamFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+    procedure DoStreamParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine);
   end;
 
 constructor TWaitSendConsoleCmdIntf.Create;
 begin
+  inherited Create;
   NewResult := '';
   Done := False;
+  Failed := False;
 end;
 
-procedure TWaitSendConsoleCmdIntf.WaitSendConsoleResultEvent(P_IO: TPeerIO; ResultData: SystemString);
+procedure TWaitSendConsoleCmdIntf.DoConsoleFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString);
+begin
+  Done := True;
+  Failed := True;
+end;
+
+procedure TWaitSendConsoleCmdIntf.DoConsoleParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString);
 begin
   NewResult := ResultData;
   Done := True;
+  Failed := False;
 end;
 
 constructor TWaitSendStreamCmdIntf.Create;
 begin
+  inherited Create;
   NewResult := TDataFrameEngine.Create;
   Done := False;
+  Failed := False;
 end;
 
 destructor TWaitSendStreamCmdIntf.Destroy;
@@ -2584,10 +2600,17 @@ begin
   inherited Destroy;
 end;
 
-procedure TWaitSendStreamCmdIntf.WaitSendStreamResultEvent(P_IO: TPeerIO; ResultData: TDataFrameEngine);
+procedure TWaitSendStreamCmdIntf.DoStreamFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+begin
+  Done := True;
+  Failed := True;
+end;
+
+procedure TWaitSendStreamCmdIntf.DoStreamParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine);
 begin
   NewResult.Assign(ResultData);
   Done := True;
+  Failed := False;
 end;
 
 procedure DisposeQueueData(const v: PQueueData);
@@ -8918,6 +8941,8 @@ end;
 
 procedure TCommunicationFramework.ProgressWaitSend(P_IO: TPeerIO);
 begin
+  if P_IO = nil then
+      exit;
   if FProgressWaitRuning then
       exit;
 
@@ -8928,6 +8953,19 @@ begin
   except
   end;
   FProgressWaitRuning := False;
+end;
+
+function TCommunicationFramework.ProgressWaitSend(IO_ID: Cardinal): Boolean;
+var
+  P_IO: TPeerIO;
+begin
+  Result := False;
+  P_IO := TPeerIO(FPeerIO_HashPool[IO_ID]);
+  if P_IO <> nil then
+    begin
+      ProgressWaitSend(P_IO);
+      Result := True;
+    end;
 end;
 
 procedure TCommunicationFramework.Print(const v: SystemString; const Args: array of const);
@@ -10020,6 +10058,7 @@ function TCommunicationFrameworkServer.WaitSendConsoleCmd(P_IO: TPeerIO; const C
 var
   waitIntf: TWaitSendConsoleCmdIntf;
   timetick: TTimeTick;
+  IO_ID: Cardinal;
 begin
   if (P_IO = nil) or (not P_IO.Connected) then
       exit('');
@@ -10027,10 +10066,11 @@ begin
       exit('');
 
   P_IO.PrintCommand('Begin Wait Console cmd: %s', Cmd);
+  IO_ID := P_IO.ID;
 
   timetick := GetTimeTick + Timeout;
 
-  while P_IO.WaitOnResult or P_IO.BigStreamReceiveing or P_IO.FWaitSendBusy do
+  while ExistsID(IO_ID) and (P_IO.WaitOnResult or P_IO.BigStreamReceiveing or P_IO.FWaitSendBusy) do
     begin
       ProgressWaitSend(P_IO);
       if not Exists(P_IO) then
@@ -10039,8 +10079,8 @@ begin
           exit('');
     end;
 
-  if not Exists(P_IO) then
-      exit('');
+  if not ExistsID(IO_ID) then
+      exit;
 
   P_IO.FWaitSendBusy := True;
 
@@ -10048,31 +10088,35 @@ begin
     waitIntf := TWaitSendConsoleCmdIntf.Create;
     waitIntf.Done := False;
     waitIntf.NewResult := '';
-    SendConsoleCmdM(P_IO, Cmd, ConsoleData, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.WaitSendConsoleResultEvent);
-    while not waitIntf.Done do
+    SendConsoleCmdM(P_IO, Cmd, ConsoleData, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoConsoleParam, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoConsoleFailed);
+    while ExistsID(IO_ID) and (not waitIntf.Done) do
       begin
-        ProgressWaitSend(P_IO);
-        if not Exists(P_IO) then
-            Break;
+        ProgressWaitSend(IO_ID);
+        TCompute.Sleep(1);
         if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
-    Result := waitIntf.NewResult;
+    if not waitIntf.Failed then
+        Result := waitIntf.NewResult
+    else
+        Result := '';
     if waitIntf.Done then
         DisposeObject(waitIntf);
-    P_IO.PrintCommand('End Wait Console cmd: %s', Cmd);
+    if ExistsID(IO_ID) then
+        P_IO.PrintCommand('End Wait Console cmd: %s', Cmd);
   except
       Result := '';
   end;
 
-  if Exists(P_IO) then
+  if ExistsID(IO_ID) then
       P_IO.FWaitSendBusy := False;
 end;
 
 procedure TCommunicationFrameworkServer.WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
 var
   waitIntf: TWaitSendStreamCmdIntf;
-  timetick: Cardinal;
+  timetick: TTimeTick;
+  IO_ID: Cardinal;
 begin
   if (P_IO = nil) or (not P_IO.Connected) then
       exit;
@@ -10080,10 +10124,11 @@ begin
       exit;
 
   P_IO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
+  IO_ID := P_IO.ID;
 
   timetick := GetTimeTick + Timeout;
 
-  while P_IO.WaitOnResult or P_IO.BigStreamReceiveing or P_IO.FWaitSendBusy do
+  while ExistsID(IO_ID) and (P_IO.WaitOnResult or P_IO.BigStreamReceiveing or P_IO.FWaitSendBusy) do
     begin
       ProgressWaitSend(P_IO);
       if not Exists(P_IO) then
@@ -10092,7 +10137,7 @@ begin
           exit;
     end;
 
-  if not Exists(P_IO) then
+  if not ExistsID(IO_ID) then
       exit;
 
   P_IO.FWaitSendBusy := True;
@@ -10100,25 +10145,31 @@ begin
   try
     waitIntf := TWaitSendStreamCmdIntf.Create;
     waitIntf.Done := False;
-    SendStreamCmdM(P_IO, Cmd, StreamData, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.WaitSendStreamResultEvent);
-    while not waitIntf.Done do
+    SendStreamCmdM(P_IO, Cmd, StreamData, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoStreamParam, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoStreamFailed);
+    while ExistsID(IO_ID) and (not waitIntf.Done) do
       begin
-        ProgressWaitSend(P_IO);
-        if not Exists(P_IO) then
-            Break;
+        ProgressWaitSend(IO_ID);
+        TCompute.Sleep(1);
         if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
+
     if waitIntf.Done then
       begin
-        ResultData.Assign(waitIntf.NewResult);
+        if (ResultData <> nil) and (not waitIntf.Failed) then
+          begin
+            ResultData.Assign(waitIntf.NewResult);
+            ResultData.Reader.index := 0;
+          end;
         DisposeObject(waitIntf);
       end;
-    P_IO.PrintCommand('End Wait Stream cmd: %s', Cmd);
+
+    if ExistsID(IO_ID) then
+        P_IO.PrintCommand('End Wait Stream cmd: %s', Cmd);
   except
   end;
 
-  if Exists(P_IO) then
+  if ExistsID(IO_ID) then
       P_IO.FWaitSendBusy := False;
 end;
 
@@ -11559,6 +11610,7 @@ function TCommunicationFrameworkClient.WaitSendConsoleCmd(Cmd, ConsoleData: Syst
 var
   waitIntf: TWaitSendConsoleCmdIntf;
   timetick: TTimeTick;
+  IO_ID: Cardinal;
 begin
   Result := '';
   if ClientIO = nil then
@@ -11568,10 +11620,11 @@ begin
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
   ClientIO.PrintCommand('Begin Wait console cmd: %s', Cmd);
+  IO_ID := ClientIO.ID;
 
   timetick := GetTimeTick + Timeout;
 
-  while ClientIO.WaitOnResult or ClientIO.BigStreamReceiveing or ClientIO.FWaitSendBusy do
+  while ExistsID(IO_ID) and (ClientIO.WaitOnResult or ClientIO.BigStreamReceiveing or ClientIO.FWaitSendBusy) do
     begin
       ProgressWaitSend(ClientIO);
       if not Connected then
@@ -11580,7 +11633,7 @@ begin
           exit;
     end;
 
-  if not Connected then
+  if not ExistsID(IO_ID) then
       exit('');
 
   ClientIO.FWaitSendBusy := True;
@@ -11589,28 +11642,34 @@ begin
     waitIntf := TWaitSendConsoleCmdIntf.Create;
     waitIntf.Done := False;
     waitIntf.NewResult := '';
-    SendConsoleCmdM(Cmd, ConsoleData, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.WaitSendConsoleResultEvent);
-    while not waitIntf.Done do
+    SendConsoleCmdM(Cmd, ConsoleData, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoConsoleParam, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoConsoleFailed);
+    while ExistsID(IO_ID) and (not waitIntf.Done) do
       begin
-        ProgressWaitSend(ClientIO);
+        TCompute.Sleep(1);
+        ProgressWaitSend(IO_ID);
         if not Connected then
             Break;
         if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
-    Result := waitIntf.NewResult;
+    if ExistsID(IO_ID) and (not waitIntf.Failed) and waitIntf.Done then
+        Result := waitIntf.NewResult
+    else
+        Result := '';
+
     try
-      if ClientIO <> nil then
+      if ExistsID(IO_ID) then
           ClientIO.PrintCommand('End Wait console cmd: %s', Cmd);
     except
     end;
+
     if waitIntf.Done then
         DisposeObject(waitIntf);
   except
       Result := '';
   end;
 
-  if Connected then
+  if ExistsID(IO_ID) and Connected then
       ClientIO.FWaitSendBusy := False;
 end;
 
@@ -11618,6 +11677,7 @@ procedure TCommunicationFrameworkClient.WaitSendStreamCmd(Cmd: SystemString; Str
 var
   waitIntf: TWaitSendStreamCmdIntf;
   timetick: TTimeTick;
+  IO_ID: Cardinal;
 begin
   if ClientIO = nil then
       exit;
@@ -11627,10 +11687,11 @@ begin
       exit;
 
   ClientIO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
+  IO_ID := ClientIO.ID;
 
   timetick := GetTimeTick + Timeout;
 
-  while ClientIO.WaitOnResult or ClientIO.BigStreamReceiveing or ClientIO.FWaitSendBusy do
+  while ExistsID(IO_ID) and (ClientIO.WaitOnResult or ClientIO.BigStreamReceiveing or ClientIO.FWaitSendBusy) do
     begin
       ProgressWaitSend(ClientIO);
       if not Connected then
@@ -11639,7 +11700,7 @@ begin
           exit;
     end;
 
-  if not Connected then
+  if not ExistsID(IO_ID) then
       exit;
 
   ClientIO.FWaitSendBusy := True;
@@ -11647,31 +11708,35 @@ begin
   try
     waitIntf := TWaitSendStreamCmdIntf.Create;
     waitIntf.Done := False;
-    SendStreamCmdM(Cmd, StreamData, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.WaitSendStreamResultEvent);
-    while not waitIntf.Done do
+    SendStreamCmdM(Cmd, StreamData, nil, nil, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoStreamParam, {$IFDEF FPC}@{$ENDIF FPC}waitIntf.DoStreamFailed);
+    while ExistsID(IO_ID) and (not waitIntf.Done) do
       begin
-        ProgressWaitSend(ClientIO);
+        TCompute.Sleep(1);
+        ProgressWaitSend(IO_ID);
         if not Connected then
             Break;
         if (Timeout > 0) and (GetTimeTick > timetick) then
             Break;
       end;
     try
-      if ClientIO <> nil then
+      if ExistsID(IO_ID) then
           ClientIO.PrintCommand('End Wait Stream cmd: %s', Cmd);
     except
     end;
 
     if waitIntf.Done then
       begin
-        if ResultData <> nil then
+        if (ResultData <> nil) and (not waitIntf.Failed) then
+          begin
             ResultData.Assign(waitIntf.NewResult);
+            ResultData.Reader.index := 0;
+          end;
         DisposeObject(waitIntf);
       end;
   except
   end;
 
-  if Connected then
+  if ExistsID(IO_ID) and Connected then
       ClientIO.FWaitSendBusy := False;
 end;
 
