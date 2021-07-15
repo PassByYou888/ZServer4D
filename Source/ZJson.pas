@@ -25,7 +25,7 @@ interface
 
 uses SysUtils,
 {$IFDEF DELPHI}
-  delphi_JsonDataObjects,
+  ZS_JsonDataObjects,
 {$ELSE DELPHI}
   fpjson, jsonparser, jsonscanner,
 {$ENDIF DELPHI}
