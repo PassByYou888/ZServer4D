@@ -33,6 +33,9 @@ uses SysUtils, CoreClasses, Types,
   ListEngine, MemoryStream64, CoreCipher,
   DoStatusIO, GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
   ZJson,
+{$IFDEF DELPHI}
+  ZS_JsonDataObjects,
+{$ENDIF DELPHI}
   CoreCompress, UnicodeMixedLib, PascalStrings;
 
 type
@@ -400,6 +403,7 @@ type
     constructor Create(Owner_: TDataFrameEngine);
     destructor Destroy; override;
     property index: Integer read FIndex write FIndex;
+    property Owner: TDataFrameEngine read FOwner;
     //
     function IsEnd: Boolean;
     function NotEnd: Boolean;
@@ -434,7 +438,10 @@ type
     procedure ReadVariantList(output: THashVariantList);
     procedure ReadSectionText(output: TSectionTextData);
     procedure ReadTextSection(output: TSectionTextData);
-    procedure ReadJson(output: TZ_JsonObject);
+    procedure ReadJson(output: TZ_JsonObject); overload;
+{$IFDEF DELPHI}
+    procedure ReadJson(output: TJsonObject); overload;
+{$ENDIF DELPHI}
     function ReadRect: TRect;
     function ReadRectf: TRectf;
     function ReadPoint: TPoint;
@@ -527,7 +534,10 @@ type
     procedure WriteVariantList(v: THashVariantList);
     procedure WriteSectionText(v: TSectionTextData);
     procedure WriteTextSection(v: TSectionTextData);
-    procedure WriteJson(v: TZ_JsonObject);
+    procedure WriteJson(v: TZ_JsonObject); overload;
+{$IFDEF DELPHI}
+    procedure WriteJson(v: TJsonObject); overload;
+{$ENDIF DELPHI}
     procedure WriteFile(fn: SystemString);
     procedure WriteRect(v: TRect);
     procedure WriteRectf(v: TRectf);
@@ -578,7 +588,10 @@ type
     procedure ReadVariantList(index_: Integer; output: THashVariantList);
     procedure ReadSectionText(index_: Integer; output: TSectionTextData);
     procedure ReadTextSection(index_: Integer; output: TSectionTextData);
-    procedure ReadJson(index_: Integer; output: TZ_JsonObject);
+    procedure ReadJson(index_: Integer; output: TZ_JsonObject); overload;
+{$IFDEF DELPHI}
+    procedure ReadJson(index_: Integer; output: TJsonObject); overload;
+{$ENDIF DELPHI}
     function ReadRect(index_: Integer): TRect;
     function ReadRectf(index_: Integer): TRectf;
     function ReadPoint(index_: Integer): TPoint;
@@ -670,54 +683,57 @@ type
     constructor Create(Stream_: TCoreClassStream);
     destructor Destroy; override;
 
-    procedure Clear; { virtual; }
+    procedure Clear;
 
-    procedure WriteString(v: SystemString);                  { virtual; }
-    procedure WriteBytes(v: TBytes);                         { virtual; }
-    procedure WriteInteger(v: Integer);                      { virtual; }
-    procedure WriteCardinal(v: Cardinal);                    { virtual; }
-    procedure WriteWORD(v: Word);                            { virtual; }
-    procedure WriteBool(v: Boolean);                         { virtual; }
-    procedure WriteBoolean(v: Boolean);                      { virtual; }
-    procedure WriteByte(v: Byte);                            { virtual; }
-    procedure WriteSingle(v: Single);                        { virtual; }
-    procedure WriteDouble(v: Double);                        { virtual; }
-    procedure WriteArrayInteger(v: array of Integer);        { virtual; }
-    procedure WriteArrayShortInt(v: array of ShortInt);      { virtual; }
-    procedure WriteArrayByte(v: array of Byte);              { virtual; }
-    procedure WriteArraySingle(v: array of Single);          { virtual; }
-    procedure WriteArrayDouble(v: array of Double);          { virtual; }
-    procedure WriteArrayInt64(v: array of Int64);            { virtual; }
-    procedure WriteStream(v: TCoreClassStream);              { virtual; }
-    procedure WriteVariant(v: Variant);                      { virtual; }
-    procedure WriteInt64(v: Int64);                          { virtual; }
-    procedure WriteUInt64(v: UInt64);                        { virtual; }
-    procedure WriteStrings(v: TCoreClassStrings);            { virtual; }
-    procedure WriteListStrings(v: TListString);              { virtual; }
-    procedure WritePascalStrings(v: TListPascalString);      { virtual; }
-    procedure WriteDataFrame(v: TDataFrameEngine);           { virtual; }
-    procedure WriteDataFrameCompressed(v: TDataFrameEngine); { virtual; }
-    procedure WriteHashStringList(v: THashStringList);       { virtual; }
-    procedure WriteVariantList(v: THashVariantList);         { virtual; }
-    procedure WriteSectionText(v: TSectionTextData);         { virtual; }
-    procedure WriteJson(v: TZ_JsonObject);                   { virtual; }
-    procedure WriteRect(v: TRect);                           { virtual; }
-    procedure WriteRectf(v: TRectf);                         { virtual; }
-    procedure WritePoint(v: TPoint);                         { virtual; }
-    procedure WritePointf(v: TPointf);                       { virtual; }
-    procedure WriteVector(v: TVector);                       { virtual; }
-    procedure WriteAffineVector(v: TAffineVector);           { virtual; }
-    procedure WriteVec4(v: TVec4);                           { virtual; }
-    procedure WriteVec3(v: TVec3);                           { virtual; }
-    procedure WriteVector4(v: TVector4);                     { virtual; }
-    procedure WriteVector3(v: TVector3);                     { virtual; }
-    procedure WriteMat4(v: TMat4);                           { virtual; }
-    procedure WriteMatrix4(v: TMatrix4);                     { virtual; }
-    procedure Write2DPoint(v: T2DPoint);                     { virtual; }
-    procedure WriteVec2(v: TVec2);                           { virtual; }
-    procedure WriteRectV2(v: TRectV2);                       { virtual; }
-    procedure WritePointer(v: Pointer);                      { virtual; }
-    procedure write(const Buf_; Count_: Int64);              { virtual; }
+    procedure WriteString(v: SystemString);
+    procedure WriteBytes(v: TBytes);
+    procedure WriteInteger(v: Integer);
+    procedure WriteCardinal(v: Cardinal);
+    procedure WriteWORD(v: Word);
+    procedure WriteBool(v: Boolean);
+    procedure WriteBoolean(v: Boolean);
+    procedure WriteByte(v: Byte);
+    procedure WriteSingle(v: Single);
+    procedure WriteDouble(v: Double);
+    procedure WriteArrayInteger(v: array of Integer);
+    procedure WriteArrayShortInt(v: array of ShortInt);
+    procedure WriteArrayByte(v: array of Byte);
+    procedure WriteArraySingle(v: array of Single);
+    procedure WriteArrayDouble(v: array of Double);
+    procedure WriteArrayInt64(v: array of Int64);
+    procedure WriteStream(v: TCoreClassStream);
+    procedure WriteVariant(v: Variant);
+    procedure WriteInt64(v: Int64);
+    procedure WriteUInt64(v: UInt64);
+    procedure WriteStrings(v: TCoreClassStrings);
+    procedure WriteListStrings(v: TListString);
+    procedure WritePascalStrings(v: TListPascalString);
+    procedure WriteDataFrame(v: TDataFrameEngine);
+    procedure WriteDataFrameCompressed(v: TDataFrameEngine);
+    procedure WriteHashStringList(v: THashStringList);
+    procedure WriteVariantList(v: THashVariantList);
+    procedure WriteSectionText(v: TSectionTextData);
+    procedure WriteJson(v: TZ_JsonObject); overload;
+{$IFDEF DELPHI}
+    procedure WriteJson(v: TJsonObject); overload;
+{$ENDIF DELPHI}
+    procedure WriteRect(v: TRect);
+    procedure WriteRectf(v: TRectf);
+    procedure WritePoint(v: TPoint);
+    procedure WritePointf(v: TPointf);
+    procedure WriteVector(v: TVector);
+    procedure WriteAffineVector(v: TAffineVector);
+    procedure WriteVec4(v: TVec4);
+    procedure WriteVec3(v: TVec3);
+    procedure WriteVector4(v: TVector4);
+    procedure WriteVector3(v: TVector3);
+    procedure WriteMat4(v: TMat4);
+    procedure WriteMatrix4(v: TMatrix4);
+    procedure Write2DPoint(v: T2DPoint);
+    procedure WriteVec2(v: TVec2);
+    procedure WriteRectV2(v: TRectV2);
+    procedure WritePointer(v: Pointer);
+    procedure write(const Buf_; Count_: Int64);
   end;
 
   TDataReader = class(TCoreClassObject)
@@ -727,51 +743,54 @@ type
     constructor Create(Stream_: TCoreClassStream);
     destructor Destroy; override;
 
-    function ReadString: SystemString;                        { virtual; }
-    function ReadBytes: TBytes;                               { virtual; }
-    function ReadInteger: Integer;                            { virtual; }
-    function ReadCardinal: Cardinal;                          { virtual; }
-    function ReadWord: Word;                                  { virtual; }
-    function ReadBool: Boolean;                               { virtual; }
-    function ReadBoolean: Boolean;                            { virtual; }
-    function ReadByte: Byte;                                  { virtual; }
-    function ReadSingle: Single;                              { virtual; }
-    function ReadDouble: Double;                              { virtual; }
-    procedure ReadArrayInteger(var Data: array of Integer);   { virtual; }
-    procedure ReadArrayShortInt(var Data: array of ShortInt); { virtual; }
-    procedure ReadArrayByte(var Data: array of Byte);         { virtual; }
-    procedure ReadArraySingle(var Data: array of Single);     { virtual; }
-    procedure ReadArrayDouble(var Data: array of Double);     { virtual; }
-    procedure ReadArrayInt64(var Data: array of Int64);       { virtual; }
-    procedure ReadStream(output: TCoreClassStream);           { virtual; }
-    function ReadVariant: Variant;                            { virtual; }
-    function ReadInt64: Int64;                                { virtual; }
-    function ReadUInt64: UInt64;                              { virtual; }
-    procedure ReadStrings(output: TCoreClassStrings);         { virtual; }
-    procedure ReadListStrings(output: TListString);           { virtual; }
-    procedure ReadPascalStrings(output: TListPascalString);   { virtual; }
-    procedure ReadDataFrame(output: TDataFrameEngine);        { virtual; }
-    procedure ReadHashStringList(output: THashStringList);    { virtual; }
-    procedure ReadVariantList(output: THashVariantList);      { virtual; }
-    procedure ReadSectionText(output: TSectionTextData);      { virtual; }
-    procedure ReadJson(output: TZ_JsonObject);                { virtual; }
-    function ReadRect: TRect;                                 { virtual; }
-    function ReadRectf: TRectf;                               { virtual; }
-    function ReadPoint: TPoint;                               { virtual; }
-    function ReadPointf: TPointf;                             { virtual; }
-    function ReadVector: TVector;                             { virtual; }
-    function ReadAffineVector: TAffineVector;                 { virtual; }
-    function ReadVec3: TVec3;                                 { virtual; }
-    function ReadVec4: TVec4;                                 { virtual; }
-    function ReadVector3: TVector3;                           { virtual; }
-    function ReadVector4: TVector4;                           { virtual; }
-    function ReadMat4: TMat4;                                 { virtual; }
-    function ReadMatrix4: TMatrix4;                           { virtual; }
-    function Read2DPoint: T2DPoint;                           { virtual; }
-    function ReadVec2: TVec2;                                 { virtual; }
-    function ReadRectV2: TRectV2;                             { virtual; }
-    function ReadPointer: UInt64;                             { virtual; }
-    procedure Read(var Buf_; Count_: Int64);                  { virtual; }
+    function ReadString: SystemString;
+    function ReadBytes: TBytes;
+    function ReadInteger: Integer;
+    function ReadCardinal: Cardinal;
+    function ReadWord: Word;
+    function ReadBool: Boolean;
+    function ReadBoolean: Boolean;
+    function ReadByte: Byte;
+    function ReadSingle: Single;
+    function ReadDouble: Double;
+    procedure ReadArrayInteger(var Data: array of Integer);
+    procedure ReadArrayShortInt(var Data: array of ShortInt);
+    procedure ReadArrayByte(var Data: array of Byte);
+    procedure ReadArraySingle(var Data: array of Single);
+    procedure ReadArrayDouble(var Data: array of Double);
+    procedure ReadArrayInt64(var Data: array of Int64);
+    procedure ReadStream(output: TCoreClassStream);
+    function ReadVariant: Variant;
+    function ReadInt64: Int64;
+    function ReadUInt64: UInt64;
+    procedure ReadStrings(output: TCoreClassStrings);
+    procedure ReadListStrings(output: TListString);
+    procedure ReadPascalStrings(output: TListPascalString);
+    procedure ReadDataFrame(output: TDataFrameEngine);
+    procedure ReadHashStringList(output: THashStringList);
+    procedure ReadVariantList(output: THashVariantList);
+    procedure ReadSectionText(output: TSectionTextData);
+    procedure ReadJson(output: TZ_JsonObject); overload;
+{$IFDEF DELPHI}
+    procedure ReadJson(output: TJsonObject); overload;
+{$ENDIF DELPHI}
+    function ReadRect: TRect;
+    function ReadRectf: TRectf;
+    function ReadPoint: TPoint;
+    function ReadPointf: TPointf;
+    function ReadVector: TVector;
+    function ReadAffineVector: TAffineVector;
+    function ReadVec3: TVec3;
+    function ReadVec4: TVec4;
+    function ReadVector3: TVector3;
+    function ReadVector4: TVector4;
+    function ReadMat4: TMat4;
+    function ReadMatrix4: TMatrix4;
+    function Read2DPoint: T2DPoint;
+    function ReadVec2: TVec2;
+    function ReadRectV2: TRectV2;
+    function ReadPointer: UInt64;
+    procedure Read(var Buf_; Count_: Int64);
   end;
 
 implementation
@@ -2082,6 +2101,17 @@ begin
   inc(FIndex);
 end;
 
+{$IFDEF DELPHI}
+
+
+procedure TDataFrameEngineReader.ReadJson(output: TJsonObject);
+begin
+  FOwner.ReadJson(FIndex, output);
+  inc(FIndex);
+end;
+{$ENDIF DELPHI}
+
+
 function TDataFrameEngineReader.ReadRect: TRect;
 begin
   Result := FOwner.ReadRect(FIndex);
@@ -2689,6 +2719,22 @@ begin
   WriteStream(ms);
   DisposeObject(ms);
 end;
+
+{$IFDEF DELPHI}
+
+
+procedure TDataFrameEngine.WriteJson(v: TJsonObject);
+var
+  ms: TMemoryStream64;
+begin
+  ms := TMemoryStream64.Create;
+  v.SaveToStream(ms, True, TEncoding.UTF8, True);
+  ms.Position := 0;
+  WriteStream(ms);
+  DisposeObject(ms);
+end;
+{$ENDIF DELPHI}
+
 
 procedure TDataFrameEngine.WriteFile(fn: SystemString);
 var
@@ -3444,6 +3490,22 @@ begin
   output.LoadFromStream(d);
   DisposeObject(d);
 end;
+
+{$IFDEF DELPHI}
+
+
+procedure TDataFrameEngine.ReadJson(index_: Integer; output: TJsonObject);
+var
+  d: TMemoryStream64;
+begin
+  d := TMemoryStream64.Create;
+  ReadStream(index_, d);
+  d.Position := 0;
+  output.LoadFromStream(d, TEncoding.UTF8, True);
+  DisposeObject(d);
+end;
+{$ENDIF DELPHI}
+
 
 function TDataFrameEngine.ReadRect(index_: Integer): TRect;
 begin
@@ -4901,6 +4963,16 @@ begin
   FEngine.WriteJson(v);
 end;
 
+{$IFDEF DELPHI}
+
+
+procedure TDataWriter.WriteJson(v: TJsonObject);
+begin
+  FEngine.WriteJson(v);
+end;
+{$ENDIF DELPHI}
+
+
 procedure TDataWriter.WriteRect(v: TRect);
 begin
   FEngine.WriteRect(v);
@@ -5193,6 +5265,14 @@ procedure TDataReader.ReadJson(output: TZ_JsonObject);
 begin
   FEngine.Reader.ReadJson(output);
 end;
+
+{$IFDEF DELPHI}
+
+procedure TDataReader.ReadJson(output: TJsonObject);
+begin
+  FEngine.Reader.ReadJson(output);
+end;
+{$ENDIF DELPHI}
 
 function TDataReader.ReadRect: TRect;
 begin
