@@ -199,7 +199,7 @@
     {$UNDEF INLINE_ASM}
     {$O-} { close optimization }
     {$R-} { range check }
-    {$I+} { Input output checking }
+    {$I-} { Input output checking }
     {$D+} { debug information }
   {$ENDIF}
 
