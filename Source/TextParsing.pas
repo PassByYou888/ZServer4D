@@ -895,6 +895,8 @@ var
   NC: Integer;
   dotNum: Integer;
   eNum: Integer;
+  eSymNum: Integer;
+  pSym: Integer;
   p: PTokenData;
 begin
   if not RebuildCacheBusy then
@@ -984,6 +986,8 @@ begin
       bkPos := cPos;
       NC := 0;
       dotNum := 0;
+      eNum := 0;
+      eSymNum := 0;
       while True do
         begin
           cPos := GetTextDeclEndPos(GetCommentEndPos(cPos));
@@ -998,6 +1002,16 @@ begin
               if dotNum > 1 then
                   Break;
             end
+          else if CharIn(c, c0to9) then
+              inc(NC)
+          else if (NC > 0) and (eNum = 0) and CharIn(c, 'eE') then
+            begin
+              inc(eNum);
+            end
+          else if (NC > 0) and (eNum = 1) and CharIn(c, '-+') then
+            begin
+              inc(eSymNum);
+            end
           else if isWordSplitChar(c, True, SymbolTable) then
             begin
               Break;
@@ -1006,9 +1020,7 @@ begin
             begin
               Result := False;
               exit;
-            end
-          else if CharIn(c, c0to9) then
-              inc(NC);
+            end;
 
           inc(cPos);
         end;
@@ -1022,6 +1034,9 @@ begin
       bkPos := cPos;
       NC := 0;
       dotNum := 0;
+      eNum := 0;
+      eSymNum := 0;
+      pSym := 0;
       while True do
         begin
           cPos := GetTextDeclEndPos(GetCommentEndPos(cPos));
@@ -1030,16 +1045,25 @@ begin
               Break;
           c := ParsingData.Text[cPos];
 
-          if CharIn(c, '.') then
+          if (NC = 0) and (eSymNum = 0) and (eNum = 0) and CharIn(c, '-+') then
+            begin
+              inc(pSym);
+            end
+          else if CharIn(c, '.') then
             begin
               inc(dotNum);
               if dotNum > 1 then
                   Break;
             end
-          else if CharIn(c, '+-') then
+          else if CharIn(c, c0to9) then
+              inc(NC)
+          else if (NC > 0) and (eNum = 0) and CharIn(c, 'eE') then
             begin
-              if NC > 0 then
-                  Break;
+              inc(eNum);
+            end
+          else if (NC > 0) and (eNum = 1) and CharIn(c, '-+') then
+            begin
+              inc(eSymNum);
             end
           else if isWordSplitChar(c, True, SymbolTable) then
             begin
@@ -1049,9 +1073,7 @@ begin
             begin
               Result := False;
               exit;
-            end
-          else if CharIn(c, c0to9) then
-              inc(NC);
+            end;
 
           inc(cPos);
         end;
