@@ -1,6 +1,5 @@
 ﻿unit EzCliFrm;
 
-
 interface
 
 uses
@@ -58,6 +57,7 @@ procedure TEZClientForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(self, DoStatusNear);
   client := TCommunicationFramework_Client_CrossSocket.Create;
+  // client := TCommunicationFramework_Client_ICS.Create;
 end;
 
 procedure TEZClientForm.FormDestroy(Sender: TObject);
@@ -200,6 +200,7 @@ end;
 
 procedure TEZClientForm.Timer1Timer(Sender: TObject);
 begin
+  CheckThreadSync;
   client.Progress;
 end;
 
@@ -226,4 +227,3 @@ begin
 end;
 
 end.
-

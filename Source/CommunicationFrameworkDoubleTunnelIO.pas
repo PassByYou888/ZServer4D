@@ -24,17 +24,23 @@ unit CommunicationFrameworkDoubleTunnelIO;
 
 interface
 
-uses CoreClasses,
+uses
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  CoreClasses,
   ListEngine, UnicodeMixedLib,
-  DataFrameEngine, MemoryStream64, CommunicationFramework, TextDataEngine,
+  DataFrameEngine, MemoryStream64, CommunicationFramework, PhysicsIO,
+  TextDataEngine,
   DoStatusIO, Cadencer, NotifyObjectBase, FilePackage,
   ObjectDataManager, CoreCipher, PascalStrings;
 
 type
   TDTService = class;
   TPeerClientUserDefineForRecvTunnel = class;
+  TDTServiceClass = class of TDTService;
 
-  TPeerClientUserDefineForSendTunnel = class(TPeerClientUserDefine)
+  TPeerClientUserDefineForSendTunnel = class(TPeerIOUserDefine)
   public
     RecvTunnel: TPeerClientUserDefineForRecvTunnel;
     RecvTunnelID: Cardinal;
@@ -46,13 +52,13 @@ type
     property BindOk: Boolean read LinkOk;
   end;
 
-  TPeerClientUserDefineForRecvTunnel = class(TPeerClientUserDefine)
+  TPeerClientUserDefineForRecvTunnel = class(TPeerIOUserDefine)
   public
     SendTunnel: TPeerClientUserDefineForSendTunnel;
     SendTunnelID: Cardinal;
     UserFlag, UserID: SystemString;
     UserPath: SystemString;
-    UserConfigFile: TSectionTextData;
+    UserConfigFile: THashTextEngine;
     DoubleTunnelService: TDTService;
     UserDBIntf: THashVariantList;
     LoginSuccessed: Boolean;
@@ -83,9 +89,9 @@ type
   protected
     FRecvTunnel, FSendTunnel: TCommunicationFrameworkServer;
     FRootPath, FPublicPath: SystemString;
-    FUserDB: TSectionTextData;
-    FCanRegisterNewUser: Boolean;
-    FCanSaveUserInfo: Boolean;
+    FUserDB: THashTextEngine;
+    FAllowRegisterNewUser: Boolean;
+    FAllowSaveUserInfo: Boolean;
     FLoginUserList: THashVariantList;
     FLoginUserDefineIOList: THashObjectList;
     FCadencerEngine: TCadencer;
@@ -166,10 +172,10 @@ type
 
     procedure SaveUserDB;
 
-    function RegUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+    function RegUser(UsrID, UsrPasswd: SystemString; UserConfigFile_: THashTextEngine): Boolean;
     function ExistsUser(UsrID: SystemString): Boolean;
     function GetUserPath(UsrID: SystemString): SystemString;
-    function GetUserFile(UsrID, AUserFileName: SystemString): SystemString;
+    function GetUserFile(UsrID, UserFileName_: SystemString): SystemString;
     function GetUserDefineIO(UsrID: SystemString): TPeerClientUserDefineForRecvTunnel;
     function UserOnline(UsrID: SystemString): Boolean;
 
@@ -204,8 +210,8 @@ type
     procedure GetBatchStreamStateP(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
     property LoginUserList: THashVariantList read FLoginUserList;
 
-    property CanRegisterNewUser: Boolean read FCanRegisterNewUser write FCanRegisterNewUser;
-    property CanSaveUserInfo: Boolean read FCanSaveUserInfo write FCanSaveUserInfo;
+    property AllowRegisterNewUser: Boolean read FAllowRegisterNewUser write FAllowRegisterNewUser;
+    property AllowSaveUserInfo: Boolean read FAllowSaveUserInfo write FAllowSaveUserInfo;
 
     { private store space }
     property RootPath: SystemString read FRootPath write FRootPath;
@@ -228,10 +234,10 @@ type
   end;
 
   TDTClient = class;
-
   TClientUserDefineForSendTunnel = class;
+  TDTClientClass = class of TDTClient;
 
-  TClientUserDefineForRecvTunnel = class(TPeerClientUserDefine)
+  TClientUserDefineForRecvTunnel = class(TPeerIOUserDefine)
   public
     Client: TDTClient;
     SendTunnel: TClientUserDefineForSendTunnel;
@@ -240,7 +246,7 @@ type
     destructor Destroy; override;
   end;
 
-  TClientUserDefineForSendTunnel = class(TPeerClientUserDefine)
+  TClientUserDefineForSendTunnel = class(TPeerIOUserDefine)
   public
     Client: TDTClient;
     RecvTunnel: TClientUserDefineForRecvTunnel;
@@ -397,12 +403,10 @@ type
     procedure TunnelLinkP(OnProc: TStateProc); virtual;
     procedure SyncCadencer; virtual;
 
-    { sync mode }
-    function ChnagePassword(oldPasswd, newPasswd: SystemString): Boolean;
-    function CustomNewUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
-
+    { sync user op }
+    function ChangePassword(oldPasswd, newPasswd: SystemString): Boolean;
+    function CustomNewUser(UsrID, UsrPasswd: SystemString; UserConfigFile_: THashTextEngine): Boolean;
     procedure ProcessStoreQueueCMD;
-
     procedure GetPublicFileList(Filter: SystemString; lst: TCoreClassStrings);
     procedure GetPrivateFileList(Filter, RemoteDirectory: SystemString; lst: TCoreClassStrings); overload;
     procedure GetPrivateFileList(Filter: SystemString; lst: TCoreClassStrings); overload;
@@ -563,7 +567,7 @@ type
     procedure GetBatchStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
     procedure GetBatchStreamStateP(OnResult: TStreamProc); overload;
     procedure GetBatchStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-    function GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean; overload;
+    function GetBatchStreamState(ResultData: TDataFrameEngine; TimeOut_: TTimeTick): Boolean; overload;
 
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
@@ -589,6 +593,132 @@ type
 
     function RemoteInited: Boolean;
   end;
+
+  TDT_P2PVM_OnState = record
+    OnCall: TStateCall;
+    OnMethod: TStateMethod;
+    OnProc: TStateProc;
+    procedure Init;
+  end;
+
+  PDT_P2PVM_OnState = ^TDT_P2PVM_OnState;
+
+  TDT_P2PVM_Service = class(TCoreClassObject)
+  private
+    function GetQuietMode: Boolean;
+    procedure SetQuietMode(const Value: Boolean);
+  public
+    RecvTunnel, SendTunnel: TCommunicationFrameworkWithP2PVM_Server;
+    DTService: TDTService;
+    PhysicsTunnel: TPhysicsServer;
+
+    constructor Create(ServiceClass_: TDTServiceClass);
+    destructor Destroy; override;
+    procedure Progress; virtual;
+    procedure StartService(ListenAddr, ListenPort, Auth: SystemString);
+    procedure StopService;
+    property QuietMode: Boolean read GetQuietMode write SetQuietMode;
+  end;
+
+  TDT_P2PVM_ServicePool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDT_P2PVM_Service>;
+
+  TDT_P2PVM_Client = class(TCoreClassObject)
+  private
+    OnConnectResultState: TDT_P2PVM_OnState;
+    Connecting: Boolean;
+    Reconnection: Boolean;
+    procedure DoConnectionResult(const state: Boolean);
+    procedure DoAutomatedP2PVMClientConnectionDone(Sender: TCommunicationFramework; P_IO: TPeerIO);
+    procedure DoLoginResult(const state: Boolean);
+    procedure DoTunnelLinkResult(const state: Boolean);
+
+    function GetQuietMode: Boolean;
+    procedure SetQuietMode(const Value: Boolean);
+  public
+    RecvTunnel, SendTunnel: TCommunicationFrameworkWithP2PVM_Client;
+    DTClient: TDTClient;
+    PhysicsTunnel: TPhysicsClient;
+    LastAddr, LastPort, LastAuth: SystemString;
+    LastUser, LastPasswd: SystemString;
+    AutomatedConnection: Boolean;
+
+    constructor Create(ClientClass_: TDTClientClass);
+    destructor Destroy; override;
+    procedure Progress; virtual;
+    procedure Connect(addr, Port, Auth, User, passwd: SystemString);
+    procedure Connect_C(addr, Port, Auth, User, passwd: SystemString; OnResult: TStateCall);
+    procedure Connect_M(addr, Port, Auth, User, passwd: SystemString; OnResult: TStateMethod);
+    procedure Connect_P(addr, Port, Auth, User, passwd: SystemString; OnResult: TStateProc);
+    procedure Disconnect;
+    property QuietMode: Boolean read GetQuietMode write SetQuietMode;
+  end;
+
+  TDT_P2PVM_ClientPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDT_P2PVM_Client>;
+
+  TDT_P2PVM_Custom_Service = class(TCoreClassInterfacedObject)
+  private
+    function GetQuietMode: Boolean;
+    procedure SetQuietMode(const Value: Boolean);
+  public
+    // bind
+    Bind_PhysicsTunnel: TCommunicationFrameworkServer;
+    Bind_P2PVM_Recv_IP6: SystemString;
+    Bind_P2PVM_Recv_Port: Word;
+    Bind_P2PVM_Send_IP6: SystemString;
+    Bind_P2PVM_Send_Port: Word;
+    // local
+    RecvTunnel, SendTunnel: TCommunicationFrameworkWithP2PVM_Server;
+    DTService: TDTService;
+
+    constructor Create(ServiceClass_: TDTServiceClass; PhysicsTunnel_: TCommunicationFrameworkServer;
+      P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
+      P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString);
+    destructor Destroy; override;
+    procedure Progress; virtual;
+    procedure StartService();
+    procedure StopService();
+    property QuietMode: Boolean read GetQuietMode write SetQuietMode;
+  end;
+
+  TDT_P2PVM_Custom_ServicePool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDT_P2PVM_Custom_Service>;
+
+  TDT_P2PVM_Custom_Client = class(TCoreClassInterfacedObject)
+  private
+    OnConnectResultState: TDT_P2PVM_OnState;
+    Connecting: Boolean;
+    Reconnection: Boolean;
+    procedure DoLoginResult(const state: Boolean);
+    procedure DoTunnelLinkResult(const state: Boolean);
+
+    function GetQuietMode: Boolean;
+    procedure SetQuietMode(const Value: Boolean);
+  public
+    // bind
+    Bind_PhysicsTunnel: TCommunicationFrameworkClient;
+    Bind_P2PVM_Recv_IP6: SystemString;
+    Bind_P2PVM_Recv_Port: Word;
+    Bind_P2PVM_Send_IP6: SystemString;
+    Bind_P2PVM_Send_Port: Word;
+    // local
+    RecvTunnel, SendTunnel: TCommunicationFrameworkWithP2PVM_Client;
+    DTClient: TDTClient;
+    LastUser, LastPasswd: SystemString;
+    AutomatedConnection: Boolean;
+
+    constructor Create(ClientClass_: TDTClientClass; PhysicsTunnel_: TCommunicationFrameworkClient;
+      P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
+      P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString);
+    destructor Destroy; override;
+    procedure Progress; virtual;
+    procedure Connect(User, passwd: SystemString);
+    procedure Connect_C(User, passwd: SystemString; OnResult: TStateCall);
+    procedure Connect_M(User, passwd: SystemString; OnResult: TStateMethod);
+    procedure Connect_P(User, passwd: SystemString; OnResult: TStateProc);
+    procedure Disconnect;
+    property QuietMode: Boolean read GetQuietMode write SetQuietMode;
+  end;
+
+  TDT_P2PVM_Custom_ClientPool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDT_P2PVM_Custom_Client>;
 
   PGetFileInfoStruct = ^TGetFileInfoStruct;
 
@@ -1031,7 +1161,7 @@ begin
   UserFlag := '';
   UserID := '';
   UserPath := '';
-  UserConfigFile := TSectionTextData.Create;
+  UserConfigFile := THashTextEngine.Create;
   DoubleTunnelService := nil;
   UserDBIntf := nil;
   LoginSuccessed := False;
@@ -1208,7 +1338,7 @@ var
 begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
 
-  if not FCanRegisterNewUser then
+  if not FAllowRegisterNewUser then
     begin
       OutData.WriteBool(False);
       OutData.WriteString(Format('disable user register in server', []));
@@ -1262,7 +1392,7 @@ begin
   UserDefineIO.UserConfigFile.Hit['UserInfo', 'Password'] := UserDefineIO.UserDBIntf['password'];
   UserDefineIO.SaveConfigFile;
 
-  if FCanSaveUserInfo then
+  if FAllowSaveUserInfo then
       SaveUserDB;
 
   FLoginUserList[UserID] := Now;
@@ -1358,7 +1488,7 @@ begin
   end;
 
   UserDefineIO.UserDBIntf['password'] := GenerateQuantumCryptographyPassword(newPasswd).Text;
-  if FCanSaveUserInfo then
+  if FAllowSaveUserInfo then
       SaveUserDB;
 
   OutData.WriteBool(True);
@@ -1369,7 +1499,7 @@ procedure TDTService.Command_CustomNewUser(Sender: TPeerIO; InData, OutData: TDa
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel;
   UserID, passwd: SystemString;
-  UserConfig: TSectionTextData;
+  UserConfig: THashTextEngine;
 begin
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
   if not UserDefineIO.LoginSuccessed then
@@ -1379,7 +1509,7 @@ begin
 
   UserID := InData.Reader.ReadString;
   passwd := InData.Reader.ReadString;
-  UserConfig := TSectionTextData.Create;
+  UserConfig := THashTextEngine.Create;
   InData.Reader.ReadSectionText(UserConfig);
 
   OutData.WriteBool(RegUser(UserID, passwd, UserConfig));
@@ -2494,9 +2624,9 @@ begin
 
   FRootPath := umlCurrentPath;
   FPublicPath := FRootPath;
-  FUserDB := TSectionTextData.Create(20 * 10000);
-  FCanRegisterNewUser := False;
-  FCanSaveUserInfo := False;
+  FUserDB := THashTextEngine.Create(20 * 10000);
+  FAllowRegisterNewUser := False;
+  FAllowSaveUserInfo := False;
   FLoginUserList := THashVariantList.CustomCreate(8192);
   FLoginUserDefineIOList := THashObjectList.CustomCreate(False, 8192);
 
@@ -2505,9 +2635,6 @@ begin
   FProgressEngine := TNProgressPost.Create;
 
   SwitchAsDefaultPerformance;
-
-  FRecvTunnel.PrefixName := 'Double.Received';
-  FSendTunnel.PrefixName := 'Double.Sending';
 
   FOnLinkSuccess := nil;
   FOnUserOut := nil;
@@ -2590,11 +2717,11 @@ begin
     end;
 end;
 
-function TDTService.RegUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+function TDTService.RegUser(UsrID, UsrPasswd: SystemString; UserConfigFile_: THashTextEngine): Boolean;
 var
-  AUserFlag, AUserPath: SystemString;
-  AUserDBIntf: THashVariantList;
-  te: TSectionTextData;
+  UserFlag_, UserPath_: SystemString;
+  UserDBIntf_: THashVariantList;
+  te: THashTextEngine;
 begin
   Result := False;
   if umlExistsChar(UsrID, '[]:'#13#10#9#8#0) then
@@ -2606,31 +2733,31 @@ begin
   if FLoginUserList.Exists(UsrID) then
       Exit;
 
-  AUserFlag := MakeUserFlag;
+  UserFlag_ := MakeUserFlag;
 
-  AUserPath := umlCombinePath(FRootPath, AUserFlag);
-  umlCreateDirectory(AUserPath);
+  UserPath_ := umlCombinePath(FRootPath, UserFlag_);
+  umlCreateDirectory(UserPath_);
 
-  AUserDBIntf := FUserDB.VariantList[UsrID];
-  AUserDBIntf['UserFlag'] := AUserFlag;
-  AUserDBIntf['password'] := GenerateQuantumCryptographyPassword(UsrPasswd).Text;
+  UserDBIntf_ := FUserDB.VariantList[UsrID];
+  UserDBIntf_['UserFlag'] := UserFlag_;
+  UserDBIntf_['password'] := GenerateQuantumCryptographyPassword(UsrPasswd).Text;
 
-  if AUserConfigFile <> nil then
+  if UserConfigFile_ <> nil then
     begin
-      AUserConfigFile.Hit['UserInfo', 'UserID'] := UsrID;
-      AUserConfigFile.Hit['UserInfo', 'Password'] := AUserDBIntf['password'];
-      AUserConfigFile.SaveToFile(umlCombineFileName(AUserPath, 'User.Config'));
+      UserConfigFile_.Hit['UserInfo', 'UserID'] := UsrID;
+      UserConfigFile_.Hit['UserInfo', 'Password'] := UserDBIntf_['password'];
+      UserConfigFile_.SaveToFile(umlCombineFileName(UserPath_, 'User.Config'));
     end
   else
     begin
-      te := TSectionTextData.Create;
+      te := THashTextEngine.Create;
       te.Hit['UserInfo', 'UserID'] := UsrID;
-      te.Hit['UserInfo', 'Password'] := AUserDBIntf['password'];
-      te.SaveToFile(umlCombineFileName(AUserPath, 'User.Config'));
+      te.Hit['UserInfo', 'Password'] := UserDBIntf_['password'];
+      te.SaveToFile(umlCombineFileName(UserPath_, 'User.Config'));
       DisposeObject(te);
     end;
 
-  if FCanSaveUserInfo then
+  if FAllowSaveUserInfo then
       SaveUserDB;
 
   UserRegistedSuccess(UsrID);
@@ -2644,21 +2771,21 @@ end;
 
 function TDTService.GetUserPath(UsrID: SystemString): SystemString;
 var
-  AUserFlag: SystemString;
-  AUserDBIntf: THashVariantList;
+  UserFlag_: SystemString;
+  UserDBIntf_: THashVariantList;
 begin
   Result := '';
   if not ExistsUser(UsrID) then
       Exit;
 
-  AUserDBIntf := FUserDB.VariantList[UsrID];
-  AUserFlag := AUserDBIntf.GetDefaultValue('UserFlag', '');
-  Result := umlCombinePath(FRootPath, AUserFlag);
+  UserDBIntf_ := FUserDB.VariantList[UsrID];
+  UserFlag_ := UserDBIntf_.GetDefaultValue('UserFlag', '');
+  Result := umlCombinePath(FRootPath, UserFlag_);
 end;
 
-function TDTService.GetUserFile(UsrID, AUserFileName: SystemString): SystemString;
+function TDTService.GetUserFile(UsrID, UserFileName_: SystemString): SystemString;
 begin
-  Result := umlCombineFileName(GetUserPath(UsrID), AUserFileName);
+  Result := umlCombineFileName(GetUserPath(UsrID), UserFileName_);
 end;
 
 function TDTService.GetUserDefineIO(UsrID: SystemString): TPeerClientUserDefineForRecvTunnel;
@@ -2716,15 +2843,15 @@ function TDTService.UnPackStreamAsUser(packageStream: TCoreClassStream): Boolean
 var
   dbEng: TObjectDataManager;
   M: TMemoryStream64;
-  te: TSectionTextData;
+  te: THashTextEngine;
 
   UsrID, UsrPasswd: SystemString;
-  AUserDBIntf: THashVariantList;
+  UserDBIntf_: THashVariantList;
 begin
   packageStream.Position := 0;
   dbEng := TObjectDataManager.CreateAsStream(packageStream, '', ObjectDataMarshal.ID, True, False, False);
   M := TMemoryStream64.Create;
-  te := TSectionTextData.Create;
+  te := THashTextEngine.Create;
 
   try
     Result := ExtractFileInDB(dbEng, '/', 'User.Config', M);
@@ -2750,8 +2877,8 @@ begin
                 DoStatus('update user "%s" From Pack Stream', [UsrID]);
                 ExtractDBToPath(dbEng, GetUserPath(UsrID));
 
-                AUserDBIntf := FUserDB.VariantList[UsrID];
-                AUserDBIntf['password'] := UsrPasswd;
+                UserDBIntf_ := FUserDB.VariantList[UsrID];
+                UserDBIntf_['password'] := UsrPasswd;
 
                 SaveUserDB;
                 Result := True;
@@ -3737,9 +3864,6 @@ begin
   FAsyncOnResultProc := nil;
 
   SwitchAsDefaultPerformance;
-
-  FRecvTunnel.PrefixName := 'Double.Received';
-  FSendTunnel.PrefixName := 'Double.Sending';
 end;
 
 destructor TDTClient.Destroy;
@@ -3785,18 +3909,28 @@ begin
 end;
 
 procedure TDTClient.Progress;
+var
+  p2pVMDone: Boolean;
 begin
-  try
-    FCadencerEngine.Progress;
+  FCadencerEngine.Progress;
 
-    if FRecvTunnel is TCommunicationFrameworkWithP2PVM_Client then
+  try
+    p2pVMDone := False;
+
+    if (not p2pVMDone) and (FRecvTunnel is TCommunicationFrameworkWithP2PVM_Client) then
       if FRecvTunnel.ClientIO <> nil then
+        begin
           FRecvTunnel.ProgressWaitSend(FRecvTunnel.ClientIO);
+          p2pVMDone := True;
+        end;
     FRecvTunnel.Progress;
 
-    if FSendTunnel is TCommunicationFrameworkWithP2PVM_Client then
+    if (not p2pVMDone) and (FSendTunnel is TCommunicationFrameworkWithP2PVM_Client) then
       if FSendTunnel.ClientIO <> nil then
+        begin
           FSendTunnel.ProgressWaitSend(FSendTunnel.ClientIO);
+          p2pVMDone := True;
+        end;
     FSendTunnel.Progress;
 
     if not Connected then
@@ -4251,7 +4385,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-function TDTClient.ChnagePassword(oldPasswd, newPasswd: SystemString): Boolean;
+function TDTClient.ChangePassword(oldPasswd, newPasswd: SystemString): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
@@ -4275,7 +4409,7 @@ begin
   DisposeObject(resDE);
 end;
 
-function TDTClient.CustomNewUser(UsrID, UsrPasswd: SystemString; AUserConfigFile: TSectionTextData): Boolean;
+function TDTClient.CustomNewUser(UsrID, UsrPasswd: SystemString; UserConfigFile_: THashTextEngine): Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
 begin
@@ -4289,7 +4423,7 @@ begin
 
   sendDE.WriteString(UsrID);
   sendDE.WriteString(UsrPasswd);
-  sendDE.WriteSectionText(AUserConfigFile);
+  sendDE.WriteSectionText(UserConfigFile_);
 
   FSendTunnel.WaitSendStreamCmd(C_CustomNewUser, sendDE, resDE, FWaitCommandTimeout);
 
@@ -6002,12 +6136,12 @@ begin
   DisposeObject(de);
 end;
 
-function TDTClient.GetBatchStreamState(ResultData: TDataFrameEngine; ATimeOut: TTimeTick): Boolean;
+function TDTClient.GetBatchStreamState(ResultData: TDataFrameEngine; TimeOut_: TTimeTick): Boolean;
 var
   de: TDataFrameEngine;
 begin
   de := TDataFrameEngine.Create;
-  SendTunnel.WaitSendStreamCmd(C_GetBatchStreamState, de, ResultData, ATimeOut);
+  SendTunnel.WaitSendStreamCmd(C_GetBatchStreamState, de, ResultData, TimeOut_);
   Result := ResultData.Count > 0;
   DisposeObject(de);
 end;
@@ -6043,6 +6177,561 @@ end;
 function TDTClient.RemoteInited: Boolean;
 begin
   Result := FSendTunnel.RemoteInited and FRecvTunnel.RemoteInited;
+end;
+
+procedure TDT_P2PVM_OnState.Init;
+begin
+  OnCall := nil;
+  OnMethod := nil;
+  OnProc := nil;
+end;
+
+function TDT_P2PVM_Service.GetQuietMode: Boolean;
+begin
+  Result := RecvTunnel.QuietMode and SendTunnel.QuietMode and PhysicsTunnel.QuietMode;
+end;
+
+procedure TDT_P2PVM_Service.SetQuietMode(const Value: Boolean);
+begin
+  RecvTunnel.QuietMode := Value;
+  SendTunnel.QuietMode := Value;
+  PhysicsTunnel.QuietMode := Value;
+end;
+
+constructor TDT_P2PVM_Service.Create(ServiceClass_: TDTServiceClass);
+begin
+  inherited Create;
+  RecvTunnel := TCommunicationFrameworkWithP2PVM_Server.Create;
+  RecvTunnel.QuietMode := True;
+
+  SendTunnel := TCommunicationFrameworkWithP2PVM_Server.Create;
+  SendTunnel.QuietMode := True;
+
+  DTService := ServiceClass_.Create(RecvTunnel, SendTunnel);
+  DTService.RegisterCommand;
+  DTService.SwitchAsDefaultPerformance;
+
+  PhysicsTunnel := TPhysicsServer.Create;
+  PhysicsTunnel.QuietMode := True;
+  PhysicsTunnel.AutomatedP2PVMBindService.AddService(RecvTunnel);
+  PhysicsTunnel.AutomatedP2PVMBindService.AddService(SendTunnel);
+  PhysicsTunnel.AutomatedP2PVMService := True;
+
+  RecvTunnel.PrefixName := 'DT';
+  RecvTunnel.Name := 'Recv';
+  SendTunnel.PrefixName := 'DT';
+  SendTunnel.Name := 'Send';
+  PhysicsTunnel.PrefixName := 'Physics';
+  PhysicsTunnel.Name := 'p2pVM';
+end;
+
+destructor TDT_P2PVM_Service.Destroy;
+begin
+  StopService;
+  DisposeObject(RecvTunnel);
+  DisposeObject(SendTunnel);
+  DisposeObject(DTService);
+  DisposeObject(PhysicsTunnel);
+  inherited Destroy;
+end;
+
+procedure TDT_P2PVM_Service.Progress;
+begin
+  DTService.Progress;
+  PhysicsTunnel.Progress;
+end;
+
+procedure TDT_P2PVM_Service.StartService(ListenAddr, ListenPort, Auth: SystemString);
+begin
+  StopService;
+  RecvTunnel.StartService('::', 1);
+  SendTunnel.StartService('::', 2);
+  PhysicsTunnel.AutomatedP2PVMAuthToken := Auth;
+  if PhysicsTunnel.StartService(ListenAddr, umlStrToInt(ListenPort)) then
+      DoStatus('listening %s:%s ok.', [TranslateBindAddr(ListenAddr), ListenPort])
+  else
+      DoStatus('listening %s:%s failed!', [TranslateBindAddr(ListenAddr), ListenPort]);
+end;
+
+procedure TDT_P2PVM_Service.StopService;
+begin
+  PhysicsTunnel.StopService;
+  RecvTunnel.StopService;
+  SendTunnel.StopService;
+end;
+
+procedure TDT_P2PVM_Client.DoConnectionResult(const state: Boolean);
+begin
+  if not state then
+    begin
+      Connecting := False;
+
+      if Assigned(OnConnectResultState.OnCall) then
+          OnConnectResultState.OnCall(state);
+      if Assigned(OnConnectResultState.OnMethod) then
+          OnConnectResultState.OnMethod(state);
+      if Assigned(OnConnectResultState.OnProc) then
+          OnConnectResultState.OnProc(state);
+      OnConnectResultState.Init;
+    end;
+
+  PhysicsTunnel.PrintParam('DT Physics Connect %s', umlBoolToStr(state));
+end;
+
+procedure TDT_P2PVM_Client.DoAutomatedP2PVMClientConnectionDone(Sender: TCommunicationFramework; P_IO: TPeerIO);
+begin
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  PhysicsTunnel.Print('DT p2pVM done.');
+end;
+
+procedure TDT_P2PVM_Client.DoLoginResult(const state: Boolean);
+begin
+  if not state then
+    begin
+      Connecting := False;
+
+      if Assigned(OnConnectResultState.OnCall) then
+          OnConnectResultState.OnCall(state);
+      if Assigned(OnConnectResultState.OnMethod) then
+          OnConnectResultState.OnMethod(state);
+      if Assigned(OnConnectResultState.OnProc) then
+          OnConnectResultState.OnProc(state);
+      OnConnectResultState.Init;
+      Exit;
+    end;
+
+  DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult);
+end;
+
+procedure TDT_P2PVM_Client.DoTunnelLinkResult(const state: Boolean);
+begin
+  if Assigned(OnConnectResultState.OnCall) then
+      OnConnectResultState.OnCall(state);
+  if Assigned(OnConnectResultState.OnMethod) then
+      OnConnectResultState.OnMethod(state);
+  if Assigned(OnConnectResultState.OnProc) then
+      OnConnectResultState.OnProc(state);
+  OnConnectResultState.Init;
+  Connecting := False;
+
+  if state then
+    begin
+      if AutomatedConnection then
+          Reconnection := True;
+    end;
+end;
+
+function TDT_P2PVM_Client.GetQuietMode: Boolean;
+begin
+  Result := RecvTunnel.QuietMode and SendTunnel.QuietMode and PhysicsTunnel.QuietMode;
+end;
+
+procedure TDT_P2PVM_Client.SetQuietMode(const Value: Boolean);
+begin
+  RecvTunnel.QuietMode := Value;
+  SendTunnel.QuietMode := Value;
+  PhysicsTunnel.QuietMode := Value;
+end;
+
+constructor TDT_P2PVM_Client.Create(ClientClass_: TDTClientClass);
+begin
+  inherited Create;
+  OnConnectResultState.Init;
+  Connecting := False;
+  Reconnection := False;
+
+  RecvTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
+  RecvTunnel.QuietMode := True;
+
+  SendTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
+  SendTunnel.QuietMode := True;
+
+  DTClient := ClientClass_.Create(RecvTunnel, SendTunnel);
+  DTClient.RegisterCommand;
+  DTClient.SwitchAsDefaultPerformance;
+
+  PhysicsTunnel := TPhysicsClient.Create;
+  PhysicsTunnel.QuietMode := True;
+  PhysicsTunnel.AutomatedP2PVMBindClient.AddClient(SendTunnel, '::', 1);
+  PhysicsTunnel.AutomatedP2PVMBindClient.AddClient(RecvTunnel, '::', 2);
+  PhysicsTunnel.AutomatedP2PVMClient := True;
+  PhysicsTunnel.AutomatedP2PVMClientDelayBoot := 0;
+
+  LastAddr := '';
+  LastPort := '';
+  LastAuth := '';
+  LastUser := '';
+  LastPasswd := '';
+
+  AutomatedConnection := True;
+
+  RecvTunnel.PrefixName := 'DT';
+  RecvTunnel.Name := 'Recv';
+  SendTunnel.PrefixName := 'DT';
+  SendTunnel.Name := 'Send';
+  PhysicsTunnel.PrefixName := 'Physics';
+  PhysicsTunnel.Name := 'p2pVM';
+end;
+
+destructor TDT_P2PVM_Client.Destroy;
+begin
+  Disconnect;
+  DisposeObject(RecvTunnel);
+  DisposeObject(SendTunnel);
+  DisposeObject(DTClient);
+  DisposeObject(PhysicsTunnel);
+  inherited Destroy;
+end;
+
+procedure TDT_P2PVM_Client.Progress;
+begin
+  DTClient.Progress;
+  PhysicsTunnel.Progress;
+
+  if (AutomatedConnection) and ((not PhysicsTunnel.Connected) or (not DTClient.LinkOk)) and (not Connecting) and (Reconnection) then
+      Connect(LastAddr, LastPort, LastAuth, LastUser, LastPasswd);
+end;
+
+procedure TDT_P2PVM_Client.Connect(addr, Port, Auth, User, passwd: SystemString);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Reconnection then
+    begin
+      LastAddr := addr;
+      LastPort := Port;
+      LastAuth := Auth;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  PhysicsTunnel.AutomatedP2PVMAuthToken := Auth;
+  OnConnectResultState.Init;
+  PhysicsTunnel.OnAutomatedP2PVMClientConnectionDone_M := {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClientConnectionDone;
+  PhysicsTunnel.AsyncConnectM(addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}DoConnectionResult);
+end;
+
+procedure TDT_P2PVM_Client.Connect_C(addr, Port, Auth, User, passwd: SystemString; OnResult: TStateCall);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Reconnection then
+    begin
+      LastAddr := addr;
+      LastPort := Port;
+      LastAuth := Auth;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  PhysicsTunnel.AutomatedP2PVMAuthToken := Auth;
+  OnConnectResultState.Init;
+  OnConnectResultState.OnCall := OnResult;
+  PhysicsTunnel.OnAutomatedP2PVMClientConnectionDone_M := {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClientConnectionDone;
+  PhysicsTunnel.AsyncConnectM(addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}DoConnectionResult);
+end;
+
+procedure TDT_P2PVM_Client.Connect_M(addr, Port, Auth, User, passwd: SystemString; OnResult: TStateMethod);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Reconnection then
+    begin
+      LastAddr := addr;
+      LastPort := Port;
+      LastAuth := Auth;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  PhysicsTunnel.AutomatedP2PVMAuthToken := Auth;
+  OnConnectResultState.Init;
+  OnConnectResultState.OnMethod := OnResult;
+  PhysicsTunnel.OnAutomatedP2PVMClientConnectionDone_M := {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClientConnectionDone;
+  PhysicsTunnel.AsyncConnectM(addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}DoConnectionResult);
+end;
+
+procedure TDT_P2PVM_Client.Connect_P(addr, Port, Auth, User, passwd: SystemString; OnResult: TStateProc);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Reconnection then
+    begin
+      LastAddr := addr;
+      LastPort := Port;
+      LastAuth := Auth;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  PhysicsTunnel.AutomatedP2PVMAuthToken := Auth;
+  OnConnectResultState.Init;
+  OnConnectResultState.OnProc := OnResult;
+  PhysicsTunnel.OnAutomatedP2PVMClientConnectionDone_M := {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClientConnectionDone;
+  PhysicsTunnel.AsyncConnectM(addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}DoConnectionResult);
+end;
+
+procedure TDT_P2PVM_Client.Disconnect;
+begin
+  Connecting := False;
+  Reconnection := False;
+  LastAddr := '';
+  LastPort := '';
+  LastAuth := '';
+  PhysicsTunnel.Disconnect;
+end;
+
+function TDT_P2PVM_Custom_Service.GetQuietMode: Boolean;
+begin
+  Result := RecvTunnel.QuietMode and SendTunnel.QuietMode;
+end;
+
+procedure TDT_P2PVM_Custom_Service.SetQuietMode(const Value: Boolean);
+begin
+  RecvTunnel.QuietMode := Value;
+  SendTunnel.QuietMode := Value;
+end;
+
+constructor TDT_P2PVM_Custom_Service.Create(ServiceClass_: TDTServiceClass; PhysicsTunnel_: TCommunicationFrameworkServer;
+  P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
+  P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString);
+begin
+  inherited Create;
+
+  Bind_PhysicsTunnel := PhysicsTunnel_;
+  Bind_P2PVM_Recv_IP6 := P2PVM_Recv_IP6_;
+  Bind_P2PVM_Recv_Port := umlStrToInt(P2PVM_Recv_Port_);
+  Bind_P2PVM_Send_IP6 := P2PVM_Send_IP6_;
+  Bind_P2PVM_Send_Port := umlStrToInt(P2PVM_Send_Port_);
+
+  RecvTunnel := TCommunicationFrameworkWithP2PVM_Server.Create;
+  RecvTunnel.QuietMode := True;
+  RecvTunnel.PrefixName := 'DT';
+  RecvTunnel.Name := P2PVM_Recv_Name_;
+
+  SendTunnel := TCommunicationFrameworkWithP2PVM_Server.Create;
+  SendTunnel.QuietMode := True;
+  SendTunnel.PrefixName := 'DT';
+  SendTunnel.Name := P2PVM_Send_Name_;
+
+  DTService := ServiceClass_.Create(RecvTunnel, SendTunnel);
+  DTService.RegisterCommand;
+  DTService.SwitchAsDefaultPerformance;
+
+  Bind_PhysicsTunnel.AutomatedP2PVMServiceBind.AddService(RecvTunnel);
+  Bind_PhysicsTunnel.AutomatedP2PVMServiceBind.AddService(SendTunnel);
+  StartService();
+end;
+
+destructor TDT_P2PVM_Custom_Service.Destroy;
+begin
+  StopService;
+  Bind_PhysicsTunnel.AutomatedP2PVMServiceBind.RemoveService(RecvTunnel);
+  Bind_PhysicsTunnel.AutomatedP2PVMServiceBind.RemoveService(SendTunnel);
+  DisposeObject(RecvTunnel);
+  DisposeObject(SendTunnel);
+  DisposeObject(DTService);
+  inherited Destroy;
+end;
+
+procedure TDT_P2PVM_Custom_Service.Progress;
+begin
+  Bind_PhysicsTunnel.Progress;
+  DTService.Progress;
+end;
+
+procedure TDT_P2PVM_Custom_Service.StartService;
+begin
+  RecvTunnel.StartService(Bind_P2PVM_Recv_IP6, Bind_P2PVM_Recv_Port);
+  SendTunnel.StartService(Bind_P2PVM_Send_IP6, Bind_P2PVM_Send_Port);
+end;
+
+procedure TDT_P2PVM_Custom_Service.StopService;
+begin
+  RecvTunnel.StopService;
+  RecvTunnel.StopService;
+end;
+
+procedure TDT_P2PVM_Custom_Client.DoLoginResult(const state: Boolean);
+begin
+  if not state then
+    begin
+      if Assigned(OnConnectResultState.OnCall) then
+          OnConnectResultState.OnCall(state);
+      if Assigned(OnConnectResultState.OnMethod) then
+          OnConnectResultState.OnMethod(state);
+      if Assigned(OnConnectResultState.OnProc) then
+          OnConnectResultState.OnProc(state);
+      OnConnectResultState.Init;
+      Connecting := False;
+      Exit;
+    end;
+
+  DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult);
+end;
+
+procedure TDT_P2PVM_Custom_Client.DoTunnelLinkResult(const state: Boolean);
+begin
+  if Assigned(OnConnectResultState.OnCall) then
+      OnConnectResultState.OnCall(state);
+  if Assigned(OnConnectResultState.OnMethod) then
+      OnConnectResultState.OnMethod(state);
+  if Assigned(OnConnectResultState.OnProc) then
+      OnConnectResultState.OnProc(state);
+  OnConnectResultState.Init;
+  Connecting := False;
+
+  if state then
+    begin
+      if AutomatedConnection then
+          Reconnection := True;
+    end;
+end;
+
+function TDT_P2PVM_Custom_Client.GetQuietMode: Boolean;
+begin
+  Result := RecvTunnel.QuietMode and SendTunnel.QuietMode;
+end;
+
+procedure TDT_P2PVM_Custom_Client.SetQuietMode(const Value: Boolean);
+begin
+  RecvTunnel.QuietMode := Value;
+  SendTunnel.QuietMode := Value;
+end;
+
+constructor TDT_P2PVM_Custom_Client.Create(ClientClass_: TDTClientClass; PhysicsTunnel_: TCommunicationFrameworkClient;
+  P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
+  P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString);
+begin
+  inherited Create;
+  // internal
+  OnConnectResultState.Init;
+  Connecting := False;
+  Reconnection := False;
+
+  // bind
+  Bind_PhysicsTunnel := PhysicsTunnel_;
+  Bind_P2PVM_Recv_IP6 := P2PVM_Recv_IP6_;
+  Bind_P2PVM_Recv_Port := umlStrToInt(P2PVM_Recv_Port_);
+  Bind_P2PVM_Send_IP6 := P2PVM_Send_IP6_;
+  Bind_P2PVM_Send_Port := umlStrToInt(P2PVM_Send_Port_);
+
+  // local
+  RecvTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
+  RecvTunnel.QuietMode := True;
+  RecvTunnel.PrefixName := 'DT';
+  RecvTunnel.Name := P2PVM_Recv_Name_;
+  SendTunnel := TCommunicationFrameworkWithP2PVM_Client.Create;
+  SendTunnel.QuietMode := True;
+  SendTunnel.PrefixName := 'DT';
+  SendTunnel.Name := P2PVM_Send_Name_;
+  DTClient := ClientClass_.Create(RecvTunnel, SendTunnel);
+  DTClient.RegisterCommand;
+  DTClient.SwitchAsDefaultPerformance;
+  LastUser := '';
+  LastPasswd := '';
+  AutomatedConnection := True;
+
+  // automated p2pVM
+  Bind_PhysicsTunnel.AutomatedP2PVMBindClient.AddClient(RecvTunnel, Bind_P2PVM_Recv_IP6, Bind_P2PVM_Recv_Port);
+  Bind_PhysicsTunnel.AutomatedP2PVMBindClient.AddClient(SendTunnel, Bind_P2PVM_Send_IP6, Bind_P2PVM_Send_Port);
+  Bind_PhysicsTunnel.AutomatedP2PVMClient := True;
+  Bind_PhysicsTunnel.AutomatedP2PVMClientDelayBoot := 0;
+end;
+
+destructor TDT_P2PVM_Custom_Client.Destroy;
+begin
+  Disconnect;
+  DisposeObject(RecvTunnel);
+  DisposeObject(SendTunnel);
+  DisposeObject(DTClient);
+  inherited Destroy;
+end;
+
+procedure TDT_P2PVM_Custom_Client.Progress;
+begin
+  Bind_PhysicsTunnel.Progress;
+  DTClient.Progress;
+  if (AutomatedConnection) and (Bind_PhysicsTunnel.RemoteInited) and (Bind_PhysicsTunnel.AutomatedP2PVMClientConnectionDone(Bind_PhysicsTunnel.ClientIO))
+    and (not Connecting) and (Reconnection) and (not DTClient.LinkOk) then
+      Connect(LastUser, LastPasswd);
+end;
+
+procedure TDT_P2PVM_Custom_Client.Connect(User, passwd: SystemString);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Bind_PhysicsTunnel.RemoteInited then
+    begin
+      Connecting := False;
+      Exit;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  OnConnectResultState.Init;
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_Custom_Client.Connect_C(User, passwd: SystemString; OnResult: TStateCall);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Bind_PhysicsTunnel.RemoteInited then
+    begin
+      Connecting := False;
+      OnResult(False);
+      Exit;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  OnConnectResultState.Init;
+  OnConnectResultState.OnCall := OnResult;
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_Custom_Client.Connect_M(User, passwd: SystemString; OnResult: TStateMethod);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Bind_PhysicsTunnel.RemoteInited then
+    begin
+      Connecting := False;
+      OnResult(False);
+      Exit;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  OnConnectResultState.Init;
+  OnConnectResultState.OnMethod := OnResult;
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_Custom_Client.Connect_P(User, passwd: SystemString; OnResult: TStateProc);
+begin
+  if Connecting then
+      Exit;
+  Connecting := True;
+  if not Bind_PhysicsTunnel.RemoteInited then
+    begin
+      Connecting := False;
+      OnResult(False);
+      Exit;
+    end;
+  LastUser := User;
+  LastPasswd := passwd;
+  OnConnectResultState.Init;
+  OnConnectResultState.OnProc := OnResult;
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_Custom_Client.Disconnect;
+begin
+  Connecting := False;
+  Reconnection := False;
+  DTClient.Disconnect;
 end;
 
 end.

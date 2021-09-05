@@ -1013,6 +1013,7 @@ type
   public
     procedure AddService(Service: TCommunicationFrameworkWithP2PVM_Server; IPV6: SystemString; Port: Word); overload;
     procedure AddService(Service: TCommunicationFrameworkWithP2PVM_Server); overload;
+    procedure RemoveService(Service: TCommunicationFrameworkWithP2PVM_Server);
     procedure Clean;
     function FoundService(Service: TCommunicationFrameworkWithP2PVM_Server): PAutomatedP2PVMServiceData;
   end;
@@ -1030,6 +1031,7 @@ type
   TAutomatedP2PVMClientBind = class(TAutomatedP2PVMClientBind_Decl)
   public
     procedure AddClient(Client: TCommunicationFrameworkWithP2PVM_Client; IPV6: SystemString; Port: Word);
+    procedure RemoveClient(Client: TCommunicationFrameworkWithP2PVM_Client);
     procedure Clean;
     function FoundClient(Client: TCommunicationFrameworkWithP2PVM_Client): PAutomatedP2PVMClientData;
   end;
@@ -7718,6 +7720,18 @@ begin
   Add(p);
 end;
 
+procedure TAutomatedP2PVMServiceBind.RemoveService(Service: TCommunicationFrameworkWithP2PVM_Server);
+var
+  i: Integer;
+begin
+  i := 0;
+  while i < Count do
+    if Items[i]^.Service = Service then
+        Delete(i)
+    else
+        inc(i);
+end;
+
 procedure TAutomatedP2PVMServiceBind.Clean;
 var
   i: Integer;
@@ -7749,6 +7763,18 @@ begin
   p^.IPV6 := IPV6;
   p^.Port := Port;
   Add(p);
+end;
+
+procedure TAutomatedP2PVMClientBind.RemoveClient(Client: TCommunicationFrameworkWithP2PVM_Client);
+var
+  i: Integer;
+begin
+  i := 0;
+  while i < Count do
+    if Items[i]^.Client = Client then
+        Delete(i)
+    else
+        inc(i);
 end;
 
 procedure TAutomatedP2PVMClientBind.Clean;
@@ -8373,6 +8399,9 @@ begin
         FOnAutomatedP2PVMClientConnectionDone_P(Self, P_IO);
   except
   end;
+  FOnAutomatedP2PVMClientConnectionDone_C := nil;
+  FOnAutomatedP2PVMClientConnectionDone_M := nil;
+  FOnAutomatedP2PVMClientConnectionDone_P := nil;
 
   try
     if Assigned(P_IO.FOnAutomatedP2PVMClientConnectionDoneCall) then
@@ -8609,7 +8638,7 @@ end;
 
 function TCommunicationFramework.AutomatedP2PVMClientConnectionDone(P_IO: TPeerIO): Boolean;
 begin
-  Result := (P_IO.FAutomatedP2PVMClient_Connection_Sequence_Successed = FAutomatedP2PVMClientBind.Count);
+  Result := (P_IO <> nil) and (P_IO.FAutomatedP2PVMClient_Connection_Sequence_Successed = FAutomatedP2PVMClientBind.Count);
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVM_Open(P_IO: TPeerIO);
@@ -9183,15 +9212,15 @@ end;
 
 procedure TCommunicationFramework.PrintRegistedCMD(prefix: SystemString; incl_internalCMD: Boolean);
 var
-  l: TListPascalString;
+  L: TListPascalString;
   i: Integer;
 begin
-  l := TListPascalString.Create;
-  FCommandList.GetNameList(l);
-  for i := 0 to l.Count - 1 do
-    if incl_internalCMD or (not umlMultipleMatch('__@*', l[i])) then
-        Print(prefix + l.Objects[i].ClassName + ': ' + l[i]);
-  DisposeObject(l);
+  L := TListPascalString.Create;
+  FCommandList.GetNameList(L);
+  for i := 0 to L.Count - 1 do
+    if incl_internalCMD or (not umlMultipleMatch('__@*', L[i])) then
+        Print(prefix + L.Objects[i].ClassName + ': ' + L[i]);
+  DisposeObject(L);
 end;
 
 procedure TCommunicationFramework.PrintRegistedCMD(prefix: SystemString);
@@ -9486,7 +9515,7 @@ begin
   FFrameworkIsServer := True;
   FFrameworkIsClient := False;
 
-  Name := 'Server';
+  Name := '';
 end;
 
 destructor TCommunicationFrameworkServer.Destroy;
@@ -10757,7 +10786,7 @@ begin
   FFrameworkIsServer := False;
   FFrameworkIsClient := True;
 
-  Name := 'Client';
+  Name := '';
 end;
 
 destructor TCommunicationFrameworkClient.Destroy;
@@ -14206,40 +14235,56 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.CloseAllClientIO;
 var
+  L: TCoreClassListForObj;
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FFrameworkPool.Count > 0) then
+  if (FFrameworkPool.Count = 0) then
+      exit;
+
+  L := TCoreClassListForObj.Create;
+
+  i := 0;
+  p := FFrameworkPool.FirstPtr;
+  while i < FFrameworkPool.Count do
     begin
-      i := 0;
-      p := FFrameworkPool.FirstPtr;
-      while i < FFrameworkPool.Count do
-        begin
-          if p^.data is TCommunicationFrameworkWithP2PVM_Client then
-              TCommunicationFramework(p^.data).ProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoPerClientClose);
-          inc(i);
-          p := p^.Next;
-        end;
+      if p^.data is TCommunicationFrameworkWithP2PVM_Client then
+          L.Add(p^.data);
+      inc(i);
+      p := p^.Next;
     end;
+
+  for i := 0 to L.Count - 1 do
+      TCommunicationFramework(L[i]).ProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoPerClientClose);
+
+  DisposeObject(L);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.CloseAllServerIO;
 var
+  L: TCoreClassListForObj;
   i: Integer;
   p: PUInt32HashListObjectStruct;
 begin
-  if (FFrameworkPool.Count > 0) then
+  if (FFrameworkPool.Count = 0) then
+      exit;
+
+  L := TCoreClassListForObj.Create;
+
+  i := 0;
+  p := FFrameworkPool.FirstPtr;
+  while i < FFrameworkPool.Count do
     begin
-      i := 0;
-      p := FFrameworkPool.FirstPtr;
-      while i < FFrameworkPool.Count do
-        begin
-          if p^.data is TCommunicationFrameworkWithP2PVM_Server then
-              TCommunicationFramework(p^.data).ProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoPerClientClose);
-          inc(i);
-          p := p^.Next;
-        end;
+      if p^.data is TCommunicationFrameworkWithP2PVM_Server then
+          L.Add(p^.data);
+      inc(i);
+      p := p^.Next;
     end;
+
+  for i := 0 to L.Count - 1 do
+      TCommunicationFramework(L[i]).ProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoPerClientClose);
+
+  DisposeObject(L);
 end;
 
 constructor TStableServer_PhysicsIO_UserDefine.Create(Owner_: TPeerIO);

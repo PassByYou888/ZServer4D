@@ -1,5 +1,6 @@
 unit ADRestoreServFrm;
-
+
+
 interface
 
 uses
@@ -91,9 +92,9 @@ begin
   Service := TMyService.Create(RecvTunnel, SendTunnel);
 
   // 默认情况下，TMyService不会保存用户信息到UserDB，在每次退出服务器都会产生许多没用的目录
-  // 当我们将CanSaveUserInfo打开以后，所有的用户信息都将被永久记录
+  // 当我们将 AllowSaveUserInfo 打开以后，所有的用户信息都将被永久记录
   // 注意：未来当我们要维护时用户数据库时，只能通过编程来干，直接管理文件是反人类的
-  Service.CanSaveUserInfo := True;
+  Service.AllowSaveUserInfo := True;
 
   // 带验证的双通道服务器启动时 必须手动读取用户数据库 这一步会大量使用交换内存 如果UserDB大小为300M 读取时大概需要2G内存开销
   // 在用户登录后，为了加快用户资料检索，所有用户信息存在与内存中，如果UserDB大小为300M 运行时大概需要1G的内存开销
@@ -102,7 +103,7 @@ begin
   Service.LoadUserDB;
 
   Service.f := self;
-  Service.CanRegisterNewUser := True;
+  Service.AllowRegisterNewUser := True;
 end;
 
 procedure TAuthDoubleServerForm.FormDestroy(Sender: TObject);
@@ -135,4 +136,4 @@ begin
 end;
 
 end.
-
+

@@ -8,7 +8,8 @@ uses
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, System.TypInfo,
   FMX.TabControl, FMX.Edit, FMX.Layouts, FMX.ListBox,
   CoreClasses, PascalStrings, UnicodeMixedLib, CommunicationFramework,
-  XNATMappingOnVirutalService, XNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase;
+  XNATMappingOnVirutalService, XNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase,
+  FMX.Memo.Types;
 
 type
   TForm1 = class(TForm)
@@ -32,8 +33,8 @@ type
     { Private declarations }
   public
     { Public declarations }
-    XCli: TXNAT_Mapping;
-    server: TCommunicationFramework_StableServer;
+    XCli: TXNAT_VS_Mapping;
+    server: TCommunicationFrameworkServer;
     server_test: TCommunicationTestIntf;
     procedure DoStatusIntf(AText: SystemString; const ID: Integer);
   end;
@@ -50,7 +51,7 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusIntf);
 
-  XCli := TXNAT_Mapping.Create;
+  XCli := TXNAT_VS_Mapping.Create;
 
   {
     穿透协议压缩选项
@@ -60,12 +61,11 @@ begin
   }
   XCli.ProtocolCompressed := True;
 
-  server := XCli.AddMappingServer('my18888', 5).StableIO; // 将公网服务器的18888端口反向代理到成为本地服务器，物理连接只有1个
+  server := XCli.AddMappingServer('my18888', 5); // 将公网服务器的18888端口反向代理到成为本地服务器，物理连接只有1个
 
-  server.OfflineTimeout := 3 * 60 * 1000;        // 离线重连技术，在离线后3分钟就断开stableIO的实例
-  server.PhysicsServer.TimeOutIDLE := 60 * 1000; // 物理客户端60秒无响应就是离线状态
+//  server.OfflineTimeout := 3 * 60 * 1000;        // 离线重连技术，在离线后3分钟就断开stableIO的实例
+//  server.PhysicsServer.TimeOutIDLE := 60 * 1000; // 物理客户端60秒无响应就是离线状态
 
-  server.PhysicsServer.QuietMode := True;
   server.QuietMode := False;
 
   server_test := TCommunicationTestIntf.Create;
@@ -129,7 +129,7 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 begin
   if XCli <> nil then
     begin
-      InfoLabel.Text := PFormat('connection: %d' + #13#10 + 'physics: %d', [server.Count, server.PhysicsServer.Count]);
+      InfoLabel.Text := PFormat('connection: %d' + #13#10 + 'physics: %d', [server.Count, server.Count]);
       XCli.Progress;
       server.Progress;
     end;

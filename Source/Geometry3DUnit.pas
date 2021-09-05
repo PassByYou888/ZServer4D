@@ -333,8 +333,8 @@ function MovementDistance(const s, d: TRectV2; dt: TGeoFloat): TRectV2; overload
 function MovementDistance(const sour, dest: TVector4; Distance: TGeoFloat): TVector4; overload;
 function MovementDistance(const sour, dest: TVector3; Distance: TGeoFloat): TVector3; overload;
 
-function MovementDistanceDeltaTime(const s, d: TVec2; ASpeed: TGeoFloat): Double; overload;
-function MovementDistanceDeltaTime(const s, d: TRectV2; ASpeed: TGeoFloat): Double; overload;
+function MovementDistanceDeltaTime(const s, d: TVec2; Speed_: TGeoFloat): Double; overload;
+function MovementDistanceDeltaTime(const s, d: TRectV2; Speed_: TGeoFloat): Double; overload;
 function AngleRollDistanceDeltaTime(const s, d: TGeoFloat; ARollSpeed: TGeoFloat): Double; overload;
 
 function BounceVector(const Current: TVector4; DeltaDistance: TGeoFloat; const BeginVector, EndVector: TVector4; var EndFlag: Boolean): TVector4; overload;
@@ -851,17 +851,17 @@ begin
   Result[2] := sour[2] + k * (dest[2] - sour[2]);
 end;
 
-function MovementDistanceDeltaTime(const s, d: TVec2; ASpeed: TGeoFloat): Double;
+function MovementDistanceDeltaTime(const s, d: TVec2; Speed_: TGeoFloat): Double;
 begin
-  Result := Distance(s, d) / ASpeed;
+  Result := Distance(s, d) / Speed_;
 end;
 
-function MovementDistanceDeltaTime(const s, d: TRectV2; ASpeed: TGeoFloat): Double;
+function MovementDistanceDeltaTime(const s, d: TRectV2; Speed_: TGeoFloat): Double;
 var
   d1, d2: Double;
 begin
-  d1 := MovementDistanceDeltaTime(s[0], d[0], ASpeed);
-  d2 := MovementDistanceDeltaTime(s[1], d[1], ASpeed);
+  d1 := MovementDistanceDeltaTime(s[0], d[0], Speed_);
+  d2 := MovementDistanceDeltaTime(s[1], d[1], Speed_);
   if d1 > d2 then
       Result := d1
   else

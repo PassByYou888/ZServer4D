@@ -724,6 +724,7 @@ type
 
     function GetDefaultValue(const Name: SystemString; AValue: SystemString): SystemString;
     procedure SetDefaultValue(const Name: SystemString; AValue: SystemString);
+
     function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 
     property AutoUpdateDefaultValue: Boolean read FAutoUpdateDefaultValue write FAutoUpdateDefaultValue;
@@ -6883,20 +6884,20 @@ begin
 
   i := 1;
 
-  while i <= sour.Len do
+  while i <= sour.L do
     begin
       if sour.ComparePos(i, h) then
         begin
           bPos := i;
-          ePos := sour.GetPos(t, i + h.Len);
+          ePos := sour.GetPos(t, i + h.L);
           if ePos > 0 then
             begin
-              KeyText := sour.Copy(bPos + h.Len, ePos - (bPos + h.Len)).Text;
+              KeyText := sour.Copy(bPos + h.L, ePos - (bPos + h.L)).Text;
 
               if Exists(KeyText) then
                 begin
                   Output_ := Output_ + GetKeyValue(KeyText);
-                  i := ePos + t.Len;
+                  i := ePos + t.L;
                   Continue;
                 end
               else
@@ -7109,7 +7110,7 @@ begin
         if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
           begin
             TextName := umlGetFirstStr_Discontinuity(n, ':=');
-            if TextName.Len > 0 then
+            if TextName.L > 0 then
               begin
                 TextValue := umlDeleteFirstStr_Discontinuity(n, ':=');
                 FStringList[TextName.Text] := StrToV(TextValue.Text);
@@ -7938,20 +7939,20 @@ begin
 
   i := 1;
 
-  while i <= sour.Len do
+  while i <= sour.L do
     begin
       if sour.ComparePos(i, h) then
         begin
           bPos := i;
-          ePos := sour.GetPos(t, i + h.Len);
+          ePos := sour.GetPos(t, i + h.L);
           if ePos > 0 then
             begin
-              KeyText := sour.Copy(bPos + h.Len, ePos - (bPos + h.Len)).Text;
+              KeyText := sour.Copy(bPos + h.L, ePos - (bPos + h.L)).Text;
 
               if Exists(KeyText) then
                 begin
                   Output_ := Output_ + VarToStr(GetKeyValue(KeyText));
-                  i := ePos + t.Len;
+                  i := ePos + t.L;
                   Continue;
                 end
               else
@@ -8223,7 +8224,7 @@ begin
         if ((n.Exists(':')) or (n.Exists('='))) and (not CharIn(n.First, [':', '='])) then
           begin
             TextName := umlGetFirstStr_Discontinuity(n, ':=');
-            if TextName.Len > 0 then
+            if TextName.L > 0 then
               begin
                 TextValue := umlDeleteFirstStr_Discontinuity(n, ':=');
                 FVariantList[TextName.Text] := StrToV(TextValue.Text);

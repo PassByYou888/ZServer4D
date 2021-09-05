@@ -22,7 +22,9 @@ type
     stImage,        // Infinite deploy
     stWave,         // Infinite deploy
     stOCR,          // Infinite deploy
-    stEmulator      // Infinite deploy
+    stEmulator,     // Infinite deploy
+    stLiveHall,     // Infinite deploy, Live style
+    stLiveHome      // Infinite deploy, Live style
     );
   TServerTypes = set of TServerType;
 

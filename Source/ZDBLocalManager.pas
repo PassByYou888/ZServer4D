@@ -27,9 +27,7 @@ interface
 
 uses SysUtils, Variants,
   CoreClasses, ListEngine, UnicodeMixedLib, DataFrameEngine, MemoryStream64, TextDataEngine,
-{$IFNDEF FPC}
-  ZS_JsonDataObjects,
-{$ENDIF}
+  ZJson,
   DoStatusIO, Cadencer, NotifyObjectBase, PascalStrings, CoreCipher, ZDBEngine, ItemStream;
 
 type
@@ -305,7 +303,7 @@ type
     function PostData(dataBaseName_: SystemString; dSour: THashStringList): Int64; overload;
     function PostData(dataBaseName_: SystemString; dSour: TSectionTextData): Int64; overload;
     function PostData(dataBaseName_: SystemString; dSour: TPascalString): Int64; overload;
-{$IFNDEF FPC} function PostData(dataBaseName_: SystemString; dSour: TJsonObject): Int64; overload; {$ENDIF}
+    function PostData(dataBaseName_: SystemString; dSour: TZ_JsonObject): Int64; overload;
     //
     // insert operation
     function InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TCoreClassStream; ID: Cardinal): Int64; overload;
@@ -314,7 +312,7 @@ type
     function InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: THashStringList): Int64; overload;
     function InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TSectionTextData): Int64; overload;
     function InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TPascalString): Int64; overload;
-{$IFNDEF FPC} function InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TJsonObject): Int64; overload; {$ENDIF}
+    function InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TZ_JsonObject): Int64; overload;
     //
     // delete operation
     procedure DeleteData(dataBaseName_: SystemString; StorePos: Int64);
@@ -1985,10 +1983,7 @@ begin
   Result := d.AddData(dSour);
 end;
 
-{$IFNDEF FPC}
-
-
-function TZDBLocalManager.PostData(dataBaseName_: SystemString; dSour: TJsonObject): Int64;
+function TZDBLocalManager.PostData(dataBaseName_: SystemString; dSour: TZ_JsonObject): Int64;
 var
   d: TZDBLMStore;
 begin
@@ -1996,8 +1991,6 @@ begin
   d := GetOrCreateDB(dataBaseName_);
   Result := d.AddData(dSour);
 end;
-{$ENDIF}
-
 
 procedure TZDBLocalManager.Clear;
 var
@@ -2141,10 +2134,7 @@ begin
       Result := d.InsertData(InsertPos, dSour);
 end;
 
-{$IFNDEF FPC}
-
-
-function TZDBLocalManager.InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TJsonObject): Int64;
+function TZDBLocalManager.InsertData(dataBaseName_: SystemString; InsertPos: Int64; dSour: TZ_JsonObject): Int64;
 var
   d: TZDBLMStore;
 begin
@@ -2158,8 +2148,6 @@ begin
   else
       Result := d.InsertData(InsertPos, dSour);
 end;
-{$ENDIF}
-
 
 procedure TZDBLocalManager.DeleteData(dataBaseName_: SystemString; StorePos: Int64);
 var

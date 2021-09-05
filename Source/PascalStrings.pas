@@ -174,6 +174,8 @@ type
 
   TP_String = TPascalString;
   PP_String = PPascalString;
+  TAtomSystemString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<SystemString>;
+  TAtomPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TPascalString>;
 
 function CharIn(c: SystemChar; const SomeChars: array of SystemChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeChar: SystemChar): Boolean; overload;

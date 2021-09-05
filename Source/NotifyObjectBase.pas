@@ -590,11 +590,12 @@ constructor TNProgressPostWithCadencer.Create;
 begin
   inherited Create;
   FCadencerEngine := TCadencer.Create;
-  FCadencerEngine.ProgressInterface := Self;
+  FCadencerEngine.OnProgressInterface := Self;
 end;
 
 destructor TNProgressPostWithCadencer.Destroy;
 begin
+  FCadencerEngine.OnProgressInterface := nil;
   DisposeObject(FCadencerEngine);
   inherited Destroy;
 end;

@@ -71,6 +71,7 @@ type
   TPhysicsClient = TCommunicationFramework_Client_Synapse;
 {$ENDIF PhysicsIO_On_Synapse}
 {$ENDIF FPC}
+  TPhysicsService = TPhysicsServer;
 
 implementation
 

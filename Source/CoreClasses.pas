@@ -191,8 +191,10 @@ type
     property V: T_ read GetValue write SetValue;
     property Value: T_ read GetValue write SetValue;
   end;
+  // Bool
   TAtomBoolean = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Boolean>;
   TAtomBool = TAtomBoolean;
+  // number
   TAtomSmallInt = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<SmallInt>;
   TAtomShortInt = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<ShortInt>;
   TAtomInteger = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Integer>;
@@ -209,10 +211,12 @@ type
   TAtomUInt32 = TAtomCardinal;
   TAtomDWord = TAtomCardinal;
   TAtomUInt64 = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<UInt64>;
+  // float
   TAtomSingle = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Single>;
   TAtomFloat = TAtomSingle;
   TAtomDouble = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Double>;
   TAtomExtended = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<Extended>;
+  // string
   TAtomString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<string>;
 
   TCritical = class(TCritical_)
@@ -229,6 +233,23 @@ type
     procedure UnLock;
     function IsBusy: Boolean;
     property Busy: Boolean read IsBusy;
+    // atom
+    procedure Inc_(var x: Int64); overload;
+    procedure Inc_(var x: Int64; const v: Int64); overload;
+    procedure Dec_(var x: Int64); overload;
+    procedure Dec_(var x: Int64; const v: Int64); overload;
+    procedure Inc_(var x: UInt64); overload;
+    procedure Inc_(var x: UInt64; const v: UInt64); overload;
+    procedure Dec_(var x: UInt64); overload;
+    procedure Dec_(var x: UInt64; const v: UInt64); overload;
+    procedure Inc_(var x: Integer); overload;
+    procedure Inc_(var x: Integer; const v:Integer); overload;
+    procedure Dec_(var x: Integer); overload;
+    procedure Dec_(var x: Integer; const v:Integer); overload;
+    procedure Inc_(var x: Cardinal); overload;
+    procedure Inc_(var x: Cardinal; const v:Cardinal); overload;
+    procedure Dec_(var x: Cardinal); overload;
+    procedure Dec_(var x: Cardinal; const v:Cardinal); overload;
   end;
 {$EndRegion 'Critical'}
 {$Region 'OrderStruct'}
@@ -237,7 +258,7 @@ type
     T = T_;
     PT_ = ^T_;
     POrderStruct_ = ^TOrderStruct_;
-    TOrderStruct_ = packed record
+    TOrderStruct_ = record
       Data: T_;
       Next: POrderStruct_;
     end;
@@ -266,7 +287,7 @@ type
     T = T_;
     PT_ = ^T_;
     POrderPtrStruct_ = ^TOrderPtrStruct_;
-    TOrderPtrStruct_ = packed record
+    TOrderPtrStruct_ = record
       Data: PT_;
       Next: POrderPtrStruct_;
     end;
@@ -296,7 +317,7 @@ type
     T = T_;
     PT_ = ^T_;
     POrderStruct_ = ^TOrderStruct_;
-    TOrderStruct_ = packed record
+    TOrderStruct_ = record
       Data: T_;
       Next: POrderStruct_;
     end;
@@ -328,7 +349,7 @@ type
     T = T_;
     PT_ = ^T_;
     POrderPtrStruct_ = ^TOrderPtrStruct_;
-    TOrderPtrStruct_ = packed record
+    TOrderPtrStruct_ = record
       Data: PT_;
       Next: POrderPtrStruct_;
     end;
@@ -717,6 +738,10 @@ procedure Nop;
 // process Synchronize
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
+procedure CheckThreadSync; overload;
+function CheckThreadSync(Timeout: Integer): Boolean; overload;
+procedure CheckThread; overload;
+function CheckThread(Timeout: Integer): Boolean; overload;
 
 // core thread pool
 procedure FreeCoreThreadPool;
@@ -1390,6 +1415,26 @@ begin
   except
   end;
   MainThSynchronizeRunning := False;
+end;
+
+procedure CheckThreadSync;
+begin
+  CheckThreadSynchronize(0);
+end;
+
+function CheckThreadSync(Timeout: Integer): Boolean;
+begin
+  Result := CheckThreadSynchronize(Timeout);
+end;
+
+procedure CheckThread;
+begin
+  CheckThreadSynchronize(0);
+end;
+
+function CheckThread(Timeout: Integer): Boolean;
+begin
+  Result := CheckThreadSynchronize(Timeout);
 end;
 
 initialization

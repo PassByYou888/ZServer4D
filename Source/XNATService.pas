@@ -30,7 +30,7 @@ type
   TXServerCustomProtocol = class;
   TXServiceListen = class;
 
-  TXServiceRecvVM_Special = class(TPeerClientUserSpecial)
+  TXServiceRecvVM_Special = class(TPeerIOUserSpecial)
   private
     OwnerMapping: TXServiceListen;
     RecvID, SendID: Cardinal;
@@ -40,7 +40,7 @@ type
     destructor Destroy; override;
   end;
 
-  TXServiceSendVM_Special = class(TPeerClientUserSpecial)
+  TXServiceSendVM_Special = class(TPeerIOUserSpecial)
   private
     OwnerMapping: TXServiceListen;
     RecvID, SendID: Cardinal;
@@ -101,7 +101,7 @@ type
     property Activted: Boolean read FActivted write SetActivted;
   end;
 
-  TXServerUserSpecial = class(TPeerClientUserSpecial)
+  TXServerUserSpecial = class(TPeerIOUserSpecial)
   private
     RemoteProtocol_ID: Cardinal;
     RemoteProtocol_Inited: Boolean;

@@ -1,4 +1,4 @@
-{ * cloud service with Manager                                                 * }
+{ * cloud service Manager                                                      * }
 { ****************************************************************************** }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
@@ -152,7 +152,7 @@ type
     ServManClientPool: TServerManager_ClientPool;
     LastTimeTick: TTimeTick;
 
-    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
+    constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer; ClientPoolDefaultClass_: TCommunicationFrameworkClientClass);
     destructor Destroy; override;
 
     procedure RegisterCommand; override;
@@ -822,7 +822,7 @@ begin
   DisposeObject(sendDE);
 end;
 
-constructor TServerManager.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer; AClientPoolDefaultClass: TCommunicationFrameworkClientClass);
+constructor TServerManager.Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer; ClientPoolDefaultClass_: TCommunicationFrameworkClientClass);
 begin
   inherited Create(RecvTunnel_, SendTunnel_);
 
@@ -830,7 +830,7 @@ begin
   FSendTunnel.PeerClientUserDefineClass := TServerManager_SendTunnelData;
 
   ServerConfig := TSectionTextData.Create;
-  ServManClientPool := TServerManager_ClientPool.Create(AClientPoolDefaultClass, Self);
+  ServManClientPool := TServerManager_ClientPool.Create(ClientPoolDefaultClass_, Self);
 
   LastTimeTick := GetTimeTick;
 

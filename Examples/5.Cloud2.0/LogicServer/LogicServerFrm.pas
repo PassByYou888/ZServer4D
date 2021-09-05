@@ -909,7 +909,7 @@ begin
   FSendTunnel.PeerClientUserDefineClass := TPerUserLogicSendTunnel;
   LogicForm := nil;
 
-  CanSaveUserInfo := True;
+  AllowSaveUserInfo := True;
   LoadUserDB;
   lastRegUserSerialNo := 1;
 

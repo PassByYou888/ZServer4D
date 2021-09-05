@@ -214,7 +214,7 @@ type
     constructor Create(IOHnd_: PIOHnd);
     destructor Destroy; override;
 
-    class procedure ErrorInfo(const Text_: SystemString);
+    class procedure ErrorInfo(const Text_: SystemString); static;
     procedure FlushCache;
     function WriteHeader(): Boolean;
     function WriteTable(): Boolean;

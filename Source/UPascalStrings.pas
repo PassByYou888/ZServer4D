@@ -177,6 +177,8 @@ type
 
   TUP_String = TUPascalString;
   PUP_String = PUPascalString;
+  TAtomUSystemString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<USystemString>;
+  TAtomUPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TUPascalString>;
 
 function UCharIn(c: USystemChar; const SomeChars: array of USystemChar): Boolean; overload;
 function UCharIn(c: USystemChar; const SomeChar: USystemChar): Boolean; overload;

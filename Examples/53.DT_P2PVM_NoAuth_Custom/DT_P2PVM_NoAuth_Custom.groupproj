@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{C63C2773-3B6D-4C64-A8DA-4355B9A8FB45}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Server\DT_P2PVM_NoAuth_CustomServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Client\DT_P2PVM_NoAuth_CustomClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DT_P2PVM_NoAuth_CustomServer">
+        <MSBuild Projects="Server\DT_P2PVM_NoAuth_CustomServer.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomServer:Clean">
+        <MSBuild Projects="Server\DT_P2PVM_NoAuth_CustomServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomServer:Make">
+        <MSBuild Projects="Server\DT_P2PVM_NoAuth_CustomServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomClient">
+        <MSBuild Projects="Client\DT_P2PVM_NoAuth_CustomClient.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomClient:Clean">
+        <MSBuild Projects="Client\DT_P2PVM_NoAuth_CustomClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomClient:Make">
+        <MSBuild Projects="Client\DT_P2PVM_NoAuth_CustomClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DT_P2PVM_NoAuth_CustomServer;DT_P2PVM_NoAuth_CustomClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DT_P2PVM_NoAuth_CustomServer:Clean;DT_P2PVM_NoAuth_CustomClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DT_P2PVM_NoAuth_CustomServer:Make;DT_P2PVM_NoAuth_CustomClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

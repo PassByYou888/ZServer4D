@@ -444,9 +444,7 @@ begin
   if cPos > L then
       cPos := L;
 
-  if (cPos + 1 < L)
-    and (TextStyle = tsPascal)
-    and (ParsingData.Text[cPos] = #39) then
+  if (cPos + 1 < L) and (TextStyle = tsPascal) and (ParsingData.Text[cPos] = #39) then
     begin
       if ComparePosStr(cPos, #39#39#39#39) then
         begin
@@ -481,9 +479,7 @@ begin
       inc(cPos, 1);
     end;
 
-  if (cPos + 1 < L)
-    and (TextStyle = tsC)
-    and (ParsingData.Text[cPos] = '"') then
+  if (cPos + 1 < L) and (TextStyle = tsC) and (ParsingData.Text[cPos] = '"') then
     begin
       inc(cPos, 1);
       while ParsingData.Text[cPos] <> '"' do

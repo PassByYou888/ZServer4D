@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{C63C2773-3B6D-4C64-A8DA-4355B9A8FB45}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Server\DT_P2PVM_NoAuth_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Client\DT_P2PVM_NoAuth_Client.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DT_P2PVM_NoAuth_Server">
+        <MSBuild Projects="Server\DT_P2PVM_NoAuth_Server.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Server:Clean">
+        <MSBuild Projects="Server\DT_P2PVM_NoAuth_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Server:Make">
+        <MSBuild Projects="Server\DT_P2PVM_NoAuth_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Client">
+        <MSBuild Projects="Client\DT_P2PVM_NoAuth_Client.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Client:Clean">
+        <MSBuild Projects="Client\DT_P2PVM_NoAuth_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Client:Make">
+        <MSBuild Projects="Client\DT_P2PVM_NoAuth_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DT_P2PVM_NoAuth_Server;DT_P2PVM_NoAuth_Client"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DT_P2PVM_NoAuth_Server:Clean;DT_P2PVM_NoAuth_Client:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DT_P2PVM_NoAuth_Server:Make;DT_P2PVM_NoAuth_Client:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

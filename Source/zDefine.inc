@@ -167,7 +167,7 @@
 
   {$IF Defined(Android) or Defined(IOS)}
     {$DEFINE SMALL_RASTER_FONT_Build_In}
-  {$IFEND}
+  {$ENDIF}
 
   // ZDB_BACKUP is automatically made and replica caching is enabled.
   // usage ZDB_BACKUP so slows the open of large size ZDB file, after time, but does is high performance.

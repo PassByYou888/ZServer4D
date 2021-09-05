@@ -172,6 +172,9 @@ function Vec2Negate(const v: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline
 function vec2Inv(const v: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 procedure SetVec2(var v: TVec2; const vSrc: TVec2); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
+function Vec2Direction(sour, dest: TVec2): TVec2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function RectDirection(sour, dest: TRectV2): TRectV2; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+
 function Vec2Add(const v1, v2: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Vec2Add(const v1: TVec2; v2: TGeoFloat): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Vec2Add(const v1: TVec2; X, Y: TGeoFloat): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -1670,6 +1673,16 @@ procedure SetVec2(var v: TVec2; const vSrc: TVec2);
 begin
   v[0] := vSrc[0];
   v[1] := vSrc[1];
+end;
+
+function Vec2Direction(sour, dest: TVec2): TVec2;
+begin
+  Result := Vec2Sub(dest, sour);
+end;
+
+function RectDirection(sour, dest: TRectV2): TRectV2;
+begin
+  Result := RectSub(dest, sour);
 end;
 
 function Vec2Add(const v1, v2: TVec2): TVec2;

@@ -30,7 +30,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    client: array of TCommunicationFramework_StableClient;
+    client: array of TPhysicsClient;
     test: array of TCommunicationTestIntf;
     procedure DoStatusNear(AText: string; const ID: Integer);
   end;
@@ -44,7 +44,6 @@ const
 implementation
 
 {$R *.fmx}
-
 
 procedure TForm2.Button1Click(Sender: TObject);
 var
@@ -77,7 +76,7 @@ begin
   SetLength(test, MaxConn);
   for i := low(client) to high(client) do
     begin
-      client[i] := TPhysicsClient.Create.StableIO;
+      client[i] := TPhysicsClient.Create;
       client[i].QuietMode := True;
       test[i] := TCommunicationTestIntf.Create;
       test[i].RegCmd(client[i]);

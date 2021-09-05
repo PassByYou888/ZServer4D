@@ -53,6 +53,7 @@ procedure AddDoStatusHookM(TokenObj: TCoreClassObject; CallProc: TDoStatusMethod
 procedure AddDoStatusHookC(TokenObj: TCoreClassObject; CallProc: TDoStatusCall);
 procedure AddDoStatusHookP(TokenObj: TCoreClassObject; CallProc: TDoStatusProc);
 procedure DeleteDoStatusHook(TokenObj: TCoreClassObject);
+procedure RemoveDoStatusHook(TokenObj: TCoreClassObject);
 procedure DisableStatus;
 procedure EnabledStatus;
 
@@ -550,6 +551,11 @@ begin
       else
           inc(i);
     end;
+end;
+
+procedure RemoveDoStatusHook(TokenObj: TCoreClassObject);
+begin
+  DeleteDoStatusHook(TokenObj);
 end;
 
 procedure DisableStatus;

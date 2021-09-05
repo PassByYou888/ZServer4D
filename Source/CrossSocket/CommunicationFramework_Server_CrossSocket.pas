@@ -51,7 +51,7 @@ type
     //
     function Connected: Boolean; override;
     procedure Disconnect; override;
-    procedure SendBuffResult(ASuccess: Boolean);
+    procedure SendBuffResult(Success_: Boolean);
     procedure SendByteBuffer(const buff: PByte; const Size: NativeInt); override;
     procedure WriteBufferOpen; override;
     procedure WriteBufferFlush; override;
@@ -76,7 +76,7 @@ type
     procedure DoDisconnect(Sender: TObject; AConnection: ICrossConnection);
     procedure DoReceived(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
     procedure DoSent(Sender: TObject; AConnection: ICrossConnection; aBuf: Pointer; ALen: Integer);
-    procedure DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+    procedure DoSendBuffResult(AConnection: ICrossConnection; Success_: Boolean);
   public
     constructor Create; override;
     constructor CreateTh(maxThPool: Word);
@@ -171,7 +171,7 @@ begin
   DisposeObject(Self);
 end;
 
-procedure TCrossSocketServer_PeerIO.SendBuffResult(ASuccess: Boolean);
+procedure TCrossSocketServer_PeerIO.SendBuffResult(Success_: Boolean);
 begin
   TCompute.SyncP(procedure
     var
@@ -181,7 +181,7 @@ begin
       DisposeObjectAndNil(LastSendingBuff);
       FSendCritical.UnLock;
 
-      if (not ASuccess) then
+      if (not Success_) then
         begin
           Sending := False;
           DelayFree();
@@ -371,7 +371,7 @@ procedure TCommunicationFramework_Server_CrossSocket.DoSent(Sender: TObject; ACo
 begin
 end;
 
-procedure TCommunicationFramework_Server_CrossSocket.DoSendBuffResult(AConnection: ICrossConnection; ASuccess: Boolean);
+procedure TCommunicationFramework_Server_CrossSocket.DoSendBuffResult(AConnection: ICrossConnection; Success_: Boolean);
 var
   p_io: TCrossSocketServer_PeerIO;
 begin
@@ -382,7 +382,7 @@ begin
   if (p_io = niL) or (p_io.IOInterface = nil) then
       exit;
 
-  p_io.SendBuffResult(ASuccess);
+  p_io.SendBuffResult(Success_);
 end;
 
 constructor TCommunicationFramework_Server_CrossSocket.Create;
@@ -426,10 +426,10 @@ begin
   Successed := False;
   try
     ICrossSocket(FDriver).Listen(Host, Port,
-      procedure(Listen: ICrossListen; ASuccess: Boolean)
+      procedure(Listen: ICrossListen; Success_: Boolean)
       begin
         Completed := True;
-        Successed := ASuccess;
+        Successed := Success_;
       end);
 
     while not Completed do

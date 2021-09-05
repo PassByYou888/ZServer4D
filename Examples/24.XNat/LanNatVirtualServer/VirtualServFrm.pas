@@ -7,7 +7,8 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls,
   CoreClasses, PascalStrings, UnicodeMixedLib, CommunicationFramework,
-  XNATMappingOnVirutalService, XNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase;
+  XNATMappingOnVirutalService, XNATPhysics, CommunicationTest, DoStatusIO, NotifyObjectBase,
+  FMX.Memo.Types;
 
 type
   TForm2 = class(TForm)
@@ -24,7 +25,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    XCli: TXNAT_Mapping;
+    XCli: TXNAT_VS_Mapping;
     server: TCommunicationFrameworkServer;
     server_test: TCommunicationTestIntf;
 
@@ -47,7 +48,7 @@ procedure TForm2.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusIntf);
 
-  XCli := TXNAT_Mapping.Create;
+  XCli := TXNAT_VS_Mapping.Create;
 
   {
     穿透协议压缩选项

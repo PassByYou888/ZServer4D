@@ -171,6 +171,7 @@ type
     procedure SaveToStream(stream: TCoreClassStream; Formated_: Boolean); overload;
     procedure SaveToStream(stream: TCoreClassStream); overload;
     procedure LoadFromStream(stream: TCoreClassStream);
+
     procedure SaveToLines(L_: TCoreClassStrings);
     procedure LoadFromLines(L_: TCoreClassStrings);
     procedure SaveToFile(FileName: SystemString);
@@ -280,14 +281,8 @@ var
 begin
   m64 := TMS64.Create;
   try
-      m64.LoadFromFile(FileName);
-  except
-    DisposeObject(m64);
-    Exit;
-  end;
-
-  try
-      LoadFromStream(m64);
+    SaveToStream(m64);
+    m64.SaveToFile(FileName);
   finally
       DisposeObject(m64);
   end;
@@ -299,8 +294,14 @@ var
 begin
   m64 := TMS64.Create;
   try
-    SaveToStream(m64);
-    m64.SaveToFile(FileName);
+      m64.LoadFromFile(FileName);
+  except
+    DisposeObject(m64);
+    Exit;
+  end;
+
+  try
+      LoadFromStream(m64);
   finally
       DisposeObject(m64);
   end;
