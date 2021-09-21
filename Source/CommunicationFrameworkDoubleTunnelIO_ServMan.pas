@@ -312,7 +312,7 @@ end;
 
 function TServerManager_Client.EnabledServer(const Regname, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: Word; ServerType: TServerType): Boolean;
 var
-  SendData, ResultData: TDataFrameEngine;
+  SendData, Result_: TDataFrameEngine;
 begin
   ConnectInfo.Regname := Regname;
   ConnectInfo.ManServAddr := ManServAddr;
@@ -324,7 +324,7 @@ begin
   Result := False;
 
   SendData := TDataFrameEngine.Create;
-  ResultData := TDataFrameEngine.Create;
+  Result_ := TDataFrameEngine.Create;
 
   SendData.WriteString(ManServAddr);
   SendData.WriteString(Regname);
@@ -336,16 +336,16 @@ begin
 
   DoStatus('send enabled cmd:%s %s [n:%s][addr:%s][r:%d][s:%d][w:%d]', [ManServAddr, serverType2Str(ServerType), Regname, RegAddr, RegRecvPort, RegSendPort, 0]);
 
-  SendTunnel.WaitSendStreamCmd(C_EnabledServer, SendData, ResultData, 5000);
+  SendTunnel.WaitSendStreamCmd(C_EnabledServer, SendData, Result_, 5000);
 
-  if ResultData.Count = 2 then
+  if Result_.Count = 2 then
     begin
-      Result := ResultData.Reader.ReadBool;
-      DoStatus(ResultData.Reader.ReadString);
+      Result := Result_.Reader.ReadBool;
+      DoStatus(Result_.Reader.ReadString);
     end;
 
   DisposeObject(SendData);
-  DisposeObject(ResultData);
+  DisposeObject(Result_);
 end;
 
 function TServerManager_ClientPool.GetItems(index: Integer): TServerManager_Client;

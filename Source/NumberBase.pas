@@ -1,3 +1,6 @@
+{ ****************************************************************************** }
+{ * Number Module system, create by.qq600585                                   * }
+{ ****************************************************************************** }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -20,82 +23,84 @@ unit NumberBase;
 
 interface
 
-uses ListEngine, CoreClasses, DataFrameEngine, PascalStrings;
+uses
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  CoreClasses, GHashList, ListEngine, PascalStrings, TextParsing, zExpression, OpCode;
 
 type
-  TNumberModuleHookInterface  = class;
-  TNumberModuleEventInterface = class;
-  TNumberModuleList           = class;
-  TNumberModule               = class;
+  TNumberModuleHookPool = class;
+  TNumberModuleEventPool = class;
+  TNumberModulePool = class;
+  TNumberModule = class;
+  TNumberModuleHookPoolList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TNumberModuleHookPool>;
+  TNumberModuleEventPoolList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TNumberModuleEventPool>;
+  TNumberModulePool_Decl = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericHashList<TNumberModule>;
 
-  TNumberModuleHook = procedure(Sender: TNumberModuleHookInterface; OldValue: Variant; var NewValue: Variant) of object;
+  TNumberModuleHook = procedure(Sender: TNumberModuleHookPool; OLD_: Variant; var New_: Variant) of object;
 
-  TNumberModuleHookInterface = class(TCoreClassObject)
+  TNumberModuleHookPool = class(TCoreClassObject)
   private
     FOwner: TNumberModule;
-    FOwnerList: TCoreClassListForObj;
+    FOwnerList: TNumberModuleHookPoolList;
     FOnCurrentDMHook: TNumberModuleHook;
+    FTag: SystemString;
   protected
   public
-    constructor Create(AOwner: TNumberModule; AOwnerList: TCoreClassListForObj);
+    constructor Create(Owner_: TNumberModule; OwnerList_: TNumberModuleHookPoolList);
     destructor Destroy; override;
-
     property Owner: TNumberModule read FOwner;
     property OnCurrentDMHook: TNumberModuleHook read FOnCurrentDMHook write FOnCurrentDMHook;
+    property Tag: SystemString read FTag write FTag;
   end;
 
-  TNumberModuleEvent = procedure(Sender: TNumberModuleEventInterface; NewValue: Variant) of object;
+  TNumberModuleEvent = procedure(Sender: TNumberModuleEventPool; New_: Variant) of object;
 
-  TNumberModuleEventInterface = class(TCoreClassObject)
+  TNumberModuleEventPool = class(TCoreClassObject)
   private
     FOwner: TNumberModule;
-    FOwnerList: TCoreClassListForObj;
+    FOwnerList: TNumberModuleEventPoolList;
     FOnCurrentDMEvent: TNumberModuleEvent;
+    FTag: SystemString;
   protected
   public
-    constructor Create(AOwner: TNumberModule; AOwnerList: TCoreClassListForObj);
+    constructor Create(Owner_: TNumberModule; OwnerList_: TNumberModuleEventPoolList);
     destructor Destroy; override;
-
     property Owner: TNumberModule read FOwner;
     property OnCurrentDMEvent: TNumberModuleEvent read FOnCurrentDMEvent write FOnCurrentDMEvent;
+    property Tag: SystemString read FTag write FTag;
   end;
 
-  TNumberModuleNotifyEvent = procedure();
-  TNumberModuleChangeEvent = procedure(const OldValue, NewValue: Variant);
+  TNumberModuleChangeEvent = procedure(Sender: TNumberModule; OLD_, New_: Variant);
 
   TNumberModule = class(TCoreClassObject)
   private
-    FOwner: TNumberModuleList;
+    FOwner: TNumberModulePool;
     FName, FSymbolName, FDescription, FDetailDescription: SystemString;
-
-    FCurrentValueHookList: TCoreClassListForObj;
-    FCurrentValueChangeAfterEventList: TCoreClassListForObj;
-
+    FCurrentValueHookPool: TNumberModuleHookPoolList;
+    FCurrentValueChangeAfterEventPool: TNumberModuleEventPoolList;
     FCurrentValue: Variant;
     FOriginValue: Variant;
-
-    FCustomObjects: THashObjectList;
-    FCustomValues: THashVariantList;
-
     FEnabledHook: Boolean;
     FEnabledEvent: Boolean;
-
     FOnChange: TNumberModuleChangeEvent;
   private
+    // prop
     procedure SetName(const Value: SystemString);
-
     function GetCurrentValue: Variant;
     procedure SetCurrentValue(const Value: Variant);
-
     function GetOriginValue: Variant;
     procedure SetOriginValue(const Value: Variant);
-
-    function GetCustomObjects: THashObjectList;
-    function GetCustomValues: THashVariantList;
-  private
-    procedure DoCurrentValueHook(OldValue: Variant; NewValue: Variant);
+    // change
+    procedure DoCurrentValueHook(const OLD_, New_: Variant);
     procedure Clear;
+    // opRunTime
+    procedure DoRegOpProc();
+    procedure DoRemoveOpProc();
+    function OP_DoProc(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
   private
+    // get current
     function GetCurrentAsCardinal: Cardinal;
     function GetCurrentAsDouble: Double;
     function GetCurrentAsInt64: Int64;
@@ -103,7 +108,7 @@ type
     function GetCurrentAsSingle: Single;
     function GetCurrentAsString: SystemString;
     function GetCurrentAsBool: Boolean;
-
+    // set current
     procedure SetCurrentAsCardinal(const Value: Cardinal);
     procedure SetCurrentAsDouble(const Value: Double);
     procedure SetCurrentAsInt64(const Value: Int64);
@@ -111,7 +116,7 @@ type
     procedure SetCurrentAsSingle(const Value: Single);
     procedure SetCurrentAsString(const Value: SystemString);
     procedure SetCurrentAsBool(const Value: Boolean);
-
+    // get origin
     function GetOriginAsCardinal: Cardinal;
     function GetOriginAsDouble: Double;
     function GetOriginAsInt64: Int64;
@@ -119,7 +124,7 @@ type
     function GetOriginAsSingle: Single;
     function GetOriginAsString: SystemString;
     function GetOriginAsBool: Boolean;
-
+    // set origin
     procedure SetOriginAsCardinal(const Value: Cardinal);
     procedure SetOriginAsDouble(const Value: Double);
     procedure SetOriginAsInt64(const Value: Int64);
@@ -128,31 +133,29 @@ type
     procedure SetOriginAsString(const Value: SystemString);
     procedure SetOriginAsBool(const Value: Boolean);
   public
-    constructor Create(AOwner: TNumberModuleList);
+    UserObject: TCoreClassObject;
+    UserData: Pointer;
+    UserVariant: Variant;
+    Tag: Integer;
+    constructor Create(Owner_: TNumberModulePool);
     destructor Destroy; override;
-
-    // value changed
-    procedure UpdateValue;
-    // reg hook interface
-    function RegisterCurrentValueHook: TNumberModuleHookInterface;
+    // base prop
+    property OnChange: TNumberModuleChangeEvent read FOnChange write FOnChange;
+    property EnabledHook: Boolean read FEnabledHook write FEnabledHook;
+    property EnabledEvent: Boolean read FEnabledEvent write FEnabledEvent;
+    property Owner: TNumberModulePool read FOwner;
+    property Name: SystemString read FName write SetName;
+    property SymbolName: SystemString read FSymbolName write FSymbolName;
+    property Description: SystemString read FDescription write FDescription;
+    property DetailDescription: SystemString read FDetailDescription write FDetailDescription;
+    // api
+    procedure DoChange;
+    function RegisterCurrentValueHook: TNumberModuleHookPool;
     procedure CopyHookInterfaceFrom(sour: TNumberModule);
-    // reg change after event
-    function RegisterCurrentValueChangeAfterEvent: TNumberModuleEventInterface;
+    function RegisterCurrentValueChangeAfterEvent: TNumberModuleEventPool;
     procedure CopyChangeAfterEventInterfaceFrom(sour: TNumberModule);
-    // copy
     procedure Assign(sour: TNumberModule);
-    // use hook change
-    property CurrentValue: Variant read GetCurrentValue write SetCurrentValue;
-    property OriginValue: Variant read GetOriginValue write SetOriginValue;
-
-    property CurrentAsSingle: Single read GetCurrentAsSingle write SetCurrentAsSingle;
-    property CurrentAsDouble: Double read GetCurrentAsDouble write SetCurrentAsDouble;
-    property CurrentAsInteger: Integer read GetCurrentAsInteger write SetCurrentAsInteger;
-    property CurrentAsInt64: Int64 read GetCurrentAsInt64 write SetCurrentAsInt64;
-    property CurrentAsCardinal: Cardinal read GetCurrentAsCardinal write SetCurrentAsCardinal;
-    property CurrentAsString: SystemString read GetCurrentAsString write SetCurrentAsString;
-    property CurrentAsBool: Boolean read GetCurrentAsBool write SetCurrentAsBool;
-
+    // current
     property AsValue: Variant read GetCurrentValue write SetCurrentValue;
     property AsSingle: Single read GetCurrentAsSingle write SetCurrentAsSingle;
     property AsDouble: Double read GetCurrentAsDouble write SetCurrentAsDouble;
@@ -161,7 +164,16 @@ type
     property AsCardinal: Cardinal read GetCurrentAsCardinal write SetCurrentAsCardinal;
     property AsString: SystemString read GetCurrentAsString write SetCurrentAsString;
     property AsBool: Boolean read GetCurrentAsBool write SetCurrentAsBool;
-
+    property CurrentValue: Variant read GetCurrentValue write SetCurrentValue;
+    property CurrentAsSingle: Single read GetCurrentAsSingle write SetCurrentAsSingle;
+    property CurrentAsDouble: Double read GetCurrentAsDouble write SetCurrentAsDouble;
+    property CurrentAsInteger: Integer read GetCurrentAsInteger write SetCurrentAsInteger;
+    property CurrentAsInt64: Int64 read GetCurrentAsInt64 write SetCurrentAsInt64;
+    property CurrentAsCardinal: Cardinal read GetCurrentAsCardinal write SetCurrentAsCardinal;
+    property CurrentAsString: SystemString read GetCurrentAsString write SetCurrentAsString;
+    property CurrentAsBool: Boolean read GetCurrentAsBool write SetCurrentAsBool;
+    // origin
+    property OriginValue: Variant read GetOriginValue write SetOriginValue;
     property OriginAsSingle: Single read GetOriginAsSingle write SetOriginAsSingle;
     property OriginAsDouble: Double read GetOriginAsDouble write SetOriginAsDouble;
     property OriginAsInteger: Integer read GetOriginAsInteger write SetOriginAsInteger;
@@ -169,157 +181,99 @@ type
     property OriginAsCardinal: Cardinal read GetOriginAsCardinal write SetOriginAsCardinal;
     property OriginAsString: SystemString read GetOriginAsString write SetOriginAsString;
     property OriginAsBool: Boolean read GetOriginAsBool write SetOriginAsBool;
-
-    // skip hook
-    property DirectCurrentValue: Variant read FCurrentValue write FCurrentValue;
+    // direct,no trigger
     property DirectValue: Variant read FCurrentValue write FCurrentValue;
+    property DirectCurrentValue: Variant read FCurrentValue write FCurrentValue;
     property DirectOriginValue: Variant read FOriginValue write FOriginValue;
-    // custom object
-    property CustomObjects: THashObjectList read GetCustomObjects;
-    // custom value
-    property CustomValues: THashVariantList read GetCustomValues;
-
-    property EnabledHook: Boolean read FEnabledHook write FEnabledHook;
-    property EnabledEvent: Boolean read FEnabledEvent write FEnabledEvent;
-
-    property Owner: TNumberModuleList read FOwner;
-    property Name: SystemString read FName write SetName;
-    property SymbolName: SystemString read FSymbolName write FSymbolName;
-    property Description: SystemString read FDescription write FDescription;
-    property DetailDescription: SystemString read FDetailDescription write FDetailDescription;
   end;
 
-  TGetDMAsString = function(key: SystemString; DM: TNumberModule): SystemString;
+  TGetDMAsString = function(key: SystemString; NM: TNumberModule): SystemString;
 
-  TNumberModuleList = class(TCoreClassObject)
+  TNumberModulePool = class(TCoreClassObject)
   protected
-    FList: THashObjectList;
-    function GetItems(AName: SystemString): TNumberModule;
+    FList: TNumberModulePool_Decl;
+    FExpOpRunTime: TOpCustomRunTime;
+    function OP_DoNewNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+    procedure SwapInstance_Progress(const Name: PSystemString; Obj: TNumberModule);
+    procedure RebuildOpRunTime_Progress(const Name: PSystemString; Obj: TNumberModule);
+    procedure DoChangeAll_Progress(const Name: PSystemString; Obj: TNumberModule);
+    function GetExpOpRunTime: TOpCustomRunTime;
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
-
-    procedure Delete(AName: SystemString);
-    function Exists(AName: SystemString): Boolean;
-    function ExistsIntf(ADM: TNumberModule): Boolean;
-    procedure Clear;
-
-    function Macro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; out output: SystemString): Boolean;
-    function ManualMacro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out output: SystemString): Boolean;
-
-    procedure Assign(Source: TNumberModuleList); // create by 2011-6-17
-
-    // can merge current
-    procedure LoadFromStream(stream: TCoreClassStream);
+    // instance
+    procedure SwapInstance(source: TNumberModulePool);
+    // script
+    procedure RebuildOpRunTime;
+    property ExpOpRunTime: TOpCustomRunTime read GetExpOpRunTime;
+    function IsVectorScript(ExpressionText_: SystemString; TS_: TTextStyle): Boolean; overload;
+    function IsVectorScript(ExpressionText_: SystemString): Boolean; overload;
+    function RunScript(ExpressionText_: SystemString; TS_: TTextStyle): Variant; overload;
+    function RunScript(ExpressionText_: SystemString): Variant; overload;
+    function RunVectorScript(ExpressionText_: SystemString; TS_: TTextStyle): TExpressionValueVector; overload;
+    function RunVectorScript(ExpressionText_: SystemString): TExpressionValueVector; overload;
+    // trigger
+    procedure DoNMChange(Sender: TNumberModule; OLD_, New_: Variant); virtual;
+    // api
+    procedure Delete(Name_: SystemString); virtual;
+    function Exists(Name_: SystemString): Boolean; virtual;
+    function ExistsIntf(NM_: TNumberModule): Boolean; virtual;
+    procedure Clear; virtual;
+    function Macro(const text_, HeadToken, TailToken, OwnerFlag: SystemString; out output: SystemString): Boolean; virtual;
+    function ManualMacro(const text_, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out output: SystemString): Boolean; virtual;
+    procedure Assign(source: TNumberModulePool); virtual;
+    procedure DoChangeAll; virtual;
+    // load and merge from DFE
+    procedure LoadFromStream(stream: TCoreClassStream); virtual;
     // save
-    procedure SaveToStream(stream: TCoreClassStream);
-
-    // laod form text, auto merge current
-    procedure LoadFromVariantList(v: THashVariantList);
+    procedure SaveToStream(stream: TCoreClassStream); virtual;
+    // load merge current from HashVariant
+    procedure LoadFromVariantList(L: THashVariantList); virtual;
     // save as text
-    procedure SaveToVariantList(v: THashVariantList);
-
-    property Items[AName: SystemString]: TNumberModule read GetItems; default;
-    property List: THashObjectList read FList;
-  end;
-
-  TNMAutomatedManager = class;
-
-  TNumberProcessStyle = (npsInc, npsDec, npsIncMul, npsDecMul);
-
-  TNumberProcessingData = record
-    token: TCoreClassObject;
-    opValue: Variant;
-    Style: TNumberProcessStyle;
-    CancelDelayTime: Double;
-    Overlap: Boolean;
-    TypeID: Integer;
-    Priority: Cardinal;
-    Processed: Boolean;
-  end;
-
-  PDMProcessingData = ^TNumberProcessingData;
-
-  TNMAutomated = class(TCoreClassPersistent)
-  private
-    FOwner: TNMAutomatedManager;
-    FDMSource: TNumberModule;
-    FCurrentValueHookIntf: TNumberModuleHookInterface;
-    FCurrentValueCalcList: TCoreClassList;
-  protected
-    procedure DMCurrentValueHook(Sender: TNumberModuleHookInterface; OldValue: Variant; var NewValue: Variant);
-  private
-    function GetCurrentValueCalcData(token: TCoreClassObject): PDMProcessingData;
-  public
-    constructor Create(AOwner: TNMAutomatedManager; ADMSource: TNumberModule);
-    destructor Destroy; override;
-
-    property Owner: TNMAutomatedManager read FOwner write FOwner;
-
-    procedure Progress(deltaTime: Double);
-    procedure ChangeProcessStyle(token: TCoreClassObject;
-      opValue: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
-    procedure Cancel(token: TCoreClassObject);
-    procedure Clear;
-  end;
-
-  TNMAutomatedManager = class(TCoreClassPersistent)
-  private
-    FList: TCoreClassListForObj;
-
-    function GetOrCreate(ADMSource: TNumberModule): TNMAutomated;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure Progress(deltaTime: Double);
-    procedure Clear;
-
-    procedure PostAutomatedProcess(Style: TNumberProcessStyle;
-      ADMSource: TNumberModule; token: TCoreClassPersistent;
-      opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
-    procedure PostAutomatedDelayCancelProcess(Style: TNumberProcessStyle;
-      ADMSource: TNumberModule; token: TCoreClassPersistent;
-      opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
-    procedure Delete(ADMSource: TNumberModule; token: TCoreClassObject); overload;
-    procedure Delete(token: TCoreClassObject); overload;
+    procedure SaveToVariantList(L: THashVariantList); virtual;
+    function GetItems(Name_: SystemString): TNumberModule; virtual;
+    property Items[Name_: SystemString]: TNumberModule read GetItems; default;
+    property List: TNumberModulePool_Decl read FList;
+    class procedure test;
   end;
 
 implementation
 
-uses SysUtils, Variants, UnicodeMixedLib, DoStatusIO;
+uses SysUtils, Variants,
+  UnicodeMixedLib, DataFrameEngine, DoStatusIO;
 
-function __GetDMAsString(key: SystemString; DM: TNumberModule): SystemString;
+function __GetNMAsString(key: SystemString; NM: TNumberModule): SystemString;
 begin
   if key = '' then
-      Result := DM.CurrentAsString
+      Result := NM.CurrentAsString
   else if SameText(key, 'Value') then
-      Result := DM.CurrentAsString
+      Result := NM.CurrentAsString
   else if SameText(key, 'Origin') then
-      Result := DM.OriginAsString
+      Result := NM.OriginAsString
   else if SameText(key, 'Name') then
-      Result := DM.Name
+      Result := NM.Name
   else if SameText(key, 'Symbol') then
-      Result := DM.SymbolName
+      Result := NM.SymbolName
   else if SameText(key, 'Description') then
-      Result := DM.Description
+      Result := NM.Description
   else if SameText(key, 'Detail') then
-      Result := DM.DetailDescription
+      Result := NM.DetailDescription
   else
-      Result := DM.CurrentAsString;
+      Result := NM.CurrentAsString;
 end;
 
-constructor TNumberModuleHookInterface.Create(AOwner: TNumberModule; AOwnerList: TCoreClassListForObj);
+constructor TNumberModuleHookPool.Create(Owner_: TNumberModule; OwnerList_: TNumberModuleHookPoolList);
 begin
   inherited Create;
-  FOwner := AOwner;
-  FOwnerList := AOwnerList;
+  FOwner := Owner_;
+  FOwnerList := OwnerList_;
   FOnCurrentDMHook := nil;
+  FTag := '';
   if FOwnerList <> nil then
       FOwnerList.Add(Self);
 end;
 
-destructor TNumberModuleHookInterface.Destroy;
+destructor TNumberModuleHookPool.Destroy;
 var
   i: Integer;
 begin
@@ -335,17 +289,18 @@ begin
   inherited Destroy;
 end;
 
-constructor TNumberModuleEventInterface.Create(AOwner: TNumberModule; AOwnerList: TCoreClassListForObj);
+constructor TNumberModuleEventPool.Create(Owner_: TNumberModule; OwnerList_: TNumberModuleEventPoolList);
 begin
   inherited Create;
-  FOwner := AOwner;
-  FOwnerList := AOwnerList;
+  FOwner := Owner_;
+  FOwnerList := OwnerList_;
   FOnCurrentDMEvent := nil;
+  FTag := '';
   if FOwnerList <> nil then
       FOwnerList.Add(Self);
 end;
 
-destructor TNumberModuleEventInterface.Destroy;
+destructor TNumberModuleEventPool.Destroy;
 var
   i: Integer;
 begin
@@ -369,6 +324,7 @@ begin
         begin
           if FOwner.FList.ReName(FName, Value) then
               FName := Value;
+          FOwner.RebuildOpRunTime;
         end
       else
           FName := Value;
@@ -382,7 +338,13 @@ end;
 
 procedure TNumberModule.SetCurrentValue(const Value: Variant);
 begin
-  DoCurrentValueHook(FCurrentValue, Value);
+  if VarIsNull(FOriginValue) then
+    begin
+      FOriginValue := Value;
+      DoCurrentValueHook(FCurrentValue, FOriginValue);
+    end
+  else
+      DoCurrentValueHook(FCurrentValue, Value);
 end;
 
 function TNumberModule.GetOriginValue: Variant;
@@ -396,66 +358,86 @@ begin
   DoCurrentValueHook(FCurrentValue, FOriginValue);
 end;
 
-function TNumberModule.GetCustomObjects: THashObjectList;
-begin
-  if FCustomObjects = nil then
-      FCustomObjects := THashObjectList.Create(False);
-  Result := FCustomObjects;
-end;
-
-function TNumberModule.GetCustomValues: THashVariantList;
-begin
-  if FCustomValues = nil then
-      FCustomValues := THashVariantList.Create;
-  Result := FCustomValues;
-end;
-
-procedure TNumberModule.DoCurrentValueHook(OldValue: Variant; NewValue: Variant);
+procedure TNumberModule.DoCurrentValueHook(const OLD_, New_: Variant);
 var
   i: Integer;
-  _H: TNumberModuleHookInterface;
-  _e: TNumberModuleEventInterface;
-
-  _New: Variant;
+  H_: TNumberModuleHookPool;
+  E_: TNumberModuleEventPool;
+  N_: Variant;
 begin
-  _New := NewValue;
+  N_ := New_;
   if (FEnabledHook) then
-    for i := 0 to FCurrentValueHookList.Count - 1 do
+    for i := 0 to FCurrentValueHookPool.Count - 1 do
       begin
-        _H := TNumberModuleHookInterface(FCurrentValueHookList[i]);
-        if Assigned(_H.FOnCurrentDMHook) then
+        H_ := TNumberModuleHookPool(FCurrentValueHookPool[i]);
+        if Assigned(H_.FOnCurrentDMHook) then
           begin
             try
-                _H.FOnCurrentDMHook(_H, FCurrentValue, _New);
+                H_.FOnCurrentDMHook(H_, FCurrentValue, N_);
             except
             end;
           end;
       end;
-  FCurrentValue := _New;
-  // trigger change after event
+  FCurrentValue := N_;
+  // trigger change event
   if (FEnabledEvent) then
-    for i := 0 to FCurrentValueChangeAfterEventList.Count - 1 do
+    for i := 0 to FCurrentValueChangeAfterEventPool.Count - 1 do
       begin
-        _e := TNumberModuleEventInterface(FCurrentValueChangeAfterEventList[i]);
-        if Assigned(_e.FOnCurrentDMEvent) then
+        E_ := FCurrentValueChangeAfterEventPool[i];
+        if Assigned(E_.FOnCurrentDMEvent) then
           begin
             try
-                _e.FOnCurrentDMEvent(_e, FCurrentValue);
+                E_.FOnCurrentDMEvent(E_, FCurrentValue);
             except
             end;
           end;
       end;
 
   if Assigned(FOnChange) then
-      FOnChange(OldValue, NewValue);
+    begin
+      try
+          FOnChange(Self, OLD_, N_);
+      except
+      end;
+    end;
+
+  if FOwner <> nil then
+      Owner.DoNMChange(Self, OLD_, N_);
 end;
 
 procedure TNumberModule.Clear;
 begin
-  while FCurrentValueHookList.Count > 0 do
-      DisposeObject(TNumberModuleHookInterface(FCurrentValueHookList[0]));
-  while FCurrentValueChangeAfterEventList.Count > 0 do
-      DisposeObject(TNumberModuleEventInterface(FCurrentValueChangeAfterEventList[0]));
+  while FCurrentValueHookPool.Count > 0 do
+      DisposeObject(FCurrentValueHookPool[0]);
+  while FCurrentValueChangeAfterEventPool.Count > 0 do
+      DisposeObject(FCurrentValueChangeAfterEventPool[0]);
+end;
+
+procedure TNumberModule.DoRegOpProc;
+begin
+  if Owner <> nil then
+      Owner.ExpOpRunTime.RegObjectOpM(Name, Description, {$IFDEF FPC}@{$ENDIF FPC}OP_DoProc);
+end;
+
+procedure TNumberModule.DoRemoveOpProc;
+begin
+  if Owner <> nil then
+      Owner.ExpOpRunTime.ProcList.Delete(Name);
+end;
+
+function TNumberModule.OP_DoProc(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+var
+  i: Integer;
+begin
+  if Length(OP_Param) > 0 then
+    begin
+      Result := OP_Param[0];
+      for i := 1 to Length(OP_Param) - 1 do
+          Result := Result + OP_Param[i];
+      AsValue := Result;
+    end
+  else
+      Result := AsValue;
 end;
 
 function TNumberModule.GetCurrentAsCardinal: Cardinal;
@@ -601,52 +583,44 @@ begin
       OriginAsInteger := 0;
 end;
 
-constructor TNumberModule.Create(AOwner: TNumberModuleList);
+constructor TNumberModule.Create(Owner_: TNumberModulePool);
 begin
   inherited Create;
-  FOwner := AOwner;
+  FOwner := Owner_;
   FName := '';
   FSymbolName := '';
   FDescription := '';
   FDetailDescription := '';
-
-  FCurrentValueHookList := TCoreClassListForObj.Create;
-
-  FCurrentValueChangeAfterEventList := TCoreClassListForObj.Create;
-
-  FCustomObjects := nil;
-  FCustomValues := nil;
-
-  FCurrentValue := Null;
-  FOriginValue := Null;
-
+  FCurrentValueHookPool := TNumberModuleHookPoolList.Create;
+  FCurrentValueChangeAfterEventPool := TNumberModuleEventPoolList.Create;
+  FCurrentValue := NULL;
+  FOriginValue := NULL;
   FEnabledHook := True;
   FEnabledEvent := True;
-
   FOnChange := nil;
+
+  UserObject := nil;
+  UserData := nil;
+  UserVariant := NULL;
+  Tag := 0;
 end;
 
 destructor TNumberModule.Destroy;
 begin
   Clear;
-  DisposeObject(FCurrentValueChangeAfterEventList);
-  DisposeObject(FCurrentValueHookList);
-
-  if FCustomObjects <> nil then
-      DisposeObject(FCustomObjects);
-  if FCustomValues <> nil then
-      DisposeObject(FCustomValues);
+  DisposeObject(FCurrentValueChangeAfterEventPool);
+  DisposeObject(FCurrentValueHookPool);
   inherited Destroy;
 end;
 
-procedure TNumberModule.UpdateValue;
+procedure TNumberModule.DoChange;
 begin
-  DoCurrentValueHook(FCurrentValue, FOriginValue);
+  DoCurrentValueHook(FCurrentValue, FCurrentValue);
 end;
 
-function TNumberModule.RegisterCurrentValueHook: TNumberModuleHookInterface;
+function TNumberModule.RegisterCurrentValueHook: TNumberModuleHookPool;
 begin
-  Result := TNumberModuleHookInterface.Create(Self, FCurrentValueHookList);
+  Result := TNumberModuleHookPool.Create(Self, FCurrentValueHookPool);
 end;
 
 procedure TNumberModule.CopyHookInterfaceFrom(sour: TNumberModule);
@@ -654,13 +628,13 @@ var
   i: Integer;
 begin
   // copy new interface
-  for i := 0 to sour.FCurrentValueHookList.Count - 1 do
-      RegisterCurrentValueHook.OnCurrentDMHook := TNumberModuleHookInterface(sour.FCurrentValueHookList[i]).OnCurrentDMHook;
+  for i := 0 to sour.FCurrentValueHookPool.Count - 1 do
+      RegisterCurrentValueHook.OnCurrentDMHook := TNumberModuleHookPool(sour.FCurrentValueHookPool[i]).OnCurrentDMHook;
 end;
 
-function TNumberModule.RegisterCurrentValueChangeAfterEvent: TNumberModuleEventInterface;
+function TNumberModule.RegisterCurrentValueChangeAfterEvent: TNumberModuleEventPool;
 begin
-  Result := TNumberModuleEventInterface.Create(Self, FCurrentValueChangeAfterEventList);
+  Result := TNumberModuleEventPool.Create(Self, FCurrentValueChangeAfterEventPool);
 end;
 
 procedure TNumberModule.CopyChangeAfterEventInterfaceFrom(sour: TNumberModule);
@@ -668,8 +642,8 @@ var
   i: Integer;
 begin
   // copy new interface
-  for i := 0 to sour.FCurrentValueChangeAfterEventList.Count - 1 do
-      RegisterCurrentValueChangeAfterEvent.OnCurrentDMEvent := TNumberModuleEventInterface(sour.FCurrentValueChangeAfterEventList[i]).OnCurrentDMEvent;
+  for i := 0 to sour.FCurrentValueChangeAfterEventPool.Count - 1 do
+      RegisterCurrentValueChangeAfterEvent.OnCurrentDMEvent := sour.FCurrentValueChangeAfterEventPool[i].OnCurrentDMEvent;
 end;
 
 procedure TNumberModule.Assign(sour: TNumberModule);
@@ -682,55 +656,142 @@ begin
   FDetailDescription := sour.FDetailDescription;
 end;
 
-function TNumberModuleList.GetItems(AName: SystemString): TNumberModule;
+function TNumberModulePool.OP_DoNewNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+var
+  N_: SystemString;
 begin
-  Result := TNumberModule(FList[AName]);
-  if Result = nil then
-    begin
-      Result := TNumberModule.Create(Self);
-      FList[AName] := Result;
-      Result.FName := AName;
-    end;
+  N_ := VarToStr(OP_Param[0]);
+  if FList.Exists(N_) then
+      Items[N_].AsValue := OP_Param[1]
+  else
+      Items[N_].OriginValue := OP_Param[1];
+  Result := OP_Param[1];
 end;
 
-constructor TNumberModuleList.Create;
+procedure TNumberModulePool.SwapInstance_Progress(const Name: PSystemString; Obj: TNumberModule);
+begin
+  Obj.FOwner := Self;
+end;
+
+procedure TNumberModulePool.RebuildOpRunTime_Progress(const Name: PSystemString; Obj: TNumberModule);
+begin
+  Obj.DoRegOpProc;
+end;
+
+procedure TNumberModulePool.DoChangeAll_Progress(const Name: PSystemString; Obj: TNumberModule);
+begin
+  Obj.DoChange;
+end;
+
+function TNumberModulePool.GetExpOpRunTime: TOpCustomRunTime;
+begin
+  if FExpOpRunTime = nil then
+    begin
+      FExpOpRunTime := TOpCustomRunTime.CustomCreate($FF);
+      FExpOpRunTime.RegObjectOpM('Set', 'Init NM, Set(Name, Value)', {$IFDEF FPC}@{$ENDIF FPC}OP_DoNewNM);
+      FExpOpRunTime.RegObjectOpM('Init', 'Init NM, Init(Name, Value)', {$IFDEF FPC}@{$ENDIF FPC}OP_DoNewNM);
+      FExpOpRunTime.RegObjectOpM('New', 'Init NM, New(Name, Value)', {$IFDEF FPC}@{$ENDIF FPC}OP_DoNewNM);
+      FList.ProgressM({$IFDEF FPC}@{$ENDIF FPC}RebuildOpRunTime_Progress);
+    end;
+  Result := FExpOpRunTime;
+end;
+
+constructor TNumberModulePool.Create;
 begin
   inherited Create;
-  FList := THashObjectList.CustomCreate(True, 256);
+  FList := TNumberModulePool_Decl.Create(True, 1024, nil);
+  FExpOpRunTime := nil;
 end;
 
-destructor TNumberModuleList.Destroy;
+destructor TNumberModulePool.Destroy;
 begin
+  DisposeObject(FExpOpRunTime);
   DisposeObject(FList);
   inherited Destroy;
 end;
 
-procedure TNumberModuleList.Delete(AName: SystemString);
+procedure TNumberModulePool.SwapInstance(source: TNumberModulePool);
+var
+  tmp_FList: TNumberModulePool_Decl;
+  tmp_FExpOpRunTime: TOpCustomRunTime;
 begin
-  FList.Delete(AName);
+  tmp_FList := FList;
+  tmp_FExpOpRunTime := FExpOpRunTime;
+  FList := source.FList;
+  FExpOpRunTime := source.FExpOpRunTime;
+  source.FList := tmp_FList;
+  source.FExpOpRunTime := tmp_FExpOpRunTime;
+  // Update Owner
+  FList.ProgressM({$IFDEF FPC}@{$ENDIF FPC}SwapInstance_Progress);
+  source.FList.ProgressM({$IFDEF FPC}@{$ENDIF FPC}source.SwapInstance_Progress);
 end;
 
-function TNumberModuleList.Exists(AName: SystemString): Boolean;
+procedure TNumberModulePool.RebuildOpRunTime;
 begin
-  Result := FList.Exists(AName);
+  DisposeObjectAndNil(FExpOpRunTime);
 end;
 
-function TNumberModuleList.ExistsIntf(ADM: TNumberModule): Boolean;
+function TNumberModulePool.IsVectorScript(ExpressionText_: SystemString; TS_: TTextStyle): Boolean;
 begin
-  Result := FList.ExistsObject(ADM);
+  Result := IsSymbolVectorExpression(ExpressionText_, TS_, nil);
 end;
 
-procedure TNumberModuleList.Clear;
+function TNumberModulePool.IsVectorScript(ExpressionText_: SystemString): Boolean;
+begin
+  Result := IsVectorScript(ExpressionText_, tsPascal);
+end;
+
+function TNumberModulePool.RunScript(ExpressionText_: SystemString; TS_: TTextStyle): Variant;
+begin
+  Result := EvaluateExpressionValue(True, TS_, ExpressionText_, ExpOpRunTime);
+end;
+
+function TNumberModulePool.RunScript(ExpressionText_: SystemString): Variant;
+begin
+  Result := RunScript(ExpressionText_, tsPascal);
+end;
+
+function TNumberModulePool.RunVectorScript(ExpressionText_: SystemString; TS_: TTextStyle): TExpressionValueVector;
+begin
+  Result := EvaluateExpressionVector(False, True, nil, TS_, ExpressionText_, ExpOpRunTime, nil);
+end;
+
+function TNumberModulePool.RunVectorScript(ExpressionText_: SystemString): TExpressionValueVector;
+begin
+  Result := RunVectorScript(ExpressionText_, tsPascal);
+end;
+
+procedure TNumberModulePool.DoNMChange(Sender: TNumberModule; OLD_, New_: Variant);
+begin
+
+end;
+
+procedure TNumberModulePool.Delete(Name_: SystemString);
+begin
+  FList.Delete(Name_);
+end;
+
+function TNumberModulePool.Exists(Name_: SystemString): Boolean;
+begin
+  Result := FList.Exists(Name_);
+end;
+
+function TNumberModulePool.ExistsIntf(NM_: TNumberModule): Boolean;
+begin
+  Result := FList.ExistsObject(NM_);
+end;
+
+procedure TNumberModulePool.Clear;
 begin
   FList.Clear;
 end;
 
-function TNumberModuleList.Macro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; out output: SystemString): Boolean;
+function TNumberModulePool.Macro(const text_, HeadToken, TailToken, OwnerFlag: SystemString; out output: SystemString): Boolean;
 begin
-  Result := ManualMacro(AText, HeadToken, TailToken, OwnerFlag, {$IFDEF FPC}@{$ENDIF FPC}__GetDMAsString, output);
+  Result := ManualMacro(text_, HeadToken, TailToken, OwnerFlag, {$IFDEF FPC}@{$ENDIF FPC}__GetNMAsString, output);
 end;
 
-function TNumberModuleList.ManualMacro(const AText, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out output: SystemString): Boolean;
+function TNumberModulePool.ManualMacro(const text_, HeadToken, TailToken, OwnerFlag: SystemString; OnDM2Text: TGetDMAsString; out output: SystemString): Boolean;
 var
   lst: TCoreClassListForObj;
 
@@ -742,7 +803,7 @@ var
       begin
         Result := TNumberModule(lst[i]);
         if (SameText(Result.FSymbolName, k)) or (SameText(Result.FName, k)) then
-            Exit;
+            exit;
       end;
     Result := nil;
   end;
@@ -753,12 +814,12 @@ var
   bPos, ePos, OwnerPos, nPos: Integer;
   KeyText, OwnerKey, SubKey: U_String;
   i: Integer;
-  DM: TNumberModule;
+  NM: TNumberModule;
 begin
   lst := TCoreClassListForObj.Create;
   FList.GetAsList(lst);
   output := '';
-  sour.Text := AText;
+  sour.Text := text_;
   hf.Text := HeadToken;
   TF.Text := TailToken;
   owf.Text := OwnerFlag;
@@ -782,10 +843,10 @@ begin
                   nPos := OwnerPos + owf.Len;
                   SubKey := KeyText.Copy(nPos, KeyText.Len - nPos + 1);
 
-                  DM := _GetDM(OwnerKey.Text);
-                  if DM <> nil then
+                  NM := _GetDM(OwnerKey.Text);
+                  if NM <> nil then
                     begin
-                      output := output + OnDM2Text(SubKey.Text, DM);
+                      output := output + OnDM2Text(SubKey.Text, NM);
                       i := ePos + TF.Len;
                       Continue;
                     end
@@ -796,10 +857,10 @@ begin
                 end
               else
                 begin
-                  DM := _GetDM(KeyText.Text);
-                  if DM <> nil then
+                  NM := _GetDM(KeyText.Text);
+                  if NM <> nil then
                     begin
-                      output := output + OnDM2Text('', DM);
+                      output := output + OnDM2Text('', NM);
                       i := ePos + TF.Len;
                       Continue;
                     end
@@ -817,33 +878,38 @@ begin
   DisposeObject(lst);
 end;
 
-procedure TNumberModuleList.Assign(Source: TNumberModuleList); // create by,zfy, 2011-6-17
+procedure TNumberModulePool.Assign(source: TNumberModulePool);
 var
   lst: TCoreClassListForObj;
   i: Integer;
-  newdm, DM: TNumberModule;
+  NewDM, NM: TNumberModule;
 begin
   lst := TCoreClassListForObj.Create;
-  Source.FList.GetAsList(lst);
+  source.FList.GetAsList(lst);
   for i := 0 to lst.Count - 1 do
     begin
-      DM := lst[i] as TNumberModule;
-      newdm := Items[DM.Name];
-      newdm.Assign(DM);
+      NM := lst[i] as TNumberModule;
+      NewDM := Items[NM.Name];
+      NewDM.Assign(NM);
     end;
 
   for i := 0 to lst.Count - 1 do
     begin
-      DM := lst[i] as TNumberModule;
-      DM.UpdateValue;
+      NM := lst[i] as TNumberModule;
+      NM.DoChange;
     end;
   DisposeObject(lst);
 end;
 
-procedure TNumberModuleList.LoadFromStream(stream: TCoreClassStream);
+procedure TNumberModulePool.DoChangeAll;
+begin
+  FList.ProgressM({$IFDEF FPC}@{$ENDIF FPC}DoChangeAll_Progress);
+end;
+
+procedure TNumberModulePool.LoadFromStream(stream: TCoreClassStream);
 var
-  df: TDataFrameEngine;
-  DM: TNumberModule;
+  df: TDFE;
+  NM: TNumberModule;
   n: SystemString;
   lst: TCoreClassListForObj;
   i: Integer;
@@ -851,356 +917,137 @@ begin
   // format
   // name,current value,origin value
   lst := TCoreClassListForObj.Create;
-  df := TDataFrameEngine.Create;
+  df := TDFE.Create;
   df.DecodeFrom(stream);
   while not df.Reader.IsEnd do
     begin
       n := df.Reader.ReadString;
-      DM := GetItems(n);
-      DM.SymbolName := df.Reader.ReadString;
-      DM.Description := df.Reader.ReadString;
-      DM.DetailDescription := df.Reader.ReadString;
-      DM.DirectOriginValue := df.Reader.ReadVariant;
-      DM.DirectOriginValue := df.Reader.ReadVariant;
-      lst.Add(DM);
+      NM := GetItems(n);
+      NM.SymbolName := df.Reader.ReadString;
+      NM.Description := df.Reader.ReadString;
+      NM.DetailDescription := df.Reader.ReadString;
+      NM.DirectOriginValue := df.Reader.ReadVariant;
+      NM.DirectCurrentValue := df.Reader.ReadVariant;
+      lst.Add(NM);
     end;
   DisposeObject(df);
   for i := 0 to lst.Count - 1 do
     begin
-      DM := TNumberModule(lst[i]);
-      DM.UpdateValue;
+      NM := TNumberModule(lst[i]);
+      NM.DoChange;
     end;
   DisposeObject(lst);
 end;
 
-procedure TNumberModuleList.SaveToStream(stream: TCoreClassStream);
+procedure TNumberModulePool.SaveToStream(stream: TCoreClassStream);
 var
-  df: TDataFrameEngine;
+  df: TDFE;
   lst: TCoreClassListForObj;
   i: Integer;
-  DM: TNumberModule;
+  NM: TNumberModule;
 begin
   // format
   // name,current value,origin value
   lst := TCoreClassListForObj.Create;
   FList.GetAsList(lst);
-  df := TDataFrameEngine.Create;
+  df := TDFE.Create;
   for i := 0 to lst.Count - 1 do
     begin
-      DM := TNumberModule(lst[i]);
-      df.WriteString(DM.Name);
-      df.WriteString(DM.SymbolName);
-      df.WriteString(DM.Description);
-      df.WriteString(DM.DetailDescription);
-      df.WriteVariant(DM.OriginValue);
-      df.WriteVariant(DM.CurrentValue);
+      NM := TNumberModule(lst[i]);
+      df.WriteString(NM.Name);
+      df.WriteString(NM.SymbolName);
+      df.WriteString(NM.Description);
+      df.WriteString(NM.DetailDescription);
+      df.WriteVariant(NM.OriginValue);
+      df.WriteVariant(NM.CurrentValue);
     end;
-  df.EncodeTo(stream);
+  df.FastEncodeTo(stream);
   DisposeObject(df);
   DisposeObject(lst);
 end;
 
-procedure TNumberModuleList.LoadFromVariantList(v: THashVariantList);
+procedure TNumberModulePool.LoadFromVariantList(L: THashVariantList);
 var
-  NL: TCoreClassStringList;
+  NL: TPascalStringList;
   i: Integer;
   lst: TCoreClassListForObj;
-  DM: TNumberModule;
+  NM: TNumberModule;
 begin
   lst := TCoreClassListForObj.Create;
-
-  NL := TCoreClassStringList.Create;
-  v.GetNameList(NL);
+  NL := TPascalStringList.Create;
+  L.GetNameList(NL);
 
   for i := 0 to NL.Count - 1 do
     begin
-      DM := GetItems(NL[i]);
-      DM.DirectOriginValue := v[DM.Name];
-      DM.DirectCurrentValue := DM.DirectOriginValue;
-      lst.Add(DM);
+      NM := GetItems(NL[i]);
+      NM.DirectOriginValue := L[NM.Name];
+      NM.DirectCurrentValue := NM.DirectOriginValue;
+      lst.Add(NM);
     end;
   DisposeObject(NL);
 
   for i := 0 to lst.Count - 1 do
     begin
-      DM := TNumberModule(lst[i]);
-      DM.UpdateValue;
+      NM := TNumberModule(lst[i]);
+      NM.DoChange;
     end;
   DisposeObject(lst);
 end;
 
-procedure TNumberModuleList.SaveToVariantList(v: THashVariantList);
+procedure TNumberModulePool.SaveToVariantList(L: THashVariantList);
 var
   lst: TCoreClassStringList;
   i: Integer;
-  DM: TNumberModule;
+  NM: TNumberModule;
 begin
   lst := TCoreClassStringList.Create;
   FList.GetListData(lst);
   for i := 0 to lst.Count - 1 do
     begin
-      DM := TNumberModule(lst.Objects[i]);
-      v[DM.Name] := DM.OriginValue;
+      NM := TNumberModule(lst.Objects[i]);
+      L[NM.Name] := NM.OriginValue;
     end;
   DisposeObject(lst);
 end;
 
-procedure TNMAutomated.DMCurrentValueHook(Sender: TNumberModuleHookInterface; OldValue: Variant; var NewValue: Variant);
-
-  function IsMaxPriorityOverlap(ignore: PDMProcessingData): Boolean;
-  var
-    i: Integer;
-    p: PDMProcessingData;
-  begin
-    Result := True;
-
-    for i := 0 to FCurrentValueCalcList.Count - 1 do
-      begin
-        p := FCurrentValueCalcList[i];
-        if (p <> ignore) and (p^.Processed) then
-          if (p^.TypeID = ignore^.TypeID) and (p^.Priority >= ignore^.Priority) then
-            begin
-              Result := False;
-              Exit;
-            end;
-      end;
-  end;
-
-  procedure ImpStyleValue(p: PDMProcessingData);
-  begin
-    case p^.Style of
-      npsInc: NewValue := NewValue + p^.opValue;
-      npsDec: NewValue := NewValue - p^.opValue;
-      npsIncMul: NewValue := NewValue + FDMSource.OriginValue * p^.opValue;
-      npsDecMul: NewValue := NewValue - FDMSource.OriginValue * p^.opValue;
-      else
-        Assert(False);
-    end;
-    p^.Processed := True;
-  end;
-
-var
-  i: Integer;
-  p: PDMProcessingData;
-  b: Boolean;
+function TNumberModulePool.GetItems(Name_: SystemString): TNumberModule;
 begin
-  for i := 0 to FCurrentValueCalcList.Count - 1 do
-      PDMProcessingData(FCurrentValueCalcList[i])^.Processed := False;
-
-  for i := 0 to FCurrentValueCalcList.Count - 1 do
+  Result := FList[Name_];
+  if Result = nil then
     begin
-      p := FCurrentValueCalcList[i];
-      b := p^.Overlap;
-      if not b then
-          b := IsMaxPriorityOverlap(p);
-      if b then
-          ImpStyleValue(p);
+      Result := TNumberModule.Create(Self);
+      FList[Name_] := Result;
+      Result.FName := Name_;
+      Result.DoRegOpProc;
     end;
 end;
 
-function TNMAutomated.GetCurrentValueCalcData(token: TCoreClassObject): PDMProcessingData;
+class procedure TNumberModulePool.test;
 var
-  i: Integer;
+  nmPool: TNumberModulePool;
 begin
-  for i := 0 to FCurrentValueCalcList.Count - 1 do
-    if PDMProcessingData(FCurrentValueCalcList[i])^.token = token then
-      begin
-        Result := FCurrentValueCalcList[i];
-        Exit;
-      end;
-  Result := nil;
-end;
+  nmPool := TNumberModulePool.Create;
+  nmPool['a'].OriginValue := 33.14;
+  nmPool['b'].OriginValue := 100;
+  nmPool['c'].OriginValue := 200;
 
-constructor TNMAutomated.Create(AOwner: TNMAutomatedManager; ADMSource: TNumberModule);
-begin
-  inherited Create;
-  FOwner := AOwner;
-  FDMSource := ADMSource;
-
-  FCurrentValueHookIntf := FDMSource.RegisterCurrentValueHook;
-
-  FCurrentValueHookIntf.OnCurrentDMHook := {$IFDEF FPC}@{$ENDIF FPC}DMCurrentValueHook;
-  FCurrentValueCalcList := TCoreClassList.Create;
-end;
-
-destructor TNMAutomated.Destroy;
-begin
-  Clear;
-  DisposeObject(FCurrentValueCalcList);
-  DisposeObject(FCurrentValueHookIntf);
-  inherited Destroy;
-end;
-
-procedure TNMAutomated.Progress(deltaTime: Double);
-var
-  i: Integer;
-  p: PDMProcessingData;
-begin
-  i := 0;
-  while i < FCurrentValueCalcList.Count do
-    begin
-      p := FCurrentValueCalcList[i];
-      if p^.CancelDelayTime > 0 then
-        begin
-          if p^.CancelDelayTime - deltaTime <= 0 then
-            begin
-              Dispose(p);
-              FCurrentValueCalcList.Delete(i);
-            end
-          else
-            begin
-              p^.CancelDelayTime := p^.CancelDelayTime - deltaTime;
-              inc(i);
-            end;
-        end
-      else
-          inc(i);
-    end;
-end;
-
-procedure TNMAutomated.ChangeProcessStyle(token: TCoreClassObject; opValue: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer;
-  Priority: Cardinal);
-var
-  p: PDMProcessingData;
-begin
-  p := GetCurrentValueCalcData(token);
-  if p = nil then
-    begin
-      new(p);
-      FCurrentValueCalcList.Add(p);
-    end;
-  p^.token := token;
-  p^.opValue := opValue;
-  p^.Style := Style;
-  p^.CancelDelayTime := CancelDelayTime;
-  p^.Overlap := Overlap;
-  p^.TypeID := TypeID;
-  p^.Priority := Priority;
-  p^.Processed := False;
-  FDMSource.UpdateValue;
-end;
-
-procedure TNMAutomated.Cancel(token: TCoreClassObject);
-var
-  i: Integer;
-  p: PDMProcessingData;
-  ANeedUpdate: Boolean;
-begin
-  i := 0;
-  ANeedUpdate := False;
-  while i < FCurrentValueCalcList.Count do
-    begin
-      p := FCurrentValueCalcList[i];
-      if p^.token = token then
-        begin
-          Dispose(p);
-          FCurrentValueCalcList.Delete(i);
-          ANeedUpdate := True;
-        end
-      else
-          inc(i);
-    end;
-  if ANeedUpdate then
-      FDMSource.UpdateValue;
-end;
-
-procedure TNMAutomated.Clear;
-var
-  i: Integer;
-begin
-  for i := 0 to FCurrentValueCalcList.Count - 1 do
-      Dispose(PDMProcessingData(FCurrentValueCalcList[i]));
-  FCurrentValueCalcList.Clear;
-end;
-
-function TNMAutomatedManager.GetOrCreate(ADMSource: TNumberModule): TNMAutomated;
-var
-  i: Integer;
-begin
-  for i := 0 to FList.Count - 1 do
-    begin
-      Result := TNMAutomated(FList[i]);
-      if Result.FDMSource = ADMSource then
-          Exit;
-    end;
-  Result := TNMAutomated.Create(Self, ADMSource);
-  FList.Add(Result);
-end;
-
-constructor TNMAutomatedManager.Create;
-begin
-  inherited Create;
-  FList := TCoreClassListForObj.Create;
-end;
-
-destructor TNMAutomatedManager.Destroy;
-begin
-  Clear;
-  DisposeObject(FList);
-  inherited Destroy;
-end;
-
-procedure TNMAutomatedManager.Progress(deltaTime: Double);
-var
-  i: Integer;
-begin
-  for i := 0 to FList.Count - 1 do
-      TNMAutomated(FList[i]).Progress(deltaTime);
-end;
-
-procedure TNMAutomatedManager.Clear;
-var
-  i: Integer;
-begin
-  for i := 0 to FList.Count - 1 do
-      DisposeObject(TNMAutomated(FList[i]));
-  FList.Clear;
-end;
-
-procedure TNMAutomatedManager.PostAutomatedProcess(Style: TNumberProcessStyle;
-  ADMSource: TNumberModule; token: TCoreClassPersistent;
-  opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
-begin
-  GetOrCreate(ADMSource).ChangeProcessStyle(token, opValue, Style, 0, Overlap, TypeID, Priority);
-end;
-
-procedure TNMAutomatedManager.PostAutomatedDelayCancelProcess(Style: TNumberProcessStyle;
-  ADMSource: TNumberModule; token: TCoreClassPersistent;
-  opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
-begin
-  GetOrCreate(ADMSource).ChangeProcessStyle(token, opValue, Style, CancelDelayTime, Overlap, TypeID, Priority);
-end;
-
-procedure TNMAutomatedManager.Delete(ADMSource: TNumberModule; token: TCoreClassObject);
-begin
-  GetOrCreate(ADMSource).Cancel(token);
-end;
-
-procedure TNMAutomatedManager.Delete(token: TCoreClassObject);
-var
-  i: Integer;
-begin
-  for i := 0 to FList.Count - 1 do
-      TNMAutomated(FList[i]).Cancel(token);
+  DoStatus('NM test: %s', [VarToStr(nmPool.RunScript('a(a*100)*b+c', tsPascal))]);
+  DoStatus('NM test: %s', [VarToStr(nmPool.RunScript('a(33.14)', tsPascal))]);
+  DoStatus('NM vector test: %s', [ExpressionValueVectorToStr(nmPool.RunVectorScript('a(a*100)*b+c, a*c+99', tsPascal)).Text]);
+  DisposeObject(nmPool);
 end;
 
 procedure test;
 var
-  NL: TNumberModuleList;
+  NL: TNumberModulePool;
   n: SystemString;
 begin
-  NL := TNumberModuleList.Create;
+  NL := TNumberModulePool.Create;
   NL['a'].OriginValue := '123';
   NL['a'].Description := 'hahahaha';
   NL.Macro('hello <a.Description> world', '<', '>', '.', n);
   DisposeObject(NL);
   DoStatus(n);
 end;
-
-initialization
-
-// test;
-
-finalization
 
 end.

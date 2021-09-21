@@ -27,6 +27,7 @@ uses SysUtils,
 {$IFDEF DELPHI}
   ZS_JsonDataObjects,
 {$ELSE DELPHI}
+  FPCGenericStructlist,
   fpjson, jsonparser, jsonscanner,
 {$ENDIF DELPHI}
   CoreClasses, PascalStrings, DoStatusIO,
@@ -123,12 +124,16 @@ type
   TZ_JsonObject = class(TZ_JsonBase)
   private
     FInstance: TZ_Instance_JsonObject;
+    FTag: Integer;
   public
+    property Tag: Integer read FTag write FTag;
     property Instance: TZ_Instance_JsonObject read FInstance;
 
     constructor Create(Parent_: TZ_JsonBase); overload; override;
     constructor Create(); overload;
     destructor Destroy; override;
+
+    procedure Assign(source_: TZ_JsonObject);
 
     procedure Clear;
     function IndexOf(const Name: string): Integer;
@@ -185,6 +190,26 @@ type
     class procedure Test;
   end;
 
+  TZ_JsonObject_List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TZ_JsonObject>;
+
+  TZ_JsonObject_List = class(TZ_JsonObject_List_Decl)
+  public
+    AutoFreeObj: Boolean;
+    constructor Create(AutoFreeObj_: Boolean);
+    destructor Destroy; override;
+    function AddFromText(Text_: TPascalString): TZ_JsonObject;
+    function AddFromStream(stream: TCoreClassStream): TZ_JsonObject;
+    procedure Remove(obj: TZ_JsonObject);
+    procedure Delete(Index: Integer);
+    procedure Clear;
+    procedure Clean;
+  end;
+
+  TZJArry = TZ_JsonArray;
+  TZJ = TZ_JsonObject;
+  TZJList = TZ_JsonObject_List;
+  TZJL = TZ_JsonObject_List;
+
 implementation
 
 {$IFDEF DELPHI}
@@ -224,6 +249,7 @@ end;
 constructor TZ_JsonObject.Create(Parent_: TZ_JsonBase);
 begin
   inherited Create(Parent_);
+  FTag := 0;
   if Parent = nil then
       FInstance := TZ_Instance_JsonObject.Create;
 end;
@@ -238,6 +264,17 @@ begin
   if Parent = nil then
       FInstance.Free;
   inherited Destroy;
+end;
+
+procedure TZ_JsonObject.Assign(source_: TZ_JsonObject);
+var
+  m64: TMS64;
+begin
+  m64 := TMS64.Create;
+  source_.SaveToStream(m64);
+  m64.Position := 0;
+  LoadFromStream(m64);
+  disposeObject(m64);
 end;
 
 procedure TZ_JsonObject.SaveToStream(stream: TCoreClassStream);
@@ -284,7 +321,7 @@ begin
     SaveToStream(m64);
     m64.SaveToFile(FileName);
   finally
-      DisposeObject(m64);
+      disposeObject(m64);
   end;
 end;
 
@@ -296,14 +333,14 @@ begin
   try
       m64.LoadFromFile(FileName);
   except
-    DisposeObject(m64);
+    disposeObject(m64);
     Exit;
   end;
 
   try
       LoadFromStream(m64);
   finally
-      DisposeObject(m64);
+      disposeObject(m64);
   end;
 end;
 
@@ -371,6 +408,68 @@ begin
   js.LoadFromStream(m64);
   DoStatus(js.ToJSONString(True));
   js.Free;
+end;
+
+constructor TZ_JsonObject_List.Create(AutoFreeObj_: Boolean);
+begin
+  inherited Create;
+  AutoFreeObj := AutoFreeObj_;
+end;
+
+destructor TZ_JsonObject_List.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+function TZ_JsonObject_List.AddFromText(Text_: TPascalString): TZ_JsonObject;
+begin
+  Result := TZ_JsonObject.Create(nil);
+  Result.ParseText(Text_);
+  Add(Result);
+end;
+
+function TZ_JsonObject_List.AddFromStream(stream: TCoreClassStream): TZ_JsonObject;
+begin
+  Result := TZ_JsonObject.Create(nil);
+  Result.LoadFromStream(stream);
+  Add(Result);
+end;
+
+procedure TZ_JsonObject_List.Remove(obj: TZ_JsonObject);
+begin
+  if AutoFreeObj then
+      disposeObject(obj);
+  inherited Remove(obj);
+end;
+
+procedure TZ_JsonObject_List.Delete(Index: Integer);
+begin
+  if (index >= 0) and (index < Count) then
+    begin
+      if AutoFreeObj then
+          disposeObject(Items[index]);
+      inherited Delete(index);
+    end;
+end;
+
+procedure TZ_JsonObject_List.Clear;
+var
+  I: Integer;
+begin
+  if AutoFreeObj then
+    for I := 0 to Count - 1 do
+        disposeObject(Items[I]);
+  inherited Clear;
+end;
+
+procedure TZ_JsonObject_List.Clean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+      disposeObject(Items[I]);
+  inherited Clear;
 end;
 
 initialization

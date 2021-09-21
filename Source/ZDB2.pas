@@ -165,7 +165,6 @@ type
     procedure NewStream(Stream: TCoreClassStream; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure OpenStream(Cipher_: IZDB2_Cipher; Stream: TCoreClassStream; OnlyRead: Boolean; Mode: TZDB2_SpaceMode); overload;
     procedure OpenStream(Stream: TCoreClassStream; OnlyRead: Boolean; Mode: TZDB2_SpaceMode); overload;
-
     procedure NewFile(Cipher_: IZDB2_Cipher; Filename: U_String; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure NewFile(Filename: U_String; Space_: Int64; BlockSize_: Word; Mode: TZDB2_SpaceMode); overload;
     procedure OpenFile(Cipher_: IZDB2_Cipher; Filename: U_String; OnlyRead: Boolean; Mode: TZDB2_SpaceMode); overload;

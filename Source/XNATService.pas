@@ -738,7 +738,6 @@ begin
   if cState then
     begin
       Owner.p2pVMTunnel.MaxVMFragmentSize := umlStrToInt(XNAT.MaxVMFragment, Owner.p2pVMTunnel.MaxVMFragmentSize);
-      Owner.p2pVMTunnel.MaxRealBuffer := umlStrToInt(XNAT.MaxRealBuffer, Owner.p2pVMTunnel.MaxRealBuffer);
       XNAT.Activted := True;
 
       { open share listen }
@@ -850,7 +849,6 @@ begin
         begin
           shLt := ShareListenList[i] as TXServiceListen;
           Sender.p2pVM.MaxVMFragmentSize := umlStrToInt(MaxVMFragment, Sender.p2pVM.MaxVMFragmentSize);
-          Sender.p2pVM.MaxRealBuffer := umlStrToInt(MaxRealBuffer, Sender.p2pVM.MaxRealBuffer);
           Sender.p2pVM.InstallLogicFramework(shLt.RecvTunnel);
           Sender.p2pVM.InstallLogicFramework(shLt.SendTunnel);
         end;

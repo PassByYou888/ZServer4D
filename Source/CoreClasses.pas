@@ -48,6 +48,7 @@ type
   PTimeTick = ^TTimeTick;
   TSeekOrigin = Classes.TSeekOrigin;
   TNotify = Classes.TNotifyEvent;
+  TArrayBool = Array of Boolean;
   TArrayInt64 = Array of Int64;
   TArrayUInt64 = Array of UInt64;
   TInt64Buffer = Array [0 .. MaxInt div SizeOf(Int64) - 1] of Int64;
@@ -641,6 +642,8 @@ const
 
   CPU64 = {$IFDEF CPU64}True{$ELSE CPU64}False{$IFEND CPU64};
   X64 = CPU64;
+
+  IsDebug = {$IFDEF DEBUG}True{$ELSE DEBUG}False{$ENDIF DEBUG};
 
   // timetick define
   C_Tick_Second = TTimeTick(1000);

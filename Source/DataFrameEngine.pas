@@ -17,11 +17,6 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
-(*
-  update history
-  2017-12-6
-  added supported pointer
-*)
 
 unit DataFrameEngine;
 
@@ -29,10 +24,10 @@ unit DataFrameEngine;
 
 interface
 
-uses SysUtils, CoreClasses, Types,
+uses SysUtils, CoreClasses, Types, Variants,
   ListEngine, MemoryStream64, CoreCipher,
   DoStatusIO, GeometryLib, TextDataEngine, Geometry2DUnit, Geometry3DUnit,
-  ZJson,
+  ZJson, NumberBase,
 {$IFDEF DELPHI}
   ZS_JsonDataObjects,
 {$ENDIF DELPHI}
@@ -229,15 +224,16 @@ type
 
     procedure Clear;
     procedure Add(v: Byte);
-    procedure AddPtrBuff(p: PByte; Size: Integer);
+    procedure AddPtrBuff(p: PByte; Size_: Integer);
     procedure AddI64(v: Int64);
     procedure AddU64(v: UInt64);
     procedure Addi(v: Integer);
     procedure AddWord(v: Word);
-    function Count: Integer;
+    function Count: Int64;
+    property Size: Int64 read Count;
     procedure WriteArray(const a: array of Byte);
     procedure SetArray(const a: array of Byte);
-    procedure SetBuff(p: PByte; Size: Integer);
+    procedure SetBuff(p: PByte; Size_: Integer);
     procedure GetBuff(p: PByte);
 
     procedure LoadFromStream(stream: TCoreClassStream); override;
@@ -458,6 +454,8 @@ type
     function ReadVec2: TVec2;
     function ReadRectV2: TRectV2;
     function ReadPointer: UInt64;
+    procedure ReadNM(output: TNumberModule);
+    procedure ReadNMPool(output: TNumberModulePool);
     // auto read from stream data
     procedure Read(var Buf_; Count_: Int64); overload;
     // read as TDataFrameBase
@@ -466,11 +464,11 @@ type
     function Current: TDataFrameBase;
   end;
 
+  TRunTimeDataType = (rdtString, rdtInteger, rdtLongWord, rdtWORD, rdtByte, rdtSingle, rdtDouble,
+    rdtArrayInteger, rdtArraySingle, rdtArrayDouble, rdtStream, rdtVariant, rdtInt64, rdtArrayShortInt, rdtCardinal, rdtUInt64, rdtArrayByte,
+    rdtArrayInt64);
+
   TDataFrameEngine = class(TCoreClassObject)
-  public type
-    TRunTimeDataType = (rdtString, rdtInteger, rdtLongWord, rdtWORD, rdtByte, rdtSingle, rdtDouble,
-      rdtArrayInteger, rdtArraySingle, rdtArrayDouble, rdtStream, rdtVariant, rdtInt64, rdtArrayShortInt, rdtCardinal, rdtUInt64, rdtArrayByte,
-      rdtArrayInt64);
   private
     FDataList: TCoreClassListForObj;
     FReader: TDataFrameEngineReader;
@@ -556,6 +554,8 @@ type
     procedure WriteRectV2(v: TRectV2);
     procedure WritePointer(v: Pointer); overload;
     procedure WritePointer(v: UInt64); overload;
+    procedure WriteNM(NM: TNumberModule);
+    procedure WriteNMPool(NMPool: TNumberModulePool);
     // auto append new stream and write
     procedure write(const Buf_; Count_: Int64);
     //
@@ -608,6 +608,8 @@ type
     function ReadVec2(index_: Integer): TVec2;
     function ReadRectV2(index_: Integer): TRectV2;
     function ReadPointer(index_: Integer): UInt64;
+    procedure ReadNM(index_: Integer; output: TNumberModule);
+    procedure ReadNMPool(index_: Integer; output: TNumberModulePool);
     // read from stream data
     procedure Read(index_: Integer; var Buf_; Count_: Int64); overload;
     // read as TDataFrameBase
@@ -671,6 +673,9 @@ type
     procedure LoadFromStream(stream: TCoreClassStream);
     procedure SaveToStream(stream: TCoreClassStream);
 
+    procedure LoadFromFile(fileName_: U_String);
+    procedure SaveToFile(fileName_: U_String);
+
     property Data[index_: Integer]: TDataFrameBase read GetData; default;
     property List: TCoreClassListForObj read FDataList;
   end;
@@ -733,6 +738,8 @@ type
     procedure WriteVec2(v: TVec2);
     procedure WriteRectV2(v: TRectV2);
     procedure WritePointer(v: Pointer);
+    procedure WriteNM(NM: TNumberModule);
+    procedure WriteNMPool(NMPool: TNumberModulePool);
     procedure write(const Buf_; Count_: Int64);
   end;
 
@@ -790,6 +797,8 @@ type
     function ReadVec2: TVec2;
     function ReadRectV2: TRectV2;
     function ReadPointer: UInt64;
+    procedure ReadNM(output: TNumberModule);
+    procedure ReadNMPool(output: TNumberModulePool);
     procedure Read(var Buf_; Count_: Int64);
   end;
 
@@ -1275,10 +1284,10 @@ begin
   FBuffer.WriteUInt8(v);
 end;
 
-procedure TDataFrameArrayByte.AddPtrBuff(p: PByte; Size: Integer);
+procedure TDataFrameArrayByte.AddPtrBuff(p: PByte; Size_: Integer);
 begin
   FBuffer.Position := FBuffer.Size;
-  FBuffer.WritePtr(p, Size);
+  FBuffer.WritePtr(p, Size_);
 end;
 
 procedure TDataFrameArrayByte.AddI64(v: Int64);
@@ -1301,7 +1310,7 @@ begin
   AddPtrBuff(@v, C_Word_Size);
 end;
 
-function TDataFrameArrayByte.Count: Integer;
+function TDataFrameArrayByte.Count: Int64;
 begin
   Result := FBuffer.Size;
 end;
@@ -1319,10 +1328,10 @@ begin
       AddPtrBuff(@a[0], length(a));
 end;
 
-procedure TDataFrameArrayByte.SetBuff(p: PByte; Size: Integer);
+procedure TDataFrameArrayByte.SetBuff(p: PByte; Size_: Integer);
 begin
   Clear;
-  AddPtrBuff(p, Size);
+  AddPtrBuff(p, Size_);
 end;
 
 procedure TDataFrameArrayByte.GetBuff(p: PByte);
@@ -1751,6 +1760,7 @@ var
 begin
   vt := TVarType(StreamReadUInt16(stream));
   case vt of
+    varEmpty, varNull: FBuffer := NULL;
     varSmallInt: FBuffer := StreamReadInt16(stream);
     varInteger: FBuffer := StreamReadInt32(stream);
     varSingle: FBuffer := StreamReadSingle(stream);
@@ -1775,6 +1785,7 @@ begin
   vt := TVarData(FBuffer).VType;
   StreamWriteUInt16(stream, Word(vt));
   case vt of
+    varEmpty, varNull:;
     varSmallInt: StreamWriteInt16(stream, FBuffer);
     varInteger: StreamWriteInt32(stream, FBuffer);
     varSingle: StreamWriteSingle(stream, FBuffer);
@@ -1806,6 +1817,7 @@ end;
 function TDataFrameVariant.ComputeEncodeSize: Int64;
 begin
   case TVarData(FBuffer).VType of
+    varEmpty, varNull: Result := 2 + 0;
     varSmallInt: Result := 2 + 2;
     varInteger: Result := 2 + 4;
     varSingle: Result := 2 + 4;
@@ -2208,6 +2220,18 @@ begin
   inc(FIndex);
 end;
 
+procedure TDataFrameEngineReader.ReadNM(output: TNumberModule);
+begin
+  FOwner.ReadNM(FIndex, output);
+  inc(FIndex);
+end;
+
+procedure TDataFrameEngineReader.ReadNMPool(output: TNumberModulePool);
+begin
+  FOwner.ReadNMPool(FIndex, output);
+  inc(FIndex);
+end;
+
 procedure TDataFrameEngineReader.Read(var Buf_; Count_: Int64);
 begin
   FOwner.Read(FIndex, Buf_, Count_);
@@ -2544,7 +2568,7 @@ end;
 
 procedure TDataFrameEngine.WriteMD5(md5: TMD5);
 begin
-  WriteArrayByte.WriteArray(md5);
+  WriteArrayByte.SetBuff(@md5[0], SizeOf(TMD5));
 end;
 
 function TDataFrameEngine.WriteArraySingle: TDataFrameArraySingle;
@@ -2863,6 +2887,68 @@ end;
 procedure TDataFrameEngine.WritePointer(v: UInt64);
 begin
   WriteUInt64(v);
+end;
+
+procedure TDataFrameEngine.WriteNM(NM: TNumberModule);
+var
+  D_: TDataFrameEngine;
+begin
+  D_ := TDataFrameEngine.Create;
+  D_.WriteString(NM.Name);
+  D_.WriteString(NM.SymbolName);
+  D_.WriteString(NM.Description);
+  D_.WriteString(NM.DetailDescription);
+  D_.WriteVariant(NM.OriginValue);
+  D_.WriteVariant(NM.CurrentValue);
+  WriteDataFrame(D_);
+  DisposeObject(D_);
+end;
+
+procedure TDataFrameEngine.WriteNMPool(NMPool: TNumberModulePool);
+
+var
+  D_: TDataFrameEngine;
+{$IFDEF FPC}
+  procedure fpc_progress_(const Name: PSystemString; NM: TNumberModule);
+  var
+    Tmp_: TDataFrameEngine;
+  begin
+    Tmp_ := TDataFrameEngine.Create;
+    Tmp_.WriteString(NM.Name);
+    Tmp_.WriteString(NM.SymbolName);
+    Tmp_.WriteString(NM.Description);
+    Tmp_.WriteString(NM.DetailDescription);
+    Tmp_.WriteVariant(NM.OriginValue);
+    Tmp_.WriteVariant(NM.CurrentValue);
+    D_.WriteDataFrame(Tmp_);
+    DisposeObject(Tmp_);
+  end;
+{$ENDIF FPC}
+
+
+begin
+  D_ := TDataFrameEngine.Create;
+
+{$IFDEF FPC}
+  NMPool.List.ProgressP(@fpc_progress_);
+{$ELSE FPC}
+  NMPool.List.ProgressP(procedure(const Name: PSystemString; NM: TNumberModule)
+    var
+      Tmp_: TDataFrameEngine;
+    begin
+      Tmp_ := TDataFrameEngine.Create;
+      Tmp_.WriteString(NM.Name);
+      Tmp_.WriteString(NM.SymbolName);
+      Tmp_.WriteString(NM.Description);
+      Tmp_.WriteString(NM.DetailDescription);
+      Tmp_.WriteVariant(NM.OriginValue);
+      Tmp_.WriteVariant(NM.CurrentValue);
+      D_.WriteDataFrame(Tmp_);
+      DisposeObject(Tmp_);
+    end);
+{$ENDIF FPC}
+  WriteDataFrame(D_);
+  DisposeObject(D_);
 end;
 
 // append new stream and write
@@ -3228,12 +3314,9 @@ begin
 end;
 
 function TDataFrameEngine.ReadMD5(index_: Integer): TMD5;
-var
-  i: Integer;
 begin
   with ReadArrayByte(index_) do
-    for i := low(TMD5) to high(TMD5) do
-        Result[i] := Buffer[i];
+      GetBuff(@Result[0]);
 end;
 
 function TDataFrameEngine.ReadArraySingle(index_: Integer): TDataFrameArraySingle;
@@ -3642,6 +3725,56 @@ end;
 function TDataFrameEngine.ReadPointer(index_: Integer): UInt64;
 begin
   Result := ReadUInt64(index_);
+end;
+
+procedure TDataFrameEngine.ReadNM(index_: Integer; output: TNumberModule);
+var
+  D_: TDataFrameEngine;
+begin
+  D_ := TDataFrameEngine.Create;
+  ReadDataFrame(index_, D_);
+  output.Name := D_.Reader.ReadString;
+  output.SymbolName := D_.Reader.ReadString;
+  output.Description := D_.Reader.ReadString;
+  output.DetailDescription := D_.Reader.ReadString;
+  output.DirectOriginValue := D_.Reader.ReadVariant;
+  output.DirectCurrentValue := D_.Reader.ReadVariant;
+  DisposeObject(D_);
+end;
+
+procedure TDataFrameEngine.ReadNMPool(index_: Integer; output: TNumberModulePool);
+var
+  D_, Tmp_: TDataFrameEngine;
+  DM: TNumberModule;
+  N_: SystemString;
+  L_: TCoreClassListForObj;
+  i: Integer;
+begin
+  L_ := TCoreClassListForObj.Create;
+  D_ := TDataFrameEngine.Create;
+  ReadDataFrame(index_, D_);
+  while D_.Reader.NotEnd do
+    begin
+      Tmp_ := TDataFrameEngine.Create;
+      D_.Reader.ReadDataFrame(Tmp_);
+      N_ := Tmp_.Reader.ReadString;
+      DM := output[N_];
+      DM.Name := N_;
+      DM.SymbolName := Tmp_.Reader.ReadString;
+      DM.Description := Tmp_.Reader.ReadString;
+      DM.DetailDescription := Tmp_.Reader.ReadString;
+      DM.DirectOriginValue := Tmp_.Reader.ReadVariant;
+      DM.DirectCurrentValue := Tmp_.Reader.ReadVariant;
+      L_.Add(DM);
+      DisposeObject(Tmp_);
+    end;
+  DisposeObject(D_);
+  for i := 0 to L_.Count - 1 do
+    begin
+      DM := TNumberModule(L_[i]);
+      DM.DoChange;
+    end;
+  DisposeObject(L_);
 end;
 
 procedure TDataFrameEngine.Read(index_: Integer; var Buf_; Count_: Int64);
@@ -4772,6 +4905,24 @@ begin
   end;
 end;
 
+procedure TDataFrameEngine.LoadFromFile(fileName_: U_String);
+var
+  fs: TCoreClassFileStream;
+begin
+  fs := TCoreClassFileStream.Create(fileName_, fmOpenRead or fmShareDenyNone);
+  LoadFromStream(fs);
+  DisposeObject(fs);
+end;
+
+procedure TDataFrameEngine.SaveToFile(fileName_: U_String);
+var
+  fs: TCoreClassFileStream;
+begin
+  fs := TCoreClassFileStream.Create(fileName_, fmCreate);
+  SaveToStream(fs);
+  DisposeObject(fs);
+end;
+
 constructor TDataWriter.Create(Stream_: TCoreClassStream);
 begin
   inherited Create;
@@ -5051,6 +5202,16 @@ end;
 procedure TDataWriter.WritePointer(v: Pointer);
 begin
   FEngine.WritePointer(v);
+end;
+
+procedure TDataWriter.WriteNM(NM: TNumberModule);
+begin
+  FEngine.WriteNM(NM);
+end;
+
+procedure TDataWriter.WriteNMPool(NMPool: TNumberModulePool);
+begin
+  FEngine.WriteNMPool(NMPool);
 end;
 
 procedure TDataWriter.write(const Buf_; Count_: Int64);
@@ -5354,6 +5515,16 @@ end;
 function TDataReader.ReadPointer: UInt64;
 begin
   Result := FEngine.Reader.ReadPointer;
+end;
+
+procedure TDataReader.ReadNM(output: TNumberModule);
+begin
+  FEngine.Reader.ReadNM(output);
+end;
+
+procedure TDataReader.ReadNMPool(output: TNumberModulePool);
+begin
+  FEngine.Reader.ReadNMPool(output);
 end;
 
 procedure TDataReader.Read(var Buf_; Count_: Int64);

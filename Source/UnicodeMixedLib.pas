@@ -38,6 +38,7 @@ interface
 uses
 {$IFDEF FPC}
   Dynlibs,
+  FPCGenericStructlist,
 {$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
 {$ELSE FPC}
 {$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
@@ -85,6 +86,7 @@ type
   P_String = PPascalString;
   U_Char = SystemChar;
   U_StringArray = array of U_SystemString;
+  U_ArrayString = U_StringArray;
 
   U_Bytes = TBytes;
 
@@ -498,6 +500,7 @@ function umlTestBase64(const text: TPascalString): Boolean;
 type
   PMD5 = ^TMD5;
   TMD5 = array [0 .. 15] of Byte;
+  TMD5List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMD5>;
 
 const
   NullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

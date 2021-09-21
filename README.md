@@ -5,6 +5,8 @@ ZSERVER4D是一套高级通讯系统的地基平台，它偏向于开发工艺�
  
 ## 功能
 
+**ZServer4D为SAAS自动化群集构建的基础支持库**，详见 https://github.com/PassByYou888/zCloud
+
 支持运行平台Android,IOS,Win32/64,Linux,OSX,物联网IOT(任意版本的linux均能支持，包括树莓1-3代，香橙，高通，三星，小序列cpu mips linux)
 
 支持编译器：FPC3.0.4以及DelphiXE10.2和以后的版本

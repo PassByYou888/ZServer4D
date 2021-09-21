@@ -239,6 +239,9 @@
 // Sequence packets default are closed in P2PVM-IO
 {$UNDEF UsedSequencePacketOnP2PVM}
 
+// CommunicationFramework used QuietMode
+{$UNDEF Communication_QuietMode}
+
 {$IFDEF DEBUG}
   // initialization status prompt
   {$DEFINE initializationStatus}

@@ -88,7 +88,6 @@ begin
                   i: Integer;
                 begin
                   ClientTunnel.ClientIO.p2pVMTunnel.MaxVMFragmentSize := 8192;
-                  ClientTunnel.ClientIO.p2pVMTunnel.MaxRealBuffer := 8 * 1024 * 1024;
                   ClientTunnel.ClientIO.p2pVMTunnel.QuietMode := False;
 
                   for i := low(ClientWithVM) to high(ClientWithVM) do

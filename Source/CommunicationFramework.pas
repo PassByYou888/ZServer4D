@@ -47,15 +47,14 @@ type
 
   TIPV4 = array [0 .. 3] of Byte;
   PIPV4 = ^TIPV4;
-
   TIPV6 = array [0 .. 7] of Word;
   PIPV6 = ^TIPV6;
 
-  TConsoleMethod = procedure(Sender: TPeerIO; ResultData: SystemString) of object;
-  TConsoleParamMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString) of object;
+  TConsoleMethod = procedure(Sender: TPeerIO; Result_: SystemString) of object;
+  TConsoleParamMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString) of object;
   TConsoleFailedMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString) of object;
-  TStreamMethod = procedure(Sender: TPeerIO; ResultData: TDataFrameEngine) of object;
-  TStreamParamMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine) of object;
+  TStreamMethod = procedure(Sender: TPeerIO; Result_: TDataFrameEngine) of object;
+  TStreamParamMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine) of object;
   TStreamFailedMethod = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine) of object;
   TStateCall = procedure(const State: Boolean);
   TStateMethod = procedure(const State: Boolean) of object;
@@ -71,10 +70,10 @@ type
   TIONotifyMethod = procedure(P_IO: TPeerIO) of object;
   TProgressBackgroundProc = procedure();
   TProgressBackgroundMethod = procedure() of object;
-  TStreamEventBridgeEventC = procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: TDataFrameEngine);
-  TStreamEventBridgeEventM = procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: TDataFrameEngine) of object;
-  TConsoleEventBridgeEventC = procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: SystemString);
-  TConsoleEventBridgeEventM = procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: SystemString) of object;
+  TStreamEventBridgeEventC = procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: TDataFrameEngine);
+  TStreamEventBridgeEventM = procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: TDataFrameEngine) of object;
+  TConsoleEventBridgeEventC = procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: SystemString);
+  TConsoleEventBridgeEventM = procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: SystemString) of object;
   TP2PVM_CloneConnectEventC = procedure(Sender: TCommunicationFrameworkWithP2PVM_Client);
   TP2PVM_CloneConnectEventM = procedure(Sender: TCommunicationFrameworkWithP2PVM_Client) of object;
   TCommandStreamCall = procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -91,11 +90,11 @@ type
   TCommandCompleteBufferMethod = procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt) of object;
 
 {$IFDEF FPC}
-  TConsoleProc = procedure(Sender: TPeerIO; ResultData: SystemString) is nested;
-  TConsoleParamProc = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString) is nested;
+  TConsoleProc = procedure(Sender: TPeerIO; Result_: SystemString) is nested;
+  TConsoleParamProc = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString) is nested;
   TConsoleFailedProc = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString) is nested;
-  TStreamProc = procedure(Sender: TPeerIO; ResultData: TDataFrameEngine) is nested;
-  TStreamParamProc = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine) is nested;
+  TStreamProc = procedure(Sender: TPeerIO; Result_: TDataFrameEngine) is nested;
+  TStreamParamProc = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine) is nested;
   TStreamFailedProc = procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine) is nested;
   TStateProc = procedure(const State: Boolean) is nested;
   TIOStateProc = procedure(P_IO: TPeerIO; State: Boolean) is nested;
@@ -103,8 +102,8 @@ type
   TNotifyProc = procedure() is nested;
   TDataNotifyProc = procedure(data: TCoreClassObject) is nested;
   TIONotifyProc = procedure(P_IO: TPeerIO) is nested;
-  TStreamEventBridgeEventP = procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: TDataFrameEngine) is nested;
-  TConsoleEventBridgeEventP = procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: SystemString) is nested;
+  TStreamEventBridgeEventP = procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: TDataFrameEngine) is nested;
+  TConsoleEventBridgeEventP = procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: SystemString) is nested;
   TP2PVM_CloneConnectEventP = procedure(Sender: TCommunicationFrameworkWithP2PVM_Client) is nested;
   TCommandStreamProc = procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine) is nested;
   TCommandConsoleProc = procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString) is nested;
@@ -113,11 +112,11 @@ type
   TCommandBigStreamProc = procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64) is nested;
   TCommandCompleteBufferProc = procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt) is nested;
 {$ELSE FPC}
-  TConsoleProc = reference to procedure(Sender: TPeerIO; ResultData: SystemString);
-  TConsoleParamProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString);
+  TConsoleProc = reference to procedure(Sender: TPeerIO; Result_: SystemString);
+  TConsoleParamProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString);
   TConsoleFailedProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString);
-  TStreamProc = reference to procedure(Sender: TPeerIO; ResultData: TDataFrameEngine);
-  TStreamParamProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine);
+  TStreamProc = reference to procedure(Sender: TPeerIO; Result_: TDataFrameEngine);
+  TStreamParamProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
   TStreamFailedProc = reference to procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
   TStateProc = reference to procedure(const State: Boolean);
   TIOStateProc = reference to procedure(P_IO: TPeerIO; State: Boolean);
@@ -125,8 +124,8 @@ type
   TNotifyProc = reference to procedure();
   TDataNotifyProc = reference to procedure(data: TCoreClassObject);
   TIONotifyProc = reference to procedure(P_IO: TPeerIO);
-  TStreamEventBridgeEventP = reference to procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: TDataFrameEngine);
-  TConsoleEventBridgeEventP = reference to procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; ResultData: SystemString);
+  TStreamEventBridgeEventP = reference to procedure(Sender: TStreamEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: TDataFrameEngine);
+  TConsoleEventBridgeEventP = reference to procedure(Sender: TConsoleEventBridge; SourceIO, BridgeIO: TPeerIO; Result_: SystemString);
   TP2PVM_CloneConnectEventP = reference to procedure(Sender: TCommunicationFrameworkWithP2PVM_Client);
   TCommandStreamProc = reference to procedure(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
   TCommandConsoleProc = reference to procedure(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
@@ -135,6 +134,11 @@ type
   TCommandBigStreamProc = reference to procedure(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
   TCommandCompleteBufferProc = reference to procedure(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 {$ENDIF FPC}
+  TIO_ID_List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Cardinal>;
+
+  TIO_ID_List = class(TIO_ID_List_Decl)
+  public
+  end;
 
   TOnStateStruct = record
     OnCall: TStateCall;
@@ -145,6 +149,18 @@ type
 
   POnStateStruct = ^TOnStateStruct;
 
+  TOnResultBridge = class
+  public
+    constructor Create; virtual;
+    destructor Destroy; override;
+    procedure DoConsoleEvent(Sender: TPeerIO; Result_: SystemString); virtual;
+    procedure DoConsoleParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString); virtual;
+    procedure DoConsoleFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString); virtual;
+    procedure DoStreamEvent(Sender: TPeerIO; Result_: TDataFrameEngine); virtual;
+    procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine); virtual;
+    procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine); virtual;
+  end;
+
   TStateParamBridge = class
   public
     OnNotifyC: TParamStateCall;
@@ -153,7 +169,7 @@ type
     Param1: Pointer;
     Param2: TObject;
     OnStateMethod: TStateMethod;
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
     procedure DoStateResult(const State: Boolean);
   end;
@@ -659,8 +675,6 @@ type
     procedure P2PVMAuthSuccess(Sender: TCommunicationFrameworkWithP2PVM);
   protected
     { automated P2PVM }
-    FAutomatedP2PVMClient_Connection_Sequence: Integer;
-    FAutomatedP2PVMClient_Connection_Sequence_Successed: Integer;
     FOnAutomatedP2PVMClientConnectionDoneCall: TIOStateCall;
     FOnAutomatedP2PVMClientConnectionDoneMethod: TIOStateMethod;
     FOnAutomatedP2PVMClientConnectionDoneProc: TIOStateProc;
@@ -690,13 +704,13 @@ type
     procedure SendByte(v: Byte);
     procedure SendWord(v: Word);
     procedure SendVerifyCode(buff: Pointer; siz: NativeInt);
-    procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherSecurity);
-    procedure SendEncryptMemoryStream(Stream: TMemoryStream64; cs: TCipherSecurity);
+    procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; CS: TCipherSecurity);
+    procedure SendEncryptMemoryStream(Stream: TMemoryStream64; CS: TCipherSecurity);
 
-    procedure InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
-    procedure InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
-    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
-    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+    procedure InternalSendConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+    procedure InternalSendStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
     procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64);
     procedure InternalSendBigStreamBuff(var Queue: TQueueData);
     procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz, compSiz: Cardinal);
@@ -764,6 +778,7 @@ type
     { p2pVM Tunnel support }
     property p2pVM: TCommunicationFrameworkWithP2PVM read FP2PVMTunnel;
     property p2pVMTunnel: TCommunicationFrameworkWithP2PVM read FP2PVMTunnel;
+    function p2pVMTunnelReadyOk: Boolean;
     { p2pVM build safe Auth token }
     procedure BuildP2PAuthToken; overload;
     procedure BuildP2PAuthTokenC(const OnResult: TNotifyCall);
@@ -878,11 +893,13 @@ type
     property UserAutoFreeObjects: THashObjectList read GetUserAutoFreeObjects;
     property UserData: Pointer read FUserData write FUserData;
     property UserValue: Variant read FUserValue write FUserValue;
-
+    { custom class }
     property UserDefine: TPeerIOUserDefine read FUserDefine;
+    property IODefine: TPeerIOUserDefine read FUserDefine;
     property Define: TPeerIOUserDefine read FUserDefine;
-
+    { custom special class }
     property UserSpecial: TPeerIOUserSpecial read FUserSpecial;
+    property IOSpecial: TPeerIOUserSpecial read FUserSpecial;
     property Special: TPeerIOUserSpecial read FUserSpecial;
 
     { hash code }
@@ -890,7 +907,7 @@ type
     function VerifyHashCode(const hs: THashSecurity; buff: Pointer; siz: Integer; var Code: TBytes): Boolean;
 
     { encrypt }
-    procedure Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
+    procedure Encrypt(CS: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
 
     { TimeOut Tick }
     function StopCommunicationTime: TTimeTick;
@@ -932,7 +949,7 @@ type
 
     { wait send cmd }
     function WaitSendConsoleCmd(Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
-    procedure WaitSendStreamCmd(Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+    procedure WaitSendStreamCmd(Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 
     { send bigstream }
     procedure SendBigStream(Cmd: SystemString; BigStream: TCoreClassStream; StartPos: Int64; DoneAutoFree: Boolean); overload;
@@ -1022,6 +1039,7 @@ type
     Client: TCommunicationFrameworkWithP2PVM_Client;
     IPV6: SystemString;
     Port: Word;
+    RequestConnecting: Boolean;
   end;
 
   PAutomatedP2PVMClientData = ^TAutomatedP2PVMClientData;
@@ -1069,6 +1087,7 @@ type
     FCipherSecurityArray: TCipherSecurityArray;
     FHashSecurity: THashSecurity;
     FMaxCompleteBufferSize: Cardinal;
+    FCompleteBufferCompressionCondition: Cardinal;
     FPrintParams: THashVariantList;
     FPostProgress: TNProgressPostWithCadencer;
     FFrameworkIsServer: Boolean;
@@ -1124,7 +1143,7 @@ type
 
     { private vm and protocol stack support }
     procedure BuildP2PAuthTokenResult_OnIOIDLE(Sender: TCoreClassObject);
-    procedure CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure CommandResult_BuildP2PAuthToken(Sender: TPeerIO; Result_: TDataFrameEngine);
     procedure Command_BuildP2PAuthToken(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
     procedure Command_InitP2PTunnel(Sender: TPeerIO; InData: SystemString);
     procedure Command_CloseP2PTunnel(Sender: TPeerIO; InData: SystemString);
@@ -1209,12 +1228,17 @@ type
     property OnAutomatedP2PVMClientConnectionDone_M: TOnAutomatedP2PVMClientConnectionDone_M read FOnAutomatedP2PVMClientConnectionDone_M write FOnAutomatedP2PVMClientConnectionDone_M;
     property OnAutomatedP2PVMClientConnectionDone_P: TOnAutomatedP2PVMClientConnectionDone_P read FOnAutomatedP2PVMClientConnectionDone_P write FOnAutomatedP2PVMClientConnectionDone_P;
     { automated P2PVM client api }
-    function AutomatedP2PVMClientConnectionDone(P_IO: TPeerIO): Boolean;
-    procedure AutomatedP2PVM_Open(P_IO: TPeerIO);
+    function AutomatedP2PVMClientConnectionDone(P_IO: TPeerIO): Boolean; overload;
+    function AutomatedP2PVMClientConnectionDone(): Boolean; overload;
+    procedure AutomatedP2PVM_Open(P_IO: TPeerIO); overload;
+    procedure AutomatedP2PVM_Open(); overload;
     procedure AutomatedP2PVM_Open_C(P_IO: TPeerIO; const OnResult: TIOStateCall);
     procedure AutomatedP2PVM_Open_M(P_IO: TPeerIO; const OnResult: TIOStateMethod);
     procedure AutomatedP2PVM_Open_P(P_IO: TPeerIO; const OnResult: TIOStateProc);
-    procedure AutomatedP2PVM_Close(P_IO: TPeerIO);
+    procedure AutomatedP2PVM_Close(P_IO: TPeerIO); overload;
+    procedure AutomatedP2PVM_Close(); overload;
+    function p2pVMTunnelReadyOk(P_IO: TPeerIO): Boolean; overload;
+    function p2pVMTunnelReadyOk(): Boolean; overload;
 
     { IO Big Stream interface }
     property OnBigStreamInterface: IOnBigStreamInterface read FOnBigStreamInterface write FOnBigStreamInterface;
@@ -1271,8 +1295,13 @@ type
     procedure Error(const v: SystemString; const Args: array of const); overload;
     procedure Error(const v: SystemString); overload;
     procedure ErrorParam(v: SystemString; Args: SystemString);
+    procedure PrintError(const v: SystemString; const Args: array of const); overload;
+    procedure PrintError(const v: SystemString); overload;
+    procedure PrintErrorParam(v: SystemString; Args: SystemString);
     procedure Warning(const v: SystemString);
     procedure WarningParam(v: SystemString; Args: SystemString);
+    procedure PrintWarning(const v: SystemString);
+    procedure PrintWarningParam(v: SystemString; Args: SystemString);
 
     { register command for server/client }
     function DeleteRegistedCMD(Cmd: SystemString): Boolean;
@@ -1322,8 +1351,10 @@ type
     property CompleteBufferCompressed: Boolean read FCompleteBufferCompressed write FCompleteBufferCompressed;
     property HashSecurity: THashSecurity read FHashSecurity;
     property MaxCompleteBufferSize: Cardinal read FMaxCompleteBufferSize write FMaxCompleteBufferSize;
-    { large-scale IO support }
-    property ProgressMaxDelay: TTimeTick read FProgressMaxDelay write FProgressMaxDelay;
+    property CompleteBufferCompressionCondition: Cardinal read FCompleteBufferCompressionCondition write FCompleteBufferCompressionCondition;
+    property ProgressMaxDelay: TTimeTick read FProgressMaxDelay write FProgressMaxDelay; { large-scale IO support }
+    procedure CopyParamFrom(Source: TCommunicationFramework);
+    procedure CopyParamTo(Dest: TCommunicationFramework);
 
     { state }
     property CMDWithThreadRuning: Integer read FCMDWithThreadRuning;
@@ -1457,7 +1488,7 @@ type
 
     { wait send }
     function WaitSendConsoleCmd(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; overload; virtual;
-    procedure WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); overload; virtual;
+    procedure WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); overload; virtual;
 
     { send bigstream }
     procedure SendBigStream(P_IO: TPeerIO; const Cmd: SystemString; BigStream: TCoreClassStream; StartPos: Int64; DoneAutoFree: Boolean); overload;
@@ -1495,7 +1526,7 @@ type
 
     { wait send }
     function WaitSendConsoleCmd(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; overload;
-    procedure WaitSendStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); overload;
+    procedure WaitSendStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); overload;
 
     { send bigstream }
     procedure SendBigStream(IO_ID: Cardinal; const Cmd: SystemString; BigStream: TCoreClassStream; StartPos: Int64; DoneAutoFree: Boolean); overload;
@@ -1564,7 +1595,10 @@ type
     FIgnoreProcessConnectedAndDisconnect: Boolean;
     FLastConnectIsSuccessed: Boolean;
 
-    procedure StreamResult_CipherModel(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    FRequestTime: TTimeTick;
+    FReponseTime: TTimeTick;
+
+    procedure StreamResult_CipherModel(Sender: TPeerIO; Result_: TDataFrameEngine);
 
     procedure DoConnected(Sender: TPeerIO); virtual;
     procedure DoDisconnect(Sender: TPeerIO); virtual;
@@ -1589,16 +1623,21 @@ type
     FOnWaitResultCall: TStateCall;
     FOnWaitResultMethod: TStateMethod;
     FOnWaitResultProc: TStateProc;
-    procedure ConsoleResult_Wait(Sender: TPeerIO; ResultData: SystemString);
+    procedure ConsoleResult_Wait(Sender: TPeerIO; Result_: SystemString);
     function GetWaitTimeout(const t: TTimeTick): TTimeTick;
+  private
+    { IO_IDLE_Trace_And_FreeSelf }
+    procedure Do_IO_IDLE_FreeSelf(Data_: TCoreClassObject);
   public
     constructor Create; virtual;
     destructor Destroy; override;
+    procedure DelayFreeSelf;
 
-    { IO Idle Trace }
+    { IO IDLE Trace }
     procedure IO_IDLE_TraceC(data: TCoreClassObject; const OnNotify: TDataNotifyCall);
     procedure IO_IDLE_TraceM(data: TCoreClassObject; const OnNotify: TDataNotifyMethod);
     procedure IO_IDLE_TraceP(data: TCoreClassObject; const OnNotify: TDataNotifyProc);
+    procedure IO_IDLE_Trace_And_FreeSelf(Additional_Object_: TCoreClassObject);
 
     { OnReceiveBuffer work on Protocol is cpCustom }
     procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean); virtual;
@@ -1612,6 +1651,9 @@ type
 
     { ServerState must be connected successfully. }
     function ServerState: PCommunicationFramework_ServerState;
+
+    { net delay time }
+    property ReponseTime: TTimeTick read FReponseTime;
 
     { mainLoop }
     procedure Progress; override;
@@ -1653,10 +1695,9 @@ type
 
     { disconnect }
     procedure Disconnect; virtual;
-    { delay close on now }
-    procedure DelayClose; overload;
-    { delay close on custom delay of double time }
-    procedure DelayClose(const t: Double); overload;
+    { delay close IO }
+    procedure DelayCloseIO; overload;
+    procedure DelayCloseIO(const t: Double); overload;
 
     { sync wait reponse }
     function Wait(TimeOut_: TTimeTick): SystemString; overload;
@@ -1703,7 +1744,7 @@ type
 
     { wait send }
     function WaitSendConsoleCmd(Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; virtual;
-    procedure WaitSendStreamCmd(Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); virtual;
+    procedure WaitSendStreamCmd(Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); virtual;
 
     { send bigstream }
     procedure SendBigStream(Cmd: SystemString; BigStream: TCoreClassStream; StartPos: Int64; DoneAutoFree: Boolean); overload;
@@ -1814,11 +1855,11 @@ type
     { service method }
     procedure ProgressStopServiceWithPerVM(SenderVM: TCommunicationFrameworkWithP2PVM);
     procedure StopService; override;
-    function StartService(Host: SystemString; Port: Word): Boolean; override;
+    function StartService(Host_: SystemString; Port: Word): Boolean; override;
 
     { sync }
     function WaitSendConsoleCmd(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 
   TCommunicationFrameworkWithP2PVM_ClientList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TCommunicationFrameworkWithP2PVM_Client>;
@@ -1906,7 +1947,6 @@ type
     FFrameworkPool: TUInt32HashObjectList;
     FFrameworkListenPool: TCoreClassList;
     FMaxVMFragmentSize: Cardinal;
-    FMaxRealBuffer: Cardinal;
     FQuietMode: Boolean;
     FReceiveStream: TMemoryStream64;
     FSendStream: TMemoryStream64;
@@ -1959,7 +1999,6 @@ type
     { p2p VM Peformance support }
     { MaxVMFragmentSize see also MTU }
     property MaxVMFragmentSize: Cardinal read FMaxVMFragmentSize write FMaxVMFragmentSize;
-    property MaxRealBuffer: Cardinal read FMaxRealBuffer write FMaxRealBuffer;
     property QuietMode: Boolean read FQuietMode write FQuietMode;
 
     { p2p VM safe Support }
@@ -2064,7 +2103,7 @@ type
     procedure TriggerQueueData(v: PQueueData); override;
 
     function WaitSendConsoleCmd(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 
   TCommunicationFramework_StableServer = class(TCommunicationFramework_CustomStableServer)
@@ -2112,12 +2151,12 @@ type
     procedure SetPhysicsClient(const Value: TCommunicationFrameworkClient);
 
     { connection }
-    procedure BuildStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure BuildStableIO_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
     procedure AsyncConnectResult(const cState: Boolean);
     procedure PostConnection(Sender: TNPostExecute);
 
     { reconnection }
-    procedure OpenStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure OpenStableIO_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
     procedure AsyncReconnectionResult(const cState: Boolean);
     procedure PostReconnection(Sender: TNPostExecute);
     procedure Reconnection;
@@ -2349,6 +2388,7 @@ function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6; overload;
 function IPv6ToStr(const IPv6Addr: TIPV6): U_String;
 function IsIPv4(const s: U_String): Boolean;
 function IsIPV6(const s: U_String): Boolean;
+function MakeRandomIPV6(): TIPV6;
 
 function CompareIPV4(const IP1, IP2: TIPV4): Boolean;
 function CompareIPV6(const IP1, IP2: TIPV6): Boolean;
@@ -2400,25 +2440,24 @@ var
   C_DataTailToken: Cardinal = $F1F1F1F1;
 
   { send flush buffer }
-  C_SendFlushSize: NativeInt = 16 * 1024; { flush size = 16k byte }
+  C_SendFlushSize: NativeInt = 32 * 1024; { flush size = 32k byte }
 
   { max complete buffer }
-  C_MaxCompleteBufferSize: NativeInt = 64 * 1024 * 1024; { 64M, 0 = infinity }
+  C_MaxCompleteBufferSize: Cardinal = 64 * 1024 * 1024; { 64M, 0 = infinity }
+  { complete buffer compression condition }
+  C_CompleteBufferCompressionCondition: Cardinal = 1024;
 
   { sequence packet model Packet MTU }
-  C_SequencePacketMTU: Word = {$IFDEF Delphi}1536{$ELSE Delphi}20000{$ENDIF Delphi};
+  C_SequencePacketMTU: Word = 1024;
 
   { P2PVM Fragment size }
-  C_P2PVM_MaxVMFragmentSize: Cardinal = {$IFDEF Delphi}8192{$ELSE Delphi}20000{$ENDIF Delphi};
-
-  { P2PVM Max Real buffer }
-  C_P2PVM_MaxRealBuffer: Cardinal = 2048 * 1024;
+  C_P2PVM_MaxVMFragmentSize: Cardinal = 1536;
 
   { DoStatus ID }
   C_DoStatusID: Integer = $0FFFFFFF;
 
   { vm auth token size }
-  C_VMAuthSize: Integer = 256;
+  C_VMAuthSize: Integer = 16;
 
   { BigStream fragment size }
   C_BigStream_ChunkSize: NativeInt = 1024 * 1024;
@@ -2429,6 +2468,9 @@ var
   { global progress backcall }
   ProgressBackgroundProc: TProgressBackgroundProc = nil;
   ProgressBackgroundMethod: TProgressBackgroundMethod = nil;
+
+  { random ipv6 seed }
+  V_IPV6_Seed: UInt64 = 0;
 
   { system }
   C_CipherModel: SystemString = '__@CipherModel';
@@ -2553,7 +2595,7 @@ type
     Failed: Boolean;
     constructor Create;
     procedure DoConsoleFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString);
-    procedure DoConsoleParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString);
+    procedure DoConsoleParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString);
   end;
 
   TWaitSendStreamCmdIntf = class(TCoreClassObject)
@@ -2564,7 +2606,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure DoStreamFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
-    procedure DoStreamParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine);
+    procedure DoStreamParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
   end;
 
 constructor TWaitSendConsoleCmdIntf.Create;
@@ -2581,9 +2623,9 @@ begin
   Failed := True;
 end;
 
-procedure TWaitSendConsoleCmdIntf.DoConsoleParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: SystemString);
+procedure TWaitSendConsoleCmdIntf.DoConsoleParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString);
 begin
-  NewResult := ResultData;
+  NewResult := Result_;
   Done := True;
   Failed := False;
 end;
@@ -2608,9 +2650,9 @@ begin
   Failed := True;
 end;
 
-procedure TWaitSendStreamCmdIntf.DoStreamParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, ResultData: TDataFrameEngine);
+procedure TWaitSendStreamCmdIntf.DoStreamParam(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
 begin
-  NewResult.Assign(ResultData);
+  NewResult.Assign(Result_);
   Done := True;
   Failed := False;
 end;
@@ -2712,7 +2754,7 @@ var
   dotCount: Integer;
   NumVal: Integer;
   Len: Integer;
-  Ch: Char;
+  CH: SystemChar;
 begin
   FillPtrByte(@Result[0], SizeOf(Result), 0);
   Success := False;
@@ -2724,17 +2766,17 @@ begin
   NumVal := -1;
   for i := 1 to Len do
     begin
-      Ch := n[i];
-      if CharIn(Ch, c0to9) then
+      CH := n[i];
+      if CharIn(CH, c0to9) then
         begin
           if NumVal < 0 then
-              NumVal := Ord(Ch) - Ord('0')
+              NumVal := Ord(CH) - Ord('0')
           else
-              NumVal := NumVal * 10 + Ord(Ch) - Ord('0');
+              NumVal := NumVal * 10 + Ord(CH) - Ord('0');
           if NumVal > 255 then
               exit;
         end
-      else if Ch = '.' then
+      else if CH = '.' then
         begin
           if (NumVal > -1) and (dotCount < 3) then
               Result[dotCount] := NumVal
@@ -2768,7 +2810,7 @@ var
   ColonCnt: Integer;
   i: Integer;
   NumVal: Integer;
-  Ch: Char;
+  CH: SystemChar;
   SLen: Integer;
   OmitPos: Integer;
   OmitCnt: Integer;
@@ -2790,7 +2832,8 @@ begin
   OmitPos := n.GetPos('::') - 1;
   if OmitPos > -1 then
       OmitCnt := 8 - ColonCnt
-  else begin
+  else
+    begin
       OmitCnt := 0; { Make the compiler happy }
       if (n.First = Colon) or (n.Last = Colon) then
           exit;
@@ -2803,9 +2846,9 @@ begin
   ScopeFlag := False;
   while i < SLen do
     begin
-      Ch := n.buff[i];
+      CH := n.buff[i];
 
-      if Ch = Percent then
+      if CH = Percent then
         begin
           if ScopeFlag then
               exit
@@ -2819,7 +2862,7 @@ begin
               NumVal := -1;
             end;
         end
-      else if Ch = Colon then
+      else if CH = Colon then
         begin
           if ScopeFlag then
               exit;
@@ -2838,27 +2881,27 @@ begin
           if ColonCnt > 7 then
               exit;
         end
-      else if CharIn(Ch, c0to9) then
+      else if CharIn(CH, c0to9) then
         begin
           inc(PartCnt);
           if NumVal < 0 then
-              NumVal := (Ord(Ch) - Ord('0'))
+              NumVal := (Ord(CH) - Ord('0'))
           else if ScopeFlag then
-              NumVal := NumVal * 10 + (Ord(Ch) - Ord('0'))
+              NumVal := NumVal * 10 + (Ord(CH) - Ord('0'))
           else
-              NumVal := NumVal * 16 + (Ord(Ch) - Ord('0'));
+              NumVal := NumVal * 16 + (Ord(CH) - Ord('0'));
           if (NumVal > high(Word)) or (PartCnt > 4) then
               exit;
         end
-      else if CharIn(Ch, cAtoZ) then
+      else if CharIn(CH, cAtoZ) then
         begin
           if ScopeFlag then
               exit;
           inc(PartCnt);
           if NumVal < 0 then
-              NumVal := ((Ord(Ch) and 15) + 9)
+              NumVal := ((Ord(CH) and 15) + 9)
           else
-              NumVal := NumVal * 16 + ((Ord(Ch) and 15) + 9);
+              NumVal := NumVal * 16 + ((Ord(CH) and 15) + 9);
           if (NumVal > high(Word)) or (PartCnt > 4) then
               exit;
         end
@@ -2972,7 +3015,7 @@ var
   i: Integer;
   DotCnt: Integer;
   NumVal: Integer;
-  Ch: Char;
+  CH: SystemChar;
 begin
   n := umlDeleteChar(s, [#32, #0, #9, #13, #10]);
   Result := False;
@@ -2980,17 +3023,17 @@ begin
   NumVal := -1;
   for i := 1 to n.Len do
     begin
-      Ch := n[i];
-      if CharIn(Ch, c0to9) then
+      CH := n[i];
+      if CharIn(CH, c0to9) then
         begin
           if NumVal = -1 then
-              NumVal := Ord(Ch) - Ord('0')
+              NumVal := Ord(CH) - Ord('0')
           else
-              NumVal := NumVal * 10 + Ord(Ch) - Ord('0');
+              NumVal := NumVal * 10 + Ord(CH) - Ord('0');
           if NumVal > 255 then
               exit;
         end
-      else if Ch = '.' then
+      else if CH = '.' then
         begin
           inc(DotCnt);
           if (DotCnt > 3) or (NumVal = -1) then
@@ -3009,6 +3052,18 @@ var
   ScopeID: Cardinal;
 begin
   StrToIPv6(s, Result, ScopeID);
+end;
+
+function MakeRandomIPV6(): TIPV6;
+var
+  tmp: array [0 .. 31] of Byte;
+begin
+  PTimeTick(@tmp[0])^ := GetTimeTick();
+  PInt64(@tmp[8])^ := MT19937Rand64($7FFFFFFFFFFFFFFF);
+  PDouble(@tmp[16])^ := umlNow();
+  PInt64(@tmp[24])^ := V_IPV6_Seed;
+  AtomInc(V_IPV6_Seed);
+  PMD5(@Result)^ := umlMD5(@tmp[0], 32);
 end;
 
 function CompareIPV4(const IP1, IP2: TIPV4): Boolean;
@@ -3044,7 +3099,7 @@ end;
 
 procedure ExtractHostAddress(var Host: U_String; var Port: Word);
 begin
-  if Host.Exists(':') then
+  if Host.GetCharCount(':') = 1 then
     begin
       Port := umlStrToInt(umlGetLastStr(Host, ':'), Port);
       Host := umlDeleteLastStr(Host, ':');
@@ -3648,6 +3703,46 @@ begin
   OnCall := nil;
   OnMethod := nil;
   OnProc := nil;
+end;
+
+constructor TOnResultBridge.Create;
+begin
+  inherited Create;
+end;
+
+destructor TOnResultBridge.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TOnResultBridge.DoConsoleEvent(Sender: TPeerIO; Result_: SystemString);
+begin
+
+end;
+
+procedure TOnResultBridge.DoConsoleParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: SystemString);
+begin
+
+end;
+
+procedure TOnResultBridge.DoConsoleFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: SystemString);
+begin
+
+end;
+
+procedure TOnResultBridge.DoStreamEvent(Sender: TPeerIO; Result_: TDataFrameEngine);
+begin
+
+end;
+
+procedure TOnResultBridge.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
+begin
+
+end;
+
+procedure TOnResultBridge.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+begin
+
 end;
 
 constructor TStateParamBridge.Create;
@@ -4712,7 +4807,6 @@ var
   p: PSequencePacket;
   head: Byte;
   echoSiz: Word;
-  echoBuff: TBytes;
   ResendNumber, DoneNumber: Cardinal;
   fastSwap, n: TMemoryStream64;
   hashMatched: Boolean;
@@ -4773,15 +4867,9 @@ begin
           if fastSwap.Position + echoSiz > fastSwap.Size then
               Break;
 
-          SetLength(echoBuff, echoSiz);
+          DoSequencePacketEchoKeepAlive(fastSwap.PositionAsPtr(), echoSiz);
           if echoSiz > 0 then
-            begin
-              fastSwap.ReadPtr(@echoBuff[0], echoSiz);
-              DoSequencePacketEchoKeepAlive(@echoBuff[0], echoSiz);
-              SetLength(echoBuff, 0);
-            end
-          else
-              DoSequencePacketEchoKeepAlive(nil, 0);
+              fastSwap.Position := fastSwap.Position + echoSiz;
         end
       else if head = C_Sequence_RequestResend then
         begin
@@ -5039,19 +5127,19 @@ begin
       Send(@Code[0], Length(Code));
 end;
 
-procedure TPeerIO.SendEncryptBuffer(buff: PByte; siz: NativeInt; cs: TCipherSecurity);
+procedure TPeerIO.SendEncryptBuffer(buff: PByte; siz: NativeInt; CS: TCipherSecurity);
 begin
-  SendByte(Byte(cs));
-  Encrypt(cs, buff, siz, FCipherKey, True);
+  SendByte(Byte(CS));
+  Encrypt(CS, buff, siz, FCipherKey, True);
   Send(buff, siz);
 end;
 
-procedure TPeerIO.SendEncryptMemoryStream(Stream: TMemoryStream64; cs: TCipherSecurity);
+procedure TPeerIO.SendEncryptMemoryStream(Stream: TMemoryStream64; CS: TCipherSecurity);
 begin
-  SendEncryptBuffer(Stream.Memory, Stream.Size, cs);
+  SendEncryptBuffer(Stream.Memory, Stream.Size, CS);
 end;
 
-procedure TPeerIO.InternalSendConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+procedure TPeerIO.InternalSendConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5059,12 +5147,12 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendEncryptMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, CS);
   SendCardinal(FTailToken);
   EndSend;
 end;
 
-procedure TPeerIO.InternalSendStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+procedure TPeerIO.InternalSendStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5072,12 +5160,12 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendEncryptMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, CS);
   SendCardinal(FTailToken);
   EndSend;
 end;
 
-procedure TPeerIO.InternalSendDirectConsoleBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+procedure TPeerIO.InternalSendDirectConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5085,12 +5173,12 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendEncryptMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, CS);
   SendCardinal(FTailToken);
   EndSend;
 end;
 
-procedure TPeerIO.InternalSendDirectStreamBuff(buff: TMemoryStream64; cs: TCipherSecurity);
+procedure TPeerIO.InternalSendDirectStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5098,7 +5186,7 @@ begin
   SendCardinal(Cardinal(buff.Size));
 
   SendVerifyCode(buff.Memory, buff.Size);
-  SendEncryptMemoryStream(buff, cs);
+  SendEncryptMemoryStream(buff, CS);
   SendCardinal(FTailToken);
   EndSend;
 end;
@@ -5201,19 +5289,19 @@ end;
 
 procedure TPeerIO.InternalSendCompleteBufferBuff(var Queue: TQueueData);
 var
-  sour, dest: TMemoryStream64;
+  sour, Dest: TMemoryStream64;
 begin
   BeginSend;
-  if FOwnerFramework.FCompleteBufferCompressed then
+  if FOwnerFramework.FCompleteBufferCompressed and (Queue.BufferSize > OwnerFramework.FCompleteBufferCompressionCondition) then
     begin
       sour := TMemoryStream64.Create;
       sour.SetPointerWithProtectedMode(Queue.buffer, Queue.BufferSize);
-      dest := TMemoryStream64.Create;
-      ParallelCompressMemory(scmZLIB_Fast, sour, dest);
-      InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, dest.Size);
-      Send(dest.Memory, dest.Size);
+      Dest := TMemoryStream64.Create;
+      ParallelCompressMemory(scmZLIB_Fast, sour, Dest);
+      InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, Dest.Size);
+      Send(Dest.Memory, Dest.Size);
       DisposeObject(sour);
-      DisposeObject(dest);
+      DisposeObject(Dest);
     end
   else
     begin
@@ -5743,7 +5831,7 @@ var
   leftSize: Cardinal;
   tmpStream: TMemoryStream64;
 
-  dest: TMemoryStream64;
+  Dest: TMemoryStream64;
 begin
   leftSize := FCompleteBufferTotal - FCompleteBufferCompleted;
   if leftSize > FReceivedBuffer.Size then
@@ -5772,11 +5860,11 @@ begin
 
       if FCompleteBufferCompressedSize > 0 then
         begin
-          dest := TMemoryStream64.Create;
-          ParallelDecompressStream(FCompleteBufferReceivedStream, dest);
+          Dest := TMemoryStream64.Create;
+          ParallelDecompressStream(FCompleteBufferReceivedStream, Dest);
           DisposeObject(FCompleteBufferReceivedStream);
-          dest.Position := 0;
-          FCompleteBufferReceivedStream := dest;
+          Dest.Position := 0;
+          FCompleteBufferReceivedStream := Dest;
         end;
 
       IO_SyncMethod(CurrentActiveThread_, Sync, {$IFDEF FPC}@{$ENDIF FPC}Sync_ExecuteCompleteBuffer);
@@ -6654,7 +6742,7 @@ begin
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
-  InitSequencePacketModel(512, 1024);
+  InitSequencePacketModel(512, $FFFF);
 
   FP2PVMTunnel := nil;
   SetLength(FP2PAuthToken, $FF);
@@ -6680,8 +6768,6 @@ begin
   OnVMAuthResultIOMethod := nil;
   OnVMAuthResultIOProc := nil;
 
-  FAutomatedP2PVMClient_Connection_Sequence := 0;
-  FAutomatedP2PVMClient_Connection_Sequence_Successed := 0;
   FOnAutomatedP2PVMClientConnectionDoneCall := nil;
   FOnAutomatedP2PVMClientConnectionDoneMethod := nil;
   FOnAutomatedP2PVMClientConnectionDoneProc := nil;
@@ -6782,7 +6868,8 @@ end;
 
 function TPeerIO.IOBusy: Boolean;
 begin
-  Result := (IOSendBuffer.Size > 0) or
+  Result :=
+    (IOSendBuffer.Size > 0) or
     (SendingSequencePacketHistory.Count > 0) or
     (SequencePacketReceivedPool.Count > 0) or
     (FQueueList.Count > 0) or
@@ -6852,6 +6939,11 @@ begin
   FOwnerFramework.ProgressEngine.PostExecuteM(0.1, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.IDLE_Trace_Execute).Data5 := p;
 end;
 
+function TPeerIO.p2pVMTunnelReadyOk: Boolean;
+begin
+  Result := (FP2PVMTunnel <> nil) and (FP2PVMTunnel.WasAuthed);
+end;
+
 procedure TPeerIO.BuildP2PAuthToken;
 var
   de: TDataFrameEngine;
@@ -6860,7 +6952,7 @@ begin
   FSequencePacketSignal := False;
 
   de := TDataFrameEngine.Create;
-  de.WriteInteger(umlRandomRange(-maxInt, maxInt));
+  de.WriteInteger(umlRandomRange(-MaxInt, MaxInt));
   SendStreamCmdM(C_BuildP2PAuthToken, de, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.CommandResult_BuildP2PAuthToken);
   DisposeObject(de);
   InternalProcessAllSendCmd(nil, False, False);
@@ -6948,9 +7040,9 @@ end;
 procedure TPeerIO.OpenP2PVMTunnel(SendRemoteRequest: Boolean; const AuthToken: SystemString);
 begin
   if FOwnerFramework.FFrameworkIsClient then
-      OpenP2PVMTunnel(8192, SendRemoteRequest, AuthToken)
+      OpenP2PVMTunnel(16384, SendRemoteRequest, AuthToken)
   else
-      OpenP2PVMTunnel(16, SendRemoteRequest, AuthToken);
+      OpenP2PVMTunnel(64, SendRemoteRequest, AuthToken);
 end;
 
 procedure TPeerIO.OpenP2PVMTunnelC(SendRemoteRequest: Boolean; const AuthToken: SystemString; const OnResult: TStateCall);
@@ -7185,8 +7277,8 @@ begin
       DelayClose(1.0);
     end;
 
-  if (not FTimeOutProcessDone) and (OwnerFramework.TimeOutKeepAlive) and (IsSequencePacketModel) and (FSequencePacketSignal) and
-    (GetTimeTick() - LastCommunicationTick_KeepAlive > 2000) and (WriteBufferEmpty) then
+  if (not FTimeOutProcessDone) and (OwnerFramework.FTimeOutKeepAlive) and (IsSequencePacketModel) and (FSequencePacketSignal) and
+    (GetTimeTick() - LastCommunicationTick_KeepAlive > 1000) and (WriteBufferEmpty) then
     begin
       SendSequencePacketKeepAlive(nil, 0);
       FlushIOSendBuffer;
@@ -7435,7 +7527,7 @@ begin
   end;
 end;
 
-procedure TPeerIO.Encrypt(cs: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
+procedure TPeerIO.Encrypt(CS: TCipherSecurity; DataPtr: Pointer; Size: Cardinal; var k: TCipherKeyBuffer; enc: Boolean);
 begin
   if Size = 0 then
       exit;
@@ -7445,11 +7537,11 @@ begin
       if enc then
         begin
           if FEncryptInstance <> nil then
-            if (FEncryptInstance.CipherSecurity <> cs) or (not TCipher.CompareKey(FEncryptInstance.LastGenerateKey, k)) then
+            if (FEncryptInstance.CipherSecurity <> CS) or (not TCipher.CompareKey(FEncryptInstance.LastGenerateKey, k)) then
                 DisposeObjectAndNil(FEncryptInstance);
           if FEncryptInstance = nil then
             begin
-              FEncryptInstance := CreateCipherClassFromBuffer(cs, k);
+              FEncryptInstance := CreateCipherClassFromBuffer(CS, k);
               FEncryptInstance.CBC := True;
               FEncryptInstance.ProcessTail := True;
             end;
@@ -7458,11 +7550,11 @@ begin
       else
         begin
           if FDecryptInstance <> nil then
-            if (FDecryptInstance.CipherSecurity <> cs) or (not TCipher.CompareKey(FDecryptInstance.LastGenerateKey, k)) then
+            if (FDecryptInstance.CipherSecurity <> CS) or (not TCipher.CompareKey(FDecryptInstance.LastGenerateKey, k)) then
                 DisposeObjectAndNil(FDecryptInstance);
           if FDecryptInstance = nil then
             begin
-              FDecryptInstance := CreateCipherClassFromBuffer(cs, k);
+              FDecryptInstance := CreateCipherClassFromBuffer(CS, k);
               FDecryptInstance.CBC := True;
               FDecryptInstance.ProcessTail := True;
             end;
@@ -7472,12 +7564,12 @@ begin
   else
     begin
       if FOwnerFramework.FUsedParallelEncrypt then
-          SequEncryptCBC(cs, DataPtr, Size, k, enc, True)
+          SequEncryptCBC(CS, DataPtr, Size, k, enc, True)
       else
-          SequEncryptCBCWithDirect(cs, DataPtr, Size, k, enc, True);
+          SequEncryptCBCWithDirect(CS, DataPtr, Size, k, enc, True);
     end;
 
-  if cs <> TCipherSecurity.csNone then
+  if CS <> TCipherSecurity.csNone then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stEncrypt]);
 end;
 
@@ -7653,12 +7745,12 @@ begin
       Result := '';
 end;
 
-procedure TPeerIO.WaitSendStreamCmd(Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TPeerIO.WaitSendStreamCmd(Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 begin
   if FOwnerFramework.InheritsFrom(TCommunicationFrameworkServer) then
-      TCommunicationFrameworkServer(FOwnerFramework).WaitSendStreamCmd(Self, Cmd, StreamData, ResultData, Timeout)
+      TCommunicationFrameworkServer(FOwnerFramework).WaitSendStreamCmd(Self, Cmd, StreamData, Result_, Timeout)
   else if FOwnerFramework.InheritsFrom(TCommunicationFrameworkClient) then
-      TCommunicationFrameworkClient(FOwnerFramework).WaitSendStreamCmd(Cmd, StreamData, ResultData, Timeout);
+      TCommunicationFrameworkClient(FOwnerFramework).WaitSendStreamCmd(Cmd, StreamData, Result_, Timeout);
 end;
 
 procedure TPeerIO.SendBigStream(Cmd: SystemString; BigStream: TCoreClassStream; StartPos: Int64; DoneAutoFree: Boolean);
@@ -7762,6 +7854,7 @@ begin
   p^.Client := Client;
   p^.IPV6 := IPV6;
   p^.Port := Port;
+  p^.RequestConnecting := False;
   Add(p);
 end;
 
@@ -8130,12 +8223,12 @@ begin
   P_IO.OnVMBuildAuthModelResultIOProc := nil;
 end;
 
-procedure TCommunicationFramework.CommandResult_BuildP2PAuthToken(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFramework.CommandResult_BuildP2PAuthToken(Sender: TPeerIO; Result_: TDataFrameEngine);
 var
   i: Integer;
   arr: TDataFrameArrayInteger;
 begin
-  arr := ResultData.ReadArrayInteger(0);
+  arr := Result_.ReadArrayInteger(0);
   SetLength(Sender.FP2PAuthToken, arr.Count * 4);
   for i := 0 to arr.Count - 1 do
       PInteger(@Sender.FP2PAuthToken[i * 4])^ := arr[i];
@@ -8281,9 +8374,7 @@ end;
 
 procedure TCommunicationFramework.FreeAutomatedP2PVM;
 begin
-  FAutomatedP2PVMServiceBind.Clean;
   DisposeObject(FAutomatedP2PVMServiceBind);
-  FAutomatedP2PVMClientBind.Clean;
   DisposeObject(FAutomatedP2PVMClientBind);
 end;
 
@@ -8308,11 +8399,13 @@ begin
   if P_IO.OwnerFramework <> Self then
       RaiseInfo('illegal.');
 
-  P_IO.FAutomatedP2PVMClient_Connection_Sequence := 0;
-  P_IO.FAutomatedP2PVMClient_Connection_Sequence_Successed := 0;
-
-  if FAutomatedP2PVMClient and (FAutomatedP2PVMClientBind.Count > 0) then
-      P_IO.BuildP2PAuthTokenIO_M({$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_BuildP2PAuthTokenResult)
+  if FAutomatedP2PVMClient then
+    begin
+      if P_IO.p2pVMTunnelReadyOk then
+          AutomatedP2PVMClient_OpenP2PVMTunnelResult(P_IO, True)
+      else
+          P_IO.BuildP2PAuthTokenIO_M({$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_BuildP2PAuthTokenResult);
+    end
   else
       Error('AutomatedP2PVMClient is false, on do AutomatedP2PVMClient_Request dont work.');
 end;
@@ -8327,6 +8420,7 @@ procedure TCommunicationFramework.AutomatedP2PVMClient_OpenP2PVMTunnelResult(P_I
 var
   p: PAutomatedP2PVMClientData;
   i: Integer;
+  IsRequestConnecting_: Boolean;
 begin
   if not VMauthState then
     begin
@@ -8339,23 +8433,44 @@ begin
   for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
       P_IO.p2pVMTunnel.InstallLogicFramework(FAutomatedP2PVMClientBind[i]^.Client);
 
-  if (FAutomatedP2PVMClientBind.Count > P_IO.FAutomatedP2PVMClient_Connection_Sequence) then
+  for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
     begin
-      p := FAutomatedP2PVMClientBind[P_IO.FAutomatedP2PVMClient_Connection_Sequence];
-      p^.Client.AsyncConnectM(p^.IPV6, p^.Port, nil, P_IO, {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_ConnectionResult);
-    end
-  else
-    begin
-      { all connection done. }
-      AutomatedP2PVMClient_Done(P_IO);
+      p := FAutomatedP2PVMClientBind[i];
+      if (not p^.Client.Connected) and (not p^.RequestConnecting) then
+        begin
+          p^.Client.AsyncConnectM(p^.IPV6, p^.Port, p, P_IO, {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_ConnectionResult);
+          p^.RequestConnecting := True;
+        end;
     end;
+
+  { check all connection done. }
+  IsRequestConnecting_ := False;
+  for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
+    begin
+      p := FAutomatedP2PVMClientBind[i];
+      if (p^.RequestConnecting) or (not p^.Client.Connected) then
+          IsRequestConnecting_ := True;
+    end;
+
+  if not IsRequestConnecting_ then
+      AutomatedP2PVMClient_Done(P_IO);
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVMClient_ConnectionResult(Param1: Pointer; Param2: TObject; const ConnectionState: Boolean);
 var
   P_IO: TPeerIO;
   p: PAutomatedP2PVMClientData;
+  i: Integer;
+  IsRequestConnecting_: Boolean;
 begin
+  p := Param1;
+  p^.RequestConnecting := False;
+  if not ConnectionState then
+    begin
+      Error('Automated P2PVM connection failed.');
+      exit;
+    end;
+
   if not FPeerIO_HashPool.ExistsObject(Param2) then
     begin
       Error('Automated P2PVM IO failed.');
@@ -8363,19 +8478,27 @@ begin
     end;
 
   P_IO := TPeerIO(Param2);
-  inc(P_IO.FAutomatedP2PVMClient_Connection_Sequence);
-  if ConnectionState then
-      inc(P_IO.FAutomatedP2PVMClient_Connection_Sequence_Successed);
-  if (FAutomatedP2PVMClientBind.Count > P_IO.FAutomatedP2PVMClient_Connection_Sequence) then
+  for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
     begin
-      p := FAutomatedP2PVMClientBind[P_IO.FAutomatedP2PVMClient_Connection_Sequence];
-      p^.Client.AsyncConnectM(p^.IPV6, p^.Port, nil, P_IO, {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_ConnectionResult);
-    end
-  else
-    begin
-      { all connection done. }
-      AutomatedP2PVMClient_Done(P_IO);
+      p := FAutomatedP2PVMClientBind[i];
+      if (not p^.Client.Connected) and (not p^.RequestConnecting) then
+        begin
+          p^.Client.AsyncConnectM(p^.IPV6, p^.Port, p, P_IO, {$IFDEF FPC}@{$ENDIF FPC}AutomatedP2PVMClient_ConnectionResult);
+          p^.RequestConnecting := True;
+        end;
     end;
+
+  { check all connection done. }
+  IsRequestConnecting_ := False;
+  for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
+    begin
+      p := FAutomatedP2PVMClientBind[i];
+      if (p^.RequestConnecting) or (not p^.Client.Connected) then
+          IsRequestConnecting_ := True;
+    end;
+
+  if not IsRequestConnecting_ then
+      AutomatedP2PVMClient_Done(P_IO);
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVMClient_Delay_Done(Sender: TNPostExecute);
@@ -8492,12 +8615,13 @@ begin
   FBigStreamSwapSpaceTriggerSize := C_BigStream_SwapSpace_Trigger;
   FEnabledAtomicLockAndMultiThread := True;
   FTimeOutKeepAlive := True;
-  FQuietMode := False;
+  FQuietMode := {$IFDEF Communication_QuietMode}True{$ELSE Communication_QuietMode}False{$ENDIF Communication_QuietMode};
   SetLength(FCipherSecurityArray, 0);
   FSendDataCompressed := False;
   FCompleteBufferCompressed := False;
   FHashSecurity := THashSecurity.hsNone;
   FMaxCompleteBufferSize := C_MaxCompleteBufferSize;
+  FCompleteBufferCompressionCondition := C_CompleteBufferCompressionCondition;
   FPeerIOUserDefineClass := TPeerIOUserDefine;
   FPeerIOUserSpecialClass := TPeerIOUserSpecial;
 
@@ -8599,7 +8723,7 @@ procedure TCommunicationFramework.p2pVMTunnelAuth(Sender: TPeerIO; const Token: 
 begin
   if FVMInterface <> nil then
       FVMInterface.p2pVMTunnelAuth(Sender, Token, Accept);
-  if (FAutomatedP2PVMService) and (FAutomatedP2PVMServiceBind.Count > 0) then
+  if (not Accept) and (FAutomatedP2PVMService) then
       Accept := CompareQuantumCryptographyPassword(FAutomatedP2PVMAuthToken, Token);
 end;
 
@@ -8637,14 +8761,42 @@ begin
 end;
 
 function TCommunicationFramework.AutomatedP2PVMClientConnectionDone(P_IO: TPeerIO): Boolean;
+var
+  i: Integer;
+  p: PAutomatedP2PVMClientData;
 begin
-  Result := (P_IO <> nil) and (P_IO.FAutomatedP2PVMClient_Connection_Sequence_Successed = FAutomatedP2PVMClientBind.Count);
+  Result := False;
+  if P_IO = nil then
+      exit;
+  if not P_IO.p2pVMTunnelReadyOk then
+      exit;
+  { check all connection done. }
+  for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
+    begin
+      p := FAutomatedP2PVMClientBind[i];
+      if (p^.RequestConnecting) or (not p^.Client.Connected) then
+          exit;
+    end;
+  Result := True;
+end;
+
+function TCommunicationFramework.AutomatedP2PVMClientConnectionDone(): Boolean;
+begin
+  if FFrameworkIsClient and (TCommunicationFrameworkClient(Self).ClientIO <> nil) then
+      Result := AutomatedP2PVMClientConnectionDone(TCommunicationFrameworkClient(Self).ClientIO)
+  else
+      Result := False;
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVM_Open(P_IO: TPeerIO);
 begin
-  if FAutomatedP2PVMClient and (FAutomatedP2PVMClientBind.Count > 0) then
-      FPostProgress.PostExecuteM(FAutomatedP2PVMClientDelayBoot, {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClient_DelayRequest).Data3 := P_IO.ID;
+  FPostProgress.PostExecuteM(FAutomatedP2PVMClientDelayBoot, {$IFDEF FPC}@{$ENDIF FPC}DoAutomatedP2PVMClient_DelayRequest).Data3 := P_IO.ID;
+end;
+
+procedure TCommunicationFramework.AutomatedP2PVM_Open();
+begin
+  if FFrameworkIsClient and (TCommunicationFrameworkClient(Self).ClientIO <> nil) then
+      AutomatedP2PVM_Open(TCommunicationFrameworkClient(Self).ClientIO);
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVM_Open_C(P_IO: TPeerIO; const OnResult: TIOStateCall);
@@ -8672,8 +8824,43 @@ begin
 end;
 
 procedure TCommunicationFramework.AutomatedP2PVM_Close(P_IO: TPeerIO);
+var
+  i: Integer;
+  p: PAutomatedP2PVMClientData;
 begin
+  if P_IO = nil then
+      exit;
+
+  if FAutomatedP2PVMClient then
+    for i := 0 to FAutomatedP2PVMClientBind.Count - 1 do
+      begin
+        p := FAutomatedP2PVMClientBind[i];
+        if p^.Client.Connected then
+          begin
+            p^.Client.Disconnect;
+            P_IO.p2pVMTunnel.UninstallLogicFramework(p^.Client);
+          end;
+      end;
   P_IO.CloseP2PVMTunnel;
+end;
+
+procedure TCommunicationFramework.AutomatedP2PVM_Close();
+begin
+  if FFrameworkIsClient and (TCommunicationFrameworkClient(Self).ClientIO <> nil) then
+      AutomatedP2PVM_Close(TCommunicationFrameworkClient(Self).ClientIO);
+end;
+
+function TCommunicationFramework.p2pVMTunnelReadyOk(P_IO: TPeerIO): Boolean;
+begin
+  Result := (P_IO <> nil) and P_IO.p2pVMTunnelReadyOk;
+end;
+
+function TCommunicationFramework.p2pVMTunnelReadyOk(): Boolean;
+begin
+  if FFrameworkIsClient and (TCommunicationFrameworkClient(Self).ClientIO <> nil) then
+      Result := p2pVMTunnelReadyOk(TCommunicationFrameworkClient(Self).ClientIO)
+  else
+      Result := False;
 end;
 
 procedure TCommunicationFramework.SwitchMaxPerformance;
@@ -9040,12 +9227,41 @@ begin
   DoError(Format(v, [Args]));
 end;
 
+procedure TCommunicationFramework.PrintError(const v: SystemString; const Args: array of const);
+begin
+  try
+      Error(Format(v, Args));
+  except
+      Error('print error. ' + v);
+  end;
+end;
+
+procedure TCommunicationFramework.PrintError(const v: SystemString);
+begin
+  DoError(v);
+end;
+
+procedure TCommunicationFramework.PrintErrorParam(v, Args: SystemString);
+begin
+  DoError(Format(v, [Args]));
+end;
+
 procedure TCommunicationFramework.Warning(const v: SystemString);
 begin
   DoWarning(v);
 end;
 
 procedure TCommunicationFramework.WarningParam(v: SystemString; Args: SystemString);
+begin
+  DoWarning(Format(v, [Args]));
+end;
+
+procedure TCommunicationFramework.PrintWarning(const v: SystemString);
+begin
+  DoWarning(v);
+end;
+
+procedure TCommunicationFramework.PrintWarningParam(v, Args: SystemString);
 begin
   DoWarning(Format(v, [Args]));
 end;
@@ -9389,6 +9605,30 @@ begin
       Result := FCipherSecurityArray[umlRandomRange(Low(FCipherSecurityArray), High(FCipherSecurityArray))]
   else
       Result := csNone;
+end;
+
+procedure TCommunicationFramework.CopyParamFrom(Source: TCommunicationFramework);
+begin
+  FastEncrypt := Source.FastEncrypt;
+  UsedParallelEncrypt := Source.UsedParallelEncrypt;
+  SyncOnResult := Source.SyncOnResult;
+  SyncOnCompleteBuffer := Source.SyncOnCompleteBuffer;
+  BigStreamMemorySwapSpace := Source.BigStreamMemorySwapSpace;
+  BigStreamSwapSpaceTriggerSize := Source.BigStreamSwapSpaceTriggerSize;
+  EnabledAtomicLockAndMultiThread := Source.EnabledAtomicLockAndMultiThread;
+  TimeOutKeepAlive := Source.TimeOutKeepAlive;
+  QuietMode := Source.QuietMode;
+  IdleTimeOut := Source.IdleTimeOut;
+  SendDataCompressed := Source.SendDataCompressed;
+  CompleteBufferCompressed := Source.CompleteBufferCompressed;
+  MaxCompleteBufferSize := Source.MaxCompleteBufferSize;
+  CompleteBufferCompressionCondition := Source.CompleteBufferCompressionCondition;
+  ProgressMaxDelay := Source.ProgressMaxDelay;
+end;
+
+procedure TCommunicationFramework.CopyParamTo(Dest: TCommunicationFramework);
+begin
+  Dest.CopyParamFrom(Self);
 end;
 
 function TCommunicationFrameworkServer.CanExecuteCommand(Sender: TPeerIO; Cmd: SystemString): Boolean;
@@ -10141,7 +10381,7 @@ begin
       P_IO.FWaitSendBusy := False;
 end;
 
-procedure TCommunicationFrameworkServer.WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFrameworkServer.WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 var
   waitIntf: TWaitSendStreamCmdIntf;
   timetick: TTimeTick;
@@ -10185,10 +10425,10 @@ begin
 
     if waitIntf.Done then
       begin
-        if (ResultData <> nil) and (not waitIntf.Failed) then
+        if (Result_ <> nil) and (not waitIntf.Failed) then
           begin
-            ResultData.Assign(waitIntf.NewResult);
-            ResultData.Reader.index := 0;
+            Result_.Assign(waitIntf.NewResult);
+            Result_.Reader.index := 0;
           end;
         DisposeObject(waitIntf);
       end;
@@ -10381,9 +10621,9 @@ begin
   Result := WaitSendConsoleCmd(PeerIO[IO_ID], Cmd, ConsoleData, Timeout);
 end;
 
-procedure TCommunicationFrameworkServer.WaitSendStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFrameworkServer.WaitSendStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 begin
-  WaitSendStreamCmd(PeerIO[IO_ID], Cmd, StreamData, ResultData, Timeout);
+  WaitSendStreamCmd(PeerIO[IO_ID], Cmd, StreamData, Result_, Timeout);
 end;
 
 procedure TCommunicationFrameworkServer.SendBigStream(IO_ID: Cardinal; const Cmd: SystemString; BigStream: TCoreClassStream; StartPos: Int64; DoneAutoFree: Boolean);
@@ -10544,49 +10784,50 @@ begin
   ProgressMaxDelay := 0;
 end;
 
-procedure TCommunicationFrameworkClient.StreamResult_CipherModel(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFrameworkClient.StreamResult_CipherModel(Sender: TPeerIO; Result_: TDataFrameEngine);
 var
   arr: TDataFrameArrayByte;
 begin
-  if ResultData.Count > 0 then
+  if Result_.Count > 0 then
     begin
+      FReponseTime := GetTimeTick - FRequestTime;
       { index 0: my remote id }
-      Sender.ID := ResultData.Reader.ReadCardinal;
+      Sender.ID := Result_.Reader.ReadCardinal;
 
       { index 1: Encrypt }
-      Sender.SendCipherSecurity := TCipherSecurity(ResultData.Reader.ReadByte);
+      Sender.SendCipherSecurity := TCipherSecurity(Result_.Reader.ReadByte);
 
       { index 2: Encrypt CipherKey }
-      arr := ResultData.Reader.ReadArrayByte;
+      arr := Result_.Reader.ReadArrayByte;
       SetLength(Sender.FCipherKey, arr.Count);
       arr.GetBuff(@Sender.FCipherKey[0]);
 
       { index 3: remote inited time md5 }
       FServerState.Reset();
-      if ResultData.Reader.IsEnd then
+      if Result_.Reader.IsEnd then
         begin
           Warning('protocol version upgrade zserver from https://github.com/PassByYou888/ZServer4D');
         end
       else
         begin
-          FInitedTimeMD5 := ResultData.Reader.ReadMD5();
-          if ResultData.Reader.IsEnd then
+          FInitedTimeMD5 := Result_.Reader.ReadMD5();
+          if Result_.Reader.IsEnd then
             begin
               Warning('protocol version upgrade zserver from https://github.com/PassByYou888/ZServer4D');
             end
           else
             begin
-              FServerState.UsedParallelEncrypt := ResultData.Reader.ReadBool();
-              FServerState.SyncOnResult := ResultData.Reader.ReadBool();
-              FServerState.SyncOnCompleteBuffer := ResultData.Reader.ReadBool();
-              FServerState.EnabledAtomicLockAndMultiThread := ResultData.Reader.ReadBool();
-              FServerState.TimeOutKeepAlive := ResultData.Reader.ReadBool();
-              FServerState.QuietMode := ResultData.Reader.ReadBool();
-              FServerState.IdleTimeOut := ResultData.Reader.ReadUInt64();
-              FServerState.SendDataCompressed := ResultData.Reader.ReadBool();
-              FServerState.CompleteBufferCompressed := ResultData.Reader.ReadBool();
-              FServerState.MaxCompleteBufferSize := ResultData.Reader.ReadCardinal();
-              FServerState.ProgressMaxDelay := ResultData.Reader.ReadUInt64();
+              FServerState.UsedParallelEncrypt := Result_.Reader.ReadBool();
+              FServerState.SyncOnResult := Result_.Reader.ReadBool();
+              FServerState.SyncOnCompleteBuffer := Result_.Reader.ReadBool();
+              FServerState.EnabledAtomicLockAndMultiThread := Result_.Reader.ReadBool();
+              FServerState.TimeOutKeepAlive := Result_.Reader.ReadBool();
+              FServerState.QuietMode := Result_.Reader.ReadBool();
+              FServerState.IdleTimeOut := Result_.Reader.ReadUInt64();
+              FServerState.SendDataCompressed := Result_.Reader.ReadBool();
+              FServerState.CompleteBufferCompressed := Result_.Reader.ReadBool();
+              FServerState.MaxCompleteBufferSize := Result_.Reader.ReadCardinal();
+              FServerState.ProgressMaxDelay := Result_.Reader.ReadUInt64();
             end
         end;
 
@@ -10597,7 +10838,9 @@ begin
 
       CipherModelDone;
 
-      AutomatedP2PVM_Open(Sender);
+      if (FAutomatedP2PVMClient and (FAutomatedP2PVMClientBind.Count > 0)) or
+        (FAutomatedP2PVMService and (FAutomatedP2PVMServiceBind.Count > 0)) then
+          AutomatedP2PVM_Open(Sender);
     end
   else
     begin
@@ -10648,6 +10891,7 @@ begin
           except
           end;
         end;
+      FRequestTime := GetTimeTick;
     end
   else
     begin
@@ -10724,7 +10968,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFrameworkClient.ConsoleResult_Wait(Sender: TPeerIO; ResultData: SystemString);
+procedure TCommunicationFrameworkClient.ConsoleResult_Wait(Sender: TPeerIO; Result_: SystemString);
 begin
   if FWaiting then
     begin
@@ -10749,9 +10993,16 @@ end;
 function TCommunicationFrameworkClient.GetWaitTimeout(const t: TTimeTick): TTimeTick;
 begin
   if t = 0 then
-      Result := 1000 * 60 * 5
+      Result := 1000 * 60 * 30
   else
       Result := t;
+end;
+
+procedure TCommunicationFrameworkClient.Do_IO_IDLE_FreeSelf(Data_: TCoreClassObject);
+begin
+  if Self is TCommunicationFrameworkWithP2PVM_Client then
+      TCommunicationFrameworkWithP2PVM_Client(Self).CloneClientAutoFree := False;
+  DelayFreeObject(1.0, Self, Data_);
 end;
 
 constructor TCommunicationFrameworkClient.Create;
@@ -10779,6 +11030,8 @@ begin
 
   FIgnoreProcessConnectedAndDisconnect := False;
   FLastConnectIsSuccessed := False;
+  FRequestTime := 0;
+  FReponseTime := 0;
 
   FOnWaitResultCall := nil;
   FOnWaitResultMethod := nil;
@@ -10803,6 +11056,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TCommunicationFrameworkClient.DelayFreeSelf;
+begin
+  DelayFreeObject(1.0, Self, nil);
+end;
+
 procedure TCommunicationFrameworkClient.IO_IDLE_TraceC(data: TCoreClassObject; const OnNotify: TDataNotifyCall);
 begin
   if ClientIO = nil then
@@ -10825,6 +11083,11 @@ begin
       OnNotify(data)
   else
       ClientIO.IO_IDLE_TraceP(data, OnNotify);
+end;
+
+procedure TCommunicationFrameworkClient.IO_IDLE_Trace_And_FreeSelf(Additional_Object_: TCoreClassObject);
+begin
+  IO_IDLE_TraceM(Additional_Object_, {$IFDEF FPC}@{$ENDIF FPC}Do_IO_IDLE_FreeSelf);
 end;
 
 procedure TCommunicationFrameworkClient.OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean);
@@ -11042,7 +11305,7 @@ procedure TCommunicationFrameworkClient.Disconnect;
 begin
 end;
 
-procedure TCommunicationFrameworkClient.DelayClose;
+procedure TCommunicationFrameworkClient.DelayCloseIO;
 begin
   try
     if ClientIO <> nil then
@@ -11051,7 +11314,7 @@ begin
   end;
 end;
 
-procedure TCommunicationFrameworkClient.DelayClose(const t: Double);
+procedure TCommunicationFrameworkClient.DelayCloseIO(const t: Double);
 begin
   try
     if ClientIO <> nil then
@@ -11702,7 +11965,7 @@ begin
       ClientIO.FWaitSendBusy := False;
 end;
 
-procedure TCommunicationFrameworkClient.WaitSendStreamCmd(Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFrameworkClient.WaitSendStreamCmd(Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 var
   waitIntf: TWaitSendStreamCmdIntf;
   timetick: TTimeTick;
@@ -11755,10 +12018,10 @@ begin
 
     if waitIntf.Done then
       begin
-        if (ResultData <> nil) and (not waitIntf.Failed) then
+        if (Result_ <> nil) and (not waitIntf.Failed) then
           begin
-            ResultData.Assign(waitIntf.NewResult);
-            ResultData.Reader.index := 0;
+            Result_.Assign(waitIntf.NewResult);
+            Result_.Reader.index := 0;
           end;
         DisposeObject(waitIntf);
       end;
@@ -11931,20 +12194,24 @@ begin
   FDestroySyncRemote := True;
 
   if not FOwnerFramework.FQuietMode then
-      Print('VM-IO Create %d', [ID]);
+      FOwnerFramework.Print('VM-IO Create %d', [ID]);
 end;
 
 destructor TP2PVM_PeerIO.Destroy;
 var
   i: Integer;
   c_: TCommunicationFrameworkWithP2PVM_Client;
+  LID: Cardinal;
 begin
+  LID := 0;
   if Connected then
     begin
       if (FDestroySyncRemote) and (FLinkVM <> nil) then
           FLinkVM.SendDisconnect(Remote_frameworkID, Remote_p2pID);
+
+      LID := ID;
       if not FOwnerFramework.FQuietMode then
-          Print('VMClientIO %d disconnect', [ID]);
+          FOwnerFramework.Print('VMClientIO %d disconnect', [LID]);
       if FOwnerFramework is TCommunicationFrameworkWithP2PVM_Client then
         begin
           c_ := TCommunicationFrameworkWithP2PVM_Client(FOwnerFramework);
@@ -11963,7 +12230,7 @@ begin
   DisposeObject(FRealSendBuff);
 
   if not FOwnerFramework.FQuietMode then
-      Print('VM-IO Destroy %d', [ID]);
+      FOwnerFramework.Print('VM-IO Destroy %d', [LID]);
   inherited Destroy;
 end;
 
@@ -12033,6 +12300,8 @@ end;
 function TP2PVM_PeerIO.GetPeerIP: SystemString;
 begin
   Result := IPv6ToStr(FIP).Text;
+  if (FLinkVM <> nil) and (FLinkVM.FPhysicsIO <> nil) then
+      Result := FLinkVM.FPhysicsIO.PeerIP + '(' + Result + ')';
 end;
 
 function TP2PVM_PeerIO.WriteBufferEmpty: Boolean;
@@ -12281,7 +12550,7 @@ begin
   CloseAllClient;
 end;
 
-function TCommunicationFrameworkWithP2PVM_Server.StartService(Host: SystemString; Port: Word): Boolean;
+function TCommunicationFrameworkWithP2PVM_Server.StartService(Host_: SystemString; Port: Word): Boolean;
 var
   IPV6: TIPV6;
   SI: Cardinal;
@@ -12291,10 +12560,14 @@ var
 begin
   Result := False;
 
-  IPV6 := StrToIPv6(Host, Result, SI);
-
-  if not Result then
-      exit;
+  if umlTrimSpace(Host_).L = 0 then
+      IPV6 := MakeRandomIPV6()
+  else
+    begin
+      IPV6 := StrToIPv6(Host_, Result, SI);
+      if not Result then
+          exit;
+    end;
 
   LP := FindListen(IPV6, Port);
   if LP = nil then
@@ -12336,7 +12609,7 @@ begin
   RaiseInfo('WaitSend no Suppport VM server');
 end;
 
-procedure TCommunicationFrameworkWithP2PVM_Server.WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFrameworkWithP2PVM_Server.WaitSendStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport VM server');
 end;
@@ -12407,9 +12680,14 @@ begin
   while i < FP2PVM_ClonePool.Count do
     begin
       if FP2PVM_ClonePool[i].FP2PVM_CloneClientAutoFree then
-          DisposeObject(FP2PVM_ClonePool[i])
+        begin
+          DisposeObject(FP2PVM_ClonePool[i]);
+        end
       else
+        begin
+          FP2PVM_ClonePool[i].FP2PVM_CloneOwner := nil;
           inc(i);
+        end;
     end;
   DisposeObject(FP2PVM_ClonePool);
 
@@ -12432,14 +12710,7 @@ begin
   bridge_ := TP2PVM_CloneConnectEventBridge.Create(Self);
   bridge_.NewClient := TCommunicationFrameworkWithP2PVM_Client.Create;
   // copy parameter
-  bridge_.NewClient.FastEncrypt := FastEncrypt;
-  bridge_.NewClient.TimeOutKeepAlive := TimeOutKeepAlive;
-  bridge_.NewClient.TimeOutIDLE := TimeOutIDLE;
-  bridge_.NewClient.SendDataCompressed := SendDataCompressed;
-  bridge_.NewClient.CompleteBufferCompressed := CompleteBufferCompressed;
-  bridge_.NewClient.SyncOnResult := SyncOnResult;
-  bridge_.NewClient.SyncOnCompleteBuffer := SyncOnCompleteBuffer;
-  bridge_.NewClient.QuietMode := QuietMode;
+  bridge_.NewClient.CopyParamFrom(Self);
   // init event
   bridge_.OnResultC := OnResult;
   bridge_.NewClient.FP2PVM_CloneOwner := Self;
@@ -12461,14 +12732,7 @@ begin
   bridge_ := TP2PVM_CloneConnectEventBridge.Create(Self);
   bridge_.NewClient := TCommunicationFrameworkWithP2PVM_Client.Create;
   // copy parameter
-  bridge_.NewClient.FastEncrypt := FastEncrypt;
-  bridge_.NewClient.TimeOutKeepAlive := TimeOutKeepAlive;
-  bridge_.NewClient.TimeOutIDLE := TimeOutIDLE;
-  bridge_.NewClient.SendDataCompressed := SendDataCompressed;
-  bridge_.NewClient.CompleteBufferCompressed := CompleteBufferCompressed;
-  bridge_.NewClient.SyncOnResult := SyncOnResult;
-  bridge_.NewClient.SyncOnCompleteBuffer := SyncOnCompleteBuffer;
-  bridge_.NewClient.QuietMode := QuietMode;
+  bridge_.NewClient.CopyParamFrom(Self);
   // init event
   bridge_.OnResultM := OnResult;
   bridge_.NewClient.FP2PVM_CloneOwner := Self;
@@ -12490,14 +12754,7 @@ begin
   bridge_ := TP2PVM_CloneConnectEventBridge.Create(Self);
   bridge_.NewClient := TCommunicationFrameworkWithP2PVM_Client.Create;
   // copy parameter
-  bridge_.NewClient.FastEncrypt := FastEncrypt;
-  bridge_.NewClient.TimeOutKeepAlive := TimeOutKeepAlive;
-  bridge_.NewClient.TimeOutIDLE := TimeOutIDLE;
-  bridge_.NewClient.SendDataCompressed := SendDataCompressed;
-  bridge_.NewClient.CompleteBufferCompressed := CompleteBufferCompressed;
-  bridge_.NewClient.SyncOnResult := SyncOnResult;
-  bridge_.NewClient.SyncOnCompleteBuffer := SyncOnCompleteBuffer;
-  bridge_.NewClient.QuietMode := QuietMode;
+  bridge_.NewClient.CopyParamFrom(Self);
   // init event
   bridge_.OnResultP := OnResult;
   bridge_.NewClient.FP2PVM_CloneOwner := Self;
@@ -12580,7 +12837,9 @@ begin
   for i := 0 to FP2PVM_ClonePool.Count - 1 do
     begin
       if FP2PVM_ClonePool[i].FP2PVM_CloneClientAutoProgress then
+        begin
           FP2PVM_ClonePool[i].Progress;
+        end;
     end;
 end;
 
@@ -12614,16 +12873,14 @@ begin
   FOnP2PVMAsyncConnectNotifyProc := nil;
   if (FLinkVM = nil) or (FLinkVM.FPhysicsIO = nil) then
     begin
-      if not FQuietMode then
-          Error('no VM connect');
+      Error('no VM connect');
       TriggerDoConnectFailed;
       exit;
     end;
 
   if not FLinkVM.WasAuthed then
     begin
-      if not FQuietMode then
-          Error('VM no auth');
+      Error('VM no auth');
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12632,8 +12889,7 @@ begin
 
   if not r then
     begin
-      if not FQuietMode then
-          Error('ipv6 format error! %s', [addr]);
+      Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12641,8 +12897,7 @@ begin
   p := FLinkVM.FindListen(IPV6, Port);
   if p = nil then
     begin
-      if not FQuietMode then
-          Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
+      Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12672,16 +12927,14 @@ begin
   FOnP2PVMAsyncConnectNotifyProc := nil;
   if (FLinkVM = nil) or (FLinkVM.FPhysicsIO = nil) then
     begin
-      if not FQuietMode then
-          Error('no VM connect');
+      Error('no VM connect');
       TriggerDoConnectFailed;
       exit;
     end;
 
   if not FLinkVM.WasAuthed then
     begin
-      if not FQuietMode then
-          Error('VM no auth');
+      Error('VM no auth');
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12690,8 +12943,7 @@ begin
 
   if not r then
     begin
-      if not FQuietMode then
-          Error('ipv6 format error! %s', [addr]);
+      Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12699,8 +12951,7 @@ begin
   p := FLinkVM.FindListen(IPV6, Port);
   if p = nil then
     begin
-      if not FQuietMode then
-          Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
+      Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12731,16 +12982,14 @@ begin
 
   if (FLinkVM = nil) or (FLinkVM.FPhysicsIO = nil) then
     begin
-      if not FQuietMode then
-          Error('no VM connect');
+      Error('no VM connect');
       TriggerDoConnectFailed;
       exit;
     end;
 
   if not FLinkVM.WasAuthed then
     begin
-      if not FQuietMode then
-          Error('VM no auth');
+      Error('VM no auth');
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12749,8 +12998,7 @@ begin
 
   if not r then
     begin
-      if not FQuietMode then
-          Error('ipv6 format error! %s', [addr]);
+      Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12758,8 +13006,7 @@ begin
   p := FLinkVM.FindListen(IPV6, Port);
   if p = nil then
     begin
-      if not FQuietMode then
-          Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
+      Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12790,16 +13037,14 @@ begin
 
   if (FLinkVM = nil) or (FLinkVM.FPhysicsIO = nil) then
     begin
-      if not FQuietMode then
-          Error('no VM connect');
+      Error('no VM connect');
       TriggerDoConnectFailed;
       exit;
     end;
 
   if not FLinkVM.WasAuthed then
     begin
-      if not FQuietMode then
-          Error('VM no auth');
+      Error('VM no auth');
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12808,8 +13053,7 @@ begin
 
   if not r then
     begin
-      if not FQuietMode then
-          Error('ipv6 format error! %s', [addr]);
+      Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12817,8 +13061,7 @@ begin
   p := FLinkVM.FindListen(IPV6, Port);
   if p = nil then
     begin
-      if not FQuietMode then
-          Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
+      Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
       TriggerDoConnectFailed;
       exit;
     end;
@@ -12849,15 +13092,13 @@ begin
   FOnP2PVMAsyncConnectNotifyProc := nil;
   if (FLinkVM = nil) or (FLinkVM.FPhysicsIO = nil) then
     begin
-      if not FQuietMode then
-          Error('no VM connect');
+      Error('no VM connect');
       exit;
     end;
 
   if not FLinkVM.WasAuthed then
     begin
-      if not FQuietMode then
-          Error('VM no auth');
+      Error('VM no auth');
       exit;
     end;
 
@@ -12865,16 +13106,14 @@ begin
 
   if not Result then
     begin
-      if not FQuietMode then
-          Error('ipv6 format error! %s', [addr]);
+      Error('ipv6 format error! %s', [addr]);
       exit;
     end;
 
   p := FLinkVM.FindListen(IPV6, Port);
   if p = nil then
     begin
-      if not FQuietMode then
-          Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
+      Error('no remote listen %s port:%d', [IPv6ToStr(IPV6).Text, Port]);
       exit;
     end;
 
@@ -13041,7 +13280,7 @@ begin
           FReceiveStream := sourStream;
 
           if not FQuietMode then
-              DoStatus('VM Authentication Success');
+              FPhysicsIO.Print('VM Authentication Success');
         end
       else if FAuthWaiting then
           exit
@@ -13101,9 +13340,9 @@ begin
               ReceivedLogicFragmentData(fPk.FrameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
           else if fPk.pkType = C_p2pVM_PhysicsFragmentData then
               ReceivedPhysicsFragmentData(fPk.FrameworkID, fPk.p2pID, fPk.buff, fPk.buffSiz)
-          else if not FQuietMode then
+          else
             begin
-              DoStatus('VM protocol header errror');
+              FPhysicsIO.PrintError('VM protocol header errror');
               DoStatus(@fPk, SizeOf(fPk), 40);
             end;
 
@@ -13124,7 +13363,7 @@ begin
 
   if p64 > 0 then
     begin
-      sourStream := TMemoryStream64.Create;
+      sourStream := TMemoryStream64.CustomCreate(8192);
       FReceiveStream.Position := p64;
       if FReceiveStream.Size - FReceiveStream.Position > 0 then
           sourStream.CopyFrom(FReceiveStream, FReceiveStream.Size - FReceiveStream.Position);
@@ -13171,8 +13410,7 @@ var
 begin
   if siz <> SizeOf(TBuf) then
     begin
-      if not FQuietMode then
-          DoStatus('echoing protocol with buffer error!');
+      FPhysicsIO.PrintError('echoing protocol with buffer error!');
       if buff <> nil then
         if not FQuietMode then
             DoStatus(buff, siz, 40);
@@ -13223,8 +13461,7 @@ var
 begin
   if siz <> SizeOf(TBuf) then
     begin
-      if not FQuietMode then
-          DoStatus('listen protocol with buffer error!');
+      FPhysicsIO.PrintError('listen protocol with buffer error!');
       if buff <> nil then
         if not FQuietMode then
             DoStatus(buff, siz, 40);
@@ -13237,8 +13474,7 @@ begin
 
   if p2pID <> 0 then
     begin
-      if not FQuietMode then
-          DoStatus('listen protocol error! IO ID:%d', [p2pID]);
+      FPhysicsIO.PrintError('listen protocol error! IO ID:%d', [p2pID]);
       exit;
     end;
 
@@ -13282,8 +13518,7 @@ var
 begin
   if siz <> SizeOf(TBuf) then
     begin
-      if not FQuietMode then
-          DoStatus('Virtual listen state protocol with buffer error!');
+      FPhysicsIO.PrintError('Virtual listen state protocol with buffer error!');
       if buff <> nil then
         if not FQuietMode then
             DoStatus(buff, siz, 40);
@@ -13296,8 +13531,7 @@ begin
 
   if p2pID <> 0 then
     begin
-      if not FQuietMode then
-          DoStatus('Virtual listen state protocol error! IO ID:%d', [p2pID]);
+      FPhysicsIO.PrintError('Virtual listen state protocol error! IO ID:%d', [p2pID]);
       exit;
     end;
 
@@ -13318,13 +13552,13 @@ begin
           LP^.Listening := True;
         end;
       if not FQuietMode then
-          DoStatus('Virtual Remote Listen state Activted "%s port:%d"', [IPv6ToStr(IPV6).Text, Port]);
+          FPhysicsIO.Print('Virtual Remote Listen state Activted "%s port:%d"', [IPv6ToStr(IPV6).Text, Port]);
     end
   else
     begin
       DeleteListen(IPV6, Port);
       if not FQuietMode then
-          DoStatus('Virtual Remote Listen state Close "%s port:%d"', [IPv6ToStr(IPV6).Text, Port]);
+          FPhysicsIO.Print('Virtual Remote Listen state Close "%s port:%d"', [IPv6ToStr(IPV6).Text, Port]);
     end;
 
   c := TCommunicationFramework(FFrameworkPool[FrameworkID]);
@@ -13350,12 +13584,9 @@ var
 begin
   if siz <> SizeOf(TBuf) then
     begin
-      if not FQuietMode then
-        begin
-          DoStatus('connect request with buffer error!');
-          if buff <> nil then
-              DoStatus(buff, siz, 40);
-        end;
+      FPhysicsIO.PrintError('connect request with buffer error!');
+      if buff <> nil then
+          DoStatus(buff, siz, 40);
       exit;
     end;
   p := @buff^;
@@ -13367,8 +13598,7 @@ begin
   if p2pID <> 0 then
     begin
       SendDisconnect(Remote_frameworkID, Remote_p2pID);
-      if not FQuietMode then
-          DoStatus('connect request with protocol error! IO ID:%d', [p2pID]);
+      FPhysicsIO.PrintError('connect request with protocol error! IO ID:%d', [p2pID]);
       exit;
     end;
 
@@ -13402,12 +13632,9 @@ var
 begin
   if siz <> SizeOf(TBuf) then
     begin
-      if not FQuietMode then
-        begin
-          DoStatus('connect request with buffer error!');
-          if buff <> nil then
-              DoStatus(buff, siz, 40);
-        end;
+      FPhysicsIO.PrintError('connect request with buffer error!');
+      if buff <> nil then
+          DoStatus(buff, siz, 40);
       exit;
     end;
 
@@ -13422,7 +13649,7 @@ begin
       TCommunicationFrameworkWithP2PVM_Client(c).VMConnectSuccessed(Self, Remote_frameworkID, Remote_p2pID, FrameworkID);
 
       if not FQuietMode then
-          DoStatus('connecting reponse from frameworkID: %d p2pID: %d', [Remote_frameworkID, Remote_p2pID]);
+          FPhysicsIO.Print('connecting reponse from frameworkID: %d p2pID: %d', [Remote_frameworkID, Remote_p2pID]);
     end;
 end;
 
@@ -13444,14 +13671,14 @@ begin
       if LocalVMc = nil then
         begin
           if not FQuietMode then
-              DoStatus('disconnect protocol no p2pID:%d', [p2pID]);
+              FPhysicsIO.Print('disconnect protocol no p2pID:%d', [p2pID]);
           exit;
         end;
       LocalVMc.FDestroySyncRemote := False;
       LocalVMc.Disconnect;
     end
   else if not FQuietMode then
-      DoStatus('disconnect protocol no frameworkID: %d', [FrameworkID]);
+      FPhysicsIO.Print('disconnect protocol no frameworkID: %d', [FrameworkID]);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.ReceivedLogicFragmentData(const FrameworkID, p2pID: Cardinal; const buff: PByte; const siz: Cardinal);
@@ -13469,9 +13696,9 @@ begin
           LocalVMc.SaveReceiveBuffer(buff, siz);
           LocalVMc.FillRecvBuffer(nil, False, False);
         end
-      else if not FQuietMode then
+      else
         begin
-          DoStatus('fragment Data p2pID error: p2pID:%d buffer size:%d', [p2pID, siz]);
+          FPhysicsIO.PrintError('fragment Data p2pID error: p2pID:%d buffer size:%d', [p2pID, siz]);
           DoStatus(buff, umlMin(siz, 164), 40);
         end;
     end
@@ -13483,14 +13710,14 @@ begin
           LocalVMc.SaveReceiveBuffer(buff, siz);
           LocalVMc.FillRecvBuffer(nil, False, False);
         end
-      else if not FQuietMode then
+      else
         begin
-          DoStatus('LocalVM [%d] error: no interface', [FrameworkID]);
+          FPhysicsIO.PrintError('LocalVM [%d] error: no interface', [FrameworkID]);
         end;
     end
-  else if not FQuietMode then
+  else
     begin
-      DoStatus('fragment Data frameworkID error: frameworkID:%d buffer size:%d', [FrameworkID, siz]);
+      FPhysicsIO.PrintError('fragment Data frameworkID error: frameworkID:%d buffer size:%d', [FrameworkID, siz]);
       DoStatus(buff, umlMin(siz, 164), 40);
     end;
 end;
@@ -13532,27 +13759,18 @@ begin
   inherited Create;
   FCritical := TCritical.Create;
   FPhysicsIO := nil;
-
   FAuthWaiting := False;
   FAuthed := False;
   FAuthSending := False;
-
   FFrameworkPool := TUInt32HashObjectList.CustomCreate(HashPoolSize);
   FFrameworkPool.AutoFreeData := False;
   FFrameworkPool.AccessOptimization := False;
-
   FFrameworkListenPool := TCoreClassList.Create;
-
   FMaxVMFragmentSize := C_P2PVM_MaxVMFragmentSize;
-  FMaxRealBuffer := C_P2PVM_MaxRealBuffer;
-
-  FQuietMode := False;
-
-  FReceiveStream := TMemoryStream64.Create;
-  FSendStream := TMemoryStream64.Create;
-
+  FQuietMode := {$IFDEF Communication_QuietMode}True{$ELSE Communication_QuietMode}False{$ENDIF Communication_QuietMode};
+  FReceiveStream := TMemoryStream64.CustomCreate(8192);
+  FSendStream := TMemoryStream64.CustomCreate(8192);
   FWaitEchoList := TCoreClassList.Create;
-
   FVMID := 0;
   OnAuthSuccessOnesNotify := nil;
 end;
@@ -13568,12 +13786,9 @@ begin
       Dispose(OnEchoPtr);
     end;
   FWaitEchoList.Clear;
-
   if FPhysicsIO <> nil then
       CloseP2PVMTunnel;
-
   ClearListen;
-
   DisposeObject(FWaitEchoList);
   DisposeObject(FReceiveStream);
   DisposeObject(FSendStream);
@@ -13638,26 +13853,31 @@ begin
       exit;
 
   { fragment Packet }
-  repeat
-    lsiz := FSendStream.Size;
-    if (FFrameworkPool.Count > 0) then
-      begin
-        i := 0;
-        p := FFrameworkPool.FirstPtr;
-        while i < FFrameworkPool.Count do
-          begin
-            TCommunicationFramework(p^.data).FastProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoProcessPerClientFragmentSend);
-            inc(i);
-            p := p^.Next;
-          end;
-      end;
-  until (FSendStream.Size = lsiz) or (FSendStream.Size > FMaxRealBuffer);
-
-  if FSendStream.Size > 0 then
+  while True do
     begin
-      SendVMBuffer(FSendStream.Memory, FSendStream.Size);
-      FSendStream.Clear;
-    end
+      repeat
+        lsiz := FSendStream.Size;
+        if (FFrameworkPool.Count > 0) then
+          begin
+            i := 0;
+            p := FFrameworkPool.FirstPtr;
+            while i < FFrameworkPool.Count do
+              begin
+                TCommunicationFramework(p^.data).FastProgressPeerIOM({$IFDEF FPC}@{$ENDIF FPC}DoProcessPerClientFragmentSend);
+                inc(i);
+                p := p^.Next;
+              end;
+          end;
+      until (FSendStream.Size = lsiz);
+
+      if FSendStream.Size > 0 then
+        begin
+          SendVMBuffer(FSendStream.Memory, FSendStream.Size);
+          FSendStream.Clear;
+        end
+      else
+          Break;
+    end;
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.ProgressCommunicationFrameworkC(const OnBackcall: TCommunicationFrameworkListCall);
@@ -13742,7 +13962,7 @@ begin
   end;
 
   if not FQuietMode then
-      DoStatus('Open VM P2P Tunnel ' + FPhysicsIO.PeerIP);
+      FPhysicsIO.Print('Open VM P2P Tunnel ' + FPhysicsIO.PeerIP);
 end;
 
 procedure TCommunicationFrameworkWithP2PVM.CloseP2PVMTunnel;
@@ -13796,7 +14016,7 @@ begin
   end;
 
   if not FQuietMode then
-      DoStatus('Close VM P2P Tunnel ' + FPhysicsIO.PeerIP);
+      FPhysicsIO.Print('Close VM P2P Tunnel ' + FPhysicsIO.PeerIP);
 
   FPhysicsIO := nil;
 end;
@@ -13822,7 +14042,7 @@ begin
       if TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID <> 0 then
         begin
           if FFrameworkPool.Exists(TCommunicationFrameworkWithP2PVM_Server(c).FFrameworkWithVM_ID) then
-              RaiseInfo('P2PVM server is installed');
+              exit;
         end
       else
         begin
@@ -13847,7 +14067,7 @@ begin
       if TCommunicationFrameworkWithP2PVM_Client(c).FFrameworkWithVM_ID <> 0 then
         begin
           if FFrameworkPool.Exists(TCommunicationFrameworkWithP2PVM_Client(c).FFrameworkWithVM_ID) then
-              RaiseInfo('P2PVM client is installed');
+              exit;
         end
       else
         begin
@@ -14615,7 +14835,7 @@ begin
 end;
 
 procedure TCommunicationFramework_CustomStableServer.WaitSendStreamCmd(P_IO: TPeerIO;
-  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+  const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;
@@ -14740,7 +14960,7 @@ begin
     end;
 end;
 
-procedure TCommunicationFramework_CustomStableClient.BuildStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableClient.BuildStableIO_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
 var
   r_token, r_id: Cardinal;
   cSec: TCipherSecurity;
@@ -14748,12 +14968,12 @@ var
   i: Integer;
   k: TCipherKeyBuffer;
 begin
-  if ResultData.Reader.ReadBool then
+  if Result_.Reader.ReadBool then
     begin
-      r_token := ResultData.Reader.ReadCardinal;
-      r_id := ResultData.Reader.ReadCardinal;
-      cSec := TCipherSecurity(ResultData.Reader.ReadByte);
-      arry := ResultData.Reader.ReadArrayByte;
+      r_token := Result_.Reader.ReadCardinal;
+      r_id := Result_.Reader.ReadCardinal;
+      cSec := TCipherSecurity(Result_.Reader.ReadByte);
+      arry := Result_.Reader.ReadArrayByte;
       SetLength(k, arry.Count);
       for i := 0 to arry.Count - 1 do
           k[i] := arry[i];
@@ -14788,7 +15008,7 @@ begin
     end
   else
     begin
-      Sender.PrintError(ResultData.Reader.ReadString);
+      Sender.PrintError(Result_.Reader.ReadString);
       TriggerDoConnectFailed;
     end;
 end;
@@ -14823,19 +15043,19 @@ begin
   FPhysicsClient.AsyncConnectM(FConnection_Addr, FConnection_Port, {$IFDEF FPC}@{$ENDIF FPC}AsyncConnectResult);
 end;
 
-procedure TCommunicationFramework_CustomStableClient.OpenStableIO_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationFramework_CustomStableClient.OpenStableIO_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
 var
   r_token, r_id: Cardinal;
   cSec: TCipherSecurity;
   arry: TDataFrameArrayByte;
   k: TCipherKeyBuffer;
 begin
-  if ResultData.Reader.ReadBool then
+  if Result_.Reader.ReadBool then
     begin
-      r_token := ResultData.Reader.ReadCardinal;
-      r_id := ResultData.Reader.ReadCardinal;
-      cSec := TCipherSecurity(ResultData.Reader.ReadByte);
-      arry := ResultData.Reader.ReadArrayByte;
+      r_token := Result_.Reader.ReadCardinal;
+      r_id := Result_.Reader.ReadCardinal;
+      cSec := TCipherSecurity(Result_.Reader.ReadByte);
+      arry := Result_.Reader.ReadArrayByte;
       SetLength(k, arry.Count);
       arry.GetBuff(@k[0]);
 
@@ -14866,7 +15086,7 @@ begin
     end
   else
     begin
-      Sender.PrintError(ResultData.Reader.ReadString);
+      Sender.PrintError(Result_.Reader.ReadString);
 
       FStableClientIO.WaitConnecting := False;
 

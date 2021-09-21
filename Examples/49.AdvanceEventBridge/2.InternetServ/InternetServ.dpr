@@ -94,7 +94,7 @@ begin
   if DatabasePhyCli.RemoteInited then
       exit;
   DatabaseConnecting := True;
-  ProgressCadencer.PostExecuteC_NP(2, DoDelayConnectToDatabaseService);
+  SysPost.PostExecuteC_NP(2, DoDelayConnectToDatabaseService);
 end;
 {$ENDREGION 'p2pVM自动化的异步连接握手事件，很多时候它都用匿名函数回调'}
 {$REGION '异步事件桥'}

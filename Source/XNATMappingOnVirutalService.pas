@@ -76,7 +76,7 @@ type
     procedure SendTunnel_ConnectResult(const cState: Boolean);
     procedure RecvTunnel_ConnectResult(const cState: Boolean);
 
-    procedure RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure RequestListen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
     procedure delay_RequestListen(Sender: TNPostExecute);
 
     procedure Open;
@@ -95,7 +95,7 @@ type
     procedure Progress; override;
     procedure TriggerQueueData(v: PQueueData); override;
     function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); override;
   end;
 
   TPhysicsEngine_Special = class(TPeerIOUserSpecial)
@@ -104,7 +104,7 @@ type
     procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
     procedure PhysicsVMBuildAuthToken_Result;
     procedure PhysicsOpenVM_Result(const cState: Boolean);
-    procedure IPV6Listen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure IPV6Listen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
   public
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
@@ -291,9 +291,9 @@ begin
       DoStatus('error: [%s] Receive Tunnel connect failed!', [Mapping.Text]);
 end;
 
-procedure TXNAT_MappingOnVirutalServer.RequestListen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TXNAT_MappingOnVirutalServer.RequestListen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
 begin
-  if ResultData.Reader.ReadBool then
+  if Result_.Reader.ReadBool then
     begin
       DoStatus('success: remote host:%s port:%s mapping to local server', [XNAT.Host.Text, Remote_ListenPort.Text]);
       UpdateWorkload(True);
@@ -514,7 +514,7 @@ begin
   RaiseInfo('WaitSend no Suppport');
 end;
 
-procedure TXNAT_MappingOnVirutalServer.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TXNAT_MappingOnVirutalServer.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;
@@ -556,14 +556,13 @@ begin
   if cState then
     begin
       Owner.p2pVMTunnel.MaxVMFragmentSize := umlStrToInt(XNAT.MaxVMFragment, Owner.p2pVMTunnel.MaxVMFragmentSize);
-      Owner.p2pVMTunnel.MaxRealBuffer := umlStrToInt(XNAT.MaxRealBuffer, Owner.p2pVMTunnel.MaxRealBuffer);
       Owner.SendStreamCmdM(C_IPV6Listen, nil, {$IFDEF FPC}@{$ENDIF FPC}IPV6Listen_Result);
     end
   else
       XNAT.WaitAsyncConnecting := False;
 end;
 
-procedure TPhysicsEngine_Special.IPV6Listen_Result(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TPhysicsEngine_Special.IPV6Listen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
 var
   Mapping: TPascalString;
   Remote_ListenAddr, Remote_ListenPort: TPascalString;
@@ -573,15 +572,15 @@ var
   SendTunnel_Port: Word;
   tunMp: TXNAT_MappingOnVirutalServer;
 begin
-  while ResultData.Reader.NotEnd do
+  while Result_.Reader.NotEnd do
     begin
-      Mapping := ResultData.Reader.ReadString;
-      Remote_ListenAddr := ResultData.Reader.ReadString;
-      Remote_ListenPort := ResultData.Reader.ReadString;
-      SendTunnel_IPV6 := ResultData.Reader.ReadString;
-      SendTunnel_Port := ResultData.Reader.ReadWord;
-      RecvTunnel_IPV6 := ResultData.Reader.ReadString;
-      RecvTunnel_Port := ResultData.Reader.ReadWord;
+      Mapping := Result_.Reader.ReadString;
+      Remote_ListenAddr := Result_.Reader.ReadString;
+      Remote_ListenPort := Result_.Reader.ReadString;
+      SendTunnel_IPV6 := Result_.Reader.ReadString;
+      SendTunnel_Port := Result_.Reader.ReadWord;
+      RecvTunnel_IPV6 := Result_.Reader.ReadString;
+      RecvTunnel_Port := Result_.Reader.ReadWord;
       tunMp := TXNAT_MappingOnVirutalServer(XNAT.HashMapping[Mapping]);
       if tunMp <> nil then
         begin

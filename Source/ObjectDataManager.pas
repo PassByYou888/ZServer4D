@@ -230,7 +230,7 @@ type
     function ItemRename(const fieldPos: Int64; var ItemHnd: TItemHandle; const NewName, NewDescription: SystemString): Boolean;
     function ItemFastInsertNew(const fieldPos, InsertHeaderPos: Int64; const DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
     function ItemFastCreate(const fPos: Int64; const DBItemName, DBItemDescription: SystemString; var ItemHnd: TItemHandle): Boolean;
-    function ItemFastOpen(const fPos: Int64; var ItemHnd: TItemHandle): Boolean;
+    function ItemFastOpen(const hPos: Int64; var ItemHnd: TItemHandle): Boolean;
     function ItemFastResetBody(const fPos: Int64): Boolean;
     function ItemFastExists(const fieldPos: Int64; const DBItemName: SystemString): Boolean;
     function ItemFastFindFirst(const fieldPos: Int64; const DBItemName: SystemString; var ItemSearchHandle: TItemSearch): Boolean;
@@ -253,6 +253,7 @@ type
 
     // item stream
     function ItemReadToStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean; overload;
+    function ItemReadToStream(hPos: Int64; stream: TCoreClassStream): Boolean; overload;
     function ItemWriteFromStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean; overload;
     function ItemReadToStream(const DBPath, DBItemName: SystemString; stream: TCoreClassStream): Boolean; overload;
     function ItemWriteFromStream(const DBPath, DBItemName: SystemString; stream: TCoreClassStream): Boolean; overload;
@@ -1594,10 +1595,10 @@ begin
   Result := db_ItemFastCreate(DBItemName, DBItemDescription, fPos, FDefaultItemID, ItemHnd, FDBHandle);
 end;
 
-function TObjectDataManager.ItemFastOpen(const fPos: Int64; var ItemHnd: TItemHandle): Boolean;
+function TObjectDataManager.ItemFastOpen(const hPos: Int64; var ItemHnd: TItemHandle): Boolean;
 begin
   Init_TTMDBItemHandle(ItemHnd);
-  Result := db_ItemFastOpen(fPos, FDefaultItemID, ItemHnd, FDBHandle);
+  Result := db_ItemFastOpen(hPos, FDefaultItemID, ItemHnd, FDBHandle);
 end;
 
 function TObjectDataManager.ItemFastResetBody(const fPos: Int64): Boolean;
@@ -1713,6 +1714,16 @@ begin
   sour.SeekStart();
   Result := stream.CopyFrom(sour, sour.Size) = sour.Size;
   DisposeObject(sour);
+end;
+
+function TObjectDataManager.ItemReadToStream(hPos: Int64; stream: TCoreClassStream): Boolean;
+var
+  ItemHnd: TItemHandle;
+begin
+  Result := ItemFastOpen(hPos, ItemHnd);
+  if not Result then
+      Exit;
+  Result := ItemReadToStream(ItemHnd, stream);
 end;
 
 function TObjectDataManager.ItemWriteFromStream(var ItemHnd: TItemHandle; stream: TCoreClassStream): Boolean;
@@ -2925,6 +2936,7 @@ end;
 
 initialization
 
+Internal_ObjectDataMarshal := nil;
 ObjectDataMarshal();
 
 finalization
