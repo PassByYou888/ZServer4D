@@ -449,7 +449,7 @@ type
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
-    procedure IgnoreChangeToAllClient(Hash: TMD5; Ignored: Boolean);
+    procedure IgnoreChangeToAllClient(Hash__: TMD5; Ignored: Boolean);
     procedure UpdateServiceStateToAllClient;
     { event }
     property OnServiceInfoChange: TOnServiceInfoChange read FOnServiceInfoChange write FOnServiceInfoChange;
@@ -479,7 +479,7 @@ type
     procedure Disconnect; override;
     procedure PostLocalServiceInfo(forcePost_: Boolean);
     procedure RequestUpdate();
-    procedure IgnoreChangeToService(Hash: TMD5; Ignored: Boolean);
+    procedure IgnoreChangeToService(Hash__: TMD5; Ignored: Boolean);
     procedure UpdateLocalServiceState;
     procedure RemovePhysicsNetwork(PhysicsAddr: U_String; PhysicsPort: Word);
     { event }
@@ -2910,7 +2910,7 @@ end;
 procedure TDTC40_Dispatch_Service.cmd_UpdateServiceState(Sender: TPeerIO; InData: TDFE);
 var
   D: TDFE;
-  Hash: TMD5;
+  Hash__: TMD5;
   Workload, MaxWorkload: Integer;
   info_: TDTC40_Info;
   i: Integer;
@@ -2919,10 +2919,10 @@ begin
   while InData.R.NotEnd do
     begin
       InData.R.ReadDataFrame(D);
-      Hash := D.R.ReadMD5;
+      Hash__ := D.R.ReadMD5;
       Workload := D.R.ReadInteger;
       MaxWorkload := D.R.ReadInteger;
-      info_ := ServiceInfoList.FindHash(Hash);
+      info_ := ServiceInfoList.FindHash(Hash__);
       if (info_ <> nil) then
         begin
           info_.Workload := Workload;
@@ -2941,13 +2941,13 @@ end;
 
 procedure TDTC40_Dispatch_Service.cmd_IgnoreChange(Sender: TPeerIO; InData: TDFE);
 var
-  Hash: TMD5;
+  Hash__: TMD5;
   Ignored: Boolean;
   info_: TDTC40_Info;
 begin
-  Hash := InData.R.ReadMD5;
+  Hash__ := InData.R.ReadMD5;
   Ignored := InData.R.ReadBool;
-  info_ := ServiceInfoList.FindHash(Hash);
+  info_ := ServiceInfoList.FindHash(Hash__);
   if (info_ <> nil) and (info_.Ignored <> Ignored) then
     begin
       info_.Ignored := Ignored;
@@ -3126,7 +3126,7 @@ begin
     end;
 end;
 
-procedure TDTC40_Dispatch_Service.IgnoreChangeToAllClient(Hash: TMD5; Ignored: Boolean);
+procedure TDTC40_Dispatch_Service.IgnoreChangeToAllClient(Hash__: TMD5; Ignored: Boolean);
 var
   D: TDFE;
   Arry_: TIO_Array;
@@ -3134,7 +3134,7 @@ var
   IO_: TPeerIO;
 begin
   D := TDFE.Create;
-  D.WriteMD5(Hash);
+  D.WriteMD5(Hash__);
   D.WriteBool(Ignored);
   Service.SendTunnel.GetIO_Array(Arry_);
   for ID_ in Arry_ do
@@ -3199,7 +3199,7 @@ end;
 procedure TDTC40_Dispatch_Client.cmd_UpdateServiceState(Sender: TPeerIO; InData: TDFE);
 var
   D: TDFE;
-  Hash: TMD5;
+  Hash__: TMD5;
   Workload, MaxWorkload: Integer;
   info_: TDTC40_Info;
   i: Integer;
@@ -3208,10 +3208,10 @@ begin
   while InData.R.NotEnd do
     begin
       InData.R.ReadDataFrame(D);
-      Hash := D.R.ReadMD5;
+      Hash__ := D.R.ReadMD5;
       Workload := D.R.ReadInteger;
       MaxWorkload := D.R.ReadInteger;
-      info_ := ServiceInfoList.FindHash(Hash);
+      info_ := ServiceInfoList.FindHash(Hash__);
       if (info_ <> nil) then
         begin
           info_.Workload := Workload;
@@ -3230,15 +3230,15 @@ end;
 
 procedure TDTC40_Dispatch_Client.cmd_IgnoreChange(Sender: TPeerIO; InData: TDFE);
 var
-  Hash: TMD5;
+  Hash__: TMD5;
   Ignored: Boolean;
   info_: TDTC40_Info;
   Arry_: TDTC40_Custom_Client_Array;
   cc: TDTC40_Custom_Client;
 begin
-  Hash := InData.R.ReadMD5;
+  Hash__ := InData.R.ReadMD5;
   Ignored := InData.R.ReadBool;
-  info_ := ServiceInfoList.FindHash(Hash);
+  info_ := ServiceInfoList.FindHash(Hash__);
   if (info_ <> nil) then
     begin
       info_.Ignored := Ignored;
@@ -3403,12 +3403,12 @@ begin
   Client.SendTunnel.SendDirectStreamCmd('RequestUpdate');
 end;
 
-procedure TDTC40_Dispatch_Client.IgnoreChangeToService(Hash: TMD5; Ignored: Boolean);
+procedure TDTC40_Dispatch_Client.IgnoreChangeToService(Hash__: TMD5; Ignored: Boolean);
 var
   D: TDFE;
 begin
   D := TDFE.Create;
-  D.WriteMD5(Hash);
+  D.WriteMD5(Hash__);
   D.WriteBool(Ignored);
   Client.SendTunnel.SendDirectStreamCmd('IgnoreChange', D);
   DisposeObject(D);
