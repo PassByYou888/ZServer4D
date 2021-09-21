@@ -2971,7 +2971,7 @@ begin
   tmp := TOnRemovePhysicsNetwork.Create;
   tmp.PhysicsAddr := InData.R.ReadString;
   tmp.PhysicsPort := InData.R.ReadWord;
-  SysPost.PostExecuteM_NP(2.0, tmp.DoRun);
+  SysPost.PostExecuteM_NP(2.0, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoRun);
 
   if C40ExistsPhysicsNetwork(tmp.PhysicsAddr, tmp.PhysicsPort) then
     begin
@@ -3260,7 +3260,7 @@ begin
   tmp := TOnRemovePhysicsNetwork.Create;
   tmp.PhysicsAddr := InData.R.ReadString;
   tmp.PhysicsPort := InData.R.ReadWord;
-  SysPost.PostExecuteM_NP(2.0, tmp.DoRun);
+  SysPost.PostExecuteM_NP(2.0, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoRun);
 
   if C40ExistsPhysicsNetwork(tmp.PhysicsAddr, tmp.PhysicsPort) then
     begin
