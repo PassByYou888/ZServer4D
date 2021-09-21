@@ -13995,10 +13995,7 @@ type
   THeapMemoryStream = TMemoryStream;
   {$else}
   {$ifdef MSWINDOWS}
-  THeapMemoryStream = class(TMemoryStream)
-  protected
-    function Realloc(var NewCapacity: longint): Pointer; override;
-  end;
+  THeapMemoryStream = TMemoryStream;
   {$else}
   THeapMemoryStream = TMemoryStream;
   {$endif}
@@ -38135,42 +38132,6 @@ end;
 {$ifndef LVCL}
 {$ifndef FPC}
 {$ifdef MSWINDOWS}
-
-const
-  MemoryDelta = $8000; // 32 KB granularity (must be a power of 2)
-
-function THeapMemoryStream.Realloc(var NewCapacity: longint): Pointer;
-// allocates memory from Delphi heap (FastMM4/SynScaleMM) and not windows.Global*()
-// and uses bigger growing size -> a lot faster
-var i: PtrInt;
-begin
-  if NewCapacity>0 then begin
-    i := Seek(0,soFromCurrent); // no direct access to fSize -> use Seek() trick
-    if NewCapacity=Seek(0,soFromEnd) then begin // avoid ReallocMem() if just truncate
-      result := Memory;
-      Seek(i,soBeginning);
-      exit;
-    end;
-    NewCapacity := (NewCapacity + (MemoryDelta - 1)) and not (MemoryDelta - 1);
-    Seek(i,soBeginning);
-  end;
-  Result := Memory;
-  if NewCapacity <> Capacity then begin
-    if NewCapacity = 0 then begin
-      FreeMem(Memory);
-      Result := nil;
-    end else begin
-      if Capacity = 0 then
-        GetMem(Result, NewCapacity) else
-        if NewCapacity > Capacity then // only realloc if necessary (grow up)
-          ReallocMem(Result, NewCapacity) else
-          NewCapacity := Capacity; // same capacity as before
-      if Result = nil then
-        raise EStreamError.Create('THeapMemoryStream'); // memory allocation bug
-    end;
-  end;
-end;
-
 {$endif MSWINDOWS}
 {$endif FPC}
 {$endif LVCL}
@@ -56667,6 +56628,7 @@ begin
     {$elseif defined(VER320)}'Delphi 10.2 Tokyo'
     {$elseif defined(VER330)}'Delphi 10.3 Carnival'
     {$elseif defined(VER340)}'Delphi 10.4'
+    {$elseif defined(VER350)}'Delphi 11.0'
     {$ifend}
   {$endif CONDITIONALEXPRESSIONS}
 {$endif}
