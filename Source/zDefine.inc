@@ -109,16 +109,6 @@
     {$DEFINE FirstCharInZero}
   {$ENDIF IOS}
 
-  // delphi 10.4
-  {$IFDEF VER340}
-    {$UNDEF FirstCharInZero}
-  {$ENDIF VER340}
-
-  // delphi 10.5
-  {$IFDEF VER350}
-    {$UNDEF FirstCharInZero}
-  {$ENDIF VER350}
-
   // nativeint as int or int64 type variable when Modifier is overload
   {$DEFINE OVERLOAD_NATIVEINT}
 
@@ -143,17 +133,28 @@
   // Using this paper replace of Delphi Random() and Randomize() function, work on xe 10.3 or laster
   {$UNDEF InstallMT19937CoreToDelphi}
 
+  // delphi 10.3
   {$IFDEF VER330}
     {$DEFINE InstallMT19937CoreToDelphi}
   {$ENDIF VER330}
 
+  // delphi 10.4
   {$IFDEF VER340}
     {$DEFINE InstallMT19937CoreToDelphi}
+    {$UNDEF FirstCharInZero}
   {$ENDIF VER340}
 
+  // delphi 11.0
   {$IFDEF VER350}
     {$DEFINE InstallMT19937CoreToDelphi}
+    {$UNDEF FirstCharInZero}
   {$ENDIF VER350}
+
+  // delphi 11.x
+  {$IFDEF VER360}
+    {$DEFINE InstallMT19937CoreToDelphi}
+    {$UNDEF FirstCharInZero}
+  {$ENDIF VER360}
 
   // MT19937 of seed in the startup TCompute is 0
   {$DEFINE MT19937SeedOnTComputeThreadIs0}
@@ -198,8 +199,8 @@
   {$ELSE}
     {$UNDEF INLINE_ASM}
     {$O-} { close optimization }
-    {$R-} { range check }
-    {$I-} { Input output checking }
+    {$R+} { range check }
+    {$I+} { Input output checking }
     {$D+} { debug information }
   {$ENDIF}
 

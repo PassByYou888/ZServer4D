@@ -157,7 +157,7 @@ unit ZS_JsonDataObjects;
 interface
 
 uses
-  CoreClasses, PascalStrings,
+  CoreClasses, PascalStrings, MemoryStream64,
   {$IFDEF HAS_UNIT_SCOPE}
   System.SysUtils, System.Classes;
   {$ELSE}
@@ -1110,22 +1110,22 @@ type
   TMemoryStreamAccess = class(TMemoryStream);
 
   {$IFDEF SUPPORTS_UTF8STRING}
-  TJsonUTF8StringStream = class(TMemoryStream)
+  TJsonUTF8StringStream = class(TMemoryStream64)
   private
     FDataString: UTF8String;
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; override;
+    function Realloc(var NewCapacity: NativeUInt): Pointer; override;
   public
     constructor Create;
     property DataString: UTF8String read FDataString;
   end;
   {$ENDIF SUPPORTS_UTF8STRING}
 
-  TJsonBytesStream = class(TMemoryStream)
+  TJsonBytesStream = class(TMemoryStream64)
   private
     FBytes: TBytes;
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; override;
+    function Realloc(var NewCapacity: NativeUInt): Pointer; override;
   public
     constructor Create;
     property Bytes: TBytes read FBytes;
@@ -8277,9 +8277,9 @@ begin
   SetPointer(nil, 0);
 end;
 
-function TJsonUTF8StringStream.Realloc(var NewCapacity: Longint): Pointer;
+function TJsonUTF8StringStream.Realloc(var NewCapacity: NativeUInt): Pointer;
 var
-  L: Longint;
+  L: NativeUInt;
 begin
   if NewCapacity <> Capacity then
   begin
@@ -8315,9 +8315,9 @@ begin
   SetPointer(nil, 0);
 end;
 
-function TJsonBytesStream.Realloc(var NewCapacity: Longint): Pointer;
+function TJsonBytesStream.Realloc(var NewCapacity: NativeUInt): Pointer;
 var
-  L: Longint;
+  L: NativeUInt;
 begin
   if NewCapacity <> Capacity then
   begin

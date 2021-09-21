@@ -265,6 +265,9 @@ ZServer4D是系统化的生产工艺地基，它并不像VCL那样傻瓜，可�
 
 by.qq600585
 
+## SAAS体系与Delphi11支持
+
+- SAAS支持体系详见 https://github.com/PassByYou888/zCloud
 
 ## 最后更新日志
 
