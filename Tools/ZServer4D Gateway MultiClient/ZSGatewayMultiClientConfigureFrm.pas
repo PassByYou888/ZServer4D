@@ -425,7 +425,7 @@ begin
       SetLength(p^.PortArry, 0);
       p^.ConfigureClient := TCommunicationFramework_Client_CrossSocket.Create;
       p^.ConfigureClient.QuietMode := True;
-      p^.ConfigureClient.SwitchMaxSafe;
+      p^.ConfigureClient.SwitchMaxSecurity;
 
       NatList.Add(p);
       TabControl.TabIndex := TabControl.Tabs.Add(p^.Host);
@@ -433,7 +433,7 @@ begin
 
   if p^.ConfigureClient.Connect(p^.Host, umlStrToInt(p^.RemotePort, 4797)) then
     begin
-      p^.ConfigureClient.SendStreamCmd('GetConfigure', nil, p, nil,
+      p^.ConfigureClient.SendStreamCmdP('GetConfigure', nil, p, nil,
         procedure(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, ResultData: TDataFrameEngine)
         var
           te: TSectionTextData;
@@ -559,7 +559,7 @@ begin
 
   for i := 0 to NatList.Count - 1 do
     begin
-      ProgressPost.PostExecute(i * 0.5,
+      ProgressPost.PostExecuteP(i * 0.5,
         procedure(Sender: TNPostExecute)
         var
           p: PNAT_Struct;
@@ -575,7 +575,7 @@ begin
 
           p^.cliTh := WinExecFile(umlCombineFileName(DefaultPath, '_fc.exe') + Format(' -c "%s"', [fn]));
 
-          ProgressPost.PostExecute(10,
+          ProgressPost.PostExecuteP(10,
             procedure(Sender: TNPostExecute)
             begin
               umlDeleteFile(SystemString(Sender.Data3));

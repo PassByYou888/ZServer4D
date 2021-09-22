@@ -18,6 +18,9 @@
         <Projects Include="ZServer4D Gateway\ZSGateway.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="ZServer4D Gateway MultiClient\ZSGatewayMultiClient.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj">
             <Dependencies/>
         </Projects>
@@ -80,6 +83,15 @@
     <Target Name="ZSGateway:Make">
         <MSBuild Projects="ZServer4D Gateway\ZSGateway.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ZSGatewayMultiClient">
+        <MSBuild Projects="ZServer4D Gateway MultiClient\ZSGatewayMultiClient.dproj"/>
+    </Target>
+    <Target Name="ZSGatewayMultiClient:Clean">
+        <MSBuild Projects="ZServer4D Gateway MultiClient\ZSGatewayMultiClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZSGatewayMultiClient:Make">
+        <MSBuild Projects="ZServer4D Gateway MultiClient\ZSGatewayMultiClient.dproj" Targets="Make"/>
+    </Target>
     <Target Name="ZSGatewayMiniClient">
         <MSBuild Projects="ZServer4D Gateway MiniClient\ZSGatewayMiniClient.dproj"/>
     </Target>
@@ -108,13 +120,13 @@
         <MSBuild Projects="PascalCodeUnification\PascalCodeUnification.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="DPRCodeSort;StringTranslate;FilePackageWithZDB;ConvFile2Pascal;ZSGateway;ZSGatewayMiniClient;ZSGatewayMiniServ;PascalCodeUnification"/>
+        <CallTarget Targets="DPRCodeSort;StringTranslate;FilePackageWithZDB;ConvFile2Pascal;ZSGateway;ZSGatewayMultiClient;ZSGatewayMiniClient;ZSGatewayMiniServ;PascalCodeUnification"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="DPRCodeSort:Clean;StringTranslate:Clean;FilePackageWithZDB:Clean;ConvFile2Pascal:Clean;ZSGateway:Clean;ZSGatewayMiniClient:Clean;ZSGatewayMiniServ:Clean;PascalCodeUnification:Clean"/>
+        <CallTarget Targets="DPRCodeSort:Clean;StringTranslate:Clean;FilePackageWithZDB:Clean;ConvFile2Pascal:Clean;ZSGateway:Clean;ZSGatewayMultiClient:Clean;ZSGatewayMiniClient:Clean;ZSGatewayMiniServ:Clean;PascalCodeUnification:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="DPRCodeSort:Make;StringTranslate:Make;FilePackageWithZDB:Make;ConvFile2Pascal:Make;ZSGateway:Make;ZSGatewayMiniClient:Make;ZSGatewayMiniServ:Make;PascalCodeUnification:Make"/>
+        <CallTarget Targets="DPRCodeSort:Make;StringTranslate:Make;FilePackageWithZDB:Make;ConvFile2Pascal:Make;ZSGateway:Make;ZSGatewayMultiClient:Make;ZSGatewayMiniClient:Make;ZSGatewayMiniServ:Make;PascalCodeUnification:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
