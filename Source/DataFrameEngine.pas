@@ -502,6 +502,7 @@ type
     //
     procedure WriteString(v: SystemString); overload;
     procedure WriteString(v: TPascalString); overload;
+    procedure WriteString(const Fmt: SystemString; const Args: array of const); overload;
     procedure WriteBytes(v: TBytes);
     procedure WriteInteger(v: Integer);
     procedure WriteCardinal(v: Cardinal);
@@ -533,6 +534,7 @@ type
     procedure WriteSectionText(v: TSectionTextData);
     procedure WriteTextSection(v: TSectionTextData);
     procedure WriteJson(v: TZ_JsonObject); overload;
+    procedure WriteJson(v: TZ_JsonObject; Formated_: Boolean); overload;
 {$IFDEF DELPHI}
     procedure WriteJson(v: TJsonObject); overload;
 {$ENDIF DELPHI}
@@ -2470,6 +2472,11 @@ begin
   FDataList.Add(Obj_);
 end;
 
+procedure TDataFrameEngine.WriteString(const Fmt: SystemString; const Args: array of const);
+begin
+  WriteString(PFormat(Fmt, Args));
+end;
+
 procedure TDataFrameEngine.WriteBytes(v: TBytes);
 var
   Obj_: TDataFrameString;
@@ -2734,11 +2741,16 @@ begin
 end;
 
 procedure TDataFrameEngine.WriteJson(v: TZ_JsonObject);
+begin
+  WriteJson(v, False);
+end;
+
+procedure TDataFrameEngine.WriteJson(v: TZ_JsonObject; Formated_: Boolean);
 var
   ms: TMS64;
 begin
   ms := TMS64.Create;
-  v.SaveToStream(ms, True);
+  v.SaveToStream(ms, Formated_);
   ms.Position := 0;
   WriteStream(ms);
   DisposeObject(ms);
@@ -3570,6 +3582,7 @@ begin
   d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
+  output.Clear;
   output.LoadFromStream(d);
   DisposeObject(d);
 end;
@@ -3584,6 +3597,7 @@ begin
   d := TMS64.Create;
   ReadStream(index_, d);
   d.Position := 0;
+  output.Clear;
   output.LoadFromStream(d, TEncoding.UTF8, True);
   DisposeObject(d);
 end;

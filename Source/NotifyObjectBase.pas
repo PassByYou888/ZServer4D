@@ -144,6 +144,8 @@ function SysPostProgress: TNProgressPostWithCadencer;
 function SysPost: TNProgressPostWithCadencer;
 procedure DelayFreeObject(Delay: Double; Obj1_, Obj2_: TCoreClassObject); overload;
 procedure DelayFreeObject(Delay: Double; Obj1_: TCoreClassObject); overload;
+procedure DelayFreeObj(Delay: Double; Obj1_, Obj2_: TCoreClassObject); overload;
+procedure DelayFreeObj(Delay: Double; Obj1_: TCoreClassObject); overload;
 
 implementation
 
@@ -178,6 +180,16 @@ begin
 end;
 
 procedure DelayFreeObject(Delay: Double; Obj1_: TCoreClassObject);
+begin
+  SystemPostProgress.PostDelayFreeObject(Delay, Obj1_, nil);
+end;
+
+procedure DelayFreeObj(Delay: Double; Obj1_, Obj2_: TCoreClassObject);
+begin
+  SystemPostProgress.PostDelayFreeObject(Delay, Obj1_, Obj2_);
+end;
+
+procedure DelayFreeObj(Delay: Double; Obj1_: TCoreClassObject);
 begin
   SystemPostProgress.PostDelayFreeObject(Delay, Obj1_, nil);
 end;

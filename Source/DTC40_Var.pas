@@ -109,6 +109,8 @@ type
     procedure PrintError(v: SystemString; const Args: array of const); overload;
   end;
 
+{$REGION 'bridge_define'}
+
   TON_NM_GetC = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
   TON_NM_GetM = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) of object;
 {$IFDEF FPC}
@@ -185,6 +187,7 @@ type
     procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
     procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
   end;
+{$ENDREGION 'bridge_define'}
 
   TDTC40_Var_Client = class(TDTC40_Base_NoAuth_Client)
   protected

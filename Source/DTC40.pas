@@ -233,7 +233,6 @@ type
   TDTC40_Info = class
   private
     Ignored: Boolean;
-    LastUpdateTimeTick: TTimeTick;
     procedure MakeHash;
   public
     { share }
@@ -247,7 +246,6 @@ type
     p2pVM_SendTunnel_Addr: U_String;
     p2pVM_SendTunnel_Port: Word;
     Workload, MaxWorkload: Integer;
-    AliveTime: TTimeTick;
     Hash: TMD5;
 
     { client translate }
@@ -296,8 +294,6 @@ type
     function OverwriteInfo(Data_: TDTC40_Info): Boolean;
     function MergeFromDF(D: TDFE): Boolean;
     procedure SaveToDF(D: TDFE);
-    procedure UpdateAlive(PhysicsService_: TDTC40_PhysicsService); overload;
-    procedure UpdateAlive(PhysicsTunnel_: TDTC40_PhysicsTunnel); overload;
   end;
 {$ENDREGION 'infoDefine'}
 {$REGION 'p2pVMCustomService'}
@@ -1021,8 +1017,6 @@ var
 begin
   Result := False;
 
-  PhysicsTunnel.Print('');
-
   for i := 0 to Length(Depend_) - 1 do
     begin
       p := FindRegistedC40(Depend_[i].Typ);
@@ -1036,7 +1030,6 @@ begin
       PhysicsTunnel.Print('Build Depend service "%s" instance class "%s"', [tmp.ServiceInfo.ServiceTyp.Text, tmp.ClassName]);
       PhysicsTunnel.Print('service %s p2pVM Received tunnel ip %s port: %d', [tmp.ServiceInfo.ServiceTyp.Text, tmp.ServiceInfo.p2pVM_RecvTunnel_Addr.Text, tmp.ServiceInfo.p2pVM_RecvTunnel_Port]);
       PhysicsTunnel.Print('service %s p2pVM Send tunnel ip %s port: %d', [tmp.ServiceInfo.ServiceTyp.Text, tmp.ServiceInfo.p2pVM_SendTunnel_Addr.Text, tmp.ServiceInfo.p2pVM_SendTunnel_Port]);
-      PhysicsTunnel.Print('');
 
       if Assigned(OnEvent) then
           OnEvent.DTC40_PhysicsService_Build_Network(Self, tmp);
@@ -1203,7 +1196,6 @@ begin
       exit;
     end;
 
-  Sender.PhysicsTunnel.Print('');
   for i := 0 to Length(Sender.DependNetworkInfoArray) - 1 do
     for j := 0 to L.Count - 1 do
       begin
@@ -1220,7 +1212,6 @@ begin
                   [L[j].ServiceTyp.Text, L[j].p2pVM_RecvTunnel_Addr.Text, L[j].PhysicsPort]);
                 Sender.PhysicsTunnel.Print('"%s" network p2pVM Send Tunnel IPV6 "%s" Port:%d',
                   [L[j].ServiceTyp.Text, L[j].p2pVM_SendTunnel_Addr.Text, L[j].PhysicsPort]);
-                Sender.PhysicsTunnel.Print('');
 
                 if Assigned(DTC40_PhysicsTunnel.OnEvent) then
                     DTC40_PhysicsTunnel.OnEvent.DTC40_PhysicsTunnel_Build_Network(DTC40_PhysicsTunnel, tmp);
@@ -1228,7 +1219,6 @@ begin
             else
               begin
                 Sender.PhysicsTunnel.Print('build "%s" network error.', [L[j].ServiceTyp.Text]);
-                Sender.PhysicsTunnel.Print('');
               end;
           end;
       end;
@@ -1913,8 +1903,7 @@ constructor TDTC40_Info.Create;
 begin
   inherited Create;
   Ignored := False;
-  LastUpdateTimeTick := GetTimeTick();
-
+  // share
   OnlyInstance := False;
   ServiceTyp := '';
   PhysicsAddr := '';
@@ -1926,7 +1915,6 @@ begin
   p2pVM_SendTunnel_Port := 0;
   Workload := 0;
   MaxWorkload := 0;
-  AliveTime := 0;
   Hash := NullMD5;
 end;
 
@@ -1943,7 +1931,6 @@ end;
 procedure TDTC40_Info.Assign(source: TDTC40_Info);
 begin
   Ignored := source.Ignored;
-  LastUpdateTimeTick := source.LastUpdateTimeTick;
   OnlyInstance := source.OnlyInstance;
   ServiceTyp := source.ServiceTyp;
   PhysicsAddr := source.PhysicsAddr;
@@ -1955,7 +1942,6 @@ begin
   p2pVM_SendTunnel_Port := source.p2pVM_SendTunnel_Port;
   Workload := source.Workload;
   MaxWorkload := source.MaxWorkload;
-  AliveTime := source.AliveTime;
   Hash := source.Hash;
 end;
 
@@ -1983,7 +1969,6 @@ begin
   p2pVM_SendTunnel_Port := D.R.ReadWord;
   Workload := D.R.ReadInteger;
   MaxWorkload := D.R.ReadInteger;
-  AliveTime := D.R.ReadUInt64;
   Hash := D.R.ReadMD5;
 
   DisposeObject(D);
@@ -2006,7 +1991,6 @@ begin
   D.WriteWord(p2pVM_SendTunnel_Port);
   D.WriteInteger(Workload);
   D.WriteInteger(MaxWorkload);
-  D.WriteUInt64(AliveTime);
   D.WriteMD5(Hash);
 
   D.FastEncodeTo(stream);
@@ -2373,30 +2357,6 @@ begin
         m64.Clear;
       end;
   DisposeObject(m64);
-end;
-
-procedure TDTC40_InfoList.UpdateAlive(PhysicsService_: TDTC40_PhysicsService);
-var
-  i: Integer;
-begin
-  for i := 0 to Count - 1 do
-    with Items[i] do
-      if SamePhysicsAddr(PhysicsService_) then
-        begin
-          LastUpdateTimeTick := GetTimeTick;
-        end;
-end;
-
-procedure TDTC40_InfoList.UpdateAlive(PhysicsTunnel_: TDTC40_PhysicsTunnel);
-var
-  i: Integer;
-begin
-  for i := 0 to Count - 1 do
-    with Items[i] do
-      if SamePhysicsAddr(PhysicsTunnel_) then
-        begin
-          LastUpdateTimeTick := GetTimeTick;
-        end;
 end;
 
 constructor TDTC40_Custom_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
@@ -3712,8 +3672,8 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink;
   DTVirtualAuthClient := Client.DTClient;
-  UserName := umlMD5ToStr(ClientInfo.Hash);
-  Password := UserName;
+  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
+  Password := ParamList.GetDefaultValue('Password', UserName.Text);
 end;
 
 destructor TDTC40_Base_VirtualAuth_Client.Destroy;
@@ -3807,8 +3767,8 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink;
   DTVirtualAuthClient := Client.DTClient as TDataStoreClient_VirtualAuth;
-  UserName := umlMD5ToStr(ClientInfo.Hash);
-  Password := UserName;
+  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
+  Password := ParamList.GetDefaultValue('Password', UserName.Text);
 end;
 
 destructor TDTC40_Base_DataStoreVirtualAuth_Client.Destroy;
@@ -3905,8 +3865,8 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_Custom_Client_TunnelLink;
   DTClient := Client.DTClient;
-  UserName := umlMD5ToStr(ClientInfo.Hash);
-  Password := UserName;
+  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
+  Password := ParamList.GetDefaultValue('Password', UserName.Text);
 end;
 
 destructor TDTC40_Base_Client.Destroy;
@@ -4004,8 +3964,8 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_Custom_Client_TunnelLink;
   DTClient := Client.DTClient as TDataStoreClient;
-  UserName := umlMD5ToStr(ClientInfo.Hash);
-  Password := UserName;
+  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
+  Password := ParamList.GetDefaultValue('Password', UserName.Text);
 end;
 
 destructor TDTC40_Base_DataStore_Client.Destroy;

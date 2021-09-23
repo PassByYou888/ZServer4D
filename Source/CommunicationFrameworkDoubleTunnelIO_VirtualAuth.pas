@@ -1065,7 +1065,7 @@ begin
   if not FRecvTunnel.Exists(RecvID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('recv tunnel Illegal:%d', [RecvID]));
+      OutData.WriteString(Format('received tunnel Illegal:%d', [RecvID]));
       OutData.WriteBool(FFileSystem);
       exit;
     end;
@@ -1073,7 +1073,7 @@ begin
   if Sender.ID <> RecvID then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('recv tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
+      OutData.WriteString(Format('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
       OutData.WriteBool(FFileSystem);
       exit;
     end;
@@ -1087,7 +1087,7 @@ begin
   UserDefineIO.SendTunnel.DoubleTunnelService := Self;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('tunnel link success! recv:%d <-> send:%d', [RecvID, SendID]));
+  OutData.WriteString(Format('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
   OutData.WriteBool(FFileSystem);
 
   UserLinkSuccess(UserDefineIO);

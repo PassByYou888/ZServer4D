@@ -55,6 +55,8 @@ type
     procedure SafeCheck; override;
   end;
 
+{$REGION 'bridge_define'}
+
   TON_FS_PostFile_DoneC = procedure(Sender: TDTC40_FS_Client; Token: U_String);
   TON_FS_PostFile_DoneM = procedure(Sender: TDTC40_FS_Client; Token: U_String) of object;
 {$IFDEF FPC}
@@ -103,6 +105,7 @@ type
     procedure cmd_Error(Sender: TPeerIO; InData: SystemString);
     procedure DoP2PVM_CloneConnectAndGetFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
   end;
+{$ENDREGION 'bridge_define'}
 
   TDTC40_FS_Client = class(TDTC40_Base_NoAuth_Client)
   public
@@ -114,7 +117,6 @@ type
     procedure FS_PostFile_C(Token: U_String; stream: TCoreClassStream; doneFree: Boolean; OnResult: TON_FS_PostFile_DoneC);
     procedure FS_PostFile_M(Token: U_String; stream: TCoreClassStream; doneFree: Boolean; OnResult: TON_FS_PostFile_DoneM);
     procedure FS_PostFile_P(Token: U_String; stream: TCoreClassStream; doneFree: Boolean; OnResult: TON_FS_PostFile_DoneP);
-
     // get file
     procedure FS_GetFile_C(Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneC);
     procedure FS_GetFile_M(Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneM);

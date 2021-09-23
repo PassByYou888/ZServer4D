@@ -46,56 +46,37 @@ type
     procedure DoLoading();
     procedure DoBackground_Save(thSender: TCompute);
   private
-    procedure cmd_Usr_Find(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_Reg(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_Exists(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_Auth(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_ChangePassword(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_NewIdentifier(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_Get(sender: TPeerIO; InData, OutData: TDFE);
-    procedure cmd_Usr_Post(sender: TPeerIO; InData, OutData: TDFE);
-    procedure cmd_Usr_Remove(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_Set(sender: TPeerIO; InData: TDFE);
   public
     UserIdentifierHash: TJsonHashList;
-    UserJsonList: TZJL;
-    DTC40_UserDB_FileName: U_string;
+    UserJsonPool: TZJL;
+    DTC40_UserDB_FileName: U_String;
 
-    constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_string); override;
+    constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure SafeCheck; override;
 
-    function MatchIdentifier(Identifier_: U_string; j: TZJ): Boolean;
-    function ExistsIdentifier(j: TZJ): Boolean;
-    function ExtractJsonToHash(j: TZJ): Boolean;
     procedure LoadUserDB;
     procedure SaveUserDBAsDFE(DFE: TDFE);
-    procedure CleanLoseJson;
   end;
 
-  TON_Usr_FindC = procedure(sender: TDTC40_UserDB_Client; List: TZJL);
-  TON_Usr_FindM = procedure(sender: TDTC40_UserDB_Client; List: TZJL) of object;
+{$REGION 'bridge_define'}
+
+  TON_Usr_RegC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+  TON_Usr_RegM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) of object;
 {$IFDEF FPC}
-  TON_Usr_FindP = procedure(sender: TDTC40_UserDB_Client; List: TZJL) is nested;
+  TON_Usr_RegP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) is nested;
 {$ELSE FPC}
-  TON_Usr_FindP = reference to procedure(sender: TDTC40_UserDB_Client; List: TZJL);
+  TON_Usr_RegP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
 {$ENDIF FPC}
 
-  TOnUsrFind = class(TOnResultBridge)
-  public
-    Client: TDTC40_UserDB_Client;
-    OnResultC: TON_Usr_FindC;
-    OnResultM: TON_Usr_FindM;
-    OnResultP: TON_Usr_FindP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
-
-  TON_Usr_RegC = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool);
-  TON_Usr_RegM = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool) of object;
-{$IFDEF FPC}
-  TON_Usr_RegP = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool) is nested;
-{$ELSE FPC}
-  TON_Usr_RegP = reference to procedure(sender: TDTC40_UserDB_Client; States: TArrayBool);
-{$ENDIF FPC}
-
-  TOnUsrReg = class(TOnResultBridge)
+  TON_Usr_Reg = class(TOnResultBridge)
   public
     Client: TDTC40_UserDB_Client;
     OnResultC: TON_Usr_RegC;
@@ -106,15 +87,91 @@ type
     procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
   end;
 
-  TON_Usr_GetC = procedure(sender: TDTC40_UserDB_Client; List: TZJL);
-  TON_Usr_GetM = procedure(sender: TDTC40_UserDB_Client; List: TZJL) of object;
+  TON_Usr_ExistsC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean);
+  TON_Usr_ExistsM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean) of object;
 {$IFDEF FPC}
-  TON_Usr_GetP = procedure(sender: TDTC40_UserDB_Client; List: TZJL) is nested;
+  TON_Usr_ExistsP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean) is nested;
 {$ELSE FPC}
-  TON_Usr_GetP = reference to procedure(sender: TDTC40_UserDB_Client; List: TZJL);
+  TON_Usr_ExistsP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean);
 {$ENDIF FPC}
 
-  TOnUsrGet = class(TOnResultBridge)
+  TON_Usr_Exists = class(TOnResultBridge)
+  public
+    Client: TDTC40_UserDB_Client;
+    OnResultC: TON_Usr_ExistsC;
+    OnResultM: TON_Usr_ExistsM;
+    OnResultP: TON_Usr_ExistsP;
+    constructor Create; override;
+    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+  end;
+
+  TON_Usr_AuthC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+  TON_Usr_AuthM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) of object;
+{$IFDEF FPC}
+  TON_Usr_AuthP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) is nested;
+{$ELSE FPC}
+  TON_Usr_AuthP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+{$ENDIF FPC}
+
+  TON_Usr_Auth = class(TOnResultBridge)
+  public
+    Client: TDTC40_UserDB_Client;
+    OnResultC: TON_Usr_AuthC;
+    OnResultM: TON_Usr_AuthM;
+    OnResultP: TON_Usr_AuthP;
+    constructor Create; override;
+    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+  end;
+
+  TON_Usr_ChangePasswordC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+  TON_Usr_ChangePasswordM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) of object;
+{$IFDEF FPC}
+  TON_Usr_ChangePasswordP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) is nested;
+{$ELSE FPC}
+  TON_Usr_ChangePasswordP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+{$ENDIF FPC}
+
+  TON_Usr_ChangePassword = class(TOnResultBridge)
+  public
+    Client: TDTC40_UserDB_Client;
+    OnResultC: TON_Usr_ChangePasswordC;
+    OnResultM: TON_Usr_ChangePasswordM;
+    OnResultP: TON_Usr_ChangePasswordP;
+    constructor Create; override;
+    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+  end;
+
+  TON_Usr_NewIdentifierC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+  TON_Usr_NewIdentifierM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) of object;
+{$IFDEF FPC}
+  TON_Usr_NewIdentifierP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString) is nested;
+{$ELSE FPC}
+  TON_Usr_NewIdentifierP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString);
+{$ENDIF FPC}
+
+  TON_Usr_NewIdentifier = class(TOnResultBridge)
+  public
+    Client: TDTC40_UserDB_Client;
+    OnResultC: TON_Usr_NewIdentifierC;
+    OnResultM: TON_Usr_NewIdentifierM;
+    OnResultP: TON_Usr_NewIdentifierP;
+    constructor Create; override;
+    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+  end;
+
+  TON_Usr_GetC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString; Json_: TZJ);
+  TON_Usr_GetM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString; Json_: TZJ) of object;
+{$IFDEF FPC}
+  TON_Usr_GetP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString; Json_: TZJ) is nested;
+{$ELSE FPC}
+  TON_Usr_GetP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean; info_: SystemString; Json_: TZJ);
+{$ENDIF FPC}
+
+  TON_Usr_Get = class(TOnResultBridge)
   public
     Client: TDTC40_UserDB_Client;
     OnResultC: TON_Usr_GetC;
@@ -125,78 +182,42 @@ type
     procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
   end;
 
-  TON_Usr_PostC = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool);
-  TON_Usr_PostM = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool) of object;
-{$IFDEF FPC}
-  TON_Usr_PostP = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool) is nested;
-{$ELSE FPC}
-  TON_Usr_PostP = reference to procedure(sender: TDTC40_UserDB_Client; States: TArrayBool);
-{$ENDIF FPC}
-
-  TOnUsrPost = class(TOnResultBridge)
-  public
-    Client: TDTC40_UserDB_Client;
-    OnResultC: TON_Usr_PostC;
-    OnResultM: TON_Usr_PostM;
-    OnResultP: TON_Usr_PostP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
-
-  TON_Usr_RemoveC = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool);
-  TON_Usr_RemoveM = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool) of object;
-{$IFDEF FPC}
-  TON_Usr_RemoveP = procedure(sender: TDTC40_UserDB_Client; States: TArrayBool) is nested;
-{$ELSE FPC}
-  TON_Usr_RemoveP = reference to procedure(sender: TDTC40_UserDB_Client; States: TArrayBool);
-{$ENDIF FPC}
-
-  TOnUsrRemove = class(TOnResultBridge)
-  public
-    Client: TDTC40_UserDB_Client;
-    OnResultC: TON_Usr_RemoveC;
-    OnResultM: TON_Usr_RemoveM;
-    OnResultP: TON_Usr_RemoveP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
+{$ENDREGION 'bridge_define'}
 
   TDTC40_UserDB_Client = class(TDTC40_Base_NoAuth_Client)
   public
-    constructor Create(source_: TDTC40_Info; Param_: U_string); override;
+    constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
 
-    procedure Usr_FindC(Identifier_: SystemString; MaxResult: Integer; OnResult: TON_Usr_FindC);
-    procedure Usr_FindM(Identifier_: SystemString; MaxResult: Integer; OnResult: TON_Usr_FindM);
-    procedure Usr_FindP(Identifier_: SystemString; MaxResult: Integer; OnResult: TON_Usr_FindP);
-
-    procedure Usr_RegC(L: TZJL; OnResult: TON_Usr_RegC);
-    procedure Usr_RegM(L: TZJL; OnResult: TON_Usr_RegM);
-    procedure Usr_RegP(L: TZJL; OnResult: TON_Usr_RegP);
-
-    procedure Usr_GetC(Identifier_: U_StringArray; OnResult: TON_Usr_GetC);
-    procedure Usr_GetM(Identifier_: U_StringArray; OnResult: TON_Usr_GetM);
-    procedure Usr_GetP(Identifier_: U_StringArray; OnResult: TON_Usr_GetP);
-
-    procedure Usr_PostC(L: TZJL; OnResult: TON_Usr_PostC);
-    procedure Usr_PostM(L: TZJL; OnResult: TON_Usr_PostM);
-    procedure Usr_PostP(L: TZJL; OnResult: TON_Usr_PostP);
-
-    procedure Usr_RemoveC(L: TZJL; OnResult: TON_Usr_RemoveC);
-    procedure Usr_RemoveM(L: TZJL; OnResult: TON_Usr_RemoveM);
-    procedure Usr_RemoveP(L: TZJL; OnResult: TON_Usr_RemoveP);
+    // user registration
+    procedure Usr_RegC(UserName_, Passwd_: U_String; OnResult: TON_Usr_RegC);
+    procedure Usr_RegM(UserName_, Passwd_: U_String; OnResult: TON_Usr_RegM);
+    procedure Usr_RegP(UserName_, Passwd_: U_String; OnResult: TON_Usr_RegP);
+    // find user
+    procedure Usr_ExistsC(UserName_: U_String; OnResult: TON_Usr_ExistsC);
+    procedure Usr_ExistsM(UserName_: U_String; OnResult: TON_Usr_ExistsM);
+    procedure Usr_ExistsP(UserName_: U_String; OnResult: TON_Usr_ExistsP);
+    // auth: Quantum Cryptography Password
+    procedure Usr_AuthC(UserName_, Passwd_: U_String; OnResult: TON_Usr_AuthC);
+    procedure Usr_AuthM(UserName_, Passwd_: U_String; OnResult: TON_Usr_AuthM);
+    procedure Usr_AuthP(UserName_, Passwd_: U_String; OnResult: TON_Usr_AuthP);
+    // change password
+    procedure Usr_ChangePasswordC(UserName_, Passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordC);
+    procedure Usr_ChangePasswordM(UserName_, Passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordM);
+    procedure Usr_ChangePasswordP(UserName_, Passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordP);
+    // create user Identifier
+    procedure Usr_NewIdentifierC(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierC);
+    procedure Usr_NewIdentifierM(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierM);
+    procedure Usr_NewIdentifierP(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierP);
+    // get json object
+    procedure Usr_GetC(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetC);
+    procedure Usr_GetM(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetM);
+    procedure Usr_GetP(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetP);
+    // set json object
+    procedure Usr_Set(UserName_, ObjName_: U_String; Json_: TZJ);
   end;
 
-function GetIdentifier(j: TZJ): TZJArry;
-
 implementation
-
-function GetIdentifier(j: TZJ): TZJArry;
-begin
-  Result := j.A['Identifier'];
-end;
 
 procedure TDTC40_UserDB_Service.DoLoading;
 begin
@@ -223,147 +244,199 @@ begin
   IsSaveing := False;
 end;
 
-procedure TDTC40_UserDB_Service.cmd_Usr_Find(sender: TPeerIO; InData, OutData: TDFE);
-var
-  Identifier_: SystemString;
-  MaxResult: Integer;
-  L: TZJL;
-
-{$IFDEF FPC}
-  procedure fpc_Progress_(const Name: PSystemString; Obj: TZJ);
-  begin
-    if (MaxResult <= 0) or (L.Count < MaxResult) then
-      if MatchIdentifier(Identifier_, Obj) then
-        if not L.IndexOf(Obj) < 0 then
-            L.Add(Obj);
-  end;
-{$ENDIF FPC}
-
-
-var
-  i: Integer;
-begin
-  L := TZJL.Create(False);
-  Identifier_ := InData.R.ReadString;
-  MaxResult := InData.R.ReadInteger;
-
-{$IFDEF FPC}
-  UserIdentifierHash.ProgressP(@fpc_Progress_);
-{$ELSE FPC}
-  UserIdentifierHash.ProgressP(
-    procedure(const Name: PSystemString; Obj: TZJ)
-    begin
-      if (MaxResult <= 0) or (L.Count < MaxResult) then
-        if MatchIdentifier(Identifier_, Obj) then
-          if not L.IndexOf(Obj) < 0 then
-              L.Add(Obj);
-    end);
-{$ENDIF FPC}
-  for i := 0 to L.Count - 1 do
-      OutData.WriteJson(L[i]);
-  DisposeObject(L);
-end;
-
 procedure TDTC40_UserDB_Service.cmd_Usr_Reg(sender: TPeerIO; InData, OutData: TDFE);
 var
-  j: TZJ;
+  UserName_, Passwd_: U_String;
+  j_: TZJ;
 begin
-  while InData.R.NotEnd do
+  UserName_ := InData.R.ReadString;
+  Passwd_ := InData.R.ReadString;
+  if (UserName_.L < 6) then
     begin
-      j := TZJ.Create;
-      InData.R.ReadJson(j);
-
-      if (not ExistsIdentifier(j)) and ExtractJsonToHash(j) then
-        begin
-          UserJsonList.Add(j);
-          OutData.WriteBool(True);
-        end
-      else
-        begin
-          OutData.WriteBool(False);
-          DisposeObject(j);
-        end;
+      OutData.WriteBool(False);
+      OutData.WriteString('User name "%s" is too short', [UserName_.Text]);
+      exit;
     end;
+
+  if (Passwd_.L < 6) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('password is too short');
+      exit;
+    end;
+
+  if UserIdentifierHash.Exists(UserName_) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('repeat user "%s"', [UserName_.Text]);
+      exit;
+    end;
+
+  j_ := TZJ.Create;
+  j_.A['Identifier'].Add(UserName_);
+  j_.S['Password'] := GenerateQuantumCryptographyPassword(Passwd_.LowerText);
+  UserJsonPool.Add(j_);
+  UserIdentifierHash.Add(UserName_, j_);
+  OutData.WriteBool(True);
+  OutData.WriteString('user "%s" registration done.', [UserName_.Text]);
+end;
+
+procedure TDTC40_UserDB_Service.cmd_Usr_Exists(sender: TPeerIO; InData, OutData: TDFE);
+begin
+  OutData.WriteBool(UserIdentifierHash.Exists(InData.R.ReadString));
+end;
+
+procedure TDTC40_UserDB_Service.cmd_Usr_Auth(sender: TPeerIO; InData, OutData: TDFE);
+var
+  UserName_, Passwd_: U_String;
+  j_: TZJ;
+begin
+  UserName_ := InData.R.ReadString;
+  Passwd_ := InData.R.ReadString;
+  if not UserIdentifierHash.Exists(UserName_) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('no found user "%s"', [UserName_.Text]);
+      exit;
+    end;
+
+  j_ := UserIdentifierHash[UserName_];
+
+  if CompareQuantumCryptographyPassword(Passwd_.LowerText, j_.S['Password']) then
+    begin
+      OutData.WriteBool(True);
+      OutData.WriteString('user "%s" auth successed.', [UserName_.Text]);
+    end
+  else
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('no auth password from user "%s"', [UserName_.Text]);
+    end;
+end;
+
+procedure TDTC40_UserDB_Service.cmd_Usr_ChangePassword(sender: TPeerIO; InData, OutData: TDFE);
+var
+  UserName_, Passwd_, NewPasswd_: U_String;
+  j_: TZJ;
+begin
+  UserName_ := InData.R.ReadString;
+  Passwd_ := InData.R.ReadString;
+  NewPasswd_ := InData.R.ReadString;
+
+  if (NewPasswd_.L < 6) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('new password is too short');
+      exit;
+    end;
+
+  if not UserIdentifierHash.Exists(UserName_) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('no found user "%s"', [UserName_.Text]);
+      exit;
+    end;
+
+  j_ := UserIdentifierHash[UserName_];
+
+  if CompareQuantumCryptographyPassword(Passwd_.LowerText, j_.S['Password']) then
+    begin
+      j_.S['Password'] := GenerateQuantumCryptographyPassword(NewPasswd_.LowerText);
+      OutData.WriteBool(True);
+      OutData.WriteString('"%s" change password successed.', [UserName_.Text]);
+    end
+  else
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('no match password from user "%s"', [UserName_.Text]);
+    end;
+end;
+
+procedure TDTC40_UserDB_Service.cmd_Usr_NewIdentifier(sender: TPeerIO; InData, OutData: TDFE);
+var
+  UserName_, NewIdentifier_: U_String;
+  j_: TZJ;
+begin
+  UserName_ := InData.R.ReadString;
+  NewIdentifier_ := InData.R.ReadString;
+
+  if (NewIdentifier_.L < 6) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('New Identifier is too short');
+      exit;
+    end;
+
+  if UserIdentifierHash.Exists(NewIdentifier_) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('found user "%s"', [NewIdentifier_.Text]);
+      exit;
+    end;
+
+  if not UserIdentifierHash.Exists(UserName_) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString('no found user "%s"', [UserName_.Text]);
+      exit;
+    end;
+
+  j_ := UserIdentifierHash[UserName_];
+  j_.A['Identifier'].Add(NewIdentifier_);
+  UserIdentifierHash.Add(NewIdentifier_, j_);
+  OutData.WriteBool(True);
+  OutData.WriteString('new Identifier "%s" for user "%s"', [NewIdentifier_.Text, UserName_.Text]);
 end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_Get(sender: TPeerIO; InData, OutData: TDFE);
 var
-  Identifier_: U_string;
+  UserName_, ObjName_: U_String;
+  j_: TZJ;
 begin
-  while InData.R.NotEnd do
+  UserName_ := InData.R.ReadString;
+  if not UserIdentifierHash.Exists(UserName_) then
     begin
-      Identifier_ := InData.R.ReadString;
-      if UserIdentifierHash.Exists(Identifier_) then
-        begin
-          OutData.WriteJson(UserIdentifierHash[Identifier_]);
-        end
-      else
-        begin
-          OutData.WriteBool(False);
-        end;
+      OutData.WriteBool(False);
+      OutData.WriteString('no found user "%s"', [UserName_.Text]);
+      exit;
     end;
+  ObjName_ := InData.R.ReadString;
+  j_ := UserIdentifierHash[UserName_];
+  OutData.WriteBool(True);
+  OutData.WriteString('get user "%s" json object %s', [UserName_.Text, ObjName_.Text]);
+  OutData.WriteJson(j_.O[ObjName_]);
 end;
 
-procedure TDTC40_UserDB_Service.cmd_Usr_Post(sender: TPeerIO; InData, OutData: TDFE);
+procedure TDTC40_UserDB_Service.cmd_Usr_Set(sender: TPeerIO; InData: TDFE);
 var
-  j: TZJ;
+  UserName_, ObjName_: U_String;
+  j_: TZJ;
 begin
-  while InData.R.NotEnd do
-    begin
-      j := TZJ.Create;
-      InData.R.ReadJson(j);
-      if ExtractJsonToHash(j) then
-        begin
-          UserJsonList.Add(j);
-          OutData.WriteBool(True);
-        end
-      else
-        begin
-          OutData.WriteBool(False);
-          DisposeObject(j);
-        end;
-    end;
+  UserName_ := InData.R.ReadString;
+  if not UserIdentifierHash.Exists(UserName_) then
+      exit;
+  ObjName_ := InData.R.ReadString;
+  j_ := UserIdentifierHash[UserName_];
+  InData.R.ReadJson(j_.O[ObjName_]);
 end;
 
-procedure TDTC40_UserDB_Service.cmd_Usr_Remove(sender: TPeerIO; InData, OutData: TDFE);
-var
-  j: TZJ;
-  arry: TZJArry;
-  i: Integer;
-  found_: Integer;
-begin
-  while InData.R.NotEnd do
-    begin
-      j := TZJ.Create;
-      InData.R.ReadJson(j);
-      arry := GetIdentifier(j);
-      found_ := 0;
-      for i := 0 to arry.Count - 1 do
-        if (arry.S[i] <> '') and UserIdentifierHash.Exists(arry.S[i]) then
-          begin
-            UserIdentifierHash.Delete(arry.S[i]);
-            inc(found_);
-          end;
-      OutData.WriteBool(found_ > 0);
-      DisposeObject(j);
-    end;
-end;
-
-constructor TDTC40_UserDB_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_string);
+constructor TDTC40_UserDB_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
 begin
   inherited Create(PhysicsService_, ServiceTyp, Param_);
   ServiceInfo.OnlyInstance := True;
-  DTNoAuthService.RecvTunnel.RegisterStream('Usr_Find').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Find;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_Reg').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Reg;
+  DTNoAuthService.RecvTunnel.RegisterStream('Usr_Exists').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Exists;
+  DTNoAuthService.RecvTunnel.RegisterStream('Usr_Auth').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Auth;
+  DTNoAuthService.RecvTunnel.RegisterStream('Usr_ChangePassword').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_ChangePassword;
+  DTNoAuthService.RecvTunnel.RegisterStream('Usr_NewIdentifier').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_NewIdentifier;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_Get').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Get;
-  DTNoAuthService.RecvTunnel.RegisterStream('Usr_Post').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Post;
-  DTNoAuthService.RecvTunnel.RegisterStream('Usr_Remove').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Remove;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('Usr_Set').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Set;
   UpdateToGlobalDispatch;
 
   UserIdentifierHash := TJsonHashList.Create(False, 1024 * 1024, nil);
   UserIdentifierHash.AccessOptimization := True;
   UserIdentifierHash.IgnoreCase := False;
-  UserJsonList := TZJL.Create(True);
+  UserJsonPool := TZJL.Create(True);
   DTC40_UserDB_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.DFE', [ServiceInfo.ServiceTyp.Text]));
   DoLoading;
 end;
@@ -371,7 +444,7 @@ end;
 destructor TDTC40_UserDB_Service.Destroy;
 begin
   DisposeObject(UserIdentifierHash);
-  DisposeObject(UserJsonList);
+  DisposeObject(UserJsonPool);
   inherited Destroy;
 end;
 
@@ -391,65 +464,17 @@ begin
   TCompute.RunM(nil, D, {$IFDEF FPC}@{$ENDIF FPC}DoBackground_Save);
 end;
 
-function TDTC40_UserDB_Service.MatchIdentifier(Identifier_: U_string; j: TZJ): Boolean;
-var
-  arry: TZJArry;
-  i: Integer;
-begin
-  Result := True;
-  arry := GetIdentifier(j);
-  for i := 0 to arry.Count - 1 do
-    if umlMultipleMatch(True, Identifier_, arry.S[i]) then
-        exit;
-  Result := False;
-end;
-
-function TDTC40_UserDB_Service.ExistsIdentifier(j: TZJ): Boolean;
-var
-  arry: TZJArry;
-  i: Integer;
-begin
-  Result := True;
-  arry := GetIdentifier(j);
-  for i := 0 to arry.Count - 1 do
-    if (arry.S[i] <> '') and UserIdentifierHash.Exists(arry.S[i]) then
-        exit;
-  Result := False;
-end;
-
-function TDTC40_UserDB_Service.ExtractJsonToHash(j: TZJ): Boolean;
-var
-  arry: TZJArry;
-  i: Integer;
-  tmp: TZJ;
-begin
-  Result := False;
-  arry := GetIdentifier(j);
-  if arry.Count = 0 then
-      exit;
-
-  for i := 0 to arry.Count - 1 do
-    if (arry.S[i] <> '') then
-      begin
-        tmp := UserIdentifierHash[arry.S[i]];
-        if (tmp <> nil) then
-            tmp.Assign(j)
-        else
-            UserIdentifierHash.Add(arry.S[i], j);
-      end;
-
-  Result := True;
-end;
-
 procedure TDTC40_UserDB_Service.LoadUserDB;
 var
   D: TDFE;
-  j: TZJ;
+  j_: TZJ;
+  arry: TZJArry;
+  i: Integer;
 begin
   if not umlFileExists(DTC40_UserDB_FileName) then
       exit;
 
-  UserJsonList.Clear;
+  UserJsonPool.Clear;
   UserIdentifierHash.Clear;
 
   D := TDFE.Create;
@@ -461,10 +486,12 @@ begin
     DoStatus('extract user Database.');
     while D.R.NotEnd do
       begin
-        j := TZJ.Create;
-        D.R.ReadJson(j);
-        if not ExtractJsonToHash(j) then
-            DTC40PhysicsService.PhysicsTunnel.Error('error json'#13#10'%s', [j.ToJSONString(True).Text]);
+        j_ := TZJ.Create;
+        D.R.ReadJson(j_);
+        UserJsonPool.Add(j_);
+        arry := j_.A['Identifier'];
+        for i := 0 to arry.Count - 1 do
+            UserIdentifierHash.Add(arry.S[i], j_);
       end;
     DoStatus('extract user Database done.');
   except
@@ -474,76 +501,14 @@ begin
 end;
 
 procedure TDTC40_UserDB_Service.SaveUserDBAsDFE(DFE: TDFE);
-{$IFDEF FPC}
-  procedure fpc_Progress_(const Name: PSystemString; Obj: TZJ);
-  begin
-    if ExistsIdentifier(Obj) then
-        Obj.Tag := 1;
-  end;
-{$ENDIF FPC}
-
-
 var
   i: Integer;
 begin
-  for i := 0 to UserJsonList.Count - 1 do
-      UserJsonList[i].Tag := 0;
-
-{$IFDEF FPC}
-  UserIdentifierHash.ProgressP(@fpc_Progress_);
-{$ELSE FPC}
-  UserIdentifierHash.ProgressP(
-    procedure(const Name: PSystemString; Obj: TZJ)
-    begin
-      if ExistsIdentifier(Obj) then
-          Obj.Tag := 1;
-    end);
-{$ENDIF FPC}
-  for i := 0 to UserJsonList.Count - 1 do
-    if UserJsonList[i].Tag = 1 then
-        DFE.WriteJson(UserJsonList[i]);
+  for i := 0 to UserJsonPool.Count - 1 do
+      DFE.WriteJson(UserJsonPool[i], False);
 end;
 
-procedure TDTC40_UserDB_Service.CleanLoseJson;
-{$IFDEF FPC}
-  procedure fpc_Progress_(const Name: PSystemString; Obj: TZJ);
-  begin
-    if ExistsIdentifier(Obj) then
-        Obj.Tag := 1;
-  end;
-{$ENDIF FPC}
-
-
-var
-  i: Integer;
-begin
-  for i := 0 to UserJsonList.Count - 1 do
-      UserJsonList[i].Tag := 0;
-
-{$IFDEF FPC}
-  UserIdentifierHash.ProgressP(@fpc_Progress_);
-{$ELSE FPC}
-  UserIdentifierHash.ProgressP(
-    procedure(const Name: PSystemString; Obj: TZJ)
-    begin
-      if ExistsIdentifier(Obj) then
-          Obj.Tag := 1;
-    end);
-{$ENDIF FPC}
-  i := 0;
-  while i < UserJsonList.Count do
-    if UserJsonList[i].Tag <> 1 then
-      begin
-        UserJsonList.Delete(i);
-      end
-    else
-      begin
-        UserJsonList[i].Tag := 0;
-        inc(i);
-      end;
-end;
-
-constructor TOnUsrFind.Create;
+constructor TON_Usr_Reg.Create;
 begin
   inherited Create;
   Client := nil;
@@ -552,48 +517,52 @@ begin
   OnResultP := nil;
 end;
 
-procedure TOnUsrFind.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TON_Usr_Reg.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
-  tmp: TZJL;
-  j: TZJ;
+  State_: Boolean;
+  info_: SystemString;
 begin
-  tmp := TZJL.Create(True);
-  while Result_.R.NotEnd do
+  State_ := False;
+  info_ := 'error.';
+  if Result_.Count = 2 then
     begin
-      j := TZJ.Create;
-      Result_.R.ReadJson(j);
-      tmp.Add(j);
+      State_ := Result_.R.ReadBool;
+      info_ := Result_.R.ReadString;
     end;
 
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, tmp);
+        OnResultC(Client, State_, info_);
     if Assigned(OnResultM) then
-        OnResultM(Client, tmp);
+        OnResultM(Client, State_, info_);
     if Assigned(OnResultP) then
-        OnResultP(Client, tmp);
+        OnResultP(Client, State_, info_);
   except
   end;
-
-  DelayFreeObject(1.0, self, tmp);
-end;
-
-procedure TOnUsrFind.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
-begin
-  try
-    if Assigned(OnResultC) then
-        OnResultC(Client, nil);
-    if Assigned(OnResultM) then
-        OnResultM(Client, nil);
-    if Assigned(OnResultP) then
-        OnResultP(Client, nil);
-  except
-  end;
-
   DelayFreeObject(1.0, self);
 end;
 
-constructor TOnUsrReg.Create;
+procedure TON_Usr_Reg.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
+begin
+  State_ := False;
+  info_ := 'error.';
+
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, State_, info_);
+    if Assigned(OnResultM) then
+        OnResultM(Client, State_, info_);
+    if Assigned(OnResultP) then
+        OnResultP(Client, State_, info_);
+  except
+  end;
+  DelayFreeObject(1.0, self);
+end;
+
+constructor TON_Usr_Exists.Create;
 begin
   inherited Create;
   Client := nil;
@@ -602,94 +571,47 @@ begin
   OnResultP := nil;
 end;
 
-procedure TOnUsrReg.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TON_Usr_Exists.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
-  tmp: TArrayBool;
-  i: Integer;
+  State_: Boolean;
 begin
-  SetLength(tmp, Result_.Count);
-  for i := 0 to Result_.Count - 1 do
-      tmp[i] := Result_.ReadBool(i);
-
-  try
-    if Assigned(OnResultC) then
-        OnResultC(Client, tmp);
-    if Assigned(OnResultM) then
-        OnResultM(Client, tmp);
-    if Assigned(OnResultP) then
-        OnResultP(Client, tmp);
-  except
-  end;
-
-  DelayFreeObject(1.0, self);
-end;
-
-procedure TOnUsrReg.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
-begin
-  try
-    if Assigned(OnResultC) then
-        OnResultC(Client, nil);
-    if Assigned(OnResultM) then
-        OnResultM(Client, nil);
-    if Assigned(OnResultP) then
-        OnResultP(Client, nil);
-  except
-  end;
-
-  DelayFreeObject(1.0, self);
-end;
-
-constructor TOnUsrGet.Create;
-begin
-  inherited Create;
-  Client := nil;
-  OnResultC := nil;
-  OnResultM := nil;
-  OnResultP := nil;
-end;
-
-procedure TOnUsrGet.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
-var
-  tmp: TZJL;
-  j: TZJ;
-begin
-  tmp := TZJL.Create(True);
-  while Result_.R.NotEnd do
+  State_ := False;
+  if Result_.Count > 0 then
     begin
-      j := TZJ.Create;
-      Result_.R.ReadJson(j);
-      tmp.Add(j);
+      State_ := Result_.R.ReadBool;
     end;
 
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, tmp);
+        OnResultC(Client, State_);
     if Assigned(OnResultM) then
-        OnResultM(Client, tmp);
+        OnResultM(Client, State_);
     if Assigned(OnResultP) then
-        OnResultP(Client, tmp);
+        OnResultP(Client, State_);
   except
   end;
-
-  DelayFreeObject(1.0, self, tmp);
-end;
-
-procedure TOnUsrGet.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
-begin
-  try
-    if Assigned(OnResultC) then
-        OnResultC(Client, nil);
-    if Assigned(OnResultM) then
-        OnResultM(Client, nil);
-    if Assigned(OnResultP) then
-        OnResultP(Client, nil);
-  except
-  end;
-
   DelayFreeObject(1.0, self);
 end;
 
-constructor TOnUsrPost.Create;
+procedure TON_Usr_Exists.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  State_: Boolean;
+begin
+  State_ := False;
+
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, State_);
+    if Assigned(OnResultM) then
+        OnResultM(Client, State_);
+    if Assigned(OnResultP) then
+        OnResultP(Client, State_);
+  except
+  end;
+  DelayFreeObject(1.0, self);
+end;
+
+constructor TON_Usr_Auth.Create;
 begin
   inherited Create;
   Client := nil;
@@ -698,44 +620,52 @@ begin
   OnResultP := nil;
 end;
 
-procedure TOnUsrPost.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TON_Usr_Auth.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
-  tmp: TArrayBool;
-  i: Integer;
+  State_: Boolean;
+  info_: SystemString;
 begin
-  SetLength(tmp, Result_.Count);
-  for i := 0 to Result_.Count - 1 do
-      tmp[i] := Result_.ReadBool(i);
+  State_ := False;
+  info_ := 'error.';
+  if Result_.Count = 2 then
+    begin
+      State_ := Result_.R.ReadBool;
+      info_ := Result_.R.ReadString;
+    end;
 
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, tmp);
+        OnResultC(Client, State_, info_);
     if Assigned(OnResultM) then
-        OnResultM(Client, tmp);
+        OnResultM(Client, State_, info_);
     if Assigned(OnResultP) then
-        OnResultP(Client, tmp);
+        OnResultP(Client, State_, info_);
   except
   end;
-
   DelayFreeObject(1.0, self);
 end;
 
-procedure TOnUsrPost.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TON_Usr_Auth.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
 begin
+  State_ := False;
+  info_ := 'error.';
+
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, nil);
+        OnResultC(Client, State_, info_);
     if Assigned(OnResultM) then
-        OnResultM(Client, nil);
+        OnResultM(Client, State_, info_);
     if Assigned(OnResultP) then
-        OnResultP(Client, nil);
+        OnResultP(Client, State_, info_);
   except
   end;
-
   DelayFreeObject(1.0, self);
 end;
 
-constructor TOnUsrRemove.Create;
+constructor TON_Usr_ChangePassword.Create;
 begin
   inherited Create;
   Client := nil;
@@ -744,44 +674,166 @@ begin
   OnResultP := nil;
 end;
 
-procedure TOnUsrRemove.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TON_Usr_ChangePassword.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
-  tmp: TArrayBool;
-  i: Integer;
+  State_: Boolean;
+  info_: SystemString;
 begin
-  SetLength(tmp, Result_.Count);
-  for i := 0 to Result_.Count - 1 do
-      tmp[i] := Result_.ReadBool(i);
+  State_ := False;
+  info_ := 'error.';
+  if Result_.Count = 2 then
+    begin
+      State_ := Result_.R.ReadBool;
+      info_ := Result_.R.ReadString;
+    end;
 
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, tmp);
+        OnResultC(Client, State_, info_);
     if Assigned(OnResultM) then
-        OnResultM(Client, tmp);
+        OnResultM(Client, State_, info_);
     if Assigned(OnResultP) then
-        OnResultP(Client, tmp);
+        OnResultP(Client, State_, info_);
   except
   end;
-
   DelayFreeObject(1.0, self);
 end;
 
-procedure TOnUsrRemove.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TON_Usr_ChangePassword.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
 begin
+  State_ := False;
+  info_ := 'error.';
+
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, nil);
+        OnResultC(Client, State_, info_);
     if Assigned(OnResultM) then
-        OnResultM(Client, nil);
+        OnResultM(Client, State_, info_);
     if Assigned(OnResultP) then
-        OnResultP(Client, nil);
+        OnResultP(Client, State_, info_);
   except
   end;
-
   DelayFreeObject(1.0, self);
 end;
 
-constructor TDTC40_UserDB_Client.Create(source_: TDTC40_Info; Param_: U_string);
+constructor TON_Usr_NewIdentifier.Create;
+begin
+  inherited Create;
+  Client := nil;
+  OnResultC := nil;
+  OnResultM := nil;
+  OnResultP := nil;
+end;
+
+procedure TON_Usr_NewIdentifier.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
+begin
+  State_ := False;
+  info_ := 'error.';
+  if Result_.Count = 2 then
+    begin
+      State_ := Result_.R.ReadBool;
+      info_ := Result_.R.ReadString;
+    end;
+
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, State_, info_);
+    if Assigned(OnResultM) then
+        OnResultM(Client, State_, info_);
+    if Assigned(OnResultP) then
+        OnResultP(Client, State_, info_);
+  except
+  end;
+  DelayFreeObject(1.0, self);
+end;
+
+procedure TON_Usr_NewIdentifier.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
+begin
+  State_ := False;
+  info_ := 'error.';
+
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, State_, info_);
+    if Assigned(OnResultM) then
+        OnResultM(Client, State_, info_);
+    if Assigned(OnResultP) then
+        OnResultP(Client, State_, info_);
+  except
+  end;
+  DelayFreeObject(1.0, self);
+end;
+
+constructor TON_Usr_Get.Create;
+begin
+  inherited Create;
+  Client := nil;
+  OnResultC := nil;
+  OnResultM := nil;
+  OnResultP := nil;
+end;
+
+procedure TON_Usr_Get.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
+  j_: TZJ;
+begin
+  State_ := False;
+  info_ := 'error.';
+  j_ := TZJ.Create;
+  if Result_.Count = 2 then
+    begin
+      State_ := Result_.R.ReadBool;
+      info_ := Result_.R.ReadString;
+      if State_ then
+          Result_.R.ReadJson(j_);
+    end;
+
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, State_, info_, j_);
+    if Assigned(OnResultM) then
+        OnResultM(Client, State_, info_, j_);
+    if Assigned(OnResultP) then
+        OnResultP(Client, State_, info_, j_);
+  except
+  end;
+  DelayFreeObject(1.0, self, j_);
+end;
+
+procedure TON_Usr_Get.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  State_: Boolean;
+  info_: SystemString;
+  j_: TZJ;
+begin
+  State_ := False;
+  info_ := 'error.';
+  j_ := TZJ.Create;
+
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, State_, info_, j_);
+    if Assigned(OnResultM) then
+        OnResultM(Client, State_, info_, j_);
+    if Assigned(OnResultP) then
+        OnResultP(Client, State_, info_, j_);
+  except
+  end;
+  DelayFreeObject(1.0, self, j_);
+end;
+
+constructor TDTC40_UserDB_Client.Create(source_: TDTC40_Info; Param_: U_String);
 begin
   inherited Create(source_, Param_);
 end;
@@ -791,300 +843,321 @@ begin
   inherited Destroy;
 end;
 
-procedure TDTC40_UserDB_Client.Usr_FindC(Identifier_: SystemString; MaxResult: Integer; OnResult: TON_Usr_FindC);
+procedure TDTC40_UserDB_Client.Usr_RegC(UserName_, Passwd_: U_String; OnResult: TON_Usr_RegC);
 var
+  tmp: TON_Usr_Reg;
   D: TDFE;
-  tmp: TOnUsrFind;
 begin
-  D := TDFE.Create;
-  D.WriteString(Identifier_);
-  D.WriteInteger(MaxResult);
-
-  tmp := TOnUsrFind.Create;
+  tmp := TON_Usr_Reg.Create;
   tmp.Client := self;
   tmp.OnResultC := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Find', D, nil, nil,
-{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
-  DisposeObject(D);
-end;
-
-procedure TDTC40_UserDB_Client.Usr_FindM(Identifier_: SystemString; MaxResult: Integer; OnResult: TON_Usr_FindM);
-var
-  D: TDFE;
-  tmp: TOnUsrFind;
-begin
   D := TDFE.Create;
-  D.WriteString(Identifier_);
-  D.WriteInteger(MaxResult);
-
-  tmp := TOnUsrFind.Create;
-  tmp.Client := self;
-  tmp.OnResultM := OnResult;
-
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Find', D, nil, nil,
-{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
-  DisposeObject(D);
-end;
-
-procedure TDTC40_UserDB_Client.Usr_FindP(Identifier_: SystemString; MaxResult: Integer; OnResult: TON_Usr_FindP);
-var
-  D: TDFE;
-  tmp: TOnUsrFind;
-begin
-  D := TDFE.Create;
-  D.WriteString(Identifier_);
-  D.WriteInteger(MaxResult);
-
-  tmp := TOnUsrFind.Create;
-  tmp.Client := self;
-  tmp.OnResultP := OnResult;
-
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Find', D, nil, nil,
-{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
-  DisposeObject(D);
-end;
-
-procedure TDTC40_UserDB_Client.Usr_RegC(L: TZJL; OnResult: TON_Usr_RegC);
-var
-  D: TDFE;
-  i: Integer;
-  tmp: TOnUsrReg;
-begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrReg.Create;
-  tmp.Client := self;
-  tmp.OnResultC := OnResult;
-
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Reg', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_RegM(L: TZJL; OnResult: TON_Usr_RegM);
+procedure TDTC40_UserDB_Client.Usr_RegM(UserName_, Passwd_: U_String; OnResult: TON_Usr_RegM);
 var
+  tmp: TON_Usr_Reg;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrReg;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrReg.Create;
+  tmp := TON_Usr_Reg.Create;
   tmp.Client := self;
   tmp.OnResultM := OnResult;
 
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Reg', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_RegP(L: TZJL; OnResult: TON_Usr_RegP);
+procedure TDTC40_UserDB_Client.Usr_RegP(UserName_, Passwd_: U_String; OnResult: TON_Usr_RegP);
 var
+  tmp: TON_Usr_Reg;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrReg;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrReg.Create;
+  tmp := TON_Usr_Reg.Create;
   tmp.Client := self;
   tmp.OnResultP := OnResult;
 
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Reg', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_GetC(Identifier_: U_StringArray; OnResult: TON_Usr_GetC);
+procedure TDTC40_UserDB_Client.Usr_ExistsC(UserName_: U_String; OnResult: TON_Usr_ExistsC);
 var
+  tmp: TON_Usr_Exists;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrGet;
 begin
-  D := TDFE.Create;
-  for i := 0 to length(Identifier_) - 1 do
-      D.WriteString(Identifier_[i]);
-
-  tmp := TOnUsrGet.Create;
+  tmp := TON_Usr_Exists.Create;
   tmp.Client := self;
   tmp.OnResultC := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Get', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Exists', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_GetM(Identifier_: U_StringArray; OnResult: TON_Usr_GetM);
+procedure TDTC40_UserDB_Client.Usr_ExistsM(UserName_: U_String; OnResult: TON_Usr_ExistsM);
 var
+  tmp: TON_Usr_Exists;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrGet;
 begin
-  D := TDFE.Create;
-  for i := 0 to length(Identifier_) - 1 do
-      D.WriteString(Identifier_[i]);
-
-  tmp := TOnUsrGet.Create;
+  tmp := TON_Usr_Exists.Create;
   tmp.Client := self;
   tmp.OnResultM := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Get', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Exists', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_GetP(Identifier_: U_StringArray; OnResult: TON_Usr_GetP);
+procedure TDTC40_UserDB_Client.Usr_ExistsP(UserName_: U_String; OnResult: TON_Usr_ExistsP);
 var
+  tmp: TON_Usr_Exists;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrGet;
 begin
-  D := TDFE.Create;
-  for i := 0 to length(Identifier_) - 1 do
-      D.WriteString(Identifier_[i]);
-
-  tmp := TOnUsrGet.Create;
+  tmp := TON_Usr_Exists.Create;
   tmp.Client := self;
   tmp.OnResultP := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Get', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Exists', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_PostC(L: TZJL; OnResult: TON_Usr_PostC);
+procedure TDTC40_UserDB_Client.Usr_AuthC(UserName_, Passwd_: U_String; OnResult: TON_Usr_AuthC);
 var
+  tmp: TON_Usr_Auth;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrPost;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrPost.Create;
+  tmp := TON_Usr_Auth.Create;
   tmp.Client := self;
   tmp.OnResultC := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Post', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Auth', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_PostM(L: TZJL; OnResult: TON_Usr_PostM);
+procedure TDTC40_UserDB_Client.Usr_AuthM(UserName_, Passwd_: U_String; OnResult: TON_Usr_AuthM);
 var
+  tmp: TON_Usr_Auth;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrPost;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrPost.Create;
+  tmp := TON_Usr_Auth.Create;
   tmp.Client := self;
   tmp.OnResultM := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Post', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Auth', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_PostP(L: TZJL; OnResult: TON_Usr_PostP);
+procedure TDTC40_UserDB_Client.Usr_AuthP(UserName_, Passwd_: U_String; OnResult: TON_Usr_AuthP);
 var
+  tmp: TON_Usr_Auth;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrPost;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrPost.Create;
+  tmp := TON_Usr_Auth.Create;
   tmp.Client := self;
   tmp.OnResultP := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Post', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Auth', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_RemoveC(L: TZJL; OnResult: TON_Usr_RemoveC);
+procedure TDTC40_UserDB_Client.Usr_ChangePasswordC(UserName_, Passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordC);
 var
+  tmp: TON_Usr_ChangePassword;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrRemove;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrRemove.Create;
+  tmp := TON_Usr_ChangePassword.Create;
   tmp.Client := self;
   tmp.OnResultC := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Remove', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
+  D.WriteString(NewPasswd_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_ChangePassword', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_RemoveM(L: TZJL; OnResult: TON_Usr_RemoveM);
+procedure TDTC40_UserDB_Client.Usr_ChangePasswordM(UserName_, Passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordM);
 var
+  tmp: TON_Usr_ChangePassword;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrRemove;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrRemove.Create;
+  tmp := TON_Usr_ChangePassword.Create;
   tmp.Client := self;
   tmp.OnResultM := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Remove', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
+  D.WriteString(NewPasswd_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_ChangePassword', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
-
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Client.Usr_RemoveP(L: TZJL; OnResult: TON_Usr_RemoveP);
+procedure TDTC40_UserDB_Client.Usr_ChangePasswordP(UserName_, Passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordP);
 var
+  tmp: TON_Usr_ChangePassword;
   D: TDFE;
-  i: Integer;
-  tmp: TOnUsrRemove;
 begin
-  D := TDFE.Create;
-  for i := 0 to L.Count - 1 do
-      D.WriteJson(L[i]);
-
-  tmp := TOnUsrRemove.Create;
+  tmp := TON_Usr_ChangePassword.Create;
   tmp.Client := self;
   tmp.OnResultP := OnResult;
 
-  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Remove', D, nil, nil,
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(Passwd_);
+  D.WriteString(NewPasswd_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_ChangePassword', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
 
+procedure TDTC40_UserDB_Client.Usr_NewIdentifierC(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierC);
+var
+  tmp: TON_Usr_NewIdentifier;
+  D: TDFE;
+begin
+  tmp := TON_Usr_NewIdentifier.Create;
+  tmp.Client := self;
+  tmp.OnResultC := OnResult;
+
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(NewIdentifier_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_NewIdentifier', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_NewIdentifierM(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierM);
+var
+  tmp: TON_Usr_NewIdentifier;
+  D: TDFE;
+begin
+  tmp := TON_Usr_NewIdentifier.Create;
+  tmp.Client := self;
+  tmp.OnResultM := OnResult;
+
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(NewIdentifier_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_NewIdentifier', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_NewIdentifierP(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierP);
+var
+  tmp: TON_Usr_NewIdentifier;
+  D: TDFE;
+begin
+  tmp := TON_Usr_NewIdentifier.Create;
+  tmp.Client := self;
+  tmp.OnResultP := OnResult;
+
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(NewIdentifier_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_NewIdentifier', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_GetC(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetC);
+var
+  tmp: TON_Usr_Get;
+  D: TDFE;
+begin
+  tmp := TON_Usr_Get.Create;
+  tmp.Client := self;
+  tmp.OnResultC := OnResult;
+
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(ObjName_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Get', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_GetM(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetM);
+var
+  tmp: TON_Usr_Get;
+  D: TDFE;
+begin
+  tmp := TON_Usr_Get.Create;
+  tmp.Client := self;
+  tmp.OnResultM := OnResult;
+
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(ObjName_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Get', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_GetP(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetP);
+var
+  tmp: TON_Usr_Get;
+  D: TDFE;
+begin
+  tmp := TON_Usr_Get.Create;
+  tmp.Client := self;
+  tmp.OnResultP := OnResult;
+
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(ObjName_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Get', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Set(UserName_, ObjName_: U_String; Json_: TZJ);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(ObjName_);
+  D.WriteJson(Json_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Set', D);
   DisposeObject(D);
 end;
 

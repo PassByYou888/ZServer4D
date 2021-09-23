@@ -851,9 +851,13 @@ type
     procedure ContinueResultSend; virtual;
     { ContinueResultSend usage }
     property InText: SystemString read FInText;
+    property InConsole: SystemString read FInText;
     property OutText: SystemString read FOutText write FOutText;
+    property OutConsole: SystemString read FOutText write FOutText;
     property InDataFrame: TDataFrameEngine read FInDataFrame;
+    property InDFE: TDataFrameEngine read FInDataFrame;
     property OutDataFrame: TDataFrameEngine read FOutDataFrame;
+    property OutDFE: TDataFrameEngine read FOutDataFrame;
     function ResultSendIsPaused: Boolean;
 
     { state }
@@ -3865,7 +3869,7 @@ begin
       IO_.ContinueResultSend;
     end;
   if AutoFree then
-      Free;
+      DelayFreeObject(1.0, Self);
 end;
 
 procedure TStreamEventBridge.DoStreamParamEvent(Sender_: TPeerIO; Param1_: Pointer; Param2_: TObject; SendData_, ResultData_: TDataFrameEngine);
@@ -3897,7 +3901,7 @@ begin
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
 
   if AutoFree then
-      Free;
+      DelayFreeObject(1.0, Self);
 end;
 
 procedure TConsoleEventBridge.Init(IO_: TPeerIO; AutoPause_: Boolean);
@@ -3956,7 +3960,7 @@ begin
       IO_.ContinueResultSend;
     end;
   if AutoFree then
-      Free;
+      DelayFreeObject(1.0, Self);
 end;
 
 procedure TConsoleEventBridge.DoConsoleParamEvent(Sender_: TPeerIO; Param1_: Pointer; Param2_: TObject; SendData_, ResultData_: SystemString);
@@ -3987,7 +3991,7 @@ begin
   else
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
   if AutoFree then
-      Free;
+      DelayFreeObject(1.0, Self);
 end;
 
 procedure TP2PVM_CloneConnectEventBridge.DoAsyncConnectState(const State: Boolean);

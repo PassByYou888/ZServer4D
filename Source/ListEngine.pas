@@ -585,7 +585,7 @@ type
     procedure SetKeyValue(const Name: SystemString; const Value: TCoreClassObject);
 
     function GetOnChange(const Name: SystemString): THashObjectChangeEvent;
-    procedure SetOnChange(const Name: SystemString; const AValue: THashObjectChangeEvent);
+    procedure SetOnChange(const Name: SystemString; const Value_: THashObjectChangeEvent);
 
     function GetAccessOptimization: Boolean;
     procedure SetAccessOptimization(const Value: Boolean);
@@ -639,18 +639,18 @@ type
   THashStringChangeEvent = procedure(Sender: THashStringList; Name: SystemString; OLD_, New_: SystemString) of object;
 
   THashStringListData = record
-    v: SystemString;
+    V: SystemString;
     OnChnage: THashStringChangeEvent;
   end;
 
   PHashStringListData = ^THashStringListData;
 
-  THashStringListLoopCall = procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString);
-  THashStringListLoopMethod = procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString) of object;
+  THashStringListLoopCall = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString);
+  THashStringListLoopMethod = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString) of object;
 {$IFDEF FPC}
-  THashStringListLoopProc = procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString) is nested;
+  THashStringListLoopProc = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString) is nested;
 {$ELSE FPC}
-  THashStringListLoopProc = reference to procedure(Sender: THashStringList; Name: PSystemString; const v: SystemString);
+  THashStringListLoopProc = reference to procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString);
 {$ENDIF FPC}
 
   THashStringList = class(TCoreClassObject)
@@ -668,7 +668,7 @@ type
     procedure SetKeyValue(const Name: SystemString; const Value: SystemString);
 
     function GetOnChange(const Name: SystemString): THashStringChangeEvent;
-    procedure SetOnChange(const Name: SystemString; const AValue: THashStringChangeEvent);
+    procedure SetOnChange(const Name: SystemString; const Value_: THashStringChangeEvent);
 
     function GetAccessOptimization: Boolean;
     procedure SetAccessOptimization(const Value: Boolean);
@@ -699,17 +699,17 @@ type
     procedure GetNameList(OutputList: TListPascalString); overload;
     //
     procedure Delete(const Name: SystemString);
-    function Add(const Name: SystemString; v: SystemString): SystemString;
-    function FastAdd(const Name: SystemString; v: SystemString): SystemString;
+    function Add(const Name: SystemString; V: SystemString): SystemString;
+    function FastAdd(const Name: SystemString; V: SystemString): SystemString;
     function Find(const Name: SystemString): SystemString;
-    function FindValue(const AValue: SystemString): SystemString;
+    function FindValue(const Value_: SystemString): SystemString;
     function Exists(const Name: SystemString): Boolean;
     procedure CopyFrom(const Source: THashStringList);
-    function IncValue(const Name: SystemString; v: SystemString): SystemString; overload;
+    function IncValue(const Name: SystemString; V: SystemString): SystemString; overload;
     procedure IncValue(const vl: THashStringList); overload;
 
-    function GetDefaultValue(const Name: SystemString; AValue: SystemString): SystemString;
-    procedure SetDefaultValue(const Name: SystemString; AValue: SystemString);
+    function GetDefaultValue(const Name: SystemString; Value_: SystemString): SystemString;
+    procedure SetDefaultValue(const Name: SystemString; Value_: SystemString);
 
     function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 
@@ -749,7 +749,7 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    class function VToStr(const v: SystemString): SystemString;
+    class function VToStr(const V: SystemString): SystemString;
     class function StrToV(const S: SystemString): SystemString;
 
     procedure DataImport(TextList: TListPascalString); overload;
@@ -775,18 +775,18 @@ type
   THashVariantChangeEvent = procedure(Sender: THashVariantList; Name: SystemString; OLD_, New_: Variant) of object;
 
   THashVariantListData = record
-    v: Variant;
+    V: Variant;
     OnChnage: THashVariantChangeEvent;
   end;
 
   PHashVariantListData = ^THashVariantListData;
 
-  THashVariantListLoopCall = procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant);
-  THashVariantListLoopMethod = procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant) of object;
+  THashVariantListLoopCall = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant);
+  THashVariantListLoopMethod = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant) of object;
 {$IFDEF FPC}
-  THashVariantListLoopProc = procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant) is nested;
+  THashVariantListLoopProc = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant) is nested;
 {$ELSE FPC}
-  THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; Name: PSystemString; const v: Variant);
+  THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant);
 {$ENDIF FPC}
 
   THashVariantList = class(TCoreClassObject)
@@ -804,7 +804,7 @@ type
     procedure SetKeyValue(const Name: SystemString; const Value: Variant);
 
     function GetOnChange(const Name: SystemString): THashVariantChangeEvent;
-    procedure SetOnChange(const Name: SystemString; const AValue: THashVariantChangeEvent);
+    procedure SetOnChange(const Name: SystemString; const Value_: THashVariantChangeEvent);
 
     function GetAccessOptimization: Boolean;
     procedure SetAccessOptimization(const Value: Boolean);
@@ -843,24 +843,24 @@ type
     procedure GetNameList(OutputList: TListPascalString); overload;
     //
     procedure Delete(const Name: SystemString);
-    function Add(const Name: SystemString; v: Variant): Variant;
-    function FastAdd(const Name: SystemString; v: Variant): Variant;
+    function Add(const Name: SystemString; V: Variant): Variant;
+    function FastAdd(const Name: SystemString; V: Variant): Variant;
     function Find(const Name: SystemString): Variant;
-    function FindValue(const AValue: Variant): SystemString;
+    function FindValue(const Value_: Variant): SystemString;
     function Exists(const Name: SystemString): Boolean;
     procedure CopyFrom(const Source: THashVariantList);
     function GetType(const Name: SystemString): Word;
-    function IncValue(const Name: SystemString; v: Variant): Variant; overload;
+    function IncValue(const Name: SystemString; V: Variant): Variant; overload;
     procedure IncValue(const vl: THashVariantList); overload;
 
-    function SetMax(const Name: SystemString; v: Variant): Variant; overload;
+    function SetMax(const Name: SystemString; V: Variant): Variant; overload;
     procedure SetMax(const vl: THashVariantList); overload;
 
-    function SetMin(const Name: SystemString; v: Variant): Variant; overload;
+    function SetMin(const Name: SystemString; V: Variant): Variant; overload;
     procedure SetMin(const vl: THashVariantList); overload;
 
-    function GetDefaultValue(const Name: SystemString; AValue: Variant): Variant;
-    procedure SetDefaultValue(const Name: SystemString; AValue: Variant);
+    function GetDefaultValue(const Name: SystemString; Value_: Variant): Variant;
+    procedure SetDefaultValue(const Name: SystemString; Value_: Variant);
 
     function ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
 
@@ -906,7 +906,7 @@ type
     destructor Destroy; override;
     procedure Clear;
 
-    class function VToStr(const v: Variant): SystemString;
+    class function VToStr(const V: Variant): SystemString;
     class function StrToV(const S: SystemString): Variant;
 
     procedure DataImport(TextList: TListPascalString); overload;
@@ -923,7 +923,7 @@ type
     procedure SaveToText(var Text_: SystemString); overload;
     function Text: SystemString;
 
-    function GetValue(Name_: SystemString; v: Variant): Variant;
+    function GetValue(Name_: SystemString; V: Variant): Variant;
 
     property NameValue[Name_: SystemString]: Variant read GetKeyValue write SetKeyValue; default;
     property VariantList: THashVariantList read FVariantList write FVariantList;
@@ -1299,7 +1299,7 @@ type
 {$REGION 'TVariantToVariantList'}
 
   TVariantToVariantListData = record
-    v: Variant;
+    V: Variant;
   end;
 
   PVariantToVariantListData = ^TVariantToVariantListData;
@@ -1315,7 +1315,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Add(ID, AValue: Variant): Boolean;
+    function Add(ID, Value_: Variant): Boolean;
     function Delete(ID: Variant): Boolean;
     procedure Clear;
     function Exists(ID: Variant): Boolean;
@@ -1431,8 +1431,8 @@ function MakeHashI64(const i64: Int64): THash; {$IFDEF INLINE_ASM} inline; {$END
 function MakeHashU32(const c32: Cardinal): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MakeHashP(const p: Pointer): THash; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
-procedure DoStatusL(const v: TListPascalString); overload;
-procedure DoStatusL(const v: TListString); overload;
+procedure DoStatusL(const V: TListPascalString); overload;
+procedure DoStatusL(const V: TListString); overload;
 
 implementation
 
@@ -1477,33 +1477,33 @@ begin
   Result := umlCRC32(@p, C_Pointer_Size);
 end;
 
-procedure DoStatusL(const v: TListPascalString);
+procedure DoStatusL(const V: TListPascalString);
 var
   i: Integer;
   o: TCoreClassObject;
 begin
-  for i := 0 to v.Count - 1 do
+  for i := 0 to V.Count - 1 do
     begin
-      o := v.Objects[i];
+      o := V.Objects[i];
       if o <> nil then
-          DoStatus('%s<%s>', [v[i].Text, o.ClassName])
+          DoStatus('%s<%s>', [V[i].Text, o.ClassName])
       else
-          DoStatus(v[i].Text);
+          DoStatus(V[i].Text);
     end;
 end;
 
-procedure DoStatusL(const v: TListString);
+procedure DoStatusL(const V: TListString);
 var
   i: Integer;
   o: TCoreClassObject;
 begin
-  for i := 0 to v.Count - 1 do
+  for i := 0 to V.Count - 1 do
     begin
-      o := v.Objects[i];
+      o := V.Objects[i];
       if o <> nil then
-          DoStatus('%s<%s>', [v[i], o.ClassName])
+          DoStatus('%s<%s>', [V[i], o.ClassName])
       else
-          DoStatus(v[i]);
+          DoStatus(V[i]);
     end;
 end;
 
@@ -5869,7 +5869,7 @@ begin
       Result := nil;
 end;
 
-procedure THashObjectList.SetOnChange(const Name: SystemString; const AValue: THashObjectChangeEvent);
+procedure THashObjectList.SetOnChange(const Name: SystemString; const Value_: THashObjectChangeEvent);
 var
   pObjData: PHashObjectListData;
 begin
@@ -5877,12 +5877,12 @@ begin
   if pObjData = nil then
     begin
       new(pObjData);
-      pObjData^.OnChnage := AValue;
+      pObjData^.OnChnage := Value_;
       pObjData^.Obj := nil;
       FHashList.Add(Name, pObjData, False);
     end
   else
-      pObjData^.OnChnage := AValue;
+      pObjData^.OnChnage := Value_;
 end;
 
 function THashObjectList.GetAccessOptimization: Boolean;
@@ -6372,7 +6372,7 @@ var
 begin
   pVarData := FHashList.NameValue[Name];
   if pVarData <> nil then
-      Result := pVarData^.v
+      Result := pVarData^.V
   else
       Result := Null;
 end;
@@ -6396,14 +6396,14 @@ begin
       if Assigned(pVarData^.OnChnage) then
         begin
           try
-              pVarData^.OnChnage(Self, Name, pVarData^.v, Value);
+              pVarData^.OnChnage(Self, Name, pVarData^.V, Value);
           except
           end;
         end;
       if Assigned(FOnValueChangeNotify) then
-          FOnValueChangeNotify(Self, Name, pVarData^.v, Value);
+          FOnValueChangeNotify(Self, Name, pVarData^.V, Value);
     end;
-  pVarData^.v := Value;
+  pVarData^.V := Value;
 end;
 
 function THashStringList.GetOnChange(const Name: SystemString): THashStringChangeEvent;
@@ -6417,7 +6417,7 @@ begin
       Result := nil;
 end;
 
-procedure THashStringList.SetOnChange(const Name: SystemString; const AValue: THashStringChangeEvent);
+procedure THashStringList.SetOnChange(const Name: SystemString; const Value_: THashStringChangeEvent);
 var
   pVarData: PHashStringListData;
 begin
@@ -6425,12 +6425,12 @@ begin
   if pVarData = nil then
     begin
       new(pVarData);
-      pVarData^.v := Null;
-      pVarData^.OnChnage := AValue;
+      pVarData^.V := Null;
+      pVarData^.OnChnage := Value_;
       FHashList.Add(Name, pVarData, False);
     end
   else
-      pVarData^.OnChnage := AValue;
+      pVarData^.OnChnage := Value_;
 end;
 
 function THashStringList.GetAccessOptimization: Boolean;
@@ -6482,7 +6482,7 @@ begin
       p := sour.HashList.FirstPtr;
       while i < sour.HashList.Count do
         begin
-          FastAdd(p^.OriginName, PHashStringListData(p^.Data)^.v);
+          FastAdd(p^.OriginName, PHashStringListData(p^.Data)^.V);
           inc(i);
           p := p^.Next;
         end;
@@ -6500,7 +6500,7 @@ begin
       p := HashList.FirstPtr;
       while i < HashList.Count do
         begin
-          dest.Add(p^.OriginName, PHashStringListData(p^.Data)^.v);
+          dest.Add(p^.OriginName, PHashStringListData(p^.Data)^.V);
           inc(i);
           p := p^.Next;
         end;
@@ -6519,7 +6519,7 @@ begin
       while i < HashList.Count do
         begin
           try
-              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.v);
+              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.V);
           except
           end;
           inc(i);
@@ -6540,7 +6540,7 @@ begin
       while i < HashList.Count do
         begin
           try
-              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.v);
+              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.V);
           except
           end;
           inc(i);
@@ -6561,7 +6561,7 @@ begin
       while i < HashList.Count do
         begin
           try
-              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.v);
+              OnProgress(Self, @p^.OriginName, PHashStringListData(p^.Data)^.V);
           except
           end;
           inc(i);
@@ -6669,7 +6669,7 @@ begin
   FHashList.Delete(Name);
 end;
 
-function THashStringList.Add(const Name: SystemString; v: SystemString): SystemString;
+function THashStringList.Add(const Name: SystemString; V: SystemString): SystemString;
 var
   pVarData: PHashStringListData;
 begin
@@ -6678,7 +6678,7 @@ begin
     begin
       try
         if Assigned(pVarData^.OnChnage) then
-            pVarData^.OnChnage(Self, Name, pVarData^.v, v);
+            pVarData^.OnChnage(Self, Name, pVarData^.V, V);
       except
       end;
     end
@@ -6689,11 +6689,11 @@ begin
       FHashList.Add(Name, pVarData, True);
     end;
 
-  pVarData^.v := v;
-  Result := v;
+  pVarData^.V := V;
+  Result := V;
 end;
 
-function THashStringList.FastAdd(const Name: SystemString; v: SystemString): SystemString;
+function THashStringList.FastAdd(const Name: SystemString; V: SystemString): SystemString;
 var
   pVarData: PHashStringListData;
 begin
@@ -6701,8 +6701,8 @@ begin
   pVarData^.OnChnage := nil;
   FHashList.Add(Name, pVarData, False);
 
-  pVarData^.v := v;
-  Result := v;
+  pVarData^.V := V;
+  Result := V;
 end;
 
 function THashStringList.Find(const Name: SystemString): SystemString;
@@ -6711,12 +6711,12 @@ var
 begin
   pVarData := FHashList.Find(Name);
   if pVarData <> nil then
-      Result := pVarData^.v
+      Result := pVarData^.V
   else
       Result := Null;
 end;
 
-function THashStringList.FindValue(const AValue: SystemString): SystemString;
+function THashStringList.FindValue(const Value_: SystemString): SystemString;
 var
   i: Integer;
   lst: TCoreClassList;
@@ -6729,7 +6729,7 @@ begin
     for i := 0 to lst.Count - 1 do
       begin
         pVarData := PHashListData(lst[i])^.Data;
-        if umlSameVarValue(AValue, pVarData^.v) then
+        if umlSameVarValue(Value_, pVarData^.V) then
           begin
             Result := PHashListData(lst[i])^.OriginName;
             Break;
@@ -6746,7 +6746,7 @@ begin
   if pVarData = nil then
       Result := False
   else
-      Result := not VarIsEmpty(pVarData^.v);
+      Result := not VarIsEmpty(pVarData^.V);
 end;
 
 procedure THashStringList.CopyFrom(const Source: THashStringList);
@@ -6763,37 +6763,37 @@ begin
         with PHashListData(lst[i])^ do
           begin
             pVarData := Data;
-            NameValue[OriginName] := pVarData^.v;
+            NameValue[OriginName] := pVarData^.V;
           end;
       end;
   DisposeObject(lst);
 end;
 
-function THashStringList.IncValue(const Name: SystemString; v: SystemString): SystemString;
+function THashStringList.IncValue(const Name: SystemString; V: SystemString): SystemString;
 var
   pVarData: PHashStringListData;
 begin
   pVarData := FHashList.NameValue[Name];
   if pVarData <> nil then
     begin
-      if pVarData^.v <> '' then
-          Result := pVarData^.v + ',' + v;
+      if pVarData^.V <> '' then
+          Result := pVarData^.V + ',' + V;
 
       try
         if Assigned(pVarData^.OnChnage) then
-            pVarData^.OnChnage(Self, Name, pVarData^.v, Result);
+            pVarData^.OnChnage(Self, Name, pVarData^.V, Result);
       except
       end;
 
-      pVarData^.v := Result;
+      pVarData^.V := Result;
     end
   else
     begin
-      Result := v;
+      Result := V;
 
       new(pVarData);
       pVarData^.OnChnage := nil;
-      pVarData^.v := Result;
+      pVarData^.V := Result;
       FHashList.Add(Name, pVarData, True);
     end;
 end;
@@ -6809,49 +6809,49 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       p := PHashListData(lst[i]);
-      IncValue(p^.OriginName, PHashStringListData(p^.Data)^.v);
+      IncValue(p^.OriginName, PHashStringListData(p^.Data)^.V);
     end;
   DisposeObject(lst);
 end;
 
-function THashStringList.GetDefaultValue(const Name: SystemString; AValue: SystemString): SystemString;
+function THashStringList.GetDefaultValue(const Name: SystemString; Value_: SystemString): SystemString;
 var
   pVarData: PHashStringListData;
 begin
   try
     if Name = '' then
       begin
-        Result := AValue;
+        Result := Value_;
         Exit;
       end;
     pVarData := FHashList.NameValue[Name];
     if pVarData <> nil then
       begin
-        if (VarIsNull(pVarData^.v)) or (VarIsEmpty(pVarData^.v)) or ((VarIsStr(pVarData^.v)) and (VarToStr(pVarData^.v) = '')) then
+        if (VarIsNull(pVarData^.V)) or (VarIsEmpty(pVarData^.V)) or ((VarIsStr(pVarData^.V)) and (VarToStr(pVarData^.V) = '')) then
           begin
-            Result := AValue;
+            Result := Value_;
             if FAutoUpdateDefaultValue then
-                SetKeyValue(Name, AValue);
+                SetKeyValue(Name, Value_);
           end
         else
           begin
-            Result := pVarData^.v;
+            Result := pVarData^.V;
           end;
       end
     else
       begin
-        Result := AValue;
+        Result := Value_;
         if FAutoUpdateDefaultValue then
-            SetKeyValue(Name, AValue);
+            SetKeyValue(Name, Value_);
       end;
   except
-      Result := AValue;
+      Result := Value_;
   end;
 end;
 
-procedure THashStringList.SetDefaultValue(const Name: SystemString; AValue: SystemString);
+procedure THashStringList.SetDefaultValue(const Name: SystemString; Value_: SystemString);
 begin
-  SetKeyValue(Name, AValue);
+  SetKeyValue(Name, Value_);
 end;
 
 function THashStringList.ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
@@ -7019,23 +7019,23 @@ begin
       FStringList.Clear;
 end;
 
-class function THashStringTextStream.VToStr(const v: SystemString): SystemString;
+class function THashStringTextStream.VToStr(const V: SystemString): SystemString;
 var
   b64: TPascalString;
 begin
-  if umlExistsChar(v, #10#13#9#8#0) then
+  if umlExistsChar(V, #10#13#9#8#0) then
     begin
-      umlEncodeLineBASE64(v, b64);
+      umlEncodeLineBASE64(V, b64);
       Result := '___base64:' + b64.Text;
     end
   else
-      Result := v;
+      Result := V;
 end;
 
 class function THashStringTextStream.StrToV(const S: SystemString): SystemString;
 var
   n, body: U_String;
-  v: Variant;
+  V: Variant;
 begin
   n := umlTrimSpace(S);
   try
@@ -7054,22 +7054,22 @@ begin
       begin
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        v := EvaluateExpressionValue(False, body);
-        if VarIsNull(v) then
+        V := EvaluateExpressionValue(False, body);
+        if VarIsNull(V) then
             Result := n
         else
-            Result := VarToStr(v);
+            Result := VarToStr(V);
       end
     else if n.ComparePos(1, 'e') and umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        v := EvaluateExpressionValue(False, body);
-        if VarIsNull(v) then
+        V := EvaluateExpressionValue(False, body);
+        if VarIsNull(V) then
             Result := n
         else
-            Result := VarToStr(v);
+            Result := VarToStr(V);
       end
     else
       begin
@@ -7134,7 +7134,7 @@ begin
   if vl.Count > 0 then
     for i := 0 to vl.Count - 1 do
       begin
-        TextValue := VToStr(PHashStringListData(PHashListData(vl[i])^.Data)^.v);
+        TextValue := VToStr(PHashStringListData(PHashListData(vl[i])^.Data)^.V);
 
         if TextValue <> '' then
             TextList.Add((PHashListData(vl[i])^.OriginName + '=' + TextValue))
@@ -7257,7 +7257,7 @@ begin
     end;
   pVarData := FHashList.NameValue[Name];
   if pVarData <> nil then
-      Result := pVarData^.v
+      Result := pVarData^.V
   else
       Result := Null;
 end;
@@ -7281,14 +7281,14 @@ begin
       if Assigned(pVarData^.OnChnage) then
         begin
           try
-              pVarData^.OnChnage(Self, Name, pVarData^.v, Value);
+              pVarData^.OnChnage(Self, Name, pVarData^.V, Value);
           except
           end;
         end;
       if Assigned(FOnValueChangeNotify) then
-          FOnValueChangeNotify(Self, Name, pVarData^.v, Value);
+          FOnValueChangeNotify(Self, Name, pVarData^.V, Value);
     end;
-  pVarData^.v := Value;
+  pVarData^.V := Value;
 end;
 
 function THashVariantList.GetOnChange(const Name: SystemString): THashVariantChangeEvent;
@@ -7302,7 +7302,7 @@ begin
       Result := nil;
 end;
 
-procedure THashVariantList.SetOnChange(const Name: SystemString; const AValue: THashVariantChangeEvent);
+procedure THashVariantList.SetOnChange(const Name: SystemString; const Value_: THashVariantChangeEvent);
 var
   pVarData: PHashVariantListData;
 begin
@@ -7310,12 +7310,12 @@ begin
   if pVarData = nil then
     begin
       new(pVarData);
-      pVarData^.v := Null;
-      pVarData^.OnChnage := AValue;
+      pVarData^.V := Null;
+      pVarData^.OnChnage := Value_;
       FHashList.Add(Name, pVarData, False);
     end
   else
-      pVarData^.OnChnage := AValue;
+      pVarData^.OnChnage := Value_;
 end;
 
 function THashVariantList.GetAccessOptimization: Boolean;
@@ -7335,11 +7335,11 @@ end;
 
 function THashVariantList.GetI64(const Name: SystemString): Int64;
 var
-  v: Variant;
+  V: Variant;
 begin
-  v := GetDefaultValue(Name, 0);
-  if VarIsOrdinal(v) then
-      Result := v
+  V := GetDefaultValue(Name, 0);
+  if VarIsOrdinal(V) then
+      Result := V
   else
       Result := 0;
 end;
@@ -7351,11 +7351,11 @@ end;
 
 function THashVariantList.GetI32(const Name: SystemString): Integer;
 var
-  v: Variant;
+  V: Variant;
 begin
-  v := GetDefaultValue(Name, 0);
-  if VarIsOrdinal(v) then
-      Result := v
+  V := GetDefaultValue(Name, 0);
+  if VarIsOrdinal(V) then
+      Result := V
   else
       Result := 0;
 end;
@@ -7367,11 +7367,11 @@ end;
 
 function THashVariantList.GetF(const Name: SystemString): Double;
 var
-  v: Variant;
+  V: Variant;
 begin
-  v := GetDefaultValue(Name, 0);
-  if VarIsFloat(v) then
-      Result := v
+  V := GetDefaultValue(Name, 0);
+  if VarIsFloat(V) then
+      Result := V
   else
       Result := 0;
 end;
@@ -7425,7 +7425,7 @@ begin
       p := sour.HashList.FirstPtr;
       while i < sour.HashList.Count do
         begin
-          FastAdd(p^.OriginName, PHashVariantListData(p^.Data)^.v);
+          FastAdd(p^.OriginName, PHashVariantListData(p^.Data)^.V);
           inc(i);
           p := p^.Next;
         end;
@@ -7444,7 +7444,7 @@ begin
       while i < HashList.Count do
         begin
           try
-              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.v);
+              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.V);
           except
           end;
           inc(i);
@@ -7465,7 +7465,7 @@ begin
       while i < HashList.Count do
         begin
           try
-              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.v);
+              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.V);
           except
           end;
           inc(i);
@@ -7486,7 +7486,7 @@ begin
       while i < HashList.Count do
         begin
           try
-              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.v);
+              OnProgress(Self, @p^.OriginName, PHashVariantListData(p^.Data)^.V);
           except
           end;
           inc(i);
@@ -7594,7 +7594,7 @@ begin
   FHashList.Delete(Name);
 end;
 
-function THashVariantList.Add(const Name: SystemString; v: Variant): Variant;
+function THashVariantList.Add(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -7603,7 +7603,7 @@ begin
     begin
       try
         if Assigned(pVarData^.OnChnage) then
-            pVarData^.OnChnage(Self, Name, pVarData^.v, v);
+            pVarData^.OnChnage(Self, Name, pVarData^.V, V);
       except
       end;
     end
@@ -7614,11 +7614,11 @@ begin
       FHashList.Add(Name, pVarData, True);
     end;
 
-  pVarData^.v := v;
-  Result := v;
+  pVarData^.V := V;
+  Result := V;
 end;
 
-function THashVariantList.FastAdd(const Name: SystemString; v: Variant): Variant;
+function THashVariantList.FastAdd(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
@@ -7626,8 +7626,8 @@ begin
   pVarData^.OnChnage := nil;
   FHashList.Add(Name, pVarData, False);
 
-  pVarData^.v := v;
-  Result := v;
+  pVarData^.V := V;
+  Result := V;
 end;
 
 function THashVariantList.Find(const Name: SystemString): Variant;
@@ -7636,12 +7636,12 @@ var
 begin
   pVarData := FHashList.Find(Name);
   if pVarData <> nil then
-      Result := pVarData^.v
+      Result := pVarData^.V
   else
       Result := Null;
 end;
 
-function THashVariantList.FindValue(const AValue: Variant): SystemString;
+function THashVariantList.FindValue(const Value_: Variant): SystemString;
 var
   i: Integer;
   lst: TCoreClassList;
@@ -7654,7 +7654,7 @@ begin
     for i := 0 to lst.Count - 1 do
       begin
         pVarData := PHashListData(lst[i])^.Data;
-        if umlSameVarValue(AValue, pVarData^.v) then
+        if umlSameVarValue(Value_, pVarData^.V) then
           begin
             Result := PHashListData(lst[i])^.OriginName;
             Break;
@@ -7671,7 +7671,7 @@ begin
   if pVarData = nil then
       Result := False
   else
-      Result := not VarIsEmpty(pVarData^.v);
+      Result := not VarIsEmpty(pVarData^.V);
 end;
 
 procedure THashVariantList.CopyFrom(const Source: THashVariantList);
@@ -7688,7 +7688,7 @@ begin
         with PHashListData(lst[i])^ do
           begin
             pVarData := Data;
-            NameValue[OriginName] := pVarData^.v;
+            NameValue[OriginName] := pVarData^.V;
           end;
       end;
   DisposeObject(lst);
@@ -7702,47 +7702,47 @@ begin
   if pVarData = nil then
       Result := varEmpty
   else
-      Result := VarType(pVarData^.v);
+      Result := VarType(pVarData^.V);
 end;
 
-function THashVariantList.IncValue(const Name: SystemString; v: Variant): Variant;
+function THashVariantList.IncValue(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
   pVarData := FHashList.NameValue[Name];
   if pVarData <> nil then
     begin
-      if VarIsStr(pVarData^.v) and VarIsStr(v) then
+      if VarIsStr(pVarData^.V) and VarIsStr(V) then
         begin
-          if VarToStr(pVarData^.v) <> '' then
-              Result := VarToStr(pVarData^.v) + ',' + VarToStr(v)
+          if VarToStr(pVarData^.V) <> '' then
+              Result := VarToStr(pVarData^.V) + ',' + VarToStr(V)
           else
-              Result := VarToStr(pVarData^.v) + VarToStr(v);
+              Result := VarToStr(pVarData^.V) + VarToStr(V);
         end
       else
         begin
           try
-              Result := pVarData^.v + v;
+              Result := pVarData^.V + V;
           except
-              Result := VarToStr(pVarData^.v) + VarToStr(v);
+              Result := VarToStr(pVarData^.V) + VarToStr(V);
           end;
         end;
 
       try
         if Assigned(pVarData^.OnChnage) then
-            pVarData^.OnChnage(Self, Name, pVarData^.v, Result);
+            pVarData^.OnChnage(Self, Name, pVarData^.V, Result);
       except
       end;
 
-      pVarData^.v := Result;
+      pVarData^.V := Result;
     end
   else
     begin
-      Result := v;
+      Result := V;
 
       new(pVarData);
       pVarData^.OnChnage := nil;
-      pVarData^.v := Result;
+      pVarData^.V := Result;
       FHashList.Add(Name, pVarData, True);
     end;
 end;
@@ -7758,12 +7758,12 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       p := PHashListData(lst[i]);
-      IncValue(p^.OriginName, PHashVariantListData(p^.Data)^.v);
+      IncValue(p^.OriginName, PHashVariantListData(p^.Data)^.V);
     end;
   DisposeObject(lst);
 end;
 
-function THashVariantList.SetMax(const Name: SystemString; v: Variant): Variant;
+function THashVariantList.SetMax(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
   r: Boolean;
@@ -7772,30 +7772,30 @@ begin
   if pVarData <> nil then
     begin
       try
-          r := v > pVarData^.v;
+          r := V > pVarData^.V;
       except
           r := True;
       end;
 
       if r then
         begin
-          Result := v;
+          Result := V;
           try
             if Assigned(pVarData^.OnChnage) then
-                pVarData^.OnChnage(Self, Name, pVarData^.v, Result);
+                pVarData^.OnChnage(Self, Name, pVarData^.V, Result);
           except
           end;
 
-          pVarData^.v := Result;
+          pVarData^.V := Result;
         end;
     end
   else
     begin
-      Result := v;
+      Result := V;
 
       new(pVarData);
       pVarData^.OnChnage := nil;
-      pVarData^.v := Result;
+      pVarData^.V := Result;
       FHashList.Add(Name, pVarData, True);
     end;
 end;
@@ -7811,12 +7811,12 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       p := PHashListData(lst[i]);
-      SetMax(p^.OriginName, PHashVariantListData(p^.Data)^.v);
+      SetMax(p^.OriginName, PHashVariantListData(p^.Data)^.V);
     end;
   DisposeObject(lst);
 end;
 
-function THashVariantList.SetMin(const Name: SystemString; v: Variant): Variant;
+function THashVariantList.SetMin(const Name: SystemString; V: Variant): Variant;
 var
   pVarData: PHashVariantListData;
   r: Boolean;
@@ -7825,30 +7825,30 @@ begin
   if pVarData <> nil then
     begin
       try
-          r := v < pVarData^.v;
+          r := V < pVarData^.V;
       except
           r := True;
       end;
 
       if r then
         begin
-          Result := v;
+          Result := V;
           try
             if Assigned(pVarData^.OnChnage) then
-                pVarData^.OnChnage(Self, Name, pVarData^.v, Result);
+                pVarData^.OnChnage(Self, Name, pVarData^.V, Result);
           except
           end;
 
-          pVarData^.v := Result;
+          pVarData^.V := Result;
         end;
     end
   else
     begin
-      Result := v;
+      Result := V;
 
       new(pVarData);
       pVarData^.OnChnage := nil;
-      pVarData^.v := Result;
+      pVarData^.V := Result;
       FHashList.Add(Name, pVarData, True);
     end;
 end;
@@ -7864,49 +7864,49 @@ begin
   for i := 0 to lst.Count - 1 do
     begin
       p := PHashListData(lst[i]);
-      SetMin(p^.OriginName, PHashVariantListData(p^.Data)^.v);
+      SetMin(p^.OriginName, PHashVariantListData(p^.Data)^.V);
     end;
   DisposeObject(lst);
 end;
 
-function THashVariantList.GetDefaultValue(const Name: SystemString; AValue: Variant): Variant;
+function THashVariantList.GetDefaultValue(const Name: SystemString; Value_: Variant): Variant;
 var
   pVarData: PHashVariantListData;
 begin
   try
     if Name = '' then
       begin
-        Result := AValue;
+        Result := Value_;
         Exit;
       end;
     pVarData := FHashList.NameValue[Name];
     if pVarData <> nil then
       begin
-        if (VarIsNull(pVarData^.v)) or (VarIsEmpty(pVarData^.v)) or ((VarIsStr(pVarData^.v)) and (VarToStr(pVarData^.v) = '')) then
+        if (VarIsNull(pVarData^.V)) or (VarIsEmpty(pVarData^.V)) or ((VarIsStr(pVarData^.V)) and (VarToStr(pVarData^.V) = '')) then
           begin
-            Result := AValue;
+            Result := Value_;
             if FAutoUpdateDefaultValue then
-                SetKeyValue(Name, AValue);
+                SetKeyValue(Name, Value_);
           end
         else
           begin
-            Result := pVarData^.v;
+            Result := pVarData^.V;
           end;
       end
     else
       begin
-        Result := AValue;
+        Result := Value_;
         if FAutoUpdateDefaultValue then
-            SetKeyValue(Name, AValue);
+            SetKeyValue(Name, Value_);
       end;
   except
-      Result := AValue;
+      Result := Value_;
   end;
 end;
 
-procedure THashVariantList.SetDefaultValue(const Name: SystemString; AValue: Variant);
+procedure THashVariantList.SetDefaultValue(const Name: SystemString; Value_: Variant);
 begin
-  SetKeyValue(Name, AValue);
+  SetKeyValue(Name, Value_);
 end;
 
 function THashVariantList.ProcessMacro(const Text_, HeadToken, TailToken: SystemString; var Output_: SystemString): Boolean;
@@ -8074,35 +8074,35 @@ begin
       FVariantList.Clear;
 end;
 
-class function THashVariantTextStream.VToStr(const v: Variant): SystemString;
+class function THashVariantTextStream.VToStr(const V: Variant): SystemString;
 var
   n, b64: U_String;
 begin
   try
-    case VarType(v) of
+    case VarType(V) of
       varSmallInt, varInteger, varShortInt, varByte, varWord, varLongWord:
         begin
-          Result := IntToStr(v);
+          Result := IntToStr(V);
         end;
       varInt64:
         begin
-          Result := IntToStr(Int64(v));
+          Result := IntToStr(Int64(V));
         end;
       varUInt64:
         begin
 {$IFDEF FPC}
-          Result := IntToStr(UInt64(v));
+          Result := IntToStr(UInt64(V));
 {$ELSE}
-          Result := UIntToStr(UInt64(v));
+          Result := UIntToStr(UInt64(V));
 {$ENDIF}
         end;
       varSingle, varDouble, varCurrency, varDate:
         begin
-          Result := FloatToStr(v);
+          Result := FloatToStr(V);
         end;
       varOleStr, varString, varUString:
         begin
-          n.Text := VarToStr(v);
+          n.Text := VarToStr(V);
 
           if umlExistsChar(n, #10#13#9#8#0) then
             begin
@@ -8114,14 +8114,14 @@ begin
         end;
       varBoolean:
         begin
-          Result := BoolToStr(v, True);
+          Result := BoolToStr(V, True);
         end;
       else
-        Result := VarToStr(v);
+        Result := VarToStr(V);
     end;
   except
     try
-        Result := VarToStr(v);
+        Result := VarToStr(V);
     except
         Result := '';
     end;
@@ -8131,7 +8131,7 @@ end;
 class function THashVariantTextStream.StrToV(const S: SystemString): Variant;
 var
   n, body: U_String;
-  v: Variant;
+  V: Variant;
 begin
   n := umlTrimSpace(S);
   try
@@ -8150,22 +8150,22 @@ begin
       begin
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        v := EvaluateExpressionValue(False, body);
-        if VarIsNull(v) then
+        V := EvaluateExpressionValue(False, body);
+        if VarIsNull(V) then
             Result := n
         else
-            Result := VarToStr(v);
+            Result := VarToStr(V);
       end
     else if n.ComparePos(1, 'e') and umlMultipleMatch(['e(*)', 'e[*]', 'e<*>', 'e"*"', 'e'#39'*'#39], n) then
       begin
         body := n;
         body := umlDeleteFirstStr_Discontinuity(n, '([<"'#39);
         body.DeleteLast;
-        v := EvaluateExpressionValue(False, body);
-        if VarIsNull(v) then
+        V := EvaluateExpressionValue(False, body);
+        if VarIsNull(V) then
             Result := n
         else
-            Result := VarToStr(v);
+            Result := VarToStr(V);
       end
     else
       begin
@@ -8248,7 +8248,7 @@ begin
   if vl.Count > 0 then
     for i := 0 to vl.Count - 1 do
       begin
-        TextValue := VToStr(PHashVariantListData(PHashListData(vl[i])^.Data)^.v);
+        TextValue := VToStr(PHashVariantListData(PHashListData(vl[i])^.Data)^.V);
 
         if TextValue <> '' then
             TextList.Add((PHashListData(vl[i])^.OriginName + '=' + TextValue))
@@ -8345,13 +8345,13 @@ begin
   SaveToText(Result);
 end;
 
-function THashVariantTextStream.GetValue(Name_: SystemString; v: Variant): Variant;
+function THashVariantTextStream.GetValue(Name_: SystemString; V: Variant): Variant;
 begin
   Result := NameValue[Name_];
   if VarIsNull(Result) then
     begin
-      NameValue[Name_] := v;
-      Result := v;
+      NameValue[Name_] := V;
+      Result := V;
     end;
 end;
 
@@ -8586,13 +8586,13 @@ procedure TListInt64.LoadFromStream(stream: TCoreClassStream);
 var
   i: Integer;
   c: Integer;
-  v: Int64;
+  V: Int64;
 begin
   stream.read(c, C_Integer_Size);
   for i := 0 to c - 1 do
     begin
-      stream.read(v, C_Int64_Size);
-      Add(v);
+      stream.read(V, C_Int64_Size);
+      Add(V);
     end;
 end;
 
@@ -9786,7 +9786,7 @@ var
 begin
   p := FList.Items[ID];
   if p <> nil then
-      Result := p^.v
+      Result := p^.V
   else
       Result := Null;
 end;
@@ -9797,7 +9797,7 @@ var
 begin
   p := FList.Items[ID];
   if p <> nil then
-      p^.v := Value
+      p^.V := Value
   else
       Add(ID, Value);
 end;
@@ -9822,7 +9822,7 @@ begin
   inherited Destroy;
 end;
 
-function TVariantToVariantList.Add(ID, AValue: Variant): Boolean;
+function TVariantToVariantList.Add(ID, Value_: Variant): Boolean;
 var
   p: PVariantToVariantListData;
 begin
@@ -9836,7 +9836,7 @@ begin
       FList[ID] := p;
     end;
 
-  p^.v := AValue;
+  p^.V := Value_;
 
   Result := True;
 end;
@@ -9871,7 +9871,7 @@ begin
     begin
       pVarData := FList.FList[i];
       pToValueData := pVarData^.Data;
-      _To.Add(pToValueData^.v);
+      _To.Add(pToValueData^.V);
     end;
 end;
 

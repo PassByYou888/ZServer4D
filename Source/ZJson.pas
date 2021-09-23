@@ -133,7 +133,9 @@ type
     constructor Create(); overload;
     destructor Destroy; override;
 
+    procedure SwapInstance(source_: TZ_JsonObject);
     procedure Assign(source_: TZ_JsonObject);
+    function Clone: TZ_JsonObject;
 
     procedure Clear;
     function IndexOf(const Name: string): Integer;
@@ -266,6 +268,31 @@ begin
   inherited Destroy;
 end;
 
+procedure TZ_JsonObject.SwapInstance(source_: TZ_JsonObject);
+var
+  bak_FParent: TZ_JsonBase;
+  bak_FList: TCoreClassObjectList;
+  bak_FInstance: TZ_Instance_JsonObject;
+  bak_FTag: Integer;
+begin
+  if FParent <> nil then
+      raiseInfo('error.');
+  bak_FParent := FParent;
+  bak_FList := FList;
+  bak_FInstance := FInstance;
+  bak_FTag := FTag;
+
+  FParent := source_.FParent;
+  FList := source_.FList;
+  FInstance := source_.FInstance;
+  FTag := source_.FTag;
+
+  source_.FParent := bak_FParent;
+  source_.FList := bak_FList;
+  source_.FInstance := bak_FInstance;
+  source_.FTag := bak_FTag;
+end;
+
 procedure TZ_JsonObject.Assign(source_: TZ_JsonObject);
 var
   m64: TMS64;
@@ -275,6 +302,12 @@ begin
   m64.Position := 0;
   LoadFromStream(m64);
   disposeObject(m64);
+end;
+
+function TZ_JsonObject.Clone: TZ_JsonObject;
+begin
+  Result := TZ_JsonObject.Create;
+  Result.Assign(self);
 end;
 
 procedure TZ_JsonObject.SaveToStream(stream: TCoreClassStream);
@@ -401,11 +434,13 @@ begin
   js.O['obj'].S['fff'] := '999';
 
   DoStatus(js.ToJSONString(True));
+  DoStatus('');
+  DoStatus(js.O['obj'].ToJSONString(True));
 
   m64 := TMS64.Create;
   js.SaveToStream(m64);
   m64.Position := 0;
-  js.LoadFromStream(m64);
+  js.O['obj'].LoadFromStream(m64);
   DoStatus(js.ToJSONString(True));
   js.Free;
 end;
