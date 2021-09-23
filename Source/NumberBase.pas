@@ -733,7 +733,11 @@ end;
 
 function TNumberModulePool.IsVectorScript(ExpressionText_: SystemString; TS_: TTextStyle): Boolean;
 begin
-  Result := IsSymbolVectorExpression(ExpressionText_, TS_, nil);
+  try
+      Result := IsSymbolVectorExpression(ExpressionText_, TS_, nil);
+  except
+      Result := False;
+  end;
 end;
 
 function TNumberModulePool.IsVectorScript(ExpressionText_: SystemString): Boolean;
@@ -743,7 +747,11 @@ end;
 
 function TNumberModulePool.RunScript(ExpressionText_: SystemString; TS_: TTextStyle): Variant;
 begin
-  Result := EvaluateExpressionValue(True, TS_, ExpressionText_, ExpOpRunTime);
+  try
+      Result := EvaluateExpressionValue(True, TS_, ExpressionText_, ExpOpRunTime);
+  except
+      Result := NULL;
+  end;
 end;
 
 function TNumberModulePool.RunScript(ExpressionText_: SystemString): Variant;
@@ -753,7 +761,11 @@ end;
 
 function TNumberModulePool.RunVectorScript(ExpressionText_: SystemString; TS_: TTextStyle): TExpressionValueVector;
 begin
-  Result := EvaluateExpressionVector(False, True, nil, TS_, ExpressionText_, ExpOpRunTime, nil);
+  try
+      Result := EvaluateExpressionVector(False, True, nil, TS_, ExpressionText_, ExpOpRunTime, nil);
+  except
+      SetLength(Result, 0);
+  end;
 end;
 
 function TNumberModulePool.RunVectorScript(ExpressionText_: SystemString): TExpressionValueVector;
