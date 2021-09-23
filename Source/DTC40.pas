@@ -367,25 +367,31 @@ type
 
   TDTC40_Custom_Client_Array = array of TDTC40_Custom_Client;
 
-  TOn_DTC40_Custom_Client_EventC = procedure(Client_: TDTC40_Custom_Client);
-  TOn_DTC40_Custom_Client_EventM = procedure(Client_: TDTC40_Custom_Client) of object;
+  TDTC40_Custom_ClientPool_Wait_Data = record
+    ServiceTyp_: U_String;
+    Client_: TDTC40_Custom_Client;
+  end;
+
+  TDTC40_Custom_ClientPool_Wait_States = array of TDTC40_Custom_ClientPool_Wait_Data;
+
+  TOn_DTC40_Custom_Client_EventC = procedure(States_: TDTC40_Custom_ClientPool_Wait_States);
+  TOn_DTC40_Custom_Client_EventM = procedure(States_: TDTC40_Custom_ClientPool_Wait_States) of object;
 {$IFDEF FPC}
-  TOn_DTC40_Custom_Client_EventP = procedure(Client_: TDTC40_Custom_Client) is nested;
+  TOn_DTC40_Custom_Client_EventP = procedure(States_: TDTC40_Custom_ClientPool_Wait_States) is nested;
 {$ELSE FPC}
-  TOn_DTC40_Custom_Client_EventP = reference to procedure(Client_: TDTC40_Custom_Client);
+  TOn_DTC40_Custom_Client_EventP = reference to procedure(States_: TDTC40_Custom_ClientPool_Wait_States);
 {$ENDIF FPC}
 
   TDTC40_Custom_ClientPool_Wait = class
   private
     procedure DoRun;
   public
+    States_: TDTC40_Custom_ClientPool_Wait_States;
     Pool_: TDTC40_Custom_ClientPool;
-    ServiceTyp_: U_String;
-    TimeOut_: TTimeTick;
     OnCall: TOn_DTC40_Custom_Client_EventC;
     OnMethod: TOn_DTC40_Custom_Client_EventM;
     OnProc: TOn_DTC40_Custom_Client_EventP;
-    constructor Create;
+    constructor Create(dependNetwork_: U_String);
     destructor Destroy; override;
   end;
 
@@ -404,9 +410,9 @@ type
     function GetFromServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array;
     function GetFromPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Client_Array;
     function GetFromClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client_Array;
-    procedure WaitConnectedDoneC(ServiceTyp: U_String; TimeOut_: TTimeTick; OnResult: TOn_DTC40_Custom_Client_EventC);
-    procedure WaitConnectedDoneM(ServiceTyp: U_String; TimeOut_: TTimeTick; OnResult: TOn_DTC40_Custom_Client_EventM);
-    procedure WaitConnectedDoneP(ServiceTyp: U_String; TimeOut_: TTimeTick; OnResult: TOn_DTC40_Custom_Client_EventP);
+    procedure WaitConnectedDoneC(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventC);
+    procedure WaitConnectedDoneM(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventM);
+    procedure WaitConnectedDoneP(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventP);
   end;
 {$ENDREGION 'p2pVMCustomClient'}
 {$REGION 'DispatchService'}
@@ -681,9 +687,11 @@ var
   DTC40_QuietMode: Boolean;
   { physics service safeCheck time, default is 10 minute }
   DTC40_SafeCheckTime: TTimeTick;
+  { DTC40 reconnection delay time, default is 5.0(float) seconds }
+  DTC40_PhysicsReconnectionDelayTime: Double;
   { physics service timeout, default is 1 minute }
   DTC40_PhysicsServiceTimeout: TTimeTick;
-  { physics tunnel timeout, default is 15 seconds }
+  { physics tunnel timeout, default is 30 seconds }
   DTC40_PhysicsTunnelTimeout: TTimeTick;
   { kill dead physics connection timeout, default is 1 minute }
   DTC40_KillDeadPhysicsConnectionTimeout: TTimeTick;
@@ -1382,7 +1390,7 @@ begin
   if BuildNetworkIsDone and (not IsConnecting) and (not PhysicsTunnel.RemoteInited) then
     begin
       IsConnecting := True;
-      PhysicsTunnel.PostProgress.PostExecuteM_NP(1.0, {$IFDEF FPC}@{$ENDIF FPC}DoDelayConnect);
+      PhysicsTunnel.PostProgress.PostExecuteM_NP(DTC40_PhysicsReconnectionDelayTime, {$IFDEF FPC}@{$ENDIF FPC}DoDelayConnect);
     end;
 
   { check offline state }
@@ -1836,9 +1844,15 @@ function TDTC40_PhysicsTunnelPool.GetOrCreatePhysicsTunnel(PhysicsAddr: U_String
   const Depend_: TDTC40_DependNetworkInfoArray; const OnEvent_: IDTC40_PhysicsTunnel_Event): TDTC40_PhysicsTunnel;
 begin
   Result := GetPhysicsTunnel(PhysicsAddr, PhysicsPort);
-  if Result = nil then
+  if (Result = nil) then
     begin
       Result := TDTC40_PhysicsTunnel.Create(PhysicsAddr, PhysicsPort);
+      Result.OnEvent := OnEvent_;
+      Result.ResetDepend(Depend_);
+      Result.BuildDependNetwork();
+    end
+  else if (not Result.IsConnecting) and (not Result.BuildNetworkIsDone) then
+    begin
       Result.OnEvent := OnEvent_;
       Result.ResetDepend(Depend_);
       Result.BuildDependNetwork();
@@ -1852,6 +1866,12 @@ begin
   if Result = nil then
     begin
       Result := TDTC40_PhysicsTunnel.Create(PhysicsAddr, PhysicsPort);
+      Result.OnEvent := OnEvent_;
+      Result.ResetDepend(Depend_);
+      Result.BuildDependNetwork();
+    end
+  else if (not Result.IsConnecting) and (not Result.BuildNetworkIsDone) then
+    begin
       Result.OnEvent := OnEvent_;
       Result.ResetDepend(Depend_);
       Result.BuildDependNetwork();
@@ -1872,6 +1892,12 @@ begin
   if Result = nil then
     begin
       Result := TDTC40_PhysicsTunnel.Create(dispInfo.PhysicsAddr, dispInfo.PhysicsPort);
+      Result.OnEvent := OnEvent_;
+      Result.ResetDepend(Depend_);
+      Result.BuildDependNetwork();
+    end
+  else if (not Result.IsConnecting) and (not Result.BuildNetworkIsDone) then
+    begin
       Result.OnEvent := OnEvent_;
       Result.ResetDepend(Depend_);
       Result.BuildDependNetwork();
@@ -2642,19 +2668,59 @@ begin
 end;
 
 procedure TDTC40_Custom_ClientPool_Wait.DoRun;
+  function ExistsClientFromStatesDone(c_: TDTC40_Custom_Client): Boolean;
+  var
+    i: Integer;
+  begin
+    Result := True;
+    for i := 0 to Length(States_) - 1 do
+      if States_[i].Client_ = c_ then
+          exit;
+    Result := False;
+  end;
+
+  function MatchServiceTypForPool(var d_: TDTC40_Custom_ClientPool_Wait_Data): Boolean;
+  var
+    i: Integer;
+  begin
+    Result := True;
+    for i := 0 to Pool_.Count - 1 do
+      begin
+        if Pool_[i].Connected and d_.ServiceTyp_.Same(@Pool_[i].ClientInfo.ServiceTyp) and (not ExistsClientFromStatesDone(Pool_[i])) then
+          begin
+            d_.Client_ := Pool_[i];
+            exit;
+          end;
+      end;
+    Result := False;
+  end;
+
+  function IsAllDone: Boolean;
+  var
+    i: Integer;
+  begin
+    Result := False;
+    for i := 0 to Length(States_) - 1 do
+      if States_[i].Client_ = nil then
+          exit;
+    Result := True;
+  end;
+
 var
-  found_: TDTC40_Custom_Client;
+  i: Integer;
 begin
-  found_ := Pool_.ExistsConnectedServiceTyp(ServiceTyp_);
-  if (found_ <> nil) then
+  for i := 0 to Length(States_) - 1 do
+      MatchServiceTypForPool(States_[i]);
+
+  if IsAllDone then
     begin
       try
         if Assigned(OnCall) then
-            OnCall(found_);
+            OnCall(States_);
         if Assigned(OnMethod) then
-            OnMethod(found_);
+            OnMethod(States_);
         if Assigned(OnProc) then
-            OnProc(found_);
+            OnProc(States_);
       except
       end;
       DelayFreeObject(0.5, Self, nil);
@@ -2663,12 +2729,21 @@ begin
       SystemPostProgress.PostExecuteM_NP(0.1, {$IFDEF FPC}@{$ENDIF FPC}DoRun);
 end;
 
-constructor TDTC40_Custom_ClientPool_Wait.Create;
+constructor TDTC40_Custom_ClientPool_Wait.Create(dependNetwork_: U_String);
+var
+  arry: TArrayPascalString;
+  i: Integer;
 begin
   inherited Create;
+  umlGetSplitArray(dependNetwork_, arry, '|<>');
+  SetLength(States_, Length(arry));
+  for i := 0 to Length(arry) - 1 do
+    begin
+      States_[i].ServiceTyp_ := arry[i];
+      States_[i].Client_ := nil;
+    end;
+
   Pool_ := nil;
-  ServiceTyp_ := '';
-  TimeOut_ := 0;
   OnCall := nil;
   OnMethod := nil;
   OnProc := nil;
@@ -2676,6 +2751,7 @@ end;
 
 destructor TDTC40_Custom_ClientPool_Wait.Destroy;
 begin
+  SetLength(States_, 0);
   inherited Destroy;
 end;
 
@@ -2808,38 +2884,32 @@ begin
   DisposeObject(L);
 end;
 
-procedure TDTC40_Custom_ClientPool.WaitConnectedDoneC(ServiceTyp: U_String; TimeOut_: TTimeTick; OnResult: TOn_DTC40_Custom_Client_EventC);
+procedure TDTC40_Custom_ClientPool.WaitConnectedDoneC(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventC);
 var
   tmp: TDTC40_Custom_ClientPool_Wait;
 begin
-  tmp := TDTC40_Custom_ClientPool_Wait.Create;
+  tmp := TDTC40_Custom_ClientPool_Wait.Create(dependNetwork_);
   tmp.Pool_ := Self;
-  tmp.ServiceTyp_ := ServiceTyp;
-  tmp.TimeOut_ := GetTimeTick + TimeOut_;
   tmp.OnCall := OnResult;
   SystemPostProgress.PostExecuteM_NP(0.1, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoRun);
 end;
 
-procedure TDTC40_Custom_ClientPool.WaitConnectedDoneM(ServiceTyp: U_String; TimeOut_: TTimeTick; OnResult: TOn_DTC40_Custom_Client_EventM);
+procedure TDTC40_Custom_ClientPool.WaitConnectedDoneM(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventM);
 var
   tmp: TDTC40_Custom_ClientPool_Wait;
 begin
-  tmp := TDTC40_Custom_ClientPool_Wait.Create;
+  tmp := TDTC40_Custom_ClientPool_Wait.Create(dependNetwork_);
   tmp.Pool_ := Self;
-  tmp.ServiceTyp_ := ServiceTyp;
-  tmp.TimeOut_ := GetTimeTick + TimeOut_;
   tmp.OnMethod := OnResult;
   SystemPostProgress.PostExecuteM_NP(0.1, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoRun);
 end;
 
-procedure TDTC40_Custom_ClientPool.WaitConnectedDoneP(ServiceTyp: U_String; TimeOut_: TTimeTick; OnResult: TOn_DTC40_Custom_Client_EventP);
+procedure TDTC40_Custom_ClientPool.WaitConnectedDoneP(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventP);
 var
   tmp: TDTC40_Custom_ClientPool_Wait;
 begin
-  tmp := TDTC40_Custom_ClientPool_Wait.Create;
+  tmp := TDTC40_Custom_ClientPool_Wait.Create(dependNetwork_);
   tmp.Pool_ := Self;
-  tmp.ServiceTyp_ := ServiceTyp;
-  tmp.TimeOut_ := GetTimeTick + TimeOut_;
   tmp.OnProc := OnResult;
   SystemPostProgress.PostExecuteM_NP(0.1, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoRun);
 end;
@@ -4003,9 +4073,10 @@ initialization
 ProgressBackgroundProc := {$IFDEF FPC}@{$ENDIF FPC}C40Progress;
 
 DTC40_QuietMode := False;
+DTC40_PhysicsReconnectionDelayTime := 5.0;
 DTC40_SafeCheckTime := 1000 * 60 * 10;
 DTC40_PhysicsServiceTimeout := 1000 * 60;
-DTC40_PhysicsTunnelTimeout := 15 * 1000;
+DTC40_PhysicsTunnelTimeout := 30 * 1000;
 DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 60;
 DTC40_KillIDCFaultTimeout := 1000 * 60 * 60;
 
