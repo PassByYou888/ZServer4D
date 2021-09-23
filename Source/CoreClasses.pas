@@ -1035,7 +1035,7 @@ var
   d: PByte;
   v: UInt64;
 begin
-  if Count <= 0 then
+  if Count = 0 then
       Exit;
   v := Value or (Value shl 8) or (Value shl 16) or (Value shl 24);
   v := v or (v shl 32);
@@ -1077,7 +1077,7 @@ function CompareMemory(const p1, p2: Pointer; Count: NativeUInt): Boolean;
 var
   b1, b2: PByte;
 begin;
-  if Count <= 0 then
+  if Count = 0 then
     begin
       Result := True;
       Exit;
