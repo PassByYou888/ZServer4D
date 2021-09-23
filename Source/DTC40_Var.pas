@@ -697,7 +697,7 @@ begin
   UpdateToGlobalDispatch;
   ProgressTempNMList := TDTC40_Var_NumberModulePool_List.Create;
   DTC40_Var_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.DFE', [ServiceInfo.ServiceTyp.Text]));
-  NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024 * 1024, nil);
+  NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024 * 1024 * 64, nil);
   OnChange := nil;
   OnRemove := nil;
 
