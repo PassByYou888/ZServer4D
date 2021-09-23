@@ -2866,7 +2866,7 @@ end;
 
 function umlSameText(const s1, s2: TPascalString): Boolean;
 begin
-  Result := s1.Same(s2);
+  Result := s1.Same(@s2);
 end;
 
 function umlDeleteChar(const SText, Ch: TPascalString): TPascalString;
