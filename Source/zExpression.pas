@@ -3198,7 +3198,11 @@ end;
 
 function EStr(s: U_String): U_String;
 begin
-  Result := umlVarToStr(EvaluateExpressionValue(s), False);
+  try
+      Result := umlVarToStr(EvaluateExpressionValue(s), False);
+  except
+      Result := '';
+  end;
 end;
 
 function EStrToBool(s: U_String; default: Boolean): Boolean;
@@ -3214,22 +3218,30 @@ function EStrToInt(s: U_String; default: Integer): Integer;
 var
   v: Variant;
 begin
-  v := EvaluateExpressionValue(s);
-  if VarIsNumeric(v) then
-      Result := v
-  else
+  try
+    v := EvaluateExpressionValue(s);
+    if VarIsNumeric(v) then
+        Result := v
+    else
+        Result := default;
+  except
       Result := default;
+  end;
 end;
 
 function EStrToInt64(s: U_String; default: Int64): Int64;
 var
   v: Variant;
 begin
-  v := EvaluateExpressionValue(s);
-  if VarIsNumeric(v) then
-      Result := v
-  else
+  try
+    v := EvaluateExpressionValue(s);
+    if VarIsNumeric(v) then
+        Result := v
+    else
+        Result := default;
+  except
       Result := default;
+  end;
 end;
 
 function EStrToFloat(s: U_String; default: Double): Double;
@@ -3241,22 +3253,30 @@ function EStrToSingle(s: U_String; default: Single): Single;
 var
   v: Variant;
 begin
-  v := EvaluateExpressionValue(s);
-  if VarIsNumeric(v) then
-      Result := v
-  else
+  try
+    v := EvaluateExpressionValue(s);
+    if VarIsNumeric(v) then
+        Result := v
+    else
+        Result := default;
+  except
       Result := default;
+  end;
 end;
 
 function EStrToDouble(s: U_String; default: Double): Double;
 var
   v: Variant;
 begin
-  v := EvaluateExpressionValue(s);
-  if VarIsNumeric(v) then
-      Result := v
-  else
+  try
+    v := EvaluateExpressionValue(s);
+    if VarIsNumeric(v) then
+        Result := v
+    else
+        Result := default;
+  except
       Result := default;
+  end;
 end;
 
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;
