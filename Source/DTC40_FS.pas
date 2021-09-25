@@ -28,9 +28,9 @@ uses
   FPCGenericStructlist,
 {$ENDIF FPC}
   CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib, ListEngine,
-  Geometry2DUnit, DataFrameEngine, ZJson,
+  Geometry2DUnit, DataFrameEngine, ZJson, zExpression,
   NotifyObjectBase, CoreCipher, MemoryStream64,
-  ObjectData, ObjectDataManager, ItemStream,
+  ZDB2_Core,
   CommunicationFramework, PhysicsIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, DTC40;
 
 type
@@ -40,19 +40,27 @@ type
   protected
     // init build-in data
     IsLoading: Boolean;
+    IsChanged: Boolean;
     procedure DoLoading();
   protected
     // command
     procedure cmd_FS_PostFile(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     procedure cmd_FS_GetFile(Sender: TPeerIO; InData: TDFE);
+    procedure cmd_FS_RemoveFile(Sender: TPeerIO; InData: TDFE);
+  private
+    FIOHnd: TIOHnd;
   public
     DTC40_FS_FileName: U_String;
     FileNameHash: THashVariantList;
     FileMD5Hash: THashVariantList;
-    StoreEng: TObjectDataManager;
+    // ZDB2 Core
+    ZDB2DeltaSpace: Int64;
+    ZDB2BlockSize: Word;
+    ZDB2Space: TZDB2_Core_Space;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure SafeCheck; override;
+    procedure Do_FS_RemoveFile(Token: U_String; Token_is_MD5: Boolean);
   end;
 
 {$REGION 'bridge_define'}
@@ -121,70 +129,92 @@ type
     procedure FS_GetFile_C(Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneC);
     procedure FS_GetFile_M(Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneM);
     procedure FS_GetFile_P(Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneP);
+    // remove file
+    procedure FS_RemoveFile(Token: U_String; Token_is_MD5: Boolean);
   end;
 
 implementation
 
 procedure TDTC40_FS_Service.DoLoading;
 var
-  sr: TItemSearch;
-  M64: TMS64;
+  id_arry: TZDB2_BlockHndle;
+  id_: Integer;
+  m64: TZDB2_Mem;
+  Token: U_String;
+  md5_: U_String;
 begin
   IsLoading := True;
 
   DoStatus('extract FileSystem hash.');
   try
-    if StoreEng.ItemFastFindFirst(StoreEng.RootField, '*', sr) then
+    if umlFileSize(ZDB2Space.Space_IOHnd^) = 0 then
       begin
-        M64 := TMS64.CustomCreate(8 * 1024 * 1024);
-        repeat
-          StoreEng.ItemReadToStream(sr.HeaderPOS, M64);
-          FileNameHash.Add(M64.ReadString, sr.HeaderPOS);
-          FileMD5Hash.Add(umlMD5String(M64.PosAsPtr, M64.Size - M64.Size), sr.HeaderPOS);
-          M64.Clear;
-        until not StoreEng.ItemFastFindNext(sr);
-        DisposeObject(M64);
+        ZDB2Space.BuildSpace(ZDB2DeltaSpace, ZDB2BlockSize);
+        ZDB2Space.Save;
+      end
+    else if ZDB2Space.Open then
+      begin
+        id_arry := ZDB2Space.BuildTableID;
+        m64 := TZDB2_Mem.Create;
+        for id_ in id_arry do
+          begin
+            if ZDB2Space.ReadData(m64, id_) then
+              begin
+                m64.Position := 0;
+                Token := m64.ReadString;
+                md5_ := umlMD5String(m64.PosAsPtr, m64.Size - m64.Position);
+                FileNameHash.Add(Token, id_);
+                FileMD5Hash.Add(md5_, id_);
+              end;
+          end;
+        DisposeObject(m64);
       end;
     DoStatus('extract FileSystem Done.');
   except
   end;
 
   IsLoading := False;
+  IsChanged := False;
 end;
 
 procedure TDTC40_FS_Service.cmd_FS_PostFile(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  M64: TMS64;
+  m64: TZDB2_Mem;
   Token: U_String;
   md5_: U_String;
-  itmHnd: TItemHandle;
+  id_: Integer;
 begin
-  M64 := TMS64.Create;
-  M64.Mapping(InData, DataSize);
-  Token := M64.ReadString;
-  md5_ := umlMD5String(M64.PosAsPtr, M64.Size - M64.Position);
-  Sender.Print('post file md5 %s', [md5_.Text]);
-  DisposeObject(M64);
+  m64 := TZDB2_Mem.Create;
+  m64.Mapping(InData, DataSize);
+  Token := m64.ReadString;
+  md5_ := umlMD5String(m64.PosAsPtr, m64.Size - m64.Position);
+  Sender.Print('fill post file data "%s" md5 "%s"', [Token.Text, md5_.Text]);
 
-  try
-    StoreEng.ItemFastCreate(StoreEng.RootField, Token, '', itmHnd);
-    StoreEng.ItemWrite(itmHnd, DataSize, InData^);
-    FileNameHash.Add(Token, itmHnd.Item.RHeader.CurrentHeader);
-    FileMD5Hash.Add(md5_, itmHnd.Item.RHeader.CurrentHeader);
-    StoreEng.ItemClose(itmHnd);
-  except
-  end;
+  Do_FS_RemoveFile(Token, False);
+  Do_FS_RemoveFile(md5_, True);
+
+  if not ZDB2Space.CheckWriteSpace(m64.Size) then
+      ZDB2Space.AppendSpace(ZDB2DeltaSpace, ZDB2BlockSize);
+
+  if ZDB2Space.WriteData(m64, id_, False) then
+    begin
+      IsChanged := True;
+      FileNameHash.FastAdd(Token, id_);
+      FileMD5Hash.FastAdd(md5_, id_);
+      Sender.Print('accept post file data "%s" md5 "%s" spcae ID:%d', [Token.Text, md5_.Text, id_]);
+    end;
+
+  DisposeObject(m64);
 end;
 
 procedure TDTC40_FS_Service.cmd_FS_GetFile(Sender: TPeerIO; InData: TDFE);
 var
   Token: U_String;
   Token_is_MD5: Boolean;
-  itmPos: Int64;
   IO_ID: Cardinal;
   IO_: TPeerIO;
-  itmStream: TItemStream;
-  M64: TMem64;
+  id_: Integer;
+  m64: TZDB2_Mem;
 begin
   Token := InData.R.ReadString;
   Token_is_MD5 := InData.R.ReadBool;
@@ -195,31 +225,45 @@ begin
       exit;
 
   if Token_is_MD5 then
-      itmPos := FileMD5Hash.GetDefaultValue(Token, 0)
-  else
-      itmPos := FileNameHash.GetDefaultValue(Token, 0);
-
-  if itmPos = 0 then
     begin
-      IO_.SendDirectConsoleCmd('Error', PFormat('no found file "%s"', [Token.Text]));
-      exit;
-    end;
-
-  itmStream := TItemStream.Create(StoreEng, itmPos);
-  M64 := TMem64.Create;
-  M64.Size := itmStream.Size;
-  M64.CopyFrom(itmStream, itmStream.Size);
-  DisposeObject(itmStream);
-  if M64.Size > 0 then
-    begin
-      IO_.SendCompleteBuffer('Save', M64.Memory, M64.Size, True);
-      M64.DiscardMemory;
+      id_ := FileMD5Hash.GetDefaultValue(Token, -1);
+      if id_ < 0 then
+        begin
+          IO_.SendDirectConsoleCmd('Error', PFormat('warning: empty file "%s"', [Token.Text]));
+          exit;
+        end;
     end
   else
     begin
-      DisposeObject(M64);
-      IO_.SendDirectConsoleCmd('Error', PFormat('warning: empty file "%s"', [Token.Text]));
+      id_ := FileNameHash.GetDefaultValue(Token, -1);
+      if id_ < 0 then
+        begin
+          IO_.SendDirectConsoleCmd('Error', PFormat('warning: empty file "%s"', [Token.Text]));
+          exit;
+        end;
     end;
+
+  m64 := TZDB2_Mem.Create;
+  if not ZDB2Space.ReadData(m64, id_) then
+    begin
+      IO_.SendDirectConsoleCmd('Error', PFormat('ZDB2 data error "%s"', [LastDoStatus]));
+      DisposeObject(m64);
+      exit;
+    end;
+
+  IO_.SendCompleteBuffer('Save', m64.Memory, m64.Size, True);
+  m64.DiscardMemory;
+  DisposeObject(m64);
+end;
+
+procedure TDTC40_FS_Service.cmd_FS_RemoveFile(Sender: TPeerIO; InData: TDFE);
+var
+  Token: U_String;
+  Token_is_MD5: Boolean;
+begin
+  Token := InData.R.ReadString;
+  Token_is_MD5 := InData.R.ReadBool;
+  Do_FS_RemoveFile(Token, Token_is_MD5);
 end;
 
 constructor TDTC40_FS_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
@@ -230,6 +274,7 @@ begin
   DTNoAuthService.RecvTunnel.MaxCompleteBufferSize := 128 * 1024 * 1024;
   DTNoAuthService.RecvTunnel.RegisterCompleteBuffer('FS_PostFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_PostFile;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('FS_GetFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_GetFile;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('FS_RemoveFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_RemoveFile;
   // is only instance
   ServiceInfo.OnlyInstance := True;
   UpdateToGlobalDispatch;
@@ -237,18 +282,28 @@ begin
   FileNameHash := THashVariantList.CustomCreate(1024 * 1024 * 128);
   FileMD5Hash := THashVariantList.CustomCreate(1024 * 1024 * 128);
 
-  DTC40_FS_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.OX', [ServiceInfo.ServiceTyp.Text]));
+  // delta physics space
+  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '1024*1024*1024'), 1024 * 1024 * 1024);
+  // block
+  ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1024'), 1024);
+  // IO
+  InitIOHnd(FIOHnd);
+  DTC40_FS_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.Space', [ServiceInfo.ServiceTyp.Text]));
   if umlFileExists(DTC40_FS_FileName) then
     begin
-      StoreEng := ObjectDataMarshal.Open(DTC40_FS_FileName, False);
-      DoStatus('Open DB file: %s', [DTC40_FS_FileName.Text]);
+      if not umlFileOpen(DTC40_FS_FileName, FIOHnd, False) then
+          RaiseInfo('open file "%s" error.', [DTC40_FS_FileName.Text]);
     end
   else
     begin
-      StoreEng := ObjectDataMarshal.NewDB(200, DTC40_FS_FileName, False);
-      DoStatus('create new DB file: %s', [DTC40_FS_FileName.Text]);
+      if not umlFileCreate(DTC40_FS_FileName, FIOHnd) then
+          RaiseInfo('create file "%s" error.', [DTC40_FS_FileName.Text]);
     end;
-  StoreEng.OverWriteItem := False;
+  ZDB2Space := TZDB2_Core_Space.Create(@FIOHnd);
+  ZDB2Space.Mode := smBigData;
+
+  IsLoading := False;
+  IsChanged := False;
   DoLoading;
 end;
 
@@ -256,15 +311,57 @@ destructor TDTC40_FS_Service.Destroy;
 begin
   DisposeObject(FileNameHash);
   DisposeObject(FileMD5Hash);
+  DisposeObject(ZDB2Space);
   inherited Destroy;
 end;
 
 procedure TDTC40_FS_Service.SafeCheck;
 begin
   inherited SafeCheck;
-  DoStatus('Update FileSystem IO.');
-  StoreEng.UpdateIO;
-  DoStatus('Update FileSystem IO Done.');
+  if IsChanged then
+    begin
+      DoStatus('Update FileSystem IO.');
+      ZDB2Space.Save;
+      DoStatus('Update FileSystem IO Done.');
+      IsChanged := False;
+    end;
+end;
+
+procedure TDTC40_FS_Service.Do_FS_RemoveFile(Token: U_String; Token_is_MD5: Boolean);
+var
+  id_: Integer;
+  m64: TZDB2_Mem;
+  ori_token_: U_String;
+  md5_: U_String;
+begin
+  if Token_is_MD5 then
+    begin
+      id_ := FileMD5Hash.GetDefaultValue(Token, -1);
+      if id_ < 0 then
+          exit;
+    end
+  else
+    begin
+      id_ := FileNameHash.GetDefaultValue(Token, -1);
+      if id_ < 0 then
+          exit;
+    end;
+
+  m64 := TZDB2_Mem.Create;
+  if not ZDB2Space.ReadData(m64, id_) then
+    begin
+      DisposeObject(m64);
+      exit;
+    end;
+  ZDB2Space.RemoveData(id_, False);
+  IsChanged := True;
+
+  m64.Position := 0;
+  ori_token_ := m64.ReadString;
+  md5_ := umlMD5String(m64.PosAsPtr, m64.Size - m64.Position);
+  FileNameHash.Delete(ori_token_);
+  FileMD5Hash.Delete(md5_);
+  DisposeObject(m64);
 end;
 
 constructor TFS_Temp_Post_File_Tunnel.Create;
@@ -379,7 +476,7 @@ begin
   d := TDFE.Create;
   d.WriteString(Token);
   d.WriteBool(Token_is_MD5);
-  d.WriteCardinal(Sender.ClientIO.ID);
+  d.WriteCardinal(Sender.ClientIO.id);
   Client.DTNoAuthClient.SendTunnel.SendDirectStreamCmd('FS_GetFile', d);
   DisposeObject(d);
 end;
@@ -515,6 +612,17 @@ begin
   tmp.Token_is_MD5 := Token_is_MD5;
   tmp.OnResultP := OnResult;
   Client.SendTunnel.CloneConnectM({$IFDEF FPC}@{$ENDIF FPC}tmp.DoP2PVM_CloneConnectAndGetFile);
+end;
+
+procedure TDTC40_FS_Client.FS_RemoveFile(Token: U_String; Token_is_MD5: Boolean);
+var
+  d: TDFE;
+begin
+  d := TDFE.Create;
+  d.WriteString(Token);
+  d.WriteBool(Token_is_MD5);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('FS_RemoveFile', d);
+  DisposeObject(d);
 end;
 
 initialization
