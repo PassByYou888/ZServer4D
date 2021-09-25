@@ -290,6 +290,7 @@ function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString): 
 
 // easy API
 function EStr(s: U_String): U_String;
+function EStrToBool(s: U_String; default: Boolean): Boolean;
 function EStrToInt(s: U_String; default: Integer): Integer;
 function EStrToInt64(s: U_String; default: Int64): Int64;
 function EStrToFloat(s: U_String; default: Double): Double;
@@ -3198,6 +3199,15 @@ end;
 function EStr(s: U_String): U_String;
 begin
   Result := umlVarToStr(EvaluateExpressionValue(s), False);
+end;
+
+function EStrToBool(s: U_String; default: Boolean): Boolean;
+begin
+  try
+      Result := EvaluateExpressionValue(s);
+  except
+      Result := Default;
+  end;
 end;
 
 function EStrToInt(s: U_String; default: Integer): Integer;

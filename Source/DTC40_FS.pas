@@ -230,11 +230,12 @@ begin
   DTNoAuthService.RecvTunnel.MaxCompleteBufferSize := 128 * 1024 * 1024;
   DTNoAuthService.RecvTunnel.RegisterCompleteBuffer('FS_PostFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_PostFile;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('FS_GetFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_GetFile;
+  // is only instance
   ServiceInfo.OnlyInstance := True;
   UpdateToGlobalDispatch;
 
-  FileNameHash := THashVariantList.CustomCreate(1024 * 1024);
-  FileMD5Hash := THashVariantList.CustomCreate(1024 * 1024);
+  FileNameHash := THashVariantList.CustomCreate(1024 * 1024 * 128);
+  FileMD5Hash := THashVariantList.CustomCreate(1024 * 1024 * 128);
 
   DTC40_FS_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.OX', [ServiceInfo.ServiceTyp.Text]));
   if umlFileExists(DTC40_FS_FileName) then
@@ -519,15 +520,5 @@ end;
 initialization
 
 RegisterC40('FS', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS0', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS1', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS2', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS3', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS4', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS5', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS6', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS7', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS8', TDTC40_FS_Service, TDTC40_FS_Client);
-RegisterC40('FS9', TDTC40_FS_Service, TDTC40_FS_Client);
 
 end.

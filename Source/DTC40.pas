@@ -32,6 +32,7 @@ uses
   CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib, ListEngine,
   Geometry2DUnit, DataFrameEngine, ZJson,
   NotifyObjectBase, CoreCipher, MemoryStream64,
+  zExpression, OpCode,
   CommunicationFramework, PhysicsIO,
   CommunicationFrameworkDoubleTunnelIO,
   CommunicationFrameworkDataStoreService,
@@ -302,9 +303,9 @@ type
   private
     FLastSafeCheckTime: TTimeTick;
   public
-    SafeCheckTime: TTimeTick;
     Param: U_String;
     ParamList: THashStringList;
+    SafeCheckTime: TTimeTick;
     ServiceInfo: TDTC40_Info;
     DTC40PhysicsService: TDTC40_PhysicsService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); virtual;
@@ -689,6 +690,8 @@ var
   DTC40_SafeCheckTime: TTimeTick;
   { DTC40 reconnection delay time, default is 5.0(float) seconds }
   DTC40_PhysicsReconnectionDelayTime: Double;
+  { DTC40 Dispatch Service info update delay, default is 1 seconds }
+  DTC40_UpdateServiceInfoDelayTime: TTimeTick;
   { physics service timeout, default is 1 minute }
   DTC40_PhysicsServiceTimeout: TTimeTick;
   { physics tunnel timeout, default is 30 seconds }
@@ -972,13 +975,28 @@ end;
 
 procedure TDTC40_PhysicsService.cmd_QueryInfo(Sender: TPeerIO; InData, OutData: TDFE);
 var
-  i: Integer;
+  i, j: Integer;
   L: TDTC40_InfoList;
+  DPS_: TDTC40_Dispatch_Service;
 begin
   L := TDTC40_InfoList.Create(False);
+
+  // search all service
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    if L.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
-        L.Add(DTC40_ServicePool[i].ServiceInfo);
+    begin
+      if L.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
+          L.Add(DTC40_ServicePool[i].ServiceInfo);
+
+      // dispatch service
+      if DTC40_ServicePool[i] is TDTC40_Dispatch_Service then
+        begin
+          DPS_ := DTC40_ServicePool[i] as TDTC40_Dispatch_Service;
+          for j := 0 to DPS_.ServiceInfoList.Count - 1 do
+            if L.FindSame(DPS_.ServiceInfoList[j]) = nil then
+                L.Add(DPS_.ServiceInfoList[j]);
+        end;
+    end;
+
   L.SaveToDF(OutData);
   DisposeObject(L);
 end;
@@ -2393,11 +2411,20 @@ var
 begin
   inherited Create;
 
-  FLastSafeCheckTime := GetTimeTick;
-  SafeCheckTime := DTC40_SafeCheckTime;
-
   Param := Param_;
   DTC40PhysicsService := PhysicsService_;
+
+  ParamList := THashStringList.Create;
+  try
+    tmp := TPascalStringList.Create;
+    umlSeparatorText(Param, tmp, ',;' + #13#10);
+    ParamList.ImportFromStrings(tmp);
+    DisposeObject(tmp);
+  except
+  end;
+
+  FLastSafeCheckTime := GetTimeTick;
+  SafeCheckTime := EStrToInt64(ParamList.GetDefaultValue('SafeCheckTime', umlIntToStr(DTC40_SafeCheckTime)), DTC40_SafeCheckTime);
 
   P2PVM_Recv_Name_ := ServiceTyp + 'R';
   DTC40_ServicePool.MakeP2PVM_IPv6_Port(P2PVM_Recv_IP6_, P2PVM_Recv_Port_);
@@ -2405,6 +2432,8 @@ begin
   DTC40_ServicePool.MakeP2PVM_IPv6_Port(P2PVM_Send_IP6_, P2PVM_Send_Port_);
 
   ServiceInfo := TDTC40_Info.Create;
+  ServiceInfo.Ignored := EStrToBool(ParamList.GetDefaultValue('Ignored', if_(ServiceInfo.Ignored, 'True', 'False')), ServiceInfo.Ignored);
+  ServiceInfo.OnlyInstance := EStrToBool(ParamList.GetDefaultValue('OnlyInstance', if_(ServiceInfo.OnlyInstance, 'True', 'False')), ServiceInfo.OnlyInstance);
   ServiceInfo.ServiceTyp := ServiceTyp;
   ServiceInfo.PhysicsAddr := DTC40PhysicsService.PhysicsAddr;
   ServiceInfo.PhysicsPort := DTC40PhysicsService.PhysicsPort;
@@ -2415,15 +2444,6 @@ begin
   ServiceInfo.p2pVM_SendTunnel_Port := umlStrToInt(P2PVM_Send_Port_);
   SetWorkload(0, 100);
   ServiceInfo.MakeHash;
-
-  ParamList := THashStringList.Create;
-  try
-    tmp := TPascalStringList.Create;
-    umlSeparatorText(Param, tmp, ',;' + #13#10);
-    ParamList.ImportFromStrings(tmp);
-    DisposeObject(tmp);
-  except
-  end;
 
   DTC40_ServicePool.Add(Self);
   DTC40PhysicsService.DependNetworkServicePool.Add(Self);
@@ -3021,7 +3041,7 @@ end;
 procedure TDTC40_Dispatch_Service.Prepare_UpdateServerInfoToAllClient;
 begin
   FWaiting_UpdateServerInfoToAllClient := True;
-  FWaiting_UpdateServerInfoToAllClient_TimeTick := GetTimeTick + 5000;
+  FWaiting_UpdateServerInfoToAllClient_TimeTick := GetTimeTick + DTC40_UpdateServiceInfoDelayTime;
 end;
 
 procedure TDTC40_Dispatch_Service.UpdateServerInfoToAllClient;
@@ -4073,8 +4093,9 @@ initialization
 ProgressBackgroundProc := {$IFDEF FPC}@{$ENDIF FPC}C40Progress;
 
 DTC40_QuietMode := False;
-DTC40_PhysicsReconnectionDelayTime := 5.0;
 DTC40_SafeCheckTime := 1000 * 60 * 10;
+DTC40_PhysicsReconnectionDelayTime := 5.0;
+DTC40_UpdateServiceInfoDelayTime := 1000 * 1;
 DTC40_PhysicsServiceTimeout := 1000 * 60;
 DTC40_PhysicsTunnelTimeout := 30 * 1000;
 DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 60;

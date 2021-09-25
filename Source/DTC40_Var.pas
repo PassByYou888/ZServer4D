@@ -681,7 +681,6 @@ end;
 constructor TDTC40_Var_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
 begin
   inherited Create(PhysicsService_, ServiceTyp, Param_);
-  ServiceInfo.OnlyInstance := True;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_Init').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Init;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_InitAsTemp').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_InitAsTemp;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_Remove').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Remove;
@@ -694,10 +693,15 @@ begin
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_Keep').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Keep;
   DTNoAuthService.RecvTunnel.RegisterStream('NM_Script').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Script;
   DTNoAuthService.RecvTunnel.PeerIOUserDefineClass := TDTC40_Var_Service_IO_Define;
+  // is only instance
+  ServiceInfo.OnlyInstance := True;
   UpdateToGlobalDispatch;
+
   ProgressTempNMList := TDTC40_Var_NumberModulePool_List.Create;
   DTC40_Var_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.DFE', [ServiceInfo.ServiceTyp.Text]));
   NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024 * 1024 * 64, nil);
+  NMBigPool.AccessOptimization := True;
+  NMBigPool.IgnoreCase := False;
   OnChange := nil;
   OnRemove := nil;
 
@@ -1025,6 +1029,8 @@ begin
   inherited Create(source_, Param_);
   DTNoAuthClient.RecvTunnel.RegisterDirectStream('NM_Change').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Change;
   NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024, nil);
+  NMBigPool.AccessOptimization := True;
+  NMBigPool.IgnoreCase := False;
   OnChange := nil;
 end;
 
@@ -1337,15 +1343,5 @@ end;
 initialization
 
 RegisterC40('Var', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var0', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var1', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var2', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var3', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var4', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var5', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var6', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var7', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var8', TDTC40_Var_Service, TDTC40_Var_Client);
-RegisterC40('Var9', TDTC40_Var_Service, TDTC40_Var_Client);
 
 end.
