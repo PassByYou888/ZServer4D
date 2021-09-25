@@ -380,6 +380,7 @@ function umlSmartSizeToStr(Size: Int64): TPascalString;
 function umlIntToStr(Parameter: Single): TPascalString; overload;
 function umlIntToStr(Parameter: Double): TPascalString; overload;
 function umlIntToStr(Parameter: Int64): TPascalString; overload;
+function umlIntToStr(Parameter: UInt64): TPascalString; overload;
 
 function umlPointerToStr(param: Pointer): TPascalString;
 
@@ -3750,6 +3751,11 @@ end;
 function umlIntToStr(Parameter: Int64): TPascalString;
 begin
   Result := IntToStr(Parameter);
+end;
+
+function umlIntToStr(Parameter: UInt64): TPascalString;
+begin
+  Result := UIntToStr(Parameter);
 end;
 
 function umlPointerToStr(param: Pointer): TPascalString;
