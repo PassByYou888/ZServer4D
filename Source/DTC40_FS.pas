@@ -343,7 +343,7 @@ begin
   FileMD5Hash := THashVariantList.CustomCreate(1024 * 1024 * 128);
 
   // delta physics space
-  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '1024*1024*1024'), 1024 * 1024 * 1024);
+  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '512*1024*1024'), 512 * 1024 * 1024);
   // block
   ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1024'), 1024);
   // IO
