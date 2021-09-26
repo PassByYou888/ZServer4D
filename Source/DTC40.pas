@@ -225,6 +225,8 @@ type
     function GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info): TDTC40_PhysicsTunnel; overload;
     function GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info;
       const Depend_: TDTC40_DependNetworkInfoArray; const OnEvent_: IDTC40_PhysicsTunnel_Event): TDTC40_PhysicsTunnel; overload;
+    function GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info;
+      const Depend_: U_String; const OnEvent_: IDTC40_PhysicsTunnel_Event): TDTC40_PhysicsTunnel; overload;
     { progress }
     procedure Progress;
   end;
@@ -264,6 +266,7 @@ type
     procedure Save(stream: TCoreClassStream);
     function Same(Data_: TDTC40_Info): Boolean;
     function SameServiceTyp(Data_: TDTC40_Info): Boolean;
+    function SamePhysicsAddr(PhysicsAddr_: U_String; PhysicsPort_: Word): Boolean; overload;
     function SamePhysicsAddr(Data_: TDTC40_Info): Boolean; overload;
     function SamePhysicsAddr(Data_: TDTC40_PhysicsTunnel): Boolean; overload;
     function SamePhysicsAddr(Data_: TDTC40_PhysicsService): Boolean; overload;
@@ -274,6 +277,8 @@ type
 
   TDTC40_InfoList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDTC40_Info>;
 
+  TDTC40_Info_Array = array of TDTC40_Info;
+
   TDTC40_InfoList = class(TDTC40_InfoList_Decl)
   public
     AutoFree: Boolean;
@@ -283,9 +288,10 @@ type
     procedure Delete(index: Integer);
     procedure Clear;
     class procedure SortWorkLoad(L: TDTC40_InfoList);
+    function GetInfoArray: TDTC40_Info_Array;
     function IsOnlyInstance(ServiceTyp: U_String): Boolean;
     function GetServiceTypNum(ServiceTyp: U_String): Integer;
-    function SearchService(ServiceTyp: U_String): TDTC40_InfoList;
+    function SearchService(ServiceTyp: U_String): TDTC40_Info_Array;
     function ExistsService(ServiceTyp: U_String): Boolean;
     function ExistsServiceAndPhysicsTunnel(ServiceTyp: U_String; PhysicsTunnel_: TDTC40_PhysicsTunnel): Boolean;
     function FindSame(Data_: TDTC40_Info): TDTC40_Info;
@@ -1922,6 +1928,25 @@ begin
     end;
 end;
 
+function TDTC40_PhysicsTunnelPool.GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info;
+  const Depend_: U_String; const OnEvent_: IDTC40_PhysicsTunnel_Event): TDTC40_PhysicsTunnel;
+begin
+  Result := GetPhysicsTunnel(dispInfo.PhysicsAddr, dispInfo.PhysicsPort);
+  if Result = nil then
+    begin
+      Result := TDTC40_PhysicsTunnel.Create(dispInfo.PhysicsAddr, dispInfo.PhysicsPort);
+      Result.OnEvent := OnEvent_;
+      Result.ResetDepend(Depend_);
+      Result.BuildDependNetwork();
+    end
+  else if (not Result.IsConnecting) and (not Result.BuildNetworkIsDone) then
+    begin
+      Result.OnEvent := OnEvent_;
+      Result.ResetDepend(Depend_);
+      Result.BuildDependNetwork();
+    end;
+end;
+
 procedure TDTC40_PhysicsTunnelPool.Progress;
 var
   i: Integer;
@@ -2064,6 +2089,16 @@ end;
 function TDTC40_Info.SameServiceTyp(Data_: TDTC40_Info): Boolean;
 begin
   Result := ServiceTyp.Same(@Data_.ServiceTyp);
+end;
+
+function TDTC40_Info.SamePhysicsAddr(PhysicsAddr_: U_String; PhysicsPort_: Word): Boolean;
+begin
+  Result := False;
+  if not PhysicsAddr.Same(@PhysicsAddr_) then
+      exit;
+  if PhysicsPort <> PhysicsPort_ then
+      exit;
+  Result := True;
 end;
 
 function TDTC40_Info.SamePhysicsAddr(Data_: TDTC40_Info): Boolean;
@@ -2213,6 +2248,15 @@ begin
       fastSort_(L, 0, L.Count - 1);
 end;
 
+function TDTC40_InfoList.GetInfoArray: TDTC40_Info_Array;
+var
+  i: Integer;
+begin
+  SetLength(Result, Count);
+  for i := 0 to Count - 1 do
+      Result[i] := Items[i];
+end;
+
 function TDTC40_InfoList.IsOnlyInstance(ServiceTyp: U_String): Boolean;
 var
   i: Integer;
@@ -2236,22 +2280,20 @@ begin
         inc(Result);
 end;
 
-function TDTC40_InfoList.SearchService(ServiceTyp: U_String): TDTC40_InfoList;
+function TDTC40_InfoList.SearchService(ServiceTyp: U_String): TDTC40_Info_Array;
 var
   L: TDTC40_InfoList;
   i: Integer;
 begin
   L := TDTC40_InfoList.Create(False);
-
   { filter }
   for i := 0 to Count - 1 do
-    if umlMultipleMatch(True, ServiceTyp, Items[i].ServiceTyp) then
+    if ServiceTyp.Same(@Items[i].ServiceTyp) then
         L.Add(Items[i]);
-
   { sort }
   TDTC40_InfoList.SortWorkLoad(L);
-
-  Result := L;
+  Result := L.GetInfoArray;
+  DisposeObject(L);
 end;
 
 function TDTC40_InfoList.ExistsService(ServiceTyp: U_String): Boolean;
@@ -2260,7 +2302,7 @@ var
 begin
   Result := True;
   for i := 0 to Count - 1 do
-    if umlMultipleMatch(True, ServiceTyp, Items[i].ServiceTyp) then
+    if ServiceTyp.Same(@Items[i].ServiceTyp) then
         exit;
   Result := False;
 end;
