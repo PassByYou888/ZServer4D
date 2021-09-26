@@ -618,7 +618,7 @@ var
 begin
   State_ := False;
   info_ := 'error.';
-  if Result_.Count = 2 then
+  if Result_.Count >= 2 then
     begin
       State_ := Result_.R.ReadBool;
       info_ := Result_.R.ReadString;
@@ -721,7 +721,7 @@ var
 begin
   State_ := False;
   info_ := 'error.';
-  if Result_.Count = 2 then
+  if Result_.Count >= 2 then
     begin
       State_ := Result_.R.ReadBool;
       info_ := Result_.R.ReadString;
@@ -775,7 +775,7 @@ var
 begin
   State_ := False;
   info_ := 'error.';
-  if Result_.Count = 2 then
+  if Result_.Count >= 2 then
     begin
       State_ := Result_.R.ReadBool;
       info_ := Result_.R.ReadString;
@@ -829,7 +829,7 @@ var
 begin
   State_ := False;
   info_ := 'error.';
-  if Result_.Count = 2 then
+  if Result_.Count >= 2 then
     begin
       State_ := Result_.R.ReadBool;
       info_ := Result_.R.ReadString;
