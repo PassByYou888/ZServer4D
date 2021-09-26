@@ -885,7 +885,7 @@ begin
   State_ := False;
   info_ := 'error.';
   j_ := TZJ.Create;
-  if Result_.Count = 2 then
+  if Result_.Count >= 2 then
     begin
       State_ := Result_.R.ReadBool;
       info_ := Result_.R.ReadString;
@@ -944,7 +944,7 @@ begin
   State_ := False;
   info_ := 'error.';
   PrimaryIdentifier_ := '';
-  if Result_.Count = 2 then
+  if Result_.Count >= 2 then
     begin
       State_ := Result_.R.ReadBool;
       info_ := Result_.R.ReadString;
