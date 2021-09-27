@@ -1974,7 +1974,7 @@ begin
   inc(FState.WriteNum);
   inc(FState.WriteSize, buff.Size);
 
-  // prepare probe for next
+  // prepare probe
   FFreeSpaceIndexProbe := FBlockCount;
   i := FBlockBuffer[SpaceHnd[j - 1]].ID + 1;
   while i < FBlockCount do

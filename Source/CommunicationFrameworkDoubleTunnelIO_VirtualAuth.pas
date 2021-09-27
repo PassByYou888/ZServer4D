@@ -53,6 +53,21 @@ type
     procedure Bye;
   end;
 
+  TVirtualRegIO = class(TCoreClassObject)
+  private
+    RecvIO_ID, SendIO_ID: Cardinal;
+    RegResult: TDataFrameEngine;
+    Done: Boolean;
+  public
+    Owner: TDTService_VirtualAuth;
+    UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+    UserID, Passwd: SystemString;
+    function Online: Boolean;
+    procedure Accept;
+    procedure Reject;
+    procedure Bye;
+  end;
+
   TPeerClientUserDefineForSendTunnel_VirtualAuth = class(TPeerIOUserDefine)
   public
     RecvTunnel: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
@@ -76,7 +91,6 @@ type
     DoubleTunnelService: TDTService_VirtualAuth;
     UserID, Passwd: SystemString;
     LoginSuccessed: Boolean;
-    WaitLink: Boolean;
 
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
@@ -88,24 +102,26 @@ type
   end;
 
   TVirtualAuth_OnAuth = procedure(Sender: TDTService_VirtualAuth; AuthIO: TVirtualAuthIO) of object;
+  TVirtualAuth_OnReg = procedure(Sender: TDTService_VirtualAuth; RegIO: TVirtualRegIO) of object;
   TVirtualAuth_OnLinkSuccess = procedure(Sender: TDTService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth) of object;
   TVirtualAuth_OnUserOut = procedure(Sender: TDTService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth) of object;
 
   TDTService_VirtualAuth = class(TCoreClassInterfacedObject)
   protected
     FRecvTunnel, FSendTunnel: TCommunicationFrameworkServer;
-    FLoginUserDefineIOList: THashObjectList;
     FCadencerEngine: TCadencer;
     FProgressEngine: TNProgressPost;
     FFileSystem: Boolean;
     FFileReceiveDirectory: SystemString;
     { event }
     FOnUserAuth: TVirtualAuth_OnAuth;
+    FOnUserReg: TVirtualAuth_OnReg;
     FOnLinkSuccess: TVirtualAuth_OnLinkSuccess;
     FOnUserOut: TVirtualAuth_OnUserOut;
   protected
     { virtual event }
     procedure UserAuth(Sender: TVirtualAuthIO); virtual;
+    procedure UserReg(Sender: TVirtualRegIO); virtual;
     procedure UserLoginSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
@@ -113,6 +129,7 @@ type
   protected
     { registed server command }
     procedure Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
     procedure Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
 
@@ -145,9 +162,6 @@ type
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
 
-    function GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
-    function ExistsUser(AUserID: SystemString): Boolean;
-
     function GetUserDefineRecvTunnel(RecvCli: TPeerIO): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
 
     function TotalLinkCount: Integer;
@@ -178,6 +192,7 @@ type
     property SendTunnel: TCommunicationFrameworkServer read FSendTunnel;
 
     property OnUserAuth: TVirtualAuth_OnAuth read FOnUserAuth write FOnUserAuth;
+    property OnUserReg: TVirtualAuth_OnReg read FOnUserReg write FOnUserReg;
     property OnLinkSuccess: TVirtualAuth_OnLinkSuccess read FOnLinkSuccess write FOnLinkSuccess;
     property OnUserOut: TVirtualAuth_OnUserOut read FOnUserOut write FOnUserOut;
   end;
@@ -294,8 +309,11 @@ type
     FAsyncOnResultProc: TStateProc;
     procedure AsyncSendConnectResult(const cState: Boolean);
     procedure AsyncRecvConnectResult(const cState: Boolean);
+
     procedure UserLogin_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
     procedure UserLogin_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+    procedure RegisterUser_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
+    procedure RegisterUser_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
     procedure TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
     procedure TunnelLink_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
   public
@@ -327,15 +345,20 @@ type
     procedure AsyncConnectP(addr: SystemString; const RecvPort, SendPort: Word; Param1: Pointer; Param2: TObject; OnResult: TParamStateProc); overload;
     procedure Disconnect; virtual;
 
-    { sync mode userlogin }
+    { sync mode }
     function UserLogin(UserID, Passwd: SystemString): Boolean; virtual;
-    { sync mode TunnelLink }
+    function RegisterUser(UserID, Passwd: SystemString): Boolean; virtual;
     function TunnelLink: Boolean; virtual;
 
     { async user login }
-    procedure UserLoginP(UserID, Passwd: SystemString; OnProc: TStateProc); virtual;
     procedure UserLoginC(UserID, Passwd: SystemString; OnCall: TStateCall); virtual;
     procedure UserLoginM(UserID, Passwd: SystemString; OnMethod: TStateMethod); virtual;
+    procedure UserLoginP(UserID, Passwd: SystemString; OnProc: TStateProc); virtual;
+
+    { async user registration }
+    procedure RegisterUserC(UserID, Passwd: SystemString; OnCall: TStateCall); virtual;
+    procedure RegisterUserM(UserID, Passwd: SystemString; OnMethod: TStateMethod); virtual;
+    procedure RegisterUserP(UserID, Passwd: SystemString; OnProc: TStateProc); virtual;
 
     { async tunnel link }
     procedure TunnelLinkC(OnCall: TStateCall); virtual;
@@ -471,6 +494,7 @@ type
     Reconnection: Boolean;
     procedure DoConnectionResult(const state: Boolean);
     procedure DoAutomatedP2PVMClientConnectionDone(Sender: TCommunicationFramework; P_IO: TPeerIO);
+    procedure DoRegisterResult(const state: Boolean);
     procedure DoLoginResult(const state: Boolean);
     procedure DoTunnelLinkResult(const state: Boolean);
 
@@ -482,6 +506,7 @@ type
     PhysicsTunnel: TPhysicsClient;
     LastAddr, LastPort, LastAuth: SystemString;
     LastUser, LastPasswd: SystemString;
+    RegisterUserAndLogin: Boolean;
     AutomatedConnection: Boolean;
 
     constructor Create(ClientClass_: TDTClient_VirtualAuthClass);
@@ -536,6 +561,7 @@ type
     OnConnectResultState: TDT_P2PVM_VirtualAuth_OnState;
     Connecting: Boolean;
     Reconnection: Boolean;
+    procedure DoRegisterResult(const state: Boolean);
     procedure DoLoginResult(const state: Boolean);
 
     function GetQuietMode: Boolean;
@@ -551,6 +577,7 @@ type
     RecvTunnel, SendTunnel: TCommunicationFrameworkWithP2PVM_Client;
     DTClient: TDTClient_VirtualAuth;
     LastUser, LastPasswd: SystemString;
+    RegisterUserAndLogin: Boolean;
     AutomatedConnection: Boolean;
     OnTunnelLink: TOn_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink;
 
@@ -558,13 +585,18 @@ type
       P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
       P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString); virtual;
     destructor Destroy; override;
-    procedure Progress; virtual;
-    procedure DoTunnelLinkResult(const state: Boolean); virtual;
-    procedure Connect(User, Passwd: SystemString); virtual;
-    procedure Connect_C(User, Passwd: SystemString; OnResult: TStateCall); virtual;
-    procedure Connect_M(User, Passwd: SystemString; OnResult: TStateMethod); virtual;
-    procedure Connect_P(User, Passwd: SystemString; OnResult: TStateProc); virtual;
-    procedure Disconnect; virtual;
+    procedure Progress;
+    function LoginIsSuccessed: Boolean;
+    procedure DoTunnelLinkResult(const state: Boolean);
+    procedure Connect(User, Passwd: SystemString); overload;
+    procedure Connect(); overload;
+    procedure Connect_C(User, Passwd: SystemString; OnResult: TStateCall); overload;
+    procedure Connect_C(OnResult: TStateCall); overload;
+    procedure Connect_M(User, Passwd: SystemString; OnResult: TStateMethod); overload;
+    procedure Connect_M(OnResult: TStateMethod); overload;
+    procedure Connect_P(User, Passwd: SystemString; OnResult: TStateProc); overload;
+    procedure Connect_P(OnResult: TStateProc); overload;
+    procedure Disconnect;
     property QuietMode: Boolean read GetQuietMode write SetQuietMode;
   end;
 
@@ -792,19 +824,13 @@ var
   IO: TPeerIO;
   n: SystemString;
 begin
-  if Owner.FLoginUserDefineIOList.Exists(UserID) then
-      TPeerClientUserDefineForRecvTunnel_VirtualAuth(Owner.FLoginUserDefineIOList[UserID]).Owner.Disconnect;
-
   if AuthResult <> nil then
     begin
       UserDefineIO.UserID := UserID;
       UserDefineIO.Passwd := Passwd;
-      UserDefineIO.DoubleTunnelService := Owner;
       UserDefineIO.LoginSuccessed := True;
-      UserDefineIO.WaitLink := True;
-      Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
       AuthResult.WriteBool(True);
-      AuthResult.WriteString(Format('success Login:%s', [UserID]));
+      AuthResult.WriteString(PFormat('success Login:%s', [UserID]));
       Owner.UserLoginSuccess(UserDefineIO);
       Done := True;
       exit;
@@ -815,20 +841,16 @@ begin
       if (IO.ResultSendIsPaused) then
         begin
           UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
-
           UserDefineIO.UserID := UserID;
           UserDefineIO.Passwd := Passwd;
-          UserDefineIO.DoubleTunnelService := Owner;
           UserDefineIO.LoginSuccessed := True;
-          UserDefineIO.WaitLink := True;
-          Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
           IO.OutDataFrame.WriteBool(True);
-          IO.OutDataFrame.WriteString(Format('success Login:%s', [UserID]));
+          IO.OutDataFrame.WriteString(PFormat('success Login:%s', [UserID]));
           IO.ContinueResultSend;
           Owner.UserLoginSuccess(UserDefineIO);
         end;
     end;
-  DisposeObject(Self);
+  DelayFreeObj(1.0, Self);
 end;
 
 procedure TVirtualAuthIO.Reject;
@@ -840,12 +862,9 @@ begin
     begin
       UserDefineIO.UserID := UserID;
       UserDefineIO.Passwd := Passwd;
-      UserDefineIO.DoubleTunnelService := Owner;
       UserDefineIO.LoginSuccessed := False;
-      UserDefineIO.WaitLink := False;
-      Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
       AuthResult.WriteBool(False);
-      AuthResult.WriteString(Format('Reject user:%s', [UserID]));
+      AuthResult.WriteString(PFormat('Reject user:%s', [UserID]));
       Done := True;
       exit;
     end
@@ -858,24 +877,14 @@ begin
 
           UserDefineIO.UserID := UserID;
           UserDefineIO.Passwd := Passwd;
-          UserDefineIO.DoubleTunnelService := Owner;
           UserDefineIO.LoginSuccessed := False;
-          UserDefineIO.WaitLink := False;
-          Owner.FLoginUserDefineIOList[UserID] := UserDefineIO;
           IO.OutDataFrame.WriteBool(False);
-          IO.OutDataFrame.WriteString(Format('Reject user:%s', [UserID]));
+          IO.OutDataFrame.WriteString(PFormat('Reject user:%s', [UserID]));
           IO.ContinueResultSend;
         end;
     end;
 
-  r_IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
-  if r_IO <> nil then
-      r_IO.delayClose(2.0);
-  s_IO := Owner.SendTunnel.PeerIO[SendIO_ID];
-  if (s_IO <> nil) and (not TPeerClientUserDefineForSendTunnel_VirtualAuth(s_IO.UserDefine).LinkOk) then
-      s_IO.delayClose(2.0);
-
-  DisposeObject(Self);
+  DelayFreeObj(1.0, Self);
 end;
 
 procedure TVirtualAuthIO.Bye;
@@ -886,7 +895,74 @@ begin
   if r_IO <> nil then
       r_IO.delayClose(1.0);
 
-  DisposeObject(Self);
+  DelayFreeObj(1.0, Self);
+end;
+
+function TVirtualRegIO.Online: Boolean;
+begin
+  Result := Owner.RecvTunnel.Exists(RecvIO_ID);
+end;
+
+procedure TVirtualRegIO.Accept;
+var
+  IO: TPeerIO;
+  n: SystemString;
+begin
+  if RegResult <> nil then
+    begin
+      RegResult.WriteBool(True);
+      RegResult.WriteString(PFormat('success Reg:%s', [UserID]));
+      Done := True;
+      exit;
+    end
+  else if Online then
+    begin
+      IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
+      if (IO.ResultSendIsPaused) then
+        begin
+          IO.OutDataFrame.WriteBool(True);
+          IO.OutDataFrame.WriteString(PFormat('success Reg:%s', [UserID]));
+          IO.ContinueResultSend;
+        end;
+    end;
+  DelayFreeObj(1.0, Self);
+end;
+
+procedure TVirtualRegIO.Reject;
+var
+  IO: TPeerIO;
+  r_IO, s_IO: TPeerIO;
+begin
+  if RegResult <> nil then
+    begin
+      RegResult.WriteBool(False);
+      RegResult.WriteString(PFormat('Reject Reg:%s', [UserID]));
+      Done := True;
+      exit;
+    end
+  else if Online then
+    begin
+      IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
+      if (IO.ResultSendIsPaused) then
+        begin
+          IO.OutDataFrame.WriteBool(False);
+          IO.OutDataFrame.WriteString(PFormat('Reject Reg:%s', [UserID]));
+          IO.ContinueResultSend;
+        end;
+    end;
+
+  DelayFreeObj(1.0, Self);
+end;
+
+procedure TVirtualRegIO.Bye;
+var
+  r_IO, s_IO: TPeerIO;
+begin
+  r_IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
+  if r_IO <> nil then
+      r_IO.delayClose(1.0);
+
+  DelayFreeObj(1.0, Self);
 end;
 
 constructor TPeerClientUserDefineForSendTunnel_VirtualAuth.Create(Owner_: TPeerIO);
@@ -923,7 +999,6 @@ begin
   UserID := '';
   Passwd := '';
   LoginSuccessed := False;
-  WaitLink := False;
 end;
 
 destructor TPeerClientUserDefineForRecvTunnel_VirtualAuth.Destroy;
@@ -937,9 +1012,6 @@ begin
           if DoubleTunnelService.FSendTunnel.Exists(SendTunnelID) then
               DoubleTunnelService.FSendTunnel.PeerIO[SendTunnelID].Disconnect;
         end;
-
-      DoubleTunnelService.FLoginUserDefineIOList.Delete(UserID);
-
       DoubleTunnelService := nil;
     end;
 
@@ -959,6 +1031,15 @@ begin
   try
     if Assigned(FOnUserAuth) then
         FOnUserAuth(Self, Sender);
+  except
+  end;
+end;
+
+procedure TDTService_VirtualAuth.UserReg(Sender: TVirtualRegIO);
+begin
+  try
+    if Assigned(FOnUserReg) then
+        FOnUserReg(Self, Sender);
   except
   end;
 end;
@@ -1005,7 +1086,7 @@ begin
   if not FSendTunnel.Exists(SendTunnelID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('send tunnel Illegal:%d', [SendTunnelID]));
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendTunnelID]));
       exit;
     end;
 
@@ -1036,6 +1117,53 @@ begin
     end;
 end;
 
+procedure TDTService_VirtualAuth.Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+var
+  SendTunnelID: Cardinal;
+  UserID, UserPasswd: SystemString;
+  UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+  RegIO: TVirtualRegIO;
+begin
+  SendTunnelID := InData.Reader.ReadCardinal;
+  UserID := InData.Reader.ReadString;
+  UserPasswd := InData.Reader.ReadString;
+
+  UserDefineIO := GetUserDefineRecvTunnel(Sender);
+
+  if not FSendTunnel.Exists(SendTunnelID) then
+    begin
+      OutData.WriteBool(False);
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendTunnelID]));
+      exit;
+    end;
+
+  RegIO := TVirtualRegIO.Create;
+  RegIO.Owner := Self;
+  RegIO.RecvIO_ID := Sender.ID;
+  RegIO.SendIO_ID := SendTunnelID;
+  RegIO.RegResult := OutData;
+  RegIO.Done := False;
+  RegIO.UserDefineIO := UserDefineIO;
+  RegIO.UserID := UserID;
+  RegIO.Passwd := UserPasswd;
+
+  try
+      UserReg(RegIO);
+  except
+  end;
+
+  if RegIO.Done then
+    begin
+      DisposeObject(RegIO);
+    end
+  else
+    begin
+      RegIO.UserDefineIO := nil;
+      RegIO.RegResult := nil;
+      Sender.PauseResultSend;
+    end;
+end;
+
 procedure TDTService_VirtualAuth.Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
 var
   RecvID, SendID: Cardinal;
@@ -1046,18 +1174,10 @@ begin
 
   UserDefineIO := GetUserDefineRecvTunnel(Sender);
 
-  if not UserDefineIO.LoginSuccessed then
-    begin
-      OutData.WriteBool(False);
-      OutData.WriteString(Format('need login or register', []));
-      OutData.WriteBool(FFileSystem);
-      exit;
-    end;
-
   if not FSendTunnel.Exists(SendID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('send tunnel Illegal:%d', [SendID]));
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendID]));
       OutData.WriteBool(FFileSystem);
       exit;
     end;
@@ -1065,7 +1185,7 @@ begin
   if not FRecvTunnel.Exists(RecvID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('received tunnel Illegal:%d', [RecvID]));
+      OutData.WriteString(PFormat('received tunnel Illegal:%d', [RecvID]));
       OutData.WriteBool(FFileSystem);
       exit;
     end;
@@ -1073,7 +1193,7 @@ begin
   if Sender.ID <> RecvID then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
+      OutData.WriteString(PFormat('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
       OutData.WriteBool(FFileSystem);
       exit;
     end;
@@ -1087,7 +1207,7 @@ begin
   UserDefineIO.SendTunnel.DoubleTunnelService := Self;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
+  OutData.WriteString(PFormat('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
   OutData.WriteBool(FFileSystem);
 
   UserLinkSuccess(UserDefineIO);
@@ -1218,7 +1338,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       exit;
     end;
 
@@ -1248,7 +1368,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService_VirtualAuth.Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -1277,7 +1397,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       exit;
     end;
 
@@ -1307,7 +1427,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService_VirtualAuth.Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -1347,12 +1467,12 @@ begin
             UserDefineIO.FCurrentFileStream.Position := StartPos
         else
             UserDefineIO.FCurrentFileStream.Position := UserDefineIO.FCurrentFileStream.Size;
-        Sender.Print(Format('restore post to public: %s', [fullfn]));
+        Sender.Print(PFormat('restore post to public: %s', [fullfn]));
       end
     else
       begin
         UserDefineIO.FCurrentFileStream := TCoreClassFileStream.Create(fullfn, fmCreate);
-        Sender.Print(Format('normal post to public: %s', [fullfn]));
+        Sender.Print(PFormat('normal post to public: %s', [fullfn]));
       end;
   except
     Sender.Print('post file failed: %s', [fullfn]);
@@ -1622,8 +1742,6 @@ begin
   FRecvTunnel.DoubleChannelFramework := Self;
   FSendTunnel.DoubleChannelFramework := Self;
 
-  FLoginUserDefineIOList := THashObjectList.CustomCreate(False, 8192);
-
   FCadencerEngine := TCadencer.Create;
   FCadencerEngine.OnProgress := {$IFDEF FPC}@{$ENDIF FPC}CadencerProgress;
   FProgressEngine := TNProgressPost.Create;
@@ -1637,13 +1755,13 @@ begin
   SwitchAsDefaultPerformance;
 
   FOnUserAuth := nil;
+  FOnUserReg := nil;
   FOnLinkSuccess := nil;
   FOnUserOut := nil;
 end;
 
 destructor TDTService_VirtualAuth.Destroy;
 begin
-  DisposeObject(FLoginUserDefineIOList);
   DisposeObject(FCadencerEngine);
   DisposeObject(FProgressEngine);
   inherited Destroy;
@@ -1682,6 +1800,7 @@ end;
 procedure TDTService_VirtualAuth.RegisterCommand;
 begin
   FRecvTunnel.RegisterStream(C_UserLogin).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_UserLogin;
+  FRecvTunnel.RegisterStream(C_RegisterUser).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_RegisterUser;
   FRecvTunnel.RegisterStream(C_TunnelLink).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_TunnelLink;
   FRecvTunnel.RegisterStream(C_GetCurrentCadencer).OnExecute := {$IFDEF FPC}@{$ENDIF FPC}Command_GetCurrentCadencer;
 
@@ -1705,6 +1824,7 @@ end;
 procedure TDTService_VirtualAuth.UnRegisterCommand;
 begin
   FRecvTunnel.DeleteRegistedCMD(C_UserLogin);
+  FRecvTunnel.DeleteRegistedCMD(C_RegisterUser);
   FRecvTunnel.DeleteRegistedCMD(C_TunnelLink);
   FRecvTunnel.DeleteRegistedCMD(C_GetCurrentCadencer);
 
@@ -1723,16 +1843,6 @@ begin
   FRecvTunnel.DeleteRegistedCMD(C_ClearBatchStream);
   FRecvTunnel.DeleteRegistedCMD(C_PostBatchStreamDone);
   FRecvTunnel.DeleteRegistedCMD(C_GetBatchStreamState);
-end;
-
-function TDTService_VirtualAuth.GetUserDefineIO(AUserID: SystemString): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
-begin
-  Result := TPeerClientUserDefineForRecvTunnel_VirtualAuth(FLoginUserDefineIOList[AUserID]);
-end;
-
-function TDTService_VirtualAuth.ExistsUser(AUserID: SystemString): Boolean;
-begin
-  Result := FLoginUserDefineIOList.Exists(AUserID);
 end;
 
 function TDTService_VirtualAuth.GetUserDefineRecvTunnel(RecvCli: TPeerIO): TPeerClientUserDefineForRecvTunnel_VirtualAuth;
@@ -1986,9 +2096,9 @@ begin
     begin
       MD5 := umlStreamMD5(FCurrentStream);
       if umlMD5Compare(servMD5, MD5) then
-          Sender.Print(Format('Receive %s ok', [umlGetFileName(fn).Text]))
+          Sender.Print(PFormat('Receive %s ok', [umlGetFileName(fn).Text]))
       else
-          Sender.Print(Format('Receive %s failed!', [umlGetFileName(fn).Text]));
+          Sender.Print(PFormat('Receive %s failed!', [umlGetFileName(fn).Text]));
 
       try
         if p <> nil then
@@ -2356,6 +2466,44 @@ begin
   Dispose(p);
 end;
 
+procedure TDTClient_VirtualAuth.RegisterUser_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
+var
+  r: Boolean;
+  p: POnStateStruct;
+begin
+  p := Param1;
+  r := False;
+  if Result_.Count > 0 then
+    begin
+      r := Result_.ReadBool(0);
+      FSendTunnel.ClientIO.Print(Result_.ReadString(1));
+    end;
+
+  if Assigned(p^.OnCall) then
+      p^.OnCall(r);
+  if Assigned(p^.OnMethod) then
+      p^.OnMethod(r);
+  if Assigned(p^.OnProc) then
+      p^.OnProc(r);
+
+  Dispose(p);
+end;
+
+procedure TDTClient_VirtualAuth.RegisterUser_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+var
+  p: POnStateStruct;
+begin
+  p := Param1;
+  if Assigned(p^.OnCall) then
+      p^.OnCall(False);
+  if Assigned(p^.OnMethod) then
+      p^.OnMethod(False);
+  if Assigned(p^.OnProc) then
+      p^.OnProc(False);
+
+  Dispose(p);
+end;
+
 procedure TDTClient_VirtualAuth.TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
 var
   r: Boolean;
@@ -2668,6 +2816,33 @@ begin
   DisposeObject(resDE);
 end;
 
+function TDTClient_VirtualAuth.RegisterUser(UserID, Passwd: SystemString): Boolean;
+var
+  sendDE, resDE: TDataFrameEngine;
+begin
+  Result := False;
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+  sendDE := TDataFrameEngine.Create;
+  resDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(Passwd);
+  FSendTunnel.WaitSendStreamCmd(C_RegisterUser, sendDE, resDE, FWaitCommandTimeout * 2);
+
+  if resDE.Count > 0 then
+    begin
+      Result := resDE.ReadBool(0);
+      FSendTunnel.ClientIO.Print(resDE.ReadString(1));
+    end;
+
+  DisposeObject(sendDE);
+  DisposeObject(resDE);
+end;
+
 function TDTClient_VirtualAuth.TunnelLink: Boolean;
 var
   sendDE, resDE: TDataFrameEngine;
@@ -2716,28 +2891,6 @@ begin
   DisposeObject(resDE);
 end;
 
-procedure TDTClient_VirtualAuth.UserLoginP(UserID, Passwd: SystemString; OnProc: TStateProc);
-var
-  sendDE: TDataFrameEngine;
-  p: POnStateStruct;
-begin
-  if not FSendTunnel.Connected then
-      exit;
-  if not FRecvTunnel.Connected then
-      exit;
-  sendDE := TDataFrameEngine.Create;
-
-  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
-  sendDE.WriteString(UserID);
-  sendDE.WriteString(Passwd);
-
-  new(p);
-  p^.Init;
-  p^.OnProc := OnProc;
-  FSendTunnel.SendStreamCmdM(C_UserLogin, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}UserLogin_OnResult, {$IFDEF FPC}@{$ENDIF FPC}UserLogin_OnFailed);
-  DisposeObject(sendDE);
-end;
-
 procedure TDTClient_VirtualAuth.UserLoginC(UserID, Passwd: SystemString; OnCall: TStateCall);
 var
   sendDE: TDataFrameEngine;
@@ -2779,6 +2932,94 @@ begin
   p^.Init;
   p^.OnMethod := OnMethod;
   FSendTunnel.SendStreamCmdM(C_UserLogin, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}UserLogin_OnResult, {$IFDEF FPC}@{$ENDIF FPC}UserLogin_OnFailed);
+  DisposeObject(sendDE);
+end;
+
+procedure TDTClient_VirtualAuth.UserLoginP(UserID, Passwd: SystemString; OnProc: TStateProc);
+var
+  sendDE: TDataFrameEngine;
+  p: POnStateStruct;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(Passwd);
+
+  new(p);
+  p^.Init;
+  p^.OnProc := OnProc;
+  FSendTunnel.SendStreamCmdM(C_UserLogin, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}UserLogin_OnResult, {$IFDEF FPC}@{$ENDIF FPC}UserLogin_OnFailed);
+  DisposeObject(sendDE);
+end;
+
+procedure TDTClient_VirtualAuth.RegisterUserC(UserID, Passwd: SystemString; OnCall: TStateCall);
+var
+  sendDE: TDataFrameEngine;
+  p: POnStateStruct;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(Passwd);
+
+  new(p);
+  p^.Init;
+  p^.OnCall := OnCall;
+  FSendTunnel.SendStreamCmdM(C_RegisterUser, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}RegisterUser_OnResult, {$IFDEF FPC}@{$ENDIF FPC}RegisterUser_OnFailed);
+  DisposeObject(sendDE);
+end;
+
+procedure TDTClient_VirtualAuth.RegisterUserM(UserID, Passwd: SystemString; OnMethod: TStateMethod);
+var
+  sendDE: TDataFrameEngine;
+  p: POnStateStruct;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(Passwd);
+
+  new(p);
+  p^.Init;
+  p^.OnMethod := OnMethod;
+  FSendTunnel.SendStreamCmdM(C_RegisterUser, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}RegisterUser_OnResult, {$IFDEF FPC}@{$ENDIF FPC}RegisterUser_OnFailed);
+  DisposeObject(sendDE);
+end;
+
+procedure TDTClient_VirtualAuth.RegisterUserP(UserID, Passwd: SystemString; OnProc: TStateProc);
+var
+  sendDE: TDataFrameEngine;
+  p: POnStateStruct;
+begin
+  if not FSendTunnel.Connected then
+      exit;
+  if not FRecvTunnel.Connected then
+      exit;
+  sendDE := TDataFrameEngine.Create;
+
+  sendDE.WriteCardinal(FRecvTunnel.RemoteID);
+  sendDE.WriteString(UserID);
+  sendDE.WriteString(Passwd);
+
+  new(p);
+  p^.Init;
+  p^.OnProc := OnProc;
+  FSendTunnel.SendStreamCmdM(C_RegisterUser, sendDE, p, nil, {$IFDEF FPC}@{$ENDIF FPC}RegisterUser_OnResult, {$IFDEF FPC}@{$ENDIF FPC}RegisterUser_OnFailed);
   DisposeObject(sendDE);
 end;
 
@@ -3892,8 +4133,24 @@ end;
 
 procedure TDT_P2PVM_VirtualAuth_Client.DoAutomatedP2PVMClientConnectionDone(Sender: TCommunicationFramework; P_IO: TPeerIO);
 begin
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
   PhysicsTunnel.Print('DT p2pVM done.');
+  if (LastUser = '') or (LastPasswd = '') then
+    begin
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult);
+    end
+  else if RegisterUserAndLogin then
+    begin
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+    end
+  else
+    begin
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+    end;
+end;
+
+procedure TDT_P2PVM_VirtualAuth_Client.DoRegisterResult(const state: Boolean);
+begin
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
 end;
 
 procedure TDT_P2PVM_VirtualAuth_Client.DoLoginResult(const state: Boolean);
@@ -3928,6 +4185,7 @@ begin
 
   if state then
     begin
+      RegisterUserAndLogin := False;
       if AutomatedConnection then
           Reconnection := True;
     end;
@@ -3975,6 +4233,7 @@ begin
   LastUser := '';
   LastPasswd := '';
 
+  RegisterUserAndLogin := False;
   AutomatedConnection := True;
 
   RecvTunnel.PrefixName := 'VA';
@@ -4165,6 +4424,11 @@ begin
   RecvTunnel.StopService;
 end;
 
+procedure TDT_P2PVM_VirtualAuth_Custom_Client.DoRegisterResult(const state: Boolean);
+begin
+  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
 procedure TDT_P2PVM_VirtualAuth_Custom_Client.DoLoginResult(const state: Boolean);
 begin
   if not state then
@@ -4225,6 +4489,7 @@ begin
   DTClient.SwitchAsDefaultPerformance;
   LastUser := '';
   LastPasswd := '';
+  RegisterUserAndLogin := False;
   AutomatedConnection := True;
   OnTunnelLink := nil;
 
@@ -4253,6 +4518,14 @@ begin
       Connect(LastUser, LastPasswd);
 end;
 
+function TDT_P2PVM_VirtualAuth_Custom_Client.LoginIsSuccessed: Boolean;
+begin
+  Result := False;
+  if (LastUser = '') or (LastPasswd = '') then
+      exit;
+  Result := DTClient.LinkOk;
+end;
+
 procedure TDT_P2PVM_VirtualAuth_Custom_Client.DoTunnelLinkResult(const state: Boolean);
 begin
   if Assigned(OnConnectResultState.OnCall) then
@@ -4266,6 +4539,8 @@ begin
 
   if state then
     begin
+      RegisterUserAndLogin := False;
+
       if AutomatedConnection then
           Reconnection := True;
 
@@ -4287,7 +4562,18 @@ begin
   LastUser := User;
   LastPasswd := Passwd;
   OnConnectResultState.Init;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+
+  if (LastUser = '') or (LastPasswd = '') then
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult)
+  else if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect;
+begin
+  Connect('', '');
 end;
 
 procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect_C(User, Passwd: SystemString; OnResult: TStateCall);
@@ -4305,7 +4591,17 @@ begin
   LastPasswd := Passwd;
   OnConnectResultState.Init;
   OnConnectResultState.OnCall := OnResult;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if (LastUser = '') or (LastPasswd = '') then
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult)
+  else if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect_C(OnResult: TStateCall);
+begin
+  Connect_C('', '', OnResult);
 end;
 
 procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect_M(User, Passwd: SystemString; OnResult: TStateMethod);
@@ -4323,7 +4619,17 @@ begin
   LastPasswd := Passwd;
   OnConnectResultState.Init;
   OnConnectResultState.OnMethod := OnResult;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if (LastUser = '') or (LastPasswd = '') then
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult)
+  else if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect_M(OnResult: TStateMethod);
+begin
+  Connect_M('', '', OnResult);
 end;
 
 procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect_P(User, Passwd: SystemString; OnResult: TStateProc);
@@ -4341,7 +4647,17 @@ begin
   LastPasswd := Passwd;
   OnConnectResultState.Init;
   OnConnectResultState.OnProc := OnResult;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if (LastUser = '') or (LastPasswd = '') then
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult)
+  else if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+end;
+
+procedure TDT_P2PVM_VirtualAuth_Custom_Client.Connect_P(OnResult: TStateProc);
+begin
+  Connect_P('', '', OnResult);
 end;
 
 procedure TDT_P2PVM_VirtualAuth_Custom_Client.Disconnect;

@@ -167,9 +167,9 @@ type
 
   TOpCode = class(TCoreClassObject)
   private type
-    POpData = ^opData;
+    POpData__ = ^TOpData__;
 
-    opData = record
+    TOpData__ = record
       Op: TOpCode;
       Value: Variant;
       ValueType: TOpValueType;
@@ -178,7 +178,7 @@ type
     FParam: TCoreClassList;
     FAutoFreeLink: Boolean;
     function DoExecute(opRT: TOpCustomRunTime): Variant; virtual;
-    function GetParam(index: Integer): POpData;
+    function GetParam(index: Integer): POpData__;
     procedure EvaluateParam(opRT: TOpCustomRunTime); overload;
     procedure EvaluateParam(printLog: Boolean; opRT: TOpCustomRunTime); overload;
   public
@@ -198,7 +198,7 @@ type
 
     function CloneNewSelf: TOpCode;
 
-    property Param[index: Integer]: POpData read GetParam; default;
+    property Param[index: Integer]: POpData__ read GetParam; default;
     function Count: Integer;
 
     function Execute: Variant; overload;
@@ -1340,7 +1340,7 @@ begin
   Result := NULL;
 end;
 
-function TOpCode.GetParam(index: Integer): POpData;
+function TOpCode.GetParam(index: Integer): POpData__;
 begin
   Result := FParam[index];
 end;
@@ -1353,7 +1353,7 @@ end;
 procedure TOpCode.EvaluateParam(printLog: Boolean; opRT: TOpCustomRunTime);
 var
   i: Integer;
-  p: POpData;
+  p: POpData__;
 begin
   for i := 0 to FParam.Count - 1 do
     begin
@@ -1389,7 +1389,7 @@ end;
 destructor TOpCode.Destroy;
 var
   i: Integer;
-  p: POpData;
+  p: POpData__;
 begin
   if FParam <> nil then
     begin
@@ -1410,7 +1410,7 @@ procedure TOpCode.SaveToStream(stream: TCoreClassStream);
   procedure SaveToDataFrame(Op: TOpCode; CurDataEng: TDataFrameEngine);
   var
     i: Integer;
-    p: POpData;
+    p: POpData__;
     newDataEng: TDataFrameEngine;
   begin
     CurDataEng.WriteString(Op.ClassName);
@@ -1454,7 +1454,7 @@ end;
 
 function TOpCode.AddValue(v: Variant): Integer;
 var
-  p: POpData;
+  p: POpData__;
 begin
   new(p);
   p^.Op := nil;
@@ -1488,7 +1488,7 @@ end;
 
 function TOpCode.AddValueT(v: Variant; VT: TOpValueType): Integer;
 var
-  p: POpData;
+  p: POpData__;
 begin
   new(p);
   p^.Op := nil;
@@ -1499,7 +1499,7 @@ end;
 
 function TOpCode.AddLink(Obj: TOpCode): Integer;
 var
-  p: POpData;
+  p: POpData__;
 begin
   new(p);
 
@@ -1518,7 +1518,7 @@ end;
 function TOpCode.CloneNewSelf: TOpCode;
 var
   i: Integer;
-  p: POpData;
+  p: POpData__;
 begin
   Result := opClass(Self.ClassType).Create(True);
   Result.ParsedInfo := Self.ParsedInfo;

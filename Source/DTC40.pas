@@ -573,6 +573,7 @@ type
 
   TDTC40_Base_VirtualAuth_Service = class(TDTC40_Custom_Service)
   protected
+    procedure DoUserReg_Event(Sender: TDTService_VirtualAuth; RegIO: TVirtualRegIO); virtual;
     procedure DoUserAuth_Event(Sender: TDTService_VirtualAuth; AuthIO: TVirtualAuthIO); virtual;
     procedure DoLinkSuccess_Event(Sender: TDTService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure DoUserOut_Event(Sender: TDTService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
@@ -591,16 +592,19 @@ type
     Client: TDT_P2PVM_VirtualAuth_Custom_Client;
     DTVirtualAuthClient: TDTClient_VirtualAuth;
     UserName, Password: U_String;
+    NoDTLink: Boolean;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
     procedure Connect; override;
     function Connected: Boolean; override;
     procedure Disconnect; override;
+    function LoginIsSuccessed: Boolean;
   end;
 
   TDTC40_Base_DataStoreVirtualAuth_Service = class(TDTC40_Custom_Service)
   protected
+    procedure DoUserReg_Event(Sender: TDTService_VirtualAuth; RegIO: TVirtualRegIO); virtual;
     procedure DoUserAuth_Event(Sender: TDTService_VirtualAuth; AuthIO: TVirtualAuthIO); virtual;
     procedure DoLinkSuccess_Event(Sender: TDTService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
     procedure DoUserOut_Event(Sender: TDTService_VirtualAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth); virtual;
@@ -619,12 +623,14 @@ type
     Client: TDT_P2PVM_VirtualAuth_Custom_Client;
     DTVirtualAuthClient: TDataStoreClient_VirtualAuth;
     UserName, Password: U_String;
+    NoDTLink: Boolean;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
     procedure Connect; override;
     function Connected: Boolean; override;
     procedure Disconnect; override;
+    function LoginIsSuccessed: Boolean;
   end;
 
 {$ENDREGION 'DTC40VirtualAuthModel'}
@@ -650,12 +656,14 @@ type
     Client: TDT_P2PVM_Custom_Client;
     DTClient: TDTClient;
     UserName, Password: U_String;
+    NoDTLink: Boolean;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
     procedure Connect; override;
     function Connected: Boolean; override;
     procedure Disconnect; override;
+    function LoginIsSuccessed: Boolean;
   end;
 
   TDTC40_Base_DataStore_Service = class(TDTC40_Custom_Service)
@@ -678,12 +686,14 @@ type
     Client: TDT_P2PVM_Custom_Client;
     DTClient: TDataStoreClient;
     UserName, Password: U_String;
+    NoDTLink: Boolean;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
     procedure Connect; override;
     function Connected: Boolean; override;
     procedure Disconnect; override;
+    function LoginIsSuccessed: Boolean;
   end;
 
 {$ENDREGION 'DTC40BuildInAuthModel'}
@@ -3742,6 +3752,11 @@ begin
   Client.Disconnect;
 end;
 
+procedure TDTC40_Base_VirtualAuth_Service.DoUserReg_Event(Sender: TDTService_VirtualAuth; RegIO: TVirtualRegIO);
+begin
+  RegIO.Accept;
+end;
+
 procedure TDTC40_Base_VirtualAuth_Service.DoUserAuth_Event(Sender: TDTService_VirtualAuth; AuthIO: TVirtualAuthIO);
 begin
   AuthIO.Accept;
@@ -3766,6 +3781,7 @@ begin
     ServiceInfo.ServiceTyp + 'S', ServiceInfo.p2pVM_SendTunnel_Addr, umlIntToStr(ServiceInfo.p2pVM_SendTunnel_Port)
     );
   Service.DTService.OnUserAuth := {$IFDEF FPC}@{$ENDIF FPC}DoUserAuth_Event;
+  Service.DTService.OnUserReg := {$IFDEF FPC}@{$ENDIF FPC}DoUserReg_Event;
   Service.DTService.OnLinkSuccess := {$IFDEF FPC}@{$ENDIF FPC}DoLinkSuccess_Event;
   Service.DTService.OnUserOut := {$IFDEF FPC}@{$ENDIF FPC}DoUserOut_Event;
   Service.DTService.PublicFileDirectory := umlCombinePath(DTC40_RootPath, ServiceInfo.ServiceTyp.Text);
@@ -3791,6 +3807,13 @@ end;
 procedure TDTC40_Base_VirtualAuth_Client.Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_VirtualAuth_Custom_Client);
 begin
   DoClientConnected();
+  if Client.LoginIsSuccessed then
+    begin
+      UserName := Client.LastUser;
+      Password := Client.LastPasswd;
+      NoDTLink := False;
+      Client.RegisterUserAndLogin := False;
+    end;
 end;
 
 constructor TDTC40_Base_VirtualAuth_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -3804,8 +3827,10 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink;
   DTVirtualAuthClient := Client.DTClient;
-  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
-  Password := ParamList.GetDefaultValue('Password', UserName.Text);
+  UserName := ParamList.GetDefaultValue('UserName', '');
+  Password := ParamList.GetDefaultValue('Password', '');
+  Client.RegisterUserAndLogin := EStrToBool(ParamList.GetDefaultValue('RegUser', 'False'), False);
+  NoDTLink := EStrToBool(ParamList.GetDefaultValue('NoDTLink', 'True'), True);
 end;
 
 destructor TDTC40_Base_VirtualAuth_Client.Destroy;
@@ -3823,18 +3848,32 @@ end;
 procedure TDTC40_Base_VirtualAuth_Client.Connect;
 begin
   inherited Connect;
-  Client.Connect(UserName, Password);
+  if not NoDTLink then
+      Client.Connect(UserName, Password);
 end;
 
 function TDTC40_Base_VirtualAuth_Client.Connected: Boolean;
 begin
-  Result := Client.DTClient.LinkOk;
+  if NoDTLink then
+      Result := Client.DTClient.RecvTunnel.RemoteInited and Client.DTClient.SendTunnel.RemoteInited
+  else
+      Result := Client.DTClient.LinkOk;
 end;
 
 procedure TDTC40_Base_VirtualAuth_Client.Disconnect;
 begin
   inherited Disconnect;
   Client.Disconnect;
+end;
+
+function TDTC40_Base_VirtualAuth_Client.LoginIsSuccessed: Boolean;
+begin
+  Result := Client.LoginIsSuccessed;
+end;
+
+procedure TDTC40_Base_DataStoreVirtualAuth_Service.DoUserReg_Event(Sender: TDTService_VirtualAuth; RegIO: TVirtualRegIO);
+begin
+  RegIO.Accept;
 end;
 
 procedure TDTC40_Base_DataStoreVirtualAuth_Service.DoUserAuth_Event(Sender: TDTService_VirtualAuth; AuthIO: TVirtualAuthIO);
@@ -3861,6 +3900,7 @@ begin
     ServiceInfo.ServiceTyp + 'S', ServiceInfo.p2pVM_SendTunnel_Addr, umlIntToStr(ServiceInfo.p2pVM_SendTunnel_Port)
     );
   Service.DTService.OnUserAuth := {$IFDEF FPC}@{$ENDIF FPC}DoUserAuth_Event;
+  Service.DTService.OnUserReg := {$IFDEF FPC}@{$ENDIF FPC}DoUserReg_Event;
   Service.DTService.OnLinkSuccess := {$IFDEF FPC}@{$ENDIF FPC}DoLinkSuccess_Event;
   Service.DTService.OnUserOut := {$IFDEF FPC}@{$ENDIF FPC}DoUserOut_Event;
   Service.DTService.PublicFileDirectory := umlCombinePath(DTC40_RootPath, ServiceInfo.ServiceTyp.Text);
@@ -3886,6 +3926,13 @@ end;
 procedure TDTC40_Base_DataStoreVirtualAuth_Client.Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_VirtualAuth_Custom_Client);
 begin
   DoClientConnected();
+  if Client.LoginIsSuccessed then
+    begin
+      UserName := Client.LastUser;
+      Password := Client.LastPasswd;
+      NoDTLink := False;
+      Client.RegisterUserAndLogin := False;
+    end;
 end;
 
 constructor TDTC40_Base_DataStoreVirtualAuth_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -3899,8 +3946,10 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink;
   DTVirtualAuthClient := Client.DTClient as TDataStoreClient_VirtualAuth;
-  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
-  Password := ParamList.GetDefaultValue('Password', UserName.Text);
+  UserName := ParamList.GetDefaultValue('UserName', '');
+  Password := ParamList.GetDefaultValue('Password', '');
+  Client.RegisterUserAndLogin := EStrToBool(ParamList.GetDefaultValue('RegUser', 'False'), False);
+  NoDTLink := EStrToBool(ParamList.GetDefaultValue('NoDTLink', 'True'), True);
 end;
 
 destructor TDTC40_Base_DataStoreVirtualAuth_Client.Destroy;
@@ -3918,18 +3967,27 @@ end;
 procedure TDTC40_Base_DataStoreVirtualAuth_Client.Connect;
 begin
   inherited Connect;
-  Client.Connect(UserName, Password);
+  if not NoDTLink then
+      Client.Connect(UserName, Password);
 end;
 
 function TDTC40_Base_DataStoreVirtualAuth_Client.Connected: Boolean;
 begin
-  Result := Client.DTClient.LinkOk;
+  if NoDTLink then
+      Result := Client.DTClient.RecvTunnel.RemoteInited and Client.DTClient.SendTunnel.RemoteInited
+  else
+      Result := Client.DTClient.LinkOk;
 end;
 
 procedure TDTC40_Base_DataStoreVirtualAuth_Client.Disconnect;
 begin
   inherited Disconnect;
   Client.Disconnect;
+end;
+
+function TDTC40_Base_DataStoreVirtualAuth_Client.LoginIsSuccessed: Boolean;
+begin
+  Result := Client.LoginIsSuccessed;
 end;
 
 procedure TDTC40_Base_Service.DoLinkSuccess_Event(Sender: TDTService; UserDefineIO: TPeerClientUserDefineForRecvTunnel);
@@ -3984,6 +4042,13 @@ end;
 procedure TDTC40_Base_Client.Do_DT_P2PVM_Custom_Client_TunnelLink(Sender: TDT_P2PVM_Custom_Client);
 begin
   DoClientConnected();
+  if Client.LoginIsSuccessed then
+    begin
+      UserName := Client.LastUser;
+      Password := Client.LastPasswd;
+      NoDTLink := False;
+      Client.RegisterUserAndLogin := False;
+    end;
 end;
 
 constructor TDTC40_Base_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -3999,6 +4064,8 @@ begin
   DTClient := Client.DTClient;
   UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
   Password := ParamList.GetDefaultValue('Password', UserName.Text);
+  Client.RegisterUserAndLogin := EStrToBool(ParamList.GetDefaultValue('RegUser', 'False'), False);
+  NoDTLink := EStrToBool(ParamList.GetDefaultValue('NoDTLink', 'True'), True);
 end;
 
 destructor TDTC40_Base_Client.Destroy;
@@ -4016,18 +4083,27 @@ end;
 procedure TDTC40_Base_Client.Connect;
 begin
   inherited Connect;
-  Client.Connect(UserName, Password);
+  if not NoDTLink then
+      Client.Connect(UserName, Password);
 end;
 
 function TDTC40_Base_Client.Connected: Boolean;
 begin
-  Result := Client.DTClient.LinkOk;
+  if NoDTLink then
+      Result := Client.DTClient.RecvTunnel.RemoteInited and Client.DTClient.SendTunnel.RemoteInited
+  else
+      Result := Client.DTClient.LinkOk;
 end;
 
 procedure TDTC40_Base_Client.Disconnect;
 begin
   inherited Disconnect;
   Client.Disconnect;
+end;
+
+function TDTC40_Base_Client.LoginIsSuccessed: Boolean;
+begin
+  Result := Client.LoginIsSuccessed;
 end;
 
 procedure TDTC40_Base_DataStore_Service.DoLinkSuccess_Event(Sender: TDTService; UserDefineIO: TPeerClientUserDefineForRecvTunnel);
@@ -4083,6 +4159,13 @@ end;
 procedure TDTC40_Base_DataStore_Client.Do_DT_P2PVM_Custom_Client_TunnelLink(Sender: TDT_P2PVM_Custom_Client);
 begin
   DoClientConnected();
+  if Client.LoginIsSuccessed then
+    begin
+      UserName := Client.LastUser;
+      Password := Client.LastPasswd;
+      NoDTLink := False;
+      Client.RegisterUserAndLogin := False;
+    end;
 end;
 
 constructor TDTC40_Base_DataStore_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -4098,6 +4181,8 @@ begin
   DTClient := Client.DTClient as TDataStoreClient;
   UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
   Password := ParamList.GetDefaultValue('Password', UserName.Text);
+  Client.RegisterUserAndLogin := EStrToBool(ParamList.GetDefaultValue('RegUser', 'False'), False);
+  NoDTLink := EStrToBool(ParamList.GetDefaultValue('NoDTLink', 'True'), True);
 end;
 
 destructor TDTC40_Base_DataStore_Client.Destroy;
@@ -4115,18 +4200,27 @@ end;
 procedure TDTC40_Base_DataStore_Client.Connect;
 begin
   inherited Connect;
-  Client.Connect(UserName, Password);
+  if not NoDTLink then
+      Client.Connect(UserName, Password);
 end;
 
 function TDTC40_Base_DataStore_Client.Connected: Boolean;
 begin
-  Result := Client.DTClient.LinkOk;
+  if NoDTLink then
+      Result := Client.DTClient.RecvTunnel.RemoteInited and Client.DTClient.SendTunnel.RemoteInited
+  else
+      Result := Client.DTClient.LinkOk;
 end;
 
 procedure TDTC40_Base_DataStore_Client.Disconnect;
 begin
   inherited Disconnect;
   Client.Disconnect;
+end;
+
+function TDTC40_Base_DataStore_Client.LoginIsSuccessed: Boolean;
+begin
+  Result := Client.LoginIsSuccessed;
 end;
 
 initialization

@@ -522,14 +522,14 @@ type
       P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
       P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString); virtual;
     destructor Destroy; override;
-    procedure Progress; virtual;
-    procedure DoTunnelLinkResult(const state: Boolean); virtual;
+    procedure Progress;
+    procedure DoTunnelLinkResult(const state: Boolean);
     procedure AutoCheckPhysicsTunnelAndConnect;
-    procedure Connect(); virtual;
-    procedure Connect_C(OnResult: TStateCall); virtual;
-    procedure Connect_M(OnResult: TStateMethod); virtual;
-    procedure Connect_P(OnResult: TStateProc); virtual;
-    procedure Disconnect; virtual;
+    procedure Connect();
+    procedure Connect_C(OnResult: TStateCall);
+    procedure Connect_M(OnResult: TStateMethod);
+    procedure Connect_P(OnResult: TStateProc);
+    procedure Disconnect;
     property QuietMode: Boolean read GetQuietMode write SetQuietMode;
   end;
 
@@ -843,7 +843,7 @@ begin
   if not FSendTunnel.Exists(SendID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('send tunnel Illegal:%d', [SendID]));
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendID]));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -851,7 +851,7 @@ begin
   if not FRecvTunnel.Exists(RecvID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('received tunnel Illegal:%d', [RecvID]));
+      OutData.WriteString(PFormat('received tunnel Illegal:%d', [RecvID]));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -859,7 +859,7 @@ begin
   if Sender.ID <> RecvID then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
+      OutData.WriteString(PFormat('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -873,7 +873,7 @@ begin
   UserDefineIO.SendTunnel.DoubleTunnelService := Self;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
+  OutData.WriteString(PFormat('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
   OutData.WriteBool(FFileSystem);
 
   UserLinkSuccess(UserDefineIO);
@@ -1005,7 +1005,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -1035,7 +1035,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService_NoAuth.Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -1064,7 +1064,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -1094,7 +1094,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService_NoAuth.Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -1134,12 +1134,12 @@ begin
             UserDefineIO.FCurrentFileStream.Position := StartPos
         else
             UserDefineIO.FCurrentFileStream.Position := UserDefineIO.FCurrentFileStream.Size;
-        Sender.Print(Format('restore post to public: %s', [fullfn]));
+        Sender.Print(PFormat('restore post to public: %s', [fullfn]));
       end
     else
       begin
         UserDefineIO.FCurrentFileStream := TCoreClassFileStream.Create(fullfn, fmCreate);
-        Sender.Print(Format('normal post to public: %s', [fullfn]));
+        Sender.Print(PFormat('normal post to public: %s', [fullfn]));
       end;
   except
     Sender.Print('post file failed: %s', [fullfn]);
@@ -1757,9 +1757,9 @@ begin
     begin
       MD5 := umlStreamMD5(FCurrentStream);
       if umlMD5Compare(servMD5, MD5) then
-          Sender.Print(Format('Receive %s ok', [umlGetFileName(fn).Text]))
+          Sender.Print(PFormat('Receive %s ok', [umlGetFileName(fn).Text]))
       else
-          Sender.Print(Format('Receive %s failed!', [umlGetFileName(fn).Text]));
+          Sender.Print(PFormat('Receive %s failed!', [umlGetFileName(fn).Text]));
 
       try
         if p <> nil then

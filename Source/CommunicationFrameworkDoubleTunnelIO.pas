@@ -625,6 +625,7 @@ type
     Reconnection: Boolean;
     procedure DoConnectionResult(const state: Boolean);
     procedure DoAutomatedP2PVMClientConnectionDone(Sender: TCommunicationFramework; P_IO: TPeerIO);
+    procedure DoRegisterResult(const state: Boolean);
     procedure DoLoginResult(const state: Boolean);
     procedure DoTunnelLinkResult(const state: Boolean);
 
@@ -636,6 +637,7 @@ type
     PhysicsTunnel: TPhysicsClient;
     LastAddr, LastPort, LastAuth: SystemString;
     LastUser, LastPasswd: SystemString;
+    RegisterUserAndLogin: Boolean;
     AutomatedConnection: Boolean;
 
     constructor Create(ClientClass_: TDTClientClass);
@@ -690,6 +692,7 @@ type
     OnConnectResultState: TDT_P2PVM_OnState;
     Connecting: Boolean;
     Reconnection: Boolean;
+    procedure DoRegisterResult(const state: Boolean);
     procedure DoLoginResult(const state: Boolean);
 
     function GetQuietMode: Boolean;
@@ -705,6 +708,7 @@ type
     RecvTunnel, SendTunnel: TCommunicationFrameworkWithP2PVM_Client;
     DTClient: TDTClient;
     LastUser, LastPasswd: SystemString;
+    RegisterUserAndLogin: Boolean;
     AutomatedConnection: Boolean;
     OnTunnelLink: TOn_DT_P2PVM_Custom_Client_TunnelLink;
 
@@ -712,13 +716,14 @@ type
       P2PVM_Recv_Name_, P2PVM_Recv_IP6_, P2PVM_Recv_Port_,
       P2PVM_Send_Name_, P2PVM_Send_IP6_, P2PVM_Send_Port_: SystemString); virtual;
     destructor Destroy; override;
-    procedure Progress; virtual;
-    procedure DoTunnelLinkResult(const state: Boolean); virtual;
-    procedure Connect(User, passwd: SystemString); virtual;
-    procedure Connect_C(User, passwd: SystemString; OnResult: TStateCall); virtual;
-    procedure Connect_M(User, passwd: SystemString; OnResult: TStateMethod); virtual;
-    procedure Connect_P(User, passwd: SystemString; OnResult: TStateProc); virtual;
-    procedure Disconnect; virtual;
+    procedure Progress;
+    function LoginIsSuccessed: Boolean;
+    procedure DoTunnelLinkResult(const state: Boolean);
+    procedure Connect(User, passwd: SystemString);
+    procedure Connect_C(User, passwd: SystemString; OnResult: TStateCall);
+    procedure Connect_M(User, passwd: SystemString; OnResult: TStateMethod);
+    procedure Connect_P(User, passwd: SystemString; OnResult: TStateProc);
+    procedure Disconnect;
     property QuietMode: Boolean read GetQuietMode write SetQuietMode;
   end;
 
@@ -1285,14 +1290,14 @@ begin
   if not FSendTunnel.Exists(SendTunnelID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('send tunnel Illegal:%d', [SendTunnelID]));
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendTunnelID]));
       Exit;
     end;
 
   if not FUserDB.Exists(UserID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('user name Invalid:%s', [UserID]));
+      OutData.WriteString(PFormat('user name Invalid:%s', [UserID]));
       Exit;
     end;
 
@@ -1300,12 +1305,12 @@ begin
     if not CompareQuantumCryptographyPassword(UserPasswd, SystemString(FUserDB.GetDefaultValue(UserID, 'password', ''))) then
       begin
         OutData.WriteBool(False);
-        OutData.WriteString(Format('password error', []));
+        OutData.WriteString(PFormat('password error', []));
         Exit;
       end;
   except
     OutData.WriteBool(False);
-    OutData.WriteString(Format('password error', []));
+    OutData.WriteString(PFormat('password error', []));
     Exit;
   end;
 
@@ -1334,7 +1339,7 @@ begin
   UserDefineIO.WaitLinkSendID := SendTunnelID;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('success Login:%s', [UserID]));
+  OutData.WriteString(PFormat('success Login:%s', [UserID]));
   OutData.WriteString(UserDefineIO.UserFlag);
 
   UserLoginSuccess(UserDefineIO);
@@ -1351,7 +1356,7 @@ begin
   if not FAllowRegisterNewUser then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('disable user register in server', []));
+      OutData.WriteString(PFormat('disable user register in server', []));
       Exit;
     end;
 
@@ -1362,28 +1367,28 @@ begin
   if not FSendTunnel.Exists(SendTunnelID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('send tunnel Illegal:%d', [SendTunnelID]));
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendTunnelID]));
       Exit;
     end;
 
   if umlExistsChar(UserID, '[]:'#13#10#9#8#0) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('user name Illegal:%s', [UserID]));
+      OutData.WriteString(PFormat('user name Illegal:%s', [UserID]));
       Exit;
     end;
 
   if FUserDB.Exists(UserID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('user already registed:%s', [UserID]));
+      OutData.WriteString(PFormat('user already registed:%s', [UserID]));
       Exit;
     end;
 
   if FLoginUserList.Exists(UserID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('user already online:%s', [UserID]));
+      OutData.WriteString(PFormat('user already online:%s', [UserID]));
       Exit;
     end;
 
@@ -1413,7 +1418,7 @@ begin
   UserDefineIO.WaitLinkSendID := SendTunnelID;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('success registed:%s', [UserID]));
+  OutData.WriteString(PFormat('success registed:%s', [UserID]));
   OutData.WriteString(UserDefineIO.UserFlag);
 
   UserDefineIO.SaveConfigFile;
@@ -1433,7 +1438,7 @@ begin
   if not UserDefineIO.LoginSuccessed then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('need login or register', []));
+      OutData.WriteString(PFormat('need login or register', []));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -1441,7 +1446,7 @@ begin
   if not FSendTunnel.Exists(SendID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('send tunnel Illegal:%d', [SendID]));
+      OutData.WriteString(PFormat('send tunnel Illegal:%d', [SendID]));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -1449,7 +1454,7 @@ begin
   if not FRecvTunnel.Exists(RecvID) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('received tunnel Illegal:%d', [RecvID]));
+      OutData.WriteString(PFormat('received tunnel Illegal:%d', [RecvID]));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -1457,7 +1462,7 @@ begin
   if Sender.ID <> RecvID then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
+      OutData.WriteString(PFormat('received tunnel Illegal:%d-%d', [Sender.ID, RecvID]));
       OutData.WriteBool(FFileSystem);
       Exit;
     end;
@@ -1469,7 +1474,7 @@ begin
   UserDefineIO.SendTunnel.DoubleTunnelService := Self;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
+  OutData.WriteString(PFormat('tunnel link success! received:%d <-> send:%d', [RecvID, SendID]));
   OutData.WriteBool(FFileSystem);
 
   UserLinkSuccess(UserDefineIO);
@@ -1493,12 +1498,12 @@ begin
     if not CompareQuantumCryptographyPassword(oldPasswd, SystemString(FUserDB.GetDefaultValue(UserDefineIO.UserID, 'password', ''))) then
       begin
         OutData.WriteBool(False);
-        OutData.WriteString(Format('password error', []));
+        OutData.WriteString(PFormat('password error', []));
         Exit;
       end;
   except
     OutData.WriteBool(False);
-    OutData.WriteString(Format('password error', []));
+    OutData.WriteString(PFormat('password error', []));
     Exit;
   end;
 
@@ -1507,7 +1512,7 @@ begin
       SaveUserDB;
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('password change success', []));
+  OutData.WriteString(PFormat('password change success', []));
 end;
 
 procedure TDTService.Command_CustomNewUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -1864,7 +1869,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -1894,7 +1899,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService.Command_GetPrivateFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -1925,7 +1930,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -1955,7 +1960,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService.Command_GetUserPrivateFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -1990,7 +1995,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -2020,7 +2025,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService.Command_GetPublicFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -2051,7 +2056,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -2081,7 +2086,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService.Command_GetPrivateFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -2113,7 +2118,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -2143,7 +2148,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService.Command_GetUserPrivateFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
@@ -2179,7 +2184,7 @@ begin
   if not umlFileExists(fullfn) then
     begin
       OutData.WriteBool(False);
-      OutData.WriteString(Format('filename invailed %s', [fileName]));
+      OutData.WriteString(PFormat('filename invailed %s', [fileName]));
       Exit;
     end;
 
@@ -2209,7 +2214,7 @@ begin
   DisposeObject(sendDE);
 
   OutData.WriteBool(True);
-  OutData.WriteString(Format('post %s to send tunnel', [fileName]));
+  OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
 procedure TDTService.Command_PostPublicFileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
@@ -2254,15 +2259,15 @@ begin
             UserDefineIO.FCurrentFileStream.Position := StartPos
         else
             UserDefineIO.FCurrentFileStream.Position := UserDefineIO.FCurrentFileStream.Size;
-        Sender.Print(Format('preprocess user:%s restore post to public: %s', [UserDefineIO.UserID, fullfn]));
+        Sender.Print(PFormat('preprocess user:%s restore post to public: %s', [UserDefineIO.UserID, fullfn]));
       end
     else
       begin
         UserDefineIO.FCurrentFileStream := TCoreClassFileStream.Create(fullfn, fmCreate);
-        Sender.Print(Format('preprocess user:%s normal post to public: %s', [UserDefineIO.UserID, fullfn]));
+        Sender.Print(PFormat('preprocess user:%s normal post to public: %s', [UserDefineIO.UserID, fullfn]));
       end;
   except
-    Sender.Print(Format('public file failed! user:%s post to public: %s', [UserDefineIO.UserID, fullfn]));
+    Sender.Print(PFormat('public file failed! user:%s post to public: %s', [UserDefineIO.UserID, fullfn]));
     UserDefineIO.FCurrentFileStream := nil;
   end;
 end;
@@ -2317,15 +2322,15 @@ begin
             UserDefineIO.FCurrentFileStream.Position := StartPos
         else
             UserDefineIO.FCurrentFileStream.Position := UserDefineIO.FCurrentFileStream.Size;
-        Sender.Print(Format('preprocess user:%s restore post to private: %s', [UserDefineIO.UserID, fullfn]));
+        Sender.Print(PFormat('preprocess user:%s restore post to private: %s', [UserDefineIO.UserID, fullfn]));
       end
     else
       begin
         UserDefineIO.FCurrentFileStream := TCoreClassFileStream.Create(fullfn, fmCreate);
-        Sender.Print(Format('preprocess user:%s normal post to private: %s', [UserDefineIO.UserID, fullfn]));
+        Sender.Print(PFormat('preprocess user:%s normal post to private: %s', [UserDefineIO.UserID, fullfn]));
       end;
   except
-    Sender.Print(Format('create private file failed! user:%s post to private: %s', [UserDefineIO.UserID, fullfn]));
+    Sender.Print(PFormat('create private file failed! user:%s post to private: %s', [UserDefineIO.UserID, fullfn]));
     UserDefineIO.FCurrentFileStream := nil;
   end;
 end;
@@ -2387,12 +2392,12 @@ begin
 
       if umlMD5Compare(MD5, ClientMD5) then
         begin
-          Sender.Print(Format('Received File Completed:%s', [fn]));
+          Sender.Print(PFormat('Received File Completed:%s', [fn]));
           UserPostFileSuccess(UserDefineIO, fn);
         end
       else
         begin
-          Sender.Print(Format('File data error:%s', [fn]));
+          Sender.Print(PFormat('File data error:%s', [fn]));
           umlDeleteFile(fn);
         end;
     end;
@@ -3342,9 +3347,9 @@ begin
     begin
       MD5 := umlStreamMD5(FCurrentStream);
       if umlMD5Compare(servMD5, MD5) then
-          Sender.Print(Format('Receive %s ok', [umlGetFileName(fn).Text]))
+          Sender.Print(PFormat('Receive %s ok', [umlGetFileName(fn).Text]))
       else
-          Sender.Print(Format('Receive %s failed!', [umlGetFileName(fn).Text]));
+          Sender.Print(PFormat('Receive %s failed!', [umlGetFileName(fn).Text]));
 
       try
         if p <> nil then
@@ -6457,8 +6462,27 @@ end;
 
 procedure TDT_P2PVM_Client.DoAutomatedP2PVMClientConnectionDone(Sender: TCommunicationFramework; P_IO: TPeerIO);
 begin
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
   PhysicsTunnel.Print('DT p2pVM done.');
+  if RegisterUserAndLogin then
+    begin
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+    end
+  else
+    begin
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+    end;
+end;
+
+procedure TDT_P2PVM_Client.DoRegisterResult(const state: Boolean);
+begin
+  if not state then
+    begin
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+    end
+  else
+    begin
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult);
+    end;
 end;
 
 procedure TDT_P2PVM_Client.DoLoginResult(const state: Boolean);
@@ -6493,6 +6517,7 @@ begin
 
   if state then
     begin
+      RegisterUserAndLogin := False;
       if AutomatedConnection then
           Reconnection := True;
     end;
@@ -6540,6 +6565,7 @@ begin
   LastUser := '';
   LastPasswd := '';
 
+  RegisterUserAndLogin := False;
   AutomatedConnection := True;
 
   RecvTunnel.PrefixName := 'DT';
@@ -6730,6 +6756,18 @@ begin
   RecvTunnel.StopService;
 end;
 
+procedure TDT_P2PVM_Custom_Client.DoRegisterResult(const state: Boolean);
+begin
+  if not state then
+    begin
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+    end
+  else
+    begin
+      DTClient.TunnelLinkM({$IFDEF FPC}@{$ENDIF FPC}DoTunnelLinkResult);
+    end;
+end;
+
 procedure TDT_P2PVM_Custom_Client.DoLoginResult(const state: Boolean);
 begin
   if not state then
@@ -6790,6 +6828,7 @@ begin
   DTClient.SwitchAsDefaultPerformance;
   LastUser := '';
   LastPasswd := '';
+  RegisterUserAndLogin := False;
   AutomatedConnection := True;
   OnTunnelLink := nil;
 
@@ -6818,6 +6857,11 @@ begin
       Connect(LastUser, LastPasswd);
 end;
 
+function TDT_P2PVM_Custom_Client.LoginIsSuccessed: Boolean;
+begin
+  Result := DTClient.LinkOk;
+end;
+
 procedure TDT_P2PVM_Custom_Client.DoTunnelLinkResult(const state: Boolean);
 begin
   if Assigned(OnConnectResultState.OnCall) then
@@ -6831,6 +6875,8 @@ begin
 
   if state then
     begin
+      RegisterUserAndLogin := False;
+
       if AutomatedConnection then
           Reconnection := True;
 
@@ -6852,7 +6898,10 @@ begin
   LastUser := User;
   LastPasswd := passwd;
   OnConnectResultState.Init;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
 end;
 
 procedure TDT_P2PVM_Custom_Client.Connect_C(User, passwd: SystemString; OnResult: TStateCall);
@@ -6870,7 +6919,10 @@ begin
   LastPasswd := passwd;
   OnConnectResultState.Init;
   OnConnectResultState.OnCall := OnResult;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
 end;
 
 procedure TDT_P2PVM_Custom_Client.Connect_M(User, passwd: SystemString; OnResult: TStateMethod);
@@ -6888,7 +6940,10 @@ begin
   LastPasswd := passwd;
   OnConnectResultState.Init;
   OnConnectResultState.OnMethod := OnResult;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
 end;
 
 procedure TDT_P2PVM_Custom_Client.Connect_P(User, passwd: SystemString; OnResult: TStateProc);
@@ -6906,7 +6961,10 @@ begin
   LastPasswd := passwd;
   OnConnectResultState.Init;
   OnConnectResultState.OnProc := OnResult;
-  DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
+  if RegisterUserAndLogin then
+      DTClient.RegisterUserM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoRegisterResult)
+  else
+      DTClient.UserLoginM(LastUser, LastPasswd, {$IFDEF FPC}@{$ENDIF FPC}DoLoginResult);
 end;
 
 procedure TDT_P2PVM_Custom_Client.Disconnect;
