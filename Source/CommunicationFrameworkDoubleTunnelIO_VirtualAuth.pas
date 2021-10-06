@@ -45,9 +45,9 @@ type
     Done: Boolean;
   public
     Owner: TDTService_VirtualAuth;
-    UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
     UserID, Passwd: SystemString;
     function Online: Boolean;
+    function UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
     procedure Accept;
     procedure Reject;
     procedure Bye;
@@ -60,9 +60,9 @@ type
     Done: Boolean;
   public
     Owner: TDTService_VirtualAuth;
-    UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
     UserID, Passwd: SystemString;
     function Online: Boolean;
+    function UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
     procedure Accept;
     procedure Reject;
     procedure Bye;
@@ -819,6 +819,14 @@ begin
   Result := Owner.RecvTunnel.Exists(RecvIO_ID);
 end;
 
+function TVirtualAuthIO.UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+begin
+  Result := nil;
+  if not Online then
+      exit;
+  Result := Owner.RecvTunnel[RecvIO_ID].UserDefine as TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+end;
+
 procedure TVirtualAuthIO.Accept;
 var
   IO: TPeerIO;
@@ -840,7 +848,6 @@ begin
       IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
       if (IO.ResultSendIsPaused) then
         begin
-          UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
           UserDefineIO.UserID := UserID;
           UserDefineIO.Passwd := Passwd;
           UserDefineIO.LoginSuccessed := True;
@@ -873,8 +880,6 @@ begin
       IO := Owner.RecvTunnel.PeerIO[RecvIO_ID];
       if (IO.ResultSendIsPaused) then
         begin
-          UserDefineIO := Owner.GetUserDefineRecvTunnel(IO);
-
           UserDefineIO.UserID := UserID;
           UserDefineIO.Passwd := Passwd;
           UserDefineIO.LoginSuccessed := False;
@@ -901,6 +906,14 @@ end;
 function TVirtualRegIO.Online: Boolean;
 begin
   Result := Owner.RecvTunnel.Exists(RecvIO_ID);
+end;
+
+function TVirtualRegIO.UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
+begin
+  Result := nil;
+  if not Online then
+      exit;
+  Result := Owner.RecvTunnel[RecvIO_ID].UserDefine as TPeerClientUserDefineForRecvTunnel_VirtualAuth;
 end;
 
 procedure TVirtualRegIO.Accept;
@@ -1096,7 +1109,6 @@ begin
   AuthIO.SendIO_ID := SendTunnelID;
   AuthIO.AuthResult := OutData;
   AuthIO.Done := False;
-  AuthIO.UserDefineIO := UserDefineIO;
   AuthIO.UserID := UserID;
   AuthIO.Passwd := UserPasswd;
 
@@ -1111,7 +1123,6 @@ begin
     end
   else
     begin
-      AuthIO.UserDefineIO := nil;
       AuthIO.AuthResult := nil;
       Sender.PauseResultSend;
     end;
@@ -1143,7 +1154,6 @@ begin
   RegIO.SendIO_ID := SendTunnelID;
   RegIO.RegResult := OutData;
   RegIO.Done := False;
-  RegIO.UserDefineIO := UserDefineIO;
   RegIO.UserID := UserID;
   RegIO.Passwd := UserPasswd;
 
@@ -1158,7 +1168,6 @@ begin
     end
   else
     begin
-      RegIO.UserDefineIO := nil;
       RegIO.RegResult := nil;
       Sender.PauseResultSend;
     end;

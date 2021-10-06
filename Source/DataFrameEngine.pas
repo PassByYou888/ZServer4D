@@ -636,9 +636,11 @@ type
     // json support
     procedure EncodeAsPublicJson(var output: TPascalString); overload;
     procedure EncodeAsPublicJson(output: TCoreClassStream); overload;
-    procedure EncodeAsJson(output: TCoreClassStream);
+    procedure EncodeAsJson(output: TCoreClassStream); overload;
+    procedure EncodeAsJson(json: TZ_JsonObject); overload;
     procedure DecodeFromJson(stream: TCoreClassStream); overload;
     procedure DecodeFromJson(const s: TPascalString); overload;
+    procedure DecodeFromJson(json: TZ_JsonObject); overload;
     // Parallel compressor
     function EncodeAsSelectCompressor(scm: TSelectCompressionMethod; output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
     function EncodeAsSelectCompressor(output: TCoreClassStream; const FastMode: Boolean): Integer; overload;
@@ -4094,6 +4096,20 @@ begin
   DisposeObject(j);
 end;
 
+procedure TDataFrameEngine.EncodeAsJson(json: TZ_JsonObject);
+var
+  i: Integer;
+  DataFrame_: TDataFrameBase;
+begin
+  json.Clear;
+  for i := 0 to Count - 1 do
+    begin
+      DataFrame_ := TDataFrameBase(FDataList[i]);
+      DataFrame_.SaveToJson(json.a['Data'], i);
+      json.a['Ref'].Add(DataFrame_.FID);
+    end;
+end;
+
 procedure TDataFrameEngine.DecodeFromJson(stream: TCoreClassStream);
 var
   j: TZ_JsonObject;
@@ -4137,6 +4153,22 @@ begin
   DecodeFromJson(m64);
   DisposeObject(m64);
   SetLength(buff, 0);
+end;
+
+procedure TDataFrameEngine.DecodeFromJson(json: TZ_JsonObject);
+var
+  t: Byte;
+  i: Integer;
+  DataFrame_: TDataFrameBase;
+begin
+  Clear;
+
+  for i := 0 to json.a['Ref'].Count - 1 do
+    begin
+      t := json.a['Ref'].i[i];
+      DataFrame_ := AddData(ByteToDataType(t));
+      DataFrame_.LoadFromJson(json.a['Data'], i);
+    end;
 end;
 
 function TDataFrameEngine.EncodeAsSelectCompressor(scm: TSelectCompressionMethod; output: TCoreClassStream; const FastMode: Boolean): Integer;

@@ -3873,7 +3873,6 @@ end;
 
 procedure TDTC40_Base_VirtualAuth_Client.Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_VirtualAuth_Custom_Client);
 begin
-  DoClientConnected();
   if Client.LoginIsSuccessed then
     begin
       UserName := Client.LastUser;
@@ -3881,6 +3880,7 @@ begin
       NoDTLink := False;
       Client.RegisterUserAndLogin := False;
     end;
+  DoClientConnected();
 end;
 
 constructor TDTC40_Base_VirtualAuth_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -3992,7 +3992,6 @@ end;
 
 procedure TDTC40_Base_DataStoreVirtualAuth_Client.Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_VirtualAuth_Custom_Client);
 begin
-  DoClientConnected();
   if Client.LoginIsSuccessed then
     begin
       UserName := Client.LastUser;
@@ -4000,6 +3999,7 @@ begin
       NoDTLink := False;
       Client.RegisterUserAndLogin := False;
     end;
+  DoClientConnected();
 end;
 
 constructor TDTC40_Base_DataStoreVirtualAuth_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -4108,7 +4108,6 @@ end;
 
 procedure TDTC40_Base_Client.Do_DT_P2PVM_Custom_Client_TunnelLink(Sender: TDT_P2PVM_Custom_Client);
 begin
-  DoClientConnected();
   if Client.LoginIsSuccessed then
     begin
       UserName := Client.LastUser;
@@ -4116,6 +4115,7 @@ begin
       NoDTLink := False;
       Client.RegisterUserAndLogin := False;
     end;
+  DoClientConnected();
 end;
 
 constructor TDTC40_Base_Client.Create(source_: TDTC40_Info; Param_: U_String);
@@ -4225,7 +4225,6 @@ end;
 
 procedure TDTC40_Base_DataStore_Client.Do_DT_P2PVM_Custom_Client_TunnelLink(Sender: TDT_P2PVM_Custom_Client);
 begin
-  DoClientConnected();
   if Client.LoginIsSuccessed then
     begin
       UserName := Client.LastUser;
@@ -4233,6 +4232,7 @@ begin
       NoDTLink := False;
       Client.RegisterUserAndLogin := False;
     end;
+  DoClientConnected();
 end;
 
 constructor TDTC40_Base_DataStore_Client.Create(source_: TDTC40_Info; Param_: U_String);

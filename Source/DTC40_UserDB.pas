@@ -429,6 +429,7 @@ begin
   UserName_ := InData.R.ReadString;
   if not UserIdentifierHash.Exists(UserName_) then
       exit;
+  UserName_ := UserIdentifierHash[UserName_].Data.S['PrimaryIdentifier'];
   j_ := UserIdentifierHash[UserName_];
 
   identifier_arry := j_.Data.A['Identifier'];
@@ -475,6 +476,7 @@ begin
   UserName_ := InData.R.ReadString;
   if not UserIdentifierHash.Exists(UserName_) then
       exit;
+  UserName_ := UserIdentifierHash[UserName_].Data.S['PrimaryIdentifier'];
   j_ := UserIdentifierHash[UserName_];
 
   identifier_arry := j_.Data.A['Identifier'];
@@ -501,6 +503,7 @@ begin
       OutData.WriteBool(False);
       exit;
     end;
+  UserName_ := UserIdentifierHash[UserName_].Data.S['PrimaryIdentifier'];
 
   DTNoAuthService.RecvTunnel.GetIO_Array(Arry_);
   for ID_ in Arry_ do
@@ -610,14 +613,24 @@ begin
   DestFriendUserName_ := InData.R.ReadString;
   if not UserIdentifierHash.Exists(UserName_) then
       exit;
+  if not UserIdentifierHash.Exists(DestFriendUserName_) then
+      exit;
   DestFriendUserName_ := UserIdentifierHash[DestFriendUserName_].Data.S['PrimaryIdentifier'];
 
   j_ := UserIdentifierHash[UserName_];
-
   friend_arry := j_.Data.A['friend'];
   i := 0;
   while i < friend_arry.Count do
     if DestFriendUserName_.Same(friend_arry.S[i]) then
+        friend_arry.Delete(i)
+    else
+        inc(i);
+
+  j_ := UserIdentifierHash[DestFriendUserName_];
+  friend_arry := j_.Data.A['friend'];
+  i := 0;
+  while i < friend_arry.Count do
+    if UserName_.Same(friend_arry.S[i]) then
         friend_arry.Delete(i)
     else
         inc(i);
@@ -1831,7 +1844,7 @@ begin
   D.WriteString(DestFriendUserName_);
   D.WriteString(Msg_);
   D.WriteBool(Accept_);
-  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_RequestAddFriend', D);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_ReponseAddFriend', D);
   DisposeObject(D);
 end;
 

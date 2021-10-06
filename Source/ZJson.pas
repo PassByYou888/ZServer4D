@@ -184,6 +184,9 @@ type
     procedure SaveToFile(FileName: SystemString);
     procedure LoadFromFile(FileName: SystemString);
 
+    function GetMD5: TMD5;
+    property MD5: TMD5 read GetMD5;
+
     procedure ParseText(Text_: TPascalString);
 
     function ToJSONString(Formated_: Boolean): TPascalString; overload;
@@ -375,6 +378,16 @@ begin
   finally
       disposeObject(m64);
   end;
+end;
+
+function TZ_JsonObject.GetMD5: TMD5;
+var
+  m64: TMS64;
+begin
+  m64 := TMS64.Create;
+  SaveToStream(m64, False);
+  Result := umlStreamMD5(m64);
+  disposeObject(m64);
 end;
 
 procedure TZ_JsonObject.ParseText(Text_: TPascalString);
