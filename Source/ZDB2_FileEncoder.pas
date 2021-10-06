@@ -30,7 +30,7 @@ uses CoreClasses,
   DataFrameEngine, ZDB2_Core, ZIOThread, CoreCipher;
 
 type
-  TZDB2_File_IntegerList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
+  TZDB2_File_HndList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
 
   TZDB2_FI = class
   public
@@ -40,7 +40,7 @@ type
     Size: Int64;
     Compressed: Int64;
     OwnerPath: U_String;
-    HandleArray: TZDB2_File_IntegerList;
+    HandleArray: TZDB2_File_HndList;
 
     constructor Create();
     destructor Destroy; override;
@@ -148,7 +148,7 @@ begin
   OwnerPath := '';
   Size := 0;
   Compressed := 0;
-  HandleArray := TZDB2_File_IntegerList.Create;
+  HandleArray := TZDB2_File_HndList.Create;
 end;
 
 destructor TZDB2_FI.Destroy;

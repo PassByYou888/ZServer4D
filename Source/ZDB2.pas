@@ -80,13 +80,13 @@ type
     CompletedNum: Integer;
     LossNum: Integer;
     IOSize: Int64;
-    Hnd: TZDB2_BlockHndle;
+    Hnd: TZDB2_BlockHandle;
     UserData: Pointer;
 
     constructor Create;
     destructor Destroy; override;
     function Timer: TTimeTick;
-    function GetCompletedIndex(): TZDB2_BlockHndle;
+    function GetCompletedIndex(): TZDB2_BlockHandle;
     function IsCompleted(ID: Integer): Boolean;
   end;
 
@@ -175,7 +175,7 @@ type
     { one step signal for Post/insert/Remove/GetData }
     procedure WaitQueue();
     { extract index data,thread supported }
-    function GetIndex(): TZDB2_BlockHndle;
+    function GetIndex(): TZDB2_BlockHandle;
     function GetCount: NativeInt;
     property Count: NativeInt read GetCount;
 
@@ -401,7 +401,7 @@ begin
   Result := GetTimeTick - StartTime;
 end;
 
-function TZDB2_Traversal.GetCompletedIndex(): TZDB2_BlockHndle;
+function TZDB2_Traversal.GetCompletedIndex(): TZDB2_BlockHandle;
 var
   i: NativeInt;
   p: PUInt32HashListPointerStruct;
@@ -473,9 +473,12 @@ begin
     end
   else if FNoSpace = nsAppendDeltaSpace then
     begin
-      if FNoSpaceMaxSize > FSpace.State^.Physics then
+      if (FNoSpaceMaxSize <= 0) or (FNoSpaceMaxSize > FSpace.State^.Physics) then
         if FSpace.AppendSpace(FNoSpaceExpansionSize, FNoSpaceExpansionBlockSize) then
+          begin
             ReloadIndexPtr;
+            retry := True;
+          end;
     end
   else if FNoSpace = nsError then
     begin
@@ -509,7 +512,7 @@ var
   Mem: TZDB2_Mem;
   Successed: Boolean;
   i: Integer;
-  tmp: TZDB2_BlockHndle;
+  tmp: TZDB2_BlockHandle;
 begin
   FCritical.Lock;
   FIndexBuffer.Clear;
@@ -616,7 +619,7 @@ end;
 procedure TZDB2.Cmd_CopyTo(Data: Pointer);
 var
   p: PZDB2_OnCopyTo;
-  Hnd: TZDB2_BlockHndle;
+  Hnd: TZDB2_BlockHandle;
   i: Integer;
   Mem: TZDB2_Mem;
   Change_: PIDChange;
@@ -846,7 +849,7 @@ begin
   FOnCoreProgress := nil;
   FNoSpace := nsError;
   FNoSpaceExpansionSize := Int64(16 * 1024 * 1024);
-  FNoSpaceExpansionBlockSize := $FFFF;
+  FNoSpaceExpansionBlockSize := 1024;
   FNoSpaceMaxSize := Int64(500) * Int64(1024 * 1024 * 1024);
 end;
 
@@ -920,7 +923,7 @@ begin
   FSpace.AutoFreeIOHnd := True;
   FSpace.Mode := Mode;
   FSpace.BuildSpace(Space_, BlockSize_);
-  FIndexBuffer := TUInt32HashPointerList.CustomCreate($FFFF);
+  FIndexBuffer := TUInt32HashPointerList.CustomCreate(1024 * 1024);
   FIndexBuffer.AccessOptimization := True;
   FThreadPost := TThreadPost.Create(0);
   FTraversals := TZDB2_Traversals.Create;
@@ -1045,7 +1048,7 @@ begin
   Dispose(p);
 end;
 
-function TZDB2.GetIndex: TZDB2_BlockHndle;
+function TZDB2.GetIndex: TZDB2_BlockHandle;
 var
   i: NativeInt;
   p: PUInt32HashListPointerStruct;

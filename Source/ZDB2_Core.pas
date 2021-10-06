@@ -32,12 +32,7 @@ uses CoreClasses,
 
 type
   TZDB2_Core_Space = class;
-
-{$IFDEF ZDB2_Core_Used_Mem64}
   TZDB2_Mem = TMem64;
-{$ELSE ZDB2_Core_Used_Mem64}
-  TZDB2_Mem = TMemoryStream64;
-{$ENDIF ZDB2_Core_Used_Mem64}
   TZDB2_UserCustomHeader = array [0 .. $FF - 1] of Byte;
   PZDB2_UserCustomHeader = ^TZDB2_UserCustomHeader;
 
@@ -76,7 +71,7 @@ type
     procedure Decrypt(buff: Pointer; Size: NativeInt);
   end;
 
-  TZDB2_BlockHndle = array of Integer;
+  TZDB2_BlockHandle = array of Integer;
   TZDB2_BlockBuffer = array of TZDB2_Block;
   TZDB2_BlockWriteCache = array of TZDB2_BlockCache;
   TZDB2_OnProgress = procedure(Total_, current_: Integer) of object;
@@ -130,9 +125,9 @@ type
   public
     constructor Create(Core_: TZDB2_Core_Space);
     destructor Destroy; override;
-    function WriteStream(Stream_: TCoreClassStream; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHndle): Boolean; overload;
+    function WriteStream(Stream_: TCoreClassStream; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHandle): Boolean; overload;
     function WriteStream(Stream_: TCoreClassStream; BlockSize_: WORD; var ID: Integer): Boolean; overload;
-    function WriteFile(FileName_: SystemString; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHndle): Boolean; overload;
+    function WriteFile(FileName_: SystemString; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHandle): Boolean; overload;
     function WriteFile(FileName_: SystemString; BlockSize_: WORD; var ID: Integer): Boolean; overload;
     function Flush: Boolean;
   end;
@@ -143,7 +138,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function Build(Core_: TZDB2_Core_Space): Boolean; overload;
-    function Build(Core_: TZDB2_Core_Space; Hnd: TZDB2_BlockHndle): Boolean; overload;
+    function Build(Core_: TZDB2_Core_Space; Hnd: TZDB2_BlockHandle): Boolean; overload;
     procedure LoadFromStream(stream: TCoreClassStream);
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromFile(FileName_: SystemString);
@@ -154,7 +149,8 @@ type
   private
     FCipher: TCipher_Base;
   public
-    constructor Create(CipherSecurity_: TCipherSecurity; password_: U_String; Level_: Integer; Tail_, CBC_: Boolean);
+    constructor Create(CipherSecurity_: TCipherSecurity; password_: U_String; Level_: Integer; Tail_, CBC_: Boolean); overload;
+    constructor Create(CipherSecurityString_: U_String; password_: U_String; Level_: Integer; Tail_, CBC_: Boolean); overload;
     destructor Destroy; override;
     procedure Encrypt(buff: Pointer; Size: NativeInt);
     procedure Decrypt(buff: Pointer; Size: NativeInt);
@@ -203,6 +199,9 @@ type
     function WriteCacheBlock(buff: Pointer; siz: Integer; ID: Integer; FlushThisCache_: Boolean): Boolean;
     procedure DeleteCache(ID: Integer);
     procedure ClearCache;
+    procedure FlushCache;
+    function WriteHeader(): Boolean;
+    function WriteTable(): Boolean;
     procedure PrepareCacheBlock();
     function GetUserCustomHeader: PZDB2_UserCustomHeader;
     procedure SetMode(const Value: TZDB2_SpaceMode);
@@ -215,9 +214,6 @@ type
     destructor Destroy; override;
 
     class procedure ErrorInfo(const Text_: SystemString); static;
-    procedure FlushCache;
-    function WriteHeader(): Boolean;
-    function WriteTable(): Boolean;
     procedure Save();
     function Open(): Boolean;
     procedure ScanSpace;
@@ -227,28 +223,28 @@ type
 
     function Check(ID_: Integer): Boolean;
     function GetSpaceHndID(ID_: Integer): Integer;
-    function GetSpaceHnd(ID_: Integer): TZDB2_BlockHndle;
+    function GetSpaceHnd(ID_: Integer): TZDB2_BlockHandle;
     function CheckWriteSpace(Siz_: Int64): Boolean; overload;
     function CheckWriteSpace(Siz_: Int64; Space_: TZDB2_BlockPtrList): Boolean; overload;
-    function WriteStream(Stream_: TCoreClassStream; var SpaceHnd: TZDB2_BlockHndle): Boolean; overload;
+    function WriteStream(Stream_: TCoreClassStream; var SpaceHnd: TZDB2_BlockHandle): Boolean; overload;
     function WriteStream(Stream_: TCoreClassStream; var ID: Integer): Boolean; overload;
-    function WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHndle; BuffProtected_: Boolean): Boolean; overload;
-    function WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHndle): Boolean; overload;
+    function WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHandle; BuffProtected_: Boolean): Boolean; overload;
+    function WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHandle): Boolean; overload;
     function WriteData(buff: TZDB2_Mem; var ID: Integer; BuffProtected_: Boolean): Boolean; overload;
     function WriteData(buff: TZDB2_Mem; var ID: Integer): Boolean; overload;
-    function ReadStream(Stream_: TCoreClassStream; SpaceHnd: TZDB2_BlockHndle): Boolean; overload;
+    function ReadStream(Stream_: TCoreClassStream; SpaceHnd: TZDB2_BlockHandle): Boolean; overload;
     function ReadStream(Stream_: TCoreClassStream; ID: Integer): Boolean; overload;
-    function ReadData(buff: TZDB2_Mem; SpaceHnd: TZDB2_BlockHndle): Boolean; overload;
+    function ReadData(buff: TZDB2_Mem; SpaceHnd: TZDB2_BlockHandle): Boolean; overload;
     function ReadData(buff: TZDB2_Mem; ID: Integer): Boolean; overload;
-    function ComputeMD5(SpaceHnd: TZDB2_BlockHndle; var MD5: TMD5): Boolean; overload;
+    function ComputeMD5(SpaceHnd: TZDB2_BlockHandle; var MD5: TMD5): Boolean; overload;
     function ComputeMD5(ID: Integer; var MD5: TMD5): Boolean; overload;
-    function RemoveData(SpaceHnd: TZDB2_BlockHndle; SafeClean_: Boolean): Boolean; overload;
+    function RemoveData(SpaceHnd: TZDB2_BlockHandle; SafeClean_: Boolean): Boolean; overload;
     function RemoveData(ID: Integer; SafeClean_: Boolean): Boolean; overload;
-    function GetDataSize(SpaceHnd: TZDB2_BlockHndle): Int64; overload;
+    function GetDataSize(SpaceHnd: TZDB2_BlockHandle): Int64; overload;
     function GetDataSize(ID: Integer): Int64; overload;
-    function GetDataPhysics(SpaceHnd: TZDB2_BlockHndle): Int64; overload;
+    function GetDataPhysics(SpaceHnd: TZDB2_BlockHandle): Int64; overload;
     function GetDataPhysics(ID: Integer): Int64; overload;
-    function BuildTableID: TZDB2_BlockHndle;
+    function BuildTableID: TZDB2_BlockHandle;
 
     property AutoCloseIOHnd: Boolean read FAutoCloseIOHnd write FAutoCloseIOHnd;
     property AutoFreeIOHnd: Boolean read FAutoFreeIOHnd write FAutoFreeIOHnd;
@@ -638,7 +634,7 @@ begin
   inherited;
 end;
 
-function TZDB2_SpacePlan.WriteStream(Stream_: TCoreClassStream; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_SpacePlan.WriteStream(Stream_: TCoreClassStream; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHandle): Boolean;
 var
   BlockSize: WORD;
   Total_: Int64;
@@ -734,14 +730,14 @@ end;
 
 function TZDB2_SpacePlan.WriteStream(Stream_: TCoreClassStream; BlockSize_: WORD; var ID: Integer): Boolean;
 var
-  SpaceHnd: TZDB2_BlockHndle;
+  SpaceHnd: TZDB2_BlockHandle;
 begin
   Result := WriteStream(Stream_, BlockSize_, SpaceHnd);
   if Length(SpaceHnd) > 0 then
       ID := SpaceHnd[0]
 end;
 
-function TZDB2_SpacePlan.WriteFile(FileName_: SystemString; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_SpacePlan.WriteFile(FileName_: SystemString; BlockSize_: WORD; var SpaceHnd: TZDB2_BlockHandle): Boolean;
 var
   fs: TCoreClassFileStream;
 begin
@@ -874,7 +870,7 @@ begin
   end;
 end;
 
-function TZDB2_CRC16.Build(Core_: TZDB2_Core_Space; Hnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_CRC16.Build(Core_: TZDB2_Core_Space; Hnd: TZDB2_BlockHandle): Boolean;
 var
   i: Integer;
   ID: Integer;
@@ -969,6 +965,20 @@ begin
   FCipher.Level := Level_;
   FCipher.ProcessTail := Tail_;
   FCipher.CBC := CBC_;
+end;
+
+constructor TZDB2_Cipher.Create(CipherSecurityString_: U_String; password_: U_String; Level_: Integer; Tail_, CBC_: Boolean);
+var
+  arry: TCipherSecurityArray;
+  i: Integer;
+  cs: TCipherSecurity;
+begin
+  arry := TCipher.AllCipher;
+  cs := TCipherSecurity.csNone;
+  for i := low(arry) to high(arry) do
+    if CipherSecurityString_.Same(TCipher.CCipherSecurityName[arry[i]]) then
+        cs := arry[i];
+  Create(cs, password_, Level_, Tail_, CBC_);
 end;
 
 destructor TZDB2_Cipher.Destroy;
@@ -1081,6 +1091,71 @@ begin
         inc(i);
       end;
   FState.Cache := 0;
+end;
+
+procedure TZDB2_Core_Space.FlushCache;
+var
+  i: Integer;
+begin
+  i := 0;
+  while i < FBlockCount do
+    begin
+      with FBlockBuffer[i], FBlockWriteCache[i] do
+        if Mem <> nil then
+          begin
+            if FlushThisCacheToFile then
+              begin
+                if not umlFileSeek(FSpace_IOHnd^, Position) then
+                  begin
+                    ErrorInfo('FlushCache: umlFileSeek error.');
+                    exit;
+                  end;
+                DoEncrypt(Mem.Memory, UsedSpace);
+                if not umlBlockWrite(FSpace_IOHnd^, Mem.Memory^, UsedSpace) then
+                  begin
+                    ErrorInfo('FlushCache: umlBlockWrite error.');
+                    exit;
+                  end;
+                FlushThisCacheToFile := False;
+              end;
+            DisposeObjectAndNil(Mem);
+          end;
+      inc(i);
+    end;
+  FState.Cache := 0;
+end;
+
+function TZDB2_Core_Space.WriteHeader: Boolean;
+begin
+  Result := False;
+  if not umlFileSeek(FSpace_IOHnd^, 0) then
+    begin
+      ErrorInfo('WriteTable: umlFileSeek error.');
+      exit;
+    end;
+  FHeader.Flag := C_ZDB2_FileHead;
+  FHeader.Major := 2;
+  FHeader.Minor := 0;
+  if not umlBlockWrite(FSpace_IOHnd^, FHeader, C_ZDB2_HeaderSize) then
+    begin
+      ErrorInfo('WriteTable: umlBlockWrite Header error.');
+      exit;
+    end;
+  Result := True;
+end;
+
+function TZDB2_Core_Space.WriteTable(): Boolean;
+begin
+  Result := False;
+  if not WriteHeader then
+      exit;
+  FBlockStoreDataStruct.FillFromBlockBuffer(FBlockBuffer);
+  if not FBlockStoreDataStruct.Write(FCipher, FHeader.StructEntry, FSpace_IOHnd^) then
+    begin
+      ErrorInfo('WriteTable: write BlockStoreDataStruct error.');
+      exit;
+    end;
+  Result := True;
 end;
 
 procedure TZDB2_Core_Space.PrepareCacheBlock();
@@ -1221,71 +1296,6 @@ end;
 class procedure TZDB2_Core_Space.ErrorInfo(const Text_: SystemString);
 begin
   DoStatus('ZDB2 Core failed - ' + Text_);
-end;
-
-procedure TZDB2_Core_Space.FlushCache;
-var
-  i: Integer;
-begin
-  i := 0;
-  while i < FBlockCount do
-    begin
-      with FBlockBuffer[i], FBlockWriteCache[i] do
-        if Mem <> nil then
-          begin
-            if FlushThisCacheToFile then
-              begin
-                if not umlFileSeek(FSpace_IOHnd^, Position) then
-                  begin
-                    ErrorInfo('FlushCache: umlFileSeek error.');
-                    exit;
-                  end;
-                DoEncrypt(Mem.Memory, UsedSpace);
-                if not umlBlockWrite(FSpace_IOHnd^, Mem.Memory^, UsedSpace) then
-                  begin
-                    ErrorInfo('FlushCache: umlBlockWrite error.');
-                    exit;
-                  end;
-                FlushThisCacheToFile := False;
-              end;
-            DisposeObjectAndNil(Mem);
-          end;
-      inc(i);
-    end;
-  FState.Cache := 0;
-end;
-
-function TZDB2_Core_Space.WriteHeader: Boolean;
-begin
-  Result := False;
-  if not umlFileSeek(FSpace_IOHnd^, 0) then
-    begin
-      ErrorInfo('WriteTable: umlFileSeek error.');
-      exit;
-    end;
-  FHeader.Flag := C_ZDB2_FileHead;
-  FHeader.Major := 2;
-  FHeader.Minor := 0;
-  if not umlBlockWrite(FSpace_IOHnd^, FHeader, C_ZDB2_HeaderSize) then
-    begin
-      ErrorInfo('WriteTable: umlBlockWrite Header error.');
-      exit;
-    end;
-  Result := True;
-end;
-
-function TZDB2_Core_Space.WriteTable(): Boolean;
-begin
-  Result := False;
-  if not WriteHeader then
-      exit;
-  FBlockStoreDataStruct.FillFromBlockBuffer(FBlockBuffer);
-  if not FBlockStoreDataStruct.Write(FCipher, FHeader.StructEntry, FSpace_IOHnd^) then
-    begin
-      ErrorInfo('WriteTable: write BlockStoreDataStruct error.');
-      exit;
-    end;
-  Result := True;
 end;
 
 procedure TZDB2_Core_Space.Save;
@@ -1640,7 +1650,7 @@ begin
   Result := ID;
 end;
 
-function TZDB2_Core_Space.GetSpaceHnd(ID_: Integer): TZDB2_BlockHndle;
+function TZDB2_Core_Space.GetSpaceHnd(ID_: Integer): TZDB2_BlockHandle;
 var
   ID, i, num: Integer;
 begin
@@ -1708,7 +1718,7 @@ begin
   Result := tmp >= Siz_;
 end;
 
-function TZDB2_Core_Space.WriteStream(Stream_: TCoreClassStream; var SpaceHnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_Core_Space.WriteStream(Stream_: TCoreClassStream; var SpaceHnd: TZDB2_BlockHandle): Boolean;
 var
   Space_: TZDB2_BlockPtrList;
   tmp: Int64;
@@ -1855,7 +1865,7 @@ end;
 
 function TZDB2_Core_Space.WriteStream(Stream_: TCoreClassStream; var ID: Integer): Boolean;
 var
-  SpaceHnd: TZDB2_BlockHndle;
+  SpaceHnd: TZDB2_BlockHandle;
 begin
   Result := WriteStream(Stream_, SpaceHnd);
   if Result then
@@ -1863,7 +1873,7 @@ begin
   SetLength(SpaceHnd, 0);
 end;
 
-function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHndle; BuffProtected_: Boolean): Boolean;
+function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHandle; BuffProtected_: Boolean): Boolean;
 var
   Space_: TZDB2_BlockPtrList;
   tmp: Int64;
@@ -1889,7 +1899,7 @@ begin
       if Assigned(FOnNoSpace) then
           FOnNoSpace(buff.Size, retry);
       if retry then
-          Result := WriteData(buff, SpaceHnd)
+          Result := WriteData(buff, SpaceHnd, BuffProtected_)
       else
           ErrorInfo('WriteData: No Space.');
       exit;
@@ -1990,14 +2000,14 @@ begin
       end;
 end;
 
-function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var SpaceHnd: TZDB2_BlockHandle): Boolean;
 begin
   Result := WriteData(buff, SpaceHnd, True);
 end;
 
 function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var ID: Integer; BuffProtected_: Boolean): Boolean;
 var
-  SpaceHnd: TZDB2_BlockHndle;
+  SpaceHnd: TZDB2_BlockHandle;
 begin
   Result := WriteData(buff, SpaceHnd, BuffProtected_);
   if Result then
@@ -2007,7 +2017,7 @@ end;
 
 function TZDB2_Core_Space.WriteData(buff: TZDB2_Mem; var ID: Integer): Boolean;
 var
-  SpaceHnd: TZDB2_BlockHndle;
+  SpaceHnd: TZDB2_BlockHandle;
 begin
   Result := WriteData(buff, SpaceHnd);
   if Result then
@@ -2015,7 +2025,7 @@ begin
   SetLength(SpaceHnd, 0);
 end;
 
-function TZDB2_Core_Space.ReadStream(Stream_: TCoreClassStream; SpaceHnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_Core_Space.ReadStream(Stream_: TCoreClassStream; SpaceHnd: TZDB2_BlockHandle): Boolean;
 var
   i: Integer;
   Siz_: Int64;
@@ -2086,7 +2096,7 @@ begin
   Result := ReadStream(Stream_, GetSpaceHnd(ID));
 end;
 
-function TZDB2_Core_Space.ReadData(buff: TZDB2_Mem; SpaceHnd: TZDB2_BlockHndle): Boolean;
+function TZDB2_Core_Space.ReadData(buff: TZDB2_Mem; SpaceHnd: TZDB2_BlockHandle): Boolean;
 var
   i: Integer;
   Siz_: Int64;
@@ -2152,7 +2162,7 @@ begin
   Result := ReadData(buff, GetSpaceHnd(ID));
 end;
 
-function TZDB2_Core_Space.ComputeMD5(SpaceHnd: TZDB2_BlockHndle; var MD5: TMD5): Boolean;
+function TZDB2_Core_Space.ComputeMD5(SpaceHnd: TZDB2_BlockHandle; var MD5: TMD5): Boolean;
 var
   i: Integer;
   Siz_: Int64;
@@ -2223,7 +2233,7 @@ begin
   Result := ComputeMD5(GetSpaceHnd(ID), MD5);
 end;
 
-function TZDB2_Core_Space.RemoveData(SpaceHnd: TZDB2_BlockHndle; SafeClean_: Boolean): Boolean;
+function TZDB2_Core_Space.RemoveData(SpaceHnd: TZDB2_BlockHandle; SafeClean_: Boolean): Boolean;
 var
   i: Integer;
 begin
@@ -2266,7 +2276,7 @@ begin
   Result := RemoveData(GetSpaceHnd(ID), SafeClean_);
 end;
 
-function TZDB2_Core_Space.GetDataSize(SpaceHnd: TZDB2_BlockHndle): Int64;
+function TZDB2_Core_Space.GetDataSize(SpaceHnd: TZDB2_BlockHandle): Int64;
 var
   i: Integer;
 begin
@@ -2285,7 +2295,7 @@ begin
   Result := GetDataSize(GetSpaceHnd(ID));
 end;
 
-function TZDB2_Core_Space.GetDataPhysics(SpaceHnd: TZDB2_BlockHndle): Int64;
+function TZDB2_Core_Space.GetDataPhysics(SpaceHnd: TZDB2_BlockHandle): Int64;
 var
   i: Integer;
 begin
@@ -2304,11 +2314,11 @@ begin
   Result := GetDataPhysics(GetSpaceHnd(ID));
 end;
 
-function TZDB2_Core_Space.BuildTableID: TZDB2_BlockHndle;
+function TZDB2_Core_Space.BuildTableID: TZDB2_BlockHandle;
 var
   i, j: Integer;
   LBuff: array of Boolean;
-  tmp: TZDB2_BlockHndle;
+  tmp: TZDB2_BlockHandle;
   L: TZDB2_ID_List;
 begin
   SetLength(LBuff, FBlockCount);
@@ -2337,7 +2347,7 @@ type
   TTest_ = record
     data: TMemoryStream64;
     sMD5: TMD5;
-    db1hnd, db2hnd: TZDB2_BlockHndle;
+    db1hnd, db2hnd: TZDB2_BlockHandle;
   end;
 
   PTest_ = ^TTest_;
@@ -2356,7 +2366,7 @@ var
   db1_1, db2_2: TZDB2_Core_Space;
   i: Integer;
   db1_crc16: TZDB2_CRC16;
-  db1Hnd_, db2Hnd_: TZDB2_BlockHndle;
+  db1Hnd_, db2Hnd_: TZDB2_BlockHandle;
 begin
   Cipher_ := TZDB2_Cipher.Create(TCipherSecurity.csRijndael, 'hello world.', 1, False, True);
 

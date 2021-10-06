@@ -129,8 +129,8 @@ type
     property Tag: Integer read FTag write FTag;
     property Instance: TZ_Instance_JsonObject read FInstance;
 
-    constructor Create(Parent_: TZ_JsonBase); overload; override;
     constructor Create(); overload;
+    constructor Create(Parent_: TZ_JsonBase); overload; override;
     destructor Destroy; override;
 
     procedure SwapInstance(source_: TZ_JsonObject);
@@ -248,17 +248,17 @@ begin
   inherited Destroy;
 end;
 
+constructor TZ_JsonObject.Create;
+begin
+  Create(nil);
+end;
+
 constructor TZ_JsonObject.Create(Parent_: TZ_JsonBase);
 begin
   inherited Create(Parent_);
   FTag := 0;
   if Parent = nil then
       FInstance := TZ_Instance_JsonObject.Create;
-end;
-
-constructor TZ_JsonObject.Create;
-begin
-  Create(nil);
 end;
 
 destructor TZ_JsonObject.Destroy;

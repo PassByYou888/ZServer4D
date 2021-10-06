@@ -239,6 +239,17 @@ type
     destructor Destroy; override;
   end;
 
+  TDoubleTunnel_IO_ID = record
+    R, S: Cardinal;
+  end;
+
+  TDoubleTunnel_IO_ID_List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDoubleTunnel_IO_ID>;
+
+  TDoubleTunnel_IO_ID_List = class(TDoubleTunnel_IO_ID_List_Decl)
+  public
+    procedure AddDoubleTunenlID(R, S: Cardinal);
+  end;
+
   TQueueState = (qsUnknow, qsSendConsoleCMD, qsSendStreamCMD, qsSendDirectConsoleCMD, qsSendDirectStreamCMD, qsSendBigStream, qsSendCompleteBuffer);
 
   TQueueData = record
@@ -2385,13 +2396,13 @@ procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
 
 function IsSystemCMD(const Cmd: U_String): Boolean;
 
-function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
+function StrToIPv4(const S: U_String; var Success: Boolean): TIPV4;
 function IPv4ToStr(const IPv4Addr_: TIPV4): U_String;
-function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6; overload;
-function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6; overload;
+function StrToIPv6(const S: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6; overload;
+function StrToIPv6(const S: U_String; var Success: Boolean): TIPV6; overload;
 function IPv6ToStr(const IPv6Addr: TIPV6): U_String;
-function IsIPv4(const s: U_String): Boolean;
-function IsIPV6(const s: U_String): Boolean;
+function IsIPv4(const S: U_String): Boolean;
+function IsIPV6(const S: U_String): Boolean;
 function MakeRandomIPV6(): TIPV6;
 
 function CompareIPV4(const IP1, IP2: TIPV4): Boolean;
@@ -2751,7 +2762,7 @@ begin
     Cmd.Same(C_BuildStableIO, C_OpenStableIO, C_CloseStableIO);
 end;
 
-function StrToIPv4(const s: U_String; var Success: Boolean): TIPV4;
+function StrToIPv4(const S: U_String; var Success: Boolean): TIPV4;
 var
   n: U_String;
   i: Integer;
@@ -2762,7 +2773,7 @@ var
 begin
   FillPtrByte(@Result[0], SizeOf(Result), 0);
   Success := False;
-  n := umlDeleteChar(s, [#32, #0, #9, #13, #10]);
+  n := umlDeleteChar(S, [#32, #0, #9, #13, #10]);
   Len := n.Len;
   if Len < 6 then
       exit;
@@ -2805,7 +2816,7 @@ begin
   Result.Text := IntToStr(IPv4Addr_[0]) + '.' + IntToStr(IPv4Addr_[1]) + '.' + IntToStr(IPv4Addr_[2]) + '.' + IntToStr(IPv4Addr_[3]);
 end;
 
-function StrToIPv6(const s: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6;
+function StrToIPv6(const S: U_String; var Success: Boolean; var ScopeID: Cardinal): TIPV6;
 const
   Colon = ':';
   Percent = '%';
@@ -2823,7 +2834,7 @@ var
 begin
   FillPtrByte(@Result[0], SizeOf(Result), 0);
   Success := False;
-  n := umlDeleteChar(s, [#32, #0, #9, #13, #10]);
+  n := umlDeleteChar(S, [#32, #0, #9, #13, #10]);
   SLen := n.Len;
   if (SLen < 1) or (SLen > (4 * 8) + 7) then
       exit;
@@ -2927,11 +2938,11 @@ begin
   Success := ColonCnt > 1;
 end;
 
-function StrToIPv6(const s: U_String; var Success: Boolean): TIPV6;
+function StrToIPv6(const S: U_String; var Success: Boolean): TIPV6;
 var
   SI: Cardinal;
 begin
-  Result := StrToIPv6(s, Success, SI);
+  Result := StrToIPv6(S, Success, SI);
 end;
 
 function IPv6ToStr(const IPv6Addr: TIPV6): U_String;
@@ -3013,7 +3024,7 @@ begin
   Result.Text := LowerCase(ipv);
 end;
 
-function IsIPv4(const s: U_String): Boolean;
+function IsIPv4(const S: U_String): Boolean;
 var
   n: U_String;
   i: Integer;
@@ -3021,7 +3032,7 @@ var
   NumVal: Integer;
   CH: SystemChar;
 begin
-  n := umlDeleteChar(s, [#32, #0, #9, #13, #10]);
+  n := umlDeleteChar(S, [#32, #0, #9, #13, #10]);
   Result := False;
   DotCnt := 0;
   NumVal := -1;
@@ -3051,11 +3062,11 @@ begin
   Result := DotCnt = 3;
 end;
 
-function IsIPV6(const s: U_String): Boolean;
+function IsIPV6(const S: U_String): Boolean;
 var
   ScopeID: Cardinal;
 begin
-  StrToIPv6(s, Result, ScopeID);
+  StrToIPv6(S, Result, ScopeID);
 end;
 
 function MakeRandomIPV6(): TIPV6;
@@ -4025,6 +4036,15 @@ end;
 destructor TP2PVM_CloneConnectEventBridge.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TDoubleTunnel_IO_ID_List.AddDoubleTunenlID(R, S: Cardinal);
+var
+  tmp: TDoubleTunnel_IO_ID;
+begin
+  tmp.R := R;
+  tmp.S := S;
+  Add(tmp);
 end;
 
 constructor TSwapSpaceList.Create;
@@ -11242,29 +11262,29 @@ end;
 
 procedure TCommunicationFrameworkClient.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 var
-  r: Boolean;
+  R: Boolean;
 begin
-  r := Connect(addr, Port);
+  R := Connect(addr, Port);
   if Assigned(OnResult) then
-      OnResult(r);
+      OnResult(R);
 end;
 
 procedure TCommunicationFrameworkClient.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 var
-  r: Boolean;
+  R: Boolean;
 begin
-  r := Connect(addr, Port);
+  R := Connect(addr, Port);
   if Assigned(OnResult) then
-      OnResult(r);
+      OnResult(R);
 end;
 
 procedure TCommunicationFrameworkClient.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 var
-  r: Boolean;
+  R: Boolean;
 begin
-  r := Connect(addr, Port);
+  R := Connect(addr, Port);
   if Assigned(OnResult) then
-      OnResult(r);
+      OnResult(R);
 end;
 
 procedure TCommunicationFrameworkClient.AsyncConnectC(addr: SystemString; Port: Word; Param1: Pointer; Param2: TObject; const OnResult: TParamStateCall);
@@ -12442,7 +12462,7 @@ end;
 
 constructor TCommunicationFrameworkWithP2PVM_Server.Create;
 begin
-  CustomCreate(10 * 10000, 0);
+  CustomCreate(20 * 10000, 0);
 end;
 
 constructor TCommunicationFrameworkWithP2PVM_Server.CustomCreate(HashPoolSize: Integer; FrameworkID: Cardinal);
@@ -12860,7 +12880,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.AsyncConnect(addr: SystemString; Port: Word);
 var
-  r: Boolean;
+  R: Boolean;
   IPV6: TIPV6;
   p: Pp2pVMListen;
 begin
@@ -12889,9 +12909,9 @@ begin
       exit;
     end;
 
-  IPV6 := StrToIPv6(addr, r);
+  IPV6 := StrToIPv6(addr, R);
 
-  if not r then
+  if not R then
     begin
       Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
@@ -12914,7 +12934,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.AsyncConnectC(addr: SystemString; Port: Word; const OnResult: TStateCall);
 var
-  r: Boolean;
+  R: Boolean;
   IPV6: TIPV6;
   p: Pp2pVMListen;
 begin
@@ -12943,9 +12963,9 @@ begin
       exit;
     end;
 
-  IPV6 := StrToIPv6(addr, r);
+  IPV6 := StrToIPv6(addr, R);
 
-  if not r then
+  if not R then
     begin
       Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
@@ -12968,7 +12988,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.AsyncConnectM(addr: SystemString; Port: Word; const OnResult: TStateMethod);
 var
-  r: Boolean;
+  R: Boolean;
   IPV6: TIPV6;
   p: Pp2pVMListen;
 begin
@@ -12998,9 +13018,9 @@ begin
       exit;
     end;
 
-  IPV6 := StrToIPv6(addr, r);
+  IPV6 := StrToIPv6(addr, R);
 
-  if not r then
+  if not R then
     begin
       Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;
@@ -13023,7 +13043,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM_Client.AsyncConnectP(addr: SystemString; Port: Word; const OnResult: TStateProc);
 var
-  r: Boolean;
+  R: Boolean;
   IPV6: TIPV6;
   p: Pp2pVMListen;
 begin
@@ -13053,9 +13073,9 @@ begin
       exit;
     end;
 
-  IPV6 := StrToIPv6(addr, r);
+  IPV6 := StrToIPv6(addr, R);
 
-  if not r then
+  if not R then
     begin
       Error('ipv6 format error! %s', [addr]);
       TriggerDoConnectFailed;

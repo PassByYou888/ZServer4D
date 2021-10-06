@@ -61,7 +61,7 @@ type
   TNPostExecute = class(TCoreClassObject)
   private
     FOwner: TNProgressPost;
-    FDataEng: TDataFrameEngine;
+    FDataEng: TDFE;
     ProcessedTime: Double;
   public
     Data1: TCoreClassObject;
@@ -77,7 +77,7 @@ type
     OnExecuteMethod_NP: TNPostExecuteMethod_NP;
     OnExecuteProc: TNPostExecuteProc;
     OnExecuteProc_NP: TNPostExecuteProc_NP;
-    property DataEng: TDataFrameEngine read FDataEng;
+    property DataEng: TDFE read FDataEng;
     property Owner: TNProgressPost read FOwner;
 
     constructor Create; virtual;
@@ -102,19 +102,19 @@ type
     destructor Destroy; override;
     procedure ResetPost;
     function PostExecute(): TNPostExecute; overload;
-    function PostExecute(DataEng: TDataFrameEngine): TNPostExecute; overload;
+    function PostExecute(DataEng: TDFE): TNPostExecute; overload;
     function PostExecute(Delay: Double): TNPostExecute; overload;
-    function PostExecute(Delay: Double; DataEng: TDataFrameEngine): TNPostExecute; overload;
-    function PostExecuteM(DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
-    function PostExecuteM(Delay: Double; DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
+    function PostExecute(Delay: Double; DataEng: TDFE): TNPostExecute; overload;
+    function PostExecuteM(DataEng: TDFE; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
+    function PostExecuteM(Delay: Double; DataEng: TDFE; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
     function PostExecuteM(Delay: Double; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute; overload;
     function PostExecuteM_NP(Delay: Double; OnExecuteMethod: TNPostExecuteMethod_NP): TNPostExecute; overload;
-    function PostExecuteC(DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
-    function PostExecuteC(Delay: Double; DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
+    function PostExecuteC(DataEng: TDFE; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
+    function PostExecuteC(Delay: Double; DataEng: TDFE; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
     function PostExecuteC(Delay: Double; OnExecuteCall: TNPostExecuteCall): TNPostExecute; overload;
     function PostExecuteC_NP(Delay: Double; OnExecuteCall: TNPostExecuteCall_NP): TNPostExecute; overload;
-    function PostExecuteP(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
-    function PostExecuteP(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
+    function PostExecuteP(DataEng: TDFE; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
+    function PostExecuteP(Delay: Double; DataEng: TDFE; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecuteP(Delay: Double; OnExecuteProc: TNPostExecuteProc): TNPostExecute; overload;
     function PostExecuteP_NP(Delay: Double; OnExecuteProc: TNPostExecuteProc_NP): TNPostExecute; overload;
     procedure PostDelayFreeObject(Delay: Double; Obj1_, Obj2_: TCoreClassObject);
@@ -126,7 +126,7 @@ type
     property PostClass: TNPostExecuteClass read FPostClass write FPostClass;
   end;
 
-  TNProgressPostWithCadencer = class(TNProgressPost, ICadencerProgressInterface)
+  TCadencerNProgressPost = class(TNProgressPost, ICadencerProgressInterface)
   protected
     FCadencerEngine: TCadencer;
     procedure CadencerProgress(const deltaTime, newTime: Double);
@@ -137,11 +137,14 @@ type
     property CadencerEngine: TCadencer read FCadencerEngine;
   end;
 
-var
-  SystemPostProgress: TNProgressPostWithCadencer;
+  TNProgressPostWithCadencer = TCadencerNProgressPost;
+  TCadencerPost = TCadencerNProgressPost;
 
-function SysPostProgress: TNProgressPostWithCadencer;
-function SysPost: TNProgressPostWithCadencer;
+var
+  SystemPostProgress: TCadencerNProgressPost;
+
+function SysPostProgress: TCadencerNProgressPost;
+function SysPost: TCadencerNProgressPost;
 procedure DelayFreeObject(Delay: Double; Obj1_, Obj2_: TCoreClassObject); overload;
 procedure DelayFreeObject(Delay: Double; Obj1_: TCoreClassObject); overload;
 procedure DelayFreeObj(Delay: Double; Obj1_, Obj2_: TCoreClassObject); overload;
@@ -164,12 +167,12 @@ begin
   SystemPostProgress.Progress;
 end;
 
-function SysPostProgress: TNProgressPostWithCadencer;
+function SysPostProgress: TCadencerNProgressPost;
 begin
   Result := SystemPostProgress;
 end;
 
-function SysPost: TNProgressPostWithCadencer;
+function SysPost: TCadencerNProgressPost;
 begin
   Result := SystemPostProgress;
 end;
@@ -280,7 +283,7 @@ end;
 constructor TNPostExecute.Create;
 begin
   inherited Create;
-  FDataEng := TDataFrameEngine.Create;
+  FDataEng := TDFE.Create;
   ProcessedTime := 0;
   Data1 := nil;
   Data2 := nil;
@@ -430,7 +433,7 @@ begin
   end;
 end;
 
-function TNProgressPost.PostExecute(DataEng: TDataFrameEngine): TNPostExecute;
+function TNProgressPost.PostExecute(DataEng: TDFE): TNPostExecute;
 begin
   Result := PostExecute();
   if DataEng <> nil then
@@ -443,20 +446,20 @@ begin
   Result.Delay := Delay;
 end;
 
-function TNProgressPost.PostExecute(Delay: Double; DataEng: TDataFrameEngine): TNPostExecute;
+function TNProgressPost.PostExecute(Delay: Double; DataEng: TDFE): TNPostExecute;
 begin
   Result := PostExecute(Delay);
   if DataEng <> nil then
       Result.FDataEng.Assign(DataEng);
 end;
 
-function TNProgressPost.PostExecuteM(DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
+function TNProgressPost.PostExecuteM(DataEng: TDFE; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
 begin
   Result := PostExecute(DataEng);
   Result.OnExecuteMethod := OnExecuteMethod;
 end;
 
-function TNProgressPost.PostExecuteM(Delay: Double; DataEng: TDataFrameEngine; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
+function TNProgressPost.PostExecuteM(Delay: Double; DataEng: TDFE; OnExecuteMethod: TNPostExecuteMethod): TNPostExecute;
 begin
   Result := PostExecute(Delay, DataEng);
   Result.OnExecuteMethod := OnExecuteMethod;
@@ -474,13 +477,13 @@ begin
   Result.OnExecuteMethod_NP := OnExecuteMethod;
 end;
 
-function TNProgressPost.PostExecuteC(DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
+function TNProgressPost.PostExecuteC(DataEng: TDFE; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
 begin
   Result := PostExecute(DataEng);
   Result.OnExecuteCall := OnExecuteCall;
 end;
 
-function TNProgressPost.PostExecuteC(Delay: Double; DataEng: TDataFrameEngine; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
+function TNProgressPost.PostExecuteC(Delay: Double; DataEng: TDFE; OnExecuteCall: TNPostExecuteCall): TNPostExecute;
 begin
   Result := PostExecute(Delay, DataEng);
   Result.OnExecuteCall := OnExecuteCall;
@@ -498,13 +501,13 @@ begin
   Result.OnExecuteCall_NP := OnExecuteCall;
 end;
 
-function TNProgressPost.PostExecuteP(DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
+function TNProgressPost.PostExecuteP(DataEng: TDFE; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
 begin
   Result := PostExecute(DataEng);
   Result.OnExecuteProc := OnExecuteProc;
 end;
 
-function TNProgressPost.PostExecuteP(Delay: Double; DataEng: TDataFrameEngine; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
+function TNProgressPost.PostExecuteP(Delay: Double; DataEng: TDFE; OnExecuteProc: TNPostExecuteProc): TNPostExecute;
 begin
   Result := PostExecute(Delay, DataEng);
   Result.OnExecuteProc := OnExecuteProc;
@@ -618,26 +621,26 @@ begin
   FPostProcessIsRun := False;
 end;
 
-procedure TNProgressPostWithCadencer.CadencerProgress(const deltaTime, newTime: Double);
+procedure TCadencerNProgressPost.CadencerProgress(const deltaTime, newTime: Double);
 begin
   inherited Progress(deltaTime);
 end;
 
-constructor TNProgressPostWithCadencer.Create;
+constructor TCadencerNProgressPost.Create;
 begin
   inherited Create;
   FCadencerEngine := TCadencer.Create;
   FCadencerEngine.OnProgressInterface := Self;
 end;
 
-destructor TNProgressPostWithCadencer.Destroy;
+destructor TCadencerNProgressPost.Destroy;
 begin
   FCadencerEngine.OnProgressInterface := nil;
   DisposeObject(FCadencerEngine);
   inherited Destroy;
 end;
 
-procedure TNProgressPostWithCadencer.Progress;
+procedure TCadencerNProgressPost.Progress;
 begin
   FCadencerEngine.Progress;
 end;
@@ -646,7 +649,7 @@ initialization
 
 Hooked_OnCheckThreadSynchronize := CoreClasses.OnCheckThreadSynchronize;
 CoreClasses.OnCheckThreadSynchronize := {$IFDEF FPC}@{$ENDIF FPC}DoCheckThreadSynchronize;
-SystemPostProgress := TNProgressPostWithCadencer.Create;
+SystemPostProgress := TCadencerNProgressPost.Create;
 
 finalization
 

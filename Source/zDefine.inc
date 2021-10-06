@@ -199,8 +199,8 @@
   {$ELSE}
     {$UNDEF INLINE_ASM}
     {$O-} { close optimization }
-    {$R+} { range check }
-    {$I+} { Input output checking }
+    {$R-} { range check }
+    {$I-} { Input output checking }
     {$D+} { debug information }
   {$ENDIF}
 
@@ -219,9 +219,6 @@
   {$X+} { Extended syntax }
   {$Z1} { Minimum enum size }
 {$ENDIF FPC}
-
-// ZDB2.0 optimized TMemoryStream/TMemoryStream64 for Replace
-{$DEFINE ZDB2_Core_Used_Mem64}
 
 // Using fillchar replace of FillPtr
 // Maybe fillchar works on MMX / SSE2,

@@ -4827,7 +4827,7 @@ begin
       Result := False;
       exit;
     end;
-  if DB_.IOHnd.WriteStated then
+  if DB_.IOHnd.ChangeFromWrite then
     begin
       DB_.ModificationTime := umlDefaultTime;
       if db_WriteRec(0, DB_.IOHnd, DB_) = False then
@@ -4854,7 +4854,7 @@ begin
       Result := False;
       exit;
     end;
-  if DB_.IOHnd.WriteStated then
+  if DB_.IOHnd.ChangeFromWrite then
     begin
       DB_.ModificationTime := umlDefaultTime;
       if db_WriteRec(0, DB_.IOHnd, DB_) = False then

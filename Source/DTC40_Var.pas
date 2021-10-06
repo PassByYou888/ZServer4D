@@ -23,7 +23,7 @@ unit DTC40_Var;
 
 interface
 
-uses
+uses Variants,
 {$IFDEF FPC}
   FPCGenericStructlist,
 {$ENDIF FPC}
@@ -32,7 +32,7 @@ uses
   TextParsing, zExpression, OpCode,
   ZJson, GHashList, NumberBase,
   NotifyObjectBase, CoreCipher, MemoryStream64,
-  ObjectData, ObjectDataManager, ItemStream,
+  ZDB2_Core, ZDB2_NM,
   CommunicationFramework, PhysicsIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, DTC40;
 
 type
@@ -49,7 +49,6 @@ type
     IO_ID_List: TIO_ID_List;
     IsTemp, IsFreeing: Boolean;
     LifeTime, OverTime: TTimeTick;
-    LastAccessTime: TDateTime;
 
     constructor Create; override;
     destructor Destroy; override;
@@ -71,11 +70,13 @@ type
 
   TDTC40_Var_Service = class(TDTC40_Base_NoAuth_Service)
   protected
-    // init build-in data
     IsLoading: Boolean;
-    IsSaveing: Boolean;
     procedure DoLoading();
-    procedure DoBackground_Save(thSender: TCompute);
+    procedure SaveNMBigPoolAsDFE(DFE: TDFE);
+
+    function OP_DoSetSysNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+    function OP_DoGetSysNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+    procedure DoNMCreateOpRunTime(Sender: TNumberModulePool; OP_: TOpCustomRunTime);
   protected
     procedure DoUserOut_Event(Sender: TDTService_NoAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth); override;
   protected
@@ -90,6 +91,7 @@ type
     procedure cmd_NM_Change(Sender: TPeerIO; InData: TDFE);
     procedure cmd_NM_Keep(Sender: TPeerIO; InData: TDFE);
     procedure cmd_NM_Script(Sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Save(Sender: TPeerIO; InData: TDFE);
   protected
     ProgressTempNMList: TDTC40_Var_NumberModulePool_List;
     procedure Progress_NMPool(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
@@ -102,9 +104,9 @@ type
     destructor Destroy; override;
     procedure SafeCheck; override;
     procedure Progress; override;
+    procedure SaveData;
     function GetNM(Name_: U_String): TDTC40_VarService_NM_Pool;
-    procedure RemoveNumberModulePool(NM: TDTC40_VarService_NM_Pool);
-    procedure SaveNMBigPoolAsDFE(DFE: TDFE);
+    procedure DoRemoveNumberModulePool(NM: TDTC40_VarService_NM_Pool);
     procedure PrintError(v: SystemString); overload;
     procedure PrintError(v: SystemString; const Args: array of const); overload;
   end;
@@ -218,6 +220,8 @@ type
     procedure NM_ScriptC(NMName_: U_String; ExpressionTexts_: U_StringArray; OnResult: TON_NM_ScriptC);
     procedure NM_ScriptM(NMName_: U_String; ExpressionTexts_: U_StringArray; OnResult: TON_NM_ScriptM);
     procedure NM_ScriptP(NMName_: U_String; ExpressionTexts_: U_StringArray; OnResult: TON_NM_ScriptP);
+    // call service save
+    procedure Save();
   end;
 
 implementation
@@ -232,7 +236,6 @@ begin
   IsFreeing := False;
   LifeTime := 0;
   OverTime := 0;
-  LastAccessTime := 0;
 end;
 
 destructor TDTC40_VarService_NM_Pool.Destroy;
@@ -290,7 +293,6 @@ var
   NMPool_: TDTC40_VarService_NM_Pool;
 begin
   IsLoading := True;
-  IsSaveing := False;
 
   NMBigPool.Clear;
 
@@ -317,18 +319,72 @@ begin
   IsLoading := False;
 end;
 
-procedure TDTC40_Var_Service.DoBackground_Save(thSender: TCompute);
-var
-  d: TDFE;
-begin
-  try
-    d := TDFE(thSender.UserObject);
-    d.SaveToFile(DTC40_Var_FileName);
-    DisposeObject(d);
-    DoStatus('Save Variant Database Done.');
-  except
+procedure TDTC40_Var_Service.SaveNMBigPoolAsDFE(DFE: TDFE);
+{$IFDEF FPC}
+  procedure fpc_Progress_(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
+  begin
+    if Obj.IsTemp then
+        exit;
+    DFE.WriteString(Obj.Name);
+    DFE.WriteNMPool(Obj);
   end;
-  IsSaveing := False;
+{$ENDIF FPC}
+
+
+begin
+{$IFDEF FPC}
+  NMBigPool.ProgressP(@fpc_Progress_);
+{$ELSE FPC}
+  NMBigPool.ProgressP(
+    procedure(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool)
+    begin
+      if Obj.IsTemp then
+          exit;
+      DFE.WriteString(Obj.Name);
+      DFE.WriteNMPool(Obj);
+    end);
+{$ENDIF FPC}
+end;
+
+function TDTC40_Var_Service.OP_DoSetSysNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+var
+  NN_Name_, NM_Key_: SystemString;
+  NMPool_: TDTC40_VarService_NM_Pool;
+begin
+  NN_Name_ := VarToStr(OP_Param[0]);
+  NM_Key_ := VarToStr(OP_Param[1]);
+  NMPool_ := GetNM(NN_Name_);
+  if NMPool_.Exists(NM_Key_) then
+      NMPool_[NM_Key_].AsValue := OP_Param[2]
+  else
+      NMPool_[NM_Key_].OriginValue := OP_Param[2];
+end;
+
+function TDTC40_Var_Service.OP_DoGetSysNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
+var
+  NN_Name_, NM_Key_: SystemString;
+  NMPool_: TDTC40_VarService_NM_Pool;
+begin
+  NN_Name_ := VarToStr(OP_Param[0]);
+  NM_Key_ := VarToStr(OP_Param[1]);
+  NMPool_ := NMBigPool[NN_Name_];
+  if NMPool_ = nil then
+    begin
+      Result := OP_Param[2];
+      exit;
+    end;
+  if not NMPool_.Exists(NM_Key_) then
+    begin
+      Result := OP_Param[2];
+      exit;
+    end;
+  Result := NMPool_[NM_Key_].AsValue;
+end;
+
+procedure TDTC40_Var_Service.DoNMCreateOpRunTime(Sender: TNumberModulePool; OP_: TOpCustomRunTime);
+begin
+  OP_.RegObjectOpM('SetSys', '', {$IFDEF FPC}@{$ENDIF FPC}OP_DoSetSysNM);
+  OP_.RegObjectOpM('GetSys', '', {$IFDEF FPC}@{$ENDIF FPC}OP_DoGetSysNM);
 end;
 
 procedure TDTC40_Var_Service.DoUserOut_Event(Sender: TDTService_NoAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
@@ -669,6 +725,11 @@ begin
       NM.OverTime := GetTimeTick + NM.LifeTime;
 end;
 
+procedure TDTC40_Var_Service.cmd_Save(Sender: TPeerIO; InData: TDFE);
+begin
+  SaveData;
+end;
+
 procedure TDTC40_Var_Service.Progress_NMPool(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
 begin
   if (Obj.IsTemp) and (not Obj.IsFreeing) and (Obj.OverTime < GetTimeTick) then
@@ -692,6 +753,7 @@ begin
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_Change').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Change;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_Keep').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Keep;
   DTNoAuthService.RecvTunnel.RegisterStream('NM_Script').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Script;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('Save').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Save;
   DTNoAuthService.RecvTunnel.PeerIOUserDefineClass := TDTC40_Var_Service_IO_Define;
   // is only instance
   ServiceInfo.OnlyInstance := True;
@@ -711,24 +773,15 @@ end;
 
 destructor TDTC40_Var_Service.Destroy;
 begin
+  SaveData;
   DisposeObject(ProgressTempNMList);
   DisposeObject(NMBigPool);
   inherited Destroy;
 end;
 
 procedure TDTC40_Var_Service.SafeCheck;
-var
-  d: TDFE;
 begin
   inherited SafeCheck;
-  if IsSaveing then
-      exit;
-  DoStatus('Extract Variant data.');
-  IsSaveing := True;
-  d := TDFE.Create;
-  SaveNMBigPoolAsDFE(d);
-  DoStatus('Save Variant Database.');
-  TCompute.RunM(nil, d, {$IFDEF FPC}@{$ENDIF FPC}DoBackground_Save);
 end;
 
 procedure TDTC40_Var_Service.Progress;
@@ -747,12 +800,28 @@ begin
               OnRemove(ProgressTempNMList[i]);
         except
         end;
-        RemoveNumberModulePool(ProgressTempNMList[i]);
+        DoRemoveNumberModulePool(ProgressTempNMList[i]);
         NMBigPool.Delete(ProgressTempNMList[i].Name);
       end;
   except
   end;
   ProgressTempNMList.Clear;
+end;
+
+procedure TDTC40_Var_Service.SaveData;
+var
+  d: TDFE;
+begin
+  d := TDFE.Create;
+  try
+    DoStatus('Extract Variant data.');
+    SaveNMBigPoolAsDFE(d);
+    DoStatus('Save Variant Database.');
+    d.SaveToFile(DTC40_Var_FileName);
+    DoStatus('Save Variant Database Done.');
+  except
+  end;
+  DisposeObject(d);
 end;
 
 function TDTC40_Var_Service.GetNM(Name_: U_String): TDTC40_VarService_NM_Pool;
@@ -763,12 +832,12 @@ begin
       Result := TDTC40_VarService_NM_Pool.Create;
       Result.Name := Name_;
       Result.Service := self;
+      Result.OnNMCreateOpRunTime := {$IFDEF FPC}@{$ENDIF FPC}DoNMCreateOpRunTime;
       NMBigPool.FastAdd(Name_, Result);
     end;
-  Result.LastAccessTime := umlNow;
 end;
 
-procedure TDTC40_Var_Service.RemoveNumberModulePool(NM: TDTC40_VarService_NM_Pool);
+procedure TDTC40_Var_Service.DoRemoveNumberModulePool(NM: TDTC40_VarService_NM_Pool);
 var
   Arry: TIO_Array;
   ID_: Cardinal;
@@ -786,33 +855,6 @@ begin
           IODef_.NM_List.Remove(NM);
         end;
     end;
-end;
-
-procedure TDTC40_Var_Service.SaveNMBigPoolAsDFE(DFE: TDFE);
-{$IFDEF FPC}
-  procedure fpc_Progress_(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
-  begin
-    if Obj.IsTemp then
-        exit;
-    DFE.WriteString(Obj.Name);
-    DFE.WriteNMPool(Obj);
-  end;
-{$ENDIF FPC}
-
-
-begin
-{$IFDEF FPC}
-  NMBigPool.ProgressP(@fpc_Progress_);
-{$ELSE FPC}
-  NMBigPool.ProgressP(
-    procedure(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool)
-    begin
-      if Obj.IsTemp then
-          exit;
-      DFE.WriteString(Obj.Name);
-      DFE.WriteNMPool(Obj);
-    end);
-{$ENDIF FPC}
 end;
 
 procedure TDTC40_Var_Service.PrintError(v: SystemString);
@@ -1050,7 +1092,6 @@ begin
       Result.Client := self;
       NMBigPool.FastAdd(Name_, Result);
     end;
-  Result.LastAccessTime := umlNow;
 end;
 
 procedure TDTC40_Var_Client.NM_Init(Name_: U_String; Open_: Boolean; NMPool_: TNumberModulePool);
@@ -1338,6 +1379,11 @@ begin
   DTNoAuthClient.SendTunnel.SendStreamCmdM('NM_Script', d, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
   DisposeObject(d);
+end;
+
+procedure TDTC40_Var_Client.Save;
+begin
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Save');
 end;
 
 initialization

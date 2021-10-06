@@ -227,6 +227,9 @@ type
       const Depend_: TDTC40_DependNetworkInfoArray; const OnEvent_: IDTC40_PhysicsTunnel_Event): TDTC40_PhysicsTunnel; overload;
     function GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info;
       const Depend_: U_String; const OnEvent_: IDTC40_PhysicsTunnel_Event): TDTC40_PhysicsTunnel; overload;
+    { fast service connection }
+    procedure SearchServiceAndBuildConnection(PhysicsAddr: U_String; PhysicsPort: Word; FullConnection_: Boolean;
+      const ServiceTyp: U_String; const OnEvent_: IDTC40_PhysicsTunnel_Event);
     { progress }
     procedure Progress;
   end;
@@ -351,6 +354,8 @@ type
 {$REGION 'p2pVMCustomClient'}
 
   TDTC40_Custom_Client = class(TCoreClassInterfacedObject)
+  protected
+    procedure DoNetworkOffline; virtual;
   public
     Param: U_String;
     ParamList: THashStringList;
@@ -1094,12 +1099,12 @@ begin
   FActivted := PhysicsTunnel.StartService(PhysicsAddr, PhysicsPort);
   if FActivted then
     begin
-      PhysicsTunnel.Print('Physics Service "%s" Listening successed, internet addr: %s port: %d', [PhysicsTunnel.ClassName, PhysicsAddr.Text, PhysicsPort]);
+      PhysicsTunnel.Print('Physics Service Listening successed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort]);
       if Assigned(OnEvent) then
           OnEvent.DTC40_PhysicsService_Start(Self);
     end
   else
-      PhysicsTunnel.Print('Physics Service "%s" Listening failed, internet addr: %s port: %d', [PhysicsTunnel.ClassName, PhysicsAddr.Text, PhysicsPort]);
+      PhysicsTunnel.Print('Physics Service Listening failed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort]);
 end;
 
 procedure TDTC40_PhysicsService.StopService;
@@ -1107,7 +1112,7 @@ begin
   if not FActivted then
       exit;
   PhysicsTunnel.StopService;
-  PhysicsTunnel.Print('Physics Service "%s" Listening Stop.', [PhysicsTunnel.ClassName]);
+  PhysicsTunnel.Print('Physics Service Listening Stop.', []);
   if Assigned(OnEvent) then
       OnEvent.DTC40_PhysicsService_Stop(Self);
 end;
@@ -1301,9 +1306,9 @@ end;
 procedure TDTC40_PhysicsTunnel.DoConnectOnResult(const state: Boolean);
 begin
   if state then
-      PhysicsTunnel.Print('Physics Tunnel "%s" connection successed, internet addr: %s port: %d', [PhysicsTunnel.ClassName, PhysicsAddr.Text, PhysicsPort])
+      PhysicsTunnel.Print('Physics Tunnel connection successed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort])
   else
-      PhysicsTunnel.Print('Physics Tunnel "%s" connection failed, internet addr: %s port: %d', [PhysicsTunnel.ClassName, PhysicsAddr.Text, PhysicsPort]);
+      PhysicsTunnel.Print('Physics Tunnel connection failed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort]);
   IsConnecting := False;
 end;
 
@@ -1366,14 +1371,28 @@ end;
 
 procedure TDTC40_PhysicsTunnel.ClientConnected(Sender: TCommunicationFrameworkClient);
 begin
-  if Assigned(OnEvent) then
-      OnEvent.DTC40_PhysicsTunnel_Connected(Self);
+  try
+    if Assigned(OnEvent) then
+        OnEvent.DTC40_PhysicsTunnel_Connected(Self);
+  except
+  end;
 end;
 
 procedure TDTC40_PhysicsTunnel.ClientDisconnect(Sender: TCommunicationFrameworkClient);
+var
+  i: Integer;
 begin
-  if Assigned(OnEvent) then
-      OnEvent.DTC40_PhysicsTunnel_Disconnect(Self);
+  try
+    if Assigned(OnEvent) then
+        OnEvent.DTC40_PhysicsTunnel_Disconnect(Self);
+  except
+  end;
+
+  try
+    for i := 0 to DependNetworkClientPool.Count - 1 do
+        DependNetworkClientPool[i].DoNetworkOffline;
+  except
+  end;
 end;
 
 constructor TDTC40_PhysicsTunnel.Create(Addr_: U_String; Port_: Word);
@@ -1955,6 +1974,49 @@ begin
       Result.ResetDepend(Depend_);
       Result.BuildDependNetwork();
     end;
+end;
+
+type
+  TTemp_SearchServiceBridge = class
+  public
+    Pool: TDTC40_PhysicsTunnelPool;
+    FullConnection_: Boolean;
+    ServiceTyp: U_String;
+    OnEvent_: IDTC40_PhysicsTunnel_Event;
+    procedure Do_SearchService_Event(Sender: TDTC40_PhysicsTunnel; L: TDTC40_InfoList);
+  end;
+
+procedure TTemp_SearchServiceBridge.Do_SearchService_Event(Sender: TDTC40_PhysicsTunnel; L: TDTC40_InfoList);
+var
+  arry: TDTC40_Info_Array;
+  i: Integer;
+begin
+  arry := L.SearchService(ServiceTyp);
+  if FullConnection_ then
+    begin
+      for i := low(arry) to high(arry) do
+          Pool.GetOrCreatePhysicsTunnel(arry[i], ServiceTyp, OnEvent_);
+    end
+  else if Length(arry) > 0 then
+    begin
+      Pool.GetOrCreatePhysicsTunnel(arry[0], ServiceTyp, OnEvent_);
+    end;
+  DelayFreeObj(1.0, Self);
+end;
+
+procedure TDTC40_PhysicsTunnelPool.SearchServiceAndBuildConnection(PhysicsAddr: U_String; PhysicsPort: Word; FullConnection_: Boolean;
+  const ServiceTyp: U_String; const OnEvent_: IDTC40_PhysicsTunnel_Event);
+var
+  tmp: TTemp_SearchServiceBridge;
+  Tunnel_: TDTC40_PhysicsTunnel;
+begin
+  tmp := TTemp_SearchServiceBridge.Create;
+  tmp.Pool := Self;
+  tmp.FullConnection_ := FullConnection_;
+  tmp.ServiceTyp := ServiceTyp;
+  tmp.OnEvent_ := OnEvent_;
+  Tunnel_ := GetOrCreatePhysicsTunnel(PhysicsAddr, PhysicsPort);
+  Tunnel_.QueryInfoM({$IFDEF FPC}@{$ENDIF FPC}tmp.Do_SearchService_Event);
 end;
 
 procedure TDTC40_PhysicsTunnelPool.Progress;
@@ -2675,6 +2737,11 @@ begin
         L.Add(Items[i]);
   Result := L.GetDTC40Array;
   DisposeObject(L);
+end;
+
+procedure TDTC40_Custom_Client.DoNetworkOffline;
+begin
+
 end;
 
 constructor TDTC40_Custom_Client.Create(source_: TDTC40_Info; Param_: U_String);

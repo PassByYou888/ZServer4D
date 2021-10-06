@@ -162,7 +162,7 @@ implementation
 
 procedure TDTC40_FS_Service.DoLoading;
 var
-  id_arry: TZDB2_BlockHndle;
+  id_arry: TZDB2_BlockHandle;
   id_: Integer;
   m64: TZDB2_Mem;
   Token: U_String;
@@ -345,7 +345,7 @@ begin
   // delta physics space
   ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '512*1024*1024'), 512 * 1024 * 1024);
   // block
-  ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1024'), 1024);
+  ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1536'), 1536);
   // IO
   InitIOHnd(FIOHnd);
   DTC40_FS_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.Space', [ServiceInfo.ServiceTyp.Text]));
@@ -361,6 +361,7 @@ begin
     end;
   ZDB2Space := TZDB2_Core_Space.Create(@FIOHnd);
   ZDB2Space.Mode := smBigData;
+  ZDB2Space.AutoCloseIOHnd := True;
 
   IsLoading := False;
   IsChanged := False;
@@ -369,6 +370,7 @@ end;
 
 destructor TDTC40_FS_Service.Destroy;
 begin
+  ZDB2Space.Save;
   DisposeObject(FileNameHash);
   DisposeObject(FileMD5Hash);
   DisposeObject(ZDB2Space);

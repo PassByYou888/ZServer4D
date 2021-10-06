@@ -1187,7 +1187,7 @@ end;
 
 function TObjectDataManager.Modification: Boolean;
 begin
-  Result := FDBHandle.IOHnd.WriteStated;
+  Result := FDBHandle.IOHnd.ChangeFromWrite;
 end;
 
 function TObjectDataManager.Size: Int64;

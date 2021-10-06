@@ -31,7 +31,7 @@ uses
 
 type
 {$IFDEF FPC}
-  generic TGenericHashList<T_: TCoreClassObject> = class(TCoreClassObject)
+   generic TGenericHashList<T_: TCoreClassObject> = class(TCoreClassObject)
 {$ELSE FPC}
   TGenericHashList<T_: class> = class(TCoreClassObject)
 {$ENDIF FPC}
@@ -448,11 +448,12 @@ begin
   OutputList.Clear;
   if HashList.Count > 0 then
     begin
+      OutputList.Count := HashList.Count;
       i := 0;
       p := HashList.FirstPtr;
       while i < HashList.Count do
         begin
-          OutputList.Add(PGebnericHashListData(p^.Data)^.Obj);
+          OutputList[i] := PGebnericHashListData(p^.Data)^.Obj;
           inc(i);
           p := p^.Next;
         end;

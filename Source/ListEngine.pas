@@ -636,7 +636,7 @@ type
 {$ENDREGION 'THashObjectList'}
 {$REGION 'THashStringList'}
 
-  THashStringChangeEvent = procedure(Sender: THashStringList; Name: SystemString; OLD_, New_: SystemString) of object;
+  THashStringChangeEvent = procedure(Sender: THashStringList; Name_, OLD_, New_: SystemString) of object;
 
   THashStringListData = record
     V: SystemString;
@@ -645,12 +645,12 @@ type
 
   PHashStringListData = ^THashStringListData;
 
-  THashStringListLoopCall = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString);
-  THashStringListLoopMethod = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString) of object;
+  THashStringListLoopCall = procedure(Sender: THashStringList; Name_: PSystemString; const V: SystemString);
+  THashStringListLoopMethod = procedure(Sender: THashStringList; Name_: PSystemString; const V: SystemString) of object;
 {$IFDEF FPC}
-  THashStringListLoopProc = procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString) is nested;
+  THashStringListLoopProc = procedure(Sender: THashStringList; Name_: PSystemString; const V: SystemString) is nested;
 {$ELSE FPC}
-  THashStringListLoopProc = reference to procedure(Sender: THashStringList; Name: PSystemString; const V: SystemString);
+  THashStringListLoopProc = reference to procedure(Sender: THashStringList; Name_: PSystemString; const V: SystemString);
 {$ENDIF FPC}
 
   THashStringList = class(TCoreClassObject)
@@ -772,7 +772,7 @@ type
   PHashStringList = ^THashStringList;
 {$ENDREGION 'THashStringList'}
 {$REGION 'THashVariantList'}
-  THashVariantChangeEvent = procedure(Sender: THashVariantList; Name: SystemString; OLD_, New_: Variant) of object;
+  THashVariantChangeEvent = procedure(Sender: THashVariantList; Name_: SystemString; OLD_, New_: Variant) of object;
 
   THashVariantListData = record
     V: Variant;
@@ -781,12 +781,12 @@ type
 
   PHashVariantListData = ^THashVariantListData;
 
-  THashVariantListLoopCall = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant);
-  THashVariantListLoopMethod = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant) of object;
+  THashVariantListLoopCall = procedure(Sender: THashVariantList; Name_: PSystemString; const V: Variant);
+  THashVariantListLoopMethod = procedure(Sender: THashVariantList; Name_: PSystemString; const V: Variant) of object;
 {$IFDEF FPC}
-  THashVariantListLoopProc = procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant) is nested;
+  THashVariantListLoopProc = procedure(Sender: THashVariantList; Name_: PSystemString; const V: Variant) is nested;
 {$ELSE FPC}
-  THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; Name: PSystemString; const V: Variant);
+  THashVariantListLoopProc = reference to procedure(Sender: THashVariantList; Name_: PSystemString; const V: Variant);
 {$ENDIF FPC}
 
   THashVariantList = class(TCoreClassObject)
@@ -6389,7 +6389,7 @@ begin
       pVarData^.OnChnage := nil;
       FHashList.Add(Name, pVarData, False);
       if Assigned(FOnValueChangeNotify) then
-          FOnValueChangeNotify(Self, Name, Null, Value);
+          FOnValueChangeNotify(Self, Name, '', Value);
     end
   else
     begin

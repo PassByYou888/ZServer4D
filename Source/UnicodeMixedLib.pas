@@ -109,8 +109,8 @@ type
     constructor Create(const FileName_: SystemString; IsNew_, IsWrite_: Boolean);
     destructor Destroy; override;
 
-    function write(const buffer; Count: longint): longint; override;
-    function read(var buffer; Count: longint): longint; override;
+    function Write(const buffer; Count: longint): longint; override;
+    function Read(var buffer; Count: longint): longint; override;
     function Seek(const Offset: Int64; origin: TSeekOrigin): Int64; override;
 
     property FileName: SystemString read FFileName;
@@ -135,7 +135,7 @@ type
     PrepareReadPosition: Int64;
     PrepareReadBuff: U_Stream;
     IORead, IOWrite: Int64;
-    WriteStated: Boolean;
+    ChangeFromWrite: Boolean;
     FixedStringL: Byte;
     Data: Pointer;
     Return: Integer;
@@ -506,6 +506,8 @@ type
 const
   NullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   ZeroMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  umlNullMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  umlZeroMD5: TMD5 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 procedure umlTransformMD5(var Accu; const Buf); inline;
 function umlMD5(const buffPtr: PByte; bufSiz: NativeUInt): TMD5;
@@ -793,27 +795,27 @@ begin
   inherited Destroy;
 end;
 
-function TReliableFileStream.write(const buffer; Count: longint): longint;
+function TReliableFileStream.Write(const buffer; Count: longint): longint;
 begin
   if FActivted then
     begin
-      Result := BackupFileIO.write(buffer, Count);
+      Result := BackupFileIO.Write(buffer, Count);
     end
   else
     begin
-      Result := SourceIO.write(buffer, Count);
+      Result := SourceIO.Write(buffer, Count);
     end;
 end;
 
-function TReliableFileStream.read(var buffer; Count: longint): longint;
+function TReliableFileStream.Read(var buffer; Count: longint): longint;
 begin
   if FActivted then
     begin
-      Result := BackupFileIO.read(buffer, Count);
+      Result := BackupFileIO.Read(buffer, Count);
     end
   else
     begin
-      Result := SourceIO.read(buffer, Count);
+      Result := SourceIO.Read(buffer, Count);
     end;
 end;
 
@@ -2084,7 +2086,7 @@ begin
   IOHnd.PrepareReadBuff := nil;
   IOHnd.IORead := 0;
   IOHnd.IOWrite := 0;
-  IOHnd.WriteStated := False;
+  IOHnd.ChangeFromWrite := False;
   IOHnd.FixedStringL := 64 + 1;
   IOHnd.Data := nil;
   IOHnd.Return := C_NotError;
@@ -2261,7 +2263,7 @@ begin
   IOHnd.Time := umlDefaultTime;
   IOHnd.FileName := '';
   IOHnd.IsOpen := False;
-  IOHnd.WriteStated := False;
+  IOHnd.ChangeFromWrite := False;
   Result := True;
 end;
 
@@ -2276,7 +2278,7 @@ begin
 
   umlFileFlushWrite(IOHnd);
   umlResetPrepareRead(IOHnd);
-  IOHnd.WriteStated := False;
+  IOHnd.ChangeFromWrite := False;
 
   Result := True;
 end;
@@ -2393,7 +2395,7 @@ begin
         BuffPointer := Pointer(BuffInt);
         for i := 1 to (Size div C_MaxBufferFragmentSize) do
           begin
-            if IOHnd.Handle.read(BuffPointer^, C_MaxBufferFragmentSize) <> C_MaxBufferFragmentSize then
+            if IOHnd.Handle.Read(BuffPointer^, C_MaxBufferFragmentSize) <> C_MaxBufferFragmentSize then
               begin
                 IOHnd.Return := C_FileReadError;
                 Result := False;
@@ -2404,7 +2406,7 @@ begin
           end;
         // process buffer rest
         i := Size mod C_MaxBufferFragmentSize;
-        if IOHnd.Handle.read(BuffPointer^, i) <> i then
+        if IOHnd.Handle.Read(BuffPointer^, i) <> i then
           begin
             IOHnd.Return := C_FileReadError;
             Result := False;
@@ -2416,7 +2418,7 @@ begin
         inc(IOHnd.IORead, Size);
         exit;
       end;
-    if IOHnd.Handle.read(buff, Size) <> Size then
+    if IOHnd.Handle.Read(buff, Size) <> Size then
       begin
         IOHnd.Return := C_FileReadError;
         Result := False;
@@ -2463,7 +2465,7 @@ begin
       m64 := TMemoryStream64(IOHnd.FlushBuff);
       IOHnd.FlushBuff := nil;
 
-      if IOHnd.Handle.write(m64.Memory^, m64.Size) <> m64.Size then
+      if IOHnd.Handle.Write(m64.Memory^, m64.Size) <> m64.Size then
         begin
           IOHnd.Return := C_FileWriteError;
           Result := False;
@@ -2494,7 +2496,7 @@ begin
       exit;
     end;
 
-  IOHnd.WriteStated := True;
+  IOHnd.ChangeFromWrite := True;
 
   umlResetPrepareRead(IOHnd);
 
@@ -2530,7 +2532,7 @@ begin
         BuffPointer := Pointer(BuffInt);
         for i := 1 to (Size div C_MaxBufferFragmentSize) do
           begin
-            if IOHnd.Handle.write(BuffPointer^, C_MaxBufferFragmentSize) <> C_MaxBufferFragmentSize then
+            if IOHnd.Handle.Write(BuffPointer^, C_MaxBufferFragmentSize) <> C_MaxBufferFragmentSize then
               begin
                 IOHnd.Return := C_FileWriteError;
                 Result := False;
@@ -2541,7 +2543,7 @@ begin
           end;
         // process buffer rest
         i := Size mod C_MaxBufferFragmentSize;
-        if IOHnd.Handle.write(BuffPointer^, i) <> i then
+        if IOHnd.Handle.Write(BuffPointer^, i) <> i then
           begin
             IOHnd.Return := C_FileWriteError;
             Result := False;
@@ -2556,7 +2558,7 @@ begin
         inc(IOHnd.IOWrite, Size);
         exit;
       end;
-    if IOHnd.Handle.write(buff, Size) <> Size then
+    if IOHnd.Handle.Write(buff, Size) <> Size then
       begin
         IOHnd.Return := C_FileWriteError;
         Result := False;
@@ -4370,19 +4372,19 @@ const
 var
   UTF8Src: TBytes;
   i: Integer;
-  b: Byte;
+  B: Byte;
 begin
   Result := '';
   try
     UTF8Src := Data.Bytes;
     for i := 0 to length(UTF8Src) - 1 do
       begin
-        b := UTF8Src[i];
-        if ((b >= $41) and (b <= $5A)) or ((b >= $61) and (b <= $7A)) or ((b >= $30) and (b <= $39)) or
-          (b = $2D) or (b = $2E) or (b = $5F) or (b = $7E) or (b = $2F) or (b = $3A) then
-            Result := Result + SystemChar(b)
+        B := UTF8Src[i];
+        if ((B >= $41) and (B <= $5A)) or ((B >= $61) and (B <= $7A)) or ((B >= $30) and (B <= $39)) or
+          (B = $2D) or (B = $2E) or (B = $5F) or (B = $7E) or (B = $2F) or (B = $3A) then
+            Result := Result + SystemChar(B)
         else
-            Result := Result + '%' + IntToHex(b, 2);
+            Result := Result + '%' + IntToHex(B, 2);
       end;
   finally
       SetLength(UTF8Src, 0);
@@ -4404,15 +4406,15 @@ function umlURLDecode(const Data: TPascalString; FormEncoded: Boolean): TPascalS
     Result[0 + L] := Buf2;
   end;
 
-  procedure FreeArry(var a: TBytes);
+  procedure FreeArry(var A: TBytes);
   begin
-    SetLength(a, 0);
+    SetLength(A, 0);
   end;
 
 var
   i: Integer;
   State: Byte;
-  b, BV, B1: Byte;
+  B, BV, B1: Byte;
   DataArry_, UTF8Str_: TBytes;
   tmpBytes: TBytes;
 const
@@ -4428,12 +4430,12 @@ begin
   DataArry_ := Data.Bytes;
   for i := 0 to length(DataArry_) - 1 do
     begin
-      b := DataArry_[i];
+      B := DataArry_[i];
       if State = STATE_READ_DATA then
         begin
-          if b = $25 then
+          if B = $25 then
               State := STATE_READ_PERCENT_ENCODED_BYTE_1
-          else if FormEncoded and (b = $2B) then // + sign
+          else if FormEncoded and (B = $2B) then // + sign
             begin
               tmpBytes := UTF8Str_;
               UTF8Str_ := CombineArry(tmpBytes, Byte($20));
@@ -4449,14 +4451,14 @@ begin
       else
         if (State = STATE_READ_PERCENT_ENCODED_BYTE_1) or (State = STATE_READ_PERCENT_ENCODED_BYTE_2) then
         begin
-          if (b >= 65) and (b <= 70) then
-              BV := b - 55
-          else if (b >= 97) and (b <= 102) then
-              BV := b - 87
-          else if (b >= $30) and (b <= $39) then
-              BV := b - $30
+          if (B >= 65) and (B <= 70) then
+              BV := B - 55
+          else if (B >= 97) and (B <= 102) then
+              BV := B - 87
+          else if (B >= $30) and (B <= $39) then
+              BV := B - $30
           else
-              raiseInfo('Unexpected character: 0x' + IntToHex(b, 2));
+              raiseInfo('Unexpected character: 0x' + IntToHex(B, 2));
           if State = STATE_READ_PERCENT_ENCODED_BYTE_1 then
             begin
               B1 := BV;
@@ -4464,10 +4466,10 @@ begin
             end
           else
             begin
-              b := (B1 shl 4) or BV;
+              B := (B1 shl 4) or BV;
 
               tmpBytes := UTF8Str_;
-              UTF8Str_ := CombineArry(tmpBytes, b);
+              UTF8Str_ := CombineArry(tmpBytes, B);
               FreeArry(tmpBytes);
 
               State := STATE_READ_DATA;
@@ -5028,29 +5030,29 @@ end;
 
 procedure umlDecodeLineBASE64(const buffer: TPascalString; var output: TPascalString);
 var
-  b, nb: TBytes;
+  B, nb: TBytes;
 begin
-  b := umlBytesOf(buffer);
-  umlBase64DecodeBytes(b, nb);
+  B := umlBytesOf(buffer);
+  umlBase64DecodeBytes(B, nb);
   output := umlStringOf(nb);
 end;
 
 procedure umlEncodeLineBASE64(const buffer: TPascalString; var output: TPascalString);
 var
-  b, nb: TBytes;
+  B, nb: TBytes;
 begin
-  b := umlBytesOf(buffer);
-  umlBase64EncodeBytes(b, nb);
+  B := umlBytesOf(buffer);
+  umlBase64EncodeBytes(B, nb);
   output := umlStringOf(nb);
 end;
 
 procedure umlDecodeStreamBASE64(const buffer: TPascalString; output: TCoreClassStream);
 var
-  b, nb: TBytes;
+  B, nb: TBytes;
   bak: Int64;
 begin
-  b := umlBytesOf(buffer);
-  umlBase64DecodeBytes(b, nb);
+  B := umlBytesOf(buffer);
+  umlBase64DecodeBytes(B, nb);
   bak := output.Position;
   output.WriteBuffer(nb[0], length(nb));
   output.Position := bak;
@@ -5058,15 +5060,15 @@ end;
 
 procedure umlEncodeStreamBASE64(buffer: TCoreClassStream; var output: TPascalString);
 var
-  b, nb: TBytes;
+  B, nb: TBytes;
   bak: Int64;
 begin
   bak := buffer.Position;
 
   buffer.Position := 0;
-  SetLength(b, buffer.Size);
-  buffer.ReadBuffer(b[0], buffer.Size);
-  umlBase64EncodeBytes(b, nb);
+  SetLength(B, buffer.Size);
+  buffer.ReadBuffer(B[0], buffer.Size);
+  umlBase64EncodeBytes(B, nb);
   output := umlStringOf(nb);
 
   buffer.Position := bak;
@@ -5124,104 +5126,104 @@ end;
     Result := (x shl n) or (x shr (32 - n))
   end;
 
-  function FF(const a, b, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
+  function FF(const A, B, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
   begin
-    Result := ROL(a + x + AC + (b and c or not b and d), s) + b
+    Result := ROL(A + x + AC + (B and c or not B and d), s) + B
   end;
 
-  function GG(const a, b, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
+  function GG(const A, B, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
   begin
-    Result := ROL(a + x + AC + (b and d or c and not d), s) + b
+    Result := ROL(A + x + AC + (B and d or c and not d), s) + B
   end;
 
-  function HH(const a, b, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
+  function HH(const A, B, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
   begin
-    Result := ROL(a + x + AC + (b xor c xor d), s) + b
+    Result := ROL(A + x + AC + (B xor c xor d), s) + B
   end;
 
-  function II(const a, b, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
+  function II(const A, B, c, d, x: Cardinal; const s: Byte; const AC: Cardinal): Cardinal; inline;
   begin
-    Result := ROL(a + x + AC + (c xor (b or not d)), s) + b
+    Result := ROL(A + x + AC + (c xor (B or not d)), s) + B
   end;
 
 type
   TDigestCardinal = array [0 .. 3] of Cardinal;
   TCardinalBuf = array [0 .. 15] of Cardinal;
 var
-  a, b, c, d: Cardinal;
+  A, B, c, d: Cardinal;
 begin
-  a := TDigestCardinal(Accu)[0];
-  b := TDigestCardinal(Accu)[1];
+  A := TDigestCardinal(Accu)[0];
+  B := TDigestCardinal(Accu)[1];
   c := TDigestCardinal(Accu)[2];
   d := TDigestCardinal(Accu)[3];
 
-  a := FF(a, b, c, d, TCardinalBuf(Buf)[0], 7, $D76AA478);   { 1 }
-  d := FF(d, a, b, c, TCardinalBuf(Buf)[1], 12, $E8C7B756);  { 2 }
-  c := FF(c, d, a, b, TCardinalBuf(Buf)[2], 17, $242070DB);  { 3 }
-  b := FF(b, c, d, a, TCardinalBuf(Buf)[3], 22, $C1BDCEEE);  { 4 }
-  a := FF(a, b, c, d, TCardinalBuf(Buf)[4], 7, $F57C0FAF);   { 5 }
-  d := FF(d, a, b, c, TCardinalBuf(Buf)[5], 12, $4787C62A);  { 6 }
-  c := FF(c, d, a, b, TCardinalBuf(Buf)[6], 17, $A8304613);  { 7 }
-  b := FF(b, c, d, a, TCardinalBuf(Buf)[7], 22, $FD469501);  { 8 }
-  a := FF(a, b, c, d, TCardinalBuf(Buf)[8], 7, $698098D8);   { 9 }
-  d := FF(d, a, b, c, TCardinalBuf(Buf)[9], 12, $8B44F7AF);  { 10 }
-  c := FF(c, d, a, b, TCardinalBuf(Buf)[10], 17, $FFFF5BB1); { 11 }
-  b := FF(b, c, d, a, TCardinalBuf(Buf)[11], 22, $895CD7BE); { 12 }
-  a := FF(a, b, c, d, TCardinalBuf(Buf)[12], 7, $6B901122);  { 13 }
-  d := FF(d, a, b, c, TCardinalBuf(Buf)[13], 12, $FD987193); { 14 }
-  c := FF(c, d, a, b, TCardinalBuf(Buf)[14], 17, $A679438E); { 15 }
-  b := FF(b, c, d, a, TCardinalBuf(Buf)[15], 22, $49B40821); { 16 }
-  a := GG(a, b, c, d, TCardinalBuf(Buf)[1], 5, $F61E2562);   { 17 }
-  d := GG(d, a, b, c, TCardinalBuf(Buf)[6], 9, $C040B340);   { 18 }
-  c := GG(c, d, a, b, TCardinalBuf(Buf)[11], 14, $265E5A51); { 19 }
-  b := GG(b, c, d, a, TCardinalBuf(Buf)[0], 20, $E9B6C7AA);  { 20 }
-  a := GG(a, b, c, d, TCardinalBuf(Buf)[5], 5, $D62F105D);   { 21 }
-  d := GG(d, a, b, c, TCardinalBuf(Buf)[10], 9, $02441453);  { 22 }
-  c := GG(c, d, a, b, TCardinalBuf(Buf)[15], 14, $D8A1E681); { 23 }
-  b := GG(b, c, d, a, TCardinalBuf(Buf)[4], 20, $E7D3FBC8);  { 24 }
-  a := GG(a, b, c, d, TCardinalBuf(Buf)[9], 5, $21E1CDE6);   { 25 }
-  d := GG(d, a, b, c, TCardinalBuf(Buf)[14], 9, $C33707D6);  { 26 }
-  c := GG(c, d, a, b, TCardinalBuf(Buf)[3], 14, $F4D50D87);  { 27 }
-  b := GG(b, c, d, a, TCardinalBuf(Buf)[8], 20, $455A14ED);  { 28 }
-  a := GG(a, b, c, d, TCardinalBuf(Buf)[13], 5, $A9E3E905);  { 29 }
-  d := GG(d, a, b, c, TCardinalBuf(Buf)[2], 9, $FCEFA3F8);   { 30 }
-  c := GG(c, d, a, b, TCardinalBuf(Buf)[7], 14, $676F02D9);  { 31 }
-  b := GG(b, c, d, a, TCardinalBuf(Buf)[12], 20, $8D2A4C8A); { 32 }
-  a := HH(a, b, c, d, TCardinalBuf(Buf)[5], 4, $FFFA3942);   { 33 }
-  d := HH(d, a, b, c, TCardinalBuf(Buf)[8], 11, $8771F681);  { 34 }
-  c := HH(c, d, a, b, TCardinalBuf(Buf)[11], 16, $6D9D6122); { 35 }
-  b := HH(b, c, d, a, TCardinalBuf(Buf)[14], 23, $FDE5380C); { 36 }
-  a := HH(a, b, c, d, TCardinalBuf(Buf)[1], 4, $A4BEEA44);   { 37 }
-  d := HH(d, a, b, c, TCardinalBuf(Buf)[4], 11, $4BDECFA9);  { 38 }
-  c := HH(c, d, a, b, TCardinalBuf(Buf)[7], 16, $F6BB4B60);  { 39 }
-  b := HH(b, c, d, a, TCardinalBuf(Buf)[10], 23, $BEBFBC70); { 40 }
-  a := HH(a, b, c, d, TCardinalBuf(Buf)[13], 4, $289B7EC6);  { 41 }
-  d := HH(d, a, b, c, TCardinalBuf(Buf)[0], 11, $EAA127FA);  { 42 }
-  c := HH(c, d, a, b, TCardinalBuf(Buf)[3], 16, $D4EF3085);  { 43 }
-  b := HH(b, c, d, a, TCardinalBuf(Buf)[6], 23, $04881D05);  { 44 }
-  a := HH(a, b, c, d, TCardinalBuf(Buf)[9], 4, $D9D4D039);   { 45 }
-  d := HH(d, a, b, c, TCardinalBuf(Buf)[12], 11, $E6DB99E5); { 46 }
-  c := HH(c, d, a, b, TCardinalBuf(Buf)[15], 16, $1FA27CF8); { 47 }
-  b := HH(b, c, d, a, TCardinalBuf(Buf)[2], 23, $C4AC5665);  { 48 }
-  a := II(a, b, c, d, TCardinalBuf(Buf)[0], 6, $F4292244);   { 49 }
-  d := II(d, a, b, c, TCardinalBuf(Buf)[7], 10, $432AFF97);  { 50 }
-  c := II(c, d, a, b, TCardinalBuf(Buf)[14], 15, $AB9423A7); { 51 }
-  b := II(b, c, d, a, TCardinalBuf(Buf)[5], 21, $FC93A039);  { 52 }
-  a := II(a, b, c, d, TCardinalBuf(Buf)[12], 6, $655B59C3);  { 53 }
-  d := II(d, a, b, c, TCardinalBuf(Buf)[3], 10, $8F0CCC92);  { 54 }
-  c := II(c, d, a, b, TCardinalBuf(Buf)[10], 15, $FFEFF47D); { 55 }
-  b := II(b, c, d, a, TCardinalBuf(Buf)[1], 21, $85845DD1);  { 56 }
-  a := II(a, b, c, d, TCardinalBuf(Buf)[8], 6, $6FA87E4F);   { 57 }
-  d := II(d, a, b, c, TCardinalBuf(Buf)[15], 10, $FE2CE6E0); { 58 }
-  c := II(c, d, a, b, TCardinalBuf(Buf)[6], 15, $A3014314);  { 59 }
-  b := II(b, c, d, a, TCardinalBuf(Buf)[13], 21, $4E0811A1); { 60 }
-  a := II(a, b, c, d, TCardinalBuf(Buf)[4], 6, $F7537E82);   { 61 }
-  d := II(d, a, b, c, TCardinalBuf(Buf)[11], 10, $BD3AF235); { 62 }
-  c := II(c, d, a, b, TCardinalBuf(Buf)[2], 15, $2AD7D2BB);  { 63 }
-  b := II(b, c, d, a, TCardinalBuf(Buf)[9], 21, $EB86D391);  { 64 }
+  A := FF(A, B, c, d, TCardinalBuf(Buf)[0], 7, $D76AA478);   { 1 }
+  d := FF(d, A, B, c, TCardinalBuf(Buf)[1], 12, $E8C7B756);  { 2 }
+  c := FF(c, d, A, B, TCardinalBuf(Buf)[2], 17, $242070DB);  { 3 }
+  B := FF(B, c, d, A, TCardinalBuf(Buf)[3], 22, $C1BDCEEE);  { 4 }
+  A := FF(A, B, c, d, TCardinalBuf(Buf)[4], 7, $F57C0FAF);   { 5 }
+  d := FF(d, A, B, c, TCardinalBuf(Buf)[5], 12, $4787C62A);  { 6 }
+  c := FF(c, d, A, B, TCardinalBuf(Buf)[6], 17, $A8304613);  { 7 }
+  B := FF(B, c, d, A, TCardinalBuf(Buf)[7], 22, $FD469501);  { 8 }
+  A := FF(A, B, c, d, TCardinalBuf(Buf)[8], 7, $698098D8);   { 9 }
+  d := FF(d, A, B, c, TCardinalBuf(Buf)[9], 12, $8B44F7AF);  { 10 }
+  c := FF(c, d, A, B, TCardinalBuf(Buf)[10], 17, $FFFF5BB1); { 11 }
+  B := FF(B, c, d, A, TCardinalBuf(Buf)[11], 22, $895CD7BE); { 12 }
+  A := FF(A, B, c, d, TCardinalBuf(Buf)[12], 7, $6B901122);  { 13 }
+  d := FF(d, A, B, c, TCardinalBuf(Buf)[13], 12, $FD987193); { 14 }
+  c := FF(c, d, A, B, TCardinalBuf(Buf)[14], 17, $A679438E); { 15 }
+  B := FF(B, c, d, A, TCardinalBuf(Buf)[15], 22, $49B40821); { 16 }
+  A := GG(A, B, c, d, TCardinalBuf(Buf)[1], 5, $F61E2562);   { 17 }
+  d := GG(d, A, B, c, TCardinalBuf(Buf)[6], 9, $C040B340);   { 18 }
+  c := GG(c, d, A, B, TCardinalBuf(Buf)[11], 14, $265E5A51); { 19 }
+  B := GG(B, c, d, A, TCardinalBuf(Buf)[0], 20, $E9B6C7AA);  { 20 }
+  A := GG(A, B, c, d, TCardinalBuf(Buf)[5], 5, $D62F105D);   { 21 }
+  d := GG(d, A, B, c, TCardinalBuf(Buf)[10], 9, $02441453);  { 22 }
+  c := GG(c, d, A, B, TCardinalBuf(Buf)[15], 14, $D8A1E681); { 23 }
+  B := GG(B, c, d, A, TCardinalBuf(Buf)[4], 20, $E7D3FBC8);  { 24 }
+  A := GG(A, B, c, d, TCardinalBuf(Buf)[9], 5, $21E1CDE6);   { 25 }
+  d := GG(d, A, B, c, TCardinalBuf(Buf)[14], 9, $C33707D6);  { 26 }
+  c := GG(c, d, A, B, TCardinalBuf(Buf)[3], 14, $F4D50D87);  { 27 }
+  B := GG(B, c, d, A, TCardinalBuf(Buf)[8], 20, $455A14ED);  { 28 }
+  A := GG(A, B, c, d, TCardinalBuf(Buf)[13], 5, $A9E3E905);  { 29 }
+  d := GG(d, A, B, c, TCardinalBuf(Buf)[2], 9, $FCEFA3F8);   { 30 }
+  c := GG(c, d, A, B, TCardinalBuf(Buf)[7], 14, $676F02D9);  { 31 }
+  B := GG(B, c, d, A, TCardinalBuf(Buf)[12], 20, $8D2A4C8A); { 32 }
+  A := HH(A, B, c, d, TCardinalBuf(Buf)[5], 4, $FFFA3942);   { 33 }
+  d := HH(d, A, B, c, TCardinalBuf(Buf)[8], 11, $8771F681);  { 34 }
+  c := HH(c, d, A, B, TCardinalBuf(Buf)[11], 16, $6D9D6122); { 35 }
+  B := HH(B, c, d, A, TCardinalBuf(Buf)[14], 23, $FDE5380C); { 36 }
+  A := HH(A, B, c, d, TCardinalBuf(Buf)[1], 4, $A4BEEA44);   { 37 }
+  d := HH(d, A, B, c, TCardinalBuf(Buf)[4], 11, $4BDECFA9);  { 38 }
+  c := HH(c, d, A, B, TCardinalBuf(Buf)[7], 16, $F6BB4B60);  { 39 }
+  B := HH(B, c, d, A, TCardinalBuf(Buf)[10], 23, $BEBFBC70); { 40 }
+  A := HH(A, B, c, d, TCardinalBuf(Buf)[13], 4, $289B7EC6);  { 41 }
+  d := HH(d, A, B, c, TCardinalBuf(Buf)[0], 11, $EAA127FA);  { 42 }
+  c := HH(c, d, A, B, TCardinalBuf(Buf)[3], 16, $D4EF3085);  { 43 }
+  B := HH(B, c, d, A, TCardinalBuf(Buf)[6], 23, $04881D05);  { 44 }
+  A := HH(A, B, c, d, TCardinalBuf(Buf)[9], 4, $D9D4D039);   { 45 }
+  d := HH(d, A, B, c, TCardinalBuf(Buf)[12], 11, $E6DB99E5); { 46 }
+  c := HH(c, d, A, B, TCardinalBuf(Buf)[15], 16, $1FA27CF8); { 47 }
+  B := HH(B, c, d, A, TCardinalBuf(Buf)[2], 23, $C4AC5665);  { 48 }
+  A := II(A, B, c, d, TCardinalBuf(Buf)[0], 6, $F4292244);   { 49 }
+  d := II(d, A, B, c, TCardinalBuf(Buf)[7], 10, $432AFF97);  { 50 }
+  c := II(c, d, A, B, TCardinalBuf(Buf)[14], 15, $AB9423A7); { 51 }
+  B := II(B, c, d, A, TCardinalBuf(Buf)[5], 21, $FC93A039);  { 52 }
+  A := II(A, B, c, d, TCardinalBuf(Buf)[12], 6, $655B59C3);  { 53 }
+  d := II(d, A, B, c, TCardinalBuf(Buf)[3], 10, $8F0CCC92);  { 54 }
+  c := II(c, d, A, B, TCardinalBuf(Buf)[10], 15, $FFEFF47D); { 55 }
+  B := II(B, c, d, A, TCardinalBuf(Buf)[1], 21, $85845DD1);  { 56 }
+  A := II(A, B, c, d, TCardinalBuf(Buf)[8], 6, $6FA87E4F);   { 57 }
+  d := II(d, A, B, c, TCardinalBuf(Buf)[15], 10, $FE2CE6E0); { 58 }
+  c := II(c, d, A, B, TCardinalBuf(Buf)[6], 15, $A3014314);  { 59 }
+  B := II(B, c, d, A, TCardinalBuf(Buf)[13], 21, $4E0811A1); { 60 }
+  A := II(A, B, c, d, TCardinalBuf(Buf)[4], 6, $F7537E82);   { 61 }
+  d := II(d, A, B, c, TCardinalBuf(Buf)[11], 10, $BD3AF235); { 62 }
+  c := II(c, d, A, B, TCardinalBuf(Buf)[2], 15, $2AD7D2BB);  { 63 }
+  B := II(B, c, d, A, TCardinalBuf(Buf)[9], 21, $EB86D391);  { 64 }
 
-  inc(TDigestCardinal(Accu)[0], a);
-  inc(TDigestCardinal(Accu)[1], b);
+  inc(TDigestCardinal(Accu)[0], A);
+  inc(TDigestCardinal(Accu)[1], B);
   inc(TDigestCardinal(Accu)[2], c);
   inc(TDigestCardinal(Accu)[3], d)
 end;
@@ -5354,7 +5356,7 @@ begin
 
   if bufSiz < $40 then
     begin
-      stream.read(DeltaBuf^, bufSiz);
+      stream.Read(DeltaBuf^, bufSiz);
       p := DeltaBuf;
     end
   else
@@ -5428,10 +5430,10 @@ end;
 
 function umlStringMD5(const Value: TPascalString): TPascalString;
 var
-  b: TBytes;
+  B: TBytes;
 begin
-  b := umlBytesOf(Value);
-  Result := umlMD5ToStr(umlMD5(@b[0], length(b)));
+  B := umlBytesOf(Value);
+  Result := umlMD5ToStr(umlMD5(@B[0], length(B)));
 end;
 
 function umlFileMD5___(FileName: TPascalString): TMD5;
@@ -5588,10 +5590,10 @@ end;
 
 function umlStringCRC16(const Value: TPascalString): Word;
 var
-  b: TBytes;
+  B: TBytes;
 begin
-  b := umlBytesOf(Value);
-  Result := umlCRC16(@b[0], length(b));
+  B := umlBytesOf(Value);
+  Result := umlCRC16(@B[0], length(B));
 end;
 
 function umlStreamCRC16(stream: U_Stream; StartPos, EndPos: Int64): Word;
@@ -5651,13 +5653,13 @@ begin
 
   { Process full chunks }
   for j := 0 to Num - 1 do begin
-      stream.read(Buf^, ChunkSize);
+      stream.Read(Buf^, ChunkSize);
       CRC16BUpdate(Result, Buf, ChunkSize);
     end;
 
   { Process remaining bytes }
   if Rest > 0 then begin
-      stream.read(Buf^, Rest);
+      stream.Read(Buf^, Rest);
       CRC16BUpdate(Result, Buf, Rest);
     end;
 
@@ -5690,10 +5692,10 @@ end;
 
 function umlString2CRC32(const Value: TPascalString): Cardinal;
 var
-  b: TBytes;
+  B: TBytes;
 begin
-  b := umlBytesOf(Value);
-  Result := umlCRC32(@b[0], length(b));
+  B := umlBytesOf(Value);
+  Result := umlCRC32(@B[0], length(B));
 end;
 
 function umlStreamCRC32(stream: U_Stream; StartPos, EndPos: Int64): Cardinal;
@@ -5756,13 +5758,13 @@ begin
 
   { Process full chunks }
   for j := 0 to Num - 1 do begin
-      stream.read(Buf^, ChunkSize);
+      stream.Read(Buf^, ChunkSize);
       CRC32BUpdate(Result, Buf, ChunkSize);
     end;
 
   { Process remaining bytes }
   if Rest > 0 then begin
-      stream.read(Buf^, Rest);
+      stream.Read(Buf^, Rest);
       CRC32BUpdate(Result, Buf, Rest);
     end;
 
