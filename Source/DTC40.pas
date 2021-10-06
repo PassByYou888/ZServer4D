@@ -417,6 +417,12 @@ type
     function ExistsClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
     function ExistsConnectedClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
     function ExistsConnectedServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client;
+    function FindPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
+    function FindServiceInfo(info_: TDTC40_Info): Boolean;
+    function FindServiceTyp(ServiceTyp: U_String): Boolean;
+    function FindClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
+    function FindConnectedClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
+    function FindConnectedServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client;
     function GetClientFromHash(Hash: TMD5): TDTC40_Custom_Client;
     function GetDTC40Array: TDTC40_Custom_Client_Array;
     function GetFromServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array;
@@ -2956,6 +2962,69 @@ begin
 end;
 
 function TDTC40_Custom_ClientPool.ExistsConnectedServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if ServiceTyp.Same(@Items[i].ClientInfo.ServiceTyp) and Items[i].Connected then
+        exit(Items[i]);
+end;
+
+function TDTC40_Custom_ClientPool.FindPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 0 to Count - 1 do
+    if PhysicsAddr.Same(@Items[i].ClientInfo.PhysicsAddr) and (PhysicsPort = Items[i].ClientInfo.PhysicsPort) then
+        exit;
+  Result := False;
+end;
+
+function TDTC40_Custom_ClientPool.FindServiceInfo(info_: TDTC40_Info): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 0 to Count - 1 do
+    if info_.Same(Items[i].ClientInfo) then
+        exit;
+  Result := False;
+end;
+
+function TDTC40_Custom_ClientPool.FindServiceTyp(ServiceTyp: U_String): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 0 to Count - 1 do
+    if ServiceTyp.Same(@Items[i].ClientInfo.ServiceTyp) then
+        exit;
+  Result := False;
+end;
+
+function TDTC40_Custom_ClientPool.FindClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if Items[i].InheritsFrom(Class_) then
+        exit(Items[i]);
+end;
+
+function TDTC40_Custom_ClientPool.FindConnectedClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if Items[i].InheritsFrom(Class_) and Items[i].Connected then
+        exit(Items[i]);
+end;
+
+function TDTC40_Custom_ClientPool.FindConnectedServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client;
 var
   i: Integer;
 begin
