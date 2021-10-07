@@ -180,7 +180,6 @@ type
   public
     PhysicsAddr: U_String;
     PhysicsPort: Word;
-    p2pVM_Auth: U_String;
     PhysicsTunnel: TCommunicationFrameworkClient;
     DependNetworkInfoArray: TDTC40_DependNetworkInfoArray;
     DependNetworkClientPool: TDTC40_Custom_ClientPool;
@@ -246,7 +245,6 @@ type
     ServiceTyp: U_String;
     PhysicsAddr: U_String;
     PhysicsPort: Word;
-    p2pVM_Auth: U_String;
     p2pVM_RecvTunnel_Addr: U_String;
     p2pVM_RecvTunnel_Port: Word;
     p2pVM_SendTunnel_Addr: U_String;
@@ -1423,7 +1421,6 @@ begin
   PhysicsTunnel.PrintParams['QueryInfo'] := False;
   PhysicsTunnel.QuietMode := DTC40_QuietMode;
 
-  p2pVM_Auth := PhysicsTunnel.AutomatedP2PVMAuthToken;
   SetLength(DependNetworkInfoArray, 0);
   DependNetworkClientPool := TDTC40_Custom_ClientPool.Create;
   OnEvent := nil;
@@ -1941,7 +1938,9 @@ function TDTC40_PhysicsTunnelPool.GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info
 begin
   Result := GetPhysicsTunnel(dispInfo.PhysicsAddr, dispInfo.PhysicsPort);
   if Result = nil then
+    begin
       Result := TDTC40_PhysicsTunnel.Create(dispInfo.PhysicsAddr, dispInfo.PhysicsPort);
+    end;
 end;
 
 function TDTC40_PhysicsTunnelPool.GetOrCreatePhysicsTunnel(dispInfo: TDTC40_Info;
@@ -2055,7 +2054,6 @@ begin
   ServiceTyp := '';
   PhysicsAddr := '';
   PhysicsPort := 0;
-  p2pVM_Auth := '';
   p2pVM_RecvTunnel_Addr := '';
   p2pVM_RecvTunnel_Port := 0;
   p2pVM_SendTunnel_Addr := '';
@@ -2069,7 +2067,6 @@ destructor TDTC40_Info.Destroy;
 begin
   ServiceTyp := '';
   PhysicsAddr := '';
-  p2pVM_Auth := '';
   p2pVM_RecvTunnel_Addr := '';
   p2pVM_SendTunnel_Addr := '';
   inherited Destroy;
@@ -2082,7 +2079,6 @@ begin
   ServiceTyp := source.ServiceTyp;
   PhysicsAddr := source.PhysicsAddr;
   PhysicsPort := source.PhysicsPort;
-  p2pVM_Auth := source.p2pVM_Auth;
   p2pVM_RecvTunnel_Addr := source.p2pVM_RecvTunnel_Addr;
   p2pVM_RecvTunnel_Port := source.p2pVM_RecvTunnel_Port;
   p2pVM_SendTunnel_Addr := source.p2pVM_SendTunnel_Addr;
@@ -2109,7 +2105,6 @@ begin
   ServiceTyp := D.R.ReadString;
   PhysicsAddr := D.R.ReadString;
   PhysicsPort := D.R.ReadWord;
-  p2pVM_Auth := D.R.ReadString;
   p2pVM_RecvTunnel_Addr := D.R.ReadString;
   p2pVM_RecvTunnel_Port := D.R.ReadWord;
   p2pVM_SendTunnel_Addr := D.R.ReadString;
@@ -2131,7 +2126,6 @@ begin
   D.WriteString(ServiceTyp);
   D.WriteString(PhysicsAddr);
   D.WriteWord(PhysicsPort);
-  D.WriteString(p2pVM_Auth);
   D.WriteString(p2pVM_RecvTunnel_Addr);
   D.WriteWord(p2pVM_RecvTunnel_Port);
   D.WriteString(p2pVM_SendTunnel_Addr);
@@ -2557,7 +2551,6 @@ begin
   ServiceInfo.ServiceTyp := ServiceTyp;
   ServiceInfo.PhysicsAddr := DTC40PhysicsService.PhysicsAddr;
   ServiceInfo.PhysicsPort := DTC40PhysicsService.PhysicsPort;
-  ServiceInfo.p2pVM_Auth := DTC40PhysicsService.PhysicsTunnel.AutomatedP2PVMAuthToken;
   ServiceInfo.p2pVM_RecvTunnel_Addr := P2PVM_Recv_IP6_;
   ServiceInfo.p2pVM_RecvTunnel_Port := umlStrToInt(P2PVM_Recv_Port_);
   ServiceInfo.p2pVM_SendTunnel_Addr := P2PVM_Send_IP6_;
