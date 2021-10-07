@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{BFEDABD6-5203-4058-8FC4-82F33F916AD6}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ZDBBatchDataService\ZDBBatchDataService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXBatchDataClient\FMXBatchDataClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ZDBBatchDataService">
+        <MSBuild Projects="ZDBBatchDataService\ZDBBatchDataService.dproj"/>
+    </Target>
+    <Target Name="ZDBBatchDataService:Clean">
+        <MSBuild Projects="ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBBatchDataService:Make">
+        <MSBuild Projects="ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchDataClient">
+        <MSBuild Projects="FMXBatchDataClient\FMXBatchDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Clean">
+        <MSBuild Projects="FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Make">
+        <MSBuild Projects="FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ZDBBatchDataService;FMXBatchDataClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ZDBBatchDataService:Clean;FMXBatchDataClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ZDBBatchDataService:Make;FMXBatchDataClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

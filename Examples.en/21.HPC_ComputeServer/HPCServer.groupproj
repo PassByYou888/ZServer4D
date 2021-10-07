@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8024CDCA-F06C-456B-B986-6344E1368253}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="HPC_Ser\HPC_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="HPC_Cli_FMX\HPC_Client_FMX.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="HPC_Cli\HPC_Client.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="HPC_Server">
+        <MSBuild Projects="HPC_Ser\HPC_Server.dproj"/>
+    </Target>
+    <Target Name="HPC_Server:Clean">
+        <MSBuild Projects="HPC_Ser\HPC_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Server:Make">
+        <MSBuild Projects="HPC_Ser\HPC_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client_FMX">
+        <MSBuild Projects="HPC_Cli_FMX\HPC_Client_FMX.dproj"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Clean">
+        <MSBuild Projects="HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Make">
+        <MSBuild Projects="HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client">
+        <MSBuild Projects="HPC_Cli\HPC_Client.dproj"/>
+    </Target>
+    <Target Name="HPC_Client:Clean">
+        <MSBuild Projects="HPC_Cli\HPC_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client:Make">
+        <MSBuild Projects="HPC_Cli\HPC_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="HPC_Server;HPC_Client_FMX;HPC_Client"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="HPC_Server:Clean;HPC_Client_FMX:Clean;HPC_Client:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="HPC_Server:Make;HPC_Client_FMX:Make;HPC_Client:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

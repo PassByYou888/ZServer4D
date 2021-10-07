@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{729F994E-32E0-4FB8-ACC5-A2DF0A5930A4}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="XNAT_Internet.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="XNATMobileServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="UserClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="XNAT_Internet">
+        <MSBuild Projects="XNAT_Internet.dproj"/>
+    </Target>
+    <Target Name="XNAT_Internet:Clean">
+        <MSBuild Projects="XNAT_Internet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XNAT_Internet:Make">
+        <MSBuild Projects="XNAT_Internet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XNATMobileServer">
+        <MSBuild Projects="XNATMobileServer.dproj"/>
+    </Target>
+    <Target Name="XNATMobileServer:Clean">
+        <MSBuild Projects="XNATMobileServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XNATMobileServer:Make">
+        <MSBuild Projects="XNATMobileServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="UserClient">
+        <MSBuild Projects="UserClient.dproj"/>
+    </Target>
+    <Target Name="UserClient:Clean">
+        <MSBuild Projects="UserClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UserClient:Make">
+        <MSBuild Projects="UserClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="XNAT_Internet;XNATMobileServer;UserClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="XNAT_Internet:Clean;XNATMobileServer:Clean;UserClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="XNAT_Internet:Make;XNATMobileServer:Make;UserClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

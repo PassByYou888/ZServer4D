@@ -1,0 +1,142 @@
+﻿object FMXAuthDoubleClientForm: TFMXAuthDoubleClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx Auth Double client...'
+  ClientHeight = 378
+  ClientWidth = 763
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'Zsserver4d is a server middleware. This demo is a login two-way mode'
+      ''
+      'Login explanation: authentication must be performed when initiating a connection, because there is user identity in the login. In the logged in server system, each user has its own file storage and data storage space'
+      ''
+      'The two-way mode interpretation can be explained by the client actively sending commands to the server for execution or the server actively initiating command execution to the client. In the link mechanism, two channels are used, one for receiving and one for sending. When both channels are successfully linked, the two-way bridge can be completed by using the tunnellink method'
+      ''
+      'Compared with the simple two-way working mode, the login two-way communication mode adds the following functions: asynchronous login (client) large file transfer support (server, client) stack instruction storage (server) storage space and data management (server) preemptive login (server)'
+      ''
+      'The command system can be a simple string and various data packages, or a stream package. In short, any data transceiver lower than 500K, including small files, can use the command'
+      ''
+      'When the data length is very large, the bigstream mechanism must be used in zsserver4d to send and receive data'
+      ''
+      'The attached client can be a mobile platform or a personal computer platform')
+    ReadOnly = True
+    StyledSettings = [Family, Style, FontColor]
+    Align = Client
+    Margins.Left = 130.000000000000000000
+    Size.Width = 633.000000000000000000
+    Size.Height = 378.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 613.000000000000000000
+    Viewport.Height = 374.000000000000000000
+  end
+  object connectButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 168.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 7
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object HelloWorldBtn: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 248.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Hello World'
+    OnClick = HelloWorldBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+  object UserEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 6
+    Text = 'test'
+    Position.X = 8.000000000000000000
+    Position.Y = 48.000000000000000000
+    Size.Width = 73.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object PasswdEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 5
+    Text = '123456'
+    Position.X = 8.000000000000000000
+    Position.Y = 88.000000000000000000
+    Size.Width = 73.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object RegUserButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 128.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'reg user'
+    OnClick = RegUserButtonClick
+  end
+  object AsyncButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 208.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'async connect'
+    OnClick = AsyncButtonClick
+  end
+  object timeLabel: TLabel
+    AutoSize = True
+    Position.X = 8.000000000000000000
+    Position.Y = 288.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 16.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'timeLabel'
+  end
+  object FixedTimeButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 312.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 10
+    Text = 'fixed sync time'
+    OnClick = FixedTimeButtonClick
+  end
+end

@@ -1,0 +1,174 @@
+﻿object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 468
+  ClientWidth = 848
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Align = Client
+    Margins.Left = 220.000000000000000000
+    Size.Width = 628.000000000000000000
+    Size.Height = 468.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 624.000000000000000000
+    Viewport.Height = 464.000000000000000000
+  end
+  object Layout1: TLayout
+    Padding.Left = 5.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object Label1: TLabel
+      Align = Left
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 5.000000000000000000
+      Size.Width = 36.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'host'
+      TabOrder = 0
+    end
+    object hostEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      TabOrder = 1
+      Text = '127.0.0.1'
+      Size.Width = 152.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+  end
+  object Button1: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 9
+    Text = 'connect'
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 120.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 8
+    Text = 'disconnect'
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 128.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 7
+    Text = 'sequene cmd'
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 184.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 6
+    Text = 'stream on TDataFrameEngine'
+    OnClick = Button4Click
+  end
+  object Label2: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 25.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Serialized command queue demo'
+    TabOrder = 11
+  end
+  object Button5: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 216.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'stream(Direct) on TDataFrameEngine'
+    OnClick = Button5Click
+  end
+  object Button6: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 248.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    Text = 'stream on BigStream'
+    OnClick = Button6Click
+  end
+  object Button7: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 280.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = 'stream on CompleteBuffer'
+    OnClick = Button7Click
+  end
+  object Label3: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 25.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Stream can be sent and received in the following 5 ways:'
+    TabOrder = 10
+  end
+  object Button8: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 8.000000000000000000
+    Position.Y = 312.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'stream on BatchStream'
+    OnClick = Button8Click
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 408
+    Top = 224
+  end
+  object BusyLabel: TLabel
+    Position.X = 8.000000000000000000
+    Position.Y = 352.000000000000000000
+    Text = 'BusyLabel'
+    TabOrder = 13
+  end
+end

@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{A8ACBFA1-CEE2-4D65-ACA5-7C5789F97436}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="reverse_automatedP2PVM_Serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="reverse_automatedP2PVM_Cli.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="reverse_automatedP2PVM_Serv">
+        <MSBuild Projects="reverse_automatedP2PVM_Serv.dproj"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Serv:Clean">
+        <MSBuild Projects="reverse_automatedP2PVM_Serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Serv:Make">
+        <MSBuild Projects="reverse_automatedP2PVM_Serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Cli">
+        <MSBuild Projects="reverse_automatedP2PVM_Cli.dproj"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Cli:Clean">
+        <MSBuild Projects="reverse_automatedP2PVM_Cli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Cli:Make">
+        <MSBuild Projects="reverse_automatedP2PVM_Cli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="reverse_automatedP2PVM_Serv;reverse_automatedP2PVM_Cli"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="reverse_automatedP2PVM_Serv:Clean;reverse_automatedP2PVM_Cli:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="reverse_automatedP2PVM_Serv:Make;reverse_automatedP2PVM_Cli:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

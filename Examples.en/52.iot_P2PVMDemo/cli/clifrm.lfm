@@ -1,0 +1,72 @@
+﻿object cliForm: TcliForm
+  Left = 384
+  Height = 439
+  Top = 132
+  Width = 644
+  Caption = 'IOT Client. Create by.qq600585'
+  ClientHeight = 439
+  ClientWidth = 644
+  OnCreate = FormCreate
+  LCLVersion = '2.0.12.0'
+  object Memo: TMemo
+    Left = 48
+    Height = 196
+    Top = 232
+    Width = 544
+    Lines.Strings = (
+      'Memo'
+    )
+    TabOrder = 0
+    WordWrap = False
+  end
+  object hostEdit: TLabeledEdit
+    Left = 48
+    Height = 25
+    Top = 40
+    Width = 160
+    EditLabel.Height = 17
+    EditLabel.Width = 27
+    EditLabel.Caption = 'Address:'
+    EditLabel.ParentColor = False
+    LabelPosition = lpLeft
+    TabOrder = 1
+    Text = '192.168.2.210'
+  end
+  object Button1: TButton
+    Left = 216
+    Height = 25
+    Top = 40
+    Width = 67
+    Caption = 'link'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object expEdit: TLabeledEdit
+    Left = 48
+    Height = 25
+    Top = 136
+    Width = 464
+    EditLabel.Height = 17
+    EditLabel.Width = 39
+    EditLabel.Caption = 'expression:'
+    EditLabel.ParentColor = False
+    LabelPosition = lpLeft
+    TabOrder = 3
+    Text = '1+1,2+2,5*5'
+  end
+  object Button2: TButton
+    Left = 519
+    Height = 25
+    Top = 136
+    Width = 75
+    Caption = 'calculation'
+    OnClick = Button2Click
+    TabOrder = 4
+  end
+  object fpsTimer: TTimer
+    Interval = 10
+    OnTimer = fpsTimerTimer
+    Left = 261
+    Top = 83
+  end
+end

@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{E579D22F-9A05-44AC-B98F-B34D02F4DC65}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="VMServer\VMServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VMClient\VMCli.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="VMServ">
+        <MSBuild Projects="VMServer\VMServ.dproj"/>
+    </Target>
+    <Target Name="VMServ:Clean">
+        <MSBuild Projects="VMServer\VMServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMServ:Make">
+        <MSBuild Projects="VMServer\VMServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMCli">
+        <MSBuild Projects="VMClient\VMCli.dproj"/>
+    </Target>
+    <Target Name="VMCli:Clean">
+        <MSBuild Projects="VMClient\VMCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMCli:Make">
+        <MSBuild Projects="VMClient\VMCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="VMServ;VMCli"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="VMServ:Clean;VMCli:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="VMServ:Make;VMCli:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

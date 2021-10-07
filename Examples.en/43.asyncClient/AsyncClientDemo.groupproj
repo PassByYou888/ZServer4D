@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{AF7E4A41-4308-4376-B1C6-A56732170ADA}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="AsyncCli\AsyncClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsyncServ\AsyncServer.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="AsyncClient">
+        <MSBuild Projects="AsyncCli\AsyncClient.dproj"/>
+    </Target>
+    <Target Name="AsyncClient:Clean">
+        <MSBuild Projects="AsyncCli\AsyncClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsyncClient:Make">
+        <MSBuild Projects="AsyncCli\AsyncClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsyncServer">
+        <MSBuild Projects="AsyncServ\AsyncServer.dproj"/>
+    </Target>
+    <Target Name="AsyncServer:Clean">
+        <MSBuild Projects="AsyncServ\AsyncServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsyncServer:Make">
+        <MSBuild Projects="AsyncServ\AsyncServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="AsyncClient;AsyncServer"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="AsyncClient:Clean;AsyncServer:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="AsyncClient:Make;AsyncServer:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

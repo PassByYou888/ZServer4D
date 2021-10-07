@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8162D9CC-2F0C-4702-A644-28CA56D6DBCF}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="1.DatastoreServ\DatastoreServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="2.InternetServ\InternetServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="3.InternetCli\InternetCli.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DatastoreServ">
+        <MSBuild Projects="1.DatastoreServ\DatastoreServ.dproj"/>
+    </Target>
+    <Target Name="DatastoreServ:Clean">
+        <MSBuild Projects="1.DatastoreServ\DatastoreServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatastoreServ:Make">
+        <MSBuild Projects="1.DatastoreServ\DatastoreServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="InternetServ">
+        <MSBuild Projects="2.InternetServ\InternetServ.dproj"/>
+    </Target>
+    <Target Name="InternetServ:Clean">
+        <MSBuild Projects="2.InternetServ\InternetServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InternetServ:Make">
+        <MSBuild Projects="2.InternetServ\InternetServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="InternetCli">
+        <MSBuild Projects="3.InternetCli\InternetCli.dproj"/>
+    </Target>
+    <Target Name="InternetCli:Clean">
+        <MSBuild Projects="3.InternetCli\InternetCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InternetCli:Make">
+        <MSBuild Projects="3.InternetCli\InternetCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DatastoreServ;InternetServ;InternetCli"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DatastoreServ:Clean;InternetServ:Clean;InternetCli:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DatastoreServ:Make;InternetServ:Make;InternetCli:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

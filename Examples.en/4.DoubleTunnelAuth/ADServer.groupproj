@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{FCD633C7-0D2C-42B6-BE0E-945523842B9C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="DSer\ADServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DCli\ADClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXDCli\FMXADClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ADServer">
+        <MSBuild Projects="DSer\ADServer.dproj"/>
+    </Target>
+    <Target Name="ADServer:Clean">
+        <MSBuild Projects="DSer\ADServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADServer:Make">
+        <MSBuild Projects="DSer\ADServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADClient">
+        <MSBuild Projects="DCli\ADClient.dproj"/>
+    </Target>
+    <Target Name="ADClient:Clean">
+        <MSBuild Projects="DCli\ADClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADClient:Make">
+        <MSBuild Projects="DCli\ADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXADClient">
+        <MSBuild Projects="FMXDCli\FMXADClient.dproj"/>
+    </Target>
+    <Target Name="FMXADClient:Clean">
+        <MSBuild Projects="FMXDCli\FMXADClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXADClient:Make">
+        <MSBuild Projects="FMXDCli\FMXADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ADServer;ADClient;FMXADClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ADServer:Clean;ADClient:Clean;FMXADClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ADServer:Make;ADClient:Make;FMXADClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

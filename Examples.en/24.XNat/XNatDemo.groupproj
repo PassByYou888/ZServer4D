@@ -1,0 +1,72 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{30F99F74-336E-425E-947A-5C66AD0E081F}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="InternetHole\XInternet.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LanNat\XLan.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXLanNat\XLanMobile.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LanNatVirtualServer\LanNatVirtualServer.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="XInternet">
+        <MSBuild Projects="InternetHole\XInternet.dproj"/>
+    </Target>
+    <Target Name="XInternet:Clean">
+        <MSBuild Projects="InternetHole\XInternet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XInternet:Make">
+        <MSBuild Projects="InternetHole\XInternet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLan">
+        <MSBuild Projects="LanNat\XLan.dproj"/>
+    </Target>
+    <Target Name="XLan:Clean">
+        <MSBuild Projects="LanNat\XLan.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLan:Make">
+        <MSBuild Projects="LanNat\XLan.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLanMobile">
+        <MSBuild Projects="FMXLanNat\XLanMobile.dproj"/>
+    </Target>
+    <Target Name="XLanMobile:Clean">
+        <MSBuild Projects="FMXLanNat\XLanMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLanMobile:Make">
+        <MSBuild Projects="FMXLanNat\XLanMobile.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LanNatVirtualServer">
+        <MSBuild Projects="LanNatVirtualServer\LanNatVirtualServer.dproj"/>
+    </Target>
+    <Target Name="LanNatVirtualServer:Clean">
+        <MSBuild Projects="LanNatVirtualServer\LanNatVirtualServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LanNatVirtualServer:Make">
+        <MSBuild Projects="LanNatVirtualServer\LanNatVirtualServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="XInternet;XLan;XLanMobile;LanNatVirtualServer"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="XInternet:Clean;XLan:Clean;XLanMobile:Clean;LanNatVirtualServer:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="XInternet:Make;XLan:Make;XLanMobile:Make;LanNatVirtualServer:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

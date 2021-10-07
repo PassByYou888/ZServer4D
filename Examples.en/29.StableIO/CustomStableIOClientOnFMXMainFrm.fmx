@@ -1,0 +1,128 @@
+﻿object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 373
+  ClientWidth = 732
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Padding.Right = 10.000000000000000000
+    Position.X = 16.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Label1: TLabel
+      Align = Left
+      StyledSettings = [Family, Style, FontColor]
+      Size.Width = 41.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'host'
+      TabOrder = 0
+    end
+    object HostEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      TabOrder = 1
+      Text = '127.0.0.1'
+      Size.Width = 174.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+  end
+  object connectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'Stable IO principle'
+      
+        'Stableio intercepts the transceiver events of physical IO (IO of any synapse, corss, diocp, Indy, ICO) and creates an independent io' +
+        'Stable IO is called stable io'
+      
+        'Stable IO is virtualized. It will not be like physical io. After disconnection, the instance and site are destroyed. Stable IO is still working after disconnection, S' +
+        'Tableio is in an offline mode.'
+      'When the physical IO is reconnected, the stable IO will leave the offline mode, enter the online mode, and restore the site'
+      ''
+      'The server for stableio must be the Tcommunication framework_ StableServer'
+      'The client of stableio must be the Tcommunication framework_ StableClient'
+      'The two must be numbered before automatic disconnection reconnection and field capacity recovery can be carried out'
+      ''
+      'Ordinary clients can also directly use the stable IO server, but they do not have the function of disconnection and reconnection'
+      ''
+      'Running the demo of stableio makes it easier to test and verify using the physical network system')
+    StyledSettings = [Family, Size, FontColor]
+    TextSettings.WordWrap = True
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Position.X = 248.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 465.000000000000000000
+    Size.Height = 345.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Viewport.Width = 461.000000000000000000
+    Viewport.Height = 341.000000000000000000
+  end
+  object RunTestButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Run Test'
+    OnClick = RunTestButtonClick
+  end
+  object DisconnectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 128.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'disconnect'
+    OnClick = DisconnectButtonClick
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 184
+    Top = 136
+  end
+  object IOStateLabel: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 128.000000000000000000
+    Text = 'IOStateLabel'
+    TabOrder = 7
+  end
+  object InfoLabel: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 161.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'IOStateLabel'
+    TabOrder = 6
+  end
+end

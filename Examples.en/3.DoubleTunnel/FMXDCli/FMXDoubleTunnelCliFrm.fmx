@@ -1,0 +1,91 @@
+object FMXDoubleClientForm: TFMXDoubleClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx Double client...'
+  ClientHeight = 315
+  ClientWidth = 612
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      
+        'Zsserver4d is a server middleware, and the demo is in two-way mo' +
+        'de'
+      ''
+      
+        'The two-way mode interpretation can be explained by the client a' +
+        'ctively sending commands to the server for execution or the serv' +
+        'er actively initiating command execution to the client. In the l' +
+        'ink mechanism, two channels are used, one for receiving and one ' +
+        'for sending. When both channels are successfully linked, the two' +
+        '-way bridge can be completed by using the tunnellink method'
+      ''
+      
+        'The command system can be a simple string and various data packa' +
+        'ges, or a stream package. In short, any data transceiver lower t' +
+        'han 500K, including small files, can use the command'
+      ''
+      
+        'When the data length is very large, the bigstream mechanism must' +
+        ' be used in zsserver4d to send and receive data'
+      ''
+      
+        'The attached client can be a mobile platform or a personal compu' +
+        'ter platform')
+    ReadOnly = True
+    Align = Client
+    Margins.Left = 130.000000000000000000
+    Size.Width = 482.000000000000000000
+    Size.Height = 315.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 478.000000000000000000
+    Viewport.Height = 295.000000000000000000
+  end
+  object connectButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object HelloWorldBtn: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Hello World'
+    OnClick = HelloWorldBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+end

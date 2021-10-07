@@ -1,0 +1,159 @@
+﻿object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 296
+  ClientWidth = 712
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 240
+    Top = 208
+  end
+  object OpenButton: TButton
+    Position.X = 7.000000000000000000
+    Position.Y = 64.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'Open'
+    OnClick = OpenButtonClick
+  end
+  object InfoLabel: TLabel
+    Position.X = 6.000000000000000000
+    Position.Y = 144.000000000000000000
+    Size.Width = 93.000000000000000000
+    Size.Height = 89.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+  end
+  object TabControl1: TTabControl
+    Align = Client
+    Margins.Left = 100.000000000000000000
+    Size.Width = 612.000000000000000000
+    Size.Height = 296.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 3
+    TabPosition = PlatformDefault
+    Sizes = (
+      612s
+      270s
+      612s
+      270s)
+    object TabItem1: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 103.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'log information'
+      ExplicitSize.cx = 103.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object LogMemo: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        Lines.Strings = (
+          'The public network server of xnat is used for the public network protocol interface'
+          'The mobile server of xnat is a server model that works on mobile phones or IOT devices'
+          'In the public network protocol interface, xnat uses P2P VM technology to demonstrate how to make mobile phones carry a large number of physically connected services'
+          'The maximum physical concurrent connection limit for xnat is 4000'
+          ''
+          'The demo uses the following techniques'
+          'P2P VM: protocol stack virtual machine technology'
+          'Stable IO: anti break Technology'
+          ''
+          'The demo can open more xnatmobile servers. After that, it will be a distributed load'
+          ''
+          'It can enable WiFi or 4G of Android / apple / IOT devices to carry a large number of physical connections, and is not afraid of disconnection'
+          ''
+          '2018-11-24'
+          'by qq600585')
+        Align = Client
+        Size.Width = 612.000000000000000000
+        Size.Height = 270.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Viewport.Width = 612.000000000000000000
+        Viewport.Height = 270.000000000000000000
+      end
+    end
+    object TabItem2: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 66.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Statistics'
+      ExplicitSize.cx = 67.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object InfoListBox: TListBox
+        Align = Client
+        Size.Width = 612.000000000000000000
+        Size.Height = 270.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        AlternatingRowBackground = True
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        Viewport.Width = 608.000000000000000000
+        Viewport.Height = 266.000000000000000000
+      end
+    end
+  end
+  object Layout1: TLayout
+    Position.X = 5.000000000000000000
+    Position.Y = 7.000000000000000000
+    Size.Width = 89.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    object HostEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Bottom
+      TabOrder = 0
+      Text = '127.0.0.1'
+      Position.Y = 27.000000000000000000
+      Size.Width = 89.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+    object Label1: TLabel
+      Align = Bottom
+      StyledSettings = [Family, Style, FontColor]
+      Position.Y = 10.000000000000000000
+      Size.Width = 89.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'XNAT Internet'
+      TabOrder = 1
+    end
+  end
+  object LogCheckBox: TCheckBox
+    Position.X = 8.000000000000000000
+    Position.Y = 120.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 6
+    Text = 'Log'
+  end
+end

@@ -1,0 +1,1332 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{F39B5A6A-5BE1-4A77-8FBE-CFB7B687F597}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="..\1.HelloWorld\EzCli\EzClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\1.HelloWorld\EzSer\EzServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\1.HelloWorld\FMXCli\FMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\2.DelayModel\EzCli\DRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\2.DelayModel\EzSer\DRServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\2.DelayModel\FMXCli\FMXDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\3.DoubleTunnel\DCli\DClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\3.DoubleTunnel\DSer\DServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\6.MyServerInMobile\FMXServer\FMXServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\LogicServer\LogicServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\18.MD5Peformance\MD5PerformanceTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\13.MemoryManagerAPIHook\MHDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\19.TextParsing\TextParsingDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\15.100KConnectingOnVM\VMServer\VMServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\15.100KConnectingOnVM\VMClient\VMCli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\24.XNat\InternetHole\XInternet.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\24.XNat\LanNat\XLan.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\24.XNat\FMXLanNat\XLanMobile.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\24.XNat\LanNatVirtualServer\LanNatVirtualServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\8.ZDBLocal\ZDBLocal.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\4.DoubleTunnelAuth\DCli\ADClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\4.DoubleTunnelAuth\DSer\ADServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\25.Compressor\ARMCPUTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\17.CustomProcotol\CustomProtocol.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\26.StreamAndCommandSequence\StreamServerOnLinux\StreamServerOnLinux.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\26.StreamAndCommandSequence\StreamClientOnFMX\StreamClientOnFMX.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnFMX.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\28.ChatHome\ChatHome.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\29.StableIO\CustomStableIOServerDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\29.StableIO\CustomStableIOClientDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\30.XNAT virtual server\XNAT_Internet.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\30.XNAT virtual server\XNATMobileServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\30.XNAT virtual server\UserClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\31.reverseP2PVM\reverse_p2pVM_client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\31.reverseP2PVM\reverse_p2pVM_serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\33.DLL_API\zsServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\33.DLL_API\zsLIB.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\33.DLL_API\DLL_Test.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\34.ParallelCompressorTest\ParallelCompressor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\35.QuantumSecurityDemo\QuantumEncryptDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\36.zExpressionSupport\zExpressionSupport.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\37.Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\38.NumberTransform\NumTrans.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\39.LargeScale-ZDB-DataBuild\LargeScale_ZDB_DataBuild.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\40.Parallel\ParallelDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\41.Wildcard\Wildcard.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\42.AsyncStateDemo\AsyncStateDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\44.AutomatedP2PVM\automatedP2PVM_Cli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\44.AutomatedP2PVM\automatedP2PVM_Serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\43.asyncClient\AsyncCli\AsyncClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\43.asyncClient\AsyncServ\AsyncServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Cli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Cli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\47.CopyPtrSpeed\CopyPtrSpeed.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\48.FileFragmentDownload\FragmentSer\FragmentServiceDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\51.OrderStructForThread\OrderStructForThread.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\50.OrderStruct\OrderStructDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\54.DT_P2PVM_VirtualAuth\Client\DT_P2PVM_VirtualAuth_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\54.DT_P2PVM_VirtualAuth\Server\DT_P2PVM_VirtualAuth_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\55.DT_P2PVM_VirtualAuth_Custom\Client\DT_P2PVM_VirtualAuth_CustomClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\55.DT_P2PVM_VirtualAuth_Custom\Server\DT_P2PVM_VirtualAuth_CustomServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\53.DT_P2PVM_NoAuth_Custom\Client\DT_P2PVM_NoAuth_CustomClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\53.DT_P2PVM_NoAuth_Custom\Server\DT_P2PVM_NoAuth_CustomServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\53.DT_P2PVM_NoAuth\Client\DT_P2PVM_NoAuth_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\53.DT_P2PVM_NoAuth\Server\DT_P2PVM_NoAuth_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\56.DT_P2PVM\Client\DT_P2PVM_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\56.DT_P2PVM\Server\DT_P2PVM_Server.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\56.DT_P2PVM_Custom\Client\DT_P2PVM_Custom_Client.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\56.DT_P2PVM_Custom\Server\DT_P2PVM_Custom_Server.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="EzClient">
+        <MSBuild Projects="..\1.HelloWorld\EzCli\EzClient.dproj"/>
+    </Target>
+    <Target Name="EzClient:Clean">
+        <MSBuild Projects="..\1.HelloWorld\EzCli\EzClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EzClient:Make">
+        <MSBuild Projects="..\1.HelloWorld\EzCli\EzClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="EzServer">
+        <MSBuild Projects="..\1.HelloWorld\EzSer\EzServer.dproj"/>
+    </Target>
+    <Target Name="EzServer:Clean">
+        <MSBuild Projects="..\1.HelloWorld\EzSer\EzServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EzServer:Make">
+        <MSBuild Projects="..\1.HelloWorld\EzSer\EzServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXClient">
+        <MSBuild Projects="..\1.HelloWorld\FMXCli\FMXClient.dproj"/>
+    </Target>
+    <Target Name="FMXClient:Clean">
+        <MSBuild Projects="..\1.HelloWorld\FMXCli\FMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXClient:Make">
+        <MSBuild Projects="..\1.HelloWorld\FMXCli\FMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DRClient">
+        <MSBuild Projects="..\2.DelayModel\EzCli\DRClient.dproj"/>
+    </Target>
+    <Target Name="DRClient:Clean">
+        <MSBuild Projects="..\2.DelayModel\EzCli\DRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DRClient:Make">
+        <MSBuild Projects="..\2.DelayModel\EzCli\DRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DRServer">
+        <MSBuild Projects="..\2.DelayModel\EzSer\DRServer.dproj"/>
+    </Target>
+    <Target Name="DRServer:Clean">
+        <MSBuild Projects="..\2.DelayModel\EzSer\DRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DRServer:Make">
+        <MSBuild Projects="..\2.DelayModel\EzSer\DRServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXDRClient">
+        <MSBuild Projects="..\2.DelayModel\FMXCli\FMXDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXDRClient:Clean">
+        <MSBuild Projects="..\2.DelayModel\FMXCli\FMXDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXDRClient:Make">
+        <MSBuild Projects="..\2.DelayModel\FMXCli\FMXDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DClient">
+        <MSBuild Projects="..\3.DoubleTunnel\DCli\DClient.dproj"/>
+    </Target>
+    <Target Name="DClient:Clean">
+        <MSBuild Projects="..\3.DoubleTunnel\DCli\DClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DClient:Make">
+        <MSBuild Projects="..\3.DoubleTunnel\DCli\DClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DServer">
+        <MSBuild Projects="..\3.DoubleTunnel\DSer\DServer.dproj"/>
+    </Target>
+    <Target Name="DServer:Clean">
+        <MSBuild Projects="..\3.DoubleTunnel\DSer\DServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DServer:Make">
+        <MSBuild Projects="..\3.DoubleTunnel\DSer\DServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXDClient">
+        <MSBuild Projects="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj"/>
+    </Target>
+    <Target Name="FMXDClient:Clean">
+        <MSBuild Projects="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXDClient:Make">
+        <MSBuild Projects="..\3.DoubleTunnel\FMXDCli\FMXDClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="EZLinuxServ">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj"/>
+    </Target>
+    <Target Name="EZLinuxServ:Clean">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EZLinuxServ:Make">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\EZLinuxServer\EZLinuxServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ClientToLinuxServer">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj"/>
+    </Target>
+    <Target Name="ClientToLinuxServer:Clean">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClientToLinuxServer:Make">
+        <MSBuild Projects="..\20.HelloWorldServerWithLinux\ClientToLinuxServer\ClientToLinuxServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FileStoreServer">
+        <MSBuild Projects="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj"/>
+    </Target>
+    <Target Name="FileStoreServer:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FileStoreServer:Make">
+        <MSBuild Projects="..\5.Cloud2.0\FileStoreServer\FileStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXADClient">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj"/>
+    </Target>
+    <Target Name="FMXADClient:Clean">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXADClient:Make">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\FMXDCli\FMXADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXAFDRClient">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Clean">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Make">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\FMXCli\FMXAFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXClient2">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj"/>
+    </Target>
+    <Target Name="FMXClient2:Clean">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXClient2:Make">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXCli\FMXClient2.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXServer">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXServer\FMXServer.dproj"/>
+    </Target>
+    <Target Name="FMXServer:Clean">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXServer\FMXServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXServer:Make">
+        <MSBuild Projects="..\6.MyServerInMobile\FMXServer\FMXServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FOGComputeServer">
+        <MSBuild Projects="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj"/>
+    </Target>
+    <Target Name="FOGComputeServer:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FOGComputeServer:Make">
+        <MSBuild Projects="..\5.Cloud2.0\FOGComputeServer\FOGComputeServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj"/>
+    </Target>
+    <Target Name="HPC_Client:Clean">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client:Make">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli\HPC_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Client_FMX">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Clean">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Client_FMX:Make">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Cli_FMX\HPC_Client_FMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HPC_Server">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj"/>
+    </Target>
+    <Target Name="HPC_Server:Clean">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HPC_Server:Make">
+        <MSBuild Projects="..\21.HPC_ComputeServer\HPC_Ser\HPC_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer">
+        <MSBuild Projects="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer:Make">
+        <MSBuild Projects="..\5.Cloud2.0\IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LogicServer">
+        <MSBuild Projects="..\5.Cloud2.0\LogicServer\LogicServer.dproj"/>
+    </Target>
+    <Target Name="LogicServer:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\LogicServer\LogicServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LogicServer:Make">
+        <MSBuild Projects="..\5.Cloud2.0\LogicServer\LogicServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ManagerServer">
+        <MSBuild Projects="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj"/>
+    </Target>
+    <Target Name="ManagerServer:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ManagerServer:Make">
+        <MSBuild Projects="..\5.Cloud2.0\ManagerServer\ManagerServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MD5PerformanceTest">
+        <MSBuild Projects="..\18.MD5Peformance\MD5PerformanceTest.dproj"/>
+    </Target>
+    <Target Name="MD5PerformanceTest:Clean">
+        <MSBuild Projects="..\18.MD5Peformance\MD5PerformanceTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MD5PerformanceTest:Make">
+        <MSBuild Projects="..\18.MD5Peformance\MD5PerformanceTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MHDemo">
+        <MSBuild Projects="..\13.MemoryManagerAPIHook\MHDemo.dproj"/>
+    </Target>
+    <Target Name="MHDemo:Clean">
+        <MSBuild Projects="..\13.MemoryManagerAPIHook\MHDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MHDemo:Make">
+        <MSBuild Projects="..\13.MemoryManagerAPIHook\MHDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="performaceTestServer">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj"/>
+    </Target>
+    <Target Name="performaceTestServer:Clean">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="performaceTestServer:Make">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestSer\performaceTestServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PeformanceTestClient">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Clean">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PeformanceTestClient:Make">
+        <MSBuild Projects="..\9.20KConnectingOnPerformance\PeformanceTestCli\PeformanceTestClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TextParsingDemo">
+        <MSBuild Projects="..\19.TextParsing\TextParsingDemo.dproj"/>
+    </Target>
+    <Target Name="TextParsingDemo:Clean">
+        <MSBuild Projects="..\19.TextParsing\TextParsingDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TextParsingDemo:Make">
+        <MSBuild Projects="..\19.TextParsing\TextParsingDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VirtualAuth_Client">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj"/>
+    </Target>
+    <Target Name="VirtualAuth_Client:Clean">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VirtualAuth_Client:Make">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Client\VirtualAuth_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VirtualAuth_Server">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj"/>
+    </Target>
+    <Target Name="VirtualAuth_Server:Clean">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VirtualAuth_Server:Make">
+        <MSBuild Projects="..\23.DoubleTunnelVisualAuth\Sever(Linux)\VirtualAuth_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Clean">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Make">
+        <MSBuild Projects="..\16.DoubleTunnelAuthOnVM\VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMServ">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj"/>
+    </Target>
+    <Target Name="VMServ:Clean">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMServ:Make">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMServer\VMServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMCli">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj"/>
+    </Target>
+    <Target Name="VMCli:Clean">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMCli:Make">
+        <MSBuild Projects="..\15.100KConnectingOnVM\VMClient\VMCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XInternet">
+        <MSBuild Projects="..\24.XNat\InternetHole\XInternet.dproj"/>
+    </Target>
+    <Target Name="XInternet:Clean">
+        <MSBuild Projects="..\24.XNat\InternetHole\XInternet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XInternet:Make">
+        <MSBuild Projects="..\24.XNat\InternetHole\XInternet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLan">
+        <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj"/>
+    </Target>
+    <Target Name="XLan:Clean">
+        <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLan:Make">
+        <MSBuild Projects="..\24.XNat\LanNat\XLan.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XLanMobile">
+        <MSBuild Projects="..\24.XNat\FMXLanNat\XLanMobile.dproj"/>
+    </Target>
+    <Target Name="XLanMobile:Clean">
+        <MSBuild Projects="..\24.XNat\FMXLanNat\XLanMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XLanMobile:Make">
+        <MSBuild Projects="..\24.XNat\FMXLanNat\XLanMobile.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LanNatVirtualServer">
+        <MSBuild Projects="..\24.XNat\LanNatVirtualServer\LanNatVirtualServer.dproj"/>
+    </Target>
+    <Target Name="LanNatVirtualServer:Clean">
+        <MSBuild Projects="..\24.XNat\LanNatVirtualServer\LanNatVirtualServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LanNatVirtualServer:Make">
+        <MSBuild Projects="..\24.XNat\LanNatVirtualServer\LanNatVirtualServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBBatchDataService">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj"/>
+    </Target>
+    <Target Name="ZDBBatchDataService:Clean">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBBatchDataService:Make">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\ZDBBatchDataService\ZDBBatchDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchDataClient">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Clean">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchDataClient:Make">
+        <MSBuild Projects="..\11.ZDBDemo_SmallJson\FMXBatchDataClient\FMXBatchDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService:Clean">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBBatchPictureDataService:Make">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\ZDBBatchDataService\ZDBBatchPictureDataService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Clean">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXBatchPictureDataClient:Make">
+        <MSBuild Projects="..\12.ZDBDemo_PictureAndSmallJson\FMXBatchDataClient\FMXBatchPictureDataClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBServiceDemo">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj"/>
+    </Target>
+    <Target Name="ZDBServiceDemo:Clean">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBServiceDemo:Make">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBService\ZDBServiceDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBClientDemo">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj"/>
+    </Target>
+    <Target Name="ZDBClientDemo:Clean">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBClientDemo:Make">
+        <MSBuild Projects="..\10.ZDBServiceTest\ZDBClient\ZDBClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZDBLocal">
+        <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj"/>
+    </Target>
+    <Target Name="ZDBLocal:Clean">
+        <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZDBLocal:Make">
+        <MSBuild Projects="..\8.ZDBLocal\ZDBLocal.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ACFMXClient">
+        <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj"/>
+    </Target>
+    <Target Name="ACFMXClient:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ACFMXClient:Make">
+        <MSBuild Projects="..\5.Cloud2.0\FMXClient2.0\ACFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADClient">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DCli\ADClient.dproj"/>
+    </Target>
+    <Target Name="ADClient:Clean">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DCli\ADClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADClient:Make">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DCli\ADClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADRestoreClient">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj"/>
+    </Target>
+    <Target Name="ADRestoreClient:Clean">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADRestoreClient:Make">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreCli\ADRestoreClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADRestoreServer">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj"/>
+    </Target>
+    <Target Name="ADRestoreServer:Clean">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADRestoreServer:Make">
+        <MSBuild Projects="..\22.RestoreDownloadAndUpload\DRestoreSer\ADRestoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADServer">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DSer\ADServer.dproj"/>
+    </Target>
+    <Target Name="ADServer:Clean">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DSer\ADServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADServer:Make">
+        <MSBuild Projects="..\4.DoubleTunnelAuth\DSer\ADServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRClient">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj"/>
+    </Target>
+    <Target Name="AFDRClient:Clean">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRClient:Make">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzCli\AFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRServer">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj"/>
+    </Target>
+    <Target Name="AFDRServer:Clean">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRServer:Make">
+        <MSBuild Projects="..\7.AnonyousFunctionWorkOnClient\EzSer\AFDRServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ARMCPUTest">
+        <MSBuild Projects="..\25.Compressor\ARMCPUTest.dproj"/>
+    </Target>
+    <Target Name="ARMCPUTest:Clean">
+        <MSBuild Projects="..\25.Compressor\ARMCPUTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ARMCPUTest:Make">
+        <MSBuild Projects="..\25.Compressor\ARMCPUTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CustomProtocol">
+        <MSBuild Projects="..\17.CustomProcotol\CustomProtocol.dproj"/>
+    </Target>
+    <Target Name="CustomProtocol:Clean">
+        <MSBuild Projects="..\17.CustomProcotol\CustomProtocol.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CustomProtocol:Make">
+        <MSBuild Projects="..\17.CustomProcotol\CustomProtocol.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DataStoreServer">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj"/>
+    </Target>
+    <Target Name="DataStoreServer:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreServer:Make">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreServer\DataStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DataStoreViewClient">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Clean">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Make">
+        <MSBuild Projects="..\5.Cloud2.0\DataStoreViewClient\DataStoreViewClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="StreamServerOnLinux">
+        <MSBuild Projects="..\26.StreamAndCommandSequence\StreamServerOnLinux\StreamServerOnLinux.dproj"/>
+    </Target>
+    <Target Name="StreamServerOnLinux:Clean">
+        <MSBuild Projects="..\26.StreamAndCommandSequence\StreamServerOnLinux\StreamServerOnLinux.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="StreamServerOnLinux:Make">
+        <MSBuild Projects="..\26.StreamAndCommandSequence\StreamServerOnLinux\StreamServerOnLinux.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="StreamClientOnFMX">
+        <MSBuild Projects="..\26.StreamAndCommandSequence\StreamClientOnFMX\StreamClientOnFMX.dproj"/>
+    </Target>
+    <Target Name="StreamClientOnFMX:Clean">
+        <MSBuild Projects="..\26.StreamAndCommandSequence\StreamClientOnFMX\StreamClientOnFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="StreamClientOnFMX:Make">
+        <MSBuild Projects="..\26.StreamAndCommandSequence\StreamClientOnFMX\StreamClientOnFMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DatasetSimOnLinuxServer">
+        <MSBuild Projects="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj"/>
+    </Target>
+    <Target Name="DatasetSimOnLinuxServer:Clean">
+        <MSBuild Projects="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatasetSimOnLinuxServer:Make">
+        <MSBuild Projects="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnLinuxServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DatasetSimOnFMX">
+        <MSBuild Projects="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnFMX.dproj"/>
+    </Target>
+    <Target Name="DatasetSimOnFMX:Clean">
+        <MSBuild Projects="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatasetSimOnFMX:Make">
+        <MSBuild Projects="..\27.DatasetSimulate\LinuxServerOnDataset\DatasetSimOnFMX.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ChatHome">
+        <MSBuild Projects="..\28.ChatHome\ChatHome.dproj"/>
+    </Target>
+    <Target Name="ChatHome:Clean">
+        <MSBuild Projects="..\28.ChatHome\ChatHome.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ChatHome:Make">
+        <MSBuild Projects="..\28.ChatHome\ChatHome.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CustomStableIOServerDemo">
+        <MSBuild Projects="..\29.StableIO\CustomStableIOServerDemo.dproj"/>
+    </Target>
+    <Target Name="CustomStableIOServerDemo:Clean">
+        <MSBuild Projects="..\29.StableIO\CustomStableIOServerDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CustomStableIOServerDemo:Make">
+        <MSBuild Projects="..\29.StableIO\CustomStableIOServerDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CustomStableIOClientDemo">
+        <MSBuild Projects="..\29.StableIO\CustomStableIOClientDemo.dproj"/>
+    </Target>
+    <Target Name="CustomStableIOClientDemo:Clean">
+        <MSBuild Projects="..\29.StableIO\CustomStableIOClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CustomStableIOClientDemo:Make">
+        <MSBuild Projects="..\29.StableIO\CustomStableIOClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XNAT_Internet">
+        <MSBuild Projects="..\30.XNAT virtual server\XNAT_Internet.dproj"/>
+    </Target>
+    <Target Name="XNAT_Internet:Clean">
+        <MSBuild Projects="..\30.XNAT virtual server\XNAT_Internet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XNAT_Internet:Make">
+        <MSBuild Projects="..\30.XNAT virtual server\XNAT_Internet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XNATMobileServer">
+        <MSBuild Projects="..\30.XNAT virtual server\XNATMobileServer.dproj"/>
+    </Target>
+    <Target Name="XNATMobileServer:Clean">
+        <MSBuild Projects="..\30.XNAT virtual server\XNATMobileServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XNATMobileServer:Make">
+        <MSBuild Projects="..\30.XNAT virtual server\XNATMobileServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="UserClient">
+        <MSBuild Projects="..\30.XNAT virtual server\UserClient.dproj"/>
+    </Target>
+    <Target Name="UserClient:Clean">
+        <MSBuild Projects="..\30.XNAT virtual server\UserClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UserClient:Make">
+        <MSBuild Projects="..\30.XNAT virtual server\UserClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="reverse_p2pVM_client">
+        <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_client.dproj"/>
+    </Target>
+    <Target Name="reverse_p2pVM_client:Clean">
+        <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_p2pVM_client:Make">
+        <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="reverse_p2pVM_serv">
+        <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_serv.dproj"/>
+    </Target>
+    <Target Name="reverse_p2pVM_serv:Clean">
+        <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_p2pVM_serv:Make">
+        <MSBuild Projects="..\31.reverseP2PVM\reverse_p2pVM_serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zsServ">
+        <MSBuild Projects="..\33.DLL_API\zsServ.dproj"/>
+    </Target>
+    <Target Name="zsServ:Clean">
+        <MSBuild Projects="..\33.DLL_API\zsServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zsServ:Make">
+        <MSBuild Projects="..\33.DLL_API\zsServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zsLIB">
+        <MSBuild Projects="..\33.DLL_API\zsLIB.dproj"/>
+    </Target>
+    <Target Name="zsLIB:Clean">
+        <MSBuild Projects="..\33.DLL_API\zsLIB.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zsLIB:Make">
+        <MSBuild Projects="..\33.DLL_API\zsLIB.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DLL_Test">
+        <MSBuild Projects="..\33.DLL_API\DLL_Test.dproj"/>
+    </Target>
+    <Target Name="DLL_Test:Clean">
+        <MSBuild Projects="..\33.DLL_API\DLL_Test.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DLL_Test:Make">
+        <MSBuild Projects="..\33.DLL_API\DLL_Test.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ParallelCompressor">
+        <MSBuild Projects="..\34.ParallelCompressorTest\ParallelCompressor.dproj"/>
+    </Target>
+    <Target Name="ParallelCompressor:Clean">
+        <MSBuild Projects="..\34.ParallelCompressorTest\ParallelCompressor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ParallelCompressor:Make">
+        <MSBuild Projects="..\34.ParallelCompressorTest\ParallelCompressor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="QuantumEncryptDemo">
+        <MSBuild Projects="..\35.QuantumSecurityDemo\QuantumEncryptDemo.dproj"/>
+    </Target>
+    <Target Name="QuantumEncryptDemo:Clean">
+        <MSBuild Projects="..\35.QuantumSecurityDemo\QuantumEncryptDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="QuantumEncryptDemo:Make">
+        <MSBuild Projects="..\35.QuantumSecurityDemo\QuantumEncryptDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zExpressionSupport">
+        <MSBuild Projects="..\36.zExpressionSupport\zExpressionSupport.dproj"/>
+    </Target>
+    <Target Name="zExpressionSupport:Clean">
+        <MSBuild Projects="..\36.zExpressionSupport\zExpressionSupport.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zExpressionSupport:Make">
+        <MSBuild Projects="..\36.zExpressionSupport\zExpressionSupport.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PascalCodeDependencyAnslysis">
+        <MSBuild Projects="..\37.Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj"/>
+    </Target>
+    <Target Name="PascalCodeDependencyAnslysis:Clean">
+        <MSBuild Projects="..\37.Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PascalCodeDependencyAnslysis:Make">
+        <MSBuild Projects="..\37.Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NumTrans">
+        <MSBuild Projects="..\38.NumberTransform\NumTrans.dproj"/>
+    </Target>
+    <Target Name="NumTrans:Clean">
+        <MSBuild Projects="..\38.NumberTransform\NumTrans.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NumTrans:Make">
+        <MSBuild Projects="..\38.NumberTransform\NumTrans.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LargeScale_ZDB_DataBuild">
+        <MSBuild Projects="..\39.LargeScale-ZDB-DataBuild\LargeScale_ZDB_DataBuild.dproj"/>
+    </Target>
+    <Target Name="LargeScale_ZDB_DataBuild:Clean">
+        <MSBuild Projects="..\39.LargeScale-ZDB-DataBuild\LargeScale_ZDB_DataBuild.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LargeScale_ZDB_DataBuild:Make">
+        <MSBuild Projects="..\39.LargeScale-ZDB-DataBuild\LargeScale_ZDB_DataBuild.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ParallelDemo">
+        <MSBuild Projects="..\40.Parallel\ParallelDemo.dproj"/>
+    </Target>
+    <Target Name="ParallelDemo:Clean">
+        <MSBuild Projects="..\40.Parallel\ParallelDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ParallelDemo:Make">
+        <MSBuild Projects="..\40.Parallel\ParallelDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Wildcard">
+        <MSBuild Projects="..\41.Wildcard\Wildcard.dproj"/>
+    </Target>
+    <Target Name="Wildcard:Clean">
+        <MSBuild Projects="..\41.Wildcard\Wildcard.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Wildcard:Make">
+        <MSBuild Projects="..\41.Wildcard\Wildcard.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsyncStateDemo">
+        <MSBuild Projects="..\42.AsyncStateDemo\AsyncStateDemo.dproj"/>
+    </Target>
+    <Target Name="AsyncStateDemo:Clean">
+        <MSBuild Projects="..\42.AsyncStateDemo\AsyncStateDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsyncStateDemo:Make">
+        <MSBuild Projects="..\42.AsyncStateDemo\AsyncStateDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="automatedP2PVM_Cli">
+        <MSBuild Projects="..\44.AutomatedP2PVM\automatedP2PVM_Cli.dproj"/>
+    </Target>
+    <Target Name="automatedP2PVM_Cli:Clean">
+        <MSBuild Projects="..\44.AutomatedP2PVM\automatedP2PVM_Cli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="automatedP2PVM_Cli:Make">
+        <MSBuild Projects="..\44.AutomatedP2PVM\automatedP2PVM_Cli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="automatedP2PVM_Serv">
+        <MSBuild Projects="..\44.AutomatedP2PVM\automatedP2PVM_Serv.dproj"/>
+    </Target>
+    <Target Name="automatedP2PVM_Serv:Clean">
+        <MSBuild Projects="..\44.AutomatedP2PVM\automatedP2PVM_Serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="automatedP2PVM_Serv:Make">
+        <MSBuild Projects="..\44.AutomatedP2PVM\automatedP2PVM_Serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsyncClient">
+        <MSBuild Projects="..\43.asyncClient\AsyncCli\AsyncClient.dproj"/>
+    </Target>
+    <Target Name="AsyncClient:Clean">
+        <MSBuild Projects="..\43.asyncClient\AsyncCli\AsyncClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsyncClient:Make">
+        <MSBuild Projects="..\43.asyncClient\AsyncCli\AsyncClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsyncServer">
+        <MSBuild Projects="..\43.asyncClient\AsyncServ\AsyncServer.dproj"/>
+    </Target>
+    <Target Name="AsyncServer:Clean">
+        <MSBuild Projects="..\43.asyncClient\AsyncServ\AsyncServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsyncServer:Make">
+        <MSBuild Projects="..\43.asyncClient\AsyncServ\AsyncServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Serv">
+        <MSBuild Projects="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Serv.dproj"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Serv:Clean">
+        <MSBuild Projects="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Serv:Make">
+        <MSBuild Projects="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Cli">
+        <MSBuild Projects="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Cli.dproj"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Cli:Clean">
+        <MSBuild Projects="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Cli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Cli:Make">
+        <MSBuild Projects="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Cli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Cli">
+        <MSBuild Projects="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Cli.dproj"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Cli:Clean">
+        <MSBuild Projects="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Cli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_automatedP2PVM_Cli:Make">
+        <MSBuild Projects="..\45.reverseAutomatedP2PVM\reverse_automatedP2PVM_Cli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Serv">
+        <MSBuild Projects="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Serv.dproj"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Serv:Clean">
+        <MSBuild Projects="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="automatedP2PVM_HPC_Serv:Make">
+        <MSBuild Projects="..\46,AutomatedP2PVM+HPC\automatedP2PVM_HPC_Serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CopyPtrSpeed">
+        <MSBuild Projects="..\47.CopyPtrSpeed\CopyPtrSpeed.dproj"/>
+    </Target>
+    <Target Name="CopyPtrSpeed:Clean">
+        <MSBuild Projects="..\47.CopyPtrSpeed\CopyPtrSpeed.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CopyPtrSpeed:Make">
+        <MSBuild Projects="..\47.CopyPtrSpeed\CopyPtrSpeed.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FragmentServiceDemo">
+        <MSBuild Projects="..\48.FileFragmentDownload\FragmentSer\FragmentServiceDemo.dproj"/>
+    </Target>
+    <Target Name="FragmentServiceDemo:Clean">
+        <MSBuild Projects="..\48.FileFragmentDownload\FragmentSer\FragmentServiceDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FragmentServiceDemo:Make">
+        <MSBuild Projects="..\48.FileFragmentDownload\FragmentSer\FragmentServiceDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FragmentClientDemo">
+        <MSBuild Projects="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj"/>
+    </Target>
+    <Target Name="FragmentClientDemo:Clean">
+        <MSBuild Projects="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FragmentClientDemo:Make">
+        <MSBuild Projects="..\48.FileFragmentDownload\FragmentCli\FragmentClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DatastoreServ">
+        <MSBuild Projects="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj"/>
+    </Target>
+    <Target Name="DatastoreServ:Clean">
+        <MSBuild Projects="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DatastoreServ:Make">
+        <MSBuild Projects="..\49.AdvanceEventBridge\1.DatastoreServ\DatastoreServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="InternetServ">
+        <MSBuild Projects="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj"/>
+    </Target>
+    <Target Name="InternetServ:Clean">
+        <MSBuild Projects="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InternetServ:Make">
+        <MSBuild Projects="..\49.AdvanceEventBridge\2.InternetServ\InternetServ.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="InternetCli">
+        <MSBuild Projects="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj"/>
+    </Target>
+    <Target Name="InternetCli:Clean">
+        <MSBuild Projects="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InternetCli:Make">
+        <MSBuild Projects="..\49.AdvanceEventBridge\3.InternetCli\InternetCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OrderStructForThread">
+        <MSBuild Projects="..\51.OrderStructForThread\OrderStructForThread.dproj"/>
+    </Target>
+    <Target Name="OrderStructForThread:Clean">
+        <MSBuild Projects="..\51.OrderStructForThread\OrderStructForThread.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OrderStructForThread:Make">
+        <MSBuild Projects="..\51.OrderStructForThread\OrderStructForThread.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OrderStructDemo">
+        <MSBuild Projects="..\50.OrderStruct\OrderStructDemo.dproj"/>
+    </Target>
+    <Target Name="OrderStructDemo:Clean">
+        <MSBuild Projects="..\50.OrderStruct\OrderStructDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OrderStructDemo:Make">
+        <MSBuild Projects="..\50.OrderStruct\OrderStructDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_Client">
+        <MSBuild Projects="..\54.DT_P2PVM_VirtualAuth\Client\DT_P2PVM_VirtualAuth_Client.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_Client:Clean">
+        <MSBuild Projects="..\54.DT_P2PVM_VirtualAuth\Client\DT_P2PVM_VirtualAuth_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_Client:Make">
+        <MSBuild Projects="..\54.DT_P2PVM_VirtualAuth\Client\DT_P2PVM_VirtualAuth_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_Server">
+        <MSBuild Projects="..\54.DT_P2PVM_VirtualAuth\Server\DT_P2PVM_VirtualAuth_Server.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_Server:Clean">
+        <MSBuild Projects="..\54.DT_P2PVM_VirtualAuth\Server\DT_P2PVM_VirtualAuth_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_Server:Make">
+        <MSBuild Projects="..\54.DT_P2PVM_VirtualAuth\Server\DT_P2PVM_VirtualAuth_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_CustomClient">
+        <MSBuild Projects="..\55.DT_P2PVM_VirtualAuth_Custom\Client\DT_P2PVM_VirtualAuth_CustomClient.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_CustomClient:Clean">
+        <MSBuild Projects="..\55.DT_P2PVM_VirtualAuth_Custom\Client\DT_P2PVM_VirtualAuth_CustomClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_CustomClient:Make">
+        <MSBuild Projects="..\55.DT_P2PVM_VirtualAuth_Custom\Client\DT_P2PVM_VirtualAuth_CustomClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_CustomServer">
+        <MSBuild Projects="..\55.DT_P2PVM_VirtualAuth_Custom\Server\DT_P2PVM_VirtualAuth_CustomServer.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_CustomServer:Clean">
+        <MSBuild Projects="..\55.DT_P2PVM_VirtualAuth_Custom\Server\DT_P2PVM_VirtualAuth_CustomServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_VirtualAuth_CustomServer:Make">
+        <MSBuild Projects="..\55.DT_P2PVM_VirtualAuth_Custom\Server\DT_P2PVM_VirtualAuth_CustomServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomClient">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth_Custom\Client\DT_P2PVM_NoAuth_CustomClient.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomClient:Clean">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth_Custom\Client\DT_P2PVM_NoAuth_CustomClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomClient:Make">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth_Custom\Client\DT_P2PVM_NoAuth_CustomClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomServer">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth_Custom\Server\DT_P2PVM_NoAuth_CustomServer.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomServer:Clean">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth_Custom\Server\DT_P2PVM_NoAuth_CustomServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_CustomServer:Make">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth_Custom\Server\DT_P2PVM_NoAuth_CustomServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Client">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth\Client\DT_P2PVM_NoAuth_Client.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Client:Clean">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth\Client\DT_P2PVM_NoAuth_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Client:Make">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth\Client\DT_P2PVM_NoAuth_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Server">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth\Server\DT_P2PVM_NoAuth_Server.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Server:Clean">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth\Server\DT_P2PVM_NoAuth_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_NoAuth_Server:Make">
+        <MSBuild Projects="..\53.DT_P2PVM_NoAuth\Server\DT_P2PVM_NoAuth_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_Client">
+        <MSBuild Projects="..\56.DT_P2PVM\Client\DT_P2PVM_Client.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_Client:Clean">
+        <MSBuild Projects="..\56.DT_P2PVM\Client\DT_P2PVM_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_Client:Make">
+        <MSBuild Projects="..\56.DT_P2PVM\Client\DT_P2PVM_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_Server">
+        <MSBuild Projects="..\56.DT_P2PVM\Server\DT_P2PVM_Server.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_Server:Clean">
+        <MSBuild Projects="..\56.DT_P2PVM\Server\DT_P2PVM_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_Server:Make">
+        <MSBuild Projects="..\56.DT_P2PVM\Server\DT_P2PVM_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_Custom_Client">
+        <MSBuild Projects="..\56.DT_P2PVM_Custom\Client\DT_P2PVM_Custom_Client.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_Custom_Client:Clean">
+        <MSBuild Projects="..\56.DT_P2PVM_Custom\Client\DT_P2PVM_Custom_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_Custom_Client:Make">
+        <MSBuild Projects="..\56.DT_P2PVM_Custom\Client\DT_P2PVM_Custom_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DT_P2PVM_Custom_Server">
+        <MSBuild Projects="..\56.DT_P2PVM_Custom\Server\DT_P2PVM_Custom_Server.dproj"/>
+    </Target>
+    <Target Name="DT_P2PVM_Custom_Server:Clean">
+        <MSBuild Projects="..\56.DT_P2PVM_Custom\Server\DT_P2PVM_Custom_Server.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DT_P2PVM_Custom_Server:Make">
+        <MSBuild Projects="..\56.DT_P2PVM_Custom\Server\DT_P2PVM_Custom_Server.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="EzClient;EzServer;FMXClient;DRClient;DRServer;FMXDRClient;DClient;DServer;FMXDClient;EZLinuxServ;ClientToLinuxServer;FileStoreServer;FMXADClient;FMXAFDRClient;FMXClient2;FMXServer;FOGComputeServer;HPC_Client;HPC_Client_FMX;HPC_Server;IOSPaymentQueryServer;LogicServer;ManagerServer;MD5PerformanceTest;MHDemo;performaceTestServer;PeformanceTestClient;TextParsingDemo;VirtualAuth_Client;VirtualAuth_Server;VMDoubleAuthServer;VMDoubleAuthClient;VMDoubleAuthFMXClient;VMServ;VMCli;XInternet;XLan;XLanMobile;LanNatVirtualServer;ZDBBatchDataService;FMXBatchDataClient;ZDBBatchPictureDataService;FMXBatchPictureDataClient;ZDBServiceDemo;ZDBClientDemo;ZDBLocal;ACFMXClient;ADClient;ADRestoreClient;ADRestoreServer;ADServer;AFDRClient;AFDRServer;ARMCPUTest;CustomProtocol;DataStoreServer;DataStoreViewClient;StreamServerOnLinux;StreamClientOnFMX;DatasetSimOnLinuxServer;DatasetSimOnFMX;ChatHome;CustomStableIOServerDemo;CustomStableIOClientDemo;XNAT_Internet;XNATMobileServer;UserClient;reverse_p2pVM_client;reverse_p2pVM_serv;zsServ;zsLIB;DLL_Test;ParallelCompressor;QuantumEncryptDemo;zExpressionSupport;PascalCodeDependencyAnslysis;NumTrans;LargeScale_ZDB_DataBuild;ParallelDemo;Wildcard;AsyncStateDemo;automatedP2PVM_Cli;automatedP2PVM_Serv;AsyncClient;AsyncServer;reverse_automatedP2PVM_Serv;automatedP2PVM_HPC_Cli;reverse_automatedP2PVM_Cli;automatedP2PVM_HPC_Serv;CopyPtrSpeed;FragmentServiceDemo;FragmentClientDemo;DatastoreServ;InternetServ;InternetCli;OrderStructForThread;OrderStructDemo;DT_P2PVM_VirtualAuth_Client;DT_P2PVM_VirtualAuth_Server;DT_P2PVM_VirtualAuth_CustomClient;DT_P2PVM_VirtualAuth_CustomServer;DT_P2PVM_NoAuth_CustomClient;DT_P2PVM_NoAuth_CustomServer;DT_P2PVM_NoAuth_Client;DT_P2PVM_NoAuth_Server;DT_P2PVM_Client;DT_P2PVM_Server;DT_P2PVM_Custom_Client;DT_P2PVM_Custom_Server"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="EzClient:Clean;EzServer:Clean;FMXClient:Clean;DRClient:Clean;DRServer:Clean;FMXDRClient:Clean;DClient:Clean;DServer:Clean;FMXDClient:Clean;EZLinuxServ:Clean;ClientToLinuxServer:Clean;FileStoreServer:Clean;FMXADClient:Clean;FMXAFDRClient:Clean;FMXClient2:Clean;FMXServer:Clean;FOGComputeServer:Clean;HPC_Client:Clean;HPC_Client_FMX:Clean;HPC_Server:Clean;IOSPaymentQueryServer:Clean;LogicServer:Clean;ManagerServer:Clean;MD5PerformanceTest:Clean;MHDemo:Clean;performaceTestServer:Clean;PeformanceTestClient:Clean;TextParsingDemo:Clean;VirtualAuth_Client:Clean;VirtualAuth_Server:Clean;VMDoubleAuthServer:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean;VMServ:Clean;VMCli:Clean;XInternet:Clean;XLan:Clean;XLanMobile:Clean;LanNatVirtualServer:Clean;ZDBBatchDataService:Clean;FMXBatchDataClient:Clean;ZDBBatchPictureDataService:Clean;FMXBatchPictureDataClient:Clean;ZDBServiceDemo:Clean;ZDBClientDemo:Clean;ZDBLocal:Clean;ACFMXClient:Clean;ADClient:Clean;ADRestoreClient:Clean;ADRestoreServer:Clean;ADServer:Clean;AFDRClient:Clean;AFDRServer:Clean;ARMCPUTest:Clean;CustomProtocol:Clean;DataStoreServer:Clean;DataStoreViewClient:Clean;StreamServerOnLinux:Clean;StreamClientOnFMX:Clean;DatasetSimOnLinuxServer:Clean;DatasetSimOnFMX:Clean;ChatHome:Clean;CustomStableIOServerDemo:Clean;CustomStableIOClientDemo:Clean;XNAT_Internet:Clean;XNATMobileServer:Clean;UserClient:Clean;reverse_p2pVM_client:Clean;reverse_p2pVM_serv:Clean;zsServ:Clean;zsLIB:Clean;DLL_Test:Clean;ParallelCompressor:Clean;QuantumEncryptDemo:Clean;zExpressionSupport:Clean;PascalCodeDependencyAnslysis:Clean;NumTrans:Clean;LargeScale_ZDB_DataBuild:Clean;ParallelDemo:Clean;Wildcard:Clean;AsyncStateDemo:Clean;automatedP2PVM_Cli:Clean;automatedP2PVM_Serv:Clean;AsyncClient:Clean;AsyncServer:Clean;reverse_automatedP2PVM_Serv:Clean;automatedP2PVM_HPC_Cli:Clean;reverse_automatedP2PVM_Cli:Clean;automatedP2PVM_HPC_Serv:Clean;CopyPtrSpeed:Clean;FragmentServiceDemo:Clean;FragmentClientDemo:Clean;DatastoreServ:Clean;InternetServ:Clean;InternetCli:Clean;OrderStructForThread:Clean;OrderStructDemo:Clean;DT_P2PVM_VirtualAuth_Client:Clean;DT_P2PVM_VirtualAuth_Server:Clean;DT_P2PVM_VirtualAuth_CustomClient:Clean;DT_P2PVM_VirtualAuth_CustomServer:Clean;DT_P2PVM_NoAuth_CustomClient:Clean;DT_P2PVM_NoAuth_CustomServer:Clean;DT_P2PVM_NoAuth_Client:Clean;DT_P2PVM_NoAuth_Server:Clean;DT_P2PVM_Client:Clean;DT_P2PVM_Server:Clean;DT_P2PVM_Custom_Client:Clean;DT_P2PVM_Custom_Server:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="EzClient:Make;EzServer:Make;FMXClient:Make;DRClient:Make;DRServer:Make;FMXDRClient:Make;DClient:Make;DServer:Make;FMXDClient:Make;EZLinuxServ:Make;ClientToLinuxServer:Make;FileStoreServer:Make;FMXADClient:Make;FMXAFDRClient:Make;FMXClient2:Make;FMXServer:Make;FOGComputeServer:Make;HPC_Client:Make;HPC_Client_FMX:Make;HPC_Server:Make;IOSPaymentQueryServer:Make;LogicServer:Make;ManagerServer:Make;MD5PerformanceTest:Make;MHDemo:Make;performaceTestServer:Make;PeformanceTestClient:Make;TextParsingDemo:Make;VirtualAuth_Client:Make;VirtualAuth_Server:Make;VMDoubleAuthServer:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make;VMServ:Make;VMCli:Make;XInternet:Make;XLan:Make;XLanMobile:Make;LanNatVirtualServer:Make;ZDBBatchDataService:Make;FMXBatchDataClient:Make;ZDBBatchPictureDataService:Make;FMXBatchPictureDataClient:Make;ZDBServiceDemo:Make;ZDBClientDemo:Make;ZDBLocal:Make;ACFMXClient:Make;ADClient:Make;ADRestoreClient:Make;ADRestoreServer:Make;ADServer:Make;AFDRClient:Make;AFDRServer:Make;ARMCPUTest:Make;CustomProtocol:Make;DataStoreServer:Make;DataStoreViewClient:Make;StreamServerOnLinux:Make;StreamClientOnFMX:Make;DatasetSimOnLinuxServer:Make;DatasetSimOnFMX:Make;ChatHome:Make;CustomStableIOServerDemo:Make;CustomStableIOClientDemo:Make;XNAT_Internet:Make;XNATMobileServer:Make;UserClient:Make;reverse_p2pVM_client:Make;reverse_p2pVM_serv:Make;zsServ:Make;zsLIB:Make;DLL_Test:Make;ParallelCompressor:Make;QuantumEncryptDemo:Make;zExpressionSupport:Make;PascalCodeDependencyAnslysis:Make;NumTrans:Make;LargeScale_ZDB_DataBuild:Make;ParallelDemo:Make;Wildcard:Make;AsyncStateDemo:Make;automatedP2PVM_Cli:Make;automatedP2PVM_Serv:Make;AsyncClient:Make;AsyncServer:Make;reverse_automatedP2PVM_Serv:Make;automatedP2PVM_HPC_Cli:Make;reverse_automatedP2PVM_Cli:Make;automatedP2PVM_HPC_Serv:Make;CopyPtrSpeed:Make;FragmentServiceDemo:Make;FragmentClientDemo:Make;DatastoreServ:Make;InternetServ:Make;InternetCli:Make;OrderStructForThread:Make;OrderStructDemo:Make;DT_P2PVM_VirtualAuth_Client:Make;DT_P2PVM_VirtualAuth_Server:Make;DT_P2PVM_VirtualAuth_CustomClient:Make;DT_P2PVM_VirtualAuth_CustomServer:Make;DT_P2PVM_NoAuth_CustomClient:Make;DT_P2PVM_NoAuth_CustomServer:Make;DT_P2PVM_NoAuth_Client:Make;DT_P2PVM_NoAuth_Server:Make;DT_P2PVM_Client:Make;DT_P2PVM_Server:Make;DT_P2PVM_Custom_Client:Make;DT_P2PVM_Custom_Server:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

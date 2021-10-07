@@ -1,0 +1,73 @@
+﻿object FMXDRClientForm: TFMXDRClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx DR client...'
+  ClientHeight = 315
+  ClientWidth = 612
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'Zsserver4d is a server middleware. This demo demonstrates the processing mechanism of delayed response using anonymous functions'
+      ''
+      'After the delayresponse command is executed, it will not give feedback to the client immediately'
+      'The delay response mechanism is implemented by state machine. Once the response stops, the instructions in the queue will be in the waiting state. The delay mechanism is mainly used for cross server communication or nonlinear process'
+      ''
+      'The attached client can be a mobile platform or a personal computer platform'
+      '')
+    Align = Client
+    Margins.Left = 130.000000000000000000
+    Size.Width = 482.000000000000000000
+    Size.Height = 315.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 478.000000000000000000
+    Viewport.Height = 311.000000000000000000
+  end
+  object connectButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object SendRequestBtn: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Send Request'
+    OnClick = SendRequestBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+end

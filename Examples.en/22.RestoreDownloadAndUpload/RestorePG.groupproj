@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{E5DAB95C-38C7-4C06-89EC-120B9C697BB9}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="DRestoreSer\ADRestoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DRestoreCli\ADRestoreClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ADRestoreServer">
+        <MSBuild Projects="DRestoreSer\ADRestoreServer.dproj"/>
+    </Target>
+    <Target Name="ADRestoreServer:Clean">
+        <MSBuild Projects="DRestoreSer\ADRestoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADRestoreServer:Make">
+        <MSBuild Projects="DRestoreSer\ADRestoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ADRestoreClient">
+        <MSBuild Projects="DRestoreCli\ADRestoreClient.dproj"/>
+    </Target>
+    <Target Name="ADRestoreClient:Clean">
+        <MSBuild Projects="DRestoreCli\ADRestoreClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ADRestoreClient:Make">
+        <MSBuild Projects="DRestoreCli\ADRestoreClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ADRestoreServer;ADRestoreClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ADRestoreServer:Clean;ADRestoreClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ADRestoreServer:Make;ADRestoreClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

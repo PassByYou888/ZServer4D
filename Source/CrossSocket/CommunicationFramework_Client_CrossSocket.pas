@@ -324,6 +324,8 @@ begin
           if p_io = nil then
               Exit;
 
+          p_io.IOInterface := nil;
+
           if p_io.OwnerClient <> nil then
             begin
               try
@@ -332,7 +334,6 @@ begin
               end;
             end;
 
-          p_io.IOInterface := nil;
           AConnection.UserObject := nil;
         end;
     end);

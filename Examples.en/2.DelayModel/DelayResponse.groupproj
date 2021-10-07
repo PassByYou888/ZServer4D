@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{BE28919A-2521-4021-917F-0F996DE788B4}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="EzSer\DRServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="EzCli\DRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXCli\FMXDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DRServer">
+        <MSBuild Projects="EzSer\DRServer.dproj"/>
+    </Target>
+    <Target Name="DRServer:Clean">
+        <MSBuild Projects="EzSer\DRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DRServer:Make">
+        <MSBuild Projects="EzSer\DRServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DRClient">
+        <MSBuild Projects="EzCli\DRClient.dproj"/>
+    </Target>
+    <Target Name="DRClient:Clean">
+        <MSBuild Projects="EzCli\DRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DRClient:Make">
+        <MSBuild Projects="EzCli\DRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXDRClient">
+        <MSBuild Projects="FMXCli\FMXDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXDRClient:Clean">
+        <MSBuild Projects="FMXCli\FMXDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXDRClient:Make">
+        <MSBuild Projects="FMXCli\FMXDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DRServer;DRClient;FMXDRClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DRServer:Clean;DRClient:Clean;FMXDRClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DRServer:Make;DRClient:Make;FMXDRClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

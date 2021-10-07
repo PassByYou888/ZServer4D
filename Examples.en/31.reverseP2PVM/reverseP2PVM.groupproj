@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{71DD3C49-0049-46CA-B918-9DF973E7EF57}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="reverse_p2pVM_serv.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="reverse_p2pVM_client.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="reverse_p2pVM_serv">
+        <MSBuild Projects="reverse_p2pVM_serv.dproj"/>
+    </Target>
+    <Target Name="reverse_p2pVM_serv:Clean">
+        <MSBuild Projects="reverse_p2pVM_serv.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_p2pVM_serv:Make">
+        <MSBuild Projects="reverse_p2pVM_serv.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="reverse_p2pVM_client">
+        <MSBuild Projects="reverse_p2pVM_client.dproj"/>
+    </Target>
+    <Target Name="reverse_p2pVM_client:Clean">
+        <MSBuild Projects="reverse_p2pVM_client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reverse_p2pVM_client:Make">
+        <MSBuild Projects="reverse_p2pVM_client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="reverse_p2pVM_serv;reverse_p2pVM_client"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="reverse_p2pVM_serv:Clean;reverse_p2pVM_client:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="reverse_p2pVM_serv:Make;reverse_p2pVM_client:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

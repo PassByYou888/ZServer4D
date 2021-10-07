@@ -1,0 +1,56 @@
+﻿object Form2: TForm2
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 280
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'Directly map to local server demo based on xnatservice protocol'
+      ''
+      'Principle:'
+      'Xnatservice is a public network server that listens on one or more specified ports on the public network'
+      'Lannatvirtualserver is based on xnatclient protocol and directly maps xnatservice to local service'
+      ''
+      'Using the name in the replacement project, the framework can drive tens of thousands of physical connections in mobile phone platform and arm based IOT platform'
+      ''
+      '2018-10-22'
+      'by qq600585')
+    Align = Client
+    Margins.Left = 95.000000000000000000
+    Size.Width = 545.000000000000000000
+    Size.Height = 280.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 541.000000000000000000
+    Viewport.Height = 276.000000000000000000
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 184
+    Top = 48
+  end
+  object TestButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 48.000000000000000000
+    TabOrder = 3
+    Text = 'Test'
+    OnClick = TestButtonClick
+  end
+  object OpenButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    TabOrder = 2
+    Text = 'Open'
+    OnClick = OpenButtonClick
+  end
+end

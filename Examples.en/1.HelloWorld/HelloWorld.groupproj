@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{BE28919A-2521-4021-917F-0F996DE788B4}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="EzSer\EzServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="EzCli\EzClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXCli\FMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="EzServer">
+        <MSBuild Projects="EzSer\EzServer.dproj"/>
+    </Target>
+    <Target Name="EzServer:Clean">
+        <MSBuild Projects="EzSer\EzServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EzServer:Make">
+        <MSBuild Projects="EzSer\EzServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="EzClient">
+        <MSBuild Projects="EzCli\EzClient.dproj"/>
+    </Target>
+    <Target Name="EzClient:Clean">
+        <MSBuild Projects="EzCli\EzClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EzClient:Make">
+        <MSBuild Projects="EzCli\EzClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXClient">
+        <MSBuild Projects="FMXCli\FMXClient.dproj"/>
+    </Target>
+    <Target Name="FMXClient:Clean">
+        <MSBuild Projects="FMXCli\FMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXClient:Make">
+        <MSBuild Projects="FMXCli\FMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="EzServer;EzClient;FMXClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="EzServer:Clean;EzClient:Clean;FMXClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="EzServer:Make;EzClient:Make;FMXClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

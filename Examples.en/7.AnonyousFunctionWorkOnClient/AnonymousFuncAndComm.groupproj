@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{BE28919A-2521-4021-917F-0F996DE788B4}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="EzSer\AFDRServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="EzCli\AFDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXCli\FMXAFDRClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="AFDRServer">
+        <MSBuild Projects="EzSer\AFDRServer.dproj"/>
+    </Target>
+    <Target Name="AFDRServer:Clean">
+        <MSBuild Projects="EzSer\AFDRServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRServer:Make">
+        <MSBuild Projects="EzSer\AFDRServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AFDRClient">
+        <MSBuild Projects="EzCli\AFDRClient.dproj"/>
+    </Target>
+    <Target Name="AFDRClient:Clean">
+        <MSBuild Projects="EzCli\AFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AFDRClient:Make">
+        <MSBuild Projects="EzCli\AFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMXAFDRClient">
+        <MSBuild Projects="FMXCli\FMXAFDRClient.dproj"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Clean">
+        <MSBuild Projects="FMXCli\FMXAFDRClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMXAFDRClient:Make">
+        <MSBuild Projects="FMXCli\FMXAFDRClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="AFDRServer;AFDRClient;FMXAFDRClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="AFDRServer:Clean;AFDRClient:Clean;FMXAFDRClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="AFDRServer:Make;AFDRClient:Make;FMXAFDRClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

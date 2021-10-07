@@ -1,0 +1,81 @@
+﻿object FMXDoubleClientForm: TFMXDoubleClientForm
+  Left = 0
+  Top = 0
+  Caption = 'fmx Double client...'
+  ClientHeight = 315
+  ClientWidth = 612
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Orientations = [InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'HPC background computing server demonstration'
+      ''
+      'The server resource time occupied by background operation is zero'
+      ''
+      'HPC background demonstration is very suitable for large-scale computing needs'
+      ''
+      'The technical mechanism mainly focuses on the large-scale operation on the server side. When the server receives a streamcmd command, the traditional processing method is that the server is blocked in the command, and other requests are waiting. We don'#39't let the server block at this moment. We use the delay technology to tell the background to pause the feedback (pauseresultsend)'
+      'Then, we start a background thread and let the background continue to feed back (continueresultsend) after the thread execution is completed'
+      ''
+      'In the HPC background demonstration program, the above process is automated. It is very simple to use. Using this mode, you can accumulate code indefinitely'
+      ''
+      ''
+      'by.600585'
+      '2018-5-22')
+    ReadOnly = True
+    Align = Client
+    Margins.Left = 130.000000000000000000
+    Size.Width = 482.000000000000000000
+    Size.Height = 315.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Left = 136
+    Top = 38
+    Viewport.Width = 478.000000000000000000
+    Viewport.Height = 295.000000000000000000
+  end
+  object connectButton: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object HostEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Text = '127.0.0.1'
+    Position.X = 8.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'server host'
+  end
+  object HelloWorldBtn: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Hello World'
+    OnClick = HelloWorldBtnClick
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    Left = 296
+    Top = 144
+  end
+end

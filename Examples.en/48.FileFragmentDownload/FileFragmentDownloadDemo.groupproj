@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{5972CCF3-A4CC-4BD2-9E58-AA518D856718}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FragmentSer\FragmentServiceDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FragmentCli\FragmentClientDemo.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FragmentServiceDemo">
+        <MSBuild Projects="FragmentSer\FragmentServiceDemo.dproj"/>
+    </Target>
+    <Target Name="FragmentServiceDemo:Clean">
+        <MSBuild Projects="FragmentSer\FragmentServiceDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FragmentServiceDemo:Make">
+        <MSBuild Projects="FragmentSer\FragmentServiceDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FragmentClientDemo">
+        <MSBuild Projects="FragmentCli\FragmentClientDemo.dproj"/>
+    </Target>
+    <Target Name="FragmentClientDemo:Clean">
+        <MSBuild Projects="FragmentCli\FragmentClientDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FragmentClientDemo:Make">
+        <MSBuild Projects="FragmentCli\FragmentClientDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FragmentServiceDemo;FragmentClientDemo"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FragmentServiceDemo:Clean;FragmentClientDemo:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FragmentServiceDemo:Make;FragmentClientDemo:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

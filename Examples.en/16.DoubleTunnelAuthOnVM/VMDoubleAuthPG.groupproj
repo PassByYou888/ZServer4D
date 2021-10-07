@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{00043E6C-85B0-4EDD-BE4B-3757694C0355}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="VMDoubleAuthServer\VMDoubleAuthServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VMDoubleAuthClient\VMDoubleAuthClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="VMDoubleAuthServer">
+        <MSBuild Projects="VMDoubleAuthServer\VMDoubleAuthServer.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Clean">
+        <MSBuild Projects="VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthServer:Make">
+        <MSBuild Projects="VMDoubleAuthServer\VMDoubleAuthServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient">
+        <MSBuild Projects="VMDoubleAuthClient\VMDoubleAuthClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Clean">
+        <MSBuild Projects="VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthClient:Make">
+        <MSBuild Projects="VMDoubleAuthClient\VMDoubleAuthClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient">
+        <MSBuild Projects="VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Clean">
+        <MSBuild Projects="VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VMDoubleAuthFMXClient:Make">
+        <MSBuild Projects="VMDoubleAuthFMXClient\VMDoubleAuthFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="VMDoubleAuthServer;VMDoubleAuthClient;VMDoubleAuthFMXClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="VMDoubleAuthServer:Clean;VMDoubleAuthClient:Clean;VMDoubleAuthFMXClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="VMDoubleAuthServer:Make;VMDoubleAuthClient:Make;VMDoubleAuthFMXClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

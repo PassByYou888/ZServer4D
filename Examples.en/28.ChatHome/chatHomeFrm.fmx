@@ -1,0 +1,320 @@
+﻿object Form3: TForm3
+  Left = 0
+  Top = 0
+  Caption = 'Form3'
+  ClientHeight = 415
+  ClientWidth = 760
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Padding.Right = 10.000000000000000000
+    Position.X = 16.000000000000000000
+    Position.Y = 200.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object Label1: TLabel
+      Align = Left
+      StyledSettings = [Family, Style, FontColor]
+      Size.Width = 41.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = 'host: '
+      TabOrder = 2
+    end
+    object HostEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      TabOrder = 3
+      Text = '127.0.0.1'
+      Size.Width = 94.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+    object Label5: TLabel
+      Align = Right
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 135.000000000000000000
+      Size.Width = 41.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = 'port: '
+      TabOrder = 0
+    end
+    object PortEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = MostRight
+      TabOrder = 1
+      Text = '29997'
+      Position.X = 176.000000000000000000
+      Size.Width = 39.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+  end
+  object connectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 248.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    Text = 'connect'
+    OnClick = connectButtonClick
+  end
+  object DisconnectButton: TButton
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 128.000000000000000000
+    Position.Y = 248.000000000000000000
+    Size.Width = 97.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = 'disconnect'
+    OnClick = DisconnectButtonClick
+  end
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    StyledSettings = [Family, Size, FontColor]
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Position.X = 248.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 497.000000000000000000
+    Size.Height = 345.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 6
+    Viewport.Width = 493.000000000000000000
+    Viewport.Height = 341.000000000000000000
+  end
+  object ChatHomeMasterCheckBox: TCheckBox
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 169.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 7
+    Text = 'Chat Home Server Mode'
+    OnChange = ChatHomeMasterCheckBoxChange
+  end
+  object Label2: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 176.000000000000000000
+    Text = 'chat Home Client'
+    TabOrder = 9
+  end
+  object Layout2: TLayout
+    Padding.Right = 10.000000000000000000
+    Position.X = 16.000000000000000000
+    Position.Y = 304.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object Label3: TLabel
+      Align = Left
+      StyledSettings = [Family, Style, FontColor]
+      Size.Width = 65.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'my name'
+      TabOrder = 0
+    end
+    object MyNameEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      TabOrder = 1
+      Text = 'pascal'
+      Size.Width = 150.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+      OnChangeTracking = MyNameEditChangeTracking
+    end
+  end
+  object Label4: TLabel
+    StyledSettings = [Family, Style, FontColor]
+    Position.X = 16.000000000000000000
+    Position.Y = 280.000000000000000000
+    Text = 'account set'
+    TabOrder = 8
+  end
+  object Layout3: TLayout
+    Anchors = [akLeft, akRight, akBottom]
+    Padding.Right = 10.000000000000000000
+    Position.X = 120.000000000000000000
+    Position.Y = 360.000000000000000000
+    Size.Width = 625.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object TalkInfoLabel: TLabel
+      Align = Left
+      StyledSettings = [Family, Style, FontColor]
+      Size.Width = 129.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = 'talk: '
+      TabOrder = 0
+    end
+    object TalkEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      TabOrder = 1
+      Text = 'hello world'
+      Size.Width = 362.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+    end
+    object SendButton: TButton
+      Align = Right
+      StyledSettings = [Family, Style, FontColor]
+      Margins.Left = 2.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 2.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 493.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 39.000000000000000000
+      Size.Height = 29.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      Text = 'send'
+      OnClick = SendButtonClick
+    end
+    object SendBigStreamButton: TButton
+      Align = Right
+      StyledSettings = [Family, Style, FontColor]
+      Margins.Left = 2.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 2.000000000000000000
+      Margins.Bottom = 2.000000000000000000
+      Position.X = 536.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 77.000000000000000000
+      Size.Height = 29.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'Send Stream'
+      OnClick = SendBigStreamButtonClick
+    end
+  end
+  object ServiceLayout: TLayout
+    Position.X = 16.000000000000000000
+    Position.Y = 40.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 129.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 10
+    object Layout5: TLayout
+      Padding.Right = 10.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 24.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      object Label6: TLabel
+        Align = Left
+        StyledSettings = [Family, Style, FontColor]
+        Size.Width = 41.000000000000000000
+        Size.Height = 33.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.HorzAlign = Trailing
+        Text = 'bind: '
+        TabOrder = 2
+      end
+      object ListenBindEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Client
+        TabOrder = 3
+        Text = '0.0.0.0'
+        Size.Width = 78.000000000000000000
+        Size.Height = 33.000000000000000000
+        Size.PlatformDefault = False
+        StyledSettings = [Family, Style, FontColor]
+      end
+      object Label7: TLabel
+        Align = Right
+        StyledSettings = [Family, Style, FontColor]
+        Position.X = 119.000000000000000000
+        Size.Width = 41.000000000000000000
+        Size.Height = 33.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.HorzAlign = Trailing
+        Text = 'port: '
+        TabOrder = 0
+      end
+      object ListenPortEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = MostRight
+        TabOrder = 1
+        Text = '29997'
+        Position.X = 160.000000000000000000
+        Size.Width = 39.000000000000000000
+        Size.Height = 33.000000000000000000
+        Size.PlatformDefault = False
+        StyledSettings = [Family, Style, FontColor]
+      end
+    end
+    object Label8: TLabel
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      Text = 'listen options'
+      TabOrder = 9
+    end
+    object StartListenButton: TButton
+      StyledSettings = [Family, Style, FontColor]
+      Position.X = 8.000000000000000000
+      Position.Y = 99.000000000000000000
+      Size.Width = 105.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      Text = 'Start Listen'
+      OnClick = StartListenButtonClick
+    end
+    object ChatServiceInfoLabel: TLabel
+      Position.X = 8.000000000000000000
+      Position.Y = 64.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Online Count: 0'
+      TabOrder = 10
+    end
+  end
+  object DebugCheckBox: TCheckBox
+    Anchors = [akLeft, akBottom]
+    StyledSettings = [Family, Style, FontColor]
+    IsChecked = True
+    Position.X = 16.000000000000000000
+    Position.Y = 368.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 12
+    Text = 'Debug Mode'
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 368
+    Top = 192
+  end
+end

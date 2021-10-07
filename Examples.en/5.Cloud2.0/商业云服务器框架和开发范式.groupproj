@@ -1,0 +1,120 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{B0863684-9263-4446-B64A-C6E186D693F0}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ManagerServer\ManagerServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DataStoreServer\DataStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FileStoreServer\FileStoreServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DataStoreViewClient\DataStoreViewClient.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LogicServer\LogicServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FOGComputeServer\FOGComputeServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMXClient2.0\ACFMXClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ManagerServer">
+        <MSBuild Projects="ManagerServer\ManagerServer.dproj"/>
+    </Target>
+    <Target Name="ManagerServer:Clean">
+        <MSBuild Projects="ManagerServer\ManagerServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ManagerServer:Make">
+        <MSBuild Projects="ManagerServer\ManagerServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DataStoreServer">
+        <MSBuild Projects="DataStoreServer\DataStoreServer.dproj"/>
+    </Target>
+    <Target Name="DataStoreServer:Clean">
+        <MSBuild Projects="DataStoreServer\DataStoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreServer:Make">
+        <MSBuild Projects="DataStoreServer\DataStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FileStoreServer">
+        <MSBuild Projects="FileStoreServer\FileStoreServer.dproj"/>
+    </Target>
+    <Target Name="FileStoreServer:Clean">
+        <MSBuild Projects="FileStoreServer\FileStoreServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FileStoreServer:Make">
+        <MSBuild Projects="FileStoreServer\FileStoreServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DataStoreViewClient">
+        <MSBuild Projects="DataStoreViewClient\DataStoreViewClient.dproj"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Clean">
+        <MSBuild Projects="DataStoreViewClient\DataStoreViewClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DataStoreViewClient:Make">
+        <MSBuild Projects="DataStoreViewClient\DataStoreViewClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LogicServer">
+        <MSBuild Projects="LogicServer\LogicServer.dproj"/>
+    </Target>
+    <Target Name="LogicServer:Clean">
+        <MSBuild Projects="LogicServer\LogicServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LogicServer:Make">
+        <MSBuild Projects="LogicServer\LogicServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FOGComputeServer">
+        <MSBuild Projects="FOGComputeServer\FOGComputeServer.dproj"/>
+    </Target>
+    <Target Name="FOGComputeServer:Clean">
+        <MSBuild Projects="FOGComputeServer\FOGComputeServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FOGComputeServer:Make">
+        <MSBuild Projects="FOGComputeServer\FOGComputeServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer">
+        <MSBuild Projects="IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer:Clean">
+        <MSBuild Projects="IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="IOSPaymentQueryServer:Make">
+        <MSBuild Projects="IOSVerifyReceiptServer\IOSPaymentQueryServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ACFMXClient">
+        <MSBuild Projects="FMXClient2.0\ACFMXClient.dproj"/>
+    </Target>
+    <Target Name="ACFMXClient:Clean">
+        <MSBuild Projects="FMXClient2.0\ACFMXClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ACFMXClient:Make">
+        <MSBuild Projects="FMXClient2.0\ACFMXClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ManagerServer;DataStoreServer;FileStoreServer;DataStoreViewClient;LogicServer;FOGComputeServer;IOSPaymentQueryServer;ACFMXClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ManagerServer:Clean;DataStoreServer:Clean;FileStoreServer:Clean;DataStoreViewClient:Clean;LogicServer:Clean;FOGComputeServer:Clean;IOSPaymentQueryServer:Clean;ACFMXClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ManagerServer:Make;DataStoreServer:Make;FileStoreServer:Make;DataStoreViewClient:Make;LogicServer:Make;FOGComputeServer:Make;IOSPaymentQueryServer:Make;ACFMXClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
