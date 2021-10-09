@@ -288,7 +288,7 @@ type
     procedure Remove(obj: TDTC40_Info);
     procedure Delete(index: Integer);
     procedure Clear;
-    class procedure SortWorkLoad(L: TDTC40_InfoList);
+    class procedure SortWorkLoad(L_: TDTC40_InfoList);
     function GetInfoArray: TDTC40_Info_Array;
     function IsOnlyInstance(ServiceTyp: U_String): Boolean;
     function GetServiceTypNum(ServiceTyp: U_String): Integer;
@@ -340,6 +340,7 @@ type
     constructor Create;
     procedure Progress;
     procedure MakeP2PVM_IPv6_Port(var ip6, port: U_String);
+    function FindHash(hash_: TMD5): TDTC40_Custom_Service;
     function GetServiceFromHash(Hash: TMD5): TDTC40_Custom_Service;
     function ExistsPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
     function ExistsOnlyInstance(ServiceTyp: U_String): Boolean;
@@ -409,6 +410,8 @@ type
   private
   public
     procedure Progress;
+    function FindHash(hash_: TMD5; isConnected: Boolean): TDTC40_Custom_Client; overload;
+    function FindHash(hash_: TMD5): TDTC40_Custom_Client; overload;
     function ExistsPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
     function ExistsServiceInfo(info_: TDTC40_Info): Boolean;
     function ExistsServiceTyp(ServiceTyp: U_String): Boolean;
@@ -422,14 +425,20 @@ type
     function FindConnectedClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client;
     function FindConnectedServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client;
     function GetClientFromHash(Hash: TMD5): TDTC40_Custom_Client;
+    class procedure SortWorkLoad(L_: TDTC40_Custom_ClientPool);
     function GetDTC40Array: TDTC40_Custom_Client_Array;
-    function GetFromServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array;
-    function GetFromPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Client_Array;
-    function GetFromClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client_Array;
+    function SearchServiceTyp(ServiceTyp: U_String; isConnected: Boolean): TDTC40_Custom_Client_Array; overload;
+    function SearchServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array; overload;
+    function SearchPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word; isConnected: Boolean): TDTC40_Custom_Client_Array; overload;
+    function SearchPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Client_Array; overload;
+    function SearchClass(Class_: TDTC40_Custom_Client_Class; isConnected: Boolean): TDTC40_Custom_Client_Array; overload;
+    function SearchClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client_Array; overload;
     procedure WaitConnectedDoneC(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventC);
     procedure WaitConnectedDoneM(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventM);
     procedure WaitConnectedDoneP(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventP);
   end;
+
+
 {$ENDREGION 'p2pVMCustomClient'}
 {$REGION 'DispatchService'}
 
@@ -2279,7 +2288,7 @@ begin
   inherited Clear;
 end;
 
-class procedure TDTC40_InfoList.SortWorkLoad(L: TDTC40_InfoList);
+class procedure TDTC40_InfoList.SortWorkLoad(L_: TDTC40_InfoList);
   function Compare_(Left, Right: TDTC40_Info): ShortInt;
   begin
     Result := CompareFloat(Left.Workload / Left.MaxWorkload, Right.Workload / Right.MaxWorkload);
@@ -2287,7 +2296,7 @@ class procedure TDTC40_InfoList.SortWorkLoad(L: TDTC40_InfoList);
         Result := CompareGeoInt(Right.MaxWorkload, Left.MaxWorkload);
   end;
 
-  procedure fastSort_(var Arry_: TDTC40_InfoList; L, R: Integer);
+  procedure fastSort_(Arry_: TDTC40_InfoList; L, R: Integer);
   var
     i, j: Integer;
     p: TDTC40_Info;
@@ -2316,8 +2325,8 @@ class procedure TDTC40_InfoList.SortWorkLoad(L: TDTC40_InfoList);
   end;
 
 begin
-  if L.Count > 1 then
-      fastSort_(L, 0, L.Count - 1);
+  if L_.Count > 1 then
+      fastSort_(L_, 0, L_.Count - 1);
 end;
 
 function TDTC40_InfoList.GetInfoArray: TDTC40_Info_Array;
@@ -2458,7 +2467,7 @@ begin
           Result := True;
         end
       else
-          DoStatus('not autofree a memory leak.');
+          DoStatus('autofree is false = memory leak.');
     end;
 end;
 
@@ -2486,7 +2495,7 @@ begin
         begin
           if not AutoFree then
             begin
-              DoStatus('not autofree a memory leak.');
+              DoStatus('autofree is false = memory leak.');
             end
           else if (tmp.OnlyInstance) and (GetServiceTypNum(tmp.ServiceTyp) > 0) then
             begin
@@ -2656,6 +2665,16 @@ begin
   inc(FIPV6_Seed);
   port := '1';
   ip6 := IPV6ToStr(tmp);
+end;
+
+function TDTC40_Custom_ServicePool.FindHash(hash_: TMD5): TDTC40_Custom_Service;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if umlCompareMD5(hash_, Items[i].ServiceInfo.Hash) then
+        exit(Items[i]);
 end;
 
 function TDTC40_Custom_ServicePool.GetServiceFromHash(Hash: TMD5): TDTC40_Custom_Service;
@@ -2901,6 +2920,21 @@ begin
       Items[i].Progress;
 end;
 
+function TDTC40_Custom_ClientPool.FindHash(hash_: TMD5; isConnected: Boolean): TDTC40_Custom_Client;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if umlCompareMD5(hash_, Items[i].ClientInfo.Hash) and ((not isConnected) or (isConnected and Items[i].Connected)) then
+        exit(Items[i]);
+end;
+
+function TDTC40_Custom_ClientPool.FindHash(hash_: TMD5): TDTC40_Custom_Client;
+begin
+  Result := FindHash(hash_, False);
+end;
+
 function TDTC40_Custom_ClientPool.ExistsPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
 var
   i: Integer;
@@ -3037,6 +3071,47 @@ begin
         Result := Items[i];
 end;
 
+class procedure TDTC40_Custom_ClientPool.SortWorkLoad(L_: TDTC40_Custom_ClientPool);
+  function Compare_(Left, Right: TDTC40_Custom_Client): ShortInt;
+  begin
+    Result := CompareFloat(Left.ClientInfo.Workload / Left.ClientInfo.MaxWorkload, Right.ClientInfo.Workload / Right.ClientInfo.MaxWorkload);
+    if Result = 0 then
+        Result := CompareGeoInt(Right.ClientInfo.MaxWorkload, Left.ClientInfo.MaxWorkload);
+  end;
+
+  procedure fastSort_(Arry_: TDTC40_Custom_ClientPool; L, R: Integer);
+  var
+    i, j: Integer;
+    p: TDTC40_Custom_Client;
+  begin
+    repeat
+      i := L;
+      j := R;
+      p := Arry_[(L + R) shr 1];
+      repeat
+        while Compare_(Arry_[i], p) < 0 do
+            inc(i);
+        while Compare_(Arry_[j], p) > 0 do
+            dec(j);
+        if i <= j then
+          begin
+            if i <> j then
+                Arry_.Exchange(i, j);
+            inc(i);
+            dec(j);
+          end;
+      until i > j;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
+    until i >= R;
+  end;
+
+begin
+  if L_.Count > 1 then
+      fastSort_(L_, 0, L_.Count - 1);
+end;
+
 function TDTC40_Custom_ClientPool.GetDTC40Array: TDTC40_Custom_Client_Array;
 var
   i: Integer;
@@ -3046,7 +3121,7 @@ begin
       Result[i] := Items[i];
 end;
 
-function TDTC40_Custom_ClientPool.GetFromServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array;
+function TDTC40_Custom_ClientPool.SearchServiceTyp(ServiceTyp: U_String; isConnected: Boolean): TDTC40_Custom_Client_Array;
 var
   L: TDTC40_Custom_ClientPool;
   i: Integer;
@@ -3054,12 +3129,19 @@ begin
   L := TDTC40_Custom_ClientPool.Create;
   for i := 0 to Count - 1 do
     if ServiceTyp.Same(@Items[i].ClientInfo.ServiceTyp) then
-        L.Add(Items[i]);
+      if (not isConnected) or (isConnected and Items[i].Connected) then
+          L.Add(Items[i]);
+  SortWorkLoad(L);
   Result := L.GetDTC40Array;
   DisposeObject(L);
 end;
 
-function TDTC40_Custom_ClientPool.GetFromPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Client_Array;
+function TDTC40_Custom_ClientPool.SearchServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array;
+begin
+  Result := SearchServiceTyp(ServiceTyp, False);
+end;
+
+function TDTC40_Custom_ClientPool.SearchPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word; isConnected: Boolean): TDTC40_Custom_Client_Array;
 var
   L: TDTC40_Custom_ClientPool;
   i: Integer;
@@ -3067,12 +3149,19 @@ begin
   L := TDTC40_Custom_ClientPool.Create;
   for i := 0 to Count - 1 do
     if (PhysicsPort = Items[i].ClientInfo.PhysicsPort) and PhysicsAddr.Same(@Items[i].ClientInfo.PhysicsAddr) then
-        L.Add(Items[i]);
+      if (not isConnected) or (isConnected and Items[i].Connected) then
+          L.Add(Items[i]);
+  SortWorkLoad(L);
   Result := L.GetDTC40Array;
   DisposeObject(L);
 end;
 
-function TDTC40_Custom_ClientPool.GetFromClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client_Array;
+function TDTC40_Custom_ClientPool.SearchPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Client_Array;
+begin
+  Result := SearchPhysicsAddr(PhysicsAddr, PhysicsPort, False);
+end;
+
+function TDTC40_Custom_ClientPool.SearchClass(Class_: TDTC40_Custom_Client_Class; isConnected: Boolean): TDTC40_Custom_Client_Array;
 var
   L: TDTC40_Custom_ClientPool;
   i: Integer;
@@ -3080,9 +3169,16 @@ begin
   L := TDTC40_Custom_ClientPool.Create;
   for i := 0 to Count - 1 do
     if Items[i].InheritsFrom(Class_) then
-        L.Add(Items[i]);
+      if (not isConnected) or (isConnected and Items[i].Connected) then
+          L.Add(Items[i]);
+  SortWorkLoad(L);
   Result := L.GetDTC40Array;
   DisposeObject(L);
+end;
+
+function TDTC40_Custom_ClientPool.SearchClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client_Array;
+begin
+  Result := SearchClass(Class_, False);
 end;
 
 procedure TDTC40_Custom_ClientPool.WaitConnectedDoneC(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventC);
@@ -3420,9 +3516,9 @@ begin
           FOnServiceInfoChange(Self, ServiceInfoList);
 
       { broadcast to all service }
-      Arry_ := DTC40_ClientPool.GetFromClass(TDTC40_Dispatch_Client);
+      Arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
       for cc in Arry_ do
-        if (cc <> Self) and (cc.Connected) then
+        if (cc <> Self) then
             TDTC40_Dispatch_Client(cc).Client.SendTunnel.SendDirectStreamCmd('UpdateServiceInfo', InData);
     end;
 end;
@@ -3433,7 +3529,7 @@ var
   Hash__: TMD5;
   Workload, MaxWorkload: Integer;
   info_: TDTC40_Info;
-  i: Integer;
+  i, j: Integer;
 begin
   D := TDFE.Create;
   while InData.R.NotEnd do
@@ -3447,6 +3543,10 @@ begin
         begin
           info_.Workload := Workload;
           info_.MaxWorkload := MaxWorkload;
+          // automated fixed info error.
+          for j := 0 to DTC40_ClientPool.Count - 1 do
+            if DTC40_ClientPool[j].ClientInfo.Same(info_) then
+                DTC40_ClientPool[j].ClientInfo.Assign(info_);
         end;
     end;
   DisposeObject(D);
@@ -3466,6 +3566,7 @@ var
   info_: TDTC40_Info;
   Arry_: TDTC40_Custom_Client_Array;
   cc: TDTC40_Custom_Client;
+  j: Integer;
 begin
   Hash__ := InData.R.ReadMD5;
   Ignored := InData.R.ReadBool;
@@ -3473,12 +3574,16 @@ begin
   if (info_ <> nil) then
     begin
       info_.Ignored := Ignored;
+      // automated fixed info error.
+      for j := 0 to DTC40_ClientPool.Count - 1 do
+        if DTC40_ClientPool[j].ClientInfo.Same(info_) then
+            DTC40_ClientPool[j].ClientInfo.Assign(info_);
     end;
 
   { broadcast to all service }
-  Arry_ := DTC40_ClientPool.GetFromClass(TDTC40_Dispatch_Client);
+  Arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
   for cc in Arry_ do
-    if (cc <> Self) and (cc.Connected) then
+    if (cc <> Self) then
         TDTC40_Dispatch_Client(cc).Client.SendTunnel.SendDirectStreamCmd('IgnoreChange', InData);
 end;
 
@@ -3496,9 +3601,9 @@ begin
   if C40ExistsPhysicsNetwork(tmp.PhysicsAddr, tmp.PhysicsPort) then
     begin
       { broadcast to all service }
-      Arry_ := DTC40_ClientPool.GetFromClass(TDTC40_Dispatch_Client);
+      Arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
       for cc in Arry_ do
-        if (cc <> Self) and (cc.Connected) then
+        if (cc <> Self) then
             TDTC40_Dispatch_Client(cc).Client.SendTunnel.SendDirectStreamCmd('RemovePhysicsNetwork', InData);
     end;
 end;
