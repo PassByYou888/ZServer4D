@@ -84,12 +84,14 @@ implementation
 
 procedure TDTC40_RandSeed_Service.cmd_MakeSeed(sender: TPeerIO; InData, OutData: TDFE);
 var
+  group_Name_: U_String;
   Group_: TUInt32HashPointerList;
   Min_: UInt32;
   Max_: UInt32;
   tmp: UInt32;
 begin
-  Group_ := GetSeedGroup(InData.R.ReadString);
+  group_Name_ := InData.R.ReadString;
+  Group_ := GetSeedGroup(group_Name_);
   Min_ := InData.R.ReadCardinal;
   Max_ := InData.R.ReadCardinal;
 
@@ -99,14 +101,21 @@ begin
   Group_.Add(tmp, nil, False);
 
   OutData.WriteCardinal(tmp);
+
+  sender.Print('make Seed:%d for "%s" total:%d', [tmp, group_Name_.Text, Group_.Count]);
 end;
 
 procedure TDTC40_RandSeed_Service.cmd_RemoveSeed(sender: TPeerIO; InData: TDFE);
 var
+  group_Name_: U_String;
   Group_: TUInt32HashPointerList;
+  tmp: UInt32;
 begin
-  Group_ := GetSeedGroup(InData.R.ReadString);
-  Group_.Delete(InData.R.ReadCardinal);
+  group_Name_ := InData.R.ReadString;
+  tmp := InData.R.ReadCardinal;
+  Group_ := GetSeedGroup(group_Name_);
+  Group_.Delete(tmp);
+  sender.Print('remove Seed:%d for "%s" total:%d', [tmp, group_Name_.Text, Group_.Count]);
 end;
 
 constructor TDTC40_RandSeed_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
