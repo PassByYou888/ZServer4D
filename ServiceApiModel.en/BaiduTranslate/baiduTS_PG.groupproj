@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{4E7184D2-8DBF-408E-BA20-4DFA99C23DD0}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="BaiduTranslateService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BaiduTranslateClientDemo\ZSTranslateClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="BaiduTranslateService">
+        <MSBuild Projects="BaiduTranslateService.dproj"/>
+    </Target>
+    <Target Name="BaiduTranslateService:Clean">
+        <MSBuild Projects="BaiduTranslateService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BaiduTranslateService:Make">
+        <MSBuild Projects="BaiduTranslateService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ZSTranslateClient">
+        <MSBuild Projects="BaiduTranslateClientDemo\ZSTranslateClient.dproj"/>
+    </Target>
+    <Target Name="ZSTranslateClient:Clean">
+        <MSBuild Projects="BaiduTranslateClientDemo\ZSTranslateClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ZSTranslateClient:Make">
+        <MSBuild Projects="BaiduTranslateClientDemo\ZSTranslateClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="BaiduTranslateService;ZSTranslateClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="BaiduTranslateService:Clean;ZSTranslateClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="BaiduTranslateService:Make;ZSTranslateClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
