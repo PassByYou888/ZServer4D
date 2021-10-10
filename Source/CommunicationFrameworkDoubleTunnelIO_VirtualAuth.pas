@@ -41,7 +41,7 @@ type
   TVirtualAuthIO = class(TCoreClassObject)
   private
     RecvIO_ID, SendIO_ID: Cardinal;
-    AuthResult: TDataFrameEngine;
+    AuthResult: TDFE;
     Done: Boolean;
   public
     Owner: TDTService_VirtualAuth;
@@ -56,7 +56,7 @@ type
   TVirtualRegIO = class(TCoreClassObject)
   private
     RecvIO_ID, SendIO_ID: Cardinal;
-    RegResult: TDataFrameEngine;
+    RegResult: TDFE;
     Done: Boolean;
   public
     Owner: TDTService_VirtualAuth;
@@ -128,26 +128,26 @@ type
     procedure UserPostFileSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth; fn: SystemString); virtual;
   protected
     { registed server command }
-    procedure Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_UserLogin(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDFE); virtual;
 
-    procedure Command_GetFileTime(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetFileInfo(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetFileMD5(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_GetFileTime(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetFileInfo(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetFileMD5(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetFile(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_PostFileInfo(Sender: TPeerIO; InData: TDFE); virtual;
     procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_GetFileFragmentData(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_PostFileOver(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_GetFileFragmentData(Sender: TPeerIO; InData, OutData: TDFE); virtual;
 
-    procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDFE); virtual;
     procedure Command_PostBatchStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_ClearBatchStream(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDFE); virtual;
   public
     constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkServer); virtual;
     destructor Destroy; override;
@@ -278,28 +278,28 @@ type
     procedure ClientDisconnect(Sender: TCommunicationFrameworkClient); virtual;
   public
     { registed client command }
-    procedure Command_FileInfo(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_FileInfo(Sender: TPeerIO; InData: TDFE); virtual;
     procedure Command_PostFile(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_PostFileOver(Sender: TPeerIO; InData: TDFE); virtual;
     procedure Command_PostFileFragmentData(Sender: TPeerIO; InData: PByte; DataSize: NativeInt); virtual;
 
-    procedure GetCurrentCadencer_StreamResult(Sender: TPeerIO; Result_: TDataFrameEngine); virtual;
+    procedure GetCurrentCadencer_StreamResult(Sender: TPeerIO; Result_: TDFE); virtual;
 
-    procedure GetFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine); virtual;
-    procedure GetFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine); virtual;
+    procedure GetFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE); virtual;
+    procedure GetFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE); virtual;
 
     { Downloading files from the server asynchronously and triggering notifications when completed }
-    procedure GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine); virtual;
+    procedure GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE); virtual;
 
     { Downloading file fragment data from the server asynchronously and triggering notifications when completed }
-    procedure GetFileFragmentData_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine); virtual;
+    procedure GetFileFragmentData_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE); virtual;
 
     { batch stream suppport }
-    procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_NewBatchStream(Sender: TPeerIO; InData: TDFE); virtual;
     procedure Command_PostBatchStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64); virtual;
-    procedure Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_ClearBatchStream(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDFE); virtual;
   protected
     { async connect support }
     FAsyncConnectAddr: SystemString;
@@ -310,12 +310,12 @@ type
     procedure AsyncSendConnectResult(const cState: Boolean);
     procedure AsyncRecvConnectResult(const cState: Boolean);
 
-    procedure UserLogin_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
-    procedure UserLogin_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
-    procedure RegisterUser_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
-    procedure RegisterUser_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
-    procedure TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
-    procedure TunnelLink_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+    procedure UserLogin_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+    procedure UserLogin_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+    procedure RegisterUser_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+    procedure RegisterUser_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+    procedure TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+    procedure TunnelLink_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
   public
     constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient); virtual;
     destructor Destroy; override;
@@ -434,7 +434,7 @@ type
     procedure GetBatchStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
     procedure GetBatchStreamStateP(OnResult: TStreamProc); overload;
     procedure GetBatchStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-    function GetBatchStreamState(Result_: TDataFrameEngine; ATimeOut: TTimeTick): Boolean; overload;
+    function GetBatchStreamState(Result_: TDFE; ATimeOut: TTimeTick): Boolean; overload;
 
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
@@ -1083,7 +1083,7 @@ procedure TDTService_VirtualAuth.UserPostFileSuccess(UserDefineIO: TPeerClientUs
 begin
 end;
 
-procedure TDTService_VirtualAuth.Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_UserLogin(Sender: TPeerIO; InData, OutData: TDFE);
 var
   SendTunnelID: Cardinal;
   UserID, UserPasswd: SystemString;
@@ -1128,7 +1128,7 @@ begin
     end;
 end;
 
-procedure TDTService_VirtualAuth.Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDFE);
 var
   SendTunnelID: Cardinal;
   UserID, UserPasswd: SystemString;
@@ -1173,7 +1173,7 @@ begin
     end;
 end;
 
-procedure TDTService_VirtualAuth.Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_TunnelLink(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RecvID, SendID: Cardinal;
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
@@ -1222,13 +1222,13 @@ begin
   UserLinkSuccess(UserDefineIO);
 end;
 
-procedure TDTService_VirtualAuth.Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetCurrentCadencer(Sender: TPeerIO; InData, OutData: TDFE);
 begin
   FCadencerEngine.Progress;
   OutData.WriteDouble(FCadencerEngine.CurrentTime);
 end;
 
-procedure TDTService_VirtualAuth.Command_GetFileTime(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetFileTime(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fullfn, fileName: SystemString;
@@ -1251,7 +1251,7 @@ begin
   OutData.WriteDouble(umlGetFileTime(fullfn));
 end;
 
-procedure TDTService_VirtualAuth.Command_GetFileInfo(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetFileInfo(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fullfn, fileName: SystemString;
@@ -1277,7 +1277,7 @@ begin
     end;
 end;
 
-procedure TDTService_VirtualAuth.Command_GetFileMD5(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetFileMD5(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fullfn, fileName: SystemString;
@@ -1322,13 +1322,13 @@ begin
   DisposeObject(fs);
 end;
 
-procedure TDTService_VirtualAuth.Command_GetFile(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetFile(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fullfn, fileName, remoteinfo: SystemString;
   StartPos: Int64;
   RemoteBackcallAddr: UInt64;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   fs: TCoreClassFileStream;
   MD5: TMD5;
 begin
@@ -1357,7 +1357,7 @@ begin
       exit;
   end;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(fs.Size);
@@ -1370,7 +1370,7 @@ begin
   fs.Position := 0;
   UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteMD5(MD5);
   sendDE.WritePointer(RemoteBackcallAddr);
   UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_PostFileOver, sendDE);
@@ -1380,13 +1380,13 @@ begin
   OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
-procedure TDTService_VirtualAuth.Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetFileAs(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fullfn, fileName, saveFileName, remoteinfo: SystemString;
   StartPos: Int64;
   RemoteBackcallAddr: UInt64;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   fs: TCoreClassFileStream;
   MD5: TMD5;
 begin
@@ -1416,7 +1416,7 @@ begin
       exit;
   end;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(saveFileName);
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(fs.Size);
@@ -1429,7 +1429,7 @@ begin
   fs.Position := 0;
   UserDefineIO.SendTunnel.Owner.SendBigStream(C_PostFile, fs, StartPos, True);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteMD5(MD5);
   sendDE.WritePointer(RemoteBackcallAddr);
   UserDefineIO.SendTunnel.Owner.SendDirectStreamCmd(C_PostFileOver, sendDE);
@@ -1439,7 +1439,7 @@ begin
   OutData.WriteString(PFormat('post %s to send tunnel', [fileName]));
 end;
 
-procedure TDTService_VirtualAuth.Command_PostFileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_PostFileInfo(Sender: TPeerIO; InData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fn: SystemString;
@@ -1510,7 +1510,7 @@ begin
     end;
 end;
 
-procedure TDTService_VirtualAuth.Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_PostFileOver(Sender: TPeerIO; InData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   ClientMD5, MD5: TMD5;
@@ -1547,7 +1547,7 @@ begin
     end;
 end;
 
-procedure TDTService_VirtualAuth.Command_GetFileFragmentData(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetFileFragmentData(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserDefineIO: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   fullfn, fileName: SystemString;
@@ -1616,7 +1616,7 @@ begin
   OutData.WriteBool(True);
 end;
 
-procedure TDTService_VirtualAuth.Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_NewBatchStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   p: PBigStreamBatchPostData;
@@ -1633,7 +1633,7 @@ procedure TDTService_VirtualAuth.Command_PostBatchStream(Sender: TPeerIO; InData
 var
   RT: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   p: PBigStreamBatchPostData;
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
@@ -1651,7 +1651,7 @@ begin
 
           if p^.CompletedBackcallPtr <> 0 then
             begin
-              de := TDataFrameEngine.Create;
+              de := TDFE.Create;
               de.WriteMD5(p^.RemoteMD5);
               de.WriteMD5(p^.SourceMD5);
               de.WritePointer(p^.CompletedBackcallPtr);
@@ -1662,7 +1662,7 @@ begin
     end;
 end;
 
-procedure TDTService_VirtualAuth.Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_ClearBatchStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
 begin
@@ -1672,7 +1672,7 @@ begin
   RT.BigStreamBatchList.Clear;
 end;
 
-procedure TDTService_VirtualAuth.Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDFE);
 var
   RT: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   rMD5, sMD5: TMD5;
@@ -1718,13 +1718,13 @@ begin
   end;
 end;
 
-procedure TDTService_VirtualAuth.Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTService_VirtualAuth.Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RT: TPeerClientUserDefineForRecvTunnel_VirtualAuth;
   i: Integer;
   p: PBigStreamBatchPostData;
 
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   RT := GetUserDefineRecvTunnel(Sender);
   if not RT.LinkOk then
@@ -1733,7 +1733,7 @@ begin
   for i := 0 to RT.BigStreamBatchList.Count - 1 do
     begin
       p := RT.BigStreamBatchList[i];
-      de := TDataFrameEngine.Create;
+      de := TDFE.Create;
       p^.Encode(de);
       OutData.WriteDataFrame(de);
       DisposeObject(de);
@@ -1866,9 +1866,9 @@ end;
 
 procedure TDTService_VirtualAuth.PostBatchStream(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(0);
@@ -1880,10 +1880,10 @@ end;
 
 procedure TDTService_VirtualAuth.PostBatchStreamC(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   p := nil;
 
@@ -1904,10 +1904,10 @@ end;
 
 procedure TDTService_VirtualAuth.PostBatchStreamM(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   p := nil;
 
@@ -1928,10 +1928,10 @@ end;
 
 procedure TDTService_VirtualAuth.PostBatchStreamP(cli: TPeerIO; stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   p := nil;
 
@@ -1952,50 +1952,50 @@ end;
 
 procedure TDTService_VirtualAuth.ClearBatchStream(cli: TPeerIO);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   cli.SendDirectStreamCmd(C_ClearBatchStream, de);
   DisposeObject(de);
 end;
 
 procedure TDTService_VirtualAuth.GetBatchStreamStateM(cli: TPeerIO; OnResult: TStreamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   cli.SendStreamCmdM(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDTService_VirtualAuth.GetBatchStreamStateM(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   cli.SendStreamCmdM(C_GetBatchStreamState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDTService_VirtualAuth.GetBatchStreamStateP(cli: TPeerIO; OnResult: TStreamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   cli.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDTService_VirtualAuth.GetBatchStreamStateP(cli: TPeerIO; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   cli.SendStreamCmdP(C_GetBatchStreamState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
@@ -2037,7 +2037,7 @@ procedure TDTClient_VirtualAuth.ClientDisconnect(Sender: TCommunicationFramework
 begin
 end;
 
-procedure TDTClient_VirtualAuth.Command_FileInfo(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.Command_FileInfo(Sender: TPeerIO; InData: TDFE);
 var
   fn: SystemString;
   StartPos: Int64;
@@ -2089,7 +2089,7 @@ begin
     end;
 end;
 
-procedure TDTClient_VirtualAuth.Command_PostFileOver(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.Command_PostFileOver(Sender: TPeerIO; InData: TDFE);
 var
   servMD5, MD5: TMD5;
   RemoteBackcallAddr: UInt64;
@@ -2174,7 +2174,7 @@ begin
     end;
 end;
 
-procedure TDTClient_VirtualAuth.GetCurrentCadencer_StreamResult(Sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.GetCurrentCadencer_StreamResult(Sender: TPeerIO; Result_: TDFE);
 var
   servTime: Double;
 begin
@@ -2187,7 +2187,7 @@ begin
   FCadencerEngine.Progress;
 end;
 
-procedure TDTClient_VirtualAuth.GetFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.GetFileInfo_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE);
 var
   p: PGetFileInfoStruct_VirtualAuth;
   Existed: Boolean;
@@ -2209,7 +2209,7 @@ begin
     end;
 end;
 
-procedure TDTClient_VirtualAuth.GetFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.GetFileMD5_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE);
 var
   p: PFileMD5Struct_VirtualAuth;
   successed: Boolean;
@@ -2234,7 +2234,7 @@ begin
     end;
 end;
 
-procedure TDTClient_VirtualAuth.GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.GetFile_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE);
 var
   p: PRemoteFileBackcall_VirtualAuth;
 begin
@@ -2249,7 +2249,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.GetFileFragmentData_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.GetFileFragmentData_StreamParamResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; InData, Result_: TDFE);
 var
   p: PFileFragmentDataBackcall_VirtualAuth;
 begin
@@ -2263,7 +2263,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.Command_NewBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.Command_NewBatchStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TClientUserDefineForRecvTunnel_VirtualAuth;
   p: PBigStreamBatchPostData;
@@ -2280,7 +2280,7 @@ procedure TDTClient_VirtualAuth.Command_PostBatchStream(Sender: TPeerIO; InData:
 var
   RT: TClientUserDefineForRecvTunnel_VirtualAuth;
   p: PBigStreamBatchPostData;
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if not LinkOk then
       exit;
@@ -2298,7 +2298,7 @@ begin
 
           if p^.CompletedBackcallPtr <> 0 then
             begin
-              de := TDataFrameEngine.Create;
+              de := TDFE.Create;
               de.WriteMD5(p^.RemoteMD5);
               de.WriteMD5(p^.SourceMD5);
               de.WritePointer(p^.CompletedBackcallPtr);
@@ -2309,11 +2309,11 @@ begin
     end;
 end;
 
-procedure TDTClient_VirtualAuth.Command_ClearBatchStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.Command_ClearBatchStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TClientUserDefineForRecvTunnel_VirtualAuth;
   p: PBigStreamBatchPostData;
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if not LinkOk then
       exit;
@@ -2321,7 +2321,7 @@ begin
   RT.BigStreamBatchList.Clear;
 end;
 
-procedure TDTClient_VirtualAuth.Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.Command_PostBatchStreamDone(Sender: TPeerIO; InData: TDFE);
 var
   RT: TClientUserDefineForRecvTunnel_VirtualAuth;
   rMD5, sMD5: TMD5;
@@ -2367,13 +2367,13 @@ begin
   end;
 end;
 
-procedure TDTClient_VirtualAuth.Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.Command_GetBatchStreamState(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RT: TClientUserDefineForRecvTunnel_VirtualAuth;
   i: Integer;
   p: PBigStreamBatchPostData;
 
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if not LinkOk then
       exit;
@@ -2382,7 +2382,7 @@ begin
   for i := 0 to RT.BigStreamBatchList.Count - 1 do
     begin
       p := RT.BigStreamBatchList[i];
-      de := TDataFrameEngine.Create;
+      de := TDFE.Create;
       p^.Encode(de);
       OutData.WriteDataFrame(de);
       DisposeObject(de);
@@ -2437,7 +2437,7 @@ begin
   FAsyncOnResultProc := nil;
 end;
 
-procedure TDTClient_VirtualAuth.UserLogin_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.UserLogin_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   r: Boolean;
   p: POnStateStruct;
@@ -2460,7 +2460,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.UserLogin_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.UserLogin_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 var
   p: POnStateStruct;
 begin
@@ -2475,7 +2475,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.RegisterUser_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.RegisterUser_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   r: Boolean;
   p: POnStateStruct;
@@ -2498,7 +2498,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.RegisterUser_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.RegisterUser_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 var
   p: POnStateStruct;
 begin
@@ -2513,7 +2513,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.TunnelLink_OnResult(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   r: Boolean;
   p: POnStateStruct;
@@ -2551,7 +2551,7 @@ begin
   Dispose(p);
 end;
 
-procedure TDTClient_VirtualAuth.TunnelLink_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDataFrameEngine);
+procedure TDTClient_VirtualAuth.TunnelLink_OnFailed(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 var
   p: POnStateStruct;
 begin
@@ -2800,15 +2800,15 @@ end;
 
 function TDTClient_VirtualAuth.UserLogin(UserID, Passwd: SystemString): Boolean;
 var
-  sendDE, resDE: TDataFrameEngine;
+  sendDE, resDE: TDFE;
 begin
   Result := False;
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
-  resDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
+  resDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -2827,15 +2827,15 @@ end;
 
 function TDTClient_VirtualAuth.RegisterUser(UserID, Passwd: SystemString): Boolean;
 var
-  sendDE, resDE: TDataFrameEngine;
+  sendDE, resDE: TDFE;
 begin
   Result := False;
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
-  resDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
+  resDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -2854,7 +2854,7 @@ end;
 
 function TDTClient_VirtualAuth.TunnelLink: Boolean;
 var
-  sendDE, resDE: TDataFrameEngine;
+  sendDE, resDE: TDFE;
 begin
   if FLinkOk then
       exit(True);
@@ -2867,8 +2867,8 @@ begin
 
   SyncCadencer;
 
-  sendDE := TDataFrameEngine.Create;
-  resDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
+  resDE := TDFE.Create;
 
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
@@ -2902,14 +2902,14 @@ end;
 
 procedure TDTClient_VirtualAuth.UserLoginC(UserID, Passwd: SystemString; OnCall: TStateCall);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -2924,14 +2924,14 @@ end;
 
 procedure TDTClient_VirtualAuth.UserLoginM(UserID, Passwd: SystemString; OnMethod: TStateMethod);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -2946,14 +2946,14 @@ end;
 
 procedure TDTClient_VirtualAuth.UserLoginP(UserID, Passwd: SystemString; OnProc: TStateProc);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -2968,14 +2968,14 @@ end;
 
 procedure TDTClient_VirtualAuth.RegisterUserC(UserID, Passwd: SystemString; OnCall: TStateCall);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -2990,14 +2990,14 @@ end;
 
 procedure TDTClient_VirtualAuth.RegisterUserM(UserID, Passwd: SystemString; OnMethod: TStateMethod);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -3012,14 +3012,14 @@ end;
 
 procedure TDTClient_VirtualAuth.RegisterUserP(UserID, Passwd: SystemString; OnProc: TStateProc);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if not FSendTunnel.Connected then
       exit;
   if not FRecvTunnel.Connected then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
   sendDE.WriteString(UserID);
@@ -3034,7 +3034,7 @@ end;
 
 procedure TDTClient_VirtualAuth.TunnelLinkC(OnCall: TStateCall);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if FLinkOk then
@@ -3048,7 +3048,7 @@ begin
 
   SyncCadencer;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
@@ -3061,7 +3061,7 @@ end;
 
 procedure TDTClient_VirtualAuth.TunnelLinkM(OnMethod: TStateMethod);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if FLinkOk then
@@ -3075,7 +3075,7 @@ begin
 
   SyncCadencer;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
@@ -3088,7 +3088,7 @@ end;
 
 procedure TDTClient_VirtualAuth.TunnelLinkP(OnProc: TStateProc);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: POnStateStruct;
 begin
   if FLinkOk then
@@ -3102,7 +3102,7 @@ begin
 
   SyncCadencer;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteCardinal(FSendTunnel.RemoteID);
   sendDE.WriteCardinal(FRecvTunnel.RemoteID);
@@ -3115,9 +3115,9 @@ end;
 
 procedure TDTClient_VirtualAuth.SyncCadencer;
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
 begin
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   FCadencerEngine.Progress;
   FLastCadencerTime := FCadencerEngine.CurrentTime;
@@ -3129,7 +3129,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileTimeM(RemoteFilename: SystemString; OnCallResult: TStreamMethod);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
 begin
   if not FFileSystem then
       exit;
@@ -3138,7 +3138,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(RemoteFilename);
   FSendTunnel.SendStreamCmdM(C_GetFileTime, sendDE, OnCallResult);
   DisposeObject(sendDE);
@@ -3146,7 +3146,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileTimeP(RemoteFilename: SystemString; OnCallResult: TStreamProc);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
 begin
   if not FFileSystem then
       exit;
@@ -3155,7 +3155,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(RemoteFilename);
   FSendTunnel.SendStreamCmdP(C_GetFileTime, sendDE, OnCallResult);
   DisposeObject(sendDE);
@@ -3164,7 +3164,7 @@ end;
 { remote file exists }
 procedure TDTClient_VirtualAuth.GetFileInfoC(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoCall_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PGetFileInfoStruct_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3174,7 +3174,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   new(p);
   p^.UserData := UserData;
@@ -3191,7 +3191,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileInfoM(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoMethod_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PGetFileInfoStruct_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3201,7 +3201,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   new(p);
   p^.UserData := UserData;
@@ -3218,7 +3218,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileInfoP(fileName: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TGetFileInfoProc_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PGetFileInfoStruct_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3228,7 +3228,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   new(p);
   p^.UserData := UserData;
@@ -3247,7 +3247,7 @@ end;
 procedure TDTClient_VirtualAuth.GetFileMD5C(fileName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Call_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PFileMD5Struct_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3257,7 +3257,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(EndPos);
@@ -3279,7 +3279,7 @@ end;
 procedure TDTClient_VirtualAuth.GetFileMD5M(fileName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Method_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PFileMD5Struct_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3289,7 +3289,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(EndPos);
@@ -3311,7 +3311,7 @@ end;
 procedure TDTClient_VirtualAuth.GetFileMD5P(fileName: SystemString; const StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnComplete: TFileMD5Proc_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PFileMD5Struct_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3321,7 +3321,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(EndPos);
@@ -3366,7 +3366,7 @@ end;
 { restore download }
 procedure TDTClient_VirtualAuth.GetFileC(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3376,7 +3376,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3395,7 +3395,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileM(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3405,7 +3405,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3424,7 +3424,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileP(fileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3434,7 +3434,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3453,7 +3453,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileAsC(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileCompleteCall_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3463,7 +3463,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteString(saveFileName);
@@ -3483,7 +3483,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileAsM(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileCompleteMethod_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3493,7 +3493,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteString(saveFileName);
@@ -3513,7 +3513,7 @@ end;
 
 procedure TDTClient_VirtualAuth.GetFileAsP(fileName, saveFileName: SystemString; StartPos: Int64; saveToPath: SystemString; const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileCompleteProc_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PRemoteFileBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3523,7 +3523,7 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteString(saveFileName);
@@ -3544,7 +3544,7 @@ end;
 { Synchronously waiting to download files from the server to complete }
 function TDTClient_VirtualAuth.GetFile(fileName: SystemString; StartPos: Int64; saveToPath: SystemString): Boolean;
 var
-  sendDE, resDE: TDataFrameEngine;
+  sendDE, resDE: TDFE;
 begin
   Result := False;
   if not FFileSystem then
@@ -3554,8 +3554,8 @@ begin
   if not FRecvTunnel.Connected then
       exit;
 
-  sendDE := TDataFrameEngine.Create;
-  resDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
+  resDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3577,7 +3577,7 @@ end;
 procedure TDTClient_VirtualAuth.GetFileFragmentDataC(fileName: SystemString; StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteCall: TFileFragmentDataCall_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PFileFragmentDataBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3597,7 +3597,7 @@ begin
   p^.OnCompleteMethod := nil;
   p^.OnCompleteProc := nil;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3611,7 +3611,7 @@ end;
 procedure TDTClient_VirtualAuth.GetFileFragmentDataM(fileName: SystemString; StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteMethod: TFileFragmentDataMethod_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PFileFragmentDataBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3631,7 +3631,7 @@ begin
   p^.OnCompleteMethod := OnCompleteMethod;
   p^.OnCompleteProc := nil;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3645,7 +3645,7 @@ end;
 procedure TDTClient_VirtualAuth.GetFileFragmentDataP(fileName: SystemString; StartPos, EndPos: Int64;
   const UserData: Pointer; const UserObject: TCoreClassObject; const OnCompleteProc: TFileFragmentDataProc_VirtualAuth);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   p: PFileFragmentDataBackcall_VirtualAuth;
 begin
   if not FFileSystem then
@@ -3665,7 +3665,7 @@ begin
   p^.OnCompleteMethod := nil;
   p^.OnCompleteProc := OnCompleteProc;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
 
   sendDE.WriteString(fileName);
   sendDE.WriteInt64(StartPos);
@@ -3723,7 +3723,7 @@ end;
 
 procedure TDTClient_VirtualAuth.PostFile(fileName: SystemString);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   fs: TCoreClassFileStream;
   MD5: TMD5;
 begin
@@ -3738,7 +3738,7 @@ begin
 
   fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(umlGetFileName(fileName));
   sendDE.WriteInt64(0);
   sendDE.WriteInt64(fs.Size);
@@ -3750,7 +3750,7 @@ begin
   fs.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, fs, True);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteMD5(MD5);
   FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
@@ -3758,7 +3758,7 @@ end;
 
 procedure TDTClient_VirtualAuth.PostFile(fileName: SystemString; StartPos: Int64);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   fs: TCoreClassFileStream;
   MD5: TMD5;
 begin
@@ -3773,7 +3773,7 @@ begin
 
   fs := TCoreClassFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(umlGetFileName(fileName));
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(fs.Size);
@@ -3785,7 +3785,7 @@ begin
   fs.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, fs, StartPos, True);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteMD5(MD5);
   FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
@@ -3793,7 +3793,7 @@ end;
 
 procedure TDTClient_VirtualAuth.PostFile(fn: SystemString; stream: TCoreClassStream; doneFreeStream: Boolean);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   MD5: TMD5;
 begin
   if (not FSendTunnel.Connected) or (not FRecvTunnel.Connected) or (not FFileSystem) then
@@ -3803,7 +3803,7 @@ begin
       exit;
     end;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(umlGetFileName(fn));
   sendDE.WriteInt64(0);
   sendDE.WriteInt64(stream.Size);
@@ -3816,7 +3816,7 @@ begin
   stream.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, stream, doneFreeStream);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteMD5(MD5);
   FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
@@ -3824,7 +3824,7 @@ end;
 
 procedure TDTClient_VirtualAuth.PostFile(fn: SystemString; stream: TCoreClassStream; StartPos: Int64; doneFreeStream: Boolean);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   MD5: TMD5;
 begin
   if (not FSendTunnel.Connected) or (not FRecvTunnel.Connected) or (not FFileSystem) then
@@ -3834,7 +3834,7 @@ begin
       exit;
     end;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteString(umlGetFileName(fn));
   sendDE.WriteInt64(StartPos);
   sendDE.WriteInt64(stream.Size);
@@ -3847,7 +3847,7 @@ begin
   stream.Position := 0;
   FSendTunnel.SendBigStream(C_PostFile, stream, StartPos, doneFreeStream);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteMD5(MD5);
   FSendTunnel.SendDirectStreamCmd(C_PostFileOver, sendDE);
   DisposeObject(sendDE);
@@ -3868,9 +3868,9 @@ end;
 
 procedure TDTClient_VirtualAuth.PostBatchStream(stream: TCoreClassStream; doneFreeStream: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteMD5(umlStreamMD5(stream));
   de.WritePointer(0);
@@ -3882,10 +3882,10 @@ end;
 
 procedure TDTClient_VirtualAuth.PostBatchStreamC(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateCall);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   p := nil;
 
@@ -3906,10 +3906,10 @@ end;
 
 procedure TDTClient_VirtualAuth.PostBatchStreamM(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   p := nil;
 
@@ -3930,10 +3930,10 @@ end;
 
 procedure TDTClient_VirtualAuth.PostBatchStreamP(stream: TCoreClassStream; doneFreeStream: Boolean; OnCompletedBackcall: TStateProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   p := nil;
 
@@ -3954,55 +3954,55 @@ end;
 
 procedure TDTClient_VirtualAuth.ClearBatchStream;
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   p: POnStateStruct;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendDirectStreamCmd(C_ClearBatchStream, de);
   DisposeObject(de);
 end;
 
 procedure TDTClient_VirtualAuth.GetBatchStreamStateM(OnResult: TStreamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdM(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDTClient_VirtualAuth.GetBatchStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdM(C_GetBatchStreamState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDTClient_VirtualAuth.GetBatchStreamStateP(OnResult: TStreamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdP(C_GetBatchStreamState, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDTClient_VirtualAuth.GetBatchStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdP(C_GetBatchStreamState, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
-function TDTClient_VirtualAuth.GetBatchStreamState(Result_: TDataFrameEngine; ATimeOut: TTimeTick): Boolean;
+function TDTClient_VirtualAuth.GetBatchStreamState(Result_: TDFE; ATimeOut: TTimeTick): Boolean;
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.WaitSendStreamCmd(C_GetBatchStreamState, de, Result_, ATimeOut);
   Result := Result_.Count > 0;
   DisposeObject(de);

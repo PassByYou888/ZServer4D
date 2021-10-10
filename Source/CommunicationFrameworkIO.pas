@@ -58,8 +58,8 @@ type
     FCanSaveUserInfo: Boolean;
     FLoginUserList: THashVariantList;
   protected
-    procedure Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
+    procedure Command_UserLogin(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDFE); virtual;
   public
     Communication: TCommunicationFramework;
 
@@ -149,7 +149,7 @@ begin
   Result := UserConfigFile.GetDefaultValue('UserInfo', 'UserID', '');
 end;
 
-procedure TCommunicationFramework_UserAuthService.Command_UserLogin(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_UserAuthService.Command_UserLogin(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserID, UserPasswd: SystemString;
   UserDefineIO: TPeerClientUserDefineForIO;
@@ -198,7 +198,7 @@ begin
   OutData.WriteString(UserDefineIO.UserFlag);
 end;
 
-procedure TCommunicationFramework_UserAuthService.Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TCommunicationFramework_UserAuthService.Command_RegisterUser(Sender: TPeerIO; InData, OutData: TDFE);
 var
   UserID, UserPasswd: SystemString;
   UserDefineIO: TPeerClientUserDefineForIO;
@@ -383,11 +383,11 @@ end;
 
 function TCommunicationFramework_UserAuthClient.UserLogin(UserID, passwd: SystemString): Boolean;
 var
-  sendDE, resDE: TDataFrameEngine;
+  sendDE, resDE: TDFE;
 begin
   Result := False;
-  sendDE := TDataFrameEngine.Create;
-  resDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
+  resDE := TDFE.Create;
 
   sendDE.WriteString(UserID);
   sendDE.WriteString(passwd);
@@ -405,11 +405,11 @@ end;
 
 function TCommunicationFramework_UserAuthClient.RegisterUser(UserID, passwd: SystemString): Boolean;
 var
-  sendDE, resDE: TDataFrameEngine;
+  sendDE, resDE: TDFE;
 begin
   Result := False;
-  sendDE := TDataFrameEngine.Create;
-  resDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
+  resDE := TDFE.Create;
 
   sendDE.WriteString(UserID);
   sendDE.WriteString(passwd);

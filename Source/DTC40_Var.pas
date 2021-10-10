@@ -61,14 +61,14 @@ type
   TVAR_Service_NMBigPool = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericHashList<TDTC40_VarService_NM_Pool>;
   TDTC40_Var_NumberModulePool_List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDTC40_VarService_NM_Pool>;
 
-  TDTC40_Var_Service_IO_Define = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
-  public
-    NM_List: TDTC40_Var_NumberModulePool_List;
-    constructor Create(Owner_: TPeerIO); override;
-    destructor Destroy; override;
-  end;
-
   TDTC40_Var_Service = class(TDTC40_Base_NoAuth_Service)
+  private type
+    TDTC40_Var_Service_IO_Define = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
+    public
+      NM_List: TDTC40_Var_NumberModulePool_List;
+      constructor Create(Owner_: TPeerIO); override;
+      destructor Destroy; override;
+    end;
   protected
     IsLoading: Boolean;
     procedure DoLoading();
@@ -111,87 +111,86 @@ type
     procedure PrintError(v: SystemString; const Args: array of const); overload;
   end;
 
-{$REGION 'bridge_define'}
-
-  TON_NM_GetC = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
-  TON_NM_GetM = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) of object;
-{$IFDEF FPC}
-  TON_NM_GetP = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) is nested;
-{$ELSE FPC}
-  TON_NM_GetP = reference to procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
-{$ENDIF FPC}
-
-  TON_NM_Get = class(TOnResultBridge)
-  public
-    Client: TDTC40_Var_Client;
-    OnResultC: TON_NM_GetC;
-    OnResultM: TON_NM_GetM;
-    OnResultP: TON_NM_GetP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
-
-  TON_NM_GetValueC = procedure(Sender: TDTC40_Var_Client; NM: TNumberModule);
-  TON_NM_GetValueM = procedure(Sender: TDTC40_Var_Client; NM: TNumberModule) of object;
-{$IFDEF FPC}
-  TON_NM_GetValueP = procedure(Sender: TDTC40_Var_Client; NM: TNumberModule) is nested;
-{$ELSE FPC}
-  TON_NM_GetValueP = reference to procedure(Sender: TDTC40_Var_Client; NM: TNumberModule);
-{$ENDIF FPC}
-
-  TON_NM_GetValue = class(TOnResultBridge)
-  public
-    Client: TDTC40_Var_Client;
-    NM_Name: U_String;
-    OnResultC: TON_NM_GetValueC;
-    OnResultM: TON_NM_GetValueM;
-    OnResultP: TON_NM_GetValueP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
-
-  TON_NM_OpenC = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
-  TON_NM_OpenM = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) of object;
-{$IFDEF FPC}
-  TON_NM_OpenP = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) is nested;
-{$ELSE FPC}
-  TON_NM_OpenP = reference to procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
-{$ENDIF FPC}
-
-  TON_NM_Open = class(TOnResultBridge)
-  public
-    Client: TDTC40_Var_Client;
-    OnResultC: TON_NM_OpenC;
-    OnResultM: TON_NM_OpenM;
-    OnResultP: TON_NM_OpenP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
-
-  TON_NM_ScriptC = procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector);
-  TON_NM_ScriptM = procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector) of object;
-{$IFDEF FPC}
-  TON_NM_ScriptP = procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector) is nested;
-{$ELSE FPC}
-  TON_NM_ScriptP = reference to procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector);
-{$ENDIF FPC}
-
-  TON_NM_Script = class(TOnResultBridge)
-  public
-    Client: TDTC40_Var_Client;
-    OnResultC: TON_NM_ScriptC;
-    OnResultM: TON_NM_ScriptM;
-    OnResultP: TON_NM_ScriptP;
-    constructor Create; override;
-    procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
-{$ENDREGION 'bridge_define'}
-
   TDTC40_Var_Client = class(TDTC40_Base_NoAuth_Client)
+  public type
+{$REGION 'bridge_define'}
+    TON_NM_GetC = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
+    TON_NM_GetM = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) of object;
+{$IFDEF FPC}
+    TON_NM_GetP = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) is nested;
+{$ELSE FPC}
+    TON_NM_GetP = reference to procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
+{$ENDIF FPC}
+
+    TON_NM_Get = class(TOnResultBridge)
+    public
+      Client: TDTC40_Var_Client;
+      OnResultC: TON_NM_GetC;
+      OnResultM: TON_NM_GetM;
+      OnResultP: TON_NM_GetP;
+      constructor Create; override;
+      procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+      procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+    end;
+
+    TON_NM_GetValueC = procedure(Sender: TDTC40_Var_Client; NM: TNumberModule);
+    TON_NM_GetValueM = procedure(Sender: TDTC40_Var_Client; NM: TNumberModule) of object;
+{$IFDEF FPC}
+    TON_NM_GetValueP = procedure(Sender: TDTC40_Var_Client; NM: TNumberModule) is nested;
+{$ELSE FPC}
+    TON_NM_GetValueP = reference to procedure(Sender: TDTC40_Var_Client; NM: TNumberModule);
+{$ENDIF FPC}
+
+    TON_NM_GetValue = class(TOnResultBridge)
+    public
+      Client: TDTC40_Var_Client;
+      NM_Name: U_String;
+      OnResultC: TON_NM_GetValueC;
+      OnResultM: TON_NM_GetValueM;
+      OnResultP: TON_NM_GetValueP;
+      constructor Create; override;
+      procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+      procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+    end;
+
+    TON_NM_OpenC = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
+    TON_NM_OpenM = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) of object;
+{$IFDEF FPC}
+    TON_NM_OpenP = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) is nested;
+{$ELSE FPC}
+    TON_NM_OpenP = reference to procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
+{$ENDIF FPC}
+
+    TON_NM_Open = class(TOnResultBridge)
+    public
+      Client: TDTC40_Var_Client;
+      OnResultC: TON_NM_OpenC;
+      OnResultM: TON_NM_OpenM;
+      OnResultP: TON_NM_OpenP;
+      constructor Create; override;
+      procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+      procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+    end;
+
+    TON_NM_ScriptC = procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector);
+    TON_NM_ScriptM = procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector) of object;
+{$IFDEF FPC}
+    TON_NM_ScriptP = procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector) is nested;
+{$ELSE FPC}
+    TON_NM_ScriptP = reference to procedure(Sender: TDTC40_Var_Client; Result_: TExpressionValueVector);
+{$ENDIF FPC}
+
+    TON_NM_Script = class(TOnResultBridge)
+    public
+      Client: TDTC40_Var_Client;
+      OnResultC: TON_NM_ScriptC;
+      OnResultM: TON_NM_ScriptM;
+      OnResultP: TON_NM_ScriptP;
+      constructor Create; override;
+      procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+      procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+    end;
+{$ENDREGION 'bridge_define'}
   protected
     procedure cmd_NM_Change(Sender: TPeerIO; InData: TDFE);
   public
@@ -275,13 +274,13 @@ begin
     end;
 end;
 
-constructor TDTC40_Var_Service_IO_Define.Create(Owner_: TPeerIO);
+constructor TDTC40_Var_Service.TDTC40_Var_Service_IO_Define.Create(Owner_: TPeerIO);
 begin
   inherited Create(Owner_);
   NM_List := TDTC40_Var_NumberModulePool_List.Create;
 end;
 
-destructor TDTC40_Var_Service_IO_Define.Destroy;
+destructor TDTC40_Var_Service.TDTC40_Var_Service_IO_Define.Destroy;
 begin
   DisposeObject(NM_List);
   inherited Destroy;
@@ -867,7 +866,7 @@ begin
   PrintError(PFormat(v, Args));
 end;
 
-constructor TON_NM_Get.Create;
+constructor TDTC40_Var_Client.TON_NM_Get.Create;
 begin
   inherited Create;
   Client := nil;
@@ -876,7 +875,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TON_NM_Get.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TDTC40_Var_Client.TON_NM_Get.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   NM_Pool_: TDTC40_VarService_NM_Pool;
 begin
@@ -898,7 +897,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-procedure TON_NM_Get.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TDTC40_Var_Client.TON_NM_Get.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 begin
   try
     if Assigned(OnResultC) then
@@ -912,7 +911,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-constructor TON_NM_GetValue.Create;
+constructor TDTC40_Var_Client.TON_NM_GetValue.Create;
 begin
   inherited Create;
   Client := nil;
@@ -922,7 +921,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TON_NM_GetValue.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TDTC40_Var_Client.TON_NM_GetValue.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   NM_Pool_: TDTC40_VarService_NM_Pool;
   NM_: TNumberModule;
@@ -946,7 +945,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-procedure TON_NM_GetValue.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TDTC40_Var_Client.TON_NM_GetValue.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 begin
   try
     if Assigned(OnResultC) then
@@ -960,7 +959,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-constructor TON_NM_Open.Create;
+constructor TDTC40_Var_Client.TON_NM_Open.Create;
 begin
   inherited Create;
   Client := nil;
@@ -969,7 +968,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TON_NM_Open.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TDTC40_Var_Client.TON_NM_Open.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   NM_Pool_: TDTC40_VarService_NM_Pool;
 begin
@@ -991,7 +990,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-procedure TON_NM_Open.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TDTC40_Var_Client.TON_NM_Open.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 begin
   try
     if Assigned(OnResultC) then
@@ -1005,7 +1004,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-constructor TON_NM_Script.Create;
+constructor TDTC40_Var_Client.TON_NM_Script.Create;
 begin
   inherited Create;
   Client := nil;
@@ -1014,7 +1013,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TON_NM_Script.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TDTC40_Var_Client.TON_NM_Script.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   tmp: TExpressionValueVector;
   i: Integer;
@@ -1035,7 +1034,7 @@ begin
   DelayFreeObject(1.0, self);
 end;
 
-procedure TON_NM_Script.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TDTC40_Var_Client.TON_NM_Script.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 var
   tmp: TExpressionValueVector;
 begin

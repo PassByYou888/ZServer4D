@@ -57,10 +57,10 @@ type
   TServerManager_Client = class(TCommunicationFramework_DoubleTunnelClient_NoAuth)
   protected
     procedure PostExecute_RegServer(Sender: TNPostExecute);
-    procedure Command_RegServer(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Command_RegServer(Sender: TPeerIO; InData: TDFE);
 
     procedure PostExecute_Offline(Sender: TNPostExecute);
-    procedure Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Command_Offline(Sender: TPeerIO; InData: TDFE);
   public
     Owner: TServerManager_ClientPool;
     NetRecvTunnelIntf, NetSendTunnelIntf: TCommunicationFrameworkClient;
@@ -141,9 +141,9 @@ type
     procedure PostExecute_RegServer(Sender: TNPostExecute);
   protected
     { manager client }
-    procedure Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDFE);
     procedure PostExecute_Disconnect(Sender: TNPostExecute);
-    procedure Command_AntiIdle(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Command_AntiIdle(Sender: TPeerIO; InData: TDFE);
   protected
     procedure ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
     procedure ServerOffline(Sender: TServerManager_Client; RegAddr: SystemString; ServerType: TServerType);
@@ -187,7 +187,7 @@ begin
   DisposeObject(te);
 end;
 
-procedure TServerManager_Client.Command_RegServer(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TServerManager_Client.Command_RegServer(Sender: TPeerIO; InData: TDFE);
 var
   te: TSectionTextData;
 begin
@@ -233,7 +233,7 @@ begin
       Owner.NotifyIntf.ServerOffline(Self, RegAddr, ServerType);
 end;
 
-procedure TServerManager_Client.Command_Offline(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TServerManager_Client.Command_Offline(Sender: TPeerIO; InData: TDFE);
 begin
   ProgressEngine.PostExecuteM(InData, {$IFDEF FPC}@{$ENDIF FPC}PostExecute_Offline);
 end;
@@ -298,13 +298,13 @@ end;
 
 procedure TServerManager_Client.AntiIdle(WorkLoad: Word);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
 begin
   if SendTunnel.ClientIO.IOBusy then
       exit;
   if SendTunnel.SequencePacketActivted then
       exit;
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteWORD(WorkLoad);
   SendTunnel.SendDirectStreamCmd(C_AntiIdle, sendDE);
   DisposeObject(sendDE);
@@ -312,7 +312,7 @@ end;
 
 function TServerManager_Client.EnabledServer(const Regname, ManServAddr, RegAddr: SystemString; const RegRecvPort, RegSendPort: Word; ServerType: TServerType): Boolean;
 var
-  SendData, Result_: TDataFrameEngine;
+  SendData, Result_: TDFE;
 begin
   ConnectInfo.Regname := Regname;
   ConnectInfo.ManServAddr := ManServAddr;
@@ -323,8 +323,8 @@ begin
 
   Result := False;
 
-  SendData := TDataFrameEngine.Create;
-  Result_ := TDataFrameEngine.Create;
+  SendData := TDFE.Create;
+  Result_ := TDFE.Create;
 
   SendData.WriteString(ManServAddr);
   SendData.WriteString(Regname);
@@ -620,7 +620,7 @@ procedure TServerManager.PostExecute_RegServer(Sender: TNPostExecute);
 var
   IO_Array: TIO_Array;
   pid: Cardinal;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   peer: TPeerIO;
   c: TServerManager_RecvTunnelData;
 begin
@@ -637,19 +637,19 @@ begin
         end;
     end;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteSectionText(ServerConfig);
   SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
 end;
 
-procedure TServerManager.Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TServerManager.Command_EnabledServer(Sender: TPeerIO; InData, OutData: TDFE);
 var
   IO_Array: TIO_Array;
   pid: Cardinal;
   peer: TPeerIO;
   cli: TServerManager_RecvTunnelData;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
   i: Integer;
   listcli: TServerManager_RecvTunnelData;
 begin
@@ -712,7 +712,7 @@ begin
 
   cli.WriteConfig(ServerConfig);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteSectionText(ServerConfig);
   SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
@@ -731,7 +731,7 @@ begin
   c.Disconnect;
 end;
 
-procedure TServerManager.Command_AntiIdle(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TServerManager.Command_AntiIdle(Sender: TPeerIO; InData: TDFE);
 var
   cli: TServerManager_RecvTunnelData;
 begin
@@ -747,14 +747,14 @@ end;
 
 procedure TServerManager.ServerConfigChange(Sender: TServerManager_Client; ConfigData: TSectionTextData);
 var
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
 begin
   if ServerConfig.Same(ConfigData) then
       exit;
 
   ServerConfig.Merge(ConfigData);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteSectionText(ServerConfig);
   SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);
@@ -770,7 +770,7 @@ var
   vl: THashVariantList;
   c: TServerManager_RecvTunnelData;
   existedSameOnlineServer: Boolean;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFE;
 begin
   existedSameOnlineServer := False;
   FRecvTunnel.GetIO_Array(IO_Array);
@@ -816,7 +816,7 @@ begin
 
   ServerConfig.Rebuild;
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFE.Create;
   sendDE.WriteSectionText(ServerConfig);
   SendTunnel.BroadcastDirectStreamCmd(C_RegServer, sendDE);
   DisposeObject(sendDE);

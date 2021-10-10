@@ -34,8 +34,6 @@ uses
   CommunicationFramework, PhysicsIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, DTC40;
 
 type
-  TDTC40_FS_Client = class;
-
   TDTC40_FS_Service = class(TDTC40_Base_NoAuth_Service)
   protected
     // init build-in data
@@ -64,79 +62,78 @@ type
     procedure Do_FS_RemoveFile(Token: U_String; Token_is_MD5: Boolean);
   end;
 
+  TDTC40_FS_Client = class(TDTC40_Base_NoAuth_Client)
+  public type
 {$REGION 'bridge_define'}
-
-  TON_FS_PostFile_DoneC = procedure(Sender: TDTC40_FS_Client; Token: U_String);
-  TON_FS_PostFile_DoneM = procedure(Sender: TDTC40_FS_Client; Token: U_String) of object;
+    TON_FS_PostFile_DoneC = procedure(Sender: TDTC40_FS_Client; Token: U_String);
+    TON_FS_PostFile_DoneM = procedure(Sender: TDTC40_FS_Client; Token: U_String) of object;
 {$IFDEF FPC}
-  TON_FS_PostFile_DoneP = procedure(Sender: TDTC40_FS_Client; Token: U_String) is nested;
+    TON_FS_PostFile_DoneP = procedure(Sender: TDTC40_FS_Client; Token: U_String) is nested;
 {$ELSE FPC}
-  TON_FS_PostFile_DoneP = reference to procedure(Sender: TDTC40_FS_Client; Token: U_String);
+    TON_FS_PostFile_DoneP = reference to procedure(Sender: TDTC40_FS_Client; Token: U_String);
 {$ENDIF FPC}
 
-  TFS_Temp_Post_File_Tunnel = class
-  public
-    p2pClient: TCommunicationFrameworkWithP2PVM_Client;
-    Client: TDTC40_FS_Client;
-    Token: U_String;
-    stream: TMS64;
-    OnResultC: TON_FS_PostFile_DoneC;
-    OnResultM: TON_FS_PostFile_DoneM;
-    OnResultP: TON_FS_PostFile_DoneP;
+    TFS_Temp_Post_File_Tunnel = class
+    public
+      p2pClient: TCommunicationFrameworkWithP2PVM_Client;
+      Client: TDTC40_FS_Client;
+      Token: U_String;
+      stream: TMS64;
+      OnResultC: TON_FS_PostFile_DoneC;
+      OnResultM: TON_FS_PostFile_DoneM;
+      OnResultP: TON_FS_PostFile_DoneP;
 
-    constructor Create;
-    destructor Destroy; override;
-    procedure DoP2PVM_CloneConnectAndPostFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
-    procedure cmd_PostDone(Sender: TPeerIO; InData: SystemString);
-  end;
+      constructor Create;
+      destructor Destroy; override;
+      procedure DoP2PVM_CloneConnectAndPostFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
+      procedure cmd_PostDone(Sender: TPeerIO; InData: SystemString);
+    end;
 
-  TON_FS_GetFile_DoneC = procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean);
-  TON_FS_GetFile_DoneM = procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean) of object;
+    TON_FS_GetFile_DoneC = procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean);
+    TON_FS_GetFile_DoneM = procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean) of object;
 {$IFDEF FPC}
-  TON_FS_GetFile_DoneP = procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean) is nested;
+    TON_FS_GetFile_DoneP = procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean) is nested;
 {$ELSE FPC}
-  TON_FS_GetFile_DoneP = reference to procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean);
+    TON_FS_GetFile_DoneP = reference to procedure(Sender: TDTC40_FS_Client; stream: TMS64; Token: U_String; Successed: Boolean);
 {$ENDIF FPC}
 
-  TFS_Temp_Get_File_Tunnel = class
-  public
-    p2pClient: TCommunicationFrameworkWithP2PVM_Client;
-    Client: TDTC40_FS_Client;
-    Token: U_String;
-    Token_is_MD5: Boolean;
-    OnResultC: TON_FS_GetFile_DoneC;
-    OnResultM: TON_FS_GetFile_DoneM;
-    OnResultP: TON_FS_GetFile_DoneP;
+    TFS_Temp_Get_File_Tunnel = class
+    public
+      p2pClient: TCommunicationFrameworkWithP2PVM_Client;
+      Client: TDTC40_FS_Client;
+      Token: U_String;
+      Token_is_MD5: Boolean;
+      OnResultC: TON_FS_GetFile_DoneC;
+      OnResultM: TON_FS_GetFile_DoneM;
+      OnResultP: TON_FS_GetFile_DoneP;
 
-    constructor Create;
-    destructor Destroy; override;
-    procedure cmd_Save(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
-    procedure cmd_Error(Sender: TPeerIO; InData: SystemString);
-    procedure DoP2PVM_CloneConnectAndGetFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
-  end;
+      constructor Create;
+      destructor Destroy; override;
+      procedure cmd_Save(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+      procedure cmd_Error(Sender: TPeerIO; InData: SystemString);
+      procedure DoP2PVM_CloneConnectAndGetFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
+    end;
 
-  TFS_Temp_GetFileMD5C = procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString);
-  TFS_Temp_GetFileMD5M = procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString) of object;
+    TFS_Temp_GetFileMD5C = procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString);
+    TFS_Temp_GetFileMD5M = procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString) of object;
 {$IFDEF FPC}
-  TFS_Temp_GetFileMD5P = procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString) is nested;
+    TFS_Temp_GetFileMD5P = procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString) is nested;
 {$ELSE FPC}
-  TFS_Temp_GetFileMD5P = reference to procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString);
+    TFS_Temp_GetFileMD5P = reference to procedure(Sender: TDTC40_FS_Client; State_: Boolean; info_: SystemString);
 {$ENDIF FPC}
 
-  TFS_Temp_GetFileMD5 = class(TOnResultBridge)
-  public
-    Client: TDTC40_FS_Client;
-    OnResultC: TFS_Temp_GetFileMD5C;
-    OnResultM: TFS_Temp_GetFileMD5M;
-    OnResultP: TFS_Temp_GetFileMD5P;
-    constructor Create; override;
-    procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
-    procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
-  end;
+    TFS_Temp_GetFileMD5 = class(TOnResultBridge)
+    public
+      Client: TDTC40_FS_Client;
+      OnResultC: TFS_Temp_GetFileMD5C;
+      OnResultM: TFS_Temp_GetFileMD5M;
+      OnResultP: TFS_Temp_GetFileMD5P;
+      constructor Create; override;
+      procedure DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE); override;
+      procedure DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE); override;
+    end;
 
 {$ENDREGION 'bridge_define'}
-
-  TDTC40_FS_Client = class(TDTC40_Base_NoAuth_Client)
   public
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
@@ -426,7 +423,7 @@ begin
   DisposeObject(m64);
 end;
 
-constructor TFS_Temp_Post_File_Tunnel.Create;
+constructor TDTC40_FS_Client.TFS_Temp_Post_File_Tunnel.Create;
 begin
   inherited Create;
   p2pClient := nil;
@@ -438,13 +435,13 @@ begin
   OnResultP := nil;
 end;
 
-destructor TFS_Temp_Post_File_Tunnel.Destroy;
+destructor TDTC40_FS_Client.TFS_Temp_Post_File_Tunnel.Destroy;
 begin
   DisposeObject(stream);
   inherited Destroy;
 end;
 
-procedure TFS_Temp_Post_File_Tunnel.DoP2PVM_CloneConnectAndPostFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
+procedure TDTC40_FS_Client.TFS_Temp_Post_File_Tunnel.DoP2PVM_CloneConnectAndPostFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
 begin
   p2pClient := Sender;
   p2pClient.RegisterDirectConsole('PostDone').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_PostDone;
@@ -452,7 +449,7 @@ begin
   stream.DiscardMemory;
 end;
 
-procedure TFS_Temp_Post_File_Tunnel.cmd_PostDone(Sender: TPeerIO; InData: SystemString);
+procedure TDTC40_FS_Client.TFS_Temp_Post_File_Tunnel.cmd_PostDone(Sender: TPeerIO; InData: SystemString);
 begin
   try
     if Assigned(OnResultC) then
@@ -466,7 +463,7 @@ begin
   p2pClient.IO_IDLE_Trace_And_FreeSelf(Self);
 end;
 
-constructor TFS_Temp_Get_File_Tunnel.Create;
+constructor TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.Create;
 begin
   inherited Create;
   p2pClient := nil;
@@ -478,12 +475,12 @@ begin
   OnResultP := nil;
 end;
 
-destructor TFS_Temp_Get_File_Tunnel.Destroy;
+destructor TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TFS_Temp_Get_File_Tunnel.cmd_Save(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
+procedure TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.cmd_Save(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
   tmp1, tmp2: TMS64;
   tmp_token_: U_String;
@@ -512,7 +509,7 @@ begin
   p2pClient.IO_IDLE_Trace_And_FreeSelf(Self);
 end;
 
-procedure TFS_Temp_Get_File_Tunnel.cmd_Error(Sender: TPeerIO; InData: SystemString);
+procedure TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.cmd_Error(Sender: TPeerIO; InData: SystemString);
 begin
   Sender.PrintError(InData);
   try
@@ -528,7 +525,7 @@ begin
   p2pClient.IO_IDLE_Trace_And_FreeSelf(Self);
 end;
 
-procedure TFS_Temp_Get_File_Tunnel.DoP2PVM_CloneConnectAndGetFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
+procedure TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.DoP2PVM_CloneConnectAndGetFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
 var
   d: TDFE;
 begin
@@ -543,7 +540,7 @@ begin
   DisposeObject(d);
 end;
 
-constructor TFS_Temp_GetFileMD5.Create;
+constructor TDTC40_FS_Client.TFS_Temp_GetFileMD5.Create;
 begin
   inherited Create;
   Client := nil;
@@ -552,7 +549,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TFS_Temp_GetFileMD5.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
+procedure TDTC40_FS_Client.TFS_Temp_GetFileMD5.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
   State_: Boolean;
   info_: SystemString;
@@ -577,7 +574,7 @@ begin
   DelayFreeObject(1.0, Self);
 end;
 
-procedure TFS_Temp_GetFileMD5.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+procedure TDTC40_FS_Client.TFS_Temp_GetFileMD5.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 var
   State_: Boolean;
   info_: SystemString;

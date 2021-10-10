@@ -145,8 +145,8 @@ type
     SourceDB, OutputDB, PipelineName, RegistedQuery: SystemString;
 
     procedure Init;
-    procedure Encode(d: TDataFrameEngine);
-    procedure Decode(d: TDataFrameEngine);
+    procedure Encode(d: TDFE);
+    procedure Decode(d: TDFE);
   end;
 
   TPipeInfo = TPipeState;
@@ -248,7 +248,7 @@ begin
   RegistedQuery := '';
 end;
 
-procedure TPipeState.Encode(d: TDataFrameEngine);
+procedure TPipeState.Encode(d: TDFE);
 begin
   d.WriteBool(WriteOutputDB);
   d.WriteBool(Activted);
@@ -269,7 +269,7 @@ begin
   d.WriteString(RegistedQuery);
 end;
 
-procedure TPipeState.Decode(d: TDataFrameEngine);
+procedure TPipeState.Decode(d: TDFE);
 begin
   Init;
   WriteOutputDB := d.Reader.ReadBool;

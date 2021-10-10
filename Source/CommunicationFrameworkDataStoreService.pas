@@ -94,38 +94,38 @@ type
     procedure UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel); override;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel); override;
 
-    procedure Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_InitDB(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CloseDB(Sender: TPeerIO; InData: TDFE); virtual;
 
-    procedure Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CopyDB(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompressDB(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_ReplaceDB(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_ResetData(Sender: TPeerIO; InData: TDFE); virtual;
 
-    procedure Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_QueryDB(Sender: TPeerIO; InData: TDFE); virtual;
 
-    procedure Command_DownloadDB(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_DownloadDBWithID(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_DownloadDB(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_DownloadDBWithID(Sender: TPeerIO; InData: TDFE); virtual;
 
-    procedure Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDFE); virtual;
 
     procedure Command_FastPostCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     procedure Command_FastInsertCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     procedure Command_FastModifyCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 
-    procedure Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDFE); virtual;
 
-    procedure Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_DeleteData(Sender: TPeerIO; InData: TDFE); virtual;
 
-    procedure Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine); virtual;
-    procedure Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_GetDBList(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDFE); virtual;
+    procedure Command_QueryStop(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_QueryPause(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_QueryPlay(Sender: TPeerIO; InData: TDFE); virtual;
 
     { send client command }
     procedure Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
@@ -162,13 +162,13 @@ type
     FDataStoreCipherKey: TCipherKeyBuffer;
     FCipherInstance: TCipher_Base;
     procedure EncryptBuffer(sour: Pointer; Size: NativeInt; Encrypt: Boolean);
-    procedure Command_DataStoreSecurity(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Command_DataStoreSecurity(Sender: TPeerIO; InData: TDFE);
   private
-    procedure Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
-    procedure Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine); virtual;
+    procedure Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompletedQuery(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDFE); virtual;
+    procedure Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDFE); virtual;
   public
     constructor Create(RecvTunnel_, SendTunnel_: TCommunicationFrameworkClient); override;
     destructor Destroy; override;
@@ -312,7 +312,7 @@ type
     { Security post support }
     procedure PostAssembleStream(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure PostAssembleStreamCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
-    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TDataFrameEngine); overload;
+    procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TDFE); overload;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashStringList); overload;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TSectionTextData); overload;
@@ -322,7 +322,7 @@ type
     { Security insert support }
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure InsertAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
-    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -332,7 +332,7 @@ type
     { Security modify support }
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
     procedure ModifyAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream);
-    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -351,7 +351,7 @@ type
     { fast post support }
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure FastPostCompleteBufferCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
-    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDataFrameEngine); overload;
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDFE); overload;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashStringList); overload;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TSectionTextData); overload;
@@ -361,7 +361,7 @@ type
     { fast insert support }
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure FastInsertCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
-    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -371,7 +371,7 @@ type
     { fast modify support }
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure FastModifyCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
-    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine); overload;
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData); overload;
@@ -535,7 +535,7 @@ end;
 procedure TDataStoreService.StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
 var
   p: POnStorePosTransformTrigger;
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if Data = nil then
       exit;
@@ -604,11 +604,11 @@ end;
 procedure TDataStoreService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
-  de: TDataFrameEngine;
+  de: TDFE;
   arr: TDataFrameArrayByte;
 begin
   RT := UserDefineIO as TDataStoreService_PeerClientRecvTunnel;
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteByte(Byte(RT.FDataStoreCipherSecurity));
   arr := de.WriteArrayByte;
   arr.AddPtrBuff(@RT.FDataStoreCipherKey[0], length(RT.FDataStoreCipherKey));
@@ -617,7 +617,7 @@ begin
   inherited UserLinkSuccess(UserDefineIO);
 end;
 
-procedure TDataStoreService.Command_InitDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_InitDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   InMem: Boolean;
@@ -635,7 +635,7 @@ begin
       FZDBLocal.InitDB(dataBaseName_, False);
 end;
 
-procedure TDataStoreService.Command_CloseDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CloseDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -654,7 +654,7 @@ begin
       FZDBLocal.CloseDB(dataBaseName_);
 end;
 
-procedure TDataStoreService.Command_CopyDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CopyDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_, copy2N: SystemString;
@@ -675,7 +675,7 @@ begin
   FZDBLocal.CopyDB(dataBaseName_, copy2N, p, {$IFDEF FPC}@{$ENDIF FPC}StorePosTransform);
 end;
 
-procedure TDataStoreService.Command_CompressDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompressDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -695,7 +695,7 @@ begin
   FZDBLocal.CompressDB(dataBaseName_, p, {$IFDEF FPC}@{$ENDIF FPC}StorePosTransform);
 end;
 
-procedure TDataStoreService.Command_ReplaceDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_ReplaceDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_, replaceN: SystemString;
@@ -709,7 +709,7 @@ begin
   FZDBLocal.ReplaceDB(dataBaseName_, replaceN);
 end;
 
-procedure TDataStoreService.Command_ResetData(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_ResetData(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -722,7 +722,7 @@ begin
   FZDBLocal.ResetData(dataBaseName_);
 end;
 
-procedure TDataStoreService.Command_QueryDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   RegedQueryName: SystemString;
@@ -785,7 +785,7 @@ begin
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_DownloadDB(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_DownloadDB(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   ReverseQuery: Boolean;
@@ -813,7 +813,7 @@ begin
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_DownloadDBWithID(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_DownloadDBWithID(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   ReverseQuery: Boolean;
@@ -846,7 +846,7 @@ begin
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_RequestDownloadAssembleStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -878,7 +878,7 @@ begin
   ClearBatchStream(RT.SendTunnelDefine.Owner);
 end;
 
-procedure TDataStoreService.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_RequestFastDownloadAssembleStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -974,7 +974,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure TDataStoreService.Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompletedPostAssembleStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -997,7 +997,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompletedInsertAssembleStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -1022,7 +1022,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_CompletedModifyAssembleStream(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -1052,7 +1052,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_DeleteData(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_DeleteData(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   dataBaseName_: SystemString;
@@ -1068,7 +1068,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 end;
 
-procedure TDataStoreService.Command_GetDBList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDataStoreService.Command_GetDBList(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   lst: TCoreClassListForObj;
@@ -1089,7 +1089,7 @@ begin
   DisposeObject(lst);
 end;
 
-procedure TDataStoreService.Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDataStoreService.Command_GetQueryList(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   i: Integer;
@@ -1107,7 +1107,7 @@ begin
     end;
 end;
 
-procedure TDataStoreService.Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TDataStoreService.Command_GetQueryState(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   PipeName_: SystemString;
@@ -1155,7 +1155,7 @@ begin
   ps.Init;
 end;
 
-procedure TDataStoreService.Command_QueryStop(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryStop(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   PipeName_: SystemString;
@@ -1174,7 +1174,7 @@ begin
       pl.stop;
 end;
 
-procedure TDataStoreService.Command_QueryPause(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryPause(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   PipeName_: SystemString;
@@ -1193,7 +1193,7 @@ begin
       pl.Pause;
 end;
 
-procedure TDataStoreService.Command_QueryPlay(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreService.Command_QueryPlay(Sender: TPeerIO; InData: TDFE);
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   PipeName_: SystemString;
@@ -1214,9 +1214,9 @@ end;
 
 procedure TDataStoreService.Send_CompletedFragmentBigStream(pipe: TTDataStoreService_DBPipeline);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(pipe.SourceDBName);
   de.WriteString(pipe.OutputDBName);
   de.WriteString(pipe.PipelineName);
@@ -1227,9 +1227,9 @@ end;
 
 procedure TDataStoreService.Send_CompletedQuery(pipe: TTDataStoreService_DBPipeline);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(pipe.SourceDBName);
   de.WriteString(pipe.OutputDBName);
   de.WriteString(pipe.PipelineName);
@@ -1242,9 +1242,9 @@ end;
 
 procedure TDataStoreService.Send_CompletedDownloadAssemble(SendCli_: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
@@ -1255,9 +1255,9 @@ end;
 
 procedure TDataStoreService.Send_CompletedFastDownloadAssemble(SendCli_: TPeerIO; dataBaseName_: SystemString; dStorePos: Int64; BackcallPtr: UInt64);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WritePointer(BackcallPtr);
@@ -1268,11 +1268,11 @@ end;
 
 procedure TDataStoreService.Send_CompletedStorePosTransform(SendCli_: TPeerIO; const BackcallPtr: UInt64; const TransformBuff: PZDBStorePosTransformArray);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   i: Integer;
   arr: TDataFrameArrayInt64;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WritePointer(BackcallPtr);
 
   arr := de.WriteArrayInt64;
@@ -1440,7 +1440,7 @@ begin
       FCipherInstance.Decrypt(sour, Size);
 end;
 
-procedure TDataStoreClient.Command_DataStoreSecurity(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_DataStoreSecurity(Sender: TPeerIO; InData: TDFE);
 var
   arr: TDataFrameArrayByte;
 begin
@@ -1456,7 +1456,7 @@ begin
   FCipherInstance.ProcessTail := True;
 end;
 
-procedure TDataStoreClient.Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedFragmentBigStream(Sender: TPeerIO; InData: TDFE);
 var
   dataBaseName_, OutputDatabaseName_, PipeName_: SystemString;
   BackcallPtr: PDataStoreClientQueryNotify;
@@ -1519,7 +1519,7 @@ begin
   DisposeObject(M);
 end;
 
-procedure TDataStoreClient.Command_CompletedQuery(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedQuery(Sender: TPeerIO; InData: TDFE);
 var
   dataBaseName_, OutputDatabaseName_, PipeName_: SystemString;
   BackcallPtr: PDataStoreClientQueryNotify;
@@ -1554,7 +1554,7 @@ begin
   Sender.UserDefine.BigStreamBatchList.Clear;
 end;
 
-procedure TDataStoreClient.Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedDownloadAssemble(Sender: TPeerIO; InData: TDFE);
 var
   dataBaseName_: SystemString;
   dStorePos: Int64;
@@ -1625,7 +1625,7 @@ begin
     end;
 end;
 
-procedure TDataStoreClient.Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedFastDownloadAssemble(Sender: TPeerIO; InData: TDFE);
 var
   dataBaseName_: SystemString;
   dStorePos: Int64;
@@ -1694,7 +1694,7 @@ begin
     end;
 end;
 
-procedure TDataStoreClient.Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TDataStoreClient.Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDFE);
 var
   BackcallPtr: PStorePosTransformNotify;
   arr: TDataFrameArrayInt64;
@@ -1773,9 +1773,9 @@ end;
 
 procedure TDataStoreClient.InitDB(InMem: Boolean; dataBaseName_: SystemString);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteBool(InMem);
   de.WriteString(dataBaseName_);
@@ -1786,9 +1786,9 @@ end;
 
 procedure TDataStoreClient.CloseDB(dataBaseName_: SystemString; CloseAndDeleted: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteBool(CloseAndDeleted);
   SendTunnel.SendDirectStreamCmd(C_CloseDB, de);
@@ -1802,9 +1802,9 @@ end;
 
 procedure TDataStoreClient.CopyDB(dataBaseName_, CopyDestDatabaseName_: SystemString; const BackcallPtr: PStorePosTransformNotify);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteString(CopyDestDatabaseName_);
   de.WritePointer(BackcallPtr);
@@ -1849,9 +1849,9 @@ end;
 
 procedure TDataStoreClient.CompressDB(dataBaseName_: SystemString; const BackcallPtr: PStorePosTransformNotify);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WritePointer(BackcallPtr);
   SendTunnel.SendDirectStreamCmd(C_CompressDB, de);
@@ -1890,9 +1890,9 @@ end;
 
 procedure TDataStoreClient.ReplaceDB(dataBaseName_, replaceN: SystemString);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteString(replaceN);
   SendTunnel.SendDirectStreamCmd(C_ReplaceDB, de);
@@ -1901,9 +1901,9 @@ end;
 
 procedure TDataStoreClient.ResetData(dataBaseName_: SystemString);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   SendTunnel.SendDirectStreamCmd(C_ResetData, de);
   DisposeObject(de);
@@ -1911,9 +1911,9 @@ end;
 
 procedure TDataStoreClient.QuietQueryDB(RegistedQuerier_: SystemString; ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString; MaxWait: Double; MaxQueryResult: Int64);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteString(RegistedQuerier_);
   de.WriteBool(False); { sync to client }
@@ -1935,9 +1935,9 @@ end;
 procedure TDataStoreClient.QueryDB(RegistedQuerier_: SystemString; SyncToClient, WriteResultToOutputDB, InMem, ReverseQuery: Boolean; dataBaseName_, OutputDatabaseName_: SystemString;
   fragmentReponseTime, MaxWait: Double; MaxQueryResult: Int64; BackcallPtr: PDataStoreClientQueryNotify; RemoteParams: THashVariantList);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteString(RegistedQuerier_);
   de.WriteBool(SyncToClient); { sync to client }
@@ -2086,9 +2086,9 @@ end;
 
 procedure TDataStoreClient.DownloadDB(ReverseQuery: Boolean; dataBaseName_: SystemString; BackcallPtr: PDataStoreClientQueryNotify);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteBool(ReverseQuery);
   de.WriteString(dataBaseName_);
@@ -2134,9 +2134,9 @@ end;
 
 procedure TDataStoreClient.DownloadDBWithID(ReverseQuery: Boolean; dataBaseName_: SystemString; db_ID: Cardinal; BackcallPtr: PDataStoreClientQueryNotify);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteBool(ReverseQuery);
   de.WriteString(dataBaseName_);
@@ -2188,9 +2188,9 @@ end;
 
 procedure TDataStoreClient.RequestDownloadAssembleStream(dataBaseName_: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteString(dataBaseName_);
   de.WriteInt64(StorePos);
@@ -2371,9 +2371,9 @@ end;
 
 procedure TDataStoreClient.RequestFastDownloadAssembleStream(dataBaseName_: SystemString; StorePos: Int64; BackcallPtr: PDataStoreClientDownloadNotify);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
 
   de.WriteString(dataBaseName_);
   de.WriteInt64(StorePos);
@@ -2554,7 +2554,7 @@ end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if stream.Size = 0 then
     begin
@@ -2564,7 +2564,7 @@ begin
   EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteCardinal(dID);
   SendTunnel.SendDirectStreamCmd(C_CompletedPostAssembleStream, de);
@@ -2582,7 +2582,7 @@ begin
   PostAssembleStream(dataBaseName_, M, dID, True);
 end;
 
-procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: TDataFrameEngine);
+procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: TDFE);
 var
   M: TMemoryStream64;
 begin
@@ -2638,7 +2638,7 @@ end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if stream.Size = 0 then
     begin
@@ -2648,7 +2648,7 @@ begin
   EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   de.WriteCardinal(dID);
@@ -2667,7 +2667,7 @@ begin
   InsertAssembleStream(dataBaseName_, dStorePos, M, dID, True);
 end;
 
-procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
   M: TMemoryStream64;
 begin
@@ -2723,7 +2723,7 @@ end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if stream.Size = 0 then
     begin
@@ -2733,7 +2733,7 @@ begin
   EncryptBuffer(stream.Memory, stream.Size, True);
   PostBatchStream(stream, DoneTimeFree);
 
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd(C_CompletedModifyAssembleStream, de);
@@ -2751,7 +2751,7 @@ begin
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
-procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
   M: TMemoryStream64;
 begin
@@ -2832,9 +2832,9 @@ end;
 
 procedure TDataStoreClient.DeleteData(dataBaseName_: SystemString; dStorePos: Int64);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(dataBaseName_);
   de.WriteInt64(dStorePos);
   SendTunnel.SendDirectStreamCmd(C_DeleteData, de);
@@ -2869,7 +2869,7 @@ begin
   FastPostCompleteBuffer(dataBaseName_, M, dID, True);
 end;
 
-procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDataFrameEngine);
+procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDFE);
 var
   M: TMemoryStream64;
 begin
@@ -2951,7 +2951,7 @@ begin
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, dID, True);
 end;
 
-procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
   M: TMemoryStream64;
 begin
@@ -3033,7 +3033,7 @@ begin
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, dID, True);
 end;
 
-procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDataFrameEngine);
+procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
   M: TMemoryStream64;
 begin
@@ -3089,9 +3089,9 @@ end;
 
 procedure TDataStoreClient.QueryStop(PipeName_: SystemString);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendDirectStreamCmd(C_QueryStop, de);
   DisposeObject(de);
@@ -3099,9 +3099,9 @@ end;
 
 procedure TDataStoreClient.QueryPause(PipeName_: SystemString);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendDirectStreamCmd(C_QueryPause, de);
   DisposeObject(de);
@@ -3109,9 +3109,9 @@ end;
 
 procedure TDataStoreClient.QueryPlay(PipeName_: SystemString);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendDirectStreamCmd(C_QueryPlay, de);
   DisposeObject(de);
@@ -3119,45 +3119,45 @@ end;
 
 procedure TDataStoreClient.GetDBListM(OnResult: TStreamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdM(C_GetDBList, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetDBListM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdM(C_GetDBList, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryListM(OnResult: TStreamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdM(C_GetQueryList, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryListM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdM(C_GetQueryList, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryStateM(PipeName_: SystemString; OnResult: TStreamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendStreamCmdM(C_GetQueryState, de, OnResult);
   DisposeObject(de);
@@ -3165,9 +3165,9 @@ end;
 
 procedure TDataStoreClient.GetQueryStateM(PipeName_: SystemString; Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendStreamCmdM(C_GetQueryState, de, Param1, Param2, OnResult);
   DisposeObject(de);
@@ -3175,45 +3175,45 @@ end;
 
 procedure TDataStoreClient.GetDBListP(OnResult: TStreamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdP(C_GetDBList, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetDBListP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdP(C_GetDBList, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryListP(OnResult: TStreamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdP(C_GetQueryList, de, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryListP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   SendTunnel.SendStreamCmdP(C_GetQueryList, de, Param1, Param2, OnResult);
   DisposeObject(de);
 end;
 
 procedure TDataStoreClient.GetQueryStateP(PipeName_: SystemString; OnResult: TStreamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendStreamCmdP(C_GetQueryState, de, OnResult);
   DisposeObject(de);
@@ -3221,9 +3221,9 @@ end;
 
 procedure TDataStoreClient.GetQueryStateP(PipeName_: SystemString; Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteString(PipeName_);
   SendTunnel.SendStreamCmdP(C_GetQueryState, de, Param1, Param2, OnResult);
   DisposeObject(de);

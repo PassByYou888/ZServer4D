@@ -50,25 +50,25 @@ type
     function GetSeedGroup(Name_: U_String): TUInt32HashPointerList;
   end;
 
-  TON_MakeSeedC = procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32);
-  TON_MakeSeedM = procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32) of object;
+  TDTC40_RandSeed_Client = class(TDTC40_Base_NoAuth_Client)
+  public type
+    TON_MakeSeedC = procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32);
+    TON_MakeSeedM = procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32) of object;
 {$IFDEF FPC}
-  TON_MakeSeedP = procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32) is nested;
+    TON_MakeSeedP = procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32) is nested;
 {$ELSE FPC}
-  TON_MakeSeedP = reference to procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32);
+    TON_MakeSeedP = reference to procedure(sender: TDTC40_RandSeed_Client; Seed_: UInt32);
 {$ENDIF FPC}
 
-  TON_MakeSeed = class(TOnResultBridge)
-  public
-    Client: TDTC40_RandSeed_Client;
-    OnResultC: TON_MakeSeedC;
-    OnResultM: TON_MakeSeedM;
-    OnResultP: TON_MakeSeedP;
-    constructor Create; override;
-    procedure DoStreamEvent(sender: TPeerIO; Result_: TDataFrameEngine); override;
-  end;
-
-  TDTC40_RandSeed_Client = class(TDTC40_Base_NoAuth_Client)
+    TON_MakeSeed = class(TOnResultBridge)
+    public
+      Client: TDTC40_RandSeed_Client;
+      OnResultC: TON_MakeSeedC;
+      OnResultM: TON_MakeSeedM;
+      OnResultP: TON_MakeSeedP;
+      constructor Create; override;
+      procedure DoStreamEvent(sender: TPeerIO; Result_: TDataFrameEngine); override;
+    end;
   public
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
@@ -153,7 +153,7 @@ begin
     end;
 end;
 
-constructor TON_MakeSeed.Create;
+constructor TDTC40_RandSeed_Client.TON_MakeSeed.Create;
 begin
   inherited Create;
   Client := nil;
@@ -162,7 +162,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TON_MakeSeed.DoStreamEvent(sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TDTC40_RandSeed_Client.TON_MakeSeed.DoStreamEvent(sender: TPeerIO; Result_: TDataFrameEngine);
 var
   Seed_: UInt32;
 begin
