@@ -32,7 +32,7 @@ uses Variants,
   TextParsing, zExpression, OpCode,
   ZJson, GHashList, NumberBase,
   NotifyObjectBase, CoreCipher, MemoryStream64,
-  ZDB2_Core, ZDB2_NM,
+  ObjectData, ObjectDataManager, ItemStream,
   CommunicationFramework, PhysicsIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, DTC40;
 
 type
@@ -72,8 +72,7 @@ type
   protected
     IsLoading: Boolean;
     procedure DoLoading();
-    procedure SaveNMBigPoolAsDFE(DFE: TDFE);
-
+    procedure SaveNMBigPoolAsOX(DB_: TObjectDataManagerOfCache);
     function OP_DoSetSysNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
     function OP_DoGetSysNM(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
     procedure DoNMCreateOpRunTime(Sender: TNumberModulePool; OP_: TOpCustomRunTime);
@@ -288,7 +287,9 @@ end;
 
 procedure TDTC40_Var_Service.DoLoading;
 var
-  d: TDFE;
+  tmp: TObjectDataManager;
+  sr: TItemSearch;
+  s_: TItemStream;
   NMPool_: TDTC40_VarService_NM_Pool;
 begin
   IsLoading := True;
@@ -297,19 +298,20 @@ begin
 
   // run
   try
-    d := TDFE.Create;
     if umlFileExists(DTC40_Var_FileName) then
       begin
-        d.LoadFromFile(DTC40_Var_FileName);
-        DoStatus('Load Variant database "%s"', [DTC40_Var_FileName.Text]);
+        tmp := TObjectDataManager.Open(DTC40_Var_FileName, 0, True);
+        if tmp.ItemFastFindFirst(tmp.RootField, '', sr) then
+          begin
+            repeat
+              s_ := TItemStream.Create(tmp, sr.HeaderPOS);
+              NMPool_ := GetNM(StreamReadString(s_));
+              NMPool_.LoadFromStream(s_);
+              DisposeObject(s_);
+            until not tmp.ItemFastFindNext(sr);
+          end;
+        DisposeObject(tmp);
       end;
-    DoStatus('extract variant Database.');
-    while d.R.NotEnd do
-      begin
-        NMPool_ := GetNM(d.R.ReadString);
-        d.R.ReadNMPool(NMPool_);
-      end;
-    DisposeObject(d);
     DoStatus('extract variant Database done.');
   except
   end;
@@ -318,14 +320,20 @@ begin
   IsLoading := False;
 end;
 
-procedure TDTC40_Var_Service.SaveNMBigPoolAsDFE(DFE: TDFE);
+procedure TDTC40_Var_Service.SaveNMBigPoolAsOX(DB_: TObjectDataManagerOfCache);
 {$IFDEF FPC}
   procedure fpc_Progress_(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
+  var
+    itmHnd: TItemHandle;
+    s_: TItemStream;
   begin
     if Obj.IsTemp then
         exit;
-    DFE.WriteString(Obj.Name);
-    DFE.WriteNMPool(Obj);
+    DB_.ItemFastCreate(DB_.RootField, Obj.Name, '', itmHnd);
+    s_ := TItemStream.Create(DB_, itmHnd);
+    StreamWriteString(s_, Obj.Name);
+    Obj.SaveToStream(s_);
+    DisposeObject(s_);
   end;
 {$ENDIF FPC}
 
@@ -336,11 +344,17 @@ begin
 {$ELSE FPC}
   NMBigPool.ProgressP(
     procedure(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool)
+    var
+      itmHnd: TItemHandle;
+      s_: TItemStream;
     begin
       if Obj.IsTemp then
           exit;
-      DFE.WriteString(Obj.Name);
-      DFE.WriteNMPool(Obj);
+      DB_.ItemFastCreate(DB_.RootField, Obj.Name, '', itmHnd);
+      s_ := TItemStream.Create(DB_, itmHnd);
+      StreamWriteString(s_, Obj.Name);
+      Obj.SaveToStream(s_);
+      DisposeObject(s_);
     end);
 {$ENDIF FPC}
 end;
@@ -759,7 +773,7 @@ begin
   UpdateToGlobalDispatch;
 
   ProgressTempNMList := TDTC40_Var_NumberModulePool_List.Create;
-  DTC40_Var_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.DFE', [ServiceInfo.ServiceTyp.Text]));
+  DTC40_Var_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.OX', [ServiceInfo.ServiceTyp.Text]));
   NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024 * 1024 * 64, nil);
   NMBigPool.AccessOptimization := True;
   NMBigPool.IgnoreCase := False;
@@ -809,18 +823,14 @@ end;
 
 procedure TDTC40_Var_Service.SaveData;
 var
-  d: TDFE;
+  tmp: TObjectDataManagerOfCache;
 begin
-  d := TDFE.Create;
+  tmp := TObjectDataManagerOfCache.CreateNew(DTC40_Var_FileName, 0);
   try
-    DoStatus('Extract Variant data.');
-    SaveNMBigPoolAsDFE(d);
-    DoStatus('Save Variant Database.');
-    d.SaveToFile(DTC40_Var_FileName);
-    DoStatus('Save Variant Database Done.');
+      SaveNMBigPoolAsOX(tmp);
   except
   end;
-  DisposeObject(d);
+  DisposeObject(tmp);
 end;
 
 function TDTC40_Var_Service.GetNM(Name_: U_String): TDTC40_VarService_NM_Pool;

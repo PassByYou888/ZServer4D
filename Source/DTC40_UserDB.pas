@@ -36,27 +36,27 @@ uses
 type
   TDTC40_UserDB_Client = class;
 
-  TJsonHashList = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericHashList<TZDB2_Json>;
-
-  TDTC40_UserDB_Service_SendTunnel_NoAuth = class(TPeerClientUserDefineForSendTunnel_NoAuth)
-  public
-    constructor Create(Owner_: TPeerIO); override;
-    destructor Destroy; override;
-  end;
-
-  TDTC40_UserDB_Service_RecvTunnel_NoAuth = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
-  public
-    OpenUserIdentifier: TJsonHashList;
-    constructor Create(Owner_: TPeerIO); override;
-    destructor Destroy; override;
-    procedure SendUser_Msg(FromUserName_, ToUserName_, Msg_: U_String);
-    procedure SendUser_Open(UserName_, ToUserName_: U_String);
-    procedure SendUser_Close(UserName_, ToUserName_: U_String);
-    procedure SendUser_Request_Friend(FromUserName_, DestFriendUserName_, Msg_: U_String);
-    procedure SendUser_Kick(UserName_: U_String);
-  end;
-
   TDTC40_UserDB_Service = class(TDTC40_Base_NoAuth_Service)
+  private type
+    TJsonHashList = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericHashList<TZDB2_Json>;
+
+    TDTC40_UserDB_Service_SendTunnel_NoAuth = class(TPeerClientUserDefineForSendTunnel_NoAuth)
+    public
+      constructor Create(Owner_: TPeerIO); override;
+      destructor Destroy; override;
+    end;
+
+    TDTC40_UserDB_Service_RecvTunnel_NoAuth = class(TPeerClientUserDefineForRecvTunnel_NoAuth)
+    public
+      OpenUserIdentifier: TJsonHashList;
+      constructor Create(Owner_: TPeerIO); override;
+      destructor Destroy; override;
+      procedure SendUser_Msg(FromUserName_, ToUserName_, Msg_: U_String);
+      procedure SendUser_Open(UserName_, ToUserName_: U_String);
+      procedure SendUser_Close(UserName_, ToUserName_: U_String);
+      procedure SendUser_Request_Friend(FromUserName_, DestFriendUserName_, Msg_: U_String);
+      procedure SendUser_Kick(UserName_: U_String);
+    end;
   protected
     // IM
     procedure cmd_Usr_Open(sender: TPeerIO; InData: TDFE);
@@ -362,29 +362,29 @@ type
 
 implementation
 
-constructor TDTC40_UserDB_Service_SendTunnel_NoAuth.Create(Owner_: TPeerIO);
+constructor TDTC40_UserDB_Service.TDTC40_UserDB_Service_SendTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
   inherited Create(Owner_);
 end;
 
-destructor TDTC40_UserDB_Service_SendTunnel_NoAuth.Destroy;
+destructor TDTC40_UserDB_Service.TDTC40_UserDB_Service_SendTunnel_NoAuth.Destroy;
 begin
   inherited Destroy;
 end;
 
-constructor TDTC40_UserDB_Service_RecvTunnel_NoAuth.Create(Owner_: TPeerIO);
+constructor TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.Create(Owner_: TPeerIO);
 begin
   inherited Create(Owner_);
   OpenUserIdentifier := TJsonHashList.Create(False, 1024 * 1024, nil);
 end;
 
-destructor TDTC40_UserDB_Service_RecvTunnel_NoAuth.Destroy;
+destructor TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.Destroy;
 begin
   DisposeObject(OpenUserIdentifier);
   inherited Destroy;
 end;
 
-procedure TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Msg(FromUserName_, ToUserName_, Msg_: U_String);
+procedure TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Msg(FromUserName_, ToUserName_, Msg_: U_String);
 var
   D: TDFE;
 begin
@@ -398,7 +398,7 @@ begin
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Open(UserName_, ToUserName_: U_String);
+procedure TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Open(UserName_, ToUserName_: U_String);
 var
   D: TDFE;
 begin
@@ -411,7 +411,7 @@ begin
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Close(UserName_, ToUserName_: U_String);
+procedure TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Close(UserName_, ToUserName_: U_String);
 var
   D: TDFE;
 begin
@@ -424,7 +424,7 @@ begin
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Request_Friend(FromUserName_, DestFriendUserName_, Msg_: U_String);
+procedure TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Request_Friend(FromUserName_, DestFriendUserName_, Msg_: U_String);
 var
   D: TDFE;
 begin
@@ -438,7 +438,7 @@ begin
   DisposeObject(D);
 end;
 
-procedure TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Kick(UserName_: U_String);
+procedure TDTC40_UserDB_Service.TDTC40_UserDB_Service_RecvTunnel_NoAuth.SendUser_Kick(UserName_: U_String);
 var
   D: TDFE;
 begin

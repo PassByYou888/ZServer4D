@@ -5401,25 +5401,25 @@ end;
 
 procedure TPeerIO.Sync_InternalSendConsoleCmd;
 var
-  D: TDFE;
+  d: TDFE;
   Stream: TMemoryStream64;
 begin
-  D := TDFE.Create;
+  d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
-  D.WriteString(FSyncPick^.Cmd);
-  D.WriteString(FSyncPick^.ConsoleData);
+  d.WriteString(FSyncPick^.Cmd);
+  d.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      D.EncodeAsSelectCompressor(Stream, True)
+      d.EncodeAsSelectCompressor(Stream, True)
   else if FOwnerFramework.FFastEncrypt then
-      D.FastEncodeTo(Stream)
+      d.FastEncodeTo(Stream)
   else
-      D.EncodeTo(Stream, True);
+      d.EncodeTo(Stream, True);
 
   InternalSendConsoleBuff(Stream, FSyncPick^.Cipher);
 
-  DisposeObject(D);
+  DisposeObject(d);
   DisposeObject(Stream);
 
   if FOwnerFramework.FSendDataCompressed then
@@ -5430,25 +5430,25 @@ end;
 
 procedure TPeerIO.Sync_InternalSendStreamCmd;
 var
-  D: TDFE;
+  d: TDFE;
   Stream: TMemoryStream64;
 begin
-  D := TDFE.Create;
+  d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
-  D.WriteString(FSyncPick^.Cmd);
-  D.WriteStream(FSyncPick^.StreamData);
+  d.WriteString(FSyncPick^.Cmd);
+  d.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      D.EncodeAsSelectCompressor(Stream, True)
+      d.EncodeAsSelectCompressor(Stream, True)
   else if FOwnerFramework.FFastEncrypt then
-      D.FastEncodeTo(Stream)
+      d.FastEncodeTo(Stream)
   else
-      D.EncodeTo(Stream, True);
+      d.EncodeTo(Stream, True);
 
   InternalSendStreamBuff(Stream, FSyncPick^.Cipher);
 
-  DisposeObject(D);
+  DisposeObject(d);
   DisposeObject(Stream);
 
   if FOwnerFramework.FSendDataCompressed then
@@ -5459,25 +5459,25 @@ end;
 
 procedure TPeerIO.Sync_InternalSendDirectConsoleCmd;
 var
-  D: TDFE;
+  d: TDFE;
   Stream: TMemoryStream64;
 begin
-  D := TDFE.Create;
+  d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
-  D.WriteString(FSyncPick^.Cmd);
-  D.WriteString(FSyncPick^.ConsoleData);
+  d.WriteString(FSyncPick^.Cmd);
+  d.WriteString(FSyncPick^.ConsoleData);
 
   if FOwnerFramework.FSendDataCompressed then
-      D.EncodeAsSelectCompressor(Stream, True)
+      d.EncodeAsSelectCompressor(Stream, True)
   else if FOwnerFramework.FFastEncrypt then
-      D.FastEncodeTo(Stream)
+      d.FastEncodeTo(Stream)
   else
-      D.EncodeTo(Stream, True);
+      d.EncodeTo(Stream, True);
 
   InternalSendDirectConsoleBuff(Stream, FSyncPick^.Cipher);
 
-  DisposeObject(D);
+  DisposeObject(d);
   DisposeObject(Stream);
 
   if FOwnerFramework.FSendDataCompressed then
@@ -5488,25 +5488,25 @@ end;
 
 procedure TPeerIO.Sync_InternalSendDirectStreamCmd;
 var
-  D: TDFE;
+  d: TDFE;
   Stream: TMemoryStream64;
 begin
-  D := TDFE.Create;
+  d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
-  D.WriteString(FSyncPick^.Cmd);
-  D.WriteStream(FSyncPick^.StreamData);
+  d.WriteString(FSyncPick^.Cmd);
+  d.WriteStream(FSyncPick^.StreamData);
 
   if FOwnerFramework.FSendDataCompressed then
-      D.EncodeAsSelectCompressor(Stream, True)
+      d.EncodeAsSelectCompressor(Stream, True)
   else if FOwnerFramework.FFastEncrypt then
-      D.FastEncodeTo(Stream)
+      d.FastEncodeTo(Stream)
   else
-      D.EncodeTo(Stream, True);
+      d.EncodeTo(Stream, True);
 
   InternalSendDirectStreamBuff(Stream, FSyncPick^.Cipher);
 
-  DisposeObject(D);
+  DisposeObject(d);
   DisposeObject(Stream);
 
   if FOwnerFramework.FSendDataCompressed then
@@ -6112,7 +6112,7 @@ var
   dHash: TBytes;
   dCipherSecurity: Byte;
   tmpStream: TMemoryStream64;
-  D: TDFE;
+  d: TDFE;
   buff: TBytes;
   Total: Int64;
   sourSiz, compSiz: Cardinal;
@@ -6453,14 +6453,14 @@ begin
                 Break;
               end;
 
-            D := TDFE.Create;
+            d := TDFE.Create;
             tmpStream.Position := 0;
             try
-                D.DecodeFrom(tmpStream, True);
+                d.DecodeFrom(tmpStream, True);
             except
               PrintError('decrypt dataFrame error!');
               DisposeObject(tmpStream);
-              DisposeObject(D);
+              DisposeObject(d);
               BreakAndDisconnect := True;
               Break;
             end;
@@ -6474,14 +6474,14 @@ begin
             FReceivedBuffer := tmpStream;
 
             try
-                ExecuteDataFrame(CurrentActiveThread_, RecvSync, SendSync, dID, D);
+                ExecuteDataFrame(CurrentActiveThread_, RecvSync, SendSync, dID, d);
             except
               PrintError('run ExecuteDataFrame error!');
-              DisposeObject(D);
+              DisposeObject(d);
               BreakAndDisconnect := True;
               Break;
             end;
-            DisposeObject(D);
+            DisposeObject(d);
 
             AtomInc(FOwnerFramework.Statistics[TStatisticsType.stRequest]);
           end
@@ -6970,15 +6970,15 @@ end;
 
 procedure TPeerIO.BuildP2PAuthToken;
 var
-  D: TDFE;
+  d: TDFE;
 begin
   ResetSequencePacketBuffer;
   FSequencePacketSignal := False;
 
-  D := TDFE.Create;
-  D.WriteInteger(umlRandomRange(-MaxInt, MaxInt));
-  SendStreamCmdM(C_BuildP2PAuthToken, D, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.CommandResult_BuildP2PAuthToken);
-  DisposeObject(D);
+  d := TDFE.Create;
+  d.WriteInteger(umlRandomRange(-MaxInt, MaxInt));
+  SendStreamCmdM(C_BuildP2PAuthToken, d, {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.CommandResult_BuildP2PAuthToken);
+  DisposeObject(d);
   InternalProcessAllSendCmd(nil, False, False);
 
   OnVMBuildAuthModelResultCall := nil;
@@ -10340,11 +10340,11 @@ end;
 
 procedure TCommunicationFrameworkServer.SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString);
 var
-  D: TDFE;
+  d: TDFE;
 begin
-  D := TDFE.Create;
-  SendDirectStreamCmd(P_IO, Cmd, D);
-  DisposeObject(D);
+  d := TDFE.Create;
+  SendDirectStreamCmd(P_IO, Cmd, d);
+  DisposeObject(d);
 end;
 
 function TCommunicationFrameworkServer.WaitSendConsoleCmd(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
@@ -10877,7 +10877,7 @@ end;
 
 procedure TCommunicationFrameworkClient.DoConnected(Sender: TPeerIO);
 var
-  D: TDFE;
+  d: TDFE;
 begin
   FLastConnectIsSuccessed := True;
   if FIgnoreProcessConnectedAndDisconnect then
@@ -10903,10 +10903,10 @@ begin
 
       ClientIO.SendCipherSecurity := TCipherSecurity.csNone;
       FServerState.Reset();
-      D := TDFE.Create;
-      D.WriteInteger(Integer(CurrentPlatform));
-      SendStreamCmdM(C_CipherModel, D, {$IFDEF FPC}@{$ENDIF FPC}StreamResult_CipherModel);
-      DisposeObject(D);
+      d := TDFE.Create;
+      d.WriteInteger(Integer(CurrentPlatform));
+      SendStreamCmdM(C_CipherModel, d, {$IFDEF FPC}@{$ENDIF FPC}StreamResult_CipherModel);
+      DisposeObject(d);
 
       if FOnInterface <> nil then
         begin
@@ -11915,11 +11915,11 @@ end;
 
 procedure TCommunicationFrameworkClient.SendDirectStreamCmd(Cmd: SystemString);
 var
-  D: TDFE;
+  d: TDFE;
 begin
-  D := TDFE.Create;
-  SendDirectStreamCmd(Cmd, D);
-  DisposeObject(D);
+  d := TDFE.Create;
+  SendDirectStreamCmd(Cmd, d);
+  DisposeObject(d);
 end;
 
 function TCommunicationFrameworkClient.WaitSendConsoleCmd(Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString;
@@ -13269,6 +13269,14 @@ var
 begin
   if FReceiveStream.Size <= 0 then
       exit;
+
+  if FPhysicsIO <> nil then
+    begin
+      FPhysicsIO.UpdateLastCommunicationTime;
+      FPhysicsIO.LastCommunicationTick_Received := FPhysicsIO.FLastCommunicationTick;
+      FPhysicsIO.LastCommunicationTick_KeepAlive := FPhysicsIO.LastCommunicationTick_Received;
+    end;
+
   { p2p auth }
   if not FAuthed then
     begin
@@ -15039,13 +15047,13 @@ end;
 
 procedure TCommunicationFramework_CustomStableClient.AsyncConnectResult(const cState: Boolean);
 var
-  D: TDFE;
+  d: TDFE;
 begin
   if cState then
     begin
-      D := TDFE.Create;
-      FPhysicsClient.SendStreamCmdM(C_BuildStableIO, D, {$IFDEF FPC}@{$ENDIF FPC}BuildStableIO_Result);
-      DisposeObject(D);
+      d := TDFE.Create;
+      FPhysicsClient.SendStreamCmdM(C_BuildStableIO, d, {$IFDEF FPC}@{$ENDIF FPC}BuildStableIO_Result);
+      DisposeObject(d);
     end
   else
     begin
@@ -15129,18 +15137,18 @@ end;
 
 procedure TCommunicationFramework_CustomStableClient.AsyncReconnectionResult(const cState: Boolean);
 var
-  D: TDFE;
+  d: TDFE;
 begin
   if not FStableClientIO.WaitConnecting then
       exit;
 
   if cState then
     begin
-      D := TDFE.Create;
-      D.WriteCardinal(FStableClientIO.Connection_Token);
-      D.WriteArrayByte.SetBuff(@FStableClientIO.FCipherKey[0], Length(FStableClientIO.FCipherKey));
-      FPhysicsClient.SendStreamCmdM(C_OpenStableIO, D, {$IFDEF FPC}@{$ENDIF FPC}OpenStableIO_Result);
-      DisposeObject(D);
+      d := TDFE.Create;
+      d.WriteCardinal(FStableClientIO.Connection_Token);
+      d.WriteArrayByte.SetBuff(@FStableClientIO.FCipherKey[0], Length(FStableClientIO.FCipherKey));
+      FPhysicsClient.SendStreamCmdM(C_OpenStableIO, d, {$IFDEF FPC}@{$ENDIF FPC}OpenStableIO_Result);
+      DisposeObject(d);
     end
   else
     begin

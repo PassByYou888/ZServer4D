@@ -31,7 +31,7 @@ uses
 
 type
 {$IFDEF FPC}
-   generic TGenericHashList<T_: TCoreClassObject> = class(TCoreClassObject)
+  generic TGenericHashList<T_: TCoreClassObject> = class(TCoreClassObject)
 {$ELSE FPC}
   TGenericHashList<T_: class> = class(TCoreClassObject)
 {$ENDIF FPC}

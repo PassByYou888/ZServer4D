@@ -2553,7 +2553,6 @@ end;
 initialization
 
 FillPtr(@V_NULLData, $FFFF, 0);
-// TZDB2_Core_Space.Test;
 
 finalization
 

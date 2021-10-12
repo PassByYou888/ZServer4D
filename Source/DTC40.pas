@@ -438,7 +438,6 @@ type
     procedure WaitConnectedDoneP(dependNetwork_: U_String; OnResult: TOn_DTC40_Custom_Client_EventP);
   end;
 
-
 {$ENDREGION 'p2pVMCustomClient'}
 {$REGION 'DispatchService'}
 
@@ -4467,7 +4466,7 @@ DTC40_SafeCheckTime := 1000 * 60 * 10;
 DTC40_PhysicsReconnectionDelayTime := 5.0;
 DTC40_UpdateServiceInfoDelayTime := 1000 * 1;
 DTC40_PhysicsServiceTimeout := 1000 * 60;
-DTC40_PhysicsTunnelTimeout := 30 * 1000;
+DTC40_PhysicsTunnelTimeout := 1000 * 60;
 DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 60;
 DTC40_KillIDCFaultTimeout := 1000 * 60 * 60;
 

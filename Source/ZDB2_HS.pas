@@ -180,7 +180,7 @@ function TZDB2_HashString.GetData: THashStringList;
 begin
   if FData = nil then
     begin
-      FData := THashStringList.CustomCreate(64);
+      FData := THashStringList.CustomCreate(8);
       FData.OnValueChangeNotify := {$IFDEF FPC}@{$ENDIF FPC}DoHashStringChange;
       Load;
       FIsChanged := False;
