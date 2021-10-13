@@ -1000,8 +1000,6 @@ type
 {$ENDREGION 'TListInt64'}
 {$REGION 'TListNativeInt'}
 
-  TInt64List = TListInt64;
-
   TListNativeIntData = record
     Data: NativeInt;
   end;
@@ -1092,7 +1090,6 @@ type
     property Items[idx: Integer]: Double read GetItems write SetItems; default;
   end;
 
-  TDoubleList = TListDouble;
 {$ENDREGION 'TListDouble'}
 {$REGION 'TListPointer'}
 
@@ -1409,18 +1406,17 @@ type
 {$ENDREGION 'TBackcalls'}
 {$REGION 'Generics decl'}
 
-  TGUInt8List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Byte>;
-  TGInt8List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<ShortInt>;
-  TGUInt16List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Word>;
-  TGInt16List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<SmallInt>;
-  TGUInt32List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Cardinal>;
-  TGInt32List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
-  TGUInt64List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<UInt64>;
-  TGInt64List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Int64>;
-
-  TGSingleList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Single>;
-  TGFloatList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Single>;
-  TGDoubleList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Double>;
+  TUInt8List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Byte>;
+  TInt8List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<ShortInt>;
+  TUInt16List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Word>;
+  TInt16List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<SmallInt>;
+  TUInt32List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Cardinal>;
+  TInt32List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Integer>;
+  TUInt64List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<UInt64>;
+  TInt64List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Int64>;
+  TSingleList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Single>;
+  TFloatList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Single>;
+  TDoubleList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Double>;
 {$ENDREGION 'Generics decl'}
 
 function HashMod(const h: THash; const m: Integer): Integer; {$IFDEF INLINE_ASM} inline; {$ENDIF}
