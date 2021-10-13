@@ -40,6 +40,7 @@ type
     protected
       Name: U_String;
       LastActivtTime: TTimeTick;
+      LastPostTime: TDateTime;
     end;
 
     TLog_DB_Pool = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericHashList<TDTC40_ZDB2_List_HashString>;
@@ -142,21 +143,14 @@ type
     procedure RemoveDB(DBName_: SystemString);
   end;
 
-procedure SortLog(var L_: TArrayLogData); overload;
-
 implementation
 
 uses DateUtils;
 
 procedure SortLog(var L_: TArrayLogData);
-  function Compare_(var Left, Right: TLogData__): ShortInt; inline;
+  function Compare_(var Left, Right: TLogData__): ShortInt;
   begin
-    if Left.Index = Right.Index then
-        Result := 0
-    else if Left.Index < Right.Index then
-        Result := -1
-    else
-        Result := 1;
+    Result := CompareDateTime(Left.LogTime, Right.LogTime);
   end;
 
   procedure fastSort_(var Arry_: TArrayLogData; L, R: Integer);
@@ -454,6 +448,7 @@ begin
         Result.AutoFreeStream := true;
         Result.Name := DBName__;
         Result.LastActivtTime := GetTimeTick;
+        Result.LastPostTime := umlNow;
         DB_Pool.FastAdd(DBName__, Result);
       except
           Result := nil;
@@ -467,12 +462,19 @@ procedure TDTC40_Log_DB_Service.PostLog(const DBName_, Log1_, Log2_: SystemStrin
 var
   db_: TDTC40_ZDB2_List_HashString;
   hs_: TZDB2_HashString;
+  t_: TDateTime;
 begin
   db_ := GetDB(DBName_);
   if db_ = nil then
       exit;
   hs_ := db_.NewData;
-  hs_.Data['Time'] := umlDateTimeToStr(umlNow);
+
+  t_ := umlNow;
+  while CompareDateTime(t_, db_.LastPostTime) <= 0 do
+      t_ := IncSecond(t_, 1);
+  db_.LastPostTime := t_;
+
+  hs_.Data['Time'] := umlDateTimeToStr(t_);
   if Log1_ <> '' then
       hs_.Data['Log1'] := Log1_;
   if Log2_ <> '' then
@@ -515,7 +517,6 @@ begin
         OnResultP(Client, arry);
   except
   end;
-  SetLength(arry, 0);
   DelayFreeObject(1.0, self);
 end;
 
