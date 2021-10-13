@@ -47,6 +47,7 @@ type
   private
     procedure cmd_PostLog(Sender: TPeerIO; InData: TDFE);
     procedure cmd_QueryLog(Sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_QueryAndRemoveLog(Sender: TPeerIO; InData: TDFE);
     procedure cmd_RemoveLog(Sender: TPeerIO; InData: TDFE);
     procedure cmd_GetLogDB(Sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_CloseDB(Sender: TPeerIO; InData: TDFE);
@@ -80,6 +81,7 @@ type
   TLogData__ = record
     LogTime: TDateTime;
     Log1, Log2: SystemString;
+    Index: Integer;
   end;
 
   TLogDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TLogData__>;
@@ -132,7 +134,8 @@ type
     procedure QueryLogC(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
     procedure QueryLogM(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
     procedure QueryLogP(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
-    procedure RemoveLog(DBName_: SystemString; bTime, eTime: TDateTime);
+    procedure QueryAndRemoveLog(DBName_: SystemString; bTime, eTime: TDateTime);
+    procedure RemoveLog(DBName_: SystemString; arry_index: array of Integer);
     procedure GetLogDBC(OnResult: TON_GetLogDBC);
     procedure GetLogDBM(OnResult: TON_GetLogDBM);
     procedure GetLogDBP(OnResult: TON_GetLogDBP);
@@ -184,13 +187,14 @@ begin
             OutData.WriteDouble(d_);
             OutData.WriteString(n1);
             OutData.WriteString(n2);
+            OutData.WriteInteger(i);
           end
       except
       end;
     end;
 end;
 
-procedure TDTC40_Log_DB_Service.cmd_RemoveLog(Sender: TPeerIO; InData: TDFE);
+procedure TDTC40_Log_DB_Service.cmd_QueryAndRemoveLog(Sender: TPeerIO; InData: TDFE);
 var
   DBName_: SystemString;
   bTime, eTime: TDateTime;
@@ -222,6 +226,36 @@ begin
       except
       end;
     end;
+end;
+
+procedure TDTC40_Log_DB_Service.cmd_RemoveLog(Sender: TPeerIO; InData: TDFE);
+var
+  DBName_: SystemString;
+  arry: TDataFrameArrayInteger;
+  db_: TDTC40_ZDB2_List_HashString;
+  L: TCoreClassListForObj;
+  i: Integer;
+begin
+  DBName_ := InData.R.ReadString;
+  arry := InData.R.ReadArrayInteger;
+
+  db_ := GetDB(DBName_);
+  if db_ = nil then
+      exit;
+
+  L := TCoreClassListForObj.Create;
+  for i := 0 to arry.Count - 1 do
+    if (arry[i] >= 0) and (arry[i] < db_.Count) then
+        L.Add(db_[arry[i]]);
+
+  i := 0;
+  while i < db_.Count do
+    if L.IndexOf(db_[i]) >= 0 then
+        db_.Delete(i, true)
+    else
+        inc(i);
+
+  disposeObject(L);
 end;
 
 procedure TDTC40_Log_DB_Service.cmd_GetLogDB(Sender: TPeerIO; InData, OutData: TDFE);
@@ -279,6 +313,7 @@ begin
   DTNoAuthService.RecvTunnel.SendDataCompressed := true;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('PostLog').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_PostLog;
   DTNoAuthService.RecvTunnel.RegisterStream('QueryLog').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_QueryLog;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('QueryAndRemoveLog').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_QueryAndRemoveLog;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('RemoveLog').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_RemoveLog;
   DTNoAuthService.RecvTunnel.RegisterStream('GetLogDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_GetLogDB;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('CloseDB').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_CloseDB;
@@ -307,8 +342,8 @@ end;
 
 destructor TDTC40_Log_DB_Service.Destroy;
 begin
-  DisposeObject(WaitFreeList);
-  DisposeObject(DB_Pool);
+  disposeObject(WaitFreeList);
+  disposeObject(DB_Pool);
   inherited Destroy;
 end;
 
@@ -415,6 +450,7 @@ begin
       arry[i].LogTime := Result_.R.ReadDouble;
       arry[i].Log1 := Result_.R.ReadString;
       arry[i].Log2 := Result_.R.ReadString;
+      arry[i].Index := Result_.R.ReadInteger;
       inc(i);
     end;
 
@@ -482,7 +518,7 @@ begin
   d.WriteString(Log1_);
   d.WriteString(Log2_);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('PostLog', d);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.PostLog(DBName_, Log_: SystemString);
@@ -504,7 +540,7 @@ begin
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.QueryLogM(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
@@ -521,7 +557,7 @@ begin
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.QueryLogP(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
@@ -538,10 +574,10 @@ begin
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.RemoveLog(DBName_: SystemString; bTime, eTime: TDateTime);
+procedure TDTC40_Log_DB_Client.QueryAndRemoveLog(DBName_: SystemString; bTime, eTime: TDateTime);
 var
   d: TDFE;
 begin
@@ -549,8 +585,19 @@ begin
   d.WriteString(DBName_);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('QueryAndRemoveLog', d);
+  disposeObject(d);
+end;
+
+procedure TDTC40_Log_DB_Client.RemoveLog(DBName_: SystemString; arry_index: array of Integer);
+var
+  d: TDFE;
+begin
+  d := TDFE.Create;
+  d.WriteString(DBName_);
+  d.WriteArrayInteger.WriteArray(arry_index);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('RemoveLog', d);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.GetLogDBC(OnResult: TON_GetLogDBC);
@@ -564,7 +611,7 @@ begin
 
   d := TDFE.Create;
   DTNoAuthClient.SendTunnel.SendStreamCmdM('GetLogDB', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.GetLogDBM(OnResult: TON_GetLogDBM);
@@ -578,7 +625,7 @@ begin
 
   d := TDFE.Create;
   DTNoAuthClient.SendTunnel.SendStreamCmdM('GetLogDB', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.GetLogDBP(OnResult: TON_GetLogDBP);
@@ -592,7 +639,7 @@ begin
 
   d := TDFE.Create;
   DTNoAuthClient.SendTunnel.SendStreamCmdM('GetLogDB', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.CloseDB(DBName_: SystemString);
@@ -602,7 +649,7 @@ begin
   d := TDFE.Create;
   d.WriteString(DBName_);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('CloseDB', d);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 procedure TDTC40_Log_DB_Client.RemoveDB(DBName_: SystemString);
@@ -612,7 +659,7 @@ begin
   d := TDFE.Create;
   d.WriteString(DBName_);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('RemoveDB', d);
-  DisposeObject(d);
+  disposeObject(d);
 end;
 
 initialization
