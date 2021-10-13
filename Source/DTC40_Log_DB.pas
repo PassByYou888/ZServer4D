@@ -149,24 +149,30 @@ implementation
 uses DateUtils;
 
 procedure SortLog(var L_: TArrayLogData);
-  function Compare_(var Left, Right: TLogData__): ShortInt;
+  function Compare_(var Left, Right: TLogData__): ShortInt; inline;
   begin
-    Result := CompareDateTime(Left.LogTime, Right.LogTime);
+    if Left.Index = Right.Index then
+        Result := 0
+    else if Left.Index < Right.Index then
+        Result := -1
+    else
+        Result := 1;
   end;
 
   procedure fastSort_(var Arry_: TArrayLogData; L, R: Integer);
   var
     i, j: Integer;
-    p, tmp: TLogData__;
+    p: ^TLogData__;
+    tmp: TLogData__;
   begin
     repeat
       i := L;
       j := R;
-      p := Arry_[(L + R) shr 1];
+      p := @Arry_[(L + R) shr 1];
       repeat
-        while Compare_(Arry_[i], p) < 0 do
+        while Compare_(Arry_[i], p^) < 0 do
             inc(i);
-        while Compare_(Arry_[j], p) > 0 do
+        while Compare_(Arry_[j], p^) > 0 do
             dec(j);
         if i <= j then
           begin
@@ -497,6 +503,8 @@ begin
       arry[i].Index := Result_.R.ReadInteger;
       inc(i);
     end;
+
+  SortLog(arry);
 
   try
     if Assigned(OnResultC) then
