@@ -84,18 +84,17 @@ type
     Index: Integer;
   end;
 
-  TLogDataList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TLogData__>;
   TArrayLogData = array of TLogData__;
 
   TDTC40_Log_DB_Client = class(TDTC40_Base_NoAuth_Client)
   public type
 
-    TON_QueryLogC = procedure(Sender: TDTC40_Log_DB_Client; arry: TArrayLogData);
-    TON_QueryLogM = procedure(Sender: TDTC40_Log_DB_Client; arry: TArrayLogData) of object;
+    TON_QueryLogC = procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData);
+    TON_QueryLogM = procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData) of object;
 {$IFDEF FPC}
-    TON_QueryLogP = procedure(Sender: TDTC40_Log_DB_Client; arry: TArrayLogData) is nested;
+    TON_QueryLogP = procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData) is nested;
 {$ELSE FPC}
-    TON_QueryLogP = reference to procedure(Sender: TDTC40_Log_DB_Client; arry: TArrayLogData);
+    TON_QueryLogP = reference to procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData);
 {$ENDIF FPC}
 
     TON_QueryLog = class(TOnResultBridge)
@@ -143,9 +142,54 @@ type
     procedure RemoveDB(DBName_: SystemString);
   end;
 
+procedure SortLog(var L_: TArrayLogData); overload;
+
 implementation
 
 uses DateUtils;
+
+procedure SortLog(var L_: TArrayLogData);
+  function Compare_(var Left, Right: TLogData__): ShortInt;
+  begin
+    Result := CompareDateTime(Left.LogTime, Right.LogTime);
+  end;
+
+  procedure fastSort_(var Arry_: TArrayLogData; L, R: Integer);
+  var
+    i, j: Integer;
+    p, tmp: TLogData__;
+  begin
+    repeat
+      i := L;
+      j := R;
+      p := Arry_[(L + R) shr 1];
+      repeat
+        while Compare_(Arry_[i], p) < 0 do
+            inc(i);
+        while Compare_(Arry_[j], p) > 0 do
+            dec(j);
+        if i <= j then
+          begin
+            if i <> j then
+              begin
+                tmp := Arry_[i];
+                Arry_[i] := Arry_[j];
+                Arry_[j] := tmp;
+              end;
+            inc(i);
+            dec(j);
+          end;
+      until i > j;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
+    until i >= R;
+  end;
+
+begin
+  if length(L_) > 1 then
+      fastSort_(L_, 0, length(L_) - 1);
+end;
 
 procedure TDTC40_Log_DB_Service.cmd_PostLog(Sender: TPeerIO; InData: TDFE);
 var
@@ -443,7 +487,7 @@ var
   arry: TArrayLogData;
   i: Integer;
 begin
-  SetLength(arry, Result_.Count div 3);
+  SetLength(arry, Result_.Count shr 2);
   i := 0;
   while Result_.R.NotEnd do
     begin
