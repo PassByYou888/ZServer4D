@@ -40,8 +40,8 @@ type
 
   TExpressionDeclType = (
     edtSymbol,                                                                                 // symbol
-    edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt, // inbuild byte type
-    edtSingle, edtDouble, edtCurrency,                                                         // inbuild float type
+    edtBool, edtInt, edtInt64, edtUInt64, edtWord, edtByte, edtSmallInt, edtShortInt, edtUInt, // build-in byte type
+    edtSingle, edtDouble, edtCurrency,                                                         // build-in float type
     edtString,                                                                                 // string
     edtProcExp,                                                                                // proc
     edtExpressionAsValue,                                                                      // expression

@@ -371,7 +371,7 @@ begin
   DTC40_DB_Directory := umlCombinePath(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s', [ServiceInfo.ServiceTyp.Text]));
   umlCreateDirectory(DTC40_DB_Directory);
   DB_Pool := TLog_DB_Pool.Create(true, 128 * 1024 * 1024, nil);
-  LogDBRecycleMemoryTimeOut := EStrToInt64(ParamList.GetDefaultValue('LogDBRecycleMemory', '30*1000'), 60 * 1000);
+  LogDBRecycleMemoryTimeOut := EStrToInt64(ParamList.GetDefaultValue('LogDBRecycleMemory', '60*1000'), 60 * 1000);
   ZDB2RecycleMemoryTimeOut := EStrToInt64(ParamList.GetDefaultValue('RecycleMemory', '5*1000'), 5 * 1000);
   ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '1*1024*1024'), 1 * 1024 * 1024);
   ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '100'), 100);

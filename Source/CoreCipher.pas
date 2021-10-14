@@ -17,35 +17,9 @@
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
 
-(*
-  update history
-  2017-11-26
-  fixed fastMD5,THashMD5 calculate x64 and x86,ARM platform more than 4G memory Support QQ600585
-  change name TMD5Class as THashMD5
-  Added global DefaultParallelDepth
-
-  2017-12-6
-  added supported hash elf64
-
-  2017-12-7
-  added System default key
-
-  2018-5-16
-  remove pasmp
-
-  2018-9
-  fixed rc6 with arm Linux
-*)
-
 unit CoreCipher;
 
-{ core cipher engine. create by qq600585 }
 {$INCLUDE zDefine.inc}
-
-// debug used
-// {$UNDEF RangeCheck}
-// {$UNDEF OverflowCheck}
-
 {$O+}
 
 interface

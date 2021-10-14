@@ -81,7 +81,6 @@ type
     procedure cmd_Usr_Get(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_Set(sender: TPeerIO; InData: TDFE);
   public
-    Usr_Open_Num: Integer;
     DTC40_UserDB_FileName: U_String;
     UserIdentifierHash: TJsonHashList;
     ZDB2RecycleMemoryTimeOut: TTimeTick;
@@ -498,8 +497,6 @@ begin
       Recv_IO_Def.SendUser_Request_Friend(FromUserName_, UserName_, Msg_);
     end;
   request_friend_arry.Clear;
-
-  inc(Usr_Open_Num);
 end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_Close(sender: TPeerIO; InData: TDFE);
@@ -529,8 +526,6 @@ begin
   friend_arry := j_.Data.A['friend'];
   for i := 0 to friend_arry.Count - 1 do
       Recv_IO_Def.SendUser_Close(UserName_, friend_arry.S[i]);
-
-  dec(Usr_Open_Num);
 end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_IsOpen(sender: TPeerIO; InData, OutData: TDFE);
@@ -816,8 +811,27 @@ begin
 end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_OnlineNum(sender: TPeerIO; InData, OutData: TDFE);
+var
+  Arry_: TIO_Array;
+  ID_: Cardinal;
+  IO_: TPeerIO;
+  Recv_IO_Def: TDTC40_UserDB_Service_RecvTunnel_NoAuth;
+  num: Integer;
 begin
-  OutData.WriteInteger(Usr_Open_Num);
+  num := 0;
+  DTNoAuthService.RecvTunnel.GetIO_Array(Arry_);
+  for ID_ in Arry_ do
+    begin
+      IO_ := DTNoAuthService.RecvTunnel[ID_];
+      if (IO_ <> nil) and TDTC40_UserDB_Service_RecvTunnel_NoAuth(IO_.UserDefine).LinkOk then
+        begin
+          Recv_IO_Def := IO_.IODefine as TDTC40_UserDB_Service_RecvTunnel_NoAuth;
+          inc(num, Recv_IO_Def.OpenUserIdentifier.Count);
+        end;
+    end;
+  SetLength(Arry_, 0);
+
+  OutData.WriteInteger(num);
   OutData.WriteInteger(UserIdentifierHash.Count);
 end;
 
@@ -1125,8 +1139,6 @@ begin
   // is only instance
   ServiceInfo.OnlyInstance := True;
   UpdateToGlobalDispatch;
-
-  Usr_Open_Num := 0;
 
   DTC40_UserDB_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.Space', [ServiceInfo.ServiceTyp.Text]));
   UserIdentifierHash := TJsonHashList.Create(False, 1024 * 1024 * 128, nil);

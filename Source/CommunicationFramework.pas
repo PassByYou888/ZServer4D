@@ -469,6 +469,8 @@ type
     // Stream Batch support
     property BigStreamBatchList: TBigStreamBatch read FBigStreamBatch;
     property BigStreamBatch: TBigStreamBatch read FBigStreamBatch;
+    property BatchStream: TBigStreamBatch read FBigStreamBatch;
+    property BatchList: TBigStreamBatch read FBigStreamBatch;
     property Busy: Boolean read FBusy write FBusy; // default is false, if busy is true do delayed destruction.
     function BusyNum: PInteger;
   end;
@@ -3151,7 +3153,8 @@ begin
   try
     if Assigned(QueuePtr^.OnConsoleMethod) then
       begin
-        c.PrintCommand('execute console on result: %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute console on result: %s', QueuePtr^.Cmd);
         try
             QueuePtr^.OnConsoleMethod(c, AResultText);
         except
@@ -3159,7 +3162,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnConsoleParamMethod) then
       begin
-        c.PrintCommand('execute console on param result: %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute console on param result: %s', QueuePtr^.Cmd);
         try
             QueuePtr^.OnConsoleParamMethod(c, QueuePtr^.Param1, QueuePtr^.Param2, QueuePtr^.ConsoleData, AResultText);
         except
@@ -3167,7 +3171,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnConsoleProc) then
       begin
-        c.PrintCommand('execute console on result(proc): %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute console on result(proc): %s', QueuePtr^.Cmd);
         try
             QueuePtr^.OnConsoleProc(c, AResultText);
         except
@@ -3175,7 +3180,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnConsoleParamProc) then
       begin
-        c.PrintCommand('execute console on param result(proc): %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute console on param result(proc): %s', QueuePtr^.Cmd);
         try
             QueuePtr^.OnConsoleParamProc(c, QueuePtr^.Param1, QueuePtr^.Param2, QueuePtr^.ConsoleData, AResultText);
         except
@@ -3183,7 +3189,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnStreamMethod) then
       begin
-        c.PrintCommand('execute stream on result: %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute stream on result: %s', QueuePtr^.Cmd);
         try
           AResultDF.Reader.index := 0;
           QueuePtr^.OnStreamMethod(c, AResultDF);
@@ -3192,7 +3199,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnStreamParamMethod) then
       begin
-        c.PrintCommand('execute stream on param result: %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute stream on param result: %s', QueuePtr^.Cmd);
         try
           AResultDF.Reader.index := 0;
           aInData := TDFE.Create;
@@ -3205,7 +3213,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnStreamProc) then
       begin
-        c.PrintCommand('execute stream on result(proc): %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute stream on result(proc): %s', QueuePtr^.Cmd);
         try
           AResultDF.Reader.index := 0;
           QueuePtr^.OnStreamProc(c, AResultDF);
@@ -3214,7 +3223,8 @@ begin
       end;
     if Assigned(QueuePtr^.OnStreamParamProc) then
       begin
-        c.PrintCommand('execute stream on result(parameter + proc): %s', QueuePtr^.Cmd);
+        if not c.OwnerFramework.QuietMode then
+            c.PrintCommand('execute stream on result(parameter + proc): %s', QueuePtr^.Cmd);
         try
           AResultDF.Reader.index := 0;
           aInData := TDFE.Create;
@@ -3837,7 +3847,8 @@ begin
   OnResultC := nil;
   OnResultM := nil;
   OnResultP := nil;
-  IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
+  if not IO_.OwnerFramework.QuietMode then
+      IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
   AutoFree := AutoPause_;
 end;
 
@@ -3906,9 +3917,11 @@ begin
           IO_.OutDataFrame.Assign(ResultData_);
           IO_.ContinueResultSend;
         end;
-      IO_.Print('Finish CMD "%s" Bridge Event.', [LCMD_]);
+      if not IO_.OwnerFramework.QuietMode then
+          IO_.Print('Finish CMD "%s" Bridge Event.', [LCMD_]);
     end
   else
+    if not IO_.OwnerFramework.QuietMode then
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
 
   if AutoFree then
@@ -3928,7 +3941,8 @@ begin
   OnResultC := nil;
   OnResultM := nil;
   OnResultP := nil;
-  IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
+  if not IO_.OwnerFramework.QuietMode then
+      IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
   AutoFree := AutoPause_;
 end;
 
@@ -3997,9 +4011,11 @@ begin
           IO_.OutText := ResultData_;
           IO_.ContinueResultSend;
         end;
-      IO_.Print('Finish CMD "%s" Bridge Event.', [LCMD_]);
+      if not IO_.OwnerFramework.QuietMode then
+          IO_.Print('Finish CMD "%s" Bridge Event.', [LCMD_]);
     end
   else
+    if not IO_.OwnerFramework.QuietMode then
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
   if AutoFree then
       DelayFreeObject(1.0, Self);
@@ -5425,7 +5441,8 @@ begin
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 
-  PrintCommand('internal send console: %s', FSyncPick^.Cmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send console: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendStreamCmd;
@@ -5454,7 +5471,8 @@ begin
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 
-  PrintCommand('internal send stream: %s', FSyncPick^.Cmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send stream: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendDirectConsoleCmd;
@@ -5483,7 +5501,8 @@ begin
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 
-  PrintCommand('internal send direct console: %s', FSyncPick^.Cmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send direct console: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendDirectStreamCmd;
@@ -5512,7 +5531,8 @@ begin
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
 
-  PrintCommand('internal send direct stream: %s', FSyncPick^.Cmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send direct stream: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendBigStreamCmd;
@@ -5520,7 +5540,8 @@ begin
   InternalSendBigStreamBuff(FSyncPick^);
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
 
-  PrintCommand('internal send bigstream: %s', FSyncPick^.Cmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send bigstream: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendCompleteBufferCmd;
@@ -5528,7 +5549,8 @@ begin
   InternalSendCompleteBufferBuff(FSyncPick^);
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecCompleteBuffer]);
 
-  PrintCommand('internal send complete buffer: %s', FSyncPick^.Cmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send complete buffer: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_ExecuteConsole;
@@ -5536,7 +5558,8 @@ var
   d: TTimeTick;
 begin
   FReceiveCommandRuning := True;
-  PrintCommand('execute console: %s', FInCmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('execute console: %s', FInCmd);
 
   d := GetTimeTick;
   FOwnerFramework.ExecuteConsole(Self, FInCmd, FInText, FOutText);
@@ -5553,7 +5576,8 @@ var
   d: TTimeTick;
 begin
   FReceiveCommandRuning := True;
-  PrintCommand('execute stream: %s', FInCmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('execute stream: %s', FInCmd);
 
   d := GetTimeTick;
   FOwnerFramework.ExecuteStream(Self, FInCmd, FInDataFrame, FOutDataFrame);
@@ -5570,7 +5594,8 @@ var
   d: TTimeTick;
 begin
   FReceiveCommandRuning := True;
-  PrintCommand('execute direct console: %s', FInCmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('execute direct console: %s', FInCmd);
 
   d := GetTimeTick;
   FOwnerFramework.ExecuteDirectConsole(Self, FInCmd, FInText);
@@ -5587,7 +5612,8 @@ var
   d: TTimeTick;
 begin
   FReceiveCommandRuning := True;
-  PrintCommand('execute direct stream: %s', FInCmd);
+  if not OwnerFramework.QuietMode then
+      PrintCommand('execute direct stream: %s', FInCmd);
 
   d := GetTimeTick;
   FOwnerFramework.ExecuteDirectStream(Self, FInCmd, FInDataFrame);
@@ -5662,14 +5688,16 @@ begin
 
       if FPauseResultSend then
         begin
-          PrintCommand('pause console cmd %s Result', FInCmd);
+          if not OwnerFramework.QuietMode then
+              PrintCommand('pause console cmd %s Result', FInCmd);
           FCurrentPauseResultSend_CommDataType := CommDataType;
           exit;
         end;
       if not Connected then
           exit;
 
-      PrintCommand('send console cmd %s Result data', FInCmd);
+      if not OwnerFramework.QuietMode then
+          PrintCommand('send console cmd %s Result data', FInCmd);
       IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_SendConsoleResult);
     end
   else if CommDataType = FStreamToken then
@@ -5686,7 +5714,8 @@ begin
 
       if FPauseResultSend then
         begin
-          PrintCommand('pause stream cmd %s Result', FInCmd);
+          if not OwnerFramework.QuietMode then
+              PrintCommand('pause stream cmd %s Result', FInCmd);
           FCurrentPauseResultSend_CommDataType := CommDataType;
           exit;
         end;
@@ -5694,7 +5723,8 @@ begin
       if not Connected then
           exit;
 
-      PrintCommand('send stream cmd %s Result data', FInCmd);
+      if not OwnerFramework.QuietMode then
+          PrintCommand('send stream cmd %s Result data', FInCmd);
       IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_SendStreamResult);
     end
   else if CommDataType = FDirectConsoleToken then
@@ -5735,7 +5765,8 @@ begin
           FOwnerFramework.FOnBigStreamInterface.EndStream(Self, FBigStreamTotal);
 
       FOwnerFramework.CmdRecvStatistics.IncValue(FBigStreamCmd, 1);
-      PrintCommand('Big Stream complete: %s', FBigStreamCmd);
+      if not OwnerFramework.QuietMode then
+          PrintCommand('Big Stream complete: %s', FBigStreamCmd);
     end
   else
     begin
@@ -5833,7 +5864,8 @@ begin
       FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
       FOwnerFramework.CmdRecvStatistics.IncValue(FCompleteBufferCmd, 1);
-      PrintCommand('execute complete buffer: %s', FCompleteBufferCmd);
+      if not OwnerFramework.QuietMode then
+          PrintCommand('execute complete buffer: %s', FCompleteBufferCmd);
     end
   else
     begin
@@ -5953,7 +5985,7 @@ begin
   FReceivedBuffer.read(dHead, C_Cardinal_Size);
   if dHead <> FHeadToken then
     begin
-      Print('Header Illegal');
+      PrintError('Header Illegal');
       DelayClose();
       exit;
     end;
@@ -5992,7 +6024,7 @@ begin
   FReceivedBuffer.read(dTail, C_Cardinal_Size);
   if dTail <> FTailToken then
     begin
-      Print('tail token error!');
+      PrintError('tail token error!');
       DelayClose();
       exit;
     end;
@@ -6005,13 +6037,13 @@ begin
         Encrypt(FReceiveDataCipherSecurity, @buff[0], dSize, FCipherKey, False);
         if not VerifyHashCode(THashSecurity(dHashSecurity), @buff[0], dSize, dHash) then
           begin
-            Print('verify data error!');
+            PrintError('verify data error!');
             DelayClose();
             exit;
           end;
       end;
   except
-    Print('Encrypt error!');
+    PrintError('Encrypt error!');
     DelayClose();
     exit;
   end;
@@ -6034,7 +6066,7 @@ begin
         SetLength(buff, 0);
         ResultDataFrame.Clear;
       except
-        Print('WaitOnResultBuffer console data error!');
+        PrintError('WaitOnResultBuffer console data error!');
         DelayClose();
         exit;
       end;
@@ -6055,7 +6087,7 @@ begin
         SetLength(buff, 0);
         ResultText := '';
       except
-        Print('WaitOnResultBuffer stream error!');
+        PrintError('WaitOnResultBuffer stream error!');
         DelayClose();
         exit;
       end;
@@ -7173,38 +7205,48 @@ procedure TPeerIO.Print(v: SystemString);
 var
   n: SystemString;
 begin
-  n := GetPeerIP;
-  if n <> '' then
-      OwnerFramework.DoPrint(Format('%s %s', [n, v]))
-  else
-      OwnerFramework.DoPrint(Format('%s', [v]));
+  if not OwnerFramework.QuietMode then
+    begin
+      n := GetPeerIP;
+      if n <> '' then
+          OwnerFramework.DoPrint(Format('%s %s', [n, v]))
+      else
+          OwnerFramework.DoPrint(Format('%s', [v]));
+    end;
 end;
 
 procedure TPeerIO.Print(v: SystemString; const Args: array of const);
 begin
-  Print(Format(v, Args));
+  if not OwnerFramework.QuietMode then
+      Print(Format(v, Args));
 end;
 
 procedure TPeerIO.PrintCommand(v: SystemString; Args: SystemString);
 begin
-  try
-    if (not OwnerFramework.FQuietMode) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
-        Print(Format(v, [Args]));
-  except
-      Print(Format(v, [Args]));
-  end;
-  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stPrint]);
+  if not OwnerFramework.QuietMode then
+    begin
+      try
+        if (not OwnerFramework.FQuietMode) and (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
+            Print(Format(v, [Args]));
+      except
+          Print(Format(v, [Args]));
+      end;
+      AtomInc(FOwnerFramework.Statistics[TStatisticsType.stPrint]);
+    end;
 end;
 
 procedure TPeerIO.PrintParam(v: SystemString; Args: SystemString);
 begin
-  try
-    if (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
-        Print(Format(v, [Args]));
-  except
-      Print(Format(v, [Args]));
-  end;
-  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stPrint]);
+  if not OwnerFramework.QuietMode then
+    begin
+      try
+        if (OwnerFramework.FPrintParams.GetDefaultValue(Args, True) = True) then
+            Print(Format(v, [Args]));
+      except
+          Print(Format(v, [Args]));
+      end;
+      AtomInc(FOwnerFramework.Statistics[TStatisticsType.stPrint]);
+    end;
 end;
 
 procedure TPeerIO.PrintError(v: SystemString);
@@ -8082,7 +8124,8 @@ begin
       DisposeObject(CompleteBuff);
 
       CmdRecvStatistics.IncValue(Cmd, 1);
-      P_IO.PrintCommand('execute complete buffer(delay): %s', Cmd);
+      if not QuietMode then
+          P_IO.PrintCommand('execute complete buffer(delay): %s', Cmd);
     end;
 end;
 
@@ -8532,11 +8575,12 @@ begin
   P_IO := TPeerIO(FPeerIO_HashPool[Cardinal(Sender.Data3)]);
   if P_IO = nil then
     begin
-      Print('Async Loss IO.');
+      PrintError('Async Loss IO.');
       exit;
     end;
 
-  Print('Automated P2PVM client connection done.');
+  if not QuietMode then
+      Print('Automated P2PVM client connection done.');
   try
     if Assigned(FOnAutomatedP2PVMClientConnectionDone_C) then
         FOnAutomatedP2PVMClientConnectionDone_C(Self, P_IO);
@@ -9916,7 +9960,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Console cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -9938,7 +9983,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Console cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -9962,7 +10008,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Console cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -9987,7 +10034,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10010,7 +10058,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10037,7 +10086,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10066,7 +10116,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10096,7 +10147,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Console cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -10118,7 +10170,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Console cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -10142,7 +10195,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Console cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendConsoleCMD;
@@ -10167,7 +10221,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10190,7 +10245,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10217,7 +10273,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10246,7 +10303,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendStreamCMD;
@@ -10275,7 +10333,8 @@ begin
       exit;
   if not CanSendCommand(P_IO, Cmd) then
       exit;
-  P_IO.PrintCommand('Send DirectConsole cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send DirectConsole cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectConsoleCMD;
@@ -10300,7 +10359,8 @@ begin
       exit;
   if not CanSendCommand(P_IO, Cmd) then
       exit;
-  P_IO.PrintCommand('Send DirectStream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send DirectStream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
@@ -10322,7 +10382,8 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Send DirectStream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send DirectStream cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendDirectStreamCMD;
@@ -10358,7 +10419,9 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit('');
 
-  P_IO.PrintCommand('Begin Wait Console cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Begin Wait Console cmd: %s', Cmd);
+
   IO_ID := P_IO.ID;
 
   timetick := GetTimeTick + Timeout;
@@ -10395,8 +10458,9 @@ begin
         Result := '';
     if waitIntf.Done then
         DisposeObject(waitIntf);
-    if ExistsID(IO_ID) then
-        P_IO.PrintCommand('End Wait Console cmd: %s', Cmd);
+    if not QuietMode then
+      if ExistsID(IO_ID) then
+          P_IO.PrintCommand('End Wait Console cmd: %s', Cmd);
   except
       Result := '';
   end;
@@ -10416,7 +10480,9 @@ begin
   if not CanSendCommand(P_IO, Cmd) then
       exit;
 
-  P_IO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
+
   IO_ID := P_IO.ID;
 
   timetick := GetTimeTick + Timeout;
@@ -10457,8 +10523,9 @@ begin
         DisposeObject(waitIntf);
       end;
 
-    if ExistsID(IO_ID) then
-        P_IO.PrintCommand('End Wait Stream cmd: %s', Cmd);
+    if not QuietMode then
+      if ExistsID(IO_ID) then
+          P_IO.PrintCommand('End Wait Stream cmd: %s', Cmd);
   except
   end;
 
@@ -10494,7 +10561,8 @@ begin
       p^.DoneAutoFree := DoneAutoFree;
     end;
   TriggerQueueData(p);
-  P_IO.PrintCommand('Send BigStream cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send BigStream cmd: %s', Cmd);
 end;
 
 procedure TCommunicationFrameworkServer.SendBigStream(P_IO: TPeerIO; const Cmd: SystemString; BigStream: TCoreClassStream; DoneAutoFree: Boolean);
@@ -10511,7 +10579,8 @@ begin
       exit;
   if not CanSendCommand(P_IO, Cmd) then
       exit;
-  P_IO.PrintCommand('Send complete buffer cmd: %s', Cmd);
+  if not QuietMode then
+      P_IO.PrintCommand('Send complete buffer cmd: %s', Cmd);
 
   p := NewQueueData;
   p^.State := TQueueState.qsSendCompleteBuffer;
@@ -11472,7 +11541,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11495,7 +11565,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11520,7 +11591,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11546,7 +11618,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11570,7 +11643,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11598,7 +11672,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11628,7 +11703,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11659,7 +11735,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11682,7 +11759,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11707,7 +11785,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Console cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11733,7 +11812,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11757,7 +11837,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11785,7 +11866,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11815,7 +11897,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send Stream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11846,7 +11929,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send DirectConsole cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send DirectConsole cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11873,7 +11957,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send DirectStream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send DirectStream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11896,7 +11981,8 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Send DirectStream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send DirectStream cmd: %s', Cmd);
 
   { init queue data }
   p := NewQueueData;
@@ -11935,7 +12021,9 @@ begin
       exit;
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
-  ClientIO.PrintCommand('Begin Wait console cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Begin Wait console cmd: %s', Cmd);
+
   IO_ID := ClientIO.ID;
 
   timetick := GetTimeTick + Timeout;
@@ -11974,8 +12062,9 @@ begin
         Result := '';
 
     try
-      if ExistsID(IO_ID) then
-          ClientIO.PrintCommand('End Wait console cmd: %s', Cmd);
+      if not QuietMode then
+        if ExistsID(IO_ID) then
+            ClientIO.PrintCommand('End Wait console cmd: %s', Cmd);
     except
     end;
 
@@ -12002,7 +12091,9 @@ begin
   if not CanSendCommand(ClientIO, Cmd) then
       exit;
 
-  ClientIO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Begin Wait Stream cmd: %s', Cmd);
+
   IO_ID := ClientIO.ID;
 
   timetick := GetTimeTick + Timeout;
@@ -12035,8 +12126,9 @@ begin
             Break;
       end;
     try
-      if ExistsID(IO_ID) then
-          ClientIO.PrintCommand('End Wait Stream cmd: %s', Cmd);
+      if not QuietMode then
+        if ExistsID(IO_ID) then
+            ClientIO.PrintCommand('End Wait Stream cmd: %s', Cmd);
     except
     end;
 
@@ -12088,7 +12180,8 @@ begin
     end;
 
   TriggerQueueData(p);
-  ClientIO.PrintCommand('Send BigStream cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send BigStream cmd: %s', Cmd);
 end;
 
 procedure TCommunicationFrameworkClient.SendBigStream(Cmd: SystemString; BigStream: TCoreClassStream; DoneAutoFree: Boolean);
@@ -12116,7 +12209,8 @@ begin
   p^.BufferSize := BuffSize;
   p^.DoneAutoFree := DoneAutoFree;
   TriggerQueueData(p);
-  ClientIO.PrintCommand('Send complete buffer cmd: %s', Cmd);
+  if not QuietMode then
+      ClientIO.PrintCommand('Send complete buffer cmd: %s', Cmd);
 end;
 
 procedure TCommunicationFrameworkClient.SendCompleteBuffer(Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean);
@@ -15036,7 +15130,8 @@ begin
       FStableClientIO.LastCommunicationTick_Received := GetTimeTick;
       FStableClientIO.LastCommunicationTick_KeepAlive := FStableClientIO.LastCommunicationTick_Received;
 
-      FPhysicsClient.ClientIO.Print('StableIO connection %s port:%d Success.', [FConnection_Addr, FConnection_Port]);
+      if not FPhysicsClient.QuietMode then
+          FPhysicsClient.ClientIO.Print('StableIO connection %s port:%d Success.', [FConnection_Addr, FConnection_Port]);
     end
   else
     begin
@@ -15114,7 +15209,8 @@ begin
       FStableClientIO.SequencePacketLimitPhysicsMemory := FLimitSequencePacketMemoryUsage;
       FStableClientIO.ResetSequencePacketBuffer;
       FStableClientIO.SequencePacketVerifyTick := GetTimeTick;
-      FStableClientIO.Print('StableIO calibrate session.', []);
+      if not FStableClientIO.OwnerFramework.QuietMode then
+          FStableClientIO.Print('StableIO calibrate session.', []);
     end
   else
     begin

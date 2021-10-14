@@ -400,11 +400,10 @@ type
     destructor Destroy; override;
     property Index: Integer read FIndex write FIndex;
     property Owner: TDataFrameEngine read FOwner;
-    //
     function IsEnd: Boolean;
     function NotEnd: Boolean;
     procedure GoNext;
-    //
+
     function ReadString: SystemString;
     function ReadBytes: TBytes;
     function ReadInteger: Integer;

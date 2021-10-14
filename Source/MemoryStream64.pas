@@ -24,9 +24,6 @@ unit MemoryStream64;
 {
   create by passbyyou
   first 2011-10
-
-  last 2017-11-2 added x64 memory interface
-  2017-12-29 added newCompressor
 }
 
 interface

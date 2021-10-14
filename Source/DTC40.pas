@@ -540,6 +540,7 @@ type
   public
     Service: TDT_P2PVM_NoAuth_Custom_Service;
     DTNoAuthService: TDTService_NoAuth;
+    property DTNoAuth: TDTService_NoAuth read DTNoAuthService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -551,6 +552,7 @@ type
   public
     Client: TDT_P2PVM_NoAuth_Custom_Client;
     DTNoAuthClient: TDTClient_NoAuth;
+    property DTNoAuth: TDTClient_NoAuth read DTNoAuthClient;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -566,6 +568,7 @@ type
   public
     Service: TDT_P2PVM_NoAuth_Custom_Service;
     DTNoAuthService: TDataStoreService_NoAuth;
+    property DTNoAuth: TDataStoreService_NoAuth read DTNoAuthService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -577,6 +580,7 @@ type
   public
     Client: TDT_P2PVM_NoAuth_Custom_Client;
     DTNoAuthClient: TDataStoreClient_NoAuth;
+    property DTNoAuth: TDataStoreClient_NoAuth read DTNoAuthClient;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -597,6 +601,7 @@ type
   public
     Service: TDT_P2PVM_VirtualAuth_Custom_Service;
     DTVirtualAuthService: TDTService_VirtualAuth;
+    property DTVirtualAuth: TDTService_VirtualAuth read DTVirtualAuthService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -610,6 +615,7 @@ type
     DTVirtualAuthClient: TDTClient_VirtualAuth;
     UserName, Password: U_String;
     NoDTLink: Boolean;
+    property DTVirtualAuth: TDTClient_VirtualAuth read DTVirtualAuthClient;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -628,6 +634,7 @@ type
   public
     Service: TDT_P2PVM_VirtualAuth_Custom_Service;
     DTVirtualAuthService: TDataStoreService_VirtualAuth;
+    property DTVirtualAuth: TDataStoreService_VirtualAuth read DTVirtualAuthService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -641,6 +648,7 @@ type
     DTVirtualAuthClient: TDataStoreClient_VirtualAuth;
     UserName, Password: U_String;
     NoDTLink: Boolean;
+    property DTVirtualAuth: TDataStoreClient_VirtualAuth read DTVirtualAuthClient;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -660,6 +668,7 @@ type
   public
     Service: TDT_P2PVM_Custom_Service;
     DTService: TDTService;
+    property DT: TDTService read DTService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure SafeCheck; override;
@@ -674,6 +683,7 @@ type
     DTClient: TDTClient;
     UserName, Password: U_String;
     NoDTLink: Boolean;
+    property DT: TDTClient read DTClient;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -690,6 +700,7 @@ type
   public
     Service: TDT_P2PVM_Custom_Service;
     DTService: TDataStoreService;
+    property DT: TDataStoreService read DTService;
     constructor Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String); override;
     destructor Destroy; override;
     procedure SafeCheck; override;
@@ -704,6 +715,7 @@ type
     DTClient: TDataStoreClient;
     UserName, Password: U_String;
     NoDTLink: Boolean;
+    property DT: TDataStoreClient read DTClient;
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure Progress; override;
@@ -1055,6 +1067,10 @@ end;
 
 destructor TDTC40_PhysicsService.Destroy;
 begin
+  try
+      StopService;
+  except
+  end;
   DTC40_PhysicsServicePool.Remove(Self);
   PhysicsTunnel.DeleteRegistedCMD('QueryInfo');
   DisposeObject(DependNetworkServicePool);
@@ -1437,6 +1453,10 @@ end;
 
 destructor TDTC40_PhysicsTunnel.Destroy;
 begin
+  try
+      PhysicsTunnel.Disconnect;
+  except
+  end;
   OnEvent := nil;
   DTC40_PhysicsTunnelPool.Remove(Self);
   PhysicsAddr := '';

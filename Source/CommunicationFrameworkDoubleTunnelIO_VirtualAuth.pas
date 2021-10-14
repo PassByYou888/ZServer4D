@@ -434,7 +434,7 @@ type
     procedure GetBatchStreamStateM(Param1: Pointer; Param2: TObject; OnResult: TStreamParamMethod); overload;
     procedure GetBatchStreamStateP(OnResult: TStreamProc); overload;
     procedure GetBatchStreamStateP(Param1: Pointer; Param2: TObject; OnResult: TStreamParamProc); overload;
-    function GetBatchStreamState(Result_: TDFE; ATimeOut: TTimeTick): Boolean; overload;
+    function GetBatchStreamState(Result_: TDFE; TimeOut_: TTimeTick): Boolean; overload;
 
     procedure RegisterCommand; virtual;
     procedure UnRegisterCommand; virtual;
@@ -3998,12 +3998,12 @@ begin
   DisposeObject(de);
 end;
 
-function TDTClient_VirtualAuth.GetBatchStreamState(Result_: TDFE; ATimeOut: TTimeTick): Boolean;
+function TDTClient_VirtualAuth.GetBatchStreamState(Result_: TDFE; TimeOut_: TTimeTick): Boolean;
 var
   de: TDFE;
 begin
   de := TDFE.Create;
-  SendTunnel.WaitSendStreamCmd(C_GetBatchStreamState, de, Result_, ATimeOut);
+  SendTunnel.WaitSendStreamCmd(C_GetBatchStreamState, de, Result_, TimeOut_);
   Result := Result_.Count > 0;
   DisposeObject(de);
 end;

@@ -33,27 +33,20 @@ type
     // origin info
     OriginText: SystemString;
     Category: SystemString;
-
     // ext pick info
     Picked: Boolean;
-
     // encode and import info
     index: Integer;
     DefineText: SystemString;
-
     // text style
     TextStyle: TTranlateStyle;
-
     // fast hash
     OriginHash: THash;
     DefineHash: THash;
-
     // project language
     originLanguage: Integer;
     DefineLanguage: Integer;
-
     RepCount: Integer;
-
     procedure InitSelf;
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromStream(stream: TCoreClassStream);
@@ -81,17 +74,17 @@ type
     property origin[const s: SystemString]: PTextTableItem read GetOrigin;
 
     procedure AddCopy(var t: TTextTableItem);
-    procedure AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
-    procedure AddDelphiFormText(AOriginText, ACategory: SystemString; APicked: Boolean);
+    procedure AddText(OriginText_, Category_: SystemString; Picked_: Boolean);
+    procedure AddPascalText(OriginText_, Category_: SystemString; Picked_: Boolean);
+    procedure AddPascalComment(OriginText_, Category_: SystemString; Picked_: Boolean);
+    procedure AddCText(OriginText_, Category_: SystemString; Picked_: Boolean);
+    procedure AddCComment(OriginText_, Category_: SystemString; Picked_: Boolean);
+    procedure AddDelphiFormText(OriginText_, Category_: SystemString; Picked_: Boolean);
 
     procedure ChangeDefineText(index: Integer; newDefine: U_String);
     function ExistsIndex(index: Integer): Boolean;
 
-    function Search(AOriginText: SystemString): PTextTableItem;
+    function Search(OriginText_: SystemString): PTextTableItem;
 
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromStream(stream: TCoreClassStream);
@@ -253,21 +246,21 @@ begin
     end;
 end;
 
-procedure TTextTable.AddText(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddText(OriginText_, Category_: SystemString; Picked_: Boolean);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(AOriginText);
+  p := GetOrigin(OriginText_);
   if p = nil then
     begin
       new(p);
-      p^.OriginText := AOriginText;
-      p^.Category := ACategory;
-      p^.Picked := APicked;
+      p^.OriginText := OriginText_;
+      p^.Category := Category_;
+      p^.Picked := Picked_;
       p^.index := GetMaxIndexNo + 1;
-      p^.DefineText := AOriginText;
+      p^.DefineText := OriginText_;
       p^.TextStyle := tsNormalText;
-      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.OriginHash := FastHashPSystemString(@OriginText_);
       p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
@@ -278,21 +271,21 @@ begin
     end;
 end;
 
-procedure TTextTable.AddPascalText(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddPascalText(OriginText_, Category_: SystemString; Picked_: Boolean);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(AOriginText);
+  p := GetOrigin(OriginText_);
   if p = nil then
     begin
       new(p);
-      p^.OriginText := AOriginText;
-      p^.Category := ACategory;
-      p^.Picked := APicked;
+      p^.OriginText := OriginText_;
+      p^.Category := Category_;
+      p^.Picked := Picked_;
       p^.index := GetMaxIndexNo + 1;
-      p^.DefineText := AOriginText;
+      p^.DefineText := OriginText_;
       p^.TextStyle := tsPascalText;
-      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.OriginHash := FastHashPSystemString(@OriginText_);
       p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
@@ -303,21 +296,21 @@ begin
     end;
 end;
 
-procedure TTextTable.AddPascalComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddPascalComment(OriginText_, Category_: SystemString; Picked_: Boolean);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(AOriginText);
+  p := GetOrigin(OriginText_);
   if p = nil then
     begin
       new(p);
-      p^.OriginText := AOriginText;
-      p^.Category := ACategory;
-      p^.Picked := APicked;
+      p^.OriginText := OriginText_;
+      p^.Category := Category_;
+      p^.Picked := Picked_;
       p^.index := GetMaxIndexNo + 1;
-      p^.DefineText := AOriginText;
+      p^.DefineText := OriginText_;
       p^.TextStyle := tsPascalComment;
-      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.OriginHash := FastHashPSystemString(@OriginText_);
       p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
@@ -328,21 +321,21 @@ begin
     end;
 end;
 
-procedure TTextTable.AddCText(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddCText(OriginText_, Category_: SystemString; Picked_: Boolean);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(AOriginText);
+  p := GetOrigin(OriginText_);
   if p = nil then
     begin
       new(p);
-      p^.OriginText := AOriginText;
-      p^.Category := ACategory;
-      p^.Picked := APicked;
+      p^.OriginText := OriginText_;
+      p^.Category := Category_;
+      p^.Picked := Picked_;
       p^.index := GetMaxIndexNo + 1;
-      p^.DefineText := AOriginText;
+      p^.DefineText := OriginText_;
       p^.TextStyle := tsCText;
-      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.OriginHash := FastHashPSystemString(@OriginText_);
       p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
@@ -353,21 +346,21 @@ begin
     end;
 end;
 
-procedure TTextTable.AddCComment(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddCComment(OriginText_, Category_: SystemString; Picked_: Boolean);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(AOriginText);
+  p := GetOrigin(OriginText_);
   if p = nil then
     begin
       new(p);
-      p^.OriginText := AOriginText;
-      p^.Category := ACategory;
-      p^.Picked := APicked;
+      p^.OriginText := OriginText_;
+      p^.Category := Category_;
+      p^.Picked := Picked_;
       p^.index := GetMaxIndexNo + 1;
-      p^.DefineText := AOriginText;
+      p^.DefineText := OriginText_;
       p^.TextStyle := tsCComment;
-      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.OriginHash := FastHashPSystemString(@OriginText_);
       p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
@@ -378,21 +371,21 @@ begin
     end;
 end;
 
-procedure TTextTable.AddDelphiFormText(AOriginText, ACategory: SystemString; APicked: Boolean);
+procedure TTextTable.AddDelphiFormText(OriginText_, Category_: SystemString; Picked_: Boolean);
 var
   p: PTextTableItem;
 begin
-  p := GetOrigin(AOriginText);
+  p := GetOrigin(OriginText_);
   if p = nil then
     begin
       new(p);
-      p^.OriginText := AOriginText;
-      p^.Category := ACategory;
-      p^.Picked := APicked;
+      p^.OriginText := OriginText_;
+      p^.Category := Category_;
+      p^.Picked := Picked_;
       p^.index := GetMaxIndexNo + 1;
-      p^.DefineText := AOriginText;
+      p^.DefineText := OriginText_;
       p^.TextStyle := tsDFMText;
-      p^.OriginHash := FastHashPSystemString(@AOriginText);
+      p^.OriginHash := FastHashPSystemString(@OriginText_);
       p^.DefineHash := FastHashPSystemString(@p^.DefineText);
       p^.RepCount := 1;
       FList.Add(p);
@@ -443,17 +436,17 @@ begin
   Result := False;
 end;
 
-function TTextTable.Search(AOriginText: SystemString): PTextTableItem;
+function TTextTable.Search(OriginText_: SystemString): PTextTableItem;
 var
   hash: THash;
   i: Integer;
   p: PTextTableItem;
 begin
-  hash := FastHashPSystemString(@AOriginText);
+  hash := FastHashPSystemString(@OriginText_);
   for i := 0 to FList.Count - 1 do
     begin
       p := FList[i];
-      if (p^.OriginHash = hash) and (p^.OriginText = AOriginText) then
+      if (p^.OriginHash = hash) and (p^.OriginText = OriginText_) then
         begin
           Exit(p);
         end;
