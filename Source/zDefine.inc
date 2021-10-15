@@ -204,7 +204,11 @@
     {$D+} { debug information }
   {$ENDIF}
 
-  {$IF Defined(Android) or Defined(IOS)}
+  {$IF Defined(Android)}
+    {$DEFINE SMALL_RASTER_FONT_Build_In}
+    {$DEFINE PhysicsIO_On_CrossSocket}
+    // {$DEFINE PhysicsIO_On_Indy}
+  {$ELSEIF Defined(IOS)}
     {$DEFINE SMALL_RASTER_FONT_Build_In}
     {$DEFINE PhysicsIO_On_Indy}
   {$ELSE}
