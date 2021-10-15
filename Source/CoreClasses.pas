@@ -923,6 +923,8 @@ var
 
   // MainThread TThreadPost
   MainThreadProgress: TThreadPost;
+  MainThreadPost: TThreadPost;
+  SysProgress: TThreadPost;
 {$EndRegion 'core var'}
 
 implementation
@@ -1480,6 +1482,8 @@ initialization
   InitCoreThreadPool(CpuCount);
   MainThreadProgress := TThreadPost.Create(MainThreadID);
   MainThSynchronizeRunning := False;
+  MainThreadPost := MainThreadProgress;
+  SysProgress := MainThreadProgress;
 finalization
   FreeCoreThreadPool;
   MainThreadProgress.Free;
