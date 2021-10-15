@@ -514,11 +514,11 @@ begin
   Sender.PrintError(InData);
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, nil, Token, True);
+        OnResultC(Client, nil, Token, False);
     if Assigned(OnResultM) then
-        OnResultM(Client, nil, Token, True);
+        OnResultM(Client, nil, Token, False);
     if Assigned(OnResultP) then
-        OnResultP(Client, nil, Token, True);
+        OnResultP(Client, nil, Token, False);
   except
   end;
 
