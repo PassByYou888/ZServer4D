@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * ZDB 2.0 automated fragment for DataFrameEngine support, create by.qq600585 * }
+{ * ZDB 2.0 automated fragment for TextEngine support, create by.qq600585      * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -16,7 +16,7 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
-unit ZDB2_DFE;
+unit ZDB2_TE;
 
 {$INCLUDE zDefine.inc}
 
@@ -27,18 +27,18 @@ uses CoreClasses,
   FPCGenericStructlist,
 {$ENDIF FPC}
   PascalStrings, UnicodeMixedLib, DoStatusIO, MemoryStream64,
-  DataFrameEngine, ZDB2_Core, CoreCipher, ListEngine;
+  TextDataEngine, ZDB2_Core, CoreCipher, ListEngine;
 
 type
-  TZDB2_List_DFE = class;
+  TZDB2_List_HashTextEngine = class;
 
-  TZDB2_DFE = class
+  TZDB2_HashTextEngine = class
   private
     FTimeOut: TTimeTick;
     FAlive: TTimeTick;
     FID: Integer;
     FCoreSpace: TZDB2_Core_Space;
-    FData: TDFE;
+    FData: THashTextEngine;
   public
     constructor Create(CoreSpace_: TZDB2_Core_Space; ID_: Integer); virtual;
     destructor Destroy; override;
@@ -47,18 +47,18 @@ type
     procedure Save;
     procedure RecycleMemory;
     procedure Remove;
-    function GetData: TDFE;
-    property Data: TDFE read GetData;
+    function GetData: THashTextEngine;
+    property Data: THashTextEngine read GetData;
     property ID: Integer read FID;
   end;
 
-  TZDB2_DFE_Class = class of TZDB2_DFE;
+  TZDB2_HashTextEngine_Class = class of TZDB2_HashTextEngine;
 
-  TZDB2_List_DFE_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TZDB2_DFE>;
+  TZDB2_List_HashTextEngine_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TZDB2_HashTextEngine>;
 
-  TOnCreate_ZDB2_DFE = procedure(Sender: TZDB2_List_DFE; Obj: TZDB2_DFE) of object;
+  TOnCreate_ZDB2_HashTextEngine = procedure(Sender: TZDB2_List_HashTextEngine; Obj: TZDB2_HashTextEngine) of object;
 
-  TZDB2_List_DFE = class(TZDB2_List_DFE_Decl)
+  TZDB2_List_HashTextEngine = class(TZDB2_List_HashTextEngine_Decl)
   private type
     THead_ = packed record
       Identifier: Word;
@@ -71,22 +71,22 @@ type
     function GetAutoFreeStream: Boolean;
     procedure SetAutoFreeStream(const Value: Boolean);
   public
-    DFE_Class: TZDB2_DFE_Class;
+    HashTextEngine_Class: TZDB2_HashTextEngine_Class;
     TimeOut: TTimeTick;
     DeltaSpace: Int64;
     BlockSize: Word;
     IOHnd: TIOHnd;
     CoreSpace: TZDB2_Core_Space;
-    OnCreateClass: TOnCreate_ZDB2_DFE;
-    constructor Create(DFE_Class_: TZDB2_DFE_Class; OnCreateClass_: TOnCreate_ZDB2_DFE; TimeOut_: TTimeTick;
+    OnCreateClass: TOnCreate_ZDB2_HashTextEngine;
+    constructor Create(HashTextEngine_Class_: TZDB2_HashTextEngine_Class; OnCreateClass_: TOnCreate_ZDB2_HashTextEngine; TimeOut_: TTimeTick;
       Stream_: TCoreClassStream; DeltaSpace_: Int64; BlockSize_: Word; Cipher_: IZDB2_Cipher);
     destructor Destroy; override;
     property AutoFreeStream: Boolean read GetAutoFreeStream write SetAutoFreeStream;
-    procedure Remove(Obj: TZDB2_DFE; RemoveData_: Boolean);
+    procedure Remove(Obj: TZDB2_HashTextEngine; RemoveData_: Boolean);
     procedure Delete(Index: Integer; RemoveData_: Boolean);
     procedure Clear(RemoveData_: Boolean);
-    function NewDataFrom(ID_: Integer): TZDB2_DFE; overload;
-    function NewData: TZDB2_DFE; overload;
+    function NewDataFrom(ID_: Integer): TZDB2_HashTextEngine; overload;
+    function NewData: TZDB2_HashTextEngine; overload;
     procedure Flush;
     procedure Progress;
 
@@ -95,7 +95,7 @@ type
 
 implementation
 
-constructor TZDB2_DFE.Create(CoreSpace_: TZDB2_Core_Space; ID_: Integer);
+constructor TZDB2_HashTextEngine.Create(CoreSpace_: TZDB2_Core_Space; ID_: Integer);
 begin
   inherited Create;
   FTimeOut := 5 * 1000;
@@ -105,19 +105,19 @@ begin
   FData := nil;
 end;
 
-destructor TZDB2_DFE.Destroy;
+destructor TZDB2_HashTextEngine.Destroy;
 begin
   Save;
   inherited Destroy;
 end;
 
-procedure TZDB2_DFE.Progress;
+procedure TZDB2_HashTextEngine.Progress;
 begin
   if GetTimeTick - FAlive > FTimeOut then
       Save;
 end;
 
-procedure TZDB2_DFE.Load;
+procedure TZDB2_HashTextEngine.Load;
 var
   m64: TZDB2_Mem;
 begin
@@ -139,7 +139,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure TZDB2_DFE.Save;
+procedure TZDB2_HashTextEngine.Save;
 var
   m64: TMS64;
   old_ID: Integer;
@@ -162,12 +162,12 @@ begin
   DisposeObjectAndNil(FData);
 end;
 
-procedure TZDB2_DFE.RecycleMemory;
+procedure TZDB2_HashTextEngine.RecycleMemory;
 begin
   DisposeObjectAndNil(FData);
 end;
 
-procedure TZDB2_DFE.Remove;
+procedure TZDB2_HashTextEngine.Remove;
 begin
   if FID >= 0 then
       FCoreSpace.RemoveData(FID, False);
@@ -175,11 +175,11 @@ begin
   FID := -1;
 end;
 
-function TZDB2_DFE.GetData: TDFE;
+function TZDB2_HashTextEngine.GetData: THashTextEngine;
 begin
   if FData = nil then
     begin
-      FData := TDFE.Create;
+      FData := THashTextEngine.Create;
       Load;
       FData.IsChanged := False;
     end;
@@ -187,22 +187,22 @@ begin
   FAlive := GetTimeTick;
 end;
 
-procedure TZDB2_List_DFE.DoNoSpace(Siz_: Int64; var retry: Boolean);
+procedure TZDB2_List_HashTextEngine.DoNoSpace(Siz_: Int64; var retry: Boolean);
 begin
   retry := CoreSpace.AppendSpace(DeltaSpace, BlockSize);
 end;
 
-function TZDB2_List_DFE.GetAutoFreeStream: Boolean;
+function TZDB2_List_HashTextEngine.GetAutoFreeStream: Boolean;
 begin
   Result := IOHnd.AutoFree;
 end;
 
-procedure TZDB2_List_DFE.SetAutoFreeStream(const Value: Boolean);
+procedure TZDB2_List_HashTextEngine.SetAutoFreeStream(const Value: Boolean);
 begin
   IOHnd.AutoFree := Value;
 end;
 
-constructor TZDB2_List_DFE.Create(DFE_Class_: TZDB2_DFE_Class; OnCreateClass_: TOnCreate_ZDB2_DFE; TimeOut_: TTimeTick;
+constructor TZDB2_List_HashTextEngine.Create(HashTextEngine_Class_: TZDB2_HashTextEngine_Class; OnCreateClass_: TOnCreate_ZDB2_HashTextEngine; TimeOut_: TTimeTick;
   Stream_: TCoreClassStream; DeltaSpace_: Int64; BlockSize_: Word; Cipher_: IZDB2_Cipher);
 var
   buff: TZDB2_BlockHandle;
@@ -210,7 +210,7 @@ var
   m64: TMem64;
 begin
   inherited Create;
-  DFE_Class := DFE_Class_;
+  HashTextEngine_Class := HashTextEngine_Class_;
   TimeOut := TimeOut_;
   DeltaSpace := DeltaSpace_;
   BlockSize := BlockSize_;
@@ -252,7 +252,7 @@ begin
   SetLength(buff, 0);
 end;
 
-destructor TZDB2_List_DFE.Destroy;
+destructor TZDB2_List_HashTextEngine.Destroy;
 begin
   Flush;
   Clear(False);
@@ -260,7 +260,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TZDB2_List_DFE.Remove(Obj: TZDB2_DFE; RemoveData_: Boolean);
+procedure TZDB2_List_HashTextEngine.Remove(Obj: TZDB2_HashTextEngine; RemoveData_: Boolean);
 begin
   if RemoveData_ then
       Obj.Remove;
@@ -268,7 +268,7 @@ begin
   inherited Remove(Obj);
 end;
 
-procedure TZDB2_List_DFE.Delete(Index: Integer; RemoveData_: Boolean);
+procedure TZDB2_List_HashTextEngine.Delete(Index: Integer; RemoveData_: Boolean);
 begin
   if (index >= 0) and (index < Count) then
     begin
@@ -279,7 +279,7 @@ begin
     end;
 end;
 
-procedure TZDB2_List_DFE.Clear(RemoveData_: Boolean);
+procedure TZDB2_List_HashTextEngine.Clear(RemoveData_: Boolean);
 var
   i: Integer;
 begin
@@ -292,19 +292,19 @@ begin
   inherited Clear;
 end;
 
-function TZDB2_List_DFE.NewDataFrom(ID_: Integer): TZDB2_DFE;
+function TZDB2_List_HashTextEngine.NewDataFrom(ID_: Integer): TZDB2_HashTextEngine;
 begin
-  Result := DFE_Class.Create(CoreSpace, ID_);
+  Result := HashTextEngine_Class.Create(CoreSpace, ID_);
   Result.FTimeOut := TimeOut;
   Add(Result);
 end;
 
-function TZDB2_List_DFE.NewData: TZDB2_DFE;
+function TZDB2_List_HashTextEngine.NewData: TZDB2_HashTextEngine;
 begin
   Result := NewDataFrom(-1);
 end;
 
-procedure TZDB2_List_DFE.Flush;
+procedure TZDB2_List_HashTextEngine.Flush;
 var
   buff: TZDB2_BlockHandle;
   m64: TMem64;
@@ -328,7 +328,7 @@ begin
   CoreSpace.Save;
 end;
 
-procedure TZDB2_List_DFE.Progress;
+procedure TZDB2_List_HashTextEngine.Progress;
 var
   i: Integer;
 begin
@@ -336,13 +336,13 @@ begin
       Items[i].Progress;
 end;
 
-class procedure TZDB2_List_DFE.Test;
+class procedure TZDB2_List_HashTextEngine.Test;
 var
   Cipher_: TZDB2_Cipher;
   m64: TMS64;
   i: Integer;
-  tmp: TZDB2_DFE;
-  L: TZDB2_List_DFE;
+  tmp: TZDB2_HashTextEngine;
+  L: TZDB2_List_HashTextEngine;
   tk: TTimeTick;
 begin
   TCompute.Sleep(5000);
@@ -350,27 +350,27 @@ begin
   m64 := TMS64.CustomCreate(16 * 1024 * 1024);
 
   tk := GetTimeTick;
-  with TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, m64, 64 * 1048576, 200, Cipher_) do
+  with TZDB2_List_HashTextEngine.Create(TZDB2_HashTextEngine, nil, 5000, m64, 64 * 1048576, 200, Cipher_) do
     begin
       AutoFreeStream := False;
       for i := 1 to 20000 do
         begin
           tmp := NewData();
-          tmp.Data.WriteString('abcdefg');
+          tmp.Data.SHit['a', 'b'] := 'abcdefg';
           tmp.Save;
         end;
-      DoStatus('build %d of DFE,time:%dms', [Count, GetTimeTick - tk]);
+      DoStatus('build %d of HashTextEngine,time:%dms', [Count, GetTimeTick - tk]);
       Free;
     end;
 
   tk := GetTimeTick;
-  L := TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, m64, 64 * 1048576, 200, Cipher_);
+  L := TZDB2_List_HashTextEngine.Create(TZDB2_HashTextEngine, nil, 5000, m64, 64 * 1048576, 200, Cipher_);
   for i := 0 to L.Count - 1 do
     begin
-      if L[i].Data.ReadString(0) <> 'abcdefg' then
+      if L[i].Data.SHit['a', 'b'] <> 'abcdefg' then
           DoStatus('%s - test error.', [L.ClassName]);
     end;
-  DoStatus('load %d of DFE,time:%dms', [L.Count, GetTimeTick - tk]);
+  DoStatus('load %d of HashTextEngine,time:%dms', [L.Count, GetTimeTick - tk]);
   L.Free;
 
   DisposeObject(m64);

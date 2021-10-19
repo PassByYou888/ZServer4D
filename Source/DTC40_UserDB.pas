@@ -925,9 +925,6 @@ begin
   j_ := JsonDatabase.NewData;
   arry := j_.Data.A['Identifier'];
   arry.Add(UserName_);
-  arry.Add(UserName_ + '.PC');
-  arry.Add(UserName_ + '.IOS');
-  arry.Add(UserName_ + '.Android');
   j_.Data.S['PrimaryIdentifier'] := UserName_;
   j_.Data.S['Password'] := GenerateQuantumCryptographyPassword(passwd_.LowerText);
   j_.Data.D['RegTime'] := umlNow;
@@ -1226,9 +1223,6 @@ begin
   j_ := JsonDatabase.NewData;
   arry := j_.Data.A['Identifier'];
   arry.Add(UserName_);
-  arry.Add(UserName_ + '.PC');
-  arry.Add(UserName_ + '.IOS');
-  arry.Add(UserName_ + '.Android');
   j_.Data.S['PrimaryIdentifier'] := UserName_;
   j_.Data.S['Password'] := GenerateQuantumCryptographyPassword(passwd_.LowerText);
   j_.Data.D['RegTime'] := umlNow;

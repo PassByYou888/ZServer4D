@@ -143,9 +143,19 @@ type
     procedure RemoveDB(DBName_: SystemString);
   end;
 
+function MakeNowDateStr(): U_String;
+
 implementation
 
-uses DateUtils;
+uses SysUtils, DateUtils;
+
+function MakeNowDateStr(): U_String;
+var
+  Year, Month, Day: Word;
+begin
+  DecodeDate(Date, Year, Month, Day);
+  Result := Format('%d_%d_%d', [Year, Month, Day]);
+end;
 
 procedure SortLog(var L_: TArrayLogData);
   function Compare_(var Left, Right: TLogData__): ShortInt;

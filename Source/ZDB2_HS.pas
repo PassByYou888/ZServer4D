@@ -61,6 +61,13 @@ type
   TOnCreate_ZDB2_HashString = procedure(Sender: TZDB2_List_HashString; Obj: TZDB2_HashString) of object;
 
   TZDB2_List_HashString = class(TZDB2_List_HashString_Decl)
+  private type
+    THead_ = packed record
+      Identifier: Word;
+      ID: Integer;
+    end;
+
+    PHead_ = ^THead_;
   private
     procedure DoNoSpace(Siz_: Int64; var retry: Boolean);
     function GetAutoFreeStream: Boolean;
@@ -209,7 +216,7 @@ constructor TZDB2_List_HashString.Create(HashString_Class_: TZDB2_HashString_Cla
 var
   buff: TZDB2_BlockHandle;
   ID_: Integer;
-  tmp: TZDB2_HashString;
+  m64: TMem64;
 begin
   inherited Create;
   HashString_Class := HashString_Class_;
@@ -229,7 +236,24 @@ begin
           RaiseInfo('error.');
     end;
   OnCreateClass := OnCreateClass_;
-  buff := CoreSpace.BuildTableID;
+  if CoreSpace.BlockCount = 0 then
+      exit;
+
+  if (PHead_(@CoreSpace.UserCustomHeader^[0])^.Identifier = $FFFF) and
+    CoreSpace.Check(PHead_(@CoreSpace.UserCustomHeader^[0])^.ID) then
+    begin
+      m64 := TMem64.Create;
+      CoreSpace.ReadData(m64, PHead_(@CoreSpace.UserCustomHeader^[0])^.ID);
+      SetLength(buff, m64.Size shr 2);
+      if length(buff) > 0 then
+          CopyPtr(m64.Memory, @buff[0], m64.Size);
+      DisposeObject(m64);
+      CoreSpace.RemoveData(PHead_(@CoreSpace.UserCustomHeader^[0])^.ID, False);
+      FillPtr(@CoreSpace.UserCustomHeader^[0], SizeOf(THead_), 0);
+    end
+  else
+      buff := CoreSpace.BuildTableID;
+
   for ID_ in buff do
       NewDataFrom(ID_);
   SetLength(buff, 0);
@@ -289,10 +313,25 @@ end;
 
 procedure TZDB2_List_HashString.Flush;
 var
+  buff: TZDB2_BlockHandle;
+  m64: TMem64;
   i: Integer;
 begin
-  for i := 0 to Count - 1 do
-      Items[i].Save;
+  if Count > 0 then
+    begin
+      SetLength(buff, Count);
+      for i := 0 to Count - 1 do
+        begin
+          Items[i].Save;
+          buff[i] := Items[i].FID;
+        end;
+      m64 := TMem64.Create;
+      m64.Mapping(@buff[0], length(buff) * 4);
+      PHead_(@CoreSpace.UserCustomHeader^[0])^.Identifier := $FFFF;
+      CoreSpace.WriteData(m64, PHead_(@CoreSpace.UserCustomHeader^[0])^.ID, False);
+      DisposeObject(m64);
+      SetLength(buff, 0);
+    end;
   CoreSpace.Save;
 end;
 

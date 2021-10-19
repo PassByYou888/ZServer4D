@@ -249,7 +249,13 @@ type
     property AutoCloseIOHnd: Boolean read FAutoCloseIOHnd write FAutoCloseIOHnd;
     property AutoFreeIOHnd: Boolean read FAutoFreeIOHnd write FAutoFreeIOHnd;
     property Space_IOHnd: PIOHnd read FSpace_IOHnd write FSpace_IOHnd;
+    // dump custom data
     property UserCustomHeader: PZDB2_UserCustomHeader read GetUserCustomHeader;
+    property UserHeader: PZDB2_UserCustomHeader read GetUserCustomHeader;
+    property HeaderUser: PZDB2_UserCustomHeader read GetUserCustomHeader;
+    property CustomHeader: PZDB2_UserCustomHeader read GetUserCustomHeader;
+    property HeaderCustom: PZDB2_UserCustomHeader read GetUserCustomHeader;
+
     property BlockCount: Integer read FBlockCount;
     property BlockBuffer: TZDB2_BlockBuffer read FBlockBuffer;
     property MaxCacheMemory: Int64 read FMaxCacheMemory write FMaxCacheMemory;
