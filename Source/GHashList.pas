@@ -54,6 +54,7 @@ type
 {$ELSE FPC}
     TGebnericHashListLoopProc = reference to procedure(const Name_: PSystemString; Obj_: T_);
 {$ENDIF FPC}
+    TOnFree = procedure(var Obj_: T_) of object;
   private
     FAutoFreeObject: Boolean;
     FHashList: THashList;
@@ -74,9 +75,11 @@ type
     function GetAccessOptimization: Boolean;
     procedure SetAccessOptimization(const Value: Boolean);
 
-    procedure DefaultDataFreeProc(p: Pointer);
+    procedure Do_HashList_DataFree(p: Pointer);
+    procedure Do_Free_Obj(var Obj_: T_);
   protected
   public
+    OnFree: TOnFree;
     constructor Create(AutoFreeData_: Boolean; HashPoolSize_: Integer; Default_Null_Value_: T_);
     destructor Destroy; override;
 
@@ -190,9 +193,16 @@ begin
   FHashList.AccessOptimization := Value;
 end;
 
-procedure TGenericHashList{$IFNDEF FPC}<T_>{$ENDIF FPC}.DefaultDataFreeProc(p: Pointer);
+procedure TGenericHashList{$IFNDEF FPC}<T_>{$ENDIF FPC}.Do_HashList_DataFree(p: Pointer);
 begin
   Dispose(PGebnericHashListData(p));
+end;
+
+procedure TGenericHashList{$IFNDEF FPC}<T_>{$ENDIF FPC}.Do_Free_Obj(var Obj_: T_);
+begin
+  if Assigned(OnFree) then
+      OnFree(Obj_);
+  DisposeObject(Obj_);
 end;
 
 constructor TGenericHashList{$IFNDEF FPC}<T_>{$ENDIF FPC}.Create(AutoFreeData_: Boolean; HashPoolSize_: Integer; Default_Null_Value_: T_);
@@ -200,11 +210,11 @@ begin
   inherited Create;
   FHashList := THashList.CustomCreate(HashPoolSize_);
   FHashList.AutoFreeData := True;
-
-  FHashList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}DefaultDataFreeProc;
+  FHashList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}Do_HashList_DataFree;
   FAutoFreeObject := AutoFreeData_;
   FIncremental := 0;
   Default_Null_Value := Default_Null_Value_;
+  OnFree := nil;
 end;
 
 destructor TGenericHashList{$IFNDEF FPC}<T_>{$ENDIF FPC}.Destroy;
@@ -302,7 +312,7 @@ var
   pObjData: PGebnericHashListData;
   i: Integer;
 begin
-  if AutoFreeObject then
+  if FAutoFreeObject then
     begin
       lst := TCoreClassList.Create;
       FHashList.GetListData(lst);
@@ -315,7 +325,7 @@ begin
                 if pObjData^.Obj <> Default_Null_Value then
                   begin
                     try
-                        DisposeObject(pObjData^.Obj);
+                        Do_Free_Obj(pObjData^.Obj);
                     except
                     end;
                   end;
@@ -487,7 +497,7 @@ procedure TGenericHashList{$IFNDEF FPC}<T_>{$ENDIF FPC}.Delete(const Name: Syste
 var
   pObjData: PGebnericHashListData;
 begin
-  if AutoFreeObject then
+  if FAutoFreeObject then
     begin
       pObjData := FHashList.NameValue[Name];
       if pObjData <> nil then
@@ -495,7 +505,7 @@ begin
           if pObjData^.Obj <> Default_Null_Value then
             begin
               try
-                DisposeObject(pObjData^.Obj);
+                Do_Free_Obj(pObjData^.Obj);
                 pObjData^.Obj := Default_Null_Value;
               except
               end;
@@ -521,7 +531,7 @@ begin
       if (FAutoFreeObject) and (pObjData^.Obj <> Default_Null_Value) then
         begin
           try
-            DisposeObject(pObjData^.Obj);
+            Do_Free_Obj(pObjData^.Obj);
             pObjData^.Obj := Default_Null_Value;
           except
           end;

@@ -353,15 +353,19 @@ type
 {$REGION 'p2pVMCustomClient'}
 
   TDTC40_Custom_Client = class(TCoreClassInterfacedObject)
+  private
+    FLastSafeCheckTime: TTimeTick;
   protected
     procedure DoNetworkOffline; virtual;
   public
     Param: U_String;
     ParamList: THashStringList;
+    SafeCheckTime: TTimeTick;
     ClientInfo: TDTC40_Info;
     DTC40PhysicsTunnel: TDTC40_PhysicsTunnel;
     constructor Create(source_: TDTC40_Info; Param_: U_String); virtual;
     destructor Destroy; override;
+    procedure SafeCheck; virtual;
     procedure Progress; virtual;
     procedure Connect; virtual;
     function Connected: Boolean; virtual;
@@ -797,12 +801,12 @@ begin
       exit;
   C40Progress_Working := True;
   try
-    CheckThread;
     DTC40_PhysicsServicePool.Progress;
     DTC40_ServicePool.Progress;
     DTC40_PhysicsTunnelPool.Progress;
     DTC40_ClientPool.Progress;
     C40CheckAndKillDeadPhysicsTunnel();
+    CheckThread;
   finally
       C40Progress_Working := False;
   end;
@@ -2799,6 +2803,9 @@ begin
   except
   end;
 
+  FLastSafeCheckTime := GetTimeTick;
+  SafeCheckTime := EStrToInt64(ParamList.GetDefaultValue('SafeCheckTime', umlIntToStr(DTC40_SafeCheckTime)), DTC40_SafeCheckTime);
+
   DTC40_ClientPool.Add(Self);
   DTC40PhysicsTunnel := DTC40_PhysicsTunnelPool.GetOrCreatePhysicsTunnel(ClientInfo);
   DTC40PhysicsTunnel.DependNetworkClientPool.Add(Self);
@@ -2813,9 +2820,18 @@ begin
   inherited Destroy;
 end;
 
-procedure TDTC40_Custom_Client.Progress;
+procedure TDTC40_Custom_Client.SafeCheck;
 begin
 
+end;
+
+procedure TDTC40_Custom_Client.Progress;
+begin
+  if GetTimeTick - FLastSafeCheckTime > SafeCheckTime then
+    begin
+      SafeCheck;
+      FLastSafeCheckTime := GetTimeTick;
+    end;
 end;
 
 procedure TDTC40_Custom_Client.Connect;

@@ -101,6 +101,8 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure ResetPost;
+    procedure Clear;
+    procedure Clean;
     function PostExecute(): TNPostExecute; overload;
     function PostExecute(DataEng: TDFE): TNPostExecute; overload;
     function PostExecute(Delay: Double): TNPostExecute; overload;
@@ -419,6 +421,16 @@ begin
       Critical.Release; // atom
   end;
   FBreakProgress := True;
+end;
+
+procedure TNProgressPost.Clear;
+begin
+  ResetPost;
+end;
+
+procedure TNProgressPost.Clean;
+begin
+  ResetPost;
 end;
 
 function TNProgressPost.PostExecute(): TNPostExecute;

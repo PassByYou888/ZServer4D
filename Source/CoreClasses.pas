@@ -436,7 +436,7 @@ type
     property ThreadID: TThreadID read FThreadID write FThreadID;
     property OneStep: Boolean read FOneStep write FOneStep;
     property ResetRandomSeed: Boolean read FResetRandomSeed write FResetRandomSeed;
-
+    property SyncPool: TThreadPostDataOrder read FSyncPool;
     function Count: Integer;
     function Busy: Boolean;
 
