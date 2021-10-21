@@ -1903,9 +1903,8 @@ type
     FVMClientIO: TP2PVM_PeerIO;
     FVMConnected: Boolean;
     FP2PVM_ClonePool: TCommunicationFrameworkWithP2PVM_ClientList;
-    FP2PVM_CloneClientAutoFree: Boolean;
-    FP2PVM_CloneClientAutoProgress: Boolean;
     FP2PVM_CloneOwner: TCommunicationFrameworkWithP2PVM_Client;
+    FP2PVM_Clone_NextProgressDoFreeSelf: Boolean;
   private
     FOnP2PVMAsyncConnectNotifyCall: TStateCall;
     FOnP2PVMAsyncConnectNotifyMethod: TStateMethod;
@@ -1919,6 +1918,7 @@ type
     function CloneConnectM(OnResult: TP2PVM_CloneConnectEventM): TP2PVM_CloneConnectEventBridge;
     function CloneConnectP(OnResult: TP2PVM_CloneConnectEventP): TP2PVM_CloneConnectEventBridge;
     procedure RemoveCloneClient(client_: TCommunicationFrameworkWithP2PVM_Client);
+    property P2PVM_Clone_NextProgressDoFreeSelf: Boolean read FP2PVM_Clone_NextProgressDoFreeSelf write FP2PVM_Clone_NextProgressDoFreeSelf;
 
     procedure TriggerDoConnectFailed; override;
     procedure TriggerDoConnectFinished; override;
@@ -1947,12 +1947,6 @@ type
     property LinkVM: TCommunicationFrameworkWithP2PVM read FLinkVM;
     property FrameworkWithVM_ID: Cardinal read FFrameworkWithVM_ID;
     property VMClientIO: TP2PVM_PeerIO read FVMClientIO;
-
-    // clone client automated
-    property P2PVM_CloneClientAutoFree: Boolean read FP2PVM_CloneClientAutoFree write FP2PVM_CloneClientAutoFree;
-    property CloneClientAutoFree: Boolean read FP2PVM_CloneClientAutoFree write FP2PVM_CloneClientAutoFree;
-    property P2PVM_CloneClientAutoProgress: Boolean read FP2PVM_CloneClientAutoProgress write FP2PVM_CloneClientAutoProgress;
-    property CloneClientAutoProgress: Boolean read FP2PVM_CloneClientAutoProgress write FP2PVM_CloneClientAutoProgress;
   end;
 
   TCommunicationFrameworkListCall = procedure(Sender: TCommunicationFramework);
@@ -11137,8 +11131,9 @@ end;
 procedure TCommunicationFrameworkClient.Do_IO_IDLE_FreeSelf(Data_: TCoreClassObject);
 begin
   if Self is TCommunicationFrameworkWithP2PVM_Client then
-      TCommunicationFrameworkWithP2PVM_Client(Self).CloneClientAutoFree := False;
-  DelayFreeObject(1.0, Self, Data_);
+      TCommunicationFrameworkWithP2PVM_Client(Self).P2PVM_Clone_NextProgressDoFreeSelf := True
+  else
+      DelayFreeObject(1.0, Self, Data_);
 end;
 
 constructor TCommunicationFrameworkClient.Create;
@@ -12818,9 +12813,8 @@ begin
   FVMClientIO := nil;
   FVMConnected := False;
   FP2PVM_ClonePool := TCommunicationFrameworkWithP2PVM_ClientList.Create;
-  FP2PVM_CloneClientAutoFree := True;
-  FP2PVM_CloneClientAutoProgress := True;
   FP2PVM_CloneOwner := nil;
+  FP2PVM_Clone_NextProgressDoFreeSelf := False;
   FOnP2PVMAsyncConnectNotifyCall := nil;
   FOnP2PVMAsyncConnectNotifyMethod := nil;
   FOnP2PVMAsyncConnectNotifyProc := nil;
@@ -12828,8 +12822,6 @@ begin
 end;
 
 destructor TCommunicationFrameworkWithP2PVM_Client.Destroy;
-var
-  i: Integer;
 begin
   try
     if FP2PVM_CloneOwner <> nil then
@@ -12837,20 +12829,9 @@ begin
   except
   end;
 
-  i := 0;
-  while i < FP2PVM_ClonePool.Count do
-    begin
-      if FP2PVM_ClonePool[i].FP2PVM_CloneClientAutoFree then
-        begin
-          DisposeObject(FP2PVM_ClonePool[i]);
-        end
-      else
-        begin
-          FP2PVM_ClonePool[i].FP2PVM_CloneOwner := nil;
-          inc(i);
-        end;
-    end;
-  DisposeObject(FP2PVM_ClonePool);
+  while FP2PVM_ClonePool.Count > 0 do
+      DisposeObject(FP2PVM_ClonePool[0]);
+  DisposeObjectAndNil(FP2PVM_ClonePool);
 
   if FVMClientIO <> nil then
       DisposeObject(FVMClientIO);
@@ -12996,14 +12977,28 @@ end;
 procedure TCommunicationFrameworkWithP2PVM_Client.Progress;
 var
   i: Integer;
+  p2p_: TCommunicationFrameworkWithP2PVM_Client;
 begin
   inherited Progress;
-  for i := 0 to FP2PVM_ClonePool.Count - 1 do
+  i := 0;
+  while i < FP2PVM_ClonePool.Count do
     begin
-      if FP2PVM_ClonePool[i].FP2PVM_CloneClientAutoProgress then
-        begin
-          FP2PVM_ClonePool[i].Progress;
-        end;
+      p2p_ := FP2PVM_ClonePool[i];
+      try
+        if p2p_.FP2PVM_Clone_NextProgressDoFreeSelf then
+          begin
+            p2p_.FP2PVM_CloneOwner := nil;
+            p2p_.Disconnect;
+            DelayFreeObj(1, p2p_);
+            FP2PVM_ClonePool.Delete(i);
+          end
+        else
+          begin
+            p2p_.Progress;
+            inc(i);
+          end;
+      except
+      end;
     end;
 end;
 

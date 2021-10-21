@@ -26,6 +26,8 @@ interface
 uses
 {$IFDEF FPC}
   FPCGenericStructlist,
+{$ELSE FPC}
+  System.IOUtils,
 {$ENDIF FPC}
   CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib, ListEngine,
   Geometry2DUnit, DataFrameEngine, ZJson, zExpression,
@@ -167,6 +169,7 @@ type
     ZDB2Cipher: TZDB2_Cipher;
     FileCacheHash: TFileCacheHash;
     Cache: TZDB2_List_MS64;
+
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
     procedure SafeCheck; override;
@@ -178,9 +181,9 @@ type
     procedure FS_PostFile_M(Token: U_String; Stream: TCoreClassStream; doneFree: Boolean; OnResult: TON_FS_PostFile_DoneM);
     procedure FS_PostFile_P(Token: U_String; Stream: TCoreClassStream; doneFree: Boolean; OnResult: TON_FS_PostFile_DoneP);
     // download
-    procedure FS_GetFile_C(useCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneC);
-    procedure FS_GetFile_M(useCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneM);
-    procedure FS_GetFile_P(useCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneP);
+    procedure FS_GetFile_C(UsedCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneC);
+    procedure FS_GetFile_M(UsedCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneM);
+    procedure FS_GetFile_P(UsedCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneP);
     // md5
     procedure FS_GetFileMD5C(Token: U_String; OnResult: TFS_Temp_GetFileMD5C);
     procedure FS_GetFileMD5M(Token: U_String; OnResult: TFS_Temp_GetFileMD5M);
@@ -500,10 +503,10 @@ begin
     begin
       Cache := TFileCacheData.Create(Client);
       Client.FileCacheHash.FastAdd(Token, Cache);
-      Sender.Print('build cache %s', [Token.Text]);
+      Sender.Print('build cache "%s"', [Token.Text]);
     end;
   Cache.Stream.Data.LoadFromStream(Stream);
-  Sender.Print('update cache %s', [Token.Text]);
+  Sender.Print('update cache "%s"', [Token.Text]);
 
   p2pClient := Sender;
   p2pClient.RegisterDirectConsole('PostDone').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_PostDone;
@@ -522,7 +525,7 @@ begin
         OnResultP(Client, Token);
   except
   end;
-  p2pClient.IO_IDLE_Trace_And_FreeSelf(Self);
+  p2pClient.P2PVM_Clone_NextProgressDoFreeSelf := True;
 end;
 
 constructor TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.Create;
@@ -556,18 +559,16 @@ begin
 
   if not Token_is_MD5 then
     begin
-      Cache := Client.FileCacheHash[Token];
+      Cache := Client.FileCacheHash[tmp_token_];
       if Cache = nil then
         begin
           Cache := TFileCacheData.Create(Client);
-          Client.FileCacheHash.FastAdd(Token, Cache);
-          Sender.Print('build cache %s', [Token.Text]);
+          Client.FileCacheHash.FastAdd(tmp_token_, Cache);
+          Sender.Print('build cache "%s"', [tmp_token_.Text]);
         end;
       Cache.Stream.Data.LoadFromStream(tmp2);
-      Sender.Print('update cache %s', [Token.Text]);
+      Sender.Print('update cache "%s"', [tmp_token_.Text]);
     end;
-
-  Sender.Print('get file md5 %s', [umlStreamMD5String(tmp2).Text]);
 
   try
     if Assigned(OnResultC) then
@@ -581,7 +582,8 @@ begin
 
   DisposeObject(tmp1);
   DisposeObject(tmp2);
-  p2pClient.IO_IDLE_Trace_And_FreeSelf(Self);
+
+  p2pClient.P2PVM_Clone_NextProgressDoFreeSelf := True;
 end;
 
 procedure TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.cmd_Error(Sender: TPeerIO; InData: SystemString);
@@ -597,7 +599,7 @@ begin
   except
   end;
 
-  p2pClient.IO_IDLE_Trace_And_FreeSelf(Self);
+  p2pClient.P2PVM_Clone_NextProgressDoFreeSelf := True;
 end;
 
 procedure TDTC40_FS_Client.TFS_Temp_Get_File_Tunnel.DoP2PVM_CloneConnectAndGetFile(Sender: TCommunicationFrameworkWithP2PVM_Client);
@@ -714,7 +716,7 @@ begin
   Cache := Client.FileCacheHash[Token];
   if (Cache <> nil) and umlMD5Compare(umlStreamMD5(Cache.Stream.Data), MD5_) then
     begin
-      Sender.DTNoAuth.RecvTunnel.Print('get file %s from cache', [Token.Text]);;
+      Sender.DTNoAuth.RecvTunnel.Print('get file "%s" from cache', [Token.Text]);;
       try
         Cache.Stream.Data.Position := 0;
         if Assigned(OnResultC) then
@@ -746,11 +748,18 @@ var
   i: Integer;
 begin
   inherited Create(source_, Param_);
-
-  DTC40_FS_Cache_FileName := umlCombineFileName(DTC40_RootPath, PFormat('DTC40_FS_Cache_%s_%s.Space', [source_.ServiceTyp.Text, umlMD5ToStr(source_.Hash).Text]));
+  DTC40_FS_Cache_FileName := umlCombineFileName({$IFDEF FPC}DTC40_RootPath{$ELSE FPC}TPath.GetTempPath{$ENDIF FPC},
+    PFormat('DTC40_FS_Cache_%s_%s.tmp', [source_.ServiceTyp.Text, umlMD5ToStr(source_.Hash).Text]));
+  i := 1;
+  while umlFileExists(DTC40_FS_Cache_FileName) do
+    begin
+      DTC40_FS_Cache_FileName := umlCombineFileName({$IFDEF FPC}DTC40_RootPath{$ELSE FPC}TPath.GetTempPath{$ENDIF FPC},
+        PFormat('DTC40_FS_Cache_%s_%s(%d).tmp', [source_.ServiceTyp.Text, umlMD5ToStr(source_.Hash).Text, i]));
+      inc(i);
+    end;
 
   ZDB2RecycleMemoryTimeOut := EStrToInt64(ParamList.GetDefaultValue('RecycleMemory', '5*1000'), 5 * 1000);
-  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '512*1024*1024'), 512 * 1024 * 1024);
+  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '128*1024*1024'), 128 * 1024 * 1024);
   ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1536'), 1536);
   ZDB2EnabledCipher := EStrToBool(ParamList.GetDefaultValue('EnabledCipher', 'True'), True);
   ZDB2CipherName := ParamList.GetDefaultValue('Cipher', TCipher.CCipherSecurityName[TCipherSecurity.csRijndael]);
@@ -777,6 +786,7 @@ destructor TDTC40_FS_Client.Destroy;
 begin
   DisposeObject(FileCacheHash);
   DisposeObject(Cache);
+  umlDeleteFile(DTC40_FS_Cache_FileName);
   inherited Destroy;
 end;
 
@@ -879,12 +889,12 @@ begin
       DisposeObject(Stream);
 end;
 
-procedure TDTC40_FS_Client.FS_GetFile_C(useCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneC);
+procedure TDTC40_FS_Client.FS_GetFile_C(UsedCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneC);
 var
   tmp_cache_: TFS_Temp_GetFileMD5_Cache;
   tmp: TFS_Temp_Get_File_Tunnel;
 begin
-  if useCache_ and (not Token_is_MD5) and FileCacheHash.Exists(Token) then
+  if UsedCache_ and (not Token_is_MD5) and FileCacheHash.Exists(Token) then
     begin
       tmp_cache_ := TFS_Temp_GetFileMD5_Cache.Create;
       tmp_cache_.Client := Self;
@@ -903,12 +913,12 @@ begin
     end;
 end;
 
-procedure TDTC40_FS_Client.FS_GetFile_M(useCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneM);
+procedure TDTC40_FS_Client.FS_GetFile_M(UsedCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneM);
 var
   tmp_cache_: TFS_Temp_GetFileMD5_Cache;
   tmp: TFS_Temp_Get_File_Tunnel;
 begin
-  if useCache_ and (not Token_is_MD5) and FileCacheHash.Exists(Token) then
+  if UsedCache_ and (not Token_is_MD5) and FileCacheHash.Exists(Token) then
     begin
       tmp_cache_ := TFS_Temp_GetFileMD5_Cache.Create;
       tmp_cache_.Client := Self;
@@ -927,12 +937,12 @@ begin
     end;
 end;
 
-procedure TDTC40_FS_Client.FS_GetFile_P(useCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneP);
+procedure TDTC40_FS_Client.FS_GetFile_P(UsedCache_: Boolean; Token: U_String; Token_is_MD5: Boolean; OnResult: TON_FS_GetFile_DoneP);
 var
   tmp_cache_: TFS_Temp_GetFileMD5_Cache;
   tmp: TFS_Temp_Get_File_Tunnel;
 begin
-  if useCache_ and (not Token_is_MD5) and FileCacheHash.Exists(Token) then
+  if UsedCache_ and (not Token_is_MD5) and FileCacheHash.Exists(Token) then
     begin
       tmp_cache_ := TFS_Temp_GetFileMD5_Cache.Create;
       tmp_cache_.Client := Self;

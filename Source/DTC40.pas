@@ -794,13 +794,11 @@ implementation
 
 var
   C40Progress_Working: Boolean = False;
-  C40Clean_Working: Boolean = False;
 
 procedure C40Progress;
 begin
   if C40Progress_Working then
       exit;
-  C40Progress_Working := True;
   try
     DTC40_PhysicsServicePool.Progress;
     DTC40_ServicePool.Progress;
@@ -810,18 +808,11 @@ begin
     CheckThread;
   finally
     C40Progress_Working := False;
-    if C40Clean_Working then
-        C40Clean;
   end;
 end;
 
 procedure C40Clean;
 begin
-  if C40Progress_Working then
-    begin
-      C40Clean_Working := True;
-      exit;
-    end;
   while DTC40_ClientPool.Count > 0 do
       DisposeObject(DTC40_ClientPool[0]);
   while DTC40_ServicePool.Count > 0 do
@@ -831,7 +822,6 @@ begin
       DisposeObject(DTC40_PhysicsTunnelPool[0]);
   while DTC40_PhysicsServicePool.Count > 0 do
       DisposeObject(DTC40_PhysicsServicePool[0]);
-  C40Clean_Working := False;
 end;
 
 procedure C40PrintRegistation;
