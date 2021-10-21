@@ -1067,7 +1067,7 @@ begin
   Result := True;
   if FState.Cache > FMaxCacheMemory then
     begin
-      FlushCache();
+      Save();
     end;
 end;
 

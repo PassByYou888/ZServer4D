@@ -174,7 +174,6 @@ type
     destructor Destroy; override;
     procedure SafeCheck; override;
     procedure Progress; override;
-
     // upload
     procedure FS_PostFile(Token: U_String; Stream: TCoreClassStream; doneFree: Boolean);
     procedure FS_PostFile_C(Token: U_String; Stream: TCoreClassStream; doneFree: Boolean; OnResult: TON_FS_PostFile_DoneC);
@@ -396,7 +395,7 @@ begin
           RaiseInfo('create file "%s" error.', [DTC40_FS_FileName.Text]);
     end;
   ZDB2Space := TZDB2_Core_Space.Create(@FIOHnd);
-  ZDB2Space.Mode := smBigData;
+  ZDB2Space.Mode := smNormal;
   ZDB2Space.AutoCloseIOHnd := True;
 
   IsLoading := False;

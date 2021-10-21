@@ -213,7 +213,7 @@ begin
   umlFileCreateAsStream(Stream_, IOHnd);
   CoreSpace := TZDB2_Core_Space.Create(@IOHnd);
   CoreSpace.Cipher := Cipher_;
-  CoreSpace.Mode := smBigData;
+  CoreSpace.Mode := smNormal;
   CoreSpace.AutoCloseIOHnd := True;
   CoreSpace.OnNoSpace := {$IFDEF FPC}@{$ENDIF FPC}DoNoSpace;
   if umlFileSize(IOHnd) > 0 then
