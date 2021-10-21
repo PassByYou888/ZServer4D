@@ -799,6 +799,7 @@ procedure C40Progress;
 begin
   if C40Progress_Working then
       exit;
+  C40Progress_Working := True;
   try
     DTC40_PhysicsServicePool.Progress;
     DTC40_ServicePool.Progress;
@@ -807,7 +808,7 @@ begin
     C40CheckAndKillDeadPhysicsTunnel();
     CheckThread;
   finally
-    C40Progress_Working := False;
+      C40Progress_Working := False;
   end;
 end;
 
