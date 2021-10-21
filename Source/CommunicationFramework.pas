@@ -859,10 +859,16 @@ type
     procedure WriteCustomBuffer(const buffer: TMemoryStream64; const doneFreeBuffer: Boolean); overload;
     procedure WriteCustomBuffer(const buffer: TMem64; const doneFreeBuffer: Boolean); overload;
 
-    { delay reponse }
+    { pause reponse }
     procedure PauseResultSend; virtual;
+    procedure BreakResultSend;
+    procedure SkipResultSend;
+    procedure IgnoreResultSend;
+    procedure StopResultSend;
     procedure ContinueResultSend; virtual;
-    { ContinueResultSend usage }
+    procedure ResumeResultSend;
+    procedure NowResultSend;
+    { resume reponse }
     property InText: SystemString read FInText;
     property InConsole: SystemString read FInText;
     property OutText: SystemString read FOutText write FOutText;
@@ -872,6 +878,10 @@ type
     property OutDataFrame: TDFE read FOutDataFrame;
     property OutDFE: TDFE read FOutDataFrame;
     function ResultSendIsPaused: Boolean;
+    property ResultIsPaused: Boolean read ResultSendIsPaused;
+    property ResultIsSkip: Boolean read ResultSendIsPaused;
+    property ResultIsIgnore: Boolean read ResultSendIsPaused;
+    property ResultIsStop: Boolean read ResultSendIsPaused;
 
     { state }
     property CurrentBigStreamCommand: SystemString read FBigStreamCmd;
@@ -5420,6 +5430,9 @@ var
   d: TDFE;
   Stream: TMemoryStream64;
 begin
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send console: %s', FSyncPick^.Cmd);
+
   d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
@@ -5440,9 +5453,6 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
-
-  if not OwnerFramework.QuietMode then
-      PrintCommand('internal send console: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendStreamCmd;
@@ -5450,6 +5460,9 @@ var
   d: TDFE;
   Stream: TMemoryStream64;
 begin
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send stream: %s', FSyncPick^.Cmd);
+
   d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
@@ -5470,9 +5483,6 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
-
-  if not OwnerFramework.QuietMode then
-      PrintCommand('internal send stream: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendDirectConsoleCmd;
@@ -5480,6 +5490,9 @@ var
   d: TDFE;
   Stream: TMemoryStream64;
 begin
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send direct console: %s', FSyncPick^.Cmd);
+
   d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
@@ -5500,9 +5513,6 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
-
-  if not OwnerFramework.QuietMode then
-      PrintCommand('internal send direct console: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendDirectStreamCmd;
@@ -5510,6 +5520,9 @@ var
   d: TDFE;
   Stream: TMemoryStream64;
 begin
+  if not OwnerFramework.QuietMode then
+      PrintCommand('internal send direct stream: %s', FSyncPick^.Cmd);
+
   d := TDFE.Create;
   Stream := TMemoryStream64.Create;
 
@@ -5530,27 +5543,24 @@ begin
 
   if FOwnerFramework.FSendDataCompressed then
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stCompress]);
-
-  if not OwnerFramework.QuietMode then
-      PrintCommand('internal send direct stream: %s', FSyncPick^.Cmd);
 end;
 
 procedure TPeerIO.Sync_InternalSendBigStreamCmd;
 begin
-  InternalSendBigStreamBuff(FSyncPick^);
-  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
-
   if not OwnerFramework.QuietMode then
       PrintCommand('internal send bigstream: %s', FSyncPick^.Cmd);
+
+  InternalSendBigStreamBuff(FSyncPick^);
+  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecBigStream]);
 end;
 
 procedure TPeerIO.Sync_InternalSendCompleteBufferCmd;
 begin
-  InternalSendCompleteBufferBuff(FSyncPick^);
-  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecCompleteBuffer]);
-
   if not OwnerFramework.QuietMode then
       PrintCommand('internal send complete buffer: %s', FSyncPick^.Cmd);
+
+  InternalSendCompleteBufferBuff(FSyncPick^);
+  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stExecCompleteBuffer]);
 end;
 
 procedure TPeerIO.Sync_ExecuteConsole;
@@ -5858,14 +5868,15 @@ begin
       FReceiveCommandRuning := True;
       d := GetTimeTick;
 
+      if not OwnerFramework.QuietMode then
+          PrintCommand('execute complete buffer: %s', FCompleteBufferCmd);
+
       FOwnerFramework.ExecuteCompleteBuffer(Self, FCompleteBufferCmd, FCompleteBufferReceivedStream.Memory, FCompleteBufferReceivedStream.Size);
 
       FReceiveCommandRuning := False;
       FOwnerFramework.CmdMaxExecuteConsumeStatistics.SetMax(FInCmd, GetTimeTick - d);
 
       FOwnerFramework.CmdRecvStatistics.IncValue(FCompleteBufferCmd, 1);
-      if not OwnerFramework.QuietMode then
-          PrintCommand('execute complete buffer: %s', FCompleteBufferCmd);
     end
   else
     begin
@@ -7450,6 +7461,26 @@ begin
     end;
 end;
 
+procedure TPeerIO.BreakResultSend;
+begin
+  PauseResultSend;
+end;
+
+procedure TPeerIO.SkipResultSend;
+begin
+  PauseResultSend;
+end;
+
+procedure TPeerIO.IgnoreResultSend;
+begin
+  PauseResultSend;
+end;
+
+procedure TPeerIO.StopResultSend;
+begin
+  PauseResultSend;
+end;
+
 procedure TPeerIO.ContinueResultSend;
 var
   headBuff: array [0 .. 2] of Byte;
@@ -7517,6 +7548,16 @@ begin
       AtomInc(FOwnerFramework.Statistics[TStatisticsType.stResponse]);
     end;
   FPauseResultSend := False;
+end;
+
+procedure TPeerIO.ResumeResultSend;
+begin
+  ContinueResultSend;
+end;
+
+procedure TPeerIO.NowResultSend;
+begin
+  ContinueResultSend;
 end;
 
 function TPeerIO.ResultSendIsPaused: Boolean;
@@ -8120,12 +8161,12 @@ begin
   if P_IO <> nil then
     begin
       CompleteBuff := TMemoryStream64(Sender.Data1);
+      if not QuietMode then
+          P_IO.PrintCommand('execute complete buffer(delay): %s', Cmd);
       ExecuteCompleteBuffer(P_IO, Cmd, CompleteBuff.Memory, CompleteBuff.Size);
       DisposeObject(CompleteBuff);
 
       CmdRecvStatistics.IncValue(Cmd, 1);
-      if not QuietMode then
-          P_IO.PrintCommand('execute complete buffer(delay): %s', Cmd);
     end;
 end;
 
@@ -9692,6 +9733,8 @@ begin
   MaxCompleteBufferSize := Source.MaxCompleteBufferSize;
   CompleteBufferCompressionCondition := Source.CompleteBufferCompressionCondition;
   ProgressMaxDelay := Source.ProgressMaxDelay;
+  PrefixName := Source.PrefixName;
+  Name := Source.Name;
 end;
 
 procedure TCommunicationFramework.CopyParamTo(Dest: TCommunicationFramework);
@@ -12829,6 +12872,7 @@ begin
   bridge_.NewClient := TCommunicationFrameworkWithP2PVM_Client.Create;
   // copy parameter
   bridge_.NewClient.CopyParamFrom(Self);
+  bridge_.NewClient.Name := bridge_.NewClient.Name + '.Clone';
   // init event
   bridge_.OnResultC := OnResult;
   bridge_.NewClient.FP2PVM_CloneOwner := Self;
@@ -12851,6 +12895,7 @@ begin
   bridge_.NewClient := TCommunicationFrameworkWithP2PVM_Client.Create;
   // copy parameter
   bridge_.NewClient.CopyParamFrom(Self);
+  bridge_.NewClient.Name := bridge_.NewClient.Name + '.Clone';
   // init event
   bridge_.OnResultM := OnResult;
   bridge_.NewClient.FP2PVM_CloneOwner := Self;
@@ -12873,6 +12918,7 @@ begin
   bridge_.NewClient := TCommunicationFrameworkWithP2PVM_Client.Create;
   // copy parameter
   bridge_.NewClient.CopyParamFrom(Self);
+  bridge_.NewClient.Name := bridge_.NewClient.Name + '.Clone';
   // init event
   bridge_.OnResultP := OnResult;
   bridge_.NewClient.FP2PVM_CloneOwner := Self;

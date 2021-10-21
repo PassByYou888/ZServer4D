@@ -794,6 +794,7 @@ implementation
 
 var
   C40Progress_Working: Boolean = False;
+  C40Clean_Working: Boolean = False;
 
 procedure C40Progress;
 begin
@@ -808,12 +809,19 @@ begin
     C40CheckAndKillDeadPhysicsTunnel();
     CheckThread;
   finally
-      C40Progress_Working := False;
+    C40Progress_Working := False;
+    if C40Clean_Working then
+        C40Clean;
   end;
 end;
 
 procedure C40Clean;
 begin
+  if C40Progress_Working then
+    begin
+      C40Clean_Working := True;
+      exit;
+    end;
   while DTC40_ClientPool.Count > 0 do
       DisposeObject(DTC40_ClientPool[0]);
   while DTC40_ServicePool.Count > 0 do
@@ -823,6 +831,7 @@ begin
       DisposeObject(DTC40_PhysicsTunnelPool[0]);
   while DTC40_PhysicsServicePool.Count > 0 do
       DisposeObject(DTC40_PhysicsServicePool[0]);
+  C40Clean_Working := False;
 end;
 
 procedure C40PrintRegistation;
@@ -1166,7 +1175,12 @@ var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
-      Items[i].Progress;
+    begin
+      try
+          Items[i].Progress;
+      except
+      end;
+    end;
 end;
 
 function TDTC40_PhysicsServicePool.ExistsPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
@@ -2061,7 +2075,12 @@ var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
-      Items[i].Progress;
+    begin
+      try
+          Items[i].Progress;
+      except
+      end;
+    end;
 end;
 
 procedure TDTC40_Info.MakeHash;
@@ -2612,7 +2631,10 @@ procedure TDTC40_Custom_Service.Progress;
 begin
   if GetTimeTick - FLastSafeCheckTime > SafeCheckTime then
     begin
-      SafeCheck;
+      try
+          SafeCheck;
+      except
+      end;
       FLastSafeCheckTime := GetTimeTick;
     end;
 end;
@@ -2675,7 +2697,12 @@ var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
-      Items[i].Progress;
+    begin
+      try
+          Items[i].Progress;
+      except
+      end;
+    end;
 end;
 
 procedure TDTC40_Custom_ServicePool.MakeP2PVM_IPv6_Port(var ip6, port: U_String);
@@ -2829,7 +2856,10 @@ procedure TDTC40_Custom_Client.Progress;
 begin
   if GetTimeTick - FLastSafeCheckTime > SafeCheckTime then
     begin
-      SafeCheck;
+      try
+          SafeCheck;
+      except
+      end;
       FLastSafeCheckTime := GetTimeTick;
     end;
 end;
@@ -2952,7 +2982,12 @@ var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
-      Items[i].Progress;
+    begin
+      try
+          Items[i].Progress;
+      except
+      end;
+    end;
 end;
 
 function TDTC40_Custom_ClientPool.FindHash(hash_: TMD5; isConnected: Boolean): TDTC40_Custom_Client;

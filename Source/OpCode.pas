@@ -434,7 +434,7 @@ function LoadOpFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Bool
 
   function LoadFromDataFrame_(CurDataEng: TDataFrameEngine): TOpCode;
   var
-    AName: SystemString;
+    Name_: SystemString;
     RegPtr: POpRegData;
     i, cnt: Integer;
     NeedNewOp: Boolean;
@@ -442,8 +442,8 @@ function LoadOpFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Bool
     v: Variant;
     VT: TOpValueType;
   begin
-    AName := CurDataEng.Reader.ReadString;
-    RegPtr := GetRegistedOp(AName);
+    Name_ := CurDataEng.Reader.ReadString;
+    RegPtr := GetRegistedOp(Name_);
     if RegPtr <> nil then
       begin
         Result := RegPtr^.opClass.Create(True);

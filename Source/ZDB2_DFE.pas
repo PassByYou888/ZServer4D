@@ -67,7 +67,7 @@ type
 
     PHead_ = ^THead_;
   private
-    procedure DoNoSpace(Siz_: Int64; var retry: Boolean);
+    procedure DoNoSpace(Trigger: TZDB2_Core_Space; Siz_: Int64; var retry: Boolean);
     function GetAutoFreeStream: Boolean;
     procedure SetAutoFreeStream(const Value: Boolean);
   public
@@ -88,6 +88,7 @@ type
     function NewDataFrom(ID_: Integer): TZDB2_DFE; overload;
     function NewData: TZDB2_DFE; overload;
     procedure Flush;
+    procedure ExtractTo(Stream_: TCoreClassStream);
     procedure Progress;
 
     class procedure Test;
@@ -187,9 +188,9 @@ begin
   FAlive := GetTimeTick;
 end;
 
-procedure TZDB2_List_DFE.DoNoSpace(Siz_: Int64; var retry: Boolean);
+procedure TZDB2_List_DFE.DoNoSpace(Trigger: TZDB2_Core_Space; Siz_: Int64; var retry: Boolean);
 begin
-  retry := CoreSpace.AppendSpace(DeltaSpace, BlockSize);
+  retry := Trigger.AppendSpace(DeltaSpace, BlockSize);
 end;
 
 function TZDB2_List_DFE.GetAutoFreeStream: Boolean;
@@ -239,7 +240,7 @@ begin
       CoreSpace.ReadData(m64, PHead_(@CoreSpace.UserCustomHeader^[0])^.ID);
       SetLength(buff, m64.Size shr 2);
       if length(buff) > 0 then
-          CopyPtr(m64.Memory, @buff[0], m64.Size);
+          CopyPtr(m64.Memory, @buff[0], length(buff) shl 2);
       DisposeObject(m64);
       CoreSpace.RemoveData(PHead_(@CoreSpace.UserCustomHeader^[0])^.ID, False);
       FillPtr(@CoreSpace.UserCustomHeader^[0], SizeOf(THead_), 0);
@@ -319,13 +320,56 @@ begin
           buff[i] := Items[i].FID;
         end;
       m64 := TMem64.Create;
-      m64.Mapping(@buff[0], length(buff) * 4);
+      m64.Mapping(@buff[0], length(buff) shl 2);
       PHead_(@CoreSpace.UserCustomHeader^[0])^.Identifier := $FFFF;
       CoreSpace.WriteData(m64, PHead_(@CoreSpace.UserCustomHeader^[0])^.ID, False);
       DisposeObject(m64);
       SetLength(buff, 0);
-    end;
+    end
+  else
+      FillPtr(@CoreSpace.UserCustomHeader^[0], SizeOf(THead_), 0);
   CoreSpace.Save;
+end;
+
+procedure TZDB2_List_DFE.ExtractTo(Stream_: TCoreClassStream);
+var
+  TmpIOHnd: TIOHnd;
+  TmpSpace: TZDB2_Core_Space;
+  buff: TZDB2_BlockHandle;
+  i: Integer;
+  m64: TMem64;
+begin
+  Flush;
+  InitIOHnd(TmpIOHnd);
+  umlFileCreateAsStream(Stream_, TmpIOHnd);
+  TmpSpace := TZDB2_Core_Space.Create(@TmpIOHnd);
+  TmpSpace.Cipher := CoreSpace.Cipher;
+  TmpSpace.Mode := smBigData;
+  TmpSpace.OnNoSpace := {$IFDEF FPC}@{$ENDIF FPC}DoNoSpace;
+  TmpSpace.BuildSpace(CoreSpace.State^.Physics, BlockSize);
+
+  if Count > 0 then
+    begin
+      SetLength(buff, Count);
+      for i := 0 to Count - 1 do
+        begin
+          m64 := TMem64.Create;
+          if CoreSpace.ReadData(m64, Items[i].FID) then
+            if not TmpSpace.WriteData(m64, buff[i], False) then
+                RaiseInfo('error');
+          DisposeObject(m64);
+        end;
+      m64 := TMem64.Create;
+      m64.Mapping(@buff[0], length(buff) shl 2);
+      PHead_(@TmpSpace.UserCustomHeader^[0])^.Identifier := $FFFF;
+      CoreSpace.WriteData(m64, PHead_(@TmpSpace.UserCustomHeader^[0])^.ID, False);
+      DisposeObject(m64);
+      SetLength(buff, 0);
+    end
+  else
+      FillPtr(@CoreSpace.UserCustomHeader^[0], SizeOf(THead_), 0);
+  TmpSpace.Save;
+  DisposeObject(TmpSpace);
 end;
 
 procedure TZDB2_List_DFE.Progress;
@@ -339,7 +383,7 @@ end;
 class procedure TZDB2_List_DFE.Test;
 var
   Cipher_: TZDB2_Cipher;
-  m64: TMS64;
+  M64_1, M64_2: TMS64;
   i: Integer;
   tmp: TZDB2_DFE;
   L: TZDB2_List_DFE;
@@ -347,10 +391,11 @@ var
 begin
   TCompute.Sleep(5000);
   Cipher_ := TZDB2_Cipher.Create(TCipherSecurity.csRijndael, 'hello world', 1, True, True);
-  m64 := TMS64.CustomCreate(16 * 1024 * 1024);
+  M64_1 := TMS64.CustomCreate(16 * 1024 * 1024);
+  M64_2 := TMS64.CustomCreate(16 * 1024 * 1024);
 
   tk := GetTimeTick;
-  with TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, m64, 64 * 1048576, 200, Cipher_) do
+  with TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, M64_1, 64 * 1048576, 200, Cipher_) do
     begin
       AutoFreeStream := False;
       for i := 1 to 20000 do
@@ -364,16 +409,28 @@ begin
     end;
 
   tk := GetTimeTick;
-  L := TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, m64, 64 * 1048576, 200, Cipher_);
+  L := TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, M64_1, 64 * 1048576, 200, Cipher_);
   for i := 0 to L.Count - 1 do
     begin
       if L[i].Data.ReadString(0) <> 'abcdefg' then
           DoStatus('%s - test error.', [L.ClassName]);
     end;
   DoStatus('load %d of DFE,time:%dms', [L.Count, GetTimeTick - tk]);
+  L.ExtractTo(M64_2);
   L.Free;
 
-  DisposeObject(m64);
+  tk := GetTimeTick;
+  L := TZDB2_List_DFE.Create(TZDB2_DFE, nil, 5000, M64_2, 64 * 1048576, 200, Cipher_);
+  for i := 0 to L.Count - 1 do
+    begin
+      if L[i].Data.ReadString(0) <> 'abcdefg' then
+          DoStatus('%s - test error.', [L.ClassName]);
+    end;
+  DoStatus('load %d extract stream of DFE,time:%dms', [L.Count, GetTimeTick - tk]);
+  L.Free;
+
+  DisposeObject(M64_1);
+  DisposeObject(M64_2);
   DisposeObject(Cipher_);
 end;
 

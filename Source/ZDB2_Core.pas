@@ -75,7 +75,7 @@ type
   TZDB2_BlockBuffer = array of TZDB2_Block;
   TZDB2_BlockWriteCache = array of TZDB2_BlockCache;
   TZDB2_OnProgress = procedure(Total_, current_: Integer) of object;
-  TZDB2_OnNoSpace = procedure(Siz_: Int64; var retry: Boolean) of object;
+  TZDB2_OnNoSpace = procedure(Trigger: TZDB2_Core_Space; Siz_: Int64; var retry: Boolean) of object;
 
   TZDB2_BlockStore = packed record
     Position: Int64;
@@ -1749,7 +1749,7 @@ begin
       DisposeObject(Space_);
       retry := False;
       if Assigned(FOnNoSpace) then
-          FOnNoSpace(Stream_.Size, retry);
+          FOnNoSpace(Self, Stream_.Size, retry);
       if retry then
           Result := WriteStream(Stream_, SpaceHnd)
       else
@@ -1903,7 +1903,7 @@ begin
       DisposeObject(Space_);
       retry := False;
       if Assigned(FOnNoSpace) then
-          FOnNoSpace(buff.Size, retry);
+          FOnNoSpace(Self, buff.Size, retry);
       if retry then
           Result := WriteData(buff, SpaceHnd, BuffProtected_)
       else

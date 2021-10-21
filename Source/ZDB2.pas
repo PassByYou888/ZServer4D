@@ -122,7 +122,7 @@ type
     FNoSpaceMaxSize: Int64;
 
     procedure SetOnCoreProgress(const Value: TZDB2_OnProgress);
-    procedure DoOnNoSpace(Siz_: Int64; var retry: Boolean);
+    procedure DoOnNoSpace(Trigger: TZDB2_Core_Space; Siz_: Int64; var retry: Boolean);
     procedure ReloadIndexPtr;
     procedure LoadIndex;
     function IndexSpaceSize(PhyBlockNum_: Integer): Int64;
@@ -441,7 +441,7 @@ begin
       FSpace.OnProgress := FOnCoreProgress;
 end;
 
-procedure TZDB2.DoOnNoSpace(Siz_: Int64; var retry: Boolean);
+procedure TZDB2.DoOnNoSpace(Trigger: TZDB2_Core_Space; Siz_: Int64; var retry: Boolean);
 var
   TK: TTimeTick;
   ID: Integer;
