@@ -930,7 +930,6 @@ begin
   j_.Data.D['RegTime'] := umlNow;
   j_.Data.D['LastAuth'] := umlNow;
   j_.Data.B['Enabled'] := True;
-  JsonDatabase.Add(j_);
   for i := 0 to arry.Count - 1 do
       UserIdentifierHash.Add(arry.S[i], j_);
   OutData.WriteBool(True);
@@ -1228,7 +1227,6 @@ begin
   j_.Data.D['RegTime'] := umlNow;
   j_.Data.D['LastAuth'] := umlNow;
   j_.Data.B['Enabled'] := True;
-  JsonDatabase.Add(j_);
   for i := 0 to arry.Count - 1 do
       UserIdentifierHash.Add(arry.S[i], j_);
   DoStatus('user "%s" registration done.', [UserName_.Text]);

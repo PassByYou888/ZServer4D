@@ -136,6 +136,9 @@ begin
       try
           FData.LoadFromStream(m64.Stream64);
       except
+        DoStatus('failed load json');
+        DoStatus(m64.Memory, m64.Size, 80);
+        DoStatus('');
       end;
     end
   else
@@ -408,7 +411,7 @@ begin
       for i := 0 to 20000 do
         begin
           tmp := NewData();
-          tmp.Data.S['a'] := 'abcdefg';
+          tmp.Data.S['a' + umlIntToStr(i)] := 'abcdefg' + umlIntToStr(i);
           tmp.Save;
         end;
       DoStatus('build %d of json,time:%dms', [Count, GetTimeTick - tk]);
@@ -419,8 +422,9 @@ begin
   L := TZDB2_List_Json.Create(TZDB2_Json, nil, 5000, M64_1, 64 * 1048576, 200, Cipher_);
   for i := 0 to L.Count - 1 do
     begin
-      if L[i].Data.S['a'] <> 'abcdefg' then
+      if L[i].Data.S['a' + umlIntToStr(i)] <> 'abcdefg' + umlIntToStr(i) then
           DoStatus('%s - test error.', [L.ClassName]);
+      L[i].Data.S['x' + umlIntToStr(i)] := 'abc_12345_' + umlIntToStr(i);
     end;
   DoStatus('load %d of json,time:%dms', [L.Count, GetTimeTick - tk]);
   L.ExtractTo(M64_2);
@@ -430,7 +434,9 @@ begin
   L := TZDB2_List_Json.Create(TZDB2_Json, nil, 5000, M64_2, 64 * 1048576, 200, Cipher_);
   for i := 0 to L.Count - 1 do
     begin
-      if L[i].Data.S['a'] <> 'abcdefg' then
+      if L[i].Data.S['a' + umlIntToStr(i)] <> 'abcdefg' + umlIntToStr(i) then
+          DoStatus('%s - test error.', [L.ClassName]);
+      if L[i].Data.S['x' + umlIntToStr(i)] <> 'abc_12345_' + umlIntToStr(i) then
           DoStatus('%s - test error.', [L.ClassName]);
     end;
   DoStatus('load %d extract stream of json,time:%dms', [L.Count, GetTimeTick - tk]);
