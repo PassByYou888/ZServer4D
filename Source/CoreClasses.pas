@@ -739,6 +739,7 @@ procedure ParallelFor(parallel: Boolean; OnFor: TDelphiParallelForProcedure64; b
 procedure Nop;
 
 // process Synchronize
+var Enabled_MainThreadSynchronize: Boolean = True;
 procedure CheckThreadSynchronize; overload;
 function CheckThreadSynchronize(Timeout: Integer): Boolean; overload;
 procedure CheckThreadSync; overload;
@@ -1418,9 +1419,15 @@ var
 
 function CheckThreadSynchronize(Timeout: Integer): Boolean;
 begin
+  if not Enabled_MainThreadSynchronize then
+    begin
+      Result := False;
+      Exit;
+    end;
   if TCoreClassThread.CurrentThread.ThreadID <> MainThreadID then
     begin
-      TCoreClassThread.Sleep(Timeout);
+      if Timeout > 0 then
+        TCoreClassThread.Sleep(Timeout);
       Result := False;
     end
   else
@@ -1484,6 +1491,7 @@ initialization
   MainThSynchronizeRunning := False;
   MainThreadPost := MainThreadProgress;
   SysProgress := MainThreadProgress;
+  Enabled_MainThreadSynchronize := True;
 finalization
   FreeCoreThreadPool;
   MainThreadProgress.Free;

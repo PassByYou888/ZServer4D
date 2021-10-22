@@ -801,12 +801,14 @@ begin
       exit;
   C40Progress_Working := True;
   try
+    Enabled_MainThreadSynchronize := True;
+    CheckThread;
+    Enabled_MainThreadSynchronize := False;
     DTC40_PhysicsServicePool.Progress;
     DTC40_ServicePool.Progress;
     DTC40_PhysicsTunnelPool.Progress;
     DTC40_ClientPool.Progress;
     C40CheckAndKillDeadPhysicsTunnel();
-    CheckThread;
   finally
       C40Progress_Working := False;
   end;
