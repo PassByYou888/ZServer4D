@@ -240,7 +240,8 @@ function OpCache: THashObjectList;
 procedure CleanOpCache();
 
 { prototype: EvaluateExpressionValue }
-function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean;
+function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean; overload;
+function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle): Boolean; overload;
 function EvaluateExpressionValue(UsedCache: Boolean;
   SpecialAsciiToken: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): Variant; overload;
@@ -290,12 +291,17 @@ function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString): 
 
 // easy API
 function EStr(s: U_String): U_String;
-function EStrToBool(s: U_String; default: Boolean): Boolean;
-function EStrToInt(s: U_String; default: Integer): Integer;
-function EStrToInt64(s: U_String; default: Int64): Int64;
+function EStrToBool(s: U_String; default: Boolean): Boolean; overload;
+function EStrToBool(s: U_String): Boolean; overload;
+function EStrToInt(s: U_String; default: Integer): Integer; overload;
+function EStrToInt(s: U_String): Integer; overload;
+function EStrToInt64(s: U_String; default: Int64): Int64; overload;
+function EStrToInt64(s: U_String): Int64; overload;
 function EStrToFloat(s: U_String; default: Double): Double;
-function EStrToSingle(s: U_String; default: Single): Single;
-function EStrToDouble(s: U_String; default: Double): Double;
+function EStrToSingle(s: U_String; default: Single): Single; overload;
+function EStrToSingle(s: U_String): Single; overload;
+function EStrToDouble(s: U_String; default: Double): Double; overload;
+function EStrToDouble(s: U_String): Double; overload;
 
 // print
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;
@@ -2927,6 +2933,11 @@ begin
   DisposeObject(L);
 end;
 
+function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle): Boolean;
+begin
+  Result := IsSymbolVectorExpression(ExpressionText, TextStyle, nil);
+end;
+
 function EvaluateExpressionValue(UsedCache: Boolean;
   SpecialAsciiToken: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): Variant;
@@ -3214,6 +3225,11 @@ begin
   end;
 end;
 
+function EStrToBool(s: U_String): Boolean;
+begin
+  Result := EStrToBool(s, False);
+end;
+
 function EStrToInt(s: U_String; default: Integer): Integer;
 var
   v: Variant;
@@ -3229,6 +3245,11 @@ begin
   end;
 end;
 
+function EStrToInt(s: U_String): Integer;
+begin
+  Result := EStrToInt(s, 0);
+end;
+
 function EStrToInt64(s: U_String; default: Int64): Int64;
 var
   v: Variant;
@@ -3242,6 +3263,11 @@ begin
   except
       Result := default;
   end;
+end;
+
+function EStrToInt64(s: U_String): Int64;
+begin
+  Result := EStrToInt64(s, 0);
 end;
 
 function EStrToFloat(s: U_String; default: Double): Double;
@@ -3264,6 +3290,11 @@ begin
   end;
 end;
 
+function EStrToSingle(s: U_String): Single;
+begin
+  Result := EStrToSingle(s, 0);
+end;
+
 function EStrToDouble(s: U_String; default: Double): Double;
 var
   v: Variant;
@@ -3277,6 +3308,11 @@ begin
   except
       Result := default;
   end;
+end;
+
+function EStrToDouble(s: U_String): Double;
+begin
+  Result := EStrToDouble(s, 0);
 end;
 
 function ExpressionValueVectorToStr(v: TExpressionValueVector): TPascalString;

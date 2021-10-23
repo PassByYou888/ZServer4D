@@ -65,7 +65,6 @@ type
   TOpCustomRunTime = class(TCoreClassObject)
   protected
     procedure FreeNotifyProc(p: Pointer);
-
     function DoInt(var OP_Param: TOpParam): Variant;
     function DoFrac(var OP_Param: TOpParam): Variant;
     function DoExp(var OP_Param: TOpParam): Variant;
@@ -80,7 +79,6 @@ type
     function DoTrunc(var OP_Param: TOpParam): Variant;
     function DoDeg(var OP_Param: TOpParam): Variant;
     function DoPower(var OP_Param: TOpParam): Variant;
-
     function DoSingle(var OP_Param: TOpParam): Variant;
     function DoDouble(var OP_Param: TOpParam): Variant;
     function DoExtended(var OP_Param: TOpParam): Variant;
@@ -92,7 +90,6 @@ type
     function DoSmallInt(var OP_Param: TOpParam): Variant;
     function DoInteger(var OP_Param: TOpParam): Variant;
     function DoInt64(var OP_Param: TOpParam): Variant;
-
     function DoROL8(var OP_Param: TOpParam): Variant;
     function DoROL16(var OP_Param: TOpParam): Variant;
     function DoROL32(var OP_Param: TOpParam): Variant;
@@ -110,7 +107,6 @@ type
     function DoSAR16(var OP_Param: TOpParam): Variant;
     function DoSAR32(var OP_Param: TOpParam): Variant;
     function DoSAR64(var OP_Param: TOpParam): Variant;
-
     function DoPI(var OP_Param: TOpParam): Variant;
     function DoBool(var OP_Param: TOpParam): Variant;
     function DoTrue(var OP_Param: TOpParam): Variant;
@@ -119,23 +115,17 @@ type
     function DoVec2(var OP_Param: TOpParam): Variant;
     function DoVec3(var OP_Param: TOpParam): Variant;
     function DoVec4(var OP_Param: TOpParam): Variant;
-
     function DoRandom(var OP_Param: TOpParam): Variant;
     function DoRandomFloat(var OP_Param: TOpParam): Variant;
-
     function DoMax(var OP_Param: TOpParam): Variant;
     function DoMin(var OP_Param: TOpParam): Variant;
     function DoClamp(var OP_Param: TOpParam): Variant;
     function DoIfThen(var OP_Param: TOpParam): Variant;
-
     function DoStr(var OP_Param: TOpParam): Variant;
-
     function DoMultiple(var OP_Param: TOpParam): Variant;
-
   public
     ProcList: THashList;
     Trigger: POpRTData;
-
     UserObject: TCoreClassObject;
     UserData: Pointer;
 
@@ -144,11 +134,9 @@ type
     destructor Destroy; override;
     procedure Clean; virtual;
     procedure PrepareRegistation; virtual;
-
     function GetProcDescription(ProcName: SystemString): SystemString; overload;
     function GetAllProcDescription(): TPascalStringList; overload;
     function GetAllProcDescription(Category: U_String): TPascalStringList; overload;
-
     function RegOpC(ProcName: SystemString; OnProc: TOnOpCall): POpRTData; overload;
     function RegOpC(ProcName, ProcDescription: SystemString; OnProc: TOnOpCall): POpRTData; overload;
     function RegOpM(ProcName: SystemString; OnProc: TOnOpMethod): POpRTData; overload;
@@ -1602,7 +1590,6 @@ begin
       p^.Param[i - 1] := Param[i]^.Value;
 
   opRT.Trigger := p;
-
   if Assigned(p^.OnOpCall) then
       Result := p^.OnOpCall(p^.Param);
   if Assigned(p^.OnOpMethod) then

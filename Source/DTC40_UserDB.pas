@@ -1137,7 +1137,7 @@ begin
   UpdateToGlobalDispatch;
 
   DTC40_UserDB_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.Space', [ServiceInfo.ServiceTyp.Text]));
-  UserIdentifierHash := TJsonHashList.Create(False, 1024 * 1024 * 128, nil);
+  UserIdentifierHash := TJsonHashList.Create(False, 1024 * 1024 * 4, nil);
   UserIdentifierHash.AccessOptimization := True;
   UserIdentifierHash.IgnoreCase := False;
 
@@ -1147,7 +1147,7 @@ begin
       fs := TCoreClassFileStream.Create(DTC40_UserDB_FileName, fmCreate);
 
   ZDB2RecycleMemoryTimeOut := EStrToInt64(ParamList.GetDefaultValue('RecycleMemory', '60*1000'), 60 * 1000);
-  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '128*1024*1024'), 128 * 1024 * 1024);
+  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '16*1024*1024'), 16 * 1024 * 1024);
   ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1024'), 1024);
   ZDB2EnabledCipher := EStrToBool(ParamList.GetDefaultValue('EnabledCipher', 'True'), True);
   ZDB2CipherName := ParamList.GetDefaultValue('Cipher', TCipher.CCipherSecurityName[TCipherSecurity.csRijndael]);

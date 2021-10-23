@@ -1008,9 +1008,8 @@ type
     stSequencePacketReceived, stSequencePacketEcho, stSequencePacketRequestResend,
     stSequencePacketMatched, stSequencePacketPlan, stSequencePacketDiscard, stSequencePacketDiscardSize,
     stPause, stContinue,
-    stCommunicationFrameworkLock, stCommunicationFrameworkUnLock, stIOLock, stIOUnLock,
-    stTimeOutDisconnect,
-    stPrint);
+    stTimeOutDisconnect
+    );
 
   TPeerIOListCall = procedure(P_IO: TPeerIO);
   TPeerIOListMethod = procedure(P_IO: TPeerIO) of object;
@@ -1914,6 +1913,7 @@ type
     constructor CustomCreate(FrameworkID: Cardinal); overload;
     destructor Destroy; override;
 
+    property ClonePool: TCommunicationFrameworkWithP2PVM_ClientList read FP2PVM_ClonePool;
     function CloneConnectC(OnResult: TP2PVM_CloneConnectEventC): TP2PVM_CloneConnectEventBridge;
     function CloneConnectM(OnResult: TP2PVM_CloneConnectEventM): TP2PVM_CloneConnectEventBridge;
     function CloneConnectP(OnResult: TP2PVM_CloneConnectEventP): TP2PVM_CloneConnectEventBridge;
@@ -7236,7 +7236,6 @@ begin
       except
           Print(Format(v, [Args]));
       end;
-      AtomInc(FOwnerFramework.Statistics[TStatisticsType.stPrint]);
     end;
 end;
 
@@ -7250,7 +7249,6 @@ begin
       except
           Print(Format(v, [Args]));
       end;
-      AtomInc(FOwnerFramework.Statistics[TStatisticsType.stPrint]);
     end;
 end;
 
@@ -7290,14 +7288,12 @@ procedure TPeerIO.LockIO;
 begin
   if FOwnerFramework.FEnabledAtomicLockAndMultiThread then
       FCritical.Acquire;
-  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stIOLock]);
 end;
 
 procedure TPeerIO.UnLockIO;
 begin
   if FOwnerFramework.FEnabledAtomicLockAndMultiThread then
       FCritical.Release;
-  AtomInc(FOwnerFramework.Statistics[TStatisticsType.stIOUnLock]);
 end;
 
 procedure TPeerIO.IO_SyncMethod(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
@@ -8013,8 +8009,6 @@ begin
           n2 := '';
       DoStatus(n1 + n2 + v, C_DoStatusID);
     end;
-
-  AtomInc(Statistics[TStatisticsType.stPrint]);
 end;
 
 procedure TCommunicationFramework.DoError(const v: SystemString);
@@ -8034,8 +8028,6 @@ begin
   else
       n2 := '';
   DoStatus(n1 + n2 + v, C_DoStatusID);
-
-  AtomInc(Statistics[TStatisticsType.stPrint]);
 end;
 
 procedure TCommunicationFramework.DoWarning(const v: SystemString);
@@ -8055,8 +8047,6 @@ begin
   else
       n2 := '';
   DoStatus(n1 + n2 + v, C_DoStatusID);
-
-  AtomInc(Statistics[TStatisticsType.stPrint]);
 end;
 
 function TCommunicationFramework.GetIdleTimeOut: TTimeTick;
@@ -9013,14 +9003,12 @@ procedure TCommunicationFramework.Lock_All_IO;
 begin
   if FEnabledAtomicLockAndMultiThread then
       FCritical.Acquire; { atomic lock }
-  AtomInc(Statistics[TStatisticsType.stCommunicationFrameworkLock]);
 end;
 
 procedure TCommunicationFramework.UnLock_All_IO;
 begin
   if FEnabledAtomicLockAndMultiThread then
       FCritical.Release; { atomic lock }
-  AtomInc(Statistics[TStatisticsType.stCommunicationFrameworkUnLock]);
 end;
 
 function TCommunicationFramework.IOBusy: Boolean;

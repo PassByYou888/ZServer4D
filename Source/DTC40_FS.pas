@@ -365,7 +365,7 @@ begin
   inherited Create(PhysicsService_, ServiceTyp, Param_);
   DTNoAuthService.RecvTunnel.CompleteBufferCompressed := False;
   // max complete buffer 128M
-  DTNoAuthService.RecvTunnel.MaxCompleteBufferSize := 128 * 1024 * 1024;
+  DTNoAuthService.RecvTunnel.MaxCompleteBufferSize := 8 * 1024 * 1024;
   DTNoAuthService.RecvTunnel.RegisterCompleteBuffer('FS_PostFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_PostFile;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('FS_GetFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_GetFile;
   DTNoAuthService.RecvTunnel.RegisterStream('FS_GetFileMD5').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_GetFileMD5;
@@ -374,11 +374,11 @@ begin
   ServiceInfo.OnlyInstance := True;
   UpdateToGlobalDispatch;
 
-  FileNameHash := THashVariantList.CustomCreate(1024 * 1024 * 128);
-  FileMD5Hash := THashVariantList.CustomCreate(1024 * 1024 * 128);
+  FileNameHash := THashVariantList.CustomCreate(1024 * 1024 * 2);
+  FileMD5Hash := THashVariantList.CustomCreate(1024 * 1024 * 2);
 
   // delta physics space
-  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '512*1024*1024'), 512 * 1024 * 1024);
+  ZDB2DeltaSpace := EStrToInt64(ParamList.GetDefaultValue('DeltaSpace', '64*1024*1024'), 64 * 1024 * 1024);
   // block
   ZDB2BlockSize := EStrToInt(ParamList.GetDefaultValue('BlockSize', '1536'), 1536);
   // IO
@@ -395,7 +395,7 @@ begin
           RaiseInfo('create file "%s" error.', [DTC40_FS_FileName.Text]);
     end;
   ZDB2Space := TZDB2_Core_Space.Create(@FIOHnd);
-  ZDB2Space.Mode := smNormal;
+  ZDB2Space.Mode := smBigData;
   ZDB2Space.AutoCloseIOHnd := True;
 
   IsLoading := False;

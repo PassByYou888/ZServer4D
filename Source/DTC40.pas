@@ -72,6 +72,7 @@ type
   end;
 
   TDTC40_DependNetworkInfoArray = array of TDTC40_DependNetworkInfo;
+  TDTC40_DependNetworkInfoList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDTC40_DependNetworkInfo>;
 
   IDTC40_PhysicsService_Event = interface
     procedure DTC40_PhysicsService_Build_Network(Sender: TDTC40_PhysicsService; Custom_Service_: TDTC40_Custom_Service);
@@ -167,6 +168,7 @@ type
   TDTC40_PhysicsTunnel = class(TCoreClassInterfacedObject, ICommunicationFrameworkClientInterface)
   private
     IsConnecting: Boolean;
+    IsWaitBuildNetwor: Boolean;
     BuildNetworkIsDone: Boolean;
     OfflineTime: TTimeTick;
     procedure DoDelayConnect();
@@ -300,6 +302,7 @@ type
     function ExistsPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): Boolean;
     procedure RemovePhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word);
     function OverwriteInfo(Data_: TDTC40_Info): Boolean;
+    function MergeAndUpdateWorkload(source: TDTC40_InfoList): Boolean;
     function MergeFromDF(D: TDFE): Boolean;
     procedure SaveToDF(D: TDFE);
   end;
@@ -765,11 +768,23 @@ var
   DTC40_PhysicsTunnelPool: TDTC40_PhysicsTunnelPool;
   { custom client pool }
   DTC40_ClientPool: TDTC40_Custom_ClientPool;
+  { default configure }
+  DTC40_DefaultConfig: THashStringList;
 
 procedure C40Progress; { DTC40 main progress }
 
-{ free all DTC40 system }
+{ quiet }
+procedure C40SetQuietMode(QuietMode_: Boolean);
+
+{ configure }
+procedure C40WriteConfig(HS: THashStringList);
+procedure C40ReadConfig(HS: THashStringList);
+procedure C40ResetDefaultConfig;
+
+{ free }
 procedure C40Clean;
+procedure C40Clean_Service;
+procedure C40Clean_Client;
 
 { print state }
 procedure C40PrintRegistation;
@@ -787,8 +802,11 @@ function RegisterC40(ServiceTyp: U_String; ServiceClass: TDTC40_Custom_Service_C
 function FindRegistedC40(ServiceTyp: U_String): PDTC40_RegistedData;
 
 { misc }
+function ExtractDependInfo(info: TDTC40_DependNetworkInfoList): TDTC40_DependNetworkInfoArray; overload;
 function ExtractDependInfo(info: U_String): TDTC40_DependNetworkInfoArray; overload;
 function ExtractDependInfo(arry: TDTC40_DependNetworkString): TDTC40_DependNetworkInfoArray; overload;
+function ExtractDependInfoToL(info: U_String): TDTC40_DependNetworkInfoList; overload;
+function ExtractDependInfoToL(arry: TDTC40_DependNetworkString): TDTC40_DependNetworkInfoList; overload;
 
 implementation
 
@@ -814,17 +832,174 @@ begin
   end;
 end;
 
+procedure C40SetQuietMode(QuietMode_: Boolean);
+  procedure Do_SetQuietMode(F: TCommunicationFramework);
+  var
+    p2p_: TCommunicationFrameworkWithP2PVM_Client;
+    i: Integer;
+  begin
+    F.QuietMode := QuietMode_;
+    if F is TCommunicationFrameworkWithP2PVM_Client then
+      begin
+        p2p_ := TCommunicationFrameworkWithP2PVM_Client(F);
+        for i := 0 to p2p_.ClonePool.Count - 1 do
+            Do_SetQuietMode(p2p_.ClonePool[i]);
+      end;
+  end;
+
+var
+  i: Integer;
+  cc: TDTC40_Custom_Client;
+  cs: TDTC40_Custom_Service;
+begin
+  DTC40_QuietMode := QuietMode_;
+
+  for i := 0 to DTC40_ClientPool.Count - 1 do
+    begin
+      cc := DTC40_ClientPool[i];
+      if cc is TDTC40_Dispatch_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Dispatch_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Dispatch_Client(cc).Client.SendTunnel);
+        end
+      else if cc is TDTC40_Base_NoAuth_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Base_NoAuth_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_NoAuth_Client(cc).Client.SendTunnel);
+        end
+      else if cc is TDTC40_Base_DataStoreNoAuth_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Base_DataStoreNoAuth_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_DataStoreNoAuth_Client(cc).Client.SendTunnel);
+        end
+      else if cc is TDTC40_Base_VirtualAuth_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Base_VirtualAuth_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_VirtualAuth_Client(cc).Client.SendTunnel);
+        end
+      else if cc is TDTC40_Base_DataStoreVirtualAuth_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Base_DataStoreVirtualAuth_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_DataStoreVirtualAuth_Client(cc).Client.SendTunnel);
+        end
+      else if cc is TDTC40_Base_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Base_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_Client(cc).Client.SendTunnel);
+        end
+      else if cc is TDTC40_Base_DataStore_Client then
+        begin
+          Do_SetQuietMode(TDTC40_Base_DataStore_Client(cc).Client.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_DataStore_Client(cc).Client.SendTunnel);
+        end
+      else
+          DoStatus('C40SetQuietMode no support: %s', [cc.ClassName]);
+    end;
+
+  for i := 0 to DTC40_ServicePool.Count - 1 do
+    begin
+      cs := DTC40_ServicePool[i];
+      if cs is TDTC40_Dispatch_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Dispatch_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Dispatch_Service(cs).Service.SendTunnel);
+        end
+      else if cs is TDTC40_Base_NoAuth_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Base_NoAuth_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_NoAuth_Service(cs).Service.SendTunnel);
+        end
+      else if cs is TDTC40_Base_DataStoreNoAuth_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Base_DataStoreNoAuth_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_DataStoreNoAuth_Service(cs).Service.SendTunnel);
+        end
+      else if cs is TDTC40_Base_VirtualAuth_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Base_VirtualAuth_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_VirtualAuth_Service(cs).Service.SendTunnel);
+        end
+      else if cs is TDTC40_Base_DataStoreVirtualAuth_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Base_DataStoreVirtualAuth_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_DataStoreVirtualAuth_Service(cs).Service.SendTunnel);
+        end
+      else if cs is TDTC40_Base_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Base_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_Service(cs).Service.SendTunnel);
+        end
+      else if cs is TDTC40_Base_DataStore_Service then
+        begin
+          Do_SetQuietMode(TDTC40_Base_DataStore_Service(cs).Service.RecvTunnel);
+          Do_SetQuietMode(TDTC40_Base_DataStore_Service(cs).Service.SendTunnel);
+        end
+      else
+          DoStatus('C40SetQuietMode no support: %s', [cs.ClassName]);
+    end;
+
+  for i := 0 to DTC40_PhysicsTunnelPool.Count - 1 do
+      Do_SetQuietMode(DTC40_PhysicsTunnelPool[i].PhysicsTunnel);
+
+  for i := 0 to DTC40_PhysicsServicePool.Count - 1 do
+      Do_SetQuietMode(DTC40_PhysicsServicePool[i].PhysicsTunnel);
+end;
+
+procedure C40WriteConfig(HS: THashStringList);
+begin
+  HS.SetDefaultValue('Quiet', umlBoolToStr(DTC40_QuietMode));
+  HS.SetDefaultValue('SafeCheckTime', umlIntToStr(DTC40_SafeCheckTime));
+  HS.SetDefaultValue('PhysicsReconnectionDelayTime', umlFloatToStr(DTC40_PhysicsReconnectionDelayTime));
+  HS.SetDefaultValue('UpdateServiceInfoDelayTime', umlIntToStr(DTC40_UpdateServiceInfoDelayTime));
+  HS.SetDefaultValue('PhysicsServiceTimeout', umlIntToStr(DTC40_PhysicsServiceTimeout));
+  HS.SetDefaultValue('PhysicsTunnelTimeout', umlIntToStr(DTC40_PhysicsTunnelTimeout));
+  HS.SetDefaultValue('KillIDCFaultTimeout', umlIntToStr(DTC40_KillIDCFaultTimeout));
+end;
+
+procedure C40ReadConfig(HS: THashStringList);
+begin
+  C40SetQuietMode(EStrToBool(HS.GetDefaultValue('Quiet', umlBoolToStr(DTC40_QuietMode))));
+  DTC40_SafeCheckTime := EStrToInt(HS.GetDefaultValue('SafeCheckTime', umlIntToStr(DTC40_SafeCheckTime)));
+  DTC40_PhysicsReconnectionDelayTime := EStrToDouble(HS.GetDefaultValue('PhysicsReconnectionDelayTime', umlFloatToStr(DTC40_PhysicsReconnectionDelayTime)));
+  DTC40_UpdateServiceInfoDelayTime := EStrToInt(HS.GetDefaultValue('UpdateServiceInfoDelayTime', umlIntToStr(DTC40_UpdateServiceInfoDelayTime)));
+  DTC40_PhysicsServiceTimeout := EStrToInt(HS.GetDefaultValue('PhysicsServiceTimeout', umlIntToStr(DTC40_PhysicsServiceTimeout)));
+  DTC40_PhysicsTunnelTimeout := EStrToInt(HS.GetDefaultValue('PhysicsTunnelTimeout', umlIntToStr(DTC40_PhysicsTunnelTimeout)));
+  DTC40_KillIDCFaultTimeout := EStrToInt(HS.GetDefaultValue('KillIDCFaultTimeout', umlIntToStr(DTC40_KillIDCFaultTimeout)));
+end;
+
+procedure C40ResetDefaultConfig;
+begin
+  C40ReadConfig(DTC40_DefaultConfig);
+end;
+
 procedure C40Clean;
 begin
   while DTC40_ClientPool.Count > 0 do
-      DisposeObject(DTC40_ClientPool[0]);
+      disposeObject(DTC40_ClientPool[0]);
   while DTC40_ServicePool.Count > 0 do
-      DisposeObject(DTC40_ServicePool[0]);
+      disposeObject(DTC40_ServicePool[0]);
   DTC40_ServicePool.FIPV6_Seed := 1;
   while DTC40_PhysicsTunnelPool.Count > 0 do
-      DisposeObject(DTC40_PhysicsTunnelPool[0]);
+      disposeObject(DTC40_PhysicsTunnelPool[0]);
   while DTC40_PhysicsServicePool.Count > 0 do
-      DisposeObject(DTC40_PhysicsServicePool[0]);
+      disposeObject(DTC40_PhysicsServicePool[0]);
+end;
+
+procedure C40Clean_Service;
+begin
+  while DTC40_ServicePool.Count > 0 do
+      disposeObject(DTC40_ServicePool[0]);
+  DTC40_ServicePool.FIPV6_Seed := 1;
+  while DTC40_PhysicsServicePool.Count > 0 do
+      disposeObject(DTC40_PhysicsServicePool[0]);
+end;
+
+procedure C40Clean_Client;
+begin
+  while DTC40_ClientPool.Count > 0 do
+      disposeObject(DTC40_ClientPool[0]);
+  while DTC40_PhysicsTunnelPool.Count > 0 do
+      disposeObject(DTC40_PhysicsTunnelPool[0]);
 end;
 
 procedure C40PrintRegistation;
@@ -857,7 +1032,7 @@ begin
         while i < DTC40_ClientPool.Count do
           if PhysicsAddr.Same(@DTC40_ClientPool[i].ClientInfo.PhysicsAddr) and (PhysicsPort = DTC40_ClientPool[i].ClientInfo.PhysicsPort) then
             begin
-              DisposeObject(DTC40_ClientPool[i]);
+              disposeObject(DTC40_ClientPool[i]);
               i := 0;
             end
           else
@@ -880,7 +1055,7 @@ begin
           begin
             if PhysicsAddr.Same(@DTC40_PhysicsTunnelPool[i].PhysicsAddr) and (PhysicsPort = DTC40_PhysicsTunnelPool[i].PhysicsPort) then
               begin
-                DisposeObject(DTC40_PhysicsTunnelPool[i]);
+                disposeObject(DTC40_PhysicsTunnelPool[i]);
                 i := 0;
               end
             else
@@ -898,7 +1073,7 @@ begin
         while i < DTC40_ServicePool.Count do
           if PhysicsAddr.Same(@DTC40_ServicePool[i].ServiceInfo.PhysicsAddr) and (PhysicsPort = DTC40_ServicePool[i].ServiceInfo.PhysicsPort) then
             begin
-              DisposeObject(DTC40_ServicePool[i]);
+              disposeObject(DTC40_ServicePool[i]);
               i := 0;
             end
           else
@@ -921,7 +1096,7 @@ begin
           begin
             if PhysicsAddr.Same(@DTC40_PhysicsServicePool[i].PhysicsAddr) and (PhysicsPort = DTC40_PhysicsServicePool[i].PhysicsPort) then
               begin
-                DisposeObject(DTC40_PhysicsServicePool[i]);
+                disposeObject(DTC40_PhysicsServicePool[i]);
                 i := 0;
               end
             else
@@ -1002,6 +1177,15 @@ begin
       end;
 end;
 
+function ExtractDependInfo(info: TDTC40_DependNetworkInfoList): TDTC40_DependNetworkInfoArray;
+var
+  i: Integer;
+begin
+  SetLength(Result, info.Count);
+  for i := 0 to info.Count - 1 do
+      Result[i] := info[i];
+end;
+
 function ExtractDependInfo(info: U_String): TDTC40_DependNetworkInfoArray;
 var
   tmp: TDTC40_DependNetworkString;
@@ -1024,32 +1208,47 @@ begin
     end;
 end;
 
+function ExtractDependInfoToL(info: U_String): TDTC40_DependNetworkInfoList;
+var
+  tmp: TDTC40_DependNetworkString;
+begin
+  umlGetSplitArray(info, tmp, '|<>');
+  Result := ExtractDependInfoToL(tmp);
+end;
+
+function ExtractDependInfoToL(arry: TDTC40_DependNetworkString): TDTC40_DependNetworkInfoList;
+var
+  i: Integer;
+  info_: TDTC40_DependNetworkInfo;
+begin
+  Result := TDTC40_DependNetworkInfoList.Create;
+  for i := 0 to Length(arry) - 1 do
+    begin
+      info_.Typ := umlTrimSpace(umlGetFirstStr(arry[i], '@'));
+      info_.Param := umlTrimSpace(umlDeleteFirstStr(arry[i], '@'));
+      Result.Add(info_);
+    end;
+end;
+
 procedure TDTC40_PhysicsService.cmd_QueryInfo(Sender: TPeerIO; InData, OutData: TDFE);
 var
   i, j: Integer;
   L: TDTC40_InfoList;
-  DPS_: TDTC40_Dispatch_Service;
 begin
-  L := TDTC40_InfoList.Create(False);
+  L := TDTC40_InfoList.Create(True);
 
   // search all service
   for i := 0 to DTC40_ServicePool.Count - 1 do
     begin
       if L.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
-          L.Add(DTC40_ServicePool[i].ServiceInfo);
-
+          L.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
       // dispatch service
       if DTC40_ServicePool[i] is TDTC40_Dispatch_Service then
-        begin
-          DPS_ := DTC40_ServicePool[i] as TDTC40_Dispatch_Service;
-          for j := 0 to DPS_.ServiceInfoList.Count - 1 do
-            if L.FindSame(DPS_.ServiceInfoList[j]) = nil then
-                L.Add(DPS_.ServiceInfoList[j]);
-        end;
+          L.MergeAndUpdateWorkload(TDTC40_Dispatch_Service(DTC40_ServicePool[i]).ServiceInfoList);
     end;
 
   L.SaveToDF(OutData);
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 constructor TDTC40_PhysicsService.Create(PhysicsAddr_: U_String; PhysicsPort_: Word; PhysicsTunnel_: TCommunicationFrameworkServer);
@@ -1079,9 +1278,9 @@ begin
   end;
   DTC40_PhysicsServicePool.Remove(Self);
   PhysicsTunnel.DeleteRegistedCMD('QueryInfo');
-  DisposeObject(DependNetworkServicePool);
+  disposeObject(DependNetworkServicePool);
   if AutoFreePhysicsTunnel then
-      DisposeObject(PhysicsTunnel);
+      disposeObject(PhysicsTunnel);
   inherited Destroy;
 end;
 
@@ -1224,7 +1423,7 @@ end;
 
 destructor TDCT40_QueryResultData.Destroy;
 begin
-  DisposeObject(L);
+  disposeObject(L);
   inherited Destroy;
 end;
 
@@ -1260,6 +1459,7 @@ begin
       if not Connected then
           Connect;
 
+  DTC40_PhysicsTunnel.IsWaitBuildNetwor := False;
   DTC40_PhysicsTunnel.BuildNetworkIsDone := True;
   DTC40_PhysicsTunnel.OfflineTime := 0;
   DoRun(True);
@@ -1344,10 +1544,13 @@ end;
 
 procedure TDTC40_PhysicsTunnel.DoConnectOnResult(const state: Boolean);
 begin
-  if state then
-      PhysicsTunnel.Print('Physics Tunnel connection successed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort])
-  else
-      PhysicsTunnel.Print('Physics Tunnel connection failed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort]);
+  if not BuildNetworkIsDone then
+    begin
+      if state then
+          PhysicsTunnel.Print('Physics Tunnel connection successed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort])
+      else
+          PhysicsTunnel.Print('Physics Tunnel connection failed, internet addr: %s port: %d', [PhysicsAddr.Text, PhysicsPort]);
+    end;
   IsConnecting := False;
 end;
 
@@ -1440,6 +1643,7 @@ var
 begin
   inherited Create;
   IsConnecting := False;
+  IsWaitBuildNetwor := False;
   BuildNetworkIsDone := False;
   OfflineTime := GetTimeTick;
 
@@ -1472,8 +1676,8 @@ begin
   DTC40_PhysicsTunnelPool.Remove(Self);
   PhysicsAddr := '';
   SetLength(DependNetworkInfoArray, 0);
-  DisposeObject(DependNetworkClientPool);
-  DisposeObject(PhysicsTunnel);
+  disposeObject(DependNetworkClientPool);
+  disposeObject(PhysicsTunnel);
   inherited Destroy;
 end;
 
@@ -1663,6 +1867,8 @@ begin
   Result := False;
   if IsConnecting then
       exit;
+  if IsWaitBuildNetwor then
+      exit;
   if BuildNetworkIsDone then
       exit;
 
@@ -1676,6 +1882,7 @@ begin
 
   tmp := TDCT40_QueryResultAndDependProcessor.Create;
   tmp.DTC40_PhysicsTunnel := Self;
+  IsWaitBuildNetwor := True;
 
   if PhysicsTunnel.RemoteInited then
     begin
@@ -1697,8 +1904,12 @@ begin
   Result := False;
   if IsConnecting then
       exit;
+  if IsWaitBuildNetwor then
+      exit;
+
   if BuildNetworkIsDone then
     begin
+      IsWaitBuildNetwor := True;
       tmp := TDCT40_QueryResultAndDependProcessor.Create;
       tmp.DTC40_PhysicsTunnel := Self;
       tmp.OnCall := OnResult;
@@ -1720,6 +1931,7 @@ begin
   tmp := TDCT40_QueryResultAndDependProcessor.Create;
   tmp.DTC40_PhysicsTunnel := Self;
   tmp.OnCall := OnResult;
+  IsWaitBuildNetwor := True;
 
   if PhysicsTunnel.RemoteInited then
     begin
@@ -1741,8 +1953,12 @@ begin
   Result := False;
   if IsConnecting then
       exit;
+  if IsWaitBuildNetwor then
+      exit;
+
   if BuildNetworkIsDone then
     begin
+      IsWaitBuildNetwor := True;
       tmp := TDCT40_QueryResultAndDependProcessor.Create;
       tmp.DTC40_PhysicsTunnel := Self;
       tmp.OnMethod := OnResult;
@@ -1764,6 +1980,7 @@ begin
   tmp := TDCT40_QueryResultAndDependProcessor.Create;
   tmp.DTC40_PhysicsTunnel := Self;
   tmp.OnMethod := OnResult;
+  IsWaitBuildNetwor := True;
 
   if PhysicsTunnel.RemoteInited then
     begin
@@ -1785,8 +2002,12 @@ begin
   Result := False;
   if IsConnecting then
       exit;
+  if IsWaitBuildNetwor then
+      exit;
+
   if BuildNetworkIsDone then
     begin
+      IsWaitBuildNetwor := True;
       tmp := TDCT40_QueryResultAndDependProcessor.Create;
       tmp.DTC40_PhysicsTunnel := Self;
       tmp.OnProc := OnResult;
@@ -1808,6 +2029,7 @@ begin
   tmp := TDCT40_QueryResultAndDependProcessor.Create;
   tmp.DTC40_PhysicsTunnel := Self;
   tmp.OnProc := OnResult;
+  IsWaitBuildNetwor := True;
 
   if PhysicsTunnel.RemoteInited then
     begin
@@ -2157,7 +2379,7 @@ begin
   MaxWorkload := D.R.ReadInteger;
   Hash := D.R.ReadMD5;
 
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 procedure TDTC40_Info.Save(stream: TCoreClassStream);
@@ -2179,7 +2401,7 @@ begin
   D.WriteMD5(Hash);
 
   D.FastEncodeTo(stream);
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 function TDTC40_Info.Same(Data_: TDTC40_Info): Boolean;
@@ -2302,14 +2524,14 @@ end;
 procedure TDTC40_InfoList.Remove(obj: TDTC40_Info);
 begin
   if AutoFree then
-      DisposeObject(obj);
+      disposeObject(obj);
   inherited Remove(obj);
 end;
 
 procedure TDTC40_InfoList.Delete(index: Integer);
 begin
   if AutoFree then
-      DisposeObject(Items[index]);
+      disposeObject(Items[index]);
   inherited Delete(index);
 end;
 
@@ -2319,7 +2541,7 @@ var
 begin
   if AutoFree then
     for i := 0 to Count - 1 do
-        DisposeObject(Items[i]);
+        disposeObject(Items[i]);
   inherited Clear;
 end;
 
@@ -2409,7 +2631,7 @@ begin
   { sort }
   TDTC40_InfoList.SortWorkLoad(L);
   Result := L.GetInfoArray;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 function TDTC40_InfoList.ExistsService(ServiceTyp: U_String): Boolean;
@@ -2506,6 +2728,31 @@ begin
     end;
 end;
 
+function TDTC40_InfoList.MergeAndUpdateWorkload(source: TDTC40_InfoList): Boolean;
+var
+  i: Integer;
+  found_: TDTC40_Info;
+begin
+  Result := False;
+  for i := 0 to source.Count - 1 do
+    begin
+      found_ := FindSame(source[i]);
+      if found_ = nil then
+        begin
+          if AutoFree then
+              Add(source[i].Clone)
+          else
+              Add(source[i]);
+          Result := True;
+        end
+      else if AutoFree then
+        begin
+          found_.Workload := umlMax(found_.Workload, source[i].Workload);
+          found_.MaxWorkload := umlMax(found_.MaxWorkload, source[i].MaxWorkload);
+        end;
+    end;
+end;
+
 function TDTC40_InfoList.MergeFromDF(D: TDFE): Boolean;
 var
   i: Integer;
@@ -2520,11 +2767,11 @@ begin
       m64.Position := 0;
       tmp := TDTC40_Info.Create;
       tmp.Load(m64);
-      DisposeObject(m64);
+      disposeObject(m64);
       found_ := FindSame(tmp);
       if found_ <> nil then
         begin
-          DisposeObject(tmp);
+          disposeObject(tmp);
         end
       else
         begin
@@ -2558,7 +2805,7 @@ begin
         D.WriteStream(m64);
         m64.Clear;
       end;
-  DisposeObject(m64);
+  disposeObject(m64);
 end;
 
 constructor TDTC40_Custom_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
@@ -2573,11 +2820,12 @@ begin
   DTC40PhysicsService := PhysicsService_;
 
   ParamList := THashStringList.Create;
+  ParamList.AutoUpdateDefaultValue := True;
   try
     tmp := TPascalStringList.Create;
     umlSeparatorText(Param, tmp, ',;' + #13#10);
     ParamList.ImportFromStrings(tmp);
-    DisposeObject(tmp);
+    disposeObject(tmp);
   except
   end;
 
@@ -2610,8 +2858,8 @@ destructor TDTC40_Custom_Service.Destroy;
 begin
   DTC40PhysicsService.DependNetworkServicePool.Remove(Self);
   DTC40_ServicePool.Remove(Self);
-  DisposeObject(ServiceInfo);
-  DisposeObject(ParamList);
+  disposeObject(ServiceInfo);
+  disposeObject(ParamList);
   inherited Destroy;
 end;
 
@@ -2634,7 +2882,7 @@ end;
 
 procedure TDTC40_Custom_Service.SetWorkload(Workload_, MaxWorkload_: Integer);
 begin
-  ServiceInfo.Workload := MaxWorkload_;
+  ServiceInfo.Workload := Workload_;
   ServiceInfo.MaxWorkload := MaxWorkload_;
 end;
 
@@ -2645,23 +2893,21 @@ var
   dpc: TDTC40_Dispatch_Client;
 begin
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    begin
-      if DTC40_ServicePool[i] is TDTC40_Dispatch_Service then
+    if DTC40_ServicePool[i] is TDTC40_Dispatch_Service then
+      if DTC40_ServicePool[i] <> Self then
         begin
           dps := TDTC40_Dispatch_Service(DTC40_ServicePool[i]);
           if dps.ServiceInfoList.OverwriteInfo(ServiceInfo) then
               dps.Prepare_UpdateServerInfoToAllClient;
         end;
-    end;
+
   for i := 0 to DTC40_ClientPool.Count - 1 do
-    begin
-      if DTC40_ClientPool[i] is TDTC40_Dispatch_Client then
-        begin
-          dpc := TDTC40_Dispatch_Client(DTC40_ClientPool[i]);
-          if dpc.ServiceInfoList.OverwriteInfo(ServiceInfo) and dpc.Connected then
-              dpc.PostLocalServiceInfo(True);
-        end;
-    end;
+    if DTC40_ClientPool[i] is TDTC40_Dispatch_Client then
+      begin
+        dpc := TDTC40_Dispatch_Client(DTC40_ClientPool[i]);
+        if dpc.ServiceInfoList.OverwriteInfo(ServiceInfo) and dpc.Connected then
+            dpc.PostLocalServiceInfo(True);
+      end;
 end;
 
 function TDTC40_Custom_Service.GetHash: TMD5;
@@ -2705,8 +2951,8 @@ var
 begin
   for i := 0 to 7 do
       tmp[i] := FIPV6_Seed;
+  port := umlIntToStr(FIPV6_Seed);
   inc(FIPV6_Seed);
-  port := '1';
   ip6 := IPV6ToStr(tmp);
 end;
 
@@ -2771,7 +3017,7 @@ begin
     if ServiceTyp.Same(@Items[i].ServiceInfo.ServiceTyp) then
         L.Add(Items[i]);
   Result := L.GetDTC40Array;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 function TDTC40_Custom_ServicePool.GetFromPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Service_Array;
@@ -2784,7 +3030,7 @@ begin
     if (PhysicsPort = Items[i].ServiceInfo.PhysicsPort) and PhysicsAddr.Same(@Items[i].ServiceInfo.PhysicsAddr) then
         L.Add(Items[i]);
   Result := L.GetDTC40Array;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 function TDTC40_Custom_ServicePool.GetFromClass(Class_: TDTC40_Custom_Service_Class): TDTC40_Custom_Service_Array;
@@ -2797,7 +3043,7 @@ begin
     if Items[i].InheritsFrom(Class_) then
         L.Add(Items[i]);
   Result := L.GetDTC40Array;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 procedure TDTC40_Custom_Client.DoNetworkOffline;
@@ -2815,11 +3061,12 @@ begin
   ClientInfo.Assign(source_);
 
   ParamList := THashStringList.Create;
+  ParamList.AutoUpdateDefaultValue := True;
   try
     tmp := TPascalStringList.Create;
     umlSeparatorText(Param, tmp, ',;' + #13#10);
     ParamList.ImportFromStrings(tmp);
-    DisposeObject(tmp);
+    disposeObject(tmp);
   except
   end;
 
@@ -2835,8 +3082,8 @@ destructor TDTC40_Custom_Client.Destroy;
 begin
   DTC40_ClientPool.Remove(Self);
   DTC40PhysicsTunnel.DependNetworkClientPool.Remove(Self);
-  DisposeObject(ClientInfo);
-  DisposeObject(ParamList);
+  disposeObject(ClientInfo);
+  disposeObject(ParamList);
   inherited Destroy;
 end;
 
@@ -3196,7 +3443,7 @@ begin
           L.Add(Items[i]);
   SortWorkLoad(L);
   Result := L.GetDTC40Array;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 function TDTC40_Custom_ClientPool.SearchServiceTyp(ServiceTyp: U_String): TDTC40_Custom_Client_Array;
@@ -3216,7 +3463,7 @@ begin
           L.Add(Items[i]);
   SortWorkLoad(L);
   Result := L.GetDTC40Array;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 function TDTC40_Custom_ClientPool.SearchPhysicsAddr(PhysicsAddr: U_String; PhysicsPort: Word): TDTC40_Custom_Client_Array;
@@ -3236,7 +3483,7 @@ begin
           L.Add(Items[i]);
   SortWorkLoad(L);
   Result := L.GetDTC40Array;
-  DisposeObject(L);
+  disposeObject(L);
 end;
 
 function TDTC40_Custom_ClientPool.SearchClass(Class_: TDTC40_Custom_Client_Class): TDTC40_Custom_Client_Array;
@@ -3319,7 +3566,7 @@ begin
           info_.MaxWorkload := MaxWorkload;
         end;
     end;
-  DisposeObject(D);
+  disposeObject(D);
 
   for i := 0 to DTC40_ServicePool.Count - 1 do
     begin
@@ -3400,7 +3647,7 @@ begin
       if (IO_ <> nil) and TPeerClientUserDefineForSendTunnel_NoAuth(IO_.UserDefine).LinkOk then
           IO_.SendDirectStreamCmd('UpdateServiceInfo', D);
     end;
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 procedure TDTC40_Dispatch_Service.DoLinkSuccess_Event(Sender: TDTService_NoAuth; UserDefineIO: TPeerClientUserDefineForRecvTunnel_NoAuth);
@@ -3491,8 +3738,8 @@ end;
 
 destructor TDTC40_Dispatch_Service.Destroy;
 begin
-  DisposeObject(Service);
-  DisposeObject(ServiceInfoList);
+  disposeObject(Service);
+  disposeObject(ServiceInfoList);
   inherited Destroy;
 end;
 
@@ -3533,7 +3780,7 @@ begin
       if (IO_ <> nil) and TPeerClientUserDefineForSendTunnel_NoAuth(IO_.UserDefine).LinkOk then
           IO_.SendDirectStreamCmd('IgnoreChange', D);
     end;
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 procedure TDTC40_Dispatch_Service.UpdateServiceStateToAllClient;
@@ -3554,7 +3801,7 @@ begin
       tmp.WriteInteger(info_.Workload);
       tmp.WriteInteger(info_.MaxWorkload);
       D.WriteDataFrame(tmp);
-      DisposeObject(tmp);
+      disposeObject(tmp);
     end;
 
   Service.SendTunnel.GetIO_Array(Arry_);
@@ -3564,7 +3811,7 @@ begin
       if (IO_ <> nil) and TPeerClientUserDefineForSendTunnel_NoAuth(IO_.UserDefine).LinkOk then
           IO_.SendDirectStreamCmd('UpdateServiceState', D);
     end;
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 procedure TDTC40_Dispatch_Client.cmd_UpdateServiceInfo(Sender: TPeerIO; InData: TDFE);
@@ -3606,13 +3853,24 @@ begin
         begin
           info_.Workload := Workload;
           info_.MaxWorkload := MaxWorkload;
-          // automated fixed info error.
+          // automated fixed info
           for j := 0 to DTC40_ClientPool.Count - 1 do
             if DTC40_ClientPool[j].ClientInfo.Same(info_) then
                 DTC40_ClientPool[j].ClientInfo.Assign(info_);
         end;
+
+      for i := 0 to DTC40_ServicePool.Count - 1 do
+        if (DTC40_ServicePool[i] is TDTC40_Dispatch_Service) then
+          begin
+            info_ := TDTC40_Dispatch_Service(DTC40_ServicePool[i]).ServiceInfoList.FindHash(Hash__);
+            if (info_ <> nil) then
+              begin
+                info_.Workload := Workload;
+                info_.MaxWorkload := MaxWorkload;
+              end;
+          end;
     end;
-  DisposeObject(D);
+  disposeObject(D);
 
   for i := 0 to DTC40_ServicePool.Count - 1 do
     begin
@@ -3735,8 +3993,8 @@ end;
 
 destructor TDTC40_Dispatch_Client.Destroy;
 begin
-  DisposeObject(Client);
-  DisposeObject(ServiceInfoList);
+  disposeObject(Client);
+  disposeObject(ServiceInfoList);
   inherited Destroy;
 end;
 
@@ -3793,7 +4051,7 @@ begin
       D := TDFE.Create;
       ServiceInfoList.SaveToDF(D);
       Client.SendTunnel.SendDirectStreamCmd('UpdateServiceInfo', D);
-      DisposeObject(D);
+      disposeObject(D);
     end;
 end;
 
@@ -3810,7 +4068,7 @@ begin
   D.WriteMD5(Hash__);
   D.WriteBool(Ignored);
   Client.SendTunnel.SendDirectStreamCmd('IgnoreChange', D);
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 procedure TDTC40_Dispatch_Client.UpdateLocalServiceState;
@@ -3828,10 +4086,10 @@ begin
       tmp.WriteInteger(info_.Workload);
       tmp.WriteInteger(info_.MaxWorkload);
       D.WriteDataFrame(tmp);
-      DisposeObject(tmp);
+      disposeObject(tmp);
     end;
   Client.SendTunnel.SendDirectStreamCmd('UpdateServiceState', D);
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 procedure TDTC40_Dispatch_Client.RemovePhysicsNetwork(PhysicsAddr: U_String; PhysicsPort: Word);
@@ -3842,7 +4100,7 @@ begin
   D.WriteString(PhysicsAddr);
   D.WriteWord(PhysicsPort);
   Client.SendTunnel.SendDirectStreamCmd('RemovePhysicsNetwork', D);
-  DisposeObject(D);
+  disposeObject(D);
 end;
 
 destructor TDTC40_RegistedDataList.Destroy;
@@ -3904,7 +4162,7 @@ end;
 
 destructor TDTC40_Base_NoAuth_Service.Destroy;
 begin
-  DisposeObject(Service);
+  disposeObject(Service);
   inherited Destroy;
 end;
 
@@ -3935,7 +4193,7 @@ end;
 
 destructor TDTC40_Base_NoAuth_Client.Destroy;
 begin
-  DisposeObject(Client);
+  disposeObject(Client);
   inherited Destroy;
 end;
 
@@ -3991,7 +4249,7 @@ end;
 
 destructor TDTC40_Base_DataStoreNoAuth_Service.Destroy;
 begin
-  DisposeObject(Service);
+  disposeObject(Service);
   inherited Destroy;
 end;
 
@@ -4022,7 +4280,7 @@ end;
 
 destructor TDTC40_Base_DataStoreNoAuth_Client.Destroy;
 begin
-  DisposeObject(Client);
+  disposeObject(Client);
   inherited Destroy;
 end;
 
@@ -4090,7 +4348,7 @@ end;
 
 destructor TDTC40_Base_VirtualAuth_Service.Destroy;
 begin
-  DisposeObject(Service);
+  disposeObject(Service);
   inherited Destroy;
 end;
 
@@ -4132,7 +4390,7 @@ end;
 
 destructor TDTC40_Base_VirtualAuth_Client.Destroy;
 begin
-  DisposeObject(Client);
+  disposeObject(Client);
   inherited Destroy;
 end;
 
@@ -4209,7 +4467,7 @@ end;
 
 destructor TDTC40_Base_DataStoreVirtualAuth_Service.Destroy;
 begin
-  DisposeObject(Service);
+  disposeObject(Service);
   inherited Destroy;
 end;
 
@@ -4251,7 +4509,7 @@ end;
 
 destructor TDTC40_Base_DataStoreVirtualAuth_Client.Destroy;
 begin
-  DisposeObject(Client);
+  disposeObject(Client);
   inherited Destroy;
 end;
 
@@ -4319,7 +4577,7 @@ end;
 
 destructor TDTC40_Base_Service.Destroy;
 begin
-  DisposeObject(Service);
+  disposeObject(Service);
   inherited Destroy;
 end;
 
@@ -4367,7 +4625,7 @@ end;
 
 destructor TDTC40_Base_Client.Destroy;
 begin
-  DisposeObject(Client);
+  disposeObject(Client);
   inherited Destroy;
 end;
 
@@ -4436,7 +4694,7 @@ end;
 
 destructor TDTC40_Base_DataStore_Service.Destroy;
 begin
-  DisposeObject(Service);
+  disposeObject(Service);
   inherited Destroy;
 end;
 
@@ -4484,7 +4742,7 @@ end;
 
 destructor TDTC40_Base_DataStore_Client.Destroy;
 begin
-  DisposeObject(Client);
+  disposeObject(Client);
   inherited Destroy;
 end;
 
@@ -4556,14 +4814,19 @@ RegisterC40('DVA', TDTC40_Base_DataStoreVirtualAuth_Service, TDTC40_Base_DataSto
 RegisterC40('D', TDTC40_Base_Service, TDTC40_Base_Client);
 RegisterC40('DD', TDTC40_Base_DataStore_Service, TDTC40_Base_DataStore_Client);
 
+// backup
+DTC40_DefaultConfig := THashStringList.CustomCreate(16);
+C40WriteConfig(DTC40_DefaultConfig);
+
 finalization
 
 C40Clean;
 
-DisposeObject(DTC40_PhysicsServicePool);
-DisposeObject(DTC40_ServicePool);
-DisposeObject(DTC40_PhysicsTunnelPool);
-DisposeObject(DTC40_ClientPool);
-DisposeObject(DTC40_Registed);
+disposeObject(DTC40_PhysicsServicePool);
+disposeObject(DTC40_ServicePool);
+disposeObject(DTC40_PhysicsTunnelPool);
+disposeObject(DTC40_ClientPool);
+disposeObject(DTC40_Registed);
+disposeObject(DTC40_DefaultConfig);
 
 end.
