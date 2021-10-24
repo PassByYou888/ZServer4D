@@ -233,6 +233,7 @@ var
   CurrentSendBuff: TMemoryStream64;
   buff: Pointer;
   siz: Integer;
+  ReadTimeout_: TTimeTick;
 begin
   inherited Progress;
 
@@ -255,6 +256,7 @@ begin
     end;
 
   buff := System.GetMemory(memSiz);
+  ReadTimeout_ := GetTimeTick() + 50;
 
 go_recv:
   try
@@ -279,7 +281,8 @@ go_recv:
     begin
       InternalClient.SaveReceiveBuffer(buff, siz);
       InternalClient.FillRecvBuffer(nil, False, False);
-      goto go_recv;
+      if GetTimeTick() < ReadTimeout_ then
+          goto go_recv;
     end;
 
   System.FreeMemory(buff);
