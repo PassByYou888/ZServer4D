@@ -738,19 +738,19 @@ type
 var
   { quiet mode, defualt is false }
   DTC40_QuietMode: Boolean;
-  { physics service safeCheck time, default is 10 minute }
+  { physics service safeCheck time, default is 1 minute }
   DTC40_SafeCheckTime: TTimeTick;
   { DTC40 reconnection delay time, default is 5.0(float) seconds }
   DTC40_PhysicsReconnectionDelayTime: Double;
   { DTC40 Dispatch Service info update delay, default is 1 seconds }
   DTC40_UpdateServiceInfoDelayTime: TTimeTick;
-  { physics service timeout, default is 1 minute }
+  { physics service timeout, default is 30 seconds }
   DTC40_PhysicsServiceTimeout: TTimeTick;
   { physics tunnel timeout, default is 30 seconds }
   DTC40_PhysicsTunnelTimeout: TTimeTick;
-  { kill dead physics connection timeout, default is 1 minute }
+  { kill dead physics connection timeout, default is 30 seconds }
   DTC40_KillDeadPhysicsConnectionTimeout: TTimeTick;
-  { kill IDC fault timeout, default is 1 hours }
+  { kill IDC fault timeout, default is 40 seconds }
   DTC40_KillIDCFaultTimeout: TTimeTick;
   { root path, default is current Directory }
   DTC40_RootPath: U_String;
@@ -3754,7 +3754,7 @@ begin
       FWaiting_UpdateServerInfoToAllClient_TimeTick := 0;
       UpdateServerInfoToAllClient;
     end;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 
   if not DelayCheck_Working then
     begin
@@ -4170,7 +4170,7 @@ procedure TDTC40_Base_NoAuth_Service.Progress;
 begin
   inherited Progress;
   Service.Progress;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 end;
 
 procedure TDTC40_Base_NoAuth_Client.Do_DT_P2PVM_NoAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_NoAuth_Custom_Client);
@@ -4257,7 +4257,7 @@ procedure TDTC40_Base_DataStoreNoAuth_Service.Progress;
 begin
   inherited Progress;
   Service.Progress;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 end;
 
 procedure TDTC40_Base_DataStoreNoAuth_Client.Do_DT_P2PVM_DataStoreNoAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_NoAuth_Custom_Client);
@@ -4356,7 +4356,7 @@ procedure TDTC40_Base_VirtualAuth_Service.Progress;
 begin
   inherited Progress;
   Service.Progress;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 end;
 
 procedure TDTC40_Base_VirtualAuth_Client.Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_VirtualAuth_Custom_Client);
@@ -4475,7 +4475,7 @@ procedure TDTC40_Base_DataStoreVirtualAuth_Service.Progress;
 begin
   inherited Progress;
   Service.Progress;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 end;
 
 procedure TDTC40_Base_DataStoreVirtualAuth_Client.Do_DT_P2PVM_VirtualAuth_Custom_Client_TunnelLink(Sender: TDT_P2PVM_VirtualAuth_Custom_Client);
@@ -4591,7 +4591,7 @@ procedure TDTC40_Base_Service.Progress;
 begin
   inherited Progress;
   Service.Progress;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 end;
 
 procedure TDTC40_Base_Client.Do_DT_P2PVM_Custom_Client_TunnelLink(Sender: TDT_P2PVM_Custom_Client);
@@ -4617,8 +4617,8 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_Custom_Client_TunnelLink;
   DTClient := Client.DTClient;
-  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
-  Password := ParamList.GetDefaultValue('Password', UserName.Text);
+  UserName := ParamList.GetDefaultValue('UserName', '');
+  Password := ParamList.GetDefaultValue('Password', '');
   Client.RegisterUserAndLogin := EStrToBool(ParamList.GetDefaultValue('RegUser', 'False'), False);
   NoDTLink := EStrToBool(ParamList.GetDefaultValue('NoDTLink', 'True'), True);
 end;
@@ -4708,7 +4708,7 @@ procedure TDTC40_Base_DataStore_Service.Progress;
 begin
   inherited Progress;
   Service.Progress;
-  ServiceInfo.Workload := Service.DTService.TotalLinkCount * 2;
+  ServiceInfo.Workload := Service.DTService.RecvTunnel.Count + Service.DTService.SendTunnel.Count;
 end;
 
 procedure TDTC40_Base_DataStore_Client.Do_DT_P2PVM_Custom_Client_TunnelLink(Sender: TDT_P2PVM_Custom_Client);
@@ -4734,8 +4734,8 @@ begin
     );
   Client.OnTunnelLink := {$IFDEF FPC}@{$ENDIF FPC}Do_DT_P2PVM_Custom_Client_TunnelLink;
   DTClient := Client.DTClient as TDataStoreClient;
-  UserName := ParamList.GetDefaultValue('UserName', umlMD5ToStr(ClientInfo.Hash).Text);
-  Password := ParamList.GetDefaultValue('Password', UserName.Text);
+  UserName := ParamList.GetDefaultValue('UserName', '');
+  Password := ParamList.GetDefaultValue('Password', '');
   Client.RegisterUserAndLogin := EStrToBool(ParamList.GetDefaultValue('RegUser', 'False'), False);
   NoDTLink := EStrToBool(ParamList.GetDefaultValue('NoDTLink', 'True'), True);
 end;
@@ -4784,13 +4784,13 @@ initialization
 ProgressBackgroundProc := {$IFDEF FPC}@{$ENDIF FPC}C40Progress;
 
 DTC40_QuietMode := False;
-DTC40_SafeCheckTime := 1000 * 60 * 10;
+DTC40_SafeCheckTime := 1000 * 60;
 DTC40_PhysicsReconnectionDelayTime := 5.0;
 DTC40_UpdateServiceInfoDelayTime := 1000 * 1;
-DTC40_PhysicsServiceTimeout := 1000 * 60;
-DTC40_PhysicsTunnelTimeout := 1000 * 60;
-DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 60;
-DTC40_KillIDCFaultTimeout := 1000 * 60 * 60;
+DTC40_PhysicsServiceTimeout := 1000 * 30;
+DTC40_PhysicsTunnelTimeout := 1000 * 30;
+DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 30;
+DTC40_KillIDCFaultTimeout := 1000 * 40;
 
 {$IFDEF FPC}
 DTC40_RootPath := umlCurrentPath;
