@@ -204,6 +204,7 @@ type
     destructor Destroy; override;
     function AddFromText(Text_: TPascalString): TZ_JsonObject;
     function AddFromStream(stream: TCoreClassStream): TZ_JsonObject;
+    function AddFromFile(FileName: U_String): TZ_JsonObject;
     procedure Remove(obj: TZ_JsonObject);
     procedure Delete(Index: Integer);
     procedure Clear;
@@ -481,6 +482,13 @@ function TZ_JsonObject_List.AddFromStream(stream: TCoreClassStream): TZ_JsonObje
 begin
   Result := TZ_JsonObject.Create(nil);
   Result.LoadFromStream(stream);
+  Add(Result);
+end;
+
+function TZ_JsonObject_List.AddFromFile(FileName: U_String): TZ_JsonObject;
+begin
+  Result := TZ_JsonObject.Create(nil);
+  Result.LoadFromFile(FileName);
   Add(Result);
 end;
 

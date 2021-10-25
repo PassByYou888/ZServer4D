@@ -776,7 +776,7 @@ begin
   DTC40_Var_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.OX', [ServiceInfo.ServiceTyp.Text]));
   NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024 * 1024, nil);
   NMBigPool.AccessOptimization := True;
-  NMBigPool.IgnoreCase := False;
+  NMBigPool.IgnoreCase := True;
   OnChange := nil;
   OnRemove := nil;
 
@@ -1081,7 +1081,7 @@ begin
   DTNoAuthClient.RecvTunnel.RegisterDirectStream('NM_Change').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Change;
   NMBigPool := TVAR_Service_NMBigPool.Create(True, 1024, nil);
   NMBigPool.AccessOptimization := True;
-  NMBigPool.IgnoreCase := False;
+  NMBigPool.IgnoreCase := True;
   OnChange := nil;
 end;
 

@@ -670,6 +670,9 @@ begin
   DoStatus(L['abc1'][0]);
   DoStatus(L['abc2'][0]);
   DoStatus(L['abc3'][0]);
+
+  if L.Exists('Abc') then
+    nop;
   DisposeObject(L);
 end;
 

@@ -405,7 +405,6 @@ type
     procedure GoNext;
 
     function ReadString: SystemString;
-    function ReadBytes: TBytes;
     function ReadInteger: Integer;
     function ReadCardinal: Cardinal;
     function ReadWord: Word;
@@ -503,7 +502,6 @@ type
     procedure WriteString(v: SystemString); overload;
     procedure WriteString(v: TPascalString); overload;
     procedure WriteString(const Fmt: SystemString; const Args: array of const); overload;
-    procedure WriteBytes(v: TBytes);
     procedure WriteInteger(v: Integer);
     procedure WriteCardinal(v: Cardinal);
     procedure WriteWORD(v: Word);
@@ -565,7 +563,6 @@ type
     procedure write(const Buf_; Count_: Int64);
 
     function ReadString(index_: Integer): SystemString;
-    function ReadBytes(index_: Integer): TBytes;
     function ReadInteger(index_: Integer): Integer;
     function ReadCardinal(index_: Integer): Cardinal;
     function ReadWord(index_: Integer): Word;
@@ -681,7 +678,6 @@ type
     procedure Clear;
 
     procedure WriteString(v: SystemString);
-    procedure WriteBytes(v: TBytes);
     procedure WriteInteger(v: Integer);
     procedure WriteCardinal(v: Cardinal);
     procedure WriteWORD(v: Word);
@@ -741,7 +737,6 @@ type
     destructor Destroy; override;
 
     function ReadString: SystemString;
-    function ReadBytes: TBytes;
     function ReadInteger: Integer;
     function ReadCardinal: Cardinal;
     function ReadWord: Word;
@@ -1931,12 +1926,6 @@ begin
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadBytes: TBytes;
-begin
-  Result := FOwner.ReadBytes(FIndex);
-  inc(FIndex);
-end;
-
 function TDataFrameEngineReader.ReadInteger: Integer;
 begin
   Result := FOwner.ReadInteger(FIndex);
@@ -2466,17 +2455,6 @@ end;
 procedure TDataFrameEngine.WriteString(const Fmt: SystemString; const Args: array of const);
 begin
   WriteString(PFormat(Fmt, Args));
-end;
-
-procedure TDataFrameEngine.WriteBytes(v: TBytes);
-var
-  Obj_: TDataFrameString;
-begin
-  Obj_ := TDataFrameString.Create(DataTypeToByte(rdtString));
-  SetLength(Obj_.Buffer, length(v));
-  if length(v) > 0 then
-      CopyPtr(@v[0], @Obj_.Buffer[0], length(v));
-  FDataList.Add(Obj_);
 end;
 
 procedure TDataFrameEngine.WriteInteger(v: Integer);
@@ -3075,28 +3053,6 @@ begin
 {$ENDIF}
   else
       Result := '';
-end;
-
-function TDataFrameEngine.ReadBytes(index_: Integer): TBytes;
-var
-  Obj_: TDataFrameBase;
-  i: Integer;
-begin
-  Obj_ := Data[index_];
-  if Obj_ is TDataFrameString then
-    begin
-      SetLength(Result, length(TDataFrameString(Obj_).Buffer));
-      if length(Result) > 0 then
-          CopyPtr(@TDataFrameString(Obj_).Buffer[0], @Result[0], length(Result));
-    end
-  else if Obj_ is TDataFrameArrayByte then
-    begin
-      SetLength(Result, TDataFrameArrayByte(Obj_).Count);
-      for i := 0 to TDataFrameArrayByte(Obj_).Count - 1 do
-          Result[i] := TDataFrameArrayByte(Obj_).Buffer[i];
-    end
-  else
-      SetLength(Result, 0);
 end;
 
 function TDataFrameEngine.ReadInteger(index_: Integer): Integer;
@@ -5003,11 +4959,6 @@ begin
   FEngine.WriteString(v);
 end;
 
-procedure TDataWriter.WriteBytes(v: TBytes);
-begin
-  FEngine.WriteBytes(v);
-end;
-
 procedure TDataWriter.WriteInteger(v: Integer);
 begin
   FEngine.WriteInteger(v);
@@ -5289,11 +5240,6 @@ end;
 function TDataReader.ReadString: SystemString;
 begin
   Result := FEngine.Reader.ReadString;
-end;
-
-function TDataReader.ReadBytes: TBytes;
-begin
-  Result := FEngine.Reader.ReadBytes;
 end;
 
 function TDataReader.ReadInteger: Integer;

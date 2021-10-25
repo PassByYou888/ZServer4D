@@ -28,7 +28,7 @@ uses
   FPCGenericStructlist,
 {$ENDIF FPC}
   CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib,
-  Geometry2DUnit, DataFrameEngine, zExpression,
+  Geometry2DUnit, DataFrameEngine, zExpression, ListEngine,
   ZJson, GHashList, ZDB2_Core, ZDB2_Json, CoreCipher,
   NotifyObjectBase, MemoryStream64,
   CommunicationFramework, PhysicsIO, CommunicationFrameworkDoubleTunnelIO_NoAuth, DTC40;
@@ -57,6 +57,8 @@ type
       procedure SendUser_Request_Friend(FromUserName_, DestFriendUserName_, Msg_: U_String);
       procedure SendUser_Kick(UserName_: U_String);
     end;
+
+    TDTC40_UserDB_Service_RecvTunnel_NoAuth_List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TDTC40_UserDB_Service_RecvTunnel_NoAuth>;
   protected
     // IM
     procedure cmd_Usr_Open(sender: TPeerIO; InData: TDFE);
@@ -76,10 +78,15 @@ type
     procedure cmd_Usr_Exists(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_Auth(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_ChangePassword(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_ResetPassword(sender: TPeerIO; InData: TDFE);
     procedure cmd_Usr_NewIdentifier(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_GetPrimaryIdentifier(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_Get(sender: TPeerIO; InData, OutData: TDFE);
     procedure cmd_Usr_Set(sender: TPeerIO; InData: TDFE);
+    // admin
+    procedure cmd_Usr_Search(sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_Usr_Upload(sender: TPeerIO; InData: TDFE);
+    procedure cmd_Usr_Remove(sender: TPeerIO; InData: TDFE);
   public
     DTC40_UserDB_FileName: U_String;
     UserIdentifierHash: TJsonHashList;
@@ -110,12 +117,12 @@ type
   TDTC40_UserDB_Client = class(TDTC40_Base_NoAuth_Client)
   public type
 {$REGION 'bridge_define'}
-    TON_Usr_IsOpenC = procedure(sender: TDTC40_UserDB_Client; State_: Boolean);
-    TON_Usr_IsOpenM = procedure(sender: TDTC40_UserDB_Client; State_: Boolean) of object;
+    TON_Usr_IsOpenC = procedure(sender: TDTC40_UserDB_Client; State_: TArrayBool);
+    TON_Usr_IsOpenM = procedure(sender: TDTC40_UserDB_Client; State_: TArrayBool) of object;
 {$IFDEF FPC}
-    TON_Usr_IsOpenP = procedure(sender: TDTC40_UserDB_Client; State_: Boolean) is nested;
+    TON_Usr_IsOpenP = procedure(sender: TDTC40_UserDB_Client; State_: TArrayBool) is nested;
 {$ELSE FPC}
-    TON_Usr_IsOpenP = reference to procedure(sender: TDTC40_UserDB_Client; State_: Boolean);
+    TON_Usr_IsOpenP = reference to procedure(sender: TDTC40_UserDB_Client; State_: TArrayBool);
 {$ENDIF FPC}
 
     TON_Usr_IsOpen = class(TOnResultBridge)
@@ -315,9 +322,12 @@ type
     // IM
     procedure Usr_Open(UserName_: U_String);
     procedure Usr_Close(UserName_: U_String);
-    procedure Usr_IsOpenC(UserName_: U_String; OnResult: TON_Usr_IsOpenC);
-    procedure Usr_IsOpenM(UserName_: U_String; OnResult: TON_Usr_IsOpenM);
-    procedure Usr_IsOpenP(UserName_: U_String; OnResult: TON_Usr_IsOpenP);
+    procedure Usr_IsOpenC(UserName_: U_String; OnResult: TON_Usr_IsOpenC); overload;
+    procedure Usr_IsOpenM(UserName_: U_String; OnResult: TON_Usr_IsOpenM); overload;
+    procedure Usr_IsOpenP(UserName_: U_String; OnResult: TON_Usr_IsOpenP); overload;
+    procedure Usr_IsOpenC(UserName_: U_StringArray; OnResult: TON_Usr_IsOpenC); overload;
+    procedure Usr_IsOpenM(UserName_: U_StringArray; OnResult: TON_Usr_IsOpenM); overload;
+    procedure Usr_IsOpenP(UserName_: U_StringArray; OnResult: TON_Usr_IsOpenP); overload;
     procedure Usr_Msg(FromUserName_, ToUserName_, Msg_: U_String);
     procedure Usr_GetFriendsC(UserName_: U_String; OnResult: TON_Usr_GetFriendsC);
     procedure Usr_GetFriendsM(UserName_: U_String; OnResult: TON_Usr_GetFriendsM);
@@ -328,6 +338,9 @@ type
     procedure Usr_OnlineNumC(OnResult: TON_Usr_OnlineNumC);
     procedure Usr_OnlineNumM(OnResult: TON_Usr_OnlineNumM);
     procedure Usr_OnlineNumP(OnResult: TON_Usr_OnlineNumP);
+    procedure Usr_Kick(UserName_: U_String);
+    procedure Usr_Enabled(UserName_: U_String);
+    procedure Usr_Disable(UserName_: U_String);
     // user registration
     procedure Usr_RegC(UserName_, passwd_: U_String; OnResult: TON_Usr_RegC);
     procedure Usr_RegM(UserName_, passwd_: U_String; OnResult: TON_Usr_RegM);
@@ -344,6 +357,8 @@ type
     procedure Usr_ChangePasswordC(UserName_, passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordC);
     procedure Usr_ChangePasswordM(UserName_, passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordM);
     procedure Usr_ChangePasswordP(UserName_, passwd_, NewPasswd_: U_String; OnResult: TON_Usr_ChangePasswordP);
+    // reset password
+    procedure Usr_ResetPassword(UserName_, NewPasswd_: U_String);
     // user Identifier
     procedure Usr_NewIdentifierC(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierC);
     procedure Usr_NewIdentifierM(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierM);
@@ -357,6 +372,13 @@ type
     procedure Usr_GetP(UserName_, ObjName_: U_String; OnResult: TON_Usr_GetP);
     // set json object
     procedure Usr_Set(UserName_, ObjName_: U_String; Json_: TZJ);
+    // admin
+    procedure Usr_SearchM(text_: U_String; maxNum_: Integer; OnResult: TStreamMethod);
+    procedure Usr_SearchP(text_: U_String; maxNum_: Integer; OnResult: TStreamProc);
+    procedure Usr_Upload(j_: TZJ); overload;
+    procedure Usr_Upload(L_: TZJL); overload;
+    procedure Usr_Remove(UserName_: U_String); overload;
+    procedure Usr_Remove(L_: TPascalStringList); overload;
   end;
 
 implementation
@@ -535,16 +557,11 @@ var
   ID_: Cardinal;
   IO_: TPeerIO;
   Recv_IO_Def: TDTC40_UserDB_Service_RecvTunnel_NoAuth;
-  Send_IO_Def: TDTC40_UserDB_Service_SendTunnel_NoAuth;
+  L: TDTC40_UserDB_Service_RecvTunnel_NoAuth_List;
+  i: Integer;
+  found_: Boolean;
 begin
-  UserName_ := InData.R.ReadString;
-  if not UserIdentifierHash.Exists(UserName_) then
-    begin
-      OutData.WriteBool(False);
-      exit;
-    end;
-  UserName_ := UserIdentifierHash[UserName_].Data.S['PrimaryIdentifier'];
-
+  L := TDTC40_UserDB_Service_RecvTunnel_NoAuth_List.Create;
   DTNoAuthService.RecvTunnel.GetIO_Array(Arry_);
   for ID_ in Arry_ do
     begin
@@ -552,16 +569,29 @@ begin
       if (IO_ <> nil) and TDTC40_UserDB_Service_RecvTunnel_NoAuth(IO_.UserDefine).LinkOk then
         begin
           Recv_IO_Def := IO_.IODefine as TDTC40_UserDB_Service_RecvTunnel_NoAuth;
-          Send_IO_Def := Recv_IO_Def.SendTunnel as TDTC40_UserDB_Service_SendTunnel_NoAuth;
-          if Recv_IO_Def.OpenUserIdentifier.Exists(UserName_) then
-            begin
-              OutData.WriteBool(True);
-              exit;
-            end;
+          L.Add(Recv_IO_Def);
         end;
     end;
   SetLength(Arry_, 0);
-  OutData.WriteBool(False);
+
+  while InData.R.NotEnd do
+    begin
+      UserName_ := InData.R.ReadString;
+      found_ := False;
+      if UserIdentifierHash.Exists(UserName_) then
+        begin
+          UserName_ := UserIdentifierHash[UserName_].Data.S['PrimaryIdentifier'];
+          for i := 0 to L.Count - 1 do
+            if L[i].OpenUserIdentifier.Exists(UserName_) then
+              begin
+                found_ := True;
+                break;
+              end;
+        end;
+      OutData.WriteBool(found_);
+    end;
+
+  DisposeObject(L);
 end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_Msg(sender: TPeerIO; InData: TDFE);
@@ -868,11 +898,10 @@ end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_Enabled(sender: TPeerIO; InData: TDFE);
 var
-  UserName_, passwd_: U_String;
+  UserName_: U_String;
   j_: TZDB2_Json;
 begin
   UserName_ := InData.R.ReadString;
-  passwd_ := InData.R.ReadString;
   if not UserIdentifierHash.Exists(UserName_) then
       exit;
   j_ := UserIdentifierHash[UserName_];
@@ -881,11 +910,10 @@ end;
 
 procedure TDTC40_UserDB_Service.cmd_Usr_Disable(sender: TPeerIO; InData: TDFE);
 var
-  UserName_, passwd_: U_String;
+  UserName_: U_String;
   j_: TZDB2_Json;
 begin
   UserName_ := InData.R.ReadString;
-  passwd_ := InData.R.ReadString;
   if not UserIdentifierHash.Exists(UserName_) then
       exit;
   j_ := UserIdentifierHash[UserName_];
@@ -901,14 +929,14 @@ var
 begin
   UserName_ := InData.R.ReadString;
   passwd_ := InData.R.ReadString;
-  if (UserName_.L < 6) then
+  if (length(UserName_.Bytes) < 4) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString('User name "%s" is too short', [UserName_.Text]);
       exit;
     end;
 
-  if (passwd_.L < 6) then
+  if (length(passwd_.Bytes) < 6) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString('password is too short');
@@ -985,7 +1013,7 @@ begin
   passwd_ := InData.R.ReadString;
   NewPasswd_ := InData.R.ReadString;
 
-  if (NewPasswd_.L < 6) then
+  if (length(NewPasswd_.Bytes) < 6) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString('new password is too short');
@@ -1014,6 +1042,21 @@ begin
     end;
 end;
 
+procedure TDTC40_UserDB_Service.cmd_Usr_ResetPassword(sender: TPeerIO; InData: TDFE);
+var
+  UserName_, NewPasswd_: U_String;
+  j_: TZDB2_Json;
+begin
+  UserName_ := InData.R.ReadString;
+  NewPasswd_ := InData.R.ReadString;
+  if (length(NewPasswd_.Bytes) < 6) then
+      exit;
+  if not UserIdentifierHash.Exists(UserName_) then
+      exit;
+  j_ := UserIdentifierHash[UserName_];
+  j_.Data.S['Password'] := GenerateQuantumCryptographyPassword(NewPasswd_.LowerText);
+end;
+
 procedure TDTC40_UserDB_Service.cmd_Usr_NewIdentifier(sender: TPeerIO; InData, OutData: TDFE);
 var
   UserName_, NewIdentifier_: U_String;
@@ -1022,7 +1065,7 @@ begin
   UserName_ := InData.R.ReadString;
   NewIdentifier_ := InData.R.ReadString;
 
-  if (NewIdentifier_.L < 6) then
+  if (length(NewIdentifier_.Bytes) < 4) then
     begin
       OutData.WriteBool(False);
       OutData.WriteString('New Identifier is too short');
@@ -1102,6 +1145,113 @@ begin
   InData.R.ReadJson(j_.Data.O[ObjName_]);
 end;
 
+procedure TDTC40_UserDB_Service.cmd_Usr_Search(sender: TPeerIO; InData, OutData: TDFE);
+var
+  text_: U_String;
+  maxNum_: Integer;
+  i: Integer;
+  j_: TZDB2_Json;
+  tmp: U_String;
+begin
+  text_ := InData.R.ReadString;
+  maxNum_ := InData.R.ReadInteger;
+  for i := 0 to JsonDatabase.Count - 1 do
+    begin
+      j_ := JsonDatabase[i];
+      tmp := j_.Data.ToJSONString(False);
+      if (text_.L = 0) or (tmp.GetPos(@text_) > 0) then
+        begin
+          OutData.WriteString(tmp);
+          if (maxNum_ > 0) and (OutData.Count > maxNum_) then
+              break;
+        end;
+    end;
+end;
+
+procedure TDTC40_UserDB_Service.cmd_Usr_Upload(sender: TPeerIO; InData: TDFE);
+var
+  tmp: TZJ;
+  arry: TZJArry;
+  i: Integer;
+  j_: TZDB2_Json;
+  found_: Boolean;
+begin
+  while InData.R.NotEnd do
+    begin
+      tmp := TZJ.Create;
+      try
+        InData.R.ReadJson(tmp);
+
+        found_ := (tmp.IndexOf('PrimaryIdentifier') >= 0) and UserIdentifierHash.Exists(tmp.S['PrimaryIdentifier']);
+        if (not found_) and (tmp.IndexOf('Identifier') >= 0) then
+          begin
+            arry := tmp.A['Identifier'];
+            for i := 0 to arry.Count - 1 do
+              if UserIdentifierHash.Exists(arry.S[i]) then
+                begin
+                  found_ := True;
+                  break;
+                end;
+          end;
+
+        if not found_ then
+          begin
+            j_ := JsonDatabase.NewData;
+            j_.Data.SwapInstance(tmp);
+            arry := j_.Data.A['Identifier'];
+            for i := 0 to arry.Count - 1 do
+              begin
+                UserIdentifierHash.Add(arry.S[i], j_);
+                if j_.Data.IndexOf('PrimaryIdentifier') < 0 then
+                    j_.Data.S['PrimaryIdentifier'] := arry.S[i];
+                DoStatus('user "%s" import done.', [arry.S[i]]);
+              end;
+          end;
+      except
+      end;
+      DisposeObject(tmp);
+    end;
+end;
+
+procedure TDTC40_UserDB_Service.cmd_Usr_Remove(sender: TPeerIO; InData: TDFE);
+var
+  Arry_: TIO_Array;
+  ID_: Cardinal;
+  IO_: TPeerIO;
+  Recv_IO_Def: TDTC40_UserDB_Service_RecvTunnel_NoAuth;
+  UserName_: U_String;
+  Json_: TZDB2_Json;
+  identifier_arry: TZJArry;
+  i: Integer;
+begin
+  DTNoAuthService.RecvTunnel.GetIO_Array(Arry_);
+  while InData.R.NotEnd do
+    begin
+      UserName_ := InData.R.ReadString;
+      if UserIdentifierHash.Exists(UserName_) then
+        begin
+          UserName_ := UserIdentifierHash[UserName_].Data.S['PrimaryIdentifier'];
+          Json_ := UserIdentifierHash[UserName_];
+          identifier_arry := Json_.Data.A['Identifier'];
+          for i := 0 to identifier_arry.Count - 1 do
+            begin
+              for ID_ in Arry_ do
+                begin
+                  IO_ := DTNoAuthService.RecvTunnel[ID_];
+                  if (IO_ <> nil) and TDTC40_UserDB_Service_RecvTunnel_NoAuth(IO_.UserDefine).LinkOk then
+                    begin
+                      Recv_IO_Def := IO_.IODefine as TDTC40_UserDB_Service_RecvTunnel_NoAuth;
+                      Recv_IO_Def.SendUser_Kick(UserName_);
+                      Recv_IO_Def.OpenUserIdentifier.Delete(identifier_arry.S[i]);
+                    end;
+                end;
+              UserIdentifierHash.Delete(identifier_arry.S[i]);
+            end;
+          JsonDatabase.Remove(Json_, True);
+        end;
+    end;
+end;
+
 constructor TDTC40_UserDB_Service.Create(PhysicsService_: TDTC40_PhysicsService; ServiceTyp, Param_: U_String);
 var
   fs: TCoreClassFileStream;
@@ -1128,10 +1278,14 @@ begin
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_Exists').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Exists;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_Auth').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Auth;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_ChangePassword').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_ChangePassword;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('Usr_ResetPassword').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_ResetPassword;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_NewIdentifier').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_NewIdentifier;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_GetPrimaryIdentifier').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_GetPrimaryIdentifier;
   DTNoAuthService.RecvTunnel.RegisterStream('Usr_Get').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Get;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('Usr_Set').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Set;
+  DTNoAuthService.RecvTunnel.RegisterStream('Usr_Search').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Search;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('Usr_Upload').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Upload;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('Usr_Remove').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_Usr_Remove;
   // is only instance
   ServiceInfo.OnlyInstance := True;
   UpdateToGlobalDispatch;
@@ -1139,7 +1293,7 @@ begin
   DTC40_UserDB_FileName := umlCombineFileName(DTNoAuthService.PublicFileDirectory, PFormat('DTC40_%s.Space', [ServiceInfo.ServiceTyp.Text]));
   UserIdentifierHash := TJsonHashList.Create(False, 1024 * 1024 * 4, nil);
   UserIdentifierHash.AccessOptimization := True;
-  UserIdentifierHash.IgnoreCase := False;
+  UserIdentifierHash.IgnoreCase := True;
 
   if umlFileExists(DTC40_UserDB_FileName) then
       fs := TCoreClassFileStream.Create(DTC40_UserDB_FileName, fmOpenReadWrite)
@@ -1167,7 +1321,11 @@ begin
       json := JsonDatabase[j];
       identifier_arry := json.Data.A['Identifier'];
       for i := 0 to identifier_arry.Count - 1 do
+        begin
+          if UserIdentifierHash.Exists(identifier_arry.S[i]) then
+              DoStatus('repeat user %s', [identifier_arry.S[i]]);
           UserIdentifierHash.Add(identifier_arry.S[i], json);
+        end;
       json.RecycleMemory;
     end;
   JsonDatabase.Flush;
@@ -1201,13 +1359,13 @@ var
   i: Integer;
 begin
   Result := False;
-  if (UserName_.L < 6) then
+  if (length(UserName_.Bytes) < 4) then
     begin
       DoStatus('User name "%s" is too short', [UserName_.Text]);
       exit;
     end;
 
-  if (passwd_.L < 6) then
+  if (length(passwd_.Bytes) < 6) then
     begin
       DoStatus('password is too short');
       exit;
@@ -1286,9 +1444,12 @@ end;
 
 procedure TDTC40_UserDB_Client.TON_Usr_IsOpen.DoStreamParamEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
-  State_: Boolean;
+  State_: TArrayBool;
+  i: Integer;
 begin
-  State_ := Result_.R.ReadBool;
+  SetLength(State_, Result_.Count);
+  for i := 0 to Result_.Count - 1 do
+      State_[i] := Result_.ReadBool(i);
 
   try
     if Assigned(OnResultC) then
@@ -1304,9 +1465,12 @@ end;
 
 procedure TDTC40_UserDB_Client.TON_Usr_IsOpen.DoStreamFailedEvent(sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
 var
-  State_: Boolean;
+  State_: TArrayBool;
+  i: Integer;
 begin
-  State_ := False;
+  SetLength(State_, SendData.Count);
+  for i := 0 to SendData.Count - 1 do
+      State_[i] := False;
 
   try
     if Assigned(OnResultC) then
@@ -1937,6 +2101,60 @@ begin
   DisposeObject(D);
 end;
 
+procedure TDTC40_UserDB_Client.Usr_IsOpenC(UserName_: U_StringArray; OnResult: TON_Usr_IsOpenC);
+var
+  tmp: TON_Usr_IsOpen;
+  D: TDFE;
+  i: Integer;
+begin
+  tmp := TON_Usr_IsOpen.Create;
+  tmp.Client := self;
+  tmp.OnResultC := OnResult;
+
+  D := TDFE.Create;
+  for i := 0 to length(UserName_) - 1 do
+      D.WriteString(UserName_[i]);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_IsOpen', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_IsOpenM(UserName_: U_StringArray; OnResult: TON_Usr_IsOpenM);
+var
+  tmp: TON_Usr_IsOpen;
+  D: TDFE;
+  i: Integer;
+begin
+  tmp := TON_Usr_IsOpen.Create;
+  tmp.Client := self;
+  tmp.OnResultM := OnResult;
+
+  D := TDFE.Create;
+  for i := 0 to length(UserName_) - 1 do
+      D.WriteString(UserName_[i]);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_IsOpen', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_IsOpenP(UserName_: U_StringArray; OnResult: TON_Usr_IsOpenP);
+var
+  tmp: TON_Usr_IsOpen;
+  D: TDFE;
+  i: Integer;
+begin
+  tmp := TON_Usr_IsOpen.Create;
+  tmp.Client := self;
+  tmp.OnResultP := OnResult;
+
+  D := TDFE.Create;
+  for i := 0 to length(UserName_) - 1 do
+      D.WriteString(UserName_[i]);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_IsOpen', D, nil, nil,
+{$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
 procedure TDTC40_UserDB_Client.Usr_Msg(FromUserName_, ToUserName_, Msg_: U_String);
 var
   D: TDFE;
@@ -2075,6 +2293,36 @@ begin
   D := TDFE.Create;
   DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_OnlineNum', D, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Kick(UserName_: U_String);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Kick', D);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Enabled(UserName_: U_String);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Enabled', D);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Disable(UserName_: U_String);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Disable', D);
   DisposeObject(D);
 end;
 
@@ -2282,6 +2530,17 @@ begin
   DisposeObject(D);
 end;
 
+procedure TDTC40_UserDB_Client.Usr_ResetPassword(UserName_, NewPasswd_: U_String);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  D.WriteString(NewPasswd_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_ResetPassword', D);
+  DisposeObject(D);
+end;
+
 procedure TDTC40_UserDB_Client.Usr_NewIdentifierC(UserName_, NewIdentifier_: U_String; OnResult: TON_Usr_NewIdentifierC);
 var
   tmp: TON_Usr_NewIdentifier;
@@ -2441,6 +2700,72 @@ begin
   D.WriteString(ObjName_);
   D.WriteJson(Json_);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Set', D);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_SearchM(text_: U_String; maxNum_: Integer; OnResult: TStreamMethod);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(text_);
+  D.WriteInteger(maxNum_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdM('Usr_Search', D, OnResult);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_SearchP(text_: U_String; maxNum_: Integer; OnResult: TStreamProc);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(text_);
+  D.WriteInteger(maxNum_);
+  DTNoAuthClient.SendTunnel.SendStreamCmdP('Usr_Search', D, OnResult);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Upload(j_: TZJ);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteJson(j_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Upload', D);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Upload(L_: TZJL);
+var
+  D: TDFE;
+  i: Integer;
+begin
+  D := TDFE.Create;
+  for i := 0 to L_.Count - 1 do
+      D.WriteJson(L_[i]);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Upload', D);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Remove(UserName_: U_String);
+var
+  D: TDFE;
+begin
+  D := TDFE.Create;
+  D.WriteString(UserName_);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Remove', D);
+  DisposeObject(D);
+end;
+
+procedure TDTC40_UserDB_Client.Usr_Remove(L_: TPascalStringList);
+var
+  D: TDFE;
+  i: Integer;
+begin
+  D := TDFE.Create;
+  for i := 0 to L_.Count - 1 do
+      D.WriteString(L_[i]);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('Usr_Remove', D);
   DisposeObject(D);
 end;
 

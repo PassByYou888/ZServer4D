@@ -294,7 +294,8 @@ type
     function GetInfoArray: TDTC40_Info_Array;
     function IsOnlyInstance(ServiceTyp: U_String): Boolean;
     function GetServiceTypNum(ServiceTyp: U_String): Integer;
-    function SearchService(ServiceTyp: U_String): TDTC40_Info_Array;
+    function SearchService(arry: TDTC40_DependNetworkInfoArray): TDTC40_Info_Array; overload;
+    function SearchService(ServiceTyp: U_String): TDTC40_Info_Array; overload;
     function ExistsService(ServiceTyp: U_String): Boolean;
     function ExistsServiceAndPhysicsTunnel(ServiceTyp: U_String; PhysicsTunnel_: TDTC40_PhysicsTunnel): Boolean;
     function FindSame(Data_: TDTC40_Info): TDTC40_Info;
@@ -2553,7 +2554,7 @@ class procedure TDTC40_InfoList.SortWorkLoad(L_: TDTC40_InfoList);
         Result := CompareGeoInt(Right.MaxWorkload, Left.MaxWorkload);
   end;
 
-  procedure fastSort_(Arry_: TDTC40_InfoList; L, R: Integer);
+  procedure fastSort_(arry_: TDTC40_InfoList; L, R: Integer);
   var
     i, j: Integer;
     p: TDTC40_Info;
@@ -2561,22 +2562,22 @@ class procedure TDTC40_InfoList.SortWorkLoad(L_: TDTC40_InfoList);
     repeat
       i := L;
       j := R;
-      p := Arry_[(L + R) shr 1];
+      p := arry_[(L + R) shr 1];
       repeat
-        while Compare_(Arry_[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while Compare_(Arry_[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Arry_.Exchange(i, j);
+                arry_.Exchange(i, j);
             inc(i);
             dec(j);
           end;
       until i > j;
       if L < j then
-          fastSort_(Arry_, L, j);
+          fastSort_(arry_, L, j);
       L := i;
     until i >= R;
   end;
@@ -2616,6 +2617,32 @@ begin
   for i := 0 to Count - 1 do
     if umlMultipleMatch(True, ServiceTyp, Items[i].ServiceTyp) then
         inc(Result);
+end;
+
+function TDTC40_InfoList.SearchService(arry: TDTC40_DependNetworkInfoArray): TDTC40_Info_Array;
+var
+  L: TDTC40_InfoList;
+  i, j: Integer;
+  found_: Boolean;
+begin
+  L := TDTC40_InfoList.Create(False);
+  { filter }
+  for i := 0 to Count - 1 do
+    begin
+      found_ := False;
+      for j := Low(arry) to high(arry) do
+        if arry[j].Typ.Same(@Items[i].ServiceTyp) then
+          begin
+            found_ := True;
+            break;
+          end;
+      if found_ then
+          L.Add(Items[i]);
+    end;
+  { sort }
+  TDTC40_InfoList.SortWorkLoad(L);
+  Result := L.GetInfoArray;
+  disposeObject(L);
 end;
 
 function TDTC40_InfoList.SearchService(ServiceTyp: U_String): TDTC40_Info_Array;
@@ -3389,7 +3416,7 @@ class procedure TDTC40_Custom_ClientPool.SortWorkLoad(L_: TDTC40_Custom_ClientPo
         Result := CompareGeoInt(Right.ClientInfo.MaxWorkload, Left.ClientInfo.MaxWorkload);
   end;
 
-  procedure fastSort_(Arry_: TDTC40_Custom_ClientPool; L, R: Integer);
+  procedure fastSort_(arry_: TDTC40_Custom_ClientPool; L, R: Integer);
   var
     i, j: Integer;
     p: TDTC40_Custom_Client;
@@ -3397,22 +3424,22 @@ class procedure TDTC40_Custom_ClientPool.SortWorkLoad(L_: TDTC40_Custom_ClientPo
     repeat
       i := L;
       j := R;
-      p := Arry_[(L + R) shr 1];
+      p := arry_[(L + R) shr 1];
       repeat
-        while Compare_(Arry_[i], p) < 0 do
+        while Compare_(arry_[i], p) < 0 do
             inc(i);
-        while Compare_(Arry_[j], p) > 0 do
+        while Compare_(arry_[j], p) > 0 do
             dec(j);
         if i <= j then
           begin
             if i <> j then
-                Arry_.Exchange(i, j);
+                arry_.Exchange(i, j);
             inc(i);
             dec(j);
           end;
       until i > j;
       if L < j then
-          fastSort_(Arry_, L, j);
+          fastSort_(arry_, L, j);
       L := i;
     until i >= R;
   end;
@@ -3600,7 +3627,7 @@ end;
 procedure TDTC40_Dispatch_Service.cmd_RemovePhysicsNetwork(Sender: TPeerIO; InData: TDFE);
 var
   tmp: TOnRemovePhysicsNetwork;
-  Arry_: TIO_Array;
+  arry_: TIO_Array;
   ID_: Cardinal;
   IO_: TPeerIO;
   IODef_: TPeerClientUserDefineForRecvTunnel_NoAuth;
@@ -3612,8 +3639,8 @@ begin
 
   if C40ExistsPhysicsNetwork(tmp.PhysicsAddr, tmp.PhysicsPort) then
     begin
-      Service.RecvTunnel.GetIO_Array(Arry_);
-      for ID_ in Arry_ do
+      Service.RecvTunnel.GetIO_Array(arry_);
+      for ID_ in arry_ do
         begin
           IO_ := Service.RecvTunnel[ID_];
           if (IO_ <> nil) and (IO_ <> Sender) and TPeerClientUserDefineForRecvTunnel_NoAuth(IO_.UserDefine).LinkOk then
@@ -3634,14 +3661,14 @@ end;
 procedure TDTC40_Dispatch_Service.UpdateServerInfoToAllClient;
 var
   D: TDFE;
-  Arry_: TIO_Array;
+  arry_: TIO_Array;
   ID_: Cardinal;
   IO_: TPeerIO;
 begin
   D := TDFE.Create;
   ServiceInfoList.SaveToDF(D);
-  Service.SendTunnel.GetIO_Array(Arry_);
-  for ID_ in Arry_ do
+  Service.SendTunnel.GetIO_Array(arry_);
+  for ID_ in arry_ do
     begin
       IO_ := Service.SendTunnel[ID_];
       if (IO_ <> nil) and TPeerClientUserDefineForSendTunnel_NoAuth(IO_.UserDefine).LinkOk then
@@ -3766,15 +3793,15 @@ end;
 procedure TDTC40_Dispatch_Service.IgnoreChangeToAllClient(Hash__: TMD5; Ignored: Boolean);
 var
   D: TDFE;
-  Arry_: TIO_Array;
+  arry_: TIO_Array;
   ID_: Cardinal;
   IO_: TPeerIO;
 begin
   D := TDFE.Create;
   D.WriteMD5(Hash__);
   D.WriteBool(Ignored);
-  Service.SendTunnel.GetIO_Array(Arry_);
-  for ID_ in Arry_ do
+  Service.SendTunnel.GetIO_Array(arry_);
+  for ID_ in arry_ do
     begin
       IO_ := Service.SendTunnel[ID_];
       if (IO_ <> nil) and TPeerClientUserDefineForSendTunnel_NoAuth(IO_.UserDefine).LinkOk then
@@ -3788,7 +3815,7 @@ var
   i: Integer;
   D, tmp: TDFE;
   info_: TDTC40_Info;
-  Arry_: TIO_Array;
+  arry_: TIO_Array;
   ID_: Cardinal;
   IO_: TPeerIO;
 begin
@@ -3804,8 +3831,8 @@ begin
       disposeObject(tmp);
     end;
 
-  Service.SendTunnel.GetIO_Array(Arry_);
-  for ID_ in Arry_ do
+  Service.SendTunnel.GetIO_Array(arry_);
+  for ID_ in arry_ do
     begin
       IO_ := Service.SendTunnel[ID_];
       if (IO_ <> nil) and TPeerClientUserDefineForSendTunnel_NoAuth(IO_.UserDefine).LinkOk then
@@ -3817,7 +3844,7 @@ end;
 procedure TDTC40_Dispatch_Client.cmd_UpdateServiceInfo(Sender: TPeerIO; InData: TDFE);
 var
   i: Integer;
-  Arry_: TDTC40_Custom_Client_Array;
+  arry_: TDTC40_Custom_Client_Array;
   cc: TDTC40_Custom_Client;
 begin
   if ServiceInfoList.MergeFromDF(InData) then
@@ -3826,8 +3853,8 @@ begin
           FOnServiceInfoChange(Self, ServiceInfoList);
 
       { broadcast to all service }
-      Arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
-      for cc in Arry_ do
+      arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
+      for cc in arry_ do
         if (cc <> Self) then
             TDTC40_Dispatch_Client(cc).Client.SendTunnel.SendDirectStreamCmd('UpdateServiceInfo', InData);
     end;
@@ -3885,7 +3912,7 @@ var
   Hash__: TMD5;
   Ignored: Boolean;
   info_: TDTC40_Info;
-  Arry_: TDTC40_Custom_Client_Array;
+  arry_: TDTC40_Custom_Client_Array;
   cc: TDTC40_Custom_Client;
   j: Integer;
 begin
@@ -3902,8 +3929,8 @@ begin
     end;
 
   { broadcast to all service }
-  Arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
-  for cc in Arry_ do
+  arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
+  for cc in arry_ do
     if (cc <> Self) then
         TDTC40_Dispatch_Client(cc).Client.SendTunnel.SendDirectStreamCmd('IgnoreChange', InData);
 end;
@@ -3911,7 +3938,7 @@ end;
 procedure TDTC40_Dispatch_Client.cmd_RemovePhysicsNetwork(Sender: TPeerIO; InData: TDFE);
 var
   tmp: TOnRemovePhysicsNetwork;
-  Arry_: TDTC40_Custom_Client_Array;
+  arry_: TDTC40_Custom_Client_Array;
   cc: TDTC40_Custom_Client;
 begin
   tmp := TOnRemovePhysicsNetwork.Create;
@@ -3922,8 +3949,8 @@ begin
   if C40ExistsPhysicsNetwork(tmp.PhysicsAddr, tmp.PhysicsPort) then
     begin
       { broadcast to all service }
-      Arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
-      for cc in Arry_ do
+      arry_ := DTC40_ClientPool.SearchClass(TDTC40_Dispatch_Client, True);
+      for cc in arry_ do
         if (cc <> Self) then
             TDTC40_Dispatch_Client(cc).Client.SendTunnel.SendDirectStreamCmd('RemovePhysicsNetwork', InData);
     end;
