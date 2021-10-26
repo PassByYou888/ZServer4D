@@ -974,7 +974,14 @@ begin
 end;
 
 procedure C40Clean;
+var
+  i: Integer;
 begin
+  for i := 0 to DTC40_PhysicsTunnelPool.Count - 1 do
+      DTC40_PhysicsTunnelPool[i].PhysicsTunnel.Disconnect;
+  for i := 0 to DTC40_PhysicsServicePool.Count - 1 do
+      DTC40_PhysicsServicePool[i].StopService;
+
   while DTC40_ClientPool.Count > 0 do
       disposeObject(DTC40_ClientPool[0]);
   while DTC40_ServicePool.Count > 0 do
@@ -987,7 +994,12 @@ begin
 end;
 
 procedure C40Clean_Service;
+var
+  i: Integer;
 begin
+  for i := 0 to DTC40_PhysicsServicePool.Count - 1 do
+      DTC40_PhysicsServicePool[i].StopService;
+
   while DTC40_ServicePool.Count > 0 do
       disposeObject(DTC40_ServicePool[0]);
   DTC40_ServicePool.FIPV6_Seed := 1;
@@ -996,7 +1008,12 @@ begin
 end;
 
 procedure C40Clean_Client;
+var
+  i: Integer;
 begin
+  for i := 0 to DTC40_PhysicsTunnelPool.Count - 1 do
+      DTC40_PhysicsTunnelPool[i].PhysicsTunnel.Disconnect;
+
   while DTC40_ClientPool.Count > 0 do
       disposeObject(DTC40_ClientPool[0]);
   while DTC40_PhysicsTunnelPool.Count > 0 do
