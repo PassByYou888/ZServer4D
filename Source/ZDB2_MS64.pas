@@ -51,7 +51,7 @@ type
     function GetData: TMS64;
     property Data: TMS64 read GetData;
     property ID: Integer read FID;
-    // property Data_MD5: TMD5 read FData_MD5;
+    property Data_MD5: TMD5 read FData_MD5;
   end;
 
   TZDB2_MS64_Class = class of TZDB2_MS64;

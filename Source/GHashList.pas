@@ -671,8 +671,10 @@ begin
   DoStatus(L['abc2'][0]);
   DoStatus(L['abc3'][0]);
 
-  if L.Exists('Abc') then
-    nop;
+  if not L.Exists('Abc') then
+    begin
+      raiseInfo('error');
+    end;
   DisposeObject(L);
 end;
 

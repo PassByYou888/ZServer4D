@@ -476,9 +476,9 @@ end;
 
 function TMemoryStream64.Clone: TMemoryStream64;
 begin
-  Result := TMemoryStream64.Create;
+  Result := TMemoryStream64.CustomCreate(FDelta);
   Result.Size := Size;
-  Result.WritePtr(Memory, Size);
+  CopyPtr(Memory, Result.Memory, Size);
   Result.Position := Position;
 end;
 
@@ -1410,9 +1410,9 @@ end;
 
 function TMem64.Clone: TMem64;
 begin
-  Result := TMem64.Create;
+  Result := TMem64.CustomCreate(FDelta);
   Result.Size := Size;
-  Result.WritePtr(Memory, Size);
+  CopyPtr(Memory, Result.Memory, Size);
   Result.Position := Position;
 end;
 

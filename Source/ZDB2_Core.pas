@@ -1033,7 +1033,7 @@ begin
   Result := False;
   p := @FBlockBuffer[ID];
   with FBlockWriteCache[p^.ID] do
-    if (FUsedReadCache) and (p^.UsedSpace > 0) and (Mem <> nil) then
+    if (FUsedReadCache or FlushThisCacheToFile) and (p^.UsedSpace > 0) and (Mem <> nil) then // fixed by qq600585, Mode = smNormal
       begin
         Mem.Position := 0;
         Mem.ReadPtr(buff, p^.UsedSpace);
@@ -1738,7 +1738,7 @@ begin
 
   if Stream_.Size = 0 then
     begin
-      ErrorInfo('WriteStream: Stream_ size 0.');
+      ErrorInfo('WriteStream: Stream size 0.');
       exit;
     end;
 

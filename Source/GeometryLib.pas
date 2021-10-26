@@ -34,10 +34,6 @@ type
   TMatrix3f = array [0 .. 2] of TVector3f;
   TMatrix4f = array [0 .. 3] of TVector4f;
 
-const
-  cMaxArray = (MaxInt shr 4);
-  cColinearBias = 1E-8;
-
 type
   // data types needed for 3D graphics calculation,
   // included are 'C like' aliases for each type (to be
@@ -52,28 +48,15 @@ type
 
   // types to specify continous streams of a specific type
   // switch off range checking to access values beyond the limits
-  PByteVector = ^TByteVector;
-  PByteArray = PByteVector;
-  TByteVector = array [0 .. cMaxArray] of Byte;
-  PWordVector = ^TWordVector;
-  TWordVector = array [0 .. cMaxArray] of Word;
-  PIntegerVector = ^TIntegerVector;
-  PIntegerArray = PIntegerVector;
-  TIntegerVector = array [0 .. cMaxArray] of Integer;
+  TFloatVector = array [0 .. MaxInt div SizeOf(TGeoFloat) - 1] of TGeoFloat;
   PFloatVector = ^TFloatVector;
   PFloatArray = PFloatVector;
   PSingleArray = PFloatArray;
-  TFloatVector = array [0 .. cMaxArray] of TGeoFloat;
   TSingleArray = array of TGeoFloat;
+  TDoubleVector = array [0 .. MaxInt div SizeOf(Double) - 1] of Double;
   PDoubleVector = ^TDoubleVector;
   PDoubleArray = PDoubleVector;
-  TDoubleVector = array [0 .. cMaxArray] of Double;
-  PPointerVector = ^TPointerVector;
-  PPointerArray = PPointerVector;
-  TPointerVector = array [0 .. cMaxArray] of Pointer;
-  PCardinalVector = ^TCardinalVector;
-  PCardinalArray = PCardinalVector;
-  TCardinalVector = array [0 .. cMaxArray] of Cardinal;
+  TDdoubleArray = array of Double;
 
   // common vector and matrix types with predefined limits
   // indices correspond like: x -> 0
@@ -1339,6 +1322,7 @@ const
   z = 2;
   w = 3;
 
+  CColinearBias = 1E-8;
   cZero: TGeoFloat = 0.0;
   cOne: TGeoFloat = 1.0;
   cOneDotFive: TGeoFloat = 0.5;
@@ -3034,7 +3018,7 @@ begin
   a := VectorDotProduct(v1, v1);
   b := VectorDotProduct(v1, v2);
   c := VectorDotProduct(v2, v2);
-  Result := (a * c - b * b) < cColinearBias;
+  Result := (a * c - b * b) < CColinearBias;
 end;
 
 // IsColinear (affine)
@@ -3046,7 +3030,7 @@ begin
   a := VectorDotProduct(v1, v1);
   b := VectorDotProduct(v1, v2);
   c := VectorDotProduct(v2, v2);
-  Result := (a * c - b * b) < cColinearBias;
+  Result := (a * c - b * b) < CColinearBias;
 end;
 
 // IsColinear (hmg)
@@ -3058,7 +3042,7 @@ begin
   a := VectorDotProduct(v1, v1);
   b := VectorDotProduct(v1, v2);
   c := VectorDotProduct(v2, v2);
-  Result := (a * c - b * b) < cColinearBias;
+  Result := (a * c - b * b) < CColinearBias;
 end;
 
 // SetMatrix (hmg->affine)
@@ -5720,8 +5704,7 @@ end;
 
 // ScaleFloatArray (raw)
 //
-procedure ScaleFloatArray(values: PSingleArray; nb: Integer;
-  var factor: TGeoFloat);
+procedure ScaleFloatArray(values: PSingleArray; nb: Integer; var factor: TGeoFloat);
 var
   i: Integer;
 begin
@@ -5731,8 +5714,7 @@ end;
 
 // ScaleFloatArray (array)
 //
-procedure ScaleFloatArray(var values: TSingleArray;
-  factor: TGeoFloat);
+procedure ScaleFloatArray(var values: TSingleArray; factor: TGeoFloat);
 begin
   if length(values) > 0 then
       ScaleFloatArray(@values[0], length(values), factor);
@@ -5740,8 +5722,7 @@ end;
 
 // OffsetFloatArray (raw)
 //
-procedure OffsetFloatArray(values: PSingleArray; nb: Integer;
-  var Delta: TGeoFloat);
+procedure OffsetFloatArray(values: PSingleArray; nb: Integer; var Delta: TGeoFloat);
 var
   i: Integer;
 begin
@@ -5751,8 +5732,7 @@ end;
 
 // ScaleFloatArray (array)
 //
-procedure OffsetFloatArray(var values: array of TGeoFloat;
-  Delta: TGeoFloat);
+procedure OffsetFloatArray(var values: array of TGeoFloat; Delta: TGeoFloat);
 begin
   if length(values) > 0 then
       ScaleFloatArray(@values[0], length(values), Delta);

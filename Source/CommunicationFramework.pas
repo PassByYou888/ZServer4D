@@ -136,6 +136,16 @@ type
 {$ENDIF FPC}
   TIO_ID_List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<Cardinal>;
 
+  TCommunicationFramework_Progress = class;
+  TCommunicationFramework_Progress_Class = class of TCommunicationFramework_Progress;
+  TCommunicationFramework_Progress_OnEvent_C = procedure(Sender: TCommunicationFramework_Progress);
+  TCommunicationFramework_Progress_OnEvent_M = procedure(Sender: TCommunicationFramework_Progress) of object;
+{$IFDEF FPC}
+  TCommunicationFramework_Progress_OnEvent_P = procedure(Sender: TCommunicationFramework_Progress) is nested;
+{$ELSE FPC}
+  TCommunicationFramework_Progress_OnEvent_P = reference to procedure(Sender: TCommunicationFramework_Progress);
+{$ENDIF FPC}
+
   TIO_ID_List = class(TIO_ID_List_Decl)
   public
   end;
@@ -175,22 +185,28 @@ type
   end;
 
   TCustomEventBridge = class
+  private
+    procedure DoFree(Sender: TCommunicationFramework_Progress);
   public
     Framework_: TCommunicationFramework;
     ID_: Cardinal;
+    ProgressInstance: TCommunicationFramework_Progress;
     constructor Create(IO_: TPeerIO); virtual;
     destructor Destroy; override;
     function CheckIO: Boolean; virtual;
     function IO: TPeerIO; virtual;
+    procedure Progress(Sender: TCommunicationFramework_Progress); virtual;
   end;
 
   TStreamEventBridge = class
   private
     procedure Init(IO_: TPeerIO; AutoPause_: Boolean);
+    procedure DoFree(Sender: TCommunicationFramework_Progress);
   public
     Framework_: TCommunicationFramework;
     ID_: Cardinal;
     LCMD_: SystemString;
+    ProgressInstance: TCommunicationFramework_Progress;
     OnResultC: TStreamEventBridgeEventC;
     OnResultM: TStreamEventBridgeEventM;
     OnResultP: TStreamEventBridgeEventP;
@@ -203,15 +219,18 @@ type
     procedure Play(ResultData_: TDFE);
     procedure DoStreamParamEvent(Sender_: TPeerIO; Param1_: Pointer; Param2_: TObject; SendData_, ResultData_: TDFE); virtual;
     procedure DoStreamEvent(Sender_: TPeerIO; ResultData_: TDFE); virtual;
+    procedure Progress(Sender: TCommunicationFramework_Progress); virtual;
   end;
 
   TConsoleEventBridge = class
   private
     procedure Init(IO_: TPeerIO; AutoPause_: Boolean);
+    procedure DoFree(Sender: TCommunicationFramework_Progress);
   public
     Framework_: TCommunicationFramework;
     ID_: Cardinal;
     LCMD_: SystemString;
+    ProgressInstance: TCommunicationFramework_Progress;
     OnResultC: TConsoleEventBridgeEventC;
     OnResultM: TConsoleEventBridgeEventM;
     OnResultP: TConsoleEventBridgeEventP;
@@ -224,6 +243,7 @@ type
     procedure Play(ResultData_: SystemString);
     procedure DoConsoleParamEvent(Sender_: TPeerIO; Param1_: Pointer; Param2_: TObject; SendData_, ResultData_: SystemString); virtual;
     procedure DoConsoleEvent(Sender_: TPeerIO; ResultData_: SystemString); virtual;
+    procedure Progress(Sender: TCommunicationFramework_Progress); virtual;
   end;
 
   TP2PVM_CloneConnectEventBridge = class
@@ -1087,6 +1107,25 @@ type
 {$ELSE FPC}
   TOnAutomatedP2PVMClientConnectionDone_P = reference to procedure(Sender: TCommunicationFramework; P_IO: TPeerIO);
 {$ENDIF FPC}
+  TCommunicationFramework_Progress_Event = procedure(Sender: TCommunicationFramework_Progress) of object;
+
+  TCommunicationFramework_Progress = class
+  private
+    FOwnerFramework: TCommunicationFramework;
+  public
+    OnFree: TCommunicationFramework_Progress_Event;
+    OnProgress_C: TCommunicationFramework_Progress_OnEvent_C;
+    OnProgress_M: TCommunicationFramework_Progress_OnEvent_M;
+    OnProgress_P: TCommunicationFramework_Progress_OnEvent_P;
+    NextProgressDoFree: Boolean;
+    property OwnerFramework: TCommunicationFramework read FOwnerFramework;
+    constructor Create(OwnerFramework_: TCommunicationFramework);
+    destructor Destroy; override;
+    procedure Progress; virtual;
+    procedure ResetEvent;
+  end;
+
+  TCommunicationFramework_Progress_Pool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TCommunicationFramework_Progress>;
 
   TCommunicationFramework = class(TCoreClassInterfacedObject)
   protected
@@ -1094,6 +1133,7 @@ type
     FCommandList: THashObjectList;
     FPeerIO_HashPool: TUInt32HashObjectList;
     FIDSeed: Cardinal;
+    FProgress_Pool: TCommunicationFramework_Progress_Pool;
     FOnExecuteCommand: TPeerIOCMDNotify;
     FOnSendCommand: TPeerIOCMDNotify;
     FPeerIOUserDefineClass: TPeerIOUserDefineClass;
@@ -1216,6 +1256,12 @@ type
     destructor Destroy; override;
 
     property SequencePacketActivted: Boolean read FSequencePacketActivted write FSequencePacketActivted; { default set True }
+
+    { progress event pool }
+    property Progress_Pool: TCommunicationFramework_Progress_Pool read FProgress_Pool;
+    function AddProgresss(Progress_: TCommunicationFramework_Progress_Class): TCommunicationFramework_Progress; overload;
+    function AddProgresss(): TCommunicationFramework_Progress; overload;
+
     { user protocol support }
     property Protocol: TCommunicationProtocol read FProtocol write FProtocol;
     procedure BeginWriteCustomBuffer(P_IO: TPeerIO);
@@ -3801,6 +3847,11 @@ begin
   DisposeObject(Self);
 end;
 
+procedure TCustomEventBridge.DoFree(Sender: TCommunicationFramework_Progress);
+begin
+  ProgressInstance := nil;
+end;
+
 constructor TCustomEventBridge.Create(IO_: TPeerIO);
 begin
   inherited Create;
@@ -3808,16 +3859,26 @@ begin
     begin
       Framework_ := IO_.OwnerFramework;
       ID_ := IO_.ID;
+      ProgressInstance := IO_.OwnerFramework.AddProgresss;
+      ProgressInstance.OnFree := {$IFDEF FPC}@{$ENDIF FPC}DoFree;
+      ProgressInstance.OnProgress_M := {$IFDEF FPC}@{$ENDIF FPC}Progress;
     end
   else
     begin
       Framework_ := nil;
       ID_ := 0;
+      ProgressInstance := nil;
     end;
 end;
 
 destructor TCustomEventBridge.Destroy;
 begin
+  if ProgressInstance <> nil then
+    begin
+      ProgressInstance.ResetEvent;
+      ProgressInstance.NextProgressDoFree := True;
+      ProgressInstance := nil;
+    end;
   inherited Destroy;
 end;
 
@@ -3838,6 +3899,10 @@ begin
       Result := Framework_.PeerIO_HashPool[ID_] as TPeerIO;
 end;
 
+procedure TCustomEventBridge.Progress(Sender: TCommunicationFramework_Progress);
+begin
+end;
+
 procedure TStreamEventBridge.Init(IO_: TPeerIO; AutoPause_: Boolean);
 begin
   if not IO_.ReceiveCommandRuning then
@@ -3854,6 +3919,14 @@ begin
   if not IO_.OwnerFramework.QuietMode then
       IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
   AutoFree := AutoPause_;
+  ProgressInstance := IO_.OwnerFramework.AddProgresss;
+  ProgressInstance.OnFree := {$IFDEF FPC}@{$ENDIF FPC}DoFree;
+  ProgressInstance.OnProgress_M := {$IFDEF FPC}@{$ENDIF FPC}Progress;
+end;
+
+procedure TStreamEventBridge.DoFree(Sender: TCommunicationFramework_Progress);
+begin
+  ProgressInstance := nil;
 end;
 
 constructor TStreamEventBridge.Create(IO_: TPeerIO; AutoPause_: Boolean);
@@ -3870,6 +3943,12 @@ end;
 
 destructor TStreamEventBridge.Destroy;
 begin
+  if ProgressInstance <> nil then
+    begin
+      ProgressInstance.ResetEvent;
+      ProgressInstance.NextProgressDoFree := True;
+      ProgressInstance := nil;
+    end;
   inherited Destroy;
 end;
 
@@ -3932,6 +4011,11 @@ begin
       DelayFreeObject(1.0, Self);
 end;
 
+procedure TStreamEventBridge.Progress(Sender: TCommunicationFramework_Progress);
+begin
+
+end;
+
 procedure TConsoleEventBridge.Init(IO_: TPeerIO; AutoPause_: Boolean);
 begin
   if not IO_.ReceiveCommandRuning then
@@ -3948,6 +4032,14 @@ begin
   if not IO_.OwnerFramework.QuietMode then
       IO_.Print('Create CMD "%s" Bridge Event.', [LCMD_]);
   AutoFree := AutoPause_;
+  ProgressInstance := IO_.OwnerFramework.AddProgresss;
+  ProgressInstance.OnFree := {$IFDEF FPC}@{$ENDIF FPC}DoFree;
+  ProgressInstance.OnProgress_M := {$IFDEF FPC}@{$ENDIF FPC}Progress;
+end;
+
+procedure TConsoleEventBridge.DoFree(Sender: TCommunicationFramework_Progress);
+begin
+  ProgressInstance := nil;
 end;
 
 constructor TConsoleEventBridge.Create(IO_: TPeerIO; AutoPause_: Boolean);
@@ -3964,6 +4056,12 @@ end;
 
 destructor TConsoleEventBridge.Destroy;
 begin
+  if ProgressInstance <> nil then
+    begin
+      ProgressInstance.ResetEvent;
+      ProgressInstance.NextProgressDoFree := True;
+      ProgressInstance := nil;
+    end;
   inherited Destroy;
 end;
 
@@ -4023,6 +4121,11 @@ begin
       IO_.Print('Loss CMD "%s" Bridge Event..', [LCMD_]);
   if AutoFree then
       DelayFreeObject(1.0, Self);
+end;
+
+procedure TConsoleEventBridge.Progress(Sender: TCommunicationFramework_Progress);
+begin
+
 end;
 
 procedure TP2PVM_CloneConnectEventBridge.DoAsyncConnectState(const State: Boolean);
@@ -7989,6 +8092,54 @@ begin
       end;
 end;
 
+constructor TCommunicationFramework_Progress.Create(OwnerFramework_: TCommunicationFramework);
+begin
+  inherited Create;
+  FOwnerFramework := OwnerFramework_;
+  ResetEvent();
+  NextProgressDoFree := False;
+end;
+
+destructor TCommunicationFramework_Progress.Destroy;
+var
+  i: Integer;
+begin
+  i := 0;
+  try
+    while i < FOwnerFramework.FProgress_Pool.Count do
+      if FOwnerFramework.FProgress_Pool[i] = Self then
+          FOwnerFramework.FProgress_Pool.Delete(i)
+      else
+          inc(i);
+    if Assigned(OnFree) then
+        OnFree(Self);
+  except
+  end;
+
+  inherited Destroy;
+end;
+
+procedure TCommunicationFramework_Progress.Progress;
+begin
+  try
+    if Assigned(OnProgress_C) then
+        OnProgress_C(Self);
+    if Assigned(OnProgress_M) then
+        OnProgress_M(Self);
+    if Assigned(OnProgress_P) then
+        OnProgress_P(Self);
+  except
+  end;
+end;
+
+procedure TCommunicationFramework_Progress.ResetEvent;
+begin
+  OnFree := nil;
+  OnProgress_C := nil;
+  OnProgress_M := nil;
+  OnProgress_P := nil;
+end;
+
 procedure TCommunicationFramework.DoPrint(const v: SystemString);
 var
   n1, n2: SystemString;
@@ -8697,6 +8848,7 @@ begin
   FPeerIO_HashPool := TUInt32HashObjectList.CustomCreate(HashPoolSize);
   FPeerIO_HashPool.AutoFreeData := False;
   FPeerIO_HashPool.AccessOptimization := False;
+  FProgress_Pool := TCommunicationFramework_Progress_Pool.Create;
   FOnExecuteCommand := nil;
   FOnSendCommand := nil;
   FIdleTimeOut := 0;
@@ -8777,6 +8929,9 @@ end;
 destructor TCommunicationFramework.Destroy;
 begin
   try
+    while FProgress_Pool.Count > 0 do
+        DisposeObject(FProgress_Pool[0]);
+    DisposeObject(FProgress_Pool);
     FreeAutomatedP2PVM();
     SetLength(FCipherSecurityArray, 0);
     DeleteRegistedCMD(C_BuildP2PAuthToken);
@@ -8795,6 +8950,18 @@ begin
   except
   end;
   inherited Destroy;
+end;
+
+function TCommunicationFramework.AddProgresss(Progress_: TCommunicationFramework_Progress_Class): TCommunicationFramework_Progress;
+begin
+  Result := TCommunicationFramework_Progress_Class.Create(Self);
+  FProgress_Pool.Add(Result);
+end;
+
+function TCommunicationFramework.AddProgresss: TCommunicationFramework_Progress;
+begin
+  Result := TCommunicationFramework_Progress.Create(Self);
+  FProgress_Pool.Add(Result);
 end;
 
 procedure TCommunicationFramework.BeginWriteCustomBuffer(P_IO: TPeerIO);
@@ -9083,6 +9250,20 @@ begin
   try
     if Assigned(FOnProgress) then
         FOnProgress(Self);
+  except
+  end;
+
+  { progress event pool }
+  i := 0;
+  try
+    while i < FProgress_Pool.Count do
+      begin
+        FProgress_Pool[i].Progress;
+        if FProgress_Pool[i].NextProgressDoFree then
+            DisposeObject(FProgress_Pool[i])
+        else
+            inc(i);
+      end;
   except
   end;
 

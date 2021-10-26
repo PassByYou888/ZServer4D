@@ -513,6 +513,7 @@ procedure umlTransformMD5(var Accu; const Buf); inline;
 function umlMD5(const buffPtr: PByte; bufSiz: NativeUInt): TMD5;
 function umlMD5Char(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
 function umlMD5String(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
+function umlMD5Str(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
 function umlStreamMD5(stream: TCoreClassStream; StartPos, EndPos: Int64): TMD5; overload;
 function umlStreamMD5(stream: TCoreClassStream): TMD5; overload;
 function umlStreamMD5Char(stream: TCoreClassStream): TPascalString; overload;
@@ -5290,6 +5291,11 @@ begin
 end;
 
 function umlMD5String(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
+begin
+  Result := umlMD5ToStr(umlMD5(buffPtr, BuffSize));
+end;
+
+function umlMD5Str(const buffPtr: PByte; const BuffSize: NativeUInt): TPascalString;
 begin
   Result := umlMD5ToStr(umlMD5(buffPtr, BuffSize));
 end;
