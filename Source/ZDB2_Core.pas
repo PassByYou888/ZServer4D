@@ -1263,7 +1263,7 @@ begin
   FBlockCount := 0;
   SetLength(FBlockBuffer, 0);
   FBlockStoreDataStruct := TZDB2_BlockStoreDataStruct.Create;
-  FMaxCacheMemory := 1024 * 1024 * 64;
+  FMaxCacheMemory := 1024 * 1024 * 32;
   FUsedReadCache := False;
   FUsedWriteCache := True;
   SetLength(FBlockWriteCache, 0);

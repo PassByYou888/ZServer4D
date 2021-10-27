@@ -75,8 +75,8 @@ type
     procedure SafeCheck; override;
     procedure Progress; override;
 
-    function GetDB(const DBName_: SystemString): TDTC40_ZDB2_List_HashString;
-    procedure PostLog(const DBName_, Log1_, Log2_: SystemString);
+    function GetDB(const LogDB: SystemString): TDTC40_ZDB2_List_HashString;
+    procedure PostLog(const LogDB, Log1_, Log2_: SystemString);
   end;
 
   TLogData__ = record
@@ -129,18 +129,18 @@ type
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
     destructor Destroy; override;
 
-    procedure PostLog(DBName_, Log1_, Log2_: SystemString); overload;
-    procedure PostLog(DBName_, Log_: SystemString); overload;
-    procedure QueryLogC(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
-    procedure QueryLogM(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
-    procedure QueryLogP(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
-    procedure QueryAndRemoveLog(DBName_: SystemString; bTime, eTime: TDateTime);
-    procedure RemoveLog(DBName_: SystemString; arry_index: array of Integer);
+    procedure PostLog(LogDB, Log1_, Log2_: SystemString); overload;
+    procedure PostLog(LogDB, Log_: SystemString); overload;
+    procedure QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
+    procedure QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
+    procedure QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
+    procedure QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime);
+    procedure RemoveLog(LogDB: SystemString; arry_index: array of Integer);
     procedure GetLogDBC(OnResult: TON_GetLogDBC);
     procedure GetLogDBM(OnResult: TON_GetLogDBM);
     procedure GetLogDBP(OnResult: TON_GetLogDBP);
-    procedure CloseDB(DBName_: SystemString);
-    procedure RemoveDB(DBName_: SystemString);
+    procedure CloseDB(LogDB: SystemString);
+    procedure RemoveDB(LogDB: SystemString);
   end;
 
 function MakeNowDateStr(): U_String;
@@ -203,17 +203,17 @@ end;
 
 procedure TDTC40_Log_DB_Service.cmd_PostLog(Sender: TPeerIO; InData: TDFE);
 var
-  DBName_, Log1_, Log2_: SystemString;
+  LogDB, Log1_, Log2_: SystemString;
 begin
-  DBName_ := InData.R.ReadString;
+  LogDB := InData.R.ReadString;
   Log1_ := InData.R.ReadString;
   Log2_ := InData.R.ReadString;
-  PostLog(DBName_, Log1_, Log2_);
+  PostLog(LogDB, Log1_, Log2_);
 end;
 
 procedure TDTC40_Log_DB_Service.cmd_QueryLog(Sender: TPeerIO; InData, OutData: TDFE);
 var
-  DBName_: SystemString;
+  LogDB: SystemString;
   bTime, eTime: TDateTime;
   db_: TDTC40_ZDB2_List_HashString;
   i: Integer;
@@ -221,11 +221,11 @@ var
   dt: SystemString;
   n1, n2: SystemString;
 begin
-  DBName_ := InData.R.ReadString;
+  LogDB := InData.R.ReadString;
   bTime := InData.R.ReadDouble;
   eTime := InData.R.ReadDouble;
 
-  db_ := GetDB(DBName_);
+  db_ := GetDB(LogDB);
   if db_ = nil then
       exit;
 
@@ -250,18 +250,18 @@ end;
 
 procedure TDTC40_Log_DB_Service.cmd_QueryAndRemoveLog(Sender: TPeerIO; InData: TDFE);
 var
-  DBName_: SystemString;
+  LogDB: SystemString;
   bTime, eTime: TDateTime;
   db_: TDTC40_ZDB2_List_HashString;
   i: Integer;
   d_: TDateTime;
   dt: SystemString;
 begin
-  DBName_ := InData.R.ReadString;
+  LogDB := InData.R.ReadString;
   bTime := InData.R.ReadDouble;
   eTime := InData.R.ReadDouble;
 
-  db_ := GetDB(DBName_);
+  db_ := GetDB(LogDB);
   if db_ = nil then
       exit;
 
@@ -284,16 +284,16 @@ end;
 
 procedure TDTC40_Log_DB_Service.cmd_RemoveLog(Sender: TPeerIO; InData: TDFE);
 var
-  DBName_: SystemString;
+  LogDB: SystemString;
   arry: TDataFrameArrayInteger;
   db_: TDTC40_ZDB2_List_HashString;
   L: TCoreClassListForObj;
   i: Integer;
 begin
-  DBName_ := InData.R.ReadString;
+  LogDB := InData.R.ReadString;
   arry := InData.R.ReadArrayInteger;
 
-  db_ := GetDB(DBName_);
+  db_ := GetDB(LogDB);
   if db_ = nil then
       exit;
 
@@ -326,20 +326,20 @@ end;
 
 procedure TDTC40_Log_DB_Service.cmd_CloseDB(Sender: TPeerIO; InData: TDFE);
 var
-  DBName_: SystemString;
+  LogDB: SystemString;
 begin
-  DBName_ := InData.R.ReadString;
-  DB_Pool.Delete(DBName_);
+  LogDB := InData.R.ReadString;
+  DB_Pool.Delete(LogDB);
 end;
 
 procedure TDTC40_Log_DB_Service.cmd_RemoveDB(Sender: TPeerIO; InData: TDFE);
 var
-  DBName_: SystemString;
+  LogDB: SystemString;
   fn: U_String;
 begin
-  DBName_ := InData.R.ReadString;
-  DB_Pool.Delete(DBName_);
-  fn := umlCombineFileName(DTC40_DB_Directory, umlConverStrToFileName(DBName_) + '.Log_ZDB2');
+  LogDB := InData.R.ReadString;
+  DB_Pool.Delete(LogDB);
+  fn := umlCombineFileName(DTC40_DB_Directory, umlConverStrToFileName(LogDB) + '.Log_ZDB2');
   if umlFileExists(fn) then
       umlDeleteFile(fn);
 end;
@@ -430,18 +430,18 @@ begin
     end;
 end;
 
-function TDTC40_Log_DB_Service.GetDB(const DBName_: SystemString): TDTC40_ZDB2_List_HashString;
+function TDTC40_Log_DB_Service.GetDB(const LogDB: SystemString): TDTC40_ZDB2_List_HashString;
 var
   fn: U_String;
   fs: TCoreClassFileStream;
-  DBName__: U_String;
+  LogDB_: U_String;
 begin
-  DBName__ := umlConverStrToFileName(DBName_);
+  LogDB_ := umlConverStrToFileName(LogDB);
 
-  Result := DB_Pool[DBName__];
+  Result := DB_Pool[LogDB_];
   if Result = nil then
     begin
-      fn := umlCombineFileName(DTC40_DB_Directory, DBName__ + '.Log_ZDB2');
+      fn := umlCombineFileName(DTC40_DB_Directory, LogDB_ + '.Log_ZDB2');
       try
         if umlFileExists(fn) then
             fs := TCoreClassFileStream.Create(fn, fmOpenReadWrite)
@@ -455,11 +455,12 @@ begin
           ZDB2DeltaSpace,
           ZDB2BlockSize,
           ZDB2Cipher);
+        Result.CoreSpace.MaxCacheMemory := 1024 * 1024;
         Result.AutoFreeStream := true;
-        Result.Name := DBName__;
+        Result.Name := LogDB_;
         Result.LastActivtTime := GetTimeTick;
         Result.LastPostTime := umlNow;
-        DB_Pool.FastAdd(DBName__, Result);
+        DB_Pool.FastAdd(LogDB_, Result);
       except
           Result := nil;
       end;
@@ -468,13 +469,13 @@ begin
       Result.LastActivtTime := GetTimeTick;
 end;
 
-procedure TDTC40_Log_DB_Service.PostLog(const DBName_, Log1_, Log2_: SystemString);
+procedure TDTC40_Log_DB_Service.PostLog(const LogDB, Log1_, Log2_: SystemString);
 var
   db_: TDTC40_ZDB2_List_HashString;
   hs_: TZDB2_HashString;
   t_: TDateTime;
 begin
-  db_ := GetDB(DBName_);
+  db_ := GetDB(LogDB);
   if db_ = nil then
       exit;
   hs_ := db_.NewData;
@@ -572,24 +573,24 @@ begin
   inherited Destroy;
 end;
 
-procedure TDTC40_Log_DB_Client.PostLog(DBName_, Log1_, Log2_: SystemString);
+procedure TDTC40_Log_DB_Client.PostLog(LogDB, Log1_, Log2_: SystemString);
 var
   d: TDFE;
 begin
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   d.WriteString(Log1_);
   d.WriteString(Log2_);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('PostLog', d);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.PostLog(DBName_, Log_: SystemString);
+procedure TDTC40_Log_DB_Client.PostLog(LogDB, Log_: SystemString);
 begin
-  PostLog(DBName_, Log_, '');
+  PostLog(LogDB, Log_, '');
 end;
 
-procedure TDTC40_Log_DB_Client.QueryLogC(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
+procedure TDTC40_Log_DB_Client.QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
 var
   tmp: TON_QueryLog;
   d: TDFE;
@@ -599,14 +600,14 @@ begin
   tmp.OnResultC := OnResult;
 
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.QueryLogM(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
+procedure TDTC40_Log_DB_Client.QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
 var
   tmp: TON_QueryLog;
   d: TDFE;
@@ -616,14 +617,14 @@ begin
   tmp.OnResultM := OnResult;
 
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.QueryLogP(DBName_: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
+procedure TDTC40_Log_DB_Client.QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
 var
   tmp: TON_QueryLog;
   d: TDFE;
@@ -633,31 +634,31 @@ begin
   tmp.OnResultP := OnResult;
 
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.QueryAndRemoveLog(DBName_: SystemString; bTime, eTime: TDateTime);
+procedure TDTC40_Log_DB_Client.QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime);
 var
   d: TDFE;
 begin
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('QueryAndRemoveLog', d);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.RemoveLog(DBName_: SystemString; arry_index: array of Integer);
+procedure TDTC40_Log_DB_Client.RemoveLog(LogDB: SystemString; arry_index: array of Integer);
 var
   d: TDFE;
 begin
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   d.WriteArrayInteger.WriteArray(arry_index);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('RemoveLog', d);
   disposeObject(d);
@@ -705,22 +706,22 @@ begin
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.CloseDB(DBName_: SystemString);
+procedure TDTC40_Log_DB_Client.CloseDB(LogDB: SystemString);
 var
   d: TDFE;
 begin
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('CloseDB', d);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.RemoveDB(DBName_: SystemString);
+procedure TDTC40_Log_DB_Client.RemoveDB(LogDB: SystemString);
 var
   d: TDFE;
 begin
   d := TDFE.Create;
-  d.WriteString(DBName_);
+  d.WriteString(LogDB);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('RemoveDB', d);
   disposeObject(d);
 end;

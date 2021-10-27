@@ -114,6 +114,8 @@ end;
 
 procedure TZDB2_DFE.Progress;
 begin
+  if FData = nil then
+      exit;
   if GetTimeTick - FAlive > FTimeOut then
       Save;
 end;

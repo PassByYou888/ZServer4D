@@ -117,6 +117,8 @@ end;
 
 procedure TZDB2_Json.Progress;
 begin
+  if FData = nil then
+      exit;
   if GetTimeTick - FAlive > FTimeOut then
       Save;
 end;

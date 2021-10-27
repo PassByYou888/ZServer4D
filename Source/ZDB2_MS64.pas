@@ -117,6 +117,8 @@ end;
 
 procedure TZDB2_MS64.Progress;
 begin
+  if FData = nil then
+      exit;
   if GetTimeTick - FAlive > FTimeOut then
       Save;
 end;

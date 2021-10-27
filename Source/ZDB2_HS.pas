@@ -122,6 +122,8 @@ end;
 
 procedure TZDB2_HashString.Progress;
 begin
+  if FData = nil then
+      exit;
   if GetTimeTick - FAlive > FTimeOut then
       Save;
 end;
