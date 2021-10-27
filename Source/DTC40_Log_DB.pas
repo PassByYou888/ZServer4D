@@ -41,6 +41,7 @@ type
       Name: U_String;
       LastActivtTime: TTimeTick;
       LastPostTime: TDateTime;
+      FileName: U_String;
     end;
 
     TLog_DB_Pool = {$IFDEF FPC}specialize {$ENDIF FPC}TGenericHashList<TDTC40_ZDB2_List_HashString>;
@@ -80,27 +81,45 @@ type
   end;
 
   TLogData__ = record
+    LogDB: SystemString;
     LogTime: TDateTime;
     Log1, Log2: SystemString;
     Index: Integer;
   end;
 
+  PLogData__ = ^TLogData__;
+
   TArrayLogData = array of TLogData__;
+
+  TLogData_List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PLogData__>;
+
+  TLogData_List = class(TLogData_List_Decl)
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Remove(p: PLogData__);
+    procedure Delete(Index: Integer);
+    procedure Clear;
+    procedure AddP(LData: TLogData__);
+    procedure AddArry(arry: TArrayLogData);
+    procedure SortByTime();
+  end;
 
   TDTC40_Log_DB_Client = class(TDTC40_Base_NoAuth_Client)
   public type
 
-    TON_QueryLogC = procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData);
-    TON_QueryLogM = procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData) of object;
+    TON_QueryLogC = procedure(Sender: TDTC40_Log_DB_Client; LogDB: SystemString; arry: TArrayLogData);
+    TON_QueryLogM = procedure(Sender: TDTC40_Log_DB_Client; LogDB: SystemString; arry: TArrayLogData) of object;
 {$IFDEF FPC}
-    TON_QueryLogP = procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData) is nested;
+    TON_QueryLogP = procedure(Sender: TDTC40_Log_DB_Client; LogDB: SystemString; arry: TArrayLogData) is nested;
 {$ELSE FPC}
-    TON_QueryLogP = reference to procedure(Sender: TDTC40_Log_DB_Client; var arry: TArrayLogData);
+    TON_QueryLogP = reference to procedure(Sender: TDTC40_Log_DB_Client; LogDB: SystemString; arry: TArrayLogData);
 {$ENDIF FPC}
 
     TON_QueryLog = class(TOnResultBridge)
     public
       Client: TDTC40_Log_DB_Client;
+      LogDB: SystemString;
       OnResultC: TON_QueryLogC;
       OnResultM: TON_QueryLogM;
       OnResultP: TON_QueryLogP;
@@ -131,10 +150,14 @@ type
 
     procedure PostLog(LogDB, Log1_, Log2_: SystemString); overload;
     procedure PostLog(LogDB, Log_: SystemString); overload;
-    procedure QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
-    procedure QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
-    procedure QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
-    procedure QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime);
+    procedure QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String; OnResult: TON_QueryLogC); overload;
+    procedure QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String; OnResult: TON_QueryLogM); overload;
+    procedure QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String; OnResult: TON_QueryLogP); overload;
+    procedure QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC); overload;
+    procedure QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM); overload;
+    procedure QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP); overload;
+    procedure QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String); overload;
+    procedure QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime); overload;
     procedure RemoveLog(LogDB: SystemString; arry_index: array of Integer);
     procedure GetLogDBC(OnResult: TON_GetLogDBC);
     procedure GetLogDBM(OnResult: TON_GetLogDBM);
@@ -147,7 +170,7 @@ function MakeNowDateStr(): U_String;
 
 implementation
 
-uses SysUtils, DateUtils;
+uses SysUtils, DateUtils, Math;
 
 function MakeNowDateStr(): U_String;
 var
@@ -215,6 +238,7 @@ procedure TDTC40_Log_DB_Service.cmd_QueryLog(Sender: TPeerIO; InData, OutData: T
 var
   LogDB: SystemString;
   bTime, eTime: TDateTime;
+  filter1, filter2: U_String;
   db_: TDTC40_ZDB2_List_HashString;
   i: Integer;
   d_: TDateTime;
@@ -224,6 +248,8 @@ begin
   LogDB := InData.R.ReadString;
   bTime := InData.R.ReadDouble;
   eTime := InData.R.ReadDouble;
+  filter1 := InData.R.ReadString;
+  filter2 := InData.R.ReadString;
 
   db_ := GetDB(LogDB);
   if db_ = nil then
@@ -238,10 +264,13 @@ begin
           begin
             n1 := db_[i].Data.GetDefaultValue('Log1', '');
             n2 := db_[i].Data.GetDefaultValue('Log2', '');
-            OutData.WriteDouble(d_);
-            OutData.WriteString(n1);
-            OutData.WriteString(n2);
-            OutData.WriteInteger(i);
+            if umlSearchMatch(filter1, n1) and umlSearchMatch(filter2, n2) then
+              begin
+                OutData.WriteDouble(d_);
+                OutData.WriteString(n1);
+                OutData.WriteString(n2);
+                OutData.WriteInteger(i);
+              end;
           end
       except
       end;
@@ -252,14 +281,18 @@ procedure TDTC40_Log_DB_Service.cmd_QueryAndRemoveLog(Sender: TPeerIO; InData: T
 var
   LogDB: SystemString;
   bTime, eTime: TDateTime;
+  filter1, filter2: U_String;
   db_: TDTC40_ZDB2_List_HashString;
   i: Integer;
   d_: TDateTime;
   dt: SystemString;
+  n1, n2: SystemString;
 begin
   LogDB := InData.R.ReadString;
   bTime := InData.R.ReadDouble;
   eTime := InData.R.ReadDouble;
+  filter1 := InData.R.ReadString;
+  filter2 := InData.R.ReadString;
 
   db_ := GetDB(LogDB);
   if db_ = nil then
@@ -273,7 +306,12 @@ begin
         d_ := umlStrToDateTime(db_[i].Data.GetDefaultValue('Time', dt));
         if DateTimeInRange(d_, bTime, eTime) then
           begin
-            db_.Delete(i, true);
+            n1 := db_[i].Data.GetDefaultValue('Log1', '');
+            n2 := db_[i].Data.GetDefaultValue('Log2', '');
+            if umlSearchMatch(filter1, n1) and umlSearchMatch(filter2, n2) then
+                db_.Delete(i, true)
+            else
+                inc(i);
           end
         else
             inc(i);
@@ -460,6 +498,7 @@ begin
         Result.Name := LogDB_;
         Result.LastActivtTime := GetTimeTick;
         Result.LastPostTime := umlNow;
+        Result.FileName := fn;
         DB_Pool.FastAdd(LogDB_, Result);
       except
           Result := nil;
@@ -481,8 +520,6 @@ begin
   hs_ := db_.NewData;
 
   t_ := umlNow;
-  while CompareDateTime(t_, db_.LastPostTime) <= 0 do
-      t_ := IncSecond(t_, 1);
   db_.LastPostTime := t_;
 
   hs_.Data['Time'] := umlDateTimeToStr(t_);
@@ -492,10 +529,109 @@ begin
       hs_.Data['Log2'] := Log2_;
 end;
 
+constructor TLogData_List.Create;
+begin
+  inherited Create;
+end;
+
+destructor TLogData_List.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+procedure TLogData_List.Remove(p: PLogData__);
+begin
+  Dispose(p);
+  inherited Remove(p);
+end;
+
+procedure TLogData_List.Delete(Index: Integer);
+begin
+  if (index >= 0) and (index < Count) then
+    begin
+      Dispose(Items[index]);
+      inherited Delete(index);
+    end;
+end;
+
+procedure TLogData_List.Clear;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+      Dispose(Items[i]);
+  inherited Clear;
+end;
+
+procedure TLogData_List.AddP(LData: TLogData__);
+var
+  p: PLogData__;
+begin
+  new(p);
+  p^ := LData;
+  p^.Index := inherited Add(p);
+end;
+
+procedure TLogData_List.AddArry(arry: TArrayLogData);
+var
+  i: Integer;
+  p: PLogData__;
+begin
+  for i := low(arry) to high(arry) do
+    begin
+      new(p);
+      p^ := arry[i];
+      p^.Index := inherited Add(p);
+    end;
+end;
+
+procedure TLogData_List.SortByTime;
+  function Compare_(L, R: PLogData__): ShortInt;
+  begin
+    Result := CompareDateTime(L^.LogTime, R^.LogTime);
+    if Result = 0 then
+        Result := CompareValue(L^.Index, R^.Index);
+  end;
+
+  procedure fastSort_(L, R: Integer);
+  var
+    i, j: Integer;
+    p: PLogData__;
+  begin
+    repeat
+      i := L;
+      j := R;
+      p := Items[(L + R) shr 1];
+      repeat
+        while Compare_(Items[i], p) < 0 do
+            inc(i);
+        while Compare_(Items[j], p) > 0 do
+            dec(j);
+        if i <= j then
+          begin
+            if i <> j then
+                Exchange(i, j);
+            inc(i);
+            dec(j);
+          end;
+      until i > j;
+      if L < j then
+          fastSort_(L, j);
+      L := i;
+    until i >= R;
+  end;
+
+begin
+  if Count > 1 then
+      fastSort_(0, Count - 1);
+end;
+
 constructor TDTC40_Log_DB_Client.TON_QueryLog.Create;
 begin
   inherited Create;
   Client := nil;
+  LogDB := '';
   OnResultC := nil;
   OnResultM := nil;
   OnResultP := nil;
@@ -510,6 +646,7 @@ begin
   i := 0;
   while Result_.R.NotEnd do
     begin
+      arry[i].LogDB := LogDB;
       arry[i].LogTime := Result_.R.ReadDouble;
       arry[i].Log1 := Result_.R.ReadString;
       arry[i].Log2 := Result_.R.ReadString;
@@ -521,13 +658,14 @@ begin
 
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, arry);
+        OnResultC(Client, LogDB, arry);
     if Assigned(OnResultM) then
-        OnResultM(Client, arry);
+        OnResultM(Client, LogDB, arry);
     if Assigned(OnResultP) then
-        OnResultP(Client, arry);
+        OnResultP(Client, LogDB, arry);
   except
   end;
+  SetLength(arry, 0);
   DelayFreeObject(1.0, self);
 end;
 
@@ -590,58 +728,82 @@ begin
   PostLog(LogDB, Log_, '');
 end;
 
-procedure TDTC40_Log_DB_Client.QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
+procedure TDTC40_Log_DB_Client.QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String; OnResult: TON_QueryLogC);
 var
   tmp: TON_QueryLog;
   d: TDFE;
 begin
   tmp := TON_QueryLog.Create;
   tmp.Client := self;
+  tmp.LogDB := LogDB;
   tmp.OnResultC := OnResult;
 
   d := TDFE.Create;
   d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
+  d.WriteString(filter1);
+  d.WriteString(filter2);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
+procedure TDTC40_Log_DB_Client.QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String; OnResult: TON_QueryLogM);
 var
   tmp: TON_QueryLog;
   d: TDFE;
 begin
   tmp := TON_QueryLog.Create;
   tmp.Client := self;
+  tmp.LogDB := LogDB;
   tmp.OnResultM := OnResult;
 
   d := TDFE.Create;
   d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
+  d.WriteString(filter1);
+  d.WriteString(filter2);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
+procedure TDTC40_Log_DB_Client.QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String; OnResult: TON_QueryLogP);
 var
   tmp: TON_QueryLog;
   d: TDFE;
 begin
   tmp := TON_QueryLog.Create;
   tmp.Client := self;
+  tmp.LogDB := LogDB;
   tmp.OnResultP := OnResult;
 
   d := TDFE.Create;
   d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
+  d.WriteString(filter1);
+  d.WriteString(filter2);
   DTNoAuthClient.SendTunnel.SendStreamCmdM('QueryLog', d, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamEvent);
   disposeObject(d);
 end;
 
-procedure TDTC40_Log_DB_Client.QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime);
+procedure TDTC40_Log_DB_Client.QueryLogC(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogC);
+begin
+  QueryLogC(LogDB, bTime, eTime, '', '', OnResult);
+end;
+
+procedure TDTC40_Log_DB_Client.QueryLogM(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogM);
+begin
+  QueryLogM(LogDB, bTime, eTime, '', '', OnResult);
+end;
+
+procedure TDTC40_Log_DB_Client.QueryLogP(LogDB: SystemString; bTime, eTime: TDateTime; OnResult: TON_QueryLogP);
+begin
+  QueryLogP(LogDB, bTime, eTime, '', '', OnResult);
+end;
+
+procedure TDTC40_Log_DB_Client.QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime; filter1, filter2: U_String);
 var
   d: TDFE;
 begin
@@ -649,8 +811,15 @@ begin
   d.WriteString(LogDB);
   d.WriteDouble(bTime);
   d.WriteDouble(eTime);
+  d.WriteString(filter1);
+  d.WriteString(filter2);
   DTNoAuthClient.SendTunnel.SendDirectStreamCmd('QueryAndRemoveLog', d);
   disposeObject(d);
+end;
+
+procedure TDTC40_Log_DB_Client.QueryAndRemoveLog(LogDB: SystemString; bTime, eTime: TDateTime);
+begin
+  QueryAndRemoveLog(LogDB, bTime, eTime, '', '');
 end;
 
 procedure TDTC40_Log_DB_Client.RemoveLog(LogDB: SystemString; arry_index: array of Integer);
