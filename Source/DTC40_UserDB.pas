@@ -1168,7 +1168,7 @@ begin
       tk := GetTimeTick;
       if index > Service.JsonDatabase.Count - 1 then
           index := Service.JsonDatabase.Count - 1;
-      while index > 0 do
+      while index >= 0 do
         begin
           json := Service.JsonDatabase[index];
           n := json.Data.ToJSONString(False);
