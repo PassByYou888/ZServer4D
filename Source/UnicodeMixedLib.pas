@@ -7105,9 +7105,11 @@ CacheThreadIsAcivted := True;
 
 Lib_DateTimeFormatSettings := FormatSettings;
 Lib_DateTimeFormatSettings.ShortDateFormat := 'yyyy-MM-dd';
+Lib_DateTimeFormatSettings.LongDateFormat := 'yyyy-MM-dd';
 Lib_DateTimeFormatSettings.DateSeparator := '-';
 Lib_DateTimeFormatSettings.TimeSeparator := ':';
-Lib_DateTimeFormatSettings.LongTimeFormat := 'hh:mm:ss:zzz';
+Lib_DateTimeFormatSettings.LongTimeFormat := {$IFDEF FPC}'hh:mm:ss:zz'{$ELSE FPC}'hh:mm:ss:zzz'{$ENDIF FPC};
+Lib_DateTimeFormatSettings.ShortTimeFormat := Lib_DateTimeFormatSettings.LongTimeFormat;
 
 finalization
 
