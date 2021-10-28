@@ -158,6 +158,8 @@ type
 
     class function RandomString(rnd: TRandom; L_: Integer): TUPascalString; overload; static;
     class function RandomString(L_: Integer): TUPascalString; overload; static;
+    class function RandomString(rnd: TRandom; L_: Integer; Chars_: TUOrdChars): TUPascalString; overload; static;
+    class function RandomString(L_: Integer; Chars_: TUOrdChars): TUPascalString; overload; static;
 
     { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
     function SmithWaterman(const p: PUPascalString): Double; overload;
@@ -2177,6 +2179,39 @@ begin
   rnd := TMT19937Random.Create;
   for i := 1 to L_ do
       Result[i] := USystemChar(rnd.Rand32($7E - $20) + $20);
+  DisposeObject(rnd);
+end;
+
+class function TUPascalString.RandomString(rnd: TRandom; L_: Integer; Chars_: TUOrdChars): TUPascalString;
+var
+  i: Integer;
+  tmp: USystemChar;
+begin
+  Result.L := L_;
+  for i := 1 to L_ do
+    begin
+      repeat
+          tmp := USystemChar(rnd.Rand32($7E - $20) + $20);
+      until UCharIn(tmp, Chars_);
+      Result[i] := tmp;
+    end;
+end;
+
+class function TUPascalString.RandomString(L_: Integer; Chars_: TUOrdChars): TUPascalString;
+var
+  i: Integer;
+  rnd: TMT19937Random;
+  tmp: USystemChar;
+begin
+  Result.L := L_;
+  rnd := TMT19937Random.Create;
+  for i := 1 to L_ do
+    begin
+      repeat
+          tmp := USystemChar(rnd.Rand32($7E - $20) + $20);
+      until UCharIn(tmp, Chars_);
+      Result[i] := tmp;
+    end;
   DisposeObject(rnd);
 end;
 
