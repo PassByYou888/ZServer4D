@@ -17,7 +17,7 @@
 { ****************************************************************************** }
 unit CommunicationTest;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 
