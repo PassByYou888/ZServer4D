@@ -44,8 +44,8 @@ type
 
     constructor Create();
     destructor Destroy; override;
-    procedure SaveToStream(stream: TMemoryStream64);
-    procedure LoadFromStream(stream: TMemoryStream64);
+    procedure SaveToStream(stream: TMS64);
+    procedure LoadFromStream(stream: TMS64);
   end;
 
   TZDB2_FIL_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TZDB2_FI>;
@@ -57,8 +57,8 @@ type
 
   TZDB2_FE_IO = class(TIOData)
   public
-    Source: TMemoryStream64;
-    Dest: TMemoryStream64;
+    Source: TMS64;
+    Dest: TMS64;
     CM: TSelectCompressionMethod;
     constructor Create; override;
     destructor Destroy; override;
@@ -97,8 +97,8 @@ type
 
   TZDB2_FD_IO = class(TIOData)
   public
-    Source: TMemoryStream64;
-    Dest: TMemoryStream64;
+    Source: TMS64;
+    Dest: TMS64;
     constructor Create; override;
     destructor Destroy; override;
     procedure Process; override;
@@ -159,7 +159,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TZDB2_FI.SaveToStream(stream: TMemoryStream64);
+procedure TZDB2_FI.SaveToStream(stream: TMS64);
 var
   d: TDFE;
   i: Integer;
@@ -178,7 +178,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TZDB2_FI.LoadFromStream(stream: TMemoryStream64);
+procedure TZDB2_FI.LoadFromStream(stream: TMS64);
 var
   d: TDFE;
   i: Integer;
@@ -209,8 +209,8 @@ end;
 constructor TZDB2_FE_IO.Create;
 begin
   inherited Create;
-  Source := TMemoryStream64.Create;
-  Dest := TMemoryStream64.Create;
+  Source := TMS64.Create;
+  Dest := TMS64.Create;
   CM := TSelectCompressionMethod.scmZLIB;
 end;
 
@@ -464,20 +464,20 @@ function TZDB2_File_Encoder.Flush: Int64;
 var
   i: Integer;
   d: TDFE;
-  m64: TMemoryStream64;
+  m64: TMS64;
   FileInfo_ID: Integer;
 begin
   Result := 0;
   d := TDFE.Create;
   for i := 0 to FEncoderFiles.Count - 1 do
     begin
-      m64 := TMemoryStream64.Create;
+      m64 := TMS64.Create;
       FEncoderFiles[i].SaveToStream(m64);
       inc(Result, FEncoderFiles[i].Size);
       d.WriteStream(m64);
       DisposeObject(m64);
     end;
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   d.EncodeAsZLib(m64, False);
   if not FPlace.WriteStream(m64, 1024, FileInfo_ID) then
       RaiseInfo('flush error.');
@@ -491,17 +491,17 @@ end;
 
 class procedure TZDB2_File_Encoder.Test;
 var
-  zdb_stream: TMemoryStream64;
+  zdb_stream: TMS64;
   en: TZDB2_File_Encoder;
-  tmp: TMemoryStream64;
+  tmp: TMS64;
   i: Integer;
 begin
-  zdb_stream := TMemoryStream64.CustomCreate(1024 * 1024 * 8);
+  zdb_stream := TMS64.CustomCreate(1024 * 1024 * 8);
   en := TZDB2_File_Encoder.Create(zdb_stream, 8);
 
   for i := 0 to 20 do
     begin
-      tmp := TMemoryStream64.Create;
+      tmp := TMS64.Create;
       tmp.Size := umlRandomRange(16 * 1024 * 1024, 64 * 1024 * 1024);
       MT19937Rand32(MaxInt, tmp.Memory, tmp.Size div 4);
       en.EncodeFromStream(tmp, 512 * 1024, TSelectCompressionMethod.scmZLIB, 8192);
@@ -516,8 +516,8 @@ end;
 constructor TZDB2_FD_IO.Create;
 begin
   inherited Create;
-  Source := TMemoryStream64.Create;
-  Dest := TMemoryStream64.Create;
+  Source := TMS64.Create;
+  Dest := TMS64.Create;
 end;
 
 destructor TZDB2_FD_IO.Destroy;
@@ -598,7 +598,7 @@ var
   mem: TZDB2_Mem;
   d: TDFE;
   i: Integer;
-  m64: TMemoryStream64;
+  m64: TMS64;
   fi: TZDB2_FI;
 begin
   inherited Create;
@@ -624,7 +624,7 @@ begin
       d.LoadFromStream(mem.Stream64);
       while d.Reader.NotEnd do
         begin
-          m64 := TMemoryStream64.Create;
+          m64 := TMS64.Create;
           d.Reader.ReadStream(m64);
           m64.Position := 0;
           fi := TZDB2_FI.Create;
@@ -807,20 +807,20 @@ end;
 class procedure TZDB2_File_Decoder.Test;
 var
   Cipher_: TZDB2_Cipher;
-  zdb_stream: TMemoryStream64;
+  zdb_stream: TMS64;
   en: TZDB2_File_Encoder;
   de: TZDB2_File_Decoder;
-  tmp: TMemoryStream64;
+  tmp: TMS64;
   i: Integer;
   fi: TZDB2_FI;
 begin
   Cipher_ := TZDB2_Cipher.Create(TCipherSecurity.csRC6, 'hello world.', 1, False, True);
-  zdb_stream := TMemoryStream64.CustomCreate(1024 * 1024 * 8);
+  zdb_stream := TMS64.CustomCreate(1024 * 1024 * 8);
 
   en := TZDB2_File_Encoder.Create(Cipher_, zdb_stream, 4);
   for i := 0 to 10 do
     begin
-      tmp := TMemoryStream64.Create;
+      tmp := TMS64.Create;
       tmp.Size := umlRandomRange(16 * 1024, 64 * 1024);
       MT19937Rand32(MaxInt, tmp.Memory, tmp.Size div 4);
       fi := en.EncodeFromStream(tmp, 8192, TSelectCompressionMethod.scmZLIB_Max, 1024);
@@ -837,7 +837,7 @@ begin
   de := TZDB2_File_Decoder.Create(Cipher_, zdb_stream, 4);
   for i := 0 to de.Files.Count - 1 do
     begin
-      tmp := TMemoryStream64.Create;
+      tmp := TMS64.Create;
       fi := de.Files[i];
       if de.DecodeToStream(fi, tmp) then
         begin

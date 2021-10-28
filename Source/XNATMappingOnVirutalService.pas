@@ -34,7 +34,7 @@ type
   protected
     Remote_ID: Cardinal;
     Remote_IP: SystemString;
-    SendingStream: TMemoryStream64;
+    SendingStream: TMS64;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -76,13 +76,13 @@ type
     procedure SendTunnel_ConnectResult(const cState: Boolean);
     procedure RecvTunnel_ConnectResult(const cState: Boolean);
 
-    procedure RequestListen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+    procedure RequestListen_Result(Sender: TPeerIO; Result_: TDFE);
     procedure delay_RequestListen(Sender: TNPostExecute);
 
     procedure Open;
 
-    procedure cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
-    procedure cmd_disconnect_request(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure cmd_connect_request(Sender: TPeerIO; InData: TDFE);
+    procedure cmd_disconnect_request(Sender: TPeerIO; InData: TDFE);
     procedure cmd_data(Sender: TPeerIO; InData: PByte; DataSize: nativeInt);
   public
     constructor Create; override;
@@ -95,7 +95,7 @@ type
     procedure Progress; override;
     procedure TriggerQueueData(v: PQueueData); override;
     function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDFE; Timeout: TTimeTick); override;
   end;
 
   TPhysicsEngine_Special = class(TPeerIOUserSpecial)
@@ -104,7 +104,7 @@ type
     procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
     procedure PhysicsVMBuildAuthToken_Result;
     procedure PhysicsOpenVM_Result(const cState: Boolean);
-    procedure IPV6Listen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+    procedure IPV6Listen_Result(Sender: TPeerIO; Result_: TDFE);
   public
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
@@ -169,7 +169,7 @@ implementation
 procedure TXNAT_MappingOnVirutalServer_IO.CreateAfter;
 begin
   inherited CreateAfter;
-  SendingStream := TMemoryStream64.Create;
+  SendingStream := TMS64.Create;
   SendingStream.Delta := 2048;
   Remote_ID := 0;
   Remote_IP := '';
@@ -193,9 +193,9 @@ end;
 
 procedure TXNAT_MappingOnVirutalServer_IO.Disconnect;
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteCardinal(ID);
   de.WriteCardinal(Remote_ID);
   OwnerVS.SendTunnel.SendDirectStreamCmd(C_Disconnect_reponse, de);
@@ -291,7 +291,7 @@ begin
       DoStatus('error: [%s] Receive Tunnel connect failed!', [Mapping.Text]);
 end;
 
-procedure TXNAT_MappingOnVirutalServer.RequestListen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TXNAT_MappingOnVirutalServer.RequestListen_Result(Sender: TPeerIO; Result_: TDFE);
 begin
   if Result_.Reader.ReadBool then
     begin
@@ -304,9 +304,9 @@ end;
 
 procedure TXNAT_MappingOnVirutalServer.delay_RequestListen(Sender: TNPostExecute);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteCardinal(SendTunnel.RemoteID);
   de.WriteCardinal(RecvTunnel.RemoteID);
   SendTunnel.SendStreamCmdM(C_RequestListen, de, {$IFDEF FPC}@{$ENDIF FPC}RequestListen_Result);
@@ -378,18 +378,18 @@ begin
       SendTunnel_ConnectResult(True);
 end;
 
-procedure TXNAT_MappingOnVirutalServer.cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXNAT_MappingOnVirutalServer.cmd_connect_request(Sender: TPeerIO; InData: TDFE);
 var
   Remote_ID: Cardinal;
   x_io: TXNAT_MappingOnVirutalServer_IO;
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   Remote_ID := InData.Reader.ReadCardinal;
   x_io := TXNAT_MappingOnVirutalServer_IO.Create(Self, XNAT);
   x_io.Remote_ID := Remote_ID;
   x_io.Remote_IP := InData.Reader.ReadString;
 
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteBool(True);
   de.WriteCardinal(x_io.ID);
   de.WriteCardinal(x_io.Remote_ID);
@@ -397,7 +397,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TXNAT_MappingOnVirutalServer.cmd_disconnect_request(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXNAT_MappingOnVirutalServer.cmd_disconnect_request(Sender: TPeerIO; InData: TDFE);
 var
   local_id, Remote_ID: Cardinal;
   p_io: TPeerIO;
@@ -450,7 +450,7 @@ end;
 
 procedure TXNAT_MappingOnVirutalServer.UpdateWorkload(force: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if SendTunnel = nil then
       exit;
@@ -462,7 +462,7 @@ begin
     if (Count = LastUpdateWorkload) or (GetTimeTick() - LastUpdateTime < 1000) then
         exit;
 
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteCardinal(MaxWorkload);
   de.WriteCardinal(Count);
   SendTunnel.SendDirectStreamCmd(C_Workload, de);
@@ -514,7 +514,7 @@ begin
   RaiseInfo('WaitSend no Suppport');
 end;
 
-procedure TXNAT_MappingOnVirutalServer.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDataFrameEngine; Timeout: TTimeTick);
+procedure TXNAT_MappingOnVirutalServer.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, Result_: TDFE; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;
@@ -562,7 +562,7 @@ begin
       XNAT.WaitAsyncConnecting := False;
 end;
 
-procedure TPhysicsEngine_Special.IPV6Listen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TPhysicsEngine_Special.IPV6Listen_Result(Sender: TPeerIO; Result_: TDFE);
 var
   Mapping: TPascalString;
   Remote_ListenAddr, Remote_ListenPort: TPascalString;

@@ -43,7 +43,7 @@ type
     procedure Write(eng: TObjectDataManager; var hnd: TItemHandle);
   end;
 
-  TBuildStreamCall = procedure(sourstream, deststream: TMemoryStream64);
+  TBuildStreamCall = procedure(sourstream, deststream: TMS64);
 
 function CheckIndexPackage(sour: TObjectDataManager; dataOutputPath: U_String): Boolean; overload;
 function CheckIndexPackage(sourDB, dataOutputPath: U_String): Boolean; overload;
@@ -52,8 +52,8 @@ procedure BuildIndexPackage(sour, dest: TObjectDataManager; OnBuildStream: TBuil
 procedure BuildIndexPackage(sour, dest: TObjectDataManager; dataOutputPath: U_String); overload;
 procedure BuildIndexPackage(sourDB, destDB, dataOutputPath: U_String); overload;
 
-procedure ParallelCompressStream_Call(sourstream, deststream: TMemoryStream64);
-procedure ParallelDecompressStream_Call(sourstream, deststream: TMemoryStream64);
+procedure ParallelCompressStream_Call(sourstream, deststream: TMS64);
+procedure ParallelDecompressStream_Call(sourstream, deststream: TMS64);
 
 implementation
 
@@ -97,10 +97,10 @@ end;
 
 function TFileIndexInfo.Read(eng: TObjectDataManager; var hnd: TItemHandle): Boolean;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   Result := False;
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   eng.ItemReadToStream(hnd, m64);
   m64.Position := 0;
   if m64.ReadUInt16() = $FFFF then
@@ -120,9 +120,9 @@ end;
 
 procedure TFileIndexInfo.Write(eng: TObjectDataManager; var hnd: TItemHandle);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.WriteUInt16($FFFF);
   m64.WriteString(Name);
   m64.WriteString(Description);
@@ -143,7 +143,7 @@ var
   info: TFileIndexInfo;
   fn: U_String;
   error_: Integer;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   error_ := 0;
   if sour.RecursionSearchFirst('/', '*', srHnd) then
@@ -163,7 +163,7 @@ begin
               end
             else
               begin
-                m64 := TMemoryStream64.Create;
+                m64 := TMS64.Create;
                 m64.LoadFromFile(fn);
                 if not umlMD5Compare(umlStreamMD5(m64), info.Encrypt_MD5) then
                   begin
@@ -192,8 +192,8 @@ var
   srHnd: TItemRecursionSearch;
   ph: U_String;
   itmHnd: TItemHandle;
-  sourstream: TMemoryStream64;
-  deststream: TMemoryStream64;
+  sourstream: TMS64;
+  deststream: TMS64;
   info: TFileIndexInfo;
   fn: U_String;
 begin
@@ -210,7 +210,7 @@ begin
           end
         else if srHnd.ReturnHeader.ID = DB_Header_Item_ID then
           begin
-            sourstream := TMemoryStream64.Create;
+            sourstream := TMS64.Create;
 
             sour.ItemFastOpen(srHnd.ReturnHeader.CurrentHeader, itmHnd);
             sour.ItemReadToStream(itmHnd, sourstream);
@@ -224,7 +224,7 @@ begin
             sour.ItemClose(itmHnd);
 
             fn := umlCombineFileName(dataOutputPath, umlMD52String(info.Decrypt_MD5));
-            deststream := TMemoryStream64.Create;
+            deststream := TMS64.Create;
             if not umlFileExists(fn) then
               begin
                 OnBuildStream(sourstream, deststream);
@@ -266,12 +266,12 @@ begin
   disposeObject(dest);
 end;
 
-procedure ParallelCompressStream_Call(sourstream, deststream: TMemoryStream64);
+procedure ParallelCompressStream_Call(sourstream, deststream: TMS64);
 begin
   ParallelCompressMemory(sourstream, deststream);
 end;
 
-procedure ParallelDecompressStream_Call(sourstream, deststream: TMemoryStream64);
+procedure ParallelDecompressStream_Call(sourstream, deststream: TMS64);
 begin
   ParallelDecompressStream(sourstream, deststream);
 end;

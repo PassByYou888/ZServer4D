@@ -649,7 +649,7 @@ function TNumberModulePool.GetExpOpRunTime: TOpCustomRunTime;
 begin
   if FExpOpRunTime = nil then
     begin
-      FExpOpRunTime := TOpCustomRunTime.CustomCreate(1024);
+      FExpOpRunTime := TOpCustomRunTime.CustomCreate(64);
       FExpOpRunTime.RegObjectOpM('Set', '', {$IFDEF FPC}@{$ENDIF FPC}OP_DoNewNM);
       FExpOpRunTime.RegObjectOpM('Get', '', {$IFDEF FPC}@{$ENDIF FPC}OP_DoGetNM);
       FList.ProgressM({$IFDEF FPC}@{$ENDIF FPC}DoRebuildOpRunTime_Progress);

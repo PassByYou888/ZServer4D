@@ -38,7 +38,7 @@ type
   protected
     LastPeerIP: SystemString;
     SendBuffQueue: TCoreClassListForObj;
-    CurrentBuff: TMemoryStream64;
+    CurrentBuff: TMS64;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -86,7 +86,7 @@ begin
   inherited CreateAfter;
   LastPeerIP := '';
   SendBuffQueue := TCoreClassListForObj.Create;
-  CurrentBuff := TMemoryStream64.Create;
+  CurrentBuff := TMS64.Create;
 end;
 
 destructor TSynapseClient_PeerIO.Destroy;
@@ -140,7 +140,7 @@ begin
   if CurrentBuff.Size > 0 then
     begin
       SendBuffQueue.Add(CurrentBuff);
-      CurrentBuff := TMemoryStream64.Create;
+      CurrentBuff := TMS64.Create;
     end;
 end;
 
@@ -230,7 +230,7 @@ const
   memSiz: Integer = 64 * 1024;
 label go_recv;
 var
-  CurrentSendBuff: TMemoryStream64;
+  CurrentSendBuff: TMS64;
   buff: Pointer;
   siz: Integer;
   ReadTimeout_: TTimeTick;
@@ -242,7 +242,7 @@ begin
 
   while (InternalClient.SendBuffQueue.Count > 0) do
     begin
-      CurrentSendBuff := TMemoryStream64(InternalClient.SendBuffQueue[0]);
+      CurrentSendBuff := TMS64(InternalClient.SendBuffQueue[0]);
       InternalClient.SendBuffQueue.Delete(0);
 
       try

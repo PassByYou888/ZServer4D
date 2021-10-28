@@ -37,7 +37,7 @@ type
   TICSServer_PeerIO = class(TPeerIO)
   public
     Context: TCustomICS;
-    SendBuffer: TMemoryStream64;
+    SendBuffer: TMS64;
 
     procedure ClientDataAvailable(Sender: TObject; Error: Word);
     procedure ClientSessionClosed(Sender: TObject; Error: Word);
@@ -71,7 +71,7 @@ type
     procedure Progress; override;
 
     function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick); override;
   end;
 
 implementation
@@ -107,7 +107,7 @@ end;
 procedure TICSServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
-  SendBuffer := TMemoryStream64.CustomCreate(8192);
+  SendBuffer := TMS64.CustomCreate(8192);
   Context := TCustomICS.Create(nil);
   Context.OnDataAvailable := ClientDataAvailable;
   Context.OnSessionClosed := ClientSessionClosed;
@@ -267,7 +267,7 @@ begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;
 
-procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFramework_Server_ICS.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport ICSServer');
 end;

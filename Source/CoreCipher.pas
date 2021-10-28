@@ -4813,9 +4813,9 @@ end;
 
 function GenerateMemoryHash(hssArry: THashSecuritys; sour: Pointer; Size: NativeInt): TPascalString;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   GenerateSequHash(hssArry, sour, Size, m64);
   umlEncodeStreamBASE64(m64, Result);
   DisposeObject(m64);
@@ -4825,7 +4825,7 @@ end;
 function CompareMemoryHash(sour: Pointer; Size: NativeInt; const hashBuff: TPascalString): Boolean;
 var
   n: TPascalString;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   Result := False;
   n := hashBuff.TrimChar(#32);
@@ -4833,7 +4833,7 @@ begin
     begin
       n.DeleteFirst;
       n.DeleteLast;
-      m64 := TMemoryStream64.Create;
+      m64 := TMS64.Create;
       umlDecodeStreamBASE64(n, m64);
       Result := CompareSequHash(m64, sour, Size);
       DisposeObject(m64);
@@ -4843,10 +4843,10 @@ end;
 function GeneratePasswordHash(hssArry: THashSecuritys; const passwd: TPascalString): TPascalString;
 var
   buff: TBytes;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   buff := passwd.Bytes;
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   GenerateSequHash(hssArry, @buff[0], length(buff), m64);
   umlEncodeStreamBASE64(m64, Result);
   DisposeObject(m64);
@@ -4858,7 +4858,7 @@ function ComparePasswordHash(const passwd, hashBuff: TPascalString): Boolean;
 var
   n: TPascalString;
   buff: TBytes;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   Result := False;
   n := hashBuff.TrimChar(#32);
@@ -4867,7 +4867,7 @@ begin
       n.DeleteFirst;
       n.DeleteLast;
       buff := passwd.Bytes;
-      m64 := TMemoryStream64.Create;
+      m64 := TMS64.Create;
       umlDecodeStreamBASE64(n, m64);
       Result := CompareSequHash(m64, @buff[0], length(buff));
       DisposeObject(m64);
@@ -4990,12 +4990,12 @@ type
 
 procedure QuantumEncrypt(input, output: TCoreClassStream; SecurityLevel: Integer; key: TCipherKeyBuffer);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   head: TQuantumEncryptHead;
   i: Integer;
   hh: TSHA3_512_Digest;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   input.Position := 0;
   m64.CopyFrom(input, input.Size);
 
@@ -5019,13 +5019,13 @@ end;
 function QuantumDecrypt(input, output: TCoreClassStream; key: TCipherKeyBuffer): Boolean;
 var
   head: TQuantumEncryptHead;
-  m64: TMemoryStream64;
+  m64: TMS64;
   i: Integer;
   hh, h: TSHA3_512_Digest;
 begin
   Result := False;
   input.read(head, SizeOf(head));
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   if m64.CopyFrom(input, head.Size) <> head.Size then
     begin
       DisposeObject(m64);
@@ -10145,11 +10145,11 @@ end;
 
 procedure TCipher_Base.Test;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   md5_1, md5_2: TMD5;
   i: Integer;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.Size := 999;
   MT19937Rand32(MaxInt, m64.Memory, m64.Size div 4);
 
@@ -10980,7 +10980,7 @@ end;
 procedure TestCoreCipher;
 var
   Buffer: TBytes;
-  sour, Dest: TMemoryStream64;
+  sour, Dest: TMS64;
   k: TCipherKeyBuffer;
   cs: TCipherSecurity;
   sourHash: TSHA1Digest;
@@ -10997,7 +10997,7 @@ var
 
   s: TPascalString;
 begin
-  sour := TMemoryStream64.Create;
+  sour := TMS64.Create;
   sour.Size := Int64(10 * 1024 * 1024 + 9);
 
   FillPtrByte(sour.Memory, sour.Size, $7F);
@@ -11073,8 +11073,8 @@ begin
   SetLength(Buffer, 1024 * 1024 * 1 + 99);
   FillPtrByte(@Buffer[0], length(Buffer), $7F);
 
-  sour := TMemoryStream64.Create;
-  Dest := TMemoryStream64.Create;
+  sour := TMS64.Create;
+  Dest := TMS64.Create;
   sour.write(Buffer[0], high(Buffer));
 
   Dest.Clear;

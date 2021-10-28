@@ -8,7 +8,8 @@ uses
   FMX.StdCtrls, FMX.Edit, FMX.Layouts, FMX.Controls.Presentation,
   FMX.ScrollBox, FMX.Memo,
 
-  CoreClasses, PascalStrings, UnicodeMixedLib, DoStatusIO, TextParsing, zExpression, OpCode;
+  CoreClasses, PascalStrings, UnicodeMixedLib, DoStatusIO, TextParsing, zExpression, OpCode,
+  FMX.Memo.Types;
 
 type
   TzExpressionSupportMainForm = class(TForm)
@@ -53,7 +54,7 @@ procedure TzExpressionSupportMainForm.FormCreate(Sender: TObject);
 begin
   AddDoStatusHook(Self, DoStatusMethod);
 
-  DefaultOpRT.RegOpC('a', a);
+  SystemOpRunTime.RegOpC('a', a);
 end;
 
 procedure TzExpressionSupportMainForm.DoStatusMethod(AText: SystemString; const ID: Integer);

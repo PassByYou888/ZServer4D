@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * support > 2G TMemoryStream64, writen by QQ 600585@qq.com                   * }
+{ * support > 2G TMS64, writen by QQ 600585@qq.com                   * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
 { * https://github.com/PassByYou888/ZServer4D                                  * }
@@ -41,7 +41,7 @@ uses
 type
   TMem64 = class;
 
-  TMemoryStream64 = class(TCoreClassStream)
+  TMS64 = class(TCoreClassStream)
   private
     FDelta: NativeInt;
     FMemory: Pointer;
@@ -61,19 +61,19 @@ type
     destructor Destroy; override;
 
     function Mem64: TMem64;
-    function Clone: TMemoryStream64;
+    function Clone: TMS64;
     procedure DiscardMemory;
     procedure Clear;
-    procedure NewParam(source: TMemoryStream64); overload;
+    procedure NewParam(source: TMS64); overload;
     procedure NewParam(source: TMem64); overload;
-    procedure SwapInstance(source: TMemoryStream64); overload;
+    procedure SwapInstance(source: TMS64); overload;
     procedure SwapInstance(source: TMem64); overload;
     function ToBytes: TBytes;
 
     property Delta: NativeInt read FDelta write FDelta;
     procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
     procedure Mapping(buffPtr: Pointer; const BuffSize: Int64); overload;
-    procedure Mapping(m64: TMemoryStream64); overload;
+    procedure Mapping(m64: TMS64); overload;
     procedure Mapping(m64: TMem64); overload;
     function PositionAsPtr(const Position_: Int64): Pointer; overload;
     function PositionAsPtr: Pointer; overload;
@@ -141,10 +141,10 @@ type
     function ReadMD5: TMD5;
   end;
 
-  TStream64 = TMemoryStream64;
-  TMS64 = TMemoryStream64;
+  TStream64 = TMS64;
+  TMemoryStream64 = TMS64;
 
-  TMemoryStream64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMemoryStream64>;
+  TMemoryStream64List_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TMS64>;
 
   TMemoryStream64List = class(TMemoryStream64List_Decl)
   public
@@ -163,7 +163,7 @@ type
     destructor Destroy; override;
     procedure Lock;
     procedure UnLock;
-    procedure Remove(obj: TMemoryStream64);
+    procedure Remove(obj: TMS64);
     procedure Delete(index: Integer);
     procedure Clear;
     procedure Clean;
@@ -178,7 +178,7 @@ type
     procedure TriggerWrite64(Count: Int64);
   end;
 
-  TMemoryStream64OfWriteTrigger = class(TMemoryStream64)
+  TMemoryStream64OfWriteTrigger = class(TMS64)
   public
     Trigger: IMemoryStream64WriteTrigger;
     constructor Create(ATrigger: IMemoryStream64WriteTrigger);
@@ -189,7 +189,7 @@ type
     procedure TriggerRead64(Count: Int64);
   end;
 
-  TMemoryStream64OfReadTrigger = class(TMemoryStream64)
+  TMemoryStream64OfReadTrigger = class(TMS64)
   public
     Trigger: IMemoryStream64ReadTrigger;
     constructor Create(ATrigger: IMemoryStream64ReadTrigger);
@@ -201,7 +201,7 @@ type
     procedure TriggerRead64(Count: Int64);
   end;
 
-  TMemoryStream64OfReadWriteTrigger = class(TMemoryStream64)
+  TMemoryStream64OfReadWriteTrigger = class(TMS64)
   public
     Trigger: IMemoryStream64ReadWriteTrigger;
     constructor Create(ATrigger: IMemoryStream64ReadWriteTrigger);
@@ -217,7 +217,7 @@ type
     FPosition: Int64;
     FCapacity: Int64;
     FProtectedMode: Boolean;
-    FStream64: TMemoryStream64;
+    FStream64: TMS64;
   protected
     procedure SetPointer(buffPtr: Pointer; const BuffSize: Int64);
     procedure SetCapacity(NewCapacity: Int64);
@@ -235,13 +235,13 @@ type
     constructor CustomCreate(const customDelta: NativeInt);
     destructor Destroy; override;
 
-    function Stream64: TMemoryStream64;
+    function Stream64: TMS64;
     function Clone: TMem64;
     procedure DiscardMemory;
     procedure Clear;
-    procedure NewParam(source: TMemoryStream64); overload;
+    procedure NewParam(source: TMS64); overload;
     procedure NewParam(source: TMem64); overload;
-    procedure SwapInstance(source: TMemoryStream64); overload;
+    procedure SwapInstance(source: TMS64); overload;
     procedure SwapInstance(source: TMem64); overload;
     function ToBytes: TBytes;
 
@@ -252,7 +252,7 @@ type
 
     procedure SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
     procedure Mapping(buffPtr: Pointer; const BuffSize: Int64); overload;
-    procedure Mapping(m64: TMemoryStream64); overload;
+    procedure Mapping(m64: TMS64); overload;
     procedure Mapping(m64: TMem64); overload;
     function PositionAsPtr(const Position_: Int64): Pointer; overload;
     function PositionAsPtr: Pointer; overload;
@@ -353,9 +353,9 @@ function DecompressFile(sour, dest: SystemString): Boolean;
 function SelectCompressStream(const scm: TSelectCompressionMethod; const sour, dest: TCoreClassStream): Boolean;
 function SelectDecompressStream(const sour, dest: TCoreClassStream): Boolean; overload;
 function SelectDecompressStream(const sour, dest: TCoreClassStream; var scm: TSelectCompressionMethod): Boolean; overload;
-procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
-procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
-procedure ParallelCompressMemory(const sour: TMemoryStream64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMS64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMS64; const dest: TCoreClassStream); overload;
+procedure ParallelCompressMemory(const sour: TMS64; const dest: TCoreClassStream); overload;
 procedure ParallelDecompressStream(const sour_, dest_: TCoreClassStream); overload;
 procedure ParallelCompressFile(const sour, dest: SystemString);
 procedure ParallelDecompressFile(const sour, dest: SystemString);
@@ -393,20 +393,20 @@ function StreamReadCurrency(const stream: TCoreClassStream): Currency;
 function StreamReadString(const stream: TCoreClassStream): TPascalString;
 function StreamReadMD5(const stream: TCoreClassStream): TMD5;
 
-procedure DoStatus(const v: TMemoryStream64); overload;
+procedure DoStatus(const v: TMS64); overload;
 procedure DoStatus(const v: TMem64); overload;
 
 implementation
 
 uses DoStatusIO, CoreCompress;
 
-procedure TMemoryStream64.SetPointer(buffPtr: Pointer; const BuffSize: NativeUInt);
+procedure TMS64.SetPointer(buffPtr: Pointer; const BuffSize: NativeUInt);
 begin
   FMemory := buffPtr;
   FSize := BuffSize;
 end;
 
-procedure TMemoryStream64.SetCapacity(NewCapacity: NativeUInt);
+procedure TMS64.SetCapacity(NewCapacity: NativeUInt);
 begin
   if FProtectedMode then
       Exit;
@@ -414,7 +414,7 @@ begin
   FCapacity := NewCapacity;
 end;
 
-function TMemoryStream64.Realloc(var NewCapacity: NativeUInt): Pointer;
+function TMS64.Realloc(var NewCapacity: NativeUInt): Pointer;
 begin
   if FProtectedMode then
       Exit(nil);
@@ -441,12 +441,12 @@ begin
     end;
 end;
 
-constructor TMemoryStream64.Create;
+constructor TMS64.Create;
 begin
   CustomCreate(256);
 end;
 
-constructor TMemoryStream64.CustomCreate(const customDelta: NativeInt);
+constructor TMS64.CustomCreate(const customDelta: NativeInt);
 begin
   inherited Create;
   FDelta := customDelta;
@@ -458,7 +458,7 @@ begin
   FMem64 := nil;
 end;
 
-destructor TMemoryStream64.Destroy;
+destructor TMS64.Destroy;
 begin
   if FMem64 <> nil then
       DisposeObject(FMem64);
@@ -466,7 +466,7 @@ begin
   inherited Destroy;
 end;
 
-function TMemoryStream64.Mem64: TMem64;
+function TMS64.Mem64: TMem64;
 begin
   if FMem64 = nil then
       FMem64 := TMem64.Create;
@@ -474,15 +474,15 @@ begin
   Result := FMem64;
 end;
 
-function TMemoryStream64.Clone: TMemoryStream64;
+function TMS64.Clone: TMS64;
 begin
-  Result := TMemoryStream64.CustomCreate(FDelta);
+  Result := TMS64.CustomCreate(FDelta);
   Result.Size := Size;
   CopyPtr(Memory, Result.Memory, Size);
   Result.Position := Position;
 end;
 
-procedure TMemoryStream64.DiscardMemory;
+procedure TMS64.DiscardMemory;
 begin
   if FProtectedMode then
       Exit;
@@ -492,7 +492,7 @@ begin
   FCapacity := 0;
 end;
 
-procedure TMemoryStream64.Clear;
+procedure TMS64.Clear;
 begin
   if FProtectedMode then
       Exit;
@@ -501,7 +501,7 @@ begin
   FPosition := 0;
 end;
 
-procedure TMemoryStream64.NewParam(source: TMemoryStream64);
+procedure TMS64.NewParam(source: TMS64);
 begin
   Clear;
   FDelta := source.FDelta;
@@ -512,7 +512,7 @@ begin
   FProtectedMode := source.FProtectedMode;
 end;
 
-procedure TMemoryStream64.NewParam(source: TMem64);
+procedure TMS64.NewParam(source: TMem64);
 begin
   Clear;
   FDelta := source.FDelta;
@@ -523,7 +523,7 @@ begin
   FProtectedMode := source.FProtectedMode;
 end;
 
-procedure TMemoryStream64.SwapInstance(source: TMemoryStream64);
+procedure TMS64.SwapInstance(source: TMS64);
 var
   FDelta_: NativeInt;
   FMemory_: Pointer;
@@ -554,7 +554,7 @@ begin
   source.FProtectedMode := FProtectedMode_;
 end;
 
-procedure TMemoryStream64.SwapInstance(source: TMem64);
+procedure TMS64.SwapInstance(source: TMem64);
 var
   FDelta_: NativeInt;
   FMemory_: Pointer;
@@ -585,14 +585,14 @@ begin
   source.FProtectedMode := FProtectedMode_;
 end;
 
-function TMemoryStream64.ToBytes: TBytes;
+function TMS64.ToBytes: TBytes;
 begin
   SetLength(Result, Size);
   if Size > 0 then
       CopyPtr(Memory, @Result[0], Size);
 end;
 
-procedure TMemoryStream64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
+procedure TMS64.SetPointerWithProtectedMode(buffPtr: Pointer; const BuffSize: Int64);
 begin
   Clear;
   FMemory := buffPtr;
@@ -601,42 +601,42 @@ begin
   FProtectedMode := True;
 end;
 
-procedure TMemoryStream64.Mapping(buffPtr: Pointer; const BuffSize: Int64);
+procedure TMS64.Mapping(buffPtr: Pointer; const BuffSize: Int64);
 begin
   SetPointerWithProtectedMode(buffPtr, BuffSize);
 end;
 
-procedure TMemoryStream64.Mapping(m64: TMemoryStream64);
+procedure TMS64.Mapping(m64: TMS64);
 begin
   SetPointerWithProtectedMode(m64.Memory, m64.Size);
 end;
 
-procedure TMemoryStream64.Mapping(m64: TMem64);
+procedure TMS64.Mapping(m64: TMem64);
 begin
   SetPointerWithProtectedMode(m64.Memory, m64.Size);
 end;
 
-function TMemoryStream64.PositionAsPtr(const Position_: Int64): Pointer;
+function TMS64.PositionAsPtr(const Position_: Int64): Pointer;
 begin
   Result := Pointer(NativeUInt(FMemory) + Position_);
 end;
 
-function TMemoryStream64.PositionAsPtr: Pointer;
+function TMS64.PositionAsPtr: Pointer;
 begin
   Result := Pointer(NativeUInt(FMemory) + FPosition);
 end;
 
-function TMemoryStream64.PosAsPtr(const Position_: Int64): Pointer;
+function TMS64.PosAsPtr(const Position_: Int64): Pointer;
 begin
   Result := PositionAsPtr(Position_);
 end;
 
-function TMemoryStream64.PosAsPtr: Pointer;
+function TMS64.PosAsPtr: Pointer;
 begin
   Result := PositionAsPtr();
 end;
 
-procedure TMemoryStream64.LoadFromStream(stream: TCoreClassStream);
+procedure TMS64.LoadFromStream(stream: TCoreClassStream);
 const
   ChunkSize = 64 * 1024 * 1024;
 var
@@ -648,11 +648,11 @@ begin
   if FProtectedMode then
       Exit;
 
-  if stream is TMemoryStream64 then
+  if stream is TMS64 then
     begin
       Clear;
-      if TMemoryStream64(stream).Size > 0 then
-          WritePtr(TMemoryStream64(stream).Memory, TMemoryStream64(stream).Size);
+      if TMS64(stream).Size > 0 then
+          WritePtr(TMS64(stream).Memory, TMS64(stream).Size);
       Position := 0;
       Exit;
     end;
@@ -688,7 +688,7 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.LoadFromFile(FileName: SystemString);
+procedure TMS64.LoadFromFile(FileName: SystemString);
 var
   stream: TCoreClassStream;
 begin
@@ -700,7 +700,7 @@ begin
   end;
 end;
 
-procedure TMemoryStream64.SaveToStream(stream: TCoreClassStream);
+procedure TMS64.SaveToStream(stream: TCoreClassStream);
 const
   ChunkSize = 64 * 1024 * 1024;
 var
@@ -709,12 +709,12 @@ var
   Num: NativeInt;
   Rest: NativeInt;
 begin
-  if stream is TMemoryStream64 then
+  if stream is TMS64 then
     begin
-      TMemoryStream64(stream).Clear;
+      TMS64(stream).Clear;
       if Size > 0 then
-          TMemoryStream64(stream).WritePtr(Memory, Size);
-      TMemoryStream64(stream).Position := 0;
+          TMS64(stream).WritePtr(Memory, Size);
+      TMS64(stream).Position := 0;
       Exit;
     end;
 
@@ -747,7 +747,7 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.SaveToFile(FileName: SystemString);
+procedure TMS64.SaveToFile(FileName: SystemString);
 var
   stream: TCoreClassStream;
 begin
@@ -759,7 +759,7 @@ begin
   end;
 end;
 
-procedure TMemoryStream64.SetSize(const NewSize: Int64);
+procedure TMS64.SetSize(const NewSize: Int64);
 var
   OldPosition: Int64;
 begin
@@ -773,12 +773,12 @@ begin
       Seek(0, TSeekOrigin.soEnd);
 end;
 
-procedure TMemoryStream64.SetSize(NewSize: longint);
+procedure TMS64.SetSize(NewSize: longint);
 begin
   SetSize(Int64(NewSize));
 end;
 
-function TMemoryStream64.Write64(const buffer; Count: Int64): Int64;
+function TMS64.Write64(const buffer; Count: Int64): Int64;
 var
   p: Int64;
 begin
@@ -808,12 +808,12 @@ begin
   Result := 0;
 end;
 
-function TMemoryStream64.WritePtr(const p: Pointer; Count: Int64): Int64;
+function TMS64.WritePtr(const p: Pointer; Count: Int64): Int64;
 begin
   Result := Write64(p^, Count);
 end;
 
-function TMemoryStream64.write(const buffer; Count: longint): longint;
+function TMS64.write(const buffer; Count: longint): longint;
 begin
   Result := Write64(buffer, Count);
 end;
@@ -821,7 +821,7 @@ end;
 {$IFNDEF FPC}
 
 
-function TMemoryStream64.write(const buffer: TBytes; Offset, Count: longint): longint;
+function TMS64.write(const buffer: TBytes; Offset, Count: longint): longint;
 var
   p: Int64;
 begin
@@ -853,13 +853,13 @@ end;
 {$ENDIF}
 
 
-procedure TMemoryStream64.WriteBytes(const buff: TBytes);
+procedure TMS64.WriteBytes(const buff: TBytes);
 begin
   if Length(buff) > 0 then
       WritePtr(@buff[0], Length(buff));
 end;
 
-function TMemoryStream64.Read64(var buffer; Count: Int64): Int64;
+function TMS64.Read64(var buffer; Count: Int64): Int64;
 begin
   if Count > 0 then
     begin
@@ -877,12 +877,12 @@ begin
   Result := 0;
 end;
 
-function TMemoryStream64.ReadPtr(const p: Pointer; Count: Int64): Int64;
+function TMS64.ReadPtr(const p: Pointer; Count: Int64): Int64;
 begin
   Result := Read64(p^, Count);
 end;
 
-function TMemoryStream64.read(var buffer; Count: longint): longint;
+function TMS64.read(var buffer; Count: longint): longint;
 begin
   Result := Read64(buffer, Count);
 end;
@@ -890,7 +890,7 @@ end;
 {$IFNDEF FPC}
 
 
-function TMemoryStream64.read(buffer: TBytes; Offset, Count: longint): longint;
+function TMS64.read(buffer: TBytes; Offset, Count: longint): longint;
 var
   p: Int64;
 begin
@@ -914,7 +914,7 @@ end;
 {$ENDIF}
 
 
-function TMemoryStream64.Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
+function TMS64.Seek(const Offset: Int64; origin: TSeekOrigin): Int64;
 begin
   case origin of
     TSeekOrigin.soBeginning: FPosition := Offset;
@@ -924,7 +924,7 @@ begin
   Result := FPosition;
 end;
 
-function TMemoryStream64.CopyFrom(const source: TCoreClassStream; Count: Int64): Int64;
+function TMS64.CopyFrom(const source: TCoreClassStream; Count: Int64): Int64;
 const
   MaxBufSize = $F000;
 var
@@ -934,10 +934,10 @@ begin
   if FProtectedMode then
       RaiseInfo('protected mode');
 
-  if source is TMemoryStream64 then
+  if source is TMS64 then
     begin
-      WritePtr(TMemoryStream64(source).PositionAsPtr, Count);
-      TMemoryStream64(source).Position := TMemoryStream64(source).FPosition + Count;
+      WritePtr(TMS64(source).PositionAsPtr, Count);
+      TMS64(source).Position := TMS64(source).FPosition + Count;
       Result := Count;
       Exit;
     end;
@@ -971,67 +971,67 @@ begin
   end;
 end;
 
-procedure TMemoryStream64.WriteBool(const buff: Boolean);
+procedure TMS64.WriteBool(const buff: Boolean);
 begin
   WritePtr(@buff, 1);
 end;
 
-procedure TMemoryStream64.WriteInt8(const buff: ShortInt);
+procedure TMS64.WriteInt8(const buff: ShortInt);
 begin
   WritePtr(@buff, 1);
 end;
 
-procedure TMemoryStream64.WriteInt16(const buff: SmallInt);
+procedure TMS64.WriteInt16(const buff: SmallInt);
 begin
   WritePtr(@buff, 2);
 end;
 
-procedure TMemoryStream64.WriteInt32(const buff: Integer);
+procedure TMS64.WriteInt32(const buff: Integer);
 begin
   WritePtr(@buff, 4);
 end;
 
-procedure TMemoryStream64.WriteInt64(const buff: Int64);
+procedure TMS64.WriteInt64(const buff: Int64);
 begin
   WritePtr(@buff, 8);
 end;
 
-procedure TMemoryStream64.WriteUInt8(const buff: Byte);
+procedure TMS64.WriteUInt8(const buff: Byte);
 begin
   WritePtr(@buff, 1);
 end;
 
-procedure TMemoryStream64.WriteUInt16(const buff: Word);
+procedure TMS64.WriteUInt16(const buff: Word);
 begin
   WritePtr(@buff, 2);
 end;
 
-procedure TMemoryStream64.WriteUInt32(const buff: Cardinal);
+procedure TMS64.WriteUInt32(const buff: Cardinal);
 begin
   WritePtr(@buff, 4);
 end;
 
-procedure TMemoryStream64.WriteUInt64(const buff: UInt64);
+procedure TMS64.WriteUInt64(const buff: UInt64);
 begin
   WritePtr(@buff, 8);
 end;
 
-procedure TMemoryStream64.WriteSingle(const buff: Single);
+procedure TMS64.WriteSingle(const buff: Single);
 begin
   WritePtr(@buff, 4);
 end;
 
-procedure TMemoryStream64.WriteDouble(const buff: Double);
+procedure TMS64.WriteDouble(const buff: Double);
 begin
   WritePtr(@buff, 8);
 end;
 
-procedure TMemoryStream64.WriteCurrency(const buff: Currency);
+procedure TMS64.WriteCurrency(const buff: Currency);
 begin
   WriteDouble(buff);
 end;
 
-procedure TMemoryStream64.WriteString(const buff: TPascalString);
+procedure TMS64.WriteString(const buff: TPascalString);
 var
   b: TBytes;
 begin
@@ -1044,7 +1044,7 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.WriteANSI(const buff: TPascalString);
+procedure TMS64.WriteANSI(const buff: TPascalString);
 var
   b: TBytes;
 begin
@@ -1056,7 +1056,7 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.WriteANSI(const buff: TPascalString; const L: Integer);
+procedure TMS64.WriteANSI(const buff: TPascalString; const L: Integer);
 var
   b: TBytes;
 begin
@@ -1068,77 +1068,77 @@ begin
     end;
 end;
 
-procedure TMemoryStream64.WriteMD5(const buff: TMD5);
+procedure TMS64.WriteMD5(const buff: TMD5);
 begin
   WritePtr(@buff, 16);
 end;
 
-function TMemoryStream64.ReadBool: Boolean;
+function TMS64.ReadBool: Boolean;
 begin
   ReadPtr(@Result, 1);
 end;
 
-function TMemoryStream64.ReadInt8: ShortInt;
+function TMS64.ReadInt8: ShortInt;
 begin
   ReadPtr(@Result, 1);
 end;
 
-function TMemoryStream64.ReadInt16: SmallInt;
+function TMS64.ReadInt16: SmallInt;
 begin
   ReadPtr(@Result, 2);
 end;
 
-function TMemoryStream64.ReadInt32: Integer;
+function TMS64.ReadInt32: Integer;
 begin
   ReadPtr(@Result, 4);
 end;
 
-function TMemoryStream64.ReadInt64: Int64;
+function TMS64.ReadInt64: Int64;
 begin
   ReadPtr(@Result, 8);
 end;
 
-function TMemoryStream64.ReadUInt8: Byte;
+function TMS64.ReadUInt8: Byte;
 begin
   ReadPtr(@Result, 1);
 end;
 
-function TMemoryStream64.ReadUInt16: Word;
+function TMS64.ReadUInt16: Word;
 begin
   ReadPtr(@Result, 2);
 end;
 
-function TMemoryStream64.ReadUInt32: Cardinal;
+function TMS64.ReadUInt32: Cardinal;
 begin
   ReadPtr(@Result, 4);
 end;
 
-function TMemoryStream64.ReadUInt64: UInt64;
+function TMS64.ReadUInt64: UInt64;
 begin
   ReadPtr(@Result, 8);
 end;
 
-function TMemoryStream64.ReadSingle: Single;
+function TMS64.ReadSingle: Single;
 begin
   ReadPtr(@Result, 4);
 end;
 
-function TMemoryStream64.ReadDouble: Double;
+function TMS64.ReadDouble: Double;
 begin
   ReadPtr(@Result, 8);
 end;
 
-function TMemoryStream64.ReadCurrency: Currency;
+function TMS64.ReadCurrency: Currency;
 begin
   Result := ReadDouble();
 end;
 
-function TMemoryStream64.PrepareReadString: Boolean;
+function TMS64.PrepareReadString: Boolean;
 begin
   Result := (Position + 4 <= Size) and (Position + 4 + PCardinal(PositionAsPtr())^ <= Size);
 end;
 
-function TMemoryStream64.ReadString: TPascalString;
+function TMS64.ReadString: TPascalString;
 var
   L: Cardinal;
   b: TBytes;
@@ -1153,7 +1153,7 @@ begin
     end;
 end;
 
-function TMemoryStream64.ReadANSI(L: Integer): TPascalString;
+function TMS64.ReadANSI(L: Integer): TPascalString;
 var
   b: TBytes;
 begin
@@ -1166,7 +1166,7 @@ begin
     end;
 end;
 
-function TMemoryStream64.ReadMD5: TMD5;
+function TMS64.ReadMD5: TMD5;
 begin
   ReadPtr(@Result, 16);
 end;
@@ -1204,7 +1204,7 @@ begin
   FCritical.UnLock;
 end;
 
-procedure TMemoryStream64ThreadList.Remove(obj: TMemoryStream64);
+procedure TMemoryStream64ThreadList.Remove(obj: TMS64);
 begin
   if AutoFreeRaster then
       DisposeObject(obj);
@@ -1400,10 +1400,10 @@ begin
   inherited Destroy;
 end;
 
-function TMem64.Stream64: TMemoryStream64;
+function TMem64.Stream64: TMS64;
 begin
   if FStream64 = nil then
-      FStream64 := TMemoryStream64.Create;
+      FStream64 := TMS64.Create;
   FStream64.Mapping(self);
   Result := FStream64;
 end;
@@ -1435,7 +1435,7 @@ begin
   FPosition := 0;
 end;
 
-procedure TMem64.NewParam(source: TMemoryStream64);
+procedure TMem64.NewParam(source: TMS64);
 begin
   Clear;
   FDelta := source.FDelta;
@@ -1457,7 +1457,7 @@ begin
   FProtectedMode := source.FProtectedMode;
 end;
 
-procedure TMem64.SwapInstance(source: TMemoryStream64);
+procedure TMem64.SwapInstance(source: TMS64);
 var
   FDelta_: NativeInt;
   FMemory_: Pointer;
@@ -1540,7 +1540,7 @@ begin
   SetPointerWithProtectedMode(buffPtr, BuffSize);
 end;
 
-procedure TMem64.Mapping(m64: TMemoryStream64);
+procedure TMem64.Mapping(m64: TMS64);
 begin
   SetPointerWithProtectedMode(m64.Memory, m64.Size);
 end;
@@ -1763,10 +1763,10 @@ begin
   if FProtectedMode then
       RaiseInfo('protected mode');
 
-  if source is TMemoryStream64 then
+  if source is TMS64 then
     begin
-      WritePtr(TMemoryStream64(source).PositionAsPtr, Count);
-      TMemoryStream64(source).Position := TMemoryStream64(source).FPosition + Count;
+      WritePtr(TMS64(source).PositionAsPtr, Count);
+      TMS64(source).Position := TMS64(source).FPosition + Count;
       Result := Count;
       Exit;
     end;
@@ -2086,9 +2086,9 @@ end;
 
 function DecompressStream(DataPtr: Pointer; siz: NativeInt; dest: TCoreClassStream): Boolean;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.SetPointer(DataPtr, siz);
   Result := DecompressStream(m64, dest);
   DisposeObject(m64);
@@ -2218,11 +2218,11 @@ begin
   end;
 end;
 
-procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMemoryStream64; const dest: TCoreClassStream);
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const StripNum_: Integer; const sour: TMS64; const dest: TCoreClassStream);
 var
   StripNum: Integer;
   sourStrips: TStream64List;
-  StripArry: array of TMemoryStream64;
+  StripArry: array of TMS64;
 
 {$IFDEF Parallel}
 {$IFDEF FPC}
@@ -2246,7 +2246,7 @@ var
   var
     strip_siz, strip_m: Int64;
     p: Int64;
-    m64: TMemoryStream64;
+    m64: TMS64;
     i: Integer;
   begin
     sourStrips := TStream64List.Create;
@@ -2256,7 +2256,7 @@ var
       begin
         if p + strip_siz < sour.Size then
           begin
-            m64 := TMemoryStream64.Create;
+            m64 := TMS64.Create;
             m64.SetPointerWithProtectedMode(sour.PositionAsPtr(p), strip_siz);
             sourStrips.Add(m64);
             inc(p, strip_siz);
@@ -2265,7 +2265,7 @@ var
           begin
             if sour.Size - p > 0 then
               begin
-                m64 := TMemoryStream64.Create;
+                m64 := TMS64.Create;
                 m64.SetPointerWithProtectedMode(sour.PositionAsPtr(p), sour.Size - p);
                 sourStrips.Add(m64);
               end;
@@ -2275,7 +2275,7 @@ var
 
     SetLength(StripArry, sourStrips.Count);
     for i := 0 to sourStrips.Count - 1 do
-        StripArry[i] := TMemoryStream64.CustomCreate(1024);
+        StripArry[i] := TMS64.CustomCreate(1024);
   end;
 
   procedure BuildOutput;
@@ -2326,12 +2326,12 @@ begin
   FreeBuff;
 end;
 
-procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMemoryStream64; const dest: TCoreClassStream);
+procedure ParallelCompressMemory(const scm: TSelectCompressionMethod; const sour: TMS64; const dest: TCoreClassStream);
 begin
   ParallelCompressMemory(scm, sour.Size div (16 * 1024), sour, dest);
 end;
 
-procedure ParallelCompressMemory(const sour: TMemoryStream64; const dest: TCoreClassStream);
+procedure ParallelCompressMemory(const sour: TMS64; const dest: TCoreClassStream);
 begin
   ParallelCompressMemory(scmZLIB, sour, dest);
 end;
@@ -2339,7 +2339,7 @@ end;
 procedure ParallelDecompressStream(const sour_, dest_: TCoreClassStream);
 type
   TPara_strip_ = record
-    sour, dest: TMemoryStream64;
+    sour, dest: TMS64;
   end;
 
   PPara_strip_ = ^TPara_strip_;
@@ -2364,7 +2364,7 @@ var
       end;
   end;
 {$ENDIF Parallel}
-  function BuildBuff_Stream64(stream: TMemoryStream64): Boolean;
+  function BuildBuff_Stream64(stream: TMS64): Boolean;
   var
     strip_num: Integer;
     i: Integer;
@@ -2381,7 +2381,7 @@ var
     SetLength(StripArry, strip_num);
     for i := 0 to strip_num - 1 do
       begin
-        StripArry[i].sour := TMemoryStream64.Create;
+        StripArry[i].sour := TMS64.Create;
         if p + 4 > ss then
             Exit;
         siz_ := PInt64(stream.PositionAsPtr(p))^;
@@ -2391,7 +2391,7 @@ var
         StripArry[i].sour.SetPointerWithProtectedMode(stream.PositionAsPtr(p), siz_);
         inc(p, siz_);
         StripArry[i].sour.Position := 0;
-        StripArry[i].dest := TMemoryStream64.CustomCreate(1024);
+        StripArry[i].dest := TMS64.CustomCreate(1024);
       end;
     stream.Position := p;
     Result := True;
@@ -2410,8 +2410,8 @@ var
     SetLength(StripArry, strip_num);
     for i := 0 to strip_num - 1 do
       begin
-        StripArry[i].sour := TMemoryStream64.CustomCreate(1024);
-        StripArry[i].dest := TMemoryStream64.CustomCreate(1024);
+        StripArry[i].sour := TMS64.CustomCreate(1024);
+        StripArry[i].dest := TMS64.CustomCreate(1024);
       end;
 
     for i := 0 to strip_num - 1 do
@@ -2445,8 +2445,8 @@ var
 var
   preDone: Boolean;
 begin
-  if sour_ is TMemoryStream64 then
-      preDone := BuildBuff_Stream64(TMemoryStream64(sour_))
+  if sour_ is TMS64 then
+      preDone := BuildBuff_Stream64(TMS64(sour_))
   else
       preDone := BuildBuff_Stream(sour_);
 
@@ -2474,10 +2474,10 @@ end;
 
 procedure ParallelCompressFile(const sour, dest: SystemString);
 var
-  s_fs: TMemoryStream64;
+  s_fs: TMS64;
   d_fs: TCoreClassFileStream;
 begin
-  s_fs := TMemoryStream64.Create;
+  s_fs := TMS64.Create;
   s_fs.LoadFromFile(sour);
   d_fs := TCoreClassFileStream.Create(dest, fmCreate);
   ParallelCompressMemory(s_fs, d_fs);
@@ -2487,10 +2487,10 @@ end;
 
 procedure ParallelDecompressFile(const sour, dest: SystemString);
 var
-  s_fs: TMemoryStream64;
+  s_fs: TMS64;
   d_fs: TCoreClassFileStream;
 begin
-  s_fs := TMemoryStream64.Create;
+  s_fs := TMS64.Create;
   s_fs.LoadFromFile(sour);
   d_fs := TCoreClassFileStream.Create(dest, fmCreate);
   ParallelDecompressStream(s_fs, d_fs);
@@ -2501,11 +2501,11 @@ end;
 function CompressUTF8(const sour_: TBytes): TBytes;
 var
   cStream: TCompressionStream;
-  dest: TMemoryStream64;
+  dest: TMS64;
 begin
   if Length(sour_) > 10 then
     begin
-      dest := TMemoryStream64.Create;
+      dest := TMS64.Create;
       cStream := TCompressionStream.Create(clMax, dest);
       cStream.write(sour_[0], Length(sour_));
       DisposeObject(cStream);
@@ -2528,7 +2528,7 @@ end;
 function DecompressUTF8(const sour_: TBytes): TBytes;
 var
   dcStream: TDecompressionStream;
-  sour: TMemoryStream64;
+  sour: TMS64;
   siz: Integer;
 begin
   if Length(sour_) > 6 then
@@ -2536,7 +2536,7 @@ begin
       if (sour_[0] = $FF) and (sour_[1] = $FF) then
         begin
           siz := PInteger(@sour_[2])^;
-          sour := TMemoryStream64.Create();
+          sour := TMS64.Create();
           sour.SetPointer(@sour_[6], Length(sour_) - 6);
           dcStream := TDecompressionStream.Create(sour);
           SetLength(Result, siz);
@@ -2727,7 +2727,7 @@ begin
   stream.read(Result, 16);
 end;
 
-procedure DoStatus(const v: TMemoryStream64);
+procedure DoStatus(const v: TMS64);
 var
   p: PByte;
   i: Integer;

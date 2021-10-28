@@ -67,7 +67,7 @@ type
       OnResultM: TON_MakeSeedM;
       OnResultP: TON_MakeSeedP;
       constructor Create; override;
-      procedure DoStreamEvent(sender: TPeerIO; Result_: TDataFrameEngine); override;
+      procedure DoStreamEvent(sender: TPeerIO; Result_: TDFE); override;
     end;
   public
     constructor Create(source_: TDTC40_Info; Param_: U_String); override;
@@ -162,7 +162,7 @@ begin
   OnResultP := nil;
 end;
 
-procedure TDTC40_RandSeed_Client.TON_MakeSeed.DoStreamEvent(sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TDTC40_RandSeed_Client.TON_MakeSeed.DoStreamEvent(sender: TPeerIO; Result_: TDFE);
 var
   Seed_: UInt32;
 begin

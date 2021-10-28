@@ -17,7 +17,7 @@
 { ****************************************************************************** }
 unit CommunicationTest;
 
-{$INCLUDE zDefine.inc}
+{$INCLUDE ..\..\zDefine.inc}
 
 interface
 
@@ -29,27 +29,27 @@ type
   TCommunicationTestIntf = class(TCoreClassObject)
   private
     FPrepareSendConsole, FPrepareResultConsole: SystemString;
-    FPrepareSendDataFrame, FPrepareResultDataFrame: TDataFrameEngine;
+    FPrepareSendDataFrame, FPrepareResultDataFrame: TDFE;
     FLastReg: TCommunicationFramework;
   public
     constructor Create;
     destructor Destroy; override;
 
     // client test command
-    procedure Cmd_TestStream(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure Cmd_TestStream(Sender: TPeerIO; InData, OutData: TDFE);
     procedure Cmd_TestConsole(Sender: TPeerIO; InData: SystemString; var OutData: SystemString);
-    procedure Cmd_TestDirectStream(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Cmd_TestDirectStream(Sender: TPeerIO; InData: TDFE);
     procedure Cmd_TestDirectConsole(Sender: TPeerIO; InData: SystemString);
     procedure Cmd_TestBigStream(Sender: TPeerIO; InData: TCoreClassStream; BigStreamTotal, BigStreamCompleteSize: Int64);
     procedure Cmd_BigStreamPostInfo(Sender: TPeerIO; InData: SystemString);
     procedure Cmd_TestCompleteBuffer(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     procedure Cmd_RemoteInfo(Sender: TPeerIO; InData: SystemString);
     procedure Delay_RunTestReponse(Sender: TNPostExecute);
-    procedure Cmd_RunTestReponse(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure Cmd_RunTestReponse(Sender: TPeerIO; InData: TDFE);
 
     // server test command result
     procedure CmdResult_TestConsole(Sender: TPeerIO; ResultData: SystemString);
-    procedure CmdResult_TestStream(Sender: TPeerIO; ResultData: TDataFrameEngine);
+    procedure CmdResult_TestStream(Sender: TPeerIO; ResultData: TDFE);
 
     procedure RegCmd(Intf: TCommunicationFramework);
     procedure ExecuteTest(Intf: TPeerIO);
@@ -74,7 +74,7 @@ const
   C_RunTestReponse = '__@RunTestReponse';
 
 var
-  TestStreamData: TMemoryStream64 = nil;
+  TestStreamData: TMS64 = nil;
   TestStreamMD5: SystemString;
   TestBuff: PByte;
   TestBuffSize: NativeInt;
@@ -87,8 +87,8 @@ begin
   inherited;
   FPrepareSendConsole := 'console test';
   FPrepareResultConsole := 'console result';
-  FPrepareSendDataFrame := TDataFrameEngine.Create;
-  FPrepareResultDataFrame := TDataFrameEngine.Create;
+  FPrepareSendDataFrame := TDFE.Create;
+  FPrepareResultDataFrame := TDFE.Create;
   for i := 1 to 10 do
     begin
       FPrepareSendDataFrame.WriteInteger(i);
@@ -105,7 +105,7 @@ begin
   inherited;
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestStream(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TCommunicationTestIntf.Cmd_TestStream(Sender: TPeerIO; InData, OutData: TDFE);
 begin
   if not InData.Compare(FPrepareSendDataFrame) then
       Sender.Print('TestStream in Data failed!');
@@ -119,7 +119,7 @@ begin
   OutData := FPrepareResultConsole;
 end;
 
-procedure TCommunicationTestIntf.Cmd_TestDirectStream(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TCommunicationTestIntf.Cmd_TestDirectStream(Sender: TPeerIO; InData: TDFE);
 begin
   if not InData.Compare(FPrepareSendDataFrame) then
       Sender.Print('TestDirectStream in Data failed!');
@@ -162,7 +162,7 @@ begin
   ExecuteAsyncTestWithBigStream(TPeerIO(Sender.Data1));
 end;
 
-procedure TCommunicationTestIntf.Cmd_RunTestReponse(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TCommunicationTestIntf.Cmd_RunTestReponse(Sender: TPeerIO; InData: TDFE);
 begin
   Sender.OwnerFramework.PostProgress.PostExecuteM(3, {$IFDEF FPC}@{$ENDIF FPC}Delay_RunTestReponse).Data1 := Sender;
 end;
@@ -173,7 +173,7 @@ begin
       Sender.Print('TestResultConsole Data failed!');
 end;
 
-procedure TCommunicationTestIntf.CmdResult_TestStream(Sender: TPeerIO; ResultData: TDataFrameEngine);
+procedure TCommunicationTestIntf.CmdResult_TestStream(Sender: TPeerIO; ResultData: TDFE);
 begin
   if not ResultData.Compare(FPrepareResultDataFrame) then
       Sender.Print('TestResultStream Data failed!');
@@ -196,7 +196,7 @@ end;
 
 procedure TCommunicationTestIntf.ExecuteTest(Intf: TPeerIO);
 var
-  tmpdf: TDataFrameEngine;
+  tmpdf: TDFE;
 begin
   Intf.SendConsoleCmdM(C_TestConsole, FPrepareSendConsole, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestConsole);
   Intf.SendStreamCmdM(C_TestStream, FPrepareSendDataFrame, {$IFDEF FPC}@{$ENDIF FPC}CmdResult_TestStream);
@@ -211,7 +211,7 @@ begin
       if Intf.WaitSendConsoleCmd(C_TestConsole, FPrepareSendConsole, 0) <> FPrepareResultConsole then
           Intf.Print('wait Mode:TestResultConsole Data failed!');
 
-      tmpdf := TDataFrameEngine.Create;
+      tmpdf := TDFE.Create;
       Intf.WaitSendStreamCmd(C_TestStream, FPrepareSendDataFrame, tmpdf, 0);
       if not tmpdf.Compare(FPrepareResultDataFrame) then
           Intf.Print('wait Mode:TestResultStream Data failed!');
@@ -262,7 +262,7 @@ end;
 
 initialization
 
-TestStreamData := TMemoryStream64.Create;
+TestStreamData := TMS64.Create;
 TestStreamData.SetSize(Int64(1024));
 MakeRndBuff(99999933, TestStreamData.Memory, TestStreamData.Size);
 TestStreamMD5 := umlStreamMD5String(TestStreamData).Text;

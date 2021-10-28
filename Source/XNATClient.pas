@@ -59,13 +59,13 @@ type
     procedure SendTunnel_ConnectResult(const cState: Boolean);
     procedure RecvTunnel_ConnectResult(const cState: Boolean);
 
-    procedure RequestListen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+    procedure RequestListen_Result(Sender: TPeerIO; Result_: TDFE);
     procedure delay_RequestListen(Sender: TNPostExecute);
 
     procedure Open;
 
-    procedure cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
-    procedure cmd_disconnect_request(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure cmd_connect_request(Sender: TPeerIO; InData: TDFE);
+    procedure cmd_disconnect_request(Sender: TPeerIO; InData: TDFE);
     procedure cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
   public
     constructor Create;
@@ -82,7 +82,7 @@ type
     Remote_IP: SystemString;
     Mapping: TXClientMapping;
     Activted: Boolean;
-    RequestBuffer: TMemoryStream64;
+    RequestBuffer: TMS64;
 
     procedure OnReceiveBuffer(const buffer: PByte; const Size: NativeInt; var FillDone: Boolean); override;
     procedure OnConnect_Result(const cState: Boolean);
@@ -96,7 +96,7 @@ type
     procedure PhysicsConnect_Result_BuildP2PToken(const cState: Boolean);
     procedure PhysicsVMBuildAuthToken_Result;
     procedure PhysicsOpenVM_Result(const cState: Boolean);
-    procedure IPV6Listen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+    procedure IPV6Listen_Result(Sender: TPeerIO; Result_: TDFE);
   public
     constructor Create(Owner_: TPeerIO); override;
     destructor Destroy; override;
@@ -194,7 +194,7 @@ begin
       DoStatus('error: [%s] Receive Tunnel connect failed!', [Mapping.Text]);
 end;
 
-procedure TXClientMapping.RequestListen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TXClientMapping.RequestListen_Result(Sender: TPeerIO; Result_: TDFE);
 begin
   if Result_.Reader.ReadBool then
     begin
@@ -207,9 +207,9 @@ end;
 
 procedure TXClientMapping.delay_RequestListen(Sender: TNPostExecute);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteCardinal(SendTunnel.RemoteID);
   de.WriteCardinal(RecvTunnel.RemoteID);
   SendTunnel.SendStreamCmdM(C_RequestListen, de, {$IFDEF FPC}@{$ENDIF FPC}RequestListen_Result);
@@ -287,7 +287,7 @@ begin
   RecvTunnel.PrintParams[C_Data] := False;
 end;
 
-procedure TXClientMapping.cmd_connect_request(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXClientMapping.cmd_connect_request(Sender: TPeerIO; InData: TDFE);
 var
   Remote_id: Cardinal;
   Remote_IP: SystemString;
@@ -314,7 +314,7 @@ begin
   xCli.AsyncConnectM(Addr, umlStrToInt(Port), {$IFDEF FPC}@{$ENDIF FPC}xCli.OnConnect_Result);
 end;
 
-procedure TXClientMapping.cmd_disconnect_request(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXClientMapping.cmd_disconnect_request(Sender: TPeerIO; InData: TDFE);
 var
   local_id, Remote_id: Cardinal;
   phy_io: TXClientCustomProtocol;
@@ -385,7 +385,7 @@ end;
 
 procedure TXClientMapping.UpdateWorkload(force: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if SendTunnel = nil then
       exit;
@@ -397,7 +397,7 @@ begin
     if (ProtocolHash.Count = LastUpdateWorkload) or (GetTimeTick() - LastUpdateTime < 1000) then
         exit;
 
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteCardinal(MaxWorkload);
   de.WriteCardinal(ProtocolHash.Count);
   SendTunnel.SendDirectStreamCmd(C_Workload, de);
@@ -414,11 +414,11 @@ end;
 
 procedure TXClientCustomProtocol.DoDisconnect(Sender: TPeerIO);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
 begin
   if Activted then
     begin
-      de := TDataFrameEngine.Create;
+      de := TDFE.Create;
       de.WriteCardinal(LocalProtocol_ID);
       de.WriteCardinal(RemoteProtocol_ID);
       Mapping.SendTunnel.SendDirectStreamCmd(C_Disconnect_reponse, de);
@@ -445,11 +445,11 @@ end;
 
 procedure TXClientCustomProtocol.OnConnect_Result(const cState: Boolean);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   nSiz: NativeInt;
   nBuff: PByte;
 begin
-  de := TDataFrameEngine.Create;
+  de := TDFE.Create;
   de.WriteBool(cState);
   de.WriteCardinal(LocalProtocol_ID);
   de.WriteCardinal(RemoteProtocol_ID);
@@ -468,7 +468,7 @@ begin
     end
   else
     begin
-      de := TDataFrameEngine.Create;
+      de := TDFE.Create;
       de.WriteCardinal(LocalProtocol_ID);
       de.WriteCardinal(RemoteProtocol_ID);
       Mapping.SendTunnel.SendDirectStreamCmd(C_Disconnect_reponse, de);
@@ -486,7 +486,7 @@ begin
   Remote_IP := '';
   Mapping := nil;
   Activted := False;
-  RequestBuffer := TMemoryStream64.Create;
+  RequestBuffer := TMS64.Create;
 end;
 
 destructor TXClientCustomProtocol.Destroy;
@@ -549,7 +549,7 @@ begin
       XNAT.WaitAsyncConnecting := False;
 end;
 
-procedure TPhysicsEngine_Special.IPV6Listen_Result(Sender: TPeerIO; Result_: TDataFrameEngine);
+procedure TPhysicsEngine_Special.IPV6Listen_Result(Sender: TPeerIO; Result_: TDFE);
 var
   Mapping: TPascalString;
   Remote_ListenAddr, Remote_ListenPort: TPascalString;

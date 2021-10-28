@@ -2158,7 +2158,7 @@ begin
       Result := False;
       exit;
     end;
-  IOHnd.Handle := TMemoryStream64.CustomCreate(8192);
+  IOHnd.Handle := TMS64.CustomCreate(8192);
   IOHnd.Return := C_NotError;
   IOHnd.Size := IOHnd.Handle.Size;
   IOHnd.Position := IOHnd.Handle.Position;
@@ -2306,7 +2306,7 @@ end;
 
 function umlFilePrepareRead(var IOHnd: TIOHnd; Size: Int64; var buff): Boolean;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   preRedSiz: Int64;
 begin
   Result := False;
@@ -2322,9 +2322,9 @@ begin
     end;
 
   if IOHnd.PrepareReadBuff = nil then
-      IOHnd.PrepareReadBuff := TMemoryStream64.Create;
+      IOHnd.PrepareReadBuff := TMS64.Create;
 
-  m64 := TMemoryStream64(IOHnd.PrepareReadBuff);
+  m64 := TMS64(IOHnd.PrepareReadBuff);
 
   if (IOHnd.Position < IOHnd.PrepareReadPosition) or (IOHnd.PrepareReadPosition + m64.Size < IOHnd.Position + Size) then
     begin
@@ -2452,18 +2452,18 @@ begin
 
   if (IOHnd.Handle is TCoreClassFileStream) or (IOHnd.Handle is TReliableFileStream) then
     begin
-      IOHnd.FlushBuff := TMemoryStream64.CustomCreate(1024 * 1024 * 8);
+      IOHnd.FlushBuff := TMS64.CustomCreate(1024 * 1024 * 8);
       IOHnd.FlushPosition := IOHnd.Handle.Position;
     end;
 end;
 
 function umlFileFlushWrite(var IOHnd: TIOHnd): Boolean;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   if IOHnd.FlushBuff <> nil then
     begin
-      m64 := TMemoryStream64(IOHnd.FlushBuff);
+      m64 := TMS64(IOHnd.FlushBuff);
       IOHnd.FlushBuff := nil;
 
       if IOHnd.Handle.Write(m64.Memory^, m64.Size) <> m64.Size then
@@ -2506,7 +2506,7 @@ begin
 
   if IOHnd.FlushBuff <> nil then
     begin
-      if TMemoryStream64(IOHnd.FlushBuff).Write64(buff, Size) <> Size then
+      if TMS64(IOHnd.FlushBuff).Write64(buff, Size) <> Size then
         begin
           IOHnd.Return := C_FileWriteError;
           Result := False;
@@ -5336,9 +5336,9 @@ begin
       Result := umlMD5(Pointer(NativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
       exit;
     end;
-  if stream is TMemoryStream64 then
+  if stream is TMS64 then
     begin
-      Result := umlMD5(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
+      Result := umlMD5(TMS64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
       exit;
     end;
 {$IFEND}
@@ -5632,9 +5632,9 @@ begin
       Result := umlCRC16(Pointer(NativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
       exit;
     end;
-  if stream is TMemoryStream64 then
+  if stream is TMS64 then
     begin
-      Result := umlCRC16(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
+      Result := umlCRC16(TMS64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
       exit;
     end;
   { Allocate buffer to read file }
@@ -5735,9 +5735,9 @@ begin
       Result := umlCRC32(Pointer(NativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
       exit;
     end;
-  if stream is TMemoryStream64 then
+  if stream is TMS64 then
     begin
-      Result := umlCRC32(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
+      Result := umlCRC32(TMS64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
       exit;
     end;
 

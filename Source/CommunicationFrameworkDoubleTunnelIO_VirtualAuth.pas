@@ -1554,7 +1554,7 @@ var
   StartPos, EndPos, siz, fp: Int64;
   RemoteBackcallAddr: UInt64;
   fs: TCoreClassFileStream;
-  mem_: TMemoryStream64;
+  mem_: TMS64;
   MD5: TMD5;
 begin
   if not FFileSystem then
@@ -1598,7 +1598,7 @@ begin
     end;
 
   fs.Position := StartPos;
-  mem_ := TMemoryStream64.Create;
+  mem_ := TMS64.Create;
   mem_.WriteUInt64(RemoteBackcallAddr);
   mem_.WriteInt64(StartPos);
   mem_.WriteInt64(EndPos);
@@ -2139,14 +2139,14 @@ end;
 
 procedure TDTClient_VirtualAuth.Command_PostFileFragmentData(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  mem_: TMemoryStream64;
+  mem_: TMS64;
   StartPos, EndPos, siz: Int64;
   RemoteBackcallAddr: UInt64;
   p: PFileFragmentDataBackcall_VirtualAuth;
   fp: Pointer;
   MD5: TMD5;
 begin
-  mem_ := TMemoryStream64.Create;
+  mem_ := TMS64.Create;
   mem_.SetPointerWithProtectedMode(InData, DataSize);
   RemoteBackcallAddr := mem_.ReadUInt64;
   StartPos := mem_.ReadInt64;

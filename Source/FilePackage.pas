@@ -486,7 +486,7 @@ var
     FieldSrHnd: TFieldSearch;
     itmHnd: TItemHandle;
     itmStream: TItemStream;
-    ms: TMemoryStream64;
+    ms: TMS64;
 
     md5: TPascalString;
     md5List: THashStringList;
@@ -516,7 +516,7 @@ var
                 begin
                   itmStream := TItemStream.Create(dbEng, itmHnd);
 
-                  ms := TMemoryStream64.Create;
+                  ms := TMS64.Create;
                   FP_DecryptStream(itmStream, ms);
                   ms.Position := 0;
                   md5 := umlStreamMD5String(ms);

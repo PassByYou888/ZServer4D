@@ -702,9 +702,9 @@ end;
 
 procedure THashTextEngine.LoadFromFile(FileName: SystemString);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   try
       m64.LoadFromFile(FileName);
   except
@@ -721,9 +721,9 @@ end;
 
 procedure THashTextEngine.SaveToFile(FileName: SystemString);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   try
     SaveToStream(m64);
     m64.SaveToFile(FileName);

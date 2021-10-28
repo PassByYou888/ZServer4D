@@ -1110,7 +1110,7 @@ type
   TMemoryStreamAccess = class(TMemoryStream);
 
   {$IFDEF SUPPORTS_UTF8STRING}
-  TJsonUTF8StringStream = class(TMemoryStream64)
+  TJsonUTF8StringStream = class(TMS64)
   private
     FDataString: UTF8String;
   protected
@@ -1121,7 +1121,7 @@ type
   end;
   {$ENDIF SUPPORTS_UTF8STRING}
 
-  TJsonBytesStream = class(TMemoryStream64)
+  TJsonBytesStream = class(TMS64)
   private
     FBytes: TBytes;
   protected

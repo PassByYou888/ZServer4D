@@ -379,7 +379,7 @@ var
 {$IFDEF FPC}
   procedure fpc_progress_(const Name_: PSystemString; Obj_: TFS_Service_File_Data);
   begin
-    if (OutData.Count shr 1) > MaxNum then
+    if (OutData.Count shr 2) > MaxNum then
         exit;
     if umlSearchMatch(filter_, Name_^) then
       begin
@@ -401,7 +401,7 @@ begin
 {$ELSE FPC}
   FileHashPool.ProgressP(procedure(const Name_: PSystemString; Obj_: TFS_Service_File_Data)
     begin
-      if (OutData.Count shr 1) > MaxNum then
+      if (OutData.Count shr 2) > MaxNum then
           exit;
       if umlSearchMatch(filter_, Name_^) then
         begin

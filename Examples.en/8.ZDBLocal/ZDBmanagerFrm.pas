@@ -361,7 +361,7 @@ begin
         with qState.Eng.GetDF(qState) do
           if InRange(ReadDouble(0), -200, 200) then
             begin
-              TDataFrameDouble(Data[0]).Buffer := umlRandomRangeD(-100.0, 100.0);
+              TDFDouble(Data[0]).Buffer := umlRandomRangeD(-100.0, 100.0);
               Save;
             end;
     end;
@@ -377,7 +377,7 @@ begin
   p := zdb.QueryDB(True, False, True, 'Test', 'Analysis', True, 1.0, 0.1, 0, 0, 0);
   p.OnDataFilterProc := procedure(dPipe: TZDBPipeline; var qState: TQueryState; var Allowed: Boolean)
     var
-      df: TDataFrameEngine;
+      df: TDFEngine;
     begin
       if not qState.IsDF then
           exit;
@@ -418,7 +418,7 @@ begin
   FillFragmentSourceP(pipe.SourceDB.name, pipe.PipelineName, FragmentSource,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; ID: Cardinal; DataSour: TMemoryStream64)
     var
-      df: TDataFrameEngine;
+      df: TDFEngine;
     begin
       df := pipe.SourceDB.GetDF(StorePos);
     end);

@@ -34,12 +34,13 @@ uses SysUtils, CoreClasses, Types, Variants,
   CoreCompress, UnicodeMixedLib, PascalStrings;
 
 type
-  TDataFrameEngine = class;
-  TDFE = TDataFrameEngine;
-  TDF = TDataFrameEngine;
-  TDataFrame = TDataFrameEngine;
+  TDFE = class;
+  TDataFrameEngine = TDFE;
+  TDFEngine = TDFE;
+  TDF = TDFE;
+  TDataFrame = TDFE;
 
-  TDataFrameBase = class(TCoreClassObject)
+  TDFBase = class(TCoreClassObject)
   protected
     FID: Byte; // data frame id
   public
@@ -53,7 +54,7 @@ type
     function ComputeEncodeSize: Int64; virtual; abstract;
   end;
 
-  TDataFrameString = class sealed(TDataFrameBase)
+  TDFString = class sealed(TDFBase)
   public
     Buffer: TBytes;
 
@@ -67,7 +68,7 @@ type
     function ComputeEncodeSize: Int64; override;
   end;
 
-  TDataFrameInteger = class sealed(TDataFrameBase)
+  TDFInteger = class sealed(TDFBase)
   private
   protected
     FBuffer: Integer;
@@ -84,7 +85,7 @@ type
     property Buffer: Integer read FBuffer write FBuffer;
   end;
 
-  TDataFrameCardinal = class sealed(TDataFrameBase)
+  TDFCardinal = class sealed(TDFBase)
   private
   protected
     FBuffer: Cardinal;
@@ -101,7 +102,7 @@ type
     property Buffer: Cardinal read FBuffer write FBuffer;
   end;
 
-  TDataFrameWord = class sealed(TDataFrameBase)
+  TDFWord = class sealed(TDFBase)
   private
   protected
     FBuffer: Word;
@@ -118,7 +119,7 @@ type
     property Buffer: Word read FBuffer write FBuffer;
   end;
 
-  TDataFrameByte = class sealed(TDataFrameBase)
+  TDFByte = class sealed(TDFBase)
   private
   protected
     FBuffer: Byte;
@@ -135,7 +136,7 @@ type
     property Buffer: Byte read FBuffer write FBuffer;
   end;
 
-  TDataFrameSingle = class sealed(TDataFrameBase)
+  TDFSingle = class sealed(TDFBase)
   private
   protected
     FBuffer: Single;
@@ -152,7 +153,7 @@ type
     property Buffer: Single read FBuffer write FBuffer;
   end;
 
-  TDataFrameDouble = class sealed(TDataFrameBase)
+  TDFDouble = class sealed(TDFBase)
   private
   protected
     FBuffer: Double;
@@ -169,7 +170,7 @@ type
     property Buffer: Double read FBuffer write FBuffer;
   end;
 
-  TDataFrameArrayInteger = class sealed(TDataFrameBase)
+  TDFArrayInteger = class sealed(TDFBase)
   protected
     FBuffer: TMS64;
   public
@@ -192,7 +193,7 @@ type
     property Buffer[index_: Integer]: Integer read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayShortInt = class sealed(TDataFrameBase)
+  TDFArrayShortInt = class sealed(TDFBase)
   protected
     FBuffer: TMS64;
   public
@@ -215,7 +216,7 @@ type
     property Buffer[index_: Integer]: ShortInt read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayByte = class sealed(TDataFrameBase)
+  TDFArrayByte = class sealed(TDFBase)
   protected
     FBuffer: TMS64;
   public
@@ -247,7 +248,7 @@ type
     property Buffer[index_: Integer]: Byte read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArraySingle = class sealed(TDataFrameBase)
+  TDFArraySingle = class sealed(TDFBase)
   protected
     FBuffer: TMS64;
   public
@@ -270,7 +271,7 @@ type
     property Buffer[index_: Integer]: Single read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayDouble = class sealed(TDataFrameBase)
+  TDFArrayDouble = class sealed(TDFBase)
   private
   protected
     FBuffer: TMS64;
@@ -294,7 +295,7 @@ type
     property Buffer[index_: Integer]: Double read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameArrayInt64 = class sealed(TDataFrameBase)
+  TDFArrayInt64 = class sealed(TDFBase)
   private
   protected
     FBuffer: TMS64;
@@ -318,7 +319,7 @@ type
     property Buffer[index_: Integer]: Int64 read GetBuffer write SetBuffer; default;
   end;
 
-  TDataFrameStream = class sealed(TDataFrameBase)
+  TDFStream = class sealed(TDFBase)
   private
   protected
     FBuffer: TMS64;
@@ -340,7 +341,7 @@ type
     property InstanceBuffer: TMS64 read FBuffer write FBuffer;
   end;
 
-  TDataFrameVariant = class sealed(TDataFrameBase)
+  TDFVariant = class sealed(TDFBase)
   private
   protected
     FBuffer: Variant;
@@ -357,7 +358,7 @@ type
     property Buffer: Variant read FBuffer write FBuffer;
   end;
 
-  TDataFrameInt64 = class sealed(TDataFrameBase)
+  TDFInt64 = class sealed(TDFBase)
   private
   protected
     FBuffer: Int64;
@@ -374,7 +375,7 @@ type
     property Buffer: Int64 read FBuffer write FBuffer;
   end;
 
-  TDataFrameUInt64 = class sealed(TDataFrameBase)
+  TDFUInt64 = class sealed(TDFBase)
   private
   protected
     FBuffer: UInt64;
@@ -391,15 +392,15 @@ type
     property Buffer: UInt64 read FBuffer write FBuffer;
   end;
 
-  TDataFrameEngineReader = class(TCoreClassObject)
+  TDFEngineReader = class(TCoreClassObject)
   private
-    FOwner: TDataFrameEngine;
+    FOwner: TDFE;
     FIndex: Integer;
   public
-    constructor Create(Owner_: TDataFrameEngine);
+    constructor Create(Owner_: TDFE);
     destructor Destroy; override;
     property Index: Integer read FIndex write FIndex;
-    property Owner: TDataFrameEngine read FOwner;
+    property Owner: TDFE read FOwner;
     function IsEnd: Boolean;
     function NotEnd: Boolean;
     procedure GoNext;
@@ -413,13 +414,13 @@ type
     function ReadByte: Byte;
     function ReadSingle: Single;
     function ReadDouble: Double;
-    function ReadArrayInteger: TDataFrameArrayInteger;
-    function ReadArrayShortInt: TDataFrameArrayShortInt;
-    function ReadArrayByte: TDataFrameArrayByte;
+    function ReadArrayInteger: TDFArrayInteger;
+    function ReadArrayShortInt: TDFArrayShortInt;
+    function ReadArrayByte: TDFArrayByte;
     function ReadMD5: TMD5;
-    function ReadArraySingle: TDataFrameArraySingle;
-    function ReadArrayDouble: TDataFrameArrayDouble;
-    function ReadArrayInt64: TDataFrameArrayInt64;
+    function ReadArraySingle: TDFArraySingle;
+    function ReadArrayDouble: TDFArrayDouble;
+    function ReadArrayInt64: TDFArrayInt64;
     procedure ReadStream(output: TCoreClassStream);
     function ReadVariant: Variant;
     function ReadInt64: Int64;
@@ -427,7 +428,7 @@ type
     procedure ReadStrings(output: TCoreClassStrings);
     procedure ReadListStrings(output: TListString);
     procedure ReadPascalStrings(output: TListPascalString);
-    procedure ReadDataFrame(output: TDataFrameEngine);
+    procedure ReadDataFrame(output: TDFE);
     procedure ReadHashStringList(output: THashStringList);
     procedure ReadVariantList(output: THashVariantList);
     procedure ReadSectionText(output: TSectionTextData);
@@ -456,20 +457,20 @@ type
     procedure ReadNMPool(output: TNumberModulePool);
     // auto read from stream data
     procedure Read(var Buf_; Count_: Int64); overload;
-    // read as TDataFrameBase
-    function Read: TDataFrameBase; overload;
-    // return current TDataFrameBase
-    function Current: TDataFrameBase;
+    // read as TDFBase
+    function Read: TDFBase; overload;
+    // return current TDFBase
+    function Current: TDFBase;
   end;
 
   TRunTimeDataType = (rdtString, rdtInteger, rdtLongWord, rdtWORD, rdtByte, rdtSingle, rdtDouble,
     rdtArrayInteger, rdtArraySingle, rdtArrayDouble, rdtStream, rdtVariant, rdtInt64, rdtArrayShortInt, rdtCardinal, rdtUInt64, rdtArrayByte,
     rdtArrayInt64);
 
-  TDataFrameEngine = class(TCoreClassObject)
+  TDFE = class(TCoreClassObject)
   private
     FDataList: TCoreClassListForObj;
-    FReader: TDataFrameEngineReader;
+    FReader: TDFEngineReader;
     FCompressorDeflate: TCompressorDeflate;
     FCompressorBRRC: TCompressorBRRC;
     FIsChanged: Boolean;
@@ -480,24 +481,24 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    property Reader: TDataFrameEngineReader read FReader;
-    property R: TDataFrameEngineReader read FReader;
+    property Reader: TDFEngineReader read FReader;
+    property R: TDFEngineReader read FReader;
     property IsChanged: Boolean read FIsChanged write FIsChanged;
 
-    procedure SwapInstance(source: TDataFrameEngine);
+    procedure SwapInstance(source: TDFE);
 
     procedure Clear;
-    function AddData(v: TRunTimeDataType): TDataFrameBase;
-    function GetData(index_: Integer): TDataFrameBase;
-    function GetDataInfo(Obj_: TDataFrameBase): SystemString;
+    function AddData(v: TRunTimeDataType): TDFBase;
+    function GetData(index_: Integer): TDFBase;
+    function GetDataInfo(Obj_: TDFBase): SystemString;
     function Count: Integer;
     function Delete(index_: Integer): Boolean;
     function DeleteFirst: Boolean;
     function DeleteLast: Boolean; overload;
     function DeleteLastCount(num_: Integer): Boolean; overload;
     function DeleteCount(index_, Count_: Integer): Boolean;
-    procedure Assign(source: TDataFrameEngine);
-    function Clone: TDataFrameEngine;
+    procedure Assign(source: TDFE);
+    function Clone: TDFE;
 
     procedure WriteString(v: SystemString); overload;
     procedure WriteString(v: TPascalString); overload;
@@ -510,13 +511,13 @@ type
     procedure WriteByte(v: Byte);
     procedure WriteSingle(v: Single);
     procedure WriteDouble(v: Double);
-    function WriteArrayInteger: TDataFrameArrayInteger;
-    function WriteArrayShortInt: TDataFrameArrayShortInt;
-    function WriteArrayByte: TDataFrameArrayByte;
+    function WriteArrayInteger: TDFArrayInteger;
+    function WriteArrayShortInt: TDFArrayShortInt;
+    function WriteArrayByte: TDFArrayByte;
     procedure WriteMD5(md5: TMD5);
-    function WriteArraySingle: TDataFrameArraySingle;
-    function WriteArrayDouble: TDataFrameArrayDouble;
-    function WriteArrayInt64: TDataFrameArrayInt64;
+    function WriteArraySingle: TDFArraySingle;
+    function WriteArrayDouble: TDFArrayDouble;
+    function WriteArrayInt64: TDFArrayInt64;
     procedure WriteStream(v: TCoreClassStream);
     procedure WriteInstanceStream(v: TMS64);
     procedure WriteVariant(v: Variant);
@@ -525,11 +526,11 @@ type
     procedure WriteStrings(v: TCoreClassStrings);
     procedure WriteListStrings(v: TListString);
     procedure WritePascalStrings(v: TListPascalString);
-    procedure WriteDataFrame(v: TDataFrameEngine);
+    procedure WriteDataFrame(v: TDFE);
     // select compresssion
-    procedure WriteDataFrameCompressed(v: TDataFrameEngine);
+    procedure WriteDataFrameCompressed(v: TDFE);
     // zlib compression
-    procedure WriteDataFrameZLib(v: TDataFrameEngine);
+    procedure WriteDataFrameZLib(v: TDFE);
     procedure WriteHashStringList(v: THashStringList);
     procedure WriteVariantList(v: THashVariantList);
     procedure WriteSectionText(v: TSectionTextData);
@@ -571,13 +572,13 @@ type
     function ReadByte(index_: Integer): Byte;
     function ReadSingle(index_: Integer): Single;
     function ReadDouble(index_: Integer): Double;
-    function ReadArrayInteger(index_: Integer): TDataFrameArrayInteger;
-    function ReadArrayShortInt(index_: Integer): TDataFrameArrayShortInt;
-    function ReadArrayByte(index_: Integer): TDataFrameArrayByte;
+    function ReadArrayInteger(index_: Integer): TDFArrayInteger;
+    function ReadArrayShortInt(index_: Integer): TDFArrayShortInt;
+    function ReadArrayByte(index_: Integer): TDFArrayByte;
     function ReadMD5(index_: Integer): TMD5;
-    function ReadArraySingle(index_: Integer): TDataFrameArraySingle;
-    function ReadArrayDouble(index_: Integer): TDataFrameArrayDouble;
-    function ReadArrayInt64(index_: Integer): TDataFrameArrayInt64;
+    function ReadArraySingle(index_: Integer): TDFArraySingle;
+    function ReadArrayDouble(index_: Integer): TDFArrayDouble;
+    function ReadArrayInt64(index_: Integer): TDFArrayInt64;
     procedure ReadStream(index_: Integer; output: TCoreClassStream);
     function ReadVariant(index_: Integer): Variant;
     function ReadInt64(index_: Integer): Int64;
@@ -585,7 +586,7 @@ type
     procedure ReadStrings(index_: Integer; output: TCoreClassStrings);
     procedure ReadListStrings(index_: Integer; output: TListString);
     procedure ReadPascalStrings(index_: Integer; output: TListPascalString);
-    procedure ReadDataFrame(index_: Integer; output: TDataFrameEngine);
+    procedure ReadDataFrame(index_: Integer; output: TDFE);
     procedure ReadHashStringList(index_: Integer; output: THashStringList);
     procedure ReadVariantList(index_: Integer; output: THashVariantList);
     procedure ReadSectionText(index_: Integer; output: TSectionTextData);
@@ -614,8 +615,8 @@ type
     procedure ReadNMPool(index_: Integer; output: TNumberModulePool);
     // read from stream data
     procedure Read(index_: Integer; var Buf_; Count_: Int64); overload;
-    // read as TDataFrameBase
-    function Read(index_: Integer): TDataFrameBase; overload;
+    // read as TDFBase
+    function Read(index_: Integer): TDFBase; overload;
 
     function ComputeEncodeSize: Int64;
     class procedure BuildEmptyStream(output: TCoreClassStream);
@@ -658,18 +659,18 @@ type
     procedure DecodeFromBytes(var buff: TBytes); overload;
     procedure DecodeFromBytes(var buff: TBytes; const FastMode: Boolean); overload;
     function GetMD5(const FastMode: Boolean): TMD5;
-    function Compare(source: TDataFrameEngine): Boolean;
+    function Compare(source: TDFE): Boolean;
     procedure LoadFromStream(stream: TCoreClassStream);
     procedure SaveToStream(stream: TCoreClassStream);
     procedure LoadFromFile(fileName_: U_String);
     procedure SaveToFile(fileName_: U_String);
-    property Data[index_: Integer]: TDataFrameBase read GetData; default;
+    property Data[index_: Integer]: TDFBase read GetData; default;
     property List: TCoreClassListForObj read FDataList;
   end;
 
   TDataWriter = class(TCoreClassObject)
   protected
-    FEngine: TDataFrameEngine;
+    FEngine: TDFE;
     FStream: TCoreClassStream;
   public
     constructor Create(Stream_: TCoreClassStream);
@@ -699,8 +700,8 @@ type
     procedure WriteStrings(v: TCoreClassStrings);
     procedure WriteListStrings(v: TListString);
     procedure WritePascalStrings(v: TListPascalString);
-    procedure WriteDataFrame(v: TDataFrameEngine);
-    procedure WriteDataFrameCompressed(v: TDataFrameEngine);
+    procedure WriteDataFrame(v: TDFE);
+    procedure WriteDataFrameCompressed(v: TDFE);
     procedure WriteHashStringList(v: THashStringList);
     procedure WriteVariantList(v: THashVariantList);
     procedure WriteSectionText(v: TSectionTextData);
@@ -731,7 +732,7 @@ type
 
   TDataReader = class(TCoreClassObject)
   protected
-    FEngine: TDataFrameEngine;
+    FEngine: TDFE;
   public
     constructor Create(Stream_: TCoreClassStream);
     destructor Destroy; override;
@@ -758,7 +759,7 @@ type
     procedure ReadStrings(output: TCoreClassStrings);
     procedure ReadListStrings(output: TListString);
     procedure ReadPascalStrings(output: TListPascalString);
-    procedure ReadDataFrame(output: TDataFrameEngine);
+    procedure ReadDataFrame(output: TDFE);
     procedure ReadHashStringList(output: THashStringList);
     procedure ReadVariantList(output: THashVariantList);
     procedure ReadSectionText(output: TSectionTextData);
@@ -789,30 +790,30 @@ type
 
 implementation
 
-constructor TDataFrameBase.Create(ID: Byte);
+constructor TDFBase.Create(ID: Byte);
 begin
   inherited Create;
   FID := ID;
 end;
 
-destructor TDataFrameBase.Destroy;
+destructor TDFBase.Destroy;
 begin
   inherited Destroy;
 end;
 
-constructor TDataFrameString.Create(ID: Byte);
+constructor TDFString.Create(ID: Byte);
 begin
   inherited Create(ID);
   SetLength(Buffer, 0);
 end;
 
-destructor TDataFrameString.Destroy;
+destructor TDFString.Destroy;
 begin
   SetLength(Buffer, 0);
   inherited Destroy;
 end;
 
-procedure TDataFrameString.LoadFromStream(stream: TCoreClassStream);
+procedure TDFString.LoadFromStream(stream: TCoreClassStream);
 var
   _Len: Integer;
 begin
@@ -822,7 +823,7 @@ begin
       stream.Read(Buffer[0], _Len);
 end;
 
-procedure TDataFrameString.SaveToStream(stream: TCoreClassStream);
+procedure TDFString.SaveToStream(stream: TCoreClassStream);
 var
   _Len: Integer;
 begin
@@ -832,267 +833,267 @@ begin
       stream.write(Buffer[0], _Len);
 end;
 
-procedure TDataFrameString.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFString.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   Buffer := umlBytesOf(jarry.s[index_]);
 end;
 
-procedure TDataFrameString.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFString.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(umlStringOf(Buffer));
 end;
 
-function TDataFrameString.ComputeEncodeSize: Int64;
+function TDFString.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + length(Buffer);
 end;
 
-constructor TDataFrameInteger.Create(ID: Byte);
+constructor TDFInteger.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameInteger.Destroy;
+destructor TDFInteger.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameInteger.LoadFromStream(stream: TCoreClassStream);
+procedure TDFInteger.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Integer_Size);
 end;
 
-procedure TDataFrameInteger.SaveToStream(stream: TCoreClassStream);
+procedure TDFInteger.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Integer_Size);
 end;
 
-procedure TDataFrameInteger.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFInteger.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameInteger.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFInteger.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
 
-function TDataFrameInteger.ComputeEncodeSize: Int64;
+function TDFInteger.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size;
 end;
 
-constructor TDataFrameCardinal.Create(ID: Byte);
+constructor TDFCardinal.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameCardinal.Destroy;
+destructor TDFCardinal.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameCardinal.LoadFromStream(stream: TCoreClassStream);
+procedure TDFCardinal.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Cardinal_Size);
 end;
 
-procedure TDataFrameCardinal.SaveToStream(stream: TCoreClassStream);
+procedure TDFCardinal.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Cardinal_Size);
 end;
 
-procedure TDataFrameCardinal.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFCardinal.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameCardinal.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFCardinal.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
 
-function TDataFrameCardinal.ComputeEncodeSize: Int64;
+function TDFCardinal.ComputeEncodeSize: Int64;
 begin
   Result := C_Cardinal_Size;
 end;
 
-constructor TDataFrameWord.Create(ID: Byte);
+constructor TDFWord.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameWord.Destroy;
+destructor TDFWord.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameWord.LoadFromStream(stream: TCoreClassStream);
+procedure TDFWord.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Word_Size);
 end;
 
-procedure TDataFrameWord.SaveToStream(stream: TCoreClassStream);
+procedure TDFWord.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Word_Size);
 end;
 
-procedure TDataFrameWord.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFWord.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameWord.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFWord.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
 
-function TDataFrameWord.ComputeEncodeSize: Int64;
+function TDFWord.ComputeEncodeSize: Int64;
 begin
   Result := C_Word_Size;
 end;
 
-constructor TDataFrameByte.Create(ID: Byte);
+constructor TDFByte.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameByte.Destroy;
+destructor TDFByte.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameByte.LoadFromStream(stream: TCoreClassStream);
+procedure TDFByte.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Byte_Size);
 end;
 
-procedure TDataFrameByte.SaveToStream(stream: TCoreClassStream);
+procedure TDFByte.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Byte_Size);
 end;
 
-procedure TDataFrameByte.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFByte.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.i[index_];
 end;
 
-procedure TDataFrameByte.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFByte.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
 
-function TDataFrameByte.ComputeEncodeSize: Int64;
+function TDFByte.ComputeEncodeSize: Int64;
 begin
   Result := C_Byte_Size;
 end;
 
-constructor TDataFrameSingle.Create(ID: Byte);
+constructor TDFSingle.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameSingle.Destroy;
+destructor TDFSingle.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameSingle.LoadFromStream(stream: TCoreClassStream);
+procedure TDFSingle.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Single_Size);
 end;
 
-procedure TDataFrameSingle.SaveToStream(stream: TCoreClassStream);
+procedure TDFSingle.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Single_Size);
 end;
 
-procedure TDataFrameSingle.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFSingle.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.f[index_];
 end;
 
-procedure TDataFrameSingle.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFSingle.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.AddF(FBuffer);
 end;
 
-function TDataFrameSingle.ComputeEncodeSize: Int64;
+function TDFSingle.ComputeEncodeSize: Int64;
 begin
   Result := C_Single_Size;
 end;
 
-constructor TDataFrameDouble.Create(ID: Byte);
+constructor TDFDouble.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameDouble.Destroy;
+destructor TDFDouble.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameDouble.LoadFromStream(stream: TCoreClassStream);
+procedure TDFDouble.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Double_Size);
 end;
 
-procedure TDataFrameDouble.SaveToStream(stream: TCoreClassStream);
+procedure TDFDouble.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Double_Size);
 end;
 
-procedure TDataFrameDouble.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFDouble.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.f[index_];
 end;
 
-procedure TDataFrameDouble.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFDouble.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.AddF(FBuffer);
 end;
 
-function TDataFrameDouble.ComputeEncodeSize: Int64;
+function TDFDouble.ComputeEncodeSize: Int64;
 begin
   Result := C_Double_Size;
 end;
 
-constructor TDataFrameArrayInteger.Create(ID: Byte);
+constructor TDFArrayInteger.Create(ID: Byte);
 begin
   inherited Create(ID);
   FBuffer := TMS64.CustomCreate(128);
 end;
 
-destructor TDataFrameArrayInteger.Destroy;
+destructor TDFArrayInteger.Destroy;
 begin
   Clear;
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameArrayInteger.Clear;
+procedure TDFArrayInteger.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameArrayInteger.Add(v: Integer);
+procedure TDFArrayInteger.Add(v: Integer);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WriteInt32(v);
 end;
 
-function TDataFrameArrayInteger.Count: Integer;
+function TDFArrayInteger.Count: Integer;
 begin
   Result := FBuffer.Size div C_Integer_Size;
 end;
 
-procedure TDataFrameArrayInteger.WriteArray(const a: array of Integer);
+procedure TDFArrayInteger.WriteArray(const a: array of Integer);
 begin
   if length(a) > 0 then
     begin
@@ -1101,7 +1102,7 @@ begin
     end;
 end;
 
-procedure TDataFrameArrayInteger.LoadFromStream(stream: TCoreClassStream);
+procedure TDFArrayInteger.LoadFromStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1110,7 +1111,7 @@ begin
   FBuffer.CopyFrom(stream, L * C_Integer_Size);
 end;
 
-procedure TDataFrameArrayInteger.SaveToStream(stream: TCoreClassStream);
+procedure TDFArrayInteger.SaveToStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1119,7 +1120,7 @@ begin
   stream.write(FBuffer.Memory^, L * C_Integer_Size);
 end;
 
-procedure TDataFrameArrayInteger.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayInteger.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1129,7 +1130,7 @@ begin
       Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayInteger.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayInteger.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1139,51 +1140,51 @@ begin
       ja.Add(Buffer[i]);
 end;
 
-function TDataFrameArrayInteger.ComputeEncodeSize: Int64;
+function TDFArrayInteger.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + C_Integer_Size * Count;
 end;
 
-function TDataFrameArrayInteger.GetBuffer(index_: Integer): Integer;
+function TDFArrayInteger.GetBuffer(index_: Integer): Integer;
 begin
   Result := PInteger(FBuffer.PositionAsPtr(index_ * C_Integer_Size))^;
 end;
 
-procedure TDataFrameArrayInteger.SetBuffer(index_: Integer; Value: Integer);
+procedure TDFArrayInteger.SetBuffer(index_: Integer; Value: Integer);
 begin
   PInteger(FBuffer.PositionAsPtr(index_ * C_Integer_Size))^ := Value;
 end;
 
-constructor TDataFrameArrayShortInt.Create(ID: ShortInt);
+constructor TDFArrayShortInt.Create(ID: ShortInt);
 begin
   inherited Create(ID);
   FBuffer := TMS64.CustomCreate(128);
 end;
 
-destructor TDataFrameArrayShortInt.Destroy;
+destructor TDFArrayShortInt.Destroy;
 begin
   Clear;
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameArrayShortInt.Clear;
+procedure TDFArrayShortInt.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameArrayShortInt.Add(v: ShortInt);
+procedure TDFArrayShortInt.Add(v: ShortInt);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WriteInt8(v);
 end;
 
-function TDataFrameArrayShortInt.Count: Integer;
+function TDFArrayShortInt.Count: Integer;
 begin
   Result := FBuffer.Size;
 end;
 
-procedure TDataFrameArrayShortInt.WriteArray(const a: array of ShortInt);
+procedure TDFArrayShortInt.WriteArray(const a: array of ShortInt);
 begin
   if length(a) > 0 then
     begin
@@ -1192,7 +1193,7 @@ begin
     end;
 end;
 
-procedure TDataFrameArrayShortInt.LoadFromStream(stream: TCoreClassStream);
+procedure TDFArrayShortInt.LoadFromStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1201,7 +1202,7 @@ begin
   FBuffer.CopyFrom(stream, L);
 end;
 
-procedure TDataFrameArrayShortInt.SaveToStream(stream: TCoreClassStream);
+procedure TDFArrayShortInt.SaveToStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1210,7 +1211,7 @@ begin
   stream.write(FBuffer.Memory^, L);
 end;
 
-procedure TDataFrameArrayShortInt.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayShortInt.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1220,7 +1221,7 @@ begin
       Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayShortInt.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayShortInt.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1230,101 +1231,101 @@ begin
       ja.Add(Buffer[i]);
 end;
 
-function TDataFrameArrayShortInt.ComputeEncodeSize: Int64;
+function TDFArrayShortInt.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + C_Short_Int_Size * Count;
 end;
 
-function TDataFrameArrayShortInt.GetBuffer(index_: Integer): ShortInt;
+function TDFArrayShortInt.GetBuffer(index_: Integer): ShortInt;
 begin
   Result := PShortInt(FBuffer.PositionAsPtr(index_))^;
 end;
 
-procedure TDataFrameArrayShortInt.SetBuffer(index_: Integer; Value: ShortInt);
+procedure TDFArrayShortInt.SetBuffer(index_: Integer; Value: ShortInt);
 begin
   PShortInt(FBuffer.PositionAsPtr(index_))^ := Value;
 end;
 
-constructor TDataFrameArrayByte.Create(ID: Byte);
+constructor TDFArrayByte.Create(ID: Byte);
 begin
   inherited Create(ID);
   FBuffer := TMS64.CustomCreate(128);
 end;
 
-destructor TDataFrameArrayByte.Destroy;
+destructor TDFArrayByte.Destroy;
 begin
   Clear;
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameArrayByte.Clear;
+procedure TDFArrayByte.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameArrayByte.Add(v: Byte);
+procedure TDFArrayByte.Add(v: Byte);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WriteUInt8(v);
 end;
 
-procedure TDataFrameArrayByte.AddPtrBuff(p: PByte; Size_: Integer);
+procedure TDFArrayByte.AddPtrBuff(p: PByte; Size_: Integer);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WritePtr(p, Size_);
 end;
 
-procedure TDataFrameArrayByte.AddI64(v: Int64);
+procedure TDFArrayByte.AddI64(v: Int64);
 begin
   AddPtrBuff(@v, C_Int64_Size);
 end;
 
-procedure TDataFrameArrayByte.AddU64(v: UInt64);
+procedure TDFArrayByte.AddU64(v: UInt64);
 begin
   AddPtrBuff(@v, C_UInt64_Size);
 end;
 
-procedure TDataFrameArrayByte.Addi(v: Integer);
+procedure TDFArrayByte.Addi(v: Integer);
 begin
   AddPtrBuff(@v, C_Integer_Size);
 end;
 
-procedure TDataFrameArrayByte.AddWord(v: Word);
+procedure TDFArrayByte.AddWord(v: Word);
 begin
   AddPtrBuff(@v, C_Word_Size);
 end;
 
-function TDataFrameArrayByte.Count: Int64;
+function TDFArrayByte.Count: Int64;
 begin
   Result := FBuffer.Size;
 end;
 
-procedure TDataFrameArrayByte.WriteArray(const a: array of Byte);
+procedure TDFArrayByte.WriteArray(const a: array of Byte);
 begin
   if length(a) > 0 then
       AddPtrBuff(@a[0], length(a));
 end;
 
-procedure TDataFrameArrayByte.SetArray(const a: array of Byte);
+procedure TDFArrayByte.SetArray(const a: array of Byte);
 begin
   Clear;
   if length(a) > 0 then
       AddPtrBuff(@a[0], length(a));
 end;
 
-procedure TDataFrameArrayByte.SetBuff(p: PByte; Size_: Integer);
+procedure TDFArrayByte.SetBuff(p: PByte; Size_: Integer);
 begin
   Clear;
   AddPtrBuff(p, Size_);
 end;
 
-procedure TDataFrameArrayByte.GetBuff(p: PByte);
+procedure TDFArrayByte.GetBuff(p: PByte);
 begin
   CopyPtr(FBuffer.Memory, p, FBuffer.Size);
 end;
 
-procedure TDataFrameArrayByte.LoadFromStream(stream: TCoreClassStream);
+procedure TDFArrayByte.LoadFromStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1333,7 +1334,7 @@ begin
   FBuffer.CopyFrom(stream, L);
 end;
 
-procedure TDataFrameArrayByte.SaveToStream(stream: TCoreClassStream);
+procedure TDFArrayByte.SaveToStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1342,7 +1343,7 @@ begin
   stream.write(FBuffer.Memory^, L);
 end;
 
-procedure TDataFrameArrayByte.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayByte.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1352,7 +1353,7 @@ begin
       Add(ja.i[i]);
 end;
 
-procedure TDataFrameArrayByte.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayByte.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1362,51 +1363,51 @@ begin
       ja.Add(Buffer[i]);
 end;
 
-function TDataFrameArrayByte.ComputeEncodeSize: Int64;
+function TDFArrayByte.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + C_Byte_Size * Count;
 end;
 
-function TDataFrameArrayByte.GetBuffer(index_: Integer): Byte;
+function TDFArrayByte.GetBuffer(index_: Integer): Byte;
 begin
   Result := PByte(FBuffer.PositionAsPtr(index_))^;
 end;
 
-procedure TDataFrameArrayByte.SetBuffer(index_: Integer; Value: Byte);
+procedure TDFArrayByte.SetBuffer(index_: Integer; Value: Byte);
 begin
   PByte(FBuffer.PositionAsPtr(index_))^ := Value;
 end;
 
-constructor TDataFrameArraySingle.Create(ID: Byte);
+constructor TDFArraySingle.Create(ID: Byte);
 begin
   inherited Create(ID);
   FBuffer := TMS64.CustomCreate(128);
 end;
 
-destructor TDataFrameArraySingle.Destroy;
+destructor TDFArraySingle.Destroy;
 begin
   Clear;
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameArraySingle.Clear;
+procedure TDFArraySingle.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameArraySingle.Add(v: Single);
+procedure TDFArraySingle.Add(v: Single);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WriteSingle(v);
 end;
 
-function TDataFrameArraySingle.Count: Integer;
+function TDFArraySingle.Count: Integer;
 begin
   Result := FBuffer.Size div C_Single_Size;
 end;
 
-procedure TDataFrameArraySingle.WriteArray(const a: array of Single);
+procedure TDFArraySingle.WriteArray(const a: array of Single);
 begin
   if length(a) > 0 then
     begin
@@ -1415,7 +1416,7 @@ begin
     end;
 end;
 
-procedure TDataFrameArraySingle.LoadFromStream(stream: TCoreClassStream);
+procedure TDFArraySingle.LoadFromStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1424,7 +1425,7 @@ begin
   FBuffer.CopyFrom(stream, L * C_Single_Size);
 end;
 
-procedure TDataFrameArraySingle.SaveToStream(stream: TCoreClassStream);
+procedure TDFArraySingle.SaveToStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1433,7 +1434,7 @@ begin
   stream.write(FBuffer.Memory^, L * C_Single_Size);
 end;
 
-procedure TDataFrameArraySingle.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArraySingle.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1443,7 +1444,7 @@ begin
       Add(ja.f[i]);
 end;
 
-procedure TDataFrameArraySingle.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArraySingle.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1453,51 +1454,51 @@ begin
       ja.AddF(Buffer[i]);
 end;
 
-function TDataFrameArraySingle.ComputeEncodeSize: Int64;
+function TDFArraySingle.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + C_Single_Size * Count;
 end;
 
-function TDataFrameArraySingle.GetBuffer(index_: Integer): Single;
+function TDFArraySingle.GetBuffer(index_: Integer): Single;
 begin
   Result := PSingle(FBuffer.PositionAsPtr(index_ * C_Single_Size))^;
 end;
 
-procedure TDataFrameArraySingle.SetBuffer(index_: Integer; Value: Single);
+procedure TDFArraySingle.SetBuffer(index_: Integer; Value: Single);
 begin
   PSingle(FBuffer.PositionAsPtr(index_ * C_Single_Size))^ := Value;
 end;
 
-constructor TDataFrameArrayDouble.Create(ID: Byte);
+constructor TDFArrayDouble.Create(ID: Byte);
 begin
   inherited Create(ID);
   FBuffer := TMS64.CustomCreate(128);
 end;
 
-destructor TDataFrameArrayDouble.Destroy;
+destructor TDFArrayDouble.Destroy;
 begin
   Clear;
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameArrayDouble.Clear;
+procedure TDFArrayDouble.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameArrayDouble.Add(v: Double);
+procedure TDFArrayDouble.Add(v: Double);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WriteDouble(v);
 end;
 
-function TDataFrameArrayDouble.Count: Integer;
+function TDFArrayDouble.Count: Integer;
 begin
   Result := FBuffer.Size div C_Double_Size;
 end;
 
-procedure TDataFrameArrayDouble.WriteArray(const a: array of Double);
+procedure TDFArrayDouble.WriteArray(const a: array of Double);
 begin
   if length(a) > 0 then
     begin
@@ -1506,7 +1507,7 @@ begin
     end;
 end;
 
-procedure TDataFrameArrayDouble.LoadFromStream(stream: TCoreClassStream);
+procedure TDFArrayDouble.LoadFromStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1515,7 +1516,7 @@ begin
   FBuffer.CopyFrom(stream, L * C_Double_Size);
 end;
 
-procedure TDataFrameArrayDouble.SaveToStream(stream: TCoreClassStream);
+procedure TDFArrayDouble.SaveToStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1524,7 +1525,7 @@ begin
   stream.write(FBuffer.Memory^, L * C_Double_Size);
 end;
 
-procedure TDataFrameArrayDouble.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayDouble.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1534,7 +1535,7 @@ begin
       Add(ja.f[i]);
 end;
 
-procedure TDataFrameArrayDouble.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayDouble.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1544,51 +1545,51 @@ begin
       ja.AddF(Buffer[i]);
 end;
 
-function TDataFrameArrayDouble.ComputeEncodeSize: Int64;
+function TDFArrayDouble.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + C_Double_Size * Count;
 end;
 
-function TDataFrameArrayDouble.GetBuffer(index_: Integer): Double;
+function TDFArrayDouble.GetBuffer(index_: Integer): Double;
 begin
   Result := PDouble(FBuffer.PositionAsPtr(index_ * C_Double_Size))^;
 end;
 
-procedure TDataFrameArrayDouble.SetBuffer(index_: Integer; Value: Double);
+procedure TDFArrayDouble.SetBuffer(index_: Integer; Value: Double);
 begin
   PDouble(FBuffer.PositionAsPtr(index_ * C_Double_Size))^ := Value;
 end;
 
-constructor TDataFrameArrayInt64.Create(ID: Byte);
+constructor TDFArrayInt64.Create(ID: Byte);
 begin
   inherited Create(ID);
   FBuffer := TMS64.CustomCreate(128);
 end;
 
-destructor TDataFrameArrayInt64.Destroy;
+destructor TDFArrayInt64.Destroy;
 begin
   Clear;
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameArrayInt64.Clear;
+procedure TDFArrayInt64.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameArrayInt64.Add(v: Int64);
+procedure TDFArrayInt64.Add(v: Int64);
 begin
   FBuffer.Position := FBuffer.Size;
   FBuffer.WriteInt64(v);
 end;
 
-function TDataFrameArrayInt64.Count: Integer;
+function TDFArrayInt64.Count: Integer;
 begin
   Result := FBuffer.Size div C_Int64_Size;
 end;
 
-procedure TDataFrameArrayInt64.WriteArray(const a: array of Int64);
+procedure TDFArrayInt64.WriteArray(const a: array of Int64);
 begin
   if length(a) > 0 then
     begin
@@ -1597,7 +1598,7 @@ begin
     end;
 end;
 
-procedure TDataFrameArrayInt64.LoadFromStream(stream: TCoreClassStream);
+procedure TDFArrayInt64.LoadFromStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1606,7 +1607,7 @@ begin
   FBuffer.CopyFrom(stream, L * C_Int64_Size);
 end;
 
-procedure TDataFrameArrayInt64.SaveToStream(stream: TCoreClassStream);
+procedure TDFArrayInt64.SaveToStream(stream: TCoreClassStream);
 var
   L: Integer;
 begin
@@ -1615,7 +1616,7 @@ begin
   stream.write(FBuffer.Memory^, L * C_Int64_Size);
 end;
 
-procedure TDataFrameArrayInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1625,7 +1626,7 @@ begin
       Add(ja.L[i]);
 end;
 
-procedure TDataFrameArrayInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFArrayInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   ja: TZ_JsonArray;
   i: Integer;
@@ -1635,39 +1636,39 @@ begin
       ja.Add(Buffer[i]);
 end;
 
-function TDataFrameArrayInt64.ComputeEncodeSize: Int64;
+function TDFArrayInt64.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + C_Int64_Size * Count;
 end;
 
-function TDataFrameArrayInt64.GetBuffer(index_: Integer): Int64;
+function TDFArrayInt64.GetBuffer(index_: Integer): Int64;
 begin
   Result := PInt64(FBuffer.PositionAsPtr(index_ * C_Int64_Size))^;
 end;
 
-procedure TDataFrameArrayInt64.SetBuffer(index_: Integer; Value: Int64);
+procedure TDFArrayInt64.SetBuffer(index_: Integer; Value: Int64);
 begin
   PInt64(FBuffer.PositionAsPtr(index_ * C_Int64_Size))^ := Value;
 end;
 
-constructor TDataFrameStream.Create(ID: Byte);
+constructor TDFStream.Create(ID: Byte);
 begin
   inherited Create(ID);
   FBuffer := TMS64.Create;
 end;
 
-destructor TDataFrameStream.Destroy;
+destructor TDFStream.Destroy;
 begin
   DisposeObject(FBuffer);
   inherited Destroy;
 end;
 
-procedure TDataFrameStream.Clear;
+procedure TDFStream.Clear;
 begin
   FBuffer.Clear;
 end;
 
-procedure TDataFrameStream.LoadFromStream(stream: TCoreClassStream);
+procedure TDFStream.LoadFromStream(stream: TCoreClassStream);
 var
   _Len: Integer;
 begin
@@ -1677,7 +1678,7 @@ begin
       FBuffer.CopyFrom(stream, _Len);
 end;
 
-procedure TDataFrameStream.SaveToStream(stream: TCoreClassStream);
+procedure TDFStream.SaveToStream(stream: TCoreClassStream);
 var
   _Len: Integer;
 begin
@@ -1690,7 +1691,7 @@ begin
     end;
 end;
 
-procedure TDataFrameStream.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFStream.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 var
   b64: TPascalString;
 begin
@@ -1699,7 +1700,7 @@ begin
   umlDecodeStreamBASE64(b64, FBuffer);
 end;
 
-procedure TDataFrameStream.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFStream.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 var
   b64: TPascalString;
 begin
@@ -1707,17 +1708,17 @@ begin
   jarry.Add(b64.Text);
 end;
 
-function TDataFrameStream.ComputeEncodeSize: Int64;
+function TDFStream.ComputeEncodeSize: Int64;
 begin
   Result := C_Integer_Size + FBuffer.Size;
 end;
 
-function TDataFrameStream.GetBuffer: TCoreClassStream;
+function TDFStream.GetBuffer: TCoreClassStream;
 begin
   Result := FBuffer;
 end;
 
-procedure TDataFrameStream.SetBuffer(_Buffer: TCoreClassStream);
+procedure TDFStream.SetBuffer(_Buffer: TCoreClassStream);
 var
   p_: Int64;
 begin
@@ -1729,17 +1730,17 @@ begin
   _Buffer.Position := p_;
 end;
 
-constructor TDataFrameVariant.Create(ID: Byte);
+constructor TDFVariant.Create(ID: Byte);
 begin
   inherited Create(ID);
 end;
 
-destructor TDataFrameVariant.Destroy;
+destructor TDFVariant.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameVariant.LoadFromStream(stream: TCoreClassStream);
+procedure TDFVariant.LoadFromStream(stream: TCoreClassStream);
 var
   vt: TVarType;
 begin
@@ -1763,7 +1764,7 @@ begin
   end;
 end;
 
-procedure TDataFrameVariant.SaveToStream(stream: TCoreClassStream);
+procedure TDFVariant.SaveToStream(stream: TCoreClassStream);
 var
   vt: TVarType;
 begin
@@ -1789,17 +1790,17 @@ begin
   end;
 end;
 
-procedure TDataFrameVariant.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFVariant.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := umlStrToVar(jarry.s[index_]);
 end;
 
-procedure TDataFrameVariant.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFVariant.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(umlVarToStr(FBuffer, True).Text);
 end;
 
-function TDataFrameVariant.ComputeEncodeSize: Int64;
+function TDFVariant.ComputeEncodeSize: Int64;
 begin
   case TVarData(FBuffer).VType of
     varEmpty, varNull: Result := 2 + 0;
@@ -1821,272 +1822,272 @@ begin
   end;
 end;
 
-constructor TDataFrameInt64.Create(ID: Byte);
+constructor TDFInt64.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameInt64.Destroy;
+destructor TDFInt64.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameInt64.LoadFromStream(stream: TCoreClassStream);
+procedure TDFInt64.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_Int64_Size);
 end;
 
-procedure TDataFrameInt64.SaveToStream(stream: TCoreClassStream);
+procedure TDFInt64.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_Int64_Size);
 end;
 
-procedure TDataFrameInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.L[index_];
 end;
 
-procedure TDataFrameInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
 
-function TDataFrameInt64.ComputeEncodeSize: Int64;
+function TDFInt64.ComputeEncodeSize: Int64;
 begin
   Result := C_Int64_Size;
 end;
 
-constructor TDataFrameUInt64.Create(ID: Byte);
+constructor TDFUInt64.Create(ID: Byte);
 begin
   inherited Create(ID);
   Buffer := 0;
 end;
 
-destructor TDataFrameUInt64.Destroy;
+destructor TDFUInt64.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TDataFrameUInt64.LoadFromStream(stream: TCoreClassStream);
+procedure TDFUInt64.LoadFromStream(stream: TCoreClassStream);
 begin
   stream.Read(FBuffer, C_UInt64_Size);
 end;
 
-procedure TDataFrameUInt64.SaveToStream(stream: TCoreClassStream);
+procedure TDFUInt64.SaveToStream(stream: TCoreClassStream);
 begin
   stream.write(FBuffer, C_UInt64_Size);
 end;
 
-procedure TDataFrameUInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFUInt64.LoadFromJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   FBuffer := jarry.u[index_];
 end;
 
-procedure TDataFrameUInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
+procedure TDFUInt64.SaveToJson(jarry: TZ_JsonArray; index_: Integer);
 begin
   jarry.Add(FBuffer);
 end;
 
-function TDataFrameUInt64.ComputeEncodeSize: Int64;
+function TDFUInt64.ComputeEncodeSize: Int64;
 begin
   Result := C_UInt64_Size;
 end;
 
-constructor TDataFrameEngineReader.Create(Owner_: TDataFrameEngine);
+constructor TDFEngineReader.Create(Owner_: TDFE);
 begin
   inherited Create;
   FOwner := Owner_;
   FIndex := 0;
 end;
 
-destructor TDataFrameEngineReader.Destroy;
+destructor TDFEngineReader.Destroy;
 begin
   inherited Destroy;
 end;
 
-function TDataFrameEngineReader.IsEnd: Boolean;
+function TDFEngineReader.IsEnd: Boolean;
 begin
   Result := FIndex >= FOwner.Count;
 end;
 
-function TDataFrameEngineReader.NotEnd: Boolean;
+function TDFEngineReader.NotEnd: Boolean;
 begin
   Result := FIndex < FOwner.Count;
 end;
 
-procedure TDataFrameEngineReader.GoNext;
+procedure TDFEngineReader.GoNext;
 begin
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadString: SystemString;
+function TDFEngineReader.ReadString: SystemString;
 begin
   Result := FOwner.ReadString(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadInteger: Integer;
+function TDFEngineReader.ReadInteger: Integer;
 begin
   Result := FOwner.ReadInteger(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadCardinal: Cardinal;
+function TDFEngineReader.ReadCardinal: Cardinal;
 begin
   Result := FOwner.ReadCardinal(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadWord: Word;
+function TDFEngineReader.ReadWord: Word;
 begin
   Result := FOwner.ReadWord(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadBool: Boolean;
+function TDFEngineReader.ReadBool: Boolean;
 begin
   Result := FOwner.ReadBool(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadBoolean: Boolean;
+function TDFEngineReader.ReadBoolean: Boolean;
 begin
   Result := ReadBool;
 end;
 
-function TDataFrameEngineReader.ReadByte: Byte;
+function TDFEngineReader.ReadByte: Byte;
 begin
   Result := FOwner.ReadByte(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadSingle: Single;
+function TDFEngineReader.ReadSingle: Single;
 begin
   Result := FOwner.ReadSingle(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadDouble: Double;
+function TDFEngineReader.ReadDouble: Double;
 begin
   Result := FOwner.ReadDouble(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadArrayInteger: TDataFrameArrayInteger;
+function TDFEngineReader.ReadArrayInteger: TDFArrayInteger;
 begin
   Result := FOwner.ReadArrayInteger(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadArrayShortInt: TDataFrameArrayShortInt;
+function TDFEngineReader.ReadArrayShortInt: TDFArrayShortInt;
 begin
   Result := FOwner.ReadArrayShortInt(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadArrayByte: TDataFrameArrayByte;
+function TDFEngineReader.ReadArrayByte: TDFArrayByte;
 begin
   Result := FOwner.ReadArrayByte(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadMD5: TMD5;
+function TDFEngineReader.ReadMD5: TMD5;
 begin
   Result := FOwner.ReadMD5(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadArraySingle: TDataFrameArraySingle;
+function TDFEngineReader.ReadArraySingle: TDFArraySingle;
 begin
   Result := FOwner.ReadArraySingle(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadArrayDouble: TDataFrameArrayDouble;
+function TDFEngineReader.ReadArrayDouble: TDFArrayDouble;
 begin
   Result := FOwner.ReadArrayDouble(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadArrayInt64: TDataFrameArrayInt64;
+function TDFEngineReader.ReadArrayInt64: TDFArrayInt64;
 begin
   Result := FOwner.ReadArrayInt64(FIndex);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadStream(output: TCoreClassStream);
+procedure TDFEngineReader.ReadStream(output: TCoreClassStream);
 begin
   FOwner.ReadStream(FIndex, output);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVariant: Variant;
+function TDFEngineReader.ReadVariant: Variant;
 begin
   Result := FOwner.ReadVariant(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadInt64: Int64;
+function TDFEngineReader.ReadInt64: Int64;
 begin
   Result := FOwner.ReadInt64(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadUInt64: UInt64;
+function TDFEngineReader.ReadUInt64: UInt64;
 begin
   Result := FOwner.ReadUInt64(FIndex);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadStrings(output: TCoreClassStrings);
+procedure TDFEngineReader.ReadStrings(output: TCoreClassStrings);
 begin
   FOwner.ReadStrings(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadListStrings(output: TListString);
+procedure TDFEngineReader.ReadListStrings(output: TListString);
 begin
   FOwner.ReadListStrings(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadPascalStrings(output: TListPascalString);
+procedure TDFEngineReader.ReadPascalStrings(output: TListPascalString);
 begin
   FOwner.ReadPascalStrings(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadDataFrame(output: TDataFrameEngine);
+procedure TDFEngineReader.ReadDataFrame(output: TDFE);
 begin
   FOwner.ReadDataFrame(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadHashStringList(output: THashStringList);
+procedure TDFEngineReader.ReadHashStringList(output: THashStringList);
 begin
   FOwner.ReadHashStringList(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadVariantList(output: THashVariantList);
+procedure TDFEngineReader.ReadVariantList(output: THashVariantList);
 begin
   FOwner.ReadVariantList(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadSectionText(output: TSectionTextData);
+procedure TDFEngineReader.ReadSectionText(output: TSectionTextData);
 begin
   FOwner.ReadSectionText(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadTextSection(output: TSectionTextData);
+procedure TDFEngineReader.ReadTextSection(output: TSectionTextData);
 begin
   ReadSectionText(output);
 end;
 
-procedure TDataFrameEngineReader.ReadJson(output: TZ_JsonObject);
+procedure TDFEngineReader.ReadJson(output: TZ_JsonObject);
 begin
   FOwner.ReadJson(FIndex, output);
   inc(FIndex);
@@ -2095,7 +2096,7 @@ end;
 {$IFDEF DELPHI}
 
 
-procedure TDataFrameEngineReader.ReadJson(output: TJsonObject);
+procedure TDFEngineReader.ReadJson(output: TJsonObject);
 begin
   FOwner.ReadJson(FIndex, output);
   inc(FIndex);
@@ -2103,152 +2104,152 @@ end;
 {$ENDIF DELPHI}
 
 
-function TDataFrameEngineReader.ReadRect: TRect;
+function TDFEngineReader.ReadRect: TRect;
 begin
   Result := FOwner.ReadRect(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadRectf: TRectf;
+function TDFEngineReader.ReadRectf: TRectf;
 begin
   Result := FOwner.ReadRectf(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadPoint: TPoint;
+function TDFEngineReader.ReadPoint: TPoint;
 begin
   Result := FOwner.ReadPoint(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadPointf: TPointf;
+function TDFEngineReader.ReadPointf: TPointf;
 begin
   Result := FOwner.ReadPointf(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVector: TVector;
+function TDFEngineReader.ReadVector: TVector;
 begin
   Result := FOwner.ReadVector(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadAffineVector: TAffineVector;
+function TDFEngineReader.ReadAffineVector: TAffineVector;
 begin
   Result := FOwner.ReadAffineVector(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVec3: TVec3;
+function TDFEngineReader.ReadVec3: TVec3;
 begin
   Result := FOwner.ReadVec3(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVec4: TVec4;
+function TDFEngineReader.ReadVec4: TVec4;
 begin
   Result := FOwner.ReadVec4(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVector3: TVector3;
+function TDFEngineReader.ReadVector3: TVector3;
 begin
   Result := FOwner.ReadVector3(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVector4: TVector4;
+function TDFEngineReader.ReadVector4: TVector4;
 begin
   Result := FOwner.ReadVector4(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadMat4: TMat4;
+function TDFEngineReader.ReadMat4: TMat4;
 begin
   Result := FOwner.ReadMat4(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadMatrix4: TMatrix4;
+function TDFEngineReader.ReadMatrix4: TMatrix4;
 begin
   Result := FOwner.ReadMatrix4(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.Read2DPoint: T2DPoint;
+function TDFEngineReader.Read2DPoint: T2DPoint;
 begin
   Result := FOwner.Read2DPoint(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadVec2: TVec2;
+function TDFEngineReader.ReadVec2: TVec2;
 begin
   Result := FOwner.ReadVec2(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadRectV2: TRectV2;
+function TDFEngineReader.ReadRectV2: TRectV2;
 begin
   Result := FOwner.ReadRectV2(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.ReadPointer: UInt64;
+function TDFEngineReader.ReadPointer: UInt64;
 begin
   Result := FOwner.ReadPointer(FIndex);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadNM(output: TNumberModule);
+procedure TDFEngineReader.ReadNM(output: TNumberModule);
 begin
   FOwner.ReadNM(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.ReadNMPool(output: TNumberModulePool);
+procedure TDFEngineReader.ReadNMPool(output: TNumberModulePool);
 begin
   FOwner.ReadNMPool(FIndex, output);
   inc(FIndex);
 end;
 
-procedure TDataFrameEngineReader.Read(var Buf_; Count_: Int64);
+procedure TDFEngineReader.Read(var Buf_; Count_: Int64);
 begin
   FOwner.Read(FIndex, Buf_, Count_);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.Read: TDataFrameBase;
+function TDFEngineReader.Read: TDFBase;
 begin
   Result := FOwner.Read(FIndex);
   inc(FIndex);
 end;
 
-function TDataFrameEngineReader.Current: TDataFrameBase;
+function TDFEngineReader.Current: TDFBase;
 begin
   Result := FOwner.Read(FIndex);
 end;
 
-function TDataFrameEngine.DataTypeToByte(v: TRunTimeDataType): Byte;
+function TDFE.DataTypeToByte(v: TRunTimeDataType): Byte;
 begin
   Result := Byte(v);
 end;
 
-function TDataFrameEngine.ByteToDataType(v: Byte): TRunTimeDataType;
+function TDFE.ByteToDataType(v: Byte): TRunTimeDataType;
 begin
   Result := TRunTimeDataType(v);
 end;
 
-constructor TDataFrameEngine.Create;
+constructor TDFE.Create;
 begin
   inherited Create;
   FDataList := TCoreClassListForObj.Create;
-  FReader := TDataFrameEngineReader.Create(Self);
+  FReader := TDFEngineReader.Create(Self);
   FCompressorDeflate := nil;
   FCompressorBRRC := nil;
   FIsChanged := False;
 end;
 
-destructor TDataFrameEngine.Destroy;
+destructor TDFE.Destroy;
 begin
   Clear;
   DisposeObject(FDataList);
@@ -2260,10 +2261,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TDataFrameEngine.SwapInstance(source: TDataFrameEngine);
+procedure TDFE.SwapInstance(source: TDFE);
 var
   tmp_DataList: TCoreClassListForObj;
-  tmp_Reader: TDataFrameEngineReader;
+  tmp_Reader: TDFEngineReader;
 begin
   if Self = source then
       exit;
@@ -2279,14 +2280,14 @@ begin
   source.FIsChanged := True;
 end;
 
-procedure TDataFrameEngine.Clear;
+procedure TDFE.Clear;
 var
   i: Integer;
-  Obj: TDataFrameBase;
+  Obj: TDFBase;
 begin
   for i := 0 to FDataList.Count - 1 do
     begin
-      Obj := TDataFrameBase(FDataList[i]);
+      Obj := TDFBase(FDataList[i]);
       try
           DisposeObject(Obj);
       except
@@ -2301,26 +2302,26 @@ begin
   FReader.index := 0;
 end;
 
-function TDataFrameEngine.AddData(v: TRunTimeDataType): TDataFrameBase;
+function TDFE.AddData(v: TRunTimeDataType): TDFBase;
 begin
   case v of
-    rdtString: Result := TDataFrameString.Create(DataTypeToByte(v));
-    rdtInteger: Result := TDataFrameInteger.Create(DataTypeToByte(v));
-    rdtCardinal: Result := TDataFrameCardinal.Create(DataTypeToByte(v));
-    rdtWORD: Result := TDataFrameWord.Create(DataTypeToByte(v));
-    rdtByte: Result := TDataFrameByte.Create(DataTypeToByte(v));
-    rdtSingle: Result := TDataFrameSingle.Create(DataTypeToByte(v));
-    rdtDouble: Result := TDataFrameDouble.Create(DataTypeToByte(v));
-    rdtArrayInteger: Result := TDataFrameArrayInteger.Create(DataTypeToByte(v));
-    rdtArrayShortInt: Result := TDataFrameArrayShortInt.Create(DataTypeToByte(v));
-    rdtArrayByte: Result := TDataFrameArrayByte.Create(DataTypeToByte(v));
-    rdtArraySingle: Result := TDataFrameArraySingle.Create(DataTypeToByte(v));
-    rdtArrayDouble: Result := TDataFrameArrayDouble.Create(DataTypeToByte(v));
-    rdtArrayInt64: Result := TDataFrameArrayInt64.Create(DataTypeToByte(v));
-    rdtStream: Result := TDataFrameStream.Create(DataTypeToByte(v));
-    rdtVariant: Result := TDataFrameVariant.Create(DataTypeToByte(v));
-    rdtInt64: Result := TDataFrameInt64.Create(DataTypeToByte(v));
-    rdtUInt64: Result := TDataFrameUInt64.Create(DataTypeToByte(v));
+    rdtString: Result := TDFString.Create(DataTypeToByte(v));
+    rdtInteger: Result := TDFInteger.Create(DataTypeToByte(v));
+    rdtCardinal: Result := TDFCardinal.Create(DataTypeToByte(v));
+    rdtWORD: Result := TDFWord.Create(DataTypeToByte(v));
+    rdtByte: Result := TDFByte.Create(DataTypeToByte(v));
+    rdtSingle: Result := TDFSingle.Create(DataTypeToByte(v));
+    rdtDouble: Result := TDFDouble.Create(DataTypeToByte(v));
+    rdtArrayInteger: Result := TDFArrayInteger.Create(DataTypeToByte(v));
+    rdtArrayShortInt: Result := TDFArrayShortInt.Create(DataTypeToByte(v));
+    rdtArrayByte: Result := TDFArrayByte.Create(DataTypeToByte(v));
+    rdtArraySingle: Result := TDFArraySingle.Create(DataTypeToByte(v));
+    rdtArrayDouble: Result := TDFArrayDouble.Create(DataTypeToByte(v));
+    rdtArrayInt64: Result := TDFArrayInt64.Create(DataTypeToByte(v));
+    rdtStream: Result := TDFStream.Create(DataTypeToByte(v));
+    rdtVariant: Result := TDFVariant.Create(DataTypeToByte(v));
+    rdtInt64: Result := TDFInt64.Create(DataTypeToByte(v));
+    rdtUInt64: Result := TDFUInt64.Create(DataTypeToByte(v));
     else
       Result := nil;
   end;
@@ -2329,15 +2330,15 @@ begin
   FIsChanged := True;
 end;
 
-function TDataFrameEngine.GetData(index_: Integer): TDataFrameBase;
+function TDFE.GetData(index_: Integer): TDFBase;
 begin
   if (index_ >= 0) and (index_ < FDataList.Count) then
-      Result := TDataFrameBase(FDataList[index_])
+      Result := TDFBase(FDataList[index_])
   else
       Result := nil;
 end;
 
-function TDataFrameEngine.GetDataInfo(Obj_: TDataFrameBase): SystemString;
+function TDFE.GetDataInfo(Obj_: TDFBase): SystemString;
 begin
   case ByteToDataType(Obj_.FID) of
     rdtString: Result := 'SystemString';
@@ -2362,15 +2363,15 @@ begin
   end;
 end;
 
-function TDataFrameEngine.Count: Integer;
+function TDFE.Count: Integer;
 begin
   Result := FDataList.Count;
 end;
 
-function TDataFrameEngine.Delete(index_: Integer): Boolean;
+function TDFE.Delete(index_: Integer): Boolean;
 begin
   try
-    DisposeObject(TDataFrameBase(FDataList[index_]));
+    DisposeObject(TDFBase(FDataList[index_]));
     FDataList.Delete(index_);
     Result := True;
   except
@@ -2378,17 +2379,17 @@ begin
   end;
 end;
 
-function TDataFrameEngine.DeleteFirst: Boolean;
+function TDFE.DeleteFirst: Boolean;
 begin
   Result := Delete(0);
 end;
 
-function TDataFrameEngine.DeleteLast: Boolean;
+function TDFE.DeleteLast: Boolean;
 begin
   Result := Delete(Count - 1);
 end;
 
-function TDataFrameEngine.DeleteLastCount(num_: Integer): Boolean;
+function TDFE.DeleteLastCount(num_: Integer): Boolean;
 begin
   Result := True;
   while num_ > 0 do
@@ -2398,7 +2399,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.DeleteCount(index_, Count_: Integer): Boolean;
+function TDFE.DeleteCount(index_, Count_: Integer): Boolean;
 var
   i: Integer;
 begin
@@ -2407,11 +2408,11 @@ begin
       Result := Result and Delete(index_);
 end;
 
-procedure TDataFrameEngine.Assign(source: TDataFrameEngine);
+procedure TDFE.Assign(source: TDFE);
 var
   m64: TMS64;
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
 begin
   if Self = source then
       exit;
@@ -2428,63 +2429,63 @@ begin
   DisposeObject(m64);
 end;
 
-function TDataFrameEngine.Clone: TDataFrameEngine;
+function TDFE.Clone: TDFE;
 begin
-  Result := TDataFrameEngine.Create;
+  Result := TDFE.Create;
   Result.Assign(Self);
 end;
 
-procedure TDataFrameEngine.WriteString(v: SystemString);
+procedure TDFE.WriteString(v: SystemString);
 var
-  Obj_: TDataFrameString;
+  Obj_: TDFString;
 begin
-  Obj_ := TDataFrameString.Create(DataTypeToByte(rdtString));
+  Obj_ := TDFString.Create(DataTypeToByte(rdtString));
   Obj_.Buffer := umlBytesOf(v);
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteString(v: TPascalString);
+procedure TDFE.WriteString(v: TPascalString);
 var
-  Obj_: TDataFrameString;
+  Obj_: TDFString;
 begin
-  Obj_ := TDataFrameString.Create(DataTypeToByte(rdtString));
+  Obj_ := TDFString.Create(DataTypeToByte(rdtString));
   Obj_.Buffer := v.Bytes;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteString(const Fmt: SystemString; const Args: array of const);
+procedure TDFE.WriteString(const Fmt: SystemString; const Args: array of const);
 begin
   WriteString(PFormat(Fmt, Args));
 end;
 
-procedure TDataFrameEngine.WriteInteger(v: Integer);
+procedure TDFE.WriteInteger(v: Integer);
 var
-  Obj_: TDataFrameInteger;
+  Obj_: TDFInteger;
 begin
-  Obj_ := TDataFrameInteger.Create(DataTypeToByte(rdtInteger));
+  Obj_ := TDFInteger.Create(DataTypeToByte(rdtInteger));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteCardinal(v: Cardinal);
+procedure TDFE.WriteCardinal(v: Cardinal);
 var
-  Obj_: TDataFrameCardinal;
+  Obj_: TDFCardinal;
 begin
-  Obj_ := TDataFrameCardinal.Create(DataTypeToByte(rdtCardinal));
+  Obj_ := TDFCardinal.Create(DataTypeToByte(rdtCardinal));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteWORD(v: Word);
+procedure TDFE.WriteWORD(v: Word);
 var
-  Obj_: TDataFrameWord;
+  Obj_: TDFWord;
 begin
-  Obj_ := TDataFrameWord.Create(DataTypeToByte(rdtWORD));
+  Obj_ := TDFWord.Create(DataTypeToByte(rdtWORD));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteBool(v: Boolean);
+procedure TDFE.WriteBool(v: Boolean);
 begin
   if v then
       WriteByte(1)
@@ -2492,125 +2493,125 @@ begin
       WriteByte(0);
 end;
 
-procedure TDataFrameEngine.WriteBoolean(v: Boolean);
+procedure TDFE.WriteBoolean(v: Boolean);
 begin
   WriteBool(v);
 end;
 
-procedure TDataFrameEngine.WriteByte(v: Byte);
+procedure TDFE.WriteByte(v: Byte);
 var
-  Obj_: TDataFrameByte;
+  Obj_: TDFByte;
 begin
-  Obj_ := TDataFrameByte.Create(DataTypeToByte(rdtByte));
+  Obj_ := TDFByte.Create(DataTypeToByte(rdtByte));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteSingle(v: Single);
+procedure TDFE.WriteSingle(v: Single);
 var
-  Obj_: TDataFrameSingle;
+  Obj_: TDFSingle;
 begin
-  Obj_ := TDataFrameSingle.Create(DataTypeToByte(rdtSingle));
+  Obj_ := TDFSingle.Create(DataTypeToByte(rdtSingle));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteDouble(v: Double);
+procedure TDFE.WriteDouble(v: Double);
 var
-  Obj_: TDataFrameDouble;
+  Obj_: TDFDouble;
 begin
-  Obj_ := TDataFrameDouble.Create(DataTypeToByte(rdtDouble));
+  Obj_ := TDFDouble.Create(DataTypeToByte(rdtDouble));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-function TDataFrameEngine.WriteArrayInteger: TDataFrameArrayInteger;
+function TDFE.WriteArrayInteger: TDFArrayInteger;
 begin
-  Result := TDataFrameArrayInteger.Create(DataTypeToByte(rdtArrayInteger));
+  Result := TDFArrayInteger.Create(DataTypeToByte(rdtArrayInteger));
   FDataList.Add(Result);
 end;
 
-function TDataFrameEngine.WriteArrayShortInt: TDataFrameArrayShortInt;
+function TDFE.WriteArrayShortInt: TDFArrayShortInt;
 begin
-  Result := TDataFrameArrayShortInt.Create(DataTypeToByte(rdtArrayShortInt));
+  Result := TDFArrayShortInt.Create(DataTypeToByte(rdtArrayShortInt));
   FDataList.Add(Result);
 end;
 
-function TDataFrameEngine.WriteArrayByte: TDataFrameArrayByte;
+function TDFE.WriteArrayByte: TDFArrayByte;
 begin
-  Result := TDataFrameArrayByte.Create(DataTypeToByte(rdtArrayByte));
+  Result := TDFArrayByte.Create(DataTypeToByte(rdtArrayByte));
   FDataList.Add(Result);
 end;
 
-procedure TDataFrameEngine.WriteMD5(md5: TMD5);
+procedure TDFE.WriteMD5(md5: TMD5);
 begin
   WriteArrayByte.SetBuff(@md5[0], SizeOf(TMD5));
 end;
 
-function TDataFrameEngine.WriteArraySingle: TDataFrameArraySingle;
+function TDFE.WriteArraySingle: TDFArraySingle;
 begin
-  Result := TDataFrameArraySingle.Create(DataTypeToByte(rdtArraySingle));
+  Result := TDFArraySingle.Create(DataTypeToByte(rdtArraySingle));
   FDataList.Add(Result);
 end;
 
-function TDataFrameEngine.WriteArrayDouble: TDataFrameArrayDouble;
+function TDFE.WriteArrayDouble: TDFArrayDouble;
 begin
-  Result := TDataFrameArrayDouble.Create(DataTypeToByte(rdtArrayDouble));
+  Result := TDFArrayDouble.Create(DataTypeToByte(rdtArrayDouble));
   FDataList.Add(Result);
 end;
 
-function TDataFrameEngine.WriteArrayInt64: TDataFrameArrayInt64;
+function TDFE.WriteArrayInt64: TDFArrayInt64;
 begin
-  Result := TDataFrameArrayInt64.Create(DataTypeToByte(rdtArrayInt64));
+  Result := TDFArrayInt64.Create(DataTypeToByte(rdtArrayInt64));
   FDataList.Add(Result);
 end;
 
-procedure TDataFrameEngine.WriteStream(v: TCoreClassStream);
+procedure TDFE.WriteStream(v: TCoreClassStream);
 var
-  Obj_: TDataFrameStream;
+  Obj_: TDFStream;
 begin
-  Obj_ := TDataFrameStream.Create(DataTypeToByte(rdtStream));
+  Obj_ := TDFStream.Create(DataTypeToByte(rdtStream));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteInstanceStream(v: TMS64);
+procedure TDFE.WriteInstanceStream(v: TMS64);
 var
-  Obj_: TDataFrameStream;
+  Obj_: TDFStream;
 begin
-  Obj_ := TDataFrameStream.Create(DataTypeToByte(rdtStream));
+  Obj_ := TDFStream.Create(DataTypeToByte(rdtStream));
   Obj_.InstanceBuffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteVariant(v: Variant);
+procedure TDFE.WriteVariant(v: Variant);
 var
-  Obj_: TDataFrameVariant;
+  Obj_: TDFVariant;
 begin
-  Obj_ := TDataFrameVariant.Create(DataTypeToByte(rdtVariant));
+  Obj_ := TDFVariant.Create(DataTypeToByte(rdtVariant));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteInt64(v: Int64);
+procedure TDFE.WriteInt64(v: Int64);
 var
-  Obj_: TDataFrameInt64;
+  Obj_: TDFInt64;
 begin
-  Obj_ := TDataFrameInt64.Create(DataTypeToByte(rdtInt64));
+  Obj_ := TDFInt64.Create(DataTypeToByte(rdtInt64));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteUInt64(v: UInt64);
+procedure TDFE.WriteUInt64(v: UInt64);
 var
-  Obj_: TDataFrameUInt64;
+  Obj_: TDFUInt64;
 begin
-  Obj_ := TDataFrameUInt64.Create(DataTypeToByte(rdtUInt64));
+  Obj_ := TDFUInt64.Create(DataTypeToByte(rdtUInt64));
   Obj_.Buffer := v;
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteStrings(v: TCoreClassStrings);
+procedure TDFE.WriteStrings(v: TCoreClassStrings);
 var
   d: TMS64;
 begin
@@ -2625,7 +2626,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.WriteListStrings(v: TListString);
+procedure TDFE.WriteListStrings(v: TListString);
 var
   d: TMS64;
 begin
@@ -2636,7 +2637,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.WritePascalStrings(v: TListPascalString);
+procedure TDFE.WritePascalStrings(v: TListPascalString);
 var
   d: TMS64;
 begin
@@ -2647,34 +2648,34 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.WriteDataFrame(v: TDataFrameEngine);
+procedure TDFE.WriteDataFrame(v: TDFE);
 var
-  Obj_: TDataFrameStream;
+  Obj_: TDFStream;
 begin
-  Obj_ := TDataFrameStream.Create(DataTypeToByte(rdtStream));
+  Obj_ := TDFStream.Create(DataTypeToByte(rdtStream));
   v.FastEncodeTo(Obj_.Buffer);
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteDataFrameCompressed(v: TDataFrameEngine);
+procedure TDFE.WriteDataFrameCompressed(v: TDFE);
 var
-  Obj_: TDataFrameStream;
+  Obj_: TDFStream;
 begin
-  Obj_ := TDataFrameStream.Create(DataTypeToByte(rdtStream));
+  Obj_ := TDFStream.Create(DataTypeToByte(rdtStream));
   v.EncodeAsSelectCompressor(Obj_.Buffer, True);
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteDataFrameZLib(v: TDataFrameEngine);
+procedure TDFE.WriteDataFrameZLib(v: TDFE);
 var
-  Obj_: TDataFrameStream;
+  Obj_: TDFStream;
 begin
-  Obj_ := TDataFrameStream.Create(DataTypeToByte(rdtStream));
+  Obj_ := TDFStream.Create(DataTypeToByte(rdtStream));
   v.EncodeAsZLib(Obj_.Buffer, True);
   FDataList.Add(Obj_);
 end;
 
-procedure TDataFrameEngine.WriteHashStringList(v: THashStringList);
+procedure TDFE.WriteHashStringList(v: THashStringList);
 var
   ms: TMS64;
   h: THashStringTextStream;
@@ -2688,7 +2689,7 @@ begin
   DisposeObject(ms);
 end;
 
-procedure TDataFrameEngine.WriteVariantList(v: THashVariantList);
+procedure TDFE.WriteVariantList(v: THashVariantList);
 var
   ms: TMS64;
   h: THashVariantTextStream;
@@ -2702,7 +2703,7 @@ begin
   DisposeObject(ms);
 end;
 
-procedure TDataFrameEngine.WriteSectionText(v: TSectionTextData);
+procedure TDFE.WriteSectionText(v: TSectionTextData);
 var
   ms: TMS64;
 begin
@@ -2713,17 +2714,17 @@ begin
   DisposeObject(ms);
 end;
 
-procedure TDataFrameEngine.WriteTextSection(v: TSectionTextData);
+procedure TDFE.WriteTextSection(v: TSectionTextData);
 begin
   WriteSectionText(v);
 end;
 
-procedure TDataFrameEngine.WriteJson(v: TZ_JsonObject);
+procedure TDFE.WriteJson(v: TZ_JsonObject);
 begin
   WriteJson(v, False);
 end;
 
-procedure TDataFrameEngine.WriteJson(v: TZ_JsonObject; Formated_: Boolean);
+procedure TDFE.WriteJson(v: TZ_JsonObject; Formated_: Boolean);
 var
   ms: TMS64;
 begin
@@ -2737,7 +2738,7 @@ end;
 {$IFDEF DELPHI}
 
 
-procedure TDataFrameEngine.WriteJson(v: TJsonObject);
+procedure TDFE.WriteJson(v: TJsonObject);
 var
   ms: TMS64;
 begin
@@ -2750,7 +2751,7 @@ end;
 {$ENDIF DELPHI}
 
 
-procedure TDataFrameEngine.WriteFile(fn: SystemString);
+procedure TDFE.WriteFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
@@ -2763,7 +2764,7 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WriteRect(v: TRect);
+procedure TDFE.WriteRect(v: TRect);
 begin
   with WriteArrayInteger do
     begin
@@ -2774,7 +2775,7 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WriteRectf(v: TRectf);
+procedure TDFE.WriteRectf(v: TRectf);
 begin
   with WriteArraySingle do
     begin
@@ -2785,7 +2786,7 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WritePoint(v: TPoint);
+procedure TDFE.WritePoint(v: TPoint);
 begin
   with WriteArrayInteger do
     begin
@@ -2794,7 +2795,7 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WritePointf(v: TPointf);
+procedure TDFE.WritePointf(v: TPointf);
 begin
   with WriteArraySingle do
     begin
@@ -2803,37 +2804,37 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WriteVector(v: TVector);
+procedure TDFE.WriteVector(v: TVector);
 begin
   WriteArraySingle.WriteArray(v);
 end;
 
-procedure TDataFrameEngine.WriteAffineVector(v: TAffineVector);
+procedure TDFE.WriteAffineVector(v: TAffineVector);
 begin
   WriteArraySingle.WriteArray(v);
 end;
 
-procedure TDataFrameEngine.WriteVec4(v: TVec4);
+procedure TDFE.WriteVec4(v: TVec4);
 begin
   WriteArraySingle.WriteArray(v);
 end;
 
-procedure TDataFrameEngine.WriteVec3(v: TVec3);
+procedure TDFE.WriteVec3(v: TVec3);
 begin
   WriteArraySingle.WriteArray(v);
 end;
 
-procedure TDataFrameEngine.WriteVector4(v: TVector4);
+procedure TDFE.WriteVector4(v: TVector4);
 begin
   WriteArraySingle.WriteArray(v.buff);
 end;
 
-procedure TDataFrameEngine.WriteVector3(v: TVector3);
+procedure TDFE.WriteVector3(v: TVector3);
 begin
   WriteArraySingle.WriteArray(v.buff);
 end;
 
-procedure TDataFrameEngine.WriteMat4(v: TMat4);
+procedure TDFE.WriteMat4(v: TMat4);
 begin
   with WriteArraySingle do
     begin
@@ -2844,23 +2845,23 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WriteMatrix4(v: TMatrix4);
+procedure TDFE.WriteMatrix4(v: TMatrix4);
 begin
   WriteMat4(v.buff);
 end;
 
-procedure TDataFrameEngine.Write2DPoint(v: T2DPoint);
+procedure TDFE.Write2DPoint(v: T2DPoint);
 begin
   with WriteArraySingle do
       WriteArray(v);
 end;
 
-procedure TDataFrameEngine.WriteVec2(v: TVec2);
+procedure TDFE.WriteVec2(v: TVec2);
 begin
   Write2DPoint(v);
 end;
 
-procedure TDataFrameEngine.WriteRectV2(v: TRectV2);
+procedure TDFE.WriteRectV2(v: TRectV2);
 begin
   with WriteArraySingle do
     begin
@@ -2869,21 +2870,21 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.WritePointer(v: Pointer);
+procedure TDFE.WritePointer(v: Pointer);
 begin
   WriteUInt64(UInt64(v));
 end;
 
-procedure TDataFrameEngine.WritePointer(v: UInt64);
+procedure TDFE.WritePointer(v: UInt64);
 begin
   WriteUInt64(v);
 end;
 
-procedure TDataFrameEngine.WriteNM(NM: TNumberModule);
+procedure TDFE.WriteNM(NM: TNumberModule);
 var
-  D_: TDataFrameEngine;
+  D_: TDFE;
 begin
-  D_ := TDataFrameEngine.Create;
+  D_ := TDFE.Create;
   D_.WriteString(NM.Name);
   D_.WriteVariant(NM.OriginValue);
   D_.WriteVariant(NM.CurrentValue);
@@ -2891,16 +2892,16 @@ begin
   DisposeObject(D_);
 end;
 
-procedure TDataFrameEngine.WriteNMPool(NMPool: TNumberModulePool);
+procedure TDFE.WriteNMPool(NMPool: TNumberModulePool);
 
 var
-  D_: TDataFrameEngine;
+  D_: TDFE;
 {$IFDEF FPC}
   procedure fpc_progress_(const Name: PSystemString; NM: TNumberModule);
   var
-    Tmp_: TDataFrameEngine;
+    Tmp_: TDFE;
   begin
-    Tmp_ := TDataFrameEngine.Create;
+    Tmp_ := TDFE.Create;
     Tmp_.WriteString(NM.Name);
     Tmp_.WriteVariant(NM.OriginValue);
     Tmp_.WriteVariant(NM.CurrentValue);
@@ -2911,16 +2912,16 @@ var
 
 
 begin
-  D_ := TDataFrameEngine.Create;
+  D_ := TDFE.Create;
 
 {$IFDEF FPC}
   NMPool.List.ProgressP(@fpc_progress_);
 {$ELSE FPC}
   NMPool.List.ProgressP(procedure(const Name: PSystemString; NM: TNumberModule)
     var
-      Tmp_: TDataFrameEngine;
+      Tmp_: TDFE;
     begin
-      Tmp_ := TDataFrameEngine.Create;
+      Tmp_ := TDFE.Create;
       Tmp_.WriteString(NM.Name);
       Tmp_.WriteVariant(NM.OriginValue);
       Tmp_.WriteVariant(NM.CurrentValue);
@@ -2933,7 +2934,7 @@ begin
 end;
 
 // append new stream and write
-procedure TDataFrameEngine.write(const Buf_; Count_: Int64);
+procedure TDFE.write(const Buf_; Count_: Int64);
 var
   s: TMS64;
 begin
@@ -2943,30 +2944,30 @@ begin
   DisposeObject(s);
 end;
 
-function TDataFrameEngine.ReadString(index_: Integer): SystemString;
+function TDFE.ReadString(index_: Integer): SystemString;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
   i: Integer;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameString then
-      Result := umlStringOf(TDataFrameString(Obj_).Buffer).Text
-  else if Obj_ is TDataFrameInteger then
-      Result := IntToStr(TDataFrameInteger(Obj_).Buffer)
-  else if Obj_ is TDataFrameCardinal then
-      Result := IntToStr(TDataFrameCardinal(Obj_).Buffer)
-  else if Obj_ is TDataFrameWord then
-      Result := IntToStr(TDataFrameWord(Obj_).Buffer)
-  else if Obj_ is TDataFrameByte then
-      Result := IntToStr(TDataFrameByte(Obj_).Buffer)
-  else if Obj_ is TDataFrameSingle then
-      Result := FloatToStr(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := FloatToStr(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameArrayInteger then
+  if Obj_ is TDFString then
+      Result := umlStringOf(TDFString(Obj_).Buffer).Text
+  else if Obj_ is TDFInteger then
+      Result := IntToStr(TDFInteger(Obj_).Buffer)
+  else if Obj_ is TDFCardinal then
+      Result := IntToStr(TDFCardinal(Obj_).Buffer)
+  else if Obj_ is TDFWord then
+      Result := IntToStr(TDFWord(Obj_).Buffer)
+  else if Obj_ is TDFByte then
+      Result := IntToStr(TDFByte(Obj_).Buffer)
+  else if Obj_ is TDFSingle then
+      Result := FloatToStr(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := FloatToStr(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFArrayInteger then
     begin
       Result := '(';
-      with TDataFrameArrayInteger(Obj_) do
+      with TDFArrayInteger(Obj_) do
         begin
           for i := 0 to Count - 1 do
             if Result <> '(' then
@@ -2976,10 +2977,10 @@ begin
         end;
       Result := Result + ')';
     end
-  else if Obj_ is TDataFrameArrayShortInt then
+  else if Obj_ is TDFArrayShortInt then
     begin
       Result := '(';
-      with TDataFrameArrayShortInt(Obj_) do
+      with TDFArrayShortInt(Obj_) do
         begin
           for i := 0 to Count - 1 do
             if Result <> '(' then
@@ -2989,10 +2990,10 @@ begin
         end;
       Result := Result + ')';
     end
-  else if Obj_ is TDataFrameArrayByte then
+  else if Obj_ is TDFArrayByte then
     begin
       Result := '(';
-      with TDataFrameArrayByte(Obj_) do
+      with TDFArrayByte(Obj_) do
         begin
           for i := 0 to Count - 1 do
             if Result <> '(' then
@@ -3002,10 +3003,10 @@ begin
         end;
       Result := Result + ')';
     end
-  else if Obj_ is TDataFrameArraySingle then
+  else if Obj_ is TDFArraySingle then
     begin
       Result := '(';
-      with TDataFrameArraySingle(Obj_) do
+      with TDFArraySingle(Obj_) do
         begin
           for i := 0 to Count - 1 do
             if Result <> '(' then
@@ -3015,10 +3016,10 @@ begin
         end;
       Result := Result + ')';
     end
-  else if Obj_ is TDataFrameArrayDouble then
+  else if Obj_ is TDFArrayDouble then
     begin
       Result := '(';
-      with TDataFrameArrayDouble(Obj_) do
+      with TDFArrayDouble(Obj_) do
         begin
           for i := 0 to Count - 1 do
             if Result <> '(' then
@@ -3028,10 +3029,10 @@ begin
         end;
       Result := Result + ')';
     end
-  else if Obj_ is TDataFrameArrayInt64 then
+  else if Obj_ is TDFArrayInt64 then
     begin
       Result := '(';
-      with TDataFrameArrayInt64(Obj_) do
+      with TDFArrayInt64(Obj_) do
         begin
           for i := 0 to Count - 1 do
             if Result <> '(' then
@@ -3041,286 +3042,286 @@ begin
         end;
       Result := Result + ')';
     end
-  else if Obj_ is TDataFrameVariant then
-      Result := umlVarToStr(TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := IntToStr(TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
+  else if Obj_ is TDFVariant then
+      Result := umlVarToStr(TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := IntToStr(TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
 {$IFDEF FPC}
-    Result := IntToStr(TDataFrameUInt64(Obj_).Buffer)
+    Result := IntToStr(TDFUInt64(Obj_).Buffer)
 {$ELSE}
-    Result := UIntToStr(TDataFrameUInt64(Obj_).Buffer)
+    Result := UIntToStr(TDFUInt64(Obj_).Buffer)
 {$ENDIF}
   else
       Result := '';
 end;
 
-function TDataFrameEngine.ReadInteger(index_: Integer): Integer;
+function TDFE.ReadInteger(index_: Integer): Integer;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := umlStrToInt(umlStringOf(TDataFrameString(Obj_).Buffer), 0)
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := Trunc(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := Trunc(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameVariant then
-      Result := (TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
-      Result := (TDataFrameUInt64(Obj_).Buffer)
+  if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := umlStrToInt(umlStringOf(TDFString(Obj_).Buffer), 0)
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := Trunc(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := Trunc(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFVariant then
+      Result := (TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
+      Result := (TDFUInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadCardinal(index_: Integer): Cardinal;
+function TDFE.ReadCardinal(index_: Integer): Cardinal;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := umlStrToInt(umlStringOf(TDataFrameString(Obj_).Buffer), 0)
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := Trunc(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := Trunc(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameVariant then
-      Result := (TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
-      Result := (TDataFrameUInt64(Obj_).Buffer)
+  if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := umlStrToInt(umlStringOf(TDFString(Obj_).Buffer), 0)
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := Trunc(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := Trunc(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFVariant then
+      Result := (TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
+      Result := (TDFUInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadWord(index_: Integer): Word;
+function TDFE.ReadWord(index_: Integer): Word;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := umlStrToInt(umlStringOf(TDataFrameString(Obj_).Buffer), 0)
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := Trunc(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := Trunc(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameVariant then
-      Result := (TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
-      Result := (TDataFrameUInt64(Obj_).Buffer)
+  if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := umlStrToInt(umlStringOf(TDFString(Obj_).Buffer), 0)
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := Trunc(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := Trunc(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFVariant then
+      Result := (TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
+      Result := (TDFUInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadBool(index_: Integer): Boolean;
+function TDFE.ReadBool(index_: Integer): Boolean;
 begin
   Result := ReadByte(index_) = 1;
 end;
 
-function TDataFrameEngine.ReadBoolean(index_: Integer): Boolean;
+function TDFE.ReadBoolean(index_: Integer): Boolean;
 begin
   Result := ReadBool(index_);
 end;
 
-function TDataFrameEngine.ReadByte(index_: Integer): Byte;
+function TDFE.ReadByte(index_: Integer): Byte;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := umlStrToInt(umlStringOf(TDataFrameString(Obj_).Buffer), 0)
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := Trunc(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := Trunc(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameVariant then
-      Result := (TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
-      Result := (TDataFrameUInt64(Obj_).Buffer)
+  if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := umlStrToInt(umlStringOf(TDFString(Obj_).Buffer), 0)
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := Trunc(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := Trunc(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFVariant then
+      Result := (TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
+      Result := (TDFUInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadSingle(index_: Integer): Single;
+function TDFE.ReadSingle(index_: Integer): Single;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameSingle then
-      Result := TDataFrameSingle(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := umlStrToFloat(umlStringOf(TDataFrameString(Obj_).Buffer), 0)
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameDouble then
-      Result := TDataFrameDouble(Obj_).Buffer
-  else if Obj_ is TDataFrameVariant then
-      Result := (TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
-      Result := (TDataFrameUInt64(Obj_).Buffer)
+  if Obj_ is TDFSingle then
+      Result := TDFSingle(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := umlStrToFloat(umlStringOf(TDFString(Obj_).Buffer), 0)
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFDouble then
+      Result := TDFDouble(Obj_).Buffer
+  else if Obj_ is TDFVariant then
+      Result := (TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
+      Result := (TDFUInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadDouble(index_: Integer): Double;
+function TDFE.ReadDouble(index_: Integer): Double;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameDouble then
-      Result := TDataFrameDouble(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := umlStrToFloat(umlStringOf(TDataFrameString(Obj_).Buffer), 0)
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := TDataFrameSingle(Obj_).Buffer
-  else if Obj_ is TDataFrameVariant then
-      Result := (TDataFrameVariant(Obj_).Buffer)
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
-  else if Obj_ is TDataFrameUInt64 then
-      Result := (TDataFrameUInt64(Obj_).Buffer)
+  if Obj_ is TDFDouble then
+      Result := TDFDouble(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := umlStrToFloat(umlStringOf(TDFString(Obj_).Buffer), 0)
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := TDFSingle(Obj_).Buffer
+  else if Obj_ is TDFVariant then
+      Result := (TDFVariant(Obj_).Buffer)
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
+  else if Obj_ is TDFUInt64 then
+      Result := (TDFUInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadArrayInteger(index_: Integer): TDataFrameArrayInteger;
+function TDFE.ReadArrayInteger(index_: Integer): TDFArrayInteger;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameArrayInteger then
-      Result := TDataFrameArrayInteger(Obj_)
+  if Obj_ is TDFArrayInteger then
+      Result := TDFArrayInteger(Obj_)
   else
       Result := nil;
 end;
 
-function TDataFrameEngine.ReadArrayShortInt(index_: Integer): TDataFrameArrayShortInt;
+function TDFE.ReadArrayShortInt(index_: Integer): TDFArrayShortInt;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameArrayShortInt then
-      Result := TDataFrameArrayShortInt(Obj_)
+  if Obj_ is TDFArrayShortInt then
+      Result := TDFArrayShortInt(Obj_)
   else
       Result := nil;
 end;
 
-function TDataFrameEngine.ReadArrayByte(index_: Integer): TDataFrameArrayByte;
+function TDFE.ReadArrayByte(index_: Integer): TDFArrayByte;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameArrayByte then
-      Result := TDataFrameArrayByte(Obj_)
+  if Obj_ is TDFArrayByte then
+      Result := TDFArrayByte(Obj_)
   else
       Result := nil;
 end;
 
-function TDataFrameEngine.ReadMD5(index_: Integer): TMD5;
+function TDFE.ReadMD5(index_: Integer): TMD5;
 begin
   with ReadArrayByte(index_) do
       GetBuff(@Result[0]);
 end;
 
-function TDataFrameEngine.ReadArraySingle(index_: Integer): TDataFrameArraySingle;
+function TDFE.ReadArraySingle(index_: Integer): TDFArraySingle;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameArraySingle then
-      Result := TDataFrameArraySingle(Obj_)
+  if Obj_ is TDFArraySingle then
+      Result := TDFArraySingle(Obj_)
   else
       Result := nil;
 end;
 
-function TDataFrameEngine.ReadArrayDouble(index_: Integer): TDataFrameArrayDouble;
+function TDFE.ReadArrayDouble(index_: Integer): TDFArrayDouble;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameArrayDouble then
-      Result := TDataFrameArrayDouble(Obj_)
+  if Obj_ is TDFArrayDouble then
+      Result := TDFArrayDouble(Obj_)
   else
       Result := nil;
 end;
 
-function TDataFrameEngine.ReadArrayInt64(index_: Integer): TDataFrameArrayInt64;
+function TDFE.ReadArrayInt64(index_: Integer): TDFArrayInt64;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameArrayInt64 then
-      Result := TDataFrameArrayInt64(Obj_)
+  if Obj_ is TDFArrayInt64 then
+      Result := TDFArrayInt64(Obj_)
   else
       Result := nil;
 end;
 
-procedure TDataFrameEngine.ReadStream(index_: Integer; output: TCoreClassStream);
+procedure TDFE.ReadStream(index_: Integer; output: TCoreClassStream);
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
   LNeedResetPos: Boolean;
 begin
   Obj_ := Data[index_];
   LNeedResetPos := output.Size = 0;
-  if Obj_ is TDataFrameStream then
+  if Obj_ is TDFStream then
     begin
-      with TDataFrameStream(Obj_) do
+      with TDFStream(Obj_) do
         begin
           Buffer.Position := 0;
           output.CopyFrom(Buffer, Buffer.Size);
@@ -3335,88 +3336,88 @@ begin
       output.Position := 0;
 end;
 
-function TDataFrameEngine.ReadVariant(index_: Integer): Variant;
+function TDFE.ReadVariant(index_: Integer): Variant;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameVariant then
-      Result := TDataFrameVariant(Obj_).Buffer
-  else if Obj_ is TDataFrameString then
-      Result := TDataFrameString(Obj_).Buffer
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := TDataFrameSingle(Obj_).Buffer
-  else if Obj_ is TDataFrameDouble then
-      Result := TDataFrameDouble(Obj_).Buffer
-  else if Obj_ is TDataFrameInt64 then
-      Result := (TDataFrameInt64(Obj_).Buffer)
+  if Obj_ is TDFVariant then
+      Result := TDFVariant(Obj_).Buffer
+  else if Obj_ is TDFString then
+      Result := TDFString(Obj_).Buffer
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := TDFSingle(Obj_).Buffer
+  else if Obj_ is TDFDouble then
+      Result := TDFDouble(Obj_).Buffer
+  else if Obj_ is TDFInt64 then
+      Result := (TDFInt64(Obj_).Buffer)
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadInt64(index_: Integer): Int64;
+function TDFE.ReadInt64(index_: Integer): Int64;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameInt64 then
-      Result := TDataFrameInt64(Obj_).Buffer
-  else if Obj_ is TDataFrameUInt64 then
-      Result := TDataFrameUInt64(Obj_).Buffer
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := Trunc(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := Trunc(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameVariant then
-      Result := TDataFrameVariant(Obj_).Buffer
+  if Obj_ is TDFInt64 then
+      Result := TDFInt64(Obj_).Buffer
+  else if Obj_ is TDFUInt64 then
+      Result := TDFUInt64(Obj_).Buffer
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := Trunc(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := Trunc(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFVariant then
+      Result := TDFVariant(Obj_).Buffer
   else
       Result := 0;
 end;
 
-function TDataFrameEngine.ReadUInt64(index_: Integer): UInt64;
+function TDFE.ReadUInt64(index_: Integer): UInt64;
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameUInt64 then
-      Result := TDataFrameUInt64(Obj_).Buffer
-  else if Obj_ is TDataFrameInt64 then
-      Result := TDataFrameInt64(Obj_).Buffer
-  else if Obj_ is TDataFrameInteger then
-      Result := TDataFrameInteger(Obj_).Buffer
-  else if Obj_ is TDataFrameCardinal then
-      Result := TDataFrameCardinal(Obj_).Buffer
-  else if Obj_ is TDataFrameWord then
-      Result := TDataFrameWord(Obj_).Buffer
-  else if Obj_ is TDataFrameByte then
-      Result := TDataFrameByte(Obj_).Buffer
-  else if Obj_ is TDataFrameSingle then
-      Result := Trunc(TDataFrameSingle(Obj_).Buffer)
-  else if Obj_ is TDataFrameDouble then
-      Result := Trunc(TDataFrameDouble(Obj_).Buffer)
-  else if Obj_ is TDataFrameVariant then
-      Result := TDataFrameVariant(Obj_).Buffer
+  if Obj_ is TDFUInt64 then
+      Result := TDFUInt64(Obj_).Buffer
+  else if Obj_ is TDFInt64 then
+      Result := TDFInt64(Obj_).Buffer
+  else if Obj_ is TDFInteger then
+      Result := TDFInteger(Obj_).Buffer
+  else if Obj_ is TDFCardinal then
+      Result := TDFCardinal(Obj_).Buffer
+  else if Obj_ is TDFWord then
+      Result := TDFWord(Obj_).Buffer
+  else if Obj_ is TDFByte then
+      Result := TDFByte(Obj_).Buffer
+  else if Obj_ is TDFSingle then
+      Result := Trunc(TDFSingle(Obj_).Buffer)
+  else if Obj_ is TDFDouble then
+      Result := Trunc(TDFDouble(Obj_).Buffer)
+  else if Obj_ is TDFVariant then
+      Result := TDFVariant(Obj_).Buffer
   else
       Result := 0;
 end;
 
-procedure TDataFrameEngine.ReadStrings(index_: Integer; output: TCoreClassStrings);
+procedure TDFE.ReadStrings(index_: Integer; output: TCoreClassStrings);
 var
   d: TMS64;
 begin
@@ -3432,7 +3433,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.ReadListStrings(index_: Integer; output: TListString);
+procedure TDFE.ReadListStrings(index_: Integer; output: TListString);
 var
   d: TMS64;
 begin
@@ -3444,7 +3445,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.ReadPascalStrings(index_: Integer; output: TListPascalString);
+procedure TDFE.ReadPascalStrings(index_: Integer; output: TListPascalString);
 var
   d: TMS64;
 begin
@@ -3456,17 +3457,17 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.ReadDataFrame(index_: Integer; output: TDataFrameEngine);
+procedure TDFE.ReadDataFrame(index_: Integer; output: TDFE);
 var
-  Obj_: TDataFrameBase;
+  Obj_: TDFBase;
   d: TMS64;
 begin
   Obj_ := Data[index_];
-  if Obj_ is TDataFrameStream then
+  if Obj_ is TDFStream then
     begin
-      TDataFrameStream(Obj_).Buffer.Position := 0;
-      output.DecodeFrom(TDataFrameStream(Obj_).Buffer, True);
-      TDataFrameStream(Obj_).Buffer.Position := 0;
+      TDFStream(Obj_).Buffer.Position := 0;
+      output.DecodeFrom(TDFStream(Obj_).Buffer, True);
+      TDFStream(Obj_).Buffer.Position := 0;
     end
   else
     begin
@@ -3478,7 +3479,7 @@ begin
     end;
 end;
 
-procedure TDataFrameEngine.ReadHashStringList(index_: Integer; output: THashStringList);
+procedure TDFE.ReadHashStringList(index_: Integer; output: THashStringList);
 var
   d: TMS64;
   h: THashStringTextStream;
@@ -3492,7 +3493,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.ReadVariantList(index_: Integer; output: THashVariantList);
+procedure TDFE.ReadVariantList(index_: Integer; output: THashVariantList);
 var
   d: TMS64;
   h: THashVariantTextStream;
@@ -3506,7 +3507,7 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.ReadSectionText(index_: Integer; output: TSectionTextData);
+procedure TDFE.ReadSectionText(index_: Integer; output: TSectionTextData);
 var
   d: TMS64;
 begin
@@ -3517,12 +3518,12 @@ begin
   DisposeObject(d);
 end;
 
-procedure TDataFrameEngine.ReadTextSection(index_: Integer; output: TSectionTextData);
+procedure TDFE.ReadTextSection(index_: Integer; output: TSectionTextData);
 begin
   ReadSectionText(index_, output);
 end;
 
-procedure TDataFrameEngine.ReadJson(index_: Integer; output: TZ_JsonObject);
+procedure TDFE.ReadJson(index_: Integer; output: TZ_JsonObject);
 var
   d: TMS64;
 begin
@@ -3537,7 +3538,7 @@ end;
 {$IFDEF DELPHI}
 
 
-procedure TDataFrameEngine.ReadJson(index_: Integer; output: TJsonObject);
+procedure TDFE.ReadJson(index_: Integer; output: TJsonObject);
 var
   d: TMS64;
 begin
@@ -3551,7 +3552,7 @@ end;
 {$ENDIF DELPHI}
 
 
-function TDataFrameEngine.ReadRect(index_: Integer): TRect;
+function TDFE.ReadRect(index_: Integer): TRect;
 begin
   with ReadArrayInteger(index_) do
     begin
@@ -3559,7 +3560,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadRectf(index_: Integer): TRectf;
+function TDFE.ReadRectf(index_: Integer): TRectf;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3567,7 +3568,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadPoint(index_: Integer): TPoint;
+function TDFE.ReadPoint(index_: Integer): TPoint;
 begin
   with ReadArrayInteger(index_) do
     begin
@@ -3575,7 +3576,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadPointf(index_: Integer): TPointf;
+function TDFE.ReadPointf(index_: Integer): TPointf;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3583,7 +3584,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadVector(index_: Integer): TVector;
+function TDFE.ReadVector(index_: Integer): TVector;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3594,7 +3595,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadAffineVector(index_: Integer): TAffineVector;
+function TDFE.ReadAffineVector(index_: Integer): TAffineVector;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3604,7 +3605,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadVec3(index_: Integer): TVec3;
+function TDFE.ReadVec3(index_: Integer): TVec3;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3614,7 +3615,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadVec4(index_: Integer): TVec4;
+function TDFE.ReadVec4(index_: Integer): TVec4;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3625,7 +3626,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadVector3(index_: Integer): TVector3;
+function TDFE.ReadVector3(index_: Integer): TVector3;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3633,7 +3634,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadVector4(index_: Integer): TVector4;
+function TDFE.ReadVector4(index_: Integer): TVector4;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3641,7 +3642,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadMat4(index_: Integer): TMat4;
+function TDFE.ReadMat4(index_: Integer): TMat4;
 var
   i, j: Integer;
 begin
@@ -3653,12 +3654,12 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadMatrix4(index_: Integer): TMatrix4;
+function TDFE.ReadMatrix4(index_: Integer): TMatrix4;
 begin
   Result.buff := ReadMat4(index_);
 end;
 
-function TDataFrameEngine.Read2DPoint(index_: Integer): T2DPoint;
+function TDFE.Read2DPoint(index_: Integer): T2DPoint;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3667,12 +3668,12 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadVec2(index_: Integer): TVec2;
+function TDFE.ReadVec2(index_: Integer): TVec2;
 begin
   Result := Read2DPoint(index_);
 end;
 
-function TDataFrameEngine.ReadRectV2(index_: Integer): TRectV2;
+function TDFE.ReadRectV2(index_: Integer): TRectV2;
 begin
   with ReadArraySingle(index_) do
     begin
@@ -3683,16 +3684,16 @@ begin
     end;
 end;
 
-function TDataFrameEngine.ReadPointer(index_: Integer): UInt64;
+function TDFE.ReadPointer(index_: Integer): UInt64;
 begin
   Result := ReadUInt64(index_);
 end;
 
-procedure TDataFrameEngine.ReadNM(index_: Integer; output: TNumberModule);
+procedure TDFE.ReadNM(index_: Integer; output: TNumberModule);
 var
-  D_: TDataFrameEngine;
+  D_: TDFE;
 begin
-  D_ := TDataFrameEngine.Create;
+  D_ := TDFE.Create;
   ReadDataFrame(index_, D_);
   output.Name := D_.Reader.ReadString;
   output.DirectOriginValue := D_.Reader.ReadVariant;
@@ -3700,20 +3701,20 @@ begin
   DisposeObject(D_);
 end;
 
-procedure TDataFrameEngine.ReadNMPool(index_: Integer; output: TNumberModulePool);
+procedure TDFE.ReadNMPool(index_: Integer; output: TNumberModulePool);
 var
-  D_, Tmp_: TDataFrameEngine;
+  D_, Tmp_: TDFE;
   DM: TNumberModule;
   N_: SystemString;
   L_: TCoreClassListForObj;
   i: Integer;
 begin
   L_ := TCoreClassListForObj.Create;
-  D_ := TDataFrameEngine.Create;
+  D_ := TDFE.Create;
   ReadDataFrame(index_, D_);
   while D_.Reader.NotEnd do
     begin
-      Tmp_ := TDataFrameEngine.Create;
+      Tmp_ := TDFE.Create;
       D_.Reader.ReadDataFrame(Tmp_);
       N_ := Tmp_.Reader.ReadString;
       DM := output[N_];
@@ -3732,7 +3733,7 @@ begin
   DisposeObject(L_);
 end;
 
-procedure TDataFrameEngine.Read(index_: Integer; var Buf_; Count_: Int64);
+procedure TDFE.Read(index_: Integer; var Buf_; Count_: Int64);
 var
   s: TMS64;
 begin
@@ -3742,12 +3743,12 @@ begin
   DisposeObject(s);
 end;
 
-function TDataFrameEngine.Read(index_: Integer): TDataFrameBase;
+function TDFE.Read(index_: Integer): TDFBase;
 begin
   Result := Data[index_];
 end;
 
-function TDataFrameEngine.ComputeEncodeSize: Int64;
+function TDFE.ComputeEncodeSize: Int64;
 var
   i: Integer;
 begin
@@ -3756,7 +3757,7 @@ begin
       Result := Result + C_Byte_Size + GetData(i).ComputeEncodeSize;
 end;
 
-class procedure TDataFrameEngine.BuildEmptyStream(output: TCoreClassStream);
+class procedure TDFE.BuildEmptyStream(output: TCoreClassStream);
 type
   THead32_ = packed record
     editionToken: Byte;
@@ -3777,7 +3778,7 @@ begin
   output.write(head_, SizeOf(THead32_));
 end;
 
-function TDataFrameEngine.FastEncode32To(output: TCoreClassStream; sizeInfo32: Cardinal): Integer;
+function TDFE.FastEncode32To(output: TCoreClassStream; sizeInfo32: Cardinal): Integer;
 type
   THead32_ = packed record
     editionToken: Byte;
@@ -3788,7 +3789,7 @@ type
 var
   head_: THead32_;
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   ID: Byte;
 begin
   Result := Count;
@@ -3819,7 +3820,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.FastEncode64To(output: TCoreClassStream; sizeInfo64: Int64): Integer;
+function TDFE.FastEncode64To(output: TCoreClassStream; sizeInfo64: Int64): Integer;
 type
   THead64_ = packed record
     editionToken: Byte;
@@ -3830,7 +3831,7 @@ type
 var
   head_: THead64_;
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   ID: Byte;
 begin
   Result := Count;
@@ -3861,7 +3862,7 @@ begin
     end;
 end;
 
-function TDataFrameEngine.FastEncodeTo(output: TCoreClassStream): Integer;
+function TDFE.FastEncodeTo(output: TCoreClassStream): Integer;
 var
   sizeInfo64: Int64;
 begin
@@ -3872,10 +3873,10 @@ begin
       Result := FastEncode32To(output, sizeInfo64);
 end;
 
-function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode, AutoCompressed: Boolean): Integer;
+function TDFE.EncodeTo(output: TCoreClassStream; const FastMode, AutoCompressed: Boolean): Integer;
 var
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   StoreStream, nStream: TMS64;
   ID: Byte;
 
@@ -3959,17 +3960,17 @@ begin
   DisposeObject(StoreStream);
 end;
 
-function TDataFrameEngine.EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.EncodeTo(output: TCoreClassStream; const FastMode: Boolean): Integer;
 begin
   Result := EncodeTo(output, FastMode, True);
 end;
 
-function TDataFrameEngine.EncodeTo(output: TCoreClassStream): Integer;
+function TDFE.EncodeTo(output: TCoreClassStream): Integer;
 begin
   Result := EncodeTo(output, False);
 end;
 
-procedure TDataFrameEngine.Encrypt(output: TCoreClassStream; Compressed_: Boolean; SecurityLevel: Integer; Key: TCipherKeyBuffer);
+procedure TDFE.Encrypt(output: TCoreClassStream; Compressed_: Boolean; SecurityLevel: Integer; Key: TCipherKeyBuffer);
 var
   m64: TMS64;
 begin
@@ -3983,7 +3984,7 @@ begin
   DisposeObject(m64);
 end;
 
-function TDataFrameEngine.Decrypt(input: TCoreClassStream; Key: TCipherKeyBuffer): Boolean;
+function TDFE.Decrypt(input: TCoreClassStream; Key: TCipherKeyBuffer): Boolean;
 var
   m64: TMS64;
 begin
@@ -3998,7 +3999,7 @@ begin
   DisposeObject(m64);
 end;
 
-procedure TDataFrameEngine.EncodeAsPublicJson(var output: TPascalString);
+procedure TDFE.EncodeAsPublicJson(var output: TPascalString);
 var
   m64: TMS64;
   buff: TBytes;
@@ -4012,18 +4013,18 @@ begin
   SetLength(buff, 0);
 end;
 
-procedure TDataFrameEngine.EncodeAsPublicJson(output: TCoreClassStream);
+procedure TDFE.EncodeAsPublicJson(output: TCoreClassStream);
 var
   j: TZ_JsonObject;
   i: Integer;
 begin
   j := TZ_JsonObject.Create;
-  j.s['help'] := 'This JSON with TDataFrameEngine encode';
+  j.s['help'] := 'This JSON with TDFE encode';
 
   for i := 0 to Count - 1 do
     begin
-      j.a['Ref'].Add(TDataFrameBase(FDataList[i]).FID);
-      TDataFrameBase(FDataList[i]).SaveToJson(j.a['Data'], i);
+      j.a['Ref'].Add(TDFBase(FDataList[i]).FID);
+      TDFBase(FDataList[i]).SaveToJson(j.a['Data'], i);
     end;
 
   j.SaveToStream(output, True);
@@ -4031,17 +4032,17 @@ begin
   DisposeObject(j);
 end;
 
-procedure TDataFrameEngine.EncodeAsJson(output: TCoreClassStream);
+procedure TDFE.EncodeAsJson(output: TCoreClassStream);
 var
   j: TZ_JsonObject;
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
 begin
   j := TZ_JsonObject.Create;
 
   for i := 0 to Count - 1 do
     begin
-      DataFrame_ := TDataFrameBase(FDataList[i]);
+      DataFrame_ := TDFBase(FDataList[i]);
       DataFrame_.SaveToJson(j.a['Data'], i);
       j.a['Ref'].Add(DataFrame_.FID);
     end;
@@ -4051,26 +4052,26 @@ begin
   DisposeObject(j);
 end;
 
-procedure TDataFrameEngine.EncodeAsJson(json: TZ_JsonObject);
+procedure TDFE.EncodeAsJson(json: TZ_JsonObject);
 var
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
 begin
   json.Clear;
   for i := 0 to Count - 1 do
     begin
-      DataFrame_ := TDataFrameBase(FDataList[i]);
+      DataFrame_ := TDFBase(FDataList[i]);
       DataFrame_.SaveToJson(json.a['Data'], i);
       json.a['Ref'].Add(DataFrame_.FID);
     end;
 end;
 
-procedure TDataFrameEngine.DecodeFromJson(stream: TCoreClassStream);
+procedure TDFE.DecodeFromJson(stream: TCoreClassStream);
 var
   j: TZ_JsonObject;
   t: Byte;
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
 begin
   Clear;
   j := TZ_JsonObject.Create;
@@ -4096,7 +4097,7 @@ begin
   DisposeObject(j);
 end;
 
-procedure TDataFrameEngine.DecodeFromJson(const s: TPascalString);
+procedure TDFE.DecodeFromJson(const s: TPascalString);
 var
   buff: TBytes;
   m64: TMS64;
@@ -4110,11 +4111,11 @@ begin
   SetLength(buff, 0);
 end;
 
-procedure TDataFrameEngine.DecodeFromJson(json: TZ_JsonObject);
+procedure TDFE.DecodeFromJson(json: TZ_JsonObject);
 var
   t: Byte;
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
 begin
   Clear;
 
@@ -4126,10 +4127,10 @@ begin
     end;
 end;
 
-function TDataFrameEngine.EncodeAsSelectCompressor(scm: TSelectCompressionMethod; output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.EncodeAsSelectCompressor(scm: TSelectCompressionMethod; output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   StoreStream, nStream, compStream: TMS64;
   ID: Byte;
 
@@ -4217,7 +4218,7 @@ begin
   DisposeObject(compStream);
 end;
 
-function TDataFrameEngine.EncodeAsSelectCompressor(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.EncodeAsSelectCompressor(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   scm: TSelectCompressionMethod;
 begin
@@ -4233,15 +4234,15 @@ begin
       Result := EncodeAsZLib(output, FastMode);
 end;
 
-function TDataFrameEngine.EncodeAsSelectCompressor(output: TCoreClassStream): Integer;
+function TDFE.EncodeAsSelectCompressor(output: TCoreClassStream): Integer;
 begin
   Result := EncodeAsSelectCompressor(output, False);
 end;
 
-function TDataFrameEngine.EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.EncodeAsZLib(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   StoreStream, nStream, compStream: TMS64;
   ZCompStream: TCompressionStream;
   ID: Byte;
@@ -4340,15 +4341,15 @@ begin
   DisposeObject(compStream);
 end;
 
-function TDataFrameEngine.EncodeAsZLib(output: TCoreClassStream): Integer;
+function TDFE.EncodeAsZLib(output: TCoreClassStream): Integer;
 begin
   Result := EncodeAsZLib(output, False);
 end;
 
-function TDataFrameEngine.EncodeAsDeflate(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.EncodeAsDeflate(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   StoreStream, nStream, compStream: TMS64;
   ID: Byte;
 
@@ -4448,15 +4449,15 @@ begin
   DisposeObject(compStream);
 end;
 
-function TDataFrameEngine.EncodeAsDeflate(output: TCoreClassStream): Integer;
+function TDFE.EncodeAsDeflate(output: TCoreClassStream): Integer;
 begin
   Result := EncodeAsDeflate(output, False);
 end;
 
-function TDataFrameEngine.EncodeAsBRRC(output: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.EncodeAsBRRC(output: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i: Integer;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
   StoreStream, nStream, compStream: TMS64;
   ID: Byte;
 
@@ -4556,12 +4557,12 @@ begin
   DisposeObject(compStream);
 end;
 
-function TDataFrameEngine.EncodeAsBRRC(output: TCoreClassStream): Integer;
+function TDFE.EncodeAsBRRC(output: TCoreClassStream): Integer;
 begin
   Result := EncodeAsBRRC(output, False);
 end;
 
-function TDataFrameEngine.IsCompressed(source: TCoreClassStream): Boolean;
+function TDFE.IsCompressed(source: TCoreClassStream): Boolean;
 var
   bakPos: Int64;
 
@@ -4595,13 +4596,13 @@ begin
   source.Position := bakPos;
 end;
 
-function TDataFrameEngine.DecodeFrom(source: TCoreClassStream; const FastMode: Boolean): Integer;
+function TDFE.DecodeFrom(source: TCoreClassStream; const FastMode: Boolean): Integer;
 var
   i, num_: Integer;
   ID: Byte;
   StoreStream: TMS64;
   ZDecompStream: TDecompressionStream;
-  DataFrame_: TDataFrameBase;
+  DataFrame_: TDFBase;
 
   editionToken: Byte;
   sizeInfo32: Cardinal;
@@ -4782,12 +4783,12 @@ begin
     end;
 end;
 
-function TDataFrameEngine.DecodeFrom(source: TCoreClassStream): Integer;
+function TDFE.DecodeFrom(source: TCoreClassStream): Integer;
 begin
   Result := DecodeFrom(source, False);
 end;
 
-procedure TDataFrameEngine.EncodeToBytes(const Compressed, FastMode: Boolean; var output: TBytes);
+procedure TDFE.EncodeToBytes(const Compressed, FastMode: Boolean; var output: TBytes);
 var
   enStream: TMS64;
 begin
@@ -4802,12 +4803,12 @@ begin
   DisposeObject(enStream);
 end;
 
-procedure TDataFrameEngine.DecodeFromBytes(var buff: TBytes);
+procedure TDFE.DecodeFromBytes(var buff: TBytes);
 begin
   DecodeFromBytes(buff, False);
 end;
 
-procedure TDataFrameEngine.DecodeFromBytes(var buff: TBytes; const FastMode: Boolean);
+procedure TDFE.DecodeFromBytes(var buff: TBytes; const FastMode: Boolean);
 var
   enStream: TMS64;
 begin
@@ -4817,7 +4818,7 @@ begin
   DisposeObject(enStream);
 end;
 
-function TDataFrameEngine.GetMD5(const FastMode: Boolean): TMD5;
+function TDFE.GetMD5(const FastMode: Boolean): TMD5;
 var
   enStream: TMS64;
 begin
@@ -4828,7 +4829,7 @@ begin
   DisposeObject(enStream);
 end;
 
-function TDataFrameEngine.Compare(source: TDataFrameEngine): Boolean;
+function TDFE.Compare(source: TDFE): Boolean;
 var
   i: Integer;
   s1, s2: TMS64;
@@ -4845,15 +4846,15 @@ begin
       begin
         if FDataList[i].ClassType <> source[i].ClassType then
             exit;
-        if TDataFrameBase(FDataList[i]).FID <> TDataFrameBase(source[i]).FID then
+        if TDFBase(FDataList[i]).FID <> TDFBase(source[i]).FID then
             exit;
-        if TDataFrameBase(FDataList[i]).ComputeEncodeSize <> TDataFrameBase(source[i]).ComputeEncodeSize then
+        if TDFBase(FDataList[i]).ComputeEncodeSize <> TDFBase(source[i]).ComputeEncodeSize then
             exit;
 
         s1.Clear;
         s2.Clear;
-        TDataFrameBase(FDataList[i]).SaveToStream(s1);
-        TDataFrameBase(source[i]).SaveToStream(s2);
+        TDFBase(FDataList[i]).SaveToStream(s1);
+        TDFBase(source[i]).SaveToStream(s2);
         if s1.Size <> s2.Size then
             exit;
         if not CompareMemory(s1.Memory, s2.Memory, s1.Size) then
@@ -4868,7 +4869,7 @@ begin
   end;
 end;
 
-procedure TDataFrameEngine.LoadFromStream(stream: TCoreClassStream);
+procedure TDFE.LoadFromStream(stream: TCoreClassStream);
 begin
   try
       DecodeFrom(stream);
@@ -4876,7 +4877,7 @@ begin
   end;
 end;
 
-procedure TDataFrameEngine.SaveToStream(stream: TCoreClassStream);
+procedure TDFE.SaveToStream(stream: TCoreClassStream);
 var
   siz: Integer;
 begin
@@ -4890,7 +4891,7 @@ begin
   end;
 end;
 
-procedure TDataFrameEngine.LoadFromFile(fileName_: U_String);
+procedure TDFE.LoadFromFile(fileName_: U_String);
 var
   fs: TCoreClassFileStream;
 begin
@@ -4899,7 +4900,7 @@ begin
   DisposeObject(fs);
 end;
 
-procedure TDataFrameEngine.SaveToFile(fileName_: U_String);
+procedure TDFE.SaveToFile(fileName_: U_String);
 var
   fs: TCoreClassFileStream;
 begin
@@ -4911,7 +4912,7 @@ end;
 constructor TDataWriter.Create(Stream_: TCoreClassStream);
 begin
   inherited Create;
-  FEngine := TDataFrameEngine.Create;
+  FEngine := TDFE.Create;
   FStream := Stream_;
 end;
 
@@ -5064,12 +5065,12 @@ begin
   FEngine.WritePascalStrings(v);
 end;
 
-procedure TDataWriter.WriteDataFrame(v: TDataFrameEngine);
+procedure TDataWriter.WriteDataFrame(v: TDFE);
 begin
   FEngine.WriteDataFrame(v);
 end;
 
-procedure TDataWriter.WriteDataFrameCompressed(v: TDataFrameEngine);
+procedure TDataWriter.WriteDataFrameCompressed(v: TDFE);
 begin
   FEngine.WriteDataFrameCompressed(v);
 end;
@@ -5207,7 +5208,7 @@ var
   M: TMS64;
 begin
   inherited Create;
-  FEngine := TDataFrameEngine.Create;
+  FEngine := TDFE.Create;
   if Stream_ <> nil then
     begin
       // read version flag
@@ -5285,7 +5286,7 @@ end;
 procedure TDataReader.ReadArrayInteger(var Data: array of Integer);
 var
   i: Integer;
-  rb: TDataFrameArrayInteger;
+  rb: TDFArrayInteger;
 begin
   rb := FEngine.Reader.ReadArrayInteger;
   for i := low(Data) to high(Data) do
@@ -5295,7 +5296,7 @@ end;
 procedure TDataReader.ReadArrayShortInt(var Data: array of ShortInt);
 var
   i: Integer;
-  rb: TDataFrameArrayShortInt;
+  rb: TDFArrayShortInt;
 begin
   rb := FEngine.Reader.ReadArrayShortInt;
   for i := low(Data) to high(Data) do
@@ -5305,7 +5306,7 @@ end;
 procedure TDataReader.ReadArrayByte(var Data: array of Byte);
 var
   i: Integer;
-  rb: TDataFrameArrayByte;
+  rb: TDFArrayByte;
 begin
   rb := FEngine.Reader.ReadArrayByte;
   for i := low(Data) to high(Data) do
@@ -5315,7 +5316,7 @@ end;
 procedure TDataReader.ReadArraySingle(var Data: array of Single);
 var
   i: Integer;
-  rb: TDataFrameArraySingle;
+  rb: TDFArraySingle;
 begin
   rb := FEngine.Reader.ReadArraySingle;
   for i := low(Data) to high(Data) do
@@ -5325,7 +5326,7 @@ end;
 procedure TDataReader.ReadArrayDouble(var Data: array of Double);
 var
   i: Integer;
-  rb: TDataFrameArrayDouble;
+  rb: TDFArrayDouble;
 begin
   rb := FEngine.Reader.ReadArrayDouble;
   for i := low(Data) to high(Data) do
@@ -5335,7 +5336,7 @@ end;
 procedure TDataReader.ReadArrayInt64(var Data: array of Int64);
 var
   i: Integer;
-  rb: TDataFrameArrayInt64;
+  rb: TDFArrayInt64;
 begin
   rb := FEngine.Reader.ReadArrayInt64;
   for i := low(Data) to high(Data) do
@@ -5377,7 +5378,7 @@ begin
   FEngine.Reader.ReadPascalStrings(output);
 end;
 
-procedure TDataReader.ReadDataFrame(output: TDataFrameEngine);
+procedure TDataReader.ReadDataFrame(output: TDFE);
 begin
   FEngine.Reader.ReadDataFrame(output);
 end;

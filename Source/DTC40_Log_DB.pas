@@ -323,7 +323,7 @@ end;
 procedure TDTC40_Log_DB_Service.cmd_RemoveLog(Sender: TPeerIO; InData: TDFE);
 var
   LogDB: SystemString;
-  arry: TDataFrameArrayInteger;
+  arry: TDFArrayInteger;
   db_: TDTC40_ZDB2_List_HashString;
   L: TCoreClassListForObj;
   i: Integer;

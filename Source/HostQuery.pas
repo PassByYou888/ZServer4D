@@ -42,7 +42,7 @@ type
     FPhysics: THPhysicsServer;
     FHostList: TCoreClassList;
 
-    procedure cmd_query(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure cmd_query(Sender: TPeerIO; InData, OutData: TDFE);
   public
     constructor Create;
     destructor Destroy; override;
@@ -79,7 +79,7 @@ var
 
 implementation
 
-procedure THostQueryServer.cmd_query(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure THostQueryServer.cmd_query(Sender: TPeerIO; InData, OutData: TDFE);
 var
   Identifier: TPascalString;
   i: Integer;
@@ -234,7 +234,7 @@ end;
 
 constructor THostQueryClient.Create(const Host, Filter: SystemString);
 var
-  SendDE, ResultDE: TDataFrameEngine;
+  SendDE, ResultDE: TDFE;
 begin
   inherited Create;
   FPhysics := THPhysicsClient.Create;
@@ -243,8 +243,8 @@ begin
 
   if FPhysics.Connect(Host, HostQuery_ListenPort) then
     begin
-      SendDE := TDataFrameEngine.Create;
-      ResultDE := TDataFrameEngine.Create;
+      SendDE := TDFE.Create;
+      ResultDE := TDFE.Create;
 
       SendDE.WriteString(Filter);
       FPhysics.WaitSendStreamCmd('query', SendDE, ResultDE, 2000);

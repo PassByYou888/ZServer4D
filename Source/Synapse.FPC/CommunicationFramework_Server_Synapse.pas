@@ -41,7 +41,7 @@ type
     SockTh: TSynapseSockTh;
     LastPeerIP: SystemString;
     SendBuffQueue: TCoreClassListForObj;
-    CurrentBuff: TMemoryStream64;
+    CurrentBuff: TMS64;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -73,7 +73,7 @@ type
     Activted: Boolean;
     IO: TSynapseServer_PeerIO;
     Sock: TTCPBlockSocket;
-    CurrentSendBuff: TMemoryStream64;
+    CurrentSendBuff: TMS64;
     Recv_Buff: Pointer;
     Recv_Siz: Integer;
     procedure Sync_PickBuff;
@@ -101,7 +101,7 @@ type
     function WaitSendConsoleCmd(p_io: TPeerIO;
       const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
     procedure WaitSendStreamCmd(p_io: TPeerIO;
-      const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+      const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick); override;
   end;
 
 implementation
@@ -112,7 +112,7 @@ begin
   SockTh := nil;
   LastPeerIP := '';
   SendBuffQueue := TCoreClassListForObj.Create;
-  CurrentBuff := TMemoryStream64.Create;
+  CurrentBuff := TMS64.Create;
 end;
 
 destructor TSynapseServer_PeerIO.Destroy;
@@ -172,7 +172,7 @@ begin
   if CurrentBuff.Size > 0 then
     begin
       SendBuffQueue.Add(CurrentBuff);
-      CurrentBuff := TMemoryStream64.Create;
+      CurrentBuff := TMS64.Create;
     end;
 end;
 
@@ -249,7 +249,7 @@ procedure TSynapseSockTh.Sync_PickBuff;
 begin
   if (IO.SendBuffQueue.Count > 0) and (IO <> nil) then
     begin
-      CurrentSendBuff := TMemoryStream64(IO.SendBuffQueue[0]);
+      CurrentSendBuff := TMS64(IO.SendBuffQueue[0]);
       IO.SendBuffQueue.Delete(0);
     end;
 end;
@@ -400,7 +400,7 @@ begin
 end;
 
 procedure TCommunicationFramework_Server_Synapse.WaitSendStreamCmd(p_io: TPeerIO;
-  const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+  const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport');
 end;

@@ -9210,12 +9210,12 @@ procedure TListPascalString.SetText(const Value: SystemString);
 var
   n: TPascalString;
   b: TBytes;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   n.Text := Value;
   b := n.Bytes;
   n := '';
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.SetPointerWithProtectedMode(@b[0], Length(b));
   LoadFromStream(m64);
   DisposeObject(m64);

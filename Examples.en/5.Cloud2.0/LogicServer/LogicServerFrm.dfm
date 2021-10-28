@@ -1,4 +1,4 @@
-﻿object LogicServerForm: TLogicServerForm
+object LogicServerForm: TLogicServerForm
   Left = 0
   Top = 0
   Caption = 'Logic service...'

@@ -52,7 +52,7 @@ type
   TDIOCPClient_PeerIO = class(TPeerIO)
   private
     Link: TIocpClientContextIntf_WithDCli;
-    SendingStream: TMemoryStream64;
+    SendingStream: TMS64;
     CanTriggerDoDisconnect: Boolean;
   public
     procedure CreateAfter; override;
@@ -150,7 +150,7 @@ procedure TDIOCPClient_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
   Link := nil;
-  SendingStream := TMemoryStream64.Create;
+  SendingStream := TMS64.Create;
   CanTriggerDoDisconnect := True;
 end;
 

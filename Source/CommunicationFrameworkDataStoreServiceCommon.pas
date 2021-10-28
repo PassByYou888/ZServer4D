@@ -90,20 +90,20 @@ type
   end;
 
   TUserDownloadDoneNotifyCall = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64);
   TUserDownloadDoneNotifyMethod = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
-  TDownloadDoneNotifyCall = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
-  TDownloadDoneNotifyMethod = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) of object;
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64) of object;
+  TDownloadDoneNotifyCall = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64);
+  TDownloadDoneNotifyMethod = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64) of object;
 
 {$IFDEF FPC}
   TUserDownloadDoneNotifyProc = procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
-  TDownloadDoneNotifyProc = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64) is nested;
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64) is nested;
+  TDownloadDoneNotifyProc = procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64) is nested;
 {$ELSE FPC}
   TUserDownloadDoneNotifyProc = reference to procedure(UserPointer: Pointer; UserObject: TCoreClassObject; UserVariant: Variant;
-    dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
-  TDownloadDoneNotifyProc = reference to procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64);
+    dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64);
+  TDownloadDoneNotifyProc = reference to procedure(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64);
 {$ENDIF FPC}
   PDataStoreClientDownloadNotify = ^TDataStoreClientDownloadNotify;
 

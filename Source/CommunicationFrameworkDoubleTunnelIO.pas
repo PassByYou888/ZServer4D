@@ -2410,7 +2410,7 @@ var
   StartPos, EndPos, siz, fp: Int64;
   RemoteBackcallAddr: UInt64;
   fs: TCoreClassFileStream;
-  mem_: TMemoryStream64;
+  mem_: TMS64;
   MD5: TMD5;
 begin
   if not FFileSystem then
@@ -2454,7 +2454,7 @@ begin
     end;
 
   fs.Position := StartPos;
-  mem_ := TMemoryStream64.Create;
+  mem_ := TMS64.Create;
   mem_.WriteUInt64(RemoteBackcallAddr);
   mem_.WriteInt64(StartPos);
   mem_.WriteInt64(EndPos);
@@ -2479,7 +2479,7 @@ var
   StartPos, EndPos, siz, fp: Int64;
   RemoteBackcallAddr: UInt64;
   fs: TCoreClassFileStream;
-  mem_: TMemoryStream64;
+  mem_: TMS64;
   MD5: TMD5;
 begin
   if not FFileSystem then
@@ -2523,7 +2523,7 @@ begin
     end;
 
   fs.Position := StartPos;
-  mem_ := TMemoryStream64.Create;
+  mem_ := TMS64.Create;
   mem_.WriteUInt64(RemoteBackcallAddr);
   mem_.WriteInt64(StartPos);
   mem_.WriteInt64(EndPos);
@@ -2903,7 +2903,7 @@ end;
 function TDTService.UnPackStreamAsUser(packageStream: TCoreClassStream): Boolean;
 var
   dbEng: TObjectDataManager;
-  M: TMemoryStream64;
+  M: TMS64;
   te: THashTextEngine;
 
   UsrID, UsrPasswd: SystemString;
@@ -2911,7 +2911,7 @@ var
 begin
   packageStream.Position := 0;
   dbEng := TObjectDataManager.CreateAsStream(packageStream, '', ObjectDataMarshal.ID, True, False, False);
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   te := THashTextEngine.Create;
 
   try
@@ -3383,14 +3383,14 @@ end;
 
 procedure TDTClient.Command_PostFileFragmentData(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
 var
-  mem_: TMemoryStream64;
+  mem_: TMS64;
   StartPos, EndPos, siz: Int64;
   RemoteBackcallAddr: UInt64;
   p: PFileFragmentDataBackcall;
   fp: Pointer;
   MD5: TMD5;
 begin
-  mem_ := TMemoryStream64.Create;
+  mem_ := TMS64.Create;
   mem_.SetPointerWithProtectedMode(InData, DataSize);
   RemoteBackcallAddr := mem_.ReadUInt64;
   StartPos := mem_.ReadInt64;

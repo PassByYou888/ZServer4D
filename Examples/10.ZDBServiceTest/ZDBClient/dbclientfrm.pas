@@ -1,5 +1,6 @@
 unit dbclientfrm;
-
+
+
 interface
 
 uses
@@ -84,11 +85,11 @@ begin
   DataStoreClient.QueryDBP('G300', True, False, True, False, 'LocalTestDB', '', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     var
-      de: TDataFrameEngine;
+      de: TDFEngine;
     begin
-      de := TDataFrameEngine.Create;
+      de := TDFEngine.Create;
       de.DecodeFrom(DataSour);
-      TDataFrameDouble(de.Data[0]).Buffer := umlRandomRangeD(-710.0, -700.0);
+      TDFDouble(de.Data[0]).Buffer := umlRandomRangeD(-710.0, -700.0);
       DataStoreClient.ModifyAssembleStream('LocalTestDB', StorePos, de);
       DisposeObject(de);
     end,
@@ -121,14 +122,14 @@ end;
 
 procedure TForm1.build100DataButtonClick(Sender: TObject);
 var
-  de: TDataFrameEngine;
+  de: TDFEngine;
   i, j: Integer;
 begin
   DataStoreClient.InitDB(False, 'LocalTestDB');
   DataStoreClient.BeginAssembleStream;
   for i := 1 to 100000 do
     begin
-      de := TDataFrameEngine.Create;
+      de := TDFEngine.Create;
       for j := 1 to umlRandomRange(10, 20) do
           de.WriteDouble(umlRandomRangeD(-50000, 50000));
 
@@ -189,9 +190,9 @@ begin
   DataStoreClient.QueryDBP('G700', True, True, True, True, 'LocalTestDB', '', 0.1, 0, 0, nil,
     procedure(dbN, pipeN: SystemString; StorePos: Int64; id: Cardinal; DataSour: TMemoryStream64)
     var
-      de: TDataFrameEngine;
+      de: TDFEngine;
     begin
-      de := TDataFrameEngine.Create;
+      de := TDFEngine.Create;
       DataSour.Position := 0;
       de.DecodeFrom(DataSour, False);
       doStatus(de.ReadDouble(0));
@@ -211,13 +212,13 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
   DataStoreClient.GetQueryListP(
-    procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+    procedure(Sender: TPeerClient; ResultData: TDFEngine)
     begin
       ListBox1.Clear;
       while ResultData.Reader.NotEnd do
         begin
           DataStoreClient.GetQueryStateP(ResultData.Reader.ReadString,
-            procedure(Sender: TPeerClient; ResultData: TDataFrameEngine)
+            procedure(Sender: TPeerClient; ResultData: TDFEngine)
             var
               t: TRttiRecordType;
               f: TRttiField;
@@ -245,4 +246,4 @@ begin
 end;
 
 end.
-
+

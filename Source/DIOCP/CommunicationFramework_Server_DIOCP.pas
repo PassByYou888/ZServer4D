@@ -48,7 +48,7 @@ type
     Link: TIocpClientContextIntf_WithDServ;
     lastSendBufferTag: Integer;
     WasSending: Boolean;
-    SendingStream: TMemoryStream64;
+    SendingStream: TMS64;
   public
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -86,7 +86,7 @@ type
     procedure Progress; override;
 
     function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick); override;
   end;
 
 implementation
@@ -116,7 +116,7 @@ begin
   Link := nil;
   lastSendBufferTag := 0;
   WasSending := False;
-  SendingStream := TMemoryStream64.Create;
+  SendingStream := TMS64.Create;
 end;
 
 destructor TDIOCPServer_PeerIO.Destroy;
@@ -334,7 +334,7 @@ begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;
 
-procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFramework_Server_DIOCP.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport CrossSocket');
 end;

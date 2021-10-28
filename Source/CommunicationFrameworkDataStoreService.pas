@@ -77,7 +77,7 @@ type
   protected
     { interface from IZDBLocalManagerNotify }
     procedure CreateQuery(pipe: TZDBPipeline); virtual;
-    procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64); virtual;
+    procedure QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMS64); virtual;
     procedure QueryDone(pipe: TZDBPipeline); virtual;
     procedure StorePosTransform(const Data: Pointer; const TransformBuff: PZDBStorePosTransformArray);
     procedure OpenDB(ActiveDB: TZDBLMStore); virtual;
@@ -310,7 +310,7 @@ type
       OnDoneProc: TUserDownloadDoneNotifyProc); overload;
 
     { Security post support }
-    procedure PostAssembleStream(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure PostAssembleStream(dataBaseName_: SystemString; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure PostAssembleStreamCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TDFE); overload;
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
@@ -320,7 +320,7 @@ type
     procedure PostAssembleStream(dataBaseName_: SystemString; DataSource: TPascalString); overload;
 
     { Security insert support }
-    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure InsertAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
@@ -330,7 +330,7 @@ type
     procedure InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
 
     { Security modify support }
-    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean); overload; virtual;
+    procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; DoneTimeFree: Boolean); overload; virtual;
     procedure ModifyAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream);
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
@@ -349,7 +349,7 @@ type
     procedure DeleteData(dataBaseName_: SystemString; dStorePos: Int64); virtual;
 
     { fast post support }
-    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure FastPostCompleteBufferCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDFE); overload;
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashVariantList); overload;
@@ -359,7 +359,7 @@ type
     procedure FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TPascalString); overload;
 
     { fast insert support }
-    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure FastInsertCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
@@ -369,7 +369,7 @@ type
     procedure FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString); overload;
 
     { fast modify support }
-    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
+    procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean); overload; virtual;
     procedure FastModifyCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE); overload;
     procedure FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList); overload;
@@ -497,10 +497,10 @@ begin
   pl := TTDataStoreService_DBPipeline(pipe);
 end;
 
-procedure TDataStoreService.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMemoryStream64);
+procedure TDataStoreService.QueryFragmentData(pipe: TZDBPipeline; FragmentSource: TMS64);
 var
   pl: TTDataStoreService_DBPipeline;
-  DestStream: TMemoryStream64;
+  DestStream: TMS64;
 begin
   pl := TTDataStoreService_DBPipeline(pipe);
   if not pl.SyncToClient then
@@ -509,7 +509,7 @@ begin
   if not SendTunnel.Exists(pl.SendTunnel) then
       exit;
 
-  DestStream := TMemoryStream64.Create;
+  DestStream := TMS64.Create;
   DestStream.SwapInstance(FragmentSource);
 
   TDataStoreService_PeerClientRecvTunnel(pl.RecvTunnel).EncryptBuffer(DestStream.Memory, DestStream.Size, True);
@@ -605,7 +605,7 @@ procedure TDataStoreService.UserLinkSuccess(UserDefineIO: TPeerClientUserDefineF
 var
   RT: TDataStoreService_PeerClientRecvTunnel;
   de: TDFE;
-  arr: TDataFrameArrayByte;
+  arr: TDFArrayByte;
 begin
   RT := UserDefineIO as TDataStoreService_PeerClientRecvTunnel;
   de := TDFE.Create;
@@ -852,7 +852,7 @@ var
   dataBaseName_: SystemString;
   StorePos: Int64;
   BackcallPtr: UInt64;
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
@@ -862,7 +862,7 @@ begin
   StorePos := InData.Reader.ReadInt64;
   BackcallPtr := InData.Reader.ReadPointer;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   if not FZDBLocal.ReadDBItemToZDBFragment(dataBaseName_, StorePos, M) then
     begin
       Sender.PrintParam('get Data Assemble Stream error: %s', dataBaseName_);
@@ -884,7 +884,7 @@ var
   dataBaseName_: SystemString;
   StorePos: Int64;
   BackcallPtr: UInt64;
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
@@ -894,7 +894,7 @@ begin
   StorePos := InData.Reader.ReadInt64;
   BackcallPtr := InData.Reader.ReadPointer;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   if not FZDBLocal.ReadDBItemToZDBFragment(dataBaseName_, StorePos, M) then
     begin
       Sender.PrintParam('get Data Assemble Stream error: %s', dataBaseName_);
@@ -916,7 +916,7 @@ var
   StorePos: Int64;
   output: Pointer;
   outputSiz: nativeUInt;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
@@ -924,7 +924,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 
   DecodeZDBBuff(InData, DataSize, dataBaseName_, itmID, StorePos, output, outputSiz);
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.PostData(dataBaseName_, m64, itmID);
   DisposeObject(m64);
@@ -938,7 +938,7 @@ var
   StorePos: Int64;
   output: Pointer;
   outputSiz: nativeUInt;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
@@ -946,7 +946,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 
   DecodeZDBBuff(InData, DataSize, dataBaseName_, itmID, StorePos, output, outputSiz);
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.InsertData(dataBaseName_, StorePos, m64, itmID);
   DisposeObject(m64);
@@ -960,7 +960,7 @@ var
   StorePos: Int64;
   output: Pointer;
   outputSiz: nativeUInt;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   RT := GetDataStoreUserDefine(Sender);
   if not RT.LinkOk then
@@ -968,7 +968,7 @@ begin
   inc(RT.FPostPerformaceCounter);
 
   DecodeZDBBuff(InData, DataSize, dataBaseName_, itmID, StorePos, output, outputSiz);
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   m64.SetPointerWithProtectedMode(output, outputSiz);
   FZDBLocal.SetData(dataBaseName_, StorePos, m64);
   DisposeObject(m64);
@@ -1270,7 +1270,7 @@ procedure TDataStoreService.Send_CompletedStorePosTransform(SendCli_: TPeerIO; c
 var
   de: TDFE;
   i: Integer;
-  arr: TDataFrameArrayInt64;
+  arr: TDFArrayInt64;
 begin
   de := TDFE.Create;
   de.WritePointer(BackcallPtr);
@@ -1442,7 +1442,7 @@ end;
 
 procedure TDataStoreClient.Command_DataStoreSecurity(Sender: TPeerIO; InData: TDFE);
 var
-  arr: TDataFrameArrayByte;
+  arr: TDFArrayByte;
 begin
   FDataStoreCipherSecurity := TCipherSecurity(InData.Reader.ReadByte);
   arr := InData.Reader.ReadArrayByte;
@@ -1460,14 +1460,14 @@ procedure TDataStoreClient.Command_CompletedFragmentBigStream(Sender: TPeerIO; I
 var
   dataBaseName_, OutputDatabaseName_, PipeName_: SystemString;
   BackcallPtr: PDataStoreClientQueryNotify;
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   dataBaseName_ := InData.Reader.ReadString;
   OutputDatabaseName_ := InData.Reader.ReadString;
   PipeName_ := InData.Reader.ReadString;
   BackcallPtr := PDataStoreClientQueryNotify(InData.Reader.ReadPointer);
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
 
   if Sender.UserDefine.BigStreamBatchList.Count > 0 then
     begin
@@ -1559,7 +1559,7 @@ var
   dataBaseName_: SystemString;
   dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  M, tmp: TMemoryStream64;
+  M, tmp: TMS64;
 begin
   dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
@@ -1630,7 +1630,7 @@ var
   dataBaseName_: SystemString;
   dStorePos: Int64;
   BackcallPtr: PDataStoreClientDownloadNotify;
-  M, tmp: TMemoryStream64;
+  M, tmp: TMS64;
 begin
   dataBaseName_ := InData.Reader.ReadString;
   dStorePos := InData.Reader.ReadInt64;
@@ -1697,7 +1697,7 @@ end;
 procedure TDataStoreClient.Command_CompletedStorePosTransform(Sender: TPeerIO; InData: TDFE);
 var
   BackcallPtr: PStorePosTransformNotify;
-  arr: TDataFrameArrayInt64;
+  arr: TDFArrayInt64;
   i: Integer;
   TransformBuff: TZDBStorePosTransformArray;
 begin
@@ -2552,7 +2552,7 @@ begin
   RequestFastDownloadAssembleStream(dataBaseName_, StorePos, p);
 end;
 
-procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   de: TDFE;
 begin
@@ -2573,9 +2573,9 @@ end;
 
 procedure TDataStoreClient.PostAssembleStreamCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
@@ -2584,59 +2584,59 @@ end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: TDFE);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.EncodeTo(M, True);
   PostAssembleStream(dataBaseName_, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: THashVariantList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   PostAssembleStream(dataBaseName_, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: THashStringList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   PostAssembleStream(dataBaseName_, M, c_VT, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: TSectionTextData);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   PostAssembleStream(dataBaseName_, M, c_TE, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: TZ_JsonObject);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   PostAssembleStream(dataBaseName_, M, c_Json, True);
 end;
 
 procedure TDataStoreClient.PostAssembleStream(dataBaseName_: SystemString; DataSource: TPascalString);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
   PostAssembleStream(dataBaseName_, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   de: TDFE;
 begin
@@ -2658,9 +2658,9 @@ end;
 
 procedure TDataStoreClient.InsertAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
@@ -2669,59 +2669,59 @@ end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.EncodeTo(M, True);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_VT, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M, False);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_Json, True);
 end;
 
 procedure TDataStoreClient.InsertAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
   InsertAssembleStream(dataBaseName_, dStorePos, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; DoneTimeFree: Boolean);
+procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; DoneTimeFree: Boolean);
 var
   de: TDFE;
 begin
@@ -2742,9 +2742,9 @@ end;
 
 procedure TDataStoreClient.ModifyAssembleStreamCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
@@ -2753,54 +2753,54 @@ end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.EncodeTo(M, True);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M, False);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
 
 procedure TDataStoreClient.ModifyAssembleStream(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
   ModifyAssembleStream(dataBaseName_, dStorePos, M, True);
 end;
@@ -2841,7 +2841,7 @@ begin
   DisposeObject(de);
 end;
 
-procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
   siz: nativeUInt;
@@ -2860,9 +2860,9 @@ end;
 
 procedure TDataStoreClient.FastPostCompleteBufferCopy(dataBaseName_: SystemString; stream: TCoreClassStream; dID: Cardinal);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
@@ -2871,59 +2871,59 @@ end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TDFE);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.EncodeTo(M, True);
   FastPostCompleteBuffer(dataBaseName_, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashVariantList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastPostCompleteBuffer(dataBaseName_, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: THashStringList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastPostCompleteBuffer(dataBaseName_, M, c_VT, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TSectionTextData);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastPostCompleteBuffer(dataBaseName_, M, c_TE, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TZ_JsonObject);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastPostCompleteBuffer(dataBaseName_, M, c_Json, True);
 end;
 
 procedure TDataStoreClient.FastPostCompleteBuffer(dataBaseName_: SystemString; DataSource: TPascalString);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
   FastPostCompleteBuffer(dataBaseName_, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
   siz: nativeUInt;
@@ -2942,9 +2942,9 @@ end;
 
 procedure TDataStoreClient.FastInsertCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
@@ -2953,59 +2953,59 @@ end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.EncodeTo(M, True);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_VT, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M, False);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_Json, True);
 end;
 
 procedure TDataStoreClient.FastInsertCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
   FastInsertCompleteBuffer(dataBaseName_, dStorePos, M, c_PascalString, True);
 end;
 
-procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMemoryStream64; dID: Cardinal; DoneTimeFree: Boolean);
+procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; stream: TMS64; dID: Cardinal; DoneTimeFree: Boolean);
 var
   p: Pointer;
   siz: nativeUInt;
@@ -3024,9 +3024,9 @@ end;
 
 procedure TDataStoreClient.FastModifyCompleteBufferCopy(dataBaseName_: SystemString; dStorePos: Int64; stream: TCoreClassStream; dID: Cardinal);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   stream.Position := 0;
   M.CopyFrom(stream, stream.Size);
   M.Position := 0;
@@ -3035,54 +3035,54 @@ end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TDFE);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.EncodeTo(M, True);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_DF, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashVariantList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_VL, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: THashStringList);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_VT, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TSectionTextData);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_TE, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TZ_JsonObject);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   DataSource.SaveToStream(M, False);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_Json, True);
 end;
 
 procedure TDataStoreClient.FastModifyCompleteBuffer(dataBaseName_: SystemString; dStorePos: Int64; DataSource: TPascalString);
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   TDBEnginePascalString.SavePascalStringToStream(@DataSource, M);
   FastModifyCompleteBuffer(dataBaseName_, dStorePos, M, c_PascalString, True);
 end;

@@ -745,13 +745,13 @@ var
   DTC40_PhysicsReconnectionDelayTime: Double;
   { DTC40 Dispatch Service info update delay, default is 1 seconds }
   DTC40_UpdateServiceInfoDelayTime: TTimeTick;
-  { physics service timeout, default is 30 seconds }
+  { physics service timeout, default is 5 minute }
   DTC40_PhysicsServiceTimeout: TTimeTick;
-  { physics tunnel timeout, default is 30 seconds }
+  { physics tunnel timeout, default is 5 minute }
   DTC40_PhysicsTunnelTimeout: TTimeTick;
-  { kill dead physics connection timeout, default is 30 seconds }
+  { kill dead physics connection timeout, default is 5 seconds }
   DTC40_KillDeadPhysicsConnectionTimeout: TTimeTick;
-  { kill IDC fault timeout, default is 40 seconds }
+  { kill IDC fault timeout, default is 1 hour }
   DTC40_KillIDCFaultTimeout: TTimeTick;
   { root path, default is current Directory }
   DTC40_RootPath: U_String;
@@ -4831,10 +4831,10 @@ DTC40_QuietMode := False;
 DTC40_SafeCheckTime := 1000 * 60;
 DTC40_PhysicsReconnectionDelayTime := 5.0;
 DTC40_UpdateServiceInfoDelayTime := 1000 * 1;
-DTC40_PhysicsServiceTimeout := 1000 * 30;
-DTC40_PhysicsTunnelTimeout := 1000 * 30;
-DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 30;
-DTC40_KillIDCFaultTimeout := 1000 * 40;
+DTC40_PhysicsServiceTimeout := 1000 * 60 * 5;
+DTC40_PhysicsTunnelTimeout := 1000 * 60 * 5;
+DTC40_KillDeadPhysicsConnectionTimeout := 1000 * 5;
+DTC40_KillIDCFaultTimeout := 1000 * 60 * 60;
 
 {$IFDEF FPC}
 DTC40_RootPath := umlCurrentPath;

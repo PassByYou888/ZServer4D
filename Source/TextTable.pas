@@ -110,9 +110,9 @@ end;
 
 procedure TTextTableItem.LoadFromStream(stream: TCoreClassStream);
 var
-  df: TDataFrameEngine;
+  df: TDFE;
 begin
-  df := TDataFrameEngine.Create;
+  df := TDFE.Create;
   df.DecodeFrom(stream);
 
   OriginText := df.Reader.ReadString;
@@ -134,9 +134,9 @@ end;
 
 procedure TTextTableItem.SaveToStream(stream: TCoreClassStream);
 var
-  df: TDataFrameEngine;
+  df: TDFE;
 begin
-  df := TDataFrameEngine.Create;
+  df := TDFE.Create;
   df.WriteString(OriginText);
   df.WriteString(Category);
   df.WriteBool(Picked);
@@ -456,13 +456,13 @@ end;
 
 procedure TTextTable.SaveToStream(stream: TCoreClassStream);
 var
-  ms: TMemoryStream64;
-  df: TDataFrameEngine;
+  ms: TMS64;
+  df: TDFE;
   i: Integer;
   p: PTextTableItem;
 begin
-  ms := TMemoryStream64.Create;
-  df := TDataFrameEngine.Create;
+  ms := TMS64.Create;
+  df := TDFE.Create;
 
   df.WriteInteger(FList.Count);
 
@@ -483,15 +483,15 @@ end;
 
 procedure TTextTable.LoadFromStream(stream: TCoreClassStream);
 var
-  ms: TMemoryStream64;
-  df: TDataFrameEngine;
+  ms: TMS64;
+  df: TDFE;
   i, c: Integer;
   p: PTextTableItem;
 begin
   Clear;
 
-  ms := TMemoryStream64.Create;
-  df := TDataFrameEngine.Create;
+  ms := TMS64.Create;
+  df := TDFE.Create;
   df.DecodeFrom(stream);
 
   c := df.Reader.ReadInteger;

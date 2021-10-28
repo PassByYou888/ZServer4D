@@ -2351,7 +2351,7 @@ end;
 class procedure TZDB2_Core_Space.Test;
 type
   TTest_ = record
-    data: TMemoryStream64;
+    data: TMS64;
     sMD5: TMD5;
     db1hnd, db2hnd: TZDB2_BlockHandle;
   end;
@@ -2397,7 +2397,7 @@ begin
   for i := 0 to Length(TestArry) - 1 do
     begin
       SetMT19937Seed(i);
-      TestArry[i].data := TMemoryStream64.Create;
+      TestArry[i].data := TMS64.Create;
       TestArry[i].data.Size := 1024 * 16 + 1024 * 1024;
       MT19937Rand32(MaxInt, TestArry[i].data.Memory, TestArry[i].data.Size div 4);
       TestArry[i].sMD5 := umlStreamMD5(TestArry[i].data);

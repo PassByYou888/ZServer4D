@@ -80,7 +80,7 @@ type
 
   TGetFileUserData = record
     client: TPeerClient;
-    InData, OutData: TDataFrameEngine;
+    InData, OutData: TDFEngine;
   end;
 
   TLogicService = class(TCommunicationFramework_DoubleTunnelService)
@@ -94,7 +94,7 @@ type
     procedure UserLoginQueryComplete(Sender: TStoreFileInfoList);
     procedure UserLockQueryComplete(Sender: TFileStoreUserStateList);
     {  Log in to the hook and download a copy of the client configuration file from the database again  }
-    procedure Command_UserLogin(Sender: TPeerClient; InData, OutData: TDataFrameEngine); override;
+    procedure Command_UserLogin(Sender: TPeerClient; InData, OutData: TDFEngine); override;
 
     procedure UserRegistedSuccess(UserID: string); override;
     procedure UserLinkSuccess(UserDefineIO: TPeerClientUserDefineForRecvTunnel); override;
@@ -106,21 +106,21 @@ type
     procedure UserRegQueryComplete(Sender: TStoreFileInfoList);
 
     procedure UserRegGuestUserQueryComplete(Sender: TStoreFileInfoList);
-    procedure Command_RegGuestUser(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+    procedure Command_RegGuestUser(Sender: TPeerClient; InData, OutData: TDFEngine);
 
-    procedure Command_GetLogicFileList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure Command_GetLogicFileMD5(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure Command_GetLogicFile(Sender: TPeerClient; InData: TDataFrameEngine);
+    procedure Command_GetLogicFileList(Sender: TPeerClient; InData, OutData: TDFEngine);
+    procedure Command_GetLogicFileMD5(Sender: TPeerClient; InData, OutData: TDFEngine);
+    procedure Command_GetLogicFile(Sender: TPeerClient; InData: TDFEngine);
 
-    procedure Command_GetAdvertisementFileList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure Command_GetAdvertisementFileMD5(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
-    procedure Command_GetAdvertisementFile(Sender: TPeerClient; InData: TDataFrameEngine);
+    procedure Command_GetAdvertisementFileList(Sender: TPeerClient; InData, OutData: TDFEngine);
+    procedure Command_GetAdvertisementFileMD5(Sender: TPeerClient; InData, OutData: TDFEngine);
+    procedure Command_GetAdvertisementFile(Sender: TPeerClient; InData: TDFEngine);
 
     procedure GetUserInfoFileDownloadComplete(const UserData: Pointer; const UserObject: TCoreClassObject; Stream: TCoreClassStream; const fileName: string);
     procedure GetUserInfoQueryComplete(Sender: TStoreFileInfoList);
-    procedure Command_GetUserInfo(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+    procedure Command_GetUserInfo(Sender: TPeerClient; InData, OutData: TDFEngine);
 
-    procedure Command_ChangeAlias(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+    procedure Command_ChangeAlias(Sender: TPeerClient; InData, OutData: TDFEngine);
   public
     LogicForm: TLogicServerForm;
     constructor Create(ARecvTunnel, ASendTunnel: TCommunicationFrameworkServer);
@@ -390,7 +390,7 @@ begin
     end;
 end;
 
-procedure TLogicService.Command_UserLogin(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_UserLogin(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   SendTunnelID: Cardinal;
   UserID, UserPasswd: string;
@@ -448,7 +448,7 @@ end;
 procedure TLogicService.UserOut(UserDefineIO: TPeerClientUserDefineForRecvTunnel);
 var
   LogicCli: TPerUserLogicRecvTunnel;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFEngine;
   ms: TMemoryStream64;
 begin
   LogicCli := UserDefineIO as TPerUserLogicRecvTunnel;
@@ -492,7 +492,7 @@ begin
 
       if Sender[Sender.Count - 1].FileLastTime <> 0 then
         begin
-          (Sender.OutData.Data[0] as TDataFrameByte).Buffer := 0;
+          (Sender.OutData.Data[0] as TDFByte).Buffer := 0;
         end
       else
         begin
@@ -577,7 +577,7 @@ begin
     end;
 end;
 
-procedure TLogicService.Command_RegGuestUser(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_RegGuestUser(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   UserID: string;
   j: Integer;
@@ -599,7 +599,7 @@ begin
   Sender.PauseResultSend;
 end;
 
-procedure TLogicService.Command_GetLogicFileList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_GetLogicFileList(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   itmSR: TItemSearch;
   LogicCli: TPerUserLogicRecvTunnel;
@@ -616,7 +616,7 @@ begin
     end;
 end;
 
-procedure TLogicService.Command_GetLogicFileMD5(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_GetLogicFileMD5(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   fn: string;
   md5Ptr: UnicodeMixedLib.PMD5;
@@ -649,13 +649,13 @@ begin
   DisposeObject(itm);
 end;
 
-procedure TLogicService.Command_GetLogicFile(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TLogicService.Command_GetLogicFile(Sender: TPeerClient; InData: TDFEngine);
 var
   fn: string;
   callBackPtr: UInt64;
   itm: TItemStream;
   LogicCli: TPerUserLogicRecvTunnel;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFEngine;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
   if not LogicCli.LinkOk then
@@ -674,7 +674,7 @@ begin
 
   PostBatchStream(LogicCli.SendTunnel.Owner, itm, True);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFEngine.Create;
   sendDE.WritePointer(callBackPtr);
   LogicCli.SendTunnel.Owner.SendDirectStreamCmd('SendLogicFileCompleted', sendDE);
   DisposeObject(sendDE);
@@ -682,7 +682,7 @@ begin
   ClearBatchStream(LogicCli.SendTunnel.Owner);
 end;
 
-procedure TLogicService.Command_GetAdvertisementFileList(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_GetAdvertisementFileList(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   itmSR: TItemSearch;
   LogicCli: TPerUserLogicRecvTunnel;
@@ -699,7 +699,7 @@ begin
     end;
 end;
 
-procedure TLogicService.Command_GetAdvertisementFileMD5(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_GetAdvertisementFileMD5(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   fn: string;
   md5Ptr: UnicodeMixedLib.PMD5;
@@ -732,13 +732,13 @@ begin
   DisposeObject(itm);
 end;
 
-procedure TLogicService.Command_GetAdvertisementFile(Sender: TPeerClient; InData: TDataFrameEngine);
+procedure TLogicService.Command_GetAdvertisementFile(Sender: TPeerClient; InData: TDFEngine);
 var
   fn: string;
   callBackPtr: UInt64;
   itm: TItemStream;
   LogicCli: TPerUserLogicRecvTunnel;
-  sendDE: TDataFrameEngine;
+  sendDE: TDFEngine;
 begin
   LogicCli := Sender.UserDefine as TPerUserLogicRecvTunnel;
   if not LogicCli.LinkOk then
@@ -757,7 +757,7 @@ begin
 
   PostBatchStream(LogicCli.SendTunnel.Owner, itm, True);
 
-  sendDE := TDataFrameEngine.Create;
+  sendDE := TDFEngine.Create;
   sendDE.WritePointer(callBackPtr);
   LogicCli.SendTunnel.Owner.SendDirectStreamCmd('SendAdvertisementFileCompleted', sendDE);
   DisposeObject(sendDE);
@@ -823,7 +823,7 @@ begin
     end;
 end;
 
-procedure TLogicService.Command_GetUserInfo(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_GetUserInfo(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   UserID: string;
   cli: TPeerClientUserDefineForRecvTunnel;
@@ -866,7 +866,7 @@ begin
     end;
 end;
 
-procedure TLogicService.Command_ChangeAlias(Sender: TPeerClient; InData, OutData: TDataFrameEngine);
+procedure TLogicService.Command_ChangeAlias(Sender: TPeerClient; InData, OutData: TDFEngine);
 var
   LogicCli: TPerUserLogicRecvTunnel;
   alias: string;

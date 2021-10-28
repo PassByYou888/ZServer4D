@@ -45,7 +45,7 @@ type
 
   TIDServer_PeerIO = class(TPeerIO)
   public
-    RealSendBuff: TMemoryStream64;
+    RealSendBuff: TMS64;
 
     procedure CreateAfter; override;
     destructor Destroy; override;
@@ -98,7 +98,7 @@ type
     procedure Indy_Execute(AContext: TIdContext);
 
     function WaitSendConsoleCmd(p_io: TPeerIO; const Cmd, ConsoleData: SystemString; Timeout: TTimeTick): SystemString; override;
-    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick); override;
+    procedure WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick); override;
 
     property driver: TIdTCPServer read FDriver;
   end;
@@ -116,7 +116,7 @@ end;
 procedure TIDServer_PeerIO.CreateAfter;
 begin
   inherited CreateAfter;
-  RealSendBuff := TMemoryStream64.Create;
+  RealSendBuff := TMS64.Create;
 end;
 
 destructor TIDServer_PeerIO.Destroy;
@@ -489,7 +489,7 @@ begin
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;
 
-procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDataFrameEngine; Timeout: TTimeTick);
+procedure TCommunicationFramework_Server_Indy.WaitSendStreamCmd(p_io: TPeerIO; const Cmd: SystemString; StreamData, ResultData: TDFE; Timeout: TTimeTick);
 begin
   RaiseInfo('WaitSend no Suppport IndyServer');
 end;

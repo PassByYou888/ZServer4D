@@ -84,12 +84,12 @@ type
     procedure PickWorkloadTunnel(var rID, sID: Cardinal);
 
     { requestListen: activted listen and reponse states }
-    procedure cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDFE);
     { workload: update workload states }
-    procedure cmd_workload(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure cmd_workload(Sender: TPeerIO; InData: TDFE);
     { connect forward }
-    procedure cmd_connect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
-    procedure cmd_disconnect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
+    procedure cmd_connect_reponse(Sender: TPeerIO; InData: TDFE);
+    procedure cmd_disconnect_reponse(Sender: TPeerIO; InData: TDFE);
     { data forward }
     procedure cmd_data(Sender: TPeerIO; InData: PByte; DataSize: NativeInt);
     { states }
@@ -105,7 +105,7 @@ type
   private
     RemoteProtocol_ID: Cardinal;
     RemoteProtocol_Inited: Boolean;
-    RequestBuffer: TMemoryStream64;
+    RequestBuffer: TMS64;
     r_id, s_id: Cardinal; { IO in TXServiceListen }
   public
     constructor Create(Owner_: TPeerIO); override;
@@ -143,7 +143,7 @@ type
     WaitAsyncConnecting_BeginTime: TTimeTick;
 
     { physis protocol }
-    procedure IPV6Listen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+    procedure IPV6Listen(Sender: TPeerIO; InData, OutData: TDFE);
     { IO Interface }
     procedure PeerIO_Create(const Sender: TPeerIO);
     procedure PeerIO_Destroy(const Sender: TPeerIO);
@@ -372,7 +372,7 @@ begin
   sID := rVM.SendID;
 end;
 
-procedure TXServiceListen.cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TXServiceListen.cmd_RequestListen(Sender: TPeerIO; InData, OutData: TDFE);
 var
   RecvID, SendID: Cardinal;
   rVM: TXServiceRecvVM_Special;
@@ -467,7 +467,7 @@ begin
     end;
 end;
 
-procedure TXServiceListen.cmd_workload(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXServiceListen.cmd_workload(Sender: TPeerIO; InData: TDFE);
 var
   rVM: TXServiceRecvVM_Special;
 begin
@@ -476,7 +476,7 @@ begin
   rVM.CurrentWorkload := InData.Reader.ReadCardinal;
 end;
 
-procedure TXServiceListen.cmd_connect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXServiceListen.cmd_connect_reponse(Sender: TPeerIO; InData: TDFE);
 var
   cState: Boolean;
   remote_id, local_id: Cardinal;
@@ -514,7 +514,7 @@ begin
       phy_io.DelayClose;
 end;
 
-procedure TXServiceListen.cmd_disconnect_reponse(Sender: TPeerIO; InData: TDataFrameEngine);
+procedure TXServiceListen.cmd_disconnect_reponse(Sender: TPeerIO; InData: TDFE);
 var
   remote_id, local_id: Cardinal;
   phy_io: TPeerIO;
@@ -596,7 +596,7 @@ begin
   inherited Create(Owner_);
   RemoteProtocol_ID := 0;
   RemoteProtocol_Inited := False;
-  RequestBuffer := TMemoryStream64.Create;
+  RequestBuffer := TMS64.Create;
   r_id := 0;
   s_id := 0;
 end;
@@ -639,7 +639,7 @@ end;
 
 procedure TXServerCustomProtocol.DoIOConnectBefore(Sender: TPeerIO);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   xUserSpec: TXServerUserSpecial;
   s_io: TPeerIO;
 begin
@@ -659,7 +659,7 @@ begin
   if ShareListen.SendTunnel.Exists(xUserSpec.s_id) then
     begin
       s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
-      de := TDataFrameEngine.Create;
+      de := TDFE.Create;
       de.WriteCardinal(Sender.ID);
       de.WriteString(Sender.PeerIP);
       s_io.SendDirectStreamCmd(C_Connect_request, de);
@@ -671,7 +671,7 @@ end;
 
 procedure TXServerCustomProtocol.DoIODisconnect(Sender: TPeerIO);
 var
-  de: TDataFrameEngine;
+  de: TDFE;
   xUserSpec: TXServerUserSpecial;
   s_io: TPeerIO;
 begin
@@ -688,7 +688,7 @@ begin
   if ShareListen.SendTunnel.Exists(xUserSpec.s_id) then
     begin
       s_io := ShareListen.SendTunnel.PeerIO[xUserSpec.s_id];
-      de := TDataFrameEngine.Create;
+      de := TDFE.Create;
       de.WriteCardinal(Sender.ID);
       de.WriteCardinal(TXServerUserSpecial(Sender.UserSpecial).RemoteProtocol_ID);
       s_io.SendDirectStreamCmd(C_Disconnect_request, de);
@@ -766,7 +766,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TXNATService.IPV6Listen(Sender: TPeerIO; InData, OutData: TDataFrameEngine);
+procedure TXNATService.IPV6Listen(Sender: TPeerIO; InData, OutData: TDFE);
 var
   i: Integer;
   shLt: TXServiceListen;

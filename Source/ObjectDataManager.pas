@@ -421,7 +421,7 @@ var
   swapCompleted, swapTotal: Integer;
   swapHead: TSwapHead;
   CheckSuccessed: Boolean;
-  m64: TMemoryStream64;
+  m64: TMS64;
   m5: TMD5;
   oldDBHnd, newDBHnd: TObjectDataHandle;
 begin
@@ -441,7 +441,7 @@ begin
     Exit;
   end;
   CheckSuccessed := True;
-  m64 := TMemoryStream64.CustomCreate(8192);
+  m64 := TMS64.CustomCreate(8192);
 
   // check crc
   swapCompleted := 0;
@@ -800,9 +800,9 @@ end;
 
 procedure TObjectDataManager.SaveToZLibStream(stream: TCoreClassStream);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.CustomCreate(1024 * 1024);
+  m64 := TMS64.CustomCreate(1024 * 1024);
   SaveToStream(m64);
   m64.Position := 0;
   MaxCompressStream(m64, stream);
@@ -811,9 +811,9 @@ end;
 
 procedure TObjectDataManager.SaveToParallelCompressionStream(stream: TCoreClassStream);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  m64 := TMemoryStream64.CustomCreate(1024 * 1024);
+  m64 := TMS64.CustomCreate(1024 * 1024);
   SaveToStream(m64);
   m64.Position := 0;
   ParallelCompressMemory(TSelectCompressionMethod.scmZLIB_Max, m64, stream);
@@ -960,7 +960,7 @@ var
 begin
   fn := destFile;
   DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
-    TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+    TMS64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
   DestDB.OverWriteItem := False;
   spID := 1;
   if RecursionSearchFirst(RootPh, '*', sr) then
@@ -991,7 +991,7 @@ begin
                 fn := umlChangeFileExt(destFile, '') + umlIntToStr(spID) + umlGetFileExt(destFile);
                 inc(spID);
                 DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
-                  TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+                  TMS64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
                 DestDB.OverWriteItem := False;
               end;
           end;
@@ -1018,7 +1018,7 @@ var
 begin
   fn := destFile;
   DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
-    TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+    TMS64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
   DestDB.OverWriteItem := False;
   spID := 1;
   if RecursionSearchFirst(RootPh, '*', sr) then
@@ -1042,14 +1042,14 @@ begin
                 DestDB.UpdateIO;
                 fs := TCoreClassFileStream.Create(fn, fmCreate);
                 DestDB.StreamEngine.Position := 0;
-                ParallelCompressMemory(TSelectCompressionMethod.scmZLIB_Max, TMemoryStream64(DestDB.StreamEngine), fs);
+                ParallelCompressMemory(TSelectCompressionMethod.scmZLIB_Max, TMS64(DestDB.StreamEngine), fs);
                 DisposeObject(fs);
                 DisposeObject(DestDB);
 
                 fn := umlChangeFileExt(destFile, '') + umlIntToStr(spID) + umlGetFileExt(destFile);
                 inc(spID);
                 DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBHandle.FixedStringL,
-                  TMemoryStream64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
+                  TMS64.CustomCreate(1024 * 1024), '', DefaultItemID, False, True, True);
                 DestDB.OverWriteItem := False;
               end;
           end;
@@ -1059,7 +1059,7 @@ begin
   DestDB.UpdateIO;
   fs := TCoreClassFileStream.Create(fn, fmCreate);
   DestDB.StreamEngine.Position := 0;
-  ParallelCompressMemory(TSelectCompressionMethod.scmZLIB_Max, TMemoryStream64(DestDB.StreamEngine), fs);
+  ParallelCompressMemory(TSelectCompressionMethod.scmZLIB_Max, TMS64(DestDB.StreamEngine), fs);
   DisposeObject(fs);
   DisposeObject(DestDB);
 end;
@@ -1845,16 +1845,16 @@ end;
 
 procedure TObjectDataManagerOfCache.PrepareHeaderWriteProc(fPos: Int64; var wVal: THeader; var Done: Boolean);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
       Exit;
-  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  m64 := TMS64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(Get_DB_HeaderL(FDBHandle.IOHnd));
+      m64 := TMS64.CustomCreate(Get_DB_HeaderL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
@@ -1889,14 +1889,14 @@ end;
 procedure TObjectDataManagerOfCache.HeaderReadProc(fPos: Int64; var rVal: THeader; var Done: Boolean);
 var
   p: PObjectDataCacheHeader;
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   p := PObjectDataCacheHeader(FHeaderCache[fPos]);
   Done := p <> nil;
   if not Done then
     begin
-      m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+      m64 := TMS64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
@@ -1920,16 +1920,16 @@ end;
 
 procedure TObjectDataManagerOfCache.PrepareItemBlockWriteProc(fPos: Int64; var wVal: TItemBlock; var Done: Boolean);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
       Exit;
-  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  m64 := TMS64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(Get_DB_BlockL(FDBHandle.IOHnd));
+      m64 := TMS64.CustomCreate(Get_DB_BlockL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
@@ -1964,14 +1964,14 @@ end;
 procedure TObjectDataManagerOfCache.ItemBlockReadProc(fPos: Int64; var rVal: TItemBlock; var Done: Boolean);
 var
   p: PObjectDataCacheItemBlock;
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   p := PObjectDataCacheItemBlock(FItemBlockCache[fPos]);
   Done := p <> nil;
   if not Done then
     begin
-      m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+      m64 := TMS64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
@@ -2030,16 +2030,16 @@ end;
 
 procedure TObjectDataManagerOfCache.PrepareOnlyItemRecWriteProc(fPos: Int64; var wVal: TItem; var Done: Boolean);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
       Exit;
-  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  m64 := TMS64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(Get_DB_ItemL(FDBHandle.IOHnd));
+      m64 := TMS64.CustomCreate(Get_DB_ItemL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
@@ -2074,14 +2074,14 @@ end;
 procedure TObjectDataManagerOfCache.OnlyItemRecReadProc(fPos: Int64; var rVal: TItem; var Done: Boolean);
 var
   p: PObjectDataCacheItem;
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   p := PObjectDataCacheItem(FItemCache[fPos]);
   Done := p <> nil;
   if not Done then
     begin
-      m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+      m64 := TMS64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
@@ -2140,16 +2140,16 @@ end;
 
 procedure TObjectDataManagerOfCache.PrepareOnlyFieldRecWriteProc(fPos: Int64; var wVal: TField; var Done: Boolean);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   Done := False;
   if not CheckPreapreWrite(fPos) then
       Exit;
-  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  m64 := TMS64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(Get_DB_FieldL(FDBHandle.IOHnd));
+      m64 := TMS64.CustomCreate(Get_DB_FieldL(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
@@ -2184,14 +2184,14 @@ end;
 procedure TObjectDataManagerOfCache.OnlyFieldRecReadProc(fPos: Int64; var rVal: TField; var Done: Boolean);
 var
   p: PObjectDataCacheField;
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
   p := PObjectDataCacheField(FFieldCache[fPos]);
   Done := p <> nil;
   if not Done then
     begin
-      m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+      m64 := TMS64(FPrepareWritePool[fPos]);
       if m64 <> nil then
         begin
           InitIOHnd(Hnd);
@@ -2220,13 +2220,13 @@ end;
 
 procedure TObjectDataManagerOfCache.TMDBWriteProc(fPos: Int64; const wVal: PObjectDataHandle);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
-  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  m64 := TMS64(FPrepareWritePool[fPos]);
   if m64 = nil then
     begin
-      m64 := TMemoryStream64.CustomCreate(Get_DB_L(FDBHandle.IOHnd));
+      m64 := TMS64.CustomCreate(Get_DB_L(FDBHandle.IOHnd));
       FPrepareWritePool.Add(fPos, m64, False);
     end;
   InitIOHnd(Hnd);
@@ -2245,10 +2245,10 @@ end;
 
 procedure TObjectDataManagerOfCache.TMDBReadProc(fPos: Int64; const rVal: PObjectDataHandle; var Done: Boolean);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
   Hnd: TIOHnd;
 begin
-  m64 := TMemoryStream64(FPrepareWritePool[fPos]);
+  m64 := TMS64(FPrepareWritePool[fPos]);
   if m64 <> nil then
     begin
       InitIOHnd(Hnd);
@@ -2400,7 +2400,7 @@ var
   i: NativeInt;
   swapTotal: Integer;
   p: PInt64HashListObjectStruct;
-  m64: TMemoryStream64;
+  m64: TMS64;
   swapFileName: TPascalString;
   swapHnd: TCoreClassFileStream;
   swapHead: TSwapHead;
@@ -2428,7 +2428,7 @@ begin
             p := FPrepareWritePool.FirstPtr;
             while i < FPrepareWritePool.Count do
               begin
-                m64 := TMemoryStream64(p^.Data);
+                m64 := TMS64(p^.Data);
                 if p^.i64 >= FDBHandle.IOHnd.Size then
                     RaiseInfo('flush: prepare write buffer error!');
 
@@ -2450,7 +2450,7 @@ begin
       p := FPrepareWritePool.FirstPtr;
       while i < FPrepareWritePool.Count do
         begin
-          m64 := TMemoryStream64(p^.Data);
+          m64 := TMS64(p^.Data);
           FDBHandle.IOHnd.Handle.Position := p^.i64;
           FDBHandle.IOHnd.Handle.Write(m64.Memory^, m64.Size);
           inc(i);
@@ -2754,7 +2754,7 @@ var
   nameL: U_StringArray;
   n: U_String;
 begin
-  Database := c.CreateAsStream($FF, TMemoryStream64.CustomCreate($FFFF), '', 0, False, True, True);
+  Database := c.CreateAsStream($FF, TMS64.CustomCreate($FFFF), '', 0, False, True, True);
 
   if Database.CreateRootField('_RootField') then
       DoStatus('CreateRootField ok')

@@ -41,7 +41,7 @@ type
   PStoreArray = ^TStoreArray;
 
   // Base Data Struct
-  TDBEngineDF = class(TDataFrameEngine)
+  TDBEngineDF = class(TDFE)
   protected
     FDBStorePos: Int64;
     dbEng: TDBStore;
@@ -423,7 +423,7 @@ type
   // store engine
   TCacheStyle = (csAutomation, csNever, csAlways);
 
-  TDBCacheStream64 = class(TMemoryStream64)
+  TDBCacheStream64 = class(TMS64)
   private
     OwnerEng: TDBStore;
     OwnerCache: TInt64HashObjectList;
@@ -481,7 +481,7 @@ type
     function Internal_DeleteData(const StorePos: Int64): Boolean;
   public
     constructor Create(dbFile: SystemString; OnlyRead: Boolean);
-    constructor CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
+    constructor CreateMemory(DBMemory: TMS64; OnlyRead: Boolean);
     constructor CreateNew(dbFile: SystemString);
     constructor CreateNewMemory;
     destructor Destroy; override;
@@ -620,8 +620,8 @@ type
     function QueryThreadCount: Integer;
 
     // dataframe operation
-    function InsertData(const InsertPos: Int64; Buff: TDataFrameEngine): Int64; overload;
-    function AddData(Buff: TDataFrameEngine): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TDFE): Int64; overload;
+    function AddData(Buff: TDFE): Int64; overload;
     function GetDF(const StorePos: Int64): TDBEngineDF; overload;
     function GetDF(var qState: TQueryState): TDBEngineDF; overload;
     function BuildDF(const StorePos: Int64): TDBEngineDF; overload;
@@ -729,12 +729,12 @@ end;
 
 procedure TDBEngineDF.Save;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   EncodeTo(M, True);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
@@ -752,12 +752,12 @@ end;
 
 procedure TDBEngineVL.Save;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   SaveToStream(M);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
@@ -775,12 +775,12 @@ end;
 
 procedure TDBEngineVT.Save;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   SaveToStream(M);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
@@ -798,12 +798,12 @@ end;
 
 procedure TDBEngineTE.Save;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   SaveToStream(M);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
@@ -821,12 +821,12 @@ end;
 
 procedure TDBEngineJson.Save;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   SaveToStream(M, False);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
@@ -858,12 +858,12 @@ end;
 
 procedure TDBEnginePascalString.Save;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
   if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   SaveToStream(M);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
@@ -2391,7 +2391,7 @@ begin
   DoCreateInit;
 end;
 
-constructor TDBStore.CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
+constructor TDBStore.CreateMemory(DBMemory: TMS64; OnlyRead: Boolean);
 begin
   inherited Create;
   FDBEngine := TObjectDataManagerOfCache.CreateAsStream(DBMemory, '', ObjectDataMarshal.ID, OnlyRead, False, True);
@@ -2412,7 +2412,7 @@ end;
 constructor TDBStore.CreateNewMemory;
 begin
   inherited Create;
-  FDBEngine := TObjectDataManagerOfCache.CreateAsStream(TMemoryStream64.Create, '', ObjectDataMarshal.ID, False, True, True);
+  FDBEngine := TObjectDataManagerOfCache.CreateAsStream(TMS64.Create, '', ObjectDataMarshal.ID, False, True, True);
   FDBEngine.CreateField('/Store', '');
   ReadHeaderInfo;
   DoCreateInit;
@@ -2462,7 +2462,7 @@ begin
 
   if FDBEngine.StreamEngine <> nil then
     begin
-      DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBEngine.Handle^.IOHnd.FixedStringL, TMemoryStream64.Create, '', ObjectDataMarshal.ID, False, True, True);
+      DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBEngine.Handle^.IOHnd.FixedStringL, TMS64.Create, '', ObjectDataMarshal.ID, False, True, True);
       DestDB.OverWriteItem := False;
       CompressTo(DestDB);
       DisposeObject([FDBEngine]);
@@ -2546,7 +2546,7 @@ end;
 
 function TDBStore.IsMemoryMode: Boolean;
 begin
-  Result := FDBEngine.StreamEngine is TMemoryStream64;
+  Result := FDBEngine.StreamEngine is TMS64;
 end;
 
 function TDBStore.IsReadOnly: Boolean;
@@ -3160,11 +3160,11 @@ begin
   Result := FQueryQueue.Count;
 end;
 
-function TDBStore.InsertData(const InsertPos: Int64; Buff: TDataFrameEngine): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TDFE): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
 
   Buff.FastEncodeTo(M);
 
@@ -3172,11 +3172,11 @@ begin
   DisposeObject(M);
 end;
 
-function TDBStore.AddData(Buff: TDataFrameEngine): Int64;
+function TDBStore.AddData(Buff: TDFE): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
 
   Buff.FastEncodeTo(M);
 
@@ -3270,9 +3270,9 @@ end;
 
 function TDBStore.InsertData(const InsertPos: Int64; Buff: THashVariantList): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_VL);
   DisposeObject(M);
@@ -3280,9 +3280,9 @@ end;
 
 function TDBStore.AddData(Buff: THashVariantList): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := AddData(M, c_VL);
   DisposeObject(M);
@@ -3373,9 +3373,9 @@ end;
 
 function TDBStore.InsertData(const InsertPos: Int64; Buff: THashStringList): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_VT);
   DisposeObject(M);
@@ -3383,9 +3383,9 @@ end;
 
 function TDBStore.AddData(Buff: THashStringList): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := AddData(M, c_VT);
   DisposeObject(M);
@@ -3476,9 +3476,9 @@ end;
 
 function TDBStore.InsertData(const InsertPos: Int64; Buff: TSectionTextData): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_TE);
   DisposeObject(M);
@@ -3486,9 +3486,9 @@ end;
 
 function TDBStore.AddData(Buff: TSectionTextData): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := AddData(M, c_TE);
   DisposeObject(M);
@@ -3579,9 +3579,9 @@ end;
 
 function TDBStore.InsertData(const InsertPos: Int64; Buff: TZ_JsonObject): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M, False);
   Result := InsertData(InsertPos, M, c_Json);
   DisposeObject(M);
@@ -3589,9 +3589,9 @@ end;
 
 function TDBStore.AddData(Buff: TZ_JsonObject): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M, False);
   Result := AddData(M, c_Json);
   DisposeObject(M);
@@ -3689,9 +3689,9 @@ end;
 
 function TDBStore.InsertData(const InsertPos: Int64; Buff: TDBEnginePascalString): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_PascalString);
   DisposeObject(M);
@@ -3705,7 +3705,7 @@ end;
 function TDBStore.InsertString(const InsertPos: Int64; Buff: TPascalString): Int64;
 var
   t: TDBEnginePascalString;
-  M: TMemoryStream64;
+  M: TMS64;
   itmHnd: TItemHandle;
 begin
   if AllowedCache then
@@ -3716,7 +3716,7 @@ begin
       t.MemoryUsed := MH_ZDB.GetHookMemorySize;
       MH_ZDB.EndMemoryHook;
 
-      M := TMemoryStream64.Create;
+      M := TMS64.Create;
       t.SaveToStream(M);
       M.Position := 0;
       Result := InsertData(InsertPos, M, c_PascalString, itmHnd);
@@ -3734,7 +3734,7 @@ begin
       t := TDBEnginePascalString.Create;
       t.Buff := Buff;
 
-      M := TMemoryStream64.Create;
+      M := TMS64.Create;
       t.SaveToStream(M);
       M.Position := 0;
       Result := InsertData(InsertPos, M, c_PascalString, itmHnd);
@@ -3746,9 +3746,9 @@ end;
 
 function TDBStore.AddData(Buff: TDBEnginePascalString): Int64;
 var
-  M: TMemoryStream64;
+  M: TMS64;
 begin
-  M := TMemoryStream64.Create;
+  M := TMS64.Create;
   Buff.SaveToStream(M);
   M.Position := 0;
   Result := AddData(M, c_PascalString);
@@ -3763,7 +3763,7 @@ end;
 function TDBStore.AddString(Buff: TPascalString): Int64;
 var
   t: TDBEnginePascalString;
-  M: TMemoryStream64;
+  M: TMS64;
   itmHnd: TItemHandle;
 begin
   if AllowedCache then
@@ -3774,7 +3774,7 @@ begin
       t.MemoryUsed := MH_ZDB.GetHookMemorySize;
       MH_ZDB.EndMemoryHook;
 
-      M := TMemoryStream64.Create;
+      M := TMS64.Create;
       t.SaveToStream(M);
       M.Position := 0;
       Result := AddData(M, c_PascalString, itmHnd);
@@ -3792,7 +3792,7 @@ begin
       t := TDBEnginePascalString.Create;
       t.Buff := Buff;
 
-      M := TMemoryStream64.Create;
+      M := TMS64.Create;
       t.SaveToStream(M);
       M.Position := 0;
       Result := AddData(M, c_PascalString, itmHnd);

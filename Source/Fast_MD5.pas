@@ -186,9 +186,9 @@ begin
       Result := FastMD5(Pointer(nativeUInt(TCoreClassMemoryStream(stream).Memory) + StartPos), EndPos - StartPos);
       exit;
     end;
-  if stream is TMemoryStream64 then
+  if stream is TMS64 then
     begin
-      Result := FastMD5(TMemoryStream64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
+      Result := FastMD5(TMS64(stream).PositionAsPtr(StartPos), EndPos - StartPos);
       exit;
     end;
 {$ENDIF}

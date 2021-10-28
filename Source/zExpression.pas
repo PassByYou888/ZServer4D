@@ -1599,6 +1599,7 @@ begin
       // check esWaitOp state
       if (esWaitOp in State) and (CharIn(ParsingEng.GetChar(cPos), ParsingEng.SymbolTable)) then
         begin
+          isSpecialSymbol := False;
           isNumber := False;
           isTextDecl := False;
           isAscii := False;
@@ -1727,7 +1728,7 @@ begin
                     edtProcExp:
                       begin
                         if (RefrenceOpRT <> nil) and (not RefrenceOpRT.ProcList.Exists(RV)) then
-                          if (DefaultOpRT <> RefrenceOpRT) and (not DefaultOpRT.ProcList.Exists(RV)) then
+                          if (SystemOpRunTime <> RefrenceOpRT) and (not SystemOpRunTime.ProcList.Exists(RV)) then
                             begin
                               PrintError(Format('function "%s" Illegal', [RV]));
                               Break;
@@ -1827,7 +1828,7 @@ var
   ParsingEng: TTextParsing;
 begin
   ParsingEng := TTextParsing.Create(ExpressionText, tsPascal, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, DefaultOpRT);
+  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, SystemOpRunTime);
   DisposeObject(ParsingEng);
 end;
 
@@ -2676,7 +2677,7 @@ function BuildAsOpCode(DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText
 var
   sym: TSymbolExpression;
 begin
-  sym := ParseTextExpressionAsSymbol(TextStyle, '', ExpressionText, nil, DefaultOpRT);
+  sym := ParseTextExpressionAsSymbol(TextStyle, '', ExpressionText, nil, SystemOpRunTime);
   Result := BuildAsOpCode(DebugMode, sym, '', 0);
   DisposeObject(sym);
 end;
@@ -2685,7 +2686,7 @@ function BuildAsOpCode(TextStyle: TTextStyle; ExpressionText: SystemString): TOp
 var
   sym: TSymbolExpression;
 begin
-  sym := ParseTextExpressionAsSymbol(TextStyle, '', ExpressionText, nil, DefaultOpRT);
+  sym := ParseTextExpressionAsSymbol(TextStyle, '', ExpressionText, nil, SystemOpRunTime);
   Result := BuildAsOpCode(False, sym, '', 0);
   DisposeObject(sym);
 end;
@@ -2744,7 +2745,7 @@ begin
   if (Op <> nil) and (UsedCache) then
     begin
       try
-          Result := Op.Execute(DefaultOpRT);
+          Result := Op.Execute(SystemOpRunTime);
       except
           Result := NULL;
       end;
@@ -2752,7 +2753,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_M(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
+      sym := ParseTextExpressionAsSymbol_M(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
 
       if sym <> nil then
         begin
@@ -2760,7 +2761,7 @@ begin
           if Op <> nil then
             begin
               try
-                Result := Op.Execute(DefaultOpRT);
+                Result := Op.Execute(SystemOpRunTime);
                 if UsedCache then
                   begin
                     LockObject(OpCache);
@@ -2796,7 +2797,7 @@ begin
   if (Op <> nil) and (UsedCache) then
     begin
       try
-          Result := Op.Execute(DefaultOpRT);
+          Result := Op.Execute(SystemOpRunTime);
       except
           Result := NULL;
       end;
@@ -2804,7 +2805,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_C(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
+      sym := ParseTextExpressionAsSymbol_C(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
 
       if sym <> nil then
         begin
@@ -2812,7 +2813,7 @@ begin
           if Op <> nil then
             begin
               try
-                Result := Op.Execute(DefaultOpRT);
+                Result := Op.Execute(SystemOpRunTime);
                 if UsedCache then
                   begin
                     LockObject(OpCache);
@@ -2848,7 +2849,7 @@ begin
   if (Op <> nil) and (UsedCache) then
     begin
       try
-          Result := Op.Execute(DefaultOpRT);
+          Result := Op.Execute(SystemOpRunTime);
       except
           Result := NULL;
       end;
@@ -2856,7 +2857,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_P(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, DefaultOpRT);
+      sym := ParseTextExpressionAsSymbol_P(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
 
       if sym <> nil then
         begin
@@ -2864,7 +2865,7 @@ begin
           if Op <> nil then
             begin
               try
-                Result := Op.Execute(DefaultOpRT);
+                Result := Op.Execute(SystemOpRunTime);
                 if UsedCache then
                   begin
                     LockObject(OpCache);
@@ -3022,12 +3023,12 @@ end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, nil, False, tsPascal, ExpressionText, DefaultOpRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, nil, False, tsPascal, ExpressionText, SystemOpRunTime, nil);
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, nil, False, TextStyle, ExpressionText, DefaultOpRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, nil, False, TextStyle, ExpressionText, SystemOpRunTime, nil);
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
@@ -3047,12 +3048,12 @@ end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, DefaultOpRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, SystemOpRunTime, nil);
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, False, tsPascal, ExpressionText, DefaultOpRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, False, tsPascal, ExpressionText, SystemOpRunTime, nil);
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
@@ -3072,7 +3073,7 @@ end;
 
 function EvaluateExpressionValue(TextStyle: TTextStyle; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(True, nil, False, TextStyle, ExpressionText, DefaultOpRT);
+  Result := EvaluateExpressionValue(True, nil, False, TextStyle, ExpressionText, SystemOpRunTime);
 end;
 
 function EvaluateExpressionValue(TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
@@ -3092,12 +3093,12 @@ end;
 
 function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, DefaultOpRT);
+  Result := EvaluateExpressionValue(True, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, SystemOpRunTime);
 end;
 
 function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, False, tsPascal, ExpressionText, DefaultOpRT);
+  Result := EvaluateExpressionValue(True, SpecialAsciiToken, False, tsPascal, ExpressionText, SystemOpRunTime);
 end;
 
 function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
@@ -3152,7 +3153,7 @@ end;
 
 function EvaluateExpressionVector(ExpressionText: SystemString; const_vl: THashVariantList): TExpressionValueVector;
 begin
-  Result := EvaluateExpressionVector(ExpressionText, DefaultOpRT, const_vl);
+  Result := EvaluateExpressionVector(ExpressionText, SystemOpRunTime, const_vl);
 end;
 
 function EvaluateExpressionVector(ExpressionText: SystemString; TextStyle: TTextStyle): TExpressionValueVector;
@@ -3194,7 +3195,7 @@ end;
 
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString; const_vl: THashVariantList): TExpressionValueMatrix;
 begin
-  Result := EvaluateExpressionMatrix(W, H, ExpressionText, DefaultOpRT, const_vl);
+  Result := EvaluateExpressionMatrix(W, H, ExpressionText, SystemOpRunTime, const_vl);
 end;
 
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString; TextStyle: TTextStyle): TExpressionValueMatrix;
@@ -3204,7 +3205,7 @@ end;
 
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString): TExpressionValueMatrix;
 begin
-  Result := EvaluateExpressionMatrix(W, H, ExpressionText, DefaultOpRT, nil);
+  Result := EvaluateExpressionMatrix(W, H, ExpressionText, SystemOpRunTime, nil);
 end;
 
 function EStr(s: U_String): U_String;

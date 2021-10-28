@@ -147,9 +147,9 @@ function vec2(const pt: TPointf): TVec2; overload; {$IFDEF INLINE_ASM} inline; {
 function LineV2(const x1, y1, x2, y2: TGeoFloat): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function LineV2(const lb, le: TVec2): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function LineV2(const lb, le: TPoint): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function LineV2(const l: TLineV2_P): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function LineV2(const l: PLineV2_P): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function LineV2(const l: PLineV2): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LineV2(const L: TLineV2_P): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LineV2(const L: PLineV2_P): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LineV2(const L: PLineV2): TLineV2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function RoundVec2(const V: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
@@ -215,14 +215,14 @@ function PointDotProduct(const v1, v2: TVec2): TGeoFloat; overload; {$IFDEF INLI
 
 function Distance(const x1, y1, x2, y2: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Distance(const x1, y1, z1, x2, y2, z2: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function Distance(const l: TLineV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Distance(const L: TLineV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Distance(const f1, f2: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function FloatDistance(const f1, f2: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function PointDistance(const x1, y1, x2, y2: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function PointDistance(const v1, v2: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function Vec2Distance(const v1, v2: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function LineDistance(const l: TLineV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function LineDistance(const L: TLineV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function PointLayDistance(const v1, v2: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function SqrDistance(const v1, v2: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
@@ -462,12 +462,12 @@ procedure BuildSinCosCache(const oSin, oCos: PGeoFloatArray; const b, E: TGeoFlo
 
 procedure ClosestPointOnSegmentFromPoint(const x1, y1, x2, y2, Px, Py: TGeoFloat; out Nx, Ny: TGeoFloat); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function ClosestPointOnSegmentFromPoint(const lb, le, pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function ClosestPointOnSegmentFromLine(const l: TLineV2; const pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function ClosestPointOnSegmentFromLine(const pt: TVec2; const l: TLineV2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ClosestPointOnSegmentFromLine(const L: TLineV2; const pt: TVec2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function ClosestPointOnSegmentFromLine(const pt: TVec2; const L: TLineV2): TVec2; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function MinimumDistanceFromPointToLine(const Px, Py, x1, y1, x2, y2: TGeoFloat): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function MinimumDistanceFromPointToLine(const pt: TVec2; const l: TLineV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function MinimumDistanceFromPointToLine(const l: TLineV2; const pt: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MinimumDistanceFromPointToLine(const pt: TVec2; const L: TLineV2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function MinimumDistanceFromPointToLine(const L: TLineV2; const pt: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 function MinimumDistanceFromPointToLine(const lb, le, pt: TVec2): TGeoFloat; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 // projection
@@ -513,7 +513,7 @@ function GetCicleRadiusInPolyEdge(R: TGeoFloat; PolySlices: TGeoInt): TGeoFloat;
 
 procedure Circle2LineIntersectionPoint(const lb, le, cp: TVec2; const radius: TGeoFloat;
   out pt1in, pt2in: Boolean; out ICnt: TGeoInt; out pt1, pt2: TVec2); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-procedure Circle2LineIntersectionPoint(const l: TLineV2; const cp: TVec2; radius: TGeoFloat;
+procedure Circle2LineIntersectionPoint(const L: TLineV2; const cp: TVec2; radius: TGeoFloat;
   out pt1in, pt2in: Boolean; out ICnt: TGeoInt; out pt1, pt2: TVec2); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 procedure Circle2CircleIntersectionPoint(const cp1, cp2: TVec2; const r1, r2: TGeoFloat; out Point1, Point2: TVec2); overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
@@ -526,7 +526,7 @@ function Detect_Circle2CirclePoint(const p1, p2: TVec2; const r1, r2: TGeoFloat;
 
 // circle 2 line collision
 function Detect_Circle2Line(const cp: TVec2; const R: TGeoFloat; const lb, le: TVec2): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
-function Detect_Circle2Line(const cp: TVec2; const R: TGeoFloat; const l: TLineV2): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
+function Detect_Circle2Line(const cp: TVec2; const R: TGeoFloat; const L: TLineV2): Boolean; overload; {$IFDEF INLINE_ASM} inline; {$ENDIF}
 
 function SameLinePtr(const lb1, le1, lb2, le2: PVec2): Boolean;
 
@@ -681,8 +681,8 @@ type
     procedure ProjectionTo(const sour, dest: TRectV2; const output: TVec2List); overload;
     procedure ProjectionTo(const dest: TRectV2; const output: TVec2List); overload;
 
-    procedure SaveToStream(stream: TMemoryStream64); overload;
-    procedure LoadFromStream(stream: TMemoryStream64); overload;
+    procedure SaveToStream(stream: TMS64); overload;
+    procedure LoadFromStream(stream: TMS64); overload;
 
     function BoundBox: TRectV2; overload;
     function BoundCentre: TVec2;
@@ -835,8 +835,8 @@ type
     procedure VertexReduction(Epsilon_: TGeoFloat); overload;
     procedure Reduction(Epsilon_: TGeoFloat); overload;
 
-    procedure SaveToStream(stream: TMemoryStream64);
-    procedure LoadFromStream(stream: TMemoryStream64);
+    procedure SaveToStream(stream: TMS64);
+    procedure LoadFromStream(stream: TMS64);
   end;
 
   T2DPolygonGraphList = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<T2DPolygonGraph>;
@@ -970,8 +970,8 @@ type
     function GetExpands(idx: TGeoInt; ExpandDist: TGeoFloat): TVec2;
     property Expands[idx: TGeoInt; ExpandDist: TGeoFloat]: TVec2 read GetExpands;
 
-    procedure SaveToStream(stream: TMemoryStream64); overload;
-    procedure LoadFromStream(stream: TMemoryStream64); overload;
+    procedure SaveToStream(stream: TMS64); overload;
+    procedure LoadFromStream(stream: TMS64); overload;
 
     property UserDataObject: TCoreClassObject read FUserDataObject write FUserDataObject;
     property UserData: Pointer read FUserData write FUserData;
@@ -1294,7 +1294,7 @@ type
 function ArrayVec2(const V: TArrayVec2): TArrayVec2; overload;
 function ArrayVec2(const R: TRectV2): TArrayVec2; overload;
 function ArrayVec2(const R: TV2Rect4): TArrayVec2; overload;
-function ArrayVec2(const l: TLineV2): TArrayVec2; overload;
+function ArrayVec2(const L: TLineV2): TArrayVec2; overload;
 function ArrayVec2(const t: TTriangle): TArrayVec2; overload;
 function ArrayBoundRect(arry: TArrayVec2): TRectV2; overload;
 function ArrayBoundRect(arry: TArrayRectV2): TRectV2; overload;
@@ -1565,21 +1565,21 @@ begin
   Result[1] := vec2(le);
 end;
 
-function LineV2(const l: TLineV2_P): TLineV2;
+function LineV2(const L: TLineV2_P): TLineV2;
 begin
-  Result[0] := l[0]^;
-  Result[1] := l[1]^;
+  Result[0] := L[0]^;
+  Result[1] := L[1]^;
 end;
 
-function LineV2(const l: PLineV2_P): TLineV2;
+function LineV2(const L: PLineV2_P): TLineV2;
 begin
-  Result[0] := l^[0]^;
-  Result[1] := l^[1]^;
+  Result[0] := L^[0]^;
+  Result[1] := L^[1]^;
 end;
 
-function LineV2(const l: PLineV2): TLineV2;
+function LineV2(const L: PLineV2): TLineV2;
 begin
-  Result := l^;
+  Result := L^;
 end;
 
 function RoundVec2(const V: TVec2): TVec2;
@@ -1916,9 +1916,9 @@ begin
   Result := Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
 end;
 
-function Distance(const l: TLineV2): TGeoFloat;
+function Distance(const L: TLineV2): TGeoFloat;
 begin
-  Result := Distance(l[0, 0], l[0, 1], l[1, 0], l[1, 1]);
+  Result := Distance(L[0, 0], L[0, 1], L[1, 0], L[1, 1]);
 end;
 
 function Distance(const f1, f2: TGeoFloat): TGeoFloat;
@@ -1946,9 +1946,9 @@ begin
   Result := Sqrt((v2[0] - v1[0]) * (v2[0] - v1[0]) + (v2[1] - v1[1]) * (v2[1] - v1[1]));
 end;
 
-function LineDistance(const l: TLineV2): TGeoFloat;
+function LineDistance(const L: TLineV2): TGeoFloat;
 begin
-  Result := Distance(l[0, 0], l[0, 1], l[1, 0], l[1, 1]);
+  Result := Distance(L[0, 0], L[0, 1], L[1, 0], L[1, 1]);
 end;
 
 function PointLayDistance(const v1, v2: TVec2): TGeoFloat;
@@ -3384,15 +3384,15 @@ end;
 
 function PointInPolygon(pt: TVec2; const PolygonBuff: TArrayVec2): Boolean;
 var
-  l, i: TGeoInt;
+  L, i: TGeoInt;
   pi, pj: TVec2;
 begin
   Result := False;
-  l := length(PolygonBuff);
-  if l < 3 then
+  L := length(PolygonBuff);
+  if L < 3 then
       exit;
-  pj := PolygonBuff[l - 1];
-  for i := 0 to l - 1 do
+  pj := PolygonBuff[L - 1];
+  for i := 0 to L - 1 do
     begin
       pi := PolygonBuff[i];
       (* upward crossing and downward crossing *)
@@ -3984,14 +3984,14 @@ begin
   ClosestPointOnSegmentFromPoint(lb[0], lb[1], le[0], le[1], pt[0], pt[1], Result[0], Result[1]);
 end;
 
-function ClosestPointOnSegmentFromLine(const l: TLineV2; const pt: TVec2): TVec2;
+function ClosestPointOnSegmentFromLine(const L: TLineV2; const pt: TVec2): TVec2;
 begin
-  ClosestPointOnSegmentFromPoint(l[0, 0], l[0, 1], l[1, 0], l[1, 1], pt[0], pt[1], Result[0], Result[1]);
+  ClosestPointOnSegmentFromPoint(L[0, 0], L[0, 1], L[1, 0], L[1, 1], pt[0], pt[1], Result[0], Result[1]);
 end;
 
-function ClosestPointOnSegmentFromLine(const pt: TVec2; const l: TLineV2): TVec2;
+function ClosestPointOnSegmentFromLine(const pt: TVec2; const L: TLineV2): TVec2;
 begin
-  ClosestPointOnSegmentFromPoint(l[0, 0], l[0, 1], l[1, 0], l[1, 1], pt[0], pt[1], Result[0], Result[1]);
+  ClosestPointOnSegmentFromPoint(L[0, 0], L[0, 1], L[1, 0], L[1, 1], pt[0], pt[1], Result[0], Result[1]);
 end;
 
 function MinimumDistanceFromPointToLine(const Px, Py, x1, y1, x2, y2: TGeoFloat): TGeoFloat;
@@ -4003,14 +4003,14 @@ begin
   Result := Distance(Px, Py, Nx, Ny);
 end;
 
-function MinimumDistanceFromPointToLine(const pt: TVec2; const l: TLineV2): TGeoFloat;
+function MinimumDistanceFromPointToLine(const pt: TVec2; const L: TLineV2): TGeoFloat;
 begin
-  Result := MinimumDistanceFromPointToLine(pt[0], pt[1], l[0, 0], l[0, 1], l[1, 0], l[1, 1]);
+  Result := MinimumDistanceFromPointToLine(pt[0], pt[1], L[0, 0], L[0, 1], L[1, 0], L[1, 1]);
 end;
 
-function MinimumDistanceFromPointToLine(const l: TLineV2; const pt: TVec2): TGeoFloat;
+function MinimumDistanceFromPointToLine(const L: TLineV2; const pt: TVec2): TGeoFloat;
 begin
-  Result := MinimumDistanceFromPointToLine(pt[0], pt[1], l[0, 0], l[0, 1], l[1, 0], l[1, 1]);
+  Result := MinimumDistanceFromPointToLine(pt[0], pt[1], L[0, 0], L[0, 1], L[1, 0], L[1, 1]);
 end;
 
 function MinimumDistanceFromPointToLine(const lb, le, pt: TVec2): TGeoFloat;
@@ -4291,10 +4291,10 @@ begin
     end;
 end;
 
-procedure Circle2LineIntersectionPoint(const l: TLineV2; const cp: TVec2; radius: TGeoFloat;
+procedure Circle2LineIntersectionPoint(const L: TLineV2; const cp: TVec2; radius: TGeoFloat;
   out pt1in, pt2in: Boolean; out ICnt: TGeoInt; out pt1, pt2: TVec2);
 begin
-  Circle2LineIntersectionPoint(l[0], l[1], cp, radius, pt1in, pt2in, ICnt, pt1, pt2);
+  Circle2LineIntersectionPoint(L[0], L[1], cp, radius, pt1in, pt2in, ICnt, pt1, pt2);
 end;
 
 procedure Circle2CircleIntersectionPoint(const cp1, cp2: TVec2; const r1, r2: TGeoFloat; out Point1, Point2: TVec2);
@@ -4413,9 +4413,9 @@ begin
       Result := False;
 end;
 
-function Detect_Circle2Line(const cp: TVec2; const R: TGeoFloat; const l: TLineV2): Boolean;
+function Detect_Circle2Line(const cp: TVec2; const R: TGeoFloat; const L: TLineV2): Boolean;
 begin
-  Result := Detect_Circle2Line(cp, R, l[0], l[1]);
+  Result := Detect_Circle2Line(cp, R, L[0], L[1]);
 end;
 
 function SameLinePtr(const lb1, le1, lb2, le2: PVec2): Boolean;
@@ -5272,15 +5272,15 @@ end;
 
 procedure TVec2List.RemoveSame;
 var
-  l, p: PVec2;
+  L, p: PVec2;
   i: TGeoInt;
 begin
   if Count < 2 then
       exit;
 
-  l := PVec2(FList[0]);
+  L := PVec2(FList[0]);
   p := PVec2(FList[Count - 1]);
-  while (Count >= 2) and (IsEqual(p^, l^)) do
+  while (Count >= 2) and (IsEqual(p^, L^)) do
     begin
       Delete(Count - 1);
       p := PVec2(FList[Count - 1]);
@@ -5289,16 +5289,16 @@ begin
   if Count < 2 then
       exit;
 
-  l := PVec2(FList[0]);
+  L := PVec2(FList[0]);
   i := 1;
   while i < Count do
     begin
       p := PVec2(FList[i]);
-      if IsEqual(p^, l^) then
+      if IsEqual(p^, L^) then
           Delete(i)
       else
         begin
-          l := p;
+          L := p;
           inc(i);
         end;
     end;
@@ -5306,11 +5306,11 @@ end;
 
 procedure TVec2List.SwapData(dest: TVec2List);
 var
-  l: TCoreClassList;
+  L: TCoreClassList;
 begin
-  l := FList;
+  L := FList;
   FList := dest.FList;
-  dest.FList := l;
+  dest.FList := L;
 end;
 
 procedure TVec2List.MoveDataTo(dest: TVec2List);
@@ -5446,7 +5446,7 @@ begin
   ProjectionTo(BoundBox, dest, output);
 end;
 
-procedure TVec2List.SaveToStream(stream: TMemoryStream64);
+procedure TVec2List.SaveToStream(stream: TMS64);
 var
   i: TGeoInt;
   p: PVec2;
@@ -5460,7 +5460,7 @@ begin
     end;
 end;
 
-procedure TVec2List.LoadFromStream(stream: TMemoryStream64);
+procedure TVec2List.LoadFromStream(stream: TMS64);
 var
   c: TGeoInt;
   i: TGeoInt;
@@ -6164,16 +6164,16 @@ end;
 procedure TVec2List.VertexReduction(Epsilon_: TGeoFloat);
 var
   buff, output: TArrayVec2;
-  f, l: TVec2;
+  f, L: TVec2;
 begin
   RemoveSame;
   f := First^;
-  l := Last^;
+  L := Last^;
   ExtractToBuff(buff);
   FastVertexReduction(buff, Epsilon_, output);
   GiveListDataFromBuff(output);
   Insert(0, f);
-  Add(l);
+  Add(L);
   RemoveSame;
 end;
 
@@ -6320,15 +6320,15 @@ procedure TVec2List.SortOfNear(const lb, le: TVec2);
     Result := CompareFloat(d1, d2);
   end;
 
-  procedure fastSort_(var Arry_: TCoreClassPointerList; l, R: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; L, R: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
   begin
     repeat
-      i := l;
+      i := L;
       j := R;
-      p := Arry_[(l + R) shr 1];
+      p := Arry_[(L + R) shr 1];
       repeat
         while Compare_(Arry_[i], p) < 0 do
             inc(i);
@@ -6342,9 +6342,9 @@ procedure TVec2List.SortOfNear(const lb, le: TVec2);
             dec(j);
           end;
       until i > j;
-      if l < j then
-          fastSort_(Arry_, l, j);
-      l := i;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
     until i >= R;
   end;
 
@@ -6364,15 +6364,15 @@ procedure TVec2List.SortOfNear(const pt: TVec2);
     Result := CompareFloat(d1, d2);
   end;
 
-  procedure fastSort_(var Arry_: TCoreClassPointerList; l, R: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; L, R: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
   begin
     repeat
-      i := l;
+      i := L;
       j := R;
-      p := Arry_[(l + R) shr 1];
+      p := Arry_[(L + R) shr 1];
       repeat
         while Compare_(Arry_[i], p) < 0 do
             inc(i);
@@ -6386,9 +6386,9 @@ procedure TVec2List.SortOfNear(const pt: TVec2);
             dec(j);
           end;
       until i > j;
-      if l < j then
-          fastSort_(Arry_, l, j);
-      l := i;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
     until i >= R;
   end;
 
@@ -6872,40 +6872,40 @@ end;
 procedure T2DPolygonGraph.FreeAndRemove(polygon: T2DPolygon);
 var
   i: TGeoInt;
-  l: T2DPolygonList;
+  L: T2DPolygonList;
 begin
   if polygon = Surround then
       Clear()
   else
     begin
-      l := T2DPolygonList.Create;
+      L := T2DPolygonList.Create;
       for i := Low(Collapses) to High(Collapses) do
         if Collapses[i] = polygon then
             DisposeObject(Collapses[i])
         else
-            l.Add(Collapses[i]);
+            L.Add(Collapses[i]);
 
-      SetLength(Collapses, l.Count);
-      for i := 0 to l.Count - 1 do
-          Collapses[i] := l[i];
+      SetLength(Collapses, L.Count);
+      for i := 0 to L.Count - 1 do
+          Collapses[i] := L[i];
 
-      DisposeObject(l);
+      DisposeObject(L);
     end;
 end;
 
 procedure T2DPolygonGraph.RemoveNullPolygon;
 var
   i: TGeoInt;
-  l: T2DPolygonList;
+  L: T2DPolygonList;
 begin
-  l := T2DPolygonList.Create;
+  L := T2DPolygonList.Create;
   for i := 0 to CollapsesCount - 1 do
     if Collapses[i].Count = 0 then
-        l.Add(Collapses[i]);
+        L.Add(Collapses[i]);
 
-  for i := 0 to l.Count - 1 do
-      FreeAndRemove(l[i]);
-  DisposeObject(l);
+  for i := 0 to L.Count - 1 do
+      FreeAndRemove(L[i]);
+  DisposeObject(L);
 end;
 
 function T2DPolygonGraph.Total: TGeoInt;
@@ -7078,7 +7078,7 @@ end;
 function T2DPolygonGraph.GetNearLine(const pt: TVec2; out output: T2DPolygon; out lb, le: TGeoInt): TVec2;
 type
   TNearLineData = record
-    l: T2DPolygon;
+    L: T2DPolygon;
     lb, le: TGeoInt;
     near_pt: TVec2;
   end;
@@ -7102,12 +7102,12 @@ var
   var
     i: TGeoInt;
   begin
-    buff_ori[0].l := Surround;
+    buff_ori[0].L := Surround;
     buff_ori[0].near_pt := Surround.GetNearLine(pt, True, buff_ori[0].lb, buff_ori[0].le);
 
     for i := 0 to CollapsesCount - 1 do
       begin
-        buff_ori[i + 1].l := Collapses[i];
+        buff_ori[i + 1].L := Collapses[i];
         buff_ori[i + 1].near_pt := Collapses[i].GetNearLine(pt, True, buff_ori[i + 1].lb, buff_ori[i + 1].le);
       end;
   end;
@@ -7117,7 +7117,7 @@ var
     i: TGeoInt;
   begin
     // write result
-    output := buff[0]^.l;
+    output := buff[0]^.L;
     lb := buff[0]^.lb;
     le := buff[0]^.le;
     Result := buff[0]^.near_pt;
@@ -7126,7 +7126,7 @@ var
       begin
         if PointDistance(buff[i]^.near_pt, pt) < PointDistance(Result, pt) then
           begin
-            output := buff[i]^.l;
+            output := buff[i]^.L;
             lb := buff[i]^.lb;
             le := buff[i]^.le;
             Result := buff[i]^.near_pt;
@@ -7207,23 +7207,23 @@ begin
   VertexReduction(Epsilon_);
 end;
 
-procedure T2DPolygonGraph.SaveToStream(stream: TMemoryStream64);
+procedure T2DPolygonGraph.SaveToStream(stream: TMS64);
 var
-  d: TDataFrameEngine;
-  m64: TMemoryStream64;
+  d: TDFE;
+  m64: TMS64;
   i: TGeoInt;
 begin
-  d := TDataFrameEngine.Create;
+  d := TDFE.Create;
   d.WriteInteger(CollapsesCount);
 
-  m64 := TMemoryStream64.CustomCreate(64 * 1024);
+  m64 := TMS64.CustomCreate(64 * 1024);
   Surround.SaveToStream(m64);
   d.WriteStream(m64);
   DisposeObject(m64);
 
   for i := 0 to CollapsesCount - 1 do
     begin
-      m64 := TMemoryStream64.CustomCreate(64 * 1024);
+      m64 := TMS64.CustomCreate(64 * 1024);
       Collapses[i].SaveToStream(m64);
       d.WriteStream(m64);
       DisposeObject(m64);
@@ -7233,18 +7233,18 @@ begin
   DisposeObject(d);
 end;
 
-procedure T2DPolygonGraph.LoadFromStream(stream: TMemoryStream64);
+procedure T2DPolygonGraph.LoadFromStream(stream: TMS64);
 var
-  d: TDataFrameEngine;
-  m64: TMemoryStream64;
+  d: TDFE;
+  m64: TMS64;
   c, i: TGeoInt;
 begin
   Clear;
-  d := TDataFrameEngine.Create;
+  d := TDFE.Create;
   d.DecodeFrom(stream, False);
   c := d.Reader.ReadInteger;
 
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   d.Reader.ReadStream(m64);
   m64.Position := 0;
   Surround.LoadFromStream(m64);
@@ -7252,7 +7252,7 @@ begin
 
   for i := 0 to c - 1 do
     begin
-      m64 := TMemoryStream64.Create;
+      m64 := TMS64.Create;
       d.Reader.ReadStream(m64);
       m64.Position := 0;
       NewCollapse.LoadFromStream(m64);
@@ -7626,15 +7626,15 @@ end;
 
 procedure TDeflectionPolygon.RemoveSame;
 var
-  l, p: PDeflectionPolygonVec;
+  L, p: PDeflectionPolygonVec;
   i: TGeoInt;
 begin
   if Count < 2 then
       exit;
 
-  l := PDeflectionPolygonVec(FList[0]);
+  L := PDeflectionPolygonVec(FList[0]);
   p := PDeflectionPolygonVec(FList[Count - 1]);
-  while (Count >= 2) and (IsEqual(p^.Angle, l^.Angle)) and (IsEqual(p^.Dist, l^.Dist)) do
+  while (Count >= 2) and (IsEqual(p^.Angle, L^.Angle)) and (IsEqual(p^.Dist, L^.Dist)) do
     begin
       Delete(Count - 1);
       p := PDeflectionPolygonVec(FList[Count - 1]);
@@ -7643,16 +7643,16 @@ begin
   if Count < 2 then
       exit;
 
-  l := PDeflectionPolygonVec(FList[0]);
+  L := PDeflectionPolygonVec(FList[0]);
   i := 1;
   while i < Count do
     begin
       p := PDeflectionPolygonVec(FList[i]);
-      if (IsEqual(p^.Angle, l^.Angle)) and (IsEqual(p^.Dist, l^.Dist)) then
+      if (IsEqual(p^.Angle, L^.Angle)) and (IsEqual(p^.Dist, L^.Dist)) then
           Delete(i)
       else
         begin
-          l := p;
+          L := p;
           inc(i);
         end;
     end;
@@ -8750,7 +8750,7 @@ begin
     end;
 end;
 
-procedure TDeflectionPolygon.SaveToStream(stream: TMemoryStream64);
+procedure TDeflectionPolygon.SaveToStream(stream: TMS64);
 var
   i: TGeoInt;
   p: PDeflectionPolygonVec;
@@ -8768,7 +8768,7 @@ begin
     end;
 end;
 
-procedure TDeflectionPolygon.LoadFromStream(stream: TMemoryStream64);
+procedure TDeflectionPolygon.LoadFromStream(stream: TMS64);
 var
   c: TGeoInt;
   i: TGeoInt;
@@ -8875,12 +8875,12 @@ end;
 
 procedure TDeflectionPolygonList.SaveToStream(stream: TCoreClassStream);
 var
-  d: TDataFrameEngine;
+  d: TDFE;
   i: TGeoInt;
   dp: TDeflectionPolygon;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
-  d := TDataFrameEngine.Create;
+  d := TDFE.Create;
 
   d.WriteRectV2(BackgroundBox);
 
@@ -8892,7 +8892,7 @@ begin
       d.WriteString(dp.Name);
       d.WriteString(dp.Classifier);
 
-      m64 := TMemoryStream64.Create;
+      m64 := TMS64.Create;
       dp.SaveToStream(m64);
       d.WriteStream(m64);
       DisposeObject(m64);
@@ -8904,13 +8904,13 @@ end;
 
 procedure TDeflectionPolygonList.LoadFromStream(stream: TCoreClassStream);
 var
-  d: TDataFrameEngine;
+  d: TDFE;
   i, c: TGeoInt;
   dp: TDeflectionPolygon;
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   Clear;
-  d := TDataFrameEngine.Create;
+  d := TDFE.Create;
   d.DecodeFrom(stream, False);
 
   BackgroundBox := d.Reader.ReadRectV2;
@@ -8923,7 +8923,7 @@ begin
       dp.FName := d.Reader.ReadString;
       dp.FClassifier := d.Reader.ReadString;
 
-      m64 := TMemoryStream64.Create;
+      m64 := TMS64.Create;
       d.Reader.ReadStream(m64);
       m64.Position := 0;
       dp.LoadFromStream(m64);
@@ -8936,12 +8936,12 @@ end;
 
 procedure TDeflectionPolygonList.LoadFromBase64(const buff: TPascalString);
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   if not umlTestBase64(buff) then
       RaiseInfo('illegal base64 data.');
 
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
   umlDecodeStreamBASE64(buff, m64);
   m64.Position := 0;
   LoadFromStream(m64);
@@ -9096,7 +9096,7 @@ end;
 function TDeflectionPolygonLines.NearLine(const ExpandDist: TGeoFloat; const pt: TVec2): PDeflectionPolygonLine;
 var
   d, d2: TGeoFloat;
-  l: PDeflectionPolygonLine;
+  L: PDeflectionPolygonLine;
   i: TGeoInt;
 begin
   Result := nil;
@@ -9106,25 +9106,25 @@ begin
     end
   else if Count > 1 then
     begin
-      l := Items[0];
+      L := Items[0];
       if ExpandDist = 0 then
-          d := l^.MinimumDistance(pt)
+          d := L^.MinimumDistance(pt)
       else
-          d := l^.MinimumDistance(ExpandDist, pt);
-      Result := l;
+          d := L^.MinimumDistance(ExpandDist, pt);
+      Result := L;
 
       for i := 1 to Count - 1 do
         begin
-          l := Items[i];
+          L := Items[i];
 
           if ExpandDist = 0 then
-              d2 := l^.MinimumDistance(pt)
+              d2 := L^.MinimumDistance(pt)
           else
-              d2 := l^.MinimumDistance(ExpandDist, pt);
+              d2 := L^.MinimumDistance(ExpandDist, pt);
 
           if d2 < d then
             begin
-              Result := l;
+              Result := L;
               d := d2;
             end;
         end;
@@ -9134,31 +9134,31 @@ end;
 function TDeflectionPolygonLines.FarLine(const ExpandDist: TGeoFloat; const pt: TVec2): PDeflectionPolygonLine;
 var
   d, d2: TGeoFloat;
-  l: PDeflectionPolygonLine;
+  L: PDeflectionPolygonLine;
   i: TGeoInt;
 begin
   Result := nil;
   if Count > 0 then
     begin
-      l := Items[0];
+      L := Items[0];
       if ExpandDist = 0 then
-          d := l^.MinimumDistance(pt)
+          d := L^.MinimumDistance(pt)
       else
-          d := l^.MinimumDistance(ExpandDist, pt);
-      Result := l;
+          d := L^.MinimumDistance(ExpandDist, pt);
+      Result := L;
 
       for i := 1 to Count - 1 do
         begin
-          l := Items[i];
+          L := Items[i];
 
           if ExpandDist = 0 then
-              d2 := l^.MinimumDistance(pt)
+              d2 := L^.MinimumDistance(pt)
           else
-              d2 := l^.MinimumDistance(ExpandDist, pt);
+              d2 := L^.MinimumDistance(ExpandDist, pt);
 
           if d2 > d then
             begin
-              Result := l;
+              Result := L;
               d := d2;
             end;
         end;
@@ -9176,15 +9176,15 @@ procedure TDeflectionPolygonLines.SortOfNear(const pt: TVec2);
     Result := CompareFloat(d1, d2);
   end;
 
-  procedure fastSort_(var Arry_: TCoreClassPointerList; l, R: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; L, R: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
   begin
     repeat
-      i := l;
+      i := L;
       j := R;
-      p := Arry_[(l + R) shr 1];
+      p := Arry_[(L + R) shr 1];
       repeat
         while Compare_(Arry_[i], p) < 0 do
             inc(i);
@@ -9198,9 +9198,9 @@ procedure TDeflectionPolygonLines.SortOfNear(const pt: TVec2);
             dec(j);
           end;
       until i > j;
-      if l < j then
-          fastSort_(Arry_, l, j);
-      l := i;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
     until i >= R;
   end;
 
@@ -9224,15 +9224,15 @@ procedure TDeflectionPolygonLines.SortOfFar(const pt: TVec2);
     Result := CompareFloat(d2, d1);
   end;
 
-  procedure fastSort_(var Arry_: TCoreClassPointerList; l, R: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; L, R: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
   begin
     repeat
-      i := l;
+      i := L;
       j := R;
-      p := Arry_[(l + R) shr 1];
+      p := Arry_[(L + R) shr 1];
       repeat
         while Compare_(Arry_[i], p) < 0 do
             inc(i);
@@ -9246,9 +9246,9 @@ procedure TDeflectionPolygonLines.SortOfFar(const pt: TVec2);
             dec(j);
           end;
       until i > j;
-      if l < j then
-          fastSort_(Arry_, l, j);
-      l := i;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
     until i >= R;
   end;
 
@@ -9724,15 +9724,15 @@ procedure TRectPacking.Build(SpaceWidth, SpaceHeight: TGeoFloat);
     Result := CompareFloat(RectArea(PRectPackData(Right)^.Rect), RectArea(PRectPackData(Left)^.Rect));
   end;
 
-  procedure fastSort_(var Arry_: TCoreClassPointerList; l, R: TGeoInt);
+  procedure fastSort_(var Arry_: TCoreClassPointerList; L, R: TGeoInt);
   var
     i, j: TGeoInt;
     p: Pointer;
   begin
     repeat
-      i := l;
+      i := L;
       j := R;
-      p := Arry_[(l + R) shr 1];
+      p := Arry_[(L + R) shr 1];
       repeat
         while Compare_(Arry_[i], p) < 0 do
             inc(i);
@@ -9746,9 +9746,9 @@ procedure TRectPacking.Build(SpaceWidth, SpaceHeight: TGeoFloat);
             dec(j);
           end;
       until i > j;
-      if l < j then
-          fastSort_(Arry_, l, j);
-      l := i;
+      if L < j then
+          fastSort_(Arry_, L, j);
+      L := i;
     until i >= R;
   end;
 
@@ -10520,11 +10520,11 @@ begin
   Result[3] := R.LeftBottom;
 end;
 
-function ArrayVec2(const l: TLineV2): TArrayVec2;
+function ArrayVec2(const L: TLineV2): TArrayVec2;
 begin
   SetLength(Result, 2);
-  Result[0] := l[0];
-  Result[1] := l[1];
+  Result[0] := L[0];
+  Result[1] := L[1];
 end;
 
 function ArrayVec2(const t: TTriangle): TArrayVec2;

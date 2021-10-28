@@ -291,7 +291,7 @@ type
     OnConsoleParamProc: TConsoleParamProc;
     OnConsoleFailedProc: TConsoleFailedProc;
     { stream data }
-    StreamData: TMemoryStream64;
+    StreamData: TMS64;
     { stream event }
     OnStreamMethod: TStreamMethod;
     OnStreamParamMethod: TStreamParamMethod;
@@ -441,7 +441,7 @@ type
   PBigStreamBatchPostData = ^TBigStreamBatchPostData;
 
   TBigStreamBatchPostData = record
-    Source: TMemoryStream64;
+    Source: TMS64;
     CompletedBackcallPtr: UInt64;
     RemoteMD5: TMD5;
     SourceMD5: TMD5;
@@ -523,7 +523,7 @@ type
     SequenceNumber: Cardinal;
     Size: Word;
     hash: TMD5;
-    data: TMemoryStream64;
+    data: TMS64;
     tick: TTimeTick;
   end;
 
@@ -580,8 +580,8 @@ type
     FBigStreamReceiveDoneSignal: Byte;
     FCompleteBufferToken: Byte;
     FReceivedAbort: Boolean;
-    FReceivedBuffer: TMemoryStream64;
-    FReceivedBuffer_Busy: TMemoryStream64;
+    FReceivedBuffer: TMS64;
+    FReceivedBuffer_Busy: TMS64;
     FBigStreamReceiveProcessing: Boolean;
     FBigStreamTotal: Int64;
     FBigStreamCompleted: Int64;
@@ -596,7 +596,7 @@ type
     FCompleteBufferCompressedSize: Cardinal;
     FCompleteBufferCompleted: Cardinal;
     FCompleteBufferCmd: SystemString;
-    FCompleteBufferReceivedStream: TMemoryStream64;
+    FCompleteBufferReceivedStream: TMS64;
     FCurrentQueueData: PQueueData;
     FWaitOnResult: Boolean;
     FCurrentPauseResultSend_CommDataType: Byte;
@@ -604,7 +604,7 @@ type
     FPauseResultSend: Boolean;
     FReceiveTriggerRuning: Boolean;
     FReceiveDataCipherSecurity: TCipherSecurity;
-    FResultDataBuffer: TMemoryStream64;
+    FResultDataBuffer: TMS64;
     FSendDataCipherSecurity: TCipherSecurity;
     FCipherKey: TCipherKeyBuffer;
     FDecryptInstance: TCipher_Base;
@@ -645,7 +645,7 @@ type
     SendingSequencePacketHistory: TUInt32HashPointerList;
     SequencePacketReceivedPool: TUInt32HashPointerList;
     SendingSequencePacketHistoryMemory, SequencePacketReceivedPoolMemory: Int64;
-    IOSendBuffer, SequencePacketSendBuffer, SequencePacketReceivedBuffer: TMemoryStream64;
+    IOSendBuffer, SequencePacketSendBuffer, SequencePacketReceivedBuffer: TMS64;
 
     { performance }
     FSequencePacketMTU: Word;
@@ -672,7 +672,7 @@ type
     procedure DoSequencePacketEchoKeepAlive(p: Pointer; siz: Word); virtual; { event: echo KeepAlive }
     procedure WriteSequencePacket(p: PSequencePacket);
     procedure ResendSequencePacket(SequenceNumber: Cardinal);
-    function FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMemoryStream64): Boolean;
+    function FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMS64): Boolean;
 
     procedure Send_Free_OnPtr(p: Pointer);
     procedure Send_Add_OnPtr(p: Pointer);
@@ -738,12 +738,12 @@ type
     procedure SendWord(v: Word);
     procedure SendVerifyCode(buff: Pointer; siz: NativeInt);
     procedure SendEncryptBuffer(buff: PByte; siz: NativeInt; CS: TCipherSecurity);
-    procedure SendEncryptMemoryStream(Stream: TMemoryStream64; CS: TCipherSecurity);
+    procedure SendEncryptMemoryStream(Stream: TMS64; CS: TCipherSecurity);
 
-    procedure InternalSendConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
-    procedure InternalSendStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
-    procedure InternalSendDirectConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
-    procedure InternalSendDirectStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+    procedure InternalSendConsoleBuff(buff: TMS64; CS: TCipherSecurity);
+    procedure InternalSendStreamBuff(buff: TMS64; CS: TCipherSecurity);
+    procedure InternalSendDirectConsoleBuff(buff: TMS64; CS: TCipherSecurity);
+    procedure InternalSendDirectStreamBuff(buff: TMS64; CS: TCipherSecurity);
     procedure InternalSendBigStreamHeader(Cmd: SystemString; streamSiz: Int64);
     procedure InternalSendBigStreamBuff(var Queue: TQueueData);
     procedure InternalSendCompleteBufferHeader(Cmd: SystemString; buffSiz, compSiz: Cardinal);
@@ -874,9 +874,9 @@ type
     procedure BeginWriteCustomBuffer;
     procedure EndWriteCustomBuffer;
     procedure WriteCustomBuffer(const buffer: PByte; const Size: NativeInt); overload; virtual;
-    procedure WriteCustomBuffer(const buffer: TMemoryStream64); overload;
+    procedure WriteCustomBuffer(const buffer: TMS64); overload;
     procedure WriteCustomBuffer(const buffer: TMem64); overload;
-    procedure WriteCustomBuffer(const buffer: TMemoryStream64; const doneFreeBuffer: Boolean); overload;
+    procedure WriteCustomBuffer(const buffer: TMS64; const doneFreeBuffer: Boolean); overload;
     procedure WriteCustomBuffer(const buffer: TMem64; const doneFreeBuffer: Boolean); overload;
 
     { pause reponse }
@@ -919,7 +919,7 @@ type
     function GetBigStreamBatch: TBigStreamBatch;
     property BigStreamBatchList: TBigStreamBatch read GetBigStreamBatch;
     property BigStreamBatch: TBigStreamBatch read GetBigStreamBatch;
-    property CompleteBufferReceivedStream: TMemoryStream64 read FCompleteBufferReceivedStream;
+    property CompleteBufferReceivedStream: TMS64 read FCompleteBufferReceivedStream;
 
     { framework }
     property OwnerFramework: TCommunicationFramework read FOwnerFramework;
@@ -971,7 +971,7 @@ type
     procedure SendConsoleCmdM(Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamMethod; const OnFailed: TConsoleFailedMethod); overload;
 
     { send stream cmd and result method }
-    procedure SendStreamCmdM(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdM(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdM(Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamMethod); overload;
     procedure SendStreamCmdM(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod); overload;
     procedure SendStreamCmdM(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod; const OnFailed: TStreamFailedMethod); overload;
@@ -982,7 +982,7 @@ type
     procedure SendConsoleCmdP(Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamProc; const OnFailed: TConsoleFailedProc); overload;
 
     { send stream cmd and result proc }
-    procedure SendStreamCmdP(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdP(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdP(Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamProc); overload;
     procedure SendStreamCmdP(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc); overload;
     procedure SendStreamCmdP(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc; const OnFailed: TStreamFailedProc); overload;
@@ -990,7 +990,7 @@ type
     { direct send cmd }
     procedure SendDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString); overload;
     procedure SendDirectConsoleCmd(Cmd: SystemString); overload;
-    procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TDFE); overload;
     procedure SendDirectStreamCmd(Cmd: SystemString); overload;
 
@@ -1004,7 +1004,7 @@ type
 
     { send complete buffer }
     procedure SendCompleteBuffer(Cmd: SystemString; buff: PByte; BuffSize: NativeInt; DoneAutoFree: Boolean); overload;
-    procedure SendCompleteBuffer(Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendCompleteBuffer(Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendCompleteBuffer(Cmd: SystemString; buff: TMem64; DoneAutoFree: Boolean); overload;
   end;
 
@@ -1514,9 +1514,9 @@ type
     procedure BeginWriteBuffer(P_IO: TPeerIO);
     procedure EndWriteBuffer(P_IO: TPeerIO);
     procedure WriteBuffer(P_IO: TPeerIO; const buffer: PByte; const Size: NativeInt); overload; virtual;
-    procedure WriteBuffer(P_IO: TPeerIO; const buffer: TMemoryStream64); overload;
+    procedure WriteBuffer(P_IO: TPeerIO; const buffer: TMS64); overload;
     procedure WriteBuffer(P_IO: TPeerIO; const buffer: TMem64); overload;
-    procedure WriteBuffer(P_IO: TPeerIO; const buffer: TMemoryStream64; const doneFreeBuffer: Boolean); overload;
+    procedure WriteBuffer(P_IO: TPeerIO; const buffer: TMS64; const doneFreeBuffer: Boolean); overload;
     procedure WriteBuffer(P_IO: TPeerIO; const buffer: TMem64; const doneFreeBuffer: Boolean); overload;
 
     { external service method }
@@ -1535,7 +1535,7 @@ type
     procedure SendConsoleCmdM(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamMethod; const OnFailed: TConsoleFailedMethod); overload;
 
     { send stream cmd method }
-    procedure SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamMethod); overload;
     procedure SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod); overload;
     procedure SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod; const OnFailed: TStreamFailedMethod); overload;
@@ -1546,7 +1546,7 @@ type
     procedure SendConsoleCmdP(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamProc; const OnFailed: TConsoleFailedProc); overload;
 
     { send stream cmd proc }
-    procedure SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamProc); overload;
     procedure SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc); overload;
     procedure SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc; const OnFailed: TStreamFailedProc); overload;
@@ -1554,7 +1554,7 @@ type
     { send direct cmd }
     procedure SendDirectConsoleCmd(P_IO: TPeerIO; const Cmd, ConsoleData: SystemString); overload;
     procedure SendDirectConsoleCmd(P_IO: TPeerIO; const Cmd: SystemString); overload;
-    procedure SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TDFE); overload;
     procedure SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString); overload;
 
@@ -1568,14 +1568,14 @@ type
 
     { send complete buffer }
     procedure SendCompleteBuffer(P_IO: TPeerIO; const Cmd: SystemString; buff: PByte; BuffSize: NativeInt; DoneAutoFree: Boolean); overload;
-    procedure SendCompleteBuffer(P_IO: TPeerIO; const Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendCompleteBuffer(P_IO: TPeerIO; const Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendCompleteBuffer(P_IO: TPeerIO; const Cmd: SystemString; buff: TMem64; DoneAutoFree: Boolean); overload;
 
     { send used IO bind ID ,return method }
     procedure SendConsoleCmdM(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; const OnResult: TConsoleMethod); overload;
     procedure SendConsoleCmdM(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamMethod); overload;
     procedure SendConsoleCmdM(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamMethod; const OnFailed: TConsoleFailedMethod); overload;
-    procedure SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamMethod); overload;
     procedure SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod); overload;
     procedure SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod; const OnFailed: TStreamFailedMethod); overload;
@@ -1584,7 +1584,7 @@ type
     procedure SendConsoleCmdP(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; const OnResult: TConsoleProc); overload;
     procedure SendConsoleCmdP(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamProc); overload;
     procedure SendConsoleCmdP(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamProc; const OnFailed: TConsoleFailedProc); overload;
-    procedure SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamProc); overload;
     procedure SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc); overload;
     procedure SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc; const OnFailed: TStreamFailedProc); overload;
@@ -1592,7 +1592,7 @@ type
     { direct send used IO BIND ID }
     procedure SendDirectConsoleCmd(IO_ID: Cardinal; const Cmd, ConsoleData: SystemString); overload;
     procedure SendDirectConsoleCmd(IO_ID: Cardinal; const Cmd: SystemString); overload;
-    procedure SendDirectStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendDirectStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendDirectStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TDFE); overload;
     procedure SendDirectStreamCmd(IO_ID: Cardinal; const Cmd: SystemString); overload;
 
@@ -1606,7 +1606,7 @@ type
 
     { send complete buffer }
     procedure SendCompleteBuffer(IO_ID: Cardinal; const Cmd: SystemString; buff: PByte; BuffSize: NativeInt; DoneAutoFree: Boolean); overload;
-    procedure SendCompleteBuffer(IO_ID: Cardinal; const Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendCompleteBuffer(IO_ID: Cardinal; const Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendCompleteBuffer(IO_ID: Cardinal; const Cmd: SystemString; buff: TMem64; DoneAutoFree: Boolean); overload;
 
     { Broadcast to all IO }
@@ -1716,9 +1716,9 @@ type
     procedure BeginWriteBuffer();
     procedure EndWriteBuffer();
     procedure WriteBuffer(const buffer: PByte; const Size: NativeInt); overload; virtual;
-    procedure WriteBuffer(const buffer: TMemoryStream64); overload;
+    procedure WriteBuffer(const buffer: TMS64); overload;
     procedure WriteBuffer(const buffer: TMem64); overload;
-    procedure WriteBuffer(const buffer: TMemoryStream64; const doneFreeBuffer: Boolean); overload;
+    procedure WriteBuffer(const buffer: TMS64; const doneFreeBuffer: Boolean); overload;
     procedure WriteBuffer(const buffer: TMem64; const doneFreeBuffer: Boolean); overload;
 
     { ServerState must be connected successfully. }
@@ -1791,7 +1791,7 @@ type
     procedure SendConsoleCmdM(Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamMethod; const OnFailed: TConsoleFailedMethod); overload;
 
     { send stream cmd method }
-    procedure SendStreamCmdM(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdM(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdM(Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamMethod); overload;
     procedure SendStreamCmdM(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod); overload;
     procedure SendStreamCmdM(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamMethod; const OnFailed: TStreamFailedMethod); overload;
@@ -1802,7 +1802,7 @@ type
     procedure SendConsoleCmdP(Cmd, ConsoleData: SystemString; Param1: Pointer; Param2: TObject; const OnResult: TConsoleParamProc; const OnFailed: TConsoleFailedProc); overload;
 
     { send stream cmd proc }
-    procedure SendStreamCmdP(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
+    procedure SendStreamCmdP(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean); overload;
     procedure SendStreamCmdP(Cmd: SystemString; StreamData: TDFE; const OnResult: TStreamProc); overload;
     procedure SendStreamCmdP(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc); overload;
     procedure SendStreamCmdP(Cmd: SystemString; StreamData: TDFE; Param1: Pointer; Param2: TObject; const OnResult: TStreamParamProc; const OnFailed: TStreamFailedProc); overload;
@@ -1810,7 +1810,7 @@ type
     { send direct cmd }
     procedure SendDirectConsoleCmd(Cmd: SystemString; ConsoleData: SystemString); overload;
     procedure SendDirectConsoleCmd(Cmd: SystemString); overload;
-    procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendDirectStreamCmd(Cmd: SystemString; StreamData: TDFE); overload;
     procedure SendDirectStreamCmd(Cmd: SystemString); overload;
 
@@ -1824,7 +1824,7 @@ type
 
     { send complete buffer }
     procedure SendCompleteBuffer(Cmd: SystemString; buff: PByte; BuffSize: NativeInt; DoneAutoFree: Boolean); overload;
-    procedure SendCompleteBuffer(Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean); overload;
+    procedure SendCompleteBuffer(Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean); overload;
     procedure SendCompleteBuffer(Cmd: SystemString; buff: TMem64; DoneAutoFree: Boolean); overload;
 
     property OnInterface: ICommunicationFrameworkClientInterface read FOnInterface write FOnInterface;
@@ -1851,14 +1851,14 @@ type
     buff: PByte;
 
     procedure Init;
-    function FillReceiveBuff(Stream: TMemoryStream64): Integer;
-    procedure BuildSendBuff(Stream: TMemoryStream64);
+    function FillReceiveBuff(Stream: TMS64): Integer;
+    procedure BuildSendBuff(Stream: TMS64);
   end;
 
   TP2PVM_PeerIO = class(TPeerIO)
   protected
     FLinkVM: TCommunicationFrameworkWithP2PVM;
-    FRealSendBuff: TMemoryStream64;
+    FRealSendBuff: TMS64;
     FSendQueue: TCoreClassList;
     FRemote_frameworkID: Cardinal;
     FRemote_p2pID: Cardinal;
@@ -2015,8 +2015,8 @@ type
     FFrameworkListenPool: TCoreClassList;
     FMaxVMFragmentSize: Cardinal;
     FQuietMode: Boolean;
-    FReceiveStream: TMemoryStream64;
-    FSendStream: TMemoryStream64;
+    FReceiveStream: TMS64;
+    FSendStream: TMS64;
     FWaitEchoList: TCoreClassList;
     FVMID: Cardinal;
     OnAuthSuccessOnesNotify: TP2PVMAuthSuccessMethod;
@@ -4532,7 +4532,7 @@ function TBigStreamBatch.NewPostData: PBigStreamBatchPostData;
 begin
   new(Result);
   Result^.Init;
-  Result^.Source := TMemoryStream64.Create;
+  Result^.Source := TMS64.Create;
   Result^.index := FList.Add(Result);
 end;
 
@@ -4688,9 +4688,9 @@ begin
   SendingSequencePacketHistoryMemory := 0;
   SequencePacketReceivedPoolMemory := 0;
 
-  IOSendBuffer := TMemoryStream64.CustomCreate(MemoryDelta);
-  SequencePacketSendBuffer := TMemoryStream64.CustomCreate(MemoryDelta);
-  SequencePacketReceivedBuffer := TMemoryStream64.CustomCreate(MemoryDelta);
+  IOSendBuffer := TMS64.CustomCreate(MemoryDelta);
+  SequencePacketSendBuffer := TMS64.CustomCreate(MemoryDelta);
+  SequencePacketReceivedBuffer := TMS64.CustomCreate(MemoryDelta);
 
   FSequencePacketMTU := C_SequencePacketMTU;
 
@@ -4856,7 +4856,7 @@ begin
     begin
       new(p);
       p^.SequenceNumber := SequenceNumberOnSendCounter;
-      p^.data := TMemoryStream64.Create;
+      p^.data := TMS64.Create;
       p^.data.Size := FlushBuffSize;
       p^.Size := p^.data.Size;
       CopyPtr(pBuff, p^.data.Memory, p^.data.Size);
@@ -4882,7 +4882,7 @@ begin
     begin
       new(p);
       p^.SequenceNumber := SequenceNumberOnSendCounter;
-      p^.data := TMemoryStream64.Create;
+      p^.data := TMS64.Create;
       p^.data.Size := siz;
       p^.Size := p^.data.Size;
       CopyPtr(pBuff, p^.data.Memory, p^.data.Size);
@@ -4948,14 +4948,14 @@ begin
       PrintError('resend error, invalid Sequence Packet ' + IntToHex(SequenceNumber, 8));
 end;
 
-function TPeerIO.FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMemoryStream64): Boolean;
+function TPeerIO.FillSequencePacketTo(const buff: Pointer; siz: Int64; ExtractDest: TMS64): Boolean;
 var
   ErrorState: Boolean;
   p: PSequencePacket;
   head: Byte;
   echoSiz: Word;
   ResendNumber, DoneNumber: Cardinal;
-  fastSwap, n: TMemoryStream64;
+  fastSwap, n: TMS64;
   hashMatched: Boolean;
 begin
   Result := True;
@@ -4972,7 +4972,7 @@ begin
   if (buff <> nil) and (siz > 0) then
       SequencePacketReceivedBuffer.WritePtr(buff, siz);
 
-  fastSwap := TMemoryStream64.Create;
+  fastSwap := TMS64.Create;
   fastSwap.SetPointerWithProtectedMode(SequencePacketReceivedBuffer.Memory, SequencePacketReceivedBuffer.Size);
 
   IOSendBuffer.Position := IOSendBuffer.Size;
@@ -5071,7 +5071,7 @@ begin
               else if (FSequencePacketSignal) and ((p^.SequenceNumber > SequenceNumberOnReceivedCounter) or
                 (Cardinal(p^.SequenceNumber + Cardinal($7FFFFFFF)) > Cardinal(SequenceNumberOnReceivedCounter + Cardinal($7FFFFFFF)))) then
                 begin
-                  p^.data := TMemoryStream64.Create;
+                  p^.data := TMS64.Create;
                   p^.data.CopyFrom(fastSwap, p^.Size);
                   p^.tick := GetTimeTick;
                   SequencePacketReceivedPool.Add(p^.SequenceNumber, p, True);
@@ -5104,7 +5104,7 @@ begin
           Break;
         end;
 
-      n := TMemoryStream64.Create;
+      n := TMS64.Create;
       n.SetPointerWithProtectedMode(fastSwap.PositionAsPtr(), fastSwap.Size - fastSwap.Position);
       DisposeObject(fastSwap);
       fastSwap := n;
@@ -5119,7 +5119,7 @@ begin
     end;
 
   { strip buffer }
-  n := TMemoryStream64.CustomCreate(SequencePacketReceivedBuffer.Delta);
+  n := TMS64.CustomCreate(SequencePacketReceivedBuffer.Delta);
   if fastSwap.Size > 0 then
     begin
       n.WritePtr(fastSwap.Memory, fastSwap.Size);
@@ -5281,12 +5281,12 @@ begin
   Send(buff, siz);
 end;
 
-procedure TPeerIO.SendEncryptMemoryStream(Stream: TMemoryStream64; CS: TCipherSecurity);
+procedure TPeerIO.SendEncryptMemoryStream(Stream: TMS64; CS: TCipherSecurity);
 begin
   SendEncryptBuffer(Stream.Memory, Stream.Size, CS);
 end;
 
-procedure TPeerIO.InternalSendConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+procedure TPeerIO.InternalSendConsoleBuff(buff: TMS64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5299,7 +5299,7 @@ begin
   EndSend;
 end;
 
-procedure TPeerIO.InternalSendStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+procedure TPeerIO.InternalSendStreamBuff(buff: TMS64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5312,7 +5312,7 @@ begin
   EndSend;
 end;
 
-procedure TPeerIO.InternalSendDirectConsoleBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+procedure TPeerIO.InternalSendDirectConsoleBuff(buff: TMS64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5325,7 +5325,7 @@ begin
   EndSend;
 end;
 
-procedure TPeerIO.InternalSendDirectStreamBuff(buff: TMemoryStream64; CS: TCipherSecurity);
+procedure TPeerIO.InternalSendDirectStreamBuff(buff: TMS64; CS: TCipherSecurity);
 begin
   BeginSend;
   SendCardinal(FHeadToken);
@@ -5436,14 +5436,14 @@ end;
 
 procedure TPeerIO.InternalSendCompleteBufferBuff(var Queue: TQueueData);
 var
-  sour, Dest: TMemoryStream64;
+  sour, Dest: TMS64;
 begin
   BeginSend;
   if FOwnerFramework.FCompleteBufferCompressed and (Queue.BufferSize > OwnerFramework.FCompleteBufferCompressionCondition) then
     begin
-      sour := TMemoryStream64.Create;
+      sour := TMS64.Create;
       sour.SetPointerWithProtectedMode(Queue.buffer, Queue.BufferSize);
-      Dest := TMemoryStream64.Create;
+      Dest := TMS64.Create;
       ParallelCompressMemory(scmZLIB_Fast, sour, Dest);
       InternalSendCompleteBufferHeader(Queue.Cmd, Queue.BufferSize, Dest.Size);
       Send(Dest.Memory, Dest.Size);
@@ -5479,15 +5479,15 @@ end;
 procedure TPeerIO.SendBigStreamMiniPacket(buff: PByte; Size: NativeInt);
 var
   head: TBigStreamFragmentHead;
-  sourStream, destStream: TMemoryStream64;
+  sourStream, destStream: TMS64;
 begin
   BeginSend;
 
   if OwnerFramework.SendDataCompressed then
     begin
-      sourStream := TMemoryStream64.Create;
+      sourStream := TMS64.Create;
       sourStream.SetPointerWithProtectedMode(buff, Size);
-      destStream := TMemoryStream64.CustomCreate(8192);
+      destStream := TMS64.CustomCreate(8192);
       ParallelCompressMemory(scmZLIB_Fast, sourStream, destStream);
 
       head.Size := destStream.Size;
@@ -5525,13 +5525,13 @@ end;
 procedure TPeerIO.Sync_InternalSendConsoleCmd;
 var
   d: TDFE;
-  Stream: TMemoryStream64;
+  Stream: TMS64;
 begin
   if not OwnerFramework.QuietMode then
       PrintCommand('internal send console: %s', FSyncPick^.Cmd);
 
   d := TDFE.Create;
-  Stream := TMemoryStream64.Create;
+  Stream := TMS64.Create;
 
   d.WriteString(FSyncPick^.Cmd);
   d.WriteString(FSyncPick^.ConsoleData);
@@ -5555,13 +5555,13 @@ end;
 procedure TPeerIO.Sync_InternalSendStreamCmd;
 var
   d: TDFE;
-  Stream: TMemoryStream64;
+  Stream: TMS64;
 begin
   if not OwnerFramework.QuietMode then
       PrintCommand('internal send stream: %s', FSyncPick^.Cmd);
 
   d := TDFE.Create;
-  Stream := TMemoryStream64.Create;
+  Stream := TMS64.Create;
 
   d.WriteString(FSyncPick^.Cmd);
   d.WriteStream(FSyncPick^.StreamData);
@@ -5585,13 +5585,13 @@ end;
 procedure TPeerIO.Sync_InternalSendDirectConsoleCmd;
 var
   d: TDFE;
-  Stream: TMemoryStream64;
+  Stream: TMS64;
 begin
   if not OwnerFramework.QuietMode then
       PrintCommand('internal send direct console: %s', FSyncPick^.Cmd);
 
   d := TDFE.Create;
-  Stream := TMemoryStream64.Create;
+  Stream := TMS64.Create;
 
   d.WriteString(FSyncPick^.Cmd);
   d.WriteString(FSyncPick^.ConsoleData);
@@ -5615,13 +5615,13 @@ end;
 procedure TPeerIO.Sync_InternalSendDirectStreamCmd;
 var
   d: TDFE;
-  Stream: TMemoryStream64;
+  Stream: TMS64;
 begin
   if not OwnerFramework.QuietMode then
       PrintCommand('internal send direct stream: %s', FSyncPick^.Cmd);
 
   d := TDFE.Create;
-  Stream := TMemoryStream64.Create;
+  Stream := TMS64.Create;
 
   d.WriteString(FSyncPick^.Cmd);
   d.WriteStream(FSyncPick^.StreamData);
@@ -5754,10 +5754,10 @@ end;
 
 procedure TPeerIO.Sync_SendStreamResult;
 var
-  m64: TMemoryStream64;
+  m64: TMS64;
 begin
   BeginSend;
-  m64 := TMemoryStream64.Create;
+  m64 := TMS64.Create;
 
   if FOwnerFramework.FSendDataCompressed then
       FOutDataFrame.EncodeAsSelectCompressor(m64, True)
@@ -5887,7 +5887,7 @@ function TPeerIO.ReceivedBigStreamFragment(CurrentActiveThread_: TCoreClassThrea
 var
   head: TBigStreamFragmentHead;
   np: Int64;
-  buff, destBuff: TMemoryStream64;
+  buff, destBuff: TMS64;
   leftSize: Int64;
 begin
   Result := False;
@@ -5900,13 +5900,13 @@ begin
 
   np := FReceivedBuffer.Position + head.Size;
 
-  buff := TMemoryStream64.CustomCreate(8192);
+  buff := TMS64.CustomCreate(8192);
   buff.WritePtr(FReceivedBuffer.PositionAsPtr, head.Size);
   buff.Position := 0;
 
   if head.Compressed then
     begin
-      destBuff := TMemoryStream64.CustomCreate(8192);
+      destBuff := TMS64.CustomCreate(8192);
       ParallelDecompressStream(buff, destBuff);
       DisposeObject(buff);
       buff := destBuff;
@@ -5946,7 +5946,7 @@ begin
   { replace fragment buffer }
   if FReceivedBuffer.Size - np > 0 then
     begin
-      buff := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+      buff := TMS64.CustomCreate(FReceivedBuffer.Delta);
       buff.WritePtr(FReceivedBuffer.PositionAsPtr(np), FReceivedBuffer.Size - np);
       DisposeObject(FReceivedBuffer);
       FReceivedBuffer := buff;
@@ -5986,16 +5986,16 @@ begin
           OnExecuteMethod := {$IFDEF FPC}@{$ENDIF FPC}FOwnerFramework.DelayExecuteOnCompleteBufferState;
         end;
 
-      FCompleteBufferReceivedStream := TMemoryStream64.Create
+      FCompleteBufferReceivedStream := TMS64.Create
     end;
 end;
 
 function TPeerIO.FillCompleteBufferBuffer(CurrentActiveThread_: TCoreClassThread; const Sync: Boolean): Boolean;
 var
   leftSize: Cardinal;
-  tmpStream: TMemoryStream64;
+  tmpStream: TMS64;
 
-  Dest: TMemoryStream64;
+  Dest: TMS64;
 begin
   leftSize := FCompleteBufferTotal - FCompleteBufferCompleted;
   if leftSize > FReceivedBuffer.Size then
@@ -6016,7 +6016,7 @@ begin
       FCompleteBufferReceivedStream.WritePtr(FReceivedBuffer.Memory, leftSize);
       FCompleteBufferReceivedStream.Position := 0;
 
-      tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+      tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
       if FReceivedBuffer.Size - leftSize > 0 then
           tmpStream.WritePtr(FReceivedBuffer.PositionAsPtr(leftSize), FReceivedBuffer.Size - leftSize);
       DisposeObject(FReceivedBuffer);
@@ -6024,7 +6024,7 @@ begin
 
       if FCompleteBufferCompressedSize > 0 then
         begin
-          Dest := TMemoryStream64.Create;
+          Dest := TMS64.Create;
           ParallelDecompressStream(FCompleteBufferReceivedStream, Dest);
           DisposeObject(FCompleteBufferReceivedStream);
           Dest.Position := 0;
@@ -6076,7 +6076,7 @@ var
   dHashSiz: Word;
   dHash: TBytes;
   dCipherSecurity: Byte;
-  tmpStream: TMemoryStream64;
+  tmpStream: TMS64;
   buff: TBytes;
 begin
   Result := False;
@@ -6157,7 +6157,7 @@ begin
   end;
 
   { stripped stream }
-  tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+  tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
   if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
       tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
   DisposeObject(FReceivedBuffer);
@@ -6251,7 +6251,7 @@ var
   dHashSiz: Word;
   dHash: TBytes;
   dCipherSecurity: Byte;
-  tmpStream: TMemoryStream64;
+  tmpStream: TMS64;
   d: TDFE;
   buff: TBytes;
   Total: Int64;
@@ -6350,7 +6350,7 @@ begin
               end;
 
             { stripped stream }
-            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+            tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -6371,7 +6371,7 @@ begin
               end;
 
             { stripped stream }
-            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+            tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -6468,7 +6468,7 @@ begin
             SetLength(buff, 0);
 
             { stripped stream }
-            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+            tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -6525,7 +6525,7 @@ begin
             SetLength(buff, 0);
 
             { stripped stream }
-            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+            tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -6561,7 +6561,7 @@ begin
             { 6: process stream }
             if (FReceivedBuffer.Size - FReceivedBuffer.Position < dSize + C_Cardinal_Size) then
                 Break;
-            tmpStream := TMemoryStream64.Create;
+            tmpStream := TMS64.Create;
             tmpStream.SetPointerWithProtectedMode(FReceivedBuffer.PositionAsPtr, dSize);
             FReceivedBuffer.Position := FReceivedBuffer.Position + dSize;
 
@@ -6607,7 +6607,7 @@ begin
             DisposeObject(tmpStream);
 
             { stripped stream }
-            tmpStream := TMemoryStream64.CustomCreate(FReceivedBuffer.Delta);
+            tmpStream := TMS64.CustomCreate(FReceivedBuffer.Delta);
             if FReceivedBuffer.Size - FReceivedBuffer.Position > 0 then
                 tmpStream.CopyFrom(FReceivedBuffer, FReceivedBuffer.Size - FReceivedBuffer.Position);
             DisposeObject(FReceivedBuffer);
@@ -6842,8 +6842,8 @@ begin
   FCompleteBufferToken := C_DefaultCompleteBufferToken;
 
   FReceivedAbort := False;
-  FReceivedBuffer := TMemoryStream64.CustomCreate(8192);
-  FReceivedBuffer_Busy := TMemoryStream64.CustomCreate(8192);
+  FReceivedBuffer := TMS64.CustomCreate(8192);
+  FReceivedBuffer_Busy := TMS64.CustomCreate(8192);
 
   FBigStreamReceiveProcessing := False;
   FBigStreamTotal := 0;
@@ -6860,14 +6860,14 @@ begin
   FCompleteBufferCompressedSize := 0;
   FCompleteBufferCompleted := 0;
   FCompleteBufferCmd := '';
-  FCompleteBufferReceivedStream := TMemoryStream64.Create;
+  FCompleteBufferReceivedStream := TMS64.Create;
 
   FCurrentQueueData := nil;
   FWaitOnResult := False;
   FPauseResultSend := False;
   FReceiveTriggerRuning := False;
   FReceiveDataCipherSecurity := TCipherSecurity.csNone;
-  FResultDataBuffer := TMemoryStream64.Create;
+  FResultDataBuffer := TMS64.Create;
   FSendDataCipherSecurity := FOwnerFramework.RandomCipherSecurity;
   FCanPauseResultSend := False;
   FQueueList := TCoreClassList.Create;
@@ -7521,7 +7521,7 @@ begin
   OnInternalSendByteBuffer(Self, buffer, Size);
 end;
 
-procedure TPeerIO.WriteCustomBuffer(const buffer: TMemoryStream64);
+procedure TPeerIO.WriteCustomBuffer(const buffer: TMS64);
 begin
   WriteCustomBuffer(buffer.Memory, buffer.Size);
 end;
@@ -7531,7 +7531,7 @@ begin
   WriteCustomBuffer(buffer.Memory, buffer.Size);
 end;
 
-procedure TPeerIO.WriteCustomBuffer(const buffer: TMemoryStream64; const doneFreeBuffer: Boolean);
+procedure TPeerIO.WriteCustomBuffer(const buffer: TMS64; const doneFreeBuffer: Boolean);
 begin
   WriteCustomBuffer(buffer);
   if doneFreeBuffer then
@@ -7578,7 +7578,7 @@ procedure TPeerIO.ContinueResultSend;
 var
   headBuff: array [0 .. 2] of Byte;
   b: TBytes;
-  buff: TMemoryStream64;
+  buff: TMS64;
   dHead, dTail: Cardinal;
   Len: Integer;
   Code: TBytes;
@@ -7593,7 +7593,7 @@ begin
 
   if FCurrentPauseResultSend_CommDataType in [FConsoleToken, FStreamToken] then
     begin
-      buff := TMemoryStream64.Create;
+      buff := TMS64.Create;
 
       if FCurrentPauseResultSend_CommDataType = FConsoleToken then
         begin
@@ -7807,7 +7807,7 @@ begin
       TCommunicationFrameworkClient(FOwnerFramework).SendConsoleCmdM(Cmd, ConsoleData, Param1, Param2, OnResult, OnFailed);
 end;
 
-procedure TPeerIO.SendStreamCmdM(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean);
+procedure TPeerIO.SendStreamCmdM(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean);
 begin
   if FOwnerFramework.InheritsFrom(TCommunicationFrameworkServer) then
       TCommunicationFrameworkServer(FOwnerFramework).SendStreamCmdM(Self, Cmd, StreamData, OnResult, DoneAutoFree)
@@ -7863,7 +7863,7 @@ begin
       TCommunicationFrameworkClient(FOwnerFramework).SendConsoleCmdP(Cmd, ConsoleData, Param1, Param2, OnResult, OnFailed);
 end;
 
-procedure TPeerIO.SendStreamCmdP(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
+procedure TPeerIO.SendStreamCmdP(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
 begin
   if FOwnerFramework.InheritsFrom(TCommunicationFrameworkServer) then
       TCommunicationFrameworkServer(FOwnerFramework).SendStreamCmdP(Self, Cmd, StreamData, OnResult, DoneAutoFree)
@@ -7911,7 +7911,7 @@ begin
       TCommunicationFrameworkClient(FOwnerFramework).SendDirectConsoleCmd(Cmd);
 end;
 
-procedure TPeerIO.SendDirectStreamCmd(Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TPeerIO.SendDirectStreamCmd(Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean);
 begin
   if FOwnerFramework.InheritsFrom(TCommunicationFrameworkServer) then
       TCommunicationFrameworkServer(FOwnerFramework).SendDirectStreamCmd(Self, Cmd, StreamData, DoneAutoFree)
@@ -7977,7 +7977,7 @@ begin
       TCommunicationFrameworkClient(FOwnerFramework).SendCompleteBuffer(Cmd, buff, BuffSize, DoneAutoFree)
 end;
 
-procedure TPeerIO.SendCompleteBuffer(Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TPeerIO.SendCompleteBuffer(Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean);
 begin
   if FOwnerFramework.InheritsFrom(TCommunicationFrameworkServer) then
       TCommunicationFrameworkServer(FOwnerFramework).SendCompleteBuffer(Self, Cmd, buff, DoneAutoFree)
@@ -8288,14 +8288,14 @@ procedure TCommunicationFramework.DelayExecuteOnCompleteBufferState(Sender: TNPo
 var
   P_IO: TPeerIO;
   Cmd: SystemString;
-  CompleteBuff: TMemoryStream64;
+  CompleteBuff: TMS64;
 begin
   P_IO := TPeerIO(FPeerIO_HashPool[Sender.Data3]);
   Cmd := Sender.Data4;
 
   if P_IO <> nil then
     begin
-      CompleteBuff := TMemoryStream64(Sender.Data1);
+      CompleteBuff := TMS64(Sender.Data1);
       if not QuietMode then
           P_IO.PrintCommand('execute complete buffer(delay): %s', Cmd);
       ExecuteCompleteBuffer(P_IO, Cmd, CompleteBuff.Memory, CompleteBuff.Size);
@@ -8469,7 +8469,7 @@ end;
 procedure TCommunicationFramework.CommandResult_BuildP2PAuthToken(Sender: TPeerIO; Result_: TDFE);
 var
   i: Integer;
-  arr: TDataFrameArrayInteger;
+  arr: TDFArrayInteger;
 begin
   arr := Result_.ReadArrayInteger(0);
   SetLength(Sender.FP2PAuthToken, arr.Count * 4);
@@ -8483,7 +8483,7 @@ procedure TCommunicationFramework.Command_BuildP2PAuthToken(Sender: TPeerIO; InD
 var
   i: Integer;
   seed: Integer;
-  arr: TDataFrameArrayInteger;
+  arr: TDFArrayInteger;
 begin
   Sender.ResetSequencePacketBuffer;
   Sender.FSequencePacketSignal := False;
@@ -10107,7 +10107,7 @@ begin
   WriteCustomBuffer(P_IO, buffer, Size);
 end;
 
-procedure TCommunicationFrameworkServer.WriteBuffer(P_IO: TPeerIO; const buffer: TMemoryStream64);
+procedure TCommunicationFrameworkServer.WriteBuffer(P_IO: TPeerIO; const buffer: TMS64);
 begin
   WriteBuffer(P_IO, buffer.Memory, buffer.Size);
 end;
@@ -10117,7 +10117,7 @@ begin
   WriteBuffer(P_IO, buffer.Memory, buffer.Size);
 end;
 
-procedure TCommunicationFrameworkServer.WriteBuffer(P_IO: TPeerIO; const buffer: TMemoryStream64; const doneFreeBuffer: Boolean);
+procedure TCommunicationFrameworkServer.WriteBuffer(P_IO: TPeerIO; const buffer: TMS64; const doneFreeBuffer: Boolean);
 begin
   WriteBuffer(P_IO, buffer);
   if doneFreeBuffer then
@@ -10230,7 +10230,7 @@ begin
   TriggerQueueData(p);
 end;
 
-procedure TCommunicationFrameworkServer.SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendStreamCmdM(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean);
 var
   p: PQueueData;
 begin
@@ -10273,7 +10273,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10301,7 +10301,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10331,7 +10331,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10417,7 +10417,7 @@ begin
   TriggerQueueData(p);
 end;
 
-procedure TCommunicationFrameworkServer.SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendStreamCmdP(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
 var
   p: PQueueData;
 begin
@@ -10460,7 +10460,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10488,7 +10488,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10518,7 +10518,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10556,7 +10556,7 @@ begin
   SendDirectConsoleCmd(P_IO, Cmd, '');
 end;
 
-procedure TCommunicationFrameworkServer.SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendDirectStreamCmd(P_IO: TPeerIO; const Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean);
 var
   p: PQueueData;
 begin
@@ -10597,7 +10597,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -10754,7 +10754,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := P_IO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
-  if FBigStreamMemorySwapSpace and DoneAutoFree and P_IO.IOBusy and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
+  if FBigStreamMemorySwapSpace and DoneAutoFree and P_IO.IOBusy and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMS64) or (BigStream is TMemoryStream)) then
     begin
       p^.BigStream := TSwapSpaceFileStream.CreateSwapSpace(BigStream, BigStream_SwapSpace);
       if DoneAutoFree then
@@ -10799,7 +10799,7 @@ begin
   TriggerQueueData(p);
 end;
 
-procedure TCommunicationFrameworkServer.SendCompleteBuffer(P_IO: TPeerIO; const Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendCompleteBuffer(P_IO: TPeerIO; const Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean);
 begin
   SendCompleteBuffer(P_IO, Cmd, buff.Memory, buff.Size, DoneAutoFree);
   if DoneAutoFree then
@@ -10834,7 +10834,7 @@ begin
   SendConsoleCmdM(PeerIO[IO_ID], Cmd, ConsoleData, Param1, Param2, OnResult, OnFailed);
 end;
 
-procedure TCommunicationFrameworkServer.SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod;
+procedure TCommunicationFrameworkServer.SendStreamCmdM(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod;
   DoneAutoFree: Boolean);
 begin
   SendStreamCmdM(PeerIO[IO_ID], Cmd, StreamData, OnResult, DoneAutoFree);
@@ -10870,7 +10870,7 @@ begin
   SendConsoleCmdP(PeerIO[IO_ID], Cmd, ConsoleData, Param1, Param2, OnResult, OnFailed);
 end;
 
-procedure TCommunicationFrameworkServer.SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendStreamCmdP(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
 begin
   SendStreamCmdP(PeerIO[IO_ID], Cmd, StreamData, OnResult, DoneAutoFree);
 end;
@@ -10900,7 +10900,7 @@ begin
   SendDirectConsoleCmd(PeerIO[IO_ID], Cmd, '');
 end;
 
-procedure TCommunicationFrameworkServer.SendDirectStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendDirectStreamCmd(IO_ID: Cardinal; const Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean);
 begin
   SendDirectStreamCmd(PeerIO[IO_ID], Cmd, StreamData, DoneAutoFree);
 end;
@@ -10940,7 +10940,7 @@ begin
   SendCompleteBuffer(PeerIO[IO_ID], Cmd, buff, BuffSize, DoneAutoFree);
 end;
 
-procedure TCommunicationFrameworkServer.SendCompleteBuffer(IO_ID: Cardinal; const Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkServer.SendCompleteBuffer(IO_ID: Cardinal; const Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean);
 begin
   SendCompleteBuffer(IO_ID, Cmd, buff.Memory, buff.Size, DoneAutoFree);
   if DoneAutoFree then
@@ -11085,7 +11085,7 @@ end;
 
 procedure TCommunicationFrameworkClient.StreamResult_CipherModel(Sender: TPeerIO; Result_: TDFE);
 var
-  arr: TDataFrameArrayByte;
+  arr: TDFArrayByte;
 begin
   if Result_.Count > 0 then
     begin
@@ -11409,7 +11409,7 @@ begin
   WriteCustomBuffer(ClientIO, buffer, Size);
 end;
 
-procedure TCommunicationFrameworkClient.WriteBuffer(const buffer: TMemoryStream64);
+procedure TCommunicationFrameworkClient.WriteBuffer(const buffer: TMS64);
 begin
   WriteBuffer(buffer.Memory, buffer.Size);
 end;
@@ -11419,7 +11419,7 @@ begin
   WriteBuffer(buffer.Memory, buffer.Size);
 end;
 
-procedure TCommunicationFrameworkClient.WriteBuffer(const buffer: TMemoryStream64; const doneFreeBuffer: Boolean);
+procedure TCommunicationFrameworkClient.WriteBuffer(const buffer: TMS64; const doneFreeBuffer: Boolean);
 begin
   WriteBuffer(buffer);
   if doneFreeBuffer then
@@ -11815,7 +11815,7 @@ begin
   TriggerQueueData(p);
 end;
 
-procedure TCommunicationFrameworkClient.SendStreamCmdM(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamMethod; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkClient.SendStreamCmdM(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamMethod; DoneAutoFree: Boolean);
 var
   p: PQueueData;
 begin
@@ -11860,7 +11860,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -11889,7 +11889,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -11920,7 +11920,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -12009,7 +12009,7 @@ begin
   TriggerQueueData(p);
 end;
 
-procedure TCommunicationFrameworkClient.SendStreamCmdP(Cmd: SystemString; StreamData: TMemoryStream64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkClient.SendStreamCmdP(Cmd: SystemString; StreamData: TMS64; const OnResult: TStreamProc; DoneAutoFree: Boolean);
 var
   p: PQueueData;
 begin
@@ -12054,7 +12054,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -12083,7 +12083,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -12114,7 +12114,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -12154,7 +12154,7 @@ begin
   SendDirectConsoleCmd(Cmd, '');
 end;
 
-procedure TCommunicationFrameworkClient.SendDirectStreamCmd(Cmd: SystemString; StreamData: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkClient.SendDirectStreamCmd(Cmd: SystemString; StreamData: TMS64; DoneAutoFree: Boolean);
 var
   p: PQueueData;
 begin
@@ -12198,7 +12198,7 @@ begin
   p^.Cmd := Cmd;
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.DoneAutoFree := True;
-  p^.StreamData := TMemoryStream64.Create;
+  p^.StreamData := TMS64.Create;
   if StreamData <> nil then
       StreamData.FastEncodeTo(p^.StreamData)
   else
@@ -12373,7 +12373,7 @@ begin
   p^.Cipher := ClientIO.FSendDataCipherSecurity;
   p^.BigStreamStartPos := StartPos;
 
-  if FBigStreamMemorySwapSpace and DoneAutoFree and IOBusy and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMemoryStream64) or (BigStream is TMemoryStream)) then
+  if FBigStreamMemorySwapSpace and DoneAutoFree and IOBusy and (BigStream.Size > FBigStreamSwapSpaceTriggerSize) and ((BigStream is TMS64) or (BigStream is TMemoryStream)) then
     begin
       p^.BigStream := TSwapSpaceFileStream.CreateSwapSpace(BigStream, BigStream_SwapSpace);
       if DoneAutoFree then
@@ -12420,7 +12420,7 @@ begin
       ClientIO.PrintCommand('Send complete buffer cmd: %s', Cmd);
 end;
 
-procedure TCommunicationFrameworkClient.SendCompleteBuffer(Cmd: SystemString; buff: TMemoryStream64; DoneAutoFree: Boolean);
+procedure TCommunicationFrameworkClient.SendCompleteBuffer(Cmd: SystemString; buff: TMS64; DoneAutoFree: Boolean);
 begin
   SendCompleteBuffer(Cmd, buff.Memory, buff.Size, DoneAutoFree);
   if DoneAutoFree then
@@ -12470,7 +12470,7 @@ begin
   buff := nil;
 end;
 
-function Tp2pVMFragmentPacket.FillReceiveBuff(Stream: TMemoryStream64): Integer;
+function Tp2pVMFragmentPacket.FillReceiveBuff(Stream: TMS64): Integer;
 begin
   Result := 0;
   if Stream.Size < 13 then
@@ -12494,7 +12494,7 @@ begin
   Result := buffSiz + 13;
 end;
 
-procedure Tp2pVMFragmentPacket.BuildSendBuff(Stream: TMemoryStream64);
+procedure Tp2pVMFragmentPacket.BuildSendBuff(Stream: TMS64);
 begin
   Stream.WritePtr(@buffSiz, 4);
   Stream.WritePtr(@FrameworkID, 4);
@@ -12510,7 +12510,7 @@ begin
   FSequencePacketActivted := {$IFDEF UsedSequencePacketOnP2PVM}True{$ELSE UsedSequencePacketOnP2PVM}False{$ENDIF UsedSequencePacketOnP2PVM};
 
   FLinkVM := nil;
-  FRealSendBuff := TMemoryStream64.Create;
+  FRealSendBuff := TMS64.Create;
   FSendQueue := TCoreClassList.Create;
   FRemote_frameworkID := 0;
   FRemote_p2pID := 0;
@@ -13567,7 +13567,7 @@ var
   i: Integer;
   LP: Pp2pVMListen;
   p64: Int64;
-  sourStream: TMemoryStream64;
+  sourStream: TMS64;
   fPk: Tp2pVMFragmentPacket;
   rPos: Integer;
 begin
@@ -13608,7 +13608,7 @@ begin
 
           { fill fragment buffer }
           p64 := Length(FPhysicsIO.FP2PAuthToken);
-          sourStream := TMemoryStream64.Create;
+          sourStream := TMS64.Create;
           FReceiveStream.Position := p64;
           if FReceiveStream.Size - FReceiveStream.Position > 0 then
               sourStream.CopyFrom(FReceiveStream, FReceiveStream.Size - FReceiveStream.Position);
@@ -13636,7 +13636,7 @@ begin
   if FReceiveStream.Size < 13 then
       exit;
 
-  sourStream := TMemoryStream64.Create;
+  sourStream := TMS64.Create;
   p64 := 0;
   sourStream.SetPointerWithProtectedMode(FReceiveStream.PositionAsPtr(p64), FReceiveStream.Size - p64);
 
@@ -13699,7 +13699,7 @@ begin
 
   if p64 > 0 then
     begin
-      sourStream := TMemoryStream64.CustomCreate(8192);
+      sourStream := TMS64.CustomCreate(8192);
       FReceiveStream.Position := p64;
       if FReceiveStream.Size - FReceiveStream.Position > 0 then
           sourStream.CopyFrom(FReceiveStream, FReceiveStream.Size - FReceiveStream.Position);
@@ -14104,8 +14104,8 @@ begin
   FFrameworkListenPool := TCoreClassList.Create;
   FMaxVMFragmentSize := C_P2PVM_MaxVMFragmentSize;
   FQuietMode := {$IFDEF Communication_QuietMode}True{$ELSE Communication_QuietMode}False{$ENDIF Communication_QuietMode};
-  FReceiveStream := TMemoryStream64.CustomCreate(8192);
-  FSendStream := TMemoryStream64.CustomCreate(8192);
+  FReceiveStream := TMS64.CustomCreate(8192);
+  FSendStream := TMS64.CustomCreate(8192);
   FWaitEchoList := TCoreClassList.Create;
   FVMID := 0;
   OnAuthSuccessOnesNotify := nil;
@@ -15031,7 +15031,7 @@ procedure TCommunicationFramework_CustomStableServer.cmd_OpenStableIO(Sender: TP
 var
   io_def: TStableServer_PhysicsIO_UserDefine;
   connToken: Cardinal;
-  arry: TDataFrameArrayByte;
+  arry: TDFArrayByte;
   connKey: TBytes;
   IO_Array: TIO_Array;
   IO_ID: Cardinal;
@@ -15300,7 +15300,7 @@ procedure TCommunicationFramework_CustomStableClient.BuildStableIO_Result(Sender
 var
   r_token, r_id: Cardinal;
   cSec: TCipherSecurity;
-  arry: TDataFrameArrayByte;
+  arry: TDFArrayByte;
   i: Integer;
   k: TCipherKeyBuffer;
 begin
@@ -15384,7 +15384,7 @@ procedure TCommunicationFramework_CustomStableClient.OpenStableIO_Result(Sender:
 var
   r_token, r_id: Cardinal;
   cSec: TCipherSecurity;
-  arry: TDataFrameArrayByte;
+  arry: TDFArrayByte;
   k: TCipherKeyBuffer;
 begin
   if Result_.Reader.ReadBool then
