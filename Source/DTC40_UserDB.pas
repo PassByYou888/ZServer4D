@@ -2006,8 +2006,11 @@ begin
   FromUserName_ := InData.R.ReadString;
   ToUserName_ := InData.R.ReadString;
   Msg_ := InData.R.ReadString;
-  if Assigned(ON_DTC40_UserDB_Client_Notify) then
-      ON_DTC40_UserDB_Client_Notify.Do_User_Msg(self, FromUserName_, ToUserName_, Msg_);
+  try
+    if Assigned(ON_DTC40_UserDB_Client_Notify) then
+        ON_DTC40_UserDB_Client_Notify.Do_User_Msg(self, FromUserName_, ToUserName_, Msg_);
+  except
+  end;
 end;
 
 procedure TDTC40_UserDB_Client.cmd_Usr_Open(Sender: TPeerIO; InData: TDFE);
@@ -2016,8 +2019,11 @@ var
 begin
   UserName_ := InData.R.ReadString;
   ToUserName_ := InData.R.ReadString;
-  if Assigned(ON_DTC40_UserDB_Client_Notify) then
-      ON_DTC40_UserDB_Client_Notify.Do_User_Open(self, UserName_, ToUserName_);
+  try
+    if Assigned(ON_DTC40_UserDB_Client_Notify) then
+        ON_DTC40_UserDB_Client_Notify.Do_User_Open(self, UserName_, ToUserName_);
+  except
+  end;
 end;
 
 procedure TDTC40_UserDB_Client.cmd_Usr_Close(Sender: TPeerIO; InData: TDFE);
@@ -2026,8 +2032,11 @@ var
 begin
   UserName_ := InData.R.ReadString;
   ToUserName_ := InData.R.ReadString;
-  if Assigned(ON_DTC40_UserDB_Client_Notify) then
-      ON_DTC40_UserDB_Client_Notify.Do_User_Close(self, UserName_, ToUserName_);
+  try
+    if Assigned(ON_DTC40_UserDB_Client_Notify) then
+        ON_DTC40_UserDB_Client_Notify.Do_User_Close(self, UserName_, ToUserName_);
+  except
+  end;
 end;
 
 procedure TDTC40_UserDB_Client.cmd_Usr_Request_Friend(Sender: TPeerIO; InData: TDFE);
@@ -2037,8 +2046,11 @@ begin
   FromUserName_ := InData.R.ReadString;
   DestFriendUserName_ := InData.R.ReadString;
   Msg_ := InData.R.ReadString;
-  if Assigned(ON_DTC40_UserDB_Client_Notify) then
-      ON_DTC40_UserDB_Client_Notify.Do_User_Request_Friend(self, FromUserName_, DestFriendUserName_, Msg_);
+  try
+    if Assigned(ON_DTC40_UserDB_Client_Notify) then
+        ON_DTC40_UserDB_Client_Notify.Do_User_Request_Friend(self, FromUserName_, DestFriendUserName_, Msg_);
+  except
+  end;
 end;
 
 procedure TDTC40_UserDB_Client.cmd_Usr_Kick(Sender: TPeerIO; InData: TDFE);
@@ -2046,8 +2058,11 @@ var
   UserName_: U_String;
 begin
   UserName_ := InData.R.ReadString;
-  if Assigned(ON_DTC40_UserDB_Client_Notify) then
-      ON_DTC40_UserDB_Client_Notify.Do_User_Kick(self, UserName_);
+  try
+    if Assigned(ON_DTC40_UserDB_Client_Notify) then
+        ON_DTC40_UserDB_Client_Notify.Do_User_Kick(self, UserName_);
+  except
+  end;
 end;
 
 constructor TDTC40_UserDB_Client.Create(source_: TDTC40_Info; Param_: U_String);
