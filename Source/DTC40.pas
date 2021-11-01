@@ -1257,13 +1257,19 @@ begin
 
   // search all service
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    begin
-      if L.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
-          L.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
-      // dispatch service
-      if DTC40_ServicePool[i] is TDTC40_Dispatch_Service then
-          L.MergeAndUpdateWorkload(TDTC40_Dispatch_Service(DTC40_ServicePool[i]).ServiceInfoList);
-    end;
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      begin
+        if L.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
+            L.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
+        // dispatch service
+        if DTC40_ServicePool[i] is TDTC40_Dispatch_Service then
+            L.MergeAndUpdateWorkload(TDTC40_Dispatch_Service(DTC40_ServicePool[i]).ServiceInfoList);
+      end;
+
+  // search all DP client
+  for i := 0 to DTC40_ClientPool.Count - 1 do
+    if DTC40_ClientPool[i] is TDTC40_Dispatch_Client then
+        L.MergeAndUpdateWorkload(TDTC40_Dispatch_Client(DTC40_ClientPool[i]).ServiceInfoList);
 
   L.SaveToDF(OutData);
   disposeObject(L);
@@ -2802,6 +2808,8 @@ var
   i: Integer;
   m64: TMS64;
   tmp, found_: TDTC40_Info;
+  arry: TDTC40_Info_Array;
+  ReadyNewInfo_: Boolean;
 begin
   Result := False;
   while D.R.NotEnd do
@@ -2819,15 +2827,19 @@ begin
         end
       else
         begin
+          ReadyNewInfo_ := True;
           if not AutoFree then
-            begin
               DoStatus('autofree is false = memory leak.');
-            end
-          else if (tmp.OnlyInstance) and (GetServiceTypNum(tmp.ServiceTyp) > 0) then
+          if (tmp.OnlyInstance) then
             begin
-              DoStatus('"%s" is only instance.', [tmp.ServiceTyp.Text]);
-            end
-          else
+              arry := SearchService(tmp.ServiceTyp);
+              if Length(arry) > 0 then
+                begin
+                  ReadyNewInfo_ := False;
+                  DoStatus('"%s" is only instance.', [tmp.ServiceTyp.Text]);
+                end;
+            end;
+          if ReadyNewInfo_ then
             begin
               Add(tmp);
               Result := True;
@@ -3713,16 +3725,17 @@ begin
   DelayCheck_Working := False;
   isChange_ := False;
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    begin
-      info_ := ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo);
-      if info_ = nil then
-        begin
-          ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
-          isChange_ := True;
-        end
-      else
-          info_.Assign(DTC40_ServicePool[i].ServiceInfo);
-    end;
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      begin
+        info_ := ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo);
+        if info_ = nil then
+          begin
+            ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
+            isChange_ := True;
+          end
+        else
+            info_.Assign(DTC40_ServicePool[i].ServiceInfo);
+      end;
   if isChange_ then
     begin
       Prepare_UpdateServerInfoToAllClient;
@@ -3774,8 +3787,9 @@ begin
   { register local service. }
   ServiceInfoList := TDTC40_InfoList.Create(True);
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    if ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
-        ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      if ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
+          ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
 
   UpdateToGlobalDispatch;
 end;
@@ -3838,15 +3852,16 @@ var
 begin
   D := TDFE.Create;
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    begin
-      info_ := DTC40_ServicePool[i].ServiceInfo;
-      tmp := TDFE.Create;
-      tmp.WriteMD5(info_.Hash);
-      tmp.WriteInteger(info_.Workload);
-      tmp.WriteInteger(info_.MaxWorkload);
-      D.WriteDataFrame(tmp);
-      disposeObject(tmp);
-    end;
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      begin
+        info_ := DTC40_ServicePool[i].ServiceInfo;
+        tmp := TDFE.Create;
+        tmp.WriteMD5(info_.Hash);
+        tmp.WriteInteger(info_.Workload);
+        tmp.WriteInteger(info_.MaxWorkload);
+        D.WriteDataFrame(tmp);
+        disposeObject(tmp);
+      end;
 
   Service.SendTunnel.GetIO_Array(arry_);
   for ID_ in arry_ do
@@ -4027,8 +4042,9 @@ begin
   { register local service. }
   ServiceInfoList := TDTC40_InfoList.Create(True);
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    if ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
-        ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      if ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo) = nil then
+          ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
 
   { check and build network }
   for i := 0 to ServiceInfoList.Count - 1 do
@@ -4079,16 +4095,17 @@ var
 begin
   isChange_ := False;
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    begin
-      info := ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo);
-      if info = nil then
-        begin
-          ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
-          isChange_ := True;
-        end
-      else
-          info.Assign(DTC40_ServicePool[i].ServiceInfo);
-    end;
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      begin
+        info := ServiceInfoList.FindSame(DTC40_ServicePool[i].ServiceInfo);
+        if info = nil then
+          begin
+            ServiceInfoList.Add(DTC40_ServicePool[i].ServiceInfo.Clone);
+            isChange_ := True;
+          end
+        else
+            info.Assign(DTC40_ServicePool[i].ServiceInfo);
+      end;
 
   if isChange_ or forcePost_ then
     begin
@@ -4123,15 +4140,16 @@ var
 begin
   D := TDFE.Create;
   for i := 0 to DTC40_ServicePool.Count - 1 do
-    begin
-      info_ := DTC40_ServicePool[i].ServiceInfo;
-      tmp := TDFE.Create;
-      tmp.WriteMD5(info_.Hash);
-      tmp.WriteInteger(info_.Workload);
-      tmp.WriteInteger(info_.MaxWorkload);
-      D.WriteDataFrame(tmp);
-      disposeObject(tmp);
-    end;
+    if DTC40_ServicePool[i].DTC40PhysicsService.Activted then
+      begin
+        info_ := DTC40_ServicePool[i].ServiceInfo;
+        tmp := TDFE.Create;
+        tmp.WriteMD5(info_.Hash);
+        tmp.WriteInteger(info_.Workload);
+        tmp.WriteInteger(info_.MaxWorkload);
+        D.WriteDataFrame(tmp);
+        disposeObject(tmp);
+      end;
   Client.SendTunnel.SendDirectStreamCmd('UpdateServiceState', D);
   disposeObject(D);
 end;
