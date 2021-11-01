@@ -81,10 +81,14 @@ type
   end;
 
   TLogData__ = record
+  private
+    FLogDB_Index: Integer;
+  public
     LogDB: SystemString;
     LogTime: TDateTime;
     Log1, Log2: SystemString;
     Index: Integer;
+    property LogDB_Index: Integer read FLogDB_Index;
   end;
 
   PLogData__ = ^TLogData__;
@@ -459,7 +463,7 @@ begin
       tk := GetTimeTick;
       for i := 0 to WaitFreeList.Count - 1 do
         begin
-          DoStatus('recycle IDLE Log Database: %s', [WaitFreeList[i].Name.Text]);
+          DoStatus('recycle Memory, Log Database: %s', [WaitFreeList[i].Name.Text]);
           DB_Pool.Delete(WaitFreeList[i].Name);
           if GetTimeTick - tk > 100 then
               break;
@@ -650,7 +654,8 @@ begin
       arry[i].LogTime := Result_.R.ReadDouble;
       arry[i].Log1 := Result_.R.ReadString;
       arry[i].Log2 := Result_.R.ReadString;
-      arry[i].Index := Result_.R.ReadInteger;
+      arry[i].FLogDB_Index := Result_.R.ReadInteger;
+      arry[i].Index := arry[i].FLogDB_Index;
       inc(i);
     end;
 
