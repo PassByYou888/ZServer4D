@@ -22,7 +22,11 @@ unit zExpression;
 
 interface
 
-uses SysUtils, Variants, CoreClasses, TypInfo, TextParsing, PascalStrings, UnicodeMixedLib,
+uses SysUtils, Variants,
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  CoreClasses, TypInfo, TextParsing, PascalStrings, UnicodeMixedLib,
   DoStatusIO, ListEngine, OpCode;
 
 type
@@ -67,9 +71,11 @@ type
     nttSingle, nttDouble, nttCurrency,
     nttUnknow);
 
+  TExpressionData_Pool = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PExpressionListData>;
+
   TSymbolExpression = class sealed(TCoreClassObject)
   protected
-    FList: TCoreClassList;
+    FList: TExpressionData_Pool;
     FTextStyle: TTextStyle;
   public
     constructor Create(const TextStyle_: TTextStyle);
@@ -88,8 +94,7 @@ type
 
     function InsertSymbol(const idx: Integer; v: TSymbolOperation; charPos: Integer): PExpressionListData;
     function Insert(const idx: Integer; v: TExpressionListData): PExpressionListData;
-    procedure InsertExpression(const idx: Integer; E: TSymbolExpression);
-    procedure AddExpression(const E: TSymbolExpression);
+    procedure AddExpression(const exp_: TSymbolExpression);
     function AddSymbol(const v: TSymbolOperation; charPos: Integer): PExpressionListData;
     function AddBool(const v: Boolean; charPos: Integer): PExpressionListData;
     function AddInt(const v: Integer; charPos: Integer): PExpressionListData;
@@ -106,8 +111,8 @@ type
     function AddString(const v: SystemString; charPos: Integer): PExpressionListData;
     function AddFunc(const v: SystemString; charPos: Integer): PExpressionListData;
     function AddExpressionAsValue(AutoFree: Boolean; Expression: TSymbolExpression; Symbol: TSymbolOperation; Value: Variant; charPos: Integer): PExpressionListData;
-    function Add(const v: TExpressionListData): PExpressionListData;
-    function AddCopy(const v: TExpressionListData): PExpressionListData;
+    function Add(var v: TExpressionListData): PExpressionListData;
+    function AddCopy(var v: TExpressionListData): PExpressionListData;
 
     procedure Delete(const idx: Integer);
     procedure DeleteLast;
@@ -121,12 +126,12 @@ type
     property Items[index: Integer]: PExpressionListData read GetItems; default;
   end;
 
-  TOnDeclValueCall = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
-  TOnDeclValueMethod = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) of object;
+  TOnDeclValue_C = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
+  TOnDeclValue_M = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) of object;
 {$IFDEF FPC}
-  TOnDeclValueProc = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) is nested;
+  TOnDeclValue_P = procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant) is nested;
 {$ELSE FPC}
-  TOnDeclValueProc = reference to procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
+  TOnDeclValue_P = reference to procedure(const Decl: SystemString; var ValType: TExpressionDeclType; var Value: Variant);
 {$ENDIF FPC}
   //
   { text parse support }
@@ -141,74 +146,73 @@ type
   TExpressionValueMatrix = array of TExpressionValueVector;
   PExpressionValueMatrix = ^TExpressionValueMatrix;
 
-  // other
 function NumTextType(s: TPascalString): TNumTextType;
 procedure InitExp(var v: TExpressionListData);
 function dt2op(const v: TExpressionDeclType): TOpValueType;
 function VariantToExpressionDeclType(var v: Variant): TExpressionDeclType;
 
-function ParseOperationState(ParsingEng: TTextParsing;
+function ParseOperationState(ParsingTool_: TTextParsing;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation;
 
-function ParseSymbol(ParsingEng: TTextParsing; WorkSym: TSymbolExpression;
+function ParseSymbol(ParsingTool_: TTextParsing; WorkSym: TSymbolExpression;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; pStates: PExpressionParsingState): Boolean;
 
-function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod; const OnDeclValueProc: TOnDeclValueProc;
+function ParseTextExpressionAsSymbol__(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnDeclValue_C: TOnDeclValue_C; const OnDeclValue_M: TOnDeclValue_M; const OnDeclValue_P: TOnDeclValue_P;
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
-// parsing text as expression structor, backcall is TOnDeclValueCall
-function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+// parsing text as expression structor, backcall is TOnDeclValue_C
+function ParseTextExpressionAsSymbol_C(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnGetValue: TOnDeclValue_C; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
-// parsing text as expression structor, backcall is TOnDeclValueMethod
-function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+// parsing text as expression structor, backcall is TOnDeclValue_M
+function ParseTextExpressionAsSymbol_M(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
-// parsing text as expression structor, backcall is TOnDeclValueProc
-function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+// parsing text as expression structor, backcall is TOnDeclValue_P
+function ParseTextExpressionAsSymbol_P(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnGetValue: TOnDeclValue_P; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // parsing text as expression structor
-function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol(Special_ASCII_: TListPascalString;
   TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // parsing text as expression structor
 function ParseTextExpressionAsSymbol(TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // parsing text as expression structor
-function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+function ParseTextExpressionAsSymbol(Special_ASCII_: TListPascalString; ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // parsing text as expression structor
-function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): TSymbolExpression; overload;
+function ParseTextExpressionAsSymbol(Special_ASCII_: TListPascalString; ExpressionText: SystemString): TSymbolExpression; overload;
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression; overload;
 
 // parsing text as expression structor
-function ParseTextExpressionAsSymbol_M(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol_M(Special_ASCII_: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 // parsing text as expression structor
 function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // parsing text as expression structor
-function ParseTextExpressionAsSymbol_C(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol_C(Special_ASCII_: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_C; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 // parsing text as expression structor
 function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_C; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // parsing text as expression structor
-function ParseTextExpressionAsSymbol_P(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol_P(Special_ASCII_: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_P; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 // parsing text as expression structor
 function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
+  const OnGetValue: TOnDeclValue_P; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression; overload;
 
 // symbol priority
 function RebuildLogicalPrioritySymbol(Exps: TSymbolExpression): TSymbolExpression;
@@ -228,53 +232,53 @@ function BuildAsOpCode(TextStyle: TTextStyle; ExpressionText: SystemString; Refr
 function BuildAsOpCode(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TOpCode; overload;
 
 // Evaluate Expression
-function EvaluateExpressionValue_M(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
-  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
-function EvaluateExpressionValue_C(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
-  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueCall): Variant;
-function EvaluateExpressionValue_P(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
-  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
+function EvaluateExpressionValue_M(UsedCache: Boolean; Special_ASCII_: TListPascalString;
+  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValue_M): Variant;
+function EvaluateExpressionValue_C(UsedCache: Boolean; Special_ASCII_: TListPascalString;
+  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValue_C): Variant;
+function EvaluateExpressionValue_P(UsedCache: Boolean; Special_ASCII_: TListPascalString;
+  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValue_P): Variant;
 {$ENDREGION 'internal define'}
 
 function OpCache: THashObjectList;
 procedure CleanOpCache();
 
 { prototype: EvaluateExpressionValue }
-function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean; overload;
+function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; Special_ASCII_: TListPascalString): Boolean; overload;
 function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle): Boolean; overload;
 function EvaluateExpressionValue(UsedCache: Boolean;
-  SpecialAsciiToken: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString;
+  Special_ASCII_: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): Variant; overload;
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 
 // select used Cache
 function EvaluateExpressionValue(UsedCache: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(UsedCache: Boolean; ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(UsedCache: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(UsedCache: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant; overload;
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): Variant; overload;
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant; overload;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; ExpressionText: SystemString): Variant; overload;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 
 // used Cache
 function EvaluateExpressionValue(ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 function EvaluateExpressionValue(ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(TextStyle: TTextStyle; ExpressionText: SystemString): Variant; overload;
 function EvaluateExpressionValue(TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant; overload;
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): Variant; overload;
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant; overload;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; ExpressionText: SystemString): Variant; overload;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant; overload;
 
 // Evaluate multi Expression as variant Vector
-function EvaluateExpressionVector(DebugMode, UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(DebugMode, UsedCache: Boolean; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector; overload;
-function EvaluateExpressionVector(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(UsedCache: Boolean; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector; overload;
-function EvaluateExpressionVector(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector; overload;
 function EvaluateExpressionVector(ExpressionText: SystemString; opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector; overload;
 function EvaluateExpressionVector(ExpressionText: SystemString; const_vl: THashVariantList): TExpressionValueVector; overload;
@@ -282,7 +286,7 @@ function EvaluateExpressionVector(ExpressionText: SystemString; TextStyle: TText
 function EvaluateExpressionVector(ExpressionText: SystemString): TExpressionValueVector; overload;
 
 // Evaluate multi Expression as variant matrix
-function EvaluateExpressionMatrix(W, H: Integer; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionMatrix(W, H: Integer; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueMatrix; overload;
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString; opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueMatrix; overload;
 function EvaluateExpressionMatrix(W, H: Integer; ExpressionText: SystemString; const_vl: THashVariantList): TExpressionValueMatrix; overload;
@@ -601,7 +605,7 @@ end;
 constructor TSymbolExpression.Create(const TextStyle_: TTextStyle);
 begin
   inherited Create;
-  FList := TCoreClassList.Create;
+  FList := TExpressionData_Pool.Create;
   FTextStyle := TextStyle_;
 end;
 
@@ -618,10 +622,10 @@ var
 begin
   for i := 0 to FList.Count - 1 do
     begin
-      if (PExpressionListData(FList[i])^.ExpressionAutoFree) and (PExpressionListData(FList[i])^.Expression <> nil) then
-          DisposeObject(PExpressionListData(FList[i])^.Expression);
+      if (FList[i]^.ExpressionAutoFree) and (FList[i]^.Expression <> nil) then
+          DisposeObject(FList[i]^.Expression);
 
-      Dispose(PExpressionListData(FList[i]));
+      Dispose(FList[i]);
     end;
 
   FList.Clear;
@@ -800,38 +804,12 @@ begin
   Result := p;
 end;
 
-procedure TSymbolExpression.InsertExpression(const idx: Integer; E: TSymbolExpression);
-var
-  NewList: TCoreClassList;
-  i: Integer;
-  p: PExpressionListData;
-begin
-  NewList := TCoreClassList.Create;
-  NewList.Capacity := E.FList.Count + FList.Count;
-
-  for i := 0 to idx do
-      NewList.Add(FList[i]);
-
-  for i := 0 to E.FList.Count - 1 do
-    begin
-      new(p);
-      p^ := PExpressionListData(E.FList[i])^;
-      NewList.Add(p);
-    end;
-
-  for i := idx to FList.Count - 1 do
-      NewList.Add(FList[i]);
-
-  DisposeObject(FList);
-  FList := NewList;
-end;
-
-procedure TSymbolExpression.AddExpression(const E: TSymbolExpression);
+procedure TSymbolExpression.AddExpression(const exp_: TSymbolExpression);
 var
   i: Integer;
 begin
-  for i := 0 to E.Count - 1 do
-      AddCopy(E[i]^);
+  for i := 0 to exp_.Count - 1 do
+      AddCopy(exp_[i]^);
 end;
 
 function TSymbolExpression.AddSymbol(const v: TSymbolOperation; charPos: Integer): PExpressionListData;
@@ -1049,7 +1027,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.Add(const v: TExpressionListData): PExpressionListData;
+function TSymbolExpression.Add(var v: TExpressionListData): PExpressionListData;
 var
   p: PExpressionListData;
 begin
@@ -1060,7 +1038,7 @@ begin
   Result := p;
 end;
 
-function TSymbolExpression.AddCopy(const v: TExpressionListData): PExpressionListData;
+function TSymbolExpression.AddCopy(var v: TExpressionListData): PExpressionListData;
 var
   p: PExpressionListData;
   i: Integer;
@@ -1120,7 +1098,7 @@ begin
   Result := FList[index];
 end;
 
-function ParseOperationState(ParsingEng: TTextParsing;
+function ParseOperationState(ParsingTool_: TTextParsing;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; var pStates: TExpressionParsingState): TSymbolOperation;
 
 var
@@ -1132,15 +1110,15 @@ begin
   if not(esWaitOp in pStates) then
       Exit;
 
-  while cPos <= ParsingEng.Len do
+  while cPos <= ParsingTool_.Len do
     begin
-      if ParsingEng.isComment(cPos) then
+      if ParsingTool_.isComment(cPos) then
         begin
-          cPos := ParsingEng.GetCommentEndPos(cPos);
+          cPos := ParsingTool_.GetCommentEndPos(cPos);
           Continue;
         end;
 
-      c := ParsingEng.ParsingData.Text[cPos];
+      c := ParsingTool_.ParsingData.Text[cPos];
       bPos := cPos;
 
       if (CharIn(c, ';')) then
@@ -1233,7 +1211,7 @@ begin
           Exit;
         end;
 
-      if (ParsingEng.ComparePosStr(cPos, '>=')) or (ParsingEng.ComparePosStr(cPos, '=>')) then
+      if (ParsingTool_.ComparePosStr(cPos, '>=')) or (ParsingTool_.ComparePosStr(cPos, '=>')) then
         begin
           inc(cPos, 2);
           Result := soEqualOrGreaterThan;
@@ -1241,7 +1219,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '<=')) or (ParsingEng.ComparePosStr(cPos, '=<')) then
+      if (ParsingTool_.ComparePosStr(cPos, '<=')) or (ParsingTool_.ComparePosStr(cPos, '=<')) then
         begin
           inc(cPos, 2);
           Result := soEqualOrLessThan;
@@ -1249,7 +1227,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '<>')) or (ParsingEng.ComparePosStr(cPos, '><')) or (ParsingEng.ComparePosStr(cPos, '!=')) then
+      if (ParsingTool_.ComparePosStr(cPos, '<>')) or (ParsingTool_.ComparePosStr(cPos, '><')) or (ParsingTool_.ComparePosStr(cPos, '!=')) then
         begin
           inc(cPos, 2);
           Result := soNotEqual;
@@ -1257,7 +1235,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '==')) then
+      if (ParsingTool_.ComparePosStr(cPos, '==')) then
         begin
           inc(cPos, 2);
           Result := soEqual;
@@ -1265,7 +1243,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '&&')) then
+      if (ParsingTool_.ComparePosStr(cPos, '&&')) then
         begin
           inc(cPos, 2);
           Result := soAnd;
@@ -1273,7 +1251,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '||')) then
+      if (ParsingTool_.ComparePosStr(cPos, '||')) then
         begin
           inc(cPos, 2);
           Result := soOr;
@@ -1281,7 +1259,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '<<')) then
+      if (ParsingTool_.ComparePosStr(cPos, '<<')) then
         begin
           inc(cPos, 2);
           Result := soShl;
@@ -1289,7 +1267,7 @@ begin
           pStates := pStates + [esWaitValue];
           Exit;
         end;
-      if (ParsingEng.ComparePosStr(cPos, '>>')) then
+      if (ParsingTool_.ComparePosStr(cPos, '>>')) then
         begin
           inc(cPos, 2);
           Result := soShr;
@@ -1332,11 +1310,11 @@ begin
           Exit;
         end;
 
-      if (ParsingEng.isAscii(cPos)) then
+      if (ParsingTool_.isAscii(cPos)) then
         begin
           bPos := cPos;
-          ePos := ParsingEng.GetAsciiEndPos(cPos);
-          Decl := ParsingEng.GetStr(bPos, ePos);
+          ePos := ParsingTool_.GetAsciiEndPos(cPos);
+          Decl := ParsingTool_.GetStr(bPos, ePos);
 
           if Decl.Same('or') then
               Result := soOr
@@ -1366,7 +1344,7 @@ begin
           Exit;
         end;
 
-      if ParsingEng.isNumber(cPos) then
+      if ParsingTool_.isNumber(cPos) then
         begin
           Result := soUnknow;
           Exit;
@@ -1378,7 +1356,7 @@ begin
   Result := soEolSymbol;
 end;
 
-function ParseSymbol(ParsingEng: TTextParsing; WorkSym: TSymbolExpression;
+function ParseSymbol(ParsingTool_: TTextParsing; WorkSym: TSymbolExpression;
   var cPos, bPos, ePos, BlockIndent, PropIndent: Integer; pStates: PExpressionParsingState): Boolean;
 var
   bak_cPos: Integer;
@@ -1388,13 +1366,13 @@ var
   robj: TCoreClassObject;
   p: PExpressionListData;
 begin
-  while cPos <= ParsingEng.Len do
+  while cPos <= ParsingTool_.Len do
     begin
       pStates^ := pStates^ - [esWaitValue, esFirst];
       pStates^ := pStates^ + [esWaitOp];
 
       bak_cPos := cPos;
-      OpState := ParseOperationState(ParsingEng, cPos, bPos, ePos, BlockIndent, PropIndent, pStates^);
+      OpState := ParseOperationState(ParsingTool_, cPos, bPos, ePos, BlockIndent, PropIndent, pStates^);
 
       case OpState of
         soUnknow, soEolSymbol:
@@ -1448,34 +1426,34 @@ begin
   Result := False;
 end;
 
-function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnDeclValueCall: TOnDeclValueCall; const OnDeclValueMethod: TOnDeclValueMethod;
-  const OnDeclValueProc: TOnDeclValueProc;
+function ParseTextExpressionAsSymbol__(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnDeclValue_C: TOnDeclValue_C; const OnDeclValue_M: TOnDeclValue_M;
+  const OnDeclValue_P: TOnDeclValue_P;
   RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 
   procedure PrintError(const s: SystemString);
   begin
     if s = '' then
-        DoStatus('declaration error "%s"', [ParsingEng.Text.Text])
+        DoStatus('declaration error "%s"', [ParsingTool_.Text.Text])
     else
-        DoStatus('declaration error "%s" -> [%s]', [ParsingEng.Text.Text, s]);
+        DoStatus('declaration error "%s" -> [%s]', [ParsingTool_.Text.Text, s]);
     DoStatus('');
   end;
 
-  function GetDeclValue(const Decl: SystemString; var v: Variant): TExpressionDeclType;
+  function DeclValDefine(const Decl: SystemString; var v: Variant): TExpressionDeclType;
   begin
     v := Decl;
     Result := edtProcExp;
 
-    if Assigned(OnDeclValueCall) then
-        OnDeclValueCall(Decl, Result, v);
-    if Assigned(OnDeclValueMethod) then
-        OnDeclValueMethod(Decl, Result, v);
-    if Assigned(OnDeclValueProc) then
-        OnDeclValueProc(Decl, Result, v);
+    if Assigned(OnDeclValue_C) then
+        OnDeclValue_C(Decl, Result, v);
+    if Assigned(OnDeclValue_M) then
+        OnDeclValue_M(Decl, Result, v);
+    if Assigned(OnDeclValue_P) then
+        OnDeclValue_P(Decl, Result, v);
   end;
 
-  function FillProc(var ExpIndex: Integer; const Exps, procExp: TSymbolExpression): TSymbolExpression;
+  function ExtractProc_(var ExpIndex: Integer; const Exps, procExp: TSymbolExpression): TSymbolExpression;
   var
     WasProc: Boolean;
     LocalExp, ResExp: TSymbolExpression;
@@ -1491,9 +1469,9 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
 
     if WasProc then
         LocalExp := procExp.AddExpressionAsValue(
-        True, TSymbolExpression.Create(ParsingEng.TextStyle), soParameter, 'param_1', Exps[ExpIndex]^.charPos)^.Expression
+        True, TSymbolExpression.Create(ParsingTool_.TextStyle), soParameter, 'param_1', Exps[ExpIndex]^.charPos)^.Expression
     else
-        LocalExp := TSymbolExpression.Create(ParsingEng.TextStyle);
+        LocalExp := TSymbolExpression.Create(ParsingTool_.TextStyle);
 
     Result := LocalExp;
 
@@ -1514,7 +1492,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
                   begin
                     inc(ExpIndex, 2);
                     p := LocalExp.AddFunc(p1^.Value, p1^.charPos);
-                    FillProc(ExpIndex, Exps, p^.Expression);
+                    ExtractProc_(ExpIndex, Exps, p^.Expression);
                     Continue;
                   end;
               end
@@ -1531,7 +1509,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
             if p1^.Symbol in [soBlockIndentBegin, soPropIndentBegin] then
               begin
                 inc(ExpIndex);
-                ResExp := FillProc(ExpIndex, Exps, nil);
+                ResExp := ExtractProc_(ExpIndex, Exps, nil);
                 if ResExp <> nil then
                     LocalExp.AddExpressionAsValue(True, ResExp, soBlockIndentBegin, p1^.Symbol, p1^.charPos);
                 Continue;
@@ -1550,7 +1528,7 @@ function __ParseTextExpressionAsSymbol(ParsingEng: TTextParsing; const uName: Sy
                   end;
 
                 LocalExp := procExp.AddExpressionAsValue(True,
-                  TSymbolExpression.Create(ParsingEng.TextStyle), soParameter, 'param_' + IntToStr(procExp.Count + 1),
+                  TSymbolExpression.Create(ParsingTool_.TextStyle), soParameter, 'param_' + IntToStr(procExp.Count + 1),
                   Exps[ExpIndex]^.charPos)^.Expression;
                 inc(ExpIndex);
                 Continue;
@@ -1577,27 +1555,27 @@ var
 begin
   Result := nil;
 
-  if ParsingEng.ParsingData.Len < 1 then
+  if ParsingTool_.ParsingData.Len < 1 then
       Exit;
-  if ParsingEng.TokenCountT([ttTextDecl, ttNumber, ttAscii]) = 0 then
+  if ParsingTool_.TokenCountT([ttTextDecl, ttNumber, ttAscii]) = 0 then
       Exit;
 
   cPos := 1;
   BlockIndent := 0;
   PropIndent := 0;
   State := [esFirst];
-  Container := TSymbolExpression.Create(ParsingEng.TextStyle);
+  Container := TSymbolExpression.Create(ParsingTool_.TextStyle);
 
-  while cPos <= ParsingEng.Len do
+  while cPos <= ParsingTool_.Len do
     begin
-      if ParsingEng.isComment(cPos) then
+      if ParsingTool_.isComment(cPos) then
         begin
-          cPos := ParsingEng.GetCommentEndPos(cPos) + 1;
+          cPos := ParsingTool_.GetCommentEndPos(cPos) + 1;
           Continue;
         end;
 
       // check esWaitOp state
-      if (esWaitOp in State) and (CharIn(ParsingEng.GetChar(cPos), ParsingEng.SymbolTable)) then
+      if (esWaitOp in State) and (CharIn(ParsingTool_.GetChar(cPos), ParsingTool_.SymbolTable)) then
         begin
           isSpecialSymbol := False;
           isNumber := False;
@@ -1609,7 +1587,7 @@ begin
         end
       else
         begin
-          td := ParsingEng.TokenPos[cPos];
+          td := ParsingTool_.TokenPos[cPos];
           isSpecialSymbol := td^.tokenType = ttSpecialSymbol;
           if isSpecialSymbol then
             begin
@@ -1651,11 +1629,11 @@ begin
 
           bPos := cPos;
           ePos := td^.ePos;
-          if (isSpecialSymbol) and (ParsingEng.GetAsciiBeginPos(ePos) <= ePos) then
-              ePos := ParsingEng.GetSpecialSymbolEndPos(ParsingEng.GetAsciiEndPos(ePos));
+          if (isSpecialSymbol) and (ParsingTool_.GetAsciiBeginPos(ePos) <= ePos) then
+              ePos := ParsingTool_.GetSpecialSymbolEndPos(ParsingTool_.GetAsciiEndPos(ePos));
           cPos := ePos;
 
-          Decl := ParsingEng.GetStr(bPos, ePos);
+          Decl := ParsingTool_.GetStr(bPos, ePos);
           if isNumber then
             begin
               if Decl.ComparePos(1, '0x') then
@@ -1689,7 +1667,7 @@ begin
             end
           else if isTextDecl then
             begin
-              Container.AddString(ParsingEng.GetTextBody(Decl), bPos);
+              Container.AddString(ParsingTool_.GetTextBody(Decl), bPos);
             end
           else
             case NumTextType(Decl) of
@@ -1711,7 +1689,7 @@ begin
               nttCurrency: Container.AddCurrency(StrToFloat(Decl), bPos);
               else
                 begin
-                  case GetDeclValue(Decl, RV) of
+                  case DeclValDefine(Decl, RV) of
                     edtBool: Container.AddBool(RV, bPos);
                     edtInt: Container.AddInt(RV, bPos);
                     edtInt64: Container.AddInt64(RV, bPos);
@@ -1743,7 +1721,7 @@ begin
                   end;
                 end;
             end;
-          if not ParseSymbol(ParsingEng, Container, cPos, bPos, ePos, BlockIndent, PropIndent, @State) then
+          if not ParseSymbol(ParsingTool_, Container, cPos, bPos, ePos, BlockIndent, PropIndent, @State) then
               Break
           else
               Continue;
@@ -1751,7 +1729,7 @@ begin
 
       if (isSymbol) then
         begin
-          if not ParseSymbol(ParsingEng, Container, cPos, bPos, ePos, BlockIndent, PropIndent, @State) then
+          if not ParseSymbol(ParsingTool_, Container, cPos, bPos, ePos, BlockIndent, PropIndent, @State) then
               Break
           else
               Continue;
@@ -1763,7 +1741,7 @@ begin
   if (BlockIndent + PropIndent = 0) then
     begin
       i := 0;
-      Result := FillProc(i, Container, nil);
+      Result := ExtractProc_(i, Container, nil);
       if Result = nil then
           PrintError('indent error');
     end
@@ -1773,49 +1751,49 @@ begin
   DisposeObject(Container);
 end;
 
-function ParseTextExpressionAsSymbol_C(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+function ParseTextExpressionAsSymbol_C(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnGetValue: TOnDeclValue_C; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
-  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, OnGetValue, nil, nil, RefrenceOpRT);
+  Result := ParseTextExpressionAsSymbol__(ParsingTool_, uName, OnGetValue, nil, nil, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol_M(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+function ParseTextExpressionAsSymbol_M(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
-  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, OnGetValue, nil, RefrenceOpRT);
+  Result := ParseTextExpressionAsSymbol__(ParsingTool_, uName, nil, OnGetValue, nil, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol_P(ParsingEng: TTextParsing; const uName: SystemString;
-  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+function ParseTextExpressionAsSymbol_P(ParsingTool_: TTextParsing; const uName: SystemString;
+  const OnGetValue: TOnDeclValue_P; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
-  Result := __ParseTextExpressionAsSymbol(ParsingEng, uName, nil, nil, OnGetValue, RefrenceOpRT);
+  Result := ParseTextExpressionAsSymbol__(ParsingTool_, uName, nil, nil, OnGetValue, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol(Special_ASCII_: TListPascalString;
   TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
-  ParsingEng: TTextParsing;
+  ParsingTool_: TTextParsing;
 begin
-  ParsingEng := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_M(ParsingEng, uName, OnGetValue, RefrenceOpRT);
-  DisposeObject(ParsingEng);
+  ParsingTool_ := TTextParsing.Create(ExpressionText, TextStyle, Special_ASCII_);
+  Result := ParseTextExpressionAsSymbol_M(ParsingTool_, uName, OnGetValue, RefrenceOpRT);
+  DisposeObject(ParsingTool_);
 end;
 
 function ParseTextExpressionAsSymbol(TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   Result := ParseTextExpressionAsSymbol(nil, TextStyle, uName, ExpressionText, OnGetValue, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol(Special_ASCII_: TListPascalString;
   ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
-  ParsingEng: TTextParsing;
+  ParsingTool_: TTextParsing;
 begin
-  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, RefrenceOpRT);
-  DisposeObject(ParsingEng);
+  ParsingTool_ := TTextParsing.Create(ExpressionText, tsPascal, Special_ASCII_);
+  Result := ParseTextExpressionAsSymbol_M(ParsingTool_, '', nil, RefrenceOpRT);
+  DisposeObject(ParsingTool_);
 end;
 
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
@@ -1823,13 +1801,13 @@ begin
   Result := ParseTextExpressionAsSymbol(nil, ExpressionText, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): TSymbolExpression;
+function ParseTextExpressionAsSymbol(Special_ASCII_: TListPascalString; ExpressionText: SystemString): TSymbolExpression;
 var
-  ParsingEng: TTextParsing;
+  ParsingTool_: TTextParsing;
 begin
-  ParsingEng := TTextParsing.Create(ExpressionText, tsPascal, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', nil, SystemOpRunTime);
-  DisposeObject(ParsingEng);
+  ParsingTool_ := TTextParsing.Create(ExpressionText, tsPascal, Special_ASCII_);
+  Result := ParseTextExpressionAsSymbol_M(ParsingTool_, '', nil, SystemOpRunTime);
+  DisposeObject(ParsingTool_);
 end;
 
 function ParseTextExpressionAsSymbol(ExpressionText: SystemString): TSymbolExpression;
@@ -1837,53 +1815,53 @@ begin
   Result := ParseTextExpressionAsSymbol(nil, ExpressionText);
 end;
 
-function ParseTextExpressionAsSymbol_M(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol_M(Special_ASCII_: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
-  ParsingEng: TTextParsing;
+  ParsingTool_: TTextParsing;
 begin
-  ParsingEng := TextEngClass.Create(ExpressionText, TextStyle, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_M(ParsingEng, '', OnGetValue, RefrenceOpRT);
-  DisposeObject(ParsingEng);
+  ParsingTool_ := TextEngClass.Create(ExpressionText, TextStyle, Special_ASCII_);
+  Result := ParseTextExpressionAsSymbol_M(ParsingTool_, '', OnGetValue, RefrenceOpRT);
+  DisposeObject(ParsingTool_);
 end;
 
 function ParseTextExpressionAsSymbol_M(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueMethod; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_M; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   Result := ParseTextExpressionAsSymbol_M(nil, TextEngClass, TextStyle, uName, ExpressionText, OnGetValue, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol_C(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol_C(Special_ASCII_: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_C; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
-  ParsingEng: TTextParsing;
+  ParsingTool_: TTextParsing;
 begin
-  ParsingEng := TextEngClass.Create(ExpressionText, TextStyle, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_C(ParsingEng, '', OnGetValue, RefrenceOpRT);
-  DisposeObject(ParsingEng);
+  ParsingTool_ := TextEngClass.Create(ExpressionText, TextStyle, Special_ASCII_);
+  Result := ParseTextExpressionAsSymbol_C(ParsingTool_, '', OnGetValue, RefrenceOpRT);
+  DisposeObject(ParsingTool_);
 end;
 
 function ParseTextExpressionAsSymbol_C(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueCall; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_C; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   Result := ParseTextExpressionAsSymbol_C(nil, TextEngClass, TextStyle, uName, ExpressionText, OnGetValue, RefrenceOpRT);
 end;
 
-function ParseTextExpressionAsSymbol_P(SpecialAsciiToken: TListPascalString;
+function ParseTextExpressionAsSymbol_P(Special_ASCII_: TListPascalString;
   TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_P; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 var
-  ParsingEng: TTextParsing;
+  ParsingTool_: TTextParsing;
 begin
-  ParsingEng := TextEngClass.Create(ExpressionText, TextStyle, SpecialAsciiToken);
-  Result := ParseTextExpressionAsSymbol_P(ParsingEng, '', OnGetValue, RefrenceOpRT);
-  DisposeObject(ParsingEng);
+  ParsingTool_ := TextEngClass.Create(ExpressionText, TextStyle, Special_ASCII_);
+  Result := ParseTextExpressionAsSymbol_P(ParsingTool_, '', OnGetValue, RefrenceOpRT);
+  DisposeObject(ParsingTool_);
 end;
 
 function ParseTextExpressionAsSymbol_P(TextEngClass: TTextParsingClass; TextStyle: TTextStyle; const uName, ExpressionText: SystemString;
-  const OnGetValue: TOnDeclValueProc; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
+  const OnGetValue: TOnDeclValue_P; RefrenceOpRT: TOpCustomRunTime): TSymbolExpression;
 begin
   Result := ParseTextExpressionAsSymbol_P(nil, TextEngClass, TextStyle, uName, ExpressionText, OnGetValue, RefrenceOpRT);
 end;
@@ -2221,25 +2199,25 @@ var
       end;
   end;
 
-  function ProcessPriority(_e: TSymbolExpression): TSymbolExpression;
+  function ProcessPriority(exp_: TSymbolExpression): TSymbolExpression;
   var
     i, j: Integer;
-    E, ResExp: TSymbolExpression;
+    tmp, ResExp: TSymbolExpression;
     p, funcP: PExpressionListData;
   begin
-    E := RebuildLogicalPrioritySymbol(_e);
-    if E = nil then
+    tmp := RebuildLogicalPrioritySymbol(exp_);
+    if tmp = nil then
       begin
         Result := nil;
         PrintError('parse priority failed');
         Exit;
       end;
 
-    Result := TSymbolExpression.Create(E.FTextStyle);
+    Result := TSymbolExpression.Create(tmp.FTextStyle);
 
-    for i := 0 to E.Count - 1 do
+    for i := 0 to tmp.Count - 1 do
       begin
-        p := E[i];
+        p := tmp[i];
         if p^.DeclType = edtExpressionAsValue then
           begin
             case p^.Symbol of
@@ -2287,7 +2265,7 @@ var
             Result.Add(p^);
           end;
       end;
-    DisposeObject([E]);
+    DisposeObject(tmp);
   end;
 
 var
@@ -2339,8 +2317,7 @@ var
     case sym of
       soAdd: Result := op_Add_Prefix.Create(False);
       soSub: Result := op_Sub_Prefix.Create(False);
-      else
-        Result := nil;
+      else Result := nil;
     end;
     if Result <> nil then
       begin
@@ -2371,14 +2348,12 @@ var
       soNotEqual: Result := op_NotEqual.Create(False);
       soShl: Result := op_Shl.Create(False);
       soShr: Result := op_Shr.Create(False);
-      else
-        Result := nil;
+      else Result := nil;
     end;
     if Result <> nil then
       begin
         Result.ParsedInfo := uName;
         Result.ParsedLineNo := LineNo;
-
         OpContainer.Add(Result);
       end;
   end;
@@ -2576,7 +2551,6 @@ var
 
                     inc(SymbolIndex);
                     ResOp := ProcessIndent(p2^.Symbol);
-
                   end
                 else if ((OwnerIndentSym = soBlockIndentBegin) and (p2^.Symbol = soBlockIndentEnd)) or
                   ((OwnerIndentSym = soPropIndentBegin) and (p2^.Symbol = soPropIndentEnd)) then
@@ -2727,8 +2701,8 @@ begin
   DisposeObject(sym);
 end;
 
-function EvaluateExpressionValue_M(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
-  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueMethod): Variant;
+function EvaluateExpressionValue_M(UsedCache: Boolean; Special_ASCII_: TListPascalString;
+  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValue_M): Variant;
 var
   sym: TSymbolExpression;
   Op: TOpCode;
@@ -2753,7 +2727,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_M(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
+      sym := ParseTextExpressionAsSymbol_M(Special_ASCII_, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
 
       if sym <> nil then
         begin
@@ -2779,8 +2753,8 @@ begin
     end;
 end;
 
-function EvaluateExpressionValue_C(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
-  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueCall): Variant;
+function EvaluateExpressionValue_C(UsedCache: Boolean; Special_ASCII_: TListPascalString;
+  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValue_C): Variant;
 var
   sym: TSymbolExpression;
   Op: TOpCode;
@@ -2805,7 +2779,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_C(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
+      sym := ParseTextExpressionAsSymbol_C(Special_ASCII_, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
 
       if sym <> nil then
         begin
@@ -2831,8 +2805,8 @@ begin
     end;
 end;
 
-function EvaluateExpressionValue_P(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
-  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValueProc): Variant;
+function EvaluateExpressionValue_P(UsedCache: Boolean; Special_ASCII_: TListPascalString;
+  TextEngClass: TTextParsingClass; TextStyle: TTextStyle; ExpressionText: SystemString; const OnGetValue: TOnDeclValue_P): Variant;
 var
   sym: TSymbolExpression;
   Op: TOpCode;
@@ -2857,7 +2831,7 @@ begin
   else
     begin
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol_P(SpecialAsciiToken, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
+      sym := ParseTextExpressionAsSymbol_P(Special_ASCII_, TextEngClass, TextStyle, '', ExpressionText, OnGetValue, SystemOpRunTime);
 
       if sym <> nil then
         begin
@@ -2915,13 +2889,13 @@ begin
     end
 end;
 
-function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; SpecialAsciiToken: TListPascalString): Boolean;
+function IsSymbolVectorExpression(ExpressionText: SystemString; TextStyle: TTextStyle; Special_ASCII_: TListPascalString): Boolean;
 var
   t: TTextParsing;
   L: TPascalStringList;
 begin
   Result := False;
-  t := TTextParsing.Create(umlDeleteChar(ExpressionText, #13#10#32#9), TextStyle, SpecialAsciiToken, SpacerSymbol.v);
+  t := TTextParsing.Create(umlDeleteChar(ExpressionText, #13#10#32#9), TextStyle, Special_ASCII_, SpacerSymbol.v);
   L := TPascalStringList.Create;
   if t.FillSymbolVector(L) then
     begin
@@ -2940,7 +2914,7 @@ begin
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean;
-  SpecialAsciiToken: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString;
+  Special_ASCII_: TListPascalString; DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): Variant;
 var
   v: TExpressionValueVector;
@@ -2949,9 +2923,9 @@ var
   i: Integer;
   exp_const_vl: TExpression_ConstVL;
 begin
-  if IsSymbolVectorExpression(ExpressionText, TextStyle, SpecialAsciiToken) then
+  if IsSymbolVectorExpression(ExpressionText, TextStyle, Special_ASCII_) then
     begin
-      v := EvaluateExpressionVector(DebugMode, UsedCache, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+      v := EvaluateExpressionVector(DebugMode, UsedCache, Special_ASCII_, TextStyle, ExpressionText, opRT, const_vl);
       Result := ExpressionValueVectorToStr(v).Text;
       SetLength(v, 0);
       Exit;
@@ -2979,7 +2953,7 @@ begin
       exp_const_vl.VL := const_vl;
 
       Result := NULL;
-      sym := ParseTextExpressionAsSymbol(SpecialAsciiToken, TextStyle, '', ExpressionText, {$IFDEF FPC}@{$ENDIF FPC}exp_const_vl.GetValue, opRT);
+      sym := ParseTextExpressionAsSymbol(Special_ASCII_, TextStyle, '', ExpressionText, {$IFDEF FPC}@{$ENDIF FPC}exp_const_vl.GetValue, opRT);
 
       if sym <> nil then
         begin
@@ -3010,10 +2984,10 @@ begin
     end;
 end;
 
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString;
   DebugMode: Boolean; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, TextStyle, ExpressionText, opRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, Special_ASCII_, DebugMode, TextStyle, ExpressionText, opRT, nil);
 end;
 
 function EvaluateExpressionValue(UsedCache: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
@@ -3036,29 +3010,29 @@ begin
   Result := EvaluateExpressionValue(UsedCache, nil, False, TextStyle, ExpressionText, opRT, nil);
 end;
 
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, opRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, Special_ASCII_, DebugMode, tsPascal, ExpressionText, opRT, nil);
 end;
 
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, False, tsPascal, ExpressionText, opRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, Special_ASCII_, False, tsPascal, ExpressionText, opRT, nil);
 end;
 
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, SystemOpRunTime, nil);
+  Result := EvaluateExpressionValue(UsedCache, Special_ASCII_, DebugMode, tsPascal, ExpressionText, SystemOpRunTime, nil);
 end;
 
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): Variant;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, False, tsPascal, ExpressionText, SystemOpRunTime, nil);
+  Result := EvaluateExpressionValue(UsedCache, Special_ASCII_, False, tsPascal, ExpressionText, SystemOpRunTime, nil);
 end;
 
-function EvaluateExpressionValue(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
+function EvaluateExpressionValue(UsedCache: Boolean; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, False, TextStyle, ExpressionText, opRT, nil);
+  Result := EvaluateExpressionValue(UsedCache, Special_ASCII_, False, TextStyle, ExpressionText, opRT, nil);
 end;
 
 function EvaluateExpressionValue(ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
@@ -3081,32 +3055,32 @@ begin
   Result := EvaluateExpressionValue(True, nil, False, TextStyle, ExpressionText, opRT);
 end;
 
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, opRT);
+  Result := EvaluateExpressionValue(True, Special_ASCII_, DebugMode, tsPascal, ExpressionText, opRT);
 end;
 
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, False, tsPascal, ExpressionText, opRT);
+  Result := EvaluateExpressionValue(True, Special_ASCII_, False, tsPascal, ExpressionText, opRT);
 end;
 
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; DebugMode: Boolean; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, DebugMode, tsPascal, ExpressionText, SystemOpRunTime);
+  Result := EvaluateExpressionValue(True, Special_ASCII_, DebugMode, tsPascal, ExpressionText, SystemOpRunTime);
 end;
 
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; ExpressionText: SystemString): Variant;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; ExpressionText: SystemString): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, False, tsPascal, ExpressionText, SystemOpRunTime);
+  Result := EvaluateExpressionValue(True, Special_ASCII_, False, tsPascal, ExpressionText, SystemOpRunTime);
 end;
 
-function EvaluateExpressionValue(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
+function EvaluateExpressionValue(Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString; opRT: TOpCustomRunTime): Variant;
 begin
-  Result := EvaluateExpressionValue(True, SpecialAsciiToken, False, TextStyle, ExpressionText, opRT);
+  Result := EvaluateExpressionValue(True, Special_ASCII_, False, TextStyle, ExpressionText, opRT);
 end;
 
-function EvaluateExpressionVector(DebugMode, UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(DebugMode, UsedCache: Boolean; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
 var
   t: TTextParsing;
@@ -3116,7 +3090,7 @@ begin
   SetLength(Result, 0);
   if ExpressionText = '' then
       Exit;
-  t := TTextParsing.Create(ExpressionText, TextStyle, SpecialAsciiToken, SpacerSymbol.v);
+  t := TTextParsing.Create(ExpressionText, TextStyle, Special_ASCII_, SpacerSymbol.v);
   L := TPascalStringList.Create;
   if t.FillSymbolVector(L) then
     begin
@@ -3124,7 +3098,7 @@ begin
       for i := 0 to L.Count - 1 do
         begin
           try
-              Result[i] := EvaluateExpressionValue(UsedCache, SpecialAsciiToken, DebugMode, TextStyle, L[i], opRT, const_vl);
+              Result[i] := EvaluateExpressionValue(UsedCache, Special_ASCII_, DebugMode, TextStyle, L[i], opRT, const_vl);
           except
               Result[i] := NULL;
           end;
@@ -3134,16 +3108,16 @@ begin
   DisposeObject(t);
 end;
 
-function EvaluateExpressionVector(UsedCache: Boolean; SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(UsedCache: Boolean; Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
 begin
-  Result := EvaluateExpressionVector(False, UsedCache, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+  Result := EvaluateExpressionVector(False, UsedCache, Special_ASCII_, TextStyle, ExpressionText, opRT, const_vl);
 end;
 
-function EvaluateExpressionVector(SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+function EvaluateExpressionVector(Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
 begin
-  Result := EvaluateExpressionVector(False, False, SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+  Result := EvaluateExpressionVector(False, False, Special_ASCII_, TextStyle, ExpressionText, opRT, const_vl);
 end;
 
 function EvaluateExpressionVector(ExpressionText: SystemString; opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueVector;
@@ -3167,14 +3141,14 @@ begin
 end;
 
 function EvaluateExpressionMatrix(W, H: Integer;
-  SpecialAsciiToken: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
+  Special_ASCII_: TListPascalString; TextStyle: TTextStyle; ExpressionText: SystemString;
   opRT: TOpCustomRunTime; const_vl: THashVariantList): TExpressionValueMatrix; overload;
 var
   buff: TExpressionValueVector;
   i, j, k: Integer;
 begin
   SetLength(Result, 0, 0);
-  buff := EvaluateExpressionVector(SpecialAsciiToken, TextStyle, ExpressionText, opRT, const_vl);
+  buff := EvaluateExpressionVector(Special_ASCII_, TextStyle, ExpressionText, opRT, const_vl);
   if length(buff) >= W * H then
     begin
       SetLength(Result, H, W);
