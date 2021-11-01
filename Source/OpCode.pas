@@ -22,7 +22,11 @@ unit OpCode;
 
 interface
 
-uses SysUtils, Variants, Math, CoreClasses, PascalStrings, DoStatusIO, ListEngine, UnicodeMixedLib;
+uses SysUtils, Variants, Math,
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  CoreClasses, PascalStrings, DoStatusIO, ListEngine, UnicodeMixedLib;
 
 type
   TOpValueType = (
@@ -33,9 +37,7 @@ type
 
   TOpCode = class;
   TOpCustomRunTime = class;
-
   TOpParam = array of Variant;
-
   TOnOpCall = function(var OP_Param: TOpParam): Variant;
   TOnOpMethod = function(var OP_Param: TOpParam): Variant of object;
   TOnObjectOpCall = function(Sender: TOpCustomRunTime; var OP_Param: TOpParam): Variant;
@@ -63,7 +65,7 @@ type
   POpRTData = ^TOpRTData;
 
   TOpSystemAPI = class(TCoreClassObject)
-  public
+  private
     function DoInt(var OP_Param: TOpParam): Variant;
     function DoFrac(var OP_Param: TOpParam): Variant;
     function DoExp(var OP_Param: TOpParam): Variant;
@@ -123,7 +125,7 @@ type
     function DoStr(var OP_Param: TOpParam): Variant;
     function DoMultiple(var OP_Param: TOpParam): Variant;
     function DoPrint(var OP_Param: TOpParam): Variant;
-    // system
+  public
     procedure RegistationSystemAPI(RunTime: TOpCustomRunTime);
   end;
 
@@ -135,7 +137,6 @@ type
     Trigger: POpRTData;
     UserObject: TCoreClassObject;
     UserData: Pointer;
-
     constructor Create;
     constructor CustomCreate(maxHashSiz_: Integer); virtual;
     destructor Destroy; override;
@@ -169,8 +170,10 @@ type
       Value: Variant;
       ValueType: TOpValueType;
     end;
+
+    TOpData_List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<POpData__>;
   protected
-    FParam: TCoreClassList;
+    FParam: TOpData_List;
     FAutoFreeLink: Boolean;
     function DoExecute(opRT: TOpCustomRunTime): Variant; virtual;
     function GetParam(index: Integer): POpData__;
@@ -180,27 +183,19 @@ type
     Owner: TOpCode;
     ParsedInfo: SystemString;
     ParsedLineNo: Integer;
-
-    constructor Create(AFreeLink: Boolean);
+    constructor Create(FreeLink_: Boolean);
     destructor Destroy; override;
-
     procedure SaveToStream(stream: TCoreClassStream);
     class function LoadFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
-
     function AddValue(v: Variant): Integer; overload;
     function AddValueT(v: Variant; VT: TOpValueType): Integer; overload;
     function AddLink(Obj: TOpCode): Integer;
-
-    function CloneNewSelf: TOpCode;
-
+    function Clone: TOpCode;
     property Param[index: Integer]: POpData__ read GetParam; default;
     function Count: Integer;
-
     function Execute: Variant; overload;
     function Execute(opRT: TOpCustomRunTime): Variant; overload;
-
     function OwnerRoot: TOpCode;
-
     property AutoFreeLink: Boolean read FAutoFreeLink write FAutoFreeLink;
   end;
 
@@ -428,7 +423,7 @@ end;
 
 function LoadOpFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Boolean;
 
-  function LoadFromDataFrame_(CurDataEng: TDFE): TOpCode;
+  function LoadFromDataFrame_(D_: TDFE): TOpCode;
   var
     Name_: SystemString;
     RegPtr: POpRegData;
@@ -438,30 +433,30 @@ function LoadOpFromStream(stream: TCoreClassStream; out LoadedOp: TOpCode): Bool
     v: Variant;
     VT: TOpValueType;
   begin
-    Name_ := CurDataEng.Reader.ReadString;
+    Name_ := D_.Reader.ReadString;
     RegPtr := GetRegistedOp(Name_);
     if RegPtr <> nil then
       begin
         Result := RegPtr^.opClass.Create(True);
-        Result.ParsedInfo := CurDataEng.Reader.ReadString;
-        Result.ParsedLineNo := CurDataEng.Reader.ReadInteger;
-        cnt := CurDataEng.Reader.ReadInteger;
+        Result.ParsedInfo := D_.Reader.ReadString;
+        Result.ParsedLineNo := D_.Reader.ReadInteger;
+        cnt := D_.Reader.ReadInteger;
         for i := 0 to cnt - 1 do
           begin
-            NeedNewOp := CurDataEng.Reader.ReadBool;
+            NeedNewOp := D_.Reader.ReadBool;
 
             if NeedNewOp then
               begin
                 // create new TOpCode
                 newDataEng := TDFE.Create;
-                CurDataEng.Reader.ReadDataFrame(newDataEng);
+                D_.Reader.ReadDataFrame(newDataEng);
                 Result.AddLink(LoadFromDataFrame_(newDataEng));
                 DisposeObject(newDataEng);
               end
             else
               begin
-                v := CurDataEng.Reader.ReadVariant;
-                VT := TOpValueType(CurDataEng.Reader.ReadInteger);
+                v := D_.Reader.ReadVariant;
+                VT := TOpValueType(D_.Reader.ReadInteger);
                 Result.AddValueT(v, VT);
               end;
           end;
@@ -1105,7 +1100,7 @@ end;
 
 constructor TOpCustomRunTime.Create;
 begin
-  CustomCreate(1024);
+  CustomCreate($FF);
 end;
 
 constructor TOpCustomRunTime.CustomCreate(maxHashSiz_: Integer);
@@ -1113,7 +1108,7 @@ begin
   inherited Create;
   ProcList := THashList.CustomCreate(maxHashSiz_);
   ProcList.AutoFreeData := True;
-  ProcList.AccessOptimization := True;
+  ProcList.AccessOptimization := False;
   ProcList.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}FreeNotifyProc;
   Trigger := nil;
   UserObject := nil;
@@ -1397,12 +1392,12 @@ begin
     end;
 end;
 
-constructor TOpCode.Create(AFreeLink: Boolean);
+constructor TOpCode.Create(FreeLink_: Boolean);
 begin
   inherited Create;
   Owner := nil;
-  FParam := TCoreClassList.Create;
-  FAutoFreeLink := AFreeLink;
+  FParam := TOpData_List.Create;
+  FAutoFreeLink := FreeLink_;
   ParsedInfo := '';
   ParsedLineNo := 0;
 end;
@@ -1419,6 +1414,7 @@ begin
           p := FParam[i];
           if (FAutoFreeLink) and (p^.Op <> nil) then
               DisposeObject(p^.Op);
+          p^.Value := NULL;
           Dispose(p);
         end;
       FParam.Clear;
@@ -1428,32 +1424,32 @@ begin
 end;
 
 procedure TOpCode.SaveToStream(stream: TCoreClassStream);
-  procedure SaveToDataFrame(Op: TOpCode; CurDataEng: TDFE);
+  procedure SaveToDataFrame(Op: TOpCode; D_: TDFE);
   var
     i: Integer;
     p: POpData__;
     newDataEng: TDFE;
   begin
-    CurDataEng.WriteString(Op.ClassName);
-    CurDataEng.WriteString(Op.ParsedInfo);
-    CurDataEng.WriteInteger(Op.ParsedLineNo);
-    CurDataEng.WriteInteger(Op.Count);
+    D_.WriteString(Op.ClassName);
+    D_.WriteString(Op.ParsedInfo);
+    D_.WriteInteger(Op.ParsedLineNo);
+    D_.WriteInteger(Op.Count);
     for i := 0 to Op.Count - 1 do
       begin
         p := Op[i];
         if p^.Op <> nil then
           begin
-            CurDataEng.WriteBool(True);
+            D_.WriteBool(True);
             newDataEng := TDFE.Create;
             SaveToDataFrame(p^.Op, newDataEng);
-            CurDataEng.WriteDataFrame(newDataEng);
+            D_.WriteDataFrame(newDataEng);
             DisposeObject(newDataEng);
           end
         else
           begin
-            CurDataEng.WriteBool(False);
-            CurDataEng.WriteVariant(p^.Value);
-            CurDataEng.WriteInteger(Integer(p^.ValueType));
+            D_.WriteBool(False);
+            D_.WriteVariant(p^.Value);
+            D_.WriteInteger(Integer(p^.ValueType));
           end;
       end;
   end;
@@ -1464,7 +1460,7 @@ begin
   DataEng := TDFE.Create;
   DataEng.WriteInteger(1);
   SaveToDataFrame(self, DataEng);
-  DataEng.EncodeTo(stream, True);
+  DataEng.FastEncodeTo(stream);
   DisposeObject(DataEng);
 end;
 
@@ -1525,7 +1521,7 @@ begin
   new(p);
 
   if Obj.Owner <> nil then
-      p^.Op := Obj.CloneNewSelf
+      p^.Op := Obj.Clone
   else
       p^.Op := Obj;
 
@@ -1536,7 +1532,7 @@ begin
   Result := FParam.Add(p);
 end;
 
-function TOpCode.CloneNewSelf: TOpCode;
+function TOpCode.Clone: TOpCode;
 var
   i: Integer;
   p: POpData__;
@@ -1549,7 +1545,7 @@ begin
     begin
       p := FParam[i];
       if p^.Op <> nil then
-          Result.AddLink(p^.Op.CloneNewSelf)
+          Result.AddLink(p^.Op.Clone)
       else
           Result.AddValueT(p^.Value, p^.ValueType);
     end;
@@ -1951,6 +1947,7 @@ RegisterOp(op_Sub);
 RegisterOp(op_Mul);
 RegisterOp(op_Div);
 RegisterOp(op_IntDiv);
+RegisterOp(op_Pow);
 RegisterOp(op_Mod);
 RegisterOp(op_Or);
 RegisterOp(op_And);
