@@ -28,7 +28,7 @@ uses Variants,
   FPCGenericStructlist,
 {$ENDIF FPC}
   CoreClasses, PascalStrings, DoStatusIO, UnicodeMixedLib,
-  Geometry2DUnit, DataFrameEngine,
+  Geometry2DUnit, DataFrameEngine, ListEngine,
   TextParsing, zExpression, OpCode,
   ZJson, GHashList, NumberBase,
   NotifyObjectBase, CoreCipher, MemoryStream64,
@@ -95,6 +95,7 @@ type
     // admin
     procedure cmd_NM_Save(Sender: TPeerIO; InData: TDFE);
     procedure cmd_NM_Search(Sender: TPeerIO; InData, OutData: TDFE);
+    procedure cmd_NM_SearchAndRunScript(Sender: TPeerIO; InData: TDFE);
   protected
     ProgressTempNMList: TDTC40_Var_NumberModulePool_List;
     procedure Progress_NMPool(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
@@ -119,12 +120,12 @@ type
   TOnDTC40_Var_Client_NM_Change = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool; NM: TNumberModule) of object;
   TOnDTC40_Var_Client_NM_Remove_Event = procedure(Sender: TDTC40_Var_Client; NMName: U_String) of object;
 
-  TON_NM_GetC = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
-  TON_NM_GetM = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) of object;
+  TON_NM_GetC = procedure(Sender: TDTC40_Var_Client; L: TDTC40_Var_NumberModulePool_List);
+  TON_NM_GetM = procedure(Sender: TDTC40_Var_Client; L: TDTC40_Var_NumberModulePool_List) of object;
 {$IFDEF FPC}
-  TON_NM_GetP = procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool) is nested;
+  TON_NM_GetP = procedure(Sender: TDTC40_Var_Client; L: TDTC40_Var_NumberModulePool_List) is nested;
 {$ELSE FPC}
-  TON_NM_GetP = reference to procedure(Sender: TDTC40_Var_Client; NMPool_: TDTC40_VarService_NM_Pool);
+  TON_NM_GetP = reference to procedure(Sender: TDTC40_Var_Client; L: TDTC40_Var_NumberModulePool_List);
 {$ENDIF FPC}
 
   TON_NM_Get = class(TOnResultBridge)
@@ -255,6 +256,7 @@ type
     procedure NM_SearchC(filter: U_String; MaxNum: Integer; AutoOpen: Boolean; OnResult: TON_NM_SearchC);
     procedure NM_SearchM(filter: U_String; MaxNum: Integer; AutoOpen: Boolean; OnResult: TON_NM_SearchM);
     procedure NM_SearchP(filter: U_String; MaxNum: Integer; AutoOpen: Boolean; OnResult: TON_NM_SearchP);
+    procedure NM_SearchAndRunScript(filter: U_String; ExpressionTexts_: U_StringArray);
   end;
 
 implementation
@@ -867,6 +869,78 @@ begin
 {$ENDIF FPC}
 end;
 
+procedure TDTC40_Var_Service.cmd_NM_SearchAndRunScript(Sender: TPeerIO; InData: TDFE);
+var
+  IODef_: TDTC40_Var_Service_IO_Define;
+  filter_: U_String;
+  Exp_Arry: U_StringArray;
+
+{$IFDEF FPC}
+  procedure fpc_Progress_(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
+  var
+    i: Integer;
+    Exp_: U_String;
+  begin
+    if not umlSearchMatch(filter_, Obj.Name) then
+        exit;
+    try
+      for i := 0 to length(Exp_Arry) - 1 do
+        begin
+          Exp_ := Exp_Arry[i];
+          if Exp_.L > 0 then
+            begin
+              if Obj.IsVectorScript(Exp_) then
+                  Obj.RunVectorScript(Exp_)
+              else
+                  Obj.RunScript(Exp_);
+            end;
+        end;
+    except
+    end;
+  end;
+{$ENDIF FPC}
+  procedure Do_Read_Exp_Arry;
+  var
+    i: Integer;
+  begin
+    SetLength(Exp_Arry, InData.Count - 2);
+    for i := 1 to InData.Count - 1 do
+        Exp_Arry[i - 1] := umlTrimSpace(InData.R.ReadString);
+  end;
+
+begin
+  IODef_ := DTNoAuthService.GetUserDefineRecvTunnel(Sender) as TDTC40_Var_Service_IO_Define;
+  filter_ := InData.R.ReadString;
+  Do_Read_Exp_Arry;
+{$IFDEF FPC}
+  NMBigPool.ProgressP(@fpc_Progress_);
+{$ELSE FPC}
+  NMBigPool.ProgressP(procedure(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool)
+    var
+      i: Integer;
+      Exp_: U_String;
+    begin
+      if not umlSearchMatch(filter_, Obj.Name) then
+          exit;
+      try
+        for i := 0 to length(Exp_Arry) - 1 do
+          begin
+            Exp_ := Exp_Arry[i];
+            if Exp_.L > 0 then
+              begin
+                if Obj.IsVectorScript(Exp_) then
+                    Obj.RunVectorScript(Exp_)
+                else
+                    Obj.RunScript(Exp_);
+              end;
+          end;
+      except
+      end;
+    end);
+{$ENDIF FPC}
+  SetLength(Exp_Arry, 0);
+end;
+
 procedure TDTC40_Var_Service.Progress_NMPool(const Name: PSystemString; Obj: TDTC40_VarService_NM_Pool);
 begin
   if (Obj.IsTemp) and (not Obj.IsFreeing) and (Obj.OverTime < GetTimeTick) then
@@ -893,6 +967,7 @@ begin
   DTNoAuthService.RecvTunnel.RegisterStream('NM_Script').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Script;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_Save').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Save;
   DTNoAuthService.RecvTunnel.RegisterStream('NM_Search').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_Search;
+  DTNoAuthService.RecvTunnel.RegisterDirectStream('NM_SearchAndRunScript').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_NM_SearchAndRunScript;
   DTNoAuthService.RecvTunnel.PeerIOUserDefineClass := TDTC40_Var_Service_IO_Define;
   // is only instance
   ServiceInfo.OnlyInstance := True;
@@ -1017,38 +1092,43 @@ end;
 
 procedure TON_NM_Get.DoStreamParamEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData, Result_: TDFE);
 var
+  L: TDTC40_Var_NumberModulePool_List;
   NM_Pool_: TDTC40_VarService_NM_Pool;
 begin
+  L := TDTC40_Var_NumberModulePool_List.Create;
   while Result_.R.NotEnd do
     begin
       NM_Pool_ := Client.GetNM(Result_.R.ReadString);
       Result_.R.ReadNMPool(NM_Pool_);
-
-      try
-        if Assigned(OnResultC) then
-            OnResultC(Client, NM_Pool_);
-        if Assigned(OnResultM) then
-            OnResultM(Client, NM_Pool_);
-        if Assigned(OnResultP) then
-            OnResultP(Client, NM_Pool_);
-      except
-      end;
+      L.Add(NM_Pool_);
     end;
-  DelayFreeObject(1.0, self);
+  try
+    if Assigned(OnResultC) then
+        OnResultC(Client, L);
+    if Assigned(OnResultM) then
+        OnResultM(Client, L);
+    if Assigned(OnResultP) then
+        OnResultP(Client, L);
+  except
+  end;
+  DelayFreeObject(1.0, self, L);
 end;
 
 procedure TON_NM_Get.DoStreamFailedEvent(Sender: TPeerIO; Param1: Pointer; Param2: TObject; SendData: TDFE);
+var
+  L: TDTC40_Var_NumberModulePool_List;
 begin
+  L := TDTC40_Var_NumberModulePool_List.Create;
   try
     if Assigned(OnResultC) then
-        OnResultC(Client, nil);
+        OnResultC(Client, L);
     if Assigned(OnResultM) then
-        OnResultM(Client, nil);
+        OnResultM(Client, L);
     if Assigned(OnResultP) then
-        OnResultP(Client, nil);
+        OnResultP(Client, L);
   except
   end;
-  DelayFreeObject(1.0, self);
+  DelayFreeObject(1.0, self, L);
 end;
 
 constructor TON_NM_GetValue.Create;
@@ -1674,6 +1754,19 @@ begin
   tmp.OnResultP := OnResult;
   DTNoAuthClient.SendTunnel.SendStreamCmdM('NM_Search', d, nil, nil,
 {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamParamEvent, {$IFDEF FPC}@{$ENDIF FPC}tmp.DoStreamFailedEvent);
+  DisposeObject(d);
+end;
+
+procedure TDTC40_Var_Client.NM_SearchAndRunScript(filter: U_String; ExpressionTexts_: U_StringArray);
+var
+  d: TDFE;
+  i: Integer;
+begin
+  d := TDFE.Create;
+  d.WriteString(filter);
+  for i := 0 to length(ExpressionTexts_) - 1 do
+      d.WriteString(ExpressionTexts_[i]);
+  DTNoAuthClient.SendTunnel.SendDirectStreamCmd('NM_SearchAndRunScript', d);
   DisposeObject(d);
 end;
 
