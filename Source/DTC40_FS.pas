@@ -421,8 +421,8 @@ var
   fd: TFS_Service_File_Data;
 begin
   inherited Create(PhysicsService_, ServiceTyp, Param_);
-  // max complete buffer 1M
-  DTNoAuthService.RecvTunnel.MaxCompleteBufferSize := 1024 * 1024 + 512 * 1024;
+  // max complete buffer 2M
+  DTNoAuthService.RecvTunnel.MaxCompleteBufferSize := EStrToInt64(ParamList.GetDefaultValue('MaxBuffer', '2*1024*1024'), 2 * 1024 * 1024);
   DTNoAuthService.RecvTunnel.CompleteBufferCompressed := False;
   DTNoAuthService.RecvTunnel.RegisterCompleteBuffer('FS_PostFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_PostFile;
   DTNoAuthService.RecvTunnel.RegisterDirectStream('FS_GetFile').OnExecute := {$IFDEF FPC}@{$ENDIF FPC}cmd_FS_GetFile;

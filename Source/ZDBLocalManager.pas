@@ -1385,9 +1385,15 @@ begin
   isNewDB := not umlFileExists(fn);
 
   if isNewDB then
-      Result := TZDBLMStore.CreateNew(fn)
+    begin
+      Result := TZDBLMStore.CreateNew(fn);
+      DoStatus('create new DB file "%s"', [fn.Text]);
+    end
   else
+    begin
       Result := TZDBLMStore.Create(fn, ReadOnly);
+      DoStatus('Open DB file "%s"', [fn.Text]);
+    end;
 
   Result.NotifyIntf := Self;
   Result.FName := dataBaseName_;

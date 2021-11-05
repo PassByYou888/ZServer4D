@@ -313,6 +313,7 @@ type
   end;
 
   PQueueData = ^TQueueData;
+  TQueueData_Pool = {$IFDEF FPC}specialize {$ENDIF FPC} TOrderStruct<PQueueData>;
 
   TSwapSpaceList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TCoreClassStream>;
 
@@ -453,10 +454,12 @@ type
     procedure Decode(d: TDFE);
   end;
 
+  TBigStreamBatchPostData_List = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<PBigStreamBatchPostData>;
+
   TBigStreamBatch = class(TCoreClassObject)
   protected
     FOwner: TPeerIO;
-    FList: TCoreClassList;
+    FList: TBigStreamBatchPostData_List;
     function GetItems(const index: Integer): PBigStreamBatchPostData;
   public
     constructor Create(Owner_: TPeerIO);
@@ -611,7 +614,7 @@ type
     FEncryptInstance: TCipher_Base;
     FAllSendProcessing: Boolean;
     FReceiveProcessing: Boolean;
-    FQueueList: TCoreClassList;
+    FQueuePool: TQueueData_Pool;
     FLastCommunicationTick: TTimeTick;
     LastCommunicationTick_Received: TTimeTick;
     LastCommunicationTick_KeepAlive: TTimeTick;
@@ -1841,25 +1844,26 @@ type
   TCommunicationFrameworkClientClass = class of TCommunicationFrameworkClient;
 {$ENDREGION 'CommunicationFrameworkClient'}
 {$REGION 'P2pVM'}
-  Pp2pVMFragmentPacket = ^Tp2pVMFragmentPacket;
+  PP2PVMFragmentPacket = ^TP2PVMFragmentPacket;
 
-  Tp2pVMFragmentPacket = record
+  TP2PVMFragmentPacket = record
     buffSiz: Cardinal;
     FrameworkID: Cardinal;
     p2pID: Cardinal;
     pkType: Byte;
     buff: PByte;
-
     procedure Init;
     function FillReceiveBuff(Stream: TMS64): Integer;
     procedure BuildSendBuff(Stream: TMS64);
   end;
 
+  TP2P_VM_Fragment_Packet_Pool = {$IFDEF FPC}specialize {$ENDIF FPC} TOrderStruct<PP2PVMFragmentPacket>;
+
   TP2PVM_PeerIO = class(TPeerIO)
   protected
     FLinkVM: TCommunicationFrameworkWithP2PVM;
     FRealSendBuff: TMS64;
-    FSendQueue: TCoreClassList;
+    FSendQueue: TP2P_VM_Fragment_Packet_Pool;
     FRemote_frameworkID: Cardinal;
     FRemote_p2pID: Cardinal;
     FIP: TIPV6;
@@ -2443,8 +2447,8 @@ procedure DisposeQueueData(const v: PQueueData);
 procedure InitQueueData(var v: TQueueData);
 function NewQueueData: PQueueData;
 
-function BuildP2PVMPacket(buffSiz, FrameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPacket;
-procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
+function BuildP2PVMPacket(buffSiz, FrameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): PP2PVMFragmentPacket;
+procedure FreeP2PVMPacket(p: PP2PVMFragmentPacket);
 
 function IsSystemCMD(const Cmd: U_String): Boolean;
 
@@ -2781,9 +2785,9 @@ begin
   InitQueueData(Result^);
 end;
 
-function BuildP2PVMPacket(buffSiz, FrameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): Pp2pVMFragmentPacket;
+function BuildP2PVMPacket(buffSiz, FrameworkID, p2pID: Cardinal; pkType: Byte; buff: PByte): PP2PVMFragmentPacket;
 var
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   new(p);
   p^.buffSiz := buffSiz;
@@ -2801,7 +2805,7 @@ begin
   Result := p;
 end;
 
-procedure FreeP2PVMPacket(p: Pp2pVMFragmentPacket);
+procedure FreeP2PVMPacket(p: PP2PVMFragmentPacket);
 begin
   if (p^.buff <> nil) and (p^.buffSiz > 0) then
       FreeMem(p^.buff, p^.buffSiz);
@@ -4491,14 +4495,14 @@ end;
 
 function TBigStreamBatch.GetItems(const index: Integer): PBigStreamBatchPostData;
 begin
-  Result := PBigStreamBatchPostData(FList[index]);
+  Result := FList[index];
 end;
 
 constructor TBigStreamBatch.Create(Owner_: TPeerIO);
 begin
   inherited Create;
   FOwner := Owner_;
-  FList := TCoreClassList.Create;
+  FList := TBigStreamBatchPostData_List.Create;
 end;
 
 destructor TBigStreamBatch.Destroy;
@@ -4538,12 +4542,12 @@ end;
 
 function TBigStreamBatch.First: PBigStreamBatchPostData;
 begin
-  Result := PBigStreamBatchPostData(FList[0]);
+  Result := FList[0];
 end;
 
 function TBigStreamBatch.Last: PBigStreamBatchPostData;
 begin
-  Result := PBigStreamBatchPostData(FList[FList.Count - 1]);
+  Result := FList[FList.Count - 1];
 end;
 
 procedure TBigStreamBatch.DeleteLast;
@@ -4557,7 +4561,7 @@ var
   p: PBigStreamBatchPostData;
   i: Integer;
 begin
-  p := PBigStreamBatchPostData(FList[index]);
+  p := FList[index];
   DisposeObject(p^.Source);
   Dispose(p);
   FList.Delete(index);
@@ -6673,88 +6677,74 @@ begin
     end;
 
   try
-    while FQueueList.Count > 0 do
+    while FQueuePool.num > 0 do
       begin
         if not Connected then
             Break;
         if FWaitOnResult then
             Break;
-        p := FQueueList[0];
+        p := FQueuePool.current^.data;
         FCurrentQueueData := p;
         case p^.State of
           qsSendConsoleCMD:
             begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stConsole]);
-
               FSyncPick := p;
               FWaitOnResult := True;
               IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendConsoleCmd);
-
               FSyncPick := nil;
-
-              FQueueList.Delete(0);
+              FQueuePool.Next;
               Break;
             end;
           qsSendStreamCMD:
             begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stStream]);
-
               FSyncPick := p;
               FWaitOnResult := True;
               IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendStreamCmd);
               FSyncPick := nil;
-
-              FQueueList.Delete(0);
+              FQueuePool.Next;
               Break;
             end;
           qsSendDirectConsoleCMD:
             begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stDirestConsole]);
-
               FSyncPick := p;
               IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendDirectConsoleCmd);
               FSyncPick := nil;
-
               DisposeQueueData(p);
-              FQueueList.Delete(0);
+              FQueuePool.Next;
             end;
           qsSendDirectStreamCMD:
             begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stDirestStream]);
-
               FSyncPick := p;
               IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendDirectStreamCmd);
               FSyncPick := nil;
-
               DisposeQueueData(p);
-              FQueueList.Delete(0);
+              FQueuePool.Next;
             end;
           qsSendBigStream:
             begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSendBigStream]);
-
               FSyncPick := p;
               FWaitBigStreamReceiveDoneSignal := True;
               IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendBigStreamCmd);
               FSyncPick := nil;
-
               DisposeQueueData(p);
-              FQueueList.Delete(0);
-
+              FQueuePool.Next;
               Break;
             end;
           qsSendCompleteBuffer:
             begin
               AtomInc(FOwnerFramework.Statistics[TStatisticsType.stSendCompleteBuffer]);
-
               FSyncPick := p;
               IO_SyncMethod(CurrentActiveThread_, SendSync, {$IFDEF FPC}@{$ENDIF FPC}Sync_InternalSendCompleteBufferCmd);
-
               FSyncPick := nil;
-
               DisposeQueueData(p);
-              FQueueList.Delete(0);
+              FQueuePool.Next;
             end;
+          else RaiseInfo('error.');
         end;
       end;
   finally
@@ -6870,7 +6860,7 @@ begin
   FResultDataBuffer := TMS64.Create;
   FSendDataCipherSecurity := FOwnerFramework.RandomCipherSecurity;
   FCanPauseResultSend := False;
-  FQueueList := TCoreClassList.Create;
+  FQueuePool := TQueueData_Pool.Create;
 
   UpdateLastCommunicationTime;
   LastCommunicationTick_Received := FLastCommunicationTick;
@@ -6906,7 +6896,7 @@ begin
 
   AtomInc(FOwnerFramework.Statistics[TStatisticsType.stTriggerConnect]);
 
-  InitSequencePacketModel(512, $FFFF);
+  InitSequencePacketModel(128, $FFFF);
 
   FP2PVMTunnel := nil;
   SetLength(FP2PAuthToken, $FF);
@@ -6987,9 +6977,11 @@ begin
 
   LockIO;
   try
-    for i := 0 to FQueueList.Count - 1 do
-        DisposeQueueData(FQueueList[i]);
-    FQueueList.Clear;
+    while FQueuePool.num > 0 do
+      begin
+        DisposeQueueData(FQueuePool.current^.data);
+        FQueuePool.Next;
+      end;
   finally
       UnLockIO;
   end;
@@ -7005,7 +6997,7 @@ begin
       DisposeObject(FUserSpecial);
 
   // free buffer
-  DisposeObject(FQueueList);
+  DisposeObject(FQueuePool);
   DisposeObject(FReceivedBuffer);
   DisposeObject(FReceivedBuffer_Busy);
   DisposeObject(FCompleteBufferReceivedStream);
@@ -7036,7 +7028,7 @@ begin
     (IOSendBuffer.Size > 0) or
     (SendingSequencePacketHistory.Count > 0) or
     (SequencePacketReceivedPool.Count > 0) or
-    (FQueueList.Count > 0) or
+    (FQueuePool.num > 0) or
     (FReceivedBuffer.Size > 0) or
     (FReceivedBuffer_Busy.Size > 0) or
     (FWaitOnResult) or
@@ -7501,7 +7493,7 @@ procedure TPeerIO.PostQueueData(p: PQueueData);
 begin
   FOwnerFramework.CmdSendStatistics.IncValue(p^.Cmd, 1);
   LockIO;
-  FQueueList.Add(p);
+  FQueuePool.Push(p);
   UnLockIO;
 end;
 
@@ -11714,9 +11706,9 @@ begin
   Result := nil;
   if ClientIO = nil then
       exit;
-  if ClientIO.FQueueList.Count = 0 then
+  if ClientIO.FQueuePool.num = 0 then
       exit;
-  Result := PQueueData(ClientIO.FQueueList[ClientIO.FQueueList.Count - 1]);
+  Result := PQueueData(ClientIO.FQueuePool.Last^.data);
 end;
 
 function TCommunicationFrameworkClient.LastQueueCmd: SystemString;
@@ -11735,7 +11727,7 @@ begin
   Result := 0;
   if ClientIO = nil then
       exit;
-  Result := ClientIO.FQueueList.Count;
+  Result := ClientIO.FQueuePool.num;
 end;
 
 procedure TCommunicationFrameworkClient.SendConsoleCmdM(Cmd, ConsoleData: SystemString; const OnResult: TConsoleMethod);
@@ -12461,7 +12453,7 @@ begin
       Result := False;
 end;
 
-procedure Tp2pVMFragmentPacket.Init;
+procedure TP2PVMFragmentPacket.Init;
 begin
   buffSiz := 0;
   FrameworkID := 0;
@@ -12470,7 +12462,7 @@ begin
   buff := nil;
 end;
 
-function Tp2pVMFragmentPacket.FillReceiveBuff(Stream: TMS64): Integer;
+function TP2PVMFragmentPacket.FillReceiveBuff(Stream: TMS64): Integer;
 begin
   Result := 0;
   if Stream.Size < 13 then
@@ -12494,7 +12486,7 @@ begin
   Result := buffSiz + 13;
 end;
 
-procedure Tp2pVMFragmentPacket.BuildSendBuff(Stream: TMS64);
+procedure TP2PVMFragmentPacket.BuildSendBuff(Stream: TMS64);
 begin
   Stream.WritePtr(@buffSiz, 4);
   Stream.WritePtr(@FrameworkID, 4);
@@ -12511,7 +12503,7 @@ begin
 
   FLinkVM := nil;
   FRealSendBuff := TMS64.Create;
-  FSendQueue := TCoreClassList.Create;
+  FSendQueue := TP2P_VM_Fragment_Packet_Pool.Create;
   FRemote_frameworkID := 0;
   FRemote_p2pID := 0;
   FillPtrByte(@FIP, SizeOf(FIP), 0);
@@ -12549,8 +12541,11 @@ begin
         end;
     end;
 
-  for i := 0 to FSendQueue.Count - 1 do
-      FreeP2PVMPacket(FSendQueue[i]);
+  while FSendQueue.num > 0 do
+    begin
+      FreeP2PVMPacket(FSendQueue.current^.data);
+      FSendQueue.Next;
+    end;
   DisposeObject(FSendQueue);
   DisposeObject(FRealSendBuff);
 
@@ -12605,13 +12600,13 @@ begin
       { send fragment }
       while siz > FLinkVM.FMaxVMFragmentSize do
         begin
-          FSendQueue.Add(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, C_p2pVM_LogicFragmentData, p));
+          FSendQueue.Push(BuildP2PVMPacket(FLinkVM.FMaxVMFragmentSize, FRemote_frameworkID, FRemote_p2pID, C_p2pVM_LogicFragmentData, p));
           inc(p, FLinkVM.FMaxVMFragmentSize);
           dec(siz, FLinkVM.FMaxVMFragmentSize);
         end;
 
       if siz > 0 then
-          FSendQueue.Add(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, C_p2pVM_LogicFragmentData, p));
+          FSendQueue.Push(BuildP2PVMPacket(siz, FRemote_frameworkID, FRemote_p2pID, C_p2pVM_LogicFragmentData, p));
     end;
 
   FRealSendBuff.Clear;
@@ -12631,7 +12626,7 @@ end;
 
 function TP2PVM_PeerIO.WriteBufferEmpty: Boolean;
 begin
-  Result := (FRealSendBuff.Size = 0) and (FSendQueue.Count = 0);
+  Result := (FRealSendBuff.Size = 0) and (FSendQueue.num = 0);
 end;
 
 procedure TP2PVM_PeerIO.Progress;
@@ -13531,7 +13526,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.Hook_SendByteBuffer(const Sender: TPeerIO; const buff: PByte; siz: NativeInt);
 var
-  t: Tp2pVMFragmentPacket;
+  t: TP2PVMFragmentPacket;
 begin
   if siz <= 0 then
       exit;
@@ -13568,7 +13563,7 @@ var
   LP: Pp2pVMListen;
   p64: Int64;
   sourStream: TMS64;
-  fPk: Tp2pVMFragmentPacket;
+  fPk: TP2PVMFragmentPacket;
   rPos: Integer;
 begin
   if FReceiveStream.Size <= 0 then
@@ -14068,15 +14063,15 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.DoProcessPerClientFragmentSend(P_IO: TPeerIO);
 var
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if TP2PVM_PeerIO(P_IO).FLinkVM <> Self then
       exit;
 
-  if TP2PVM_PeerIO(P_IO).FSendQueue.Count > 0 then
+  if TP2PVM_PeerIO(P_IO).FSendQueue.num > 0 then
     begin
-      p := TP2PVM_PeerIO(P_IO).FSendQueue[0];
-      TP2PVM_PeerIO(P_IO).FSendQueue.Delete(0);
+      p := TP2PVM_PeerIO(P_IO).FSendQueue.current^.data;
+      TP2PVM_PeerIO(P_IO).FSendQueue.Next;
       p^.BuildSendBuff(FSendStream);
       FreeP2PVMPacket(p);
     end;
@@ -14502,7 +14497,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.AuthSuccessed;
 var
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   p := BuildP2PVMPacket(0, 0, 0, C_p2pVM_AuthSuccessed, nil);
 
@@ -14514,7 +14509,7 @@ end;
 procedure TCommunicationFrameworkWithP2PVM.echoing(const OnEchoPtr: POnEcho; Timeout: TTimeTick);
 var
   u64ptr: UInt64;
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
   i: Integer;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
@@ -14593,7 +14588,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.echoBuffer(const buff: Pointer; const siz: NativeInt);
 var
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
@@ -14609,7 +14604,7 @@ var
   LP: Pp2pVMListen;
   c: TCommunicationFramework;
   RBuf: array [0 .. 18] of Byte;
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
     begin
@@ -14654,7 +14649,7 @@ end;
 procedure TCommunicationFrameworkWithP2PVM.SendListenState(const FrameworkID: Cardinal; const IPV6: TIPV6; const Port: Word; const Listening: Boolean);
 var
   RBuf: array [0 .. 18] of Byte;
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
@@ -14671,7 +14666,7 @@ end;
 procedure TCommunicationFrameworkWithP2PVM.SendConnecting(const Remote_frameworkID, FrameworkID, p2pID: Cardinal; const IPV6: TIPV6; const Port: Word);
 var
   RBuf: array [0 .. 25] of Byte;
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
@@ -14690,7 +14685,7 @@ end;
 procedure TCommunicationFrameworkWithP2PVM.SendConnectedReponse(const Remote_frameworkID, Remote_p2pID, FrameworkID, p2pID: Cardinal);
 var
   RBuf: array [0 .. 7] of Byte;
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;
@@ -14706,7 +14701,7 @@ end;
 
 procedure TCommunicationFrameworkWithP2PVM.SendDisconnect(const Remote_frameworkID, Remote_p2pID: Cardinal);
 var
-  p: Pp2pVMFragmentPacket;
+  p: PP2PVMFragmentPacket;
 begin
   if (FPhysicsIO = nil) or (not WasAuthed) then
       exit;

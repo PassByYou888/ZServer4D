@@ -276,6 +276,8 @@ type
     procedure DoFree(var Data: T_); virtual;
     procedure Clear;
     property Current: POrderStruct_ read FFirst;
+    property First: POrderStruct_ read FFirst;
+    property Last: POrderStruct_ read FLast;
     procedure Next;
     procedure Push(Data: T_);
     property Num: NativeInt read FNum;
@@ -305,6 +307,8 @@ type
     procedure DoFree(Data: PT_); virtual;
     procedure Clear;
     property Current: POrderPtrStruct_ read FFirst;
+    property First: POrderPtrStruct_ read FFirst;
+    property Last: POrderPtrStruct_ read FLast;
     procedure Next;
     procedure Push(Data: T_);
     procedure PushPtr(Data: PT_);
