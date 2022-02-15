@@ -2,6 +2,8 @@
 
 ZSERVER4D是一套高级通讯系统的地基平台，它偏向于开发工艺和多平台支持
 
+**注意：ZS以后不再维护(见ZNet中的说明)，更新请转ZNet（自带ZS升级程序，可一键升级到ZNet）** https://github.com/PassByYou888/ZNet
+
  
 ## 功能
 
